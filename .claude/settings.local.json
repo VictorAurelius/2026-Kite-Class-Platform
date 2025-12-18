@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(plantuml:*)",
+      "Bash(apt list:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}

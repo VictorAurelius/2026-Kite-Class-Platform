@@ -1,0 +1,110 @@
+@startuml KiteClass Node Provisioning Flow
+!theme plain
+skinparam sequence {
+    ArrowColor #2196F3
+    ActorBorderColor #1976D2
+    LifeLineBorderColor #1976D2
+    ParticipantBorderColor #424242
+    ParticipantBackgroundColor #E3F2FD
+    BoxBackgroundColor #FFF3E0
+    FontSize 11
+}
+
+title KiteClass Node Provisioning Flow with AI Agent
+
+actor "Customer" as customer
+participant "Sale Module" as sale
+participant "AI Agent Module" as ai
+participant "Maintaining Module" as maintain
+queue "SQS Queue" as sqs
+database "Aurora DB" as db
+storage "S3 Storage" as s3
+participant "EKS Cluster" as eks
+participant "New KiteClass\nInstance" as instance
+
+== Order & Payment ==
+customer -> sale: Submit order with:\n- Package selection\n- Technical configs\n- Personal photo
+activate sale
+sale -> db: Create order record
+sale -> sale: Process payment
+sale --> customer: Payment confirmation
+deactivate sale
+
+== AI Branding Generation ==
+customer -> ai: Upload personal photo
+activate ai
+ai -> ai: Remove background\n(Remove.bg API)
+ai -> ai: Extract primary colors
+ai -> ai: Generate marketing copy\n(OpenAI GPT-4)
+ai -> ai: Create banner/logo\n(Stable Diffusion XL)
+ai -> s3: Upload generated assets:\n- Logo variants\n- Banners\n- Marketing images
+ai -> db: Save asset metadata
+ai --> customer: Preview branding assets\n(Cost: ~$0.19)
+deactivate ai
+
+== Provisioning Request ==
+sale -> maintain: Send provision request:\n- Order ID\n- Instance config\n- AI asset references
+activate maintain
+maintain -> db: Create instance record\n(status: PENDING)
+maintain -> sqs: Queue provision job
+maintain --> sale: Request accepted
+deactivate maintain
+
+== Infrastructure Provisioning ==
+sqs -> maintain: Poll job
+activate maintain
+maintain -> db: Create dedicated Aurora DB:\n- Schema initialization\n- Default data setup
+maintain -> s3: Create instance buckets:\n- /assets\n- /videos\n- /uploads
+maintain -> eks: Deploy services:\n- Main Class Service (Java)\n- User Service (Java)\n- CMC Service (Java)\n- Video Service (Java)\n- Streaming Service (Node.js)\n- Forum Service (Java)
+activate eks
+eks --> maintain: Services deployed
+deactivate eks
+deactivate maintain
+
+== Frontend Deployment ==
+maintain -> eks: Deploy Next.js Frontend:\n- Inject AI branding\n- Configure instance settings\n- Set up routing
+activate maintain
+activate eks
+eks -> s3: Fetch AI-generated assets
+eks -> eks: Build frontend with\ncustom branding
+eks --> maintain: Frontend ready
+deactivate eks
+maintain -> db: Update instance status:\nACTIVE
+maintain --> customer: Instance URL:\nhttps://{custom}.kiteclass.com
+deactivate maintain
+
+== Post-Deployment ==
+customer -> instance: Access platform
+activate instance
+instance -> db: Load data from\ndedicated DB
+instance -> s3: Load branded assets
+instance --> customer: Display customized\nplatform with AI branding
+deactivate instance
+
+note right of ai
+  **AI Generation (~30 seconds)**
+  - Background removal
+  - Color palette extraction
+  - Logo generation (3 variants)
+  - Banner creation (5 sizes)
+  - Marketing copy (10 variations)
+  Total cost: $0.19 per instance
+end note
+
+note right of maintain
+  **Provisioning Time: 3-5 minutes**
+  - Database setup: 1 min
+  - Service deployment: 2-3 min
+  - Frontend build: 1 min
+  All automated via Terraform/Helm
+end note
+
+note right of instance
+  **Instance Resources**
+  - Dedicated Aurora DB (0.5-4 ACU)
+  - Shared Redis cache
+  - Dedicated S3 buckets
+  - 7 microservices + frontend
+end note
+
+@enduml

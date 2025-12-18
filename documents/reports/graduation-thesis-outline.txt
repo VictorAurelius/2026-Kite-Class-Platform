@@ -1,0 +1,314 @@
+DE CUONG Y TUONG DO AN TOT NGHIEP
+
+
+TEN DE TAI: XAY DUNG HE THONG QUAN LY LOP HOC TRUC TUYEN THEO KIEN TRUC MICROSERVICES - KITECLASS PLATFORM
+
+
+================================================================
+PHAN 1: Y TUONG DE TAI
+================================================================
+
+1.1. Boi canh va ly do chon de tai
+
+Trong boi canh chuyen doi so giao duc dang dien ra manh me, nhu cau ve cac nen tang hoc truc tuyen linh hoat, co kha nang mo rong va tuy chinh cao ngay cang tang. Cac giai phap hien tai thuong gap han che ve kha nang tuy bien theo dac thu tung to chuc giao duc, dac biet la voi cac giang vien doc lap hoac to chuc giao duc nho va vua.
+
+KiteClass Platform duoc phat trien nham giai quyet van de nay bang cach cung cap mot nen tang da dang, cho phep khach hang nhanh chong khoi tao va van hanh he thong lop hoc truc tuyen rieng cua minh voi giao dien va thuong hieu ca nhan hoa, duoc ho tro boi tri tue nhan tao.
+
+1.2. Muc tieu de tai
+
+- Xay dung nen tang quan ly lop hoc truc tuyen theo kien truc microservices voi kha nang mo rong cao
+- Phat trien he thong co kha nang tuy chinh linh hoat theo nhu cau khach hang thong qua mau hinh multi-tenancy
+- Tich hop AI Agent de tu dong hoa quy trinh tao thuong hieu va giao dien ca nhan hoa cho moi instance
+- Xay dung he thong KiteHub de quan ly toan bo vong doi san pham tu ban hang den van hanh
+- Ap dung cac ky thuat toi uu de dam bao hieu nang va chi phi van hanh hop ly
+
+1.3. Pham vi nghien cuu
+
+Doi tuong: Cac to chuc giao duc, doanh nghiep dao tao, giang vien doc lap
+Pham vi chuc nang: Quan ly lop hoc, nguoi dung, noi dung hoc tap, streaming video, dien dan va van hanh nen tang
+Pham vi ky thuat: Ap dung kien truc microservices cho KiteClass instances, modular monolith cho KiteHub, trien khai tren AWS EKS
+
+
+================================================================
+PHAN 2: KIEN TRUC HE THONG VA LY DO LUA CHON
+================================================================
+
+2.1. Tong quan kien truc
+
+He thong KiteClass Platform duoc thiet ke theo mo hinh phan tan gom 2 thanh phan chinh:
+
+KiteHub Platform (Modular Monolith):
+- Nhan vai tro trung tam quan ly, dieu phoi toan bo he thong
+- Duoc thiet ke theo kien truc Modular Monolith de toi uu hieu nang va giam chi phi van hanh
+- Bao gom cac module: Sale (ban hang), Message (tu van realtime), Maintaining (quan ly instance), AI Agent (tao noi dung)
+
+KiteClass Instances (Microservices):
+- Moi instance la mot he thong quan ly lop hoc doc lap
+- Ap dung kien truc Microservices voi 7 services rieng biet
+- Services: Main Class, User, CMC, Video, Streaming, Forum, Frontend
+
+[Xem so do kien truc chi tiet trong file architecture-diagram.png]
+
+2.2. Ly do su dung Microservices cho KiteClass Instance
+
+2.2.1. Kha nang scale doc lap theo nhu cau
+Moi service trong KiteClass instance co the duoc scale rieng biet tuy theo tai. Vi du:
+- Streaming Service can scale nhieu hon trong gio hoc peak
+- Video Service can tai nguyen lon hon khi nguoi dung xem video dong thoi
+- Forum Service co the scale nhe hon khi su dung it
+
+2.2.2. Linh hoat trong lua chon cong nghe
+Cac services co the su dung cong nghe phu hop nhat:
+- Streaming Service dung Node.js de xu ly WebSocket hieu qua
+- Cac services quan ly chinh dung Java Spring Boot de dam bao on dinh
+- Frontend dung Next.js SSR de toi uu SEO va toc do tai trang
+
+2.2.3. De dang bao tri va nang cap
+- Moi service co the duoc cap nhat, sua loi doc lap ma khong anh huong den cac service khac
+- Giam thieu rui ro khi trien khai thay doi
+- De dang test va debug tung thanh phan rieng biet
+
+2.2.4. Tang cuong do tin cay (Reliability)
+- Khi mot service gap su co, cac service khac van hoat dong binh thuong
+- Circuit breaker va retry mechanism giup he thong chiu loi tot
+- Isolation giup han che tac dong khi co loi xay ra
+
+2.2.5. Phu hop voi mo hinh multi-tenancy
+- Moi KiteClass instance chay doc lap voi database rieng
+- Co the tuy chinh giao dien, chuc nang theo nhu cau tung khach hang
+- Isolation tot giup dam bao bao mat va hieu nang
+
+2.3. Tai sao KiteHub nen la Modular Monolith?
+
+KiteHub khong nen dung microservices vi:
+- Cac module trong KiteHub lien ket chat che (Sale -> AI -> Maintaining)
+- Khoi luong request thap hon nhieu so voi KiteClass instances
+- Modular monolith giam do phuc tap trong giao tiep giua cac module
+- Chi phi van hanh thap hon (it container, it service discovery)
+- De dang quan ly transaction xen cac module (vi du: Order -> Payment -> Provision)
+
+Tuy nhien, KiteHub van duoc to chuc thanh cac module ro rang de de bao tri va co the tach thanh microservices sau nay neu can thiet.
+
+
+================================================================
+PHAN 3: QUY TRINH MO NODE KITECLASS VOI AI AGENT
+================================================================
+
+[Xem so do flow chi tiet trong file provisioning-flow.png]
+
+3.1. Buoc 1: Khach hang dat hang va cau hinh
+
+- Khach hang truy cap KiteHub Platform
+- Chon goi dich vu phu hop (Basic, Professional, Enterprise)
+- Cau hinh cac thong so ky thuat: domain, so luong nguoi dung, cac service can thiet
+- Upload anh ca nhan/logo cua to chuc
+- Thanh toan qua cong thanh toan tich hop
+
+3.2. Buoc 2: AI Agent tu dong tao noi dung thuong hieu
+
+Sau khi nhan duoc anh upload, AI Agent Module tu dong xu ly:
+
+a) Remove background (su dung Remove.bg API):
+   - Loai bo nen anh de co anh trong suot
+   - Tao cac phien ban anh voi cac kich thuoc khac nhau
+
+b) Extract primary colors:
+   - Phan tich anh de triet xuat bang mau chu dao
+   - Tao color palette cho giao dien
+
+c) Generate marketing copy (su dung OpenAI GPT-4):
+   - Tao cac khau hieu, slogan phu hop
+   - Sinh noi dung marketing da dang
+   - Tao mo ta cho cac trang chinh
+
+d) Create visual assets (su dung Stable Diffusion XL):
+   - Tao logo voi 3 phien ban khac nhau
+   - Tao banner cho cac vi tri tren website (5 kich thuoc)
+   - Tao thumbnail va avatar
+
+Toan bo quy trinh AI mat khoang 30 giay va chi phi 0.19 USD/instance.
+
+3.3. Buoc 3: Preview va xac nhan
+
+- Khach hang xem truoc cac tai nguyen AI da tao
+- Co the yeu cau tao lai hoac dieu chinh neu can
+- Xac nhan va bat dau quy trinh provision
+
+3.4. Buoc 4: Tu dong provision infrastructure
+
+Maintaining Module nhan request va thuc hien:
+
+a) Tao database rieng (Aurora PostgreSQL Serverless v2):
+   - Khoi tao schema database
+   - Insert du lieu mac dinh (roles, permissions, settings)
+   - Cau hinh auto-scaling: 0.5-4 ACU
+
+b) Tao S3 buckets rieng:
+   - Bucket cho assets (logo, banner, images)
+   - Bucket cho videos bai giang
+   - Bucket cho uploads cua nguoi dung
+
+c) Deploy cac microservices len EKS:
+   - Main Class Service (quan ly lop hoc, khoa hoc)
+   - User Service (quan ly nguoi dung, xac thuc)
+   - CMC Service (diem danh, bai tap, danh gia)
+   - Video Service (quan ly video bai giang)
+   - Streaming Service (phat truc tiep)
+   - Forum Service (dien dan trao doi)
+
+d) Deploy va build Frontend:
+   - Inject cac thong tin branding tu AI-generated assets
+   - Ap dung color palette cho giao dien
+   - Cau hinh routing va domain
+   - Build va deploy Next.js application
+
+Toan bo quy trinh provision mat 3-5 phut va duoc tu dong hoa hoan toan qua Terraform va Helm charts.
+
+3.5. Buoc 5: Ban giao va kich hoat
+
+- He thong gui email thong bao hoan thanh
+- Cung cap URL truy cap: https://[custom].kiteclass.com
+- Tai khoan admin mac dinh cho khach hang
+- Tai lieu huong dan su dung va quan tri
+
+3.6. Loi ich cua quy trinh tu dong voi AI Agent
+
+- Tiet kiem thoi gian: Tu vai ngay xuong con 3-5 phut
+- Tiet kiem chi phi: Khong can thue designer (chi $0.19 cho AI)
+- Nhat quan thuong hieu: AI dam bao cac asset phu hop voi nhau
+- Tuy bien cao: Moi instance co giao dien va thuong hieu rieng
+- Chuyen nghiep: Chat luong tai nguyen AI tuong duong designer
+
+
+================================================================
+PHAN 4: DIEM MANH CUA DE TAI
+================================================================
+
+4.1. Ap dung kien truc hien dai va phu hop
+
+- Ket hop ca Microservices va Modular Monolith dung cho, khong ap dat kien truc mot cach giao dieu
+- Microservices cho KiteClass instances dam bao linh hoat, scale tot
+- Modular Monolith cho KiteHub giam chi phi va do phuc tap khong can thiet
+- The hien kha nang phan tich va lua chon kien truc phu hop voi tung thanh phan
+
+4.2. Tich hop AI Agent sang tao
+
+- Su dung AI de tu dong hoa quy trinh tao noi dung, giao dien
+- Ket hop nhieu AI services: GPT-4, Stable Diffusion, Remove.bg
+- Tao gia tri thuc te: tiet kiem thoi gian va chi phi cho khach hang
+- The hien kha nang tich hop cong nghe AI vao he thong thuc te
+
+4.3. Giai quyet van de thuc te
+
+- Dap ung nhu cau thi truong: nhieu giang vien, to chuc nho muon co nen tang rieng
+- Mo hinh kinh doanh ro rang: SaaS platform voi revenue tu subscription
+- Quy trinh provision nhanh chong: 3-5 phut thay vi vai ngay/tuan
+- Khach hang co the bat dau day hoc ngay sau khi dang ky
+
+4.4. Co kha nang mo rong cao
+
+- De dang them service moi cho KiteClass instances
+- Co the scale theo chieu ngang khi so luong instance tang
+- Kien truc cho phep tich hop them cac tinh nang nang cao sau nay
+- Co the mo rong sang cac linh vuc khac ngoai giao duc
+
+4.5. Trien khai tren AWS voi cong nghe Cloud-Native
+
+- Su dung AWS EKS (Kubernetes) cho container orchestration
+- Aurora Serverless v2 cho database voi auto-scaling
+- CloudFront CDN cho toi uu toc do
+- Ap dung Infrastructure as Code voi Terraform
+- The hien kien thuc ve Cloud Computing va DevOps
+
+
+================================================================
+PHAN 5: THU THACH CUA DE TAI
+================================================================
+
+5.1. Yeu cau kien thuc ky thuat rong
+
+De hoan thanh de tai, sinh vien can nam vung nhieu linh vuc:
+
+- Backend Development: Java Spring Boot, Node.js, RESTful API
+- Frontend Development: Next.js, React, Server-Side Rendering
+- Database: PostgreSQL, Redis, database design va optimization
+- DevOps: Docker, Kubernetes, CI/CD, Infrastructure as Code
+- Cloud Computing: AWS services (EKS, Aurora, S3, CloudFront, ALB, Route 53)
+- AI Integration: OpenAI API, Stable Diffusion, image processing
+- Microservices patterns: Service discovery, API Gateway, Circuit breaker
+
+5.2. Khoi luong code va cong viec lon
+
+- Can phat trien nhieu services doc lap (hon 10 services)
+- Moi service can code day du cac layer: Controller, Service, Repository
+- Phai viet test cases cho tat ca cac thanh phan
+- Can setup CI/CD pipeline cho tung service
+- Khoi luong code uoc tinh: 20,000+ lines of code
+
+5.3. Phuc tap trong trien khai va van hanh
+
+- Phai hieu sau ve Kubernetes de deploy va manage containers
+- Can thiet lap monitoring, logging cho toan bo he thong
+- Quan ly nhieu databases va ensure data consistency
+- Xu ly cac van de network, security trong moi truong distributed
+- Debug kho khan hon khi loi xay ra o nhieu services
+
+5.4. Chi phi AWS khi phat trien va test
+
+- Can tai khoan AWS voi credit du de test
+- Chi phi EKS cluster: ~$70-100/thang
+- Chi phi database, storage, networking them
+- Can quan ly chi phi carefully de khong vuot ngan sach
+- Phai toi uu resource usage trong qua trinh dev/test
+
+5.5. Can khao sat va nghien cuu nguoi dung
+
+- Can khao sat giang vien, to chuc giao duc de hieu nhu cau
+- Phai thu thap feedback trong qua trinh phat trien
+- Can validate cac features voi nhom nguoi dung muc tieu
+- Thoi gian khao sat, phan tich du lieu mat nhieu effort
+- Yeu cau ky nang soft skills: giao tiep, thu thap yeu cau
+
+5.6. Bao mat va privacy
+
+- Xu ly authentication/authorization cho multi-tenant system
+- Dam bao data isolation giua cac instances
+- Bao ve thong tin ca nhan cua nguoi dung
+- Implement encryption cho du lieu nhay cam
+- Tuong thich voi cac chuan bao mat (OWASP Top 10)
+
+5.7. Thoi gian thuc hien
+
+- De tai can phat trien trong 3-4 thang
+- Phai uu tien cac features core truoc
+- Co the khong hoan thanh tat ca expand services
+- Can quan ly thoi gian va pham vi tot de dam bao hoan thanh dung han
+- Yeu cau ky nang project management
+
+
+================================================================
+KET LUAN
+================================================================
+
+De tai "Xay dung he thong quan ly lop hoc truc tuyen theo kien truc Microservices - KiteClass Platform" la mot do an tot nghiep co tinh thuc te cao, ap dung nhieu cong nghe hien dai va giai quyet van de cu the cua thi truong.
+
+Voi viec ket hop Microservices cho KiteClass instances va Modular Monolith cho KiteHub, de tai the hien kha nang phan tich va lua chon kien truc phu hop thay vi ap dat kien truc mot cach giao dieu. Dac biet, viec tich hop AI Agent de tu dong hoa quy trinh tao thuong hieu va giao dien la mot diem sang, tao gia tri thuc te va the hien kha nang ung dung AI vao giai quyet van de thuc te.
+
+Tuy nhien, de tai cung dua ra nhieu thu thach: yeu cau kien thuc rong ve nhieu linh vuc, khoi luong code lon, phuc tap trong trien khai, chi phi AWS va can khao sat nguoi dung ky luong. Nhung chinh nhung thu thach nay se giup sinh vien phat trien toan dien ca hard skills va soft skills, chuan bi tot cho cong viec sau khi tot nghiep.
+
+Voi loi ich ro rang, kien truc hop ly va kha nang ung dung thuc te, de tai KiteClass Platform la mot lua chon phu hop cho do an tot nghiep chuyen nganh Cong nghe phan mem.
+
+
+================================================================
+PHU LUC: DANH SACH SO DO VA TAI LIEU THAM KHAO
+================================================================
+
+1. architecture-diagram.png - So do kien truc tong quan he thong
+2. provisioning-flow.png - So do quy trinh provision KiteClass node
+3. technology-stack-report.md - Bao cao chi tiet cong nghe su dung
+4. system-architecture-v2-with-ai.md - Bao cao kien truc V2 co AI Agent
+
+---
+He thong KiteClass Platform
+Phien ban: 2.0
+Ngay cap nhat: 2025-12-18
