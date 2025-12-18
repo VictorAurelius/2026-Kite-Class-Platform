@@ -1,94 +1,61 @@
-@startuml KiteClass Node Provisioning Flow
+@startuml KiteClass Provisioning Flow
 !theme plain
-skinparam sequence {
-    ArrowColor #2196F3
-    ActorBorderColor #1976D2
-    LifeLineBorderColor #1976D2
-    ParticipantBorderColor #424242
-    ParticipantBackgroundColor #E3F2FD
-    BoxBackgroundColor #FFF3E0
-    FontSize 11
-}
 
-title KiteClass Node Provisioning Flow with AI Agent
+title Quy Trình Mở Node KiteClass
 
-actor "Customer" as customer
+actor "Khách hàng" as customer
 participant "Sale Module" as sale
-participant "AI Agent Module" as ai
-participant "Maintaining Module" as maintain
-database "SQS Queue" as sqs
-database "Aurora DB" as db
-database "S3 Storage" as s3
-participant "EKS Cluster" as eks
-participant "New KiteClass\nInstance" as instance
+participant "AI Agent" as ai
+participant "Maintaining\nModule" as maintain
+participant "KiteClass\nInstance" as instance
 
-== Order & Payment ==
-customer -> sale: Submit order with:\n- Package selection\n- Technical configs\n- Personal photo
+== 1. Đặt hàng và Thanh toán ==
+customer -> sale: Chọn gói dịch vụ\nUpload ảnh cá nhân
 activate sale
-sale -> db: Create order record
-sale -> sale: Process payment
-sale --> customer: Payment confirmation
+sale -> sale: Xử lý thanh toán
+sale --> customer: Xác nhận đơn hàng
 deactivate sale
 
-== AI Branding Generation ==
-customer -> ai: Upload personal photo
+== 2. Tạo Branding với AI ==
+sale -> ai: Gửi ảnh và thông tin
 activate ai
-ai -> ai: Remove background\n(Remove.bg API)
-ai -> ai: Extract primary colors
-ai -> ai: Generate marketing copy\n(OpenAI GPT-4)
-ai -> ai: Create banner/logo\n(Stable Diffusion XL)
-ai -> s3: Upload generated assets:\n- Logo variants\n- Banners\n- Marketing images
-ai -> db: Save asset metadata
-ai --> customer: Preview branding assets\n(Cost: ~$0.19)
+ai -> ai: Remove background\nTrích xuất màu sắc\nTạo logo, banner\nSinh nội dung marketing
+ai --> customer: Preview branding\n(~30 giây, $0.19)
+customer --> ai: Xác nhận
 deactivate ai
 
-== Provisioning Request ==
-sale -> maintain: Send provision request:\n- Order ID\n- Instance config\n- AI asset references
+== 3. Provision Infrastructure ==
+ai -> maintain: Yêu cầu provision
 activate maintain
-maintain -> db: Create instance record\n(status: PENDING)
-maintain -> sqs: Queue provision job
-maintain --> sale: Request accepted
+maintain -> maintain: Tạo database riêng\nTạo storage buckets\nCấu hình hạ tầng
+maintain --> sale: Hạ tầng sẵn sàng
 deactivate maintain
 
-== Infrastructure Provisioning ==
-sqs -> maintain: Poll job
+== 4. Deploy Services ==
+maintain -> instance: Deploy microservices\nDeploy frontend có branding
 activate maintain
-maintain -> db: Create dedicated Aurora DB:\n- Schema initialization\n- Default data setup
-maintain -> s3: Create instance buckets:\n- /assets\n- /videos\n- /uploads
-maintain -> eks: Deploy services:\n- Main Class Service (Java)\n- User Service (Java)\n- CMC Service (Java)\n- Video Service (Java)\n- Streaming Service (Node.js)\n- Forum Service (Java)
-activate eks
-eks --> maintain: Services deployed
-deactivate eks
-deactivate maintain
-
-== Frontend Deployment ==
-maintain -> eks: Deploy Next.js Frontend:\n- Inject AI branding\n- Configure instance settings\n- Set up routing
-activate maintain
-activate eks
-eks -> s3: Fetch AI-generated assets
-eks -> eks: Build frontend with\ncustom branding
-eks --> maintain: Frontend ready
-deactivate eks
-maintain -> db: Update instance status:\nACTIVE
-maintain --> customer: Instance URL:\nhttps://{custom}.kiteclass.com
-deactivate maintain
-
-== Post-Deployment ==
-customer -> instance: Access platform
 activate instance
-instance -> db: Load data from\ndedicated DB
-instance -> s3: Load branded assets
-instance --> customer: Display customized\nplatform with AI branding
+instance -> instance: Build & khởi động\nÁp dụng AI branding
+instance --> maintain: Triển khai hoàn tất
+deactivate instance
+maintain --> customer: Gửi URL truy cập\nhttps://[tên].kiteclass.com
+deactivate maintain
+
+== 5. Sử dụng ==
+customer -> instance: Truy cập và sử dụng
+activate instance
+instance --> customer: Platform sẵn sàng
 deactivate instance
 
 note right of ai
-  AI Generation: ~30s
-  Cost: $0.19/instance
+  Tạo logo, banner,
+  nội dung marketing
+  tự động với AI
 end note
 
 note right of maintain
-  Provisioning: 3-5 minutes
-  Automated via Terraform/Helm
+  Toàn bộ quy trình
+  tự động 3-5 phút
 end note
 
 @enduml

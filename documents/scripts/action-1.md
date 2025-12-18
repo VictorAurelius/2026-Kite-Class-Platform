@@ -36,3 +36,10 @@ thực hiện req-1-plantuml-and-report
 2. graduation-thesis-outline đang là tiếng việt không dấu, hãy sửa lại
 3. architecture-diagram các đường nối đang hơi dối và hơi nhiều note => sửa lại cho cả provisioning-flow
 4. provisioning-flow.puml đang lỗi code
+
+2 diagram mặc dù khá đầy đủ và chi tiết
+nhưng tôi chỉ cần 2 diagram khái quát thôi, không cần nói rõ sẽ sử dụng dịch vụ gì của AWS, luồng đơn giản, nhìn cái là hiểu ngay cho thầy xem
+
+architecture-diagram bị lỗi code
+
+làm sao để có ảnh diagram đúng là được

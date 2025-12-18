@@ -8,7 +8,8 @@
       "Bash(sudo apt-get update:*)",
       "Bash(wget:*)",
       "Bash(~/jdk/jdk-21/bin/java:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(file:*)"
     ]
   }
 }

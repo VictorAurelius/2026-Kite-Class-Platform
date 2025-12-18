@@ -1,92 +1,64 @@
 @startuml KiteClass Platform Architecture
 !theme plain
-skinparam linetype ortho
-!pragma layout smetana
-skinparam rectangle {
-    BackgroundColor<<kitehub>> #E3F2FD
-    BackgroundColor<<kiteclass>> #E8F5E9
-    BackgroundColor<<aws>> #FFF3E0
-    BorderColor #424242
-    FontSize 11
+skinparam componentStyle rectangle
+
+title Kiến Trúc Tổng Quan - KiteClass Platform
+
+actor "Người dùng" as users
+
+rectangle "KiteHub Platform\n(Modular Monolith)" #E3F2FD {
+    component "Sale Module" as sale
+    component "AI Agent Module" as ai
+    component "Message Module" as message
+    component "Maintaining Module" as maintain
 }
 
-title KiteClass Platform - System Architecture V2
-
-' Users
-actor "Users\n(Students/Instructors)" as users #lightblue
-
-' AWS Edge Services
-rectangle "Route 53\n(DNS)" as route53 <<aws>> #FFE0B2
-rectangle "CloudFront\n(CDN)" as cloudfront <<aws>> #FFE0B2
-rectangle "Application\nLoad Balancer" as alb <<aws>> #FFE0B2
-
-' EKS Cluster
-package "AWS EKS Cluster" {
-
-    ' KiteHub Namespace
-    package "KiteHub Namespace\n(Modular Monolith)" <<kitehub>> {
-        rectangle "Sale Module\n[Java Spring Boot]" as sale #BBDEFB
-        rectangle "Message Module\n[Node.js]" as message #BBDEFB
-        rectangle "Maintaining Module\n[Java Spring Boot]" as maintain #BBDEFB
-        rectangle "AI Agent Module\n[Python FastAPI]" as ai #BBDEFB
-    }
-
-    ' KiteClass Instance
-    package "KiteClass Instance #1\n(Microservices)" <<kiteclass>> {
-        rectangle "Main Class Service\n[Java]" as mainclass #C8E6C9
-        rectangle "User Service\n[Java]" as user #C8E6C9
-        rectangle "CMC Service\n[Java]" as cmc #C8E6C9
-        rectangle "Video Service\n[Java]" as video #C8E6C9
-        rectangle "Streaming Service\n[Node.js]" as streaming #C8E6C9
-        rectangle "Forum Service\n[Java]" as forum #C8E6C9
-        rectangle "Frontend\n[Next.js SSR]" as frontend #C8E6C9
-    }
-
-    package "KiteClass Instance #N\n..." <<kiteclass>> {
-        rectangle "Services..." as more #C8E6C9
-    }
+rectangle "KiteClass Instance #1\n(Microservices)" #E8F5E9 {
+    component "Frontend" as fe1
+    component "Main Class Service" as main1
+    component "User Service" as user1
+    component "CMC Service" as cmc1
+    component "Video Service" as video1
+    component "Streaming Service" as stream1
+    component "Forum Service" as forum1
 }
 
-' Database Layer
-database "Aurora PostgreSQL\nServerless v2" as aurora <<aws>> #FFE0B2
-database "ElastiCache\nRedis" as redis <<aws>> #FFE0B2
-storage "S3 Buckets" as s3 <<aws>> #FFE0B2
-queue "SQS" as sqs <<aws>> #FFE0B2
-
-' External AI Services
-cloud "AI Services" as aiservices {
-    rectangle "OpenAI GPT-4" as gpt4 #FFF9C4
-    rectangle "Stable Diffusion XL" as sd #FFF9C4
+rectangle "KiteClass Instance #2\n(Microservices)" #E8F5E9 {
+    component "Frontend" as fe2
+    component "Services..." as services2
 }
 
-' User Flow
-users --> route53
-route53 --> cloudfront
-cloudfront --> alb
-alb --> sale
-alb --> frontend
+cloud "AI Services" as aicloud #FFF9C4
 
-' KiteHub Internal
-sale --> maintain
-sale --> ai
-ai --> aiservices
-maintain --> sqs
+database "Database" as db #FFE0B2
+database "Cache" as cache #FFE0B2
+database "Storage" as storage #FFE0B2
 
-' KiteHub to Storage
-ai --> s3
-sale --> aurora
-maintain --> aurora
+users --> sale : Đăng ký
+users --> fe1 : Sử dụng
+users --> fe2
 
-' Frontend to Backend Services
-frontend --> mainclass
-frontend --> user
-frontend --> cmc
+sale --> ai : Tạo branding
+sale --> maintain : Quản lý
+ai --> aicloud : Generate
+ai --> storage : Lưu assets
 
-' Services to Storage
-mainclass --> aurora
-user --> aurora
-cmc --> aurora
-video --> s3
-streaming --> redis
+maintain --> db
+maintain --> storage
+
+fe1 --> main1
+fe1 --> user1
+fe1 --> cmc1
+fe1 --> video1
+fe1 --> stream1
+fe1 --> forum1
+
+main1 --> db
+user1 --> db
+video1 --> storage
+stream1 --> cache
+
+fe2 --> services2
+services2 --> db
 
 @enduml
