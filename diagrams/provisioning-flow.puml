@@ -16,9 +16,9 @@ actor "Customer" as customer
 participant "Sale Module" as sale
 participant "AI Agent Module" as ai
 participant "Maintaining Module" as maintain
-queue "SQS Queue" as sqs
+database "SQS Queue" as sqs
 database "Aurora DB" as db
-storage "S3 Storage" as s3
+database "S3 Storage" as s3
 participant "EKS Cluster" as eks
 participant "New KiteClass\nInstance" as instance
 
@@ -82,29 +82,13 @@ instance --> customer: Display customized\nplatform with AI branding
 deactivate instance
 
 note right of ai
-  **AI Generation (~30 seconds)**
-  - Background removal
-  - Color palette extraction
-  - Logo generation (3 variants)
-  - Banner creation (5 sizes)
-  - Marketing copy (10 variations)
-  Total cost: $0.19 per instance
+  AI Generation: ~30s
+  Cost: $0.19/instance
 end note
 
 note right of maintain
-  **Provisioning Time: 3-5 minutes**
-  - Database setup: 1 min
-  - Service deployment: 2-3 min
-  - Frontend build: 1 min
-  All automated via Terraform/Helm
-end note
-
-note right of instance
-  **Instance Resources**
-  - Dedicated Aurora DB (0.5-4 ACU)
-  - Shared Redis cache
-  - Dedicated S3 buckets
-  - 7 microservices + frontend
+  Provisioning: 3-5 minutes
+  Automated via Terraform/Helm
 end note
 
 @enduml

@@ -31,3 +31,8 @@ Sơ đồ đơn giản, dễ hiểu, nhưng chứa đầy đủ thông tin của
 ước tính file dọc tầm 4 trang cả ảnh sơ đồ thôi nhé
 
 thực hiện req-1-plantuml-and-report
+
+1. làm luôn cho tôi cách 2 để tạo ảnh
+2. graduation-thesis-outline đang là tiếng việt không dấu, hãy sửa lại
+3. architecture-diagram các đường nối đang hơi dối và hơi nhiều note => sửa lại cho cả provisioning-flow
+4. provisioning-flow.puml đang lỗi code

@@ -1,6 +1,7 @@
 @startuml KiteClass Platform Architecture
 !theme plain
 skinparam linetype ortho
+!pragma layout smetana
 skinparam rectangle {
     BackgroundColor<<kitehub>> #E3F2FD
     BackgroundColor<<kiteclass>> #E8F5E9
@@ -24,10 +25,10 @@ package "AWS EKS Cluster" {
 
     ' KiteHub Namespace
     package "KiteHub Namespace\n(Modular Monolith)" <<kitehub>> {
-        rectangle "Sale Module\n[Java Spring Boot]\n- Order management\n- Payment processing" as sale #BBDEFB
-        rectangle "Message Module\n[Node.js]\n- Chat/Notification\n- WebSocket" as message #BBDEFB
-        rectangle "Maintaining Module\n[Java Spring Boot]\n- Instance provisioning\n- Monitoring" as maintain #BBDEFB
-        rectangle "AI Agent Module\n[Python FastAPI]\n- Generate branding\n- Image/text AI" as ai #BBDEFB
+        rectangle "Sale Module\n[Java Spring Boot]" as sale #BBDEFB
+        rectangle "Message Module\n[Node.js]" as message #BBDEFB
+        rectangle "Maintaining Module\n[Java Spring Boot]" as maintain #BBDEFB
+        rectangle "AI Agent Module\n[Python FastAPI]" as ai #BBDEFB
     }
 
     ' KiteClass Instance
@@ -47,69 +48,45 @@ package "AWS EKS Cluster" {
 }
 
 ' Database Layer
-database "Aurora PostgreSQL\nServerless v2\n(Per-instance DB)" as aurora <<aws>> #FFE0B2
-database "ElastiCache\nRedis\n(Shared)" as redis <<aws>> #FFE0B2
-storage "S3 Buckets\n- Assets\n- Videos\n- AI-generated" as s3 <<aws>> #FFE0B2
-queue "SQS\nMessage Queue" as sqs <<aws>> #FFE0B2
+database "Aurora PostgreSQL\nServerless v2" as aurora <<aws>> #FFE0B2
+database "ElastiCache\nRedis" as redis <<aws>> #FFE0B2
+storage "S3 Buckets" as s3 <<aws>> #FFE0B2
+queue "SQS" as sqs <<aws>> #FFE0B2
 
 ' External AI Services
 cloud "AI Services" as aiservices {
     rectangle "OpenAI GPT-4" as gpt4 #FFF9C4
-    rectangle "Stable Diffusion\nXL" as sd #FFF9C4
-    rectangle "Remove.bg" as removebg #FFF9C4
+    rectangle "Stable Diffusion XL" as sd #FFF9C4
 }
 
-' Connections - User Flow
+' User Flow
 users --> route53
 route53 --> cloudfront
 cloudfront --> alb
-
-' ALB to services
 alb --> sale
 alb --> frontend
 
-' KiteHub connections
-sale ..> maintain : Provision request
-sale ..> ai : Generate assets
-ai --> aiservices : API calls
-ai --> s3 : Upload assets
-maintain --> sqs : Queue jobs
+' KiteHub Internal
+sale --> maintain
+sale --> ai
+ai --> aiservices
+maintain --> sqs
 
-' Frontend to Backend
-frontend --> mainclass : REST API
-frontend --> user : REST API
-frontend --> cmc : REST API
+' KiteHub to Storage
+ai --> s3
+sale --> aurora
+maintain --> aurora
 
-' Services to Database
+' Frontend to Backend Services
+frontend --> mainclass
+frontend --> user
+frontend --> cmc
+
+' Services to Storage
 mainclass --> aurora
 user --> aurora
 cmc --> aurora
 video --> s3
 streaming --> redis
-
-sale --> aurora : KiteHub DB
-maintain --> aurora : KiteHub DB
-
-' Notes
-note right of ai
-  **AI Agent Features:**
-  - Background removal
-  - Color extraction
-  - Generate marketing copy
-  - Create banners/logos
-  Cost: $0.19/instance
-end note
-
-note right of frontend
-  **Shared Codebase**
-  Per-instance deployment
-  Auto-apply AI branding
-end note
-
-note bottom of aurora
-  **Multi-tenant Strategy**
-  1 database per KiteClass instance
-  Auto-scaling: 0.5-4 ACU
-end note
 
 @enduml

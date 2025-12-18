@@ -35,73 +35,74 @@ KiteClass Platform/
 2. CAC FILE CHINH VA CACH SU DUNG
 ================================================================
 
-2.1. SO DO KIEN TRUC (architecture-diagram.png)
+2.1. SƠ ĐỒ KIẾN TRÚC (architecture-diagram.png)
 ------------------------------------------------------------
-Noi dung:
-- So do tong quan kien truc KiteClass Platform
-- The hien KiteHub (Modular Monolith) va KiteClass Instances (Microservices)
-- Cac services, database, AWS infrastructure
+Nội dung:
+- Sơ đồ tổng quan kiến trúc KiteClass Platform
+- Thể hiện KiteHub (Modular Monolith) và KiteClass Instances (Microservices)
+- Các services, database, AWS infrastructure
 
-Cach su dung:
-1. Mo file architecture-diagram.png bang trinh xem anh
-2. Chen vao Word/PowerPoint de trinh bay
-3. Su dung trong bao cao de tai minh hoa kien truc
-4. Khuyen nghi: Dat o phan "Kien truc he thong"
+Cách sử dụng:
+1. Mở file architecture-diagram.png bằng trình xem ảnh
+2. Chèn vào Word/PowerPoint để trình bày
+3. Sử dụng trong báo cáo đề tài minh họa kiến trúc
+4. Khuyến nghị: Đặt ở phần "Kiến trúc hệ thống"
 
-Luu y:
-- So do da duoc tao tu file .puml (PlantUML)
-- Neu can chinh sua, edit file architecture-diagram.puml
-- Tao lai hinh bang lenh: plantuml -tpng architecture-diagram.puml
-  (hoac su dung online: http://www.plantuml.com/plantuml)
+Lưu ý:
+- Sơ đồ đã được tạo từ file .puml (PlantUML) và đã có sẵn PNG
+- Nếu cần chỉnh sửa, edit file architecture-diagram.puml
+- Tạo lại hình bằng lệnh (đã cài sẵn Java & PlantUML):
+  cd diagrams
+  ~/jdk/jdk-21/bin/java -jar plantuml.jar architecture-diagram.puml
 
 
-2.2. SO DO FLOW PROVISION (provisioning-flow.png)
+2.2. SƠ ĐỒ FLOW PROVISION (provisioning-flow.png)
 ------------------------------------------------------------
-Noi dung:
-- Quy trinh day du de mo mot KiteClass node moi
-- Bao gom cac buoc: Order -> AI Generation -> Infrastructure Provisioning
-- The hien ro rang cac actor, services tham gia va thoi gian xu ly
+Nội dung:
+- Quy trình đầy đủ để mở một KiteClass node mới
+- Bao gồm các bước: Order -> AI Generation -> Infrastructure Provisioning
+- Thể hiện rõ ràng các actor, services tham gia và thời gian xử lý
 
-Cach su dung:
-1. Mo file provisioning-flow.png
-2. Chen vao bao cao o phan "Quy trinh mo node KiteClass"
-3. Ket hop voi phan giai thich chi tiet trong graduation-thesis-outline.txt
-4. Su dung khi trinh bay demo flow hoat dong
+Cách sử dụng:
+1. Mở file provisioning-flow.png
+2. Chèn vào báo cáo ở phần "Quy trình mở node KiteClass"
+3. Kết hợp với phần giải thích chi tiết trong graduation-thesis-outline.txt
+4. Sử dụng khi trình bày demo flow hoạt động
 
-Luu y:
-- So do sequence diagram de hieu flow theo thoi gian
-- Chua thong tin ve cost va time estimate
-- Co the chinh sua file provisioning-flow.puml neu can
+Lưu ý:
+- Sơ đồ sequence diagram dễ hiểu flow theo thời gian
+- Chứa thông tin về cost và time estimate
+- Đã được sửa lỗi và tạo PNG thành công
 
 
-2.3. DE CUONG DO AN (graduation-thesis-outline.txt)
+2.3. ĐỀ CƯƠNG ĐỒ ÁN (graduation-thesis-outline.txt)
 ------------------------------------------------------------
-Noi dung:
-- Bao cao hoan chinh ve de tai (uoc tinh 4 trang khi in)
-- 5 phan chinh:
-  + Phan 1: Y tuong de tai
-  + Phan 2: Kien truc he thong va ly do lua chon
-  + Phan 3: Quy trinh mo node KiteClass voi AI Agent
-  + Phan 4: Diem manh cua de tai
-  + Phan 5: Thu thach cua de tai
+Nội dung:
+- Báo cáo hoàn chỉnh về đề tài (ước tính 4 trang khi in)
+- 5 phần chính:
+  + Phần 1: Ý tưởng đề tài
+  + Phần 2: Kiến trúc hệ thống và lý do lựa chọn
+  + Phần 3: Quy trình mở node KiteClass với AI Agent
+  + Phần 4: Điểm mạnh của đề tài
+  + Phần 5: Thử thách của đề tài
 
-Cach su dung:
-1. Mo file bang Notepad hoac text editor bat ky
-2. COPY TOAN BO noi dung
-3. PASTE vao Microsoft Word
-4. Format lai:
-   - Chon font chu phu hop (VD: Times New Roman 13pt)
-   - Can le justify
-   - Tao tieu de (Heading 1, 2, 3)
-   - Chen 2 so do .png vao vi tri phu hop
-   - Them so trang, header, footer
-5. Luu thanh file .docx
+Cách sử dụng:
+1. Mở file bằng Notepad hoặc text editor bất kỳ
+2. COPY TOÀN BỘ nội dung
+3. PASTE vào Microsoft Word
+4. Format lại:
+   - Chọn font chữ phù hợp (VD: Times New Roman 13pt)
+   - Căn lề justify
+   - Tạo tiêu đề (Heading 1, 2, 3)
+   - Chèn 2 sơ đồ .png vào vị trí phù hợp
+   - Thêm số trang, header, footer
+5. Lưu thành file .docx
 
-Luu y:
-- File duoc viet KHONG CO MARKDOWN SYNTAX de de copy vao Word
-- Tieng Viet KHONG DAU de tranh loi font
-- Can format lai trong Word de dep hon
-- Kich thuoc uoc tinh: 4 trang (bao gom 2 hinh so do)
+Lưu ý:
+- File được viết KHÔNG CÓ MARKDOWN SYNTAX để dễ copy vào Word
+- ĐÃ CÓ DẤU TIẾNG VIỆT - Sẵn sàng sử dụng!
+- Cần format lại trong Word để đẹp hơn
+- Kích thước ước tính: 4 trang (bao gồm 2 hình sơ đồ)
 
 
 2.4. BAO CAO CONG NGHE (technology-stack-report.md)
@@ -208,31 +209,39 @@ Buoc 7: Luu file
 
 
 ================================================================
-5. CAC FILE PLANTUMA (.puml)
+5. CÁC FILE PLANTUML (.puml)
 ================================================================
 
-File .puml la PlantUML source code, dung de tao so do.
+File .puml là PlantUML source code, dùng để tạo sơ đồ.
 
-Cach chinh sua va tao lai hinh:
+QUAN TRỌNG: Hệ thống đã được cài đặt sẵn Java và PlantUML!
+- Java OpenJDK 21 đã được cài tại: ~/jdk/jdk-21/
+- PlantUML jar đã được tải tại: diagrams/plantuml.jar
+- Các file PNG đã được tạo sẵn và sẵn sàng sử dụng!
 
-Option 1: Su dung online (De nhat)
-1. Truy cap: http://www.plantuml.com/plantuml/uml/
-2. Copy noi dung tu file .puml
-3. Paste vao editor
-4. Click "Submit" de xem preview
+Cách chỉnh sửa và tạo lại hình:
+
+Option 1: Sử dụng Command Line (Đã cài sẵn - Khuyến nghị)
+1. Mở terminal/command prompt
+2. Chuyển đến thư mục diagrams:
+   cd /mnt/e/person/2026-Kite-Class-Platform/diagrams
+3. Chạy lệnh:
+   ~/jdk/jdk-21/bin/java -jar plantuml.jar architecture-diagram.puml
+   ~/jdk/jdk-21/bin/java -jar plantuml.jar provisioning-flow.puml
+4. File PNG sẽ được tạo tự động (có thể cần đổi tên)
+
+Option 2: Sử dụng online
+1. Truy cập: http://www.plantuml.com/plantuml/uml/
+2. Copy nội dung từ file .puml
+3. Paste vào editor
+4. Click "Submit" để xem preview
 5. Download PNG
 
-Option 2: Su dung VS Code
-1. Cai dat extension "PlantUML"
-2. Mo file .puml trong VS Code
-3. Nhan Alt+D de preview
-4. Click chuot phai -> Export -> PNG
-
-Option 3: Command line (Can cai Java va PlantUML)
-1. Cai dat Java JDK
-2. Download plantuml.jar
-3. Chay: java -jar plantuml.jar file.puml
-4. Se tao ra file.png
+Option 3: Sử dụng VS Code
+1. Cài đặt extension "PlantUML"
+2. Mở file .puml trong VS Code
+3. Nhấn Alt+D để preview
+4. Click chuột phải -> Export -> PNG
 
 
 ================================================================
