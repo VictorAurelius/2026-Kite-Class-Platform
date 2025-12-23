@@ -105,3 +105,11 @@ checklist cần quy định thêm về:
 2. cách design pattern cần sử dụng trong code 
 3. các tài liệu md và log được render ra khi implement hoặc test để dễ dàng follow flow và result
 4. cách quy định về code có cảnh báo wanring
+
+sau khi chốt lại kiến trúc và use case, hãy thực hiện tạo lại các diagrams:
+1. sơ đồ kiến trúc đơn giản
+2. BFD của các actor
+3. ERD
+4. sơ đồ kiến trúc đầy đủ, có full flow nghiệp vụ rõ ràng, có tech stack tương ứng
+
+kiểm tra lại thư mục diagrams (không phải thư mục con trong documents), tôi để các file puml ở đây rồi và có sẵn plantuml.jar để render, hãy thực hiện render luôn

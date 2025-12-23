@@ -1,0 +1,240 @@
+@startuml architecture-full
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title KITECLASS PLATFORM V3.1 - KIẾN TRÚC ĐẦY ĐỦ VỚI TECH STACK & BUSINESS FLOW
+
+' ==================== ACTORS ====================
+together {
+    actor "Customer" as CUST #2196F3
+    actor "Admin\nKiteHub" as ADMIN #1565C0
+}
+
+together {
+    actor "Center Owner" as OWNER #E65100
+    actor "Center Admin" as CADMIN #F57C00
+    actor "Teacher" as TEACHER #FF9800
+    actor "Student" as STUDENT #FFB74D
+    actor "Parent" as PARENT #4CAF50
+}
+
+' ==================== KITEHUB LAYER ====================
+package "KITEHUB CENTRAL\n[Java Spring Boot 3.2 + Next.js 14]" as KITEHUB #E3F2FD {
+
+    package "Frontend Layer\n[Next.js 14 | TypeScript | TailwindCSS | Shadcn/UI]" as HUB_FE #BBDEFB {
+        component "Landing Page\nkiteclass.com" as LANDING
+        component "Admin Dashboard\n/admin" as HUB_ADMIN
+        component "Customer Portal\n/portal" as PORTAL
+        component "Chat Interface\n/chat" as CHAT_UI
+    }
+
+    package "API Gateway\n[Spring Cloud Gateway]" as HUB_GW #90CAF9 {
+        component "Auth Filter" as AUTH_FILTER
+        component "Rate Limiter" as RATE
+        component "Request Router" as ROUTER
+    }
+
+    package "Business Modules\n[Spring Boot Modular Monolith]" as HUB_MODULES #64B5F6 {
+
+        package "Sale Module" as SALE_MOD #42A5F5 {
+            component "Pricing Service" as PRICING
+            component "Order Service" as ORDER
+            component "Payment Service" as PAYMENT
+            component "Subscription Service" as SUBS
+        }
+
+        package "Message Module" as MSG_MOD #42A5F5 {
+            component "Chat Service\n[WebSocket/STOMP]" as CHAT_SVC
+            component "Notification Service" as NOTIF
+        }
+
+        package "Maintaining Module" as MAINT_MOD #42A5F5 {
+            component "Provisioning Service" as PROV
+            component "Health Monitor" as HEALTH
+            component "Config Manager" as CONFIG
+        }
+
+        package "AI Agent Module" as AI_MOD #42A5F5 {
+            component "Marketing Agent\n[OpenAI GPT-4]" as MARKETING
+            component "Content Generator" as CONTENT_GEN
+        }
+    }
+
+    package "Shared Infrastructure" as HUB_INFRA #1976D2 {
+        component "Security\n[Spring Security + JWT]" as SEC
+        component "Event Bus\n[RabbitMQ]" as EVENTS
+        component "Cache\n[Redis]" as CACHE
+    }
+
+    database "KiteHub DB\n[PostgreSQL 15]" as HUB_DB #0D47A1 {
+        storage "sales.*" as SALES_SCHEMA
+        storage "messages.*" as MSG_SCHEMA
+        storage "maintaining.*" as MAINT_SCHEMA
+        storage "ai_agents.*" as AI_SCHEMA
+    }
+}
+
+' ==================== KITECLASS INSTANCE LAYER ====================
+package "KITECLASS INSTANCES\n[Kubernetes Deployment | Per-Tenant Isolation]" as KC_LAYER #FFF3E0 {
+
+    package "Instance Template\n(ABC Center)" as INST_TPL #FFE0B2 {
+
+        package "Frontend\n[Next.js 14 | PWA Ready]" as KC_FE #FFCC80 {
+            component "Center Portal\nabc.kiteclass.com" as CENTER_FE
+            component "Parent App\n[PWA Mobile]" as PARENT_APP
+        }
+
+        package "User + Gateway Service\n[Spring Boot | 512MB RAM] ⚡ REQUIRED" as UG_SVC #FB8C00 {
+            component "API Gateway\n[Rate Limit + Auth]" as KC_GW
+            component "Auth Service\n[JWT + OAuth2 + Zalo]" as KC_AUTH
+            component "User Management" as KC_USER
+        }
+
+        package "Core Service\n[Spring Boot | 1GB RAM] ⚡ REQUIRED" as CORE_SVC #F57C00 {
+            component "Course Manager" as COURSE
+            component "Class Manager" as CLASS
+            component "Enrollment" as ENROLL
+            component "Attendance" as ATTEND
+            component "Grading" as GRADE
+            component "Billing\n[VietQR Integration]" as BILLING
+        }
+
+        package "Engagement Service\n[Spring Boot | 512MB RAM] 📦 OPTIONAL" as ENG_SVC #FFB74D {
+            component "Gamification\n[Points/Badges]" as GAMIFY
+            component "Forum" as FORUM
+            component "Parent Portal\n[Link/Track]" as PARENT_SVC
+        }
+
+        package "Media Service\n[Spring Boot | 512MB RAM] 📦 OPTIONAL" as MEDIA_SVC #FFCC80 {
+            component "Video Streaming\n[HLS]" as VIDEO
+            component "Live Class\n[WebRTC]" as LIVE
+        }
+
+        database "Instance DB\n[PostgreSQL 15]" as INST_DB #E65100 {
+            storage "User Tables" as USR_TBL
+            storage "Class Tables" as CLS_TBL
+            storage "Billing Tables" as BILL_TBL
+            storage "Gamification" as GAME_TBL
+        }
+
+        queue "Instance Queue\n[RabbitMQ]" as INST_Q #FF5722
+        storage "Instance Cache\n[Redis]" as INST_CACHE #FF7043
+    }
+}
+
+' ==================== EXTERNAL SERVICES ====================
+package "External Services" as EXT #ECEFF1 {
+    component "OpenAI API\n[GPT-4]" as OPENAI #4CAF50
+    component "Stability AI\n[Image Gen]" as STABLE #8BC34A
+    component "Zalo API\n[OTP + Notification]" as ZALO #03A9F4
+    component "VietQR\n[Payment]" as VIETQR #FF5722
+    component "AWS S3\n[File Storage]" as S3 #FF9800
+    component "SendGrid\n[Email]" as EMAIL #9C27B0
+}
+
+' ==================== INFRASTRUCTURE ====================
+package "Infrastructure\n[Docker | Kubernetes | GitHub Actions]" as INFRA #CFD8DC {
+    component "Load Balancer\n[Nginx]" as LB
+    component "SSL/TLS\n[Let's Encrypt]" as SSL
+    component "Monitoring\n[Prometheus + Grafana]" as MON
+    component "Logging\n[ELK Stack]" as LOG
+    component "CI/CD\n[GitHub Actions]" as CICD
+}
+
+' ==================== CUSTOMER FLOWS ====================
+CUST --> LANDING : "1. Xem sản phẩm"
+CUST --> PORTAL : "2. Đăng ký/Mua gói"
+CUST --> CHAT_UI : "3. Chat hỗ trợ"
+ADMIN --> HUB_ADMIN : "Quản lý orders\nProvisioning"
+
+' ==================== CENTER FLOWS ====================
+OWNER --> CENTER_FE : "Dashboard\nBáo cáo"
+CADMIN --> CENTER_FE : "Quản lý lớp\nHọc viên"
+TEACHER --> CENTER_FE : "Điểm danh\nChấm điểm"
+STUDENT --> CENTER_FE : "Học tập\nXem điểm"
+PARENT --> PARENT_APP : "Theo dõi con\nThanh toán"
+
+' ==================== KITEHUB INTERNAL FLOWS ====================
+HUB_FE --> HUB_GW
+HUB_GW --> HUB_MODULES
+SALE_MOD --> HUB_DB
+MSG_MOD --> HUB_DB
+MAINT_MOD --> HUB_DB
+AI_MOD --> HUB_DB
+HUB_MODULES --> HUB_INFRA
+
+' ==================== KITECLASS INTERNAL FLOWS ====================
+KC_FE --> UG_SVC
+UG_SVC --> CORE_SVC
+UG_SVC --> ENG_SVC
+UG_SVC --> MEDIA_SVC
+CORE_SVC --> INST_DB
+ENG_SVC --> INST_DB
+CORE_SVC --> INST_Q
+CORE_SVC --> INST_CACHE
+
+' ==================== PROVISIONING FLOW ====================
+PROV ..> KC_LAYER : "Auto\nProvisioning"
+HEALTH ..> KC_LAYER : "Health\nCheck"
+
+' ==================== EXTERNAL INTEGRATIONS ====================
+MARKETING --> OPENAI
+MARKETING --> STABLE
+KC_AUTH --> ZALO : "OTP"
+BILLING --> VIETQR : "QR Payment"
+NOTIF --> ZALO : "Notification"
+NOTIF --> EMAIL
+MEDIA_SVC --> S3 : "Storage"
+
+' ==================== INFRASTRUCTURE CONNECTIONS ====================
+LB --> KITEHUB
+LB --> KC_LAYER
+MON ..> KITEHUB
+MON ..> KC_LAYER
+
+' ==================== LEGEND ====================
+legend right
+|= Component |= Tech Stack |
+| Frontend | Next.js 14, TypeScript, TailwindCSS, Shadcn/UI |
+| Backend | Java 21, Spring Boot 3.2, Spring Security |
+| Database | PostgreSQL 15, Redis 7 |
+| Queue | RabbitMQ 3.12 |
+| Container | Docker, Kubernetes |
+| CI/CD | GitHub Actions |
+| Monitoring | Prometheus, Grafana, ELK |
+
+|= Service |= RAM |= Required |
+| User + Gateway | 512MB | ⚡ Yes |
+| Core Service | 1GB | ⚡ Yes |
+| Engagement | 512MB | 📦 Optional |
+| Media Service | 512MB | 📦 Optional |
+| Frontend | 256MB | ⚡ Yes |
+endlegend
+
+' ==================== NOTES ====================
+note right of KC_LAYER
+  **Multi-Tenant Architecture**
+  - Database per tenant
+  - Complete data isolation
+  - Independent scaling
+  - Service toggle per plan
+
+  **Business Flow:**
+  1. Customer mua gói → Order created
+  2. Payment completed → Provisioning trigger
+  3. Instance deployed → Subdomain active
+  4. Center operates → Data isolated
+end note
+
+note left of EXT
+  **External API Costs:**
+  - OpenAI: $0.03/1K tokens
+  - VietQR: Free (bank API)
+  - Zalo OTP: 500đ/SMS
+  - S3: $0.023/GB/month
+end note
+
+@enduml

@@ -1,0 +1,93 @@
+@startuml architecture-simple
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam defaultFontSize 12
+
+title KITECLASS PLATFORM V3.1 - SƠ ĐỒ KIẾN TRÚC ĐƠN GIẢN
+
+' ====== KITEHUB (Central) ======
+package "KITEHUB\n(Modular Monolith)" as KITEHUB #LightBlue {
+    component "Sale\nModule" as SALE
+    component "Message\nModule" as MSG
+    component "Maintaining\nModule" as MAINT
+    component "AI Agent\nModule" as AI
+    component "Frontend\n(Next.js)" as HUBFE
+}
+
+database "KiteHub DB\n(PostgreSQL)" as HUBDB #LightGreen
+
+' ====== KITECLASS INSTANCES ======
+package "KITECLASS INSTANCES" as INSTANCES #LightYellow {
+
+    package "Instance #1\n(Center A)" as INST1 {
+        component "User+Gateway\nService" as UG1 #Orange
+        component "Core\nService" as CORE1 #Orange
+        component "Engagement\nService" as ENG1 #LightGray
+        component "Frontend" as FE1 #Orange
+    }
+
+    package "Instance #2\n(Center B)" as INST2 {
+        component "User+Gateway\nService" as UG2 #Orange
+        component "Core\nService" as CORE2 #Orange
+        component "Frontend" as FE2 #Orange
+    }
+
+    package "Instance #N\n(...)" as INSTN {
+        component "..." as DOTS
+    }
+}
+
+database "Instance 1 DB" as DB1 #LightGreen
+database "Instance 2 DB" as DB2 #LightGreen
+
+' ====== EXTERNAL SERVICES ======
+cloud "External Services" as EXT #LightPink {
+    component "OpenAI\nGPT-4" as OPENAI
+    component "Zalo API\n(OTP/SMS)" as ZALO
+    component "VietQR\n(Payment)" as VIETQR
+}
+
+' ====== USERS ======
+actor "Customer\n(Mua gói)" as CUSTOMER
+actor "Admin\n(Quản trị KiteHub)" as ADMIN
+actor "Center Owner\n(Chủ trung tâm)" as OWNER
+actor "Teacher\n(Giáo viên)" as TEACHER
+actor "Student\n(Học viên)" as STUDENT
+actor "Parent\n(Phụ huynh)" as PARENT
+
+' ====== RELATIONSHIPS ======
+CUSTOMER --> HUBFE : Đăng ký/Mua gói
+ADMIN --> HUBFE : Quản trị
+
+KITEHUB --> HUBDB
+
+OWNER --> FE1 : Quản lý trung tâm
+TEACHER --> FE1 : Dạy học
+STUDENT --> FE1 : Học tập
+PARENT --> FE1 : Theo dõi con
+
+INST1 --> DB1
+INST2 --> DB2
+
+MAINT ..> INSTANCES : Provisioning/\nMonitoring
+AI --> OPENAI
+KITEHUB --> ZALO
+INST1 --> VIETQR : Thanh toán
+
+note right of INSTANCES
+  Mỗi trung tâm = 1 Instance riêng
+  - Database isolation
+  - Customizable services
+  - Auto scaling
+end note
+
+legend right
+  |= Màu |= Ý nghĩa |
+  | <#Orange> | Service bắt buộc |
+  | <#LightGray> | Service tùy chọn |
+  | <#LightBlue> | KiteHub Central |
+  | <#LightYellow> | KiteClass Instances |
+endlegend
+
+@enduml

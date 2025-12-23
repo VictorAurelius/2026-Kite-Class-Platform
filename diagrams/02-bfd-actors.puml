@@ -1,0 +1,152 @@
+@startuml bfd-actors
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+title KITECLASS PLATFORM V3.1 - BUSINESS FLOW DIAGRAM (BFD) THEO ACTOR
+
+' ==================== KITEHUB ACTORS ====================
+package "KITEHUB ACTORS" as HUB_ACTORS #E3F2FD {
+
+    actor "Customer\n(Khách hàng)" as CUSTOMER #2196F3
+
+    usecase "Xem Landing Page\nThông tin sản phẩm" as UC_LAND #E3F2FD
+    usecase "Đăng ký mua gói\n(Basic/Standard/Premium)" as UC_REG #E3F2FD
+    usecase "Thanh toán\n(Bank/MoMo/Card)" as UC_PAY #E3F2FD
+    usecase "Chat hỗ trợ\n(Pre-sales)" as UC_CHAT #E3F2FD
+    usecase "Quản lý subscription\nGia hạn/Nâng cấp" as UC_SUB #E3F2FD
+
+    CUSTOMER --> UC_LAND
+    CUSTOMER --> UC_REG
+    CUSTOMER --> UC_PAY
+    CUSTOMER --> UC_CHAT
+    CUSTOMER --> UC_SUB
+
+    actor "Admin KiteHub\n(Nhân viên)" as ADMIN #1565C0
+
+    usecase "Quản lý đơn hàng\nXác nhận thanh toán" as UC_ORDER #E3F2FD
+    usecase "Provision Instance\nCấu hình hệ thống" as UC_PROV #E3F2FD
+    usecase "Monitor Instances\nHealth check" as UC_MON #E3F2FD
+    usecase "Hỗ trợ khách hàng\nChat/Ticket" as UC_SUPPORT #E3F2FD
+
+    ADMIN --> UC_ORDER
+    ADMIN --> UC_PROV
+    ADMIN --> UC_MON
+    ADMIN --> UC_SUPPORT
+}
+
+' ==================== KITECLASS ACTORS ====================
+package "KITECLASS INSTANCE ACTORS" as KC_ACTORS #FFF3E0 {
+
+    ' CENTER_OWNER
+    actor "Center Owner\n(Chủ trung tâm)" as OWNER #E65100
+
+    usecase "Dashboard tổng quan\nDoanh thu/Học viên" as UC_DASH #FFF3E0
+    usecase "Quản lý nhân sự\nAdmin/Giáo viên" as UC_STAFF #FFF3E0
+    usecase "Cài đặt trung tâm\nLogo/Thông tin" as UC_SETTING #FFF3E0
+    usecase "Báo cáo tài chính\nCông nợ/Thu chi" as UC_FINANCE #FFF3E0
+    usecase "AI Marketing\nTạo content" as UC_AI #FFF3E0
+
+    OWNER --> UC_DASH
+    OWNER --> UC_STAFF
+    OWNER --> UC_SETTING
+    OWNER --> UC_FINANCE
+    OWNER --> UC_AI
+
+    ' CENTER_ADMIN
+    actor "Center Admin\n(Quản trị viên)" as CADMIN #F57C00
+
+    usecase "Quản lý khóa học\nTạo/Sửa/Xóa" as UC_COURSE #FFF3E0
+    usecase "Quản lý lớp học\nLịch/Phòng" as UC_CLASS #FFF3E0
+    usecase "Quản lý học viên\nĐăng ký/Chuyển lớp" as UC_STUDENT_MGT #FFF3E0
+    usecase "Quản lý học phí\nHóa đơn/Thu tiền" as UC_BILLING #FFF3E0
+    usecase "Gửi thông báo\nZalo/Email/Push" as UC_NOTIFY #FFF3E0
+
+    CADMIN --> UC_COURSE
+    CADMIN --> UC_CLASS
+    CADMIN --> UC_STUDENT_MGT
+    CADMIN --> UC_BILLING
+    CADMIN --> UC_NOTIFY
+
+    ' TEACHER
+    actor "Teacher\n(Giáo viên)" as TEACHER #FF9800
+
+    usecase "Xem lịch dạy\nCalendar view" as UC_SCHEDULE #FFF3E0
+    usecase "Điểm danh\nTheo buổi học" as UC_ATTEND #FFF3E0
+    usecase "Chấm điểm\nNhập điểm/Nhận xét" as UC_GRADE #FFF3E0
+    usecase "Giao bài tập\nUpload tài liệu" as UC_ASSIGN #FFF3E0
+    usecase "Thảo luận\nForum với học viên" as UC_FORUM #FFF3E0
+
+    TEACHER --> UC_SCHEDULE
+    TEACHER --> UC_ATTEND
+    TEACHER --> UC_GRADE
+    TEACHER --> UC_ASSIGN
+    TEACHER --> UC_FORUM
+
+    ' STUDENT
+    actor "Student\n(Học viên)" as STUDENT #FFB74D
+
+    usecase "Xem lịch học\nThời khóa biểu" as UC_VIEW_SCHED #FFF3E0
+    usecase "Xem điểm số\nLịch sử điểm" as UC_VIEW_GRADE #FFF3E0
+    usecase "Làm bài tập\nNộp bài" as UC_SUBMIT #FFF3E0
+    usecase "Tham gia forum\nHỏi đáp" as UC_FORUM_STU #FFF3E0
+    usecase "Xem điểm thưởng\nĐổi quà" as UC_POINT #FFF3E0
+
+    STUDENT --> UC_VIEW_SCHED
+    STUDENT --> UC_VIEW_GRADE
+    STUDENT --> UC_SUBMIT
+    STUDENT --> UC_FORUM_STU
+    STUDENT --> UC_POINT
+
+    ' PARENT (NEW)
+    actor "Parent\n(Phụ huynh)" as PARENT #FFCC80
+
+    usecase "Đăng ký/Liên kết\nQR Code/OTP Zalo" as UC_LINK #E8F5E9
+    usecase "Xem điểm danh con\nTheo buổi" as UC_VIEW_ATTEND #E8F5E9
+    usecase "Xem điểm số con\nBáo cáo học tập" as UC_VIEW_CHILD #E8F5E9
+    usecase "Thanh toán học phí\nQR Code VietQR" as UC_PAY_FEE #E8F5E9
+    usecase "Nhận thông báo\nZalo/App" as UC_RECEIVE #E8F5E9
+    usecase "Nhắn tin với GV\nTrao đổi" as UC_MSG_TEACHER #E8F5E9
+
+    PARENT --> UC_LINK
+    PARENT --> UC_VIEW_ATTEND
+    PARENT --> UC_VIEW_CHILD
+    PARENT --> UC_PAY_FEE
+    PARENT --> UC_RECEIVE
+    PARENT --> UC_MSG_TEACHER
+}
+
+' ==================== SYSTEM ACTOR ====================
+package "SYSTEM ACTORS" as SYS_ACTORS #ECEFF1 {
+    actor "System\n(Tự động)" as SYSTEM #607D8B
+
+    usecase "Auto provisioning\nTạo instance mới" as UC_AUTO_PROV #ECEFF1
+    usecase "Health monitoring\nKiểm tra sức khỏe" as UC_HEALTH #ECEFF1
+    usecase "Billing reminder\nNhắc đóng học phí" as UC_REMINDER #ECEFF1
+    usecase "Report generation\nBáo cáo định kỳ" as UC_REPORT_GEN #ECEFF1
+    usecase "Backup/Restore\nSao lưu dữ liệu" as UC_BACKUP #ECEFF1
+
+    SYSTEM --> UC_AUTO_PROV
+    SYSTEM --> UC_HEALTH
+    SYSTEM --> UC_REMINDER
+    SYSTEM --> UC_REPORT_GEN
+    SYSTEM --> UC_BACKUP
+}
+
+' ==================== NOTES ====================
+note right of PARENT
+  **PARENT (Mới trong V3)**
+  - Đăng ký qua QR/OTP
+  - Liên kết với 1+ học viên
+  - Theo dõi real-time
+  - Thanh toán trực tiếp
+end note
+
+note bottom of KC_ACTORS
+  **Hierarchy quyền hạn:**
+  CENTER_OWNER > CENTER_ADMIN > TEACHER > STUDENT
+  PARENT có quyền read-only theo dõi con
+end note
+
+@enduml

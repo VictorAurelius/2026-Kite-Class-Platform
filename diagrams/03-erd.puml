@@ -1,0 +1,341 @@
+@startuml erd
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam linetype ortho
+
+title KITECLASS PLATFORM V3.1 - ENTITY RELATIONSHIP DIAGRAM (ERD)
+
+' ==================== KITEHUB DATABASE ====================
+package "KITEHUB DATABASE" as HUBDB #E3F2FD {
+
+    package "sales schema" as SALES #BBDEFB {
+        entity "customers" as customers {
+            * id : BIGSERIAL <<PK>>
+            --
+            organization_name : VARCHAR(255)
+            email : VARCHAR(255) <<UNIQUE>>
+            phone : VARCHAR(20)
+            status : VARCHAR(50)
+            logo_url : TEXT
+            slogan : TEXT
+            created_at : TIMESTAMP
+        }
+
+        entity "pricing_plans" as plans {
+            * id : BIGSERIAL <<PK>>
+            --
+            code : VARCHAR(50) <<UNIQUE>>
+            name : VARCHAR(100)
+            monthly_price : DECIMAL(12,2)
+            yearly_price : DECIMAL(12,2)
+            max_students : INTEGER
+            includes_engagement : BOOLEAN
+            includes_media : BOOLEAN
+        }
+
+        entity "subscriptions" as subscriptions {
+            * id : BIGSERIAL <<PK>>
+            --
+            * customer_id : BIGINT <<FK>>
+            * plan_id : BIGINT <<FK>>
+            subdomain : VARCHAR(50) <<UNIQUE>>
+            billing_cycle : VARCHAR(20)
+            start_date : DATE
+            end_date : DATE
+            addons : JSONB
+            status : VARCHAR(50)
+        }
+
+        entity "orders" as orders {
+            * id : BIGSERIAL <<PK>>
+            --
+            order_number : VARCHAR(50) <<UNIQUE>>
+            * customer_id : BIGINT <<FK>>
+            subscription_id : BIGINT <<FK>>
+            * plan_id : BIGINT <<FK>>
+            subtotal : DECIMAL(12,2)
+            discount : DECIMAL(12,2)
+            total : DECIMAL(12,2)
+            status : VARCHAR(50)
+        }
+
+        entity "payments" as payments {
+            * id : BIGSERIAL <<PK>>
+            --
+            payment_number : VARCHAR(50) <<UNIQUE>>
+            * order_id : BIGINT <<FK>>
+            amount : DECIMAL(12,2)
+            payment_method : VARCHAR(50)
+            transaction_id : VARCHAR(100)
+            status : VARCHAR(50)
+            paid_at : TIMESTAMP
+        }
+    }
+
+    package "maintaining schema" as MAINT #C8E6C9 {
+        entity "instances" as instances {
+            * id : BIGSERIAL <<PK>>
+            --
+            * subscription_id : BIGINT <<FK>>
+            instance_code : VARCHAR(50) <<UNIQUE>>
+            subdomain : VARCHAR(50) <<UNIQUE>>
+            config : JSONB
+            status : VARCHAR(50)
+            health_status : VARCHAR(50)
+            provisioned_at : TIMESTAMP
+        }
+    }
+
+    package "messages schema" as MSGS #FFF9C4 {
+        entity "chat_sessions" as chats {
+            * id : BIGSERIAL <<PK>>
+            --
+            customer_id : BIGINT
+            agent_id : BIGINT
+            channel : VARCHAR(50)
+            status : VARCHAR(50)
+            started_at : TIMESTAMP
+            ended_at : TIMESTAMP
+        }
+
+        entity "chat_messages" as chat_msgs {
+            * id : BIGSERIAL <<PK>>
+            --
+            * session_id : BIGINT <<FK>>
+            sender_type : VARCHAR(20)
+            content : TEXT
+            created_at : TIMESTAMP
+        }
+    }
+
+    package "ai_agents schema" as AI_SCHEMA #F3E5F5 {
+        entity "ai_sessions" as ai_sessions {
+            * id : BIGSERIAL <<PK>>
+            --
+            customer_id : BIGINT
+            agent_type : VARCHAR(50)
+            input_data : JSONB
+            output_data : JSONB
+            status : VARCHAR(50)
+            created_at : TIMESTAMP
+        }
+
+        entity "marketing_assets" as assets {
+            * id : BIGSERIAL <<PK>>
+            --
+            * session_id : BIGINT <<FK>>
+            asset_type : VARCHAR(50)
+            content_url : TEXT
+            metadata : JSONB
+        }
+    }
+}
+
+' ==================== KITECLASS INSTANCE DATABASE ====================
+package "KITECLASS INSTANCE DATABASE\n(Per-Tenant)" as INSTDB #FFF3E0 {
+
+    package "User Module" as USER_MOD #FFE0B2 {
+        entity "users" as users {
+            * id : BIGSERIAL <<PK>>
+            --
+            email : VARCHAR(255) <<UNIQUE>>
+            password_hash : VARCHAR(255)
+            first_name : VARCHAR(100)
+            last_name : VARCHAR(100)
+            phone : VARCHAR(20)
+            avatar_url : TEXT
+            status : VARCHAR(50)
+            oauth_provider : VARCHAR(50)
+        }
+
+        entity "roles" as roles {
+            * id : BIGSERIAL <<PK>>
+            --
+            code : VARCHAR(50) <<UNIQUE>>
+            name : VARCHAR(100)
+            description : TEXT
+            level : INTEGER
+        }
+
+        entity "user_roles" as user_roles {
+            * user_id : BIGINT <<FK>>
+            * role_id : BIGINT <<FK>>
+        }
+    }
+
+    package "Class Module" as CLASS_MOD #FFCC80 {
+        entity "courses" as courses {
+            * id : BIGSERIAL <<PK>>
+            --
+            code : VARCHAR(50) <<UNIQUE>>
+            name : VARCHAR(255)
+            description : TEXT
+            level : VARCHAR(50)
+            subject : VARCHAR(100)
+            duration_months : INTEGER
+            fee : DECIMAL(12,2)
+        }
+
+        entity "classes" as classes {
+            * id : BIGSERIAL <<PK>>
+            --
+            * course_id : BIGINT <<FK>>
+            code : VARCHAR(50)
+            name : VARCHAR(255)
+            teacher_id : BIGINT <<FK>>
+            room_id : BIGINT <<FK>>
+            max_students : INTEGER
+            start_date : DATE
+            end_date : DATE
+            status : VARCHAR(50)
+        }
+
+        entity "class_schedules" as schedules {
+            * id : BIGSERIAL <<PK>>
+            --
+            * class_id : BIGINT <<FK>>
+            day_of_week : INTEGER
+            start_time : TIME
+            end_time : TIME
+        }
+
+        entity "enrollments" as enrollments {
+            * id : BIGSERIAL <<PK>>
+            --
+            * student_id : BIGINT <<FK>>
+            * class_id : BIGINT <<FK>>
+            enrolled_at : TIMESTAMP
+            status : VARCHAR(50)
+        }
+    }
+
+    package "Learning Module" as LEARN_MOD #A5D6A7 {
+        entity "attendance" as attendance {
+            * id : BIGSERIAL <<PK>>
+            --
+            * enrollment_id : BIGINT <<FK>>
+            * schedule_date : DATE
+            status : VARCHAR(20)
+            check_in_time : TIMESTAMP
+            note : TEXT
+        }
+
+        entity "grades" as grades {
+            * id : BIGSERIAL <<PK>>
+            --
+            * enrollment_id : BIGINT <<FK>>
+            grade_type : VARCHAR(50)
+            score : DECIMAL(5,2)
+            max_score : DECIMAL(5,2)
+            comment : TEXT
+            graded_at : TIMESTAMP
+        }
+    }
+
+    package "Billing Module" as BILL_MOD #EF9A9A {
+        entity "invoices" as invoices {
+            * id : BIGSERIAL <<PK>>
+            --
+            invoice_number : VARCHAR(50) <<UNIQUE>>
+            * student_id : BIGINT <<FK>>
+            * class_id : BIGINT <<FK>>
+            period_start : DATE
+            period_end : DATE
+            subtotal : DECIMAL(12,2)
+            discount : DECIMAL(12,2)
+            total : DECIMAL(12,2)
+            status : VARCHAR(50)
+            due_date : DATE
+            qr_code_url : TEXT
+        }
+
+        entity "student_payments" as stu_payments {
+            * id : BIGSERIAL <<PK>>
+            --
+            * invoice_id : BIGINT <<FK>>
+            amount : DECIMAL(12,2)
+            payment_method : VARCHAR(50)
+            transaction_id : VARCHAR(100)
+            status : VARCHAR(50)
+            paid_at : TIMESTAMP
+        }
+    }
+
+    package "Gamification Module" as GAME_MOD #CE93D8 {
+        entity "student_points" as points {
+            * id : BIGSERIAL <<PK>>
+            --
+            * student_id : BIGINT <<FK>>
+            points : INTEGER
+            lifetime_points : INTEGER
+            level : INTEGER
+        }
+
+        entity "badges" as badges {
+            * id : BIGSERIAL <<PK>>
+            --
+            code : VARCHAR(50) <<UNIQUE>>
+            name : VARCHAR(100)
+            description : TEXT
+            icon_url : TEXT
+            criteria : JSONB
+        }
+
+        entity "student_badges" as stu_badges {
+            * student_id : BIGINT <<FK>>
+            * badge_id : BIGINT <<FK>>
+            earned_at : TIMESTAMP
+        }
+    }
+
+    package "Parent Module" as PARENT_MOD #80CBC4 {
+        entity "parents" as parents {
+            * id : BIGSERIAL <<PK>>
+            --
+            * user_id : BIGINT <<FK>>
+            zalo_id : VARCHAR(100)
+            notification_preferences : JSONB
+        }
+
+        entity "parent_children" as parent_children {
+            * parent_id : BIGINT <<FK>>
+            * student_id : BIGINT <<FK>>
+            relationship : VARCHAR(50)
+            verified : BOOLEAN
+            linked_at : TIMESTAMP
+        }
+    }
+}
+
+' ==================== RELATIONSHIPS - KITEHUB ====================
+customers ||--o{ subscriptions
+customers ||--o{ orders
+plans ||--o{ subscriptions
+plans ||--o{ orders
+subscriptions ||--|| instances
+orders ||--o{ payments
+subscriptions ||--o{ orders
+chats ||--o{ chat_msgs
+ai_sessions ||--o{ assets
+
+' ==================== RELATIONSHIPS - KITECLASS ====================
+users ||--o{ user_roles
+roles ||--o{ user_roles
+courses ||--o{ classes
+users ||--o{ classes : "teacher"
+classes ||--o{ schedules
+classes ||--o{ enrollments
+users ||--o{ enrollments : "student"
+enrollments ||--o{ attendance
+enrollments ||--o{ grades
+users ||--o{ invoices : "student"
+classes ||--o{ invoices
+invoices ||--o{ stu_payments
+users ||--o{ points : "student"
+badges ||--o{ stu_badges
+users ||--o{ stu_badges : "student"
+users ||--|| parents
+parents ||--o{ parent_children
+users ||--o{ parent_children : "student"
+
+@enduml
