@@ -67,3 +67,5 @@ các tính năng của BeeClass: Actor phụ huynh, tính hóa đơn, game hóa 
 sau khi đã điều tra các nền tảng khác trên thị trường và tối ưu hóa service, hãy tạo 2 báo cáo bản version mới nhất:
 1. kiến trúc hệ thống 
 2. use case của từng service
+
+chưa thấy đề cập đến FE của kitehub nhỉ?
