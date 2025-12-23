@@ -79,3 +79,9 @@ tôi chưa thấy đề cập đến trong use case:
 2. chưa đề cập đến Authen, Author cho KiteHub
 3. chưa đề cập đến use case cho gateway của KiteClass
 4. công nghệ backend cho KiteHub là NestJS, có thể dùng Java Spring boot không? (luôn ưu tiên Java Spring boot)
+
+tạo báo cáo md:
+1. so sánh giữa gateway và user service, liệu có thể tối ưu thêm nữa được không? tính cần thiết? gateway có tăng tải trọng, phức tạp cho 1 instance KiteClass khôn?
+2. việc chỉ có 1 extend service là media service có làm tăng tải trọng của core service không? có hợp lý không? có làm mất đi tính cơ động khi khách hàng thực hiện đăng ký gói sẽ thực hiện có chọn gắn thêm extend-service không? (core-service luôn phải khởi động đi kèm)
+
+thực hiện Action Items với Khuyến nghị cuối cùng

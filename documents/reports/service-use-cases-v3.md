@@ -5,11 +5,12 @@
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Tên dự án** | KiteClass Platform V3 |
-| **Phiên bản** | 3.0 (Final) |
+| **Tên dự án** | KiteClass Platform V3.1 |
+| **Phiên bản** | 3.1 (Optimized) |
 | **Ngày tạo** | 23/12/2025 |
 | **Loại tài liệu** | Use Case Specification |
 | **Tham chiếu** | system-architecture-v3-final.md |
+| **Thay đổi V3.1** | Merge Gateway+User Service, Add Engagement Service |
 
 ---
 
@@ -23,12 +24,13 @@
 4B. [KITEHUB - Authentication & Authorization](#phần-4b-kitehub---authentication--authorization) ⭐ NEW
 9. [KITEHUB - Frontend](#phần-9-kitehub---frontend)
 
-**KITECLASS Instance (4 Services + Gateway)**
-4C. [KITECLASS - API Gateway](#phần-4c-kiteclass---api-gateway) ⭐ NEW
-5. [KITECLASS - Core Service](#phần-5-kiteclass---core-service)
-6. [KITECLASS - User Service](#phần-6-kiteclass---user-service)
-7. [KITECLASS - Media Service](#phần-7-kiteclass---media-service)
-8. [KITECLASS - Frontend](#phần-8-kiteclass---frontend)
+**KITECLASS Instance (3-5 Services V3.1)**
+4C. [KITECLASS - API Gateway (Merged into User Service)](#phần-4c-kiteclass---api-gateway) ⭐ MERGED
+5. [KITECLASS - Core Service (Bắt buộc)](#phần-5-kiteclass---core-service)
+5B. [KITECLASS - Engagement Service (Tùy chọn)](#phần-5b-kiteclass---engagement-service) ⭐ NEW
+6. [KITECLASS - User + Gateway Service (Bắt buộc)](#phần-6-kiteclass---user-service) ⭐ MERGED
+7. [KITECLASS - Media Service (Tùy chọn)](#phần-7-kiteclass---media-service)
+8. [KITECLASS - Frontend (Bắt buộc)](#phần-8-kiteclass---frontend)
 
 ---
 
@@ -751,16 +753,19 @@
 
 ---
 
-# PHẦN 4C: KITECLASS - API GATEWAY
+# PHẦN 4C: KITECLASS - API GATEWAY (Merged into User Service) ⭐ V3.1
 
 ## 4C.1. Tổng quan
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Mô tả** | API Gateway cho mỗi KiteClass Instance |
-| **Công nghệ** | Spring Cloud Gateway |
+| **Mô tả** | API Gateway layer embedded trong User Service |
+| **Công nghệ** | Spring Cloud Gateway (Embedded) |
 | **Chức năng** | Routing, Auth, Rate Limiting, CORS, Load Balancing |
 | **Actors** | All KiteClass users (thông qua Frontend) |
+| **Lưu ý V3.1** | Gateway không còn là service riêng, đã merge vào User Service để tiết kiệm ~128MB RAM |
+
+> **⚠️ V3.1 Update:** Các use case dưới đây được thực hiện bởi Gateway Layer bên trong User+Gateway Service (PHẦN 6).
 
 ## 4C.2. Use Cases
 
@@ -926,17 +931,19 @@
 
 ---
 
-# PHẦN 5: KITECLASS - CORE SERVICE
+# PHẦN 5: KITECLASS - CORE SERVICE (Bắt buộc)
 
 ## 5.1. Tổng quan
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Mô tả** | Service chính quản lý nghiệp vụ giáo dục |
+| **Mô tả** | Service chính quản lý nghiệp vụ giáo dục cốt lõi |
 | **Công nghệ** | Java Spring Boot |
 | **Database** | PostgreSQL (instance-specific) |
-| **Modules** | Class, Learning, Billing, Gamification, Parent, Forum |
-| **Actors** | CENTER_OWNER, CENTER_ADMIN, TEACHER, STUDENT, PARENT |
+| **Modules** | Class, Learning, Billing |
+| **RAM** | ~768MB |
+| **Actors** | CENTER_OWNER, CENTER_ADMIN, TEACHER, STUDENT |
+| **Lưu ý V3.1** | Gamification, Parent, Forum đã chuyển sang Engagement Service (tùy chọn) |
 
 ## 5.2. CLASS MODULE - Use Cases
 
@@ -1247,7 +1254,45 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 5.5. GAMIFICATION MODULE - Use Cases
+---
+
+# PHẦN 5B: KITECLASS - ENGAGEMENT SERVICE (Tùy chọn) ⭐ NEW
+
+## 5B.1. Tổng quan
+
+| Thuộc tính | Giá trị |
+|------------|---------|
+| **Mô tả** | Service tùy chọn cho các tính năng engagement/tương tác |
+| **Công nghệ** | Java Spring Boot |
+| **Database** | PostgreSQL (instance-specific) |
+| **Modules** | Gamification, Parent Portal, Forum |
+| **RAM** | ~384MB |
+| **Actors** | STUDENT, PARENT, TEACHER |
+| **Gói bao gồm** | STANDARD, PREMIUM, hoặc BASIC + Engagement Pack |
+| **Lưu ý V3.1** | Các modules này tách từ Core Service để tối ưu gói BASIC |
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                      ENGAGEMENT SERVICE (Tùy chọn)                               │
+│                           Java Spring Boot                                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐     │
+│  │   GAMIFICATION     │  │   PARENT PORTAL    │  │      FORUM          │     │
+│  │   MODULE           │  │   MODULE           │  │      MODULE         │     │
+│  │                    │  │                    │  │                     │     │
+│  │  • Điểm tích lũy   │  │  • Đăng ký Zalo   │  │  • Q&A Forum        │     │
+│  │  • Huy hiệu        │  │  • Theo dõi con   │  │  • Thảo luận        │     │
+│  │  • Bảng xếp hạng   │  │  • Thông báo      │  │  • Bình luận        │     │
+│  │  • Phần thưởng     │  │  • Thanh toán     │  │                     │     │
+│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘     │
+│                                                                                  │
+│  Kích hoạt: Gói STANDARD/PREMIUM hoặc mua thêm ENGAGEMENT PACK (+300k/th)      │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 5B.2. GAMIFICATION MODULE - Use Cases
 
 ### UC-GAME-01: Tích điểm tự động
 
@@ -1348,7 +1393,7 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 5.6. PARENT MODULE - Use Cases
+## 5B.3. PARENT MODULE - Use Cases
 
 ### UC-PARENT-01: Phụ huynh tự đăng ký qua Zalo OTP
 
@@ -1470,7 +1515,7 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 5.7. FORUM MODULE - Use Cases
+## 5B.4. FORUM MODULE - Use Cases
 
 ### UC-FORUM-01: Đặt câu hỏi trên diễn đàn
 
@@ -1503,16 +1548,42 @@
 
 ---
 
-# PHẦN 6: KITECLASS - USER SERVICE
+# PHẦN 6: KITECLASS - USER + GATEWAY SERVICE (Bắt buộc) ⭐ MERGED
 
 ## 6.1. Tổng quan
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Mô tả** | Authentication, Authorization, User Management |
-| **Công nghệ** | Java Spring Boot + Spring Security |
+| **Mô tả** | API Gateway + Authentication + Authorization + User Management |
+| **Công nghệ** | Java Spring Boot + Spring Cloud Gateway + Spring Security |
 | **Database** | PostgreSQL - Schema: user_module |
+| **RAM** | ~512MB (tiết kiệm ~128MB so với tách riêng) |
 | **Actors** | All users |
+| **Lưu ý V3.1** | Gateway layer được embed vào User Service để tối ưu resource |
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│              USER + GATEWAY SERVICE (Merged - Bắt buộc)                          │
+│                        Java Spring Boot                                          │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │  GATEWAY LAYER (Embedded Spring Cloud Gateway)                          │    │
+│  │  • JWT Validation  • Rate Limiting (Redis)  • CORS  • Routing           │    │
+│  │  • Request/Response Logging  • Circuit Breaker                          │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+│                                       │                                          │
+│                              Internal Routing                                    │
+│                                       │                                          │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │  USER MODULE (Spring Security)                                          │    │
+│  │  • Authentication (JWT + OAuth)  • Authorization (RBAC)                 │    │
+│  │  • User CRUD  • Role Management  • Multi-tenant Support                 │    │
+│  │  • Parent Registration (Zalo OTP)                                       │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## 6.2. Use Cases
 
@@ -1645,7 +1716,7 @@
 
 ---
 
-# PHẦN 7: KITECLASS - MEDIA SERVICE
+# PHẦN 7: KITECLASS - MEDIA SERVICE (Tùy chọn)
 
 ## 7.1. Tổng quan
 
@@ -1653,8 +1724,11 @@
 |------------|---------|
 | **Mô tả** | Video upload, transcode, streaming |
 | **Công nghệ** | Node.js + FFmpeg + WebSocket |
-| **Storage** | S3/CloudFlare R2 |
+| **Storage** | S3/CloudFlare R2 (50GB cho Media Pack) |
+| **RAM** | ~512MB |
 | **Actors** | TEACHER, STUDENT |
+| **Gói bao gồm** | MEDIA PACK (+500k/th) |
+| **Lưu ý V3.1** | Service tùy chọn, chỉ deploy khi khách hàng mua Media Pack |
 
 ## 7.2. Use Cases
 
@@ -1767,7 +1841,7 @@
 
 ---
 
-# PHẦN 8: KITECLASS - FRONTEND
+# PHẦN 8: KITECLASS - FRONTEND (Bắt buộc)
 
 ## 8.1. Tổng quan
 
@@ -1776,7 +1850,9 @@
 | **Mô tả** | Giao diện người dùng multi-role |
 | **Công nghệ** | Next.js (React) + SSR |
 | **UI Framework** | Tailwind CSS / Shadcn |
+| **RAM** | ~256MB |
 | **Actors** | All roles |
+| **Lưu ý V3.1** | Frontend tự động ẩn/hiện features dựa trên services được deploy |
 
 ## 8.2. Use Cases theo Role
 
@@ -2224,4 +2300,4 @@
 
 *Báo cáo được tạo bởi: Claude Assistant*
 *Ngày: 23/12/2025*
-*Phiên bản: 3.0 (Final)*
+*Phiên bản: 3.1 (Optimized)*
