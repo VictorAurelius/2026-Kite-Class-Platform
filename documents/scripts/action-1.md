@@ -58,3 +58,12 @@ tạo báo cáo chi tiết giải thích về chức năng AI QUIZ GENERATOR, v�
 market-research-feature-proposal khi điều tra về beeclass, chưa nói đến tính năng tạo hóa đơn học phí cho lớp học, hãy tạo báo cáo md bổ sung riêng về điều tra beeclass toàn diện
 
 hãy đọc tài liệu reports/Hướng dẫn sử dụng BeeClass - v2.0.pdf và hoàn thiện beeclass-comprehensive-analysis
+
+về kiến trúc hệ thống, tôi chưa thấy đề cập đến gateway và cách authen author của kiteclass, hãy bổ sung vào service-optimization-report
+
+tôi thấy tính năng AI QUIZ GENERATOR khá phức tạp để triển khai và chưa mang tính ổn định cao => chưa nên áp dụng
+các tính năng của BeeClass: Actor phụ huynh, tính hóa đơn, game hóa là thứ KiteClass còn thiếu
+
+sau khi đã điều tra các nền tảng khác trên thị trường và tối ưu hóa service, hãy tạo 2 báo cáo bản version mới nhất:
+1. kiến trúc hệ thống 
+2. use case của từng service
