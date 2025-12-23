@@ -93,3 +93,15 @@ bây giờ hãy tạo:
 2. các kiến thức cần nắm vững để thực hiện phát triển: coding, deploy
 3. schedule md để triển khai thực hiện dự án
 4. thiết kế database
+
+tạo thêm 1 checklist md khi phát triển 1 feature phải có:
+1. mapping với thiết kế (db, usecase)
+2. code chuẩn theo chuẩn nào? style nào?
+3. cần có file test tự động .sh cho feature đó
+4. sau khi phát triển xong, chạy test thì kết quả phải đạt như thế nào?
+
+checklist cần quy định thêm về:
+1. comment trong code
+2. cách design pattern cần sử dụng trong code 
+3. các tài liệu md và log được render ra khi implement hoặc test để dễ dàng follow flow và result
+4. cách quy định về code có cảnh báo wanring
