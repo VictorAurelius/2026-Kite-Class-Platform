@@ -15,10 +15,14 @@
 
 # MỤC LỤC
 
+**KITEHUB (Modular Monolith + Frontend)**
 1. [KITEHUB - Sale Module](#phần-1-kitehub---sale-module)
 2. [KITEHUB - Message Module](#phần-2-kitehub---message-module)
 3. [KITEHUB - Maintaining Module](#phần-3-kitehub---maintaining-module)
 4. [KITEHUB - AI Agent Module](#phần-4-kitehub---ai-agent-module)
+9. [KITEHUB - Frontend](#phần-9-kitehub---frontend) ⭐ NEW
+
+**KITECLASS Instance (4 Services)**
 5. [KITECLASS - Core Service](#phần-5-kiteclass---core-service)
 6. [KITECLASS - User Service](#phần-6-kiteclass---user-service)
 7. [KITECLASS - Media Service](#phần-7-kiteclass---media-service)

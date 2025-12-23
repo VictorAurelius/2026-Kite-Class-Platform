@@ -69,3 +69,7 @@ sau khi đã điều tra các nền tảng khác trên thị trường và tối
 2. use case của từng service
 
 chưa thấy đề cập đến FE của kitehub nhỉ?
+
+KITEHUB FRONTEND chưa bổ sung cho use case?
+
+chưa cập nhật mục lục nên tôi mới phán định như vậy

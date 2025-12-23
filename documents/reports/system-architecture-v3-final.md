@@ -13,6 +13,33 @@
 
 ---
 
+# MỤC LỤC
+
+**TỔNG QUAN**
+- [Tổng quan thay đổi từ V2](#tổng-quan-thay-đổi-từ-v2)
+
+**PHẦN 1: KIẾN TRÚC TỔNG QUAN**
+- [1.1. Sơ đồ kiến trúc toàn hệ thống](#11-sơ-đồ-kiến-trúc-toàn-hệ-thống)
+- [1.2. Actors trong hệ thống V3](#12-actors-trong-hệ-thống-v3)
+
+**PHẦN 1B: KITEHUB FRONTEND** ⭐ NEW
+- [1B.1. Tổng quan KiteHub Frontend](#1b1-tổng-quan-kitehub-frontend)
+- [1B.2. Component Architecture](#1b2-component-architecture)
+- [1B.3. Page Components Detail](#1b3-page-components-detail)
+- [1B.4. API Integration](#1b4-kitehub-frontend---api-integration)
+
+**PHẦN 2-6: KITECLASS INSTANCE**
+- [Phần 2: Kiến trúc KiteClass Instance V3](#phần-2-kiến-trúc-kiteclass-instance-v3)
+- [Phần 3: Hệ thống hóa đơn học phí (Billing)](#phần-3-hệ-thống-hóa-đơn-học-phí-billing)
+- [Phần 4: Hệ thống Gamification](#phần-4-hệ-thống-gamification)
+- [Phần 5: Cổng phụ huynh (Parent Portal)](#phần-5-cổng-phụ-huynh-parent-portal)
+- [Phần 6: Authentication & Authorization V3](#phần-6-authentication--authorization-v3)
+
+**TỔNG KẾT**
+- [Phần 7: Tổng kết kiến trúc V3](#phần-7-tổng-kết-kiến-trúc-v3)
+
+---
+
 ## TỔNG QUAN THAY ĐỔI TỪ V2
 
 | Tính năng | V2 | V3 | Lý do |
