@@ -52,3 +52,9 @@ tạo báo cáo cho từng vấn đề
 
 chuyển 2 báo cáo về dạng md
 tìm hiểu thêm về BeeClass và azota.vn, 2 nền tảng mạnh ở việt nam về lĩnh vực này
+
+tạo báo cáo chi tiết giải thích về chức năng AI QUIZ GENERATOR, ví dụ: cơ chế, model, nguồn dữ liệu, đánh giá chất lượng như thế nào, ...
+
+market-research-feature-proposal khi điều tra về beeclass, chưa nói đến tính năng tạo hóa đơn học phí cho lớp học, hãy tạo báo cáo md bổ sung riêng về điều tra beeclass toàn diện
+
+hãy đọc tài liệu reports/Hướng dẫn sử dụng BeeClass - v2.0.pdf và hoàn thiện beeclass-comprehensive-analysis

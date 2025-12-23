@@ -10,7 +10,9 @@
       "Bash(~/jdk/jdk-21/bin/java:*)",
       "Bash(ls:*)",
       "Bash(file:*)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:beeclass.net)",
+      "WebFetch(domain:aidayhoc.vn)"
     ]
   }
 }
