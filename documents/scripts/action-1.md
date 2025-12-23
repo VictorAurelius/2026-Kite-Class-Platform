@@ -85,3 +85,11 @@ tạo báo cáo md:
 2. việc chỉ có 1 extend service là media service có làm tăng tải trọng của core service không? có hợp lý không? có làm mất đi tính cơ động khi khách hàng thực hiện đăng ký gói sẽ thực hiện có chọn gắn thêm extend-service không? (core-service luôn phải khởi động đi kèm)
 
 thực hiện Action Items với Khuyến nghị cuối cùng
+
+tạo báo cáo tìm hiểu xem registry có nên apply vào KiteClass không?
+
+bây giờ hãy tạo:
+1. kế hoạch khảo sát và phỏng vấn chi tiết các actor
+2. các kiến thức cần nắm vững để thực hiện phát triển: coding, deploy
+3. schedule md để triển khai thực hiện dự án
+4. thiết kế database
