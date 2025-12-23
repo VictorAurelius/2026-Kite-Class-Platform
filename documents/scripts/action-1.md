@@ -73,3 +73,9 @@ chưa thấy đề cập đến FE của kitehub nhỉ?
 KITEHUB FRONTEND chưa bổ sung cho use case?
 
 chưa cập nhật mục lục nên tôi mới phán định như vậy
+
+tôi chưa thấy đề cập đến trong use case:
+1. sau khi AI Generate marketing assets thành công, sẽ preview website (có thể 1 số trang nổi bật như trang home) cho khách hàng xem trước
+2. chưa đề cập đến Authen, Author cho KiteHub
+3. chưa đề cập đến use case cho gateway của KiteClass
+4. công nghệ backend cho KiteHub là NestJS, có thể dùng Java Spring boot không? (luôn ưu tiên Java Spring boot)

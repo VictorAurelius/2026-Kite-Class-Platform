@@ -64,7 +64,7 @@
 │                                                                                  │
 │  ┌────────────────────────────────────────────────────────────────────────────┐ │
 │  │                       KITEHUB (MODULAR MONOLITH)                           │ │
-│  │                            NestJS Application                               │ │
+│  │                        Java Spring Boot Application                         │ │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │ │
 │  │  │    Sale      │  │   Message    │  │  Maintaining │  │  AI Agent    │   │ │
 │  │  │   Module     │  │    Module    │  │    Module    │  │   Module     │   │ │
@@ -1375,14 +1375,18 @@ CREATE INDEX idx_parent_notifications_parent ON user_module.parent_notifications
 | Tính năng | V1 | V2 | V3 (Final) |
 |-----------|:--:|:--:|:----------:|
 | **KiteHub** |
-| Backend Architecture | 3 Microservices | Modular Monolith | Modular Monolith |
+| Backend Architecture | 3 Microservices | Modular Monolith (NestJS) | **Modular Monolith (Java Spring Boot)** |
+| Backend Tech | NestJS | NestJS | **Java Spring Boot** ⭐ |
 | Frontend | Basic | Basic | **Next.js Full Stack** |
+| Authentication | Basic | Basic | **JWT + OAuth 2.0** |
 | AI Marketing | ❌ | ✅ | ✅ |
+| Preview Website | ❌ | ❌ | ✅ ⭐ NEW |
 | Admin Dashboard | Basic | Basic | **Full Featured** |
 | Customer Portal | ❌ | ❌ | ✅ |
 | Agent Chat UI | ❌ | ❌ | ✅ |
 | **KiteClass Instance** |
 | Services | 7 | 7 | **4** (Optimized) |
+| API Gateway | ❌ | ❌ | ✅ ⭐ NEW |
 | AI Quiz Generator | ❌ | ❌ (Proposed) | ❌ (Rejected) |
 | **Features** |
 | Actor Parent | ❌ | ❌ | ✅ |
@@ -1395,7 +1399,7 @@ CREATE INDEX idx_parent_notifications_parent ON user_module.parent_notifications
 
 ### KiteHub (Modular Monolith + Frontend)
 
-**Backend (NestJS):**
+**Backend (Java Spring Boot):**
 - ✅ Sale Module: Landing page, pricing, orders
 - ✅ Message Module: Chat support, notifications
 - ✅ Maintaining Module: Instance provisioning, monitoring
