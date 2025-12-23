@@ -43,3 +43,12 @@ nhưng tôi chỉ cần 2 diagram khái quát thôi, không cần nói rõ sẽ 
 architecture-diagram bị lỗi code
 
 làm sao để có ảnh diagram đúng là được
+
+bây giờ hãy tiếp tục bổ sung idea, tôi có 2 vấn đề
+1. các service của core phân bổ như hiện tại đã hợp lý chưa? đã tối ưu chưa?
+2. hãy thực hiện điều tra các nền tảng tương tự đã release trên thị trường và thực hiện đề xuất bổ sung chức năng và nghiệp vụ cho kiteclass
+
+tạo báo cáo cho từng vấn đề
+
+chuyển 2 báo cáo về dạng md
+tìm hiểu thêm về BeeClass và azota.vn, 2 nền tảng mạnh ở việt nam về lĩnh vực này

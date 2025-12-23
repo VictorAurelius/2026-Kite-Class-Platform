@@ -9,7 +9,8 @@
       "Bash(wget:*)",
       "Bash(~/jdk/jdk-21/bin/java:*)",
       "Bash(ls:*)",
-      "Bash(file:*)"
+      "Bash(file:*)",
+      "WebSearch"
     ]
   }
 }
