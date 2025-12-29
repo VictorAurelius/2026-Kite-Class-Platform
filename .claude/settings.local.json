@@ -12,7 +12,8 @@
       "Bash(file:*)",
       "WebSearch",
       "WebFetch(domain:beeclass.net)",
-      "WebFetch(domain:aidayhoc.vn)"
+      "WebFetch(domain:aidayhoc.vn)",
+      "Bash(find:*)"
     ]
   }
 }

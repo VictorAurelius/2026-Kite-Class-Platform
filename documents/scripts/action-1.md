@@ -115,3 +115,9 @@ sau khi chốt lại kiến trúc và use case, hãy thực hiện tạo lại c
 kiểm tra lại thư mục diagrams (không phải thư mục con trong documents), tôi để các file puml ở đây rồi và có sẵn plantuml.jar để render, hãy thực hiện render luôn
 
 tôi thấy tôi đã làm tất cả chuẩn bị trước khi triển khai khảo sát và coding, bạn có đề xuất thêm vấn đề nào cần xem xét nữa không?
+
+sau khi có nhiều sửa đổi, hãy tạo graduation-thesis-outline bản mới và 2 sơ đồ bản mới
+
+graduation-thesis-outline-v3 chưa đúng format, hãy đọc 20251218-KietNV-YTuongDoAn và sửa lại theo phong cách viết và format đúng để dễ copy vào word
+
+2 sơ đồ yêu cầu đơn giản như trong 20251218-KietNV-YTuongDoAn

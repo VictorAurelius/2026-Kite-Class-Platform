@@ -1,0 +1,164 @@
+@startuml system-overview-v3
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam defaultFontSize 11
+skinparam wrapWidth 150
+
+title KITECLASS PLATFORM V3.1 - SYSTEM OVERVIEW
+
+' ==================== HEADER ====================
+legend top
+|= Phiên bản |= Ngày |= Mô tả |
+| V3.1 | 23/12/2025 | Optimized Architecture |
+endlegend
+
+' ==================== ACTORS ====================
+actor "Customer\n(Mua gói)" as CUST #2196F3
+actor "Center Owner\n(Chủ TT)" as OWNER #E65100
+actor "Teacher" as TEACHER #FF9800
+actor "Student" as STUDENT #FFB74D
+actor "Parent" as PARENT #4CAF50
+
+' ==================== KITEHUB ====================
+package "KITEHUB\n(Modular Monolith)" as KITEHUB #E3F2FD {
+
+    component "Landing Page\nkiteclass.com" as LANDING #BBDEFB
+    component "Admin Dashboard" as HUB_ADMIN #BBDEFB
+
+    package "Backend Modules" as HUB_BACKEND #90CAF9 {
+        component "Sale\nModule" as SALE {
+            card "Pricing" as PRICING
+            card "Orders" as ORDERS
+            card "Payment" as PAY
+        }
+
+        component "Message\nModule" as MSG {
+            card "Chat" as CHAT
+            card "Notification" as NOTIF
+        }
+
+        component "Maintaining\nModule" as MAINT {
+            card "Provisioning" as PROV
+            card "Monitoring" as MON
+        }
+
+        component "AI Agent\nModule" as AI {
+            card "Marketing" as MKT
+            card "Content Gen" as CONTENT
+        }
+    }
+
+    database "PostgreSQL\n(Shared)" as HUB_DB #1976D2
+    queue "RabbitMQ" as HUB_Q #1976D2
+    storage "Redis" as HUB_CACHE #1976D2
+}
+
+' ==================== KITECLASS INSTANCE ====================
+package "KITECLASS INSTANCE\n(abc.kiteclass.com)" as KITECLASS #FFF3E0 {
+
+    component "Center Portal\n(Next.js PWA)" as KC_FE #FFCC80
+
+    package "Services (3-5)" as KC_SERVICES #FFE0B2 {
+
+        component "User+Gateway\n(512MB) ⚡" as UG #FB8C00 {
+            card "Auth" as AUTH
+            card "Users" as USERS
+            card "Gateway" as GW
+        }
+
+        component "Core Service\n(1GB) ⚡" as CORE #F57C00 {
+            card "Classes" as CLS
+            card "Students" as STU
+            card "Attendance" as ATT
+            card "Grades" as GRD
+            card "Billing" as BILL
+        }
+
+        component "Engagement\n(512MB) 📦" as ENG #FFB74D {
+            card "Gamification" as GAME
+            card "Parent Portal" as PP
+            card "Forum" as FORUM
+        }
+    }
+
+    database "PostgreSQL\n(Isolated)" as KC_DB #E65100
+    queue "RabbitMQ" as KC_Q #E65100
+    storage "Redis" as KC_CACHE #E65100
+}
+
+' ==================== EXTERNAL SERVICES ====================
+cloud "External APIs" as EXT #ECEFF1 {
+    component "OpenAI\nGPT-4" as OPENAI #4CAF50
+    component "Zalo API\nOTP/Notif" as ZALO #03A9F4
+    component "VietQR\nPayment" as VIETQR #FF5722
+    component "Stability\nImage Gen" as STABLE #8BC34A
+}
+
+' ==================== CONNECTIONS ====================
+' Customer flow
+CUST --> LANDING : "1. Xem sản phẩm"
+CUST --> HUB_ADMIN : "2. Đăng ký/Mua"
+SALE --> HUB_DB
+AI --> HUB_DB
+MSG --> HUB_DB
+MAINT --> HUB_DB
+
+' Provisioning flow
+MAINT ..> KITECLASS : "3. Auto\nProvisioning"
+
+' Center operations
+OWNER --> KC_FE : "Dashboard"
+TEACHER --> KC_FE : "Điểm danh/Chấm điểm"
+STUDENT --> KC_FE : "Học tập"
+PARENT --> KC_FE : "Theo dõi con"
+
+' Internal connections
+KC_FE --> UG
+UG --> CORE
+UG --> ENG
+CORE --> KC_DB
+ENG --> KC_DB
+
+' External integrations
+AI --> OPENAI
+AI --> STABLE
+UG --> ZALO : "OTP"
+CORE --> VIETQR : "QR Payment"
+MSG --> ZALO : "Notification"
+
+' ==================== NOTES ====================
+note right of KITECLASS
+  **Mỗi trung tâm = 1 Instance riêng**
+
+  ⚡ Services bắt buộc:
+  - User + Gateway (512MB)
+  - Core Service (1GB)
+  - Frontend (256MB)
+
+  📦 Services tùy chọn:
+  - Engagement (512MB)
+  - Media (512MB)
+
+  **RAM tối thiểu: ~2.5GB**
+end note
+
+note bottom of KITEHUB
+  **KiteHub Central**
+  - Quản lý tất cả instances
+  - Xử lý thanh toán subscription
+  - AI Marketing content
+  - Health monitoring
+end note
+
+' ==================== LEGEND ====================
+legend right
+|= Ký hiệu |= Ý nghĩa |
+| ⚡ | Service bắt buộc |
+| 📦 | Service tùy chọn |
+| <#E3F2FD> | KiteHub (Central) |
+| <#FFF3E0> | KiteClass (Instance) |
+| <#ECEFF1> | External Services |
+endlegend
+
+@enduml
