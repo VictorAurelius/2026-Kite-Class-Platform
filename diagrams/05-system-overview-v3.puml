@@ -38,7 +38,7 @@ note right of AI_SVC
     - Remove.bg: Xóa nền ảnh
 end note
 
-package "KiteClass Instance #1 (abc.kiteclass.com)" as KC1 {
+package "KiteClass Instance #1\n(abc.kiteclass.com)" as KC1 {
     rectangle "Frontend" as FE1
     rectangle "User+Gateway" as UG1
     rectangle "Core Service" as CORE1
@@ -47,15 +47,7 @@ package "KiteClass Instance #1 (abc.kiteclass.com)" as KC1 {
     rectangle "Cache" as CACHE1
 }
 
-note bottom of KC1
-    **Ví dụ 1: Trung tâm Anh ngữ ABC**
-    - 500 học viên, 20 giáo viên, 50 lớp
-    - Gói Premium: $99/tháng
-    - Services: Full (Core + Engagement)
-    - RAM: ~2.5GB
-end note
-
-package "KiteClass Instance #2 (xyz.kiteclass.com)" as KC2 {
+package "KiteClass Instance #2\n(xyz.kiteclass.com)" as KC2 {
     rectangle "Frontend" as FE2
     rectangle "User+Gateway" as UG2
     rectangle "Core Service" as CORE2
@@ -63,28 +55,12 @@ package "KiteClass Instance #2 (xyz.kiteclass.com)" as KC2 {
     rectangle "Cache" as CACHE2
 }
 
-note bottom of KC2
-    **Ví dụ 2: Gia sư IELTS XYZ**
-    - 100 học viên, 5 giáo viên, 10 lớp
-    - Gói Standard: $49/tháng
-    - Services: Core only (không Engagement)
-    - RAM: ~2GB
-end note
-
-package "KiteClass Instance #3 (math123.kiteclass.com)" as KC3 {
+package "KiteClass Instance #3\n(math123.kiteclass.com)" as KC3 {
     rectangle "Frontend" as FE3
     rectangle "User+Gateway" as UG3
     rectangle "Core Service" as CORE3
     rectangle "Database" as DB3
 }
-
-note bottom of KC3
-    **Ví dụ 3: Lớp Toán thầy Minh**
-    - 30 học viên, 1 giáo viên, 3 lớp
-    - Gói Basic: $29/tháng
-    - Services: Core only (minimal)
-    - RAM: ~1.5GB
-end note
 
 REG -down-> SALE
 SALE -right-> AI : Tạo branding
@@ -111,5 +87,12 @@ CORE2 -right-> CACHE2
 FE3 -down-> UG3
 UG3 -down-> CORE3
 CORE3 -down-> DB3
+
+legend bottom
+|= Instance |= Ví dụ |= Quy mô |= Gói |= Services |= RAM |
+| #1 abc.kiteclass.com | Trung tâm Anh ngữ ABC | 500 HV, 20 GV, 50 lớp | Premium $99/th | Core + Engagement | ~2.5GB |
+| #2 xyz.kiteclass.com | Gia sư IELTS XYZ | 100 HV, 5 GV, 10 lớp | Standard $49/th | Core only | ~2GB |
+| #3 math123.kiteclass.com | Lớp Toán thầy Minh | 30 HV, 1 GV, 3 lớp | Basic $29/th | Core minimal | ~1.5GB |
+endlegend
 
 @enduml

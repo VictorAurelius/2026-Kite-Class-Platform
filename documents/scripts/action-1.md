@@ -125,3 +125,5 @@ graduation-thesis-outline-v3 chưa đúng format, hãy đọc 20251218-KietNV-YT
 tôi chưa hài lòng với system-overview-v3, rõ ràng hơn, nhiều ví dụ hơn
 
 làm rõ ví dụ thứ 2 hơn và thêm ví dụ thứ 3
+
+giữ nguyên tất cả nội dung, thực hiện di chuyển các ghi chú của instance để gọn gàng và đẹp mắt hơn
