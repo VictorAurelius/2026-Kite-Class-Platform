@@ -1,153 +1,57 @@
 @startuml business-flow-v3
-!theme plain
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontSize 11
-skinparam sequenceMessageAlign center
+skinparam monochrome true
+skinparam shadowing false
 
-title KITECLASS PLATFORM V3.1 - COMPLETE BUSINESS FLOW
+title Quy Trình Mở Node KiteClass
 
-' ==================== PARTICIPANTS ====================
-actor "Customer" as CUST #2196F3
-participant "KiteHub\nFrontend" as HUB_FE #BBDEFB
-participant "Sale\nModule" as SALE #90CAF9
-participant "AI Agent\nModule" as AI #90CAF9
-participant "Maintaining\nModule" as MAINT #90CAF9
-participant "KiteClass\nInstance" as KC #FFE0B2
-actor "Center Owner" as OWNER #E65100
-actor "Center Admin" as ADMIN #F57C00
-actor "Teacher" as TEACHER #FF9800
-actor "Student" as STUDENT #FFB74D
-actor "Parent" as PARENT #4CAF50
+actor "Khách hàng" as CUST
+participant "Sale Module" as SALE
+participant "AI Agent" as AI
+participant "Maintaining\nModule" as MAINT
+participant "KiteClass\nInstance" as KC
 
-' ==================== PHASE 1: SALES ====================
-== PHASE 1: ĐĂNG KÝ & MUA GÓI ==
+== 1. Đặt hàng và Thanh toán ==
 
-CUST -> HUB_FE : 1. Truy cập kiteclass.com
-HUB_FE --> CUST : Hiển thị Landing Page\n(Pricing, Features)
+CUST -> SALE : Chọn gói dịch vụ\nUpload ảnh cá nhân
+SALE -> SALE : Xử lý thanh toán
+SALE --> CUST : Xác nhận đơn hàng
 
-CUST -> HUB_FE : 2. Chọn gói (Basic/Standard/Premium)
-HUB_FE -> SALE : Tạo đơn hàng
-note right of SALE
-  Order includes:
-  - Gói dịch vụ
-  - Subdomain: abc.kiteclass.com
-  - Billing cycle: Monthly/Yearly
-  - Add-ons (optional)
-end note
+== 2. Tạo Branding với AI ==
 
-CUST -> HUB_FE : 3. Upload logo/ảnh
-HUB_FE -> AI : Xử lý AI Marketing
+SALE -> AI : Gửi ảnh và thông tin
+AI -> AI : Remove background\nTrích xuất màu sắc\nTạo logo, banner\nSinh nội dung marketing
+AI --> CUST : Preview branding\n(~30 giây, $0.19)
+CUST --> AI : Xác nhận
 
-activate AI #F3E5F5
-AI -> AI : Remove background
-AI -> AI : Extract colors
-AI -> AI : Generate marketing copy (GPT-4)
-AI -> AI : Create logos/banners (SDXL)
-AI --> HUB_FE : Preview assets (~30s)
-deactivate AI
+== 3. Provision Infrastructure ==
 
-CUST -> HUB_FE : 4. Xác nhận & Thanh toán
-HUB_FE -> SALE : Process payment
-SALE --> HUB_FE : Payment success
+AI -> MAINT : Yêu cầu provision
+MAINT -> MAINT : Tạo database riêng\nTạo storage buckets\nCấu hình hạ tầng
+MAINT --> CUST : Hạ tầng sẵn sàng
 
-' ==================== PHASE 2: PROVISIONING ====================
-== PHASE 2: TẠO INSTANCE TỰ ĐỘNG ==
+== 4. Deploy Services ==
 
-SALE -> MAINT : 5. Trigger provisioning
+MAINT -> KC : Deploy microservices\nDeploy frontend có branding
+KC -> KC : Build & khởi động\nÁp dụng AI branding
+KC --> MAINT : Triển khai hoàn tất
+MAINT --> CUST : Gửi URL truy cập\nhttps://[tên].kiteclass.com
 
-activate MAINT #C8E6C9
-MAINT -> MAINT : Create PostgreSQL database
-MAINT -> MAINT : Deploy User+Gateway Service
-MAINT -> MAINT : Deploy Core Service
-MAINT -> MAINT : Deploy Frontend
-MAINT -> MAINT : Apply branding assets
-MAINT -> MAINT : Configure DNS (abc.kiteclass.com)
-MAINT --> KC : Instance ready (~3-5 min)
-deactivate MAINT
+== 5. Sử dụng ==
 
-MAINT --> CUST : Email: Instance đã sẵn sàng\n+ Admin credentials
+CUST -> KC : Truy cập và sử dụng
+KC --> CUST : Platform sẵn sàng
 
-' ==================== PHASE 3: CENTER SETUP ====================
-== PHASE 3: CÀI ĐẶT TRUNG TÂM ==
-
-CUST -> KC : 6. Đăng nhập lần đầu
-note right of KC : Becomes CENTER_OWNER
-
-OWNER -> KC : 7. Cài đặt cơ bản
-KC --> OWNER : - Thông tin trung tâm\n- Cấu hình học phí\n- Tạo tài khoản Admin
-
-OWNER -> KC : 8. Tạo tài khoản Admin
-KC --> ADMIN : Account created
-
-ADMIN -> KC : 9. Setup khóa học & lớp
-KC --> KC : - Tạo Courses\n- Tạo Classes\n- Phân lịch\n- Phân phòng
-
-ADMIN -> KC : 10. Tạo tài khoản GV
-KC --> TEACHER : Teacher accounts
-
-' ==================== PHASE 4: OPERATIONS ====================
-== PHASE 4: VẬN HÀNH TRUNG TÂM ==
-
-ADMIN -> KC : 11. Đăng ký học viên
-KC --> STUDENT : Student accounts\n+ QR Code liên kết PH
-
-STUDENT --> PARENT : 12. Chia sẻ QR Code
-PARENT -> KC : 13. Quét QR + OTP Zalo
-KC --> PARENT : Liên kết thành công
-
-group Daily Operations
-    TEACHER -> KC : Điểm danh buổi học
-    KC -> PARENT : 📱 Notification: Con đã điểm danh
-
-    TEACHER -> KC : Nhập điểm
-    KC -> PARENT : 📱 Notification: Điểm mới
-
-    ADMIN -> KC : Tạo hóa đơn học phí
-    KC -> PARENT : 📱 Notification: Hóa đơn + QR VietQR
-
-    PARENT -> KC : Thanh toán qua QR
-    KC --> KC : Cập nhật trạng thái\nINVOICE: PAID
-end
-
-' ==================== PHASE 5: GAMIFICATION ====================
-== PHASE 5: GAMIFICATION (Optional) ==
-
-note over KC
-  Nếu trung tâm enable Engagement Service
-end note
-
-STUDENT -> KC : Hoàn thành bài tập
-KC -> KC : +10 điểm thưởng
-
-STUDENT -> KC : Điểm danh đầy đủ tuần
-KC -> KC : +50 điểm bonus\n🏆 Badge "Chuyên cần"
-
-STUDENT -> KC : Xem điểm & đổi quà
-KC --> STUDENT : Danh sách rewards
-
-' ==================== PHASE 6: REPORTS ====================
-== PHASE 6: BÁO CÁO & THEO DÕI ==
-
-OWNER -> KC : Xem Dashboard
-KC --> OWNER : - Tổng học viên\n- Doanh thu tháng\n- Công nợ\n- Top teachers
-
-ADMIN -> KC : Xuất báo cáo
-KC --> ADMIN : - Báo cáo điểm danh\n- Báo cáo học phí\n- Báo cáo tiến độ
-
-PARENT -> KC : Xem báo cáo con
-KC --> PARENT : - Lịch sử điểm danh\n- Điểm số\n- Nhận xét GV
-
-' ==================== NOTES ====================
 note right of KC
-  **KiteClass Instance**
-  abc.kiteclass.com
+  Tạo logo, banner,
+  nội dung marketing
+  tự động với AI
+end note
 
-  Actors:
-  👑 CENTER_OWNER
-  🔧 CENTER_ADMIN
-  👨‍🏫 TEACHER
-  👨‍🎓 STUDENT
-  👨‍👩‍👧 PARENT
+note right of MAINT
+  Toàn bộ quy trình
+  tự động 3-5 phút
 end note
 
 @enduml

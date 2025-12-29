@@ -121,3 +121,7 @@ sau khi có nhiều sửa đổi, hãy tạo graduation-thesis-outline bản m�
 graduation-thesis-outline-v3 chưa đúng format, hãy đọc 20251218-KietNV-YTuongDoAn và sửa lại theo phong cách viết và format đúng để dễ copy vào word
 
 2 sơ đồ yêu cầu đơn giản như trong 20251218-KietNV-YTuongDoAn
+
+tôi chưa hài lòng với system-overview-v3, rõ ràng hơn, nhiều ví dụ hơn
+
+làm rõ ví dụ thứ 2 hơn và thêm ví dụ thứ 3
