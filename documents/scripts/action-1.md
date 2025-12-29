@@ -113,3 +113,5 @@ sau khi chốt lại kiến trúc và use case, hãy thực hiện tạo lại c
 4. sơ đồ kiến trúc đầy đủ, có full flow nghiệp vụ rõ ràng, có tech stack tương ứng
 
 kiểm tra lại thư mục diagrams (không phải thư mục con trong documents), tôi để các file puml ở đây rồi và có sẵn plantuml.jar để render, hãy thực hiện render luôn
+
+tôi thấy tôi đã làm tất cả chuẩn bị trước khi triển khai khảo sát và coding, bạn có đề xuất thêm vấn đề nào cần xem xét nữa không?
