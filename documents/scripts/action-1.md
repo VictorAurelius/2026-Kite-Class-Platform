@@ -127,3 +127,12 @@ tôi chưa hài lòng với system-overview-v3, rõ ràng hơn, nhiều ví dụ
 làm rõ ví dụ thứ 2 hơn và thêm ví dụ thứ 3
 
 giữ nguyên tất cả nội dung, thực hiện di chuyển các ghi chú của instance để gọn gàng và đẹp mắt hơn
+
+đối với media service, việc tự tạo ra có nặng không hay nên sử dụng outsource có sẵn?
+
+tôi muốn source code free và tôi chỉ việc sửa lại và dựng lên thôi
+
+tạo riêng báo cáo md cho vấn đề này
+
+tôi chưa hiểu, tức là các service này tôi pull code về và chạy độc lập, media service chỉ call thôi?
+
