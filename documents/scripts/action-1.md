@@ -136,3 +136,5 @@ tạo riêng báo cáo md cho vấn đề này
 
 tôi chưa hiểu, tức là các service này tôi pull code về và chạy độc lập, media service chỉ call thôi?
 
+thầy hướng dẫn của tôi vừa gửi cho maubaocaothuctap.png, hãy giúp tôi viết lại báo cáo thực tập theo mẫu này
+

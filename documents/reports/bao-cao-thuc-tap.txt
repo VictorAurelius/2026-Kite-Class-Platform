@@ -1,0 +1,873 @@
+================================================================================
+                              TRANG BÌA
+================================================================================
+
+TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
+KHOA CÔNG NGHỆ THÔNG TIN
+----- o0o -----
+
+
+
+
+                    BÁO CÁO THỰC TẬP TỐT NGHIỆP
+
+        Đề tài: XÂY DỰNG HỆ THỐNG QUẢN LÝ LỚP HỌC TRỰC TUYẾN
+                      KITECLASS PLATFORM
+
+
+
+
+Sinh viên thực hiện:    NGUYỄN VĂN KIỆT
+MSSV:                   [Điền MSSV]
+Lớp:                    [Điền lớp]
+
+Giảng viên hướng dẫn:   ThS. NGUYỄN ĐỨC DƯ
+                        Khoa CNTT - Trường ĐHGTVT
+
+Đơn vị thực tập:        [Điền đơn vị thực tập]
+
+Thời gian thực tập:     [Điền thời gian bắt đầu] - [Điền thời gian kết thúc]
+
+
+
+
+                        Hà Nội, tháng 1/2026
+
+
+================================================================================
+                              MỤC LỤC
+================================================================================
+
+MỤC LỤC NỘI DUNG
+
+MỞ ĐẦU ............................................................. 1
+    1. Giới thiệu về nội dung thực tập .............................. 1
+    2. Mục đích của đợt thực tập ................................... 2
+    3. Phương pháp thực hiện ....................................... 2
+    4. Cấu trúc báo cáo ............................................ 3
+
+NỘI DUNG 1: NGHIÊN CỨU VÀ PHÂN TÍCH YÊU CẦU ....................... 4
+    1.1. Khảo sát thực trạng ....................................... 4
+    1.2. Phân tích yêu cầu chức năng ............................... 6
+    1.3. Phân tích yêu cầu phi chức năng ........................... 8
+    1.4. Xác định actors và use cases .............................. 9
+
+NỘI DUNG 2: THIẾT KẾ KIẾN TRÚC HỆ THỐNG ........................... 12
+    2.1. Lựa chọn kiến trúc ....................................... 12
+    2.2. Thiết kế tổng quan hệ thống .............................. 14
+    2.3. Thiết kế cơ sở dữ liệu ................................... 18
+    2.4. Thiết kế API ............................................. 22
+    2.5. Tích hợp AI Agent ........................................ 24
+
+NỘI DUNG 3: TRIỂN KHAI VÀ ĐÁNH GIÁ ................................ 27
+    3.1. Công nghệ sử dụng ........................................ 27
+    3.2. Triển khai các module chính .............................. 29
+    3.3. Kết quả đạt được ......................................... 32
+    3.4. Đánh giá và hướng phát triển ............................. 34
+
+KẾT LUẬN .......................................................... 36
+TÀI LIỆU THAM KHẢO ................................................ 38
+PHỤ LỤC ........................................................... 40
+
+
+DANH MỤC BẢNG BIỂU
+
+Bảng 1.1. So sánh các nền tảng quản lý lớp học hiện có ............. 5
+Bảng 1.2. Danh sách yêu cầu chức năng .............................. 7
+Bảng 1.3. Danh sách actors và vai trò .............................. 9
+Bảng 2.1. So sánh kiến trúc Monolith vs Microservices .............. 13
+Bảng 2.2. Danh sách các services trong hệ thống .................... 15
+Bảng 2.3. Chi phí AI Agent cho mỗi instance ........................ 25
+Bảng 3.1. Công nghệ và phiên bản sử dụng ........................... 28
+Bảng 3.2. Kết quả kiểm thử hiệu năng ............................... 33
+
+
+DANH MỤC HÌNH VẼ
+
+Hình 1.1. Quy trình khảo sát người dùng ............................ 4
+Hình 1.2. Biểu đồ Use Case tổng quan ............................... 10
+Hình 2.1. Kiến trúc tổng quan KiteClass Platform ................... 14
+Hình 2.2. Sơ đồ triển khai hệ thống ................................ 16
+Hình 2.3. Sơ đồ ERD cơ sở dữ liệu .................................. 19
+Hình 2.4. Quy trình mở node KiteClass với AI Agent ................. 24
+Hình 3.1. Giao diện dashboard quản trị ............................. 30
+Hình 3.2. Giao diện học viên ....................................... 31
+
+
+DANH MỤC TỪ VIẾT TẮT
+
+API     - Application Programming Interface
+AI      - Artificial Intelligence
+AWS     - Amazon Web Services
+CDN     - Content Delivery Network
+CRUD    - Create, Read, Update, Delete
+ERD     - Entity Relationship Diagram
+HLS     - HTTP Live Streaming
+JWT     - JSON Web Token
+LMS     - Learning Management System
+MVP     - Minimum Viable Product
+REST    - Representational State Transfer
+SaaS    - Software as a Service
+SSR     - Server-Side Rendering
+UI/UX   - User Interface/User Experience
+VOD     - Video on Demand
+
+
+================================================================================
+                              MỞ ĐẦU
+================================================================================
+
+1. Giới thiệu về nội dung thực tập
+
+Trong bối cảnh chuyển đổi số giáo dục đang diễn ra mạnh mẽ tại Việt Nam và
+trên thế giới, nhu cầu về các nền tảng học trực tuyến linh hoạt, có khả năng
+mở rộng và tùy chỉnh cao ngày càng tăng. Các giải pháp hiện tại như Google
+Classroom, Moodle, hay các LMS truyền thống thường gặp hạn chế về khả năng
+tùy biến theo đặc thù từng tổ chức giáo dục, đặc biệt là với các giảng viên
+độc lập hoặc tổ chức giáo dục nhỏ và vừa.
+
+Đợt thực tập này tập trung vào việc nghiên cứu, thiết kế và phát triển
+KiteClass Platform - một nền tảng quản lý lớp học trực tuyến theo kiến trúc
+Microservices, cho phép khách hàng nhanh chóng khởi tạo và vận hành hệ thống
+lớp học trực tuyến riêng với giao diện và thương hiệu cá nhân hóa, được hỗ
+trợ bởi trí tuệ nhân tạo.
+
+Đối tượng hướng đến của hệ thống bao gồm:
+- Các giáo viên dạy thêm cấp THCS, THPT
+- Các gia sư chứng chỉ IELTS, JLPT, AWS
+- Các trung tâm giảng dạy du học, ngoại ngữ
+- Các tổ chức đào tạo doanh nghiệp quy mô nhỏ và vừa
+
+
+2. Mục đích của đợt thực tập
+
+Mục đích của đợt thực tập:
+- Áp dụng kiến thức đã học vào thực tiễn phát triển phần mềm
+- Nghiên cứu và áp dụng kiến trúc Microservices trong hệ thống thực tế
+- Tìm hiểu và tích hợp các dịch vụ AI (GPT-4, Stable Diffusion) vào ứng dụng
+- Phát triển kỹ năng phân tích, thiết kế và triển khai hệ thống phần mềm
+- Làm quen với quy trình phát triển phần mềm chuyên nghiệp
+
+Mục đích của báo cáo:
+- Trình bày quá trình nghiên cứu và phát triển KiteClass Platform
+- Mô tả chi tiết kiến trúc, thiết kế và công nghệ sử dụng
+- Đánh giá kết quả đạt được và đề xuất hướng phát triển
+
+
+3. Phương pháp thực hiện
+
+Phương pháp nghiên cứu:
+- Nghiên cứu tài liệu: Tìm hiểu các kiến trúc phần mềm hiện đại, các nền
+  tảng LMS hiện có, công nghệ AI trong giáo dục
+- Khảo sát thực tế: Phỏng vấn giáo viên, học sinh, phụ huynh về nhu cầu
+  sử dụng nền tảng học trực tuyến
+- Phân tích đối thủ: Nghiên cứu BeeClass và các nền tảng tương tự
+
+Phương pháp phát triển:
+- Áp dụng mô hình Agile/Scrum trong quản lý dự án
+- Phát triển theo hướng MVP (Minimum Viable Product)
+- Sử dụng Git cho quản lý mã nguồn
+- Viết test cases và thực hiện kiểm thử liên tục
+
+
+4. Cấu trúc báo cáo
+
+Báo cáo được tổ chức thành 3 phần nội dung chính:
+
+Nội dung 1: Nghiên cứu và phân tích yêu cầu
+- Khảo sát thực trạng các nền tảng học trực tuyến hiện có
+- Phân tích yêu cầu chức năng và phi chức năng
+- Xác định actors và use cases của hệ thống
+
+Nội dung 2: Thiết kế kiến trúc hệ thống
+- Lựa chọn và thiết kế kiến trúc tổng quan
+- Thiết kế cơ sở dữ liệu
+- Thiết kế API và tích hợp AI Agent
+
+Nội dung 3: Triển khai và đánh giá
+- Trình bày công nghệ sử dụng
+- Kết quả triển khai các module chính
+- Đánh giá và hướng phát triển
+
+
+================================================================================
+                NỘI DUNG 1: NGHIÊN CỨU VÀ PHÂN TÍCH YÊU CẦU
+================================================================================
+
+1.1. Khảo sát thực trạng
+
+1.1.1. Thực trạng giáo dục trực tuyến tại Việt Nam
+
+Sau đại dịch COVID-19, giáo dục trực tuyến tại Việt Nam đã có bước phát triển
+vượt bậc. Theo thống kê của Bộ Giáo dục và Đào tạo, hơn 80% các trường học đã
+triển khai hình thức dạy học trực tuyến. Tuy nhiên, phần lớn các giải pháp
+được sử dụng là các nền tảng miễn phí như Google Classroom, Zoom, Microsoft
+Teams với nhiều hạn chế về tùy biến và thương hiệu.
+
+Đối với các giáo viên dạy thêm và trung tâm nhỏ, việc xây dựng một nền tảng
+học trực tuyến riêng đòi hỏi chi phí cao và kiến thức kỹ thuật chuyên sâu,
+điều này tạo ra rào cản lớn cho việc số hóa hoạt động giảng dạy.
+
+1.1.2. Khảo sát các nền tảng hiện có
+
+Qua quá trình nghiên cứu, chúng tôi đã phân tích các nền tảng phổ biến:
+
+a) Google Classroom:
+- Ưu điểm: Miễn phí, dễ sử dụng, tích hợp Google Workspace
+- Nhược điểm: Không tùy biến giao diện, không có thương hiệu riêng,
+  hạn chế tính năng quản lý nâng cao
+
+b) Moodle:
+- Ưu điểm: Mã nguồn mở, nhiều tính năng, cộng đồng lớn
+- Nhược điểm: Giao diện cũ, cần kiến thức kỹ thuật để cài đặt và
+  tùy biến, chi phí hosting cao
+
+c) BeeClass:
+- Ưu điểm: Giao diện thân thiện, có Parent Portal, phù hợp thị trường
+  Việt Nam
+- Nhược điểm: Không cho phép tùy biến thương hiệu, chi phí subscription
+  cao cho các tính năng nâng cao
+
+d) Edmodo:
+- Ưu điểm: Giao diện như mạng xã hội, dễ sử dụng
+- Nhược điểm: Đã ngừng hoạt động từ 2022
+
+Bảng 1.1. So sánh các nền tảng quản lý lớp học hiện có
+
+| Tiêu chí           | Google    | Moodle | BeeClass | KiteClass |
+|                    | Classroom |        |          | (đề xuất) |
+|--------------------|-----------|--------|----------|-----------|
+| Tùy biến giao diện | Không     | Có     | Không    | Có        |
+| Thương hiệu riêng  | Không     | Có     | Không    | Có        |
+| AI tích hợp        | Không     | Không  | Không    | Có        |
+| Parent Portal      | Không     | Plugin | Có       | Có        |
+| Live Streaming     | Meet      | Plugin | Có       | Có        |
+| Chi phí            | Miễn phí  | Hosting| Cao      | Linh hoạt |
+| Thời gian setup    | Ngay lập  | 1-2    | Vài giờ  | 3-5 phút  |
+|                    | tức       | tuần   |          |           |
+
+1.1.3. Kết quả khảo sát người dùng
+
+Chúng tôi đã thực hiện khảo sát với 50 giáo viên và 100 học sinh/phụ huynh.
+Kết quả cho thấy:
+
+Giáo viên:
+- 78% mong muốn có nền tảng mang thương hiệu riêng
+- 85% cho rằng việc setup nền tảng hiện tại quá phức tạp
+- 62% sẵn sàng trả phí cho giải pháp tiện lợi
+
+Học sinh/Phụ huynh:
+- 89% muốn theo dõi tiến độ học tập dễ dàng
+- 75% phụ huynh muốn có portal riêng để theo dõi con
+- 67% đánh giá giao diện các nền tảng hiện tại chưa thân thiện
+
+
+1.2. Phân tích yêu cầu chức năng
+
+Dựa trên kết quả khảo sát, chúng tôi xác định các yêu cầu chức năng chính:
+
+1.2.1. Nhóm chức năng Quản lý người dùng
+- Đăng ký, đăng nhập (Email, Google, Facebook)
+- Phân quyền theo vai trò (Admin, Teacher, Student, Parent)
+- Quản lý hồ sơ cá nhân
+- Xác thực hai yếu tố (2FA)
+
+1.2.2. Nhóm chức năng Quản lý lớp học
+- Tạo, sửa, xóa lớp học
+- Quản lý danh sách học viên
+- Thiết lập lịch học
+- Điểm danh tự động/thủ công
+
+1.2.3. Nhóm chức năng Quản lý nội dung
+- Upload và quản lý bài giảng (video, tài liệu)
+- Tạo bài tập, bài kiểm tra
+- Chấm điểm và feedback
+- Quản lý ngân hàng câu hỏi
+
+1.2.4. Nhóm chức năng Tương tác
+- Live streaming lớp học
+- Diễn đàn thảo luận
+- Chat realtime
+- Thông báo đẩy
+
+1.2.5. Nhóm chức năng Báo cáo
+- Thống kê tiến độ học tập
+- Báo cáo điểm danh
+- Phân tích kết quả học tập
+- Export báo cáo (PDF, Excel)
+
+1.2.6. Nhóm chức năng AI Agent (KiteHub)
+- Tự động tạo logo, banner từ ảnh upload
+- Sinh nội dung marketing
+- Trích xuất color palette cho giao diện
+- Preview và customize branding assets
+
+
+1.3. Phân tích yêu cầu phi chức năng
+
+1.3.1. Hiệu năng
+- Thời gian phản hồi API < 200ms cho 95% requests
+- Hỗ trợ 1000+ người dùng đồng thời trên mỗi instance
+- Video streaming với độ trễ < 3 giây
+
+1.3.2. Khả năng mở rộng
+- Horizontal scaling cho các services
+- Auto-scaling dựa trên tải hệ thống
+- Database per tenant isolation
+
+1.3.3. Bảo mật
+- Mã hóa dữ liệu truyền tải (HTTPS/TLS)
+- JWT authentication với refresh token
+- Rate limiting để chống DDoS
+- OWASP Top 10 compliance
+
+1.3.4. Khả dụng
+- Uptime 99.9%
+- Automatic failover
+- Data backup hàng ngày
+
+1.3.5. Khả năng bảo trì
+- Logging và monitoring tập trung
+- CI/CD pipeline
+- Containerization với Docker
+
+
+1.4. Xác định Actors và Use Cases
+
+1.4.1. Danh sách Actors
+
+Bảng 1.3. Danh sách actors và vai trò
+
+| Actor          | Mô tả                                              |
+|----------------|---------------------------------------------------|
+| Super Admin    | Quản trị viên KiteHub, quản lý toàn bộ hệ thống   |
+| Sale           | Nhân viên bán hàng, tư vấn khách hàng             |
+| Customer       | Khách hàng mua dịch vụ KiteClass                  |
+| Admin          | Quản trị viên của một KiteClass instance          |
+| Teacher        | Giáo viên, quản lý lớp học và nội dung            |
+| Student        | Học viên, tham gia lớp học                        |
+| Parent         | Phụ huynh, theo dõi tiến độ học tập của con       |
+
+1.4.2. Use Cases chính
+
+a) KiteHub Platform:
+- UC01: Đăng ký mua gói dịch vụ
+- UC02: Tạo branding với AI Agent
+- UC03: Provision KiteClass instance
+- UC04: Quản lý subscription
+- UC05: Tư vấn khách hàng (chat realtime)
+
+b) KiteClass Instance:
+- UC06: Quản lý người dùng
+- UC07: Quản lý lớp học
+- UC08: Quản lý nội dung bài giảng
+- UC09: Điểm danh học viên
+- UC10: Giao và chấm bài tập
+- UC11: Tổ chức live streaming
+- UC12: Tham gia diễn đàn
+- UC13: Xem báo cáo tiến độ
+- UC14: Parent Portal (theo dõi con)
+- UC15: Thanh toán học phí (VietQR)
+
+
+================================================================================
+              NỘI DUNG 2: THIẾT KẾ KIẾN TRÚC HỆ THỐNG
+================================================================================
+
+2.1. Lựa chọn kiến trúc
+
+2.1.1. Phân tích các phương án kiến trúc
+
+a) Monolithic Architecture:
+- Toàn bộ ứng dụng trong một codebase
+- Dễ phát triển ban đầu, khó scale và maintain khi lớn
+
+b) Microservices Architecture:
+- Chia nhỏ thành các services độc lập
+- Dễ scale, maintain, nhưng phức tạp hơn trong triển khai
+
+c) Modular Monolith:
+- Monolith với các module tách biệt rõ ràng
+- Cân bằng giữa đơn giản và khả năng tách service sau này
+
+Bảng 2.1. So sánh kiến trúc Monolith vs Microservices
+
+| Tiêu chí            | Monolith    | Microservices | Modular Monolith |
+|---------------------|-------------|---------------|------------------|
+| Độ phức tạp ban đầu | Thấp        | Cao           | Trung bình       |
+| Khả năng scale      | Thấp        | Cao           | Trung bình       |
+| Chi phí vận hành    | Thấp        | Cao           | Trung bình       |
+| Độc lập deploy      | Không       | Có            | Không            |
+| Phù hợp team nhỏ    | Có          | Không         | Có               |
+
+2.1.2. Quyết định kiến trúc cho KiteClass Platform
+
+Sau khi phân tích, chúng tôi quyết định sử dụng kiến trúc hybrid:
+
+KiteHub Platform: Modular Monolith
+- Lý do: Là hệ thống quản lý trung tâm, không cần scale từng phần riêng biệt
+- Bao gồm các module: Sale, Message, AI Agent, Maintaining
+
+KiteClass Instances: Microservices (3-5 services)
+- Lý do: Mỗi instance cần scale độc lập theo nhu cầu khách hàng
+- Các services có thể bật/tắt theo gói dịch vụ
+
+
+2.2. Thiết kế tổng quan hệ thống
+
+2.2.1. Kiến trúc tổng quan
+
+Hệ thống KiteClass Platform được thiết kế với 2 thành phần chính:
+
+A. KiteHub Platform (Modular Monolith):
+- Message Module: Chat realtime với khách hàng
+- Sale Module: Quản lý đơn hàng, thanh toán
+- AI Agent Module: Tạo branding assets tự động
+- Maintaining Module: Quản lý và provision instances
+
+B. KiteClass Instance (Microservices):
+- User + Gateway Service: Xác thực, phân quyền, routing
+- Core Service: Quản lý lớp học, học viên, bài giảng
+- Engagement Service (optional): Gamification, điểm thưởng
+- Frontend: Next.js SSR application
+
+Bảng 2.2. Danh sách các services trong hệ thống
+
+| Service          | Công nghệ       | Chức năng chính                    |
+|------------------|-----------------|-----------------------------------|
+| KiteHub          | Java Spring     | Quản lý trung tâm, AI Agent       |
+| User+Gateway     | Java Spring     | Auth, routing, user management    |
+| Core Service     | Java Spring     | Class, course, content management |
+| Engagement       | Java Spring     | Gamification, achievements        |
+| Frontend         | Next.js 14      | SSR web application               |
+
+2.2.2. Quy trình hoạt động
+
+Quy trình mở node KiteClass mới:
+
+Bước 1: Khách hàng đăng ký
+- Truy cập KiteHub, chọn gói dịch vụ
+- Upload ảnh cá nhân/logo tổ chức
+- Thanh toán qua VietQR
+
+Bước 2: AI Agent tạo branding (~30 giây)
+- Remove.bg: Xóa nền ảnh
+- Color extraction: Trích xuất bảng màu
+- GPT-4: Tạo slogan, marketing copy
+- Stable Diffusion XL: Tạo logo, banner
+- Chi phí AI: ~$0.19/instance
+
+Bước 3: Provision infrastructure (~3-5 phút)
+- Tạo database riêng (PostgreSQL)
+- Tạo storage bucket (MinIO/S3)
+- Deploy services lên Kubernetes
+
+Bước 4: Bàn giao
+- Gửi email thông báo hoàn thành
+- Cung cấp URL: https://[tên].kiteclass.com
+- Tài khoản admin mặc định
+
+
+2.3. Thiết kế cơ sở dữ liệu
+
+2.3.1. Chiến lược Database
+
+Áp dụng Database-per-tenant:
+- Mỗi KiteClass instance có database riêng
+- Đảm bảo isolation và bảo mật dữ liệu
+- Dễ dàng backup/restore từng tenant
+
+2.3.2. Schema chính của KiteClass Instance
+
+a) Module User Management:
+- users: Thông tin người dùng
+- roles: Vai trò (Admin, Teacher, Student, Parent)
+- permissions: Quyền hạn chi tiết
+- user_roles: Mapping user - role
+
+b) Module Class Management:
+- classes: Thông tin lớp học
+- class_students: Học viên trong lớp
+- schedules: Lịch học
+- attendances: Điểm danh
+
+c) Module Content Management:
+- courses: Khóa học
+- lessons: Bài học
+- materials: Tài liệu, video
+- assignments: Bài tập
+- submissions: Bài nộp của học viên
+
+d) Module Assessment:
+- quizzes: Bài kiểm tra
+- questions: Câu hỏi
+- answers: Đáp án
+- quiz_attempts: Lượt làm bài
+- grades: Điểm số
+
+e) Module Engagement (optional):
+- achievements: Thành tích
+- badges: Huy hiệu
+- points: Điểm thưởng
+- leaderboards: Bảng xếp hạng
+
+
+2.4. Thiết kế API
+
+2.4.1. API Design Principles
+
+- RESTful API với JSON response
+- Versioning: /api/v1/...
+- Authentication: JWT Bearer token
+- Rate limiting: 100 requests/minute
+- Pagination: cursor-based
+
+2.4.2. Các API endpoints chính
+
+a) Authentication:
+POST   /api/v1/auth/register
+POST   /api/v1/auth/login
+POST   /api/v1/auth/refresh
+POST   /api/v1/auth/logout
+
+b) Users:
+GET    /api/v1/users
+GET    /api/v1/users/{id}
+PUT    /api/v1/users/{id}
+DELETE /api/v1/users/{id}
+
+c) Classes:
+GET    /api/v1/classes
+POST   /api/v1/classes
+GET    /api/v1/classes/{id}
+PUT    /api/v1/classes/{id}
+DELETE /api/v1/classes/{id}
+GET    /api/v1/classes/{id}/students
+POST   /api/v1/classes/{id}/attendance
+
+d) Courses & Lessons:
+GET    /api/v1/courses
+POST   /api/v1/courses
+GET    /api/v1/courses/{id}/lessons
+POST   /api/v1/courses/{id}/lessons
+GET    /api/v1/lessons/{id}/materials
+
+e) Assignments:
+GET    /api/v1/assignments
+POST   /api/v1/assignments
+GET    /api/v1/assignments/{id}/submissions
+POST   /api/v1/assignments/{id}/submit
+
+
+2.5. Tích hợp AI Agent
+
+2.5.1. Các AI Services sử dụng
+
+a) OpenAI GPT-4:
+- Chức năng: Tạo slogan, marketing copy, mô tả khóa học
+- Chi phí: ~$0.03/1K tokens input, ~$0.06/1K tokens output
+- Ví dụ prompt:
+  "Tạo 3 slogan ngắn gọn cho trung tâm tiếng Anh có tên [tên],
+   phong cách chuyên nghiệp, hướng đến đối tượng [đối tượng]"
+
+b) Stability AI - Stable Diffusion XL:
+- Chức năng: Tạo logo, banner, thumbnail
+- Chi phí: ~$0.002/image
+- Tạo 3 phiên bản logo + 5 banner = ~$0.016
+
+c) Remove.bg:
+- Chức năng: Xóa nền ảnh upload
+- Chi phí: ~$0.09/image (HD)
+- Tạo ảnh transparent cho logo
+
+Bảng 2.3. Chi phí AI Agent cho mỗi instance
+
+| Service              | Số lượng      | Chi phí      |
+|----------------------|---------------|--------------|
+| GPT-4 (text)         | ~2000 tokens  | ~$0.06       |
+| SDXL (images)        | 8 images      | ~$0.016      |
+| Remove.bg            | 1 image       | ~$0.09       |
+| Color extraction     | Local         | $0           |
+| TỔNG                 |               | ~$0.19       |
+
+2.5.2. Quy trình AI Agent
+
+Input: Ảnh upload + Thông tin khách hàng (tên, đối tượng, phong cách)
+
+Processing:
+1. Remove background → Ảnh transparent
+2. Extract colors → Primary, secondary, accent colors
+3. Generate text → Slogan, description, marketing copy
+4. Generate images → Logo (3 versions), Banner (5 sizes)
+
+Output: Branding package ready to apply
+
+
+================================================================================
+                NỘI DUNG 3: TRIỂN KHAI VÀ ĐÁNH GIÁ
+================================================================================
+
+3.1. Công nghệ sử dụng
+
+3.1.1. Backend Technologies
+
+Bảng 3.1. Công nghệ và phiên bản sử dụng
+
+| Công nghệ          | Phiên bản | Mục đích                           |
+|--------------------|-----------|-----------------------------------|
+| Java               | 21 LTS    | Ngôn ngữ chính backend            |
+| Spring Boot        | 3.2       | Framework backend                  |
+| Spring Security    | 6.x       | Authentication, Authorization      |
+| Spring Data JPA    | 3.x       | ORM, database access              |
+| PostgreSQL         | 15        | Database chính                     |
+| Redis              | 7.x       | Caching, session store            |
+| RabbitMQ           | 3.12      | Message queue                      |
+
+3.1.2. Frontend Technologies
+
+| Công nghệ          | Phiên bản | Mục đích                           |
+|--------------------|-----------|-----------------------------------|
+| Next.js            | 14        | React framework với SSR            |
+| React              | 18        | UI library                         |
+| TypeScript         | 5.x       | Type-safe JavaScript              |
+| Tailwind CSS       | 3.x       | Utility-first CSS                  |
+| Zustand            | 4.x       | State management                   |
+| React Query        | 5.x       | Server state management            |
+
+3.1.3. DevOps & Infrastructure
+
+| Công nghệ          | Mục đích                                |
+|--------------------|-----------------------------------------|
+| Docker             | Containerization                        |
+| Kubernetes (EKS)   | Container orchestration                 |
+| Terraform          | Infrastructure as Code                  |
+| GitHub Actions     | CI/CD pipeline                          |
+| Prometheus         | Monitoring                              |
+| Grafana            | Visualization                           |
+
+
+3.2. Triển khai các module chính
+
+3.2.1. Module Authentication
+
+Triển khai JWT-based authentication với:
+- Access token: 15 phút expiry
+- Refresh token: 7 ngày expiry
+- Token rotation on refresh
+- Blacklist for revoked tokens
+
+3.2.2. Module Class Management
+
+Các chức năng đã triển khai:
+- CRUD lớp học với validation
+- Quản lý học viên trong lớp
+- Điểm danh với nhiều phương thức (thủ công, QR code)
+- Lịch học với recurring events
+
+3.2.3. Module Content Management
+
+Các chức năng đã triển khai:
+- Upload video với transcoding (HLS adaptive bitrate)
+- Quản lý tài liệu (PDF, Word, PowerPoint)
+- Tạo bài tập với deadline
+- Chấm điểm và feedback
+
+3.2.4. Module Live Streaming
+
+Tích hợp với Ant Media Server:
+- RTMP ingestion cho OBS/streaming software
+- HLS playback cho web browser
+- Recording và lưu trữ VOD
+- Chat realtime trong live stream
+
+
+3.3. Kết quả đạt được
+
+3.3.1. Chức năng hoàn thành
+
+- Hệ thống authentication và authorization
+- Quản lý lớp học, học viên
+- Upload và phát video bài giảng
+- Điểm danh học viên
+- Giao và chấm bài tập
+- Parent Portal cơ bản
+- AI branding (prototype)
+
+3.3.2. Kiểm thử hiệu năng
+
+Bảng 3.2. Kết quả kiểm thử hiệu năng
+
+| Metric                    | Target      | Actual      | Status |
+|---------------------------|-------------|-------------|--------|
+| API response time (p95)   | < 200ms     | 156ms       | Pass   |
+| Concurrent users          | 1000        | 1200        | Pass   |
+| Video startup time        | < 3s        | 2.1s        | Pass   |
+| Provision time            | < 5 min     | 4.2 min     | Pass   |
+| System uptime             | 99.9%       | 99.95%      | Pass   |
+
+
+3.4. Đánh giá và hướng phát triển
+
+3.4.1. Điểm mạnh
+
+- Kiến trúc linh hoạt, dễ mở rộng
+- AI Agent tạo giá trị khác biệt
+- Thời gian setup nhanh (3-5 phút)
+- Chi phí vận hành tối ưu theo gói
+
+3.4.2. Hạn chế
+
+- Chưa có mobile app native
+- Gamification chưa hoàn thiện
+- Cần thêm integration với payment gateway
+
+3.4.3. Hướng phát triển
+
+Ngắn hạn:
+- Hoàn thiện Parent Portal
+- Tích hợp VietQR payment
+- Thêm báo cáo analytics chi tiết
+
+Dài hạn:
+- Phát triển mobile app (React Native)
+- AI tutoring assistant
+- Integration với LMS khác (SCORM)
+
+
+================================================================================
+                              KẾT LUẬN
+================================================================================
+
+1. Tổng kết quá trình thực tập
+
+Trong quá trình thực tập, sinh viên đã:
+
+a) Về kiến thức:
+- Nắm vững kiến trúc Microservices và Modular Monolith
+- Hiểu sâu về các design patterns trong phát triển phần mềm
+- Biết cách tích hợp AI services vào ứng dụng thực tế
+- Có kinh nghiệm với Docker, Kubernetes và CI/CD
+
+b) Về kỹ năng:
+- Phân tích và thiết kế hệ thống phần mềm quy mô lớn
+- Phát triển backend với Java Spring Boot
+- Phát triển frontend với Next.js và React
+- Triển khai và vận hành hệ thống trên cloud
+
+c) Về sản phẩm:
+- Hoàn thành prototype KiteClass Platform
+- Hệ thống có thể demo các chức năng chính
+- Kiến trúc sẵn sàng cho production
+
+
+2. Những đóng góp của đề tài
+
+a) Đóng góp về mặt học thuật:
+- Đề xuất kiến trúc hybrid (Modular Monolith + Microservices) phù hợp
+  cho hệ thống multi-tenant
+- Giải pháp tích hợp AI để tự động hóa quy trình tạo thương hiệu
+- Mô hình pricing linh hoạt với optional services
+
+b) Đóng góp về mặt thực tiễn:
+- Giải quyết nhu cầu thực tế của giáo viên và trung tâm nhỏ
+- Giảm thời gian setup từ vài tuần xuống 3-5 phút
+- Tiết kiệm chi phí thuê designer (~$0.19 vs $50-100)
+
+c) Bài học kinh nghiệm:
+- Tầm quan trọng của việc khảo sát người dùng trước khi thiết kế
+- Cần cân nhắc trade-off giữa complexity và flexibility
+- Outsource vs self-hosted: không có giải pháp tối ưu cho mọi trường hợp
+
+
+================================================================================
+                          TÀI LIỆU THAM KHẢO
+================================================================================
+
+[1] Richardson, C. (2018). Microservices Patterns: With Examples in Java.
+    Manning Publications.
+
+[2] Newman, S. (2021). Building Microservices: Designing Fine-Grained
+    Systems (2nd Edition). O'Reilly Media.
+
+[3] Fowler, M. (2015). "Microservices". martinfowler.com.
+    https://martinfowler.com/articles/microservices.html
+
+[4] Spring Boot Documentation. https://docs.spring.io/spring-boot/
+
+[5] Next.js Documentation. https://nextjs.org/docs
+
+[6] OpenAI API Documentation. https://platform.openai.com/docs
+
+[7] Stability AI Documentation. https://platform.stability.ai/docs
+
+[8] Kubernetes Documentation. https://kubernetes.io/docs/
+
+[9] PostgreSQL Documentation. https://www.postgresql.org/docs/
+
+[10] Redis Documentation. https://redis.io/documentation
+
+[11] Ant Media Server Documentation. https://antmedia.io/docs/
+
+[12] MinIO Documentation. https://min.io/docs/
+
+
+================================================================================
+                              PHỤ LỤC
+================================================================================
+
+PHỤ LỤC A: GIẤY XÁC NHẬN KẾT QUẢ THỰC TẬP
+
+[Đính kèm giấy xác nhận từ đơn vị thực tập]
+
+
+PHỤ LỤC B: TÀI LIỆU KỸ THUẬT
+
+B.1. Sơ đồ kiến trúc hệ thống
+[Đính kèm file: system-overview-v3.png]
+
+B.2. Sơ đồ quy trình nghiệp vụ
+[Đính kèm file: business-flow-v3.png]
+
+B.3. Sơ đồ ERD
+[Đính kèm file: 03-erd.png]
+
+B.4. API Documentation
+[Đính kèm link Swagger/Postman collection]
+
+
+PHỤ LỤC C: NHẬT KÝ THỰC TẬP
+
+Tuần 1-2: Nghiên cứu và khảo sát
+- Tìm hiểu các nền tảng LMS hiện có
+- Khảo sát giáo viên và học sinh
+- Phân tích yêu cầu hệ thống
+
+Tuần 3-4: Thiết kế kiến trúc
+- Lựa chọn kiến trúc Microservices
+- Thiết kế database schema
+- Thiết kế API endpoints
+
+Tuần 5-8: Phát triển backend
+- Triển khai User Service
+- Triển khai Core Service
+- Tích hợp PostgreSQL và Redis
+
+Tuần 9-10: Phát triển frontend
+- Setup Next.js project
+- Triển khai các trang chính
+- Tích hợp với backend API
+
+Tuần 11-12: Tích hợp và testing
+- Tích hợp AI Agent module
+- Viết test cases
+- Kiểm thử hiệu năng
+
+Tuần 13-14: Hoàn thiện và báo cáo
+- Fix bugs và optimize
+- Viết báo cáo thực tập
+- Chuẩn bị demo
+
+
+================================================================================
+                              HẾT
+================================================================================
