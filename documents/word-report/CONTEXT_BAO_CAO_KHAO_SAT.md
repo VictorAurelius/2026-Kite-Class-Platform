@@ -1,6 +1,7 @@
 # Context: Tạo Báo cáo Khảo sát KiteClass bằng Python
 
 **Ngày tạo:** 2026-01-15
+**Cập nhật:** 2026-01-15
 **Mục đích:** Lưu context để các session sau có thể tiếp cận nhanh
 
 ---
@@ -13,9 +14,9 @@ Dự án tạo file Word (.docx) cho **Báo cáo Kết quả Khảo sát** của
 
 | File | Mô tả |
 |------|-------|
-| `create_survey_report.py` | Script Python chính tạo file Word |
+| `create_survey_report.py` | Script Python chính tạo file Word (~1350 dòng) |
 | `logo_utc.png` | Logo trường UTC (dùng chung) |
-| `BAO_CAO_KHAO_SAT_KITECLASS.docx` | File output (~215KB) |
+| `BAO_CAO_KHAO_SAT_KITECLASS.docx` | File output (~224KB) |
 | `Quy dinh trinh bay do an tot nghiep.pdf` | Tài liệu quy định format chuẩn |
 
 ### 1.2 Thư viện Python sử dụng
@@ -79,26 +80,76 @@ pip install python-docx --user
 | PARENT | 55 | 25.6% |
 | **Tổng** | **215** | **100%** |
 
-### 3.3 Cấu trúc báo cáo
+### 3.3 Cấu trúc báo cáo (đã cập nhật)
 
 1. **Bìa** (không đánh số trang)
 2. **Mục lục**
-3. **Danh mục bảng biểu**
-4. **Danh mục hình vẽ**
+3. **Danh mục bảng biểu** (15 bảng)
+4. **Danh mục hình vẽ** (7 hình)
 5. **Danh mục từ viết tắt**
 6. **MỞ ĐẦU**
-7. **CHƯƠNG 1**: Phương pháp khảo sát
-8. **CHƯƠNG 2**: Kết quả khảo sát theo actor
-9. **CHƯƠNG 3**: Phân tích và đề xuất
+7. **NỘI DUNG 1**: Kế hoạch khảo sát
+   - 1.1 Đối tượng khảo sát (5 actors)
+   - 1.2 Kế hoạch khảo sát chi tiết (timeline 8 tuần)
+   - 1.3 Bảng hỏi khảo sát chi tiết (4 bảng hỏi: CENTER_OWNER, TEACHER, STUDENT, PARENT)
+   - 1.4 Kịch bản phỏng vấn chi tiết (câu hỏi phỏng vấn + hướng dẫn)
+8. **NỘI DUNG 2**: Khảo sát sản phẩm cạnh tranh và kết quả
+   - 2.1 Khảo sát 3 sản phẩm tương tự (BeeClass, Edupage, ClassIn)
+   - 2.2 Bảng so sánh tính năng
+   - 2.3 Kết quả khảo sát từ 215 responses + 18 phỏng vấn
+9. **NỘI DUNG 3**: Phân tích và đề xuất
+   - 3.1 Key Insights và điểm khác biệt
+   - 3.2 Feature Prioritization
+   - 3.3 User Personas
+   - 3.4 Chiến lược Go-to-Market và Roadmap
 10. **KẾT LUẬN**
 11. **TÀI LIỆU THAM KHẢO**
-12. **PHỤ LỤC**
+12. **PHỤ LỤC** (Link forms, Checklist phỏng vấn, Danh sách phỏng vấn)
 
 ---
 
-## 4. Kết quả khảo sát chính
+## 4. Khảo sát sản phẩm cạnh tranh
 
-### 4.1 Tính năng ưu tiên theo actor
+### 4.1 Danh sách sản phẩm được khảo sát
+
+| Sản phẩm | Quốc gia | Website | Điểm mạnh | Điểm yếu |
+|----------|----------|---------|-----------|----------|
+| BeeClass | Việt Nam | beeclass.net | Tiếng Việt, Zalo | Giao diện cũ |
+| Edupage | Slovakia | edupage.org | Đa tính năng, Mobile | Phức tạp |
+| ClassIn | Trung Quốc | classin.com | Live streaming | Không quản lý học phí |
+
+### 4.2 Điểm khác biệt của KiteClass
+
+- Gamification (điểm thưởng, huy hiệu) - chưa đối thủ nào có
+- Multi-tenant SaaS architecture
+- Tích hợp đa kênh: Zalo + App + SMS + Email
+- UI/UX hiện đại, mobile-first
+
+---
+
+## 5. Bảng hỏi khảo sát
+
+### 5.1 Cấu trúc bảng hỏi
+
+| Actor | Số câu | Thời gian | Các phần |
+|-------|--------|-----------|----------|
+| CENTER_OWNER | 15 câu | 7-10 phút | A. Thông tin, B. Thực trạng, C. Nhu cầu, D. Chi trả |
+| TEACHER | 12 câu | 5-7 phút | A. Cá nhân, B. Giảng dạy, C. Nhu cầu |
+| STUDENT | 11 câu | 5 phút | A. Cá nhân, B. Học tập, C. Gamification |
+| PARENT | 10 câu | 5 phút | A. Thông tin, B. Theo dõi, C. Thanh toán |
+
+### 5.2 Câu hỏi phỏng vấn
+
+| Actor | Số câu | Thời lượng | Focus |
+|-------|--------|------------|-------|
+| CENTER_OWNER | 10 câu | 30-45 phút | Pain points, Workflow, Tool satisfaction |
+| TEACHER | 6 câu | 20-30 phút | Teaching workflow, Tech adoption |
+
+---
+
+## 6. Kết quả khảo sát chính
+
+### 6.1 Tính năng ưu tiên theo actor
 
 | Tính năng | CENTER_OWNER | TEACHER | STUDENT | PARENT |
 |-----------|--------------|---------|---------|--------|
@@ -108,7 +159,7 @@ pip install python-docx --user
 | Thanh toán | 4.9 | 3.2 | 3.8 | 4.3 |
 | Giao tiếp | 4.0 | 4.6 | 4.3 | 4.7 |
 
-### 4.2 User Personas
+### 6.2 User Personas
 
 | Actor | Persona | Mô tả |
 |-------|---------|-------|
@@ -119,16 +170,16 @@ pip install python-docx --user
 
 ---
 
-## 5. Cách sử dụng script
+## 7. Cách sử dụng script
 
-### 5.1 Chạy script
+### 7.1 Chạy script
 
 ```bash
 cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-report
 python3 create_survey_report.py
 ```
 
-### 5.2 Output
+### 7.2 Output
 
 ```
 ✓ Đã tạo file: BAO_CAO_KHAO_SAT_KITECLASS.docx
@@ -138,7 +189,7 @@ python3 create_survey_report.py
 ✓ Nội dung: 13pt, giãn dòng 1.2, thụt đầu dòng 1cm
 ```
 
-### 5.3 Các hàm chính trong script
+### 7.3 Các hàm chính trong script
 
 | Hàm | Mô tả |
 |-----|-------|
@@ -153,7 +204,7 @@ python3 create_survey_report.py
 
 ---
 
-## 6. So sánh với báo cáo thực tập
+## 8. So sánh với báo cáo thực tập
 
 | Tiêu chí | Báo cáo thực tập | Báo cáo khảo sát |
 |----------|------------------|------------------|
@@ -165,7 +216,7 @@ python3 create_survey_report.py
 
 ---
 
-## 7. Những việc cần làm tiếp (TODO)
+## 9. Những việc cần làm tiếp (TODO)
 
 - [ ] Cập nhật dữ liệu khảo sát thực tế (thay thế dữ liệu giả định)
 - [ ] Thêm biểu đồ trực quan cho kết quả
@@ -175,15 +226,15 @@ python3 create_survey_report.py
 
 ---
 
-## 8. Tham chiếu tài liệu
+## 10. Tham chiếu tài liệu
 
-### 8.1 Trong dự án
+### 10.1 Trong dự án
 
 - `documents/plans/survey-interview-plan.md` - Kế hoạch khảo sát chi tiết
 - `documents/plans/user-personas.md` - User personas đầy đủ
 - `documents/specs/actor-requirements.md` - Yêu cầu theo từng actor
 
-### 8.2 Báo cáo liên quan
+### 10.2 Báo cáo liên quan
 
 - `create_word_report.py` - Script báo cáo thực tập (tham khảo format)
 - `CONTEXT_BAO_CAO_THUC_TAP.md` - Context báo cáo thực tập

@@ -141,4 +141,8 @@ thầy hướng dẫn của tôi vừa gửi cho maubaocaothuctap.png, hãy giú
 hãy học tập báo cáo thực tập và claude skill tạo báo cáo trong folder word-report => không đọc file docx và ảnh
 
 sau đó hãy thực hiện tạo báo cáo khảo sát cho đồ án KiteClass này
+báo cáo khảo sát cần tập trung vào bảng hỏi, câu hỏi phỏng vấn rõ ràng cho từng đối tượng, có kế hoạch khảo sát rõ ràng, kết quả và rút ra đánh giá, phân tích rõ ràng
 
+đặc biệt là kế hoạch khảo sát, bảng hỏi, câu hỏi phỏng vấn 
+
+ngoài ra phải có khảo sát cho 3 sản phẩm phần mềm tương tự đang có trên thị trường và đưa ra bảng so sánh chức năng so với kiteclass, hãy sửa lại nhé
