@@ -146,3 +146,6 @@ báo cáo khảo sát cần tập trung vào bảng hỏi, câu hỏi phỏng v�
 đặc biệt là kế hoạch khảo sát, bảng hỏi, câu hỏi phỏng vấn 
 
 ngoài ra phải có khảo sát cho 3 sản phẩm phần mềm tương tự đang có trên thị trường và đưa ra bảng so sánh chức năng so với kiteclass, hãy sửa lại nhé
+
+tôi có sửa lại độ rộng cột của các bảng trong BAO_CAO_KHAO_SAT
+hãy sửa lại script cho khớp với file docx, bổ sung vào claude skill về việc phải có độ rộng bảng phù hợp, đẹp mắt

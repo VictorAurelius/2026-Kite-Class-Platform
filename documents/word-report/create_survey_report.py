@@ -169,7 +169,16 @@ def add_numbered_list(doc, items, start=1):
 
 
 def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
-    """Thêm bảng với tiêu đề (caption) ở PHÍA TRÊN bảng"""
+    """
+    Thêm bảng với tiêu đề (caption) ở PHÍA TRÊN bảng
+
+    Args:
+        doc: Document object
+        caption: Tiêu đề bảng
+        headers: List các header cột
+        rows: List các hàng dữ liệu
+        col_widths: List độ rộng cột (cm), ví dụ: [2.5, 5.0, 3.0]
+    """
     p_caption = doc.add_paragraph()
     p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_caption.paragraph_format.space_before = Pt(12)
@@ -181,9 +190,19 @@ def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
+    # Thiết lập độ rộng cột nếu được chỉ định
+    if col_widths:
+        for i, width in enumerate(col_widths):
+            for row in table.rows:
+                if i < len(row.cells):
+                    row.cells[i].width = Cm(width)
+
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
+        # Thiết lập độ rộng cho header cell
+        if col_widths and i < len(col_widths):
+            header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
@@ -194,6 +213,9 @@ def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
         row = table.add_row()
         for i, cell_text in enumerate(row_data):
             row.cells[i].text = str(cell_text)
+            # Thiết lập độ rộng cho data cell
+            if col_widths and i < len(col_widths):
+                row.cells[i].width = Cm(col_widths[i])
             for paragraph in row.cells[i].paragraphs:
                 for run in paragraph.runs:
                     set_font(run, FONT_SIZE_TABLE)
@@ -394,6 +416,9 @@ def add_abbreviations(doc):
         ("UI/UX", "User Interface/User Experience - Giao diện/Trải nghiệm người dùng"),
     ]
 
+    # Độ rộng cột theo file đã chỉnh sửa
+    col_widths = [2.70, 13.89]
+
     table = doc.add_table(rows=1, cols=2)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -401,6 +426,7 @@ def add_abbreviations(doc):
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
+        header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
@@ -410,7 +436,9 @@ def add_abbreviations(doc):
     for abbr, meaning in abbreviations:
         row = table.add_row()
         row.cells[0].text = abbr
+        row.cells[0].width = Cm(col_widths[0])
         row.cells[1].text = meaning
+        row.cells[1].width = Cm(col_widths[1])
         for cell in row.cells:
             for paragraph in cell.paragraphs:
                 for run in paragraph.runs:
@@ -499,7 +527,8 @@ def add_content1(doc):
             ("TEACHER", "Giáo viên trực tiếp giảng dạy, quản lý lớp học", "40-60", "P1 - Cao"),
             ("STUDENT", "Học viên đăng ký và tham gia các khóa học", "60-80", "P1 - Cao"),
             ("PARENT", "Phụ huynh theo dõi con và thanh toán học phí", "40-60", "P1 - Cao"),
-        ]
+        ],
+        col_widths=[4.15, 6.65, 3.02, 2.78]
     )
 
     add_subsection_title(doc, "1.1.2. Tiêu chí chọn mẫu")
@@ -549,7 +578,8 @@ def add_content1(doc):
             ("Phân tích sơ bộ", "Tuần 4", "Phân tích kết quả, xác định đối tượng phỏng vấn", "Danh sách phỏng vấn"),
             ("Phỏng vấn sâu", "Tuần 5-6", "Phỏng vấn 15-20 đối tượng đại diện", "Interview transcripts"),
             ("Tổng hợp", "Tuần 7-8", "Phân tích dữ liệu, viết báo cáo", "Báo cáo khảo sát hoàn chỉnh"),
-        ]
+        ],
+        col_widths=[3.33, 2.22, 6.51, 4.52]
     )
 
     add_figure_placeholder(doc, "Hình 1.1. Quy trình khảo sát 3 giai đoạn")
@@ -606,7 +636,8 @@ def add_content1(doc):
             ("", "PHẦN D: KHẢ NĂNG CHI TRẢ", "", ""),
             ("D1", "Mức giá chấp nhận được/tháng? (<500k / 500k-1tr / 1-2tr / >2tr)", "Single choice", "Pricing"),
             ("D2", "Bạn có sẵn sàng dùng thử miễn phí 1 tháng? (Có / Không / Cân nhắc)", "Single choice", "Conversion"),
-        ]
+        ],
+        col_widths=[1.18, 10.28, 3.17, 2.33]
     )
 
     add_subsection_title(doc, "1.3.2. Bảng hỏi dành cho TEACHER")
@@ -629,7 +660,8 @@ def add_content1(doc):
             ("C3", "Mức độ quan trọng: Theo dõi tiến độ học viên? (1-5)", "Rating 1-5", "Feature priority"),
             ("C4", "Mức độ quan trọng: Thông báo cho phụ huynh? (1-5)", "Rating 1-5", "Feature priority"),
             ("C5", "Bạn có muốn app tự động nhắc lịch dạy không?", "Yes/No/Maybe", "Nice to have"),
-        ]
+        ],
+        col_widths=[1.18, 9.64, 3.02, 3.13]
     )
 
     add_subsection_title(doc, "1.3.3. Bảng hỏi dành cho STUDENT")
@@ -651,7 +683,8 @@ def add_content1(doc):
             ("C2", "Bạn có muốn có huy hiệu thành tích? (1-5)", "Rating 1-5", "Gamification"),
             ("C3", "Bạn có quan tâm bảng xếp hạng lớp? (1-5)", "Rating 1-5", "Gamification"),
             ("C4", "Phần thưởng nào hấp dẫn bạn nhất? (Giảm học phí / Quà tặng / Voucher / Khác)", "Single choice", "Reward preference"),
-        ]
+        ],
+        col_widths=[1.18, 9.80, 2.38, 3.60]
     )
 
     add_subsection_title(doc, "1.3.4. Bảng hỏi dành cho PARENT")
@@ -672,7 +705,8 @@ def add_content1(doc):
             ("C1", "Bạn thường thanh toán học phí bằng gì? (Tiền mặt / Chuyển khoản / QR / Khác)", "Single choice", "Payment"),
             ("C2", "Kênh liên lạc bạn ưa thích nhất? (Zalo / App / SMS / Email)", "Ranking", "Channel preference"),
             ("C3", "Bạn có sẵn sàng cài app mới để theo dõi con? (Có / Không / Cân nhắc)", "Single choice", "App adoption"),
-        ]
+        ],
+        col_widths=[1.18, 9.80, 2.54, 3.60]
     )
 
     # ====== 1.4 Câu hỏi phỏng vấn ======
@@ -702,7 +736,8 @@ def add_content1(doc):
             ("", "PHẦN 4: KỲ VỌNG VÀ SẴN SÀNG THAY ĐỔI", "", ""),
             ("9", "Nếu có một phần mềm giải quyết được vấn đề X (pain point chính), anh/chị sẽ cân nhắc sử dụng không?", "Solution fit", "Mức giá nào là hợp lý với anh/chị?"),
             ("10", "Điều gì sẽ khiến anh/chị quyết định thay đổi công cụ đang dùng?", "Switching trigger", "Rào cản lớn nhất khi chuyển đổi là gì?"),
-        ]
+        ],
+        col_widths=[1.18, 8.53, 2.70, 4.56]
     )
 
     add_subsection_title(doc, "1.4.2. Câu hỏi phỏng vấn TEACHER (20-30 phút)")
@@ -720,7 +755,8 @@ def add_content1(doc):
             ("", "PHẦN 3: CÔNG NGHỆ VÀ KỲ VỌNG", "", ""),
             ("5", "Anh/chị có sử dụng công nghệ/app nào hỗ trợ giảng dạy không?", "Tech adoption", "Điều gì khiến anh/chị chọn dùng/không dùng?"),
             ("6", "Nếu có app hỗ trợ điểm danh 1 click và tự động báo phụ huynh, anh/chị thấy sao?", "Feature validation", "Còn tính năng nào anh/chị mong muốn?"),
-        ]
+        ],
+        col_widths=[1.18, 7.62, 2.82, 5.35]
     )
 
     add_subsection_title(doc, "1.4.3. Hướng dẫn thực hiện phỏng vấn")
@@ -810,7 +846,8 @@ def add_content2(doc):
             ("Giá khởi điểm", "200k/tháng", "Miễn phí", "$5/lớp/tháng"),
             ("Mobile App", "Chỉ Admin", "Có đầy đủ", "Có đầy đủ"),
             ("Hỗ trợ tiếng Việt", "Hoàn toàn", "Một phần", "Một phần"),
-        ]
+        ],
+        col_widths=[4.15, 4.15, 4.15, 4.15]
     )
 
     add_table_with_caption(doc,
@@ -828,7 +865,8 @@ def add_content2(doc):
             ("Video VOD", "✗", "✗", "✓", "✓ (Phase 2)"),
             ("Multi-tenant SaaS", "✗", "✗", "✗", "✓"),
             ("API mở", "Hạn chế", "✓", "✓", "✓"),
-        ]
+        ],
+        col_widths=[3.32, 3.32, 3.32, 3.32, 3.32]
     )
 
     add_paragraph_text(doc, "Nhận xét tổng quan về thị trường:")
@@ -856,7 +894,8 @@ def add_content2(doc):
             ("Học viên (STUDENT)", "68", "1", "69"),
             ("Phụ huynh (PARENT)", "42", "1", "43"),
             ("Tổng", "215", "18", "233"),
-        ]
+        ],
+        col_widths=[4.15, 4.15, 4.15, 4.15]
     )
 
     add_section_title(doc, "2.3. Kết quả từ Chủ trung tâm (CENTER_OWNER)")
@@ -895,7 +934,8 @@ def add_content2(doc):
             ("Báo cáo, thống kê", "3.8", "1.0", "78.1%"),
             ("Điểm danh, theo dõi học viên", "3.5", "0.9", "71.9%"),
             ("Quản lý lịch học, phòng học", "3.2", "1.1", "56.3%"),
-        ]
+        ],
+        col_widths=[4.15, 4.15, 4.15, 4.15]
     )
 
     add_figure_placeholder(doc, "Hình 2.5. Biểu đồ pain points của chủ trung tâm")
@@ -926,7 +966,8 @@ def add_content2(doc):
             ("Điểm danh QR Code", "3.8", "62.5%", "6"),
             ("Video bài giảng online", "3.5", "53.1%", "7"),
             ("Hệ thống điểm thưởng (Gamification)", "3.2", "43.8%", "8"),
-        ]
+        ],
+        col_widths=[4.15, 4.15, 4.15, 4.15]
     )
 
     add_section_title(doc, "2.4. Kết quả từ các đối tượng khác")
@@ -1033,7 +1074,8 @@ def add_content3(doc):
             ("P2 - Nice to Have", "Video bài giảng VOD", "3.5", "Phase 3"),
             ("P2 - Nice to Have", "Gamification (điểm, huy hiệu)", "3.2", "Phase 3"),
             ("P2 - Nice to Have", "Live streaming", "3.0", "Phase 3"),
-        ]
+        ],
+        col_widths=[3.49, 6.19, 4.45, 2.46]
     )
 
     add_figure_placeholder(doc, "Hình 3.1. Feature Prioritization Matrix")
@@ -1097,7 +1139,8 @@ def add_content3(doc):
             ("Starter", "290.000 VND", "<50 HV", "Quản lý cơ bản, điểm danh, thông báo Zalo"),
             ("Growth", "590.000 VND", "50-200 HV", "Starter + VietQR, báo cáo, Parent Portal"),
             ("Pro", "1.190.000 VND", ">200 HV", "Growth + Video VOD, Gamification, API, Multi-admin"),
-        ]
+        ],
+        col_widths=[2.06, 3.65, 2.54, 8.33]
     )
 
     add_paragraph_text(doc, "Lý do định giá:")
@@ -1252,6 +1295,9 @@ def add_appendix(doc):
         ("...", "...", "...", "...", "..."),
     ]
 
+    # Độ rộng cột theo file đã chỉnh sửa
+    col_widths = [0.94, 2.56, 3.79, 3.85, 5.83]
+
     table = doc.add_table(rows=1, cols=5)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -1259,6 +1305,7 @@ def add_appendix(doc):
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
+        header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
@@ -1269,6 +1316,7 @@ def add_appendix(doc):
         row = table.add_row()
         for i, cell_text in enumerate(row_data):
             row.cells[i].text = str(cell_text)
+            row.cells[i].width = Cm(col_widths[i])
             for paragraph in row.cells[i].paragraphs:
                 for run in paragraph.runs:
                     set_font(run, FONT_SIZE_TABLE)

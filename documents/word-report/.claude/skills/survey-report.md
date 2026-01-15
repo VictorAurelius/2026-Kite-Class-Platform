@@ -79,6 +79,48 @@ pip install python-docx --user
 curl -L -o logo_utc.png "https://cdn.haitrieu.com/wp-content/uploads/2022/03/Logo-Dai-Hoc-Giao-Thong-Van-Tai-UTC.png"
 ```
 
+## Quy tắc độ rộng cột bảng
+
+**QUAN TRỌNG**: Khi tạo bảng trong báo cáo, LUÔN chỉ định `col_widths` để đảm bảo bảng đẹp mắt và dễ đọc.
+
+### Nguyên tắc thiết kế độ rộng cột
+1. **Tổng độ rộng**: Tổng độ rộng các cột nên khoảng 16-17cm (phù hợp với lề 3cm trái + 2cm phải)
+2. **Cột số thứ tự (STT)**: 0.94 - 1.18 cm
+3. **Cột nội dung dài** (câu hỏi, mô tả): 7-10 cm
+4. **Cột thông tin ngắn** (loại câu, mục đích): 2-4 cm
+5. **Cột số liệu** (điểm, tỷ lệ): 2-4 cm
+
+### Độ rộng cột đã chuẩn hóa
+| Bảng | Mô tả | col_widths (cm) |
+|------|-------|-----------------|
+| Bảng 1.1 | Actors | [4.15, 6.65, 3.02, 2.78] |
+| Bảng 1.2 | Timeline | [3.33, 2.22, 6.51, 4.52] |
+| Bảng 1.3-1.6 | Bảng hỏi | [1.18, 9-10, 2.5-3, 2.5-3.5] |
+| Bảng 1.7-1.8 | Phỏng vấn | [1.18, 7.5-8.5, 2.7-2.8, 4.5-5.5] |
+| Bảng 2.1 | So sánh SP | [4.15, 4.15, 4.15, 4.15] |
+| Bảng 2.2 | So sánh tính năng | [3.32, 3.32, 3.32, 3.32, 3.32] |
+| Bảng 3.1 | Ma trận ưu tiên | [3.49, 6.19, 4.45, 2.46] |
+| Bảng 3.2 | Đề xuất gói | [2.06, 3.65, 2.54, 8.33] |
+| Từ viết tắt | Abbreviations | [2.70, 13.89] |
+| Phụ lục | Danh sách PV | [0.94, 2.56, 3.79, 3.85, 5.83] |
+
+### Ví dụ sử dụng
+```python
+# Bảng có cột STT + nội dung dài + 2 cột phụ
+add_table_with_caption(doc, "Bảng X.X. Tiêu đề",
+    ["STT", "Nội dung", "Loại", "Ghi chú"],
+    rows,
+    col_widths=[1.18, 9.80, 2.54, 3.60]
+)
+
+# Bảng so sánh cột đều nhau
+add_table_with_caption(doc, "Bảng X.X. So sánh",
+    ["Tiêu chí", "A", "B", "C"],
+    rows,
+    col_widths=[4.15, 4.15, 4.15, 4.15]
+)
+```
+
 ## Tham chiếu
 - Context đầy đủ: `CONTEXT_BAO_CAO_KHAO_SAT.md`
 - Kế hoạch khảo sát: `documents/plans/survey-interview-plan.md`
