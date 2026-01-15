@@ -138,3 +138,7 @@ tôi chưa hiểu, tức là các service này tôi pull code về và chạy đ
 
 thầy hướng dẫn của tôi vừa gửi cho maubaocaothuctap.png, hãy giúp tôi viết lại báo cáo thực tập theo mẫu này
 
+hãy học tập báo cáo thực tập và claude skill tạo báo cáo trong folder word-report => không đọc file docx và ảnh
+
+sau đó hãy thực hiện tạo báo cáo khảo sát cho đồ án KiteClass này
+
