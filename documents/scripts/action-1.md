@@ -149,3 +149,6 @@ ngoài ra phải có khảo sát cho 3 sản phẩm phần mềm tương tự đ
 
 tôi có sửa lại độ rộng cột của các bảng trong BAO_CAO_KHAO_SAT
 hãy sửa lại script cho khớp với file docx, bổ sung vào claude skill về việc phải có độ rộng bảng phù hợp, đẹp mắt
+
+sửa lại cho cả BAO_CAO_THUC_TAP
+sửa tên script ứng với tên báo cáo luôn

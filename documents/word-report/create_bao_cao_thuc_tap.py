@@ -221,10 +221,17 @@ def add_numbered_list(doc, items, start=1):
         set_font(run, FONT_SIZE_NORMAL)
 
 
-def add_table_with_caption(doc, caption, headers, rows):
+def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
     """
     Thêm bảng với tiêu đề (caption) ở PHÍA TRÊN bảng
     Caption: đậm, căn giữa
+
+    Args:
+        doc: Document object
+        caption: Tiêu đề bảng
+        headers: List các header cột
+        rows: List các hàng dữ liệu
+        col_widths: List độ rộng cột (cm), ví dụ: [1.5, 6.0, 8.5]
     """
     # Caption phía trên
     p_caption = doc.add_paragraph()
@@ -244,6 +251,9 @@ def add_table_with_caption(doc, caption, headers, rows):
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
+        # Thiết lập độ rộng cho header cell
+        if col_widths and i < len(col_widths):
+            header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
@@ -255,6 +265,9 @@ def add_table_with_caption(doc, caption, headers, rows):
         row = table.add_row()
         for i, cell_text in enumerate(row_data):
             row.cells[i].text = str(cell_text)
+            # Thiết lập độ rộng cho data cell
+            if col_widths and i < len(col_widths):
+                row.cells[i].width = Cm(col_widths[i])
             for paragraph in row.cells[i].paragraphs:
                 for run in paragraph.runs:
                     set_font(run, FONT_SIZE_TABLE)
@@ -476,6 +489,9 @@ def add_abbreviations(doc):
         ("SQL", "Structured Query Language - Ngôn ngữ truy vấn"),
     ]
 
+    # Độ rộng cột theo thiết kế chuẩn
+    col_widths = [3.0, 13.0]
+
     # Tạo bảng không có caption
     table = doc.add_table(rows=1, cols=2)
     table.style = 'Table Grid'
@@ -486,6 +502,7 @@ def add_abbreviations(doc):
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
+        header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
@@ -496,7 +513,9 @@ def add_abbreviations(doc):
     for abbr, meaning in abbreviations:
         row = table.add_row()
         row.cells[0].text = abbr
+        row.cells[0].width = Cm(col_widths[0])
         row.cells[1].text = meaning
+        row.cells[1].width = Cm(col_widths[1])
         for cell in row.cells:
             for paragraph in cell.paragraphs:
                 for run in paragraph.runs:
@@ -624,7 +643,8 @@ def add_content1(doc):
             ("4", "E-Commerce", "Phát triển hệ thống thương mại điện tử"),
             ("5", "Salesforce CRM", "Tư vấn và phát triển hệ thống CRM"),
             ("6", "Data Engineering", "Xử lý và phân tích dữ liệu lớn"),
-        ]
+        ],
+        col_widths=[1.5, 5.5, 9.0]
     )
 
     # 1.2 Các công việc được giao
@@ -645,7 +665,8 @@ def add_content1(doc):
             ("2", "Thiết kế màn hình", "Thiết kế giao diện, bố cục, luồng điều hướng"),
             ("3", "Thiết kế API", "Thiết kế các endpoint RESTful API"),
             ("4", "Thiết kế Batch", "Thiết kế các chương trình xử lý hàng loạt"),
-        ]
+        ],
+        col_widths=[1.5, 5.5, 9.0]
     )
 
     add_subsection_title(doc, "1.2.2. Quy trình công việc")
@@ -749,7 +770,8 @@ def add_content2(doc):
             ("4", "File validate tương quan", "Validate logic phụ thuộc lẫn nhau"),
             ("5", "Thiết kế API", "Mapping dữ liệu màn hình với API"),
             ("6", "Thiết kế DB", "Hiểu cấu trúc dữ liệu"),
-        ]
+        ],
+        col_widths=[1.5, 5.5, 9.0]
     )
 
     add_subsection_title(doc, "2.3.3. Validation trong thiết kế màn hình")
@@ -788,7 +810,8 @@ def add_content2(doc):
             ("2", "File message", "Định nghĩa error response"),
             ("3", "File HTTP Status Code", "Xác định response status"),
             ("4", "File validate", "Validate request parameters"),
-        ]
+        ],
+        col_widths=[1.5, 5.5, 9.0]
     )
 
     add_subsection_title(doc, "2.4.3. HTTP Methods")
@@ -802,7 +825,8 @@ def add_content2(doc):
             ("PUT", "Update", "Cập nhật toàn bộ"),
             ("PATCH", "Update", "Cập nhật một phần"),
             ("DELETE", "Delete", "Xóa"),
-        ]
+        ],
+        col_widths=[4.0, 4.0, 8.0]
     )
 
     # 2.5 Thiết kế Batch
@@ -821,7 +845,8 @@ def add_content2(doc):
             ("3", "Xử lý Java", "Logic xử lý chính"),
             ("4", "Yêu cầu tìm kiếm", "Các câu SQL SELECT"),
             ("5", "Yêu cầu cập nhật", "SQL INSERT/UPDATE/DELETE"),
-        ]
+        ],
+        col_widths=[1.5, 5.5, 9.0]
     )
 
     add_figure_placeholder(doc, "Hình 2.2. Kiến trúc xử lý Chunk trong Spring Batch")
@@ -844,7 +869,8 @@ def add_content2(doc):
             ("Level 2", "Screen-API Checker", "Tính nhất quán giữa Screen và API"),
             ("Level 3", "Text Quality", "Chất lượng văn bản, ngôn ngữ"),
             ("Level ALL", "Master Orchestrator", "Chạy tất cả Level song song"),
-        ]
+        ],
+        col_widths=[3.0, 5.0, 8.0]
     )
 
     add_subsection_title(doc, "2.6.2. Tiêu chí kiểm tra Level 1 (API-DB)")
@@ -859,7 +885,8 @@ def add_content2(doc):
             ("4", "Không có tiếng Việt", "Loại bỏ tiếng Việt còn sót"),
             ("5", "Common columns", "Các cột chung phải có đủ"),
             ("6", "Foreign Key rules", "Quy tắc biểu thị FK đúng chuẩn"),
-        ]
+        ],
+        col_widths=[1.5, 5.5, 9.0]
     )
 
     add_figure_placeholder(doc, "Hình 2.3. Quy trình sử dụng AI trong kiểm tra chất lượng")
@@ -902,7 +929,8 @@ def add_content3(doc):
             ("Batch Design", "Không biết", "Nắm được quy trình"),
             ("Viết QA", "Không biết", "Xác định và viết QA rõ ràng"),
             ("AI Tools", "Không biết", "Sử dụng thành thạo"),
-        ]
+        ],
+        col_widths=[4.0, 5.5, 6.5]
     )
 
     add_subsection_title(doc, "3.2.1. Thiết kế cơ sở dữ liệu")

@@ -13,7 +13,7 @@ Tạo file Word (.docx) cho Báo cáo Kết quả Khảo sát KiteClass theo quy
 
 | File | Path |
 |------|------|
-| Script chính | `create_survey_report.py` |
+| Script chính | `create_bao_cao_khao_sat.py` |
 | Logo UTC | `logo_utc.png` |
 | Output | `BAO_CAO_KHAO_SAT_KITECLASS.docx` |
 | Context | `CONTEXT_BAO_CAO_KHAO_SAT.md` |
@@ -41,11 +41,11 @@ Tạo file Word (.docx) cho Báo cáo Kết quả Khảo sát KiteClass theo quy
 ### 1. Chạy script tạo báo cáo
 ```bash
 cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-report
-python3 create_survey_report.py
+python3 create_bao_cao_khao_sat.py
 ```
 
 ### 2. Sửa nội dung khảo sát
-Mở `create_survey_report.py` và sửa các hàm:
+Mở `create_bao_cao_khao_sat.py` và sửa các hàm:
 - `add_chapter1()` - Phương pháp khảo sát
 - `add_chapter2()` - Kết quả khảo sát
 - `add_chapter3()` - Phân tích và đề xuất
@@ -124,4 +124,4 @@ add_table_with_caption(doc, "Bảng X.X. So sánh",
 ## Tham chiếu
 - Context đầy đủ: `CONTEXT_BAO_CAO_KHAO_SAT.md`
 - Kế hoạch khảo sát: `documents/plans/survey-interview-plan.md`
-- Báo cáo thực tập: `create_word_report.py` (mẫu format)
+- Báo cáo thực tập: `create_bao_cao_thuc_tap.py` (mẫu format)

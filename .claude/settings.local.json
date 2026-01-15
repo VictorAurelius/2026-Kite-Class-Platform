@@ -14,7 +14,8 @@
       "WebFetch(domain:beeclass.net)",
       "WebFetch(domain:aidayhoc.vn)",
       "Bash(find:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

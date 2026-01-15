@@ -14,7 +14,7 @@ Dự án tạo file Word (.docx) cho **Báo cáo Kết quả Khảo sát** của
 
 | File | Mô tả |
 |------|-------|
-| `create_survey_report.py` | Script Python chính tạo file Word (~1350 dòng) |
+| `create_bao_cao_khao_sat.py` | Script Python chính tạo file Word (~1350 dòng) |
 | `logo_utc.png` | Logo trường UTC (dùng chung) |
 | `BAO_CAO_KHAO_SAT_KITECLASS.docx` | File output (~224KB) |
 | `Quy dinh trinh bay do an tot nghiep.pdf` | Tài liệu quy định format chuẩn |
@@ -176,7 +176,7 @@ pip install python-docx --user
 
 ```bash
 cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-report
-python3 create_survey_report.py
+python3 create_bao_cao_khao_sat.py
 ```
 
 ### 7.2 Output
@@ -208,7 +208,7 @@ python3 create_survey_report.py
 
 | Tiêu chí | Báo cáo thực tập | Báo cáo khảo sát |
 |----------|------------------|------------------|
-| Script | create_word_report.py | create_survey_report.py |
+| Script | create_bao_cao_thuc_tap.py | create_bao_cao_khao_sat.py |
 | Output | BAO_CAO_THUC_TAP_SORA.docx | BAO_CAO_KHAO_SAT_KITECLASS.docx |
 | Nội dung | Công việc thực tập | Kết quả khảo sát |
 | Số chương | 3 chương | 3 chương |
@@ -236,7 +236,7 @@ python3 create_survey_report.py
 
 ### 10.2 Báo cáo liên quan
 
-- `create_word_report.py` - Script báo cáo thực tập (tham khảo format)
+- `create_bao_cao_thuc_tap.py` - Script báo cáo thực tập (tham khảo format)
 - `CONTEXT_BAO_CAO_THUC_TAP.md` - Context báo cáo thực tập
 
 ---

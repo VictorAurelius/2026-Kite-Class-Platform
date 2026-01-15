@@ -13,7 +13,7 @@ Dự án tạo file Word (.docx) cho **Báo cáo Thực tập Tốt nghiệp** t
 
 | File | Mô tả |
 |------|-------|
-| `create_word_report.py` | Script Python chính tạo file Word |
+| `create_bao_cao_thuc_tap.py` | Script Python chính tạo file Word |
 | `logo_utc.png` | Logo trường UTC (1200x1200, 170KB) |
 | `BAO_CAO_THUC_TAP_SORA.docx` | File output (~215KB) |
 | `Quy dinh trinh bay do an tot nghiep.pdf` | Tài liệu quy định format chuẩn |
@@ -138,8 +138,8 @@ Theo file `maubaocaothuctap.png`:
 ### 6.1 Chạy script
 
 ```bash
-cd /mnt/e/batch-workspace/test-word
-python3 create_word_report.py
+cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-report
+python3 create_bao_cao_thuc_tap.py
 ```
 
 ### 6.2 Output
@@ -229,14 +229,14 @@ curl -L -o logo_utc.png "https://cdn.haitrieu.com/wp-content/uploads/2022/03/Log
 - "xuất báo cáo docx"
 
 ## Context
-- Script: /mnt/e/batch-workspace/test-word/create_word_report.py
+- Script: /mnt/e/person/2026-Kite-Class-Platform/documents/word-report/create_bao_cao_thuc_tap.py
 - Output: BAO_CAO_THUC_TAP_SORA.docx
 - Format: Theo quy định ĐH GTVT
 
 ## Actions
-1. Đọc file create_word_report.py để hiểu cấu trúc
+1. Đọc file create_bao_cao_thuc_tap.py để hiểu cấu trúc
 2. Chỉnh sửa nội dung nếu cần
-3. Chạy python3 create_word_report.py
+3. Chạy python3 create_bao_cao_thuc_tap.py
 4. Kiểm tra file output
 ```
 
