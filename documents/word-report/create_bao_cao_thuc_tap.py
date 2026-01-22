@@ -119,6 +119,77 @@ def add_page_number_header(doc):
             r.font.size = FONT_SIZE_NORMAL
 
 
+def set_heading_font(style, font_name, font_size, bold=True, italic=False):
+    """
+    Thiết lập font cho Heading style một cách đầy đủ.
+
+    Word Heading styles mặc định sử dụng theme fonts (Calibri Headings)
+    và theme colors (màu xanh). Cần:
+    - XÓA các thuộc tính theme (asciiTheme, hAnsiTheme, themeColor)
+    - Thiết lập font và color trực tiếp
+    """
+    # Đảm bảo rPr element tồn tại
+    rPr = style._element.get_or_add_rPr()
+
+    # Xóa rFonts cũ (có thể chứa theme fonts) và tạo mới
+    old_rFonts = rPr.find(qn('w:rFonts'))
+    if old_rFonts is not None:
+        rPr.remove(old_rFonts)
+
+    # Tạo rFonts mới với font name trực tiếp (không dùng theme)
+    rFonts = OxmlElement('w:rFonts')
+    rFonts.set(qn('w:ascii'), font_name)
+    rFonts.set(qn('w:hAnsi'), font_name)
+    rFonts.set(qn('w:eastAsia'), font_name)
+    rFonts.set(qn('w:cs'), font_name)
+    # KHÔNG đặt asciiTheme, hAnsiTheme để tránh bị override bởi theme
+    rPr.insert(0, rFonts)
+
+    # Thiết lập font size
+    sz = rPr.find(qn('w:sz'))
+    if sz is None:
+        sz = OxmlElement('w:sz')
+        rPr.append(sz)
+    sz.set(qn('w:val'), str(int(font_size.pt * 2)))  # Word uses half-points
+
+    szCs = rPr.find(qn('w:szCs'))
+    if szCs is None:
+        szCs = OxmlElement('w:szCs')
+        rPr.append(szCs)
+    szCs.set(qn('w:val'), str(int(font_size.pt * 2)))
+
+    # Thiết lập bold
+    b = rPr.find(qn('w:b'))
+    if bold:
+        if b is None:
+            b = OxmlElement('w:b')
+            rPr.append(b)
+    else:
+        if b is not None:
+            rPr.remove(b)
+
+    # Thiết lập italic
+    i = rPr.find(qn('w:i'))
+    if italic:
+        if i is None:
+            i = OxmlElement('w:i')
+            rPr.append(i)
+    else:
+        if i is not None:
+            rPr.remove(i)
+
+    # Xóa color cũ (có thể chứa themeColor) và tạo mới
+    old_color = rPr.find(qn('w:color'))
+    if old_color is not None:
+        rPr.remove(old_color)
+
+    # Tạo color mới với màu đen trực tiếp (không dùng theme)
+    color = OxmlElement('w:color')
+    color.set(qn('w:val'), '000000')
+    # KHÔNG đặt themeColor để tránh bị override
+    rPr.append(color)
+
+
 def setup_styles(doc):
     """Thiết lập các style chuẩn cho document bao gồm Heading styles"""
     # Normal style
@@ -131,21 +202,34 @@ def setup_styles(doc):
     pf.line_spacing = LINE_SPACING
     pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
-    style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    # Thiết lập font cho Normal style qua XML
+    rPr = style._element.get_or_add_rPr()
+    rFonts = rPr.find(qn('w:rFonts'))
+    if rFonts is None:
+        rFonts = OxmlElement('w:rFonts')
+        rPr.insert(0, rFonts)
+    rFonts.set(qn('w:ascii'), FONT_NAME)
+    rFonts.set(qn('w:hAnsi'), FONT_NAME)
+    rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    rFonts.set(qn('w:cs'), FONT_NAME)
 
-    # Heading 1 style (Chương) - để tạo mục lục tự động
+    # Heading 1 style (Chương) - 14pt Bold, Left
     h1_style = doc.styles['Heading 1']
+    # Thiết lập qua XML để xóa theme
+    set_heading_font(h1_style, FONT_NAME, Pt(14), bold=True, italic=False)
+    # Thiết lập qua API để đảm bảo
     h1_style.font.name = FONT_NAME
     h1_style.font.size = Pt(14)
     h1_style.font.bold = True
+    h1_style.font.italic = False
     h1_style.font.color.rgb = RGBColor(0, 0, 0)
     h1_style.paragraph_format.space_before = Pt(12)
     h1_style.paragraph_format.space_after = Pt(6)
     h1_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    h1_style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
 
-    # Heading 2 style (Mục 1.1, 1.2)
+    # Heading 2 style (Mục 1.1, 1.2) - 13pt Bold, Left
     h2_style = doc.styles['Heading 2']
+    set_heading_font(h2_style, FONT_NAME, Pt(13), bold=True, italic=False)
     h2_style.font.name = FONT_NAME
     h2_style.font.size = Pt(13)
     h2_style.font.bold = True
@@ -154,10 +238,10 @@ def setup_styles(doc):
     h2_style.paragraph_format.space_before = Pt(12)
     h2_style.paragraph_format.space_after = Pt(6)
     h2_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    h2_style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
 
-    # Heading 3 style (Tiểu mục 1.1.1)
+    # Heading 3 style (Tiểu mục 1.1.1) - 13pt Bold + Italic, Left
     h3_style = doc.styles['Heading 3']
+    set_heading_font(h3_style, FONT_NAME, Pt(13), bold=True, italic=True)
     h3_style.font.name = FONT_NAME
     h3_style.font.size = Pt(13)
     h3_style.font.bold = True
@@ -166,17 +250,13 @@ def setup_styles(doc):
     h3_style.paragraph_format.space_before = Pt(6)
     h3_style.paragraph_format.space_after = Pt(6)
     h3_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    h3_style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
 
     # Caption style cho bảng và hình
     try:
         caption_style = doc.styles['Caption']
     except KeyError:
         caption_style = doc.styles.add_style('Caption', 1)  # 1 = paragraph style
-    caption_style.font.name = FONT_NAME
-    caption_style.font.size = Pt(12)
-    caption_style.font.bold = True
-    caption_style.font.italic = True
+    set_heading_font(caption_style, FONT_NAME, Pt(12), bold=True, italic=True)
     caption_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
     caption_style.paragraph_format.space_before = Pt(6)
     caption_style.paragraph_format.space_after = Pt(6)
@@ -197,12 +277,22 @@ def add_chapter_title(doc, number, text, add_page_break=True):
     """
     Tiêu đề chương: Sử dụng Heading 1 style để tạo mục lục tự động
     Format: "1. GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP"
+    - Heading 1: 14pt Bold, Times New Roman, màu đen
     """
     if add_page_break:
         doc.add_page_break()
 
     # Sử dụng Heading 1 style để Word có thể tạo mục lục tự động
-    p = doc.add_paragraph(f"{number}. {text.upper()}", style='Heading 1')
+    p = doc.add_paragraph(style='Heading 1')
+    run = p.add_run(f"{number}. {text.upper()}")
+
+    # Thiết lập font trực tiếp cho run để đảm bảo không bị theme override
+    run.font.name = FONT_NAME
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = Pt(14)
+    run.font.bold = True
+    run.font.italic = False
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     return p
 
@@ -210,9 +300,18 @@ def add_chapter_title(doc, number, text, add_page_break=True):
 def add_section_title(doc, text):
     """
     Tiêu đề mục (1.1, 1.2): Sử dụng Heading 2 style để tạo mục lục tự động
+    - Heading 2: 13pt Bold, Times New Roman, màu đen
     """
-    # Sử dụng Heading 2 style
-    p = doc.add_paragraph(text, style='Heading 2')
+    p = doc.add_paragraph(style='Heading 2')
+    run = p.add_run(text)
+
+    # Thiết lập font trực tiếp cho run
+    run.font.name = FONT_NAME
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = Pt(13)
+    run.font.bold = True
+    run.font.italic = False
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     return p
 
@@ -220,9 +319,18 @@ def add_section_title(doc, text):
 def add_subsection_title(doc, text):
     """
     Tiêu đề tiểu mục (1.1.1, 1.1.2): Sử dụng Heading 3 style để tạo mục lục tự động
+    - Heading 3: 13pt Bold + Italic, Times New Roman, màu đen
     """
-    # Sử dụng Heading 3 style
-    p = doc.add_paragraph(text, style='Heading 3')
+    p = doc.add_paragraph(style='Heading 3')
+    run = p.add_run(text)
+
+    # Thiết lập font trực tiếp cho run
+    run.font.name = FONT_NAME
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = Pt(13)
+    run.font.bold = True
+    run.font.italic = True
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     return p
 
@@ -1267,7 +1375,13 @@ def add_references(doc):
     doc.add_page_break()
 
     # Sử dụng Heading 1 để có thể tạo mục lục
-    p = doc.add_paragraph("TÀI LIỆU THAM KHẢO", style='Heading 1')
+    p = doc.add_paragraph(style='Heading 1')
+    run = p.add_run("TÀI LIỆU THAM KHẢO")
+    run.font.name = FONT_NAME
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = Pt(14)
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     # IEEE format references
     add_ieee_reference(doc,
@@ -1326,7 +1440,13 @@ def add_appendix(doc):
     doc.add_page_break()
 
     # Sử dụng Heading 1 để có thể tạo mục lục
-    p = doc.add_paragraph("PHỤ LỤC", style='Heading 1')
+    p = doc.add_paragraph(style='Heading 1')
+    run = p.add_run("PHỤ LỤC")
+    run.font.name = FONT_NAME
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+    run.font.size = Pt(14)
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0, 0, 0)
 
     # Phụ lục A: Nhật ký thực tập
     add_section_title(doc, "Phụ lục A: Nhật ký thực tập")

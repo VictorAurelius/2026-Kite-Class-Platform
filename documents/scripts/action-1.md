@@ -166,3 +166,7 @@ hãy cập nhật claude skill khi tạo báo cáo word:
 3. tự động đánh caption ảnh, bảng theo đúng thao tác của word
 
 => mục tiêu: tôi chỉ cần bấm tạo mục lục, danh mục là xong, ko phải tự đánh heading hoặc caption thủ công
+
+=> vẫn còn lỗi: các heading chưa đảm bảo được font và font size, thực hiện tạo font, font size cho từng loại heading trước, sau đó mới thực hiện đánh heading
+
+vẫn chưa thành công: font vẫn là Calibri (Headings), heading còn có font color bị chuyển thành màu xanh
