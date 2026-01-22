@@ -120,7 +120,8 @@ def add_page_number_header(doc):
 
 
 def setup_styles(doc):
-    """Thiết lập các style chuẩn cho document"""
+    """Thiết lập các style chuẩn cho document bao gồm Heading styles"""
+    # Normal style
     style = doc.styles['Normal']
     font = style.font
     font.name = FONT_NAME
@@ -131,6 +132,54 @@ def setup_styles(doc):
     pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
     style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+
+    # Heading 1 style (Chương) - để tạo mục lục tự động
+    h1_style = doc.styles['Heading 1']
+    h1_style.font.name = FONT_NAME
+    h1_style.font.size = Pt(14)
+    h1_style.font.bold = True
+    h1_style.font.color.rgb = RGBColor(0, 0, 0)
+    h1_style.paragraph_format.space_before = Pt(12)
+    h1_style.paragraph_format.space_after = Pt(6)
+    h1_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    h1_style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+
+    # Heading 2 style (Mục 1.1, 1.2)
+    h2_style = doc.styles['Heading 2']
+    h2_style.font.name = FONT_NAME
+    h2_style.font.size = Pt(13)
+    h2_style.font.bold = True
+    h2_style.font.italic = False
+    h2_style.font.color.rgb = RGBColor(0, 0, 0)
+    h2_style.paragraph_format.space_before = Pt(12)
+    h2_style.paragraph_format.space_after = Pt(6)
+    h2_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    h2_style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+
+    # Heading 3 style (Tiểu mục 1.1.1)
+    h3_style = doc.styles['Heading 3']
+    h3_style.font.name = FONT_NAME
+    h3_style.font.size = Pt(13)
+    h3_style.font.bold = True
+    h3_style.font.italic = True
+    h3_style.font.color.rgb = RGBColor(0, 0, 0)
+    h3_style.paragraph_format.space_before = Pt(6)
+    h3_style.paragraph_format.space_after = Pt(6)
+    h3_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    h3_style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
+
+    # Caption style cho bảng và hình
+    try:
+        caption_style = doc.styles['Caption']
+    except KeyError:
+        caption_style = doc.styles.add_style('Caption', 1)  # 1 = paragraph style
+    caption_style.font.name = FONT_NAME
+    caption_style.font.size = Pt(12)
+    caption_style.font.bold = True
+    caption_style.font.italic = True
+    caption_style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    caption_style.paragraph_format.space_before = Pt(6)
+    caption_style.paragraph_format.space_after = Pt(6)
 
 
 def set_font(run, size=FONT_SIZE_NORMAL, bold=False, italic=False, color=None):
@@ -146,52 +195,126 @@ def set_font(run, size=FONT_SIZE_NORMAL, bold=False, italic=False, color=None):
 
 def add_chapter_title(doc, number, text, add_page_break=True):
     """
-    Tiêu đề chương: 14pt, Bold, căn trái
+    Tiêu đề chương: Sử dụng Heading 1 style để tạo mục lục tự động
     Format: "1. GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP"
     """
     if add_page_break:
         doc.add_page_break()
 
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(12)
-    p.paragraph_format.first_line_indent = Pt(0)
-
-    run = p.add_run(f"{number}. {text.upper()}")
-    set_font(run, FONT_SIZE_CHAPTER, bold=True)
+    # Sử dụng Heading 1 style để Word có thể tạo mục lục tự động
+    p = doc.add_paragraph(f"{number}. {text.upper()}", style='Heading 1')
 
     return p
 
 
 def add_section_title(doc, text):
     """
-    Tiêu đề mục (1.1, 1.2): 13pt, Bold, căn trái
+    Tiêu đề mục (1.1, 1.2): Sử dụng Heading 2 style để tạo mục lục tự động
     """
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_before = Pt(12)
-    p.paragraph_format.space_after = Pt(6)
-    p.paragraph_format.first_line_indent = Pt(0)
-
-    run = p.add_run(text)
-    set_font(run, FONT_SIZE_SECTION, bold=True)
+    # Sử dụng Heading 2 style
+    p = doc.add_paragraph(text, style='Heading 2')
 
     return p
 
 
 def add_subsection_title(doc, text):
     """
-    Tiêu đề tiểu mục (1.1.1, 1.1.2): 13pt, Bold + Italic, căn trái
+    Tiêu đề tiểu mục (1.1.1, 1.1.2): Sử dụng Heading 3 style để tạo mục lục tự động
+    """
+    # Sử dụng Heading 3 style
+    p = doc.add_paragraph(text, style='Heading 3')
+
+    return p
+
+
+def add_seq_field(paragraph, seq_name, prefix=""):
+    """
+    Thêm SEQ field vào paragraph để đánh số tự động
+    SEQ field giống như khi dùng Insert > Caption trong Word
+
+    Args:
+        paragraph: Paragraph object
+        seq_name: Tên sequence (ví dụ: "Table", "Figure")
+        prefix: Text đứng trước số (ví dụ: "Bảng ", "Hình ")
+    """
+    run = paragraph.add_run(prefix)
+    set_font(run, Pt(12), bold=True, italic=True)
+
+    # Tạo SEQ field
+    run = paragraph.add_run()
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = f' SEQ {seq_name} \\* ARABIC '
+
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'separate')
+
+    # Placeholder text (sẽ được cập nhật khi F9 trong Word)
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+
+    run2 = paragraph.add_run("1")  # Placeholder number
+    set_font(run2, Pt(12), bold=True, italic=True)
+
+    fldChar3 = OxmlElement('w:fldChar')
+    fldChar3.set(qn('w:fldCharType'), 'end')
+    run2._r.append(fldChar3)
+
+    return paragraph
+
+
+def add_table_caption(doc, chapter_num, caption_text):
+    """
+    Thêm caption cho bảng với SEQ field tự động đánh số
+    Format: "Bảng X.Y. Caption text" (với X là số chương, Y là SEQ tự động)
+
+    Lưu ý: Trong Word, bấm Ctrl+A rồi F9 để cập nhật tất cả fields
     """
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(6)
     p.paragraph_format.space_after = Pt(6)
-    p.paragraph_format.first_line_indent = Pt(0)
 
-    run = p.add_run(text)
-    set_font(run, FONT_SIZE_SUBSECTION, bold=True, italic=True)
+    # Thêm "Bảng X." với X là số chương
+    run = p.add_run(f"Bảng {chapter_num}.")
+    set_font(run, Pt(12), bold=True, italic=True)
+
+    # Thêm SEQ field cho số thứ tự trong chương
+    add_seq_field(p, f"Table{chapter_num}", "")
+
+    # Thêm phần caption text
+    run = p.add_run(f". {caption_text}")
+    set_font(run, Pt(12), bold=True, italic=True)
+
+    return p
+
+
+def add_figure_caption(doc, chapter_num, caption_text):
+    """
+    Thêm caption cho hình với SEQ field tự động đánh số
+    Format: "Hình X.Y. Caption text" (với X là số chương, Y là SEQ tự động)
+
+    Lưu ý: Trong Word, bấm Ctrl+A rồi F9 để cập nhật tất cả fields
+    """
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(12)
+
+    # Thêm "Hình X." với X là số chương
+    run = p.add_run(f"Hình {chapter_num}.")
+    set_font(run, Pt(12), bold=True, italic=True)
+
+    # Thêm SEQ field cho số thứ tự trong chương
+    add_seq_field(p, f"Figure{chapter_num}", "")
+
+    # Thêm phần caption text
+    run = p.add_run(f". {caption_text}")
+    set_font(run, Pt(12), bold=True, italic=True)
 
     return p
 
@@ -224,16 +347,23 @@ def add_bullet_list(doc, items):
         set_font(run, FONT_SIZE_NORMAL)
 
 
-def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
-    """Thêm bảng với tiêu đề (caption) ở PHÍA TRÊN bảng"""
-    p_caption = doc.add_paragraph()
-    p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_caption.paragraph_format.space_before = Pt(12)
-    p_caption.paragraph_format.space_after = Pt(6)
+def add_table_with_caption(doc, chapter_num, caption_text, headers, rows, col_widths=None):
+    """
+    Thêm bảng với caption sử dụng SEQ field để đánh số tự động
+    Caption ở PHÍA TRÊN bảng theo đúng chuẩn Word
 
-    run = p_caption.add_run(caption)
-    set_font(run, FONT_SIZE_CAPTION, bold=True)
+    Args:
+        doc: Document object
+        chapter_num: Số chương (1, 2, 3, 4)
+        caption_text: Nội dung caption
+        headers: List các header cột
+        rows: List các hàng dữ liệu
+        col_widths: List độ rộng cột (cm)
+    """
+    # Thêm caption với SEQ field
+    add_table_caption(doc, chapter_num, caption_text)
 
+    # Tạo bảng
     table = doc.add_table(rows=1, cols=len(headers))
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -263,8 +393,16 @@ def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
     return table
 
 
-def add_figure_placeholder(doc, caption):
-    """Thêm placeholder cho hình vẽ với caption ở PHÍA DƯỚI hình"""
+def add_figure_placeholder(doc, chapter_num, caption_text):
+    """
+    Thêm placeholder cho hình vẽ với caption sử dụng SEQ field
+    Caption ở PHÍA DƯỚI hình theo đúng chuẩn Word
+
+    Args:
+        doc: Document object
+        chapter_num: Số chương (1, 2, 3, 4)
+        caption_text: Nội dung caption
+    """
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
@@ -275,12 +413,8 @@ def add_figure_placeholder(doc, caption):
     run.font.size = FONT_SIZE_NORMAL
     run.font.color.rgb = RGBColor(128, 128, 128)
 
-    p_caption = doc.add_paragraph()
-    p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_caption.paragraph_format.space_after = Pt(12)
-
-    run = p_caption.add_run(caption)
-    set_font(run, FONT_SIZE_CAPTION, bold=True)
+    # Thêm caption với SEQ field
+    add_figure_caption(doc, chapter_num, caption_text)
 
 
 # ============== TRANG BÌA CHÍNH ==============
@@ -830,8 +964,7 @@ def add_chapter2(doc):
     # 2.2 Kế hoạch thực tập
     add_section_title(doc, "2.2. Kế hoạch thực tập")
 
-    add_table_with_caption(doc,
-        "Bảng 2.1. Kế hoạch thực tập theo tuần",
+    add_table_with_caption(doc, 2, "Kế hoạch thực tập theo tuần",
         ["Tuần", "Nội dung công việc"],
         [
             ("1-2", "Làm quen môi trường, tìm hiểu dự án, training thiết kế DB"),
@@ -949,8 +1082,7 @@ def add_chapter2(doc):
     # 2.4 Công nghệ, công cụ và kỹ thuật sử dụng
     add_section_title(doc, "2.4. Công nghệ, công cụ và kỹ thuật sử dụng")
 
-    add_table_with_caption(doc,
-        "Bảng 2.2. Công nghệ và công cụ sử dụng",
+    add_table_with_caption(doc, 2, "Công nghệ và công cụ sử dụng",
         ["Loại", "Tên", "Mục đích"],
         [
             ("Ngôn ngữ", "Java, SQL", "Lập trình backend, truy vấn CSDL"),
@@ -1075,42 +1207,126 @@ def add_chapter4(doc):
 
 
 # ============== TÀI LIỆU THAM KHẢO ==============
+def add_ieee_reference(doc, ref_num, author, title, source_type, year, url=None, accessed=None):
+    """
+    Thêm một tài liệu tham khảo theo chuẩn IEEE
+
+    Args:
+        doc: Document object
+        ref_num: Số thứ tự tài liệu [1], [2]...
+        author: Tên tác giả
+        title: Tiêu đề tài liệu (sẽ được in nghiêng)
+        source_type: Loại nguồn (Online, Book, Journal...)
+        year: Năm xuất bản
+        url: URL (cho tài liệu online)
+        accessed: Ngày truy cập (cho tài liệu online)
+    """
+    p = doc.add_paragraph()
+    p.paragraph_format.left_indent = Cm(0.63)
+    p.paragraph_format.first_line_indent = Cm(-0.63)
+    p.paragraph_format.space_after = Pt(6)
+
+    # [1]
+    run = p.add_run(f"[{ref_num}] ")
+    set_font(run, FONT_SIZE_NORMAL)
+
+    # Author,
+    run = p.add_run(f"{author}, ")
+    set_font(run, FONT_SIZE_NORMAL)
+
+    # "Title" (in nghiêng)
+    run = p.add_run(f'"{title}," ')
+    set_font(run, FONT_SIZE_NORMAL, italic=True)
+
+    # Year
+    run = p.add_run(f"{year}. ")
+    set_font(run, FONT_SIZE_NORMAL)
+
+    # [Online]. Available: URL
+    if source_type.lower() == "online" and url:
+        run = p.add_run("[Online]. Available: ")
+        set_font(run, FONT_SIZE_NORMAL)
+
+        run = p.add_run(url)
+        set_font(run, FONT_SIZE_NORMAL)
+        run.font.color.rgb = RGBColor(0, 0, 255)  # Blue color for URL
+
+        if accessed:
+            run = p.add_run(f". [Accessed: {accessed}].")
+            set_font(run, FONT_SIZE_NORMAL)
+    else:
+        run = p.add_run(f"{source_type}.")
+        set_font(run, FONT_SIZE_NORMAL)
+
+
 def add_references(doc):
-    """Tài liệu tham khảo (IEEE format)"""
+    """
+    Tài liệu tham khảo theo chuẩn IEEE
+    Sử dụng Heading 1 để có thể thêm vào mục lục tự động
+    """
     doc.add_page_break()
 
+    # Sử dụng Heading 1 để có thể tạo mục lục
+    p = doc.add_paragraph("TÀI LIỆU THAM KHẢO", style='Heading 1')
+
+    # IEEE format references
+    add_ieee_reference(doc,
+        ref_num=1,
+        author="Oracle Corporation",
+        title="Oracle Database Documentation",
+        source_type="Online",
+        year="2024",
+        url="https://docs.oracle.com/en/database/",
+        accessed="Jan. 2026"
+    )
+
+    add_ieee_reference(doc,
+        ref_num=2,
+        author="VMware",
+        title="Spring Batch Reference Documentation",
+        source_type="Online",
+        year="2024",
+        url="https://docs.spring.io/spring-batch/",
+        accessed="Jan. 2026"
+    )
+
+    add_ieee_reference(doc,
+        ref_num=3,
+        author="RESTfulAPI.net",
+        title="RESTful API Design Guidelines",
+        source_type="Online",
+        year="2024",
+        url="https://restfulapi.net/",
+        accessed="Jan. 2026"
+    )
+
+    add_ieee_reference(doc,
+        ref_num=4,
+        author="Anthropic",
+        title="Claude Documentation",
+        source_type="Online",
+        year="2024",
+        url="https://docs.anthropic.com/",
+        accessed="Jan. 2026"
+    )
+
+    # Tài liệu nội bộ
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(18)
-    run = p.add_run("TÀI LIỆU THAM KHẢO")
-    set_font(run, Pt(14), bold=True)
-
-    references = [
-        "[1] Oracle Corporation, \"Oracle Database Documentation,\" 2024. [Online]. Available: https://docs.oracle.com/en/database/. [Accessed: Jan. 2026].",
-        "[2] VMware, \"Spring Batch Reference Documentation,\" 2024. [Online]. Available: https://docs.spring.io/spring-batch/. [Accessed: Jan. 2026].",
-        "[3] RESTfulAPI.net, \"RESTful API Design Guidelines,\" 2024. [Online]. Available: https://restfulapi.net/. [Accessed: Jan. 2026].",
-        "[4] Anthropic, \"Claude Documentation,\" 2024. [Online]. Available: https://docs.anthropic.com/. [Accessed: Jan. 2026].",
-        "[5] Tài liệu nội bộ công ty SY PARTNERS., JSC (không công khai).",
-    ]
-
-    for ref in references:
-        p = doc.add_paragraph()
-        p.paragraph_format.left_indent = Cm(0.5)
-        p.paragraph_format.first_line_indent = Cm(-0.5)
-        run = p.add_run(ref)
-        set_font(run, FONT_SIZE_NORMAL)
+    p.paragraph_format.left_indent = Cm(0.63)
+    p.paragraph_format.first_line_indent = Cm(-0.63)
+    run = p.add_run("[5] ")
+    set_font(run, FONT_SIZE_NORMAL)
+    run = p.add_run("Tài liệu nội bộ công ty SY PARTNERS., JSC (không công khai).")
+    set_font(run, FONT_SIZE_NORMAL)
 
 
 # ============== PHỤ LỤC ==============
 def add_appendix(doc):
-    """Phụ lục"""
+    """Phụ lục - sử dụng Heading 1 để có thể thêm vào mục lục"""
     doc.add_page_break()
 
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_after = Pt(18)
-    run = p.add_run("PHỤ LỤC")
-    set_font(run, Pt(14), bold=True)
+    # Sử dụng Heading 1 để có thể tạo mục lục
+    p = doc.add_paragraph("PHỤ LỤC", style='Heading 1')
 
     # Phụ lục A: Nhật ký thực tập
     add_section_title(doc, "Phụ lục A: Nhật ký thực tập")

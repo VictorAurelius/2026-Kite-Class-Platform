@@ -159,3 +159,10 @@ hãy lưu thông tin cá nhân của tôi vào claude skill:
 Tên: Nguyễn Văn Kiệt, Mã sinh viên: 221230890, Lớp: CNTT1-K63, chuyên ngành: công nghệ thông tin, khoa: công nghệ thông tin, hệ: cử nhân
 
 2.3. Các công việc đã thực hiện => mô tả vẫn sơ sài, chưa đầy đủ nội dung
+
+hãy cập nhật claude skill khi tạo báo cáo word:
+1. tự động đánh heading hợp lý
+2. tài liệu tham khảo làm theo chuẩn IEEE, đúng thao tác với word thay vì text thuần
+3. tự động đánh caption ảnh, bảng theo đúng thao tác của word
+
+=> mục tiêu: tôi chỉ cần bấm tạo mục lục, danh mục là xong, ko phải tự đánh heading hoặc caption thủ công
