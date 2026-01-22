@@ -15,7 +15,8 @@
       "WebFetch(domain:aidayhoc.vn)",
       "Bash(find:*)",
       "Bash(python3:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(python create_bao_cao_thuc_tap.py:*)"
     ]
   }
 }

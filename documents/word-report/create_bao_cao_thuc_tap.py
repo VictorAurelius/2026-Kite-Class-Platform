@@ -1,46 +1,66 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script tạo báo cáo thực tập dạng Word (.docx)
-Format theo quy định trình bày đồ án tốt nghiệp - ĐH GTVT
+Script tạo báo cáo thực tập tốt nghiệp dạng Word (.docx)
+Format theo mẫu "Huong dan trinh bay bao cao TTTN.pdf" - ĐH GTVT
 
-Quy chuẩn áp dụng:
-- Căn lề: trên 2.5cm, dưới 2.5cm, trái 3cm, phải 2cm
-- Số trang: giữa, phía trên đầu trang
-- Chương: Times New Roman 18pt, Bold, căn giữa, Before: 0pt, After: 12pt
-- Mục (1.1): Times New Roman 16pt, Bold, căn trái, Before: 6pt, After: 6pt
-- Tiểu mục (1.1.1): Times New Roman 14pt, Bold, căn trái, Before: 6pt, After: 6pt
-- Đoạn văn: Times New Roman 13pt, Justify, thụt đầu dòng 1cm, giãn dòng 1.2
-- Tên bảng: phía trên bảng
-- Tên hình: phía dưới hình
+Cấu trúc báo cáo:
+1. Bìa chính (có bảng thông tin sinh viên, logo, chữ CỬ NHÂN màu vàng)
+2. Bìa phụ (thêm trường Đơn vị thực tập)
+3. Bản nhận xét của cơ sở thực tập
+4. Lời cảm ơn
+5. Mục lục + Danh mục hình vẽ + Danh mục bảng biểu
+6. Danh mục từ viết tắt
+7. 4 Chương nội dung chính
+8. Tài liệu tham khảo (IEEE)
+9. Phụ lục
 """
 
 from docx import Document
-from docx.shared import Pt, Cm, Inches, RGBColor, Twips
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.shared import Pt, Cm, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.style import WD_STYLE_TYPE
-from docx.enum.section import WD_ORIENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-# ============== CONSTANTS theo quy định ==============
+# ============== THÔNG TIN SINH VIÊN ==============
+STUDENT_INFO = {
+    "name": "Nguyễn Văn Kiệt",
+    "student_id": "221230890",
+    "class": "CNTT1-K63",
+    "course": "63",
+    "major": "Công nghệ thông tin",
+    "department": "Công nghệ thông tin",
+    "degree": "Cử nhân",
+    "university": "Đại học Giao thông Vận tải",
+}
+
+INTERNSHIP_INFO = {
+    "company": "SY PARTNERS., JSC",
+    "address": "Tầng 3, Tòa nhà Luxury, Số 99 Võ Chí Công, Quận Tây Hồ, Hà Nội",
+    "position": "Software Engineer",
+    "advisor": "ThS. Nguyễn Đức Dư",
+    "company_mentor": "[Tên CBHD]",
+    "start_date": "...",
+    "end_date": "...",
+}
+
+# ============== CONSTANTS ==============
 FONT_NAME = 'Times New Roman'
-FONT_SIZE_NORMAL = Pt(13)      # Nội dung đoạn văn
-FONT_SIZE_CHAPTER = Pt(18)     # Tiêu đề chương
-FONT_SIZE_SECTION = Pt(16)     # Mục 1.1, 1.2
-FONT_SIZE_SUBSECTION = Pt(14)  # Tiểu mục 1.1.1, 1.1.2
-FONT_SIZE_TABLE = Pt(12)       # Nội dung bảng
-FONT_SIZE_CAPTION = Pt(13)     # Caption bảng/hình
+FONT_SIZE_NORMAL = Pt(13)
+FONT_SIZE_CHAPTER = Pt(14)
+FONT_SIZE_SECTION = Pt(13)
+FONT_SIZE_SUBSECTION = Pt(13)
+FONT_SIZE_TABLE = Pt(12)
+FONT_SIZE_CAPTION = Pt(13)
 
-LINE_SPACING = 1.2             # Giãn dòng 1.2
-FIRST_LINE_INDENT = Cm(1.0)    # Thụt đầu dòng 1cm
+LINE_SPACING = 1.5
+FIRST_LINE_INDENT = Cm(1.27)
 
-# Căn lề theo quy chuẩn
 MARGIN_LEFT = Cm(3.0)
 MARGIN_RIGHT = Cm(2.0)
-MARGIN_TOP = Cm(2.5)
-MARGIN_BOTTOM = Cm(2.5)
+MARGIN_TOP = Cm(2.0)
+MARGIN_BOTTOM = Cm(2.0)
 
 
 def set_document_margins(doc):
@@ -59,6 +79,18 @@ def set_cell_shading(cell, color):
     cell._tc.get_or_add_tcPr().append(shading)
 
 
+def remove_cell_borders(cell):
+    """Remove all borders from a cell"""
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    tcBorders = OxmlElement('w:tcBorders')
+    for border_name in ['top', 'left', 'bottom', 'right']:
+        border = OxmlElement(f'w:{border_name}')
+        border.set(qn('w:val'), 'nil')
+        tcBorders.append(border)
+    tcPr.append(tcBorders)
+
+
 def add_page_number_header(doc):
     """Thêm số trang ở giữa phía TRÊN đầu trang (header)"""
     for section in doc.sections:
@@ -68,7 +100,6 @@ def add_page_number_header(doc):
         p = header.paragraphs[0] if header.paragraphs else header.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        # Tạo field cho số trang
         run = p.add_run()
         fldChar1 = OxmlElement('w:fldChar')
         fldChar1.set(qn('w:fldCharType'), 'begin')
@@ -99,34 +130,35 @@ def setup_styles(doc):
     pf.line_spacing = LINE_SPACING
     pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
-    # Đảm bảo font tiếng Việt
     style._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
 
 
-def set_font(run, size=FONT_SIZE_NORMAL, bold=False, italic=False):
+def set_font(run, size=FONT_SIZE_NORMAL, bold=False, italic=False, color=None):
     """Helper to set font properties"""
     run.font.name = FONT_NAME
     run.font.size = size
     run.bold = bold
     run.italic = italic
+    if color:
+        run.font.color.rgb = color
     run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
 
 
-def add_chapter_title(doc, text, add_page_break=True):
+def add_chapter_title(doc, number, text, add_page_break=True):
     """
-    Tiêu đề chương: 18pt, Bold, căn giữa
-    Before: 0pt, After: 12pt
-    Bắt đầu từ trang mới
+    Tiêu đề chương: 14pt, Bold, căn trái
+    Format: "1. GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP"
     """
     if add_page_break:
         doc.add_page_break()
 
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(12)
+    p.paragraph_format.first_line_indent = Pt(0)
 
-    run = p.add_run(text.upper())
+    run = p.add_run(f"{number}. {text.upper()}")
     set_font(run, FONT_SIZE_CHAPTER, bold=True)
 
     return p
@@ -134,12 +166,11 @@ def add_chapter_title(doc, text, add_page_break=True):
 
 def add_section_title(doc, text):
     """
-    Tiêu đề mục (1.1, 1.2): 16pt, Bold, căn trái
-    Before: 6pt, After: 6pt, không thụt đầu dòng
+    Tiêu đề mục (1.1, 1.2): 13pt, Bold, căn trái
     """
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(6)
     p.paragraph_format.first_line_indent = Pt(0)
 
@@ -151,8 +182,7 @@ def add_section_title(doc, text):
 
 def add_subsection_title(doc, text):
     """
-    Tiêu đề tiểu mục (1.1.1, 1.1.2): 14pt, Bold, căn trái
-    Before: 6pt, After: 6pt, không thụt đầu dòng
+    Tiêu đề tiểu mục (1.1.1, 1.1.2): 13pt, Bold + Italic, căn trái
     """
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -161,30 +191,14 @@ def add_subsection_title(doc, text):
     p.paragraph_format.first_line_indent = Pt(0)
 
     run = p.add_run(text)
-    set_font(run, FONT_SIZE_SUBSECTION, bold=True)
-
-    return p
-
-
-def add_sub_subsection_title(doc, text):
-    """
-    Tiêu đề cấp nhỏ hơn (a), b),...): 13pt, Bold + Italic, căn trái
-    """
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-    p.paragraph_format.space_before = Pt(6)
-    p.paragraph_format.space_after = Pt(3)
-    p.paragraph_format.first_line_indent = Pt(0)
-
-    run = p.add_run(text)
-    set_font(run, FONT_SIZE_NORMAL, bold=True, italic=True)
+    set_font(run, FONT_SIZE_SUBSECTION, bold=True, italic=True)
 
     return p
 
 
 def add_paragraph_text(doc, text, first_line_indent=True):
     """
-    Đoạn văn: 13pt, Justify, thụt đầu dòng 1cm, giãn dòng 1.2
+    Đoạn văn: 13pt, Justify, thụt đầu dòng 1.27cm, giãn dòng 1.5
     """
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -210,30 +224,8 @@ def add_bullet_list(doc, items):
         set_font(run, FONT_SIZE_NORMAL)
 
 
-def add_numbered_list(doc, items, start=1):
-    """Thêm danh sách đánh số"""
-    for i, item in enumerate(items, start):
-        p = doc.add_paragraph()
-        p.paragraph_format.left_indent = Cm(1.0)
-        p.paragraph_format.line_spacing = LINE_SPACING
-
-        run = p.add_run(f"{i}. {item}")
-        set_font(run, FONT_SIZE_NORMAL)
-
-
 def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
-    """
-    Thêm bảng với tiêu đề (caption) ở PHÍA TRÊN bảng
-    Caption: đậm, căn giữa
-
-    Args:
-        doc: Document object
-        caption: Tiêu đề bảng
-        headers: List các header cột
-        rows: List các hàng dữ liệu
-        col_widths: List độ rộng cột (cm), ví dụ: [1.5, 6.0, 8.5]
-    """
-    # Caption phía trên
+    """Thêm bảng với tiêu đề (caption) ở PHÍA TRÊN bảng"""
     p_caption = doc.add_paragraph()
     p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_caption.paragraph_format.space_before = Pt(12)
@@ -242,16 +234,13 @@ def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
     run = p_caption.add_run(caption)
     set_font(run, FONT_SIZE_CAPTION, bold=True)
 
-    # Tạo bảng
     table = doc.add_table(rows=1, cols=len(headers))
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-    # Header row
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
-        # Thiết lập độ rộng cho header cell
         if col_widths and i < len(col_widths):
             header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
@@ -260,29 +249,22 @@ def add_table_with_caption(doc, caption, headers, rows, col_widths=None):
                 set_font(run, FONT_SIZE_TABLE, bold=True)
         set_cell_shading(header_cells[i], 'D9E2F3')
 
-    # Data rows
     for row_data in rows:
         row = table.add_row()
         for i, cell_text in enumerate(row_data):
             row.cells[i].text = str(cell_text)
-            # Thiết lập độ rộng cho data cell
             if col_widths and i < len(col_widths):
                 row.cells[i].width = Cm(col_widths[i])
             for paragraph in row.cells[i].paragraphs:
                 for run in paragraph.runs:
                     set_font(run, FONT_SIZE_TABLE)
 
-    # Space after table
     doc.add_paragraph()
-
     return table
 
 
 def add_figure_placeholder(doc, caption):
-    """
-    Thêm placeholder cho hình vẽ với caption ở PHÍA DƯỚI hình
-    """
-    # Placeholder
+    """Thêm placeholder cho hình vẽ với caption ở PHÍA DƯỚI hình"""
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
@@ -293,7 +275,6 @@ def add_figure_placeholder(doc, caption):
     run.font.size = FONT_SIZE_NORMAL
     run.font.color.rgb = RGBColor(128, 128, 128)
 
-    # Caption phía dưới
     p_caption = doc.add_paragraph()
     p_caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_caption.paragraph_format.space_after = Pt(12)
@@ -302,30 +283,12 @@ def add_figure_placeholder(doc, caption):
     set_font(run, FONT_SIZE_CAPTION, bold=True)
 
 
-def add_border_to_paragraph(paragraph):
-    """Add border around paragraph (for cover page)"""
-    pPr = paragraph._p.get_or_add_pPr()
-    pBdr = OxmlElement('w:pBdr')
-
-    for border_name in ['top', 'left', 'bottom', 'right']:
-        border = OxmlElement(f'w:{border_name}')
-        border.set(qn('w:val'), 'single')
-        border.set(qn('w:sz'), '24')  # Border width
-        border.set(qn('w:space'), '1')
-        border.set(qn('w:color'), '000000')
-        pBdr.append(border)
-
-    pPr.append(pBdr)
-
-
-def add_title_page(doc):
-    """
-    Tạo trang bìa theo mẫu quy định ĐH GTVT (trang 6 PDF)
-    Không có khung viền, bố cục theo đúng mẫu
-    """
+# ============== TRANG BÌA CHÍNH ==============
+def add_cover_page(doc):
+    """Tạo trang bìa chính theo mẫu PDF (trang 1)"""
     import os
 
-    # === 1. TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI (không đậm) ===
+    # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
@@ -333,17 +296,16 @@ def add_title_page(doc):
     run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
     set_font(run, Pt(14), bold=False)
 
-    # === 2. KHOA CÔNG NGHỆ THÔNG TIN (đậm) ===
+    # KHOA CÔNG NGHỆ THÔNG TIN (đậm, gạch chân)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
-    # Thêm underline
     run.font.underline = True
 
-    # === 3. LOGO ===
+    # Logo
     logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo_utc.png')
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -352,75 +314,361 @@ def add_title_page(doc):
 
     if os.path.exists(logo_path):
         run = p.add_run()
-        run.add_picture(logo_path, width=Cm(3.5))  # Logo 3.5cm width
+        run.add_picture(logo_path, width=Cm(3.5))
     else:
         run = p.add_run("[LOGO TRƯỜNG]")
         run.font.color.rgb = RGBColor(128, 128, 128)
         set_font(run, Pt(12))
 
-    # === 4. BÁO CÁO THỰC TẬP TỐT NGHIỆP (chữ lớn, đậm) ===
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(24)
-    p.paragraph_format.space_after = Pt(24)
-    run = p.add_run("BÁO CÁO THỰC TẬP TỐT NGHIỆP")
-    set_font(run, Pt(26), bold=True)
-
-    # === 5. ĐỀ TÀI ===
+    # BÁO CÁO (gạch chân)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(12)
-    p.paragraph_format.space_after = Pt(6)
-    run = p.add_run("ĐỀ TÀI")
-    set_font(run, Pt(14), bold=False)
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run("BÁO CÁO")
+    set_font(run, Pt(14), bold=True)
+    run.font.underline = True
 
-    # === 6. TÊN ĐỀ TÀI (đậm) ===
+    # THỰC TẬP TỐT NGHIỆP
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(6)
-    p.paragraph_format.space_after = Pt(36)
-    run = p.add_run("THIẾT KẾ HỆ THỐNG PHẦN MỀM\nTẠI DOANH NGHIỆP PHÁT TRIỂN PHẦN MỀM")
-    set_font(run, Pt(16), bold=True)
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run("THỰC TẬP TỐT NGHIỆP")
+    set_font(run, Pt(22), bold=True)
 
-    # === 7. Thông tin sinh viên (căn trái, có dấu : thẳng hàng) ===
-    info = [
-        ("Giảng viên hướng dẫn", "ThS. Nguyễn Đức Dư"),
-        ("Sinh viên thực hiện", "[Họ và tên]"),
-        ("Lớp", "[Tên lớp]"),
-        ("Mã sinh viên", "[MSSV]"),
+    # CỬ NHÂN (màu vàng, gạch chân)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("CỬ NHÂN")
+    set_font(run, Pt(22), bold=True, color=RGBColor(255, 192, 0))  # Màu vàng
+    run.font.underline = True
+
+    # Bảng thông tin sinh viên (không có viền)
+    table = doc.add_table(rows=8, cols=2)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    info_rows = [
+        ("Sinh viên thực hiện", STUDENT_INFO["name"]),
+        ("Mã sinh viên", STUDENT_INFO["student_id"]),
+        ("Lớp", STUDENT_INFO["class"]),
+        ("Khóa", STUDENT_INFO["course"]),
+        ("Ngành đào tạo", STUDENT_INFO["major"]),
+        ("Giảng viên hướng dẫn", INTERNSHIP_INFO["advisor"]),
+        ("CBHD tại đơn vị TT", INTERNSHIP_INFO["company_mentor"]),
+        ("Thời gian thực tập", f"Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}"),
     ]
 
-    for label, value in info:
-        p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        p.paragraph_format.left_indent = Cm(3)
-        p.paragraph_format.space_before = Pt(6)
-        p.paragraph_format.space_after = Pt(6)
+    for i, (label, value) in enumerate(info_rows):
+        row = table.rows[i]
+        # Label cell
+        row.cells[0].text = label
+        row.cells[0].width = Cm(5.0)
+        for paragraph in row.cells[0].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            for run in paragraph.runs:
+                set_font(run, Pt(13))
+        remove_cell_borders(row.cells[0])
 
-        run1 = p.add_run(f"{label}")
-        set_font(run1, Pt(14), bold=False)
+        # Value cell
+        row.cells[1].text = f": {value}"
+        row.cells[1].width = Cm(9.0)
+        for paragraph in row.cells[1].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            for run in paragraph.runs:
+                set_font(run, Pt(13))
+        remove_cell_borders(row.cells[1])
 
-        run2 = p.add_run(f"\t: {value}")
-        set_font(run2, Pt(14), bold=False)
-
-    # === 8. Hà Nội – 2026 (đậm, ở cuối trang) ===
-    # Thêm khoảng trống để đẩy xuống cuối trang
-    for _ in range(4):
+    # Khoảng trống
+    for _ in range(3):
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(0)
 
+    # Hà Nội – 2026
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("Hà Nội – 2026")
+    set_font(run, Pt(14), bold=True, italic=True)
+
+
+# ============== TRANG BÌA PHỤ ==============
+def add_secondary_cover_page(doc):
+    """Tạo trang bìa phụ theo mẫu PDF (trang 2) - thêm Đơn vị thực tập"""
+    import os
+
+    doc.add_page_break()
+
+    # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(0)
+    run = p.add_run("TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI")
+    set_font(run, Pt(14), bold=False)
+
+    # KHOA CÔNG NGHỆ THÔNG TIN (đậm, gạch chân)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(36)
+    run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
+    set_font(run, Pt(14), bold=True)
+    run.font.underline = True
+
+    # BÁO CÁO (gạch chân)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(24)
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run("BÁO CÁO")
+    set_font(run, Pt(14), bold=True)
+    run.font.underline = True
+
+    # THỰC TẬP TỐT NGHIỆP
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run("THỰC TẬP TỐT NGHIỆP")
+    set_font(run, Pt(22), bold=True)
+
+    # CỬ NHÂN (màu vàng, gạch chân)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("CỬ NHÂN")
+    set_font(run, Pt(22), bold=True, color=RGBColor(255, 192, 0))
+    run.font.underline = True
+
+    # Bảng thông tin sinh viên (có thêm Đơn vị thực tập)
+    table = doc.add_table(rows=9, cols=2)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    info_rows = [
+        ("Sinh viên thực hiện", STUDENT_INFO["name"]),
+        ("Mã sinh viên", STUDENT_INFO["student_id"]),
+        ("Lớp", STUDENT_INFO["class"]),
+        ("Khóa", STUDENT_INFO["course"]),
+        ("Ngành đào tạo", STUDENT_INFO["major"]),
+        ("Giảng viên hướng dẫn", INTERNSHIP_INFO["advisor"]),
+        ("CBHD tại đơn vị TT", INTERNSHIP_INFO["company_mentor"]),
+        ("Đơn vị thực tập", INTERNSHIP_INFO["company"]),
+        ("Thời gian thực tập", f"Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}"),
+    ]
+
+    for i, (label, value) in enumerate(info_rows):
+        row = table.rows[i]
+        row.cells[0].text = label
+        row.cells[0].width = Cm(5.0)
+        for paragraph in row.cells[0].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            for run in paragraph.runs:
+                set_font(run, Pt(13))
+        remove_cell_borders(row.cells[0])
+
+        row.cells[1].text = f": {value}"
+        row.cells[1].width = Cm(9.0)
+        for paragraph in row.cells[1].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            for run in paragraph.runs:
+                set_font(run, Pt(13))
+        remove_cell_borders(row.cells[1])
+
+    # Khoảng trống
+    for _ in range(2):
+        p = doc.add_paragraph()
+
+    # Hà Nội – 2026
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("Hà Nội – 2026")
+    set_font(run, Pt(14), bold=True, italic=True)
+
+
+# ============== BẢN NHẬN XÉT CỦA CƠ SỞ THỰC TẬP ==============
+def add_company_review_page(doc):
+    """Tạo trang Bản nhận xét của cơ sở thực tập (trang 3)"""
+    doc.add_page_break()
+
+    # CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run("CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM")
+    set_font(run, Pt(13), bold=True)
+
+    # Độc lập - Tự do - Hạnh phúc
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(6)
+    run = p.add_run("Độc lập - Tự do - Hạnh phúc")
+    set_font(run, Pt(13), bold=True)
+    run.font.underline = True
+
+    # Ngày tháng năm
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.space_before = Pt(12)
+    run = p.add_run("Hà Nội, ngày …. tháng … năm 2026")
+    set_font(run, Pt(13), italic=True)
+
+    # Tiêu đề
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(18)
+    p.paragraph_format.space_after = Pt(12)
+    run = p.add_run("BẢN NHẬN XÉT CỦA CƠ SỞ THỰC TẬP")
     set_font(run, Pt(14), bold=True)
 
+    # Kính gửi
+    p = doc.add_paragraph()
+    p.paragraph_format.space_after = Pt(12)
+    run = p.add_run("Kính gửi: ")
+    set_font(run, Pt(13), bold=True, italic=True)
+    run = p.add_run("Khoa Công nghệ thông tin, Trường Đại học Giao thông vận tải")
+    set_font(run, Pt(13), bold=True, italic=True)
 
+    # Thông tin cơ sở thực tập
+    info_lines = [
+        f"Cơ sở thực tập: {INTERNSHIP_INFO['company']}",
+        "Người đại diện: ",
+        "Chức vụ: ",
+    ]
+    for line in info_lines:
+        p = doc.add_paragraph()
+        run = p.add_run(line)
+        set_font(run, Pt(13))
+
+    # Xác nhận sinh viên
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(12)
+    run = p.add_run("Xác nhận sinh viên:")
+    set_font(run, Pt(13), bold=True)
+
+    # Thông tin sinh viên
+    p = doc.add_paragraph()
+    run = p.add_run(f"Họ tên: {STUDENT_INFO['name']}")
+    set_font(run, Pt(13))
+    run = p.add_run(f"\t\t\tMã sinh viên: {STUDENT_INFO['student_id']}")
+    set_font(run, Pt(13))
+
+    p = doc.add_paragraph()
+    run = p.add_run(f"Lớp: {STUDENT_INFO['class']}")
+    set_font(run, Pt(13))
+
+    p = doc.add_paragraph()
+    run = p.add_run(f"Đã thực tập tốt nghiệp tại cơ sở trong thời gian từ: {INTERNSHIP_INFO['start_date']} đến: {INTERNSHIP_INFO['end_date']}")
+    set_font(run, Pt(13))
+
+    # Các mục nhận xét
+    review_items = [
+        "Nội dung thực tập:",
+        "Về tinh thần, ý thức, thái độ đối với công việc được giao:",
+        "Về trình độ, kỹ năng làm việc/ khả năng thực hành:",
+        "Ưu điểm nổi bật:",
+        "Hạn chế cần khắc phục:",
+        "Các nhận xét khác (nếu có):",
+    ]
+
+    for item in review_items:
+        p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(6)
+        run = p.add_run(f"- {item}")
+        set_font(run, Pt(13))
+        run.font.underline = True
+
+    # Điểm thực tập
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(18)
+    run = p.add_run("Điểm thực tập (thang điểm 10): …… điểm.")
+    set_font(run, Pt(13))
+
+    # Chữ ký
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p.paragraph_format.space_before = Pt(24)
+    run = p.add_run("ĐẠI DIỆN CƠ SỞ THỰC TẬP")
+    set_font(run, Pt(13), bold=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("(Họ tên, chữ ký và đóng dấu nếu có)")
+    set_font(run, Pt(13), italic=True)
+
+
+# ============== LỜI CẢM ƠN ==============
+def add_acknowledgment_page(doc):
+    """Tạo trang Lời cảm ơn (trang 4)"""
+    doc.add_page_break()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(24)
+    run = p.add_run("LỜI CẢM ƠN")
+    set_font(run, Pt(14), bold=True, italic=True)
+
+    # Nội dung lời cảm ơn
+    add_paragraph_text(doc,
+        "Trong quá trình thực tập tốt nghiệp, em đã nhận được sự hướng dẫn và giúp đỡ "
+        "tận tình từ nhiều cá nhân và tổ chức. Em xin được gửi lời cảm ơn chân thành đến:")
+
+    add_paragraph_text(doc,
+        f"Thầy {INTERNSHIP_INFO['advisor']} - Giảng viên hướng dẫn tại trường, đã tận tình "
+        "hướng dẫn, góp ý và định hướng cho em trong suốt quá trình thực tập và viết báo cáo.")
+
+    add_paragraph_text(doc,
+        f"Ban lãnh đạo và các anh chị tại {INTERNSHIP_INFO['company']} đã tạo điều kiện thuận lợi, "
+        "hướng dẫn và chia sẻ kinh nghiệm quý báu trong thời gian em thực tập tại công ty.")
+
+    add_paragraph_text(doc,
+        "Khoa Công nghệ thông tin, Trường Đại học Giao thông vận tải đã tạo điều kiện "
+        "cho em được thực tập tại doanh nghiệp để có cơ hội học hỏi và phát triển.")
+
+    add_paragraph_text(doc,
+        "Mặc dù đã cố gắng hoàn thành báo cáo một cách tốt nhất, nhưng không thể tránh "
+        "khỏi những thiếu sót. Em rất mong nhận được sự góp ý của các thầy cô để báo cáo "
+        "được hoàn thiện hơn.")
+
+    add_paragraph_text(doc, "Em xin chân thành cảm ơn!")
+
+    # Chữ ký
+    for _ in range(3):
+        doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("Hà Nội, ngày ... tháng 01 năm 2026")
+    set_font(run, Pt(13), italic=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run("Sinh viên thực hiện")
+    set_font(run, Pt(13), bold=True)
+
+    for _ in range(2):
+        doc.add_paragraph()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    run = p.add_run(STUDENT_INFO["name"])
+    set_font(run, Pt(13))
+
+
+# ============== MỤC LỤC ==============
 def add_toc_page(doc):
     """Thêm trang Mục lục"""
-    add_chapter_title(doc, "MỤC LỤC")
+    doc.add_page_break()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("MỤC LỤC")
+    set_font(run, Pt(14), bold=True)
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -431,587 +679,418 @@ def add_toc_page(doc):
     run.font.color.rgb = RGBColor(128, 128, 128)
 
 
-def add_list_of_tables(doc):
-    """Thêm Danh mục bảng biểu"""
-    add_chapter_title(doc, "DANH MỤC BẢNG BIỂU")
-
-    tables = [
-        "Bảng 1.1. Lĩnh vực hoạt động của SY Partners",
-        "Bảng 1.2. Các loại thiết kế được giao",
-        "Bảng 2.1. Các tài liệu tham chiếu khi thiết kế màn hình",
-        "Bảng 2.2. Các tài liệu tham chiếu khi thiết kế API",
-        "Bảng 2.3. HTTP Methods trong RESTful API",
-        "Bảng 2.4. Cấu trúc thiết kế Batch",
-        "Bảng 2.5. Hệ thống AI Checker theo cấp độ",
-        "Bảng 2.6. Tiêu chí kiểm tra Level 1 (API-DB)",
-        "Bảng 3.1. Kỹ năng trước và sau thực tập",
-    ]
-
-    for item in tables:
-        p = doc.add_paragraph()
-        run = p.add_run(item)
-        set_font(run, FONT_SIZE_NORMAL)
-
-
 def add_list_of_figures(doc):
     """Thêm Danh mục hình vẽ"""
-    add_chapter_title(doc, "DANH MỤC HÌNH VẼ")
+    doc.add_page_break()
 
-    figures = [
-        "Hình 2.1. Quy trình thiết kế hệ thống (có AI Check)",
-        "Hình 2.2. Kiến trúc xử lý Chunk trong Spring Batch",
-        "Hình 2.3. Quy trình sử dụng AI trong kiểm tra chất lượng",
-        "Hình 3.1. Kiến trúc hệ thống nhiều lớp",
-    ]
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("DANH MỤC HÌNH VẼ")
+    set_font(run, Pt(14), bold=True)
 
-    for item in figures:
-        p = doc.add_paragraph()
-        run = p.add_run(item)
-        set_font(run, FONT_SIZE_NORMAL)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("[Tạo danh mục hình vẽ tự động hoặc liệt kê thủ công]")
+    run.italic = True
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    run.font.color.rgb = RGBColor(128, 128, 128)
+
+
+def add_list_of_tables(doc):
+    """Thêm Danh mục bảng biểu"""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(24)
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("DANH MỤC BẢNG BIỂU")
+    set_font(run, Pt(14), bold=True)
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("[Tạo danh mục bảng biểu tự động hoặc liệt kê thủ công]")
+    run.italic = True
+    run.font.name = FONT_NAME
+    run.font.size = Pt(12)
+    run.font.color.rgb = RGBColor(128, 128, 128)
 
 
 def add_abbreviations(doc):
     """Thêm Danh mục từ viết tắt"""
-    add_chapter_title(doc, "DANH MỤC TỪ VIẾT TẮT")
+    doc.add_page_break()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("DANH MỤC TỪ VIẾT TẮT")
+    set_font(run, Pt(14), bold=True)
 
     abbreviations = [
         ("AI", "Artificial Intelligence - Trí tuệ nhân tạo"),
         ("API", "Application Programming Interface - Giao diện lập trình ứng dụng"),
-        ("BrSE", "Bridge Software Engineer - Kỹ sư cầu nối"),
-        ("CRUD", "Create, Read, Update, Delete - Các thao tác cơ bản với dữ liệu"),
-        ("DB", "Database - Cơ sở dữ liệu"),
-        ("FK", "Foreign Key - Khóa ngoại"),
-        ("IPO", "Input-Process-Output - Đầu vào-Xử lý-Đầu ra"),
-        ("JSON", "JavaScript Object Notation - Định dạng dữ liệu"),
-        ("PK", "Primary Key - Khóa chính"),
-        ("QA", "Quality Assurance / Question & Answer"),
-        ("REST", "Representational State Transfer - Kiến trúc API"),
-        ("SQL", "Structured Query Language - Ngôn ngữ truy vấn"),
+        ("CSDL", "Cơ sở dữ liệu"),
+        ("IDE", "Integrated Development Environment - Môi trường phát triển tích hợp"),
     ]
 
-    # Độ rộng cột theo thiết kế chuẩn
-    col_widths = [3.0, 13.0]
-
-    # Tạo bảng không có caption
     table = doc.add_table(rows=1, cols=2)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-    # Header
     headers = ["Từ viết tắt", "Giải thích"]
     header_cells = table.rows[0].cells
     for i, header in enumerate(headers):
         header_cells[i].text = header
-        header_cells[i].width = Cm(col_widths[i])
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
                 set_font(run, FONT_SIZE_TABLE, bold=True)
         set_cell_shading(header_cells[i], 'D9E2F3')
 
-    # Data
     for abbr, meaning in abbreviations:
         row = table.add_row()
         row.cells[0].text = abbr
-        row.cells[0].width = Cm(col_widths[0])
+        row.cells[0].width = Cm(3.0)
         row.cells[1].text = meaning
-        row.cells[1].width = Cm(col_widths[1])
+        row.cells[1].width = Cm(13.0)
         for cell in row.cells:
             for paragraph in cell.paragraphs:
                 for run in paragraph.runs:
                     set_font(run, FONT_SIZE_TABLE)
 
-    doc.add_paragraph()
 
+# ============== CHƯƠNG 1: GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP ==============
+def add_chapter1(doc):
+    """Chương 1: Giới thiệu chung về đơn vị thực tập"""
+    add_chapter_title(doc, "1", "GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP")
 
-def add_introduction(doc):
-    """MỞ ĐẦU theo mẫu báo cáo thực tập"""
-    add_chapter_title(doc, "MỞ ĐẦU")
-
-    # 1. Giới thiệu về nội dung thực tập
-    add_section_title(doc, "1. Giới thiệu về nội dung thực tập")
-
-    add_paragraph_text(doc,
-        "Báo cáo này trình bày quá trình thực tập tốt nghiệp tại công ty SY PARTNERS., JSC "
-        "với vị trí Kỹ sư lập trình (Software Engineer). Trong suốt thời gian thực tập, "
-        "sinh viên được tham gia vào các dự án phát triển phần mềm thực tế, cụ thể là "
-        "công việc thiết kế hệ thống bao gồm: thiết kế cơ sở dữ liệu, thiết kế màn hình, "
-        "thiết kế API và thiết kế batch processing.")
+    # 1.1 Thông tin chung về đơn vị thực tập
+    add_section_title(doc, "1.1. Thông tin chung về đơn vị thực tập")
 
     add_paragraph_text(doc,
-        "Ngoài ra, sinh viên còn được tham gia vào việc xây dựng và sử dụng hệ thống "
-        "kiểm tra chất lượng thiết kế tự động bằng AI (Artificial Intelligence), giúp "
-        "nâng cao hiệu quả công việc và giảm thiểu lỗi trước khi gửi review.")
+        f"{INTERNSHIP_INFO['company']} (viết tắt: SYP) là công ty công nghệ thông tin chuyên về "
+        "phát triển phần mềm gia công (offshore development). Công ty được thành lập "
+        "tại Hà Nội, Việt Nam vào năm 2022, với đội ngũ lãnh đạo có hơn 20 năm kinh nghiệm "
+        "trong lĩnh vực phát triển phần mềm offshore trên toàn cầu.")
 
-    # 2. Yêu cầu (Mục đích)
-    add_section_title(doc, "2. Yêu cầu (Mục đích) của đợt thực tập")
+    add_bullet_list(doc, [
+        f"Tên công ty: {INTERNSHIP_INFO['company']}",
+        f"Địa chỉ: {INTERNSHIP_INFO['address']}",
+        "Website: https://syp.vn",
+        "Lĩnh vực: Phát triển phần mềm gia công (Offshore Development)",
+        "Quy mô: Hơn 95 nhân viên (tính đến tháng 6/2024)",
+    ])
 
-    add_paragraph_text(doc, "Mục đích của đợt thực tập:", first_line_indent=True)
+    # 1.2 Chức năng, nhiệm vụ của bộ phận thực tập
+    add_section_title(doc, "1.2. Chức năng, nhiệm vụ của bộ phận thực tập")
+
+    add_paragraph_text(doc,
+        "Sinh viên được phân công vào bộ phận Development với vai trò Software Engineer. "
+        "Nhiệm vụ chính của bộ phận bao gồm:")
+
+    add_bullet_list(doc, [
+        "Thiết kế hệ thống phần mềm theo yêu cầu khách hàng",
+        "Phát triển và bảo trì các ứng dụng web, mobile",
+        "Kiểm thử và đảm bảo chất lượng sản phẩm",
+        "Tích hợp và triển khai hệ thống",
+    ])
+
+    # 1.3 Môi trường làm việc và quy trình công tác
+    add_section_title(doc, "1.3. Môi trường làm việc và quy trình công tác")
+
+    add_paragraph_text(doc,
+        "Công ty áp dụng mô hình làm việc hybrid, kết hợp giữa làm việc tại văn phòng "
+        "và làm việc từ xa. Quy trình phát triển phần mềm theo mô hình Agile/Scrum "
+        "với các sprint kéo dài 2 tuần.")
+
+    add_paragraph_text(doc,
+        "Môi trường làm việc chuyên nghiệp, năng động với đội ngũ nhân viên trẻ trung. "
+        "Công ty có văn hóa chia sẻ kiến thức thông qua các buổi training nội bộ "
+        "và hỗ trợ nhân viên phát triển kỹ năng chuyên môn.")
+
+
+# ============== CHƯƠNG 2: NỘI DUNG THỰC TẬP ==============
+def add_chapter2(doc):
+    """Chương 2: Nội dung thực tập"""
+    add_chapter_title(doc, "2", "NỘI DUNG THỰC TẬP")
+
+    # 2.1 Mục tiêu và yêu cầu của đợt thực tập
+    add_section_title(doc, "2.1. Mục tiêu và yêu cầu của đợt thực tập")
+
+    add_paragraph_text(doc, "Mục tiêu của đợt thực tập:")
 
     add_bullet_list(doc, [
         "Tiếp cận môi trường doanh nghiệp và quy trình phát triển phần mềm chuyên nghiệp",
         "Áp dụng kiến thức đã học vào thực tế công việc thiết kế hệ thống",
         "Rèn luyện kỹ năng thiết kế cơ sở dữ liệu, màn hình, API và batch processing",
         "Học cách sử dụng AI trong quy trình kiểm tra chất lượng",
-        "Chuẩn bị nền tảng kiến thức cho đồ án tốt nghiệp"
+        "Chuẩn bị nền tảng kiến thức cho đồ án tốt nghiệp",
     ])
 
-    add_paragraph_text(doc, "Mục đích của báo cáo:", first_line_indent=True)
-
-    add_bullet_list(doc, [
-        "Tổng hợp và trình bày các công việc đã thực hiện trong quá trình thực tập",
-        "Chia sẻ kiến thức và kinh nghiệm thu được",
-        "Đánh giá kết quả và rút ra bài học cho công việc sau này"
-    ])
-
-    # 3. Phương pháp thực hiện
-    add_section_title(doc, "3. Phương pháp thực hiện")
-
-    add_sub_subsection_title(doc, "a) Phương pháp nghiên cứu tài liệu")
-    add_bullet_list(doc, [
-        "Đọc và phân tích tài liệu thiết kế hệ thống cũ",
-        "Nghiên cứu tài liệu quan điểm thiết kế (design policy)",
-        "Tìm hiểu tài liệu nghiệp vụ cụ thể (business requirements)"
-    ])
-
-    add_sub_subsection_title(doc, "b) Phương pháp học qua thực hành")
-    add_bullet_list(doc, [
-        "Trực tiếp thực hiện các bản thiết kế",
-        "Nhận phản hồi (shiteki) và sửa lỗi để cải thiện"
-    ])
-
-    add_sub_subsection_title(doc, "c) Phương pháp ứng dụng AI")
-    add_bullet_list(doc, [
-        "Sử dụng hệ thống AI Checker để tự kiểm tra thiết kế",
-        "Tham gia xây dựng và cải tiến quy trình kiểm tra tự động"
-    ])
-
-    # 4. Cấu trúc báo cáo
-    add_section_title(doc, "4. Cấu trúc báo cáo")
-
-    add_paragraph_text(doc,
-        "Ngoài phần Mở đầu và Kết luận, báo cáo được tổ chức thành 3 nội dung chính:")
-
-    add_paragraph_text(doc,
-        "Nội dung 1: Giới thiệu về doanh nghiệp và công việc - Trình bày tổng quan về "
-        "SY PARTNERS., JSC và các công việc được giao trong quá trình thực tập.")
-
-    add_paragraph_text(doc,
-        "Nội dung 2: Quy trình và phương pháp thiết kế hệ thống - Mô tả chi tiết quy trình "
-        "thiết kế cơ sở dữ liệu, màn hình, API, batch và ứng dụng AI trong kiểm tra chất lượng.")
-
-    add_paragraph_text(doc,
-        "Nội dung 3: Kết quả và kiến thức thu được - Tổng kết kết quả công việc và các "
-        "kiến thức chuyên môn, kỹ năng mềm thu được trong quá trình thực tập.")
-
-
-def add_content1(doc):
-    """NỘI DUNG 1: Giới thiệu về doanh nghiệp và công việc"""
-    add_chapter_title(doc, "NỘI DUNG 1\nGIỚI THIỆU VỀ DOANH NGHIỆP VÀ CÔNG VIỆC")
-
-    # 1.1 Giới thiệu về SY Partners
-    add_section_title(doc, "1.1. Giới thiệu về SY PARTNERS., JSC")
-
-    add_subsection_title(doc, "1.1.1. Thông tin chung")
-
-    add_paragraph_text(doc,
-        "SY PARTNERS., JSC (viết tắt: SYP) là công ty công nghệ thông tin chuyên về "
-        "phát triển phần mềm gia công (offshore development). Công ty được thành lập "
-        "tại Hà Nội, Việt Nam vào năm 2022, với đội ngũ lãnh đạo có hơn 20 năm kinh nghiệm "
-        "trong lĩnh vực phát triển phần mềm offshore trên toàn cầu.")
-
-    add_paragraph_text(doc,
-        "Tên \"SY\" trong \"SY Partners\" xuất phát từ từ tiếng Nhật \"信用\" (Shinyō), "
-        "có nghĩa là \"niềm tin\" - nguyên tắc cốt lõi trong mọi mối quan hệ hợp tác của công ty.")
-
-    add_bullet_list(doc, [
-        "Tên công ty: SY PARTNERS., JSC",
-        "Địa chỉ: Tầng 3, Tòa nhà Luxury, Số 99 Võ Chí Công, Quận Tây Hồ, Hà Nội",
-        "Website: https://syp.vn",
-        "Quy mô: Hơn 95 nhân viên (tính đến tháng 6/2024)"
-    ])
-
-    add_subsection_title(doc, "1.1.2. Lĩnh vực hoạt động")
+    # 2.2 Kế hoạch thực tập
+    add_section_title(doc, "2.2. Kế hoạch thực tập")
 
     add_table_with_caption(doc,
-        "Bảng 1.1. Lĩnh vực hoạt động của SY Partners",
-        ["STT", "Lĩnh vực", "Mô tả"],
+        "Bảng 2.1. Kế hoạch thực tập theo tuần",
+        ["Tuần", "Nội dung công việc"],
         [
-            ("1", "Digital Transformation", "Tư vấn và triển khai chuyển đổi số"),
-            ("2", "Legacy Modernization", "Hiện đại hóa hệ thống cũ"),
-            ("3", "AI Integration", "Tích hợp các dịch vụ AI"),
-            ("4", "E-Commerce", "Phát triển hệ thống thương mại điện tử"),
-            ("5", "Salesforce CRM", "Tư vấn và phát triển hệ thống CRM"),
-            ("6", "Data Engineering", "Xử lý và phân tích dữ liệu lớn"),
+            ("1-2", "Làm quen môi trường, tìm hiểu dự án, training thiết kế DB"),
+            ("3-4", "Thực hành thiết kế cơ sở dữ liệu"),
+            ("5-6", "Training và thực hành thiết kế màn hình"),
+            ("7-8", "Training và thực hành thiết kế API RESTful"),
+            ("9-10", "Giới thiệu AI Checker, training thiết kế Batch"),
+            ("11-12", "Thiết kế độc lập, hoàn thành báo cáo"),
         ],
-        col_widths=[1.5, 5.5, 9.0]
+        col_widths=[3.0, 13.0]
     )
 
-    # 1.2 Các công việc được giao
-    add_section_title(doc, "1.2. Các công việc được giao")
+    # 2.3 Các công việc đã thực hiện
+    add_section_title(doc, "2.3. Các công việc đã thực hiện")
 
-    add_subsection_title(doc, "1.2.1. Tổng quan công việc")
-
-    add_paragraph_text(doc,
-        "Trong quá trình thực tập với vai trò Kỹ sư lập trình (Software Engineer), "
-        "sinh viên được giao các công việc thiết kế hệ thống dựa trên tài liệu đầu vào "
-        "từ hệ thống cũ và yêu cầu nghiệp vụ.")
-
-    add_table_with_caption(doc,
-        "Bảng 1.2. Các loại thiết kế được giao",
-        ["STT", "Loại thiết kế", "Mô tả"],
-        [
-            ("1", "Thiết kế cơ sở dữ liệu", "Thiết kế cấu trúc bảng, quan hệ, index"),
-            ("2", "Thiết kế màn hình", "Thiết kế giao diện, bố cục, luồng điều hướng"),
-            ("3", "Thiết kế API", "Thiết kế các endpoint RESTful API"),
-            ("4", "Thiết kế Batch", "Thiết kế các chương trình xử lý hàng loạt"),
-        ],
-        col_widths=[1.5, 5.5, 9.0]
-    )
-
-    add_subsection_title(doc, "1.2.2. Quy trình công việc")
-
-    add_paragraph_text(doc, "Công việc được thực hiện theo quy trình 10 bước:")
-
-    add_numbered_list(doc, [
-        "Tiếp nhận tài liệu đầu vào (tài liệu hệ thống cũ, nghiệp vụ)",
-        "Phân tích và hiểu yêu cầu",
-        "Tạo QA cho những vấn đề cần xác nhận",
-        "Thực hiện thiết kế theo template chuẩn",
-        "Kiểm tra bằng AI Checker trước khi gửi review",
-        "Gửi review cho Leader",
-        "Nhận và xử lý phản hồi (shiteki)",
-        "Kiểm tra lại bằng AI Checker sau khi sửa shiteki",
-        "Gửi review cho khách hàng và end-user",
-        "Hoàn thiện và delivery"
-    ])
-
-    add_subsection_title(doc, "1.2.3. Quy trình trao đổi với khách hàng (QA Process)")
+    add_subsection_title(doc, "2.3.1. Thiết kế cơ sở dữ liệu")
 
     add_paragraph_text(doc,
-        "Đặc trưng của phát triển phần mềm offshore là cần trao đổi nhiều với khách hàng "
-        "để làm rõ yêu cầu. Khi đọc tài liệu đầu vào, nếu gặp những vấn đề không rõ hoặc "
-        "cần xác nhận, cần tạo QA (Question & Answer).")
-
-    add_sub_subsection_title(doc, "a) Đối tượng QA")
-    add_bullet_list(doc, [
-        "Leader: Những vấn đề về quy trình, cách làm, template",
-        "Khách hàng: Những vấn đề về nghiệp vụ, yêu cầu chức năng"
-    ])
-
-    add_sub_subsection_title(doc, "b) Quy trình tạo QA")
-    add_numbered_list(doc, [
-        "Viết QA bằng tiếng Việt trên ticket Redmine",
-        "BrSE (Bridge Software Engineer) convert sang tiếng Nhật",
-        "Gửi cho khách hàng duyệt",
-        "Nhận câu trả lời và áp dụng vào thiết kế"
-    ])
-
-
-def add_content2(doc):
-    """NỘI DUNG 2: Quy trình và phương pháp thiết kế hệ thống"""
-    add_chapter_title(doc, "NỘI DUNG 2\nQUY TRÌNH VÀ PHƯƠNG PHÁP THIẾT KẾ HỆ THỐNG")
-
-    # 2.1 Quy trình thiết kế tổng quan
-    add_section_title(doc, "2.1. Quy trình thiết kế tổng quan")
+        "Trong quá trình thực tập, sinh viên được giao nhiệm vụ thiết kế cơ sở dữ liệu "
+        "cho các module của hệ thống. Công việc bắt đầu với việc nghiên cứu cấu trúc "
+        "database hiện có bao gồm: Entity Info (thông tin cơ bản về entity như tên logic, "
+        "tên vật lý, hệ thống), Column Info (chi tiết các cột bao gồm tên logic, tên vật lý, "
+        "kiểu dữ liệu, ràng buộc), và Index Info (thông tin về Primary Key, Foreign Key, các index).")
 
     add_paragraph_text(doc,
-        "Quy trình thiết kế hệ thống tại công ty tuân theo mô hình chuyên nghiệp với "
-        "nhiều vòng review và kiểm tra chất lượng. Đặc biệt, việc ứng dụng AI Checker "
-        "giúp tự động phát hiện lỗi trước khi gửi review cho leader.")
-
-    add_figure_placeholder(doc, "Hình 2.1. Quy trình thiết kế hệ thống (có AI Check)")
-
-    # 2.2 Thiết kế cơ sở dữ liệu
-    add_section_title(doc, "2.2. Thiết kế cơ sở dữ liệu")
-
-    add_subsection_title(doc, "2.2.1. Kiến thức về Oracle Database")
-
-    add_paragraph_text(doc,
-        "Trong quá trình thiết kế database, sinh viên làm việc với Oracle Database "
-        "và học được các kiến thức quan trọng sau:")
+        "Các kiến thức về Oracle Database được áp dụng trong quá trình thiết kế bao gồm:")
 
     add_bullet_list(doc, [
         "Kiểu dữ liệu: CHAR, VARCHAR2, NUMBER, DATE, CLOB, BLOB, JSON",
         "Constraints: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE, CHECK",
         "Index: B-tree index, Bitmap index, Function-based index",
-        "Naming convention: Quy tắc đặt tên chuẩn cho table, column, index"
+        "Naming convention: Quy tắc đặt tên chuẩn cho table, column, index",
     ])
 
-    add_subsection_title(doc, "2.2.2. Cấu trúc định nghĩa bảng")
+    add_paragraph_text(doc,
+        "Sinh viên học được cách định nghĩa bảng theo chuẩn với các thành phần: "
+        "tên vật lý (sử dụng PascalCase hoặc snake_case), kiểu dữ liệu theo chuẩn Oracle, "
+        "các ràng buộc (NOT NULL, UNIQUE, DEFAULT), và Primary Key (định danh duy nhất).")
 
-    add_paragraph_text(doc, "Một định nghĩa bảng tiêu chuẩn bao gồm:")
-
-    add_bullet_list(doc, [
-        "Entity Info: Tên logic, tên vật lý, hệ thống",
-        "Column Info: Chi tiết các cột (tên, kiểu dữ liệu, ràng buộc)",
-        "Index Info: Primary Key, Foreign Key, các index"
-    ])
-
-    # 2.3 Thiết kế màn hình
-    add_section_title(doc, "2.3. Thiết kế màn hình")
-
-    add_subsection_title(doc, "2.3.1. Tổng quan")
+    add_subsection_title(doc, "2.3.2. Thiết kế màn hình")
 
     add_paragraph_text(doc,
         "Thiết kế màn hình là quá trình xác định giao diện người dùng, bao gồm bố cục, "
         "các thành phần tương tác và luồng xử lý. Đây là loại thiết kế phức tạp nhất "
         "vì cần tham chiếu đến nhiều tài liệu liên quan.")
 
-    add_subsection_title(doc, "2.3.2. Các tài liệu tham chiếu")
+    add_paragraph_text(doc, "Các thành phần chính trong thiết kế màn hình bao gồm:")
 
-    add_table_with_caption(doc,
-        "Bảng 2.1. Các tài liệu tham chiếu khi thiết kế màn hình",
-        ["STT", "Tài liệu", "Mục đích sử dụng"],
-        [
-            ("1", "File di chuyển màn hình", "Xác định điểm đến khi click button"),
-            ("2", "File message", "Hiển thị thông báo lỗi, cảnh báo"),
-            ("3", "File validate đơn lẻ", "Validate format, độ dài, kiểu dữ liệu"),
-            ("4", "File validate tương quan", "Validate logic phụ thuộc lẫn nhau"),
-            ("5", "Thiết kế API", "Mapping dữ liệu màn hình với API"),
-            ("6", "Thiết kế DB", "Hiểu cấu trúc dữ liệu"),
-        ],
-        col_widths=[1.5, 5.5, 9.0]
-    )
-
-    add_subsection_title(doc, "2.3.3. Validation trong thiết kế màn hình")
-
-    add_sub_subsection_title(doc, "a) Validate đơn lẻ (Single field validation)")
     add_bullet_list(doc, [
-        "Bắt buộc nhập (required)",
-        "Độ dài tối đa/tối thiểu",
-        "Format (email, phone, date)",
-        "Kiểu dữ liệu (số, chữ, alphanumeric)"
+        "Layout: Bố cục tổng thể của màn hình",
+        "Items: Định nghĩa từng phần tử trên màn hình (ID, tên, loại, I/O, bắt buộc)",
+        "Validation: Quy tắc kiểm tra dữ liệu nhập (đơn lẻ và tương quan)",
+        "Messages: Các thông báo hiển thị cho người dùng",
+        "Item Control: Điều khiển trạng thái các phần tử (hiển thị/ẩn, enable/disable)",
     ])
 
-    add_sub_subsection_title(doc, "b) Validate tương quan (Cross-field validation)")
-    add_bullet_list(doc, [
-        "Ngày kết thúc phải sau ngày bắt đầu",
-        "Mật khẩu xác nhận phải khớp với mật khẩu",
-        "Tổng các giá trị không vượt quá 100%"
-    ])
+    add_paragraph_text(doc,
+        "Validation được chia thành hai loại: Validate đơn lẻ (kiểm tra từng trường độc lập "
+        "như bắt buộc nhập, độ dài, format, kiểu dữ liệu) và Validate tương quan (kiểm tra "
+        "logic phụ thuộc giữa các trường như ngày kết thúc phải sau ngày bắt đầu).")
 
-    # 2.4 Thiết kế API
-    add_section_title(doc, "2.4. Thiết kế API RESTful")
-
-    add_subsection_title(doc, "2.4.1. Tổng quan")
+    add_subsection_title(doc, "2.3.3. Thiết kế API RESTful")
 
     add_paragraph_text(doc,
         "Thiết kế API là quá trình định nghĩa các endpoint để frontend và các hệ thống "
-        "khác giao tiếp với backend. API trong dự án tuân theo kiến trúc RESTful.")
+        "khác giao tiếp với backend. API trong dự án tuân theo kiến trúc RESTful với "
+        "các nguyên tắc: Resource-based URL, sử dụng HTTP Methods chuẩn, Status Codes "
+        "rõ ràng, và Content-Type là application/json.")
 
-    add_subsection_title(doc, "2.4.2. Các tài liệu tham chiếu")
+    add_paragraph_text(doc, "Cấu trúc thiết kế API bao gồm các thành phần:")
 
-    add_table_with_caption(doc,
-        "Bảng 2.2. Các tài liệu tham chiếu khi thiết kế API",
-        ["STT", "Tài liệu", "Mục đích sử dụng"],
-        [
-            ("1", "Thiết kế DB", "Viết SQL, mapping dữ liệu"),
-            ("2", "File message", "Định nghĩa error response"),
-            ("3", "File HTTP Status Code", "Xác định response status"),
-            ("4", "File validate", "Validate request parameters"),
-        ],
-        col_widths=[1.5, 5.5, 9.0]
-    )
+    add_bullet_list(doc, [
+        "API ID: Mã định danh duy nhất cho mỗi API",
+        "HTTP Method: GET (đọc), POST (tạo), PUT (cập nhật toàn bộ), PATCH (cập nhật một phần), DELETE (xóa)",
+        "Endpoint: URL path của API",
+        "Request Parameters và Request Body: Các tham số đầu vào",
+        "Response: Định dạng phản hồi với status, data, message",
+        "Error Handling: Xử lý các trường hợp lỗi với status code phù hợp",
+    ])
 
-    add_subsection_title(doc, "2.4.3. HTTP Methods")
-
-    add_table_with_caption(doc,
-        "Bảng 2.3. HTTP Methods trong RESTful API",
-        ["Method", "CRUD", "Mô tả"],
-        [
-            ("GET", "Read", "Lấy dữ liệu"),
-            ("POST", "Create", "Tạo mới"),
-            ("PUT", "Update", "Cập nhật toàn bộ"),
-            ("PATCH", "Update", "Cập nhật một phần"),
-            ("DELETE", "Delete", "Xóa"),
-        ],
-        col_widths=[4.0, 4.0, 8.0]
-    )
-
-    # 2.5 Thiết kế Batch
-    add_section_title(doc, "2.5. Thiết kế Batch Processing")
+    add_subsection_title(doc, "2.3.4. Thiết kế Batch Processing")
 
     add_paragraph_text(doc,
-        "Batch processing là phương pháp xử lý khối lượng lớn dữ liệu theo lịch trình "
-        "định sẵn, không cần tương tác người dùng.")
+        "Batch processing (xử lý hàng loạt) là phương pháp xử lý khối lượng lớn dữ liệu "
+        "theo lịch trình định sẵn, không cần tương tác người dùng. Công việc thiết kế batch "
+        "áp dụng kiến trúc Spring Batch với các thành phần: Job (đơn vị công việc cao nhất), "
+        "Step (các bước trong một Job), ItemReader, ItemProcessor, và ItemWriter.")
 
-    add_table_with_caption(doc,
-        "Bảng 2.4. Cấu trúc thiết kế Batch",
-        ["STT", "Thành phần", "Mô tả"],
-        [
-            ("1", "Tổng quan chức năng", "Mục đích, đối tượng batch"),
-            ("2", "Shell Script", "Tham số đầu vào, mã kết thúc"),
-            ("3", "Xử lý Java", "Logic xử lý chính"),
-            ("4", "Yêu cầu tìm kiếm", "Các câu SQL SELECT"),
-            ("5", "Yêu cầu cập nhật", "SQL INSERT/UPDATE/DELETE"),
-        ],
-        col_widths=[1.5, 5.5, 9.0]
-    )
+    add_paragraph_text(doc, "Một thiết kế batch tiêu chuẩn bao gồm các phần:")
 
-    add_figure_placeholder(doc, "Hình 2.2. Kiến trúc xử lý Chunk trong Spring Batch")
+    add_bullet_list(doc, [
+        "Tổng quan chức năng: Mục đích, đối tượng batch, cách khởi động",
+        "Shell Script: Định nghĩa tham số đầu vào, mã kết thúc",
+        "Xử lý Java: Logic xử lý chính với 5 block cơ bản (Chuẩn bị, Khởi tạo, Kiểm tra, Xử lý chính, Kết thúc)",
+        "Yêu cầu tìm kiếm: Các câu SQL SELECT",
+        "Yêu cầu cập nhật: Các câu SQL INSERT/UPDATE/DELETE",
+    ])
 
-    # 2.6 AI Checker
-    add_section_title(doc, "2.6. Ứng dụng AI trong kiểm tra chất lượng")
-
-    add_subsection_title(doc, "2.6.1. Giới thiệu hệ thống AI Checker")
+    add_subsection_title(doc, "2.3.5. Quy trình xử lý Review (Shiteki)")
 
     add_paragraph_text(doc,
-        "Trong quá trình thực tập, sinh viên được tham gia xây dựng và sử dụng hệ thống "
-        "kiểm tra chất lượng thiết kế tự động bằng AI (Claude AI). Hệ thống này được "
-        "thiết kế theo kiến trúc multi-level.")
+        "Sau khi hoàn thành thiết kế, sản phẩm được đưa qua quy trình review nhiều cấp: "
+        "Leader Review → Customer Review → End-user Review. Mỗi cấp review sẽ đưa ra "
+        "các phản hồi (shiteki) cần được xử lý trước khi chuyển sang cấp tiếp theo.")
+
+    add_paragraph_text(doc, "Các loại shiteki thường gặp và cách xử lý:")
+
+    add_bullet_list(doc, [
+        "Lỗi chính tả (sai tên bảng, cột, API): Kiểm tra lại tài liệu tham khảo",
+        "Lỗi logic (sai điều kiện, thiếu trường hợp): Phân tích lại nghiệp vụ",
+        "Thiếu thông tin (thiếu validation, message): Bổ sung theo yêu cầu",
+        "Không nhất quán (khác biệt giữa các phần): Đồng bộ toàn bộ thiết kế",
+    ])
+
+    # 2.4 Công nghệ, công cụ và kỹ thuật sử dụng
+    add_section_title(doc, "2.4. Công nghệ, công cụ và kỹ thuật sử dụng")
 
     add_table_with_caption(doc,
-        "Bảng 2.5. Hệ thống AI Checker theo cấp độ",
-        ["Level", "Tên", "Mục đích kiểm tra"],
+        "Bảng 2.2. Công nghệ và công cụ sử dụng",
+        ["Loại", "Tên", "Mục đích"],
         [
-            ("Level 1", "API-DB Checker", "Tính nhất quán giữa API và DB"),
-            ("Level 2", "Screen-API Checker", "Tính nhất quán giữa Screen và API"),
-            ("Level 3", "Text Quality", "Chất lượng văn bản, ngôn ngữ"),
-            ("Level ALL", "Master Orchestrator", "Chạy tất cả Level song song"),
+            ("Ngôn ngữ", "Java, SQL", "Lập trình backend, truy vấn CSDL"),
+            ("Framework", "Spring Boot, Spring Batch", "Phát triển ứng dụng"),
+            ("CSDL", "Oracle Database", "Lưu trữ dữ liệu"),
+            ("IDE", "IntelliJ IDEA, VS Code", "Viết code"),
+            ("Quản lý mã nguồn", "Git, GitHub", "Version control"),
+            ("AI Tools", "Claude AI", "Kiểm tra chất lượng thiết kế"),
         ],
-        col_widths=[3.0, 5.0, 8.0]
+        col_widths=[4.0, 5.0, 7.0]
     )
 
-    add_subsection_title(doc, "2.6.2. Tiêu chí kiểm tra Level 1 (API-DB)")
 
-    add_table_with_caption(doc,
-        "Bảng 2.6. Tiêu chí kiểm tra Level 1 (API-DB)",
-        ["#", "Tiêu chí", "Mô tả"],
-        [
-            ("1", "Kiểu dữ liệu & Độ dài", "So sánh type, length của API và DB"),
-            ("2", "result.count", "API danh sách phải có result.count"),
-            ("3", "Chất lượng văn bản", "Ngữ pháp đúng, văn phong"),
-            ("4", "Không có tiếng Việt", "Loại bỏ tiếng Việt còn sót"),
-            ("5", "Common columns", "Các cột chung phải có đủ"),
-            ("6", "Foreign Key rules", "Quy tắc biểu thị FK đúng chuẩn"),
-        ],
-        col_widths=[1.5, 5.5, 9.0]
-    )
+# ============== CHƯƠNG 3: KẾT QUẢ VÀ ĐÁNH GIÁ ==============
+def add_chapter3(doc):
+    """Chương 3: Kết quả và đánh giá"""
+    add_chapter_title(doc, "3", "KẾT QUẢ VÀ ĐÁNH GIÁ")
 
-    add_figure_placeholder(doc, "Hình 2.3. Quy trình sử dụng AI trong kiểm tra chất lượng")
-
-
-def add_content3(doc):
-    """NỘI DUNG 3: Kết quả và kiến thức thu được"""
-    add_chapter_title(doc, "NỘI DUNG 3\nKẾT QUẢ VÀ KIẾN THỨC THU ĐƯỢC")
-
-    # 3.1 Kết quả công việc
-    add_section_title(doc, "3.1. Kết quả công việc")
-
-    add_subsection_title(doc, "3.1.1. Sản phẩm đầu ra")
+    # 3.1 Kết quả đạt được
+    add_section_title(doc, "3.1. Kết quả đạt được trong quá trình thực tập")
 
     add_paragraph_text(doc,
-        "Các thiết kế được hoàn thành đạt tiêu chuẩn của doanh nghiệp và khách hàng, "
-        "bao gồm thiết kế cơ sở dữ liệu, thiết kế màn hình, thiết kế API và thiết kế Batch.")
+        "Các thiết kế được hoàn thành đạt tiêu chuẩn của doanh nghiệp và khách hàng:")
 
-    add_subsection_title(doc, "3.1.2. Cải thiện nhờ AI Checker")
+    add_bullet_list(doc, [
+        "Hoàn thành thiết kế cơ sở dữ liệu cho các module được giao",
+        "Hoàn thành thiết kế màn hình theo yêu cầu",
+        "Hoàn thành thiết kế API RESTful",
+        "Tham gia sử dụng và cải tiến hệ thống AI Checker",
+    ])
+
+    # 3.2 Kiến thức và kỹ năng tích lũy được
+    add_section_title(doc, "3.2. Kiến thức và kỹ năng tích lũy được")
+
+    add_subsection_title(doc, "3.2.1. Kiến thức chuyên môn")
+
+    add_bullet_list(doc, [
+        "Nắm vững quy trình thiết kế hệ thống phần mềm chuyên nghiệp",
+        "Hiểu sâu về thiết kế cơ sở dữ liệu với Oracle",
+        "Biết cách thiết kế API RESTful theo chuẩn",
+        "Hiểu về kiến trúc hệ thống nhiều lớp",
+    ])
+
+    add_subsection_title(doc, "3.2.2. Kỹ năng làm việc nhóm")
+
+    add_bullet_list(doc, [
+        "Kỹ năng giao tiếp và trao đổi với team member",
+        "Kỹ năng review code và thiết kế",
+        "Kỹ năng làm việc với khách hàng nước ngoài (thông qua BrSE)",
+    ])
+
+    add_subsection_title(doc, "3.2.3. Kỹ năng phân tích, giải quyết vấn đề")
+
+    add_bullet_list(doc, [
+        "Kỹ năng đọc hiểu và phân tích yêu cầu nghiệp vụ",
+        "Kỹ năng viết QA để xác nhận yêu cầu",
+        "Kỹ năng sử dụng AI hỗ trợ công việc",
+    ])
+
+    # 3.3 Thuận lợi và khó khăn
+    add_section_title(doc, "3.3. Thuận lợi và khó khăn")
+
+    add_subsection_title(doc, "3.3.1. Thuận lợi")
+
+    add_bullet_list(doc, [
+        "Được hướng dẫn tận tình từ mentor tại công ty",
+        "Môi trường làm việc chuyên nghiệp, thân thiện",
+        "Có cơ hội tiếp cận công nghệ và quy trình mới",
+    ])
+
+    add_subsection_title(doc, "3.3.2. Khó khăn")
+
+    add_bullet_list(doc, [
+        "Ban đầu còn bỡ ngỡ với quy trình làm việc doanh nghiệp",
+        "Cần thời gian để làm quen với các tài liệu kỹ thuật",
+        "Kiến thức tiếng Nhật còn hạn chế trong giao tiếp",
+    ])
+
+
+# ============== CHƯƠNG 4: NHẬN XÉT VÀ ĐỊNH HƯỚNG ==============
+def add_chapter4(doc):
+    """Chương 4: Nhận xét và định hướng"""
+    add_chapter_title(doc, "4", "NHẬN XÉT VÀ ĐỊNH HƯỚNG")
+
+    # 4.1 Nhận xét chung về đợt thực tập
+    add_section_title(doc, "4.1. Nhận xét chung về đợt thực tập")
 
     add_paragraph_text(doc,
-        "Việc sử dụng AI Checker đã giúp cải thiện đáng kể chất lượng thiết kế:")
-
-    add_bullet_list(doc, [
-        "Phát hiện 60-70% lỗi trước khi gửi leader",
-        "Giảm số vòng review từ 3-4 xuống còn 1-2",
-        "Tiết kiệm thời gian tổng thể cho cả team"
-    ])
-
-    # 3.2 Kiến thức chuyên môn
-    add_section_title(doc, "3.2. Kiến thức chuyên môn thu được")
-
-    add_table_with_caption(doc,
-        "Bảng 3.1. Kỹ năng trước và sau thực tập",
-        ["Kỹ năng", "Trước thực tập", "Sau thực tập"],
-        [
-            ("Thiết kế DB", "Cơ bản", "Có thể thiết kế phức tạp"),
-            ("SQL", "SELECT đơn giản", "JOIN, Subquery"),
-            ("API Design", "Chưa có kinh nghiệm", "Hiểu RESTful principles"),
-            ("Batch Design", "Không biết", "Nắm được quy trình"),
-            ("Viết QA", "Không biết", "Xác định và viết QA rõ ràng"),
-            ("AI Tools", "Không biết", "Sử dụng thành thạo"),
-        ],
-        col_widths=[4.0, 5.5, 6.5]
-    )
-
-    add_subsection_title(doc, "3.2.1. Thiết kế cơ sở dữ liệu")
-    add_bullet_list(doc, [
-        "Nắm vững cách thiết kế schema database với Oracle",
-        "Hiểu các kiểu dữ liệu và cách sử dụng phù hợp",
-        "Biết cách định nghĩa constraints và indexes"
-    ])
-
-    add_subsection_title(doc, "3.2.2. Thiết kế màn hình")
-    add_bullet_list(doc, [
-        "Hiểu cách thiết kế giao diện người dùng theo chuẩn",
-        "Nắm được quy trình tham chiếu các tài liệu liên quan",
-        "Biết cách định nghĩa validation đơn lẻ và tương quan"
-    ])
-
-    add_subsection_title(doc, "3.2.3. Thiết kế API")
-    add_bullet_list(doc, [
-        "Hiểu quy trình thiết kế API RESTful",
-        "Biết cách sử dụng HTTP methods và status codes",
-        "Hiểu về validation và error handling"
-    ])
-
-    add_subsection_title(doc, "3.2.4. Ứng dụng AI trong công việc")
-    add_bullet_list(doc, [
-        "Hiểu cách tích hợp AI vào quy trình làm việc",
-        "Biết cách viết prompt hiệu quả cho AI",
-        "Nắm được khả năng và giới hạn của AI trong QA"
-    ])
-
-    # 3.3 Kiến thức mềm
-    add_section_title(doc, "3.3. Kiến thức mềm thu được")
-
-    add_bullet_list(doc, [
-        "Kỹ năng đọc hiểu tài liệu kỹ thuật",
-        "Làm việc độc lập và có trách nhiệm",
-        "Quản lý thời gian và ưu tiên công việc",
-        "Hiểu mô hình offshore development",
-        "Biết quy trình làm việc với khách hàng nước ngoài"
-    ])
-
-    add_figure_placeholder(doc, "Hình 3.1. Kiến trúc hệ thống nhiều lớp")
-
-
-def add_conclusion(doc):
-    """KẾT LUẬN"""
-    add_chapter_title(doc, "KẾT LUẬN")
-
-    add_section_title(doc, "1. Tổng kết quá trình thực tập")
+        "Qua quá trình thực tập tại công ty, sinh viên đã có cơ hội được tiếp cận "
+        "với môi trường làm việc chuyên nghiệp, học hỏi quy trình phát triển phần mềm "
+        "theo chuẩn quốc tế và tích lũy được nhiều kiến thức, kỹ năng quý báu.")
 
     add_paragraph_text(doc,
-        "Qua quá trình thực tập tại SY PARTNERS., JSC, sinh viên đã hoàn thành các "
-        "mục tiêu đề ra và thu được nhiều kiến thức, kinh nghiệm quý báu.")
+        "Đợt thực tập đã giúp sinh viên hiểu rõ hơn về vai trò của Software Engineer "
+        "trong quy trình phát triển phần mềm và chuẩn bị tốt hơn cho công việc sau khi tốt nghiệp.")
+
+    # 4.2 Bài học kinh nghiệm rút ra
+    add_section_title(doc, "4.2. Bài học kinh nghiệm rút ra")
 
     add_bullet_list(doc, [
-        "Hoàn thành các công việc thiết kế hệ thống theo yêu cầu",
-        "Nắm vững quy trình thiết kế hệ thống chuyên nghiệp",
-        "Tham gia xây dựng và sử dụng hệ thống AI Checker",
-        "Tích lũy kiến thức và kinh nghiệm cho đồ án tốt nghiệp"
+        "Cần chủ động trong việc học hỏi và đặt câu hỏi khi gặp khó khăn",
+        "Tầm quan trọng của việc đọc kỹ tài liệu trước khi thực hiện",
+        "Cần kiểm tra kỹ lưỡng trước khi gửi sản phẩm review",
+        "Kỹ năng mềm quan trọng không kém kỹ năng chuyên môn",
     ])
 
-    add_section_title(doc, "2. Những đóng góp của đề tài")
+    # 4.3 Định hướng nghề nghiệp và học tập sau thực tập
+    add_section_title(doc, "4.3. Định hướng nghề nghiệp và học tập sau thực tập")
+
+    add_paragraph_text(doc,
+        "Sau đợt thực tập, sinh viên định hướng tiếp tục phát triển theo hướng "
+        "Software Engineer, đặc biệt là trong lĩnh vực thiết kế và phát triển hệ thống.")
+
+    add_paragraph_text(doc, "Các mục tiêu cụ thể:")
 
     add_bullet_list(doc, [
-        "Kinh nghiệm thiết kế hệ thống theo chuẩn công nghiệp",
-        "Hiểu biết về quy trình phát triển phần mềm offshore",
-        "Kinh nghiệm ứng dụng AI trong quy trình QA",
-        "Nền tảng vững chắc cho đồ án tốt nghiệp"
+        "Hoàn thành tốt đồ án tốt nghiệp với kiến thức tích lũy được",
+        "Tiếp tục học hỏi và nâng cao kỹ năng lập trình",
+        "Tìm hiểu sâu hơn về AI và ứng dụng trong phát triển phần mềm",
+        "Cải thiện kỹ năng ngoại ngữ (tiếng Anh, tiếng Nhật)",
     ])
 
 
+# ============== TÀI LIỆU THAM KHẢO ==============
 def add_references(doc):
-    """TÀI LIỆU THAM KHẢO"""
-    add_chapter_title(doc, "TÀI LIỆU THAM KHẢO")
+    """Tài liệu tham khảo (IEEE format)"""
+    doc.add_page_break()
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("TÀI LIỆU THAM KHẢO")
+    set_font(run, Pt(14), bold=True)
 
     references = [
-        "[1] Oracle (2024). Oracle Database Documentation, <https://docs.oracle.com/en/database/>, truy cập 01/2026.",
-        "[2] VMware (2024). Spring Batch Reference Documentation, <https://docs.spring.io/spring-batch/>, truy cập 01/2026.",
-        "[3] RESTfulAPI.net (2024). RESTful API Design Guidelines, <https://restfulapi.net/>, truy cập 01/2026.",
-        "[4] Anthropic (2024). Claude Documentation, <https://docs.anthropic.com/>, truy cập 01/2026.",
-        "[5] Tài liệu nội bộ công ty SY PARTNERS., JSC (không công khai)."
+        "[1] Oracle Corporation, \"Oracle Database Documentation,\" 2024. [Online]. Available: https://docs.oracle.com/en/database/. [Accessed: Jan. 2026].",
+        "[2] VMware, \"Spring Batch Reference Documentation,\" 2024. [Online]. Available: https://docs.spring.io/spring-batch/. [Accessed: Jan. 2026].",
+        "[3] RESTfulAPI.net, \"RESTful API Design Guidelines,\" 2024. [Online]. Available: https://restfulapi.net/. [Accessed: Jan. 2026].",
+        "[4] Anthropic, \"Claude Documentation,\" 2024. [Online]. Available: https://docs.anthropic.com/. [Accessed: Jan. 2026].",
+        "[5] Tài liệu nội bộ công ty SY PARTNERS., JSC (không công khai).",
     ]
 
     for ref in references:
@@ -1022,91 +1101,55 @@ def add_references(doc):
         set_font(run, FONT_SIZE_NORMAL)
 
 
+# ============== PHỤ LỤC ==============
 def add_appendix(doc):
-    """PHỤ LỤC"""
-    add_chapter_title(doc, "PHỤ LỤC")
-
-    add_section_title(doc, "Phụ lục A: Giấy xác nhận kết quả thực tập")
+    """Phụ lục"""
+    doc.add_page_break()
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("[Đính kèm giấy xác nhận từ doanh nghiệp]")
+    p.paragraph_format.space_after = Pt(18)
+    run = p.add_run("PHỤ LỤC")
+    set_font(run, Pt(14), bold=True)
+
+    # Phụ lục A: Nhật ký thực tập
+    add_section_title(doc, "Phụ lục A: Nhật ký thực tập")
+
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("[Đính kèm nhật ký thực tập chi tiết]")
     run.italic = True
     run.font.name = FONT_NAME
     run.font.size = FONT_SIZE_NORMAL
     run.font.color.rgb = RGBColor(128, 128, 128)
 
-    add_section_title(doc, "Phụ lục B: Nhật ký thực tập")
-
-    diary = [
-        ("Tuần 1", "Làm quen môi trường, tìm hiểu dự án SORA"),
-        ("Tuần 2", "Training thiết kế cơ sở dữ liệu"),
-        ("Tuần 3-4", "Thực hành thiết kế DB, nhận shiteki đầu tiên"),
-        ("Tuần 5-6", "Training thiết kế màn hình"),
-        ("Tuần 7-8", "Training thiết kế API RESTful"),
-        ("Tuần 9-10", "Giới thiệu AI Checker, training thiết kế Batch"),
-        ("Tuần 11-12", "Đóng góp cải tiến AI Checker, thiết kế độc lập"),
-        ("Tuần cuối", "Hoàn thành thiết kế, tổng kết, viết báo cáo"),
-    ]
-
-    # Tạo bảng
-    table = doc.add_table(rows=1, cols=2)
-    table.style = 'Table Grid'
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
-
-    headers = ["Thời gian", "Nội dung chính"]
-    header_cells = table.rows[0].cells
-    for i, header in enumerate(headers):
-        header_cells[i].text = header
-        for paragraph in header_cells[i].paragraphs:
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            for run in paragraph.runs:
-                set_font(run, FONT_SIZE_TABLE, bold=True)
-        set_cell_shading(header_cells[i], 'D9E2F3')
-
-    for time, content in diary:
-        row = table.add_row()
-        row.cells[0].text = time
-        row.cells[1].text = content
-        for cell in row.cells:
-            for paragraph in cell.paragraphs:
-                for run in paragraph.runs:
-                    set_font(run, FONT_SIZE_TABLE)
-
-    # Chữ ký
-    doc.add_paragraph()
-    doc.add_paragraph()
+    # Phụ lục B: Hình ảnh, tài liệu minh chứng
+    add_section_title(doc, "Phụ lục B: Hình ảnh, tài liệu minh chứng")
 
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    run = p.add_run("Hà Nội, ngày ... tháng 01 năm 2026")
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("[Đính kèm hình ảnh minh chứng quá trình thực tập]")
     run.italic = True
-    set_font(run, FONT_SIZE_NORMAL, italic=True)
+    run.font.name = FONT_NAME
+    run.font.size = FONT_SIZE_NORMAL
+    run.font.color.rgb = RGBColor(128, 128, 128)
+
+    # Phụ lục C: Sản phẩm thực tập
+    add_section_title(doc, "Phụ lục C: Sản phẩm thực tập")
 
     p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    run = p.add_run("Sinh viên thực tập")
-    set_font(run, FONT_SIZE_NORMAL, bold=True)
-
-    doc.add_paragraph()
-    doc.add_paragraph()
-
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    run = p.add_run("[Ký tên]")
-    set_font(run, FONT_SIZE_NORMAL)
-
-    doc.add_paragraph()
-
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    run = p.add_run("[Họ và tên]")
-    set_font(run, FONT_SIZE_NORMAL)
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("[Mô tả hoặc đính kèm các sản phẩm thiết kế đã hoàn thành]")
+    run.italic = True
+    run.font.name = FONT_NAME
+    run.font.size = FONT_SIZE_NORMAL
+    run.font.color.rgb = RGBColor(128, 128, 128)
 
 
+# ============== HÀM CHÍNH ==============
 def create_report():
     """Hàm chính tạo báo cáo"""
-    print("Đang tạo báo cáo thực tập theo quy định ĐH GTVT...")
+    print("Đang tạo báo cáo thực tập theo mẫu mới...")
 
     doc = Document()
 
@@ -1114,36 +1157,56 @@ def create_report():
     set_document_margins(doc)
     setup_styles(doc)
 
-    # Trang bìa (không có số trang)
-    add_title_page(doc)
+    # 1. Trang bìa chính
+    add_cover_page(doc)
 
-    # Các phần còn lại
+    # 2. Trang bìa phụ
+    add_secondary_cover_page(doc)
+
+    # 3. Bản nhận xét của cơ sở thực tập
+    add_company_review_page(doc)
+
+    # 4. Lời cảm ơn
+    add_acknowledgment_page(doc)
+
+    # 5. Mục lục + Danh mục hình vẽ + Danh mục bảng biểu
     add_toc_page(doc)
-    add_list_of_tables(doc)
     add_list_of_figures(doc)
+    add_list_of_tables(doc)
+
+    # 6. Danh mục từ viết tắt
     add_abbreviations(doc)
 
-    # Nội dung chính
-    add_introduction(doc)
-    add_content1(doc)
-    add_content2(doc)
-    add_content3(doc)
-    add_conclusion(doc)
+    # 7. Nội dung chính - 4 chương
+    add_chapter1(doc)  # Giới thiệu chung về đơn vị thực tập
+    add_chapter2(doc)  # Nội dung thực tập
+    add_chapter3(doc)  # Kết quả và đánh giá
+    add_chapter4(doc)  # Nhận xét và định hướng
+
+    # 8. Tài liệu tham khảo
     add_references(doc)
+
+    # 9. Phụ lục
     add_appendix(doc)
 
-    # Thêm số trang ở header (phía trên)
+    # Thêm số trang
     add_page_number_header(doc)
 
     # Lưu file
-    output_path = "BAO_CAO_THUC_TAP_SORA.docx"
+    output_path = "BAO_CAO_THUC_TAP.docx"
     doc.save(output_path)
 
-    print(f"✓ Đã tạo file: {output_path}")
-    print(f"✓ Căn lề: Trái 3cm, Phải 2cm, Trên 2.5cm, Dưới 2.5cm")
-    print(f"✓ Số trang: Giữa, phía trên đầu trang")
-    print(f"✓ Chương: 18pt Bold, Mục: 16pt Bold, Tiểu mục: 14pt Bold")
-    print(f"✓ Nội dung: 13pt, giãn dòng 1.2, thụt đầu dòng 1cm")
+    print(f"Da tao file: {output_path}")
+    print(f"Cau truc bao cao theo mau moi:")
+    print(f"  1. Bia chinh (co bang thong tin SV, logo, chu CU NHAN mau vang)")
+    print(f"  2. Bia phu (them truong Don vi thuc tap)")
+    print(f"  3. Ban nhan xet cua co so thuc tap")
+    print(f"  4. Loi cam on")
+    print(f"  5. Muc luc + Danh muc hinh ve + Danh muc bang bieu")
+    print(f"  6. Danh muc tu viet tat")
+    print(f"  7. 4 Chuong noi dung chinh")
+    print(f"  8. Tai lieu tham khao (IEEE)")
+    print(f"  9. Phu luc")
 
     return output_path
 

@@ -152,3 +152,10 @@ hãy sửa lại script cho khớp với file docx, bổ sung vào claude skill 
 
 sửa lại cho cả BAO_CAO_THUC_TAP
 sửa tên script ứng với tên báo cáo luôn
+
+thầy tôi vừa gửi lại hướng dẫn trình bày báo cáo thực tập tốt nghiệp, hãy đọc word-report/Huong dan trinh bay bao cao TTTN.pdf và thực hiện tạo lại word báo cáo thực tập tốt nghiệp theo mẫu này
+
+hãy lưu thông tin cá nhân của tôi vào claude skill:
+Tên: Nguyễn Văn Kiệt, Mã sinh viên: 221230890, Lớp: CNTT1-K63, chuyên ngành: công nghệ thông tin, khoa: công nghệ thông tin, hệ: cử nhân
+
+2.3. Các công việc đã thực hiện => mô tả vẫn sơ sài, chưa đầy đủ nội dung
