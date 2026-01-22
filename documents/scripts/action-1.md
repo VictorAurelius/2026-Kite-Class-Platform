@@ -170,3 +170,5 @@ hãy cập nhật claude skill khi tạo báo cáo word:
 => vẫn còn lỗi: các heading chưa đảm bảo được font và font size, thực hiện tạo font, font size cho từng loại heading trước, sau đó mới thực hiện đánh heading
 
 vẫn chưa thành công: font vẫn là Calibri (Headings), heading còn có font color bị chuyển thành màu xanh
+
+thầy tôi yêu cầu làm cả đề cương đồ án tốt nghiệp nữa, hãy đọc word-report/Mau-Decuong DATN-Cử nhân.pdf, dựa trên context ý tưởng đồ án hiện tại, thực hiện tạo đề cương theo mẫu
