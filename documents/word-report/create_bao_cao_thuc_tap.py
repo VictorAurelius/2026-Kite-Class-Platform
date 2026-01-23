@@ -959,7 +959,7 @@ def add_list_of_tables(doc):
 
 
 def add_abbreviations(doc):
-    """Thêm Danh mục từ viết tắt"""
+    """Thêm Danh mục từ viết tắt - 3 cột theo mẫu tham khảo"""
     doc.add_page_break()
 
     p = doc.add_paragraph()
@@ -968,33 +968,45 @@ def add_abbreviations(doc):
     run = p.add_run("DANH MỤC TỪ VIẾT TẮT")
     set_font(run, Pt(14), bold=True)
 
+    # 3 cột: Từ viết tắt | Diễn giải | Ghi chú trong báo cáo
     abbreviations = [
-        ("AI", "Artificial Intelligence - Trí tuệ nhân tạo"),
-        ("API", "Application Programming Interface - Giao diện lập trình ứng dụng"),
-        ("CSDL", "Cơ sở dữ liệu"),
-        ("IDE", "Integrated Development Environment - Môi trường phát triển tích hợp"),
+        ("AI", "Artificial Intelligence", "Trí tuệ nhân tạo, công cụ hỗ trợ kiểm tra thiết kế"),
+        ("API", "Application Programming Interface", "Giao diện lập trình ứng dụng"),
+        ("CSDL", "Cơ sở dữ liệu", "Database, nơi lưu trữ dữ liệu hệ thống"),
+        ("DB", "Database", "Cơ sở dữ liệu Oracle"),
+        ("IDE", "Integrated Development Environment", "Môi trường phát triển tích hợp"),
+        ("RESTful", "Representational State Transfer", "Kiến trúc thiết kế API"),
+        ("Batch", "Batch Processing", "Xử lý hàng loạt theo lịch trình"),
+        ("Shiteki", "指摘 (tiếng Nhật)", "Phản hồi/góp ý từ review"),
+        ("BrSE", "Bridge System Engineer", "Kỹ sư cầu nối Việt-Nhật"),
+        ("QA", "Quality Assurance", "Đảm bảo chất lượng"),
     ]
 
-    table = doc.add_table(rows=1, cols=2)
+    table = doc.add_table(rows=1, cols=3)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-    headers = ["Từ viết tắt", "Giải thích"]
+    # Header 3 cột
+    headers = ["Từ viết tắt", "Diễn giải", "Ghi chú trong báo cáo"]
+    col_widths = [Cm(3.0), Cm(5.5), Cm(7.5)]
     header_cells = table.rows[0].cells
-    for i, header in enumerate(headers):
+    for i, (header, width) in enumerate(zip(headers, col_widths)):
         header_cells[i].text = header
+        header_cells[i].width = width
         for paragraph in header_cells[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
                 set_font(run, FONT_SIZE_TABLE, bold=True)
         set_cell_shading(header_cells[i], 'D9E2F3')
 
-    for abbr, meaning in abbreviations:
+    for abbr, meaning, note in abbreviations:
         row = table.add_row()
         row.cells[0].text = abbr
-        row.cells[0].width = Cm(3.0)
+        row.cells[0].width = col_widths[0]
         row.cells[1].text = meaning
-        row.cells[1].width = Cm(13.0)
+        row.cells[1].width = col_widths[1]
+        row.cells[2].text = note
+        row.cells[2].width = col_widths[2]
         for cell in row.cells:
             for paragraph in cell.paragraphs:
                 for run in paragraph.runs:
@@ -1313,6 +1325,33 @@ def add_chapter4(doc):
         "Cải thiện kỹ năng ngoại ngữ (tiếng Anh, tiếng Nhật)",
     ])
 
+    # 4.4 Những đóng góp của đề tài (bổ sung theo báo cáo tham khảo)
+    add_section_title(doc, "4.4. Những đóng góp của đề tài")
+
+    add_subsection_title(doc, "4.4.1. Đóng góp về mặt hệ thống")
+
+    add_bullet_list(doc, [
+        "Hoàn thành các thiết kế cơ sở dữ liệu, màn hình, API theo chuẩn doanh nghiệp",
+        "Tham gia vào quy trình thiết kế Batch Processing theo kiến trúc Spring Batch",
+        "Đóng góp vào việc cải tiến chất lượng thiết kế thông qua quy trình review nhiều cấp",
+    ])
+
+    add_subsection_title(doc, "4.4.2. Đóng góp về mặt quy trình")
+
+    add_bullet_list(doc, [
+        "Hiểu và áp dụng quy trình làm việc thực tế trong doanh nghiệp offshore",
+        "Nắm vững quy trình xử lý Shiteki (review feedback) từ nhiều cấp độ",
+        "Tích lũy kinh nghiệm sử dụng AI hỗ trợ công việc thiết kế",
+    ])
+
+    add_subsection_title(doc, "4.4.3. Đóng góp về mặt kiến thức")
+
+    add_bullet_list(doc, [
+        "Tổng hợp kiến thức về thiết kế hệ thống phần mềm theo chuẩn quốc tế",
+        "Chuẩn bị nền tảng kiến thức vững chắc cho đồ án tốt nghiệp",
+        "Tài liệu báo cáo có thể làm tham khảo cho các sinh viên khóa sau",
+    ])
+
 
 # ============== TÀI LIỆU THAM KHẢO ==============
 def add_ieee_reference(doc, ref_num, author, title, source_type, year, url=None, accessed=None):
@@ -1448,16 +1487,54 @@ def add_appendix(doc):
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
 
-    # Phụ lục A: Nhật ký thực tập
+    # Phụ lục A: Nhật ký thực tập chi tiết (theo mẫu báo cáo tham khảo)
     add_section_title(doc, "Phụ lục A: Nhật ký thực tập")
 
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("[Đính kèm nhật ký thực tập chi tiết]")
-    run.italic = True
-    run.font.name = FONT_NAME
-    run.font.size = FONT_SIZE_NORMAL
-    run.font.color.rgb = RGBColor(128, 128, 128)
+    add_paragraph_text(doc,
+        f"Thời gian thực tập: Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}",
+        first_line_indent=False)
+
+    # Bảng nhật ký thực tập theo tuần
+    diary_headers = ["Tuần", "Thời gian", "Mục tiêu tuần", "Công việc thực hiện", "Kết quả", "Ghi chú"]
+    diary_col_widths = [Cm(1.2), Cm(2.0), Cm(2.8), Cm(4.5), Cm(3.0), Cm(2.5)]
+
+    diary_data = [
+        ("1-2", "...", "Làm quen môi trường", "Tìm hiểu dự án, training thiết kế DB", "Nắm cấu trúc DB", ""),
+        ("3-4", "...", "Thiết kế CSDL", "Thực hành thiết kế bảng, index, constraints", "Hoàn thành thiết kế DB", ""),
+        ("5-6", "...", "Thiết kế màn hình", "Training và thực hành thiết kế Screen", "Hoàn thành thiết kế Screen", ""),
+        ("7-8", "...", "Thiết kế API", "Training và thực hành thiết kế RESTful API", "Hoàn thành thiết kế API", ""),
+        ("9-10", "...", "Thiết kế Batch", "Giới thiệu AI Checker, training thiết kế Batch", "Hoàn thành thiết kế Batch", ""),
+        ("11-12", "...", "Hoàn thiện", "Thiết kế độc lập, hoàn thành báo cáo", "Báo cáo hoàn chỉnh", ""),
+    ]
+
+    table = doc.add_table(rows=1, cols=len(diary_headers))
+    table.style = 'Table Grid'
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    # Header
+    header_cells = table.rows[0].cells
+    for i, (header, width) in enumerate(zip(diary_headers, diary_col_widths)):
+        header_cells[i].text = header
+        header_cells[i].width = width
+        for paragraph in header_cells[i].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for run in paragraph.runs:
+                set_font(run, Pt(11), bold=True)
+        set_cell_shading(header_cells[i], 'D9E2F3')
+
+    # Data rows
+    for row_data in diary_data:
+        row = table.add_row()
+        for i, (cell_text, width) in enumerate(zip(row_data, diary_col_widths)):
+            row.cells[i].text = cell_text
+            row.cells[i].width = width
+            for paragraph in row.cells[i].paragraphs:
+                if i == 0:  # Tuần - căn giữa
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                for run in paragraph.runs:
+                    set_font(run, Pt(11))
+
+    doc.add_paragraph()  # Spacing
 
     # Phụ lục B: Hình ảnh, tài liệu minh chứng
     add_section_title(doc, "Phụ lục B: Hình ảnh, tài liệu minh chứng")

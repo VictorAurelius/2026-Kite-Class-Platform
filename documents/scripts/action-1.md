@@ -172,3 +172,16 @@ hãy cập nhật claude skill khi tạo báo cáo word:
 vẫn chưa thành công: font vẫn là Calibri (Headings), heading còn có font color bị chuyển thành màu xanh
 
 thầy tôi yêu cầu làm cả đề cương đồ án tốt nghiệp nữa, hãy đọc word-report/Mau-Decuong DATN-Cử nhân.pdf, dựa trên context ý tưởng đồ án hiện tại, thực hiện tạo đề cương theo mẫu
+
+đọc DUC_THAMKHAO_Báo cáo thực tập tốt nghiệp.pdf xem có tham khảo được gì để cập nhật báo cáo thực tập tốt nghiệp của tôi được tốt hơn
+
+nhưng báo cáo DUC_THAMKHAO_Báo cáo thực tập tốt nghiệp.pdf đã đúng cấu trúc như Huong dan trinh bay bao cao TTTN.pdf chưa?
+
+Tôi chỉ muốn bạn rút ra những gì hợp lý để bổ sung vào báo cáo của tôi thôi như   3. Cải thiện Danh mục từ viết tắt (3 cột), 4. Phụ lục - Nhật ký thực tập chi tiết, 5. Kết luận có "Những đóng góp của đề tài"
+
+còn 
+1. Thêm phần "LỜI NÓI ĐẦU" (thiếu trong báo cáo hiện tại)
+=> lời cảm ơn của tôi chưa đủ sao? có cần bổ sung thêm nội dung vào lời cảm ơn không?
+
+2. Cấu trúc nội dung theo DỰ ÁN/TASK
+=> chưa đảm bảo theo Huong dan trinh bay bao cao TTTN.pdf đúng không? 
