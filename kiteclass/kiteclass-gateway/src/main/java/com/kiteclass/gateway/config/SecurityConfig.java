@@ -1,5 +1,7 @@
 package com.kiteclass.gateway.config;
 
+import com.kiteclass.gateway.security.SecurityContextRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,7 +19,9 @@ import reactor.core.publisher.Mono;
  *
  * <p>Configures:
  * <ul>
+ *   <li>JWT-based authentication</li>
  *   <li>Public and protected endpoints</li>
+ *   <li>Role-based access control</li>
  *   <li>CSRF disabled for API</li>
  *   <li>Password encoder</li>
  * </ul>
@@ -28,7 +32,10 @@ import reactor.core.publisher.Mono;
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final SecurityContextRepository securityContextRepository;
 
     /**
      * Password encoder using BCrypt.
@@ -53,6 +60,9 @@ public class SecurityConfig {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
 
+                // Use JWT-based security context
+                .securityContextRepository(securityContextRepository)
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((exchange, e) -> {
                             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -70,11 +80,16 @@ public class SecurityConfig {
                         .pathMatchers("/actuator/health/**").permitAll()
                         .pathMatchers("/api/v1/auth/login").permitAll()
                         .pathMatchers("/api/v1/auth/refresh").permitAll()
+                        .pathMatchers("/api/v1/auth/logout").permitAll()
                         .pathMatchers("/api/v1/auth/forgot-password").permitAll()
                         .pathMatchers("/api/v1/auth/reset-password").permitAll()
                         .pathMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                        // User endpoints (temp permit all - will be secured in PR 1.4)
-                        .pathMatchers("/api/v1/users/**").permitAll()
+
+                        // User management - requires ADMIN or OWNER role
+                        .pathMatchers(HttpMethod.GET, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER", "STAFF")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
+                        .pathMatchers(HttpMethod.PUT, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("OWNER")
 
                         // All other requests require authentication
                         .anyExchange().authenticated()
