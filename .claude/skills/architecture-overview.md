@@ -101,13 +101,22 @@ Tài liệu mô tả kiến trúc hệ thống:
 
 ### KiteClass Instance (Per-Tenant)
 
-| Service | Tech | Mô tả |
-|---------|------|-------|
-| **Frontend** | Next.js 14 | Teacher portal, Student portal, Parent portal |
-| **User+Gateway** | Spring Boot + Cloud Gateway | Auth, Routing, Rate limiting |
-| **Core Service** | Spring Boot | Classes, Students, Attendance, Billing |
-| **Engagement Service** | Spring Boot (Optional) | Gamification, Forum, Notifications |
-| **Media Service** | Node.js + FFmpeg (Optional) | Video processing, Streaming |
+| Service | Tech | Mô tả | Status |
+|---------|------|-------|--------|
+| **Frontend** | Next.js 14 | Teacher portal, Student portal, Parent portal | 🔄 Planning |
+| **Gateway Service** | Spring Boot + Cloud Gateway | JWT Auth, User Management, API Routing, Rate limiting | ✅ **PR 1.4 Complete** |
+| **Core Service** | Spring Boot | Classes, Students, Attendance, Billing | 🔄 Planning |
+| **Engagement Service** | Spring Boot (Optional) | Gamification, Forum, Notifications | 📋 Future |
+| **Media Service** | Node.js + FFmpeg (Optional) | Video processing, Streaming | 📋 Future |
+
+**Gateway Service Features (PR 1.4 - Implemented 2026-01-26):**
+- ✅ JWT Authentication (access + refresh tokens)
+- ✅ User Management (CRUD, roles, permissions)
+- ✅ Login/Logout/Refresh endpoints
+- ✅ Account locking after failed attempts
+- ✅ Role-Based Access Control (RBAC)
+- ✅ Security context from JWT
+- ✅ Gateway filter for downstream services (adds X-User-Id, X-User-Roles headers)
 
 ---
 
