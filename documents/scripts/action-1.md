@@ -222,3 +222,7 @@ tôi hiểu khi code phải kết quả FE và BE nên cần plan rõ ràng đ�
 bây giờ tôi cần các câu prompt để bắt đầu thực hiện plan lần lượt
 
 ghi prompt vào scripts/pr-1.md
+
+tôi cần mỗi prompt bạn phải nhấn mạnh tuân thủ skill và đối với các lần prompt cần script test thì luôn phải có script test chuẩn ở thư mục riêng. không dồn test về cuối
+
+do PR 1.1
