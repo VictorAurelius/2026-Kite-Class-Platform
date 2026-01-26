@@ -170,6 +170,10 @@ spring:
 - ✅ Unit tests: 42/42 (100%)
 - ⚠️ Integration tests: 3/13 (need Docker)
 
+**⚠️ Known Issue:**
+Integration tests require Docker/Testcontainers setup. This will be fixed in PR 1.4.1.
+Meanwhile, use manual testing: `scripts/test/test-auth-flow.sh`
+
 See [Test Results](docs/test-reports/TEST-RESULTS-FINAL.md) for details.
 
 ## 🚀 Deployment
@@ -204,6 +208,7 @@ Coming soon in future PRs.
 - [x] PR 1.2: Common Components
 - [x] PR 1.3: User Module
 - [x] PR 1.4: Auth Module ⭐ **Current**
+- [ ] PR 1.4.1: Docker Setup & Integration Tests ⚠️ **HIGH PRIORITY**
 - [ ] PR 1.5: Email Service (Optional)
 - [ ] PR 2.1: Core Service Integration
 

@@ -1,5 +1,15 @@
 # Testing Guide - KiteClass Gateway
 
+## ⚠️ Current Status
+
+**Unit Tests:** ✅ 42/42 PASSED (100%)
+**Integration Tests:** ⚠️ 3/13 PASSED (Need Docker setup)
+
+Integration tests require Docker/Testcontainers. This will be fixed in **PR 1.4.1**.
+For now, run unit tests or use manual testing: `../../scripts/test/test-auth-flow.sh`
+
+---
+
 ## Prerequisites
 
 ### Install Java 17 (First time only)

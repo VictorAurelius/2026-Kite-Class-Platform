@@ -516,6 +516,36 @@ curl -X DELETE http://localhost:8080/api/v1/users/2 \
 
 ## 🔜 Next Steps (Future PRs)
 
+### ⚠️ PR 1.4.1 - Fix Integration Tests (HIGH PRIORITY)
+
+**Current Status:** 3/13 integration tests passed (need Docker)
+
+**Issue:**
+- ✅ Unit tests: 42/42 (100%) - All business logic tested
+- ❌ Integration tests: 10/13 failed - Need Docker/Testcontainers
+  - AuthControllerTest: 0/9 (needs Spring context + database)
+  - UserRepositoryTest: 0/1 (needs Testcontainers + Docker)
+
+**Action Items:**
+1. Add Docker Compose for local development
+   - PostgreSQL container
+   - Redis container
+   - Application container
+2. Refactor AuthControllerTest to use `@SpringBootTest` with Testcontainers
+3. Update UserRepositoryTest to properly use Testcontainers
+4. Setup CI/CD with Docker for automated integration testing
+5. Add more integration test scenarios
+
+**Why Important:**
+- Integration tests verify Spring wiring and database interactions
+- Ensures components work together correctly
+- Catches configuration issues early
+- Required for production confidence
+
+**Documentation:** See [TEST-RESULTS-FINAL.md](../test-reports/TEST-RESULTS-FINAL.md) for details
+
+---
+
 ### PR 1.5 - Email Service (Optional)
 - Implement email sending for password reset
 - Email templates
