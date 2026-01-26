@@ -26,10 +26,10 @@ public class CreateUserRequest {
     private String email;
 
     @NotBlank(message = "{validation.required}")
-    @Size(min = 8, max = 128, message = "Mật khẩu phải có từ 8-128 ký tự")
+    @Size(min = 8, max = 128, message = "{validation.password.size}")
     @Pattern(
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
-        message = "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, và 1 chữ số"
+        message = "{validation.password.pattern}"
     )
     private String password;
 
