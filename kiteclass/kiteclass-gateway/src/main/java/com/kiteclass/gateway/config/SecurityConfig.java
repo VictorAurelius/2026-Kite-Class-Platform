@@ -73,6 +73,8 @@ public class SecurityConfig {
                         .pathMatchers("/api/v1/auth/forgot-password").permitAll()
                         .pathMatchers("/api/v1/auth/reset-password").permitAll()
                         .pathMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        // User endpoints (temp permit all - will be secured in PR 1.4)
+                        .pathMatchers("/api/v1/users/**").permitAll()
 
                         // All other requests require authentication
                         .anyExchange().authenticated()
