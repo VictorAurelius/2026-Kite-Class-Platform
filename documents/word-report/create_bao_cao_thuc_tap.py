@@ -41,8 +41,8 @@ INTERNSHIP_INFO = {
     "position": "Software Engineer",
     "advisor": "ThS. Nguyễn Đức Dư",
     "company_mentor": "[Tên CBHD]",
-    "start_date": "...",
-    "end_date": "...",
+    "start_date": "26/06/2025",
+    "end_date": "26/09/2025",
 }
 
 # ============== CONSTANTS ==============
@@ -1199,16 +1199,19 @@ def add_chapter2(doc):
     add_table_with_caption(doc, 2, "Kế hoạch thực tập chi tiết",
         ["Tuần", "Thời gian", "Nội dung công việc chính"],
         [
-            ("1", "29/12 – 04/01", "Làm quen môi trường, tìm hiểu dự án, ôn tập kiến thức"),
-            ("2", "05/01 – 11/01", "Training thiết kế cơ sở dữ liệu (DB Design)"),
-            ("3", "12/01 – 18/01", "Thực hành thiết kế bảng, index, constraints"),
-            ("4", "19/01 – 25/01", "Training và thực hành thiết kế màn hình (Screen Design)"),
-            ("5", "26/01 – 01/02", "Hoàn thiện Screen Design, bắt đầu API Design"),
-            ("6", "02/02 – 08/02", "Training và thực hành thiết kế API RESTful"),
-            ("7", "09/02 – 15/02", "Giới thiệu AI Checker, training thiết kế Batch"),
-            ("8", "16/02 – 22/02", "Thực hành thiết kế Batch Processing"),
-            ("9", "23/02 – 01/03", "Thiết kế độc lập, xử lý Shiteki (feedback)"),
-            ("10", "02/03 – 08/03", "Hoàn thiện sản phẩm, viết báo cáo thực tập"),
+            ("1", "26/06 – 02/07", "Làm quen môi trường, tìm hiểu dự án, ôn tập kiến thức"),
+            ("2", "03/07 – 09/07", "Training thiết kế cơ sở dữ liệu (DB Design)"),
+            ("3", "10/07 – 16/07", "Thực hành thiết kế bảng, index, constraints"),
+            ("4", "17/07 – 23/07", "Training và thực hành thiết kế màn hình (Screen Design)"),
+            ("5", "24/07 – 30/07", "Hoàn thiện Screen Design, bắt đầu API Design"),
+            ("6", "31/07 – 06/08", "Training và thực hành thiết kế API RESTful"),
+            ("7", "07/08 – 13/08", "Giới thiệu AI Checker, training thiết kế Batch"),
+            ("8", "14/08 – 20/08", "Thực hành thiết kế Batch Processing"),
+            ("9", "21/08 – 27/08", "Thiết kế độc lập, xử lý Shiteki (feedback) đợt 1"),
+            ("10", "28/08 – 03/09", "Xử lý Shiteki đợt 2, hoàn thiện thiết kế"),
+            ("11", "04/09 – 10/09", "Tổng hợp sản phẩm, kiểm tra chất lượng"),
+            ("12", "11/09 – 17/09", "Viết báo cáo thực tập, chuẩn bị tài liệu"),
+            ("13", "18/09 – 26/09", "Hoàn thiện báo cáo, nộp sản phẩm cuối cùng"),
         ],
         col_widths=[2.0, 3.5, 10.5]
     )
@@ -1730,12 +1733,12 @@ def add_appendix(doc):
     diary_col_widths = [Cm(1.2), Cm(2.0), Cm(2.8), Cm(4.5), Cm(3.0), Cm(2.5)]
 
     diary_data = [
-        ("1-2", "...", "Làm quen môi trường", "Tìm hiểu dự án, training thiết kế DB", "Nắm cấu trúc DB", ""),
-        ("3-4", "...", "Thiết kế CSDL", "Thực hành thiết kế bảng, index, constraints", "Hoàn thành thiết kế DB", ""),
-        ("5-6", "...", "Thiết kế màn hình", "Training và thực hành thiết kế Screen", "Hoàn thành thiết kế Screen", ""),
-        ("7-8", "...", "Thiết kế API", "Training và thực hành thiết kế RESTful API", "Hoàn thành thiết kế API", ""),
-        ("9-10", "...", "Thiết kế Batch", "Giới thiệu AI Checker, training thiết kế Batch", "Hoàn thành thiết kế Batch", ""),
-        ("11-12", "...", "Hoàn thiện", "Thiết kế độc lập, hoàn thành báo cáo", "Báo cáo hoàn chỉnh", ""),
+        ("1-2", "26/06 – 09/07", "Làm quen môi trường", "Tìm hiểu dự án, training thiết kế DB", "Nắm cấu trúc DB", ""),
+        ("3-4", "10/07 – 23/07", "Thiết kế CSDL", "Thực hành thiết kế bảng, index, constraints", "Hoàn thành thiết kế DB", ""),
+        ("5-6", "24/07 – 06/08", "Thiết kế màn hình", "Training và thực hành thiết kế Screen", "Hoàn thành thiết kế Screen", ""),
+        ("7-8", "07/08 – 20/08", "Thiết kế API", "Training và thực hành thiết kế RESTful API", "Hoàn thành thiết kế API", ""),
+        ("9-10", "21/08 – 03/09", "Thiết kế Batch", "Giới thiệu AI Checker, training thiết kế Batch", "Hoàn thành thiết kế Batch", ""),
+        ("11-13", "04/09 – 26/09", "Hoàn thiện", "Thiết kế độc lập, hoàn thành báo cáo", "Báo cáo hoàn chỉnh", ""),
     ]
 
     table = doc.add_table(rows=1, cols=len(diary_headers))

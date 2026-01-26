@@ -192,3 +192,5 @@ hãy đọc claude skill để hiểu context, hãy đọc create_bao_cao_thuc_t
 hãy đọc CUONG_THAMKHAO_BaoCaoTTTN-DuThao.pdf và CUONG_THAMKHAO_Decuong DATN-DuThao.pdf, tôi thấy nội dung của 2 báo cáo này khá tốt. Tôi cũng muốn 2 báo cáo của tôi có nội dung tốt như này. Dựa vào context hãy thực hiện cập nhật 2 báo cáo của tôi tốt hơn
 
 thực hiện chạy luôn
+
+lưu vào student-info, kỳ thực tập của tôi là từ 26/06/2025 đến 26/09/2025, sửa lại báo cáo tương ứng

@@ -24,7 +24,7 @@ Thông tin cá nhân của sinh viên để sử dụng trong các báo cáo.
 | **Vị trí** | Software Engineer |
 | **GVHD tại trường** | ThS. Nguyễn Đức Dư |
 | **CBHD tại đơn vị** | [Tên CBHD] |
-| **Thời gian thực tập** | Từ ngày ... đến ngày ... |
+| **Thời gian thực tập** | Từ ngày 26/06/2025 đến ngày 26/09/2025 |
 
 ## Sử dụng trong code Python
 
@@ -48,8 +48,8 @@ INTERNSHIP_INFO = {
     "position": "Software Engineer",
     "advisor": "ThS. Nguyễn Đức Dư",
     "company_mentor": "[Tên CBHD]",
-    "start_date": "...",
-    "end_date": "...",
+    "start_date": "26/06/2025",
+    "end_date": "26/09/2025",
 }
 ```
 
