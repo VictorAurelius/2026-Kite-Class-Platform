@@ -238,3 +238,16 @@ sửa tạo branch => tạo chuẩn branch thay gì mỗi pr 1 branch
 sao file pom.xml tôi thấy đang báo error, check lại pr 1.1
 
 sau khi gặp nhiều lỗi như này, cập nhật skill hoặc prompt để tránh các lỗi trong tương lai
+
+thực hiện commit? prompt chưa đề cập sao?
+
+UserRepositoryTest:
+Resource leak: '<unassigned Closeable value>' is never closed
+
+bạn đã thực hiện test cho tôi chưa?
+
+mật khẩu là vkiet432
+
+sao file UserMapperImpl báo lỗi error nhiều thế?
+
+tôi thấy messgae vẫn đang hard-code, thực hiện fix và chạy test lại

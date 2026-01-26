@@ -24,7 +24,15 @@
       "Bash(tree:*)",
       "Bash(git branch:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(java -version:*)",
+      "Bash(update-alternatives:*)",
+      "Bash(export JAVA_HOME=\"/mnt/c/Program Files/Eclipse Adoptium/jdk-17\":*)",
+      "Bash(./mvnw:*)",
+      "Bash(sudo apt update:*)",
+      "Bash(sudo -S apt update:*)",
+      "Bash(sudo -S apt install:*)",
+      "Bash(export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64)"
     ]
   }
 }
