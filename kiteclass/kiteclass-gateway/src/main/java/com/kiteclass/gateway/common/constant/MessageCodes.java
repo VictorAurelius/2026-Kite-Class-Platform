@@ -28,6 +28,8 @@ public final class MessageCodes {
     public static final String AUTH_TOKEN_EXPIRED = "error.auth.token_expired";
     public static final String AUTH_TOKEN_INVALID = "error.auth.token_invalid";
     public static final String AUTH_REFRESH_EXPIRED = "error.auth.refresh_expired";
+    public static final String AUTH_REFRESH_TOKEN_INVALID = "error.auth.refresh_token_invalid";
+    public static final String AUTH_REFRESH_TOKEN_EXPIRED = "error.auth.refresh_token_expired";
 
     // Validation codes
     public static final String VALIDATION_REQUIRED = "validation.required";
