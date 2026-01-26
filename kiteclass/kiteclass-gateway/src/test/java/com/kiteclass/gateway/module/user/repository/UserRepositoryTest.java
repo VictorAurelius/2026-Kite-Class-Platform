@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserRepositoryTest {
 
     @Container
+    @SuppressWarnings("resource") // Managed by Testcontainers
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
         .withDatabaseName("testdb")
         .withUsername("test")

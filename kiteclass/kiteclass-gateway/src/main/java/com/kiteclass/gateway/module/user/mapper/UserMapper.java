@@ -1,6 +1,5 @@
 package com.kiteclass.gateway.module.user.mapper;
 
-import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.module.user.dto.request.CreateUserRequest;
 import com.kiteclass.gateway.module.user.dto.response.RoleResponse;
 import com.kiteclass.gateway.module.user.dto.response.UserResponse;
@@ -9,8 +8,6 @@ import com.kiteclass.gateway.module.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-
-import java.time.Instant;
 import java.util.List;
 
 /**
