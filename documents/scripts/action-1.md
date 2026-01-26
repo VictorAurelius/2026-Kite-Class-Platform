@@ -251,3 +251,9 @@ mật khẩu là vkiet432
 sao file UserMapperImpl báo lỗi error nhiều thế?
 
 tôi thấy messgae vẫn đang hard-code, thực hiện fix và chạy test lại
+  Tôi đang làm dự án KiteClass Gateway. Vừa hoàn thành PR 1.3 (User Module).                             
+                                                                                                         
+  Đọc context từ file này:
+  /mnt/e/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/PR-1.3-SUMMARY.md
+
+  Bây giờ tôi muốn implement PR 1.4 (Auth Module). Giúp tôi bắt đầu.
