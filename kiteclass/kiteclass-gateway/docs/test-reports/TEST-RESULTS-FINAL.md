@@ -229,7 +229,7 @@ Since integration tests require Docker, **manual testing** is the best verificat
 ./mvnw spring-boot:run
 
 # 2. Run automated test script
-./test-auth-flow.sh
+scripts/test/test-auth-flow.sh
 
 # 3. Or test manually
 curl -X POST http://localhost:8080/api/v1/auth/login \
@@ -320,7 +320,7 @@ Integration Tests: 3/13 passed (23%) ⚠️
 
 ### Before Merge:
 1. ✅ Review code
-2. ⚠️ Run manual tests (`./test-auth-flow.sh`)
+2. ⚠️ Run manual tests (`scripts/test/test-auth-flow.sh`)
 3. ✅ Verify documentation
 
 ### After Merge (Future PRs):
