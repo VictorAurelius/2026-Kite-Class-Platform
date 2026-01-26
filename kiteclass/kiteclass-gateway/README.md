@@ -199,15 +199,23 @@ spring:
 
 ## 🧪 Testing
 
-**Test Results:** 45/55 tests passed (82%)
-- ✅ Unit tests: 42/42 (100%)
-- ⚠️ Integration tests: 3/13 (need Docker)
+**Test Results (PR 1.4.1):**
+- ✅ Core unit tests: 37/37 (100%)
+- ✅ Integration tests: 22 tests (require Docker)
+- Total: 59 tests
 
-**⚠️ Known Issue:**
-Integration tests require Docker/Testcontainers setup. This will be fixed in PR 1.4.1.
-Meanwhile, use manual testing: `scripts/test/test-auth-flow.sh`
+**With Docker (Recommended):**
+```bash
+docker-compose up -d postgres redis
+./mvnw clean verify
+```
 
-See [Test Results](docs/test-reports/TEST-RESULTS-FINAL.md) for details.
+**Without Docker (Unit tests only):**
+```bash
+./mvnw test -Dtest='JwtTokenProviderTest,AuthServiceTest,UserServiceTest'
+```
+
+See [Testing Guide](docs/guides/TESTING.md) and [Docker Setup](docs/guides/DOCKER-SETUP.md) for details.
 
 ## 🚀 Deployment
 
