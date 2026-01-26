@@ -408,10 +408,7 @@ repository.saveAll(students);
 ### Null Safety
 
 ```java
-// ✅ Use @NonNull annotation
-public void process(@NonNull Student student) {
-
-// ✅ Validate early
+// ✅ Validate early with Objects.requireNonNull
 public void updateStudent(Long id, UpdateRequest request) {
     Objects.requireNonNull(request, "Request cannot be null");
     // ...
@@ -430,6 +427,21 @@ public List<Student> findAll() {
     return null;  // ❌ Never do this
 }
 ```
+
+#### ⚠️ Cảnh báo - Tránh vòng lặp Eclipse Null Analysis
+
+**Vấn đề đã gặp:** Eclipse null analysis quá strict, không tương thích với Java/Spring/Lombok conventions.
+
+**Giải pháp SAI đã thử:**
+1. Thêm `@NonNull` annotations → Lombok không hỗ trợ trên generated code
+2. Xóa Lombok, viết manual getters → Builder.build() không có `@NonNull`
+3. Tạo NullSafetyUtils với `@NonNull` return → Vẫn warnings
+
+**Giải pháp ĐÚNG:**
+- **KHÔNG cố gắng fix Eclipse null analysis warnings**
+- Disable trong `.vscode/settings.json`: `"java.compile.nullAnalysis.mode": "disabled"`
+- Dùng `Objects.requireNonNull()` cho runtime checks
+- Dùng annotations như documentation, không để satisfy analyzer
 
 ---
 
