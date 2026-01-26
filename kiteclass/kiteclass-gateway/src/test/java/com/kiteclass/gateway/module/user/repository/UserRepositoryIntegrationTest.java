@@ -1,5 +1,6 @@
 package com.kiteclass.gateway.module.user.repository;
 
+import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.module.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ class UserRepositoryIntegrationTest {
     @DisplayName("findByEmail() should find default owner account from V4 migration")
     void shouldFindDefaultOwnerAccount() {
         // When - Default owner created by V4__create_auth_module.sql
-        StepVerifier.create(userRepository.findByEmail("owner@kiteclass.local"))
+        StepVerifier.create(userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local"))
                 // Then
                 .assertNext(user -> {
                     assertThat(user.getEmail()).isEqualTo("owner@kiteclass.local");
@@ -102,7 +103,7 @@ class UserRepositoryIntegrationTest {
     @DisplayName("findByIdAndDeletedFalse() should find owner by ID")
     void shouldFindOwnerById() {
         // Given - Get owner ID first
-        Long ownerId = userRepository.findByEmail("owner@kiteclass.local")
+        Long ownerId = userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
                 .map(User::getId)
                 .block();
 
@@ -155,7 +156,7 @@ class UserRepositoryIntegrationTest {
         newUser.setEmail("newuser@example.com");
         newUser.setName("New User");
         newUser.setPasswordHash("hashed-password");
-        newUser.setStatus("ACTIVE");
+        newUser.setStatus(UserStatus.ACTIVE);
         newUser.setDeleted(false);
 
         // When
@@ -173,7 +174,7 @@ class UserRepositoryIntegrationTest {
     @DisplayName("save() should update existing user")
     void shouldUpdateExistingUser() {
         // Given - Get owner account
-        User owner = userRepository.findByEmail("owner@kiteclass.local").block();
+        User owner = userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local").block();
         assertThat(owner).isNotNull();
 
         // Update name

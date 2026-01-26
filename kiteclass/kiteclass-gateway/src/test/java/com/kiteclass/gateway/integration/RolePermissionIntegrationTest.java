@@ -236,7 +236,7 @@ class RolePermissionIntegrationTest {
                 .header("Content-Type", "application/json")
                 .bodyValue(createUserJson)
                 .exchange()
-                .expectStatus().isNotIn(403); // Should not be forbidden (may be 400 for validation, 201 for success)
+                .expectStatus().is2xxSuccessful(); // Should succeed (201 Created)
     }
 
     @Test
