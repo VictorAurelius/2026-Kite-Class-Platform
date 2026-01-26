@@ -1,0 +1,121 @@
+spring:
+  application:
+    name: kiteclass-gateway
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  # R2DBC (Reactive)
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:kiteclass_dev}
+    username: ${DB_USERNAME:kiteclass}
+    password: ${DB_PASSWORD:kiteclass123}
+    pool:
+      initial-size: 5
+      max-size: 20
+
+  # JDBC (for Flyway migrations)
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:kiteclass_dev}
+    username: ${DB_USERNAME:kiteclass}
+    password: ${DB_PASSWORD:kiteclass123}
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  # Redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # Cloud Gateway
+  cloud:
+    gateway:
+      routes:
+        # Core Service Routes
+        - id: core-students
+          uri: ${CORE_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/students/**
+          filters:
+            - AuthenticationFilter
+
+        - id: core-classes
+          uri: ${CORE_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/classes/**
+          filters:
+            - AuthenticationFilter
+
+        - id: core-attendance
+          uri: ${CORE_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/attendance/**
+          filters:
+            - AuthenticationFilter
+
+        - id: core-invoices
+          uri: ${CORE_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/invoices/**,/api/v1/payments/**
+          filters:
+            - AuthenticationFilter
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "${FRONTEND_URL:http://localhost:3000}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+server:
+  port: 8080
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-super-secret-key-min-512-bits-long-for-hs512-algorithm-security}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}      # 1 hour
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days
+
+# Rate Limiting
+rate-limit:
+  enabled: true
+  requests-per-second: 100
+  burst-capacity: 200
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.kiteclass: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+    gateway:
+      enabled: true
