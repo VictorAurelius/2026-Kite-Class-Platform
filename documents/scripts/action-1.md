@@ -226,3 +226,15 @@ ghi prompt vào scripts/pr-1.md
 tôi cần mỗi prompt bạn phải nhấn mạnh tuân thủ skill và đối với các lần prompt cần script test thì luôn phải có script test chuẩn ở thư mục riêng. không dồn test về cuối
 
 do PR 1.1
+
+thực hiện tạo nhánh mới và commit, cấu hình auto yes với claude
+
+git config user.email "vankiet14491@gmail.com" && git config user.name "VictorAurelius"
+
+sửa skills commint => commit ngắn gọn
+sửa pr-1 => commit sau khi hoàn thành pr
+sửa tạo branch => tạo chuẩn branch thay gì mỗi pr 1 branch
+
+sao file pom.xml tôi thấy đang báo error, check lại pr 1.1
+
+sau khi gặp nhiều lỗi như này, cập nhật skill hoặc prompt để tránh các lỗi trong tương lai
