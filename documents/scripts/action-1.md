@@ -208,3 +208,5 @@ tôi hiểu kitehub khi thực hiện tạo instance sẽ cho khách hàng chọ
 đã có checklist về code style, java doc hay gì chưa? tôi muốn code luôn chuẩn đó
 
 có skill về định nghĩa enum hoặc các string trong code chưa? có skill về viết test script chưa?
+
+đã có skill về phát triển ở dev dùng gì và cấu hình cloud thì như thế nào chưa?
