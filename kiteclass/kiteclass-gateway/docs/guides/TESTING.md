@@ -1,12 +1,15 @@
 # Testing Guide - KiteClass Gateway
 
-## ⚠️ Current Status
+## ⚠️ Current Status (PR 1.4.1)
 
-**Unit Tests:** ✅ 42/42 PASSED (100%)
-**Integration Tests:** ⚠️ 3/13 PASSED (Need Docker setup)
+**Unit Tests:** ✅ 37/37 PASSED (100%)
+**Integration Tests:** ✅ 22 tests created (Require Docker)
 
-Integration tests require Docker/Testcontainers. This will be fixed in **PR 1.4.1**.
-For now, run unit tests or use manual testing: `../../scripts/test/test-auth-flow.sh`
+Integration tests now available with Docker/Testcontainers setup (PR 1.4.1).
+See [Docker Setup Guide](DOCKER-SETUP.md) for installation.
+
+**Without Docker:** Run core unit tests
+**With Docker:** Run all tests including integration tests
 
 ---
 
@@ -35,9 +38,30 @@ java -version
 
 ## Running Tests
 
-### Quick Start
+### Quick Start (With Docker)
 
-Run all tests:
+**Recommended:** Run all tests including integration tests:
+
+```bash
+# 1. Start Docker services
+cd ../.. && docker-compose up -d postgres redis
+
+# 2. Run all tests
+./mvnw clean verify
+
+# 3. Stop services (optional)
+docker-compose down
+```
+
+### Quick Start (Without Docker)
+
+Run core unit tests only:
+
+```bash
+./mvnw test -Dtest='JwtTokenProviderTest,AuthServiceTest,UserServiceTest,ApiResponseTest,ErrorResponseTest,GlobalExceptionHandlerTest'
+```
+
+### Using Test Script
 
 ```bash
 ../../scripts/test/run-tests.sh
