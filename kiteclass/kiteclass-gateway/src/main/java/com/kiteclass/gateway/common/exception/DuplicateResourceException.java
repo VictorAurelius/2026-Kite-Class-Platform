@@ -1,16 +1,17 @@
 package com.kiteclass.gateway.common.exception;
 
+import com.kiteclass.gateway.common.constant.MessageCodes;
 import org.springframework.http.HttpStatus;
 
 /**
  * Exception thrown when attempting to create a duplicate resource.
  *
+ * <p>Uses i18n message code: {@code error.entity.duplicate} - "{0} '{1}' đã tồn tại"
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
 public class DuplicateResourceException extends BusinessException {
-
-    private static final String CODE = "DUPLICATE_RESOURCE";
 
     /**
      * Creates exception for duplicate resource.
@@ -19,15 +20,6 @@ public class DuplicateResourceException extends BusinessException {
      * @param value the duplicate value
      */
     public DuplicateResourceException(String field, String value) {
-        super(CODE, String.format("%s '%s' đã tồn tại", field, value), HttpStatus.CONFLICT);
-    }
-
-    /**
-     * Creates exception with custom message.
-     *
-     * @param message custom error message
-     */
-    public DuplicateResourceException(String message) {
-        super(CODE, message, HttpStatus.CONFLICT);
+        super(MessageCodes.ENTITY_DUPLICATE, HttpStatus.CONFLICT, field, value);
     }
 }
