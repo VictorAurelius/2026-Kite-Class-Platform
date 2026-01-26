@@ -5,7 +5,6 @@ import com.kiteclass.gateway.common.exception.EntityNotFoundException;
 import com.kiteclass.gateway.module.user.dto.request.CreateUserRequest;
 import com.kiteclass.gateway.module.user.dto.request.UpdateUserRequest;
 import com.kiteclass.gateway.module.user.dto.response.UserResponse;
-import com.kiteclass.gateway.module.user.entity.Role;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.entity.UserRole;
 import com.kiteclass.gateway.module.user.mapper.UserMapper;
