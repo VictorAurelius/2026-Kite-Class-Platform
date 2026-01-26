@@ -1,6 +1,9 @@
 package com.kiteclass.gateway.common.exception;
 
+import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.dto.ErrorResponse;
+import com.kiteclass.gateway.common.service.MessageService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +14,15 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Global exception handler for all REST endpoints.
+ *
+ * <p>Uses MessageService for i18n message resolution.
  *
  * <p>Handles:
  * <ul>
@@ -31,7 +36,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final MessageService messageService;
 
     /**
      * Handles BusinessException and returns appropriate HTTP status.
@@ -44,10 +52,15 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ErrorResponse>> handleBusinessException(
             BusinessException ex,
             ServerWebExchange exchange) {
-        log.warn("Business exception: {} - {}", ex.getCode(), ex.getMessage());
+
+        String message = ex.getArgs() != null
+                ? messageService.getMessage(ex.getCode(), ex.getArgs())
+                : messageService.getMessage(ex.getCode());
+
+        log.warn("Business exception: {} - {}", ex.getCode(), message);
 
         String path = exchange.getRequest().getPath().value();
-        ErrorResponse response = ErrorResponse.of(ex.getCode(), ex.getMessage(), path);
+        ErrorResponse response = ErrorResponse.of(ex.getCode(), message, path);
 
         return Mono.just(ResponseEntity.status(ex.getStatus()).body(response));
     }
@@ -67,14 +80,15 @@ public class GlobalExceptionHandler {
 
         Map<String, List<String>> fieldErrors = new HashMap<>();
         for (FieldError error : ex.getFieldErrors()) {
-            fieldErrors.computeIfAbsent(error.getField(), k -> new java.util.ArrayList<>())
+            fieldErrors.computeIfAbsent(error.getField(), k -> new ArrayList<>())
                     .add(error.getDefaultMessage());
         }
 
         String path = exchange.getRequest().getPath().value();
+        String message = messageService.getMessage(MessageCodes.VALIDATION_DATA_INVALID);
         ErrorResponse response = ErrorResponse.withFieldErrors(
-                "VALIDATION_ERROR",
-                "Dữ liệu không hợp lệ",
+                MessageCodes.VALIDATION_DATA_INVALID,
+                message,
                 path,
                 fieldErrors
         );
@@ -96,11 +110,8 @@ public class GlobalExceptionHandler {
         log.error("Unexpected exception", ex);
 
         String path = exchange.getRequest().getPath().value();
-        ErrorResponse response = ErrorResponse.of(
-                "INTERNAL_ERROR",
-                "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
-                path
-        );
+        String message = messageService.getMessage(MessageCodes.INTERNAL_ERROR);
+        ErrorResponse response = ErrorResponse.of(MessageCodes.INTERNAL_ERROR, message, path);
 
         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response));
     }
