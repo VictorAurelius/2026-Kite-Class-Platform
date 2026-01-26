@@ -844,7 +844,7 @@ def add_company_review_page(doc):
 
 # ============== LỜI CẢM ƠN ==============
 def add_acknowledgment_page(doc):
-    """Tạo trang Lời cảm ơn (trang 4)"""
+    """Tạo trang Lời cảm ơn (trang 4) - theo mẫu tham khảo"""
     doc.add_page_break()
 
     p = doc.add_paragraph()
@@ -854,27 +854,41 @@ def add_acknowledgment_page(doc):
     run = p.add_run("LỜI CẢM ƠN")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    # Nội dung lời cảm ơn
+    # Nội dung lời cảm ơn - chi tiết hơn theo mẫu tham khảo
     add_paragraph_text(doc,
-        "Trong quá trình thực tập tốt nghiệp, em đã nhận được sự hướng dẫn và giúp đỡ "
-        "tận tình từ nhiều cá nhân và tổ chức. Em xin được gửi lời cảm ơn chân thành đến:")
+        "Trong suốt quá trình thực tập và hoàn thành báo cáo này, em đã nhận được sự "
+        "quan tâm, hướng dẫn và giúp đỡ quý báu từ nhiều tập thể và cá nhân. Đây là nguồn động "
+        "viên to lớn, giúp em có thêm động lực và kiến thức để hoàn thành tốt đợt thực tập của mình.")
 
     add_paragraph_text(doc,
-        f"Thầy {INTERNSHIP_INFO['advisor']} - Giảng viên hướng dẫn tại trường, đã tận tình "
-        "hướng dẫn, góp ý và định hướng cho em trong suốt quá trình thực tập và viết báo cáo.")
+        f"Trước hết, em xin bày tỏ lòng biết ơn sâu sắc đến {INTERNSHIP_INFO['advisor']}, giảng "
+        "viên hướng dẫn thuộc Trường Đại học Giao thông Vận tải. Thầy đã tận tình hướng dẫn, "
+        "định hướng nội dung thực tập, đóng góp nhiều ý kiến chuyên môn quan trọng và luôn "
+        "theo sát, hỗ trợ em trong suốt quá trình thực hiện đề tài. Những kiến thức chuyên sâu, "
+        "kinh nghiệm thực tiễn cũng như sự nghiêm túc trong học thuật mà thầy truyền đạt đã "
+        "giúp em nâng cao tư duy chuyên môn và hoàn thiện báo cáo một cách tốt hơn.")
 
     add_paragraph_text(doc,
-        f"Ban lãnh đạo và các anh chị tại {INTERNSHIP_INFO['company']} đã tạo điều kiện thuận lợi, "
-        "hướng dẫn và chia sẻ kinh nghiệm quý báu trong thời gian em thực tập tại công ty.")
+        "Em xin chân thành cảm ơn Khoa Công nghệ thông tin, Trường Đại học Giao "
+        "thông Vận tải đã tạo điều kiện thuận lợi để em được tham gia thực tập, tiếp cận với môi "
+        "trường làm việc thực tế và vận dụng những kiến thức đã học vào thực tiễn. Sự hỗ trợ "
+        "của Khoa là nền tảng quan trọng giúp sinh viên có cơ hội học hỏi, rèn luyện kỹ năng và "
+        "tích lũy kinh nghiệm thực tế.")
 
     add_paragraph_text(doc,
-        "Khoa Công nghệ thông tin, Trường Đại học Giao thông vận tải đã tạo điều kiện "
-        "cho em được thực tập tại doanh nghiệp để có cơ hội học hỏi và phát triển.")
+        f"Bên cạnh đó, em xin gửi lời cảm ơn chân thành đến {INTERNSHIP_INFO['company']} cùng các "
+        "anh/chị trong đơn vị đã nhiệt tình hướng dẫn, chia sẻ kinh nghiệm chuyên môn, tạo điều "
+        "kiện thuận lợi để em được tham gia vào các công việc thực tế, qua đó giúp em hiểu rõ "
+        "hơn về quy trình làm việc cũng như yêu cầu của môi trường nghề nghiệp sau này.")
 
     add_paragraph_text(doc,
-        "Mặc dù đã cố gắng hoàn thành báo cáo một cách tốt nhất, nhưng không thể tránh "
-        "khỏi những thiếu sót. Em rất mong nhận được sự góp ý của các thầy cô để báo cáo "
-        "được hoàn thiện hơn.")
+        "Cuối cùng, em xin cảm ơn gia đình, bạn bè và những người thân đã luôn quan "
+        "tâm, động viên, hỗ trợ em cả về tinh thần lẫn vật chất trong suốt thời gian thực tập và học tập.")
+
+    add_paragraph_text(doc,
+        "Mặc dù đã rất cố gắng, song do thời gian thực tập và kinh nghiệm thực tiễn còn "
+        "hạn chế, báo cáo không tránh khỏi những thiếu sót. Em rất mong nhận được sự đóng "
+        "góp ý kiến từ quý thầy cô để báo cáo được hoàn thiện hơn.")
 
     add_paragraph_text(doc, "Em xin chân thành cảm ơn!")
 
@@ -1015,24 +1029,64 @@ def add_abbreviations(doc):
 
 # ============== CHƯƠNG 1: GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP ==============
 def add_chapter1(doc):
-    """Chương 1: Giới thiệu chung về đơn vị thực tập"""
+    """Chương 1: Giới thiệu chung về đơn vị thực tập - theo mẫu tham khảo"""
     add_chapter_title(doc, "1", "GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP")
 
     # 1.1 Thông tin chung về đơn vị thực tập
     add_section_title(doc, "1.1. Thông tin chung về đơn vị thực tập")
 
     add_paragraph_text(doc,
-        f"{INTERNSHIP_INFO['company']} (viết tắt: SYP) là công ty công nghệ thông tin chuyên về "
-        "phát triển phần mềm gia công (offshore development). Công ty được thành lập "
-        "tại Hà Nội, Việt Nam vào năm 2022, với đội ngũ lãnh đạo có hơn 20 năm kinh nghiệm "
-        "trong lĩnh vực phát triển phần mềm offshore trên toàn cầu.")
+        f"Tên đơn vị: {INTERNSHIP_INFO['company']} (viết tắt: SYP)", first_line_indent=False)
+
+    add_paragraph_text(doc, "Lĩnh vực hoạt động:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        f"{INTERNSHIP_INFO['company']} là công ty công nghệ thông tin chuyên về "
+        "phát triển phần mềm gia công (offshore development) cho thị trường Nhật Bản và quốc tế. "
+        "Công ty được thành lập tại Hà Nội, Việt Nam vào năm 2022, với đội ngũ lãnh đạo có hơn 20 năm "
+        "kinh nghiệm trong lĩnh vực phát triển phần mềm offshore trên toàn cầu. Công ty tập trung vào "
+        "các lĩnh vực:")
 
     add_bullet_list(doc, [
-        f"Tên công ty: {INTERNSHIP_INFO['company']}",
+        "Phát triển phần mềm gia công cho khách hàng Nhật Bản",
+        "Thiết kế hệ thống và cơ sở dữ liệu",
+        "Phát triển ứng dụng web và mobile",
+        "Tích hợp hệ thống và DevOps",
+        "Tư vấn và chuyển giao công nghệ",
+    ])
+
+    add_paragraph_text(doc, "Thông tin liên hệ:", first_line_indent=False)
+
+    add_bullet_list(doc, [
         f"Địa chỉ: {INTERNSHIP_INFO['address']}",
         "Website: https://syp.vn",
-        "Lĩnh vực: Phát triển phần mềm gia công (Offshore Development)",
         "Quy mô: Hơn 95 nhân viên (tính đến tháng 6/2024)",
+    ])
+
+    add_paragraph_text(doc, "Cơ cấu tổ chức:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Công ty được tổ chức theo mô hình chuẩn của doanh nghiệp phần mềm, với các bộ phận chính:")
+
+    add_bullet_list(doc, [
+        "Ban Giám đốc: Điều hành và quản lý chiến lược công ty",
+        "Phòng Phát triển phần mềm (Development): Thiết kế và lập trình các dự án",
+        "Phòng Kiểm thử (QA/QC): Đảm bảo chất lượng sản phẩm",
+        "Phòng BrSE (Bridge System Engineer): Kết nối với khách hàng Nhật Bản",
+        "Phòng Nhân sự và Hành chính: Quản lý nguồn nhân lực",
+    ])
+
+    add_paragraph_text(doc, "Quy mô và định hướng phát triển:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Công ty hướng tới trở thành đối tác chiến lược tin cậy cho các doanh nghiệp Nhật Bản "
+        "trong lĩnh vực phát triển phần mềm. Các mục tiêu chính bao gồm:")
+
+    add_bullet_list(doc, [
+        "Mở rộng quy mô lên 200+ nhân viên vào năm 2027",
+        "Tăng cường hợp tác với khách hàng Nhật Bản lớn",
+        "Phát triển năng lực AI và Machine Learning trong các dự án",
+        "Xây dựng môi trường làm việc đạt chuẩn quốc tế",
     ])
 
     # 1.2 Chức năng, nhiệm vụ của bộ phận thực tập
@@ -1040,65 +1094,149 @@ def add_chapter1(doc):
 
     add_paragraph_text(doc,
         "Sinh viên được phân công vào bộ phận Development với vai trò Software Engineer. "
-        "Nhiệm vụ chính của bộ phận bao gồm:")
+        "Bộ phận thực tập tại công ty có các chức năng và nhiệm vụ chính sau đây:")
 
-    add_bullet_list(doc, [
-        "Thiết kế hệ thống phần mềm theo yêu cầu khách hàng",
-        "Phát triển và bảo trì các ứng dụng web, mobile",
-        "Kiểm thử và đảm bảo chất lượng sản phẩm",
-        "Tích hợp và triển khai hệ thống",
-    ])
+    add_paragraph_text(doc, "Tổ chức và quản lý chương trình thực tập:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Phối hợp với giảng viên hướng dẫn để lập kế hoạch, phân công nhiệm vụ thực tập "
+        "cho sinh viên. Đảm bảo thực tập phù hợp với chương trình đào tạo, đáp ứng yêu cầu "
+        "về thời lượng, nội dung chuyên môn và mục tiêu phát triển kỹ năng thực tiễn.")
+
+    add_paragraph_text(doc, "Hướng dẫn và giám sát sinh viên thực tập:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Hướng dẫn sinh viên thực hiện các công việc thiết kế hệ thống, viết tài liệu kỹ thuật, "
+        "tham gia vào quy trình review và cải tiến chất lượng. Tổ chức các buổi training định kỳ, "
+        "kiểm tra tiến độ và góp ý chuyên môn để đảm bảo chất lượng công việc.")
+
+    add_paragraph_text(doc, "Cung cấp điều kiện cơ sở vật chất và tài nguyên hỗ trợ:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Cung cấp máy tính, phần mềm chuyên dụng (IntelliJ IDEA, VS Code, Oracle Database, "
+        "các công cụ thiết kế), tài liệu tham khảo và môi trường phát triển. Hỗ trợ sinh viên "
+        "tiếp cận các dự án thực tế của công ty.")
+
+    add_paragraph_text(doc, "Đánh giá và phản hồi:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Tham gia đánh giá kết quả thực tập dựa trên các tiêu chí: chất lượng thiết kế, "
+        "tinh thần học hỏi, khả năng làm việc nhóm và thái độ làm việc. Phối hợp với "
+        "giảng viên hướng dẫn để đưa ra nhận xét cuối cùng.")
 
     # 1.3 Môi trường làm việc và quy trình công tác
     add_section_title(doc, "1.3. Môi trường làm việc và quy trình công tác")
 
+    add_paragraph_text(doc, "Môi trường làm việc:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        f"Công ty có văn phòng hiện đại tại {INTERNSHIP_INFO['address']}. "
+        "Môi trường làm việc được trang bị đầy đủ:")
+
+    add_bullet_list(doc, [
+        "Hệ thống máy tính cấu hình cao, phòng họp với thiết bị video conference",
+        "Không gian làm việc thoáng đãng, có Wi-Fi tốc độ cao",
+        "Môi trường thân thiện, chuyên nghiệp với đội ngũ nhân viên trẻ trung",
+        "Văn hóa chia sẻ kiến thức qua các buổi training nội bộ hàng tuần",
+    ])
+
+    add_paragraph_text(doc, "Quy trình công tác:", first_line_indent=False)
+
     add_paragraph_text(doc,
         "Công ty áp dụng mô hình làm việc hybrid, kết hợp giữa làm việc tại văn phòng "
         "và làm việc từ xa. Quy trình phát triển phần mềm theo mô hình Agile/Scrum "
-        "với các sprint kéo dài 2 tuần.")
+        "với các đặc điểm:")
 
-    add_paragraph_text(doc,
-        "Môi trường làm việc chuyên nghiệp, năng động với đội ngũ nhân viên trẻ trung. "
-        "Công ty có văn hóa chia sẻ kiến thức thông qua các buổi training nội bộ "
-        "và hỗ trợ nhân viên phát triển kỹ năng chuyên môn.")
+    add_bullet_list(doc, [
+        "Sprint 2 tuần với daily standup meeting hàng ngày",
+        "Quy trình review nhiều cấp: Leader Review → Customer Review → End-user Review",
+        "Hệ thống quản lý task bằng Backlog (công cụ quản lý dự án của Nhật)",
+        "Sử dụng Git cho quản lý mã nguồn và tài liệu",
+        "Thời gian làm việc linh hoạt, tập trung vào kết quả",
+    ])
 
 
 # ============== CHƯƠNG 2: NỘI DUNG THỰC TẬP ==============
 def add_chapter2(doc):
-    """Chương 2: Nội dung thực tập"""
+    """Chương 2: Nội dung thực tập - theo mẫu tham khảo"""
     add_chapter_title(doc, "2", "NỘI DUNG THỰC TẬP")
 
     # 2.1 Mục tiêu và yêu cầu của đợt thực tập
     add_section_title(doc, "2.1. Mục tiêu và yêu cầu của đợt thực tập")
 
-    add_paragraph_text(doc, "Mục tiêu của đợt thực tập:")
+    add_paragraph_text(doc,
+        "Mục tiêu của đợt thực tập nhằm giúp sinh viên củng cố và vận dụng những kiến "
+        "thức lý thuyết đã học vào môi trường làm việc thực tế, qua đó nâng cao năng lực chuyên "
+        "môn và kỹ năng nghề nghiệp trong lĩnh vực công nghệ thông tin.")
+
+    add_paragraph_text(doc, "Cụ thể, đợt thực tập hướng tới các mục tiêu sau:")
 
     add_bullet_list(doc, [
-        "Tiếp cận môi trường doanh nghiệp và quy trình phát triển phần mềm chuyên nghiệp",
-        "Áp dụng kiến thức đã học vào thực tế công việc thiết kế hệ thống",
-        "Rèn luyện kỹ năng thiết kế cơ sở dữ liệu, màn hình, API và batch processing",
-        "Học cách sử dụng AI trong quy trình kiểm tra chất lượng",
-        "Chuẩn bị nền tảng kiến thức cho đồ án tốt nghiệp",
+        "Giúp sinh viên hiểu rõ hơn về môi trường làm việc, quy trình công tác và yêu cầu "
+        "chuyên môn trong lĩnh vực phát triển phần mềm offshore",
+        "Rèn luyện kỹ năng thiết kế hệ thống: cơ sở dữ liệu, màn hình, API và batch processing",
+        "Nâng cao kỹ năng làm việc độc lập, làm việc nhóm, quản lý thời gian và báo cáo công việc",
+        "Tạo điều kiện cho sinh viên tiếp cận với các công nghệ, công cụ và phương pháp "
+        "thiết kế phần mềm hiện đại theo tiêu chuẩn Nhật Bản",
+        "Học cách sử dụng AI (Claude AI) hỗ trợ kiểm tra chất lượng thiết kế",
+        "Chuẩn bị nền tảng kiến thức và kỹ năng cần thiết cho đồ án tốt nghiệp cũng như "
+        "công việc sau khi ra trường",
     ])
+
+    add_paragraph_text(doc,
+        "Yêu cầu của đợt thực tập là sinh viên phải thực hiện đầy đủ kế hoạch thực tập đã đề ra, "
+        "chấp hành nghiêm túc nội quy của công ty, hoàn thành các nhiệm vụ được giao, "
+        "báo cáo tiến độ đúng thời hạn và tổng hợp kết quả thực tập thành báo cáo theo đúng "
+        "quy định của Nhà trường.")
 
     # 2.2 Kế hoạch thực tập
     add_section_title(doc, "2.2. Kế hoạch thực tập")
 
-    add_table_with_caption(doc, 2, "Kế hoạch thực tập theo tuần",
-        ["Tuần", "Nội dung công việc"],
+    add_paragraph_text(doc,
+        "Bảng kế hoạch thực tập được xây dựng theo từng tuần nhằm đảm bảo tiến độ và "
+        "chất lượng công việc trong suốt thời gian thực tập.")
+
+    add_table_with_caption(doc, 2, "Kế hoạch thực tập chi tiết",
+        ["Tuần", "Thời gian", "Nội dung công việc chính"],
         [
-            ("1-2", "Làm quen môi trường, tìm hiểu dự án, training thiết kế DB"),
-            ("3-4", "Thực hành thiết kế cơ sở dữ liệu"),
-            ("5-6", "Training và thực hành thiết kế màn hình"),
-            ("7-8", "Training và thực hành thiết kế API RESTful"),
-            ("9-10", "Giới thiệu AI Checker, training thiết kế Batch"),
-            ("11-12", "Thiết kế độc lập, hoàn thành báo cáo"),
+            ("1", "29/12 – 04/01", "Làm quen môi trường, tìm hiểu dự án, ôn tập kiến thức"),
+            ("2", "05/01 – 11/01", "Training thiết kế cơ sở dữ liệu (DB Design)"),
+            ("3", "12/01 – 18/01", "Thực hành thiết kế bảng, index, constraints"),
+            ("4", "19/01 – 25/01", "Training và thực hành thiết kế màn hình (Screen Design)"),
+            ("5", "26/01 – 01/02", "Hoàn thiện Screen Design, bắt đầu API Design"),
+            ("6", "02/02 – 08/02", "Training và thực hành thiết kế API RESTful"),
+            ("7", "09/02 – 15/02", "Giới thiệu AI Checker, training thiết kế Batch"),
+            ("8", "16/02 – 22/02", "Thực hành thiết kế Batch Processing"),
+            ("9", "23/02 – 01/03", "Thiết kế độc lập, xử lý Shiteki (feedback)"),
+            ("10", "02/03 – 08/03", "Hoàn thiện sản phẩm, viết báo cáo thực tập"),
         ],
-        col_widths=[3.0, 13.0]
+        col_widths=[2.0, 3.5, 10.5]
     )
 
     # 2.3 Các công việc đã thực hiện
     add_section_title(doc, "2.3. Các công việc đã thực hiện")
+
+    add_paragraph_text(doc,
+        "Trong thời gian thực tập tại công ty, em đã thực hiện các công việc "
+        "theo sự phân công và hướng dẫn trực tiếp của cán bộ hướng dẫn tại đơn vị.")
+
+    add_paragraph_text(doc, "Mô tả các công việc đã thực hiện:", first_line_indent=False)
+
+    add_bullet_list(doc, [
+        "Tìm hiểu đề tài thực tập và các yêu cầu kỹ thuật do cán bộ hướng dẫn giao",
+        "Nghiên cứu tài liệu liên quan đến thiết kế hệ thống phần mềm theo chuẩn Nhật Bản",
+        "Thực hiện thiết kế cơ sở dữ liệu, màn hình, API và batch processing",
+        "Ghi chép tiến độ công việc và báo cáo kết quả định kỳ cho cán bộ hướng dẫn",
+        "Hoàn thiện sản phẩm và tổng hợp nội dung báo cáo thực tập",
+    ])
+
+    add_paragraph_text(doc, "Vai trò và trách nhiệm của sinh viên:", first_line_indent=False)
+
+    add_paragraph_text(doc,
+        "Sinh viên là người trực tiếp thực hiện toàn bộ các công việc được giao, chủ động "
+        "nghiên cứu, học hỏi và áp dụng kiến thức chuyên môn để hoàn thành nhiệm vụ. "
+        "Đồng thời, sinh viên có trách nhiệm tuân thủ kế hoạch thực tập, đảm bảo tiến độ "
+        "công việc và chất lượng kết quả theo yêu cầu của cán bộ hướng dẫn.")
 
     add_subsection_title(doc, "2.3.1. Thiết kế cơ sở dữ liệu")
 
@@ -1218,20 +1356,35 @@ def add_chapter2(doc):
 
 # ============== CHƯƠNG 3: KẾT QUẢ VÀ ĐÁNH GIÁ ==============
 def add_chapter3(doc):
-    """Chương 3: Kết quả và đánh giá"""
+    """Chương 3: Kết quả và đánh giá - theo mẫu tham khảo"""
     add_chapter_title(doc, "3", "KẾT QUẢ VÀ ĐÁNH GIÁ")
 
     # 3.1 Kết quả đạt được
     add_section_title(doc, "3.1. Kết quả đạt được trong quá trình thực tập")
 
     add_paragraph_text(doc,
-        "Các thiết kế được hoàn thành đạt tiêu chuẩn của doanh nghiệp và khách hàng:")
+        "Trong suốt thời gian thực tập tại công ty, em đã hoàn thành "
+        "đầy đủ các nội dung và nhiệm vụ theo kế hoạch thực tập đã đề ra dưới sự hướng dẫn của "
+        "cán bộ phụ trách. Các công việc được giao đều được thực hiện nghiêm túc, đúng "
+        "tiến độ và đảm bảo yêu cầu về chất lượng.")
+
+    add_paragraph_text(doc,
+        "Thông qua quá trình thực tập, em đã từng bước tiếp cận với các công việc chuyên "
+        "môn trong lĩnh vực thiết kế hệ thống phần mềm, từ việc nghiên cứu tài liệu, phân tích yêu cầu "
+        "đến triển khai và hoàn thiện các nội dung liên quan đến đề tài thực tập. Kết quả đạt được "
+        "không chỉ thể hiện qua sản phẩm hoặc nội dung công việc đã hoàn thành mà còn ở sự "
+        "tiến bộ rõ rệt về tư duy, kỹ năng và thái độ làm việc.")
+
+    add_paragraph_text(doc, "Kết quả đạt được:", first_line_indent=False)
 
     add_bullet_list(doc, [
-        "Hoàn thành thiết kế cơ sở dữ liệu cho các module được giao",
-        "Hoàn thành thiết kế màn hình theo yêu cầu",
-        "Hoàn thành thiết kế API RESTful",
-        "Tham gia sử dụng và cải tiến hệ thống AI Checker",
+        "Hoàn thành các nội dung công việc theo kế hoạch đề ra",
+        "Hoàn thành thiết kế cơ sở dữ liệu cho các module được giao đạt tiêu chuẩn",
+        "Hoàn thành thiết kế màn hình với đầy đủ validation và message",
+        "Hoàn thành thiết kế API RESTful theo chuẩn công ty",
+        "Tham gia sử dụng và góp ý cải tiến hệ thống AI Checker",
+        "Nâng cao kỹ năng thiết kế, tư duy logic và khả năng giải quyết vấn đề",
+        "Hoàn thành báo cáo thực tập đúng quy định, phản ánh trung thực quá trình thực hiện",
     ])
 
     # 3.2 Kiến thức và kỹ năng tích lũy được
@@ -1239,117 +1392,195 @@ def add_chapter3(doc):
 
     add_subsection_title(doc, "3.2.1. Kiến thức chuyên môn")
 
+    add_paragraph_text(doc,
+        "Trong quá trình thực tập, em đã củng cố và mở rộng các kiến thức chuyên môn đã "
+        "được học trên giảng đường. Đặc biệt là kiến thức về thiết kế hệ thống, phân tích yêu cầu, "
+        "cơ sở dữ liệu và quy trình phát triển phần mềm. Việc áp dụng lý thuyết vào các "
+        "bài toán thực tế giúp em hiểu sâu hơn bản chất vấn đề, đồng thời nâng cao khả năng vận "
+        "dụng kiến thức vào thực tiễn.")
+
     add_bullet_list(doc, [
-        "Nắm vững quy trình thiết kế hệ thống phần mềm chuyên nghiệp",
-        "Hiểu sâu về thiết kế cơ sở dữ liệu với Oracle",
+        "Nắm vững quy trình thiết kế hệ thống phần mềm chuyên nghiệp theo chuẩn Nhật Bản",
+        "Hiểu sâu về thiết kế cơ sở dữ liệu với Oracle Database",
         "Biết cách thiết kế API RESTful theo chuẩn",
-        "Hiểu về kiến trúc hệ thống nhiều lớp",
+        "Hiểu về kiến trúc Spring Batch và thiết kế batch processing",
+        "Biết cách sử dụng AI (Claude) hỗ trợ kiểm tra chất lượng thiết kế",
     ])
 
     add_subsection_title(doc, "3.2.2. Kỹ năng làm việc nhóm")
 
+    add_paragraph_text(doc,
+        "Quá trình thực tập giúp em rèn luyện kỹ năng làm việc nhóm thông qua việc trao "
+        "đổi, thảo luận và phối hợp với cán bộ hướng dẫn và các đồng nghiệp. Em học được "
+        "cách lắng nghe ý kiến đóng góp, chia sẻ công việc hợp lý, hỗ trợ lẫn nhau để hoàn thành "
+        "nhiệm vụ chung.")
+
     add_bullet_list(doc, [
-        "Kỹ năng giao tiếp và trao đổi với team member",
-        "Kỹ năng review code và thiết kế",
+        "Kỹ năng giao tiếp và trao đổi với team member trong môi trường chuyên nghiệp",
+        "Kỹ năng review thiết kế và tiếp nhận feedback (shiteki)",
         "Kỹ năng làm việc với khách hàng nước ngoài (thông qua BrSE)",
+        "Kỹ năng giao tiếp trong môi trường học thuật và chuyên môn",
     ])
 
-    add_subsection_title(doc, "3.2.3. Kỹ năng phân tích, giải quyết vấn đề")
+    add_subsection_title(doc, "3.2.3. Kỹ năng phân tích và giải quyết vấn đề")
+
+    add_paragraph_text(doc,
+        "Thông qua các công việc được giao, em đã rèn luyện khả năng phân tích yêu cầu, "
+        "xác định vấn đề và đề xuất hướng giải quyết phù hợp. Khi gặp khó khăn trong quá trình "
+        "thực hiện, em học được cách chủ động tìm kiếm tài liệu, tham khảo ý kiến mentor "
+        "và tự đánh giá, điều chỉnh phương án thực hiện.")
 
     add_bullet_list(doc, [
-        "Kỹ năng đọc hiểu và phân tích yêu cầu nghiệp vụ",
-        "Kỹ năng viết QA để xác nhận yêu cầu",
-        "Kỹ năng sử dụng AI hỗ trợ công việc",
+        "Kỹ năng đọc hiểu và phân tích yêu cầu nghiệp vụ từ tài liệu khách hàng",
+        "Kỹ năng viết QA (Question & Answer) để xác nhận yêu cầu không rõ ràng",
+        "Kỹ năng tư duy logic, xử lý tình huống và khắc phục lỗi trong thiết kế",
+        "Kỹ năng sử dụng AI hỗ trợ công việc một cách hiệu quả",
     ])
 
     # 3.3 Thuận lợi và khó khăn
     add_section_title(doc, "3.3. Thuận lợi và khó khăn")
 
-    add_subsection_title(doc, "3.3.1. Thuận lợi")
+    add_paragraph_text(doc, "Thuận lợi:", first_line_indent=False)
 
     add_bullet_list(doc, [
-        "Được hướng dẫn tận tình từ mentor tại công ty",
-        "Môi trường làm việc chuyên nghiệp, thân thiện",
-        "Có cơ hội tiếp cận công nghệ và quy trình mới",
+        "Nhận được sự quan tâm, hướng dẫn tận tình của cán bộ hướng dẫn trong suốt quá trình thực tập",
+        "Môi trường học tập và làm việc tại công ty thân thiện, chuyên nghiệp, "
+        "tạo điều kiện thuận lợi cho việc học hỏi và nghiên cứu",
+        "Được tiếp cận với các tài liệu chuyên môn, cơ sở vật chất và công cụ hỗ trợ "
+        "phục vụ cho quá trình thực tập",
+        "Kiến thức nền tảng đã được trang bị trong quá trình học tập tại trường giúp "
+        "sinh viên dễ dàng tiếp cận nội dung thực tập",
     ])
 
-    add_subsection_title(doc, "3.3.2. Khó khăn")
+    add_paragraph_text(doc, "Khó khăn:", first_line_indent=False)
 
     add_bullet_list(doc, [
-        "Ban đầu còn bỡ ngỡ với quy trình làm việc doanh nghiệp",
-        "Cần thời gian để làm quen với các tài liệu kỹ thuật",
-        "Kiến thức tiếng Nhật còn hạn chế trong giao tiếp",
+        "Một số kiến thức và công nghệ còn mới (Oracle Database, Spring Batch), "
+        "đòi hỏi em phải tự nghiên cứu và học hỏi thêm trong thời gian ngắn",
+        "Kinh nghiệm thực tiễn còn hạn chế nên trong giai đoạn đầu gặp một số khó khăn "
+        "khi triển khai công việc",
+        "Thời gian thực tập có hạn, trong khi khối lượng công việc và yêu cầu chuyên môn "
+        "tương đối nhiều",
+        "Kiến thức tiếng Nhật còn hạn chế trong việc đọc hiểu một số tài liệu",
     ])
+
+    add_paragraph_text(doc,
+        "Tuy nhiên, nhờ sự hướng dẫn của cán bộ hướng dẫn và sự nỗ lực của bản thân, em đã từng bước "
+        "khắc phục được những khó khăn trên và hoàn thành tốt đợt thực tập.")
 
 
 # ============== CHƯƠNG 4: NHẬN XÉT VÀ ĐỊNH HƯỚNG ==============
 def add_chapter4(doc):
-    """Chương 4: Nhận xét và định hướng"""
+    """Chương 4: Nhận xét và định hướng - theo mẫu tham khảo"""
     add_chapter_title(doc, "4", "NHẬN XÉT VÀ ĐỊNH HƯỚNG")
 
     # 4.1 Nhận xét chung về đợt thực tập
     add_section_title(doc, "4.1. Nhận xét chung về đợt thực tập")
 
     add_paragraph_text(doc,
-        "Qua quá trình thực tập tại công ty, sinh viên đã có cơ hội được tiếp cận "
-        "với môi trường làm việc chuyên nghiệp, học hỏi quy trình phát triển phần mềm "
-        "theo chuẩn quốc tế và tích lũy được nhiều kiến thức, kỹ năng quý báu.")
+        f"Đợt thực tập tại {INTERNSHIP_INFO['company']} "
+        "là một trải nghiệm học tập có ý nghĩa và mang lại nhiều giá trị thiết thực đối với em.")
 
     add_paragraph_text(doc,
-        "Đợt thực tập đã giúp sinh viên hiểu rõ hơn về vai trò của Software Engineer "
-        "trong quy trình phát triển phần mềm và chuẩn bị tốt hơn cho công việc sau khi tốt nghiệp.")
+        "Thông qua quá trình thực tập, em đã có cơ hội tiếp cận với môi trường làm việc mang "
+        "tính chuyên nghiệp cao, từ đó hiểu rõ hơn về yêu cầu và tính chất công việc "
+        "trong lĩnh vực phát triển phần mềm offshore cho thị trường Nhật Bản.")
+
+    add_paragraph_text(doc,
+        "Các nội dung thực tập được xây dựng phù hợp với chương trình đào tạo, gắn liền "
+        "giữa lý thuyết và thực tiễn, giúp em từng bước làm quen với quy trình làm việc, phương "
+        "pháp thiết kế và triển khai các nhiệm vụ chuyên môn. Sự hướng dẫn tận tình của "
+        "cán bộ hướng dẫn đã giúp em định hướng đúng đắn, kịp thời khắc phục những hạn chế trong "
+        "quá trình thực hiện.")
+
+    add_paragraph_text(doc,
+        "Nhìn chung, đợt thực tập đã đạt được các mục tiêu đề ra, góp phần nâng cao kiến "
+        "thức, kỹ năng và ý thức nghề nghiệp của em, đồng thời tạo nền tảng quan trọng cho quá trình "
+        "học tập và làm việc sau này.")
 
     # 4.2 Bài học kinh nghiệm rút ra
     add_section_title(doc, "4.2. Bài học kinh nghiệm rút ra")
 
+    add_paragraph_text(doc,
+        "Từ quá trình thực tập, em đã rút ra được nhiều bài học kinh nghiệm quý báu. "
+        "Trước hết là bài học về tinh thần tự giác và chủ động học tập. Trong môi trường thực "
+        "tế, việc tự tìm hiểu tài liệu, chủ động đặt câu hỏi và đề xuất giải pháp là yếu tố quan "
+        "trọng giúp nâng cao hiệu quả công việc.")
+
+    add_paragraph_text(doc,
+        "Bên cạnh đó, em nhận thức rõ hơn về tầm quan trọng của việc nắm vững kiến "
+        "thức nền tảng và khả năng vận dụng linh hoạt kiến thức đã học vào các tình huống cụ "
+        "thể. Việc làm việc theo kế hoạch, tuân thủ quy trình và đảm bảo tiến độ cũng là những "
+        "kinh nghiệm cần thiết được rút ra trong suốt quá trình thực tập.")
+
+    add_paragraph_text(doc, "Các bài học kinh nghiệm cụ thể:")
+
     add_bullet_list(doc, [
-        "Cần chủ động trong việc học hỏi và đặt câu hỏi khi gặp khó khăn",
-        "Tầm quan trọng của việc đọc kỹ tài liệu trước khi thực hiện",
-        "Cần kiểm tra kỹ lưỡng trước khi gửi sản phẩm review",
-        "Kỹ năng mềm quan trọng không kém kỹ năng chuyên môn",
+        "Cần chủ động trong việc học hỏi và đặt câu hỏi (viết QA) khi gặp khó khăn",
+        "Tầm quan trọng của việc đọc kỹ tài liệu và hiểu rõ yêu cầu trước khi thực hiện",
+        "Cần kiểm tra kỹ lưỡng (self-review) trước khi gửi sản phẩm cho leader review",
+        "Kỹ năng mềm (giao tiếp, làm việc nhóm) quan trọng không kém kỹ năng chuyên môn",
+        "Học cách tiếp nhận ý kiến góp ý (shiteki) một cách nghiêm túc và cải thiện",
     ])
 
     # 4.3 Định hướng nghề nghiệp và học tập sau thực tập
     add_section_title(doc, "4.3. Định hướng nghề nghiệp và học tập sau thực tập")
 
     add_paragraph_text(doc,
-        "Sau đợt thực tập, sinh viên định hướng tiếp tục phát triển theo hướng "
-        "Software Engineer, đặc biệt là trong lĩnh vực thiết kế và phát triển hệ thống.")
+        "Sau đợt thực tập, em đã có cái nhìn rõ ràng hơn về định hướng nghề nghiệp trong "
+        "tương lai. Trên cơ sở những kiến thức và kỹ năng đã tích lũy được, em định hướng tiếp "
+        "tục nâng cao trình độ chuyên môn trong lĩnh vực công nghệ thông tin, đặc biệt là các "
+        "mảng liên quan đến thiết kế hệ thống và phát triển phần mềm.")
+
+    add_paragraph_text(doc,
+        "Trong thời gian tới, em sẽ tập trung củng cố kiến thức chuyên ngành, học hỏi "
+        "thêm các công nghệ mới, nâng cao kỹ năng lập trình, kỹ năng làm việc nhóm và kỹ năng "
+        "nghiên cứu. Đồng thời, em cũng sẽ chuẩn bị tốt cho đồ án tốt nghiệp và sẵn sàng tham "
+        "gia vào môi trường làm việc chuyên nghiệp sau khi ra trường.")
 
     add_paragraph_text(doc, "Các mục tiêu cụ thể:")
 
     add_bullet_list(doc, [
-        "Hoàn thành tốt đồ án tốt nghiệp với kiến thức tích lũy được",
-        "Tiếp tục học hỏi và nâng cao kỹ năng lập trình",
+        "Hoàn thành tốt đồ án tốt nghiệp với đề tài KiteClass Platform - áp dụng kiến thức đã tích lũy",
+        "Tiếp tục học hỏi và nâng cao kỹ năng lập trình (Java, TypeScript, Python)",
         "Tìm hiểu sâu hơn về AI và ứng dụng trong phát triển phần mềm",
-        "Cải thiện kỹ năng ngoại ngữ (tiếng Anh, tiếng Nhật)",
+        "Cải thiện kỹ năng ngoại ngữ (tiếng Anh, tiếng Nhật) để làm việc trong môi trường quốc tế",
+        "Xây dựng portfolio cá nhân với các dự án thực tế",
     ])
 
-    # 4.4 Những đóng góp của đề tài (bổ sung theo báo cáo tham khảo)
+    add_paragraph_text(doc,
+        "Đợt thực tập là bước đệm quan trọng giúp em xác định rõ mục tiêu học tập và "
+        "nghề nghiệp, tạo động lực để không ngừng rèn luyện và phát triển bản thân trong tương lai.")
+
+    # 4.4 Những đóng góp của đề tài
     add_section_title(doc, "4.4. Những đóng góp của đề tài")
 
-    add_subsection_title(doc, "4.4.1. Đóng góp về mặt hệ thống")
+    add_subsection_title(doc, "4.4.1. Đóng góp về mặt sản phẩm")
 
     add_bullet_list(doc, [
-        "Hoàn thành các thiết kế cơ sở dữ liệu, màn hình, API theo chuẩn doanh nghiệp",
+        "Hoàn thành các thiết kế cơ sở dữ liệu, màn hình, API theo chuẩn doanh nghiệp Nhật Bản",
         "Tham gia vào quy trình thiết kế Batch Processing theo kiến trúc Spring Batch",
         "Đóng góp vào việc cải tiến chất lượng thiết kế thông qua quy trình review nhiều cấp",
+        "Xây dựng sản phẩm hoặc mô hình phục vụ học tập và nghiên cứu",
     ])
 
     add_subsection_title(doc, "4.4.2. Đóng góp về mặt quy trình")
 
     add_bullet_list(doc, [
-        "Hiểu và áp dụng quy trình làm việc thực tế trong doanh nghiệp offshore",
-        "Nắm vững quy trình xử lý Shiteki (review feedback) từ nhiều cấp độ",
-        "Tích lũy kinh nghiệm sử dụng AI hỗ trợ công việc thiết kế",
+        "Hiểu và áp dụng quy trình làm việc thực tế trong doanh nghiệp offshore Nhật Bản",
+        "Nắm vững quy trình xử lý Shiteki (review feedback) từ nhiều cấp độ: "
+        "Leader → Customer → End-user",
+        "Tích lũy kinh nghiệm sử dụng AI (Claude) hỗ trợ kiểm tra chất lượng thiết kế",
+        "Hình thành phong cách làm việc chủ động và khoa học",
     ])
 
     add_subsection_title(doc, "4.4.3. Đóng góp về mặt kiến thức")
 
     add_bullet_list(doc, [
         "Tổng hợp kiến thức về thiết kế hệ thống phần mềm theo chuẩn quốc tế",
-        "Chuẩn bị nền tảng kiến thức vững chắc cho đồ án tốt nghiệp",
-        "Tài liệu báo cáo có thể làm tham khảo cho các sinh viên khóa sau",
+        "Chuẩn bị nền tảng kiến thức vững chắc cho đồ án tốt nghiệp KiteClass Platform",
+        "Tài liệu báo cáo có thể làm tham khảo cho các sinh viên khóa sau về quy trình "
+        "thực tập tại doanh nghiệp offshore",
     ])
 
 

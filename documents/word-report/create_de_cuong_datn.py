@@ -296,55 +296,167 @@ def add_bullet_item(doc, text):
     set_font(run, Pt(13))
 
 
+def add_subsection_title(doc, title):
+    """Thêm tiêu đề tiểu mục (2.1, 2.2...)"""
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    p.paragraph_format.space_after = Pt(3)
+    run = p.add_run(title)
+    set_font(run, Pt(13), bold=True)
+
+
 def add_content_sections(doc):
-    """Thêm 4 mục nội dung chính"""
+    """Thêm 4 mục nội dung chính - theo mẫu tham khảo"""
 
     # 1. Nội dung, phạm vi của đề tài
     add_section_title(doc, "1", "Nội dung, phạm vi của đề tài")
 
-    add_section_content(doc,
-        "Trong bối cảnh chuyển đổi số giáo dục đang diễn ra mạnh mẽ, nhu cầu về các nền tảng "
-        "học trực tuyến linh hoạt, có khả năng mở rộng và tùy chỉnh cao ngày càng tăng. "
-        "Đề tài hướng đến xây dựng một nền tảng quản lý lớp học trực tuyến hiện đại, "
-        "áp dụng kiến trúc microservices.")
+    # Nội dung của đề tài
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Nội dung của đề tài")
+    set_font(run, Pt(13), bold=True)
 
-    add_section_content(doc, "Phạm vi nghiên cứu:", indent=True)
-    add_bullet_item(doc, "Đối tượng: Các tổ chức giáo dục, doanh nghiệp đào tạo, giảng viên độc lập")
-    add_bullet_item(doc, "Phạm vi chức năng: Quản lý lớp học, người dùng, nội dung học tập và vận hành nền tảng")
-    add_bullet_item(doc, "Kiến trúc: Microservices với KiteClass Core Services + Expand Services + KiteHub Platform")
+    add_section_content(doc,
+        "Đề tài \"Xây dựng hệ thống quản lý lớp học trực tuyến theo kiến trúc Microservices - "
+        "KiteClass Platform\" tập trung vào việc nghiên cứu, phân tích và xây dựng một nền tảng "
+        "học tập trực tuyến có khả năng đáp ứng nhu cầu quản lý lớp học khác nhau của từng tổ chức "
+        "giáo dục. Hệ thống cho phép khách hàng nhanh chóng khởi tạo và vận hành hệ thống lớp học "
+        "trực tuyến riêng với giao diện và thương hiệu cá nhân hóa, được hỗ trợ bởi trí tuệ nhân tạo.")
+
+    add_section_content(doc, "Các nội dung chính của đề tài bao gồm:", indent=True)
+    add_bullet_item(doc, "Khảo sát và phân tích yêu cầu của hệ thống quản lý lớp học trực tuyến")
+    add_bullet_item(doc, "Thiết kế kiến trúc tổng thể của hệ thống theo mô hình Microservices, "
+        "bao gồm KiteClass Core Services và KiteHub Platform")
+    add_bullet_item(doc, "Xây dựng các chức năng cơ bản: quản lý người dùng, quản lý lớp học, "
+        "quản lý nội dung học tập, điểm danh, giao bài tập")
+    add_bullet_item(doc, "Nghiên cứu và áp dụng AI Agent để tự động tạo branding assets "
+        "(logo, banner, color palette) cho từng instance")
+    add_bullet_item(doc, "Xây dựng hệ thống auto-provisioning để tự động triển khai instance mới")
+    add_bullet_item(doc, "Triển khai thử nghiệm hệ thống và đánh giá kết quả đạt được")
+
+    # Phạm vi của đề tài
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Phạm vi của đề tài")
+    set_font(run, Pt(13), bold=True)
+
+    add_section_content(doc,
+        "Trong phạm vi của đề tài, hệ thống KiteClass Platform được xây dựng "
+        "ở mức độ MVP (Minimum Viable Product), tập trung vào các chức năng cốt lõi phục vụ quá trình "
+        "quản lý lớp học trực tuyến cho các tổ chức giáo dục nhỏ và vừa.")
+
+    add_bullet_item(doc, "Đối tượng: Giáo viên dạy thêm THCS/THPT, gia sư chứng chỉ (IELTS, JLPT), "
+        "trung tâm ngoại ngữ, tổ chức đào tạo doanh nghiệp")
+    add_bullet_item(doc, "Phạm vi chức năng: Quản lý lớp học, người dùng, nội dung học tập, "
+        "điểm danh, bài tập và thanh toán cơ bản")
+    add_bullet_item(doc, "Kiến trúc: KiteHub Platform (Modular Monolith) + KiteClass Instances (Microservices)")
+    add_bullet_item(doc, "Giới hạn: Chưa triển khai quy mô lớn, các vấn đề bảo mật nâng cao và "
+        "tối ưu hiệu năng chỉ xem xét ở mức cơ bản")
 
     # 2. Công nghệ, công cụ và ngôn ngữ lập trình
     add_section_title(doc, "2", "Công nghệ, công cụ và ngôn ngữ lập trình")
 
-    add_bullet_item(doc, "Backend: Node.js / NestJS, RESTful API, GraphQL")
-    add_bullet_item(doc, "Frontend: React.js / Next.js")
-    add_bullet_item(doc, "Database: PostgreSQL, MongoDB, Redis")
-    add_bullet_item(doc, "Message Queue: RabbitMQ / Apache Kafka")
-    add_bullet_item(doc, "Container & Orchestration: Docker, Kubernetes")
-    add_bullet_item(doc, "CI/CD: GitHub Actions, Jenkins")
-    add_bullet_item(doc, "Cloud Platform: AWS / GCP / Azure")
+    add_section_content(doc,
+        "Để xây dựng hệ thống KiteClass Platform, đề tài sử dụng bộ công "
+        "nghệ full-stack hiện đại kết hợp trí tuệ nhân tạo (AI), đảm bảo tính scalable, hiệu suất "
+        "cao, dễ bảo trì và phù hợp với xu hướng phát triển phần mềm năm 2025-2026.")
+
+    add_subsection_title(doc, "2.1. Ngôn ngữ lập trình")
+    add_bullet_item(doc, "Java 21 LTS: Ngôn ngữ chính cho backend services")
+    add_bullet_item(doc, "TypeScript/JavaScript: Frontend và scripting")
+    add_bullet_item(doc, "Python: AI Agent và automation scripts")
+
+    add_subsection_title(doc, "2.2. Framework và nền tảng chính")
+    add_bullet_item(doc, "Backend: Spring Boot 3.2, Spring Security, Spring Data JPA")
+    add_bullet_item(doc, "Frontend: Next.js 14 (App Router) + React + TypeScript")
+    add_bullet_item(doc, "Database: PostgreSQL 15 (database chính), Redis 7.x (caching)")
+    add_bullet_item(doc, "Message Queue: RabbitMQ 3.12 cho async communication")
+
+    add_subsection_title(doc, "2.3. Công cụ hỗ trợ phát triển và triển khai")
+    add_bullet_item(doc, "IDE và Editor: IntelliJ IDEA, VS Code")
+    add_bullet_item(doc, "Quản lý mã nguồn: Git + GitHub (branch workflow: main/dev/feature)")
+    add_bullet_item(doc, "Container: Docker, Kubernetes (EKS)")
+    add_bullet_item(doc, "CI/CD: GitHub Actions, Terraform (Infrastructure as Code)")
+    add_bullet_item(doc, "AI Services: OpenAI GPT-4 (text), Stability AI SDXL (images), Remove.bg")
+    add_bullet_item(doc, "Monitoring: Prometheus, Grafana")
+
+    add_subsection_title(doc, "2.4. Lý do lựa chọn bộ công nghệ này")
+    add_bullet_item(doc, "Phù hợp xu hướng 2025-2026: Java Spring + Next.js là combo phổ biến cho enterprise apps, "
+        "Python AI cho generative AI applications")
+    add_bullet_item(doc, "Dễ triển khai cho sinh viên: Tài liệu phong phú, cộng đồng lớn, free tier dồi dào")
+    add_bullet_item(doc, "Tính ứng dụng thực tiễn: Hệ thống scalable, có thể mở rộng thành sản phẩm thương mại")
+    add_bullet_item(doc, "Hạn chế: Ưu tiên open-source để tránh phụ thuộc API trả phí, không dùng cloud enterprise full")
 
     # 3. Các kết quả chính dự kiến đạt được
     add_section_title(doc, "3", "Các kết quả chính dự kiến đạt được")
 
-    add_bullet_item(doc, "Hệ thống Core Services (Main Class, User, CMC) hoạt động ổn định")
-    add_bullet_item(doc, "Nền tảng KiteHub Platform với Sale, Message, Maintaining Services")
-    add_bullet_item(doc, "API Gateway tích hợp và điều phối các microservices")
-    add_bullet_item(doc, "Dashboard quản trị trực quan, realtime monitoring")
-    add_bullet_item(doc, "Tài liệu thiết kế hệ thống và hướng dẫn sử dụng đầy đủ")
-    add_bullet_item(doc, "Báo cáo đồ án tốt nghiệp hoàn chỉnh")
+    add_section_content(doc,
+        "Qua quá trình nghiên cứu và thực hiện đề tài, các kết quả chính dự kiến đạt được bao gồm:")
+
+    # Sản phẩm phần mềm
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Sản phẩm phần mềm hoàn chỉnh (MVP):")
+    set_font(run, Pt(13), bold=True)
+
+    add_bullet_item(doc, "KiteHub Platform: Hệ thống quản lý trung tâm với Sale Module, AI Agent Module, "
+        "Maintaining Module")
+    add_bullet_item(doc, "KiteClass Instance: Hệ thống quản lý lớp học với User+Gateway Service, Core Service, "
+        "và Engagement Service (optional)")
+    add_bullet_item(doc, "AI Agent tự động tạo branding: Logo, banner, slogan, color palette (~$0.19/instance)")
+    add_bullet_item(doc, "Auto-provisioning: Tự động triển khai instance mới trong 3-5 phút")
+    add_bullet_item(doc, "Frontend dashboard: Giao diện quản trị trực quan với Next.js")
+
+    # Kết quả kỹ thuật
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Kết quả kỹ thuật và đánh giá:")
+    set_font(run, Pt(13), bold=True)
+
+    add_bullet_item(doc, "Thời gian phản hồi API < 200ms cho 95% requests")
+    add_bullet_item(doc, "Hỗ trợ 1000+ người dùng đồng thời trên mỗi instance")
+    add_bullet_item(doc, "Uptime 99.9% với automatic failover")
+    add_bullet_item(doc, "Báo cáo kiểm thử đầy đủ (unit test, integration test, load test)")
+
+    # Tài liệu
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Tài liệu và sản phẩm phụ:")
+    set_font(run, Pt(13), bold=True)
+
+    add_bullet_item(doc, "Báo cáo đồ án tốt nghiệp hoàn chỉnh với UML diagrams, ERD, API documentation")
+    add_bullet_item(doc, "Slide bảo vệ đồ án và video demo")
+    add_bullet_item(doc, "Mã nguồn trên GitHub với README chi tiết")
+    add_bullet_item(doc, "Tài liệu hướng dẫn triển khai và sử dụng")
+
+    # Giá trị ứng dụng
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(6)
+    run = p.add_run("Giá trị ứng dụng và đóng góp:")
+    set_font(run, Pt(13), bold=True)
+
+    add_bullet_item(doc, "Đề tài mang tính ứng dụng cao: Hỗ trợ các tổ chức giáo dục nhỏ có nền tảng "
+        "quản lý lớp học riêng với chi phí thấp")
+    add_bullet_item(doc, "Đóng góp vào nghiên cứu ứng dụng AI trong giáo dục và kiến trúc Microservices")
+    add_bullet_item(doc, "Kết quả có thể làm nền tảng để mở rộng thành sản phẩm thương mại thực sự")
 
     # 4. Kế hoạch thực hiện đề tài
     add_section_title(doc, "4", "Kế hoạch thực hiện đề tài")
 
-    # Bảng kế hoạch
+    add_section_content(doc,
+        "Kế hoạch thực hiện đề tài được lập theo các giai đoạn chính, với thời gian tổng cộng "
+        "khoảng 4 tháng (từ tháng 2/2026 đến tháng 5/2026). Kế hoạch linh hoạt, có thể điều chỉnh "
+        "theo góp ý của giảng viên hướng dẫn và tiến độ thực tế.")
+
+    # Bảng kế hoạch với ngày cụ thể
     table = doc.add_table(rows=8, cols=4)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
     # Header
     headers = ["STT", "Nội dung công việc", "Thời gian dự kiến", "Ghi chú"]
-    header_widths = [Cm(1.5), Cm(8), Cm(4), Cm(3)]
+    header_widths = [Cm(1.2), Cm(7.5), Cm(4.5), Cm(3)]
 
     for i, (header, width) in enumerate(zip(headers, header_widths)):
         cell = table.rows[0].cells[i]
@@ -355,15 +467,15 @@ def add_content_sections(doc):
         set_font(run, Pt(12), bold=True)
         set_cell_shading(cell, 'D9E2F3')
 
-    # Data rows
+    # Data rows với ngày cụ thể
     plan_data = [
-        ("1", "Nghiên cứu tài liệu, phân tích yêu cầu", "Tuần 1-2", ""),
-        ("2", "Thiết kế kiến trúc tổng thể hệ thống", "Tuần 3-4", ""),
-        ("3", "Phát triển Core Services (Main Class, User, CMC)", "Tuần 5-8", "Phase 1"),
-        ("4", "Phát triển KiteHub Platform", "Tuần 9-12", "Phase 2"),
-        ("5", "Tích hợp, kiểm thử hệ thống", "Tuần 13-14", ""),
-        ("6", "Viết báo cáo, hoàn thiện tài liệu", "Tuần 15-16", ""),
-        ("7", "Bảo vệ đồ án tốt nghiệp", "Tuần 17", ""),
+        ("1", "Nghiên cứu tài liệu, tổng quan đề tài", "01/02 – 21/02/2026", ""),
+        ("2", "Phân tích yêu cầu, thiết kế hệ thống", "22/02 – 07/03/2026", "UML, ERD"),
+        ("3", "Xây dựng KiteHub Platform", "08/03 – 28/03/2026", "Phase 1"),
+        ("4", "Xây dựng KiteClass Core Services", "29/03 – 25/04/2026", "Phase 2"),
+        ("5", "Phát triển AI Agent & Auto-provisioning", "26/04 – 10/05/2026", "Phase 3"),
+        ("6", "Kiểm thử toàn hệ thống, fix bug, deploy", "11/05 – 25/05/2026", ""),
+        ("7", "Hoàn thiện báo cáo, slide, video demo", "26/05 – 31/05/2026", ""),
     ]
 
     for row_idx, (stt, content, time, note) in enumerate(plan_data):

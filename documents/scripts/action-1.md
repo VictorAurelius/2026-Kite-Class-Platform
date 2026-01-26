@@ -185,3 +185,10 @@ còn
 
 2. Cấu trúc nội dung theo DỰ ÁN/TASK
 => chưa đảm bảo theo Huong dan trinh bay bao cao TTTN.pdf đúng không? 
+
+vào thư mực word-report
+hãy đọc claude skill để hiểu context, hãy đọc create_bao_cao_thuc_tap.py và create_de_cuong_datn.py để hiểu báo cáo hiện tại của tôi
+
+hãy đọc CUONG_THAMKHAO_BaoCaoTTTN-DuThao.pdf và CUONG_THAMKHAO_Decuong DATN-DuThao.pdf, tôi thấy nội dung của 2 báo cáo này khá tốt. Tôi cũng muốn 2 báo cáo của tôi có nội dung tốt như này. Dựa vào context hãy thực hiện cập nhật 2 báo cáo của tôi tốt hơn
+
+thực hiện chạy luôn
