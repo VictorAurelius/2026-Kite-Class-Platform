@@ -65,9 +65,9 @@ class JwtAuthenticationIntegrationTest {
         String accessToken = jwtTokenProvider.generateAccessToken(userId, email, roles);
 
         // Then
-        assert jwtTokenProvider.validateToken(accessToken);
+        assert jwtTokenProvider.validateToken(accessToken) != null;
         assert jwtTokenProvider.getUserIdFromToken(accessToken).equals(userId);
-        assert jwtTokenProvider.getTokenType(accessToken) == TokenType.ACCESS;
+        assert jwtTokenProvider.isAccessToken(accessToken);
     }
 
     @Test
@@ -80,9 +80,9 @@ class JwtAuthenticationIntegrationTest {
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
         // Then
-        assert jwtTokenProvider.validateToken(refreshToken);
+        assert jwtTokenProvider.validateToken(refreshToken) != null;
         assert jwtTokenProvider.getUserIdFromToken(refreshToken).equals(userId);
-        assert jwtTokenProvider.getTokenType(refreshToken) == TokenType.REFRESH;
+        assert jwtTokenProvider.isRefreshToken(refreshToken);
     }
 
     @Test
@@ -92,7 +92,13 @@ class JwtAuthenticationIntegrationTest {
         String invalidToken = "invalid.jwt.token";
 
         // When/Then
-        assert !jwtTokenProvider.validateToken(invalidToken);
+        try {
+            jwtTokenProvider.validateToken(invalidToken);
+            assert false : "Should have thrown exception";
+        } catch (Exception e) {
+            // Expected - invalid token should throw exception
+            assert true;
+        }
     }
 
     @Test
@@ -110,11 +116,9 @@ class JwtAuthenticationIntegrationTest {
         // Given
         String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", Arrays.asList("OWNER"));
 
-        // When
-        TokenType tokenType = jwtTokenProvider.getTokenType(accessToken);
-
-        // Then
-        assert tokenType == TokenType.ACCESS;
+        // When/Then
+        assert jwtTokenProvider.isAccessToken(accessToken);
+        assert !jwtTokenProvider.isRefreshToken(accessToken);
         // Application should reject using access token where refresh token is expected
     }
 
@@ -191,8 +195,8 @@ class JwtAuthenticationIntegrationTest {
 
         // Then - Verify all claims can be extracted
         assert jwtTokenProvider.getUserIdFromToken(accessToken).equals(userId);
-        assert jwtTokenProvider.getTokenType(accessToken) == TokenType.ACCESS;
-        assert jwtTokenProvider.validateToken(accessToken);
+        assert jwtTokenProvider.isAccessToken(accessToken);
+        assert jwtTokenProvider.validateToken(accessToken) != null;
         // Note: Email and roles extraction methods would need to be added to JwtTokenProvider
         // or tested through SecurityContextRepository
     }

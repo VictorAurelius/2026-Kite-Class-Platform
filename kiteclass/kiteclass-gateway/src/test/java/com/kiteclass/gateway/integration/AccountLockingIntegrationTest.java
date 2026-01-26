@@ -1,6 +1,7 @@
 package com.kiteclass.gateway.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
@@ -72,19 +73,19 @@ class AccountLockingIntegrationTest {
         testUser.setEmail("locktest@example.com");
         testUser.setName("Lock Test User");
         testUser.setPasswordHash(passwordEncoder.encode("Test@123"));
-        testUser.setStatus("ACTIVE");
+        testUser.setStatus(UserStatus.ACTIVE);
         testUser.setFailedLoginAttempts(0);
         testUser.setLockedUntil(null);
         testUser.setDeleted(false);
 
         // Delete if exists and save
-        userRepository.findByEmail(testUser.getEmail())
+        userRepository.findByEmailAndDeletedFalse(testUser.getEmail())
                 .flatMap(existing -> userRepository.deleteById(existing.getId()))
                 .then(userRepository.save(testUser))
                 .block();
 
         // Refresh test user
-        testUser = userRepository.findByEmail(testUser.getEmail()).block();
+        testUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
     }
 
     @Test
@@ -102,7 +103,7 @@ class AccountLockingIntegrationTest {
                 .expectStatus().isUnauthorized();
 
         // Then - Failed attempts should be 1
-        User updatedUser = userRepository.findByEmail(testUser.getEmail()).block();
+        User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
         assert updatedUser != null;
         assert updatedUser.getFailedLoginAttempts().equals(1);
         assert updatedUser.getLockedUntil() == null; // Not locked yet
@@ -125,7 +126,7 @@ class AccountLockingIntegrationTest {
         }
 
         // Then - Account should be locked
-        User lockedUser = userRepository.findByEmail(testUser.getEmail()).block();
+        User lockedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
         assert lockedUser != null;
         assert lockedUser.getFailedLoginAttempts() >= 5;
         assert lockedUser.getLockedUntil() != null;
@@ -172,7 +173,7 @@ class AccountLockingIntegrationTest {
                 .expectStatus().isOk();
 
         // Then - Failed attempts should be reset to 0
-        User updatedUser = userRepository.findByEmail(testUser.getEmail()).block();
+        User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
         assert updatedUser != null;
         assert updatedUser.getFailedLoginAttempts().equals(0);
         assert updatedUser.getLockedUntil() == null;
@@ -201,7 +202,7 @@ class AccountLockingIntegrationTest {
                 .jsonPath("$.data.accessToken").exists();
 
         // And failed attempts should be reset
-        User updatedUser = userRepository.findByEmail(testUser.getEmail()).block();
+        User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
         assert updatedUser != null;
         assert updatedUser.getFailedLoginAttempts().equals(0);
     }
@@ -221,7 +222,7 @@ class AccountLockingIntegrationTest {
                     .exchange()
                     .expectStatus().isUnauthorized();
 
-            User updatedUser = userRepository.findByEmail(testUser.getEmail()).block();
+            User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
             assert updatedUser != null;
             assert updatedUser.getFailedLoginAttempts().equals(expectedAttempts);
 
