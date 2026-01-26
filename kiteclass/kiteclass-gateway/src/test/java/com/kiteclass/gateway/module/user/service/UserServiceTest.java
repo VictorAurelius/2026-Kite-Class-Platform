@@ -84,6 +84,7 @@ class UserServiceTest {
         when(userMapper.toEntity(any(CreateUserRequest.class))).thenReturn(testUser);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(Mono.just(testUser));
+        when(userRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Mono.just(testUser));
         when(roleRepository.findById(anyLong())).thenReturn(Mono.just(testRole));
         when(userRoleRepository.save(any(UserRole.class))).thenReturn(Mono.just(new UserRole()));
         when(userRoleRepository.findRolesByUserId(anyLong())).thenReturn(Flux.just(testRole));
