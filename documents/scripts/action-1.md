@@ -194,3 +194,7 @@ hãy đọc CUONG_THAMKHAO_BaoCaoTTTN-DuThao.pdf và CUONG_THAMKHAO_Decuong DATN
 thực hiện chạy luôn
 
 lưu vào student-info, kỳ thực tập của tôi là từ 26/06/2025 đến 26/09/2025, sửa lại báo cáo tương ứng
+
+trong thư mục plans, đọc các tài liệu và tạo claude skills tương ứng
+
+đang bị dạng tiếng việt không dấu
