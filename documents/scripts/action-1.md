@@ -206,3 +206,5 @@ tôi chỉ có idea nên không có tài liệu sẵn nào cho bạn, hãy thự
 tôi hiểu kitehub khi thực hiện tạo instance sẽ cho khách hàng chọn theme (UI) của instance. Vậy nên cố định theme của instance, hay nên có chức năng thay đổi theme trên kitehub hay ở instance, hãy tư vấn cho tôi
 
 đã có checklist về code style, java doc hay gì chưa? tôi muốn code luôn chuẩn đó
+
+có skill về định nghĩa enum hoặc các string trong code chưa? có skill về viết test script chưa?
