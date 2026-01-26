@@ -1,11 +1,13 @@
 # KiteClass Implementation Prompts
 
-Danh sách prompts để thực hiện các plans theo thứ tự. Mỗi prompt tương ứng với 1 PR/commit.
+Danh sách prompts để thực hiện các plans theo thứ tự.
 
 **Nguyên tắc bắt buộc:**
 1. Tuân thủ tất cả skills trong `.claude/skills/`
 2. Mỗi module phải có tests đi kèm ngay trong PR đó
 3. Tests nằm trong thư mục `src/test/` (BE) hoặc `src/__tests__/` (FE)
+4. **Branch theo service:** feature/gateway, feature/core, feature/frontend
+5. **Commit sau khi hoàn thành PR**, format ngắn gọn: `feat(service): PR X.X - description`
 
 ---
 
@@ -17,6 +19,7 @@ Danh sách prompts để thực hiện các plans theo thứ tự. Mỗi prompt 
 Thực hiện Phase 1 của kiteclass-gateway-plan.md.
 
 **Tuân thủ skills:**
+- maven-dependencies.md: versions chuẩn, PHẢI check trước khi tạo pom.xml
 - architecture-overview.md: cấu trúc thư mục Backend
 - code-style.md: Java naming conventions, package structure
 - environment-setup.md: cấu hình local dev
@@ -218,6 +221,7 @@ Thực hiện Phase 6 của kiteclass-gateway-plan.md.
 Thực hiện Phase 1 của kiteclass-core-service-plan.md.
 
 **Tuân thủ skills:**
+- maven-dependencies.md: versions chuẩn, PHẢI check trước khi tạo pom.xml
 - architecture-overview.md: cấu trúc thư mục Backend
 - code-style.md: Java naming conventions
 - environment-setup.md: cấu hình local dev
@@ -1021,15 +1025,40 @@ Hoàn thiện Frontend với E2E tests.
 
 # HƯỚNG DẪN SỬ DỤNG
 
+## Branch Strategy
+
+```
+main
+├── feature/gateway     # Tất cả PRs 1.1 - 1.6
+├── feature/core        # Tất cả PRs 2.1 - 2.10
+└── feature/frontend    # Tất cả PRs 3.1 - 3.11
+```
+
+**Quy tắc:**
+- Mỗi service = 1 branch duy nhất
+- Commit sau khi hoàn thành mỗi PR
+- Merge vào main khi hoàn thành service
+
+## Commit Convention
+
+Format ngắn gọn:
+```
+feat(gateway): PR 1.1 - project setup
+feat(gateway): PR 1.2 - common components
+feat(core): PR 2.3 - student module
+fix(frontend): PR 3.5 - login validation
+```
+
 ## Workflow cho mỗi PR
 
 ```
-1. Copy prompt vào Claude
-2. Claude thực hiện code + tests
-3. Chạy tests: mvn test (BE) hoặc pnpm test (FE)
-4. Review code
-5. Commit: git commit -m "feat(module): description"
-6. Tiếp tục prompt tiếp theo
+1. Checkout branch: git checkout feature/{service}
+2. Copy prompt vào Claude
+3. Claude thực hiện code + tests
+4. Chạy tests: mvn test (BE) hoặc pnpm test (FE)
+5. Review code
+6. Commit ngắn gọn: git commit -m "feat(service): PR X.X - description"
+7. Tiếp tục PR tiếp theo trên cùng branch
 ```
 
 ## Test Coverage Requirements
