@@ -16,7 +16,15 @@
       "Bash(find:*)",
       "Bash(python3:*)",
       "Bash(git mv:*)",
-      "Bash(python create_bao_cao_thuc_tap.py:*)"
+      "Bash(python create_bao_cao_thuc_tap.py:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(chmod:*)",
+      "Bash(./mvnw clean:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(tree:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
