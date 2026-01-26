@@ -28,15 +28,48 @@ API Gateway + User Management Service for KiteClass Platform.
 
 ### Guides
 - [Testing Guide](docs/guides/TESTING.md) - How to run tests
+- [Docker Setup Guide](docs/guides/DOCKER-SETUP.md) - Docker setup and deployment
 
 ## 🛠️ Quick Start
 
-### Prerequisites
+Choose your setup method:
 
+### Option 1: Docker Setup (Recommended) 🐳
+
+**Easiest way to get started - no installation needed!**
+
+```bash
+# 1. Copy environment template
+cp .env.example .env
+
+# 2. Start all services (PostgreSQL, Redis, Gateway)
+docker-compose up -d
+
+# 3. Check status
+docker-compose ps
+
+# 4. View logs
+docker-compose logs -f gateway
+
+# 5. Test API
+curl http://localhost:8080/actuator/health
+```
+
+**Done!** Gateway running at http://localhost:8080
+
+See [Docker Setup Guide](docs/guides/DOCKER-SETUP.md) for details.
+
+---
+
+### Option 2: Local Setup (Manual)
+
+**Prerequisites:**
 - Java 17+
 - PostgreSQL 15+
 - Redis 7+
 - Maven 3.9+
+
+**Setup:**
 
 ### Setup
 
