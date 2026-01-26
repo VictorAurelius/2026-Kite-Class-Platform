@@ -139,7 +139,7 @@ class AuthServiceTest {
         StepVerifier.create(authService.login(request))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
-                        ((BusinessException) error).getMessageCode().equals(MessageCodes.AUTH_INVALID_CREDENTIALS)
+                        ((BusinessException) error).getCode().equals(MessageCodes.AUTH_INVALID_CREDENTIALS)
                 )
                 .verify();
 
@@ -186,7 +186,7 @@ class AuthServiceTest {
         StepVerifier.create(authService.login(request))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
-                        ((BusinessException) error).getMessageCode().equals(MessageCodes.AUTH_ACCOUNT_LOCKED)
+                        ((BusinessException) error).getCode().equals(MessageCodes.AUTH_ACCOUNT_LOCKED)
                 )
                 .verify();
 
@@ -206,7 +206,7 @@ class AuthServiceTest {
         StepVerifier.create(authService.login(request))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
-                        ((BusinessException) error).getMessageCode().equals(MessageCodes.AUTH_ACCOUNT_INACTIVE)
+                        ((BusinessException) error).getCode().equals(MessageCodes.AUTH_ACCOUNT_INACTIVE)
                 )
                 .verify();
 
@@ -275,7 +275,7 @@ class AuthServiceTest {
         StepVerifier.create(authService.refreshToken(request))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
-                        ((BusinessException) error).getMessageCode().equals(MessageCodes.AUTH_REFRESH_TOKEN_EXPIRED)
+                        ((BusinessException) error).getCode().equals(MessageCodes.AUTH_REFRESH_TOKEN_EXPIRED)
                 )
                 .verify();
 
