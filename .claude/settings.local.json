@@ -32,7 +32,15 @@
       "Bash(sudo apt update:*)",
       "Bash(sudo -S apt update:*)",
       "Bash(sudo -S apt install:*)",
-      "Bash(export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64)"
+      "Bash(export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64)",
+      "Bash(bash mvnw clean compile -DskipTests)",
+      "Bash(dos2unix:*)",
+      "Bash(git config:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(javac:*)",
+      "Bash(export PATH:*)",
+      "Bash(grep:*)",
+      "Bash(git status:*)"
     ]
   }
 }

@@ -251,9 +251,20 @@ mật khẩu là vkiet432
 sao file UserMapperImpl báo lỗi error nhiều thế?
 
 tôi thấy messgae vẫn đang hard-code, thực hiện fix và chạy test lại
-  Tôi đang làm dự án KiteClass Gateway. Vừa hoàn thành PR 1.3 (User Module).                             
-                                                                                                         
+  Tôi đang làm dự án KiteClass Gateway. Vừa hoàn thành PR 1.3 (User Module).                                            
   Đọc context từ file này:
   /mnt/e/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/PR-1.3-SUMMARY.md
 
   Bây giờ tôi muốn implement PR 1.4 (Auth Module). Giúp tôi bắt đầu.
+
+bạn phải làm cả A B C, cập nhật pr-1 để bổ sung cho tất cả prompt
+
+lưu vào env cho project: user name: VictorAurelius, user email: vankiet14491@gmail.com
+
+pass của wsl root: vkiet432
+
+bạn đã thực hiện test cho pr-1.4 chưa?
+
+thực hiện check trong skill xem có đề cập đến vấn đề: đối với các file được tạo ra trong quá trình thực hiện prompt như: báo cáo md, script thì phải được lưu trữ ở thư mục riêng, phân loại rõ ràng, có quy tắc đặt tên cụ thể => tránh nhiều file ở folder code 
+
+=> thực hiện cập nhật skill, cập nhật pr-1, move và cập nhật các file đã tồn tại
