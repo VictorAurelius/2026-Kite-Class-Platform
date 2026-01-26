@@ -210,3 +210,15 @@ tôi hiểu kitehub khi thực hiện tạo instance sẽ cho khách hàng chọ
 có skill về định nghĩa enum hoặc các string trong code chưa? có skill về viết test script chưa?
 
 đã có skill về phát triển ở dev dùng gì và cấu hình cloud thì như thế nào chưa?
+
+bây giờ, trong plans thực hiện tạo plan cho claude để create backend instance core-service
+
+trong kiến trúc hiện tại, đang có 3 service nhỉ
+
+cần cả plan cho FE của instance đúng không?
+
+tôi hiểu khi code phải kết quả FE và BE nên cần plan rõ ràng để code lần lượt đúng không?
+
+bây giờ tôi cần các câu prompt để bắt đầu thực hiện plan lần lượt
+
+ghi prompt vào scripts/pr-1.md
