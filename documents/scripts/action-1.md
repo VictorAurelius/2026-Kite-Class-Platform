@@ -198,3 +198,9 @@ lưu vào student-info, kỳ thực tập của tôi là từ 26/06/2025 đến 
 trong thư mục plans, đọc các tài liệu và tạo claude skills tương ứng
 
 đang bị dạng tiếng việt không dấu
+
+theo bạn để bắt đầu code project kietclass này cần thêm claude skill gì nữa không?
+
+tôi chỉ có idea nên không có tài liệu sẵn nào cho bạn, hãy thực hiện tạo luôn
+
+tôi hiểu kitehub khi thực hiện tạo instance sẽ cho khách hàng chọn theme (UI) của instance. Vậy nên cố định theme của instance, hay nên có chức năng thay đổi theme trên kitehub hay ở instance, hãy tư vấn cho tôi
