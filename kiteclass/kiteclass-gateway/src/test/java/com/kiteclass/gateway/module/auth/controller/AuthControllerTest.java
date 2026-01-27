@@ -52,7 +52,7 @@ class AuthControllerTest {
                         .id(1L)
                         .email("test@example.com")
                         .name("Test User")
-                        .roles(Arrays.asList("OWNER"))
+                        .roles(List.of("OWNER"))
                         .build())
                 .build();
 
@@ -148,7 +148,7 @@ class AuthControllerTest {
                         .id(1L)
                         .email("test@example.com")
                         .name("Test User")
-                        .roles(Arrays.asList("OWNER"))
+                        .roles(List.of("OWNER"))
                         .build())
                 .build();
 
