@@ -230,7 +230,7 @@ ls -la docs/
 
 ---
 
-#### 9. Update Quick-Start (`update-quick-start.md`) ⚠️ CRITICAL
+#### 9. Update Documentation (`development-workflow.md` Part 4) ⚠️ CRITICAL
 
 **Verification Steps:**
 ```bash
@@ -256,7 +256,7 @@ cat docs/QUICK-START.md | head -30
 
 ---
 
-#### 10. Update Plan Tracking (`update-plan-tracking.md`) ⚠️ CRITICAL
+#### 10. Update Plan Tracking (`development-workflow.md` Part 4.1) ⚠️ CRITICAL
 
 **Verification Steps:**
 ```bash
@@ -309,7 +309,7 @@ ls -la .claude/skills/
 
 ### Phase 5: Git & Workflow
 
-#### 12. Git Workflow (`git-workflow.md`)
+#### 12. Git Workflow (`development-workflow.md` Part 1)
 
 **Verification Steps:**
 ```bash
@@ -334,7 +334,7 @@ git status
 
 ---
 
-#### 13. PR Commit Workflow (`pr-commit-workflow.md`)
+#### 13. PR & Commit Workflow (`development-workflow.md` Parts 1-2)
 
 **Verification Steps:**
 ```bash
@@ -364,7 +364,7 @@ git diff --cached --stat
 
 ### Phase 6: Feature-Specific (if applicable)
 
-#### 14. Feature Development Checklist (`feature-development-checklist.md`)
+#### 14. Feature Development Checklist (`development-workflow.md` Part 2)
 
 **When Applicable:** New feature implementation (not just refactoring/fixes)
 
@@ -379,7 +379,7 @@ git diff --cached --stat
 
 ---
 
-#### 15. I18n Messages (`i18n-messages.md`)
+#### 15. I18n Messages (`frontend-development.md` Part 3)
 
 **When Applicable:** User-facing messages added/changed
 
@@ -396,7 +396,7 @@ git diff --cached | grep -E "(messages\.properties|MessageSource)"
 
 ---
 
-#### 16. Theme System (`theme-system.md`)
+#### 16. Theme System (`frontend-development.md` Part 2)
 
 **When Applicable:** UI components added/changed (frontend PRs)
 
@@ -408,7 +408,7 @@ git diff --cached | grep -E "(messages\.properties|MessageSource)"
 
 ---
 
-#### 17. UI Components (`ui-components.md`)
+#### 17. UI Components (`frontend-development.md` Part 1)
 
 **When Applicable:** Reusable UI components added (frontend PRs)
 
@@ -559,11 +559,11 @@ Based on past PRs, these are the MOST COMMON violations to watch for:
 
 ---
 
-## 📝 Integration with pr-commit-workflow.md
+## 📝 Integration with development-workflow.md
 
-This checklist is referenced in `pr-commit-workflow.md` as a **required step before commit**.
+This checklist is referenced in `development-workflow.md` as a **required step before commit**.
 
-**Updated pr-commit-workflow.md should include:**
+**development-workflow.md includes:**
 
 ```markdown
 ## Step 3: Skills Compliance Verification ⚠️ REQUIRED
@@ -595,5 +595,5 @@ When you have completed this entire checklist, you can proceed to commit with co
 ---
 
 **Last Updated:** 2026-01-27
-**Related Skills:** pr-commit-workflow.md, git-workflow.md, update-quick-start.md, update-plan-tracking.md, code-style.md, testing-guide.md
+**Related Skills:** development-workflow.md, frontend-development.md, code-style.md, testing-guide.md, troubleshooting.md
 **Author:** KiteClass Team
