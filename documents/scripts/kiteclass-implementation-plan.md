@@ -632,7 +632,9 @@ Implement UserType + ReferenceId pattern để liên kết Gateway User với Co
 
 # GIAI ĐOẠN 2: KITECLASS-CORE
 
-## 🚧 PR 2.1 - Core Project Setup (IN PROGRESS)
+## ✅ PR 2.1 - Core Project Setup
+
+**Status:** ✅ COMPLETE (2026-01-27)
 
 ```
 Thực hiện Phase 1 của kiteclass-core-service-plan.md.
