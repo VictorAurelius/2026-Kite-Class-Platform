@@ -41,26 +41,28 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ⏳ PR 2.8: Invoice & Payment Module
 - ⏳ PR 2.9: Settings & Parent Module
 - ⏳ PR 2.10: Core Docker & Final Integration
-- ⏳ **PR 2.11: Internal APIs for Gateway** *(added to fix cross-service linking)*
+- ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 
-**Core Status:** 3/11 PRs completed (27.3%) ✅ PR 2.3 COMPLETE
-**Tests:** 40/40 passing (100%) - 22 common + 13 student unit + 5 controller tests
-**Latest:** PR 2.3 Student Module complete with full CRUD, caching, validation
-**Test Configuration:**
-- ✅ StudentRepositoryTest: Conditional on Docker (ENABLE_INTEGRATION_TESTS=true)
-- ✅ StudentControllerTest: TestSecurityConfig added
-**⚠️ NEXT PRIORITY:** PR 2.11 Internal APIs for Gateway (cross-service linking)
+**Core Status:** 4/11 PRs completed (36.4%) ✅ PR 2.11 COMPLETE
+**Tests:** 50/50 passing (100%) - 40 from PR 2.3 + 10 internal API tests
+**Latest:** PR 2.11 Internal APIs complete - InternalRequestFilter + InternalStudentController
+**Cross-Service APIs Ready:**
+- ✅ GET /internal/students/{id} - Retrieve student profile
+- ✅ POST /internal/students - Create student during registration
+- ✅ DELETE /internal/students/{id} - Soft delete student
+**🚨 NEXT PRIORITY:** PR 1.8 Gateway Integration (now unblocked)
 
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 10/30 PRs completed (33.3%)
-**Last Updated:** 2026-01-27 (PR 2.3 COMPLETE ✅)
+**Overall Progress:** 11/30 PRs completed (36.7%)
+**Last Updated:** 2026-01-27 (PR 2.11 COMPLETE ✅)
 **Current Work:**
-- ✅ COMPLETED: PR 2.3 test fixes (security config + Docker condition)
-- 🚨 NEXT PRIORITY: Implement PR 2.11 (Internal APIs for Gateway)
-- Then: PR 1.8 (Gateway Cross-Service Integration)
-**After Cross-Service Fix:** PR 2.4 - Course Module
+- ✅ COMPLETED: PR 2.3 Student Module (tests fixed)
+- ✅ COMPLETED: PR 2.11 Internal APIs (cross-service communication ready)
+- 🚨 NEXT PRIORITY: PR 1.8 Gateway Integration (UserType + ReferenceId + Feign Client)
+- Then switch to feature/gateway branch for PR 1.8
+**After PR 1.8:** Return to Core for PR 2.4 - Course Module
 
 ---
 
@@ -1090,11 +1092,13 @@ Hoàn thiện kiteclass-core.
 
 ---
 
-## 🚨 PR 2.11 - Internal APIs for Gateway (CRITICAL FIX)
+## ✅ PR 2.11 - Internal APIs for Gateway (CRITICAL FIX)
 
-**Priority:** 🚨 HIGH - Must complete BEFORE PR 1.8 (Gateway Cross-Service Integration)
-**Status:** ⏳ PENDING
-**Dependencies:** Can start immediately after PR 2.3 (Student Module)
+**Status:** ✅ COMPLETE (2026-01-27)
+**Tests:** 10/10 passing (100%)
+**Commit:** f13097f
+**Dependencies:** PR 2.3 Student Module (completed)
+**Unblocks:** PR 1.8 Gateway Cross-Service Integration
 
 ```
 Tạo Internal APIs để Gateway có thể lấy profile data cho Student/Teacher/Parent.
@@ -1802,17 +1806,22 @@ Frontend: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 ←──────────�
 
 | Giai đoạn | PRs | Có Tests | Status |
 |-----------|-----|----------|--------|
-| Gateway | 8 | 7 (từ 1.2) | ⚠️ 7/8 complete, PR 1.8 pending |
-| Core | 11 | 10 (từ 2.2) | ✅ 3/11 complete, PR 2.3 DONE, PR 2.11 next |
+| Gateway | 8 | 7 (từ 1.2) | ⚠️ 7/8 complete, PR 1.8 next (unblocked) |
+| Core | 11 | 10 (từ 2.2) | ✅ 4/11 complete, PR 2.11 DONE |
 | Frontend | 11 | 10 (từ 3.2) | ⏳ Not started |
-| **Tổng** | **30** | **27** | **10/30 completed (33.3%)** |
+| **Tổng** | **30** | **27** | **11/30 completed (36.7%)** |
 
 **Recent Updates (2026-01-27):**
 - ✅ PR 2.3 Student Module COMPLETE
-  - Fixed StudentControllerTest with TestSecurityConfig
-  - Fixed StudentRepositoryTest with Docker condition
-  - All 40 tests passing (100%)
   - Commits: 92a9979 (implementation), fa348df (test fixes)
+  - 40 tests passing (100%)
+
+- ✅ PR 2.11 Internal APIs COMPLETE
+  - Commit: f13097f
+  - InternalRequestFilter (security for /internal/** endpoints)
+  - InternalStudentController (GET/POST/DELETE)
+  - 10 tests passing (100%)
+  - Unblocks PR 1.8 Gateway Integration
 
 ## 🚨 Critical Issues Found
 
