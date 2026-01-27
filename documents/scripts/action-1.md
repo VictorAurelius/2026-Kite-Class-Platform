@@ -285,3 +285,9 @@ thực hiện check lại:
 tôi chưa thấy cập nhật pr-1.md theo đúng các prompt đã thực hiện? bạn cũng nên triển khai đúng kế hoạch vào pr-1.md
 
 file documents/scripts/pr-1.md nhé, đây là file plan prompt, nên quick start luôn phải tham chiếu đến plan prompt của service đó => có thể đổi tên pr-1.md cho đúng hơn
+
+trước khi thực hiện nội dung của option 1 bạn phải làm gì? nếu theo đúng skill tôi mong muốn sẽ là:
+1. merge nhánh feature/gateway vào main: vì đã phát triển trong gateway
+2. tạo nhánh mới cho core service
+
+=> sau đó mới tiếp tục phát triển, hãy check lại skill xem có đảm bảo không?
