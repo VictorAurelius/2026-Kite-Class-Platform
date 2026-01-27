@@ -4,6 +4,8 @@
 
 **IMPORTANT: All prompts are in English, but Claude should communicate in Vietnamese for easier user control.**
 
+**📋 Full Implementation Plan:** See `/mnt/e/person/2026-Kite-Class-Platform/documents/scripts/kiteclass-implementation-plan.md` for the complete 27-PR roadmap with status tracking.
+
 ---
 
 ## 🎯 Current Status
@@ -266,6 +268,7 @@ git merge feature/pr-2.1-core-integration
 
 ## 📚 Important Files
 
+- **📋 Full Implementation Plan:** `/mnt/e/person/2026-Kite-Class-Platform/documents/scripts/kiteclass-implementation-plan.md`
 - **Project Overview:** `README.md`
 - **PR Summaries:** `docs/pr-summaries/PR-*.md`
 - **Setup Guides:** `docs/guides/DOCKER-SETUP.md`, `docs/guides/TESTING.md`
