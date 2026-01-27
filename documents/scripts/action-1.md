@@ -307,3 +307,16 @@ kiểm tra lại auth và student, cập nhật nếu cần thiết
 auth-module.md vẫn ở dạng tiếng Anh, ngoài ra tôi vẫn chưa hiểu mối quan hệ giữa record student (hoặc teacher, parent) đối với record user sẽ như thế nào để giúp các actor này login vào gateway => hiện đang thiết kế như thế nào? hãy bổ sung vào báo cáo
 
 vậy tài liệu kiến trúc hệ thống đã có thiết sót lớn trong vụ này, việc tách gateway và core-service tôi hiểu là 1 phương án tối ưu và đã được xem xét kỹ, nhưng lại có vấn đề này, vậy cần xem lại kiến trúc hệ thống trước
+
+đọc lại documents/reports/system-architecture-v3-final.md và giải thích lại cho tôi tại sao lại nên tách gateway và core-service
+
+tốt, hãy viết nội dung này thành 1 báo cáo md nhé
+
+cập nhật kiteclass-implementation-plan để thực hiện fix hết các vấn đề
+
+chưa cập nhật status như PR 1.1, 1.2, ... cho PR 2.1, 2.2, ...
+đã thực hiện PR 2.3 hãy cập nhật status chính xác (tôi nhớ là bạn báo PR 2.3 vẫn chưa thực hiện xong đó)
+
+cập nhật skill sao cho nhớ mỗi khi hết 1 lần prompt phải cập nhật status vào plan đó
+
+tốt, bây giờ trong plan đang có khá nhiều vấn đề, hãy tự tạo thứ tự ưu tiên fix và thực hiện fix

@@ -42,7 +42,8 @@
       "Bash(grep:*)",
       "Bash(git status:*)",
       "Bash(git checkout:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(mvn test:*)"
     ]
   }
 }
