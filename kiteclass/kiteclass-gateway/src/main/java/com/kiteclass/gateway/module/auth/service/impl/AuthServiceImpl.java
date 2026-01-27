@@ -3,12 +3,15 @@ package com.kiteclass.gateway.module.auth.service.impl;
 import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.common.exception.BusinessException;
+import com.kiteclass.gateway.config.EmailProperties;
 import com.kiteclass.gateway.module.auth.dto.ForgotPasswordRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
+import com.kiteclass.gateway.module.auth.entity.PasswordResetToken;
 import com.kiteclass.gateway.module.auth.entity.RefreshToken;
+import com.kiteclass.gateway.module.auth.repository.PasswordResetTokenRepository;
 import com.kiteclass.gateway.module.auth.repository.RefreshTokenRepository;
 import com.kiteclass.gateway.module.auth.service.AuthService;
 import com.kiteclass.gateway.module.user.entity.User;
@@ -16,6 +19,7 @@ import com.kiteclass.gateway.module.user.repository.UserRepository;
 import com.kiteclass.gateway.module.user.repository.UserRoleRepository;
 import com.kiteclass.gateway.security.jwt.JwtProperties;
 import com.kiteclass.gateway.security.jwt.JwtTokenProvider;
+import com.kiteclass.gateway.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Implementation of authentication service.
@@ -49,9 +54,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtProperties jwtProperties;
+    private final EmailProperties emailProperties;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final long LOCK_DURATION_MINUTES = 30;
@@ -122,29 +130,117 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public Mono<Void> forgotPassword(ForgotPasswordRequest request) {
         log.info("Forgot password request for email: {}", request.email());
 
-        // TODO: Implement email sending with reset token
-        // For now, just log and return success
         return userRepository.findByEmailAndDeletedFalse(request.email())
                 .flatMap(user -> {
-                    // Generate reset token and save to database
-                    // Send email with reset link
-                    log.info("Password reset email would be sent to: {}", request.email());
-                    return Mono.empty();
+                    // Check if account is active
+                    if (user.getStatus() != UserStatus.ACTIVE) {
+                        log.warn("Password reset requested for inactive account: {}", request.email());
+                        // Don't reveal account status for security reasons, just return success
+                        return Mono.empty();
+                    }
+
+                    // Generate unique reset token
+                    String resetToken = UUID.randomUUID().toString();
+
+                    // Create token entity
+                    PasswordResetToken tokenEntity = PasswordResetToken.builder()
+                            .token(resetToken)
+                            .userId(user.getId())
+                            .expiresAt(Instant.now().plusMillis(emailProperties.getResetTokenExpiration()))
+                            .createdAt(Instant.now())
+                            .build();
+
+                    // Delete any existing reset tokens for this user
+                    return passwordResetTokenRepository.deleteByUserId(user.getId())
+                            .then(passwordResetTokenRepository.save(tokenEntity))
+                            .flatMap(savedToken -> {
+                                // Send password reset email
+                                return emailService.sendPasswordResetEmail(
+                                        user.getEmail(),
+                                        user.getName(),
+                                        resetToken
+                                );
+                            })
+                            .doOnSuccess(v -> log.info("Password reset email sent to: {}", request.email()))
+                            .onErrorResume(e -> {
+                                log.error("Failed to send password reset email to: {}", request.email(), e);
+                                // Don't fail the request if email sending fails
+                                // The token is still valid in database
+                                return Mono.empty();
+                            });
                 })
-                .then();
+                // Always return success (even if email not found) for security
+                .then()
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.warn("Password reset requested for non-existent email: {}", request.email());
+                    return Mono.empty();
+                }));
     }
 
     @Override
     @Transactional
     public Mono<Void> resetPassword(ResetPasswordRequest request) {
-        log.info("Reset password request");
+        log.info("Reset password request with token");
 
-        // TODO: Validate reset token and update password
-        // For now, just return success
-        return Mono.empty();
+        return passwordResetTokenRepository.findByToken(request.token())
+                .switchIfEmpty(Mono.error(new BusinessException(
+                        MessageCodes.PASSWORD_RESET_TOKEN_INVALID,
+                        HttpStatus.BAD_REQUEST
+                )))
+                .flatMap(token -> {
+                    // Check if token is expired
+                    if (token.isExpired()) {
+                        return passwordResetTokenRepository.delete(token)
+                                .then(Mono.error(new BusinessException(
+                                        MessageCodes.PASSWORD_RESET_TOKEN_EXPIRED,
+                                        HttpStatus.BAD_REQUEST
+                                )));
+                    }
+
+                    // Check if token has been used
+                    if (token.isUsed()) {
+                        return Mono.error(new BusinessException(
+                                MessageCodes.PASSWORD_RESET_TOKEN_USED,
+                                HttpStatus.BAD_REQUEST
+                        ));
+                    }
+
+                    // Get user and update password
+                    return userRepository.findById(token.getUserId())
+                            .filter(user -> Boolean.FALSE.equals(user.getDeleted()))
+                            .switchIfEmpty(Mono.error(new BusinessException(
+                                    MessageCodes.USER_NOT_FOUND,
+                                    HttpStatus.NOT_FOUND
+                            )))
+                            .flatMap(user -> {
+                                // Update password
+                                user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+
+                                // Reset failed login attempts if any
+                                user.setFailedLoginAttempts(0);
+                                user.setLockedUntil(null);
+
+                                // Save user
+                                return userRepository.save(user)
+                                        .then(Mono.defer(() -> {
+                                            // Mark token as used
+                                            token.setUsedAt(Instant.now());
+                                            return passwordResetTokenRepository.save(token);
+                                        }))
+                                        .then(Mono.defer(() -> {
+                                            // Delete all refresh tokens for security
+                                            log.info("Invalidating all refresh tokens for user: {}", user.getId());
+                                            return refreshTokenRepository.deleteByUserId(user.getId());
+                                        }))
+                                        .then();
+                            });
+                })
+                .doOnSuccess(v -> log.info("Password reset successful"))
+                .doOnError(e -> log.warn("Password reset failed: {}", e.getMessage()));
     }
 
     /**

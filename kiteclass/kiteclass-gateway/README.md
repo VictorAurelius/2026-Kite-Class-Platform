@@ -16,7 +16,9 @@ API Gateway + User Management Service for KiteClass Platform.
 
 ### Pull Request Summaries
 - [PR 1.3: User Module](docs/pr-summaries/PR-1.3-SUMMARY.md)
-- [PR 1.4: Auth Module](docs/pr-summaries/PR-1.4-SUMMARY.md) ⭐ **Latest**
+- [PR 1.4: Auth Module](docs/pr-summaries/PR-1.4-SUMMARY.md)
+- [PR 1.4.1: Docker + Tests](docs/pr-summaries/PR-1.4.1-SUMMARY.md)
+- [PR 1.5: Email Service](docs/pr-summaries/PR-1.5-SUMMARY.md) ⭐ **Latest**
 
 ### Test Reports
 - [Test Results (Final)](docs/test-reports/TEST-RESULTS-FINAL.md)
@@ -248,9 +250,9 @@ Coming soon in future PRs.
 - [x] PR 1.1: Project Setup
 - [x] PR 1.2: Common Components
 - [x] PR 1.3: User Module
-- [x] PR 1.4: Auth Module ⭐ **Current**
-- [ ] PR 1.4.1: Docker Setup & Integration Tests ⚠️ **HIGH PRIORITY**
-- [ ] PR 1.5: Email Service (Optional)
+- [x] PR 1.4: Auth Module
+- [x] PR 1.4.1: Docker Setup & Integration Tests
+- [x] PR 1.5: Email Service ⭐ **Current**
 - [ ] PR 2.1: Core Service Integration
 
 ## 👥 Contributors

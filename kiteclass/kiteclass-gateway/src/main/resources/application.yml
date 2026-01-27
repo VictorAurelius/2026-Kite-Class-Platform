@@ -30,6 +30,29 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+  # Email Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # Thymeleaf (for email templates)
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+
   # Cloud Gateway
   cloud:
     gateway:
@@ -91,6 +114,12 @@ jwt:
   secret: ${JWT_SECRET:your-super-secret-key-min-512-bits-long-for-hs512-algorithm-security}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}      # 1 hour
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days
+
+# Email Configuration
+email:
+  from: ${EMAIL_FROM:KiteClass <noreply@kiteclass.com>}
+  base-url: ${APP_BASE_URL:http://localhost:3000}
+  reset-token-expiration: ${EMAIL_RESET_TOKEN_EXPIRATION:3600000}  # 1 hour
 
 # Rate Limiting
 rate-limit:

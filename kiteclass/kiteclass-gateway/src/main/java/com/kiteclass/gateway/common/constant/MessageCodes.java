@@ -31,6 +31,14 @@ public final class MessageCodes {
     public static final String AUTH_REFRESH_TOKEN_INVALID = "error.auth.refresh_token_invalid";
     public static final String AUTH_REFRESH_TOKEN_EXPIRED = "error.auth.refresh_token_expired";
 
+    // Password reset codes
+    public static final String PASSWORD_RESET_TOKEN_INVALID = "error.password_reset.token_invalid";
+    public static final String PASSWORD_RESET_TOKEN_EXPIRED = "error.password_reset.token_expired";
+    public static final String PASSWORD_RESET_TOKEN_USED = "error.password_reset.token_used";
+
+    // User codes
+    public static final String USER_NOT_FOUND = "error.user.not_found";
+
     // Validation codes
     public static final String VALIDATION_REQUIRED = "validation.required";
     public static final String VALIDATION_MIN_LENGTH = "validation.min_length";
