@@ -88,6 +88,8 @@ spring:
 
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - LoggingFilter
+        - RateLimitingFilter
 
       globalcors:
         corsConfigurations:
@@ -124,8 +126,9 @@ email:
 # Rate Limiting
 rate-limit:
   enabled: true
-  requests-per-second: 100
-  burst-capacity: 200
+  unauthenticated-requests-per-minute: 100    # 100 requests/minute per IP
+  authenticated-requests-per-minute: 1000     # 1000 requests/minute per user
+  time-window-seconds: 60                     # Time window for rate limiting
 
 # Logging
 logging:
