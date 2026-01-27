@@ -291,3 +291,5 @@ trước khi thực hiện nội dung của option 1 bạn phải làm gì? nế
 2. tạo nhánh mới cho core service
 
 => sau đó mới tiếp tục phát triển, hãy check lại skill xem có đảm bảo không?
+
+quick-start của core service đâu? bạn đã đảm bảo các skill chưa? làm sao để luôn đảm bảo skill nhé
