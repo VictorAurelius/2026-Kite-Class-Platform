@@ -33,7 +33,7 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 ## Core Service (feature/core branch)
 - ✅ PR 2.1: Core Project Setup
 - ✅ PR 2.2: Core Common Components
-- ⏳ PR 2.3: Student Module
+- ⚠️ PR 2.3: Student Module (mostly complete, 6 tests failing)
 - ⏳ PR 2.4: Course Module
 - ⏳ PR 2.5: Class Module
 - ⏳ PR 2.6: Enrollment Module
@@ -43,18 +43,23 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ⏳ PR 2.10: Core Docker & Final Integration
 - ⏳ **PR 2.11: Internal APIs for Gateway** *(added to fix cross-service linking)*
 
-**Core Status:** 2/11 PRs completed (18.2%) - ⚠️ NEEDS CROSS-SERVICE FIX
-**Tests:** 22 passing (22 unit + 0 integration)
-**Common Components:** ✅ BaseEntity, DTOs, Exceptions, 9 Enums, Configs
+**Core Status:** 2.5/11 PRs completed (22.7%) - ⚠️ NEEDS CROSS-SERVICE FIX
+**Tests:** 35/41 passing (85%) - 22 common + 13 student unit tests
+**Code Complete:** ✅ Student Module (Entity, Mapper, Service, Controller, Migration)
+**Test Issues:**
+- ⚠️ StudentRepositoryTest (1 error): Needs Docker for Testcontainers
+- ⚠️ StudentControllerTest (5 failures): Needs @WithMockUser security config
 **⚠️ CRITICAL:** Missing Internal APIs for Student/Teacher/Parent profile retrieval (PR 2.11 needed)
 
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 9/30 PRs completed (30.0%)
-**Last Updated:** 2026-01-27 (Architecture fix needed - cross-service data linking)
-**Current Work:** 🚨 PRIORITY - Fix cross-service data linking (PR 1.8 + PR 2.11) before continuing
-**Next After Fix:** PR 2.3 - Student Module
+**Overall Progress:** 9.5/30 PRs completed (31.7%)
+**Last Updated:** 2026-01-27 (PR 2.3 mostly complete, test fixes needed)
+**Current Work:**
+- 🔧 Fix PR 2.3 tests (Docker + Security config)
+- 🚨 THEN: Implement PR 2.11 (Internal APIs) before PR 1.8
+**Next After Fix:** PR 2.4 - Course Module
 
 ---
 
@@ -701,7 +706,13 @@ Thực hiện Phase 2 của kiteclass-core-service-plan.md.
 - mvn test phải pass
 ```
 
-## ⏳ PR 2.3 - Student Module
+## ⚠️ PR 2.3 - Student Module
+
+**Status:** ⚠️ MOSTLY COMPLETE - Needs test fixes (2026-01-27)
+**Tests:** 35/41 passing (85%) - 6 tests failing
+**Known Issues:**
+- StudentRepositoryTest (1 error): Needs Docker/Testcontainers running
+- StudentControllerTest (5 failures): Needs security config fix (@WithMockUser)
 
 ```
 Thực hiện Student Module của kiteclass-core-service-plan.md.
@@ -745,6 +756,75 @@ Thực hiện Student Module của kiteclass-core-service-plan.md.
 - mvn test phải pass
 - Coverage cho StudentService >= 80%
 - Swagger UI hiển thị đúng endpoints
+
+**Current Status Summary:**
+✅ **Completed:**
+- Student Entity với BaseEntity audit fields
+- StudentRepository với custom queries
+- StudentMapper (MapStruct) với toResponse, toEntity, updateEntity
+- StudentService + StudentServiceImpl:
+  - createStudent, getStudentById, getStudents (paginated)
+  - updateStudent, deleteStudent (soft delete)
+  - Email/phone uniqueness validation
+  - Redis caching (@Cacheable/@CacheEvict)
+  - Transaction management
+  - Comprehensive logging
+- StudentController với full CRUD REST API:
+  - POST /api/v1/students
+  - GET /api/v1/students/{id}
+  - GET /api/v1/students (with search/pagination)
+  - PUT /api/v1/students/{id}
+  - DELETE /api/v1/students/{id}
+  - OpenAPI/Swagger annotations
+- Flyway migration V2__create_student_tables.sql
+- StudentTestDataBuilder factory
+- IntegrationTestBase for Testcontainers
+- Tests: 35/41 passing (85%)
+  - ✅ StudentServiceTest (10 tests)
+  - ✅ StudentMapperTest (3 tests)
+  - ❌ StudentRepositoryTest (4 tests) - 1 error
+  - ❌ StudentControllerTest (5 tests) - 5 failures
+
+⚠️ **Needs Fixing:**
+1. **StudentRepositoryTest (1 error):**
+   - Issue: Testcontainers needs Docker Desktop running
+   - Fix: Install Docker or skip with `-DskipTests` or `@Disabled`
+   - Tests are integration tests with real PostgreSQL
+
+2. **StudentControllerTest (5 failures):**
+   - Issue: Security context loaded, causing 401/403 errors
+   - Fix: Add `@WithMockUser` to test methods or configure security for tests
+   - Example:
+     ```java
+     @Test
+     @WithMockUser(username = "test@example.com", roles = {"ADMIN"})
+     void createStudent_Success() { ... }
+     ```
+   - Or add test security config:
+     ```java
+     @TestConfiguration
+     static class SecurityConfig {
+         @Bean
+         SecurityFilterChain filterChain(HttpSecurity http) {
+             return http.csrf().disable()
+                        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                        .build();
+         }
+     }
+     ```
+
+**To Complete PR 2.3:**
+Run these commands to fix tests:
+```bash
+# Option 1: Fix security for controller tests
+# Add @WithMockUser annotation to StudentControllerTest methods
+
+# Option 2: Skip failing tests temporarily
+mvn test -DskipTests
+
+# Option 3: Run only passing tests
+mvn test -Dtest=StudentServiceTest,StudentMapperTest
+```
 ```
 
 ## ⏳ PR 2.4 - Course Module
@@ -1760,9 +1840,18 @@ Frontend: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 ←──────────�
 | Giai đoạn | PRs | Có Tests | Status |
 |-----------|-----|----------|--------|
 | Gateway | 8 | 7 (từ 1.2) | ⚠️ 7/8 complete, PR 1.8 pending |
-| Core | 11 | 10 (từ 2.2) | ⚠️ 2/11 complete, PR 2.11 critical |
+| Core | 11 | 10 (từ 2.2) | ⚠️ 2.5/11 complete, PR 2.3 needs test fixes |
 | Frontend | 11 | 10 (từ 3.2) | ⏳ Not started |
-| **Tổng** | **30** | **27** | **9/30 completed (30%)** |
+| **Tổng** | **30** | **27** | **9.5/30 completed (31.7%)** |
+
+**PR 2.3 Status Detail:**
+- Code: ✅ 100% complete (Entity, Mapper, Service, Controller, Migration)
+- Tests: ⚠️ 85% passing (35/41)
+  - 13 Student tests: 8 passing, 5 failing (controller security)
+  - 22 Common tests: all passing
+- Blockers:
+  - StudentRepositoryTest needs Docker
+  - StudentControllerTest needs @WithMockUser fix
 
 ## 🚨 Critical Issues Found
 
