@@ -23,6 +23,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Integration tests for account locking functionality.
  * Tests failed login attempts tracking and automatic account locking.
@@ -86,6 +88,7 @@ class AccountLockingIntegrationTest {
 
         // Refresh test user
         testUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
+        assertThat(testUser).isNotNull();
     }
 
     @Test
@@ -104,9 +107,9 @@ class AccountLockingIntegrationTest {
 
         // Then - Failed attempts should be 1
         User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
-        assert updatedUser != null;
-        assert updatedUser.getFailedLoginAttempts().equals(1);
-        assert updatedUser.getLockedUntil() == null; // Not locked yet
+        assertThat(updatedUser).isNotNull();
+        assertThat(updatedUser.getFailedLoginAttempts()).isEqualTo(1);
+        assertThat(updatedUser.getLockedUntil()).isNull(); // Not locked yet
     }
 
     @Test
@@ -127,10 +130,10 @@ class AccountLockingIntegrationTest {
 
         // Then - Account should be locked
         User lockedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
-        assert lockedUser != null;
-        assert lockedUser.getFailedLoginAttempts() >= 5;
-        assert lockedUser.getLockedUntil() != null;
-        assert lockedUser.getLockedUntil().isAfter(Instant.now());
+        assertThat(lockedUser).isNotNull();
+        assertThat(lockedUser.getFailedLoginAttempts()).isGreaterThanOrEqualTo(5);
+        assertThat(lockedUser.getLockedUntil()).isNotNull();
+        assertThat(lockedUser.getLockedUntil()).isAfter(Instant.now());
     }
 
     @Test
@@ -174,9 +177,9 @@ class AccountLockingIntegrationTest {
 
         // Then - Failed attempts should be reset to 0
         User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
-        assert updatedUser != null;
-        assert updatedUser.getFailedLoginAttempts().equals(0);
-        assert updatedUser.getLockedUntil() == null;
+        assertThat(updatedUser).isNotNull();
+        assertThat(updatedUser.getFailedLoginAttempts()).isEqualTo(0);
+        assertThat(updatedUser.getLockedUntil()).isNull();
     }
 
     @Test
@@ -203,8 +206,8 @@ class AccountLockingIntegrationTest {
 
         // And failed attempts should be reset
         User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
-        assert updatedUser != null;
-        assert updatedUser.getFailedLoginAttempts().equals(0);
+        assertThat(updatedUser).isNotNull();
+        assertThat(updatedUser.getFailedLoginAttempts()).isEqualTo(0);
     }
 
     @Test
@@ -223,13 +226,13 @@ class AccountLockingIntegrationTest {
                     .expectStatus().isUnauthorized();
 
             User updatedUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
-            assert updatedUser != null;
-            assert updatedUser.getFailedLoginAttempts().equals(expectedAttempts);
+            assertThat(updatedUser).isNotNull();
+            assertThat(updatedUser.getFailedLoginAttempts()).isEqualTo(expectedAttempts);
 
             if (expectedAttempts < 5) {
-                assert updatedUser.getLockedUntil() == null; // Not locked yet
+                assertThat(updatedUser.getLockedUntil()).isNull(); // Not locked yet
             } else {
-                assert updatedUser.getLockedUntil() != null; // Locked at 5th attempt
+                assertThat(updatedUser.getLockedUntil()).isNotNull(); // Locked at 5th attempt
             }
         }
     }

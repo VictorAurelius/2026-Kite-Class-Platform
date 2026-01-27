@@ -59,7 +59,7 @@ class JwtAuthenticationIntegrationTest {
         // Given
         Long userId = 1L;
         String email = "test@example.com";
-        List<String> roles = Arrays.asList("OWNER", "ADMIN");
+        List<String> roles = List.of("OWNER", "ADMIN");
 
         // When
         String accessToken = jwtTokenProvider.generateAccessToken(userId, email, roles);
@@ -114,7 +114,7 @@ class JwtAuthenticationIntegrationTest {
     @DisplayName("Access token with wrong type should not be usable as refresh token")
     void shouldRejectAccessTokenAsRefreshToken() {
         // Given
-        String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", Arrays.asList("OWNER"));
+        String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", List.of("OWNER"));
 
         // When/Then
         assert jwtTokenProvider.isAccessToken(accessToken);
@@ -129,7 +129,7 @@ class JwtAuthenticationIntegrationTest {
         String accessToken = jwtTokenProvider.generateAccessToken(
                 1L,
                 "owner@kiteclass.local",
-                Arrays.asList("OWNER")
+                List.of("OWNER")
         );
 
         // When/Then - Access protected endpoint (user list requires OWNER role)
@@ -171,7 +171,7 @@ class JwtAuthenticationIntegrationTest {
         String accessToken = jwtTokenProvider.generateAccessToken(
                 1L,
                 "owner@kiteclass.local",
-                Arrays.asList("OWNER")
+                List.of("OWNER")
         );
 
         // When/Then
@@ -188,7 +188,7 @@ class JwtAuthenticationIntegrationTest {
         // Given
         Long userId = 1L;
         String email = "test@example.com";
-        List<String> roles = Arrays.asList("OWNER", "ADMIN");
+        List<String> roles = List.of("OWNER", "ADMIN");
 
         // When
         String accessToken = jwtTokenProvider.generateAccessToken(userId, email, roles);

@@ -218,7 +218,7 @@ class RolePermissionIntegrationTest {
         String multiRoleToken = jwtTokenProvider.generateAccessToken(
                 6L,
                 "multi@example.com",
-                Arrays.asList("ADMIN", "STAFF")
+                List.of("ADMIN", "STAFF")
         );
 
         // When/Then - Should have ADMIN permissions (highest role)
