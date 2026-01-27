@@ -1,0 +1,52 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    # Expose PostgreSQL for direct access from host
+    ports:
+      - "5432:5432"
+    environment:
+      # Enable query logging for debugging
+      POSTGRES_LOG_STATEMENT: all
+      POSTGRES_LOG_DURATION: "on"
+
+  redis:
+    # Expose Redis for direct access from host
+    ports:
+      - "6379:6379"
+    # Disable persistence in dev for faster performance
+    command: redis-server --save "" --appendonly no
+
+  gateway:
+    # Use local build instead of image
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build  # Stop at build stage for faster rebuilds
+
+    # Mount source code for hot reload (with Spring DevTools)
+    volumes:
+      - ./src:/app/src
+      - ./target:/app/target
+      - ~/.m2:/root/.m2  # Mount Maven cache
+
+    # Development environment variables
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      LOGGING_LEVEL_COM_KITECLASS: DEBUG
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_R2DBC: DEBUG
+
+    # Override command for development mode
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+    # Expose debug port
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+
+    # Don't restart on failure in dev (easier debugging)
+    restart: "no"
