@@ -1,0 +1,27 @@
+#!/bin/sh
+# Maven Wrapper script
+# Simplified version that downloads Maven if needed
+
+set -e
+
+MAVEN_VERSION="3.9.6"
+MAVEN_HOME="${HOME}/.m2/wrapper/dists/apache-maven-${MAVEN_VERSION}"
+MAVEN_BIN="${MAVEN_HOME}/bin/mvn"
+
+if [ ! -f "${MAVEN_BIN}" ]; then
+    echo "Downloading Maven ${MAVEN_VERSION}..."
+    mkdir -p "${MAVEN_HOME}"
+    DOWNLOAD_URL="https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "${DOWNLOAD_URL}" | tar -xz -C "${MAVEN_HOME}" --strip-components=1
+    elif command -v wget >/dev/null 2>&1; then
+        wget -q -O - "${DOWNLOAD_URL}" | tar -xz -C "${MAVEN_HOME}" --strip-components=1
+    else
+        echo "Error: Neither curl nor wget found"
+        exit 1
+    fi
+fi
+
+BASEDIR=$(cd "$(dirname "$0")" && pwd)
+exec "${MAVEN_BIN}" "$@" -f "${BASEDIR}/pom.xml"

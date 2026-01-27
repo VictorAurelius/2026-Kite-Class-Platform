@@ -285,3 +285,46 @@ thực hiện check lại:
 tôi chưa thấy cập nhật pr-1.md theo đúng các prompt đã thực hiện? bạn cũng nên triển khai đúng kế hoạch vào pr-1.md
 
 file documents/scripts/pr-1.md nhé, đây là file plan prompt, nên quick start luôn phải tham chiếu đến plan prompt của service đó => có thể đổi tên pr-1.md cho đúng hơn
+
+trước khi thực hiện nội dung của option 1 bạn phải làm gì? nếu theo đúng skill tôi mong muốn sẽ là:
+1. merge nhánh feature/gateway vào main: vì đã phát triển trong gateway
+2. tạo nhánh mới cho core service
+
+=> sau đó mới tiếp tục phát triển, hãy check lại skill xem có đảm bảo không?
+
+quick-start của core service đâu? bạn đã đảm bảo các skill chưa? làm sao để luôn đảm bảo skill nhé
+
+đối với core service mỗi module đều có 1 nghiệp vụ riêng, hãy tạo skill để có thể đặc tả được nghiệp của module trong hệ thống
+
+tài liệu của core service thì phải để trong docs của core service chứ
+
+ngoài ra các skill đang khá nhiều, hãy thực hiện ph ân loại và kết hợp nếu hợp lý => sửa skill thì phải update prompt plan và tài liệu liên quan đó
+
+sửa lại skill về tạo báo cáo business-logic => luôn ở dạng tiếng việt, mục đích là để tôi đọc nên phải luôn dễ đọc dễ hiểu
+
+kiểm tra lại auth và student, cập nhật nếu cần thiết
+
+auth-module.md vẫn ở dạng tiếng Anh, ngoài ra tôi vẫn chưa hiểu mối quan hệ giữa record student (hoặc teacher, parent) đối với record user sẽ như thế nào để giúp các actor này login vào gateway => hiện đang thiết kế như thế nào? hãy bổ sung vào báo cáo
+
+vậy tài liệu kiến trúc hệ thống đã có thiết sót lớn trong vụ này, việc tách gateway và core-service tôi hiểu là 1 phương án tối ưu và đã được xem xét kỹ, nhưng lại có vấn đề này, vậy cần xem lại kiến trúc hệ thống trước
+
+đọc lại documents/reports/system-architecture-v3-final.md và giải thích lại cho tôi tại sao lại nên tách gateway và core-service
+
+tốt, hãy viết nội dung này thành 1 báo cáo md nhé
+
+cập nhật kiteclass-implementation-plan để thực hiện fix hết các vấn đề
+
+chưa cập nhật status như PR 1.1, 1.2, ... cho PR 2.1, 2.2, ...
+đã thực hiện PR 2.3 hãy cập nhật status chính xác (tôi nhớ là bạn báo PR 2.3 vẫn chưa thực hiện xong đó)
+
+cập nhật skill sao cho nhớ mỗi khi hết 1 lần prompt phải cập nhật status vào plan đó
+
+tốt, bây giờ trong plan đang có khá nhiều vấn đề, hãy tự tạo thứ tự ưu tiên fix và thực hiện fix
+
+có lỗi trong file test internal controller
+The constructor CreateStudentRequest(null, String, null, null, null, null, null, null) is undefined
+
+2. 🎯 Ready for PR 1.8 Gateway Integration
+=> trước hết hãy merge feature/core vào main, sau đó tạo nhánh mới để do PR 1.8, sau đó merge vào main và tạo nhánh mới để do PR tiếp theo trong plan (2.4, ..)
+
+=> code luôn phải thống nhất

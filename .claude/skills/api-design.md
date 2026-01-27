@@ -84,11 +84,23 @@ POST   /api/v1/students/{id}/enroll         # Đăng ký học
     "id": 1,
     "email": "user@example.com",
     "name": "Nguyễn Văn A",
+    "userType": "TEACHER",
     "roles": ["TEACHER"],
     "permissions": ["CLASS_VIEW", "ATTENDANCE_MARK"]
+  },
+  "profile": {
+    "teacherId": 456,
+    "department": "Toán học",
+    "specialization": "Giải tích",
+    "bio": "10 năm kinh nghiệm"
   }
 }
 ```
+
+**Note:**
+- Nếu `userType = STUDENT`, `profile` sẽ có `studentId`, `dateOfBirth`, `status`
+- Nếu `userType = PARENT`, `profile` sẽ có `parentId`, `children`
+- Nếu `userType = ADMIN/STAFF`, `profile` sẽ là `null`
 
 ### POST /api/v1/auth/refresh
 Refresh access token.
@@ -517,6 +529,157 @@ X-Tenant-Id: 12345
 Content-Type: application/json
 Accept: application/json
 ```
+
+---
+
+## Service-to-Service Communication
+
+### Gateway → Core Service
+
+Gateway Service cần gọi Core Service để lấy business entity profiles.
+
+#### GET /api/v1/students/{id}
+**Truy cập:** Internal (từ Gateway Service)
+**Mục đích:** Lấy student profile sau khi login
+
+**Request Headers:**
+```http
+X-Service-Token: <internal-secret>
+X-Request-Source: gateway
+```
+
+**Response (200):**
+```json
+{
+  "data": {
+    "id": 456,
+    "name": "Nguyễn Văn An",
+    "email": "student@example.com",
+    "phone": "0912345678",
+    "dateOfBirth": "2010-05-15",
+    "gender": "MALE",
+    "status": "ACTIVE",
+    "avatarUrl": "https://cdn.example.com/student-456.jpg"
+  }
+}
+```
+
+#### GET /api/v1/teachers/{id}
+**Truy cập:** Internal (từ Gateway Service)
+**Mục đích:** Lấy teacher profile sau khi login
+
+**Response (200):**
+```json
+{
+  "data": {
+    "id": 789,
+    "name": "Trần Thị Bình",
+    "email": "teacher@example.com",
+    "department": "Toán học",
+    "specialization": "Giải tích",
+    "bio": "10 năm kinh nghiệm giảng dạy"
+  }
+}
+```
+
+#### GET /api/v1/parents/{id}
+**Truy cập:** Internal (từ Gateway Service)
+**Mục đích:** Lấy parent profile và danh sách children
+
+**Response (200):**
+```json
+{
+  "data": {
+    "id": 123,
+    "name": "Nguyễn Văn Cha",
+    "email": "parent@example.com",
+    "phone": "0909123456",
+    "children": [
+      {
+        "studentId": 456,
+        "studentName": "Nguyễn Văn An",
+        "relationship": "father"
+      }
+    ]
+  }
+}
+```
+
+### Core → Gateway Service (Optional)
+
+Core Service có thể gọi Gateway để verify permissions.
+
+#### GET /api/v1/users/{id}/permissions
+**Truy cập:** Internal (từ Core Service)
+**Mục đích:** Verify user permissions
+
+**Request Headers:**
+```http
+X-Service-Token: <internal-secret>
+X-Request-Source: core
+```
+
+**Response (200):**
+```json
+{
+  "data": {
+    "userId": 1,
+    "roles": ["TEACHER", "CLASS_MANAGER"],
+    "permissions": [
+      "CLASS:VIEW",
+      "CLASS:MANAGE",
+      "ATTENDANCE:MARK",
+      "STUDENT:VIEW"
+    ]
+  }
+}
+```
+
+### X-Headers Injected by Gateway
+
+Gateway tự động thêm headers cho **tất cả requests** đến downstream services:
+
+```http
+X-User-Id: 123
+X-User-Email: user@example.com
+X-User-Roles: TEACHER,ADMIN
+X-User-Type: TEACHER
+X-Reference-Id: 456
+X-Tenant-Id: abc
+```
+
+**Core Service sử dụng headers này:**
+
+```java
+@GetMapping("/students")
+public PageResponse<StudentDTO> getStudents(
+    @RequestHeader("X-User-Id") Long userId,
+    @RequestHeader("X-User-Type") String userType,
+    @RequestHeader("X-Reference-Id") Long referenceId,
+    Pageable pageable
+) {
+    // Authorization logic
+    if ("TEACHER".equals(userType)) {
+        // Teacher chỉ xem students trong classes của mình
+        return studentService.getStudentsByTeacher(referenceId, pageable);
+    }
+    // ...
+}
+```
+
+### Service Authentication
+
+**Cách 1: Shared Secret**
+```yaml
+# application.yml (Gateway & Core)
+services:
+  auth:
+    internal-token: ${INTERNAL_SERVICE_TOKEN}
+```
+
+**Cách 2: mTLS (Mutual TLS)**
+- Certificate-based authentication
+- Sử dụng trong production
 
 ---
 

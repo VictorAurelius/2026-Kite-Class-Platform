@@ -40,7 +40,10 @@
       "Bash(javac:*)",
       "Bash(export PATH:*)",
       "Bash(grep:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(mvn test:*)"
     ]
   }
 }

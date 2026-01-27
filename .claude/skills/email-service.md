@@ -545,7 +545,7 @@ curl -X POST http://localhost:8080/api/v1/auth/reset-password \
 
 ## Related Skills
 
-- [Auth Module](auth-module.md) - Password reset integration
+- [Auth Module](../kiteclass-core/docs/modules/auth-module.md) - Password reset integration
 - [Testing Guide](testing-guide.md) - Unit & integration tests
 - [API Design](api-design.md) - REST endpoint conventions
 - [Database Design](database-design.md) - Token storage schema
