@@ -5,6 +5,7 @@ import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.testutil.IntegrationTestBase;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,9 +15,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Integration tests for {@link StudentRepository}.
  *
+ * <p><strong>IMPORTANT:</strong> These tests require Docker to be running
+ * as they use Testcontainers with PostgreSQL.
+ *
+ * <p>To run these tests:
+ * <ul>
+ *   <li>Start Docker Desktop (or Docker daemon)</li>
+ *   <li>Set environment variable: ENABLE_INTEGRATION_TESTS=true</li>
+ *   <li>Run: mvn test -DENABLE_INTEGRATION_TESTS=true</li>
+ * </ul>
+ *
+ * <p>These tests are disabled by default to allow running unit tests
+ * without Docker dependency.
+ *
  * @author KiteClass Team
  * @since 2.3.0
  */
+@EnabledIfEnvironmentVariable(named = "ENABLE_INTEGRATION_TESTS", matches = "true")
 class StudentRepositoryTest extends IntegrationTestBase {
 
     @Autowired
