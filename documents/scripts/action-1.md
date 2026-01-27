@@ -283,3 +283,5 @@ thực hiện check lại:
 => vậy còn các skill khác thì sao? PR 1.5 đã đảm bảo các skill đó chưa?
 
 tôi chưa thấy cập nhật pr-1.md theo đúng các prompt đã thực hiện? bạn cũng nên triển khai đúng kế hoạch vào pr-1.md
+
+file documents/scripts/pr-1.md nhé, đây là file plan prompt, nên quick start luôn phải tham chiếu đến plan prompt của service đó => có thể đổi tên pr-1.md cho đúng hơn
