@@ -1,15 +1,28 @@
+# Test profile configuration
 spring:
-  test:
-    mockmvc:
-      print: false
-    context:
-      bean:
-        override:
-          enabled: true  # Enable bean override for @MockitoBean
-  main:
-    banner-mode: off
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+          ssl:
+            trust: "*"
+        debug: false
 
+email:
+  from: test@kiteclass.com
+  base-url: http://localhost:3000
+  reset-token-expiration: 3600000
+
+# Logging for tests
 logging:
   level:
-    root: WARN
-    com.kiteclass: INFO
+    root: INFO
+    com.kiteclass: DEBUG
+    org.springframework.mail: DEBUG

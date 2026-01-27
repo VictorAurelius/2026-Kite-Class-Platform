@@ -268,3 +268,12 @@ bạn đã thực hiện test cho pr-1.4 chưa?
 thực hiện check trong skill xem có đề cập đến vấn đề: đối với các file được tạo ra trong quá trình thực hiện prompt như: báo cáo md, script thì phải được lưu trữ ở thư mục riêng, phân loại rõ ràng, có quy tắc đặt tên cụ thể => tránh nhiều file ở folder code 
 
 => thực hiện cập nhật skill, cập nhật pr-1, move và cập nhật các file đã tồn tại
+
+thực hiện check lại:
+1. session code vừa rồi đã đảm bảo các skill hiện tại chưa (có vẻ QUICK-START không đề cập đến skill) và tôi thấy bạn chưa commit => có vẻ chưa đảm bảo skill thật, hãy check lại pr-1
+
+2. tạo skill để sau mỗi prompt => thực hiện cập nhật quick-start để lưu context (phòng trường hợp clear context), Ngoài ra quick-start có thể viết bằng thuần tiếng anh nhưng phải có note là nói chuyện bằng tiếng việt để tôi dễ điều khiển
+
+3. tôi thấy quick-start thực hiện pr ngoài pr-1, hãy cập nhật lại cả pr-1 cho đầy đủ
+
+4. kế hoạch tiếp theo là gì, những manual test mà tôi có thể thực hiện bằng giao diện đã được chưa?
