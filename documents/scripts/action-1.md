@@ -226,3 +226,62 @@ ghi prompt vào scripts/pr-1.md
 tôi cần mỗi prompt bạn phải nhấn mạnh tuân thủ skill và đối với các lần prompt cần script test thì luôn phải có script test chuẩn ở thư mục riêng. không dồn test về cuối
 
 do PR 1.1
+
+thực hiện tạo nhánh mới và commit, cấu hình auto yes với claude
+
+git config user.email "vankiet14491@gmail.com" && git config user.name "VictorAurelius"
+
+sửa skills commint => commit ngắn gọn
+sửa pr-1 => commit sau khi hoàn thành pr
+sửa tạo branch => tạo chuẩn branch thay gì mỗi pr 1 branch
+
+sao file pom.xml tôi thấy đang báo error, check lại pr 1.1
+
+sau khi gặp nhiều lỗi như này, cập nhật skill hoặc prompt để tránh các lỗi trong tương lai
+
+thực hiện commit? prompt chưa đề cập sao?
+
+UserRepositoryTest:
+Resource leak: '<unassigned Closeable value>' is never closed
+
+bạn đã thực hiện test cho tôi chưa?
+
+mật khẩu là vkiet432
+
+sao file UserMapperImpl báo lỗi error nhiều thế?
+
+tôi thấy messgae vẫn đang hard-code, thực hiện fix và chạy test lại
+  Tôi đang làm dự án KiteClass Gateway. Vừa hoàn thành PR 1.3 (User Module).                                            
+  Đọc context từ file này:
+  /mnt/e/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/PR-1.3-SUMMARY.md
+
+  Bây giờ tôi muốn implement PR 1.4 (Auth Module). Giúp tôi bắt đầu.
+
+bạn phải làm cả A B C, cập nhật pr-1 để bổ sung cho tất cả prompt
+
+lưu vào env cho project: user name: VictorAurelius, user email: vankiet14491@gmail.com
+
+pass của wsl root: vkiet432
+
+bạn đã thực hiện test cho pr-1.4 chưa?
+
+thực hiện check trong skill xem có đề cập đến vấn đề: đối với các file được tạo ra trong quá trình thực hiện prompt như: báo cáo md, script thì phải được lưu trữ ở thư mục riêng, phân loại rõ ràng, có quy tắc đặt tên cụ thể => tránh nhiều file ở folder code 
+
+=> thực hiện cập nhật skill, cập nhật pr-1, move và cập nhật các file đã tồn tại
+
+thực hiện check lại:
+1. session code vừa rồi đã đảm bảo các skill hiện tại chưa (có vẻ QUICK-START không đề cập đến skill) và tôi thấy bạn chưa commit => có vẻ chưa đảm bảo skill thật, hãy check lại pr-1
+
+2. tạo skill để sau mỗi prompt => thực hiện cập nhật quick-start để lưu context (phòng trường hợp clear context), Ngoài ra quick-start có thể viết bằng thuần tiếng anh nhưng phải có note là nói chuyện bằng tiếng việt để tôi dễ điều khiển
+
+3. tôi thấy quick-start thực hiện pr ngoài pr-1, hãy cập nhật lại cả pr-1 cho đầy đủ
+
+4. kế hoạch tiếp theo là gì, những manual test mà tôi có thể thực hiện bằng giao diện đã được chưa?
+
+
+  - Đã commit code PR 1.5 theo đúng git workflow
+=> vậy còn các skill khác thì sao? PR 1.5 đã đảm bảo các skill đó chưa?
+
+tôi chưa thấy cập nhật pr-1.md theo đúng các prompt đã thực hiện? bạn cũng nên triển khai đúng kế hoạch vào pr-1.md
+
+file documents/scripts/pr-1.md nhé, đây là file plan prompt, nên quick start luôn phải tham chiếu đến plan prompt của service đó => có thể đổi tên pr-1.md cho đúng hơn

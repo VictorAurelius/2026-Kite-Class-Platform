@@ -1,22 +1,55 @@
 # KiteClass Implementation Prompts
 
-Danh sách prompts để thực hiện các plans theo thứ tự. Mỗi prompt tương ứng với 1 PR/commit.
+Danh sách prompts để thực hiện các plans theo thứ tự.
 
 **Nguyên tắc bắt buộc:**
 1. Tuân thủ tất cả skills trong `.claude/skills/`
 2. Mỗi module phải có tests đi kèm ngay trong PR đó
 3. Tests nằm trong thư mục `src/test/` (BE) hoặc `src/__tests__/` (FE)
+4. **Branch theo service:** feature/gateway, feature/core, feature/frontend
+5. **Commit sau khi hoàn thành PR**, format ngắn gọn: `feat(service): PR X.X - description`
+
+---
+
+# 📊 PROGRESS TRACKING
+
+## Gateway Service (feature/gateway branch)
+- ✅ PR 1.1: Project Setup
+- ✅ PR 1.2: Common Components
+- ✅ PR 1.3: User Module
+- ✅ PR 1.4: Auth Module
+- ✅ **PR 1.4.1**: Docker Setup & Integration Tests *(added to plan)*
+- ✅ **PR 1.5**: Email Service *(added to plan)*
+- ✅ **PR 1.6**: Gateway Configuration (Rate Limiting + Logging)
+
+**Gateway Status:** 7/7 PRs completed (100%) ✅ COMPLETE
+**Tests:** 95 passing (55 unit + 40 integration)
+**Docker:** ✅ PostgreSQL, Redis configured
+**Email:** ✅ Integrated with Thymeleaf templates
+**Rate Limiting:** ✅ Bucket4j (100 req/min IP, 1000 req/min user)
+**Logging:** ✅ Request/Response logging with correlation IDs
+
+## Core Service (feature/core branch)
+⏳ **NOT STARTED** - All 10 PRs pending
+
+## Frontend (feature/frontend branch)
+⏳ **NOT STARTED** - All 11 PRs pending
+
+**Overall Progress:** 7/27 PRs completed (25.9%)
+**Last Updated:** 2026-01-27 (PR 1.6 - Gateway Configuration)
+**Current Work:** Gateway Service ✅ COMPLETE - Ready for PR 2.1 Core Integration
 
 ---
 
 # GIAI ĐOẠN 1: KITECLASS-GATEWAY
 
-## PR 1.1 - Gateway Project Setup
+## ✅ PR 1.1 - Gateway Project Setup
 
 ```
 Thực hiện Phase 1 của kiteclass-gateway-plan.md.
 
 **Tuân thủ skills:**
+- maven-dependencies.md: versions chuẩn, PHẢI check trước khi tạo pom.xml
 - architecture-overview.md: cấu trúc thư mục Backend
 - code-style.md: Java naming conventions, package structure
 - environment-setup.md: cấu hình local dev
@@ -32,7 +65,7 @@ Thực hiện Phase 1 của kiteclass-gateway-plan.md.
 - Application context loads thành công
 ```
 
-## PR 1.2 - Gateway Common Components
+## ✅ PR 1.2 - Gateway Common Components
 
 ```
 Thực hiện Phase 2 của kiteclass-gateway-plan.md.
@@ -60,7 +93,7 @@ Thực hiện Phase 2 của kiteclass-gateway-plan.md.
 - mvn test phải pass tất cả tests
 ```
 
-## PR 1.3 - User Module
+## ✅ PR 1.3 - User Module
 
 ```
 Thực hiện Phase 3 (User Module) của kiteclass-gateway-plan.md.
@@ -97,7 +130,7 @@ Thực hiện Phase 3 (User Module) của kiteclass-gateway-plan.md.
 - Coverage cho UserService >= 80%
 ```
 
-## PR 1.4 - Auth Module
+## ✅ PR 1.4 - Auth Module
 
 ```
 Thực hiện Phase 4 (Auth Module) của kiteclass-gateway-plan.md.
@@ -139,7 +172,89 @@ Thực hiện Phase 4 (Auth Module) của kiteclass-gateway-plan.md.
 - Test login success/failure
 ```
 
-## PR 1.5 - Gateway Configuration
+---
+
+### ✅ PR 1.4.1 - Docker Setup & Integration Tests *(ADDED TO PLAN)*
+
+**Note:** This PR was added between 1.4 and 1.5 to complete Docker infrastructure early.
+
+```
+Hoàn thiện Docker setup và integration tests với Testcontainers.
+
+**Tuân thủ skills:**
+- database-design.md: Flyway migrations
+- cloud-infrastructure.md: Docker configuration
+- testing-guide.md: integration tests with Testcontainers
+
+**Tasks:**
+1. Tạo Flyway migrations (V1-V4):
+   - V1: Create schema
+   - V2: Create users table
+   - V3: Create roles & permissions
+   - V4: Seed default owner account
+2. Tạo docker-compose.yml với PostgreSQL, Redis
+3. Viết integration tests với Testcontainers
+4. Document Docker setup
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/gateway/integration/
+  - UserIntegrationTest.java (13 tests)
+  - AuthIntegrationTest.java (9 tests)
+  - JwtIntegrationTest.java (10 tests)
+
+**Verification:**
+- docker-compose up thành công
+- Integration tests pass với Testcontainers
+- Login với owner@kiteclass.local / Admin@123 thành công
+```
+
+---
+
+### ✅ PR 1.5 - Email Service *(ADDED TO PLAN)*
+
+**Note:** This PR was added to implement email functionality needed for password reset.
+
+```
+Thực hiện Email Service với Spring Boot Mail và Thymeleaf.
+
+**Tuân thủ skills:**
+- code-style.md: Service patterns, reactive wrapping
+- api-design.md: Password reset endpoints
+- database-design.md: password_reset_tokens table
+- testing-guide.md: testing async operations
+
+**Tasks:**
+1. Add dependencies: spring-boot-starter-mail, spring-boot-starter-thymeleaf
+2. Tạo EmailService interface và EmailServiceImpl:
+   - sendPasswordResetEmail()
+   - sendWelcomeEmail()
+   - sendAccountLockedEmail()
+   - Wrap blocking JavaMailSender với Mono + boundedElastic
+3. Tạo PasswordResetToken entity và repository
+4. Integrate với AuthService:
+   - forgotPassword() endpoint
+   - resetPassword() endpoint
+5. Tạo HTML email templates với Thymeleaf
+6. Configure SMTP settings (Gmail)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/gateway/service/
+  - EmailServiceTest.java (5 unit tests)
+- src/test/java/com/kiteclass/gateway/integration/
+  - PasswordResetIntegrationTest.java (8 integration tests)
+
+**Verification:**
+- mvn test phải pass (82 total tests)
+- Email sending works with real SMTP
+- Password reset flow hoàn chỉnh
+```
+
+---
+
+## ✅ PR 1.6 - Gateway Configuration (ORIGINAL PR 1.5)
+
+**Note:** This is the original PR 1.5 from the plan, renumbered to 1.6 after additions.
+**Status:** ✅ COMPLETE (2026-01-27)
 
 ```
 Thực hiện Phase 5 (Gateway Configuration) của kiteclass-gateway-plan.md.
@@ -172,7 +287,11 @@ Thực hiện Phase 5 (Gateway Configuration) của kiteclass-gateway-plan.md.
 - Test rate limiting với nhiều requests
 ```
 
-## PR 1.6 - Gateway Database & Docker
+## ✅ PR 1.7 - Gateway Database & Docker (ORIGINAL PR 1.6)
+
+**Note:** This is the original PR 1.6, renumbered to 1.7. Most tasks already completed in PR 1.4.1.
+
+**Status:** ✅ MOSTLY COMPLETE via PR 1.4.1
 
 ```
 Thực hiện Phase 6 của kiteclass-gateway-plan.md.
@@ -212,12 +331,13 @@ Thực hiện Phase 6 của kiteclass-gateway-plan.md.
 
 # GIAI ĐOẠN 2: KITECLASS-CORE
 
-## PR 2.1 - Core Project Setup
+## ⏳ PR 2.1 - Core Project Setup
 
 ```
 Thực hiện Phase 1 của kiteclass-core-service-plan.md.
 
 **Tuân thủ skills:**
+- maven-dependencies.md: versions chuẩn, PHẢI check trước khi tạo pom.xml
 - architecture-overview.md: cấu trúc thư mục Backend
 - code-style.md: Java naming conventions
 - environment-setup.md: cấu hình local dev
@@ -233,7 +353,7 @@ Thực hiện Phase 1 của kiteclass-core-service-plan.md.
 - Application context loads thành công
 ```
 
-## PR 2.2 - Core Common Components
+## ⏳ PR 2.2 - Core Common Components
 
 ```
 Thực hiện Phase 2 của kiteclass-core-service-plan.md.
@@ -275,7 +395,7 @@ Thực hiện Phase 2 của kiteclass-core-service-plan.md.
 - mvn test phải pass
 ```
 
-## PR 2.3 - Student Module
+## ⏳ PR 2.3 - Student Module
 
 ```
 Thực hiện Student Module của kiteclass-core-service-plan.md.
@@ -321,7 +441,7 @@ Thực hiện Student Module của kiteclass-core-service-plan.md.
 - Swagger UI hiển thị đúng endpoints
 ```
 
-## PR 2.4 - Course Module
+## ⏳ PR 2.4 - Course Module
 
 ```
 Thực hiện Course Module của kiteclass-core-service-plan.md.
@@ -358,7 +478,7 @@ Thực hiện Course Module của kiteclass-core-service-plan.md.
 - Coverage >= 80%
 ```
 
-## PR 2.5 - Class Module
+## ⏳ PR 2.5 - Class Module
 
 ```
 Thực hiện Class Module của kiteclass-core-service-plan.md.
@@ -401,7 +521,7 @@ Thực hiện Class Module của kiteclass-core-service-plan.md.
 - Test session generation logic
 ```
 
-## PR 2.6 - Enrollment Module
+## ⏳ PR 2.6 - Enrollment Module
 
 ```
 Thực hiện Enrollment Module của kiteclass-core-service-plan.md.
@@ -444,7 +564,7 @@ Thực hiện Enrollment Module của kiteclass-core-service-plan.md.
 - Business rules được enforce đúng
 ```
 
-## PR 2.7 - Attendance Module
+## ⏳ PR 2.7 - Attendance Module
 
 ```
 Thực hiện Attendance Module của kiteclass-core-service-plan.md.
@@ -490,7 +610,7 @@ Thực hiện Attendance Module của kiteclass-core-service-plan.md.
 - RabbitMQ event được publish
 ```
 
-## PR 2.8 - Invoice & Payment Module
+## ⏳ PR 2.8 - Invoice & Payment Module
 
 ```
 Thực hiện Invoice & Payment Module của kiteclass-core-service-plan.md.
@@ -545,7 +665,7 @@ Thực hiện Invoice & Payment Module của kiteclass-core-service-plan.md.
 - Financial calculations chính xác
 ```
 
-## PR 2.9 - Settings & Parent Module
+## ⏳ PR 2.9 - Settings & Parent Module
 
 ```
 Thực hiện Settings và Parent Module của kiteclass-core-service-plan.md.
@@ -587,7 +707,7 @@ Thực hiện Settings và Parent Module của kiteclass-core-service-plan.md.
 - mvn test phải pass
 ```
 
-## PR 2.10 - Core Docker & Final Integration
+## ⏳ PR 2.10 - Core Docker & Final Integration
 
 ```
 Hoàn thiện kiteclass-core.
@@ -623,7 +743,7 @@ Hoàn thiện kiteclass-core.
 
 # GIAI ĐOẠN 3: KITECLASS-FRONTEND
 
-## PR 3.1 - Frontend Project Setup
+## ⏳ PR 3.1 - Frontend Project Setup
 
 ```
 Thực hiện Phase 1 của kiteclass-frontend-plan.md.
@@ -646,7 +766,7 @@ Thực hiện Phase 1 của kiteclass-frontend-plan.md.
 - pnpm lint không có errors
 ```
 
-## PR 3.2 - Frontend Core Infrastructure
+## ⏳ PR 3.2 - Frontend Core Infrastructure
 
 ```
 Thực hiện Phase 2 của kiteclass-frontend-plan.md.
@@ -683,7 +803,7 @@ Thực hiện Phase 2 của kiteclass-frontend-plan.md.
 - Types khớp với BE DTOs
 ```
 
-## PR 3.3 - Providers & Layout
+## ⏳ PR 3.3 - Providers & Layout
 
 ```
 Thực hiện Phase 3-5 của kiteclass-frontend-plan.md.
@@ -720,7 +840,7 @@ Thực hiện Phase 3-5 của kiteclass-frontend-plan.md.
 - Layout renders correctly
 ```
 
-## PR 3.4 - Shared Components
+## ⏳ PR 3.4 - Shared Components
 
 ```
 Tạo shared components theo kiteclass-frontend-plan.md.
@@ -756,7 +876,7 @@ Tạo shared components theo kiteclass-frontend-plan.md.
 - Components render correctly với các props
 ```
 
-## PR 3.5 - Auth Pages
+## ⏳ PR 3.5 - Auth Pages
 
 ```
 Thực hiện Auth pages của kiteclass-frontend-plan.md.
@@ -792,7 +912,7 @@ Thực hiện Auth pages của kiteclass-frontend-plan.md.
 - Login với owner@kiteclass.local / Admin@123 thành công
 ```
 
-## PR 3.6 - Dashboard & Students Module
+## ⏳ PR 3.6 - Dashboard & Students Module
 
 ```
 Thực hiện Dashboard và Students module.
@@ -834,7 +954,7 @@ Thực hiện Dashboard và Students module.
 - CRUD operations hoạt động với Core API
 ```
 
-## PR 3.7 - Courses & Classes Module
+## ⏳ PR 3.7 - Courses & Classes Module
 
 ```
 Thực hiện Courses và Classes module.
@@ -871,7 +991,7 @@ Thực hiện Courses và Classes module.
 - Class schedules hiển thị đúng
 ```
 
-## PR 3.8 - Attendance Module
+## ⏳ PR 3.8 - Attendance Module
 
 ```
 Thực hiện Attendance module.
@@ -906,7 +1026,7 @@ Thực hiện Attendance module.
 - Mark attendance cho class hoạt động
 ```
 
-## PR 3.9 - Billing Module
+## ⏳ PR 3.9 - Billing Module
 
 ```
 Thực hiện Billing module.
@@ -941,7 +1061,7 @@ Thực hiện Billing module.
 - Invoice totals hiển thị đúng
 ```
 
-## PR 3.10 - Settings & Branding
+## ⏳ PR 3.10 - Settings & Branding
 
 ```
 Thực hiện Settings module.
@@ -981,7 +1101,7 @@ Thực hiện Settings module.
 - Color changes apply real-time
 ```
 
-## PR 3.11 - E2E Tests & Polish
+## ⏳ PR 3.11 - E2E Tests & Polish
 
 ```
 Hoàn thiện Frontend với E2E tests.
@@ -1021,15 +1141,40 @@ Hoàn thiện Frontend với E2E tests.
 
 # HƯỚNG DẪN SỬ DỤNG
 
+## Branch Strategy
+
+```
+main
+├── feature/gateway     # Tất cả PRs 1.1 - 1.6
+├── feature/core        # Tất cả PRs 2.1 - 2.10
+└── feature/frontend    # Tất cả PRs 3.1 - 3.11
+```
+
+**Quy tắc:**
+- Mỗi service = 1 branch duy nhất
+- Commit sau khi hoàn thành mỗi PR
+- Merge vào main khi hoàn thành service
+
+## Commit Convention
+
+Format ngắn gọn:
+```
+feat(gateway): PR 1.1 - project setup
+feat(gateway): PR 1.2 - common components
+feat(core): PR 2.3 - student module
+fix(frontend): PR 3.5 - login validation
+```
+
 ## Workflow cho mỗi PR
 
 ```
-1. Copy prompt vào Claude
-2. Claude thực hiện code + tests
-3. Chạy tests: mvn test (BE) hoặc pnpm test (FE)
-4. Review code
-5. Commit: git commit -m "feat(module): description"
-6. Tiếp tục prompt tiếp theo
+1. Checkout branch: git checkout feature/{service}
+2. Copy prompt vào Claude
+3. Claude thực hiện code + tests
+4. Chạy tests: mvn test (BE) hoặc pnpm test (FE)
+5. Review code
+6. Commit ngắn gọn: git commit -m "feat(service): PR X.X - description"
+7. Tiếp tục PR tiếp theo trên cùng branch
 ```
 
 ## Test Coverage Requirements

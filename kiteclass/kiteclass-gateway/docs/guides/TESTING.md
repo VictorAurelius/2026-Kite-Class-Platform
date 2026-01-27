@@ -1,0 +1,242 @@
+# Testing Guide - KiteClass Gateway
+
+## ⚠️ Current Status (PR 1.4.1)
+
+**Unit Tests:** ✅ 37/37 PASSED (100%)
+**Integration Tests:** ✅ 22 tests created (Require Docker)
+
+Integration tests now available with Docker/Testcontainers setup (PR 1.4.1).
+See [Docker Setup Guide](DOCKER-SETUP.md) for installation.
+
+**Without Docker:** Run core unit tests
+**With Docker:** Run all tests including integration tests
+
+---
+
+## Prerequisites
+
+### Install Java 17 (First time only)
+
+Run the setup script to install Java 17 in WSL:
+
+```bash
+../../scripts/setup/setup-java.sh
+```
+
+After installation, reload your shell configuration:
+
+```bash
+source ~/.bashrc
+```
+
+Verify Java is installed:
+
+```bash
+java -version
+# Should show: openjdk version "17.x.x"
+```
+
+## Running Tests
+
+### Quick Start (With Docker)
+
+**Recommended:** Run all tests including integration tests:
+
+```bash
+# 1. Start Docker services
+cd ../.. && docker-compose up -d postgres redis
+
+# 2. Run all tests
+./mvnw clean verify
+
+# 3. Stop services (optional)
+docker-compose down
+```
+
+### Quick Start (Without Docker)
+
+Run core unit tests only:
+
+```bash
+./mvnw test -Dtest='JwtTokenProviderTest,AuthServiceTest,UserServiceTest,ApiResponseTest,ErrorResponseTest,GlobalExceptionHandlerTest'
+```
+
+### Using Test Script
+
+```bash
+../../scripts/test/run-tests.sh
+```
+
+### Specific Test Types
+
+**Compile only:**
+```bash
+../../scripts/test/run-tests.sh compile
+```
+
+**Unit tests only:**
+```bash
+../../scripts/test/run-tests.sh unit
+```
+
+**Integration tests only:**
+```bash
+../../scripts/test/run-tests.sh integration
+```
+
+**Specific test class:**
+```bash
+../../scripts/test/run-tests.sh service      # UserServiceTest
+../../scripts/test/run-tests.sh controller   # UserControllerTest
+../../scripts/test/run-tests.sh repository   # UserRepositoryTest
+```
+
+**Full verification (compile + test + coverage):**
+```bash
+../../scripts/test/run-tests.sh verify
+```
+
+**Coverage report:**
+```bash
+../../scripts/test/run-tests.sh coverage
+# Report: target/site/jacoco/index.html
+```
+
+## Test Structure
+
+```
+src/test/java/com/kiteclass/gateway/
+├── module/user/
+│   ├── service/UserServiceTest.java          # Unit tests (Mockito)
+│   ├── controller/UserControllerTest.java    # WebFlux tests
+│   └── repository/UserRepositoryTest.java    # Integration tests (Testcontainers)
+└── testutil/
+    └── UserTestDataBuilder.java              # Test data factory
+```
+
+## Test Coverage Goals
+
+- **UserService**: ≥ 80% line coverage
+- **UserController**: ≥ 70% line coverage
+- **UserRepository**: ≥ 60% line coverage
+
+## Manual Maven Commands
+
+If you prefer using Maven directly:
+
+```bash
+# All tests
+./mvnw test
+
+# Compile only
+./mvnw compile
+
+# Clean and test
+./mvnw clean test
+
+# Full build with tests
+./mvnw clean install
+
+# Skip tests
+./mvnw clean install -DskipTests
+
+# Run specific test
+./mvnw test -Dtest=UserServiceTest
+
+# Run specific test method
+./mvnw test -Dtest=UserServiceTest#createUser_shouldCreateUserSuccessfully
+
+# Debug mode
+./mvnw test -X
+```
+
+## Troubleshooting
+
+### Java not found
+
+If you get "JAVA_HOME not defined" error:
+
+```bash
+../../scripts/setup/setup-java.sh
+source ~/.bashrc
+```
+
+### Testcontainers issues
+
+Testcontainers requires Docker. Ensure Docker Desktop is running:
+
+```bash
+docker ps
+```
+
+### Port conflicts
+
+If tests fail due to port conflicts, check for running services:
+
+```bash
+# Check port 5432 (PostgreSQL)
+netstat -tulpn | grep 5432
+
+# Stop conflicting services
+sudo systemctl stop postgresql
+```
+
+### Clean build
+
+If tests behave unexpectedly, try a clean build:
+
+```bash
+./mvnw clean
+rm -rf target/
+../../scripts/test/run-tests.sh
+```
+
+## CI/CD Integration
+
+For GitHub Actions or other CI:
+
+```yaml
+- name: Set up JDK 17
+  uses: actions/setup-java@v3
+  with:
+    java-version: '17'
+    distribution: 'temurin'
+
+- name: Run tests
+  run: ./mvnw clean verify
+
+- name: Upload coverage
+  uses: codecov/codecov-action@v3
+  with:
+    files: ./target/site/jacoco/jacoco.xml
+```
+
+## Test Data
+
+Test data is created using `UserTestDataBuilder`:
+
+```java
+// Create test user
+User user = UserTestDataBuilder.createUser(1L, "test@example.com", "Test User");
+
+// Create request
+CreateUserRequest request = UserTestDataBuilder.createUserRequest(
+    "test@example.com",
+    "Test User"
+);
+
+// Create role
+Role role = UserTestDataBuilder.createRole(1L, "ADMIN", "Administrator");
+```
+
+## Database for Tests
+
+- **Unit tests**: Mocked repositories (no database)
+- **WebFlux tests**: Mocked services (no database)
+- **Integration tests**: PostgreSQL in Docker (Testcontainers)
+
+Testcontainers automatically:
+- Pulls PostgreSQL Docker image
+- Starts container before tests
+- Runs migrations (Flyway)
+- Cleans up after tests

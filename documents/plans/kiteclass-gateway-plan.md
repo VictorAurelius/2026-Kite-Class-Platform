@@ -5,10 +5,12 @@
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Service** | kiteclass-gateway |
-| **Tech Stack** | Spring Boot 3.2+, Spring Cloud Gateway, Java 17 |
+| **Tech Stack** | Spring Boot 3.5+, Spring Cloud Gateway, Java 17 |
 | **Mục đích** | API Gateway + User Service + Authentication |
 | **Port** | 8080 |
-| **Tham chiếu** | architecture-overview, api-design, database-design |
+| **Tham chiếu** | architecture-overview, api-design, database-design, **maven-dependencies** |
+
+> **QUAN TRỌNG:** Luôn check `.claude/skills/maven-dependencies.md` để lấy versions chuẩn trước khi tạo pom.xml
 
 ---
 
