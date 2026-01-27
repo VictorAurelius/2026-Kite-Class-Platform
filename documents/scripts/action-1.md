@@ -299,3 +299,7 @@ quick-start của core service đâu? bạn đã đảm bảo các skill chưa? 
 tài liệu của core service thì phải để trong docs của core service chứ
 
 ngoài ra các skill đang khá nhiều, hãy thực hiện phân loại và kết hợp nếu hợp lý => sửa skill thì phải update prompt plan và tài liệu liên quan đó
+
+sửa lại skill về tạo báo cáo business-logic => luôn ở dạng tiếng việt, mục đích là để tôi đọc nên phải luôn dễ đọc dễ hiểu
+
+kiểm tra lại auth và student, cập nhật nếu cần thiết
