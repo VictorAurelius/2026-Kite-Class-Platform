@@ -20,12 +20,14 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ✅ PR 1.4: Auth Module
 - ✅ **PR 1.4.1**: Docker Setup & Integration Tests *(added to plan)*
 - ✅ **PR 1.5**: Email Service *(added to plan)*
-- ⏳ PR 1.6: Gateway Configuration
+- ✅ **PR 1.6**: Gateway Configuration (Rate Limiting + Logging)
 
-**Gateway Status:** 6/7 PRs completed (85.7%)
-**Tests:** 82 passing (42 unit + 40 integration)
+**Gateway Status:** 7/7 PRs completed (100%) ✅ COMPLETE
+**Tests:** 95 passing (55 unit + 40 integration)
 **Docker:** ✅ PostgreSQL, Redis configured
 **Email:** ✅ Integrated with Thymeleaf templates
+**Rate Limiting:** ✅ Bucket4j (100 req/min IP, 1000 req/min user)
+**Logging:** ✅ Request/Response logging with correlation IDs
 
 ## Core Service (feature/core branch)
 ⏳ **NOT STARTED** - All 10 PRs pending
@@ -33,9 +35,9 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 6/27 PRs completed (22.2%)
-**Last Updated:** 2026-01-27 (PR 1.5 - Email Service)
-**Current Work:** Planning next steps (PR 2.1 Core Integration or CI/CD)
+**Overall Progress:** 7/27 PRs completed (25.9%)
+**Last Updated:** 2026-01-27 (PR 1.6 - Gateway Configuration)
+**Current Work:** Gateway Service ✅ COMPLETE - Ready for PR 2.1 Core Integration
 
 ---
 
@@ -249,9 +251,10 @@ Thực hiện Email Service với Spring Boot Mail và Thymeleaf.
 
 ---
 
-## ⏳ PR 1.6 - Gateway Configuration (ORIGINAL PR 1.5)
+## ✅ PR 1.6 - Gateway Configuration (ORIGINAL PR 1.5)
 
 **Note:** This is the original PR 1.5 from the plan, renumbered to 1.6 after additions.
+**Status:** ✅ COMPLETE (2026-01-27)
 
 ```
 Thực hiện Phase 5 (Gateway Configuration) của kiteclass-gateway-plan.md.
