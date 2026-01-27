@@ -30,7 +30,7 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 **Logging:** ✅ Request/Response logging with correlation IDs
 
 ## Core Service (feature/core branch)
-- 🚧 PR 2.1: Core Project Setup *(IN PROGRESS)*
+- ✅ PR 2.1: Core Project Setup
 - ⏳ PR 2.2: Core Common Components
 - ⏳ PR 2.3: Student Module
 - ⏳ PR 2.4: Course Module
@@ -41,16 +41,17 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ⏳ PR 2.9: Settings & Parent Module
 - ⏳ PR 2.10: Core Docker & Final Integration
 
-**Core Status:** 0/10 PRs completed (PR 2.1 in progress)
+**Core Status:** 1/10 PRs completed (10%)
 **Tests:** 0 tests (project setup phase)
 **Tech Stack:** Spring Boot 3.5.10, JPA, PostgreSQL
+**Documentation:** ✅ QUICK-START.md created
 
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 7/27 PRs completed (25.9%)
-**Last Updated:** 2026-01-27 (PR 2.1 - Core Project Setup IN PROGRESS)
-**Current Work:** 🚧 Core Service Development - PR 2.1 Project Setup
+**Overall Progress:** 8/27 PRs completed (29.6%)
+**Last Updated:** 2026-01-27 (PR 2.1 - Core Project Setup COMPLETE)
+**Current Work:** Ready for PR 2.2 - Core Common Components
 
 ---
 
