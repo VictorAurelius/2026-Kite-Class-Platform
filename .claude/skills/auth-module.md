@@ -3,10 +3,16 @@
 ## Overview
 
 **Status:** ✅ IMPLEMENTED (PR 1.4 - 2026-01-26)
+**Updated:** PR 1.5 - Email Service Integration (2026-01-27)
 **Branch:** feature/gateway
 **Location:** `kiteclass/kiteclass-gateway/src/main/java/com/kiteclass/gateway/module/auth/`
 
 The Authentication Module provides JWT-based authentication, token management, and security features for the KiteClass Gateway.
+
+**PR 1.5 Additions:**
+- Password reset with email integration
+- PasswordResetToken entity and repository
+- Email service integration for forgot-password flow
 
 ---
 
@@ -471,3 +477,14 @@ UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE email = 'u
 
 **Last Updated:** 2026-01-26 (PR 1.4)
 **Author:** VictorAurelius + Claude Sonnet 4.5
+
+
+---
+
+## Related Modules
+
+- [Email Service](email-service.md) - Password reset email integration (PR 1.5)
+- [Testing Guide](testing-guide.md) - Unit & integration test patterns
+- [API Design](api-design.md) - REST endpoint conventions
+
+

@@ -277,3 +277,9 @@ thực hiện check lại:
 3. tôi thấy quick-start thực hiện pr ngoài pr-1, hãy cập nhật lại cả pr-1 cho đầy đủ
 
 4. kế hoạch tiếp theo là gì, những manual test mà tôi có thể thực hiện bằng giao diện đã được chưa?
+
+
+  - Đã commit code PR 1.5 theo đúng git workflow
+=> vậy còn các skill khác thì sao? PR 1.5 đã đảm bảo các skill đó chưa?
+
+tôi chưa thấy cập nhật pr-1.md theo đúng các prompt đã thực hiện? bạn cũng nên triển khai đúng kế hoạch vào pr-1.md

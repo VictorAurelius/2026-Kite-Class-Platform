@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
  * <p>Provides reactive email sending with Thymeleaf templates.
  *
  * @author KiteClass Team
- * @since 1.0.0
+ * @since 1.5.0
  */
 public interface EmailService {
 

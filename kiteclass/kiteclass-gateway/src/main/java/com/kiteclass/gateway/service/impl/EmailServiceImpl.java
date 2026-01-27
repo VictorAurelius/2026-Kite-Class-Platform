@@ -24,7 +24,7 @@ import java.util.Map;
  * <p>Wraps blocking mail operations in reactive Mono for compatibility with reactive stack.
  *
  * @author KiteClass Team
- * @since 1.0.0
+ * @since 1.5.0
  */
 @Slf4j
 @Service

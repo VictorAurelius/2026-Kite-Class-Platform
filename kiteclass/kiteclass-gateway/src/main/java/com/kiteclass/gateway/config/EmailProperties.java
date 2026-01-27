@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * <p>Binds properties from application.yml under 'email' prefix.
  *
  * @author KiteClass Team
- * @since 1.0.0
+ * @since 1.5.0
  */
 @Data
 @Configuration
