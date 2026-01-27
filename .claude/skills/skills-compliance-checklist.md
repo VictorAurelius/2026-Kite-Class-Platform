@@ -1,8 +1,37 @@
 # Skills Compliance Checklist
 
-**Version:** 1.0
+**Version:** 1.1
 **Last Updated:** 2026-01-27
 **Purpose:** Ensure ALL project skills are verified after EVERY PR before committing
+
+---
+
+## 🚨 CRITICAL REMINDER: END OF SESSION CHECKLIST
+
+**EVERY TIME you complete work on a PR or reach the end of a conversation session, you MUST:**
+
+1. ✅ **Update Implementation Plan Status** → `documents/scripts/kiteclass-implementation-plan.md`
+   - Change PR status from ⏳ to ⚠️ (partial) or ✅ (complete)
+   - Update progress percentages (service % and overall %)
+   - Update "Current Work" and "Last Updated" sections
+   - Document any blockers or known issues
+
+2. ✅ **Update QUICK-START.md** → `{service}/docs/QUICK-START.md`
+   - Update current status section
+   - Update test coverage numbers
+   - Update "What's Next" recommendation
+   - Update completed PRs checklist
+
+3. ✅ **Commit Your Changes**
+   - Stage all modified files: `git add -A`
+   - Commit with proper message format
+   - Include Co-Authored-By line
+
+**WHY THIS IS CRITICAL:**
+- If conversation runs out of context, the status must be preserved
+- Next Claude session needs accurate status to continue work
+- User needs to track progress across multiple sessions
+- Prevents loss of work and confusion about what's completed
 
 ---
 
@@ -12,7 +41,7 @@ This skill provides a **MANDATORY CHECKLIST** to run after completing ANY PR to 
 
 - Missing QUICK-START.md updates
 - Incorrect `@since` annotations
-- Missing implementation plan tracking updates
+- **Missing implementation plan status updates** 🚨 MOST CRITICAL
 - Missing skill documentation for new features
 - Code style violations
 - Missing tests
@@ -547,15 +576,177 @@ Based on past PRs, these are the MOST COMMON violations to watch for:
 
 ## 🎯 Quick Reference: Minimum Checklist
 
-**For EVERY PR, you MUST verify these 5 critical items:**
+**For EVERY PR AND EVERY END OF SESSION, you MUST verify these items:**
 
-1. ✅ **Tests passing:** `./mvnw clean verify`
-2. ✅ **QUICK-START.md updated** with current PR status
-3. ✅ **Implementation plan updated** with ✅ and progress %
+### 🚨 MANDATORY (Cannot skip):
+
+1. ✅ **Implementation plan status updated** → `documents/scripts/kiteclass-implementation-plan.md`
+   - PR status: ⏳ → ⚠️ or ✅
+   - Progress %: Service (X/Y) and Overall (X/30)
+   - "Last Updated" date
+   - "Current Work" section
+   - Known issues documented
+
+2. ✅ **QUICK-START.md updated** → `{service}/docs/QUICK-START.md`
+   - Current status reflects reality
+   - Test coverage numbers accurate
+   - Next recommendation correct
+
+3. ✅ **Tests passing** (if code changed): `./mvnw clean verify`
+
 4. ✅ **Code style compliant** (JavaDoc with correct `@since`)
+
 5. ✅ **Ready to commit** with proper message format
 
-**If ANY of these 5 items is missing, DO NOT COMMIT.**
+### 📝 Order of Operations:
+
+```
+1. Complete PR work
+2. Run tests (if code changed)
+3. UPDATE IMPLEMENTATION PLAN ← DO THIS FIRST
+4. UPDATE QUICK-START.md
+5. Stage changes: git add -A
+6. Review: git diff --cached
+7. Commit with proper format
+```
+
+**If items #1 or #2 are missing, DO NOT COMMIT. These are the most forgotten but most critical updates.**
+
+---
+
+## 🔚 End of Session Protocol (MANDATORY)
+
+**When to Execute:**
+- End of conversation/session
+- Running out of context
+- Completing a PR (partial or full)
+- Stopping work for any reason
+
+**Purpose:** Preserve progress state so next Claude session or user can continue seamlessly.
+
+### Step 1: Document Current State
+
+```bash
+# Check what was actually completed
+git status
+git log --oneline -5
+```
+
+**Questions to answer:**
+- What PR was I working on?
+- Is it complete or partial?
+- Are tests passing? How many?
+- What's blocking completion (if partial)?
+
+### Step 2: Update Implementation Plan (CRITICAL)
+
+**File:** `documents/scripts/kiteclass-implementation-plan.md`
+
+**Required updates:**
+1. **Progress Tracking section** (top of file):
+   ```markdown
+   ## Core Service (feature/core branch)
+   - ✅ PR 2.1: Core Project Setup
+   - ✅ PR 2.2: Core Common Components
+   - ⚠️ PR 2.3: Student Module (85% complete, tests failing)  ← UPDATE THIS
+   ```
+
+2. **Service Status summary:**
+   ```markdown
+   **Core Status:** 2.5/11 PRs completed (22.7%)  ← UPDATE %
+   **Tests:** 35/41 passing (85%)  ← UPDATE NUMBERS
+   ```
+
+3. **Overall Progress:**
+   ```markdown
+   **Overall Progress:** 9.5/30 PRs completed (31.7%)  ← UPDATE
+   **Last Updated:** 2026-01-27  ← TODAY'S DATE
+   **Current Work:** Fixing PR 2.3 test issues  ← WHAT'S HAPPENING
+   ```
+
+4. **PR Status section** (detailed):
+   ```markdown
+   ## ⚠️ PR 2.3 - Student Module
+
+   **Status:** ⚠️ MOSTLY COMPLETE (2026-01-27)
+   **Tests:** 35/41 passing (85%)
+   **Known Issues:**
+   - StudentRepositoryTest needs Docker
+   - StudentControllerTest needs @WithMockUser
+   ```
+
+**Template for status:**
+- ✅ COMPLETE - 100% done, all tests passing
+- ⚠️ MOSTLY COMPLETE - Code done, minor test/doc issues
+- ⚠️ PARTIAL - Significant work done but incomplete
+- 🚧 IN PROGRESS - Just started, foundation laid
+- ⏳ PENDING - Not started yet
+
+### Step 3: Update QUICK-START.md
+
+**File:** `{service}/docs/QUICK-START.md` (e.g., `kiteclass/kiteclass-core/docs/QUICK-START.md`)
+
+**Update sections:**
+1. Current Status
+2. Test Results
+3. What's Next
+4. Available Options (if PR completed)
+
+### Step 4: Commit Everything
+
+```bash
+# Stage ALL changes
+git add -A
+
+# Check what's being committed
+git status
+
+# Commit with descriptive message
+git commit -m "docs(plan): update PR X.X status to [COMPLETE/PARTIAL/etc]
+
+Detailed description of what was done.
+Known issues if any.
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+
+### Example: End of Session After Partial PR 2.3
+
+```markdown
+1. ✅ Updated implementation-plan.md:
+   - PR 2.3 status: ⏳ → ⚠️ MOSTLY COMPLETE
+   - Tests: 0/0 → 35/41 passing (85%)
+   - Core progress: 2/11 → 2.5/11 (22.7%)
+   - Overall: 9/30 → 9.5/30 (31.7%)
+   - Documented known issues (Docker, @WithMockUser)
+   - Updated "Current Work": Ready for PR 2.11
+
+2. ✅ Updated QUICK-START.md:
+   - Current status reflects PR 2.3 partial completion
+   - Test coverage: 22 tests → 35 tests
+   - Next: Fix tests or proceed to PR 2.11
+
+3. ✅ Committed changes:
+   - git commit -m "docs(plan): update PR 2.3 status - mostly complete"
+```
+
+### Verification Checklist
+
+Before ending session, verify:
+- [ ] Implementation plan has accurate PR status (not ⏳ if work done)
+- [ ] Progress percentages calculated correctly
+- [ ] "Last Updated" is today's date
+- [ ] "Current Work" describes actual state
+- [ ] Known issues documented (if any)
+- [ ] QUICK-START.md reflects current state
+- [ ] All changes committed to git
+- [ ] Commit message describes what changed
+
+**Why this matters:**
+- ❌ Without updates: Next session has NO IDEA what was done
+- ❌ Without updates: User can't track progress
+- ❌ Without updates: Work may be duplicated or lost
+- ✅ With updates: Seamless continuation, clear progress tracking
 
 ---
 
