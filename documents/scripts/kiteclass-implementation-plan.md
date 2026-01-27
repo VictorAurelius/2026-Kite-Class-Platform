@@ -30,14 +30,27 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 **Logging:** ✅ Request/Response logging with correlation IDs
 
 ## Core Service (feature/core branch)
-⏳ **NOT STARTED** - All 10 PRs pending
+- 🚧 PR 2.1: Core Project Setup *(IN PROGRESS)*
+- ⏳ PR 2.2: Core Common Components
+- ⏳ PR 2.3: Student Module
+- ⏳ PR 2.4: Course Module
+- ⏳ PR 2.5: Class Module
+- ⏳ PR 2.6: Enrollment Module
+- ⏳ PR 2.7: Attendance Module
+- ⏳ PR 2.8: Invoice & Payment Module
+- ⏳ PR 2.9: Settings & Parent Module
+- ⏳ PR 2.10: Core Docker & Final Integration
+
+**Core Status:** 0/10 PRs completed (PR 2.1 in progress)
+**Tests:** 0 tests (project setup phase)
+**Tech Stack:** Spring Boot 3.5.10, JPA, PostgreSQL
 
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
 **Overall Progress:** 7/27 PRs completed (25.9%)
-**Last Updated:** 2026-01-27 (PR 1.6 - Gateway Configuration)
-**Current Work:** Gateway Service ✅ COMPLETE - Ready for PR 2.1 Core Integration
+**Last Updated:** 2026-01-27 (PR 2.1 - Core Project Setup IN PROGRESS)
+**Current Work:** 🚧 Core Service Development - PR 2.1 Project Setup
 
 ---
 
@@ -331,7 +344,7 @@ Thực hiện Phase 6 của kiteclass-gateway-plan.md.
 
 # GIAI ĐOẠN 2: KITECLASS-CORE
 
-## ⏳ PR 2.1 - Core Project Setup
+## 🚧 PR 2.1 - Core Project Setup (IN PROGRESS)
 
 ```
 Thực hiện Phase 1 của kiteclass-core-service-plan.md.
