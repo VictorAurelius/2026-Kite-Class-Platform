@@ -179,11 +179,4 @@ public class LoggingFilter extends AbstractGatewayFilterFactory<LoggingFilter.Co
     private boolean isSensitiveHeader(String headerName) {
         return SENSITIVE_HEADERS.contains(headerName.toLowerCase());
     }
-
-    /**
-     * Configuration properties for the filter.
-     */
-    public static class Config {
-        // Configuration properties can be added here if needed
-    }
 }
