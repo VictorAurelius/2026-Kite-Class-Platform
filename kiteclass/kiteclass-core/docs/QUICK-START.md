@@ -10,18 +10,19 @@
 
 ## 🎯 Current Status
 
-- **Latest PR:** 2.1 (Core Project Setup) ✅ COMPLETE
+- **Latest PR:** 2.2 (Core Common Components) ✅ COMPLETE
 - **Branch:** feature/core
-- **Tests:** 0 tests (project setup phase)
-- **Tech Stack:** Spring Boot 3.5.10, JPA, PostgreSQL
+- **Tests:** 22 tests (22 unit, 0 integration)
+- **Tech Stack:** Spring Boot 3.5.10, JPA, PostgreSQL, Redis, RabbitMQ
 - **Server Port:** 8081
-- **Next:** PR 2.2 (Core Common Components) - RECOMMENDED
+- **Next:** PR 2.3 (Student Module) - RECOMMENDED
 
 ---
 
 ## 📚 Completed PRs
 
 - ✅ PR 2.1: Core Project Setup
+- ✅ PR 2.2: Core Common Components
 
 ---
 
@@ -34,7 +35,7 @@ Choose the prompt based on your next task:
 
 ---
 
-## 🚀 Option 1: PR 2.2 - Core Common Components
+## 🚀 Option 1: PR 2.3 - Student Module
 
 **Copy this prompt when context is cleared:**
 
@@ -44,47 +45,44 @@ I'm continuing development on KiteClass Core Service.
 CURRENT STATE:
 - Working directory: /mnt/e/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core
 - Branch: feature/core
-- Completed: PR 2.1 (Core Project Setup)
-- Status: Spring Boot 3.5.10 project initialized, mvn clean compile successful
+- Completed: PR 2.1 (Core Project Setup), PR 2.2 (Core Common Components)
+- Status: 22 tests passing, BaseEntity + DTOs + Exceptions + Enums + Configs ready
 
 DOCUMENTATION TO READ:
 1. /mnt/e/person/2026-Kite-Class-Platform/documents/scripts/kiteclass-implementation-plan.md
 2. /mnt/e/person/2026-Kite-Class-Platform/documents/plans/kiteclass-core-service-plan.md
 
-MY REQUEST: Implement PR 2.2 - Core Common Components
+MY REQUEST: Implement PR 2.3 - Student Module
 
 REQUIREMENTS:
-- Create BaseEntity with audit fields (createdAt, updatedAt, createdBy, updatedBy, deleted, version)
-- Create common DTOs:
-  - ApiResponse<T> (generic response wrapper)
-  - PageResponse<T> (pagination response)
-  - ErrorResponse (error details)
-- Create exception classes:
-  - BusinessException (base exception)
-  - EntityNotFoundException
-  - DuplicateResourceException
-  - ValidationException
-- Create GlobalExceptionHandler with @RestControllerAdvice
-- Create ALL enums for Core service (following enums-constants.md skill):
-  - StudentStatus, Gender
-  - ClassStatus, SessionStatus
-  - AttendanceStatus
-  - InvoiceStatus, PaymentStatus, PaymentMethod
-  - EnrollmentStatus
-- Create config classes:
-  - JpaConfig (enable JPA auditing)
-  - CacheConfig (Redis cache)
-  - RabbitConfig (message queue)
+- Create Student entity with JPA annotations (extends BaseEntity)
+- Create StudentRepository with custom queries:
+  - findByIdAndDeletedFalse
+  - existsByEmailAndDeletedFalse
+  - findBySearchCriteria (search, status, pageable)
+- Create StudentMapper (MapStruct)
+- Create StudentService interface and StudentServiceImpl:
+  - createStudent
+  - getStudentById
+  - getStudents (paginated, searchable)
+  - updateStudent
+  - deleteStudent (soft delete)
+- Create StudentController with REST endpoints
 
 TESTS REQUIRED:
-- ApiResponseTest, PageResponseTest, ErrorResponseTest
-- GlobalExceptionHandlerTest
-- JpaConfigTest
+- StudentServiceTest (unit tests)
+- StudentControllerTest (unit tests)
+- StudentRepositoryTest (integration tests with Testcontainers)
+- StudentMapperTest
+- StudentTestDataBuilder (test utility)
+
+FLYWAY MIGRATION:
+- V2__create_student_tables.sql
 
 CONSTRAINTS:
-- Follow code-style.md skill (JavaDoc, naming conventions)
-- Follow enums-constants.md skill (all enums must match)
-- Follow error-logging.md skill (exception handling patterns)
+- Follow code-style.md skill (JavaDoc, @since 2.3.0)
+- Follow api-design.md skill (RESTful conventions)
+- Follow testing-guide.md skill (test patterns)
 
 USER INFO:
 - Name: VictorAurelius
@@ -203,7 +201,8 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 | Module | Unit Tests | Integration Tests | Status |
 |--------|-----------|------------------|--------|
-| **Total** | **0** | **0** | ⏳ Setup phase |
+| Common | 22 | 0 | ✅ Complete |
+| **Total** | **22** | **0** | ✅ Common ready |
 
 ---
 
@@ -211,9 +210,10 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 ### Phase 1: Core Backend Setup ✅
 - [x] PR 2.1: Core Project Setup
+- [x] PR 2.2: Core Common Components
 
-### Phase 2: Common Components 🔄
-- [ ] PR 2.2: Core Common Components (NEXT)
+### Phase 2: Domain Modules 🔄
+- [ ] PR 2.3: Student Module (NEXT)
 - [ ] PR 2.3: Student Module
 - [ ] PR 2.4: Course Module
 - [ ] PR 2.5: Class Module
@@ -245,6 +245,6 @@ If you need help:
 
 ---
 
-**Last Updated:** 2026-01-27 (PR 2.1 Core Project Setup)
+**Last Updated:** 2026-01-27 (PR 2.2 Core Common Components)
 **Quick Reference:** Copy the appropriate prompt above based on your needs
 **Language:** English prompts, but **communicate in Vietnamese (Tiếng Việt)**

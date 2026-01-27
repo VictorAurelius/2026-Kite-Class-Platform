@@ -31,7 +31,7 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 
 ## Core Service (feature/core branch)
 - ✅ PR 2.1: Core Project Setup
-- ⏳ PR 2.2: Core Common Components
+- ✅ PR 2.2: Core Common Components
 - ⏳ PR 2.3: Student Module
 - ⏳ PR 2.4: Course Module
 - ⏳ PR 2.5: Class Module
@@ -41,6 +41,10 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ⏳ PR 2.9: Settings & Parent Module
 - ⏳ PR 2.10: Core Docker & Final Integration
 
+**Core Status:** 2/10 PRs completed (20%)
+**Tests:** 22 passing (22 unit + 0 integration)
+**Common Components:** ✅ BaseEntity, DTOs, Exceptions, 9 Enums, Configs
+
 **Core Status:** 1/10 PRs completed (10%)
 **Tests:** 0 tests (project setup phase)
 **Tech Stack:** Spring Boot 3.5.10, JPA, PostgreSQL
@@ -49,9 +53,9 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 8/27 PRs completed (29.6%)
-**Last Updated:** 2026-01-27 (PR 2.1 - Core Project Setup COMPLETE)
-**Current Work:** Ready for PR 2.2 - Core Common Components
+**Overall Progress:** 9/27 PRs completed (33.3%)
+**Last Updated:** 2026-01-27 (PR 2.2 - Core Common Components COMPLETE)
+**Current Work:** Ready for PR 2.3 - Student Module
 
 ---
 
@@ -367,7 +371,10 @@ Thực hiện Phase 1 của kiteclass-core-service-plan.md.
 - Application context loads thành công
 ```
 
-## ⏳ PR 2.2 - Core Common Components
+## ✅ PR 2.2 - Core Common Components
+
+**Status:** ✅ COMPLETE (2026-01-27)
+**Tests:** 22 passing (ApiResponse, PageResponse, ErrorResponse, GlobalExceptionHandler, JpaConfig)
 
 ```
 Thực hiện Phase 2 của kiteclass-core-service-plan.md.
