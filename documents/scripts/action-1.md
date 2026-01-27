@@ -293,3 +293,9 @@ trước khi thực hiện nội dung của option 1 bạn phải làm gì? nế
 => sau đó mới tiếp tục phát triển, hãy check lại skill xem có đảm bảo không?
 
 quick-start của core service đâu? bạn đã đảm bảo các skill chưa? làm sao để luôn đảm bảo skill nhé
+
+đối với core service mỗi module đều có 1 nghiệp vụ riêng, hãy tạo skill để có thể đặc tả được nghiệp của module trong hệ thống
+
+tài liệu của core service thì phải để trong docs của core service chứ
+
+ngoài ra các skill đang khá nhiều, hãy thực hiện phân loại và kết hợp nếu hợp lý => sửa skill thì phải update prompt plan và tài liệu liên quan đó
