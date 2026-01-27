@@ -1,6 +1,5 @@
 package com.kiteclass.gateway.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.user.entity.User;
@@ -40,7 +39,8 @@ class AccountLockingIntegrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("test")
             .withUsername("test")
-            .withPassword("test");
+            .withPassword("test")
+            .withReuse(true);
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -62,9 +62,6 @@ class AccountLockingIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private User testUser;
 

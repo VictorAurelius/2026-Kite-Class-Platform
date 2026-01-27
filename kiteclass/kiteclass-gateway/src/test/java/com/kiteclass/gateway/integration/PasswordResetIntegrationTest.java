@@ -1,7 +1,5 @@
 package com.kiteclass.gateway.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.gateway.module.auth.dto.ForgotPasswordRequest;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
 import com.kiteclass.gateway.module.auth.entity.PasswordResetToken;
@@ -43,7 +41,8 @@ class PasswordResetIntegrationTest {
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("test")
             .withUsername("test")
-            .withPassword("test");
+            .withPassword("test")
+            .withReuse(true);
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -72,9 +71,6 @@ class PasswordResetIntegrationTest {
 
     @Autowired
     private WebTestClient webTestClient;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
