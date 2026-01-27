@@ -94,4 +94,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         log.warn("Authentication error: {} - {}", status, message);
         return exchange.getResponse().setComplete();
     }
+
+    /**
+     * Configuration class for the filter.
+     * <p>Empty placeholder required by AbstractGatewayFilterFactory pattern.
+     */
+    public static class Config {
+        // No configuration properties
+    }
 }
