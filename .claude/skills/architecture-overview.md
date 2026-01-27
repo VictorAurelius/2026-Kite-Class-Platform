@@ -150,6 +150,208 @@ Tài liệu mô tả kiến trúc hệ thống:
 
 ---
 
+## Cross-Service Data Relationships
+
+### ⚠️ Critical Design: User Identity & Business Entities
+
+**Vấn đề:**
+- **Gateway Service**: Có `users` table (authentication, roles, JWT)
+- **Core Service**: Có `students`, `teachers`, `parents` tables (business logic)
+- **Câu hỏi**: Làm sao Student/Teacher/Parent login vào hệ thống?
+
+### Kiến trúc Microservices yêu cầu:
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│              CROSS-SERVICE DATA RELATIONSHIP                       │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  GATEWAY SERVICE (Authentication)                                  │
+│  ─────────────────────────────────                                 │
+│  Database: gateway_db                                              │
+│                                                                    │
+│  ┌──────────────────────────────────────┐                         │
+│  │           users table                │                         │
+│  ├──────────────────────────────────────┤                         │
+│  │ id                  BIGSERIAL PK     │                         │
+│  │ email               VARCHAR UNIQUE   │                         │
+│  │ password_hash       VARCHAR          │                         │
+│  │ name                VARCHAR          │                         │
+│  │ user_type           VARCHAR(20)      │ ◄─── STUDENT/TEACHER/  │
+│  │ reference_id        BIGINT           │ ◄─── PARENT/ADMIN/STAFF│
+│  │ status              VARCHAR          │                         │
+│  └──────────────────────────────────────┘                         │
+│           │                     │                                  │
+│           │                     │ reference_id links to:           │
+│           │                     └────────────────────┐             │
+│           │                                          │             │
+│           ▼                                          ▼             │
+│  ┌─────────────────┐                    ┌─────────────────────┐   │
+│  │  roles table    │                    │  Core Service DB    │   │
+│  │  permissions    │                    │  (Business Logic)   │   │
+│  │  user_roles     │                    └─────────────────────┘   │
+│  └─────────────────┘                              │               │
+│                                                    │               │
+│  CORE SERVICE (Business Logic)                    │               │
+│  ──────────────────────────────                   │               │
+│  Database: core_db                                │               │
+│                                                    │               │
+│  ┌─────────────────────┐  ┌─────────────────────┐│               │
+│  │  students table     │  │  teachers table     ││               │
+│  ├─────────────────────┤  ├─────────────────────┤│               │
+│  │ id         PK       │◄─┤ id         PK       │◄┘              │
+│  │ name               │  │ name               │                 │
+│  │ email              │  │ email              │                 │
+│  │ phone              │  │ department         │                 │
+│  │ status             │  │ specialization     │                 │
+│  │ date_of_birth      │  │ salary             │                 │
+│  └─────────────────────┘  └─────────────────────┘                 │
+│                                                                    │
+│  ┌─────────────────────┐                                          │
+│  │  parents table      │                                          │
+│  ├─────────────────────┤                                          │
+│  │ id         PK       │◄─────────────────────────────────────────┤
+│  │ name               │                                          │
+│  │ email              │                                          │
+│  │ phone              │                                          │
+│  │ relationship       │                                          │
+│  └─────────────────────┘                                          │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### Giải pháp: UserType + ReferenceId Pattern
+
+**Implementation:**
+
+```java
+// Gateway Service - User entity
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    private Long id;
+
+    private String email;
+    private String passwordHash;
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_type")
+    private UserType userType;  // STUDENT, TEACHER, PARENT, ADMIN, STAFF
+
+    @Column(name = "reference_id")
+    private Long referenceId;    // ID trong Core Service
+}
+
+public enum UserType {
+    ADMIN,      // Admin - không có referenceId
+    STAFF,      // Nhân viên - không có referenceId
+    TEACHER,    // referenceId → teachers.id trong Core
+    PARENT,     // referenceId → parents.id trong Core
+    STUDENT     // referenceId → students.id trong Core
+}
+```
+
+**Login Flow với Profile Retrieval:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    LOGIN FLOW WITH PROFILE                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Frontend                Gateway              Core Service      │
+│     │                       │                       │           │
+│     │──POST /login─────────►│                       │           │
+│     │  {email, password}    │                       │           │
+│     │                       │──Verify credentials   │           │
+│     │                       │──Load User entity     │           │
+│     │                       │  (user_type, ref_id)  │           │
+│     │                       │                       │           │
+│     │                       │──Generate JWT tokens  │           │
+│     │                       │  (include user_type)  │           │
+│     │                       │                       │           │
+│     │                       │──GET /students/{id}──►│           │
+│     │                       │  (if user_type=STUDENT)│          │
+│     │                       │◄─Student profile──────│           │
+│     │                       │                       │           │
+│     │◄─Login response───────│                       │           │
+│     │  {                    │                       │           │
+│     │    accessToken,       │                       │           │
+│     │    refreshToken,      │                       │           │
+│     │    user: {            │                       │           │
+│     │      id, email, name, │                       │           │
+│     │      userType         │                       │           │
+│     │    },                 │                       │           │
+│     │    profile: {         │                       │           │
+│     │      studentId,       │                       │           │
+│     │      dateOfBirth,     │                       │           │
+│     │      status, ...      │                       │           │
+│     │    }                  │                       │           │
+│     │  }                    │                       │           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Tạo Student Account Flow:**
+
+```java
+// 1. Tạo User trong Gateway (authentication)
+User user = User.builder()
+    .email("student@example.com")
+    .passwordHash(bcrypt("password"))
+    .name("Nguyễn Văn An")
+    .userType(UserType.STUDENT)
+    .status(UserStatus.ACTIVE)
+    .build();
+User savedUser = userRepository.save(user);
+
+// 2. Gọi Core Service API để tạo Student
+StudentCreateRequest coreRequest = StudentCreateRequest.builder()
+    .name("Nguyễn Văn An")
+    .email("student@example.com")
+    .phone("0912345678")
+    .build();
+
+StudentResponse student = coreServiceClient.createStudent(coreRequest);
+
+// 3. Update User với reference_id
+savedUser.setReferenceId(student.getId());
+userRepository.save(savedUser);
+```
+
+### Ưu điểm của pattern này:
+
+| Ưu điểm | Giải thích |
+|---------|------------|
+| ✅ **Service Independence** | Gateway và Core hoàn toàn độc lập về database |
+| ✅ **Clear Separation** | Authentication logic ≠ Business logic |
+| ✅ **Single Source of Truth** | User credentials chỉ trong Gateway |
+| ✅ **Flexible Roles** | Admin/Staff không cần entity trong Core |
+| ✅ **Profile Extensibility** | Student/Teacher/Parent có full business data trong Core |
+| ✅ **Microservices Best Practice** | Tuân thủ cross-service data relationship pattern |
+
+### Database Migration:
+
+```sql
+-- Gateway Database
+ALTER TABLE users
+    ADD COLUMN user_type VARCHAR(20) DEFAULT 'ADMIN',
+    ADD COLUMN reference_id BIGINT NULL;
+
+CREATE INDEX idx_users_user_type ON users(user_type);
+CREATE INDEX idx_users_reference_id ON users(reference_id);
+
+COMMENT ON COLUMN users.user_type IS
+    'Type: ADMIN, STAFF, TEACHER, PARENT, STUDENT';
+COMMENT ON COLUMN users.reference_id IS
+    'ID của entity tương ứng trong Core Service';
+```
+
+**Chi tiết implementation:** Xem `auth-module.md` section "🔗 Mối Quan Hệ User-Entity"
+
+---
+
 ## Backend Folder Structure
 
 ### Spring Boot Service Structure
@@ -372,6 +574,109 @@ Core Service ──publish──► RabbitMQ ──consume──► Notification
 | `payment.received` | Core | Notification | Xác nhận thanh toán |
 | `student.enrolled` | Core | Gamification | Thưởng điểm đăng ký |
 
+### Service-to-Service REST Calls
+
+**Gateway → Core Service:**
+
+```java
+// Gateway gọi Core để lấy Student profile sau khi login
+@FeignClient(name = "core-service", url = "${services.core.url}")
+public interface CoreServiceClient {
+
+    @GetMapping("/api/v1/students/{id}")
+    StudentResponse getStudent(@PathVariable Long id);
+
+    @GetMapping("/api/v1/teachers/{id}")
+    TeacherResponse getTeacher(@PathVariable Long id);
+
+    @GetMapping("/api/v1/parents/{id}")
+    ParentResponse getParent(@PathVariable Long id);
+}
+```
+
+**Core → Gateway Service:**
+
+```java
+// Core gọi Gateway để verify user permissions (nếu cần)
+@FeignClient(name = "gateway-service", url = "${services.gateway.url}")
+public interface GatewayServiceClient {
+
+    @GetMapping("/api/v1/users/{id}")
+    UserResponse getUser(@PathVariable Long id);
+
+    @GetMapping("/api/v1/users/{id}/permissions")
+    List<String> getUserPermissions(@PathVariable Long id);
+}
+```
+
+### Data Contracts (DTOs)
+
+**Shared DTOs giữa Gateway và Core:**
+
+```java
+// Không share entities, chỉ share DTOs
+public record StudentResponse(
+    Long id,
+    String name,
+    String email,
+    String phone,
+    LocalDate dateOfBirth,
+    String status
+) {}
+
+public record UserResponse(
+    Long id,
+    String email,
+    String name,
+    String userType,
+    Long referenceId,
+    String status
+) {}
+```
+
+**Best Practices:**
+- ❌ **KHÔNG share Entity classes** giữa services
+- ✅ **Chỉ share DTOs** qua REST API
+- ✅ **Version APIs** để tránh breaking changes
+- ✅ **Circuit Breaker** cho resilience (Resilience4j)
+- ✅ **Timeout configuration** cho mọi service call
+
+### Request Headers từ Gateway
+
+Gateway tự động thêm headers cho downstream services:
+
+```java
+// Gateway Filter adds authentication context
+X-User-Id: 123
+X-User-Email: user@example.com
+X-User-Roles: TEACHER,ADMIN
+X-User-Type: TEACHER
+X-Reference-Id: 456  // Teacher ID trong Core
+X-Tenant-Id: abc     // Tenant isolation
+```
+
+**Core Service sử dụng headers:**
+
+```java
+@RestController
+public class StudentController {
+
+    @GetMapping("/students")
+    public PageResponse<StudentDTO> getStudents(
+        @RequestHeader("X-User-Id") Long userId,
+        @RequestHeader("X-User-Type") String userType,
+        @RequestHeader("X-Reference-Id") Long referenceId
+    ) {
+        // Authorization logic based on userType
+        if ("TEACHER".equals(userType)) {
+            // Teacher chỉ xem students trong classes của mình
+            return studentService.getStudentsByTeacher(referenceId);
+        }
+        // ...
+    }
+}
+```
+
 ---
 
 ## Deployment Topology
@@ -413,14 +718,18 @@ Namespace: kiteclass-{tenant}
 
 ## Key Design Decisions
 
-| Quyết định | Lý do |
-|------------|-------|
-| **Microservices cho Instance** | Flexibility, independent scaling, feature toggles |
-| **Monolith cho KiteHub** | Simpler ops, sufficient scale, faster development |
-| **PostgreSQL** | ACID compliance, JSON support, mature ecosystem |
-| **Next.js App Router** | Server components, SEO, performance |
-| **RabbitMQ vs Kafka** | Simpler setup, sufficient throughput |
-| **Database-per-tenant** | Complete isolation, compliance, easy backup |
+| Quyết định | Lý do | Tác động |
+|------------|-------|----------|
+| **Microservices cho Instance** | Flexibility, independent scaling, feature toggles | Gateway (Auth) ≠ Core (Business) |
+| **Monolith cho KiteHub** | Simpler ops, sufficient scale, faster development | Shared DB với schema separation |
+| **PostgreSQL** | ACID compliance, JSON support, mature ecosystem | Relational + JSON flexibility |
+| **Next.js App Router** | Server components, SEO, performance | Server-side rendering |
+| **RabbitMQ vs Kafka** | Simpler setup, sufficient throughput | Event-driven architecture |
+| **Database-per-tenant** | Complete isolation, compliance, easy backup | Mỗi instance có DB riêng |
+| **UserType + ReferenceId Pattern** | Cross-service data relationship, clear separation | Gateway.User links to Core.Student/Teacher/Parent |
+| **No Shared Entities** | Service independence, avoid tight coupling | Chỉ share DTOs qua REST API |
+| **Gateway adds X-Headers** | Downstream services nhận auth context | Core không cần query Gateway |
+| **JWT in Gateway only** | Single source of authentication truth | Core không xử lý JWT |
 
 ## Actions
 
