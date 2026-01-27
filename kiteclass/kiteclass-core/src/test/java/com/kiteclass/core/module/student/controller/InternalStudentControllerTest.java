@@ -100,14 +100,13 @@ class InternalStudentControllerTest {
     void createStudent_shouldReturn400_whenInvalidRequest() throws Exception {
         // Given
         CreateStudentRequest invalidRequest = new CreateStudentRequest(
-                null,  // name is required
-                "invalid-email",  // invalid email format
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                null,  // name is required - should fail validation
+                "invalid-email",  // invalid email format - should fail validation
+                null,  // phone
+                null,  // dateOfBirth
+                null,  // gender
+                null,  // address
+                null   // note
         );
 
         // When / Then
