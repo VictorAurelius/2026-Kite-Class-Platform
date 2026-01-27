@@ -303,3 +303,5 @@ ngoài ra các skill đang khá nhiều, hãy thực hiện phân loại và k�
 sửa lại skill về tạo báo cáo business-logic => luôn ở dạng tiếng việt, mục đích là để tôi đọc nên phải luôn dễ đọc dễ hiểu
 
 kiểm tra lại auth và student, cập nhật nếu cần thiết
+
+auth-module.md vẫn ở dạng tiếng Anh, ngoài ra tôi vẫn chưa hiểu mối quan hệ giữa record student (hoặc teacher, parent) đối với record user sẽ như thế nào để giúp các actor này login vào gateway => hiện đang thiết kế như thế nào? hãy bổ sung vào báo cáo
