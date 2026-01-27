@@ -13,7 +13,21 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 
 # 📊 PROGRESS TRACKING
 
-## Gateway Service (feature/gateway branch)
+## 🔀 Git Workflow Update (2026-01-27)
+
+**NEW WORKFLOW:** Merge to main after each milestone, create new branch from main for next work.
+
+**Completed Merges:**
+- ✅ `feature/gateway` → `main` (2026-01-26) - Gateway PRs 1.1-1.6
+- ✅ `feature/core` → `main` (2026-01-27) - Core PRs 2.1-2.3, 2.11
+
+**Current Branch:** `feature/gateway-cross-service` (for PR 1.8)
+
+**Strategy:** Keep code unified in main, branch out for specific features, merge back when complete.
+
+---
+
+## Gateway Service
 - ✅ PR 1.1: Project Setup
 - ✅ PR 1.2: Common Components
 - ✅ PR 1.3: User Module
@@ -1700,19 +1714,33 @@ Hoàn thiện Frontend với E2E tests.
 
 # HƯỚNG DẪN SỬ DỤNG
 
-## Branch Strategy
+## Branch Strategy (UPDATED 2026-01-27)
+
+**NEW STRATEGY:** Merge to main after milestones, create feature branches from main
 
 ```
-main
-├── feature/gateway     # Tất cả PRs 1.1 - 1.6
-├── feature/core        # Tất cả PRs 2.1 - 2.10
-└── feature/frontend    # Tất cả PRs 3.1 - 3.11
+main (always up-to-date with completed work)
+├── feature/gateway-cross-service (PR 1.8 - active)
+├── feature/core-modules (PR 2.4+ - future)
+└── feature/frontend (PR 3.1+ - future)
 ```
 
-**Quy tắc:**
-- Mỗi service = 1 branch duy nhất
-- Commit sau khi hoàn thành mỗi PR
-- Merge vào main khi hoàn thành service
+**OLD branches (already merged, can delete):**
+- ~~feature/gateway~~ → merged to main (PRs 1.1-1.6)
+- ~~feature/core~~ → merged to main (PRs 2.1-2.3, 2.11)
+
+**New Workflow:**
+1. Work on feature branch
+2. Complete PR(s) with tests
+3. Merge feature branch → main (keep code unified)
+4. Create new feature branch from main for next work
+5. Repeat
+
+**Benefits:**
+- ✅ Code always unified in main
+- ✅ No long-lived feature branches
+- ✅ Easier to switch between different features
+- ✅ Conflicts resolved incrementally
 
 ## Commit Convention
 
