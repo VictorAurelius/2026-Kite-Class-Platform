@@ -13,7 +13,7 @@ import java.time.Instant;
  * Repository for password reset token operations.
  *
  * @author KiteClass Team
- * @since 1.0.0
+ * @since 1.5.0
  */
 @Repository
 public interface PasswordResetTokenRepository extends R2dbcRepository<PasswordResetToken, Long> {

@@ -16,7 +16,7 @@ import java.time.Instant;
  * <p>Stores password reset tokens in database for validation and one-time use.
  *
  * @author KiteClass Team
- * @since 1.0.0
+ * @since 1.5.0
  */
 @Table("password_reset_tokens")
 @Data
