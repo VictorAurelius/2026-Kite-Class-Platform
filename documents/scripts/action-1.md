@@ -320,3 +320,11 @@ chưa cập nhật status như PR 1.1, 1.2, ... cho PR 2.1, 2.2, ...
 cập nhật skill sao cho nhớ mỗi khi hết 1 lần prompt phải cập nhật status vào plan đó
 
 tốt, bây giờ trong plan đang có khá nhiều vấn đề, hãy tự tạo thứ tự ưu tiên fix và thực hiện fix
+
+có lỗi trong file test internal controller
+The constructor CreateStudentRequest(null, String, null, null, null, null, null, null) is undefined
+
+2. 🎯 Ready for PR 1.8 Gateway Integration
+=> trước hết hãy merge feature/core vào main, sau đó tạo nhánh mới để do PR 1.8, sau đó merge vào main và tạo nhánh mới để do PR tiếp theo trong plan (2.4, ..)
+
+=> code luôn phải thống nhất
