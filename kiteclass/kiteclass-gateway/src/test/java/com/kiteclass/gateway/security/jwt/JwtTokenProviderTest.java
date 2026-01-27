@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -80,7 +81,8 @@ class JwtTokenProviderTest {
         String token = jwtTokenProvider.generateAccessToken(userId, email, roles);
 
         // When/Then
-        assertThatNoException().isThrownBy(() -> jwtTokenProvider.validateToken(token));
+        assertThatCode(() -> jwtTokenProvider.validateToken(token))
+                .doesNotThrowAnyException();
     }
 
     @Test
