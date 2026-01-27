@@ -29,44 +29,65 @@
 ## 1.1. Database Strategy
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                       DATABASE ARCHITECTURE                                      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                  │
-│  ┌────────────────────────────────────────────────────────────────────────────┐ │
-│  │                        KITEHUB DATABASE                                    │ │
-│  │                     (Single shared database)                               │ │
-│  │                                                                            │ │
-│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐      │ │
-│  │  │    SALES     │ │   MESSAGES   │ │ MAINTAINING  │ │  AI_AGENTS   │      │ │
-│  │  │    Schema    │ │    Schema    │ │    Schema    │ │    Schema    │      │ │
-│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘      │ │
-│  │                                                                            │ │
-│  │  Customers, Orders, Subscriptions, Chat, Instances, AI Sessions           │ │
-│  └────────────────────────────────────────────────────────────────────────────┘ │
-│                                                                                  │
-│                                    │                                             │
-│                                    │ Provisioning                                │
-│                                    ▼                                             │
-│                                                                                  │
-│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐  │
-│  │ KITECLASS INSTANCE 1 │  │ KITECLASS INSTANCE 2 │  │ KITECLASS INSTANCE N │  │
-│  │    (Tenant: ABC)     │  │    (Tenant: XYZ)     │  │    (Tenant: ...)     │  │
-│  │                      │  │                      │  │                      │  │
-│  │  ┌────────────────┐  │  │  ┌────────────────┐  │  │  ┌────────────────┐  │  │
-│  │  │   PostgreSQL   │  │  │  │   PostgreSQL   │  │  │  │   PostgreSQL   │  │  │
-│  │  │   (Isolated)   │  │  │  │   (Isolated)   │  │  │  │   (Isolated)   │  │  │
-│  │  └────────────────┘  │  │  └────────────────┘  │  │  └────────────────┘  │  │
-│  │                      │  │                      │  │                      │  │
-│  │  Users, Classes,    │  │  Users, Classes,    │  │  Users, Classes,    │  │
-│  │  Students, Billing, │  │  Students, Billing, │  │  Students, Billing, │  │
-│  │  Gamification, etc. │  │  Gamification, etc. │  │  Gamification, etc. │  │
-│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘  │
-│                                                                                  │
-│  STRATEGY: Database-per-tenant (Complete isolation)                              │
-│  BENEFITS: Security, Performance, Easy backup/restore per tenant                │
-│                                                                                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                       DATABASE ARCHITECTURE V3.1                                  │
+│                         (Microservices Model)                                     │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐ │
+│  │                        KITEHUB DATABASE                                     │ │
+│  │                     (Single shared database)                                │ │
+│  │                                                                             │ │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │ │
+│  │  │    SALES     │ │   MESSAGES   │ │ MAINTAINING  │ │  AI_AGENTS   │       │ │
+│  │  │    Schema    │ │    Schema    │ │    Schema    │ │    Schema    │       │ │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │ │
+│  │                                                                             │ │
+│  │  Customers, Orders, Subscriptions, Chat, Instances, AI Sessions            │ │
+│  └─────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                   │
+│                                    │                                              │
+│                                    │ Provisioning                                 │
+│                                    ▼                                              │
+│                                                                                   │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐   │
+│  │ KITECLASS INSTANCE 1 │  │ KITECLASS INSTANCE 2 │  │ KITECLASS INSTANCE N │   │
+│  │    (Tenant: ABC)     │  │    (Tenant: XYZ)     │  │    (Tenant: ...)     │   │
+│  │                      │  │                      │  │                      │   │
+│  │  ┌────────────────┐  │  │  ┌────────────────┐  │  │  ┌────────────────┐   │   │
+│  │  │  GATEWAY DB    │  │  │  │  GATEWAY DB    │  │  │  │  GATEWAY DB    │   │   │
+│  │  │ (PostgreSQL)   │  │  │  │ (PostgreSQL)   │  │  │  │ (PostgreSQL)   │   │   │
+│  │  ├────────────────┤  │  │  ├────────────────┤  │  │  ├────────────────┤   │   │
+│  │  │ • users        │  │  │  │ • users        │  │  │  │ • users        │   │   │
+│  │  │ • roles        │  │  │  │ • roles        │  │  │  │ • roles        │   │   │
+│  │  │ • permissions  │  │  │  │ • permissions  │  │  │  │ • permissions  │   │   │
+│  │  │ • user_roles   │  │  │  │ • user_roles   │  │  │  │ • user_roles   │   │   │
+│  │  │ • refresh_...  │  │  │  │ • refresh_...  │  │  │  │ • refresh_...  │   │   │
+│  │  └────────────────┘  │  │  └────────────────┘  │  │  └────────────────┘   │   │
+│  │         ↕             │  │         ↕             │  │         ↕             │   │
+│  │  reference_id links  │  │  reference_id links  │  │  reference_id links  │   │
+│  │         ↕             │  │         ↕             │  │         ↕             │   │
+│  │  ┌────────────────┐  │  │  ┌────────────────┐  │  │  ┌────────────────┐   │   │
+│  │  │    CORE DB     │  │  │  │    CORE DB     │  │  │  │    CORE DB     │   │   │
+│  │  │ (PostgreSQL)   │  │  │  │ (PostgreSQL)   │  │  │  │ (PostgreSQL)   │   │   │
+│  │  ├────────────────┤  │  │  ├────────────────┤  │  │  ├────────────────┤   │   │
+│  │  │ • students     │  │  │  │ • students     │  │  │  │ • students     │   │   │
+│  │  │ • teachers     │  │  │  │ • teachers     │  │  │  │ • teachers     │   │   │
+│  │  │ • parents      │  │  │  │ • parents      │  │  │  │ • parents      │   │   │
+│  │  │ • classes      │  │  │  │ • classes      │  │  │  │ • classes      │   │   │
+│  │  │ • attendance   │  │  │  │ • attendance   │  │  │  │ • attendance   │   │   │
+│  │  │ • invoices     │  │  │  │ • invoices     │  │  │  │ • invoices     │   │   │
+│  │  │ • gamification │  │  │  │ • gamification │  │  │  │ • gamification │   │   │
+│  │  └────────────────┘  │  │  └────────────────┘  │  │  └────────────────┘   │   │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────────┘   │
+│                                                                                   │
+│  STRATEGY: Database-per-tenant + Microservices                                    │
+│  - Gateway DB: Authentication, Authorization (JWT, Roles, Users)                  │
+│  - Core DB: Business Logic (Students, Classes, Billing, etc.)                     │
+│  - Cross-DB Relationship: Gateway.users.reference_id → Core.[students/teachers]   │
+│  BENEFITS: Security, Service Independence, Clear Separation of Concerns           │
+│                                                                                   │
+└──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 1.2. Naming Conventions
@@ -87,8 +108,8 @@
 -- Audit columns (all tables)
 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-created_by BIGINT REFERENCES users(id),
-updated_by BIGINT REFERENCES users(id),
+created_by BIGINT,     -- User ID from Gateway (NO FK constraint in Core DB)
+updated_by BIGINT,     -- User ID from Gateway (NO FK constraint in Core DB)
 
 -- Soft delete
 deleted BOOLEAN DEFAULT FALSE NOT NULL,
@@ -96,6 +117,206 @@ deleted_at TIMESTAMP WITH TIME ZONE,
 
 -- Version for optimistic locking
 version INTEGER DEFAULT 0 NOT NULL
+```
+
+**⚠️ Quan trọng về Audit Fields trong Microservices:**
+
+- **Gateway DB tables:** `created_by/updated_by` CÓ THỂ reference `users(id)` (cùng DB)
+- **Core DB tables:** `created_by/updated_by` KHÔNG THỂ có FK constraint (khác DB)
+  - Lưu user_id từ Gateway dưới dạng BIGINT
+  - Validate tại application layer, không phải DB layer
+  - Nếu cần thông tin user, call Gateway Service API
+
+## 1.4. Microservices Database Strategy
+
+### KiteClass Instance Architecture
+
+Mỗi KiteClass instance (tenant) sử dụng **2 databases riêng biệt** theo kiến trúc microservices:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  KITECLASS INSTANCE (Tenant: ABC)               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │              GATEWAY SERVICE                              │ │
+│  │                                                           │ │
+│  │  Database: kiteclass_abc_gateway                          │ │
+│  │  ───────────────────────────────────                      │ │
+│  │  Trách nhiệm: Authentication & Authorization              │ │
+│  │                                                           │ │
+│  │  Tables:                                                  │ │
+│  │  • users            (credentials, user_type, ref_id)      │ │
+│  │  • roles            (OWNER, ADMIN, TEACHER, etc.)         │ │
+│  │  • permissions      (granular permissions)                │ │
+│  │  • user_roles       (many-to-many)                        │ │
+│  │  • refresh_tokens   (JWT refresh token storage)           │ │
+│  │  • password_reset_tokens                                  │ │
+│  └───────────────────────────────────────────────────────────┘ │
+│                            ↕                                   │
+│                   reference_id links to                        │
+│                            ↕                                   │
+│  ┌───────────────────────────────────────────────────────────┐ │
+│  │              CORE SERVICE                                 │ │
+│  │                                                           │ │
+│  │  Database: kiteclass_abc_core                             │ │
+│  │  ───────────────────────────                              │ │
+│  │  Trách nhiệm: Business Logic                              │ │
+│  │                                                           │ │
+│  │  Tables:                                                  │ │
+│  │  • students         (student profiles)                    │ │
+│  │  • teachers         (teacher profiles)                    │ │
+│  │  • parents          (parent profiles)                     │ │
+│  │  • classes          (class management)                    │ │
+│  │  • enrollments      (student-class relationship)          │ │
+│  │  • attendance       (attendance tracking)                 │ │
+│  │  • invoices         (billing)                             │ │
+│  │  • payments         (payment records)                     │ │
+│  │  • gamification tables                                    │ │
+│  └───────────────────────────────────────────────────────────┘ │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Cross-Database Relationship Pattern
+
+**Vấn đề:** Gateway và Core ở 2 databases khác nhau, làm sao liên kết User với Student/Teacher/Parent?
+
+**Giải pháp:** UserType + ReferenceId Pattern
+
+#### Gateway Database - users table
+
+```sql
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+
+    -- Cross-service linking fields
+    user_type VARCHAR(20) NOT NULL,     -- ADMIN, STAFF, TEACHER, PARENT, STUDENT
+    reference_id BIGINT,                -- ID trong Core database
+
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    CONSTRAINT chk_users_user_type CHECK (
+        user_type IN ('ADMIN', 'STAFF', 'TEACHER', 'PARENT', 'STUDENT')
+    )
+);
+
+CREATE INDEX idx_users_user_type ON users(user_type);
+CREATE INDEX idx_users_reference_id ON users(reference_id);
+```
+
+#### Core Database - students/teachers/parents tables
+
+```sql
+-- Students table (Core DB)
+CREATE TABLE students (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    date_of_birth DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    -- NO userId field - linked via Gateway.users.reference_id
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Teachers table (Core DB)
+CREATE TABLE teachers (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    department VARCHAR(100),
+    specialization VARCHAR(100),
+    -- NO userId field - linked via Gateway.users.reference_id
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Parents table (Core DB)
+CREATE TABLE parents (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    relationship VARCHAR(50),
+    -- NO userId field - linked via Gateway.users.reference_id
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+```
+
+### Mapping Logic
+
+| user_type | reference_id links to | Ý nghĩa |
+|-----------|----------------------|---------|
+| `ADMIN` | `NULL` | Admin không có entity trong Core |
+| `STAFF` | `NULL` | Staff không có entity trong Core |
+| `TEACHER` | `teachers.id` | Teacher profile trong Core |
+| `PARENT` | `parents.id` | Parent profile trong Core |
+| `STUDENT` | `students.id` | Student profile trong Core |
+
+### Ví dụ: Student Login Flow
+
+```sql
+-- 1. Gateway authenticates user
+SELECT * FROM gateway_db.users
+WHERE email = 'student@example.com' AND deleted = FALSE;
+-- Result: id=123, user_type='STUDENT', reference_id=456
+
+-- 2. Gateway calls Core Service API to get profile
+-- Core Service queries:
+SELECT * FROM core_db.students WHERE id = 456;
+-- Result: Student profile (name, date_of_birth, status, etc.)
+
+-- 3. Gateway returns combined response:
+{
+  "user": {
+    "id": 123,
+    "email": "student@example.com",
+    "userType": "STUDENT"
+  },
+  "profile": {
+    "studentId": 456,
+    "name": "Nguyễn Văn An",
+    "dateOfBirth": "2010-05-15",
+    "status": "ACTIVE"
+  }
+}
+```
+
+### Ưu điểm của kiến trúc này
+
+| Ưu điểm | Giải thích |
+|---------|------------|
+| ✅ **Service Independence** | Gateway và Core hoàn toàn độc lập về database |
+| ✅ **Clear Separation** | Authentication logic ≠ Business logic |
+| ✅ **Single Source of Truth** | Credentials chỉ trong Gateway, business data chỉ trong Core |
+| ✅ **Scalability** | Scale Gateway và Core service độc lập |
+| ✅ **Security** | JWT generation/validation chỉ trong Gateway |
+| ✅ **Flexibility** | Admin/Staff không cần entity trong Core |
+
+### Nhược điểm và giải pháp
+
+| Nhược điểm | Giải pháp |
+|------------|-----------|
+| ⚠️ **No Foreign Key Constraints** | Validate tại application layer + API contracts |
+| ⚠️ **Two Database Queries** | Cache profile data trong Gateway (Redis) |
+| ⚠️ **Data Consistency** | Transaction log + eventual consistency patterns |
+| ⚠️ **Complex Queries** | Denormalize if needed, use API Gateway aggregation |
+
+### Naming Convention cho Databases
+
+```
+KiteHub:
+  kitehub_production
+
+KiteClass Instances:
+  Tenant: abc → kiteclass_abc_gateway + kiteclass_abc_core
+  Tenant: xyz → kiteclass_xyz_gateway + kiteclass_xyz_core
 ```
 
 ---
@@ -400,40 +621,78 @@ CREATE INDEX idx_instances_status ON maintaining.instances(status);
 
 # 3. KITECLASS INSTANCE DATABASE
 
-## 3.1. Schema Overview
+## 3.1. Schema Overview (Microservices Architecture)
+
+### Gateway Database (Authentication & Authorization)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    KITECLASS INSTANCE DATABASE SCHEMA                            │
+│                    GATEWAY DATABASE SCHEMA                                       │
+│                kiteclass_{tenant}_gateway                                        │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                  │
-│  USER_MODULE               CLASS_MODULE              LEARNING_MODULE            │
-│  ───────────               ────────────              ───────────────             │
-│  • users                   • courses                 • attendance                │
-│  • roles                   • classes                 • grades                    │
-│  • permissions             • class_schedules         • assignments               │
-│  • role_permissions        • enrollments             • submissions               │
-│  • user_sessions           • rooms                                               │
-│                                                                                  │
-│  BILLING_MODULE            GAMIFICATION_MODULE       PARENT_MODULE              │
-│  ──────────────            ────────────────────      ─────────────               │
-│  • tuition_configs         • point_rules             • parents                   │
-│  • invoices                • student_points          • parent_children           │
-│  • invoice_items           • badges                  • parent_notifications      │
-│  • payments                • student_badges                                      │
-│  • payment_reminders       • rewards                                             │
-│                            • reward_redemptions                                  │
-│                                                                                  │
-│  FORUM_MODULE              NOTIFICATION_MODULE       MEDIA_MODULE               │
-│  ────────────              ───────────────────       ────────────                │
-│  • forum_topics            • notification_templates  • videos                    │
-│  • forum_posts             • notification_logs       • video_views               │
-│  • forum_comments                                    • live_sessions             │
+│  AUTH_MODULE (Gateway Service)                                                   │
+│  ──────────────────────────────                                                  │
+│  • users                    (credentials, user_type, reference_id)               │
+│  • roles                    (OWNER, ADMIN, TEACHER, PARENT, STAFF, STUDENT)      │
+│  • permissions              (granular permissions per module)                    │
+│  • user_roles               (many-to-many: users ↔ roles)                        │
+│  • refresh_tokens           (JWT refresh token storage)                          │
+│  • password_reset_tokens    (password reset flow)                                │
 │                                                                                  │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 3.2. User Module Tables
+### Core Database (Business Logic)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                       CORE DATABASE SCHEMA                                       │
+│                    kiteclass_{tenant}_core                                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  STUDENT_MODULE            TEACHER_MODULE            PARENT_MODULE              │
+│  ───────────────           ──────────────            ──────────────              │
+│  • students                • teachers                • parents                   │
+│                            • teacher_assignments     • parent_children           │
+│                                                      • parent_notifications      │
+│                                                                                  │
+│  CLASS_MODULE              LEARNING_MODULE           BILLING_MODULE             │
+│  ─────────────             ───────────────           ──────────────              │
+│  • courses                 • attendance               • tuition_configs          │
+│  • classes                 • grades                   • invoices                 │
+│  • class_schedules         • assignments              • invoice_items            │
+│  • class_sessions          • submissions              • payments                 │
+│  • enrollments             • learning_materials       • payment_reminders        │
+│  • rooms                                                                         │
+│                                                                                  │
+│  GAMIFICATION_MODULE       FORUM_MODULE              NOTIFICATION_MODULE        │
+│  ────────────────────      ────────────              ───────────────────         │
+│  • point_rules             • forum_topics            • notification_templates    │
+│  • student_points          • forum_posts             • notification_logs         │
+│  • badges                  • forum_comments                                      │
+│  • student_badges                                    MEDIA_MODULE                │
+│  • rewards                                           ────────────                │
+│  • reward_redemptions                                • videos                    │
+│                                                      • video_views               │
+│                                                      • live_sessions             │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**⚠️ Quan trọng:**
+- **Gateway DB** chứa authentication data (users, roles, JWT tokens)
+- **Core DB** chứa business logic data (students, teachers, classes, billing)
+- **NO direct FK** giữa 2 databases
+- **Link via:** Gateway.users.reference_id → Core.students/teachers/parents.id
+- **Communication:** REST API calls giữa Gateway Service và Core Service
+
+---
+
+## 3.2. Gateway Database Tables
+
+**Database:** `kiteclass_{tenant}_gateway`
+**Service:** Gateway Service (Authentication & Authorization)
 
 ### 3.2.1. users
 
@@ -469,6 +728,12 @@ CREATE TABLE users (
     email_verified BOOLEAN DEFAULT FALSE,
     phone_verified BOOLEAN DEFAULT FALSE,
 
+    -- Cross-service linking (Microservices pattern)
+    user_type VARCHAR(20) NOT NULL DEFAULT 'ADMIN',
+    -- ADMIN, STAFF, TEACHER, PARENT, STUDENT
+    reference_id BIGINT,
+    -- ID của entity tương ứng trong Core DB (students/teachers/parents)
+
     -- Security
     failed_login_attempts INTEGER DEFAULT 0,
     locked_until TIMESTAMP WITH TIME ZONE,
@@ -487,6 +752,12 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
 CREATE INDEX idx_users_status ON users(status);
 CREATE INDEX idx_users_oauth ON users(oauth_provider, oauth_id);
+CREATE INDEX idx_users_user_type ON users(user_type);
+CREATE INDEX idx_users_reference_id ON users(reference_id);
+
+-- Comments
+COMMENT ON COLUMN users.user_type IS 'User type: ADMIN, STAFF, TEACHER, PARENT, STUDENT';
+COMMENT ON COLUMN users.reference_id IS 'ID của entity tương ứng trong Core DB (students.id / teachers.id / parents.id)';
 ```
 
 ### 3.2.2. roles
@@ -574,9 +845,150 @@ CREATE INDEX idx_user_roles_user ON user_roles(user_id);
 CREATE INDEX idx_user_roles_role ON user_roles(role_id);
 ```
 
-## 3.3. Class Module Tables
+## 3.3. Core Database Tables
 
-### 3.3.1. courses
+**Database:** `kiteclass_{tenant}_core`
+**Service:** Core Service (Business Logic)
+
+**⚠️ Quan trọng:**
+- Core DB KHÔNG có trực tiếp foreign key đến Gateway DB
+- Students, Teachers, Parents là business entities riêng
+- Link với Gateway qua REST API calls (không phải FK)
+
+### 3.3.1. students
+
+```sql
+CREATE TABLE students (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Profile
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    date_of_birth DATE,
+    gender VARCHAR(10),
+
+    -- Address
+    address TEXT,
+
+    -- Avatar
+    avatar_url VARCHAR(500),
+
+    -- Status
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    -- PENDING, ACTIVE, INACTIVE, GRADUATED, DROPPED
+
+    -- Notes
+    note TEXT,
+
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT chk_students_status CHECK (
+        status IN ('PENDING', 'ACTIVE', 'INACTIVE', 'GRADUATED', 'DROPPED')
+    )
+);
+
+CREATE INDEX idx_students_email ON students(email) WHERE deleted = FALSE;
+CREATE INDEX idx_students_phone ON students(phone);
+CREATE INDEX idx_students_status ON students(status) WHERE deleted = FALSE;
+
+-- NO userId field - linked via Gateway.users.reference_id
+```
+
+### 3.3.2. teachers
+
+```sql
+CREATE TABLE teachers (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Profile
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    avatar_url VARCHAR(500),
+
+    -- Professional info
+    department VARCHAR(100),
+    specialization VARCHAR(100),
+    qualifications TEXT,
+    bio TEXT,
+
+    -- Status
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
+);
+
+CREATE INDEX idx_teachers_email ON teachers(email) WHERE deleted = FALSE;
+CREATE INDEX idx_teachers_department ON teachers(department);
+
+-- NO userId field - linked via Gateway.users.reference_id
+```
+
+### 3.3.3. parents
+
+```sql
+CREATE TABLE parents (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Profile
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    avatar_url VARCHAR(500),
+
+    -- Relationship
+    relationship VARCHAR(50),
+    -- father, mother, guardian
+
+    -- Address
+    address TEXT,
+
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
+);
+
+CREATE INDEX idx_parents_email ON parents(email) WHERE deleted = FALSE;
+CREATE INDEX idx_parents_phone ON parents(phone);
+
+-- NO userId field - linked via Gateway.users.reference_id
+```
+
+### 3.3.4. parent_children
+
+```sql
+CREATE TABLE parent_children (
+    id BIGSERIAL PRIMARY KEY,
+
+    parent_id BIGINT NOT NULL REFERENCES parents(id) ON DELETE CASCADE,
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+
+    relationship VARCHAR(50) NOT NULL,
+    is_primary_contact BOOLEAN DEFAULT FALSE,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    CONSTRAINT uk_parent_children UNIQUE (parent_id, student_id)
+);
+
+CREATE INDEX idx_parent_children_parent ON parent_children(parent_id);
+CREATE INDEX idx_parent_children_student ON parent_children(student_id);
+```
+
+---
+
+## 3.4. Core Database - Class Module Tables
+
+### 3.4.1. courses
 
 ```sql
 CREATE TABLE courses (
@@ -624,8 +1036,8 @@ CREATE TABLE classes (
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
 
-    -- Teacher
-    teacher_id BIGINT REFERENCES users(id),
+    -- Teacher (Core DB FK)
+    teacher_id BIGINT REFERENCES teachers(id),
 
     -- Schedule
     start_date DATE NOT NULL,
@@ -649,7 +1061,7 @@ CREATE TABLE classes (
     -- Audit
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by BIGINT REFERENCES users(id),
+    created_by BIGINT,  -- User ID from Gateway (no FK constraint across DBs)
     deleted BOOLEAN DEFAULT FALSE,
 
     CONSTRAINT chk_classes_status CHECK (
@@ -730,7 +1142,7 @@ CREATE TABLE enrollments (
     id BIGSERIAL PRIMARY KEY,
 
     class_id BIGINT NOT NULL REFERENCES classes(id),
-    student_id BIGINT NOT NULL REFERENCES users(id),
+    student_id BIGINT NOT NULL REFERENCES students(id),  -- Core DB FK
 
     -- Enrollment info
     enrolled_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -745,7 +1157,7 @@ CREATE TABLE enrollments (
     -- Audit
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by BIGINT REFERENCES users(id),
+    created_by BIGINT,  -- User ID from Gateway (no FK constraint)
 
     CONSTRAINT uk_enrollments UNIQUE (class_id, student_id)
 );
@@ -764,7 +1176,7 @@ CREATE TABLE attendance (
     id BIGSERIAL PRIMARY KEY,
 
     session_id BIGINT NOT NULL REFERENCES class_sessions(id),
-    student_id BIGINT NOT NULL REFERENCES users(id),
+    student_id BIGINT NOT NULL REFERENCES students(id),  -- Core DB FK
 
     -- Attendance status
     status VARCHAR(20) NOT NULL,
@@ -776,8 +1188,8 @@ CREATE TABLE attendance (
     -- Notes
     notes TEXT,
 
-    -- Marked by
-    marked_by BIGINT REFERENCES users(id),
+    -- Marked by (User ID from Gateway - no FK constraint)
+    marked_by BIGINT,  -- Teacher or Admin user ID
     marked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     -- Audit

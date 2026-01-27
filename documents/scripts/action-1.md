@@ -298,10 +298,12 @@ quick-start của core service đâu? bạn đã đảm bảo các skill chưa? 
 
 tài liệu của core service thì phải để trong docs của core service chứ
 
-ngoài ra các skill đang khá nhiều, hãy thực hiện phân loại và kết hợp nếu hợp lý => sửa skill thì phải update prompt plan và tài liệu liên quan đó
+ngoài ra các skill đang khá nhiều, hãy thực hiện ph ân loại và kết hợp nếu hợp lý => sửa skill thì phải update prompt plan và tài liệu liên quan đó
 
 sửa lại skill về tạo báo cáo business-logic => luôn ở dạng tiếng việt, mục đích là để tôi đọc nên phải luôn dễ đọc dễ hiểu
 
 kiểm tra lại auth và student, cập nhật nếu cần thiết
 
 auth-module.md vẫn ở dạng tiếng Anh, ngoài ra tôi vẫn chưa hiểu mối quan hệ giữa record student (hoặc teacher, parent) đối với record user sẽ như thế nào để giúp các actor này login vào gateway => hiện đang thiết kế như thế nào? hãy bổ sung vào báo cáo
+
+vậy tài liệu kiến trúc hệ thống đã có thiết sót lớn trong vụ này, việc tách gateway và core-service tôi hiểu là 1 phương án tối ưu và đã được xem xét kỹ, nhưng lại có vấn đề này, vậy cần xem lại kiến trúc hệ thống trước
