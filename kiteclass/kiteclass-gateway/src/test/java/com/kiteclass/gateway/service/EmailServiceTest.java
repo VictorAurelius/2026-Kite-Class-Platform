@@ -37,7 +37,7 @@ class EmailServiceTest {
     @Mock
     private TemplateEngine templateEngine;
 
-    @Mock(lenient = true)
+    @Mock
     private EmailProperties emailProperties;
 
     @InjectMocks
