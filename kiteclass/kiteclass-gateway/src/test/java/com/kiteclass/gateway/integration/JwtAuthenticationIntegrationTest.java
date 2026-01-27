@@ -27,6 +27,7 @@ import java.util.List;
 class JwtAuthenticationIntegrationTest {
 
     @Container
+    @SuppressWarnings("resource") // Managed by Testcontainers framework
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("test")
             .withUsername("test")
