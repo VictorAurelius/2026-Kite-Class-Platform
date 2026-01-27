@@ -175,11 +175,4 @@ public class RateLimitingFilter extends AbstractGatewayFilterFactory<RateLimitin
         String errorBody = "{\"error\":\"Too many requests\",\"message\":\"Rate limit exceeded. Please try again later.\"}";
         return response.writeWith(Mono.just(response.bufferFactory().wrap(errorBody.getBytes())));
     }
-
-    /**
-     * Configuration properties for the filter.
-     */
-    public static class Config {
-        // Configuration properties can be added here if needed
-    }
 }
