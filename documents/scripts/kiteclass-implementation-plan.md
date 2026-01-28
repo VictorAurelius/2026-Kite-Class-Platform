@@ -142,7 +142,25 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 11/33 PRs completed (33.3%)
+### Frontend PRs (Parallel with Backend Development)
+
+- ⏳ PR 3.1: Project Setup & Core Infrastructure
+- ⏳ PR 3.2: Shared Components & Layout System
+- ⏳ PR 3.3: Authentication Pages (Login, Forgot Password, Reset)
+- ⏳ PR 3.4: Student Management Pages (List, Create, Edit, Detail)
+- ⏳ PR 3.5: Teacher Management Pages (List, Create, Edit, Detail)
+- ⏳ PR 3.6: Course Management Pages (List, Create, Edit, Detail, Lifecycle)
+- ⏳ PR 3.7: Class Management Pages (List, Create, Schedule, Students)
+- ⏳ PR 3.8: Attendance Management (Take Attendance, Reports, Calendar)
+- ⏳ PR 3.9: Billing Pages (Invoices, Payments, History)
+- ⏳ PR 3.10: Parent Portal (Dashboard, Children Info, Payments)
+- ⏳ PR 3.11: Settings & Reports (Profile, Branding, Analytics)
+
+**Frontend Status:** 0/11 PRs completed (0%)
+**Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
+**Prerequisites:** Backend APIs from Gateway + Core must be available for each corresponding PR
+
+**Overall Progress:** 11/44 PRs completed (25%)
 **Last Updated:** 2026-01-28 (Plan updated - added Teacher, Assignment, Grade, split Invoice/Payment)
 **Current Work:**
 - ✅ COMPLETED: PR 2.3 Student Module (tests fixed)
@@ -2710,3 +2728,394 @@ Frontend: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 ←──────────�
 2. **PR 1.8** - Gateway Cross-Service Integration (depends on 2.11)
 
 **Impact:** Cannot proceed with Core development (PR 2.3+) until cross-service pattern is implemented, as Student/Teacher/Parent entities need to integrate with Gateway authentication.
+
+---
+
+# FRONTEND SERVICE PRs
+
+## PR 3.1: Project Setup & Core Infrastructure
+
+**Branch:** feature/frontend  
+**Prerequisites:** None (can start immediately)  
+**Dependencies:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
+
+### Tasks:
+1. Create Next.js project with TypeScript and Tailwind
+2. Install core dependencies (React Query, Zustand, Axios, Zod, React Hook Form)
+3. Setup Shadcn/UI with essential components
+4. Configure project structure (app router, src directory)
+5. Setup API client with Axios interceptors
+6. Configure environment variables
+7. Setup Prettier and ESLint
+8. Create base layout and providers (QueryProvider, ThemeProvider)
+
+### Files:
+- `package.json` - Dependencies
+- `tsconfig.json` - TypeScript config
+- `tailwind.config.ts` - Tailwind + Shadcn config
+- `src/lib/api/client.ts` - Axios instance
+- `src/lib/api/endpoints.ts` - API endpoints
+- `src/app/providers.tsx` - Global providers
+- `src/app/layout.tsx` - Root layout
+
+### Tests:
+- API client configuration tests
+- Provider rendering tests
+
+---
+
+## PR 3.2: Shared Components & Layout System
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.1  
+**Depends on Backend:** None (pure UI)
+
+### Tasks:
+1. Create Sidebar component with navigation
+2. Create Header component with user menu
+3. Create Breadcrumb component
+4. Create DataTable component (reusable)
+5. Create shared components (PageHeader, LoadingSpinner, EmptyState, StatusBadge, etc.)
+6. Setup dark/light theme toggle
+7. Create dashboard layout structure
+
+### Files:
+- `src/components/layout/sidebar/` - Sidebar components
+- `src/components/layout/header/` - Header components
+- `src/components/tables/data-table.tsx` - Reusable table
+- `src/components/shared/` - Shared UI components
+- `src/app/(dashboard)/layout.tsx` - Dashboard layout
+
+### Tests:
+- Component rendering tests
+- Theme toggle tests
+- Navigation tests
+
+---
+
+## PR 3.3: Authentication Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.2  
+**Depends on Backend:** PR 1.4 (Auth Module)
+
+### Tasks:
+1. Create Login page with form validation
+2. Create Forgot Password page
+3. Create Reset Password page
+4. Implement useAuth hook with React Query
+5. Setup JWT token management
+6. Implement auth middleware/guards
+7. Add error handling for auth flows
+
+### Files:
+- `src/app/(auth)/login/page.tsx`
+- `src/app/(auth)/forgot-password/page.tsx`
+- `src/app/(auth)/reset-password/page.tsx`
+- `src/hooks/use-auth.ts`
+- `src/lib/auth.ts` - Token management
+- `src/middleware.ts` - Auth guards
+
+### Tests:
+- Login form validation tests
+- Auth hook tests
+- Token management tests
+- Protected route tests
+
+---
+
+## PR 3.4: Student Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.3  
+**Depends on Backend:** PR 2.3 (Student Module)
+
+### Tasks:
+1. Create Students list page with search/filter
+2. Create Student detail page
+3. Create Create Student form
+4. Create Edit Student form
+5. Implement useStudents hook (list, get, create, update, delete)
+6. Add student columns for DataTable
+7. Implement soft delete confirmation
+
+### Files:
+- `src/app/(dashboard)/students/page.tsx` - List
+- `src/app/(dashboard)/students/[id]/page.tsx` - Detail
+- `src/app/(dashboard)/students/new/page.tsx` - Create
+- `src/app/(dashboard)/students/[id]/edit/page.tsx` - Edit
+- `src/hooks/use-students.ts` - React Query hooks
+- `src/components/forms/student-form.tsx`
+- `src/components/tables/columns/student-columns.tsx`
+
+### Tests:
+- Student list rendering tests
+- Student form validation tests
+- CRUD operations tests
+- Search/filter tests
+
+---
+
+## PR 3.5: Teacher Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.3  
+**Depends on Backend:** PR 2.3.1 (Teacher Module)
+
+### Tasks:
+1. Create Teachers list page with search/filter
+2. Create Teacher detail page
+3. Create Create Teacher form
+4. Create Edit Teacher form
+5. Implement useTeachers hook (list, get, create, update, delete)
+6. Add teacher columns for DataTable
+7. Display teacher status (ACTIVE, ON_LEAVE, TERMINATED)
+
+### Files:
+- `src/app/(dashboard)/teachers/page.tsx` - List
+- `src/app/(dashboard)/teachers/[id]/page.tsx` - Detail
+- `src/app/(dashboard)/teachers/new/page.tsx` - Create
+- `src/app/(dashboard)/teachers/[id]/edit/page.tsx` - Edit
+- `src/hooks/use-teachers.ts`
+- `src/components/forms/teacher-form.tsx`
+- `src/components/tables/columns/teacher-columns.tsx`
+
+### Tests:
+- Teacher list rendering tests
+- Teacher form validation tests
+- CRUD operations tests
+- Status badge tests
+
+---
+
+## PR 3.6: Course Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.5  
+**Depends on Backend:** PR 2.4 (Course Module)
+
+### Tasks:
+1. Create Courses list page with filters (status, teacher)
+2. Create Course detail page with lifecycle actions
+3. Create Create Course form
+4. Create Edit Course form (with restrictions based on status)
+5. Implement useCourses hook
+6. Add publish/archive/delete actions
+7. Display course status (DRAFT, PUBLISHED, ARCHIVED)
+8. Show validation errors (missing required fields)
+
+### Files:
+- `src/app/(dashboard)/courses/page.tsx`
+- `src/app/(dashboard)/courses/[id]/page.tsx`
+- `src/app/(dashboard)/courses/new/page.tsx`
+- `src/app/(dashboard)/courses/[id]/edit/page.tsx`
+- `src/hooks/use-courses.ts`
+- `src/components/forms/course-form.tsx`
+- `src/components/tables/columns/course-columns.tsx`
+
+### Tests:
+- Course list rendering tests
+- Course lifecycle tests (publish, archive)
+- Form validation tests (required fields for publish)
+- Edit restrictions tests (ARCHIVED read-only, PUBLISHED limited edit)
+
+---
+
+## PR 3.7: Class Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.6  
+**Depends on Backend:** PR 2.5 (Class Module)
+
+### Tasks:
+1. Create Classes list page with filters
+2. Create Class detail page with student roster
+3. Create Create Class form (select course, assign teacher)
+4. Create Schedule management
+5. Implement useClasses hook
+6. Add student enrollment to class
+7. Display class status and schedule
+
+### Files:
+- `src/app/(dashboard)/classes/page.tsx`
+- `src/app/(dashboard)/classes/[id]/page.tsx`
+- `src/app/(dashboard)/classes/[id]/students/page.tsx`
+- `src/app/(dashboard)/classes/new/page.tsx`
+- `src/hooks/use-classes.ts`
+- `src/components/forms/class-form.tsx`
+- `src/components/tables/columns/class-columns.tsx`
+
+### Tests:
+- Class list rendering tests
+- Student enrollment tests
+- Schedule display tests
+- Form validation tests
+
+---
+
+## PR 3.8: Attendance Management
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.7  
+**Depends on Backend:** PR 2.7 (Attendance Module)
+
+### Tasks:
+1. Create Attendance overview page (calendar view)
+2. Create Take Attendance page (for specific class session)
+3. Create Attendance reports page
+4. Implement useAttendance hook
+5. Add attendance status (PRESENT, ABSENT, LATE, EXCUSED)
+6. Display attendance statistics
+7. Export attendance reports
+
+### Files:
+- `src/app/(dashboard)/attendance/page.tsx` - Overview
+- `src/app/(dashboard)/classes/[id]/attendance/page.tsx` - Take attendance
+- `src/hooks/use-attendance.ts`
+- `src/components/forms/attendance-form.tsx`
+- `src/components/shared/attendance-calendar.tsx`
+
+### Tests:
+- Attendance marking tests
+- Calendar view tests
+- Report generation tests
+- Statistics calculation tests
+
+---
+
+## PR 3.9: Billing Pages (Invoices & Payments)
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.7  
+**Depends on Backend:** PR 2.8 (Invoice Module), PR 2.8.1 (Payment Module)
+
+### Tasks:
+1. Create Invoices list page with filters
+2. Create Invoice detail page
+3. Create Generate Invoice form
+4. Create Payments list page
+5. Create Record Payment form
+6. Implement useInvoices and usePayments hooks
+7. Display invoice status (DRAFT, SENT, PAID, OVERDUE, CANCELLED)
+8. Display payment methods and history
+9. Add payment reminders
+
+### Files:
+- `src/app/(dashboard)/billing/invoices/page.tsx`
+- `src/app/(dashboard)/billing/invoices/[id]/page.tsx`
+- `src/app/(dashboard)/billing/payments/page.tsx`
+- `src/hooks/use-invoices.ts`
+- `src/hooks/use-payments.ts`
+- `src/components/forms/invoice-form.tsx`
+- `src/components/tables/columns/invoice-columns.tsx`
+
+### Tests:
+- Invoice list rendering tests
+- Payment recording tests
+- Invoice status tests
+- Payment history tests
+
+---
+
+## PR 3.10: Parent Portal
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.8, PR 3.9  
+**Depends on Backend:** PR 2.9 (Settings & Parent linking)
+
+### Tasks:
+1. Create Parent dashboard page
+2. Create Children list/detail pages
+3. Create Child attendance view
+4. Create Child grades view
+5. Create Parent invoices view
+6. Implement useParent hook
+7. Display child performance overview
+
+### Files:
+- `src/app/(parent)/page.tsx` - Parent dashboard
+- `src/app/(parent)/children/[id]/page.tsx` - Child detail
+- `src/app/(parent)/children/[id]/attendance/page.tsx`
+- `src/app/(parent)/children/[id]/grades/page.tsx`
+- `src/app/(parent)/invoices/page.tsx`
+- `src/hooks/use-parent.ts`
+
+### Tests:
+- Parent dashboard tests
+- Child info display tests
+- Attendance view tests
+- Invoice access tests
+
+---
+
+## PR 3.11: Settings & Reports
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.10  
+**Depends on Backend:** PR 2.9 (Settings Module)
+
+### Tasks:
+1. Create Settings page (profile, branding, preferences)
+2. Create Profile edit page
+3. Create Branding configuration (logo, colors)
+4. Create Reports dashboard
+5. Implement useSettings and useBranding hooks
+6. Add analytics charts
+7. Export reports functionality
+
+### Files:
+- `src/app/(dashboard)/settings/page.tsx`
+- `src/app/(dashboard)/settings/profile/page.tsx`
+- `src/app/(dashboard)/settings/branding/page.tsx`
+- `src/app/(dashboard)/reports/page.tsx`
+- `src/hooks/use-settings.ts`
+- `src/hooks/use-branding.ts`
+- `src/components/charts/` - Chart components
+
+### Tests:
+- Settings update tests
+- Branding upload tests
+- Report generation tests
+- Chart rendering tests
+
+---
+
+## Frontend Testing Strategy
+
+### Unit Tests (Jest + React Testing Library)
+- Component rendering tests
+- Form validation tests
+- Hook tests (React Query)
+- Utility function tests
+
+### Integration Tests
+- Page flow tests (login → dashboard → CRUD operations)
+- API integration tests (MSW for mocking)
+- Form submission tests
+- Navigation tests
+
+### E2E Tests (Playwright - Optional)
+- Critical user flows
+- Authentication flows
+- CRUD operations
+- Multi-page workflows
+
+### Test Coverage Target: 80%+
+
+---
+
+## Frontend Development Guidelines
+
+1. **Component Structure:** Atomic design (atoms → molecules → organisms)
+2. **State Management:** React Query for server state, Zustand for client state
+3. **Form Handling:** React Hook Form + Zod validation
+4. **API Calls:** Centralized in custom hooks using React Query
+5. **Styling:** Tailwind CSS utility classes + Shadcn components
+6. **Error Handling:** Consistent error boundaries and toast notifications
+7. **Loading States:** Skeleton loaders from Shadcn
+8. **Accessibility:** WCAG 2.1 AA compliance
+9. **Responsive:** Mobile-first approach
+10. **Performance:** Code splitting, lazy loading, image optimization
+
+---
+
