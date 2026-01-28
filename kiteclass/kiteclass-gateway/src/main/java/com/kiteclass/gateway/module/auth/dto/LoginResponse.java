@@ -31,13 +31,16 @@ public record LoginResponse(
      * @param email user email
      * @param name user display name
      * @param roles list of role codes
+     * @param profile user profile from Core service (StudentProfileResponse, TeacherProfileResponse, ParentProfileResponse, or null for ADMIN/STAFF)
+     * @since 1.8.0
      */
     @Builder
     public record UserInfo(
             Long id,
             String email,
             String name,
-            List<String> roles
+            List<String> roles,
+            Object profile
     ) {
     }
 }

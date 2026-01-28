@@ -151,3 +151,8 @@ management:
         enabled: true
     gateway:
       enabled: true
+
+# Core Service (for Feign Client)
+core:
+  service:
+    url: ${CORE_SERVICE_URL:http://localhost:8081}
