@@ -35,6 +35,7 @@ class AuthControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
+    @SuppressWarnings("deprecation") // @MockBean deprecated in Spring Boot 3.4.0, no direct replacement yet
     @MockBean
     private AuthService authService;
 
