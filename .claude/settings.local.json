@@ -47,7 +47,8 @@
       "Bash(git restore:*)",
       "Bash(git rm:*)",
       "Bash(ln:*)",
-      "Bash(echo \"Hook execution completed \\(exit code: $?\")"
+      "Bash(echo \"Hook execution completed \\(exit code: $?\")",
+      "Bash(xargs -I {} sh -c 'if [ -f \"\"\"\"{}\"\"\"\" ]; then grep -B 5 \"\"\"\"^\\\\s*public.*\\(\"\"\"\" {} | grep -B 5 -v \"\"\"\"^\\\\s*/\\\\*\\\\*\"\"\"\" | grep \"\"\"\"^\\\\s*public\"\"\"\" || true; fi')"
     ]
   }
 }
