@@ -142,32 +142,105 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-### Frontend PRs (Parallel with Backend Development)
+### 🎯 PAIRED DEVELOPMENT STRATEGY (NEW)
 
+**Philosophy:** Backend PHẢI có Frontend đi kèm để test business logic trực quan, thay vì chỉ dựa vào documentation.
+
+**Development Flow:**
+1. Implement Backend module (API endpoints, business logic, tests)
+2. IMMEDIATELY implement corresponding Frontend (UI, forms, integration)
+3. Test end-to-end trên UI thực tế
+4. Verify business rules visually trước khi move to next module
+
+### Frontend PRs Status
+
+**Phase 1: Infrastructure** (Required first)
 - ⏳ PR 3.1: Project Setup & Core Infrastructure
 - ⏳ PR 3.2: Shared Components & Layout System
-- ⏳ PR 3.3: Authentication Pages (Login, Forgot Password, Reset)
-- ⏳ PR 3.4: Student Management Pages (List, Create, Edit, Detail)
-- ⏳ PR 3.5: Teacher Management Pages (List, Create, Edit, Detail)
-- ⏳ PR 3.6: Course Management Pages (List, Create, Edit, Detail, Lifecycle)
-- ⏳ PR 3.7: Class Management Pages (List, Create, Schedule, Students)
-- ⏳ PR 3.8: Attendance Management (Take Attendance, Reports, Calendar)
-- ⏳ PR 3.9: Billing Pages (Invoices, Payments, History)
-- ⏳ PR 3.10: Parent Portal (Dashboard, Children Info, Payments)
-- ⏳ PR 3.11: Settings & Reports (Profile, Branding, Analytics)
+- ⏳ PR 3.3: Authentication Pages → **NEEDS: PR 1.4 ✅ (Done)**
+
+**Phase 2: IMMEDIATE PRIORITY** (Backend APIs already available)
+- ⏳ PR 3.4: Student Management Pages → **NEEDS: PR 2.3 ✅ (Done)**
+- ⏳ PR 3.5: Teacher Management Pages → **NEEDS: PR 2.3.1 ✅ (Done)**
+- ⏳ PR 3.6: Course Management Pages → **NEEDS: PR 2.4 ✅ (Done)**
+
+**Phase 3: Remaining Modules** (Backend pending)
+- ⏳ PR 3.7: Class Management Pages → NEEDS: PR 2.5 (pending)
+- ⏳ PR 3.8: Attendance Management → NEEDS: PR 2.7 (pending)
+- ⏳ PR 3.9: Billing Pages → NEEDS: PR 2.8, 2.8.1 (pending)
+- ⏳ PR 3.10: Parent Portal → NEEDS: PR 2.9 (pending)
+- ⏳ PR 3.11: Settings & Reports → NEEDS: PR 2.9 (pending)
 
 **Frontend Status:** 0/11 PRs completed (0%)
 **Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
-**Prerequisites:** Backend APIs from Gateway + Core must be available for each corresponding PR
+**CRITICAL:** Frontend PRs 3.1-3.6 can start NOW (Backend APIs ready)
 
 **Overall Progress:** 11/44 PRs completed (25%)
-**Last Updated:** 2026-01-28 (Plan updated - added Teacher, Assignment, Grade, split Invoice/Payment)
-**Current Work:**
-- ✅ COMPLETED: PR 2.3 Student Module (tests fixed)
-- ✅ COMPLETED: PR 2.11 Internal APIs (cross-service communication ready)
-- 🚨 NEXT PRIORITY: PR 1.8 Gateway Integration (UserType + ReferenceId + Feign Client)
-- Then switch to feature/gateway branch for PR 1.8
-**After PR 1.8:** Return to Core for PR 2.3.1 Teacher Module (BLOCKING for Course/Class)
+**Last Updated:** 2026-01-28 (Updated with Paired Development Strategy)
+
+---
+
+## 🚀 IMMEDIATE EXECUTION ROADMAP (With Paired Development)
+
+### ✅ Backend Ready - Frontend Needed NOW:
+
+**Week 1-2: Frontend Infrastructure + Core Modules**
+
+**Sprint 1: Setup Frontend** (2-3 days)
+1. ⏳ PR 3.1: Project Setup & Core Infrastructure
+   - Next.js project setup, dependencies, API client
+   - No backend dependency
+
+2. ⏳ PR 3.2: Shared Components & Layout System
+   - Sidebar, Header, DataTable, shared UI components
+   - No backend dependency
+
+3. ⏳ PR 3.3: Authentication Pages
+   - Login, Forgot Password, Reset Password
+   - **Backend:** PR 1.4 Auth Module ✅ Ready
+   - **Test:** Login flow end-to-end
+
+**Sprint 2: Student Module** (2-3 days)
+4. ⏳ PR 3.4: Student Management Pages
+   - **Backend:** PR 2.3 Student Module ✅ Ready
+   - List, Create, Edit, Delete students
+   - **Test trực quan:** All student CRUD operations, search, pagination
+   - **Verify:** Email/phone uniqueness, validation errors
+
+**Sprint 3: Teacher Module** (2-3 days)
+5. ⏳ PR 3.5: Teacher Management Pages
+   - **Backend:** PR 2.3.1 Teacher Module ✅ Ready
+   - List, Create, Edit, Delete teachers
+   - **Test trực quan:** Teacher CRUD, status changes (ACTIVE/ON_LEAVE/TERMINATED)
+
+**Sprint 4: Course Module** (3-4 days)
+6. ⏳ PR 3.6: Course Management Pages
+   - **Backend:** PR 2.4 Course Module ✅ Ready
+   - List, Create, Edit courses
+   - Publish/Archive lifecycle actions
+   - **Test trực quan:**
+     - Course status transitions (DRAFT → PUBLISHED → ARCHIVED)
+     - Edit restrictions (ARCHIVED read-only, PUBLISHED limited fields)
+     - Validation (required fields for publish)
+     - Soft delete restrictions
+
+**Estimated Timeline:** 2 weeks to have fully functional Student, Teacher, Course management with UI
+
+---
+
+### 🔄 Future Paired Development:
+
+**When implementing next Backend modules:**
+- PR 2.5 (Class Module) → IMMEDIATELY do PR 3.7 (Class Management Pages)
+- PR 2.7 (Attendance) → IMMEDIATELY do PR 3.8 (Attendance Management)
+- PR 2.8 (Invoice) + PR 2.8.1 (Payment) → IMMEDIATELY do PR 3.9 (Billing Pages)
+
+**Benefits:**
+- ✅ Visual testing of business logic
+- ✅ Catch API design issues early
+- ✅ Better understanding of user flows
+- ✅ No need to rely solely on documentation
+- ✅ Faster feedback loop
 
 ---
 
@@ -3116,6 +3189,32 @@ Frontend: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 ←──────────�
 8. **Accessibility:** WCAG 2.1 AA compliance
 9. **Responsive:** Mobile-first approach
 10. **Performance:** Code splitting, lazy loading, image optimization
+
+---
+
+
+---
+
+## 📋 PAIRED PRs TRACKING TABLE
+
+| Backend PR | Status | Frontend PR | Status | Can Start | Notes |
+|------------|--------|-------------|--------|-----------|-------|
+| **Infrastructure** |
+| PR 1.4: Auth Module | ✅ Done | PR 3.3: Auth Pages | ⏳ TODO | ✅ YES | Login, Forgot Password, Reset |
+| **Core Modules** |
+| PR 2.3: Student Module | ✅ Done | PR 3.4: Student Management | ⏳ TODO | ✅ YES | CRUD, Search, Validation |
+| PR 2.3.1: Teacher Module | ✅ Done | PR 3.5: Teacher Management | ⏳ TODO | ✅ YES | CRUD, Status management |
+| PR 2.4: Course Module | ✅ Done | PR 3.6: Course Management | ⏳ TODO | ✅ YES | Lifecycle (DRAFT→PUBLISHED→ARCHIVED) |
+| PR 2.5: Class Module | ⏳ TODO | PR 3.7: Class Management | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.7: Attendance | ⏳ TODO | PR 3.8: Attendance Management | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.8: Invoice | ⏳ TODO | PR 3.9: Billing (partial) | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.8.1: Payment | ⏳ TODO | PR 3.9: Billing (full) | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.9: Settings | ⏳ TODO | PR 3.10: Parent Portal | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.9: Settings | ⏳ TODO | PR 3.11: Settings & Reports | ⏳ TODO | ❌ NO | Need Backend first |
+
+**Summary:**
+- ✅ **Ready to implement NOW:** PR 3.1, 3.2, 3.3, 3.4, 3.5, 3.6 (6 PRs)
+- ⏳ **Waiting for Backend:** PR 3.7, 3.8, 3.9, 3.10, 3.11 (5 PRs)
 
 ---
 
