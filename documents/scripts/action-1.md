@@ -464,3 +464,5 @@ tốt, tiếp tục thực hiện PR ưu tiên nhất
 PR của 1. không ưu tiên sao?
 
 giúp tôi triển khai git hook
+
+sao kiteclass/kiteclass-core lại báo lỗi này nhỉ
