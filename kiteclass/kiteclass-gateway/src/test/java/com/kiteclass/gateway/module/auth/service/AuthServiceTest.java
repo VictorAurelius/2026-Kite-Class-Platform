@@ -4,7 +4,6 @@ import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.common.exception.BusinessException;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
-import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
 import com.kiteclass.gateway.module.auth.entity.RefreshToken;
 import com.kiteclass.gateway.module.auth.repository.RefreshTokenRepository;
