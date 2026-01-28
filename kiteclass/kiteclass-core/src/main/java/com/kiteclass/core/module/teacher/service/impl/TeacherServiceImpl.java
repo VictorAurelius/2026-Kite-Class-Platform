@@ -42,6 +42,15 @@ public class TeacherServiceImpl implements TeacherService {
     private final TeacherRepository teacherRepository;
     private final TeacherMapper teacherMapper;
 
+    /**
+     * Tạo giáo viên mới.
+     *
+     * <p>Validates email uniqueness before creating teacher (BR-TEACHER-001).
+     *
+     * @param request Thông tin giáo viên cần tạo (name, email, phone, specialization, bio, qualification, experienceYears)
+     * @return TeacherResponse chứa thông tin giáo viên đã tạo
+     * @throws DuplicateResourceException nếu email đã tồn tại trong hệ thống
+     */
     @Override
     @Transactional
     @CacheEvict(value = "teachers", allEntries = true)
@@ -50,8 +59,8 @@ public class TeacherServiceImpl implements TeacherService {
 
         // BR-TEACHER-001: Validate email uniqueness
         if (teacherRepository.existsByEmailAndDeletedFalse(request.email())) {
-            log.warn("Duplicate email: {}", request.email());
-            throw new DuplicateResourceException("email", request.email());
+            log.warn("Duplicate teacher email: {}", request.email());
+            throw new DuplicateResourceException("TEACHER_EMAIL_EXISTS", request.email());
         }
 
         Teacher teacher = teacherMapper.toEntity(request);
@@ -61,6 +70,15 @@ public class TeacherServiceImpl implements TeacherService {
         return teacherMapper.toResponse(saved);
     }
 
+    /**
+     * Lấy thông tin chi tiết giáo viên theo ID.
+     *
+     * <p>Result is cached in Redis with key "teachers::{id}".
+     *
+     * @param id ID của giáo viên cần lấy thông tin
+     * @return TeacherResponse chứa thông tin chi tiết giáo viên
+     * @throws EntityNotFoundException nếu không tìm thấy giáo viên với ID này
+     */
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "teachers", key = "#id")
@@ -70,12 +88,22 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher teacher = teacherRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", id);
-                    return new EntityNotFoundException("Teacher", id);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", id);
                 });
 
         return teacherMapper.toResponse(teacher);
     }
 
+    /**
+     * Tìm kiếm danh sách giáo viên với phân trang.
+     *
+     * <p>Supports full-text search by name, email, specialization and filtering by status.
+     *
+     * @param search Từ khóa tìm kiếm (name, email, hoặc specialization), có thể null
+     * @param status Trạng thái giáo viên (ACTIVE, INACTIVE, ON_LEAVE), có thể null
+     * @param pageable Thông tin phân trang và sắp xếp
+     * @return PageResponse chứa danh sách giáo viên và thông tin phân trang
+     */
     @Override
     @Transactional(readOnly = true)
     public PageResponse<TeacherResponse> getTeachers(String search, String status, Pageable pageable) {
@@ -90,6 +118,17 @@ public class TeacherServiceImpl implements TeacherService {
         return PageResponse.from(responsePage);
     }
 
+    /**
+     * Cập nhật thông tin giáo viên.
+     *
+     * <p>Email cannot be changed after creation and will be ignored if provided.
+     * Only non-null fields in request will be updated.
+     *
+     * @param id ID của giáo viên cần cập nhật
+     * @param request Thông tin cần cập nhật (partial update, các field null sẽ được bỏ qua)
+     * @return TeacherResponse chứa thông tin giáo viên sau khi cập nhật
+     * @throws EntityNotFoundException nếu không tìm thấy giáo viên với ID này
+     */
     @Override
     @Transactional
     @CacheEvict(value = "teachers", key = "#id")
@@ -99,7 +138,7 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher teacher = teacherRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", id);
-                    return new EntityNotFoundException("Teacher", id);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", id);
                 });
 
         // Note: Email is ignored in mapper and cannot be changed after creation
@@ -111,6 +150,15 @@ public class TeacherServiceImpl implements TeacherService {
         return teacherMapper.toResponse(updated);
     }
 
+    /**
+     * Xóa giáo viên (soft delete).
+     *
+     * <p>Marks the teacher as deleted without physically removing from database.
+     * The teacher will be excluded from all queries using deletedFalse filters.
+     *
+     * @param id ID của giáo viên cần xóa
+     * @throws EntityNotFoundException nếu không tìm thấy giáo viên với ID này
+     */
     @Override
     @Transactional
     @CacheEvict(value = "teachers", key = "#id")
@@ -120,7 +168,7 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher teacher = teacherRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", id);
-                    return new EntityNotFoundException("Teacher", id);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", id);
                 });
 
         teacher.markAsDeleted();
