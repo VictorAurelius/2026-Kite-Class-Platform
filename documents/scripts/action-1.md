@@ -328,3 +328,42 @@ The constructor CreateStudentRequest(null, String, null, null, null, null, null,
 => trước hết hãy merge feature/core vào main, sau đó tạo nhánh mới để do PR 1.8, sau đó merge vào main và tạo nhánh mới để do PR tiếp theo trong plan (2.4, ..)
 
 => code luôn phải thống nhất
+
+trước khi thực hiện PR 1.8, hãy tạo PR để log hết warning đang có trong src của gateway và fix + test lại
+
+tôi thấy bạn fix xong còn nhiều lỗi hơn:
+RateLimitingFilter.Config cannot be resolved to a typeJava(16777218)
+👉 Resolve unknown type
+
+com.kiteclass.gateway.filter.RateLimitingFilter
+
+vẫn còn lỗi trong RateLimitingFilter
+The method classic(long, Refill) from the type Bandwidth is deprecated
+
+tôi cũng chưa thấy bạn fix warning trong source test
+
+việc fix của bạn rất nhiều lỗi và warning, sau đây tôi sẽ liệt kê đầy đủ, hãy fix vào cập nhật vào skill để tránh các code phía sau có lỗi:
+1. AccountLockingIntegrationTest: Resource leak: '<unassigned Closeable value>' is never closed
+
+The value of the field AccountLockingIntegrationTest.objectMapper is not usedJava(570425421)
+ObjectMapper objectMapper
+
+2. JwtAuthenticationIntegrationTest: Resource leak: '<unassigned Closeable value>' is never closed
+
+3. PasswordResetIntegrationTest: tương tự AccountLockingIntegrationTest
+
+4. RolePermissionIntegrationTest: tương tự AccountLockingIntegrationTest và dòng 221: List cannot be resolved
+
+5. AuthControllerTest: The type MockBean has been deprecated since version 3.4.0 and marked for removal, dòng 55, 151: List cannot be resolved
+
+=> check các lỗi này vs các file còn lại
+
+tiếp tục fix các lỗi sau và cập nhật vào skill:
+MockitoBean cannot be resolved to a type
+The method assertThatNoException() is undefined for the type JwtTokenProviderTest
+The method anyList() is undefined for the type UserServiceTest
+
+Resource leak: '<unassigned Closeable value>' is never closed
+=> bạn không fix được lỗi này sao? nếu không fix được thì có cách nào hoặc cấu hình như thế nào để nó không báo warning cho lỗi này nữa
+
+hãy fix triệt để lỗi này, không dùng SuppressWarnings
