@@ -1,0 +1,112 @@
+package com.kiteclass.gateway.service;
+
+import com.kiteclass.gateway.common.dto.ApiResponse;
+import com.kiteclass.gateway.service.dto.ParentProfileResponse;
+import com.kiteclass.gateway.service.dto.StudentProfileResponse;
+import com.kiteclass.gateway.service.dto.TeacherProfileResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+
+/**
+ * Feign Client for Core Service internal APIs.
+ *
+ * <p>Provides service-to-service communication between Gateway and Core services.
+ * All endpoints require X-Internal-Request header for authentication.
+ *
+ * <h3>Configuration:</h3>
+ * <pre>
+ * # application.yml
+ * core:
+ *   service:
+ *     url: http://localhost:8081  # Core service URL
+ * </pre>
+ *
+ * <h3>Security:</h3>
+ * <ul>
+ *   <li>All requests include X-Internal-Request: true header</li>
+ *   <li>Core service validates header via InternalRequestFilter</li>
+ *   <li>Requests without header are rejected with 403 Forbidden</li>
+ * </ul>
+ *
+ * <h3>Usage Example:</h3>
+ * <pre>
+ * {@code
+ * @Autowired
+ * private CoreServiceClient coreClient;
+ *
+ * // Fetch student profile
+ * ApiResponse<StudentProfileResponse> response =
+ *     coreClient.getStudent(studentId, "true");
+ * StudentProfileResponse student = response.getData();
+ * }
+ * </pre>
+ *
+ * @see com.kiteclass.gateway.service.ProfileFetcher
+ * @author KiteClass Team
+ * @since 1.8.0
+ */
+@FeignClient(
+        name = "core-service",
+        url = "${core.service.url:http://localhost:8081}"
+)
+public interface CoreServiceClient {
+
+    /**
+     * Fetches student profile from Core service.
+     *
+     * <p>Endpoint: GET /internal/students/{id}
+     *
+     * @param id              Student ID (matches User.referenceId)
+     * @param internalHeader  Must be "true" for authentication
+     * @return ApiResponse containing StudentProfileResponse
+     * @throws feign.FeignException.NotFound if student not found (404)
+     * @throws feign.FeignException.Forbidden if header invalid (403)
+     */
+    @GetMapping("/internal/students/{id}")
+    ApiResponse<StudentProfileResponse> getStudent(
+            @PathVariable("id") Long id,
+            @RequestHeader("X-Internal-Request") String internalHeader
+    );
+
+    /**
+     * Fetches teacher profile from Core service.
+     *
+     * <p>Endpoint: GET /internal/teachers/{id}
+     *
+     * <p><b>Note:</b> Teacher module not yet implemented in Core.
+     * This method is a placeholder for future implementation.
+     *
+     * @param id              Teacher ID (matches User.referenceId)
+     * @param internalHeader  Must be "true" for authentication
+     * @return ApiResponse containing TeacherProfileResponse
+     * @throws feign.FeignException.NotFound if teacher not found (404)
+     * @throws feign.FeignException.Forbidden if header invalid (403)
+     */
+    @GetMapping("/internal/teachers/{id}")
+    ApiResponse<TeacherProfileResponse> getTeacher(
+            @PathVariable("id") Long id,
+            @RequestHeader("X-Internal-Request") String internalHeader
+    );
+
+    /**
+     * Fetches parent profile from Core service.
+     *
+     * <p>Endpoint: GET /internal/parents/{id}
+     *
+     * <p><b>Note:</b> Parent module not yet implemented in Core.
+     * This method is a placeholder for future implementation.
+     *
+     * @param id              Parent ID (matches User.referenceId)
+     * @param internalHeader  Must be "true" for authentication
+     * @return ApiResponse containing ParentProfileResponse
+     * @throws feign.FeignException.NotFound if parent not found (404)
+     * @throws feign.FeignException.Forbidden if header invalid (403)
+     */
+    @GetMapping("/internal/parents/{id}")
+    ApiResponse<ParentProfileResponse> getParent(
+            @PathVariable("id") Long id,
+            @RequestHeader("X-Internal-Request") String internalHeader
+    );
+}

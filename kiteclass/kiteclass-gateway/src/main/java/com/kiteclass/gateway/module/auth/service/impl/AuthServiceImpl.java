@@ -20,6 +20,7 @@ import com.kiteclass.gateway.module.user.repository.UserRoleRepository;
 import com.kiteclass.gateway.security.jwt.JwtProperties;
 import com.kiteclass.gateway.security.jwt.JwtTokenProvider;
 import com.kiteclass.gateway.service.EmailService;
+import com.kiteclass.gateway.service.ProfileFetcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,7 @@ import java.util.UUID;
  *   <li>Refresh token mechanism</li>
  *   <li>Failed login attempt tracking</li>
  *   <li>Account locking after max failed attempts</li>
+ *   <li>Cross-service profile fetching from Core (since 1.8.0)</li>
  * </ul>
  *
  * @author KiteClass Team
@@ -60,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailProperties emailProperties;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final ProfileFetcher profileFetcher;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final long LOCK_DURATION_MINUTES = 30;
@@ -310,8 +313,17 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Generate access and refresh tokens for user.
      *
+     * <p>Additionally fetches user profile from Core service based on userType:
+     * <ul>
+     *   <li>STUDENT → StudentProfileResponse</li>
+     *   <li>TEACHER → TeacherProfileResponse (placeholder)</li>
+     *   <li>PARENT → ParentProfileResponse (placeholder)</li>
+     *   <li>ADMIN/STAFF → null (no Core profile)</li>
+     * </ul>
+     *
      * @param user user entity
-     * @return Mono of login response with tokens
+     * @return Mono of login response with tokens and profile
+     * @since 1.8.0 (profile fetching added)
      */
     private Mono<LoginResponse> generateTokens(User user) {
         return userRoleRepository.findRolesByUserId(user.getId())
@@ -325,6 +337,9 @@ public class AuthServiceImpl implements AuthService {
                             roles
                     );
                     String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+
+                    // Fetch user profile from Core service (if applicable)
+                    Object profile = profileFetcher.fetchProfile(user.getUserType(), user.getReferenceId());
 
                     // Save refresh token to database
                     RefreshToken tokenEntity = RefreshToken.builder()
@@ -345,6 +360,7 @@ public class AuthServiceImpl implements AuthService {
                                             .email(user.getEmail())
                                             .name(user.getName())
                                             .roles(roles)
+                                            .profile(profile)
                                             .build())
                                     .build());
                 });
