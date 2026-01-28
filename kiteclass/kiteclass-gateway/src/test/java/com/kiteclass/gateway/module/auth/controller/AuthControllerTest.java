@@ -2,6 +2,7 @@ package com.kiteclass.gateway.module.auth.controller;
 
 import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.exception.BusinessException;
+import com.kiteclass.gateway.common.service.MessageService;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
@@ -52,6 +53,12 @@ class AuthControllerTest {
         @Primary
         public AuthService authService() {
             return Mockito.mock(AuthService.class);
+        }
+
+        @Bean
+        @Primary
+        public MessageService messageService() {
+            return Mockito.mock(MessageService.class);
         }
     }
 
