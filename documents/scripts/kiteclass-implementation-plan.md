@@ -118,7 +118,7 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - ⏳ PR 2.10: Core Docker & Final Integration
 - ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 
-**Core Status:** 4/11 PRs completed (36.4%) ✅ PR 2.11 COMPLETE
+**Core Status:** 4/14 PRs completed (28.6%) ✅ PR 2.11 COMPLETE
 **Tests:** 50/50 passing (100%) - 40 from PR 2.3 + 10 internal API tests
 **Latest:** PR 2.11 Internal APIs complete - InternalRequestFilter + InternalStudentController
 **Cross-Service APIs Ready:**
@@ -127,17 +127,29 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - ✅ DELETE /internal/students/{id} - Soft delete student
 **🚨 NEXT PRIORITY:** PR 1.8 Gateway Integration (now unblocked)
 
+**New PRs Added (2026-01-28):**
+- PR 2.3.1: Teacher Module (BLOCKING for Course/Class) - from teacher-module-business-logic.md
+- PR 2.7.1: Assignment Module - from assignment-module-business-logic.md
+- PR 2.7.2: Grade Module - from grade-module-business-logic.md
+- PR 2.8 renamed to: Invoice Module (split from old PR 2.8)
+- PR 2.8.1 (new): Payment Module (split from old PR 2.8)
+- PR 2.9 updated: Settings & Preferences (removed Parent Module - moved to Engagement Service P1)
+
+**Updated PR Count:**
+- Old count: 11 Core PRs
+- New count: 14 Core PRs (added 3 new PRs: 2.3.1, 2.7.1, 2.7.2; split PR 2.8 into 2.8 + 2.8.1)
+
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 11/30 PRs completed (36.7%)
-**Last Updated:** 2026-01-27 (PR 2.11 COMPLETE ✅)
+**Overall Progress:** 11/33 PRs completed (33.3%)
+**Last Updated:** 2026-01-28 (Plan updated - added Teacher, Assignment, Grade, split Invoice/Payment)
 **Current Work:**
 - ✅ COMPLETED: PR 2.3 Student Module (tests fixed)
 - ✅ COMPLETED: PR 2.11 Internal APIs (cross-service communication ready)
 - 🚨 NEXT PRIORITY: PR 1.8 Gateway Integration (UserType + ReferenceId + Feign Client)
 - Then switch to feature/gateway branch for PR 1.8
-**After PR 1.8:** Return to Core for PR 2.4 - Course Module
+**After PR 1.8:** Return to Core for PR 2.3.1 Teacher Module (BLOCKING for Course/Class)
 
 ---
 
@@ -1014,25 +1026,126 @@ mvn test -DENABLE_INTEGRATION_TESTS=true
 ```
 ```
 
+## ⏳ PR 2.3.1 - Teacher Module (BLOCKING PR)
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** None (PR 2.3 Student Module completed)
+**Business Logic:** docs/modules/teacher-module-business-logic.md
+**BLOCKING FOR:** PR 2.4 Course Module, PR 2.5 Class Module
+
+```
+Thực hiện Teacher Module - BLOCKING PR for Course and Class Modules.
+
+**Tuân thủ skills:**
+- code-style.md: coding conventions
+- api-design.md: Teacher API endpoints
+- database-design.md: teachers, teacher_courses, teacher_classes schema
+- testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Teacher entity với JPA annotations:
+   - id, name, email, phone_number, specialization
+   - bio, qualification, experience_years, avatar_url
+   - status (ACTIVE, INACTIVE, ON_LEAVE)
+2. Tạo TeacherCourse entity (Course-level permissions):
+   - teacher_id, course_id, role (CREATOR, INSTRUCTOR, ASSISTANT)
+   - assigned_at, assigned_by
+3. Tạo TeacherClass entity (Class-level permissions):
+   - teacher_id, class_id, role (MAIN_TEACHER, ASSISTANT)
+   - assigned_at, assigned_by
+4. Tạo TeacherRepository với custom queries:
+   - findByIdAndDeletedFalse
+   - existsByEmail
+   - findBySpecialization
+5. Tạo TeacherCourseRepository và TeacherClassRepository
+6. Tạo TeacherMapper (MapStruct)
+7. Tạo TeacherService và TeacherServiceImpl với:
+   - createTeacher (BR-TEACHER-001: email unique)
+   - assignToCourse (UC-TEACHER-003)
+   - assignToClass (UC-TEACHER-004)
+   - removeFromClass (UC-TEACHER-005, BR-TEACHER-004: must have 1 MAIN_TEACHER)
+   - getTeacherPermissions (UC-TEACHER-006)
+   - Permission check methods (canAccessClass, canModifyClass, canTakeAttendance)
+8. Tạo TeacherController với endpoints theo api-design.md
+9. Tạo InternalTeacherController (cho Gateway):
+   - GET /internal/teachers/{id} (profile fetching)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/teacher/
+  - service/TeacherServiceTest.java
+  - controller/TeacherControllerTest.java
+  - controller/InternalTeacherControllerTest.java
+  - repository/TeacherRepositoryTest.java
+  - mapper/TeacherMapperTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - TeacherTestDataBuilder.java
+
+**Flyway Migration:**
+- V3__create_teacher_tables.sql (teachers, teacher_courses, teacher_classes)
+
+**Verification:**
+- mvn test phải pass
+- Coverage cho TeacherService >= 80%
+- Internal API /internal/teachers/{id} hoạt động
+
+**Key Business Rules (from business-logic.md):**
+- BR-TEACHER-001: Email unique
+- BR-TEACHER-004: Class phải có ít nhất 1 MAIN_TEACHER
+- BR-TEACHER-005: Chỉ ACTIVE teachers assign được
+- BR-TEACHER-006: Course CREATOR có full control
+- BR-TEACHER-008: Attendance chỉ MAIN_TEACHER hoặc CREATOR
+
+**Integration Points:**
+- Gateway: Internal API cho teacher profile fetching
+- Course Module: TeacherCourse relationship (course_id FK)
+- Class Module: TeacherClass relationship (class_id FK)
+- Attendance Module: Permission check cho điểm danh
+- Assignment Module: Permission check cho create/grade assignments
+
+**Permission Model:**
+- Two-level hierarchy: Course-level (CREATOR/INSTRUCTOR/ASSISTANT) > Class-level (MAIN_TEACHER/ASSISTANT)
+- CREATOR của course → Auto có quyền với tất cả classes trong course
+- INSTRUCTOR của course → Access all classes trong course
+- MAIN_TEACHER của class → Full control class đó
+- Support Use Case 1: Language Center (resource-level permissions)
+- Support Use Case 2: Independent Teacher (OWNER bypass)
+```
+
 ## ⏳ PR 2.4 - Course Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3.1 Teacher Module (REQUIRED - teacher_id FK, created_by)
+**Business Logic:** docs/modules/course-module-business-logic.md
 
 ```
 Thực hiện Course Module của kiteclass-core-service-plan.md.
 
 **Tuân thủ skills:**
 - code-style.md: coding conventions
-- api-design.md: Course endpoints (nếu có)
+- api-design.md: Course API endpoints
 - database-design.md: courses table schema
 - testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo Course entity:
+1. Tạo Course entity với JPA annotations:
    - id, name, code, description
-   - totalSessions, defaultTuitionFee
-   - status (CourseStatus enum)
-2. Tạo CourseRepository
-3. Tạo CourseMapper
-4. Tạo CourseService và CourseServiceImpl
+   - level (Beginner, Intermediate, Advanced)
+   - duration_weeks, max_students, price
+   - created_by (teacher_id FK to teachers.id)
+   - status (DRAFT, PUBLISHED, ARCHIVED)
+2. Tạo CourseRepository với custom queries:
+   - findByIdAndDeletedFalse
+   - findByCreatedBy (teacher's courses)
+   - findByStatus
+3. Tạo CourseMapper (MapStruct)
+4. Tạo CourseService và CourseServiceImpl với:
+   - createCourse (UC-TEACHER-002: Teacher as Creator)
+   - Auto-create TeacherCourse (CREATOR role) when course created
+   - updateCourse
+   - deleteCourse (soft delete)
+   - getCourses (với teacher permission filter)
 5. Tạo CourseController với CRUD endpoints
 
 **Tests (bắt buộc):**
@@ -1040,18 +1153,33 @@ Thực hiện Course Module của kiteclass-core-service-plan.md.
   - service/CourseServiceTest.java
   - controller/CourseControllerTest.java
   - repository/CourseRepositoryTest.java
+  - mapper/CourseMapperTest.java
 - src/test/java/com/kiteclass/core/testutil/
   - CourseTestDataBuilder.java
 
 **Flyway Migration:**
-- V3__create_course_tables.sql
+- V4__create_course_tables.sql
 
 **Verification:**
 - mvn test phải pass
 - Coverage >= 80%
+- Teacher tạo course → TeacherCourse (CREATOR) được tạo tự động
+
+**Key Business Rules:**
+- Course creator (teacher) tự động có full control
+- TeacherCourse record (CREATOR role) được tạo khi course created
+- Integration với Teacher Module qua created_by và teacher_courses
+
+**Integration Points:**
+- Teacher Module: Course.created_by FK, auto-create TeacherCourse
+- Class Module: Classes reference course_id
 ```
 
 ## ⏳ PR 2.5 - Class Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3.1 Teacher Module, PR 2.4 Course Module
+**Business Logic:** docs/modules/class-module-business-logic.md
 
 ```
 Thực hiện Class Module của kiteclass-core-service-plan.md.
@@ -1061,83 +1189,145 @@ Thực hiện Class Module của kiteclass-core-service-plan.md.
 - api-design.md: Class API endpoints
 - database-design.md: classes, class_schedules, class_sessions tables
 - testing-guide.md: testing với relationships
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo ClassEntity với relationships:
-   - @ManyToOne Course
-   - @ManyToOne User (teacher)
-   - @OneToMany ClassSchedule
-2. Tạo ClassSchedule entity (dayOfWeek, startTime, endTime, room)
-3. Tạo ClassSession entity (sessionDate, sessionNumber, status, topic)
-4. Tạo repositories với custom queries
-5. Tạo ClassMapper
-6. Tạo ClassService với:
-   - createClass (với schedules)
-   - generateSessions (từ schedules)
-   - getClassStudents
+1. Tạo Class entity với relationships:
+   - @ManyToOne Course (course_id FK)
+   - name, code, max_students, status (UPCOMING, ONGOING, COMPLETED, CANCELLED)
+   - start_date, end_date, location
+2. Tạo ClassSchedule entity:
+   - @ManyToOne Class
+   - day_of_week, start_time, end_time, room
+3. Tạo ClassSession entity:
+   - @ManyToOne Class
+   - session_date, session_number, status (SCHEDULED, COMPLETED, CANCELLED)
+   - topic, notes
+4. Tạo repositories với custom queries:
+   - findByIdAndDeletedFalse
+   - findByCourseId
+   - findByStatus
+5. Tạo ClassMapper (MapStruct)
+6. Tạo ClassService và ClassServiceImpl với:
+   - createClass (với schedules, UC-TEACHER-011)
+   - Auto-assign MAIN_TEACHER via TeacherClass
+   - generateSessions (từ schedules với recurrence rules)
+   - getClassStudents (from Enrollment)
    - getClassSessions
-7. Tạo ClassController
+   - Permission check integration (via TeacherService)
+7. Tạo ClassController với endpoints theo api-design.md
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/clazz/
   - service/ClassServiceTest.java
   - controller/ClassControllerTest.java
   - repository/ClassRepositoryTest.java
+  - mapper/ClassMapperTest.java
 - src/test/java/com/kiteclass/core/testutil/
   - ClassTestDataBuilder.java
 
 **Flyway Migration:**
-- V4__create_class_tables.sql
+- V5__create_class_tables.sql (classes, class_schedules, class_sessions)
 
 **Verification:**
 - mvn test phải pass
-- Test session generation logic
+- Test session generation logic (recurrence rules)
+- Coverage >= 80%
+- Teacher assignment via TeacherClass hoạt động
+
+**Key Business Rules:**
+- Class phải có ít nhất 1 MAIN_TEACHER (BR-TEACHER-004)
+- Sessions được generate tự động từ class schedules
+- Teacher permissions check via TeacherClass/TeacherCourse
+
+**Integration Points:**
+- Teacher Module: TeacherClass for assignments, permission checks
+- Course Module: Class.course_id FK
+- Enrollment Module: Class-Student relationship
+- Attendance Module: ClassSession-Attendance relationship
 ```
 
 ## ⏳ PR 2.6 - Enrollment Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3 Student Module, PR 2.5 Class Module
+**Business Logic:** docs/modules/enrollment-module-business-logic.md
 
 ```
 Thực hiện Enrollment Module của kiteclass-core-service-plan.md.
 
 **Tuân thủ skills:**
 - code-style.md: business logic patterns
-- api-design.md: POST /students/{id}/enroll
+- api-design.md: Enrollment API endpoints
 - database-design.md: enrollments table
 - testing-guide.md: testing business rules
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo Enrollment entity:
+1. Tạo Enrollment entity với JPA annotations:
    - @ManyToOne Student
-   - @ManyToOne ClassEntity
-   - enrollmentDate, startDate, endDate
-   - tuitionAmount, discountPercent, finalAmount
-   - status (EnrollmentStatus)
-2. Tạo EnrollmentRepository
-3. Tạo EnrollmentService với business logic:
-   - enrollStudent: kiểm tra class capacity, duplicate enrollment
-   - calculateFinalAmount
+   - @ManyToOne Class
+   - enrollment_date, start_date, end_date
+   - tuition_amount, discount_percent, final_amount
+   - status (ACTIVE, PENDING_PAYMENT, COMPLETED, WITHDRAWN, CANCELLED)
+2. Tạo EnrollmentRepository với custom queries:
+   - findByStudentIdAndClassId
+   - existsByStudentIdAndClassIdAndStatus
+   - countActiveEnrollmentsByClassId (capacity check)
+3. Tạo EnrollmentMapper (MapStruct)
+4. Tạo EnrollmentService và EnrollmentServiceImpl với:
+   - enrollStudent (với business rule checks):
+     - Class capacity check
+     - Duplicate enrollment check
+     - calculateFinalAmount (tuition - discount)
    - updateEnrollmentStatus
-4. Tạo endpoint POST /api/v1/students/{id}/enroll
+   - withdrawStudent
+5. Tạo EnrollmentController với endpoints:
+   - POST /api/v1/students/{id}/enroll
+   - GET /api/v1/enrollments/{id}
+   - PUT /api/v1/enrollments/{id}/status
+6. Publish ENROLLMENT_CREATED event (cho Invoice auto-generation)
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/enrollment/
   - service/EnrollmentServiceTest.java (test business rules)
   - controller/EnrollmentControllerTest.java
+  - repository/EnrollmentRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - EnrollmentTestDataBuilder.java
 - Test cases:
   - Enroll thành công
-  - Class đã full -> error
-  - Student đã enrolled -> error
+  - Class đã full → error
+  - Student đã enrolled → error
   - Calculate discount correctly
+  - Event publishing
 
 **Flyway Migration:**
-- V5__create_enrollment_tables.sql
+- V6__create_enrollment_tables.sql
 
 **Verification:**
 - mvn test phải pass
 - Business rules được enforce đúng
+- Coverage >= 80%
+- ENROLLMENT_CREATED event được publish
+
+**Key Business Rules:**
+- Class capacity check trước khi enroll
+- Không cho phép duplicate enrollment
+- Auto-calculate final_amount = tuition_amount * (1 - discount_percent/100)
+
+**Integration Points:**
+- Student Module: Enrollment.student_id FK
+- Class Module: Enrollment.class_id FK
+- Invoice Module: ENROLLMENT_CREATED event triggers invoice generation
+- Grade Module: Auto-initialize grade record when enrolled
 ```
 
 ## ⏳ PR 2.7 - Attendance Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3 Student Module, PR 2.5 Class Module, PR 2.3.1 Teacher Module
+**Business Logic:** docs/modules/attendance-module-business-logic.md
 
 ```
 Thực hiện Attendance Module của kiteclass-core-service-plan.md.
@@ -1147,169 +1337,614 @@ Thực hiện Attendance Module của kiteclass-core-service-plan.md.
 - api-design.md: Attendance API endpoints
 - database-design.md: attendance table
 - testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo Attendance entity:
+1. Tạo Attendance entity với JPA annotations:
    - @ManyToOne ClassSession
    - @ManyToOne Student
-   - status (AttendanceStatus)
-   - checkinTime, note
-   - @ManyToOne User (markedBy)
-2. Tạo AttendanceRepository
-3. Tạo AttendanceService:
-   - markAttendance(sessionId, List<MarkAttendanceRequest>)
-   - getAttendanceByClass(classId, dateFrom, dateTo)
-   - getStudentAttendanceStats(studentId, classId)
-4. Tạo AttendanceController:
-   - POST /api/v1/classes/{classId}/attendance
+   - status (PRESENT, ABSENT, LATE, EXCUSED)
+   - checkin_time, note
+   - marked_by (teacher_id FK to teachers.id)
+2. Tạo AttendanceRepository với custom queries:
+   - findBySessionIdAndStudentId
+   - findByClassIdAndDateRange
+   - calculateAttendanceRateByStudent
+3. Tạo AttendanceMapper (MapStruct)
+4. Tạo AttendanceService và AttendanceServiceImpl với:
+   - markAttendance (UC-TEACHER-007):
+     - Permission check: Only MAIN_TEACHER or CREATOR
+     - Bulk mark attendance for session
+   - getAttendanceByClass (date range filter)
+   - getStudentAttendanceStats (calculate attendance rate)
+   - Permission check integration (via TeacherService)
+5. Tạo AttendanceController với endpoints:
+   - POST /api/v1/classes/{classId}/sessions/{sessionId}/attendance
    - GET /api/v1/classes/{classId}/attendance
-5. Publish event "attendance.marked" tới RabbitMQ
+   - GET /api/v1/students/{studentId}/attendance/stats
+6. Publish ATTENDANCE_MARKED event (cho Grade Module update)
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/attendance/
   - service/AttendanceServiceTest.java
   - controller/AttendanceControllerTest.java
+  - repository/AttendanceRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - AttendanceTestDataBuilder.java
 - Test cases:
   - Mark attendance cho multiple students
   - Update existing attendance
   - Get attendance statistics
+  - Permission check (only MAIN_TEACHER)
   - Event publishing
 
 **Flyway Migration:**
-- V6__create_attendance_tables.sql
+- V7__create_attendance_tables.sql
 
 **Verification:**
 - mvn test phải pass
-- RabbitMQ event được publish
+- Event được publish correctly
+- Coverage >= 80%
+- Permission checks enforced (BR-TEACHER-008)
+
+**Key Business Rules (from Teacher Module):**
+- BR-TEACHER-008: Chỉ MAIN_TEACHER hoặc CREATOR mới có quyền điểm danh
+- Attendance rate auto-calculated cho Grade Module
+
+**Integration Points:**
+- Class Module: Attendance.session_id FK to class_sessions
+- Student Module: Attendance.student_id FK
+- Teacher Module: Permission checks via TeacherService
+- Grade Module: ATTENDANCE_MARKED event updates Attendance component score
 ```
 
-## ⏳ PR 2.8 - Invoice & Payment Module
+## ⏳ PR 2.7.1 - Assignment Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.5 Class Module, PR 2.3 Student Module, PR 2.3.1 Teacher Module
+**Business Logic:** docs/modules/assignment-module-business-logic.md
 
 ```
-Thực hiện Invoice & Payment Module của kiteclass-core-service-plan.md.
-
-**Tuân thủ skills:**
-- code-style.md: complex business logic
-- api-design.md: Invoice & Payment API endpoints
-- database-design.md: invoices, invoice_items, payments tables
-- testing-guide.md: testing financial calculations
-
-**Tasks:**
-1. Tạo Invoice entity:
-   - invoiceNo (unique, auto-generated)
-   - @ManyToOne Student
-   - issueDate, dueDate
-   - subtotal, discountAmount, totalAmount, paidAmount, balanceDue
-   - status (InvoiceStatus)
-   - @OneToMany InvoiceItem
-2. Tạo InvoiceItem entity
-3. Tạo Payment entity:
-   - @ManyToOne Invoice
-   - amount, method (PaymentMethod)
-   - transactionRef, paidAt
-   - status (PaymentStatus)
-4. Tạo InvoiceService:
-   - createInvoice
-   - sendInvoice (update status)
-   - calculateTotals
-   - updateInvoiceStatus (check if paid)
-5. Tạo PaymentService:
-   - recordPayment
-   - Update invoice balanceDue và status
-6. Tạo controllers
-
-**Tests (bắt buộc):**
-- src/test/java/com/kiteclass/core/module/billing/
-  - service/InvoiceServiceTest.java
-  - service/PaymentServiceTest.java
-  - controller/InvoiceControllerTest.java
-  - controller/PaymentControllerTest.java
-- Test cases:
-  - Calculate totals correctly
-  - Partial payment -> PARTIAL status
-  - Full payment -> PAID status
-  - Overdue detection
-
-**Flyway Migration:**
-- V7__create_billing_tables.sql
-
-**Verification:**
-- mvn test phải pass
-- Financial calculations chính xác
-```
-
-## ⏳ PR 2.9 - Settings & Parent Module
-
-```
-Thực hiện Settings và Parent Module của kiteclass-core-service-plan.md.
+Thực hiện Assignment Module - Assignment lifecycle, late penalties, grading workflow.
 
 **Tuân thủ skills:**
 - code-style.md: coding conventions
-- api-design.md: Settings API, Parent Portal API
+- api-design.md: Assignment API endpoints
+- database-design.md: assignments, submissions tables
+- testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Assignment entity với JPA annotations:
+   - @ManyToOne Class
+   - title, description, instructions
+   - due_date, max_score, weight_percent
+   - allow_late_submission, late_penalty_percent
+   - status (DRAFT, PUBLISHED, CLOSED)
+   - created_by (teacher_id FK)
+2. Tạo Submission entity:
+   - @ManyToOne Assignment
+   - @ManyToOne Student
+   - submission_date, content_url, notes
+   - score, adjusted_score (after late penalty)
+   - status (PENDING, GRADED, RETURNED)
+   - graded_by (teacher_id FK)
+3. Tạo AssignmentRepository và SubmissionRepository với custom queries:
+   - findByClassId
+   - findByStudentId
+   - findPendingGrading
+4. Tạo AssignmentMapper và SubmissionMapper (MapStruct)
+5. Tạo AssignmentService và AssignmentServiceImpl với:
+   - createAssignment (UC-ASSIGN-001, permission check)
+   - publishAssignment (UC-ASSIGN-002)
+   - submitAssignment (UC-ASSIGN-003):
+     - Late submission check
+     - Calculate late penalty if applicable
+   - gradeSubmission (UC-ASSIGN-004):
+     - Permission check (only grader or MAIN_TEACHER)
+     - Apply late penalty
+     - Calculate adjusted_score
+   - returnGradedAssignment (UC-ASSIGN-005)
+   - Permission check integration (via TeacherService)
+6. Tạo AssignmentController với endpoints theo api-design.md
+7. Publish ASSIGNMENT_GRADED event (cho Grade Module)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/assignment/
+  - service/AssignmentServiceTest.java
+  - controller/AssignmentControllerTest.java
+  - repository/AssignmentRepositoryTest.java
+  - mapper/AssignmentMapperTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - AssignmentTestDataBuilder.java
+  - SubmissionTestDataBuilder.java
+- Test cases:
+  - Create and publish assignment
+  - Submit on time vs late submission
+  - Late penalty calculation
+  - Grade submission (permission check)
+  - Event publishing
+
+**Flyway Migration:**
+- V8__create_assignment_tables.sql (assignments, submissions)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Late penalty calculated correctly
+- ASSIGNMENT_GRADED event được publish
+- Permission checks enforced
+
+**Key Business Rules (from business-logic.md):**
+- BR-ASSIGN-004: Late submissions get penalty (default 10% per day)
+- BR-ASSIGN-005: Only assigned grader or MAIN_TEACHER can grade
+- BR-ASSIGN-006: Late penalty calculation: adjusted_score = original_score * (1 - penalty%)
+- Assignment weight_percent affects final grade calculation
+
+**Integration Points:**
+- Class Module: Assignment.class_id FK
+- Student Module: Submission.student_id FK
+- Teacher Module: Permission checks, assignment.created_by, submission.graded_by
+- Grade Module: ASSIGNMENT_GRADED event updates Assignment component score
+```
+
+## ⏳ PR 2.7.2 - Grade Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.7.1 Assignment Module, PR 2.7 Attendance Module
+**Business Logic:** docs/modules/grade-module-business-logic.md
+
+```
+Thực hiện Grade Module - Weighted grade calculation, GPA, transcripts.
+
+**Tuân thủ skills:**
+- code-style.md: coding conventions
+- api-design.md: Grade API endpoints
+- database-design.md: grades, grade_components, grading_scales, transcripts tables
+- testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Grade entity với JPA annotations:
+   - @ManyToOne Student
+   - @ManyToOne Class
+   - final_score (0-100), letter_grade (A+, A, B+, etc.), gpa (0-4.0)
+   - status (IN_PROGRESS, FINALIZED, PASSED, FAILED)
+   - pass_threshold (default 50), comments
+   - calculated_at, finalized_at, finalized_by
+2. Tạo GradeComponent entity:
+   - @ManyToOne Grade
+   - component_type (ATTENDANCE, ASSIGNMENT, MIDTERM, FINAL, QUIZ, PROJECT)
+   - component_name, component_ref_id (assignment_id, etc.)
+   - score, max_score, weight_percent, weighted_score
+3. Tạo GradingScale entity (configuration):
+   - scale_name (Standard), letter_grade, min_score, max_score, gpa_value
+   - is_default
+4. Tạo Transcript entity:
+   - @ManyToOne Student
+   - semester, academic_year, total_credits
+   - semester_gpa, cumulative_gpa
+   - total_courses, passed_courses, failed_courses
+5. Tạo repositories với custom queries
+6. Tạo GradeMapper (MapStruct)
+7. Tạo GradeService và GradeServiceImpl với:
+   - initializeGrade (UC-GRADE-001, auto on enrollment)
+   - updateGradeComponent (UC-GRADE-002, event-driven):
+     - Listen to ATTENDANCE_MARKED event
+     - Listen to ASSIGNMENT_GRADED event
+   - calculateFinalScore (UC-GRADE-003):
+     - Validate weights = 100%
+     - Calculate weighted scores
+     - Map to letter grade and GPA
+     - Determine pass/fail
+   - finalizeGrade (UC-GRADE-004, permission check)
+   - generateTranscript (UC-GRADE-009)
+8. Tạo GradeController với endpoints theo api-design.md
+9. Event listeners cho auto-update components
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/grade/
+  - service/GradeServiceTest.java
+  - controller/GradeControllerTest.java
+  - repository/GradeRepositoryTest.java
+  - mapper/GradeMapperTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - GradeTestDataBuilder.java
+- Test cases:
+  - Initialize grade on enrollment
+  - Update component from attendance event
+  - Update component from assignment event
+  - Calculate final score (weighted average)
+  - Letter grade mapping
+  - GPA calculation
+  - Finalize grade (validation)
+  - Generate transcript
+
+**Flyway Migration:**
+- V9__create_grade_tables.sql (grades, grade_components, grading_scales, transcripts)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Grade calculation accuracy verified
+- Event-driven updates working
+- Transcript generation tested
+
+**Key Business Rules (from business-logic.md):**
+- BR-GRADE-002: Component weights phải tổng = 100%
+- BR-GRADE-003: Final score = Tổng weighted scores của components
+- BR-GRADE-004: Letter grade mapping theo grading_scales table
+- BR-GRADE-005: Pass/Fail: final_score >= pass_threshold
+- BR-GRADE-006: Không finalize khi thiếu components
+- BR-GRADE-007: FINALIZED grades read-only (chỉ ADMIN update được)
+- BR-GRADE-008: Cumulative GPA = weighted average by credits
+
+**Calculation Logic:**
+```
+1. Component Score → Weighted Score:
+   normalized = score/max_score * 100
+   weighted = normalized * weight% / 100
+
+2. Weighted Scores → Final Score:
+   final = sum of all weighted scores
+
+3. Final Score → Letter Grade:
+   lookup in grading_scales (e.g., 87.04 → B+)
+
+4. Letter Grade → GPA:
+   from grading_scales (B+ → 3.3)
+
+5. Course GPAs → Cumulative GPA:
+   weighted average by credits
+```
+
+**Integration Points:**
+- Student Module: Grade.student_id FK
+- Class Module: Grade.class_id FK
+- Enrollment Module: ENROLLMENT_CREATED event → initializeGrade
+- Attendance Module: ATTENDANCE_MARKED event → update Attendance component
+- Assignment Module: ASSIGNMENT_GRADED event → update Assignment component
+- Teacher Module: Permission checks for finalize
+```
+
+## ⏳ PR 2.8 - Invoice Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.6 Enrollment Module, PR 2.3 Student Module, PR 2.5 Class Module
+**Business Logic:** docs/modules/invoice-module-business-logic.md
+
+```
+Thực hiện Invoice Module - Hóa đơn học phí, trả góp, late fees, refund handling.
+
+**Tuân thủ skills:**
+- code-style.md: complex business logic
+- api-design.md: Invoice API endpoints
+- database-design.md: invoices, invoice_items, invoice_adjustments, installment_plans tables
+- testing-guide.md: testing financial calculations
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Invoice entity với JPA annotations:
+   - invoice_number (unique, auto-generated INV-YYYY-NNNNNN)
+   - @ManyToOne Student
+   - @ManyToOne Class
+   - @ManyToOne Enrollment
+   - total_amount, paid_amount, refund_amount
+   - status (DRAFT, PENDING, PAID, OVERDUE, CANCELLED, REFUNDED)
+   - due_date, issued_date, paid_at
+2. Tạo InvoiceItem entity:
+   - @ManyToOne Invoice
+   - type (TUITION, MATERIALS, REGISTRATION_FEE, EXAM_FEE, OTHER)
+   - description, quantity, unit_price, amount, paid_amount
+3. Tạo InvoiceAdjustment entity:
+   - @ManyToOne Invoice
+   - type (DISCOUNT, ADDITIONAL_CHARGE, LATE_FEE, REFUND)
+   - description, amount, paid_amount, reason
+   - applied_by, applied_at
+4. Tạo InstallmentPlan và Installment entities:
+   - InstallmentPlan: @OneToOne Invoice, number_of_installments, status
+   - Installment: @ManyToOne InstallmentPlan, installment_number, amount, due_date, status
+5. Tạo RefundRequest entity:
+   - @ManyToOne Invoice
+   - refund_amount, refund_method, bank_account, reason
+   - status (PENDING, APPROVED, REJECTED, COMPLETED)
+6. Tạo repositories với custom queries
+7. Tạo InvoiceMapper (MapStruct)
+8. Tạo InvoiceService và InvoiceServiceImpl với:
+   - createInvoiceForEnrollment (UC-INV-001, auto on ENROLLMENT_CREATED event):
+     - Get course price
+     - Create invoice với due_date = enrolled_at + 7 days
+     - Create InvoiceItem (TUITION)
+     - Publish INVOICE_CREATED event
+   - generateQRCode (UC-INV-004)
+   - applyPayment (UC-INV-006, listen to PAYMENT_COMPLETED event):
+     - Payment allocation (late fees first, then items)
+     - Update invoice status (PAID if balance = 0)
+   - calculateLateFee (UC-INV-008, cron job daily):
+     - 0.1% per day, max 10%
+     - Create/update InvoiceAdjustment (LATE_FEE)
+   - applyAdjustment (UC-INV-009, admin only)
+   - processRefund (UC-INV-010, UC-INV-011)
+9. Tạo InstallmentPlanService:
+   - requestInstallmentPlan (UC-INV-005)
+   - approveInstallmentPlan (UC-INV-007)
+10. Tạo controllers
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/invoice/
+  - service/InvoiceServiceTest.java
+  - service/InstallmentPlanServiceTest.java
+  - controller/InvoiceControllerTest.java
+  - repository/InvoiceRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - InvoiceTestDataBuilder.java
+- Test cases:
+  - Auto-create invoice on enrollment
+  - Calculate late fee correctly
+  - Payment allocation priority
+  - Installment plan validation
+  - Refund calculation
+  - Event publishing
+
+**Flyway Migration:**
+- V10__create_invoice_tables.sql (invoices, invoice_items, invoice_adjustments, installment_plans, installments, refund_requests)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Financial calculations chính xác
+- Event-driven invoice creation working
+- Late fee calculation tested
+
+**Key Business Rules (from business-logic.md):**
+- BR-INV-001: Auto-generate invoice on enrollment
+- BR-INV-003: Installment plan validation (2-12 kỳ, sum = total)
+- BR-INV-004: Late fee 0.1%/day, max 10%
+- BR-INV-005: Payment allocation priority (late fees → items)
+- BR-INV-008: Refund calculation based on class progress
+
+**Integration Points:**
+- Enrollment Module: ENROLLMENT_CREATED event → createInvoice
+- Payment Module: PAYMENT_COMPLETED event → applyPayment
+- Student Module: Invoice.student_id FK
+- Class Module: Invoice.class_id FK, refund calculation
+```
+
+## ⏳ PR 2.8.1 - Payment Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.8 Invoice Module
+**Business Logic:** docs/modules/payment-module-business-logic.md
+
+```
+Thực hiện Payment Module - Payment processing, gateways, reconciliation.
+
+**Tuân thủ skills:**
+- code-style.md: complex business logic
+- api-design.md: Payment API endpoints
+- database-design.md: payments, payout_tasks tables
+- testing-guide.md: testing payment flows
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Payment entity với JPA annotations:
+   - @ManyToOne Invoice
+   - @ManyToOne Student
+   - amount, payment_method (CASH, BANK_TRANSFER, VNPAY, MOMO, ZALOPAY, CREDIT_CARD)
+   - payment_type (INVOICE_PAYMENT, REFUND, ADJUSTMENT)
+   - status (PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED)
+   - transaction_id (unique), gateway_transaction_id
+   - payment_url, gateway_response, expires_at
+   - receipt_number, bank_transaction_id, transfer_date, proof_attachment_url
+   - reference_payment_id (for refunds)
+   - completed_at, failed_at, failure_reason
+   - reconciled, reconciled_at
+   - received_by
+2. Tạo PayoutTask entity (for refunds via bank transfer):
+   - @ManyToOne Payment
+   - recipient_name, bank_account, bank_name, amount
+   - status (PENDING, PROCESSING, COMPLETED, FAILED)
+   - processed_by, processed_at
+3. Tạo repositories với custom queries:
+   - findByTransactionId (idempotency check)
+   - findByStatusAndCreatedAtBefore (timeout detection)
+   - findByCompletedAtBetween (reconciliation)
+4. Tạo PaymentMapper (MapStruct)
+5. Tạo PaymentService và PaymentServiceImpl với:
+   - createPayment (UC-PAY-001)
+   - initiateGatewayPayment (UC-PAY-002):
+     - VNPay integration
+     - MoMo integration
+     - ZaloPay integration
+   - processWebhook (UC-PAY-003):
+     - Signature verification (BR-PAY-005)
+     - Idempotency check (BR-PAY-001)
+     - Update payment status
+     - Publish PAYMENT_COMPLETED event
+   - recordCashPayment (UC-PAY-004, staff only)
+   - recordBankTransfer (UC-PAY-005, staff only)
+   - processRefund (UC-PAY-010)
+   - reconcilePayments (UC-PAY-009)
+   - Cron job: cancelTimedOutPayments (15 minutes timeout)
+6. Tạo Payment Gateway integrations:
+   - VNPayService: initiate, webhook, refund
+   - MoMoService: initiate, webhook, refund
+   - ZaloPayService: initiate, webhook, refund
+7. Tạo controllers:
+   - PaymentController: create, view, retry
+   - PaymentWebhookController: VNPay, MoMo, ZaloPay callbacks
+   - InternalPaymentController: reconciliation (admin only)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/payment/
+  - service/PaymentServiceTest.java
+  - service/VNPayServiceTest.java
+  - controller/PaymentControllerTest.java
+  - controller/PaymentWebhookControllerTest.java
+  - repository/PaymentRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - PaymentTestDataBuilder.java
+- Test cases:
+  - Create payment for invoice
+  - Initiate VNPay payment
+  - Process webhook (success/failed)
+  - Signature verification
+  - Idempotency check (duplicate webhook)
+  - Timeout detection
+  - Refund processing
+  - Reconciliation logic
+  - Event publishing
+
+**Flyway Migration:**
+- V11__create_payment_tables.sql (payments, payout_tasks)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Webhook signature verification working
+- Idempotency enforced
+- Timeout detection tested
+- PAYMENT_COMPLETED event được publish
+
+**Key Business Rules (from business-logic.md):**
+- BR-PAY-001: Payment uniqueness per transaction_id (idempotency)
+- BR-PAY-003: Payment method validation rules
+- BR-PAY-004: Payment amount validation (<= invoice balance)
+- BR-PAY-005: Webhook signature verification (security)
+- BR-PAY-006: Payment timeout auto-cancellation (15 minutes)
+- BR-PAY-007: Daily payment reconciliation
+- BR-PAY-008: Refund validation and processing
+
+**Integration Points:**
+- Invoice Module: Payment.invoice_id FK, PAYMENT_COMPLETED event
+- Student Module: Payment.student_id FK
+- VNPay/MoMo/ZaloPay: External payment gateways
+```
+
+## ⏳ PR 2.9 - Settings & Preferences Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** None (independent module)
+**Note:** Parent Module moved to Engagement Service (P1 priority)
+
+```
+Thực hiện Settings & Preferences Module của kiteclass-core-service-plan.md.
+
+**Tuân thủ skills:**
+- code-style.md: coding conventions
+- api-design.md: Settings API endpoints
 - database-design.md: settings tables
 - theme-system.md: branding settings
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
 1. Tạo Branding entity (settings schema):
-   - logoUrl, faviconUrl, displayName, tagline
-   - primaryColor, secondaryColor
-   - contactEmail, contactPhone, address
-   - facebookUrl, zaloUrl
-2. Tạo UserPreferences entity
-3. Tạo BrandingService và controller:
-   - GET/PUT /api/v1/settings/branding
-   - POST /api/v1/settings/branding/logo
-4. Tạo UserPreferencesService:
+   - logo_url, favicon_url, display_name, tagline
+   - primary_color, secondary_color, accent_color
+   - contact_email, contact_phone, address
+   - facebook_url, zalo_url, website_url
+2. Tạo UserPreferences entity:
+   - user_id (link to Gateway User via referenceId)
+   - language (en, vi), timezone
+   - theme (light, dark, auto)
+   - notification_preferences (JSON)
+3. Tạo BrandingRepository và UserPreferencesRepository
+4. Tạo BrandingMapper và UserPreferencesMapper (MapStruct)
+5. Tạo BrandingService và BrandingServiceImpl:
+   - getBranding (default or customized)
+   - updateBranding (admin only)
+   - uploadLogo (S3 integration)
+6. Tạo UserPreferencesService và UserPreferencesServiceImpl:
    - GET/PATCH /api/v1/users/me/preferences
-5. Tạo Parent module:
-   - ParentService với getChildren, getChildAttendance, getChildGrades
-   - ParentController với endpoints
+   - initializeDefaultPreferences (on user registration)
+7. Tạo controllers:
+   - BrandingController:
+     - GET /api/v1/settings/branding (public)
+     - PUT /api/v1/settings/branding (admin only)
+     - POST /api/v1/settings/branding/logo (admin only)
+   - UserPreferencesController:
+     - GET /api/v1/users/me/preferences
+     - PATCH /api/v1/users/me/preferences
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/settings/
   - service/BrandingServiceTest.java
+  - service/UserPreferencesServiceTest.java
   - controller/BrandingControllerTest.java
-- src/test/java/com/kiteclass/core/module/parent/
-  - service/ParentServiceTest.java
-  - controller/ParentControllerTest.java
+  - controller/UserPreferencesControllerTest.java
+  - repository/BrandingRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - BrandingTestDataBuilder.java
+  - UserPreferencesTestDataBuilder.java
 
 **Flyway Migration:**
-- V8__create_settings_tables.sql
+- V12__create_settings_tables.sql (branding, user_preferences)
 
 **Verification:**
 - mvn test phải pass
+- Coverage >= 80%
+- Public branding API accessible without auth
+- User preferences CRUD working
+
+**Integration Points:**
+- Gateway: Branding data fetched by Frontend for theme
+- All modules: UserPreferences for user-specific settings
 ```
 
 ## ⏳ PR 2.10 - Core Docker & Final Integration
 
+**Status:** ⏳ NOT STARTED
+**Dependencies:** All Core Service PRs (2.1 - 2.9)
+
 ```
-Hoàn thiện kiteclass-core.
+Hoàn thiện kiteclass-core - Docker, integration tests, seed data.
 
 **Tuân thủ skills:**
 - cloud-infrastructure.md: Docker, docker-compose
 - testing-guide.md: integration tests với Testcontainers
 - environment-setup.md: local dev setup
+- spring-boot-testing-quality.md: integration test patterns
 
 **Tasks:**
-1. Tạo Dockerfile (multi-stage build)
+1. Tạo Dockerfile (multi-stage build):
+   - Maven build stage
+   - Runtime stage với optimized JRE
 2. Update docker-compose.yml:
    - core-service
    - Kết nối với gateway, postgres, redis, rabbitmq
-3. Tạo V9__seed_test_data.sql (sample data cho testing)
-4. Viết integration tests cho full flow
+   - Health checks
+   - Resource limits
+3. Tạo V13__seed_test_data.sql (sample data cho testing):
+   - Sample teachers
+   - Sample courses
+   - Sample classes
+   - Sample students
+   - Sample enrollments
+   - Sample invoices
+4. Viết integration tests cho full flows:
+   - StudentFlowIntegrationTest (create → update → soft delete)
+   - EnrollmentFlowIntegrationTest (enroll → invoice created → grade initialized)
+   - AttendanceFlowIntegrationTest (mark attendance → grade updated)
+   - AssignmentFlowIntegrationTest (create → submit → grade → grade updated)
+   - InvoiceFlowIntegrationTest (create → payment → status update)
+   - PaymentFlowIntegrationTest (gateway → webhook → invoice update)
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/integration/
   - StudentFlowIntegrationTest.java
   - EnrollmentFlowIntegrationTest.java
   - AttendanceFlowIntegrationTest.java
-  - BillingFlowIntegrationTest.java
+  - AssignmentFlowIntegrationTest.java
+  - InvoiceFlowIntegrationTest.java
+  - PaymentFlowIntegrationTest.java
 
 **Verification:**
-- docker-compose up phải start tất cả services
+- docker-compose up phải start tất cả services successfully
 - Integration tests pass với Testcontainers
 - Swagger UI hoạt động: http://localhost:8081/swagger-ui.html
 - Tất cả API endpoints hoạt động đúng
+- Event-driven flows working (enrollment → invoice → grade)
+- Health check endpoints responding
 ```
 
 ---
