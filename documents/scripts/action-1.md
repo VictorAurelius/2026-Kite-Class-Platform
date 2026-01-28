@@ -387,3 +387,11 @@ bạn cần cập nhật file business-logic cho gateway theo đúng chuẩn ski
 ngoài ra việc các actor khác chưa được triển khai module trong core khiên PR của 1. sẽ chưa hoàn thiện 100%, cần cập nhật kiteclass-implementation-plan để note lại vấn đề này. sau khi hoàn thành các phần đó (core-service, ...) thực hiện cập nhật lại gateway
 
 Ngoài ra kiteclass-implementation-plan đã có thay đổi nhiều, hãy check lại plan trong thư mục documents/plans: kiteclass-core-service-plan, kiteclass-gateway-plan, kiteclass-frontend-plan để cập nhật tương ứng
+
+business-logic của gateway chưa đúng theo skill, hãy check lại (skill yêu cầu là tiếng việt)
+
+luôn giao tiếp với tôi bằng tiếng việt
+
+skill đã đề cập sau khi hoàn thành 1 PR thì phải update plan, quick-start, ... chưa? đã hoàn thành tốt với PR 1.8 chưa?
+
+nhấn mạnh các PR tiếp theo cần đảm bảo skill development-workflow.md, thực hiện update đầy đủ cho PR 1.8
