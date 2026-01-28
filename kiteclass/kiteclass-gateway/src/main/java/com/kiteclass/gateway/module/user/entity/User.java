@@ -1,6 +1,7 @@
 package com.kiteclass.gateway.module.user.entity;
 
 import com.kiteclass.gateway.common.constant.UserStatus;
+import com.kiteclass.gateway.common.constant.UserType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,14 @@ import java.time.Instant;
  *   <li>Account status management</li>
  *   <li>Failed login attempt tracking</li>
  *   <li>Soft delete support</li>
+ *   <li><b>Cross-service linking:</b> userType + referenceId to Core entities</li>
+ * </ul>
+ *
+ * <h3>Cross-Service Integration (Since 1.8.0):</h3>
+ * <p>Users are linked to Core service entities via:</p>
+ * <ul>
+ *   <li><b>userType:</b> ADMIN, STAFF (internal), TEACHER, PARENT, STUDENT (external)</li>
+ *   <li><b>referenceId:</b> Foreign key to Core entity (students.id, teachers.id, parents.id)</li>
  * </ul>
  *
  * @author KiteClass Team
@@ -53,6 +62,35 @@ public class User {
 
     @Column("status")
     private UserStatus status;
+
+    /**
+     * Type of user account.
+     * <p>Determines if user has a profile entity in Core service:
+     * <ul>
+     *   <li>ADMIN, STAFF: Internal staff, no Core entity (referenceId = NULL)</li>
+     *   <li>TEACHER, PARENT, STUDENT: External users with Core entity (referenceId required)</li>
+     * </ul>
+     *
+     * @since 1.8.0
+     */
+    @Column("user_type")
+    @Builder.Default
+    private UserType userType = UserType.ADMIN;
+
+    /**
+     * Foreign key reference to Core service entity.
+     * <p>Links to:
+     * <ul>
+     *   <li>NULL for ADMIN, STAFF (no Core entity)</li>
+     *   <li>students.id for STUDENT</li>
+     *   <li>teachers.id for TEACHER</li>
+     *   <li>parents.id for PARENT</li>
+     * </ul>
+     *
+     * @since 1.8.0
+     */
+    @Column("reference_id")
+    private Long referenceId;
 
     @Column("email_verified")
     private Boolean emailVerified;
