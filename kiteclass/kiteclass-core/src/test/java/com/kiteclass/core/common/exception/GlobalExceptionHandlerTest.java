@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,11 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,9 +38,12 @@ class GlobalExceptionHandlerTest {
     @Mock
     private HttpServletRequest request;
 
+    @Mock
+    private MessageSource messageSource;
+
     @BeforeEach
     void setUp() {
-        handler = new GlobalExceptionHandler();
+        handler = new GlobalExceptionHandler(messageSource);
         when(request.getRequestURI()).thenReturn("/api/v1/test");
     }
 
@@ -58,7 +65,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleEntityNotFoundException_shouldReturn404() {
         // Given
-        EntityNotFoundException ex = new EntityNotFoundException("Student", 123L);
+        EntityNotFoundException ex = new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) 123L);
+        when(messageSource.getMessage(eq("STUDENT_NOT_FOUND"), any(), any(Locale.class)))
+            .thenReturn("Student not found with ID: 123");
 
         // When
         ResponseEntity<ErrorResponse> response = handler.handleEntityNotFoundException(ex, request);
@@ -66,7 +75,7 @@ class GlobalExceptionHandlerTest {
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("ENTITY_NOT_FOUND");
+        assertThat(response.getBody().getCode()).isEqualTo("STUDENT_NOT_FOUND");
         assertThat(response.getBody().getMessage()).contains("Student");
         assertThat(response.getBody().getMessage()).contains("123");
     }
@@ -74,7 +83,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleDuplicateResourceException_shouldReturn409() {
         // Given
-        DuplicateResourceException ex = new DuplicateResourceException("email", "test@example.com");
+        DuplicateResourceException ex = new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) "test@example.com");
+        when(messageSource.getMessage(eq("STUDENT_EMAIL_EXISTS"), any(), any(Locale.class)))
+            .thenReturn("Student email already exists: test@example.com");
 
         // When
         ResponseEntity<ErrorResponse> response = handler.handleDuplicateResourceException(ex, request);
@@ -82,7 +93,7 @@ class GlobalExceptionHandlerTest {
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("DUPLICATE_RESOURCE");
+        assertThat(response.getBody().getCode()).isEqualTo("STUDENT_EMAIL_EXISTS");
         assertThat(response.getBody().getMessage()).contains("email");
         assertThat(response.getBody().getMessage()).contains("test@example.com");
     }
@@ -90,7 +101,9 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleValidationException_shouldReturn400() {
         // Given
-        ValidationException ex = new ValidationException("Invalid input");
+        ValidationException ex = new ValidationException("COURSE_CANNOT_DELETE_STATUS", "PUBLISHED");
+        when(messageSource.getMessage(eq("COURSE_CANNOT_DELETE_STATUS"), any(), any(Locale.class)))
+            .thenReturn("Cannot delete course with status PUBLISHED. Only DRAFT courses can be deleted.");
 
         // When
         ResponseEntity<ErrorResponse> response = handler.handleValidationException(ex, request);
@@ -98,8 +111,9 @@ class GlobalExceptionHandlerTest {
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("VALIDATION_ERROR");
-        assertThat(response.getBody().getMessage()).isEqualTo("Invalid input");
+        assertThat(response.getBody().getCode()).isEqualTo("COURSE_CANNOT_DELETE_STATUS");
+        assertThat(response.getBody().getMessage()).contains("Cannot delete");
+        assertThat(response.getBody().getMessage()).contains("PUBLISHED");
     }
 
     @Test
@@ -150,6 +164,8 @@ class GlobalExceptionHandlerTest {
     void handleUnexpectedException_shouldReturn500WithGenericMessage() {
         // Given
         Exception ex = new RuntimeException("Something went wrong");
+        when(messageSource.getMessage(eq("SYSTEM_INTERNAL_ERROR"), any(), any(Locale.class)))
+            .thenReturn("An unexpected error occurred. Please try again later.");
 
         // When
         ResponseEntity<ErrorResponse> response = handler.handleUnexpectedException(ex, request);
@@ -157,7 +173,7 @@ class GlobalExceptionHandlerTest {
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getCode()).isEqualTo("INTERNAL_ERROR");
+        assertThat(response.getBody().getCode()).isEqualTo("SYSTEM_INTERNAL_ERROR");
         assertThat(response.getBody().getMessage()).contains("unexpected error");
         // Should not expose internal exception details
         assertThat(response.getBody().getMessage()).doesNotContain("Something went wrong");

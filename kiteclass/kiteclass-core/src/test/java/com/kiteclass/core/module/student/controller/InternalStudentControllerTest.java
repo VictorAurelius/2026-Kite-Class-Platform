@@ -155,7 +155,7 @@ class InternalStudentControllerTest {
     void getStudent_shouldReturn404_whenStudentNotFound() throws Exception {
         // Given
         when(studentService.getStudentById(anyLong()))
-                .thenThrow(new com.kiteclass.core.common.exception.EntityNotFoundException("Student", 999L));
+                .thenThrow(new com.kiteclass.core.common.exception.EntityNotFoundException("STUDENT_NOT_FOUND", (Object) 999L));
 
         // When / Then
         mockMvc.perform(get("/internal/students/999")
