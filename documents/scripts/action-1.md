@@ -462,3 +462,5 @@ dựa vào kiteclass-frontend-plan hãy cập nhật implementation plan để t
 
 tốt, tiếp tục thực hiện PR ưu tiên nhất
 PR của 1. không ưu tiên sao?
+
+giúp tôi triển khai git hook
