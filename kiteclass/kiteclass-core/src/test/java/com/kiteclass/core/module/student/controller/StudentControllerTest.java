@@ -7,11 +7,20 @@ import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
 import com.kiteclass.core.module.student.service.StudentService;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -19,13 +28,6 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.SecurityFilterChain;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -37,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(StudentController.class)
 @AutoConfigureMockMvc
+@Import({StudentControllerTest.TestSecurityConfig.class, StudentControllerTest.MockConfig.class})
 class StudentControllerTest {
 
     /**
@@ -53,14 +56,33 @@ class StudentControllerTest {
         }
     }
 
+    /**
+     * Test configuration for mock beans.
+     * Replaces deprecated @MockBean with explicit @TestConfiguration.
+     */
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        @Primary
+        public StudentService studentService() {
+            return Mockito.mock(StudentService.class);
+        }
+    }
+
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private StudentService studentService;
+
+    @BeforeEach
+    void resetMocks() {
+        // Reset mock before each test to avoid state pollution
+        Mockito.reset(studentService);
+    }
 
     @Test
     void createStudent_shouldReturn201() throws Exception {
