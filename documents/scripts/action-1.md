@@ -367,3 +367,23 @@ Resource leak: '<unassigned Closeable value>' is never closed
 => bạn không fix được lỗi này sao? nếu không fix được thì có cách nào hoặc cấu hình như thế nào để nó không báo warning cho lỗi này nữa
 
 hãy fix triệt để lỗi này, không dùng SuppressWarnings
+
+các kinh nghiệm fix đã được cập nhật vào skill hết chưa, trước khi thực hiện PR 1.8, tôi lại muốn bạn thực hiện PR để fix hết warning trong kiteclass-core
+
+tại sao CODE_QUALITY_GUIDE.md lại đặt trong documents, đặt ở đâu để các PR sau dễ tham chiếu chứ?
+
+tại sao không đặt trong skill?
+
+biến nó thành claude skill: .claude/skills
+hãy check xem nên bổ sung vào skill cũ hay tạo skill mới
+
+cập nhật kiteclass-implementation-plan đã tham chiếu đầy đủ skill
+
+bây giờ ưu tiên nhất là thực hiện PR 1.8 đúng không? Nếu đúng, hãy thực hiện nó
+
+bạn phải giao tiếp với tôi bằng tiếng việt
+
+bạn cần cập nhật file business-logic cho gateway theo đúng chuẩn skill
+ngoài ra việc các actor khác chưa được triển khai module trong core khiên PR của 1. sẽ chưa hoàn thiện 100%, cần cập nhật kiteclass-implementation-plan để note lại vấn đề này. sau khi hoàn thành các phần đó (core-service, ...) thực hiện cập nhật lại gateway
+
+Ngoài ra kiteclass-implementation-plan đã có thay đổi nhiều, hãy check lại plan trong thư mục documents/plans: kiteclass-core-service-plan, kiteclass-gateway-plan, kiteclass-frontend-plan để cập nhật tương ứng
