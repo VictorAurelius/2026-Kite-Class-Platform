@@ -427,3 +427,32 @@ Ví dụ: 1 trung tâm tiếng anh có 1 admin tổng có quyền quản lý 30 
 
   3. Teacher Module Priority:
 => Làm Teacher Module trước Course Module
+
+tôi sẽ thực hiện review teacher module trước:
+use case phải đầy đủ, ở dạng khái quát hết các tính năng, ví dụ trên chỉ là tôi lấy ra cho bạn dễ hiểu thôi, ví dụ bây giờ bạn chỉ đang design để teacher có quyền rõ ràng trên class, vậy còn course thì sao? => cập nhật tốt hơn
+
+  Option A: Continue với business logic documents (Recommended)
+  → Create Course Module business-logic.md
+  → Create Class Module business-logic.md
+  → Create Enrollment Module business-logic.md
+  → Update implementation plan với new PRs
+  → Commit all documents
+  → THEN start implementation
+
+  Option B: Update implementation plan ngay
+  → Add PR 1.9: Guest Registration
+  → Add PR 1.10: OAuth2 Google
+  → Add PR 1.11: Class Enrollment by Code
+  → Add PR 2.3.1: Teacher Module (HIGH PRIORITY)
+  → Update priority order
+  → THEN continue business logic docs
+
+đọc lại system-architecture-v3-final và kiteclass-core-service-plan vào check xem kiteclass-core-service-plan đã đầy đủ module chưa, tôi đang thấy thiếu
+
+1. Tạo business logic cho Assignment và Grade Module ngay? => tạo đủ businesslogic của core-service luôn để tôi review
+
+=> thực hiện update luôn cả implementation plan, nếu tôi có sửa đổi UC thì lại update lại implementation plan
+
+Gamification Module và Forum Module theo system-architecture-v3-final sẽ triển khai trong core-service hay tách thành service riêng, nếu tách thì hãy cập nhật to-do list (vì đang phase core-service thôi)
+
+thực hiện 3 => 1 => 2
