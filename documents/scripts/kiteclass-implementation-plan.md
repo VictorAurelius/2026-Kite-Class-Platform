@@ -11,6 +11,67 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 
 ---
 
+# 📚 AVAILABLE SKILLS REFERENCE
+
+Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
+
+## Core Development Skills
+- **`architecture-overview.md`** - Tổng quan kiến trúc microservices, service boundaries, cross-service patterns
+- **`api-design.md`** - REST API conventions, request/response patterns, service-to-service communication
+- **`code-style.md`** - Java/Spring Boot naming conventions, package structure, JavaDoc requirements
+- **`database-design.md`** - Schema design, entity relationships, migration practices
+- **`enums-constants.md`** - Enum design patterns, constant management
+
+## Testing & Quality Skills
+- **`testing-guide.md`** - Cách viết tests từ đầu (JUnit, Mockito, Testcontainers, React Testing Library)
+- **`spring-boot-testing-quality.md`** ⭐ **NEW** - Fix warnings & deprecated APIs (Spring Boot 3.4+, @MockBean → @TestConfiguration, MapStruct, code quality checklist)
+
+## Cross-Service & Integration Skills
+- **`cross-service-data-strategy.md`** - UserType + ReferenceId pattern, Feign Client, Saga pattern, cross-service linking
+- **`email-service.md`** - Email templates, SMTP configuration, Thymeleaf integration
+
+## Infrastructure & DevOps Skills
+- **`cloud-infrastructure.md`** - AWS deployment, Docker, Kubernetes, CI/CD
+- **`environment-setup.md`** - Local dev setup, Docker Compose, database initialization
+
+## Frontend Skills
+- **`frontend-development.md`** - React/TypeScript patterns, component structure, state management
+
+## Project Management Skills
+- **`development-workflow.md`** - Git workflow, PR process, branch strategy
+- **`documentation-structure.md`** - Documentation standards, README templates
+- **`maven-dependencies.md`** - Dependency versions, conflict resolution
+- **`project-schedule.md`** - Timeline, milestones, priorities
+- **`required-knowledge.md`** - Tech stack requirements
+- **`skills-compliance-checklist.md`** - Pre-commit checklist, quality gates
+- **`troubleshooting.md`** - Common issues, solutions, debugging tips
+- **`error-logging.md`** - Logging patterns, error handling, monitoring
+
+## 🎯 When to Use Each Skill
+
+**Before starting any PR:**
+1. ✅ Check `architecture-overview.md` for service boundaries
+2. ✅ Review `code-style.md` for naming conventions
+3. ✅ Consult `api-design.md` for endpoint design
+4. ✅ Read `testing-guide.md` for test structure
+5. ✅ Reference `maven-dependencies.md` for correct versions
+
+**When writing tests:**
+1. ✅ Use `testing-guide.md` for test patterns & structure
+2. ✅ Use `spring-boot-testing-quality.md` for fixing warnings & quality issues
+
+**When encountering issues:**
+1. ✅ Check `troubleshooting.md` first
+2. ✅ Review `error-logging.md` for logging patterns
+3. ✅ Consult specific skill for the domain (e.g., `cross-service-data-strategy.md` for integration issues)
+
+**Before committing:**
+1. ✅ Run through `skills-compliance-checklist.md`
+2. ✅ Verify `spring-boot-testing-quality.md` checklist (no warnings, no deprecated APIs)
+3. ✅ Check `development-workflow.md` for commit message format
+
+---
+
 # 📊 PROGRESS TRACKING
 
 ## 🔀 Git Workflow Update (2026-01-27)
@@ -187,6 +248,8 @@ Thực hiện Phase 1 của kiteclass-gateway-plan.md.
 - architecture-overview.md: cấu trúc thư mục Backend
 - code-style.md: Java naming conventions, package structure
 - environment-setup.md: cấu hình local dev
+- testing-guide.md: test structure & patterns
+- spring-boot-testing-quality.md: code quality checklist, fix warnings trước khi commit
 
 **Tasks:**
 1. Tạo project structure trong thư mục kiteclass/kiteclass-gateway/
@@ -208,6 +271,8 @@ Thực hiện Phase 2 của kiteclass-gateway-plan.md.
 - code-style.md: Java conventions, annotation ordering
 - enums-constants.md: định nghĩa enums đúng format
 - error-logging.md: exception handling patterns
+- testing-guide.md: test structure & patterns
+- spring-boot-testing-quality.md: code quality checklist, no warnings before commit
 
 **Tasks:**
 1. Tạo common package structure:
@@ -236,7 +301,8 @@ Thực hiện Phase 3 (User Module) của kiteclass-gateway-plan.md.
 - code-style.md: Entity, Repository, Service, Controller conventions
 - api-design.md: User Management API endpoints
 - database-design.md: users table schema
-- testing-guide.md: unit test patterns
+- testing-guide.md: unit test patterns & structure
+- spring-boot-testing-quality.md: Spring Boot 3.4+ patterns, @TestConfiguration, fix all warnings
 
 **Tasks:**
 1. Tạo User entity với R2DBC annotations
@@ -272,7 +338,8 @@ Thực hiện Phase 4 (Auth Module) của kiteclass-gateway-plan.md.
 **Tuân thủ skills:**
 - code-style.md: Service patterns
 - api-design.md: Authentication API endpoints
-- testing-guide.md: testing security components
+- testing-guide.md: testing security components, unit & integration test patterns
+- spring-boot-testing-quality.md: JWT testing patterns, security test setup, fix warnings
 
 **Tasks:**
 1. Tạo JwtTokenProvider:
@@ -319,6 +386,7 @@ Hoàn thiện Docker setup và integration tests với Testcontainers.
 - database-design.md: Flyway migrations
 - cloud-infrastructure.md: Docker configuration
 - testing-guide.md: integration tests with Testcontainers
+- spring-boot-testing-quality.md: Testcontainers resource leak fix, container reuse, integration test templates
 
 **Tasks:**
 1. Tạo Flyway migrations (V1-V4):
@@ -483,6 +551,8 @@ Implement UserType + ReferenceId pattern để liên kết Gateway User với Co
 - architecture-overview.md: Cross-Service Data Relationships
 - database-design.md: Microservices Database Strategy
 - api-design.md: Service-to-Service Communication
+- testing-guide.md: Feign Client testing, integration tests
+- spring-boot-testing-quality.md: Feign Client mocking, WebFluxTest patterns, fix warnings
 
 **Tasks:**
 
@@ -690,6 +760,8 @@ Thực hiện Phase 2 của kiteclass-core-service-plan.md.
 - code-style.md: Java conventions, JavaDoc requirements
 - enums-constants.md: tất cả enums cho Core service
 - error-logging.md: exception handling, logging patterns
+- testing-guide.md: test patterns for DTOs & exception handlers
+- spring-boot-testing-quality.md: @ExtendWith(MockitoExtension.class), fix warnings
 
 **Tasks:**
 1. Tạo BaseEntity với audit fields (createdAt, updatedAt, createdBy, updatedBy, deleted, version)
@@ -738,7 +810,8 @@ Thực hiện Student Module của kiteclass-core-service-plan.md.
 - code-style.md: Entity, Repository, Service, Controller, DTO conventions
 - api-design.md: Student API endpoints
 - database-design.md: students table schema
-- testing-guide.md: unit test patterns, TestDataBuilder
+- testing-guide.md: unit test patterns, TestDataBuilder, integration tests
+- spring-boot-testing-quality.md: @TestConfiguration for mocks, MapStruct warnings, Testcontainers setup
 
 **Tasks:**
 1. Tạo Student entity với JPA annotations
@@ -1126,7 +1199,8 @@ Tạo Internal APIs để Gateway có thể lấy profile data cho Student/Teach
 - cross-service-data-strategy.md: Service-to-service communication patterns
 - api-design.md: Internal API design
 - code-style.md: Controller và Service conventions
-- testing-guide.md: Testing internal APIs
+- testing-guide.md: Testing internal APIs, filter testing
+- spring-boot-testing-quality.md: Controller test setup, @TestConfiguration, fix warnings
 
 **Tasks:**
 
