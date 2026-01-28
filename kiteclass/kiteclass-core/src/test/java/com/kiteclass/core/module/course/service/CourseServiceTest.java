@@ -124,7 +124,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.createCourse(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("code");
+                .hasFieldOrPropertyWithValue("code", "COURSE_CODE_EXISTS");
 
         verify(courseRepository).existsByCodeAndDeletedFalse(createRequest.code());
         verify(courseRepository, never()).save(any(Course.class));
@@ -160,7 +160,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.createCourse(createRequest))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Teacher");
+                .hasFieldOrPropertyWithValue("code", "TEACHER_NOT_FOUND");
 
         verify(teacherRepository).findByIdAndDeletedFalse(createRequest.teacherId());
         verify(courseRepository, never()).save(any(Course.class));
@@ -189,7 +189,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.getCourseById(999L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Course");
+                .hasFieldOrPropertyWithValue("code", "COURSE_NOT_FOUND");
 
         verify(courseRepository).findByIdAndDeletedFalse(999L);
     }
@@ -244,7 +244,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.updateCourse(999L, updateRequest))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Course");
+                .hasFieldOrPropertyWithValue("code", "COURSE_NOT_FOUND");
 
         verify(courseRepository).findByIdAndDeletedFalse(999L);
         verify(courseRepository, never()).save(any(Course.class));
@@ -259,7 +259,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.updateCourse(1L, updateRequest))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("ARCHIVED");
+                .hasFieldOrPropertyWithValue("code", "COURSE_INVALID_UPDATE_ARCHIVED");
 
         verify(courseRepository).findByIdAndDeletedFalse(1L);
         verify(courseRepository, never()).save(any(Course.class));
@@ -286,7 +286,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.updateCourse(1L, restrictedUpdate))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("PUBLISHED");
+                .hasFieldOrPropertyWithValue("code", "COURSE_INVALID_UPDATE_PUBLISHED");
 
         verify(courseRepository).findByIdAndDeletedFalse(1L);
         verify(courseRepository, never()).save(any(Course.class));
@@ -315,7 +315,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.deleteCourse(1L))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("DRAFT");
+                .hasFieldOrPropertyWithValue("code", "COURSE_CANNOT_DELETE_STATUS");
 
         verify(courseRepository).findByIdAndDeletedFalse(1L);
         verify(courseRepository, never()).save(any(Course.class));
@@ -346,7 +346,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.publishCourse(1L))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("DRAFT");
+                .hasFieldOrPropertyWithValue("code", "COURSE_INVALID_PUBLISH_STATE");
 
         verify(courseRepository).findByIdAndDeletedFalse(1L);
         verify(courseRepository, never()).save(any(Course.class));
@@ -362,7 +362,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.publishCourse(1L))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("syllabus");
+                .hasFieldOrPropertyWithValue("code", "COURSE_MISSING_REQUIRED_FIELDS");
 
         verify(courseRepository).findByIdAndDeletedFalse(1L);
         verify(courseRepository, never()).save(any(Course.class));
@@ -394,7 +394,7 @@ class CourseServiceTest {
         // When & Then
         assertThatThrownBy(() -> courseService.archiveCourse(1L))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("PUBLISHED");
+                .hasFieldOrPropertyWithValue("code", "COURSE_INVALID_ARCHIVE_STATE");
 
         verify(courseRepository).findByIdAndDeletedFalse(1L);
         verify(courseRepository, never()).save(any(Course.class));

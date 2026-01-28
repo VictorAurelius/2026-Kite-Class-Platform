@@ -73,14 +73,14 @@ public class CourseServiceImpl implements CourseService {
         // BR-COURSE-001: Validate code uniqueness
         if (courseRepository.existsByCodeAndDeletedFalse(request.code())) {
             log.warn("Duplicate course code: {}", request.code());
-            throw new DuplicateResourceException("COURSE_CODE_EXISTS", request.code());
+            throw new DuplicateResourceException("COURSE_CODE_EXISTS", (Object) request.code());
         }
 
         // Validate teacher exists and is active
         teacherRepository.findByIdAndDeletedFalse(request.teacherId())
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", request.teacherId());
-                    return new EntityNotFoundException("TEACHER_NOT_FOUND", request.teacherId());
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", (Object) request.teacherId());
                 });
 
         // Create course entity
@@ -119,7 +119,7 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", (Object) id);
                 });
 
         return courseMapper.toResponse(course);
@@ -184,7 +184,7 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", (Object) id);
                 });
 
         // BR-COURSE-002: Check status-based update restrictions
@@ -216,13 +216,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", (Object) id);
                 });
 
         // Only DRAFT courses can be deleted
         if (!course.canBeDeleted()) {
             log.warn("Cannot delete course with status: {}", course.getStatus());
-            throw new ValidationException("COURSE_CANNOT_DELETE_STATUS", course.getStatus());
+            throw new ValidationException("COURSE_CANNOT_DELETE_STATUS", (Object) course.getStatus());
         }
 
         // BR-COURSE-004: Check if has active classes (will be implemented when Class module is ready)
@@ -259,13 +259,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", (Object) id);
                 });
 
         // Validate current status
         if (!CourseStatus.DRAFT.equals(course.getStatus())) {
             log.warn("Cannot publish course with status: {}", course.getStatus());
-            throw new ValidationException("COURSE_INVALID_PUBLISH_STATE", course.getStatus());
+            throw new ValidationException("COURSE_INVALID_PUBLISH_STATE", (Object) course.getStatus());
         }
 
         // Validate required fields for publishing
@@ -299,13 +299,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", (Object) id);
                 });
 
         // Validate current status
         if (!CourseStatus.PUBLISHED.equals(course.getStatus())) {
             log.warn("Cannot archive course with status: {}", course.getStatus());
-            throw new ValidationException("COURSE_INVALID_ARCHIVE_STATE", course.getStatus());
+            throw new ValidationException("COURSE_INVALID_ARCHIVE_STATE", (Object) course.getStatus());
         }
 
         // Change status to ARCHIVED
@@ -326,7 +326,7 @@ public class CourseServiceImpl implements CourseService {
     private void validateUpdateAllowed(Course course, UpdateCourseRequest request) {
         // ARCHIVED courses are read-only
         if (course.isReadOnly()) {
-            throw new ValidationException("COURSE_INVALID_UPDATE_ARCHIVED");
+            throw new ValidationException("COURSE_INVALID_UPDATE_ARCHIVED", new Object[0]);
         }
 
         // PUBLISHED courses have limited edits
@@ -335,7 +335,7 @@ public class CourseServiceImpl implements CourseService {
             if (request.name() != null || request.durationWeeks() != null ||
                 request.totalSessions() != null || request.prerequisites() != null ||
                 request.targetAudience() != null) {
-                throw new ValidationException("COURSE_INVALID_UPDATE_PUBLISHED");
+                throw new ValidationException("COURSE_INVALID_UPDATE_PUBLISHED", new Object[0]);
             }
         }
 
@@ -370,7 +370,7 @@ public class CourseServiceImpl implements CourseService {
         if (missingFields.length() > 0) {
             // Remove trailing comma and space
             String missing = missingFields.substring(0, missingFields.length() - 2);
-            throw new ValidationException("COURSE_MISSING_REQUIRED_FIELDS", missing);
+            throw new ValidationException("COURSE_MISSING_REQUIRED_FIELDS", (Object) missing);
         }
     }
 

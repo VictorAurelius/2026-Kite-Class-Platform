@@ -100,7 +100,7 @@ class TeacherServiceTest {
         // When & Then
         assertThatThrownBy(() -> teacherService.createTeacher(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("email");
+                .hasFieldOrPropertyWithValue("code", "TEACHER_EMAIL_EXISTS");
 
         verify(teacherRepository).existsByEmailAndDeletedFalse(createRequest.email());
         verify(teacherRepository, never()).save(any(Teacher.class));
@@ -129,7 +129,7 @@ class TeacherServiceTest {
         // When & Then
         assertThatThrownBy(() -> teacherService.getTeacherById(999L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Teacher");
+                .hasFieldOrPropertyWithValue("code", "TEACHER_NOT_FOUND");
 
         verify(teacherRepository).findByIdAndDeletedFalse(999L);
     }
@@ -179,7 +179,7 @@ class TeacherServiceTest {
         // When & Then
         assertThatThrownBy(() -> teacherService.updateTeacher(999L, updateRequest))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Teacher");
+                .hasFieldOrPropertyWithValue("code", "TEACHER_NOT_FOUND");
 
         verify(teacherRepository).findByIdAndDeletedFalse(999L);
         verify(teacherRepository, never()).save(any(Teacher.class));
@@ -207,7 +207,7 @@ class TeacherServiceTest {
         // When & Then
         assertThatThrownBy(() -> teacherService.deleteTeacher(999L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Teacher");
+                .hasFieldOrPropertyWithValue("code", "TEACHER_NOT_FOUND");
 
         verify(teacherRepository).findByIdAndDeletedFalse(999L);
         verify(teacherRepository, never()).save(any(Teacher.class));
