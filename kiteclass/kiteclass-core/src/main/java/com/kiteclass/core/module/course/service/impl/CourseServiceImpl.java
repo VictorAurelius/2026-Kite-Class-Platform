@@ -67,7 +67,7 @@ public class CourseServiceImpl implements CourseService {
         }
 
         // Validate teacher exists and is active
-        Teacher teacher = teacherRepository.findByIdAndDeletedFalse(request.teacherId())
+        teacherRepository.findByIdAndDeletedFalse(request.teacherId())
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", request.teacherId());
                     return new EntityNotFoundException("Teacher", request.teacherId());
@@ -255,8 +255,6 @@ public class CourseServiceImpl implements CourseService {
      * @throws ValidationException if update is not allowed
      */
     private void validateUpdateAllowed(Course course, UpdateCourseRequest request) {
-        CourseStatus status = course.getStatus();
-
         // ARCHIVED courses are read-only
         if (course.isReadOnly()) {
             throw new ValidationException(
