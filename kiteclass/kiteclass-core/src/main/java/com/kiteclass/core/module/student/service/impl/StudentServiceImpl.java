@@ -60,13 +60,13 @@ public class StudentServiceImpl implements StudentService {
         // Validate email uniqueness
         if (request.email() != null && studentRepository.existsByEmailAndDeletedFalse(request.email())) {
             log.warn("Duplicate student email: {}", request.email());
-            throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", request.email());
+            throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) request.email());
         }
 
         // Validate phone uniqueness
         if (request.phone() != null && studentRepository.existsByPhoneAndDeletedFalse(request.phone())) {
             log.warn("Duplicate student phone: {}", request.phone());
-            throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", request.phone());
+            throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", (Object) request.phone());
         }
 
         Student student = studentMapper.toEntity(request);
@@ -94,7 +94,7 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Student not found with ID: {}", id);
-                    return new EntityNotFoundException("STUDENT_NOT_FOUND", id);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) id);
                 });
 
         return studentMapper.toResponse(student);
@@ -145,14 +145,14 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Student not found with ID: {}", id);
-                    return new EntityNotFoundException("STUDENT_NOT_FOUND", id);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) id);
                 });
 
         // Validate email uniqueness if changed
         if (request.email() != null && !request.email().equals(student.getEmail())) {
             if (studentRepository.existsByEmailAndDeletedFalse(request.email())) {
                 log.warn("Duplicate student email: {}", request.email());
-                throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", request.email());
+                throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) request.email());
             }
         }
 
@@ -160,7 +160,7 @@ public class StudentServiceImpl implements StudentService {
         if (request.phone() != null && !request.phone().equals(student.getPhone())) {
             if (studentRepository.existsByPhoneAndDeletedFalse(request.phone())) {
                 log.warn("Duplicate student phone: {}", request.phone());
-                throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", request.phone());
+                throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", (Object) request.phone());
             }
         }
 
@@ -189,7 +189,7 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Student not found with ID: {}", id);
-                    return new EntityNotFoundException("STUDENT_NOT_FOUND", id);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) id);
                 });
 
         student.markAsDeleted();

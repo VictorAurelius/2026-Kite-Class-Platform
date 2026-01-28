@@ -102,7 +102,7 @@ class StudentServiceTest {
         // When / Then
         assertThatThrownBy(() -> studentService.createStudent(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("email");
+                .hasFieldOrPropertyWithValue("code", "STUDENT_EMAIL_EXISTS");
 
         verify(studentRepository).existsByEmailAndDeletedFalse(createRequest.email());
         verify(studentRepository, never()).save(any());
@@ -117,7 +117,7 @@ class StudentServiceTest {
         // When / Then
         assertThatThrownBy(() -> studentService.createStudent(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
-                .hasMessageContaining("phone");
+                .hasFieldOrPropertyWithValue("code", "STUDENT_PHONE_EXISTS");
 
         verify(studentRepository).existsByPhoneAndDeletedFalse(createRequest.phone());
         verify(studentRepository, never()).save(any());
@@ -146,7 +146,7 @@ class StudentServiceTest {
         // When / Then
         assertThatThrownBy(() -> studentService.getStudentById(999L))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Student");
+                .hasFieldOrPropertyWithValue("code", "STUDENT_NOT_FOUND");
 
         verify(studentRepository).findByIdAndDeletedFalse(999L);
     }

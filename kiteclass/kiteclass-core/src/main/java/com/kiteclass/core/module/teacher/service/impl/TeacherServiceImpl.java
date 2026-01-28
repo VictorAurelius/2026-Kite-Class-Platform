@@ -60,7 +60,7 @@ public class TeacherServiceImpl implements TeacherService {
         // BR-TEACHER-001: Validate email uniqueness
         if (teacherRepository.existsByEmailAndDeletedFalse(request.email())) {
             log.warn("Duplicate teacher email: {}", request.email());
-            throw new DuplicateResourceException("TEACHER_EMAIL_EXISTS", request.email());
+            throw new DuplicateResourceException("TEACHER_EMAIL_EXISTS", (Object) request.email());
         }
 
         Teacher teacher = teacherMapper.toEntity(request);
@@ -88,7 +88,7 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher teacher = teacherRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", id);
-                    return new EntityNotFoundException("TEACHER_NOT_FOUND", id);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", (Object) id);
                 });
 
         return teacherMapper.toResponse(teacher);
@@ -138,7 +138,7 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher teacher = teacherRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", id);
-                    return new EntityNotFoundException("TEACHER_NOT_FOUND", id);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", (Object) id);
                 });
 
         // Note: Email is ignored in mapper and cannot be changed after creation
@@ -168,7 +168,7 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher teacher = teacherRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", id);
-                    return new EntityNotFoundException("TEACHER_NOT_FOUND", id);
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", (Object) id);
                 });
 
         teacher.markAsDeleted();
