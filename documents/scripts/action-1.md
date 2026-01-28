@@ -456,3 +456,9 @@ use case phải đầy đủ, ở dạng khái quát hết các tính năng, ví
 Gamification Module và Forum Module theo system-architecture-v3-final sẽ triển khai trong core-service hay tách thành service riêng, nếu tách thì hãy cập nhật to-do list (vì đang phase core-service thôi)
 
 thực hiện 3 => 1 => 2
+
+bởi vì việc review business-logic khá khó khăn và không trực quan nên tôi muốn implement backend sẽ có frontend đi kèm
+dựa vào kiteclass-frontend-plan hãy cập nhật implementation plan để thực hiện PR cho FE
+
+tốt, tiếp tục thực hiện PR ưu tiên nhất
+PR của 1. không ưu tiên sao?

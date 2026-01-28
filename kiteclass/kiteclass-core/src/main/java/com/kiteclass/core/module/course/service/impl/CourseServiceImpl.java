@@ -14,7 +14,6 @@ import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.mapper.CourseMapper;
 import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.course.service.CourseService;
-import com.kiteclass.core.module.teacher.entity.Teacher;
 import com.kiteclass.core.module.teacher.entity.TeacherCourse;
 import com.kiteclass.core.module.teacher.repository.TeacherCourseRepository;
 import com.kiteclass.core.module.teacher.repository.TeacherRepository;
