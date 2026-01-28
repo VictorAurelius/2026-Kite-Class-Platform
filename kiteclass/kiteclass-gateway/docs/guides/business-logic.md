@@ -289,53 +289,7 @@ if (!pattern.matcher(password).matches()) {
 
 ---
 
-### BR-GAT-003: Khóa Tài Khoản Sau 5 Lần Đăng Nhập Sai
-
-**Mô tả:** Sau 5 lần đăng nhập sai liên tiếp, tài khoản bị khóa tự động trong 30 phút.
-
-**Lý do:** Bảo vệ tài khoản khỏi brute-force attacks.
-
-**Điều kiện áp dụng:**
-- Mỗi lần đăng nhập sai mật khẩu
-- Tài khoản có status = ACTIVE
-
-**Cách xử lý:**
-```java
-if (failedLoginAttempts >= 5) {
-    user.setLockedUntil(LocalDateTime.now().plusMinutes(30));
-    throw new BusinessException(
-        MessageCodes.AUTH_ACCOUNT_LOCKED,
-        HttpStatus.FORBIDDEN
-    );
-}
-```
-
-**Nếu vi phạm:**
-- **Exception:** `BusinessException(AUTH_ACCOUNT_LOCKED)`
-- **HTTP Status:** 403 Forbidden
-- **Message:** "Tài khoản bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút."
-
-**Ví dụ:**
-
-✅ **Bình thường:**
-```java
-// Đăng nhập sai lần 1, 2, 3, 4
-→ failedLoginAttempts tăng lên: 1, 2, 3, 4
-→ Vẫn cho phép thử lại
-```
-
-❌ **Bị khóa:**
-```java
-// Đăng nhập sai lần 5
-→ failedLoginAttempts = 5
-→ lockedUntil = now + 30 phút
-→ Ném exception: AUTH_ACCOUNT_LOCKED
-→ User không thể đăng nhập cho đến khi hết thời gian khóa
-```
-
----
-
-### BR-GAT-004: Chỉ Tài Khoản ACTIVE Mới Đăng Nhập Được
+### BR-GAT-003: Chỉ Tài Khoản ACTIVE Mới Đăng Nhập Được
 
 **Mô tả:** Chỉ user có status = ACTIVE mới có thể đăng nhập vào hệ thống.
 
@@ -384,7 +338,7 @@ authService.login("user@example.com", "Test@123");
 
 ---
 
-### BR-GAT-005: Refresh Token Chỉ Dùng Một Lần
+### BR-GAT-004: Refresh Token Chỉ Dùng Một Lần
 
 **Mô tả:** Mỗi refresh token chỉ có thể sử dụng một lần. Sau khi refresh, token cũ bị xóa.
 
@@ -440,7 +394,7 @@ Body: { "refreshToken": "token-A" }
 
 ---
 
-### BR-GAT-006: Password Reset Token Chỉ Dùng Một Lần
+### BR-GAT-005: Password Reset Token Chỉ Dùng Một Lần
 
 **Mô tả:** Token reset password chỉ có thể sử dụng một lần và hết hạn sau 1 giờ.
 
@@ -477,7 +431,7 @@ passwordResetTokenRepository.save(resetToken);
 
 ---
 
-### BR-GAT-007: ReferenceId Bắt Buộc Với External Users (PR 1.8)
+### BR-GAT-006: ReferenceId Bắt Buộc Với External Users (PR 1.8)
 
 **Mô tả:** User có userType là STUDENT, TEACHER, hoặc PARENT phải có referenceId tham chiếu đến entity tương ứng trong Core Service.
 
@@ -836,6 +790,10 @@ createUser(
 
 **Người thực hiện:** ADMIN hoặc OWNER
 
+**Mục đích:** Admin tạo tài khoản cho batch operations, import users, hoặc tạo tài khoản internal staff
+
+**Lưu ý:** Guest cũng có thể tự đăng ký tài khoản qua UC-GAT-007 (Self-Registration). Use case này dành cho admin-initiated creation.
+
 **Điều kiện trước:**
 - User đã đăng nhập với role ADMIN hoặc OWNER
 - User có quyền `USER:WRITE`
@@ -859,7 +817,7 @@ createUser(
    - Email đúng định dạng
    - **BR-GAT-001:** Email duy nhất
    - **BR-GAT-002:** Password đủ mạnh
-   - **BR-GAT-007:** ReferenceId bắt buộc nếu userType external
+   - **BR-GAT-006:** ReferenceId bắt buộc nếu userType external
 7. Hệ thống mã hóa password với BCrypt
 8. Hệ thống tạo user:
    - status = PENDING (mặc định)
@@ -884,13 +842,344 @@ createUser(
 
 **AF3 - Thiếu referenceId cho external user:**
 - Tại bước 6, userType = STUDENT nhưng referenceId = null
-- Hệ thống trả về HTTP 400 Bad Request (BR-GAT-007)
+- Hệ thống trả về HTTP 400 Bad Request (BR-GAT-006)
 - Message: "ReferenceId là bắt buộc cho userType STUDENT"
 
 **Kết quả sau khi thực hiện:**
 - User mới được tạo với status = PENDING
 - User được assign các roles
 - User có thể được kích hoạt sau (status → ACTIVE)
+
+---
+
+### UC-GAT-007: Đăng Ký Tài Khoản (Guest Self-Registration)
+
+**Người thực hiện:** Guest (chưa có tài khoản)
+
+**Mục đích:** Cho phép học sinh, phụ huynh, giáo viên tự đăng ký tài khoản mà không cần admin can thiệp
+
+**Ví dụ thực tế:**
+- Cô giáo có lớp 30 học sinh → Gửi link đăng ký + class code
+- Học sinh tự đăng ký → Tham gia lớp bằng class code
+- Giảm thao tác thủ công cho admin/teacher
+
+**Điều kiện trước:**
+- Guest chưa có tài khoản trong hệ thống
+- Guest có email hợp lệ
+
+**Luồng chính:**
+
+1. Guest truy cập trang đăng ký `/register`
+2. Frontend hiển thị form đăng ký:
+   - Email (bắt buộc)
+   - Tên đầy đủ (bắt buộc)
+   - Mật khẩu (bắt buộc)
+   - Xác nhận mật khẩu (bắt buộc)
+   - Loại tài khoản (chọn một: STUDENT/TEACHER/PARENT)
+   - Điều khoản sử dụng (checkbox bắt buộc)
+3. Guest điền thông tin và nhấn "Đăng ký"
+4. Frontend gửi POST request đến `/api/v1/auth/register`
+5. Hệ thống kiểm tra validation:
+   - Email đúng định dạng
+   - **BR-GAT-001:** Email chưa tồn tại
+   - **BR-GAT-002:** Password đủ mạnh
+   - Password match với confirm password
+   - Điều khoản đã được chấp nhận
+6. Hệ thống mã hóa password với BCrypt
+7. Hệ thống tạo user:
+   - status = PENDING (chưa verify email)
+   - userType = STUDENT/TEACHER/PARENT (theo lựa chọn)
+   - referenceId = null (sẽ được tạo sau khi verify email)
+   - role mặc định theo userType
+8. Hệ thống tạo email verification token (expires sau 24h)
+9. Hệ thống gửi email verification link
+10. Hệ thống trả về HTTP 201 Created
+11. Frontend hiển thị: "Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản"
+
+**Luồng thay thế:**
+
+**AF1 - Email đã tồn tại:**
+- Tại bước 5, email đã có trong hệ thống
+- Hệ thống trả về HTTP 409 Conflict (BR-GAT-001)
+- Message: "Email '{email}' đã được sử dụng"
+- Gợi ý: "Nếu bạn quên mật khẩu, vui lòng sử dụng chức năng Forgot Password"
+
+**AF2 - Password không đủ mạnh:**
+- Tại bước 5, password vi phạm BR-GAT-002
+- Hệ thống trả về HTTP 400 Bad Request
+- Message: "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số, và ký tự đặc biệt"
+
+**AF3 - Passwords không khớp:**
+- Tại bước 5, password != confirmPassword
+- Frontend hiển thị error: "Mật khẩu xác nhận không khớp"
+
+**Kết quả sau khi thực hiện:**
+- User mới được tạo với status = PENDING
+- Email verification token được gửi
+- User cần verify email để kích hoạt tài khoản (status → ACTIVE)
+
+**Luồng tiếp theo:**
+- UC-GAT-007a: Guest click link trong email → Verify email → Account ACTIVE
+- UC-GAT-008: User login → Tham gia lớp/khóa học bằng class code
+
+**Events phát sinh:**
+- `UserRegisteredEvent` → Gửi email verification
+- `EmailVerificationTokenCreatedEvent` → Log audit
+
+---
+
+### UC-GAT-007a: Xác Thực Email
+
+**Người thực hiện:** Guest đã đăng ký
+
+**Điều kiện trước:**
+- User đã đăng ký (UC-GAT-007)
+- User nhận được email verification link
+
+**Luồng chính:**
+
+1. User click link verification trong email
+2. Link có format: `/verify-email?token={verificationToken}`
+3. Frontend redirect đến trang verification
+4. Frontend gửi POST request đến `/api/v1/auth/verify-email`
+5. Hệ thống kiểm tra token:
+   - Token tồn tại
+   - Token chưa được sử dụng
+   - Token chưa hết hạn (< 24h)
+6. Hệ thống tìm user theo token
+7. Hệ thống cập nhật user:
+   - status = PENDING → ACTIVE
+   - emailVerified = true
+   - token được đánh dấu đã sử dụng
+8. Hệ thống tạo profile tương ứng trong Core Service:
+   - Nếu userType = STUDENT → Tạo Student profile trong Core
+   - Nếu userType = TEACHER → Tạo Teacher profile trong Core
+   - Nếu userType = PARENT → Tạo Parent profile trong Core
+9. Hệ thống cập nhật user.referenceId = profile.id từ Core
+10. Hệ thống gửi welcome email
+11. Hệ thống trả về HTTP 200 OK
+12. Frontend redirect đến trang login với message: "Email đã được xác thực! Bạn có thể đăng nhập ngay."
+
+**Luồng thay thế:**
+
+**AF1 - Token không hợp lệ:**
+- Tại bước 5, token không tồn tại
+- Hệ thống trả về HTTP 400 Bad Request
+- Message: "Link xác thực không hợp lệ"
+
+**AF2 - Token đã được sử dụng:**
+- Tại bước 5, token.usedAt != null
+- Hệ thống trả về HTTP 400 Bad Request
+- Message: "Link xác thực đã được sử dụng. Tài khoản của bạn đã được kích hoạt."
+
+**AF3 - Token hết hạn:**
+- Tại bước 5, token.expiresAt < now()
+- Hệ thống trả về HTTP 400 Bad Request
+- Message: "Link xác thực đã hết hạn. Vui lòng yêu cầu gửi lại email xác thực."
+- Cung cấp button "Gửi lại email xác thực"
+
+**AF4 - Core Service lỗi:**
+- Tại bước 8, không tạo được profile trong Core
+- Hệ thống vẫn kích hoạt user (status → ACTIVE)
+- referenceId = null (tạm thời)
+- Log error để retry sau
+- User có thể đăng nhập nhưng chưa có profile đầy đủ
+
+**Kết quả sau khi thực hiện:**
+- User status: PENDING → ACTIVE
+- emailVerified = true
+- Profile được tạo trong Core Service
+- user.referenceId được cập nhật
+- User có thể đăng nhập và sử dụng hệ thống
+
+**Events phát sinh:**
+- `EmailVerifiedEvent` → Gửi welcome email
+- `ProfileCreatedEvent` → Sync với Core Service
+- `UserActivatedEvent` → Log audit
+
+---
+
+### UC-GAT-008: Tham Gia Lớp/Khóa Học Bằng Mã
+
+**Người thực hiện:** STUDENT
+
+**Mục đích:** Cho phép học sinh tự tham gia lớp học bằng class code (như Google Classroom)
+
+**Ví dụ thực tế:**
+- Teacher tạo lớp học → Nhận class code (VD: "ABC123")
+- Teacher share code với học sinh
+- Học sinh nhập code → Tự động tham gia lớp
+
+**Điều kiện trước:**
+- User đã đăng nhập
+- User có userType = STUDENT
+- User đã verify email (status = ACTIVE)
+- Class code hợp lệ được tạo bởi teacher
+
+**Luồng chính:**
+
+1. Student đăng nhập và truy cập trang "Tham gia lớp"
+2. Frontend hiển thị form nhập class code
+3. Student nhập class code (VD: "ABC123")
+4. Student nhấn "Tham gia"
+5. Frontend gửi POST request đến `/api/v1/enrollments/join-by-code`
+   ```json
+   {
+     "classCode": "ABC123"
+   }
+   ```
+6. Hệ thống kiểm tra:
+   - Class code tồn tại và chưa hết hạn
+   - Class còn chỗ trống (currentStudents < maxStudents)
+   - Student chưa tham gia class này
+7. Hệ thống gửi request đến Core Service để enroll student
+8. Core Service tạo enrollment record
+9. Hệ thống trả về HTTP 201 Created với class info
+10. Frontend hiển thị: "Bạn đã tham gia lớp '{className}' thành công!"
+11. Frontend redirect đến trang class detail
+
+**Luồng thay thế:**
+
+**AF1 - Class code không hợp lệ:**
+- Tại bước 6, code không tồn tại hoặc hết hạn
+- Hệ thống trả về HTTP 404 Not Found
+- Message: "Mã lớp học không hợp lệ hoặc đã hết hạn"
+
+**AF2 - Lớp đã đầy:**
+- Tại bước 6, currentStudents >= maxStudents
+- Hệ thống trả về HTTP 409 Conflict
+- Message: "Lớp học đã đầy. Không thể tham gia."
+
+**AF3 - Đã tham gia lớp:**
+- Tại bước 6, student đã có enrollment record
+- Hệ thống trả về HTTP 409 Conflict
+- Message: "Bạn đã tham gia lớp học này rồi"
+- Cung cấp link đến class detail
+
+**AF4 - Core Service lỗi:**
+- Tại bước 7-8, Core Service unavailable
+- Hệ thống trả về HTTP 503 Service Unavailable
+- Message: "Hệ thống đang bảo trì. Vui lòng thử lại sau."
+
+**Kết quả sau khi thực hiện:**
+- Student được thêm vào class
+- Enrollment record được tạo trong Core Service
+- Student có thể xem class info, attendance, assignments
+- Teacher nhìn thấy student trong class roster
+
+**Events phát sinh:**
+- `StudentEnrolledEvent` → Gửi email chào mừng vào lớp
+- `ClassRosterUpdatedEvent` → Notify teacher
+- `EnrollmentCreatedEvent` → Log audit
+
+**Quy tắc kinh doanh liên quan:**
+- Class code có thời hạn (VD: 30 ngày)
+- Một student có thể join nhiều classes
+- Teacher có thể disable class code để ngăn enrollment mới
+
+---
+
+### UC-GAT-009: Đăng Nhập Bằng Google (OAuth2)
+
+**Người thực hiện:** Guest hoặc User hiện hữu
+
+**Mục đích:** Cho phép đăng nhập nhanh bằng Google account, tự động tạo tài khoản nếu chưa có
+
+**Điều kiện trước:**
+- User có Google account
+- OAuth2 Google đã được cấu hình trong hệ thống
+
+**Luồng chính:**
+
+1. Guest/User truy cập trang login
+2. Frontend hiển thị button "Đăng nhập bằng Google"
+3. User click button "Đăng nhập bằng Google"
+4. Frontend redirect đến Google OAuth2 consent screen
+5. User chọn Google account và cấp quyền
+6. Google redirect về callback URL: `/api/v1/auth/oauth2/callback/google?code={authCode}`
+7. Hệ thống nhận authCode và exchange với Google để lấy access token
+8. Hệ thống gọi Google API để lấy user info (email, name, avatar)
+9. Hệ thống kiểm tra email trong database:
+
+   **Case 1: Email đã tồn tại (Existing User)**
+   - Load user từ database
+   - Kiểm tra user.status = ACTIVE
+   - Generate JWT tokens (access + refresh)
+   - Fetch profile từ Core Service (nếu có referenceId)
+   - Return LoginResponse với tokens + profile
+
+   **Case 2: Email chưa tồn tại (New User)**
+   - Hiển thị form chọn userType (STUDENT/TEACHER/PARENT)
+   - User chọn userType và submit
+   - Tạo user mới:
+     - email = Google email
+     - name = Google name
+     - status = ACTIVE (auto-active vì Google đã verify)
+     - emailVerified = true
+     - userType = user's selection
+     - password = null (không cần, login bằng OAuth2)
+   - Tạo profile tương ứng trong Core Service
+   - Cập nhật user.referenceId
+   - Generate JWT tokens
+   - Return LoginResponse
+
+10. Frontend lưu tokens và redirect đến dashboard
+11. Frontend hiển thị: "Đăng nhập thành công!"
+
+**Luồng thay thế:**
+
+**AF1 - User từ chối cấp quyền:**
+- Tại bước 5, user click "Deny" trên Google consent screen
+- Google redirect về callback với error parameter
+- Hệ thống trả về HTTP 401 Unauthorized
+- Message: "Bạn cần cấp quyền để đăng nhập bằng Google"
+
+**AF2 - Google API lỗi:**
+- Tại bước 7-8, không lấy được user info từ Google
+- Hệ thống trả về HTTP 503 Service Unavailable
+- Message: "Không thể kết nối với Google. Vui lòng thử lại."
+
+**AF3 - User tồn tại nhưng bị INACTIVE:**
+- Tại Case 1, user.status != ACTIVE
+- Hệ thống trả về HTTP 403 Forbidden (BR-GAT-003)
+- Message: "Tài khoản chưa được kích hoạt hoặc đã bị vô hiệu hóa"
+
+**AF4 - Core Service lỗi khi tạo profile:**
+- Tại Case 2, không tạo được profile trong Core
+- Vẫn tạo user và cho login (graceful degradation)
+- referenceId = null tạm thời
+- Log error để retry sau
+- User có thể đăng nhập nhưng chưa có profile đầy đủ
+
+**Kết quả sau khi thực hiện:**
+
+**Existing User:**
+- User login thành công
+- JWT tokens được generate
+- Profile được fetch từ Core
+
+**New User:**
+- User account được tạo tự động
+- status = ACTIVE (không cần verify email)
+- Profile được tạo trong Core Service
+- JWT tokens được generate
+- User có thể sử dụng hệ thống ngay
+
+**Events phát sinh:**
+- `UserLoggedInEvent` (existing user)
+- `UserRegisteredViaOAuth2Event` (new user)
+- `ProfileCreatedEvent` (new user)
+
+**Bảo mật:**
+- Sử dụng PKCE (Proof Key for Code Exchange) cho OAuth2 flow
+- State parameter để prevent CSRF attacks
+- Chỉ accept emails từ verified Google accounts
+- Token được lưu encrypted trong database
+
+**Quy tắc kinh doanh liên quan:**
+- BR-GAT-001: Email từ Google vẫn phải unique
+- BR-GAT-003: Chỉ ACTIVE users mới login được
+- BR-GAT-006: ReferenceId được tạo tự động sau khi chọn userType
 
 ---
 
@@ -978,7 +1267,7 @@ userService.deactivateUser(123L);
 - **Sang trạng thái:** SUSPENDED
 - **Điều kiện:**
   - User đang ở trạng thái ACTIVE
-  - Admin suspend user hoặc hệ thống tự động suspend (VD: quá 5 lần login sai)
+  - Admin suspend user do vi phạm policy
 - **Tác động phụ (Side effects):**
   - User không thể đăng nhập
   - Set lockedUntil (nếu temporary)
@@ -991,11 +1280,6 @@ userService.deactivateUser(123L);
 userService.suspendUser(123L, "Vi phạm quy định");
 → Status: ACTIVE → SUSPENDED
 → User không thể login
-
-// Suspend tự động (5 lần login sai)
-authService.login(email, wrongPassword); // 5 lần
-→ Status: ACTIVE → SUSPENDED (tự động)
-→ lockedUntil = now + 30 phút
 ```
 
 ---
@@ -1059,7 +1343,7 @@ userService.activateUser(deletedUserId);
 - PARENT → `GET /internal/parents/{referenceId}` (chưa implement)
 
 **Quy tắc kinh doanh liên quan:**
-- BR-GAT-007: ReferenceId phải có với external users
+- BR-GAT-006: ReferenceId phải có với external users
 - Graceful degradation: Nếu Core Service lỗi → trả về profile = null, không block login
 
 **Ví dụ:**
@@ -1258,7 +1542,7 @@ null (không bắt buộc)
 
 ### Validation Logic Nghiệp Vụ
 
-#### BR-GAT-007: ReferenceId Required For External Users
+#### BR-GAT-006: ReferenceId Required For External Users
 
 - **Quy tắc:** User có userType = STUDENT/TEACHER/PARENT phải có referenceId
 - **Cách kiểm tra:**
