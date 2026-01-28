@@ -161,6 +161,49 @@ fi
 echo ""
 
 # ==============================================================================
+# 7. Frontend Code Quality Checks
+# ==============================================================================
+echo "⚛️  Checking Frontend code quality..."
+
+# Check if there are staged frontend files
+STAGED_FRONTEND=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(tsx?|jsx?)$' || true)
+
+if [ -n "$STAGED_FRONTEND" ]; then
+    # Check for 'any' type
+    ANY_USAGE=$(echo "$STAGED_FRONTEND" | xargs grep -n ":\s*any" 2>/dev/null || true)
+    if [ -n "$ANY_USAGE" ]; then
+        echo -e "${RED}❌ Found 'any' type usage (forbidden):${NC}"
+        echo "$ANY_USAGE" | head -5
+        echo "   Review: frontend-code-quality.md Part 1"
+        VIOLATIONS=$((VIOLATIONS + 1))
+    fi
+
+    # Check for console.log
+    CONSOLE_LOG=$(echo "$STAGED_FRONTEND" | xargs grep -n "console\.log" 2>/dev/null || true)
+    if [ -n "$CONSOLE_LOG" ]; then
+        echo -e "${YELLOW}⚠️  Found console.log statements:${NC}"
+        echo "$CONSOLE_LOG" | head -3
+        echo "   Consider using console.warn/error instead"
+    fi
+
+    # Check for missing React displayName on memo components
+    MISSING_DISPLAY_NAME=$(echo "$STAGED_FRONTEND" | xargs grep -l "React\.memo" | while read file; do
+        if ! grep -q "displayName" "$file"; then
+            echo "$file"
+        fi
+    done)
+    if [ -n "$MISSING_DISPLAY_NAME" ]; then
+        echo -e "${YELLOW}⚠️  React.memo components missing displayName:${NC}"
+        echo "$MISSING_DISPLAY_NAME"
+    fi
+
+    echo -e "${GREEN}✅ Frontend code quality checks completed${NC}"
+else
+    echo -e "${GREEN}✅ No frontend files to check${NC}"
+fi
+echo ""
+
+# ==============================================================================
 # Summary
 # ==============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -180,8 +223,8 @@ else
     echo ""
     echo "Resources:"
     echo "- Full checklist: .claude/skills/skills-compliance-checklist.md"
-    echo "- Code style: .claude/skills/code-style.md"
-    echo "- Error logging: .claude/skills/error-logging.md"
+    echo "- Backend: code-style.md, error-logging.md"
+    echo "- Frontend: frontend-code-quality.md"
     echo ""
     echo "To skip this check (not recommended):"
     echo "  git commit --no-verify"

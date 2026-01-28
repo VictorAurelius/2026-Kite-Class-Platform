@@ -35,7 +35,8 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - **`environment-setup.md`** - Local dev setup, Docker Compose, database initialization
 
 ## Frontend Skills
-- **`frontend-development.md`** - React/TypeScript patterns, component structure, state management
+- **`frontend-development.md`** - React/TypeScript patterns, component structure, state management, UI design system
+- **`frontend-code-quality.md`** ⭐ **NEW** - TypeScript strict mode, React best practices, testing requirements, code quality checklist
 
 ## Project Management Skills
 - **`development-workflow.md`** - Git workflow, PR process, branch strategy
@@ -49,16 +50,22 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 
 ## 🎯 When to Use Each Skill
 
-**Before starting any PR:**
+**Before starting any Backend PR:**
 1. ✅ Check `architecture-overview.md` for service boundaries
 2. ✅ Review `code-style.md` for naming conventions
 3. ✅ Consult `api-design.md` for endpoint design
 4. ✅ Read `testing-guide.md` for test structure
 5. ✅ Reference `maven-dependencies.md` for correct versions
 
+**Before starting any Frontend PR:**
+1. ✅ Review `frontend-development.md` for UI patterns & design system
+2. ✅ Check `frontend-code-quality.md` for TypeScript/React best practices
+3. ✅ Consult `api-design.md` for API integration patterns
+4. ✅ Read `testing-guide.md` Part 2 for React Testing Library patterns
+
 **When writing tests:**
-1. ✅ Use `testing-guide.md` for test patterns & structure
-2. ✅ Use `spring-boot-testing-quality.md` for fixing warnings & quality issues
+1. ✅ Backend: Use `spring-boot-testing-quality.md` for fixing warnings & quality issues
+2. ✅ Frontend: Use `frontend-code-quality.md` Part 3 for React Testing Library patterns
 
 **When encountering issues:**
 1. ✅ Check `troubleshooting.md` first
@@ -66,9 +73,10 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 3. ✅ Consult specific skill for the domain (e.g., `cross-service-data-strategy.md` for integration issues)
 
 **Before committing:**
-1. ✅ Run through `skills-compliance-checklist.md`
-2. ✅ Verify `spring-boot-testing-quality.md` checklist (no warnings, no deprecated APIs)
-3. ✅ Check `development-workflow.md` for commit message format
+1. ✅ Backend: Run through `spring-boot-testing-quality.md` checklist (no warnings, no deprecated APIs)
+2. ✅ Frontend: Run through `frontend-code-quality.md` Part 8 checklist (no `any`, tests pass, ESLint clean)
+3. ✅ All: Check `development-workflow.md` for commit message format
+4. ✅ Git hooks will run automatically (checks JavaDoc, error codes, TypeScript types, etc.)
 
 ---
 
@@ -2251,27 +2259,36 @@ Sau khi PR này complete, Gateway có thể:
 
 # GIAI ĐOẠN 3: KITECLASS-FRONTEND
 
-## ⏳ PR 3.1 - Frontend Project Setup
+## ✅ PR 3.1 - Frontend Project Setup
 
 ```
 Thực hiện Phase 1 của kiteclass-frontend-plan.md.
 
 **Tuân thủ skills:**
+- frontend-development.md: UI design system, Shadcn/UI patterns
+- frontend-code-quality.md: TypeScript strict mode, ESLint/Prettier config
 - architecture-overview.md: cấu trúc thư mục Frontend
-- ui-components.md: design tokens, Shadcn setup
-- code-style.md: TypeScript conventions
 
 **Tasks:**
 1. Tạo Next.js project: kiteclass/kiteclass-frontend/
 2. Install dependencies theo plan
 3. Setup Shadcn/UI với components cần thiết
-4. Cấu hình Tailwind với custom theme theo ui-components.md
+4. Cấu hình Tailwind với custom theme theo frontend-development.md
 5. Tạo folder structure theo plan
-6. Setup ESLint, Prettier
+6. Setup ESLint, Prettier theo frontend-code-quality.md Part 4
+7. Configure TypeScript strict mode theo frontend-code-quality.md Part 1
 
 **Verification:**
 - pnpm dev phải start thành công
 - pnpm lint không có errors
+- pnpm tsc --noEmit passes (no TypeScript errors)
+- Git hooks check passed
+
+**Quality Checklist (frontend-code-quality.md Part 8):**
+- [ ] tsconfig.json has strict: true
+- [ ] ESLint configured with @typescript-eslint/no-explicit-any: error
+- [ ] Prettier plugin for Tailwind installed
+- [ ] No `any` types in codebase
 ```
 
 ## ⏳ PR 3.2 - Frontend Core Infrastructure
@@ -2280,7 +2297,7 @@ Thực hiện Phase 1 của kiteclass-frontend-plan.md.
 Thực hiện Phase 2 của kiteclass-frontend-plan.md.
 
 **Tuân thủ skills:**
-- code-style.md: TypeScript conventions, file naming
+- frontend-code-quality.md: TypeScript types, testing patterns
 - api-design.md: API response format
 - enums-constants.md: TypeScript enum definitions
 
@@ -2289,26 +2306,38 @@ Thực hiện Phase 2 của kiteclass-frontend-plan.md.
    - Axios instance với interceptors
    - Auto refresh token
    - Error handling
+   - Proper TypeScript types (NO any!)
 2. Tạo API endpoints config (src/lib/api/endpoints.ts)
 3. Tạo TypeScript types (src/types/):
    - api.ts (ApiResponse, PageResponse, ErrorResponse)
    - student.ts, class.ts, course.ts
    - attendance.ts, invoice.ts
    - user.ts
+   - Match Backend DTOs exactly
 4. Tạo Zustand stores:
-   - auth-store.ts
+   - auth-store.ts (with TypeScript interface)
    - ui-store.ts
 
-**Tests (bắt buộc):**
+**Tests (bắt buộc - frontend-code-quality.md Part 3):**
 - src/__tests__/lib/api/
-  - client.test.ts
+  - client.test.ts (test interceptors, error handling)
 - src/__tests__/stores/
   - auth-store.test.ts
   - ui-store.test.ts
+- Use MSW for API mocking
 
 **Verification:**
-- pnpm test phải pass
+- pnpm test phải pass (minimum 80% coverage)
+- pnpm lint passes
+- pnpm tsc --noEmit passes
 - Types khớp với BE DTOs
+- No `any` types in codebase
+
+**Quality Checklist (frontend-code-quality.md Part 8):**
+- [ ] All types properly defined (no `any`)
+- [ ] API client has proper error handling
+- [ ] Tests use MSW for API mocking
+- [ ] Zustand stores have TypeScript interfaces
 ```
 
 ## ⏳ PR 3.3 - Providers & Layout
