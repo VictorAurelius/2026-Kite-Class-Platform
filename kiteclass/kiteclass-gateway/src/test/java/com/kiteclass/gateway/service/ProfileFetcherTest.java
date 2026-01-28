@@ -113,14 +113,34 @@ class ProfileFetcherTest {
         }
 
         @Test
-        @DisplayName("Should return null for TEACHER (not implemented yet)")
-        void shouldReturnNullForTeacher() {
+        @DisplayName("Should fetch teacher profile successfully")
+        void shouldFetchTeacherProfileSuccessfully() {
+            // given
+            var teacherProfile = new com.kiteclass.gateway.service.dto.TeacherProfileResponse(
+                    1L,
+                    "Jane Smith",
+                    "jane@example.com",
+                    "0987654321",
+                    "English",
+                    "Master of Education",
+                    "ACTIVE"
+            );
+            var teacherApiResponse = ApiResponse.success(teacherProfile);
+            when(coreServiceClient.getTeacher(1L, "true"))
+                    .thenReturn(teacherApiResponse);
+
             // when
             Object result = profileFetcher.fetchProfile(UserType.TEACHER, 1L);
 
             // then
-            assertThat(result).isNull();
-            verify(coreServiceClient, never()).getTeacher(anyLong(), anyString());
+            assertThat(result).isNotNull();
+            assertThat(result).isInstanceOf(com.kiteclass.gateway.service.dto.TeacherProfileResponse.class);
+            var profile = (com.kiteclass.gateway.service.dto.TeacherProfileResponse) result;
+            assertThat(profile.id()).isEqualTo(1L);
+            assertThat(profile.name()).isEqualTo("Jane Smith");
+            assertThat(profile.email()).isEqualTo("jane@example.com");
+
+            verify(coreServiceClient).getTeacher(1L, "true");
         }
 
         @Test
