@@ -1172,3 +1172,529 @@ pnpm lint && pnpm tsc --noEmit && pnpm test
 - Use dangerouslySetInnerHTML without sanitization
 - Ignore ESLint errors
 - Skip accessibility attributes
+
+---
+
+# PART 11: Multi-Tenant & Theme System Quality
+
+## Multi-Tenant Architecture
+
+KiteClass Platform là multi-tenant system - mỗi instance có theme và branding riêng.
+
+### Theme Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    THEME SYSTEM LAYERS                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Layer 1: Theme Template (from KiteHub)                     │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │ Customer chọn: Classic, Modern, Friendly, etc.     │     │
+│  │ Defines: Base colors, typography, component styles │     │
+│  └────────────────────────────────────────────────────┘     │
+│                          ↓                                   │
+│  Layer 2: Branding Settings (Instance Level)                │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │ Center Admin tùy chỉnh: Logo, Primary Color        │     │
+│  │ Overrides template defaults                        │     │
+│  └────────────────────────────────────────────────────┘     │
+│                          ↓                                   │
+│  Layer 3: User Preferences (User Level)                     │
+│  ┌────────────────────────────────────────────────────┐     │
+│  │ End User chọn: Dark/Light mode, Font size          │     │
+│  │ Personal preferences only                          │     │
+│  └────────────────────────────────────────────────────┘     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Type Safety for Theme System
+
+### Required Types
+
+```typescript
+// src/types/theme.ts
+
+// Theme Template (from KiteHub API)
+export interface ThemeTemplate {
+  id: string;
+  name: string;
+  description: string;
+  thumbnailUrl: string;
+  tier: 'free' | 'pro' | 'enterprise';
+  config: ThemeConfig;
+}
+
+export interface ThemeConfig {
+  colors: {
+    primary: ColorScale;
+    secondary: ColorScale;
+    accent: ColorScale;
+    neutral: ColorScale;
+    success: string;
+    warning: string;
+    error: string;
+    info: string;
+  };
+  typography: {
+    fontFamily: {
+      sans: string;
+      mono: string;
+    };
+    fontSize: Record<string, string>;
+    fontWeight: Record<string, number>;
+  };
+  spacing: Record<string, string>;
+  borderRadius: Record<string, string>;
+}
+
+export interface ColorScale {
+  50: string;
+  100: string;
+  200: string;
+  300: string;
+  400: string;
+  500: string; // Default
+  600: string;
+  700: string;
+  800: string;
+  900: string;
+}
+
+// Branding Settings (Instance Level)
+export interface BrandingSettings {
+  logoUrl: string | null;
+  faviconUrl: string | null;
+  displayName: string;
+  tagline: string | null;
+  primaryColor: string | null; // Hex color, overrides template
+  secondaryColor: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  address: string | null;
+  socialLinks: {
+    facebook?: string;
+    zalo?: string;
+  };
+}
+
+// User Preferences
+export interface UserPreferences {
+  colorMode: 'light' | 'dark' | 'system';
+  fontSize: 'small' | 'medium' | 'large';
+  compactMode: boolean;
+}
+
+// Resolved Theme (combined)
+export interface ResolvedTheme {
+  template: ThemeTemplate;
+  branding: BrandingSettings;
+  userPrefs: UserPreferences;
+  effectiveColorMode: 'light' | 'dark';
+  effectivePrimaryColor: string;
+}
+```
+
+## CSS Variables Pattern
+
+### ✅ GOOD: Scoped CSS Variables
+
+```typescript
+// lib/theme-utils.ts
+export function applyThemeVariables(theme: ResolvedTheme): void {
+  const root = document.documentElement;
+  
+  // Apply primary color (from branding or template)
+  const primaryColor = theme.branding.primaryColor || 
+                       theme.template.config.colors.primary[500];
+  
+  root.style.setProperty('--color-primary', primaryColor);
+  
+  // Generate color scale from primary
+  const scale = generateColorScale(primaryColor);
+  Object.entries(scale).forEach(([key, value]) => {
+    root.style.setProperty(`--color-primary-${key}`, value);
+  });
+  
+  // Apply typography
+  root.style.setProperty(
+    '--font-sans', 
+    theme.template.config.typography.fontFamily.sans
+  );
+}
+
+// Validate color format
+function validateHexColor(color: string): boolean {
+  return /^#[0-9A-Fa-f]{6}$/.test(color);
+}
+
+// Generate color scale (lighten/darken)
+function generateColorScale(baseColor: string): ColorScale {
+  if (!validateHexColor(baseColor)) {
+    throw new Error(`Invalid color format: ${baseColor}`);
+  }
+  // Use chroma.js or similar library
+  return {
+    50: lighten(baseColor, 0.95),
+    100: lighten(baseColor, 0.9),
+    // ...
+    900: darken(baseColor, 0.5),
+  };
+}
+```
+
+### ❌ BAD: Hardcoded Theme Values
+
+```typescript
+// ❌ DON'T hardcode theme colors
+const PRIMARY_COLOR = '#0ea5e9';
+
+// ❌ DON'T use inline styles
+<div style={{ color: '#0ea5e9' }}>Text</div>
+
+// ✅ DO use CSS variables
+<div className="text-primary">Text</div>
+```
+
+## Testing Theme System
+
+### Test Theme Provider
+
+```typescript
+// src/__tests__/providers/theme-provider.test.tsx
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { ThemeProvider, useTheme } from '@/providers/theme-provider';
+import * as api from '@/lib/api/client';
+
+vi.mock('@/lib/api/client');
+
+describe('ThemeProvider', () => {
+  const mockTheme: ResolvedTheme = {
+    template: {
+      id: 'classic',
+      name: 'Classic',
+      config: {
+        colors: {
+          primary: {
+            500: '#1e40af',
+            // ...
+          },
+        },
+      },
+    },
+    branding: {
+      displayName: 'Test Center',
+      primaryColor: '#0ea5e9', // Override template
+      logoUrl: null,
+    },
+    userPrefs: {
+      colorMode: 'light',
+      fontSize: 'medium',
+      compactMode: false,
+    },
+    effectiveColorMode: 'light',
+    effectivePrimaryColor: '#0ea5e9',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('fetches and applies theme on mount', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: mockTheme });
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ThemeProvider,
+    });
+
+    await waitFor(() => {
+      expect(result.current.theme).toEqual(mockTheme);
+    });
+
+    // Check CSS variables applied
+    const primaryColor = document.documentElement.style.getPropertyValue(
+      '--color-primary'
+    );
+    expect(primaryColor).toBe('#0ea5e9');
+  });
+
+  it('uses branding color over template color', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: mockTheme });
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ThemeProvider,
+    });
+
+    await waitFor(() => {
+      expect(result.current.theme?.effectivePrimaryColor).toBe('#0ea5e9');
+    });
+  });
+
+  it('switches color mode', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: mockTheme });
+
+    const { result } = renderHook(() => useTheme(), {
+      wrapper: ThemeProvider,
+    });
+
+    await waitFor(() => expect(result.current.theme).toBeDefined());
+
+    // Switch to dark mode
+    result.current.setColorMode('dark');
+
+    await waitFor(() => {
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+    });
+  });
+});
+```
+
+### Test Theme Isolation
+
+```typescript
+// src/__tests__/lib/theme-utils.test.ts
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { applyThemeVariables } from '@/lib/theme-utils';
+
+describe('Theme Isolation', () => {
+  beforeEach(() => {
+    // Clear all CSS variables
+    document.documentElement.removeAttribute('style');
+  });
+
+  afterEach(() => {
+    document.documentElement.removeAttribute('style');
+  });
+
+  it('applies theme variables without global pollution', () => {
+    const theme1 = createMockTheme({ primaryColor: '#0ea5e9' });
+    applyThemeVariables(theme1);
+
+    expect(
+      document.documentElement.style.getPropertyValue('--color-primary')
+    ).toBe('#0ea5e9');
+
+    // Apply different theme (simulating different tenant)
+    const theme2 = createMockTheme({ primaryColor: '#7c3aed' });
+    applyThemeVariables(theme2);
+
+    // Should completely replace, not merge
+    expect(
+      document.documentElement.style.getPropertyValue('--color-primary')
+    ).toBe('#7c3aed');
+  });
+
+  it('validates color format before applying', () => {
+    const invalidTheme = createMockTheme({ primaryColor: 'invalid' });
+
+    expect(() => applyThemeVariables(invalidTheme)).toThrow(
+      'Invalid color format'
+    );
+  });
+});
+```
+
+## Security Considerations
+
+### ⚠️ CSS Injection Prevention
+
+```typescript
+// ✅ GOOD: Validate and sanitize colors
+export function sanitizeBrandingSettings(
+  settings: BrandingSettings
+): BrandingSettings {
+  return {
+    ...settings,
+    // Only allow valid hex colors
+    primaryColor: settings.primaryColor
+      ? validateAndSanitizeColor(settings.primaryColor)
+      : null,
+    secondaryColor: settings.secondaryColor
+      ? validateAndSanitizeColor(settings.secondaryColor)
+      : null,
+    // Sanitize URLs
+    logoUrl: settings.logoUrl ? sanitizeUrl(settings.logoUrl) : null,
+    faviconUrl: settings.faviconUrl ? sanitizeUrl(settings.faviconUrl) : null,
+  };
+}
+
+function validateAndSanitizeColor(color: string): string | null {
+  // Only accept hex format
+  const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+  if (!hexRegex.test(color)) {
+    console.warn(`Invalid color format: ${color}`);
+    return null;
+  }
+  return color.toLowerCase();
+}
+
+function sanitizeUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    // Only allow https
+    if (parsed.protocol !== 'https:') {
+      console.warn(`Invalid protocol: ${parsed.protocol}`);
+      return null;
+    }
+    return url;
+  } catch {
+    console.warn(`Invalid URL: ${url}`);
+    return null;
+  }
+}
+```
+
+### ❌ NEVER Allow Custom CSS
+
+```typescript
+// ❌ NEVER do this - allows arbitrary CSS injection
+interface BrandingSettings {
+  customCSS?: string; // ❌ DANGEROUS!
+}
+
+// ❌ NEVER inject custom CSS directly
+const style = document.createElement('style');
+style.textContent = customCSS; // ❌ XSS risk
+document.head.appendChild(style);
+
+// ✅ DO: Only allow predefined theme templates + color overrides
+```
+
+## Performance Optimization
+
+### Theme Caching
+
+```typescript
+// lib/theme-cache.ts
+const THEME_CACHE_KEY = 'kiteclass:theme';
+const THEME_CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
+export function getCachedTheme(): ResolvedTheme | null {
+  try {
+    const cached = localStorage.getItem(THEME_CACHE_KEY);
+    if (!cached) return null;
+
+    const { theme, timestamp } = JSON.parse(cached);
+    
+    // Check if expired
+    if (Date.now() - timestamp > THEME_CACHE_TTL) {
+      localStorage.removeItem(THEME_CACHE_KEY);
+      return null;
+    }
+
+    return theme;
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedTheme(theme: ResolvedTheme): void {
+  try {
+    localStorage.setItem(
+      THEME_CACHE_KEY,
+      JSON.stringify({
+        theme,
+        timestamp: Date.now(),
+      })
+    );
+  } catch (error) {
+    console.warn('Failed to cache theme:', error);
+  }
+}
+```
+
+### Avoid Theme Flash
+
+```typescript
+// app/layout.tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="vi" suppressHydrationWarning>
+      {/* Inline script to prevent flash */}
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const cached = localStorage.getItem('kiteclass:theme');
+                  if (cached) {
+                    const { theme } = JSON.parse(cached);
+                    const primaryColor = theme.branding.primaryColor || 
+                                       theme.template.config.colors.primary[500];
+                    document.documentElement.style.setProperty('--color-primary', primaryColor);
+                  }
+                } catch {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+## Quality Checklist for Theme System
+
+### Development
+- [ ] All theme types properly defined (ThemeTemplate, BrandingSettings, etc.)
+- [ ] ThemeProvider fetches theme from API
+- [ ] CSS variables applied dynamically
+- [ ] Color validation for branding settings
+- [ ] URL sanitization for logos/favicons
+- [ ] Theme caching implemented
+- [ ] No theme flash on page load
+
+### Testing
+- [ ] ThemeProvider tested with MSW
+- [ ] Theme switching tested
+- [ ] Branding override tested (primary color)
+- [ ] Color validation tested
+- [ ] Theme isolation tested (no cross-contamination)
+- [ ] Performance tested (no lag on theme switch)
+
+### Security
+- [ ] Only hex colors allowed (#RRGGBB format)
+- [ ] Only HTTPS URLs allowed for logos
+- [ ] No custom CSS injection allowed
+- [ ] Input sanitization for all branding fields
+- [ ] CSP headers configured properly
+
+### Accessibility
+- [ ] Color contrast meets WCAG AA in all themes
+- [ ] Dark mode properly implemented
+- [ ] Font sizes adjustable by user
+- [ ] Theme switching keyboard accessible
+
+---
+
+## Summary for Multi-Tenant Frontend
+
+**Key Principles:**
+1. **Type Safety First**: All theme configurations typed
+2. **Security by Design**: Validate and sanitize all inputs
+3. **Performance Matters**: Cache themes, avoid flash
+4. **Test Isolation**: Each tenant's theme independent
+5. **User Experience**: Smooth theme switching, no flicker
+
+**Common Mistakes to Avoid:**
+- ❌ Hardcoding theme colors in components
+- ❌ Allowing custom CSS injection
+- ❌ Not validating color formats
+- ❌ Not caching theme (API call on every page)
+- ❌ Theme flash on page load
+- ❌ Not testing theme switching
+
+**Best Practices:**
+- ✅ Use CSS variables for all theme properties
+- ✅ Validate all user inputs (colors, URLs)
+- ✅ Cache theme in localStorage
+- ✅ Test theme isolation thoroughly
+- ✅ Support SSR without theme flash
+- ✅ Type all theme interfaces strictly
