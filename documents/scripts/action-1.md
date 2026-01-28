@@ -395,3 +395,35 @@ luôn giao tiếp với tôi bằng tiếng việt
 skill đã đề cập sau khi hoàn thành 1 PR thì phải update plan, quick-start, ... chưa? đã hoàn thành tốt với PR 1.8 chưa?
 
 nhấn mạnh các PR tiếp theo cần đảm bảo skill development-workflow.md, thực hiện update đầy đủ cho PR 1.8
+
+tiếp tục kiteclass-implementation-plan theo độ ưu tiên
+
+1. có vấn đề với business-logic của gateway
+BR-GAT-003 => không cần thiết
+
+UC-GAT-006: Tạo User Mới (Admin) => không chỉ mỗi admin được tạo user, guest hoàn toàn có thể đăng ký tài khoảng trên instance. Ví dụ 1 cố giáo có lớp học 30 học sinh, cô ấy không nên ngồi tạo 30 tài khoản cho học sinh mà tự học sinh có thể tạo tài khoản và có state riêng. Để tham gia lớp học hoặc khóa học, có thể dùng cơ chế mã lớp/khóa học hoặc link lớp/khóa học như gg-classroom
+
+hãy thực hiện tạo PR trong plan để fix các logic này và cả test nữa
+
+Ngoài ra, bổ sung PR để triển khai UC Oauth2 qua Google account cho guest => vậy có phải cần UC đăng ký của guest mới triển khai được UC này không?
+
+2. Đối với UC của core-service:  - TEACHER module KHÔNG CÓ trong plan (chưa được design) => vậy business chính xác là gì?
+
+ở trong 1 instance sẽ phải tách bảng admin với bảng teacher hay không, hay 2 actor này có thể design là 1 thôi?
+Ví dụ: 1 trung tâm tiếng anh có 1 admin tổng có quyền quản lý 30 lớp học, có 5 teacher, mỗi teacher có quyền với lớp học riêng, ví dụ teacher A chỉ có quyền quản lý 3 lớp học cụ thể => vậy cần design để đảm bảo Usecase này
+
+1 ví dụ khác, instance phục vụ duy nhất 1 giáo viên (đối tượng khách hàng giáo viên độc lập), vậy lúc này teacher chính là admin luôn => vậy cũng cần design để đảm bảo Usecase này
+
+=> thực hiện cập nhật đầy đủ business-logic cho các module trong core-service trước khi implement code để tránh lỗi logic
+=> cập nhật PR trong kiteclass-implementation-plan đúng với business-logic
+
+  ❓ Questions for Anh
+
+  1. BR-GAT-003 (Account Locking):
+=> Remove hoàn toàn 
+
+  2. OAuth2 Scope:
+=> tạm thời chỉ cần GG
+
+  3. Teacher Module Priority:
+=> Làm Teacher Module trước Course Module
