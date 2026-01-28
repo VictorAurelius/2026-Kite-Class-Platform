@@ -4,8 +4,9 @@ import com.kiteclass.core.common.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.when;
  * @author KiteClass Team
  * @since 2.2.0
  */
+@ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler handler;
@@ -34,7 +36,6 @@ class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         handler = new GlobalExceptionHandler();
         when(request.getRequestURI()).thenReturn("/api/v1/test");
     }
