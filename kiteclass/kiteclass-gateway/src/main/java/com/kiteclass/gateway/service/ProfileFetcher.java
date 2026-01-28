@@ -122,20 +122,14 @@ public class ProfileFetcher {
     /**
      * Fetches teacher profile from Core service.
      *
-     * <p><b>Note:</b> Teacher module not yet implemented in Core.
-     * This method will return null until implementation is complete.
-     *
      * @param teacherId Teacher ID in Core service
      * @return TeacherProfileResponse or null if not found
      */
     private TeacherProfileResponse fetchTeacherProfile(Long teacherId) {
         log.debug("Fetching teacher profile: teacherId={}", teacherId);
-        log.warn("Teacher module not yet implemented in Core service");
-        // Will be enabled when Teacher module is implemented
-        // ApiResponse<TeacherProfileResponse> response =
-        //         coreServiceClient.getTeacher(teacherId, INTERNAL_HEADER);
-        // return response.getData();
-        return null;
+        ApiResponse<TeacherProfileResponse> response =
+                coreServiceClient.getTeacher(teacherId, INTERNAL_HEADER);
+        return response.getData();
     }
 
     /**
