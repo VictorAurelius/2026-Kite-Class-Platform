@@ -53,6 +53,17 @@ public class CourseServiceImpl implements CourseService {
     private final TeacherCourseRepository teacherCourseRepository;
     private final CourseMapper courseMapper;
 
+    /**
+     * Tạo khóa học mới.
+     *
+     * <p>Validates course code uniqueness (BR-COURSE-001) and teacher existence.
+     * Auto-creates TeacherCourse relationship with role=CREATOR (BR-COURSE-003).
+     *
+     * @param request Thông tin khóa học cần tạo (code, name, description, teacherId, etc.)
+     * @return CourseResponse chứa thông tin khóa học đã tạo
+     * @throws DuplicateResourceException nếu course code đã tồn tại
+     * @throws EntityNotFoundException nếu không tìm thấy teacher với teacherId
+     */
     @Override
     @Transactional
     @CacheEvict(value = "courses", allEntries = true)
@@ -62,14 +73,14 @@ public class CourseServiceImpl implements CourseService {
         // BR-COURSE-001: Validate code uniqueness
         if (courseRepository.existsByCodeAndDeletedFalse(request.code())) {
             log.warn("Duplicate course code: {}", request.code());
-            throw new DuplicateResourceException("code", request.code());
+            throw new DuplicateResourceException("COURSE_CODE_EXISTS", request.code());
         }
 
         // Validate teacher exists and is active
         teacherRepository.findByIdAndDeletedFalse(request.teacherId())
                 .orElseThrow(() -> {
                     log.warn("Teacher not found with ID: {}", request.teacherId());
-                    return new EntityNotFoundException("Teacher", request.teacherId());
+                    return new EntityNotFoundException("TEACHER_NOT_FOUND", request.teacherId());
                 });
 
         // Create course entity
@@ -90,6 +101,15 @@ public class CourseServiceImpl implements CourseService {
         return courseMapper.toResponse(saved);
     }
 
+    /**
+     * Lấy thông tin chi tiết khóa học theo ID.
+     *
+     * <p>Result is cached in Redis with key "courses::{id}".
+     *
+     * @param id ID của khóa học cần lấy thông tin
+     * @return CourseResponse chứa thông tin chi tiết khóa học
+     * @throws EntityNotFoundException nếu không tìm thấy khóa học với ID này
+     */
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "courses", key = "#id")
@@ -99,12 +119,20 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("Course", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
                 });
 
         return courseMapper.toResponse(course);
     }
 
+    /**
+     * Tìm kiếm danh sách khóa học với phân trang.
+     *
+     * <p>Supports full-text search by name/code and filtering by status and teacherId.
+     *
+     * @param criteria Tiêu chí tìm kiếm (search, status, teacherId, page, size, sort)
+     * @return PageResponse chứa danh sách khóa học và thông tin phân trang
+     */
     @Override
     @Transactional(readOnly = true)
     public PageResponse<CourseResponse> getCourses(CourseSearchCriteria criteria) {
@@ -131,6 +159,22 @@ public class CourseServiceImpl implements CourseService {
         return PageResponse.from(responsePage);
     }
 
+    /**
+     * Cập nhật thông tin khóa học.
+     *
+     * <p>Update restrictions based on course status (BR-COURSE-002):
+     * <ul>
+     *   <li>DRAFT: Allows full edit (all fields)</li>
+     *   <li>PUBLISHED: Limited edit (description, syllabus, objectives, price, coverImageUrl only)</li>
+     *   <li>ARCHIVED: Read-only (no updates allowed)</li>
+     * </ul>
+     *
+     * @param id ID của khóa học cần cập nhật
+     * @param request Thông tin cần cập nhật (partial update, các field null sẽ được bỏ qua)
+     * @return CourseResponse chứa thông tin khóa học sau khi cập nhật
+     * @throws EntityNotFoundException nếu không tìm thấy khóa học với ID này
+     * @throws ValidationException nếu cập nhật field bị hạn chế theo trạng thái
+     */
     @Override
     @Transactional
     @CacheEvict(value = "courses", key = "#id")
@@ -140,7 +184,7 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("Course", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
                 });
 
         // BR-COURSE-002: Check status-based update restrictions
@@ -153,6 +197,16 @@ public class CourseServiceImpl implements CourseService {
         return courseMapper.toResponse(updated);
     }
 
+    /**
+     * Xóa khóa học (soft delete).
+     *
+     * <p>Only DRAFT courses can be deleted (BR-COURSE-004).
+     * PUBLISHED or ARCHIVED courses cannot be deleted.
+     *
+     * @param id ID của khóa học cần xóa
+     * @throws EntityNotFoundException nếu không tìm thấy khóa học với ID này
+     * @throws ValidationException nếu khóa học không ở trạng thái DRAFT
+     */
     @Override
     @Transactional
     @CacheEvict(value = "courses", key = "#id")
@@ -162,16 +216,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("Course", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
                 });
 
         // Only DRAFT courses can be deleted
         if (!course.canBeDeleted()) {
             log.warn("Cannot delete course with status: {}", course.getStatus());
-            throw new ValidationException(
-                    "Không thể xóa khóa học với trạng thái " + course.getStatus() +
-                    ". Chỉ có thể xóa khóa học ở trạng thái DRAFT."
-            );
+            throw new ValidationException("COURSE_CANNOT_DELETE_STATUS", course.getStatus());
         }
 
         // BR-COURSE-004: Check if has active classes (will be implemented when Class module is ready)
@@ -187,6 +238,18 @@ public class CourseServiceImpl implements CourseService {
         log.info("Deleted course with ID: {}", id);
     }
 
+    /**
+     * Publish khóa học từ DRAFT sang PUBLISHED.
+     *
+     * <p>Validates that all required fields are present before publishing.
+     * Required fields: name, description, syllabus, objectives, durationWeeks.
+     * Only DRAFT courses can be published.
+     *
+     * @param id ID của khóa học cần publish
+     * @return CourseResponse chứa thông tin khóa học sau khi publish
+     * @throws EntityNotFoundException nếu không tìm thấy khóa học với ID này
+     * @throws ValidationException nếu khóa học không ở trạng thái DRAFT hoặc thiếu required fields
+     */
     @Override
     @Transactional
     @CacheEvict(value = "courses", key = "#id")
@@ -196,15 +259,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("Course", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
                 });
 
         // Validate current status
         if (!CourseStatus.DRAFT.equals(course.getStatus())) {
             log.warn("Cannot publish course with status: {}", course.getStatus());
-            throw new ValidationException(
-                    "Chỉ có thể publish khóa học ở trạng thái DRAFT. Trạng thái hiện tại: " + course.getStatus()
-            );
+            throw new ValidationException("COURSE_INVALID_PUBLISH_STATE", course.getStatus());
         }
 
         // Validate required fields for publishing
@@ -218,6 +279,17 @@ public class CourseServiceImpl implements CourseService {
         return courseMapper.toResponse(published);
     }
 
+    /**
+     * Archive khóa học từ PUBLISHED sang ARCHIVED.
+     *
+     * <p>ARCHIVED courses become read-only and cannot be edited or deleted.
+     * Only PUBLISHED courses can be archived.
+     *
+     * @param id ID của khóa học cần archive
+     * @return CourseResponse chứa thông tin khóa học sau khi archive
+     * @throws EntityNotFoundException nếu không tìm thấy khóa học với ID này
+     * @throws ValidationException nếu khóa học không ở trạng thái PUBLISHED
+     */
     @Override
     @Transactional
     @CacheEvict(value = "courses", key = "#id")
@@ -227,15 +299,13 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Course not found with ID: {}", id);
-                    return new EntityNotFoundException("Course", id);
+                    return new EntityNotFoundException("COURSE_NOT_FOUND", id);
                 });
 
         // Validate current status
         if (!CourseStatus.PUBLISHED.equals(course.getStatus())) {
             log.warn("Cannot archive course with status: {}", course.getStatus());
-            throw new ValidationException(
-                    "Chỉ có thể archive khóa học ở trạng thái PUBLISHED. Trạng thái hiện tại: " + course.getStatus()
-            );
+            throw new ValidationException("COURSE_INVALID_ARCHIVE_STATE", course.getStatus());
         }
 
         // Change status to ARCHIVED
@@ -256,9 +326,7 @@ public class CourseServiceImpl implements CourseService {
     private void validateUpdateAllowed(Course course, UpdateCourseRequest request) {
         // ARCHIVED courses are read-only
         if (course.isReadOnly()) {
-            throw new ValidationException(
-                    "Không thể cập nhật khóa học đã lưu trữ (ARCHIVED). Khóa học ở trạng thái này chỉ được đọc."
-            );
+            throw new ValidationException("COURSE_INVALID_UPDATE_ARCHIVED");
         }
 
         // PUBLISHED courses have limited edits
@@ -267,10 +335,7 @@ public class CourseServiceImpl implements CourseService {
             if (request.name() != null || request.durationWeeks() != null ||
                 request.totalSessions() != null || request.prerequisites() != null ||
                 request.targetAudience() != null) {
-                throw new ValidationException(
-                        "Khóa học đã PUBLISHED chỉ có thể cập nhật: description, syllabus, objectives, price, coverImageUrl. " +
-                        "Không thể thay đổi: name, durationWeeks, totalSessions, prerequisites, targetAudience."
-                );
+                throw new ValidationException("COURSE_INVALID_UPDATE_PUBLISHED");
             }
         }
 
@@ -305,9 +370,7 @@ public class CourseServiceImpl implements CourseService {
         if (missingFields.length() > 0) {
             // Remove trailing comma and space
             String missing = missingFields.substring(0, missingFields.length() - 2);
-            throw new ValidationException(
-                    "Không thể publish khóa học. Thiếu các trường bắt buộc: " + missing
-            );
+            throw new ValidationException("COURSE_MISSING_REQUIRED_FIELDS", missing);
         }
     }
 

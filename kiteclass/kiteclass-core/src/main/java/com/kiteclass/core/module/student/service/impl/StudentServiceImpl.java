@@ -42,6 +42,15 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final StudentMapper studentMapper;
 
+    /**
+     * Tạo học viên mới.
+     *
+     * <p>Validates email and phone uniqueness before creating student.
+     *
+     * @param request Thông tin học viên cần tạo (name, email, phone, dateOfBirth, gender, address)
+     * @return StudentResponse chứa thông tin học viên đã tạo
+     * @throws DuplicateResourceException nếu email hoặc phone đã tồn tại trong hệ thống
+     */
     @Override
     @Transactional
     @CacheEvict(value = "students", allEntries = true)
@@ -50,14 +59,14 @@ public class StudentServiceImpl implements StudentService {
 
         // Validate email uniqueness
         if (request.email() != null && studentRepository.existsByEmailAndDeletedFalse(request.email())) {
-            log.warn("Duplicate email: {}", request.email());
-            throw new DuplicateResourceException("email", request.email());
+            log.warn("Duplicate student email: {}", request.email());
+            throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", request.email());
         }
 
         // Validate phone uniqueness
         if (request.phone() != null && studentRepository.existsByPhoneAndDeletedFalse(request.phone())) {
-            log.warn("Duplicate phone: {}", request.phone());
-            throw new DuplicateResourceException("phone", request.phone());
+            log.warn("Duplicate student phone: {}", request.phone());
+            throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", request.phone());
         }
 
         Student student = studentMapper.toEntity(request);
@@ -67,6 +76,15 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(saved);
     }
 
+    /**
+     * Lấy thông tin chi tiết học viên theo ID.
+     *
+     * <p>Result is cached in Redis with key "students::{id}".
+     *
+     * @param id ID của học viên cần lấy thông tin
+     * @return StudentResponse chứa thông tin chi tiết học viên
+     * @throws EntityNotFoundException nếu không tìm thấy học viên với ID này
+     */
     @Override
     @Transactional(readOnly = true)
     @Cacheable(value = "students", key = "#id")
@@ -76,12 +94,22 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Student not found with ID: {}", id);
-                    return new EntityNotFoundException("Student", id);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", id);
                 });
 
         return studentMapper.toResponse(student);
     }
 
+    /**
+     * Tìm kiếm danh sách học viên với phân trang.
+     *
+     * <p>Supports full-text search by name, email, phone and filtering by status.
+     *
+     * @param search Từ khóa tìm kiếm (name, email, hoặc phone), có thể null
+     * @param status Trạng thái học viên (ACTIVE, INACTIVE, GRADUATED), có thể null
+     * @param pageable Thông tin phân trang và sắp xếp
+     * @return PageResponse chứa danh sách học viên và thông tin phân trang
+     */
     @Override
     @Transactional(readOnly = true)
     public PageResponse<StudentResponse> getStudents(String search, String status, Pageable pageable) {
@@ -96,6 +124,18 @@ public class StudentServiceImpl implements StudentService {
         return PageResponse.from(responsePage);
     }
 
+    /**
+     * Cập nhật thông tin học viên.
+     *
+     * <p>Validates email and phone uniqueness if they are changed.
+     * Only non-null fields in request will be updated.
+     *
+     * @param id ID của học viên cần cập nhật
+     * @param request Thông tin cần cập nhật (partial update, các field null sẽ được bỏ qua)
+     * @return StudentResponse chứa thông tin học viên sau khi cập nhật
+     * @throws EntityNotFoundException nếu không tìm thấy học viên với ID này
+     * @throws DuplicateResourceException nếu email hoặc phone mới đã tồn tại
+     */
     @Override
     @Transactional
     @CacheEvict(value = "students", key = "#id")
@@ -105,22 +145,22 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Student not found with ID: {}", id);
-                    return new EntityNotFoundException("Student", id);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", id);
                 });
 
         // Validate email uniqueness if changed
         if (request.email() != null && !request.email().equals(student.getEmail())) {
             if (studentRepository.existsByEmailAndDeletedFalse(request.email())) {
-                log.warn("Duplicate email: {}", request.email());
-                throw new DuplicateResourceException("email", request.email());
+                log.warn("Duplicate student email: {}", request.email());
+                throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", request.email());
             }
         }
 
         // Validate phone uniqueness if changed
         if (request.phone() != null && !request.phone().equals(student.getPhone())) {
             if (studentRepository.existsByPhoneAndDeletedFalse(request.phone())) {
-                log.warn("Duplicate phone: {}", request.phone());
-                throw new DuplicateResourceException("phone", request.phone());
+                log.warn("Duplicate student phone: {}", request.phone());
+                throw new DuplicateResourceException("STUDENT_PHONE_EXISTS", request.phone());
             }
         }
 
@@ -131,6 +171,15 @@ public class StudentServiceImpl implements StudentService {
         return studentMapper.toResponse(updated);
     }
 
+    /**
+     * Xóa học viên (soft delete).
+     *
+     * <p>Marks the student as deleted without physically removing from database.
+     * The student will be excluded from all queries using deletedFalse filters.
+     *
+     * @param id ID của học viên cần xóa
+     * @throws EntityNotFoundException nếu không tìm thấy học viên với ID này
+     */
     @Override
     @Transactional
     @CacheEvict(value = "students", key = "#id")
@@ -140,7 +189,7 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> {
                     log.warn("Student not found with ID: {}", id);
-                    return new EntityNotFoundException("Student", id);
+                    return new EntityNotFoundException("STUDENT_NOT_FOUND", id);
                 });
 
         student.markAsDeleted();
