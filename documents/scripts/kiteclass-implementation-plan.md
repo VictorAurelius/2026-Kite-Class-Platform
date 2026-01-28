@@ -534,8 +534,46 @@ Thực hiện Phase 6 của kiteclass-gateway-plan.md.
 ## 🚨 PR 1.8 - Cross-Service Data Integration (CRITICAL FIX)
 
 **Priority:** 🚨 HIGH - Must complete before continuing Core development
-**Status:** ⏳ PENDING
-**Dependencies:** Requires PR 2.11 (Core Internal APIs) to be ready first
+**Status:** ⚠️ PARTIALLY COMPLETE (2026-01-28)
+**Dependencies:**
+- ✅ PR 2.11 (Core Internal APIs) - Complete
+- ⏳ Core Teacher Module - Not yet implemented
+- ⏳ Core Parent Module - Not yet implemented
+
+**Implementation Status:**
+- ✅ Part 1: Database migration, UserType enum, User entity update (commit d655444)
+- ✅ Part 2: Feign client, ProfileFetcher service, Login integration (commit 455174c)
+- ✅ Tests: ProfileFetcherTest (12), AuthServiceTest updates (11) (commit c88c434)
+- ⚠️ **Incomplete:** Teacher and Parent profile fetching (placeholders only)
+
+**⚠️ IMPORTANT NOTE:**
+PR 1.8 is functionally complete for STUDENT profile fetching. However, Teacher and Parent
+profile fetching will return null until their respective modules are implemented in Core Service.
+
+**What works now:**
+- ✅ ADMIN/STAFF login (no profile needed)
+- ✅ STUDENT login with full profile from Core
+- ✅ Graceful degradation when Core service unavailable
+- ✅ All unit tests passing (23/23)
+
+**What needs Core modules:**
+- ⏳ TEACHER login with profile → Requires Core Teacher Module (future PR)
+- ⏳ PARENT login with profile → Requires Core Parent Module (future PR)
+
+**Action Items:**
+1. When Core Teacher Module is implemented:
+   - Uncomment `ProfileFetcher.fetchTeacherProfile()` Feign call
+   - Add integration tests for teacher login with profile
+   - Update documentation
+
+2. When Core Parent Module is implemented:
+   - Uncomment `ProfileFetcher.fetchParentProfile()` Feign call
+   - Add integration tests for parent login with profile
+   - Update documentation
+
+**Testing:**
+- 23/23 unit tests passing
+- Integration tests require Docker (7 tests pending Docker setup)
 
 ```
 Implement UserType + ReferenceId pattern để liên kết Gateway User với Core entities.
@@ -718,6 +756,103 @@ Implement UserType + ReferenceId pattern để liên kết Gateway User với Co
 **Documentation:**
 - Update Gateway README với cross-service communication
 - Document internal API authentication (X-Internal-Request header)
+
+---
+
+## ✅ PR 1.8 - COMPLETED WORK (2026-01-28)
+
+**Commits:**
+- d655444: PR 1.8 Part 1 - Add UserType and cross-service foundation
+- 455174c: PR 1.8 Part 2 - Implement cross-service profile fetching
+- c88c434: test(gateway): PR 1.8 - Add comprehensive tests for cross-service profile fetching
+- 0ff4448: fix(test): fix MessageService and EmailService test failures
+
+**What Was Implemented:**
+
+### ✅ Database & Entities
+- V6 migration: Added `user_type` and `reference_id` to users table
+- UserType enum with 5 types (ADMIN, STAFF, TEACHER, PARENT, STUDENT)
+- Helper methods: `requiresReferenceId()`, `isInternalStaff()`
+- User entity updated with userType and referenceId fields
+
+### ✅ Feign Client Integration
+- Added spring-cloud-starter-openfeign dependency
+- Created CoreServiceClient interface
+- 3 endpoints: getStudent(), getTeacher(), getParent()
+- All use X-Internal-Request header for authentication
+- Configuration: core.service.url in application.yml
+
+### ✅ Profile DTOs
+- StudentProfileResponse (8 fields) - ACTIVE
+- TeacherProfileResponse (7 fields) - PLACEHOLDER
+- ParentProfileResponse (7 fields) - PLACEHOLDER
+
+### ✅ ProfileFetcher Service
+- fetchProfile(UserType, Long referenceId)
+- Returns appropriate profile based on UserType
+- Returns null for ADMIN/STAFF (internal staff)
+- Comprehensive error handling (404, 503, 500)
+- Graceful degradation when Core unavailable
+
+### ✅ Login Integration
+- LoginResponse.UserInfo updated with profile field
+- AuthServiceImpl.login() now fetches profiles
+- Profile included in login response
+- Works for STUDENT userType
+- Returns null for ADMIN/STAFF (no Core entity)
+- Returns null for TEACHER/PARENT (not implemented yet)
+
+### ✅ Tests
+- ProfileFetcherTest: 12/12 passing
+  - Internal staff tests (ADMIN, STAFF)
+  - External user tests (STUDENT, TEACHER, PARENT)
+  - Validation tests (null referenceId)
+  - Error handling tests (404, 503, 500)
+- AuthServiceTest: 11/11 passing (updated for profile fetching)
+- All unit tests passing: 86/86
+- Integration tests: 7 pending (require Docker)
+
+### ✅ Documentation
+- Created docs/guides/business-logic.md (comprehensive)
+- Updated all Javadocs
+- Clear notes about Teacher/Parent placeholders
+
+**What Remains (Blocked by Core):**
+
+### ⏳ Teacher Profile Fetching
+- CoreServiceClient.getTeacher() defined but not called
+- ProfileFetcher.fetchTeacherProfile() returns null
+- Waiting for: Core Teacher Module implementation
+
+### ⏳ Parent Profile Fetching
+- CoreServiceClient.getParent() defined but not called
+- ProfileFetcher.fetchParentProfile() returns null
+- Waiting for: Core Parent Module implementation
+
+### ⏳ Registration Flow (Not Started)
+- Student registration saga pattern - NOT IMPLEMENTED
+- Teacher registration - NOT IMPLEMENTED
+- Parent registration - NOT IMPLEMENTED
+- Note: Current PR focused on READ operations (profile fetching during login)
+
+**Future Work:**
+
+When Core Teacher Module is ready:
+1. Uncomment ProfileFetcher.fetchTeacherProfile() line 136-137
+2. Test teacher login with profile
+3. Add integration tests
+
+When Core Parent Module is ready:
+1. Uncomment ProfileFetcher.fetchParentProfile() line 154-155
+2. Test parent login with profile
+3. Add integration tests
+
+When Registration Flow is needed:
+1. Implement UserRegistrationService with Saga pattern
+2. Add createStudent/Teacher/Parent to CoreServiceClient
+3. Implement compensating transactions
+4. Add comprehensive integration tests
+
 ```
 
 ---
