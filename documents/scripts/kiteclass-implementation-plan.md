@@ -2259,36 +2259,60 @@ Sau khi PR này complete, Gateway có thể:
 
 # GIAI ĐOẠN 3: KITECLASS-FRONTEND
 
-## ✅ PR 3.1 - Frontend Project Setup
+## ✅ PR 3.1 - Frontend Project Setup & Testing Infrastructure
 
 ```
-Thực hiện Phase 1 của kiteclass-frontend-plan.md.
+Thực hiện Phase 1 của kiteclass-frontend-plan.md + Testing setup.
 
 **Tuân thủ skills:**
 - frontend-development.md: UI design system, Shadcn/UI patterns
-- frontend-code-quality.md: TypeScript strict mode, ESLint/Prettier config
+- frontend-code-quality.md: TypeScript strict mode, ESLint config, Testing setup
 - architecture-overview.md: cấu trúc thư mục Frontend
 
 **Tasks:**
-1. Tạo Next.js project: kiteclass/kiteclass-frontend/
-2. Install dependencies theo plan
-3. Setup Shadcn/UI với components cần thiết
-4. Cấu hình Tailwind với custom theme theo frontend-development.md
-5. Tạo folder structure theo plan
-6. Setup ESLint, Prettier theo frontend-code-quality.md Part 4
-7. Configure TypeScript strict mode theo frontend-code-quality.md Part 1
+1. ✅ Tạo Next.js project: kiteclass/kiteclass-frontend/
+2. ✅ Install core dependencies (React Query, Zustand, Axios, Zod, etc.)
+3. ✅ Setup Shadcn/UI với 23 components
+4. ✅ Cấu hình Tailwind với custom theme
+5. ✅ Tạo folder structure theo plan
+6. ⏳ BỔ SUNG: Enhanced ESLint configuration
+   - Install @typescript-eslint/eslint-plugin
+   - Install @typescript-eslint/parser
+   - Install eslint-plugin-react-hooks
+   - Configure rules: no-explicit-any: error, react-hooks rules
+7. ⏳ BỔ SUNG: Complete TypeScript strict config
+   - Add noUnusedLocals, noUnusedParameters
+   - Add noImplicitReturns, noFallthroughCasesInSwitch
+   - Add noUncheckedIndexedAccess
+8. ⏳ BỔ SUNG: Testing Infrastructure
+   - Install Vitest + @vitejs/plugin-react
+   - Install @testing-library/react, @testing-library/jest-dom
+   - Install @testing-library/user-event
+   - Install MSW (Mock Service Worker)
+   - Install @playwright/test
+   - Create vitest.config.ts
+   - Create src/test/setup.ts
+   - Create playwright.config.ts
+   - Add test scripts to package.json
 
 **Verification:**
 - pnpm dev phải start thành công
-- pnpm lint không có errors
-- pnpm tsc --noEmit passes (no TypeScript errors)
+- pnpm lint không có errors (with strict rules)
+- pnpm tsc --noEmit passes
+- pnpm test runs (even with no tests yet)
+- pnpm test:e2e setup ready
 - Git hooks check passed
 
-**Quality Checklist (frontend-code-quality.md Part 8):**
-- [ ] tsconfig.json has strict: true
-- [ ] ESLint configured with @typescript-eslint/no-explicit-any: error
-- [ ] Prettier plugin for Tailwind installed
-- [ ] No `any` types in codebase
+**Quality Checklist (frontend-code-quality.md):**
+- [x] tsconfig.json has strict: true
+- [x] Basic ESLint setup
+- [x] Prettier plugin for Tailwind installed
+- [x] No `any` types in codebase
+- [ ] ESLint with @typescript-eslint/no-explicit-any: error
+- [ ] Vitest configured
+- [ ] Testing Library installed
+- [ ] MSW installed for API mocking
+- [ ] Playwright configured for E2E
 ```
 
 ## ⏳ PR 3.2 - Frontend Core Infrastructure
