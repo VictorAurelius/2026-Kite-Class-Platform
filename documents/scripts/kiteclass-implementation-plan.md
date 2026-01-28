@@ -2315,13 +2315,14 @@ Thực hiện Phase 1 của kiteclass-frontend-plan.md + Testing setup.
 - [ ] Playwright configured for E2E
 ```
 
-## ⏳ PR 3.2 - Frontend Core Infrastructure
+## ⏳ PR 3.2 - Frontend Core Infrastructure & Theme Types
 
 ```
-Thực hiện Phase 2 của kiteclass-frontend-plan.md.
+Thực hiện Phase 2 của kiteclass-frontend-plan.md + Theme types.
 
 **Tuân thủ skills:**
-- frontend-code-quality.md: TypeScript types, testing patterns
+- frontend-code-quality.md Part 11: Multi-Tenant & Theme System types
+- frontend-development.md Part 2: Theme System architecture
 - api-design.md: API response format
 - enums-constants.md: TypeScript enum definitions
 
@@ -2337,14 +2338,22 @@ Thực hiện Phase 2 của kiteclass-frontend-plan.md.
    - student.ts, class.ts, course.ts
    - attendance.ts, invoice.ts
    - user.ts
+   - **theme.ts** (ThemeTemplate, BrandingSettings, UserPreferences, ResolvedTheme)
    - Match Backend DTOs exactly
-4. Tạo Zustand stores:
+4. Tạo Theme utilities (src/lib/theme-utils.ts):
+   - applyThemeVariables()
+   - validateHexColor()
+   - generateColorScale()
+   - sanitizeBrandingSettings()
+5. Tạo Zustand stores:
    - auth-store.ts (with TypeScript interface)
    - ui-store.ts
 
-**Tests (bắt buộc - frontend-code-quality.md Part 3):**
+**Tests (bắt buộc - frontend-code-quality.md Part 3 & Part 11):**
 - src/__tests__/lib/api/
   - client.test.ts (test interceptors, error handling)
+- src/__tests__/lib/
+  - theme-utils.test.ts (test color validation, theme isolation)
 - src/__tests__/stores/
   - auth-store.test.ts
   - ui-store.test.ts
@@ -2356,31 +2365,43 @@ Thực hiện Phase 2 của kiteclass-frontend-plan.md.
 - pnpm tsc --noEmit passes
 - Types khớp với BE DTOs
 - No `any` types in codebase
+- Theme types properly defined
 
-**Quality Checklist (frontend-code-quality.md Part 8):**
+**Quality Checklist (frontend-code-quality.md):**
 - [ ] All types properly defined (no `any`)
 - [ ] API client has proper error handling
 - [ ] Tests use MSW for API mocking
 - [ ] Zustand stores have TypeScript interfaces
+- [ ] Theme types defined per Part 11
+- [ ] Color validation implemented
+- [ ] Theme utility functions tested
 ```
 
-## ⏳ PR 3.3 - Providers & Layout
+## ⏳ PR 3.3 - Providers & Layout (Multi-Tenant Theme Support)
 
 ```
 Thực hiện Phase 3-5 của kiteclass-frontend-plan.md.
 
 **Tuân thủ skills:**
+- frontend-development.md Part 2: Theme System architecture & ThemeProvider
+- frontend-code-quality.md Part 11: Multi-Tenant considerations
 - ui-components.md: layout patterns
-- theme-system.md: ThemeProvider implementation
 - code-style.md: React component conventions
 
 **Tasks:**
-1. Tạo Providers:
+1. Tạo Providers (src/providers/):
    - QueryProvider (React Query)
-   - ThemeProvider (next-themes + API theme)
+   - **ThemeProvider** (fetch theme from API, apply CSS variables):
+     - Fetch ResolvedTheme from GET /api/v1/theme
+     - Apply CSS variables với applyThemeVariables()
+     - Support dark/light mode switching
+     - Cache theme in localStorage (prevent flash)
+     - Handle branding color override
    - AuthProvider (protected routes)
    - ToasterProvider
-2. Tạo root layout với providers
+2. Tạo root layout với providers (app/layout.tsx):
+   - Inline script to prevent theme flash
+   - Wrap children với all providers
 3. Tạo Layout components:
    - Sidebar với navigation config
    - Header với UserNav, ThemeToggle
@@ -2388,9 +2409,16 @@ Thực hiện Phase 3-5 của kiteclass-frontend-plan.md.
 4. Tạo Dashboard layout (src/app/(dashboard)/layout.tsx)
 5. Tạo Auth layout (src/app/(auth)/layout.tsx)
 
-**Tests (bắt buộc):**
+**Tests (bắt buộc - frontend-code-quality.md Part 11):**
 - src/__tests__/providers/
   - auth-provider.test.tsx
+  - **theme-provider.test.tsx**:
+    - Test theme fetching from API
+    - Test CSS variables applied correctly
+    - Test branding override (primaryColor)
+    - Test theme switching
+    - Test theme isolation
+    - Test theme caching
   - theme-provider.test.tsx
 - src/__tests__/components/layout/
   - sidebar.test.tsx
