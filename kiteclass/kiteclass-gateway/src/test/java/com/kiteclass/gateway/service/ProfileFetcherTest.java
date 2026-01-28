@@ -2,9 +2,7 @@ package com.kiteclass.gateway.service;
 
 import com.kiteclass.gateway.common.constant.UserType;
 import com.kiteclass.gateway.common.dto.ApiResponse;
-import com.kiteclass.gateway.service.dto.ParentProfileResponse;
 import com.kiteclass.gateway.service.dto.StudentProfileResponse;
-import com.kiteclass.gateway.service.dto.TeacherProfileResponse;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
