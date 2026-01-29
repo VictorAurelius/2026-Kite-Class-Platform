@@ -492,3 +492,22 @@ hãy tạo báo cáo và cập nhật skill để phản ánh vấn đề này, 
 trả ra loạt QA bạn cần xác nhận để tôi trả lời về 4 vấn đề trên
 
 tạo hẳn file architecture-clarification-qa.md trong folder mới trong documents
+
+tôi sẽ trả lời các câu hỏi 1.1 trước, hãy update các documents liên quan: system-architecture-v3-final, kiteclass-frontend-plan, kiteclass-implementation-plan, ... tương ứng:
+
+### Q1.1.1: Feature Detection API Endpoint
+=> cứ làm theo best practice
+
+### Q1.1.2: Feature Detection Caching
+=> user muốn đổi gói => user vào kitehub để update instance => nghiệp vụ phía kitehub => có phải best practice không?
+
+### Q1.1.3: Feature Lock Behavior
+**Option B: Soft Block với Preview**
+
+### Q1.1.4: Resource Limit Warnings
+=> cứ làm theo best practice
+
+### Q1.1.5: Tier Upgrade Flow
+=> tùy theo actor: nếu onwer thì direct về kitehub, nếu actor khác thì thông báo liên hệ owner để nâng cấp
+=> mọi thao tác thay đổi cấu hình instance phải thông qua kitehub => có phải best practice không?
+
