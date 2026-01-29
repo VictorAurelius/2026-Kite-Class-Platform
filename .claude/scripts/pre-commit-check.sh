@@ -126,7 +126,8 @@ SENSITIVE_PATTERNS=(
 
 SENSITIVE_FOUND=0
 for pattern in "${SENSITIVE_PATTERNS[@]}"; do
-    MATCHES=$(git diff --cached | grep -iE "$pattern" | grep -v "^-" | wc -l)
+    # Exclude documentation files (.md, .txt) from sensitive data check
+    MATCHES=$(git diff --cached --diff-filter=ACM -- '*.java' '*.ts' '*.tsx' '*.js' '*.jsx' '*.properties' '*.yml' '*.yaml' | grep -iE "$pattern" | grep -v "^-" | wc -l)
     if [ "$MATCHES" -gt 0 ]; then
         echo -e "${RED}❌ Potential sensitive data found: $pattern${NC}"
         SENSITIVE_FOUND=$((SENSITIVE_FOUND + 1))

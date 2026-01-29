@@ -488,3 +488,7 @@ cập nhật kiteclass-implementation-plan và thực hiện bổ sung
 4. như ý 3 => guest có thể vào đăng ký tài khoản và HỌC THỬ, hoặc nhận tiếp thị qua hình ảnh (tin nhắn) => phải có cơ chế thiết kế frontend + backend cho guest 
 
 hãy tạo báo cáo và cập nhật skill để phản ánh vấn đề này, cần cập nhật implement-plan nếu cần sửa đổi
+
+trả ra loạt QA bạn cần xác nhận để tôi trả lời về 4 vấn đề trên
+
+tạo hẳn file architecture-clarification-qa.md trong folder mới trong documents
