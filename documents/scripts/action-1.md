@@ -466,3 +466,25 @@ PR của 1. không ưu tiên sao?
 giúp tôi triển khai git hook
 
 sao kiteclass/kiteclass-core lại báo lỗi này nhỉ
+
+đọc documents/scripts/kiteclass-implementation-plan.md để hiểu các PR tiếp theo cần thực hiện
+
+pass là vkiet432 nhé
+
+PR 3.1 chưa được commit đúng theo skill => vậy nên chưa kích hoạt được git hook để checklist skill cho PR 3.1
+
+có vẻ skill để đảm bảo chất lượng code của frontend chưa đầy đủ như backend => tạo thêm skill => cập nhật kiteclass-implementation-plan
+
+PR 3.1 đã đảm bảo skill này chưa?
+
+cập nhật kiteclass-implementation-plan và thực hiện bổ sung
+
+đọc lại documents/reports/system-architecture-v3-final.md để hiểu kiến trúc hệ thống => frontend của 1 instance kiteclass sẽ được customize theo lựa chọn của khách hàng => code phải đảm bảo được nhu cầu này => skill cho frontend đã đảm bảo được chưa => thực hiện cập nhật bổ sung => check lại xem có cần sửa PR 3.1 theo nhu cầu này không?
+
+đọc lại documents/reports/system-architecture-v3-final.md, có các vấn đề tôi không biết skill đã phản ánh được chưa:
+1. giao diện tùy chỉnh theo gói mua của khách hàng: gói free thì như thế nào, gói vip như thế nào, ...
+2. có hệ thống AI Branding để customize hình ảnh trên giao diện cho từng loại đối tượng khách hàng => vẫn frontend cũng phải đáp ứng được nhu cầu động hình ảnh này
+3. kiteclass không chỉ là 1 instance quản lý lớp học, khóa học, học viên, ... sẵn có của đối tượng khách hàng mà còn đóng vai trò quảng bá hình ảnh, thương hiệu và thu hút học viên mới => frontend phải đáp ứng được nhu cầu này
+4. như ý 3 => guest có thể vào đăng ký tài khoản và HỌC THỬ, hoặc nhận tiếp thị qua hình ảnh (tin nhắn) => phải có cơ chế thiết kế frontend + backend cho guest 
+
+hãy tạo báo cáo và cập nhật skill để phản ánh vấn đề này, cần cập nhật implement-plan nếu cần sửa đổi
