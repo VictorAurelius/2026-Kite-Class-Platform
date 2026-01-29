@@ -49,7 +49,23 @@
       "Bash(ln:*)",
       "Bash(echo \"Hook execution completed \\(exit code: $?\")",
       "Bash(xargs -I {} sh -c 'if [ -f \"\"\"\"{}\"\"\"\" ]; then grep -B 5 \"\"\"\"^\\\\s*public.*\\(\"\"\"\" {} | grep -B 5 -v \"\"\"\"^\\\\s*/\\\\*\\\\*\"\"\"\" | grep \"\"\"\"^\\\\s*public\"\"\"\" || true; fi')",
-      "Bash(../../mvnw clean:*)"
+      "Bash(../../mvnw clean:*)",
+      "Bash(pnpm --version:*)",
+      "Bash(node:*)",
+      "Bash(npm --version)",
+      "Bash(npm install:*)",
+      "Bash(sudo -S npm install:*)",
+      "Bash(pnpm create:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dlx shadcn@latest add:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(timeout 10 pnpm dev:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm test:*)"
     ]
   }
 }

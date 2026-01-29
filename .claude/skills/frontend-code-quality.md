@@ -1698,3 +1698,1275 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - ✅ Test theme isolation thoroughly
 - ✅ Support SSR without theme flash
 - ✅ Type all theme interfaces strictly
+
+---
+
+# PART 12: Feature Flag System & Tier-Based UI
+
+## Multi-Tier Subscription Architecture
+
+KiteClass có 3 gói chính + 2 add-ons:
+- **BASIC** (500k/tháng): ≤50 học viên, core features only
+- **STANDARD** (1tr/tháng): ≤200 học viên, + Engagement Pack
+- **PREMIUM** (2tr/tháng): Unlimited, + AI Marketing Agent
+
+**Add-ons:**
+- **ENGAGEMENT PACK** (+300k): Gamification, Parent Portal, Forum
+- **MEDIA PACK** (+500k): Video Upload, Live Streaming
+
+## Feature Detection Pattern
+
+### Type Definitions
+
+```typescript
+// src/types/subscription.ts
+export type SubscriptionTier = 'BASIC' | 'STANDARD' | 'PREMIUM';
+
+export interface InstanceFeatures {
+  tier: SubscriptionTier;
+  services: ServiceType[];
+  features: FeatureFlags;
+  limits: ResourceLimits;
+}
+
+export type ServiceType =
+  | 'user-gateway'
+  | 'core'
+  | 'engagement'
+  | 'media'
+  | 'frontend';
+
+export interface FeatureFlags {
+  // Core features (all tiers)
+  classManagement: boolean;
+  studentManagement: boolean;
+  attendance: boolean;
+  grading: boolean;
+  billing: boolean;
+
+  // Engagement Pack features (STANDARD+)
+  gamification: boolean;
+  parentPortal: boolean;
+  forum: boolean;
+
+  // Media Pack features (add-on)
+  videoUpload: boolean;
+  liveStreaming: boolean;
+
+  // Premium features
+  aiMarketing: boolean;
+  prioritySupport: boolean;
+}
+
+export interface ResourceLimits {
+  maxStudents: number; // 50, 200, or Infinity
+  maxCourses?: number;
+  videoStorageGB: number; // 0, 50, or Infinity
+  maxConcurrentStreams?: number;
+}
+
+// API Response
+export interface InstanceConfig {
+  instanceId: string;
+  tier: SubscriptionTier;
+  addOns: ('ENGAGEMENT' | 'MEDIA')[];
+  features: FeatureFlags;
+  limits: ResourceLimits;
+}
+```
+
+### Feature Flag Provider
+
+```typescript
+// src/providers/FeatureFlagProvider.tsx
+'use client';
+
+import { createContext, useContext, useEffect, useState } from 'react';
+import { InstanceConfig, FeatureFlags } from '@/types/subscription';
+
+interface FeatureFlagContextValue {
+  config: InstanceConfig | null;
+  features: FeatureFlags | null;
+  isLoading: boolean;
+  error: Error | null;
+  hasFeature: (feature: keyof FeatureFlags) => boolean;
+  hasTier: (tier: SubscriptionTier) => boolean;
+  checkLimit: (resource: 'students' | 'courses' | 'videoGB') => {
+    current: number;
+    max: number;
+    isAtLimit: boolean;
+  };
+}
+
+const FeatureFlagContext = createContext<FeatureFlagContextValue | null>(null);
+
+export function FeatureFlagProvider({ children }: { children: React.ReactNode }) {
+  const [config, setConfig] = useState<InstanceConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    fetchFeatureFlags();
+  }, []);
+
+  const fetchFeatureFlags = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/instance/config');
+      if (!response.ok) throw new Error('Failed to fetch feature flags');
+      const data = await response.json();
+      setConfig(data);
+      setError(null);
+    } catch (err) {
+      setError(err as Error);
+      console.error('Feature flag fetch error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const hasFeature = (feature: keyof FeatureFlags): boolean => {
+    return config?.features[feature] ?? false;
+  };
+
+  const hasTier = (tier: SubscriptionTier): boolean => {
+    if (!config) return false;
+    const tierOrder = { BASIC: 0, STANDARD: 1, PREMIUM: 2 };
+    return tierOrder[config.tier] >= tierOrder[tier];
+  };
+
+  const checkLimit = (resource: 'students' | 'courses' | 'videoGB') => {
+    // Mock implementation - replace with actual API call
+    return {
+      current: 0,
+      max: config?.limits.maxStudents ?? 0,
+      isAtLimit: false,
+    };
+  };
+
+  return (
+    <FeatureFlagContext.Provider
+      value={{
+        config,
+        features: config?.features ?? null,
+        isLoading,
+        error,
+        hasFeature,
+        hasTier,
+        checkLimit,
+      }}
+    >
+      {children}
+    </FeatureFlagContext.Provider>
+  );
+}
+
+export function useFeatureFlag(feature: keyof FeatureFlags): boolean {
+  const context = useContext(FeatureFlagContext);
+  if (!context) throw new Error('useFeatureFlag must be used within FeatureFlagProvider');
+  return context.hasFeature(feature);
+}
+
+export function useFeatureFlags() {
+  const context = useContext(FeatureFlagContext);
+  if (!context) throw new Error('useFeatureFlags must be used within FeatureFlagProvider');
+  return context;
+}
+```
+
+### Conditional UI Rendering
+
+```typescript
+// src/components/navigation/MainNav.tsx
+import { useFeatureFlag } from '@/providers/FeatureFlagProvider';
+
+export function MainNav() {
+  const hasGamification = useFeatureFlag('gamification');
+  const hasParentPortal = useFeatureFlag('parentPortal');
+  const hasForum = useFeatureFlag('forum');
+  const hasVideoUpload = useFeatureFlag('videoUpload');
+
+  return (
+    <nav className="flex flex-col gap-2">
+      {/* Core features - always visible */}
+      <NavItem href="/classes" icon={BookOpen}>Lớp học</NavItem>
+      <NavItem href="/students" icon={Users}>Học viên</NavItem>
+      <NavItem href="/attendance" icon={CheckCircle}>Điểm danh</NavItem>
+      <NavItem href="/billing" icon={DollarSign}>Học phí</NavItem>
+
+      {/* Engagement Pack features - conditional */}
+      {hasGamification && (
+        <NavItem href="/gamification" icon={Trophy}>Game hóa</NavItem>
+      )}
+      {hasParentPortal && (
+        <NavItem href="/parents" icon={UserCheck}>Phụ huynh</NavItem>
+      )}
+      {hasForum && (
+        <NavItem href="/forum" icon={MessageSquare}>Diễn đàn</NavItem>
+      )}
+
+      {/* Media Pack features - conditional */}
+      {hasVideoUpload && (
+        <NavItem href="/media" icon={Video}>Video</NavItem>
+      )}
+    </nav>
+  );
+}
+```
+
+### Feature-Locked Components
+
+```typescript
+// src/components/upgrade/FeatureLock.tsx
+import { useFeatureFlags } from '@/providers/FeatureFlagProvider';
+import { Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+
+interface FeatureLockProps {
+  feature: keyof FeatureFlags;
+  featureName: string;
+  requiredTier: SubscriptionTier;
+  children?: React.ReactNode;
+}
+
+export function FeatureLock({
+  feature,
+  featureName,
+  requiredTier,
+  children,
+}: FeatureLockProps) {
+  const { hasFeature, config } = useFeatureFlags();
+
+  // Feature is available
+  if (hasFeature(feature)) {
+    return <>{children}</>;
+  }
+
+  // Feature is locked
+  return (
+    <Card className="p-8 text-center">
+      <Lock className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+      <h3 className="mb-2 text-xl font-semibold">
+        {featureName} chỉ có trên gói {requiredTier}
+      </h3>
+      <p className="mb-4 text-muted-foreground">
+        Bạn đang dùng gói {config?.tier}. Nâng cấp để sử dụng tính năng này.
+      </p>
+      <div className="flex gap-2 justify-center">
+        <Button onClick={() => window.location.href = '/upgrade'}>
+          Nâng cấp gói
+        </Button>
+        <Button variant="outline" onClick={() => window.history.back()}>
+          Quay lại
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+// Usage example
+export function GamificationPage() {
+  return (
+    <FeatureLock
+      feature="gamification"
+      featureName="Game hóa"
+      requiredTier="STANDARD"
+    >
+      <GamificationDashboard />
+    </FeatureLock>
+  );
+}
+```
+
+### Resource Limit Warnings
+
+```typescript
+// src/components/limits/StudentLimitWarning.tsx
+import { useFeatureFlags } from '@/providers/FeatureFlagProvider';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+
+export function StudentLimitWarning({ currentCount }: { currentCount: number }) {
+  const { config } = useFeatureFlags();
+
+  if (!config) return null;
+
+  const { maxStudents } = config.limits;
+  const percentage = (currentCount / maxStudents) * 100;
+
+  // At 80% capacity
+  if (percentage >= 80 && percentage < 100) {
+    return (
+      <Alert variant="warning">
+        <AlertTitle>Sắp đạt giới hạn học viên</AlertTitle>
+        <AlertDescription>
+          Bạn đang có {currentCount}/{maxStudents} học viên ({percentage.toFixed(0)}%).
+          Nâng cấp gói để tăng giới hạn.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // At 100% capacity
+  if (percentage >= 100) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Đã đạt giới hạn học viên</AlertTitle>
+        <AlertDescription>
+          Bạn đã đạt giới hạn {maxStudents} học viên.
+          Vui lòng nâng cấp gói để thêm học viên mới.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return null;
+}
+```
+
+## Testing Feature Flags
+
+```typescript
+// src/__tests__/providers/feature-flag-provider.test.tsx
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { FeatureFlagProvider, useFeatureFlag } from '@/providers/FeatureFlagProvider';
+
+// Test component
+function TestComponent({ feature }: { feature: keyof FeatureFlags }) {
+  const hasFeature = useFeatureFlag(feature);
+  return <div>{hasFeature ? 'Enabled' : 'Disabled'}</div>;
+}
+
+describe('FeatureFlagProvider', () => {
+  it('loads BASIC tier features correctly', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        tier: 'BASIC',
+        features: {
+          classManagement: true,
+          gamification: false,
+          parentPortal: false,
+          videoUpload: false,
+        },
+      }),
+    });
+
+    render(
+      <FeatureFlagProvider>
+        <TestComponent feature="classManagement" />
+        <TestComponent feature="gamification" />
+      </FeatureFlagProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Enabled')).toBeInTheDocument();
+      expect(screen.getByText('Disabled')).toBeInTheDocument();
+    });
+  });
+
+  it('loads STANDARD tier with Engagement Pack', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        tier: 'STANDARD',
+        features: {
+          classManagement: true,
+          gamification: true,
+          parentPortal: true,
+          forum: true,
+          videoUpload: false,
+        },
+      }),
+    });
+
+    render(
+      <FeatureFlagProvider>
+        <TestComponent feature="gamification" />
+        <TestComponent feature="videoUpload" />
+      </FeatureFlagProvider>
+    );
+
+    await waitFor(() => {
+      const results = screen.getAllByText(/Enabled|Disabled/);
+      expect(results[0]).toHaveTextContent('Enabled'); // gamification
+      expect(results[1]).toHaveTextContent('Disabled'); // videoUpload
+    });
+  });
+});
+```
+
+## Best Practices
+
+### ✅ DO
+- Fetch feature flags once on app load, cache in context
+- Use `useFeatureFlag` hook for conditional rendering
+- Show upgrade prompts for locked features
+- Test all tier combinations
+- Provide clear messaging about tier limitations
+
+### ❌ DON'T
+- Don't hardcode feature availability in components
+- Don't make API calls on every feature check
+- Don't hide features without explanation
+- Don't allow actions that exceed tier limits
+- Don't forget to handle loading/error states
+
+---
+
+# PART 13: AI-Generated Content Integration
+
+## AI Branding Assets System
+
+KiteClass sử dụng AI để tạo **10+ marketing assets** từ 1 ảnh upload:
+- Profile images (3 variations)
+- Hero banner (1920x600)
+- Section banners (3 items)
+- Logo variants (3 items)
+- Open Graph image
+- Marketing copy (headlines, CTAs)
+
+## Type Definitions
+
+```typescript
+// src/types/branding.ts
+export interface BrandingAssets {
+  profileImages: {
+    cutout: string; // Background removed
+    circle: string; // 400x400 circle crop
+    square: string; // 400x400 square crop
+  };
+  heroBanner: string; // 1920x600 AI-generated gradient
+  sectionBanners: {
+    about: string;
+    courses: string;
+    contact: string;
+  };
+  logos: {
+    primary: string; // Cutout + circular bg + org name
+    secondary: string; // Alternate color scheme
+    iconOnly: string; // No text
+  };
+  ogImage: string; // 1200x630 for social sharing
+  marketingCopy: {
+    heroHeadline: string; // 10 words max
+    subHeadline: string; // 20 words max
+    callToAction: string;
+    valueProps: string[]; // 3 items
+  };
+}
+
+export interface BrandingGenerationJob {
+  jobId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number; // 0-100
+  currentStep: string;
+  assets?: BrandingAssets;
+  error?: string;
+  createdAt: Date;
+  completedAt?: Date;
+}
+```
+
+## Asset Display Components
+
+```typescript
+// src/components/branding/BrandedHero.tsx
+import { useBranding } from '@/providers/BrandingProvider';
+import Image from 'next/image';
+
+export function BrandedHero() {
+  const { branding, isLoading } = useBranding();
+
+  if (isLoading) {
+    return <HeroSkeleton />;
+  }
+
+  if (!branding.generatedAssets) {
+    return <DefaultHero />;
+  }
+
+  const { heroBanner, marketingCopy } = branding.generatedAssets;
+
+  return (
+    <section
+      className="relative h-[600px] flex items-center justify-center text-white"
+      style={{
+        backgroundImage: `url(${heroBanner})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div className="relative z-10 max-w-4xl text-center">
+        <h1 className="text-5xl font-bold mb-4">
+          {marketingCopy.heroHeadline}
+        </h1>
+        <p className="text-xl mb-8">
+          {marketingCopy.subHeadline}
+        </p>
+        <button className="bg-primary px-8 py-3 rounded-lg text-lg font-semibold">
+          {marketingCopy.callToAction}
+        </button>
+      </div>
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/30" />
+    </section>
+  );
+}
+```
+
+## Asset URL Validation
+
+```typescript
+// src/lib/asset-validation.ts
+
+/**
+ * Validates CDN URLs for AI-generated assets
+ * Only allow trusted CDN domains
+ */
+export function isValidAssetUrl(url: string): boolean {
+  const ALLOWED_CDN_DOMAINS = [
+    'cdn.kiteclass.com',
+    'r2.cloudflare.com',
+    's3.amazonaws.com',
+  ];
+
+  try {
+    const urlObj = new URL(url);
+
+    // Must be HTTPS
+    if (urlObj.protocol !== 'https:') {
+      console.warn(`Asset URL must use HTTPS: ${url}`);
+      return false;
+    }
+
+    // Must be from allowed CDN
+    const isAllowedDomain = ALLOWED_CDN_DOMAINS.some(domain =>
+      urlObj.hostname.endsWith(domain)
+    );
+
+    if (!isAllowedDomain) {
+      console.warn(`Asset URL from untrusted domain: ${urlObj.hostname}`);
+      return false;
+    }
+
+    return true;
+  } catch {
+    console.warn(`Invalid asset URL: ${url}`);
+    return false;
+  }
+}
+
+/**
+ * Validates all assets in BrandingAssets object
+ */
+export function validateBrandingAssets(assets: BrandingAssets): boolean {
+  const urls = [
+    assets.heroBanner,
+    assets.ogImage,
+    ...Object.values(assets.profileImages),
+    ...Object.values(assets.sectionBanners),
+    ...Object.values(assets.logos),
+  ];
+
+  return urls.every(url => isValidAssetUrl(url));
+}
+```
+
+## Image Optimization
+
+```typescript
+// src/components/branding/OptimizedBrandImage.tsx
+import Image from 'next/image';
+import { isValidAssetUrl } from '@/lib/asset-validation';
+
+interface OptimizedBrandImageProps {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  priority?: boolean;
+  className?: string;
+}
+
+export function OptimizedBrandImage({
+  src,
+  alt,
+  width,
+  height,
+  priority = false,
+  className,
+}: OptimizedBrandImageProps) {
+  // Validate URL before rendering
+  if (!isValidAssetUrl(src)) {
+    console.error('Invalid brand image URL:', src);
+    return <ImagePlaceholder width={width} height={height} />;
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      priority={priority}
+      className={className}
+      // Use Next.js image optimization with CDN
+      loader={({ src, width, quality }) => {
+        // CDN already optimized, just pass through
+        return src;
+      }}
+    />
+  );
+}
+```
+
+## Asset Generation UI
+
+```typescript
+// src/app/(admin)/branding/page.tsx
+'use client';
+
+import { useState } from 'react';
+import { Upload } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Card } from '@/components/ui/card';
+
+export default function BrandingUploadPage() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState('');
+  const [result, setResult] = useState<BrandingAssets | null>(null);
+
+  const handleUpload = async (file: File) => {
+    try {
+      setIsGenerating(true);
+      setProgress(0);
+
+      // Upload image
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/branding/generate', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const { jobId } = await response.json();
+
+      // Poll for completion
+      const assets = await pollGenerationStatus(jobId, (status) => {
+        setProgress(status.progress);
+        setCurrentStep(status.currentStep);
+      });
+
+      setResult(assets);
+    } catch (error) {
+      console.error('Branding generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">
+        Tạo Branding tự động với AI
+      </h1>
+
+      {!isGenerating && !result && (
+        <Card className="p-8">
+          <ImageUploadZone onUpload={handleUpload} />
+          <p className="mt-4 text-muted-foreground text-center">
+            Upload logo hoặc ảnh đại diện. AI sẽ tạo 10+ marketing assets trong ~5 phút.
+          </p>
+        </Card>
+      )}
+
+      {isGenerating && (
+        <Card className="p-8">
+          <div className="space-y-4">
+            <Progress value={progress} className="w-full" />
+            <p className="text-center font-medium">{currentStep}</p>
+            <p className="text-center text-sm text-muted-foreground">
+              {progress}% hoàn thành
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {result && (
+        <div className="space-y-8">
+          <Card className="p-8">
+            <h2 className="text-2xl font-semibold mb-4">Asset Preview</h2>
+            <BrandingAssetPreview assets={result} />
+          </Card>
+          <div className="flex gap-4">
+            <Button onClick={() => applyBranding(result)}>
+              Áp dụng Branding
+            </Button>
+            <Button variant="outline" onClick={() => setResult(null)}>
+              Tạo lại
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+async function pollGenerationStatus(
+  jobId: string,
+  onProgress: (status: BrandingGenerationJob) => void
+): Promise<BrandingAssets> {
+  const maxAttempts = 60; // 5 minutes (5s interval)
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    const response = await fetch(`/api/branding/status/${jobId}`);
+    const status: BrandingGenerationJob = await response.json();
+
+    onProgress(status);
+
+    if (status.status === 'completed' && status.assets) {
+      return status.assets;
+    }
+
+    if (status.status === 'failed') {
+      throw new Error(status.error || 'Generation failed');
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    attempts++;
+  }
+
+  throw new Error('Generation timeout');
+}
+```
+
+## Performance: Asset Caching
+
+```typescript
+// src/lib/branding-cache.ts
+const BRANDING_CACHE_KEY = 'kiteclass:branding_assets';
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export function getCachedBrandingAssets(): BrandingAssets | null {
+  try {
+    const cached = localStorage.getItem(BRANDING_CACHE_KEY);
+    if (!cached) return null;
+
+    const { assets, timestamp } = JSON.parse(cached);
+
+    // Check expiration
+    if (Date.now() - timestamp > CACHE_TTL) {
+      localStorage.removeItem(BRANDING_CACHE_KEY);
+      return null;
+    }
+
+    // Validate all URLs before returning
+    if (!validateBrandingAssets(assets)) {
+      console.warn('Cached assets failed validation');
+      localStorage.removeItem(BRANDING_CACHE_KEY);
+      return null;
+    }
+
+    return assets;
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedBrandingAssets(assets: BrandingAssets): void {
+  try {
+    localStorage.setItem(
+      BRANDING_CACHE_KEY,
+      JSON.stringify({
+        assets,
+        timestamp: Date.now(),
+      })
+    );
+  } catch (error) {
+    console.warn('Failed to cache branding assets:', error);
+  }
+}
+```
+
+## Testing AI-Generated Content
+
+```typescript
+// src/__tests__/lib/asset-validation.test.ts
+import { describe, it, expect } from 'vitest';
+import { isValidAssetUrl, validateBrandingAssets } from '@/lib/asset-validation';
+
+describe('Asset URL Validation', () => {
+  it('accepts valid CDN URLs', () => {
+    expect(isValidAssetUrl('https://cdn.kiteclass.com/banner.jpg')).toBe(true);
+    expect(isValidAssetUrl('https://r2.cloudflare.com/assets/logo.png')).toBe(true);
+  });
+
+  it('rejects HTTP (not HTTPS)', () => {
+    expect(isValidAssetUrl('http://cdn.kiteclass.com/banner.jpg')).toBe(false);
+  });
+
+  it('rejects untrusted domains', () => {
+    expect(isValidAssetUrl('https://evil.com/malicious.jpg')).toBe(false);
+  });
+
+  it('validates complete BrandingAssets object', () => {
+    const validAssets: BrandingAssets = {
+      heroBanner: 'https://cdn.kiteclass.com/hero.jpg',
+      profileImages: {
+        cutout: 'https://cdn.kiteclass.com/cutout.png',
+        circle: 'https://cdn.kiteclass.com/circle.png',
+        square: 'https://cdn.kiteclass.com/square.png',
+      },
+      // ... all other fields with valid URLs
+    };
+
+    expect(validateBrandingAssets(validAssets)).toBe(true);
+  });
+});
+```
+
+## Best Practices
+
+### ✅ DO
+- Validate all asset URLs before rendering
+- Use Next.js Image component for optimization
+- Cache assets in localStorage (7-day TTL)
+- Preload hero banner for better LCP
+- Lazy load section banners
+- Show loading states during generation
+- Poll generation status with timeout
+
+### ❌ DON'T
+- Don't trust asset URLs without validation
+- Don't render images without alt text
+- Don't skip optimization for AI-generated images
+- Don't cache failed/invalid assets
+- Don't block UI during asset generation
+- Don't forget to handle generation errors
+
+---
+
+# PART 14: Guest User & Public Routes
+
+## Public vs Authenticated Routes
+
+KiteClass có 2 loại routes:
+1. **Public routes**: Landing page, pricing, features (không cần auth)
+2. **Authenticated routes**: Dashboard, classes, students (cần login)
+
+## Route Structure
+
+```typescript
+// App Router structure
+src/app/
+├── (public)/              # Public group (no auth required)
+│   ├── page.tsx           # Landing page
+│   ├── pricing/page.tsx   # Pricing page
+│   ├── features/page.tsx  # Features showcase
+│   └── contact/page.tsx   # Contact form
+│
+├── (auth)/                # Auth group (login/register)
+│   ├── login/page.tsx
+│   ├── register/page.tsx
+│   └── forgot-password/page.tsx
+│
+└── (authenticated)/       # Protected group (requires auth)
+    ├── dashboard/page.tsx
+    ├── classes/page.tsx
+    ├── students/page.tsx
+    └── ...
+```
+
+## Authentication Middleware
+
+```typescript
+// src/middleware.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Public routes - allow without auth
+  const publicRoutes = ['/', '/pricing', '/features', '/contact'];
+  const authRoutes = ['/login', '/register', '/forgot-password'];
+
+  if (publicRoutes.includes(pathname) || authRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Protected routes - check for auth token
+  const token = request.cookies.get('auth_token')?.value;
+
+  if (!token) {
+    // Redirect to login with return URL
+    const url = new URL('/login', request.url);
+    url.searchParams.set('returnUrl', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico (favicon)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};
+```
+
+## Guest User Types
+
+```typescript
+// src/types/user.ts
+export type UserRole =
+  | 'CENTER_OWNER'
+  | 'CENTER_ADMIN'
+  | 'TEACHER'
+  | 'STUDENT'
+  | 'PARENT'
+  | 'GUEST'; // NEW
+
+export type AccountType =
+  | 'TRIAL'      // 14-day trial (full features, limited students)
+  | 'FREE'       // Free tier (limited features)
+  | 'PAID';      // Paid subscription
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  accountType: AccountType;
+
+  // Trial-specific fields
+  trialStartedAt?: Date;
+  trialExpiresAt?: Date;
+  isTrialExpired?: boolean;
+
+  // Limitations
+  limitations?: {
+    maxStudents?: number;
+    maxCourses?: number;
+    allowedFeatures?: string[];
+  };
+}
+
+export interface GuestSession {
+  sessionId: string;
+  createdAt: Date;
+  expiresAt: Date;
+  viewedCourses: string[];
+  source?: string; // 'landing_page', 'social_media', etc.
+}
+```
+
+## Public Landing Page
+
+```typescript
+// src/app/(public)/page.tsx
+import { BrandedHero } from '@/components/branding/BrandedHero';
+import { FeatureShowcase } from '@/components/landing/FeatureShowcase';
+import { PricingSection } from '@/components/landing/PricingSection';
+import { CTASection } from '@/components/landing/CTASection';
+
+export default function LandingPage() {
+  return (
+    <main>
+      <BrandedHero />
+      <FeatureShowcase />
+      <PricingSection />
+      <CTASection />
+    </main>
+  );
+}
+
+// SEO metadata
+export const metadata = {
+  title: 'KiteClass - Quản lý trung tâm thông minh',
+  description: 'Quản lý lớp học, học viên, điểm danh, học phí với AI Marketing',
+  openGraph: {
+    title: 'KiteClass Platform',
+    description: 'Quản lý trung tâm toàn diện với AI',
+    images: ['/og-image.jpg'],
+  },
+};
+```
+
+## Trial Signup Flow
+
+```typescript
+// src/components/trial/TrialSignupButton.tsx
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { TrialSignupForm } from './TrialSignupForm';
+
+export function TrialSignupButton() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button size="lg" onClick={() => setIsOpen(true)}>
+        Dùng thử miễn phí 14 ngày
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-md">
+          <TrialSignupForm onSuccess={() => {
+            // Redirect to trial dashboard
+            window.location.href = '/dashboard?trial=true';
+          }} />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// src/components/trial/TrialSignupForm.tsx
+export function TrialSignupForm({ onSuccess }: { onSuccess: () => void }) {
+  const handleSubmit = async (data: TrialSignupData) => {
+    try {
+      const response = await fetch('/api/auth/trial-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error('Signup failed');
+
+      const { user, token } = await response.json();
+
+      // Store auth token
+      document.cookie = `auth_token=${token}; path=/; max-age=604800`; // 7 days
+
+      onSuccess();
+    } catch (error) {
+      console.error('Trial signup error:', error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2 className="text-2xl font-bold mb-4">Bắt đầu dùng thử</h2>
+      <p className="text-muted-foreground mb-6">
+        Trải nghiệm đầy đủ tính năng trong 14 ngày, không cần thẻ tín dụng.
+      </p>
+
+      <Input
+        name="organizationName"
+        label="Tên trung tâm"
+        required
+      />
+      <Input
+        name="name"
+        label="Họ và tên"
+        required
+      />
+      <Input
+        name="email"
+        type="email"
+        label="Email"
+        required
+      />
+      <Input
+        name="phone"
+        type="tel"
+        label="Số điện thoại"
+        required
+      />
+
+      <Button type="submit" className="w-full">
+        Bắt đầu dùng thử
+      </Button>
+
+      <p className="mt-4 text-xs text-muted-foreground text-center">
+        Bằng cách đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.
+      </p>
+    </form>
+  );
+}
+```
+
+## Trial Expiration Handling
+
+```typescript
+// src/components/trial/TrialExpirationBanner.tsx
+import { useAuth } from '@/providers/AuthProvider';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { differenceInDays } from 'date-fns';
+
+export function TrialExpirationBanner() {
+  const { user } = useAuth();
+
+  if (!user || user.accountType !== 'TRIAL' || !user.trialExpiresAt) {
+    return null;
+  }
+
+  const daysLeft = differenceInDays(new Date(user.trialExpiresAt), new Date());
+
+  // Trial expired
+  if (daysLeft <= 0) {
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertTitle>Thời gian dùng thử đã hết</AlertTitle>
+        <AlertDescription className="flex items-center justify-between">
+          <span>Nâng cấp lên gói trả phí để tiếp tục sử dụng.</span>
+          <Button onClick={() => window.location.href = '/upgrade'}>
+            Nâng cấp ngay
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // 3 days or less remaining
+  if (daysLeft <= 3) {
+    return (
+      <Alert variant="warning" className="mb-4">
+        <AlertTitle>Thời gian dùng thử còn {daysLeft} ngày</AlertTitle>
+        <AlertDescription className="flex items-center justify-between">
+          <span>Nâng cấp ngay để không bị gián đoạn dịch vụ.</span>
+          <Button variant="outline" onClick={() => window.location.href = '/pricing'}>
+            Xem gói
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return null;
+}
+```
+
+## Guest Analytics
+
+```typescript
+// src/lib/analytics/guest-tracking.ts
+
+/**
+ * Track guest user behavior (anonymous)
+ */
+export function trackGuestAction(action: string, metadata?: Record<string, unknown>) {
+  // Get or create guest session
+  const sessionId = getOrCreateGuestSession();
+
+  // Send to analytics
+  fetch('/api/analytics/guest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sessionId,
+      action,
+      metadata,
+      timestamp: new Date().toISOString(),
+      page: window.location.pathname,
+      referrer: document.referrer,
+    }),
+  }).catch(err => console.warn('Analytics tracking failed:', err));
+}
+
+function getOrCreateGuestSession(): string {
+  const GUEST_SESSION_KEY = 'kiteclass:guest_session';
+
+  let session = localStorage.getItem(GUEST_SESSION_KEY);
+
+  if (!session) {
+    session = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem(GUEST_SESSION_KEY, session);
+  }
+
+  return session;
+}
+
+// Usage examples
+trackGuestAction('view_pricing');
+trackGuestAction('click_trial_button');
+trackGuestAction('view_course', { courseId: '123' });
+```
+
+## Testing Public Routes
+
+```typescript
+// src/__tests__/pages/public-landing.test.tsx
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import LandingPage from '@/app/(public)/page';
+
+describe('Public Landing Page', () => {
+  it('renders without authentication', () => {
+    render(<LandingPage />);
+
+    expect(screen.getByText(/Dùng thử miễn phí/i)).toBeInTheDocument();
+    expect(screen.getByText(/Xem demo/i)).toBeInTheDocument();
+  });
+
+  it('shows trial signup button', () => {
+    render(<LandingPage />);
+
+    const trialButton = screen.getByRole('button', { name: /Dùng thử miễn phí 14 ngày/i });
+    expect(trialButton).toBeInTheDocument();
+  });
+
+  it('has proper SEO metadata', () => {
+    // Verify metadata is exported
+    expect(metadata.title).toBe('KiteClass - Quản lý trung tâm thông minh');
+    expect(metadata.openGraph?.images).toBeDefined();
+  });
+});
+```
+
+## Best Practices
+
+### ✅ DO
+- Use route groups to organize public vs authenticated pages
+- Implement middleware for auth checking
+- Show trial expiration warnings 3+ days before
+- Track guest behavior for conversion optimization
+- Provide clear CTAs for trial signup
+- Handle trial expiration gracefully
+- Use SSR for public pages (SEO)
+
+### ❌ DON'T
+- Don't show authenticated content to guests
+- Don't require payment info for trials
+- Don't expire trials without warning
+- Don't lose guest progress on signup
+- Don't forget GDPR compliance for guest tracking
+- Don't skip loading states on auth check
+
+---
+
+## Summary
+
+**Frontend Code Quality đã cover:**
+1. ✅ TypeScript strict mode & type safety (PART 1)
+2. ✅ React best practices (PART 2)
+3. ✅ Testing requirements (PART 3)
+4. ✅ Performance & a11y (PARTS 5-6)
+5. ✅ Security best practices (PART 7)
+6. ✅ Multi-tenant theme system (PART 11)
+7. ✅ Feature flag system & tier-based UI (PART 12)
+8. ✅ AI-generated content integration (PART 13)
+9. ✅ Guest user & public routes (PART 14)
+
+**Tất cả requirements từ 4 architecture concerns đã được addressed:**
+- ✅ Pricing tier UI customization → PART 12
+- ✅ AI Branding system → PART 13
+- ✅ Guest user support & marketing platform → PART 14
+- ⚠️ Preview Website → Still undefined in architecture
