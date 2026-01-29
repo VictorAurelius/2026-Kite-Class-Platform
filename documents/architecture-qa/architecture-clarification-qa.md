@@ -10,7 +10,7 @@
 
 ## 1.1. Feature Detection Mechanism
 
-### Q1.1.1: Feature Detection API Endpoint
+### Q1.1.1: Feature Detection API Endpoint ✅ ANSWERED
 **Câu hỏi:** Backend sẽ cung cấp endpoint nào để frontend query available features?
 
 **Đề xuất:**
@@ -21,9 +21,11 @@ GET /api/v1/subscription/status
 ```
 
 **Vui lòng chọn hoặc đề xuất endpoint khác:**
-- [ ] `/api/v1/instance/config` (Recommended)
+- [x] `/api/v1/instance/config` (Recommended)
 - [ ] `/api/v1/instance/features`
 - [ ] Khác: _____________________
+
+**Answer:** Sử dụng best practice: `/api/v1/instance/config`
 
 **Response format mong muốn:**
 ```json
@@ -31,6 +33,7 @@ GET /api/v1/subscription/status
   "instanceId": "abc-academy-001",
   "tier": "STANDARD",
   "addOns": ["ENGAGEMENT"],
+  "services": ["user-gateway", "core", "engagement", "frontend"],
   "features": {
     "classManagement": true,
     "studentManagement": true,
@@ -48,17 +51,24 @@ GET /api/v1/subscription/status
     "maxCourses": null,
     "videoStorageGB": 0,
     "maxConcurrentStreams": 0
+  },
+  "owner": {
+    "id": "owner-uuid-123",
+    "name": "Nguyễn Văn A",
+    "email": "owner@example.com"
   }
 }
 ```
 
 **Response format này có OK không?**
-- [ ] OK, implement đúng như vậy
+- [x] OK, implement đúng như vậy
 - [ ] Cần điều chỉnh: _____________________
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6B.1
 
 ---
 
-### Q1.1.2: Feature Detection Caching
+### Q1.1.2: Feature Detection Caching ✅ ANSWERED
 **Câu hỏi:** Feature flags có thay đổi trong runtime không? Frontend có cần poll để update không?
 
 **Scenarios:**
@@ -70,23 +80,34 @@ GET /api/v1/subscription/status
 
 **Feature flags có thể thay đổi khi user đang online không?**
 - [ ] CÓ - Frontend cần poll hoặc WebSocket để update real-time
-- [ ] KHÔNG - Chỉ update khi user login lại
+- [x] KHÔNG - Chỉ update khi user login lại
+
+**Answer:** User muốn upgrade → Vào KiteHub portal → Thực hiện thay đổi → User login lại instance. Đây là best practice (centralized management).
+
+**Rationale:**
+- ✅ Tập trung billing/subscription quản lý tại KiteHub
+- ✅ Audit trail cho mọi config changes
+- ✅ Security: Instance users không access billing APIs
+- ✅ Simplify frontend: No polling, no WebSocket
+- ✅ Consistent UX: Features không suddenly appear/disappear
 
 **Nếu CÓ thay đổi runtime:**
 **Cơ chế notification nào sẽ dùng?**
 - [ ] Frontend poll mỗi 5 phút
 - [ ] WebSocket push notification từ backend
 - [ ] Server-Sent Events (SSE)
-- [ ] Không cần real-time, user sẽ refresh page
+- [x] Không cần real-time, user sẽ refresh page
 
 **Cache TTL bao lâu?**
-- [ ] 1 giờ (Recommended)
+- [x] 1 giờ (Recommended)
 - [ ] 24 giờ
 - [ ] Khác: _____ giờ
 
+**Updated in:** system-architecture-v3-final.md PHẦN 6B.1 (Caching Strategy)
+
 ---
 
-### Q1.1.3: Feature Lock Behavior
+### Q1.1.3: Feature Lock Behavior ✅ ANSWERED
 **Câu hỏi:** Khi user access feature bị lock (ví dụ: BASIC tier click vào Gamification), hành vi nào mong muốn?
 
 **Option A: Hard Block (Recommended)**
@@ -115,35 +136,67 @@ User không thấy menu "Game hóa"
 
 **Vui lòng chọn:**
 - [ ] Option A: Hard Block (redirect to /upgrade)
-- [ ] Option B: Soft Block (modal with preview)
+- [x] Option B: Soft Block (modal with preview)
 - [ ] Option C: Hide completely (no menu item)
 - [ ] Khác: _____________________
 
+**Answer:** Option B - Soft Block với Preview
+
+**Rationale:**
+- ✅ Better conversion (show value before upgrade)
+- ✅ Educate users about features
+- ✅ Friendly UX (not frustrating)
+- ✅ Can showcase feature screenshots
+
+**Modal Structure:**
+```
+🔒 Tính năng X chỉ có trên gói Y
+📸 Preview screenshot (600x400px)
+✨ Benefits (3-5 bullet points)
+💰 Gói Y: [Price]/tháng
+
+[Nâng cấp ngay] [Xem chi tiết] [Đóng]
+```
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6B.3
+
 ---
 
-### Q1.1.4: Resource Limit Warnings
+### Q1.1.4: Resource Limit Warnings ✅ ANSWERED
 **Câu hỏi:** Khi nào hiển thị warning về giới hạn tài nguyên?
 
 **Ví dụ:** STANDARD tier có limit 200 học viên
 
 **Warning thresholds:**
-- [ ] 80% capacity (160/200 students) → Warning banner
-- [ ] 90% capacity (180/200 students) → Warning banner + email
-- [ ] 100% capacity (200/200 students) → Block thêm học viên mới + force upgrade
+- [x] 80% capacity (160/200 students) → Warning banner
+- [x] 90% capacity (180/200 students) → Warning banner + email
+- [x] 100% capacity (200/200 students) → Block thêm học viên mới + force upgrade
+
+**Answer:** Sử dụng best practice - 3-tier warning system
+
+**Thresholds:**
+| Capacity | UI Display | Action |
+|----------|------------|--------|
+| < 80% | No warning | Normal operation |
+| 80-89% | ⚠️ Yellow banner | "Sắp đạt giới hạn (160/200)" |
+| 90-99% | 🟠 Orange alert | "Gần đạt giới hạn (180/200). Nâng cấp ngay." |
+| 100% | 🔴 Red block | "Đã đạt giới hạn 200 học viên" + Disable button |
 
 **UI Behavior khi đạt 100% limit:**
-- [ ] Disable "Thêm học viên" button
+- [x] Disable "Thêm học viên" button
 - [ ] Show "Thêm học viên" button nhưng click → upgrade modal
 - [ ] Cho phép exceed limit 5% (grace period)
 - [ ] Khác: _____________________
 
 **Email notification khi đạt limit?**
-- [ ] CÓ - Gửi email tự động cho CENTER_OWNER
+- [x] CÓ - Gửi email tự động cho CENTER_OWNER (at 90% and 100%)
 - [ ] KHÔNG - Chỉ show UI warning
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6B.2 (Resource Limit Warnings)
 
 ---
 
-### Q1.1.5: Tier Upgrade Flow
+### Q1.1.5: Tier Upgrade Flow ✅ ANSWERED
 **Câu hỏi:** Khi user click "Nâng cấp gói", flow như thế nào?
 
 **Option A: Instant Upgrade (Online Payment)**
@@ -178,55 +231,109 @@ Add-ons: Instant (online payment)
 - [ ] Option A: Instant upgrade với online payment
 - [ ] Option B: Request-based với sales involvement
 - [ ] Option C: Hybrid (tier nhỏ instant, tier lớn sales)
-- [ ] Khác: _____________________
+- [x] Khác: Role-based redirect (Best Practice)
+
+**Answer:** Tùy theo actor role:
+
+**Case 1: CENTER_OWNER clicks locked feature**
+```
+Show Soft Block Modal
+  ↓
+Click "Nâng cấp ngay"
+  ↓
+Redirect to KiteHub Portal: https://kiteclass.com/portal/upgrade?instance={id}
+  ↓
+KiteHub: Select tier → Payment → Provision
+  ↓
+Success → Redirect back to instance
+  ↓
+User login lại → New features available
+```
+
+**Case 2: Non-Owner (ADMIN/TEACHER/STUDENT) clicks locked feature**
+```
+Show Contact Owner Modal
+  ↓
+Display: "Liên hệ [Owner Name]"
+         📧 owner@example.com
+         📱 0123456789
+  ↓
+Click "Gửi yêu cầu qua email"
+  ↓
+Backend sends notification to OWNER
+  ↓
+Show success: "Đã gửi yêu cầu đến Center Owner"
+```
+
+**Architecture Principle:**
+Mọi thao tác thay đổi cấu hình instance phải thông qua KiteHub (centralized management). Đây là best practice.
 
 **Nếu Option A, payment gateway nào?**
-- [ ] VNPay
-- [ ] MoMo
+- [x] VNPay (primary for Vietnam)
+- [x] MoMo
 - [ ] ZaloPay
 - [ ] Stripe (international)
 - [ ] Tất cả
+
+**Note:** Payment gateway implementation in PR 3.7+ (future)
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6B.2 (Tier Upgrade Flow)
 
 ---
 
 ## 1.2. Tier-Specific UI Differences
 
-### Q1.2.1: UI Customization Level
+### Q1.2.1: UI Customization Level ✅ ANSWERED
 **Câu hỏi:** Ngoài feature availability, có điểm khác biệt UI nào giữa các tier không?
 
 **Ví dụ potential differences:**
 
 | Feature | BASIC | STANDARD | PREMIUM |
 |---------|-------|----------|---------|
-| Logo branding | ❌ KiteClass logo | ✅ Custom logo | ✅ Custom logo |
-| Theme colors | ❌ Default only | ❌ Default only | ✅ Custom colors |
-| Remove "Powered by KiteClass" | ❌ | ❌ | ✅ |
+| Logo branding | ✅ Custom logo | ✅ Custom logo | ✅ Custom logo |
+| Theme colors | ✅ Custom colors | ✅ Custom colors | ✅ Custom colors |
+| Remove "Powered by KiteClass" | ❌ | ❌ | ❌ |
 | Custom domain | ❌ | ❌ | ✅ |
 | Priority support badge | ❌ | ❌ | ✅ |
 
 **Vui lòng xác nhận:**
 
 **BASIC tier có được custom logo không?**
-- [ ] CÓ - Tất cả tier đều có custom logo
+- [x] CÓ - Tất cả tier đều có custom logo
 - [ ] KHÔNG - Chỉ STANDARD và PREMIUM
 
 **BASIC tier có được custom theme colors không?**
-- [ ] CÓ - Tất cả tier đều custom được
+- [x] CÓ - Tất cả tier đều custom được
 - [ ] KHÔNG - Chỉ PREMIUM mới custom được
 - [ ] KHÔNG - Tất cả tier đều dùng AI-generated branding
 
+**Answer:** Tất cả tier đều có AI-generated branding (logo, colors, banners). Philosophy: "Cung cấp đủ feature cho người giàu" - Equal features, differentiate by scale/support only.
+
 **Có watermark "Powered by KiteClass" không?**
 - [ ] CÓ - Hiện trên BASIC và STANDARD, PREMIUM thì remove được
-- [ ] CÓ - Hiện trên tất cả tier
+- [x] CÓ - Hiện trên tất cả tier
 - [ ] KHÔNG - Không có watermark
 
+**Answer:** Tất cả tier đều có watermark "Powered by KiteClass" ở footer. Purpose: Brand awareness, free marketing.
+
 **PREMIUM có được custom subdomain không?**
-- [ ] CÓ - Ví dụ: custom-domain.com thay vì abc-academy.kiteclass.com
+- [x] CÓ - Ví dụ: custom-domain.com thay vì abc-academy.kiteclass.com
 - [ ] KHÔNG - Tất cả dùng *.kiteclass.com
+
+**Answer:** PREMIUM tier có thể custom domain (e.g., abc-academy.com thay vì abc-academy.kiteclass.com). Implementation: DNS CNAME + SSL auto-provision + Nginx reverse proxy. Effort: 2-3 weeks.
+
+**Rationale:**
+- ✅ Equal UX: All customers get beautiful, professional branding
+- ✅ Competitive advantage: Even cheapest tier looks premium
+- ✅ Lower barriers: Customers don't feel "poor" on basic tier
+- ✅ Simpler codebase: Same UI components for all tiers
+- ✅ Marketing: Watermark on all tiers → brand awareness
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.1
 
 ---
 
-### Q1.2.2: Analytics & Reporting Access
+### Q1.2.2: Analytics & Reporting Access ✅ ANSWERED
 **Câu hỏi:** Analytics features có khác nhau giữa các tier không?
 
 **Đề xuất differentiation:**
@@ -234,15 +341,33 @@ Add-ons: Instant (online payment)
 | Feature | BASIC | STANDARD | PREMIUM |
 |---------|-------|----------|---------|
 | Basic reports (điểm danh, học phí) | ✅ | ✅ | ✅ |
-| Advanced analytics dashboard | ❌ | ✅ | ✅ |
-| Export to Excel | ❌ | ✅ | ✅ |
-| Custom reports | ❌ | ❌ | ✅ |
-| API access | ❌ | ❌ | ✅ |
+| Advanced analytics dashboard | ✅ | ✅ | ✅ |
+| Export to Excel | ✅ | ✅ | ✅ |
+| Custom reports | ✅ | ✅ | ✅ |
+| API access | ✅ | ✅ | ✅ |
 
 **Có implement tier-based analytics không?**
 - [ ] CÓ - Implement theo bảng trên
 - [ ] CÓ - Nhưng khác: _____________________
-- [ ] KHÔNG - Tất cả tier có full analytics
+- [x] KHÔNG - Tất cả tier có full analytics
+
+**Answer:** Tất cả tier có đầy đủ analytics và reporting features. No differentiation.
+
+**Rationale:**
+- ✅ Philosophy: "Cung cấp đủ feature cho người giàu"
+- ✅ Better UX: No frustration from missing features
+- ✅ Data-driven decisions: All customers can analyze their business
+- ✅ Simpler code: No conditional rendering for analytics
+- ✅ Differentiation by scale: BASIC (≤50 students) vs PREMIUM (unlimited)
+
+**Tier differentiation is by:**
+1. **Scale/Limits:** Max students, storage, concurrent streams
+2. **Support:** PREMIUM gets priority support
+3. **Infrastructure:** Custom domain (PREMIUM only)
+
+**NOT by features:** All customers get same features, same UX quality
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.1 (Equal Features Philosophy)
 
 ---
 
@@ -250,18 +375,41 @@ Add-ons: Instant (online payment)
 
 ## 2.1. AI Branding Workflow
 
-### Q2.1.1: Who Can Upload Branding?
+### Q2.1.1: Who Can Upload Branding? ✅ ANSWERED
 **Câu hỏi:** Ai có quyền upload ảnh để generate branding?
 
 **Vui lòng chọn:**
 - [ ] CENTER_OWNER only
-- [ ] CENTER_OWNER và CENTER_ADMIN
+- [x] CENTER_OWNER và CENTER_ADMIN
 - [ ] Tất cả roles (TEACHER cũng được)
 - [ ] Chỉ KiteHub Admin (customer không tự upload được)
 
+**Answer:** CENTER_OWNER và CENTER_ADMIN có quyền upload branding.
+
+**Approval Workflow:**
+```
+Step 1: CENTER_ADMIN uploads logo → AI generates assets → Save to DRAFT storage
+Step 2: CENTER_ADMIN previews → Manual override if needed
+Step 3: CENTER_ADMIN submits for approval
+Step 4: CENTER_OWNER reviews draft → Approve or reject
+Step 5: If approved → Publish to PRODUCTION storage → Apply to instance
+```
+
+**Rationale:**
+- ✅ Delegation: OWNER can delegate branding work to ADMIN
+- ✅ Quality control: OWNER has final approval before publish
+- ✅ Separation: Draft (experimentation) vs Published (production)
+- ✅ Security: TEACHER/STUDENT cannot change branding
+
+**Storage Tiers:**
+- **Draft:** /kitehub/users/{userId}/branding-drafts/ (30-day TTL)
+- **Published:** /instances/{instanceId}/branding/ (permanent, versioned)
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Approval Workflow)
+
 ---
 
-### Q2.1.2: Re-generation Policy
+### Q2.1.2: Re-generation Policy ✅ ANSWERED
 **Câu hỏi:** Customer có thể generate lại branding bao nhiêu lần?
 
 **Scenarios:**
@@ -293,11 +441,44 @@ Add-ons: Instant (online payment)
 - [ ] Option B: 1 free/tháng, $5 cho lần sau
 - [ ] Option C: Tier-based limits
 - [ ] Option D: One-time only
-- [ ] Khác: _____________________
+- [x] Khác: Hybrid - AI + Manual Override (Best Practice)
+
+**Answer:** Hybrid approach - Unlimited AI generation với manual override.
+
+**Implementation:**
+```
+1. Initial AI Generation: Free, unlimited iterations
+   - Upload logo → Generate 10+ assets
+   - Don't like? Upload new logo → Re-generate
+   - Cost: ~$0.10/generation (acceptable)
+
+2. Manual Override: Free, unlimited edits
+   - AI generated headline: "Học viện ABC - Nơi ươm mầm tài năng"
+   - Customer edit: "Học viện ABC - Khơi nguồn tri thức"
+   - Change colors, adjust text, reposition logo
+   - Cost: $0 (no AI call)
+
+3. Hybrid Workflow:
+   - Generate with AI → Preview → Manual tweaks → Publish
+   - New logo → Re-generate → Keep manual overrides if possible
+```
+
+**Rationale:**
+- ✅ Best UX: No generation limits = no frustration
+- ✅ Cost-effective: $0.10/generation is negligible (~1-5 generations typical)
+- ✅ Flexibility: Manual override for fine-tuning without re-generation
+- ✅ Quality: Customer can iterate until satisfied
+- ✅ Competitive advantage: Most platforms charge per generation
+
+**Edge Case Prevention:**
+- Rate limit: Max 10 generations/hour (prevent abuse/accidents)
+- Warning at 5th generation: "Bạn đã generate 5 lần, cân nhắc dùng Manual Edit"
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Hybrid Re-generation Policy)
 
 ---
 
-### Q2.1.3: Manual Override
+### Q2.1.3: Manual Override ✅ ANSWERED
 **Câu hỏi:** Customer có thể manual edit AI-generated assets không?
 
 **Ví dụ:**
@@ -307,81 +488,225 @@ Add-ons: Instant (online payment)
 **Manual override options:**
 
 **Text Content (headlines, CTAs):**
-- [ ] CÓ - Customer tự edit text trong admin panel
+- [x] CÓ - Customer tự edit text trong admin panel
 - [ ] KHÔNG - Phải dùng text do AI generate
 
 **Logo Position/Size:**
-- [ ] CÓ - Customer adjust position, scale
+- [x] CÓ - Customer adjust position, scale
 - [ ] KHÔNG - Fixed layout
 
 **Colors:**
-- [ ] CÓ - Customer override primary/secondary colors
+- [x] CÓ - Customer override primary/secondary colors
 - [ ] KHÔNG - Phải dùng colors do AI extract
 
 **Images:**
-- [ ] CÓ - Customer upload custom hero banner (không dùng AI)
+- [x] CÓ - Customer upload custom hero banner (không dùng AI)
 - [ ] KHÔNG - Chỉ dùng AI-generated banners
+
+**Answer:** TẤT CẢ assets đều có thể manual override. 100% flexibility.
+
+**Manual Override UI:**
+```typescript
+interface BrandingAsset {
+  id: string
+  type: 'hero' | 'section-banner' | 'logo' | 'og-image' | 'text'
+
+  // AI-generated (original)
+  aiGenerated: {
+    url?: string          // For images
+    text?: string         // For text content
+    colors?: ColorScheme
+    position?: Layout
+  }
+
+  // Manual overrides (optional)
+  manualOverride?: {
+    url?: string          // Upload custom image
+    text?: string         // Edit text
+    colors?: ColorScheme  // Change colors
+    position?: Layout     // Adjust layout
+  }
+
+  // Active (what's actually displayed)
+  active: 'ai' | 'manual'
+}
+```
+
+**Example Workflow:**
+```
+1. AI generates hero banner with headline: "Học viện ABC - Ươm mầm tài năng"
+2. Customer clicks "Edit Text" → Input: "Khơi nguồn tri thức"
+3. Preview shows manual version
+4. Customer clicks "Apply" → manualOverride.text saved
+5. Customer can "Revert to AI" anytime
+```
+
+**Rationale:**
+- ✅ Best practice: AI as starting point, human as final polish
+- ✅ Flexibility: Some customers want full control
+- ✅ Quality: Human judgment > AI for nuanced branding
+- ✅ Edge cases: AI might generate inappropriate content (rare)
+- ✅ Branding consistency: Customer can align with existing brand guidelines
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Manual Override System)
 
 ---
 
-### Q2.1.4: Asset Storage & CDN
+### Q2.1.4: Asset Storage & CDN ✅ ANSWERED
 **Câu hỏi:** AI-generated assets sẽ store ở đâu?
 
 **Vui lòng chọn:**
 - [ ] AWS S3 + CloudFront CDN
-- [ ] Cloudflare R2 + CDN
+- [x] Cloudflare R2 + CDN
 - [ ] Local server storage (không dùng CDN)
 - [ ] Khác: _____________________
 
+**Answer:** Cloudflare R2 + CDN (Best Practice)
+
+**2-Tier Storage Architecture:**
+
+**Tier 1: Draft Storage (Experimentation)**
+```
+Location: /kitehub/users/{userId}/branding-drafts/
+Purpose: AI generation iterations, manual edits
+Retention: 30 days after last update
+Access: CENTER_ADMIN + CENTER_OWNER only
+CDN: No (draft content doesn't need CDN)
+```
+
+**Tier 2: Published Storage (Production)**
+```
+Location: /instances/{instanceId}/branding/
+Purpose: Live branding assets on instance
+Retention: Forever (with versioning)
+Access: Public CDN
+CDN: Yes (Cloudflare global CDN)
+Versioning: v1, v2, v3 (rollback capability)
+```
+
 **Asset retention policy:**
-- [ ] Keep forever (không xóa)
+- [x] Keep forever (không xóa)
 - [ ] Keep 1 năm, sau đó archive
 - [ ] Delete khi customer churn
 
+**Answer:** Published assets keep forever với versioning. Draft assets TTL 30 days.
+
+**Rationale:**
+- ✅ Rollback: Customer can revert to previous branding version
+- ✅ Audit: Track branding history
+- ✅ No data loss: Even after churn, assets preserved (potential comeback)
+
 **Quota per instance:**
-- [ ] No limit
+- [x] No limit
 - [ ] 1GB storage
 - [ ] 5GB storage
 - [ ] Khác: _____ GB
 
+**Answer:** No hard limit. Typical usage: 10-20 assets × 200KB = 2-4MB total.
+
+**Rationale:**
+- ✅ Cost-effective: R2 storage is $0.015/GB/month → $0.0001/instance
+- ✅ No surprises: Customers won't hit quota limits
+- ✅ Simpler UX: No "storage full" errors
+
+**Soft Limit:** 100MB per instance (alert if exceeded, likely indicates issue)
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (2-Tier Storage Architecture)
+
 ---
 
-### Q2.1.5: Asset Quality Settings
+### Q2.1.5: Asset Quality Settings ✅ ANSWERED
 **Câu hỏi:** Quality settings cho AI-generated images?
 
 **Hero Banner (1920x600):**
 - [ ] High quality (300KB - 500KB, best visual)
-- [ ] Medium quality (150KB - 250KB, balanced)
+- [x] Medium quality (150KB - 250KB, balanced)
 - [ ] Low quality (< 100KB, fast load)
+
+**Answer:** Medium quality 85% WebP (200-300KB) with JPEG fallback
 
 **Profile Images (400x400):**
 - [ ] High quality (~200KB)
-- [ ] Medium quality (~100KB)
+- [x] Medium quality (~100KB)
 - [ ] Low quality (~50KB)
 
+**Answer:** Medium quality 90% WebP (50-80KB) with JPEG fallback
+
 **WebP format support:**
-- [ ] CÓ - Use WebP với fallback to JPEG
+- [x] CÓ - Use WebP với fallback to JPEG
 - [ ] KHÔNG - Chỉ dùng JPEG/PNG
+
+**Answer:** WebP + JPEG fallback (Best Practice for 2025+)
+
+**Detailed Quality Settings:**
+
+| Asset Type | Dimensions | Format | Quality | Size Range | Use Case |
+|------------|------------|--------|---------|------------|----------|
+| Hero Banner | 1920×600 | WebP | 85% | 200-300KB | Landing page hero |
+| Section Banner | 1200×400 | WebP | 85% | 150-200KB | Course sections |
+| Profile Logo | 400×400 | WebP | 90% | 50-80KB | User profile, navbar |
+| Favicon | 512×512 | PNG | 100% | 30-50KB | Browser tab icon |
+| OG Image | 1200×630 | JPEG | 85% | 150-200KB | Social media preview |
+
+**Format Strategy:**
+```html
+<picture>
+  <source srcset="hero-banner.webp" type="image/webp">
+  <source srcset="hero-banner.jpg" type="image/jpeg">
+  <img src="hero-banner.jpg" alt="Hero Banner">
+</picture>
+```
+
+**Browser Support (2025):**
+- WebP: 97%+ browsers (Chrome, Firefox, Safari, Edge)
+- JPEG fallback: 100% browsers
+
+**Rationale:**
+- ✅ Performance: WebP 25-35% smaller than JPEG at same quality
+- ✅ Visual quality: 85-90% indistinguishable from 100%
+- ✅ Page load: Hero banner loads in <500ms on 4G
+- ✅ SEO: Google Page Speed score 90+
+- ✅ Future-proof: WebP is industry standard
+
+**Compression Settings:**
+```javascript
+// Image processing pipeline
+sharp(inputBuffer)
+  .resize(1920, 600, { fit: 'cover' })
+  .webp({ quality: 85, effort: 6 })
+  .toFile('hero-banner.webp')
+
+sharp(inputBuffer)
+  .resize(1920, 600, { fit: 'cover' })
+  .jpeg({ quality: 85, progressive: true })
+  .toFile('hero-banner.jpg')
+```
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Asset Quality Standards)
 
 ---
 
 ## 2.2. AI Service Provider
 
-### Q2.2.1: Image Generation Provider
+### Q2.2.1: Image Generation Provider ✅ ANSWERED
 **Câu hỏi:** Sử dụng AI provider nào cho image generation?
 
 **Current architecture mentions Stable Diffusion XL, but confirm:**
 
 **Primary provider:**
-- [ ] Stable Diffusion XL (self-hosted)
+- [x] Stable Diffusion XL (self-hosted)
 - [ ] DALL-E 3 (OpenAI API)
 - [ ] Midjourney API
 - [ ] Stability AI API (hosted)
 - [ ] Khác: _____________________
 
+**Answer:** Stable Diffusion XL 1.0 (self-hosted) - Best Practice
+
 **Fallback provider (nếu primary fail):**
 - [ ] CÓ fallback: _____________________
-- [ ] KHÔNG fallback
+- [x] KHÔNG fallback
+
+**Answer:** No fallback. Stable Diffusion XL is reliable enough. If fails → Retry with exponential backoff.
 
 **Cost consideration:**
 - Stable Diffusion XL: ~$0.08/image (self-hosted)
@@ -389,44 +714,199 @@ Add-ons: Instant (online payment)
 - Midjourney: ~$0.07/image
 
 **Budget per generation job (10 images):**
-- [ ] < $0.50 (use cheaper options)
+- [x] < $0.50 (use cheaper options)
 - [ ] $0.50 - $1.00 (balanced)
 - [ ] > $1.00 (highest quality)
 
+**Answer:** $0.10 per complete generation (4 banner images × $0.08 = $0.32, rest are free)
+
+**Detailed Cost Breakdown:**
+```
+AI Generation Pipeline (Total: ~$0.10)
+
+1. Background Removal: U2-Net (self-hosted) = $0.00
+2. Color Extraction: Python/PIL = $0.00
+3. Text Generation: GPT-4o-mini = $0.002
+4. Hero Banner: SDXL = $0.08
+5. Section Banner 1: SDXL = $0.08  (skip if budget tight)
+6. Section Banner 2: SDXL = $0.08  (skip if budget tight)
+7. Section Banner 3: SDXL = $0.08  (skip if budget tight)
+8. Logo variants: ImageMagick = $0.00
+9. OG Image: Composite = $0.00
+
+Minimal: $0.082 (1 hero banner only)
+Standard: $0.10 (hero + 1 section banner)
+Full: $0.32 (hero + 3 section banners)
+```
+
+**Recommendation:** Standard package ($0.10) with 1 hero + 1 reusable section banner
+
+**Rationale:**
+- ✅ Cost-effective: $0.10/customer is negligible
+- ✅ Quality: SDXL produces photorealistic, professional images
+- ✅ Control: Self-hosted = no API limits, no censorship, no vendor lock-in
+- ✅ Privacy: Logo stays on our servers (vs sending to OpenAI/Midjourney)
+- ✅ Customization: Fine-tune model for education domain
+- ✅ Latency: Local inference = 20-30s vs 60s+ for external APIs
+
+**Hardware Requirements:**
+- GPU: NVIDIA A100 (40GB) or 2× RTX 4090 (24GB each)
+- Generation time: ~20-30s per image (1920×600)
+- Concurrent: 4-8 generations simultaneously
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (AI Provider Stack)
+
 ---
 
-### Q2.2.2: Background Removal Service
+### Q2.2.2: Background Removal Service ✅ ANSWERED
 **Câu hỏi:** Background removal dùng service nào?
 
 **Options:**
 - [ ] Remove.bg API ($0.09/image, highest quality)
-- [ ] U2-Net (self-hosted, free)
+- [x] U2-Net (self-hosted, free)
 - [ ] Cloudinary Remove Background
 - [ ] Khác: _____________________
 
+**Answer:** U2-Net (self-hosted) - Best Practice
+
+**Rationale:**
+- ✅ Cost: $0 vs $0.09/image (Remove.bg) = Save $0.09 × ∞ generations
+- ✅ Privacy: Logo doesn't leave our infrastructure
+- ✅ Quality: U2-Net quality is 95% as good as Remove.bg
+- ✅ Latency: Local inference ~5-10s vs 15-30s API round-trip
+- ✅ No limits: Unlimited usage, no rate limits
+
+**Quality Comparison:**
+```
+Remove.bg:  ⭐⭐⭐⭐⭐ 5/5 (best, but expensive)
+U2-Net:     ⭐⭐⭐⭐½ 4.5/5 (excellent, free)
+rembg:      ⭐⭐⭐⭐ 4/5 (good, free, easier to deploy)
+```
+
+**Implementation:**
+```python
+# U2-Net model (https://github.com/xuebinqin/U-2-Net)
+from u2net import U2NET
+import torch
+
+model = U2NET(3, 1).cuda()
+model.load_state_dict(torch.load('u2net.pth'))
+
+def remove_background(image_path):
+    # Load image
+    img = Image.open(image_path)
+
+    # Run U2-Net inference (~5-10s)
+    mask = model(img)
+
+    # Apply mask
+    result = img * mask
+
+    return result  # Transparent PNG
+```
+
+**Hardware Requirements:**
+- GPU: Any modern GPU (GTX 1080+ or equivalent)
+- VRAM: 4GB minimum
+- Processing time: 5-10s per image
+
+**Fallback:**
+If U2-Net quality insufficient for certain logos (complex backgrounds):
+- Manual review flag: "Background removal quality low"
+- Admin can manually clean up in Photoshop
+- Or use Remove.bg API as fallback ($0.09, rare cases only)
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Background Removal Pipeline)
+
 ---
 
-### Q2.2.3: Text Generation (Marketing Copy)
+### Q2.2.3: Text Generation (Marketing Copy) ✅ ANSWERED
 **Câu hỏi:** Marketing copy generation dùng LLM nào?
 
 **Options:**
 - [ ] GPT-4 (~$0.015/generation, best quality)
-- [ ] GPT-3.5-turbo (~$0.002/generation, good quality)
+- [x] GPT-4o-mini (~$0.002/generation, good quality)
 - [ ] Claude 3.5 Sonnet
 - [ ] Gemini Pro
 - [ ] Self-hosted LLM (Llama, etc.)
 
+**Answer:** GPT-4o-mini (OpenAI) - Best Practice
+
+**Rationale:**
+- ✅ Cost: $0.002 vs $0.015 (GPT-4) = 7.5× cheaper
+- ✅ Quality: Good enough for marketing headlines (80-90% as good as GPT-4)
+- ✅ Speed: ~1-2s response time
+- ✅ Multi-language: Excellent Vietnamese support
+- ✅ Reliability: OpenAI API 99.9% uptime
+
+**Quality Comparison:**
+```
+GPT-4:          ⭐⭐⭐⭐⭐ 5/5 (best, but expensive)
+GPT-4o-mini:    ⭐⭐⭐⭐ 4/5 (good, 7.5× cheaper)
+Claude 3.5:     ⭐⭐⭐⭐⭐ 5/5 (best, but more expensive than GPT-4o-mini)
+Llama 3:        ⭐⭐⭐ 3/5 (ok, free, self-hosted complexity)
+```
+
+**Prompt Template:**
+```javascript
+const prompt = `Generate marketing copy for an education center.
+
+Center name: ${centerName}
+Logo description: ${logoDescription}
+Industry: ${industry}
+Target audience: ${targetAudience}
+
+Generate:
+1. Hero headline (max 60 chars, inspiring, Vietnamese)
+2. Hero subheadline (max 120 chars, benefits-focused)
+3. Section 1 headline: "Về chúng tôi" (max 40 chars)
+4. Section 1 text (max 200 chars)
+5. Section 2 headline: "Khóa học" (max 40 chars)
+6. Section 2 text (max 200 chars)
+7. CTA text (max 20 chars, action-oriented)
+
+Tone: ${tone}
+Language: ${language}
+
+Return JSON format.`
+```
+
 **Tone & style:**
 - [ ] Professional & formal
 - [ ] Friendly & casual
-- [ ] Inspiring & motivational
-- [ ] Tùy theo industry type (education vs corporate)
+- [x] Inspiring & motivational
+- [x] Tùy theo industry type (education vs corporate)
+
+**Answer:** Tone tùy theo industry + có Manual Override
+
+**Tone Presets:**
+```javascript
+const tonePresets = {
+  education: 'Inspiring & motivational - Khơi nguồn học tập',
+  corporate: 'Professional & results-driven - Đào tạo hiệu quả',
+  kids: 'Friendly & fun - Vui học, chơi mà học',
+  language: 'Encouraging & practical - Thành thạo ngoại ngữ',
+  coding: 'Modern & tech-forward - Lập trình tương lai'
+}
+```
+
+**Cost per Generation:**
+- Input tokens: ~500 tokens × $0.000150/1K = $0.000075
+- Output tokens: ~800 tokens × $0.000600/1K = $0.00048
+- **Total: ~$0.002 per generation**
+
+**Fallback:**
+If GPT-4o-mini quality insufficient (subjective, rare):
+- Admin can manually edit all text (Manual Override)
+- Or upgrade to GPT-4 for specific regeneration ($0.015)
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Text Generation Pipeline)
 
 ---
 
 ## 2.3. Multi-Language Support
 
-### Q2.3.1: Language for Generated Content
+### Q2.3.1: Language for Generated Content ✅ ANSWERED
 **Câu hỏi:** AI-generated marketing copy sẽ là ngôn ngữ gì?
 
 **Current assumption: Vietnamese only**
@@ -434,13 +914,90 @@ Add-ons: Instant (online payment)
 **Confirm:**
 - [ ] Chỉ tiếng Việt
 - [ ] Tiếng Việt + English
-- [ ] Multi-language (customer chọn)
+- [x] Multi-language (customer chọn)
+
+**Answer:** Multi-language support - 5 ngôn ngữ chính
+
+**Supported Languages:**
+```typescript
+type Language = 'vi' | 'en' | 'zh' | 'ja' | 'ko'
+
+const languageLabels = {
+  vi: 'Tiếng Việt',
+  en: 'English',
+  zh: '中文 (Chinese)',
+  ja: '日本語 (Japanese)',
+  ko: '한국어 (Korean)'
+}
+```
 
 **Nếu multi-language:**
 **Customer chọn ngôn ngữ khi nào?**
-- [ ] Khi upload ảnh (generate 1 lần cho 1 ngôn ngữ)
-- [ ] Sau khi generate (generate lại cho ngôn ngữ khác)
+- [x] Khi upload ảnh (generate 1 lần cho 1 ngôn ngữ)
+- [x] Sau khi generate (generate lại cho ngôn ngữ khác)
 - [ ] Generate multiple languages cùng lúc
+
+**Answer:** Generate 1 language at a time. Customer can switch language và re-generate.
+
+**Workflow:**
+```
+Step 1: Upload logo → Select language (default: vi)
+Step 2: AI generates text in Vietnamese
+Step 3: Preview → Customer satisfied
+Step 4: Customer clicks "Generate English version"
+Step 5: AI re-generates text in English (images stay same)
+Step 6: Publish multiple language versions
+```
+
+**Storage Structure:**
+```javascript
+interface BrandingAssets {
+  images: {
+    hero: 'hero-banner.webp',      // Same for all languages
+    logo: 'logo-transparent.png'    // Same for all languages
+  }
+
+  textContent: {
+    vi: {
+      hero_headline: 'Học viện ABC - Khơi nguồn tri thức',
+      hero_subheadline: 'Phương pháp giảng dạy hiện đại...',
+      cta: 'Đăng ký ngay'
+    },
+    en: {
+      hero_headline: 'ABC Academy - Ignite Knowledge',
+      hero_subheadline: 'Modern teaching methods...',
+      cta: 'Register Now'
+    }
+  }
+}
+```
+
+**Cost per Language:**
+- Images: $0.08 (generated once, reused for all languages)
+- Text: $0.002 per language
+- **Total for 5 languages: $0.08 + (5 × $0.002) = $0.09**
+
+**Rationale:**
+- ✅ International: Support Vietnamese diaspora teaching Chinese, Japanese, etc.
+- ✅ Cost-effective: Text generation is cheap ($0.002)
+- ✅ Flexibility: Customer can add languages later
+- ✅ SEO: Multi-language landing pages → broader reach
+- ✅ Branding consistency: Same visual assets, translated text
+
+**Language Detection:**
+Customer can set instance default language:
+```typescript
+interface InstanceConfig {
+  defaultLanguage: Language
+  supportedLanguages: Language[]
+}
+```
+
+Guest users see content in:
+1. Their browser language (if supported)
+2. Instance default language (fallback)
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6C.3 (Multi-Language Support)
 
 ---
 
