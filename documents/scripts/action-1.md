@@ -511,3 +511,68 @@ tôi sẽ trả lời các câu hỏi 1.1 trước, hãy update các documents l
 => tùy theo actor: nếu onwer thì direct về kitehub, nếu actor khác thì thông báo liên hệ owner để nâng cấp
 => mọi thao tác thay đổi cấu hình instance phải thông qua kitehub => có phải best practice không?
 
+tôi sẽ trả lời các câu hỏi 1.2 và 2, hãy update các documents liên quan: system-architecture-v3-final, kiteclass-frontend-plan, kiteclass-implementation-plan, ... tương ứng:
+
+### Q1.2.1: UI Customization Level
+**BASIC tier có được custom logo không?**
+- [ ] CÓ - Tất cả tier đều có custom logo
+
+**BASIC tier có được custom theme colors không?**
+- [ ] CÓ - Tất cả tier đều custom được
+
+**Có watermark "Powered by KiteClass" không?**
+- [ ] CÓ - Hiện trên tất cả tier
+
+**PREMIUM có được custom subdomain không?**
+- [ ] CÓ - Ví dụ: custom-domain.com thay vì abc-academy.kiteclass.com
+=> triển khai custom-domain có khó không?
+
+### Q1.2.2: Analytics & Reporting Access
+**Câu hỏi:** Analytics features có khác nhau giữa các tier không?
+=> không, chỉ chọn sẽ mở thêm expand service không thôi và chỉ số scale nữa, cần cung cấp đủ feature cho người giàu
+
+### Q2.1.1: Who Can Upload Branding?
+**Câu hỏi:** Ai có quyền upload ảnh để generate branding?
+=> best practice là gì?
+
+### Q2.1.2: Re-generation Policy
+**Câu hỏi:** Customer có thể generate lại branding bao nhiêu lần?
+
+=> ngoài ảnh tự generate thì người dùng có thể chỉ định ảnh => cần có best practice có việc branding này vì có thể còn phải chọn sắp xếp ảnh lên web như nào nữa
+
+### Q2.1.3: Manual Override
+**Câu hỏi:** Customer có thể manual edit AI-generated assets không?
+
+nếu AI làm được thì hoàn toàn nên triển khai
+
+### Q2.1.4: Asset Storage & CDN
+**Câu hỏi:** AI-generated assets sẽ store ở đâu?
+
+=> asset được chỉ định thì theo instance đó thôi, asset nháp thì lưu theo account trên kitehub để user lựa chọn lại? best practice ở đây là gì?
+
+### Q2.1.5: Asset Quality Settings
+**Câu hỏi:** Quality settings cho AI-generated images?
+
+=> làm theo best practice
+
+### Q2.2.1: Image Generation Provider
+**Câu hỏi:** Sử dụng AI provider nào cho image generation?
+
+=> làm theo best practice
+
+### Q2.2.2: Background Removal Service
+**Câu hỏi:** Background removal dùng service nào?
+
+=> làm theo best practice
+
+### Q2.2.3: Text Generation (Marketing Copy)
+**Câu hỏi:** Marketing copy generation dùng LLM nào?
+
+=> làm theo best practice
+
+### Q2.3.1: Language for Generated Content
+**Câu hỏi:** AI-generated marketing copy sẽ là ngôn ngữ gì?
+- [ ] Multi-language (customer chọn)
+
+
+

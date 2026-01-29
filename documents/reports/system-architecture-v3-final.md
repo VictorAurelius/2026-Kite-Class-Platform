@@ -1887,6 +1887,607 @@ export function FeatureLockModal({
 
 ---
 
+# PHẦN 6C: AI BRANDING & UI CUSTOMIZATION
+
+## 6C.1. UI Customization by Tier
+
+### Customization Capabilities
+
+**ALL TIERS có quyền customize:**
+
+| Feature | BASIC | STANDARD | PREMIUM | Notes |
+|---------|-------|----------|---------|-------|
+| **Custom Logo** | ✅ | ✅ | ✅ | All tiers upload logo riêng |
+| **Custom Colors** | ✅ | ✅ | ✅ | Primary, secondary colors |
+| **AI Branding** | ✅ | ✅ | ✅ | Auto-generate marketing assets |
+| **Theme Templates** | ✅ | ✅ | ✅ | Classic, Modern, Friendly, etc. |
+| **Dark Mode** | ✅ | ✅ | ✅ | User preference |
+| **Watermark** | ⚠️ | ⚠️ | ⚠️ | "Powered by KiteClass" trên tất cả tier |
+| **Custom Domain** | ❌ | ❌ | ✅ | Chỉ PREMIUM: custom-domain.com |
+| **Remove Watermark** | ❌ | ❌ | ❌ | Không tier nào remove được |
+
+### Watermark Implementation
+
+**Watermark hiển thị ở đâu:**
+
+```tsx
+// Footer của mọi page
+<footer className="border-t py-4 text-center text-sm text-muted-foreground">
+  <p>
+    © {new Date().getFullYear()} {instanceName}.
+    Powered by <a href="https://kiteclass.com" target="_blank" className="underline">KiteClass</a>
+  </p>
+</footer>
+```
+
+**Lý do watermark trên tất cả tier:**
+1. Brand awareness cho KiteClass
+2. SEO backlinks
+3. Trust signal (powered by established platform)
+4. Future: Có thể offer "Remove watermark" as add-on
+
+### Analytics & Reporting
+
+**Tất cả tier có FULL analytics features:**
+
+| Feature | BASIC | STANDARD | PREMIUM |
+|---------|-------|----------|---------|
+| Dashboard Overview | ✅ | ✅ | ✅ |
+| Student Analytics | ✅ | ✅ | ✅ |
+| Attendance Reports | ✅ | ✅ | ✅ |
+| Revenue Reports | ✅ | ✅ | ✅ |
+| Export to Excel | ✅ | ✅ | ✅ |
+| Custom Reports | ✅ | ✅ | ✅ |
+| API Access | ✅ | ✅ | ✅ |
+
+**Khác biệt giữa các tier:**
+- **Data Retention:** Không khác (tất cả unlimited)
+- **Service Scale:** PREMIUM có more compute resources cho heavy analytics
+- **Support:** PREMIUM có priority support cho analytics questions
+
+**Philosophy:** "Cung cấp đủ features cho người giàu"
+- Người giàu (PREMIUM) trả cho scale, performance, support
+- KHÔNG trả cho features (features đều có đầy đủ)
+
+## 6C.2. Custom Domain Implementation (PREMIUM Only)
+
+### Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        CUSTOM DOMAIN ROUTING                                │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Customer buys custom domain: abc-academy.com                               │
+│         ↓                                                                   │
+│  Customer adds CNAME record:                                                │
+│    abc-academy.com → instances.kiteclass.com                                │
+│         ↓                                                                   │
+│  Customer submits domain in KiteHub Portal                                  │
+│         ↓                                                                   │
+│  KiteHub Backend:                                                           │
+│    1. Verify DNS CNAME record                                               │
+│    2. Provision SSL certificate (Let's Encrypt)                             │
+│    3. Update domain_mappings table                                          │
+│    4. Configure Nginx reverse proxy                                         │
+│         ↓                                                                   │
+│  User visits abc-academy.com                                                │
+│         ↓                                                                   │
+│  DNS resolves to instances.kiteclass.com (KiteClass server)                │
+│         ↓                                                                   │
+│  Nginx reads Host header: abc-academy.com                                   │
+│         ↓                                                                   │
+│  Nginx looks up domain_mappings:                                            │
+│    abc-academy.com → instanceId: abc-academy-001                            │
+│         ↓                                                                   │
+│  Nginx proxies request to instance container                                │
+│         ↓                                                                   │
+│  Instance serves content with custom domain                                 │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Database Schema
+
+```sql
+CREATE TABLE domain_mappings (
+    id BIGSERIAL PRIMARY KEY,
+    instance_id VARCHAR(255) NOT NULL,
+    custom_domain VARCHAR(255) NOT NULL UNIQUE,
+    default_domain VARCHAR(255) NOT NULL, -- abc-academy.kiteclass.com
+    ssl_certificate_path VARCHAR(500),
+    ssl_status VARCHAR(50), -- 'pending', 'active', 'failed', 'expired'
+    verified_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_instance
+        FOREIGN KEY (instance_id)
+        REFERENCES instances(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_custom_domain ON domain_mappings(custom_domain);
+CREATE INDEX idx_instance_id ON domain_mappings(instance_id);
+```
+
+### SSL Certificate Provisioning
+
+**Auto-provision với Certbot (Let's Encrypt):**
+
+```bash
+# KiteHub Backend tự động chạy khi customer submit domain
+certbot certonly \
+  --webroot \
+  -w /var/www/certbot \
+  -d abc-academy.com \
+  --email admin@kiteclass.com \
+  --agree-tos \
+  --non-interactive
+```
+
+**Certificate Renewal:**
+- Cronjob chạy daily: `certbot renew`
+- Auto-reload Nginx khi certificate renewed
+- Email alert nếu renewal fails
+
+### Nginx Configuration Template
+
+```nginx
+# /etc/nginx/sites-available/custom-domain-abc-academy.com
+server {
+    listen 80;
+    listen [::]:80;
+    server_name abc-academy.com www.abc-academy.com;
+
+    # Redirect to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name abc-academy.com www.abc-academy.com;
+
+    # SSL Certificate
+    ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/abc-academy.com/privkey.pem;
+
+    # SSL Configuration (Mozilla Intermediate)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:...';
+    ssl_prefer_server_ciphers off;
+
+    # Proxy to instance container
+    location / {
+        proxy_pass http://instance-abc-academy-001:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Customer Setup Flow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    CUSTOM DOMAIN SETUP (CUSTOMER VIEW)                      │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [KiteHub Portal - Settings]                                                │
+│                                                                             │
+│  Current Domain: abc-academy.kiteclass.com                                  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  🌐 Custom Domain (PREMIUM Feature)                      │              │
+│  │                                                           │              │
+│  │  Hiện tại: abc-academy.kiteclass.com                     │              │
+│  │                                                           │              │
+│  │  Bạn muốn sử dụng domain riêng?                          │              │
+│  │                                                           │              │
+│  │  [Input: abc-academy.com]                                │              │
+│  │                                                           │              │
+│  │  Hướng dẫn:                                              │              │
+│  │  1. Mua domain tại: GoDaddy, Namecheap, etc.            │              │
+│  │  2. Vào DNS settings, thêm CNAME record:                │              │
+│  │     Name: @ (hoặc www)                                   │              │
+│  │     Value: instances.kiteclass.com                       │              │
+│  │  3. Chờ DNS propagate (15-60 phút)                      │              │
+│  │  4. Click "Xác minh" bên dưới                           │              │
+│  │                                                           │              │
+│  │  [Xác minh Domain]                                       │              │
+│  │                                                           │              │
+│  │  Status: ⏳ Đang xác minh DNS...                         │              │
+│  │          (Kiểm tra lại sau 5 phút)                       │              │
+│  │                                                           │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                                                                             │
+│  Sau khi xác minh thành công:                                               │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  Status: ✅ Active                                        │              │
+│  │                                                           │              │
+│  │  Domain: abc-academy.com                                 │              │
+│  │  SSL Certificate: ✅ Valid (expires in 89 days)          │              │
+│  │                                                           │              │
+│  │  Truy cập instance tại:                                  │              │
+│  │  🔗 https://abc-academy.com                              │              │
+│  │                                                           │              │
+│  │  [Remove Domain]                                         │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Implementation Complexity
+
+**Effort Estimate:** 2-3 tuần
+
+**Components cần implement:**
+1. **Backend API** (1 tuần):
+   - POST /api/v1/instance/custom-domain (submit domain)
+   - GET /api/v1/instance/custom-domain/verify (check DNS)
+   - DELETE /api/v1/instance/custom-domain (remove)
+   - Certbot integration
+   - Nginx config generation
+
+2. **Frontend UI** (3 ngày):
+   - Custom domain settings page
+   - DNS setup instructions
+   - Verification status
+   - Error handling
+
+3. **Infrastructure** (1 tuần):
+   - Nginx dynamic config reload
+   - SSL certificate automation
+   - DNS verification logic
+   - Database schema
+
+**Risks:**
+- DNS propagation delays (customer confusion)
+- SSL certificate failures (rate limits, validation issues)
+- Nginx reload disruption
+
+**Mitigation:**
+- Clear instructions + expected timeframes
+- Retry logic for SSL provisioning
+- Graceful Nginx reload (zero-downtime)
+
+## 6C.3. AI Branding System
+
+### Overview
+
+**AI Branding tự động generate 10+ marketing assets từ 1 ảnh upload.**
+
+**Input:** Logo hoặc ảnh đại diện (PNG/JPG, max 10MB)
+**Output:** Complete branding package trong ~5 phút
+**Cost:** ~$0.10 per generation (cost-effective)
+
+### Asset Storage Architecture
+
+**2-Tier Storage Strategy:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        ASSET STORAGE HIERARCHY                              │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Tier 1: KiteHub Level (Draft Assets)                                      │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  Path: /kitehub/users/{userId}/branding-drafts/         │              │
+│  │                                                           │              │
+│  │  Purpose:                                                 │              │
+│  │  - User experiment với branding options                  │              │
+│  │  - Generate multiple versions                            │              │
+│  │  - Preview before publish                                │              │
+│  │                                                           │              │
+│  │  Retention: 30 days                                       │              │
+│  │  Quota: 10 draft sets per user                           │              │
+│  │                                                           │              │
+│  │  Example:                                                 │              │
+│  │  /users/user-123/branding-drafts/                        │              │
+│  │    ├── draft-001-20260129/                               │              │
+│  │    │   ├── hero-banner.webp                              │              │
+│  │    │   ├── logo-primary.png                              │              │
+│  │    │   └── metadata.json                                 │              │
+│  │    ├── draft-002-20260130/                               │              │
+│  │    └── draft-003-20260131/                               │              │
+│  │                                                           │              │
+│  │  Benefits:                                                │              │
+│  │  ✓ Can re-use drafts across multiple instances          │              │
+│  │  ✓ Can A/B test different branding options              │              │
+│  │  ✓ Draft không affect production                        │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                          ↓                                                  │
+│                    User clicks "Publish"                                    │
+│                          ↓                                                  │
+│  Tier 2: Instance Level (Published Assets)                                 │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  Path: /instances/{instanceId}/branding/                │              │
+│  │                                                           │              │
+│  │  Purpose:                                                 │              │
+│  │  - Active branding cho instance                          │              │
+│  │  - Served via CDN                                        │              │
+│  │  - High availability                                      │              │
+│  │                                                           │              │
+│  │  Retention: Until replaced                                │              │
+│  │  Versioning: Keep last 3 versions                        │              │
+│  │                                                           │              │
+│  │  Example:                                                 │              │
+│  │  /instances/abc-academy-001/branding/                    │              │
+│  │    ├── current/                                          │              │
+│  │    │   ├── hero-banner.webp                              │              │
+│  │    │   ├── logo-primary.png                              │              │
+│  │    │   └── metadata.json                                 │              │
+│  │    ├── version-2/  (previous)                            │              │
+│  │    └── version-1/  (original)                            │              │
+│  │                                                           │              │
+│  │  CDN:                                                     │              │
+│  │  - CloudFlare R2 + CDN                                   │              │
+│  │  - Edge caching (reduce latency)                         │              │
+│  │  - Auto WebP conversion                                  │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Who Can Upload Branding?
+
+**Best Practice: CENTER_OWNER và CENTER_ADMIN**
+
+| Actor | Draft Upload | Publish | Delete |
+|-------|--------------|---------|--------|
+| **CENTER_OWNER** | ✅ | ✅ | ✅ |
+| **CENTER_ADMIN** | ✅ | ⚠️ Need OWNER approval | ❌ |
+| **TEACHER** | ❌ | ❌ | ❌ |
+| **STUDENT** | ❌ | ❌ | ❌ |
+
+**Workflow:**
+
+```
+CENTER_ADMIN uploads logo
+  ↓
+Generate branding (draft)
+  ↓
+ADMIN previews & saves draft
+  ↓
+ADMIN clicks "Request Approval"
+  ↓
+Email notification to OWNER
+  ↓
+OWNER reviews in KiteHub Portal
+  ↓
+OWNER clicks "Approve & Publish"
+  ↓
+Branding goes live on instance
+```
+
+### Re-generation Policy
+
+**User có 2 options:**
+
+**Option 1: AI Auto-Generate (Recommended)**
+- Upload logo/photo
+- AI generate full branding package
+- Free: Unlimited generations (cost absorbed by platform)
+- Rationale: Encourage adoption, showcase AI capability
+
+**Option 2: Manual Upload (Advanced)**
+- User upload each asset manually:
+  - Hero banner (1920x600)
+  - Logo variants (3 sizes)
+  - Section banners (3 items)
+  - Marketing copy (text fields)
+- Use case: User có designer riêng, muốn full control
+- Requirement: Must follow asset specs (size, format)
+
+**Hybrid Approach:**
+- Start with AI generation
+- User can override individual assets
+  - Example: AI generates hero banner, user uploads custom logo
+- Best of both worlds
+
+### Manual Override Capabilities
+
+**User có thể edit:**
+
+| Asset Type | AI Generated | Manual Override | Notes |
+|------------|--------------|-----------------|-------|
+| **Hero Banner** | ✅ | ✅ | Upload custom 1920x600 image |
+| **Logo** | ✅ | ✅ | Upload PNG with transparent background |
+| **Colors** | ✅ (extracted) | ✅ | Pick custom primary/secondary |
+| **Marketing Copy** | ✅ | ✅ | Edit headlines, CTAs in text editor |
+| **Section Banners** | ✅ | ✅ | Upload custom or use AI |
+
+**UI Example:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        BRANDING EDITOR                                      │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Hero Banner                                                                │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  [Preview: AI-generated gradient background]             │              │
+│  │                                                           │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│  Source: 🤖 AI Generated                                                    │
+│  [Replace with Custom Image] [Re-generate]                                 │
+│                                                                             │
+│  Marketing Headline                                                         │
+│  [Input: "Học viện ABC - Nơi ươm mầm tài năng"]                           │
+│  Source: 🤖 AI Generated (editable)                                        │
+│                                                                             │
+│  Primary Color                                                              │
+│  [Color Picker: #0ea5e9]                                                   │
+│  Source: 🎨 Extracted from logo (editable)                                 │
+│                                                                             │
+│  [Save Draft]  [Preview]  [Publish]                                        │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### AI Generation Workflow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    AI BRANDING GENERATION PIPELINE                          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Step 1: Upload (0:00-0:10)                                                │
+│    User uploads logo/photo                                                  │
+│    Backend validates: format, size, dimensions                              │
+│         ↓                                                                   │
+│  Step 2: Background Removal (0:10-0:20)                                    │
+│    Service: U2-Net (self-hosted)                                           │
+│    Output: Cutout image (transparent background)                            │
+│    Cost: Free                                                               │
+│         ↓                                                                   │
+│  Step 3: Color Extraction (0:20-0:30)                                      │
+│    Extract dominant colors from logo                                        │
+│    Generate color palette (primary, secondary, accent)                      │
+│         ↓                                                                   │
+│  Step 4: Text Generation (0:30-0:45)                                       │
+│    Service: GPT-4o-mini                                                     │
+│    Input: Organization name, industry                                       │
+│    Output: Headlines, sub-headlines, CTAs, value props                      │
+│    Language: Customer selects (Vietnamese, English, etc.)                   │
+│    Cost: ~$0.002                                                            │
+│         ↓                                                                   │
+│  Step 5: Hero Banner Generation (0:45-2:00)                                │
+│    Service: Stable Diffusion XL                                             │
+│    Prompt: "Professional gradient background, [colors], modern, clean"      │
+│    Output: 1920x600 background image                                        │
+│    Composite: Background + cutout logo + text overlay                       │
+│    Cost: ~$0.08                                                             │
+│         ↓                                                                   │
+│  Step 6: Section Banners (2:00-4:30)                                       │
+│    Generate 3 banners: About, Courses, Contact                              │
+│    Each with different AI background                                        │
+│    Cost: ~$0.08 × 3 = $0.24                                                │
+│         ↓                                                                   │
+│  Step 7: Logo Variants (4:30-4:45)                                         │
+│    Create 3 variants:                                                       │
+│      - Primary: Cutout + circular bg + org name                            │
+│      - Secondary: Alternate color scheme                                    │
+│      - Icon-only: Square crop                                               │
+│         ↓                                                                   │
+│  Step 8: OG Image (4:45-5:00)                                              │
+│    Generate 1200x630 for social sharing                                     │
+│    Contains: Logo + tagline + domain                                        │
+│         ↓                                                                   │
+│  Step 9: Upload to CDN (5:00-5:30)                                         │
+│    Upload all assets to CloudFlare R2                                       │
+│    Generate CDN URLs                                                        │
+│    Save metadata to database                                                │
+│         ↓                                                                   │
+│  Step 10: Complete (5:30)                                                   │
+│    Return branding package to frontend                                      │
+│    Total Cost: ~$0.10 per generation                                       │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Asset Quality Settings (Best Practice)
+
+**WebP with JPEG Fallback:**
+
+```typescript
+// Asset specifications
+const ASSET_SPECS = {
+  heroBanner: {
+    dimensions: { width: 1920, height: 600 },
+    formats: {
+      webp: { quality: 85, size: '200-300KB' },
+      jpeg: { quality: 85, size: '300-400KB' }
+    }
+  },
+  profileImages: {
+    dimensions: { width: 400, height: 400 },
+    formats: {
+      webp: { quality: 90, size: '50-80KB' },
+      jpeg: { quality: 90, size: '80-120KB' }
+    }
+  },
+  sectionBanners: {
+    dimensions: { width: 1200, height: 400 },
+    formats: {
+      webp: { quality: 85, size: '150-200KB' },
+      jpeg: { quality: 85, size: '200-300KB' }
+    }
+  }
+};
+```
+
+### AI Provider Selection (Best Practice)
+
+**Image Generation: Stable Diffusion XL**
+- Rationale: Best balance of cost, quality, control
+- Cost: ~$0.08 per image
+- Quality: Excellent for marketing backgrounds
+- Customization: Full prompt control
+- Fallback: DALL-E 3 if Stability AI unavailable
+
+**Background Removal: U2-Net (Self-Hosted)**
+- Rationale: Free, good quality, fast
+- Cost: $0 (infrastructure only)
+- Quality: 95% accuracy for clean logos
+- Speed: 2-3 seconds per image
+- Fallback: Remove.bg API ($0.09/image) for complex images
+
+**Text Generation: GPT-4o-mini**
+- Rationale: Excellent quality, very cheap, fast
+- Cost: ~$0.002 per generation
+- Quality: Professional marketing copy
+- Languages: Native multi-language support
+- Speed: < 2 seconds
+
+### Multi-Language Support
+
+**Customer chọn ngôn ngữ khi generate:**
+
+```typescript
+// Language options
+type SupportedLanguage = 'vi' | 'en' | 'zh' | 'ja' | 'ko';
+
+interface BrandingGenerationRequest {
+  organizationName: string;
+  industry: string;
+  language: SupportedLanguage; // Customer selects
+  logoFile: File;
+}
+```
+
+**Implementation:**
+- GPT-4o-mini native multi-language
+- Prompt includes language instruction
+- Marketing copy generated in selected language
+- Can regenerate in different language later
+
+**UI:**
+```
+┌────────────────────────────────────────────────────────────┐
+│  Generate Branding                                          │
+│                                                             │
+│  Organization Name: [ABC Academy]                          │
+│  Industry: [Education]                                     │
+│  Language: [🇻🇳 Tiếng Việt ▼]                              │
+│            - 🇻🇳 Tiếng Việt                                │
+│            - 🇺🇸 English                                    │
+│            - 🇨🇳 中文                                        │
+│            - 🇯🇵 日本語                                      │
+│            - 🇰🇷 한국어                                      │
+│                                                             │
+│  Upload Logo: [Browse...]                                  │
+│                                                             │
+│  [Generate Branding]                                        │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
 # PHẦN 7: TỔNG KẾT KIẾN TRÚC V3
 
 ## 7.1. So sánh các phiên bản

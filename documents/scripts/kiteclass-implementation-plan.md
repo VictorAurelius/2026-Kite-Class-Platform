@@ -176,15 +176,17 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - ⏳ PR 3.7: Class Management Pages → NEEDS: PR 2.5 (pending)
 - ⏳ PR 3.8: Attendance Management → NEEDS: PR 2.7 (pending)
 - ⏳ PR 3.9: Billing Pages → NEEDS: PR 2.8, 2.8.1 (pending)
-- ⏳ PR 3.10: Parent Portal → NEEDS: PR 2.9 (pending)
-- ⏳ PR 3.11: Settings & Reports → NEEDS: PR 2.9 (pending)
+- ⏳ PR 3.10: Settings & AI Branding System → NEEDS: KiteHub AI Agent Module (pending)
+- ⏳ PR 3.11: Parent Portal → NEEDS: PR 2.9 (pending)
+- ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
+- ⏳ PR 3.13: E2E Tests & Polish
 
-**Frontend Status:** 0/11 PRs completed (0%)
-**Tech Stack:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
+**Frontend Status:** 1/13 PRs completed (8%) - PR 3.1 ✅
+**Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **CRITICAL:** Frontend PRs 3.1-3.6 can start NOW (Backend APIs ready)
 
-**Overall Progress:** 11/44 PRs completed (25%)
-**Last Updated:** 2026-01-28 (Updated with Paired Development Strategy)
+**Overall Progress:** 12/46 PRs completed (26%)
+**Last Updated:** 2026-01-29 (Updated with Feature Detection & AI Branding specs)
 
 ---
 
@@ -2908,67 +2910,442 @@ Thực hiện Billing module.
 - Invoice totals hiển thị đúng
 ```
 
-## ⏳ PR 3.10 - Settings & Branding
+## ⏳ PR 3.10 - Settings & AI Branding System
 
 ```
-Thực hiện Settings module.
+Thực hiện Settings module với AI Branding Generation.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6C.3: AI Branding System
+- frontend-code-quality.md Part 13: AI-Generated Content Integration
 
 **Tuân thủ skills:**
-- ui-components.md: form patterns
-- api-design.md: Settings API endpoints
-- theme-system.md: branding integration
+- frontend-code-quality.md Part 13: AI-Generated Content patterns
+- ui-components.md: form patterns, file upload
+- api-design.md: Settings & Branding API endpoints
 
 **Tasks:**
-1. Tạo useBranding hook:
-   - useBranding (get)
-   - useUpdateBranding mutation
-   - useUploadLogo mutation
-2. Tạo BrandingForm component:
-   - Logo upload với preview
-   - Color picker
-   - Contact info fields
-3. Tạo pages:
-   - Settings layout với tabs
-   - Branding settings page
-   - Profile settings page
-4. Integrate branding với ThemeProvider
+
+### 1. Branding Types (Already in PR 3.2)
+```typescript
+// src/types/branding.ts
+export interface BrandingAssets {
+  profileImages: {
+    cutout: string;
+    circle: string;
+    square: string;
+  };
+  heroBanner: string; // 1920x600 WebP
+  sectionBanners: {
+    about: string;
+    courses: string;
+    contact: string;
+  };
+  logos: {
+    primary: string;
+    secondary: string;
+    iconOnly: string;
+  };
+  ogImage: string;
+  marketingCopy: {
+    heroHeadline: string;
+    subHeadline: string;
+    callToAction: string;
+    valueProps: string[];
+  };
+}
+
+export interface BrandingGenerationRequest {
+  organizationName: string;
+  industry: string;
+  language: 'vi' | 'en' | 'zh' | 'ja' | 'ko'; // Multi-language support
+  logoFile: File;
+}
+
+export interface BrandingGenerationJob {
+  jobId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number; // 0-100
+  currentStep: string;
+  assets?: BrandingAssets;
+  isDraft: boolean; // Draft in KiteHub vs Published in Instance
+  createdAt: Date;
+}
+```
+
+### 2. AI Branding Upload UI (src/app/(dashboard)/settings/branding/page.tsx)
+**2-Tier Asset Management:**
+```tsx
+// Draft Mode (KiteHub level)
+- Path: /kitehub/users/{userId}/branding-drafts/
+- Purpose: Experiment với branding
+- Retention: 30 days
+- Can reuse across instances
+
+// Published Mode (Instance level)
+- Path: /instances/{instanceId}/branding/
+- Purpose: Active branding
+- Retention: Until replaced
+- Versioning: Keep last 3 versions
+```
+
+**UI Workflow:**
+```
+Step 1: Upload Logo
+  ├─ Option A: AI Auto-Generate
+  │   └─ Upload 1 image → Generate 10+ assets
+  │
+  └─ Option B: Manual Upload
+      └─ Upload each asset individually
+
+Step 2: Preview & Edit (Draft)
+  ├─ View all generated assets
+  ├─ Manual override any asset
+  ├─ Edit marketing copy
+  └─ Adjust colors
+
+Step 3: Approval (OWNER/ADMIN roles)
+  ├─ CENTER_ADMIN: Request approval
+  └─ CENTER_OWNER: Approve & Publish
+
+Step 4: Publish to Instance
+  └─ Assets go live on instance
+```
+
+**Components:**
+- BrandingUploadPage (main page)
+- ImageUploadZone (drag & drop)
+- GenerationProgressTracker (5-minute progress)
+- AssetPreviewGrid (preview all 10+ assets)
+- AssetEditor (manual override UI)
+- BrandingApprovalModal (ADMIN request → OWNER approve)
+
+### 3. Asset Quality Utilities (src/lib/asset-utils.ts)
+```typescript
+// Asset specs per best practice
+export const ASSET_SPECS = {
+  heroBanner: {
+    dimensions: { width: 1920, height: 600 },
+    formats: {
+      webp: { quality: 85, maxSize: 300 * 1024 }, // 300KB
+      jpeg: { quality: 85, maxSize: 400 * 1024 }  // 400KB
+    }
+  },
+  profileImages: {
+    dimensions: { width: 400, height: 400 },
+    formats: {
+      webp: { quality: 90, maxSize: 80 * 1024 },   // 80KB
+      jpeg: { quality: 90, maxSize: 120 * 1024 }   // 120KB
+    }
+  }
+};
+
+// Validate uploaded image
+export async function validateImageUpload(file: File): Promise<void> {
+  // Check file type
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    throw new Error('Chỉ chấp nhận PNG, JPEG, WebP');
+  }
+
+  // Check file size (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('Kích thước file tối đa 10MB');
+  }
+
+  // Check dimensions
+  const img = await loadImage(file);
+  if (img.width < 400 || img.height < 400) {
+    throw new Error('Kích thước tối thiểu 400x400px');
+  }
+}
+```
+
+### 4. Multi-Language Support (src/lib/i18n-branding.ts)
+```typescript
+export const SUPPORTED_LANGUAGES = [
+  { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'ko', label: '한국어', flag: '🇰🇷' },
+] as const;
+
+// Generate marketing copy in selected language
+export async function generateMarketingCopy(
+  orgName: string,
+  industry: string,
+  language: string
+): Promise<MarketingCopy> {
+  const response = await fetch('/api/v1/branding/generate-copy', {
+    method: 'POST',
+    body: JSON.stringify({ orgName, industry, language })
+  });
+  return response.json();
+}
+```
+
+### 5. Custom Domain Settings (PREMIUM only)
+```tsx
+// src/app/(dashboard)/settings/domain/page.tsx
+function CustomDomainSettings() {
+  const { config } = useFeatureFlags();
+
+  if (config?.tier !== 'PREMIUM') {
+    return (
+      <FeatureLock
+        feature="customDomain"
+        featureName="Custom Domain"
+        requiredTier="PREMIUM"
+      />
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>🌐 Custom Domain</CardTitle>
+        <CardDescription>
+          Sử dụng domain riêng cho instance (VD: abc-academy.com)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <CustomDomainForm />
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### 6. Watermark Component (All Tiers)
+```tsx
+// src/components/layout/Footer.tsx
+export function Footer() {
+  const { branding } = useBranding();
+
+  return (
+    <footer className="border-t py-4 text-center text-sm text-muted-foreground">
+      <p>
+        © {new Date().getFullYear()} {branding.displayName}.
+        {' '}
+        Powered by{' '}
+        <a
+          href="https://kiteclass.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-foreground"
+        >
+          KiteClass
+        </a>
+      </p>
+    </footer>
+  );
+}
+
+// ⚠️ Watermark hiển thị trên TẤT CẢ tiers (BASIC, STANDARD, PREMIUM)
+// Future: Có thể offer "Remove watermark" as paid add-on
+```
+
+**Tests (bắt buộc - frontend-code-quality.md Part 13):**
+- src/__tests__/hooks/
+  - use-branding.test.ts
+- src/__tests__/components/branding/
+  - branding-upload.test.tsx ⭐ NEW:
+    - Test image upload validation
+    - Test AI generation polling
+    - Test draft saving
+    - Test approval workflow (ADMIN → OWNER)
+  - asset-editor.test.tsx ⭐ NEW:
+    - Test manual override
+    - Test color picker
+    - Test text editor for marketing copy
+  - asset-preview.test.tsx ⭐ NEW:
+    - Test preview grid display
+    - Test asset URL validation
+    - Test WebP fallback to JPEG
+- src/__tests__/components/settings/
+  - custom-domain-form.test.tsx ⭐ NEW (PREMIUM only):
+    - Test domain validation
+    - Test DNS verification
+    - Test SSL status display
+- src/__tests__/components/layout/
+  - footer.test.tsx ⭐ NEW:
+    - Test watermark always displayed
+    - Test correct organization name
+- src/__tests__/lib/
+  - asset-utils.test.ts ⭐ NEW:
+    - Test image validation
+    - Test dimension checks
+    - Test file size limits
+  - i18n-branding.test.ts ⭐ NEW:
+    - Test language selection
+    - Test marketing copy generation per language
+
+**Verification:**
+- pnpm test phải pass (minimum 80% coverage)
+- AI branding generation working:
+  - Upload logo → Progress tracking (5 min)
+  - 10+ assets generated (hero, logos, banners, OG image)
+  - Assets stored in draft (KiteHub level)
+  - OWNER can publish to instance
+- Manual override working:
+  - Can replace AI-generated assets
+  - Can edit marketing copy
+  - Can adjust colors
+- Multi-language working:
+  - Can select language before generation
+  - Marketing copy in correct language
+- Custom domain working (PREMIUM):
+  - Domain validation
+  - DNS verification
+  - SSL auto-provision
+- Watermark always visible on all tiers
+- All asset URLs validated (CDN-only, HTTPS)
+
+**Quality Checklist:**
+- [ ] BrandingAssets types properly defined
+- [ ] AI generation progress tracking working
+- [ ] Draft/Publish workflow implemented
+- [ ] Approval workflow (ADMIN → OWNER) implemented ⭐ NEW
+- [ ] Manual override for all assets working
+- [ ] Multi-language support tested ⭐ NEW
+- [ ] Asset validation (dimensions, size, format) working
+- [ ] Custom domain for PREMIUM tested ⭐ NEW
+- [ ] Watermark component tested (all tiers) ⭐ NEW
+- [ ] Asset URL validation tested
+- [ ] WebP with JPEG fallback tested
+- [ ] CDN integration tested
+```
+
+## ⏳ PR 3.11 - Parent Portal
+
+```
+Thực hiện Parent Portal để phụ huynh theo dõi con em.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 5: CỔNG PHỤ HUYNH
+- Parent self-registration via Zalo OTP
+
+**Tuân thủ skills:**
+- frontend-code-quality.md Part 12: Feature Flag (parentPortal feature)
+- frontend-development.md: React patterns
+- ui-components.md: Dashboard layouts
+
+**Tasks:**
+1. Tạo Parent routes (src/app/(parent)/)
+   - Parent dashboard
+   - Children list & detail pages
+   - Child attendance view (read-only)
+   - Child grades view (read-only)
+   - Parent invoices view
+2. Tạo useParent hook:
+   - Get parent info
+   - Get linked children
+   - Get child attendance
+   - Get child grades
+3. Tạo ParentDashboard components:
+   - Children cards grid
+   - Performance overview per child
+   - Upcoming classes
+   - Outstanding invoices
+4. Feature flag check:
+   - Only visible if hasFeatureFlag('parentPortal')
+   - Available on STANDARD+ tier
 
 **Tests (bắt buộc):**
 - src/__tests__/hooks/
-  - use-branding.test.ts
-- src/__tests__/components/forms/
-  - branding-form.test.tsx
-- src/__tests__/app/dashboard/
-  - settings-page.test.tsx
-  - branding-page.test.tsx
+  - use-parent.test.ts
+- src/__tests__/app/(parent)/
+  - dashboard.test.tsx
+  - children-list.test.tsx
+  - child-detail.test.tsx
+- Feature flag tests:
+  - BASIC tier: Parent portal hidden
+  - STANDARD tier: Parent portal visible
 
 **Verification:**
 - pnpm test phải pass
-- Logo upload hoạt động
-- Color changes apply real-time
+- Parent can view children info
+- Parent cannot edit data (read-only)
+- Feature flag working (hidden on BASIC)
 ```
 
-## ⏳ PR 3.11 - E2E Tests & Polish
+## ⏳ PR 3.12 - Reports & Analytics
+
+```
+Thực hiện Reports & Analytics dashboard.
+
+**Reference:**
+- All tiers have FULL analytics (no tier differentiation)
+- Cung cấp đủ features cho người giàu
+
+**Tuân thủ skills:**
+- ui-components.md: Chart components, data visualization
+- frontend-development.md: Data fetching patterns
+
+**Tasks:**
+1. Tạo useReports hooks:
+   - useStudentAnalytics
+   - useAttendanceReports
+   - useRevenueReports
+   - useExportReport
+2. Tạo Reports pages:
+   - Reports dashboard overview
+   - Student analytics (enrollment trends, retention)
+   - Attendance reports (by class, by date)
+   - Revenue reports (by period, by course)
+   - Custom report builder
+3. Tạo Chart components:
+   - LineChart (attendance trends)
+   - BarChart (revenue by month)
+   - PieChart (student distribution)
+   - StatsCards (KPIs)
+4. Export functionality:
+   - Export to Excel (XLSX)
+   - Export to PDF
+   - Export to CSV
+
+**Tests (bắt buộc):**
+- src/__tests__/hooks/
+  - use-reports.test.ts
+- src/__tests__/components/charts/
+  - line-chart.test.tsx
+  - bar-chart.test.tsx
+- src/__tests__/app/(dashboard)/reports/
+  - reports-dashboard.test.tsx
+  - export.test.ts
+
+**Verification:**
+- pnpm test phải pass
+- Charts render correctly
+- Export to Excel working
+- All tiers have access (no feature flag)
+```
+
+## ⏳ PR 3.13 - E2E Tests & Polish
 
 ```
 Hoàn thiện Frontend với E2E tests.
 
 **Tuân thủ skills:**
 - testing-guide.md: E2E test patterns với Playwright
+- frontend-code-quality.md Part 3: Testing requirements
 
 **Tasks:**
-1. Setup Playwright
+1. Setup Playwright (Already done in PR 3.1)
 2. Viết E2E tests:
    - auth.spec.ts: login, logout flow
    - students.spec.ts: CRUD operations
    - classes.spec.ts: create class, add students
    - attendance.spec.ts: mark attendance
    - billing.spec.ts: create invoice, record payment
+   - feature-flags.spec.ts: Test tier-based features ⭐ NEW
+   - branding.spec.ts: Test AI branding upload ⭐ NEW
 3. Polish UI:
    - Loading states
    - Error states
    - Empty states
    - Responsive design fixes
+   - Watermark footer on all pages ⭐ NEW
 
 **Tests (bắt buộc):**
 - e2e/
@@ -2977,6 +3354,8 @@ Hoàn thiện Frontend với E2E tests.
   - classes.spec.ts
   - attendance.spec.ts
   - billing.spec.ts
+  - feature-flags.spec.ts ⭐ NEW
+  - branding.spec.ts ⭐ NEW
 
 **Verification:**
 - pnpm test phải pass
