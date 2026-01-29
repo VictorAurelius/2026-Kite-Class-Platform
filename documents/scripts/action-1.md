@@ -574,5 +574,5 @@ nếu AI làm được thì hoàn toàn nên triển khai
 **Câu hỏi:** AI-generated marketing copy sẽ là ngôn ngữ gì?
 - [ ] Multi-language (customer chọn)
 
-
+cập nhật câu trả lời tương ứng vào file QA nữa
 
