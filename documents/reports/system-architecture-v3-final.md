@@ -1465,6 +1465,428 @@ CREATE INDEX idx_parent_notifications_parent ON user_module.parent_notifications
 
 ---
 
+# PHẦN 6B: FEATURE DETECTION & INSTANCE CONFIGURATION
+
+## 6B.1. Feature Detection API
+
+### Endpoint Specification
+
+**Endpoint:** `GET /api/v1/instance/config`
+
+**Purpose:** Frontend query để detect available features và resource limits
+
+**Authentication:** Required (JWT token)
+
+**Response:**
+
+```json
+{
+  "instanceId": "abc-academy-001",
+  "tier": "STANDARD",
+  "addOns": ["ENGAGEMENT"],
+  "services": ["user-gateway", "core", "engagement", "frontend"],
+  "features": {
+    // Core features (all tiers)
+    "classManagement": true,
+    "studentManagement": true,
+    "attendance": true,
+    "grading": true,
+    "billing": true,
+
+    // Engagement Pack features (STANDARD+)
+    "gamification": true,
+    "parentPortal": true,
+    "forum": true,
+
+    // Media Pack features (add-on)
+    "videoUpload": false,
+    "liveStreaming": false,
+
+    // Premium features
+    "aiMarketing": false,
+    "prioritySupport": false
+  },
+  "limits": {
+    "maxStudents": 200,
+    "maxCourses": null,
+    "videoStorageGB": 0,
+    "maxConcurrentStreams": 0
+  },
+  "owner": {
+    "id": "owner-uuid-123",
+    "name": "Nguyễn Văn A",
+    "email": "owner@example.com"
+  }
+}
+```
+
+### Caching Strategy
+
+**Client-side caching:**
+- Cache in localStorage với TTL = 1 giờ
+- Key: `kiteclass:instance_config`
+- Invalidate khi user logout
+
+**Server-side caching:**
+- Cache in Redis với TTL = 5 phút
+- Invalidate khi instance config thay đổi (upgrade/downgrade)
+
+**Runtime Updates:**
+- ❌ Features KHÔNG thay đổi trong runtime
+- User muốn nâng cấp → Phải vào KiteHub portal
+- Sau khi upgrade → User login lại để load new config
+
+### Feature Detection Flow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     FEATURE DETECTION FLOW                                  │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User Login to Instance                                                     │
+│         ↓                                                                   │
+│  Frontend calls: GET /api/v1/instance/config                               │
+│         ↓                                                                   │
+│  Backend checks Redis cache                                                 │
+│    ├─ Cache hit → Return cached config                                     │
+│    └─ Cache miss → Query DB + Cache result                                 │
+│         ↓                                                                   │
+│  Frontend receives config                                                   │
+│         ↓                                                                   │
+│  Store in localStorage (1hr TTL)                                            │
+│         ↓                                                                   │
+│  Initialize FeatureFlagProvider                                             │
+│         ↓                                                                   │
+│  Render UI with conditional features                                        │
+│    ├─ Navigation: Hide/show menu items                                     │
+│    ├─ Routes: Enable/disable pages                                         │
+│    └─ Components: Show UpgradePrompt for locked features                   │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 6B.2. Instance Configuration Management
+
+### Centralized Management via KiteHub
+
+**Design Principle:** Tất cả thay đổi instance configuration phải qua KiteHub
+
+**Lý do:**
+1. **Tập trung Billing:** Subscription và payment quản lý tại KiteHub
+2. **Audit Trail:** Track mọi thay đổi config, billing history
+3. **Security:** Instance users không trực tiếp access billing APIs
+4. **Conflict Prevention:** Ngăn nhiều người cùng lúc thay đổi config
+5. **Service Provisioning:** KiteHub orchestrate việc deploy/undeploy services
+
+### Tier Upgrade Flow
+
+**Case 1: CENTER_OWNER muốn nâng cấp**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     TIER UPGRADE FLOW (OWNER)                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [KiteClass Instance]                                                       │
+│    Owner click feature bị lock (e.g., "Gamification")                      │
+│         ↓                                                                   │
+│    Show "Soft Block" Modal:                                                │
+│      ┌──────────────────────────────────────────────────────┐              │
+│      │  🔒 Tính năng Game hóa chỉ có trên gói STANDARD      │              │
+│      │                                                       │              │
+│      │  Preview: [Screenshot của Gamification dashboard]    │              │
+│      │                                                       │              │
+│      │  Benefits:                                           │              │
+│      │  ✓ Bảng xếp hạng học viên                           │              │
+│      │  ✓ Hệ thống điểm thưởng                             │              │
+│      │  ✓ Badges & Achievements                            │              │
+│      │                                                       │              │
+│      │  Giá: 1,000,000đ/tháng (STANDARD tier)              │              │
+│      │                                                       │              │
+│      │  [Nâng cấp ngay]    [Đóng]                          │              │
+│      └──────────────────────────────────────────────────────┘              │
+│         ↓                                                                   │
+│    Click "Nâng cấp ngay"                                                   │
+│         ↓                                                                   │
+│    Redirect to KiteHub Portal: https://kiteclass.com/portal               │
+│                                                                             │
+│  [KiteHub Portal]                                                           │
+│    Trang: Upgrade Instance "ABC Academy"                                   │
+│         ↓                                                                   │
+│    Show pricing comparison:                                                │
+│      Current: BASIC (500k/tháng)                                           │
+│      Upgrade to: STANDARD (1tr/tháng)                                      │
+│      Add-ons: □ Media Pack (+500k)                                         │
+│         ↓                                                                   │
+│    Owner confirm upgrade                                                    │
+│         ↓                                                                   │
+│    Payment gateway (VNPay/MoMo)                                            │
+│         ↓                                                                   │
+│    Payment success                                                          │
+│         ↓                                                                   │
+│    KiteHub Backend:                                                         │
+│      1. Update subscription in DB                                          │
+│      2. Trigger service provisioning:                                      │
+│         - Deploy Engagement Service                                        │
+│         - Update instance config                                           │
+│         - Invalidate Redis cache                                           │
+│      3. Send notification email                                            │
+│         ↓                                                                   │
+│    Success message: "Nâng cấp thành công!"                                │
+│         ↓                                                                   │
+│    Redirect back to instance: https://abc-academy.kiteclass.com           │
+│                                                                             │
+│  [KiteClass Instance]                                                       │
+│    Owner login lại (hoặc refresh page)                                     │
+│         ↓                                                                   │
+│    Frontend calls GET /api/v1/instance/config                             │
+│         ↓                                                                   │
+│    Receive updated config: tier = "STANDARD"                               │
+│         ↓                                                                   │
+│    UI updates:                                                              │
+│      ✓ "Game hóa" menu visible                                            │
+│      ✓ Gamification pages accessible                                       │
+│      ✓ No more "upgrade prompt" for this feature                          │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Case 2: Non-Owner Actor (ADMIN/TEACHER/STUDENT) click locked feature**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                   UPGRADE REQUEST (NON-OWNER)                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [KiteClass Instance]                                                       │
+│    Teacher/Admin click feature bị lock                                     │
+│         ↓                                                                   │
+│    Show "Contact Owner" Modal:                                             │
+│      ┌──────────────────────────────────────────────────────┐              │
+│      │  🔒 Tính năng Game hóa chỉ có trên gói STANDARD      │              │
+│      │                                                       │              │
+│      │  Preview: [Screenshot]                               │              │
+│      │                                                       │              │
+│      │  Để sử dụng tính năng này, vui lòng liên hệ:        │              │
+│      │                                                       │              │
+│      │  👤 Nguyễn Văn A (Center Owner)                      │              │
+│      │  📧 owner@example.com                                │              │
+│      │  📱 0123456789                                        │              │
+│      │                                                       │              │
+│      │  [Gửi yêu cầu qua email]    [Đóng]                  │              │
+│      └──────────────────────────────────────────────────────┘              │
+│         ↓                                                                   │
+│    Click "Gửi yêu cầu qua email"                                           │
+│         ↓                                                                   │
+│    Backend gửi email notification đến Owner:                               │
+│      Subject: "[ABC Academy] Yêu cầu nâng cấp tính năng"                  │
+│      Body:                                                                  │
+│        "Giáo viên [Name] muốn sử dụng tính năng Game hóa.                 │
+│         Tính năng này yêu cầu nâng cấp lên gói STANDARD."                 │
+│         ↓                                                                   │
+│    Show success: "Đã gửi yêu cầu đến Center Owner"                        │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Resource Limit Warnings
+
+**Warning Thresholds:**
+
+| Capacity | Behavior | UI Display |
+|----------|----------|------------|
+| < 80% | Normal | No warning |
+| 80-89% | Warning | ⚠️ Yellow banner: "Sắp đạt giới hạn học viên (160/200)" |
+| 90-99% | Alert | 🟠 Orange banner: "Gần đạt giới hạn (180/200). Nâng cấp để thêm học viên." |
+| 100% | Block | 🔴 Red banner: "Đã đạt giới hạn 200 học viên. Nâng cấp để tiếp tục." + Disable "Thêm học viên" button |
+
+**UI Example:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│  ⚠️ Cảnh báo giới hạn học viên                                             │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Bạn đang có 185/200 học viên (93%)                                        │
+│                                                                             │
+│  [████████████████████░░] 93%                                              │
+│                                                                             │
+│  Bạn sắp đạt giới hạn gói STANDARD. Nâng cấp lên PREMIUM để:              │
+│  ✓ Không giới hạn số học viên                                             │
+│  ✓ AI Marketing Agent                                                      │
+│  ✓ Priority Support                                                        │
+│                                                                             │
+│  [Nâng cấp ngay]    [Nhắc tôi sau]                                        │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**At 100% Limit:**
+
+```tsx
+// Student Management Page
+<div className="p-4">
+  <Alert variant="destructive">
+    <AlertTitle>Đã đạt giới hạn học viên</AlertTitle>
+    <AlertDescription>
+      Bạn đã đạt giới hạn 200 học viên của gói STANDARD.
+      Vui lòng nâng cấp lên gói PREMIUM để thêm học viên mới.
+    </AlertDescription>
+  </Alert>
+
+  <Button
+    disabled={isAtLimit}
+    onClick={handleAddStudent}
+  >
+    <Plus className="mr-2" />
+    Thêm học viên
+  </Button>
+</div>
+```
+
+## 6B.3. Feature Lock UI Patterns
+
+### Soft Block Modal (Best Practice)
+
+**Trigger:** User click vào feature bị lock
+
+**Modal Structure:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  🔒 [Feature Name] chỉ có trên gói [Required Tier]           │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  📸 Preview Screenshot                                        │
+│  [Preview image của feature - 600x400px]                     │
+│                                                               │
+│  ✨ Benefits:                                                 │
+│  • Benefit 1                                                  │
+│  • Benefit 2                                                  │
+│  • Benefit 3                                                  │
+│                                                               │
+│  💰 Pricing Info:                                             │
+│  Gói [Required Tier]: [Price]/tháng                          │
+│                                                               │
+│  ┌────────────────────────────────────────────────┐          │
+│  │  If OWNER:                                      │          │
+│  │  [Nâng cấp ngay] [Xem chi tiết] [Đóng]        │          │
+│  │                                                 │          │
+│  │  If NOT OWNER:                                  │          │
+│  │  [Liên hệ Owner] [Đóng]                        │          │
+│  └────────────────────────────────────────────────┘          │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+
+```tsx
+// src/components/upgrade/FeatureLockModal.tsx
+interface FeatureLockModalProps {
+  feature: {
+    name: string;
+    requiredTier: 'STANDARD' | 'PREMIUM';
+    previewImage: string;
+    benefits: string[];
+    price: string;
+  };
+  currentUser: {
+    role: UserRole;
+    isOwner: boolean;
+  };
+  instanceOwner: {
+    name: string;
+    email: string;
+  };
+  onClose: () => void;
+}
+
+export function FeatureLockModal({
+  feature,
+  currentUser,
+  instanceOwner,
+  onClose
+}: FeatureLockModalProps) {
+  const handleUpgrade = () => {
+    // Redirect to KiteHub portal
+    const upgradeUrl = `https://kiteclass.com/portal/upgrade?instance=${instanceId}&tier=${feature.requiredTier}`;
+    window.location.href = upgradeUrl;
+  };
+
+  const handleContactOwner = () => {
+    // Send email notification to owner
+    sendUpgradeRequest(feature.name, instanceOwner.email);
+    toast.success('Đã gửi yêu cầu đến Center Owner');
+    onClose();
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            {feature.name} chỉ có trên gói {feature.requiredTier}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Preview Image */}
+          <img
+            src={feature.previewImage}
+            alt={feature.name}
+            className="w-full rounded-lg border"
+          />
+
+          {/* Benefits */}
+          <div>
+            <h3 className="font-semibold mb-2">✨ Lợi ích:</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {feature.benefits.map((benefit, i) => (
+                <li key={i}>{benefit}</li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Pricing */}
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="font-semibold">
+              💰 Gói {feature.requiredTier}: {feature.price}/tháng
+            </p>
+          </div>
+
+          {/* Actions */}
+          <DialogFooter>
+            {currentUser.isOwner ? (
+              <>
+                <Button onClick={handleUpgrade}>
+                  Nâng cấp ngay
+                </Button>
+                <Button variant="outline" onClick={onClose}>
+                  Đóng
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={handleContactOwner}>
+                  Liên hệ {instanceOwner.name}
+                </Button>
+                <Button variant="outline" onClick={onClose}>
+                  Đóng
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+---
+
 # PHẦN 7: TỔNG KẾT KIẾN TRÚC V3
 
 ## 7.1. So sánh các phiên bản

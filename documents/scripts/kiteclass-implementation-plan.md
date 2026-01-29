@@ -2315,57 +2315,149 @@ Thực hiện Phase 1 của kiteclass-frontend-plan.md + Testing setup.
 - [ ] Playwright configured for E2E
 ```
 
-## ⏳ PR 3.2 - Frontend Core Infrastructure & Theme Types
+## ⏳ PR 3.2 - Frontend Core Infrastructure & Feature Detection
 
 ```
-Thực hiện Phase 2 của kiteclass-frontend-plan.md + Theme types.
+Thực hiện Phase 2 của kiteclass-frontend-plan.md + Feature Detection + Theme types.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6B: Feature Detection & Instance Configuration
+- frontend-code-quality.md Part 11: Multi-Tenant & Theme System types
+- frontend-code-quality.md Part 12: Feature Flag System & Tier-Based UI
 
 **Tuân thủ skills:**
 - frontend-code-quality.md Part 11: Multi-Tenant & Theme System types
+- frontend-code-quality.md Part 12: Feature Detection types & patterns
 - frontend-development.md Part 2: Theme System architecture
 - api-design.md: API response format
 - enums-constants.md: TypeScript enum definitions
 
 **Tasks:**
-1. Tạo API client (src/lib/api/client.ts):
-   - Axios instance với interceptors
-   - Auto refresh token
-   - Error handling
-   - Proper TypeScript types (NO any!)
-2. Tạo API endpoints config (src/lib/api/endpoints.ts)
-3. Tạo TypeScript types (src/types/):
-   - api.ts (ApiResponse, PageResponse, ErrorResponse)
-   - student.ts, class.ts, course.ts
-   - attendance.ts, invoice.ts
-   - user.ts
-   - **theme.ts** (ThemeTemplate, BrandingSettings, UserPreferences, ResolvedTheme)
-   - Match Backend DTOs exactly
-4. Tạo Theme utilities (src/lib/theme-utils.ts):
-   - applyThemeVariables()
-   - validateHexColor()
-   - generateColorScale()
-   - sanitizeBrandingSettings()
-5. Tạo Zustand stores:
-   - auth-store.ts (with TypeScript interface)
-   - ui-store.ts
 
-**Tests (bắt buộc - frontend-code-quality.md Part 3 & Part 11):**
+### 1. Feature Detection Types (src/types/subscription.ts) ⭐ NEW
+```typescript
+export type SubscriptionTier = 'BASIC' | 'STANDARD' | 'PREMIUM';
+export type ServiceType = 'user-gateway' | 'core' | 'engagement' | 'media' | 'frontend';
+
+export interface InstanceConfig {
+  instanceId: string;
+  tier: SubscriptionTier;
+  addOns: ('ENGAGEMENT' | 'MEDIA')[];
+  services: ServiceType[];
+  features: FeatureFlags;
+  limits: ResourceLimits;
+  owner: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface FeatureFlags {
+  // Core features (all tiers)
+  classManagement: boolean;
+  studentManagement: boolean;
+  attendance: boolean;
+  grading: boolean;
+  billing: boolean;
+
+  // Engagement Pack (STANDARD+)
+  gamification: boolean;
+  parentPortal: boolean;
+  forum: boolean;
+
+  // Media Pack (add-on)
+  videoUpload: boolean;
+  liveStreaming: boolean;
+
+  // Premium features
+  aiMarketing: boolean;
+  prioritySupport: boolean;
+}
+
+export interface ResourceLimits {
+  maxStudents: number; // 50, 200, or -1 (unlimited)
+  maxCourses: number | null;
+  videoStorageGB: number;
+  maxConcurrentStreams: number;
+}
+```
+
+### 2. API Client (src/lib/api/client.ts)
+- Axios instance với interceptors
+- Auto refresh token
+- Error handling
+- Proper TypeScript types (NO any!)
+
+### 3. API Endpoints Config (src/lib/api/endpoints.ts)
+```typescript
+export const ENDPOINTS = {
+  // Auth
+  LOGIN: '/api/v1/auth/login',
+  REFRESH: '/api/v1/auth/refresh',
+
+  // Instance Config ⭐ NEW
+  INSTANCE_CONFIG: '/api/v1/instance/config',
+  INSTANCE_THEME: '/api/v1/instance/theme',
+  INSTANCE_BRANDING: '/api/v1/instance/branding',
+
+  // Students
+  STUDENTS: '/api/v1/students',
+  // ... other endpoints
+};
+```
+
+### 4. Core TypeScript Types (src/types/)
+- api.ts (ApiResponse, PageResponse, ErrorResponse)
+- subscription.ts ⭐ NEW (InstanceConfig, FeatureFlags, ResourceLimits)
+- student.ts, class.ts, course.ts
+- attendance.ts, invoice.ts
+- user.ts (with UserRole enum)
+- **theme.ts** (ThemeTemplate, BrandingSettings, UserPreferences, ResolvedTheme)
+- Match Backend DTOs exactly
+
+### 5. Theme Utilities (src/lib/theme-utils.ts)
+- applyThemeVariables()
+- validateHexColor()
+- generateColorScale()
+- sanitizeBrandingSettings()
+
+### 6. Feature Detection Cache (src/lib/feature-cache.ts) ⭐ NEW
+```typescript
+const CONFIG_CACHE_KEY = 'kiteclass:instance_config';
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+export function getCachedConfig(): InstanceConfig | null;
+export function setCachedConfig(config: InstanceConfig): void;
+export function invalidateConfigCache(): void;
+```
+
+### 7. Zustand Stores
+- auth-store.ts (with TypeScript interface)
+- ui-store.ts
+
+**Tests (bắt buộc - frontend-code-quality.md Part 3, Part 11, Part 12):**
 - src/__tests__/lib/api/
   - client.test.ts (test interceptors, error handling)
+  - endpoints.test.ts (test endpoint constants)
 - src/__tests__/lib/
   - theme-utils.test.ts (test color validation, theme isolation)
+  - feature-cache.test.ts ⭐ NEW (test caching, TTL, invalidation)
 - src/__tests__/stores/
   - auth-store.test.ts
   - ui-store.test.ts
+- src/__tests__/types/
+  - subscription.test.ts ⭐ NEW (test type guards, validation)
 - Use MSW for API mocking
 
 **Verification:**
 - pnpm test phải pass (minimum 80% coverage)
 - pnpm lint passes
 - pnpm tsc --noEmit passes
-- Types khớp với BE DTOs
+- Types khớp với BE DTOs (reference: system-architecture-v3-final.md PHẦN 6B.1)
 - No `any` types in codebase
 - Theme types properly defined
+- Feature Detection types properly defined ⭐ NEW
 
 **Quality Checklist (frontend-code-quality.md):**
 - [ ] All types properly defined (no `any`)
@@ -2373,60 +2465,226 @@ Thực hiện Phase 2 của kiteclass-frontend-plan.md + Theme types.
 - [ ] Tests use MSW for API mocking
 - [ ] Zustand stores have TypeScript interfaces
 - [ ] Theme types defined per Part 11
+- [ ] Feature Detection types defined per Part 12 ⭐ NEW
 - [ ] Color validation implemented
 - [ ] Theme utility functions tested
+- [ ] Feature cache tested with TTL scenarios ⭐ NEW
 ```
 
-## ⏳ PR 3.3 - Providers & Layout (Multi-Tenant Theme Support)
+## ⏳ PR 3.3 - Providers & Layout (Multi-Tenant + Feature Flags)
 
 ```
-Thực hiện Phase 3-5 của kiteclass-frontend-plan.md.
+Thực hiện Phase 3-5 của kiteclass-frontend-plan.md + FeatureFlagProvider.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6B.1: Feature Detection API
+- system-architecture-v3-final.md PHẦN 6B.3: Feature Lock UI Patterns
+- frontend-code-quality.md Part 12: Feature Flag System
 
 **Tuân thủ skills:**
 - frontend-development.md Part 2: Theme System architecture & ThemeProvider
 - frontend-code-quality.md Part 11: Multi-Tenant considerations
+- frontend-code-quality.md Part 12: Feature Flag System & Tier-Based UI ⭐ NEW
 - ui-components.md: layout patterns
 - code-style.md: React component conventions
 
 **Tasks:**
-1. Tạo Providers (src/providers/):
-   - QueryProvider (React Query)
-   - **ThemeProvider** (fetch theme from API, apply CSS variables):
-     - Fetch ResolvedTheme from GET /api/v1/theme
-     - Apply CSS variables với applyThemeVariables()
-     - Support dark/light mode switching
-     - Cache theme in localStorage (prevent flash)
-     - Handle branding color override
-   - AuthProvider (protected routes)
-   - ToasterProvider
-2. Tạo root layout với providers (app/layout.tsx):
-   - Inline script to prevent theme flash
-   - Wrap children với all providers
-3. Tạo Layout components:
-   - Sidebar với navigation config
-   - Header với UserNav, ThemeToggle
-   - Breadcrumb
-4. Tạo Dashboard layout (src/app/(dashboard)/layout.tsx)
-5. Tạo Auth layout (src/app/(auth)/layout.tsx)
 
-**Tests (bắt buộc - frontend-code-quality.md Part 11):**
+### 1. Providers (src/providers/)
+
+#### FeatureFlagProvider ⭐ NEW (src/providers/FeatureFlagProvider.tsx)
+```typescript
+interface FeatureFlagContextValue {
+  config: InstanceConfig | null;
+  features: FeatureFlags | null;
+  isLoading: boolean;
+  error: Error | null;
+  hasFeature: (feature: keyof FeatureFlags) => boolean;
+  hasTier: (tier: SubscriptionTier) => boolean;
+  checkLimit: (resource: 'students' | 'courses' | 'videoGB') => LimitCheck;
+}
+
+// Fetch from GET /api/v1/instance/config (PR 3.2 endpoint)
+// Cache in localStorage (1 hour TTL)
+// NO runtime updates (user must go to KiteHub to upgrade)
+```
+
+#### ThemeProvider (src/providers/ThemeProvider.tsx)
+- Fetch ResolvedTheme from GET /api/v1/instance/theme
+- Apply CSS variables với applyThemeVariables()
+- Support dark/light mode switching
+- Cache theme in localStorage (prevent flash)
+- Handle branding color override
+
+#### AuthProvider (src/providers/AuthProvider.tsx)
+- Protected routes logic
+- JWT token management
+- User context
+
+#### Other Providers
+- QueryProvider (React Query)
+- ToasterProvider
+
+### 2. Root Layout với Providers (app/layout.tsx)
+```typescript
+export default function RootLayout({ children }) {
+  return (
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        {/* Inline script to prevent theme flash */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body>
+        <QueryProvider>
+          <FeatureFlagProvider> {/* ⭐ NEW */}
+            <ThemeProvider>
+              <AuthProvider>
+                <ToasterProvider />
+                {children}
+              </AuthProvider>
+            </ThemeProvider>
+          </FeatureFlagProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 3. Layout Components
+
+#### Sidebar (src/components/layout/Sidebar.tsx) ⭐ UPDATED
+- Navigation config with conditional rendering based on features
+```typescript
+function Sidebar() {
+  const hasGamification = useFeatureFlag('gamification');
+  const hasParentPortal = useFeatureFlag('parentPortal');
+  const hasForum = useFeatureFlag('forum');
+  const hasVideoUpload = useFeatureFlag('videoUpload');
+
+  return (
+    <nav>
+      {/* Core features - always visible */}
+      <NavItem href="/classes">Lớp học</NavItem>
+      <NavItem href="/students">Học viên</NavItem>
+
+      {/* Engagement Pack - conditional */}
+      {hasGamification && <NavItem href="/gamification">Game hóa</NavItem>}
+      {hasParentPortal && <NavItem href="/parents">Phụ huynh</NavItem>}
+      {hasForum && <NavItem href="/forum">Diễn đàn</NavItem>}
+
+      {/* Media Pack - conditional */}
+      {hasVideoUpload && <NavItem href="/media">Video</NavItem>}
+    </nav>
+  );
+}
+```
+
+#### Header (src/components/layout/Header.tsx)
+- UserNav dropdown
+- ThemeToggle (dark/light mode)
+- Resource limit warnings ⭐ NEW
+
+#### Breadcrumb (src/components/layout/Breadcrumb.tsx)
+- Dynamic breadcrumb generation
+
+### 4. Dashboard Layout (src/app/(dashboard)/layout.tsx)
+```typescript
+export default function DashboardLayout({ children }) {
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <ResourceLimitBanner /> {/* ⭐ NEW */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+```
+
+### 5. Auth Layout (src/app/(auth)/layout.tsx)
+- Centered auth forms
+- Branding logo
+
+### 6. Feature Lock Components ⭐ NEW (src/components/upgrade/)
+
+#### FeatureLockModal.tsx
+```typescript
+// Soft Block Modal per system-architecture-v3-final.md PHẦN 6B.3
+// Show preview, benefits, pricing
+// If OWNER: "Nâng cấp ngay" → Redirect to KiteHub
+// If NOT OWNER: "Liên hệ Owner" → Send email notification
+```
+
+#### ResourceLimitWarning.tsx
+```typescript
+// Warning banner for approaching limits
+// 80%: Yellow warning
+// 90%: Orange alert
+// 100%: Red block with upgrade CTA
+```
+
+#### UpgradeButton.tsx
+```typescript
+// Redirect to KiteHub portal upgrade page
+// Only visible for CENTER_OWNER role
+```
+
+**Tests (bắt buộc - frontend-code-quality.md Part 11 & 12):**
 - src/__tests__/providers/
-  - auth-provider.test.tsx
-  - **theme-provider.test.tsx**:
+  - feature-flag-provider.test.tsx ⭐ NEW:
+    - Test config fetching from API
+    - Test hasFeature() for all tiers (BASIC, STANDARD, PREMIUM)
+    - Test hasTier() comparisons
+    - Test caching (1 hour TTL)
+    - Test error handling
+  - theme-provider.test.tsx:
     - Test theme fetching from API
     - Test CSS variables applied correctly
     - Test branding override (primaryColor)
     - Test theme switching
     - Test theme isolation
     - Test theme caching
-  - theme-provider.test.tsx
+  - auth-provider.test.tsx
 - src/__tests__/components/layout/
-  - sidebar.test.tsx
+  - sidebar.test.tsx ⭐ UPDATED:
+    - Test conditional navigation rendering
+    - Test BASIC tier: no Gamification menu
+    - Test STANDARD tier: has Gamification menu
+    - Test PREMIUM tier: has all menus
   - header.test.tsx
+- src/__tests__/components/upgrade/ ⭐ NEW:
+  - feature-lock-modal.test.tsx:
+    - Test modal display for locked feature
+    - Test OWNER: shows "Nâng cấp ngay" button
+    - Test NON-OWNER: shows "Liên hệ Owner" button
+    - Test redirect to KiteHub
+  - resource-limit-warning.test.tsx:
+    - Test warning at 80% capacity
+    - Test alert at 90% capacity
+    - Test block at 100% capacity
 
 **Verification:**
-- pnpm test phải pass
+- pnpm test phải pass (minimum 80% coverage)
 - Layout renders correctly
+- Feature flags working (conditional navigation)
+- Theme switching working (no flash)
+- Upgrade modals working (redirect to KiteHub)
+- Resource warnings working (thresholds correct)
+
+**Quality Checklist:**
+- [ ] FeatureFlagProvider properly implemented ⭐ NEW
+- [ ] Conditional navigation tested ⭐ NEW
+- [ ] Feature lock modals tested ⭐ NEW
+- [ ] Resource limit warnings tested ⭐ NEW
+- [ ] ThemeProvider tested (no flash)
+- [ ] AuthProvider tested (protected routes)
+- [ ] All providers have error handling
+- [ ] Cache strategies implemented (1hr TTL)
 ```
 
 ## ⏳ PR 3.4 - Shared Components
