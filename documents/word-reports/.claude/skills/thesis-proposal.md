@@ -125,7 +125,7 @@ Edit `create_de_cuong_datn.py` functions:
 THESIS_INFO = {
     "title_vi": "Xây dựng Hệ thống Quản lý Lớp học Trực tuyến theo Kiến trúc Microservices",
     "title_en": "Building Online Class Management System using Microservices Architecture",
-    "advisor": "ThS. Nguyễn Đức Dư",
+    "advisor": "TS. Nguyễn Đức Dư",
     "start_date": "01/01/2026",
     "end_date": "30/06/2026"
 }

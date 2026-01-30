@@ -22,7 +22,7 @@ Thông tin cá nhân của sinh viên để sử dụng trong các báo cáo.
 | **Đơn vị thực tập** | SY PARTNERS., JSC |
 | **Địa chỉ** | Tầng 3, Tòa nhà Luxury, Số 99 Võ Chí Công, Quận Tây Hồ, Hà Nội |
 | **Vị trí** | Software Engineer |
-| **GVHD tại trường** | ThS. Nguyễn Đức Dư |
+| **GVHD tại trường** | TS. Nguyễn Đức Dư |
 | **CBHD tại đơn vị** | [Tên CBHD] |
 | **Thời gian thực tập** | Từ ngày 26/06/2025 đến ngày 26/09/2025 |
 
@@ -46,7 +46,7 @@ INTERNSHIP_INFO = {
     "company": "SY PARTNERS., JSC",
     "address": "Tầng 3, Tòa nhà Luxury, Số 99 Võ Chí Công, Quận Tây Hồ, Hà Nội",
     "position": "Software Engineer",
-    "advisor": "ThS. Nguyễn Đức Dư",
+    "advisor": "TS. Nguyễn Đức Dư",
     "company_mentor": "[Tên CBHD]",
     "start_date": "26/06/2025",
     "end_date": "26/09/2025",

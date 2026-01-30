@@ -76,7 +76,7 @@ pip install python-docx --user
         TẠI DOANH NGHIỆP PHÁT TRIỂN PHẦN MỀM
 
 
-    Giảng viên hướng dẫn   : ThS. Nguyễn Đức Dư
+    Giảng viên hướng dẫn   : TS. Nguyễn Đức Dư
     Sinh viên thực hiện    : [Họ và tên]       ← 14pt, căn trái
     Lớp                    : [Tên lớp]
     Mã sinh viên           : [MSSV]

@@ -315,7 +315,7 @@ def add_title_page(doc):
 
     # 7. Thông tin sinh viên
     info = [
-        ("Giảng viên hướng dẫn", "ThS. Nguyễn Đức Dư"),
+        ("Giảng viên hướng dẫn", "TS. Nguyễn Đức Dư"),
         ("Sinh viên thực hiện", "Nguyễn Văn Kiệt"),
         ("Lớp", "[Tên lớp]"),
         ("Mã sinh viên", "[MSSV]"),

@@ -37,7 +37,7 @@ STUDENT_INFO = {
 
 # ============== THÔNG TIN GIẢNG VIÊN ==============
 ADVISOR_INFO = {
-    "name": "ThS. Nguyễn Đức Dư",
+    "name": "TS. Nguyễn Đức Dư",
     "department": "Khoa Công nghệ thông tin - Trường ĐH GTVT",
     "phone": "...",
     "email": "...",
