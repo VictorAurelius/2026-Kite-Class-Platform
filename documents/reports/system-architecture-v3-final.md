@@ -3933,6 +3933,1022 @@ public class PublicDataFilterService {
 
 ---
 
+# PHẦN 6F: HỆ THỐNG THANH TOÁN - VIETQR PAYMENT
+
+**Tạo:** 2026-01-30
+**Mục đích:** Định nghĩa hệ thống thanh toán 2 cấp độ với VietQR
+
+## 6F.1. Tổng quan VietQR Payment System
+
+### Tại sao chọn VietQR thay vì Payment Gateway truyền thống?
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📊 SO SÁNH: VietQR vs Payment Gateways                 │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  VietQR (QR Code Bank Transfer)                        │
+│  ✅ Zero transaction fees (0%)                          │
+│  ✅ Instant transfer (real-time)                        │
+│  ✅ 95%+ Vietnamese banks support                       │
+│  ✅ No merchant account required                        │
+│  ✅ Simple integration (generate QR, verify transfer)   │
+│  ✅ Popular in Vietnam (everyone has banking app)       │
+│  ⚠️ Manual verification (or bank API integration)       │
+│                                                         │
+│  VNPay / MoMo / ZaloPay                                │
+│  ❌ 1.5-3% transaction fees                             │
+│  ❌ Merchant account required (KYB process)             │
+│  ❌ Integration complexity (webhooks, signature verify) │
+│  ✅ Automatic verification                              │
+│  ✅ Multiple payment methods (card, wallet, bank)       │
+│                                                         │
+│  💡 DECISION: VietQR cho MVP                            │
+│     - Chi phí thấp (zero fees)                          │
+│     - Phổ biến tại Việt Nam                             │
+│     - Đơn giản để implement                             │
+│     - Có thể thêm payment gateway sau (V2)              │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.2. Two-Level Payment Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🏦 TWO-LEVEL PAYMENT SYSTEM                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Level 1: KITEHUB PAYMENT (Platform Subscription)      │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  User → KiteHub                                │    │
+│  │  Purpose: Purchase subscription tier           │    │
+│  │  Bank: KiteHub business account                │    │
+│  │                                                 │    │
+│  │  Example:                                       │    │
+│  │  - BASIC: 499,000 VND/month                    │    │
+│  │  - STANDARD: 999,000 VND/month                 │    │
+│  │  - PREMIUM: 1,499,000 VND/month                │    │
+│  │                                                 │    │
+│  │  QR Content: "KITEHUB {orderId} {email}"       │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Level 2: INSTANCE PAYMENT (Course Enrollment)         │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  Student → Center Owner                        │    │
+│  │  Purpose: Pay course tuition                   │    │
+│  │  Bank: Owner's personal/business account       │    │
+│  │                                                 │    │
+│  │  Example:                                       │    │
+│  │  - Course tuition: 2,000,000 VND               │    │
+│  │  - Material fee: 500,000 VND                   │    │
+│  │                                                 │    │
+│  │  QR Content: "HOCPHI {courseId} {studentName}" │    │
+│  │                                                 │    │
+│  │  ⭐ OWNER CAN CUSTOMIZE:                        │    │
+│  │     - Bank account (any Vietnamese bank)       │    │
+│  │     - QR content template                      │    │
+│  └───────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.3. VietQR Technical Implementation
+
+### 6F.3.1. VietQR URL Format
+
+```java
+// VietQR API: https://vietqr.io/
+// Generate QR image with pre-filled info
+
+String vietqrUrl = String.format(
+  "https://img.vietqr.io/image/%s-%s-compact2.jpg?amount=%d&addInfo=%s&accountName=%s",
+  bankBin,           // "970415" (Vietcombank), "970422" (MB Bank), etc.
+  accountNumber,     // "1234567890"
+  amount,            // 499000 (VND)
+  URLEncoder.encode(content, UTF_8),    // "KITEHUB ORD123 user@example.com"
+  URLEncoder.encode(accountName, UTF_8) // "CONG TY TNHH KITECLASS"
+);
+
+// QR image URL:
+// https://img.vietqr.io/image/970415-1234567890-compact2.jpg?amount=499000&addInfo=KITEHUB%20ORD123%20user@example.com&accountName=CONG%20TY%20TNHH%20KITECLASS
+```
+
+### 6F.3.2. Vietnamese Bank Codes (BIN)
+
+```java
+public enum VietnameseBankCode {
+    VIETCOMBANK("970415", "Vietcombank"),
+    ACB("970416", "ACB"),
+    BIDV("970418", "BIDV"),
+    MB_BANK("970422", "MB Bank"),
+    TECHCOMBANK("970423", "Techcombank"),
+    VIETINBANK("970436", "Vietinbank"),
+    VPB("970432", "VPBank"),
+    SACOMBANK("970403", "Sacombank"),
+    AGRIBANK("970405", "Agribank"),
+    DONGABANK("970406", "Đông Á Bank"),
+    // ... 40+ banks total
+}
+```
+
+---
+
+## 6F.4. KiteHub Payment (Level 1)
+
+### 6F.4.1. Subscription Payment Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🔄 KITEHUB SUBSCRIPTION PAYMENT FLOW                   │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. User clicks "Nâng cấp" → Select tier (BASIC, etc.) │
+│  2. Backend creates PaymentOrder                        │
+│     - orderId: "ORD-20260130-123456"                   │
+│     - amount: 499,000 VND                              │
+│     - tier: BASIC                                       │
+│     - status: PENDING                                   │
+│     - expiresAt: now + 24 hours                        │
+│                                                         │
+│  3. Backend generates VietQR                            │
+│     - Bank: KiteHub account (Vietcombank)              │
+│     - Content: "KITEHUB ORD-20260130-123456 user@x.com"│
+│     - QR Image URL returned to frontend                 │
+│                                                         │
+│  4. User opens banking app → Scan QR → Transfer         │
+│     - Amount auto-filled: 499,000 VND                  │
+│     - Content auto-filled: "KITEHUB ORD-20260130-12..." │
+│     - Recipient: CONG TY TNHH KITECLASS                │
+│                                                         │
+│  5. Verification (2 options):                           │
+│     A. Manual (MVP):                                    │
+│        - ADMIN checks bank statement                    │
+│        - Match content with orderId                     │
+│        - Click "Xác nhận thanh toán" in admin panel    │
+│                                                         │
+│     B. Automated (V2):                                  │
+│        - Bank API webhook → /api/webhooks/bank          │
+│        - Auto-match content → orderId                   │
+│        - Auto-confirm payment                           │
+│                                                         │
+│  6. Post-payment actions:                               │
+│     - Update order status: PAID                         │
+│     - Activate subscription tier                        │
+│     - Send confirmation email                           │
+│     - Grant feature access                              │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6F.4.2. PaymentOrder Entity
+
+```java
+@Entity
+@Table(name = "payment_orders")
+public class PaymentOrder {
+
+    @Id
+    @Column(length = 50)
+    private String orderId;  // "ORD-20260130-123456"
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentType type; // SUBSCRIPTION, COURSE_ENROLLMENT
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false)
+    private Long amount;     // 499000 (VND)
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PricingTier tier; // BASIC, STANDARD, PREMIUM
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status; // PENDING, PAID, EXPIRED, CANCELLED
+
+    @Column(length = 500)
+    private String qrImageUrl; // VietQR image URL
+
+    @Column(length = 200)
+    private String paymentContent; // "KITEHUB ORD-123 user@x.com"
+
+    @Column(length = 100)
+    private String transactionReference; // Bank transaction ID (if available)
+
+    @Column
+    private LocalDateTime paidAt;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime expiresAt; // createdAt + 24 hours
+
+    // Getters/Setters
+}
+```
+
+### 6F.4.3. VietQRService - KiteHub Level
+
+```java
+@Service
+public class KiteHubPaymentService {
+
+    private static final String KITEHUB_BANK_BIN = "970415"; // Vietcombank
+    private static final String KITEHUB_ACCOUNT = "1234567890";
+    private static final String KITEHUB_ACCOUNT_NAME = "CONG TY TNHH KITECLASS";
+
+    /**
+     * Create subscription payment order with VietQR
+     */
+    @Transactional
+    public PaymentOrderResponse createSubscriptionOrder(
+        User user,
+        PricingTier tier
+    ) {
+        // Generate unique order ID
+        String orderId = generateOrderId(); // "ORD-20260130-123456"
+
+        // Get tier price
+        long amount = tier.getPriceVND(); // 499k, 999k, 1499k
+
+        // Generate payment content
+        String content = String.format(
+            "KITEHUB %s %s",
+            orderId,
+            user.getEmail()
+        );
+
+        // Generate VietQR URL
+        String qrUrl = buildVietQRUrl(
+            KITEHUB_BANK_BIN,
+            KITEHUB_ACCOUNT,
+            KITEHUB_ACCOUNT_NAME,
+            amount,
+            content
+        );
+
+        // Create payment order
+        PaymentOrder order = new PaymentOrder();
+        order.setOrderId(orderId);
+        order.setType(PaymentType.SUBSCRIPTION);
+        order.setUser(user);
+        order.setAmount(amount);
+        order.setTier(tier);
+        order.setStatus(PaymentStatus.PENDING);
+        order.setQrImageUrl(qrUrl);
+        order.setPaymentContent(content);
+        order.setCreatedAt(LocalDateTime.now());
+        order.setExpiresAt(LocalDateTime.now().plusHours(24));
+
+        paymentOrderRepo.save(order);
+
+        // Return response
+        return PaymentOrderResponse.builder()
+            .orderId(orderId)
+            .qrImageUrl(qrUrl)
+            .bankName("Vietcombank")
+            .accountNumber(maskAccountNumber(KITEHUB_ACCOUNT)) // "1234****90"
+            .accountName(KITEHUB_ACCOUNT_NAME)
+            .amount(amount)
+            .content(content)
+            .expiresAt(order.getExpiresAt())
+            .build();
+    }
+
+    /**
+     * Manual payment verification (MVP)
+     */
+    @Transactional
+    public void confirmPayment(
+        String orderId,
+        String transactionRef,
+        LocalDateTime paidAt
+    ) {
+        PaymentOrder order = paymentOrderRepo.findById(orderId)
+            .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (order.getStatus() != PaymentStatus.PENDING) {
+            throw new InvalidStateException("Order already processed");
+        }
+
+        // Update order
+        order.setStatus(PaymentStatus.PAID);
+        order.setTransactionReference(transactionRef);
+        order.setPaidAt(paidAt);
+        paymentOrderRepo.save(order);
+
+        // Activate subscription
+        subscriptionService.activateTier(order.getUser(), order.getTier());
+
+        // Send confirmation email
+        emailService.sendPaymentConfirmation(order);
+
+        // Publish event
+        eventPublisher.publish(new PaymentConfirmedEvent(order));
+    }
+
+    private String buildVietQRUrl(
+        String bankBin,
+        String accountNo,
+        String accountName,
+        long amount,
+        String content
+    ) {
+        return String.format(
+            "https://img.vietqr.io/image/%s-%s-compact2.jpg?amount=%d&addInfo=%s&accountName=%s",
+            bankBin,
+            accountNo,
+            amount,
+            URLEncoder.encode(content, StandardCharsets.UTF_8),
+            URLEncoder.encode(accountName, StandardCharsets.UTF_8)
+        );
+    }
+
+    private String generateOrderId() {
+        return String.format(
+            "ORD-%s-%06d",
+            LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE),
+            ThreadLocalRandom.current().nextInt(1, 1_000_000)
+        );
+    }
+
+    private String maskAccountNumber(String accountNo) {
+        if (accountNo.length() <= 4) return accountNo;
+        return accountNo.substring(0, 4) + "****" + accountNo.substring(accountNo.length() - 2);
+    }
+}
+```
+
+---
+
+## 6F.5. Instance Payment (Level 2) - Owner Configurable
+
+### 6F.5.1. Owner Bank Account Configuration
+
+```java
+@Entity
+@Table(name = "instances")
+public class Instance {
+
+    @Embedded
+    private BankAccountInfo ownerBankAccount;
+
+    @Embeddable
+    public static class BankAccountInfo {
+
+        @Column(name = "bank_code", length = 10)
+        private String bankCode;  // "970415" (Vietcombank), "970422" (MB Bank)
+
+        @Column(name = "bank_name", length = 100)
+        private String bankName;  // "Vietcombank" (display name)
+
+        @Column(name = "account_number", length = 50)
+        private String accountNumber;  // "9876543210"
+
+        @Column(name = "account_name", length = 200)
+        private String accountName;  // "NGUYEN VAN A" (UPPERCASE, no accents)
+
+        @Column(name = "qr_template", length = 500)
+        private String qrTemplate;  // "HOCPHI {courseId} {studentName}"
+
+        // Getters/Setters
+    }
+}
+```
+
+### 6F.5.2. Course Enrollment Payment Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🎓 COURSE ENROLLMENT PAYMENT FLOW (Instance-Level)     │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. ADMIN adds Student to Course                        │
+│     - courseId: "CRS-123"                              │
+│     - studentId: "STU-456"                             │
+│     - tuition: 2,000,000 VND                           │
+│     - status: PENDING_PAYMENT                           │
+│                                                         │
+│  2. Backend generates VietQR for this enrollment        │
+│     - Bank: OWNER's configured account                  │
+│     - Content: OWNER's template                         │
+│       "HOCPHI CRS-123 NGUYEN VAN A"                    │
+│     - QR sent to Student via email/parent portal        │
+│                                                         │
+│  3. Student/Parent scans QR → Transfer                  │
+│     - Amount: 2,000,000 VND (pre-filled)               │
+│     - Content: "HOCPHI CRS-123 NGUYEN VAN A" (pre-filled)│
+│     - Recipient: NGUYEN VAN B (Owner's name)           │
+│                                                         │
+│  4. OWNER checks bank account → Sees transfer           │
+│     - Logs into KiteClass                               │
+│     - Goes to: Students > {student} > Payments          │
+│     - Clicks "Xác nhận đã nhận tiền"                   │
+│                                                         │
+│  5. Post-payment:                                       │
+│     - Student status: ACTIVE                            │
+│     - Can access course materials                       │
+│     - Parent receives confirmation                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6F.5.3. InstancePaymentService
+
+```java
+@Service
+public class InstancePaymentService {
+
+    /**
+     * Generate QR for course enrollment payment
+     * Uses OWNER's configured bank account
+     */
+    public VietQRResponse generateEnrollmentQR(
+        String instanceId,
+        String courseId,
+        String studentName,
+        long tuitionAmount
+    ) {
+        // Get instance
+        Instance instance = instanceRepo.findById(instanceId)
+            .orElseThrow(() -> new NotFoundException("Instance not found"));
+
+        // Get owner's bank config
+        BankAccountInfo bankInfo = instance.getOwnerBankAccount();
+
+        if (bankInfo == null || bankInfo.getAccountNumber() == null) {
+            throw new PaymentConfigException(
+                "Chủ trung tâm chưa cấu hình thông tin chuyển khoản. " +
+                "Vui lòng cập nhật trong Settings > Payment Info."
+            );
+        }
+
+        // Format payment content using owner's template
+        String content = formatPaymentContent(
+            bankInfo.getQrTemplate(),
+            courseId,
+            studentName
+        );
+
+        // Generate VietQR URL
+        String qrUrl = buildVietQRUrl(
+            bankInfo.getBankCode(),
+            bankInfo.getAccountNumber(),
+            bankInfo.getAccountName(),
+            tuitionAmount,
+            content
+        );
+
+        return VietQRResponse.builder()
+            .qrImageUrl(qrUrl)
+            .bankName(bankInfo.getBankName())
+            .accountNumber(maskAccountNumber(bankInfo.getAccountNumber()))
+            .accountName(bankInfo.getAccountName())
+            .amount(tuitionAmount)
+            .content(content)
+            .build();
+    }
+
+    /**
+     * Update owner's bank account info (Settings page)
+     */
+    @Transactional
+    public void updateBankAccount(
+        String instanceId,
+        BankAccountUpdateRequest request
+    ) {
+        Instance instance = instanceRepo.findById(instanceId)
+            .orElseThrow(() -> new NotFoundException("Instance not found"));
+
+        // Validate bank code
+        if (!VietnameseBankCode.isValid(request.getBankCode())) {
+            throw new ValidationException("Mã ngân hàng không hợp lệ");
+        }
+
+        // Validate account number
+        if (!request.getAccountNumber().matches("\\d{8,20}")) {
+            throw new ValidationException("Số tài khoản không hợp lệ (8-20 chữ số)");
+        }
+
+        // Validate account name (uppercase, no accents)
+        if (!request.getAccountName().matches("[A-Z0-9 ]+")) {
+            throw new ValidationException(
+                "Tên tài khoản phải viết hoa, không dấu (VD: NGUYEN VAN A)"
+            );
+        }
+
+        // Update bank info
+        BankAccountInfo bankInfo = new BankAccountInfo();
+        bankInfo.setBankCode(request.getBankCode());
+        bankInfo.setBankName(VietnameseBankCode.getNameByCode(request.getBankCode()));
+        bankInfo.setAccountNumber(request.getAccountNumber());
+        bankInfo.setAccountName(request.getAccountName());
+        bankInfo.setQrTemplate(request.getQrTemplate());
+
+        instance.setOwnerBankAccount(bankInfo);
+        instanceRepo.save(instance);
+    }
+
+    /**
+     * Preview QR (for testing in Settings page)
+     */
+    public VietQRResponse previewQR(BankAccountPreviewRequest request) {
+        String sampleContent = request.getQrTemplate()
+            .replace("{courseId}", "SAMPLE123")
+            .replace("{studentName}", "NGUYEN VAN A")
+            .replace("{timestamp}", String.valueOf(System.currentTimeMillis() / 1000));
+
+        String qrUrl = buildVietQRUrl(
+            request.getBankCode(),
+            request.getAccountNumber(),
+            request.getAccountName(),
+            2_000_000L, // Sample amount
+            sampleContent
+        );
+
+        return VietQRResponse.builder()
+            .qrImageUrl(qrUrl)
+            .bankName(VietnameseBankCode.getNameByCode(request.getBankCode()))
+            .accountNumber(maskAccountNumber(request.getAccountNumber()))
+            .accountName(request.getAccountName())
+            .amount(2_000_000L)
+            .content(sampleContent)
+            .build();
+    }
+
+    private String formatPaymentContent(
+        String template,
+        String courseId,
+        String studentName
+    ) {
+        return template
+            .replace("{courseId}", courseId)
+            .replace("{studentName}", removeAccents(studentName).toUpperCase())
+            .replace("{timestamp}", String.valueOf(System.currentTimeMillis() / 1000));
+    }
+}
+```
+
+---
+
+## 6F.6. Payment Verification Strategies
+
+### 6F.6.1. Manual Verification (MVP)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📋 MANUAL PAYMENT VERIFICATION (MVP Approach)          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Admin Panel: /admin/payments/pending                   │
+│                                                         │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  Pending Payments (3)                          │    │
+│  ├───────────────────────────────────────────────┤    │
+│  │                                                 │    │
+│  │  ORD-20260130-123456                           │    │
+│  │  Amount: 499,000 VND                           │    │
+│  │  Tier: BASIC                                    │    │
+│  │  User: user@example.com                        │    │
+│  │  Content: "KITEHUB ORD-20260130-123456..."     │    │
+│  │  Created: 2026-01-30 10:00                     │    │
+│  │  [Xác nhận thanh toán] [Hủy]                   │    │
+│  ├───────────────────────────────────────────────┤    │
+│  │  ... more pending payments ...                 │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Workflow:                                              │
+│  1. Admin checks bank statement (internet banking)     │
+│  2. Match content in bank with pending orders           │
+│  3. Click "Xác nhận thanh toán" for matched order      │
+│  4. Optionally enter bank transaction ID                │
+│  5. System activates subscription/enrollment            │
+│                                                         │
+│  Pros:                                                  │
+│  ✅ Simple to implement                                 │
+│  ✅ No bank API integration needed                      │
+│  ✅ Works with all banks                                │
+│  ✅ 100% accuracy (human verification)                  │
+│                                                         │
+│  Cons:                                                  │
+│  ⚠️ Manual work (1-2 minutes per payment)               │
+│  ⚠️ Not instant (admin needs to check)                  │
+│  ⚠️ Business hours only (unless 24/7 staff)             │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6F.6.2. Automated Verification (V2 - Future)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🤖 AUTOMATED VERIFICATION (V2 with Bank API)           │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Option A: Bank API Webhooks                            │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  1. Customer transfers money                   │    │
+│  │  2. Bank sends webhook to KiteClass:           │    │
+│  │     POST /api/webhooks/bank/transfer           │    │
+│  │     {                                           │    │
+│  │       "transactionId": "FT123456",            │    │
+│  │       "amount": 499000,                       │    │
+│  │       "content": "KITEHUB ORD-...",           │    │
+│  │       "timestamp": "2026-01-30T10:05:00Z"     │    │
+│  │     }                                           │    │
+│  │  3. Backend verifies signature                 │    │
+│  │  4. Match content with pending order           │    │
+│  │  5. Auto-confirm payment                       │    │
+│  │  6. Activate subscription instantly            │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Supported Banks (Business API):                       │
+│  - Vietcombank Enterprise API                          │
+│  - Techcombank Business API                            │
+│  - MB Bank Corporate API                               │
+│  - VPBank Open API                                     │
+│                                                         │
+│  Option B: Bank Statement Parsing                      │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  1. Cron job every 2 minutes                   │    │
+│  │  2. Fetch latest bank transactions via API     │    │
+│  │  3. Parse each transaction:                    │    │
+│  │     - amount                                    │    │
+│  │     - content                                   │    │
+│  │     - timestamp                                 │    │
+│  │  4. Match with pending orders                  │    │
+│  │  5. Auto-confirm matched payments              │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Pros:                                                  │
+│  ✅ Instant verification (1-2 minutes)                  │
+│  ✅ 24/7 automatic                                      │
+│  ✅ Scalable (handle 1000s of payments)                 │
+│                                                         │
+│  Cons:                                                  │
+│  ❌ Requires bank API contract                          │
+│  ❌ Integration complexity                              │
+│  ❌ API fees (if applicable)                            │
+│  ❌ Bank-specific implementation                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.7. APIs cho Payment System
+
+### 6F.7.1. KiteHub Subscription Payment APIs
+
+```java
+// 1. Create subscription payment order
+POST /api/v1/payment/subscription/create
+Request:
+{
+  "tier": "BASIC" | "STANDARD" | "PREMIUM"
+}
+Response:
+{
+  "orderId": "ORD-20260130-123456",
+  "qrImageUrl": "https://img.vietqr.io/image/970415-1234567890-compact2.jpg?...",
+  "bankName": "Vietcombank",
+  "accountNumber": "1234****90",
+  "accountName": "CONG TY TNHH KITECLASS",
+  "amount": 499000,
+  "content": "KITEHUB ORD-20260130-123456 user@example.com",
+  "expiresAt": "2026-01-31T10:00:00Z"
+}
+
+// 2. Check payment status
+GET /api/v1/payment/orders/{orderId}/status
+Response:
+{
+  "orderId": "ORD-20260130-123456",
+  "status": "PENDING" | "PAID" | "EXPIRED" | "CANCELLED",
+  "paidAt": "2026-01-30T10:05:00Z" (if PAID)
+}
+
+// 3. Manual confirm payment (ADMIN only)
+POST /api/v1/admin/payments/{orderId}/confirm
+Request:
+{
+  "transactionReference": "FT123456",
+  "paidAt": "2026-01-30T10:05:00Z"
+}
+Response:
+{
+  "success": true,
+  "orderId": "ORD-20260130-123456",
+  "subscriptionActivated": true
+}
+
+// 4. List pending payments (ADMIN only)
+GET /api/v1/admin/payments/pending
+Response:
+{
+  "orders": [
+    {
+      "orderId": "ORD-20260130-123456",
+      "amount": 499000,
+      "tier": "BASIC",
+      "userEmail": "user@example.com",
+      "content": "KITEHUB ORD-20260130-123456 user@example.com",
+      "createdAt": "2026-01-30T10:00:00Z",
+      "expiresAt": "2026-01-31T10:00:00Z"
+    }
+  ]
+}
+```
+
+### 6F.7.2. Instance Payment Configuration APIs
+
+```java
+// 1. Get current bank account config
+GET /api/v1/instance/payment/bank-account
+Response:
+{
+  "bankCode": "970415",
+  "bankName": "Vietcombank",
+  "accountNumber": "9876****10",
+  "accountName": "NGUYEN VAN A",
+  "qrTemplate": "HOCPHI {courseId} {studentName}",
+  "configured": true
+}
+
+// 2. Update bank account (OWNER only)
+PUT /api/v1/instance/payment/bank-account
+Request:
+{
+  "bankCode": "970415",
+  "accountNumber": "9876543210",
+  "accountName": "NGUYEN VAN A",
+  "qrTemplate": "HOCPHI {courseId} {studentName}"
+}
+Response:
+{
+  "success": true,
+  "message": "Đã cập nhật thông tin chuyển khoản"
+}
+
+// 3. Preview QR (test before saving)
+POST /api/v1/instance/payment/preview-qr
+Request:
+{
+  "bankCode": "970415",
+  "accountNumber": "9876543210",
+  "accountName": "NGUYEN VAN A",
+  "qrTemplate": "HOCPHI {courseId} {studentName}",
+  "sampleAmount": 2000000
+}
+Response:
+{
+  "qrImageUrl": "https://img.vietqr.io/image/970415-9876543210-compact2.jpg?...",
+  "sampleContent": "HOCPHI SAMPLE123 NGUYEN VAN A"
+}
+
+// 4. Generate enrollment QR
+POST /api/v1/instance/enrollments/{enrollmentId}/generate-qr
+Response:
+{
+  "qrImageUrl": "https://img.vietqr.io/image/...",
+  "bankName": "Vietcombank",
+  "accountNumber": "9876****10",
+  "accountName": "NGUYEN VAN A",
+  "amount": 2000000,
+  "content": "HOCPHI CRS-123 NGUYEN VAN B"
+}
+
+// 5. Confirm enrollment payment (OWNER/ADMIN)
+POST /api/v1/instance/enrollments/{enrollmentId}/confirm-payment
+Request:
+{
+  "transactionReference": "optional bank ref",
+  "paidAt": "2026-01-30T14:30:00Z"
+}
+Response:
+{
+  "success": true,
+  "enrollmentId": "ENR-123",
+  "studentActivated": true
+}
+```
+
+---
+
+## 6F.8. Security Considerations
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🔒 PAYMENT SECURITY CHECKLIST                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ✅ Order ID Generation                                 │
+│     - Use cryptographically secure random              │
+│     - Include timestamp to prevent collision            │
+│     - Unpredictable format                              │
+│                                                         │
+│  ✅ Payment Content Uniqueness                          │
+│     - Include orderId (unique)                         │
+│     - Include user identifier                           │
+│     - Validate content format                           │
+│                                                         │
+│  ✅ Order Expiration                                    │
+│     - 24-hour expiry (balance convenience & security)  │
+│     - Auto-cancel expired orders                        │
+│     - Prevent payment after expiry                      │
+│                                                         │
+│  ✅ Amount Validation                                   │
+│     - Verify amount matches order                       │
+│     - Exact match required (no partial payment MVP)    │
+│                                                         │
+│  ✅ Double-Payment Prevention                           │
+│     - Check order status before confirming              │
+│     - Lock order during confirmation                    │
+│     - Idempotent confirm endpoint                       │
+│                                                         │
+│  ✅ Access Control                                      │
+│     - Only ADMIN can confirm KiteHub payments           │
+│     - Only OWNER/ADMIN can confirm instance payments    │
+│     - Audit log all payment actions                     │
+│                                                         │
+│  ✅ Webhook Security (V2)                               │
+│     - Verify signature from bank                        │
+│     - Use HTTPS only                                    │
+│     - Rate limiting                                     │
+│     - Replay attack prevention                          │
+│                                                         │
+│  ✅ Bank Account Protection                             │
+│     - Mask account numbers in frontend                  │
+│     - Encrypt sensitive data at rest                    │
+│     - OWNER-only access to update bank config           │
+│                                                         │
+│  ✅ Audit Trail                                         │
+│     - Log all payment events                            │
+│     - Track who confirmed payments                      │
+│     - Timestamp all actions                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.9. Frontend Implementation Highlights
+
+### Payment QR Display Component
+
+```tsx
+// frontend/components/payment/VietQRDisplay.tsx
+interface VietQRDisplayProps {
+  qrData: {
+    qrImageUrl: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    amount: number;
+    content: string;
+    expiresAt: string;
+  };
+  onPaymentConfirmed?: () => void;
+}
+
+export function VietQRDisplay({ qrData, onPaymentConfirmed }: VietQRDisplayProps) {
+  const [copied, setCopied] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const checkPaymentStatus = async () => {
+    setChecking(true);
+    // Poll payment status
+    const response = await fetch('/api/v1/payment/orders/{orderId}/status');
+    const data = await response.json();
+
+    if (data.status === 'PAID') {
+      toast.success('Thanh toán thành công!');
+      onPaymentConfirmed?.();
+    } else {
+      toast.info('Chưa nhận được thanh toán. Vui lòng thử lại sau ít phút.');
+    }
+    setChecking(false);
+  };
+
+  return (
+    <Card className="max-w-2xl mx-auto p-6">
+      {/* QR Code */}
+      <div className="flex justify-center mb-6">
+        <div className="p-4 bg-white rounded-lg shadow-lg">
+          <img
+            src={qrData.qrImageUrl}
+            alt="VietQR Code"
+            className="w-64 h-64"
+          />
+        </div>
+      </div>
+
+      {/* Bank Details */}
+      <div className="space-y-3 mb-6">
+        <InfoRow label="Ngân hàng" value={qrData.bankName} />
+        <InfoRow
+          label="Số tài khoản"
+          value={qrData.accountNumber}
+          copyable
+          onCopy={() => copyToClipboard(qrData.accountNumber)}
+        />
+        <InfoRow label="Chủ tài khoản" value={qrData.accountName} />
+        <InfoRow
+          label="Số tiền"
+          value={`${qrData.amount.toLocaleString('vi-VN')} đ`}
+          highlight
+        />
+        <InfoRow
+          label="Nội dung"
+          value={qrData.content}
+          copyable
+          onCopy={() => copyToClipboard(qrData.content)}
+          mono
+        />
+      </div>
+
+      {/* Instructions */}
+      <Alert className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Quan trọng:</strong> Vui lòng ghi ĐÚNG nội dung chuyển khoản
+          để hệ thống tự động xác nhận thanh toán.
+        </AlertDescription>
+      </Alert>
+
+      {/* Check payment button */}
+      <Button
+        onClick={checkPaymentStatus}
+        disabled={checking}
+        className="w-full"
+      >
+        {checking ? 'Đang kiểm tra...' : 'Tôi đã chuyển khoản'}
+      </Button>
+
+      {/* Expiry time */}
+      <p className="text-sm text-muted-foreground text-center mt-4">
+        Mã QR có hiệu lực đến: {formatDateTime(qrData.expiresAt)}
+      </p>
+    </Card>
+  );
+}
+```
+
+---
+
+## 6F.10. Summary
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📊 PAYMENT SYSTEM SUMMARY                              │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ✅ Two-Level Architecture                              │
+│     - KiteHub: Platform subscription (BASIC, etc.)     │
+│     - Instance: Course enrollment (Owner configurable)  │
+│                                                         │
+│  ✅ VietQR Technology                                   │
+│     - Zero transaction fees                             │
+│     - Instant transfers                                 │
+│     - Works with 40+ Vietnamese banks                   │
+│     - Simple QR code generation                         │
+│                                                         │
+│  ✅ MVP: Manual Verification                            │
+│     - Admin checks bank statement                       │
+│     - Clicks confirm in admin panel                     │
+│     - 1-2 minutes per payment                           │
+│                                                         │
+│  ✅ V2: Automated Verification (Future)                 │
+│     - Bank API webhooks                                 │
+│     - Instant confirmation                              │
+│     - 24/7 automatic                                    │
+│                                                         │
+│  ✅ Owner Flexibility                                   │
+│     - Configure own bank account                        │
+│     - Customize QR content template                     │
+│     - Preview QR before saving                          │
+│     - Any Vietnamese bank supported                     │
+│                                                         │
+│  ✅ Security                                            │
+│     - Unique order IDs                                  │
+│     - 24-hour expiry                                    │
+│     - Amount validation                                 │
+│     - Double-payment prevention                         │
+│     - Audit logging                                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
 # PHẦN 7: TỔNG KẾT KIẾN TRÚC V3
 
 ## 7.1. So sánh các phiên bản
