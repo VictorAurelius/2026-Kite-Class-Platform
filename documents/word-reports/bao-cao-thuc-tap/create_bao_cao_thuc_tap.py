@@ -109,6 +109,15 @@ def add_page_border(section):
     sectPr.append(pgBorders)
 
 
+def remove_page_border(section):
+    """Xóa khung viền khỏi section (nếu có)"""
+    sectPr = section._sectPr
+    # Tìm và xóa tất cả pgBorders elements
+    pgBorders_list = sectPr.findall(qn('w:pgBorders'))
+    for pgBorders in pgBorders_list:
+        sectPr.remove(pgBorders)
+
+
 def add_page_number_header(doc):
     """Thêm số trang ở giữa phía TRÊN đầu trang (header)"""
     for section in doc.sections:
@@ -673,10 +682,16 @@ def add_cover_page(doc):
     run = p.add_run("Hà Nội – 2026")
     set_font(run, Pt(14), bold=True, italic=True)
 
+    # QUAN TRỌNG: Tạo section break để tách bìa chính thành section riêng
+    doc.add_section(WD_SECTION.NEW_PAGE)
+
 
 # ============== TRANG BÌA PHỤ ==============
 def add_secondary_cover_page(doc):
-    """Tạo trang bìa phụ theo mẫu PDF (trang 2) - thêm Đơn vị thực tập"""
+    """Tạo trang bìa phụ theo mẫu PDF (trang 2) - thêm Đơn vị thực tập
+
+    Trang này sẽ nằm trong section 1 (nhờ section break ở cuối add_cover_page)
+    """
     import os
 
     # Section break đã được tạo trong add_cover_page, nội dung này sẽ ở section 1
@@ -766,7 +781,8 @@ def add_secondary_cover_page(doc):
     run = p.add_run("Hà Nội – 2026")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    # Tạo section break để các trang sau không có border
+    # QUAN TRỌNG: Tạo section break để tách bìa phụ thành section riêng
+    # Sau section break này, các trang còn lại sẽ KHÔNG có border
     doc.add_section(WD_SECTION.NEW_PAGE)
 
 
@@ -2001,18 +2017,30 @@ def create_report():
     # 9. Phụ lục
     add_appendix(doc)
 
-    # QUAN TRỌNG: Apply margins cho TẤT CẢ sections sau khi đã tạo xong
-    # (vì sections mới được tạo bởi add_cover_page và add_secondary_cover_page)
+    # DEBUG: Kiểm tra số sections
+    print(f"DEBUG: Total sections = {len(doc.sections)}")
+
+    # QUAN TRỌNG: Thêm khung viền TRƯỚC KHI thêm số trang và apply margins
+    # để tránh border properties bị propagate
+    if len(doc.sections) >= 3:
+        # Bước 1: Thêm border cho sections 0 và 1
+        add_page_border(doc.sections[0])  # Trang bìa chính
+        add_page_border(doc.sections[1])  # Trang bìa phụ
+
+        # Bước 2: Xóa EXPLICITLY borders từ section 2 trở đi
+        for i in range(2, len(doc.sections)):
+            remove_page_border(doc.sections[i])
+
+        print(f"DEBUG: Applied border to sections 0 and 1")
+        print(f"DEBUG: Explicitly removed borders from sections 2-{len(doc.sections)-1}")
+    else:
+        print(f"WARNING: Không đủ 3 sections! Chỉ có {len(doc.sections)} sections")
+
+    # Apply margins cho TẤT CẢ sections SAU KHI đã apply/remove borders
     set_document_margins(doc)
 
-    # Thêm số trang
+    # Thêm số trang SAU CÙNG
     add_page_number_header(doc)
-
-    # Thêm khung viền CHỈ cho trang bìa chính (section 0) và trang bìa phụ (section 1)
-    if len(doc.sections) >= 1:
-        add_page_border(doc.sections[0])  # Trang bìa chính
-    if len(doc.sections) >= 2:
-        add_page_border(doc.sections[1])  # Trang bìa phụ
 
     # Lưu file
     output_path = "BAO_CAO_THUC_TAP.docx"
