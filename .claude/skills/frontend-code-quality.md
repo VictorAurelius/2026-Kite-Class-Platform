@@ -2952,6 +2952,214 @@ describe('Public Landing Page', () => {
 
 ---
 
+# PART 15: Documentation Standards
+
+## Language Requirements
+
+### Vietnamese for Business Documents
+
+**Rule:** All architecture documents, reports, and business analysis MUST be written in Vietnamese.
+
+**Rationale:**
+- Product Owner is Vietnamese speaker
+- Easier to read and understand
+- Better communication with stakeholders
+- Reduce misunderstanding
+- Faster decision making
+
+### When to Use Vietnamese
+
+✅ **MUST use Vietnamese:**
+- Architecture documents (system-architecture-*.md)
+- Business analysis reports (preview-website-best-practices.md)
+- Q&A documents (architecture-clarification-qa.md)
+- Implementation plans (kiteclass-implementation-plan.md)
+- User-facing content (landing pages, marketing copy)
+- Meeting notes and decisions
+- PRD (Product Requirements Document)
+- Technical specifications for non-technical stakeholders
+
+⚠️ **Can use English:**
+- Code comments (if explaining complex logic)
+- Type definitions and interfaces
+- API documentation (standard REST conventions)
+- Error messages (standard HTTP status)
+- Git commit messages (concise English is acceptable)
+- Technical terms (React, TypeScript, API, etc.)
+
+❌ **DON'T use English for:**
+- Architecture reports intended for Product Owner
+- Business value analysis
+- User stories and requirements
+- Implementation planning documents
+
+### Document Structure
+
+```markdown
+# [Tiêu đề Tiếng Việt]
+
+**Ngày tạo:** 2026-01-30
+**Mục đích:** [Mô tả ngắn gọn bằng tiếng Việt]
+**Trạng thái:** [Draft / Review / Approved]
+**Người đọc:** Product Owner / Tech Lead / Dev Team
+
+---
+
+## MỤC LỤC
+
+1. [Tóm Tắt](#tom-tat)
+2. [Vấn Đề](#van-de)
+3. [Giải Pháp](#giai-phap)
+...
+
+## TÓM TẮT
+
+[Nội dung tiếng Việt]
+
+### Code Examples
+
+```typescript
+// Code có thể có comment tiếng Anh hoặc tiếng Việt
+interface User {
+  id: string        // User ID
+  name: string      // Tên người dùng
+  email: string     // Email
+}
+```
+
+### Technical Terms
+
+- Giữ nguyên: React, TypeScript, API, REST, JWT, OAuth
+- Dịch: Component → Thành phần, Hook → Móc nối, State → Trạng thái
+- Ưu tiên: Sử dụng thuật ngữ tiếng Anh khi phổ biến, giải thích tiếng Việt nếu cần
+
+## KẾT LUẬN
+
+[Nội dung tiếng Việt]
+```
+
+### Examples
+
+#### ❌ BAD: English Report
+
+```markdown
+# Preview Website Best Practices
+
+## Executive Summary
+
+The Preview Website feature enables education centers to attract
+prospective students through an SEO-optimized public website...
+
+## Business Value
+
+| Benefit | Impact |
+|---------|--------|
+| Student Acquisition | +30-50% enrollment |
+...
+```
+
+#### ✅ GOOD: Vietnamese Report
+
+```markdown
+# Best Practices: Trang Web Giới Thiệu Công Khai
+
+## TÓM TẮT
+
+Tính năng Trang Web Giới Thiệu giúp trung tâm giáo dục thu hút
+học viên tiềm năng thông qua website công khai được tối ưu SEO...
+
+## GIÁ TRỊ KINH DOANH
+
+| Lợi ích | Ảnh hưởng |
+|---------|-----------|
+| Thu hút học viên | +30-50% tuyển sinh |
+...
+```
+
+### Translation Guidelines
+
+**Common Technical Terms:**
+
+| English | Tiếng Việt | Usage |
+|---------|------------|-------|
+| Landing Page | Trang đích / Trang giới thiệu | Use Vietnamese |
+| Course Catalog | Danh mục khóa học | Use Vietnamese |
+| Authentication | Xác thực | Use Vietnamese |
+| Authorization | Phân quyền | Use Vietnamese |
+| API Endpoint | API Endpoint | Keep English |
+| REST API | REST API | Keep English |
+| Component | Component / Thành phần | Either OK |
+| Hook | Hook / Móc nối | Either OK |
+| State Management | Quản lý State | Mix OK |
+| Server-Side Rendering | Server-Side Rendering (SSR) | Keep English + abbreviation |
+
+**Best Practice:** Use Vietnamese for concepts, keep English for established technical terms.
+
+### Code Comments
+
+```typescript
+// ✅ GOOD: Mix Vietnamese explanation with English terms
+/**
+ * Lấy danh sách khóa học công khai
+ *
+ * @param instanceId - ID của instance
+ * @returns Promise<PublicCourse[]> - Danh sách courses
+ * @throws ApiError nếu instance không tồn tại
+ */
+async function fetchPublicCourses(instanceId: string): Promise<PublicCourse[]> {
+  // Cache kết quả trong 30 phút
+  const cached = await getCachedCourses(instanceId)
+  if (cached) return cached
+
+  // Gọi API và filter các course đã publish
+  const courses = await api.get(`/public/instance/${instanceId}/courses`)
+  return courses.filter(course => course.status === 'PUBLISHED')
+}
+```
+
+### Commit Messages
+
+**Acceptable Formats:**
+
+```bash
+# English (concise, standard format)
+git commit -m "docs(architecture): add Preview Website best practices"
+
+# Vietnamese (more descriptive)
+git commit -m "docs(architecture): bổ sung best practices cho Preview Website"
+
+# Mix (recommended for complex changes)
+git commit -m "docs: bổ sung báo cáo Preview Website bằng tiếng Việt
+
+- Thêm 60+ trang phân tích best practices
+- Khuyến nghị: Public Marketing Landing Page
+- Timeline: 2 tuần implementation
+- Tech stack: Next.js SSG, ISR, public APIs"
+```
+
+## Quality Checklist
+
+### Documentation Review
+
+- [ ] Document is in Vietnamese (if business/architecture doc)
+- [ ] Title is descriptive and in Vietnamese
+- [ ] Has table of contents (Mục lục)
+- [ ] Section headings are in Vietnamese
+- [ ] Code examples have Vietnamese comments where helpful
+- [ ] Technical terms are used appropriately (English when standard)
+- [ ] Summary section in Vietnamese (Tóm tắt)
+- [ ] Conclusion section in Vietnamese (Kết luận)
+- [ ] Proper grammar and spelling
+
+### Technical Terms
+
+- [ ] API, REST, HTTP, JWT, OAuth → Keep English
+- [ ] React, TypeScript, Next.js → Keep English
+- [ ] Component, Hook, State → Either Vietnamese or English OK
+- [ ] Business concepts → Use Vietnamese (tuyển sinh, khóa học, học viên)
+
+---
+
 ## Summary
 
 **Frontend Code Quality đã cover:**
@@ -2964,6 +3172,7 @@ describe('Public Landing Page', () => {
 7. ✅ Feature flag system & tier-based UI (PART 12)
 8. ✅ AI-generated content integration (PART 13)
 9. ✅ Guest user & public routes (PART 14)
+10. ✅ Documentation standards (PART 15) - **NEW**
 
 **Tất cả requirements từ 4 architecture concerns đã được addressed:**
 - ✅ Pricing tier UI customization → PART 12
