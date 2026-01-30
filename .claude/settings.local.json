@@ -65,7 +65,11 @@
       "Bash(pnpm list:*)",
       "Bash(pnpm tsc:*)",
       "Bash(pnpm type-check:*)",
-      "Bash(pnpm test:*)"
+      "Bash(pnpm test:*)",
+      "Bash(git pull:*)",
+      "Bash(sudo rm:*)",
+      "Bash(bash:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

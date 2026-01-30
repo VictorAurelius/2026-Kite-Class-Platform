@@ -5,12 +5,15 @@ import com.kiteclass.gateway.module.auth.dto.ForgotPasswordRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
+import com.kiteclass.gateway.module.auth.dto.RegisterStudentRequest;
+import com.kiteclass.gateway.module.auth.dto.RegisterResponse;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
 import com.kiteclass.gateway.module.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +31,7 @@ import reactor.core.publisher.Mono;
  *   <li>POST /api/v1/auth/logout - User logout</li>
  *   <li>POST /api/v1/auth/forgot-password - Request password reset</li>
  *   <li>POST /api/v1/auth/reset-password - Reset password</li>
+ *   <li>POST /api/v1/auth/register/student - Register new student (since 1.8.0)</li>
  * </ul>
  *
  * @author KiteClass Team
@@ -116,5 +120,31 @@ public class AuthController {
         return authService.resetPassword(request)
                 .then(Mono.just(ResponseEntity.ok(
                         ApiResponse.success(null, "Đặt lại mật khẩu thành công"))));
+    }
+
+    /**
+     * Register a new student account.
+     *
+     * <p>Creates a User in Gateway and Student profile in Core service,
+     * then returns JWT tokens for immediate login.
+     *
+     * <p>Uses Saga pattern: If Core service fails, User is rolled back.
+     *
+     * @param request student registration request
+     * @return registration response with JWT tokens
+     * @since 1.8.0
+     */
+    @PostMapping("/register/student")
+    @Operation(
+            summary = "Register new student account",
+            description = "Creates User in Gateway + Student in Core, returns JWT tokens. " +
+                    "Rollback on Core failure."
+    )
+    public Mono<ResponseEntity<ApiResponse<RegisterResponse>>> registerStudent(
+            @Valid @RequestBody RegisterStudentRequest request) {
+
+        return authService.registerStudent(request)
+                .map(response -> ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.success(response, "Đăng ký tài khoản thành công")));
     }
 }
