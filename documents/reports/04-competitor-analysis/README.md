@@ -2,7 +2,9 @@
 
 Analysis of competitor products to identify opportunities and differentiation.
 
-## 📑 Documents (1 file, 28KB)
+## 📑 Documents (2 files, 2.0MB)
+
+### Analysis Reports
 
 **beeclass-comprehensive-analysis.md** (28KB)
 - Detailed analysis of BeeClass (main Vietnamese competitor)
@@ -11,6 +13,14 @@ Analysis of competitor products to identify opportunities and differentiation.
 - Strengths: Established brand, Vietnamese UI, local support
 - Weaknesses: No customization, single-tenant only, no AI features
 - **KiteClass advantages**: Multi-tenant, AI branding, plugin architecture, white-label
+
+### Reference Materials
+
+**Hướng dẫn sử dụng BeeClass - v2.0.pdf** (1.9MB)
+- Official BeeClass user guide (Vietnamese)
+- Feature documentation and screenshots
+- Use case examples
+- Useful for feature comparison and UX analysis
 
 ---
 
