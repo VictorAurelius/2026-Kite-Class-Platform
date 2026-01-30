@@ -39,7 +39,7 @@ INTERNSHIP_INFO = {
     "company": "SY PARTNERS., JSC",
     "address": "Tầng 3, Tòa nhà Luxury, Số 99 Võ Chí Công, Quận Tây Hồ, Hà Nội",
     "position": "Software Engineer",
-    "advisor": "ThS. Nguyễn Đức Dư",
+    "advisor": "TS. Nguyễn Đức Dư",
     "company_mentor": "[Tên CBHD]",
     "start_date": "26/06/2025",
     "end_date": "26/09/2025",
@@ -335,18 +335,20 @@ def add_subsection_title(doc, text):
     return p
 
 
-def add_seq_field(paragraph, seq_name, prefix=""):
+def add_seq_field(paragraph, seq_name, prefix="", reset_chapter=False):
     """
     Thêm SEQ field vào paragraph để đánh số tự động
     SEQ field giống như khi dùng Insert > Caption trong Word
 
     Args:
         paragraph: Paragraph object
-        seq_name: Tên sequence (ví dụ: "Table", "Figure")
+        seq_name: Tên sequence (ví dụ: "Table", "Figure") - KHÔNG thêm số chapter
         prefix: Text đứng trước số (ví dụ: "Bảng ", "Hình ")
+        reset_chapter: True nếu cần reset về 1 ở đầu chapter mới
     """
-    run = paragraph.add_run(prefix)
-    set_font(run, Pt(12), bold=True, italic=True)
+    if prefix:
+        run = paragraph.add_run(prefix)
+        set_font(run, Pt(12), bold=True, italic=True)
 
     # Tạo SEQ field
     run = paragraph.add_run()
@@ -355,7 +357,11 @@ def add_seq_field(paragraph, seq_name, prefix=""):
 
     instrText = OxmlElement('w:instrText')
     instrText.set(qn('xml:space'), 'preserve')
-    instrText.text = f' SEQ {seq_name} \\* ARABIC '
+    # Thêm \r để reset numbering nếu cần (ở đầu chapter mới)
+    if reset_chapter:
+        instrText.text = f' SEQ {seq_name} \\* ARABIC \\r 1 '
+    else:
+        instrText.text = f' SEQ {seq_name} \\* ARABIC '
 
     fldChar2 = OxmlElement('w:fldChar')
     fldChar2.set(qn('w:fldCharType'), 'separate')
@@ -375,10 +381,16 @@ def add_seq_field(paragraph, seq_name, prefix=""):
     return paragraph
 
 
-def add_table_caption(doc, chapter_num, caption_text):
+def add_table_caption(doc, chapter_num, caption_text, reset=False):
     """
     Thêm caption cho bảng với SEQ field tự động đánh số
     Format: "Bảng X.Y. Caption text" (với X là số chương, Y là SEQ tự động)
+
+    Args:
+        doc: Document object
+        chapter_num: Số chương (1, 2, 3, 4)
+        caption_text: Nội dung caption
+        reset: True nếu đây là bảng đầu tiên trong chapter (reset về 1)
 
     Lưu ý: Trong Word, bấm Ctrl+A rồi F9 để cập nhật tất cả fields
     """
@@ -391,8 +403,9 @@ def add_table_caption(doc, chapter_num, caption_text):
     run = p.add_run(f"Bảng {chapter_num}.")
     set_font(run, Pt(12), bold=True, italic=True)
 
-    # Thêm SEQ field cho số thứ tự trong chương
-    add_seq_field(p, f"Table{chapter_num}", "")
+    # Thêm SEQ field cho số thứ tự - QUAN TRỌNG: Dùng "Table" chung cho tất cả chapter
+    # Để TOC \c "Table" có thể tìm thấy
+    add_seq_field(p, "Table", "", reset_chapter=reset)
 
     # Thêm phần caption text
     run = p.add_run(f". {caption_text}")
@@ -401,10 +414,16 @@ def add_table_caption(doc, chapter_num, caption_text):
     return p
 
 
-def add_figure_caption(doc, chapter_num, caption_text):
+def add_figure_caption(doc, chapter_num, caption_text, reset=False):
     """
     Thêm caption cho hình với SEQ field tự động đánh số
     Format: "Hình X.Y. Caption text" (với X là số chương, Y là SEQ tự động)
+
+    Args:
+        doc: Document object
+        chapter_num: Số chương (1, 2, 3, 4)
+        caption_text: Nội dung caption
+        reset: True nếu đây là hình đầu tiên trong chapter (reset về 1)
 
     Lưu ý: Trong Word, bấm Ctrl+A rồi F9 để cập nhật tất cả fields
     """
@@ -417,8 +436,9 @@ def add_figure_caption(doc, chapter_num, caption_text):
     run = p.add_run(f"Hình {chapter_num}.")
     set_font(run, Pt(12), bold=True, italic=True)
 
-    # Thêm SEQ field cho số thứ tự trong chương
-    add_seq_field(p, f"Figure{chapter_num}", "")
+    # Thêm SEQ field cho số thứ tự - QUAN TRỌNG: Dùng "Figure" chung cho tất cả chapter
+    # Để TOC \c "Figure" có thể tìm thấy
+    add_seq_field(p, "Figure", "", reset_chapter=reset)
 
     # Thêm phần caption text
     run = p.add_run(f". {caption_text}")
@@ -455,7 +475,7 @@ def add_bullet_list(doc, items):
         set_font(run, FONT_SIZE_NORMAL)
 
 
-def add_table_with_caption(doc, chapter_num, caption_text, headers, rows, col_widths=None):
+def add_table_with_caption(doc, chapter_num, caption_text, headers, rows, col_widths=None, reset=False):
     """
     Thêm bảng với caption sử dụng SEQ field để đánh số tự động
     Caption ở PHÍA TRÊN bảng theo đúng chuẩn Word
@@ -467,9 +487,10 @@ def add_table_with_caption(doc, chapter_num, caption_text, headers, rows, col_wi
         headers: List các header cột
         rows: List các hàng dữ liệu
         col_widths: List độ rộng cột (cm)
+        reset: True nếu đây là bảng đầu tiên trong chapter
     """
     # Thêm caption với SEQ field
-    add_table_caption(doc, chapter_num, caption_text)
+    add_table_caption(doc, chapter_num, caption_text, reset=reset)
 
     # Tạo bảng
     table = doc.add_table(rows=1, cols=len(headers))
@@ -936,7 +957,14 @@ def add_toc_page(doc):
 
 
 def add_list_of_figures(doc):
-    """Thêm Danh mục hình vẽ"""
+    """
+    Thêm Danh mục hình vẽ với TOC field tự động
+
+    Sau khi mở file Word:
+    1. Bấm Ctrl+A (chọn tất cả)
+    2. Bấm F9 (cập nhật tất cả fields)
+    3. Danh mục hình vẽ sẽ tự động hiển thị
+    """
     doc.add_page_break()
 
     p = doc.add_paragraph()
@@ -945,17 +973,66 @@ def add_list_of_figures(doc):
     run = p.add_run("DANH MỤC HÌNH VẼ")
     set_font(run, Pt(14), bold=True)
 
+    # Thêm TOC field tự động cho hình vẽ
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    add_toc_field(p, toc_type="Figure")
+
+    # Thêm hướng dẫn
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("[Tạo danh mục hình vẽ tự động hoặc liệt kê thủ công]")
+    p.paragraph_format.space_before = Pt(12)
+    run = p.add_run("(Bấm Ctrl+A rồi F9 trong Word để cập nhật danh mục)")
     run.italic = True
     run.font.name = FONT_NAME
-    run.font.size = Pt(12)
+    run.font.size = Pt(11)
     run.font.color.rgb = RGBColor(128, 128, 128)
 
 
+def add_toc_field(paragraph, toc_type="Table"):
+    """
+    Thêm TOC field cho danh mục bảng biểu hoặc hình vẽ
+
+    Args:
+        paragraph: Paragraph object
+        toc_type: "Table" hoặc "Figure"
+    """
+    run = paragraph.add_run()
+
+    # Begin field character
+    fldChar1 = OxmlElement('w:fldChar')
+    fldChar1.set(qn('w:fldCharType'), 'begin')
+
+    # Instruction text
+    # TOC \h \z \c "Table" - creates table of figures for "Table" label
+    # \h: Include hyperlinks
+    # \z: Hide page numbers in web layout view
+    # \c "Table": Only include items with "Table" label
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = f'TOC \\h \\z \\c "{toc_type}"'
+
+    # End field character
+    fldChar2 = OxmlElement('w:fldChar')
+    fldChar2.set(qn('w:fldCharType'), 'end')
+
+    # Add all elements to run
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+
+    return run
+
+
 def add_list_of_tables(doc):
-    """Thêm Danh mục bảng biểu"""
+    """
+    Thêm Danh mục bảng biểu với TOC field tự động
+
+    Sau khi mở file Word:
+    1. Bấm Ctrl+A (chọn tất cả)
+    2. Bấm F9 (cập nhật tất cả fields)
+    3. Danh mục bảng biểu sẽ tự động hiển thị
+    """
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(24)
@@ -963,12 +1040,19 @@ def add_list_of_tables(doc):
     run = p.add_run("DANH MỤC BẢNG BIỂU")
     set_font(run, Pt(14), bold=True)
 
+    # Thêm TOC field tự động cho bảng biểu
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    add_toc_field(p, toc_type="Table")
+
+    # Thêm hướng dẫn
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("[Tạo danh mục bảng biểu tự động hoặc liệt kê thủ công]")
+    p.paragraph_format.space_before = Pt(12)
+    run = p.add_run("(Bấm Ctrl+A rồi F9 trong Word để cập nhật danh mục)")
     run.italic = True
     run.font.name = FONT_NAME
-    run.font.size = Pt(12)
+    run.font.size = Pt(11)
     run.font.color.rgb = RGBColor(128, 128, 128)
 
 
@@ -1178,7 +1262,7 @@ def add_chapter2(doc):
         "Nâng cao kỹ năng làm việc độc lập, làm việc nhóm, quản lý thời gian và báo cáo công việc",
         "Tạo điều kiện cho sinh viên tiếp cận với các công nghệ, công cụ và phương pháp "
         "thiết kế phần mềm hiện đại theo tiêu chuẩn Nhật Bản",
-        "Học cách sử dụng AI (Claude AI) hỗ trợ kiểm tra chất lượng thiết kế",
+        "Học cách sử dụng AI (Claude AI) [4] hỗ trợ kiểm tra chất lượng thiết kế",
         "Chuẩn bị nền tảng kiến thức và kỹ năng cần thiết cho đồ án tốt nghiệp cũng như "
         "công việc sau khi ra trường",
     ])
@@ -1196,6 +1280,7 @@ def add_chapter2(doc):
         "Bảng kế hoạch thực tập được xây dựng theo từng tuần nhằm đảm bảo tiến độ và "
         "chất lượng công việc trong suốt thời gian thực tập.")
 
+    # Bảng đầu tiên trong Chapter 2 - reset=True để đánh số từ 1
     add_table_with_caption(doc, 2, "Kế hoạch thực tập chi tiết",
         ["Tuần", "Thời gian", "Nội dung công việc chính"],
         [
@@ -1213,7 +1298,8 @@ def add_chapter2(doc):
             ("12", "11/09 – 17/09", "Viết báo cáo thực tập, chuẩn bị tài liệu"),
             ("13", "18/09 – 26/09", "Hoàn thiện báo cáo, nộp sản phẩm cuối cùng"),
         ],
-        col_widths=[2.0, 3.5, 10.5]
+        col_widths=[2.0, 3.5, 10.5],
+        reset=True
     )
 
     # 2.3 Các công việc đã thực hiện
@@ -1251,7 +1337,7 @@ def add_chapter2(doc):
         "kiểu dữ liệu, ràng buộc), và Index Info (thông tin về Primary Key, Foreign Key, các index).")
 
     add_paragraph_text(doc,
-        "Các kiến thức về Oracle Database được áp dụng trong quá trình thiết kế bao gồm:")
+        "Các kiến thức về Oracle Database [1] được áp dụng trong quá trình thiết kế bao gồm:")
 
     add_bullet_list(doc, [
         "Kiểu dữ liệu: CHAR, VARCHAR2, NUMBER, DATE, CLOB, BLOB, JSON",
@@ -1291,7 +1377,7 @@ def add_chapter2(doc):
 
     add_paragraph_text(doc,
         "Thiết kế API là quá trình định nghĩa các endpoint để frontend và các hệ thống "
-        "khác giao tiếp với backend. API trong dự án tuân theo kiến trúc RESTful với "
+        "khác giao tiếp với backend. API trong dự án tuân theo kiến trúc RESTful [3], [5] với "
         "các nguyên tắc: Resource-based URL, sử dụng HTTP Methods chuẩn, Status Codes "
         "rõ ràng, và Content-Type là application/json.")
 
@@ -1311,7 +1397,7 @@ def add_chapter2(doc):
     add_paragraph_text(doc,
         "Batch processing (xử lý hàng loạt) là phương pháp xử lý khối lượng lớn dữ liệu "
         "theo lịch trình định sẵn, không cần tương tác người dùng. Công việc thiết kế batch "
-        "áp dụng kiến trúc Spring Batch với các thành phần: Job (đơn vị công việc cao nhất), "
+        "áp dụng kiến trúc Spring Batch [2] với các thành phần: Job (đơn vị công việc cao nhất), "
         "Step (các bước trong một Job), ItemReader, ItemProcessor, và ItemWriter.")
 
     add_paragraph_text(doc, "Một thiết kế batch tiêu chuẩn bao gồm các phần:")
@@ -1404,10 +1490,10 @@ def add_chapter3(doc):
 
     add_bullet_list(doc, [
         "Nắm vững quy trình thiết kế hệ thống phần mềm chuyên nghiệp theo chuẩn Nhật Bản",
-        "Hiểu sâu về thiết kế cơ sở dữ liệu với Oracle Database",
-        "Biết cách thiết kế API RESTful theo chuẩn",
-        "Hiểu về kiến trúc Spring Batch và thiết kế batch processing",
-        "Biết cách sử dụng AI (Claude) hỗ trợ kiểm tra chất lượng thiết kế",
+        "Hiểu sâu về thiết kế cơ sở dữ liệu với Oracle Database [1]",
+        "Biết cách thiết kế API RESTful [3], [5] theo chuẩn",
+        "Hiểu về kiến trúc Spring Batch [2] và thiết kế batch processing",
+        "Biết cách sử dụng AI (Claude) [4] hỗ trợ kiểm tra chất lượng thiết kế",
     ])
 
     add_subsection_title(doc, "3.2.2. Kỹ năng làm việc nhóm")
@@ -1458,7 +1544,7 @@ def add_chapter3(doc):
     add_paragraph_text(doc, "Khó khăn:", first_line_indent=False)
 
     add_bullet_list(doc, [
-        "Một số kiến thức và công nghệ còn mới (Oracle Database, Spring Batch), "
+        "Một số kiến thức và công nghệ còn mới (Oracle Database [1], Spring Batch [2], Java SE [6]), "
         "đòi hỏi em phải tự nghiên cứu và học hỏi thêm trong thời gian ngắn",
         "Kinh nghiệm thực tiễn còn hạn chế nên trong giai đoạn đầu gặp một số khó khăn "
         "khi triển khai công việc",
@@ -1588,24 +1674,32 @@ def add_chapter4(doc):
 
 
 # ============== TÀI LIỆU THAM KHẢO ==============
-def add_ieee_reference(doc, ref_num, author, title, source_type, year, url=None, accessed=None):
+def add_ieee_reference(doc, ref_num, author, title, source_type, year, url=None, accessed=None, publisher=None, pages=None):
     """
-    Thêm một tài liệu tham khảo theo chuẩn IEEE
+    Thêm một tài liệu tham khảo theo chuẩn IEEE Citation Style
+
+    IEEE Standard Format:
+    - Online: [1] A. Author, "Title," Website/Source, Month Day, Year. [Online]. Available: URL. (accessed Month Day, Year).
+    - Book: [1] A. Author, Title. City: Publisher, Year.
+    - Journal: [1] A. Author, "Article title," Journal Name, vol. X, no. Y, pp. Z, Year.
 
     Args:
         doc: Document object
         ref_num: Số thứ tự tài liệu [1], [2]...
-        author: Tên tác giả
-        title: Tiêu đề tài liệu (sẽ được in nghiêng)
-        source_type: Loại nguồn (Online, Book, Journal...)
-        year: Năm xuất bản
+        author: Tên tác giả (e.g., "J. Smith" hoặc "Smith, J.")
+        title: Tiêu đề tài liệu
+        source_type: Loại nguồn ("online", "book", "journal", "conference")
+        year: Năm xuất bản (e.g., "2024")
         url: URL (cho tài liệu online)
-        accessed: Ngày truy cập (cho tài liệu online)
+        accessed: Ngày truy cập (e.g., "Jan. 15, 2026")
+        publisher: Nhà xuất bản (cho sách)
+        pages: Số trang (cho journal/conference)
     """
     p = doc.add_paragraph()
     p.paragraph_format.left_indent = Cm(0.63)
     p.paragraph_format.first_line_indent = Cm(-0.63)
     p.paragraph_format.space_after = Pt(6)
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
     # [1]
     run = p.add_run(f"[{ref_num}] ")
@@ -1615,28 +1709,54 @@ def add_ieee_reference(doc, ref_num, author, title, source_type, year, url=None,
     run = p.add_run(f"{author}, ")
     set_font(run, FONT_SIZE_NORMAL)
 
-    # "Title" (in nghiêng)
-    run = p.add_run(f'"{title}," ')
-    set_font(run, FONT_SIZE_NORMAL, italic=True)
+    # "Title" (in nghiêng cho article/online, không nghiêng cho book)
+    if source_type.lower() in ["online", "journal", "conference"]:
+        run = p.add_run(f'"{title}," ')
+        set_font(run, FONT_SIZE_NORMAL, italic=True)
+    else:  # book
+        run = p.add_run(f"{title}. ")
+        set_font(run, FONT_SIZE_NORMAL, italic=True)
 
-    # Year
-    run = p.add_run(f"{year}. ")
-    set_font(run, FONT_SIZE_NORMAL)
-
-    # [Online]. Available: URL
+    # Format theo loại nguồn
     if source_type.lower() == "online" and url:
+        # Online format: Website, Year. [Online]. Available: URL. (accessed Date).
+        run = p.add_run(f"{year}. ")
+        set_font(run, FONT_SIZE_NORMAL)
+
         run = p.add_run("[Online]. Available: ")
         set_font(run, FONT_SIZE_NORMAL)
 
         run = p.add_run(url)
         set_font(run, FONT_SIZE_NORMAL)
         run.font.color.rgb = RGBColor(0, 0, 255)  # Blue color for URL
+        run.font.underline = True
 
         if accessed:
-            run = p.add_run(f". [Accessed: {accessed}].")
+            run = p.add_run(f" (accessed {accessed})")
             set_font(run, FONT_SIZE_NORMAL)
+
+        run = p.add_run(".")
+        set_font(run, FONT_SIZE_NORMAL)
+
+    elif source_type.lower() == "book":
+        # Book format: City: Publisher, Year.
+        if publisher:
+            run = p.add_run(f"{publisher}, ")
+            set_font(run, FONT_SIZE_NORMAL)
+        run = p.add_run(f"{year}.")
+        set_font(run, FONT_SIZE_NORMAL)
+
+    elif source_type.lower() == "journal":
+        # Journal format: Journal Name, vol. X, no. Y, pp. Z, Year.
+        if pages:
+            run = p.add_run(f"pp. {pages}, ")
+            set_font(run, FONT_SIZE_NORMAL)
+        run = p.add_run(f"{year}.")
+        set_font(run, FONT_SIZE_NORMAL)
+
     else:
-        run = p.add_run(f"{source_type}.")
+        # Generic format
+        run = p.add_run(f"{year}.")
         set_font(run, FONT_SIZE_NORMAL)
 
 
@@ -1656,54 +1776,82 @@ def add_references(doc):
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
 
-    # IEEE format references
+    # IEEE format references - Ví dụ chuẩn IEEE Citation Style
+
+    # [1] Online resource - Database documentation
     add_ieee_reference(doc,
         ref_num=1,
         author="Oracle Corporation",
-        title="Oracle Database Documentation",
-        source_type="Online",
+        title="Oracle Database 19c Documentation",
+        source_type="online",
         year="2024",
-        url="https://docs.oracle.com/en/database/",
-        accessed="Jan. 2026"
+        url="https://docs.oracle.com/en/database/oracle/oracle-database/19/",
+        accessed="Jan. 15, 2026"
     )
 
+    # [2] Online resource - Framework documentation
     add_ieee_reference(doc,
         ref_num=2,
-        author="VMware",
-        title="Spring Batch Reference Documentation",
-        source_type="Online",
+        author="VMware Inc.",
+        title="Spring Batch Reference Documentation v5.0",
+        source_type="online",
         year="2024",
-        url="https://docs.spring.io/spring-batch/",
-        accessed="Jan. 2026"
+        url="https://docs.spring.io/spring-batch/docs/current/reference/html/",
+        accessed="Jan. 18, 2026"
     )
 
+    # [3] Online resource - API design guide
     add_ieee_reference(doc,
         ref_num=3,
-        author="RESTfulAPI.net",
-        title="RESTful API Design Guidelines",
-        source_type="Online",
-        year="2024",
-        url="https://restfulapi.net/",
-        accessed="Jan. 2026"
+        author="M. Masse",
+        title="REST API Design Rulebook",
+        source_type="book",
+        year="2011",
+        publisher="O'Reilly Media"
     )
 
+    # [4] Online resource - API documentation
     add_ieee_reference(doc,
         ref_num=4,
-        author="Anthropic",
-        title="Claude Documentation",
-        source_type="Online",
-        year="2024",
-        url="https://docs.anthropic.com/",
-        accessed="Jan. 2026"
+        author="Anthropic PBC",
+        title="Claude API Reference Documentation",
+        source_type="online",
+        year="2025",
+        url="https://docs.anthropic.com/en/api/",
+        accessed="Jan. 20, 2026"
     )
 
-    # Tài liệu nội bộ
+    # [5] Technical standard
+    add_ieee_reference(doc,
+        ref_num=5,
+        author="R. T. Fielding",
+        title="Architectural Styles and the Design of Network-based Software Architectures",
+        source_type="online",
+        year="2000",
+        url="https://www.ics.uci.edu/~fielding/pubs/dissertation/top.htm",
+        accessed="Jan. 10, 2026"
+    )
+
+    # [6] Java documentation
+    add_ieee_reference(doc,
+        ref_num=6,
+        author="Oracle Corporation",
+        title="Java SE 17 Documentation",
+        source_type="online",
+        year="2024",
+        url="https://docs.oracle.com/en/java/javase/17/",
+        accessed="Jan. 12, 2026"
+    )
+
+    # [7] Tài liệu nội bộ
     p = doc.add_paragraph()
     p.paragraph_format.left_indent = Cm(0.63)
     p.paragraph_format.first_line_indent = Cm(-0.63)
-    run = p.add_run("[5] ")
+    p.paragraph_format.space_after = Pt(6)
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    run = p.add_run("[7] ")
     set_font(run, FONT_SIZE_NORMAL)
-    run = p.add_run("Tài liệu nội bộ công ty SY PARTNERS., JSC (không công khai).")
+    run = p.add_run("Tài liệu thiết kế nội bộ dự án SORA STEP4, SY PARTNERS., JSC (không công khai), 2025.")
     set_font(run, FONT_SIZE_NORMAL)
 
 
