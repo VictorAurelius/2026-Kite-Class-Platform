@@ -2,14 +2,18 @@
 
 Generate Word document (.docx) for Internship Report following UTC (University of Transport) template.
 
+## Folder Structure
+All internship report files are organized in: `documents/word-reports/bao-cao-thuc-tap/`
+
 ## Files
 | File | Path |
 |------|------|
-| Main script | `create_bao_cao_thuc_tap.py` |
-| Logo | `logo_utc.png` |
-| Output | `BAO_CAO_THUC_TAP.docx` |
-| Context | `CONTEXT_BAO_CAO_THUC_TAP.md` |
-| Template guide | `Huong dan trinh bay bao cao TTTN.pdf` |
+| Main script | `bao-cao-thuc-tap/create_bao_cao_thuc_tap.py` |
+| Output (Main) | `bao-cao-thuc-tap/BAO_CAO_THUC_TAP.docx` |
+| Output (SORA) | `bao-cao-thuc-tap/BAO_CAO_THUC_TAP_SORA.docx` |
+| Context | `bao-cao-thuc-tap/CONTEXT_BAO_CAO_THUC_TAP.md` |
+| Logo | `templates/logo_utc.png` |
+| Template guide | `templates/Huong dan trinh bay bao cao TTTN.pdf` |
 | Student info | `.claude/skills/student-info.md` |
 
 ## When to Use
@@ -100,7 +104,7 @@ add_ieee_reference(doc,
 
 ### Generate report
 ```bash
-cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-report
+cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-reports/bao-cao-thuc-tap
 python3 create_bao_cao_thuc_tap.py
 ```
 
