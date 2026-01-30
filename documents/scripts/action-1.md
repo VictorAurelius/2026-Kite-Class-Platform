@@ -615,3 +615,7 @@ Tôi sẽ tạo nhanh templates cho 5 documents còn lại (với essential patt
 tạo PR plan để review toàn bộ code đã implement theo documents đã tạo
 
 tạo thành file để tham chiếu triển khai chứ
+
+ý tôi là tạo code-review-pr-plan chỉ review code đã được implement thôi chứ
+các module hoặc feature chưa có code thì sao review được
+=> đổi tên code-review-pr-plan nếu đúng như tôi hiểu, tạo đúng code-review-pr-plan cho code đã được implement
