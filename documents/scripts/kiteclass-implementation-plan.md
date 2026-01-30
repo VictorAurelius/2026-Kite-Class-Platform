@@ -2689,7 +2689,300 @@ export default function DashboardLayout({ children }) {
 - [ ] Cache strategies implemented (1hr TTL)
 ```
 
-## ⏳ PR 3.4 - Shared Components
+## ⏳ PR 3.4 - Public Routes & Landing Pages (Preview Website) 🆕
+
+```
+Implement Preview Website - Trang web marketing công khai cho mỗi instance.
+Tự động tạo từ AI branding assets (PART 2) + instance data.
+
+**Mục đích:**
+- Thu hút học viên tiềm năng qua SEO organic (+30-50% tuyển sinh)
+- Professional landing page tự động tạo (zero effort)
+- Public course catalog (không cần đăng nhập)
+- Conversion funnel: Landing → Browse → Register → Enroll
+
+**Tuân thủ skills:**
+- frontend-code-quality.md PART 14: Guest User & Public Routes
+- frontend-code-quality.md PART 15: Documentation Standards (Vietnamese)
+- system-architecture-v3-final.md PHẦN 6D: Preview Website
+
+**Chia thành 3 sub-PRs (2 tuần total):**
+
+### PR 3.4a: Backend Public APIs (3 ngày)
+
+**Backend Tasks:**
+1. Tạo Public API endpoints (không cần auth):
+   ```java
+   // PublicInstanceController.java
+   GET /api/v1/public/instance/{instanceId}/config
+   GET /api/v1/public/instance/{instanceId}/branding
+   GET /api/v1/public/instance/{instanceId}/courses
+   GET /api/v1/public/courses/{courseId}
+   GET /api/v1/public/instance/{instanceId}/instructors
+   POST /api/v1/public/contact
+   ```
+
+2. Tạo Public DTOs (filter private fields):
+   ```java
+   // PublicCourseDTO.java
+   - Include: title, description, price, schedule, instructor
+   - Exclude: lessons, students, grades, attendance
+   ```
+
+3. Rate Limiting:
+   ```java
+   @RateLimit(value = 100, period = "1m") // 100 req/min per IP
+   ```
+
+4. Security checks:
+   - Ensure no PII leakage
+   - Only PUBLISHED courses visible
+   - Proper CORS headers
+
+**Tests (bắt buộc):**
+- Unit tests: PublicCourseDTO, PublicInstructorDTO filters
+- Integration tests: All 6 public endpoints
+- Security tests: Verify no private data exposed
+- Rate limit tests: Verify 100 req/min limit
+
+**Files:**
+- backend/src/main/java/com/kiteclass/api/public/
+  - PublicInstanceController.java
+  - PublicCourseController.java
+- backend/src/main/java/com/kiteclass/dto/public/
+  - PublicCourseDTO.java
+  - PublicInstructorDTO.java
+  - PublicInstanceConfigDTO.java
+- backend/src/test/java/com/kiteclass/api/public/
+
+**Verification:**
+- All tests pass
+- Postman test 6 endpoints (no auth header)
+- Security scan: No private data in responses
+
+---
+
+### PR 3.4b: Frontend Public Routes (5 ngày)
+
+**Frontend Tasks:**
+1. Tạo (public) route group:
+   ```
+   app/(public)/
+   ├── layout.tsx          // Public layout (no AuthProvider)
+   ├── page.tsx            // Landing page
+   ├── courses/
+   │   ├── page.tsx        // Course catalog
+   │   └── [id]/page.tsx   // Course details
+   ├── about/page.tsx
+   └── contact/page.tsx
+   ```
+
+2. Implement Landing Page components:
+   ```typescript
+   // components/landing/
+   - HeroSection.tsx (AI branding hero banner + headline)
+   - AboutSection.tsx (center info)
+   - CourseCatalogSection.tsx (featured courses grid)
+   - InstructorsSection.tsx (top teachers)
+   - CTASection.tsx ("Đăng ký ngay")
+   - Footer.tsx (links, social, watermark)
+   ```
+
+3. Implement Course Catalog:
+   ```typescript
+   // components/landing/
+   - CourseGrid.tsx (grid layout)
+   - CourseCard.tsx (thumbnail, title, price, CTA)
+   - CourseFilters.tsx (category, level, price)
+   - CoursePagination.tsx
+   ```
+
+4. Implement Course Details:
+   ```typescript
+   // components/landing/
+   - CourseHeader.tsx (title, instructor, price)
+   - CourseSyllabus.tsx (curriculum preview)
+   - InstructorBio.tsx
+   - EnrollmentCTA.tsx ("Đăng ký ngay" → /login)
+   - RelatedCourses.tsx
+   ```
+
+5. SEO Optimization:
+   ```typescript
+   // app/(public)/page.tsx
+   export async function generateMetadata(): Promise<Metadata> {
+     // Title, description, OG tags, Twitter cards
+   }
+
+   // Structured data (JSON-LD)
+   const courseSchema = {
+     '@context': 'https://schema.org',
+     '@type': 'Course',
+     // ... schema.org/Course
+   }
+
+   // app/sitemap.ts
+   export default async function sitemap() {
+     // Generate sitemap.xml
+   }
+
+   // app/robots.txt
+   export default function robots() {
+     // Allow crawling public routes
+   }
+   ```
+
+6. ISR Configuration:
+   ```typescript
+   export const revalidate = 3600 // Revalidate mỗi 1 giờ
+   ```
+
+7. Mobile Responsive:
+   - Tailwind breakpoints (sm, md, lg, xl)
+   - Mobile-first design
+   - Touch-friendly CTAs
+
+**Tests (bắt buộc):**
+- Component tests (Vitest + Testing Library):
+  ```
+  src/__tests__/components/landing/
+  - hero-section.test.tsx
+  - course-card.test.tsx
+  - course-catalog-section.test.tsx
+  - instructor-section.test.tsx
+  ```
+
+- E2E tests (Playwright):
+  ```
+  src/__tests__/e2e/
+  - landing-page.spec.ts (hero, about, courses, CTA)
+  - course-catalog.spec.ts (grid, filters, pagination)
+  - course-details.spec.ts (syllabus, enroll CTA)
+  ```
+
+- SEO tests:
+  ```
+  src/__tests__/seo/
+  - metadata.test.ts (verify title, OG tags)
+  - structured-data.test.ts (verify Course schema)
+  - sitemap.test.ts (verify all public pages)
+  ```
+
+- Accessibility tests (axe):
+  ```
+  - Color contrast 4.5:1
+  - Keyboard navigation
+  - ARIA labels
+  - Alt text for images
+  ```
+
+**Files:**
+- frontend/app/(public)/
+- frontend/components/landing/
+- frontend/lib/api/public.ts
+- frontend/__tests__/
+
+**Verification:**
+- pnpm test phải pass (component + E2E)
+- Lighthouse score 90+
+- FCP < 1.5s
+- Accessibility score 100
+- Mobile responsive check
+
+---
+
+### PR 3.4c: Integration & Polish (2 ngày)
+
+**Tasks:**
+1. Custom Domain Routing (PREMIUM tier):
+   ```nginx
+   # /etc/nginx/sites-enabled/abc-academy.com
+   server {
+       listen 443 ssl;
+       server_name abc-academy.com;
+       ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
+       proxy_pass https://abc-academy.kiteclass.com;
+   }
+   ```
+
+2. Performance Optimization:
+   - Image optimization (next/image)
+   - ISR configuration
+   - CDN caching headers (Cloudflare)
+   - Lazy loading for below-the-fold content
+
+3. Analytics Integration:
+   ```typescript
+   // Track conversion events
+   gtag('event', 'view_course', { course_id, course_name, price })
+   gtag('event', 'click_enroll', { course_id, placement })
+   gtag('event', 'submit_contact_form', { form_location })
+   ```
+
+4. Contact Form Implementation:
+   ```typescript
+   // POST /api/public/contact
+   - Email notification đến CENTER_OWNER
+   - reCAPTCHA spam protection
+   - Success/error handling
+   ```
+
+5. Edge Cases:
+   - Empty state (chưa có khóa học)
+   - Unpublished courses (ẩn khỏi catalog)
+   - Expired courses (đánh dấu "Đã kết thúc")
+   - Private instances (opt-out public landing)
+
+6. Documentation:
+   ```
+   docs/
+   - preview-website-user-guide.md (cho center owners)
+   - preview-website-seo-guide.md (SEO best practices)
+   - custom-domain-setup.md (PREMIUM tier)
+   ```
+
+**Tests:**
+- Custom domain routing tests
+- Contact form submission tests (with spam check)
+- Analytics event tracking tests
+- Edge case tests (empty, unpublished, expired)
+
+**Verification:**
+- Custom domain works (PREMIUM tier)
+- Contact form sends email
+- Analytics events fire correctly
+- All edge cases handled gracefully
+- Documentation complete
+
+---
+
+**Dependencies:**
+- ✅ PR 3.2: Core Infrastructure (Feature Detection types)
+- ✅ PR 3.3: Providers & Layout
+- ✅ AI Branding System APIs (PART 2)
+
+**Timeline:**
+- PR 3.4a: 3 ngày (Backend APIs)
+- PR 3.4b: 5 ngày (Frontend routes)
+- PR 3.4c: 2 ngày (Integration)
+- Total: 2 tuần (10 ngày làm việc)
+
+**Deliverables:**
+- Public landing page tự động tạo từ AI branding
+- Public course catalog với SEO optimization
+- Conversion funnel hoàn chỉnh (Guest → Student)
+- Custom domain support (PREMIUM)
+- Lighthouse 90+, FCP <1.5s
+- Full test coverage (component, E2E, SEO, a11y)
+
+**Success Metrics:**
+- SEO: Rank on Google cho target keywords
+- Traffic: +30-50% organic visitors
+- Conversion: 5-10% landing → enroll
+- Performance: Lighthouse 90+, FCP <1.5s
+```
+
+## ⏳ PR 3.5 - Shared Components
 
 ```
 Tạo shared components theo kiteclass-frontend-plan.md.
@@ -2725,7 +3018,7 @@ Tạo shared components theo kiteclass-frontend-plan.md.
 - Components render correctly với các props
 ```
 
-## ⏳ PR 3.5 - Auth Pages
+## ⏳ PR 3.6 - Auth Pages
 
 ```
 Thực hiện Auth pages của kiteclass-frontend-plan.md.
@@ -2761,7 +3054,7 @@ Thực hiện Auth pages của kiteclass-frontend-plan.md.
 - Login với owner@kiteclass.local / Admin@123 thành công
 ```
 
-## ⏳ PR 3.6 - Dashboard & Students Module
+## ⏳ PR 3.7 - Dashboard ## ⏳ PR 3.6 - Dashboard & Students Module Students Module
 
 ```
 Thực hiện Dashboard và Students module.
@@ -2803,7 +3096,7 @@ Thực hiện Dashboard và Students module.
 - CRUD operations hoạt động với Core API
 ```
 
-## ⏳ PR 3.7 - Courses & Classes Module
+## ⏳ PR 3.8 - Courses ## ⏳ PR 3.7 - Courses & Classes Module Classes Module
 
 ```
 Thực hiện Courses và Classes module.
@@ -2840,7 +3133,7 @@ Thực hiện Courses và Classes module.
 - Class schedules hiển thị đúng
 ```
 
-## ⏳ PR 3.8 - Attendance Module
+## ⏳ PR 3.9 - Attendance Module
 
 ```
 Thực hiện Attendance module.
@@ -2875,7 +3168,7 @@ Thực hiện Attendance module.
 - Mark attendance cho class hoạt động
 ```
 
-## ⏳ PR 3.9 - Billing Module
+## ⏳ PR 3.10 - Billing Module
 
 ```
 Thực hiện Billing module.
@@ -2910,7 +3203,7 @@ Thực hiện Billing module.
 - Invoice totals hiển thị đúng
 ```
 
-## ⏳ PR 3.10 - Settings & AI Branding System
+## ⏳ PR 3.11 - Settings ## ⏳ PR 3.10 - Settings & AI Branding System AI Branding System
 
 ```
 Thực hiện Settings module với AI Branding Generation.
@@ -3216,7 +3509,7 @@ export function Footer() {
 - [ ] CDN integration tested
 ```
 
-## ⏳ PR 3.11 - Parent Portal
+## ⏳ PR 3.12 - Parent Portal
 
 ```
 Thực hiện Parent Portal để phụ huynh theo dõi con em.
@@ -3269,7 +3562,7 @@ Thực hiện Parent Portal để phụ huynh theo dõi con em.
 - Feature flag working (hidden on BASIC)
 ```
 
-## ⏳ PR 3.12 - Reports & Analytics
+## ⏳ PR 3.13 - Reports ## ⏳ PR 3.12 - Reports & Analytics Analytics
 
 ```
 Thực hiện Reports & Analytics dashboard.
@@ -3321,7 +3614,7 @@ Thực hiện Reports & Analytics dashboard.
 - All tiers have access (no feature flag)
 ```
 
-## ⏳ PR 3.13 - E2E Tests & Polish
+## ⏳ PR 3.14 - E2E Tests ## ⏳ PR 3.13 - E2E Tests & Polish Polish
 
 ```
 Hoàn thiện Frontend với E2E tests.
