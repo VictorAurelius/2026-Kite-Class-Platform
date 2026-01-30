@@ -91,6 +91,23 @@ def remove_cell_borders(cell):
     tcPr.append(tcBorders)
 
 
+def add_page_border(section):
+    """Thêm khung viền cho trang bìa"""
+    sectPr = section._sectPr
+    pgBorders = OxmlElement('w:pgBorders')
+    pgBorders.set(qn('w:offsetFrom'), 'text')
+
+    for border_name in ['top', 'left', 'bottom', 'right']:
+        border = OxmlElement(f'w:{border_name}')
+        border.set(qn('w:val'), 'single')
+        border.set(qn('w:sz'), '24')  # Border width (1/8 point)
+        border.set(qn('w:space'), '24')  # Space from text (points)
+        border.set(qn('w:color'), '000000')  # Black
+        pgBorders.append(border)
+
+    sectPr.append(pgBorders)
+
+
 def add_page_number_header(doc):
     """Thêm số trang ở giữa phía TRÊN đầu trang (header)"""
     for section in doc.sections:
@@ -569,7 +586,7 @@ def add_cover_page(doc):
     run.font.underline = True
 
     # Logo
-    logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo_utc.png')
+    logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'templates', 'logo_utc.png')
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(24)
@@ -600,18 +617,18 @@ def add_cover_page(doc):
     run = p.add_run("THỰC TẬP TỐT NGHIỆP")
     set_font(run, Pt(22), bold=True)
 
-    # CỬ NHÂN (màu vàng, gạch chân)
+    # CỬ NHÂN (không màu vàng, không gạch chân)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(24)
     run = p.add_run("CỬ NHÂN")
-    set_font(run, Pt(22), bold=True, color=RGBColor(255, 192, 0))  # Màu vàng
-    run.font.underline = True
+    set_font(run, Pt(22), bold=True)
 
-    # Bảng thông tin sinh viên (không có viền)
+    # Bảng thông tin sinh viên (CÓ viền)
     table = doc.add_table(rows=8, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.style = 'Table Grid'  # Thêm style có viền
 
     info_rows = [
         ("Sinh viên thực hiện", STUDENT_INFO["name"]),
@@ -633,7 +650,6 @@ def add_cover_page(doc):
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
                 set_font(run, Pt(13))
-        remove_cell_borders(row.cells[0])
 
         # Value cell
         row.cells[1].text = f": {value}"
@@ -642,7 +658,6 @@ def add_cover_page(doc):
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
                 set_font(run, Pt(13))
-        remove_cell_borders(row.cells[1])
 
     # Khoảng trống
     for _ in range(3):
@@ -655,6 +670,9 @@ def add_cover_page(doc):
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("Hà Nội – 2026")
     set_font(run, Pt(14), bold=True, italic=True)
+
+    # Thêm khung viền cho trang bìa
+    add_page_border(doc.sections[0])
 
 
 # ============== TRANG BÌA PHỤ ==============
@@ -1958,15 +1976,14 @@ def create_report():
     # 2. Trang bìa phụ
     add_secondary_cover_page(doc)
 
-    # 3. Bản nhận xét của cơ sở thực tập
-    add_company_review_page(doc)
+    # 3. Bản nhận xét của cơ sở thực tập - BỎ (sẽ xin vật lý)
+    # add_company_review_page(doc)
 
     # 4. Lời cảm ơn
     add_acknowledgment_page(doc)
 
-    # 5. Mục lục + Danh mục hình vẽ + Danh mục bảng biểu
+    # 5. Mục lục + Danh mục bảng biểu (KHÔNG có danh mục hình vẽ vì không có hình)
     add_toc_page(doc)
-    add_list_of_figures(doc)
     add_list_of_tables(doc)
 
     # 6. Danh mục từ viết tắt
@@ -1992,16 +2009,17 @@ def create_report():
     doc.save(output_path)
 
     print(f"Da tao file: {output_path}")
-    print(f"Cau truc bao cao theo mau moi:")
-    print(f"  1. Bia chinh (co bang thong tin SV, logo, chu CU NHAN mau vang)")
-    print(f"  2. Bia phu (them truong Don vi thuc tap)")
-    print(f"  3. Ban nhan xet cua co so thuc tap")
-    print(f"  4. Loi cam on")
-    print(f"  5. Muc luc + Danh muc hinh ve + Danh muc bang bieu")
-    print(f"  6. Danh muc tu viet tat")
-    print(f"  7. 4 Chuong noi dung chinh")
-    print(f"  8. Tai lieu tham khao (IEEE)")
-    print(f"  9. Phu luc")
+    print(f"Cau truc bao cao:")
+    print(f"  1. Bia chinh (co khung vien, bang thong tin SV co vien, logo UTC)")
+    print(f"  2. Bia phu")
+    print(f"  3. Loi cam on")
+    print(f"  4. Muc luc + Danh muc bang bieu")
+    print(f"  5. Danh muc tu viet tat")
+    print(f"  6. 4 Chuong noi dung chinh")
+    print(f"  7. Tai lieu tham khao (IEEE citations)")
+    print(f"  8. Phu luc")
+    print(f"")
+    print(f"Luu y: Ban nhan xet cua co so thuc tap se xin vat ly (khong co trong file Word)")
 
     return output_path
 
