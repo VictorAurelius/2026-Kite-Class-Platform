@@ -2,10 +2,12 @@
 
 Documents for graduation thesis (Đồ án Tốt nghiệp) presentation and defense.
 
-## 📑 Documents (1 file, 53KB)
+## 📑 Documents (4 files, 124KB)
+
+### ⭐ Current Version (Markdown)
 
 **graduation-thesis-outline-v3.md** (53KB)
-- Thesis presentation outline
+- **Latest version** - Thesis presentation outline in markdown
 - Chapter breakdown:
   1. Project background and objectives
   2. System architecture (why hybrid?)
@@ -14,6 +16,23 @@ Documents for graduation thesis (Đồ án Tốt nghiệp) presentation and defe
   5. Reflections and future work
 - Presentation structure (20-30 minutes)
 - Defense Q&A preparation
+
+### Plain Text Versions (for Word/PDF export)
+
+**graduation-thesis-outline-v3.1.txt** (22KB)
+- v3.1 plain text version
+- No markdown syntax (ready for Word)
+- 4 pages (~2000-2500 words in Vietnamese)
+
+**graduation-thesis-outline.txt** (17KB)
+- v1 plain text version
+- Keep for reference
+
+### Draft Materials
+
+**bao-cao-thuc-tap.txt** (32KB)
+- Internship report draft (plain text)
+- Early version for reference
 
 ---
 
