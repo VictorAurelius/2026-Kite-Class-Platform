@@ -625,3 +625,11 @@ các module hoặc feature chưa có code thì sao review được
 thực hiện commit và triển khi PR Review
 
 PR 1.8 còn 7 test về docker, hãy thực hiện luôn
+
+Newer minor version of Spring Boot available: 3.5.10
+=> fix và test lại các test về docker?
+
+UserRepositoryTest vẫn bị xóa rất nhiều dòng code?
+
+tạm thời dừng PR Review lại, tạo branch mới để sửa 1 kiến trúc hệ thống
+
