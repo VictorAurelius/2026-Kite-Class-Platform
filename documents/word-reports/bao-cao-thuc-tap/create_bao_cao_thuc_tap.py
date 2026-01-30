@@ -41,7 +41,7 @@ INTERNSHIP_INFO = {
     "address": "Tầng 3, Tòa nhà Luxury, Số 99 Võ Chí Công, Quận Tây Hồ, Hà Nội",
     "position": "Software Engineer",
     "advisor": "TS. Nguyễn Đức Dư",
-    "company_mentor": "[Tên CBHD]",
+    "company_mentor": "Trịnh Công Vượng (Project Manager)",
     "start_date": "26/06/2025",
     "end_date": "26/09/2025",
 }
@@ -119,8 +119,16 @@ def remove_page_border(section):
 
 
 def add_page_number_header(doc):
-    """Thêm số trang ở giữa phía TRÊN đầu trang (header)"""
-    for section in doc.sections:
+    """
+    Thêm số trang ở giữa phía TRÊN đầu trang (header)
+    Chỉ thêm số trang từ Mục lục trở đi (section 2+)
+    Không thêm số trang cho 2 trang bìa (section 0, 1)
+    """
+    for i, section in enumerate(doc.sections):
+        # Bỏ qua 2 trang bìa (section 0 và 1)
+        if i < 2:
+            continue
+
         header = section.header
         header.is_linked_to_previous = False
 
@@ -144,6 +152,16 @@ def add_page_number_header(doc):
         for r in p.runs:
             r.font.name = FONT_NAME
             r.font.size = FONT_SIZE_NORMAL
+
+        # Reset số trang về 1 cho section đầu tiên có số trang (Mục lục)
+        if i == 2:
+            section.start_type = 0  # Continuous
+            sectPr = section._sectPr
+            pgNumType = sectPr.find(qn('w:pgNumType'))
+            if pgNumType is None:
+                pgNumType = OxmlElement('w:pgNumType')
+                sectPr.append(pgNumType)
+            pgNumType.set(qn('w:start'), '1')
 
 
 def set_heading_font(style, font_name, font_size, bold=True, italic=False):
@@ -673,8 +691,8 @@ def add_cover_page(doc):
             for run in paragraph.runs:
                 set_font(run, Pt(13))
 
-        # Value cell
-        row.cells[1].text = f": {value}"
+        # Value cell (không có dấu ":")
+        row.cells[1].text = value
         row.cells[1].width = Cm(9.0)
         for paragraph in row.cells[1].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -719,15 +737,21 @@ def add_secondary_cover_page(doc):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
-    p.paragraph_format.space_after = Pt(36)
+    p.paragraph_format.space_after = Pt(0)
     run = p.add_run("KHOA CÔNG NGHỆ THÔNG TIN")
     set_font(run, Pt(14), bold=True)
     run.font.underline = True
 
-    # BÁO CÁO (gạch chân)
+    # Khoảng trống thay logo (giống bìa chính)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(24)
+    p.paragraph_format.space_after = Pt(24)
+
+    # BÁO CÁO (gạch chân)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(0)
     run = p.add_run("BÁO CÁO")
     set_font(run, Pt(14), bold=True)
@@ -775,16 +799,18 @@ def add_secondary_cover_page(doc):
             for run in paragraph.runs:
                 set_font(run, Pt(13))
 
-        row.cells[1].text = f": {value}"
+        row.cells[1].text = value
         row.cells[1].width = Cm(9.0)
         for paragraph in row.cells[1].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
                 set_font(run, Pt(13))
 
-    # Khoảng trống
-    for _ in range(2):
+    # Khoảng trống (3 paragraphs giống bìa chính)
+    for _ in range(3):
         p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(0)
 
     # Hà Nội – 2026
     p = doc.add_paragraph()

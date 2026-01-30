@@ -87,18 +87,27 @@ add_ieee_reference(doc,
 )
 ```
 
-## Format Specifications
+## Format Specifications (UTC Standards)
 
 ### Margins
-- Top: 2cm, Bottom: 2cm
-- Left: 3cm, Right: 2cm
-- Page number: Center, header
+- Top: 2.5cm, Bottom: 2.5cm (Updated from 2cm)
+- Left: 3.0cm, Right: 2.0cm
+- Page number: Center, header (starts from TOC, not covers)
 
 ### Font (Times New Roman)
-- Heading 1: 14pt Bold, left
-- Heading 2: 13pt Bold, left
-- Heading 3: 13pt Bold Italic, left
-- Normal: 13pt, justify, indent 1.27cm, spacing 1.5
+- **Chapter (Heading 1)**: 18pt Bold, **CENTER** aligned
+- **Section (Heading 2)**: 16pt Bold, left aligned
+- **Subsection (Heading 3)**: 14pt Bold, left aligned
+- **Normal text**: 13pt, justify, indent 1.0cm, line spacing 1.2
+
+### Cover Pages
+- **Main cover**: Has logo, bordered, no page number
+- **Secondary cover**: Same layout as main (no logo), bordered, no page number
+- **Table cells**: Label + Value (NO colon separator)
+
+### Bullet Lists
+- Hanging indent: left_indent=1.5cm, first_line_indent=-0.5cm
+- Bullet hangs out 0.5cm, wrapped text aligns at 1.5cm
 
 ## Actions
 
@@ -119,3 +128,53 @@ After opening .docx:
 ```bash
 pip install python-docx --user
 ```
+
+## Troubleshooting & Common Fixes
+
+### Issue 1: Borders on All Pages
+**Problem**: Page borders appear on all pages instead of just covers.
+**Solution**:
+1. Apply borders BEFORE margins and page numbers
+2. Use `remove_page_border()` to explicitly remove borders from section 2+
+3. Order: borders → remove borders → margins → page numbers
+
+### Issue 2: Margins Not Applied
+**Problem**: Left margin (3cm) not applied to some sections.
+**Solution**: Call `set_document_margins()` AFTER all sections are created, not before.
+
+### Issue 3: Chapter Headings Not Centered
+**Problem**: Chapter headings aligned left instead of centered.
+**Solution**: Add `p.alignment = WD_ALIGN_PARAGRAPH.CENTER` to Heading 1 paragraphs.
+
+### Issue 4: Bullet List Indentation
+**Problem**: Bullets less indented than paragraphs, wrapped text over-indented.
+**Solution**: Use hanging indent:
+```python
+p.paragraph_format.left_indent = Cm(1.5)  # Text position
+p.paragraph_format.first_line_indent = Cm(-0.5)  # Bullet hangs out
+```
+
+### Issue 5: Page Numbering Starts Too Early
+**Problem**: Page numbers appear on cover pages.
+**Solution**: Skip sections 0-1 in `add_page_number_header()`, start from section 2 (TOC).
+
+### Issue 6: Table Cells Have Colon
+**Problem**: Table cells show `: Value` instead of just `Value`.
+**Solution**: Change `row.cells[1].text = f": {value}"` to `row.cells[1].text = value`.
+
+### Issue 7: Secondary Cover Layout Different
+**Problem**: Secondary cover doesn't match main cover structure.
+**Solution**:
+- Add empty paragraph with space_before=Pt(24), space_after=Pt(24) where logo would be
+- Match spacing: KHOA space_after=Pt(0), BÁO CÁO space_before=Pt(12)
+- Use 3 empty paragraphs before "Hà Nội – 2026"
+
+## Recent Updates (2026-01-30)
+- ✅ Updated CBHD to "Trịnh Công Vượng (Project Manager)"
+- ✅ Removed colons from cover page table cells
+- ✅ Fixed secondary cover to match main cover layout (no logo)
+- ✅ Fixed page numbering to start from TOC (section 2+)
+- ✅ Applied UTC formatting standards (1.2 spacing, 1.0cm indent)
+- ✅ Fixed chapter headings to 18pt center aligned
+- ✅ Fixed bullet list hanging indent
+- ✅ Fixed margins (2.5cm top/bottom)
