@@ -20,6 +20,7 @@ from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.section import WD_SECTION
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
@@ -626,7 +627,7 @@ def add_cover_page(doc):
     set_font(run, Pt(22), bold=True)
 
     # Bảng thông tin sinh viên (CÓ viền)
-    table = doc.add_table(rows=8, cols=2)
+    table = doc.add_table(rows=9, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.style = 'Table Grid'  # Thêm style có viền
 
@@ -636,6 +637,7 @@ def add_cover_page(doc):
         ("Lớp", STUDENT_INFO["class"]),
         ("Khóa", STUDENT_INFO["course"]),
         ("Ngành đào tạo", STUDENT_INFO["major"]),
+        ("Đơn vị thực tập", INTERNSHIP_INFO["company"]),
         ("Giảng viên hướng dẫn", INTERNSHIP_INFO["advisor"]),
         ("CBHD tại đơn vị TT", INTERNSHIP_INFO["company_mentor"]),
         ("Thời gian thực tập", f"Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}"),
@@ -671,8 +673,11 @@ def add_cover_page(doc):
     run = p.add_run("Hà Nội – 2026")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    # Thêm khung viền cho trang bìa
+    # Thêm khung viền cho trang bìa (chỉ section đầu tiên)
     add_page_border(doc.sections[0])
+
+    # Tạo section break để các trang sau không có border
+    doc.add_section(WD_SECTION.NEW_PAGE)
 
 
 # ============== TRANG BÌA PHỤ ==============
@@ -680,7 +685,7 @@ def add_secondary_cover_page(doc):
     """Tạo trang bìa phụ theo mẫu PDF (trang 2) - thêm Đơn vị thực tập"""
     import os
 
-    doc.add_page_break()
+    # Không cần add_page_break() vì section break đã tạo page break rồi
 
     # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
     p = doc.add_paragraph()
