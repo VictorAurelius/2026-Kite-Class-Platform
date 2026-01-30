@@ -1409,22 +1409,78 @@ async function fetchPublicCourses(instanceId: string) {
 
 # PART 4: GUEST USER & TRIAL SYSTEM
 
+## 🎯 CLARIFICATION: B2B Model - Owner-Centric Trial & Sales
+
+**Key Principles:**
+1. **Trial chỉ cho OWNER** - Khi đăng ký gói tạo instance, sau launch xong mới trial expand services/features
+2. **Non-owners liên hệ OWNER** - ADMIN/TEACHER/STUDENT muốn trial → Liên hệ OWNER
+3. **Guest không auto-enroll** - Guest muốn đăng ký học → Liên hệ OWNER (KiteClass không đảm nhận sales)
+4. **OWNER làm sales** - Nghiệp vụ tư vấn, bán khóa học do OWNER đảm nhận
+5. **Contact info prominently displayed** - Facebook, Messenger, Zalo để guest liên hệ OWNER
+
 ## 4.1. Trial System Design
 
-### Q4.1.1: Trial Duration
+### Q4.1.1: Trial Duration ✅ ANSWERED
 **Câu hỏi:** Trial bao lâu?
 
 **Landing page hiện tại: "Dùng thử miễn phí 14 ngày"**
 
 **Confirm:**
-- [ ] 14 ngày (as stated)
+- [x] 14 ngày (as stated)
 - [ ] 7 ngày
 - [ ] 30 ngày
 - [ ] Khác: _____ ngày
 
+**Answer:** 14 ngày trial cho OWNER
+
+**Chi Tiết Trial System:**
+
+**Trial Scope:**
+```
+Trial ÁP DỤNG CHO:
+✅ CENTER_OWNER đăng ký gói tạo instance
+✅ Trial expand services/features SAU KHI launch instance
+✅ Test PREMIUM features (gamification, media, AI branding, etc.)
+
+Trial KHÔNG ÁP DỤNG CHO:
+❌ Guests browsing public website
+❌ Students đăng ký học khóa
+❌ ADMIN/TEACHER muốn trial features → Phải liên hệ OWNER
+```
+
+**Trial Timeline:**
+```
+Day 0: OWNER đăng ký instance tại KiteHub
+  ↓
+Launch instance với BASIC tier (default)
+  ↓
+Day 1-14: Trial expand features
+  - OWNER enable/disable expand services
+  - Test ENGAGEMENT pack (gamification, forum, parent portal)
+  - Test MEDIA pack (video, live streaming)
+  - Test PREMIUM features (AI branding, custom domain, etc.)
+  ↓
+Day 14 23:59:59: Trial expires
+  ↓
+OWNER chọn gói: BASIC, STANDARD, PREMIUM + add-ons
+```
+
+**Non-Owner Access:**
+```
+ADMIN/TEACHER/STUDENT muốn trial feature:
+1. Click locked feature (e.g., "Gamification")
+2. Show modal: "Tính năng này cần gói STANDARD"
+3. Display OWNER contact info:
+   - "Liên hệ [Owner Name]"
+   - 📧 owner@example.com
+   - 📱 0123456789
+   - 💬 Facebook/Messenger link
+4. Option: "Gửi yêu cầu" → Email notification đến OWNER
+```
+
 ---
 
-### Q4.1.2: Trial Tier
+### Q4.1.2: Trial Tier ✅ ANSWERED
 **Câu hỏi:** Trial account tương đương tier nào?
 
 **Option A: Trial = Premium Tier**
@@ -1452,25 +1508,69 @@ Trial có feature set riêng:
 ```
 
 **Vui lòng chọn:**
+- [x] Option C: Custom với limits (Best Practice)
 - [ ] Option A: Full PREMIUM
 - [ ] Option B: STANDARD tier
-- [ ] Option C: Custom với limits
 - [ ] Khác: _____________________
 
-**Nếu Option C, specify limits:**
+**Answer:** Trial = Custom Tier với limits (BASIC + Expand Features)
+
+**Trial Tier Specification:**
+
+**Base Tier: BASIC**
 ```
-Max students: _____
-Max courses: _____
-Max teachers: _____
-Video storage: _____ GB
-Gamification: [ ] Có [ ] Không
-Parent Portal: [ ] Có [ ] Không
-AI Marketing: [ ] Có [ ] Không
+Subscription: FREE (trial)
+Billing: 0đ/tháng (during trial)
+Limits:
+- Max students: 50
+- Max courses: 10
+- Max teachers: 5
+- Video storage: 0GB (chưa enable MEDIA pack)
+```
+
+**Expand Features Available for Trial:**
+```
+✅ ENGAGEMENT Pack (+300k/tháng - Trial FREE):
+   - Gamification (badges, leaderboards, points)
+   - Forum (discussions, Q&A)
+   - Parent Portal (progress tracking, messaging)
+
+✅ MEDIA Pack (+500k/tháng - Trial FREE):
+   - Video Upload (5GB storage during trial)
+   - Live Streaming (1 concurrent stream)
+   - Video Analytics
+
+✅ PREMIUM Features (Trial FREE):
+   - AI Branding (10 generations during trial)
+   - Custom Domain (test only, not publish)
+   - Priority Support
+```
+
+**Rationale:**
+- ✅ OWNER có thể test TẤT CẢ features
+- ✅ Limits đủ để explore (50 students, 10 courses)
+- ✅ Không overwhelm với unlimited (tránh abuse)
+- ✅ Clear upgrade path sau trial
+
+**Sau Trial:**
+```
+Day 14 23:59:59 → Trial expires
+
+OWNER chọn gói:
+Option 1: BASIC (500k/tháng, ≤50 students)
+Option 2: STANDARD (1tr/tháng, ≤200 students) + add-ons
+Option 3: PREMIUM (2tr/tháng, unlimited)
+
+Expand features disabled nếu không subscribe:
+- Gamification → Locked
+- Forum → Read-only
+- Video Upload → Blocked
+- AI Branding → Disabled
 ```
 
 ---
 
-### Q4.1.3: Trial Signup Requirements
+### Q4.1.3: Trial Signup Requirements ✅ ANSWERED
 **Câu hỏi:** Yêu cầu gì để signup trial?
 
 **Current proposal:**
@@ -1481,26 +1581,100 @@ AI Marketing: [ ] Có [ ] Không
 
 **Payment info required?**
 - [ ] CÓ - Phải nhập credit card (không charge)
-- [ ] KHÔNG - Không cần payment info
+- [x] KHÔNG - Không cần payment info
+
+**Answer:** Không cần payment info (Reduce friction, tăng conversion)
 
 **Phone verification?**
-- [ ] CÓ - Zalo OTP verification
+- [x] CÓ - Zalo OTP verification (Best for Vietnam market)
 - [ ] CÓ - SMS OTP
 - [ ] KHÔNG - Chỉ cần email verification
 
+**Answer:** Zalo OTP verification (Vietnam market standard)
+
 **Email verification?**
-- [ ] CÓ - Gửi link verify email trước khi activate trial
+- [x] CÓ - Gửi link verify email trước khi activate trial
 - [ ] KHÔNG - Activate ngay sau signup
 
+**Answer:** Email verification bắt buộc (Prevent spam, ensure valid contact)
+
 **Additional questions:**
-- [ ] Industry type (giáo dục, corporate training, etc.)
-- [ ] Company size (nhỏ hơn 50, 50-200, >200 học viên)
-- [ ] How did you hear about us?
+- [x] Industry type (giáo dục, corporate training, etc.)
+- [x] Company size (nhỏ hơn 50, 50-200, >200 học viên)
+- [x] How did you hear about us?
 - [ ] Khác: _____________________
+
+**Answer:** Thu thập 3 additional questions (Sales intelligence)
+
+**Trial Signup Flow:**
+
+```
+Step 1: Landing Page (kiteclass.com)
+  → Click "Dùng thử miễn phí 14 ngày"
+
+Step 2: Registration Form
+  ┌─────────────────────────────────────────┐
+  │  Đăng Ký Trial KiteClass               │
+  ├─────────────────────────────────────────┤
+  │  Organization Name: [____________]      │
+  │  Tên của bạn: [____________]           │
+  │  Email: [____________]                  │
+  │  Số điện thoại: [____________]         │
+  │                                         │
+  │  Loại hình: [v] Trung tâm giáo dục    │
+  │             [ ] Đào tạo doanh nghiệp   │
+  │             [ ] Trường học             │
+  │                                         │
+  │  Quy mô: [v] < 50 học viên            │
+  │          [ ] 50-200 học viên           │
+  │          [ ] > 200 học viên            │
+  │                                         │
+  │  Biết KiteClass qua: [v] Google       │
+  │                      [ ] Facebook      │
+  │                      [ ] Bạn bè        │
+  │                                         │
+  │  [Đăng Ký Ngay]                        │
+  └─────────────────────────────────────────┘
+
+Step 3: Zalo OTP Verification
+  → Gửi OTP qua Zalo đến số điện thoại
+  → Nhập mã OTP (6 digits)
+  → Verify
+
+Step 4: Email Verification
+  → Gửi email với link verify
+  → Click link → Activate trial
+
+Step 5: Instance Provisioning
+  → KiteHub tạo instance
+  → URL: {organization-slug}.kiteclass.com
+  → Deploy 3 core services (User, Core, Frontend)
+  → Status: TRIAL (14 days)
+
+Step 6: Welcome Email
+  → Login credentials
+  → Quick start guide
+  → Trial timeline (Day 1, 7, 13, 14)
+  → Support contact
+```
+
+**Required Fields:**
+- ✅ Organization name (tên trung tâm)
+- ✅ Owner name
+- ✅ Email (verify)
+- ✅ Phone (Zalo OTP)
+- ✅ Industry type (dropdown)
+- ✅ Company size (dropdown)
+- ✅ Referral source (dropdown)
+
+**NOT Required:**
+- ❌ Payment info (credit card)
+- ❌ Address (không cần ngay)
+- ❌ Tax code (không cần cho trial)
 
 ---
 
-### Q4.1.4: Trial Expiration Behavior
+### Q4.1.4: Trial Expiration Behavior ✅ ANSWERED
 **Câu hỏi:** Khi trial hết hạn, điều gì xảy ra?
 
 **Day 14 23:59:59 → Day 15 00:00:00**
@@ -1531,73 +1705,305 @@ Trial expires → Auto downgrade to FREE tier
 
 **Vui lòng chọn:**
 - [ ] Option A: Lock ngay
-- [ ] Option B: 3-day grace period
+- [x] Option B: 3-day grace period (Best Practice)
 - [ ] Option C: Auto downgrade to FREE
 - [ ] Khác: _____________________
+
+**Answer:** Option B - 3-day grace period với read-only mode
+
+**Trial Expiration Timeline:**
+
+```
+Day 1-10: Early trial
+  ✅ Full access
+  ✅ Soft banner: "Bạn còn X ngày trial"
+  ✅ Explore all features
+
+Day 11-13: Late trial
+  ⚠️ Warning banner: "Còn 3 ngày trial, nâng cấp ngay"
+  ⚠️ Email reminder (Day 11, 13)
+  ✅ Full access vẫn còn
+
+Day 14 (Last day):
+  🔴 Urgent banner: "HÔM NAY là ngày cuối trial"
+  🔴 Email: "Last chance to upgrade"
+  🔴 In-app modal khi login
+  ✅ Full access vẫn còn
+
+Day 14 23:59:59 → Trial expires
+
+Day 15-17 (Grace Period):
+  📖 Read-only mode:
+     - Login OK
+     - View data OK (students, courses, etc.)
+     - CRUD disabled (cannot add/edit/delete)
+     - Banner: "Trial đã hết. Còn X ngày grace period"
+  🔒 Expand features locked:
+     - Gamification → Disabled
+     - Forum → Read-only
+     - Video Upload → Blocked
+  📧 Daily email reminder
+
+Day 18 (Grace period ends):
+  🔒 Instance LOCKED
+     - Cannot login
+     - Show message: "Trial & grace period đã hết"
+     - "Nâng cấp ngay" button → KiteHub billing
+  💾 Data retained (90 days)
+```
 
 **Data retention sau trial:**
 - [ ] Keep forever (customer có thể comeback anytime)
 - [ ] Keep 30 ngày sau trial expiration
-- [ ] Keep 90 ngày
+- [x] Keep 90 ngày
 - [ ] Delete ngay (không retention)
+
+**Answer:** Keep 90 ngày (Best Practice)
+
+**Data Retention Policy:**
+```
+Day 18-107 (90 days after lock):
+  💾 Data retained on backup storage
+  💾 OWNER có thể upgrade → Restore ngay
+  💾 No charges during locked period
+
+Day 108:
+  ⚠️ Email warning: "Còn 7 ngày data sẽ bị xóa"
+  ⚠️ Option: "Archive & download data" button
+
+Day 115:
+  🗑️ Permanent deletion
+  🗑️ Instance deprovisioned
+  ❌ Cannot recover
+```
+
+**Rationale:**
+- ✅ Grace period: Reduce churn, give time to decide
+- ✅ Read-only: OWNER vẫn access data (không mất)
+- ✅ 90-day retention: Industry standard (Salesforce, HubSpot)
+- ✅ Comeback anytime: OWNER có thể upgrade trong 90 ngày
 
 ---
 
-### Q4.1.5: Trial-to-Paid Conversion
+### Q4.1.5: Trial-to-Paid Conversion ✅ ANSWERED
 **Câu hỏi:** Conversion flow từ trial sang paid như thế nào?
 
 **In-app conversion prompts:**
 
 **Day 1-10 (early trial):**
 - [ ] No prompts (để customer explore)
-- [ ] Soft banner: "Bạn còn X ngày trial"
-- [ ] Upgrade CTA ở footer
+- [x] Soft banner: "Bạn còn X ngày trial"
+- [x] Upgrade CTA ở footer
 
 **Day 11-13 (late trial):**
-- [ ] Warning banner: "Còn 3 ngày, nâng cấp ngay"
-- [ ] Email reminder
-- [ ] In-app notification
+- [x] Warning banner: "Còn 3 ngày, nâng cấp ngay"
+- [x] Email reminder
+- [x] In-app notification
 
 **Day 14 (last day):**
-- [ ] Urgent banner: "Hôm nay là ngày cuối"
-- [ ] Email: "Last chance to upgrade"
-- [ ] Phone call from sales (high-touch)
+- [x] Urgent banner: "Hôm nay là ngày cuối"
+- [x] Email: "Last chance to upgrade"
+- [ ] Phone call from sales (high-touch) - ❌ Too expensive
 
 **After expiration:**
-- [ ] Lock instance + email với upgrade link
-- [ ] Allow grace period (see Q4.1.4)
+- [x] Lock instance + email với upgrade link
+- [x] Allow grace period (see Q4.1.4)
+
+**Answer:** Multi-touch conversion strategy (banner + email + modal)
 
 **Conversion incentives:**
-- [ ] Discount: "Upgrade hôm nay giảm 20%"
+- [x] Discount: "Upgrade hôm nay giảm 20%"
 - [ ] Extended trial: "Thêm 7 ngày nếu nâng cấp trong 24h"
 - [ ] No incentive (standard pricing)
 
-**Vui lòng chọn strategy và incentives:**
-_____________________
+**Answer:** Early-bird discount 20% cho upgrade trong 3 ngày đầu
+
+**Conversion Strategy:**
+
+```
+Day 1: Welcome email
+  → Quick start guide
+  → "Bạn còn 14 ngày trial"
+
+Day 3: Feature highlight email
+  → "Đã thử AI Branding chưa?"
+  → Link to tutorial
+
+Day 7: Mid-trial check-in
+  → Email: "Còn 7 ngày trial"
+  → Survey: "Trải nghiệm thế nào?"
+  → Offer: "Upgrade ngay giảm 20%"
+
+Day 11: Late-trial warning
+  → Banner: ⚠️ "Còn 3 ngày trial"
+  → Email: "Còn 3 ngày, nâng cấp ngay"
+  → In-app modal khi login
+
+Day 13: Urgent reminder
+  → Banner: 🔴 "Còn 1 ngày trial"
+  → Email: "Last chance!"
+  → Push notification (nếu enabled)
+
+Day 14: Final day
+  → Banner: 🔴 "HÔM NAY là ngày cuối"
+  → Email: "Trial ends tonight!"
+  → Modal popup: "Nâng cấp ngay giảm 20%"
+
+Day 15-17: Grace period
+  → Read-only mode
+  → Banner: "Trial đã hết. Nâng cấp để tiếp tục"
+  → Daily email reminder
+
+Day 18+: Locked
+  → Cannot login
+  → Email: "Instance locked. Upgrade to restore"
+```
+
+**Conversion Incentives:**
+```
+Early-bird discount (Day 1-10):
+  → Upgrade trong 10 ngày đầu: Giảm 20% tháng đầu
+  → VD: STANDARD 1tr → 800k (tháng đầu)
+
+Standard pricing (Day 11+):
+  → No discount
+  → Full price
+```
+
+**Upgrade Flow:**
+```
+1. OWNER clicks "Nâng cấp ngay"
+2. Redirect to KiteHub billing page
+3. Select tier: BASIC, STANDARD, PREMIUM
+4. Select add-ons: ENGAGEMENT, MEDIA
+5. Payment: VNPay/MoMo
+6. Success → Instance activated
+7. Email confirmation
+```
 
 ---
 
-### Q4.1.6: Multiple Trial Prevention
+### Q4.1.6: Multiple Trial Prevention ✅ ANSWERED
 **Câu hỏi:** Ngăn chặn customer tạo nhiều trial accounts như thế nào?
 
 **Detection methods:**
-- [ ] Email address (1 email = 1 trial)
-- [ ] Phone number (1 phone = 1 trial)
-- [ ] Credit card (nếu require CC)
-- [ ] IP address
-- [ ] Device fingerprinting
+- [x] Email address (1 email = 1 trial)
+- [x] Phone number (1 phone = 1 trial)
+- [ ] Credit card (nếu require CC) - N/A (không require CC)
+- [ ] IP address - ❌ Too restrictive (shared office IPs)
+- [ ] Device fingerprinting - ❌ Complex, privacy concerns
 - [ ] Không ngăn chặn (allow multiple trials)
 
+**Answer:** Email + Phone number (2-factor prevention)
+
 **Enforcement:**
-- [ ] Hard block: "Email này đã dùng trial"
+- [x] Hard block: "Email này đã dùng trial"
 - [ ] Soft warning: "Bạn có muốn extend trial thay vì tạo mới?"
-- [ ] Allow but notify sales team
+- [x] Allow but notify sales team
+
+**Answer:** Hard block + notify sales (for legitimate cases)
+
+**Multiple Trial Prevention Strategy:**
+
+```java
+// Trial eligibility check
+@Service
+public class TrialEligibilityService {
+
+    public TrialEligibility checkEligibility(String email, String phone) {
+        // Check email
+        boolean emailUsed = trialRepo.existsByEmail(email);
+
+        // Check phone
+        boolean phoneUsed = trialRepo.existsByPhone(phone);
+
+        if (emailUsed || phoneUsed) {
+            // Log attempt
+            auditLog.warn("Duplicate trial attempt", email, phone);
+
+            // Notify sales team
+            salesNotificationService.notifyDuplicateTrial(email, phone);
+
+            return TrialEligibility.builder()
+                .eligible(false)
+                .reason("Email hoặc số điện thoại đã được sử dụng cho trial")
+                .existingTrialDate(getExistingTrialDate(email, phone))
+                .build();
+        }
+
+        return TrialEligibility.eligible();
+    }
+}
+```
+
+**UI Behavior:**
+```
+User submits trial signup form
+  ↓
+Backend checks email + phone
+  ↓
+If duplicate detected:
+  ┌─────────────────────────────────────────┐
+  │  ⚠️ Email hoặc SĐT đã dùng trial       │
+  ├─────────────────────────────────────────┤
+  │  Email hoặc số điện thoại này đã được  │
+  │  sử dụng để đăng ký trial trước đó.   │
+  │                                         │
+  │  Ngày đăng ký: 2026-01-15              │
+  │                                         │
+  │  Nếu bạn cần hỗ trợ, vui lòng liên hệ: │
+  │  📧 support@kiteclass.com              │
+  │  📱 1900-xxxx                           │
+  │                                         │
+  │  [Liên hệ Sales]  [Đóng]               │
+  └─────────────────────────────────────────┘
+
+Sales team receives notification:
+  → Email: "Duplicate trial attempt"
+  → Details: Email, phone, timestamp
+  → Action: Contact customer (legit case vs abuse)
+```
+
+**Legitimate Cases (Sales Override):**
+```
+Scenario 1: Company rebrand
+  - Trung tâm đổi tên, muốn trial lại
+  - Sales team: Manual approve
+
+Scenario 2: Different organization
+  - Cùng person, khác organization
+  - Sales team: Assess & approve
+
+Scenario 3: Previous trial failed
+  - Technical issues trong trial
+  - Sales team: Reset trial
+```
+
+**Abuse Cases (Block):**
+```
+Scenario 1: Serial trialer
+  - Cùng person, cùng org, trial nhiều lần
+  - Action: Hard block
+
+Scenario 2: Competitor research
+  - Nhiều trial trong thời gian ngắn
+  - Action: Block + investigate
+```
 
 ---
 
 ## 4.2. Guest User Access
 
-### Q4.2.1: Public Course Catalog
+### 🎯 CLARIFICATION: Admin-Controlled Public Resources + Owner-Led Sales
+
+**Key Principles:**
+1. **Admin quản lý public resources** - Backend service để ADMIN control khóa học/lớp nào public
+2. **Guest không auto-enroll** - Guest muốn đăng ký → Liên hệ OWNER (không tự đăng ký)
+3. **OWNER làm sales** - Tư vấn, xác nhận, enroll thủ công
+4. **Contact info prominent** - Display Facebook, Messenger, Zalo để guest liên hệ OWNER
+5. **SEO optimization** - Public catalog cho SEO, nhưng conversion qua OWNER
+
+### Q4.2.1: Public Course Catalog ✅ ANSWERED
 **Câu hỏi:** Mỗi KiteClass instance có public course catalog không?
 
 **Scenario:**
@@ -1629,22 +2035,135 @@ Guest user (chưa đăng ký) vào https://abc-academy.kiteclass.com
 ```
 
 **Vui lòng chọn:**
-- [ ] Option A: Full public catalog (SEO-friendly)
+- [x] Option A: Full public catalog (SEO-friendly) + Admin-controlled
 - [ ] Option B: Teaser (limited preview)
 - [ ] Option C: No public access
 - [ ] Khác: _____________________
 
+**Answer:** Option A - Full public catalog + Admin control visibility
+
+**Admin-Controlled Public Resources:**
+
+```java
+// Course entity - Admin controls public visibility
+@Entity
+public class Course {
+    @Id
+    private String id;
+
+    private String title;
+    private String description;
+
+    // Admin-controlled visibility
+    @Column(nullable = false)
+    private PublicVisibility publicVisibility = PublicVisibility.PRIVATE;
+
+    public enum PublicVisibility {
+        PRIVATE,     // Guest không thấy
+        PUBLIC       // Guest thấy được (trong catalog)
+    }
+}
+
+// Admin UI to control visibility
+@RestController
+public class CourseAdminController {
+
+    @PatchMapping("/api/v1/admin/courses/{id}/visibility")
+    @PreAuthorize("hasRole('CENTER_ADMIN')")
+    public ResponseEntity<Void> updateVisibility(
+        @PathVariable String id,
+        @RequestBody PublicVisibility visibility
+    ) {
+        courseService.updatePublicVisibility(id, visibility);
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+**Public API - Chỉ trả về courses với visibility=PUBLIC:**
+
+```java
+@GetMapping("/api/v1/public/instance/{instanceId}/courses")
+public ResponseEntity<List<PublicCourseDTO>> getPublicCourses(
+    @PathVariable String instanceId
+) {
+    List<Course> courses = courseRepo.findByInstanceIdAndPublicVisibility(
+        instanceId,
+        PublicVisibility.PUBLIC  // Chỉ PUBLIC courses
+    );
+
+    return ResponseEntity.ok(toPublicDTO(courses));
+}
+```
+
 **Nếu Option A or B:**
 **Course details nào public?**
-- [ ] Course name
-- [ ] Description
-- [ ] Price
-- [ ] Schedule (start date, duration)
-- [ ] Teacher name & bio
-- [ ] Syllabus/curriculum
-- [ ] Student count
-- [ ] Reviews/ratings
-- [ ] Khác: _____________________
+- [x] Course name
+- [x] Description
+- [x] Price
+- [x] Schedule (start date, duration)
+- [x] Teacher name & bio
+- [x] Syllabus/curriculum
+- [ ] Student count - ❌ Private
+- [ ] Reviews/ratings - ❌ V4 feature (defer)
+- [x] **Contact info** (Facebook, Messenger, Zalo) ← **KEY**
+
+**Answer:** Tất cả course details EXCEPT student count, reviews
+
+**Contact Information Display:**
+
+```typescript
+// Course Details Page - Contact OWNER section
+<CourseDetailsPage>
+  <CourseHeader title={course.title} price={course.price} />
+  <CourseSyllabus curriculum={course.syllabus} />
+  <InstructorBio instructor={course.instructor} />
+
+  {/* KEY: Contact OWNER Section */}
+  <ContactOwnerSection>
+    <h3>Quan tâm khóa học này?</h3>
+    <p>Liên hệ trực tiếp với trung tâm để đăng ký:</p>
+
+    <ContactMethods>
+      <ContactButton icon="phone" href={`tel:${owner.phone}`}>
+        {owner.phone}
+      </ContactButton>
+
+      <ContactButton icon="facebook" href={owner.facebookUrl}>
+        Nhắn tin Facebook
+      </ContactButton>
+
+      <ContactButton icon="messenger" href={owner.messengerUrl}>
+        Chat Messenger
+      </ContactButton>
+
+      <ContactButton icon="zalo" href={owner.zaloUrl}>
+        Chat Zalo
+      </ContactButton>
+
+      <ContactButton icon="email" href={`mailto:${owner.email}`}>
+        Gửi Email
+      </ContactButton>
+    </ContactMethods>
+
+    <OwnerInfo>
+      <Avatar src={owner.avatar} />
+      <div>
+        <p><strong>{owner.name}</strong></p>
+        <p>Giám đốc - {instance.name}</p>
+      </div>
+    </OwnerInfo>
+  </ContactOwnerSection>
+</CourseDetailsPage>
+```
+
+**Rationale:**
+- ✅ SEO benefits: Full catalog public → Google index
+- ✅ OWNER control: ADMIN chọn courses nào public
+- ✅ Lead generation: Guest contact OWNER → OWNER qualify & close
+- ✅ Human touch: Personal sales process (trust, customization)
+- ✅ No auto-enroll: Prevent fraud, ensure payment
+- ✅ Prominent contact: Facebook/Zalo are primary in Vietnam
 
 ---
 
@@ -1947,3 +2466,127 @@ Conversion: Upgrade to paid student
 
 **Estimated Time to Complete Q&A:** 2-4 hours
 **Recommended Format:** Meeting + follow-up document
+
+---
+
+### Q4.2.2: Course Preview/Demo Lessons ✅ ANSWERED
+
+**Answer:** KHÔNG có demo lessons trong MVP (Defer to V4)
+
+**Rationale:**
+- Guest muốn "học thử" → Liên hệ OWNER để negotiate
+- OWNER có thể offer trial lesson offline (không qua platform)
+- Reduce complexity (no demo content management)
+- Focus MVP on lead generation, not self-service
+
+---
+
+### Q4.2.3: Guest Self-Registration ✅ ANSWERED
+
+**Answer:** KHÔNG có guest self-registration (Contact OWNER model)
+
+**Guest Journey:**
+```
+1. Guest browses public course catalog
+2. Interested → Click "Liên Hệ Đăng Ký"
+3. Contact OWNER via Facebook/Zalo/Phone
+4. OWNER tư vấn, confirm, negotiate
+5. OWNER manually enrolls student (admin panel)
+6. Student receives login credentials
+7. Start learning
+```
+
+**Rationale:**
+- ✅ OWNER control: Qualify leads, prevent fraud
+- ✅ Personal touch: Sales conversation, custom packages
+- ✅ Payment flexibility: Cash, transfer, installment
+- ✅ No auto-enroll complexity: No payment gateway in MVP
+- ✅ Vietnam market: Personal relationship important
+
+---
+
+### Q4.2.4: Guest Session Tracking ✅ ANSWERED
+
+**Answer:** CÓ - Track guest behavior cho OWNER insights
+
+**Analytics Events:**
+- ✅ Page visits (landing, courses, course details)
+- ✅ Time on site
+- ✅ Courses viewed
+- ✅ Contact clicks (Facebook, Zalo, Phone)
+- ✅ Referral source (Google, Facebook, Direct)
+
+**GDPR Compliance:**
+- ✅ Cookie consent banner
+- ✅ Anonymous tracking (no PII)
+- ✅ Privacy policy link
+
+---
+
+### Q4.2.5: Marketing Content for Guests ✅ ANSWERED
+
+**Answer:** OWNER-driven marketing (KiteClass provides tools)
+
+**On-site:**
+- ✅ Contact buttons (Facebook, Zalo, Phone)
+- ✅ "Liên Hệ Tư Vấn" forms → Email to OWNER
+- ❌ Pop-ups (too intrusive)
+
+**Off-site:**
+- ❌ KiteClass không làm marketing cho instances
+- ✅ OWNER tự chạy Facebook Ads, Google Ads
+- ✅ OWNER remarketing riêng
+
+**Opt-in:**
+- ✅ Explicit opt-in for contact form
+
+---
+
+### Q4.2.6: Guest-to-Student Conversion ✅ ANSWERED
+
+**Answer:** Manual conversion qua OWNER (không auto)
+
+**Conversion Flow:**
+```
+Guest → Contact OWNER → Sales conversation → OWNER enrolls manually
+```
+
+**No Guest Trial:** Trial chỉ cho business OWNER (test platform), không phải students
+
+---
+
+## 4.3. Summary: B2B Owner-Centric Model
+
+**Trial System:**
+- ✅ 14-day trial cho CENTER_OWNER tạo instance
+- ✅ Trial expand features (ENGAGEMENT, MEDIA, PREMIUM)
+- ✅ Non-owners liên hệ OWNER để request features
+- ✅ 3-day grace period sau trial
+- ✅ 90-day data retention
+- ✅ Email + Phone prevention (duplicate trials)
+
+**Guest Access:**
+- ✅ Public course catalog (Admin-controlled visibility)
+- ✅ Full course details + Contact OWNER info
+- ✅ Contact: Facebook, Messenger, Zalo, Phone, Email
+- ❌ No auto-enrollment (OWNER manual process)
+- ❌ No demo lessons (MVP)
+- ❌ No guest trial (trial only for business owners)
+
+**Philosophy:**
+- **B2B first:** Platform serves business owners, not end students
+- **Owner-led sales:** OWNER controls lead qualification, pricing, enrollment
+- **KiteClass enables:** Provide tools (public catalog, contact info, analytics)
+- **Owner executes:** OWNER closes sales, manages students
+- **Human touch:** Personal relationships important in Vietnam market
+
+**Updated in:** 
+- system-architecture-v3-final.md PHẦN 6E (Guest & Trial System)
+- kiteclass-implementation-plan.md (no changes needed - align with Preview Website PR 3.4)
+
+---
+
+# PART 5: INTEGRATION & DEPENDENCIES
+
+_[Questions about backend API readiness, third-party services, etc. - To be answered after PART 4]_
+
