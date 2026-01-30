@@ -1,616 +1,172 @@
-# Code Review PR Implementation Plan
+# Code Review PR Plan (Existing Code Only)
 
 **Version:** 1.0
 **Date:** 2026-01-30
-**Purpose:** Chi tiết PRs để review và fix code theo quality standards
+**Purpose:** Review và fix code ĐÃ ĐƯỢC IMPLEMENT hiện tại
 
-**Tham chiếu:**
-- `documents/reports/code-review-requirement-report.md`
-- `.claude/skills/kiteclass-backend-testing-patterns.md`
-- `.claude/skills/security-testing-standards.md`
-- `.claude/skills/development-workflow.md`
+**⚠️ LƯU Ý:** Plan này chỉ cover code HIỆN CÓ, KHÔNG cover features chưa implement
 
 ---
 
 ## Executive Summary
 
-**Tổng quan:**
-- **Total PRs:** 18 PRs (4 phases)
-- **Timeline:** 7 weeks (5-7 weeks với 4-person team)
-- **Effort:** 27-35 person-days
-- **Team:** 2 backend + 1 frontend + 1 QA
+### Current Code Status
 
-**Critical Path:**
-```
-Phase 1 (Security) → Phase 2 (Testing) → Phase 3 (E2E + CI/CD) → Phase 4 (Performance)
-     Week 1-2            Week 3-4              Week 5-6              Week 7
-```
+**Backend:**
+- ❌ **NO CODE** - Backend chưa được implement
+- Không có entities, services, repositories, controllers
 
----
+**Frontend:**
+- ✅ **BASIC SETUP** - Next.js 14 + shadcn/ui
+- Có: Basic structure, UI components (shadcn/ui library)
+- Không có: Business logic components, API integration, state management
 
-## PHASE 1: CRITICAL SECURITY REVIEW (Week 1-2)
+**Testing:**
+- ❌ **NO TESTS** - Không có unit tests, integration tests, E2E tests
 
-**Timeline:** 2 weeks
-**Priority:** 🔴 CRITICAL (MUST complete before Phase 2)
-**Blocking:** All other phases depend on security fixes
+**CI/CD:**
+- ❌ **NO CI/CD** - Không có GitHub Actions workflows
 
 ---
 
-### PR 1.1: Multi-Tenant Security Audit - Repositories
+## Scope of Review
 
-**Branch:** `security/multi-tenant-repositories`
-**Assignee:** Backend Developer 1
-**Effort:** 1.5 days
-**Priority:** 🔴 P0
+### What We CAN Review (Code Exists)
 
-**Scope:**
-- Audit ALL repository interfaces/classes trong `kiteclass-backend/src/main/java/**/repository/`
-- Add missing `@TenantScoped` annotations
-- Add manual `WHERE instance_id = :instanceId` filters
-- Remove any hardcoded UUIDs
+1. ✅ **Frontend Structure** (Next.js setup, folder organization)
+2. ✅ **UI Components** (shadcn/ui components quality)
+3. ⚠️ **Testing Setup** (CẦN ADD - chưa có)
+4. ⚠️ **Linting/Formatting** (CẦN VERIFY - có thể chưa setup đủ)
+5. ⚠️ **CI/CD** (CẦN ADD - chưa có)
 
-**Files to Review:**
-```
-kiteclass-backend/src/main/java/
-├── student/repository/StudentRepository.java
-├── class/repository/ClassRepository.java
-├── attendance/repository/AttendanceRepository.java
-├── payment/repository/PaymentOrderRepository.java
-├── trial/repository/InstanceConfigRepository.java
-└── ... (ước tính ~50 repository files)
-```
+### What We CANNOT Review (No Code)
 
-**Checklist:**
-- [ ] All repositories have `@TenantScoped` OR manual tenant filter
-- [ ] No `UUID.fromString("...")` in repository code
-- [ ] All JPA queries have `WHERE instance_id = :instanceId`
-- [ ] Bulk operations respect tenant boundaries
-- [ ] Cross-tenant access tests written (≥10 tests)
-
-**Testing Requirements:**
-```java
-// Example test to add
-@Test
-void findById_shouldNotReturnCrossTenantData() {
-    UUID tenant1 = UUID.randomUUID();
-    UUID tenant2 = UUID.randomUUID();
-
-    setTenantContext(tenant1);
-    Student student1 = studentRepository.save(createStudent());
-
-    setTenantContext(tenant2);
-    Optional<Student> result = studentRepository.findById(student1.getId());
-
-    assertThat(result).isEmpty(); // Cross-tenant access blocked
-}
-```
-
-**Success Criteria:**
-- [ ] 100% repositories audited
-- [ ] All cross-tenant access tests pass
-- [ ] No hardcoded instance IDs
-- [ ] Code review approved by security team
-
-**Merge Criteria:**
-- ✅ All checklist items completed
-- ✅ Cross-tenant security tests pass (100%)
-- ✅ No regression in existing tests
-- ✅ Security team approval
+- ❌ Backend code (chưa có)
+- ❌ Multi-tenant security (chưa có backend)
+- ❌ Payment system (chưa implement)
+- ❌ Trial system (chưa implement)
+- ❌ Feature detection (chưa implement)
+- ❌ AI Branding (chưa implement)
 
 ---
 
-### PR 1.2: Multi-Tenant Security Audit - Services
+## PR Plan for Existing Code
 
-**Branch:** `security/multi-tenant-services`
-**Assignee:** Backend Developer 2
-**Effort:** 1 day
-**Priority:** 🔴 P0
-**Depends On:** PR 1.1
-
-**Scope:**
-- Audit ALL service classes trong `kiteclass-backend/src/main/java/**/service/`
-- Verify services use `TenantContext.getCurrentInstanceId()`
-- Ensure no hardcoded instance IDs in business logic
-- Add tenant validation in service methods
-
-**Files to Review:**
-```
-kiteclass-backend/src/main/java/
-├── student/service/StudentServiceImpl.java
-├── class/service/ClassServiceImpl.java
-├── payment/service/PaymentServiceImpl.java
-└── ... (ước tính ~30 service files)
-```
-
-**Checklist:**
-- [ ] All services use `TenantContext.getCurrentInstanceId()`
-- [ ] No hardcoded `UUID.fromString(...)` in services
-- [ ] Service methods validate tenant ownership
-- [ ] API responses filtered by current tenant
-- [ ] Service-level security tests written (≥15 tests)
-
-**Testing Requirements:**
-```java
-@Test
-void createStudent_shouldUseTenantContext() {
-    UUID instanceId = UUID.randomUUID();
-    setTenantContext(instanceId);
-
-    CreateStudentRequest request = createRequest();
-    StudentResponse response = studentService.createStudent(request);
-
-    assertThat(response.instanceId()).isEqualTo(instanceId);
-}
-
-@Test
-void getStudents_shouldOnlyReturnCurrentTenantStudents() {
-    UUID tenant1 = UUID.randomUUID();
-    UUID tenant2 = UUID.randomUUID();
-
-    setTenantContext(tenant1);
-    studentService.createStudent(createRequest("student1@t1.com"));
-
-    setTenantContext(tenant2);
-    studentService.createStudent(createRequest("student2@t2.com"));
-
-    setTenantContext(tenant1);
-    Page<StudentResponse> results = studentService.getStudents(Pageable.unpaged());
-
-    assertThat(results.getContent())
-        .hasSize(1)
-        .allMatch(s -> s.instanceId().equals(tenant1));
-}
-```
-
-**Success Criteria:**
-- [ ] 100% services audited
-- [ ] All service security tests pass
-- [ ] Tenant context properly used everywhere
-- [ ] Code review approved
+**Total PRs:** 6 PRs (chỉ review/fix code hiện có)
+**Timeline:** 1 week
+**Team:** 1 Frontend Developer
 
 ---
 
-### PR 1.3: JWT Token Validation & Tenant Security
+### PR 1: Frontend Structure & Code Quality Review
 
-**Branch:** `security/jwt-tenant-validation`
-**Assignee:** Backend Developer 1
-**Effort:** 0.5 day
-**Priority:** 🔴 P0
-
-**Scope:**
-- Review `JWTAuthenticationFilter`, `JWTService`
-- Add instanceId validation in JWT tokens
-- Prevent cross-tenant JWT usage
-- Add JWT security tests
-
-**Files to Review:**
-```
-kiteclass-backend/src/main/java/
-├── security/JWTAuthenticationFilter.java
-├── security/JWTService.java
-└── security/JWTTokenValidator.java
-```
-
-**Checklist:**
-- [ ] JWT tokens contain `instanceId` claim
-- [ ] Token validation checks instanceId matches request
-- [ ] Cross-tenant token usage blocked
-- [ ] Token expiry enforced (1 hour access, 7 days refresh)
-- [ ] JWT security tests written (≥8 tests)
-
-**Testing Requirements:**
-```java
-@Test
-void validateToken_shouldRejectCrossTenantToken() {
-    UUID tenant1 = UUID.randomUUID();
-    UUID tenant2 = UUID.randomUUID();
-
-    String token = jwtService.generateToken(1L, "user@t1.com", tenant1, List.of("OWNER"));
-
-    setTenantContext(tenant2);
-
-    assertThatThrownBy(() -> jwtService.validateToken(token))
-        .isInstanceOf(InvalidTokenException.class)
-        .hasMessageContaining("Invalid token for this instance");
-}
-```
-
-**Success Criteria:**
-- [ ] JWT validation includes instanceId check
-- [ ] All JWT security tests pass
-- [ ] No cross-tenant token usage possible
-
----
-
-### PR 1.4: Payment Security Audit
-
-**Branch:** `security/payment-validation`
-**Assignee:** Backend Developer 2
-**Effort:** 1 day
-**Priority:** 🔴 P0
-
-**Scope:**
-- Review `PaymentService`, `VietQRService`, `PaymentController`
-- Add amount validation (499k STANDARD, 999k PREMIUM)
-- Add double-payment prevention
-- Add order expiry validation
-- Add transaction idempotency
-
-**Files to Review:**
-```
-kiteclass-backend/src/main/java/
-├── payment/service/PaymentServiceImpl.java
-├── payment/service/VietQRServiceImpl.java
-├── payment/controller/PaymentController.java
-└── payment/repository/PaymentOrderRepository.java
-```
-
-**Checklist:**
-- [ ] Amount validation matches tier pricing
-- [ ] Double payment prevention (check order status)
-- [ ] Order expiry validation (10-minute QR code)
-- [ ] Transaction idempotency (VietQR callbacks)
-- [ ] Audit logging for all payment state changes
-- [ ] No financial data in logs (masked account numbers)
-- [ ] Payment security tests written (≥12 tests)
-
-**Testing Requirements:**
-```java
-@Test
-void verifyPayment_shouldPreventDoublePayment() {
-    PaymentOrder order = createPaidOrder();
-
-    VerifyPaymentRequest request = new VerifyPaymentRequest(
-        order.getOrderId(), "FT999", LocalDateTime.now()
-    );
-
-    assertThatThrownBy(() -> paymentService.verifyPayment(request))
-        .isInstanceOf(PaymentAlreadyPaidException.class);
-}
-
-@Test
-void verifyPayment_shouldValidateAmount() {
-    PaymentOrder order = createPendingOrder(499000L); // STANDARD
-
-    VerifyPaymentRequest request = new VerifyPaymentRequest(
-        order.getOrderId(), "FT123", LocalDateTime.now(), 100L // Wrong amount
-    );
-
-    assertThatThrownBy(() -> paymentService.verifyPayment(request))
-        .isInstanceOf(AmountMismatchException.class);
-}
-
-@Test
-void verifyPayment_shouldRejectExpiredOrder() {
-    PaymentOrder order = createExpiredOrder();
-
-    assertThatThrownBy(() -> paymentService.verifyPayment(new VerifyPaymentRequest(...)))
-        .isInstanceOf(PaymentExpiredException.class);
-}
-```
-
-**Success Criteria:**
-- [ ] Payment validation comprehensive
-- [ ] All payment security tests pass
-- [ ] Audit logging complete
-- [ ] No financial data leakage
-
----
-
-### PR 1.5: Feature Detection Security
-
-**Branch:** `security/feature-detection`
-**Assignee:** Backend Developer 1
-**Effort:** 1 day
-**Priority:** 🔴 P0
-
-**Scope:**
-- Review `FeatureDetectionService`, `InstanceConfigService`
-- Add `@RequireFeature` annotations to STANDARD/PREMIUM endpoints
-- Enforce tier limits (maxStudents, maxCourses, storageGB)
-- Add feature detection tests
-
-**Files to Review:**
-```
-kiteclass-backend/src/main/java/
-├── feature/service/FeatureDetectionService.java
-├── instance/service/InstanceConfigService.java
-├── engagement/controller/EngagementController.java (STANDARD)
-├── media/controller/MediaController.java (STANDARD)
-├── aibranding/controller/AIBrandingController.java (PREMIUM)
-└── ... (all STANDARD/PREMIUM controllers)
-```
-
-**Checklist:**
-- [ ] All STANDARD/PREMIUM endpoints have `@RequireFeature`
-- [ ] Feature config cached with 1-hour TTL (Redis)
-- [ ] Tier limits enforced in services
-- [ ] API returns 403 Forbidden for unavailable features
-- [ ] Feature detection tests written (≥15 tests)
-
-**Testing Requirements:**
-```java
-@Test
-void trackEngagement_shouldRequireStandardTier() {
-    UUID instanceId = createInstance(PricingTier.BASIC);
-
-    assertThatThrownBy(() ->
-        engagementController.trackEngagement(instanceId, createRequest())
-    )
-    .isInstanceOf(FeatureNotAvailableException.class)
-    .hasMessageContaining("ENGAGEMENT")
-    .hasMessageContaining("STANDARD");
-}
-
-@Test
-void createStudent_shouldEnforceStudentLimit() {
-    UUID instanceId = createInstance(PricingTier.BASIC); // Limit: 50
-
-    // Create 50 students (at limit)
-    for (int i = 0; i < 50; i++) {
-        studentService.createStudent(instanceId, createRequest());
-    }
-
-    // 51st student should fail
-    assertThatThrownBy(() ->
-        studentService.createStudent(instanceId, createRequest())
-    )
-    .isInstanceOf(LimitExceededException.class)
-    .hasMessageContaining("50 students");
-}
-```
-
-**Success Criteria:**
-- [ ] All premium features gated
-- [ ] Tier limits enforced
-- [ ] All feature detection tests pass
-
----
-
-### PR 1.6: Security Testing Suite
-
-**Branch:** `test/security-tests`
-**Assignee:** QA Engineer
-**Effort:** 1.5 days
-**Priority:** 🔴 P0
-**Depends On:** PR 1.1, 1.2, 1.3, 1.4, 1.5
-
-**Scope:**
-- Consolidate all security tests from PR 1.1-1.5
-- Add comprehensive security test suite
-- Add OWASP Top 10 tests
-- Setup security test automation
-
-**Testing Coverage:**
-- [ ] Multi-tenant isolation tests (≥20 tests)
-- [ ] Payment security tests (≥12 tests)
-- [ ] JWT security tests (≥8 tests)
-- [ ] Feature detection security tests (≥15 tests)
-- [ ] OWASP Top 10 tests (≥30 tests)
-  - SQL Injection
-  - XSS
-  - CSRF
-  - Authentication bypass
-  - Authorization bypass
-
-**Files to Create:**
-```
-kiteclass-backend/src/test/java/
-├── security/
-│   ├── MultiTenantSecurityTest.java
-│   ├── PaymentSecurityTest.java
-│   ├── JWTSecurityTest.java
-│   ├── FeatureDetectionSecurityTest.java
-│   └── OWASP/
-│       ├── SQLInjectionTest.java
-│       ├── XSSTest.java
-│       ├── CSRFTest.java
-│       └── AuthorizationTest.java
-```
-
-**Success Criteria:**
-- [ ] Total ≥85 security tests passing
-- [ ] Coverage: Security-critical code ≥95%
-- [ ] All OWASP Top 10 covered
-- [ ] Automated in CI/CD
-
----
-
-### PHASE 1 SUMMARY
-
-**Total PRs:** 6
-**Total Effort:** 6.5 days (2 developers + 1 QA)
-**Timeline:** 2 weeks
-
-**Merge Order:**
-1. PR 1.1 (Multi-Tenant Repositories)
-2. PR 1.2 (Multi-Tenant Services) - depends on 1.1
-3. PR 1.3 (JWT Validation)
-4. PR 1.4 (Payment Security)
-5. PR 1.5 (Feature Detection)
-6. PR 1.6 (Security Test Suite) - depends on all above
-
-**Phase 1 Success Criteria:**
-- ✅ All 6 PRs merged
-- ✅ All security tests passing (≥85 tests)
-- ✅ Security team approval
-- ✅ No HIGH/CRITICAL security vulnerabilities
-- ✅ Ready to proceed to Phase 2
-
----
-
-## PHASE 2: TESTING IMPLEMENTATION (Week 3-4)
-
-**Timeline:** 2 weeks
-**Priority:** 🔴 CRITICAL
-**Depends On:** Phase 1 complete
-
----
-
-### PR 2.1: Backend Unit Tests - Core Modules
-
-**Branch:** `test/backend-unit-core`
-**Assignee:** Backend Developer 1
-**Effort:** 2 days
-**Priority:** 🔴 P0
-
-**Scope:**
-- Write unit tests cho Student, Class, Attendance modules
-- Target: 90%+ service coverage
-- Use Mockito for dependencies
-
-**Files to Test:**
-```
-kiteclass-backend/src/main/java/
-├── student/service/StudentServiceImpl.java
-├── class/service/ClassServiceImpl.java
-└── attendance/service/AttendanceServiceImpl.java
-```
-
-**Testing Requirements:**
-- [ ] StudentService: ≥25 unit tests (CRUD + validation)
-- [ ] ClassService: ≥20 unit tests
-- [ ] AttendanceService: ≥15 unit tests
-- [ ] All edge cases covered
-- [ ] All error scenarios tested
-
-**Example Tests:**
-```java
-@ExtendWith(MockitoExtension.class)
-class StudentServiceImplTest {
-    @Mock private StudentRepository repository;
-    @Mock private StudentMapper mapper;
-    @InjectMocks private StudentServiceImpl service;
-
-    @Test
-    void createStudent_shouldValidateEmailUniqueness() {
-        when(repository.existsByEmailAndInstanceId(any(), any())).thenReturn(true);
-
-        assertThatThrownBy(() -> service.createStudent(createRequest()))
-            .isInstanceOf(DuplicateEmailException.class);
-    }
-
-    // ... 24 more tests
-}
-```
-
-**Success Criteria:**
-- [ ] ≥60 unit tests written and passing
-- [ ] Service coverage ≥90%
-- [ ] All edge cases covered
-
----
-
-### PR 2.2: Backend Unit Tests - Payment & Trial
-
-**Branch:** `test/backend-unit-payment`
-**Assignee:** Backend Developer 2
-**Effort:** 1.5 days
-**Priority:** 🔴 P0
-
-**Scope:**
-- Write unit tests cho Payment, Trial, FeatureDetection modules
-- Target: 90%+ service coverage
-
-**Files to Test:**
-```
-kiteclass-backend/src/main/java/
-├── payment/service/PaymentServiceImpl.java
-├── trial/service/TrialServiceImpl.java
-└── feature/service/FeatureDetectionServiceImpl.java
-```
-
-**Testing Requirements:**
-- [ ] PaymentService: ≥30 unit tests (create order, verify, handle callbacks)
-- [ ] TrialService: ≥20 unit tests (lifecycle, expiration)
-- [ ] FeatureDetectionService: ≥15 unit tests
-
-**Success Criteria:**
-- [ ] ≥65 unit tests written and passing
-- [ ] Service coverage ≥90%
-
----
-
-### PR 2.3: Backend Integration Tests
-
-**Branch:** `test/backend-integration`
-**Assignee:** Backend Developer 1 + 2
-**Effort:** 2 days
-**Priority:** 🔴 P0
-**Depends On:** PR 2.1, 2.2
-
-**Scope:**
-- Write integration tests cho full flows
-- Use Testcontainers (PostgreSQL + Redis)
-- Test API endpoints
-
-**Testing Requirements:**
-- [ ] Multi-tenant isolation integration tests (≥10 tests)
-- [ ] Feature detection integration tests (≥10 tests)
-- [ ] Payment flow integration tests (≥8 tests)
-- [ ] Trial lifecycle integration tests (≥8 tests)
-- [ ] API endpoint tests (≥20 tests)
-
-**Example Tests:**
-```java
-@SpringBootTest
-@Testcontainers
-class PaymentFlowIntegrationTest {
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
-
-    @Test
-    void paymentFlow_createToVerify() {
-        // Create order
-        PaymentOrderResponse order = paymentService.createSubscriptionOrder(
-            user, PricingTier.STANDARD
-        );
-
-        assertThat(order.getQrImageUrl()).contains("vietqr.io");
-        assertThat(order.getAmount()).isEqualTo(499000L);
-
-        // Verify payment
-        paymentService.verifyPayment(new VerifyPaymentRequest(
-            order.getOrderId(), "FT123", LocalDateTime.now()
-        ));
-
-        // Check tier upgraded
-        InstanceConfig config = configService.getConfig(user.getInstanceId());
-        assertThat(config.getTier()).isEqualTo(PricingTier.STANDARD);
-    }
-}
-```
-
-**Success Criteria:**
-- [ ] ≥56 integration tests passing
-- [ ] All critical flows tested
-- [ ] Testcontainers setup works
-
----
-
-### PR 2.4: Frontend Component Tests - Core
-
-**Branch:** `test/frontend-components-core`
+**Branch:** `refactor/frontend-structure-review`
 **Assignee:** Frontend Developer
-**Effort:** 2 days
-**Priority:** 🟡 HIGH
+**Effort:** 0.5 day
+**Priority:** 🟡 MEDIUM
 
-**Scope:**
-- Setup Vitest + React Testing Library
-- Write component tests cho FeatureGate, UpgradeModal
-- Write component tests cho common UI
+#### Scope
 
-**Setup:**
+Review và cải thiện frontend structure hiện tại:
+- Next.js 14 App Router setup
+- Folder structure organization
+- TypeScript configuration
+- Tailwind CSS configuration
+
+#### Files to Review
+
+```
+kiteclass-frontend/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx          # Root layout
+│   │   └── page.tsx            # Home page (basic)
+│   └── components/
+│       └── ui/                 # shadcn/ui components (22 files)
+├── tailwind.config.ts
+├── tsconfig.json
+├── next.config.js
+└── package.json
+```
+
+#### Review Checklist
+
+**Project Structure:**
+- [ ] Next.js App Router setup correct
+- [ ] Folder structure follows best practices
+- [ ] TypeScript strict mode enabled
+- [ ] ESLint configured properly
+- [ ] Prettier configured properly
+
+**Code Quality:**
+- [ ] No TypeScript errors
+- [ ] No ESLint warnings
+- [ ] Code follows Next.js conventions
+- [ ] Tailwind CSS classes optimized
+
+**Configuration:**
+- [ ] `tsconfig.json` has strict settings
+- [ ] `next.config.js` has proper settings (images, env vars)
+- [ ] `tailwind.config.ts` follows design system
+
+#### Expected Changes
+
+- Fix any linting issues
+- Add missing ESLint rules
+- Optimize Tailwind config
+- Update `next.config.js` for production
+
+#### Success Criteria
+
+- [ ] No TypeScript errors
+- [ ] No ESLint warnings
+- [ ] Code quality score ≥ A
+- [ ] Structure follows Next.js best practices
+
+---
+
+### PR 2: Add Testing Infrastructure
+
+**Branch:** `test/add-frontend-testing-setup`
+**Assignee:** Frontend Developer
+**Effort:** 1 day
+**Priority:** 🔴 HIGH
+
+#### Scope
+
+Setup testing infrastructure cho frontend (hiện không có tests)
+
+#### What to Add
+
+**Testing Tools:**
+```json
+{
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "jsdom": "^23.0.0",
+    "@vitejs/plugin-react": "^4.0.0"
+  }
+}
+```
+
+**Configuration Files:**
+
 ```typescript
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  plugins: [react()],
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
       statements: 80,
       branches: 75,
       functions: 80,
@@ -620,470 +176,558 @@ export default defineConfig({
 });
 ```
 
-**Files to Test:**
-```
-kiteclass-frontend/src/components/
-├── features/FeatureGate.tsx
-├── features/UpgradeModal.tsx
-├── layout/Sidebar.tsx
-└── ui/* (button, dialog, etc.)
-```
-
-**Testing Requirements:**
-- [ ] FeatureGate: ≥8 tests (tier-based rendering)
-- [ ] UpgradeModal: ≥6 tests (display, navigation)
-- [ ] Sidebar: ≥5 tests (menu filtering)
-- [ ] UI components: ≥10 tests
-
-**Example Tests:**
 ```typescript
-// FeatureGate.test.tsx
+// src/test/setup.ts
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+afterEach(() => {
+  cleanup();
+});
+```
+
+**Sample Tests for UI Components:**
+
+```typescript
+// src/components/ui/button.test.tsx
 import { render, screen } from '@testing-library/react';
-import { FeatureGate } from './FeatureGate';
+import userEvent from '@testing-library/user-event';
+import { Button } from './button';
 
-describe('FeatureGate', () => {
-  it('should show content for available features', async () => {
-    server.use(
-      http.get('/api/instance/config', () => {
-        return HttpResponse.json({
-          tier: 'STANDARD',
-          features: { ENGAGEMENT: true },
-        });
-      })
-    );
-
-    render(
-      <FeatureGate feature="ENGAGEMENT">
-        <div>Engagement Dashboard</div>
-      </FeatureGate>
-    );
-
-    expect(await screen.findByText('Engagement Dashboard')).toBeInTheDocument();
+describe('Button', () => {
+  it('should render button with text', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByText('Click me')).toBeInTheDocument();
   });
 
-  // ... 7 more tests
+  it('should call onClick when clicked', async () => {
+    const onClick = vi.fn();
+    const user = userEvent.setup();
+
+    render(<Button onClick={onClick}>Click me</Button>);
+
+    await user.click(screen.getByText('Click me'));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('should be disabled when disabled prop is true', () => {
+    render(<Button disabled>Click me</Button>);
+    expect(screen.getByText('Click me')).toBeDisabled();
+  });
 });
 ```
 
-**Success Criteria:**
-- [ ] ≥29 component tests passing
-- [ ] Component coverage ≥80%
-- [ ] MSW setup for API mocking
+#### Checklist
+
+- [ ] Vitest installed and configured
+- [ ] React Testing Library installed
+- [ ] Test setup file created
+- [ ] Sample tests added for ≥3 UI components
+- [ ] Coverage reporting configured
+- [ ] `npm run test` script works
+- [ ] `npm run test:coverage` script works
+
+#### Success Criteria
+
+- [ ] Testing infrastructure complete
+- [ ] Sample tests passing
+- [ ] Coverage report generated
+- [ ] Documentation updated
 
 ---
 
-### PR 2.5: Frontend Component Tests - Payment & Trial
+### PR 3: Add Component Tests for UI Library
 
-**Branch:** `test/frontend-components-payment`
-**Assignee:** Frontend Developer
-**Effort:** 2 days
-**Priority:** 🟡 HIGH
-
-**Scope:**
-- Write component tests cho Payment UI
-- Write component tests cho Trial Banners
-- Write component tests cho AI Branding UI
-
-**Files to Test:**
-```
-kiteclass-frontend/src/components/
-├── payment/PaymentQRCode.tsx
-├── payment/PaymentCountdown.tsx
-├── payment/PaymentStatusPoller.tsx
-├── trial/TrialBanner.tsx
-└── aibranding/AIBrandingForm.tsx
-```
-
-**Testing Requirements:**
-- [ ] PaymentQRCode: ≥6 tests
-- [ ] PaymentCountdown: ≥8 tests (timer logic)
-- [ ] PaymentStatusPoller: ≥7 tests (polling logic)
-- [ ] TrialBanner: ≥6 tests
-- [ ] AIBrandingForm: ≥5 tests
-
-**Success Criteria:**
-- [ ] ≥32 component tests passing
-- [ ] Timer/polling logic tested with fake timers
-
----
-
-### PR 2.6: Frontend Integration Tests
-
-**Branch:** `test/frontend-integration`
+**Branch:** `test/ui-components-tests`
 **Assignee:** Frontend Developer
 **Effort:** 1.5 days
-**Priority:** 🟡 HIGH
-**Depends On:** PR 2.4, 2.5
+**Priority:** 🟡 MEDIUM
+**Depends On:** PR 2
 
-**Scope:**
-- Write integration tests cho API calls
-- Test React Query caching
-- Test Zustand state management
+#### Scope
 
-**Testing Requirements:**
-- [ ] API integration tests (≥15 tests)
-- [ ] React Query caching tests (≥8 tests)
-- [ ] Zustand store tests (≥7 tests)
+Write tests cho tất cả shadcn/ui components hiện có
 
-**Success Criteria:**
-- [ ] ≥30 integration tests passing
-- [ ] API mocking with MSW works
-- [ ] State management tested
+#### Components to Test (22 components)
 
----
+```
+src/components/ui/
+├── alert.tsx
+├── avatar.tsx
+├── badge.tsx
+├── button.tsx
+├── calendar.tsx
+├── card.tsx
+├── checkbox.tsx
+├── dialog.tsx
+├── dropdown-menu.tsx
+├── form.tsx
+├── input.tsx
+├── label.tsx
+├── popover.tsx
+├── select.tsx
+├── separator.tsx
+├── sheet.tsx
+├── skeleton.tsx
+├── table.tsx
+├── tabs.tsx
+├── toast.tsx
+├── toaster.tsx
+└── tooltip.tsx
+```
 
-### PHASE 2 SUMMARY
+#### Testing Requirements
 
-**Total PRs:** 6
-**Total Effort:** 11 days (2 backend + 1 frontend)
-**Timeline:** 2 weeks
+**Per Component:**
+- [ ] Render test (component displays correctly)
+- [ ] Props test (all props work as expected)
+- [ ] Interaction test (onClick, onChange, etc.)
+- [ ] Accessibility test (ARIA attributes, keyboard navigation)
+- [ ] Edge cases test (empty state, error state, disabled state)
 
-**Merge Order:**
-1. PR 2.1 (Backend Unit - Core)
-2. PR 2.2 (Backend Unit - Payment)
-3. PR 2.3 (Backend Integration) - depends on 2.1, 2.2
-4. PR 2.4 (Frontend Component - Core)
-5. PR 2.5 (Frontend Component - Payment)
-6. PR 2.6 (Frontend Integration) - depends on 2.4, 2.5
+**Example:**
 
-**Phase 2 Success Criteria:**
-- ✅ Backend test coverage ≥80%
-- ✅ Frontend test coverage ≥80%
-- ✅ Total ≥250 tests passing
-- ✅ All critical flows tested
-- ✅ Ready for Phase 3
-
----
-
-## PHASE 3: E2E & CI/CD (Week 5-6)
-
-**Timeline:** 2 weeks
-**Priority:** 🔴 CRITICAL
-**Depends On:** Phase 2 complete
-
----
-
-### PR 3.1: E2E Tests - Guest & Trial Journeys
-
-**Branch:** `test/e2e-guest-trial`
-**Assignee:** QA Engineer
-**Effort:** 2 days
-**Priority:** 🔴 P0
-
-**Scope:**
-- Setup Playwright
-- Write guest user journey tests
-- Write trial user journey tests
-
-**Setup:**
 ```typescript
-// playwright.config.ts
-export default defineConfig({
-  testDir: './e2e',
-  fullyParallel: true,
-  retries: 2,
-  use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-  },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-  ],
+// src/components/ui/input.test.tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Input } from './input';
+
+describe('Input', () => {
+  it('should render input with placeholder', () => {
+    render(<Input placeholder="Enter text" />);
+    expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
+  });
+
+  it('should update value on user input', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+
+    render(<Input onChange={onChange} />);
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'Hello');
+
+    expect(input).toHaveValue('Hello');
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('should be disabled when disabled prop is true', () => {
+    render(<Input disabled />);
+    expect(screen.getByRole('textbox')).toBeDisabled();
+  });
+
+  it('should have proper ARIA attributes', () => {
+    render(<Input aria-label="Email input" />);
+    expect(screen.getByRole('textbox')).toHaveAccessibleName('Email input');
+  });
 });
 ```
 
-**Testing Requirements:**
-- [ ] Guest landing page journey (≥5 tests)
-- [ ] Trial signup journey (≥8 tests)
-- [ ] Trial countdown journey (≥7 tests)
-- [ ] Grace period journey (≥5 tests)
+#### Test Coverage Goal
 
-**Success Criteria:**
-- [ ] ≥25 E2E tests passing
-- [ ] Playwright setup complete
+- **Target:** ≥85% coverage for UI components
+- **Minimum:** 3 tests per component
+- **Total:** ~70-80 tests expected
 
----
+#### Success Criteria
 
-### PR 3.2: E2E Tests - Payment & Feature Upgrade
-
-**Branch:** `test/e2e-payment-features`
-**Assignee:** QA Engineer
-**Effort:** 2 days
-**Priority:** 🔴 P0
-
-**Scope:**
-- Write payment journey tests
-- Write feature upgrade journey tests
-- Write AI branding journey tests
-
-**Testing Requirements:**
-- [ ] Payment journey (create → QR → verify) (≥8 tests)
-- [ ] Feature upgrade journey (≥7 tests)
-- [ ] AI branding journey (≥5 tests)
-
-**Success Criteria:**
-- [ ] ≥20 E2E tests passing
-- [ ] All payment flows tested
+- [ ] All 22 components have tests
+- [ ] Coverage ≥85% for `src/components/ui/`
+- [ ] All tests passing
+- [ ] Accessibility tests included
 
 ---
 
-### PR 3.3: E2E Tests - Multi-Tenant Isolation
+### PR 4: Add Linting & Formatting Enforcement
 
-**Branch:** `test/e2e-multi-tenant`
-**Assignee:** QA Engineer
-**Effort:** 1 day
-**Priority:** 🔴 P0
+**Branch:** `chore/eslint-prettier-strict`
+**Assignee:** Frontend Developer
+**Effort:** 0.5 day
+**Priority:** 🟡 MEDIUM
 
-**Scope:**
-- Write multi-tenant isolation E2E tests
-- Verify data separation in UI
+#### Scope
 
-**Testing Requirements:**
-- [ ] Multi-tenant isolation tests (≥5 tests)
+Enforce strict linting và formatting rules
 
-**Success Criteria:**
-- [ ] Multi-tenant E2E tests passing
-- [ ] Total E2E tests ≥50
+#### ESLint Configuration
 
----
-
-### PR 3.4: CI/CD Pipeline - Test Automation
-
-**Branch:** `cicd/test-automation`
-**Assignee:** Backend Developer 1 + QA
-**Effort:** 1.5 days
-**Priority:** 🔴 P0
-
-**Scope:**
-- Setup GitHub Actions workflows
-- Configure test automation
-- Setup coverage reporting
-
-**Files to Create:**
-```yaml
-.github/workflows/
-├── backend-tests.yml     (unit + integration)
-├── frontend-tests.yml    (component + integration)
-├── e2e-tests.yml         (Playwright)
-└── coverage.yml          (Codecov)
+```javascript
+// .eslintrc.json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off"
+  }
+}
 ```
 
-**Success Criteria:**
-- [ ] All tests run on PR
-- [ ] Coverage reports generated
-- [ ] Tests block merge if failing
+#### Prettier Configuration
 
----
-
-### PR 3.5: CI/CD Pipeline - Security Scanning
-
-**Branch:** `cicd/security-scanning`
-**Assignee:** Backend Developer 2
-**Effort:** 1 day
-**Priority:** 🟡 HIGH
-
-**Scope:**
-- Setup OWASP Dependency Check
-- Setup Snyk scanning
-- Setup CodeQL analysis
-
-**Files to Create:**
-```yaml
-.github/workflows/
-├── owasp-dependency-check.yml
-├── snyk-security.yml
-└── codeql-analysis.yml
+```javascript
+// .prettierrc.js
+module.exports = {
+  semi: true,
+  trailingComma: 'es5',
+  singleQuote: true,
+  printWidth: 100,
+  tabWidth: 2,
+  useTabs: false,
+  arrowParens: 'always',
+  endOfLine: 'lf',
+};
 ```
 
-**Success Criteria:**
-- [ ] Security scans run on PR
-- [ ] HIGH/CRITICAL vulnerabilities block merge
+#### Checklist
+
+- [ ] ESLint strict rules configured
+- [ ] Prettier configured
+- [ ] All existing code passes linting
+- [ ] Format all files with Prettier
+- [ ] Add `lint` and `format` scripts to package.json
+- [ ] Add pre-commit hook (Husky + lint-staged)
+
+#### Success Criteria
+
+- [ ] No ESLint errors
+- [ ] No ESLint warnings (or explicitly ignored)
+- [ ] All files formatted with Prettier
+- [ ] Pre-commit hook prevents bad code
 
 ---
 
-### PR 3.6: CI/CD Pipeline - Quality Gates
+### PR 5: Setup CI/CD for Frontend
 
-**Branch:** `cicd/quality-gates`
-**Assignee:** Backend Developer 1
-**Effort:** 1 day
-**Priority:** 🟡 HIGH
-**Depends On:** PR 3.4, 3.5
-
-**Scope:**
-- Configure coverage gates (≥80%)
-- Configure branch protection rules
-- Setup merge criteria
-
-**Success Criteria:**
-- [ ] Coverage gate enforced
-- [ ] Branch protection active
-- [ ] CI/CD fully operational
-
----
-
-### PHASE 3 SUMMARY
-
-**Total PRs:** 6
-**Total Effort:** 8.5 days (1 QA + 2 backend)
-**Timeline:** 2 weeks
-
-**Phase 3 Success Criteria:**
-- ✅ ≥50 E2E tests passing
-- ✅ CI/CD pipeline operational
-- ✅ Quality gates enforced
-- ✅ Security scanning automated
-
----
-
-## PHASE 4: PERFORMANCE & DEPLOYMENT (Week 7)
-
-**Timeline:** 1 week
-**Priority:** 🟢 MEDIUM
-
----
-
-### PR 4.1: Performance Testing - k6 Load Tests
-
-**Branch:** `perf/k6-load-tests`
-**Assignee:** Backend Developer 2
-**Effort:** 1.5 days
-**Priority:** 🟢 MEDIUM
-
-**Scope:**
-- Write k6 load test scripts
-- Test API endpoints under load
-- Test payment flows under load
-
-**Success Criteria:**
-- [ ] P95 response time < 500ms
-- [ ] Error rate < 1%
-
----
-
-### PR 4.2: Performance Testing - Frontend
-
-**Branch:** `perf/lighthouse-ci`
+**Branch:** `cicd/frontend-pipeline`
 **Assignee:** Frontend Developer
 **Effort:** 1 day
-**Priority:** 🟢 MEDIUM
+**Priority:** 🔴 HIGH
+**Depends On:** PR 2, PR 4
 
-**Scope:**
-- Setup Lighthouse CI
-- Optimize bundle size
-- Test performance benchmarks
+#### Scope
 
-**Success Criteria:**
-- [ ] Performance Score ≥80
-- [ ] Bundle size < 500KB
+Setup GitHub Actions workflows cho frontend
+
+#### Workflows to Create
+
+**1. Frontend Tests Workflow**
+
+```yaml
+# .github/workflows/frontend-tests.yml
+name: Frontend Tests
+
+on:
+  pull_request:
+    paths:
+      - 'kiteclass/kiteclass-frontend/**'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'kiteclass/kiteclass-frontend/**'
+
+defaults:
+  run:
+    working-directory: kiteclass/kiteclass-frontend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: kiteclass/kiteclass-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
+```
+
+**2. Frontend Build Workflow**
+
+```yaml
+# .github/workflows/frontend-build.yml
+name: Frontend Build
+
+on:
+  pull_request:
+    paths:
+      - 'kiteclass/kiteclass-frontend/**'
+
+defaults:
+  run:
+    working-directory: kiteclass/kiteclass-frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: kiteclass/kiteclass-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Check build size
+        run: |
+          du -sh .next/static/chunks
+          # Fail if bundle > 500KB
+```
+
+**3. Code Quality Workflow**
+
+```yaml
+# .github/workflows/code-quality.yml
+name: Code Quality
+
+on: [pull_request]
+
+defaults:
+  run:
+    working-directory: kiteclass/kiteclass-frontend
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npx tsc --noEmit
+
+      - name: Check formatting
+        run: npx prettier --check .
+```
+
+#### Branch Protection Rules
+
+```yaml
+Required status checks:
+  - Frontend Tests
+  - Frontend Build
+  - Code Quality
+
+Required reviews: 1
+
+Require branches to be up to date: true
+```
+
+#### Success Criteria
+
+- [ ] All 3 workflows created and working
+- [ ] Branch protection configured
+- [ ] Coverage reporting to Codecov
+- [ ] Quality gates enforced
 
 ---
 
-### PR 4.3: Deployment Documentation
+### PR 6: Documentation & Developer Guide
 
-**Branch:** `docs/deployment-procedures`
-**Assignee:** Backend Developer 1
-**Effort:** 1 day
-**Priority:** 🟢 MEDIUM
+**Branch:** `docs/frontend-developer-guide`
+**Assignee:** Frontend Developer
+**Effort:** 0.5 day
+**Priority:** 🟢 LOW
 
-**Scope:**
-- Document deployment procedures
-- Document rollback procedures
-- Create deployment checklist
+#### Scope
 
-**Success Criteria:**
-- [ ] Deployment runbook complete
-- [ ] Rollback procedures documented
+Document frontend code structure và developer setup
+
+#### Documents to Create
+
+**1. Frontend README**
+
+```markdown
+# KiteClass Frontend
+
+## Tech Stack
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+## Getting Started
+\`\`\`bash
+cd kiteclass/kiteclass-frontend
+npm install
+npm run dev
+\`\`\`
+
+## Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run format` - Format with Prettier
+- `npm run test` - Run tests
+- `npm run test:coverage` - Run tests with coverage
+
+## Project Structure
+\`\`\`
+src/
+├── app/              # Next.js App Router pages
+├── components/
+│   └── ui/          # shadcn/ui components
+├── lib/             # Utility functions
+└── test/            # Test utilities
+\`\`\`
+
+## Code Quality
+- TypeScript strict mode
+- ESLint with strict rules
+- Prettier for formatting
+- Vitest + React Testing Library for testing
+- 85%+ test coverage required
+```
+
+**2. Contributing Guide**
+
+```markdown
+# Contributing to Frontend
+
+## Before You Start
+1. Read the code quality standards
+2. Ensure tests are passing locally
+3. Follow the PR template
+
+## Development Workflow
+1. Create feature branch from `develop`
+2. Make changes with tests
+3. Run `npm run lint && npm run test`
+4. Create PR with descriptive title
+5. Wait for CI/CD checks to pass
+6. Request review
+
+## Testing Requirements
+- All new components must have tests
+- Coverage must be ≥85%
+- Tests must include accessibility checks
+```
+
+#### Success Criteria
+
+- [ ] README.md complete
+- [ ] CONTRIBUTING.md complete
+- [ ] Code examples documented
+- [ ] Developer setup guide clear
 
 ---
 
-### PHASE 4 SUMMARY
+## Summary
 
-**Total PRs:** 3
-**Total Effort:** 3.5 days
+### Total PRs: 6
+
+| PR | Description | Effort | Priority |
+|----|-------------|--------|----------|
+| PR 1 | Frontend Structure Review | 0.5 day | 🟡 MEDIUM |
+| PR 2 | Add Testing Infrastructure | 1 day | 🔴 HIGH |
+| PR 3 | Add Component Tests | 1.5 days | 🟡 MEDIUM |
+| PR 4 | Linting & Formatting | 0.5 day | 🟡 MEDIUM |
+| PR 5 | Setup CI/CD | 1 day | 🔴 HIGH |
+| PR 6 | Documentation | 0.5 day | 🟢 LOW |
+
+**Total Effort:** 5 days (1 Frontend Developer)
 **Timeline:** 1 week
 
 ---
 
-## COMPLETE PR TIMELINE
+### Merge Order
 
 ```
-Week 1-2: PHASE 1 - SECURITY (6 PRs)
-├── PR 1.1: Multi-Tenant Repositories
-├── PR 1.2: Multi-Tenant Services
-├── PR 1.3: JWT Validation
-├── PR 1.4: Payment Security
-├── PR 1.5: Feature Detection
-└── PR 1.6: Security Test Suite
-
-Week 3-4: PHASE 2 - TESTING (6 PRs)
-├── PR 2.1: Backend Unit - Core
-├── PR 2.2: Backend Unit - Payment
-├── PR 2.3: Backend Integration
-├── PR 2.4: Frontend Component - Core
-├── PR 2.5: Frontend Component - Payment
-└── PR 2.6: Frontend Integration
-
-Week 5-6: PHASE 3 - E2E & CI/CD (6 PRs)
-├── PR 3.1: E2E - Guest & Trial
-├── PR 3.2: E2E - Payment & Features
-├── PR 3.3: E2E - Multi-Tenant
-├── PR 3.4: CI/CD - Test Automation
-├── PR 3.5: CI/CD - Security Scanning
-└── PR 3.6: CI/CD - Quality Gates
-
-Week 7: PHASE 4 - PERFORMANCE (3 PRs)
-├── PR 4.1: k6 Load Tests
-├── PR 4.2: Lighthouse CI
-└── PR 4.3: Deployment Docs
-
-TOTAL: 18 PRs, 7 weeks
+PR 1: Frontend Structure Review
+  ↓
+PR 2: Add Testing Infrastructure
+  ↓
+PR 4: Linting & Formatting
+  ↓ ↓
+PR 3: Component Tests     PR 5: CI/CD Setup
+  ↓                         ↓
+  └────────→ PR 6: Documentation
 ```
 
 ---
 
-## FINAL SUCCESS CRITERIA
+## Success Criteria
 
-### Production-Ready Checklist
+**After All PRs Merged:**
 
-- [ ] **Phase 1 Complete:** All security PRs merged
-  - [ ] Multi-tenant security tests passing (100%)
-  - [ ] Payment security validated
-  - [ ] JWT security enforced
-  - [ ] Feature detection secure
+- ✅ Frontend structure reviewed and optimized
+- ✅ Testing infrastructure complete
+- ✅ All UI components have tests (≥85% coverage)
+- ✅ Linting and formatting enforced
+- ✅ CI/CD pipeline operational
+- ✅ Documentation complete
 
-- [ ] **Phase 2 Complete:** All testing PRs merged
-  - [ ] Backend coverage ≥80%
-  - [ ] Frontend coverage ≥80%
-  - [ ] Total ≥250 tests passing
+**NOT Included (No Code to Review):**
 
-- [ ] **Phase 3 Complete:** E2E & CI/CD PRs merged
-  - [ ] ≥50 E2E tests passing
-  - [ ] CI/CD pipeline operational
-  - [ ] Quality gates enforced
-
-- [ ] **Phase 4 Complete:** Performance PRs merged
-  - [ ] Performance benchmarks meet targets
-  - [ ] Deployment docs complete
-
-### Code Review & Approval
-
-- [ ] All PRs reviewed by 2+ team members
-- [ ] Security PRs approved by security team
-- [ ] No HIGH/CRITICAL vulnerabilities
-- [ ] All automated tests passing
-
-### Deployment
-
-- [ ] Staging deployment successful
-- [ ] Smoke tests passing
-- [ ] Performance tests passing
-- [ ] Security scan clean
-- [ ] Production deployment approved
+- ❌ Backend code review (no backend code)
+- ❌ Multi-tenant security review (no backend)
+- ❌ Payment system review (not implemented)
+- ❌ Feature detection review (not implemented)
+- ❌ E2E tests (no business logic to test)
 
 ---
 
-**Plan Version:** 1.0
+## Next Steps After This Plan
+
+**After completing these 6 PRs:**
+
+1. ✅ Frontend code quality established
+2. ⚠️ **THEN** implement business logic (Payment, Trial, Feature Detection)
+3. ⚠️ **THEN** use `quality-implementation-full-plan.md` for full implementation
+
+**Reference:**
+- Current plan: `code-review-pr-plan.md` (6 PRs, review existing code)
+- Full implementation: `quality-implementation-full-plan.md` (18 PRs, implement features)
+
+---
+
+**Plan Version:** 1.0 (Existing Code Only)
 **Created:** 2026-01-30
-**Next Review:** After Phase 1 complete
-**Total Effort:** 27-35 person-days (7 weeks)
+**Scope:** Frontend only (no backend code exists)
+**Total Effort:** 5 days (1 developer)
