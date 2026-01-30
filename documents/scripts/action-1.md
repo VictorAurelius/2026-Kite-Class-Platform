@@ -580,3 +580,5 @@ tôi muốn biết best practice của # PART 3: PREVIEW WEBSITE FEATURE
 hãy tạo 1 báo cáo riêng về vấn đề này
 
 báo cáo phải là dạng tiếng việt để tôi dễ đọc hiểu => hãy bổ sung vào skill
+
+tôi đồng ý # PART 3: PREVIEW WEBSITE FEATURE theo best practice của bạn => hãy cập nhật các tài liệu liên quan

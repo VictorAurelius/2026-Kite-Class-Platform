@@ -2488,6 +2488,676 @@ interface BrandingGenerationRequest {
 
 ---
 
+# PHẦN 6D: PREVIEW WEBSITE - TRANG WEB MARKETING CÔNG KHAI
+
+## 6D.1. Tổng Quan Preview Website
+
+### Định Nghĩa
+
+**Preview Website** là trang web marketing công khai cho mỗi KiteClass instance, tự động tạo từ AI branding assets và dữ liệu instance, giúp trung tâm thu hút học viên tiềm năng thông qua SEO và marketing trực tuyến.
+
+### Mục Đích
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    BUSINESS GOALS                       │
+├─────────────────────────────────────────────────────────┤
+│  1. Thu Hút Học Viên      → +30-50% tuyển sinh         │
+│  2. SEO Organic Traffic   → Giảm CAC                   │
+│  3. Professional Image    → Tăng uy tín                │
+│  4. Zero Effort Setup     → Tự động tạo                │
+│  5. Competitive Advantage → Khác biệt vs LMS khác       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### URL Structure
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              PUBLIC ROUTES (No Authentication)          │
+├─────────────────────────────────────────────────────────┤
+│  https://abc-academy.kiteclass.com/                     │
+│    → Landing page (Hero, About, Courses, Contact)      │
+│                                                         │
+│  https://abc-academy.kiteclass.com/courses              │
+│    → Course catalog (grid view với filters)            │
+│                                                         │
+│  https://abc-academy.kiteclass.com/courses/101          │
+│    → Course details (syllabus, instructor, pricing)     │
+│                                                         │
+│  https://abc-academy.kiteclass.com/about                │
+│    → Về trung tâm                                       │
+│                                                         │
+│  https://abc-academy.kiteclass.com/contact              │
+│    → Form liên hệ                                       │
+├─────────────────────────────────────────────────────────┤
+│           PROTECTED ROUTES (Authentication)             │
+├─────────────────────────────────────────────────────────┤
+│  https://abc-academy.kiteclass.com/login                │
+│    → Student login/register                             │
+│                                                         │
+│  https://abc-academy.kiteclass.com/enroll/101           │
+│    → Enrollment form (requires auth)                    │
+│                                                         │
+│  https://abc-academy.kiteclass.com/dashboard            │
+│    → Student dashboard (requires auth)                  │
+├─────────────────────────────────────────────────────────┤
+│              CUSTOM DOMAIN (PREMIUM Tier)               │
+├─────────────────────────────────────────────────────────┤
+│  https://abc-academy.com/                               │
+│    → Custom domain cho PREMIUM tier                     │
+│    → DNS CNAME → proxy.kiteclass.com                    │
+│    → SSL auto-provision (Let's Encrypt)                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6D.2. Content Architecture
+
+### Content Source Mapping
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   CONTENT SOURCES                       │
+├─────────────────────┬───────────────────┬───────────────┤
+│  Content Type       │  Source           │  Public?      │
+├─────────────────────┼───────────────────┼───────────────┤
+│  Hero Banner        │  AI Branding      │  ✅ Public    │
+│  Logo & Colors      │  AI Branding      │  ✅ Public    │
+│  Headlines/CTAs     │  AI Branding      │  ✅ Public    │
+│  Center Name/Desc   │  Instance Data    │  ✅ Public    │
+│  Course Titles      │  Course API       │  ✅ Public    │
+│  Course Pricing     │  Course API       │  ✅ Public    │
+│  Teacher Bios       │  Teacher API      │  ✅ Public    │
+│  Lesson Content     │  Course API       │  ❌ Private   │
+│  Student Data       │  Student API      │  ❌ Private   │
+└─────────────────────┴───────────────────┴───────────────┘
+```
+
+### Landing Page Structure
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      LANDING PAGE                       │
+├─────────────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  HERO SECTION                                     │  │
+│  │  - AI-generated hero banner (1920x600)           │  │
+│  │  - AI-generated headline                         │  │
+│  │  - AI-generated subheadline                      │  │
+│  │  - CTA button: "Xem Khóa Học"                    │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  ABOUT SECTION                                    │  │
+│  │  - Center logo (AI-generated)                    │  │
+│  │  - Center description (admin input)              │  │
+│  │  - Contact info (phone, email, address)          │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  COURSE CATALOG SECTION                           │  │
+│  │  - Course grid (4 featured courses)              │  │
+│  │  - Course cards:                                  │  │
+│  │    • Thumbnail image                              │  │
+│  │    • Title, description (truncated)               │  │
+│  │    • Price, duration, enrolled count              │  │
+│  │    • "Xem Chi Tiết" button                        │  │
+│  │  - "Xem Tất Cả Khóa Học" link                    │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  INSTRUCTORS SECTION                              │  │
+│  │  - Teacher grid (top 3 teachers)                 │  │
+│  │  - Photo, name, bio, expertise                    │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  CTA SECTION                                      │  │
+│  │  - "Sẵn sàng bắt đầu?"                           │  │
+│  │  - "Đăng Ký Ngay" button → /courses               │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  FOOTER                                           │  │
+│  │  - Links: Về chúng tôi, Khóa học, Liên hệ        │  │
+│  │  - Social media icons                             │  │
+│  │  - "Powered by KiteClass" watermark               │  │
+│  └───────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6D.3. Technical Stack
+
+### Frontend Architecture
+
+```typescript
+// Next.js 14+ App Router Structure
+app/
+├── (public)/                // Public route group (no auth)
+│   ├── layout.tsx          // Public layout (no AuthProvider)
+│   ├── page.tsx            // Landing page (SSR + ISR)
+│   ├── courses/
+│   │   ├── page.tsx        // Course catalog
+│   │   └── [id]/
+│   │       └── page.tsx    // Course details
+│   ├── about/
+│   │   └── page.tsx        // About page
+│   └── contact/
+│       └── page.tsx        // Contact form
+│
+├── (auth)/                  // Authenticated routes
+│   ├── dashboard/
+│   ├── enroll/[id]/
+│   └── settings/
+│
+└── api/
+    ├── public/              // Public APIs (no auth)
+    │   ├── instance/
+    │   ├── courses/
+    │   └── contact/
+    └── v1/                  // Authenticated APIs
+```
+
+### Backend Public APIs
+
+```java
+// Public Instance Controller
+@RestController
+@RequestMapping("/api/v1/public")
+public class PublicInstanceController {
+
+    // Get instance config & branding
+    @GetMapping("/instance/{instanceId}/config")
+    public ResponseEntity<InstanceConfig> getInstanceConfig(
+        @PathVariable String instanceId
+    ) {
+        // Return: name, description, logo, branding assets
+        // No authentication required
+    }
+
+    // Get public course catalog
+    @GetMapping("/instance/{instanceId}/courses")
+    @RateLimit(value = 100, period = "1m") // 100 req/min per IP
+    public ResponseEntity<List<PublicCourseDTO>> getPublicCourses(
+        @PathVariable String instanceId,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String level
+    ) {
+        // Filter: Only PUBLISHED courses
+        // Exclude: Lesson content, student lists, private data
+    }
+
+    // Get course details
+    @GetMapping("/courses/{courseId}")
+    public ResponseEntity<PublicCourseDetailDTO> getCourseDetails(
+        @PathVariable String courseId
+    ) {
+        // Return: Full course info except lesson content
+    }
+
+    // Get instructor profiles
+    @GetMapping("/instance/{instanceId}/instructors")
+    public ResponseEntity<List<PublicInstructorDTO>> getInstructors(
+        @PathVariable String instanceId
+    ) {
+        // Return: Name, bio, photo, courses taught
+    }
+
+    // Contact form submission
+    @PostMapping("/contact")
+    @ReCaptchaValidation
+    public ResponseEntity<Void> submitContactForm(
+        @RequestBody ContactFormDTO form
+    ) {
+        // Send email to CENTER_OWNER
+        // Spam protection via reCAPTCHA
+    }
+}
+```
+
+### Data Transfer Objects
+
+```java
+// PublicCourseDTO.java - Filter private fields
+public class PublicCourseDTO {
+    private String id;
+    private String title;
+    private String description;
+    private String thumbnail;
+    private BigDecimal price;
+    private Integer duration; // weeks
+    private String schedule;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    private PublicInstructorDTO instructor;
+    private Integer enrolledCount;
+    private String level; // beginner, intermediate, advanced
+    private String category;
+    private List<String> tags;
+
+    // ❌ NOT INCLUDED (private):
+    // - List<Lesson> lessons
+    // - List<Student> students
+    // - List<Grade> grades
+    // - Assessment data
+}
+```
+
+## 6D.4. SEO Optimization
+
+### Metadata Configuration
+
+```typescript
+// app/(public)/page.tsx
+import { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const instance = await fetchInstanceConfig()
+  const branding = await fetchBrandingAssets()
+
+  return {
+    title: `${instance.name} - ${branding.textContent.hero_headline}`,
+    description: branding.textContent.hero_subheadline,
+
+    openGraph: {
+      title: instance.name,
+      description: branding.textContent.hero_subheadline,
+      images: [{
+        url: branding.ogImage, // 1200x630
+        width: 1200,
+        height: 630,
+        alt: instance.name
+      }],
+      locale: 'vi_VN',
+      type: 'website',
+      siteName: instance.name
+    },
+
+    twitter: {
+      card: 'summary_large_image',
+      title: instance.name,
+      description: branding.textContent.hero_subheadline,
+      images: [branding.ogImage]
+    },
+
+    alternates: {
+      canonical: `https://${instance.domain}`
+    }
+  }
+}
+```
+
+### Structured Data (Schema.org)
+
+```typescript
+// Course Schema for SEO
+const courseStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Course',
+  name: course.title,
+  description: course.description,
+
+  provider: {
+    '@type': 'Organization',
+    name: instance.name,
+    url: `https://${instance.domain}`
+  },
+
+  instructor: {
+    '@type': 'Person',
+    name: course.instructor.name,
+    description: course.instructor.bio
+  },
+
+  offers: {
+    '@type': 'Offer',
+    category: 'Paid',
+    price: course.price,
+    priceCurrency: 'VND',
+    availability: 'https://schema.org/InStock'
+  },
+
+  timeRequired: `P${course.duration}W`, // ISO 8601 duration
+  educationalLevel: course.level,
+
+  hasCourseInstance: {
+    '@type': 'CourseInstance',
+    courseMode: 'online',
+    startDate: course.startDate,
+    endDate: course.endDate
+  }
+}
+```
+
+### Sitemap Generation
+
+```typescript
+// app/sitemap.ts
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const instance = await fetchInstanceConfig()
+  const courses = await fetchAllPublicCourses()
+
+  const baseUrl = `https://${instance.domain}`
+
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1.0
+    },
+    {
+      url: `${baseUrl}/courses`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9
+    },
+    ...courses.map(course => ({
+      url: `${baseUrl}/courses/${course.id}`,
+      lastModified: course.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8
+    })),
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5
+    }
+  ]
+}
+```
+
+## 6D.5. Performance Optimization
+
+### ISR (Incremental Static Regeneration)
+
+```typescript
+// Revalidation Strategy
+export const revalidate = {
+  landingPage: 3600,      // 1 hour - landing page
+  courseCatalog: 1800,    // 30 min - course catalog
+  courseDetails: 3600,    // 1 hour - course details
+  aboutPage: 86400,       // 24 hours - about page
+}
+
+// app/(public)/page.tsx
+export const revalidate = 3600 // Rebuild every 1 hour
+
+// How ISR works:
+// 1. First visitor: Server fetches fresh data (~200ms)
+// 2. Next 1 hour: Serve cached static HTML (0ms)
+// 3. After 1 hour: Background revalidation starts
+// 4. Updated page ready for next request
+// 5. CDN caches static HTML globally
+```
+
+### Performance Targets
+
+```
+┌─────────────────────────────────────────────────────────┐
+│               PERFORMANCE TARGETS                       │
+├─────────────────────────┬───────────────────────────────┤
+│  Metric                 │  Target                       │
+├─────────────────────────┼───────────────────────────────┤
+│  Lighthouse Score       │  90+                          │
+│  First Contentful Paint │  < 1.5s                       │
+│  Largest Contentful     │  < 2.5s                       │
+│  Time to Interactive    │  < 3.0s                       │
+│  Total Page Size        │  < 1MB                        │
+│  Hero Banner Size       │  < 300KB (WebP)               │
+│  Course Card Images     │  < 100KB (WebP)               │
+└─────────────────────────┴───────────────────────────────┘
+```
+
+## 6D.6. Conversion Flow
+
+### Guest to Student Journey
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              CONVERSION FUNNEL                          │
+└─────────────────────────────────────────────────────────┘
+
+Step 1: Discovery (SEO)
+  Google search: "khóa học lập trình Hà Nội"
+  → Click organic result
+  → Lands on abc-academy.kiteclass.com
+
+Step 2: Browse (Public)
+  Landing page → Course catalog → Course details
+  - No login required
+  - View pricing, schedule, instructor
+  - Read course description, syllabus
+
+Step 3: Interest
+  Clicks "Đăng Ký Ngay" button on course card
+
+Step 4: Authentication Gate
+  Redirect to: /login?redirect=/enroll/101
+  - Option A: Login (existing student)
+  - Option B: Register (new student)
+
+Step 5: Registration
+  Register form:
+  - Name, Email, Phone
+  - Zalo OTP verification
+  - Create account
+
+Step 6: Enrollment
+  Redirect to: /enroll/101 (authenticated)
+  Enrollment form:
+  - Confirm course selection
+  - Payment (if paid course)
+  - VNPay/MoMo integration
+
+Step 7: Enrolled
+  Success → Redirect to /dashboard/courses/101
+  Now a registered student with course access
+
+┌─────────────────────────────────────────────────────────┐
+│                 CONVERSION METRICS                      │
+├─────────────────────────┬───────────────────────────────┤
+│  Stage                  │  Expected Conversion          │
+├─────────────────────────┼───────────────────────────────┤
+│  Landing → Browse       │  60-70%                       │
+│  Browse → Interest      │  20-30%                       │
+│  Interest → Register    │  40-50%                       │
+│  Register → Enroll      │  70-80%                       │
+│  Overall (Land→Enroll)  │  5-10%                        │
+└─────────────────────────┴───────────────────────────────┘
+```
+
+## 6D.7. Custom Domain (PREMIUM Tier)
+
+### DNS Configuration
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           CUSTOM DOMAIN SETUP (PREMIUM)                 │
+└─────────────────────────────────────────────────────────┘
+
+Step 1: Customer adds CNAME record
+  Type: CNAME
+  Name: www (hoặc @)
+  Value: proxy.kiteclass.com
+  TTL: 3600
+
+Step 2: KiteClass Backend verifies DNS
+  - Poll DNS records every 5 minutes
+  - Verify CNAME points to proxy.kiteclass.com
+  - Mark domain as "verified" when successful
+
+Step 3: SSL Auto-Provision
+  - Generate Let's Encrypt SSL certificate
+  - Auto-renewal every 60 days
+  - Certificate stored in /etc/letsencrypt/
+
+Step 4: Nginx Reverse Proxy
+  - Add server block for custom domain
+  - Proxy to abc-academy.kiteclass.com
+  - Enable HTTPS redirect (HTTP → HTTPS)
+
+Step 5: Database Update
+  INSERT INTO domain_mappings (
+    instance_id,
+    custom_domain,
+    verified_at,
+    ssl_cert_path,
+    status
+  ) VALUES (
+    'abc-academy-001',
+    'abc-academy.com',
+    NOW(),
+    '/etc/letsencrypt/live/abc-academy.com/',
+    'ACTIVE'
+  );
+```
+
+### Nginx Configuration
+
+```nginx
+# /etc/nginx/sites-enabled/abc-academy.com
+server {
+    listen 443 ssl http2;
+    server_name abc-academy.com www.abc-academy.com;
+
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/abc-academy.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Reverse Proxy to KiteClass Instance
+    location / {
+        proxy_pass https://abc-academy.kiteclass.com;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Caching
+        proxy_cache_valid 200 1h;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# HTTP → HTTPS Redirect
+server {
+    listen 80;
+    server_name abc-academy.com www.abc-academy.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+## 6D.8. Analytics & Tracking
+
+### Google Analytics 4 Events
+
+```typescript
+// Track key conversion events
+export function trackPreviewWebsiteEvents() {
+
+  // Landing page view
+  gtag('event', 'page_view', {
+    page_title: 'Landing Page',
+    page_location: window.location.href
+  })
+
+  // Course view
+  gtag('event', 'view_course', {
+    course_id: course.id,
+    course_name: course.title,
+    course_price: course.price,
+    course_category: course.category
+  })
+
+  // Enrollment click
+  gtag('event', 'click_enroll', {
+    course_id: course.id,
+    placement: 'course_card', // or 'course_details'
+    value: course.price
+  })
+
+  // Contact form submit
+  gtag('event', 'submit_contact_form', {
+    form_location: 'landing_page'
+  })
+
+  // Instructor view
+  gtag('event', 'view_instructor', {
+    instructor_id: instructor.id,
+    instructor_name: instructor.name
+  })
+}
+```
+
+## 6D.9. Security & Privacy
+
+### Public Data Only
+
+```java
+// Security Filter - Ensure no private data leakage
+@Component
+public class PublicDataFilter {
+
+    public PublicCourseDTO filterCourse(Course course) {
+        return PublicCourseDTO.builder()
+            // ✅ SAFE to expose
+            .id(course.getId())
+            .title(course.getTitle())
+            .description(course.getDescription())
+            .price(course.getPrice())
+            .instructor(filterInstructor(course.getInstructor()))
+
+            // ❌ NEVER expose
+            // .lessons - Private content
+            // .students - PII
+            // .grades - Private data
+            // .attendance - Private data
+            .build();
+    }
+}
+```
+
+### Rate Limiting
+
+```java
+// Prevent abuse of public APIs
+@RateLimit(value = 100, period = "1m") // 100 requests/min per IP
+public ResponseEntity<List<PublicCourseDTO>> getPublicCourses() {
+    // Rate limiting prevents:
+    // - DDoS attacks
+    // - Data scraping
+    // - API abuse
+}
+```
+
+### GDPR Compliance
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                 GDPR COMPLIANCE                         │
+├─────────────────────────────────────────────────────────┤
+│  ✅ Cookie consent banner                               │
+│  ✅ Privacy policy link                                 │
+│  ✅ Contact form: Explicit opt-in for marketing         │
+│  ✅ No PII without consent                              │
+│  ✅ Right to be forgotten (delete account → remove      │
+│     from public catalog)                                │
+│  ✅ Data minimization (only public data exposed)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
 # PHẦN 7: TỔNG KẾT KIẾN TRÚC V3
 
 ## 7.1. So sánh các phiên bản

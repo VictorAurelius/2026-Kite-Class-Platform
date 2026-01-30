@@ -1005,7 +1005,7 @@ Guest users see content in:
 
 ## 3.1. Feature Definition
 
-### Q3.1.1: What is "Preview Website"?
+### Q3.1.1: What is "Preview Website"? ✅ ANSWERED
 **Câu hỏi:** "Preview Website" feature là gì? (CRITICAL - currently undefined)
 
 **Vui lòng chọn 1 trong các interpretations sau hoặc mô tả chi tiết:**
@@ -1061,72 +1061,216 @@ Tool để customer tự build landing page:
 ```
 
 **Vui lòng chọn và mô tả chi tiết:**
-- [ ] Option A: Instance marketing landing page
+- [x] Option A: Instance marketing landing page
 - [ ] Option B: Live demo system
 - [ ] Option C: Staging/preview environment
 - [ ] Option D: Marketing site builder
 - [ ] Option E: _____________________
 
+**Answer:** Option A - Public Marketing Landing Page (Tự động tạo)
+
+**Chi Tiết Giải Pháp:**
+
+Mỗi KiteClass instance có một website marketing công khai, tự động tạo từ:
+- **AI branding assets** (hero banner, logo, colors - từ PART 2)
+- **Instance data** (tên trung tâm, mô tả, liên hệ)
+- **Course catalog** (danh sách khóa học công khai)
+- **Teacher profiles** (hồ sơ giảng viên)
+
+**URL Structure:**
+```
+https://abc-academy.kiteclass.com/          → Landing page (public)
+https://abc-academy.kiteclass.com/courses   → Course catalog (public)
+https://abc-academy.kiteclass.com/courses/101 → Course details (public)
+https://abc-academy.kiteclass.com/login     → Student login (auth)
+https://abc-academy.kiteclass.com/dashboard → Student dashboard (auth)
+
+PREMIUM tier:
+https://abc-academy.com                     → Custom domain (public)
+```
+
+**Giá Trị Kinh Doanh:**
+- ✅ +30-50% tuyển sinh qua SEO organic
+- ✅ Giảm chi phí thu hút khách hàng
+- ✅ Hình ảnh chuyên nghiệp
+- ✅ Zero effort (tự động tạo)
+- ✅ Lợi thế cạnh tranh (hầu hết LMS không có)
+
+**Lý Do Từ Chối Các Options Khác:**
+- ❌ Option B (Demo System): Giúp KiteClass bán platform, không giúp centers bán khóa học
+- ❌ Option C (Staging): Chỉ internal QA, không phải marketing tool
+- ❌ Option D (Page Builder): Quá phức tạp (8-12 tuần), defer V4
+
+**Updated in:** system-architecture-v3-final.md PHẦN 6D (Preview Website)
+
 ---
 
-### Q3.1.2: Target Audience
+### Q3.1.2: Target Audience ✅ ANSWERED
 **Câu hỏi:** Ai sẽ sử dụng "Preview Website" feature?
 
-- [ ] Prospective students (chưa đăng ký học)
+- [x] Prospective students (chưa đăng ký học)
 - [ ] Prospective customers (chưa mua KiteClass)
 - [ ] Existing students (đã đăng ký)
 - [ ] CENTER_ADMIN (internal use)
 - [ ] Khác: _____________________
 
+**Answer:** Prospective students (học viên tiềm năng chưa đăng ký)
+
+**Target Audience Chi Tiết:**
+- **Chính:** Học viên tiềm năng đang duyệt khóa học online
+- **Phụ:** Phụ huynh nghiên cứu trường cho con, Google crawlers (SEO), Social media referrals
+
+**Use Case:**
+```
+1. Student tìm "khóa học lập trình Hà Nội" trên Google
+2. Click vào abc-academy.kiteclass.com (SEO organic)
+3. Duyệt course catalog (public, không cần login)
+4. Xem chi tiết khóa học, giảng viên, giá
+5. Click "Đăng Ký Ngay" → Redirect to /login
+6. Đăng ký tài khoản → Enroll → Trở thành student
+```
+
 ---
 
-### Q3.1.3: Authentication Required?
+### Q3.1.3: Authentication Required? ✅ ANSWERED
 **Câu hỏi:** "Preview Website" có cần authentication không?
 
-- [ ] Public (không cần login)
+- [x] Public (không cần login)
 - [ ] Guest access (tạo temporary account)
 - [ ] Requires login
 - [ ] Khác: _____________________
 
+**Answer:** Public - Không cần login
+
+**Public Routes (No Auth):**
+- `/` - Landing page
+- `/courses` - Course catalog
+- `/courses/[id]` - Course details
+- `/about` - Về trung tâm
+- `/contact` - Form liên hệ
+
+**Protected Routes (Auth Required):**
+- `/enroll/[courseId]` - Enrollment form
+- `/dashboard` - Student dashboard
+- `/learn/[courseId]` - Course content
+- `/settings` - Settings
+
+**Conversion Flow:**
+```
+Guest browse public pages → Click "Đăng Ký" → Redirect /login → Register → Enroll
+```
+
 ---
 
-### Q3.1.4: Content Source
+### Q3.1.4: Content Source ✅ ANSWERED
 **Câu hỏi:** Content trên "Preview Website" lấy từ đâu?
 
-- [ ] AI-generated assets (from Part 2)
-- [ ] Customer manual input
+- [x] AI-generated assets (from Part 2)
+- [x] Customer manual input
 - [ ] Sample/template content
-- [ ] Live data from instance
+- [x] Live data from instance
 - [ ] Khác: _____________________
+
+**Answer:** Kết hợp 3 nguồn - AI assets + Instance data + Live course data
+
+**Content Source Mapping:**
+
+| Content Type | Source | Public? |
+|--------------|--------|---------|
+| Hero banner, logo, colors | AI Branding (PART 2) | ✅ |
+| Headlines, CTAs | AI Branding (PART 2) | ✅ |
+| Tên/mô tả trung tâm | Instance data (admin input) | ✅ |
+| Course titles, descriptions, pricing | Course API (live data) | ✅ |
+| Teacher names, bios | Teacher API (live data) | ✅ |
+| Lesson content | Course API | ❌ (auth required) |
+| Student data | Student API | ❌ (private) |
+
+**Data Sync:** Real-time với ISR (revalidate mỗi 1 giờ)
 
 ---
 
-### Q3.1.5: Technical Stack
+### Q3.1.5: Technical Stack ✅ ANSWERED
 **Câu hỏi:** "Preview Website" build bằng công nghệ gì?
 
-- [ ] Next.js static export (same codebase as main frontend)
+- [x] Next.js static export (same codebase as main frontend)
 - [ ] Separate marketing site builder
 - [ ] WordPress/CMS integration
 - [ ] Custom page builder
 - [ ] Khác: _____________________
 
+**Answer:** Next.js 14+ App Router (cùng codebase với main frontend)
+
+**Tech Stack Chi Tiết:**
+
+**Frontend:**
+- Next.js 14+ App Router
+- Server Components (SSR cho SEO)
+- ISR (Incremental Static Regeneration - revalidate 1h)
+- Tailwind CSS
+
+**Backend APIs:**
+```
+GET /api/public/instance/:id/config      → Instance metadata
+GET /api/public/instance/:id/branding    → AI branding assets
+GET /api/public/instance/:id/courses     → Course catalog
+GET /api/public/courses/:id              → Course details
+GET /api/public/instance/:id/instructors → Teacher profiles
+POST /api/public/contact                 → Contact form
+```
+
+**SEO:**
+- Next.js Metadata API
+- Structured data (Course schema - schema.org/Course)
+- Sitemap.xml generation
+- robots.txt
+
+**Performance:**
+- ISR: Rebuild mỗi 1 giờ
+- CDN caching (Cloudflare)
+- Image optimization (next/image)
+- Target: Lighthouse 90+, FCP <1.5s
+
 ---
 
-### Q3.1.6: Customization Level
+### Q3.1.6: Customization Level ✅ ANSWERED
 **Câu hỏi:** Customer có customize "Preview Website" được không?
 
 **If yes, what can be customized?**
-- [ ] Text content (headlines, descriptions)
-- [ ] Images (upload custom images)
-- [ ] Layout (reorder sections)
-- [ ] Theme colors
-- [ ] Domain name
-- [ ] SEO meta tags
+- [x] Text content (headlines, descriptions) - via AI branding + manual override
+- [x] Images (upload custom images) - via AI branding system
+- [ ] Layout (reorder sections) - ❌ Fixed MVP
+- [x] Theme colors - via AI branding
+- [x] Domain name - PREMIUM tier only
+- [ ] SEO meta tags - ❌ Auto-generated
 - [ ] Nothing (fully auto-generated)
+
+**Answer:** Limited customization qua AI Branding System (PART 2)
+
+**Customer CÓ THỂ Tùy Chỉnh (MVP):**
+- ✅ Tên, mô tả, liên hệ trung tâm (admin input)
+- ✅ Course titles, descriptions, pricing (course management)
+- ✅ Teacher names, bios, photos (teacher management)
+- ✅ AI branding assets (upload logo → re-generate)
+- ✅ Logo position, colors (Manual Override từ PART 2)
+- ✅ Text content (Manual Override từ PART 2)
+- ✅ Custom domain (PREMIUM tier)
+
+**Customer KHÔNG THỂ Tùy Chỉnh (MVP):**
+- ❌ Page layout/structure (templates cố định)
+- ❌ Section order (fixed: Hero → About → Courses → Contact)
+- ❌ Custom HTML/CSS
+- ❌ Additional pages (blog, resources)
+- ❌ SEO meta tags (auto-generated from branding)
+
+**Rationale:**
+- Đơn giản hóa implementation (không cần page builder)
+- Maintain design quality (tránh sites "xấu")
+- Faster time-to-market (2 tuần vs 8-12 tuần với builder)
+- Future V4: Thêm page builder nếu có nhu cầu
 
 ---
 
-### Q3.1.7: Relationship with Main Instance
+### Q3.1.7: Relationship with Main Instance ✅ ANSWERED
 **Câu hỏi:** "Preview Website" có tích hợp với main KiteClass instance không?
 
 **Example scenarios:**
@@ -1140,10 +1284,23 @@ Prospective student visits Preview Website
 ```
 
 **Options:**
-- [ ] Redirect to main instance login/register page
+- [x] Redirect to main instance login/register page
 - [ ] Inline registration form on Preview Website
 - [ ] Contact form (admin follow up manually)
 - [ ] No registration capability
+
+**Answer:** Redirect to main instance /login page
+
+**Student Registration Flow:**
+```
+1. Guest clicks "Đăng Ký Ngay" trên course card
+2. Redirect to: /login?redirect=/enroll/[courseId]
+3. Guest registers (Zalo OTP hoặc email)
+4. Tạo tài khoản → Auto-login
+5. Redirect to: /enroll/[courseId] (authenticated)
+6. Enrollment form → Payment (nếu paid course)
+7. Success → Redirect to /dashboard/courses/[courseId]
+```
 
 **Scenario 2: Course Information**
 ```
@@ -1152,28 +1309,101 @@ Preview Website hiển thị course catalog
 ```
 
 **Options:**
-- [ ] Real-time sync (API call to main instance)
-- [ ] Periodic sync (every 1 hour)
+- [x] Real-time sync (API call to main instance)
+- [x] Periodic sync (every 1 hour) - via ISR
 - [ ] Manual publish (admin click "Update Preview")
 - [ ] Static content (not synced)
+
+**Answer:** Real-time sync với ISR (Best of both worlds)
+
+**Data Sync Strategy:**
+
+**ISR (Incremental Static Regeneration):**
+```typescript
+// app/(public)/page.tsx
+export const revalidate = 3600 // Revalidate mỗi 1 giờ
+
+// app/(public)/courses/page.tsx
+export const revalidate = 1800 // Revalidate mỗi 30 phút
+```
+
+**How It Works:**
+```
+1. First visitor: Server fetch fresh data (~200ms)
+2. Next 1 hour: Serve cached static page (0ms)
+3. After 1 hour: Background revalidation
+4. Updated page ready for next visitor
+```
+
+**Benefits:**
+- ✅ Always fresh data (revalidate định kỳ)
+- ✅ Fast loading (cached static pages)
+- ✅ No manual sync (tự động)
+- ✅ Scalable (CDN-cached)
+
+**API Calls:**
+```typescript
+async function fetchPublicCourses(instanceId: string) {
+  const response = await fetch(
+    `https://api.kiteclass.com/v1/public/instance/${instanceId}/courses`,
+    { next: { revalidate: 1800 } } // Cache 30 min
+  )
+  return response.json()
+}
+```
 
 ---
 
 ## 3.2. Implementation Priority
 
-### Q3.2.1: MVP Scope
+### Q3.2.1: MVP Scope ✅ ANSWERED
 **Câu hỏi:** "Preview Website" feature có trong MVP scope không?
 
-- [ ] CÓ - Critical feature, must have in V3
+- [x] CÓ - Critical feature, must have in V3
 - [ ] KHÔNG - Nice to have, có thể defer to V3.5
 - [ ] KHÔNG CHẮC - Cần discuss thêm
 
+**Answer:** CÓ - Critical feature cho MVP V3
+
 **Nếu CÓ trong MVP:**
 **Which PR should include this?**
-- [ ] PR 3.4 (Public Routes & Landing Pages)
+- [x] PR 3.4 (Public Routes & Landing Pages)
 - [ ] PR 3.8 (Additional Features)
 - [ ] Separate PR after MVP
 - [ ] Khác: _____________________
+
+**Answer:** PR 3.4 - Chia thành 3 sub-PRs
+
+**Implementation Plan:**
+
+**PR 3.4a: Backend Public APIs (3 ngày)**
+- 6 public endpoints (no auth)
+- PublicCourse DTO (filter private fields)
+- Rate limiting (100 req/min per IP)
+- Tests (unit, integration, security)
+
+**PR 3.4b: Frontend Public Routes (5 ngày)**
+- (public) route group
+- Landing page + Course catalog + Course details
+- SEO optimization (metadata, structured data, sitemap)
+- Mobile responsive
+- Tests (component, E2E, SEO, a11y)
+
+**PR 3.4c: Integration & Polish (2 ngày)**
+- Custom domain routing (PREMIUM)
+- Performance optimization (ISR, CDN, images)
+- Analytics integration (GA4, conversion tracking)
+- Contact form + spam protection
+- Edge cases (empty states, expired courses)
+
+**Timeline:** 2 tuần total
+
+**Dependencies:**
+- ✅ PR 3.2: Core Infrastructure (Feature Detection)
+- ✅ PR 3.3: Providers & Layout
+- ✅ AI Branding System APIs (PART 2)
+
+**Updated in:** kiteclass-implementation-plan.md (PR 3.4 expanded)
 
 ---
 
