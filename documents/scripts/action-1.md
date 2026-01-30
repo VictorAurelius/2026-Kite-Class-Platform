@@ -611,3 +611,7 @@ tạo hết các skill + documents cần thiết để fix hết các lỗi này
 Tôi sẽ tạo nhanh templates cho 5 documents còn lại (với essential patterns), sau đó focus vào      Code Review Requirement Report như bạn yêu cầu.
 
 => tôi đã compact conversation, cứ tạo sao cho đạt tiêu chuẩn
+
+tạo PR plan để review toàn bộ code đã implement theo documents đã tạo
+
+tạo thành file để tham chiếu triển khai chứ
