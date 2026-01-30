@@ -633,3 +633,4 @@ UserRepositoryTest vẫn bị xóa rất nhiều dòng code?
 
 tạm thời dừng PR Review lại, tạo branch mới để sửa 1 kiến trúc hệ thống
 
+tôi vừa move thư mục diagrams: dùng để tạo ảnh sơ đồ bằng plantuml.jar vào thư mục documents, hãy check xem có skills tạo diagram chưa? hãy cập nhật skill nhé
