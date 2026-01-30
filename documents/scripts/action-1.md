@@ -582,3 +582,9 @@ hãy tạo 1 báo cáo riêng về vấn đề này
 báo cáo phải là dạng tiếng việt để tôi dễ đọc hiểu => hãy bổ sung vào skill
 
 tôi đồng ý # PART 3: PREVIEW WEBSITE FEATURE theo best practice của bạn => hãy cập nhật các tài liệu liên quan
+
+# PART 4: GUEST USER & TRIAL SYSTEM
+
+1. đối với trial => chỉ khi owner đăng ký gói tạo instance thì khi launch instance xong mới cho phép owner được trial các expand service/feature thôi. Các đối tượng không phải owner thì vẫn là liên hệ owner để được trial
+
+2. đối với phạm vi guest được tiếp cận => phải thiết kế backend service để admin có feature được quản lý resoucre public cho guest là được. Nếu guest có nhu cầu đăng ký học (lớp học và khóa học) của owner thì sẽ liên hệ với owner để trao đổi => đưa nghiệp vụ sale về owner (kiteclass không đảm nhận). => Vậy cần hiển thị được thông tin liên hệ link facebook, mess, zalo cho guest => còn lại làm theo best practice
