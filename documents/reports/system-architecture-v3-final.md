@@ -3158,6 +3158,781 @@ public ResponseEntity<List<PublicCourseDTO>> getPublicCourses() {
 
 ---
 
+# PHẦN 6E: GUEST USER & TRIAL SYSTEM - MÔ HÌNH B2B OWNER-CENTRIC
+
+## 6E.1. Tổng Quan Guest & Trial Model
+
+### Định Nghĩa
+
+KiteClass áp dụng **mô hình B2B owner-centric** trong đó:
+- **Trial dành cho OWNER** - Business owners trial platform features, không phải students trial courses
+- **Guest contact OWNER** - Prospective students liên hệ OWNER để đăng ký, không tự enroll
+- **OWNER làm sales** - KiteClass cung cấp công cụ, OWNER thực hiện sales process
+
+### Nguyên Tắc Cốt Lõi
+
+```
+┌─────────────────────────────────────────────────────────┐
+│          B2B OWNER-CENTRIC PRINCIPLES                   │
+├─────────────────────────────────────────────────────────┤
+│  1. Trial CHỈ cho OWNER                                 │
+│     - Đăng ký instance → Trial expand features          │
+│     - 14 ngày test ALL features                         │
+│     - Non-owners liên hệ OWNER để request               │
+│                                                         │
+│  2. Guest KHÔNG auto-enroll                             │
+│     - Browse public catalog                             │
+│     - Contact OWNER (FB, Zalo, Messenger)               │
+│     - OWNER tư vấn → Manual enroll                      │
+│                                                         │
+│  3. OWNER làm sales                                     │
+│     - KiteClass: Provide tools (catalog, contact info)  │
+│     - OWNER: Execute (qualify leads, close sales)       │
+│                                                         │
+│  4. Admin quản lý public resources                      │
+│     - Backend service: Course visibility control        │
+│     - ADMIN toggle: PUBLIC/PRIVATE per course           │
+│                                                         │
+│  5. Contact info prominent                              │
+│     - Display: Facebook, Zalo, Messenger, Phone         │
+│     - Vietnam market: Personal touch important          │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6E.2. Trial System Architecture
+
+### Trial Scope & Timeline
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              TRIAL SYSTEM FLOW                          │
+└─────────────────────────────────────────────────────────┘
+
+Day 0: OWNER Registration (KiteHub)
+  ┌───────────────────────────────────────────────────┐
+  │  Trial Signup Form:                               │
+  │  - Organization name                              │
+  │  - Owner name, email, phone                       │
+  │  - Industry type (giáo dục, corporate, etc.)      │
+  │  - Company size (<50, 50-200, >200 students)      │
+  │  - Referral source                                │
+  │                                                   │
+  │  Verification:                                    │
+  │  - Zalo OTP (phone verification)                  │
+  │  - Email verification link                        │
+  │                                                   │
+  │  ❌ NO payment info required                       │
+  └───────────────────────────────────────────────────┘
+          ↓
+  Instance Provisioning
+  - URL: {org-slug}.kiteclass.com
+  - Deploy 3 core services (User, Core, Frontend)
+  - Status: TRIAL
+  - Tier: BASIC
+          ↓
+
+Day 1-14: Trial Period (Active)
+  ┌───────────────────────────────────────────────────┐
+  │  Base Tier: BASIC                                 │
+  │  - Free during trial                              │
+  │  - Max 50 students                                │
+  │  - Max 10 courses                                 │
+  │  - Max 5 teachers                                 │
+  │                                                   │
+  │  Expand Features (All FREE for trial):            │
+  │  ✅ ENGAGEMENT Pack (+300k/month normally)        │
+  │     - Gamification                                │
+  │     - Forum                                       │
+  │     - Parent Portal                               │
+  │                                                   │
+  │  ✅ MEDIA Pack (+500k/month normally)             │
+  │     - Video Upload (5GB trial limit)              │
+  │     - Live Streaming (1 concurrent)               │
+  │     - Video Analytics                             │
+  │                                                   │
+  │  ✅ PREMIUM Features (2tr/month normally)         │
+  │     - AI Branding (10 generations trial)          │
+  │     - Custom Domain (test only)                   │
+  │     - Priority Support                            │
+  │                                                   │
+  │  UI Indicators:                                   │
+  │  - Banner: "Bạn còn X ngày trial"                 │
+  │  - Footer: "Trial ends on [date]"                 │
+  └───────────────────────────────────────────────────┘
+          ↓
+
+Day 11-13: Late Trial Warnings
+  - ⚠️ Warning banner: "Còn 3 ngày trial"
+  - 📧 Email reminder (Day 11, 13)
+  - 🔔 In-app notification
+  - 💰 Offer: "Upgrade ngay giảm 20%"
+          ↓
+
+Day 14: Last Day
+  - 🔴 Urgent banner: "HÔM NAY là ngày cuối"
+  - 📧 Email: "Last chance to upgrade"
+  - 🎁 Modal popup: Early-bird discount
+          ↓
+
+Day 14 23:59:59 → Trial Expires
+
+Day 15-17: Grace Period (Read-Only)
+  ┌───────────────────────────────────────────────────┐
+  │  📖 Read-Only Mode:                               │
+  │  ✅ Login OK                                       │
+  │  ✅ View data (students, courses, reports)         │
+  │  ❌ CRUD disabled (cannot add/edit/delete)         │
+  │                                                   │
+  │  🔒 Expand Features Locked:                        │
+  │  - Gamification → Disabled                        │
+  │  - Forum → Read-only                              │
+  │  - Video Upload → Blocked                         │
+  │  - AI Branding → Disabled                         │
+  │                                                   │
+  │  Banner: "Trial đã hết. Còn X ngày grace period"  │
+  │  📧 Daily email reminder                           │
+  └───────────────────────────────────────────────────┘
+          ↓
+
+Day 18: Grace Period Ends → Instance LOCKED
+  ┌───────────────────────────────────────────────────┐
+  │  🔒 Instance Locked:                              │
+  │  ❌ Cannot login                                   │
+  │  📧 Email: "Trial & grace period đã hết"           │
+  │  💳 "Nâng cấp ngay" button → KiteHub billing       │
+  │                                                   │
+  │  💾 Data Retained: 90 days                         │
+  │  - Backup storage                                 │
+  │  - OWNER can upgrade anytime → Restore            │
+  └───────────────────────────────────────────────────┘
+          ↓
+
+Day 18-107: Data Retention (90 days)
+  - Instance locked but data preserved
+  - OWNER can upgrade → Instant restore
+  - No charges during locked period
+          ↓
+
+Day 108: 7-Day Warning
+  - 📧 Email: "Còn 7 ngày data sẽ bị xóa"
+  - 💾 Option: "Download backup" button
+          ↓
+
+Day 115: Permanent Deletion
+  - 🗑️ Instance deprovisioned
+  - 🗑️ Data permanently deleted
+  - ❌ Cannot recover
+```
+
+### Trial Tier Specification
+
+```java
+// Trial Instance Configuration
+@Entity
+public class Instance {
+    @Id
+    private String id;
+
+    @Enumerated(EnumType.STRING)
+    private InstanceStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private SubscriptionTier baseTier = SubscriptionTier.BASIC;
+
+    // Trial-specific fields
+    private LocalDateTime trialStartDate;
+    private LocalDateTime trialEndDate;
+    private LocalDateTime gracePeriodEndDate;
+
+    // Expand services (enabled during trial)
+    @ElementCollection
+    private Set<ExpandService> trialExpandServices = new HashSet<>();
+
+    public enum InstanceStatus {
+        TRIAL,           // Day 1-14
+        GRACE_PERIOD,    // Day 15-17 (read-only)
+        ACTIVE,          // Paid subscription
+        LOCKED,          // Day 18+ (cannot login)
+        DELETED          // Day 115+ (permanent)
+    }
+
+    public enum ExpandService {
+        ENGAGEMENT,      // Gamification, Forum, Parent Portal
+        MEDIA,           // Video, Live Streaming
+        AI_BRANDING      // AI-generated marketing assets
+    }
+}
+```
+
+### Trial Conversion Strategy
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           MULTI-TOUCH CONVERSION STRATEGY               │
+├─────────────────────────────────────────────────────────┤
+│  Day 1: Welcome Email                                   │
+│    → Quick start guide                                  │
+│    → Feature tutorials                                  │
+│                                                         │
+│  Day 3: Feature Highlight                               │
+│    → "Đã thử AI Branding chưa?"                        │
+│    → Video tutorial link                                │
+│                                                         │
+│  Day 7: Mid-Trial Check-in                              │
+│    → Survey: "Trải nghiệm thế nào?"                    │
+│    → Early-bird offer: "Upgrade giảm 20%"              │
+│                                                         │
+│  Day 11: Late-Trial Warning                             │
+│    → ⚠️ Banner + Email + Modal                         │
+│    → Highlight benefits of paid plan                    │
+│                                                         │
+│  Day 14: Last Chance                                    │
+│    → 🔴 Urgent messaging                                │
+│    → One-click upgrade flow                             │
+│                                                         │
+│  Day 15-17: Grace Period                                │
+│    → Read-only access (see what you'll lose)           │
+│    → Daily reminder emails                              │
+│                                                         │
+│  Conversion Incentive:                                  │
+│  💰 20% discount for upgrade trong 10 ngày đầu          │
+│     VD: STANDARD 1tr/tháng → 800k (tháng đầu)          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Duplicate Trial Prevention
+
+```java
+// Trial Eligibility Service
+@Service
+public class TrialEligibilityService {
+
+    public TrialEligibility checkEligibility(
+        String email,
+        String phone
+    ) {
+        // Check email (1 email = 1 trial)
+        boolean emailUsed = trialRepo.existsByEmail(email);
+
+        // Check phone (1 phone = 1 trial)
+        boolean phoneUsed = trialRepo.existsByPhone(phone);
+
+        if (emailUsed || phoneUsed) {
+            // Log duplicate attempt
+            auditLog.warn("Duplicate trial attempt",
+                Map.of("email", email, "phone", phone)
+            );
+
+            // Notify sales team (for legitimate cases)
+            salesNotificationService.notifyDuplicateTrial(
+                email, phone, LocalDateTime.now()
+            );
+
+            return TrialEligibility.builder()
+                .eligible(false)
+                .reason("Email hoặc SĐT đã được dùng cho trial")
+                .existingTrialDate(getExistingTrialDate(email, phone))
+                .contact("support@kiteclass.com")
+                .build();
+        }
+
+        return TrialEligibility.eligible();
+    }
+}
+```
+
+## 6E.3. Guest User Access Architecture
+
+### Admin-Controlled Public Resources
+
+```java
+// Course Visibility Control
+@Entity
+public class Course {
+    @Id
+    private String id;
+
+    private String title;
+    private String description;
+    private BigDecimal price;
+
+    // Admin controls public visibility
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PublicVisibility publicVisibility = PublicVisibility.PRIVATE;
+
+    public enum PublicVisibility {
+        PRIVATE,     // Guest không thấy (default)
+        PUBLIC       // Guest thấy trong public catalog
+    }
+}
+
+// Admin API - Toggle Visibility
+@RestController
+@RequestMapping("/api/v1/admin")
+public class CourseAdminController {
+
+    @PatchMapping("/courses/{id}/visibility")
+    @PreAuthorize("hasRole('CENTER_ADMIN')")
+    public ResponseEntity<Void> updateVisibility(
+        @PathVariable String id,
+        @RequestBody UpdateVisibilityRequest request
+    ) {
+        courseService.updatePublicVisibility(
+            id,
+            request.getVisibility()
+        );
+
+        // Invalidate public API cache
+        cacheService.evict("public-courses", instanceId);
+
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+### Public Course Catalog API
+
+```java
+// Public API - Only return PUBLIC courses
+@RestController
+@RequestMapping("/api/v1/public")
+public class PublicCourseController {
+
+    @GetMapping("/instance/{instanceId}/courses")
+    @RateLimit(value = 100, period = "1m")
+    public ResponseEntity<List<PublicCourseDTO>> getPublicCourses(
+        @PathVariable String instanceId,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String level
+    ) {
+        List<Course> courses = courseRepo
+            .findByInstanceIdAndPublicVisibility(
+                instanceId,
+                PublicVisibility.PUBLIC  // ← KEY: Chỉ PUBLIC
+            );
+
+        // Apply filters
+        if (category != null) {
+            courses = courses.stream()
+                .filter(c -> c.getCategory().equals(category))
+                .collect(Collectors.toList());
+        }
+
+        // Convert to PublicDTO (filter private fields)
+        return ResponseEntity.ok(
+            courses.stream()
+                .map(this::toPublicDTO)
+                .collect(Collectors.toList())
+        );
+    }
+
+    private PublicCourseDTO toPublicDTO(Course course) {
+        return PublicCourseDTO.builder()
+            // ✅ SAFE to expose
+            .id(course.getId())
+            .title(course.getTitle())
+            .description(course.getDescription())
+            .price(course.getPrice())
+            .schedule(course.getSchedule())
+            .startDate(course.getStartDate())
+            .instructor(toPublicInstructorDTO(course.getInstructor()))
+
+            // ❌ NOT included (private data)
+            // .lessons - Lesson content
+            // .students - Student list (PII)
+            // .grades - Private assessment data
+            // .attendance - Private tracking data
+            .build();
+    }
+}
+```
+
+### Instance Contact Information
+
+```java
+// Instance Contact Info
+@Entity
+public class Instance {
+    @Id
+    private String id;
+
+    private String name;
+    private String description;
+
+    // Owner contact information (for guest inquiries)
+    @Embedded
+    private OwnerContactInfo ownerContact;
+
+    @Embeddable
+    public static class OwnerContactInfo {
+        private String ownerName;
+        private String ownerTitle;      // "Giám đốc", "Trưởng phòng", etc.
+        private String ownerAvatar;
+
+        // Contact methods
+        private String phone;
+        private String email;
+        private String facebookUrl;     // https://fb.me/abc-academy
+        private String messengerUrl;    // https://m.me/abc-academy
+        private String zaloUrl;         // https://zalo.me/0123456789
+    }
+}
+
+// Public API - Get Contact Info
+@GetMapping("/instance/{instanceId}/contact")
+public ResponseEntity<InstanceContactDTO> getContactInfo(
+    @PathVariable String instanceId
+) {
+    Instance instance = instanceRepo.findById(instanceId)
+        .orElseThrow(() -> new InstanceNotFoundException(instanceId));
+
+    return ResponseEntity.ok(
+        InstanceContactDTO.fromEntity(instance.getOwnerContact())
+    );
+}
+```
+
+## 6E.4. Owner-Led Sales Model
+
+### Guest-to-Student Journey
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         GUEST-TO-STUDENT CONVERSION FLOW                │
+│         (Manual, Owner-Led)                             │
+└─────────────────────────────────────────────────────────┘
+
+Step 1: Guest Discovery (SEO)
+  - Google search: "khóa học lập trình Hà Nội"
+  - Click abc-academy.kiteclass.com
+  - Lands on public landing page
+
+Step 2: Browse Public Catalog
+  - View course grid
+  - Filter by category, level, price
+  - Click course → Course details page
+
+Step 3: View Course Details
+  ┌───────────────────────────────────────────────────┐
+  │  Course Details Page:                             │
+  │  - Title, description, syllabus                   │
+  │  - Price, schedule, duration                      │
+  │  - Instructor bio, photo                          │
+  │                                                   │
+  │  ⚠️ NO "Enroll Now" button                        │
+  │  ⚠️ NO Self-registration form                     │
+  │                                                   │
+  │  ✅ INSTEAD: Contact OWNER Section                │
+  │  ┌─────────────────────────────────────────────┐ │
+  │  │  Quan tâm khóa học này?                     │ │
+  │  │  Liên hệ trực tiếp với trung tâm:          │ │
+  │  │                                             │ │
+  │  │  [📱 0123-456-789]  [💬 Chat Zalo]         │ │
+  │  │  [📘 Facebook]      [📧 Email]             │ │
+  │  │                                             │ │
+  │  │  👤 Nguyễn Văn A - Giám đốc                │ │
+  │  │     ABC Academy                             │ │
+  │  └─────────────────────────────────────────────┘ │
+  └───────────────────────────────────────────────────┘
+
+Step 4: Guest Contacts OWNER
+  - Click Facebook → Messenger chat
+  - Click Zalo → Zalo chat
+  - Click Phone → Call directly
+  - Click Email → Send inquiry
+
+Step 5: OWNER Sales Conversation
+  ┌───────────────────────────────────────────────────┐
+  │  OWNER tư vấn:                                    │
+  │  - Giới thiệu chi tiết khóa học                   │
+  │  - Trả lời câu hỏi                                │
+  │  - Tư vấn gói phù hợp                             │
+  │  - Thương lượng giá (discount, installment)       │
+  │  - Xác nhận học viên đủ điều kiện                 │
+  │  - Collect student info (name, email, phone)      │
+  │  - Confirm payment method                         │
+  └───────────────────────────────────────────────────┘
+
+Step 6: OWNER Manually Enrolls Student
+  ┌───────────────────────────────────────────────────┐
+  │  Admin Panel:                                     │
+  │  1. Navigate to: /admin/students                  │
+  │  2. Click "Thêm Học Viên"                         │
+  │  3. Fill form:                                    │
+  │     - Name: [from conversation]                   │
+  │     - Email: [from conversation]                  │
+  │     - Phone: [from conversation]                  │
+  │  4. Assign to course                              │
+  │  5. Set enrollment date                           │
+  │  6. Mark payment status: PAID/PENDING             │
+  │  7. Generate student account                      │
+  │  8. Send login credentials via email/SMS          │
+  └───────────────────────────────────────────────────┘
+
+Step 7: Student Receives Credentials
+  - 📧 Email: "Chào mừng đến ABC Academy"
+  - Login: abc-academy.kiteclass.com/login
+  - Username: student@example.com
+  - Temp password: [auto-generated]
+  - Prompt to change password on first login
+
+Step 8: Student Accesses Course
+  - Login to instance
+  - Navigate to /dashboard/courses
+  - See enrolled course
+  - Start learning
+```
+
+### Frontend: Contact OWNER Component
+
+```typescript
+// components/landing/ContactOwnerSection.tsx
+interface ContactOwnerSectionProps {
+  owner: OwnerContactInfo
+  course: PublicCourse
+}
+
+export function ContactOwnerSection({
+  owner,
+  course
+}: ContactOwnerSectionProps) {
+  // Track contact clicks for analytics
+  const trackContact = (method: string) => {
+    gtag('event', 'contact_owner', {
+      course_id: course.id,
+      course_name: course.title,
+      contact_method: method
+    })
+  }
+
+  return (
+    <section className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl shadow-lg">
+      <h2 className="text-3xl font-bold mb-3">
+        Quan tâm khóa học này?
+      </h2>
+      <p className="text-gray-700 mb-6 text-lg">
+        Liên hệ trực tiếp với trung tâm để được tư vấn và đăng ký:
+      </p>
+
+      {/* Contact Methods Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <ContactButton
+          icon={<Phone />}
+          href={`tel:${owner.phone}`}
+          onClick={() => trackContact('phone')}
+          variant="phone"
+        >
+          {owner.phone}
+        </ContactButton>
+
+        <ContactButton
+          icon={<Zap className="text-blue-500" />}
+          href={owner.zaloUrl}
+          onClick={() => trackContact('zalo')}
+          variant="zalo"
+        >
+          Chat Zalo
+        </ContactButton>
+
+        <ContactButton
+          icon={<Facebook className="text-blue-600" />}
+          href={owner.facebookUrl}
+          onClick={() => trackContact('facebook')}
+          variant="facebook"
+        >
+          Facebook
+        </ContactButton>
+
+        <ContactButton
+          icon={<MessageCircle className="text-blue-500" />}
+          href={owner.messengerUrl}
+          onClick={() => trackContact('messenger')}
+          variant="messenger"
+        >
+          Messenger
+        </ContactButton>
+      </div>
+
+      {/* Owner Info Card */}
+      <div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow">
+        <Avatar
+          src={owner.avatar}
+          alt={owner.name}
+          size="lg"
+          className="border-2 border-blue-200"
+        />
+        <div>
+          <p className="font-bold text-lg">{owner.name}</p>
+          <p className="text-gray-600">{owner.title}</p>
+          <p className="text-gray-500 text-sm">{instance.name}</p>
+        </div>
+      </div>
+
+      {/* Trust Indicators */}
+      <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
+        <Shield className="w-4 h-4 text-green-500" />
+        <span>Tư vấn miễn phí, không ràng buộc</span>
+      </div>
+    </section>
+  )
+}
+```
+
+## 6E.5. Analytics & Tracking
+
+### Guest Behavior Analytics
+
+```typescript
+// Track guest journey for OWNER insights
+export function trackGuestBehavior() {
+
+  // Landing page view
+  gtag('event', 'page_view', {
+    page_title: 'Landing Page',
+    page_location: window.location.href,
+    user_type: 'guest'
+  })
+
+  // Course catalog view
+  gtag('event', 'view_course_catalog', {
+    instance_id: instance.id
+  })
+
+  // Course details view
+  gtag('event', 'view_course', {
+    course_id: course.id,
+    course_name: course.title,
+    course_price: course.price,
+    course_category: course.category
+  })
+
+  // Contact OWNER action
+  gtag('event', 'contact_owner', {
+    course_id: course.id,
+    contact_method: 'facebook' | 'zalo' | 'phone' | 'email',
+    value: course.price  // Potential conversion value
+  })
+
+  // Time on page
+  gtag('event', 'engagement_time', {
+    engagement_time_msec: timeSpent
+  })
+}
+```
+
+### OWNER Dashboard Analytics
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         OWNER ANALYTICS DASHBOARD                       │
+│         (/dashboard/analytics/guest-traffic)            │
+├─────────────────────────────────────────────────────────┤
+│  📊 Guest Traffic (Last 30 days)                        │
+│  - Total visitors: 1,234                                │
+│  - Course catalog views: 856                            │
+│  - Course detail views: 432                             │
+│  - Contact clicks: 89 (10.4% conversion)                │
+│                                                         │
+│  📱 Contact Method Distribution                          │
+│  - Zalo: 45% (40 contacts)                              │
+│  - Facebook: 30% (27 contacts)                          │
+│  - Phone: 20% (18 contacts)                             │
+│  - Email: 5% (4 contacts)                               │
+│                                                         │
+│  🎯 Top Viewed Courses                                   │
+│  1. Lập Trình Web - 156 views, 23 contacts             │
+│  2. Excel Nâng Cao - 98 views, 12 contacts             │
+│  3. Digital Marketing - 67 views, 8 contacts            │
+│                                                         │
+│  🔍 Traffic Sources                                      │
+│  - Google Search: 45%                                   │
+│  - Facebook Ads: 30%                                    │
+│  - Direct: 15%                                          │
+│  - Other: 10%                                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6E.6. Data Privacy & Security
+
+### Public Data Filtering
+
+```java
+// Ensure no private data leakage
+@Service
+public class PublicDataFilterService {
+
+    public PublicCourseDTO filterCourse(Course course) {
+        return PublicCourseDTO.builder()
+            // ✅ SAFE to expose publicly
+            .id(course.getId())
+            .title(course.getTitle())
+            .description(course.getDescription())
+            .price(course.getPrice())
+            .schedule(course.getSchedule())
+            .instructor(filterInstructor(course.getInstructor()))
+
+            // ❌ NEVER expose (private)
+            // .lessons - Course content
+            // .students - List<Student> (PII)
+            // .grades - Assessment data
+            // .attendance - Tracking data
+            // .internalNotes - Admin notes
+            .build();
+    }
+
+    public PublicInstructorDTO filterInstructor(Instructor instructor) {
+        return PublicInstructorDTO.builder()
+            // ✅ SAFE (public profile)
+            .id(instructor.getId())
+            .name(instructor.getName())
+            .bio(instructor.getBio())
+            .avatar(instructor.getAvatar())
+            .expertise(instructor.getExpertise())
+
+            // ❌ NEVER expose
+            // .email - Contact info (use owner contact instead)
+            // .phone - Contact info
+            // .salary - Private
+            .build();
+    }
+}
+```
+
+### GDPR Compliance
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              GDPR COMPLIANCE CHECKLIST                  │
+├─────────────────────────────────────────────────────────┤
+│  ✅ Cookie Consent Banner                               │
+│     - Show on first visit                               │
+│     - Explicit consent for analytics                    │
+│     - Link to privacy policy                            │
+│                                                         │
+│  ✅ Privacy Policy                                       │
+│     - What data collected (analytics only)              │
+│     - How data used (OWNER insights)                    │
+│     - No PII without consent                            │
+│                                                         │
+│  ✅ Contact Form Opt-in                                  │
+│     - Checkbox: "Đồng ý nhận thông tin từ trung tâm"   │
+│     - Explicit consent for marketing                    │
+│                                                         │
+│  ✅ Data Minimization                                    │
+│     - Only public data exposed                          │
+│     - No student PII in public APIs                     │
+│     - No tracking without consent                       │
+│                                                         │
+│  ✅ Right to be Forgotten                                │
+│     - Student can delete account                        │
+│     - Remove from analytics                             │
+│     - Anonymize historical data                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
 # PHẦN 7: TỔNG KẾT KIẾN TRÚC V3
 
 ## 7.1. So sánh các phiên bản
