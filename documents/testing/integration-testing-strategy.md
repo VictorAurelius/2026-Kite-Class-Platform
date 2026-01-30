@@ -1,7 +1,8 @@
 # INTEGRATION TESTING STRATEGY
 
-**Version:** 1.0
+**Version:** 1.1 (Added KiteHub ↔ KiteClass Integration Tests)
 **Created:** 2026-01-30
+**Last Updated:** 2026-01-30
 **Purpose:** Integration testing cho KiteClass & KiteHub services
 
 **Tham chiếu:**
@@ -720,6 +721,495 @@ class MediaFeatureIntegrationTest {
 
         // Then
         assertThat(limit).isEqualTo(20L * 1024 * 1024 * 1024); // 20GB
+    }
+}
+```
+
+---
+
+# KITEHUB ↔ KITECLASS INTEGRATION TESTS
+
+## Overview
+
+KiteHub is the central authentication/instance management service. KiteClass instances communicate with KiteHub for:
+- **Authentication:** JWT token validation
+- **Instance Config Sync:** Feature flags, tier updates
+- **Payment Callbacks:** Subscription activation
+- **Trial Management:** Trial expiration, grace period
+
+## Instance Registration Test
+
+```java
+@SpringBootTest
+@AutoConfigureWireMock(port = 9999)
+class KiteHubInstanceRegistrationTest {
+
+    @Autowired
+    private KiteHubClient kiteHubClient;
+
+    @Test
+    @DisplayName("KiteClass should register with KiteHub on startup")
+    void instanceRegistration_success() {
+        // Given
+        stubFor(post(urlEqualTo("/api/v1/instances/register"))
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withHeader("Content-Type", "application/json")
+                .withBody("""
+                    {
+                        "instanceId": "123e4567-e89b-12d3-a456-426614174000",
+                        "apiKey": "kiteclass_test_key",
+                        "webhookUrl": "https://kitehub.example.com/webhooks"
+                    }
+                    """)
+            ));
+
+        // When
+        InstanceRegistrationResponse response = kiteHubClient.registerInstance(
+            "test-instance.kiteclass.com",
+            "Test School",
+            "owner@test.com"
+        );
+
+        // Then
+        assertThat(response.getInstanceId()).isNotNull();
+        assertThat(response.getApiKey()).isNotBlank();
+        assertThat(response.getWebhookUrl()).contains("kitehub.example.com");
+
+        // Verify request
+        verify(postRequestedFor(urlEqualTo("/api/v1/instances/register"))
+            .withHeader("Content-Type", equalTo("application/json"))
+            .withRequestBody(matchingJsonPath("$.subdomain", equalTo("test-instance")))
+            .withRequestBody(matchingJsonPath("$.organizationName", equalTo("Test School")))
+        );
+    }
+
+    @Test
+    @DisplayName("Failed registration should retry with exponential backoff")
+    void instanceRegistration_retry() {
+        // Given
+        stubFor(post(urlEqualTo("/api/v1/instances/register"))
+            .inScenario("Retry Scenario")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(aResponse().withStatus(503))
+            .willSetStateTo("First Retry"));
+
+        stubFor(post(urlEqualTo("/api/v1/instances/register"))
+            .inScenario("Retry Scenario")
+            .whenScenarioStateIs("First Retry")
+            .willReturn(aResponse().withStatus(503))
+            .willSetStateTo("Second Retry"));
+
+        stubFor(post(urlEqualTo("/api/v1/instances/register"))
+            .inScenario("Retry Scenario")
+            .whenScenarioStateIs("Second Retry")
+            .willReturn(aResponse()
+                .withStatus(201)
+                .withBody("{\"instanceId\": \"123e4567-e89b-12d3-a456-426614174000\"}")
+            ));
+
+        // When
+        InstanceRegistrationResponse response = kiteHubClient.registerInstance(
+            "test-instance.kiteclass.com",
+            "Test School",
+            "owner@test.com"
+        );
+
+        // Then
+        assertThat(response.getInstanceId()).isNotNull();
+
+        // Verify 3 attempts
+        verify(exactly(3), postRequestedFor(urlEqualTo("/api/v1/instances/register")));
+    }
+}
+```
+
+## JWT Token Validation Test
+
+```java
+@SpringBootTest
+@AutoConfigureWireMock(port = 9999)
+class KiteHubJWTValidationTest {
+
+    @Autowired
+    private JWTValidationService jwtService;
+
+    @Test
+    @DisplayName("Valid JWT from KiteHub should be accepted")
+    void jwtValidation_valid() {
+        // Given
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+
+        stubFor(post(urlEqualTo("/api/v1/auth/validate"))
+            .withRequestBody(equalToJson("{\"token\": \"" + token + "\"}"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("""
+                    {
+                        "valid": true,
+                        "userId": 123,
+                        "instanceId": "123e4567-e89b-12d3-a456-426614174000",
+                        "roles": ["OWNER"],
+                        "email": "owner@school.com"
+                    }
+                    """)
+            ));
+
+        // When
+        JWTValidationResult result = jwtService.validateToken(token);
+
+        // Then
+        assertThat(result.isValid()).isTrue();
+        assertThat(result.getUserId()).isEqualTo(123L);
+        assertThat(result.getInstanceId()).isEqualTo(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+        assertThat(result.getRoles()).contains("OWNER");
+    }
+
+    @Test
+    @DisplayName("Expired JWT should be rejected")
+    void jwtValidation_expired() {
+        // Given
+        String expiredToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.expired...";
+
+        stubFor(post(urlEqualTo("/api/v1/auth/validate"))
+            .willReturn(aResponse()
+                .withStatus(401)
+                .withBody("""
+                    {
+                        "valid": false,
+                        "error": "Token expired"
+                    }
+                    """)
+            ));
+
+        // When & Then
+        assertThatThrownBy(() -> jwtService.validateToken(expiredToken))
+            .isInstanceOf(TokenExpiredException.class)
+            .hasMessageContaining("Token expired");
+    }
+
+    @Test
+    @DisplayName("JWT validation should use cache to reduce API calls")
+    void jwtValidation_cached() {
+        // Given
+        String token = "valid-token-123";
+
+        stubFor(post(urlEqualTo("/api/v1/auth/validate"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("""
+                    {
+                        "valid": true,
+                        "userId": 123,
+                        "instanceId": "123e4567-e89b-12d3-a456-426614174000"
+                    }
+                    """)
+            ));
+
+        // When
+        JWTValidationResult result1 = jwtService.validateToken(token);
+        JWTValidationResult result2 = jwtService.validateToken(token);
+        JWTValidationResult result3 = jwtService.validateToken(token);
+
+        // Then
+        assertThat(result1.isValid()).isTrue();
+        assertThat(result2.isValid()).isTrue();
+        assertThat(result3.isValid()).isTrue();
+
+        // Should only call API once (cached)
+        verify(exactly(1), postRequestedFor(urlEqualTo("/api/v1/auth/validate")));
+    }
+}
+```
+
+## Subscription Sync Test
+
+```java
+@SpringBootTest
+@AutoConfigureWireMock(port = 9999)
+class KiteHubSubscriptionSyncTest {
+
+    @Autowired
+    private SubscriptionSyncService syncService;
+
+    @Autowired
+    private InstanceConfigRepository configRepo;
+
+    @Test
+    @DisplayName("Subscription upgrade webhook should update instance config")
+    void subscriptionUpgrade_webhook() {
+        // Given
+        UUID instanceId = UUID.randomUUID();
+        InstanceConfig config = InstanceConfig.builder()
+            .instanceId(instanceId)
+            .tier(PricingTier.BASIC)
+            .build();
+        configRepo.save(config);
+
+        // When - Simulate webhook from KiteHub
+        SubscriptionWebhookEvent event = SubscriptionWebhookEvent.builder()
+            .eventType("subscription.upgraded")
+            .instanceId(instanceId)
+            .newTier("STANDARD")
+            .validUntil(LocalDateTime.now().plusYears(1))
+            .transactionId("TXN-123456")
+            .build();
+
+        syncService.handleWebhook(event);
+
+        // Then
+        InstanceConfig updatedConfig = configRepo.findByInstanceId(instanceId).orElseThrow();
+        assertThat(updatedConfig.getTier()).isEqualTo(PricingTier.STANDARD);
+        assertThat(updatedConfig.getSubscriptionValidUntil()).isNotNull();
+        assertThat(updatedConfig.getFeatures().get("ENGAGEMENT")).isTrue();
+        assertThat(updatedConfig.getFeatures().get("MEDIA")).isTrue();
+    }
+
+    @Test
+    @DisplayName("Trial expiration webhook should enable grace period")
+    void trialExpiration_webhook() {
+        // Given
+        UUID instanceId = UUID.randomUUID();
+        InstanceConfig config = InstanceConfig.builder()
+            .instanceId(instanceId)
+            .tier(PricingTier.TRIAL)
+            .trialExpiresAt(LocalDateTime.now().plusDays(1))
+            .build();
+        configRepo.save(config);
+
+        // When - Simulate webhook from KiteHub
+        SubscriptionWebhookEvent event = SubscriptionWebhookEvent.builder()
+            .eventType("trial.expired")
+            .instanceId(instanceId)
+            .graceUntil(LocalDateTime.now().plusDays(3))
+            .build();
+
+        syncService.handleWebhook(event);
+
+        // Then
+        InstanceConfig updatedConfig = configRepo.findByInstanceId(instanceId).orElseThrow();
+        assertThat(updatedConfig.isInGracePeriod()).isTrue();
+        assertThat(updatedConfig.getGraceExpiresAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Subscription cancellation webhook should suspend instance")
+    void subscriptionCancelled_webhook() {
+        // Given
+        UUID instanceId = UUID.randomUUID();
+        InstanceConfig config = InstanceConfig.builder()
+            .instanceId(instanceId)
+            .tier(PricingTier.STANDARD)
+            .subscriptionStatus(SubscriptionStatus.ACTIVE)
+            .build();
+        configRepo.save(config);
+
+        // When - Simulate webhook from KiteHub
+        SubscriptionWebhookEvent event = SubscriptionWebhookEvent.builder()
+            .eventType("subscription.cancelled")
+            .instanceId(instanceId)
+            .reason("User requested cancellation")
+            .build();
+
+        syncService.handleWebhook(event);
+
+        // Then
+        InstanceConfig updatedConfig = configRepo.findByInstanceId(instanceId).orElseThrow();
+        assertThat(updatedConfig.getSubscriptionStatus()).isEqualTo(SubscriptionStatus.SUSPENDED);
+        assertThat(updatedConfig.isReadOnlyMode()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Webhook signature should be validated")
+    void webhook_invalidSignature_rejected() {
+        // Given
+        SubscriptionWebhookEvent event = SubscriptionWebhookEvent.builder()
+            .eventType("subscription.upgraded")
+            .instanceId(UUID.randomUUID())
+            .newTier("STANDARD")
+            .build();
+
+        String invalidSignature = "invalid-signature-123";
+
+        // When & Then
+        assertThatThrownBy(() ->
+            syncService.handleWebhook(event, invalidSignature)
+        )
+        .isInstanceOf(InvalidWebhookSignatureException.class)
+        .hasMessageContaining("Invalid signature");
+    }
+}
+```
+
+## Feature Config Sync Test
+
+```java
+@SpringBootTest
+@AutoConfigureWireMock(port = 9999)
+class KiteHubFeatureConfigSyncTest {
+
+    @Autowired
+    private FeatureConfigSyncService featureSyncService;
+
+    @Test
+    @DisplayName("Feature config should sync from KiteHub every hour")
+    void featureConfigSync_scheduled() {
+        // Given
+        UUID instanceId = UUID.randomUUID();
+
+        stubFor(get(urlEqualTo("/api/v1/instances/" + instanceId + "/features"))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withBody("""
+                    {
+                        "tier": "PREMIUM",
+                        "features": {
+                            "ENGAGEMENT": true,
+                            "MEDIA": true,
+                            "AI_BRANDING": true,
+                            "CUSTOM_THEMES": true
+                        },
+                        "limitations": {
+                            "maxStudents": -1,
+                            "maxCourses": -1,
+                            "storageGB": 20
+                        }
+                    }
+                    """)
+            ));
+
+        // When
+        featureSyncService.syncFeaturesForInstance(instanceId);
+
+        // Then
+        InstanceConfig config = instanceConfigRepo.findByInstanceId(instanceId).orElseThrow();
+        assertThat(config.getTier()).isEqualTo(PricingTier.PREMIUM);
+        assertThat(config.getFeatures().get("AI_BRANDING")).isTrue();
+        assertThat(config.getLimitations().get("maxStudents")).isEqualTo(-1); // Unlimited
+
+        // Verify cache updated
+        InstanceConfig cached = featureSyncService.getCachedConfig(instanceId);
+        assertThat(cached).isEqualTo(config);
+    }
+
+    @Test
+    @DisplayName("Sync failure should not clear existing cache")
+    void featureConfigSync_failurePreservesCache() {
+        // Given
+        UUID instanceId = UUID.randomUUID();
+
+        // Setup existing cached config
+        InstanceConfig existingConfig = InstanceConfig.builder()
+            .instanceId(instanceId)
+            .tier(PricingTier.STANDARD)
+            .build();
+        instanceConfigRepo.save(existingConfig);
+        featureSyncService.cacheConfig(existingConfig);
+
+        // Simulate KiteHub unavailable
+        stubFor(get(urlEqualTo("/api/v1/instances/" + instanceId + "/features"))
+            .willReturn(aResponse().withStatus(503)));
+
+        // When
+        try {
+            featureSyncService.syncFeaturesForInstance(instanceId);
+        } catch (Exception e) {
+            // Expected to fail
+        }
+
+        // Then
+        InstanceConfig cached = featureSyncService.getCachedConfig(instanceId);
+        assertThat(cached).isNotNull();
+        assertThat(cached.getTier()).isEqualTo(PricingTier.STANDARD); // Old cache preserved
+    }
+}
+```
+
+## Payment Callback Test
+
+```java
+@SpringBootTest
+@AutoConfigureWireMock(port = 9999)
+class KiteHubPaymentCallbackTest {
+
+    @Autowired
+    private PaymentCallbackService callbackService;
+
+    @Test
+    @DisplayName("Successful payment should notify KiteHub")
+    void paymentSuccess_notifiesKiteHub() {
+        // Given
+        UUID instanceId = UUID.randomUUID();
+        PaymentOrder order = PaymentOrder.builder()
+            .orderId("ORD-20260130-ABC123")
+            .instanceId(instanceId)
+            .tier(PricingTier.STANDARD)
+            .amount(499000L)
+            .status(PaymentStatus.PAID)
+            .transactionReference("FT123456")
+            .build();
+
+        stubFor(post(urlEqualTo("/api/v1/payments/callback"))
+            .willReturn(aResponse().withStatus(200)));
+
+        // When
+        callbackService.notifyPaymentSuccess(order);
+
+        // Then
+        verify(postRequestedFor(urlEqualTo("/api/v1/payments/callback"))
+            .withRequestBody(matchingJsonPath("$.orderId", equalTo("ORD-20260130-ABC123")))
+            .withRequestBody(matchingJsonPath("$.instanceId", equalTo(instanceId.toString())))
+            .withRequestBody(matchingJsonPath("$.tier", equalTo("STANDARD")))
+            .withRequestBody(matchingJsonPath("$.amount", equalTo("499000")))
+            .withRequestBody(matchingJsonPath("$.transactionReference", equalTo("FT123456")))
+        );
+    }
+
+    @Test
+    @DisplayName("Payment callback should retry on failure")
+    void paymentCallback_retryOnFailure() {
+        // Given
+        PaymentOrder order = createTestPaymentOrder();
+
+        stubFor(post(urlEqualTo("/api/v1/payments/callback"))
+            .inScenario("Payment Callback")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(aResponse().withStatus(503))
+            .willSetStateTo("Retry"));
+
+        stubFor(post(urlEqualTo("/api/v1/payments/callback"))
+            .inScenario("Payment Callback")
+            .whenScenarioStateIs("Retry")
+            .willReturn(aResponse().withStatus(200)));
+
+        // When
+        callbackService.notifyPaymentSuccess(order);
+
+        // Then
+        verify(exactly(2), postRequestedFor(urlEqualTo("/api/v1/payments/callback")));
+    }
+
+    @Test
+    @DisplayName("Failed payment should notify KiteHub with reason")
+    void paymentFailed_notifiesKiteHub() {
+        // Given
+        PaymentOrder order = PaymentOrder.builder()
+            .orderId("ORD-FAILED-123")
+            .status(PaymentStatus.FAILED)
+            .failureReason("Bank timeout")
+            .build();
+
+        stubFor(post(urlEqualTo("/api/v1/payments/callback"))
+            .willReturn(aResponse().withStatus(200)));
+
+        // When
+        callbackService.notifyPaymentFailure(order);
+
+        // Then
+        verify(postRequestedFor(urlEqualTo("/api/v1/payments/callback"))
+            .withRequestBody(matchingJsonPath("$.status", equalTo("FAILED")))
+            .withRequestBody(matchingJsonPath("$.failureReason", equalTo("Bank timeout")))
+        );
     }
 }
 ```

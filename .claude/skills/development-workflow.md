@@ -649,11 +649,133 @@ Mark completed PRs:
 
 ## 🔍 Phase 6: Code Review & Commit
 
+### KiteClass-Specific Code Review Checklist
+
+**⚠️ CRITICAL: These checks are MANDATORY for KiteClass Platform**
+
+#### Multi-Tenant Security Checks
+
+- [ ] **Tenant Context Injection**: All repository queries include `instance_id` filter
+- [ ] **No Hardcoded Instance IDs**: No `UUID.fromString("...")` in code
+- [ ] **TenantContext Usage**: Use `TenantContext.getCurrentInstanceId()` instead of hardcoded IDs
+- [ ] **@TenantScoped Annotation**: All repositories have `@TenantScoped` or manual tenant filtering
+- [ ] **Cross-Tenant Access Prevention**: Tested that users from Tenant A cannot access Tenant B data
+- [ ] **JWT Token Validation**: JWT tokens are validated for correct instanceId
+- [ ] **API Response Filtering**: Responses only include data for current tenant
+- [ ] **Bulk Operations Safety**: Bulk operations (delete, update) respect tenant boundaries
+
+**Example of CORRECT tenant filtering:**
+```java
+// ✅ GOOD - Uses tenant context
+@Query("SELECT s FROM Student s WHERE s.instanceId = :instanceId AND s.deletedAt IS NULL")
+Page<Student> findByInstanceId(@Param("instanceId") UUID instanceId, Pageable pageable);
+
+// ❌ BAD - No tenant filter
+@Query("SELECT s FROM Student s WHERE s.deletedAt IS NULL")
+Page<Student> findAll(Pageable pageable);
+```
+
+#### Feature Detection Checks
+
+- [ ] **Feature Gate Usage**: Premium features wrapped in `@RequireFeature("FEATURE_NAME")`
+- [ ] **Tier-Based Access Control**: API returns 403 if feature unavailable for tier
+- [ ] **UI Feature Gating**: Frontend components use `<FeatureGate>` for tier-locked features
+- [ ] **Upgrade Prompts**: Locked features show upgrade prompt with required tier
+- [ ] **Feature Config Caching**: Instance feature config cached with 1-hour TTL
+- [ ] **Graceful Degradation**: Missing features degrade gracefully (not crash)
+
+**Example of CORRECT feature gating:**
+```java
+// ✅ GOOD - Feature gate with annotation
+@PostMapping("/engagement/track")
+@RequireFeature("ENGAGEMENT")
+public ResponseEntity<EngagementResponse> trackEngagement(@Valid @RequestBody TrackEngagementRequest request) {
+    return ResponseEntity.ok(engagementService.track(request));
+}
+
+// ❌ BAD - No feature gate
+@PostMapping("/engagement/track")
+public ResponseEntity<EngagementResponse> trackEngagement(@Valid @RequestBody TrackEngagementRequest request) {
+    return ResponseEntity.ok(engagementService.track(request));
+}
+```
+
+#### Payment Security Checks
+
+- [ ] **Amount Validation**: Payment amounts match tier pricing (499k/999k VND)
+- [ ] **Double Payment Prevention**: Order status checked before processing
+- [ ] **Order Expiry Validation**: QR codes expire after 10 minutes
+- [ ] **Transaction Idempotency**: VietQR callbacks are idempotent
+- [ ] **Audit Logging**: All payment state changes logged
+- [ ] **Error Handling**: Payment failures logged with reason
+- [ ] **No Financial Data in Logs**: Never log full credit card/bank details
+
+**Example of CORRECT payment validation:**
+```java
+// ✅ GOOD - Validates order status
+public void verifyPayment(VerifyPaymentRequest request) {
+    PaymentOrder order = orderRepo.findByOrderId(request.getOrderId())
+        .orElseThrow(() -> new OrderNotFoundException(request.getOrderId()));
+
+    // Prevent double payment
+    if (order.getStatus() == PaymentStatus.PAID) {
+        throw new PaymentAlreadyPaidException(order.getOrderId());
+    }
+
+    // Verify amount matches
+    if (!order.getAmount().equals(request.getAmount())) {
+        throw new AmountMismatchException(order.getAmount(), request.getAmount());
+    }
+
+    order.setStatus(PaymentStatus.PAID);
+    orderRepo.save(order);
+}
+
+// ❌ BAD - No validation
+public void verifyPayment(VerifyPaymentRequest request) {
+    PaymentOrder order = orderRepo.findByOrderId(request.getOrderId()).get();
+    order.setStatus(PaymentStatus.PAID);
+    orderRepo.save(order);
+}
+```
+
+#### Trial System Checks
+
+- [ ] **Trial Status Validation**: Trial days remaining calculated correctly
+- [ ] **Grace Period Handling**: Grace period (3 days) enforced after trial expires
+- [ ] **Suspension Logic**: Instance suspended after grace period expires
+- [ ] **Data Retention**: Suspended instances retained for 90 days before deletion
+- [ ] **Status Transitions**: Only valid status transitions allowed (TRIAL → GRACE → SUSPENDED → DELETED)
+- [ ] **Banner Display**: Correct trial banner shown based on status
+
+#### AI Service Checks (if applicable)
+
+- [ ] **Circuit Breaker**: AI calls wrapped in circuit breaker (Resilience4j)
+- [ ] **Timeout Handling**: AI calls timeout after 10 seconds
+- [ ] **Fallback Strategy**: Graceful fallback if AI service unavailable
+- [ ] **Cost Controls**: Request throttling to prevent runaway costs
+- [ ] **Error Logging**: AI failures logged with error details
+- [ ] **Retry Logic**: Exponential backoff retry (max 3 attempts)
+
+#### General Security Checks
+
+- [ ] **Input Validation**: All user inputs validated with `@Valid`, `@NotNull`, `@Size`
+- [ ] **SQL Injection Prevention**: Using JPA/JPQL (not raw SQL)
+- [ ] **XSS Prevention**: Frontend sanitizes user-generated content
+- [ ] **CSRF Protection**: CSRF tokens enabled for state-changing operations
+- [ ] **Authentication**: All non-public endpoints require JWT token
+- [ ] **Authorization**: Role-based access control enforced (OWNER, TEACHER, STUDENT)
+- [ ] **Sensitive Data**: No passwords, API keys, secrets in code/logs
+- [ ] **Rate Limiting**: API endpoints rate-limited (100 req/min per instance)
+
+---
+
 ### Code Review Checklist (Self-Review)
 
 **Before Creating PR:**
 
 - [ ] Code đúng requirement
+- [ ] **ALL KiteClass-specific checks passed** (above section)
 - [ ] Không có security issues
 - [ ] Xử lý error cases đầy đủ
 - [ ] Có unit tests (coverage >= 80%)
@@ -1011,8 +1133,8 @@ Use this checklist for EVERY feature/PR:
 
 ---
 
-**Last Updated:** 2026-01-27
-**Version:** 2.0
+**Last Updated:** 2026-01-30
+**Version:** 2.1 (Added KiteClass-Specific Code Review Checklist)
 **Merged From:**
 - git-workflow.md
 - pr-commit-workflow.md
