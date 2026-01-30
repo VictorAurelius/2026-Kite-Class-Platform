@@ -2,12 +2,15 @@ package com.kiteclass.gateway.module.auth.service.impl;
 
 import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.constant.UserStatus;
+import com.kiteclass.gateway.common.constant.UserType;
 import com.kiteclass.gateway.common.exception.BusinessException;
 import com.kiteclass.gateway.config.EmailProperties;
 import com.kiteclass.gateway.module.auth.dto.ForgotPasswordRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
+import com.kiteclass.gateway.module.auth.dto.RegisterStudentRequest;
+import com.kiteclass.gateway.module.auth.dto.RegisterResponse;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
 import com.kiteclass.gateway.module.auth.entity.PasswordResetToken;
 import com.kiteclass.gateway.module.auth.entity.RefreshToken;
@@ -19,8 +22,11 @@ import com.kiteclass.gateway.module.user.repository.UserRepository;
 import com.kiteclass.gateway.module.user.repository.UserRoleRepository;
 import com.kiteclass.gateway.security.jwt.JwtProperties;
 import com.kiteclass.gateway.security.jwt.JwtTokenProvider;
+import com.kiteclass.gateway.service.CoreServiceClient;
 import com.kiteclass.gateway.service.EmailService;
 import com.kiteclass.gateway.service.ProfileFetcher;
+import com.kiteclass.gateway.service.dto.CreateStudentInternalRequest;
+import com.kiteclass.gateway.service.dto.StudentProfileResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -63,9 +69,11 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ProfileFetcher profileFetcher;
+    private final CoreServiceClient coreServiceClient;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final long LOCK_DURATION_MINUTES = 30;
+    private static final String INTERNAL_HEADER = "true";
 
     @Override
     @Transactional
@@ -361,6 +369,145 @@ public class AuthServiceImpl implements AuthService {
                                             .name(user.getName())
                                             .roles(roles)
                                             .profile(profile)
+                                            .build())
+                                    .build());
+                });
+    }
+
+    @Override
+    @Transactional
+    public Mono<RegisterResponse> registerStudent(RegisterStudentRequest request) {
+        log.info("Student registration request for email: {}", request.email());
+
+        // Step 1: Check if email already exists
+        return userRepository.existsByEmailAndDeletedFalse(request.email())
+                .flatMap(exists -> {
+                    if (exists) {
+                        log.warn("Registration failed: Email already exists: {}", request.email());
+                        return Mono.error(new BusinessException(
+                                MessageCodes.USER_EMAIL_EXISTS,
+                                HttpStatus.CONFLICT
+                        ));
+                    }
+
+                    // Step 2: Create User in Gateway (without referenceId yet)
+                    User user = User.builder()
+                            .email(request.email())
+                            .passwordHash(passwordEncoder.encode(request.password()))
+                            .name(request.name())
+                            .phone(request.phone())
+                            .userType(UserType.STUDENT)
+                            .status(UserStatus.ACTIVE)
+                            .emailVerified(false)
+                            .failedLoginAttempts(0)
+                            .deleted(false)
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+
+                    log.debug("Creating User in Gateway for email: {}", request.email());
+
+                    return userRepository.save(user)
+                            .flatMap(savedUser -> {
+                                log.info("User created in Gateway: id={}, email={}",
+                                        savedUser.getId(), savedUser.getEmail());
+
+                                // Step 3: Create Student in Core service
+                                CreateStudentInternalRequest coreRequest = new CreateStudentInternalRequest(
+                                        request.name(),
+                                        request.email(),
+                                        request.phone(),
+                                        request.dateOfBirth(),
+                                        request.gender(),
+                                        request.address(),
+                                        null // note
+                                );
+
+                                log.debug("Calling Core service to create Student for email: {}",
+                                        request.email());
+
+                                return coreServiceClient.createStudent(coreRequest, INTERNAL_HEADER)
+                                        .flatMap(response -> {
+                                            StudentProfileResponse profile = response.getData();
+                                            log.info("Student created in Core: id={}, email={}",
+                                                    profile.id(), profile.email());
+
+                                            // Step 4: Update User with referenceId
+                                            savedUser.setReferenceId(profile.id());
+                                            savedUser.setUpdatedAt(Instant.now());
+
+                                            return userRepository.save(savedUser)
+                                                    .flatMap(linkedUser -> {
+                                                        log.info("User linked to Student: userId={}, " +
+                                                                        "studentId={}",
+                                                                linkedUser.getId(),
+                                                                linkedUser.getReferenceId());
+
+                                                        // Step 5: Generate JWT tokens
+                                                        return generateRegistrationTokens(linkedUser);
+                                                    });
+                                        })
+                                        .onErrorResume(error -> {
+                                            // Saga rollback: Delete User if Student creation failed
+                                            log.error("Failed to create Student in Core, rolling back " +
+                                                            "User: userId={}, email={}",
+                                                    savedUser.getId(), savedUser.getEmail(), error);
+
+                                            return userRepository.deleteById(savedUser.getId())
+                                                    .then(Mono.error(new BusinessException(
+                                                            MessageCodes.AUTH_REGISTRATION_FAILED,
+                                                            HttpStatus.INTERNAL_SERVER_ERROR
+                                                    )));
+                                        });
+                            });
+                })
+                .doOnSuccess(response ->
+                        log.info("Student registration successful: userId={}, studentId={}",
+                                response.user().id(), response.user().referenceId()))
+                .doOnError(e ->
+                        log.error("Student registration failed for email: {}", request.email(), e));
+    }
+
+    /**
+     * Generate access and refresh tokens for newly registered student.
+     *
+     * @param user the registered user
+     * @return Mono of RegisterResponse with tokens
+     */
+    private Mono<RegisterResponse> generateRegistrationTokens(User user) {
+        return userRoleRepository.findRolesByUserId(user.getId())
+                .map(role -> role.getCode())
+                .collectList()
+                .flatMap(roles -> {
+                    // Generate JWT tokens
+                    String accessToken = jwtTokenProvider.generateAccessToken(
+                            user.getId(),
+                            user.getEmail(),
+                            roles
+                    );
+                    String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+
+                    // Save refresh token to database
+                    RefreshToken tokenEntity = RefreshToken.builder()
+                            .token(refreshToken)
+                            .userId(user.getId())
+                            .expiresAt(Instant.now().plusMillis(
+                                    jwtProperties.getRefreshTokenExpiration()))
+                            .createdAt(Instant.now())
+                            .build();
+
+                    return refreshTokenRepository.save(tokenEntity)
+                            .map(saved -> RegisterResponse.builder()
+                                    .accessToken(accessToken)
+                                    .refreshToken(refreshToken)
+                                    .tokenType("Bearer")
+                                    .expiresIn(jwtProperties.getAccessTokenExpiration() / 1000)
+                                    .user(RegisterResponse.UserInfo.builder()
+                                            .id(user.getId())
+                                            .email(user.getEmail())
+                                            .name(user.getName())
+                                            .userType(user.getUserType().name())
+                                            .referenceId(user.getReferenceId())
                                             .build())
                                     .build());
                 });

@@ -115,8 +115,8 @@ public class ProfileFetcher {
     private StudentProfileResponse fetchStudentProfile(Long studentId) {
         log.debug("Fetching student profile: studentId={}", studentId);
         ApiResponse<StudentProfileResponse> response =
-                coreServiceClient.getStudent(studentId, INTERNAL_HEADER);
-        return response.getData();
+                coreServiceClient.getStudent(studentId, INTERNAL_HEADER).block();
+        return response != null ? response.getData() : null;
     }
 
     /**
@@ -128,8 +128,8 @@ public class ProfileFetcher {
     private TeacherProfileResponse fetchTeacherProfile(Long teacherId) {
         log.debug("Fetching teacher profile: teacherId={}", teacherId);
         ApiResponse<TeacherProfileResponse> response =
-                coreServiceClient.getTeacher(teacherId, INTERNAL_HEADER);
-        return response.getData();
+                coreServiceClient.getTeacher(teacherId, INTERNAL_HEADER).block();
+        return response != null ? response.getData() : null;
     }
 
     /**

@@ -619,3 +619,9 @@ tạo thành file để tham chiếu triển khai chứ
 ý tôi là tạo code-review-pr-plan chỉ review code đã được implement thôi chứ
 các module hoặc feature chưa có code thì sao review được
 => đổi tên code-review-pr-plan nếu đúng như tôi hiểu, tạo đúng code-review-pr-plan cho code đã được implement
+
+để review code hiện có thì bạn phải xem implement plan đã thực hiện những PR nào, kết quả là gì chứ? từ đó mới xem xét có cần review lại không? review như thế nào?
+
+thực hiện commit và triển khi PR Review
+
+PR 1.8 còn 7 test về docker, hãy thực hiện luôn

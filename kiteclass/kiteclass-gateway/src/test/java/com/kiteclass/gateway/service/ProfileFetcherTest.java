@@ -96,7 +96,7 @@ class ProfileFetcherTest {
         void shouldFetchStudentProfileSuccessfully() {
             // given
             when(coreServiceClient.getStudent(1L, "true"))
-                    .thenReturn(studentApiResponse);
+                    .thenReturn(reactor.core.publisher.Mono.just(studentApiResponse));
 
             // when
             Object result = profileFetcher.fetchProfile(UserType.STUDENT, 1L);
@@ -127,7 +127,7 @@ class ProfileFetcherTest {
             );
             var teacherApiResponse = ApiResponse.success(teacherProfile);
             when(coreServiceClient.getTeacher(1L, "true"))
-                    .thenReturn(teacherApiResponse);
+                    .thenReturn(reactor.core.publisher.Mono.just(teacherApiResponse));
 
             // when
             Object result = profileFetcher.fetchProfile(UserType.TEACHER, 1L);
