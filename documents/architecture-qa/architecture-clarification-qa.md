@@ -2427,31 +2427,58 @@ Conversion: Upgrade to paid student
 
 # SUMMARY CHECKLIST
 
-## Critical Blocking Issues (Must Answer Before PR 3.2)
+## ✅ ALL PARTS COMPLETED
 
-- [ ] Q1.1.1: Feature Detection API endpoint confirmed
-- [ ] Q3.1.1: "Preview Website" definition (CRITICAL)
-- [ ] Q4.1.2: Trial tier specification
-- [ ] Q4.2.1: Public course catalog decision
+### PART 1: Pricing Tier UI Customization (18 questions)
+- ✅ Feature Detection API designed
+- ✅ Tier-based UI patterns defined
+- ✅ Feature flag system specified
 
-## High Priority (Needed for PR 3.3-3.4)
+### PART 2: AI Branding System (15 questions)
+- ✅ AI branding workflow defined
+- ✅ Asset generation specifications
+- ✅ Multi-language support planned
+- ✅ Approval workflow (ADMIN → OWNER)
 
-- [ ] Q2.1.2: AI branding re-generation policy
-- [ ] Q4.1.3: Trial signup requirements
-- [ ] Q4.1.4: Trial expiration behavior
-- [ ] Q4.2.3: Guest self-registration flow
+### PART 3: Preview Website Feature (8 questions)
+- ✅ Public Marketing Landing Page solution
+- ✅ Best practices report (60+ pages, Vietnamese)
+- ✅ SEO optimization strategy
+- ✅ Technical specifications complete
 
-## Medium Priority (Needed for PR 3.5+)
+### PART 4: Guest User & Trial System (16 questions)
+- ✅ B2B owner-centric model defined
+- ✅ Trial for CENTER_OWNER only (14 days)
+- ✅ Guest contact OWNER flow (no self-registration)
+- ✅ Public course visibility control
+- ✅ Guest analytics for OWNER insights
 
-- [ ] Q1.1.5: Tier upgrade flow
-- [ ] Q2.1.3: Manual override capabilities
-- [ ] Q2.2.1: AI service provider selection
-- [ ] Q4.2.2: Course preview/demo lessons
+### PART 5: Integration & Dependencies (3 questions)
+- ✅ Backend API readiness strategy (parallel development)
+- ✅ VietQR payment system (KiteHub + Instance-level)
+- ✅ AWS SES email service
+- ✅ Zalo OTP (existing)
 
-## Low Priority (Can Defer)
+---
 
-- [ ] Q1.2.2: Analytics tier differentiation
-- [ ] Q2.3.1: Multi-language support
+## 📊 Documentation Status
+
+| Document | Status |
+|----------|--------|
+| `architecture-clarification-qa.md` | ✅ Complete (All 60+ questions answered) |
+| `system-architecture-v3-final.md` | ⏳ Need PHẦN 6F: Payment System (VietQR) |
+| `kiteclass-implementation-plan.md` | ⏳ Need PR updates for payment |
+| `frontend-code-quality.md` | ✅ Complete (PART 1-15) |
+| `preview-website-best-practices.md` | ✅ Complete (Vietnamese) |
+
+---
+
+## 🎯 Next Actions
+
+1. ✅ Update `system-architecture-v3-final.md` - Add PHẦN 6F: Payment System
+2. ✅ Update `kiteclass-implementation-plan.md` - Add payment PRs (3.10, update 3.8)
+3. ✅ Consider adding PART 16 to `frontend-code-quality.md` for payment UI patterns
+4. ✅ Ready to start implementation!
 - [ ] Q4.2.5: Marketing content for guests
 - [ ] Q5.2.2-5.2.3: Third-party service details
 
@@ -2588,5 +2615,775 @@ Guest → Contact OWNER → Sales conversation → OWNER enrolls manually
 
 # PART 5: INTEGRATION & DEPENDENCIES
 
-_[Questions about backend API readiness, third-party services, etc. - To be answered after PART 4]_
+## 🎯 CLARIFICATION: Best Practice Approach
+
+**Key Principles:**
+1. **Parallel Development**: Frontend & Backend develop simultaneously
+2. **API-First Design**: Define contracts early, mock in frontend
+3. **VietQR Payment**: Simple, cost-effective, widely adopted in Vietnam
+4. **Minimal Third-Party**: Reduce complexity and cost
+
+---
+
+## 5.1. Backend API Readiness
+
+### Q5.1.1: Which APIs Need to Be Implemented First? ✅ ANSWERED
+
+**Approach:** Parallel development với API mocking trong frontend.
+
+**PR 3.2 (Core Infrastructure) - Can start immediately:**
+- ✅ `GET /api/v1/instance/config` (feature flags)
+- ✅ `GET /api/v1/instance/theme` (theme settings)
+- ✅ `GET /api/v1/instance/branding` (branding settings)
+
+**Strategy:**
+```typescript
+// Frontend mock data during development
+// src/lib/mocks/instance-config.ts
+export const mockInstanceConfig = {
+  tier: 'BASIC',
+  features: {
+    engagement: true,
+    media: false,
+    premium: false
+  },
+  limitations: {
+    maxStudents: 50,
+    maxCourses: 10
+  }
+};
+
+// Switch to real API when backend ready
+const config = await fetch('/api/v1/instance/config');
+```
+
+**Timeline recommendation:**
+- ✅ **Week 1-2**: Frontend uses mocks, Backend develops APIs
+- ✅ **Week 3**: Integration testing
+- ✅ **Week 4**: Deploy together
+
+---
+
+**PR 3.4 (Public Routes) - Backend ready before frontend starts:**
+- ✅ `GET /api/v1/public/instance/{instanceId}/config`
+- ✅ `GET /api/v1/public/instance/{instanceId}/branding`
+- ✅ `GET /api/v1/public/instance/{instanceId}/courses`
+- ✅ `GET /api/v1/public/courses/{courseId}`
+- ✅ `GET /api/v1/public/instance/{instanceId}/instructors`
+- ✅ `POST /api/v1/public/contact`
+
+**Timeline recommendation:**
+- ✅ **Backend first** (3 days) → **Frontend** (5 days) → **Integration** (2 days)
+
+---
+
+**PR 3.11 (AI Branding):**
+- ✅ `POST /api/v1/branding/upload` (upload logo)
+- ✅ `GET /api/v1/branding/status/{jobId}` (poll generation progress)
+- ✅ `GET /api/v1/branding/assets/{jobId}` (get generated assets)
+- ✅ `POST /api/v1/branding/publish` (publish to instance)
+
+**Timeline recommendation:**
+- ✅ Backend can develop in parallel with earlier PRs
+- ✅ Integration when PR 3.11 starts (Week 8-9)
+
+---
+
+**Backend team delivery timeline:**
+- ✅ **PR 3.2 APIs**: Week 1-2 (parallel with frontend)
+- ✅ **PR 3.4 APIs**: Week 5 (before frontend PR 3.4)
+- ✅ **PR 3.11 APIs**: Week 8 (parallel with frontend PR 3.11)
+
+---
+
+## 5.2. Third-Party Services
+
+### Q5.2.1: Payment Gateway Integration ✅ ANSWERED
+
+**Decision:** Sử dụng **VietQR** thay vì payment gateways truyền thống.
+
+**Rationale:**
+- ✅ Zero transaction fees (không như VNPay 2-3%, MoMo 1.5%)
+- ✅ Instant bank transfer (real-time)
+- ✅ Widely adopted in Vietnam (95%+ banks support)
+- ✅ Simple implementation (generate QR, verify transfer)
+- ✅ No merchant account required (use bank account directly)
+- ✅ Support ALL Vietnamese banks (Vietcombank, Techcombank, ACB, etc.)
+
+---
+
+#### **Two-Level Payment System:**
+
+**1. KiteHub Payment (Platform-level):**
+```
+User purchases subscription → KiteHub bank account
+- Generate VietQR with pre-filled:
+  - Amount: 499,000 VND (BASIC tier)
+  - Content: "KITEHUB {orderId} {customerEmail}"
+  - Bank: KiteHub business account
+```
+
+**2. KiteClass Instance Payment (Instance-level):**
+```
+Student enrolls in course → CENTER_OWNER bank account
+- Generate VietQR with pre-filled:
+  - Amount: 2,000,000 VND (course tuition)
+  - Content: "KHOAHOC {courseId} {studentName}"
+  - Bank: Owner's personal/business account
+```
+
+---
+
+#### **VietQR Implementation:**
+
+**Libraries:**
+```json
+{
+  "dependencies": {
+    "vietqr": "^1.2.0",           // VietQR API client
+    "qrcode": "^1.5.3",            // QR code generation
+    "react-qr-code": "^2.0.12"     // React QR component
+  }
+}
+```
+
+**KiteHub Payment QR:**
+```typescript
+// backend/src/services/payment/VietQRService.java
+@Service
+public class VietQRService {
+
+    private static final String KITEHUB_BANK = "970415"; // Vietcombank
+    private static final String KITEHUB_ACCOUNT = "1234567890";
+    private static final String KITEHUB_ACCOUNT_NAME = "CONG TY TNHH KITECLASS";
+
+    /**
+     * Generate VietQR for KiteHub subscription payment
+     */
+    public VietQRResponse generateSubscriptionQR(
+        String orderId,
+        PricingTier tier,
+        String customerEmail
+    ) {
+        long amount = tier.getPriceVND(); // 499k, 999k, 1499k
+        String content = String.format("KITEHUB %s %s", orderId, customerEmail);
+
+        String qrUrl = buildVietQRUrl(
+            KITEHUB_BANK,
+            KITEHUB_ACCOUNT,
+            KITEHUB_ACCOUNT_NAME,
+            amount,
+            content
+        );
+
+        return VietQRResponse.builder()
+            .qrDataUrl(qrUrl)
+            .bankName("Vietcombank")
+            .accountNumber(maskAccountNumber(KITEHUB_ACCOUNT))
+            .accountName(KITEHUB_ACCOUNT_NAME)
+            .amount(amount)
+            .content(content)
+            .orderId(orderId)
+            .expiresAt(LocalDateTime.now().plusHours(24)) // 24h expiry
+            .build();
+    }
+
+    /**
+     * Build VietQR URL using VietQR API
+     * https://vietqr.io/
+     */
+    private String buildVietQRUrl(
+        String bankBin,
+        String accountNo,
+        String accountName,
+        long amount,
+        String content
+    ) {
+        // VietQR API format
+        return String.format(
+            "https://img.vietqr.io/image/%s-%s-compact2.jpg?amount=%d&addInfo=%s&accountName=%s",
+            bankBin,
+            accountNo,
+            amount,
+            URLEncoder.encode(content, StandardCharsets.UTF_8),
+            URLEncoder.encode(accountName, StandardCharsets.UTF_8)
+        );
+    }
+}
+```
+
+**Instance-Level Payment QR (OWNER configurable):**
+```typescript
+// backend/src/entities/Instance.java
+@Entity
+public class Instance {
+
+    @Embedded
+    private BankAccountInfo ownerBankAccount;
+
+    @Embeddable
+    public static class BankAccountInfo {
+        @Column(nullable = true)
+        private String bankCode;        // "970415" (Vietcombank)
+
+        @Column(nullable = true)
+        private String accountNumber;   // "9876543210"
+
+        @Column(nullable = true)
+        private String accountName;     // "NGUYEN VAN A"
+
+        @Column(nullable = true)
+        private String bankName;        // "Vietcombank" (display name)
+
+        // QR template cho instance này
+        @Column(nullable = true)
+        private String qrTemplate;      // "HOCPHI {courseId} {studentName}"
+    }
+}
+
+// backend/src/services/payment/InstancePaymentService.java
+@Service
+public class InstancePaymentService {
+
+    /**
+     * Generate QR for course enrollment payment
+     * Owner có thể customize bank account
+     */
+    public VietQRResponse generateCourseEnrollmentQR(
+        String instanceId,
+        String courseId,
+        String studentName,
+        long tuitionAmount
+    ) {
+        Instance instance = instanceRepo.findById(instanceId)
+            .orElseThrow(() -> new NotFoundException("Instance not found"));
+
+        BankAccountInfo bankInfo = instance.getOwnerBankAccount();
+
+        if (bankInfo == null || bankInfo.getAccountNumber() == null) {
+            throw new PaymentConfigException(
+                "Owner chưa cấu hình thông tin chuyển khoản. " +
+                "Vui lòng cập nhật trong Settings > Payment."
+            );
+        }
+
+        // Generate content using owner's template
+        String content = formatPaymentContent(
+            bankInfo.getQrTemplate(),
+            courseId,
+            studentName
+        );
+
+        String qrUrl = buildVietQRUrl(
+            bankInfo.getBankCode(),
+            bankInfo.getAccountNumber(),
+            bankInfo.getAccountName(),
+            tuitionAmount,
+            content
+        );
+
+        return VietQRResponse.builder()
+            .qrDataUrl(qrUrl)
+            .bankName(bankInfo.getBankName())
+            .accountNumber(maskAccountNumber(bankInfo.getAccountNumber()))
+            .accountName(bankInfo.getAccountName())
+            .amount(tuitionAmount)
+            .content(content)
+            .build();
+    }
+
+    private String formatPaymentContent(
+        String template,
+        String courseId,
+        String studentName
+    ) {
+        return template
+            .replace("{courseId}", courseId)
+            .replace("{studentName}", studentName)
+            .replace("{timestamp}", String.valueOf(System.currentTimeMillis() / 1000));
+    }
+}
+```
+
+**Frontend - KiteHub Payment UI:**
+```tsx
+// frontend/app/(dashboard)/subscription/upgrade/page.tsx
+'use client';
+
+import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Copy, Check } from 'lucide-react';
+
+export default function UpgradePage() {
+  const [qrData, setQRData] = useState<VietQRResponse | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleUpgrade = async (tier: 'BASIC' | 'STANDARD' | 'PREMIUM') => {
+    const response = await fetch('/api/v1/payment/subscription/generate-qr', {
+      method: 'POST',
+      body: JSON.stringify({ tier })
+    });
+
+    const data = await response.json();
+    setQRData(data);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      {!qrData ? (
+        // Tier selection
+        <div className="grid gap-4 md:grid-cols-3">
+          <TierCard tier="BASIC" price="499,000" onSelect={handleUpgrade} />
+          <TierCard tier="STANDARD" price="999,000" onSelect={handleUpgrade} />
+          <TierCard tier="PREMIUM" price="1,499,000" onSelect={handleUpgrade} />
+        </div>
+      ) : (
+        // Payment QR display
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            Quét mã QR để thanh toán
+          </h2>
+
+          {/* QR Code */}
+          <div className="flex justify-center mb-6">
+            <div className="p-4 bg-white rounded-lg shadow-lg">
+              <img
+                src={qrData.qrDataUrl}
+                alt="VietQR"
+                className="w-64 h-64"
+              />
+            </div>
+          </div>
+
+          {/* Bank info */}
+          <div className="space-y-3 mb-6">
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="text-sm text-muted-foreground">Ngân hàng:</span>
+              <span className="font-semibold">{qrData.bankName}</span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="text-sm text-muted-foreground">Số tài khoản:</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono">{qrData.accountNumber}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(qrData.accountNumber)}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="text-sm text-muted-foreground">Chủ tài khoản:</span>
+              <span className="font-semibold">{qrData.accountName}</span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-primary/10 rounded">
+              <span className="text-sm text-muted-foreground">Số tiền:</span>
+              <span className="text-xl font-bold text-primary">
+                {qrData.amount.toLocaleString('vi-VN')} đ
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="text-sm text-muted-foreground">Nội dung:</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm">{qrData.content}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(qrData.content)}
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              ⚠️ <strong>Quan trọng:</strong> Vui lòng ghi ĐÚNG nội dung chuyển khoản
+              để hệ thống tự động xác nhận thanh toán.
+            </AlertDescription>
+          </Alert>
+
+          {/* Payment verification status */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">
+              Sau khi chuyển khoản, hệ thống sẽ tự động xác nhận trong vòng 1-2 phút.
+            </p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Tôi đã chuyển khoản
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+```
+
+**Frontend - Instance Payment Settings (OWNER configurable):**
+```tsx
+// frontend/app/(dashboard)/settings/payment/page.tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+const bankAccountSchema = z.object({
+  bankCode: z.string().min(1, 'Vui lòng chọn ngân hàng'),
+  accountNumber: z.string().min(8, 'Số tài khoản không hợp lệ'),
+  accountName: z.string().min(1, 'Vui lòng nhập tên chủ tài khoản'),
+  qrTemplate: z.string().min(1, 'Vui lòng nhập mẫu nội dung chuyển khoản')
+});
+
+export default function PaymentSettingsPage() {
+  const form = useForm({
+    resolver: zodResolver(bankAccountSchema),
+    defaultValues: {
+      bankCode: '',
+      accountNumber: '',
+      accountName: '',
+      qrTemplate: 'HOCPHI {courseId} {studentName}'
+    }
+  });
+
+  const [previewQR, setPreviewQR] = useState<string | null>(null);
+
+  const handlePreview = async () => {
+    const values = form.getValues();
+
+    // Generate preview QR
+    const response = await fetch('/api/v1/instance/payment/preview-qr', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...values,
+        amount: 2000000, // Sample amount
+        content: values.qrTemplate
+          .replace('{courseId}', 'SAMPLE123')
+          .replace('{studentName}', 'Nguyen Van A')
+      })
+    });
+
+    const data = await response.json();
+    setPreviewQR(data.qrDataUrl);
+  };
+
+  const handleSave = async (data: BankAccountForm) => {
+    await fetch('/api/v1/instance/payment/bank-account', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+
+    toast.success('Đã cập nhật thông tin chuyển khoản');
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Cấu hình thanh toán</h1>
+
+      <Alert className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>VietQR Payment</AlertTitle>
+        <AlertDescription>
+          Cấu hình tài khoản ngân hàng để nhận thanh toán từ học viên.
+          Hệ thống sẽ tự động tạo mã QR cho mỗi giao dịch.
+        </AlertDescription>
+      </Alert>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
+
+          {/* Bank selection */}
+          <FormField
+            control={form.control}
+            name="bankCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ngân hàng</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn ngân hàng" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="970415">Vietcombank</SelectItem>
+                    <SelectItem value="970416">ACB</SelectItem>
+                    <SelectItem value="970418">BIDV</SelectItem>
+                    <SelectItem value="970422">MB Bank</SelectItem>
+                    <SelectItem value="970423">Techcombank</SelectItem>
+                    <SelectItem value="970436">Vietinbank</SelectItem>
+                    {/* More banks... */}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Account number */}
+          <FormField
+            control={form.control}
+            name="accountNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số tài khoản</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="1234567890"
+                    {...field}
+                    className="font-mono"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Account name */}
+          <FormField
+            control={form.control}
+            name="accountName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên chủ tài khoản</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="NGUYEN VAN A"
+                    {...field}
+                    className="uppercase"
+                  />
+                </FormControl>
+                <FormDescription>
+                  Nhập tên CHÍNH XÁC như trên tài khoản ngân hàng (viết hoa, không dấu)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* QR content template */}
+          <FormField
+            control={form.control}
+            name="qrTemplate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mẫu nội dung chuyển khoản</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="HOCPHI {courseId} {studentName}"
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Sử dụng biến: {'{courseId}'}, {'{studentName}'}, {'{timestamp}'}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Preview button */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePreview}
+            className="w-full"
+          >
+            Xem trước mã QR
+          </Button>
+
+          {/* QR Preview */}
+          {previewQR && (
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4 text-center">Mã QR mẫu</h3>
+              <div className="flex justify-center">
+                <img src={previewQR} alt="Preview QR" className="w-48 h-48" />
+              </div>
+              <p className="text-sm text-muted-foreground text-center mt-4">
+                Học viên sẽ thấy mã QR này khi đăng ký khóa học
+              </p>
+            </Card>
+          )}
+
+          {/* Save button */}
+          <Button type="submit" className="w-full">
+            Lưu cấu hình
+          </Button>
+        </form>
+      </Form>
+    </div>
+  );
+}
+```
+
+---
+
+#### **Payment Verification:**
+
+**Manual verification (MVP):**
+```java
+// backend/src/services/payment/PaymentVerificationService.java
+@Service
+public class PaymentVerificationService {
+
+    /**
+     * OWNER manually confirms payment
+     */
+    public void manualConfirmPayment(
+        String orderId,
+        String transactionReference,
+        LocalDateTime paidAt
+    ) {
+        PaymentOrder order = paymentRepo.findById(orderId)
+            .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        order.setStatus(PaymentStatus.PAID);
+        order.setTransactionReference(transactionReference);
+        order.setPaidAt(paidAt);
+
+        paymentRepo.save(order);
+
+        // Trigger post-payment actions (activate subscription, enroll student, etc.)
+        paymentEventPublisher.publish(new PaymentConfirmedEvent(order));
+    }
+}
+```
+
+**Automated verification (V2 - Optional):**
+```java
+// Use bank API webhooks (if available)
+// Vietcombank, Techcombank có Business API
+@RestController
+@RequestMapping("/api/v1/webhooks/bank")
+public class BankWebhookController {
+
+    /**
+     * Receive bank transfer notification
+     */
+    @PostMapping("/transfer-notification")
+    public ResponseEntity<?> handleTransferNotification(
+        @RequestBody BankTransferNotification notification
+    ) {
+        // Verify webhook signature
+        if (!verifyWebhookSignature(notification)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        // Match transfer content with order
+        String content = notification.getTransferContent();
+        PaymentOrder order = paymentRepo.findByContentMatch(content)
+            .orElse(null);
+
+        if (order != null && notification.getAmount() == order.getAmount()) {
+            order.setStatus(PaymentStatus.PAID);
+            order.setTransactionReference(notification.getTransactionId());
+            order.setPaidAt(notification.getTransferTime());
+            paymentRepo.save(order);
+
+            paymentEventPublisher.publish(new PaymentConfirmedEvent(order));
+        }
+
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+---
+
+#### **Which PR includes payment?**
+
+- ✅ **PR 3.10 (Billing Module)** - KiteHub subscription payment
+- ✅ **PR 3.8 (Courses Module)** - Instance enrollment payment (Owner configurable)
+
+---
+
+### Q5.2.2: Email Service ✅ ANSWERED
+
+**Decision:** AWS SES (Simple Email Service)
+
+**Rationale:**
+- ✅ Cost-effective: $0.10 per 1,000 emails (first 62,000 free)
+- ✅ High deliverability (99%+ inbox rate)
+- ✅ Easy integration with Spring Boot
+- ✅ Templates support
+- ✅ Bounce/complaint handling
+
+**Alternative:** SendGrid (if AWS SES not available)
+
+**Use cases:**
+- Trial expiration warnings (Day 11, 13, 14, +1, +2, +3)
+- Welcome emails (new user registration)
+- Password reset
+- Course enrollment confirmation
+- Payment confirmation
+- Monthly report for OWNER
+
+**Implementation:**
+```java
+// backend/src/services/email/EmailService.java
+@Service
+public class EmailService {
+
+    private final AmazonSimpleEmailService sesClient;
+
+    public void sendTrialExpirationWarning(User user, int daysLeft) {
+        String subject = String.format(
+            "⚠️ Còn %d ngày sử dụng thử KiteClass",
+            daysLeft
+        );
+
+        String htmlBody = renderTemplate("trial-expiration-warning.html", Map.of(
+            "userName", user.getName(),
+            "daysLeft", daysLeft,
+            "upgradeUrl", "https://kiteclass.com/upgrade"
+        ));
+
+        send(user.getEmail(), subject, htmlBody);
+    }
+}
+```
+
+**Setup required:**
+- ✅ AWS SES credentials (Access Key, Secret Key)
+- ✅ Verify sender domain (kiteclass.com)
+- ✅ Email templates (Thymeleaf or HTML)
+- ✅ Unsubscribe link (GDPR compliance)
+
+---
+
+### Q5.2.3: SMS/OTP Service ✅ ANSWERED
+
+**Decision:** Keep existing Zalo OTP
+
+**Rationale:**
+- ✅ Already implemented (backend has Zalo OTP)
+- ✅ Popular in Vietnam
+- ✅ Cost-effective
+- ✅ Good deliverability
+
+**Use cases:**
+- Trial signup verification (prevent fraud)
+- Student registration (verify phone)
+- Parent registration (verify phone)
+- Password reset (secondary method)
+
+**No changes needed** - Continue using existing Zalo OTP service.
+
+**Backup option:** Add Twilio SMS for international numbers (post-MVP)
+
+---
 

@@ -2931,6 +2931,337 @@ describe('Public Landing Page', () => {
 });
 ```
 
+## B2B Owner-Centric Model (PART 4)
+
+**Critical:** KiteClass follows a **B2B owner-centric model**, NOT B2C:
+- Trial is for **CENTER_OWNER** only (business owners), NOT for students
+- Guests CANNOT self-register for courses
+- Guests must **contact OWNER** to enroll
+- OWNER manages all enrollments manually
+- Guest flow: Browse → Contact OWNER → Owner handles enrollment
+
+### Contact Owner Section
+
+```tsx
+// components/landing/ContactOwnerSection.tsx
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Facebook, MessageCircle, MessageSquare, Phone, Mail, AlertCircle } from 'lucide-react';
+
+interface OwnerContactInfo {
+  ownerName: string;
+  phone?: string;
+  email?: string;
+  facebookUrl?: string;
+  messengerUrl?: string;
+  zaloUrl?: string;
+}
+
+interface ContactOwnerSectionProps {
+  contactInfo: OwnerContactInfo;
+}
+
+/**
+ * ContactOwnerSection - Hiển thị thông tin liên hệ OWNER
+ *
+ * IMPORTANT: B2B Model - Guest KHÔNG thể tự đăng ký
+ * Guest phải liên hệ OWNER để được tư vấn và tuyển sinh
+ */
+export function ContactOwnerSection({ contactInfo }: ContactOwnerSectionProps) {
+  return (
+    <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
+      <CardHeader>
+        <CardTitle>📞 Liên hệ tư vấn</CardTitle>
+        <CardDescription>
+          Bạn quan tâm đến khóa học? Liên hệ trực tiếp với trung tâm!
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Owner name */}
+        <div>
+          <h4 className="font-semibold mb-2">
+            Liên hệ: {contactInfo.ownerName}
+          </h4>
+        </div>
+
+        {/* Contact buttons - Prominent & Mobile-friendly */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {/* Facebook */}
+          {contactInfo.facebookUrl && (
+            <Button
+              variant="outline"
+              className="h-12"
+              onClick={() => window.open(contactInfo.facebookUrl, '_blank')}
+            >
+              <Facebook className="mr-2 h-5 w-5 text-blue-600" />
+              Facebook
+            </Button>
+          )}
+
+          {/* Messenger */}
+          {contactInfo.messengerUrl && (
+            <Button
+              variant="outline"
+              className="h-12"
+              onClick={() => window.open(contactInfo.messengerUrl, '_blank')}
+            >
+              <MessageCircle className="mr-2 h-5 w-5 text-blue-500" />
+              Messenger
+            </Button>
+          )}
+
+          {/* Zalo */}
+          {contactInfo.zaloUrl && (
+            <Button
+              variant="outline"
+              className="h-12"
+              onClick={() => window.open(contactInfo.zaloUrl, '_blank')}
+            >
+              <MessageSquare className="mr-2 h-5 w-5 text-blue-700" />
+              Zalo
+            </Button>
+          )}
+
+          {/* Phone */}
+          {contactInfo.phone && (
+            <Button
+              variant="outline"
+              className="h-12"
+              onClick={() => window.location.href = `tel:${contactInfo.phone}`}
+            >
+              <Phone className="mr-2 h-5 w-5 text-green-600" />
+              {contactInfo.phone}
+            </Button>
+          )}
+
+          {/* Email */}
+          {contactInfo.email && (
+            <Button
+              variant="outline"
+              className="h-12 col-span-2 md:col-span-1"
+              onClick={() => window.location.href = `mailto:${contactInfo.email}`}
+            >
+              <Mail className="mr-2 h-5 w-5 text-red-600" />
+              {contactInfo.email}
+            </Button>
+          )}
+        </div>
+
+        {/* B2B Model Alert */}
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            💡 <strong>Lưu ý:</strong> Chúng tôi không hỗ trợ đăng ký trực tuyến.
+            Vui lòng liên hệ trung tâm để được tư vấn chi tiết về khóa học
+            và thủ tục tuyển sinh.
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Public Course Visibility Control
+
+```typescript
+// types/course.ts
+export enum PublicVisibility {
+  PRIVATE = 'PRIVATE',  // Guest không thấy
+  PUBLIC = 'PUBLIC'     // Guest thấy trong public catalog
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  publicVisibility: PublicVisibility; // Admin-controlled
+  // ... other fields
+}
+```
+
+```tsx
+// components/forms/CourseForm.tsx
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+function CourseForm() {
+  return (
+    <Form>
+      {/* ... existing fields ... */}
+
+      {/* Public Visibility Control */}
+      <FormField
+        control={form.control}
+        name="publicVisibility"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>🌐 Public Visibility</FormLabel>
+            <FormDescription>
+              Kiểm soát khóa học có hiển thị trên trang web công khai không
+            </FormDescription>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className="flex flex-col space-y-1"
+              >
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="PRIVATE" />
+                  </FormControl>
+                  <FormLabel className="font-normal">
+                    🔒 Private - Chỉ thành viên mới thấy
+                  </FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="PUBLIC" />
+                  </FormControl>
+                  <FormLabel className="font-normal">
+                    🌍 Public - Hiển thị trên website công khai
+                  </FormLabel>
+                </FormItem>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Warning when PUBLIC */}
+      {form.watch('publicVisibility') === 'PUBLIC' && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Public Course</AlertTitle>
+          <AlertDescription>
+            Khóa học này sẽ hiển thị trên trang web công khai.
+            Guest có thể xem thông tin nhưng KHÔNG thể tự đăng ký.
+            Guest phải liên hệ OWNER để tuyển sinh (B2B model).
+          </AlertDescription>
+        </Alert>
+      )}
+    </Form>
+  );
+}
+```
+
+### Trial System - B2B Model
+
+```typescript
+// types/trial.ts
+
+/**
+ * CRITICAL: Trial chỉ dành cho CENTER_OWNER (business owners)
+ * KHÔNG dành cho students hoặc end-users
+ */
+export interface TrialConfig {
+  // Trial duration
+  trialDurationDays: 14;
+  gracePeriodDays: 3;          // Read-only mode
+  dataRetentionDays: 90;       // After grace period
+
+  // Base tier during trial
+  baseTier: 'BASIC';           // 50 students, 10 courses
+
+  // Features available during trial (ALL features FREE)
+  availableFeatures: [
+    'ENGAGEMENT',  // Attendance, grades, progress tracking
+    'MEDIA',       // Image/video in lessons
+    'PREMIUM'      // Analytics, reporting, AI branding
+  ];
+
+  // Early-bird discount
+  earlyBirdDiscount: {
+    percentage: 20;
+    validDays: 10;             // Day 1-10 of trial
+    message: 'Giảm 20% nếu nâng cấp trong 10 ngày đầu!';
+  };
+
+  // Duplicate prevention
+  preventDuplicateTrial: {
+    checkEmail: true;
+    checkPhone: true;
+    checkBusinessName: false;  // Allow multiple trials per business (different locations)
+  };
+}
+
+export interface TrialUser {
+  id: string;
+  email: string;
+  phone: string;
+  role: 'CENTER_OWNER';        // MUST be OWNER
+  accountType: 'TRIAL';
+  trialStartedAt: Date;
+  trialExpiresAt: Date;
+  organizationName: string;    // Business name
+
+  // Trial limitations
+  limitations: {
+    maxStudents: 50;
+    maxCourses: 10;
+    // All features available
+  };
+}
+```
+
+```tsx
+// components/trial/TrialSignupForm.tsx
+export function TrialSignupForm() {
+  return (
+    <form>
+      <h2 className="text-2xl font-bold mb-4">Dùng thử 14 ngày</h2>
+      <p className="text-muted-foreground mb-6">
+        ✨ Dành cho <strong>chủ trung tâm</strong> muốn trải nghiệm hệ thống quản lý.
+        Đầy đủ tính năng, không cần thẻ tín dụng.
+      </p>
+
+      <Alert className="mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          🎯 <strong>B2B Model:</strong> Trial dành cho chủ trung tâm (CENTER_OWNER).
+          Sau khi đăng ký, bạn sẽ có instance riêng để quản lý học viên và khóa học.
+        </AlertDescription>
+      </Alert>
+
+      <Input
+        name="organizationName"
+        label="Tên trung tâm"
+        required
+      />
+      <Input
+        name="name"
+        label="Họ và tên (Chủ trung tâm)"
+        required
+      />
+      <Input
+        name="email"
+        type="email"
+        label="Email"
+        required
+      />
+      <Input
+        name="phone"
+        type="tel"
+        label="Số điện thoại"
+        required
+      />
+
+      <Button type="submit" className="w-full">
+        Bắt đầu dùng thử
+      </Button>
+
+      <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+        <p>✅ 14 ngày dùng thử đầy đủ tính năng</p>
+        <p>✅ Không cần thẻ tín dụng</p>
+        <p>✅ Giảm 20% nếu nâng cấp trong 10 ngày đầu</p>
+        <p>✅ Hỗ trợ thiết lập miễn phí</p>
+      </div>
+    </form>
+  );
+}
+```
+
 ## Best Practices
 
 ### ✅ DO
@@ -2941,6 +3272,11 @@ describe('Public Landing Page', () => {
 - Provide clear CTAs for trial signup
 - Handle trial expiration gracefully
 - Use SSR for public pages (SEO)
+- **Display ContactOwnerSection prominently on public course pages** ⭐ NEW
+- **Emphasize B2B model - trial for OWNER, not students** ⭐ NEW
+- **Allow ADMIN to control Course.publicVisibility** ⭐ NEW
+- **Track guest analytics for OWNER insights** ⭐ NEW
+- **Show contact buttons (Facebook, Messenger, Zalo) prominently** ⭐ NEW
 
 ### ❌ DON'T
 - Don't show authenticated content to guests
@@ -2949,6 +3285,10 @@ describe('Public Landing Page', () => {
 - Don't lose guest progress on signup
 - Don't forget GDPR compliance for guest tracking
 - Don't skip loading states on auth check
+- **Don't allow guests to self-register for courses** ⭐ NEW (B2B model)
+- **Don't give trial access to students** ⭐ NEW (OWNER only)
+- **Don't hide contact information from guests** ⭐ NEW
+- **Don't auto-enroll guests** ⭐ NEW (manual OWNER-led process)
 
 ---
 
@@ -3171,11 +3511,19 @@ git commit -m "docs: bổ sung báo cáo Preview Website bằng tiếng Việt
 6. ✅ Multi-tenant theme system (PART 11)
 7. ✅ Feature flag system & tier-based UI (PART 12)
 8. ✅ AI-generated content integration (PART 13)
-9. ✅ Guest user & public routes (PART 14)
-10. ✅ Documentation standards (PART 15) - **NEW**
+9. ✅ Guest user & public routes (PART 14) - **UPDATED with B2B model**
+10. ✅ Documentation standards (PART 15)
 
 **Tất cả requirements từ 4 architecture concerns đã được addressed:**
-- ✅ Pricing tier UI customization → PART 12
-- ✅ AI Branding system → PART 13
-- ✅ Guest user support & marketing platform → PART 14
-- ⚠️ Preview Website → Still undefined in architecture
+- ✅ Pricing tier UI customization → PART 12 (Feature Detection & Tier-based UI)
+- ✅ AI Branding system → PART 13 (AI-Generated Assets Integration)
+- ✅ Preview Website → PART 14 (Public Marketing Landing Page) + Best Practices Report
+- ✅ Guest user & Trial system → PART 14 (B2B Owner-Centric Model)
+
+**PART 14 updates (PART 4: Guest & Trial System):**
+- ✅ B2B owner-centric model (trial for OWNER only, not students)
+- ✅ ContactOwnerSection component (Facebook, Messenger, Zalo buttons)
+- ✅ Public course visibility control (Course.publicVisibility toggle)
+- ✅ No auto-enrollment (guests contact OWNER)
+- ✅ Guest analytics tracking for OWNER insights
+- ✅ Trial system specifications (14 days, grace period, early-bird discount)

@@ -2803,11 +2803,121 @@ Tự động tạo từ AI branding assets (PART 2) + instance data.
    - CourseHeader.tsx (title, instructor, price)
    - CourseSyllabus.tsx (curriculum preview)
    - InstructorBio.tsx
+   - ContactOwnerSection.tsx ⭐ NEW (PART 4)
    - EnrollmentCTA.tsx ("Đăng ký ngay" → /login)
    - RelatedCourses.tsx
    ```
 
-5. SEO Optimization:
+5. **ContactOwnerSection Component** ⭐ NEW (PART 4):
+   ```typescript
+   // components/landing/ContactOwnerSection.tsx
+   // Hiển thị thông tin liên hệ OWNER (B2B model - guest contact OWNER)
+
+   interface OwnerContactInfo {
+     ownerName: string;
+     phone?: string;
+     email?: string;
+     facebookUrl?: string;
+     messengerUrl?: string;
+     zaloUrl?: string;
+   }
+
+   export function ContactOwnerSection({ contactInfo }: Props) {
+     return (
+       <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
+         <CardHeader>
+           <CardTitle>📞 Liên hệ tư vấn</CardTitle>
+           <CardDescription>
+             Bạn quan tâm đến khóa học? Liên hệ trực tiếp với trung tâm!
+           </CardDescription>
+         </CardHeader>
+         <CardContent className="space-y-4">
+           {/* Owner name */}
+           <div>
+             <h4 className="font-semibold mb-2">
+               Liên hệ: {contactInfo.ownerName}
+             </h4>
+           </div>
+
+           {/* Contact buttons - Prominent & Mobile-friendly */}
+           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+             {/* Facebook */}
+             {contactInfo.facebookUrl && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.open(contactInfo.facebookUrl, '_blank')}
+               >
+                 <Facebook className="mr-2 h-5 w-5 text-blue-600" />
+                 Facebook
+               </Button>
+             )}
+
+             {/* Messenger */}
+             {contactInfo.messengerUrl && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.open(contactInfo.messengerUrl, '_blank')}
+               >
+                 <MessageCircle className="mr-2 h-5 w-5 text-blue-500" />
+                 Messenger
+               </Button>
+             )}
+
+             {/* Zalo */}
+             {contactInfo.zaloUrl && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.open(contactInfo.zaloUrl, '_blank')}
+               >
+                 <MessageSquare className="mr-2 h-5 w-5 text-blue-700" />
+                 Zalo
+               </Button>
+             )}
+
+             {/* Phone */}
+             {contactInfo.phone && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.location.href = `tel:${contactInfo.phone}`}
+               >
+                 <Phone className="mr-2 h-5 w-5 text-green-600" />
+                 {contactInfo.phone}
+               </Button>
+             )}
+
+             {/* Email */}
+             {contactInfo.email && (
+               <Button
+                 variant="outline"
+                 className="h-12 col-span-2 md:col-span-1"
+                 onClick={() => window.location.href = `mailto:${contactInfo.email}`}
+               >
+                 <Mail className="mr-2 h-5 w-5 text-red-600" />
+                 {contactInfo.email}
+               </Button>
+             )}
+           </div>
+
+           {/* CTA message */}
+           <Alert>
+             <AlertCircle className="h-4 w-4" />
+             <AlertDescription>
+               💡 <strong>B2B Model:</strong> Guest không thể tự đăng ký.
+               Vui lòng liên hệ OWNER để được tư vấn chi tiết về khóa học
+               và thủ tục tuyển sinh.
+             </AlertDescription>
+           </Alert>
+         </CardContent>
+       </Card>
+     );
+   }
+   ```
+
+6. SEO Optimization:
    ```typescript
    // app/(public)/page.tsx
    export async function generateMetadata(): Promise<Metadata> {
@@ -2832,12 +2942,12 @@ Tự động tạo từ AI branding assets (PART 2) + instance data.
    }
    ```
 
-6. ISR Configuration:
+7. ISR Configuration:
    ```typescript
    export const revalidate = 3600 // Revalidate mỗi 1 giờ
    ```
 
-7. Mobile Responsive:
+8. Mobile Responsive:
    - Tailwind breakpoints (sm, md, lg, xl)
    - Mobile-first design
    - Touch-friendly CTAs
@@ -2850,6 +2960,7 @@ Tự động tạo từ AI branding assets (PART 2) + instance data.
   - course-card.test.tsx
   - course-catalog-section.test.tsx
   - instructor-section.test.tsx
+  - contact-owner-section.test.tsx ⭐ NEW (PART 4)
   ```
 
 - E2E tests (Playwright):
@@ -3106,12 +3217,124 @@ Thực hiện Courses và Classes module.
 - api-design.md: Course, Class API endpoints
 - code-style.md: React patterns
 
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6E: Guest & Trial System
+- frontend-code-quality.md PART 14: Guest User & Public Routes
+
 **Tasks:**
 1. Tạo useCourses hook
 2. Tạo useClasses, useClassSessions hooks
 3. Tạo validation schemas
 4. Tạo CourseForm, ClassForm components
-5. Tạo pages:
+5. **Public Visibility Control** ⭐ NEW (PART 4):
+   ```typescript
+   // types/course.ts
+   export enum PublicVisibility {
+     PRIVATE = 'PRIVATE',  // Guest không thấy
+     PUBLIC = 'PUBLIC'     // Guest thấy trong public catalog
+   }
+
+   export interface Course {
+     id: string;
+     title: string;
+     publicVisibility: PublicVisibility; // Admin-controlled
+     // ... other fields
+   }
+   ```
+
+6. **CourseForm - Add Public Visibility Toggle** ⭐ NEW (PART 4):
+   ```tsx
+   // components/forms/CourseForm.tsx
+   function CourseForm() {
+     return (
+       <Form>
+         {/* ... existing fields ... */}
+
+         {/* Public Visibility Section */}
+         <FormField
+           control={form.control}
+           name="publicVisibility"
+           render={({ field }) => (
+             <FormItem>
+               <FormLabel>🌐 Public Visibility</FormLabel>
+               <FormDescription>
+                 Kiểm soát khóa học có hiển thị trên trang web công khai không
+               </FormDescription>
+               <FormControl>
+                 <RadioGroup
+                   onValueChange={field.onChange}
+                   defaultValue={field.value}
+                   className="flex flex-col space-y-1"
+                 >
+                   <FormItem className="flex items-center space-x-3 space-y-0">
+                     <FormControl>
+                       <RadioGroupItem value="PRIVATE" />
+                     </FormControl>
+                     <FormLabel className="font-normal">
+                       🔒 Private - Chỉ thành viên mới thấy
+                     </FormLabel>
+                   </FormItem>
+                   <FormItem className="flex items-center space-x-3 space-y-0">
+                     <FormControl>
+                       <RadioGroupItem value="PUBLIC" />
+                     </FormControl>
+                     <FormLabel className="font-normal">
+                       🌍 Public - Hiển thị trên website công khai (Guest thấy)
+                     </FormLabel>
+                   </FormItem>
+                 </RadioGroup>
+               </FormControl>
+               <FormMessage />
+             </FormItem>
+           )}
+         />
+
+         {/* Warning Alert when PUBLIC */}
+         {form.watch('publicVisibility') === 'PUBLIC' && (
+           <Alert>
+             <AlertCircle className="h-4 w-4" />
+             <AlertTitle>Public Course</AlertTitle>
+             <AlertDescription>
+               Khóa học này sẽ hiển thị trên trang web công khai.
+               Guest có thể xem thông tin nhưng KHÔNG thể tự đăng ký.
+               Guest phải liên hệ OWNER để tuyển sinh (B2B model).
+             </AlertDescription>
+           </Alert>
+         )}
+       </Form>
+     );
+   }
+   ```
+
+7. **Course List - Display Visibility Badge** ⭐ NEW (PART 4):
+   ```tsx
+   // components/courses/CourseListItem.tsx
+   function CourseListItem({ course }: Props) {
+     return (
+       <Card>
+         <CardHeader>
+           <div className="flex items-center justify-between">
+             <CardTitle>{course.title}</CardTitle>
+             {/* Visibility badge */}
+             {course.publicVisibility === 'PUBLIC' ? (
+               <Badge variant="success" className="gap-1">
+                 <Globe className="h-3 w-3" />
+                 Public
+               </Badge>
+             ) : (
+               <Badge variant="secondary" className="gap-1">
+                 <Lock className="h-3 w-3" />
+                 Private
+               </Badge>
+             )}
+           </div>
+         </CardHeader>
+       </Card>
+     );
+   }
+   ```
+
+8. Tạo pages:
    - Courses: list, detail, create/edit
    - Classes: list, detail (với tabs), create/edit
    - Class detail tabs: Info, Students, Sessions
@@ -3121,8 +3344,15 @@ Thực hiện Courses và Classes module.
   - use-courses.test.ts
   - use-classes.test.ts
 - src/__tests__/components/forms/
-  - course-form.test.tsx
+  - course-form.test.tsx ⭐ UPDATED (PART 4):
+    - Test public visibility toggle
+    - Test warning alert when PUBLIC selected
+    - Test validation for publicVisibility field
   - class-form.test.tsx
+- src/__tests__/components/courses/
+  - course-list-item.test.tsx ⭐ NEW (PART 4):
+    - Test PUBLIC badge display
+    - Test PRIVATE badge display
 - src/__tests__/app/dashboard/
   - courses-page.test.tsx
   - classes-page.test.tsx
@@ -3131,6 +3361,8 @@ Thực hiện Courses và Classes module.
 **Verification:**
 - pnpm test phải pass
 - Class schedules hiển thị đúng
+- Public visibility toggle working (ADMIN can set PRIVATE/PUBLIC) ⭐ NEW (PART 4)
+- Visibility badges display correctly ⭐ NEW (PART 4)
 ```
 
 ## ⏳ PR 3.9 - Attendance Module
@@ -3168,39 +3400,340 @@ Thực hiện Attendance module.
 - Mark attendance cho class hoạt động
 ```
 
-## ⏳ PR 3.10 - Billing Module
+## ⏳ PR 3.10 - Billing & VietQR Payment System
 
 ```
-Thực hiện Billing module.
+Thực hiện Billing module với VietQR payment integration (2 levels).
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6F: Payment System (VietQR)
+- Best practice: Zero transaction fees, instant transfer
 
 **Tuân thủ skills:**
-- ui-components.md: data display, forms
-- api-design.md: Invoice & Payment API endpoints
+- ui-components.md: payment UI, QR display
+- api-design.md: Payment API endpoints
 - code-style.md: React patterns
 
-**Tasks:**
-1. Tạo useInvoices, usePayments hooks
-2. Tạo InvoiceForm, PaymentForm components
-3. Tạo pages:
-   - Invoices list với filters (status, date range)
-   - Invoice detail với payment history
-   - Create invoice
-   - Record payment dialog
+**Mục đích:**
+- KiteHub subscription payment (Level 1)
+- Instance enrollment payment (Level 2 - Owner configurable)
+- VietQR QR code generation & display
+- Manual payment verification (MVP)
+
+**Chia thành 3 sub-PRs (1 tuần total):**
+
+### PR 3.10a: Backend VietQR Service (2 ngày)
+
+**Backend Tasks:**
+1. Add Payment entities:
+   ```java
+   // PaymentOrder.java
+   - orderId (String, unique)
+   - type (SUBSCRIPTION | ENROLLMENT)
+   - user (ManyToOne)
+   - amount (Long, VND)
+   - tier (for subscription)
+   - status (PENDING | PAID | EXPIRED | CANCELLED)
+   - qrImageUrl (String)
+   - paymentContent (String)
+   - transactionReference (String, nullable)
+   - paidAt (LocalDateTime, nullable)
+   - createdAt, expiresAt (LocalDateTime)
+   ```
+
+2. Implement VietQR services:
+   ```java
+   // KiteHubPaymentService.java
+   - createSubscriptionOrder(User, PricingTier) → PaymentOrderResponse
+   - confirmPayment(orderId, transactionRef, paidAt) → void
+   - expireOldOrders() → void (cron job)
+
+   // InstancePaymentService.java
+   - generateEnrollmentQR(instanceId, courseId, studentName, amount) → VietQRResponse
+   - updateBankAccount(instanceId, BankAccountInfo) → void
+   - previewQR(BankAccountPreviewRequest) → VietQRResponse
+   ```
+
+3. VietQR URL builder:
+   ```java
+   // VietQRUtil.java
+   String buildVietQRUrl(
+     String bankBin,        // "970415" (Vietcombank)
+     String accountNumber,  // "1234567890"
+     String accountName,    // "NGUYEN VAN A"
+     long amount,           // 499000 (VND)
+     String content         // "KITEHUB ORD-123 user@example.com"
+   )
+   // Returns: https://img.vietqr.io/image/{bankBin}-{accountNumber}-compact2.jpg?amount={amount}&addInfo={content}&accountName={accountName}
+   ```
+
+4. APIs:
+   ```
+   POST /api/v1/payment/subscription/create
+   GET  /api/v1/payment/orders/{orderId}/status
+   POST /api/v1/admin/payments/{orderId}/confirm
+   GET  /api/v1/admin/payments/pending
+
+   GET  /api/v1/instance/payment/bank-account
+   PUT  /api/v1/instance/payment/bank-account
+   POST /api/v1/instance/payment/preview-qr
+   POST /api/v1/instance/enrollments/{enrollmentId}/generate-qr
+   POST /api/v1/instance/enrollments/{enrollmentId}/confirm-payment
+   ```
+
+5. Security:
+   - Order ID generation (secure random + timestamp)
+   - 24-hour expiry for payment orders
+   - Access control (OWNER only for bank config)
+   - Double-payment prevention
+   - Audit logging
 
 **Tests (bắt buộc):**
-- src/__tests__/hooks/
-  - use-invoices.test.ts
-  - use-payments.test.ts
-- src/__tests__/components/forms/
-  - invoice-form.test.tsx
-  - payment-form.test.tsx
-- src/__tests__/app/dashboard/
-  - invoices-page.test.tsx
-  - invoice-detail-page.test.tsx
+- Unit tests: VietQRUtil, VietQR services
+- Integration tests: All payment APIs
+- Security tests: Access control, order expiry
+- E2E tests: Full payment flow (create → display QR → confirm)
+
+**Files:**
+- backend/src/main/java/com/kiteclass/entity/PaymentOrder.java
+- backend/src/main/java/com/kiteclass/service/payment/
+  - KiteHubPaymentService.java
+  - InstancePaymentService.java
+  - VietQRUtil.java
+- backend/src/main/java/com/kiteclass/api/
+  - PaymentController.java
+  - AdminPaymentController.java
+- backend/src/test/java/com/kiteclass/service/payment/
+
+**Verification:**
+- All tests pass
+- VietQR URLs generate correctly
+- Payment orders persist correctly
+- Expiry cron job works
+
+---
+
+### PR 3.10b: Frontend VietQR UI (3 ngày)
+
+**Frontend Tasks:**
+
+1. Payment Types:
+   ```typescript
+   // src/types/payment.ts
+   export interface PaymentOrder {
+     orderId: string;
+     qrImageUrl: string;
+     bankName: string;
+     accountNumber: string;
+     accountName: string;
+     amount: number;
+     content: string;
+     expiresAt: string;
+     status: 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED';
+   }
+
+   export interface BankAccountInfo {
+     bankCode: string;
+     bankName: string;
+     accountNumber: string;
+     accountName: string;
+     qrTemplate: string;
+   }
+   ```
+
+2. VietQR Display Component:
+   ```tsx
+   // components/payment/VietQRDisplay.tsx
+   - QR code image display (responsive)
+   - Bank info display (bank name, account, amount, content)
+   - Copy-to-clipboard buttons (account number, content)
+   - Payment instructions alert
+   - "Tôi đã chuyển khoản" button → check status
+   - Expiry countdown timer
+   ```
+
+3. KiteHub Subscription Payment Page:
+   ```tsx
+   // app/(dashboard)/subscription/upgrade/page.tsx
+   - Tier selection cards (BASIC, STANDARD, PREMIUM)
+   - Click tier → Generate QR
+   - Display VietQRDisplay component
+   - Poll payment status every 30 seconds
+   - Redirect to dashboard when PAID
+   ```
+
+4. Instance Payment Settings:
+   ```tsx
+   // app/(dashboard)/settings/payment/page.tsx
+   - Bank selection dropdown (40+ Vietnamese banks)
+   - Account number input (validation: 8-20 digits)
+   - Account name input (uppercase, no accents validation)
+   - QR template input (with variable hints)
+   - Preview QR button
+   - Save configuration
+   ```
+
+5. Admin Payment Verification Panel:
+   ```tsx
+   // app/(dashboard)/admin/payments/pending/page.tsx
+   - List pending payment orders
+   - Display: orderId, amount, tier, user, content, createdAt
+   - "Xác nhận thanh toán" button per order
+   - Transaction reference input (optional)
+   - Confirmation dialog
+   - Success toast → order disappears from list
+   ```
+
+6. Student Enrollment Payment:
+   ```tsx
+   // app/(dashboard)/students/[id]/enrollment-payment/page.tsx
+   - Display course info
+   - Display tuition amount
+   - Generate QR button (uses owner's bank account)
+   - Display VietQRDisplay component
+   - OWNER can confirm payment manually
+   ```
+
+**Tests (bắt buộc):**
+- src/__tests__/components/payment/
+  - vietqr-display.test.tsx:
+    - Test QR image display
+    - Test copy buttons
+    - Test payment status polling
+  - bank-account-form.test.tsx:
+    - Test bank selection
+    - Test validation (account number, account name)
+    - Test QR preview
+    - Test save configuration
+- src/__tests__/app/(dashboard)/subscription/
+  - upgrade-page.test.tsx:
+    - Test tier selection
+    - Test QR generation
+    - Test payment status check
+- src/__tests__/app/(dashboard)/admin/payments/
+  - pending-payments-page.test.tsx:
+    - Test pending list display
+    - Test payment confirmation
+    - Test transaction ref input
+- src/__tests__/app/(dashboard)/settings/
+  - payment-settings-page.test.tsx:
+    - Test bank config form
+    - Test QR preview
+    - Test save button
+
+**Files:**
+- frontend/src/types/payment.ts
+- frontend/src/components/payment/
+  - VietQRDisplay.tsx
+  - BankAccountForm.tsx
+  - PaymentStatusChecker.tsx
+- frontend/src/app/(dashboard)/subscription/upgrade/page.tsx
+- frontend/src/app/(dashboard)/settings/payment/page.tsx
+- frontend/src/app/(dashboard)/admin/payments/pending/page.tsx
+- frontend/src/app/(dashboard)/students/[id]/enrollment-payment/page.tsx
+- frontend/src/hooks/
+  - use-payment.ts
+  - use-bank-account.ts
+- frontend/src/lib/api/payment.ts
+- frontend/__tests__/
 
 **Verification:**
 - pnpm test phải pass
-- Invoice totals hiển thị đúng
+- QR codes display correctly on mobile & desktop
+- Copy buttons work
+- Payment status polling works
+- Bank config saves correctly
+- QR preview matches saved config
+- Admin can confirm payments
+
+---
+
+### PR 3.10c: Integration & Polish (2 ngày)
+
+**Tasks:**
+
+1. Payment Flow Testing:
+   - End-to-end: Create order → Display QR → Confirm → Activate
+   - Test expiry: Order expires after 24 hours
+   - Test double-payment prevention
+   - Test with multiple banks
+
+2. Owner Bank Config Validation:
+   - Test all 40+ Vietnamese banks
+   - Validate account name format (uppercase, no accents)
+   - Test QR template variables ({courseId}, {studentName}, {timestamp})
+
+3. Mobile Responsiveness:
+   - QR code size optimized for mobile scanning
+   - Touch-friendly copy buttons
+   - Vertical layout on small screens
+
+4. Error Handling:
+   - Owner hasn't configured bank account → Error message
+   - QR generation fails → Retry button
+   - Payment status check fails → Retry button
+   - Order expired → Clear message + option to create new order
+
+5. Email Notifications:
+   - Payment QR generated → Email with QR to user
+   - Payment confirmed → Confirmation email
+   - Order expiring soon → Reminder email (if still pending)
+
+6. Documentation:
+   ```
+   docs/
+   - vietqr-payment-guide.md (for users)
+   - payment-verification-manual.md (for admins)
+   - owner-bank-setup-guide.md (for center owners)
+   ```
+
+**Tests:**
+- E2E tests (Playwright):
+  ```
+  src/__tests__/e2e/
+  - subscription-payment.spec.ts (full KiteHub payment flow)
+  - instance-payment-config.spec.ts (owner sets up bank)
+  - enrollment-payment.spec.ts (student enrollment payment)
+  - admin-payment-confirm.spec.ts (admin confirms payment)
+  ```
+
+**Verification:**
+- All E2E tests pass
+- Mobile responsiveness verified on real devices
+- Email notifications sent correctly
+- All error cases handled gracefully
+- Documentation complete
+
+---
+
+**Dependencies:**
+- ✅ PR 3.2: Core Infrastructure
+- ✅ PR 3.8: Courses Module (for enrollment payment)
+- ✅ Backend payment entities & services ready
+
+**Timeline:**
+- PR 3.10a: 2 ngày (Backend VietQR)
+- PR 3.10b: 3 ngày (Frontend UI)
+- PR 3.10c: 2 ngày (Integration)
+- Total: 1 tuần (7 ngày làm việc)
+
+**Deliverables:**
+- VietQR payment system hoàn chỉnh
+- 2-level architecture (KiteHub + Instance)
+- Manual verification panel (ADMIN)
+- Owner bank configuration UI
+- QR generation & display
+- Payment status polling
+- Email notifications
+- Full test coverage (unit, integration, E2E)
+- Mobile responsive
+
+**Success Metrics:**
+- Zero transaction fees (vs 1.5-3% with gateways)
+- <5 minutes average payment confirmation time (manual)
+- 100% payment accuracy (content matching)
+- 95%+ mobile usability score
+- Full audit trail for all payments
 ```
 
 ## ⏳ PR 3.11 - Settings ## ⏳ PR 3.10 - Settings & AI Branding System AI Branding System
@@ -3570,29 +4103,256 @@ Thực hiện Reports & Analytics dashboard.
 **Reference:**
 - All tiers have FULL analytics (no tier differentiation)
 - Cung cấp đủ features cho người giàu
+- system-architecture-v3-final.md PHẦN 6E.7: Guest Analytics ⭐ NEW (PART 4)
 
 **Tuân thủ skills:**
 - ui-components.md: Chart components, data visualization
 - frontend-development.md: Data fetching patterns
+- frontend-code-quality.md PART 14: Guest User & Public Routes ⭐ NEW (PART 4)
 
 **Tasks:**
 1. Tạo useReports hooks:
    - useStudentAnalytics
    - useAttendanceReports
    - useRevenueReports
+   - useGuestAnalytics ⭐ NEW (PART 4)
    - useExportReport
-2. Tạo Reports pages:
+
+2. **Guest Behavior Analytics** ⭐ NEW (PART 4):
+   ```typescript
+   // hooks/use-guest-analytics.ts
+   export function useGuestAnalytics(dateRange: DateRange) {
+     return useQuery({
+       queryKey: ['guest-analytics', dateRange],
+       queryFn: () => api.get('/api/v1/analytics/guest', { params: dateRange })
+     });
+   }
+
+   // types/analytics.ts
+   export interface GuestAnalytics {
+     // Traffic metrics
+     pageViews: {
+       landing: number;
+       courseCatalog: number;
+       courseDetails: { [courseId: string]: number };
+     };
+     uniqueVisitors: number;
+     newVsReturning: { new: number; returning: number };
+
+     // Engagement metrics
+     avgTimeOnPage: number; // seconds
+     bounceRate: number; // percentage
+     mostViewedCourses: Array<{
+       courseId: string;
+       courseTitle: string;
+       views: number;
+       uniqueVisitors: number;
+     }>;
+
+     // Conversion funnel
+     conversionFunnel: {
+       landingPageViews: number;
+       catalogViews: number;
+       courseDetailViews: number;
+       contactFormSubmissions: number;
+       conversionRate: number; // percentage
+     };
+
+     // Contact interactions
+     contactEvents: Array<{
+       timestamp: Date;
+       contactMethod: 'facebook' | 'messenger' | 'zalo' | 'phone' | 'email' | 'form';
+       courseId?: string;
+       courseName?: string;
+     }>;
+
+     // Traffic sources
+     trafficSources: {
+       direct: number;
+       organic: number; // SEO
+       social: number;
+       referral: number;
+     };
+
+     // Device breakdown
+     devices: {
+       mobile: number;
+       desktop: number;
+       tablet: number;
+     };
+   }
+   ```
+
+3. **Guest Analytics Dashboard** ⭐ NEW (PART 4):
+   ```tsx
+   // app/(dashboard)/reports/guest-analytics/page.tsx
+   export default function GuestAnalyticsPage() {
+     const { data, isLoading } = useGuestAnalytics(dateRange);
+
+     return (
+       <div className="space-y-6">
+         {/* KPI Cards */}
+         <div className="grid gap-4 md:grid-cols-4">
+           <StatsCard
+             title="Unique Visitors"
+             value={data.uniqueVisitors}
+             icon={<Users />}
+             trend="+12% from last month"
+           />
+           <StatsCard
+             title="Page Views"
+             value={data.totalPageViews}
+             icon={<Eye />}
+           />
+           <StatsCard
+             title="Contact Rate"
+             value={`${data.conversionFunnel.conversionRate}%`}
+             icon={<MessageCircle />}
+           />
+           <StatsCard
+             title="Avg Time on Page"
+             value={`${Math.round(data.avgTimeOnPage / 60)}m`}
+             icon={<Clock />}
+           />
+         </div>
+
+         {/* Conversion Funnel */}
+         <Card>
+           <CardHeader>
+             <CardTitle>🎯 Conversion Funnel</CardTitle>
+             <CardDescription>
+               Track guest journey từ landing → contact
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <FunnelChart data={data.conversionFunnel} />
+           </CardContent>
+         </Card>
+
+         {/* Top Viewed Courses */}
+         <Card>
+           <CardHeader>
+             <CardTitle>📚 Most Viewed Courses</CardTitle>
+             <CardDescription>
+               Khóa học nào thu hút guest nhiều nhất?
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead>Course</TableHead>
+                   <TableHead>Views</TableHead>
+                   <TableHead>Unique Visitors</TableHead>
+                   <TableHead>Contacts</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {data.mostViewedCourses.map(course => (
+                   <TableRow key={course.courseId}>
+                     <TableCell>{course.courseTitle}</TableCell>
+                     <TableCell>{course.views}</TableCell>
+                     <TableCell>{course.uniqueVisitors}</TableCell>
+                     <TableCell>
+                       {course.contactCount} ({course.contactRate}%)
+                     </TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+
+         {/* Contact Methods Breakdown */}
+         <Card>
+           <CardHeader>
+             <CardTitle>📞 Contact Methods</CardTitle>
+             <CardDescription>
+               Guest liên hệ qua kênh nào?
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <PieChart
+               data={[
+                 { label: 'Facebook', value: facebookCount },
+                 { label: 'Messenger', value: messengerCount },
+                 { label: 'Zalo', value: zaloCount },
+                 { label: 'Phone', value: phoneCount },
+                 { label: 'Email', value: emailCount },
+                 { label: 'Form', value: formCount },
+               ]}
+             />
+           </CardContent>
+         </Card>
+
+         {/* Traffic Sources */}
+         <Card>
+           <CardHeader>
+             <CardTitle>🔍 Traffic Sources</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <BarChart data={data.trafficSources} />
+           </CardContent>
+         </Card>
+
+         {/* Recent Contact Events */}
+         <Card>
+           <CardHeader>
+             <CardTitle>📋 Recent Contact Events</CardTitle>
+             <CardDescription>
+               Guest đã liên hệ gần đây (for OWNER follow-up)
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead>Time</TableHead>
+                   <TableHead>Course</TableHead>
+                   <TableHead>Method</TableHead>
+                   <TableHead>Action</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {data.contactEvents.slice(0, 20).map(event => (
+                   <TableRow key={event.id}>
+                     <TableCell>{formatDistanceToNow(event.timestamp)}</TableCell>
+                     <TableCell>{event.courseName || 'General inquiry'}</TableCell>
+                     <TableCell>
+                       <Badge>{event.contactMethod}</Badge>
+                     </TableCell>
+                     <TableCell>
+                       <Button size="sm" variant="outline">
+                         View Details
+                       </Button>
+                     </TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+       </div>
+     );
+   }
+   ```
+
+4. Tạo Reports pages:
    - Reports dashboard overview
    - Student analytics (enrollment trends, retention)
    - Attendance reports (by class, by date)
    - Revenue reports (by period, by course)
+   - **Guest analytics dashboard** ⭐ NEW (PART 4)
    - Custom report builder
-3. Tạo Chart components:
+
+5. Tạo Chart components:
    - LineChart (attendance trends)
    - BarChart (revenue by month)
    - PieChart (student distribution)
+   - FunnelChart (conversion funnel) ⭐ NEW (PART 4)
    - StatsCards (KPIs)
-4. Export functionality:
+
+6. Export functionality:
    - Export to Excel (XLSX)
    - Export to PDF
    - Export to CSV
@@ -3600,11 +4360,20 @@ Thực hiện Reports & Analytics dashboard.
 **Tests (bắt buộc):**
 - src/__tests__/hooks/
   - use-reports.test.ts
+  - use-guest-analytics.test.ts ⭐ NEW (PART 4)
 - src/__tests__/components/charts/
   - line-chart.test.tsx
   - bar-chart.test.tsx
+  - funnel-chart.test.tsx ⭐ NEW (PART 4)
 - src/__tests__/app/(dashboard)/reports/
   - reports-dashboard.test.tsx
+  - guest-analytics-page.test.tsx ⭐ NEW (PART 4):
+    - Test KPI cards display
+    - Test conversion funnel chart
+    - Test most viewed courses table
+    - Test contact methods breakdown
+    - Test traffic sources chart
+    - Test recent contact events table
   - export.test.ts
 
 **Verification:**
@@ -3612,6 +4381,13 @@ Thực hiện Reports & Analytics dashboard.
 - Charts render correctly
 - Export to Excel working
 - All tiers have access (no feature flag)
+- Guest analytics dashboard working ⭐ NEW (PART 4):
+  - KPIs display correctly
+  - Conversion funnel shows guest journey
+  - Most viewed courses ranked by views
+  - Contact methods breakdown accurate
+  - Traffic sources tracked (organic, direct, social, referral)
+  - Recent contact events show for OWNER follow-up
 ```
 
 ## ⏳ PR 3.14 - E2E Tests ## ⏳ PR 3.13 - E2E Tests & Polish Polish
