@@ -48,20 +48,20 @@ INTERNSHIP_INFO = {
 
 # ============== CONSTANTS ==============
 FONT_NAME = 'Times New Roman'
-FONT_SIZE_NORMAL = Pt(13)
-FONT_SIZE_CHAPTER = Pt(14)
-FONT_SIZE_SECTION = Pt(13)
-FONT_SIZE_SUBSECTION = Pt(13)
+FONT_SIZE_NORMAL = Pt(13)  # Đoạn văn
+FONT_SIZE_CHAPTER = Pt(18)  # Chương - Theo quy định UTC
+FONT_SIZE_SECTION = Pt(16)  # Mục 1.1 - Theo quy định UTC
+FONT_SIZE_SUBSECTION = Pt(14)  # Tiểu mục 1.1.1 - Theo quy định UTC
 FONT_SIZE_TABLE = Pt(12)
 FONT_SIZE_CAPTION = Pt(13)
 
-LINE_SPACING = 1.5
-FIRST_LINE_INDENT = Cm(1.27)
+LINE_SPACING = 1.2  # Theo quy định UTC
+FIRST_LINE_INDENT = Cm(1.0)  # Theo quy định UTC
 
 MARGIN_LEFT = Cm(3.0)
 MARGIN_RIGHT = Cm(2.0)
-MARGIN_TOP = Cm(2.0)
-MARGIN_BOTTOM = Cm(2.0)
+MARGIN_TOP = Cm(2.5)  # Theo quy định UTC
+MARGIN_BOTTOM = Cm(2.5)  # Theo quy định UTC
 
 
 def set_document_margins(doc):
@@ -494,10 +494,19 @@ def add_paragraph_text(doc, text, first_line_indent=True):
 
 
 def add_bullet_list(doc, items):
-    """Thêm danh sách bullet"""
+    """
+    Thêm danh sách bullet
+
+    Format: Bullet nhô ra ngoài, nội dung thẳng hàng khi xuống dòng
+    - left_indent: Vị trí nội dung text (1.5cm)
+    - first_line_indent: Bullet nhô ra (-0.5cm)
+    """
     for item in items:
         p = doc.add_paragraph(style='List Bullet')
-        p.paragraph_format.left_indent = Cm(1.0)
+        # Text nằm ở 1.5cm từ lề trái
+        p.paragraph_format.left_indent = Cm(1.5)
+        # Bullet nhô ra ngoài 0.5cm (hanging indent)
+        p.paragraph_format.first_line_indent = Cm(-0.5)
         p.paragraph_format.line_spacing = LINE_SPACING
 
         run = p.add_run(item)
