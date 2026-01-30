@@ -304,19 +304,21 @@ def add_chapter_title(doc, number, text, add_page_break=True):
     """
     Tiêu đề chương: Sử dụng Heading 1 style để tạo mục lục tự động
     Format: "1. GIỚI THIỆU CHUNG VỀ ĐƠN VỊ THỰC TẬP"
-    - Heading 1: 14pt Bold, Times New Roman, màu đen
+    - Heading 1: 18pt Bold, Center, Times New Roman (theo quy định UTC)
     """
     if add_page_break:
         doc.add_page_break()
 
     # Sử dụng Heading 1 style để Word có thể tạo mục lục tự động
     p = doc.add_paragraph(style='Heading 1')
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER  # Căn giữa theo quy định UTC
+
     run = p.add_run(f"{number}. {text.upper()}")
 
     # Thiết lập font trực tiếp cho run để đảm bảo không bị theme override
     run.font.name = FONT_NAME
     run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = Pt(14)
+    run.font.size = FONT_SIZE_CHAPTER  # 18pt theo quy định UTC
     run.font.bold = True
     run.font.italic = False
     run.font.color.rgb = RGBColor(0, 0, 0)
@@ -327,7 +329,7 @@ def add_chapter_title(doc, number, text, add_page_break=True):
 def add_section_title(doc, text):
     """
     Tiêu đề mục (1.1, 1.2): Sử dụng Heading 2 style để tạo mục lục tự động
-    - Heading 2: 13pt Bold, Times New Roman, màu đen
+    - Heading 2: 16pt Bold, Left, Times New Roman (theo quy định UTC)
     """
     p = doc.add_paragraph(style='Heading 2')
     run = p.add_run(text)
@@ -335,7 +337,7 @@ def add_section_title(doc, text):
     # Thiết lập font trực tiếp cho run
     run.font.name = FONT_NAME
     run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = Pt(13)
+    run.font.size = FONT_SIZE_SECTION  # 16pt theo quy định UTC
     run.font.bold = True
     run.font.italic = False
     run.font.color.rgb = RGBColor(0, 0, 0)
@@ -346,7 +348,7 @@ def add_section_title(doc, text):
 def add_subsection_title(doc, text):
     """
     Tiêu đề tiểu mục (1.1.1, 1.1.2): Sử dụng Heading 3 style để tạo mục lục tự động
-    - Heading 3: 13pt Bold + Italic, Times New Roman, màu đen
+    - Heading 3: 14pt Bold, Left, Times New Roman (theo quy định UTC)
     """
     p = doc.add_paragraph(style='Heading 3')
     run = p.add_run(text)
@@ -354,9 +356,9 @@ def add_subsection_title(doc, text):
     # Thiết lập font trực tiếp cho run
     run.font.name = FONT_NAME
     run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = Pt(13)
+    run.font.size = FONT_SIZE_SUBSECTION  # 14pt theo quy định UTC
     run.font.bold = True
-    run.font.italic = True
+    run.font.italic = False  # Không italic theo quy định UTC
     run.font.color.rgb = RGBColor(0, 0, 0)
 
     return p
@@ -1803,10 +1805,12 @@ def add_references(doc):
 
     # Sử dụng Heading 1 để có thể tạo mục lục
     p = doc.add_paragraph(style='Heading 1')
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER  # Căn giữa theo quy định UTC
+
     run = p.add_run("TÀI LIỆU THAM KHẢO")
     run.font.name = FONT_NAME
     run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = Pt(14)
+    run.font.size = FONT_SIZE_CHAPTER  # 18pt theo quy định UTC
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
 
@@ -1896,10 +1900,12 @@ def add_appendix(doc):
 
     # Sử dụng Heading 1 để có thể tạo mục lục
     p = doc.add_paragraph(style='Heading 1')
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER  # Căn giữa theo quy định UTC
+
     run = p.add_run("PHỤ LỤC")
     run.font.name = FONT_NAME
     run._element.rPr.rFonts.set(qn('w:eastAsia'), FONT_NAME)
-    run.font.size = Pt(14)
+    run.font.size = FONT_SIZE_CHAPTER  # 18pt theo quy định UTC
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 0, 0)
 
