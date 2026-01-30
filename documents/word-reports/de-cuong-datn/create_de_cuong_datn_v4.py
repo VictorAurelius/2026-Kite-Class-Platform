@@ -463,8 +463,8 @@ def add_content_sections(doc):
         "khoảng 4 tháng (từ tháng 2/2026 đến tháng 5/2026). Kế hoạch linh hoạt, có thể điều chỉnh "
         "theo góp ý của giảng viên hướng dẫn và tiến độ thực tế.")
 
-    # Bảng kế hoạch với ngày cụ thể
-    table = doc.add_table(rows=8, cols=4)
+    # Bảng kế hoạch với ngày cụ thể (1 header + 14 data rows)
+    table = doc.add_table(rows=15, cols=4)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
@@ -481,15 +481,35 @@ def add_content_sections(doc):
         set_font(run, Pt(12), bold=True)
         set_cell_shading(cell, 'D9E2F3')
 
-    # Data rows với ngày cụ thể
+    # Data rows với ngày cụ thể - Chi tiết 14 bước
     plan_data = [
-        ("1", "Nghiên cứu tài liệu, tổng quan đề tài", "01/02 – 21/02/2026", ""),
-        ("2", "Phân tích yêu cầu, thiết kế hệ thống", "22/02 – 07/03/2026", "UML, ERD"),
-        ("3", "Xây dựng KiteHub Platform", "08/03 – 28/03/2026", "Phase 1"),
-        ("4", "Xây dựng KiteClass Core Services", "29/03 – 25/04/2026", "Phase 2"),
-        ("5", "Phát triển AI Agent & Auto-provisioning", "26/04 – 10/05/2026", "Phase 3"),
-        ("6", "Kiểm thử toàn hệ thống, fix bug, deploy", "11/05 – 25/05/2026", ""),
-        ("7", "Hoàn thiện báo cáo, slide, video demo", "26/05 – 31/05/2026", ""),
+        # Phase 1: Research & Analysis (3 weeks)
+        ("1", "Nghiên cứu công nghệ, phân tích đối thủ cạnh tranh", "01/02 – 14/02/2026", "BeeClass, Udemy, technology stack"),
+        ("2", "Phân tích yêu cầu nghiệp vụ, use case modeling", "15/02 – 21/02/2026", "214 use cases, user stories"),
+
+        # Phase 2: System Design (2 weeks)
+        ("3", "Thiết kế kiến trúc hệ thống (Hybrid Architecture)", "22/02 – 28/02/2026", "PlantUML diagrams, ADR"),
+        ("4", "Thiết kế database schema & API specification", "01/03 – 07/03/2026", "ERD, Swagger/OpenAPI"),
+
+        # Phase 3: KiteHub Development (3 weeks)
+        ("5", "Xây dựng Authentication & Authorization module", "08/03 – 14/03/2026", "JWT, RBAC, Spring Security"),
+        ("6", "Xây dựng Tenant Management & Billing System", "15/03 – 21/03/2026", "Multi-tenant, VietQR payment"),
+        ("7", "Xây dựng Admin Dashboard & Auto-provisioning", "22/03 – 28/03/2026", "Next.js, K8s API integration"),
+
+        # Phase 4: KiteClass Core Services (4 weeks)
+        ("8", "Xây dựng Course Service & Assignment Service", "29/03 – 11/04/2026", "CRUD, business logic, DTOs"),
+        ("9", "Xây dựng Attendance Service & cross-service auth", "12/04 – 18/04/2026", "Service-to-service JWT"),
+        ("10", "Tích hợp AI Agent cho branding automation", "19/04 – 25/04/2026", "GPT-4, DALL-E 3, cost $0.19"),
+
+        # Phase 5: Expand Services (2 weeks)
+        ("11", "Xây dựng Parent, Gamification, Forum Services", "26/04 – 10/05/2026", "Unbundled pricing model"),
+
+        # Phase 6: Testing & Deployment (2 weeks)
+        ("12", "Unit testing (80% coverage) & Integration testing", "11/05 – 17/05/2026", "JUnit, Mockito, Testcontainers"),
+        ("13", "Load testing, performance tuning & deployment", "18/05 – 25/05/2026", "JMeter, AWS EKS production"),
+
+        # Phase 7: Documentation (1 week)
+        ("14", "Hoàn thiện thesis report, slides, demo video", "26/05 – 31/05/2026", "Defense preparation"),
     ]
 
     for row_idx, (stt, content, time, note) in enumerate(plan_data):
