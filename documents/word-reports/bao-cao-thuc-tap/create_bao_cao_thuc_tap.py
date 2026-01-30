@@ -1138,9 +1138,9 @@ def add_chapter1(doc):
     add_section_title(doc, "1.1. Thông tin chung về đơn vị thực tập")
 
     add_paragraph_text(doc,
-        f"Tên đơn vị: {INTERNSHIP_INFO['company']} (viết tắt: SYP)", first_line_indent=False)
+        f"Tên đơn vị: {INTERNSHIP_INFO['company']} (viết tắt: SYP)")
 
-    add_paragraph_text(doc, "Lĩnh vực hoạt động:", first_line_indent=False)
+    add_paragraph_text(doc, "Lĩnh vực hoạt động:")
 
     add_paragraph_text(doc,
         f"{INTERNSHIP_INFO['company']} là công ty công nghệ thông tin chuyên về "
@@ -1157,7 +1157,7 @@ def add_chapter1(doc):
         "Tư vấn và chuyển giao công nghệ",
     ])
 
-    add_paragraph_text(doc, "Thông tin liên hệ:", first_line_indent=False)
+    add_paragraph_text(doc, "Thông tin liên hệ:")
 
     add_bullet_list(doc, [
         f"Địa chỉ: {INTERNSHIP_INFO['address']}",
@@ -1165,7 +1165,7 @@ def add_chapter1(doc):
         "Quy mô: Hơn 95 nhân viên (tính đến tháng 6/2024)",
     ])
 
-    add_paragraph_text(doc, "Cơ cấu tổ chức:", first_line_indent=False)
+    add_paragraph_text(doc, "Cơ cấu tổ chức:")
 
     add_paragraph_text(doc,
         "Công ty được tổ chức theo mô hình chuẩn của doanh nghiệp phần mềm, với các bộ phận chính:")
@@ -1178,7 +1178,7 @@ def add_chapter1(doc):
         "Phòng Nhân sự và Hành chính: Quản lý nguồn nhân lực",
     ])
 
-    add_paragraph_text(doc, "Quy mô và định hướng phát triển:", first_line_indent=False)
+    add_paragraph_text(doc, "Quy mô và định hướng phát triển:")
 
     add_paragraph_text(doc,
         "Công ty hướng tới trở thành đối tác chiến lược tin cậy cho các doanh nghiệp Nhật Bản "
@@ -1198,28 +1198,28 @@ def add_chapter1(doc):
         "Sinh viên được phân công vào bộ phận Development với vai trò Software Engineer. "
         "Bộ phận thực tập tại công ty có các chức năng và nhiệm vụ chính sau đây:")
 
-    add_paragraph_text(doc, "Tổ chức và quản lý chương trình thực tập:", first_line_indent=False)
+    add_paragraph_text(doc, "Tổ chức và quản lý chương trình thực tập:")
 
     add_paragraph_text(doc,
         "Phối hợp với giảng viên hướng dẫn để lập kế hoạch, phân công nhiệm vụ thực tập "
         "cho sinh viên. Đảm bảo thực tập phù hợp với chương trình đào tạo, đáp ứng yêu cầu "
         "về thời lượng, nội dung chuyên môn và mục tiêu phát triển kỹ năng thực tiễn.")
 
-    add_paragraph_text(doc, "Hướng dẫn và giám sát sinh viên thực tập:", first_line_indent=False)
+    add_paragraph_text(doc, "Hướng dẫn và giám sát sinh viên thực tập:")
 
     add_paragraph_text(doc,
         "Hướng dẫn sinh viên thực hiện các công việc thiết kế hệ thống, viết tài liệu kỹ thuật, "
         "tham gia vào quy trình review và cải tiến chất lượng. Tổ chức các buổi training định kỳ, "
         "kiểm tra tiến độ và góp ý chuyên môn để đảm bảo chất lượng công việc.")
 
-    add_paragraph_text(doc, "Cung cấp điều kiện cơ sở vật chất và tài nguyên hỗ trợ:", first_line_indent=False)
+    add_paragraph_text(doc, "Cung cấp điều kiện cơ sở vật chất và tài nguyên hỗ trợ:")
 
     add_paragraph_text(doc,
         "Cung cấp máy tính, phần mềm chuyên dụng (IntelliJ IDEA, VS Code, Oracle Database, "
         "các công cụ thiết kế), tài liệu tham khảo và môi trường phát triển. Hỗ trợ sinh viên "
         "tiếp cận các dự án thực tế của công ty.")
 
-    add_paragraph_text(doc, "Đánh giá và phản hồi:", first_line_indent=False)
+    add_paragraph_text(doc, "Đánh giá và phản hồi:")
 
     add_paragraph_text(doc,
         "Tham gia đánh giá kết quả thực tập dựa trên các tiêu chí: chất lượng thiết kế, "
@@ -1229,7 +1229,7 @@ def add_chapter1(doc):
     # 1.3 Môi trường làm việc và quy trình công tác
     add_section_title(doc, "1.3. Môi trường làm việc và quy trình công tác")
 
-    add_paragraph_text(doc, "Môi trường làm việc:", first_line_indent=False)
+    add_paragraph_text(doc, "Môi trường làm việc:")
 
     add_paragraph_text(doc,
         f"Công ty có văn phòng hiện đại tại {INTERNSHIP_INFO['address']}. "
@@ -1242,7 +1242,7 @@ def add_chapter1(doc):
         "Văn hóa chia sẻ kiến thức qua các buổi training nội bộ hàng tuần",
     ])
 
-    add_paragraph_text(doc, "Quy trình công tác:", first_line_indent=False)
+    add_paragraph_text(doc, "Quy trình công tác:")
 
     add_paragraph_text(doc,
         "Công ty áp dụng mô hình làm việc hybrid, kết hợp giữa làm việc tại văn phòng "
@@ -1327,7 +1327,7 @@ def add_chapter2(doc):
         "Trong thời gian thực tập tại công ty, em đã thực hiện các công việc "
         "theo sự phân công và hướng dẫn trực tiếp của cán bộ hướng dẫn tại đơn vị.")
 
-    add_paragraph_text(doc, "Mô tả các công việc đã thực hiện:", first_line_indent=False)
+    add_paragraph_text(doc, "Mô tả các công việc đã thực hiện:")
 
     add_bullet_list(doc, [
         "Tìm hiểu đề tài thực tập và các yêu cầu kỹ thuật do cán bộ hướng dẫn giao",
@@ -1337,7 +1337,7 @@ def add_chapter2(doc):
         "Hoàn thiện sản phẩm và tổng hợp nội dung báo cáo thực tập",
     ])
 
-    add_paragraph_text(doc, "Vai trò và trách nhiệm của sinh viên:", first_line_indent=False)
+    add_paragraph_text(doc, "Vai trò và trách nhiệm của sinh viên:")
 
     add_paragraph_text(doc,
         "Sinh viên là người trực tiếp thực hiện toàn bộ các công việc được giao, chủ động "
@@ -1482,7 +1482,7 @@ def add_chapter3(doc):
         "không chỉ thể hiện qua sản phẩm hoặc nội dung công việc đã hoàn thành mà còn ở sự "
         "tiến bộ rõ rệt về tư duy, kỹ năng và thái độ làm việc.")
 
-    add_paragraph_text(doc, "Kết quả đạt được:", first_line_indent=False)
+    add_paragraph_text(doc, "Kết quả đạt được:")
 
     add_bullet_list(doc, [
         "Hoàn thành các nội dung công việc theo kế hoạch đề ra",
@@ -1547,7 +1547,7 @@ def add_chapter3(doc):
     # 3.3 Thuận lợi và khó khăn
     add_section_title(doc, "3.3. Thuận lợi và khó khăn")
 
-    add_paragraph_text(doc, "Thuận lợi:", first_line_indent=False)
+    add_paragraph_text(doc, "Thuận lợi:")
 
     add_bullet_list(doc, [
         "Nhận được sự quan tâm, hướng dẫn tận tình của cán bộ hướng dẫn trong suốt quá trình thực tập",
@@ -1559,7 +1559,7 @@ def add_chapter3(doc):
         "sinh viên dễ dàng tiếp cận nội dung thực tập",
     ])
 
-    add_paragraph_text(doc, "Khó khăn:", first_line_indent=False)
+    add_paragraph_text(doc, "Khó khăn:")
 
     add_bullet_list(doc, [
         "Một số kiến thức và công nghệ còn mới (Oracle Database [1], Spring Batch [2], Java SE [6]), "
