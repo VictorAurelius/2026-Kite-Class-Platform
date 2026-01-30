@@ -576,3 +576,7 @@ nếu AI làm được thì hoàn toàn nên triển khai
 
 cập nhật câu trả lời tương ứng vào file QA nữa
 
+tôi muốn biết best practice của # PART 3: PREVIEW WEBSITE FEATURE
+hãy tạo 1 báo cáo riêng về vấn đề này
+
+báo cáo phải là dạng tiếng việt để tôi dễ đọc hiểu => hãy bổ sung vào skill
