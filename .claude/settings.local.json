@@ -70,7 +70,8 @@
       "Bash(sudo rm:*)",
       "Bash(bash:*)",
       "Bash(git reset:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(python create_de_cuong_datn_v4.py:*)"
     ]
   }
 }
