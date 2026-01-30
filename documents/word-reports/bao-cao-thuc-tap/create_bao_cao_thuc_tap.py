@@ -1967,7 +1967,7 @@ def create_report():
     doc = Document()
 
     # Thiết lập document
-    set_document_margins(doc)
+    # Lưu ý: margins sẽ được apply lại sau khi tạo xong tất cả sections
     setup_styles(doc)
 
     # 1. Trang bìa chính
@@ -2000,6 +2000,10 @@ def create_report():
 
     # 9. Phụ lục
     add_appendix(doc)
+
+    # QUAN TRỌNG: Apply margins cho TẤT CẢ sections sau khi đã tạo xong
+    # (vì sections mới được tạo bởi add_cover_page và add_secondary_cover_page)
+    set_document_margins(doc)
 
     # Thêm số trang
     add_page_number_header(doc)
