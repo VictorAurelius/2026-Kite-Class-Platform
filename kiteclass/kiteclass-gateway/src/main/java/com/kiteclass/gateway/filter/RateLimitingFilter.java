@@ -3,7 +3,6 @@ package com.kiteclass.gateway.filter;
 import com.kiteclass.gateway.config.RateLimitingProperties;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -139,10 +138,10 @@ public class RateLimitingFilter extends AbstractGatewayFilterFactory<RateLimitin
                 ? properties.getAuthenticatedRequestsPerMinute()
                 : properties.getUnauthenticatedRequestsPerMinute();
 
-        Bandwidth limit = Bandwidth.classic(
-                capacity,
-                Refill.intervally(capacity, Duration.ofSeconds(properties.getTimeWindowSeconds()))
-        );
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(capacity)
+                .refillIntervally(capacity, Duration.ofSeconds(properties.getTimeWindowSeconds()))
+                .build();
 
         return Bucket.builder()
                 .addLimit(limit)
@@ -177,9 +176,11 @@ public class RateLimitingFilter extends AbstractGatewayFilterFactory<RateLimitin
     }
 
     /**
-     * Configuration properties for the filter.
+     * Configuration class for the filter.
+     * <p>Empty placeholder required by AbstractGatewayFilterFactory pattern.
+     * Actual configuration comes from RateLimitingProperties injected via constructor.
      */
     public static class Config {
-        // Configuration properties can be added here if needed
+        // No configuration properties - using RateLimitingProperties instead
     }
 }

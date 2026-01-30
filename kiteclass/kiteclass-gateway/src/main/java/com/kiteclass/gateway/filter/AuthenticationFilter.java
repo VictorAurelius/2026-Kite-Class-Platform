@@ -96,9 +96,10 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     }
 
     /**
-     * Configuration properties for the filter.
+     * Configuration class for the filter.
+     * <p>Empty placeholder required by AbstractGatewayFilterFactory pattern.
      */
     public static class Config {
-        // Configuration properties can be added here if needed
+        // No configuration properties
     }
 }

@@ -1465,6 +1465,3490 @@ CREATE INDEX idx_parent_notifications_parent ON user_module.parent_notifications
 
 ---
 
+# PHẦN 6B: FEATURE DETECTION & INSTANCE CONFIGURATION
+
+## 6B.1. Feature Detection API
+
+### Endpoint Specification
+
+**Endpoint:** `GET /api/v1/instance/config`
+
+**Purpose:** Frontend query để detect available features và resource limits
+
+**Authentication:** Required (JWT token)
+
+**Response:**
+
+```json
+{
+  "instanceId": "abc-academy-001",
+  "tier": "STANDARD",
+  "addOns": ["ENGAGEMENT"],
+  "services": ["user-gateway", "core", "engagement", "frontend"],
+  "features": {
+    // Core features (all tiers)
+    "classManagement": true,
+    "studentManagement": true,
+    "attendance": true,
+    "grading": true,
+    "billing": true,
+
+    // Engagement Pack features (STANDARD+)
+    "gamification": true,
+    "parentPortal": true,
+    "forum": true,
+
+    // Media Pack features (add-on)
+    "videoUpload": false,
+    "liveStreaming": false,
+
+    // Premium features
+    "aiMarketing": false,
+    "prioritySupport": false
+  },
+  "limits": {
+    "maxStudents": 200,
+    "maxCourses": null,
+    "videoStorageGB": 0,
+    "maxConcurrentStreams": 0
+  },
+  "owner": {
+    "id": "owner-uuid-123",
+    "name": "Nguyễn Văn A",
+    "email": "owner@example.com"
+  }
+}
+```
+
+### Caching Strategy
+
+**Client-side caching:**
+- Cache in localStorage với TTL = 1 giờ
+- Key: `kiteclass:instance_config`
+- Invalidate khi user logout
+
+**Server-side caching:**
+- Cache in Redis với TTL = 5 phút
+- Invalidate khi instance config thay đổi (upgrade/downgrade)
+
+**Runtime Updates:**
+- ❌ Features KHÔNG thay đổi trong runtime
+- User muốn nâng cấp → Phải vào KiteHub portal
+- Sau khi upgrade → User login lại để load new config
+
+### Feature Detection Flow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     FEATURE DETECTION FLOW                                  │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  User Login to Instance                                                     │
+│         ↓                                                                   │
+│  Frontend calls: GET /api/v1/instance/config                               │
+│         ↓                                                                   │
+│  Backend checks Redis cache                                                 │
+│    ├─ Cache hit → Return cached config                                     │
+│    └─ Cache miss → Query DB + Cache result                                 │
+│         ↓                                                                   │
+│  Frontend receives config                                                   │
+│         ↓                                                                   │
+│  Store in localStorage (1hr TTL)                                            │
+│         ↓                                                                   │
+│  Initialize FeatureFlagProvider                                             │
+│         ↓                                                                   │
+│  Render UI with conditional features                                        │
+│    ├─ Navigation: Hide/show menu items                                     │
+│    ├─ Routes: Enable/disable pages                                         │
+│    └─ Components: Show UpgradePrompt for locked features                   │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 6B.2. Instance Configuration Management
+
+### Centralized Management via KiteHub
+
+**Design Principle:** Tất cả thay đổi instance configuration phải qua KiteHub
+
+**Lý do:**
+1. **Tập trung Billing:** Subscription và payment quản lý tại KiteHub
+2. **Audit Trail:** Track mọi thay đổi config, billing history
+3. **Security:** Instance users không trực tiếp access billing APIs
+4. **Conflict Prevention:** Ngăn nhiều người cùng lúc thay đổi config
+5. **Service Provisioning:** KiteHub orchestrate việc deploy/undeploy services
+
+### Tier Upgrade Flow
+
+**Case 1: CENTER_OWNER muốn nâng cấp**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     TIER UPGRADE FLOW (OWNER)                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [KiteClass Instance]                                                       │
+│    Owner click feature bị lock (e.g., "Gamification")                      │
+│         ↓                                                                   │
+│    Show "Soft Block" Modal:                                                │
+│      ┌──────────────────────────────────────────────────────┐              │
+│      │  🔒 Tính năng Game hóa chỉ có trên gói STANDARD      │              │
+│      │                                                       │              │
+│      │  Preview: [Screenshot của Gamification dashboard]    │              │
+│      │                                                       │              │
+│      │  Benefits:                                           │              │
+│      │  ✓ Bảng xếp hạng học viên                           │              │
+│      │  ✓ Hệ thống điểm thưởng                             │              │
+│      │  ✓ Badges & Achievements                            │              │
+│      │                                                       │              │
+│      │  Giá: 1,000,000đ/tháng (STANDARD tier)              │              │
+│      │                                                       │              │
+│      │  [Nâng cấp ngay]    [Đóng]                          │              │
+│      └──────────────────────────────────────────────────────┘              │
+│         ↓                                                                   │
+│    Click "Nâng cấp ngay"                                                   │
+│         ↓                                                                   │
+│    Redirect to KiteHub Portal: https://kiteclass.com/portal               │
+│                                                                             │
+│  [KiteHub Portal]                                                           │
+│    Trang: Upgrade Instance "ABC Academy"                                   │
+│         ↓                                                                   │
+│    Show pricing comparison:                                                │
+│      Current: BASIC (500k/tháng)                                           │
+│      Upgrade to: STANDARD (1tr/tháng)                                      │
+│      Add-ons: □ Media Pack (+500k)                                         │
+│         ↓                                                                   │
+│    Owner confirm upgrade                                                    │
+│         ↓                                                                   │
+│    Payment gateway (VNPay/MoMo)                                            │
+│         ↓                                                                   │
+│    Payment success                                                          │
+│         ↓                                                                   │
+│    KiteHub Backend:                                                         │
+│      1. Update subscription in DB                                          │
+│      2. Trigger service provisioning:                                      │
+│         - Deploy Engagement Service                                        │
+│         - Update instance config                                           │
+│         - Invalidate Redis cache                                           │
+│      3. Send notification email                                            │
+│         ↓                                                                   │
+│    Success message: "Nâng cấp thành công!"                                │
+│         ↓                                                                   │
+│    Redirect back to instance: https://abc-academy.kiteclass.com           │
+│                                                                             │
+│  [KiteClass Instance]                                                       │
+│    Owner login lại (hoặc refresh page)                                     │
+│         ↓                                                                   │
+│    Frontend calls GET /api/v1/instance/config                             │
+│         ↓                                                                   │
+│    Receive updated config: tier = "STANDARD"                               │
+│         ↓                                                                   │
+│    UI updates:                                                              │
+│      ✓ "Game hóa" menu visible                                            │
+│      ✓ Gamification pages accessible                                       │
+│      ✓ No more "upgrade prompt" for this feature                          │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Case 2: Non-Owner Actor (ADMIN/TEACHER/STUDENT) click locked feature**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                   UPGRADE REQUEST (NON-OWNER)                               │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [KiteClass Instance]                                                       │
+│    Teacher/Admin click feature bị lock                                     │
+│         ↓                                                                   │
+│    Show "Contact Owner" Modal:                                             │
+│      ┌──────────────────────────────────────────────────────┐              │
+│      │  🔒 Tính năng Game hóa chỉ có trên gói STANDARD      │              │
+│      │                                                       │              │
+│      │  Preview: [Screenshot]                               │              │
+│      │                                                       │              │
+│      │  Để sử dụng tính năng này, vui lòng liên hệ:        │              │
+│      │                                                       │              │
+│      │  👤 Nguyễn Văn A (Center Owner)                      │              │
+│      │  📧 owner@example.com                                │              │
+│      │  📱 0123456789                                        │              │
+│      │                                                       │              │
+│      │  [Gửi yêu cầu qua email]    [Đóng]                  │              │
+│      └──────────────────────────────────────────────────────┘              │
+│         ↓                                                                   │
+│    Click "Gửi yêu cầu qua email"                                           │
+│         ↓                                                                   │
+│    Backend gửi email notification đến Owner:                               │
+│      Subject: "[ABC Academy] Yêu cầu nâng cấp tính năng"                  │
+│      Body:                                                                  │
+│        "Giáo viên [Name] muốn sử dụng tính năng Game hóa.                 │
+│         Tính năng này yêu cầu nâng cấp lên gói STANDARD."                 │
+│         ↓                                                                   │
+│    Show success: "Đã gửi yêu cầu đến Center Owner"                        │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Resource Limit Warnings
+
+**Warning Thresholds:**
+
+| Capacity | Behavior | UI Display |
+|----------|----------|------------|
+| < 80% | Normal | No warning |
+| 80-89% | Warning | ⚠️ Yellow banner: "Sắp đạt giới hạn học viên (160/200)" |
+| 90-99% | Alert | 🟠 Orange banner: "Gần đạt giới hạn (180/200). Nâng cấp để thêm học viên." |
+| 100% | Block | 🔴 Red banner: "Đã đạt giới hạn 200 học viên. Nâng cấp để tiếp tục." + Disable "Thêm học viên" button |
+
+**UI Example:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│  ⚠️ Cảnh báo giới hạn học viên                                             │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Bạn đang có 185/200 học viên (93%)                                        │
+│                                                                             │
+│  [████████████████████░░] 93%                                              │
+│                                                                             │
+│  Bạn sắp đạt giới hạn gói STANDARD. Nâng cấp lên PREMIUM để:              │
+│  ✓ Không giới hạn số học viên                                             │
+│  ✓ AI Marketing Agent                                                      │
+│  ✓ Priority Support                                                        │
+│                                                                             │
+│  [Nâng cấp ngay]    [Nhắc tôi sau]                                        │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+**At 100% Limit:**
+
+```tsx
+// Student Management Page
+<div className="p-4">
+  <Alert variant="destructive">
+    <AlertTitle>Đã đạt giới hạn học viên</AlertTitle>
+    <AlertDescription>
+      Bạn đã đạt giới hạn 200 học viên của gói STANDARD.
+      Vui lòng nâng cấp lên gói PREMIUM để thêm học viên mới.
+    </AlertDescription>
+  </Alert>
+
+  <Button
+    disabled={isAtLimit}
+    onClick={handleAddStudent}
+  >
+    <Plus className="mr-2" />
+    Thêm học viên
+  </Button>
+</div>
+```
+
+## 6B.3. Feature Lock UI Patterns
+
+### Soft Block Modal (Best Practice)
+
+**Trigger:** User click vào feature bị lock
+
+**Modal Structure:**
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  🔒 [Feature Name] chỉ có trên gói [Required Tier]           │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  📸 Preview Screenshot                                        │
+│  [Preview image của feature - 600x400px]                     │
+│                                                               │
+│  ✨ Benefits:                                                 │
+│  • Benefit 1                                                  │
+│  • Benefit 2                                                  │
+│  • Benefit 3                                                  │
+│                                                               │
+│  💰 Pricing Info:                                             │
+│  Gói [Required Tier]: [Price]/tháng                          │
+│                                                               │
+│  ┌────────────────────────────────────────────────┐          │
+│  │  If OWNER:                                      │          │
+│  │  [Nâng cấp ngay] [Xem chi tiết] [Đóng]        │          │
+│  │                                                 │          │
+│  │  If NOT OWNER:                                  │          │
+│  │  [Liên hệ Owner] [Đóng]                        │          │
+│  └────────────────────────────────────────────────┘          │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Implementation:**
+
+```tsx
+// src/components/upgrade/FeatureLockModal.tsx
+interface FeatureLockModalProps {
+  feature: {
+    name: string;
+    requiredTier: 'STANDARD' | 'PREMIUM';
+    previewImage: string;
+    benefits: string[];
+    price: string;
+  };
+  currentUser: {
+    role: UserRole;
+    isOwner: boolean;
+  };
+  instanceOwner: {
+    name: string;
+    email: string;
+  };
+  onClose: () => void;
+}
+
+export function FeatureLockModal({
+  feature,
+  currentUser,
+  instanceOwner,
+  onClose
+}: FeatureLockModalProps) {
+  const handleUpgrade = () => {
+    // Redirect to KiteHub portal
+    const upgradeUrl = `https://kiteclass.com/portal/upgrade?instance=${instanceId}&tier=${feature.requiredTier}`;
+    window.location.href = upgradeUrl;
+  };
+
+  const handleContactOwner = () => {
+    // Send email notification to owner
+    sendUpgradeRequest(feature.name, instanceOwner.email);
+    toast.success('Đã gửi yêu cầu đến Center Owner');
+    onClose();
+  };
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            {feature.name} chỉ có trên gói {feature.requiredTier}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Preview Image */}
+          <img
+            src={feature.previewImage}
+            alt={feature.name}
+            className="w-full rounded-lg border"
+          />
+
+          {/* Benefits */}
+          <div>
+            <h3 className="font-semibold mb-2">✨ Lợi ích:</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {feature.benefits.map((benefit, i) => (
+                <li key={i}>{benefit}</li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Pricing */}
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="font-semibold">
+              💰 Gói {feature.requiredTier}: {feature.price}/tháng
+            </p>
+          </div>
+
+          {/* Actions */}
+          <DialogFooter>
+            {currentUser.isOwner ? (
+              <>
+                <Button onClick={handleUpgrade}>
+                  Nâng cấp ngay
+                </Button>
+                <Button variant="outline" onClick={onClose}>
+                  Đóng
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={handleContactOwner}>
+                  Liên hệ {instanceOwner.name}
+                </Button>
+                <Button variant="outline" onClick={onClose}>
+                  Đóng
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+---
+
+# PHẦN 6C: AI BRANDING & UI CUSTOMIZATION
+
+## 6C.1. UI Customization by Tier
+
+### Customization Capabilities
+
+**ALL TIERS có quyền customize:**
+
+| Feature | BASIC | STANDARD | PREMIUM | Notes |
+|---------|-------|----------|---------|-------|
+| **Custom Logo** | ✅ | ✅ | ✅ | All tiers upload logo riêng |
+| **Custom Colors** | ✅ | ✅ | ✅ | Primary, secondary colors |
+| **AI Branding** | ✅ | ✅ | ✅ | Auto-generate marketing assets |
+| **Theme Templates** | ✅ | ✅ | ✅ | Classic, Modern, Friendly, etc. |
+| **Dark Mode** | ✅ | ✅ | ✅ | User preference |
+| **Watermark** | ⚠️ | ⚠️ | ⚠️ | "Powered by KiteClass" trên tất cả tier |
+| **Custom Domain** | ❌ | ❌ | ✅ | Chỉ PREMIUM: custom-domain.com |
+| **Remove Watermark** | ❌ | ❌ | ❌ | Không tier nào remove được |
+
+### Watermark Implementation
+
+**Watermark hiển thị ở đâu:**
+
+```tsx
+// Footer của mọi page
+<footer className="border-t py-4 text-center text-sm text-muted-foreground">
+  <p>
+    © {new Date().getFullYear()} {instanceName}.
+    Powered by <a href="https://kiteclass.com" target="_blank" className="underline">KiteClass</a>
+  </p>
+</footer>
+```
+
+**Lý do watermark trên tất cả tier:**
+1. Brand awareness cho KiteClass
+2. SEO backlinks
+3. Trust signal (powered by established platform)
+4. Future: Có thể offer "Remove watermark" as add-on
+
+### Analytics & Reporting
+
+**Tất cả tier có FULL analytics features:**
+
+| Feature | BASIC | STANDARD | PREMIUM |
+|---------|-------|----------|---------|
+| Dashboard Overview | ✅ | ✅ | ✅ |
+| Student Analytics | ✅ | ✅ | ✅ |
+| Attendance Reports | ✅ | ✅ | ✅ |
+| Revenue Reports | ✅ | ✅ | ✅ |
+| Export to Excel | ✅ | ✅ | ✅ |
+| Custom Reports | ✅ | ✅ | ✅ |
+| API Access | ✅ | ✅ | ✅ |
+
+**Khác biệt giữa các tier:**
+- **Data Retention:** Không khác (tất cả unlimited)
+- **Service Scale:** PREMIUM có more compute resources cho heavy analytics
+- **Support:** PREMIUM có priority support cho analytics questions
+
+**Philosophy:** "Cung cấp đủ features cho người giàu"
+- Người giàu (PREMIUM) trả cho scale, performance, support
+- KHÔNG trả cho features (features đều có đầy đủ)
+
+## 6C.2. Custom Domain Implementation (PREMIUM Only)
+
+### Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        CUSTOM DOMAIN ROUTING                                │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Customer buys custom domain: abc-academy.com                               │
+│         ↓                                                                   │
+│  Customer adds CNAME record:                                                │
+│    abc-academy.com → instances.kiteclass.com                                │
+│         ↓                                                                   │
+│  Customer submits domain in KiteHub Portal                                  │
+│         ↓                                                                   │
+│  KiteHub Backend:                                                           │
+│    1. Verify DNS CNAME record                                               │
+│    2. Provision SSL certificate (Let's Encrypt)                             │
+│    3. Update domain_mappings table                                          │
+│    4. Configure Nginx reverse proxy                                         │
+│         ↓                                                                   │
+│  User visits abc-academy.com                                                │
+│         ↓                                                                   │
+│  DNS resolves to instances.kiteclass.com (KiteClass server)                │
+│         ↓                                                                   │
+│  Nginx reads Host header: abc-academy.com                                   │
+│         ↓                                                                   │
+│  Nginx looks up domain_mappings:                                            │
+│    abc-academy.com → instanceId: abc-academy-001                            │
+│         ↓                                                                   │
+│  Nginx proxies request to instance container                                │
+│         ↓                                                                   │
+│  Instance serves content with custom domain                                 │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Database Schema
+
+```sql
+CREATE TABLE domain_mappings (
+    id BIGSERIAL PRIMARY KEY,
+    instance_id VARCHAR(255) NOT NULL,
+    custom_domain VARCHAR(255) NOT NULL UNIQUE,
+    default_domain VARCHAR(255) NOT NULL, -- abc-academy.kiteclass.com
+    ssl_certificate_path VARCHAR(500),
+    ssl_status VARCHAR(50), -- 'pending', 'active', 'failed', 'expired'
+    verified_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_instance
+        FOREIGN KEY (instance_id)
+        REFERENCES instances(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_custom_domain ON domain_mappings(custom_domain);
+CREATE INDEX idx_instance_id ON domain_mappings(instance_id);
+```
+
+### SSL Certificate Provisioning
+
+**Auto-provision với Certbot (Let's Encrypt):**
+
+```bash
+# KiteHub Backend tự động chạy khi customer submit domain
+certbot certonly \
+  --webroot \
+  -w /var/www/certbot \
+  -d abc-academy.com \
+  --email admin@kiteclass.com \
+  --agree-tos \
+  --non-interactive
+```
+
+**Certificate Renewal:**
+- Cronjob chạy daily: `certbot renew`
+- Auto-reload Nginx khi certificate renewed
+- Email alert nếu renewal fails
+
+### Nginx Configuration Template
+
+```nginx
+# /etc/nginx/sites-available/custom-domain-abc-academy.com
+server {
+    listen 80;
+    listen [::]:80;
+    server_name abc-academy.com www.abc-academy.com;
+
+    # Redirect to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name abc-academy.com www.abc-academy.com;
+
+    # SSL Certificate
+    ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/abc-academy.com/privkey.pem;
+
+    # SSL Configuration (Mozilla Intermediate)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:...';
+    ssl_prefer_server_ciphers off;
+
+    # Proxy to instance container
+    location / {
+        proxy_pass http://instance-abc-academy-001:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Customer Setup Flow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    CUSTOM DOMAIN SETUP (CUSTOMER VIEW)                      │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [KiteHub Portal - Settings]                                                │
+│                                                                             │
+│  Current Domain: abc-academy.kiteclass.com                                  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  🌐 Custom Domain (PREMIUM Feature)                      │              │
+│  │                                                           │              │
+│  │  Hiện tại: abc-academy.kiteclass.com                     │              │
+│  │                                                           │              │
+│  │  Bạn muốn sử dụng domain riêng?                          │              │
+│  │                                                           │              │
+│  │  [Input: abc-academy.com]                                │              │
+│  │                                                           │              │
+│  │  Hướng dẫn:                                              │              │
+│  │  1. Mua domain tại: GoDaddy, Namecheap, etc.            │              │
+│  │  2. Vào DNS settings, thêm CNAME record:                │              │
+│  │     Name: @ (hoặc www)                                   │              │
+│  │     Value: instances.kiteclass.com                       │              │
+│  │  3. Chờ DNS propagate (15-60 phút)                      │              │
+│  │  4. Click "Xác minh" bên dưới                           │              │
+│  │                                                           │              │
+│  │  [Xác minh Domain]                                       │              │
+│  │                                                           │              │
+│  │  Status: ⏳ Đang xác minh DNS...                         │              │
+│  │          (Kiểm tra lại sau 5 phút)                       │              │
+│  │                                                           │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                                                                             │
+│  Sau khi xác minh thành công:                                               │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  Status: ✅ Active                                        │              │
+│  │                                                           │              │
+│  │  Domain: abc-academy.com                                 │              │
+│  │  SSL Certificate: ✅ Valid (expires in 89 days)          │              │
+│  │                                                           │              │
+│  │  Truy cập instance tại:                                  │              │
+│  │  🔗 https://abc-academy.com                              │              │
+│  │                                                           │              │
+│  │  [Remove Domain]                                         │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Implementation Complexity
+
+**Effort Estimate:** 2-3 tuần
+
+**Components cần implement:**
+1. **Backend API** (1 tuần):
+   - POST /api/v1/instance/custom-domain (submit domain)
+   - GET /api/v1/instance/custom-domain/verify (check DNS)
+   - DELETE /api/v1/instance/custom-domain (remove)
+   - Certbot integration
+   - Nginx config generation
+
+2. **Frontend UI** (3 ngày):
+   - Custom domain settings page
+   - DNS setup instructions
+   - Verification status
+   - Error handling
+
+3. **Infrastructure** (1 tuần):
+   - Nginx dynamic config reload
+   - SSL certificate automation
+   - DNS verification logic
+   - Database schema
+
+**Risks:**
+- DNS propagation delays (customer confusion)
+- SSL certificate failures (rate limits, validation issues)
+- Nginx reload disruption
+
+**Mitigation:**
+- Clear instructions + expected timeframes
+- Retry logic for SSL provisioning
+- Graceful Nginx reload (zero-downtime)
+
+## 6C.3. AI Branding System
+
+### Overview
+
+**AI Branding tự động generate 10+ marketing assets từ 1 ảnh upload.**
+
+**Input:** Logo hoặc ảnh đại diện (PNG/JPG, max 10MB)
+**Output:** Complete branding package trong ~5 phút
+**Cost:** ~$0.10 per generation (cost-effective)
+
+### Asset Storage Architecture
+
+**2-Tier Storage Strategy:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        ASSET STORAGE HIERARCHY                              │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Tier 1: KiteHub Level (Draft Assets)                                      │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  Path: /kitehub/users/{userId}/branding-drafts/         │              │
+│  │                                                           │              │
+│  │  Purpose:                                                 │              │
+│  │  - User experiment với branding options                  │              │
+│  │  - Generate multiple versions                            │              │
+│  │  - Preview before publish                                │              │
+│  │                                                           │              │
+│  │  Retention: 30 days                                       │              │
+│  │  Quota: 10 draft sets per user                           │              │
+│  │                                                           │              │
+│  │  Example:                                                 │              │
+│  │  /users/user-123/branding-drafts/                        │              │
+│  │    ├── draft-001-20260129/                               │              │
+│  │    │   ├── hero-banner.webp                              │              │
+│  │    │   ├── logo-primary.png                              │              │
+│  │    │   └── metadata.json                                 │              │
+│  │    ├── draft-002-20260130/                               │              │
+│  │    └── draft-003-20260131/                               │              │
+│  │                                                           │              │
+│  │  Benefits:                                                │              │
+│  │  ✓ Can re-use drafts across multiple instances          │              │
+│  │  ✓ Can A/B test different branding options              │              │
+│  │  ✓ Draft không affect production                        │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                          ↓                                                  │
+│                    User clicks "Publish"                                    │
+│                          ↓                                                  │
+│  Tier 2: Instance Level (Published Assets)                                 │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  Path: /instances/{instanceId}/branding/                │              │
+│  │                                                           │              │
+│  │  Purpose:                                                 │              │
+│  │  - Active branding cho instance                          │              │
+│  │  - Served via CDN                                        │              │
+│  │  - High availability                                      │              │
+│  │                                                           │              │
+│  │  Retention: Until replaced                                │              │
+│  │  Versioning: Keep last 3 versions                        │              │
+│  │                                                           │              │
+│  │  Example:                                                 │              │
+│  │  /instances/abc-academy-001/branding/                    │              │
+│  │    ├── current/                                          │              │
+│  │    │   ├── hero-banner.webp                              │              │
+│  │    │   ├── logo-primary.png                              │              │
+│  │    │   └── metadata.json                                 │              │
+│  │    ├── version-2/  (previous)                            │              │
+│  │    └── version-1/  (original)                            │              │
+│  │                                                           │              │
+│  │  CDN:                                                     │              │
+│  │  - CloudFlare R2 + CDN                                   │              │
+│  │  - Edge caching (reduce latency)                         │              │
+│  │  - Auto WebP conversion                                  │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Who Can Upload Branding?
+
+**Best Practice: CENTER_OWNER và CENTER_ADMIN**
+
+| Actor | Draft Upload | Publish | Delete |
+|-------|--------------|---------|--------|
+| **CENTER_OWNER** | ✅ | ✅ | ✅ |
+| **CENTER_ADMIN** | ✅ | ⚠️ Need OWNER approval | ❌ |
+| **TEACHER** | ❌ | ❌ | ❌ |
+| **STUDENT** | ❌ | ❌ | ❌ |
+
+**Workflow:**
+
+```
+CENTER_ADMIN uploads logo
+  ↓
+Generate branding (draft)
+  ↓
+ADMIN previews & saves draft
+  ↓
+ADMIN clicks "Request Approval"
+  ↓
+Email notification to OWNER
+  ↓
+OWNER reviews in KiteHub Portal
+  ↓
+OWNER clicks "Approve & Publish"
+  ↓
+Branding goes live on instance
+```
+
+### Re-generation Policy
+
+**User có 2 options:**
+
+**Option 1: AI Auto-Generate (Recommended)**
+- Upload logo/photo
+- AI generate full branding package
+- Free: Unlimited generations (cost absorbed by platform)
+- Rationale: Encourage adoption, showcase AI capability
+
+**Option 2: Manual Upload (Advanced)**
+- User upload each asset manually:
+  - Hero banner (1920x600)
+  - Logo variants (3 sizes)
+  - Section banners (3 items)
+  - Marketing copy (text fields)
+- Use case: User có designer riêng, muốn full control
+- Requirement: Must follow asset specs (size, format)
+
+**Hybrid Approach:**
+- Start with AI generation
+- User can override individual assets
+  - Example: AI generates hero banner, user uploads custom logo
+- Best of both worlds
+
+### Manual Override Capabilities
+
+**User có thể edit:**
+
+| Asset Type | AI Generated | Manual Override | Notes |
+|------------|--------------|-----------------|-------|
+| **Hero Banner** | ✅ | ✅ | Upload custom 1920x600 image |
+| **Logo** | ✅ | ✅ | Upload PNG with transparent background |
+| **Colors** | ✅ (extracted) | ✅ | Pick custom primary/secondary |
+| **Marketing Copy** | ✅ | ✅ | Edit headlines, CTAs in text editor |
+| **Section Banners** | ✅ | ✅ | Upload custom or use AI |
+
+**UI Example:**
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                        BRANDING EDITOR                                      │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Hero Banner                                                                │
+│  ┌──────────────────────────────────────────────────────────┐              │
+│  │  [Preview: AI-generated gradient background]             │              │
+│  │                                                           │              │
+│  └──────────────────────────────────────────────────────────┘              │
+│  Source: 🤖 AI Generated                                                    │
+│  [Replace with Custom Image] [Re-generate]                                 │
+│                                                                             │
+│  Marketing Headline                                                         │
+│  [Input: "Học viện ABC - Nơi ươm mầm tài năng"]                           │
+│  Source: 🤖 AI Generated (editable)                                        │
+│                                                                             │
+│  Primary Color                                                              │
+│  [Color Picker: #0ea5e9]                                                   │
+│  Source: 🎨 Extracted from logo (editable)                                 │
+│                                                                             │
+│  [Save Draft]  [Preview]  [Publish]                                        │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### AI Generation Workflow
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    AI BRANDING GENERATION PIPELINE                          │
+├────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Step 1: Upload (0:00-0:10)                                                │
+│    User uploads logo/photo                                                  │
+│    Backend validates: format, size, dimensions                              │
+│         ↓                                                                   │
+│  Step 2: Background Removal (0:10-0:20)                                    │
+│    Service: U2-Net (self-hosted)                                           │
+│    Output: Cutout image (transparent background)                            │
+│    Cost: Free                                                               │
+│         ↓                                                                   │
+│  Step 3: Color Extraction (0:20-0:30)                                      │
+│    Extract dominant colors from logo                                        │
+│    Generate color palette (primary, secondary, accent)                      │
+│         ↓                                                                   │
+│  Step 4: Text Generation (0:30-0:45)                                       │
+│    Service: GPT-4o-mini                                                     │
+│    Input: Organization name, industry                                       │
+│    Output: Headlines, sub-headlines, CTAs, value props                      │
+│    Language: Customer selects (Vietnamese, English, etc.)                   │
+│    Cost: ~$0.002                                                            │
+│         ↓                                                                   │
+│  Step 5: Hero Banner Generation (0:45-2:00)                                │
+│    Service: Stable Diffusion XL                                             │
+│    Prompt: "Professional gradient background, [colors], modern, clean"      │
+│    Output: 1920x600 background image                                        │
+│    Composite: Background + cutout logo + text overlay                       │
+│    Cost: ~$0.08                                                             │
+│         ↓                                                                   │
+│  Step 6: Section Banners (2:00-4:30)                                       │
+│    Generate 3 banners: About, Courses, Contact                              │
+│    Each with different AI background                                        │
+│    Cost: ~$0.08 × 3 = $0.24                                                │
+│         ↓                                                                   │
+│  Step 7: Logo Variants (4:30-4:45)                                         │
+│    Create 3 variants:                                                       │
+│      - Primary: Cutout + circular bg + org name                            │
+│      - Secondary: Alternate color scheme                                    │
+│      - Icon-only: Square crop                                               │
+│         ↓                                                                   │
+│  Step 8: OG Image (4:45-5:00)                                              │
+│    Generate 1200x630 for social sharing                                     │
+│    Contains: Logo + tagline + domain                                        │
+│         ↓                                                                   │
+│  Step 9: Upload to CDN (5:00-5:30)                                         │
+│    Upload all assets to CloudFlare R2                                       │
+│    Generate CDN URLs                                                        │
+│    Save metadata to database                                                │
+│         ↓                                                                   │
+│  Step 10: Complete (5:30)                                                   │
+│    Return branding package to frontend                                      │
+│    Total Cost: ~$0.10 per generation                                       │
+│                                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Asset Quality Settings (Best Practice)
+
+**WebP with JPEG Fallback:**
+
+```typescript
+// Asset specifications
+const ASSET_SPECS = {
+  heroBanner: {
+    dimensions: { width: 1920, height: 600 },
+    formats: {
+      webp: { quality: 85, size: '200-300KB' },
+      jpeg: { quality: 85, size: '300-400KB' }
+    }
+  },
+  profileImages: {
+    dimensions: { width: 400, height: 400 },
+    formats: {
+      webp: { quality: 90, size: '50-80KB' },
+      jpeg: { quality: 90, size: '80-120KB' }
+    }
+  },
+  sectionBanners: {
+    dimensions: { width: 1200, height: 400 },
+    formats: {
+      webp: { quality: 85, size: '150-200KB' },
+      jpeg: { quality: 85, size: '200-300KB' }
+    }
+  }
+};
+```
+
+### AI Provider Selection (Best Practice)
+
+**Image Generation: Stable Diffusion XL**
+- Rationale: Best balance of cost, quality, control
+- Cost: ~$0.08 per image
+- Quality: Excellent for marketing backgrounds
+- Customization: Full prompt control
+- Fallback: DALL-E 3 if Stability AI unavailable
+
+**Background Removal: U2-Net (Self-Hosted)**
+- Rationale: Free, good quality, fast
+- Cost: $0 (infrastructure only)
+- Quality: 95% accuracy for clean logos
+- Speed: 2-3 seconds per image
+- Fallback: Remove.bg API ($0.09/image) for complex images
+
+**Text Generation: GPT-4o-mini**
+- Rationale: Excellent quality, very cheap, fast
+- Cost: ~$0.002 per generation
+- Quality: Professional marketing copy
+- Languages: Native multi-language support
+- Speed: < 2 seconds
+
+### Multi-Language Support
+
+**Customer chọn ngôn ngữ khi generate:**
+
+```typescript
+// Language options
+type SupportedLanguage = 'vi' | 'en' | 'zh' | 'ja' | 'ko';
+
+interface BrandingGenerationRequest {
+  organizationName: string;
+  industry: string;
+  language: SupportedLanguage; // Customer selects
+  logoFile: File;
+}
+```
+
+**Implementation:**
+- GPT-4o-mini native multi-language
+- Prompt includes language instruction
+- Marketing copy generated in selected language
+- Can regenerate in different language later
+
+**UI:**
+```
+┌────────────────────────────────────────────────────────────┐
+│  Generate Branding                                          │
+│                                                             │
+│  Organization Name: [ABC Academy]                          │
+│  Industry: [Education]                                     │
+│  Language: [🇻🇳 Tiếng Việt ▼]                              │
+│            - 🇻🇳 Tiếng Việt                                │
+│            - 🇺🇸 English                                    │
+│            - 🇨🇳 中文                                        │
+│            - 🇯🇵 日本語                                      │
+│            - 🇰🇷 한국어                                      │
+│                                                             │
+│  Upload Logo: [Browse...]                                  │
+│                                                             │
+│  [Generate Branding]                                        │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# PHẦN 6D: PREVIEW WEBSITE - TRANG WEB MARKETING CÔNG KHAI
+
+## 6D.1. Tổng Quan Preview Website
+
+### Định Nghĩa
+
+**Preview Website** là trang web marketing công khai cho mỗi KiteClass instance, tự động tạo từ AI branding assets và dữ liệu instance, giúp trung tâm thu hút học viên tiềm năng thông qua SEO và marketing trực tuyến.
+
+### Mục Đích
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    BUSINESS GOALS                       │
+├─────────────────────────────────────────────────────────┤
+│  1. Thu Hút Học Viên      → +30-50% tuyển sinh         │
+│  2. SEO Organic Traffic   → Giảm CAC                   │
+│  3. Professional Image    → Tăng uy tín                │
+│  4. Zero Effort Setup     → Tự động tạo                │
+│  5. Competitive Advantage → Khác biệt vs LMS khác       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### URL Structure
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              PUBLIC ROUTES (No Authentication)          │
+├─────────────────────────────────────────────────────────┤
+│  https://abc-academy.kiteclass.com/                     │
+│    → Landing page (Hero, About, Courses, Contact)      │
+│                                                         │
+│  https://abc-academy.kiteclass.com/courses              │
+│    → Course catalog (grid view với filters)            │
+│                                                         │
+│  https://abc-academy.kiteclass.com/courses/101          │
+│    → Course details (syllabus, instructor, pricing)     │
+│                                                         │
+│  https://abc-academy.kiteclass.com/about                │
+│    → Về trung tâm                                       │
+│                                                         │
+│  https://abc-academy.kiteclass.com/contact              │
+│    → Form liên hệ                                       │
+├─────────────────────────────────────────────────────────┤
+│           PROTECTED ROUTES (Authentication)             │
+├─────────────────────────────────────────────────────────┤
+│  https://abc-academy.kiteclass.com/login                │
+│    → Student login/register                             │
+│                                                         │
+│  https://abc-academy.kiteclass.com/enroll/101           │
+│    → Enrollment form (requires auth)                    │
+│                                                         │
+│  https://abc-academy.kiteclass.com/dashboard            │
+│    → Student dashboard (requires auth)                  │
+├─────────────────────────────────────────────────────────┤
+│              CUSTOM DOMAIN (PREMIUM Tier)               │
+├─────────────────────────────────────────────────────────┤
+│  https://abc-academy.com/                               │
+│    → Custom domain cho PREMIUM tier                     │
+│    → DNS CNAME → proxy.kiteclass.com                    │
+│    → SSL auto-provision (Let's Encrypt)                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6D.2. Content Architecture
+
+### Content Source Mapping
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   CONTENT SOURCES                       │
+├─────────────────────┬───────────────────┬───────────────┤
+│  Content Type       │  Source           │  Public?      │
+├─────────────────────┼───────────────────┼───────────────┤
+│  Hero Banner        │  AI Branding      │  ✅ Public    │
+│  Logo & Colors      │  AI Branding      │  ✅ Public    │
+│  Headlines/CTAs     │  AI Branding      │  ✅ Public    │
+│  Center Name/Desc   │  Instance Data    │  ✅ Public    │
+│  Course Titles      │  Course API       │  ✅ Public    │
+│  Course Pricing     │  Course API       │  ✅ Public    │
+│  Teacher Bios       │  Teacher API      │  ✅ Public    │
+│  Lesson Content     │  Course API       │  ❌ Private   │
+│  Student Data       │  Student API      │  ❌ Private   │
+└─────────────────────┴───────────────────┴───────────────┘
+```
+
+### Landing Page Structure
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      LANDING PAGE                       │
+├─────────────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  HERO SECTION                                     │  │
+│  │  - AI-generated hero banner (1920x600)           │  │
+│  │  - AI-generated headline                         │  │
+│  │  - AI-generated subheadline                      │  │
+│  │  - CTA button: "Xem Khóa Học"                    │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  ABOUT SECTION                                    │  │
+│  │  - Center logo (AI-generated)                    │  │
+│  │  - Center description (admin input)              │  │
+│  │  - Contact info (phone, email, address)          │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  COURSE CATALOG SECTION                           │  │
+│  │  - Course grid (4 featured courses)              │  │
+│  │  - Course cards:                                  │  │
+│  │    • Thumbnail image                              │  │
+│  │    • Title, description (truncated)               │  │
+│  │    • Price, duration, enrolled count              │  │
+│  │    • "Xem Chi Tiết" button                        │  │
+│  │  - "Xem Tất Cả Khóa Học" link                    │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  INSTRUCTORS SECTION                              │  │
+│  │  - Teacher grid (top 3 teachers)                 │  │
+│  │  - Photo, name, bio, expertise                    │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  CTA SECTION                                      │  │
+│  │  - "Sẵn sàng bắt đầu?"                           │  │
+│  │  - "Đăng Ký Ngay" button → /courses               │  │
+│  └───────────────────────────────────────────────────┘  │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │  FOOTER                                           │  │
+│  │  - Links: Về chúng tôi, Khóa học, Liên hệ        │  │
+│  │  - Social media icons                             │  │
+│  │  - "Powered by KiteClass" watermark               │  │
+│  └───────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6D.3. Technical Stack
+
+### Frontend Architecture
+
+```typescript
+// Next.js 14+ App Router Structure
+app/
+├── (public)/                // Public route group (no auth)
+│   ├── layout.tsx          // Public layout (no AuthProvider)
+│   ├── page.tsx            // Landing page (SSR + ISR)
+│   ├── courses/
+│   │   ├── page.tsx        // Course catalog
+│   │   └── [id]/
+│   │       └── page.tsx    // Course details
+│   ├── about/
+│   │   └── page.tsx        // About page
+│   └── contact/
+│       └── page.tsx        // Contact form
+│
+├── (auth)/                  // Authenticated routes
+│   ├── dashboard/
+│   ├── enroll/[id]/
+│   └── settings/
+│
+└── api/
+    ├── public/              // Public APIs (no auth)
+    │   ├── instance/
+    │   ├── courses/
+    │   └── contact/
+    └── v1/                  // Authenticated APIs
+```
+
+### Backend Public APIs
+
+```java
+// Public Instance Controller
+@RestController
+@RequestMapping("/api/v1/public")
+public class PublicInstanceController {
+
+    // Get instance config & branding
+    @GetMapping("/instance/{instanceId}/config")
+    public ResponseEntity<InstanceConfig> getInstanceConfig(
+        @PathVariable String instanceId
+    ) {
+        // Return: name, description, logo, branding assets
+        // No authentication required
+    }
+
+    // Get public course catalog
+    @GetMapping("/instance/{instanceId}/courses")
+    @RateLimit(value = 100, period = "1m") // 100 req/min per IP
+    public ResponseEntity<List<PublicCourseDTO>> getPublicCourses(
+        @PathVariable String instanceId,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String level
+    ) {
+        // Filter: Only PUBLISHED courses
+        // Exclude: Lesson content, student lists, private data
+    }
+
+    // Get course details
+    @GetMapping("/courses/{courseId}")
+    public ResponseEntity<PublicCourseDetailDTO> getCourseDetails(
+        @PathVariable String courseId
+    ) {
+        // Return: Full course info except lesson content
+    }
+
+    // Get instructor profiles
+    @GetMapping("/instance/{instanceId}/instructors")
+    public ResponseEntity<List<PublicInstructorDTO>> getInstructors(
+        @PathVariable String instanceId
+    ) {
+        // Return: Name, bio, photo, courses taught
+    }
+
+    // Contact form submission
+    @PostMapping("/contact")
+    @ReCaptchaValidation
+    public ResponseEntity<Void> submitContactForm(
+        @RequestBody ContactFormDTO form
+    ) {
+        // Send email to CENTER_OWNER
+        // Spam protection via reCAPTCHA
+    }
+}
+```
+
+### Data Transfer Objects
+
+```java
+// PublicCourseDTO.java - Filter private fields
+public class PublicCourseDTO {
+    private String id;
+    private String title;
+    private String description;
+    private String thumbnail;
+    private BigDecimal price;
+    private Integer duration; // weeks
+    private String schedule;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    private PublicInstructorDTO instructor;
+    private Integer enrolledCount;
+    private String level; // beginner, intermediate, advanced
+    private String category;
+    private List<String> tags;
+
+    // ❌ NOT INCLUDED (private):
+    // - List<Lesson> lessons
+    // - List<Student> students
+    // - List<Grade> grades
+    // - Assessment data
+}
+```
+
+## 6D.4. SEO Optimization
+
+### Metadata Configuration
+
+```typescript
+// app/(public)/page.tsx
+import { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const instance = await fetchInstanceConfig()
+  const branding = await fetchBrandingAssets()
+
+  return {
+    title: `${instance.name} - ${branding.textContent.hero_headline}`,
+    description: branding.textContent.hero_subheadline,
+
+    openGraph: {
+      title: instance.name,
+      description: branding.textContent.hero_subheadline,
+      images: [{
+        url: branding.ogImage, // 1200x630
+        width: 1200,
+        height: 630,
+        alt: instance.name
+      }],
+      locale: 'vi_VN',
+      type: 'website',
+      siteName: instance.name
+    },
+
+    twitter: {
+      card: 'summary_large_image',
+      title: instance.name,
+      description: branding.textContent.hero_subheadline,
+      images: [branding.ogImage]
+    },
+
+    alternates: {
+      canonical: `https://${instance.domain}`
+    }
+  }
+}
+```
+
+### Structured Data (Schema.org)
+
+```typescript
+// Course Schema for SEO
+const courseStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Course',
+  name: course.title,
+  description: course.description,
+
+  provider: {
+    '@type': 'Organization',
+    name: instance.name,
+    url: `https://${instance.domain}`
+  },
+
+  instructor: {
+    '@type': 'Person',
+    name: course.instructor.name,
+    description: course.instructor.bio
+  },
+
+  offers: {
+    '@type': 'Offer',
+    category: 'Paid',
+    price: course.price,
+    priceCurrency: 'VND',
+    availability: 'https://schema.org/InStock'
+  },
+
+  timeRequired: `P${course.duration}W`, // ISO 8601 duration
+  educationalLevel: course.level,
+
+  hasCourseInstance: {
+    '@type': 'CourseInstance',
+    courseMode: 'online',
+    startDate: course.startDate,
+    endDate: course.endDate
+  }
+}
+```
+
+### Sitemap Generation
+
+```typescript
+// app/sitemap.ts
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const instance = await fetchInstanceConfig()
+  const courses = await fetchAllPublicCourses()
+
+  const baseUrl = `https://${instance.domain}`
+
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1.0
+    },
+    {
+      url: `${baseUrl}/courses`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9
+    },
+    ...courses.map(course => ({
+      url: `${baseUrl}/courses/${course.id}`,
+      lastModified: course.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8
+    })),
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5
+    }
+  ]
+}
+```
+
+## 6D.5. Performance Optimization
+
+### ISR (Incremental Static Regeneration)
+
+```typescript
+// Revalidation Strategy
+export const revalidate = {
+  landingPage: 3600,      // 1 hour - landing page
+  courseCatalog: 1800,    // 30 min - course catalog
+  courseDetails: 3600,    // 1 hour - course details
+  aboutPage: 86400,       // 24 hours - about page
+}
+
+// app/(public)/page.tsx
+export const revalidate = 3600 // Rebuild every 1 hour
+
+// How ISR works:
+// 1. First visitor: Server fetches fresh data (~200ms)
+// 2. Next 1 hour: Serve cached static HTML (0ms)
+// 3. After 1 hour: Background revalidation starts
+// 4. Updated page ready for next request
+// 5. CDN caches static HTML globally
+```
+
+### Performance Targets
+
+```
+┌─────────────────────────────────────────────────────────┐
+│               PERFORMANCE TARGETS                       │
+├─────────────────────────┬───────────────────────────────┤
+│  Metric                 │  Target                       │
+├─────────────────────────┼───────────────────────────────┤
+│  Lighthouse Score       │  90+                          │
+│  First Contentful Paint │  < 1.5s                       │
+│  Largest Contentful     │  < 2.5s                       │
+│  Time to Interactive    │  < 3.0s                       │
+│  Total Page Size        │  < 1MB                        │
+│  Hero Banner Size       │  < 300KB (WebP)               │
+│  Course Card Images     │  < 100KB (WebP)               │
+└─────────────────────────┴───────────────────────────────┘
+```
+
+## 6D.6. Conversion Flow
+
+### Guest to Student Journey
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              CONVERSION FUNNEL                          │
+└─────────────────────────────────────────────────────────┘
+
+Step 1: Discovery (SEO)
+  Google search: "khóa học lập trình Hà Nội"
+  → Click organic result
+  → Lands on abc-academy.kiteclass.com
+
+Step 2: Browse (Public)
+  Landing page → Course catalog → Course details
+  - No login required
+  - View pricing, schedule, instructor
+  - Read course description, syllabus
+
+Step 3: Interest
+  Clicks "Đăng Ký Ngay" button on course card
+
+Step 4: Authentication Gate
+  Redirect to: /login?redirect=/enroll/101
+  - Option A: Login (existing student)
+  - Option B: Register (new student)
+
+Step 5: Registration
+  Register form:
+  - Name, Email, Phone
+  - Zalo OTP verification
+  - Create account
+
+Step 6: Enrollment
+  Redirect to: /enroll/101 (authenticated)
+  Enrollment form:
+  - Confirm course selection
+  - Payment (if paid course)
+  - VNPay/MoMo integration
+
+Step 7: Enrolled
+  Success → Redirect to /dashboard/courses/101
+  Now a registered student with course access
+
+┌─────────────────────────────────────────────────────────┐
+│                 CONVERSION METRICS                      │
+├─────────────────────────┬───────────────────────────────┤
+│  Stage                  │  Expected Conversion          │
+├─────────────────────────┼───────────────────────────────┤
+│  Landing → Browse       │  60-70%                       │
+│  Browse → Interest      │  20-30%                       │
+│  Interest → Register    │  40-50%                       │
+│  Register → Enroll      │  70-80%                       │
+│  Overall (Land→Enroll)  │  5-10%                        │
+└─────────────────────────┴───────────────────────────────┘
+```
+
+## 6D.7. Custom Domain (PREMIUM Tier)
+
+### DNS Configuration
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           CUSTOM DOMAIN SETUP (PREMIUM)                 │
+└─────────────────────────────────────────────────────────┘
+
+Step 1: Customer adds CNAME record
+  Type: CNAME
+  Name: www (hoặc @)
+  Value: proxy.kiteclass.com
+  TTL: 3600
+
+Step 2: KiteClass Backend verifies DNS
+  - Poll DNS records every 5 minutes
+  - Verify CNAME points to proxy.kiteclass.com
+  - Mark domain as "verified" when successful
+
+Step 3: SSL Auto-Provision
+  - Generate Let's Encrypt SSL certificate
+  - Auto-renewal every 60 days
+  - Certificate stored in /etc/letsencrypt/
+
+Step 4: Nginx Reverse Proxy
+  - Add server block for custom domain
+  - Proxy to abc-academy.kiteclass.com
+  - Enable HTTPS redirect (HTTP → HTTPS)
+
+Step 5: Database Update
+  INSERT INTO domain_mappings (
+    instance_id,
+    custom_domain,
+    verified_at,
+    ssl_cert_path,
+    status
+  ) VALUES (
+    'abc-academy-001',
+    'abc-academy.com',
+    NOW(),
+    '/etc/letsencrypt/live/abc-academy.com/',
+    'ACTIVE'
+  );
+```
+
+### Nginx Configuration
+
+```nginx
+# /etc/nginx/sites-enabled/abc-academy.com
+server {
+    listen 443 ssl http2;
+    server_name abc-academy.com www.abc-academy.com;
+
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/abc-academy.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Reverse Proxy to KiteClass Instance
+    location / {
+        proxy_pass https://abc-academy.kiteclass.com;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Caching
+        proxy_cache_valid 200 1h;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# HTTP → HTTPS Redirect
+server {
+    listen 80;
+    server_name abc-academy.com www.abc-academy.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+## 6D.8. Analytics & Tracking
+
+### Google Analytics 4 Events
+
+```typescript
+// Track key conversion events
+export function trackPreviewWebsiteEvents() {
+
+  // Landing page view
+  gtag('event', 'page_view', {
+    page_title: 'Landing Page',
+    page_location: window.location.href
+  })
+
+  // Course view
+  gtag('event', 'view_course', {
+    course_id: course.id,
+    course_name: course.title,
+    course_price: course.price,
+    course_category: course.category
+  })
+
+  // Enrollment click
+  gtag('event', 'click_enroll', {
+    course_id: course.id,
+    placement: 'course_card', // or 'course_details'
+    value: course.price
+  })
+
+  // Contact form submit
+  gtag('event', 'submit_contact_form', {
+    form_location: 'landing_page'
+  })
+
+  // Instructor view
+  gtag('event', 'view_instructor', {
+    instructor_id: instructor.id,
+    instructor_name: instructor.name
+  })
+}
+```
+
+## 6D.9. Security & Privacy
+
+### Public Data Only
+
+```java
+// Security Filter - Ensure no private data leakage
+@Component
+public class PublicDataFilter {
+
+    public PublicCourseDTO filterCourse(Course course) {
+        return PublicCourseDTO.builder()
+            // ✅ SAFE to expose
+            .id(course.getId())
+            .title(course.getTitle())
+            .description(course.getDescription())
+            .price(course.getPrice())
+            .instructor(filterInstructor(course.getInstructor()))
+
+            // ❌ NEVER expose
+            // .lessons - Private content
+            // .students - PII
+            // .grades - Private data
+            // .attendance - Private data
+            .build();
+    }
+}
+```
+
+### Rate Limiting
+
+```java
+// Prevent abuse of public APIs
+@RateLimit(value = 100, period = "1m") // 100 requests/min per IP
+public ResponseEntity<List<PublicCourseDTO>> getPublicCourses() {
+    // Rate limiting prevents:
+    // - DDoS attacks
+    // - Data scraping
+    // - API abuse
+}
+```
+
+### GDPR Compliance
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                 GDPR COMPLIANCE                         │
+├─────────────────────────────────────────────────────────┤
+│  ✅ Cookie consent banner                               │
+│  ✅ Privacy policy link                                 │
+│  ✅ Contact form: Explicit opt-in for marketing         │
+│  ✅ No PII without consent                              │
+│  ✅ Right to be forgotten (delete account → remove      │
+│     from public catalog)                                │
+│  ✅ Data minimization (only public data exposed)        │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+# PHẦN 6E: GUEST USER & TRIAL SYSTEM - MÔ HÌNH B2B OWNER-CENTRIC
+
+## 6E.1. Tổng Quan Guest & Trial Model
+
+### Định Nghĩa
+
+KiteClass áp dụng **mô hình B2B owner-centric** trong đó:
+- **Trial dành cho OWNER** - Business owners trial platform features, không phải students trial courses
+- **Guest contact OWNER** - Prospective students liên hệ OWNER để đăng ký, không tự enroll
+- **OWNER làm sales** - KiteClass cung cấp công cụ, OWNER thực hiện sales process
+
+### Nguyên Tắc Cốt Lõi
+
+```
+┌─────────────────────────────────────────────────────────┐
+│          B2B OWNER-CENTRIC PRINCIPLES                   │
+├─────────────────────────────────────────────────────────┤
+│  1. Trial CHỈ cho OWNER                                 │
+│     - Đăng ký instance → Trial expand features          │
+│     - 14 ngày test ALL features                         │
+│     - Non-owners liên hệ OWNER để request               │
+│                                                         │
+│  2. Guest KHÔNG auto-enroll                             │
+│     - Browse public catalog                             │
+│     - Contact OWNER (FB, Zalo, Messenger)               │
+│     - OWNER tư vấn → Manual enroll                      │
+│                                                         │
+│  3. OWNER làm sales                                     │
+│     - KiteClass: Provide tools (catalog, contact info)  │
+│     - OWNER: Execute (qualify leads, close sales)       │
+│                                                         │
+│  4. Admin quản lý public resources                      │
+│     - Backend service: Course visibility control        │
+│     - ADMIN toggle: PUBLIC/PRIVATE per course           │
+│                                                         │
+│  5. Contact info prominent                              │
+│     - Display: Facebook, Zalo, Messenger, Phone         │
+│     - Vietnam market: Personal touch important          │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6E.2. Trial System Architecture
+
+### Trial Scope & Timeline
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              TRIAL SYSTEM FLOW                          │
+└─────────────────────────────────────────────────────────┘
+
+Day 0: OWNER Registration (KiteHub)
+  ┌───────────────────────────────────────────────────┐
+  │  Trial Signup Form:                               │
+  │  - Organization name                              │
+  │  - Owner name, email, phone                       │
+  │  - Industry type (giáo dục, corporate, etc.)      │
+  │  - Company size (<50, 50-200, >200 students)      │
+  │  - Referral source                                │
+  │                                                   │
+  │  Verification:                                    │
+  │  - Zalo OTP (phone verification)                  │
+  │  - Email verification link                        │
+  │                                                   │
+  │  ❌ NO payment info required                       │
+  └───────────────────────────────────────────────────┘
+          ↓
+  Instance Provisioning
+  - URL: {org-slug}.kiteclass.com
+  - Deploy 3 core services (User, Core, Frontend)
+  - Status: TRIAL
+  - Tier: BASIC
+          ↓
+
+Day 1-14: Trial Period (Active)
+  ┌───────────────────────────────────────────────────┐
+  │  Base Tier: BASIC                                 │
+  │  - Free during trial                              │
+  │  - Max 50 students                                │
+  │  - Max 10 courses                                 │
+  │  - Max 5 teachers                                 │
+  │                                                   │
+  │  Expand Features (All FREE for trial):            │
+  │  ✅ ENGAGEMENT Pack (+300k/month normally)        │
+  │     - Gamification                                │
+  │     - Forum                                       │
+  │     - Parent Portal                               │
+  │                                                   │
+  │  ✅ MEDIA Pack (+500k/month normally)             │
+  │     - Video Upload (5GB trial limit)              │
+  │     - Live Streaming (1 concurrent)               │
+  │     - Video Analytics                             │
+  │                                                   │
+  │  ✅ PREMIUM Features (2tr/month normally)         │
+  │     - AI Branding (10 generations trial)          │
+  │     - Custom Domain (test only)                   │
+  │     - Priority Support                            │
+  │                                                   │
+  │  UI Indicators:                                   │
+  │  - Banner: "Bạn còn X ngày trial"                 │
+  │  - Footer: "Trial ends on [date]"                 │
+  └───────────────────────────────────────────────────┘
+          ↓
+
+Day 11-13: Late Trial Warnings
+  - ⚠️ Warning banner: "Còn 3 ngày trial"
+  - 📧 Email reminder (Day 11, 13)
+  - 🔔 In-app notification
+  - 💰 Offer: "Upgrade ngay giảm 20%"
+          ↓
+
+Day 14: Last Day
+  - 🔴 Urgent banner: "HÔM NAY là ngày cuối"
+  - 📧 Email: "Last chance to upgrade"
+  - 🎁 Modal popup: Early-bird discount
+          ↓
+
+Day 14 23:59:59 → Trial Expires
+
+Day 15-17: Grace Period (Read-Only)
+  ┌───────────────────────────────────────────────────┐
+  │  📖 Read-Only Mode:                               │
+  │  ✅ Login OK                                       │
+  │  ✅ View data (students, courses, reports)         │
+  │  ❌ CRUD disabled (cannot add/edit/delete)         │
+  │                                                   │
+  │  🔒 Expand Features Locked:                        │
+  │  - Gamification → Disabled                        │
+  │  - Forum → Read-only                              │
+  │  - Video Upload → Blocked                         │
+  │  - AI Branding → Disabled                         │
+  │                                                   │
+  │  Banner: "Trial đã hết. Còn X ngày grace period"  │
+  │  📧 Daily email reminder                           │
+  └───────────────────────────────────────────────────┘
+          ↓
+
+Day 18: Grace Period Ends → Instance LOCKED
+  ┌───────────────────────────────────────────────────┐
+  │  🔒 Instance Locked:                              │
+  │  ❌ Cannot login                                   │
+  │  📧 Email: "Trial & grace period đã hết"           │
+  │  💳 "Nâng cấp ngay" button → KiteHub billing       │
+  │                                                   │
+  │  💾 Data Retained: 90 days                         │
+  │  - Backup storage                                 │
+  │  - OWNER can upgrade anytime → Restore            │
+  └───────────────────────────────────────────────────┘
+          ↓
+
+Day 18-107: Data Retention (90 days)
+  - Instance locked but data preserved
+  - OWNER can upgrade → Instant restore
+  - No charges during locked period
+          ↓
+
+Day 108: 7-Day Warning
+  - 📧 Email: "Còn 7 ngày data sẽ bị xóa"
+  - 💾 Option: "Download backup" button
+          ↓
+
+Day 115: Permanent Deletion
+  - 🗑️ Instance deprovisioned
+  - 🗑️ Data permanently deleted
+  - ❌ Cannot recover
+```
+
+### Trial Tier Specification
+
+```java
+// Trial Instance Configuration
+@Entity
+public class Instance {
+    @Id
+    private String id;
+
+    @Enumerated(EnumType.STRING)
+    private InstanceStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private SubscriptionTier baseTier = SubscriptionTier.BASIC;
+
+    // Trial-specific fields
+    private LocalDateTime trialStartDate;
+    private LocalDateTime trialEndDate;
+    private LocalDateTime gracePeriodEndDate;
+
+    // Expand services (enabled during trial)
+    @ElementCollection
+    private Set<ExpandService> trialExpandServices = new HashSet<>();
+
+    public enum InstanceStatus {
+        TRIAL,           // Day 1-14
+        GRACE_PERIOD,    // Day 15-17 (read-only)
+        ACTIVE,          // Paid subscription
+        LOCKED,          // Day 18+ (cannot login)
+        DELETED          // Day 115+ (permanent)
+    }
+
+    public enum ExpandService {
+        ENGAGEMENT,      // Gamification, Forum, Parent Portal
+        MEDIA,           // Video, Live Streaming
+        AI_BRANDING      // AI-generated marketing assets
+    }
+}
+```
+
+### Trial Conversion Strategy
+
+```
+┌─────────────────────────────────────────────────────────┐
+│           MULTI-TOUCH CONVERSION STRATEGY               │
+├─────────────────────────────────────────────────────────┤
+│  Day 1: Welcome Email                                   │
+│    → Quick start guide                                  │
+│    → Feature tutorials                                  │
+│                                                         │
+│  Day 3: Feature Highlight                               │
+│    → "Đã thử AI Branding chưa?"                        │
+│    → Video tutorial link                                │
+│                                                         │
+│  Day 7: Mid-Trial Check-in                              │
+│    → Survey: "Trải nghiệm thế nào?"                    │
+│    → Early-bird offer: "Upgrade giảm 20%"              │
+│                                                         │
+│  Day 11: Late-Trial Warning                             │
+│    → ⚠️ Banner + Email + Modal                         │
+│    → Highlight benefits of paid plan                    │
+│                                                         │
+│  Day 14: Last Chance                                    │
+│    → 🔴 Urgent messaging                                │
+│    → One-click upgrade flow                             │
+│                                                         │
+│  Day 15-17: Grace Period                                │
+│    → Read-only access (see what you'll lose)           │
+│    → Daily reminder emails                              │
+│                                                         │
+│  Conversion Incentive:                                  │
+│  💰 20% discount for upgrade trong 10 ngày đầu          │
+│     VD: STANDARD 1tr/tháng → 800k (tháng đầu)          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Duplicate Trial Prevention
+
+```java
+// Trial Eligibility Service
+@Service
+public class TrialEligibilityService {
+
+    public TrialEligibility checkEligibility(
+        String email,
+        String phone
+    ) {
+        // Check email (1 email = 1 trial)
+        boolean emailUsed = trialRepo.existsByEmail(email);
+
+        // Check phone (1 phone = 1 trial)
+        boolean phoneUsed = trialRepo.existsByPhone(phone);
+
+        if (emailUsed || phoneUsed) {
+            // Log duplicate attempt
+            auditLog.warn("Duplicate trial attempt",
+                Map.of("email", email, "phone", phone)
+            );
+
+            // Notify sales team (for legitimate cases)
+            salesNotificationService.notifyDuplicateTrial(
+                email, phone, LocalDateTime.now()
+            );
+
+            return TrialEligibility.builder()
+                .eligible(false)
+                .reason("Email hoặc SĐT đã được dùng cho trial")
+                .existingTrialDate(getExistingTrialDate(email, phone))
+                .contact("support@kiteclass.com")
+                .build();
+        }
+
+        return TrialEligibility.eligible();
+    }
+}
+```
+
+## 6E.3. Guest User Access Architecture
+
+### Admin-Controlled Public Resources
+
+```java
+// Course Visibility Control
+@Entity
+public class Course {
+    @Id
+    private String id;
+
+    private String title;
+    private String description;
+    private BigDecimal price;
+
+    // Admin controls public visibility
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PublicVisibility publicVisibility = PublicVisibility.PRIVATE;
+
+    public enum PublicVisibility {
+        PRIVATE,     // Guest không thấy (default)
+        PUBLIC       // Guest thấy trong public catalog
+    }
+}
+
+// Admin API - Toggle Visibility
+@RestController
+@RequestMapping("/api/v1/admin")
+public class CourseAdminController {
+
+    @PatchMapping("/courses/{id}/visibility")
+    @PreAuthorize("hasRole('CENTER_ADMIN')")
+    public ResponseEntity<Void> updateVisibility(
+        @PathVariable String id,
+        @RequestBody UpdateVisibilityRequest request
+    ) {
+        courseService.updatePublicVisibility(
+            id,
+            request.getVisibility()
+        );
+
+        // Invalidate public API cache
+        cacheService.evict("public-courses", instanceId);
+
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+### Public Course Catalog API
+
+```java
+// Public API - Only return PUBLIC courses
+@RestController
+@RequestMapping("/api/v1/public")
+public class PublicCourseController {
+
+    @GetMapping("/instance/{instanceId}/courses")
+    @RateLimit(value = 100, period = "1m")
+    public ResponseEntity<List<PublicCourseDTO>> getPublicCourses(
+        @PathVariable String instanceId,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String level
+    ) {
+        List<Course> courses = courseRepo
+            .findByInstanceIdAndPublicVisibility(
+                instanceId,
+                PublicVisibility.PUBLIC  // ← KEY: Chỉ PUBLIC
+            );
+
+        // Apply filters
+        if (category != null) {
+            courses = courses.stream()
+                .filter(c -> c.getCategory().equals(category))
+                .collect(Collectors.toList());
+        }
+
+        // Convert to PublicDTO (filter private fields)
+        return ResponseEntity.ok(
+            courses.stream()
+                .map(this::toPublicDTO)
+                .collect(Collectors.toList())
+        );
+    }
+
+    private PublicCourseDTO toPublicDTO(Course course) {
+        return PublicCourseDTO.builder()
+            // ✅ SAFE to expose
+            .id(course.getId())
+            .title(course.getTitle())
+            .description(course.getDescription())
+            .price(course.getPrice())
+            .schedule(course.getSchedule())
+            .startDate(course.getStartDate())
+            .instructor(toPublicInstructorDTO(course.getInstructor()))
+
+            // ❌ NOT included (private data)
+            // .lessons - Lesson content
+            // .students - Student list (PII)
+            // .grades - Private assessment data
+            // .attendance - Private tracking data
+            .build();
+    }
+}
+```
+
+### Instance Contact Information
+
+```java
+// Instance Contact Info
+@Entity
+public class Instance {
+    @Id
+    private String id;
+
+    private String name;
+    private String description;
+
+    // Owner contact information (for guest inquiries)
+    @Embedded
+    private OwnerContactInfo ownerContact;
+
+    @Embeddable
+    public static class OwnerContactInfo {
+        private String ownerName;
+        private String ownerTitle;      // "Giám đốc", "Trưởng phòng", etc.
+        private String ownerAvatar;
+
+        // Contact methods
+        private String phone;
+        private String email;
+        private String facebookUrl;     // https://fb.me/abc-academy
+        private String messengerUrl;    // https://m.me/abc-academy
+        private String zaloUrl;         // https://zalo.me/0123456789
+    }
+}
+
+// Public API - Get Contact Info
+@GetMapping("/instance/{instanceId}/contact")
+public ResponseEntity<InstanceContactDTO> getContactInfo(
+    @PathVariable String instanceId
+) {
+    Instance instance = instanceRepo.findById(instanceId)
+        .orElseThrow(() -> new InstanceNotFoundException(instanceId));
+
+    return ResponseEntity.ok(
+        InstanceContactDTO.fromEntity(instance.getOwnerContact())
+    );
+}
+```
+
+## 6E.4. Owner-Led Sales Model
+
+### Guest-to-Student Journey
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         GUEST-TO-STUDENT CONVERSION FLOW                │
+│         (Manual, Owner-Led)                             │
+└─────────────────────────────────────────────────────────┘
+
+Step 1: Guest Discovery (SEO)
+  - Google search: "khóa học lập trình Hà Nội"
+  - Click abc-academy.kiteclass.com
+  - Lands on public landing page
+
+Step 2: Browse Public Catalog
+  - View course grid
+  - Filter by category, level, price
+  - Click course → Course details page
+
+Step 3: View Course Details
+  ┌───────────────────────────────────────────────────┐
+  │  Course Details Page:                             │
+  │  - Title, description, syllabus                   │
+  │  - Price, schedule, duration                      │
+  │  - Instructor bio, photo                          │
+  │                                                   │
+  │  ⚠️ NO "Enroll Now" button                        │
+  │  ⚠️ NO Self-registration form                     │
+  │                                                   │
+  │  ✅ INSTEAD: Contact OWNER Section                │
+  │  ┌─────────────────────────────────────────────┐ │
+  │  │  Quan tâm khóa học này?                     │ │
+  │  │  Liên hệ trực tiếp với trung tâm:          │ │
+  │  │                                             │ │
+  │  │  [📱 0123-456-789]  [💬 Chat Zalo]         │ │
+  │  │  [📘 Facebook]      [📧 Email]             │ │
+  │  │                                             │ │
+  │  │  👤 Nguyễn Văn A - Giám đốc                │ │
+  │  │     ABC Academy                             │ │
+  │  └─────────────────────────────────────────────┘ │
+  └───────────────────────────────────────────────────┘
+
+Step 4: Guest Contacts OWNER
+  - Click Facebook → Messenger chat
+  - Click Zalo → Zalo chat
+  - Click Phone → Call directly
+  - Click Email → Send inquiry
+
+Step 5: OWNER Sales Conversation
+  ┌───────────────────────────────────────────────────┐
+  │  OWNER tư vấn:                                    │
+  │  - Giới thiệu chi tiết khóa học                   │
+  │  - Trả lời câu hỏi                                │
+  │  - Tư vấn gói phù hợp                             │
+  │  - Thương lượng giá (discount, installment)       │
+  │  - Xác nhận học viên đủ điều kiện                 │
+  │  - Collect student info (name, email, phone)      │
+  │  - Confirm payment method                         │
+  └───────────────────────────────────────────────────┘
+
+Step 6: OWNER Manually Enrolls Student
+  ┌───────────────────────────────────────────────────┐
+  │  Admin Panel:                                     │
+  │  1. Navigate to: /admin/students                  │
+  │  2. Click "Thêm Học Viên"                         │
+  │  3. Fill form:                                    │
+  │     - Name: [from conversation]                   │
+  │     - Email: [from conversation]                  │
+  │     - Phone: [from conversation]                  │
+  │  4. Assign to course                              │
+  │  5. Set enrollment date                           │
+  │  6. Mark payment status: PAID/PENDING             │
+  │  7. Generate student account                      │
+  │  8. Send login credentials via email/SMS          │
+  └───────────────────────────────────────────────────┘
+
+Step 7: Student Receives Credentials
+  - 📧 Email: "Chào mừng đến ABC Academy"
+  - Login: abc-academy.kiteclass.com/login
+  - Username: student@example.com
+  - Temp password: [auto-generated]
+  - Prompt to change password on first login
+
+Step 8: Student Accesses Course
+  - Login to instance
+  - Navigate to /dashboard/courses
+  - See enrolled course
+  - Start learning
+```
+
+### Frontend: Contact OWNER Component
+
+```typescript
+// components/landing/ContactOwnerSection.tsx
+interface ContactOwnerSectionProps {
+  owner: OwnerContactInfo
+  course: PublicCourse
+}
+
+export function ContactOwnerSection({
+  owner,
+  course
+}: ContactOwnerSectionProps) {
+  // Track contact clicks for analytics
+  const trackContact = (method: string) => {
+    gtag('event', 'contact_owner', {
+      course_id: course.id,
+      course_name: course.title,
+      contact_method: method
+    })
+  }
+
+  return (
+    <section className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-xl shadow-lg">
+      <h2 className="text-3xl font-bold mb-3">
+        Quan tâm khóa học này?
+      </h2>
+      <p className="text-gray-700 mb-6 text-lg">
+        Liên hệ trực tiếp với trung tâm để được tư vấn và đăng ký:
+      </p>
+
+      {/* Contact Methods Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <ContactButton
+          icon={<Phone />}
+          href={`tel:${owner.phone}`}
+          onClick={() => trackContact('phone')}
+          variant="phone"
+        >
+          {owner.phone}
+        </ContactButton>
+
+        <ContactButton
+          icon={<Zap className="text-blue-500" />}
+          href={owner.zaloUrl}
+          onClick={() => trackContact('zalo')}
+          variant="zalo"
+        >
+          Chat Zalo
+        </ContactButton>
+
+        <ContactButton
+          icon={<Facebook className="text-blue-600" />}
+          href={owner.facebookUrl}
+          onClick={() => trackContact('facebook')}
+          variant="facebook"
+        >
+          Facebook
+        </ContactButton>
+
+        <ContactButton
+          icon={<MessageCircle className="text-blue-500" />}
+          href={owner.messengerUrl}
+          onClick={() => trackContact('messenger')}
+          variant="messenger"
+        >
+          Messenger
+        </ContactButton>
+      </div>
+
+      {/* Owner Info Card */}
+      <div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow">
+        <Avatar
+          src={owner.avatar}
+          alt={owner.name}
+          size="lg"
+          className="border-2 border-blue-200"
+        />
+        <div>
+          <p className="font-bold text-lg">{owner.name}</p>
+          <p className="text-gray-600">{owner.title}</p>
+          <p className="text-gray-500 text-sm">{instance.name}</p>
+        </div>
+      </div>
+
+      {/* Trust Indicators */}
+      <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
+        <Shield className="w-4 h-4 text-green-500" />
+        <span>Tư vấn miễn phí, không ràng buộc</span>
+      </div>
+    </section>
+  )
+}
+```
+
+## 6E.5. Analytics & Tracking
+
+### Guest Behavior Analytics
+
+```typescript
+// Track guest journey for OWNER insights
+export function trackGuestBehavior() {
+
+  // Landing page view
+  gtag('event', 'page_view', {
+    page_title: 'Landing Page',
+    page_location: window.location.href,
+    user_type: 'guest'
+  })
+
+  // Course catalog view
+  gtag('event', 'view_course_catalog', {
+    instance_id: instance.id
+  })
+
+  // Course details view
+  gtag('event', 'view_course', {
+    course_id: course.id,
+    course_name: course.title,
+    course_price: course.price,
+    course_category: course.category
+  })
+
+  // Contact OWNER action
+  gtag('event', 'contact_owner', {
+    course_id: course.id,
+    contact_method: 'facebook' | 'zalo' | 'phone' | 'email',
+    value: course.price  // Potential conversion value
+  })
+
+  // Time on page
+  gtag('event', 'engagement_time', {
+    engagement_time_msec: timeSpent
+  })
+}
+```
+
+### OWNER Dashboard Analytics
+
+```
+┌─────────────────────────────────────────────────────────┐
+│         OWNER ANALYTICS DASHBOARD                       │
+│         (/dashboard/analytics/guest-traffic)            │
+├─────────────────────────────────────────────────────────┤
+│  📊 Guest Traffic (Last 30 days)                        │
+│  - Total visitors: 1,234                                │
+│  - Course catalog views: 856                            │
+│  - Course detail views: 432                             │
+│  - Contact clicks: 89 (10.4% conversion)                │
+│                                                         │
+│  📱 Contact Method Distribution                          │
+│  - Zalo: 45% (40 contacts)                              │
+│  - Facebook: 30% (27 contacts)                          │
+│  - Phone: 20% (18 contacts)                             │
+│  - Email: 5% (4 contacts)                               │
+│                                                         │
+│  🎯 Top Viewed Courses                                   │
+│  1. Lập Trình Web - 156 views, 23 contacts             │
+│  2. Excel Nâng Cao - 98 views, 12 contacts             │
+│  3. Digital Marketing - 67 views, 8 contacts            │
+│                                                         │
+│  🔍 Traffic Sources                                      │
+│  - Google Search: 45%                                   │
+│  - Facebook Ads: 30%                                    │
+│  - Direct: 15%                                          │
+│  - Other: 10%                                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+## 6E.6. Data Privacy & Security
+
+### Public Data Filtering
+
+```java
+// Ensure no private data leakage
+@Service
+public class PublicDataFilterService {
+
+    public PublicCourseDTO filterCourse(Course course) {
+        return PublicCourseDTO.builder()
+            // ✅ SAFE to expose publicly
+            .id(course.getId())
+            .title(course.getTitle())
+            .description(course.getDescription())
+            .price(course.getPrice())
+            .schedule(course.getSchedule())
+            .instructor(filterInstructor(course.getInstructor()))
+
+            // ❌ NEVER expose (private)
+            // .lessons - Course content
+            // .students - List<Student> (PII)
+            // .grades - Assessment data
+            // .attendance - Tracking data
+            // .internalNotes - Admin notes
+            .build();
+    }
+
+    public PublicInstructorDTO filterInstructor(Instructor instructor) {
+        return PublicInstructorDTO.builder()
+            // ✅ SAFE (public profile)
+            .id(instructor.getId())
+            .name(instructor.getName())
+            .bio(instructor.getBio())
+            .avatar(instructor.getAvatar())
+            .expertise(instructor.getExpertise())
+
+            // ❌ NEVER expose
+            // .email - Contact info (use owner contact instead)
+            // .phone - Contact info
+            // .salary - Private
+            .build();
+    }
+}
+```
+
+### GDPR Compliance
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              GDPR COMPLIANCE CHECKLIST                  │
+├─────────────────────────────────────────────────────────┤
+│  ✅ Cookie Consent Banner                               │
+│     - Show on first visit                               │
+│     - Explicit consent for analytics                    │
+│     - Link to privacy policy                            │
+│                                                         │
+│  ✅ Privacy Policy                                       │
+│     - What data collected (analytics only)              │
+│     - How data used (OWNER insights)                    │
+│     - No PII without consent                            │
+│                                                         │
+│  ✅ Contact Form Opt-in                                  │
+│     - Checkbox: "Đồng ý nhận thông tin từ trung tâm"   │
+│     - Explicit consent for marketing                    │
+│                                                         │
+│  ✅ Data Minimization                                    │
+│     - Only public data exposed                          │
+│     - No student PII in public APIs                     │
+│     - No tracking without consent                       │
+│                                                         │
+│  ✅ Right to be Forgotten                                │
+│     - Student can delete account                        │
+│     - Remove from analytics                             │
+│     - Anonymize historical data                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+# PHẦN 6F: HỆ THỐNG THANH TOÁN - VIETQR PAYMENT
+
+**Tạo:** 2026-01-30
+**Mục đích:** Định nghĩa hệ thống thanh toán 2 cấp độ với VietQR
+
+## 6F.1. Tổng quan VietQR Payment System
+
+### Tại sao chọn VietQR thay vì Payment Gateway truyền thống?
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📊 SO SÁNH: VietQR vs Payment Gateways                 │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  VietQR (QR Code Bank Transfer)                        │
+│  ✅ Zero transaction fees (0%)                          │
+│  ✅ Instant transfer (real-time)                        │
+│  ✅ 95%+ Vietnamese banks support                       │
+│  ✅ No merchant account required                        │
+│  ✅ Simple integration (generate QR, verify transfer)   │
+│  ✅ Popular in Vietnam (everyone has banking app)       │
+│  ⚠️ Manual verification (or bank API integration)       │
+│                                                         │
+│  VNPay / MoMo / ZaloPay                                │
+│  ❌ 1.5-3% transaction fees                             │
+│  ❌ Merchant account required (KYB process)             │
+│  ❌ Integration complexity (webhooks, signature verify) │
+│  ✅ Automatic verification                              │
+│  ✅ Multiple payment methods (card, wallet, bank)       │
+│                                                         │
+│  💡 DECISION: VietQR cho MVP                            │
+│     - Chi phí thấp (zero fees)                          │
+│     - Phổ biến tại Việt Nam                             │
+│     - Đơn giản để implement                             │
+│     - Có thể thêm payment gateway sau (V2)              │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.2. Two-Level Payment Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🏦 TWO-LEVEL PAYMENT SYSTEM                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Level 1: KITEHUB PAYMENT (Platform Subscription)      │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  User → KiteHub                                │    │
+│  │  Purpose: Purchase subscription tier           │    │
+│  │  Bank: KiteHub business account                │    │
+│  │                                                 │    │
+│  │  Example:                                       │    │
+│  │  - BASIC: 499,000 VND/month                    │    │
+│  │  - STANDARD: 999,000 VND/month                 │    │
+│  │  - PREMIUM: 1,499,000 VND/month                │    │
+│  │                                                 │    │
+│  │  QR Content: "KITEHUB {orderId} {email}"       │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Level 2: INSTANCE PAYMENT (Course Enrollment)         │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  Student → Center Owner                        │    │
+│  │  Purpose: Pay course tuition                   │    │
+│  │  Bank: Owner's personal/business account       │    │
+│  │                                                 │    │
+│  │  Example:                                       │    │
+│  │  - Course tuition: 2,000,000 VND               │    │
+│  │  - Material fee: 500,000 VND                   │    │
+│  │                                                 │    │
+│  │  QR Content: "HOCPHI {courseId} {studentName}" │    │
+│  │                                                 │    │
+│  │  ⭐ OWNER CAN CUSTOMIZE:                        │    │
+│  │     - Bank account (any Vietnamese bank)       │    │
+│  │     - QR content template                      │    │
+│  └───────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.3. VietQR Technical Implementation
+
+### 6F.3.1. VietQR URL Format
+
+```java
+// VietQR API: https://vietqr.io/
+// Generate QR image with pre-filled info
+
+String vietqrUrl = String.format(
+  "https://img.vietqr.io/image/%s-%s-compact2.jpg?amount=%d&addInfo=%s&accountName=%s",
+  bankBin,           // "970415" (Vietcombank), "970422" (MB Bank), etc.
+  accountNumber,     // "1234567890"
+  amount,            // 499000 (VND)
+  URLEncoder.encode(content, UTF_8),    // "KITEHUB ORD123 user@example.com"
+  URLEncoder.encode(accountName, UTF_8) // "CONG TY TNHH KITECLASS"
+);
+
+// QR image URL:
+// https://img.vietqr.io/image/970415-1234567890-compact2.jpg?amount=499000&addInfo=KITEHUB%20ORD123%20user@example.com&accountName=CONG%20TY%20TNHH%20KITECLASS
+```
+
+### 6F.3.2. Vietnamese Bank Codes (BIN)
+
+```java
+public enum VietnameseBankCode {
+    VIETCOMBANK("970415", "Vietcombank"),
+    ACB("970416", "ACB"),
+    BIDV("970418", "BIDV"),
+    MB_BANK("970422", "MB Bank"),
+    TECHCOMBANK("970423", "Techcombank"),
+    VIETINBANK("970436", "Vietinbank"),
+    VPB("970432", "VPBank"),
+    SACOMBANK("970403", "Sacombank"),
+    AGRIBANK("970405", "Agribank"),
+    DONGABANK("970406", "Đông Á Bank"),
+    // ... 40+ banks total
+}
+```
+
+---
+
+## 6F.4. KiteHub Payment (Level 1)
+
+### 6F.4.1. Subscription Payment Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🔄 KITEHUB SUBSCRIPTION PAYMENT FLOW                   │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. User clicks "Nâng cấp" → Select tier (BASIC, etc.) │
+│  2. Backend creates PaymentOrder                        │
+│     - orderId: "ORD-20260130-123456"                   │
+│     - amount: 499,000 VND                              │
+│     - tier: BASIC                                       │
+│     - status: PENDING                                   │
+│     - expiresAt: now + 24 hours                        │
+│                                                         │
+│  3. Backend generates VietQR                            │
+│     - Bank: KiteHub account (Vietcombank)              │
+│     - Content: "KITEHUB ORD-20260130-123456 user@x.com"│
+│     - QR Image URL returned to frontend                 │
+│                                                         │
+│  4. User opens banking app → Scan QR → Transfer         │
+│     - Amount auto-filled: 499,000 VND                  │
+│     - Content auto-filled: "KITEHUB ORD-20260130-12..." │
+│     - Recipient: CONG TY TNHH KITECLASS                │
+│                                                         │
+│  5. Verification (2 options):                           │
+│     A. Manual (MVP):                                    │
+│        - ADMIN checks bank statement                    │
+│        - Match content with orderId                     │
+│        - Click "Xác nhận thanh toán" in admin panel    │
+│                                                         │
+│     B. Automated (V2):                                  │
+│        - Bank API webhook → /api/webhooks/bank          │
+│        - Auto-match content → orderId                   │
+│        - Auto-confirm payment                           │
+│                                                         │
+│  6. Post-payment actions:                               │
+│     - Update order status: PAID                         │
+│     - Activate subscription tier                        │
+│     - Send confirmation email                           │
+│     - Grant feature access                              │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6F.4.2. PaymentOrder Entity
+
+```java
+@Entity
+@Table(name = "payment_orders")
+public class PaymentOrder {
+
+    @Id
+    @Column(length = 50)
+    private String orderId;  // "ORD-20260130-123456"
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentType type; // SUBSCRIPTION, COURSE_ENROLLMENT
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(nullable = false)
+    private Long amount;     // 499000 (VND)
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PricingTier tier; // BASIC, STANDARD, PREMIUM
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status; // PENDING, PAID, EXPIRED, CANCELLED
+
+    @Column(length = 500)
+    private String qrImageUrl; // VietQR image URL
+
+    @Column(length = 200)
+    private String paymentContent; // "KITEHUB ORD-123 user@x.com"
+
+    @Column(length = 100)
+    private String transactionReference; // Bank transaction ID (if available)
+
+    @Column
+    private LocalDateTime paidAt;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime expiresAt; // createdAt + 24 hours
+
+    // Getters/Setters
+}
+```
+
+### 6F.4.3. VietQRService - KiteHub Level
+
+```java
+@Service
+public class KiteHubPaymentService {
+
+    private static final String KITEHUB_BANK_BIN = "970415"; // Vietcombank
+    private static final String KITEHUB_ACCOUNT = "1234567890";
+    private static final String KITEHUB_ACCOUNT_NAME = "CONG TY TNHH KITECLASS";
+
+    /**
+     * Create subscription payment order with VietQR
+     */
+    @Transactional
+    public PaymentOrderResponse createSubscriptionOrder(
+        User user,
+        PricingTier tier
+    ) {
+        // Generate unique order ID
+        String orderId = generateOrderId(); // "ORD-20260130-123456"
+
+        // Get tier price
+        long amount = tier.getPriceVND(); // 499k, 999k, 1499k
+
+        // Generate payment content
+        String content = String.format(
+            "KITEHUB %s %s",
+            orderId,
+            user.getEmail()
+        );
+
+        // Generate VietQR URL
+        String qrUrl = buildVietQRUrl(
+            KITEHUB_BANK_BIN,
+            KITEHUB_ACCOUNT,
+            KITEHUB_ACCOUNT_NAME,
+            amount,
+            content
+        );
+
+        // Create payment order
+        PaymentOrder order = new PaymentOrder();
+        order.setOrderId(orderId);
+        order.setType(PaymentType.SUBSCRIPTION);
+        order.setUser(user);
+        order.setAmount(amount);
+        order.setTier(tier);
+        order.setStatus(PaymentStatus.PENDING);
+        order.setQrImageUrl(qrUrl);
+        order.setPaymentContent(content);
+        order.setCreatedAt(LocalDateTime.now());
+        order.setExpiresAt(LocalDateTime.now().plusHours(24));
+
+        paymentOrderRepo.save(order);
+
+        // Return response
+        return PaymentOrderResponse.builder()
+            .orderId(orderId)
+            .qrImageUrl(qrUrl)
+            .bankName("Vietcombank")
+            .accountNumber(maskAccountNumber(KITEHUB_ACCOUNT)) // "1234****90"
+            .accountName(KITEHUB_ACCOUNT_NAME)
+            .amount(amount)
+            .content(content)
+            .expiresAt(order.getExpiresAt())
+            .build();
+    }
+
+    /**
+     * Manual payment verification (MVP)
+     */
+    @Transactional
+    public void confirmPayment(
+        String orderId,
+        String transactionRef,
+        LocalDateTime paidAt
+    ) {
+        PaymentOrder order = paymentOrderRepo.findById(orderId)
+            .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (order.getStatus() != PaymentStatus.PENDING) {
+            throw new InvalidStateException("Order already processed");
+        }
+
+        // Update order
+        order.setStatus(PaymentStatus.PAID);
+        order.setTransactionReference(transactionRef);
+        order.setPaidAt(paidAt);
+        paymentOrderRepo.save(order);
+
+        // Activate subscription
+        subscriptionService.activateTier(order.getUser(), order.getTier());
+
+        // Send confirmation email
+        emailService.sendPaymentConfirmation(order);
+
+        // Publish event
+        eventPublisher.publish(new PaymentConfirmedEvent(order));
+    }
+
+    private String buildVietQRUrl(
+        String bankBin,
+        String accountNo,
+        String accountName,
+        long amount,
+        String content
+    ) {
+        return String.format(
+            "https://img.vietqr.io/image/%s-%s-compact2.jpg?amount=%d&addInfo=%s&accountName=%s",
+            bankBin,
+            accountNo,
+            amount,
+            URLEncoder.encode(content, StandardCharsets.UTF_8),
+            URLEncoder.encode(accountName, StandardCharsets.UTF_8)
+        );
+    }
+
+    private String generateOrderId() {
+        return String.format(
+            "ORD-%s-%06d",
+            LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE),
+            ThreadLocalRandom.current().nextInt(1, 1_000_000)
+        );
+    }
+
+    private String maskAccountNumber(String accountNo) {
+        if (accountNo.length() <= 4) return accountNo;
+        return accountNo.substring(0, 4) + "****" + accountNo.substring(accountNo.length() - 2);
+    }
+}
+```
+
+---
+
+## 6F.5. Instance Payment (Level 2) - Owner Configurable
+
+### 6F.5.1. Owner Bank Account Configuration
+
+```java
+@Entity
+@Table(name = "instances")
+public class Instance {
+
+    @Embedded
+    private BankAccountInfo ownerBankAccount;
+
+    @Embeddable
+    public static class BankAccountInfo {
+
+        @Column(name = "bank_code", length = 10)
+        private String bankCode;  // "970415" (Vietcombank), "970422" (MB Bank)
+
+        @Column(name = "bank_name", length = 100)
+        private String bankName;  // "Vietcombank" (display name)
+
+        @Column(name = "account_number", length = 50)
+        private String accountNumber;  // "9876543210"
+
+        @Column(name = "account_name", length = 200)
+        private String accountName;  // "NGUYEN VAN A" (UPPERCASE, no accents)
+
+        @Column(name = "qr_template", length = 500)
+        private String qrTemplate;  // "HOCPHI {courseId} {studentName}"
+
+        // Getters/Setters
+    }
+}
+```
+
+### 6F.5.2. Course Enrollment Payment Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🎓 COURSE ENROLLMENT PAYMENT FLOW (Instance-Level)     │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  1. ADMIN adds Student to Course                        │
+│     - courseId: "CRS-123"                              │
+│     - studentId: "STU-456"                             │
+│     - tuition: 2,000,000 VND                           │
+│     - status: PENDING_PAYMENT                           │
+│                                                         │
+│  2. Backend generates VietQR for this enrollment        │
+│     - Bank: OWNER's configured account                  │
+│     - Content: OWNER's template                         │
+│       "HOCPHI CRS-123 NGUYEN VAN A"                    │
+│     - QR sent to Student via email/parent portal        │
+│                                                         │
+│  3. Student/Parent scans QR → Transfer                  │
+│     - Amount: 2,000,000 VND (pre-filled)               │
+│     - Content: "HOCPHI CRS-123 NGUYEN VAN A" (pre-filled)│
+│     - Recipient: NGUYEN VAN B (Owner's name)           │
+│                                                         │
+│  4. OWNER checks bank account → Sees transfer           │
+│     - Logs into KiteClass                               │
+│     - Goes to: Students > {student} > Payments          │
+│     - Clicks "Xác nhận đã nhận tiền"                   │
+│                                                         │
+│  5. Post-payment:                                       │
+│     - Student status: ACTIVE                            │
+│     - Can access course materials                       │
+│     - Parent receives confirmation                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6F.5.3. InstancePaymentService
+
+```java
+@Service
+public class InstancePaymentService {
+
+    /**
+     * Generate QR for course enrollment payment
+     * Uses OWNER's configured bank account
+     */
+    public VietQRResponse generateEnrollmentQR(
+        String instanceId,
+        String courseId,
+        String studentName,
+        long tuitionAmount
+    ) {
+        // Get instance
+        Instance instance = instanceRepo.findById(instanceId)
+            .orElseThrow(() -> new NotFoundException("Instance not found"));
+
+        // Get owner's bank config
+        BankAccountInfo bankInfo = instance.getOwnerBankAccount();
+
+        if (bankInfo == null || bankInfo.getAccountNumber() == null) {
+            throw new PaymentConfigException(
+                "Chủ trung tâm chưa cấu hình thông tin chuyển khoản. " +
+                "Vui lòng cập nhật trong Settings > Payment Info."
+            );
+        }
+
+        // Format payment content using owner's template
+        String content = formatPaymentContent(
+            bankInfo.getQrTemplate(),
+            courseId,
+            studentName
+        );
+
+        // Generate VietQR URL
+        String qrUrl = buildVietQRUrl(
+            bankInfo.getBankCode(),
+            bankInfo.getAccountNumber(),
+            bankInfo.getAccountName(),
+            tuitionAmount,
+            content
+        );
+
+        return VietQRResponse.builder()
+            .qrImageUrl(qrUrl)
+            .bankName(bankInfo.getBankName())
+            .accountNumber(maskAccountNumber(bankInfo.getAccountNumber()))
+            .accountName(bankInfo.getAccountName())
+            .amount(tuitionAmount)
+            .content(content)
+            .build();
+    }
+
+    /**
+     * Update owner's bank account info (Settings page)
+     */
+    @Transactional
+    public void updateBankAccount(
+        String instanceId,
+        BankAccountUpdateRequest request
+    ) {
+        Instance instance = instanceRepo.findById(instanceId)
+            .orElseThrow(() -> new NotFoundException("Instance not found"));
+
+        // Validate bank code
+        if (!VietnameseBankCode.isValid(request.getBankCode())) {
+            throw new ValidationException("Mã ngân hàng không hợp lệ");
+        }
+
+        // Validate account number
+        if (!request.getAccountNumber().matches("\\d{8,20}")) {
+            throw new ValidationException("Số tài khoản không hợp lệ (8-20 chữ số)");
+        }
+
+        // Validate account name (uppercase, no accents)
+        if (!request.getAccountName().matches("[A-Z0-9 ]+")) {
+            throw new ValidationException(
+                "Tên tài khoản phải viết hoa, không dấu (VD: NGUYEN VAN A)"
+            );
+        }
+
+        // Update bank info
+        BankAccountInfo bankInfo = new BankAccountInfo();
+        bankInfo.setBankCode(request.getBankCode());
+        bankInfo.setBankName(VietnameseBankCode.getNameByCode(request.getBankCode()));
+        bankInfo.setAccountNumber(request.getAccountNumber());
+        bankInfo.setAccountName(request.getAccountName());
+        bankInfo.setQrTemplate(request.getQrTemplate());
+
+        instance.setOwnerBankAccount(bankInfo);
+        instanceRepo.save(instance);
+    }
+
+    /**
+     * Preview QR (for testing in Settings page)
+     */
+    public VietQRResponse previewQR(BankAccountPreviewRequest request) {
+        String sampleContent = request.getQrTemplate()
+            .replace("{courseId}", "SAMPLE123")
+            .replace("{studentName}", "NGUYEN VAN A")
+            .replace("{timestamp}", String.valueOf(System.currentTimeMillis() / 1000));
+
+        String qrUrl = buildVietQRUrl(
+            request.getBankCode(),
+            request.getAccountNumber(),
+            request.getAccountName(),
+            2_000_000L, // Sample amount
+            sampleContent
+        );
+
+        return VietQRResponse.builder()
+            .qrImageUrl(qrUrl)
+            .bankName(VietnameseBankCode.getNameByCode(request.getBankCode()))
+            .accountNumber(maskAccountNumber(request.getAccountNumber()))
+            .accountName(request.getAccountName())
+            .amount(2_000_000L)
+            .content(sampleContent)
+            .build();
+    }
+
+    private String formatPaymentContent(
+        String template,
+        String courseId,
+        String studentName
+    ) {
+        return template
+            .replace("{courseId}", courseId)
+            .replace("{studentName}", removeAccents(studentName).toUpperCase())
+            .replace("{timestamp}", String.valueOf(System.currentTimeMillis() / 1000));
+    }
+}
+```
+
+---
+
+## 6F.6. Payment Verification Strategies
+
+### 6F.6.1. Manual Verification (MVP)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📋 MANUAL PAYMENT VERIFICATION (MVP Approach)          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Admin Panel: /admin/payments/pending                   │
+│                                                         │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  Pending Payments (3)                          │    │
+│  ├───────────────────────────────────────────────┤    │
+│  │                                                 │    │
+│  │  ORD-20260130-123456                           │    │
+│  │  Amount: 499,000 VND                           │    │
+│  │  Tier: BASIC                                    │    │
+│  │  User: user@example.com                        │    │
+│  │  Content: "KITEHUB ORD-20260130-123456..."     │    │
+│  │  Created: 2026-01-30 10:00                     │    │
+│  │  [Xác nhận thanh toán] [Hủy]                   │    │
+│  ├───────────────────────────────────────────────┤    │
+│  │  ... more pending payments ...                 │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Workflow:                                              │
+│  1. Admin checks bank statement (internet banking)     │
+│  2. Match content in bank with pending orders           │
+│  3. Click "Xác nhận thanh toán" for matched order      │
+│  4. Optionally enter bank transaction ID                │
+│  5. System activates subscription/enrollment            │
+│                                                         │
+│  Pros:                                                  │
+│  ✅ Simple to implement                                 │
+│  ✅ No bank API integration needed                      │
+│  ✅ Works with all banks                                │
+│  ✅ 100% accuracy (human verification)                  │
+│                                                         │
+│  Cons:                                                  │
+│  ⚠️ Manual work (1-2 minutes per payment)               │
+│  ⚠️ Not instant (admin needs to check)                  │
+│  ⚠️ Business hours only (unless 24/7 staff)             │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 6F.6.2. Automated Verification (V2 - Future)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🤖 AUTOMATED VERIFICATION (V2 with Bank API)           │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Option A: Bank API Webhooks                            │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  1. Customer transfers money                   │    │
+│  │  2. Bank sends webhook to KiteClass:           │    │
+│  │     POST /api/webhooks/bank/transfer           │    │
+│  │     {                                           │    │
+│  │       "transactionId": "FT123456",            │    │
+│  │       "amount": 499000,                       │    │
+│  │       "content": "KITEHUB ORD-...",           │    │
+│  │       "timestamp": "2026-01-30T10:05:00Z"     │    │
+│  │     }                                           │    │
+│  │  3. Backend verifies signature                 │    │
+│  │  4. Match content with pending order           │    │
+│  │  5. Auto-confirm payment                       │    │
+│  │  6. Activate subscription instantly            │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Supported Banks (Business API):                       │
+│  - Vietcombank Enterprise API                          │
+│  - Techcombank Business API                            │
+│  - MB Bank Corporate API                               │
+│  - VPBank Open API                                     │
+│                                                         │
+│  Option B: Bank Statement Parsing                      │
+│  ┌───────────────────────────────────────────────┐    │
+│  │  1. Cron job every 2 minutes                   │    │
+│  │  2. Fetch latest bank transactions via API     │    │
+│  │  3. Parse each transaction:                    │    │
+│  │     - amount                                    │    │
+│  │     - content                                   │    │
+│  │     - timestamp                                 │    │
+│  │  4. Match with pending orders                  │    │
+│  │  5. Auto-confirm matched payments              │    │
+│  └───────────────────────────────────────────────┘    │
+│                                                         │
+│  Pros:                                                  │
+│  ✅ Instant verification (1-2 minutes)                  │
+│  ✅ 24/7 automatic                                      │
+│  ✅ Scalable (handle 1000s of payments)                 │
+│                                                         │
+│  Cons:                                                  │
+│  ❌ Requires bank API contract                          │
+│  ❌ Integration complexity                              │
+│  ❌ API fees (if applicable)                            │
+│  ❌ Bank-specific implementation                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.7. APIs cho Payment System
+
+### 6F.7.1. KiteHub Subscription Payment APIs
+
+```java
+// 1. Create subscription payment order
+POST /api/v1/payment/subscription/create
+Request:
+{
+  "tier": "BASIC" | "STANDARD" | "PREMIUM"
+}
+Response:
+{
+  "orderId": "ORD-20260130-123456",
+  "qrImageUrl": "https://img.vietqr.io/image/970415-1234567890-compact2.jpg?...",
+  "bankName": "Vietcombank",
+  "accountNumber": "1234****90",
+  "accountName": "CONG TY TNHH KITECLASS",
+  "amount": 499000,
+  "content": "KITEHUB ORD-20260130-123456 user@example.com",
+  "expiresAt": "2026-01-31T10:00:00Z"
+}
+
+// 2. Check payment status
+GET /api/v1/payment/orders/{orderId}/status
+Response:
+{
+  "orderId": "ORD-20260130-123456",
+  "status": "PENDING" | "PAID" | "EXPIRED" | "CANCELLED",
+  "paidAt": "2026-01-30T10:05:00Z" (if PAID)
+}
+
+// 3. Manual confirm payment (ADMIN only)
+POST /api/v1/admin/payments/{orderId}/confirm
+Request:
+{
+  "transactionReference": "FT123456",
+  "paidAt": "2026-01-30T10:05:00Z"
+}
+Response:
+{
+  "success": true,
+  "orderId": "ORD-20260130-123456",
+  "subscriptionActivated": true
+}
+
+// 4. List pending payments (ADMIN only)
+GET /api/v1/admin/payments/pending
+Response:
+{
+  "orders": [
+    {
+      "orderId": "ORD-20260130-123456",
+      "amount": 499000,
+      "tier": "BASIC",
+      "userEmail": "user@example.com",
+      "content": "KITEHUB ORD-20260130-123456 user@example.com",
+      "createdAt": "2026-01-30T10:00:00Z",
+      "expiresAt": "2026-01-31T10:00:00Z"
+    }
+  ]
+}
+```
+
+### 6F.7.2. Instance Payment Configuration APIs
+
+```java
+// 1. Get current bank account config
+GET /api/v1/instance/payment/bank-account
+Response:
+{
+  "bankCode": "970415",
+  "bankName": "Vietcombank",
+  "accountNumber": "9876****10",
+  "accountName": "NGUYEN VAN A",
+  "qrTemplate": "HOCPHI {courseId} {studentName}",
+  "configured": true
+}
+
+// 2. Update bank account (OWNER only)
+PUT /api/v1/instance/payment/bank-account
+Request:
+{
+  "bankCode": "970415",
+  "accountNumber": "9876543210",
+  "accountName": "NGUYEN VAN A",
+  "qrTemplate": "HOCPHI {courseId} {studentName}"
+}
+Response:
+{
+  "success": true,
+  "message": "Đã cập nhật thông tin chuyển khoản"
+}
+
+// 3. Preview QR (test before saving)
+POST /api/v1/instance/payment/preview-qr
+Request:
+{
+  "bankCode": "970415",
+  "accountNumber": "9876543210",
+  "accountName": "NGUYEN VAN A",
+  "qrTemplate": "HOCPHI {courseId} {studentName}",
+  "sampleAmount": 2000000
+}
+Response:
+{
+  "qrImageUrl": "https://img.vietqr.io/image/970415-9876543210-compact2.jpg?...",
+  "sampleContent": "HOCPHI SAMPLE123 NGUYEN VAN A"
+}
+
+// 4. Generate enrollment QR
+POST /api/v1/instance/enrollments/{enrollmentId}/generate-qr
+Response:
+{
+  "qrImageUrl": "https://img.vietqr.io/image/...",
+  "bankName": "Vietcombank",
+  "accountNumber": "9876****10",
+  "accountName": "NGUYEN VAN A",
+  "amount": 2000000,
+  "content": "HOCPHI CRS-123 NGUYEN VAN B"
+}
+
+// 5. Confirm enrollment payment (OWNER/ADMIN)
+POST /api/v1/instance/enrollments/{enrollmentId}/confirm-payment
+Request:
+{
+  "transactionReference": "optional bank ref",
+  "paidAt": "2026-01-30T14:30:00Z"
+}
+Response:
+{
+  "success": true,
+  "enrollmentId": "ENR-123",
+  "studentActivated": true
+}
+```
+
+---
+
+## 6F.8. Security Considerations
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  🔒 PAYMENT SECURITY CHECKLIST                          │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ✅ Order ID Generation                                 │
+│     - Use cryptographically secure random              │
+│     - Include timestamp to prevent collision            │
+│     - Unpredictable format                              │
+│                                                         │
+│  ✅ Payment Content Uniqueness                          │
+│     - Include orderId (unique)                         │
+│     - Include user identifier                           │
+│     - Validate content format                           │
+│                                                         │
+│  ✅ Order Expiration                                    │
+│     - 24-hour expiry (balance convenience & security)  │
+│     - Auto-cancel expired orders                        │
+│     - Prevent payment after expiry                      │
+│                                                         │
+│  ✅ Amount Validation                                   │
+│     - Verify amount matches order                       │
+│     - Exact match required (no partial payment MVP)    │
+│                                                         │
+│  ✅ Double-Payment Prevention                           │
+│     - Check order status before confirming              │
+│     - Lock order during confirmation                    │
+│     - Idempotent confirm endpoint                       │
+│                                                         │
+│  ✅ Access Control                                      │
+│     - Only ADMIN can confirm KiteHub payments           │
+│     - Only OWNER/ADMIN can confirm instance payments    │
+│     - Audit log all payment actions                     │
+│                                                         │
+│  ✅ Webhook Security (V2)                               │
+│     - Verify signature from bank                        │
+│     - Use HTTPS only                                    │
+│     - Rate limiting                                     │
+│     - Replay attack prevention                          │
+│                                                         │
+│  ✅ Bank Account Protection                             │
+│     - Mask account numbers in frontend                  │
+│     - Encrypt sensitive data at rest                    │
+│     - OWNER-only access to update bank config           │
+│                                                         │
+│  ✅ Audit Trail                                         │
+│     - Log all payment events                            │
+│     - Track who confirmed payments                      │
+│     - Timestamp all actions                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 6F.9. Frontend Implementation Highlights
+
+### Payment QR Display Component
+
+```tsx
+// frontend/components/payment/VietQRDisplay.tsx
+interface VietQRDisplayProps {
+  qrData: {
+    qrImageUrl: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    amount: number;
+    content: string;
+    expiresAt: string;
+  };
+  onPaymentConfirmed?: () => void;
+}
+
+export function VietQRDisplay({ qrData, onPaymentConfirmed }: VietQRDisplayProps) {
+  const [copied, setCopied] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const checkPaymentStatus = async () => {
+    setChecking(true);
+    // Poll payment status
+    const response = await fetch('/api/v1/payment/orders/{orderId}/status');
+    const data = await response.json();
+
+    if (data.status === 'PAID') {
+      toast.success('Thanh toán thành công!');
+      onPaymentConfirmed?.();
+    } else {
+      toast.info('Chưa nhận được thanh toán. Vui lòng thử lại sau ít phút.');
+    }
+    setChecking(false);
+  };
+
+  return (
+    <Card className="max-w-2xl mx-auto p-6">
+      {/* QR Code */}
+      <div className="flex justify-center mb-6">
+        <div className="p-4 bg-white rounded-lg shadow-lg">
+          <img
+            src={qrData.qrImageUrl}
+            alt="VietQR Code"
+            className="w-64 h-64"
+          />
+        </div>
+      </div>
+
+      {/* Bank Details */}
+      <div className="space-y-3 mb-6">
+        <InfoRow label="Ngân hàng" value={qrData.bankName} />
+        <InfoRow
+          label="Số tài khoản"
+          value={qrData.accountNumber}
+          copyable
+          onCopy={() => copyToClipboard(qrData.accountNumber)}
+        />
+        <InfoRow label="Chủ tài khoản" value={qrData.accountName} />
+        <InfoRow
+          label="Số tiền"
+          value={`${qrData.amount.toLocaleString('vi-VN')} đ`}
+          highlight
+        />
+        <InfoRow
+          label="Nội dung"
+          value={qrData.content}
+          copyable
+          onCopy={() => copyToClipboard(qrData.content)}
+          mono
+        />
+      </div>
+
+      {/* Instructions */}
+      <Alert className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Quan trọng:</strong> Vui lòng ghi ĐÚNG nội dung chuyển khoản
+          để hệ thống tự động xác nhận thanh toán.
+        </AlertDescription>
+      </Alert>
+
+      {/* Check payment button */}
+      <Button
+        onClick={checkPaymentStatus}
+        disabled={checking}
+        className="w-full"
+      >
+        {checking ? 'Đang kiểm tra...' : 'Tôi đã chuyển khoản'}
+      </Button>
+
+      {/* Expiry time */}
+      <p className="text-sm text-muted-foreground text-center mt-4">
+        Mã QR có hiệu lực đến: {formatDateTime(qrData.expiresAt)}
+      </p>
+    </Card>
+  );
+}
+```
+
+---
+
+## 6F.10. Summary
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📊 PAYMENT SYSTEM SUMMARY                              │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ✅ Two-Level Architecture                              │
+│     - KiteHub: Platform subscription (BASIC, etc.)     │
+│     - Instance: Course enrollment (Owner configurable)  │
+│                                                         │
+│  ✅ VietQR Technology                                   │
+│     - Zero transaction fees                             │
+│     - Instant transfers                                 │
+│     - Works with 40+ Vietnamese banks                   │
+│     - Simple QR code generation                         │
+│                                                         │
+│  ✅ MVP: Manual Verification                            │
+│     - Admin checks bank statement                       │
+│     - Clicks confirm in admin panel                     │
+│     - 1-2 minutes per payment                           │
+│                                                         │
+│  ✅ V2: Automated Verification (Future)                 │
+│     - Bank API webhooks                                 │
+│     - Instant confirmation                              │
+│     - 24/7 automatic                                    │
+│                                                         │
+│  ✅ Owner Flexibility                                   │
+│     - Configure own bank account                        │
+│     - Customize QR content template                     │
+│     - Preview QR before saving                          │
+│     - Any Vietnamese bank supported                     │
+│                                                         │
+│  ✅ Security                                            │
+│     - Unique order IDs                                  │
+│     - 24-hour expiry                                    │
+│     - Amount validation                                 │
+│     - Double-payment prevention                         │
+│     - Audit logging                                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
 # PHẦN 7: TỔNG KẾT KIẾN TRÚC V3
 
 ## 7.1. So sánh các phiên bản

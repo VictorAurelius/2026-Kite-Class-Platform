@@ -11,9 +11,92 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 
 ---
 
+# 📚 AVAILABLE SKILLS REFERENCE
+
+Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
+
+## Core Development Skills
+- **`architecture-overview.md`** - Tổng quan kiến trúc microservices, service boundaries, cross-service patterns
+- **`api-design.md`** - REST API conventions, request/response patterns, service-to-service communication
+- **`code-style.md`** - Java/Spring Boot naming conventions, package structure, JavaDoc requirements
+- **`database-design.md`** - Schema design, entity relationships, migration practices
+- **`enums-constants.md`** - Enum design patterns, constant management
+
+## Testing & Quality Skills
+- **`testing-guide.md`** - Cách viết tests từ đầu (JUnit, Mockito, Testcontainers, React Testing Library)
+- **`spring-boot-testing-quality.md`** ⭐ **NEW** - Fix warnings & deprecated APIs (Spring Boot 3.4+, @MockBean → @TestConfiguration, MapStruct, code quality checklist)
+
+## Cross-Service & Integration Skills
+- **`cross-service-data-strategy.md`** - UserType + ReferenceId pattern, Feign Client, Saga pattern, cross-service linking
+- **`email-service.md`** - Email templates, SMTP configuration, Thymeleaf integration
+
+## Infrastructure & DevOps Skills
+- **`cloud-infrastructure.md`** - AWS deployment, Docker, Kubernetes, CI/CD
+- **`environment-setup.md`** - Local dev setup, Docker Compose, database initialization
+
+## Frontend Skills
+- **`frontend-development.md`** - React/TypeScript patterns, component structure, state management, UI design system
+- **`frontend-code-quality.md`** ⭐ **NEW** - TypeScript strict mode, React best practices, testing requirements, code quality checklist
+
+## Project Management Skills
+- **`development-workflow.md`** - Git workflow, PR process, branch strategy
+- **`documentation-structure.md`** - Documentation standards, README templates
+- **`maven-dependencies.md`** - Dependency versions, conflict resolution
+- **`project-schedule.md`** - Timeline, milestones, priorities
+- **`required-knowledge.md`** - Tech stack requirements
+- **`skills-compliance-checklist.md`** - Pre-commit checklist, quality gates
+- **`troubleshooting.md`** - Common issues, solutions, debugging tips
+- **`error-logging.md`** - Logging patterns, error handling, monitoring
+
+## 🎯 When to Use Each Skill
+
+**Before starting any Backend PR:**
+1. ✅ Check `architecture-overview.md` for service boundaries
+2. ✅ Review `code-style.md` for naming conventions
+3. ✅ Consult `api-design.md` for endpoint design
+4. ✅ Read `testing-guide.md` for test structure
+5. ✅ Reference `maven-dependencies.md` for correct versions
+
+**Before starting any Frontend PR:**
+1. ✅ Review `frontend-development.md` for UI patterns & design system
+2. ✅ Check `frontend-code-quality.md` for TypeScript/React best practices
+3. ✅ Consult `api-design.md` for API integration patterns
+4. ✅ Read `testing-guide.md` Part 2 for React Testing Library patterns
+
+**When writing tests:**
+1. ✅ Backend: Use `spring-boot-testing-quality.md` for fixing warnings & quality issues
+2. ✅ Frontend: Use `frontend-code-quality.md` Part 3 for React Testing Library patterns
+
+**When encountering issues:**
+1. ✅ Check `troubleshooting.md` first
+2. ✅ Review `error-logging.md` for logging patterns
+3. ✅ Consult specific skill for the domain (e.g., `cross-service-data-strategy.md` for integration issues)
+
+**Before committing:**
+1. ✅ Backend: Run through `spring-boot-testing-quality.md` checklist (no warnings, no deprecated APIs)
+2. ✅ Frontend: Run through `frontend-code-quality.md` Part 8 checklist (no `any`, tests pass, ESLint clean)
+3. ✅ All: Check `development-workflow.md` for commit message format
+4. ✅ Git hooks will run automatically (checks JavaDoc, error codes, TypeScript types, etc.)
+
+---
+
 # 📊 PROGRESS TRACKING
 
-## Gateway Service (feature/gateway branch)
+## 🔀 Git Workflow Update (2026-01-27)
+
+**NEW WORKFLOW:** Merge to main after each milestone, create new branch from main for next work.
+
+**Completed Merges:**
+- ✅ `feature/gateway` → `main` (2026-01-26) - Gateway PRs 1.1-1.6
+- ✅ `feature/core` → `main` (2026-01-27) - Core PRs 2.1-2.3, 2.11
+
+**Current Branch:** `feature/gateway-cross-service` (for PR 1.8)
+
+**Strategy:** Keep code unified in main, branch out for specific features, merge back when complete.
+
+---
+
+## Gateway Service
 - ✅ PR 1.1: Project Setup
 - ✅ PR 1.2: Common Components
 - ✅ PR 1.3: User Module
@@ -43,7 +126,7 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ⏳ PR 2.10: Core Docker & Final Integration
 - ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 
-**Core Status:** 4/11 PRs completed (36.4%) ✅ PR 2.11 COMPLETE
+**Core Status:** 4/14 PRs completed (28.6%) ✅ PR 2.11 COMPLETE
 **Tests:** 50/50 passing (100%) - 40 from PR 2.3 + 10 internal API tests
 **Latest:** PR 2.11 Internal APIs complete - InternalRequestFilter + InternalStudentController
 **Cross-Service APIs Ready:**
@@ -52,17 +135,122 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 - ✅ DELETE /internal/students/{id} - Soft delete student
 **🚨 NEXT PRIORITY:** PR 1.8 Gateway Integration (now unblocked)
 
+**New PRs Added (2026-01-28):**
+- PR 2.3.1: Teacher Module (BLOCKING for Course/Class) - from teacher-module-business-logic.md
+- PR 2.7.1: Assignment Module - from assignment-module-business-logic.md
+- PR 2.7.2: Grade Module - from grade-module-business-logic.md
+- PR 2.8 renamed to: Invoice Module (split from old PR 2.8)
+- PR 2.8.1 (new): Payment Module (split from old PR 2.8)
+- PR 2.9 updated: Settings & Preferences (removed Parent Module - moved to Engagement Service P1)
+
+**Updated PR Count:**
+- Old count: 11 Core PRs
+- New count: 14 Core PRs (added 3 new PRs: 2.3.1, 2.7.1, 2.7.2; split PR 2.8 into 2.8 + 2.8.1)
+
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
 
-**Overall Progress:** 11/30 PRs completed (36.7%)
-**Last Updated:** 2026-01-27 (PR 2.11 COMPLETE ✅)
-**Current Work:**
-- ✅ COMPLETED: PR 2.3 Student Module (tests fixed)
-- ✅ COMPLETED: PR 2.11 Internal APIs (cross-service communication ready)
-- 🚨 NEXT PRIORITY: PR 1.8 Gateway Integration (UserType + ReferenceId + Feign Client)
-- Then switch to feature/gateway branch for PR 1.8
-**After PR 1.8:** Return to Core for PR 2.4 - Course Module
+### 🎯 PAIRED DEVELOPMENT STRATEGY (NEW)
+
+**Philosophy:** Backend PHẢI có Frontend đi kèm để test business logic trực quan, thay vì chỉ dựa vào documentation.
+
+**Development Flow:**
+1. Implement Backend module (API endpoints, business logic, tests)
+2. IMMEDIATELY implement corresponding Frontend (UI, forms, integration)
+3. Test end-to-end trên UI thực tế
+4. Verify business rules visually trước khi move to next module
+
+### Frontend PRs Status
+
+**Phase 1: Infrastructure** (Required first)
+- ⏳ PR 3.1: Project Setup & Core Infrastructure
+- ⏳ PR 3.2: Shared Components & Layout System
+- ⏳ PR 3.3: Authentication Pages → **NEEDS: PR 1.4 ✅ (Done)**
+
+**Phase 2: IMMEDIATE PRIORITY** (Backend APIs already available)
+- ⏳ PR 3.4: Student Management Pages → **NEEDS: PR 2.3 ✅ (Done)**
+- ⏳ PR 3.5: Teacher Management Pages → **NEEDS: PR 2.3.1 ✅ (Done)**
+- ⏳ PR 3.6: Course Management Pages → **NEEDS: PR 2.4 ✅ (Done)**
+
+**Phase 3: Remaining Modules** (Backend pending)
+- ⏳ PR 3.7: Class Management Pages → NEEDS: PR 2.5 (pending)
+- ⏳ PR 3.8: Attendance Management → NEEDS: PR 2.7 (pending)
+- ⏳ PR 3.9: Billing Pages → NEEDS: PR 2.8, 2.8.1 (pending)
+- ⏳ PR 3.10: Settings & AI Branding System → NEEDS: KiteHub AI Agent Module (pending)
+- ⏳ PR 3.11: Parent Portal → NEEDS: PR 2.9 (pending)
+- ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
+- ⏳ PR 3.13: E2E Tests & Polish
+
+**Frontend Status:** 1/13 PRs completed (8%) - PR 3.1 ✅
+**Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
+**CRITICAL:** Frontend PRs 3.1-3.6 can start NOW (Backend APIs ready)
+
+**Overall Progress:** 12/46 PRs completed (26%)
+**Last Updated:** 2026-01-29 (Updated with Feature Detection & AI Branding specs)
+
+---
+
+## 🚀 IMMEDIATE EXECUTION ROADMAP (With Paired Development)
+
+### ✅ Backend Ready - Frontend Needed NOW:
+
+**Week 1-2: Frontend Infrastructure + Core Modules**
+
+**Sprint 1: Setup Frontend** (2-3 days)
+1. ⏳ PR 3.1: Project Setup & Core Infrastructure
+   - Next.js project setup, dependencies, API client
+   - No backend dependency
+
+2. ⏳ PR 3.2: Shared Components & Layout System
+   - Sidebar, Header, DataTable, shared UI components
+   - No backend dependency
+
+3. ⏳ PR 3.3: Authentication Pages
+   - Login, Forgot Password, Reset Password
+   - **Backend:** PR 1.4 Auth Module ✅ Ready
+   - **Test:** Login flow end-to-end
+
+**Sprint 2: Student Module** (2-3 days)
+4. ⏳ PR 3.4: Student Management Pages
+   - **Backend:** PR 2.3 Student Module ✅ Ready
+   - List, Create, Edit, Delete students
+   - **Test trực quan:** All student CRUD operations, search, pagination
+   - **Verify:** Email/phone uniqueness, validation errors
+
+**Sprint 3: Teacher Module** (2-3 days)
+5. ⏳ PR 3.5: Teacher Management Pages
+   - **Backend:** PR 2.3.1 Teacher Module ✅ Ready
+   - List, Create, Edit, Delete teachers
+   - **Test trực quan:** Teacher CRUD, status changes (ACTIVE/ON_LEAVE/TERMINATED)
+
+**Sprint 4: Course Module** (3-4 days)
+6. ⏳ PR 3.6: Course Management Pages
+   - **Backend:** PR 2.4 Course Module ✅ Ready
+   - List, Create, Edit courses
+   - Publish/Archive lifecycle actions
+   - **Test trực quan:**
+     - Course status transitions (DRAFT → PUBLISHED → ARCHIVED)
+     - Edit restrictions (ARCHIVED read-only, PUBLISHED limited fields)
+     - Validation (required fields for publish)
+     - Soft delete restrictions
+
+**Estimated Timeline:** 2 weeks to have fully functional Student, Teacher, Course management with UI
+
+---
+
+### 🔄 Future Paired Development:
+
+**When implementing next Backend modules:**
+- PR 2.5 (Class Module) → IMMEDIATELY do PR 3.7 (Class Management Pages)
+- PR 2.7 (Attendance) → IMMEDIATELY do PR 3.8 (Attendance Management)
+- PR 2.8 (Invoice) + PR 2.8.1 (Payment) → IMMEDIATELY do PR 3.9 (Billing Pages)
+
+**Benefits:**
+- ✅ Visual testing of business logic
+- ✅ Catch API design issues early
+- ✅ Better understanding of user flows
+- ✅ No need to rely solely on documentation
+- ✅ Faster feedback loop
 
 ---
 
@@ -173,6 +361,8 @@ Thực hiện Phase 1 của kiteclass-gateway-plan.md.
 - architecture-overview.md: cấu trúc thư mục Backend
 - code-style.md: Java naming conventions, package structure
 - environment-setup.md: cấu hình local dev
+- testing-guide.md: test structure & patterns
+- spring-boot-testing-quality.md: code quality checklist, fix warnings trước khi commit
 
 **Tasks:**
 1. Tạo project structure trong thư mục kiteclass/kiteclass-gateway/
@@ -194,6 +384,8 @@ Thực hiện Phase 2 của kiteclass-gateway-plan.md.
 - code-style.md: Java conventions, annotation ordering
 - enums-constants.md: định nghĩa enums đúng format
 - error-logging.md: exception handling patterns
+- testing-guide.md: test structure & patterns
+- spring-boot-testing-quality.md: code quality checklist, no warnings before commit
 
 **Tasks:**
 1. Tạo common package structure:
@@ -222,7 +414,8 @@ Thực hiện Phase 3 (User Module) của kiteclass-gateway-plan.md.
 - code-style.md: Entity, Repository, Service, Controller conventions
 - api-design.md: User Management API endpoints
 - database-design.md: users table schema
-- testing-guide.md: unit test patterns
+- testing-guide.md: unit test patterns & structure
+- spring-boot-testing-quality.md: Spring Boot 3.4+ patterns, @TestConfiguration, fix all warnings
 
 **Tasks:**
 1. Tạo User entity với R2DBC annotations
@@ -258,7 +451,8 @@ Thực hiện Phase 4 (Auth Module) của kiteclass-gateway-plan.md.
 **Tuân thủ skills:**
 - code-style.md: Service patterns
 - api-design.md: Authentication API endpoints
-- testing-guide.md: testing security components
+- testing-guide.md: testing security components, unit & integration test patterns
+- spring-boot-testing-quality.md: JWT testing patterns, security test setup, fix warnings
 
 **Tasks:**
 1. Tạo JwtTokenProvider:
@@ -305,6 +499,7 @@ Hoàn thiện Docker setup và integration tests với Testcontainers.
 - database-design.md: Flyway migrations
 - cloud-infrastructure.md: Docker configuration
 - testing-guide.md: integration tests with Testcontainers
+- spring-boot-testing-quality.md: Testcontainers resource leak fix, container reuse, integration test templates
 
 **Tasks:**
 1. Tạo Flyway migrations (V1-V4):
@@ -452,8 +647,46 @@ Thực hiện Phase 6 của kiteclass-gateway-plan.md.
 ## 🚨 PR 1.8 - Cross-Service Data Integration (CRITICAL FIX)
 
 **Priority:** 🚨 HIGH - Must complete before continuing Core development
-**Status:** ⏳ PENDING
-**Dependencies:** Requires PR 2.11 (Core Internal APIs) to be ready first
+**Status:** ⚠️ PARTIALLY COMPLETE (2026-01-28)
+**Dependencies:**
+- ✅ PR 2.11 (Core Internal APIs) - Complete
+- ⏳ Core Teacher Module - Not yet implemented
+- ⏳ Core Parent Module - Not yet implemented
+
+**Implementation Status:**
+- ✅ Part 1: Database migration, UserType enum, User entity update (commit d655444)
+- ✅ Part 2: Feign client, ProfileFetcher service, Login integration (commit 455174c)
+- ✅ Tests: ProfileFetcherTest (12), AuthServiceTest updates (11) (commit c88c434)
+- ⚠️ **Incomplete:** Teacher and Parent profile fetching (placeholders only)
+
+**⚠️ IMPORTANT NOTE:**
+PR 1.8 is functionally complete for STUDENT profile fetching. However, Teacher and Parent
+profile fetching will return null until their respective modules are implemented in Core Service.
+
+**What works now:**
+- ✅ ADMIN/STAFF login (no profile needed)
+- ✅ STUDENT login with full profile from Core
+- ✅ Graceful degradation when Core service unavailable
+- ✅ All unit tests passing (23/23)
+
+**What needs Core modules:**
+- ⏳ TEACHER login with profile → Requires Core Teacher Module (future PR)
+- ⏳ PARENT login with profile → Requires Core Parent Module (future PR)
+
+**Action Items:**
+1. When Core Teacher Module is implemented:
+   - Uncomment `ProfileFetcher.fetchTeacherProfile()` Feign call
+   - Add integration tests for teacher login with profile
+   - Update documentation
+
+2. When Core Parent Module is implemented:
+   - Uncomment `ProfileFetcher.fetchParentProfile()` Feign call
+   - Add integration tests for parent login with profile
+   - Update documentation
+
+**Testing:**
+- 23/23 unit tests passing
+- Integration tests require Docker (7 tests pending Docker setup)
 
 ```
 Implement UserType + ReferenceId pattern để liên kết Gateway User với Core entities.
@@ -469,6 +702,8 @@ Implement UserType + ReferenceId pattern để liên kết Gateway User với Co
 - architecture-overview.md: Cross-Service Data Relationships
 - database-design.md: Microservices Database Strategy
 - api-design.md: Service-to-Service Communication
+- testing-guide.md: Feign Client testing, integration tests
+- spring-boot-testing-quality.md: Feign Client mocking, WebFluxTest patterns, fix warnings
 
 **Tasks:**
 
@@ -634,6 +869,103 @@ Implement UserType + ReferenceId pattern để liên kết Gateway User với Co
 **Documentation:**
 - Update Gateway README với cross-service communication
 - Document internal API authentication (X-Internal-Request header)
+
+---
+
+## ✅ PR 1.8 - COMPLETED WORK (2026-01-28)
+
+**Commits:**
+- d655444: PR 1.8 Part 1 - Add UserType and cross-service foundation
+- 455174c: PR 1.8 Part 2 - Implement cross-service profile fetching
+- c88c434: test(gateway): PR 1.8 - Add comprehensive tests for cross-service profile fetching
+- 0ff4448: fix(test): fix MessageService and EmailService test failures
+
+**What Was Implemented:**
+
+### ✅ Database & Entities
+- V6 migration: Added `user_type` and `reference_id` to users table
+- UserType enum with 5 types (ADMIN, STAFF, TEACHER, PARENT, STUDENT)
+- Helper methods: `requiresReferenceId()`, `isInternalStaff()`
+- User entity updated with userType and referenceId fields
+
+### ✅ Feign Client Integration
+- Added spring-cloud-starter-openfeign dependency
+- Created CoreServiceClient interface
+- 3 endpoints: getStudent(), getTeacher(), getParent()
+- All use X-Internal-Request header for authentication
+- Configuration: core.service.url in application.yml
+
+### ✅ Profile DTOs
+- StudentProfileResponse (8 fields) - ACTIVE
+- TeacherProfileResponse (7 fields) - PLACEHOLDER
+- ParentProfileResponse (7 fields) - PLACEHOLDER
+
+### ✅ ProfileFetcher Service
+- fetchProfile(UserType, Long referenceId)
+- Returns appropriate profile based on UserType
+- Returns null for ADMIN/STAFF (internal staff)
+- Comprehensive error handling (404, 503, 500)
+- Graceful degradation when Core unavailable
+
+### ✅ Login Integration
+- LoginResponse.UserInfo updated with profile field
+- AuthServiceImpl.login() now fetches profiles
+- Profile included in login response
+- Works for STUDENT userType
+- Returns null for ADMIN/STAFF (no Core entity)
+- Returns null for TEACHER/PARENT (not implemented yet)
+
+### ✅ Tests
+- ProfileFetcherTest: 12/12 passing
+  - Internal staff tests (ADMIN, STAFF)
+  - External user tests (STUDENT, TEACHER, PARENT)
+  - Validation tests (null referenceId)
+  - Error handling tests (404, 503, 500)
+- AuthServiceTest: 11/11 passing (updated for profile fetching)
+- All unit tests passing: 86/86
+- Integration tests: 7 pending (require Docker)
+
+### ✅ Documentation
+- Created docs/guides/business-logic.md (comprehensive)
+- Updated all Javadocs
+- Clear notes about Teacher/Parent placeholders
+
+**What Remains (Blocked by Core):**
+
+### ⏳ Teacher Profile Fetching
+- CoreServiceClient.getTeacher() defined but not called
+- ProfileFetcher.fetchTeacherProfile() returns null
+- Waiting for: Core Teacher Module implementation
+
+### ⏳ Parent Profile Fetching
+- CoreServiceClient.getParent() defined but not called
+- ProfileFetcher.fetchParentProfile() returns null
+- Waiting for: Core Parent Module implementation
+
+### ⏳ Registration Flow (Not Started)
+- Student registration saga pattern - NOT IMPLEMENTED
+- Teacher registration - NOT IMPLEMENTED
+- Parent registration - NOT IMPLEMENTED
+- Note: Current PR focused on READ operations (profile fetching during login)
+
+**Future Work:**
+
+When Core Teacher Module is ready:
+1. Uncomment ProfileFetcher.fetchTeacherProfile() line 136-137
+2. Test teacher login with profile
+3. Add integration tests
+
+When Core Parent Module is ready:
+1. Uncomment ProfileFetcher.fetchParentProfile() line 154-155
+2. Test parent login with profile
+3. Add integration tests
+
+When Registration Flow is needed:
+1. Implement UserRegistrationService with Saga pattern
+2. Add createStudent/Teacher/Parent to CoreServiceClient
+3. Implement compensating transactions
+4. Add comprehensive integration tests
+
 ```
 
 ---
@@ -676,6 +1008,8 @@ Thực hiện Phase 2 của kiteclass-core-service-plan.md.
 - code-style.md: Java conventions, JavaDoc requirements
 - enums-constants.md: tất cả enums cho Core service
 - error-logging.md: exception handling, logging patterns
+- testing-guide.md: test patterns for DTOs & exception handlers
+- spring-boot-testing-quality.md: @ExtendWith(MockitoExtension.class), fix warnings
 
 **Tasks:**
 1. Tạo BaseEntity với audit fields (createdAt, updatedAt, createdBy, updatedBy, deleted, version)
@@ -724,7 +1058,8 @@ Thực hiện Student Module của kiteclass-core-service-plan.md.
 - code-style.md: Entity, Repository, Service, Controller, DTO conventions
 - api-design.md: Student API endpoints
 - database-design.md: students table schema
-- testing-guide.md: unit test patterns, TestDataBuilder
+- testing-guide.md: unit test patterns, TestDataBuilder, integration tests
+- spring-boot-testing-quality.md: @TestConfiguration for mocks, MapStruct warnings, Testcontainers setup
 
 **Tasks:**
 1. Tạo Student entity với JPA annotations
@@ -792,25 +1127,126 @@ mvn test -DENABLE_INTEGRATION_TESTS=true
 ```
 ```
 
+## ⏳ PR 2.3.1 - Teacher Module (BLOCKING PR)
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** None (PR 2.3 Student Module completed)
+**Business Logic:** docs/modules/teacher-module-business-logic.md
+**BLOCKING FOR:** PR 2.4 Course Module, PR 2.5 Class Module
+
+```
+Thực hiện Teacher Module - BLOCKING PR for Course and Class Modules.
+
+**Tuân thủ skills:**
+- code-style.md: coding conventions
+- api-design.md: Teacher API endpoints
+- database-design.md: teachers, teacher_courses, teacher_classes schema
+- testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Teacher entity với JPA annotations:
+   - id, name, email, phone_number, specialization
+   - bio, qualification, experience_years, avatar_url
+   - status (ACTIVE, INACTIVE, ON_LEAVE)
+2. Tạo TeacherCourse entity (Course-level permissions):
+   - teacher_id, course_id, role (CREATOR, INSTRUCTOR, ASSISTANT)
+   - assigned_at, assigned_by
+3. Tạo TeacherClass entity (Class-level permissions):
+   - teacher_id, class_id, role (MAIN_TEACHER, ASSISTANT)
+   - assigned_at, assigned_by
+4. Tạo TeacherRepository với custom queries:
+   - findByIdAndDeletedFalse
+   - existsByEmail
+   - findBySpecialization
+5. Tạo TeacherCourseRepository và TeacherClassRepository
+6. Tạo TeacherMapper (MapStruct)
+7. Tạo TeacherService và TeacherServiceImpl với:
+   - createTeacher (BR-TEACHER-001: email unique)
+   - assignToCourse (UC-TEACHER-003)
+   - assignToClass (UC-TEACHER-004)
+   - removeFromClass (UC-TEACHER-005, BR-TEACHER-004: must have 1 MAIN_TEACHER)
+   - getTeacherPermissions (UC-TEACHER-006)
+   - Permission check methods (canAccessClass, canModifyClass, canTakeAttendance)
+8. Tạo TeacherController với endpoints theo api-design.md
+9. Tạo InternalTeacherController (cho Gateway):
+   - GET /internal/teachers/{id} (profile fetching)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/teacher/
+  - service/TeacherServiceTest.java
+  - controller/TeacherControllerTest.java
+  - controller/InternalTeacherControllerTest.java
+  - repository/TeacherRepositoryTest.java
+  - mapper/TeacherMapperTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - TeacherTestDataBuilder.java
+
+**Flyway Migration:**
+- V3__create_teacher_tables.sql (teachers, teacher_courses, teacher_classes)
+
+**Verification:**
+- mvn test phải pass
+- Coverage cho TeacherService >= 80%
+- Internal API /internal/teachers/{id} hoạt động
+
+**Key Business Rules (from business-logic.md):**
+- BR-TEACHER-001: Email unique
+- BR-TEACHER-004: Class phải có ít nhất 1 MAIN_TEACHER
+- BR-TEACHER-005: Chỉ ACTIVE teachers assign được
+- BR-TEACHER-006: Course CREATOR có full control
+- BR-TEACHER-008: Attendance chỉ MAIN_TEACHER hoặc CREATOR
+
+**Integration Points:**
+- Gateway: Internal API cho teacher profile fetching
+- Course Module: TeacherCourse relationship (course_id FK)
+- Class Module: TeacherClass relationship (class_id FK)
+- Attendance Module: Permission check cho điểm danh
+- Assignment Module: Permission check cho create/grade assignments
+
+**Permission Model:**
+- Two-level hierarchy: Course-level (CREATOR/INSTRUCTOR/ASSISTANT) > Class-level (MAIN_TEACHER/ASSISTANT)
+- CREATOR của course → Auto có quyền với tất cả classes trong course
+- INSTRUCTOR của course → Access all classes trong course
+- MAIN_TEACHER của class → Full control class đó
+- Support Use Case 1: Language Center (resource-level permissions)
+- Support Use Case 2: Independent Teacher (OWNER bypass)
+```
+
 ## ⏳ PR 2.4 - Course Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3.1 Teacher Module (REQUIRED - teacher_id FK, created_by)
+**Business Logic:** docs/modules/course-module-business-logic.md
 
 ```
 Thực hiện Course Module của kiteclass-core-service-plan.md.
 
 **Tuân thủ skills:**
 - code-style.md: coding conventions
-- api-design.md: Course endpoints (nếu có)
+- api-design.md: Course API endpoints
 - database-design.md: courses table schema
 - testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo Course entity:
+1. Tạo Course entity với JPA annotations:
    - id, name, code, description
-   - totalSessions, defaultTuitionFee
-   - status (CourseStatus enum)
-2. Tạo CourseRepository
-3. Tạo CourseMapper
-4. Tạo CourseService và CourseServiceImpl
+   - level (Beginner, Intermediate, Advanced)
+   - duration_weeks, max_students, price
+   - created_by (teacher_id FK to teachers.id)
+   - status (DRAFT, PUBLISHED, ARCHIVED)
+2. Tạo CourseRepository với custom queries:
+   - findByIdAndDeletedFalse
+   - findByCreatedBy (teacher's courses)
+   - findByStatus
+3. Tạo CourseMapper (MapStruct)
+4. Tạo CourseService và CourseServiceImpl với:
+   - createCourse (UC-TEACHER-002: Teacher as Creator)
+   - Auto-create TeacherCourse (CREATOR role) when course created
+   - updateCourse
+   - deleteCourse (soft delete)
+   - getCourses (với teacher permission filter)
 5. Tạo CourseController với CRUD endpoints
 
 **Tests (bắt buộc):**
@@ -818,18 +1254,33 @@ Thực hiện Course Module của kiteclass-core-service-plan.md.
   - service/CourseServiceTest.java
   - controller/CourseControllerTest.java
   - repository/CourseRepositoryTest.java
+  - mapper/CourseMapperTest.java
 - src/test/java/com/kiteclass/core/testutil/
   - CourseTestDataBuilder.java
 
 **Flyway Migration:**
-- V3__create_course_tables.sql
+- V4__create_course_tables.sql
 
 **Verification:**
 - mvn test phải pass
 - Coverage >= 80%
+- Teacher tạo course → TeacherCourse (CREATOR) được tạo tự động
+
+**Key Business Rules:**
+- Course creator (teacher) tự động có full control
+- TeacherCourse record (CREATOR role) được tạo khi course created
+- Integration với Teacher Module qua created_by và teacher_courses
+
+**Integration Points:**
+- Teacher Module: Course.created_by FK, auto-create TeacherCourse
+- Class Module: Classes reference course_id
 ```
 
 ## ⏳ PR 2.5 - Class Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3.1 Teacher Module, PR 2.4 Course Module
+**Business Logic:** docs/modules/class-module-business-logic.md
 
 ```
 Thực hiện Class Module của kiteclass-core-service-plan.md.
@@ -839,83 +1290,145 @@ Thực hiện Class Module của kiteclass-core-service-plan.md.
 - api-design.md: Class API endpoints
 - database-design.md: classes, class_schedules, class_sessions tables
 - testing-guide.md: testing với relationships
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo ClassEntity với relationships:
-   - @ManyToOne Course
-   - @ManyToOne User (teacher)
-   - @OneToMany ClassSchedule
-2. Tạo ClassSchedule entity (dayOfWeek, startTime, endTime, room)
-3. Tạo ClassSession entity (sessionDate, sessionNumber, status, topic)
-4. Tạo repositories với custom queries
-5. Tạo ClassMapper
-6. Tạo ClassService với:
-   - createClass (với schedules)
-   - generateSessions (từ schedules)
-   - getClassStudents
+1. Tạo Class entity với relationships:
+   - @ManyToOne Course (course_id FK)
+   - name, code, max_students, status (UPCOMING, ONGOING, COMPLETED, CANCELLED)
+   - start_date, end_date, location
+2. Tạo ClassSchedule entity:
+   - @ManyToOne Class
+   - day_of_week, start_time, end_time, room
+3. Tạo ClassSession entity:
+   - @ManyToOne Class
+   - session_date, session_number, status (SCHEDULED, COMPLETED, CANCELLED)
+   - topic, notes
+4. Tạo repositories với custom queries:
+   - findByIdAndDeletedFalse
+   - findByCourseId
+   - findByStatus
+5. Tạo ClassMapper (MapStruct)
+6. Tạo ClassService và ClassServiceImpl với:
+   - createClass (với schedules, UC-TEACHER-011)
+   - Auto-assign MAIN_TEACHER via TeacherClass
+   - generateSessions (từ schedules với recurrence rules)
+   - getClassStudents (from Enrollment)
    - getClassSessions
-7. Tạo ClassController
+   - Permission check integration (via TeacherService)
+7. Tạo ClassController với endpoints theo api-design.md
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/clazz/
   - service/ClassServiceTest.java
   - controller/ClassControllerTest.java
   - repository/ClassRepositoryTest.java
+  - mapper/ClassMapperTest.java
 - src/test/java/com/kiteclass/core/testutil/
   - ClassTestDataBuilder.java
 
 **Flyway Migration:**
-- V4__create_class_tables.sql
+- V5__create_class_tables.sql (classes, class_schedules, class_sessions)
 
 **Verification:**
 - mvn test phải pass
-- Test session generation logic
+- Test session generation logic (recurrence rules)
+- Coverage >= 80%
+- Teacher assignment via TeacherClass hoạt động
+
+**Key Business Rules:**
+- Class phải có ít nhất 1 MAIN_TEACHER (BR-TEACHER-004)
+- Sessions được generate tự động từ class schedules
+- Teacher permissions check via TeacherClass/TeacherCourse
+
+**Integration Points:**
+- Teacher Module: TeacherClass for assignments, permission checks
+- Course Module: Class.course_id FK
+- Enrollment Module: Class-Student relationship
+- Attendance Module: ClassSession-Attendance relationship
 ```
 
 ## ⏳ PR 2.6 - Enrollment Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3 Student Module, PR 2.5 Class Module
+**Business Logic:** docs/modules/enrollment-module-business-logic.md
 
 ```
 Thực hiện Enrollment Module của kiteclass-core-service-plan.md.
 
 **Tuân thủ skills:**
 - code-style.md: business logic patterns
-- api-design.md: POST /students/{id}/enroll
+- api-design.md: Enrollment API endpoints
 - database-design.md: enrollments table
 - testing-guide.md: testing business rules
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo Enrollment entity:
+1. Tạo Enrollment entity với JPA annotations:
    - @ManyToOne Student
-   - @ManyToOne ClassEntity
-   - enrollmentDate, startDate, endDate
-   - tuitionAmount, discountPercent, finalAmount
-   - status (EnrollmentStatus)
-2. Tạo EnrollmentRepository
-3. Tạo EnrollmentService với business logic:
-   - enrollStudent: kiểm tra class capacity, duplicate enrollment
-   - calculateFinalAmount
+   - @ManyToOne Class
+   - enrollment_date, start_date, end_date
+   - tuition_amount, discount_percent, final_amount
+   - status (ACTIVE, PENDING_PAYMENT, COMPLETED, WITHDRAWN, CANCELLED)
+2. Tạo EnrollmentRepository với custom queries:
+   - findByStudentIdAndClassId
+   - existsByStudentIdAndClassIdAndStatus
+   - countActiveEnrollmentsByClassId (capacity check)
+3. Tạo EnrollmentMapper (MapStruct)
+4. Tạo EnrollmentService và EnrollmentServiceImpl với:
+   - enrollStudent (với business rule checks):
+     - Class capacity check
+     - Duplicate enrollment check
+     - calculateFinalAmount (tuition - discount)
    - updateEnrollmentStatus
-4. Tạo endpoint POST /api/v1/students/{id}/enroll
+   - withdrawStudent
+5. Tạo EnrollmentController với endpoints:
+   - POST /api/v1/students/{id}/enroll
+   - GET /api/v1/enrollments/{id}
+   - PUT /api/v1/enrollments/{id}/status
+6. Publish ENROLLMENT_CREATED event (cho Invoice auto-generation)
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/enrollment/
   - service/EnrollmentServiceTest.java (test business rules)
   - controller/EnrollmentControllerTest.java
+  - repository/EnrollmentRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - EnrollmentTestDataBuilder.java
 - Test cases:
   - Enroll thành công
-  - Class đã full -> error
-  - Student đã enrolled -> error
+  - Class đã full → error
+  - Student đã enrolled → error
   - Calculate discount correctly
+  - Event publishing
 
 **Flyway Migration:**
-- V5__create_enrollment_tables.sql
+- V6__create_enrollment_tables.sql
 
 **Verification:**
 - mvn test phải pass
 - Business rules được enforce đúng
+- Coverage >= 80%
+- ENROLLMENT_CREATED event được publish
+
+**Key Business Rules:**
+- Class capacity check trước khi enroll
+- Không cho phép duplicate enrollment
+- Auto-calculate final_amount = tuition_amount * (1 - discount_percent/100)
+
+**Integration Points:**
+- Student Module: Enrollment.student_id FK
+- Class Module: Enrollment.class_id FK
+- Invoice Module: ENROLLMENT_CREATED event triggers invoice generation
+- Grade Module: Auto-initialize grade record when enrolled
 ```
 
 ## ⏳ PR 2.7 - Attendance Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.3 Student Module, PR 2.5 Class Module, PR 2.3.1 Teacher Module
+**Business Logic:** docs/modules/attendance-module-business-logic.md
 
 ```
 Thực hiện Attendance Module của kiteclass-core-service-plan.md.
@@ -925,169 +1438,614 @@ Thực hiện Attendance Module của kiteclass-core-service-plan.md.
 - api-design.md: Attendance API endpoints
 - database-design.md: attendance table
 - testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
-1. Tạo Attendance entity:
+1. Tạo Attendance entity với JPA annotations:
    - @ManyToOne ClassSession
    - @ManyToOne Student
-   - status (AttendanceStatus)
-   - checkinTime, note
-   - @ManyToOne User (markedBy)
-2. Tạo AttendanceRepository
-3. Tạo AttendanceService:
-   - markAttendance(sessionId, List<MarkAttendanceRequest>)
-   - getAttendanceByClass(classId, dateFrom, dateTo)
-   - getStudentAttendanceStats(studentId, classId)
-4. Tạo AttendanceController:
-   - POST /api/v1/classes/{classId}/attendance
+   - status (PRESENT, ABSENT, LATE, EXCUSED)
+   - checkin_time, note
+   - marked_by (teacher_id FK to teachers.id)
+2. Tạo AttendanceRepository với custom queries:
+   - findBySessionIdAndStudentId
+   - findByClassIdAndDateRange
+   - calculateAttendanceRateByStudent
+3. Tạo AttendanceMapper (MapStruct)
+4. Tạo AttendanceService và AttendanceServiceImpl với:
+   - markAttendance (UC-TEACHER-007):
+     - Permission check: Only MAIN_TEACHER or CREATOR
+     - Bulk mark attendance for session
+   - getAttendanceByClass (date range filter)
+   - getStudentAttendanceStats (calculate attendance rate)
+   - Permission check integration (via TeacherService)
+5. Tạo AttendanceController với endpoints:
+   - POST /api/v1/classes/{classId}/sessions/{sessionId}/attendance
    - GET /api/v1/classes/{classId}/attendance
-5. Publish event "attendance.marked" tới RabbitMQ
+   - GET /api/v1/students/{studentId}/attendance/stats
+6. Publish ATTENDANCE_MARKED event (cho Grade Module update)
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/attendance/
   - service/AttendanceServiceTest.java
   - controller/AttendanceControllerTest.java
+  - repository/AttendanceRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - AttendanceTestDataBuilder.java
 - Test cases:
   - Mark attendance cho multiple students
   - Update existing attendance
   - Get attendance statistics
+  - Permission check (only MAIN_TEACHER)
   - Event publishing
 
 **Flyway Migration:**
-- V6__create_attendance_tables.sql
+- V7__create_attendance_tables.sql
 
 **Verification:**
 - mvn test phải pass
-- RabbitMQ event được publish
+- Event được publish correctly
+- Coverage >= 80%
+- Permission checks enforced (BR-TEACHER-008)
+
+**Key Business Rules (from Teacher Module):**
+- BR-TEACHER-008: Chỉ MAIN_TEACHER hoặc CREATOR mới có quyền điểm danh
+- Attendance rate auto-calculated cho Grade Module
+
+**Integration Points:**
+- Class Module: Attendance.session_id FK to class_sessions
+- Student Module: Attendance.student_id FK
+- Teacher Module: Permission checks via TeacherService
+- Grade Module: ATTENDANCE_MARKED event updates Attendance component score
 ```
 
-## ⏳ PR 2.8 - Invoice & Payment Module
+## ⏳ PR 2.7.1 - Assignment Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.5 Class Module, PR 2.3 Student Module, PR 2.3.1 Teacher Module
+**Business Logic:** docs/modules/assignment-module-business-logic.md
 
 ```
-Thực hiện Invoice & Payment Module của kiteclass-core-service-plan.md.
-
-**Tuân thủ skills:**
-- code-style.md: complex business logic
-- api-design.md: Invoice & Payment API endpoints
-- database-design.md: invoices, invoice_items, payments tables
-- testing-guide.md: testing financial calculations
-
-**Tasks:**
-1. Tạo Invoice entity:
-   - invoiceNo (unique, auto-generated)
-   - @ManyToOne Student
-   - issueDate, dueDate
-   - subtotal, discountAmount, totalAmount, paidAmount, balanceDue
-   - status (InvoiceStatus)
-   - @OneToMany InvoiceItem
-2. Tạo InvoiceItem entity
-3. Tạo Payment entity:
-   - @ManyToOne Invoice
-   - amount, method (PaymentMethod)
-   - transactionRef, paidAt
-   - status (PaymentStatus)
-4. Tạo InvoiceService:
-   - createInvoice
-   - sendInvoice (update status)
-   - calculateTotals
-   - updateInvoiceStatus (check if paid)
-5. Tạo PaymentService:
-   - recordPayment
-   - Update invoice balanceDue và status
-6. Tạo controllers
-
-**Tests (bắt buộc):**
-- src/test/java/com/kiteclass/core/module/billing/
-  - service/InvoiceServiceTest.java
-  - service/PaymentServiceTest.java
-  - controller/InvoiceControllerTest.java
-  - controller/PaymentControllerTest.java
-- Test cases:
-  - Calculate totals correctly
-  - Partial payment -> PARTIAL status
-  - Full payment -> PAID status
-  - Overdue detection
-
-**Flyway Migration:**
-- V7__create_billing_tables.sql
-
-**Verification:**
-- mvn test phải pass
-- Financial calculations chính xác
-```
-
-## ⏳ PR 2.9 - Settings & Parent Module
-
-```
-Thực hiện Settings và Parent Module của kiteclass-core-service-plan.md.
+Thực hiện Assignment Module - Assignment lifecycle, late penalties, grading workflow.
 
 **Tuân thủ skills:**
 - code-style.md: coding conventions
-- api-design.md: Settings API, Parent Portal API
+- api-design.md: Assignment API endpoints
+- database-design.md: assignments, submissions tables
+- testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Assignment entity với JPA annotations:
+   - @ManyToOne Class
+   - title, description, instructions
+   - due_date, max_score, weight_percent
+   - allow_late_submission, late_penalty_percent
+   - status (DRAFT, PUBLISHED, CLOSED)
+   - created_by (teacher_id FK)
+2. Tạo Submission entity:
+   - @ManyToOne Assignment
+   - @ManyToOne Student
+   - submission_date, content_url, notes
+   - score, adjusted_score (after late penalty)
+   - status (PENDING, GRADED, RETURNED)
+   - graded_by (teacher_id FK)
+3. Tạo AssignmentRepository và SubmissionRepository với custom queries:
+   - findByClassId
+   - findByStudentId
+   - findPendingGrading
+4. Tạo AssignmentMapper và SubmissionMapper (MapStruct)
+5. Tạo AssignmentService và AssignmentServiceImpl với:
+   - createAssignment (UC-ASSIGN-001, permission check)
+   - publishAssignment (UC-ASSIGN-002)
+   - submitAssignment (UC-ASSIGN-003):
+     - Late submission check
+     - Calculate late penalty if applicable
+   - gradeSubmission (UC-ASSIGN-004):
+     - Permission check (only grader or MAIN_TEACHER)
+     - Apply late penalty
+     - Calculate adjusted_score
+   - returnGradedAssignment (UC-ASSIGN-005)
+   - Permission check integration (via TeacherService)
+6. Tạo AssignmentController với endpoints theo api-design.md
+7. Publish ASSIGNMENT_GRADED event (cho Grade Module)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/assignment/
+  - service/AssignmentServiceTest.java
+  - controller/AssignmentControllerTest.java
+  - repository/AssignmentRepositoryTest.java
+  - mapper/AssignmentMapperTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - AssignmentTestDataBuilder.java
+  - SubmissionTestDataBuilder.java
+- Test cases:
+  - Create and publish assignment
+  - Submit on time vs late submission
+  - Late penalty calculation
+  - Grade submission (permission check)
+  - Event publishing
+
+**Flyway Migration:**
+- V8__create_assignment_tables.sql (assignments, submissions)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Late penalty calculated correctly
+- ASSIGNMENT_GRADED event được publish
+- Permission checks enforced
+
+**Key Business Rules (from business-logic.md):**
+- BR-ASSIGN-004: Late submissions get penalty (default 10% per day)
+- BR-ASSIGN-005: Only assigned grader or MAIN_TEACHER can grade
+- BR-ASSIGN-006: Late penalty calculation: adjusted_score = original_score * (1 - penalty%)
+- Assignment weight_percent affects final grade calculation
+
+**Integration Points:**
+- Class Module: Assignment.class_id FK
+- Student Module: Submission.student_id FK
+- Teacher Module: Permission checks, assignment.created_by, submission.graded_by
+- Grade Module: ASSIGNMENT_GRADED event updates Assignment component score
+```
+
+## ⏳ PR 2.7.2 - Grade Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.7.1 Assignment Module, PR 2.7 Attendance Module
+**Business Logic:** docs/modules/grade-module-business-logic.md
+
+```
+Thực hiện Grade Module - Weighted grade calculation, GPA, transcripts.
+
+**Tuân thủ skills:**
+- code-style.md: coding conventions
+- api-design.md: Grade API endpoints
+- database-design.md: grades, grade_components, grading_scales, transcripts tables
+- testing-guide.md: test patterns
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Grade entity với JPA annotations:
+   - @ManyToOne Student
+   - @ManyToOne Class
+   - final_score (0-100), letter_grade (A+, A, B+, etc.), gpa (0-4.0)
+   - status (IN_PROGRESS, FINALIZED, PASSED, FAILED)
+   - pass_threshold (default 50), comments
+   - calculated_at, finalized_at, finalized_by
+2. Tạo GradeComponent entity:
+   - @ManyToOne Grade
+   - component_type (ATTENDANCE, ASSIGNMENT, MIDTERM, FINAL, QUIZ, PROJECT)
+   - component_name, component_ref_id (assignment_id, etc.)
+   - score, max_score, weight_percent, weighted_score
+3. Tạo GradingScale entity (configuration):
+   - scale_name (Standard), letter_grade, min_score, max_score, gpa_value
+   - is_default
+4. Tạo Transcript entity:
+   - @ManyToOne Student
+   - semester, academic_year, total_credits
+   - semester_gpa, cumulative_gpa
+   - total_courses, passed_courses, failed_courses
+5. Tạo repositories với custom queries
+6. Tạo GradeMapper (MapStruct)
+7. Tạo GradeService và GradeServiceImpl với:
+   - initializeGrade (UC-GRADE-001, auto on enrollment)
+   - updateGradeComponent (UC-GRADE-002, event-driven):
+     - Listen to ATTENDANCE_MARKED event
+     - Listen to ASSIGNMENT_GRADED event
+   - calculateFinalScore (UC-GRADE-003):
+     - Validate weights = 100%
+     - Calculate weighted scores
+     - Map to letter grade and GPA
+     - Determine pass/fail
+   - finalizeGrade (UC-GRADE-004, permission check)
+   - generateTranscript (UC-GRADE-009)
+8. Tạo GradeController với endpoints theo api-design.md
+9. Event listeners cho auto-update components
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/grade/
+  - service/GradeServiceTest.java
+  - controller/GradeControllerTest.java
+  - repository/GradeRepositoryTest.java
+  - mapper/GradeMapperTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - GradeTestDataBuilder.java
+- Test cases:
+  - Initialize grade on enrollment
+  - Update component from attendance event
+  - Update component from assignment event
+  - Calculate final score (weighted average)
+  - Letter grade mapping
+  - GPA calculation
+  - Finalize grade (validation)
+  - Generate transcript
+
+**Flyway Migration:**
+- V9__create_grade_tables.sql (grades, grade_components, grading_scales, transcripts)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Grade calculation accuracy verified
+- Event-driven updates working
+- Transcript generation tested
+
+**Key Business Rules (from business-logic.md):**
+- BR-GRADE-002: Component weights phải tổng = 100%
+- BR-GRADE-003: Final score = Tổng weighted scores của components
+- BR-GRADE-004: Letter grade mapping theo grading_scales table
+- BR-GRADE-005: Pass/Fail: final_score >= pass_threshold
+- BR-GRADE-006: Không finalize khi thiếu components
+- BR-GRADE-007: FINALIZED grades read-only (chỉ ADMIN update được)
+- BR-GRADE-008: Cumulative GPA = weighted average by credits
+
+**Calculation Logic:**
+```
+1. Component Score → Weighted Score:
+   normalized = score/max_score * 100
+   weighted = normalized * weight% / 100
+
+2. Weighted Scores → Final Score:
+   final = sum of all weighted scores
+
+3. Final Score → Letter Grade:
+   lookup in grading_scales (e.g., 87.04 → B+)
+
+4. Letter Grade → GPA:
+   from grading_scales (B+ → 3.3)
+
+5. Course GPAs → Cumulative GPA:
+   weighted average by credits
+```
+
+**Integration Points:**
+- Student Module: Grade.student_id FK
+- Class Module: Grade.class_id FK
+- Enrollment Module: ENROLLMENT_CREATED event → initializeGrade
+- Attendance Module: ATTENDANCE_MARKED event → update Attendance component
+- Assignment Module: ASSIGNMENT_GRADED event → update Assignment component
+- Teacher Module: Permission checks for finalize
+```
+
+## ⏳ PR 2.8 - Invoice Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.6 Enrollment Module, PR 2.3 Student Module, PR 2.5 Class Module
+**Business Logic:** docs/modules/invoice-module-business-logic.md
+
+```
+Thực hiện Invoice Module - Hóa đơn học phí, trả góp, late fees, refund handling.
+
+**Tuân thủ skills:**
+- code-style.md: complex business logic
+- api-design.md: Invoice API endpoints
+- database-design.md: invoices, invoice_items, invoice_adjustments, installment_plans tables
+- testing-guide.md: testing financial calculations
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Invoice entity với JPA annotations:
+   - invoice_number (unique, auto-generated INV-YYYY-NNNNNN)
+   - @ManyToOne Student
+   - @ManyToOne Class
+   - @ManyToOne Enrollment
+   - total_amount, paid_amount, refund_amount
+   - status (DRAFT, PENDING, PAID, OVERDUE, CANCELLED, REFUNDED)
+   - due_date, issued_date, paid_at
+2. Tạo InvoiceItem entity:
+   - @ManyToOne Invoice
+   - type (TUITION, MATERIALS, REGISTRATION_FEE, EXAM_FEE, OTHER)
+   - description, quantity, unit_price, amount, paid_amount
+3. Tạo InvoiceAdjustment entity:
+   - @ManyToOne Invoice
+   - type (DISCOUNT, ADDITIONAL_CHARGE, LATE_FEE, REFUND)
+   - description, amount, paid_amount, reason
+   - applied_by, applied_at
+4. Tạo InstallmentPlan và Installment entities:
+   - InstallmentPlan: @OneToOne Invoice, number_of_installments, status
+   - Installment: @ManyToOne InstallmentPlan, installment_number, amount, due_date, status
+5. Tạo RefundRequest entity:
+   - @ManyToOne Invoice
+   - refund_amount, refund_method, bank_account, reason
+   - status (PENDING, APPROVED, REJECTED, COMPLETED)
+6. Tạo repositories với custom queries
+7. Tạo InvoiceMapper (MapStruct)
+8. Tạo InvoiceService và InvoiceServiceImpl với:
+   - createInvoiceForEnrollment (UC-INV-001, auto on ENROLLMENT_CREATED event):
+     - Get course price
+     - Create invoice với due_date = enrolled_at + 7 days
+     - Create InvoiceItem (TUITION)
+     - Publish INVOICE_CREATED event
+   - generateQRCode (UC-INV-004)
+   - applyPayment (UC-INV-006, listen to PAYMENT_COMPLETED event):
+     - Payment allocation (late fees first, then items)
+     - Update invoice status (PAID if balance = 0)
+   - calculateLateFee (UC-INV-008, cron job daily):
+     - 0.1% per day, max 10%
+     - Create/update InvoiceAdjustment (LATE_FEE)
+   - applyAdjustment (UC-INV-009, admin only)
+   - processRefund (UC-INV-010, UC-INV-011)
+9. Tạo InstallmentPlanService:
+   - requestInstallmentPlan (UC-INV-005)
+   - approveInstallmentPlan (UC-INV-007)
+10. Tạo controllers
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/invoice/
+  - service/InvoiceServiceTest.java
+  - service/InstallmentPlanServiceTest.java
+  - controller/InvoiceControllerTest.java
+  - repository/InvoiceRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - InvoiceTestDataBuilder.java
+- Test cases:
+  - Auto-create invoice on enrollment
+  - Calculate late fee correctly
+  - Payment allocation priority
+  - Installment plan validation
+  - Refund calculation
+  - Event publishing
+
+**Flyway Migration:**
+- V10__create_invoice_tables.sql (invoices, invoice_items, invoice_adjustments, installment_plans, installments, refund_requests)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Financial calculations chính xác
+- Event-driven invoice creation working
+- Late fee calculation tested
+
+**Key Business Rules (from business-logic.md):**
+- BR-INV-001: Auto-generate invoice on enrollment
+- BR-INV-003: Installment plan validation (2-12 kỳ, sum = total)
+- BR-INV-004: Late fee 0.1%/day, max 10%
+- BR-INV-005: Payment allocation priority (late fees → items)
+- BR-INV-008: Refund calculation based on class progress
+
+**Integration Points:**
+- Enrollment Module: ENROLLMENT_CREATED event → createInvoice
+- Payment Module: PAYMENT_COMPLETED event → applyPayment
+- Student Module: Invoice.student_id FK
+- Class Module: Invoice.class_id FK, refund calculation
+```
+
+## ⏳ PR 2.8.1 - Payment Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** PR 2.8 Invoice Module
+**Business Logic:** docs/modules/payment-module-business-logic.md
+
+```
+Thực hiện Payment Module - Payment processing, gateways, reconciliation.
+
+**Tuân thủ skills:**
+- code-style.md: complex business logic
+- api-design.md: Payment API endpoints
+- database-design.md: payments, payout_tasks tables
+- testing-guide.md: testing payment flows
+- spring-boot-testing-quality.md: code quality checklist
+
+**Tasks:**
+1. Tạo Payment entity với JPA annotations:
+   - @ManyToOne Invoice
+   - @ManyToOne Student
+   - amount, payment_method (CASH, BANK_TRANSFER, VNPAY, MOMO, ZALOPAY, CREDIT_CARD)
+   - payment_type (INVOICE_PAYMENT, REFUND, ADJUSTMENT)
+   - status (PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED)
+   - transaction_id (unique), gateway_transaction_id
+   - payment_url, gateway_response, expires_at
+   - receipt_number, bank_transaction_id, transfer_date, proof_attachment_url
+   - reference_payment_id (for refunds)
+   - completed_at, failed_at, failure_reason
+   - reconciled, reconciled_at
+   - received_by
+2. Tạo PayoutTask entity (for refunds via bank transfer):
+   - @ManyToOne Payment
+   - recipient_name, bank_account, bank_name, amount
+   - status (PENDING, PROCESSING, COMPLETED, FAILED)
+   - processed_by, processed_at
+3. Tạo repositories với custom queries:
+   - findByTransactionId (idempotency check)
+   - findByStatusAndCreatedAtBefore (timeout detection)
+   - findByCompletedAtBetween (reconciliation)
+4. Tạo PaymentMapper (MapStruct)
+5. Tạo PaymentService và PaymentServiceImpl với:
+   - createPayment (UC-PAY-001)
+   - initiateGatewayPayment (UC-PAY-002):
+     - VNPay integration
+     - MoMo integration
+     - ZaloPay integration
+   - processWebhook (UC-PAY-003):
+     - Signature verification (BR-PAY-005)
+     - Idempotency check (BR-PAY-001)
+     - Update payment status
+     - Publish PAYMENT_COMPLETED event
+   - recordCashPayment (UC-PAY-004, staff only)
+   - recordBankTransfer (UC-PAY-005, staff only)
+   - processRefund (UC-PAY-010)
+   - reconcilePayments (UC-PAY-009)
+   - Cron job: cancelTimedOutPayments (15 minutes timeout)
+6. Tạo Payment Gateway integrations:
+   - VNPayService: initiate, webhook, refund
+   - MoMoService: initiate, webhook, refund
+   - ZaloPayService: initiate, webhook, refund
+7. Tạo controllers:
+   - PaymentController: create, view, retry
+   - PaymentWebhookController: VNPay, MoMo, ZaloPay callbacks
+   - InternalPaymentController: reconciliation (admin only)
+
+**Tests (bắt buộc):**
+- src/test/java/com/kiteclass/core/module/payment/
+  - service/PaymentServiceTest.java
+  - service/VNPayServiceTest.java
+  - controller/PaymentControllerTest.java
+  - controller/PaymentWebhookControllerTest.java
+  - repository/PaymentRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - PaymentTestDataBuilder.java
+- Test cases:
+  - Create payment for invoice
+  - Initiate VNPay payment
+  - Process webhook (success/failed)
+  - Signature verification
+  - Idempotency check (duplicate webhook)
+  - Timeout detection
+  - Refund processing
+  - Reconciliation logic
+  - Event publishing
+
+**Flyway Migration:**
+- V11__create_payment_tables.sql (payments, payout_tasks)
+
+**Verification:**
+- mvn test phải pass
+- Coverage >= 80%
+- Webhook signature verification working
+- Idempotency enforced
+- Timeout detection tested
+- PAYMENT_COMPLETED event được publish
+
+**Key Business Rules (from business-logic.md):**
+- BR-PAY-001: Payment uniqueness per transaction_id (idempotency)
+- BR-PAY-003: Payment method validation rules
+- BR-PAY-004: Payment amount validation (<= invoice balance)
+- BR-PAY-005: Webhook signature verification (security)
+- BR-PAY-006: Payment timeout auto-cancellation (15 minutes)
+- BR-PAY-007: Daily payment reconciliation
+- BR-PAY-008: Refund validation and processing
+
+**Integration Points:**
+- Invoice Module: Payment.invoice_id FK, PAYMENT_COMPLETED event
+- Student Module: Payment.student_id FK
+- VNPay/MoMo/ZaloPay: External payment gateways
+```
+
+## ⏳ PR 2.9 - Settings & Preferences Module
+
+**Status:** ⏳ NOT STARTED
+**Dependencies:** None (independent module)
+**Note:** Parent Module moved to Engagement Service (P1 priority)
+
+```
+Thực hiện Settings & Preferences Module của kiteclass-core-service-plan.md.
+
+**Tuân thủ skills:**
+- code-style.md: coding conventions
+- api-design.md: Settings API endpoints
 - database-design.md: settings tables
 - theme-system.md: branding settings
+- spring-boot-testing-quality.md: code quality checklist
 
 **Tasks:**
 1. Tạo Branding entity (settings schema):
-   - logoUrl, faviconUrl, displayName, tagline
-   - primaryColor, secondaryColor
-   - contactEmail, contactPhone, address
-   - facebookUrl, zaloUrl
-2. Tạo UserPreferences entity
-3. Tạo BrandingService và controller:
-   - GET/PUT /api/v1/settings/branding
-   - POST /api/v1/settings/branding/logo
-4. Tạo UserPreferencesService:
+   - logo_url, favicon_url, display_name, tagline
+   - primary_color, secondary_color, accent_color
+   - contact_email, contact_phone, address
+   - facebook_url, zalo_url, website_url
+2. Tạo UserPreferences entity:
+   - user_id (link to Gateway User via referenceId)
+   - language (en, vi), timezone
+   - theme (light, dark, auto)
+   - notification_preferences (JSON)
+3. Tạo BrandingRepository và UserPreferencesRepository
+4. Tạo BrandingMapper và UserPreferencesMapper (MapStruct)
+5. Tạo BrandingService và BrandingServiceImpl:
+   - getBranding (default or customized)
+   - updateBranding (admin only)
+   - uploadLogo (S3 integration)
+6. Tạo UserPreferencesService và UserPreferencesServiceImpl:
    - GET/PATCH /api/v1/users/me/preferences
-5. Tạo Parent module:
-   - ParentService với getChildren, getChildAttendance, getChildGrades
-   - ParentController với endpoints
+   - initializeDefaultPreferences (on user registration)
+7. Tạo controllers:
+   - BrandingController:
+     - GET /api/v1/settings/branding (public)
+     - PUT /api/v1/settings/branding (admin only)
+     - POST /api/v1/settings/branding/logo (admin only)
+   - UserPreferencesController:
+     - GET /api/v1/users/me/preferences
+     - PATCH /api/v1/users/me/preferences
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/module/settings/
   - service/BrandingServiceTest.java
+  - service/UserPreferencesServiceTest.java
   - controller/BrandingControllerTest.java
-- src/test/java/com/kiteclass/core/module/parent/
-  - service/ParentServiceTest.java
-  - controller/ParentControllerTest.java
+  - controller/UserPreferencesControllerTest.java
+  - repository/BrandingRepositoryTest.java
+- src/test/java/com/kiteclass/core/testutil/
+  - BrandingTestDataBuilder.java
+  - UserPreferencesTestDataBuilder.java
 
 **Flyway Migration:**
-- V8__create_settings_tables.sql
+- V12__create_settings_tables.sql (branding, user_preferences)
 
 **Verification:**
 - mvn test phải pass
+- Coverage >= 80%
+- Public branding API accessible without auth
+- User preferences CRUD working
+
+**Integration Points:**
+- Gateway: Branding data fetched by Frontend for theme
+- All modules: UserPreferences for user-specific settings
 ```
 
 ## ⏳ PR 2.10 - Core Docker & Final Integration
 
+**Status:** ⏳ NOT STARTED
+**Dependencies:** All Core Service PRs (2.1 - 2.9)
+
 ```
-Hoàn thiện kiteclass-core.
+Hoàn thiện kiteclass-core - Docker, integration tests, seed data.
 
 **Tuân thủ skills:**
 - cloud-infrastructure.md: Docker, docker-compose
 - testing-guide.md: integration tests với Testcontainers
 - environment-setup.md: local dev setup
+- spring-boot-testing-quality.md: integration test patterns
 
 **Tasks:**
-1. Tạo Dockerfile (multi-stage build)
+1. Tạo Dockerfile (multi-stage build):
+   - Maven build stage
+   - Runtime stage với optimized JRE
 2. Update docker-compose.yml:
    - core-service
    - Kết nối với gateway, postgres, redis, rabbitmq
-3. Tạo V9__seed_test_data.sql (sample data cho testing)
-4. Viết integration tests cho full flow
+   - Health checks
+   - Resource limits
+3. Tạo V13__seed_test_data.sql (sample data cho testing):
+   - Sample teachers
+   - Sample courses
+   - Sample classes
+   - Sample students
+   - Sample enrollments
+   - Sample invoices
+4. Viết integration tests cho full flows:
+   - StudentFlowIntegrationTest (create → update → soft delete)
+   - EnrollmentFlowIntegrationTest (enroll → invoice created → grade initialized)
+   - AttendanceFlowIntegrationTest (mark attendance → grade updated)
+   - AssignmentFlowIntegrationTest (create → submit → grade → grade updated)
+   - InvoiceFlowIntegrationTest (create → payment → status update)
+   - PaymentFlowIntegrationTest (gateway → webhook → invoice update)
 
 **Tests (bắt buộc):**
 - src/test/java/com/kiteclass/core/integration/
   - StudentFlowIntegrationTest.java
   - EnrollmentFlowIntegrationTest.java
   - AttendanceFlowIntegrationTest.java
-  - BillingFlowIntegrationTest.java
+  - AssignmentFlowIntegrationTest.java
+  - InvoiceFlowIntegrationTest.java
+  - PaymentFlowIntegrationTest.java
 
 **Verification:**
-- docker-compose up phải start tất cả services
+- docker-compose up phải start tất cả services successfully
 - Integration tests pass với Testcontainers
 - Swagger UI hoạt động: http://localhost:8081/swagger-ui.html
 - Tất cả API endpoints hoạt động đúng
+- Event-driven flows working (enrollment → invoice → grade)
+- Health check endpoints responding
 ```
 
 ---
@@ -1112,7 +2070,8 @@ Tạo Internal APIs để Gateway có thể lấy profile data cho Student/Teach
 - cross-service-data-strategy.md: Service-to-service communication patterns
 - api-design.md: Internal API design
 - code-style.md: Controller và Service conventions
-- testing-guide.md: Testing internal APIs
+- testing-guide.md: Testing internal APIs, filter testing
+- spring-boot-testing-quality.md: Controller test setup, @TestConfiguration, fix warnings
 
 **Tasks:**
 
@@ -1302,104 +2261,839 @@ Sau khi PR này complete, Gateway có thể:
 
 # GIAI ĐOẠN 3: KITECLASS-FRONTEND
 
-## ⏳ PR 3.1 - Frontend Project Setup
+## ✅ PR 3.1 - Frontend Project Setup & Testing Infrastructure
 
 ```
-Thực hiện Phase 1 của kiteclass-frontend-plan.md.
+Thực hiện Phase 1 của kiteclass-frontend-plan.md + Testing setup.
 
 **Tuân thủ skills:**
+- frontend-development.md: UI design system, Shadcn/UI patterns
+- frontend-code-quality.md: TypeScript strict mode, ESLint config, Testing setup
 - architecture-overview.md: cấu trúc thư mục Frontend
-- ui-components.md: design tokens, Shadcn setup
-- code-style.md: TypeScript conventions
 
 **Tasks:**
-1. Tạo Next.js project: kiteclass/kiteclass-frontend/
-2. Install dependencies theo plan
-3. Setup Shadcn/UI với components cần thiết
-4. Cấu hình Tailwind với custom theme theo ui-components.md
-5. Tạo folder structure theo plan
-6. Setup ESLint, Prettier
+1. ✅ Tạo Next.js project: kiteclass/kiteclass-frontend/
+2. ✅ Install core dependencies (React Query, Zustand, Axios, Zod, etc.)
+3. ✅ Setup Shadcn/UI với 23 components
+4. ✅ Cấu hình Tailwind với custom theme
+5. ✅ Tạo folder structure theo plan
+6. ⏳ BỔ SUNG: Enhanced ESLint configuration
+   - Install @typescript-eslint/eslint-plugin
+   - Install @typescript-eslint/parser
+   - Install eslint-plugin-react-hooks
+   - Configure rules: no-explicit-any: error, react-hooks rules
+7. ⏳ BỔ SUNG: Complete TypeScript strict config
+   - Add noUnusedLocals, noUnusedParameters
+   - Add noImplicitReturns, noFallthroughCasesInSwitch
+   - Add noUncheckedIndexedAccess
+8. ⏳ BỔ SUNG: Testing Infrastructure
+   - Install Vitest + @vitejs/plugin-react
+   - Install @testing-library/react, @testing-library/jest-dom
+   - Install @testing-library/user-event
+   - Install MSW (Mock Service Worker)
+   - Install @playwright/test
+   - Create vitest.config.ts
+   - Create src/test/setup.ts
+   - Create playwright.config.ts
+   - Add test scripts to package.json
 
 **Verification:**
 - pnpm dev phải start thành công
-- pnpm lint không có errors
+- pnpm lint không có errors (with strict rules)
+- pnpm tsc --noEmit passes
+- pnpm test runs (even with no tests yet)
+- pnpm test:e2e setup ready
+- Git hooks check passed
+
+**Quality Checklist (frontend-code-quality.md):**
+- [x] tsconfig.json has strict: true
+- [x] Basic ESLint setup
+- [x] Prettier plugin for Tailwind installed
+- [x] No `any` types in codebase
+- [ ] ESLint with @typescript-eslint/no-explicit-any: error
+- [ ] Vitest configured
+- [ ] Testing Library installed
+- [ ] MSW installed for API mocking
+- [ ] Playwright configured for E2E
 ```
 
-## ⏳ PR 3.2 - Frontend Core Infrastructure
+## ⏳ PR 3.2 - Frontend Core Infrastructure & Feature Detection
 
 ```
-Thực hiện Phase 2 của kiteclass-frontend-plan.md.
+Thực hiện Phase 2 của kiteclass-frontend-plan.md + Feature Detection + Theme types.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6B: Feature Detection & Instance Configuration
+- frontend-code-quality.md Part 11: Multi-Tenant & Theme System types
+- frontend-code-quality.md Part 12: Feature Flag System & Tier-Based UI
 
 **Tuân thủ skills:**
-- code-style.md: TypeScript conventions, file naming
+- frontend-code-quality.md Part 11: Multi-Tenant & Theme System types
+- frontend-code-quality.md Part 12: Feature Detection types & patterns
+- frontend-development.md Part 2: Theme System architecture
 - api-design.md: API response format
 - enums-constants.md: TypeScript enum definitions
 
 **Tasks:**
-1. Tạo API client (src/lib/api/client.ts):
-   - Axios instance với interceptors
-   - Auto refresh token
-   - Error handling
-2. Tạo API endpoints config (src/lib/api/endpoints.ts)
-3. Tạo TypeScript types (src/types/):
-   - api.ts (ApiResponse, PageResponse, ErrorResponse)
-   - student.ts, class.ts, course.ts
-   - attendance.ts, invoice.ts
-   - user.ts
-4. Tạo Zustand stores:
-   - auth-store.ts
-   - ui-store.ts
 
-**Tests (bắt buộc):**
+### 1. Feature Detection Types (src/types/subscription.ts) ⭐ NEW
+```typescript
+export type SubscriptionTier = 'BASIC' | 'STANDARD' | 'PREMIUM';
+export type ServiceType = 'user-gateway' | 'core' | 'engagement' | 'media' | 'frontend';
+
+export interface InstanceConfig {
+  instanceId: string;
+  tier: SubscriptionTier;
+  addOns: ('ENGAGEMENT' | 'MEDIA')[];
+  services: ServiceType[];
+  features: FeatureFlags;
+  limits: ResourceLimits;
+  owner: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface FeatureFlags {
+  // Core features (all tiers)
+  classManagement: boolean;
+  studentManagement: boolean;
+  attendance: boolean;
+  grading: boolean;
+  billing: boolean;
+
+  // Engagement Pack (STANDARD+)
+  gamification: boolean;
+  parentPortal: boolean;
+  forum: boolean;
+
+  // Media Pack (add-on)
+  videoUpload: boolean;
+  liveStreaming: boolean;
+
+  // Premium features
+  aiMarketing: boolean;
+  prioritySupport: boolean;
+}
+
+export interface ResourceLimits {
+  maxStudents: number; // 50, 200, or -1 (unlimited)
+  maxCourses: number | null;
+  videoStorageGB: number;
+  maxConcurrentStreams: number;
+}
+```
+
+### 2. API Client (src/lib/api/client.ts)
+- Axios instance với interceptors
+- Auto refresh token
+- Error handling
+- Proper TypeScript types (NO any!)
+
+### 3. API Endpoints Config (src/lib/api/endpoints.ts)
+```typescript
+export const ENDPOINTS = {
+  // Auth
+  LOGIN: '/api/v1/auth/login',
+  REFRESH: '/api/v1/auth/refresh',
+
+  // Instance Config ⭐ NEW
+  INSTANCE_CONFIG: '/api/v1/instance/config',
+  INSTANCE_THEME: '/api/v1/instance/theme',
+  INSTANCE_BRANDING: '/api/v1/instance/branding',
+
+  // Students
+  STUDENTS: '/api/v1/students',
+  // ... other endpoints
+};
+```
+
+### 4. Core TypeScript Types (src/types/)
+- api.ts (ApiResponse, PageResponse, ErrorResponse)
+- subscription.ts ⭐ NEW (InstanceConfig, FeatureFlags, ResourceLimits)
+- student.ts, class.ts, course.ts
+- attendance.ts, invoice.ts
+- user.ts (with UserRole enum)
+- **theme.ts** (ThemeTemplate, BrandingSettings, UserPreferences, ResolvedTheme)
+- Match Backend DTOs exactly
+
+### 5. Theme Utilities (src/lib/theme-utils.ts)
+- applyThemeVariables()
+- validateHexColor()
+- generateColorScale()
+- sanitizeBrandingSettings()
+
+### 6. Feature Detection Cache (src/lib/feature-cache.ts) ⭐ NEW
+```typescript
+const CONFIG_CACHE_KEY = 'kiteclass:instance_config';
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+export function getCachedConfig(): InstanceConfig | null;
+export function setCachedConfig(config: InstanceConfig): void;
+export function invalidateConfigCache(): void;
+```
+
+### 7. Zustand Stores
+- auth-store.ts (with TypeScript interface)
+- ui-store.ts
+
+**Tests (bắt buộc - frontend-code-quality.md Part 3, Part 11, Part 12):**
 - src/__tests__/lib/api/
-  - client.test.ts
+  - client.test.ts (test interceptors, error handling)
+  - endpoints.test.ts (test endpoint constants)
+- src/__tests__/lib/
+  - theme-utils.test.ts (test color validation, theme isolation)
+  - feature-cache.test.ts ⭐ NEW (test caching, TTL, invalidation)
 - src/__tests__/stores/
   - auth-store.test.ts
   - ui-store.test.ts
+- src/__tests__/types/
+  - subscription.test.ts ⭐ NEW (test type guards, validation)
+- Use MSW for API mocking
 
 **Verification:**
-- pnpm test phải pass
-- Types khớp với BE DTOs
+- pnpm test phải pass (minimum 80% coverage)
+- pnpm lint passes
+- pnpm tsc --noEmit passes
+- Types khớp với BE DTOs (reference: system-architecture-v3-final.md PHẦN 6B.1)
+- No `any` types in codebase
+- Theme types properly defined
+- Feature Detection types properly defined ⭐ NEW
+
+**Quality Checklist (frontend-code-quality.md):**
+- [ ] All types properly defined (no `any`)
+- [ ] API client has proper error handling
+- [ ] Tests use MSW for API mocking
+- [ ] Zustand stores have TypeScript interfaces
+- [ ] Theme types defined per Part 11
+- [ ] Feature Detection types defined per Part 12 ⭐ NEW
+- [ ] Color validation implemented
+- [ ] Theme utility functions tested
+- [ ] Feature cache tested with TTL scenarios ⭐ NEW
 ```
 
-## ⏳ PR 3.3 - Providers & Layout
+## ⏳ PR 3.3 - Providers & Layout (Multi-Tenant + Feature Flags)
 
 ```
-Thực hiện Phase 3-5 của kiteclass-frontend-plan.md.
+Thực hiện Phase 3-5 của kiteclass-frontend-plan.md + FeatureFlagProvider.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6B.1: Feature Detection API
+- system-architecture-v3-final.md PHẦN 6B.3: Feature Lock UI Patterns
+- frontend-code-quality.md Part 12: Feature Flag System
 
 **Tuân thủ skills:**
+- frontend-development.md Part 2: Theme System architecture & ThemeProvider
+- frontend-code-quality.md Part 11: Multi-Tenant considerations
+- frontend-code-quality.md Part 12: Feature Flag System & Tier-Based UI ⭐ NEW
 - ui-components.md: layout patterns
-- theme-system.md: ThemeProvider implementation
 - code-style.md: React component conventions
 
 **Tasks:**
-1. Tạo Providers:
-   - QueryProvider (React Query)
-   - ThemeProvider (next-themes + API theme)
-   - AuthProvider (protected routes)
-   - ToasterProvider
-2. Tạo root layout với providers
-3. Tạo Layout components:
-   - Sidebar với navigation config
-   - Header với UserNav, ThemeToggle
-   - Breadcrumb
-4. Tạo Dashboard layout (src/app/(dashboard)/layout.tsx)
-5. Tạo Auth layout (src/app/(auth)/layout.tsx)
 
-**Tests (bắt buộc):**
-- src/__tests__/providers/
-  - auth-provider.test.tsx
-  - theme-provider.test.tsx
-- src/__tests__/components/layout/
-  - sidebar.test.tsx
-  - header.test.tsx
+### 1. Providers (src/providers/)
 
-**Verification:**
-- pnpm test phải pass
-- Layout renders correctly
+#### FeatureFlagProvider ⭐ NEW (src/providers/FeatureFlagProvider.tsx)
+```typescript
+interface FeatureFlagContextValue {
+  config: InstanceConfig | null;
+  features: FeatureFlags | null;
+  isLoading: boolean;
+  error: Error | null;
+  hasFeature: (feature: keyof FeatureFlags) => boolean;
+  hasTier: (tier: SubscriptionTier) => boolean;
+  checkLimit: (resource: 'students' | 'courses' | 'videoGB') => LimitCheck;
+}
+
+// Fetch from GET /api/v1/instance/config (PR 3.2 endpoint)
+// Cache in localStorage (1 hour TTL)
+// NO runtime updates (user must go to KiteHub to upgrade)
 ```
 
-## ⏳ PR 3.4 - Shared Components
+#### ThemeProvider (src/providers/ThemeProvider.tsx)
+- Fetch ResolvedTheme from GET /api/v1/instance/theme
+- Apply CSS variables với applyThemeVariables()
+- Support dark/light mode switching
+- Cache theme in localStorage (prevent flash)
+- Handle branding color override
+
+#### AuthProvider (src/providers/AuthProvider.tsx)
+- Protected routes logic
+- JWT token management
+- User context
+
+#### Other Providers
+- QueryProvider (React Query)
+- ToasterProvider
+
+### 2. Root Layout với Providers (app/layout.tsx)
+```typescript
+export default function RootLayout({ children }) {
+  return (
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        {/* Inline script to prevent theme flash */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body>
+        <QueryProvider>
+          <FeatureFlagProvider> {/* ⭐ NEW */}
+            <ThemeProvider>
+              <AuthProvider>
+                <ToasterProvider />
+                {children}
+              </AuthProvider>
+            </ThemeProvider>
+          </FeatureFlagProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### 3. Layout Components
+
+#### Sidebar (src/components/layout/Sidebar.tsx) ⭐ UPDATED
+- Navigation config with conditional rendering based on features
+```typescript
+function Sidebar() {
+  const hasGamification = useFeatureFlag('gamification');
+  const hasParentPortal = useFeatureFlag('parentPortal');
+  const hasForum = useFeatureFlag('forum');
+  const hasVideoUpload = useFeatureFlag('videoUpload');
+
+  return (
+    <nav>
+      {/* Core features - always visible */}
+      <NavItem href="/classes">Lớp học</NavItem>
+      <NavItem href="/students">Học viên</NavItem>
+
+      {/* Engagement Pack - conditional */}
+      {hasGamification && <NavItem href="/gamification">Game hóa</NavItem>}
+      {hasParentPortal && <NavItem href="/parents">Phụ huynh</NavItem>}
+      {hasForum && <NavItem href="/forum">Diễn đàn</NavItem>}
+
+      {/* Media Pack - conditional */}
+      {hasVideoUpload && <NavItem href="/media">Video</NavItem>}
+    </nav>
+  );
+}
+```
+
+#### Header (src/components/layout/Header.tsx)
+- UserNav dropdown
+- ThemeToggle (dark/light mode)
+- Resource limit warnings ⭐ NEW
+
+#### Breadcrumb (src/components/layout/Breadcrumb.tsx)
+- Dynamic breadcrumb generation
+
+### 4. Dashboard Layout (src/app/(dashboard)/layout.tsx)
+```typescript
+export default function DashboardLayout({ children }) {
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <ResourceLimitBanner /> {/* ⭐ NEW */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+```
+
+### 5. Auth Layout (src/app/(auth)/layout.tsx)
+- Centered auth forms
+- Branding logo
+
+### 6. Feature Lock Components ⭐ NEW (src/components/upgrade/)
+
+#### FeatureLockModal.tsx
+```typescript
+// Soft Block Modal per system-architecture-v3-final.md PHẦN 6B.3
+// Show preview, benefits, pricing
+// If OWNER: "Nâng cấp ngay" → Redirect to KiteHub
+// If NOT OWNER: "Liên hệ Owner" → Send email notification
+```
+
+#### ResourceLimitWarning.tsx
+```typescript
+// Warning banner for approaching limits
+// 80%: Yellow warning
+// 90%: Orange alert
+// 100%: Red block with upgrade CTA
+```
+
+#### UpgradeButton.tsx
+```typescript
+// Redirect to KiteHub portal upgrade page
+// Only visible for CENTER_OWNER role
+```
+
+**Tests (bắt buộc - frontend-code-quality.md Part 11 & 12):**
+- src/__tests__/providers/
+  - feature-flag-provider.test.tsx ⭐ NEW:
+    - Test config fetching from API
+    - Test hasFeature() for all tiers (BASIC, STANDARD, PREMIUM)
+    - Test hasTier() comparisons
+    - Test caching (1 hour TTL)
+    - Test error handling
+  - theme-provider.test.tsx:
+    - Test theme fetching from API
+    - Test CSS variables applied correctly
+    - Test branding override (primaryColor)
+    - Test theme switching
+    - Test theme isolation
+    - Test theme caching
+  - auth-provider.test.tsx
+- src/__tests__/components/layout/
+  - sidebar.test.tsx ⭐ UPDATED:
+    - Test conditional navigation rendering
+    - Test BASIC tier: no Gamification menu
+    - Test STANDARD tier: has Gamification menu
+    - Test PREMIUM tier: has all menus
+  - header.test.tsx
+- src/__tests__/components/upgrade/ ⭐ NEW:
+  - feature-lock-modal.test.tsx:
+    - Test modal display for locked feature
+    - Test OWNER: shows "Nâng cấp ngay" button
+    - Test NON-OWNER: shows "Liên hệ Owner" button
+    - Test redirect to KiteHub
+  - resource-limit-warning.test.tsx:
+    - Test warning at 80% capacity
+    - Test alert at 90% capacity
+    - Test block at 100% capacity
+
+**Verification:**
+- pnpm test phải pass (minimum 80% coverage)
+- Layout renders correctly
+- Feature flags working (conditional navigation)
+- Theme switching working (no flash)
+- Upgrade modals working (redirect to KiteHub)
+- Resource warnings working (thresholds correct)
+
+**Quality Checklist:**
+- [ ] FeatureFlagProvider properly implemented ⭐ NEW
+- [ ] Conditional navigation tested ⭐ NEW
+- [ ] Feature lock modals tested ⭐ NEW
+- [ ] Resource limit warnings tested ⭐ NEW
+- [ ] ThemeProvider tested (no flash)
+- [ ] AuthProvider tested (protected routes)
+- [ ] All providers have error handling
+- [ ] Cache strategies implemented (1hr TTL)
+```
+
+## ⏳ PR 3.4 - Public Routes & Landing Pages (Preview Website) 🆕
+
+```
+Implement Preview Website - Trang web marketing công khai cho mỗi instance.
+Tự động tạo từ AI branding assets (PART 2) + instance data.
+
+**Mục đích:**
+- Thu hút học viên tiềm năng qua SEO organic (+30-50% tuyển sinh)
+- Professional landing page tự động tạo (zero effort)
+- Public course catalog (không cần đăng nhập)
+- Conversion funnel: Landing → Browse → Register → Enroll
+
+**Tuân thủ skills:**
+- frontend-code-quality.md PART 14: Guest User & Public Routes
+- frontend-code-quality.md PART 15: Documentation Standards (Vietnamese)
+- system-architecture-v3-final.md PHẦN 6D: Preview Website
+
+**Chia thành 3 sub-PRs (2 tuần total):**
+
+### PR 3.4a: Backend Public APIs (3 ngày)
+
+**Backend Tasks:**
+1. Tạo Public API endpoints (không cần auth):
+   ```java
+   // PublicInstanceController.java
+   GET /api/v1/public/instance/{instanceId}/config
+   GET /api/v1/public/instance/{instanceId}/branding
+   GET /api/v1/public/instance/{instanceId}/courses
+   GET /api/v1/public/courses/{courseId}
+   GET /api/v1/public/instance/{instanceId}/instructors
+   POST /api/v1/public/contact
+   ```
+
+2. Tạo Public DTOs (filter private fields):
+   ```java
+   // PublicCourseDTO.java
+   - Include: title, description, price, schedule, instructor
+   - Exclude: lessons, students, grades, attendance
+   ```
+
+3. Rate Limiting:
+   ```java
+   @RateLimit(value = 100, period = "1m") // 100 req/min per IP
+   ```
+
+4. Security checks:
+   - Ensure no PII leakage
+   - Only PUBLISHED courses visible
+   - Proper CORS headers
+
+**Tests (bắt buộc):**
+- Unit tests: PublicCourseDTO, PublicInstructorDTO filters
+- Integration tests: All 6 public endpoints
+- Security tests: Verify no private data exposed
+- Rate limit tests: Verify 100 req/min limit
+
+**Files:**
+- backend/src/main/java/com/kiteclass/api/public/
+  - PublicInstanceController.java
+  - PublicCourseController.java
+- backend/src/main/java/com/kiteclass/dto/public/
+  - PublicCourseDTO.java
+  - PublicInstructorDTO.java
+  - PublicInstanceConfigDTO.java
+- backend/src/test/java/com/kiteclass/api/public/
+
+**Verification:**
+- All tests pass
+- Postman test 6 endpoints (no auth header)
+- Security scan: No private data in responses
+
+---
+
+### PR 3.4b: Frontend Public Routes (5 ngày)
+
+**Frontend Tasks:**
+1. Tạo (public) route group:
+   ```
+   app/(public)/
+   ├── layout.tsx          // Public layout (no AuthProvider)
+   ├── page.tsx            // Landing page
+   ├── courses/
+   │   ├── page.tsx        // Course catalog
+   │   └── [id]/page.tsx   // Course details
+   ├── about/page.tsx
+   └── contact/page.tsx
+   ```
+
+2. Implement Landing Page components:
+   ```typescript
+   // components/landing/
+   - HeroSection.tsx (AI branding hero banner + headline)
+   - AboutSection.tsx (center info)
+   - CourseCatalogSection.tsx (featured courses grid)
+   - InstructorsSection.tsx (top teachers)
+   - CTASection.tsx ("Đăng ký ngay")
+   - Footer.tsx (links, social, watermark)
+   ```
+
+3. Implement Course Catalog:
+   ```typescript
+   // components/landing/
+   - CourseGrid.tsx (grid layout)
+   - CourseCard.tsx (thumbnail, title, price, CTA)
+   - CourseFilters.tsx (category, level, price)
+   - CoursePagination.tsx
+   ```
+
+4. Implement Course Details:
+   ```typescript
+   // components/landing/
+   - CourseHeader.tsx (title, instructor, price)
+   - CourseSyllabus.tsx (curriculum preview)
+   - InstructorBio.tsx
+   - ContactOwnerSection.tsx ⭐ NEW (PART 4)
+   - EnrollmentCTA.tsx ("Đăng ký ngay" → /login)
+   - RelatedCourses.tsx
+   ```
+
+5. **ContactOwnerSection Component** ⭐ NEW (PART 4):
+   ```typescript
+   // components/landing/ContactOwnerSection.tsx
+   // Hiển thị thông tin liên hệ OWNER (B2B model - guest contact OWNER)
+
+   interface OwnerContactInfo {
+     ownerName: string;
+     phone?: string;
+     email?: string;
+     facebookUrl?: string;
+     messengerUrl?: string;
+     zaloUrl?: string;
+   }
+
+   export function ContactOwnerSection({ contactInfo }: Props) {
+     return (
+       <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
+         <CardHeader>
+           <CardTitle>📞 Liên hệ tư vấn</CardTitle>
+           <CardDescription>
+             Bạn quan tâm đến khóa học? Liên hệ trực tiếp với trung tâm!
+           </CardDescription>
+         </CardHeader>
+         <CardContent className="space-y-4">
+           {/* Owner name */}
+           <div>
+             <h4 className="font-semibold mb-2">
+               Liên hệ: {contactInfo.ownerName}
+             </h4>
+           </div>
+
+           {/* Contact buttons - Prominent & Mobile-friendly */}
+           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+             {/* Facebook */}
+             {contactInfo.facebookUrl && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.open(contactInfo.facebookUrl, '_blank')}
+               >
+                 <Facebook className="mr-2 h-5 w-5 text-blue-600" />
+                 Facebook
+               </Button>
+             )}
+
+             {/* Messenger */}
+             {contactInfo.messengerUrl && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.open(contactInfo.messengerUrl, '_blank')}
+               >
+                 <MessageCircle className="mr-2 h-5 w-5 text-blue-500" />
+                 Messenger
+               </Button>
+             )}
+
+             {/* Zalo */}
+             {contactInfo.zaloUrl && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.open(contactInfo.zaloUrl, '_blank')}
+               >
+                 <MessageSquare className="mr-2 h-5 w-5 text-blue-700" />
+                 Zalo
+               </Button>
+             )}
+
+             {/* Phone */}
+             {contactInfo.phone && (
+               <Button
+                 variant="outline"
+                 className="h-12"
+                 onClick={() => window.location.href = `tel:${contactInfo.phone}`}
+               >
+                 <Phone className="mr-2 h-5 w-5 text-green-600" />
+                 {contactInfo.phone}
+               </Button>
+             )}
+
+             {/* Email */}
+             {contactInfo.email && (
+               <Button
+                 variant="outline"
+                 className="h-12 col-span-2 md:col-span-1"
+                 onClick={() => window.location.href = `mailto:${contactInfo.email}`}
+               >
+                 <Mail className="mr-2 h-5 w-5 text-red-600" />
+                 {contactInfo.email}
+               </Button>
+             )}
+           </div>
+
+           {/* CTA message */}
+           <Alert>
+             <AlertCircle className="h-4 w-4" />
+             <AlertDescription>
+               💡 <strong>B2B Model:</strong> Guest không thể tự đăng ký.
+               Vui lòng liên hệ OWNER để được tư vấn chi tiết về khóa học
+               và thủ tục tuyển sinh.
+             </AlertDescription>
+           </Alert>
+         </CardContent>
+       </Card>
+     );
+   }
+   ```
+
+6. SEO Optimization:
+   ```typescript
+   // app/(public)/page.tsx
+   export async function generateMetadata(): Promise<Metadata> {
+     // Title, description, OG tags, Twitter cards
+   }
+
+   // Structured data (JSON-LD)
+   const courseSchema = {
+     '@context': 'https://schema.org',
+     '@type': 'Course',
+     // ... schema.org/Course
+   }
+
+   // app/sitemap.ts
+   export default async function sitemap() {
+     // Generate sitemap.xml
+   }
+
+   // app/robots.txt
+   export default function robots() {
+     // Allow crawling public routes
+   }
+   ```
+
+7. ISR Configuration:
+   ```typescript
+   export const revalidate = 3600 // Revalidate mỗi 1 giờ
+   ```
+
+8. Mobile Responsive:
+   - Tailwind breakpoints (sm, md, lg, xl)
+   - Mobile-first design
+   - Touch-friendly CTAs
+
+**Tests (bắt buộc):**
+- Component tests (Vitest + Testing Library):
+  ```
+  src/__tests__/components/landing/
+  - hero-section.test.tsx
+  - course-card.test.tsx
+  - course-catalog-section.test.tsx
+  - instructor-section.test.tsx
+  - contact-owner-section.test.tsx ⭐ NEW (PART 4)
+  ```
+
+- E2E tests (Playwright):
+  ```
+  src/__tests__/e2e/
+  - landing-page.spec.ts (hero, about, courses, CTA)
+  - course-catalog.spec.ts (grid, filters, pagination)
+  - course-details.spec.ts (syllabus, enroll CTA)
+  ```
+
+- SEO tests:
+  ```
+  src/__tests__/seo/
+  - metadata.test.ts (verify title, OG tags)
+  - structured-data.test.ts (verify Course schema)
+  - sitemap.test.ts (verify all public pages)
+  ```
+
+- Accessibility tests (axe):
+  ```
+  - Color contrast 4.5:1
+  - Keyboard navigation
+  - ARIA labels
+  - Alt text for images
+  ```
+
+**Files:**
+- frontend/app/(public)/
+- frontend/components/landing/
+- frontend/lib/api/public.ts
+- frontend/__tests__/
+
+**Verification:**
+- pnpm test phải pass (component + E2E)
+- Lighthouse score 90+
+- FCP < 1.5s
+- Accessibility score 100
+- Mobile responsive check
+
+---
+
+### PR 3.4c: Integration & Polish (2 ngày)
+
+**Tasks:**
+1. Custom Domain Routing (PREMIUM tier):
+   ```nginx
+   # /etc/nginx/sites-enabled/abc-academy.com
+   server {
+       listen 443 ssl;
+       server_name abc-academy.com;
+       ssl_certificate /etc/letsencrypt/live/abc-academy.com/fullchain.pem;
+       proxy_pass https://abc-academy.kiteclass.com;
+   }
+   ```
+
+2. Performance Optimization:
+   - Image optimization (next/image)
+   - ISR configuration
+   - CDN caching headers (Cloudflare)
+   - Lazy loading for below-the-fold content
+
+3. Analytics Integration:
+   ```typescript
+   // Track conversion events
+   gtag('event', 'view_course', { course_id, course_name, price })
+   gtag('event', 'click_enroll', { course_id, placement })
+   gtag('event', 'submit_contact_form', { form_location })
+   ```
+
+4. Contact Form Implementation:
+   ```typescript
+   // POST /api/public/contact
+   - Email notification đến CENTER_OWNER
+   - reCAPTCHA spam protection
+   - Success/error handling
+   ```
+
+5. Edge Cases:
+   - Empty state (chưa có khóa học)
+   - Unpublished courses (ẩn khỏi catalog)
+   - Expired courses (đánh dấu "Đã kết thúc")
+   - Private instances (opt-out public landing)
+
+6. Documentation:
+   ```
+   docs/
+   - preview-website-user-guide.md (cho center owners)
+   - preview-website-seo-guide.md (SEO best practices)
+   - custom-domain-setup.md (PREMIUM tier)
+   ```
+
+**Tests:**
+- Custom domain routing tests
+- Contact form submission tests (with spam check)
+- Analytics event tracking tests
+- Edge case tests (empty, unpublished, expired)
+
+**Verification:**
+- Custom domain works (PREMIUM tier)
+- Contact form sends email
+- Analytics events fire correctly
+- All edge cases handled gracefully
+- Documentation complete
+
+---
+
+**Dependencies:**
+- ✅ PR 3.2: Core Infrastructure (Feature Detection types)
+- ✅ PR 3.3: Providers & Layout
+- ✅ AI Branding System APIs (PART 2)
+
+**Timeline:**
+- PR 3.4a: 3 ngày (Backend APIs)
+- PR 3.4b: 5 ngày (Frontend routes)
+- PR 3.4c: 2 ngày (Integration)
+- Total: 2 tuần (10 ngày làm việc)
+
+**Deliverables:**
+- Public landing page tự động tạo từ AI branding
+- Public course catalog với SEO optimization
+- Conversion funnel hoàn chỉnh (Guest → Student)
+- Custom domain support (PREMIUM)
+- Lighthouse 90+, FCP <1.5s
+- Full test coverage (component, E2E, SEO, a11y)
+
+**Success Metrics:**
+- SEO: Rank on Google cho target keywords
+- Traffic: +30-50% organic visitors
+- Conversion: 5-10% landing → enroll
+- Performance: Lighthouse 90+, FCP <1.5s
+```
+
+## ⏳ PR 3.5 - Shared Components
 
 ```
 Tạo shared components theo kiteclass-frontend-plan.md.
@@ -1435,7 +3129,7 @@ Tạo shared components theo kiteclass-frontend-plan.md.
 - Components render correctly với các props
 ```
 
-## ⏳ PR 3.5 - Auth Pages
+## ⏳ PR 3.6 - Auth Pages
 
 ```
 Thực hiện Auth pages của kiteclass-frontend-plan.md.
@@ -1471,7 +3165,7 @@ Thực hiện Auth pages của kiteclass-frontend-plan.md.
 - Login với owner@kiteclass.local / Admin@123 thành công
 ```
 
-## ⏳ PR 3.6 - Dashboard & Students Module
+## ⏳ PR 3.7 - Dashboard ## ⏳ PR 3.6 - Dashboard & Students Module Students Module
 
 ```
 Thực hiện Dashboard và Students module.
@@ -1513,7 +3207,7 @@ Thực hiện Dashboard và Students module.
 - CRUD operations hoạt động với Core API
 ```
 
-## ⏳ PR 3.7 - Courses & Classes Module
+## ⏳ PR 3.8 - Courses ## ⏳ PR 3.7 - Courses & Classes Module Classes Module
 
 ```
 Thực hiện Courses và Classes module.
@@ -1523,12 +3217,124 @@ Thực hiện Courses và Classes module.
 - api-design.md: Course, Class API endpoints
 - code-style.md: React patterns
 
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6E: Guest & Trial System
+- frontend-code-quality.md PART 14: Guest User & Public Routes
+
 **Tasks:**
 1. Tạo useCourses hook
 2. Tạo useClasses, useClassSessions hooks
 3. Tạo validation schemas
 4. Tạo CourseForm, ClassForm components
-5. Tạo pages:
+5. **Public Visibility Control** ⭐ NEW (PART 4):
+   ```typescript
+   // types/course.ts
+   export enum PublicVisibility {
+     PRIVATE = 'PRIVATE',  // Guest không thấy
+     PUBLIC = 'PUBLIC'     // Guest thấy trong public catalog
+   }
+
+   export interface Course {
+     id: string;
+     title: string;
+     publicVisibility: PublicVisibility; // Admin-controlled
+     // ... other fields
+   }
+   ```
+
+6. **CourseForm - Add Public Visibility Toggle** ⭐ NEW (PART 4):
+   ```tsx
+   // components/forms/CourseForm.tsx
+   function CourseForm() {
+     return (
+       <Form>
+         {/* ... existing fields ... */}
+
+         {/* Public Visibility Section */}
+         <FormField
+           control={form.control}
+           name="publicVisibility"
+           render={({ field }) => (
+             <FormItem>
+               <FormLabel>🌐 Public Visibility</FormLabel>
+               <FormDescription>
+                 Kiểm soát khóa học có hiển thị trên trang web công khai không
+               </FormDescription>
+               <FormControl>
+                 <RadioGroup
+                   onValueChange={field.onChange}
+                   defaultValue={field.value}
+                   className="flex flex-col space-y-1"
+                 >
+                   <FormItem className="flex items-center space-x-3 space-y-0">
+                     <FormControl>
+                       <RadioGroupItem value="PRIVATE" />
+                     </FormControl>
+                     <FormLabel className="font-normal">
+                       🔒 Private - Chỉ thành viên mới thấy
+                     </FormLabel>
+                   </FormItem>
+                   <FormItem className="flex items-center space-x-3 space-y-0">
+                     <FormControl>
+                       <RadioGroupItem value="PUBLIC" />
+                     </FormControl>
+                     <FormLabel className="font-normal">
+                       🌍 Public - Hiển thị trên website công khai (Guest thấy)
+                     </FormLabel>
+                   </FormItem>
+                 </RadioGroup>
+               </FormControl>
+               <FormMessage />
+             </FormItem>
+           )}
+         />
+
+         {/* Warning Alert when PUBLIC */}
+         {form.watch('publicVisibility') === 'PUBLIC' && (
+           <Alert>
+             <AlertCircle className="h-4 w-4" />
+             <AlertTitle>Public Course</AlertTitle>
+             <AlertDescription>
+               Khóa học này sẽ hiển thị trên trang web công khai.
+               Guest có thể xem thông tin nhưng KHÔNG thể tự đăng ký.
+               Guest phải liên hệ OWNER để tuyển sinh (B2B model).
+             </AlertDescription>
+           </Alert>
+         )}
+       </Form>
+     );
+   }
+   ```
+
+7. **Course List - Display Visibility Badge** ⭐ NEW (PART 4):
+   ```tsx
+   // components/courses/CourseListItem.tsx
+   function CourseListItem({ course }: Props) {
+     return (
+       <Card>
+         <CardHeader>
+           <div className="flex items-center justify-between">
+             <CardTitle>{course.title}</CardTitle>
+             {/* Visibility badge */}
+             {course.publicVisibility === 'PUBLIC' ? (
+               <Badge variant="success" className="gap-1">
+                 <Globe className="h-3 w-3" />
+                 Public
+               </Badge>
+             ) : (
+               <Badge variant="secondary" className="gap-1">
+                 <Lock className="h-3 w-3" />
+                 Private
+               </Badge>
+             )}
+           </div>
+         </CardHeader>
+       </Card>
+     );
+   }
+   ```
+
+8. Tạo pages:
    - Courses: list, detail, create/edit
    - Classes: list, detail (với tabs), create/edit
    - Class detail tabs: Info, Students, Sessions
@@ -1538,8 +3344,15 @@ Thực hiện Courses và Classes module.
   - use-courses.test.ts
   - use-classes.test.ts
 - src/__tests__/components/forms/
-  - course-form.test.tsx
+  - course-form.test.tsx ⭐ UPDATED (PART 4):
+    - Test public visibility toggle
+    - Test warning alert when PUBLIC selected
+    - Test validation for publicVisibility field
   - class-form.test.tsx
+- src/__tests__/components/courses/
+  - course-list-item.test.tsx ⭐ NEW (PART 4):
+    - Test PUBLIC badge display
+    - Test PRIVATE badge display
 - src/__tests__/app/dashboard/
   - courses-page.test.tsx
   - classes-page.test.tsx
@@ -1548,9 +3361,11 @@ Thực hiện Courses và Classes module.
 **Verification:**
 - pnpm test phải pass
 - Class schedules hiển thị đúng
+- Public visibility toggle working (ADMIN can set PRIVATE/PUBLIC) ⭐ NEW (PART 4)
+- Visibility badges display correctly ⭐ NEW (PART 4)
 ```
 
-## ⏳ PR 3.8 - Attendance Module
+## ⏳ PR 3.9 - Attendance Module
 
 ```
 Thực hiện Attendance module.
@@ -1585,102 +3400,1021 @@ Thực hiện Attendance module.
 - Mark attendance cho class hoạt động
 ```
 
-## ⏳ PR 3.9 - Billing Module
+## ⏳ PR 3.10 - Billing & VietQR Payment System
 
 ```
-Thực hiện Billing module.
+Thực hiện Billing module với VietQR payment integration (2 levels).
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6F: Payment System (VietQR)
+- Best practice: Zero transaction fees, instant transfer
 
 **Tuân thủ skills:**
-- ui-components.md: data display, forms
-- api-design.md: Invoice & Payment API endpoints
+- ui-components.md: payment UI, QR display
+- api-design.md: Payment API endpoints
 - code-style.md: React patterns
 
-**Tasks:**
-1. Tạo useInvoices, usePayments hooks
-2. Tạo InvoiceForm, PaymentForm components
-3. Tạo pages:
-   - Invoices list với filters (status, date range)
-   - Invoice detail với payment history
-   - Create invoice
-   - Record payment dialog
+**Mục đích:**
+- KiteHub subscription payment (Level 1)
+- Instance enrollment payment (Level 2 - Owner configurable)
+- VietQR QR code generation & display
+- Manual payment verification (MVP)
+
+**Chia thành 3 sub-PRs (1 tuần total):**
+
+### PR 3.10a: Backend VietQR Service (2 ngày)
+
+**Backend Tasks:**
+1. Add Payment entities:
+   ```java
+   // PaymentOrder.java
+   - orderId (String, unique)
+   - type (SUBSCRIPTION | ENROLLMENT)
+   - user (ManyToOne)
+   - amount (Long, VND)
+   - tier (for subscription)
+   - status (PENDING | PAID | EXPIRED | CANCELLED)
+   - qrImageUrl (String)
+   - paymentContent (String)
+   - transactionReference (String, nullable)
+   - paidAt (LocalDateTime, nullable)
+   - createdAt, expiresAt (LocalDateTime)
+   ```
+
+2. Implement VietQR services:
+   ```java
+   // KiteHubPaymentService.java
+   - createSubscriptionOrder(User, PricingTier) → PaymentOrderResponse
+   - confirmPayment(orderId, transactionRef, paidAt) → void
+   - expireOldOrders() → void (cron job)
+
+   // InstancePaymentService.java
+   - generateEnrollmentQR(instanceId, courseId, studentName, amount) → VietQRResponse
+   - updateBankAccount(instanceId, BankAccountInfo) → void
+   - previewQR(BankAccountPreviewRequest) → VietQRResponse
+   ```
+
+3. VietQR URL builder:
+   ```java
+   // VietQRUtil.java
+   String buildVietQRUrl(
+     String bankBin,        // "970415" (Vietcombank)
+     String accountNumber,  // "1234567890"
+     String accountName,    // "NGUYEN VAN A"
+     long amount,           // 499000 (VND)
+     String content         // "KITEHUB ORD-123 user@example.com"
+   )
+   // Returns: https://img.vietqr.io/image/{bankBin}-{accountNumber}-compact2.jpg?amount={amount}&addInfo={content}&accountName={accountName}
+   ```
+
+4. APIs:
+   ```
+   POST /api/v1/payment/subscription/create
+   GET  /api/v1/payment/orders/{orderId}/status
+   POST /api/v1/admin/payments/{orderId}/confirm
+   GET  /api/v1/admin/payments/pending
+
+   GET  /api/v1/instance/payment/bank-account
+   PUT  /api/v1/instance/payment/bank-account
+   POST /api/v1/instance/payment/preview-qr
+   POST /api/v1/instance/enrollments/{enrollmentId}/generate-qr
+   POST /api/v1/instance/enrollments/{enrollmentId}/confirm-payment
+   ```
+
+5. Security:
+   - Order ID generation (secure random + timestamp)
+   - 24-hour expiry for payment orders
+   - Access control (OWNER only for bank config)
+   - Double-payment prevention
+   - Audit logging
 
 **Tests (bắt buộc):**
-- src/__tests__/hooks/
-  - use-invoices.test.ts
-  - use-payments.test.ts
-- src/__tests__/components/forms/
-  - invoice-form.test.tsx
-  - payment-form.test.tsx
-- src/__tests__/app/dashboard/
-  - invoices-page.test.tsx
-  - invoice-detail-page.test.tsx
+- Unit tests: VietQRUtil, VietQR services
+- Integration tests: All payment APIs
+- Security tests: Access control, order expiry
+- E2E tests: Full payment flow (create → display QR → confirm)
+
+**Files:**
+- backend/src/main/java/com/kiteclass/entity/PaymentOrder.java
+- backend/src/main/java/com/kiteclass/service/payment/
+  - KiteHubPaymentService.java
+  - InstancePaymentService.java
+  - VietQRUtil.java
+- backend/src/main/java/com/kiteclass/api/
+  - PaymentController.java
+  - AdminPaymentController.java
+- backend/src/test/java/com/kiteclass/service/payment/
+
+**Verification:**
+- All tests pass
+- VietQR URLs generate correctly
+- Payment orders persist correctly
+- Expiry cron job works
+
+---
+
+### PR 3.10b: Frontend VietQR UI (3 ngày)
+
+**Frontend Tasks:**
+
+1. Payment Types:
+   ```typescript
+   // src/types/payment.ts
+   export interface PaymentOrder {
+     orderId: string;
+     qrImageUrl: string;
+     bankName: string;
+     accountNumber: string;
+     accountName: string;
+     amount: number;
+     content: string;
+     expiresAt: string;
+     status: 'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED';
+   }
+
+   export interface BankAccountInfo {
+     bankCode: string;
+     bankName: string;
+     accountNumber: string;
+     accountName: string;
+     qrTemplate: string;
+   }
+   ```
+
+2. VietQR Display Component:
+   ```tsx
+   // components/payment/VietQRDisplay.tsx
+   - QR code image display (responsive)
+   - Bank info display (bank name, account, amount, content)
+   - Copy-to-clipboard buttons (account number, content)
+   - Payment instructions alert
+   - "Tôi đã chuyển khoản" button → check status
+   - Expiry countdown timer
+   ```
+
+3. KiteHub Subscription Payment Page:
+   ```tsx
+   // app/(dashboard)/subscription/upgrade/page.tsx
+   - Tier selection cards (BASIC, STANDARD, PREMIUM)
+   - Click tier → Generate QR
+   - Display VietQRDisplay component
+   - Poll payment status every 30 seconds
+   - Redirect to dashboard when PAID
+   ```
+
+4. Instance Payment Settings:
+   ```tsx
+   // app/(dashboard)/settings/payment/page.tsx
+   - Bank selection dropdown (40+ Vietnamese banks)
+   - Account number input (validation: 8-20 digits)
+   - Account name input (uppercase, no accents validation)
+   - QR template input (with variable hints)
+   - Preview QR button
+   - Save configuration
+   ```
+
+5. Admin Payment Verification Panel:
+   ```tsx
+   // app/(dashboard)/admin/payments/pending/page.tsx
+   - List pending payment orders
+   - Display: orderId, amount, tier, user, content, createdAt
+   - "Xác nhận thanh toán" button per order
+   - Transaction reference input (optional)
+   - Confirmation dialog
+   - Success toast → order disappears from list
+   ```
+
+6. Student Enrollment Payment:
+   ```tsx
+   // app/(dashboard)/students/[id]/enrollment-payment/page.tsx
+   - Display course info
+   - Display tuition amount
+   - Generate QR button (uses owner's bank account)
+   - Display VietQRDisplay component
+   - OWNER can confirm payment manually
+   ```
+
+**Tests (bắt buộc):**
+- src/__tests__/components/payment/
+  - vietqr-display.test.tsx:
+    - Test QR image display
+    - Test copy buttons
+    - Test payment status polling
+  - bank-account-form.test.tsx:
+    - Test bank selection
+    - Test validation (account number, account name)
+    - Test QR preview
+    - Test save configuration
+- src/__tests__/app/(dashboard)/subscription/
+  - upgrade-page.test.tsx:
+    - Test tier selection
+    - Test QR generation
+    - Test payment status check
+- src/__tests__/app/(dashboard)/admin/payments/
+  - pending-payments-page.test.tsx:
+    - Test pending list display
+    - Test payment confirmation
+    - Test transaction ref input
+- src/__tests__/app/(dashboard)/settings/
+  - payment-settings-page.test.tsx:
+    - Test bank config form
+    - Test QR preview
+    - Test save button
+
+**Files:**
+- frontend/src/types/payment.ts
+- frontend/src/components/payment/
+  - VietQRDisplay.tsx
+  - BankAccountForm.tsx
+  - PaymentStatusChecker.tsx
+- frontend/src/app/(dashboard)/subscription/upgrade/page.tsx
+- frontend/src/app/(dashboard)/settings/payment/page.tsx
+- frontend/src/app/(dashboard)/admin/payments/pending/page.tsx
+- frontend/src/app/(dashboard)/students/[id]/enrollment-payment/page.tsx
+- frontend/src/hooks/
+  - use-payment.ts
+  - use-bank-account.ts
+- frontend/src/lib/api/payment.ts
+- frontend/__tests__/
 
 **Verification:**
 - pnpm test phải pass
-- Invoice totals hiển thị đúng
+- QR codes display correctly on mobile & desktop
+- Copy buttons work
+- Payment status polling works
+- Bank config saves correctly
+- QR preview matches saved config
+- Admin can confirm payments
+
+---
+
+### PR 3.10c: Integration & Polish (2 ngày)
+
+**Tasks:**
+
+1. Payment Flow Testing:
+   - End-to-end: Create order → Display QR → Confirm → Activate
+   - Test expiry: Order expires after 24 hours
+   - Test double-payment prevention
+   - Test with multiple banks
+
+2. Owner Bank Config Validation:
+   - Test all 40+ Vietnamese banks
+   - Validate account name format (uppercase, no accents)
+   - Test QR template variables ({courseId}, {studentName}, {timestamp})
+
+3. Mobile Responsiveness:
+   - QR code size optimized for mobile scanning
+   - Touch-friendly copy buttons
+   - Vertical layout on small screens
+
+4. Error Handling:
+   - Owner hasn't configured bank account → Error message
+   - QR generation fails → Retry button
+   - Payment status check fails → Retry button
+   - Order expired → Clear message + option to create new order
+
+5. Email Notifications:
+   - Payment QR generated → Email with QR to user
+   - Payment confirmed → Confirmation email
+   - Order expiring soon → Reminder email (if still pending)
+
+6. Documentation:
+   ```
+   docs/
+   - vietqr-payment-guide.md (for users)
+   - payment-verification-manual.md (for admins)
+   - owner-bank-setup-guide.md (for center owners)
+   ```
+
+**Tests:**
+- E2E tests (Playwright):
+  ```
+  src/__tests__/e2e/
+  - subscription-payment.spec.ts (full KiteHub payment flow)
+  - instance-payment-config.spec.ts (owner sets up bank)
+  - enrollment-payment.spec.ts (student enrollment payment)
+  - admin-payment-confirm.spec.ts (admin confirms payment)
+  ```
+
+**Verification:**
+- All E2E tests pass
+- Mobile responsiveness verified on real devices
+- Email notifications sent correctly
+- All error cases handled gracefully
+- Documentation complete
+
+---
+
+**Dependencies:**
+- ✅ PR 3.2: Core Infrastructure
+- ✅ PR 3.8: Courses Module (for enrollment payment)
+- ✅ Backend payment entities & services ready
+
+**Timeline:**
+- PR 3.10a: 2 ngày (Backend VietQR)
+- PR 3.10b: 3 ngày (Frontend UI)
+- PR 3.10c: 2 ngày (Integration)
+- Total: 1 tuần (7 ngày làm việc)
+
+**Deliverables:**
+- VietQR payment system hoàn chỉnh
+- 2-level architecture (KiteHub + Instance)
+- Manual verification panel (ADMIN)
+- Owner bank configuration UI
+- QR generation & display
+- Payment status polling
+- Email notifications
+- Full test coverage (unit, integration, E2E)
+- Mobile responsive
+
+**Success Metrics:**
+- Zero transaction fees (vs 1.5-3% with gateways)
+- <5 minutes average payment confirmation time (manual)
+- 100% payment accuracy (content matching)
+- 95%+ mobile usability score
+- Full audit trail for all payments
 ```
 
-## ⏳ PR 3.10 - Settings & Branding
+## ⏳ PR 3.11 - Settings ## ⏳ PR 3.10 - Settings & AI Branding System AI Branding System
 
 ```
-Thực hiện Settings module.
+Thực hiện Settings module với AI Branding Generation.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 6C.3: AI Branding System
+- frontend-code-quality.md Part 13: AI-Generated Content Integration
 
 **Tuân thủ skills:**
-- ui-components.md: form patterns
-- api-design.md: Settings API endpoints
-- theme-system.md: branding integration
+- frontend-code-quality.md Part 13: AI-Generated Content patterns
+- ui-components.md: form patterns, file upload
+- api-design.md: Settings & Branding API endpoints
 
 **Tasks:**
-1. Tạo useBranding hook:
-   - useBranding (get)
-   - useUpdateBranding mutation
-   - useUploadLogo mutation
-2. Tạo BrandingForm component:
-   - Logo upload với preview
-   - Color picker
-   - Contact info fields
-3. Tạo pages:
-   - Settings layout với tabs
-   - Branding settings page
-   - Profile settings page
-4. Integrate branding với ThemeProvider
+
+### 1. Branding Types (Already in PR 3.2)
+```typescript
+// src/types/branding.ts
+export interface BrandingAssets {
+  profileImages: {
+    cutout: string;
+    circle: string;
+    square: string;
+  };
+  heroBanner: string; // 1920x600 WebP
+  sectionBanners: {
+    about: string;
+    courses: string;
+    contact: string;
+  };
+  logos: {
+    primary: string;
+    secondary: string;
+    iconOnly: string;
+  };
+  ogImage: string;
+  marketingCopy: {
+    heroHeadline: string;
+    subHeadline: string;
+    callToAction: string;
+    valueProps: string[];
+  };
+}
+
+export interface BrandingGenerationRequest {
+  organizationName: string;
+  industry: string;
+  language: 'vi' | 'en' | 'zh' | 'ja' | 'ko'; // Multi-language support
+  logoFile: File;
+}
+
+export interface BrandingGenerationJob {
+  jobId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress: number; // 0-100
+  currentStep: string;
+  assets?: BrandingAssets;
+  isDraft: boolean; // Draft in KiteHub vs Published in Instance
+  createdAt: Date;
+}
+```
+
+### 2. AI Branding Upload UI (src/app/(dashboard)/settings/branding/page.tsx)
+**2-Tier Asset Management:**
+```tsx
+// Draft Mode (KiteHub level)
+- Path: /kitehub/users/{userId}/branding-drafts/
+- Purpose: Experiment với branding
+- Retention: 30 days
+- Can reuse across instances
+
+// Published Mode (Instance level)
+- Path: /instances/{instanceId}/branding/
+- Purpose: Active branding
+- Retention: Until replaced
+- Versioning: Keep last 3 versions
+```
+
+**UI Workflow:**
+```
+Step 1: Upload Logo
+  ├─ Option A: AI Auto-Generate
+  │   └─ Upload 1 image → Generate 10+ assets
+  │
+  └─ Option B: Manual Upload
+      └─ Upload each asset individually
+
+Step 2: Preview & Edit (Draft)
+  ├─ View all generated assets
+  ├─ Manual override any asset
+  ├─ Edit marketing copy
+  └─ Adjust colors
+
+Step 3: Approval (OWNER/ADMIN roles)
+  ├─ CENTER_ADMIN: Request approval
+  └─ CENTER_OWNER: Approve & Publish
+
+Step 4: Publish to Instance
+  └─ Assets go live on instance
+```
+
+**Components:**
+- BrandingUploadPage (main page)
+- ImageUploadZone (drag & drop)
+- GenerationProgressTracker (5-minute progress)
+- AssetPreviewGrid (preview all 10+ assets)
+- AssetEditor (manual override UI)
+- BrandingApprovalModal (ADMIN request → OWNER approve)
+
+### 3. Asset Quality Utilities (src/lib/asset-utils.ts)
+```typescript
+// Asset specs per best practice
+export const ASSET_SPECS = {
+  heroBanner: {
+    dimensions: { width: 1920, height: 600 },
+    formats: {
+      webp: { quality: 85, maxSize: 300 * 1024 }, // 300KB
+      jpeg: { quality: 85, maxSize: 400 * 1024 }  // 400KB
+    }
+  },
+  profileImages: {
+    dimensions: { width: 400, height: 400 },
+    formats: {
+      webp: { quality: 90, maxSize: 80 * 1024 },   // 80KB
+      jpeg: { quality: 90, maxSize: 120 * 1024 }   // 120KB
+    }
+  }
+};
+
+// Validate uploaded image
+export async function validateImageUpload(file: File): Promise<void> {
+  // Check file type
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    throw new Error('Chỉ chấp nhận PNG, JPEG, WebP');
+  }
+
+  // Check file size (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('Kích thước file tối đa 10MB');
+  }
+
+  // Check dimensions
+  const img = await loadImage(file);
+  if (img.width < 400 || img.height < 400) {
+    throw new Error('Kích thước tối thiểu 400x400px');
+  }
+}
+```
+
+### 4. Multi-Language Support (src/lib/i18n-branding.ts)
+```typescript
+export const SUPPORTED_LANGUAGES = [
+  { code: 'vi', label: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'ko', label: '한국어', flag: '🇰🇷' },
+] as const;
+
+// Generate marketing copy in selected language
+export async function generateMarketingCopy(
+  orgName: string,
+  industry: string,
+  language: string
+): Promise<MarketingCopy> {
+  const response = await fetch('/api/v1/branding/generate-copy', {
+    method: 'POST',
+    body: JSON.stringify({ orgName, industry, language })
+  });
+  return response.json();
+}
+```
+
+### 5. Custom Domain Settings (PREMIUM only)
+```tsx
+// src/app/(dashboard)/settings/domain/page.tsx
+function CustomDomainSettings() {
+  const { config } = useFeatureFlags();
+
+  if (config?.tier !== 'PREMIUM') {
+    return (
+      <FeatureLock
+        feature="customDomain"
+        featureName="Custom Domain"
+        requiredTier="PREMIUM"
+      />
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>🌐 Custom Domain</CardTitle>
+        <CardDescription>
+          Sử dụng domain riêng cho instance (VD: abc-academy.com)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <CustomDomainForm />
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### 6. Watermark Component (All Tiers)
+```tsx
+// src/components/layout/Footer.tsx
+export function Footer() {
+  const { branding } = useBranding();
+
+  return (
+    <footer className="border-t py-4 text-center text-sm text-muted-foreground">
+      <p>
+        © {new Date().getFullYear()} {branding.displayName}.
+        {' '}
+        Powered by{' '}
+        <a
+          href="https://kiteclass.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline hover:text-foreground"
+        >
+          KiteClass
+        </a>
+      </p>
+    </footer>
+  );
+}
+
+// ⚠️ Watermark hiển thị trên TẤT CẢ tiers (BASIC, STANDARD, PREMIUM)
+// Future: Có thể offer "Remove watermark" as paid add-on
+```
+
+**Tests (bắt buộc - frontend-code-quality.md Part 13):**
+- src/__tests__/hooks/
+  - use-branding.test.ts
+- src/__tests__/components/branding/
+  - branding-upload.test.tsx ⭐ NEW:
+    - Test image upload validation
+    - Test AI generation polling
+    - Test draft saving
+    - Test approval workflow (ADMIN → OWNER)
+  - asset-editor.test.tsx ⭐ NEW:
+    - Test manual override
+    - Test color picker
+    - Test text editor for marketing copy
+  - asset-preview.test.tsx ⭐ NEW:
+    - Test preview grid display
+    - Test asset URL validation
+    - Test WebP fallback to JPEG
+- src/__tests__/components/settings/
+  - custom-domain-form.test.tsx ⭐ NEW (PREMIUM only):
+    - Test domain validation
+    - Test DNS verification
+    - Test SSL status display
+- src/__tests__/components/layout/
+  - footer.test.tsx ⭐ NEW:
+    - Test watermark always displayed
+    - Test correct organization name
+- src/__tests__/lib/
+  - asset-utils.test.ts ⭐ NEW:
+    - Test image validation
+    - Test dimension checks
+    - Test file size limits
+  - i18n-branding.test.ts ⭐ NEW:
+    - Test language selection
+    - Test marketing copy generation per language
+
+**Verification:**
+- pnpm test phải pass (minimum 80% coverage)
+- AI branding generation working:
+  - Upload logo → Progress tracking (5 min)
+  - 10+ assets generated (hero, logos, banners, OG image)
+  - Assets stored in draft (KiteHub level)
+  - OWNER can publish to instance
+- Manual override working:
+  - Can replace AI-generated assets
+  - Can edit marketing copy
+  - Can adjust colors
+- Multi-language working:
+  - Can select language before generation
+  - Marketing copy in correct language
+- Custom domain working (PREMIUM):
+  - Domain validation
+  - DNS verification
+  - SSL auto-provision
+- Watermark always visible on all tiers
+- All asset URLs validated (CDN-only, HTTPS)
+
+**Quality Checklist:**
+- [ ] BrandingAssets types properly defined
+- [ ] AI generation progress tracking working
+- [ ] Draft/Publish workflow implemented
+- [ ] Approval workflow (ADMIN → OWNER) implemented ⭐ NEW
+- [ ] Manual override for all assets working
+- [ ] Multi-language support tested ⭐ NEW
+- [ ] Asset validation (dimensions, size, format) working
+- [ ] Custom domain for PREMIUM tested ⭐ NEW
+- [ ] Watermark component tested (all tiers) ⭐ NEW
+- [ ] Asset URL validation tested
+- [ ] WebP with JPEG fallback tested
+- [ ] CDN integration tested
+```
+
+## ⏳ PR 3.12 - Parent Portal
+
+```
+Thực hiện Parent Portal để phụ huynh theo dõi con em.
+
+**Reference:**
+- system-architecture-v3-final.md PHẦN 5: CỔNG PHỤ HUYNH
+- Parent self-registration via Zalo OTP
+
+**Tuân thủ skills:**
+- frontend-code-quality.md Part 12: Feature Flag (parentPortal feature)
+- frontend-development.md: React patterns
+- ui-components.md: Dashboard layouts
+
+**Tasks:**
+1. Tạo Parent routes (src/app/(parent)/)
+   - Parent dashboard
+   - Children list & detail pages
+   - Child attendance view (read-only)
+   - Child grades view (read-only)
+   - Parent invoices view
+2. Tạo useParent hook:
+   - Get parent info
+   - Get linked children
+   - Get child attendance
+   - Get child grades
+3. Tạo ParentDashboard components:
+   - Children cards grid
+   - Performance overview per child
+   - Upcoming classes
+   - Outstanding invoices
+4. Feature flag check:
+   - Only visible if hasFeatureFlag('parentPortal')
+   - Available on STANDARD+ tier
 
 **Tests (bắt buộc):**
 - src/__tests__/hooks/
-  - use-branding.test.ts
-- src/__tests__/components/forms/
-  - branding-form.test.tsx
-- src/__tests__/app/dashboard/
-  - settings-page.test.tsx
-  - branding-page.test.tsx
+  - use-parent.test.ts
+- src/__tests__/app/(parent)/
+  - dashboard.test.tsx
+  - children-list.test.tsx
+  - child-detail.test.tsx
+- Feature flag tests:
+  - BASIC tier: Parent portal hidden
+  - STANDARD tier: Parent portal visible
 
 **Verification:**
 - pnpm test phải pass
-- Logo upload hoạt động
-- Color changes apply real-time
+- Parent can view children info
+- Parent cannot edit data (read-only)
+- Feature flag working (hidden on BASIC)
 ```
 
-## ⏳ PR 3.11 - E2E Tests & Polish
+## ⏳ PR 3.13 - Reports ## ⏳ PR 3.12 - Reports & Analytics Analytics
+
+```
+Thực hiện Reports & Analytics dashboard.
+
+**Reference:**
+- All tiers have FULL analytics (no tier differentiation)
+- Cung cấp đủ features cho người giàu
+- system-architecture-v3-final.md PHẦN 6E.7: Guest Analytics ⭐ NEW (PART 4)
+
+**Tuân thủ skills:**
+- ui-components.md: Chart components, data visualization
+- frontend-development.md: Data fetching patterns
+- frontend-code-quality.md PART 14: Guest User & Public Routes ⭐ NEW (PART 4)
+
+**Tasks:**
+1. Tạo useReports hooks:
+   - useStudentAnalytics
+   - useAttendanceReports
+   - useRevenueReports
+   - useGuestAnalytics ⭐ NEW (PART 4)
+   - useExportReport
+
+2. **Guest Behavior Analytics** ⭐ NEW (PART 4):
+   ```typescript
+   // hooks/use-guest-analytics.ts
+   export function useGuestAnalytics(dateRange: DateRange) {
+     return useQuery({
+       queryKey: ['guest-analytics', dateRange],
+       queryFn: () => api.get('/api/v1/analytics/guest', { params: dateRange })
+     });
+   }
+
+   // types/analytics.ts
+   export interface GuestAnalytics {
+     // Traffic metrics
+     pageViews: {
+       landing: number;
+       courseCatalog: number;
+       courseDetails: { [courseId: string]: number };
+     };
+     uniqueVisitors: number;
+     newVsReturning: { new: number; returning: number };
+
+     // Engagement metrics
+     avgTimeOnPage: number; // seconds
+     bounceRate: number; // percentage
+     mostViewedCourses: Array<{
+       courseId: string;
+       courseTitle: string;
+       views: number;
+       uniqueVisitors: number;
+     }>;
+
+     // Conversion funnel
+     conversionFunnel: {
+       landingPageViews: number;
+       catalogViews: number;
+       courseDetailViews: number;
+       contactFormSubmissions: number;
+       conversionRate: number; // percentage
+     };
+
+     // Contact interactions
+     contactEvents: Array<{
+       timestamp: Date;
+       contactMethod: 'facebook' | 'messenger' | 'zalo' | 'phone' | 'email' | 'form';
+       courseId?: string;
+       courseName?: string;
+     }>;
+
+     // Traffic sources
+     trafficSources: {
+       direct: number;
+       organic: number; // SEO
+       social: number;
+       referral: number;
+     };
+
+     // Device breakdown
+     devices: {
+       mobile: number;
+       desktop: number;
+       tablet: number;
+     };
+   }
+   ```
+
+3. **Guest Analytics Dashboard** ⭐ NEW (PART 4):
+   ```tsx
+   // app/(dashboard)/reports/guest-analytics/page.tsx
+   export default function GuestAnalyticsPage() {
+     const { data, isLoading } = useGuestAnalytics(dateRange);
+
+     return (
+       <div className="space-y-6">
+         {/* KPI Cards */}
+         <div className="grid gap-4 md:grid-cols-4">
+           <StatsCard
+             title="Unique Visitors"
+             value={data.uniqueVisitors}
+             icon={<Users />}
+             trend="+12% from last month"
+           />
+           <StatsCard
+             title="Page Views"
+             value={data.totalPageViews}
+             icon={<Eye />}
+           />
+           <StatsCard
+             title="Contact Rate"
+             value={`${data.conversionFunnel.conversionRate}%`}
+             icon={<MessageCircle />}
+           />
+           <StatsCard
+             title="Avg Time on Page"
+             value={`${Math.round(data.avgTimeOnPage / 60)}m`}
+             icon={<Clock />}
+           />
+         </div>
+
+         {/* Conversion Funnel */}
+         <Card>
+           <CardHeader>
+             <CardTitle>🎯 Conversion Funnel</CardTitle>
+             <CardDescription>
+               Track guest journey từ landing → contact
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <FunnelChart data={data.conversionFunnel} />
+           </CardContent>
+         </Card>
+
+         {/* Top Viewed Courses */}
+         <Card>
+           <CardHeader>
+             <CardTitle>📚 Most Viewed Courses</CardTitle>
+             <CardDescription>
+               Khóa học nào thu hút guest nhiều nhất?
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead>Course</TableHead>
+                   <TableHead>Views</TableHead>
+                   <TableHead>Unique Visitors</TableHead>
+                   <TableHead>Contacts</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {data.mostViewedCourses.map(course => (
+                   <TableRow key={course.courseId}>
+                     <TableCell>{course.courseTitle}</TableCell>
+                     <TableCell>{course.views}</TableCell>
+                     <TableCell>{course.uniqueVisitors}</TableCell>
+                     <TableCell>
+                       {course.contactCount} ({course.contactRate}%)
+                     </TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+
+         {/* Contact Methods Breakdown */}
+         <Card>
+           <CardHeader>
+             <CardTitle>📞 Contact Methods</CardTitle>
+             <CardDescription>
+               Guest liên hệ qua kênh nào?
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <PieChart
+               data={[
+                 { label: 'Facebook', value: facebookCount },
+                 { label: 'Messenger', value: messengerCount },
+                 { label: 'Zalo', value: zaloCount },
+                 { label: 'Phone', value: phoneCount },
+                 { label: 'Email', value: emailCount },
+                 { label: 'Form', value: formCount },
+               ]}
+             />
+           </CardContent>
+         </Card>
+
+         {/* Traffic Sources */}
+         <Card>
+           <CardHeader>
+             <CardTitle>🔍 Traffic Sources</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <BarChart data={data.trafficSources} />
+           </CardContent>
+         </Card>
+
+         {/* Recent Contact Events */}
+         <Card>
+           <CardHeader>
+             <CardTitle>📋 Recent Contact Events</CardTitle>
+             <CardDescription>
+               Guest đã liên hệ gần đây (for OWNER follow-up)
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead>Time</TableHead>
+                   <TableHead>Course</TableHead>
+                   <TableHead>Method</TableHead>
+                   <TableHead>Action</TableHead>
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {data.contactEvents.slice(0, 20).map(event => (
+                   <TableRow key={event.id}>
+                     <TableCell>{formatDistanceToNow(event.timestamp)}</TableCell>
+                     <TableCell>{event.courseName || 'General inquiry'}</TableCell>
+                     <TableCell>
+                       <Badge>{event.contactMethod}</Badge>
+                     </TableCell>
+                     <TableCell>
+                       <Button size="sm" variant="outline">
+                         View Details
+                       </Button>
+                     </TableCell>
+                   </TableRow>
+                 ))}
+               </TableBody>
+             </Table>
+           </CardContent>
+         </Card>
+       </div>
+     );
+   }
+   ```
+
+4. Tạo Reports pages:
+   - Reports dashboard overview
+   - Student analytics (enrollment trends, retention)
+   - Attendance reports (by class, by date)
+   - Revenue reports (by period, by course)
+   - **Guest analytics dashboard** ⭐ NEW (PART 4)
+   - Custom report builder
+
+5. Tạo Chart components:
+   - LineChart (attendance trends)
+   - BarChart (revenue by month)
+   - PieChart (student distribution)
+   - FunnelChart (conversion funnel) ⭐ NEW (PART 4)
+   - StatsCards (KPIs)
+
+6. Export functionality:
+   - Export to Excel (XLSX)
+   - Export to PDF
+   - Export to CSV
+
+**Tests (bắt buộc):**
+- src/__tests__/hooks/
+  - use-reports.test.ts
+  - use-guest-analytics.test.ts ⭐ NEW (PART 4)
+- src/__tests__/components/charts/
+  - line-chart.test.tsx
+  - bar-chart.test.tsx
+  - funnel-chart.test.tsx ⭐ NEW (PART 4)
+- src/__tests__/app/(dashboard)/reports/
+  - reports-dashboard.test.tsx
+  - guest-analytics-page.test.tsx ⭐ NEW (PART 4):
+    - Test KPI cards display
+    - Test conversion funnel chart
+    - Test most viewed courses table
+    - Test contact methods breakdown
+    - Test traffic sources chart
+    - Test recent contact events table
+  - export.test.ts
+
+**Verification:**
+- pnpm test phải pass
+- Charts render correctly
+- Export to Excel working
+- All tiers have access (no feature flag)
+- Guest analytics dashboard working ⭐ NEW (PART 4):
+  - KPIs display correctly
+  - Conversion funnel shows guest journey
+  - Most viewed courses ranked by views
+  - Contact methods breakdown accurate
+  - Traffic sources tracked (organic, direct, social, referral)
+  - Recent contact events show for OWNER follow-up
+```
+
+## ⏳ PR 3.14 - E2E Tests ## ⏳ PR 3.13 - E2E Tests & Polish Polish
 
 ```
 Hoàn thiện Frontend với E2E tests.
 
 **Tuân thủ skills:**
 - testing-guide.md: E2E test patterns với Playwright
+- frontend-code-quality.md Part 3: Testing requirements
 
 **Tasks:**
-1. Setup Playwright
+1. Setup Playwright (Already done in PR 3.1)
 2. Viết E2E tests:
    - auth.spec.ts: login, logout flow
    - students.spec.ts: CRUD operations
    - classes.spec.ts: create class, add students
    - attendance.spec.ts: mark attendance
    - billing.spec.ts: create invoice, record payment
+   - feature-flags.spec.ts: Test tier-based features ⭐ NEW
+   - branding.spec.ts: Test AI branding upload ⭐ NEW
 3. Polish UI:
    - Loading states
    - Error states
    - Empty states
    - Responsive design fixes
+   - Watermark footer on all pages ⭐ NEW
 
 **Tests (bắt buộc):**
 - e2e/
@@ -1689,6 +4423,8 @@ Hoàn thiện Frontend với E2E tests.
   - classes.spec.ts
   - attendance.spec.ts
   - billing.spec.ts
+  - feature-flags.spec.ts ⭐ NEW
+  - branding.spec.ts ⭐ NEW
 
 **Verification:**
 - pnpm test phải pass
@@ -1700,19 +4436,33 @@ Hoàn thiện Frontend với E2E tests.
 
 # HƯỚNG DẪN SỬ DỤNG
 
-## Branch Strategy
+## Branch Strategy (UPDATED 2026-01-27)
+
+**NEW STRATEGY:** Merge to main after milestones, create feature branches from main
 
 ```
-main
-├── feature/gateway     # Tất cả PRs 1.1 - 1.6
-├── feature/core        # Tất cả PRs 2.1 - 2.10
-└── feature/frontend    # Tất cả PRs 3.1 - 3.11
+main (always up-to-date with completed work)
+├── feature/gateway-cross-service (PR 1.8 - active)
+├── feature/core-modules (PR 2.4+ - future)
+└── feature/frontend (PR 3.1+ - future)
 ```
 
-**Quy tắc:**
-- Mỗi service = 1 branch duy nhất
-- Commit sau khi hoàn thành mỗi PR
-- Merge vào main khi hoàn thành service
+**OLD branches (already merged, can delete):**
+- ~~feature/gateway~~ → merged to main (PRs 1.1-1.6)
+- ~~feature/core~~ → merged to main (PRs 2.1-2.3, 2.11)
+
+**New Workflow:**
+1. Work on feature branch
+2. Complete PR(s) with tests
+3. Merge feature branch → main (keep code unified)
+4. Create new feature branch from main for next work
+5. Repeat
+
+**Benefits:**
+- ✅ Code always unified in main
+- ✅ No long-lived feature branches
+- ✅ Easier to switch between different features
+- ✅ Conflicts resolved incrementally
 
 ## Commit Convention
 
@@ -1838,3 +4588,420 @@ Frontend: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 ←──────────�
 2. **PR 1.8** - Gateway Cross-Service Integration (depends on 2.11)
 
 **Impact:** Cannot proceed with Core development (PR 2.3+) until cross-service pattern is implemented, as Student/Teacher/Parent entities need to integrate with Gateway authentication.
+
+---
+
+# FRONTEND SERVICE PRs
+
+## PR 3.1: Project Setup & Core Infrastructure
+
+**Branch:** feature/frontend  
+**Prerequisites:** None (can start immediately)  
+**Dependencies:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
+
+### Tasks:
+1. Create Next.js project with TypeScript and Tailwind
+2. Install core dependencies (React Query, Zustand, Axios, Zod, React Hook Form)
+3. Setup Shadcn/UI with essential components
+4. Configure project structure (app router, src directory)
+5. Setup API client with Axios interceptors
+6. Configure environment variables
+7. Setup Prettier and ESLint
+8. Create base layout and providers (QueryProvider, ThemeProvider)
+
+### Files:
+- `package.json` - Dependencies
+- `tsconfig.json` - TypeScript config
+- `tailwind.config.ts` - Tailwind + Shadcn config
+- `src/lib/api/client.ts` - Axios instance
+- `src/lib/api/endpoints.ts` - API endpoints
+- `src/app/providers.tsx` - Global providers
+- `src/app/layout.tsx` - Root layout
+
+### Tests:
+- API client configuration tests
+- Provider rendering tests
+
+---
+
+## PR 3.2: Shared Components & Layout System
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.1  
+**Depends on Backend:** None (pure UI)
+
+### Tasks:
+1. Create Sidebar component with navigation
+2. Create Header component with user menu
+3. Create Breadcrumb component
+4. Create DataTable component (reusable)
+5. Create shared components (PageHeader, LoadingSpinner, EmptyState, StatusBadge, etc.)
+6. Setup dark/light theme toggle
+7. Create dashboard layout structure
+
+### Files:
+- `src/components/layout/sidebar/` - Sidebar components
+- `src/components/layout/header/` - Header components
+- `src/components/tables/data-table.tsx` - Reusable table
+- `src/components/shared/` - Shared UI components
+- `src/app/(dashboard)/layout.tsx` - Dashboard layout
+
+### Tests:
+- Component rendering tests
+- Theme toggle tests
+- Navigation tests
+
+---
+
+## PR 3.3: Authentication Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.2  
+**Depends on Backend:** PR 1.4 (Auth Module)
+
+### Tasks:
+1. Create Login page with form validation
+2. Create Forgot Password page
+3. Create Reset Password page
+4. Implement useAuth hook with React Query
+5. Setup JWT token management
+6. Implement auth middleware/guards
+7. Add error handling for auth flows
+
+### Files:
+- `src/app/(auth)/login/page.tsx`
+- `src/app/(auth)/forgot-password/page.tsx`
+- `src/app/(auth)/reset-password/page.tsx`
+- `src/hooks/use-auth.ts`
+- `src/lib/auth.ts` - Token management
+- `src/middleware.ts` - Auth guards
+
+### Tests:
+- Login form validation tests
+- Auth hook tests
+- Token management tests
+- Protected route tests
+
+---
+
+## PR 3.4: Student Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.3  
+**Depends on Backend:** PR 2.3 (Student Module)
+
+### Tasks:
+1. Create Students list page with search/filter
+2. Create Student detail page
+3. Create Create Student form
+4. Create Edit Student form
+5. Implement useStudents hook (list, get, create, update, delete)
+6. Add student columns for DataTable
+7. Implement soft delete confirmation
+
+### Files:
+- `src/app/(dashboard)/students/page.tsx` - List
+- `src/app/(dashboard)/students/[id]/page.tsx` - Detail
+- `src/app/(dashboard)/students/new/page.tsx` - Create
+- `src/app/(dashboard)/students/[id]/edit/page.tsx` - Edit
+- `src/hooks/use-students.ts` - React Query hooks
+- `src/components/forms/student-form.tsx`
+- `src/components/tables/columns/student-columns.tsx`
+
+### Tests:
+- Student list rendering tests
+- Student form validation tests
+- CRUD operations tests
+- Search/filter tests
+
+---
+
+## PR 3.5: Teacher Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.3  
+**Depends on Backend:** PR 2.3.1 (Teacher Module)
+
+### Tasks:
+1. Create Teachers list page with search/filter
+2. Create Teacher detail page
+3. Create Create Teacher form
+4. Create Edit Teacher form
+5. Implement useTeachers hook (list, get, create, update, delete)
+6. Add teacher columns for DataTable
+7. Display teacher status (ACTIVE, ON_LEAVE, TERMINATED)
+
+### Files:
+- `src/app/(dashboard)/teachers/page.tsx` - List
+- `src/app/(dashboard)/teachers/[id]/page.tsx` - Detail
+- `src/app/(dashboard)/teachers/new/page.tsx` - Create
+- `src/app/(dashboard)/teachers/[id]/edit/page.tsx` - Edit
+- `src/hooks/use-teachers.ts`
+- `src/components/forms/teacher-form.tsx`
+- `src/components/tables/columns/teacher-columns.tsx`
+
+### Tests:
+- Teacher list rendering tests
+- Teacher form validation tests
+- CRUD operations tests
+- Status badge tests
+
+---
+
+## PR 3.6: Course Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.5  
+**Depends on Backend:** PR 2.4 (Course Module)
+
+### Tasks:
+1. Create Courses list page with filters (status, teacher)
+2. Create Course detail page with lifecycle actions
+3. Create Create Course form
+4. Create Edit Course form (with restrictions based on status)
+5. Implement useCourses hook
+6. Add publish/archive/delete actions
+7. Display course status (DRAFT, PUBLISHED, ARCHIVED)
+8. Show validation errors (missing required fields)
+
+### Files:
+- `src/app/(dashboard)/courses/page.tsx`
+- `src/app/(dashboard)/courses/[id]/page.tsx`
+- `src/app/(dashboard)/courses/new/page.tsx`
+- `src/app/(dashboard)/courses/[id]/edit/page.tsx`
+- `src/hooks/use-courses.ts`
+- `src/components/forms/course-form.tsx`
+- `src/components/tables/columns/course-columns.tsx`
+
+### Tests:
+- Course list rendering tests
+- Course lifecycle tests (publish, archive)
+- Form validation tests (required fields for publish)
+- Edit restrictions tests (ARCHIVED read-only, PUBLISHED limited edit)
+
+---
+
+## PR 3.7: Class Management Pages
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.6  
+**Depends on Backend:** PR 2.5 (Class Module)
+
+### Tasks:
+1. Create Classes list page with filters
+2. Create Class detail page with student roster
+3. Create Create Class form (select course, assign teacher)
+4. Create Schedule management
+5. Implement useClasses hook
+6. Add student enrollment to class
+7. Display class status and schedule
+
+### Files:
+- `src/app/(dashboard)/classes/page.tsx`
+- `src/app/(dashboard)/classes/[id]/page.tsx`
+- `src/app/(dashboard)/classes/[id]/students/page.tsx`
+- `src/app/(dashboard)/classes/new/page.tsx`
+- `src/hooks/use-classes.ts`
+- `src/components/forms/class-form.tsx`
+- `src/components/tables/columns/class-columns.tsx`
+
+### Tests:
+- Class list rendering tests
+- Student enrollment tests
+- Schedule display tests
+- Form validation tests
+
+---
+
+## PR 3.8: Attendance Management
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.7  
+**Depends on Backend:** PR 2.7 (Attendance Module)
+
+### Tasks:
+1. Create Attendance overview page (calendar view)
+2. Create Take Attendance page (for specific class session)
+3. Create Attendance reports page
+4. Implement useAttendance hook
+5. Add attendance status (PRESENT, ABSENT, LATE, EXCUSED)
+6. Display attendance statistics
+7. Export attendance reports
+
+### Files:
+- `src/app/(dashboard)/attendance/page.tsx` - Overview
+- `src/app/(dashboard)/classes/[id]/attendance/page.tsx` - Take attendance
+- `src/hooks/use-attendance.ts`
+- `src/components/forms/attendance-form.tsx`
+- `src/components/shared/attendance-calendar.tsx`
+
+### Tests:
+- Attendance marking tests
+- Calendar view tests
+- Report generation tests
+- Statistics calculation tests
+
+---
+
+## PR 3.9: Billing Pages (Invoices & Payments)
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.7  
+**Depends on Backend:** PR 2.8 (Invoice Module), PR 2.8.1 (Payment Module)
+
+### Tasks:
+1. Create Invoices list page with filters
+2. Create Invoice detail page
+3. Create Generate Invoice form
+4. Create Payments list page
+5. Create Record Payment form
+6. Implement useInvoices and usePayments hooks
+7. Display invoice status (DRAFT, SENT, PAID, OVERDUE, CANCELLED)
+8. Display payment methods and history
+9. Add payment reminders
+
+### Files:
+- `src/app/(dashboard)/billing/invoices/page.tsx`
+- `src/app/(dashboard)/billing/invoices/[id]/page.tsx`
+- `src/app/(dashboard)/billing/payments/page.tsx`
+- `src/hooks/use-invoices.ts`
+- `src/hooks/use-payments.ts`
+- `src/components/forms/invoice-form.tsx`
+- `src/components/tables/columns/invoice-columns.tsx`
+
+### Tests:
+- Invoice list rendering tests
+- Payment recording tests
+- Invoice status tests
+- Payment history tests
+
+---
+
+## PR 3.10: Parent Portal
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.8, PR 3.9  
+**Depends on Backend:** PR 2.9 (Settings & Parent linking)
+
+### Tasks:
+1. Create Parent dashboard page
+2. Create Children list/detail pages
+3. Create Child attendance view
+4. Create Child grades view
+5. Create Parent invoices view
+6. Implement useParent hook
+7. Display child performance overview
+
+### Files:
+- `src/app/(parent)/page.tsx` - Parent dashboard
+- `src/app/(parent)/children/[id]/page.tsx` - Child detail
+- `src/app/(parent)/children/[id]/attendance/page.tsx`
+- `src/app/(parent)/children/[id]/grades/page.tsx`
+- `src/app/(parent)/invoices/page.tsx`
+- `src/hooks/use-parent.ts`
+
+### Tests:
+- Parent dashboard tests
+- Child info display tests
+- Attendance view tests
+- Invoice access tests
+
+---
+
+## PR 3.11: Settings & Reports
+
+**Branch:** feature/frontend  
+**Prerequisites:** PR 3.10  
+**Depends on Backend:** PR 2.9 (Settings Module)
+
+### Tasks:
+1. Create Settings page (profile, branding, preferences)
+2. Create Profile edit page
+3. Create Branding configuration (logo, colors)
+4. Create Reports dashboard
+5. Implement useSettings and useBranding hooks
+6. Add analytics charts
+7. Export reports functionality
+
+### Files:
+- `src/app/(dashboard)/settings/page.tsx`
+- `src/app/(dashboard)/settings/profile/page.tsx`
+- `src/app/(dashboard)/settings/branding/page.tsx`
+- `src/app/(dashboard)/reports/page.tsx`
+- `src/hooks/use-settings.ts`
+- `src/hooks/use-branding.ts`
+- `src/components/charts/` - Chart components
+
+### Tests:
+- Settings update tests
+- Branding upload tests
+- Report generation tests
+- Chart rendering tests
+
+---
+
+## Frontend Testing Strategy
+
+### Unit Tests (Jest + React Testing Library)
+- Component rendering tests
+- Form validation tests
+- Hook tests (React Query)
+- Utility function tests
+
+### Integration Tests
+- Page flow tests (login → dashboard → CRUD operations)
+- API integration tests (MSW for mocking)
+- Form submission tests
+- Navigation tests
+
+### E2E Tests (Playwright - Optional)
+- Critical user flows
+- Authentication flows
+- CRUD operations
+- Multi-page workflows
+
+### Test Coverage Target: 80%+
+
+---
+
+## Frontend Development Guidelines
+
+1. **Component Structure:** Atomic design (atoms → molecules → organisms)
+2. **State Management:** React Query for server state, Zustand for client state
+3. **Form Handling:** React Hook Form + Zod validation
+4. **API Calls:** Centralized in custom hooks using React Query
+5. **Styling:** Tailwind CSS utility classes + Shadcn components
+6. **Error Handling:** Consistent error boundaries and toast notifications
+7. **Loading States:** Skeleton loaders from Shadcn
+8. **Accessibility:** WCAG 2.1 AA compliance
+9. **Responsive:** Mobile-first approach
+10. **Performance:** Code splitting, lazy loading, image optimization
+
+---
+
+
+---
+
+## 📋 PAIRED PRs TRACKING TABLE
+
+| Backend PR | Status | Frontend PR | Status | Can Start | Notes |
+|------------|--------|-------------|--------|-----------|-------|
+| **Infrastructure** |
+| PR 1.4: Auth Module | ✅ Done | PR 3.3: Auth Pages | ⏳ TODO | ✅ YES | Login, Forgot Password, Reset |
+| **Core Modules** |
+| PR 2.3: Student Module | ✅ Done | PR 3.4: Student Management | ⏳ TODO | ✅ YES | CRUD, Search, Validation |
+| PR 2.3.1: Teacher Module | ✅ Done | PR 3.5: Teacher Management | ⏳ TODO | ✅ YES | CRUD, Status management |
+| PR 2.4: Course Module | ✅ Done | PR 3.6: Course Management | ⏳ TODO | ✅ YES | Lifecycle (DRAFT→PUBLISHED→ARCHIVED) |
+| PR 2.5: Class Module | ⏳ TODO | PR 3.7: Class Management | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.7: Attendance | ⏳ TODO | PR 3.8: Attendance Management | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.8: Invoice | ⏳ TODO | PR 3.9: Billing (partial) | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.8.1: Payment | ⏳ TODO | PR 3.9: Billing (full) | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.9: Settings | ⏳ TODO | PR 3.10: Parent Portal | ⏳ TODO | ❌ NO | Need Backend first |
+| PR 2.9: Settings | ⏳ TODO | PR 3.11: Settings & Reports | ⏳ TODO | ❌ NO | Need Backend first |
+
+**Summary:**
+- ✅ **Ready to implement NOW:** PR 3.1, 3.2, 3.3, 3.4, 3.5, 3.6 (6 PRs)
+- ⏳ **Waiting for Backend:** PR 3.7, 3.8, 3.9, 3.10, 3.11 (5 PRs)
+
+---
+

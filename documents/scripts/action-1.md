@@ -328,3 +328,308 @@ The constructor CreateStudentRequest(null, String, null, null, null, null, null,
 => trước hết hãy merge feature/core vào main, sau đó tạo nhánh mới để do PR 1.8, sau đó merge vào main và tạo nhánh mới để do PR tiếp theo trong plan (2.4, ..)
 
 => code luôn phải thống nhất
+
+trước khi thực hiện PR 1.8, hãy tạo PR để log hết warning đang có trong src của gateway và fix + test lại
+
+tôi thấy bạn fix xong còn nhiều lỗi hơn:
+RateLimitingFilter.Config cannot be resolved to a typeJava(16777218)
+👉 Resolve unknown type
+
+com.kiteclass.gateway.filter.RateLimitingFilter
+
+vẫn còn lỗi trong RateLimitingFilter
+The method classic(long, Refill) from the type Bandwidth is deprecated
+
+tôi cũng chưa thấy bạn fix warning trong source test
+
+việc fix của bạn rất nhiều lỗi và warning, sau đây tôi sẽ liệt kê đầy đủ, hãy fix vào cập nhật vào skill để tránh các code phía sau có lỗi:
+1. AccountLockingIntegrationTest: Resource leak: '<unassigned Closeable value>' is never closed
+
+The value of the field AccountLockingIntegrationTest.objectMapper is not usedJava(570425421)
+ObjectMapper objectMapper
+
+2. JwtAuthenticationIntegrationTest: Resource leak: '<unassigned Closeable value>' is never closed
+
+3. PasswordResetIntegrationTest: tương tự AccountLockingIntegrationTest
+
+4. RolePermissionIntegrationTest: tương tự AccountLockingIntegrationTest và dòng 221: List cannot be resolved
+
+5. AuthControllerTest: The type MockBean has been deprecated since version 3.4.0 and marked for removal, dòng 55, 151: List cannot be resolved
+
+=> check các lỗi này vs các file còn lại
+
+tiếp tục fix các lỗi sau và cập nhật vào skill:
+MockitoBean cannot be resolved to a type
+The method assertThatNoException() is undefined for the type JwtTokenProviderTest
+The method anyList() is undefined for the type UserServiceTest
+
+Resource leak: '<unassigned Closeable value>' is never closed
+=> bạn không fix được lỗi này sao? nếu không fix được thì có cách nào hoặc cấu hình như thế nào để nó không báo warning cho lỗi này nữa
+
+hãy fix triệt để lỗi này, không dùng SuppressWarnings
+
+các kinh nghiệm fix đã được cập nhật vào skill hết chưa, trước khi thực hiện PR 1.8, tôi lại muốn bạn thực hiện PR để fix hết warning trong kiteclass-core
+
+tại sao CODE_QUALITY_GUIDE.md lại đặt trong documents, đặt ở đâu để các PR sau dễ tham chiếu chứ?
+
+tại sao không đặt trong skill?
+
+biến nó thành claude skill: .claude/skills
+hãy check xem nên bổ sung vào skill cũ hay tạo skill mới
+
+cập nhật kiteclass-implementation-plan đã tham chiếu đầy đủ skill
+
+bây giờ ưu tiên nhất là thực hiện PR 1.8 đúng không? Nếu đúng, hãy thực hiện nó
+
+bạn phải giao tiếp với tôi bằng tiếng việt
+
+bạn cần cập nhật file business-logic cho gateway theo đúng chuẩn skill
+ngoài ra việc các actor khác chưa được triển khai module trong core khiên PR của 1. sẽ chưa hoàn thiện 100%, cần cập nhật kiteclass-implementation-plan để note lại vấn đề này. sau khi hoàn thành các phần đó (core-service, ...) thực hiện cập nhật lại gateway
+
+Ngoài ra kiteclass-implementation-plan đã có thay đổi nhiều, hãy check lại plan trong thư mục documents/plans: kiteclass-core-service-plan, kiteclass-gateway-plan, kiteclass-frontend-plan để cập nhật tương ứng
+
+business-logic của gateway chưa đúng theo skill, hãy check lại (skill yêu cầu là tiếng việt)
+
+luôn giao tiếp với tôi bằng tiếng việt
+
+skill đã đề cập sau khi hoàn thành 1 PR thì phải update plan, quick-start, ... chưa? đã hoàn thành tốt với PR 1.8 chưa?
+
+nhấn mạnh các PR tiếp theo cần đảm bảo skill development-workflow.md, thực hiện update đầy đủ cho PR 1.8
+
+tiếp tục kiteclass-implementation-plan theo độ ưu tiên
+
+1. có vấn đề với business-logic của gateway
+BR-GAT-003 => không cần thiết
+
+UC-GAT-006: Tạo User Mới (Admin) => không chỉ mỗi admin được tạo user, guest hoàn toàn có thể đăng ký tài khoảng trên instance. Ví dụ 1 cố giáo có lớp học 30 học sinh, cô ấy không nên ngồi tạo 30 tài khoản cho học sinh mà tự học sinh có thể tạo tài khoản và có state riêng. Để tham gia lớp học hoặc khóa học, có thể dùng cơ chế mã lớp/khóa học hoặc link lớp/khóa học như gg-classroom
+
+hãy thực hiện tạo PR trong plan để fix các logic này và cả test nữa
+
+Ngoài ra, bổ sung PR để triển khai UC Oauth2 qua Google account cho guest => vậy có phải cần UC đăng ký của guest mới triển khai được UC này không?
+
+2. Đối với UC của core-service:  - TEACHER module KHÔNG CÓ trong plan (chưa được design) => vậy business chính xác là gì?
+
+ở trong 1 instance sẽ phải tách bảng admin với bảng teacher hay không, hay 2 actor này có thể design là 1 thôi?
+Ví dụ: 1 trung tâm tiếng anh có 1 admin tổng có quyền quản lý 30 lớp học, có 5 teacher, mỗi teacher có quyền với lớp học riêng, ví dụ teacher A chỉ có quyền quản lý 3 lớp học cụ thể => vậy cần design để đảm bảo Usecase này
+
+1 ví dụ khác, instance phục vụ duy nhất 1 giáo viên (đối tượng khách hàng giáo viên độc lập), vậy lúc này teacher chính là admin luôn => vậy cũng cần design để đảm bảo Usecase này
+
+=> thực hiện cập nhật đầy đủ business-logic cho các module trong core-service trước khi implement code để tránh lỗi logic
+=> cập nhật PR trong kiteclass-implementation-plan đúng với business-logic
+
+  ❓ Questions for Anh
+
+  1. BR-GAT-003 (Account Locking):
+=> Remove hoàn toàn 
+
+  2. OAuth2 Scope:
+=> tạm thời chỉ cần GG
+
+  3. Teacher Module Priority:
+=> Làm Teacher Module trước Course Module
+
+tôi sẽ thực hiện review teacher module trước:
+use case phải đầy đủ, ở dạng khái quát hết các tính năng, ví dụ trên chỉ là tôi lấy ra cho bạn dễ hiểu thôi, ví dụ bây giờ bạn chỉ đang design để teacher có quyền rõ ràng trên class, vậy còn course thì sao? => cập nhật tốt hơn
+
+  Option A: Continue với business logic documents (Recommended)
+  → Create Course Module business-logic.md
+  → Create Class Module business-logic.md
+  → Create Enrollment Module business-logic.md
+  → Update implementation plan với new PRs
+  → Commit all documents
+  → THEN start implementation
+
+  Option B: Update implementation plan ngay
+  → Add PR 1.9: Guest Registration
+  → Add PR 1.10: OAuth2 Google
+  → Add PR 1.11: Class Enrollment by Code
+  → Add PR 2.3.1: Teacher Module (HIGH PRIORITY)
+  → Update priority order
+  → THEN continue business logic docs
+
+đọc lại system-architecture-v3-final và kiteclass-core-service-plan vào check xem kiteclass-core-service-plan đã đầy đủ module chưa, tôi đang thấy thiếu
+
+1. Tạo business logic cho Assignment và Grade Module ngay? => tạo đủ businesslogic của core-service luôn để tôi review
+
+=> thực hiện update luôn cả implementation plan, nếu tôi có sửa đổi UC thì lại update lại implementation plan
+
+Gamification Module và Forum Module theo system-architecture-v3-final sẽ triển khai trong core-service hay tách thành service riêng, nếu tách thì hãy cập nhật to-do list (vì đang phase core-service thôi)
+
+thực hiện 3 => 1 => 2
+
+bởi vì việc review business-logic khá khó khăn và không trực quan nên tôi muốn implement backend sẽ có frontend đi kèm
+dựa vào kiteclass-frontend-plan hãy cập nhật implementation plan để thực hiện PR cho FE
+
+tốt, tiếp tục thực hiện PR ưu tiên nhất
+PR của 1. không ưu tiên sao?
+
+giúp tôi triển khai git hook
+
+sao kiteclass/kiteclass-core lại báo lỗi này nhỉ
+
+đọc documents/scripts/kiteclass-implementation-plan.md để hiểu các PR tiếp theo cần thực hiện
+
+pass là vkiet432 nhé
+
+PR 3.1 chưa được commit đúng theo skill => vậy nên chưa kích hoạt được git hook để checklist skill cho PR 3.1
+
+có vẻ skill để đảm bảo chất lượng code của frontend chưa đầy đủ như backend => tạo thêm skill => cập nhật kiteclass-implementation-plan
+
+PR 3.1 đã đảm bảo skill này chưa?
+
+cập nhật kiteclass-implementation-plan và thực hiện bổ sung
+
+đọc lại documents/reports/system-architecture-v3-final.md để hiểu kiến trúc hệ thống => frontend của 1 instance kiteclass sẽ được customize theo lựa chọn của khách hàng => code phải đảm bảo được nhu cầu này => skill cho frontend đã đảm bảo được chưa => thực hiện cập nhật bổ sung => check lại xem có cần sửa PR 3.1 theo nhu cầu này không?
+
+đọc lại documents/reports/system-architecture-v3-final.md, có các vấn đề tôi không biết skill đã phản ánh được chưa:
+1. giao diện tùy chỉnh theo gói mua của khách hàng: gói free thì như thế nào, gói vip như thế nào, ...
+2. có hệ thống AI Branding để customize hình ảnh trên giao diện cho từng loại đối tượng khách hàng => vẫn frontend cũng phải đáp ứng được nhu cầu động hình ảnh này
+3. kiteclass không chỉ là 1 instance quản lý lớp học, khóa học, học viên, ... sẵn có của đối tượng khách hàng mà còn đóng vai trò quảng bá hình ảnh, thương hiệu và thu hút học viên mới => frontend phải đáp ứng được nhu cầu này
+4. như ý 3 => guest có thể vào đăng ký tài khoản và HỌC THỬ, hoặc nhận tiếp thị qua hình ảnh (tin nhắn) => phải có cơ chế thiết kế frontend + backend cho guest 
+
+hãy tạo báo cáo và cập nhật skill để phản ánh vấn đề này, cần cập nhật implement-plan nếu cần sửa đổi
+
+trả ra loạt QA bạn cần xác nhận để tôi trả lời về 4 vấn đề trên
+
+tạo hẳn file architecture-clarification-qa.md trong folder mới trong documents
+
+tôi sẽ trả lời các câu hỏi 1.1 trước, hãy update các documents liên quan: system-architecture-v3-final, kiteclass-frontend-plan, kiteclass-implementation-plan, ... tương ứng:
+
+### Q1.1.1: Feature Detection API Endpoint
+=> cứ làm theo best practice
+
+### Q1.1.2: Feature Detection Caching
+=> user muốn đổi gói => user vào kitehub để update instance => nghiệp vụ phía kitehub => có phải best practice không?
+
+### Q1.1.3: Feature Lock Behavior
+**Option B: Soft Block với Preview**
+
+### Q1.1.4: Resource Limit Warnings
+=> cứ làm theo best practice
+
+### Q1.1.5: Tier Upgrade Flow
+=> tùy theo actor: nếu onwer thì direct về kitehub, nếu actor khác thì thông báo liên hệ owner để nâng cấp
+=> mọi thao tác thay đổi cấu hình instance phải thông qua kitehub => có phải best practice không?
+
+tôi sẽ trả lời các câu hỏi 1.2 và 2, hãy update các documents liên quan: system-architecture-v3-final, kiteclass-frontend-plan, kiteclass-implementation-plan, ... tương ứng:
+
+### Q1.2.1: UI Customization Level
+**BASIC tier có được custom logo không?**
+- [ ] CÓ - Tất cả tier đều có custom logo
+
+**BASIC tier có được custom theme colors không?**
+- [ ] CÓ - Tất cả tier đều custom được
+
+**Có watermark "Powered by KiteClass" không?**
+- [ ] CÓ - Hiện trên tất cả tier
+
+**PREMIUM có được custom subdomain không?**
+- [ ] CÓ - Ví dụ: custom-domain.com thay vì abc-academy.kiteclass.com
+=> triển khai custom-domain có khó không?
+
+### Q1.2.2: Analytics & Reporting Access
+**Câu hỏi:** Analytics features có khác nhau giữa các tier không?
+=> không, chỉ chọn sẽ mở thêm expand service không thôi và chỉ số scale nữa, cần cung cấp đủ feature cho người giàu
+
+### Q2.1.1: Who Can Upload Branding?
+**Câu hỏi:** Ai có quyền upload ảnh để generate branding?
+=> best practice là gì?
+
+### Q2.1.2: Re-generation Policy
+**Câu hỏi:** Customer có thể generate lại branding bao nhiêu lần?
+
+=> ngoài ảnh tự generate thì người dùng có thể chỉ định ảnh => cần có best practice có việc branding này vì có thể còn phải chọn sắp xếp ảnh lên web như nào nữa
+
+### Q2.1.3: Manual Override
+**Câu hỏi:** Customer có thể manual edit AI-generated assets không?
+
+nếu AI làm được thì hoàn toàn nên triển khai
+
+### Q2.1.4: Asset Storage & CDN
+**Câu hỏi:** AI-generated assets sẽ store ở đâu?
+
+=> asset được chỉ định thì theo instance đó thôi, asset nháp thì lưu theo account trên kitehub để user lựa chọn lại? best practice ở đây là gì?
+
+### Q2.1.5: Asset Quality Settings
+**Câu hỏi:** Quality settings cho AI-generated images?
+
+=> làm theo best practice
+
+### Q2.2.1: Image Generation Provider
+**Câu hỏi:** Sử dụng AI provider nào cho image generation?
+
+=> làm theo best practice
+
+### Q2.2.2: Background Removal Service
+**Câu hỏi:** Background removal dùng service nào?
+
+=> làm theo best practice
+
+### Q2.2.3: Text Generation (Marketing Copy)
+**Câu hỏi:** Marketing copy generation dùng LLM nào?
+
+=> làm theo best practice
+
+### Q2.3.1: Language for Generated Content
+**Câu hỏi:** AI-generated marketing copy sẽ là ngôn ngữ gì?
+- [ ] Multi-language (customer chọn)
+
+cập nhật câu trả lời tương ứng vào file QA nữa
+
+tôi muốn biết best practice của # PART 3: PREVIEW WEBSITE FEATURE
+hãy tạo 1 báo cáo riêng về vấn đề này
+
+báo cáo phải là dạng tiếng việt để tôi dễ đọc hiểu => hãy bổ sung vào skill
+
+tôi đồng ý # PART 3: PREVIEW WEBSITE FEATURE theo best practice của bạn => hãy cập nhật các tài liệu liên quan
+
+# PART 4: GUEST USER & TRIAL SYSTEM
+
+1. đối với trial => chỉ khi owner đăng ký gói tạo instance thì khi launch instance xong mới cho phép owner được trial các expand service/feature thôi. Các đối tượng không phải owner thì vẫn là liên hệ owner để được trial
+
+2. đối với phạm vi guest được tiếp cận => phải thiết kế backend service để admin có feature được quản lý resoucre public cho guest là được. Nếu guest có nhu cầu đăng ký học (lớp học và khóa học) của owner thì sẽ liên hệ với owner để trao đổi => đưa nghiệp vụ sale về owner (kiteclass không đảm nhận). => Vậy cần hiển thị được thông tin liên hệ link facebook, mess, zalo cho guest => còn lại làm theo best practice
+
+đã cập nhật kiteclass-implementation-plan chưa? bạn phải cập nhật hết các tài liệu liên quan đến Part 4 chứ? Check lại các Part khác xem đã được cập nhật hết document chưa?
+
+# PART 5: INTEGRATION & DEPENDENCIES
+=> cứ làm theo best practice
+
+Riêng đối với nhà cung cấp payment => tôi muốn sử dụng phương thức render QR có sẵn số tiền + nội dung chuyển khoản để dễ dàng xử lý payment cho kitehub
+
+đối với từng kiteclass instance, cho phép owner có thể chỉnh sửa thông tin chuyển khoản => từ thông tin chuyển khoản đó (như tài khoản ngân hàng) có thể render ra mã QR như kitehub không?
+
+thực hiện commit tất cả các file
+
+tôi thấy bạn chỉ update documents cho những nội dung cần QA, bạn đang tạo đủ skill và plan cho frontend và backend của kiteclass chưa?
+
+Ngoài ra sẽ có những nội dung cần note khi implement plan cho expand service và kitehub cũng phải có tài liệu note lại
+
+tôi nghĩ tài liệu về kiểm soát chất lượng code vẫn chưa đảm bảo, hãy check lại skill xem tài liệu kiểm soát chất lượng code front-end, back-end, test, deploy đã đầy đủ và đạt yêu cầu chưa, phù hợp với dự án kietclass chưa, đảm bảo follow theo documents chưa?, đủ tiêu chuẩn product chưa? => bản phải đảm bảo flow code khiến tôi yên tâm về chất lượng code
+
+tạo hết các skill + documents cần thiết để fix hết các lỗi này => tạo báo cáo xem có cần review lại code đã triển khai trên nền tảng skill + tiêu chuẩn đã được cập nhật không?
+
+Tôi sẽ tạo nhanh templates cho 5 documents còn lại (với essential patterns), sau đó focus vào      Code Review Requirement Report như bạn yêu cầu.
+
+=> tôi đã compact conversation, cứ tạo sao cho đạt tiêu chuẩn
+
+tạo PR plan để review toàn bộ code đã implement theo documents đã tạo
+
+tạo thành file để tham chiếu triển khai chứ
+
+ý tôi là tạo code-review-pr-plan chỉ review code đã được implement thôi chứ
+các module hoặc feature chưa có code thì sao review được
+=> đổi tên code-review-pr-plan nếu đúng như tôi hiểu, tạo đúng code-review-pr-plan cho code đã được implement
+
+để review code hiện có thì bạn phải xem implement plan đã thực hiện những PR nào, kết quả là gì chứ? từ đó mới xem xét có cần review lại không? review như thế nào?
+
+thực hiện commit và triển khi PR Review
+
+PR 1.8 còn 7 test về docker, hãy thực hiện luôn
+
+Newer minor version of Spring Boot available: 3.5.10
+=> fix và test lại các test về docker?
+
+UserRepositoryTest vẫn bị xóa rất nhiều dòng code?
+
+tạm thời dừng PR Review lại, tạo branch mới để sửa 1 kiến trúc hệ thống
+

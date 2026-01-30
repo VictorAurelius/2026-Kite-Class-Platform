@@ -36,6 +36,8 @@ public interface UserMapper {
     @Mapping(target = "updatedAt", expression = "java(java.time.Instant.now())")
     @Mapping(target = "deleted", constant = "false")
     @Mapping(target = "deletedAt", ignore = true)
+    @Mapping(target = "userType", ignore = true)
+    @Mapping(target = "referenceId", ignore = true)
     User toEntity(CreateUserRequest request);
 
     /**

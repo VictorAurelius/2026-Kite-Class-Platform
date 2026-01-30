@@ -4,7 +4,11 @@ import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 

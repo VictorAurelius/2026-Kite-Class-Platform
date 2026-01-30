@@ -7,11 +7,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for {@link JwtTokenProvider}.
@@ -39,7 +39,7 @@ class JwtTokenProviderTest {
         // Given
         Long userId = 1L;
         String email = "test@example.com";
-        List<String> roles = Arrays.asList("OWNER", "ADMIN");
+        List<String> roles = List.of("OWNER", "ADMIN");
 
         // When
         String token = jwtTokenProvider.generateAccessToken(userId, email, roles);
@@ -75,11 +75,12 @@ class JwtTokenProviderTest {
         // Given
         Long userId = 1L;
         String email = "test@example.com";
-        List<String> roles = Arrays.asList("OWNER");
+        List<String> roles = List.of("OWNER");
         String token = jwtTokenProvider.generateAccessToken(userId, email, roles);
 
         // When/Then
-        assertThatNoException().isThrownBy(() -> jwtTokenProvider.validateToken(token));
+        assertThatCode(() -> jwtTokenProvider.validateToken(token))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -99,7 +100,7 @@ class JwtTokenProviderTest {
         // Given - create token with very short expiration
         jwtProperties.setAccessTokenExpiration(1L); // 1ms
         JwtTokenProvider shortExpiryProvider = new JwtTokenProvider(jwtProperties);
-        String token = shortExpiryProvider.generateAccessToken(1L, "test@example.com", Arrays.asList("OWNER"));
+        String token = shortExpiryProvider.generateAccessToken(1L, "test@example.com", List.of("OWNER"));
 
         // Wait for token to expire
         try {
@@ -118,7 +119,7 @@ class JwtTokenProviderTest {
     void shouldExtractUserIdFromToken() {
         // Given
         Long userId = 123L;
-        String token = jwtTokenProvider.generateAccessToken(userId, "test@example.com", Arrays.asList("OWNER"));
+        String token = jwtTokenProvider.generateAccessToken(userId, "test@example.com", List.of("OWNER"));
 
         // When
         Long extractedUserId = jwtTokenProvider.getUserIdFromToken(token);
@@ -132,7 +133,7 @@ class JwtTokenProviderTest {
     void shouldExtractEmailFromToken() {
         // Given
         String email = "test@example.com";
-        String token = jwtTokenProvider.generateAccessToken(1L, email, Arrays.asList("OWNER"));
+        String token = jwtTokenProvider.generateAccessToken(1L, email, List.of("OWNER"));
 
         // When
         String extractedEmail = jwtTokenProvider.getEmailFromToken(token);
@@ -145,7 +146,7 @@ class JwtTokenProviderTest {
     @DisplayName("Should extract roles from token")
     void shouldExtractRolesFromToken() {
         // Given
-        List<String> roles = Arrays.asList("OWNER", "ADMIN", "TEACHER");
+        List<String> roles = List.of("OWNER", "ADMIN", "TEACHER");
         String token = jwtTokenProvider.generateAccessToken(1L, "test@example.com", roles);
 
         // When
@@ -159,7 +160,7 @@ class JwtTokenProviderTest {
     @DisplayName("Should identify access token correctly")
     void shouldIdentifyAccessTokenCorrectly() {
         // Given
-        String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", Arrays.asList("OWNER"));
+        String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", List.of("OWNER"));
         String refreshToken = jwtTokenProvider.generateRefreshToken(1L);
 
         // When/Then
@@ -171,7 +172,7 @@ class JwtTokenProviderTest {
     @DisplayName("Should identify refresh token correctly")
     void shouldIdentifyRefreshTokenCorrectly() {
         // Given
-        String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", Arrays.asList("OWNER"));
+        String accessToken = jwtTokenProvider.generateAccessToken(1L, "test@example.com", List.of("OWNER"));
         String refreshToken = jwtTokenProvider.generateRefreshToken(1L);
 
         // When/Then
