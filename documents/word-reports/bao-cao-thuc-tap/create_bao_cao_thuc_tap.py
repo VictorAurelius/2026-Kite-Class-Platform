@@ -673,19 +673,13 @@ def add_cover_page(doc):
     run = p.add_run("Hà Nội – 2026")
     set_font(run, Pt(14), bold=True, italic=True)
 
-    # Thêm khung viền cho trang bìa (chỉ section đầu tiên)
-    add_page_border(doc.sections[0])
-
-    # Tạo section break để các trang sau không có border
-    doc.add_section(WD_SECTION.NEW_PAGE)
-
 
 # ============== TRANG BÌA PHỤ ==============
 def add_secondary_cover_page(doc):
     """Tạo trang bìa phụ theo mẫu PDF (trang 2) - thêm Đơn vị thực tập"""
     import os
 
-    # Không cần add_page_break() vì section break đã tạo page break rồi
+    # Section break đã được tạo trong add_cover_page, nội dung này sẽ ở section 1
 
     # TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI
     p = doc.add_paragraph()
@@ -721,18 +715,18 @@ def add_secondary_cover_page(doc):
     run = p.add_run("THỰC TẬP TỐT NGHIỆP")
     set_font(run, Pt(22), bold=True)
 
-    # CỬ NHÂN (màu vàng, gạch chân)
+    # CỬ NHÂN (không màu vàng, không gạch chân)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(24)
     run = p.add_run("CỬ NHÂN")
-    set_font(run, Pt(22), bold=True, color=RGBColor(255, 192, 0))
-    run.font.underline = True
+    set_font(run, Pt(22), bold=True)
 
-    # Bảng thông tin sinh viên (có thêm Đơn vị thực tập)
+    # Bảng thông tin sinh viên (CÓ viền, có thêm Đơn vị thực tập)
     table = doc.add_table(rows=9, cols=2)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.style = 'Table Grid'  # Thêm style có viền
 
     info_rows = [
         ("Sinh viên thực hiện", STUDENT_INFO["name"]),
@@ -740,9 +734,9 @@ def add_secondary_cover_page(doc):
         ("Lớp", STUDENT_INFO["class"]),
         ("Khóa", STUDENT_INFO["course"]),
         ("Ngành đào tạo", STUDENT_INFO["major"]),
+        ("Đơn vị thực tập", INTERNSHIP_INFO["company"]),
         ("Giảng viên hướng dẫn", INTERNSHIP_INFO["advisor"]),
         ("CBHD tại đơn vị TT", INTERNSHIP_INFO["company_mentor"]),
-        ("Đơn vị thực tập", INTERNSHIP_INFO["company"]),
         ("Thời gian thực tập", f"Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}"),
     ]
 
@@ -754,7 +748,6 @@ def add_secondary_cover_page(doc):
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
                 set_font(run, Pt(13))
-        remove_cell_borders(row.cells[0])
 
         row.cells[1].text = f": {value}"
         row.cells[1].width = Cm(9.0)
@@ -762,7 +755,6 @@ def add_secondary_cover_page(doc):
             paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in paragraph.runs:
                 set_font(run, Pt(13))
-        remove_cell_borders(row.cells[1])
 
     # Khoảng trống
     for _ in range(2):
@@ -773,6 +765,9 @@ def add_secondary_cover_page(doc):
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("Hà Nội – 2026")
     set_font(run, Pt(14), bold=True, italic=True)
+
+    # Tạo section break để các trang sau không có border
+    doc.add_section(WD_SECTION.NEW_PAGE)
 
 
 # ============== BẢN NHẬN XÉT CỦA CƠ SỞ THỰC TẬP ==============
@@ -2008,6 +2003,12 @@ def create_report():
 
     # Thêm số trang
     add_page_number_header(doc)
+
+    # Thêm khung viền CHỈ cho trang bìa chính (section 0) và trang bìa phụ (section 1)
+    if len(doc.sections) >= 1:
+        add_page_border(doc.sections[0])  # Trang bìa chính
+    if len(doc.sections) >= 2:
+        add_page_border(doc.sections[1])  # Trang bìa phụ
 
     # Lưu file
     output_path = "BAO_CAO_THUC_TAP.docx"
