@@ -5,13 +5,16 @@ import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.service.StudentService;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -33,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(InternalStudentController.class)
 @AutoConfigureMockMvc
+@Import({InternalStudentControllerTest.TestSecurityConfig.class, InternalStudentControllerTest.MockConfig.class})
 class InternalStudentControllerTest {
 
     @Autowired
@@ -41,7 +45,7 @@ class InternalStudentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private StudentService studentService;
 
     /**
@@ -56,6 +60,25 @@ class InternalStudentControllerTest {
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
             return http.build();
         }
+    }
+
+    /**
+     * Test configuration for mock beans.
+     * Replaces deprecated @MockBean with explicit @TestConfiguration.
+     */
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        @Primary
+        public StudentService studentService() {
+            return Mockito.mock(StudentService.class);
+        }
+    }
+
+    @BeforeEach
+    void resetMocks() {
+        // Reset mock before each test to avoid state pollution
+        Mockito.reset(studentService);
     }
 
     @Test
@@ -132,7 +155,7 @@ class InternalStudentControllerTest {
     void getStudent_shouldReturn404_whenStudentNotFound() throws Exception {
         // Given
         when(studentService.getStudentById(anyLong()))
-                .thenThrow(new com.kiteclass.core.common.exception.EntityNotFoundException("Student", 999L));
+                .thenThrow(new com.kiteclass.core.common.exception.EntityNotFoundException("STUDENT_NOT_FOUND", (Object) 999L));
 
         // When / Then
         mockMvc.perform(get("/internal/students/999")

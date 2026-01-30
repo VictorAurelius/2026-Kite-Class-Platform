@@ -2,23 +2,28 @@ package com.kiteclass.gateway.module.auth.controller;
 
 import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.exception.BusinessException;
+import com.kiteclass.gateway.common.service.MessageService;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
 import com.kiteclass.gateway.module.auth.service.AuthService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -27,7 +32,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link AuthController}.
  */
 @WebFluxTest(AuthController.class)
-@Import(com.kiteclass.gateway.module.user.controller.TestSecurityConfig.class)
+@Import({AuthControllerTest.MockConfig.class, com.kiteclass.gateway.module.user.controller.TestSecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("AuthController Tests")
 class AuthControllerTest {
@@ -35,8 +40,33 @@ class AuthControllerTest {
     @Autowired
     private WebTestClient webTestClient;
 
-    @MockBean
+    @Autowired
     private AuthService authService;
+
+    /**
+     * Test configuration for mock beans.
+     * Replaces deprecated @MockBean with explicit @TestConfiguration.
+     */
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        @Primary
+        public AuthService authService() {
+            return Mockito.mock(AuthService.class);
+        }
+
+        @Bean
+        @Primary
+        public MessageService messageService() {
+            return Mockito.mock(MessageService.class);
+        }
+    }
+
+    @BeforeEach
+    void resetMocks() {
+        // Reset mock before each test to avoid state pollution
+        Mockito.reset(authService);
+    }
 
     @Test
     @DisplayName("POST /api/v1/auth/login - Success")
@@ -52,7 +82,7 @@ class AuthControllerTest {
                         .id(1L)
                         .email("test@example.com")
                         .name("Test User")
-                        .roles(Arrays.asList("OWNER"))
+                        .roles(List.of("OWNER"))
                         .build())
                 .build();
 
@@ -148,7 +178,7 @@ class AuthControllerTest {
                         .id(1L)
                         .email("test@example.com")
                         .name("Test User")
-                        .roles(Arrays.asList("OWNER"))
+                        .roles(List.of("OWNER"))
                         .build())
                 .build();
 

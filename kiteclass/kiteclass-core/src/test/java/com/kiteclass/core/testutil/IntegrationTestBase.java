@@ -33,6 +33,7 @@ public abstract class IntegrationTestBase {
      * Container is shared across all tests in the same JVM.
      */
     @Container
+    @SuppressWarnings("resource") // Managed by Testcontainers framework
     protected static final PostgreSQLContainer<?> postgresContainer =
             new PostgreSQLContainer<>("postgres:15-alpine")
                     .withDatabaseName("kiteclass_test")

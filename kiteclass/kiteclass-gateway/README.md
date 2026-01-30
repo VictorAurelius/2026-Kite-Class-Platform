@@ -9,8 +9,11 @@ API Gateway + User Management Service for KiteClass Platform.
 - **API Gateway** (Route to downstream services)
 - **Role-Based Access Control** (RBAC)
 - **Account Security** (Login tracking, account locking)
-- **Rate Limiting** (Configurable)
+- **Rate Limiting** (Bucket4j - IP & User based)
 - **CORS Support** (Multi-origin)
+- **Email Service** (Password reset, welcome emails)
+- **Cross-Service Integration** (Profile fetching from Core Service via Feign)
+- **Graceful Degradation** (Handles Core service unavailability)
 
 ## 📚 Documentation
 
@@ -18,7 +21,8 @@ API Gateway + User Management Service for KiteClass Platform.
 - [PR 1.3: User Module](docs/pr-summaries/PR-1.3-SUMMARY.md)
 - [PR 1.4: Auth Module](docs/pr-summaries/PR-1.4-SUMMARY.md)
 - [PR 1.4.1: Docker + Tests](docs/pr-summaries/PR-1.4.1-SUMMARY.md)
-- [PR 1.5: Email Service](docs/pr-summaries/PR-1.5-SUMMARY.md) ⭐ **Latest**
+- [PR 1.5: Email Service](docs/pr-summaries/PR-1.5-SUMMARY.md)
+- [PR 1.8: Cross-Service Integration](docs/pr-summaries/PR-1.8-SUMMARY.md) ⚠️ **Latest - Partial**
 
 ### Test Reports
 - [Test Results (Final)](docs/test-reports/TEST-RESULTS-FINAL.md)
@@ -201,10 +205,10 @@ spring:
 
 ## 🧪 Testing
 
-**Test Results (PR 1.4.1):**
-- ✅ Core unit tests: 37/37 (100%)
-- ✅ Integration tests: 22 tests (require Docker)
-- Total: 59 tests
+**Test Results (PR 1.8):**
+- ✅ Unit tests: 86/86 (100%)
+- ✅ Integration tests: 32 tests (require Docker)
+- Total: 118 tests
 
 **With Docker (Recommended):**
 ```bash
@@ -252,8 +256,11 @@ Coming soon in future PRs.
 - [x] PR 1.3: User Module
 - [x] PR 1.4: Auth Module
 - [x] PR 1.4.1: Docker Setup & Integration Tests
-- [x] PR 1.5: Email Service ⭐ **Current**
-- [ ] PR 2.1: Core Service Integration
+- [x] PR 1.5: Email Service
+- [x] PR 1.6: Gateway Configuration
+- [x] PR 1.8: Cross-Service Integration ⚠️ **Partial - Current** (STUDENT ✅, TEACHER/PARENT ⏳)
+- [ ] Core Teacher/Parent Modules (blocking PR 1.8 completion)
+- [ ] PR 1.8.1: Complete TEACHER/PARENT Profile Fetching
 
 ## 👥 Contributors
 
@@ -267,5 +274,5 @@ Internal Project - KiteClass Platform V3.1
 ---
 
 **Version:** 1.0.0-SNAPSHOT
-**Last Updated:** 2026-01-26
-**Status:** ✅ Active Development
+**Last Updated:** 2026-01-28 (PR 1.8 - Cross-Service Integration Partial)
+**Status:** ✅ Active Development - 7/8 PRs Complete (87.5%)

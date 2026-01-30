@@ -37,10 +37,13 @@ public interface StudentMapper {
      *
      * <p>Status defaults to ACTIVE per Student.Builder.Default annotation.
      * Deleted defaults to false per BaseEntity.
+     * AvatarUrl is not set during creation (set to null, updated later via separate endpoint).
      *
      * @param request the create request DTO
      * @return Student entity
      */
+    @Mapping(target = "avatarUrl", ignore = true)
+    @Mapping(target = "status", ignore = true)
     Student toEntity(CreateStudentRequest request);
 
     /**
@@ -48,10 +51,19 @@ public interface StudentMapper {
      *
      * <p>Only updates non-null fields from request (partial update).
      * ID and audit fields are not updated by MapStruct.
+     * AvatarUrl is not updated via this endpoint (separate endpoint for avatar upload).
      *
      * @param student the student entity to update
      * @param request the update request DTO
      */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "avatarUrl", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(@MappingTarget Student student, UpdateStudentRequest request);
 }

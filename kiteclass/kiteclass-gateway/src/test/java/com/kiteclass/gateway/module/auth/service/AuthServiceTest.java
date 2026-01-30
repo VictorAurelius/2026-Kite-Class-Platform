@@ -2,11 +2,13 @@ package com.kiteclass.gateway.module.auth.service;
 
 import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.constant.UserStatus;
+import com.kiteclass.gateway.common.constant.UserType;
 import com.kiteclass.gateway.common.exception.BusinessException;
+import com.kiteclass.gateway.config.EmailProperties;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
-import com.kiteclass.gateway.module.auth.dto.LoginResponse;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
 import com.kiteclass.gateway.module.auth.entity.RefreshToken;
+import com.kiteclass.gateway.module.auth.repository.PasswordResetTokenRepository;
 import com.kiteclass.gateway.module.auth.repository.RefreshTokenRepository;
 import com.kiteclass.gateway.module.auth.service.impl.AuthServiceImpl;
 import com.kiteclass.gateway.module.user.entity.Role;
@@ -15,6 +17,9 @@ import com.kiteclass.gateway.module.user.repository.UserRepository;
 import com.kiteclass.gateway.module.user.repository.UserRoleRepository;
 import com.kiteclass.gateway.security.jwt.JwtProperties;
 import com.kiteclass.gateway.security.jwt.JwtTokenProvider;
+import com.kiteclass.gateway.service.EmailService;
+import com.kiteclass.gateway.service.ProfileFetcher;
+import com.kiteclass.gateway.service.dto.StudentProfileResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,11 +34,15 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 
 /**
  * Unit tests for {@link AuthServiceImpl}.
@@ -52,13 +61,25 @@ class AuthServiceTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Mock
     private JwtTokenProvider jwtTokenProvider;
 
     @Mock
     private JwtProperties jwtProperties;
 
     @Mock
+    private EmailProperties emailProperties;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private ProfileFetcher profileFetcher;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -104,6 +125,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(any())).thenReturn(refreshToken);
         when(jwtProperties.getAccessTokenExpiration()).thenReturn(3600000L);
         when(jwtProperties.getRefreshTokenExpiration()).thenReturn(604800000L);
+        when(profileFetcher.fetchProfile(any(UserType.class), any())).thenReturn(null);
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(Mono.just(new RefreshToken()));
 
         // When/Then
@@ -123,6 +145,95 @@ class AuthServiceTest {
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getLastLoginAt()).isNotNull();
         assertThat(userCaptor.getValue().getFailedLoginAttempts()).isZero();
+    }
+
+    @Test
+    @DisplayName("Should login successfully with student profile from Core service")
+    void shouldLoginSuccessfullyWithStudentProfile() {
+        // Given
+        testUser.setUserType(UserType.STUDENT);
+        testUser.setReferenceId(100L);
+
+        LoginRequest request = new LoginRequest(testEmail, testPassword);
+        String accessToken = "access-token";
+        String refreshToken = "refresh-token";
+
+        StudentProfileResponse studentProfile = new StudentProfileResponse(
+                100L,
+                "Test Student",
+                "student@example.com",
+                "0123456789",
+                LocalDate.of(2010, 5, 15),
+                "MALE",
+                "https://example.com/avatar.jpg",
+                "ACTIVE"
+        );
+
+        when(userRepository.findByEmailAndDeletedFalse(testEmail)).thenReturn(Mono.just(testUser));
+        when(passwordEncoder.matches(testPassword, encodedPassword)).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(testUser));
+        when(userRoleRepository.findRolesByUserId(1L)).thenReturn(Flux.just(testRole));
+        when(jwtTokenProvider.generateAccessToken(any(), anyString(), any())).thenReturn(accessToken);
+        when(jwtTokenProvider.generateRefreshToken(any())).thenReturn(refreshToken);
+        when(jwtProperties.getAccessTokenExpiration()).thenReturn(3600000L);
+        when(jwtProperties.getRefreshTokenExpiration()).thenReturn(604800000L);
+        when(profileFetcher.fetchProfile(eq(UserType.STUDENT), eq(100L))).thenReturn(studentProfile);
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(Mono.just(new RefreshToken()));
+
+        // When/Then
+        StepVerifier.create(authService.login(request))
+                .assertNext(response -> {
+                    assertThat(response).isNotNull();
+                    assertThat(response.accessToken()).isEqualTo(accessToken);
+                    assertThat(response.refreshToken()).isEqualTo(refreshToken);
+                    assertThat(response.tokenType()).isEqualTo("Bearer");
+                    assertThat(response.user().email()).isEqualTo(testEmail);
+                    assertThat(response.user().roles()).contains("OWNER");
+
+                    // Verify profile is included
+                    assertThat(response.user().profile()).isNotNull();
+                    assertThat(response.user().profile()).isInstanceOf(StudentProfileResponse.class);
+                    StudentProfileResponse profile = (StudentProfileResponse) response.user().profile();
+                    assertThat(profile.id()).isEqualTo(100L);
+                    assertThat(profile.name()).isEqualTo("Test Student");
+                    assertThat(profile.email()).isEqualTo("student@example.com");
+                })
+                .verifyComplete();
+
+        verify(profileFetcher).fetchProfile(UserType.STUDENT, 100L);
+    }
+
+    @Test
+    @DisplayName("Should login successfully for ADMIN with null profile")
+    void shouldLoginSuccessfullyForAdminWithNullProfile() {
+        // Given
+        testUser.setUserType(UserType.ADMIN);
+        testUser.setReferenceId(null);
+
+        LoginRequest request = new LoginRequest(testEmail, testPassword);
+        String accessToken = "access-token";
+        String refreshToken = "refresh-token";
+
+        when(userRepository.findByEmailAndDeletedFalse(testEmail)).thenReturn(Mono.just(testUser));
+        when(passwordEncoder.matches(testPassword, encodedPassword)).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(testUser));
+        when(userRoleRepository.findRolesByUserId(1L)).thenReturn(Flux.just(testRole));
+        when(jwtTokenProvider.generateAccessToken(any(), anyString(), any())).thenReturn(accessToken);
+        when(jwtTokenProvider.generateRefreshToken(any())).thenReturn(refreshToken);
+        when(jwtProperties.getAccessTokenExpiration()).thenReturn(3600000L);
+        when(jwtProperties.getRefreshTokenExpiration()).thenReturn(604800000L);
+        when(profileFetcher.fetchProfile(eq(UserType.ADMIN), eq(null))).thenReturn(null);
+        when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(Mono.just(new RefreshToken()));
+
+        // When/Then
+        StepVerifier.create(authService.login(request))
+                .assertNext(response -> {
+                    assertThat(response).isNotNull();
+                    assertThat(response.user().profile()).isNull(); // ADMIN has no profile
+                })
+                .verifyComplete();
+
+        verify(profileFetcher).fetchProfile(UserType.ADMIN, null);
     }
 
     @Test
@@ -238,6 +349,7 @@ class AuthServiceTest {
         when(jwtTokenProvider.generateRefreshToken(any())).thenReturn(newRefreshToken);
         when(jwtProperties.getAccessTokenExpiration()).thenReturn(3600000L);
         when(jwtProperties.getRefreshTokenExpiration()).thenReturn(604800000L);
+        when(profileFetcher.fetchProfile(any(UserType.class), any())).thenReturn(null);
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(Mono.just(new RefreshToken()));
 
         // When/Then

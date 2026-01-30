@@ -73,7 +73,10 @@ class RateLimitingFilterTest {
         // When - Make requests exceeding the limit
         for (int i = 0; i < 6; i++) {
             ServerWebExchange exchange = MockServerWebExchange.from(request);
-            filter.apply(new RateLimitingFilter.Config()).filter(exchange, chain).block();
+            Mono<Void> result = filter.apply(new RateLimitingFilter.Config()).filter(exchange, chain);
+
+            StepVerifier.create(result)
+                    .verifyComplete();
 
             if (i < 5) {
                 // First 5 requests should succeed
@@ -149,7 +152,10 @@ class RateLimitingFilterTest {
         // When - Exhaust limit for IP 1
         for (int i = 0; i < 5; i++) {
             ServerWebExchange exchange = MockServerWebExchange.from(request1);
-            filter.apply(new RateLimitingFilter.Config()).filter(exchange, chain).block();
+            Mono<Void> result = filter.apply(new RateLimitingFilter.Config()).filter(exchange, chain);
+
+            StepVerifier.create(result)
+                    .verifyComplete();
         }
 
         // Then - IP 2 should still be allowed

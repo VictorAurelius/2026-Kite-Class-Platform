@@ -151,3 +151,75 @@ management:
         enabled: true
     gateway:
       enabled: true
+
+# Core Service (for Feign Client)
+core:
+  service:
+    url: ${CORE_SERVICE_URL:http://localhost:8081}
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 5
+        slowCallDurationThreshold: 5s
+        slowCallRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        registerHealthIndicator: true
+    instances:
+      coreService:
+        baseConfig: default
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1s
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - feign.RetryableException
+        ignoreExceptions:
+          - com.kiteclass.gateway.config.FeignConfig$CoreServiceNotFoundException
+    instances:
+      coreService:
+        baseConfig: default
+        maxAttempts: 3
+        # Using exponential backoff instead of fixed waitDuration
+        exponentialBackoffMultiplier: 2
+        exponentialMaxWaitDuration: 10s
+        enableExponentialBackoff: true
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 10s
+    instances:
+      coreService:
+        baseConfig: default
+
+# Feign Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: FULL
+      core-service:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: FULL
+  circuitbreaker:
+    enabled: true
+    alphanumeric-ids:
+      enabled: true
