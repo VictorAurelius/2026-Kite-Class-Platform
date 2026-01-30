@@ -3,6 +3,9 @@
 ## Mô tả
 Tạo file Word (.docx) cho Báo cáo Kết quả Khảo sát KiteClass theo quy định ĐH GTVT.
 
+## Folder Structure
+All survey report files are organized in: `documents/word-reports/bao-cao-khao-sat/`
+
 ## Trigger phrases
 - "tạo báo cáo khảo sát"
 - "create survey report"
@@ -13,11 +16,11 @@ Tạo file Word (.docx) cho Báo cáo Kết quả Khảo sát KiteClass theo quy
 
 | File | Path |
 |------|------|
-| Script chính | `create_bao_cao_khao_sat.py` |
-| Logo UTC | `logo_utc.png` |
-| Output | `BAO_CAO_KHAO_SAT_KITECLASS.docx` |
-| Context | `CONTEXT_BAO_CAO_KHAO_SAT.md` |
-| Quy định | `Quy dinh trinh bay do an tot nghiep.pdf` |
+| Script chính | `bao-cao-khao-sat/create_bao_cao_khao_sat.py` |
+| Output | `bao-cao-khao-sat/BAO_CAO_KHAO_SAT_KITECLASS.docx` |
+| Context | `bao-cao-khao-sat/CONTEXT_BAO_CAO_KHAO_SAT.md` |
+| Logo UTC | `templates/logo_utc.png` |
+| Quy định | `templates/Quy dinh trinh bay do an tot nghiep.pdf` |
 
 ## Quy định format (ĐH GTVT)
 
@@ -40,7 +43,7 @@ Tạo file Word (.docx) cho Báo cáo Kết quả Khảo sát KiteClass theo quy
 
 ### 1. Chạy script tạo báo cáo
 ```bash
-cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-report
+cd /mnt/e/person/2026-Kite-Class-Platform/documents/word-reports/bao-cao-khao-sat
 python3 create_bao_cao_khao_sat.py
 ```
 
