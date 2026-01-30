@@ -634,3 +634,9 @@ UserRepositoryTest vẫn bị xóa rất nhiều dòng code?
 tạm thời dừng PR Review lại, tạo branch mới để sửa 1 kiến trúc hệ thống
 
 tôi vừa move thư mục diagrams: dùng để tạo ảnh sơ đồ bằng plantuml.jar vào thư mục documents, hãy check xem có skills tạo diagram chưa? hãy cập nhật skill nhé
+
+trong documents tôi có 2 folder report là reports và word-report, hãy thực hiện phân loại lại và tạo thư mục con để lưu trữ và tìm kiếm tốt hơn
+
+word-reports phân loại thành các folder con: báo cáo thực tập, đề cương DATN, báo cáo khảo sát, template
+
+=> cập nhật claude skill để mapping tương ứng
