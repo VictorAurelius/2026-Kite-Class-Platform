@@ -640,3 +640,19 @@ trong documents tôi có 2 folder report là reports và word-report, hãy thự
 word-reports phân loại thành các folder con: báo cáo thực tập, đề cương DATN, báo cáo khảo sát, template
 
 => cập nhật claude skill để mapping tương ứng
+
+vẫn còn 1 số file trong folder reports chưa được phân loại vào thư mục con, hãy thực hiện phân loại
+
+Ngoài ra tôi muốn xem xét lại về kiến trúc service của kiteclass, cụ thể về expand service:
+1. về tính năng parent, đối với phần lớn khách hàng, tính năng này mang tính bổ trợ vì thế tôi muốn nó tách riêng thành 1 service thay vì tích hợp vào service Engagement
+
+2. đối với media service, tôi nghĩ cần xem xét tài liệu media-service-analysis kỹ càng để chốt việc sẽ không code từ đầu mà clone các repo đã tình hiểu về và phát triển nó phù hợp với kiteclass
+
+=> hãy đánh giá 2 luận điểm này và đưa ra best pratice => tạo thành báo cáo
+
+hãy cập nhật báo cáo kiến trúc tương ứng
+
+sau đó hãy check lại script đề cương đồ án tốt nghiệp => đang có nội dung chưa sát với kiến trúc hiện tại, hãy tạo lại script và thực hiện render docx cho tôi
+
+4. Kế hoạch thực hiện đề tài
+=> hơi sơ sài, chưa đủ chi tiết
