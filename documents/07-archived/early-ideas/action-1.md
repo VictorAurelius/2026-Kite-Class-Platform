@@ -742,3 +742,11 @@ PR hoàn thành đã đảm bảo skill và work-flow chưa?
 nhiều file được cập nhật trong PR này đang dính warning Resource leak: '<unassigned Closeable value>' is never closed
  
 skill đã có hướng dẫn fix warning này, hãy thực hiện fix
+
+vậy là vẫn để sót đảm bảo skill, hãy chạy git hook lại để bắt lỗi
+
+3. Hoặc update code-review-pr-plan.md trước?
+=> update status vào plan là bắt buộc để đảm bảo skill mà?
+
+  - Implementation (90%)
+sao lại 90%, triển khai 100% luôn
