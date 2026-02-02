@@ -19,10 +19,10 @@ Cấu trúc báo cáo:
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.enum.section import WD_SECTION
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
+from docx.oxml.ns import qn, nsdecls
+from docx.oxml import OxmlElement, parse_xml
 
 # ============== THÔNG TIN SINH VIÊN ==============
 STUDENT_INFO = {
@@ -2241,327 +2241,127 @@ def add_appendix(doc):
         f"Thời gian thực tập: Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}",
         first_line_indent=False)
 
-    add_paragraph_text(doc,
-        "Dưới đây là nhật ký chi tiết theo từng tuần trong quá trình thực tập tại dự án SORA STEP4:",
-        first_line_indent=False)
-
-    # Tuần 1
-    add_subsection_title(doc, "Tuần 1: 01/12/2025 - 07/12/2025")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Tham gia buổi onboarding và làm quen với môi trường công ty",
-        "Tìm hiểu về dự án SORA STEP4: mục tiêu, phạm vi, kiến trúc hệ thống",
-        "Được giới thiệu về quy trình làm việc và công cụ sử dụng (Git, IntelliJ IDEA, Oracle SQL Developer)",
-        "Ôn tập kiến thức về Java, Spring Boot, Oracle Database",
-        "Đọc tài liệu yêu cầu nghiệp vụ (Business Requirement Document)",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Hiểu về quy trình phát triển phần mềm offshore theo tiêu chuẩn Nhật Bản",
-        "Nắm được cấu trúc tổ chức dự án và vai trò của từng thành viên",
-        "Làm quen với công cụ quản lý dự án và communication tools",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Ban đầu gặp khó khăn trong việc hiểu thuật ngữ chuyên ngành và "
-        "các tài liệu kỹ thuật bằng tiếng Anh/tiếng Nhật.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành onboarding, nắm được overview về dự án và sẵn sàng bắt đầu "
-        "công việc chuyên môn.")
-
-    # Tuần 2
-    add_subsection_title(doc, "Tuần 2: 08/12/2025 - 14/12/2025")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Tham gia khóa training về thiết kế cơ sở dữ liệu (Database Design)",
-        "Học về Oracle Database: data types, constraints, indexes",
-        "Tìm hiểu naming convention chuẩn cho table, column, index theo quy định của dự án",
-        "Nghiên cứu cấu trúc database hiện có của hệ thống SORA",
-        "Thực hành đọc và phân tích Entity Relationship Diagram (ERD)",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Nắm vững các kiểu dữ liệu Oracle: VARCHAR2, NUMBER, DATE, CLOB, BLOB",
-        "Hiểu về constraints: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE, CHECK",
-        "Biết cách tạo và tối ưu indexes (B-tree, Bitmap, Function-based)",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Oracle Database có nhiều khác biệt so với MySQL/PostgreSQL đã học "
-        "ở trường, cần thời gian để làm quen với syntax và best practices.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành training DB Design, có thể đọc hiểu ERD và database schema "
-        "của hệ thống hiện tại.")
-
-    # Tuần 3
-    add_subsection_title(doc, "Tuần 3: 15/12/2025 - 21/12/2025")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Thực hành thiết kế bảng (table) cho module User Management",
-        "Định nghĩa các cột với kiểu dữ liệu, độ dài, constraints phù hợp",
-        "Tạo Entity Info document: tên logic, tên vật lý, mô tả entity",
-        "Tạo Column Info document: chi tiết từng column với data type, length, nullable, default value",
-        "Review thiết kế với mentor và xử lý feedback đợt 1",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng phân tích yêu cầu nghiệp vụ để xác định entities và relationships",
-        "Áp dụng normalization (1NF, 2NF, 3NF) để tránh data redundancy",
-        "Viết tài liệu thiết kế database theo template chuẩn của dự án",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Gặp khó khăn trong việc xác định kiểu dữ liệu và độ dài phù hợp cho "
-        "từng column, đặc biệt với VARCHAR2 và NUMBER.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế 5 bảng chính cho module User Management, pass review "
-        "sau 1 lần sửa.")
-
-    # Tuần 4
-    add_subsection_title(doc, "Tuần 4: 22/12/2025 - 28/12/2025")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Tiếp tục thiết kế indexes cho các bảng đã tạo",
-        "Tạo Index Info document: loại index (PK, FK, Unique, Normal), columns, mục đích",
-        "Học về query optimization và explain plan trong Oracle",
-        "Bắt đầu training về thiết kế màn hình (Screen Design)",
-        "Tìm hiểu về wireframe và UI/UX principles",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Hiểu khi nào nên tạo index và loại index phù hợp (B-tree vs Bitmap)",
-        "Biết cách analyze query performance với EXPLAIN PLAN",
-        "Nắm được quy trình thiết kế màn hình từ wireframe đến detailed design",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Việc quyết định tạo index cho column nào đòi hỏi hiểu sâu về "
-        "business logic và query patterns.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành Index Info cho tất cả các bảng, bắt đầu làm quen với "
-        "Screen Design.")
-
-    # Tuần 5
-    add_subsection_title(doc, "Tuần 5: 29/12/2025 - 04/01/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Thực hành thiết kế màn hình User List (danh sách người dùng)",
-        "Định nghĩa layout: header, search bar, data table, pagination, action buttons",
-        "Tạo Items document: ID, tên, loại (textbox/dropdown/button), I/O type, required flag",
-        "Định nghĩa validation rules: single validation (bắt buộc, độ dài, format)",
-        "Thiết kế messages: success, error, warning, info",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng phân tích màn hình thành các components nhỏ",
-        "Hiểu về các loại validation: client-side vs server-side",
-        "Viết validation rules rõ ràng, đầy đủ trường hợp edge case",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Thiết kế màn hình phức tạp hơn DB design vì phải tham chiếu nhiều "
-        "tài liệu (DB schema, API spec, business rules).")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế màn hình User List với đầy đủ items, validation, "
-        "messages.")
-
-    # Tuần 6
-    add_subsection_title(doc, "Tuần 6: 05/01/2026 - 11/01/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Tiếp tục thiết kế màn hình User Detail (chi tiết/chỉnh sửa người dùng)",
-        "Định nghĩa correlation validation: logic phụ thuộc giữa các trường",
-        "Tạo Item Control document: điều kiện hiển thị/ẩn, enable/disable các fields",
-        "Training về thiết kế API RESTful",
-        "Học về HTTP methods, status codes, request/response structure",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng thiết kế validation phức tạp với multiple conditions",
-        "Hiểu về state management trong màn hình (view mode vs edit mode)",
-        "Nắm vững các nguyên tắc thiết kế RESTful API",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Correlation validation đòi hỏi phải hiểu sâu về business rules và "
-        "xử lý nhiều trường hợp đặc biệt.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế màn hình User Detail, sẵn sàng chuyển sang API Design.")
-
-    # Tuần 7
-    add_subsection_title(doc, "Tuần 7: 12/01/2026 - 18/01/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Thực hành thiết kế API cho module User Management",
-        "Định nghĩa endpoints: GET /users, GET /users/:id, POST /users, PUT /users/:id, DELETE /users/:id",
-        "Thiết kế Request Parameters: query params, path params, request body",
-        "Thiết kế Response structure: status, data, message, pagination",
-        "Định nghĩa Error Handling với các status codes: 400, 401, 403, 404, 500",
-        "Được giới thiệu về Claude AI [4] để hỗ trợ kiểm tra thiết kế",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng thiết kế RESTful API theo chuẩn resource-based",
-        "Hiểu về idempotency của các HTTP methods (GET, PUT, DELETE)",
-        "Biết cách sử dụng AI tools để review và cải thiện thiết kế",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Khó khăn trong việc thiết kế response structure nhất quán cho tất cả "
-        "các API endpoints.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế 5 APIs chính cho User Management với đầy đủ request/"
-        "response specs.")
-
-    # Tuần 8
-    add_subsection_title(doc, "Tuần 8: 19/01/2026 - 25/01/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Tiếp tục thiết kế APIs cho module Course Management",
-        "Thực hành sử dụng Claude AI để kiểm tra chất lượng API design",
-        "Fix các issues được AI phát hiện: naming inconsistency, missing error cases, incomplete documentation",
-        "Training về Spring Batch và Batch Processing",
-        "Học về Job, Step, ItemReader, ItemProcessor, ItemWriter",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng viết API documentation rõ ràng, đầy đủ",
-        "Hiểu về kiến trúc chunk processing trong Spring Batch",
-        "Biết cách integrate AI vào workflow để nâng cao chất lượng",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Cần học cách đặt câu hỏi hiệu quả với AI để nhận được feedback hữu ích.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế APIs cho Course Management, hiểu được cơ bản về "
-        "Spring Batch.")
-
-    # Tuần 9
-    add_subsection_title(doc, "Tuần 9: 26/01/2026 - 01/02/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Thực hành thiết kế Batch Job: Import User Data từ CSV file",
-        "Định nghĩa Job structure với 5 blocks: Chuẩn bị, Khởi tạo, Kiểm tra, Xử lý chính, Kết thúc",
-        "Thiết kế Shell Script với input parameters và return codes",
-        "Viết pseudo code cho ItemReader (đọc CSV), ItemProcessor (validate & transform), ItemWriter (insert DB)",
-        "Định nghĩa SQL queries cho SELECT, INSERT, UPDATE operations",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng phân tích batch requirements và chia nhỏ thành steps",
-        "Hiểu về transaction management trong batch processing",
-        "Biết cách xử lý error và rollback trong chunk processing",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Batch design phức tạp hơn API vì phải xử lý volume lớn dữ liệu và "
-        "nhiều error scenarios.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế Batch Job đầu tiên với đầy đủ 5 blocks và SQL queries.")
-
-    # Tuần 10
-    add_subsection_title(doc, "Tuần 10: 02/02/2026 - 08/02/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Tiếp tục thiết kế Batch Job: Generate Monthly Report",
-        "Áp dụng kiến thức về Spring Batch chunk processing (chunk size = 1000)",
-        "Xử lý feedback (Shiteki) đợt 1 từ Leader Review",
-        "Fix các lỗi: logic sai, thiếu validation, inconsistent naming",
-        "Refactor thiết kế để đảm bảo tính nhất quán giữa DB, Screen, API, Batch",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng xử lý review feedback một cách có hệ thống",
-        "Hiểu tầm quan trọng của consistency trong thiết kế",
-        "Biết cách tự review thiết kế trước khi submit",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Một số feedback yêu cầu sửa đổi lớn, ảnh hưởng đến nhiều phần của thiết kế.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành Batch Job thứ 2, xử lý xong 80% feedback đợt 1.")
-
-    # Tuần 11
-    add_subsection_title(doc, "Tuần 11: 09/02/2026 - 15/02/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Hoàn thành xử lý feedback đợt 1, submit lại cho review",
-        "Thực hiện thiết kế độc lập cho module Enrollment Management",
-        "Áp dụng tất cả kiến thức đã học: DB, Screen, API, Batch design",
-        "Sử dụng Claude AI để tự review thiết kế trước khi submit",
-        "Tổng hợp tất cả tài liệu thiết kế theo chuẩn template",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng làm việc độc lập từ phân tích yêu cầu đến hoàn thiện thiết kế",
-        "Khả năng tự kiểm tra chất lượng và phát hiện lỗi trước khi submit",
-        "Time management: hoàn thành đúng deadline",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Làm việc độc lập đòi hỏi chủ động cao và khả năng tự giải quyết vấn đề.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế module Enrollment Management, pass review ngay lần đầu.")
-
-    # Tuần 12
-    add_subsection_title(doc, "Tuần 12: 16/02/2026 - 22/02/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Xử lý feedback đợt 2 từ Customer Review",
-        "Tinh chỉnh thiết kế dựa trên góp ý từ khách hàng",
-        "Kiểm tra cross-reference giữa các documents: DB ↔ API, Screen ↔ API",
-        "Bắt đầu viết báo cáo thực tập",
-        "Chuẩn bị tài liệu tổng hợp: ERD, API spec, Batch flow diagram",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng communication với khách hàng qua tài liệu thiết kế",
-        "Hiểu tầm quan trọng của cross-reference checking",
-        "Biết cách viết báo cáo kỹ thuật theo chuẩn học thuật",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Customer feedback thường yêu cầu thay đổi nghiệp vụ, cần sửa nhiều "
-        "phần của thiết kế.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành xử lý feedback đợt 2, bắt đầu viết báo cáo thực tập.")
-
-    # Tuần 13
-    add_subsection_title(doc, "Tuần 13: 23/02/2026 - 01/03/2026")
-
-    add_paragraph_text(doc, "Công việc thực hiện:")
-    add_bullet_list(doc, [
-        "Hoàn thiện tất cả tài liệu thiết kế: DB, Screen, API, Batch",
-        "Tạo tài liệu tổng hợp: System Architecture Diagram, Database ERD, API Documentation",
-        "Viết hoàn chỉnh báo cáo thực tập theo chuẩn UTC",
-        "Chuẩn bị slide thuyết trình kết quả thực tập",
-        "Nộp sản phẩm cuối cùng và nhận feedback tích cực từ mentor",
-    ])
-
-    add_paragraph_text(doc, "Kỹ năng học được:")
-    add_bullet_list(doc, [
-        "Kỹ năng tổng hợp và trình bày kết quả công việc",
-        "Khả năng viết báo cáo kỹ thuật chuyên nghiệp",
-        "Kỹ năng thuyết trình và communication",
-    ])
-
-    add_paragraph_text(doc, "Thách thức: Deadline gấp, cần quản lý thời gian hiệu quả để hoàn thành đầy đủ các "
-        "deliverables.")
-
-    add_paragraph_text(doc, "Kết quả: Hoàn thành đầy đủ tất cả sản phẩm thực tập, nhận được đánh giá cao từ "
-        "mentor và công ty. Sẵn sàng áp dụng kiến thức vào đồ án tốt nghiệp.")
+    # Create diary table
+    diary_data = [
+        ("1", "01/12 – 07/12/2025",
+         "Onboarding, tìm hiểu dự án SORA STEP4, quy trình làm việc, công cụ (Git, IntelliJ, Oracle SQL Developer), ôn tập Java/Spring Boot/Oracle Database, đọc Business Requirement Document",
+         "Hiểu quy trình phát triển offshore theo chuẩn Nhật Bản, cấu trúc tổ chức dự án, công cụ quản lý. Hoàn thành onboarding, nắm overview dự án"),
+
+        ("2", "08/12 – 14/12/2025",
+         "Training Database Design, học Oracle Database (data types, constraints, indexes), naming convention, nghiên cứu cấu trúc DB SORA, đọc ERD",
+         "Nắm vững kiểu dữ liệu Oracle (VARCHAR2, NUMBER, DATE, CLOB, BLOB), constraints (PK, FK, NOT NULL, UNIQUE, CHECK), indexes (B-tree, Bitmap, Function-based). Hoàn thành training DB Design"),
+
+        ("3", "15/12 – 21/12/2025",
+         "Thiết kế bảng cho module User Management, định nghĩa columns (data type, length, constraints), tạo Entity Info và Column Info documents, review với mentor và xử lý feedback đợt 1",
+         "Phân tích yêu cầu nghiệp vụ xác định entities/relationships, áp dụng normalization (1NF, 2NF, 3NF), viết tài liệu thiết kế DB theo chuẩn. Hoàn thành thiết kế 5 bảng, pass review sau 1 lần sửa"),
+
+        ("4", "22/12 – 28/12/2025",
+         "Thiết kế indexes, tạo Index Info document (loại index, columns, mục đích), học query optimization và EXPLAIN PLAN, training Screen Design, tìm hiểu wireframe và UI/UX principles",
+         "Hiểu khi nào tạo index và loại phù hợp (B-tree vs Bitmap), analyze query performance, quy trình thiết kế màn hình từ wireframe đến detailed design. Hoàn thành Index Info cho tất cả bảng"),
+
+        ("5", "29/12 – 04/01/2026",
+         "Thiết kế màn hình User List, định nghĩa layout (header, search bar, table, pagination, buttons), tạo Items document (ID, tên, loại, I/O type, required flag), validation rules, messages",
+         "Phân tích màn hình thành components, hiểu validation (client-side vs server-side), viết validation rules đầy đủ edge cases. Hoàn thành thiết kế User List với items, validation, messages"),
+
+        ("6", "05/01 – 11/01/2026",
+         "Thiết kế màn hình User Detail, correlation validation (logic phụ thuộc giữa trường), Item Control document (hiển thị/ẩn, enable/disable fields), training RESTful API (HTTP methods, status codes, request/response)",
+         "Thiết kế validation phức tạp multiple conditions, state management (view vs edit mode), nguyên tắc RESTful API. Hoàn thành thiết kế User Detail, sẵn sàng API Design"),
+
+        ("7", "12/01 – 18/01/2026",
+         "Thiết kế API cho User Management (GET/POST/PUT/DELETE /users), Request Parameters (query/path params, body), Response structure (status, data, message, pagination), Error Handling (400/401/403/404/500), giới thiệu Claude AI [4] để review thiết kế",
+         "Thiết kế RESTful API resource-based, hiểu idempotency (GET, PUT, DELETE), sử dụng AI tools review và cải thiện. Hoàn thành 5 APIs chính với đầy đủ request/response specs"),
+
+        ("8", "19/01 – 25/01/2026",
+         "Thiết kế APIs cho Course Management, sử dụng Claude AI kiểm tra chất lượng, fix issues (naming inconsistency, missing error cases, incomplete docs), training Spring Batch (Job, Step, ItemReader, ItemProcessor, ItemWriter)",
+         "Viết API documentation rõ ràng đầy đủ, hiểu chunk processing, integrate AI vào workflow nâng cao chất lượng. Hoàn thành APIs cho Course Management, hiểu cơ bản Spring Batch"),
+
+        ("9", "26/01 – 01/02/2026",
+         "Thiết kế Batch Job Import User từ CSV, Job structure 5 blocks (Chuẩn bị, Khởi tạo, Kiểm tra, Xử lý, Kết thúc), Shell Script (input params, return codes), pseudo code ItemReader/Processor/Writer, SQL queries (SELECT, INSERT, UPDATE)",
+         "Phân tích batch requirements chia steps, transaction management trong batch, xử lý error và rollback chunk processing. Hoàn thành thiết kế Batch Job đầu tiên với 5 blocks và SQL"),
+
+        ("10", "02/02 – 08/02/2026",
+         "Thiết kế Batch Job Generate Monthly Report, áp dụng chunk processing (size=1000), xử lý feedback (Shiteki) đợt 1 từ Leader Review, fix lỗi (logic sai, thiếu validation, inconsistent naming), refactor đảm bảo nhất quán DB/Screen/API/Batch",
+         "Xử lý review feedback có hệ thống, hiểu tầm quan trọng consistency, tự review trước submit. Hoàn thành Batch Job thứ 2, xử lý 80% feedback đợt 1"),
+
+        ("11", "09/02 – 15/02/2026",
+         "Hoàn thành feedback đợt 1 submit lại, thiết kế độc lập module Enrollment Management, áp dụng tất cả kiến thức (DB/Screen/API/Batch), sử dụng Claude AI tự review, tổng hợp tài liệu theo chuẩn template",
+         "Làm việc độc lập từ phân tích đến hoàn thiện thiết kế, tự kiểm tra chất lượng và phát hiện lỗi, time management đúng deadline. Hoàn thành Enrollment Management, pass review ngay lần đầu"),
+
+        ("12", "16/02 – 22/02/2026",
+         "Xử lý feedback đợt 2 từ Customer Review, tinh chỉnh theo góp ý khách hàng, kiểm tra cross-reference (DB↔API, Screen↔API), viết báo cáo thực tập, chuẩn bị tài liệu tổng hợp (ERD, API spec, Batch flow diagram)",
+         "Communication với khách hàng qua tài liệu, tầm quan trọng cross-reference checking, viết báo cáo kỹ thuật chuẩn học thuật. Hoàn thành xử lý feedback đợt 2, bắt đầu báo cáo"),
+
+        ("13", "23/02 – 01/03/2026",
+         "Hoàn thiện tất cả tài liệu (DB/Screen/API/Batch), tạo tổng hợp (System Architecture, Database ERD, API Documentation), viết hoàn chỉnh báo cáo theo chuẩn UTC, chuẩn bị slide thuyết trình, nộp sản phẩm và nhận feedback tích cực",
+         "Tổng hợp và trình bày kết quả, viết báo cáo kỹ thuật chuyên nghiệp, kỹ năng thuyết trình và communication. Hoàn thành đầy đủ sản phẩm, đánh giá cao từ mentor và công ty"),
+    ]
+
+    # Create table (14 rows = 1 header + 13 data rows)
+    table = doc.add_table(rows=14, cols=4)
+    table.style = 'Table Grid'
+
+    # Set column widths
+    table.columns[0].width = Cm(1.2)  # Tuần
+    table.columns[1].width = Cm(3.5)  # Thời gian
+    table.columns[2].width = Cm(6.5)  # Nội dung công việc
+    table.columns[3].width = Cm(5.3)  # Kỹ năng & Kết quả
+
+    # Header row
+    header_cells = table.rows[0].cells
+    headers = ["Tuần", "Thời gian", "Nội dung công việc", "Kỹ năng & Kết quả"]
+    for i, header_text in enumerate(headers):
+        cell = header_cells[i]
+        cell.text = header_text
+
+        # Format header cell
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = cell.paragraphs[0].runs[0]
+        run.font.name = FONT_NAME
+        run.font.size = FONT_SIZE_TABLE
+        run.font.bold = True
+
+        # Cell shading (light gray)
+        shading = parse_xml(r'<w:shd {} w:fill="D9D9D9"/>'.format(nsdecls('w')))
+        cell._element.get_or_add_tcPr().append(shading)
+
+        # Vertical alignment
+        cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+    # Data rows
+    for row_idx, (week, period, work, skills) in enumerate(diary_data, start=1):
+        row_cells = table.rows[row_idx].cells
+
+        # Week number (centered)
+        row_cells[0].text = week
+        row_cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        row_cells[0].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+        # Period (centered)
+        row_cells[1].text = period
+        row_cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        row_cells[1].vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+        # Work content (justified)
+        row_cells[2].text = work
+        row_cells[2].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        row_cells[2].vertical_alignment = WD_ALIGN_VERTICAL.TOP
+
+        # Skills & Results (justified)
+        row_cells[3].text = skills
+        row_cells[3].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        row_cells[3].vertical_alignment = WD_ALIGN_VERTICAL.TOP
+
+        # Format all cells
+        for cell in row_cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.name = FONT_NAME
+                    run.font.size = FONT_SIZE_TABLE
+                # Set spacing
+                paragraph.space_before = Pt(0)
+                paragraph.space_after = Pt(0)
+                paragraph_format = paragraph.paragraph_format
+                paragraph_format.line_spacing = 1.15
 
     doc.add_paragraph()  # Spacing
 
