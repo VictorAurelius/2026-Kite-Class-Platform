@@ -713,3 +713,12 @@ Phụ lục A: Nhật ký thực tập
 
 Phụ lục A: Nhật ký thực tập chi tiết
 => sửa lại dạng kẻ bảng
+
+Thực hiện tạo lại báo cáo khảo sát bản mới:
+1. đối với actors hiện tại: thay đổi cách hỏi, tập trung vào hỏi nhu cầu sử dụng, cảm quan về chức năng, cảm quan về các gói dịch vụ, .... Tham khảo báo cáo về QA
+
+2. Bổ sung khảo sát các sản phẩm đang có trên thị trường => khảo sát chi tiết và thực hiện so sánh
+
+3. đối với mỗi loại khảo sát phải rút ra kết luận tương ứng và có kết luận chung của cả báo cáo
+
+4. đối với kết quả trả lời => thực hiện tự tạo dữ liệu trả lời theo báo cáo QA => tự fake kết quả sao cho phù hợp với kiến trúc và use case hiện tại
