@@ -750,3 +750,5 @@ vậy là vẫn để sót đảm bảo skill, hãy chạy git hook lại để 
 
   - Implementation (90%)
 sao lại 90%, triển khai 100% luôn
+
+thêm vào skill workflow => không được phép push
