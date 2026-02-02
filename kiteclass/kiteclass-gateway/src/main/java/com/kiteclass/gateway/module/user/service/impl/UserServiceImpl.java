@@ -14,6 +14,7 @@ import com.kiteclass.gateway.module.user.repository.UserRoleRepository;
 import com.kiteclass.gateway.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +86,13 @@ public class UserServiceImpl implements UserService {
             .flatMap(user -> userRoleRepository.findRolesByUserId(user.getId())
                 .collectList()
                 .map(roles -> userMapper.toResponseWithRoles(user, roles)));
+    }
+
+    @Override
+    public Flux<UserResponse> searchUsers(String query, Pageable pageable) {
+        log.debug("Searching users with query: {}, page: {}, size: {}",
+                query, pageable.getPageNumber(), pageable.getPageSize());
+        return getUsers(query, pageable.getPageNumber(), pageable.getPageSize());
     }
 
     @Override

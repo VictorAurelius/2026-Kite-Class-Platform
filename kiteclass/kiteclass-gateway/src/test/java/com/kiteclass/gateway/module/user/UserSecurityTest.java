@@ -121,7 +121,7 @@ class UserSecurityTest {
         // Then: Update should complete safely, treating input as literal string
         StepVerifier.create(userService.updateUser(user.getId(), maliciousUpdate))
             .expectNextMatches(response ->
-                response.name().equals("'; DROP TABLE users; --") // Stored as literal string
+                response.getName().equals("'; DROP TABLE users; --") // Stored as literal string
             )
             .verifyComplete();
 
@@ -196,7 +196,7 @@ class UserSecurityTest {
         // Then: Service should use ID from path parameter, not request body
         StepVerifier.create(userService.updateUser(user1.getId(), tamperRequest))
             .expectNextMatches(response ->
-                response.id().equals(user1.getId()) // Uses path ID, not body ID
+                response.getId().equals(user1.getId()) // Uses path ID, not body ID
             )
             .verifyComplete();
 
@@ -235,9 +235,9 @@ class UserSecurityTest {
         StepVerifier.create(userService.updateUser(user.getId(), maliciousUpdate))
             .expectNextMatches(response -> {
                 // Allowed fields updated
-                assertThat(response.name()).isEqualTo("Updated Name");
+                assertThat(response.getName()).isEqualTo("Updated Name");
                 // Sensitive fields protected
-                assertThat(response.id()).isEqualTo(originalId);
+                assertThat(response.getId()).isEqualTo(originalId);
                 return true;
             })
             .verifyComplete();

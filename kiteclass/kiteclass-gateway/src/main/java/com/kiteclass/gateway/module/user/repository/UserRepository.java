@@ -25,6 +25,15 @@ public interface UserRepository extends R2dbcRepository<User, Long> {
     Mono<User> findByIdAndDeletedFalse(Long id);
 
     /**
+     * Find user by email (including deleted).
+     *
+     * @param email user email
+     * @return Mono of User
+     * @since 1.1.0
+     */
+    Mono<User> findByEmail(String email);
+
+    /**
      * Find user by email (non-deleted only).
      *
      * @param email user email
