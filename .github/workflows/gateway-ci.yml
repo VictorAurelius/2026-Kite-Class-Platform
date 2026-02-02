@@ -67,6 +67,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Make mvnw executable
+        working-directory: kiteclass/kiteclass-gateway
+        run: chmod +x mvnw
+
       - name: Run tests with coverage
         working-directory: kiteclass/kiteclass-gateway
         env:
@@ -99,7 +103,7 @@ jobs:
 
       - name: Archive test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: gateway-test-results
           path: |
@@ -142,6 +146,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Make mvnw executable
+        working-directory: kiteclass/kiteclass-gateway
+        run: chmod +x mvnw
 
       - name: Build application
         working-directory: kiteclass/kiteclass-gateway
@@ -201,6 +209,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Make mvnw executable
+        working-directory: kiteclass/kiteclass-gateway
+        run: chmod +x mvnw
 
       - name: Run checkstyle
         working-directory: kiteclass/kiteclass-gateway
