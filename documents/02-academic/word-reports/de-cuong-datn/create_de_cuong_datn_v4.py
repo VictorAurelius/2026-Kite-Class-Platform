@@ -336,7 +336,8 @@ def add_content_sections(doc):
     add_section_content(doc,
         "Hệ thống được xây dựng ở mức MVP, tập trung chức năng cốt lõi cho các tổ chức giáo dục nhỏ và vừa tại Việt Nam.")
 
-    add_bullet_item(doc, "Chức năng: Quản lý student/teacher/class, attendance, assignment, grading, AI branding, auto-provisioning")
+    add_bullet_item(doc, "Chức năng: Quản lý student/teacher/class, attendance, assignment, grading, billing (thanh toán học phí), "
+        "AI branding, auto-provisioning")
     add_bullet_item(doc, "Công nghệ: Java Spring Boot, Next.js, PostgreSQL, Redis, AWS EKS, OpenAI GPT-4/DALL-E 3")
     add_bullet_item(doc, "Giới hạn: MVP scope, chưa triển khai mobile app, chưa tối ưu cho >1000 concurrent users/instance")
 
@@ -378,8 +379,8 @@ def add_content_sections(doc):
         "Kế hoạch thực hiện đề tài với các công việc chi tiết (4 tháng từ 02/2026 đến 05/2026). "
         "Mỗi công việc kéo dài khoảng 1 tuần, các công việc được thực hiện đồng thời để tối ưu thời gian.")
 
-    # Bảng kế hoạch chi tiết - mỗi task ~1 tuần (1 header + 22 data rows)
-    table = doc.add_table(rows=23, cols=4)
+    # Bảng kế hoạch chi tiết - mỗi task ~1 tuần (1 header + 24 data rows)
+    table = doc.add_table(rows=25, cols=4)
     table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
@@ -406,7 +407,7 @@ def add_content_sections(doc):
         ("3", "Thiết kế kiến trúc hệ thống (Hybrid Architecture)", "22/02 – 28/02/2026", "Sơ đồ PlantUML"),
         ("4", "Thiết kế database schema & API specification", "01/03 – 07/03/2026", "ERD, tài liệu API"),
 
-        # Phase 3: KiteClass Development - Backend & Frontend song song (7 tuần: 08/03 - 25/04)
+        # Phase 3: KiteClass Development - Backend & Frontend song song (8 tuần: 08/03 - 02/05)
         ("5", "KiteClass Gateway: Auth, routing + Unit tests", "08/03 – 14/03/2026", "Xác thực, định tuyến"),
         ("6", "KiteClass Frontend: Base setup + Auth pages + Unit tests", "08/03 – 14/03/2026", "Cơ sở giao diện"),
 
@@ -419,24 +420,27 @@ def add_content_sections(doc):
         ("11", "KiteClass Core: Assignment & Grading modules + Unit tests", "12/04 – 18/04/2026", "Bài tập, chấm điểm"),
         ("12", "KiteClass Frontend: Assignment pages + Unit tests", "12/04 – 18/04/2026", "Giao diện bài tập"),
 
-        ("13", "Integration testing KiteClass (cross-service)", "19/04 – 25/04/2026", "Kiểm thử liên kết"),
+        ("13", "KiteClass Core: Billing & Invoice module + Unit tests", "19/04 – 25/04/2026", "Thanh toán, hóa đơn"),
+        ("14", "KiteClass Frontend: Billing & Invoice pages + Unit tests", "19/04 – 25/04/2026", "Giao diện thanh toán"),
 
-        # Phase 4: KiteHub Platform Development (4 tuần: 26/04 - 17/05)
-        ("14", "KiteHub: Auth & Tenant Management + Unit tests", "26/04 – 02/05/2026", "Xác thực, quản lý tenant"),
-        ("15", "KiteHub: Billing System + Unit tests", "26/04 – 02/05/2026", "Thanh toán điện tử"),
+        ("15", "Integration testing KiteClass (cross-service)", "26/04 – 02/05/2026", "Kiểm thử liên kết"),
 
-        ("16", "KiteHub: Admin Dashboard + Unit tests", "03/05 – 09/05/2026", "Giao diện quản trị"),
-        ("17", "KiteHub: Auto-provisioning + Unit tests", "03/05 – 09/05/2026", "Tự động triển khai"),
+        # Phase 4: KiteHub Platform Development (3 tuần: 03/05 - 23/05)
+        ("16", "KiteHub: Auth & Tenant Management + Unit tests", "03/05 – 09/05/2026", "Xác thực, quản lý tenant"),
+        ("17", "KiteHub: Billing System + Unit tests", "03/05 – 09/05/2026", "Thanh toán điện tử"),
 
-        ("18", "KiteHub: AI Agent + Unit tests", "10/05 – 16/05/2026", "Tự động tạo branding"),
-        ("19", "Integration testing KiteHub", "10/05 – 16/05/2026", "Kiểm thử platform"),
+        ("18", "KiteHub: Admin Dashboard + Unit tests", "10/05 – 16/05/2026", "Giao diện quản trị"),
+        ("19", "KiteHub: Auto-provisioning + Unit tests", "10/05 – 16/05/2026", "Tự động triển khai"),
 
-        # Phase 5: System Testing & Deployment (1.5 tuần: 17/05 - 25/05)
-        ("20", "Load testing & performance tuning", "17/05 – 23/05/2026", "Kiểm thử tải, tối ưu"),
-        ("21", "AWS EKS production deployment", "17/05 – 25/05/2026", "Triển khai production"),
+        ("20", "KiteHub: AI Agent + Unit tests", "17/05 – 23/05/2026", "Tự động tạo branding"),
+        ("21", "Integration testing KiteHub", "17/05 – 23/05/2026", "Kiểm thử platform"),
+
+        # Phase 5: System Testing & Deployment (1 tuần: 24/05 - 25/05)
+        ("22", "Load testing & performance tuning", "24/05 – 25/05/2026", "Kiểm thử tải, tối ưu"),
+        ("23", "AWS EKS production deployment", "24/05 – 25/05/2026", "Triển khai production"),
 
         # Phase 6: Documentation (1 tuần: 26/05 - 31/05)
-        ("22", "Hoàn thiện thesis report, slides, demo video", "26/05 – 31/05/2026", "Chuẩn bị bảo vệ"),
+        ("24", "Hoàn thiện thesis report, slides, demo video", "26/05 – 31/05/2026", "Chuẩn bị bảo vệ"),
     ]
 
     for row_idx, (stt, content, time, note) in enumerate(plan_data):
