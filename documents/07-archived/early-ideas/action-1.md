@@ -760,3 +760,12 @@ tại sao không thực hiện cài docker để đạt 100% luôn?
 tôi đã cài docker desktop rồi, trước tiên hãy check xem có skill làm việc với docker chưa? nếu chưa có thì hãy cập nhật, sau đó thực hiện hoàn thiện PR RV
 
 gateway đang có 2 file md: PR-REVIEW-1.1-COMPLETION-SUMMARY, ... không nằm trong docs mà nằm ngoài => vi phạm skill
+
+tham chiếu workflow và thực hiện PR RV tiếp theo
+
+Cập nhật plan document để reflect status mới?
+=> nằm trong workfolw mà, tôi đã phải nói bạn tham chiếu workflow mà
+
+sau khi chạy hết PR RW 1. cho gateway rồi thì đã đảm bảo khi image của gateway được build sẽ luôn chạy tốt theo test-case và business-logic chưa?
+
+check branch mới và thực hiện 1.
