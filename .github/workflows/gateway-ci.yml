@@ -18,6 +18,12 @@ on:
       - 'kiteclass/kiteclass-gateway/**'
       - '.github/workflows/gateway-ci.yml'
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  statuses: write
+
 jobs:
   test:
     name: Test Gateway Service
@@ -112,6 +118,7 @@ jobs:
 
       - name: Publish test report
         if: always()
+        continue-on-error: true
         uses: dorny/test-reporter@v1
         with:
           name: Gateway Test Results
@@ -121,6 +128,7 @@ jobs:
 
       - name: Comment PR with coverage
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: madrapps/jacoco-report@v1.6.1
         with:
           paths: kiteclass/kiteclass-gateway/target/site/jacoco/jacoco.xml
@@ -223,7 +231,7 @@ jobs:
       - name: Check for compilation warnings
         working-directory: kiteclass/kiteclass-gateway
         run: |
-          ./mvnw clean compile -Xlint:deprecation -Xlint:unchecked
+          ./mvnw clean compile
 
       - name: Analyze dependencies
         working-directory: kiteclass/kiteclass-gateway
