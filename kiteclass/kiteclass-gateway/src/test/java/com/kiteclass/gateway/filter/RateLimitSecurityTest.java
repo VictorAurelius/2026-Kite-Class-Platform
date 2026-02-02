@@ -1,6 +1,6 @@
 package com.kiteclass.gateway.filter;
 
-import com.kiteclass.gateway.module.auth.dto.request.LoginRequest;
+import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
 import com.kiteclass.gateway.module.auth.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
