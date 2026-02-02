@@ -736,3 +736,5 @@ tạo sao IDE lại báo lỗi này? cần fix không?
 tại sao kiteclass-gateway/target/generated-sources\annotations\...\UserMapperImpl.java IDE lại báo lỗi này? cần fix không?
 
 thực hiện PR-REVIEW-1.1
+
+PR hoàn thành đã đảm bảo skill và work-flow chưa?

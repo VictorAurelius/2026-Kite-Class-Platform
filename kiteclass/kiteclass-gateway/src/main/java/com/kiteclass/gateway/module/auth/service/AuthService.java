@@ -7,6 +7,8 @@ import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
 import com.kiteclass.gateway.module.auth.dto.RegisterStudentRequest;
 import com.kiteclass.gateway.module.auth.dto.RegisterResponse;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
+import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
+import com.kiteclass.gateway.module.auth.dto.response.AuthResponse;
 import reactor.core.publisher.Mono;
 
 /**
@@ -56,6 +58,24 @@ public interface AuthService {
      * @return Mono of Void
      */
     Mono<Void> resetPassword(ResetPasswordRequest request);
+
+    /**
+     * Register a new user account (simplified).
+     *
+     * <p>Basic registration flow for testing and simple use cases:
+     * <ol>
+     *   <li>Validate password policy</li>
+     *   <li>Check email doesn't exist</li>
+     *   <li>Hash password with BCrypt</li>
+     *   <li>Create User in Gateway</li>
+     *   <li>Generate JWT tokens</li>
+     * </ol>
+     *
+     * @param request basic registration request (email, password, name)
+     * @return auth response with tokens and user ID
+     * @since 1.1.0
+     */
+    Mono<AuthResponse> register(RegisterRequest request);
 
     /**
      * Register a new student account.
