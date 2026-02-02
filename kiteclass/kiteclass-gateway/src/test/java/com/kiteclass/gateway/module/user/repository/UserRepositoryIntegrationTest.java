@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @DisplayName("UserRepository Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class UserRepositoryIntegrationTest {
 
     @SuppressWarnings("resource") // Managed by Testcontainers framework

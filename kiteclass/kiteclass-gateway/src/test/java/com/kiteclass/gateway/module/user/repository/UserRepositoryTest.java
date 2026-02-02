@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataR2dbcTest
 // @Testcontainers - Disabled, requires PostgreSQL Testcontainers
 @DisplayName("UserRepository Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class UserRepositoryTest {
 
     @Container

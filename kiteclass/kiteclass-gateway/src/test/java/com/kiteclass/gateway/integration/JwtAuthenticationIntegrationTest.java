@@ -18,7 +18,6 @@ import java.util.List;
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
 @DisplayName("JWT Authentication Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class JwtAuthenticationIntegrationTest {
 
     @SuppressWarnings("resource") // Managed by Testcontainers framework

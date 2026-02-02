@@ -20,7 +20,6 @@ import java.util.List;
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
 @DisplayName("Role & Permission Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class RolePermissionIntegrationTest {
 
     @SuppressWarnings("resource") // Managed by Testcontainers framework
