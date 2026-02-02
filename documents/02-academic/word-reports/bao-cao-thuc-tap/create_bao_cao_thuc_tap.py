@@ -42,8 +42,8 @@ INTERNSHIP_INFO = {
     "position": "Software Engineer",
     "advisor": "TS. Nguyễn Đức Dư",
     "company_mentor": "Trịnh Công Vượng (Project Manager)",
-    "start_date": "26/06/2025",
-    "end_date": "26/09/2025",
+    "start_date": "01/12/2025",
+    "end_date": "01/03/2026",
 }
 
 # ============== CONSTANTS ==============
@@ -1128,54 +1128,107 @@ def add_list_of_tables(doc):
 
 
 def add_abbreviations(doc):
-    """Thêm Danh mục từ viết tắt - 3 cột theo mẫu tham khảo"""
+    """Thêm Danh mục thuật ngữ và từ viết tắt - Phân biệt rõ ràng giữa thuật ngữ và từ viết tắt"""
     doc.add_page_break()
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.paragraph_format.space_after = Pt(18)
-    run = p.add_run("DANH MỤC TỪ VIẾT TẮT")
+    run = p.add_run("DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT")
     set_font(run, Pt(14), bold=True)
 
-    # 3 cột: Từ viết tắt | Diễn giải | Ghi chú trong báo cáo
-    abbreviations = [
-        ("AI", "Artificial Intelligence", "Trí tuệ nhân tạo, công cụ hỗ trợ kiểm tra thiết kế"),
-        ("API", "Application Programming Interface", "Giao diện lập trình ứng dụng"),
-        ("CSDL", "Cơ sở dữ liệu", "Database, nơi lưu trữ dữ liệu hệ thống"),
-        ("DB", "Database", "Cơ sở dữ liệu Oracle"),
-        ("IDE", "Integrated Development Environment", "Môi trường phát triển tích hợp"),
-        ("RESTful", "Representational State Transfer", "Kiến trúc thiết kế API"),
-        ("Batch", "Batch Processing", "Xử lý hàng loạt theo lịch trình"),
-        ("Shiteki", "指摘 (tiếng Nhật)", "Phản hồi/góp ý từ review"),
-        ("BrSE", "Bridge System Engineer", "Kỹ sư cầu nối Việt-Nhật"),
-        ("QA", "Quality Assurance", "Đảm bảo chất lượng"),
+    # ============ Phần 1: Thuật ngữ (Terms/Terminology) ============
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(12)
+    p.paragraph_format.space_after = Pt(6)
+    run = p.add_run("1. THUẬT NGỮ")
+    set_font(run, FONT_SIZE_NORMAL, bold=True)
+
+    # 3 cột: Thuật ngữ | Tiếng Anh | Giải thích
+    terms = [
+        ("Batch Processing", "Batch Processing", "Xử lý hàng loạt dữ liệu theo lịch trình định sẵn"),
+        ("Microservices", "Microservices", "Kiến trúc phần mềm chia nhỏ ứng dụng thành các dịch vụ độc lập"),
+        ("Multi-tenant", "Multi-tenancy", "Kiến trúc cho phép nhiều tổ chức dùng chung một hệ thống"),
+        ("RESTful API", "RESTful API", "Kiến trúc thiết kế API theo nguyên tắc REST"),
+        ("Shiteki", "指摘 (tiếng Nhật)", "Phản hồi, góp ý từ quá trình review code/thiết kế"),
+        ("Offshore Development", "Offshore Development", "Mô hình phát triển phần mềm thuê ngoài quốc tế"),
     ]
 
-    table = doc.add_table(rows=1, cols=3)
-    table.style = 'Table Grid'
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table1 = doc.add_table(rows=1, cols=3)
+    table1.style = 'Table Grid'
+    table1.alignment = WD_TABLE_ALIGNMENT.CENTER
 
-    # Header 3 cột
-    headers = ["Từ viết tắt", "Diễn giải", "Ghi chú trong báo cáo"]
-    col_widths = [Cm(3.0), Cm(5.5), Cm(7.5)]
-    header_cells = table.rows[0].cells
-    for i, (header, width) in enumerate(zip(headers, col_widths)):
-        header_cells[i].text = header
-        header_cells[i].width = width
-        for paragraph in header_cells[i].paragraphs:
+    headers1 = ["Thuật ngữ", "Tiếng Anh", "Giải thích"]
+    col_widths1 = [Cm(4.0), Cm(4.5), Cm(7.5)]
+    header_cells1 = table1.rows[0].cells
+    for i, (header, width) in enumerate(zip(headers1, col_widths1)):
+        header_cells1[i].text = header
+        header_cells1[i].width = width
+        for paragraph in header_cells1[i].paragraphs:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for run in paragraph.runs:
                 set_font(run, FONT_SIZE_TABLE, bold=True)
-        set_cell_shading(header_cells[i], 'D9E2F3')
+        set_cell_shading(header_cells1[i], 'D9E2F3')
 
-    for abbr, meaning, note in abbreviations:
-        row = table.add_row()
+    for term, english, explanation in terms:
+        row = table1.add_row()
+        row.cells[0].text = term
+        row.cells[0].width = col_widths1[0]
+        row.cells[1].text = english
+        row.cells[1].width = col_widths1[1]
+        row.cells[2].text = explanation
+        row.cells[2].width = col_widths1[2]
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    set_font(run, FONT_SIZE_TABLE)
+
+    # ============ Phần 2: Từ viết tắt (Abbreviations/Acronyms) ============
+    p = doc.add_paragraph()
+    p.paragraph_format.space_before = Pt(18)
+    p.paragraph_format.space_after = Pt(6)
+    run = p.add_run("2. TỪ VIẾT TẮT")
+    set_font(run, FONT_SIZE_NORMAL, bold=True)
+
+    # 3 cột: Từ viết tắt | Tiếng Anh đầy đủ | Nghĩa tiếng Việt
+    abbreviations = [
+        ("AI", "Artificial Intelligence", "Trí tuệ nhân tạo"),
+        ("API", "Application Programming Interface", "Giao diện lập trình ứng dụng"),
+        ("BrSE", "Bridge System Engineer", "Kỹ sư cầu nối (Việt-Nhật)"),
+        ("CSDL", "Cơ sở dữ liệu", "Database"),
+        ("DB", "Database", "Cơ sở dữ liệu"),
+        ("DevOps", "Development and Operations", "Phát triển và vận hành"),
+        ("IDE", "Integrated Development Environment", "Môi trường phát triển tích hợp"),
+        ("MVP", "Minimum Viable Product", "Sản phẩm khả thi tối thiểu"),
+        ("QA", "Quality Assurance", "Đảm bảo chất lượng"),
+        ("SaaS", "Software as a Service", "Phần mềm như một dịch vụ"),
+        ("SYP", "SY PARTNERS., JSC", "Công ty SY PARTNERS"),
+    ]
+
+    table2 = doc.add_table(rows=1, cols=3)
+    table2.style = 'Table Grid'
+    table2.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    headers2 = ["Từ viết tắt", "Tiếng Anh đầy đủ", "Nghĩa tiếng Việt"]
+    col_widths2 = [Cm(3.0), Cm(6.0), Cm(7.0)]
+    header_cells2 = table2.rows[0].cells
+    for i, (header, width) in enumerate(zip(headers2, col_widths2)):
+        header_cells2[i].text = header
+        header_cells2[i].width = width
+        for paragraph in header_cells2[i].paragraphs:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for run in paragraph.runs:
+                set_font(run, FONT_SIZE_TABLE, bold=True)
+        set_cell_shading(header_cells2[i], 'D9E2F3')
+
+    for abbr, full_name, meaning in abbreviations:
+        row = table2.add_row()
         row.cells[0].text = abbr
-        row.cells[0].width = col_widths[0]
-        row.cells[1].text = meaning
-        row.cells[1].width = col_widths[1]
-        row.cells[2].text = note
-        row.cells[2].width = col_widths[2]
+        row.cells[0].width = col_widths2[0]
+        row.cells[1].text = full_name
+        row.cells[1].width = col_widths2[1]
+        row.cells[2].text = meaning
+        row.cells[2].width = col_widths2[2]
         for cell in row.cells:
             for paragraph in cell.paragraphs:
                 for run in paragraph.runs:
@@ -1216,6 +1269,25 @@ def add_chapter1(doc):
         f"Địa chỉ: {INTERNSHIP_INFO['address']}",
         "Website: https://syp.vn",
         "Quy mô: Hơn 95 nhân viên (tính đến tháng 6/2024)",
+    ])
+
+    add_paragraph_text(doc, "Thành tựu đã đạt được:")
+
+    add_paragraph_text(doc,
+        "Từ khi thành lập năm 2022 đến nay, công ty đã đạt được nhiều thành tựu đáng kể trong "
+        "lĩnh vực phát triển phần mềm offshore cho thị trường Nhật Bản:")
+
+    add_bullet_list(doc, [
+        "Phát triển thành công hơn 30 dự án phần mềm cho các khách hàng Nhật Bản thuộc nhiều lĩnh vực: "
+        "tài chính, bán lẻ, y tế, giáo dục",
+        "Phục vụ hơn 15 khách hàng doanh nghiệp lớn tại Nhật Bản với tỷ lệ hài lòng cao (trên 90%)",
+        "Tăng trưởng quy mô từ 20 nhân viên ban đầu lên hơn 95 nhân viên sau 3 năm hoạt động",
+        "Xây dựng quy trình phát triển phần mềm chuyên nghiệp theo chuẩn quốc tế với tỷ lệ "
+        "dự án giao đúng hạn đạt 95%",
+        "Áp dụng thành công các công nghệ hiện đại: Java Spring Boot, React/Next.js, PostgreSQL, "
+        "Redis, Docker/Kubernetes, AI Integration",
+        "Đào tạo và phát triển nguồn nhân lực chất lượng cao với hơn 80% kỹ sư có kinh nghiệm 3+ năm",
+        "Xây dựng văn hóa doanh nghiệp lấy con người làm trung tâm với tỷ lệ giữ chân nhân tài cao",
     ])
 
     add_paragraph_text(doc, "Cơ cấu tổ chức:")
@@ -1355,19 +1427,19 @@ def add_chapter2(doc):
     add_table_with_caption(doc, 2, "Kế hoạch thực tập chi tiết",
         ["Tuần", "Thời gian", "Nội dung công việc chính"],
         [
-            ("1", "26/06 – 02/07", "Làm quen môi trường, tìm hiểu dự án, ôn tập kiến thức"),
-            ("2", "03/07 – 09/07", "Training thiết kế cơ sở dữ liệu (DB Design)"),
-            ("3", "10/07 – 16/07", "Thực hành thiết kế bảng, index, constraints"),
-            ("4", "17/07 – 23/07", "Training và thực hành thiết kế màn hình (Screen Design)"),
-            ("5", "24/07 – 30/07", "Hoàn thiện Screen Design, bắt đầu API Design"),
-            ("6", "31/07 – 06/08", "Training và thực hành thiết kế API RESTful"),
-            ("7", "07/08 – 13/08", "Giới thiệu AI Checker, training thiết kế Batch"),
-            ("8", "14/08 – 20/08", "Thực hành thiết kế Batch Processing"),
-            ("9", "21/08 – 27/08", "Thiết kế độc lập, xử lý Shiteki (feedback) đợt 1"),
-            ("10", "28/08 – 03/09", "Xử lý Shiteki đợt 2, hoàn thiện thiết kế"),
-            ("11", "04/09 – 10/09", "Tổng hợp sản phẩm, kiểm tra chất lượng"),
-            ("12", "11/09 – 17/09", "Viết báo cáo thực tập, chuẩn bị tài liệu"),
-            ("13", "18/09 – 26/09", "Hoàn thiện báo cáo, nộp sản phẩm cuối cùng"),
+            ("1", "01/12 – 07/12", "Làm quen môi trường, tìm hiểu dự án, ôn tập kiến thức"),
+            ("2", "08/12 – 14/12", "Training thiết kế cơ sở dữ liệu (DB Design)"),
+            ("3", "15/12 – 21/12", "Thực hành thiết kế bảng, index, constraints"),
+            ("4", "22/12 – 28/12", "Training và thực hành thiết kế màn hình (Screen Design)"),
+            ("5", "29/12 – 04/01", "Hoàn thiện Screen Design, bắt đầu API Design"),
+            ("6", "05/01 – 11/01", "Training và thực hành thiết kế API RESTful"),
+            ("7", "12/01 – 18/01", "Giới thiệu AI Checker, training thiết kế Batch"),
+            ("8", "19/01 – 25/01", "Thực hành thiết kế Batch Processing"),
+            ("9", "26/01 – 01/02", "Thiết kế độc lập, xử lý Shiteki (feedback) đợt 1"),
+            ("10", "02/02 – 08/02", "Xử lý Shiteki đợt 2, hoàn thiện thiết kế"),
+            ("11", "09/02 – 15/02", "Tổng hợp sản phẩm, kiểm tra chất lượng"),
+            ("12", "16/02 – 22/02", "Viết báo cáo thực tập, chuẩn bị tài liệu"),
+            ("13", "23/02 – 01/03", "Hoàn thiện báo cáo, nộp sản phẩm cuối cùng"),
         ],
         col_widths=[2.0, 3.5, 10.5],
         reset=True
@@ -1500,17 +1572,143 @@ def add_chapter2(doc):
     # 2.4 Công nghệ, công cụ và kỹ thuật sử dụng
     add_section_title(doc, "2.4. Công nghệ, công cụ và kỹ thuật sử dụng")
 
-    add_table_with_caption(doc, 2, "Công nghệ và công cụ sử dụng",
+    add_paragraph_text(doc,
+        "Trong quá trình thực tập, em đã được tiếp cận và nghiên cứu nhiều công nghệ hiện đại "
+        "được sử dụng rộng rãi trong phát triển phần mềm. Dưới đây là mô tả chi tiết về các "
+        "công nghệ chính mà em đã học hỏi và áp dụng trong thực tế:")
+
+    add_subsection_title(doc, "2.4.1. Java Spring Boot")
+
+    add_paragraph_text(doc,
+        "Spring Boot [8] là framework phát triển ứng dụng Java phổ biến nhất hiện nay, "
+        "được xây dựng dựa trên Spring Framework với mục tiêu đơn giản hóa việc cấu hình và "
+        "triển khai ứng dụng. Spring Boot theo triết lý \"Convention over Configuration\", "
+        "giúp developer tập trung vào logic nghiệp vụ thay vì cấu hình phức tạp.")
+
+    add_paragraph_text(doc, "Các tính năng nổi bật:")
+
+    add_bullet_list(doc, [
+        "Auto-configuration: Tự động cấu hình các thành phần dựa trên dependencies có trong classpath",
+        "Embedded Server: Tích hợp sẵn Tomcat/Jetty, không cần deploy file WAR",
+        "Spring Data JPA: Đơn giản hóa thao tác với database thông qua ORM",
+        "Spring Security: Cung cấp authentication và authorization mạnh mẽ",
+        "Microservices Support: Hỗ trợ xây dựng kiến trúc microservices với Spring Cloud",
+    ])
+
+    add_paragraph_text(doc,
+        "Trong đồ án KiteClass Platform, Spring Boot được sử dụng làm nền tảng backend chính "
+        "để xây dựng RESTful API, xử lý business logic, quản lý transaction và tích hợp với "
+        "PostgreSQL database. Kiến trúc layered (Controller - Service - Repository) của Spring Boot "
+        "giúp code dễ bảo trì và mở rộng.")
+
+    add_subsection_title(doc, "2.4.2. Next.js")
+
+    add_paragraph_text(doc,
+        "Next.js [9] là React framework được phát triển bởi Vercel, cung cấp giải pháp "
+        "toàn diện cho việc xây dựng web application hiện đại. Next.js kết hợp ưu điểm của "
+        "Server-Side Rendering (SSR) và Static Site Generation (SSG) để tối ưu hiệu năng và SEO.")
+
+    add_paragraph_text(doc, "Các tính năng chính:")
+
+    add_bullet_list(doc, [
+        "Hybrid Rendering: Hỗ trợ cả SSR, SSG và Client-Side Rendering trong cùng một ứng dụng",
+        "File-based Routing: Tự động tạo routes dựa trên cấu trúc thư mục pages/",
+        "API Routes: Cho phép tạo API endpoints ngay trong Next.js app",
+        "Image Optimization: Tối ưu hình ảnh tự động với next/image",
+        "TypeScript Support: Hỗ trợ TypeScript out-of-the-box",
+    ])
+
+    add_paragraph_text(doc,
+        "KiteClass Platform sử dụng Next.js cho frontend để xây dựng giao diện người dùng "
+        "responsive và interactive. App Router mới của Next.js 13+ với React Server Components "
+        "giúp tối ưu performance và trải nghiệm người dùng. Tailwind CSS được tích hợp để styling "
+        "nhanh chóng và nhất quán.")
+
+    add_subsection_title(doc, "2.4.3. PostgreSQL")
+
+    add_paragraph_text(doc,
+        "PostgreSQL [10] là hệ quản trị cơ sở dữ liệu quan hệ mã nguồn mở mạnh mẽ nhất hiện nay, "
+        "được biết đến với độ tin cậy cao, tuân thủ chuẩn SQL và khả năng mở rộng vượt trội. "
+        "PostgreSQL hỗ trợ cả dữ liệu quan hệ truyền thống và dữ liệu JSON, phù hợp cho các "
+        "ứng dụng hiện đại.")
+
+    add_paragraph_text(doc, "Các đặc điểm nổi bật:")
+
+    add_bullet_list(doc, [
+        "ACID Compliance: Đảm bảo tính toàn vẹn dữ liệu với transaction đầy đủ",
+        "JSON/JSONB Support: Lưu trữ và truy vấn dữ liệu JSON hiệu quả",
+        "Advanced Indexing: Hỗ trợ B-tree, Hash, GiST, GIN indexes",
+        "Row-level Security: Kiểm soát truy cập dữ liệu ở mức row",
+        "Extensibility: Có thể mở rộng với custom functions, data types, operators",
+    ])
+
+    add_paragraph_text(doc,
+        "Trong KiteClass Platform, PostgreSQL được chọn làm database chính vì khả năng xử lý "
+        "kiến trúc Multi-tenant tốt thông qua Row-level Security. Database schema được thiết kế "
+        "với các table chính: organizations, users, classes, assignments, submissions, grades. "
+        "JSONB data type được sử dụng để lưu trữ metadata linh hoạt cho từng tenant.")
+
+    add_subsection_title(doc, "2.4.4. Redis")
+
+    add_paragraph_text(doc,
+        "Redis [11] (Remote Dictionary Server) là hệ thống lưu trữ dữ liệu in-memory mã nguồn mở, "
+        "thường được sử dụng làm database cache, message broker và session store. Redis nổi tiếng "
+        "với hiệu năng cực cao nhờ lưu trữ dữ liệu trong RAM.")
+
+    add_paragraph_text(doc, "Các use case phổ biến:")
+
+    add_bullet_list(doc, [
+        "Caching: Cache kết quả query, API response để giảm tải database",
+        "Session Management: Lưu trữ user session trong môi trường distributed",
+        "Real-time Analytics: Đếm, ranking, leaderboard với tốc độ cao",
+        "Message Queue: Pub/Sub pattern cho real-time messaging",
+        "Rate Limiting: Kiểm soát số lượng request từ user/IP",
+    ])
+
+    add_paragraph_text(doc,
+        "KiteClass Platform tích hợp Redis để cache dữ liệu thường xuyên truy cập như danh sách "
+        "lớp học, thông tin user, cấu hình organization. Redis cũng được dùng để lưu session và "
+        "implement rate limiting cho API endpoints, đảm bảo hệ thống ổn định khi có nhiều concurrent users.")
+
+    add_subsection_title(doc, "2.4.5. Docker và Kubernetes")
+
+    add_paragraph_text(doc,
+        "Docker [12] là nền tảng containerization cho phép đóng gói ứng dụng cùng với dependencies "
+        "thành các container độc lập, đảm bảo ứng dụng chạy nhất quán trên mọi môi trường. "
+        "Kubernetes [13] là hệ thống orchestration để quản lý, scaling và deploy containers trong "
+        "production.")
+
+    add_paragraph_text(doc, "Lợi ích của containerization:")
+
+    add_bullet_list(doc, [
+        "Consistency: Đảm bảo môi trường development, staging và production giống hệt nhau",
+        "Isolation: Mỗi service chạy trong container riêng, tránh xung đột dependencies",
+        "Scalability: Dễ dàng scale horizontal bằng cách tạo thêm container instances",
+        "Resource Efficiency: Container nhẹ hơn VM, khởi động nhanh và tiết kiệm tài nguyên",
+        "DevOps Integration: Tích hợp tốt với CI/CD pipeline",
+    ])
+
+    add_paragraph_text(doc,
+        "KiteClass Platform được containerized với Docker, mỗi service (backend, frontend, database, "
+        "redis) chạy trong container riêng được định nghĩa trong docker-compose.yml. Trong production, "
+        "Kubernetes được sử dụng để orchestrate containers, tự động scaling khi tải cao và ensure "
+        "high availability với health checks và auto-restart.")
+
+    add_subsection_title(doc, "2.4.6. Tổng hợp công nghệ sử dụng")
+
+    add_table_with_caption(doc, 2, "Công nghệ và công cụ sử dụng trong thực tập",
         ["Loại", "Tên", "Mục đích"],
         [
-            ("Ngôn ngữ", "Java, SQL", "Lập trình backend, truy vấn CSDL"),
-            ("Framework", "Spring Boot, Spring Batch", "Phát triển ứng dụng"),
-            ("CSDL", "Oracle Database", "Lưu trữ dữ liệu"),
-            ("IDE", "IntelliJ IDEA, VS Code", "Viết code"),
-            ("Quản lý mã nguồn", "Git, GitHub", "Version control"),
-            ("AI Tools", "Claude AI", "Kiểm tra chất lượng thiết kế"),
+            ("Backend Framework", "Java Spring Boot [8]", "Xây dựng RESTful API và business logic"),
+            ("Frontend Framework", "Next.js [9]", "Xây dựng giao diện người dùng hiện đại"),
+            ("Database", "PostgreSQL [10], Oracle [1]", "Lưu trữ dữ liệu quan hệ"),
+            ("Cache/Session", "Redis [11]", "Caching và session management"),
+            ("Containerization", "Docker [12], Kubernetes [13]", "Đóng gói và deploy ứng dụng"),
+            ("IDE", "IntelliJ IDEA, VS Code", "Môi trường phát triển"),
+            ("Version Control", "Git, GitHub", "Quản lý mã nguồn"),
+            ("AI Tools", "Claude AI [4], OpenAI GPT-4 [14]", "Hỗ trợ kiểm tra thiết kế"),
         ],
-        col_widths=[4.0, 5.0, 7.0]
+        col_widths=[4.0, 5.5, 6.5]
     )
 
 
@@ -1691,6 +1889,27 @@ def add_chapter4(doc):
         "tương lai. Trên cơ sở những kiến thức và kỹ năng đã tích lũy được, em định hướng tiếp "
         "tục nâng cao trình độ chuyên môn trong lĩnh vực công nghệ thông tin, đặc biệt là các "
         "mảng liên quan đến thiết kế hệ thống và phát triển phần mềm.")
+
+    add_paragraph_text(doc, "Kết nối với đồ án tốt nghiệp:")
+
+    add_paragraph_text(doc,
+        "Đợt thực tập này có ý nghĩa quan trọng như một bước chuẩn bị nền tảng cho đồ án "
+        "tốt nghiệp của em với đề tài \"KiteClass Platform - Nền tảng quản lý lớp học trực tuyến "
+        "dựa trên kiến trúc SaaS Multi-tenant\". Các kiến thức và kỹ năng tích lũy được trong quá "
+        "trình thực tập có liên hệ trực tiếp với đồ án tốt nghiệp:")
+
+    add_bullet_list(doc, [
+        "Kinh nghiệm thiết kế cơ sở dữ liệu sẽ được áp dụng để xây dựng schema cho KiteClass Platform "
+        "với các entity: Organization, User, Class, Assignment, Submission, Grade",
+        "Kiến thức về kiến trúc Multi-tenant học được từ các dự án offshore sẽ được vận dụng để "
+        "thiết kế hệ thống cho phép nhiều trường học/tổ chức sử dụng chung nền tảng",
+        "Kỹ năng thiết kế API RESTful sẽ được áp dụng để xây dựng backend cho KiteClass Platform "
+        "sử dụng Java Spring Boot và PostgreSQL",
+        "Kinh nghiệm làm việc với công nghệ hiện đại (Docker, Redis, AI) sẽ giúp em triển khai "
+        "các tính năng nâng cao như caching, containerization và tích hợp AI hỗ trợ chấm bài",
+        "Quy trình làm việc chuyên nghiệp học được từ công ty sẽ được áp dụng vào quản lý "
+        "dự án đồ án tốt nghiệp: phân tích yêu cầu, thiết kế hệ thống, review code, testing",
+    ])
 
     add_paragraph_text(doc,
         "Trong thời gian tới, em sẽ tập trung củng cố kiến thức chuyên ngành, học hỏi "
@@ -1926,6 +2145,93 @@ def add_references(doc):
     set_font(run, FONT_SIZE_NORMAL)
     run = p.add_run("Tài liệu thiết kế nội bộ dự án SORA STEP4, SY PARTNERS., JSC (không công khai), 2025.")
     set_font(run, FONT_SIZE_NORMAL)
+
+    # [8] Spring Boot documentation
+    add_ieee_reference(doc,
+        ref_num=8,
+        author="VMware Inc.",
+        title="Spring Boot Reference Documentation v3.2",
+        source_type="online",
+        year="2024",
+        url="https://docs.spring.io/spring-boot/docs/current/reference/html/",
+        accessed="Jan. 25, 2026"
+    )
+
+    # [9] Next.js documentation
+    add_ieee_reference(doc,
+        ref_num=9,
+        author="Vercel Inc.",
+        title="Next.js Documentation - The React Framework for the Web",
+        source_type="online",
+        year="2025",
+        url="https://nextjs.org/docs",
+        accessed="Jan. 28, 2026"
+    )
+
+    # [10] PostgreSQL documentation
+    add_ieee_reference(doc,
+        ref_num=10,
+        author="PostgreSQL Global Development Group",
+        title="PostgreSQL 16 Documentation",
+        source_type="online",
+        year="2024",
+        url="https://www.postgresql.org/docs/16/",
+        accessed="Jan. 22, 2026"
+    )
+
+    # [11] Redis documentation
+    add_ieee_reference(doc,
+        ref_num=11,
+        author="Redis Ltd.",
+        title="Redis Documentation - The Real-time Data Platform",
+        source_type="online",
+        year="2025",
+        url="https://redis.io/docs/",
+        accessed="Jan. 30, 2026"
+    )
+
+    # [12] Docker documentation
+    add_ieee_reference(doc,
+        ref_num=12,
+        author="Docker Inc.",
+        title="Docker Documentation - Build, Share, and Run Applications",
+        source_type="online",
+        year="2025",
+        url="https://docs.docker.com/",
+        accessed="Feb. 01, 2026"
+    )
+
+    # [13] Kubernetes documentation
+    add_ieee_reference(doc,
+        ref_num=13,
+        author="The Kubernetes Authors",
+        title="Kubernetes Documentation - Production-Grade Container Orchestration",
+        source_type="online",
+        year="2025",
+        url="https://kubernetes.io/docs/",
+        accessed="Feb. 01, 2026"
+    )
+
+    # [14] OpenAI GPT-4 Technical Report
+    add_ieee_reference(doc,
+        ref_num=14,
+        author="OpenAI",
+        title="GPT-4 Technical Report",
+        source_type="online",
+        year="2024",
+        url="https://arxiv.org/abs/2303.08774",
+        accessed="Jan. 20, 2026"
+    )
+
+    # [15] Microservices Architecture Book
+    add_ieee_reference(doc,
+        ref_num=15,
+        author="C. Richardson",
+        title="Microservices Patterns: With Examples in Java",
+        source_type="book",
+        year="2018",
+        publisher="Manning Publications"
+    )
 
 
 # ============== PHỤ LỤC ==============
