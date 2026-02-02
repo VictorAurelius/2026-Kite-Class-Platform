@@ -1,8 +1,11 @@
 # PR-REVIEW-1.1: Gateway Security Tests - Implementation Notes
 
-**Status:** ⚠️ Tests Created (Awaiting Implementation)
+**Status:** 🔧 In Progress (Exception Classes Complete, Services Pending)
 **Date:** 2026-02-02
 **Branch:** `review/gateway-security`
+**Commits:**
+- `6cb78ec` - Test suite created (5 files, 21 tests)
+- `5919fde` - Exception classes and DTOs implemented
 
 ---
 
@@ -41,13 +44,40 @@
    - Rate limit reset after period
    - Concurrent request handling
 
+### Exception Classes Implemented (8 classes) ✅
+
+Created in `com.kiteclass.gateway.common.exception/`:
+- TokenExpiredException.java
+- InvalidTokenException.java
+- TokenBlacklistedException.java
+- RefreshTokenUsedException.java
+- TenantMismatchException.java
+- WeakPasswordException.java
+- AccountLockedException.java
+- InvalidCredentialsException.java
+
+### DTOs Implemented (2 classes) ✅
+
+Created DTOs:
+- `module.auth.dto.request.RegisterRequest` - Simplified registration DTO
+- `module.auth.dto.response.AuthResponse` - Unified auth response with userId, tokens
+
+### Message Codes Added ✅
+
+Updated `MessageCodes.java` and `messages.properties`:
+- AUTH_TOKEN_BLACKLISTED
+- AUTH_REFRESH_TOKEN_USED
+- AUTH_TENANT_MISMATCH
+- AUTH_WEAK_PASSWORD
+- Updated AUTH_ACCOUNT_LOCKED with parameterized message
+
 ---
 
 ## ❌ Required Implementations (Before Tests Can Pass)
 
-### Missing Exception Classes
+### Original Exception Class Specs (Reference)
 
-Create in `com.kiteclass.gateway.common.exception/`:
+Original suggested implementation in `com.kiteclass.gateway.common.exception/`:
 
 ```java
 // 1. TokenExpiredException.java
@@ -107,14 +137,11 @@ public class InvalidCredentialsException extends RuntimeException {
 }
 ```
 
-### Missing DTO Classes
+### ~~Missing DTO Classes~~ (Implemented ✅)
 
-Update existing or create:
-
-```java
-// Use existing RegisterStudentRequest OR create RegisterRequest
-// Use existing LoginResponse OR create AuthResponse
-```
+Created simplified DTOs for testing:
+- `RegisterRequest` - Basic registration (email, password, name)
+- `AuthResponse` - Simplified auth response (userId, tokens)
 
 ### Missing Service Methods
 
@@ -128,6 +155,41 @@ public interface JwtTokenProvider {
     Mono<Void> validateToken(String token);
     Mono<Void> validateTokenForTenant(String token, UUID tenantId);
 }
+```
+
+---
+
+## 🚧 Pending Implementations
+
+### Service Methods Required
+
+**AuthService:**
+```java
+// Add simplified register method
+Mono<AuthResponse> register(RegisterRequest request);
+
+// Existing methods work with tests:
+Mono<LoginResponse> login(LoginRequest request);
+Mono<Void> logout(String refreshToken);
+```
+
+**UserRepository:**
+```java
+// Add findByEmail method
+Mono<User> findByEmail(String email);
+```
+
+**UserService:**
+```java
+// Add searchUsers method
+Flux<UserResponse> searchUsers(String query, Pageable pageable);
+```
+
+**JwtTokenProvider:**
+```java
+// Add validation methods
+Mono<Void> validateToken(String token);
+Mono<Void> validateTokenForTenant(String token, UUID tenantId);
 ```
 
 ### Feature Implementations Required
