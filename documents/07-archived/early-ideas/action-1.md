@@ -656,3 +656,5 @@ sau đó hãy check lại script đề cương đồ án tốt nghiệp => đang
 
 4. Kế hoạch thực hiện đề tài
 => hơi sơ sài, chưa đủ chi tiết
+
+giúp tôi refactor lại toàn bộ cấu trúc thư mục documents
