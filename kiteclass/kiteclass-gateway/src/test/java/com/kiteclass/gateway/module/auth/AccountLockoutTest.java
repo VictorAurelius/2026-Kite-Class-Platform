@@ -2,7 +2,7 @@ package com.kiteclass.gateway.module.auth;
 
 import com.kiteclass.gateway.common.exception.AccountLockedException;
 import com.kiteclass.gateway.common.exception.InvalidCredentialsException;
-import com.kiteclass.gateway.module.auth.dto.request.LoginRequest;
+import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
 import com.kiteclass.gateway.module.auth.dto.response.AuthResponse;
 import com.kiteclass.gateway.module.auth.service.AuthService;
