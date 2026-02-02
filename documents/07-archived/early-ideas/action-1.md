@@ -658,3 +658,58 @@ sau đó hãy check lại script đề cương đồ án tốt nghiệp => đang
 => hơi sơ sài, chưa đủ chi tiết
 
 giúp tôi refactor lại toàn bộ cấu trúc thư mục documents
+
+bây giờ tôi cần sửa de-cuong-datn:
+1. tên đề tài chốt là: XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO
+2. sửa lại, đối với kết quả đạt được có 2 kết quả chính:
++ kết quả về con người (bản thân): đạt được gì sau khi làm đồ án, ...
++ kết quả sản phẩm: 1 quyển báo cáo, 1 chương trình, chương trình có 1 số kết quả gì, ...
+3. Đối với phạm vi phát triển: tạm thời trong đề cương chưa đề cập đến expand-services vì chưa thể đảm bảo tiến độ phát triển
+4. báo cáo cần đảm bảo trình bày trong vòng 2 trang là tốt nhất
+
+tiếp tục sửa:
+1. phần 2. Công nghệ, công cụ và ngôn ngữ lập trình vẫn hơi dài, cô đọng lại hơn
+
+
+2. phần 4. Kế hoạch thực hiện đề tài để để theo dạng timeline tuần tự, thầy có hướng dẫn là task thì cần làm đồng thời chứ không làm tuần tự => cần sửa lại
+ => tôi cần các task chi tiết như bản cũ nhưng sắp xếp thời gian hợp lý hơn thôi
+
+ví dụ phần Unit testing (80% coverage) & Integration testing này phải thực hiện liên tục trong quá trình code chứ => update lại hợp lý hơn, có thể tiếp tục chia nhỏ task
+
+phần ghi chú nên là dạng tiếng việt, nếu cần thiết mới ghi chú, nếu không thì bỏ đi
+
+phần phát triển service cần nói rõ thuộc kiteclass hay kitehub
+
+tôi nghĩ phải phát triển kiteclass trước kitehub và chia nhỏ task của kiteclass ra nữa => mục tiêu: mỗi task làm trong 1 tuần và nếu task đó thực hiện trong thời gian lớn hơn 1 tuần thì phải có 1 task khác thực hiện song song
+
+rút gọn phần 1. Nội dung, phạm vi của đề tài hơn
+
+ở phần 3., không cần tách thành 2 mục như tôi nói mà có đủ gạch đầu dòng bao quát các ý là được
+
+đối với các số liệu cụ thể như (10+ assets từ 1 ảnh upload, $0.19/instance, 5 phút) thì phải nói theo kiểu mang tính hướng tới kết quả như vậy, mang tính chung chung, thay vì khẳng định cụ thể và cố định => đề cương chỉ là bản để xác định bài toán rõ ràng thôi => sửa lại tất cả các chỗ trong đề cương
+
+trong toàn bộ đề cương chưa thấy đề cập đến kiteclass core phải có thanh toán học phí nhỉ?
+
+check lại kiến trúc hệ thống xem còn thiếu nghiệp vụ nào không?
+và nên tách thành task riêng nhé
+
+tiếp tục sửa báo cáo thực tập:
+1. phải phân biệt rõ giữa thuật ngữ và từ viết tắt
+2. đối với giới thiệu công ty => thực hiện nêu thành tựu của công ty 
+3. đối với định hướng phải có định hướng đến đồ án tốt nghiệp => vì thực tập này là thực tập chuẩn bị đồ án tốt nghiệp
+4. đối với khoảng thời gian thực tập, sửa lại từ 26/06 đến 26/09 thành từ 01/12/2025 đến 01/03/2026 => vì phải khớp với thời gian của trường
+5. đối với công nghệ tìm hiểu thì phải có mô tả về công nghệ đó => chọn 4-5 công nghệ, mỗi công nghệ khoảng nửa trang
+6. đối với tài liệu tham khảo phải trên 10 tài liệu tham khảo => 15 tài liệu
+
+2.4. Công nghệ, công cụ và kỹ thuật sử dụng => phải gắn với công nghệ sử dụng khi thực tập chứ => có sử dụng Oracle DB nhưng lại viết về PostgreSQL?, ...
+
+Đợt thực tập này có ý nghĩa quan trọng như một bước chuẩn bị nền tảng cho đồ án tốt nghiệp của em với đề tài "KiteClass Platform - Nền tảng quản lý lớp học trực tuyến dựa trên kiến trúc SaaS Multi-tenant". Các kiến thức và kỹ năng tích lũy được trong quá trình thực tập có liên hệ trực tiếp với đồ án tốt nghiệp:
+
+=> chưa đúng tên đề tài
+
+Phụ lục A: Nhật ký thực tập
+=> chưa cập nhật
+=> viết lại phụ lục này kỹ hơn kế hoạch thực tập => có thể tự tạo nội dung để tốt hơn 
+
+Phụ lục A: Nhật ký thực tập chi tiết
+=> sửa lại dạng kẻ bảng
