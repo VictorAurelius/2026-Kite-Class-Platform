@@ -357,37 +357,19 @@ def add_content_sections(doc):
     add_section_title(doc, "3", "Các kết quả chính dự kiến đạt được")
 
     add_section_content(doc,
-        "Qua quá trình nghiên cứu và thực hiện đề tài, các kết quả dự kiến đạt được bao gồm 2 nhóm chính:")
+        "Qua quá trình nghiên cứu và thực hiện đề tài, các kết quả dự kiến đạt được bao gồm:")
 
-    # Kết quả về con người (bản thân)
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(6)
-    run = p.add_run("Kết quả về con người (bản thân):")
-    set_font(run, Pt(13), bold=True)
-
-    add_bullet_item(doc, "Nắm vững kiến thức về kiến trúc Microservices, multi-tenant SaaS, và kiến trúc hybrid (Monolith + Microservices)")
-    add_bullet_item(doc, "Có kỹ năng phát triển full-stack với Java Spring Boot (backend) và Next.js (frontend)")
-    add_bullet_item(doc, "Có kinh nghiệm triển khai hệ thống trên cloud (AWS EKS) với Kubernetes orchestration")
-    add_bullet_item(doc, "Có khả năng tích hợp AI vào sản phẩm thực tế (OpenAI GPT-4, DALL-E 3)")
-    add_bullet_item(doc, "Rèn luyện tư duy giải quyết vấn đề thực tế và khả năng làm việc với công nghệ mới nhất 2025-2026")
-
-    # Kết quả sản phẩm
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(6)
-    run = p.add_run("Kết quả sản phẩm:")
-    set_font(run, Pt(13), bold=True)
-
-    add_bullet_item(doc, "1 quyển báo cáo đồ án tốt nghiệp hoàn chỉnh với UML diagrams, ERD, API documentation, "
-        "slide bảo vệ và video demo")
-    add_bullet_item(doc, "1 chương trình hoàn chỉnh: KiteClass Platform MVP bao gồm KiteHub Platform (Modular Monolith "
-        "với 4 modules) và KiteClass Instance (3 Core Services: Gateway, Core, Frontend)")
-    add_bullet_item(doc, "Chương trình có AI Agent tự động tạo branding (10+ assets từ 1 ảnh upload, chi phí $0.19/instance, "
-        "thời gian 5 phút) và auto-provisioning (setup namespace, database, deploy services trong 20 phút)")
-    add_bullet_item(doc, "Kết quả kỹ thuật: API response time < 200ms cho 95% requests, hỗ trợ 1000+ concurrent users/instance, "
-        "uptime 99.9%")
-    add_bullet_item(doc, "Mã nguồn trên GitHub với tài liệu hướng dẫn triển khai và sử dụng đầy đủ")
-    add_bullet_item(doc, "Giá trị ứng dụng: Giải quyết bài toán thực tế cho ~10,000+ trung tâm giáo dục nhỏ tại Việt Nam, "
-        "có tiềm năng thương mại hóa")
+    add_bullet_item(doc, "Nắm vững kiến thức về kiến trúc Microservices, multi-tenant SaaS, kiến trúc hybrid")
+    add_bullet_item(doc, "Có kỹ năng phát triển full-stack với Java Spring Boot và Next.js")
+    add_bullet_item(doc, "Có kinh nghiệm triển khai hệ thống trên cloud với Kubernetes")
+    add_bullet_item(doc, "Có khả năng tích hợp AI vào sản phẩm thực tế")
+    add_bullet_item(doc, "Báo cáo đồ án tốt nghiệp hoàn chỉnh (UML diagrams, ERD, API docs, slides, video demo)")
+    add_bullet_item(doc, "Chương trình hoàn chỉnh: KiteClass Platform MVP (KiteHub Platform + KiteClass Instance)")
+    add_bullet_item(doc, "AI Agent tự động tạo branding từ ảnh upload với chi phí thấp và thời gian nhanh, "
+        "auto-provisioning tự động setup infrastructure")
+    add_bullet_item(doc, "Hệ thống đạt thời gian phản hồi nhanh, hỗ trợ nhiều người dùng đồng thời, độ sẵn sàng cao")
+    add_bullet_item(doc, "Mã nguồn trên GitHub với tài liệu hướng dẫn đầy đủ")
+    add_bullet_item(doc, "Giá trị ứng dụng: Giải quyết bài toán thực tế cho các trung tâm giáo dục nhỏ tại Việt Nam")
 
     # 4. Kế hoạch thực hiện đề tài
     add_section_title(doc, "4", "Kế hoạch thực hiện đề tài")
@@ -418,7 +400,7 @@ def add_content_sections(doc):
     plan_data = [
         # Phase 1: Research & Analysis (3 tuần: 01/02 - 21/02)
         ("1", "Nghiên cứu công nghệ, phân tích đối thủ cạnh tranh", "01/02 – 14/02/2026", "Phân tích BeeClass, Udemy"),
-        ("2", "Phân tích yêu cầu nghiệp vụ, use case modeling", "08/02 – 21/02/2026", "214 use cases"),
+        ("2", "Phân tích yêu cầu nghiệp vụ, use case modeling", "08/02 – 21/02/2026", "Mô hình hóa use cases"),
 
         # Phase 2: System Design (2 tuần: 22/02 - 07/03)
         ("3", "Thiết kế kiến trúc hệ thống (Hybrid Architecture)", "22/02 – 28/02/2026", "Sơ đồ PlantUML"),
@@ -426,7 +408,7 @@ def add_content_sections(doc):
 
         # Phase 3: KiteClass Development - Backend & Frontend song song (7 tuần: 08/03 - 25/04)
         ("5", "KiteClass Gateway: Auth, routing + Unit tests", "08/03 – 14/03/2026", "Xác thực, định tuyến"),
-        ("6", "KiteClass Frontend: Base setup + Auth pages + Unit tests", "08/03 – 14/03/2026", "Next.js, React"),
+        ("6", "KiteClass Frontend: Base setup + Auth pages + Unit tests", "08/03 – 14/03/2026", "Cơ sở giao diện"),
 
         ("7", "KiteClass Core: Student & Teacher modules + Unit tests", "15/03 – 28/03/2026", "Quản lý SV, GV"),
         ("8", "KiteClass Frontend: Student & Teacher pages + Unit tests", "15/03 – 28/03/2026", "Giao diện SV, GV"),
@@ -441,7 +423,7 @@ def add_content_sections(doc):
 
         # Phase 4: KiteHub Platform Development (4 tuần: 26/04 - 17/05)
         ("14", "KiteHub: Auth & Tenant Management + Unit tests", "26/04 – 02/05/2026", "Xác thực, quản lý tenant"),
-        ("15", "KiteHub: Billing System + Unit tests", "26/04 – 02/05/2026", "Thanh toán VietQR"),
+        ("15", "KiteHub: Billing System + Unit tests", "26/04 – 02/05/2026", "Thanh toán điện tử"),
 
         ("16", "KiteHub: Admin Dashboard + Unit tests", "03/05 – 09/05/2026", "Giao diện quản trị"),
         ("17", "KiteHub: Auto-provisioning + Unit tests", "03/05 – 09/05/2026", "Tự động triển khai"),
@@ -450,8 +432,8 @@ def add_content_sections(doc):
         ("19", "Integration testing KiteHub", "10/05 – 16/05/2026", "Kiểm thử platform"),
 
         # Phase 5: System Testing & Deployment (1.5 tuần: 17/05 - 25/05)
-        ("20", "Load testing & performance tuning", "17/05 – 23/05/2026", "JMeter, tối ưu"),
-        ("21", "AWS EKS production deployment", "17/05 – 25/05/2026", "Triển khai K8s"),
+        ("20", "Load testing & performance tuning", "17/05 – 23/05/2026", "Kiểm thử tải, tối ưu"),
+        ("21", "AWS EKS production deployment", "17/05 – 25/05/2026", "Triển khai production"),
 
         # Phase 6: Documentation (1 tuần: 26/05 - 31/05)
         ("22", "Hoàn thiện thesis report, slides, demo video", "26/05 – 31/05/2026", "Chuẩn bị bảo vệ"),
