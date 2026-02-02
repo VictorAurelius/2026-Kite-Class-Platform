@@ -4,7 +4,6 @@ import com.kiteclass.gateway.common.exception.AccountLockedException;
 import com.kiteclass.gateway.common.exception.InvalidCredentialsException;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
-import com.kiteclass.gateway.module.auth.dto.response.AuthResponse;
 import com.kiteclass.gateway.module.auth.service.AuthService;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
@@ -43,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AccountLockoutTest {
 
     @Container
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
         .withDatabaseName("testdb")
         .withUsername("test")

@@ -1,6 +1,5 @@
 package com.kiteclass.gateway.filter;
 
-import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
 import com.kiteclass.gateway.module.auth.service.AuthService;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RateLimitSecurityTest {
 
     @Container
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
         .withDatabaseName("testdb")
         .withUsername("test")
