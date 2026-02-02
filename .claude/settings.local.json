@@ -71,7 +71,12 @@
       "Bash(bash:*)",
       "Bash(git reset:*)",
       "Bash(done)",
-      "Bash(python create_de_cuong_datn_v4.py:*)"
+      "Bash(python create_de_cuong_datn_v4.py:*)",
+      "Bash(du:*)",
+      "Bash(xargs:*)",
+      "Bash(sort:*)",
+      "Bash(không cam kết số liệu cụ thể\" - Proposal defines direction, not commitments.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(kiến trúc SaaS Multi-tenant\"\n   \n   NEW \\(correct\\):\n   \"XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO\"\n   \n   Updated in Chapter 4 \\(Kết nối với đồ án tốt nghiệp\\) sections 4.3 and 4.4.\n\n3. Appendix A - Expanded internship diary from summary to detailed log:\n   \n   OLD format:\n   - Simple 6-row table with grouped weeks \\(1-2, 3-4, etc.\\)\n   - Brief descriptions like \"Làm quen môi trường\", \"Thiết kế CSDL\"\n   \n   NEW format:\n   - Detailed narrative for each of 13 weeks \\(01/12/2025 - 01/03/2026\\)\n   - Each week has 4 sections:\n     * Công việc thực hiện \\(4-5 specific tasks\\)\n     * Kỹ năng học được \\(3-4 technical skills\\)\n     * Thách thức \\(realistic challenges paragraph\\)\n     * Kết quả \\(deliverables and outcomes paragraph\\)\n   \n   Weekly progression:\n   - Weeks 1-2: Onboarding, Oracle DB training\n   - Weeks 3-4: Database design \\(tables, indexes, constraints, docs\\)\n   - Weeks 5-6: Screen design \\(validation, messages, UI\\)\n   - Weeks 7-8: API design \\(RESTful, Claude AI integration\\)\n   - Weeks 9-10: Batch design \\(Spring Batch jobs, feedback\\)\n   - Weeks 11-12: Independent work, cross-checking, reviews\n   - Week 13: Finalization, documentation, positive evaluation\n\n4. BONUS - Updated references section:\n   \n   REMOVED \\(thesis-related\\):\n   - [9-14] Next.js, PostgreSQL, Redis, Docker, Kubernetes, GPT-4 docs\n   \n   ADDED \\(SORA internship-related\\):\n   - [9] Maven Documentation \\(Apache\\)\n   - [10] Git Documentation \\(Software Freedom Conservancy\\)\n   - [11] IntelliJ IDEA Documentation \\(JetBrains\\)\n   - [12] Database Normalization \\(E.F. Codd, 1972\\)\n   - [13] Microservices Patterns \\(C. Richardson, 2018\\)\n\nImpact:\n- ~500 lines modified/added across 4 major sections\n- Report now accurately reflects SORA STEP4 internship work\n- Correct thesis title used throughout\n- Appendix A now shows realistic progression of software engineering intern\n- All references support actual internship technologies\n\nAll changes follow UTC formatting standards and Vietnamese academic writing \nrequirements.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
