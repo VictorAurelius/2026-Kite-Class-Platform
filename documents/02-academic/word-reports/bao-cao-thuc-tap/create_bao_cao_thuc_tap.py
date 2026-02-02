@@ -1284,8 +1284,8 @@ def add_chapter1(doc):
         "Tăng trưởng quy mô từ 20 nhân viên ban đầu lên hơn 95 nhân viên sau 3 năm hoạt động",
         "Xây dựng quy trình phát triển phần mềm chuyên nghiệp theo chuẩn quốc tế với tỷ lệ "
         "dự án giao đúng hạn đạt 95%",
-        "Áp dụng thành công các công nghệ hiện đại: Java Spring Boot, React/Next.js, PostgreSQL, "
-        "Redis, Docker/Kubernetes, AI Integration",
+        "Áp dụng thành công các công nghệ hiện đại: Java Spring Boot, Oracle Database, Spring Batch, "
+        "RESTful API, Git/Maven, AI Integration",
         "Đào tạo và phát triển nguồn nhân lực chất lượng cao với hơn 80% kỹ sư có kinh nghiệm 3+ năm",
         "Xây dựng văn hóa doanh nghiệp lấy con người làm trung tâm với tỷ lệ giữ chân nhân tài cao",
     ])
@@ -1573,11 +1573,36 @@ def add_chapter2(doc):
     add_section_title(doc, "2.4. Công nghệ, công cụ và kỹ thuật sử dụng")
 
     add_paragraph_text(doc,
-        "Trong quá trình thực tập, em đã được tiếp cận và nghiên cứu nhiều công nghệ hiện đại "
-        "được sử dụng rộng rãi trong phát triển phần mềm. Dưới đây là mô tả chi tiết về các "
-        "công nghệ chính mà em đã học hỏi và áp dụng trong thực tế:")
+        "Trong quá trình thực tập tại dự án SORA STEP4, em đã được tiếp cận và nghiên cứu nhiều "
+        "công nghệ hiện đại được sử dụng rộng rãi trong phát triển phần mềm offshore tại Nhật Bản. "
+        "Dưới đây là mô tả chi tiết về các công nghệ chính mà em đã học hỏi và áp dụng trong thực tế:")
 
-    add_subsection_title(doc, "2.4.1. Java Spring Boot")
+    add_subsection_title(doc, "2.4.1. Oracle Database")
+
+    add_paragraph_text(doc,
+        "Oracle Database [1] là hệ quản trị cơ sở dữ liệu quan hệ hàng đầu thế giới, được sử dụng "
+        "rộng rãi trong các doanh nghiệp lớn và dự án offshore tại Nhật Bản nhờ tính ổn định, bảo mật "
+        "và hiệu năng cao. Oracle Database tuân thủ đầy đủ các thuộc tính ACID (Atomicity, Consistency, "
+        "Isolation, Durability), đảm bảo tính toàn vẹn dữ liệu trong mọi tình huống.")
+
+    add_paragraph_text(doc, "Các tính năng nổi bật của Oracle Database:")
+
+    add_bullet_list(doc, [
+        "ACID Compliance: Đảm bảo transaction được thực hiện toàn vẹn hoặc rollback hoàn toàn",
+        "PL/SQL: Ngôn ngữ lập trình mở rộng của SQL, cho phép viết stored procedures, functions, triggers",
+        "Constraints: Hỗ trợ đầy đủ PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE, CHECK constraints",
+        "Advanced Indexing: B-tree index, Bitmap index, Function-based index để tối ưu truy vấn",
+        "Data Types: Hỗ trợ đa dạng kiểu dữ liệu như VARCHAR2, NUMBER, DATE, CLOB, BLOB, JSON",
+    ])
+
+    add_paragraph_text(doc,
+        "Trong dự án SORA STEP4, Oracle Database được sử dụng làm hệ quản trị cơ sở dữ liệu chính. "
+        "Em đã học cách thiết kế database schema với naming convention chuẩn Nhật Bản, định nghĩa "
+        "constraints để đảm bảo tính toàn vẹn dữ liệu, và tạo index để tối ưu hóa hiệu năng truy vấn. "
+        "Kiến thức về Oracle data types giúp em chọn đúng kiểu dữ liệu phù hợp cho từng column, đảm bảo "
+        "hiệu quả lưu trữ và xử lý.")
+
+    add_subsection_title(doc, "2.4.2. Java Spring Boot")
 
     add_paragraph_text(doc,
         "Spring Boot [8] là framework phát triển ứng dụng Java phổ biến nhất hiện nay, "
@@ -1585,128 +1610,110 @@ def add_chapter2(doc):
         "triển khai ứng dụng. Spring Boot theo triết lý \"Convention over Configuration\", "
         "giúp developer tập trung vào logic nghiệp vụ thay vì cấu hình phức tạp.")
 
-    add_paragraph_text(doc, "Các tính năng nổi bật:")
+    add_paragraph_text(doc, "Các tính năng nổi bật của Spring Boot:")
 
     add_bullet_list(doc, [
         "Auto-configuration: Tự động cấu hình các thành phần dựa trên dependencies có trong classpath",
-        "Embedded Server: Tích hợp sẵn Tomcat/Jetty, không cần deploy file WAR",
-        "Spring Data JPA: Đơn giản hóa thao tác với database thông qua ORM",
-        "Spring Security: Cung cấp authentication và authorization mạnh mẽ",
-        "Microservices Support: Hỗ trợ xây dựng kiến trúc microservices với Spring Cloud",
+        "Dependency Injection: Quản lý dependencies giữa các component thông qua IoC container",
+        "Spring Data JPA: Đơn giản hóa thao tác với database thông qua ORM, tự động sinh SQL",
+        "Embedded Server: Tích hợp sẵn Tomcat/Jetty, không cần deploy file WAR riêng",
+        "Layered Architecture: Tách biệt rõ ràng Controller - Service - Repository giúp code dễ bảo trì",
     ])
 
     add_paragraph_text(doc,
-        "Trong đồ án KiteClass Platform, Spring Boot được sử dụng làm nền tảng backend chính "
-        "để xây dựng RESTful API, xử lý business logic, quản lý transaction và tích hợp với "
-        "PostgreSQL database. Kiến trúc layered (Controller - Service - Repository) của Spring Boot "
-        "giúp code dễ bảo trì và mở rộng.")
+        "Trong dự án SORA STEP4, Spring Boot được sử dụng làm nền tảng backend để xây dựng các "
+        "RESTful API phục vụ frontend. Em đã học cách áp dụng kiến trúc layered của Spring Boot: "
+        "Controller xử lý HTTP requests, Service chứa business logic, Repository tương tác với database. "
+        "Spring Data JPA giúp em thao tác với Oracle Database một cách dễ dàng thông qua các Entity và "
+        "Repository interface.")
 
-    add_subsection_title(doc, "2.4.2. Next.js")
+    add_subsection_title(doc, "2.4.3. Spring Batch")
 
     add_paragraph_text(doc,
-        "Next.js [9] là React framework được phát triển bởi Vercel, cung cấp giải pháp "
-        "toàn diện cho việc xây dựng web application hiện đại. Next.js kết hợp ưu điểm của "
-        "Server-Side Rendering (SSR) và Static Site Generation (SSG) để tối ưu hiệu năng và SEO.")
+        "Spring Batch [2] là framework mạnh mẽ cho việc xử lý batch processing trong Java, "
+        "được thiết kế để xử lý khối lượng lớn dữ liệu một cách hiệu quả và đáng tin cậy. Spring Batch "
+        "cung cấp các tính năng như transaction management, chunk processing, restart/retry mechanism, "
+        "và job scheduling.")
+
+    add_paragraph_text(doc, "Các thành phần chính của Spring Batch:")
+
+    add_bullet_list(doc, [
+        "Job: Đơn vị công việc cao nhất, đại diện cho một batch process hoàn chỉnh",
+        "Step: Các bước xử lý trong một Job, có thể chạy tuần tự hoặc song song",
+        "Chunk Processing: Xử lý dữ liệu theo từng chunk (ví dụ 1000 records/chunk) để tối ưu memory",
+        "ItemReader: Đọc dữ liệu từ nguồn (database, file, API)",
+        "ItemProcessor: Xử lý/biến đổi dữ liệu đã đọc",
+        "ItemWriter: Ghi dữ liệu đã xử lý vào đích (database, file)",
+    ])
+
+    add_paragraph_text(doc,
+        "Trong dự án SORA STEP4, Spring Batch được sử dụng để xử lý các tác vụ định kỳ như import "
+        "dữ liệu hàng loạt, generate reports, synchronize data giữa các hệ thống. Em đã học cách thiết kế "
+        "batch job với chunk processing để xử lý hiệu quả hàng triệu records, cấu hình retry logic khi gặp lỗi, "
+        "và monitor batch execution status. Kiến trúc Job-Step-Chunk của Spring Batch giúp code dễ mở rộng "
+        "và maintain.")
+
+    add_subsection_title(doc, "2.4.4. RESTful API")
+
+    add_paragraph_text(doc,
+        "RESTful API [3], [5] là kiến trúc thiết kế API dựa trên các nguyên tắc của REST "
+        "(Representational State Transfer), sử dụng HTTP protocol để giao tiếp giữa client và server. "
+        "RESTful API được ưa chuộng nhờ tính đơn giản, dễ hiểu, và khả năng mở rộng tốt.")
+
+    add_paragraph_text(doc, "Các nguyên tắc thiết kế RESTful API:")
+
+    add_bullet_list(doc, [
+        "Resource-based: Mọi thứ đều là resource, được định danh bằng URI (ví dụ: /users, /orders)",
+        "HTTP Methods: Sử dụng GET (đọc), POST (tạo), PUT (cập nhật toàn bộ), PATCH (cập nhật từng phần), DELETE (xóa)",
+        "Stateless: Mỗi request độc lập, server không lưu trữ session state của client",
+        "Status Codes: Sử dụng HTTP status codes chuẩn (200 OK, 201 Created, 400 Bad Request, 404 Not Found, 500 Internal Server Error)",
+        "HATEOAS: Response chứa links để client navigate đến các resource liên quan (optional)",
+    ])
+
+    add_paragraph_text(doc,
+        "Trong dự án SORA STEP4, tất cả các API được thiết kế theo chuẩn RESTful. Em đã học cách "
+        "định nghĩa endpoint theo resource-based URL, chọn HTTP method phù hợp cho từng thao tác, "
+        "thiết kế request/response body với JSON format, và xử lý error với status code rõ ràng. "
+        "Kỹ năng thiết kế RESTful API giúp em xây dựng các API dễ sử dụng, dễ document, và dễ maintain.")
+
+    add_subsection_title(doc, "2.4.5. Git và Maven")
+
+    add_paragraph_text(doc,
+        "Git là hệ thống quản lý phiên bản phân tán (distributed version control system) phổ biến nhất "
+        "hiện nay, cho phép nhiều developer làm việc đồng thời trên cùng một codebase. Maven là công cụ "
+        "build automation và dependency management cho Java projects, giúp quản lý thư viện, compile code, "
+        "chạy tests và package ứng dụng.")
 
     add_paragraph_text(doc, "Các tính năng chính:")
 
     add_bullet_list(doc, [
-        "Hybrid Rendering: Hỗ trợ cả SSR, SSG và Client-Side Rendering trong cùng một ứng dụng",
-        "File-based Routing: Tự động tạo routes dựa trên cấu trúc thư mục pages/",
-        "API Routes: Cho phép tạo API endpoints ngay trong Next.js app",
-        "Image Optimization: Tối ưu hình ảnh tự động với next/image",
-        "TypeScript Support: Hỗ trợ TypeScript out-of-the-box",
+        "Git: Version control, branching/merging, conflict resolution, commit history, remote repository (GitHub/GitLab)",
+        "Maven: Dependency management với pom.xml, build lifecycle (compile, test, package, install), plugin ecosystem",
+        "Git Workflow: Feature branching, pull request, code review, merge to main branch",
+        "Maven Convention: Cấu trúc thư mục chuẩn (src/main/java, src/test/java), naming convention",
+        "CI/CD Integration: Tích hợp với Jenkins/GitLab CI để tự động build và deploy",
     ])
 
     add_paragraph_text(doc,
-        "KiteClass Platform sử dụng Next.js cho frontend để xây dựng giao diện người dùng "
-        "responsive và interactive. App Router mới của Next.js 13+ với React Server Components "
-        "giúp tối ưu performance và trải nghiệm người dùng. Tailwind CSS được tích hợp để styling "
-        "nhanh chóng và nhất quán.")
-
-    add_subsection_title(doc, "2.4.3. PostgreSQL")
-
-    add_paragraph_text(doc,
-        "PostgreSQL [10] là hệ quản trị cơ sở dữ liệu quan hệ mã nguồn mở mạnh mẽ nhất hiện nay, "
-        "được biết đến với độ tin cậy cao, tuân thủ chuẩn SQL và khả năng mở rộng vượt trội. "
-        "PostgreSQL hỗ trợ cả dữ liệu quan hệ truyền thống và dữ liệu JSON, phù hợp cho các "
-        "ứng dụng hiện đại.")
-
-    add_paragraph_text(doc, "Các đặc điểm nổi bật:")
-
-    add_bullet_list(doc, [
-        "ACID Compliance: Đảm bảo tính toàn vẹn dữ liệu với transaction đầy đủ",
-        "JSON/JSONB Support: Lưu trữ và truy vấn dữ liệu JSON hiệu quả",
-        "Advanced Indexing: Hỗ trợ B-tree, Hash, GiST, GIN indexes",
-        "Row-level Security: Kiểm soát truy cập dữ liệu ở mức row",
-        "Extensibility: Có thể mở rộng với custom functions, data types, operators",
-    ])
-
-    add_paragraph_text(doc,
-        "Trong KiteClass Platform, PostgreSQL được chọn làm database chính vì khả năng xử lý "
-        "kiến trúc Multi-tenant tốt thông qua Row-level Security. Database schema được thiết kế "
-        "với các table chính: organizations, users, classes, assignments, submissions, grades. "
-        "JSONB data type được sử dụng để lưu trữ metadata linh hoạt cho từng tenant.")
-
-    add_subsection_title(doc, "2.4.4. Redis")
-
-    add_paragraph_text(doc,
-        "Redis [11] (Remote Dictionary Server) là hệ thống lưu trữ dữ liệu in-memory mã nguồn mở, "
-        "thường được sử dụng làm database cache, message broker và session store. Redis nổi tiếng "
-        "với hiệu năng cực cao nhờ lưu trữ dữ liệu trong RAM.")
-
-    add_paragraph_text(doc, "Các use case phổ biến:")
-
-    add_bullet_list(doc, [
-        "Caching: Cache kết quả query, API response để giảm tải database",
-        "Session Management: Lưu trữ user session trong môi trường distributed",
-        "Real-time Analytics: Đếm, ranking, leaderboard với tốc độ cao",
-        "Message Queue: Pub/Sub pattern cho real-time messaging",
-        "Rate Limiting: Kiểm soát số lượng request từ user/IP",
-    ])
-
-    add_paragraph_text(doc,
-        "KiteClass Platform tích hợp Redis để cache dữ liệu thường xuyên truy cập như danh sách "
-        "lớp học, thông tin user, cấu hình organization. Redis cũng được dùng để lưu session và "
-        "implement rate limiting cho API endpoints, đảm bảo hệ thống ổn định khi có nhiều concurrent users.")
-
-    add_subsection_title(doc, "2.4.5. Docker và Kubernetes")
-
-    add_paragraph_text(doc,
-        "Docker [12] là nền tảng containerization cho phép đóng gói ứng dụng cùng với dependencies "
-        "thành các container độc lập, đảm bảo ứng dụng chạy nhất quán trên mọi môi trường. "
-        "Kubernetes [13] là hệ thống orchestration để quản lý, scaling và deploy containers trong "
-        "production.")
-
-    add_paragraph_text(doc, "Lợi ích của containerization:")
-
-    add_bullet_list(doc, [
-        "Consistency: Đảm bảo môi trường development, staging và production giống hệt nhau",
-        "Isolation: Mỗi service chạy trong container riêng, tránh xung đột dependencies",
-        "Scalability: Dễ dàng scale horizontal bằng cách tạo thêm container instances",
-        "Resource Efficiency: Container nhẹ hơn VM, khởi động nhanh và tiết kiệm tài nguyên",
-        "DevOps Integration: Tích hợp tốt với CI/CD pipeline",
-    ])
-
-    add_paragraph_text(doc,
-        "KiteClass Platform được containerized với Docker, mỗi service (backend, frontend, database, "
-        "redis) chạy trong container riêng được định nghĩa trong docker-compose.yml. Trong production, "
-        "Kubernetes được sử dụng để orchestrate containers, tự động scaling khi tải cao và ensure "
-        "high availability với health checks và auto-restart.")
+        "Trong dự án SORA STEP4, Git được sử dụng để quản lý mã nguồn thiết kế và tài liệu. Em đã học "
+        "cách commit code với message rõ ràng, tạo branch cho từng feature, merge code sau khi review, "
+        "và resolve conflicts khi có. Maven được sử dụng để quản lý dependencies của Spring Boot project, "
+        "compile code, chạy tests, và package thành JAR file. IntelliJ IDEA được sử dụng làm IDE chính, "
+        "tích hợp sẵn Git và Maven để thuận tiện trong development.")
 
     add_subsection_title(doc, "2.4.6. Tổng hợp công nghệ sử dụng")
 
-    add_table_with_caption(doc, 2, "Công nghệ và công cụ sử dụng trong thực tập",
+    add_table_with_caption(doc, 2, "Công nghệ và công cụ sử dụng trong thực tập SORA STEP4",
         ["Loại", "Tên", "Mục đích"],
         [
+            ("Database", "Oracle Database [1]", "Lưu trữ dữ liệu quan hệ, đảm bảo ACID"),
             ("Backend Framework", "Java Spring Boot [8]", "Xây dựng RESTful API và business logic"),
-            ("Frontend Framework", "Next.js [9]", "Xây dựng giao diện người dùng hiện đại"),
-            ("Database", "PostgreSQL [10], Oracle [1]", "Lưu trữ dữ liệu quan hệ"),
-            ("Cache/Session", "Redis [11]", "Caching và session management"),
-            ("Containerization", "Docker [12], Kubernetes [13]", "Đóng gói và deploy ứng dụng"),
-            ("IDE", "IntelliJ IDEA, VS Code", "Môi trường phát triển"),
-            ("Version Control", "Git, GitHub", "Quản lý mã nguồn"),
-            ("AI Tools", "Claude AI [4], OpenAI GPT-4 [14]", "Hỗ trợ kiểm tra thiết kế"),
+            ("Batch Processing", "Spring Batch [2]", "Xử lý dữ liệu hàng loạt, scheduled jobs"),
+            ("API Architecture", "RESTful API [3], [5]", "Thiết kế API theo chuẩn REST"),
+            ("Version Control", "Git, GitHub", "Quản lý mã nguồn và collaboration"),
+            ("Build Tool", "Maven", "Dependency management và build automation"),
+            ("IDE", "IntelliJ IDEA", "Môi trường phát triển Java"),
+            ("AI Tools", "Claude AI [4]", "Hỗ trợ kiểm tra chất lượng thiết kế"),
         ],
         col_widths=[4.0, 5.5, 6.5]
     )
@@ -1894,21 +1901,21 @@ def add_chapter4(doc):
 
     add_paragraph_text(doc,
         "Đợt thực tập này có ý nghĩa quan trọng như một bước chuẩn bị nền tảng cho đồ án "
-        "tốt nghiệp của em với đề tài \"KiteClass Platform - Nền tảng quản lý lớp học trực tuyến "
-        "dựa trên kiến trúc SaaS Multi-tenant\". Các kiến thức và kỹ năng tích lũy được trong quá "
-        "trình thực tập có liên hệ trực tiếp với đồ án tốt nghiệp:")
+        "tốt nghiệp của em với đề tài \"XÂY DỰNG HỆ THỐNG SAAS CUNG CẤP DỊCH VỤ ĐÀO TẠO\". "
+        "Các kiến thức và kỹ năng tích lũy được trong quá trình thực tập có liên hệ trực tiếp "
+        "với đồ án tốt nghiệp:")
 
     add_bullet_list(doc, [
-        "Kinh nghiệm thiết kế cơ sở dữ liệu sẽ được áp dụng để xây dựng schema cho KiteClass Platform "
-        "với các entity: Organization, User, Class, Assignment, Submission, Grade",
+        "Kinh nghiệm thiết kế cơ sở dữ liệu Oracle sẽ được áp dụng để xây dựng database schema "
+        "cho hệ thống SaaS đào tạo với các entity như Organization, User, Course, Enrollment, Assessment",
         "Kiến thức về kiến trúc Multi-tenant học được từ các dự án offshore sẽ được vận dụng để "
-        "thiết kế hệ thống cho phép nhiều trường học/tổ chức sử dụng chung nền tảng",
-        "Kỹ năng thiết kế API RESTful sẽ được áp dụng để xây dựng backend cho KiteClass Platform "
+        "thiết kế hệ thống cho phép nhiều tổ chức đào tạo sử dụng chung nền tảng SaaS",
+        "Kỹ năng thiết kế API RESTful sẽ được áp dụng để xây dựng backend API cho hệ thống SaaS "
         "sử dụng Java Spring Boot và PostgreSQL",
-        "Kinh nghiệm làm việc với công nghệ hiện đại (Docker, Redis, AI) sẽ giúp em triển khai "
-        "các tính năng nâng cao như caching, containerization và tích hợp AI hỗ trợ chấm bài",
+        "Kinh nghiệm thiết kế batch processing với Spring Batch sẽ giúp em triển khai các tính năng "
+        "như import dữ liệu hàng loạt, generate báo cáo định kỳ, đồng bộ dữ liệu giữa các module",
         "Quy trình làm việc chuyên nghiệp học được từ công ty sẽ được áp dụng vào quản lý "
-        "dự án đồ án tốt nghiệp: phân tích yêu cầu, thiết kế hệ thống, review code, testing",
+        "dự án đồ án tốt nghiệp: phân tích yêu cầu, thiết kế hệ thống, review thiết kế, testing",
     ])
 
     add_paragraph_text(doc,
@@ -1920,8 +1927,8 @@ def add_chapter4(doc):
     add_paragraph_text(doc, "Các mục tiêu cụ thể:")
 
     add_bullet_list(doc, [
-        "Hoàn thành tốt đồ án tốt nghiệp với đề tài KiteClass Platform - áp dụng kiến thức đã tích lũy",
-        "Tiếp tục học hỏi và nâng cao kỹ năng lập trình (Java, TypeScript, Python)",
+        "Hoàn thành tốt đồ án tốt nghiệp về hệ thống SaaS đào tạo - áp dụng kiến thức đã tích lũy",
+        "Tiếp tục học hỏi và nâng cao kỹ năng lập trình (Java, Spring Boot, PostgreSQL)",
         "Tìm hiểu sâu hơn về AI và ứng dụng trong phát triển phần mềm",
         "Cải thiện kỹ năng ngoại ngữ (tiếng Anh, tiếng Nhật) để làm việc trong môi trường quốc tế",
         "Xây dựng portfolio cá nhân với các dự án thực tế",
@@ -1957,7 +1964,7 @@ def add_chapter4(doc):
 
     add_bullet_list(doc, [
         "Tổng hợp kiến thức về thiết kế hệ thống phần mềm theo chuẩn quốc tế",
-        "Chuẩn bị nền tảng kiến thức vững chắc cho đồ án tốt nghiệp KiteClass Platform",
+        "Chuẩn bị nền tảng kiến thức vững chắc cho đồ án tốt nghiệp về hệ thống SaaS đào tạo",
         "Tài liệu báo cáo có thể làm tham khảo cho các sinh viên khóa sau về quy trình "
         "thực tập tại doanh nghiệp offshore",
     ])
@@ -2157,75 +2164,52 @@ def add_references(doc):
         accessed="Jan. 25, 2026"
     )
 
-    # [9] Next.js documentation
+    # [9] Maven documentation
     add_ieee_reference(doc,
         ref_num=9,
-        author="Vercel Inc.",
-        title="Next.js Documentation - The React Framework for the Web",
+        author="Apache Software Foundation",
+        title="Maven Documentation - Welcome to Apache Maven",
         source_type="online",
         year="2025",
-        url="https://nextjs.org/docs",
+        url="https://maven.apache.org/guides/",
         accessed="Jan. 28, 2026"
     )
 
-    # [10] PostgreSQL documentation
+    # [10] Git documentation
     add_ieee_reference(doc,
         ref_num=10,
-        author="PostgreSQL Global Development Group",
-        title="PostgreSQL 16 Documentation",
+        author="Software Freedom Conservancy",
+        title="Git Documentation - Reference Manual",
         source_type="online",
-        year="2024",
-        url="https://www.postgresql.org/docs/16/",
+        year="2025",
+        url="https://git-scm.com/doc",
         accessed="Jan. 22, 2026"
     )
 
-    # [11] Redis documentation
+    # [11] IntelliJ IDEA documentation
     add_ieee_reference(doc,
         ref_num=11,
-        author="Redis Ltd.",
-        title="Redis Documentation - The Real-time Data Platform",
+        author="JetBrains s.r.o.",
+        title="IntelliJ IDEA Documentation - The Java IDE",
         source_type="online",
         year="2025",
-        url="https://redis.io/docs/",
+        url="https://www.jetbrains.com/idea/documentation/",
         accessed="Jan. 30, 2026"
     )
 
-    # [12] Docker documentation
+    # [12] Database normalization concepts
     add_ieee_reference(doc,
         ref_num=12,
-        author="Docker Inc.",
-        title="Docker Documentation - Build, Share, and Run Applications",
-        source_type="online",
-        year="2025",
-        url="https://docs.docker.com/",
-        accessed="Feb. 01, 2026"
+        author="E. F. Codd",
+        title="Further Normalization of the Data Base Relational Model",
+        source_type="book",
+        year="1972",
+        publisher="IBM Research Report RJ909"
     )
 
-    # [13] Kubernetes documentation
+    # [13] Microservices Architecture Book
     add_ieee_reference(doc,
         ref_num=13,
-        author="The Kubernetes Authors",
-        title="Kubernetes Documentation - Production-Grade Container Orchestration",
-        source_type="online",
-        year="2025",
-        url="https://kubernetes.io/docs/",
-        accessed="Feb. 01, 2026"
-    )
-
-    # [14] OpenAI GPT-4 Technical Report
-    add_ieee_reference(doc,
-        ref_num=14,
-        author="OpenAI",
-        title="GPT-4 Technical Report",
-        source_type="online",
-        year="2024",
-        url="https://arxiv.org/abs/2303.08774",
-        accessed="Jan. 20, 2026"
-    )
-
-    # [15] Microservices Architecture Book
-    add_ieee_reference(doc,
-        ref_num=15,
         author="C. Richardson",
         title="Microservices Patterns: With Examples in Java",
         source_type="book",
@@ -2251,51 +2235,333 @@ def add_appendix(doc):
     run.font.color.rgb = RGBColor(0, 0, 0)
 
     # Phụ lục A: Nhật ký thực tập chi tiết (theo mẫu báo cáo tham khảo)
-    add_section_title(doc, "Phụ lục A: Nhật ký thực tập")
+    add_section_title(doc, "Phụ lục A: Nhật ký thực tập chi tiết")
 
     add_paragraph_text(doc,
         f"Thời gian thực tập: Từ ngày {INTERNSHIP_INFO['start_date']} đến ngày {INTERNSHIP_INFO['end_date']}",
         first_line_indent=False)
 
-    # Bảng nhật ký thực tập theo tuần
-    diary_headers = ["Tuần", "Thời gian", "Mục tiêu tuần", "Công việc thực hiện", "Kết quả", "Ghi chú"]
-    diary_col_widths = [Cm(1.2), Cm(2.0), Cm(2.8), Cm(4.5), Cm(3.0), Cm(2.5)]
+    add_paragraph_text(doc,
+        "Dưới đây là nhật ký chi tiết theo từng tuần trong quá trình thực tập tại dự án SORA STEP4:",
+        first_line_indent=False)
 
-    diary_data = [
-        ("1-2", "26/06 – 09/07", "Làm quen môi trường", "Tìm hiểu dự án, training thiết kế DB", "Nắm cấu trúc DB", ""),
-        ("3-4", "10/07 – 23/07", "Thiết kế CSDL", "Thực hành thiết kế bảng, index, constraints", "Hoàn thành thiết kế DB", ""),
-        ("5-6", "24/07 – 06/08", "Thiết kế màn hình", "Training và thực hành thiết kế Screen", "Hoàn thành thiết kế Screen", ""),
-        ("7-8", "07/08 – 20/08", "Thiết kế API", "Training và thực hành thiết kế RESTful API", "Hoàn thành thiết kế API", ""),
-        ("9-10", "21/08 – 03/09", "Thiết kế Batch", "Giới thiệu AI Checker, training thiết kế Batch", "Hoàn thành thiết kế Batch", ""),
-        ("11-13", "04/09 – 26/09", "Hoàn thiện", "Thiết kế độc lập, hoàn thành báo cáo", "Báo cáo hoàn chỉnh", ""),
-    ]
+    # Tuần 1
+    add_subsection_title(doc, "Tuần 1: 01/12/2025 - 07/12/2025")
 
-    table = doc.add_table(rows=1, cols=len(diary_headers))
-    table.style = 'Table Grid'
-    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Tham gia buổi onboarding và làm quen với môi trường công ty",
+        "Tìm hiểu về dự án SORA STEP4: mục tiêu, phạm vi, kiến trúc hệ thống",
+        "Được giới thiệu về quy trình làm việc và công cụ sử dụng (Git, IntelliJ IDEA, Oracle SQL Developer)",
+        "Ôn tập kiến thức về Java, Spring Boot, Oracle Database",
+        "Đọc tài liệu yêu cầu nghiệp vụ (Business Requirement Document)",
+    ])
 
-    # Header
-    header_cells = table.rows[0].cells
-    for i, (header, width) in enumerate(zip(diary_headers, diary_col_widths)):
-        header_cells[i].text = header
-        header_cells[i].width = width
-        for paragraph in header_cells[i].paragraphs:
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            for run in paragraph.runs:
-                set_font(run, Pt(11), bold=True)
-        set_cell_shading(header_cells[i], 'D9E2F3')
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Hiểu về quy trình phát triển phần mềm offshore theo tiêu chuẩn Nhật Bản",
+        "Nắm được cấu trúc tổ chức dự án và vai trò của từng thành viên",
+        "Làm quen với công cụ quản lý dự án và communication tools",
+    ])
 
-    # Data rows
-    for row_data in diary_data:
-        row = table.add_row()
-        for i, (cell_text, width) in enumerate(zip(row_data, diary_col_widths)):
-            row.cells[i].text = cell_text
-            row.cells[i].width = width
-            for paragraph in row.cells[i].paragraphs:
-                if i == 0:  # Tuần - căn giữa
-                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                for run in paragraph.runs:
-                    set_font(run, Pt(11))
+    add_paragraph_text(doc, "Thách thức: Ban đầu gặp khó khăn trong việc hiểu thuật ngữ chuyên ngành và "
+        "các tài liệu kỹ thuật bằng tiếng Anh/tiếng Nhật.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành onboarding, nắm được overview về dự án và sẵn sàng bắt đầu "
+        "công việc chuyên môn.")
+
+    # Tuần 2
+    add_subsection_title(doc, "Tuần 2: 08/12/2025 - 14/12/2025")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Tham gia khóa training về thiết kế cơ sở dữ liệu (Database Design)",
+        "Học về Oracle Database: data types, constraints, indexes",
+        "Tìm hiểu naming convention chuẩn cho table, column, index theo quy định của dự án",
+        "Nghiên cứu cấu trúc database hiện có của hệ thống SORA",
+        "Thực hành đọc và phân tích Entity Relationship Diagram (ERD)",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Nắm vững các kiểu dữ liệu Oracle: VARCHAR2, NUMBER, DATE, CLOB, BLOB",
+        "Hiểu về constraints: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE, CHECK",
+        "Biết cách tạo và tối ưu indexes (B-tree, Bitmap, Function-based)",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Oracle Database có nhiều khác biệt so với MySQL/PostgreSQL đã học "
+        "ở trường, cần thời gian để làm quen với syntax và best practices.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành training DB Design, có thể đọc hiểu ERD và database schema "
+        "của hệ thống hiện tại.")
+
+    # Tuần 3
+    add_subsection_title(doc, "Tuần 3: 15/12/2025 - 21/12/2025")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Thực hành thiết kế bảng (table) cho module User Management",
+        "Định nghĩa các cột với kiểu dữ liệu, độ dài, constraints phù hợp",
+        "Tạo Entity Info document: tên logic, tên vật lý, mô tả entity",
+        "Tạo Column Info document: chi tiết từng column với data type, length, nullable, default value",
+        "Review thiết kế với mentor và xử lý feedback đợt 1",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng phân tích yêu cầu nghiệp vụ để xác định entities và relationships",
+        "Áp dụng normalization (1NF, 2NF, 3NF) để tránh data redundancy",
+        "Viết tài liệu thiết kế database theo template chuẩn của dự án",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Gặp khó khăn trong việc xác định kiểu dữ liệu và độ dài phù hợp cho "
+        "từng column, đặc biệt với VARCHAR2 và NUMBER.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế 5 bảng chính cho module User Management, pass review "
+        "sau 1 lần sửa.")
+
+    # Tuần 4
+    add_subsection_title(doc, "Tuần 4: 22/12/2025 - 28/12/2025")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Tiếp tục thiết kế indexes cho các bảng đã tạo",
+        "Tạo Index Info document: loại index (PK, FK, Unique, Normal), columns, mục đích",
+        "Học về query optimization và explain plan trong Oracle",
+        "Bắt đầu training về thiết kế màn hình (Screen Design)",
+        "Tìm hiểu về wireframe và UI/UX principles",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Hiểu khi nào nên tạo index và loại index phù hợp (B-tree vs Bitmap)",
+        "Biết cách analyze query performance với EXPLAIN PLAN",
+        "Nắm được quy trình thiết kế màn hình từ wireframe đến detailed design",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Việc quyết định tạo index cho column nào đòi hỏi hiểu sâu về "
+        "business logic và query patterns.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành Index Info cho tất cả các bảng, bắt đầu làm quen với "
+        "Screen Design.")
+
+    # Tuần 5
+    add_subsection_title(doc, "Tuần 5: 29/12/2025 - 04/01/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Thực hành thiết kế màn hình User List (danh sách người dùng)",
+        "Định nghĩa layout: header, search bar, data table, pagination, action buttons",
+        "Tạo Items document: ID, tên, loại (textbox/dropdown/button), I/O type, required flag",
+        "Định nghĩa validation rules: single validation (bắt buộc, độ dài, format)",
+        "Thiết kế messages: success, error, warning, info",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng phân tích màn hình thành các components nhỏ",
+        "Hiểu về các loại validation: client-side vs server-side",
+        "Viết validation rules rõ ràng, đầy đủ trường hợp edge case",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Thiết kế màn hình phức tạp hơn DB design vì phải tham chiếu nhiều "
+        "tài liệu (DB schema, API spec, business rules).")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế màn hình User List với đầy đủ items, validation, "
+        "messages.")
+
+    # Tuần 6
+    add_subsection_title(doc, "Tuần 6: 05/01/2026 - 11/01/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Tiếp tục thiết kế màn hình User Detail (chi tiết/chỉnh sửa người dùng)",
+        "Định nghĩa correlation validation: logic phụ thuộc giữa các trường",
+        "Tạo Item Control document: điều kiện hiển thị/ẩn, enable/disable các fields",
+        "Training về thiết kế API RESTful",
+        "Học về HTTP methods, status codes, request/response structure",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng thiết kế validation phức tạp với multiple conditions",
+        "Hiểu về state management trong màn hình (view mode vs edit mode)",
+        "Nắm vững các nguyên tắc thiết kế RESTful API",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Correlation validation đòi hỏi phải hiểu sâu về business rules và "
+        "xử lý nhiều trường hợp đặc biệt.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế màn hình User Detail, sẵn sàng chuyển sang API Design.")
+
+    # Tuần 7
+    add_subsection_title(doc, "Tuần 7: 12/01/2026 - 18/01/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Thực hành thiết kế API cho module User Management",
+        "Định nghĩa endpoints: GET /users, GET /users/:id, POST /users, PUT /users/:id, DELETE /users/:id",
+        "Thiết kế Request Parameters: query params, path params, request body",
+        "Thiết kế Response structure: status, data, message, pagination",
+        "Định nghĩa Error Handling với các status codes: 400, 401, 403, 404, 500",
+        "Được giới thiệu về Claude AI [4] để hỗ trợ kiểm tra thiết kế",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng thiết kế RESTful API theo chuẩn resource-based",
+        "Hiểu về idempotency của các HTTP methods (GET, PUT, DELETE)",
+        "Biết cách sử dụng AI tools để review và cải thiện thiết kế",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Khó khăn trong việc thiết kế response structure nhất quán cho tất cả "
+        "các API endpoints.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế 5 APIs chính cho User Management với đầy đủ request/"
+        "response specs.")
+
+    # Tuần 8
+    add_subsection_title(doc, "Tuần 8: 19/01/2026 - 25/01/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Tiếp tục thiết kế APIs cho module Course Management",
+        "Thực hành sử dụng Claude AI để kiểm tra chất lượng API design",
+        "Fix các issues được AI phát hiện: naming inconsistency, missing error cases, incomplete documentation",
+        "Training về Spring Batch và Batch Processing",
+        "Học về Job, Step, ItemReader, ItemProcessor, ItemWriter",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng viết API documentation rõ ràng, đầy đủ",
+        "Hiểu về kiến trúc chunk processing trong Spring Batch",
+        "Biết cách integrate AI vào workflow để nâng cao chất lượng",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Cần học cách đặt câu hỏi hiệu quả với AI để nhận được feedback hữu ích.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế APIs cho Course Management, hiểu được cơ bản về "
+        "Spring Batch.")
+
+    # Tuần 9
+    add_subsection_title(doc, "Tuần 9: 26/01/2026 - 01/02/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Thực hành thiết kế Batch Job: Import User Data từ CSV file",
+        "Định nghĩa Job structure với 5 blocks: Chuẩn bị, Khởi tạo, Kiểm tra, Xử lý chính, Kết thúc",
+        "Thiết kế Shell Script với input parameters và return codes",
+        "Viết pseudo code cho ItemReader (đọc CSV), ItemProcessor (validate & transform), ItemWriter (insert DB)",
+        "Định nghĩa SQL queries cho SELECT, INSERT, UPDATE operations",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng phân tích batch requirements và chia nhỏ thành steps",
+        "Hiểu về transaction management trong batch processing",
+        "Biết cách xử lý error và rollback trong chunk processing",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Batch design phức tạp hơn API vì phải xử lý volume lớn dữ liệu và "
+        "nhiều error scenarios.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế Batch Job đầu tiên với đầy đủ 5 blocks và SQL queries.")
+
+    # Tuần 10
+    add_subsection_title(doc, "Tuần 10: 02/02/2026 - 08/02/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Tiếp tục thiết kế Batch Job: Generate Monthly Report",
+        "Áp dụng kiến thức về Spring Batch chunk processing (chunk size = 1000)",
+        "Xử lý feedback (Shiteki) đợt 1 từ Leader Review",
+        "Fix các lỗi: logic sai, thiếu validation, inconsistent naming",
+        "Refactor thiết kế để đảm bảo tính nhất quán giữa DB, Screen, API, Batch",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng xử lý review feedback một cách có hệ thống",
+        "Hiểu tầm quan trọng của consistency trong thiết kế",
+        "Biết cách tự review thiết kế trước khi submit",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Một số feedback yêu cầu sửa đổi lớn, ảnh hưởng đến nhiều phần của thiết kế.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành Batch Job thứ 2, xử lý xong 80% feedback đợt 1.")
+
+    # Tuần 11
+    add_subsection_title(doc, "Tuần 11: 09/02/2026 - 15/02/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Hoàn thành xử lý feedback đợt 1, submit lại cho review",
+        "Thực hiện thiết kế độc lập cho module Enrollment Management",
+        "Áp dụng tất cả kiến thức đã học: DB, Screen, API, Batch design",
+        "Sử dụng Claude AI để tự review thiết kế trước khi submit",
+        "Tổng hợp tất cả tài liệu thiết kế theo chuẩn template",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng làm việc độc lập từ phân tích yêu cầu đến hoàn thiện thiết kế",
+        "Khả năng tự kiểm tra chất lượng và phát hiện lỗi trước khi submit",
+        "Time management: hoàn thành đúng deadline",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Làm việc độc lập đòi hỏi chủ động cao và khả năng tự giải quyết vấn đề.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành thiết kế module Enrollment Management, pass review ngay lần đầu.")
+
+    # Tuần 12
+    add_subsection_title(doc, "Tuần 12: 16/02/2026 - 22/02/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Xử lý feedback đợt 2 từ Customer Review",
+        "Tinh chỉnh thiết kế dựa trên góp ý từ khách hàng",
+        "Kiểm tra cross-reference giữa các documents: DB ↔ API, Screen ↔ API",
+        "Bắt đầu viết báo cáo thực tập",
+        "Chuẩn bị tài liệu tổng hợp: ERD, API spec, Batch flow diagram",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng communication với khách hàng qua tài liệu thiết kế",
+        "Hiểu tầm quan trọng của cross-reference checking",
+        "Biết cách viết báo cáo kỹ thuật theo chuẩn học thuật",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Customer feedback thường yêu cầu thay đổi nghiệp vụ, cần sửa nhiều "
+        "phần của thiết kế.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành xử lý feedback đợt 2, bắt đầu viết báo cáo thực tập.")
+
+    # Tuần 13
+    add_subsection_title(doc, "Tuần 13: 23/02/2026 - 01/03/2026")
+
+    add_paragraph_text(doc, "Công việc thực hiện:")
+    add_bullet_list(doc, [
+        "Hoàn thiện tất cả tài liệu thiết kế: DB, Screen, API, Batch",
+        "Tạo tài liệu tổng hợp: System Architecture Diagram, Database ERD, API Documentation",
+        "Viết hoàn chỉnh báo cáo thực tập theo chuẩn UTC",
+        "Chuẩn bị slide thuyết trình kết quả thực tập",
+        "Nộp sản phẩm cuối cùng và nhận feedback tích cực từ mentor",
+    ])
+
+    add_paragraph_text(doc, "Kỹ năng học được:")
+    add_bullet_list(doc, [
+        "Kỹ năng tổng hợp và trình bày kết quả công việc",
+        "Khả năng viết báo cáo kỹ thuật chuyên nghiệp",
+        "Kỹ năng thuyết trình và communication",
+    ])
+
+    add_paragraph_text(doc, "Thách thức: Deadline gấp, cần quản lý thời gian hiệu quả để hoàn thành đầy đủ các "
+        "deliverables.")
+
+    add_paragraph_text(doc, "Kết quả: Hoàn thành đầy đủ tất cả sản phẩm thực tập, nhận được đánh giá cao từ "
+        "mentor và công ty. Sẵn sàng áp dụng kiến thức vào đồ án tốt nghiệp.")
 
     doc.add_paragraph()  # Spacing
 
