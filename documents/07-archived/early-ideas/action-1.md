@@ -722,3 +722,9 @@ Thực hiện tạo lại báo cáo khảo sát bản mới:
 3. đối với mỗi loại khảo sát phải rút ra kết luận tương ứng và có kết luận chung của cả báo cáo
 
 4. đối với kết quả trả lời => thực hiện tự tạo dữ liệu trả lời theo báo cáo QA => tự fake kết quả sao cho phù hợp với kiến trúc và use case hiện tại
+
+đọc documents/03-planning/quality/code-review-pr-plan.md để hiểu về PR review, ở session trước, tôi đã hoàn thành PR RV 1.1 rồi, hãy check lại và cập nhật status vào code-review-pr-plan.md. Cách cập nhật status tham khảo documents/03-planning/implementation/kiteclass-implementation-plan.md
+
+có vẻ tôi nhầm với   3. Feature branch feature/pr-review-1.4-cross-service - Có tồn tại nhưng là PR khác
+
+thực hiện merge branch docs/fix-documents này vào branch main
