@@ -21,7 +21,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
 @DisplayName("AuthController Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class AuthControllerIntegrationTest {
 
     @SuppressWarnings("resource") // Managed by Testcontainers framework

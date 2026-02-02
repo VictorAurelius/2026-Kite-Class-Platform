@@ -27,7 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
 @DisplayName("Account Locking Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class AccountLockingIntegrationTest {
 
     @SuppressWarnings("resource") // Managed by Testcontainers framework

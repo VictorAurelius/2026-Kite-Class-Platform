@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
 @DisplayName("Password Reset Integration Tests")
-@org.junit.jupiter.api.Disabled("Requires PostgreSQL Testcontainers - Docker not available in WSL")
 class PasswordResetIntegrationTest {
 
     @SuppressWarnings("resource") // Managed by Testcontainers framework
