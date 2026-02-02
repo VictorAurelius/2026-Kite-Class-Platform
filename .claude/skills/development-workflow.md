@@ -119,6 +119,41 @@ release/v1.0.0
 
 ---
 
+## ⚠️ Git Rules & Restrictions
+
+### CRITICAL: Push Restrictions
+
+**❌ KHÔNG ĐƯỢC PHÉP PUSH TO REMOTE**
+
+```bash
+# ❌ FORBIDDEN - Do NOT run these commands
+git push
+git push origin <branch>
+git push origin main
+git push --force
+git push -u origin <branch>
+```
+
+**Lý do:**
+- AI assistant không được phép push code lên remote repository
+- Push requires authentication và manual review
+- User sẽ tự push sau khi review local changes
+
+**✅ ĐƯỢC PHÉP:**
+- Tạo branch local: `git checkout -b feature/new-branch`
+- Commit changes: `git commit -m "message"`
+- Merge branches locally: `git merge feature/branch`
+- Check status: `git status`, `git log`
+
+**⏳ WORKFLOW:**
+1. AI: Implement feature → commit locally
+2. AI: Merge to target branch locally
+3. AI: Inform user that changes are ready
+4. **User**: Review changes manually
+5. **User**: Push to remote when ready
+
+---
+
 ## 📝 Commit Messages (Conventional Commits)
 
 ### Format
@@ -232,8 +267,10 @@ git checkout -b feature/KC-123-new-feature
 git add .
 git commit -m "feat(module): implement feature"
 
-# Push and create PR
-git push -u origin feature/KC-123-new-feature
+# ❌ AI CANNOT push - User must do this manually
+# git push -u origin feature/KC-123-new-feature
+
+# ✅ AI stops here - inform user that feature is ready for push
 ```
 
 ### 2. PR Template
@@ -932,16 +969,22 @@ git commit -m "chore: bump version to 1.2.0"
 git checkout main
 git merge release/v1.2.0 --no-ff -m "Release v1.2.0"
 git tag -a v1.2.0 -m "Version 1.2.0"
-git push origin main --tags
+
+# ❌ AI stops here - User must push manually
+# git push origin main --tags
 
 # Merge back to develop
 git checkout develop
 git merge release/v1.2.0 --no-ff
-git push origin develop
 
-# Delete release branch
+# ❌ User must push manually
+# git push origin develop
+
+# Delete release branch (local only)
 git branch -d release/v1.2.0
-git push origin --delete release/v1.2.0
+
+# ❌ User deletes remote branch
+# git push origin --delete release/v1.2.0
 ```
 
 ---
@@ -964,15 +1007,22 @@ git commit -m "fix(auth): patch security vulnerability"
 git checkout main
 git merge hotfix/KC-999-critical-fix --no-ff
 git tag -a v1.2.1 -m "Hotfix v1.2.1"
-git push origin main --tags
+
+# ❌ AI stops here - User must push manually
+# git push origin main --tags
 
 # 4. Merge to develop
 git checkout develop
 git merge hotfix/KC-999-critical-fix --no-ff
-git push origin develop
 
-# 5. Cleanup
+# ❌ User must push manually
+# git push origin develop
+
+# 5. Cleanup (local only)
 git branch -d hotfix/KC-999-critical-fix
+
+# ❌ User deletes remote branch
+# git push origin --delete hotfix/KC-999-critical-fix
 ```
 
 ---
@@ -1068,8 +1118,8 @@ git status
 # Quick commit all changes
 git add -A && git commit -m "feat: quick description"
 
-# Push and set upstream
-git push -u origin feature/KC-123-new-feature
+# ❌ AI CANNOT push - User only
+# git push -u origin feature/KC-123-new-feature
 ```
 
 ---
@@ -1133,8 +1183,8 @@ Use this checklist for EVERY feature/PR:
 
 ---
 
-**Last Updated:** 2026-01-30
-**Version:** 2.1 (Added KiteClass-Specific Code Review Checklist)
+**Last Updated:** 2026-02-02
+**Version:** 2.2 (Added Git Push Restrictions for AI Assistant)
 **Merged From:**
 - git-workflow.md
 - pr-commit-workflow.md
