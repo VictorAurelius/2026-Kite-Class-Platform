@@ -27,10 +27,14 @@ public final class MessageCodes {
     public static final String AUTH_ACCOUNT_INACTIVE = "error.auth.account_inactive";
     public static final String AUTH_TOKEN_EXPIRED = "error.auth.token_expired";
     public static final String AUTH_TOKEN_INVALID = "error.auth.token_invalid";
+    public static final String AUTH_TOKEN_BLACKLISTED = "error.auth.token_blacklisted";
     public static final String AUTH_REFRESH_EXPIRED = "error.auth.refresh_expired";
     public static final String AUTH_REFRESH_TOKEN_INVALID = "error.auth.refresh_token_invalid";
     public static final String AUTH_REFRESH_TOKEN_EXPIRED = "error.auth.refresh_token_expired";
+    public static final String AUTH_REFRESH_TOKEN_USED = "error.auth.refresh_token_used";
+    public static final String AUTH_TENANT_MISMATCH = "error.auth.tenant_mismatch";
     public static final String AUTH_REGISTRATION_FAILED = "error.auth.registration_failed";
+    public static final String AUTH_WEAK_PASSWORD = "error.auth.weak_password";
 
     // Password reset codes
     public static final String PASSWORD_RESET_TOKEN_INVALID = "error.password_reset.token_invalid";

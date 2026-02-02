@@ -3,6 +3,7 @@ package com.kiteclass.gateway.module.user.service;
 import com.kiteclass.gateway.module.user.dto.request.CreateUserRequest;
 import com.kiteclass.gateway.module.user.dto.request.UpdateUserRequest;
 import com.kiteclass.gateway.module.user.dto.response.UserResponse;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -47,6 +48,16 @@ public interface UserService {
      * @return Flux of UserResponse
      */
     Flux<UserResponse> getUsers(String searchTerm, int page, int size);
+
+    /**
+     * Search users by query with pagination.
+     *
+     * @param query    search query (name or email)
+     * @param pageable pagination parameters
+     * @return Flux of UserResponse
+     * @since 1.1.0
+     */
+    Flux<UserResponse> searchUsers(String query, Pageable pageable);
 
     /**
      * Count users matching search criteria.
