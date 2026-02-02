@@ -752,3 +752,11 @@ vậy là vẫn để sót đảm bảo skill, hãy chạy git hook lại để 
 sao lại 90%, triển khai 100% luôn
 
 thêm vào skill workflow => không được phép push
+
+thực hiện PR RV tiếp theo
+
+tại sao không thực hiện cài docker để đạt 100% luôn?
+
+tôi đã cài docker desktop rồi, trước tiên hãy check xem có skill làm việc với docker chưa? nếu chưa có thì hãy cập nhật, sau đó thực hiện hoàn thiện PR RV
+
+gateway đang có 2 file md: PR-REVIEW-1.1-COMPLETION-SUMMARY, ... không nằm trong docs mà nằm ngoài => vi phạm skill
