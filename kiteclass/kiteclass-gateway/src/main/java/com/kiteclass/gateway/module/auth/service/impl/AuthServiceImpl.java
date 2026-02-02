@@ -4,6 +4,9 @@ import com.kiteclass.gateway.common.constant.MessageCodes;
 import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.common.constant.UserType;
 import com.kiteclass.gateway.common.exception.BusinessException;
+import com.kiteclass.gateway.common.exception.WeakPasswordException;
+import com.kiteclass.gateway.common.exception.InvalidCredentialsException;
+import com.kiteclass.gateway.common.exception.AccountLockedException;
 import com.kiteclass.gateway.config.EmailProperties;
 import com.kiteclass.gateway.module.auth.dto.ForgotPasswordRequest;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
@@ -12,6 +15,8 @@ import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
 import com.kiteclass.gateway.module.auth.dto.RegisterStudentRequest;
 import com.kiteclass.gateway.module.auth.dto.RegisterResponse;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
+import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
+import com.kiteclass.gateway.module.auth.dto.response.AuthResponse;
 import com.kiteclass.gateway.module.auth.entity.PasswordResetToken;
 import com.kiteclass.gateway.module.auth.entity.RefreshToken;
 import com.kiteclass.gateway.module.auth.repository.PasswordResetTokenRepository;
@@ -72,8 +77,12 @@ public class AuthServiceImpl implements AuthService {
     private final CoreServiceClient coreServiceClient;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final long LOCK_DURATION_MINUTES = 30;
+    private static final long LOCK_DURATION_MINUTES = 15;
     private static final String INTERNAL_HEADER = "true";
+
+    // Password policy pattern: min 8 chars, uppercase, lowercase, number, special char
+    private static final String PASSWORD_PATTERN =
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$";
 
     @Override
     @Transactional
@@ -266,9 +275,9 @@ public class AuthServiceImpl implements AuthService {
         if (user.isLocked()) {
             long minutesRemaining = (user.getLockedUntil().toEpochMilli() - Instant.now().toEpochMilli()) / 60000;
             log.warn("Account locked for user: {} ({} minutes remaining)", user.getEmail(), minutesRemaining);
-            return Mono.error(new BusinessException(
-                    MessageCodes.AUTH_ACCOUNT_LOCKED,
-                    HttpStatus.FORBIDDEN
+            return Mono.error(new AccountLockedException(
+                    String.format("Account locked after %d failed attempts. Try again in %d minutes.",
+                            MAX_FAILED_ATTEMPTS, minutesRemaining)
             ));
         }
 
@@ -284,9 +293,8 @@ public class AuthServiceImpl implements AuthService {
         // Validate password
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             return handleFailedLogin(user)
-                    .then(Mono.error(new BusinessException(
-                            MessageCodes.AUTH_INVALID_CREDENTIALS,
-                            HttpStatus.UNAUTHORIZED
+                    .then(Mono.error(new InvalidCredentialsException(
+                            "Invalid email or password"
                     )));
         }
 
@@ -370,6 +378,96 @@ public class AuthServiceImpl implements AuthService {
                                             .roles(roles)
                                             .profile(profile)
                                             .build())
+                                    .build());
+                });
+    }
+
+    @Override
+    @Transactional
+    public Mono<AuthResponse> register(RegisterRequest request) {
+        log.info("Registration request for email: {}", request.email());
+
+        // Step 1: Validate password policy
+        if (!request.password().matches(PASSWORD_PATTERN)) {
+            log.warn("Registration failed: Weak password for email: {}", request.email());
+            return Mono.error(new WeakPasswordException(
+                    "Password must be at least 8 characters with uppercase, lowercase, number and special character"
+            ));
+        }
+
+        // Step 2: Check if email already exists
+        return userRepository.existsByEmailAndDeletedFalse(request.email())
+                .flatMap(exists -> {
+                    if (exists) {
+                        log.warn("Registration failed: Email already exists: {}", request.email());
+                        return Mono.error(new BusinessException(
+                                MessageCodes.USER_EMAIL_EXISTS,
+                                HttpStatus.CONFLICT
+                        ));
+                    }
+
+                    // Step 3: Create user with hashed password
+                    User user = User.builder()
+                            .email(request.email())
+                            .passwordHash(passwordEncoder.encode(request.password()))
+                            .name(request.name())
+                            .userType(UserType.STUDENT) // Default type
+                            .status(UserStatus.ACTIVE)
+                            .emailVerified(false)
+                            .failedLoginAttempts(0)
+                            .deleted(false)
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+
+                    log.debug("Creating user for email: {}", request.email());
+
+                    // Step 4: Save user and generate tokens
+                    return userRepository.save(user)
+                            .flatMap(savedUser -> {
+                                log.info("User created: id={}, email={}", savedUser.getId(), savedUser.getEmail());
+                                return generateSimpleAuthResponse(savedUser);
+                            });
+                })
+                .doOnSuccess(response -> log.info("Registration successful for userId: {}", response.userId()))
+                .doOnError(e -> log.error("Registration failed for email: {}", request.email(), e));
+    }
+
+    /**
+     * Generate simple auth response with tokens for basic registration.
+     *
+     * @param user the registered user
+     * @return Mono of AuthResponse
+     * @since 1.1.0
+     */
+    private Mono<AuthResponse> generateSimpleAuthResponse(User user) {
+        return userRoleRepository.findRolesByUserId(user.getId())
+                .map(role -> role.getCode())
+                .collectList()
+                .flatMap(roles -> {
+                    // Generate JWT tokens
+                    String accessToken = jwtTokenProvider.generateAccessToken(
+                            user.getId(),
+                            user.getEmail(),
+                            roles
+                    );
+                    String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+
+                    // Save refresh token to database
+                    RefreshToken tokenEntity = RefreshToken.builder()
+                            .token(refreshToken)
+                            .userId(user.getId())
+                            .expiresAt(Instant.now().plusMillis(jwtProperties.getRefreshTokenExpiration()))
+                            .createdAt(Instant.now())
+                            .build();
+
+                    return refreshTokenRepository.save(tokenEntity)
+                            .map(saved -> AuthResponse.builder()
+                                    .userId(user.getId())
+                                    .accessToken(accessToken)
+                                    .refreshToken(refreshToken)
+                                    .tokenType("Bearer")
+                                    .expiresIn(jwtProperties.getAccessTokenExpiration() / 1000) // seconds
                                     .build());
                 });
     }
