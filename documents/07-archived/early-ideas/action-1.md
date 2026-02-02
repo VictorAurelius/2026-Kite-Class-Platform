@@ -728,3 +728,11 @@ Thực hiện tạo lại báo cáo khảo sát bản mới:
 có vẻ tôi nhầm với   3. Feature branch feature/pr-review-1.4-cross-service - Có tồn tại nhưng là PR khác
 
 thực hiện merge branch docs/fix-documents này vào branch main
+
+tạo branch mới để thực hiện các PR RV
+
+tạo sao IDE lại báo lỗi này? cần fix không?
+
+tại sao kiteclass-gateway/target/generated-sources\annotations\...\UserMapperImpl.java IDE lại báo lỗi này? cần fix không?
+
+thực hiện PR-REVIEW-1.1
