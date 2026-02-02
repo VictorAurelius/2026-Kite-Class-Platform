@@ -738,3 +738,7 @@ tại sao kiteclass-gateway/target/generated-sources\annotations\...\UserMapperI
 thực hiện PR-REVIEW-1.1
 
 PR hoàn thành đã đảm bảo skill và work-flow chưa?
+
+nhiều file được cập nhật trong PR này đang dính warning Resource leak: '<unassigned Closeable value>' is never closed
+ 
+skill đã có hướng dẫn fix warning này, hãy thực hiện fix

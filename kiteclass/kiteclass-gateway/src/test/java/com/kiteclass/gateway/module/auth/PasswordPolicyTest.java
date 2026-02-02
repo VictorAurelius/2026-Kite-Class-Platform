@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PasswordPolicyTest {
 
     @Container
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
         .withDatabaseName("testdb")
         .withUsername("test")
