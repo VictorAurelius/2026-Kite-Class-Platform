@@ -21,15 +21,26 @@ Create **REVIEW PRs** to fix bugs, add missing tests, and improve quality of imp
 - ❌ 0 multi-tenant tests
 - ❌ Test coverage < 50% (target: 80%)
 - ⚠️ Deprecated API usage (@MockBean)
-- ⚠️ Missing PR 1.8 (cross-service integration)
+- ✅ ~~Missing PR 1.8 (cross-service integration)~~ **FIXED** (PR-REVIEW-1.4 complete)
 
-**Review PRs Needed:** 12 PRs
-**Effort:** 10-12 days
+**Review PRs Needed:** 12 PRs (1 complete, 11 remaining)
+**Progress:** 1/12 (8.3%) ✅
+**Effort:** 10-12 days (9-11 days remaining)
 **Priority:** URGENT (before continuing with new features)
 
 ---
 
 ## PART 1: GATEWAY SERVICE REVIEW PRs
+
+### Progress Tracking
+
+**Gateway Review Status:** 1/4 PRs completed (25%)
+- ⏳ PR-REVIEW-1.1: Gateway Security Tests (NOT STARTED)
+- ⏳ PR-REVIEW-1.2: Multi-Tenant Tests (NOT STARTED)
+- ⏳ PR-REVIEW-1.3: Test Coverage Improvement (NOT STARTED)
+- ✅ PR-REVIEW-1.4: Implement PR 1.8 Cross-Service Integration (COMPLETE - 2026-02-02)
+
+---
 
 ### PR-REVIEW-1.1: Gateway Security Tests ⚠️ CRITICAL
 
@@ -692,20 +703,31 @@ cd kiteclass-gateway
 
 ---
 
-### PR-REVIEW-1.4: Implement PR 1.8 (Cross-Service Integration) ⚠️ CRITICAL BLOCKER
+### PR-REVIEW-1.4: Implement PR 1.8 (Cross-Service Integration) ✅ COMPLETE
 
-**Branch:** `review-gateway-cross-service`
+**Branch:** `feature/pr-review-1.4-cross-service` (merged to main)
 **Priority:** P0 (URGENT - BLOCKING ALL USER FLOWS)
 **Effort:** 3 days
 **Depends On:** PR 2.11 (COMPLETE ✅)
+**Status:** ✅ COMPLETE (2026-02-02)
+**Merged Commit:** `518468e`
 
 **Scope:**
 Implement missing UserType + ReferenceId pattern for linking Gateway User → Core Student/Teacher/Parent
 
-**Critical Impact:**
-- ❌ Students CANNOT register (no Student entity created in Core)
-- ❌ Teachers CANNOT login (no Teacher profile linked)
-- ❌ Parents CANNOT access system
+**Critical Impact (RESOLVED):**
+- ✅ Students CAN register (Student entity created in Core via WebClient)
+- ✅ Teachers CAN login (Teacher profile linked via UserType + ReferenceId)
+- ✅ Parents CAN access system (cross-service integration working)
+
+**Implementation Summary:**
+- ✅ Added UserType enum and ReferenceId fields to User entity
+- ✅ Database migration V008 applied
+- ✅ WebClient configuration for Gateway → Core communication
+- ✅ Cross-service profile fetching for STUDENT, TEACHER, PARENT
+- ✅ Comprehensive tests (unit + integration)
+- ✅ Documentation complete
+- ✅ Merged to main (commit: 518468e)
 
 **Tasks:**
 
