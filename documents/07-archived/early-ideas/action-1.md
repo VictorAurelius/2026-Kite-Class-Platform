@@ -781,3 +781,14 @@ không thể cấu hình toàn bộ để đạt max test case pass sao?
 
 ℹ️ IDE-Only Warnings (Not Real Issues):
 => vẫn phải fix hoặc làm sao để nó không báo warning => cập nhật skill
+
+application-test.yml vẫn còn 2 warning:
+
+    com.kiteclass: DEBUG => This key is used in a map and contains special characters. It is recommended to escape it by surrounding it with '[]'
+    org.springframework.mail: DEBUG
+    => This key is used in a map and contains special characters. It is recommended to escape it by surrounding it with '[]'
+
+pom.xml vẫn còn warning Newer minor version of Spring Boot available: 3.5.10
+OSS support for Spring Boot 3.4.x ended on 2025-12-31, get commercial support until 2026-12-31 via Tanzu Spring Runtime at https://spring.io/support
+
+hãy tiếp tục update skill để fix đến khi IDE ko báo warning nữa
