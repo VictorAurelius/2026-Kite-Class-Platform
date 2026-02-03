@@ -8,10 +8,15 @@ import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import redis.embedded.RedisServer;
 
+import jakarta.annotation.PreDestroy;
 import javax.sql.DataSource;
+import java.io.IOException;
 
 /**
  * Testcontainers configuration for integration tests.
@@ -33,6 +38,8 @@ import javax.sql.DataSource;
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfiguration {
+
+    private RedisServer redisServer;
 
     /**
      * PostgreSQL container for integration tests.
@@ -86,5 +93,38 @@ public class TestContainersConfiguration {
                 .build();
 
         return ConnectionFactories.get(options);
+    }
+
+    /**
+     * Embedded Redis server for testing.
+     * Starts on port 6370 to avoid conflicts with production Redis.
+     *
+     * @return LettuceConnectionFactory connected to embedded Redis
+     * @throws IOException if Redis server fails to start
+     */
+    @Bean
+    @Primary
+    LettuceConnectionFactory redisConnectionFactory() throws IOException {
+        // Start embedded Redis on non-standard port
+        redisServer = new RedisServer(6370);
+        redisServer.start();
+
+        // Configure connection to embedded Redis
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", 6370);
+        return new LettuceConnectionFactory(config);
+    }
+
+    /**
+     * Cleanup: stop embedded Redis server when context closes.
+     * <p>This method is automatically called by Spring when the ApplicationContext
+     * is being closed, ensuring that the embedded Redis server is properly shut down.
+     *
+     * @since 1.1.0
+     */
+    @PreDestroy
+    public void stopRedis() {
+        if (redisServer != null && redisServer.isActive()) {
+            redisServer.stop();
+        }
     }
 }
