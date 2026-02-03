@@ -145,13 +145,13 @@ class AccountLockingIntegrationTest {
         // When - Try to login with correct password
         LoginRequest request = new LoginRequest(testUser.getEmail(), "Test@123");
 
-        // Then - Should be rejected due to lock
+        // Then - Should be rejected due to lock (403 FORBIDDEN, not 401)
         webTestClient.post()
                 .uri("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isUnauthorized()
+                .expectStatus().isForbidden()
                 .expectBody()
                 .jsonPath("$.error.code").isEqualTo("AUTH_ACCOUNT_LOCKED");
     }
@@ -246,13 +246,13 @@ class AccountLockingIntegrationTest {
         // When - Try to login
         LoginRequest request = new LoginRequest(testUser.getEmail(), "Test@123");
 
-        // Then - Should show locked account message
+        // Then - Should show locked account message (403 FORBIDDEN, not 401)
         webTestClient.post()
                 .uri("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isUnauthorized()
+                .expectStatus().isForbidden()
                 .expectBody()
                 .jsonPath("$.success").isEqualTo(false)
                 .jsonPath("$.error.code").isEqualTo("AUTH_ACCOUNT_LOCKED")
