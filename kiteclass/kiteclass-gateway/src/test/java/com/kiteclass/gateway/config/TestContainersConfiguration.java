@@ -19,6 +19,7 @@ import redis.embedded.RedisServer;
 import jakarta.annotation.PreDestroy;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
  * Testcontainers configuration for integration tests.
@@ -121,14 +122,28 @@ public class TestContainersConfiguration {
     @Bean
     @Primary
     LettuceConnectionFactory redisConnectionFactory() throws IOException {
-        // Start embedded Redis on random available port (avoids port conflicts)
-        redisServer = RedisServer.newRedisServer();
+        // Find random available port to avoid conflicts between test contexts
+        int redisPort = findAvailablePort();
+
+        // Start embedded Redis on random port
+        redisServer = new RedisServer(redisPort);
         redisServer.start();
 
         // Configure connection to embedded Redis
-        int redisPort = redisServer.ports().get(0);
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", redisPort);
         return new LettuceConnectionFactory(config);
+    }
+
+    /**
+     * Find an available port for embedded Redis.
+     *
+     * @return available port number
+     * @throws IOException if unable to find available port
+     */
+    private int findAvailablePort() throws IOException {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            return serverSocket.getLocalPort();
+        }
     }
 
     /**
