@@ -3,13 +3,6 @@
 # R2DBC datasource is automatically configured by @ServiceConnection in TestContainersConfiguration.
 # Tests will be skipped if Docker is not available (e.g., WSL without Docker Desktop).
 
-# Disable Resilience4j for tests to avoid configuration conflicts
-resilience4j:
-  circuitbreaker:
-    enabled: false
-  timelimiter:
-    enabled: false
-
 spring:
   # R2DBC datasource auto-configured by @ServiceConnection from PostgreSQL Testcontainer
   # No manual r2dbc.url configuration needed
