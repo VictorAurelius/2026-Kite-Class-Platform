@@ -7,17 +7,13 @@ import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
 import com.kiteclass.gateway.module.auth.service.AuthService;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
+import com.kiteclass.gateway.config.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.context.annotation.Import;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -37,29 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author KiteClass Team
  * @since 1.1.0
  */
-@SpringBootTest
-@Testcontainers
-@Disabled("TODO: Fix test data setup - missing referenceId for STUDENT userType")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestContainersConfiguration.class)
 @DisplayName("Account Lockout Tests")
 class AccountLockoutTest {
-
-    @Container
-    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-        .withDatabaseName("testdb")
-        .withUsername("test")
-        .withPassword("test");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.r2dbc.url", () ->
-            "r2dbc:postgresql://" + postgres.getHost() + ":" + postgres.getFirstMappedPort() + "/" + postgres.getDatabaseName());
-        registry.add("spring.r2dbc.username", postgres::getUsername);
-        registry.add("spring.r2dbc.password", postgres::getPassword);
-        registry.add("spring.flyway.url", postgres::getJdbcUrl);
-        registry.add("spring.flyway.user", postgres::getUsername);
-        registry.add("spring.flyway.password", postgres::getPassword);
-    }
 
     @Autowired
     private AuthService authService;
