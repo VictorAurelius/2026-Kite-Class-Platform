@@ -3,6 +3,8 @@ package com.kiteclass.gateway.module.user.repository;
 import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.user.entity.User;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,34 @@ class UserRepositoryIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Restore owner account to original state (in case previous tests modified it)
+        User owner = userRepository.findByEmail("owner@kiteclass.local").block();
+        if (owner != null) {
+            owner.setName("System Owner");
+            owner.setDeleted(false);
+            owner.setFailedLoginAttempts(0);
+            owner.setLockedUntil(null);
+            userRepository.save(owner).block();
+        }
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Cleanup: Delete test-created users (not the owner account)
+        userRepository.findByEmail("newuser@example.com")
+                .flatMap(user -> userRepository.deleteById(user.getId()))
+                .block();
+
+        // Restore owner account name in case test modified it
+        User owner = userRepository.findByEmail("owner@kiteclass.local").block();
+        if (owner != null && !"System Owner".equals(owner.getName())) {
+            owner.setName("System Owner");
+            userRepository.save(owner).block();
+        }
+    }
 
     @Test
     @DisplayName("findByEmail() should find default owner account from V4 migration")
