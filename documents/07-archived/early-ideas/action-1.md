@@ -794,3 +794,5 @@ OSS support for Spring Boot 3.4.x ended on 2025-12-31, get commercial support un
 hãy tiếp tục update skill để fix đến khi IDE ko báo warning nữa
 
 vẫn chưa thấy cấu hình IDE không báo warning cho pom.xml theo skill
+
+ko có cách nào khác để tránh warning này sao?

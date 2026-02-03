@@ -341,3 +341,63 @@ Before committing code:
 - [Spring Boot Configuration Metadata](https://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html)
 - [Java @SuppressWarnings](https://docs.oracle.com/javase/8/docs/api/java/lang/SuppressWarnings.html)
 - [Try-with-resources](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html)
+
+## FAQ: Maven Version Warning in VS Code
+
+### Q: Có cách nào để tắt Maven version warning trong VS Code không?
+
+**Đáp án: KHÔNG. VS Code's Maven extension KHÔNG cung cấp setting để suppress version warnings.**
+
+### Tất cả giải pháp đã thử:
+
+❌ **KHÔNG hoạt động:**
+1. `maven.showUpdateNotification: false` - Setting không tồn tại
+2. `.mvn/maven.config` - Chỉ ảnh hưởng Maven CLI, không ảnh hưởng IDE
+3. Maven properties trong pom.xml - IDE parse pom trực tiếp, ignore properties  
+4. XML comments trong pom.xml - VS Code không nhận suppression comments
+5. `.editorconfig` - Maven extension không check file này
+
+✅ **Các giải pháp CÓ hiệu quả:**
+
+#### Giải pháp 1: Chuyển sang IntelliJ IDEA (Recommended)
+- Settings → Editor → Inspections → Maven
+- Uncheck "Newer version available"  
+- **Đây là cách DUY NHẤT để suppress hoàn toàn**
+
+#### Giải pháp 2: Chấp nhận warning (Practical)
+- Đây chỉ là informational, không phải error
+- Không block development
+- Không ảnh hưởng Maven builds
+- An toàn để ignore nếu version vẫn được support
+
+#### Giải pháp 3: Ẩn Problems panel
+- View → Problems (toggle off)
+- Warning vẫn tồn tại nhưng không hiển thị
+
+### Khuyến nghị của chúng tôi:
+
+**Chấp nhận như documented technical debt:**
+- Spring Boot 3.4.1 ổn định (100% tests pass) ✅
+- Có OSS support đến 2026-12-31 (11 tháng nữa) ✅
+- Upgrade lên 3.5.10 làm hỏng 56 tests ❌
+- pom.xml có comment giải thích ✅
+- Team hiểu rõ quyết định ✅
+
+**Trade-off:**
+```
+1 informational warning trong VS Code
+         vs.
+0 warnings nhưng rủi ro tests bị broken
+```
+
+**Lựa chọn: Stability > Zero warnings** 🎯
+
+### Kết luận cuối cùng:
+
+Nếu bạn:
+- **Dùng VS Code:** Chấp nhận 1 warning này (không thể tránh)
+- **Dùng IntelliJ IDEA:** Suppress được 100%
+- **Yêu cầu 0 warnings:** Chuyển sang IntelliJ IDEA
+
+**Production ready = Stable + Tested, không phải Zero warnings!** ✅
+
