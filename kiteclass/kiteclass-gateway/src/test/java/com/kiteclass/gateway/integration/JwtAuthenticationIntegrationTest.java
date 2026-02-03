@@ -119,7 +119,8 @@ class JwtAuthenticationIntegrationTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.data").isArray();
+                .jsonPath("$.data.content").isArray()  // API returns paginated response
+                .jsonPath("$.data.totalElements").isNumber();
     }
 
     @Test

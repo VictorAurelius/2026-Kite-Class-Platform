@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -40,14 +41,19 @@ class RolePermissionIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
         // Ensure the owner account used in authEndpointsShouldBePublic test is not locked
+        // and has the correct password hash for "Admin@123"
         userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
                 .flatMap(user -> {
                     user.setFailedLoginAttempts(0);
                     user.setLockedUntil(null);
                     user.setStatus(UserStatus.ACTIVE);
+                    user.setPasswordHash(passwordEncoder.encode("Admin@123"));
                     return userRepository.save(user);
                 })
                 .block();
