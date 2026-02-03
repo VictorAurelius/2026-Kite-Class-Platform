@@ -778,3 +778,6 @@ việc dùng ci-cd trên github workflow này thì github chịu chi phí lưu t
 bạn không được phép push mà?
 
 không thể cấu hình toàn bộ để đạt max test case pass sao?
+
+ℹ️ IDE-Only Warnings (Not Real Issues):
+=> vẫn phải fix hoặc làm sao để nó không báo warning => cập nhật skill
