@@ -2,9 +2,14 @@ package com.kiteclass.gateway.module.auth.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
+import com.kiteclass.gateway.module.user.entity.User;
+import com.kiteclass.gateway.module.user.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -34,6 +40,38 @@ class AuthControllerIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUp() {
+        // Reset the owner account state before each test to prevent contamination from failed login attempts
+        userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
+                .flatMap(user -> {
+                    user.setFailedLoginAttempts(0);
+                    user.setLockedUntil(null);
+                    user.setStatus(UserStatus.ACTIVE);
+                    return userRepository.save(user);
+                })
+                .block();
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Clean up the owner account state after each test
+        userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
+                .flatMap(user -> {
+                    user.setFailedLoginAttempts(0);
+                    user.setLockedUntil(null);
+                    user.setStatus(UserStatus.ACTIVE);
+                    return userRepository.save(user);
+                })
+                .block();
+    }
 
     @Test
     @DisplayName("POST /api/v1/auth/login - Success with default owner account")
