@@ -796,3 +796,20 @@ hãy tiếp tục update skill để fix đến khi IDE ko báo warning nữa
 vẫn chưa thấy cấu hình IDE không báo warning cho pom.xml theo skill
 
 ko có cách nào khác để tránh warning này sao?
+
+tôi sẵn sàng sửa code để sử dụng phiên bản 3.5.10 => tạo PR plan để sửa code
+
+tạo plan thành file md trong documents chứ
+
+tiếp tục đảm bảo workflow (đọc lại workflow để tiếp tục quy trình)
+
+fix lần lượt tất cả, nhớ bổ sung vào plan
+
+giao tiếp bằng tiếng việt
+
+  Vấn đề chính: Lỗi xác thực mật khẩu BCrypt
+  - AuthControllerIntegrationTest: 3-4 tests bị lỗi 401 UNAUTHORIZED
+  - Nguyên nhân: BCrypt password hash trong database không khớp với password "Admin@123"
+  - Đã thử nhiều cách nhưng vẫn không giải quyết được
+
+=> bạn có thể tạo 1 initalize khi khởi động gateway sẽ tự động insert 1 user vào DB với string mk bình thường để hệ thống tự hash?
