@@ -769,3 +769,8 @@ Cập nhật plan document để reflect status mới?
 sau khi chạy hết PR RW 1. cho gateway rồi thì đã đảm bảo khi image của gateway được build sẽ luôn chạy tốt theo test-case và business-logic chưa?
 
 check branch mới và thực hiện 1.
+
+việc dùng ci-cd trên github workflow này thì github chịu chi phí lưu trữ và chạy cho mình à?
+
+91 passed, 0 failed and 74 skipped
+=> đây là kết quả chạy, vậy kết quả này đã đảm bảo image của gateway đã đảm bảo chất lượng 95% chưa?

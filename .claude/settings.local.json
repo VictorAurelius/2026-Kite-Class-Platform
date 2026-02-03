@@ -85,7 +85,11 @@
       "Bash(~/.testcontainers.properties <<'EOF'\n# Testcontainers global configuration for WSL2\ndocker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderStrategy\ntestcontainers.docker.socket.override=/var/run/docker.sock\ndocker.host=unix:///var/run/docker.sock\ntestcontainers.reuse.enable=true\nEOF)",
       "Bash(~/.testcontainers.properties <<'EOF'\nDOCKER_API_VERSION=1.45\nchecks.disable=true\nEOF)",
       "Bash(tee:*)",
-      "Bash(git merge feature/gateway-ci-cd --no-ff -m \"$\\(cat <<''EOF''\nMerge branch ''feature/gateway-ci-cd'' into main\n\nIntegrate GitHub Actions CI/CD pipeline for Gateway Service to solve Docker + WSL2 testing limitations.\n\nSummary:\n- Added automated testing pipeline with native Docker\n- Expected to run all 218 tests \\(vs 150 locally\\)\n- Coverage target: ~78% \\(vs 57% locally\\)\n- Comprehensive CI/CD documentation included\n\nThis solves the critical issue where 68 integration tests were blocked locally due to Docker Desktop + WSL2 incompatibility, preventing proper verification of multi-tenant isolation, database operations, and Redis integration.\nEOF\n\\)\")"
+      "Bash(git merge feature/gateway-ci-cd --no-ff -m \"$\\(cat <<''EOF''\nMerge branch ''feature/gateway-ci-cd'' into main\n\nIntegrate GitHub Actions CI/CD pipeline for Gateway Service to solve Docker + WSL2 testing limitations.\n\nSummary:\n- Added automated testing pipeline with native Docker\n- Expected to run all 218 tests \\(vs 150 locally\\)\n- Coverage target: ~78% \\(vs 57% locally\\)\n- Comprehensive CI/CD documentation included\n\nThis solves the critical issue where 68 integration tests were blocked locally due to Docker Desktop + WSL2 incompatibility, preventing proper verification of multi-tenant isolation, database operations, and Redis integration.\nEOF\n\\)\")",
+      "Bash(for file in src/test/java/com/kiteclass/gateway/integration/*.java src/test/java/com/kiteclass/gateway/module/auth/controller/AuthControllerIntegrationTest.java src/test/java/com/kiteclass/gateway/module/user/repository/UserRepositoryIntegrationTest.java src/test/java/com/kiteclass/gateway/module/user/repository/UserRepositoryTest.java)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then grep -n \"@.*Disabled\" \"$file\")",
+      "Bash(.claude/hooks/pre-commit-skill-compliance)"
     ]
   }
 }
