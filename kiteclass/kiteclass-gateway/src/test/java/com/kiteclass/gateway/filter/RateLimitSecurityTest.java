@@ -1,21 +1,18 @@
 package com.kiteclass.gateway.filter;
 
+import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.auth.dto.request.RegisterRequest;
 import com.kiteclass.gateway.module.auth.service.AuthService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
@@ -43,32 +40,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-@Testcontainers
-@Disabled("TODO: Fix security config for public endpoints - expects 429 but gets 401")
+@Import(TestContainersConfiguration.class)
+@TestPropertySource(properties = {
+    "rate-limit.ip.capacity=10",
+    "rate-limit.ip.refill-rate=10"
+})
 @DisplayName("Rate Limiting Security Tests")
 class RateLimitSecurityTest {
-
-    @Container
-    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-        .withDatabaseName("testdb")
-        .withUsername("test")
-        .withPassword("test");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.r2dbc.url", () ->
-            "r2dbc:postgresql://" + postgres.getHost() + ":" + postgres.getFirstMappedPort() + "/" + postgres.getDatabaseName());
-        registry.add("spring.r2dbc.username", postgres::getUsername);
-        registry.add("spring.r2dbc.password", postgres::getPassword);
-        registry.add("spring.flyway.url", postgres::getJdbcUrl);
-        registry.add("spring.flyway.user", postgres::getUsername);
-        registry.add("spring.flyway.password", postgres::getPassword);
-
-        // Configure rate limits for testing
-        registry.add("rate-limit.ip.capacity", () -> "10"); // 10 requests per IP for testing
-        registry.add("rate-limit.ip.refill-rate", () -> "10"); // Refill 10 per minute
-    }
 
     @Autowired
     private WebTestClient webTestClient;
