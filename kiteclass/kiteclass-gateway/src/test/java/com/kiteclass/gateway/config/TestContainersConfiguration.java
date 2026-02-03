@@ -113,7 +113,7 @@ public class TestContainersConfiguration {
 
     /**
      * Embedded Redis server for testing.
-     * Starts on port 6370 to avoid conflicts with production Redis.
+     * Starts on a random available port to avoid conflicts between test contexts.
      *
      * @return LettuceConnectionFactory connected to embedded Redis
      * @throws IOException if Redis server fails to start
@@ -121,12 +121,13 @@ public class TestContainersConfiguration {
     @Bean
     @Primary
     LettuceConnectionFactory redisConnectionFactory() throws IOException {
-        // Start embedded Redis on non-standard port
-        redisServer = new RedisServer(6370);
+        // Start embedded Redis on random available port (avoids port conflicts)
+        redisServer = RedisServer.newRedisServer();
         redisServer.start();
 
         // Configure connection to embedded Redis
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", 6370);
+        int redisPort = redisServer.ports().get(0);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", redisPort);
         return new LettuceConnectionFactory(config);
     }
 
