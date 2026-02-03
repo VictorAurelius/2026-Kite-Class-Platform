@@ -1,5 +1,9 @@
 package com.kiteclass.gateway.config;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration;
+import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -15,10 +19,17 @@ import org.testcontainers.utility.DockerImageName;
  *
  * <p>Tests will be skipped if Docker is not available (e.g., WSL without Docker Desktop).
  *
+ * <p>Disables Redis and Mail auto-configuration as they are not needed for integration tests.
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
 @TestConfiguration(proxyBeanMethods = false)
+@EnableAutoConfiguration(exclude = {
+    RedisAutoConfiguration.class,
+    RedisReactiveAutoConfiguration.class,
+    MailSenderAutoConfiguration.class
+})
 public class TestContainersConfiguration {
 
     /**
