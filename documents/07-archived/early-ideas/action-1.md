@@ -776,3 +776,5 @@ việc dùng ci-cd trên github workflow này thì github chịu chi phí lưu t
 => đây là kết quả chạy, vậy kết quả này đã đảm bảo image của gateway đã đảm bảo chất lượng 95% chưa?
 
 bạn không được phép push mà?
+
+không thể cấu hình toàn bộ để đạt max test case pass sao?
