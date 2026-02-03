@@ -42,6 +42,7 @@ import java.net.ServerSocket;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfiguration {
 
+    @SuppressWarnings("resource") // Closed in @PreDestroy stopRedis()
     private RedisServer redisServer;
 
     /**
