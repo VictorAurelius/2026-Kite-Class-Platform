@@ -85,7 +85,6 @@ public class AuthServiceImpl implements AuthService {
             "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$";
 
     @Override
-    @Transactional
     public Mono<LoginResponse> login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.email());
 
@@ -293,7 +292,7 @@ public class AuthServiceImpl implements AuthService {
         // Validate password
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             return handleFailedLogin(user)
-                    .then(Mono.error(new InvalidCredentialsException(
+                    .flatMap(savedUser -> Mono.error(new InvalidCredentialsException(
                             "Invalid email or password"
                     )));
         }
@@ -355,7 +354,7 @@ public class AuthServiceImpl implements AuthService {
                     String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
 
                     // Fetch user profile from Core service (if applicable)
-                    Object profile = profileFetcher.fetchProfile(user.getUserType(), user.getReferenceId());
+                    final Object profile = fetchProfileSafely(user);
 
                     // Save refresh token to database
                     RefreshToken tokenEntity = RefreshToken.builder()
@@ -380,6 +379,22 @@ public class AuthServiceImpl implements AuthService {
                                             .build())
                                     .build());
                 });
+    }
+
+    /**
+     * Safely fetch user profile, returning null if referenceId is not set.
+     *
+     * @param user user entity
+     * @return profile object or null
+     */
+    private Object fetchProfileSafely(User user) {
+        try {
+            return profileFetcher.fetchProfile(user.getUserType(), user.getReferenceId());
+        } catch (IllegalArgumentException e) {
+            // User has no referenceId yet (e.g., newly registered STUDENT)
+            log.debug("Cannot fetch profile for user {}: {}", user.getEmail(), e.getMessage());
+            return null;
+        }
     }
 
     @Override
