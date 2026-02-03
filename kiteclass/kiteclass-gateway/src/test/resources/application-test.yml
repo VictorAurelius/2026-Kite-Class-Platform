@@ -20,7 +20,23 @@ spring:
     enabled: true  # Enable Flyway to run migrations on Testcontainer
     # Flyway datasource auto-configured by @ServiceConnection from PostgreSQL Testcontainer
 
-  # Redis and Mail auto-configuration disabled in TestContainersConfiguration
+  # Disable Redis connection attempts in tests
+  data:
+    redis:
+      host: localhost
+      port: 16379  # Non-standard port that won't be used
+      timeout: 1ms  # Fail fast if connection attempted
+      connect-timeout: 1ms
+
+  # Disable Mail sender in tests
+  mail:
+    host: localhost
+    port: 1025  # Non-standard port
+    properties:
+      mail:
+        smtp:
+          connectiontimeout: 1
+          timeout: 1
 
 email:
   from: test@kiteclass.com
