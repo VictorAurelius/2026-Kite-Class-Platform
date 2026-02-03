@@ -8,6 +8,7 @@ import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
 import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.user.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,31 @@ class UserSecurityTest {
 
     @Autowired
     private AuthService authService;
+
+    @BeforeEach
+    void setUp() {
+        // Clean up test users from previous runs to prevent email conflicts
+        String[] testEmails = {
+            "update@test.com",
+            "user1@test.com",
+            "user2@test.com",
+            "massassign@test.com"
+        };
+
+        for (String email : testEmails) {
+            userRepository.findByEmail(email)
+                .flatMap(user -> userRepository.delete(user))
+                .block();
+        }
+
+        // Clean up XSS test users (xss0 through xss3)
+        for (int i = 0; i < 4; i++) {
+            String email = "xss" + i + "@test.com";
+            userRepository.findByEmail(email)
+                .flatMap(user -> userRepository.delete(user))
+                .block();
+        }
+    }
 
     @Test
     @DisplayName("Search users should prevent SQL injection")
