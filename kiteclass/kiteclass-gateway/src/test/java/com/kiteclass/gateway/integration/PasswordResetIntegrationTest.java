@@ -165,8 +165,10 @@ class PasswordResetIntegrationTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.message").exists();
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -195,7 +197,10 @@ class PasswordResetIntegrationTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false);
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -225,7 +230,10 @@ class PasswordResetIntegrationTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false);
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test

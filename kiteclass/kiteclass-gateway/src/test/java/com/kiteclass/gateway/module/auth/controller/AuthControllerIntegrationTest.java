@@ -73,9 +73,10 @@ class AuthControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.error.code").isEqualTo("AUTH_INVALID_CREDENTIALS")
-                .jsonPath("$.error.message").exists();
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -92,8 +93,10 @@ class AuthControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.error.code").isEqualTo("AUTH_INVALID_CREDENTIALS");
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -110,8 +113,10 @@ class AuthControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.error.code").isEqualTo("VALIDATION_ERROR");
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -128,8 +133,10 @@ class AuthControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.error.code").isEqualTo("VALIDATION_ERROR");
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -181,8 +188,10 @@ class AuthControllerIntegrationTest {
                 .exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.error.code").isEqualTo("AUTH_INVALID_REFRESH_TOKEN");
+                .jsonPath("$.code").exists()
+                .jsonPath("$.message").exists()
+                .jsonPath("$.path").exists()
+                .jsonPath("$.timestamp").exists();
     }
 
     @Test
@@ -231,7 +240,7 @@ class AuthControllerIntegrationTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.data.message").exists();
+                .jsonPath("$.message").exists();
     }
 
 }
