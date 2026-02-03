@@ -7,8 +7,6 @@
 resilience4j:
   circuitbreaker:
     enabled: false
-  retry:
-    enabled: false
   timelimiter:
     enabled: false
 

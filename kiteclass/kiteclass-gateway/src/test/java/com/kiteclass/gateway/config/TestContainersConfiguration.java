@@ -121,6 +121,7 @@ public class TestContainersConfiguration {
      */
     @Bean
     @Primary
+    @SuppressWarnings("resource") // RedisServer closed in @PreDestroy stopRedis()
     LettuceConnectionFactory redisConnectionFactory() throws IOException {
         // Find random available port to avoid conflicts between test contexts
         int redisPort = findAvailablePort();
