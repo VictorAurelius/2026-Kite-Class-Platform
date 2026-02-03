@@ -813,3 +813,5 @@ giao tiếp bằng tiếng việt
   - Đã thử nhiều cách nhưng vẫn không giải quyết được
 
 => bạn có thể tạo 1 initalize khi khởi động gateway sẽ tự động insert 1 user vào DB với string mk bình thường để hệ thống tự hash?
+
+tiếp tục fix nốt các test còn lại

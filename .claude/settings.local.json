@@ -91,7 +91,8 @@
       "Bash(then grep -n \"@.*Disabled\" \"$file\")",
       "Bash(.claude/hooks/pre-commit-skill-compliance)",
       "Bash(git push:*)",
-      "Bash(java:*)"
+      "Bash(java:*)",
+      "Bash(gh auth:*)"
     ]
   }
 }
