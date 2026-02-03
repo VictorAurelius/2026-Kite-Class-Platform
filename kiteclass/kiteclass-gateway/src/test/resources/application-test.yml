@@ -20,25 +20,12 @@ spring:
     enabled: true  # Enable Flyway to run migrations on Testcontainer
     # Flyway datasource auto-configured by @ServiceConnection from PostgreSQL Testcontainer
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-
-  mail:
-    host: localhost
-    port: 3025
-    username: test
-    password: test
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
-          ssl:
-            trust: "*"
-        debug: false
+  # Disable Redis and Mail auto-configuration for tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
 
 email:
   from: test@kiteclass.com
