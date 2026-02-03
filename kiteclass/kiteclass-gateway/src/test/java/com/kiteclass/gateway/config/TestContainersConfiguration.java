@@ -51,6 +51,7 @@ public class TestContainersConfiguration {
      * @return configured PostgreSQL container with reuse enabled
      */
     @Bean
+    @SuppressWarnings("resource") // Managed by Testcontainers lifecycle
     PostgreSQLContainer<?> postgresContainer() {
         PostgreSQLContainer<?> container = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
                 .withDatabaseName("testdb")
@@ -69,6 +70,7 @@ public class TestContainersConfiguration {
      */
     @Bean
     @Primary
+    @SuppressWarnings("resource") // Closed by Spring on context shutdown
     DataSource dataSource(PostgreSQLContainer<?> container) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(container.getJdbcUrl());
@@ -86,6 +88,7 @@ public class TestContainersConfiguration {
      */
     @Bean
     @Primary
+    @SuppressWarnings("resource") // Closed by Spring on context shutdown
     ConnectionFactory connectionFactory(PostgreSQLContainer<?> container) {
         ConnectionFactoryOptions options = ConnectionFactoryOptions.builder()
                 .option(ConnectionFactoryOptions.DRIVER, "postgresql")
