@@ -792,3 +792,5 @@ pom.xml vẫn còn warning Newer minor version of Spring Boot available: 3.5.10
 OSS support for Spring Boot 3.4.x ended on 2025-12-31, get commercial support until 2026-12-31 via Tanzu Spring Runtime at https://spring.io/support
 
 hãy tiếp tục update skill để fix đến khi IDE ko báo warning nữa
+
+vẫn chưa thấy cấu hình IDE không báo warning cho pom.xml theo skill

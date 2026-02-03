@@ -8,6 +8,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
+        <!--
+            Staying on 3.4.1 (not upgrading to 3.5.x):
+            - 3.5.10 upgrade broke 56 tests (ApplicationContext failures)
+            - 3.4.1 is stable with 100% test pass rate
+            - OSS support until 2026-12-31 (11 months remaining)
+            - IDE version warning is informational only - safe to ignore
+            - See .claude/skills/ide-warnings-best-practices.md for details
+        -->
         <version>3.4.1</version>
     </parent>
 

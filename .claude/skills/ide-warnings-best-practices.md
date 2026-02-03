@@ -156,22 +156,53 @@ resilience4j:
 
 If the warning bothers you but version is stable:
 
-1. **IntelliJ IDEA:**
-   - Settings → Editor → Inspections → Maven → "Newer version available"
-   - Uncheck or set to "Weak Warning"
+#### Step 1: Add Explanatory Comment in pom.xml
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <!--
+        Staying on 3.4.1 (not upgrading to 3.5.x):
+        - 3.5.10 upgrade broke 56 tests
+        - 3.4.1 is stable with 100% test pass rate
+        - OSS support until 2026-12-31
+        - IDE warning is informational only
+    -->
+    <version>3.4.1</version>
+</parent>
+```
+**Benefits:**
+- Documents decision for team
+- Provides context for reviewers
+- Prevents accidental upgrades
 
-2. **VS Code:**
-   - Add to `.vscode/settings.json`:
-   ```json
-   {
-     "maven.showUpdateNotification": false
-   }
-   ```
+#### Step 2: Configure VS Code (Recommended)
+Create `.vscode/settings.json` in project root:
+```json
+{
+  "maven.showUpdateNotification": false,
+  "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING"
+}
+```
+**Benefits:**
+- Suppresses Maven update notifications
+- Downgrades unknown property warnings
+- Team-wide configuration (commit to repo)
 
-3. **Accept it:**
-   - Version warnings are informational
-   - Safe to ignore if version has active support
-   - Focus on actual errors, not warnings
+#### Step 3: Configure IntelliJ IDEA
+- Open: Settings → Editor → Inspections → Maven
+- Find: "Newer version available"
+- Action: Uncheck or set to "Weak Warning"
+
+**Benefits:**
+- Suppresses warning in IntelliJ
+- Per-user setting (not in repo)
+
+#### Step 4: Or Just Accept It
+- Version warnings are informational only
+- Safe to ignore if version has active support (11 months for 3.4.1)
+- IDE shows warning but doesn't block development
+- Focus on actual errors, not informational warnings
 
 ### 5. Special Characters in YAML Keys
 
