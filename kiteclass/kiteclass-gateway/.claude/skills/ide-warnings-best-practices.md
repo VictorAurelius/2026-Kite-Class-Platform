@@ -100,13 +100,65 @@ resilience4j:
 - Remove deprecated/unsupported properties
 - Use IDE validation to catch these early
 
+### 6. Outdated Dependency Versions
+
+**Warning:** "Newer minor version of Spring Boot available: 3.5.10"
+
+**Solution:** Upgrade to the latest stable version
+```xml
+<!-- BAD - Outdated version -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.4.1</version>
+</parent>
+
+<!-- GOOD - Latest version -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.10</version>
+</parent>
+```
+
+**Before upgrading:**
+- Check release notes for breaking changes
+- Test thoroughly after upgrade
+- Update related dependencies if needed
+
+**Best Practice:**
+- Keep dependencies up-to-date for security patches
+- Upgrade before OSS support ends
+- Use Dependabot or Renovate for automated updates
+
 ### 5. Special Characters in YAML Keys
 
 **Warning:** "This key contains special characters. Escape with '[]'"
 
-**Solution:** Usually false positive for valid YAML structure
+**Solution:** Escape keys containing dots (.) with square brackets
+
 ```yaml
-# This is CORRECT and doesn't need escaping:
+# BAD - Dots in keys trigger warning
+logging:
+  level:
+    com.kiteclass: DEBUG
+    org.springframework.mail: DEBUG
+
+# GOOD - Escape with brackets
+logging:
+  level:
+    '[com.kiteclass]': DEBUG
+    '[org.springframework.mail]': DEBUG
+```
+
+**When to escape:**
+- Keys with dots: `com.example`, `org.springframework`
+- Keys with spaces: `my key`, `some value`
+- Keys with special characters: `my-key`, `key@name`
+
+**When NOT to escape:**
+```yaml
+# This is CORRECT - no dots in the keys themselves
 spring:
   mail:
     properties:
@@ -115,12 +167,7 @@ spring:
           connectiontimeout: 1000
 ```
 
-**When to escape:**
-```yaml
-# Only escape keys with dots, spaces, or special chars AT THE KEY LEVEL
-"my.dotted.key": value
-'[my-special-key]': value
-```
+**Rule of thumb:** If the IDE warns about special characters, escape with `[key]`
 
 ## Suppression Best Practices
 
@@ -207,9 +254,12 @@ Use standard Java annotations:
 
 Before committing code:
 - [ ] No unused imports/fields
-- [ ] All custom properties have metadata
+- [ ] All custom properties have metadata in META-INF
 - [ ] Resource leaks properly suppressed with comments
+- [ ] YAML keys with dots escaped with brackets: `'[com.example]'`
+- [ ] Dependencies up-to-date (especially before OSS support ends)
 - [ ] Maven build shows 0 warnings
+- [ ] IDE shows 0 warnings
 - [ ] Suppressions include explanatory comments
 - [ ] No @SuppressWarnings("all") used
 

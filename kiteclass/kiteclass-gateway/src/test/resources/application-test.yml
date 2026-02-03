@@ -38,5 +38,5 @@ email:
 logging:
   level:
     root: INFO
-    com.kiteclass: DEBUG
-    org.springframework.mail: DEBUG
+    '[com.kiteclass]': DEBUG
+    '[org.springframework.mail]': DEBUG
