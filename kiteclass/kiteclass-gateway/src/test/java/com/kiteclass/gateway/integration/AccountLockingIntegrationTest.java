@@ -5,9 +5,11 @@ import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,28 +47,46 @@ class AccountLockingIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private String testEmail;
 
     @BeforeEach
-    void setUp() {
+    void setUp(TestInfo testInfo) {
+        // Create unique email for each test to ensure complete isolation
+        String testMethodName = testInfo.getTestMethod()
+                .map(method -> method.getName())
+                .orElse("unknown");
+        testEmail = "locktest." + testMethodName + "@example.com";
+
         // Create a test user for locking tests
         testUser = new User();
-        testUser.setEmail("locktest@example.com");
-        testUser.setName("Lock Test User");
+        testUser.setEmail(testEmail);
+        testUser.setName("Lock Test User - " + testMethodName);
         testUser.setPasswordHash(passwordEncoder.encode("Test@123"));
         testUser.setStatus(UserStatus.ACTIVE);
         testUser.setFailedLoginAttempts(0);
         testUser.setLockedUntil(null);
         testUser.setDeleted(false);
 
-        // Delete if exists and save
+        // Delete if exists and save - using blocking calls to ensure completion
         userRepository.findByEmailAndDeletedFalse(testUser.getEmail())
                 .flatMap(existing -> userRepository.deleteById(existing.getId()))
                 .then(userRepository.save(testUser))
                 .block();
 
-        // Refresh test user
+        // Refresh test user to get the saved version with ID
         testUser = userRepository.findByEmailAndDeletedFalse(testUser.getEmail()).block();
         assertThat(testUser).isNotNull();
+        assertThat(testUser.getId()).isNotNull();
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Clean up test user after each test to prevent contamination
+        if (testEmail != null) {
+            userRepository.findByEmailAndDeletedFalse(testEmail)
+                    .flatMap(user -> userRepository.deleteById(user.getId()))
+                    .block();
+        }
     }
 
     @Test

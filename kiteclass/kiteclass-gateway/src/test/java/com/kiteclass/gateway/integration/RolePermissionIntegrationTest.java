@@ -1,7 +1,10 @@
 package com.kiteclass.gateway.integration;
 
+import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.config.TestContainersConfiguration;
+import com.kiteclass.gateway.module.user.repository.UserRepository;
 import com.kiteclass.gateway.security.jwt.JwtTokenProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,22 @@ class RolePermissionIntegrationTest {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Ensure the owner account used in authEndpointsShouldBePublic test is not locked
+        userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
+                .flatMap(user -> {
+                    user.setFailedLoginAttempts(0);
+                    user.setLockedUntil(null);
+                    user.setStatus(UserStatus.ACTIVE);
+                    return userRepository.save(user);
+                })
+                .block();
+    }
 
     @Test
     @DisplayName("OWNER role should have access to all user endpoints")
