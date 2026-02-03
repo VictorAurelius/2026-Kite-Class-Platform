@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.r2dbc.connectionfactory.R2dbcTransactionManager;
+import org.springframework.transaction.ReactiveTransactionManager;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 import redis.embedded.RedisServer;
@@ -93,6 +95,20 @@ public class TestContainersConfiguration {
                 .build();
 
         return ConnectionFactories.get(options);
+    }
+
+    /**
+     * R2DBC TransactionManager for reactive transactions.
+     * <p>Marked as @Primary to resolve ambiguity when both JDBC (for Flyway)
+     * and R2DBC (for application) transaction managers are present.
+     *
+     * @param connectionFactory R2DBC ConnectionFactory
+     * @return ReactiveTransactionManager for R2DBC
+     */
+    @Bean
+    @Primary
+    ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
+        return new R2dbcTransactionManager(connectionFactory);
     }
 
     /**

@@ -89,7 +89,8 @@
       "Bash(for file in src/test/java/com/kiteclass/gateway/integration/*.java src/test/java/com/kiteclass/gateway/module/auth/controller/AuthControllerIntegrationTest.java src/test/java/com/kiteclass/gateway/module/user/repository/UserRepositoryIntegrationTest.java src/test/java/com/kiteclass/gateway/module/user/repository/UserRepositoryTest.java)",
       "Bash(do if [ -f \"$file\" ])",
       "Bash(then grep -n \"@.*Disabled\" \"$file\")",
-      "Bash(.claude/hooks/pre-commit-skill-compliance)"
+      "Bash(.claude/hooks/pre-commit-skill-compliance)",
+      "Bash(git push:*)"
     ]
   }
 }
