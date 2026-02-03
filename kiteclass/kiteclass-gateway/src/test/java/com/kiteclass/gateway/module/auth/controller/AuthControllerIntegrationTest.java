@@ -16,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -42,14 +43,19 @@ class AuthControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @BeforeEach
     void setUp() {
         // Reset the owner account state before each test to prevent contamination from failed login attempts
+        // Also ensure password hash is correct (DefaultUserInitializer doesn't run in test profile)
         userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
                 .flatMap(user -> {
                     user.setFailedLoginAttempts(0);
                     user.setLockedUntil(null);
                     user.setStatus(UserStatus.ACTIVE);
+                    user.setPasswordHash(passwordEncoder.encode("Admin@123"));
                     return userRepository.save(user);
                 })
                 .block();

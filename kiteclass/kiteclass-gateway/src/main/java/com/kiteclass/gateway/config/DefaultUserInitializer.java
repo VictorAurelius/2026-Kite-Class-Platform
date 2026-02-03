@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -15,11 +16,15 @@ import org.springframework.stereotype.Component;
  * for "Admin@123" by encoding it with the application's configured PasswordEncoder.
  * This solves hash mismatch issues that can occur with hardcoded hashes in migrations.
  *
+ * <p>Only runs in non-test profiles. Test classes should handle password setup
+ * in their own @BeforeEach methods using the injected PasswordEncoder.
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class DefaultUserInitializer implements ApplicationRunner {
 
