@@ -1,5 +1,6 @@
 package com.kiteclass.gateway.integration;
 
+import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.auth.dto.ForgotPasswordRequest;
 import com.kiteclass.gateway.module.auth.dto.ResetPasswordRequest;
 import com.kiteclass.gateway.module.auth.entity.PasswordResetToken;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
+@Import(TestContainersConfiguration.class)
 @DisplayName("Password Reset Integration Tests")
 class PasswordResetIntegrationTest {
 
