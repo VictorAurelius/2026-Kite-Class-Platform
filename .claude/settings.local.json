@@ -90,7 +90,8 @@
       "Bash(do if [ -f \"$file\" ])",
       "Bash(then grep -n \"@.*Disabled\" \"$file\")",
       "Bash(.claude/hooks/pre-commit-skill-compliance)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(java:*)"
     ]
   }
 }
