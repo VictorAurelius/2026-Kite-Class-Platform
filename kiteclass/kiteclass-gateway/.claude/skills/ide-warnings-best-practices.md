@@ -104,16 +104,27 @@ resilience4j:
 
 **Warning:** "Newer minor version of Spring Boot available: 3.5.10"
 
-**Solution:** Upgrade to the latest stable version
+**Solution:** Evaluate carefully - don't blindly upgrade
+
+#### Option A: Stay on Current Version (Recommended if working)
 ```xml
-<!-- BAD - Outdated version -->
+<!-- KEEP current version if tests pass and OSS support not ended -->
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.1</version>
+    <version>3.4.1</version> <!-- Still supported until 2026-12-31 -->
 </parent>
+```
 
-<!-- GOOD - Latest version -->
+**Why stay:**
+- Current version works perfectly (all tests pass)
+- Still has OSS support
+- Upgrading may introduce breaking changes
+- Warning is informational, not critical
+
+#### Option B: Upgrade (Only if necessary)
+```xml
+<!-- UPGRADE only if needed for security patches or new features -->
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -121,15 +132,46 @@ resilience4j:
 </parent>
 ```
 
-**Before upgrading:**
-- Check release notes for breaking changes
-- Test thoroughly after upgrade
-- Update related dependencies if needed
+**CRITICAL - Before upgrading:**
+1. **Read release notes** - Check for breaking changes
+2. **Test on separate branch** - Never upgrade directly on main
+3. **Run full test suite** - Ensure 100% pass rate
+4. **Check dependencies** - Verify compatibility
+5. **Have rollback plan** - Be ready to revert
+
+**Real Example:**
+- Spring Boot 3.4.1 → 3.5.10: Broke 56 tests (ApplicationContext failures)
+- Solution: Reverted to 3.4.1 (still supported, all tests pass)
 
 **Best Practice:**
-- Keep dependencies up-to-date for security patches
-- Upgrade before OSS support ends
-- Use Dependabot or Renovate for automated updates
+- **Stability > Latest version** - If it works, don't break it
+- Upgrade only when:
+  - Security vulnerabilities in current version
+  - OSS support ending soon (< 3 months)
+  - New features required
+- **Never upgrade** just to silence IDE warning
+- Accept version warnings if current version is stable and supported
+
+**Suppress Version Warning in IDE:**
+
+If the warning bothers you but version is stable:
+
+1. **IntelliJ IDEA:**
+   - Settings → Editor → Inspections → Maven → "Newer version available"
+   - Uncheck or set to "Weak Warning"
+
+2. **VS Code:**
+   - Add to `.vscode/settings.json`:
+   ```json
+   {
+     "maven.showUpdateNotification": false
+   }
+   ```
+
+3. **Accept it:**
+   - Version warnings are informational
+   - Safe to ignore if version has active support
+   - Focus on actual errors, not warnings
 
 ### 5. Special Characters in YAML Keys
 
