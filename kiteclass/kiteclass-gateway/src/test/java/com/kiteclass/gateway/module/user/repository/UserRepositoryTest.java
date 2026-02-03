@@ -11,18 +11,20 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration tests for UserRepository using Testcontainers.
+ * Repository slice tests for UserRepository using Testcontainers.
+ * Tests R2DBC repository operations with PostgreSQL Testcontainer.
  *
  * @author KiteClass Team
  * @since 1.0.0
  */
 @DataR2dbcTest
-// @Testcontainers - Disabled, requires PostgreSQL Testcontainers
+@Testcontainers
 @DisplayName("UserRepository Integration Tests")
 class UserRepositoryTest {
 
@@ -41,6 +43,13 @@ class UserRepositoryTest {
             + "/" + postgres.getDatabaseName());
         registry.add("spring.r2dbc.username", postgres::getUsername);
         registry.add("spring.r2dbc.password", postgres::getPassword);
+
+        // Configure Flyway to use the same container
+        registry.add("spring.flyway.url", () -> "jdbc:postgresql://"
+            + postgres.getHost() + ":" + postgres.getFirstMappedPort()
+            + "/" + postgres.getDatabaseName());
+        registry.add("spring.flyway.user", postgres::getUsername);
+        registry.add("spring.flyway.password", postgres::getPassword);
     }
 
     @Autowired

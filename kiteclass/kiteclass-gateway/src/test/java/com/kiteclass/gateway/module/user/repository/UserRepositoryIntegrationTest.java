@@ -1,11 +1,13 @@
 package com.kiteclass.gateway.module.user.repository;
 
 import com.kiteclass.gateway.common.constant.UserStatus;
+import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.test.StepVerifier;
 
@@ -17,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestContainersConfiguration.class)
 @DisplayName("UserRepository Integration Tests")
 class UserRepositoryIntegrationTest {
 

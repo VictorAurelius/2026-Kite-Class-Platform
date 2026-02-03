@@ -1,6 +1,7 @@
 package com.kiteclass.gateway.integration;
 
 import com.kiteclass.gateway.common.constant.UserStatus;
+import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
+@Import(TestContainersConfiguration.class)
 @DisplayName("Account Locking Integration Tests")
 class AccountLockingIntegrationTest {
 
