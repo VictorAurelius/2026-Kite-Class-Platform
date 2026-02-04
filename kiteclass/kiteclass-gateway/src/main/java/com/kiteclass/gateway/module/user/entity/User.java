@@ -133,6 +133,6 @@ public class User {
     public boolean canLogin() {
         return status == UserStatus.ACTIVE
             && !isLocked()
-            && Boolean.TRUE.equals(deleted) == false;
+            && !Boolean.TRUE.equals(deleted);
     }
 }

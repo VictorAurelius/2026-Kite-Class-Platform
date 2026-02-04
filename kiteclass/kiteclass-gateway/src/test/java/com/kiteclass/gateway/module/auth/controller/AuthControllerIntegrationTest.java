@@ -6,6 +6,7 @@ import com.kiteclass.gateway.common.constant.UserStatus;
 import com.kiteclass.gateway.config.TestContainersConfiguration;
 import com.kiteclass.gateway.module.auth.dto.LoginRequest;
 import com.kiteclass.gateway.module.auth.dto.RefreshTokenRequest;
+import com.kiteclass.gateway.module.auth.repository.RefreshTokenRepository;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Mono;
 
 /**
  * Integration tests for {@link AuthController} with real database and full Spring context.
@@ -44,6 +46,9 @@ class AuthControllerIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
@@ -52,24 +57,31 @@ class AuthControllerIntegrationTest {
         // Also ensure password hash is correct (DefaultUserInitializer doesn't run in test profile)
         userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
                 .flatMap(user -> {
-                    user.setFailedLoginAttempts(0);
-                    user.setLockedUntil(null);
-                    user.setStatus(UserStatus.ACTIVE);
-                    user.setPasswordHash(passwordEncoder.encode("Admin@123"));
-                    return userRepository.save(user);
+                    // Clean up any existing refresh tokens for owner to prevent test pollution
+                    return refreshTokenRepository.deleteByUserId(user.getId())
+                            .then(Mono.defer(() -> {
+                                user.setFailedLoginAttempts(0);
+                                user.setLockedUntil(null);
+                                user.setStatus(UserStatus.ACTIVE);
+                                user.setPasswordHash(passwordEncoder.encode("Admin@123"));
+                                return userRepository.save(user);
+                            }));
                 })
                 .block();
     }
 
     @AfterEach
     void tearDown() {
-        // Clean up the owner account state after each test
+        // Clean up the owner account state and refresh tokens after each test
         userRepository.findByEmailAndDeletedFalse("owner@kiteclass.local")
                 .flatMap(user -> {
-                    user.setFailedLoginAttempts(0);
-                    user.setLockedUntil(null);
-                    user.setStatus(UserStatus.ACTIVE);
-                    return userRepository.save(user);
+                    return refreshTokenRepository.deleteByUserId(user.getId())
+                            .then(Mono.defer(() -> {
+                                user.setFailedLoginAttempts(0);
+                                user.setLockedUntil(null);
+                                user.setStatus(UserStatus.ACTIVE);
+                                return userRepository.save(user);
+                            }));
                 })
                 .block();
     }

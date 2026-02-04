@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 /**
  * Exception thrown when a password does not meet security requirements.
  *
- * <p>Uses i18n message code: {@code error.auth.weak_password} - "Mật khẩu phải có ít nhất {0} ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt"
+ * <p>Uses i18n message code: {@code error.auth.weak_password}
+ * - "Mật khẩu phải có ít nhất {0} ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt"
  *
  * <p>Password policy enforces:
  * <ul>

@@ -171,7 +171,8 @@ public class RateLimitingFilter extends AbstractGatewayFilterFactory<RateLimitin
         response.getHeaders().add(X_RATE_LIMIT_REMAINING, "0");
         response.getHeaders().add(X_RATE_LIMIT_RETRY_AFTER, String.valueOf(properties.getTimeWindowSeconds()));
 
-        String errorBody = "{\"error\":\"Too many requests\",\"message\":\"Rate limit exceeded. Please try again later.\"}";
+        String errorBody = "{\"error\":\"Too many requests\","
+                + "\"message\":\"Rate limit exceeded. Please try again later.\"}";
         return response.writeWith(Mono.just(response.bufferFactory().wrap(errorBody.getBytes())));
     }
 

@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestContainersConfiguration.class)
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 @DisplayName("UserRepository Integration Tests")
 class UserRepositoryIntegrationTest {
 
@@ -33,7 +34,12 @@ class UserRepositoryIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Restore owner account to original state (in case previous tests modified it)
+        // Cleanup only specific test users created by this test class
+        userRepository.findByEmail("newuser@example.com")
+                .flatMap(user -> userRepository.deleteById(user.getId()))
+                .block();
+
+        // Restore owner account to original state
         User owner = userRepository.findByEmail("owner@kiteclass.local").block();
         if (owner != null) {
             owner.setName("System Owner");
