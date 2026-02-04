@@ -249,19 +249,18 @@ class AuthControllerIntegrationTest {
                 .returnResult()
                 .getResponseBody();
 
-        // Extract access token from JSON response
+        // Extract refresh token from JSON response
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        String accessToken = jsonNode.get("data").get("accessToken").asText();
+        String refreshToken = jsonNode.get("data").get("refreshToken").asText();
 
         // When/Then
+        RefreshTokenRequest logoutRequest = new RefreshTokenRequest(refreshToken);
         webTestClient.post()
                 .uri("/api/v1/auth/logout")
-                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(logoutRequest)
                 .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.success").isEqualTo(true)
-                .jsonPath("$.data.message").exists();
+                .expectStatus().isNoContent();
     }
 
     @Test
