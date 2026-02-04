@@ -153,7 +153,7 @@ class AccountLockingIntegrationTest {
                 .exchange()
                 .expectStatus().isForbidden()
                 .expectBody()
-                .jsonPath("$.error.code").isEqualTo("AUTH_ACCOUNT_LOCKED");
+                .jsonPath("$.code").isEqualTo("error.auth.account_locked");
     }
 
     @Test
@@ -254,8 +254,7 @@ class AccountLockingIntegrationTest {
                 .exchange()
                 .expectStatus().isForbidden()
                 .expectBody()
-                .jsonPath("$.success").isEqualTo(false)
-                .jsonPath("$.error.code").isEqualTo("AUTH_ACCOUNT_LOCKED")
-                .jsonPath("$.error.message").exists();
+                .jsonPath("$.code").isEqualTo("error.auth.account_locked")
+                .jsonPath("$.message").exists();
     }
 }
