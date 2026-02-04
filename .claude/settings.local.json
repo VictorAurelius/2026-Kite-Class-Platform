@@ -93,7 +93,11 @@
       "Bash(git push:*)",
       "Bash(java:*)",
       "Bash(gh auth:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch:*)",
+      "Bash(for commit in 13e0e0f 57a2958 2d5a420 728a8e0)",
+      "Bash(do if git log -1 --format=\"%B\" $commit)",
+      "Bash(then echo \"❌ $commit: Vẫn có Co-Authored-By\" else echo \"✅ $commit: Đã xóa Co-Authored-By\" fi done)"
     ]
   }
 }
