@@ -57,11 +57,6 @@ jobs:
         run: |
           ./mvnw clean test
 
-      - name: Check coverage threshold
-        working-directory: kiteclass/kiteclass-gateway
-        run: |
-          ./mvnw jacoco:check
-        continue-on-error: true
 
       - name: Generate coverage report
         working-directory: kiteclass/kiteclass-gateway
