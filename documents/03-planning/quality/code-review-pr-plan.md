@@ -23,10 +23,13 @@ Create **REVIEW PRs** to fix bugs, add missing tests, and improve quality of imp
 - ✅ ~~Deprecated API usage (@MockBean)~~ **FIXED** (PR-REVIEW-1.3 complete)
 - ✅ ~~Missing PR 1.8 (cross-service integration)~~ **FIXED** (PR-REVIEW-1.4 complete)
 
-**Review PRs Needed:** 12 PRs (4 complete, 8 remaining)
-**Progress:** 4/12 (33.3%) ✅
-**Effort:** 10-12 days (6-8 days remaining)
+**Review PRs Needed:** 13 PRs (4 complete, 9 remaining)
+**Progress:** 4/13 (30.8%) ✅
+**Effort:** 11-14 days (7-10 days remaining)
 **Priority:** URGENT (before continuing with new features)
+
+**NEW (2026-02-04):**
+- Added PR-REVIEW-2.5: Spring Boot 3.5.10 Upgrade Verification (depends on PR 2.12 implementation)
 
 ---
 
@@ -1187,6 +1190,17 @@ cd kiteclass-gateway
 
 ## PART 2: CORE SERVICE REVIEW PRs
 
+### Progress Tracking
+
+**Core Review Status:** 0/5 PRs completed (0%) ⏳
+- ⏳ PR-REVIEW-2.1: Core Multi-Tenant Security (NOT STARTED)
+- ⏳ PR-REVIEW-2.2: Core OWASP Security Tests (NOT STARTED)
+- ⏳ PR-REVIEW-2.3: Core Test Coverage Improvement (NOT STARTED)
+- ⏳ PR-REVIEW-2.4: Internal API Security Hardening (NOT STARTED)
+- ⏳ **PR-REVIEW-2.5: Spring Boot 3.5.10 Upgrade Verification** (DEPENDS ON PR 2.12 - 2026-02-04)
+
+---
+
 ### PR-REVIEW-2.1: Core Multi-Tenant Security ⚠️ CRITICAL
 
 **Branch:** `review-core-multi-tenant`
@@ -2077,6 +2091,142 @@ cd kiteclass-core
 ./mvnw test -Dtest="InternalApiSecurityTest"
 # All tests must pass (5/5)
 ```
+
+---
+
+### PR-REVIEW-2.5: Spring Boot 3.5.10 Upgrade Verification ⚠️ HIGH PRIORITY
+
+**Branch:** `review-core-spring-boot-upgrade`
+**Priority:** P1 (HIGH - Must complete BEFORE new features)
+**Effort:** 4-6 hours (verification + fixes)
+**Depends On:** PR 2.12 (Implementation) - documents/04-implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md
+
+**Scope:**
+Verify Core Service Spring Boot 3.5.10 upgrade follows same quality standards as Gateway upgrade.
+
+**Pre-requisites:**
+- ✅ PR 2.12 (Spring Boot 3.5.10 Upgrade) implemented
+- ✅ All tests passing
+- ✅ CI workflow (core-ci.yml) operational
+
+**Review Checklist:**
+
+1. **Version Verification**
+   ```bash
+   cd kiteclass-core
+   grep -A 2 "<parent>" pom.xml
+   # Must show: <version>3.5.10</version>
+
+   grep "spring-cloud.version" pom.xml
+   # Must show: <spring-cloud.version>2025.0.0</spring-cloud.version>
+   ```
+
+2. **Security DSL Migration**
+   ```bash
+   # Check NO method references in SecurityConfig
+   grep -r "::disable" src/main/java/
+   # Should return: (empty)
+
+   # Should use Lambda DSL
+   grep -r "csrf -> csrf.disable()" src/main/java/
+   # Should find matches
+   ```
+
+3. **Testcontainers Pattern**
+   ```bash
+   # NO manual @Container in @SpringBootTest
+   grep -r "@Container" src/test/java/ | grep -v "@DataJpaTest"
+   # Should return: (empty) or only slice tests
+
+   # Should use @Import(TestContainersConfiguration.class)
+   grep -r "@Import(TestContainersConfiguration.class)" src/test/java/
+   # Should find multiple matches
+   ```
+
+4. **Code Quality**
+   ```bash
+   # Zero Checkstyle violations
+   ./mvnw checkstyle:check
+   # Expected: BUILD SUCCESS
+
+   # Zero compilation warnings
+   ./mvnw clean compile
+   # Expected: BUILD SUCCESS, no warnings
+   ```
+
+5. **Test Suite**
+   ```bash
+   # All tests passing
+   ./mvnw clean test
+   # Expected: Tests run: XXX, Failures: 0, Errors: 0, Skipped: XX
+
+   # Coverage report
+   ./mvnw jacoco:report
+   cat target/site/jacoco/index.html
+   # Expected: Coverage > 70%
+   ```
+
+6. **CI Workflow**
+   ```bash
+   # Verify core-ci.yml exists
+   ls -la .github/workflows/core-ci.yml
+
+   # Check path filtering
+   grep "kiteclass-core" .github/workflows/core-ci.yml
+   # Should find path filters
+   ```
+
+7. **Docker Build**
+   ```bash
+   # Verify Docker builds successfully
+   cd kiteclass-core
+   docker build -t kiteclass-core:test .
+   # Expected: Successfully built
+   ```
+
+**Files to Review:**
+```
+kiteclass-core/
+├── pom.xml (Spring Boot 3.5.10, Spring Cloud 2025.0.0)
+├── src/main/java/.../config/SecurityConfig.java (Lambda DSL)
+├── src/test/java/.../TestContainersConfiguration.java
+├── src/test/java/.../
+│   └── **/*IntegrationTest.java (use @Import, not @Container)
+├── checkstyle.xml (copied from Gateway)
+└── Dockerfile (verify builds)
+
+.github/workflows/
+└── core-ci.yml (NEW - verify exists)
+```
+
+**Common Issues from Gateway Upgrade:**
+- ❌ Forgot to remove @Testcontainers from integration tests
+- ❌ Mixed test patterns (@Container + @Import in same test)
+- ❌ Missing checkstyle.xml in Docker context
+- ❌ Incorrect path in CI workflow (gateway → core)
+- ❌ Forgot to update artifact names (gateway → core)
+
+**Success Criteria:**
+- ✅ pom.xml: Spring Boot 3.5.10 + Spring Cloud 2025.0.0
+- ✅ SecurityConfig: Lambda DSL (no ::disable)
+- ✅ Tests: @Import pattern (no manual @Container in @SpringBootTest)
+- ✅ Checkstyle: 0 violations
+- ✅ Tests: All passing, coverage > 70%
+- ✅ CI: core-ci.yml exists and runs successfully
+- ✅ Docker: Builds without errors
+- ✅ No deprecated APIs
+- ✅ No compilation warnings
+
+**Reference:**
+- Implementation Plan: documents/04-implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md
+- Skill Guide: .claude/skills/spring-boot-upgrade-checklist.md
+- Gateway Upgrade: Completed February 2026 (all tests passing)
+
+**Estimated Effort:** 4-6 hours
+- 2 hours: Review all files
+- 2 hours: Fix issues found
+- 1 hour: Verify CI/CD
+- 1 hour: Documentation
 
 ---
 
