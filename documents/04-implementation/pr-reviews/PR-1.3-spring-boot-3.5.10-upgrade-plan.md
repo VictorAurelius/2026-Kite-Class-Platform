@@ -347,7 +347,110 @@ return handleFailedLogin(user)
 
 ### Phase 5: CI/CD Configuration Updates
 
-**Purpose**: Fix CI pipeline configuration issues
+**Purpose**: Create/fix CI pipeline configuration
+
+#### 5.0 Create GitHub Workflow for Core Service (NEW - Core Only)
+
+> **Note**: Gateway already has `gateway-ci.yml`. Core Service needs its own workflow file.
+
+**File**: `.github/workflows/core-ci.yml` (NEW)
+
+**Steps**:
+
+1. **Copy Gateway workflow as template**:
+```bash
+cp .github/workflows/gateway-ci.yml .github/workflows/core-ci.yml
+```
+
+2. **Update service-specific paths**:
+```yaml
+name: Core Service CI/CD  # ← Change from "Gateway Service CI/CD"
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'review/**'
+    paths:
+      - 'kiteclass/kiteclass-core/**'           # ← Change from gateway
+      - '.github/workflows/core-ci.yml'         # ← Change from gateway-ci.yml
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'kiteclass/kiteclass-core/**'           # ← Change from gateway
+      - '.github/workflows/core-ci.yml'         # ← Change from gateway-ci.yml
+```
+
+3. **Update all working directories**:
+```yaml
+# Find and replace in entire file:
+working-directory: kiteclass/kiteclass-gateway
+# Replace with:
+working-directory: kiteclass/kiteclass-core
+```
+
+4. **Update artifact/coverage names**:
+```yaml
+# Before (Gateway):
+flags: gateway
+name: gateway-coverage
+name: gateway-test-results
+path: kiteclass/kiteclass-gateway/target/
+
+# After (Core):
+flags: core
+name: core-coverage
+name: core-test-results
+path: kiteclass/kiteclass-core/target/
+```
+
+5. **Update Docker image name**:
+```yaml
+# Before:
+images: kiteclass-gateway
+
+# After:
+images: kiteclass-core
+```
+
+6. **Update test reporter name**:
+```yaml
+# Before:
+name: Gateway Test Results
+title: Gateway Coverage Report
+
+# After:
+name: Core Test Results
+title: Core Coverage Report
+```
+
+**Complete core-ci.yml template available in**: [Skill Document - CI/CD Configuration](../../.claude/skills/spring-boot-upgrade-checklist.md#cicd-configuration)
+
+**Verify workflow**:
+```bash
+# Test with a Core-only change
+git checkout -b test/core-ci-workflow
+echo "# Test" >> kiteclass/kiteclass-core/README.md
+git add .github/workflows/core-ci.yml kiteclass/kiteclass-core/README.md
+git commit -m "ci: add Core Service CI/CD workflow"
+git push origin test/core-ci-workflow
+
+# Monitor CI:
+gh run watch
+gh run list --workflow=core-ci.yml --limit 5
+```
+
+**Expected Result**:
+- ✅ Core CI runs (Core code changed)
+- ⏭️ Gateway CI skips (Gateway code unchanged)
+
+**Important**: Do NOT skip this step for Core Service! CI must be in place BEFORE merging Spring Boot upgrade.
+
+---
 
 #### 5.1 Update GitHub Workflow - Remove jacoco:check
 
@@ -817,20 +920,46 @@ Before starting Core Service upgrade, complete these preparation steps:
 
 1. **Copy Gateway's checkstyle.xml**
    ```bash
-   cp kiteclass-gateway/checkstyle.xml kiteclass-core/
+   cp kiteclass/kiteclass-gateway/checkstyle.xml kiteclass/kiteclass-core/
    ```
 
-2. **Review Gateway's commit history**
+2. **Create Core Service CI workflow (CRITICAL)**
+   ```bash
+   # Copy Gateway workflow as template
+   cp .github/workflows/gateway-ci.yml .github/workflows/core-ci.yml
+
+   # Update all service-specific paths (see Phase 5.0 for details):
+   # - Service name: Gateway → Core
+   # - Paths: kiteclass-gateway → kiteclass-core
+   # - Artifact names: gateway → core
+   ```
+
+   **Why critical**: CI must exist BEFORE upgrade to catch issues early
+
+   **Verify before proceeding**:
+   ```bash
+   # Test CI runs for Core changes only
+   git checkout -b test/core-ci
+   echo "# Test" >> kiteclass/kiteclass-core/README.md
+   git add .github/workflows/core-ci.yml kiteclass/kiteclass-core/README.md
+   git commit -m "ci: add Core Service workflow"
+   git push origin test/core-ci
+
+   # Expected: Core CI runs, Gateway CI skips
+   gh run list --limit 5
+   ```
+
+3. **Review Gateway's commit history**
    - Commits fixing checkstyle violations
    - Commits updating test cleanup patterns
    - Commits fixing CI configuration
 
-3. **Identify Core Service complexity**
+4. **Identify Core Service complexity**
    - Count test files: `find src/test -name "*Test.java" | wc -l`
    - Identify all repository tests needing cleanup
    - Map foreign key relationships for cleanup chains
 
-4. **Allocate realistic timeline**
+5. **Allocate realistic timeline**
    - Gateway: 165 tests → 8 hours
    - Core: Estimate based on test count
    - Budget 1.5x Gateway time for first pass
