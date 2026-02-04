@@ -2,5 +2,5 @@
   "java.compile.nullAnalysis.mode": "disabled",
   "maven.view": "hierarchical",
   "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING",
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "automatic"
 }
