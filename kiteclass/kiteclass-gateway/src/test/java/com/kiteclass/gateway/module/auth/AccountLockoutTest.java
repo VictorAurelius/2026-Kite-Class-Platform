@@ -69,7 +69,7 @@ class AccountLockoutTest {
                 .flatMap(user -> {
                     // Delete refresh tokens for this user first
                     return refreshTokenRepository.deleteByUserId(user.getId())
-                            .then(userRepository.delete(user));
+                            .then(userRepository.deleteById(user.getId()));
                 })
                 .block();
         }
@@ -89,7 +89,7 @@ class AccountLockoutTest {
                 .flatMap(user -> {
                     // Delete refresh tokens for this user first
                     return refreshTokenRepository.deleteByUserId(user.getId())
-                            .then(userRepository.delete(user));
+                            .then(userRepository.deleteById(user.getId()));
                 })
                 .block();
         }
