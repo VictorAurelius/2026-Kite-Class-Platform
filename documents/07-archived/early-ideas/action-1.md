@@ -827,3 +827,20 @@ Test Gateway Service
 Process completed with exit code 1.
 
 => như này có phải best practice không? nếu sai thì nên fix 
+
+bây giờ trình bày độ ưu tiên PR RW tiếp theo
+
+bạn có phân biệt được plan PR thường và plan PR RV không?
+
+kiteclass-implementation-plan chứa các PR code thường
+code-review-pr-plan chưa các PR RV để review lại code đã implement nhưng chưa đảm bảo chất lượng, cần test lại, check lại theo tiêu chuẩn của skill
+
+ngoài ra có tạo thêm các PR md lẻ khác, tôi chưa nhận thức được những PR này?
+
+tham chiếu hoặc cập nhật PR-1.3 và đúng 2 master PR plan
+PR-1.8 đã thực hiện xong rồi đúng không? Vậy không cần quan tâm
+
+master PR RV phải thực hiện xong tôi mới quay lại master PR feature
+vậy PR-1.8 sẽ chỉ xác định thêm vào 1 master PR thôi, có vẻ sẽ là PR RV
+
+khó hiểu vậy?
