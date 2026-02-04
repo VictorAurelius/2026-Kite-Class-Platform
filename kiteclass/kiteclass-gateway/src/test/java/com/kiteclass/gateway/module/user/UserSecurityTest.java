@@ -65,7 +65,7 @@ class UserSecurityTest {
 
         for (String email : testEmails) {
             userRepository.findByEmail(email)
-                .flatMap(user -> userRepository.delete(user))
+                .flatMap(user -> userRepository.deleteById(user.getId()))
                 .block();
         }
 
@@ -73,7 +73,32 @@ class UserSecurityTest {
         for (int i = 0; i < 4; i++) {
             String email = "xss" + i + "@test.com";
             userRepository.findByEmail(email)
-                .flatMap(user -> userRepository.delete(user))
+                .flatMap(user -> userRepository.deleteById(user.getId()))
+                .block();
+        }
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        // Clean up test users after each test to prevent pollution
+        String[] testEmails = {
+            "update@test.com",
+            "user1@test.com",
+            "user2@test.com",
+            "massassign@test.com"
+        };
+
+        for (String email : testEmails) {
+            userRepository.findByEmail(email)
+                .flatMap(user -> userRepository.deleteById(user.getId()))
+                .block();
+        }
+
+        // Clean up XSS test users (xss0 through xss3)
+        for (int i = 0; i < 4; i++) {
+            String email = "xss" + i + "@test.com";
+            userRepository.findByEmail(email)
+                .flatMap(user -> userRepository.deleteById(user.getId()))
                 .block();
         }
     }

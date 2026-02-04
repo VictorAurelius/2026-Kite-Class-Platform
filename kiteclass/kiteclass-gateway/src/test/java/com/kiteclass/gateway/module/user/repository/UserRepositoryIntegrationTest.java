@@ -205,10 +205,13 @@ class UserRepositoryIntegrationTest {
     @Test
     @DisplayName("findAll() should return at least owner account")
     void shouldFindAllUsers() {
-        // When & Then
-        StepVerifier.create(userRepository.findAll())
+        // When & Then - Verify owner exists in results (order not guaranteed)
+        StepVerifier.create(
+                userRepository.findAll()
+                        .filter(user -> user.getEmail().equals("owner@kiteclass.local"))
+                        .take(1)
+        )
                 .expectNextMatches(user -> user.getEmail().equals("owner@kiteclass.local"))
-                .thenConsumeWhile(user -> true) // Consume any additional users
                 .verifyComplete();
     }
 
