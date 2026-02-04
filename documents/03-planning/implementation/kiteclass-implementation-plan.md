@@ -117,6 +117,7 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - ✅ PR 2.1: Core Project Setup
 - ✅ PR 2.2: Core Common Components
 - ✅ PR 2.3: Student Module
+- ⏳ **PR 2.12: Spring Boot 3.5.10 Upgrade** ⚠️ **PRIORITY** *(See: documents/04-implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md)*
 - ⏳ PR 2.4: Course Module
 - ⏳ PR 2.5: Class Module
 - ⏳ PR 2.6: Enrollment Module
@@ -126,7 +127,7 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - ⏳ PR 2.10: Core Docker & Final Integration
 - ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 
-**Core Status:** 4/14 PRs completed (28.6%) ✅ PR 2.11 COMPLETE
+**Core Status:** 4/15 PRs completed (26.7%) ✅ PR 2.11 COMPLETE
 **Tests:** 50/50 passing (100%) - 40 from PR 2.3 + 10 internal API tests
 **Latest:** PR 2.11 Internal APIs complete - InternalRequestFilter + InternalStudentController
 **Cross-Service APIs Ready:**
@@ -143,9 +144,20 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - PR 2.8.1 (new): Payment Module (split from old PR 2.8)
 - PR 2.9 updated: Settings & Preferences (removed Parent Module - moved to Engagement Service P1)
 
+**New PRs Added (2026-02-04):**
+- ⚠️ **PR 2.12: Spring Boot 3.5.10 Upgrade** (CRITICAL - Infrastructure upgrade)
+  - Upgrade Spring Boot 3.4.1 → 3.5.10
+  - Upgrade Spring Cloud 2024.0.1 → 2025.0.0
+  - Fix Security DSL deprecation (Lambda DSL)
+  - Migrate Testcontainers tests
+  - Create core-ci.yml workflow
+  - See detailed plan: documents/04-implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md
+  - **Why priority**: Gateway already on 3.5.10, Core must match to prevent version conflicts
+
 **Updated PR Count:**
 - Old count: 11 Core PRs
-- New count: 14 Core PRs (added 3 new PRs: 2.3.1, 2.7.1, 2.7.2; split PR 2.8 into 2.8 + 2.8.1)
+- After 2026-01-28: 14 Core PRs (added 3 new PRs: 2.3.1, 2.7.1, 2.7.2; split PR 2.8 into 2.8 + 2.8.1)
+- After 2026-02-04: **15 Core PRs** (added PR 2.12: Spring Boot Upgrade)
 
 ## Frontend (feature/frontend branch)
 ⏳ **NOT STARTED** - All 11 PRs pending
