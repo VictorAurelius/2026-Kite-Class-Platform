@@ -92,7 +92,8 @@
       "Bash(.claude/hooks/pre-commit-skill-compliance)",
       "Bash(git push:*)",
       "Bash(java:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh pr create:*)"
     ]
   }
 }

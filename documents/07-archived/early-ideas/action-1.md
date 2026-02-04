@@ -815,3 +815,5 @@ giao tiếp bằng tiếng việt
 => bạn có thể tạo 1 initalize khi khởi động gateway sẽ tự động insert 1 user vào DB với string mk bình thường để hệ thống tự hash?
 
 tiếp tục fix nốt các test còn lại
+
+đã fix hết rồi đúng không? hãy tạo file md ma trận test case của gateway
