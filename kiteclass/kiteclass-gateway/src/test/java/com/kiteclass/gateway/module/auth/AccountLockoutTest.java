@@ -9,6 +9,7 @@ import com.kiteclass.gateway.module.auth.service.AuthService;
 import com.kiteclass.gateway.module.user.entity.User;
 import com.kiteclass.gateway.module.user.repository.UserRepository;
 import com.kiteclass.gateway.config.TestContainersConfiguration;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,26 @@ class AccountLockoutTest {
     @BeforeEach
     void setUp() {
         // Clean up all test users from previous runs
+        String[] testEmails = {
+            TEST_EMAIL,
+            "unlock@test.com",
+            "reset@test.com"
+        };
+
+        for (String email : testEmails) {
+            userRepository.findByEmail(email)
+                .flatMap(user -> {
+                    // Delete refresh tokens for this user first
+                    return refreshTokenRepository.deleteByUserId(user.getId())
+                            .then(userRepository.delete(user));
+                })
+                .block();
+        }
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Clean up all test users after each test to prevent pollution
         String[] testEmails = {
             TEST_EMAIL,
             "unlock@test.com",
@@ -168,6 +189,12 @@ class AccountLockoutTest {
             "Reset User"
         );
         authService.register(registerRequest).block();
+
+        // Delete refresh token from registration to avoid duplicate on login
+        User user = userRepository.findByEmail("reset@test.com").block();
+        if (user != null) {
+            refreshTokenRepository.deleteByUserId(user.getId()).block();
+        }
 
         // Make 3 failed attempts
         for (int i = 0; i < 3; i++) {
