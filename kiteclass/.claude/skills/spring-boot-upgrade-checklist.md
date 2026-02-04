@@ -290,7 +290,122 @@ return handleFailedLogin(user)
 
 ## 🏗️ CI/CD Configuration
 
-### 1. GitHub Workflow (gateway-ci.yml)
+### 1. GitHub Workflow Path Filtering (CRITICAL for Monorepo)
+
+**Purpose**: Only run CI for services that have code changes, not all services every commit.
+
+**✅ Correct Pattern:**
+
+```yaml
+name: Gateway Service CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'review/**'
+    paths:                                           # ← Path filtering
+      - 'kiteclass/kiteclass-gateway/**'             # ← Service-specific path
+      - '.github/workflows/gateway-ci.yml'           # ← Workflow file itself
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'kiteclass/kiteclass-gateway/**'
+      - '.github/workflows/gateway-ci.yml'
+```
+
+**Benefits**:
+- ✅ Saves CI resources (don't run Gateway tests when only Core changed)
+- ✅ Faster CI feedback (only run relevant services)
+- ✅ Clear CI status (easy to identify which service failed)
+- ✅ Parallel development (teams can work independently on services)
+
+**When CI WILL RUN**:
+- Code changes in `kiteclass/kiteclass-gateway/**`
+- Workflow file `.github/workflows/gateway-ci.yml` changes
+- Both conditions above
+
+**When CI WILL SKIP**:
+- Only code in `kiteclass/kiteclass-core/**` changed
+- Only documentation files changed
+- Only root-level files changed (README.md)
+
+**Pattern for Other Services**:
+
+```yaml
+# Core Service
+paths:
+  - 'kiteclass/kiteclass-core/**'
+  - '.github/workflows/core-ci.yml'
+
+# Admin Service
+paths:
+  - 'kiteclass/kiteclass-admin/**'
+  - '.github/workflows/admin-ci.yml'
+```
+
+**Advanced: Include Shared Dependencies**
+
+```yaml
+on:
+  push:
+    paths:
+      - 'kiteclass/kiteclass-gateway/**'
+      - '.github/workflows/gateway-ci.yml'
+      - 'shared/**'                          # ← Shared libraries
+      - 'docker/base-images/**'              # ← Base images
+      - 'database/migrations/**'             # ← Database migrations
+```
+
+**When to Run ALL Services**:
+1. **Shared dependency updates** - Library used by all services
+2. **Infrastructure changes** - Java version, Docker base image
+3. **Database schema changes** - Migrations affecting multiple services
+4. **Release preparation** - Before production deployment
+
+**Solution for Full Integration Testing**:
+
+```yaml
+# .github/workflows/full-integration-test.yml
+name: Full Integration Test
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '0 0 * * *'  # Daily at midnight
+
+jobs:
+  test-all-services:
+    strategy:
+      matrix:
+        service: [gateway, core, admin, student, teacher, parent]
+    # Run all service tests
+```
+
+**Verification**:
+
+```bash
+# Check if path filtering works
+git log --oneline --name-only -5 | grep "kiteclass/kiteclass-gateway"
+
+# View CI run history
+gh run list --workflow=gateway-ci.yml --limit 10
+
+# View specific run details
+gh run view <run-id>
+```
+
+---
+
+### 2. GitHub Workflow - JaCoCo Setup
 
 **✅ Correct JaCoCo Setup:**
 
@@ -325,7 +440,9 @@ return handleFailedLogin(user)
 2. Needs `jacoco.exec` file from test phase
 3. Configuration only applies in build lifecycle, not standalone goal
 
-### 2. JaCoCo Plugin Configuration (pom.xml)
+---
+
+### 3. JaCoCo Plugin Configuration (pom.xml)
 
 **✅ Correct configuration:**
 
