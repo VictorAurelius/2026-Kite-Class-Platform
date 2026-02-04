@@ -57,6 +57,7 @@ public interface StudentMapper {
      * @param request the update request DTO
      */
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

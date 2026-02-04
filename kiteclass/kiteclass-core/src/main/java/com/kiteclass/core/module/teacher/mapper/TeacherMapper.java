@@ -59,6 +59,7 @@ public interface TeacherMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
