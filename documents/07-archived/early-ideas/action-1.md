@@ -817,3 +817,13 @@ giao tiếp bằng tiếng việt
 tiếp tục fix nốt các test còn lại
 
 đã fix hết rồi đúng không? hãy tạo file md ma trận test case của gateway
+
+đã test và build docker thành công nhưng vẫn báo là 
+Annotations
+2 errors
+Code Quality Checks
+Process completed with exit code 1.
+Test Gateway Service
+Process completed with exit code 1.
+
+=> như này có phải best practice không? nếu sai thì nên fix 

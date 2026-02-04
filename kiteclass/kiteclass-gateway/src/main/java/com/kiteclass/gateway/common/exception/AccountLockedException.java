@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 /**
  * Exception thrown when an account is locked due to failed login attempts.
  *
- * <p>Uses i18n message code: {@code error.auth.account_locked} - "Tài khoản đã bị khóa do {0} lần đăng nhập thất bại. Vui lòng thử lại sau {1} phút."
+ * <p>Uses i18n message code: {@code error.auth.account_locked}
+ * - "Tài khoản đã bị khóa do {0} lần đăng nhập thất bại. Vui lòng thử lại sau {1} phút."
  *
  * <p>Account lockout mechanism:
  * <ul>

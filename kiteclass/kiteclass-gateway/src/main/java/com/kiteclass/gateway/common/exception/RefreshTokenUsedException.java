@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 /**
  * Exception thrown when attempting to reuse a refresh token.
  *
- * <p>Uses i18n message code: {@code error.auth.refresh_token_used} - "Refresh token đã được sử dụng. Vui lòng đăng nhập lại."
+ * <p>Uses i18n message code: {@code error.auth.refresh_token_used}
+ * - "Refresh token đã được sử dụng. Vui lòng đăng nhập lại."
  *
  * <p>Implements refresh token rotation security:
  * <ul>
