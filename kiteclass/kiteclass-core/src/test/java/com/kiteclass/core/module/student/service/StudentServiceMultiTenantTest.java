@@ -1,11 +1,11 @@
 package com.kiteclass.core.module.student.service;
 
+import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
 import com.kiteclass.core.module.student.entity.Student;
-import com.kiteclass.core.module.student.entity.StudentStatus;
 import com.kiteclass.core.module.student.repository.StudentRepository;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Filter;
