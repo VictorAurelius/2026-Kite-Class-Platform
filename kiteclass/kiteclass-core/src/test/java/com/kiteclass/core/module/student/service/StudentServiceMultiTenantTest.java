@@ -104,7 +104,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw EntityNotFoundException (cross-tenant access denied)
         assertThatThrownBy(() -> {
             studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
+                new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
         })
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining(studentId.toString());
@@ -128,7 +128,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception (not found in tenant2 context)
         assertThatThrownBy(() -> {
             Student found = studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
+                new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
             found.setName(request.name());
             studentRepository.save(found);
         })
@@ -157,7 +157,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception
         assertThatThrownBy(() -> {
             Student found = studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
+                new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
             studentRepository.delete(found);
         })
             .isInstanceOf(EntityNotFoundException.class);
