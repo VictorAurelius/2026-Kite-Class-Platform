@@ -389,7 +389,7 @@ class CourseSecurityTest {
         // Then: Should throw ValidationException
         assertThatThrownBy(() -> courseService.deleteCourse(course.id()))
             .isInstanceOf(ValidationException.class)
-            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("PUBLISHED"));
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("COURSE_CANNOT_DELETE_STATUS"));
     }
 
     // ========================================================================
