@@ -101,7 +101,10 @@
       "Bash(kiteclass/kiteclass-core/mvnw -f kiteclass/kiteclass-core/pom.xml test -Dtest=StudentServiceMultiTenantTest)",
       "Bash(git filter-branch:*)",
       "Bash(git ls-tree:*)",
-      "Bash(.claude/skills/check-commit.sh)"
+      "Bash(.claude/skills/check-commit.sh)",
+      "Bash(tail:*)",
+      "Bash(while read file)",
+      "Bash(do grep -n \"^\\\\s*public.*\\(\" \"$file\")"
     ]
   }
 }
