@@ -25,21 +25,6 @@ jobs:
     name: Test Core Service
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: kiteclass_test
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -67,21 +52,10 @@ jobs:
         working-directory: kiteclass/kiteclass-core
         run: ./mvnw clean compile -DskipTests
 
-      - name: Run Unit Tests
+      - name: Run All Tests (Testcontainers)
         working-directory: kiteclass/kiteclass-core
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/kiteclass_test
-          SPRING_DATASOURCE_USERNAME: test
-          SPRING_DATASOURCE_PASSWORD: test
         run: ./mvnw test
-
-      - name: Run Security Tests
-        working-directory: kiteclass/kiteclass-core
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/kiteclass_test
-          SPRING_DATASOURCE_USERNAME: test
-          SPRING_DATASOURCE_PASSWORD: test
-        run: ./mvnw test -Dtest="*SecurityTest,*MultiTenantTest"
+        # Testcontainers will automatically start PostgreSQL + Redis in Docker
 
       - name: Generate Test Coverage Report
         working-directory: kiteclass/kiteclass-core
