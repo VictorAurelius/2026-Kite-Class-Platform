@@ -849,3 +849,5 @@ hãy cố gắng để chạy được test
 
 1. commit vẫn dính contributor claude => chưa đảm bảo skill
 2. ci không chạy khi push lên nhánh review
+
+tôi quyết định ko chạy ci trên nhánh review nữa. merge vào main để chạy ci
