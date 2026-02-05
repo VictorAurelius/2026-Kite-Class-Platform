@@ -11,7 +11,6 @@ import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.mapper.StudentMapper;
 import com.kiteclass.core.module.student.repository.StudentRepository;
 import com.kiteclass.core.module.student.service.StudentService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -56,7 +55,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     @CacheEvict(value = "students", allEntries = true)
-    public StudentResponse createStudent(@Valid CreateStudentRequest request) {
+    public StudentResponse createStudent(CreateStudentRequest request) {
         log.info("Creating student with email: {}", request.email());
 
         // Validate email uniqueness
@@ -141,7 +140,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     @CacheEvict(value = "students", key = "#id")
-    public StudentResponse updateStudent(Long id, @Valid UpdateStudentRequest request) {
+    public StudentResponse updateStudent(Long id, UpdateStudentRequest request) {
         log.info("Updating student with ID: {}", id);
 
         Student student = studentRepository.findByIdAndDeletedFalse(id)

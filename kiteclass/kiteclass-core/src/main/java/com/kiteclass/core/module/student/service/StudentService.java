@@ -4,6 +4,7 @@ import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -32,7 +33,7 @@ public interface StudentService {
      * @return StudentResponse with created student data
      * @throws com.kiteclass.core.common.exception.DuplicateResourceException if email or phone already exists
      */
-    StudentResponse createStudent(CreateStudentRequest request);
+    StudentResponse createStudent(@Valid CreateStudentRequest request);
 
     /**
      * Retrieves a student by ID.
@@ -71,7 +72,7 @@ public interface StudentService {
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if student not found
      * @throws com.kiteclass.core.common.exception.DuplicateResourceException if new email/phone already exists
      */
-    StudentResponse updateStudent(Long id, UpdateStudentRequest request);
+    StudentResponse updateStudent(Long id, @Valid UpdateStudentRequest request);
 
     /**
      * Soft-deletes a student.
