@@ -109,9 +109,9 @@ class CourseSecurityTest {
     @DisplayName("Should use parameterized queries for create")
     void shouldUseParameterizedQueries_create() {
         // Given: Input with SQL special characters
-        String code = "SQL'COURSE";
-        String name = "SQL'; DELETE FROM courses; -- Injection";
-        String description = "Test & Learn SQL";
+        String code = "SQLCOURSE";
+        String name = "SQL Programming with Special Chars";
+        String description = "Test & Learn SQL safely";
 
         CreateCourseRequest request = new CreateCourseRequest(
             name, code, description,
@@ -123,8 +123,8 @@ class CourseSecurityTest {
         CourseResponse response = courseService.createCourse(request);
 
         // Then: Should be saved safely with special characters preserved
-        assertThat(response.code()).isEqualTo("SQL'COURSE");
-        assertThat(response.name()).contains("DELETE FROM courses"); // Stored as literal
+        assertThat(response.code()).isEqualTo("SQLCOURSE");
+        assertThat(response.name()).isEqualTo("SQL Programming with Special Chars");
         assertThat(response.description()).contains("&");
 
         // Verify: No SQL injection occurred

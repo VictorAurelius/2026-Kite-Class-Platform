@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.teacher.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
 import com.kiteclass.core.module.teacher.dto.TeacherResponse;
 import com.kiteclass.core.module.teacher.service.TeacherService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.3.1
  */
 @WebMvcTest(InternalTeacherController.class)
+@Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
 class InternalTeacherControllerTest {
 
@@ -50,6 +53,11 @@ class InternalTeacherControllerTest {
      */
     @TestConfiguration
     static class TestConfig {
+        /**
+         * Provides a mock TeacherService for testing.
+         *
+         * @return mock TeacherService instance
+         */
         @Bean
         public TeacherService teacherService() {
             return mock(TeacherService.class);
