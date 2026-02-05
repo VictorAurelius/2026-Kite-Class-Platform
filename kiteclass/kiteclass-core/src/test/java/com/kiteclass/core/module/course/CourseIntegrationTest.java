@@ -3,6 +3,7 @@ package com.kiteclass.core.module.course;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
+import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class})
+@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class CourseIntegrationTest {
