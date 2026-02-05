@@ -4,7 +4,6 @@ import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.config.TestContainersConfiguration;
-import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
@@ -47,9 +46,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class StudentServiceMultiTenantTest {
-
-    @Autowired
-    private StudentService studentService;
 
     @Autowired
     private StudentRepository studentRepository;
@@ -108,7 +104,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw EntityNotFoundException (cross-tenant access denied)
         assertThatThrownBy(() -> {
             studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("Student", studentId));
+                new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
         })
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessageContaining(studentId.toString());
@@ -132,7 +128,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception (not found in tenant2 context)
         assertThatThrownBy(() -> {
             Student found = studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("Student", studentId));
+                new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
             found.setName(request.name());
             studentRepository.save(found);
         })
@@ -161,7 +157,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception
         assertThatThrownBy(() -> {
             Student found = studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("Student", studentId));
+                new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
             studentRepository.delete(found);
         })
             .isInstanceOf(EntityNotFoundException.class);
