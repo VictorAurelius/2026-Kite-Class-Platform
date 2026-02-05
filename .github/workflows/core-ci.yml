@@ -19,6 +19,7 @@ permissions:
   checks: write
   pull-requests: write
   statuses: write
+  security-events: write
 
 jobs:
   test:
@@ -37,7 +38,7 @@ jobs:
           cache: 'maven'
 
       - name: Cache Maven dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-core-${{ hashFiles('kiteclass/kiteclass-core/pom.xml') }}
@@ -70,7 +71,7 @@ jobs:
           check_name: Core Service Test Results
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         if: always()
         with:
           files: kiteclass/kiteclass-core/target/site/jacoco/jacoco.xml
@@ -112,7 +113,7 @@ jobs:
         run: ./mvnw clean package -DskipTests
 
       - name: Upload JAR Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: core-service-jar
           path: kiteclass/kiteclass-core/target/*.jar
@@ -136,7 +137,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -160,7 +161,7 @@ jobs:
           cache: 'maven'
 
       - name: Cache SonarQube packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
