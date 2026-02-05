@@ -95,7 +95,6 @@ class StudentServiceMultiTenantTest {
     void getStudentById_shouldThrow404_whenAccessingOtherTenantStudent() {
         // Given: Student belongs to tenant1
         Student student = createStudentForTenant(tenant1, "Tenant 1 Student", "student@t1.com");
-        Long studentId = student.getId();
         String studentEmail = student.getEmail();
 
         // When: Try to access as tenant2
