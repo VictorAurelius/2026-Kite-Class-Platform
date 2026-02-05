@@ -158,13 +158,13 @@ class TeacherSecurityTest {
         // When: Update phone with SQL injection
         String maliciousPhone = "0901234567'; DROP TABLE teachers; --";
         UpdateTeacherRequest request = new UpdateTeacherRequest(
-            null, maliciousPhone, null, null, null, null
+            null, null, maliciousPhone, null, null, null, null, null
         );
 
         TeacherResponse updated = teacherService.updateTeacher(teacher.id(), request);
 
         // Then: Phone stored as literal string
-        assertThat(updated.phone()).contains("DROP TABLE");
+        assertThat(updated.phoneNumber()).contains("DROP TABLE");
 
         // Verify: Table still exists
         assertThat(teacherRepository.count()).isEqualTo(1);
@@ -266,36 +266,25 @@ class TeacherSecurityTest {
             .hasMessageContaining("email");
     }
 
-    @Test
-    @DisplayName("Should validate date of birth is not in future")
-    void shouldValidateDateOfBirth() {
-        // Given: Future date of birth
-        LocalDate futureDate = LocalDate.now().plusYears(1);
-
-        CreateTeacherRequest request = new CreateTeacherRequest(
-            "Dr. Future", "future@example.com", "0901234577",
-            futureDate, "Music", null
-        );
-
-        // When/Then: Should throw validation exception
-        assertThatThrownBy(() -> teacherService.createTeacher(request))
-            .hasMessageContaining("date");
-    }
+    // NOTE: Teacher entity does not have dateOfBirth field
+    // Date validation tests removed as they're not applicable to Teacher
 
     @Test
-    @DisplayName("Should validate minimum age requirement")
-    void shouldValidateMinimumAge() {
-        // Given: Date of birth that makes teacher too young (< 18 years)
-        LocalDate recentDate = LocalDate.now().minusYears(16);
+    @DisplayName("Should enforce email uniqueness on create")
+    void shouldEnforceEmailUniquenessOnCreate() {
+        // Given: Existing teacher
+        createTeacher("Dr. Existing", "existing@example.com", "0901234577", "Music");
 
+        // When: Try to create another teacher with same email
         CreateTeacherRequest request = new CreateTeacherRequest(
-            "Young Teacher", "young@example.com", "0901234578",
-            recentDate, "Art", null
+            "Dr. Future", "existing@example.com", "0901234578",
+            "Music", null, null, 10
         );
 
-        // When/Then: Should throw validation exception
+        // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> teacherService.createTeacher(request))
-            .hasMessageContaining("age");
+            .isInstanceOf(DuplicateResourceException.class)
+            .hasMessageContaining("email");
     }
 
     // ========================================================================
@@ -341,7 +330,7 @@ class TeacherSecurityTest {
         TeacherResponse teacher = createTeacher("Dr. Purple", "purple@example.com", "0901234582", "Chemistry");
 
         // When: Update status to INACTIVE
-        UpdateTeacherRequest request = new UpdateTeacherRequest(null, null, null, null, null, null, null, "INACTIVE");
+        UpdateTeacherRequest request = new UpdateTeacherRequest(null, null, null, null, null, null, null, TeacherStatus.INACTIVE);
 
         TeacherResponse updated = teacherService.updateTeacher(teacher.id(), request);
 
