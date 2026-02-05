@@ -185,5 +185,5 @@ jobs:
           ./mvnw verify sonar:sonar \
             -Dsonar.projectKey=VictorAurelius_2026-Kite-Class-Platform \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=VictorAurelius
+            -Dsonar.organization=victoraurelius
         continue-on-error: true  # Don't block CI if SonarCloud has issues
