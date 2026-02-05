@@ -1,7 +1,7 @@
 # Skill: CI/CD Best Practices
 
-**Version:** 1.0
-**Last Updated:** 2026-02-02
+**Version:** 1.1
+**Last Updated:** 2026-02-05
 **Purpose:** Ensure all PRs and commits maintain CI/CD pipeline health
 
 ---
@@ -24,6 +24,48 @@ This skill ensures that code changes don't break the CI/CD pipeline and maintain
 - Fixing CI/CD pipeline failures
 - Investigating test failures
 - Optimizing build performance
+
+---
+
+## 🚨 CRITICAL: GitHub Actions Version Requirements (2026)
+
+### Keep Actions Up-to-Date
+
+**Deprecated actions will cause workflow failures!** Check and update regularly:
+
+```yaml
+# ✅ CURRENT VERSIONS (as of Feb 2026)
+actions/checkout@v4                          # Stable
+actions/setup-java@v4                        # Stable
+actions/cache@v4                             # v3 deprecated
+actions/upload-artifact@v4                   # v3 deprecated Apr 2024
+codecov/codecov-action@v5                    # v3 outdated
+github/codeql-action/upload-sarif@v4         # v2 deprecated Jan 2025, v3 deprecated Dec 2026
+EnricoMi/publish-unit-test-result-action@v2  # Stable
+actions/github-script@v7                     # Stable
+aquasecurity/trivy-action@master             # Use master or specific version
+```
+
+### Migration Checklist
+
+When upgrading actions:
+1. ✅ Update all occurrences in workflow files
+2. ✅ Check release notes for breaking changes
+3. ✅ Update permissions if needed (see below)
+4. ✅ Test workflow runs after upgrade
+
+### Required Permissions
+
+```yaml
+permissions:
+  contents: read             # Read repo
+  checks: write              # Create check runs
+  pull-requests: write       # Comment on PRs
+  statuses: write            # Update commit status
+  security-events: write     # Upload SARIF (for CodeQL)
+```
+
+**Missing `security-events: write`** → "Resource not accessible by integration" error for SARIF uploads
 
 ---
 
@@ -400,22 +442,121 @@ fix
 
 ---
 
+## 🔍 Local vs CI Test Environment
+
+### CRITICAL: Local Docker May Not Work
+
+**Symptom:**
+- Tests fail locally with "Failed to load ApplicationContext"
+- All tests show "IllegalStateException"
+- Docker/Testcontainers errors in local runs
+
+**Root Cause:**
+- Local Docker Desktop issues (WSL2, permissions, resources)
+- Testcontainers configuration conflicts
+- Local environment missing required services
+
+**Solution: CI is Authoritative**
+```bash
+# ❌ DON'T trust local test failures if ApplicationContext fails
+# ✅ DO check CI logs for real failures
+
+# Read CI logs from .log directory
+tail -200 .log/*.txt
+
+# Look for actual test failures (not Docker errors)
+grep "Failures:" .log/*.txt
+grep "<<< FAILURE!" .log/*.txt
+```
+
+### How to Diagnose Real Failures
+
+**Step 1: Check CI Pipeline**
+- Go to GitHub Actions
+- Find latest workflow run
+- Download logs if needed
+
+**Step 2: Read .log Files**
+```bash
+# CI saves logs to .log/ directory (DON'T commit!)
+ls -la .log/
+
+# Read test summary
+tail -100 .log/8_Run\ All\ Tests\ \(Testcontainers\).txt | grep "Tests run:"
+
+# Example output:
+# Tests run: 179, Failures: 3, Errors: 0, Skipped: 31
+```
+
+**Step 3: Identify Specific Failures**
+```bash
+# Search for failed test names
+grep "FAILURE!" .log/*.txt
+
+# Example:
+# CourseSecurityTest.shouldPreventDeletionOfPublishedCourse
+# TeacherSecurityTest.shouldMaintainDataIntegrityOnStatusUpdate
+```
+
+**Step 4: Fix Based on CI Evidence**
+- Only fix tests that ACTUALLY failed in CI
+- Ignore local Docker/ApplicationContext errors
+- Use CI logs as source of truth
+
+### When Local Tests Are Reliable
+
+**Local tests CAN be trusted when:**
+- ✅ All tests run (no ApplicationContext failure)
+- ✅ Specific test failures (not infrastructure errors)
+- ✅ Same test fails consistently
+
+**Local tests CANNOT be trusted when:**
+- ❌ "Failed to load ApplicationContext"
+- ❌ "VM terminated without saying goodbye"
+- ❌ Docker/Testcontainers connection errors
+- ❌ All tests show errors (not specific failures)
+
+---
+
 ## 🔄 Common Issues and Solutions
 
-### Issue 1: "mvnw: Permission denied"
+### Issue 1: "mvnw: Permission denied" (Exit Code 126)
 
 **Error:**
 ```
 ./mvnw: Permission denied
 Exit code 126
+Process completed with exit code 126
 ```
 
-**Solution:**
+**Root Cause:** Maven wrapper (`mvnw`) loses execute permission in GitHub Actions checkout
+
+**Solution (MUST add to EVERY job that runs mvnw):**
 ```yaml
-# In workflow, add before running mvnw
-- name: Make mvnw executable
+- name: Checkout code
+  uses: actions/checkout@v4
+
+- name: Set up JDK 17
+  uses: actions/setup-java@v4
+  with:
+    java-version: '17'
+    distribution: 'temurin'
+
+# ⚠️ CRITICAL: Add this BEFORE any ./mvnw command
+- name: Make Maven wrapper executable
+  working-directory: kiteclass/kiteclass-core  # Adjust path
   run: chmod +x mvnw
+
+- name: Build/Test/Package
+  working-directory: kiteclass/kiteclass-core
+  run: ./mvnw clean package
 ```
+
+**Affected Jobs:**
+- ✅ test job (already has chmod)
+- ❌ build job (ADD chmod)
+- ❌ code-quality job (ADD chmod)
+- ❌ Any custom job running mvnw (ADD chmod)
 
 ### Issue 2: "No plugin found for prefix 'lint'"
 
@@ -515,6 +656,10 @@ if (timeProvider.now() > deadline) { }
 
 ---
 
-**Last Updated:** 2026-02-02
+**Last Updated:** 2026-02-05
 **Author:** KiteClass Team + Claude Sonnet 4.5
 **Status:** ✅ Active
+
+**Changelog:**
+- v1.1 (2026-02-05): Added GitHub Actions version requirements, expanded Maven wrapper permissions, added local vs CI environment section
+- v1.0 (2026-02-02): Initial version
