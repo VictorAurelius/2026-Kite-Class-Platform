@@ -20,8 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,7 +96,7 @@ class TeacherSecurityTest {
         String specialization = "Science & Mathematics";
 
         CreateTeacherRequest request = new CreateTeacherRequest(
-            name, email, "0901234567", "Computer Science", null, null, 10
+            name, email, "0901234567", specialization, null, null, 10
         );
 
         // When: Create teacher
@@ -202,7 +200,7 @@ class TeacherSecurityTest {
 
         CreateTeacherRequest request = new CreateTeacherRequest(
             "Dr. White", "white@example.com", "0901234572",
-            "Computer Science", null, null, 10
+            xssSpecialization, null, null, 10
         );
 
         // When: Create teacher
