@@ -175,7 +175,7 @@ jobs:
         working-directory: kiteclass/kiteclass-core
         run: chmod +x mvnw
 
-      - name: Run SonarQube Analysis
+      - name: Run SonarQube Analysis (Optional - will fail if not configured)
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         working-directory: kiteclass/kiteclass-core
         env:
@@ -186,4 +186,4 @@ jobs:
             -Dsonar.projectKey=kiteclass-core \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=kiteclass
-        continue-on-error: true
+        continue-on-error: true  # Don't block CI if SonarCloud not set up
