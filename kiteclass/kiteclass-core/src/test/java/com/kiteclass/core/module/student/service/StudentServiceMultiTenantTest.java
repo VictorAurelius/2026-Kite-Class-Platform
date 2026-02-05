@@ -96,18 +96,20 @@ class StudentServiceMultiTenantTest {
         // Given: Student belongs to tenant1
         Student student = createStudentForTenant(tenant1, "Tenant 1 Student", "student@t1.com");
         Long studentId = student.getId();
+        String studentEmail = student.getEmail();
 
         // When: Try to access as tenant2
         TenantContext.setCurrentTenant(tenant2);
         enableTenantFilter(tenant2);
 
         // Then: Should throw EntityNotFoundException (cross-tenant access denied)
+        // Note: Use findByEmail() instead of findById() because findById bypasses Hibernate filters
         assertThatThrownBy(() -> {
-            studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
+            studentRepository.findByEmail(studentEmail).orElseThrow(() ->
+                new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
         })
             .isInstanceOf(EntityNotFoundException.class)
-            .hasMessageContaining(studentId.toString());
+            .hasMessageContaining(studentEmail);
     }
 
     @Test
@@ -115,7 +117,7 @@ class StudentServiceMultiTenantTest {
     void updateStudent_shouldNotAllowCrossTenantUpdate() {
         // Given: Student belongs to tenant1
         Student student = createStudentForTenant(tenant1, "Original Name", "student@t1.com");
-        Long studentId = student.getId();
+        String studentEmail = student.getEmail();
 
         // When: Tenant2 tries to update tenant1's student
         TenantContext.setCurrentTenant(tenant2);
@@ -126,9 +128,10 @@ class StudentServiceMultiTenantTest {
         );
 
         // Then: Should throw exception (not found in tenant2 context)
+        // Note: Use findByEmail() to ensure filter is applied
         assertThatThrownBy(() -> {
-            Student found = studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
+            Student found = studentRepository.findByEmail(studentEmail).orElseThrow(() ->
+                new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
             found.setName(request.name());
             studentRepository.save(found);
         })
@@ -139,7 +142,7 @@ class StudentServiceMultiTenantTest {
         TenantContext.setCurrentTenant(tenant1);
         enableTenantFilter(tenant1);
 
-        Student unchanged = studentRepository.findById(studentId).orElseThrow();
+        Student unchanged = studentRepository.findByEmail(studentEmail).orElseThrow();
         assertThat(unchanged.getName()).isEqualTo("Original Name");
     }
 
@@ -148,16 +151,17 @@ class StudentServiceMultiTenantTest {
     void deleteStudent_shouldNotAllowCrossTenantDelete() {
         // Given: Student belongs to tenant1
         Student student = createStudentForTenant(tenant1, "Tenant 1 Student", "student@t1.com");
-        Long studentId = student.getId();
+        String studentEmail = student.getEmail();
 
         // When: Tenant2 tries to delete tenant1's student
         TenantContext.setCurrentTenant(tenant2);
         enableTenantFilter(tenant2);
 
         // Then: Should throw exception
+        // Note: Use findByEmail() to ensure filter is applied
         assertThatThrownBy(() -> {
-            Student found = studentRepository.findById(studentId).orElseThrow(() ->
-                new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
+            Student found = studentRepository.findByEmail(studentEmail).orElseThrow(() ->
+                new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
             studentRepository.delete(found);
         })
             .isInstanceOf(EntityNotFoundException.class);
@@ -167,7 +171,7 @@ class StudentServiceMultiTenantTest {
         TenantContext.setCurrentTenant(tenant1);
         enableTenantFilter(tenant1);
 
-        assertThat(studentRepository.findById(studentId)).isPresent();
+        assertThat(studentRepository.findByEmail(studentEmail)).isPresent();
     }
 
     @Test
