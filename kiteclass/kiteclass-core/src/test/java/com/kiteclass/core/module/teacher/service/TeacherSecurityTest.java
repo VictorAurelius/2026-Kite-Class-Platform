@@ -243,7 +243,7 @@ class TeacherSecurityTest {
 
         // When/Then: Should throw validation exception
         assertThatThrownBy(() -> teacherService.createTeacher(request))
-            .hasMessageContaining("email");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
     @Test
@@ -261,7 +261,7 @@ class TeacherSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> teacherService.createTeacher(request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("email");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
     // NOTE: Teacher entity does not have dateOfBirth field
@@ -282,7 +282,7 @@ class TeacherSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> teacherService.createTeacher(request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("email");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
     // ========================================================================

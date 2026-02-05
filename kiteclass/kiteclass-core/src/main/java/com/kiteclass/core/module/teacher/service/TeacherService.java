@@ -4,6 +4,7 @@ import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
 import com.kiteclass.core.module.teacher.dto.TeacherResponse;
 import com.kiteclass.core.module.teacher.dto.UpdateTeacherRequest;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -32,7 +33,7 @@ public interface TeacherService {
      * @return TeacherResponse with created teacher data
      * @throws com.kiteclass.core.common.exception.DuplicateResourceException if email already exists
      */
-    TeacherResponse createTeacher(CreateTeacherRequest request);
+    TeacherResponse createTeacher(@Valid CreateTeacherRequest request);
 
     /**
      * Retrieves a teacher by ID.
@@ -71,7 +72,7 @@ public interface TeacherService {
      * @return TeacherResponse with updated teacher data
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if teacher not found
      */
-    TeacherResponse updateTeacher(Long id, UpdateTeacherRequest request);
+    TeacherResponse updateTeacher(Long id, @Valid UpdateTeacherRequest request);
 
     /**
      * Soft-deletes a teacher.
