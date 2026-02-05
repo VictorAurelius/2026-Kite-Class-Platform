@@ -3,7 +3,6 @@ package com.kiteclass.core.module.student.dto;
 import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.constant.StudentStatus;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
