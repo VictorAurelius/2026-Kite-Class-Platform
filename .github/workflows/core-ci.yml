@@ -63,6 +63,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-core-
 
+      - name: Make Maven wrapper executable
+        working-directory: kiteclass/kiteclass-core
+        run: chmod +x mvnw
+
       - name: Build Core Service
         working-directory: kiteclass/kiteclass-core
         run: ./mvnw clean compile -DskipTests
