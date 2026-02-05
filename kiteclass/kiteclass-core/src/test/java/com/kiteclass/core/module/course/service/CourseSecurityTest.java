@@ -140,7 +140,7 @@ class CourseSecurityTest {
         // When: Update with SQL injection attempt
         String maliciousName = "'; UPDATE courses SET deleted=true WHERE '1'='1";
         UpdateCourseRequest request = new UpdateCourseRequest(
-            maliciousName, null, null, null, null, null, null, null
+            maliciousName, null, null, null, null, null, null, null, null, null
         );
 
         CourseResponse updated = courseService.updateCourse(course.id(), request);
@@ -244,7 +244,7 @@ class CourseSecurityTest {
         // When: Update with XSS in syllabus
         String xssSyllabus = "<iframe src='javascript:alert(1)'></iframe>";
         UpdateCourseRequest request = new UpdateCourseRequest(
-            null, null, xssSyllabus, null, null, null, null, null
+            null, null, xssSyllabus, null, null, null, null, null, null, null
         );
 
         CourseResponse updated = courseService.updateCourse(course.id(), request);
@@ -324,7 +324,7 @@ class CourseSecurityTest {
 
         // When: Try to update archived course
         UpdateCourseRequest request = new UpdateCourseRequest(
-            "Updated Name", null, null, null, null, null, null, null
+            "Updated Name", null, null, null, null, null, null, null, null, null
         );
 
         // Then: Should throw ValidationException
@@ -345,7 +345,7 @@ class CourseSecurityTest {
 
         // When: Try to update restricted field (durationWeeks) on published course
         UpdateCourseRequest request = new UpdateCourseRequest(
-            null, null, null, 20, null, null, null, null
+            null, null, null, null, null, null, 20, null, null, null
         );
 
         // Then: Should throw ValidationException
@@ -366,7 +366,7 @@ class CourseSecurityTest {
 
         // When: Update allowed field (description) on published course
         UpdateCourseRequest request = new UpdateCourseRequest(
-            null, "Updated description for published course", null, null, null, null, null, null
+            null, "Updated description for published course", null, null, null, null, null, null, null, null
         );
 
         CourseResponse updated = courseService.updateCourse(course.id(), request);
