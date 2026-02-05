@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.course.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.CourseResponse;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.4.0
  */
 @WebMvcTest(CourseController.class)
+@Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
 class CourseControllerTest {
 
@@ -52,6 +55,11 @@ class CourseControllerTest {
      */
     @TestConfiguration
     static class TestConfig {
+        /**
+         * Provides a mock CourseService for testing.
+         *
+         * @return mock CourseService instance
+         */
         @Bean
         public CourseService courseService() {
             return mock(CourseService.class);

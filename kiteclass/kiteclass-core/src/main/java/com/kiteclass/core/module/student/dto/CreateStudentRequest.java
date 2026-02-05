@@ -38,6 +38,7 @@ public record CreateStudentRequest(
         @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại không hợp lệ (phải là 10 số bắt đầu bằng 0)")
         String phone,
 
+        @PastOrPresent(message = "Ngày sinh không thể là ngày trong tương lai")
         LocalDate dateOfBirth,
 
         Gender gender,
