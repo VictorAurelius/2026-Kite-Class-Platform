@@ -3,6 +3,9 @@ package com.kiteclass.core.common.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -10,12 +13,14 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
- * Base entity with audit fields for all domain entities.
+ * Base entity with audit fields and multi-tenant support for all domain entities.
  *
  * <p>Provides:
  * <ul>
+ *   <li>Multi-tenant isolation (instanceId)</li>
  *   <li>Audit timestamps (createdAt, updatedAt)</li>
  *   <li>Audit users (createdBy, updatedBy)</li>
  *   <li>Soft delete support (deleted flag)</li>
@@ -25,18 +30,38 @@ import java.time.Instant;
  * <p>JPA auditing is enabled via @EntityListeners(AuditingEntityListener.class)
  * and must be configured in JpaConfig with @EnableJpaAuditing.
  *
+ * <p>Multi-tenant isolation is enforced via Hibernate filter "tenantFilter".
+ * The filter is automatically enabled by TenantFilterInterceptor for all API requests.
+ *
  * @author KiteClass Team
  * @since 2.2.0
  */
 @Getter
 @Setter
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, com.kiteclass.core.config.EntityPersistenceListener.class})
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = UUID.class))
+@Filter(name = "tenantFilter", condition = "instance_id = :tenantId")
 public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Instance ID for multi-tenant isolation.
+     * Every entity must belong to exactly one instance (tenant).
+     *
+     * <p>This field is automatically set when entity is persisted.
+     * The value is taken from TenantContext which is populated from X-Tenant-Id header.
+     *
+     * <p>Hibernate filter ensures queries only return entities for current tenant.
+     *
+     * @see com.kiteclass.core.common.context.TenantContext
+     * @see com.kiteclass.core.config.TenantFilterInterceptor
+     */
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
 
     /**
      * Timestamp when entity was created.
