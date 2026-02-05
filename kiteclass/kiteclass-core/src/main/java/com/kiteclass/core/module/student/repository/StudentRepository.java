@@ -38,6 +38,14 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByIdAndDeletedFalse(Long id);
 
     /**
+     * Finds a student by email (excluding deleted).
+     *
+     * @param email the email to find
+     * @return Optional containing the student if found
+     */
+    Optional<Student> findByEmailAndDeletedFalse(String email);
+
+    /**
      * Checks if a student with given email exists (excluding deleted).
      *
      * @param email the email to check
