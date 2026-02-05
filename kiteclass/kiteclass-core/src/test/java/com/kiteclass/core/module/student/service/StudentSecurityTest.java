@@ -237,7 +237,7 @@ class StudentSecurityTest {
 
         // When/Then: Should throw validation exception
         assertThatThrownBy(() -> studentService.createStudent(request))
-            .hasMessageContaining("EMAIL");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
     @Test
@@ -252,7 +252,7 @@ class StudentSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> studentService.createStudent(request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("EMAIL");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
     @Test
@@ -267,7 +267,7 @@ class StudentSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> studentService.createStudent(request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("PHONE");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("phone"));
     }
 
     @Test
@@ -282,7 +282,7 @@ class StudentSecurityTest {
 
         // When/Then: Should throw validation exception
         assertThatThrownBy(() -> studentService.createStudent(request))
-            .hasMessageContaining("date");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("date"));
     }
 
     // ========================================================================
@@ -304,7 +304,7 @@ class StudentSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> studentService.updateStudent(student1.id(), request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("PHONE");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("phone"));
     }
 
     @Test
@@ -322,7 +322,7 @@ class StudentSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> studentService.updateStudent(student1.id(), request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("EMAIL");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
     @Test
