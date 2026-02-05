@@ -846,3 +846,6 @@ vậy PR-1.8 sẽ chỉ xác định thêm vào 1 master PR thôi, có vẻ sẽ
 khó hiểu vậy?
 
 hãy cố gắng để chạy được test
+
+1. commit vẫn dính contributor claude => chưa đảm bảo skill
+2. ci không chạy khi push lên nhánh review

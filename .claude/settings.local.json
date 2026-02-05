@@ -98,7 +98,9 @@
       "Bash(for commit in 13e0e0f 57a2958 2d5a420 728a8e0)",
       "Bash(do if git log -1 --format=\"%B\" $commit)",
       "Bash(then echo \"❌ $commit: Vẫn có Co-Authored-By\" else echo \"✅ $commit: Đã xóa Co-Authored-By\" fi done)",
-      "Bash(kiteclass/kiteclass-core/mvnw -f kiteclass/kiteclass-core/pom.xml test -Dtest=StudentServiceMultiTenantTest)"
+      "Bash(kiteclass/kiteclass-core/mvnw -f kiteclass/kiteclass-core/pom.xml test -Dtest=StudentServiceMultiTenantTest)",
+      "Bash(git filter-branch:*)",
+      "Bash(git ls-tree:*)"
     ]
   }
 }
