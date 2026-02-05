@@ -5,6 +5,7 @@ import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
+import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class})
+@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class StudentIntegrationTest {
