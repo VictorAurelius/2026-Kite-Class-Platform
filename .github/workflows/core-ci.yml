@@ -176,7 +176,9 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run SonarQube Analysis
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        # TODO: Enable when project created at https://sonarcloud.io/projects/create
+        if: false  # Temporarily disabled - project not created yet
+        # if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         working-directory: kiteclass/kiteclass-core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
