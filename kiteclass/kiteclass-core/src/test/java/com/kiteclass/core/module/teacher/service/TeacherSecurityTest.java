@@ -317,7 +317,7 @@ class TeacherSecurityTest {
 
         // Then: Should be soft deleted
         assertThatThrownBy(() -> teacherService.getTeacherById(teacher.id()))
-            .hasMessageContaining("not found");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("TEACHER_NOT_FOUND"));
     }
 
     @Test
@@ -347,7 +347,7 @@ class TeacherSecurityTest {
      */
     private TeacherResponse createTeacher(String name, String email, String phone, String specialization) {
         CreateTeacherRequest request = new CreateTeacherRequest(
-            name, email, phone, "Computer Science", null, null, 10
+            name, email, phone, specialization, null, null, 10
         );
         return teacherService.createTeacher(request);
     }
