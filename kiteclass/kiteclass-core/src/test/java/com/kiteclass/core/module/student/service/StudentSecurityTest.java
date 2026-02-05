@@ -78,7 +78,7 @@ class StudentSecurityTest {
         // When: Search with SQL injection payload
         String maliciousInput = "'; DROP TABLE students; --";
         PageResponse<StudentResponse> result = studentService.getStudents(
-            maliciousInput, null, Pageable.unpaged()
+            maliciousInput, null, PageRequest.of(0, 20)
         );
 
         // Then: Should return empty (no match), not execute SQL
