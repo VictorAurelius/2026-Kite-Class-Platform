@@ -1,6 +1,7 @@
 package com.kiteclass.core.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,10 +19,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @since 2.2.0
  */
 @Configuration
-@RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    private final TenantFilterInterceptor tenantFilterInterceptor;
+    @Autowired(required = false)
+    private TenantFilterInterceptor tenantFilterInterceptor;
 
     /**
      * Adds tenant filter interceptor to all API endpoints.
@@ -37,12 +38,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        registry.addInterceptor(tenantFilterInterceptor)
-            .addPathPatterns("/api/**")
-            .excludePathPatterns(
-                "/actuator/**",
-                "/api/v1/auth/**",
-                "/internal/**"
-            );
+        // Only register if tenantFilterInterceptor is available (requires EntityManager)
+        if (tenantFilterInterceptor != null) {
+            registry.addInterceptor(tenantFilterInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns(
+                    "/actuator/**",
+                    "/api/v1/auth/**",
+                    "/internal/**"
+                );
+        }
     }
 }
