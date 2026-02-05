@@ -4,16 +4,12 @@ on:
   push:
     branches:
       - main
-      - develop
-      - 'feature/**'
-      - 'review/**'
     paths:
       - 'kiteclass/kiteclass-core/**'
       - '.github/workflows/core-ci.yml'
   pull_request:
     branches:
       - main
-      - develop
     paths:
       - 'kiteclass/kiteclass-core/**'
       - '.github/workflows/core-ci.yml'
