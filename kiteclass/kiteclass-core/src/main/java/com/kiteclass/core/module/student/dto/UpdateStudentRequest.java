@@ -27,8 +27,7 @@ import java.time.LocalDate;
  * @since 2.3.0
  */
 public record UpdateStudentRequest(
-        @NotBlank(message = "Tên là bắt buộc")
-        @Size(min = 2, max = 100, message = "Tên phải từ 2-100 ký tự")
+        @Size(max = 100, message = "Tên không được vượt quá 100 ký tự")
         String name,
 
         @Email(message = "Email không hợp lệ")
