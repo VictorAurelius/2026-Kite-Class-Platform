@@ -100,7 +100,8 @@
       "Bash(then echo \"❌ $commit: Vẫn có Co-Authored-By\" else echo \"✅ $commit: Đã xóa Co-Authored-By\" fi done)",
       "Bash(kiteclass/kiteclass-core/mvnw -f kiteclass/kiteclass-core/pom.xml test -Dtest=StudentServiceMultiTenantTest)",
       "Bash(git filter-branch:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(.claude/skills/check-commit.sh)"
     ]
   }
 }

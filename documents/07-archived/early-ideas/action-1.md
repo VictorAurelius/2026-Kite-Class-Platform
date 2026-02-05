@@ -858,3 +858,7 @@ bổ sung vào workflow:
   - Core: cd kiteclass/kiteclass-core && ./mvnw clean test
   - Gateway: cd kiteclass/kiteclass-gateway && ./mvnw clean test
   - Chỉ push khi ALL tests pass
+
+trước hết, unit test đã thành công chưa đã? thực hiện test lại ở local xem unit test đã thành công chưa?
+
+nếu chưa thành công vì docker thì lên CI sẽ phải build docker trước xong mới chạy unit test chứ? file ci workflow đã đảm bảo chưa?
