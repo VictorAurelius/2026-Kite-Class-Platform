@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.student.service;
 
-import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
@@ -8,7 +7,6 @@ import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
-import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
