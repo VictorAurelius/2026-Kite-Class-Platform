@@ -98,7 +98,7 @@ class TeacherSecurityTest {
         String specialization = "Science & Mathematics";
 
         CreateTeacherRequest request = new CreateTeacherRequest(
-            name, email, "0901234567", LocalDate.of(1980, 1, 1), specialization, null
+            name, email, "0901234567", "Computer Science", null, null, 10
         );
 
         // When: Create teacher
@@ -184,7 +184,7 @@ class TeacherSecurityTest {
 
         CreateTeacherRequest request = new CreateTeacherRequest(
             xssPayload, "xss@example.com", "0901234571",
-            LocalDate.of(1980, 1, 1), "Computer Science", null
+            "Computer Science", null, null, 10
         );
 
         // When: Create teacher
@@ -204,7 +204,7 @@ class TeacherSecurityTest {
 
         CreateTeacherRequest request = new CreateTeacherRequest(
             "Dr. White", "white@example.com", "0901234572",
-            LocalDate.of(1980, 1, 1), xssSpecialization, null
+            "Computer Science", null, null, 10
         );
 
         // When: Create teacher
@@ -244,7 +244,7 @@ class TeacherSecurityTest {
         // Given: Invalid email format
         CreateTeacherRequest request = new CreateTeacherRequest(
             "Dr. Black", "not-an-email", "0901234574",
-            LocalDate.of(1980, 1, 1), "History", null
+            "Computer Science", null, null, 10
         );
 
         // When/Then: Should throw validation exception
@@ -261,7 +261,7 @@ class TeacherSecurityTest {
         // When: Try to create another teacher with same email
         CreateTeacherRequest request = new CreateTeacherRequest(
             "Dr. Gray II", "gray@example.com", "0901234576",
-            LocalDate.of(1980, 1, 1), "Geography", null
+            "Computer Science", null, null, 10
         );
 
         // Then: Should throw DuplicateResourceException
@@ -369,7 +369,7 @@ class TeacherSecurityTest {
      */
     private TeacherResponse createTeacher(String name, String email, String phone, String specialization) {
         CreateTeacherRequest request = new CreateTeacherRequest(
-            name, email, phone, LocalDate.of(1980, 1, 1), specialization, null
+            name, email, phone, "Computer Science", null, null, 10
         );
         return teacherService.createTeacher(request);
     }
