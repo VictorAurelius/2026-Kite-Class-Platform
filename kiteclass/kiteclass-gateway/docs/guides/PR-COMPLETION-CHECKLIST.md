@@ -277,6 +277,50 @@ Change from `⏳` to `✅` (or `⚠️` if partial):
 
 ## 📋 Phase 5: Final Checklist (Before Commit)
 
+### 🚨 CRITICAL: Local Testing (MUST DO FIRST)
+
+**⚠️ DO NOT PUSH TO CI WITHOUT LOCAL TESTING**
+
+CI is failing too many times. **MUST** run ALL tests locally and fix ALL failures BEFORE pushing to CI.
+
+#### Core Service Testing
+```bash
+cd kiteclass/kiteclass-core
+./mvnw clean test
+
+# Expected: All tests pass (150+ tests)
+# If ANY test fails: FIX IT before pushing
+```
+
+#### Gateway Service Testing
+```bash
+cd kiteclass/kiteclass-gateway
+./mvnw clean test
+
+# Expected: All tests pass (150+ tests)
+# If ANY test fails: FIX IT before pushing
+```
+
+#### Frontend Testing (if applicable)
+```bash
+cd kiteclass/kiteclass-frontend
+pnpm test
+
+# Expected: All tests pass
+# If ANY test fails: FIX IT before pushing
+```
+
+**RULE:** CI should run clean - no trial-and-error on CI!
+
+**Checklist:**
+- [ ] Core Service: All tests passing locally
+- [ ] Gateway Service: All tests passing locally
+- [ ] Frontend: All tests passing locally (if changed)
+- [ ] No test failures or errors
+- [ ] No compilation warnings
+
+---
+
 ### Documentation Verification
 
 - [ ] Implementation plan status updated
@@ -496,6 +540,12 @@ A: It's 10-15 minutes per PR. Way less than the time wasted with outdated docs.
 
 ```
 PR COMPLETION CHECKLIST - PR _____
+
+🚨 LOCAL TESTING (CRITICAL - DO FIRST):
+□ Core Service: All tests pass locally (./mvnw clean test)
+□ Gateway Service: All tests pass locally (./mvnw clean test)
+□ Frontend: All tests pass locally (pnpm test)
+□ NO test failures before pushing to CI
 
 CODE:
 □ Implementation complete

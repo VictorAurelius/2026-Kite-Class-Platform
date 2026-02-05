@@ -852,4 +852,9 @@ hãy cố gắng để chạy được test
 
 tôi quyết định ko chạy ci trên nhánh review nữa. merge vào main để chạy ci
 
-bổ sung vào workflow: không được xóa commit cũ, nếu có file đang change chưa được commit thì commit luôn
+bổ sung vào workflow:
+- không được xóa commit cũ, nếu có file đang change chưa được commit thì commit luôn
+- CRITICAL: CI đang fail quá nhiều lần, yêu cầu chạy test ở local trước, fix xong hết mới đẩy lên CI
+  - Core: cd kiteclass/kiteclass-core && ./mvnw clean test
+  - Gateway: cd kiteclass/kiteclass-gateway && ./mvnw clean test
+  - Chỉ push khi ALL tests pass
