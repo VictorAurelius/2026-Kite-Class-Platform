@@ -866,3 +866,7 @@ nếu chưa thành công vì docker thì lên CI sẽ phải build docker trư�
 ci vẫn fail ở Run all tests, hãy chạy lại ở local
 
 đọc .log để hiểu rõ hơn, không commit file trong .log
+
+cập nhật những lưu ý lỗi này và skill để tránh mắc phải sau này
+
+tôi muốn fix hoặc loại bỏ hoàn toàn lỗi này

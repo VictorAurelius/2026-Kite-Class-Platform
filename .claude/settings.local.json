@@ -104,7 +104,8 @@
       "Bash(.claude/skills/check-commit.sh)",
       "Bash(tail:*)",
       "Bash(while read file)",
-      "Bash(do grep -n \"^\\\\s*public.*\\(\" \"$file\")"
+      "Bash(do grep -n \"^\\\\s*public.*\\(\" \"$file\")",
+      "Bash(git fetch:*)"
     ]
   }
 }
