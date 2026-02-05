@@ -870,3 +870,5 @@ ci vẫn fail ở Run all tests, hãy chạy lại ở local
 cập nhật những lưu ý lỗi này và skill để tránh mắc phải sau này
 
 tôi muốn fix hoặc loại bỏ hoàn toàn lỗi này
+
+thực hiện đúng theo workflow để chạy CI cho 2.3
