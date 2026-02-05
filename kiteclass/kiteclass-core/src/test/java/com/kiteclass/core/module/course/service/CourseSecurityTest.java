@@ -21,13 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,7 +70,7 @@ class CourseSecurityTest {
         // Create default teacher for tests
         CreateTeacherRequest teacherRequest = new CreateTeacherRequest(
             "Dr. Test", "test@example.com", "0901234567",
-            LocalDate.of(1980, 1, 1), "Computer Science", null
+            "Computer Science", null, null, 10
         );
         TeacherResponse teacher = teacherService.createTeacher(teacherRequest);
         defaultTeacherId = teacher.id();
@@ -97,7 +94,7 @@ class CourseSecurityTest {
         // When: Search with SQL injection payload
         String maliciousInput = "'; DROP TABLE courses; --";
         CourseSearchCriteria criteria = new CourseSearchCriteria(
-            maliciousInput, null, null, Pageable.unpaged()
+            maliciousInput, null, null, 0, 20, null
         );
         PageResponse<CourseResponse> result = courseService.getCourses(criteria);
 
@@ -164,7 +161,7 @@ class CourseSecurityTest {
         // When: Search with SQL injection in code
         String maliciousSearch = "WEB101' OR '1'='1";
         CourseSearchCriteria criteria = new CourseSearchCriteria(
-            maliciousSearch, null, null, PageRequest.of(0, 10)
+            maliciousSearch, null, null, 0, 10, null
         );
         PageResponse<CourseResponse> result = courseService.getCourses(criteria);
 
@@ -181,7 +178,7 @@ class CourseSecurityTest {
         // When: Filter with SQL injection in status
         String maliciousStatus = "DRAFT'; DROP TABLE courses; --";
         CourseSearchCriteria criteria = new CourseSearchCriteria(
-            null, maliciousStatus, null, Pageable.unpaged()
+            null, maliciousStatus, null, 0, 20, null
         );
 
         // Then: Should handle invalid status gracefully (no SQL injection)
