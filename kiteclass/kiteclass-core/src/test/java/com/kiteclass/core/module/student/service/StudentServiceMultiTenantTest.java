@@ -269,7 +269,16 @@ class StudentServiceMultiTenantTest {
      * Helper method to enable Hibernate tenant filter.
      */
     private void enableTenantFilter(UUID tenantId) {
+        entityManager.flush(); // Flush pending changes
+        entityManager.clear(); // Clear persistence context to get fresh session
         Session session = entityManager.unwrap(Session.class);
+
+        // Disable existing filter if any
+        if (session.getEnabledFilter("tenantFilter") != null) {
+            session.disableFilter("tenantFilter");
+        }
+
+        // Enable filter with new tenant
         Filter filter = session.enableFilter("tenantFilter");
         filter.setParameter("tenantId", tenantId);
     }
