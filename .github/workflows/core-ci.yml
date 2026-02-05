@@ -176,16 +176,14 @@ jobs:
         run: chmod +x mvnw
 
       - name: Run SonarQube Analysis
-        # TODO: Enable when project created at https://sonarcloud.io/projects/create
-        if: false  # Temporarily disabled - project not created yet
-        # if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
         working-directory: kiteclass/kiteclass-core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           ./mvnw verify sonar:sonar \
-            -Dsonar.projectKey=kiteclass-core \
+            -Dsonar.projectKey=VictorAurelius_2026-Kite-Class-Platform \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=victoraurelius
+            -Dsonar.organization=VictorAurelius
         continue-on-error: true  # Don't block CI if SonarCloud has issues
