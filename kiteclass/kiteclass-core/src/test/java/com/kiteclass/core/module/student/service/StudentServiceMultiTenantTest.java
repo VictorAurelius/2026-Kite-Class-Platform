@@ -105,7 +105,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw EntityNotFoundException (cross-tenant access denied)
         // Note: Use findByEmail() instead of findById() because findById bypasses Hibernate filters
         assertThatThrownBy(() -> {
-            studentRepository.findByEmail(studentEmail).orElseThrow(() ->
+            studentRepository.findByEmailAndDeletedFalse(studentEmail).orElseThrow(() ->
                 new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
         })
             .isInstanceOf(EntityNotFoundException.class)
@@ -130,7 +130,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception (not found in tenant2 context)
         // Note: Use findByEmail() to ensure filter is applied
         assertThatThrownBy(() -> {
-            Student found = studentRepository.findByEmail(studentEmail).orElseThrow(() ->
+            Student found = studentRepository.findByEmailAndDeletedFalse(studentEmail).orElseThrow(() ->
                 new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
             found.setName(request.name());
             studentRepository.save(found);
@@ -142,7 +142,7 @@ class StudentServiceMultiTenantTest {
         TenantContext.setCurrentTenant(tenant1);
         enableTenantFilter(tenant1);
 
-        Student unchanged = studentRepository.findByEmail(studentEmail).orElseThrow();
+        Student unchanged = studentRepository.findByEmailAndDeletedFalse(studentEmail).orElseThrow();
         assertThat(unchanged.getName()).isEqualTo("Original Name");
     }
 
@@ -160,7 +160,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception
         // Note: Use findByEmail() to ensure filter is applied
         assertThatThrownBy(() -> {
-            Student found = studentRepository.findByEmail(studentEmail).orElseThrow(() ->
+            Student found = studentRepository.findByEmailAndDeletedFalse(studentEmail).orElseThrow(() ->
                 new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
             studentRepository.delete(found);
         })
@@ -171,7 +171,7 @@ class StudentServiceMultiTenantTest {
         TenantContext.setCurrentTenant(tenant1);
         enableTenantFilter(tenant1);
 
-        assertThat(studentRepository.findByEmail(studentEmail)).isPresent();
+        assertThat(studentRepository.findByEmailAndDeletedFalse(studentEmail)).isPresent();
     }
 
     @Test
