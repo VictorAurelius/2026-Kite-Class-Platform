@@ -114,8 +114,9 @@ class CourseSecurityTest {
         String description = "Test & Learn SQL";
 
         CreateCourseRequest request = new CreateCourseRequest(
-            code, name, description, defaultTeacherId, 12, 24,
-            null, null, BigDecimal.valueOf(1000000), null
+            name, code, description,
+            null, null, null, null,
+            defaultTeacherId, 12, 24, BigDecimal.valueOf(1000000)
         );
 
         // When: Create course
@@ -200,8 +201,9 @@ class CourseSecurityTest {
         String xssPayload = "<script>alert('XSS')</script>";
 
         CreateCourseRequest request = new CreateCourseRequest(
-            "XSS101", xssPayload, "Security Testing",
-            defaultTeacherId, 8, 16, null, null, BigDecimal.valueOf(500000), null
+            xssPayload, "XSS101", "Security Testing",
+            null, null, null, null,
+            defaultTeacherId, 8, 16, BigDecimal.valueOf(500000)
         );
 
         // When: Create course
@@ -220,8 +222,9 @@ class CourseSecurityTest {
         String xssDescription = "<img src=x onerror='alert(1)'>";
 
         CreateCourseRequest request = new CreateCourseRequest(
-            "HTML101", "HTML Basics", xssDescription,
-            defaultTeacherId, 6, 12, null, null, BigDecimal.valueOf(300000), null
+            "HTML Basics", "HTML101", xssDescription,
+            null, null, null, null,
+            defaultTeacherId, 6, 12, BigDecimal.valueOf(300000)
         );
 
         // When: Create course
@@ -263,8 +266,9 @@ class CourseSecurityTest {
 
         // When: Try to create another course with same code
         CreateCourseRequest request = new CreateCourseRequest(
-            "UNIQUE101", "Another Course", "Description",
-            defaultTeacherId, 10, 20, null, null, BigDecimal.valueOf(800000), null
+            "Another Course", "UNIQUE101", "Description",
+            null, null, null, null,
+            defaultTeacherId, 10, 20, BigDecimal.valueOf(800000)
         );
 
         // Then: Should throw DuplicateResourceException
@@ -278,8 +282,9 @@ class CourseSecurityTest {
     void shouldValidateDurationConstraints() {
         // Given: Invalid duration (0 weeks)
         CreateCourseRequest request = new CreateCourseRequest(
-            "INVALID101", "Invalid Course", "Description",
-            defaultTeacherId, 0, 0, null, null, BigDecimal.valueOf(500000), null
+            "Invalid Course", "INVALID101", "Description",
+            null, null, null, null,
+            defaultTeacherId, 0, 0, BigDecimal.valueOf(500000)
         );
 
         // When/Then: Should throw validation exception
@@ -292,8 +297,9 @@ class CourseSecurityTest {
     void shouldValidatePrice() {
         // Given: Negative price
         CreateCourseRequest request = new CreateCourseRequest(
-            "PRICE101", "Price Test", "Description",
-            defaultTeacherId, 8, 16, null, null, BigDecimal.valueOf(-1000), null
+            "Price Test", "PRICE101", "Description",
+            null, null, null, null,
+            defaultTeacherId, 8, 16, BigDecimal.valueOf(-1000)
         );
 
         // When/Then: Should throw validation exception
@@ -395,8 +401,9 @@ class CourseSecurityTest {
      */
     private CourseResponse createCourse(String code, String name, Long teacherId) {
         CreateCourseRequest request = new CreateCourseRequest(
-            code, name, "Test course description",
-            teacherId, 10, 20, null, null, BigDecimal.valueOf(1000000), null
+            name, code, "Test course description",
+            null, null, null, null,
+            teacherId, 10, 20, BigDecimal.valueOf(1000000)
         );
         return courseService.createCourse(request);
     }
