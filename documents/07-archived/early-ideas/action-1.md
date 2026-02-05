@@ -844,3 +844,5 @@ master PR RV phải thực hiện xong tôi mới quay lại master PR feature
 vậy PR-1.8 sẽ chỉ xác định thêm vào 1 master PR thôi, có vẻ sẽ là PR RV
 
 khó hiểu vậy?
+
+hãy cố gắng để chạy được test

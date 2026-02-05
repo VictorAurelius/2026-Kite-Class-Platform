@@ -3,6 +3,7 @@ package com.kiteclass.core.module.student.service;
 import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
 import com.kiteclass.core.module.student.entity.Student;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -40,6 +43,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @since 2.2.0
  */
 @SpringBootTest
+@Import(TestContainersConfiguration.class)
+@ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class StudentServiceMultiTenantTest {
 
@@ -121,7 +126,7 @@ class StudentServiceMultiTenantTest {
         enableTenantFilter(tenant2);
 
         UpdateStudentRequest request = new UpdateStudentRequest(
-            "Hacked Name", null, null, null, null, null, null
+            "Hacked Name", null, null, null, null, null, null, null
         );
 
         // Then: Should throw exception (not found in tenant2 context)
@@ -217,12 +222,12 @@ class StudentServiceMultiTenantTest {
         TenantContext.setCurrentTenant(tenant1);
         enableTenantFilter(tenant1);
 
-        Student found = studentRepository.findByEmailAndDeletedFalse("same@email.com")
-            .orElseThrow();
+        List<Student> found = studentRepository.findAll();
 
         // Then: Should only find tenant1's student
-        assertThat(found.getName()).isEqualTo("Student T1");
-        assertThat(found.getInstanceId()).isEqualTo(tenant1);
+        assertThat(found).hasSize(1);
+        assertThat(found.get(0).getName()).isEqualTo("Student T1");
+        assertThat(found.get(0).getInstanceId()).isEqualTo(tenant1);
     }
 
     @Test
