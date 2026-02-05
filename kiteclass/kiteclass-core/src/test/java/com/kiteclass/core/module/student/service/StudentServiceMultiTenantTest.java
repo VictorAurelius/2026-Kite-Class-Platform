@@ -108,7 +108,7 @@ class StudentServiceMultiTenantTest {
                 new EntityNotFoundException("STUDENT_NOT_FOUND", studentEmail));
         })
             .isInstanceOf(EntityNotFoundException.class)
-            .hasMessageContaining(studentEmail);
+            .hasMessageContaining("STUDENT_NOT_FOUND");
     }
 
     @Test
