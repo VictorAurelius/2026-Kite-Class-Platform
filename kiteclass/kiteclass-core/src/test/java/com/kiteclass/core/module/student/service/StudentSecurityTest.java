@@ -97,9 +97,7 @@ class StudentSecurityTest {
         String name = "O'Brien";
         String email = "user'; DELETE FROM students; --@example.com";
 
-        CreateStudentRequest request = new CreateStudentRequest(
-            name, email, "0901234567", LocalDate.of(2000, 1, 1), null, null
-        );
+        CreateStudentRequest request = new CreateStudentRequest(name, email, "0901234567", LocalDate.of(2000, 1, 1), null, null, null);
 
         // When: Create student
         StudentResponse response = studentService.createStudent(request);
@@ -181,9 +179,7 @@ class StudentSecurityTest {
         // Given: XSS payload in name
         String xssPayload = "<script>alert('XSS')</script>";
 
-        CreateStudentRequest request = new CreateStudentRequest(
-            xssPayload, "xss@example.com", "0901234570", LocalDate.of(2000, 1, 1), null, null
-        );
+        CreateStudentRequest request = new CreateStudentRequest(xssPayload, "xss@example.com", "0901234570", LocalDate.of(2000, 1, 1), null, null, null);
 
         // When: Create student
         StudentResponse response = studentService.createStudent(request);
@@ -240,9 +236,7 @@ class StudentSecurityTest {
     @DisplayName("Should reject invalid email format")
     void shouldRejectInvalidEmail() {
         // Given: Invalid email format
-        CreateStudentRequest request = new CreateStudentRequest(
-            "David", "not-an-email", "0901234573", LocalDate.of(2000, 1, 1), null, null
-        );
+        CreateStudentRequest request = new CreateStudentRequest("David", "not-an-email", "0901234573", LocalDate.of(2000, 1, 1), null, null, null);
 
         // When/Then: Should throw validation exception
         assertThatThrownBy(() -> studentService.createStudent(request))
@@ -256,9 +250,7 @@ class StudentSecurityTest {
         createStudent("Emma", "emma@example.com", "0901234574");
 
         // When: Try to create another student with same email
-        CreateStudentRequest request = new CreateStudentRequest(
-            "Emma 2", "emma@example.com", "0901234575", LocalDate.of(2000, 1, 1), null, null
-        );
+        CreateStudentRequest request = new CreateStudentRequest("Emma 2", "emma@example.com", "0901234575", LocalDate.of(2000, 1, 1), null, null, null);
 
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> studentService.createStudent(request))
@@ -273,9 +265,7 @@ class StudentSecurityTest {
         createStudent("Frank", "frank@example.com", "0901234576");
 
         // When: Try to create another student with same phone
-        CreateStudentRequest request = new CreateStudentRequest(
-            "Frank 2", "frank2@example.com", "0901234576", LocalDate.of(2000, 1, 1), null, null
-        );
+        CreateStudentRequest request = new CreateStudentRequest("Frank 2", "frank2@example.com", "0901234576", LocalDate.of(2000, 1, 1), null, null, null);
 
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> studentService.createStudent(request))
@@ -364,9 +354,7 @@ class StudentSecurityTest {
      * Helper method to create a student for testing.
      */
     private StudentResponse createStudent(String name, String email, String phone) {
-        CreateStudentRequest request = new CreateStudentRequest(
-            name, email, phone, LocalDate.of(2000, 1, 1), null, null
-        );
+        CreateStudentRequest request = new CreateStudentRequest(name, email, phone, LocalDate.of(2000, 1, 1), null, null, null);
         return studentService.createStudent(request);
     }
 }

@@ -121,9 +121,7 @@ class TeacherSecurityTest {
 
         // When: Update with SQL injection attempt
         String maliciousName = "'; UPDATE teachers SET deleted=true WHERE '1'='1";
-        UpdateTeacherRequest request = new UpdateTeacherRequest(
-            maliciousName, null, null, null, null, null
-        );
+        UpdateTeacherRequest request = new UpdateTeacherRequest(maliciousName, null, null, null, null, null, null, null);
 
         TeacherResponse updated = teacherService.updateTeacher(teacher.id(), request);
 
@@ -223,9 +221,7 @@ class TeacherSecurityTest {
 
         // When: Update with XSS in bio
         String xssBio = "<iframe src='javascript:alert(1)'></iframe>";
-        UpdateTeacherRequest request = new UpdateTeacherRequest(
-            null, null, null, null, xssBio, null
-        );
+        UpdateTeacherRequest request = new UpdateTeacherRequest(null, null, null, null, xssBio, null, null, null);
 
         TeacherResponse updated = teacherService.updateTeacher(teacher.id(), request);
 
@@ -315,9 +311,7 @@ class TeacherSecurityTest {
 
         // When: Try to update teacher1's email to teacher2's email
         // Note: Email update is ignored by mapper, but test the validation
-        UpdateTeacherRequest request = new UpdateTeacherRequest(
-            null, null, null, null, null, null
-        );
+        UpdateTeacherRequest request = new UpdateTeacherRequest(null, null, null, null, null, null, null, null);
 
         // Then: Should succeed (email cannot be changed anyway)
         TeacherResponse updated = teacherService.updateTeacher(teacher1.id(), request);
@@ -347,9 +341,7 @@ class TeacherSecurityTest {
         TeacherResponse teacher = createTeacher("Dr. Purple", "purple@example.com", "0901234582", "Chemistry");
 
         // When: Update status to INACTIVE
-        UpdateTeacherRequest request = new UpdateTeacherRequest(
-            null, null, null, null, null, "INACTIVE"
-        );
+        UpdateTeacherRequest request = new UpdateTeacherRequest(null, null, null, null, null, null, null, "INACTIVE");
 
         TeacherResponse updated = teacherService.updateTeacher(teacher.id(), request);
 
