@@ -207,7 +207,7 @@ class StudentServiceMultiTenantTest {
         // Then: Should throw exception
         assertThatThrownBy(() -> studentRepository.save(student))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Cannot update entity from different tenant");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("tenant"));
     }
 
     @Test

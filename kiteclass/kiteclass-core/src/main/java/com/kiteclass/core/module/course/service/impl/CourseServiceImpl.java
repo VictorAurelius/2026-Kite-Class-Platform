@@ -46,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;

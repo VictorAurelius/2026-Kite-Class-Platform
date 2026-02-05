@@ -862,3 +862,7 @@ bổ sung vào workflow:
 trước hết, unit test đã thành công chưa đã? thực hiện test lại ở local xem unit test đã thành công chưa?
 
 nếu chưa thành công vì docker thì lên CI sẽ phải build docker trước xong mới chạy unit test chứ? file ci workflow đã đảm bảo chưa?
+
+ci vẫn fail ở Run all tests, hãy chạy lại ở local
+
+đọc .log để hiểu rõ hơn, không commit file trong .log

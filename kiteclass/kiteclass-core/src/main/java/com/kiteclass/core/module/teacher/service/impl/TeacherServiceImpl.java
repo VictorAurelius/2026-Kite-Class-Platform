@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class TeacherServiceImpl implements TeacherService {
 
     private final TeacherRepository teacherRepository;

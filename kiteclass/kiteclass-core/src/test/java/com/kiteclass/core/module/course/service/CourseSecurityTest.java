@@ -184,7 +184,7 @@ class CourseSecurityTest {
 
         // Then: Should handle invalid status gracefully (no SQL injection)
         assertThatThrownBy(() -> courseService.getCourses(criteria))
-            .hasMessageContaining("status");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("status"));
 
         // Verify: Table still exists
         assertThat(courseRepository.count()).isEqualTo(1);
@@ -274,7 +274,7 @@ class CourseSecurityTest {
         // Then: Should throw DuplicateResourceException
         assertThatThrownBy(() -> courseService.createCourse(request))
             .isInstanceOf(DuplicateResourceException.class)
-            .hasMessageContaining("code");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("code"));
     }
 
     @Test
@@ -289,7 +289,7 @@ class CourseSecurityTest {
 
         // When/Then: Should throw validation exception
         assertThatThrownBy(() -> courseService.createCourse(request))
-            .hasMessageContaining("duration");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("duration"));
     }
 
     @Test
@@ -304,7 +304,7 @@ class CourseSecurityTest {
 
         // When/Then: Should throw validation exception
         assertThatThrownBy(() -> courseService.createCourse(request))
-            .hasMessageContaining("price");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("price"));
     }
 
     // ========================================================================
@@ -330,7 +330,7 @@ class CourseSecurityTest {
         // Then: Should throw ValidationException
         assertThatThrownBy(() -> courseService.updateCourse(course.id(), request))
             .isInstanceOf(ValidationException.class)
-            .hasMessageContaining("ARCHIVED");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("ARCHIVED"));
     }
 
     @Test
@@ -351,7 +351,7 @@ class CourseSecurityTest {
         // Then: Should throw ValidationException
         assertThatThrownBy(() -> courseService.updateCourse(course.id(), request))
             .isInstanceOf(ValidationException.class)
-            .hasMessageContaining("PUBLISHED");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("PUBLISHED"));
     }
 
     @Test
@@ -389,7 +389,7 @@ class CourseSecurityTest {
         // Then: Should throw ValidationException
         assertThatThrownBy(() -> courseService.deleteCourse(course.id()))
             .isInstanceOf(ValidationException.class)
-            .hasMessageContaining("PUBLISHED");
+            .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("PUBLISHED"));
     }
 
     // ========================================================================

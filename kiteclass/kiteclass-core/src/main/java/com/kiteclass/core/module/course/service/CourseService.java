@@ -5,6 +5,7 @@ import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.CourseResponse;
 import com.kiteclass.core.module.course.dto.CourseSearchCriteria;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
+import jakarta.validation.Valid;
 
 /**
  * Service interface for Course business logic.
@@ -40,7 +41,7 @@ public interface CourseService {
      * @throws com.kiteclass.core.common.exception.DuplicateResourceException if code already exists
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if teacher not found
      */
-    CourseResponse createCourse(CreateCourseRequest request);
+    CourseResponse createCourse(@Valid CreateCourseRequest request);
 
     /**
      * Retrieves a course by ID.
@@ -86,7 +87,7 @@ public interface CourseService {
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course not found
      * @throws com.kiteclass.core.common.exception.ValidationException if update not allowed for current status
      */
-    CourseResponse updateCourse(Long id, UpdateCourseRequest request);
+    CourseResponse updateCourse(Long id, @Valid UpdateCourseRequest request);
 
     /**
      * Soft-deletes a course.
