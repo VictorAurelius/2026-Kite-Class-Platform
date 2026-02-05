@@ -105,7 +105,12 @@
       "Bash(tail:*)",
       "Bash(while read file)",
       "Bash(do grep -n \"^\\\\s*public.*\\(\" \"$file\")",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(wc:*)",
+      "Bash(if [ -f target/site/jacoco/index.html ])",
+      "Bash(then grep -A 3 \"Total\" target/site/jacoco/index.html)",
+      "Bash(else echo \"Coverage report not found\")",
+      "Bash(fi)"
     ]
   }
 }

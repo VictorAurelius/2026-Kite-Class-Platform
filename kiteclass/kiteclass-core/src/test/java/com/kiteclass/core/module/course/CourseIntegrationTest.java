@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.course;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
