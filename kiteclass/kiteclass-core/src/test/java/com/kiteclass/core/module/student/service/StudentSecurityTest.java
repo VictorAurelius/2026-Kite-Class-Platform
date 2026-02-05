@@ -198,7 +198,7 @@ class StudentSecurityTest {
 
         CreateStudentRequest request = new CreateStudentRequest(
             "Alice", "alice@example.com", "0901234571",
-            LocalDate.of(2000, 1, 1), null, xssAddress
+            LocalDate.of(2000, 1, 1), null, xssAddress, null
         );
 
         // When: Create student
@@ -280,7 +280,7 @@ class StudentSecurityTest {
         LocalDate futureDate = LocalDate.now().plusYears(1);
 
         CreateStudentRequest request = new CreateStudentRequest(
-            "Grace", "grace@example.com", "0901234577", futureDate, null, null
+            "Grace", "grace@example.com", "0901234577", futureDate, null, null, null
         );
 
         // When/Then: Should throw validation exception
