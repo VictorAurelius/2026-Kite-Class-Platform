@@ -3,6 +3,7 @@ package com.kiteclass.core.module.student;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.constant.StudentStatus;
+import com.kiteclass.core.config.RedisTestConfig;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
@@ -49,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
+@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class, RedisTestConfig.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class StudentIntegrationTest {
