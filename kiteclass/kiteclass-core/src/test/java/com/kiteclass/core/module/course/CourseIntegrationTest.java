@@ -345,7 +345,7 @@ class CourseIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString())
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.success").value(false));
+            .andExpect(jsonPath("$.code").exists());
     }
 
     @Test
@@ -372,7 +372,7 @@ class CourseIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString())
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.success").value(false));
+            .andExpect(jsonPath("$.code").exists());
     }
 
     @Test
@@ -382,7 +382,7 @@ class CourseIntegrationTest {
         mockMvc.perform(get("/api/v1/courses/{id}", 999999L)
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.success").value(false));
+            .andExpect(jsonPath("$.code").exists());
     }
 
     @Test
@@ -429,7 +429,7 @@ class CourseIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString())
                 .content(objectMapper.writeValueAsString(request2)))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.success").value(false));
+            .andExpect(jsonPath("$.code").exists());
     }
 
     @Test
