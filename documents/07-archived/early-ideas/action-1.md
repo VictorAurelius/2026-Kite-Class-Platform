@@ -924,3 +924,9 @@ bổ sung vào git hook:
 author vẫ có claude? cập nhật skill để trước khi commit phải check lại, giúp tôi commit cả các file đang change
 
 tôi thấy kiteclass-frontend chưa implement được nhiều nên các PR RV trong master plan có thể cập nhật status hoàn thành, thực hiện đổi tên file PR RV để biết master PR này đã hoàn thành
+
+bây giờ, hãy quay lại master plan phát triển:
+1. hãy cập nhật memory của claude để hiểu master plan PR Implement là 03-planning/implementation/kiteclass-implementation-plan.md
+2. cập nhật master plan PR sau khi đã hoàn thành master plan PR RV
+3. master plan PR đã đảm bảo tiêu chí FE sẽ phát triển song song với feature backend chưa? tức là tôi muốn có FE cho mỗi modules/feature backend được phát triển đề test trực quan => cập nhật
+4. master plan PR đã đảm bảo tham chiếu đế chất lượng code, test, kiến trúc theo chuẩn skill hiện tại chưa => cập nhật
