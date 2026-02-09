@@ -61,8 +61,7 @@ public class InternalTeacherController {
                description = "Retrieve teacher profile for Gateway authentication flow. " +
                            "Requires X-Internal-Request header.")
     public ResponseEntity<ApiResponse<TeacherResponse>> getTeacher(
-            @PathVariable Long id,
-            @RequestHeader("X-Internal-Request") String internalHeader) {
+            @PathVariable Long id) {
 
         log.info("Internal API: Get teacher profile, id={}", id);
 
@@ -97,8 +96,7 @@ public class InternalTeacherController {
                description = "Create teacher profile during Gateway registration flow. " +
                            "Requires X-Internal-Request header.")
     public ResponseEntity<ApiResponse<TeacherResponse>> createTeacher(
-            @Valid @RequestBody CreateTeacherRequest request,
-            @RequestHeader("X-Internal-Request") String internalHeader) {
+            @Valid @RequestBody CreateTeacherRequest request) {
 
         log.info("Internal API: Create teacher, email={}", request.email());
 
@@ -131,8 +129,7 @@ public class InternalTeacherController {
                description = "Soft delete teacher when Gateway user account is deleted. " +
                            "Requires X-Internal-Request header.")
     public ResponseEntity<ApiResponse<Void>> deleteTeacher(
-            @PathVariable Long id,
-            @RequestHeader("X-Internal-Request") String internalHeader) {
+            @PathVariable Long id) {
 
         log.info("Internal API: Delete teacher, id={}", id);
 

@@ -6,14 +6,17 @@ import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
 import com.kiteclass.core.module.teacher.dto.TeacherResponse;
 import com.kiteclass.core.module.teacher.service.TeacherService;
 import com.kiteclass.core.testutil.TeacherTestDataBuilder;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(InternalTeacherController.class)
 @Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
+@TestPropertySource(properties = {"internal.api.secret=test-secret-for-hmac"})
 class InternalTeacherControllerTest {
 
     @Autowired
@@ -45,7 +49,20 @@ class InternalTeacherControllerTest {
     @Autowired
     private TeacherService teacherService;
 
-    private static final String INTERNAL_HEADER = "X-Internal-Request";
+    @Value("${internal.api.secret}")
+    private String internalApiSecret;
+
+    /**
+     * Generates HMAC-SHA256 signature for internal API authentication.
+     *
+     * @return array [timestamp, signature]
+     */
+    private String[] generateInternalApiHeaders() {
+        long timestamp = System.currentTimeMillis() / 1000;
+        String timestampStr = String.valueOf(timestamp);
+        String signature = new HmacUtils("HmacSHA256", internalApiSecret).hmacHex(timestampStr);
+        return new String[]{timestampStr, signature};
+    }
 
     /**
      * Test configuration providing mock beans.
@@ -73,10 +90,12 @@ class InternalTeacherControllerTest {
         );
 
         when(teacherService.getTeacherById(1L)).thenReturn(response);
+        String[] headers = generateInternalApiHeaders();
 
         // When & Then
         mockMvc.perform(get("/internal/teachers/1")
-                        .header(INTERNAL_HEADER, "true"))
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1]))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1));
@@ -95,10 +114,12 @@ class InternalTeacherControllerTest {
         );
 
         when(teacherService.createTeacher(any(CreateTeacherRequest.class))).thenReturn(response);
+        String[] headers = generateInternalApiHeaders();
 
         // When & Then
         mockMvc.perform(post("/internal/teachers")
-                        .header(INTERNAL_HEADER, "true")
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1])
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -110,9 +131,13 @@ class InternalTeacherControllerTest {
 
     @Test
     void deleteTeacher_shouldReturnSuccess() throws Exception {
+        // Given
+        String[] headers = generateInternalApiHeaders();
+
         // When & Then
         mockMvc.perform(delete("/internal/teachers/1")
-                        .header(INTERNAL_HEADER, "true"))
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1]))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 

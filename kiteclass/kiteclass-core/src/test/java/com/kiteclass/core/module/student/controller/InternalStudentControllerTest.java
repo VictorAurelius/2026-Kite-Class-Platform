@@ -5,10 +5,12 @@ import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.service.StudentService;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -19,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(InternalStudentController.class)
 @AutoConfigureMockMvc
 @Import({InternalStudentControllerTest.TestSecurityConfig.class, InternalStudentControllerTest.MockConfig.class})
+@TestPropertySource(properties = {"internal.api.secret=test-secret-for-hmac"})
 class InternalStudentControllerTest {
 
     @Autowired
@@ -47,6 +51,21 @@ class InternalStudentControllerTest {
 
     @Autowired
     private StudentService studentService;
+
+    @Value("${internal.api.secret}")
+    private String internalApiSecret;
+
+    /**
+     * Generates HMAC-SHA256 signature for internal API authentication.
+     *
+     * @return array [timestamp, signature]
+     */
+    private String[] generateInternalApiHeaders() {
+        long timestamp = System.currentTimeMillis() / 1000;
+        String timestampStr = String.valueOf(timestamp);
+        String signature = new HmacUtils("HmacSHA256", internalApiSecret).hmacHex(timestampStr);
+        return new String[]{timestampStr, signature};
+    }
 
     /**
      * Test security configuration that disables security for controller tests.
@@ -87,10 +106,12 @@ class InternalStudentControllerTest {
         StudentResponse response = new StudentResponse(1L, "John Doe", "john@example.com",
                 null, null, null, null, null, null, null);
         when(studentService.getStudentById(anyLong())).thenReturn(response);
+        String[] headers = generateInternalApiHeaders();
 
         // When / Then
         mockMvc.perform(get("/internal/students/1")
-                        .header("X-Internal-Request", "true"))
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1]))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -106,10 +127,12 @@ class InternalStudentControllerTest {
         StudentResponse response = new StudentResponse(1L, "Test Student", "test@example.com",
                 null, null, null, null, null, null, null);
         when(studentService.createStudent(any())).thenReturn(response);
+        String[] headers = generateInternalApiHeaders();
 
         // When / Then
         mockMvc.perform(post("/internal/students")
-                        .header("X-Internal-Request", "true")
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1])
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -131,10 +154,12 @@ class InternalStudentControllerTest {
                 null,  // address
                 null   // note
         );
+        String[] headers = generateInternalApiHeaders();
 
         // When / Then
         mockMvc.perform(post("/internal/students")
-                        .header("X-Internal-Request", "true")
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1])
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -142,9 +167,13 @@ class InternalStudentControllerTest {
 
     @Test
     void deleteStudent_shouldReturn200_whenStudentExists() throws Exception {
+        // Given
+        String[] headers = generateInternalApiHeaders();
+
         // When / Then
         mockMvc.perform(delete("/internal/students/1")
-                        .header("X-Internal-Request", "true"))
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1]))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -156,10 +185,12 @@ class InternalStudentControllerTest {
         // Given
         when(studentService.getStudentById(anyLong()))
                 .thenThrow(new com.kiteclass.core.common.exception.EntityNotFoundException("STUDENT_NOT_FOUND", (Object) 999L));
+        String[] headers = generateInternalApiHeaders();
 
         // When / Then
         mockMvc.perform(get("/internal/students/999")
-                        .header("X-Internal-Request", "true"))
+                        .header("X-Internal-Timestamp", headers[0])
+                        .header("X-Internal-Signature", headers[1]))
                 .andExpect(status().isNotFound());
     }
 }
