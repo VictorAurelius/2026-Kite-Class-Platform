@@ -908,3 +908,5 @@ tốt lắm, hãy cập nhật SKILL để tránh code mắc lỗi tương tự 
 tại sao vẫn còn 32 TC skipped? action tiếp theo sẽ là gì?
 
 đảm bảo workflow và thực hiện Option 3, sau đó thực hiện Option 2
+
+check log CI luôn, có vẻ die do DB không connect được rồi
