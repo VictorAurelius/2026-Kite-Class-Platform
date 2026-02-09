@@ -141,6 +141,7 @@ public class CourseController {
      * @return ApiResponse with success message and HTTP 200
      */
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete course",
             description = "Soft-deletes a course. Only DRAFT courses without classes can be deleted.")
     public ApiResponse<Void> deleteCourse(

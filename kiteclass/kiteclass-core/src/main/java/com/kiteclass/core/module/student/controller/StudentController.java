@@ -122,6 +122,7 @@ public class StudentController {
      * @return ApiResponse with success message and HTTP 200
      */
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete student", description = "Soft-deletes a student (sets deleted flag)")
     public ApiResponse<Void> deleteStudent(
             @Parameter(description = "Student ID") @PathVariable Long id) {

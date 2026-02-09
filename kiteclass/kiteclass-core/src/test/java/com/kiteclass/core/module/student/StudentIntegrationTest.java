@@ -90,7 +90,7 @@ class StudentIntegrationTest {
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.name").value("John Doe"))
             .andExpect(jsonPath("$.data.email").value("john.doe@student.com"))
-            .andExpect(jsonPath("$.data.phoneNumber").value("0901234567"))
+            .andExpect(jsonPath("$.data.phone").value("0901234567"))
             .andExpect(jsonPath("$.data.status").value("ACTIVE"))
             .andExpect(jsonPath("$.data.id").isNumber());
     }
@@ -175,7 +175,7 @@ class StudentIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.name").value("Bob Wilson Jr."))
-            .andExpect(jsonPath("$.data.phoneNumber").value("0908765432")); // Unchanged
+            .andExpect(jsonPath("$.data.phone").value("0908765432")); // Unchanged
     }
 
     @Test
