@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.teacher.repository;
 
-import com.kiteclass.core.common.constant.TeacherStatus;
 import com.kiteclass.core.module.teacher.entity.Teacher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -98,7 +97,7 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @param status the teacher status
      * @return list of teachers with the status
      */
-    List<Teacher> findByStatusAndDeletedFalse(TeacherStatus status);
+    List<Teacher> findByStatusAndDeletedFalse(String status);
 
     /**
      * Counts teachers with given status (excluding deleted).
@@ -106,5 +105,5 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @param status the teacher status
      * @return count of teachers with the status
      */
-    long countByStatusAndDeletedFalse(TeacherStatus status);
+    long countByStatusAndDeletedFalse(String status);
 }
