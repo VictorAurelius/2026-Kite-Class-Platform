@@ -121,36 +121,30 @@ release/v1.0.0
 
 ## ⚠️ Git Rules & Restrictions
 
-### CRITICAL: Push Restrictions
+### CRITICAL: Git Operations with GitHub CLI
 
-**❌ KHÔNG ĐƯỢC PHÉP PUSH TO REMOTE**
-
-```bash
-# ❌ FORBIDDEN - Do NOT run these commands
-git push
-git push origin <branch>
-git push origin main
-git push --force
-git push -u origin <branch>
-```
-
-**Lý do:**
-- AI assistant không được phép push code lên remote repository
-- Push requires authentication và manual review
-- User sẽ tự push sau khi review local changes
-
-**✅ ĐƯỢC PHÉP:**
-- Tạo branch local: `git checkout -b feature/new-branch`
+**✅ WITH GITHUB CLI (`gh`) - AI CAN:**
+- Create branches: `git checkout -b feature/new-branch`
 - Commit changes: `git commit -m "message"`
-- Merge branches locally: `git merge feature/branch`
-- Check status: `git status`, `git log`
+- Push to remote: `git push origin <branch>` (after user confirmation)
+- Create pull requests: `gh pr create --title "..." --body "..."`
+- Check status: `git status`, `git log`, `gh pr status`
+
+**❌ FORBIDDEN OPERATIONS:**
+- Force push: `git push --force` (NEVER without explicit user request)
+- Push to main directly: `git push origin main` (use PR workflow)
+- Destructive operations: `git reset --hard`, `git clean -f` (see MEMORY.md)
 
 **⏳ WORKFLOW:**
-1. AI: Implement feature → commit locally
-2. AI: Merge to target branch locally
-3. AI: Inform user that changes are ready
-4. **User**: Review changes manually
-5. **User**: Push to remote when ready
+1. AI: Create feature branch: `git checkout -b feature/PR-X.X-name`
+2. AI: Implement feature → commit locally
+3. AI: Ask user: "Đã sẵn sàng push lên remote và tạo PR?"
+4. **User**: Confirm "yes" hoặc request changes
+5. AI: Push to remote: `git push -u origin feature/branch`
+6. AI: Create PR: `gh pr create --title "..." --body "..."`
+7. AI: Return PR URL to user
+
+**IMPORTANT:** Always ask before pushing to remote, even with GitHub CLI
 
 ---
 
