@@ -224,11 +224,6 @@ feign:
     alphanumeric-ids:
       enabled: true
 
-# Core Service Connection
-core:
-  service:
-    url: ${CORE_SERVICE_URL:http://localhost:8081}
-
 # Internal API Security
 internal:
   api:
