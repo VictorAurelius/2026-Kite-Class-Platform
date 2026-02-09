@@ -315,7 +315,14 @@ Step 4: Results
   - Common UI: DataTable, SearchInput, StatusBadge, LoadingSpinner, ErrorAlert
   - Forms: FormInput, FormSelect, FormTextarea
   - CI: Frontend CI workflow with TypeScript, ESLint, tests, build
-- ⏳ PR 3.3: Authentication Pages → **NEEDS: PR 1.4 ✅ (Done)**
+- ✅ **PR 3.3: Authentication Pages** *(Merged #3)*
+  - Auth store with Zustand persist (user, tokens, tenantId)
+  - Auth API functions (login, logout, refresh, forgot/reset password)
+  - useAuth hook with React Query mutations
+  - Pages: Login, Forgot Password, Reset Password, Register (placeholder)
+  - ReactQueryProvider added to root layout
+  - Suspense boundary for useSearchParams
+  - Dynamic rendering for auth pages
 
 **Phase 2: IMMEDIATE PRIORITY** (Backend APIs available, ready for visual testing)
 - ⏳ PR 3.4: Student Management Pages → **NEEDS: PR 2.3 ✅ (Done)**
@@ -331,7 +338,7 @@ Step 4: Results
 - ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
 - ⏳ PR 3.13: E2E Tests & Polish
 
-**Frontend Status:** 2/13 PRs completed (15%) - PR 3.1 ✅, PR 3.2 ✅
+**Frontend Status:** 3/13 PRs completed (23%) - PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
@@ -342,10 +349,11 @@ Step 4: Results
 - ✅ Shared UI components (DataTable, SearchInput, StatusBadge, etc.)
 - ✅ Form components with validation
 - ✅ Frontend CI/CD pipeline
-**CRITICAL:** Frontend PRs 3.3-3.6 can start NOW (Backend APIs ready for visual testing)
+- ✅ Authentication system (login, token refresh, password reset)
+**CRITICAL:** Frontend PRs 3.4-3.6 can start NOW (Backend APIs ready for visual testing)
 
-**Overall Progress:** 18/37 PRs completed (49%)
-**Last Updated:** 2026-02-09 (PR 3.2 merged: Shared Components & Layout System + Frontend CI workflow)
+**Overall Progress:** 19/37 PRs completed (51%)
+**Last Updated:** 2026-02-09 (PR 3.3 merged: Authentication Pages + Auth State Management)
 
 ---
 
