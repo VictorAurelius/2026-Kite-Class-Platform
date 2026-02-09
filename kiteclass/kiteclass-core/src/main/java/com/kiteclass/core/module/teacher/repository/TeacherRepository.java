@@ -69,17 +69,26 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      * @param pageable pagination parameters
      * @return page of matching teachers
      */
-    @Query("""
-            SELECT t FROM Teacher t
+    @Query(value = """
+            SELECT * FROM teachers t
             WHERE t.deleted = false
-            AND (:search IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(t.email) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(t.specialization) LIKE LOWER(CONCAT('%', :search, '%')))
-            AND (:status IS NULL OR t.status = :status)
-            """)
+            AND (:search::text IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(t.email) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(t.specialization) LIKE LOWER(CONCAT('%', :search::text, '%')))
+            AND (:status::text IS NULL OR t.status = CAST(:status AS text))
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM teachers t
+            WHERE t.deleted = false
+            AND (:search::text IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(t.email) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(t.specialization) LIKE LOWER(CONCAT('%', :search::text, '%')))
+            AND (:status::text IS NULL OR t.status = CAST(:status AS text))
+            """,
+            nativeQuery = true)
     Page<Teacher> findBySearchCriteria(
             @Param("search") String search,
-            @Param("status") TeacherStatus status,
+            @Param("status") String status,
             Pageable pageable
     );
 

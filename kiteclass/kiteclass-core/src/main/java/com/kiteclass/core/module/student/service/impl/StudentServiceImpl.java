@@ -116,9 +116,12 @@ public class StudentServiceImpl implements StudentService {
     public PageResponse<StudentResponse> getStudents(String search, String status, Pageable pageable) {
         log.debug("Searching students with search='{}', status='{}', page={}", search, status, pageable.getPageNumber());
 
-        StudentStatus studentStatus = status != null ? StudentStatus.valueOf(status) : null;
+        // Validate status if provided (throws IllegalArgumentException if invalid)
+        if (status != null && !status.isEmpty()) {
+            StudentStatus.valueOf(status); // Just for validation
+        }
 
-        Page<Student> studentPage = studentRepository.findBySearchCriteria(search, studentStatus, pageable);
+        Page<Student> studentPage = studentRepository.findBySearchCriteria(search, status, pageable);
 
         Page<StudentResponse> responsePage = studentPage.map(studentMapper::toResponse);
 

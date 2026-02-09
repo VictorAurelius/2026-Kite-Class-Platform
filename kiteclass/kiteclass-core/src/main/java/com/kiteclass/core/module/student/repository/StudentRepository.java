@@ -77,16 +77,24 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @param pageable pagination parameters
      * @return page of matching students
      */
-    @Query("""
-            SELECT s FROM Student s
+    @Query(value = """
+            SELECT * FROM students s
             WHERE s.deleted = false
-            AND (:search IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%')))
-            AND (:status IS NULL OR s.status = :status)
-            """)
+            AND (:search::text IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search::text, '%')))
+            AND (:status::text IS NULL OR s.status = CAST(:status AS text))
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM students s
+            WHERE s.deleted = false
+            AND (:search::text IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search::text, '%')))
+            AND (:status::text IS NULL OR s.status = CAST(:status AS text))
+            """,
+            nativeQuery = true)
     Page<Student> findBySearchCriteria(
             @Param("search") String search,
-            @Param("status") StudentStatus status,
+            @Param("status") String status,
             Pageable pageable
     );
 

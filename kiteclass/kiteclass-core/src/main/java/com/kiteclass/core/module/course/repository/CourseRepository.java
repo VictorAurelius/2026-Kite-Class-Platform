@@ -89,17 +89,26 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @param pageable  pagination parameters
      * @return page of matching courses
      */
-    @Query("""
-            SELECT c FROM Course c
+    @Query(value = """
+            SELECT * FROM courses c
             WHERE c.deleted = false
-            AND (:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')))
-            AND (:status IS NULL OR c.status = :status)
-            AND (:teacherId IS NULL OR c.teacherId = :teacherId)
-            """)
+            AND (:search::text IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search::text, '%')))
+            AND (:status::text IS NULL OR c.status = CAST(:status AS text))
+            AND (:teacherId::bigint IS NULL OR c.teacher_id = :teacherId::bigint)
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM courses c
+            WHERE c.deleted = false
+            AND (:search::text IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
+                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search::text, '%')))
+            AND (:status::text IS NULL OR c.status = CAST(:status AS text))
+            AND (:teacherId::bigint IS NULL OR c.teacher_id = :teacherId::bigint)
+            """,
+            nativeQuery = true)
     Page<Course> findBySearchCriteria(
             @Param("search") String search,
-            @Param("status") CourseStatus status,
+            @Param("status") String status,
             @Param("teacherId") Long teacherId,
             Pageable pageable
     );

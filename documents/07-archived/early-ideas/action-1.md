@@ -898,3 +898,7 @@ mật khẩu root: vkiet432 nhé, chứ không phải mật khẩu user
 tôi đã login thành công, hãy check CI
 
 hãy commit các file khác, rule là không commit file log, sau đó tiếp tục fix tiếp, ngoài ra check cả CI của gateway nữa, cũng fail mà?
+
+.log/check-ci.sh có cần commit không? nhưng file nào trong .log mà không cần tham chiếu thì xóa đi => thêm vào skill của log
+
+vẫn fail, tiếp tục check CI đến khi pass

@@ -110,7 +110,18 @@
       "Bash(if [ -f target/site/jacoco/index.html ])",
       "Bash(then grep -A 3 \"Total\" target/site/jacoco/index.html)",
       "Bash(else echo \"Coverage report not found\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(gh run list:*)",
+      "Bash(./.log/check-ci.sh:*)",
+      "Bash(sudo -S sh -c 'curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg')",
+      "Bash(sudo -S sh -c 'echo \"\"\"\"deb [arch=$\\(dpkg --print-architecture\\) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\"\"\"\" > /etc/apt/sources.list.d/github-cli.list')",
+      "Bash(sudo tee:*)",
+      "Bash(su -c 'echo \"\"\"\"deb [arch=$\\(dpkg --print-architecture\\) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\"\"\"\" > /etc/apt/sources.list.d/github-cli.list')",
+      "Bash(tar:*)",
+      "Bash(~/.bashrc)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(command -v gh:*)",
+      "Bash(gh:*)"
     ]
   }
 }
