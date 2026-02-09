@@ -130,11 +130,10 @@ class TeacherControllerTest {
     }
 
     @Test
-    void deleteTeacher_shouldReturnSuccess() throws Exception {
+    void deleteTeacher_shouldReturn204() throws Exception {
         // When & Then
         mockMvc.perform(delete("/api/v1/teachers/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(status().isNoContent());
 
         verify(teacherService).deleteTeacher(1L);
     }
