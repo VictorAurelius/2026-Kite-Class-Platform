@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.student.service;
 
-import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
