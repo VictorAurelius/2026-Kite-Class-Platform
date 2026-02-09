@@ -78,3 +78,8 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
   show-actuator: true
+
+# Internal API Security
+internal:
+  api:
+    secret: ${INTERNAL_API_SECRET:changeme-in-production-must-match-gateway}

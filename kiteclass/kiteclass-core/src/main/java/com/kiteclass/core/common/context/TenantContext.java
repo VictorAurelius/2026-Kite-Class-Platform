@@ -31,7 +31,7 @@ import java.util.UUID;
  */
 public final class TenantContext {
 
-    private static final ThreadLocal<UUID> currentTenant = new ThreadLocal<>();
+    private static final ThreadLocal<UUID> CURRENT_TENANT = new ThreadLocal<>();
 
     /**
      * Private constructor to prevent instantiation.
@@ -51,7 +51,7 @@ public final class TenantContext {
         if (instanceId == null) {
             throw new IllegalArgumentException("Tenant ID cannot be null");
         }
-        currentTenant.set(instanceId);
+        CURRENT_TENANT.set(instanceId);
     }
 
     /**
@@ -61,7 +61,7 @@ public final class TenantContext {
      * @throws TenantNotSetException if tenant context is not set
      */
     public static UUID getCurrentTenant() {
-        UUID tenantId = currentTenant.get();
+        UUID tenantId = CURRENT_TENANT.get();
         if (tenantId == null) {
             throw new TenantNotSetException(
                 "Tenant context not set for current thread. " +
@@ -76,7 +76,7 @@ public final class TenantContext {
      * Must be called after request completion to prevent memory leaks.
      */
     public static void clear() {
-        currentTenant.remove();
+        CURRENT_TENANT.remove();
     }
 
     /**
@@ -85,6 +85,6 @@ public final class TenantContext {
      * @return true if tenant context is set, false otherwise
      */
     public static boolean isSet() {
-        return currentTenant.get() != null;
+        return CURRENT_TENANT.get() != null;
     }
 }

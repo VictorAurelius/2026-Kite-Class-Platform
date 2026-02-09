@@ -223,3 +223,13 @@ feign:
     enabled: true
     alphanumeric-ids:
       enabled: true
+
+# Core Service Connection
+core:
+  service:
+    url: ${CORE_SERVICE_URL:http://localhost:8081}
+
+# Internal API Security
+internal:
+  api:
+    secret: ${INTERNAL_API_SECRET:changeme-in-production-must-match-core}
