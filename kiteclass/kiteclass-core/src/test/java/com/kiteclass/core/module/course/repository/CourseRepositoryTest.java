@@ -19,12 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for {@link CourseRepository}.
  *
  * <p>These tests require a real database connection and are only run when
- * {@code INTEGRATION_TEST=true} environment variable is set.
+ * {@code ENABLE_INTEGRATION_TESTS=true} environment variable is set.
  *
  * @author KiteClass Team
  * @since 2.4.0
  */
-@EnabledIfEnvironmentVariable(named = "INTEGRATION_TEST", matches = "true")
+@EnabledIfEnvironmentVariable(named = "ENABLE_INTEGRATION_TESTS", matches = "true")
 class CourseRepositoryTest extends IntegrationTestBase {
 
     @Autowired
