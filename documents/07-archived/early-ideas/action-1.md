@@ -904,3 +904,7 @@ hãy commit các file khác, rule là không commit file log, sau đó tiếp t�
 vẫn fail, tiếp tục check CI đến khi pass
 
 tốt lắm, hãy cập nhật SKILL để tránh code mắc lỗi tương tự trong tương lai (tránh tốn token), commit thêm các file khác
+
+tại sao vẫn còn 32 TC skipped? action tiếp theo sẽ là gì?
+
+đảm bảo workflow và thực hiện Option 3, sau đó thực hiện Option 2
