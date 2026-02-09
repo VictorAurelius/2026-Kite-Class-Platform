@@ -18,7 +18,7 @@ export interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLText
   helperText?: string;
 }
 
-export const FormTextarea = forwardRef<HTMLTextareaElement, FormTextareaProps>(
+export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
   ({ label, error, helperText, className, id, ...props }, ref) => {
     const textareaId = id || `textarea-${label?.toLowerCase().replace(/\s+/g, '-')}`;
 
