@@ -872,3 +872,17 @@ cập nhật những lưu ý lỗi này và skill để tránh mắc phải sau 
 tôi muốn fix hoặc loại bỏ hoàn toàn lỗi này
 
 thực hiện đúng theo workflow để chạy CI cho 2.3
+
+tại sao IDE lại báo lỗi này khi ở nhánh main, làm sao để tắt error này đi?
+
+làm theo best practice, mục tiêu của tôi là chất lượng code và CI chạy done
+
+đây là kết quả CI của commit 420ef2b rồi mà?
+
+đã đảm bảo workflow chưa? phải chạy ở local trước
+
+việc fix CI mỗi PR RV như thế này quá tốn thời gian, hãy đảm bảo workflow vào thực hiện hết PR RV của 2. rồi fix CI 1 thể thống nhất
+
+thực hiện 1, nhưng bạn chưa đảm bảo workflow?
+
+bạn chưa đảm bảo workflow (ví dụ: tạo branch mới), thực hiện 1. Fix 809 Checkstyle violations now (blocks Core CI) và đảm bảo workflow

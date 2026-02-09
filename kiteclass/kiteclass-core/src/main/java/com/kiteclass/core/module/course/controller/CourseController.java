@@ -95,7 +95,8 @@ public class CourseController {
             @Parameter(description = "Teacher ID filter") @RequestParam(required = false) Long teacherId,
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort criteria (e.g., 'name,asc' or 'createdAt,desc')") @RequestParam(defaultValue = "createdAt,desc") String sort) {
+            @Parameter(description = "Sort criteria (e.g., 'name,asc' or 'createdAt,desc')")
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
         log.debug("REST request to search courses: search='{}', status='{}', teacherId='{}', page={}, size={}",
                 search, status, teacherId, page, size);
 
