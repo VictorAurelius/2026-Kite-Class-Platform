@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.teacher.service;
 
-import com.kiteclass.core.common.constant.TeacherStatus;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;

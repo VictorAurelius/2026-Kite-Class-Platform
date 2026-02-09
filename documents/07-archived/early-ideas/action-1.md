@@ -902,3 +902,5 @@ hãy commit các file khác, rule là không commit file log, sau đó tiếp t�
 .log/check-ci.sh có cần commit không? nhưng file nào trong .log mà không cần tham chiếu thì xóa đi => thêm vào skill của log
 
 vẫn fail, tiếp tục check CI đến khi pass
+
+tốt lắm, hãy cập nhật SKILL để tránh code mắc lỗi tương tự trong tương lai (tránh tốn token), commit thêm các file khác
