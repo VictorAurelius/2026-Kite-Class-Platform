@@ -1,0 +1,126 @@
+/**
+ * Students list page.
+ *
+ * @author KiteClass Team
+ * @since 1.0.0
+ */
+
+'use client';
+
+export const dynamic = 'force-dynamic';
+
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { DashboardLayout } from '@/components/layout';
+import { DataTable, SearchInput, LoadingSpinner, ErrorAlert } from '@/components/common';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useStudents, useDeleteStudent } from '@/hooks/use-students';
+import { getStudentColumns } from '@/components/tables/columns/student-columns';
+import type { StudentSearchParams } from '@/types/student';
+
+export default function StudentsPage() {
+  const [searchParams, setSearchParams] = useState<StudentSearchParams>({
+    page: 0,
+    size: 20,
+  });
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const { data, isLoading, error } = useStudents(searchParams);
+  const deleteMutation = useDeleteStudent();
+
+  const handleSearch = (query: string) => {
+    setSearchParams((prev) => ({ ...prev, query, page: 0 }));
+  };
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId);
+      setDeleteId(null);
+    }
+  };
+
+  const columns = getStudentColumns((id) => setDeleteId(id));
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Học viên</h1>
+            <p className="text-muted-foreground">
+              Quản lý danh sách học viên của trung tâm
+            </p>
+          </div>
+          <Link href="/students/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Thêm học viên
+            </Button>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <SearchInput
+            placeholder="Tìm kiếm theo tên, email..."
+            onSearch={handleSearch}
+            className="max-w-md"
+          />
+        </div>
+
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <LoadingSpinner />
+          </div>
+        )}
+
+        {error && (
+          <ErrorAlert
+            title="Lỗi tải dữ liệu"
+            message="Không thể tải danh sách học viên. Vui lòng thử lại."
+          />
+        )}
+
+        {data && (
+          <DataTable
+            columns={columns}
+            data={data.content}
+            pagination={{
+              pageIndex: searchParams.page || 0,
+              pageSize: searchParams.size || 20,
+              totalPages: data.totalPages,
+              totalElements: data.totalElements,
+              onPageChange: (page) =>
+                setSearchParams((prev) => ({ ...prev, page })),
+            }}
+          />
+        )}
+      </div>
+
+      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa học viên này? Thao tác này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </DashboardLayout>
+  );
+}
