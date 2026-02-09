@@ -91,18 +91,18 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query(value = """
             SELECT * FROM courses c
             WHERE c.deleted = false
-            AND (:search::text IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
-                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search::text, '%')))
-            AND (:status::text IS NULL OR c.status = CAST(:status AS text))
-            AND (:teacherId::bigint IS NULL OR c.teacher_id = :teacherId::bigint)
+            AND (CAST(:search AS text) IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
+                OR LOWER(c.code) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            AND (CAST(:status AS text) IS NULL OR c.status = CAST(:status AS text))
+            AND (CAST(:teacherId AS bigint) IS NULL OR c.teacher_id = CAST(:teacherId AS bigint))
             """,
             countQuery = """
             SELECT COUNT(*) FROM courses c
             WHERE c.deleted = false
-            AND (:search::text IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
-                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search::text, '%')))
-            AND (:status::text IS NULL OR c.status = CAST(:status AS text))
-            AND (:teacherId::bigint IS NULL OR c.teacher_id = :teacherId::bigint)
+            AND (CAST(:search AS text) IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
+                OR LOWER(c.code) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            AND (CAST(:status AS text) IS NULL OR c.status = CAST(:status AS text))
+            AND (CAST(:teacherId AS bigint) IS NULL OR c.teacher_id = CAST(:teacherId AS bigint))
             """,
             nativeQuery = true)
     Page<Course> findBySearchCriteria(
