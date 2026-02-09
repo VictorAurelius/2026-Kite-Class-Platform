@@ -482,8 +482,7 @@ class CourseIntegrationTest {
     @Test
     @DisplayName("Multi-tenant: Should not access course from different tenant")
     void shouldNotAccessCourseFromDifferentTenant() throws Exception {
-        // Given: Create course with tenant1
-        UUID tenant1 = UUID.randomUUID();
+        // Given: Create course with existing tenantId (where teacher exists)
         CreateCourseRequest request = new CreateCourseRequest(
             "Tenant1 Course",
             "TENANT-101",
@@ -500,7 +499,7 @@ class CourseIntegrationTest {
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Tenant-Id", tenant1.toString())
+                .header("X-Tenant-Id", tenantId.toString()) // Use existing tenantId
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated())
             .andReturn()
@@ -509,7 +508,7 @@ class CourseIntegrationTest {
 
         Long courseId = objectMapper.readTree(createResponse).get("data").get("id").asLong();
 
-        // When/Then: Try to access with tenant2
+        // When/Then: Try to access with different tenant
         UUID tenant2 = UUID.randomUUID();
         mockMvc.perform(get("/api/v1/courses/{id}", courseId)
                 .header("X-Tenant-Id", tenant2.toString()))
