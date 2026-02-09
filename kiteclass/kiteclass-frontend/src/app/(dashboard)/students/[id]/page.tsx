@@ -15,26 +15,15 @@ import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout';
 import { StatusBadge, LoadingSpinner, ErrorAlert } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { useStudent, useDeleteStudent } from '@/hooks/use-students';
-import { StudentStatus } from '@/types/student';
+import { StudentStatus } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 
-const statusVariants: Record<StudentStatus, 'success' | 'warning' | 'default' | 'destructive'> = {
+const statusVariants: Record<StudentStatus, 'success' | 'warning' | 'default' | 'error'> = {
   [StudentStatus.ACTIVE]: 'success',
   [StudentStatus.INACTIVE]: 'warning',
   [StudentStatus.GRADUATED]: 'default',
-  [StudentStatus.SUSPENDED]: 'destructive',
+  [StudentStatus.SUSPENDED]: 'error',
 };
 
 const statusLabels: Record<StudentStatus, string> = {
@@ -55,9 +44,11 @@ export default function StudentDetailPage({
   const deleteMutation = useDeleteStudent();
 
   const handleDelete = () => {
-    deleteMutation.mutate(parseInt(id), {
-      onSuccess: () => router.push('/students'),
-    });
+    if (window.confirm('Bạn có chắc chắn muốn xóa học viên này? Thao tác này không thể hoàn tác.')) {
+      deleteMutation.mutate(parseInt(id), {
+        onSuccess: () => router.push('/students'),
+      });
+    }
   };
 
   if (isLoading) {
@@ -96,29 +87,10 @@ export default function StudentDetailPage({
                 Chỉnh sửa
               </Button>
             </Link>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Xóa
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Bạn có chắc chắn muốn xóa học viên này? Thao tác này không
-                    thể hoàn tác.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Hủy</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Xóa
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Xóa
+            </Button>
           </div>
         </div>
 
@@ -130,8 +102,8 @@ export default function StudentDetailPage({
                   Trạng thái
                 </p>
                 <StatusBadge
+                  status={statusLabels[student.status]}
                   variant={statusVariants[student.status]}
-                  label={statusLabels[student.status]}
                   className="mt-1"
                 />
               </div>

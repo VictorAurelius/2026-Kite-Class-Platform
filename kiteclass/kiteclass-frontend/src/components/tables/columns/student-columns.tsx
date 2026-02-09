@@ -8,17 +8,18 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Student, StudentStatus } from '@/types/student';
+import { Student } from '@/types/student';
+import { StudentStatus } from '@/types/auth';
 import { StatusBadge } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
-const statusVariants: Record<StudentStatus, 'success' | 'warning' | 'default' | 'destructive'> = {
+const statusVariants: Record<StudentStatus, 'success' | 'warning' | 'default' | 'error'> = {
   [StudentStatus.ACTIVE]: 'success',
   [StudentStatus.INACTIVE]: 'warning',
   [StudentStatus.GRADUATED]: 'default',
-  [StudentStatus.SUSPENDED]: 'destructive',
+  [StudentStatus.SUSPENDED]: 'error',
 };
 
 const statusLabels: Record<StudentStatus, string> = {
@@ -49,8 +50,8 @@ export const getStudentColumns = (
     header: 'Trạng thái',
     cell: ({ row }) => (
       <StatusBadge
+        status={statusLabels[row.original.status]}
         variant={statusVariants[row.original.status]}
-        label={statusLabels[row.original.status]}
       />
     ),
   },

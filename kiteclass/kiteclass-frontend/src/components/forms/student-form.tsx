@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { FormInput, FormSelect } from '@/components/forms';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common';
-import { Gender, StudentStatus } from '@/types/student';
+import { Gender, StudentStatus } from '@/types/auth';
 import type { CreateStudentRequest, UpdateStudentRequest } from '@/types/student';
 
 const studentSchema = z.object({

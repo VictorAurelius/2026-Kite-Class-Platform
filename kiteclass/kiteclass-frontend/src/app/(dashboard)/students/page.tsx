@@ -15,16 +15,6 @@ import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout';
 import { DataTable, SearchInput, LoadingSpinner, ErrorAlert } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useStudents, useDeleteStudent } from '@/hooks/use-students';
 import { getStudentColumns } from '@/components/tables/columns/student-columns';
 import type { StudentSearchParams } from '@/types/student';
@@ -34,7 +24,6 @@ export default function StudentsPage() {
     page: 0,
     size: 20,
   });
-  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data, isLoading, error } = useStudents(searchParams);
   const deleteMutation = useDeleteStudent();
@@ -43,14 +32,13 @@ export default function StudentsPage() {
     setSearchParams((prev) => ({ ...prev, query, page: 0 }));
   };
 
-  const handleDelete = () => {
-    if (deleteId) {
-      deleteMutation.mutate(deleteId);
-      setDeleteId(null);
+  const handleDelete = (id: number) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa học viên này? Thao tác này không thể hoàn tác.')) {
+      deleteMutation.mutate(id);
     }
   };
 
-  const columns = getStudentColumns((id) => setDeleteId(id));
+  const columns = getStudentColumns(handleDelete);
 
   return (
     <DashboardLayout>
@@ -100,27 +88,12 @@ export default function StudentsPage() {
               pageSize: searchParams.size || 20,
               totalPages: data.totalPages,
               totalElements: data.totalElements,
-              onPageChange: (page) =>
+              onPageChange: (page: number) =>
                 setSearchParams((prev) => ({ ...prev, page })),
             }}
           />
         )}
       </div>
-
-      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa học viên này? Thao tác này không thể hoàn tác.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </DashboardLayout>
   );
 }
