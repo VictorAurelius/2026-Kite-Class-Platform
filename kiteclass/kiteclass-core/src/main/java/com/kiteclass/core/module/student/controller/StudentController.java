@@ -89,10 +89,16 @@ public class StudentController {
             @Parameter(description = "Student status filter") @RequestParam(required = false) String status,
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sort) {
+            @Parameter(description = "Sort criteria (e.g., 'name,asc' or 'name,desc')") @RequestParam(defaultValue = "name") String sort) {
         log.debug("REST request to search students: search='{}', status='{}', page={}, size={}", search, status, page, size);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        // Parse sort string (format: "field,direction")
+        String[] sortParts = sort.split(",");
+        String sortField = sortParts[0];
+        Sort.Direction direction = sortParts.length > 1 && "desc".equalsIgnoreCase(sortParts[1]) ?
+                Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         PageResponse<StudentResponse> response = studentService.getStudents(search, status, pageable);
 
         return ApiResponse.success(response);
