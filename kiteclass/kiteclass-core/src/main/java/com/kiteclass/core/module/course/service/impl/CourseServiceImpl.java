@@ -389,6 +389,21 @@ public class CourseServiceImpl implements CourseService {
         Sort.Direction direction = sortParts.length > 1 && "desc".equalsIgnoreCase(sortParts[1]) ?
                 Sort.Direction.DESC : Sort.Direction.ASC;
 
-        return PageRequest.of(criteria.page(), criteria.size(), Sort.by(direction, sortField));
+        // Convert camelCase field name to snake_case for native SQL queries
+        String dbColumnName = toSnakeCase(sortField);
+
+        return PageRequest.of(criteria.page(), criteria.size(), Sort.by(direction, dbColumnName));
+    }
+
+    /**
+     * Converts camelCase field name to snake_case database column name.
+     * Used for native SQL queries where JPA naming strategy doesn't apply.
+     *
+     * @param camelCase the camelCase field name
+     * @return the snake_case column name
+     */
+    private String toSnakeCase(String camelCase) {
+        // Convert camelCase to snake_case using regex
+        return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
 }
