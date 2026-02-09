@@ -151,7 +151,7 @@ class TeacherServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getTotalElements()).isEqualTo(1);
-        verify(teacherRepository).findBySearchCriteria("test", TeacherStatus.ACTIVE, pageable);
+        verify(teacherRepository).findBySearchCriteria("test", "ACTIVE", pageable);
     }
 
     @Test
