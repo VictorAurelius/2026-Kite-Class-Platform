@@ -25,7 +25,7 @@ interface FeatureGateProps {
 }
 
 export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
-  const { config, isLoading, error, hasFeature, getRequiredTier } = useFeatureDetection();
+  const { isLoading, error, hasFeature, getRequiredTier } = useFeatureDetection();
 
   // Loading state
   if (isLoading) {
