@@ -136,17 +136,17 @@ class TeacherRepositoryTest extends IntegrationTestBase {
         Pageable pageable = PageRequest.of(0, 20);
 
         // When
-        Page<Teacher> result = teacherRepository.findBySearchCriteria(null, TeacherStatus.ACTIVE, pageable);
+        Page<Teacher> result = teacherRepository.findBySearchCriteria(null, "ACTIVE", pageable);
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo(TeacherStatus.ACTIVE);
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo("ACTIVE");
     }
 
     @Test
     void findByStatusAndDeletedFalse_shouldReturnActiveTeachers() {
         // When
-        List<Teacher> result = teacherRepository.findByStatusAndDeletedFalse(TeacherStatus.ACTIVE);
+        List<Teacher> result = teacherRepository.findByStatusAndDeletedFalse("ACTIVE");
 
         // Then
         assertThat(result).hasSize(2);
@@ -155,7 +155,7 @@ class TeacherRepositoryTest extends IntegrationTestBase {
     @Test
     void countByStatusAndDeletedFalse_shouldReturnCorrectCount() {
         // When
-        long count = teacherRepository.countByStatusAndDeletedFalse(TeacherStatus.ACTIVE);
+        long count = teacherRepository.countByStatusAndDeletedFalse("ACTIVE");
 
         // Then
         assertThat(count).isEqualTo(2);

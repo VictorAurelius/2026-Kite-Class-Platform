@@ -213,7 +213,7 @@ class CourseServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         verify(courseRepository).findBySearchCriteria(
                 eq("test"),
-                eq(CourseStatus.DRAFT),
+                eq("DRAFT"),
                 eq(1L),
                 any(Pageable.class)
         );
@@ -334,7 +334,7 @@ class CourseServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(courseRepository).findByIdAndDeletedFalse(1L);
-        verify(courseRepository).save(argThat(c -> c.getStatus() == CourseStatus.PUBLISHED));
+        verify(courseRepository).save(argThat(c -> c.getStatus() == "PUBLISHED"));
     }
 
     @Test

@@ -86,12 +86,12 @@ class StudentRepositoryTest extends IntegrationTestBase {
     @Test
     void countByStatusAndDeletedFalse_shouldReturnCorrectCount() {
         // Given
-        Student student = StudentTestDataBuilder.createStudentWithStatus(StudentStatus.ACTIVE);
+        Student student = StudentTestDataBuilder.createStudentWithStatus("ACTIVE");
         student.setId(null);
         studentRepository.save(student);
 
         // When
-        long count = studentRepository.countByStatusAndDeletedFalse(StudentStatus.ACTIVE);
+        long count = studentRepository.countByStatusAndDeletedFalse("ACTIVE");
 
         // Then
         assertThat(count).isGreaterThan(0);
