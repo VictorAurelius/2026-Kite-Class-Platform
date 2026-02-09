@@ -38,6 +38,7 @@ export interface AuthResponse {
   refreshToken: string;
   userId: number;
   userType: UserType;
+  instanceId: string;
   profile?: StudentProfile | TeacherProfile | ParentProfile;
 }
 

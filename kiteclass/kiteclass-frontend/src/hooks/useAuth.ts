@@ -22,16 +22,25 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: (credentials: LoginRequest) => authApi.login(credentials),
     onSuccess: (data) => {
-      setAuth(data.user, data.accessToken, data.refreshToken, data.user.instanceId);
+      // Construct User object from AuthResponse
+      const user = {
+        id: data.userId,
+        email: data.profile?.email || '',
+        name: data.profile?.name || 'User',
+        userType: data.userType,
+        referenceId: data.profile?.id.toString(),
+      };
+
+      setAuth(user, data.accessToken, data.refreshToken, data.instanceId);
 
       // Store tokens in localStorage for API client interceptor
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('tenantId', data.user.instanceId);
+      localStorage.setItem('tenantId', data.instanceId);
 
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${data.user.name}!`,
+        description: `Welcome back, ${user.name}!`,
       });
 
       router.push('/dashboard');
