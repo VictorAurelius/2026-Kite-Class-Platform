@@ -886,3 +886,15 @@ việc fix CI mỗi PR RV như thế này quá tốn thời gian, hãy đảm b�
 thực hiện 1, nhưng bạn chưa đảm bảo workflow?
 
 bạn chưa đảm bảo workflow (ví dụ: tạo branch mới), thực hiện 1. Fix 809 Checkstyle violations now (blocks Core CI) và đảm bảo workflow
+
+có cách nào để bạn tự check được log CI không? không cần tôi download log manually
+
+cần tôi cung cấp thông tin authen github như thế nào để bạn đọc được log CI cần thiết để confirm và fix
+
+tạo skill riêng về cấu hình GitHub CLI để tôi có thể cấu hình trên máy khác, sau đó thực hiện cấu hình trên máy này
+
+mật khẩu root: vkiet432 nhé, chứ không phải mật khẩu user
+
+tôi đã login thành công, hãy check CI
+
+hãy commit các file khác, rule là không commit file log, sau đó tiếp tục fix tiếp, ngoài ra check cả CI của gateway nữa, cũng fail mà?
