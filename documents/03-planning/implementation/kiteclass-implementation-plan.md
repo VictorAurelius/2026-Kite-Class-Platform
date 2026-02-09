@@ -78,6 +78,61 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 3. ✅ All: Check `development-workflow.md` for commit message format
 4. ✅ Git hooks will run automatically (checks JavaDoc, error codes, TypeScript types, etc.)
 
+## 🎯 Quality Standards - Non-Negotiable Requirements
+
+Every PR must meet these quality gates before merge:
+
+### Backend Quality Standards (Java/Spring Boot)
+- ✅ **Code Coverage**: Minimum 80% for service layer (JaCoCo report)
+- ✅ **Test Types**: Unit tests (Mockito) + Integration tests (Testcontainers)
+- ✅ **No Warnings**: Zero compiler warnings, zero deprecation warnings
+- ✅ **JavaDoc**: All public methods must have JavaDoc with `@param`, `@return`, `@throws`
+- ✅ **Error Handling**: Use error codes from `messages.properties`, not hardcoded strings
+- ✅ **Validation**: Jakarta Bean Validation annotations on DTOs
+- ✅ **Multi-Tenant**: All entities must have `instance_id` + Hibernate filters
+- ✅ **Soft Delete**: Use `deleted` flag + repository methods with `...AndDeletedFalse`
+- ✅ **Audit Fields**: All entities must have `createdAt`, `updatedAt`, `createdBy`, `updatedBy`
+- ✅ **Git Hooks**: Pre-commit checks must pass (author name, commit message length, sensitive data)
+
+**Reference Skills:** `code-style.md`, `testing-guide.md`, `spring-boot-testing-quality.md`, `error-logging.md`
+
+### Frontend Quality Standards (TypeScript/React)
+- ✅ **TypeScript Strict Mode**: No `any` type, all props typed
+- ✅ **Component Structure**: Proper separation (UI, container, hooks)
+- ✅ **Testing**: React Testing Library tests for all components
+- ✅ **Accessibility**: ARIA labels, semantic HTML, keyboard navigation
+- ✅ **Error Handling**: User-friendly error messages, loading states, retry logic
+- ✅ **API Integration**: React Query for data fetching, proper cache management
+- ✅ **State Management**: Zustand for global state, React Context for theme/auth
+- ✅ **Form Validation**: Zod schemas, clear validation error messages
+- ✅ **Feature Gates**: Tier-based features use `<FeatureGate>` component
+- ✅ **Responsive Design**: Mobile-first, works on all screen sizes
+
+**Reference Skills:** `frontend-development.md`, `frontend-code-quality.md`, `testing-guide.md` Part 2
+
+### Security Standards (All PRs)
+- ✅ **Input Validation**: Validate all user inputs at API and UI layers
+- ✅ **SQL Injection**: Use parameterized queries (Spring Data JPA automatic)
+- ✅ **XSS Prevention**: Escape output, store raw values in DB
+- ✅ **Authentication**: JWT tokens with refresh mechanism
+- ✅ **Authorization**: Role-based access control (RBAC)
+- ✅ **Multi-Tenant Isolation**: Hibernate filters enforce tenant boundaries
+- ✅ **Internal APIs**: HMAC-SHA256 signature for service-to-service calls
+- ✅ **Sensitive Data**: Never commit secrets, use environment variables
+
+**Reference Skills:** `architecture-overview.md` Security section, `cross-service-data-strategy.md`
+
+### Testing Standards (All PRs)
+- ✅ **Unit Tests**: Fast, isolated, mock external dependencies
+- ✅ **Integration Tests**: Test with real database (Testcontainers)
+- ✅ **API Tests**: Test full HTTP request/response cycle
+- ✅ **Edge Cases**: Test validation errors, boundary conditions, null handling
+- ✅ **Multi-Tenant Tests**: Verify tenant isolation, cross-tenant access blocked
+- ✅ **Error Scenarios**: Test 4xx and 5xx error responses
+- ✅ **CI Pipeline**: All tests must pass in GitHub Actions
+
+**Reference Skills:** `testing-guide.md`, `spring-boot-testing-quality.md`, `frontend-code-quality.md`
+
 ---
 
 # 📊 PROGRESS TRACKING
@@ -104,32 +159,44 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - ✅ **PR 1.4.1**: Docker Setup & Integration Tests *(added to plan)*
 - ✅ **PR 1.5**: Email Service *(added to plan)*
 - ✅ **PR 1.6**: Gateway Configuration (Rate Limiting + Logging)
+- ✅ **PR 1.7**: Internal API Security (HMAC-SHA256) *(PR-REVIEW-2.4 complete)*
+- ✅ **PR 1.12**: Spring Boot 3.5.10 Upgrade *(PR-REVIEW-2.5 complete)*
 
-**Gateway Status:** 7/8 PRs completed (87.5%) - ⚠️ NEEDS CROSS-SERVICE FIX
-**Tests:** 95 passing (55 unit + 40 integration)
+**Gateway Status:** 9/10 PRs completed (90%)
+**Tests:** 179 passing (149 unit + 30 integration), 32 skipped (by design)
+**Spring Boot:** ✅ 3.5.10 + Spring Cloud 2025.0.0
 **Docker:** ✅ PostgreSQL, Redis configured
 **Email:** ✅ Integrated with Thymeleaf templates
 **Rate Limiting:** ✅ Bucket4j (100 req/min IP, 1000 req/min user)
 **Logging:** ✅ Request/Response logging with correlation IDs
+**Internal API Security:** ✅ HMAC-SHA256 with InternalRequestFilter
 **⚠️ CRITICAL:** Missing UserType + ReferenceId pattern (PR 1.8 needed)
 
 ## Core Service (feature/core branch)
 - ✅ PR 2.1: Core Project Setup
 - ✅ PR 2.2: Core Common Components
 - ✅ PR 2.3: Student Module
-- ⏳ **PR 2.12: Spring Boot 3.5.10 Upgrade** ⚠️ **PRIORITY** *(See: documents/04-implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md)*
-- ⏳ PR 2.4: Course Module
+- ✅ **PR 2.3.1: Teacher Module** *(PR-REVIEW-1.1 complete)*
+- ✅ **PR 2.4: Course Module** *(PR-REVIEW-1.2 complete)*
+- ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
+- ✅ **PR 2.12: Spring Boot 3.5.10 Upgrade** *(PR-REVIEW-2.5 complete)*
 - ⏳ PR 2.5: Class Module
 - ⏳ PR 2.6: Enrollment Module
 - ⏳ PR 2.7: Attendance Module
-- ⏳ PR 2.8: Invoice & Payment Module
-- ⏳ PR 2.9: Settings & Parent Module
+- ⏳ PR 2.7.1: Assignment Module
+- ⏳ PR 2.7.2: Grade Module
+- ⏳ PR 2.8: Invoice Module
+- ⏳ PR 2.8.1: Payment Module
+- ⏳ PR 2.9: Settings & Preferences
 - ⏳ PR 2.10: Core Docker & Final Integration
-- ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 
-**Core Status:** 4/15 PRs completed (26.7%) ✅ PR 2.11 COMPLETE
-**Tests:** 50/50 passing (100%) - 40 from PR 2.3 + 10 internal API tests
-**Latest:** PR 2.11 Internal APIs complete - InternalRequestFilter + InternalStudentController
+**Core Status:** 7/15 PRs completed (46.7%)
+**Tests:** 229 passing (197 unit + 32 integration), 0 failures
+**Spring Boot:** ✅ 3.5.10 (matches Gateway version)
+**Latest Modules Complete:**
+- ✅ Student Module: CRUD, multi-tenant, validation, soft delete
+- ✅ Teacher Module: CRUD, status management (ACTIVE/ON_LEAVE/TERMINATED), multi-tenant
+- ✅ Course Module: CRUD, lifecycle (DRAFT → PUBLISHED → ARCHIVED), soft delete restrictions
 **Cross-Service APIs Ready:**
 - ✅ GET /internal/students/{id} - Retrieve student profile
 - ✅ POST /internal/students - Create student during registration
@@ -160,26 +227,93 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 - After 2026-02-04: **15 Core PRs** (added PR 2.12: Spring Boot Upgrade)
 
 ## Frontend (feature/frontend branch)
-⏳ **NOT STARTED** - All 11 PRs pending
+✅ **PR 3.1 COMPLETE** - Infrastructure foundation ready for visual testing
 
 ### 🎯 PAIRED DEVELOPMENT STRATEGY (NEW)
 
 **Philosophy:** Backend PHẢI có Frontend đi kèm để test business logic trực quan, thay vì chỉ dựa vào documentation.
 
+**Why Visual Testing Matters:**
+- Unit tests verify code logic ✅
+- Integration tests verify API contracts ✅
+- **BUT**: Only UI testing verifies actual user experience
+- Catch UX issues early (confusing forms, missing validations)
+- Verify error messages are user-friendly
+- Test complex workflows end-to-end (enrollment, payment, attendance)
+
 **Development Flow:**
-1. Implement Backend module (API endpoints, business logic, tests)
-2. IMMEDIATELY implement corresponding Frontend (UI, forms, integration)
-3. Test end-to-end trên UI thực tế
-4. Verify business rules visually trước khi move to next module
+1. **Backend First**: Implement module (API endpoints, business logic, tests)
+2. **Frontend Immediately**: Implement corresponding UI (forms, tables, actions)
+3. **Visual Testing**: Test end-to-end on actual UI
+4. **Verify Business Rules**: Confirm constraints work as expected in real usage
+5. **Iterate**: Fix issues discovered through UI testing
+6. **Move Forward**: Only proceed to next module when current one works visually
+
+**Concrete Example - Course Module:**
+```
+Step 1: Backend (PR 2.4 Course Module)
+- POST /api/v1/courses - Create course
+- GET /api/v1/courses - List courses
+- PATCH /api/v1/courses/{id} - Update course
+- POST /api/v1/courses/{id}/publish - Publish (DRAFT → PUBLISHED)
+- POST /api/v1/courses/{id}/archive - Archive (PUBLISHED → ARCHIVED)
+- Unit tests verify lifecycle transitions ✅
+- Integration tests verify API contracts ✅
+
+Step 2: Frontend (PR 3.6 Course Management Pages)
+- Create course form with validation
+- Course list with status badges
+- Edit form (read-only for ARCHIVED courses)
+- Publish/Archive buttons with confirmation dialogs
+
+Step 3: Visual Testing Checklist
+□ Can create course in DRAFT status
+□ Form validation shows errors correctly
+□ Publish button only visible for DRAFT courses
+□ After publish, course shows PUBLISHED badge
+□ Cannot edit ARCHIVED courses (form disabled)
+□ Archive action requires confirmation dialog
+□ Error messages are clear and in Vietnamese
+□ Multi-tenant isolation works (cannot see other tenants' courses)
+□ Soft delete shows confirmation and hides course from list
+
+Step 4: Results
+- Discovered: Edit button still enabled for ARCHIVED courses (UI bug)
+- Fixed: Added conditional rendering for ARCHIVED status
+- Verified: Business rules work correctly in real usage
+```
+
+**Integration Testing vs Visual Testing:**
+
+| Test Type | What It Verifies | What It Misses |
+|-----------|------------------|----------------|
+| **Unit Tests** | Business logic correctness | User experience, actual workflows |
+| **Integration Tests** | API contracts, data flow | UI rendering, form validation UX |
+| **Visual Testing** | End-to-end workflows, UX | Performance at scale |
+
+**Benefits of Paired Development:**
+- ✅ Catch business logic issues early through real usage
+- ✅ Verify error messages are user-friendly (not just technical codes)
+- ✅ Test complex multi-step workflows (enrollment → payment → attendance)
+- ✅ Discover missing validations or edge cases
+- ✅ Faster feedback loop (immediate visual confirmation)
+- ✅ Better understanding of actual user experience
+- ✅ No need to rely solely on API documentation
+- ✅ Quality assurance through real-world testing
 
 ### Frontend PRs Status
 
 **Phase 1: Infrastructure** (Required first)
-- ⏳ PR 3.1: Project Setup & Core Infrastructure
+- ✅ **PR 3.1: Project Setup & Core Infrastructure** *(PR-REVIEW-3.1 complete)*
+  - TypeScript types (auth, student, teacher, course, feature detection)
+  - API client with Axios interceptors (auth token, tenant context)
+  - React Query provider
+  - Feature detection hook (useFeatureDetection)
+  - FeatureGate component for tier-based features
 - ⏳ PR 3.2: Shared Components & Layout System
 - ⏳ PR 3.3: Authentication Pages → **NEEDS: PR 1.4 ✅ (Done)**
 
-**Phase 2: IMMEDIATE PRIORITY** (Backend APIs already available)
+**Phase 2: IMMEDIATE PRIORITY** (Backend APIs available, ready for visual testing)
 - ⏳ PR 3.4: Student Management Pages → **NEEDS: PR 2.3 ✅ (Done)**
 - ⏳ PR 3.5: Teacher Management Pages → **NEEDS: PR 2.3.1 ✅ (Done)**
 - ⏳ PR 3.6: Course Management Pages → **NEEDS: PR 2.4 ✅ (Done)**
@@ -195,10 +329,15 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 
 **Frontend Status:** 1/13 PRs completed (8%) - PR 3.1 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
-**CRITICAL:** Frontend PRs 3.1-3.6 can start NOW (Backend APIs ready)
+**Infrastructure Ready:**
+- ✅ TypeScript types for all domain models
+- ✅ API client with auth & tenant context
+- ✅ React Query for data fetching
+- ✅ Feature detection system for multi-tenant SaaS
+**CRITICAL:** Frontend PRs 3.2-3.6 can start NOW (Backend APIs ready for visual testing)
 
-**Overall Progress:** 12/46 PRs completed (26%)
-**Last Updated:** 2026-01-29 (Updated with Feature Detection & AI Branding specs)
+**Overall Progress:** 17/37 PRs completed (46%)
+**Last Updated:** 2026-02-09 (After PR Review Plan completion: Gateway internal API security, Spring Boot 3.5.10 upgrades, Core modules: Teacher + Course, Frontend infrastructure)
 
 ---
 
@@ -250,19 +389,58 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 
 ---
 
-### 🔄 Future Paired Development:
+### 🔄 Future Paired Development Roadmap:
 
 **When implementing next Backend modules:**
-- PR 2.5 (Class Module) → IMMEDIATELY do PR 3.7 (Class Management Pages)
-- PR 2.7 (Attendance) → IMMEDIATELY do PR 3.8 (Attendance Management)
-- PR 2.8 (Invoice) + PR 2.8.1 (Payment) → IMMEDIATELY do PR 3.9 (Billing Pages)
+- **PR 2.5 (Class Module)** → IMMEDIATELY do **PR 3.7 (Class Management Pages)**
+  - Visual Test: Create class, assign teacher, add sessions, view schedule
+  - Verify: Teacher permissions (MAIN_TEACHER vs SUPPORT_TEACHER)
+  - Check: Class status transitions (SCHEDULED → IN_PROGRESS → COMPLETED)
+
+- **PR 2.7 (Attendance Module)** → IMMEDIATELY do **PR 3.8 (Attendance Management)**
+  - Visual Test: Mark attendance, record notes, view attendance rate
+  - Verify: Only authorized teachers can mark attendance
+  - Check: Attendance affects grade calculation
+
+- **PR 2.8 (Invoice) + PR 2.8.1 (Payment)** → IMMEDIATELY do **PR 3.9 (Billing Pages)**
+  - Visual Test: Create invoice, generate payment link, confirm payment
+  - Verify: VietQR integration works end-to-end
+  - Check: Payment confirmation updates enrollment status
+
+**Quality Checkpoints for Each Paired PR:**
+
+Backend PR Checklist:
+- [ ] All API endpoints tested (Postman/curl)
+- [ ] Unit tests pass (≥80% coverage)
+- [ ] Integration tests pass (Testcontainers)
+- [ ] Error messages user-friendly (not just error codes)
+- [ ] Multi-tenant isolation verified
+- [ ] API documentation updated (OpenAPI/Swagger)
+
+Frontend PR Checklist:
+- [ ] All forms work correctly with validation
+- [ ] Error messages display clearly
+- [ ] Loading states implemented
+- [ ] Mobile responsive
+- [ ] Accessibility tested (keyboard navigation, screen reader)
+- [ ] React Testing Library tests pass
+- [ ] No TypeScript errors, no `any` types
+
+Visual Testing Checklist (Both FE + BE):
+- [ ] Happy path works end-to-end
+- [ ] Error scenarios display correctly
+- [ ] Validation prevents invalid submissions
+- [ ] Multi-tenant isolation works (cannot see other tenants' data)
+- [ ] Business rules enforced (e.g., cannot archive published course)
+- [ ] Permissions checked (unauthorized actions blocked)
 
 **Benefits:**
-- ✅ Visual testing of business logic
-- ✅ Catch API design issues early
-- ✅ Better understanding of user flows
-- ✅ No need to rely solely on documentation
-- ✅ Faster feedback loop
+- ✅ Visual testing of business logic through real UI
+- ✅ Catch API design issues early (missing fields, confusing error messages)
+- ✅ Better understanding of user flows and edge cases
+- ✅ No need to rely solely on API documentation
+- ✅ Faster feedback loop (immediate visual confirmation)
+- ✅ Quality assurance through real-world usage scenarios
 
 ---
 
