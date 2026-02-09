@@ -310,7 +310,11 @@ Step 4: Results
   - React Query provider
   - Feature detection hook (useFeatureDetection)
   - FeatureGate component for tier-based features
-- ⏳ PR 3.2: Shared Components & Layout System
+- ✅ **PR 3.2: Shared Components & Layout System** *(Merged #2)*
+  - Layout: DashboardLayout, AuthLayout, Sidebar, Header, Footer
+  - Common UI: DataTable, SearchInput, StatusBadge, LoadingSpinner, ErrorAlert
+  - Forms: FormInput, FormSelect, FormTextarea
+  - CI: Frontend CI workflow with TypeScript, ESLint, tests, build
 - ⏳ PR 3.3: Authentication Pages → **NEEDS: PR 1.4 ✅ (Done)**
 
 **Phase 2: IMMEDIATE PRIORITY** (Backend APIs available, ready for visual testing)
@@ -327,17 +331,21 @@ Step 4: Results
 - ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
 - ⏳ PR 3.13: E2E Tests & Polish
 
-**Frontend Status:** 1/13 PRs completed (8%) - PR 3.1 ✅
+**Frontend Status:** 2/13 PRs completed (15%) - PR 3.1 ✅, PR 3.2 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
 - ✅ API client with auth & tenant context
 - ✅ React Query for data fetching
 - ✅ Feature detection system for multi-tenant SaaS
-**CRITICAL:** Frontend PRs 3.2-3.6 can start NOW (Backend APIs ready for visual testing)
+- ✅ Layout system (Dashboard + Auth layouts)
+- ✅ Shared UI components (DataTable, SearchInput, StatusBadge, etc.)
+- ✅ Form components with validation
+- ✅ Frontend CI/CD pipeline
+**CRITICAL:** Frontend PRs 3.3-3.6 can start NOW (Backend APIs ready for visual testing)
 
-**Overall Progress:** 17/37 PRs completed (46%)
-**Last Updated:** 2026-02-09 (After PR Review Plan completion: Gateway internal API security, Spring Boot 3.5.10 upgrades, Core modules: Teacher + Course, Frontend infrastructure)
+**Overall Progress:** 18/37 PRs completed (49%)
+**Last Updated:** 2026-02-09 (PR 3.2 merged: Shared Components & Layout System + Frontend CI workflow)
 
 ---
 
