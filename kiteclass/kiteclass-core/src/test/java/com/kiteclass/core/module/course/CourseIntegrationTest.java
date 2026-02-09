@@ -6,6 +6,7 @@ import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
+import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,10 +60,56 @@ class CourseIntegrationTest {
     private ObjectMapper objectMapper;
 
     private UUID tenantId;
+    private Long teacherId;
+    private Long teacher2Id;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         tenantId = UUID.randomUUID();
+
+        // Create first teacher (required for course creation)
+        CreateTeacherRequest teacherRequest = new CreateTeacherRequest(
+            "Test Teacher",
+            "teacher@test.com",
+            "0901234567",
+            "Computer Science",
+            "Test teacher for course integration tests",
+            "PhD in Computer Science",
+            10
+        );
+
+        String teacherResponse = mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(teacherRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        teacherId = objectMapper.readTree(teacherResponse).get("data").get("id").asLong();
+
+        // Create second teacher (for multi-criteria search test)
+        CreateTeacherRequest teacher2Request = new CreateTeacherRequest(
+            "Test Teacher 2",
+            "teacher2@test.com",
+            "0901234568",
+            "Mathematics",
+            "Second test teacher",
+            "Master in Mathematics",
+            5
+        );
+
+        String teacher2Response = mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(teacher2Request)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        teacher2Id = objectMapper.readTree(teacher2Response).get("data").get("id").asLong();
     }
 
     @Test
@@ -77,7 +124,7 @@ class CourseIntegrationTest {
             "Master Java syntax and object-oriented principles",
             "Basic computer skills",
             "Beginners to programming",
-            1L,  // teacherId
+            teacherId,
             12,  // durationWeeks
             24,  // totalSessions
             new BigDecimal("5000000")  // price
@@ -108,7 +155,7 @@ class CourseIntegrationTest {
             "Master advanced Python concepts",
             "Python basics",
             "Intermediate programmers",
-            1L,
+            teacherId,
             8,
             16,
             new BigDecimal("3000000")
@@ -147,7 +194,7 @@ class CourseIntegrationTest {
             "Understand core data structures",
             "Programming basics",
             "CS students",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("4000000")
@@ -202,7 +249,7 @@ class CourseIntegrationTest {
             "Build modern websites",
             "Basic computer skills",
             "Beginners",
-            1L,
+            teacherId,
             16,
             32,
             new BigDecimal("6000000")
@@ -243,7 +290,7 @@ class CourseIntegrationTest {
                 "Objectives " + i,
                 "Prerequisites " + i,
                 "Audience " + i,
-                1L,
+                teacherId,
                 10,
                 20,
                 new BigDecimal("1000000")
@@ -280,7 +327,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Math basics",
             "Data scientists",
-            1L,
+            teacherId,
             12,
             24,
             new BigDecimal("8000000")
@@ -294,7 +341,7 @@ class CourseIntegrationTest {
             "Objectives",
             "SQL basics",
             "Developers",
-            1L,
+            teacherId,
             8,
             16,
             new BigDecimal("3000000")
@@ -333,7 +380,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
@@ -360,7 +407,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
@@ -397,7 +444,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
@@ -418,7 +465,7 @@ class CourseIntegrationTest {
             "Different objectives",
             "Different prerequisites",
             "Different audience",
-            1L,
+            teacherId,
             12,
             24,
             new BigDecimal("2000000")
@@ -445,7 +492,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
@@ -481,7 +528,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
@@ -518,7 +565,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
@@ -551,7 +598,7 @@ class CourseIntegrationTest {
             "Objectives",
             "JS basics",
             "Intermediate developers",
-            1L,
+            teacherId,
             8,
             16,
             new BigDecimal("4000000")
@@ -565,7 +612,7 @@ class CourseIntegrationTest {
             "Objectives",
             "None",
             "Beginners",
-            2L,  // Different teacher
+            teacher2Id,  // Different teacher
             10,
             20,
             new BigDecimal("2000000")
@@ -586,7 +633,7 @@ class CourseIntegrationTest {
         // When/Then: Search with multiple criteria (name + teacherId)
         mockMvc.perform(get("/api/v1/courses")
                 .param("search", "JavaScript")
-                .param("teacherId", "1")
+                .param("teacherId", teacherId.toString())
                 .param("status", "DRAFT")
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isOk())
@@ -606,7 +653,7 @@ class CourseIntegrationTest {
             "Objectives",
             "Prerequisites",
             "Audience",
-            1L,
+            teacherId,
             10,
             20,
             new BigDecimal("1000000")
