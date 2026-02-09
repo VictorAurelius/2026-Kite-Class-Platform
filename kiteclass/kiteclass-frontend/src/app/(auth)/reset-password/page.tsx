@@ -7,6 +7,7 @@
 
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -36,7 +37,7 @@ const resetPasswordSchema = z
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const { resetPassword } = useAuth();
@@ -126,5 +127,21 @@ export default function ResetPasswordPage() {
         </Link>
       </div>
     </AuthLayout>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthLayout>
+          <div className="flex items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        </AuthLayout>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
