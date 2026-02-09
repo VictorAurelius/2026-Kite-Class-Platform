@@ -1,0 +1,23 @@
+# Project Root .gitignore
+
+# CI/CD Logs
+.log/*.txt
+.log/*.log
+.log/*.dump
+.log/*.dumpstream
+.log/auto/
+.log/temp/
+.log/run-*/
+
+# But keep scripts
+!.log/check-ci.sh
+!.log/README.md
+
+# Claude Code local settings (never commit)
+.claude/settings.local.json
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
