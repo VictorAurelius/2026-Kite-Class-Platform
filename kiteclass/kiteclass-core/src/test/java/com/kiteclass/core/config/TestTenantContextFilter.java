@@ -66,12 +66,9 @@ public class TestTenantContextFilter extends OncePerRequestFilter {
                 // Enable Hibernate filter (critical for multi-tenant isolation)
                 // Only if EntityManager is available (integration tests with JPA)
                 //
-                // TEMPORARILY DISABLED: Hibernate filter causes SQL error with UUID parameters
-                // Error: "function lower(bytea) does not exist"
-                // Root cause: UUID filter parameter affects subsequent parameter type inference
-                // TODO: Investigate Hibernate 6.x + PostgreSQL UUID handling
-                // For now: Rely on explicit instance_id checks in @Query annotations
-                if (false && entityManager != null) {
+                // Fixed: Now works with native SQL queries that use explicit CAST()
+                // Previous issue was JPQL parameter type inference, resolved by using native SQL
+                if (entityManager != null) {
                     try {
                         // Flush and clear to ensure fresh session (avoids parameter type conflicts)
                         entityManager.flush();
