@@ -12,9 +12,14 @@ export const dynamic = 'force-dynamic';
 import { DashboardLayout } from '@/components/layout';
 import { StudentForm } from '@/components/forms/student-form';
 import { useCreateStudent } from '@/hooks/use-students';
+import type { CreateStudentRequest, UpdateStudentRequest } from '@/types/student';
 
 export default function NewStudentPage() {
   const createMutation = useCreateStudent();
+
+  const handleSubmit = (data: CreateStudentRequest | UpdateStudentRequest) => {
+    createMutation.mutate(data as CreateStudentRequest);
+  };
 
   return (
     <DashboardLayout>
@@ -28,7 +33,7 @@ export default function NewStudentPage() {
 
         <div className="rounded-lg border bg-card p-6">
           <StudentForm
-            onSubmit={createMutation.mutate}
+            onSubmit={handleSubmit}
             isSubmitting={createMutation.isPending}
           />
         </div>

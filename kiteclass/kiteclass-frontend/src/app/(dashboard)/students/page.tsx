@@ -59,11 +59,12 @@ export default function StudentsPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <SearchInput
-            placeholder="Tìm kiếm theo tên, email..."
-            onSearch={handleSearch}
-            className="max-w-md"
-          />
+          <div className="max-w-md">
+            <SearchInput
+              placeholder="Tìm kiếm theo tên, email..."
+              onSearch={handleSearch}
+            />
+          </div>
         </div>
 
         {isLoading && (
@@ -83,14 +84,15 @@ export default function StudentsPage() {
           <DataTable
             columns={columns}
             data={data.content}
-            pagination={{
-              pageIndex: searchParams.page || 0,
-              pageSize: searchParams.size || 20,
-              totalPages: data.totalPages,
-              totalElements: data.totalElements,
-              onPageChange: (page: number) =>
-                setSearchParams((prev) => ({ ...prev, page })),
-            }}
+            pageCount={data.totalPages}
+            pageSize={searchParams.size || 20}
+            onPaginationChange={(pagination) =>
+              setSearchParams((prev) => ({
+                ...prev,
+                page: pagination.pageIndex,
+                size: pagination.pageSize,
+              }))
+            }
           />
         )}
       </div>
