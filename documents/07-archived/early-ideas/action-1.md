@@ -922,3 +922,5 @@ bổ sung vào git hook:
 2. độ dài commit đang quá dài, giới hạn từ 25 đến 50 ký tự thôi
 
 author vẫ có claude? cập nhật skill để trước khi commit phải check lại, giúp tôi commit cả các file đang change
+
+tôi thấy kiteclass-frontend chưa implement được nhiều nên các PR RV trong master plan có thể cập nhật status hoàn thành, thực hiện đổi tên file PR RV để biết master PR này đã hoàn thành
