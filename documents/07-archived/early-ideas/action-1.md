@@ -914,3 +914,11 @@ check log CI luôn, có vẻ die do DB không connect được rồi
 theo master PR RV plan, action tiếp theo là gì?
 
 PR 2.4 với 2.5 vừa thực hiện rồi mà => thực hiện cập nhật plan => có vẻ lại không đảm bảo workflow rồi
+
+thực hiện luôn cả 3.2 3.3, có cần test và CI không?
+
+bổ sung vào git hook:
+1. author commit không được có thêm claude
+2. độ dài commit đang quá dài, giới hạn từ 25 đến 50 ký tự thôi
+
+author vẫ có claude? cập nhật skill để trước khi commit phải check lại, giúp tôi commit cả các file đang change

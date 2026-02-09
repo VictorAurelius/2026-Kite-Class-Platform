@@ -68,6 +68,21 @@ if ! echo "$SUBJECT_LINE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|
 fi
 
 # ==============================================================================
+# Check 3: No "Claude" in Co-Authored-By
+# ==============================================================================
+FULL_MSG=$(cat "$COMMIT_MSG_FILE")
+if echo "$FULL_MSG" | grep -iq "Co-Authored-By.*[Cc]laude"; then
+    echo ""
+    echo -e "${RED}❌ Commit message contains 'Claude' in Co-Authored-By line${NC}"
+    echo "   This violates authorship policy"
+    echo ""
+    echo "   Remove or replace Co-Authored-By line:"
+    echo "   - Remove: Delete the Co-Authored-By line"
+    echo "   - Replace: Use your real name/email"
+    VIOLATIONS=$((VIOLATIONS + 1))
+fi
+
+# ==============================================================================
 # Summary
 # ==============================================================================
 if [ "$VIOLATIONS" -eq 0 ]; then
