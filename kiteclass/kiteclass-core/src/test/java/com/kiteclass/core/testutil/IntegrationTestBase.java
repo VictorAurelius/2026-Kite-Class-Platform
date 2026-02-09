@@ -1,6 +1,7 @@
 package com.kiteclass.core.testutil;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -8,21 +9,26 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * Base class for integration tests.
+ * Base class for repository slice tests.
  *
- * <p>Provides:
+ * <p>Uses {@link DataJpaTest} for lightweight repository testing:
  * <ul>
+ *   <li>Only loads JPA components (repositories, entities)</li>
+ *   <li>No full Spring Boot context (faster startup)</li>
+ *   <li>No Redis, RabbitMQ, Security, etc.</li>
  *   <li>PostgreSQL test container via Testcontainers</li>
- *   <li>Spring Boot test context</li>
- *   <li>Database connection configuration</li>
  * </ul>
  *
  * <p>Usage: Extend this class in repository integration tests.
  *
+ * <p><strong>Pattern:</strong> Repository Slice Tests use {@code @DataJpaTest}
+ * with manual {@code @Container} setup (per MEMORY.md guidelines).
+ *
  * @author KiteClass Team
  * @since 2.3.0
  */
-@SpringBootTest
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 public abstract class IntegrationTestBase {
 
@@ -53,14 +59,5 @@ public abstract class IntegrationTestBase {
         registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
         registry.add("spring.datasource.username", postgresContainer::getUsername);
         registry.add("spring.datasource.password", postgresContainer::getPassword);
-
-        // Disable Redis and RabbitMQ for integration tests
-        registry.add("spring.data.redis.host", () -> "localhost");
-        registry.add("spring.data.redis.port", () -> "63790"); // Non-standard port to avoid conflicts
-        registry.add("spring.rabbitmq.host", () -> "localhost");
-        registry.add("spring.rabbitmq.port", () -> "56720"); // Non-standard port to avoid conflicts
-
-        // Use H2 for simpler cache during tests
-        registry.add("spring.cache.type", () -> "simple");
     }
 }
