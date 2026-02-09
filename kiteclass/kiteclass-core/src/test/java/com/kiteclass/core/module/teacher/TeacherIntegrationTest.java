@@ -288,7 +288,7 @@ class TeacherIntegrationTest {
 
         // When/Then: Search by name
         mockMvc.perform(get("/api/v1/teachers")
-                .param("name", "John")
+                .param("search", "John")
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
@@ -558,7 +558,7 @@ class TeacherIntegrationTest {
 
         // And: Verify it's not in the list
         mockMvc.perform(get("/api/v1/teachers")
-                .param("name", "Soft Delete Test")
+                .param("search", "Soft Delete Test")
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[?(@.id == " + teacherId + ")]").doesNotExist());

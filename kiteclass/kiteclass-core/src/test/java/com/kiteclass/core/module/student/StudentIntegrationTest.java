@@ -286,7 +286,7 @@ class StudentIntegrationTest {
 
         // When/Then: Search by name
         mockMvc.perform(get("/api/v1/students")
-                .param("name", "John")
+                .param("search", "John")
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
