@@ -3,6 +3,7 @@ package com.kiteclass.core.config;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -27,6 +29,8 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class InternalRequestFilterTest {
 
+    private static final String TEST_SECRET = "test-secret-for-hmac";
+
     private InternalRequestFilter filter;
 
     @Mock
@@ -43,15 +47,30 @@ class InternalRequestFilterTest {
     @BeforeEach
     void setUp() throws Exception {
         filter = new InternalRequestFilter();
+        ReflectionTestUtils.setField(filter, "internalApiSecret", TEST_SECRET);
         responseWriter = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(responseWriter));
+    }
+
+    /**
+     * Generate valid HMAC signature for testing.
+     *
+     * @return array [timestamp, signature]
+     */
+    private String[] generateValidHmacHeaders() {
+        long timestamp = System.currentTimeMillis() / 1000;
+        String timestampStr = String.valueOf(timestamp);
+        String signature = new HmacUtils("HmacSHA256", TEST_SECRET).hmacHex(timestampStr);
+        return new String[]{timestampStr, signature};
     }
 
     @Test
     void doFilterInternal_shouldAllowRequest_whenValidHeaderProvided() throws Exception {
         // Given
         when(request.getRequestURI()).thenReturn("/internal/students/1");
-        when(request.getHeader("X-Internal-Request")).thenReturn("true");
+        String[] headers = generateValidHmacHeaders();
+        when(request.getHeader("X-Internal-Timestamp")).thenReturn(headers[0]);
+        when(request.getHeader("X-Internal-Signature")).thenReturn(headers[1]);
 
         // When
         filter.doFilterInternal(request, response, filterChain);
@@ -65,7 +84,8 @@ class InternalRequestFilterTest {
     void doFilterInternal_shouldRejectRequest_whenHeaderMissing() throws Exception {
         // Given
         when(request.getRequestURI()).thenReturn("/internal/students/1");
-        when(request.getHeader("X-Internal-Request")).thenReturn(null);
+        when(request.getHeader("X-Internal-Timestamp")).thenReturn(null);
+        when(request.getHeader("X-Internal-Signature")).thenReturn(null);
 
         // When
         filter.doFilterInternal(request, response, filterChain);
@@ -77,14 +97,15 @@ class InternalRequestFilterTest {
 
         String responseBody = responseWriter.toString();
         assertThat(responseBody).contains("\"success\":false");
-        assertThat(responseBody).contains("INTERNAL_API_FORBIDDEN");
+        assertThat(responseBody).contains("INVALID_INTERNAL_SIGNATURE");
     }
 
     @Test
     void doFilterInternal_shouldRejectRequest_whenHeaderValueIncorrect() throws Exception {
         // Given
         when(request.getRequestURI()).thenReturn("/internal/students/1");
-        when(request.getHeader("X-Internal-Request")).thenReturn("false");
+        when(request.getHeader("X-Internal-Timestamp")).thenReturn("123456789");
+        when(request.getHeader("X-Internal-Signature")).thenReturn("invalid-signature");
 
         // When
         filter.doFilterInternal(request, response, filterChain);
@@ -122,7 +143,8 @@ class InternalRequestFilterTest {
             reset(request, response, filterChain);
             when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
             when(request.getRequestURI()).thenReturn(path);
-            when(request.getHeader("X-Internal-Request")).thenReturn(null);
+            when(request.getHeader("X-Internal-Timestamp")).thenReturn(null);
+            when(request.getHeader("X-Internal-Signature")).thenReturn(null);
 
             // When
             filter.doFilterInternal(request, response, filterChain);
