@@ -910,3 +910,7 @@ tại sao vẫn còn 32 TC skipped? action tiếp theo sẽ là gì?
 đảm bảo workflow và thực hiện Option 3, sau đó thực hiện Option 2
 
 check log CI luôn, có vẻ die do DB không connect được rồi
+
+theo master PR RV plan, action tiếp theo là gì?
+
+PR 2.4 với 2.5 vừa thực hiện rồi mà => thực hiện cập nhật plan => có vẻ lại không đảm bảo workflow rồi
