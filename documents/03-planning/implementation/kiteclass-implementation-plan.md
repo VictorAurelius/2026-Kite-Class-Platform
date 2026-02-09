@@ -323,9 +323,16 @@ Step 4: Results
   - ReactQueryProvider added to root layout
   - Suspense boundary for useSearchParams
   - Dynamic rendering for auth pages
+- ✅ **PR 3.4: Student Management Pages** *(Merged #4)*
+  - Students API functions (getStudents, getStudent, create, update, delete)
+  - useStudents hooks with React Query (list, get, create, update, delete)
+  - StudentForm component with Zod validation
+  - Student table columns with status badges
+  - Pages: List, Create, Detail, Edit with search & pagination
+  - Vietnamese UI labels and error messages
+  - Soft delete confirmation with window.confirm
 
 **Phase 2: IMMEDIATE PRIORITY** (Backend APIs available, ready for visual testing)
-- ⏳ PR 3.4: Student Management Pages → **NEEDS: PR 2.3 ✅ (Done)**
 - ⏳ PR 3.5: Teacher Management Pages → **NEEDS: PR 2.3.1 ✅ (Done)**
 - ⏳ PR 3.6: Course Management Pages → **NEEDS: PR 2.4 ✅ (Done)**
 
@@ -338,7 +345,7 @@ Step 4: Results
 - ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
 - ⏳ PR 3.13: E2E Tests & Polish
 
-**Frontend Status:** 3/13 PRs completed (23%) - PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅
+**Frontend Status:** 4/13 PRs completed (31%) - PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
@@ -350,10 +357,11 @@ Step 4: Results
 - ✅ Form components with validation
 - ✅ Frontend CI/CD pipeline
 - ✅ Authentication system (login, token refresh, password reset)
-**CRITICAL:** Frontend PRs 3.4-3.6 can start NOW (Backend APIs ready for visual testing)
+- ✅ Student management (CRUD, search, pagination)
+**CRITICAL:** Frontend PRs 3.5-3.6 ready for implementation (Backend APIs available)
 
-**Overall Progress:** 19/37 PRs completed (51%)
-**Last Updated:** 2026-02-09 (PR 3.3 merged: Authentication Pages + Auth State Management)
+**Overall Progress:** 20/37 PRs completed (54%)
+**Last Updated:** 2026-02-09 (PR 3.4 merged: Student Management Pages)
 
 ---
 
