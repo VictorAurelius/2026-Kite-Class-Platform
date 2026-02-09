@@ -79,16 +79,16 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query(value = """
             SELECT * FROM students s
             WHERE s.deleted = false
-            AND (:search::text IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
-                OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search::text, '%')))
-            AND (:status::text IS NULL OR s.status = CAST(:status AS text))
+            AND (CAST(:search AS text) IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
+                OR LOWER(s.email) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            AND (CAST(:status AS text) IS NULL OR s.status = CAST(:status AS text))
             """,
             countQuery = """
             SELECT COUNT(*) FROM students s
             WHERE s.deleted = false
-            AND (:search::text IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search::text, '%'))
-                OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search::text, '%')))
-            AND (:status::text IS NULL OR s.status = CAST(:status AS text))
+            AND (CAST(:search AS text) IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
+                OR LOWER(s.email) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
+            AND (CAST(:status AS text) IS NULL OR s.status = CAST(:status AS text))
             """,
             nativeQuery = true)
     Page<Student> findBySearchCriteria(
