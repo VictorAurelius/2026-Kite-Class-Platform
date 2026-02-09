@@ -110,9 +110,12 @@ public class TeacherServiceImpl implements TeacherService {
     public PageResponse<TeacherResponse> getTeachers(String search, String status, Pageable pageable) {
         log.debug("Searching teachers with search='{}', status='{}', page={}", search, status, pageable.getPageNumber());
 
-        TeacherStatus teacherStatus = status != null ? TeacherStatus.valueOf(status) : null;
+        // Validate status if provided (throws IllegalArgumentException if invalid)
+        if (status != null && !status.isEmpty()) {
+            TeacherStatus.valueOf(status); // Just for validation
+        }
 
-        Page<Teacher> teacherPage = teacherRepository.findBySearchCriteria(search, teacherStatus, pageable);
+        Page<Teacher> teacherPage = teacherRepository.findBySearchCriteria(search, status, pageable);
 
         Page<TeacherResponse> responsePage = teacherPage.map(teacherMapper::toResponse);
 

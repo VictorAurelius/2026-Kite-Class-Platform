@@ -140,9 +140,10 @@ public class CourseServiceImpl implements CourseService {
         log.debug("Searching courses with criteria: search='{}', status='{}', teacherId='{}', page={}",
                 criteria.search(), criteria.status(), criteria.teacherId(), criteria.page());
 
-        // Parse status
-        CourseStatus courseStatus = criteria.status() != null ?
-                CourseStatus.valueOf(criteria.status()) : null;
+        // Validate status if provided (throws IllegalArgumentException if invalid)
+        if (criteria.status() != null && !criteria.status().isEmpty()) {
+            CourseStatus.valueOf(criteria.status()); // Just for validation
+        }
 
         // Parse sort
         Pageable pageable = createPageable(criteria);
@@ -150,7 +151,7 @@ public class CourseServiceImpl implements CourseService {
         // Search courses
         Page<Course> coursePage = courseRepository.findBySearchCriteria(
                 criteria.search(),
-                courseStatus,
+                criteria.status(),
                 criteria.teacherId(),
                 pageable
         );
