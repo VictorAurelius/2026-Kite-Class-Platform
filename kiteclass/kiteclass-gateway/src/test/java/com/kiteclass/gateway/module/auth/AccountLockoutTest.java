@@ -169,6 +169,9 @@ class AccountLockoutTest {
         user.setFailedLoginAttempts(0);
         userRepository.save(user).block();
 
+        // Delete refresh token from registration to avoid duplicate on login
+        refreshTokenRepository.deleteByUserId(user.getId()).block();
+
         // Then: Should be able to login with correct password
         LoginRequest correctLoginRequest = new LoginRequest("unlock@test.com", CORRECT_PASSWORD);
         StepVerifier.create(authService.login(correctLoginRequest))
