@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.student.repository;
 
-import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.module.student.entity.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -104,7 +103,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @param status the student status
      * @return list of students with the status
      */
-    List<Student> findByStatusAndDeletedFalse(StudentStatus status);
+    List<Student> findByStatusAndDeletedFalse(String status);
 
     /**
      * Counts students with given status (excluding deleted).
@@ -112,5 +111,5 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @param status the student status
      * @return count of students with the status
      */
-    long countByStatusAndDeletedFalse(StudentStatus status);
+    long countByStatusAndDeletedFalse(String status);
 }

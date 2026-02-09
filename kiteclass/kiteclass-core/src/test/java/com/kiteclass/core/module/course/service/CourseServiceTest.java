@@ -334,7 +334,7 @@ class CourseServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(courseRepository).findByIdAndDeletedFalse(1L);
-        verify(courseRepository).save(argThat(c -> c.getStatus() == "PUBLISHED"));
+        verify(courseRepository).save(argThat(c -> CourseStatus.PUBLISHED.equals(c.getStatus())));
     }
 
     @Test
@@ -382,7 +382,7 @@ class CourseServiceTest {
         // Then
         assertThat(result).isNotNull();
         verify(courseRepository).findByIdAndDeletedFalse(1L);
-        verify(courseRepository).save(argThat(c -> c.getStatus() == CourseStatus.ARCHIVED));
+        verify(courseRepository).save(argThat(c -> CourseStatus.ARCHIVED.equals(c.getStatus())));
     }
 
     @Test

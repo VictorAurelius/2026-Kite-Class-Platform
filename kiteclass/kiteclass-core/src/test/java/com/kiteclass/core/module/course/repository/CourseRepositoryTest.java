@@ -47,7 +47,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
         course2.setId(null);
         course2.setName("Mathematics Fundamentals");
         course2.setTeacherId(2L);
-        course2.setStatus("PUBLISHED");
+        course2.setStatus(CourseStatus.PUBLISHED);
         course2 = courseRepository.save(course2);
 
         course3 = CourseTestDataBuilder.createCourseWithCode("PHY-001");
@@ -132,7 +132,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo("PUBLISHED");
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(CourseStatus.PUBLISHED);
     }
 
     @Test
@@ -171,7 +171,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo("DRAFT");
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(CourseStatus.DRAFT);
     }
 
     @Test
@@ -194,13 +194,13 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // When
         Page<Course> result = courseRepository.findBySearchCriteria(
-                "Physics", CourseStatus.ARCHIVED, 1L, pageable
+                "Physics", "ARCHIVED", 1L, pageable
         );
 
         // Then
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getCode()).isEqualTo("PHY-001");
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo(CourseStatus.ARCHIVED);
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo("ARCHIVED");
         assertThat(result.getContent().get(0).getTeacherId()).isEqualTo(1L);
     }
 
@@ -232,7 +232,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo("PUBLISHED");
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(CourseStatus.PUBLISHED);
     }
 
     @Test
@@ -245,7 +245,7 @@ class CourseRepositoryTest extends IntegrationTestBase {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo("DRAFT");
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(CourseStatus.DRAFT);
         assertThat(result.getContent().get(0).getTeacherId()).isEqualTo(1L);
     }
 }

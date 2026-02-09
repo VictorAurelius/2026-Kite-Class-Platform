@@ -140,7 +140,7 @@ class TeacherRepositoryTest extends IntegrationTestBase {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getStatus()).isEqualTo("ACTIVE");
+        assertThat(result.getContent().get(0).getStatus()).isEqualTo(TeacherStatus.ACTIVE);
     }
 
     @Test

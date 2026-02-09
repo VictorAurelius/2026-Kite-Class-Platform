@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.course.repository;
 
-import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.module.course.entity.Course;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -69,7 +68,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @param pageable pagination parameters
      * @return page of courses with the status
      */
-    Page<Course> findByStatusAndDeletedFalse(CourseStatus status, Pageable pageable);
+    Page<Course> findByStatusAndDeletedFalse(String status, Pageable pageable);
 
     /**
      * Searches courses by multiple criteria with pagination.
@@ -119,7 +118,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @param status the course status
      * @return list of courses with the status
      */
-    List<Course> findByStatusAndDeletedFalse(CourseStatus status);
+    List<Course> findByStatusAndDeletedFalse(String status);
 
     /**
      * Counts courses with given status (excluding deleted).
@@ -127,7 +126,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @param status the course status
      * @return count of courses with the status
      */
-    long countByStatusAndDeletedFalse(CourseStatus status);
+    long countByStatusAndDeletedFalse(String status);
 
     /**
      * Counts courses created by a specific teacher (excluding deleted).
@@ -145,7 +144,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      * @return page of published courses
      */
     default Page<Course> findPublishedCourses(Pageable pageable) {
-        return findByStatusAndDeletedFalse(CourseStatus.PUBLISHED, pageable);
+        return findByStatusAndDeletedFalse("PUBLISHED", pageable);
     }
 
     /**
