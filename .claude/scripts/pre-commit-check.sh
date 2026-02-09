@@ -205,6 +205,29 @@ fi
 echo ""
 
 # ==============================================================================
+# 8. Check Git Author Name
+# ==============================================================================
+echo "👤 Checking git author name..."
+
+AUTHOR_NAME=$(git config user.name)
+if echo "$AUTHOR_NAME" | grep -iq "claude"; then
+    echo -e "${RED}❌ Git author name contains 'claude': $AUTHOR_NAME${NC}"
+    echo "   Please set your real name:"
+    echo "   git config user.name \"Your Name\""
+    VIOLATIONS=$((VIOLATIONS + 1))
+else
+    echo -e "${GREEN}✅ Git author name OK${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 9. Check Commit Message Length (note: full check in commit-msg hook)
+# ==============================================================================
+echo "📏 Checking commit message length..."
+echo -e "${GREEN}✅ Commit message will be validated in commit-msg hook${NC}"
+echo ""
+
+# ==============================================================================
 # Summary
 # ==============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
