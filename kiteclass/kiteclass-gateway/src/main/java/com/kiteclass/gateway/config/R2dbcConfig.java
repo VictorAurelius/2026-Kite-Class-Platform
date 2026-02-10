@@ -21,4 +21,20 @@ import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
 @Configuration
 @EnableR2dbcAuditing
 public class R2dbcConfig {
+
+    /**
+     * R2DBC transaction manager (primary).
+     *
+     * <p>Marks R2DBC transaction manager as primary when both JDBC (for Flyway)
+     * and R2DBC transaction managers exist.
+     *
+     * @param connectionFactory R2DBC connection factory
+     * @return R2DBC transaction manager
+     */
+    @org.springframework.context.annotation.Bean
+    @org.springframework.context.annotation.Primary
+    public org.springframework.r2dbc.connection.R2dbcTransactionManager transactionManager(
+            io.r2dbc.spi.ConnectionFactory connectionFactory) {
+        return new org.springframework.r2dbc.connection.R2dbcTransactionManager(connectionFactory);
+    }
 }
