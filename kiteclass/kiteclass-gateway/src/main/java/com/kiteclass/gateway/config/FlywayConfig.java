@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.flyway.FlywayDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 
@@ -16,10 +17,14 @@ import javax.sql.DataSource;
  * Spring Boot doesn't auto-configure JDBC DataSource when R2DBC is present, so we need to
  * provide it manually.
  *
+ * <p><b>Note:</b> This config is disabled in test profile via @Profile("!test").
+ * Tests use TestContainers which provides datasource via @ServiceConnection automatically.
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
 @Configuration
+@Profile("!test")
 public class FlywayConfig {
 
     /**
