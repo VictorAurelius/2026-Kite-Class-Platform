@@ -30,7 +30,7 @@ public class FlywayConfig {
      *
      * @return DataSource instance for Flyway
      */
-    @Bean
+    @Bean("flywayDataSource")
     @FlywayDataSource
     @ConfigurationProperties("spring.datasource.hikari")
     public DataSource flywayDataSource() {
