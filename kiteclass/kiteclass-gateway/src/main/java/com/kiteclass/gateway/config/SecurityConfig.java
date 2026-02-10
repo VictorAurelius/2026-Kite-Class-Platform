@@ -78,6 +78,7 @@ public class SecurityConfig {
                         // Public endpoints
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
                         .pathMatchers("/actuator/health/**").permitAll()
+                        .pathMatchers("/api/v1/auth/register").permitAll()
                         .pathMatchers("/api/v1/auth/login").permitAll()
                         .pathMatchers("/api/v1/auth/refresh").permitAll()
                         .pathMatchers("/api/v1/auth/logout").permitAll()
