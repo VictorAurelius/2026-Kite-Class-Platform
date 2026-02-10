@@ -4,8 +4,29 @@ Scripts tự động hóa cho môi trường development. Tương thích với W
 
 ## 🚀 Quick Start
 
+### Option 1: Docker Compose (⚡ NHANH - Recommended)
+
 ```bash
-# Khởi động tất cả services
+# Khởi động tất cả services với Docker
+./scripts/dev-docker.sh up
+
+# Xem logs
+./scripts/dev-docker.sh logs
+
+# Dừng tất cả
+./scripts/dev-docker.sh down
+```
+
+**Ưu điểm:**
+- ✅ **Cực nhanh** - Không cần compile mỗi lần
+- ✅ **Stable** - Docker images đã build sẵn
+- ✅ **Hot reload** - Frontend tự động reload khi code thay đổi
+- ✅ **Production-like** - Giống môi trường production
+
+### Option 2: Native (Chậm hơn)
+
+```bash
+# Khởi động tất cả services native
 ./scripts/dev-start.sh
 
 # Kiểm tra trạng thái
@@ -17,7 +38,49 @@ Scripts tự động hóa cho môi trường development. Tương thích với W
 
 ## 📋 Available Scripts
 
-### 1. `dev-start.sh` - Khởi động môi trường dev
+### 1. `dev-docker.sh` - Docker Compose (⚡ RECOMMENDED)
+
+Khởi động tất cả services bằng Docker Compose - **NHANH NHẤT!**
+
+**Usage:**
+```bash
+# Start all services
+./scripts/dev-docker.sh up
+
+# Stop all services
+./scripts/dev-docker.sh down
+
+# Rebuild images
+./scripts/dev-docker.sh build
+
+# View logs
+./scripts/dev-docker.sh logs
+
+# Check status
+./scripts/dev-docker.sh status
+
+# Restart services
+./scripts/dev-docker.sh restart
+
+# Clean everything
+./scripts/dev-docker.sh clean
+```
+
+**Services included:**
+- PostgreSQL (port 5432)
+- Redis (port 6379)
+- Core Service (port 8081) - **Docker image**
+- Gateway Service (port 8080) - **Docker image**
+- Frontend (port 3000) - **Docker với hot reload**
+
+**Ưu điểm:**
+- ⚡ **Nhanh** - Images đã build sẵn, không compile mỗi lần
+- 🔄 **Hot reload** - Frontend tự động reload
+- 🐳 **Isolated** - Mỗi service trong container riêng
+- 🏥 **Health checks** - Tự động check service health
+- 📊 **Easy monitoring** - `docker-compose ps` để xem status
+
+### 2. `dev-start.sh` - Native startup (Chậm hơn)
 
 Tự động khởi động:
 - ✅ PostgreSQL (Docker)
