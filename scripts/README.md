@@ -256,10 +256,13 @@ pnpm install
 
 # 3. Truy cập http://localhost:3000
 
-# 4. Sau khi login, tạo dữ liệu mẫu (optional)
+# 4. Đăng ký/đăng nhập tài khoản
+
+# 5. (Optional) Tạo dữ liệu mẫu - xem section "📦 Import Dữ Liệu Mẫu" bên dưới
+#    Cần lấy accessToken và tenantId từ localStorage trước
 ./scripts/seed-data.sh YOUR_TOKEN YOUR_TENANT_ID
 
-# 5. Làm việc...
+# 6. Làm việc...
 
 # 6. Khi xong, dừng services
 # Nhấn Ctrl+C hoặc:
@@ -274,6 +277,71 @@ pnpm install
 
 # Xem logs real-time
 tail -f .log/frontend.log
+```
+
+## 📦 Import Dữ Liệu Mẫu
+
+### Cách 1: Sử dụng Seed Script (Recommended)
+
+Script `seed-data.sh` sẽ tự động tạo:
+- ✅ **5 học viên** với thông tin đầy đủ (tên, email, số điện thoại, địa chỉ)
+- ✅ **3 giáo viên** với chuyên môn khác nhau (Computer Science, Math, Chemistry)
+
+**Bước thực hiện:**
+
+```bash
+# Bước 1: Truy cập ứng dụng
+open http://localhost:3000
+
+# Bước 2: Đăng ký tài khoản mới hoặc đăng nhập
+
+# Bước 3: Mở Developer Tools (F12), vào tab Console, chạy lệnh:
+localStorage.getItem('accessToken')    # Copy token
+localStorage.getItem('tenantId')       # Copy tenant ID
+
+# Bước 4: Chạy script với token và tenant ID vừa copy
+./scripts/seed-data.sh "YOUR_ACCESS_TOKEN" "YOUR_TENANT_ID"
+
+# Ví dụ:
+# ./scripts/seed-data.sh "eyJhbGciOiJIUzUxMiJ9..." "550e8400-e29b-41d4-a716-446655440000"
+```
+
+**Output mẫu khi thành công:**
+```
+🌱 Tạo dữ liệu mẫu cho KiteClass...
+✅ Student 1 created: Nguyễn Văn An
+✅ Student 2 created: Trần Thị Bình
+...
+✅ Teacher 1 created: Dr. John Smith
+...
+🎉 Hoàn tất! Đã tạo 5 students và 3 teachers.
+```
+
+### Cách 2: Thêm thủ công qua UI
+
+Truy cập các trang quản lý trong ứng dụng:
+- Students: http://localhost:3000/students
+- Teachers: http://localhost:3000/teachers
+
+Click nút "Add New" và điền thông tin.
+
+### Kiểm tra dữ liệu đã import
+
+```bash
+# Kết nối vào PostgreSQL
+docker exec -it kiteclass-postgres psql -U kiteclass -d kiteclass_dev
+
+# Kiểm tra số lượng students
+SELECT COUNT(*) FROM students WHERE deleted = false;
+
+# Kiểm tra số lượng teachers
+SELECT COUNT(*) FROM teachers WHERE deleted = false;
+
+# Xem danh sách students
+SELECT name, email FROM students WHERE deleted = false;
+
+# Thoát
+\q
 ```
 
 ## 📊 Database Access
