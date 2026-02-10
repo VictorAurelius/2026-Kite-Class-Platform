@@ -103,12 +103,24 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      # JDBC for Flyway migrations
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass_dev
       SPRING_DATASOURCE_USERNAME: kiteclass
       SPRING_DATASOURCE_PASSWORD: kiteclass123
+      # R2DBC for reactive database access
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: kiteclass_dev
+      DB_USERNAME: kiteclass
+      DB_PASSWORD: kiteclass123
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      # Core Service URL
       KITECLASS_CORE_URL: http://core:8081
+      CORE_SERVICE_URL: http://core:8081
     depends_on:
       postgres:
         condition: service_healthy
