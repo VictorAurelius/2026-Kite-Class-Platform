@@ -37,8 +37,8 @@ check_command() {
     echo -e "${GREEN}✅ $1 đã cài đặt${NC}"
 }
 
-# Function để wait cho service sẵn sàng
-wait_for_service() {
+# Function để wait cho HTTP service sẵn sàng
+wait_for_http() {
     local url=$1
     local name=$2
     local max_attempts=60
@@ -57,6 +57,29 @@ wait_for_service() {
     done
 
     echo -e "\n${RED}❌ $name không khởi động được sau 2 phút${NC}"
+    return 1
+}
+
+# Function để wait cho TCP port
+wait_for_port() {
+    local port=$1
+    local name=$2
+    local max_attempts=30
+    local attempt=0
+
+    echo -e "${YELLOW}⏳ Đợi $name khởi động...${NC}"
+
+    while [ $attempt -lt $max_attempts ]; do
+        if nc -z localhost "$port" 2>/dev/null || timeout 1 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2>/dev/null; then
+            echo -e "${GREEN}✅ $name đã sẵn sàng!${NC}"
+            return 0
+        fi
+        attempt=$((attempt + 1))
+        sleep 2
+        echo -n "."
+    done
+
+    echo -e "\n${RED}❌ $name không khởi động được sau 1 phút${NC}"
     return 1
 }
 
@@ -103,7 +126,7 @@ else
         -p 5432:5432 \
         postgres:16-alpine
 fi
-wait_for_service "localhost:5432" "PostgreSQL"
+wait_for_port 5432 "PostgreSQL"
 
 # 3. Start Redis
 echo -e "\n${BLUE}🔴 Khởi động Redis...${NC}"
@@ -115,7 +138,7 @@ else
         -p 6379:6379 \
         redis:7-alpine
 fi
-wait_for_service "localhost:6379" "Redis"
+wait_for_port 6379 "Redis"
 
 # 4. Start Core Service
 echo -e "\n${BLUE}⚙️  Khởi động Core Service (port 8081)...${NC}"
@@ -124,7 +147,7 @@ cd "$PROJECT_ROOT/kiteclass/kiteclass-core"
 CORE_PID=$!
 echo "$CORE_PID" >> "$PIDS_FILE"
 echo -e "${GREEN}Core PID: $CORE_PID${NC}"
-wait_for_service "http://localhost:8081/actuator/health" "Core Service"
+wait_for_http "http://localhost:8081/actuator/health" "Core Service"
 
 # 5. Start Gateway Service
 echo -e "\n${BLUE}🌐 Khởi động Gateway Service (port 8080)...${NC}"
@@ -133,7 +156,7 @@ cd "$PROJECT_ROOT/kiteclass/kiteclass-gateway"
 GATEWAY_PID=$!
 echo "$GATEWAY_PID" >> "$PIDS_FILE"
 echo -e "${GREEN}Gateway PID: $GATEWAY_PID${NC}"
-wait_for_service "http://localhost:8080/actuator/health" "Gateway Service"
+wait_for_http "http://localhost:8080/actuator/health" "Gateway Service"
 
 # 6. Setup frontend environment
 echo -e "\n${BLUE}⚛️  Setup Frontend...${NC}"
@@ -163,7 +186,7 @@ pnpm dev > "$LOGS_DIR/frontend.log" 2>&1 &
 FRONTEND_PID=$!
 echo "$FRONTEND_PID" >> "$PIDS_FILE"
 echo -e "${GREEN}Frontend PID: $FRONTEND_PID${NC}"
-wait_for_service "http://localhost:3000" "Frontend"
+wait_for_http "http://localhost:3000" "Frontend"
 
 # 8. Tạo dữ liệu mẫu (optional)
 echo -e "\n${BLUE}📊 Tạo dữ liệu mẫu...${NC}"
