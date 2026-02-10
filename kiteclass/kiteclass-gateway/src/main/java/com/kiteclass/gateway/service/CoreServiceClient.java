@@ -6,6 +6,7 @@ import com.kiteclass.gateway.service.dto.ParentProfileResponse;
 import com.kiteclass.gateway.service.dto.StudentProfileResponse;
 import com.kiteclass.gateway.service.dto.TeacherProfileResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
@@ -56,16 +57,33 @@ import reactor.core.publisher.Mono;
 public class CoreServiceClient {
 
     private final WebClient webClient;
+    private final String internalApiSecret;
 
     /**
      * Constructs CoreServiceClient with WebClient configured for Core service.
      *
      * @param baseUrl Core service base URL from application properties
+     * @param internalApiSecret Secret key for HMAC-SHA256 signature generation (must match Core service)
      */
-    public CoreServiceClient(@Value("${core.service.url:http://localhost:8081}") String baseUrl) {
+    public CoreServiceClient(
+            @Value("${core.service.url:http://localhost:8081}") String baseUrl,
+            @Value("${internal.api.secret:changeme-in-production}") String internalApiSecret) {
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .build();
+        this.internalApiSecret = internalApiSecret;
+    }
+
+    /**
+     * Generates HMAC-SHA256 signature for internal API authentication.
+     *
+     * @return Array containing [signature, timestamp] strings
+     */
+    private String[] generateInternalHeaders() {
+        long timestamp = System.currentTimeMillis() / 1000;
+        String timestampStr = String.valueOf(timestamp);
+        String signature = new HmacUtils("HmacSHA256", internalApiSecret).hmacHex(timestampStr);
+        return new String[]{signature, timestampStr};
     }
 
     /**
@@ -73,18 +91,19 @@ public class CoreServiceClient {
      *
      * <p>Endpoint: GET /internal/students/{id}
      *
-     * @param id              Student ID (matches User.referenceId)
-     * @param internalHeader  Must be "true" for authentication
+     * @param id Student ID (matches User.referenceId)
      * @return Mono of ApiResponse containing StudentProfileResponse
      * @throws WebClientResponseException.NotFound if student not found (404)
-     * @throws WebClientResponseException.Forbidden if header invalid (403)
+     * @throws WebClientResponseException.Forbidden if HMAC signature invalid (403)
      */
-    public Mono<ApiResponse<StudentProfileResponse>> getStudent(Long id, String internalHeader) {
+    public Mono<ApiResponse<StudentProfileResponse>> getStudent(Long id) {
         log.debug("Fetching student profile: id={}", id);
 
+        String[] headers = generateInternalHeaders();
         return webClient.get()
                 .uri("/internal/students/{id}", id)
-                .header("X-Internal-Request", internalHeader)
+                .header("X-Internal-Signature", headers[0])
+                .header("X-Internal-Timestamp", headers[1])
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response -> {
                     log.error("Client error fetching student {}: {}", id, response.statusCode());
@@ -106,18 +125,19 @@ public class CoreServiceClient {
      * <p><b>Note:</b> Teacher module not yet implemented in Core.
      * This method is a placeholder for future implementation.
      *
-     * @param id              Teacher ID (matches User.referenceId)
-     * @param internalHeader  Must be "true" for authentication
+     * @param id Teacher ID (matches User.referenceId)
      * @return Mono of ApiResponse containing TeacherProfileResponse
      * @throws WebClientResponseException.NotFound if teacher not found (404)
-     * @throws WebClientResponseException.Forbidden if header invalid (403)
+     * @throws WebClientResponseException.Forbidden if HMAC signature invalid (403)
      */
-    public Mono<ApiResponse<TeacherProfileResponse>> getTeacher(Long id, String internalHeader) {
+    public Mono<ApiResponse<TeacherProfileResponse>> getTeacher(Long id) {
         log.debug("Fetching teacher profile: id={}", id);
 
+        String[] headers = generateInternalHeaders();
         return webClient.get()
                 .uri("/internal/teachers/{id}", id)
-                .header("X-Internal-Request", internalHeader)
+                .header("X-Internal-Signature", headers[0])
+                .header("X-Internal-Timestamp", headers[1])
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<ApiResponse<TeacherProfileResponse>>() {});
     }
@@ -130,18 +150,19 @@ public class CoreServiceClient {
      * <p><b>Note:</b> Parent module not yet implemented in Core.
      * This method is a placeholder for future implementation.
      *
-     * @param id              Parent ID (matches User.referenceId)
-     * @param internalHeader  Must be "true" for authentication
+     * @param id Parent ID (matches User.referenceId)
      * @return Mono of ApiResponse containing ParentProfileResponse
      * @throws WebClientResponseException.NotFound if parent not found (404)
-     * @throws WebClientResponseException.Forbidden if header invalid (403)
+     * @throws WebClientResponseException.Forbidden if HMAC signature invalid (403)
      */
-    public Mono<ApiResponse<ParentProfileResponse>> getParent(Long id, String internalHeader) {
+    public Mono<ApiResponse<ParentProfileResponse>> getParent(Long id) {
         log.debug("Fetching parent profile: id={}", id);
 
+        String[] headers = generateInternalHeaders();
         return webClient.get()
                 .uri("/internal/parents/{id}", id)
-                .header("X-Internal-Request", internalHeader)
+                .header("X-Internal-Signature", headers[0])
+                .header("X-Internal-Timestamp", headers[1])
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<ApiResponse<ParentProfileResponse>>() {});
     }
@@ -158,22 +179,21 @@ public class CoreServiceClient {
      *   <li>Gateway updates User.referenceId with returned Student.id</li>
      * </ol>
      *
-     * @param request         Student creation request data
-     * @param internalHeader  Must be "true" for authentication
+     * @param request Student creation request data
      * @return Mono of ApiResponse containing created StudentProfileResponse
      * @throws WebClientResponseException.BadRequest if validation fails (400)
-     * @throws WebClientResponseException.Forbidden if header invalid (403)
+     * @throws WebClientResponseException.Forbidden if HMAC signature invalid (403)
      * @throws WebClientResponseException.Conflict if email already exists (409)
      * @since 1.8.0
      */
-    public Mono<ApiResponse<StudentProfileResponse>> createStudent(
-            CreateStudentInternalRequest request,
-            String internalHeader) {
+    public Mono<ApiResponse<StudentProfileResponse>> createStudent(CreateStudentInternalRequest request) {
         log.debug("Creating student in Core: email={}", request.email());
 
+        String[] headers = generateInternalHeaders();
         return webClient.post()
                 .uri("/internal/students")
-                .header("X-Internal-Request", internalHeader)
+                .header("X-Internal-Signature", headers[0])
+                .header("X-Internal-Timestamp", headers[1])
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response -> {
@@ -196,19 +216,20 @@ public class CoreServiceClient {
      *
      * <p>Called when a Gateway user account is deleted. Performs soft delete.
      *
-     * @param id              Student ID to delete
-     * @param internalHeader  Must be "true" for authentication
+     * @param id Student ID to delete
      * @return Mono<Void> - completes when deletion successful
      * @throws WebClientResponseException.NotFound if student not found (404)
-     * @throws WebClientResponseException.Forbidden if header invalid (403)
+     * @throws WebClientResponseException.Forbidden if HMAC signature invalid (403)
      * @since 1.8.0
      */
-    public Mono<Void> deleteStudent(Long id, String internalHeader) {
+    public Mono<Void> deleteStudent(Long id) {
         log.debug("Deleting student in Core: id={}", id);
 
+        String[] headers = generateInternalHeaders();
         return webClient.delete()
                 .uri("/internal/students/{id}", id)
-                .header("X-Internal-Request", internalHeader)
+                .header("X-Internal-Signature", headers[0])
+                .header("X-Internal-Timestamp", headers[1])
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response -> {
                     log.error("Client error deleting student {}: {}", id, response.statusCode());

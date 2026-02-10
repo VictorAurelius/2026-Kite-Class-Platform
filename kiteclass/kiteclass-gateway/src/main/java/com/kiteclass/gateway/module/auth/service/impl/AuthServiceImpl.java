@@ -78,7 +78,6 @@ public class AuthServiceImpl implements AuthService {
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final long LOCK_DURATION_MINUTES = 15;
-    private static final String INTERNAL_HEADER = "true";
 
     // Password policy pattern: min 8 chars, uppercase, lowercase, number, special char
     private static final String PASSWORD_PATTERN =
@@ -539,7 +538,7 @@ public class AuthServiceImpl implements AuthService {
                                 log.debug("Calling Core service to create Student for email: {}",
                                         request.email());
 
-                                return coreServiceClient.createStudent(coreRequest, INTERNAL_HEADER)
+                                return coreServiceClient.createStudent(coreRequest)
                                         .flatMap(response -> {
                                             StudentProfileResponse profile = response.getData();
                                             log.info("Student created in Core: id={}, email={}",

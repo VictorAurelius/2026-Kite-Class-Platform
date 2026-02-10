@@ -72,7 +72,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient, never()).getStudent(anyLong(), anyString());
+            verify(coreServiceClient, never()).getStudent(anyLong());
         }
 
         @Test
@@ -83,7 +83,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient, never()).getStudent(anyLong(), anyString());
+            verify(coreServiceClient, never()).getStudent(anyLong());
         }
     }
 
@@ -95,7 +95,7 @@ class ProfileFetcherTest {
         @DisplayName("Should fetch student profile successfully")
         void shouldFetchStudentProfileSuccessfully() {
             // given
-            when(coreServiceClient.getStudent(1L, "true"))
+            when(coreServiceClient.getStudent(1L))
                     .thenReturn(reactor.core.publisher.Mono.just(studentApiResponse));
 
             // when
@@ -126,7 +126,7 @@ class ProfileFetcherTest {
                     "ACTIVE"
             );
             var teacherApiResponse = ApiResponse.success(teacherProfile);
-            when(coreServiceClient.getTeacher(1L, "true"))
+            when(coreServiceClient.getTeacher(1L))
                     .thenReturn(reactor.core.publisher.Mono.just(teacherApiResponse));
 
             // when
@@ -151,7 +151,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient, never()).getParent(anyLong(), anyString());
+            verify(coreServiceClient, never()).getParent(anyLong());
         }
     }
 
@@ -167,7 +167,7 @@ class ProfileFetcherTest {
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("ReferenceId is required for userType STUDENT");
 
-            verify(coreServiceClient, never()).getStudent(anyLong(), anyString());
+            verify(coreServiceClient, never()).getStudent(anyLong());
         }
 
         @Test
@@ -207,7 +207,7 @@ class ProfileFetcherTest {
         @DisplayName("Should return null when profile not found (404)")
         void shouldReturnNullWhenProfileNotFound() {
             // given
-            when(coreServiceClient.getStudent(999L, "true"))
+            when(coreServiceClient.getStudent(999L))
                     .thenThrow(new FeignException.NotFound(
                             "Not found",
                             createDummyRequest(),
@@ -227,7 +227,7 @@ class ProfileFetcherTest {
         @DisplayName("Should return null when Core service unavailable (503)")
         void shouldReturnNullWhenCoreServiceUnavailable() {
             // given
-            when(coreServiceClient.getStudent(1L, "true"))
+            when(coreServiceClient.getStudent(1L))
                     .thenThrow(new FeignException.ServiceUnavailable(
                             "Service unavailable",
                             createDummyRequest(),
@@ -247,7 +247,7 @@ class ProfileFetcherTest {
         @DisplayName("Should return null when Core service has internal error (500)")
         void shouldReturnNullWhenCoreServiceHasInternalError() {
             // given
-            when(coreServiceClient.getStudent(1L, "true"))
+            when(coreServiceClient.getStudent(1L))
                     .thenThrow(new FeignException.InternalServerError(
                             "Internal server error",
                             createDummyRequest(),
@@ -267,7 +267,7 @@ class ProfileFetcherTest {
         @DisplayName("Should return null for other FeignException (e.g., BadRequest 400)")
         void shouldReturnNullForOtherFeignException() {
             // given
-            when(coreServiceClient.getStudent(1L, "true"))
+            when(coreServiceClient.getStudent(1L))
                     .thenThrow(new FeignException.BadRequest(
                             "Bad request",
                             createDummyRequest(),
