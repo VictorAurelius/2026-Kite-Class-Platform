@@ -8,8 +8,8 @@ spring:
   # No manual r2dbc.url configuration needed
 
   flyway:
-    enabled: true  # Enable Flyway to run migrations on Testcontainer
-    # Flyway datasource auto-configured by @ServiceConnection from PostgreSQL Testcontainer
+    enabled: true  # Enable Flyway migrations in tests
+    # TestContainers @ServiceConnection provides datasource, not FlywayConfig
 
   # Disable Redis connection attempts in tests
   data:
