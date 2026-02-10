@@ -43,8 +43,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ProfileFetcher {
 
-    private static final String INTERNAL_HEADER = "true";
-
     private final CoreServiceClient coreServiceClient;
 
     /**
@@ -115,7 +113,7 @@ public class ProfileFetcher {
     private StudentProfileResponse fetchStudentProfile(Long studentId) {
         log.debug("Fetching student profile: studentId={}", studentId);
         ApiResponse<StudentProfileResponse> response =
-                coreServiceClient.getStudent(studentId, INTERNAL_HEADER).block();
+                coreServiceClient.getStudent(studentId).block();
         return response != null ? response.getData() : null;
     }
 
@@ -128,7 +126,7 @@ public class ProfileFetcher {
     private TeacherProfileResponse fetchTeacherProfile(Long teacherId) {
         log.debug("Fetching teacher profile: teacherId={}", teacherId);
         ApiResponse<TeacherProfileResponse> response =
-                coreServiceClient.getTeacher(teacherId, INTERNAL_HEADER).block();
+                coreServiceClient.getTeacher(teacherId).block();
         return response != null ? response.getData() : null;
     }
 
@@ -146,7 +144,7 @@ public class ProfileFetcher {
         log.warn("Parent module not yet implemented in Core service");
         // Will be enabled when Parent module is implemented
         // ApiResponse<ParentProfileResponse> response =
-        //         coreServiceClient.getParent(parentId, INTERNAL_HEADER);
+        //         coreServiceClient.getParent(parentId);
         // return response.getData();
         return null;
     }
