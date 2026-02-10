@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: kiteclass-postgres
+    environment:
+      POSTGRES_DB: kiteclass
+      POSTGRES_USER: kiteclass
+      POSTGRES_PASSWORD: kiteclass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kiteclass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kiteclass-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: kiteclass-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kiteclass-network
+
+  # Core Service
+  core:
+    build:
+      context: ./kiteclass/kiteclass-core
+      dockerfile: Dockerfile
+    container_name: kiteclass-core
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass
+      SPRING_DATASOURCE_USERNAME: kiteclass
+      SPRING_DATASOURCE_PASSWORD: kiteclass123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - kiteclass-network
+    restart: unless-stopped
+
+  # Gateway Service
+  gateway:
+    build:
+      context: ./kiteclass/kiteclass-gateway
+      dockerfile: Dockerfile
+    container_name: kiteclass-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass
+      SPRING_DATASOURCE_USERNAME: kiteclass
+      SPRING_DATASOURCE_PASSWORD: kiteclass123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      KITECLASS_CORE_URL: http://core:8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - kiteclass-network
+    restart: unless-stopped
+
+  # Frontend (Development mode with hot reload)
+  frontend:
+    build:
+      context: ./kiteclass/kiteclass-frontend
+      dockerfile: Dockerfile.dev
+    container_name: kiteclass-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    volumes:
+      # Mount source code for hot reload
+      - ./kiteclass/kiteclass-frontend/src:/app/src
+      - ./kiteclass/kiteclass-frontend/public:/app/public
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - kiteclass-network
+    restart: unless-stopped
+
+networks:
+  kiteclass-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
