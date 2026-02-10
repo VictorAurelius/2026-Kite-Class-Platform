@@ -109,7 +109,7 @@ class ProfileFetcherTest {
             assertThat(profile.name()).isEqualTo("John Doe");
             assertThat(profile.email()).isEqualTo("john@example.com");
 
-            verify(coreServiceClient).getStudent(1L, "true");
+            verify(coreServiceClient).getStudent(1L);
         }
 
         @Test
@@ -140,7 +140,7 @@ class ProfileFetcherTest {
             assertThat(profile.name()).isEqualTo("Jane Smith");
             assertThat(profile.email()).isEqualTo("jane@example.com");
 
-            verify(coreServiceClient).getTeacher(1L, "true");
+            verify(coreServiceClient).getTeacher(1L);
         }
 
         @Test
@@ -220,7 +220,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient).getStudent(999L, "true");
+            verify(coreServiceClient).getStudent(999L);
         }
 
         @Test
@@ -240,7 +240,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient).getStudent(1L, "true");
+            verify(coreServiceClient).getStudent(1L);
         }
 
         @Test
@@ -260,7 +260,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient).getStudent(1L, "true");
+            verify(coreServiceClient).getStudent(1L);
         }
 
         @Test
@@ -280,7 +280,7 @@ class ProfileFetcherTest {
 
             // then
             assertThat(result).isNull();
-            verify(coreServiceClient).getStudent(1L, "true");
+            verify(coreServiceClient).getStudent(1L);
         }
     }
 }
