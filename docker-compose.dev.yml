@@ -37,6 +37,26 @@ services:
     networks:
       - kiteclass-network
 
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kiteclass-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: kiteclass
+      RABBITMQ_DEFAULT_PASS: kiteclass123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kiteclass-network
+
   # Core Service
   core:
     build:
@@ -52,10 +72,16 @@ services:
       SPRING_DATASOURCE_PASSWORD: kiteclass123
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: kiteclass
+      SPRING_RABBITMQ_PASSWORD: kiteclass123
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
@@ -130,3 +156,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  rabbitmq_data:
