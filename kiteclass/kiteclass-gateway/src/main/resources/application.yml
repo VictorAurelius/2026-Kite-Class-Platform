@@ -23,6 +23,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    validate-on-migrate: false  # Core service has V2-V5, Gateway has V7-V10
+    baseline-version: 6         # Start Gateway migrations from V7
+    baseline-on-migrate: true   # Allow migration on non-empty database
 
   # Redis
   data:
