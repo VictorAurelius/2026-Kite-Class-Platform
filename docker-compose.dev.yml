@@ -6,7 +6,7 @@ services:
     image: postgres:16-alpine
     container_name: kiteclass-postgres
     environment:
-      POSTGRES_DB: kiteclass
+      POSTGRES_DB: kiteclass_dev
       POSTGRES_USER: kiteclass
       POSTGRES_PASSWORD: kiteclass123
     ports:
@@ -47,7 +47,7 @@ services:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass_dev
       SPRING_DATASOURCE_USERNAME: kiteclass
       SPRING_DATASOURCE_PASSWORD: kiteclass123
       SPRING_DATA_REDIS_HOST: redis
@@ -77,7 +77,7 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kiteclass_dev
       SPRING_DATASOURCE_USERNAME: kiteclass
       SPRING_DATASOURCE_PASSWORD: kiteclass123
       SPRING_DATA_REDIS_HOST: redis

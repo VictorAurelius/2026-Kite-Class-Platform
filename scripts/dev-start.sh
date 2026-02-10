@@ -120,7 +120,7 @@ if docker ps -a | grep -q kiteclass-postgres; then
 else
     docker run -d \
         --name kiteclass-postgres \
-        -e POSTGRES_DB=kiteclass \
+        -e POSTGRES_DB=kiteclass_dev \
         -e POSTGRES_USER=kiteclass \
         -e POSTGRES_PASSWORD=kiteclass123 \
         -p 5432:5432 \

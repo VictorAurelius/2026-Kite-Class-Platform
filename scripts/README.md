@@ -284,12 +284,12 @@ tail -f .log/frontend.log
 # Connection info
 Host: localhost
 Port: 5432
-Database: kiteclass
+Database: kiteclass_dev
 User: kiteclass
 Password: kiteclass123
 
 # Connect với psql
-docker exec -it kiteclass-postgres psql -U kiteclass -d kiteclass
+docker exec -it kiteclass-postgres psql -U kiteclass -d kiteclass_dev
 
 # Hoặc dùng GUI tools (DBeaver, pgAdmin)
 ```
