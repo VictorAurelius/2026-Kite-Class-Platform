@@ -930,3 +930,47 @@ bây giờ, hãy quay lại master plan phát triển:
 2. cập nhật master plan PR sau khi đã hoàn thành master plan PR RV
 3. master plan PR đã đảm bảo tiêu chí FE sẽ phát triển song song với feature backend chưa? tức là tôi muốn có FE cho mỗi modules/feature backend được phát triển đề test trực quan => cập nhật
 4. master plan PR đã đảm bảo tham chiếu đế chất lượng code, test, kiến trúc theo chuẩn skill hiện tại chưa => cập nhật
+
+bây giờ action ưu tiên là PR 3. đúng không?
+
+check lại skill workflow 1 lần nữa trước khi implemnet PR
+
+  ❌ AI CANNOT:
+  - Push to remote (git push)
+  - Merge branches to remote
+=> sau khi cài GitHub CLI thì được nhé => cập nhật skill
+
+sao vẫn chưa tạo branch mới khi implement PR?
+
+bạn chạy test chưa vậy? có vẻ cần CI cho kiteclass-frontend?
+
+làm sao để tôi test với localhost:3000
+
+đương nhiên tôi sẽ không tự chạy cả quy trình này rồi, hãy tạo 1 file script để thực hiện quy trình test, lưu ý: chạy trong wsl có được không?
+
+The command 'docker' could not be found in this WSL 2 distro.
+We recommend to activate the WSL integration in Docker Desktop settings.
+
+hãy kích hoạt nó trong môi trường WSL này, tôi đã cài docker desktop rồi 
+
+sao ko bắt đc image postgre đã khởi động
+
+sao ko build luôn các service như core service thành image thay vì đợi khởi động
+
+cấu trúc file hiện tại nên refactor không?
+
+đã import dữ liệu mẫu chưa? cập nhật vào readme
+
+hiện tại chưa sign up được nên không sign in được
+
+trong business-logic có đề cấp kiteclass không block register đối với guest mà,
+
+khi build docker thì nên nhúng 1 record admin luôn
+
+tốt nhất là nên xóa service đã khởi động và fix sau đó build lại, tránh fix trên images đã build nhé
+
+nhưng mà testcase không cover bug này sao?
+
+có thể bổ sung vào testcase không? push lên CI để check
+
+commit nốt các file đang change và push để CI xem CI pass chưa?
