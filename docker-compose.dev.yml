@@ -121,6 +121,8 @@ services:
       # Core Service URL
       KITECLASS_CORE_URL: http://core:8081
       CORE_SERVICE_URL: http://core:8081
+      # Disable mail health check in development (no Gmail configured)
+      MANAGEMENT_HEALTH_MAIL_ENABLED: false
     depends_on:
       postgres:
         condition: service_healthy
