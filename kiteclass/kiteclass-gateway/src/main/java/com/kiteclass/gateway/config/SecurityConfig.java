@@ -35,8 +35,9 @@ import reactor.core.publisher.Mono;
  * @since 1.0.0
  */
 @Configuration
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
+// TEMPORARY: Disable Spring Security entirely for CORS testing
+// @EnableWebFluxSecurity
+// @EnableReactiveMethodSecurity
 @RequiredArgsConstructor
 @Profile("!test")
 public class SecurityConfig {
@@ -62,8 +63,9 @@ public class SecurityConfig {
      * @param http ServerHttpSecurity builder
      * @return configured SecurityWebFilterChain
      */
-    @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+    // TEMPORARY: Disable entire security chain for CORS testing
+    // @Bean
+    public SecurityWebFilterChain securityWebFilterChain_DISABLED(ServerHttpSecurity http) {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {
@@ -90,26 +92,9 @@ public class SecurityConfig {
                 )
 
                 .authorizeExchange(auth -> auth
-                        // Public endpoints
-                        .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                        .pathMatchers("/actuator/health/**").permitAll()
-                        .pathMatchers("/api/v1/auth/register").permitAll()
-                        .pathMatchers("/api/v1/auth/register/student").permitAll()
-                        .pathMatchers("/api/v1/auth/login").permitAll()
-                        .pathMatchers("/api/v1/auth/refresh").permitAll()
-                        .pathMatchers("/api/v1/auth/logout").permitAll()
-                        .pathMatchers("/api/v1/auth/forgot-password").permitAll()
-                        .pathMatchers("/api/v1/auth/reset-password").permitAll()
-                        .pathMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
-
-                        // User management - requires ADMIN or OWNER role
-                        .pathMatchers(HttpMethod.GET, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER", "STAFF")
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
-                        .pathMatchers(HttpMethod.PUT, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
-                        .pathMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("OWNER")
-
-                        // All other requests require authentication
-                        .anyExchange().authenticated()
+                        // TEMPORARY: Allow ALL requests without authentication for CORS testing
+                        // TODO: Restore proper authorization rules after fixing CORS
+                        .anyExchange().permitAll()
                 )
 
                 .build();
