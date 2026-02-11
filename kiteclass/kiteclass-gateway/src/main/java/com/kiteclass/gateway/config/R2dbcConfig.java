@@ -1,7 +1,12 @@
 package com.kiteclass.gateway.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
+import org.springframework.r2dbc.connection.R2dbcTransactionManager;
+import org.springframework.transaction.ReactiveTransactionManager;
+import io.r2dbc.spi.ConnectionFactory;
 
 /**
  * R2DBC configuration for reactive database access.
@@ -10,6 +15,7 @@ import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
  * <ul>
  *   <li>R2DBC auditing for createdAt/updatedAt fields</li>
  *   <li>Repositories are auto-detected by Spring Boot</li>
+ *   <li>R2DBC transaction manager marked as @Primary (FlywayDataSource creates another TX manager)</li>
  * </ul>
  *
  * <p>Note: @EnableR2dbcRepositories is not needed - Spring Boot auto-configuration
@@ -21,6 +27,20 @@ import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
 @Configuration
 @EnableR2dbcAuditing
 public class R2dbcConfig {
-    // R2DBC transaction manager is auto-configured by Spring Boot
-    // TestContainersConfiguration provides @Primary transaction manager for tests
+
+    /**
+     * R2DBC Transaction Manager marked as @Primary.
+     *
+     * <p>This is required because FlywayConfig creates a JDBC DataSource which triggers
+     * auto-configuration of a DataSourceTransactionManager. We need to mark R2DBC's
+     * transaction manager as @Primary so Spring knows which one to use by default.
+     *
+     * @param connectionFactory R2DBC connection factory
+     * @return ReactiveTransactionManager
+     */
+    @Bean
+    @Primary
+    public ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
+        return new R2dbcTransactionManager(connectionFactory);
+    }
 }
