@@ -3,6 +3,7 @@ package com.kiteclass.gateway.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
 import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
@@ -21,11 +22,15 @@ import io.r2dbc.spi.ConnectionFactory;
  * <p>Note: @EnableR2dbcRepositories is not needed - Spring Boot auto-configuration
  * handles repository scanning automatically.
  *
+ * <p>This configuration is only active in non-test profiles. For tests,
+ * {@link TestContainersConfiguration} provides the transaction manager.
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
 @Configuration
 @EnableR2dbcAuditing
+@Profile("!test")
 public class R2dbcConfig {
 
     /**
