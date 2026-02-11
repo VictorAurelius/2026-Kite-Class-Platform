@@ -30,7 +30,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
      * <ul>
      *   <li>/actuator/** - Health checks, metrics (no tenant context needed)</li>
      *   <li>/api/v1/auth/** - Authentication endpoints (tenant determined after auth)</li>
-     *   <li>/internal/** - Internal service-to-service calls (use X-Internal-Request header)</li>
+     * </ul>
+     *
+     * <p>Included paths:
+     * <ul>
+     *   <li>/api/** - Public API endpoints (tenant from JWT or header)</li>
+     *   <li>/internal/** - Internal service-to-service calls (tenant from X-Tenant-Id header)</li>
      * </ul>
      *
      * @param registry the interceptor registry
@@ -40,11 +45,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // Only register if tenantFilterInterceptor is available (requires EntityManager)
         if (tenantFilterInterceptor != null) {
             registry.addInterceptor(tenantFilterInterceptor)
-                .addPathPatterns("/api/**")
+                .addPathPatterns("/api/**", "/internal/**")
                 .excludePathPatterns(
                     "/actuator/**",
-                    "/api/v1/auth/**",
-                    "/internal/**"
+                    "/api/v1/auth/**"
                 );
         }
     }
