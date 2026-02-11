@@ -186,7 +186,9 @@ public class CoreServiceClient {
      * @throws WebClientResponseException.Conflict if email already exists (409)
      * @since 1.8.0
      */
-    public Mono<ApiResponse<StudentProfileResponse>> createStudent(CreateStudentInternalRequest request, String tenantId) {
+    public Mono<ApiResponse<StudentProfileResponse>> createStudent(
+            CreateStudentInternalRequest request,
+            String tenantId) {
         log.debug("Creating student in Core: email={}, tenantId={}", request.email(), tenantId);
 
         String[] headers = generateInternalHeaders();
