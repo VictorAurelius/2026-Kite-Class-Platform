@@ -186,14 +186,15 @@ public class CoreServiceClient {
      * @throws WebClientResponseException.Conflict if email already exists (409)
      * @since 1.8.0
      */
-    public Mono<ApiResponse<StudentProfileResponse>> createStudent(CreateStudentInternalRequest request) {
-        log.debug("Creating student in Core: email={}", request.email());
+    public Mono<ApiResponse<StudentProfileResponse>> createStudent(CreateStudentInternalRequest request, String tenantId) {
+        log.debug("Creating student in Core: email={}, tenantId={}", request.email(), tenantId);
 
         String[] headers = generateInternalHeaders();
         return webClient.post()
                 .uri("/internal/students")
                 .header("X-Internal-Signature", headers[0])
                 .header("X-Internal-Timestamp", headers[1])
+                .header("X-Tenant-Id", tenantId)  // Forward tenant ID to Core
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, response -> {
