@@ -2,6 +2,7 @@ package com.kiteclass.gateway.config;
 
 import com.kiteclass.gateway.security.SecurityContextRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -12,8 +13,8 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
 /**
@@ -42,6 +43,9 @@ public class SecurityConfig {
 
     private final SecurityContextRepository securityContextRepository;
 
+    @Autowired(required = false)
+    private CorsConfigurationSource corsConfigurationSource;
+
     /**
      * Password encoder using BCrypt.
      *
@@ -62,7 +66,11 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                .cors(cors -> {
+                    if (corsConfigurationSource != null) {
+                        cors.configurationSource(corsConfigurationSource);
+                    }
+                })
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
 
