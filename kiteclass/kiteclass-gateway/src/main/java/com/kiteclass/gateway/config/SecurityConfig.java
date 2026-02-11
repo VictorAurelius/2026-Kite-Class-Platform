@@ -4,6 +4,7 @@ import com.kiteclass.gateway.security.SecurityContextRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
@@ -26,6 +27,8 @@ import reactor.core.publisher.Mono;
  *   <li>Password encoder</li>
  * </ul>
  *
+ * <p>This configuration is only active in non-test profiles. For tests, {@link TestSecurityConfig} is used.
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
@@ -33,6 +36,7 @@ import reactor.core.publisher.Mono;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @RequiredArgsConstructor
+@Profile("!test")
 public class SecurityConfig {
 
     private final SecurityContextRepository securityContextRepository;
