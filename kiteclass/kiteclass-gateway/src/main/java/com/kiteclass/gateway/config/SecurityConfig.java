@@ -14,7 +14,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
 /**
@@ -44,9 +43,6 @@ public class SecurityConfig {
 
     private final SecurityContextRepository securityContextRepository;
 
-    @Autowired(required = false)
-    private CorsConfigurationSource corsConfigurationSource;
-
     /**
      * Password encoder using BCrypt.
      *
@@ -68,11 +64,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain_DISABLED(ServerHttpSecurity http) {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {
-                    if (corsConfigurationSource != null) {
-                        cors.configurationSource(corsConfigurationSource);
-                    }
-                })
+                // CORS handled by Nginx, no Spring CORS config needed
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
 
