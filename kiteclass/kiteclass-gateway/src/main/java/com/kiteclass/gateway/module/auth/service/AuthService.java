@@ -91,8 +91,9 @@ public interface AuthService {
      * </ol>
      *
      * @param request student registration request
+     * @param tenantId tenant ID from X-Tenant-Id header
      * @return registration response with tokens
      * @since 1.8.0
      */
-    Mono<RegisterResponse> registerStudent(RegisterStudentRequest request);
+    Mono<RegisterResponse> registerStudent(RegisterStudentRequest request, String tenantId);
 }

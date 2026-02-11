@@ -488,8 +488,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public Mono<RegisterResponse> registerStudent(RegisterStudentRequest request) {
-        log.info("Student registration request for email: {}", request.email());
+    public Mono<RegisterResponse> registerStudent(RegisterStudentRequest request, String tenantId) {
+        log.info("Student registration request for email: {}, tenantId: {}", request.email(), tenantId);
 
         // Step 1: Check if email already exists
         return userRepository.existsByEmailAndDeletedFalse(request.email())
@@ -535,10 +535,10 @@ public class AuthServiceImpl implements AuthService {
                                         null // note
                                 );
 
-                                log.debug("Calling Core service to create Student for email: {}",
-                                        request.email());
+                                log.debug("Calling Core service to create Student for email: {}, tenantId: {}",
+                                        request.email(), tenantId);
 
-                                return coreServiceClient.createStudent(coreRequest)
+                                return coreServiceClient.createStudent(coreRequest, tenantId)
                                         .flatMap(response -> {
                                             StudentProfileResponse profile = response.getData();
                                             log.info("Student created in Core: id={}, email={}",

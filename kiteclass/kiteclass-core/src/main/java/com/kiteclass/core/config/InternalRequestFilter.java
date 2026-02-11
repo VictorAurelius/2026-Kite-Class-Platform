@@ -119,13 +119,19 @@ public class InternalRequestFilter extends OncePerRequestFilter {
      * @return true if signature is valid, false otherwise
      */
     private boolean isValidSignature(String signature, String timestamp) {
+        log.warn("isValidSignature called - signature: {}, timestamp: {}", signature, timestamp);
         if (signature == null || timestamp == null) {
+            log.warn("signature or timestamp is null");
             return false;
         }
 
         // Calculate expected signature: HMAC-SHA256(secret, timestamp)
         String expectedSignature = new HmacUtils("HmacSHA256", internalApiSecret)
                 .hmacHex(timestamp);
+
+        // DEBUG: Log signature comparison (using WARN to ensure visibility)
+        log.warn("HMAC Debug - Secret: {}, Timestamp: {}, Expected: {}, Received: {}",
+                internalApiSecret, timestamp, expectedSignature, signature);
 
         // Use constant-time comparison to prevent timing attacks
         return MessageDigest.isEqual(

@@ -141,9 +141,10 @@ public class AuthController {
                     "Rollback on Core failure."
     )
     public Mono<ResponseEntity<ApiResponse<RegisterResponse>>> registerStudent(
-            @Valid @RequestBody RegisterStudentRequest request) {
+            @Valid @RequestBody RegisterStudentRequest request,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Tenant-Id", required = true) String tenantId) {
 
-        return authService.registerStudent(request)
+        return authService.registerStudent(request, tenantId)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED)
                         .body(ApiResponse.success(response, "Đăng ký tài khoản thành công")));
     }

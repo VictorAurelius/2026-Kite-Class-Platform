@@ -76,6 +76,8 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: kiteclass
       SPRING_RABBITMQ_PASSWORD: kiteclass123
+      # Internal API secret for HMAC authentication
+      INTERNAL_API_SECRET: dev-internal-secret-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
@@ -124,6 +126,8 @@ services:
       # Core Service URL
       KITECLASS_CORE_URL: http://core:8081
       CORE_SERVICE_URL: http://core:8081
+      # Internal API secret for HMAC authentication (must match Core service)
+      INTERNAL_API_SECRET: dev-internal-secret-change-in-production
       # Disable mail health check in development (no Gmail configured)
       MANAGEMENT_HEALTH_MAIL_ENABLED: false
     depends_on:
