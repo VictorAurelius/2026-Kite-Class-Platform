@@ -974,3 +974,7 @@ nhưng mà testcase không cover bug này sao?
 có thể bổ sung vào testcase không? push lên CI để check
 
 commit nốt các file đang change và push để CI xem CI pass chưa?
+
+chưa sign up được
+
+tôi thấy quá tốn thời gian để fix lỗi này, hãy tạo plan và fix triệt để theo đúng best practice
