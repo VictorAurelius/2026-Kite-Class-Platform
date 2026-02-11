@@ -74,8 +74,9 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
 
-                // Use JWT-based security context
-                .securityContextRepository(securityContextRepository)
+                // TEMPORARY: Disable security context repository to allow CORS for auth endpoints
+                // TODO: Re-enable after fixing CORS properly
+                // .securityContextRepository(securityContextRepository)
 
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((exchange, e) -> {
