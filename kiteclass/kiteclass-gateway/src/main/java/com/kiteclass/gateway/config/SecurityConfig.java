@@ -34,9 +34,8 @@ import reactor.core.publisher.Mono;
  * @since 1.0.0
  */
 @Configuration
-// TEMPORARY: Disable Spring Security entirely for CORS testing
-// @EnableWebFluxSecurity
-// @EnableReactiveMethodSecurity
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 @RequiredArgsConstructor
 @Profile("!test")
 public class SecurityConfig {
@@ -59,18 +58,15 @@ public class SecurityConfig {
      * @param http ServerHttpSecurity builder
      * @return configured SecurityWebFilterChain
      */
-    // TEMPORARY: Disable entire security chain for CORS testing
-    // @Bean
-    public SecurityWebFilterChain securityWebFilterChain_DISABLED(ServerHttpSecurity http) {
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(csrf -> csrf.disable())
                 // CORS handled by Nginx, no Spring CORS config needed
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
 
-                // TEMPORARY: Disable security context repository to allow CORS for auth endpoints
-                // TODO: Re-enable after fixing CORS properly
-                // .securityContextRepository(securityContextRepository)
+                // Don't set securityContextRepository globally - it will be applied only to authenticated routes
 
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((exchange, e) -> {
@@ -84,9 +80,20 @@ public class SecurityConfig {
                 )
 
                 .authorizeExchange(auth -> auth
-                        // TEMPORARY: Allow ALL requests without authentication for CORS testing
-                        // TODO: Restore proper authorization rules after fixing CORS
-                        .anyExchange().permitAll()
+                        // Public endpoints - no authentication required
+                        .pathMatchers(HttpMethod.OPTIONS).permitAll()
+                        .pathMatchers("/actuator/health/**").permitAll()
+                        .pathMatchers("/api/v1/auth/**").permitAll()  // All auth endpoints public
+                        .pathMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+
+                        // User management - requires ADMIN or OWNER role
+                        .pathMatchers(HttpMethod.GET, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER", "STAFF")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
+                        .pathMatchers(HttpMethod.PUT, "/api/v1/users/**").hasAnyRole("ADMIN", "OWNER")
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("OWNER")
+
+                        // All other requests require authentication
+                        .anyExchange().authenticated()
                 )
 
                 .build();
