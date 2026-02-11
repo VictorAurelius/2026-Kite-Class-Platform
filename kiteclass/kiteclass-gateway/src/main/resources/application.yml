@@ -90,27 +90,11 @@ spring:
             - AuthenticationFilter
 
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        # Removed DedupeResponseHeader - CORS handled by Nginx now
         - LoggingFilter
         - RateLimitingFilter
 
-      globalcors:
-        add-to-simple-url-handler-mapping: true  # Apply CORS to local (non-Gateway) endpoints
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - "http://localhost:3000"
-              - "${FRONTEND_URL:http://localhost:3000}"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
-            maxAge: 3600
+      # CORS configuration removed - handled by Nginx reverse proxy
 
 server:
   port: 8080

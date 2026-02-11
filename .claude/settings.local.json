@@ -121,7 +121,8 @@
       "Bash(~/.bashrc)",
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
       "Bash(command -v gh:*)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Bash(docker-compose:*)"
     ]
   }
 }
