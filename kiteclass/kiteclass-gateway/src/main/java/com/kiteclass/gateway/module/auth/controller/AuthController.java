@@ -142,7 +142,10 @@ public class AuthController {
     )
     public Mono<ResponseEntity<ApiResponse<RegisterResponse>>> registerStudent(
             @Valid @RequestBody RegisterStudentRequest request,
-            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Tenant-Id", required = true) String tenantId) {
+            @org.springframework.web.bind.annotation.RequestHeader(
+                    value = "X-Tenant-Id",
+                    required = true
+            ) String tenantId) {
 
         return authService.registerStudent(request, tenantId)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED)
