@@ -111,7 +111,8 @@ class InternalStudentControllerTest {
         // When / Then
         mockMvc.perform(get("/internal/students/1")
                         .header("X-Internal-Timestamp", headers[0])
-                        .header("X-Internal-Signature", headers[1]))
+                        .header("X-Internal-Signature", headers[1])
+                        .header("X-Tenant-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1))
@@ -133,6 +134,7 @@ class InternalStudentControllerTest {
         mockMvc.perform(post("/internal/students")
                         .header("X-Internal-Timestamp", headers[0])
                         .header("X-Internal-Signature", headers[1])
+                        .header("X-Tenant-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -160,6 +162,7 @@ class InternalStudentControllerTest {
         mockMvc.perform(post("/internal/students")
                         .header("X-Internal-Timestamp", headers[0])
                         .header("X-Internal-Signature", headers[1])
+                        .header("X-Tenant-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -173,7 +176,8 @@ class InternalStudentControllerTest {
         // When / Then
         mockMvc.perform(delete("/internal/students/1")
                         .header("X-Internal-Timestamp", headers[0])
-                        .header("X-Internal-Signature", headers[1]))
+                        .header("X-Internal-Signature", headers[1])
+                        .header("X-Tenant-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -190,7 +194,8 @@ class InternalStudentControllerTest {
         // When / Then
         mockMvc.perform(get("/internal/students/999")
                         .header("X-Internal-Timestamp", headers[0])
-                        .header("X-Internal-Signature", headers[1]))
+                        .header("X-Internal-Signature", headers[1])
+                        .header("X-Tenant-Id", "11111111-1111-1111-1111-111111111111"))
                 .andExpect(status().isNotFound());
     }
 }
