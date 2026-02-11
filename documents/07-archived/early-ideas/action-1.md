@@ -978,3 +978,11 @@ commit nốt các file đang change và push để CI xem CI pass chưa?
 chưa sign up được
 
 tôi thấy quá tốn thời gian để fix lỗi này, hãy tạo plan và fix triệt để theo đúng best practice
+
+CI của core-service đã pass đâu? chạy lại cả CI của gateway và FE
+
+khởi chạy ở local để tôi test lại
+
+tài khoản ADMIN để login là gì?
+
+vẫn ko login được, mà lỗi thì FE phải hiển thị lên chứ, tôi phải bật console lên để check được lỗi này

@@ -13,7 +13,13 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Security configuration for the Gateway service.
@@ -52,6 +58,56 @@ public class SecurityConfig {
     }
 
     /**
+     * CORS configuration source for allowing frontend origins.
+     *
+     * @return CorsConfigurationSource with allowed origins, methods, and headers
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+
+        // Allow localhost origins for development
+        corsConfig.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:3001"
+        ));
+
+        // Allow all HTTP methods
+        corsConfig.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+        ));
+
+        // Allow common headers
+        corsConfig.setAllowedHeaders(Arrays.asList(
+            "Content-Type",
+            "Authorization",
+            "X-Tenant-Id",
+            "X-Request-Id",
+            "Accept",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+
+        // Expose headers that frontend needs to read
+        corsConfig.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "X-Request-Id"
+        ));
+
+        // Allow credentials (cookies, authorization headers)
+        corsConfig.setAllowCredentials(true);
+
+        // Max age for preflight cache (1 hour)
+        corsConfig.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
+
+        return source;
+    }
+
+    /**
      * Security filter chain configuration.
      *
      * @param http ServerHttpSecurity builder
@@ -61,6 +117,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
 
