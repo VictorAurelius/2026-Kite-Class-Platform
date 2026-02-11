@@ -2,6 +2,7 @@ package com.kiteclass.core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -15,11 +16,14 @@ import org.springframework.security.web.SecurityFilterChain;
  *   <li>All requests require authentication (InternalRequestFilter handles /internal/**)</li>
  * </ul>
  *
+ * <p>This configuration is only active in non-test profiles. For tests, {@link TestSecurityConfig} is used.
+ *
  * @author KiteClass Team
  * @since 2.11.0
  */
 @Configuration
 @EnableWebSecurity
+@Profile("!test")
 public class SecurityConfig {
 
     /**
