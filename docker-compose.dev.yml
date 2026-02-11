@@ -147,6 +147,21 @@ services:
       - kiteclass-network
     restart: unless-stopped
 
+  # Nginx Reverse Proxy (CORS workaround)
+  nginx:
+    image: nginx:alpine
+    container_name: kiteclass-nginx
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - kiteclass-network
+    restart: unless-stopped
+
   # Frontend (Development mode with hot reload)
   frontend:
     build:
@@ -156,7 +171,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_API_URL: http://localhost:8090
     volumes:
       # Mount source code for hot reload
       - ./kiteclass/kiteclass-frontend/src:/app/src
