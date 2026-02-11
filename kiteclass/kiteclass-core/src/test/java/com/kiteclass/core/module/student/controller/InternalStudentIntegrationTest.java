@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.student.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
@@ -94,7 +95,7 @@ class InternalStudentIntegrationTest {
                 email,
                 "0912345678",
                 LocalDate.of(2010, 1, 15),
-                "MALE",
+                Gender.MALE,
                 "Test Address",
                 null
         );
@@ -127,7 +128,7 @@ class InternalStudentIntegrationTest {
                 "integration@test.com",
                 "0912345678",
                 LocalDate.of(2010, 1, 15),
-                "MALE",
+                Gender.MALE,
                 "Test Address",
                 null
         );
@@ -193,7 +194,7 @@ class InternalStudentIntegrationTest {
                 sharedEmail,
                 "0912345678",
                 LocalDate.of(2010, 1, 15),
-                "MALE",
+                Gender.MALE,
                 "Test Address",
                 null
         );
@@ -247,7 +248,7 @@ class InternalStudentIntegrationTest {
                 "notenant@test.com",
                 "0912345678",
                 LocalDate.of(2010, 1, 15),
-                "MALE",
+                Gender.MALE,
                 "Test Address",
                 null
         );
@@ -278,7 +279,7 @@ class InternalStudentIntegrationTest {
                 "invalid@test.com",
                 "0912345678",
                 LocalDate.of(2010, 1, 15),
-                "MALE",
+                Gender.MALE,
                 "Test Address",
                 null
         );
