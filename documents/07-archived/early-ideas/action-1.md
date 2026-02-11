@@ -988,3 +988,4 @@ tài khoản ADMIN để login là gì?
 vẫn ko login được, mà lỗi thì FE phải hiển thị lên chứ, tôi phải bật console lên để check được lỗi này
 
 bạn call test thử xem
+setup Nginx
