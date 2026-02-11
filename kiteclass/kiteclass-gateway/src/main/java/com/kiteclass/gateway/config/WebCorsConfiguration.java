@@ -30,17 +30,19 @@ public class WebCorsConfiguration {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
         // Allow localhost origins
-        corsConfig.setAllowedOriginPatterns(Arrays.asList("http://localhost:*"));
-        corsConfig.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://localhost:3001"
-        ));
+        corsConfig.addAllowedOrigin("http://localhost:3000");
+        corsConfig.addAllowedOrigin("http://localhost:3001");
 
         // Allow all methods
-        corsConfig.setAllowedMethods(Arrays.asList("*"));
+        corsConfig.addAllowedMethod("GET");
+        corsConfig.addAllowedMethod("POST");
+        corsConfig.addAllowedMethod("PUT");
+        corsConfig.addAllowedMethod("DELETE");
+        corsConfig.addAllowedMethod("OPTIONS");
+        corsConfig.addAllowedMethod("PATCH");
 
         // Allow all headers
-        corsConfig.setAllowedHeaders(Arrays.asList("*"));
+        corsConfig.addAllowedHeader("*");
 
         // Expose headers
         corsConfig.setExposedHeaders(Arrays.asList(
