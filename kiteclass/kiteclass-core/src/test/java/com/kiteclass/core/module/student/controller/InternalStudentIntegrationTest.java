@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -161,10 +160,6 @@ class InternalStudentIntegrationTest {
     void createStudent_tenantIsolation_shouldNotSeeOtherTenantData() throws Exception {
         // Given - Create student in Tenant A
         createStudentInTenant("tenantA@test.com", tenantA);
-
-        // When - Try to get from Tenant B
-        long timestamp = System.currentTimeMillis() / 1000;
-        String signature = generateHmacSignature(timestamp);
 
         // Then - Should not see Tenant A's student when querying as Tenant B
         // Note: This test expects a 404 or empty result when tenant isolation works correctly
