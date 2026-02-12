@@ -55,8 +55,8 @@ public class StudentServiceImpl implements StudentService {
     @Override
     @Transactional
     @CacheEvict(value = "students", allEntries = true)
-    public StudentResponse createStudent(CreateStudentRequest request) {
-        log.info("Creating student with email: {}", request.email());
+    public StudentResponse createStudent(CreateStudentRequest request, java.util.UUID tenantId) {
+        log.info("Creating student with email: {}, tenantId: {}", request.email(), tenantId);
 
         // Validate email uniqueness
         if (request.email() != null && studentRepository.existsByEmailAndDeletedFalse(request.email())) {
@@ -71,9 +71,13 @@ public class StudentServiceImpl implements StudentService {
         }
 
         Student student = studentMapper.toEntity(request);
+
+        // CRITICAL: Set instanceId for multi-tenant isolation
+        student.setInstanceId(tenantId);
+
         Student saved = studentRepository.save(student);
 
-        log.info("Created student with ID: {}", saved.getId());
+        log.info("Created student with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
         return studentMapper.toResponse(saved);
     }
 

@@ -96,11 +96,15 @@ public class InternalStudentController {
                description = "Create student profile during Gateway registration flow. " +
                            "Requires X-Internal-Request header.")
     public ResponseEntity<ApiResponse<StudentResponse>> createStudent(
-            @Valid @RequestBody CreateStudentRequest request) {
+            @Valid @RequestBody CreateStudentRequest request,
+            @RequestHeader(value = "X-Tenant-Id", required = true) String tenantIdStr) {
 
-        log.info("Internal API: Create student, email={}", request.email());
+        log.info("Internal API: Create student, email={}, tenantIdStr={}", request.email(), tenantIdStr);
 
-        StudentResponse student = studentService.createStudent(request);
+        java.util.UUID tenantId = java.util.UUID.fromString(tenantIdStr);
+        log.info("Internal API: Parsed tenantId: {}", tenantId);
+
+        StudentResponse student = studentService.createStudent(request, tenantId);
 
         log.info("Internal API: Student created successfully, id={}, email={}",
                 student.id(), student.email());

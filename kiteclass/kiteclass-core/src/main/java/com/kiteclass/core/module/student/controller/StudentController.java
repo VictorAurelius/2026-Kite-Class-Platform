@@ -46,14 +46,17 @@ public class StudentController {
      * Creates a new student.
      *
      * @param request the create request with student details
+     * @param tenantId the tenant ID (instance ID) from X-Tenant-Id header
      * @return ApiResponse with created student data and HTTP 201
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a new student", description = "Creates a new student with the provided information")
-    public ApiResponse<StudentResponse> createStudent(@Valid @RequestBody CreateStudentRequest request) {
-        log.info("REST request to create student: {}", request.name());
-        StudentResponse response = studentService.createStudent(request);
+    public ApiResponse<StudentResponse> createStudent(
+            @Valid @RequestBody CreateStudentRequest request,
+            @RequestHeader(value = "X-Tenant-Id", required = true) java.util.UUID tenantId) {
+        log.info("REST request to create student: {}, tenantId: {}", request.name(), tenantId);
+        StudentResponse response = studentService.createStudent(request, tenantId);
         return ApiResponse.success(response, "Student created successfully");
     }
 
