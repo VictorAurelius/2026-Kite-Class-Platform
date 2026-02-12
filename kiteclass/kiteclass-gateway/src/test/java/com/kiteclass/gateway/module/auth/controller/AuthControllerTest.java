@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link AuthController}.
  */
 @WebFluxTest(AuthController.class)
-@Import({AuthControllerTest.MockConfig.class, com.kiteclass.gateway.module.user.controller.TestSecurityConfig.class})
+@Import({AuthControllerTest.MockConfig.class, com.kiteclass.gateway.config.TestSecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("AuthController Tests")
 class AuthControllerTest {
