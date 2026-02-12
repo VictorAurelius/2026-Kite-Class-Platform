@@ -173,9 +173,9 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8090
     volumes:
-      # Mount source code for hot reload
-      - ./kiteclass/kiteclass-frontend/src:/app/src
-      - ./kiteclass/kiteclass-frontend/public:/app/public
+      # Mount entire project for hot reload (Next.js needs access to all config files)
+      - ./kiteclass/kiteclass-frontend:/app
+      # Exclude node_modules and .next to use container versions
       - /app/node_modules
       - /app/.next
     depends_on:
