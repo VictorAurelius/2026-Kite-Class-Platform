@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Repository interface for Student entity.
@@ -17,7 +18,7 @@ import java.util.Optional;
  * <p>Provides data access methods including:
  * <ul>
  *   <li>Find by ID (excluding soft-deleted records)</li>
- *   <li>Check existence by email or phone</li>
+ *   <li>Check existence by email or phone (tenant-scoped)</li>
  *   <li>Search students with filters (name, email, status)</li>
  *   <li>Count students by status</li>
  * </ul>
@@ -45,12 +46,40 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByEmailAndDeletedFalse(String email);
 
     /**
+     * Finds a student by email and tenant instance (excluding deleted).
+     *
+     * <p>Tenant-scoped lookup for multi-tenant email uniqueness check.
+     * Use this method for validating email uniqueness within a tenant.
+     *
+     * @param email the email to find
+     * @param instanceId the tenant instance ID
+     * @return Optional containing the student if found
+     * @since 2.3.1
+     */
+    Optional<Student> findByEmailAndInstanceIdAndDeletedFalse(String email, UUID instanceId);
+
+    /**
      * Checks if a student with given email exists (excluding deleted).
      *
      * @param email the email to check
      * @return true if email exists
+     * @deprecated Use {@link #existsByEmailAndInstanceIdAndDeletedFalse(String, UUID)} for tenant-scoped check
      */
+    @Deprecated(since = "2.3.1", forRemoval = true)
     boolean existsByEmailAndDeletedFalse(String email);
+
+    /**
+     * Checks if a student with given email exists within tenant instance (excluding deleted).
+     *
+     * <p>Tenant-scoped existence check for multi-tenant email uniqueness.
+     * Replaces global {@link #existsByEmailAndDeletedFalse(String)} check.
+     *
+     * @param email the email to check
+     * @param instanceId the tenant instance ID
+     * @return true if email exists within this tenant
+     * @since 2.3.1
+     */
+    boolean existsByEmailAndInstanceIdAndDeletedFalse(String email, UUID instanceId);
 
     /**
      * Checks if a student with given phone exists (excluding deleted).
