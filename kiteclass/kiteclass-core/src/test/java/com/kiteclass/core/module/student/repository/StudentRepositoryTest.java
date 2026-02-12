@@ -53,15 +53,18 @@ class StudentRepositoryTest extends IntegrationTestBase {
     }
 
     @Test
-    void existsByEmailAndDeletedFalse_shouldReturnTrue_whenEmailExists() {
+    void existsByEmailAndInstanceIdAndDeletedFalse_shouldReturnTrue_whenEmailExists() {
         // Given
         Student student = StudentTestDataBuilder.createDefaultStudent();
         student.setId(null);
         student.setEmail("unique@example.com");
-        studentRepository.save(student);
+        Student saved = studentRepository.save(student);
 
         // When
-        boolean exists = studentRepository.existsByEmailAndDeletedFalse("unique@example.com");
+        boolean exists = studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(
+                "unique@example.com",
+                saved.getInstanceId()
+        );
 
         // Then
         assertThat(exists).isTrue();

@@ -73,18 +73,24 @@ class TeacherRepositoryTest extends IntegrationTestBase {
     }
 
     @Test
-    void existsByEmailAndDeletedFalse_shouldReturnTrue_whenExists() {
+    void existsByEmailAndInstanceIdAndDeletedFalse_shouldReturnTrue_whenExists() {
         // When
-        boolean exists = teacherRepository.existsByEmailAndDeletedFalse("teacher1@example.com");
+        boolean exists = teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(
+                "teacher1@example.com",
+                teacher1.getInstanceId()
+        );
 
         // Then
         assertThat(exists).isTrue();
     }
 
     @Test
-    void existsByEmailAndDeletedFalse_shouldReturnFalse_whenNotExists() {
+    void existsByEmailAndInstanceIdAndDeletedFalse_shouldReturnFalse_whenNotExists() {
         // When
-        boolean exists = teacherRepository.existsByEmailAndDeletedFalse("nonexistent@example.com");
+        boolean exists = teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(
+                "nonexistent@example.com",
+                teacher1.getInstanceId()
+        );
 
         // Then
         assertThat(exists).isFalse();
