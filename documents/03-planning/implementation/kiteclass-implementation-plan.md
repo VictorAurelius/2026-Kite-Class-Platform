@@ -4807,6 +4807,49 @@ Frontend: 3.1 → 3.2 → 3.3 → 3.4 → 3.5 ←──────────�
 
 # FRONTEND SERVICE PRs
 
+## 🎯 Frontend Development Guidelines
+
+### Dashboard Route Structure
+
+**CRITICAL:** When implementing dashboard pages, **ALWAYS create a placeholder `/dashboard` page first** to prevent 404 errors during login redirect.
+
+**Pattern:**
+```
+src/app/(dashboard)/
+├── page.tsx              ← REQUIRED: Dashboard home page (even if empty)
+├── students/
+│   ├── page.tsx          ← Student list
+│   ├── new/page.tsx      ← Create student
+│   └── [id]/
+│       ├── page.tsx      ← Student detail
+│       └── edit/page.tsx ← Edit student
+├── teachers/             ← (Future)
+│   └── page.tsx
+└── courses/              ← (Future)
+    └── page.tsx
+```
+
+**Why?**
+- Login redirect typically goes to `/dashboard`
+- If `/dashboard/page.tsx` doesn't exist → 404 error
+- Users get kicked back to login immediately
+
+**Solution:** Create a simple dashboard page with:
+```tsx
+// src/app/(dashboard)/page.tsx
+export default function DashboardPage() {
+  return (
+    <DashboardLayout>
+      <h1>Dashboard</h1>
+      <p>Quick stats and links to management pages</p>
+      {/* Add quick links to /students, /teachers, etc. */}
+    </DashboardLayout>
+  );
+}
+```
+
+---
+
 ## PR 3.1: Project Setup & Core Infrastructure
 
 **Branch:** feature/frontend  
