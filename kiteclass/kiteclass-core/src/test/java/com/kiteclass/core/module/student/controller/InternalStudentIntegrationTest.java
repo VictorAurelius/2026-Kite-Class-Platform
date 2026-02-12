@@ -185,17 +185,14 @@ class InternalStudentIntegrationTest {
     }
 
     @Test
-    @Disabled("FIXME: V6 migration (composite unique index) may not be applied in test environment yet. " +
-              "Verification needed: Check if Flyway V6__add_multi_tenant_unique_constraints.sql has been executed. " +
-              "Expected behavior: Same email allowed in different tenants. Current: Getting 409 Conflict on second tenant.")
     void createStudent_multipleTenantsWithSameEmail_shouldIsolateData() throws Exception {
         // Given - Create students with same email in different tenants
         String sharedEmail = "shared@test.com";
 
-        CreateStudentRequest request = new CreateStudentRequest(
+        CreateStudentRequest requestTenantA = new CreateStudentRequest(
                 "Shared Name",
                 sharedEmail,
-                "0912345678",
+                "0912345678",  // Different phone for Tenant A
                 LocalDate.of(2010, 1, 15),
                 Gender.MALE,
                 "Test Address",
@@ -211,7 +208,7 @@ class InternalStudentIntegrationTest {
                         .header("X-Internal-Signature", signature1)
                         .header("X-Tenant-Id", tenantA.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(requestTenantA)))
                 .andExpect(status().isCreated());
 
         // Wait 1 second to ensure different timestamp
@@ -220,13 +217,24 @@ class InternalStudentIntegrationTest {
         long timestamp2 = System.currentTimeMillis() / 1000;
         String signature2 = generateHmacSignature(timestamp2);
 
+        // Create request for Tenant B with SAME email but DIFFERENT phone
+        CreateStudentRequest requestTenantB = new CreateStudentRequest(
+                "Shared Name",
+                sharedEmail,  // SAME email as Tenant A
+                "0987654321",  // DIFFERENT phone from Tenant A
+                LocalDate.of(2010, 1, 15),
+                Gender.MALE,
+                "Test Address",
+                null
+        );
+
         // When - Create same email in Tenant B
         mockMvc.perform(post("/internal/students")
                         .header("X-Internal-Timestamp", String.valueOf(timestamp2))
                         .header("X-Internal-Signature", signature2)
                         .header("X-Tenant-Id", tenantB.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(requestTenantB)))
                 .andExpect(status().isCreated());
 
         // Then - Both students should exist with different instanceIds
