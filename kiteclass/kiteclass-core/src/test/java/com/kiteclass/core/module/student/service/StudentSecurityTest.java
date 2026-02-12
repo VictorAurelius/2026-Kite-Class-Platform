@@ -97,7 +97,7 @@ class StudentSecurityTest {
         CreateStudentRequest request = new CreateStudentRequest(name, email, "0901234567", LocalDate.of(2000, 1, 1), null, null, null);
 
         // When: Create student
-        StudentResponse response = studentService.createStudent(request);
+        StudentResponse response = studentService.createStudent(request, tenantId);
 
         // Then: Should be saved safely with special characters preserved
         assertThat(response.name()).isEqualTo("O'Brien");
@@ -179,7 +179,7 @@ class StudentSecurityTest {
         CreateStudentRequest request = new CreateStudentRequest(xssPayload, "xss@example.com", "0901234570", LocalDate.of(2000, 1, 1), null, null, null);
 
         // When: Create student
-        StudentResponse response = studentService.createStudent(request);
+        StudentResponse response = studentService.createStudent(request, tenantId);
 
         // Then: Name stored (will be escaped by frontend/API layer)
         assertThat(response.name()).isNotNull();
@@ -199,7 +199,7 @@ class StudentSecurityTest {
         );
 
         // When: Create student
-        StudentResponse response = studentService.createStudent(request);
+        StudentResponse response = studentService.createStudent(request, tenantId);
 
         // Then: Address stored safely
         assertThat(response.address()).isNotNull();
@@ -236,7 +236,7 @@ class StudentSecurityTest {
         CreateStudentRequest request = new CreateStudentRequest("David", "not-an-email", "0901234573", LocalDate.of(2000, 1, 1), null, null, null);
 
         // When/Then: Should throw validation exception
-        assertThatThrownBy(() -> studentService.createStudent(request))
+        assertThatThrownBy(() -> studentService.createStudent(request, tenantId))
             .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
 
@@ -250,7 +250,7 @@ class StudentSecurityTest {
         CreateStudentRequest request = new CreateStudentRequest("Emma 2", "emma@example.com", "0901234575", LocalDate.of(2000, 1, 1), null, null, null);
 
         // Then: Should throw DuplicateResourceException
-        assertThatThrownBy(() -> studentService.createStudent(request))
+        assertThatThrownBy(() -> studentService.createStudent(request, tenantId))
             .isInstanceOf(DuplicateResourceException.class)
             .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("email"));
     }
@@ -265,7 +265,7 @@ class StudentSecurityTest {
         CreateStudentRequest request = new CreateStudentRequest("Frank 2", "frank2@example.com", "0901234576", LocalDate.of(2000, 1, 1), null, null, null);
 
         // Then: Should throw DuplicateResourceException
-        assertThatThrownBy(() -> studentService.createStudent(request))
+        assertThatThrownBy(() -> studentService.createStudent(request, tenantId))
             .isInstanceOf(DuplicateResourceException.class)
             .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("phone"));
     }
@@ -281,7 +281,7 @@ class StudentSecurityTest {
         );
 
         // When/Then: Should throw validation exception
-        assertThatThrownBy(() -> studentService.createStudent(request))
+        assertThatThrownBy(() -> studentService.createStudent(request, tenantId))
             .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("date"));
     }
 
@@ -352,6 +352,6 @@ class StudentSecurityTest {
      */
     private StudentResponse createStudent(String name, String email, String phone) {
         CreateStudentRequest request = new CreateStudentRequest(name, email, phone, LocalDate.of(2000, 1, 1), null, null, null);
-        return studentService.createStudent(request);
+        return studentService.createStudent(request, tenantId);
     }
 }

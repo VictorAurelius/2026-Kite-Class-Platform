@@ -83,7 +83,7 @@ class StudentServiceTest {
         when(studentMapper.toResponse(any(Student.class))).thenReturn(studentResponse);
 
         // When
-        StudentResponse result = studentService.createStudent(createRequest);
+        StudentResponse result = studentService.createStudent(createRequest, java.util.UUID.randomUUID());
 
         // Then
         assertThat(result).isNotNull();
@@ -99,7 +99,7 @@ class StudentServiceTest {
         when(studentRepository.existsByEmailAndDeletedFalse(anyString())).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> studentService.createStudent(createRequest))
+        assertThatThrownBy(() -> studentService.createStudent(createRequest, java.util.UUID.randomUUID()))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasFieldOrPropertyWithValue("code", "STUDENT_EMAIL_EXISTS");
 
@@ -114,7 +114,7 @@ class StudentServiceTest {
         when(studentRepository.existsByPhoneAndDeletedFalse(anyString())).thenReturn(true);
 
         // When / Then
-        assertThatThrownBy(() -> studentService.createStudent(createRequest))
+        assertThatThrownBy(() -> studentService.createStudent(createRequest, java.util.UUID.randomUUID()))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasFieldOrPropertyWithValue("code", "STUDENT_PHONE_EXISTS");
 

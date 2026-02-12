@@ -127,7 +127,7 @@ class InternalStudentControllerTest {
         CreateStudentRequest request = StudentTestDataBuilder.createDefaultCreateRequest();
         StudentResponse response = new StudentResponse(1L, "Test Student", "test@example.com",
                 null, null, null, null, null, null, null);
-        when(studentService.createStudent(any())).thenReturn(response);
+        when(studentService.createStudent(any(), any())).thenReturn(response);
         String[] headers = generateInternalApiHeaders();
 
         // When / Then
@@ -141,7 +141,7 @@ class InternalStudentControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(1));
 
-        verify(studentService).createStudent(any(CreateStudentRequest.class));
+        verify(studentService).createStudent(any(CreateStudentRequest.class), any());
     }
 
     @Test
