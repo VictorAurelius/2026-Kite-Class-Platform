@@ -1,14 +1,12 @@
 package com.kiteclass.core.common.config;
 
-import com.kiteclass.core.config.EntityPersistenceListener;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
-import jakarta.persistence.EntityManagerFactory;
 import java.util.Optional;
 
 /**
