@@ -1,5 +1,6 @@
 package com.kiteclass.core.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @author KiteClass Team
  * @since 2.2.0
  */
+@Slf4j
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -44,12 +46,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
         // Only register if tenantFilterInterceptor is available (requires EntityManager)
         if (tenantFilterInterceptor != null) {
+            log.warn("✅ WebMvcConfig: Registering TenantFilterInterceptor for /api/** and /internal/**");
             registry.addInterceptor(tenantFilterInterceptor)
                 .addPathPatterns("/api/**", "/internal/**")
                 .excludePathPatterns(
                     "/actuator/**",
                     "/api/v1/auth/**"
                 );
+        } else {
+            log.warn("❌ WebMvcConfig: TenantFilterInterceptor is NULL - not registering interceptor!");
         }
     }
 }
