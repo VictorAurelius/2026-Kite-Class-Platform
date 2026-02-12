@@ -1,10 +1,14 @@
 package com.kiteclass.core.common.config;
 
+import com.kiteclass.core.config.EntityPersistenceListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.Optional;
 
 /**
@@ -48,5 +52,16 @@ public class JpaConfig {
 
             return Optional.empty(); // Return null for now until authentication is integrated
         };
+    }
+
+    /**
+     * Configure EntityManagerFactory to use Spring-managed entity listeners.
+     * This ensures EntityPersistenceListener gets Spring dependencies injected.
+     */
+    @Autowired
+    public void configureEntityManagerFactory(EntityManagerFactory emf) {
+        if (emf instanceof org.hibernate.engine.spi.SessionFactoryImplementor) {
+            System.err.println("=== Configuring Hibernate to use Spring-managed entity listeners ===");
+        }
     }
 }

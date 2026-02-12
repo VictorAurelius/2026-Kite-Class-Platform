@@ -5,6 +5,7 @@ import com.kiteclass.core.common.entity.BaseEntity;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * JPA entity listener that automatically sets instanceId before persist/update.
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see com.kiteclass.core.common.context.TenantContext
  */
 @Slf4j
+@Component
 public class EntityPersistenceListener {
 
     /**
@@ -34,11 +36,21 @@ public class EntityPersistenceListener {
      */
     @PrePersist
     public void setInstanceIdOnPersist(BaseEntity entity) {
+        System.err.println("===== EntityPersistenceListener.setInstanceIdOnPersist called =====");
+        System.err.println("  Entity: " + entity.getClass().getSimpleName());
+        System.err.println("  Current instanceId: " + entity.getInstanceId());
+        System.err.println("  TenantContext.isSet(): " + TenantContext.isSet());
+        if (TenantContext.isSet()) {
+            System.err.println("  TenantContext.getCurrentTenant(): " + TenantContext.getCurrentTenant());
+        }
+
         if (entity.getInstanceId() == null && TenantContext.isSet()) {
             entity.setInstanceId(TenantContext.getCurrentTenant());
-            log.debug("Auto-set instanceId on persist: {} for entity: {}",
-                entity.getInstanceId(), entity.getClass().getSimpleName());
+            System.err.println("SUCCESS: Auto-set instanceId to " + entity.getInstanceId());
+        } else {
+            System.err.println("FAILED: NOT setting instanceId - instanceId=" + entity.getInstanceId() + ", isSet=" + TenantContext.isSet());
         }
+        System.err.println("===== END EntityPersistenceListener =====");
     }
 
     /**
