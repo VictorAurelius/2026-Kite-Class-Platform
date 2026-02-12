@@ -30,10 +30,11 @@ public interface StudentService {
      * Sets initial status to ACTIVE.
      *
      * @param request the create request with student details
+     * @param tenantId the tenant ID (instance ID) for multi-tenant isolation
      * @return StudentResponse with created student data
      * @throws com.kiteclass.core.common.exception.DuplicateResourceException if email or phone already exists
      */
-    StudentResponse createStudent(@Valid CreateStudentRequest request);
+    StudentResponse createStudent(@Valid CreateStudentRequest request, java.util.UUID tenantId);
 
     /**
      * Retrieves a student by ID.
