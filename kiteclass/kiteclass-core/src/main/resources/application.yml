@@ -23,6 +23,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: public
+        # Enable Spring-managed JPA entity listeners (for EntityPersistenceListener)
+        resource:
+          bean:
+            container: org.springframework.orm.jpa.support.SpringBeanContainer
     open-in-view: false
     show-sql: false
 

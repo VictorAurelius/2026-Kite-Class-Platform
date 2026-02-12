@@ -38,10 +38,15 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnBean(EntityManager.class)
 public class TenantFilterInterceptor implements HandlerInterceptor {
 
     private final EntityManager entityManager;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        log.warn("🎯 TenantFilterInterceptor bean CREATED successfully with EntityManager: {}",
+                 entityManager.getClass().getSimpleName());
+    }
 
     /**
      * Pre-handle: Extract tenant ID and enable filter.
