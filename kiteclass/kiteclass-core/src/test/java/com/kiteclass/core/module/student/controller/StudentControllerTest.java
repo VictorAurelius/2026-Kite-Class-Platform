@@ -90,10 +90,11 @@ class StudentControllerTest {
         CreateStudentRequest request = StudentTestDataBuilder.createDefaultCreateRequest();
         StudentResponse response = new StudentResponse(1L, "Test", "test@example.com",
                 null, null, null, null, null, null, null);
-        when(studentService.createStudent(any())).thenReturn(response);
+        when(studentService.createStudent(any(), any())).thenReturn(response);
 
         // When / Then
         mockMvc.perform(post("/api/v1/students")
+                        .header("X-Tenant-Id", "11111111-1111-1111-1111-111111111111")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
