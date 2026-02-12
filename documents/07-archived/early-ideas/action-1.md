@@ -1007,3 +1007,20 @@ khi tôi start lại image: Fe báo: > kiteclass-frontend@1.0.0 dev /app
  ✓ Starting...
 
 [Error: > Couldn't find any `pages` or `app` directory. Please create one under the project root]
+
+check lại master PR plan:
+1. cập nhật status PR hiện tại
+2. code hiện tại đang phải lệch so với chuẩn như thế nào để test manually vừa rồi
+3. cập nhật thêm lưu ý để debug, test manually, CI pass tốt hơn
+4. nếu ưu tiên action tiếp theo
+
+tạo 1 file plan tạm thời cho các PR ưu tiên này
+đảm bảo workflow (tạo nhánh mới, CI pass, test case, ...) và thực hiện
+
+workflow là tham chiếu skill workflow đó, không phải bạn tự tạo workflow mới đâu
+
+priority PR plan vẫn phải đảm bảo đúng chuẩn so với master PR plan đúng không? thêm vào skill
+
+clean CI, chỉ để lại CI gần nhất của mỗi service
+
+giao tiếp bằng tiếng việt
