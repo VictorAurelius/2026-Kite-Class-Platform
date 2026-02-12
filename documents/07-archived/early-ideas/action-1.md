@@ -989,3 +989,21 @@ vẫn ko login được, mà lỗi thì FE phải hiển thị lên chứ, tôi 
 
 bạn call test thử xem
 setup Nginx
+
+check sang branch mới để fix bug:
+
+khi tôi start lại image: Fe báo: > kiteclass-frontend@1.0.0 dev /app
+
+> next dev
+
+
+   ▲ Next.js 15.1.6
+
+   - Local:        http://localhost:3000
+
+   - Network:      http://172.18.0.4:3000
+
+
+ ✓ Starting...
+
+[Error: > Couldn't find any `pages` or `app` directory. Please create one under the project root]
