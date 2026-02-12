@@ -4,10 +4,11 @@ import com.kiteclass.core.common.context.TenantContext;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Filter;
 import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -36,22 +37,22 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class TenantFilterInterceptor implements HandlerInterceptor {
 
-    private final EntityManager entityManager;
+    private final ObjectProvider<EntityManager> entityManagerProvider;
 
-    @Autowired(required = false)
-    public TenantFilterInterceptor(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
+    /**
+     * Initialization callback to log EntityManager availability status.
+     * Called after bean construction to verify optional EntityManager dependency.
+     */
     @jakarta.annotation.PostConstruct
     public void init() {
+        EntityManager entityManager = entityManagerProvider.getIfAvailable();
         if (entityManager != null) {
-            log.warn("🎯 TenantFilterInterceptor bean CREATED successfully with EntityManager: {}",
-                     entityManager.getClass().getSimpleName());
+            log.info("TenantFilterInterceptor initialized with EntityManager");
         } else {
-            log.warn("⚠️ TenantFilterInterceptor bean CREATED without EntityManager (test mode)");
+            log.info("TenantFilterInterceptor initialized without EntityManager (test mode)");
         }
     }
 
@@ -77,6 +78,7 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
                 TenantContext.setCurrentTenant(tenantId);
 
                 // Enable Hibernate filter for this session (if EntityManager available)
+                EntityManager entityManager = entityManagerProvider.getIfAvailable();
                 if (entityManager != null) {
                     Session session = entityManager.unwrap(Session.class);
                     Filter filter = session.enableFilter("tenantFilter");

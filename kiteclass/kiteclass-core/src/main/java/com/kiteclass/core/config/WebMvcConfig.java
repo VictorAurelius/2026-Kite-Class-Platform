@@ -1,7 +1,7 @@
 package com.kiteclass.core.config;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -20,10 +20,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    @Autowired(required = false)
-    private TenantFilterInterceptor tenantFilterInterceptor;
+    private final TenantFilterInterceptor tenantFilterInterceptor;
 
     /**
      * Adds tenant filter interceptor to all API endpoints.
@@ -44,17 +44,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        // Only register if tenantFilterInterceptor is available (requires EntityManager)
-        if (tenantFilterInterceptor != null) {
-            log.warn("✅ WebMvcConfig: Registering TenantFilterInterceptor for /api/** and /internal/**");
-            registry.addInterceptor(tenantFilterInterceptor)
-                .addPathPatterns("/api/**", "/internal/**")
-                .excludePathPatterns(
-                    "/actuator/**",
-                    "/api/v1/auth/**"
-                );
-        } else {
-            log.warn("❌ WebMvcConfig: TenantFilterInterceptor is NULL - not registering interceptor!");
-        }
+        log.info("Registering TenantFilterInterceptor for /api/** and /internal/**");
+        registry.addInterceptor(tenantFilterInterceptor)
+            .addPathPatterns("/api/**", "/internal/**")
+            .excludePathPatterns(
+                "/actuator/**",
+                "/api/v1/auth/**"
+            );
     }
 }
