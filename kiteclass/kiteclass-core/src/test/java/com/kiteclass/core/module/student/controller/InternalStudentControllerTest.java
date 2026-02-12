@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(InternalStudentController.class)
 @AutoConfigureMockMvc
 @Import({InternalStudentControllerTest.TestSecurityConfig.class, InternalStudentControllerTest.MockConfig.class})
+@ActiveProfiles("test")
 @TestPropertySource(properties = {"internal.api.secret=test-secret-for-hmac"})
 class InternalStudentControllerTest {
 

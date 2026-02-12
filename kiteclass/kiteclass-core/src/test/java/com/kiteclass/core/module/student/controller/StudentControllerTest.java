@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -40,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(StudentController.class)
 @AutoConfigureMockMvc
 @Import({StudentControllerTest.TestSecurityConfig.class, StudentControllerTest.MockConfig.class})
+@ActiveProfiles("test")
 class StudentControllerTest {
 
     /**
