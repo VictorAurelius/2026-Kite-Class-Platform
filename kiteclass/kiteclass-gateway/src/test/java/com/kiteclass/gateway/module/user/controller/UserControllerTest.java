@@ -12,13 +12,16 @@ import com.kiteclass.gateway.testutil.UserTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,26 +39,48 @@ import static org.mockito.Mockito.when;
  * @since 1.0.0
  */
 @WebFluxTest(controllers = UserController.class)
+@Import({UserControllerTest.MockConfig.class, com.kiteclass.gateway.config.TestSecurityConfig.class})
 @ActiveProfiles("test")
 @DisplayName("UserController Tests")
 @WithMockUser
-@Import(TestSecurityConfig.class)
 class UserControllerTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
-    @MockitoBean
+    @Autowired
     private UserService userService;
 
-    @MockitoBean
+    @Autowired
     private MessageService messageService;
+
+    /**
+     * Test configuration for mock beans.
+     * Replaces deprecated @MockBean with explicit @TestConfiguration.
+     */
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        @Primary
+        public UserService userService() {
+            return Mockito.mock(UserService.class);
+        }
+
+        @Bean
+        @Primary
+        public MessageService messageService() {
+            return Mockito.mock(MessageService.class);
+        }
+    }
 
     private UserResponse userResponse;
     private CreateUserRequest createRequest;
 
     @BeforeEach
     void setUp() {
+        // Reset mocks before each test to avoid state pollution
+        Mockito.reset(userService, messageService);
+
         userResponse = UserResponse.builder()
             .id(1L)
             .email("test@example.com")
