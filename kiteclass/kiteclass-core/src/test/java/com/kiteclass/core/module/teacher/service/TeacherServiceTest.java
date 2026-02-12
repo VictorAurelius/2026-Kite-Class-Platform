@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.teacher.service;
 
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
@@ -11,11 +12,13 @@ import com.kiteclass.core.module.teacher.mapper.TeacherMapper;
 import com.kiteclass.core.module.teacher.repository.TeacherRepository;
 import com.kiteclass.core.module.teacher.service.impl.TeacherServiceImpl;
 import com.kiteclass.core.testutil.TeacherTestDataBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,11 +27,13 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -53,6 +58,8 @@ class TeacherServiceTest {
     private TeacherResponse teacherResponse;
     private CreateTeacherRequest createRequest;
     private UpdateTeacherRequest updateRequest;
+    private UUID testTenantId;
+    private MockedStatic<TenantContext> tenantContextMock;
 
     @BeforeEach
     void setUp() {
@@ -71,12 +78,24 @@ class TeacherServiceTest {
         );
         createRequest = TeacherTestDataBuilder.createDefaultCreateRequest();
         updateRequest = TeacherTestDataBuilder.createDefaultUpdateRequest();
+
+        // Setup tenant context mock
+        testTenantId = UUID.randomUUID();
+        tenantContextMock = mockStatic(TenantContext.class);
+        tenantContextMock.when(TenantContext::getCurrentTenant).thenReturn(testTenantId);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (tenantContextMock != null) {
+            tenantContextMock.close();
+        }
     }
 
     @Test
     void createTeacher_shouldCreateSuccessfully() {
         // Given
-        when(teacherRepository.existsByEmailAndDeletedFalse(anyString())).thenReturn(false);
+        when(teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any(UUID.class))).thenReturn(false);
         when(teacherMapper.toEntity(any(CreateTeacherRequest.class))).thenReturn(teacher);
         when(teacherRepository.save(any(Teacher.class))).thenReturn(teacher);
         when(teacherMapper.toResponse(any(Teacher.class))).thenReturn(teacherResponse);
@@ -87,21 +106,21 @@ class TeacherServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo(teacher.getName());
-        verify(teacherRepository).existsByEmailAndDeletedFalse(createRequest.email());
+        verify(teacherRepository).existsByEmailAndInstanceIdAndDeletedFalse(eq(createRequest.email()), eq(testTenantId));
         verify(teacherRepository).save(any(Teacher.class));
     }
 
     @Test
     void createTeacher_shouldThrowDuplicateResourceException_whenEmailExists() {
         // Given
-        when(teacherRepository.existsByEmailAndDeletedFalse(anyString())).thenReturn(true);
+        when(teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any(UUID.class))).thenReturn(true);
 
         // When & Then
         assertThatThrownBy(() -> teacherService.createTeacher(createRequest))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasFieldOrPropertyWithValue("code", "TEACHER_EMAIL_EXISTS");
 
-        verify(teacherRepository).existsByEmailAndDeletedFalse(createRequest.email());
+        verify(teacherRepository).existsByEmailAndInstanceIdAndDeletedFalse(eq(createRequest.email()), eq(testTenantId));
         verify(teacherRepository, never()).save(any(Teacher.class));
     }
 

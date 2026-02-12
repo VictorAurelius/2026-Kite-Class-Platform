@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.teacher.service.impl;
 
 import com.kiteclass.core.common.constant.TeacherStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 /**
  * Implementation of TeacherService interface.
@@ -47,27 +50,29 @@ public class TeacherServiceImpl implements TeacherService {
      * Tạo giáo viên mới.
      *
      * <p>Validates email uniqueness before creating teacher (BR-TEACHER-001).
+     * Email uniqueness is scoped to tenant for multi-tenant isolation.
      *
      * @param request Thông tin giáo viên cần tạo (name, email, phone, specialization, bio, qualification, experienceYears)
      * @return TeacherResponse chứa thông tin giáo viên đã tạo
-     * @throws DuplicateResourceException nếu email đã tồn tại trong hệ thống
+     * @throws DuplicateResourceException nếu email đã tồn tại trong tenant hiện tại
      */
     @Override
     @Transactional
     @CacheEvict(value = "teachers", allEntries = true)
     public TeacherResponse createTeacher(CreateTeacherRequest request) {
-        log.info("Creating teacher with email: {}", request.email());
+        UUID tenantId = TenantContext.getCurrentTenant();
+        log.info("Creating teacher with email: {}, tenantId: {}", request.email(), tenantId);
 
-        // BR-TEACHER-001: Validate email uniqueness
-        if (teacherRepository.existsByEmailAndDeletedFalse(request.email())) {
-            log.warn("Duplicate teacher email: {}", request.email());
+        // BR-TEACHER-001: Validate email uniqueness (tenant-scoped)
+        if (teacherRepository.existsByEmailAndInstanceIdAndDeletedFalse(request.email(), tenantId)) {
+            log.warn("Duplicate teacher email in tenant: {}, tenantId: {}", request.email(), tenantId);
             throw new DuplicateResourceException("TEACHER_EMAIL_EXISTS", (Object) request.email());
         }
 
         Teacher teacher = teacherMapper.toEntity(request);
         Teacher saved = teacherRepository.save(teacher);
 
-        log.info("Created teacher with ID: {}", saved.getId());
+        log.info("Created teacher with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
         return teacherMapper.toResponse(saved);
     }
 
