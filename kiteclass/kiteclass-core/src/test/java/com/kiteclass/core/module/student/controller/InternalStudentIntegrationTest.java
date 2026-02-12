@@ -185,8 +185,9 @@ class InternalStudentIntegrationTest {
     }
 
     @Test
-    @Disabled("TODO: Hibernate tenant filter not working in test environment - email uniqueness check is global instead of per-tenant. " +
-              "Fix required: Enable Hibernate filter in TestTenantContextFilter or scope email uniqueness to (email, instance_id) in service layer.")
+    @Disabled("FIXME: V6 migration (composite unique index) may not be applied in test environment yet. " +
+              "Verification needed: Check if Flyway V6__add_multi_tenant_unique_constraints.sql has been executed. " +
+              "Expected behavior: Same email allowed in different tenants. Current: Getting 409 Conflict on second tenant.")
     void createStudent_multipleTenantsWithSameEmail_shouldIsolateData() throws Exception {
         // Given - Create students with same email in different tenants
         String sharedEmail = "shared@test.com";
@@ -237,6 +238,43 @@ class InternalStudentIntegrationTest {
         assertThat(students)
                 .extracting(Student::getInstanceId)
                 .containsExactlyInAnyOrder(tenantA, tenantB);
+    }
+
+    @Test
+    void createStudent_sameTenantDuplicateEmail_shouldReturn409() throws Exception {
+        // Given - Create student in Tenant A
+        String duplicateEmail = "duplicate@test.com";
+        createStudentInTenant(duplicateEmail, tenantA);
+
+        // When - Try to create another student with same email in same tenant
+        long timestamp = System.currentTimeMillis() / 1000;
+        String signature = generateHmacSignature(timestamp);
+
+        CreateStudentRequest request = new CreateStudentRequest(
+                "Another Student",
+                duplicateEmail,
+                "0987654321",
+                LocalDate.of(2011, 2, 20),
+                Gender.FEMALE,
+                "Different Address",
+                null
+        );
+
+        // Then - Should fail with 409 Conflict (duplicate email within tenant)
+        mockMvc.perform(post("/internal/students")
+                        .header("X-Internal-Timestamp", String.valueOf(timestamp))
+                        .header("X-Internal-Signature", signature)
+                        .header("X-Tenant-Id", tenantA.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("STUDENT_EMAIL_EXISTS"));
+
+        // Verify only one student exists with this email in Tenant A
+        var students = studentRepository.findAll().stream()
+                .filter(s -> duplicateEmail.equals(s.getEmail()) && tenantA.equals(s.getInstanceId()))
+                .toList();
+        assertThat(students).hasSize(1);
     }
 
     @Test

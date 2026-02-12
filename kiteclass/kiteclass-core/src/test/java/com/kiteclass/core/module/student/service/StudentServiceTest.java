@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -76,7 +77,7 @@ class StudentServiceTest {
     @Test
     void createStudent_shouldCreateSuccessfully() {
         // Given
-        when(studentRepository.existsByEmailAndDeletedFalse(anyString())).thenReturn(false);
+        when(studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(studentRepository.existsByPhoneAndDeletedFalse(anyString())).thenReturn(false);
         when(studentMapper.toEntity(any(CreateStudentRequest.class))).thenReturn(student);
         when(studentRepository.save(any(Student.class))).thenReturn(student);
@@ -88,7 +89,7 @@ class StudentServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.name()).isEqualTo(student.getName());
-        verify(studentRepository).existsByEmailAndDeletedFalse(createRequest.email());
+        verify(studentRepository).existsByEmailAndInstanceIdAndDeletedFalse(eq(createRequest.email()), any());
         verify(studentRepository).existsByPhoneAndDeletedFalse(createRequest.phone());
         verify(studentRepository).save(any(Student.class));
     }
@@ -96,21 +97,21 @@ class StudentServiceTest {
     @Test
     void createStudent_shouldThrowDuplicateResourceException_whenEmailExists() {
         // Given
-        when(studentRepository.existsByEmailAndDeletedFalse(anyString())).thenReturn(true);
+        when(studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(true);
 
         // When / Then
         assertThatThrownBy(() -> studentService.createStudent(createRequest, java.util.UUID.randomUUID()))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasFieldOrPropertyWithValue("code", "STUDENT_EMAIL_EXISTS");
 
-        verify(studentRepository).existsByEmailAndDeletedFalse(createRequest.email());
+        verify(studentRepository).existsByEmailAndInstanceIdAndDeletedFalse(eq(createRequest.email()), any());
         verify(studentRepository, never()).save(any());
     }
 
     @Test
     void createStudent_shouldThrowDuplicateResourceException_whenPhoneExists() {
         // Given
-        when(studentRepository.existsByEmailAndDeletedFalse(anyString())).thenReturn(false);
+        when(studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(anyString(), any())).thenReturn(false);
         when(studentRepository.existsByPhoneAndDeletedFalse(anyString())).thenReturn(true);
 
         // When / Then

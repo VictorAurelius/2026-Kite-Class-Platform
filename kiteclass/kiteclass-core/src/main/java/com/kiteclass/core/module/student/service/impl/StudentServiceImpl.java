@@ -58,9 +58,9 @@ public class StudentServiceImpl implements StudentService {
     public StudentResponse createStudent(CreateStudentRequest request, java.util.UUID tenantId) {
         log.info("Creating student with email: {}, tenantId: {}", request.email(), tenantId);
 
-        // Validate email uniqueness
-        if (request.email() != null && studentRepository.existsByEmailAndDeletedFalse(request.email())) {
-            log.warn("Duplicate student email: {}", request.email());
+        // Validate email uniqueness within tenant (multi-tenant isolation)
+        if (request.email() != null && studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(request.email(), tenantId)) {
+            log.warn("Duplicate student email within tenant: {}, tenantId: {}", request.email(), tenantId);
             throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) request.email());
         }
 
@@ -156,10 +156,10 @@ public class StudentServiceImpl implements StudentService {
                     return new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) id);
                 });
 
-        // Validate email uniqueness if changed
+        // Validate email uniqueness within tenant if changed (multi-tenant isolation)
         if (request.email() != null && !request.email().equals(student.getEmail())) {
-            if (studentRepository.existsByEmailAndDeletedFalse(request.email())) {
-                log.warn("Duplicate student email: {}", request.email());
+            if (studentRepository.existsByEmailAndInstanceIdAndDeletedFalse(request.email(), student.getInstanceId())) {
+                log.warn("Duplicate student email within tenant: {}, tenantId: {}", request.email(), student.getInstanceId());
                 throw new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) request.email());
             }
         }
