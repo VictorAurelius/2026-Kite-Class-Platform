@@ -1,5 +1,6 @@
 package com.kiteclass.gateway.config;
 
+import com.kiteclass.gateway.security.SecurityContextRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +36,9 @@ import reactor.core.publisher.Mono;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @RequiredArgsConstructor
-@Profile("!test")
 public class SecurityConfig {
+
+    private final SecurityContextRepository securityContextRepository;
 
     /**
      * Password encoder using BCrypt.
@@ -62,7 +64,8 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
 
-                // Don't set securityContextRepository globally - it will be applied only to authenticated routes
+                // JWT authentication via SecurityContextRepository
+                .securityContextRepository(securityContextRepository)
 
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((exchange, e) -> {
