@@ -1,5 +1,5 @@
 /**
- * Register page (placeholder for future self-registration).
+ * Register page - Choose account type.
  *
  * @author KiteClass Team
  * @since 1.0.0
@@ -8,42 +8,69 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GraduationCap, Building2 } from 'lucide-react';
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   return (
     <AuthLayout>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Create an account</h1>
+          <h1 className="text-3xl font-bold">Tạo tài khoản</h1>
           <p className="text-muted-foreground">
-            Get started with KiteClass today
+            Chọn loại tài khoản bạn muốn đăng ký
           </p>
         </div>
 
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Self-registration coming soon</AlertTitle>
-          <AlertDescription>
-            We&apos;re working on self-registration for education centers.
-            For now, please contact support to create an account.
-          </AlertDescription>
-        </Alert>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => router.push('/register/student')}>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="h-6 w-6 text-primary" />
+                <CardTitle>Học viên</CardTitle>
+              </div>
+              <CardDescription>
+                Dành cho học viên muốn đăng ký khóa học
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={(e) => {
+                e.stopPropagation();
+                router.push('/register/student');
+              }}>
+                Đăng ký học viên
+              </Button>
+            </CardContent>
+          </Card>
 
-        <div className="space-y-3">
-          <Button className="w-full" onClick={() => window.open('mailto:support@kiteclass.com')}>
-            Contact Support
-          </Button>
+          <Card className="cursor-pointer opacity-60">
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <Building2 className="h-6 w-6" />
+                <CardTitle>Trung tâm</CardTitle>
+              </div>
+              <CardDescription>
+                Dành cho trung tâm giáo dục (Coming soon)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" disabled>
+                Liên hệ hỗ trợ
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">Already have an account? </span>
-            <Link href="/login" className="font-medium text-primary hover:underline">
-              Sign in
-            </Link>
-          </div>
+        <div className="text-center text-sm">
+          <span className="text-muted-foreground">Đã có tài khoản? </span>
+          <Link href="/login" className="font-medium text-primary hover:underline">
+            Đăng nhập
+          </Link>
         </div>
       </div>
     </AuthLayout>
