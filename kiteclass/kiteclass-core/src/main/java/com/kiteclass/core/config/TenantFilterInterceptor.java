@@ -4,10 +4,10 @@ import com.kiteclass.core.common.context.TenantContext;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -36,15 +36,23 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class TenantFilterInterceptor implements HandlerInterceptor {
 
     private final EntityManager entityManager;
 
+    @Autowired(required = false)
+    public TenantFilterInterceptor(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+
     @jakarta.annotation.PostConstruct
     public void init() {
-        log.warn("🎯 TenantFilterInterceptor bean CREATED successfully with EntityManager: {}",
-                 entityManager.getClass().getSimpleName());
+        if (entityManager != null) {
+            log.warn("🎯 TenantFilterInterceptor bean CREATED successfully with EntityManager: {}",
+                     entityManager.getClass().getSimpleName());
+        } else {
+            log.warn("⚠️ TenantFilterInterceptor bean CREATED without EntityManager (test mode)");
+        }
     }
 
     /**
@@ -68,12 +76,15 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
                 UUID tenantId = UUID.fromString(tenantHeader);
                 TenantContext.setCurrentTenant(tenantId);
 
-                // Enable Hibernate filter for this session
-                Session session = entityManager.unwrap(Session.class);
-                Filter filter = session.enableFilter("tenantFilter");
-                filter.setParameter("tenantId", tenantId);
-
-                log.debug("Tenant filter enabled for tenant: {}", tenantId);
+                // Enable Hibernate filter for this session (if EntityManager available)
+                if (entityManager != null) {
+                    Session session = entityManager.unwrap(Session.class);
+                    Filter filter = session.enableFilter("tenantFilter");
+                    filter.setParameter("tenantId", tenantId);
+                    log.debug("Tenant filter enabled for tenant: {}", tenantId);
+                } else {
+                    log.debug("EntityManager not available, tenant context set but filter not enabled");
+                }
             } catch (IllegalArgumentException e) {
                 log.warn("Invalid X-Tenant-Id header format: {}", tenantHeader);
                 // Let request continue without tenant filter (will fail at service layer)
