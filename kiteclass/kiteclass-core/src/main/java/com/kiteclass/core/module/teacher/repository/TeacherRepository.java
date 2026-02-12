@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Repository interface for Teacher entity.
@@ -17,7 +18,7 @@ import java.util.Optional;
  * <p>Provides data access methods including:
  * <ul>
  *   <li>Find by ID (excluding soft-deleted records)</li>
- *   <li>Check existence by email</li>
+ *   <li>Check existence by email (tenant-scoped)</li>
  *   <li>Search teachers with filters (name, email, specialization, status)</li>
  *   <li>Count teachers by status</li>
  * </ul>
@@ -49,8 +50,23 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
      *
      * @param email the email to check
      * @return true if email exists
+     * @deprecated since 2.13.0, use {@link #existsByEmailAndInstanceIdAndDeletedFalse(String, UUID)} for tenant-scoped check
      */
+    @Deprecated(since = "2.13.0", forRemoval = true)
     boolean existsByEmailAndDeletedFalse(String email);
+
+    /**
+     * Checks if a teacher with given email exists in specific tenant (excluding deleted).
+     *
+     * <p>Multi-tenant version of email existence check.
+     * Replaces global {@link #existsByEmailAndDeletedFalse(String)} check.
+     *
+     * @param email the email to check
+     * @param instanceId the tenant instance ID
+     * @return true if email exists in the tenant
+     * @since 2.13.0
+     */
+    boolean existsByEmailAndInstanceIdAndDeletedFalse(String email, UUID instanceId);
 
     /**
      * Searches teachers by name/email/specialization and status with pagination.
