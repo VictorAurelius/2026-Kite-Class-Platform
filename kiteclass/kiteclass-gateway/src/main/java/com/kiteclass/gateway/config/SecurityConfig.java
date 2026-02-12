@@ -1,8 +1,6 @@
 package com.kiteclass.gateway.config;
 
-import com.kiteclass.gateway.security.SecurityContextRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -39,8 +37,6 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Profile("!test")
 public class SecurityConfig {
-
-    private final SecurityContextRepository securityContextRepository;
 
     /**
      * Password encoder using BCrypt.
