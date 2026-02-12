@@ -48,7 +48,8 @@ public class EntityPersistenceListener {
             entity.setInstanceId(TenantContext.getCurrentTenant());
             System.err.println("SUCCESS: Auto-set instanceId to " + entity.getInstanceId());
         } else {
-            System.err.println("FAILED: NOT setting instanceId - instanceId=" + entity.getInstanceId() + ", isSet=" + TenantContext.isSet());
+            System.err.println("FAILED: NOT setting instanceId - instanceId="
+                    + entity.getInstanceId() + ", isSet=" + TenantContext.isSet());
         }
         System.err.println("===== END EntityPersistenceListener =====");
     }
