@@ -36,10 +36,15 @@ export interface RegisterRequest {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  userId: number;
-  userType: UserType;
-  instanceId: string;
-  profile?: StudentProfile | TeacherProfile | ParentProfile;
+  tokenType: string;
+  expiresIn: number;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    roles: string[];
+    profile?: StudentProfile | TeacherProfile | ParentProfile;
+  };
 }
 
 export interface RefreshTokenRequest {

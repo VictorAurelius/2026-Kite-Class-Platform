@@ -13,8 +13,8 @@ export const authApi = {
    * Login user with email and password.
    */
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/api/v1/auth/login', credentials);
-    return response.data;
+    const response = await apiClient.post<any>('/api/v1/auth/login', credentials);
+    return response.data.data; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -28,10 +28,10 @@ export const authApi = {
    * Refresh access token using refresh token.
    */
   refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/api/v1/auth/refresh', {
+    const response = await apiClient.post<any>('/api/v1/auth/refresh', {
       refreshToken,
     });
-    return response.data;
+    return response.data.data; // Unwrap ApiResponse wrapper
   },
 
   /**
