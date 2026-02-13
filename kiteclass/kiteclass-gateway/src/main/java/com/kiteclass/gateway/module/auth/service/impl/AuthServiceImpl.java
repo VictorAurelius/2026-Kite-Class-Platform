@@ -102,12 +102,17 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public Mono<LoginResponse> refreshToken(RefreshTokenRequest request) {
         log.info("Refresh token request");
+        log.info("DEBUG: Received refresh token: {}", request.refreshToken());
 
         return refreshTokenRepository.findByToken(request.refreshToken())
-                .switchIfEmpty(Mono.error(new BusinessException(
-                        MessageCodes.AUTH_REFRESH_TOKEN_INVALID,
-                        HttpStatus.UNAUTHORIZED
-                )))
+                .doOnSuccess(token -> log.info("DEBUG: Token found in DB: {}", token != null ? token.getId() : "null"))
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.warn("DEBUG: Token NOT found in DB for value: {}", request.refreshToken());
+                    return Mono.error(new BusinessException(
+                            MessageCodes.AUTH_REFRESH_TOKEN_INVALID,
+                            HttpStatus.UNAUTHORIZED
+                    ));
+                }))
                 .flatMap(token -> {
                     // Check if token is expired
                     if (token.getExpiresAt().isBefore(Instant.now())) {
@@ -364,6 +369,8 @@ public class AuthServiceImpl implements AuthService {
                             .build();
 
                     return refreshTokenRepository.save(tokenEntity)
+                            .doOnSuccess(saved -> log.info("DEBUG: Refresh token saved to DB: id={}, token={}, userId={}",
+                                    saved.getId(), refreshToken, user.getId()))
                             .map(saved -> LoginResponse.builder()
                                     .accessToken(accessToken)
                                     .refreshToken(refreshToken)
