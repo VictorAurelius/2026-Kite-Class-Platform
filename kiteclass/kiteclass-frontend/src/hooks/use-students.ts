@@ -9,6 +9,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { AxiosError } from 'axios';
 import { studentsApi } from '@/lib/api/students';
 import type {
   CreateStudentRequest,
@@ -48,10 +49,28 @@ export function useCreateStudent() {
       });
       router.push('/students');
     },
-    onError: (error: Error) => {
+    onError: (error: AxiosError<{message?: string; error?: string}>) => {
+      const errorMessage = error.response?.data?.message
+        || error.response?.data?.error
+        || error.message
+        || 'Không thể tạo học viên';
+
+      const errorCode = error.response?.status;
+      const errorTitle = errorCode === 403
+        ? 'Lỗi 403 - Không có quyền'
+        : errorCode === 401
+        ? 'Lỗi 401 - Chưa đăng nhập'
+        : 'Lỗi';
+
+      console.error('Create student error:', {
+        status: errorCode,
+        message: errorMessage,
+        fullError: error
+      });
+
       toast({
-        title: 'Lỗi',
-        description: error.message || 'Không thể tạo học viên',
+        title: errorTitle,
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -73,10 +92,15 @@ export function useUpdateStudent(id: number) {
       });
       router.push(`/students/${id}`);
     },
-    onError: (error: Error) => {
+    onError: (error: AxiosError<{message?: string; error?: string}>) => {
+      const errorMessage = error.response?.data?.message
+        || error.response?.data?.error
+        || error.message
+        || 'Không thể cập nhật học viên';
+
       toast({
         title: 'Lỗi',
-        description: error.message || 'Không thể cập nhật học viên',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -95,10 +119,15 @@ export function useDeleteStudent() {
         description: 'Đã xóa học viên',
       });
     },
-    onError: (error: Error) => {
+    onError: (error: AxiosError<{message?: string; error?: string}>) => {
+      const errorMessage = error.response?.data?.message
+        || error.response?.data?.error
+        || error.message
+        || 'Không thể xóa học viên';
+
       toast({
         title: 'Lỗi',
-        description: error.message || 'Không thể xóa học viên',
+        description: errorMessage,
         variant: 'destructive',
       });
     },

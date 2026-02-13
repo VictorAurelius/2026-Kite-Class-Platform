@@ -1024,3 +1024,29 @@ priority PR plan vẫn phải đảm bảo đúng chuẩn so với master PR pla
 clean CI, chỉ để lại CI gần nhất của mỗi service
 
 giao tiếp bằng tiếng việt
+
+sau khi login thì trả về trang dashboard bị 404, vậy url để tôi test module đã implement là gì?
+
+Đã build lại docker ở local theo code mới nhất chưa?
+
+1. vào /students bị đánh bật ra luôn => check logs của image frontend để tìm nguyên nhân
+2. tạo tạm 1 trang /dashbroad trống trước => cập nhật vào master PR plan về chỉ thị này
+
+đã rebuild docker chưa?
+
+vẫn lỗi y hệt nhé, check lại log
+
+bị văng khi vào students do refresh token không hợp lệ (log của gateway)
+
+thêm testcase cho gateway, fix bug và chạy lại full test local + chạy CI pass
+=> rebuild lại docker để tôi test
+=> bổ sung vào skill về quy trình debug này
+
+check log của image gateway
+
+vẫn lỗi nhé, bạn có thể call URL của /students để check kỹ hơn
+
+thật là, dropdown là Nam, Nữ, ... mà lại hiện lỗi này
+ngoài ra bỏ option OTHER đi
+
+đã lưu đầy đủ vẫn báo 403, ngoài ra tôi đã nói phải báo lỗi lên màn hình thay vì phải vào console để check

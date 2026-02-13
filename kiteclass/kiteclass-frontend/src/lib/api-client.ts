@@ -25,9 +25,15 @@ export const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // Add access token
-    const token = localStorage.getItem('accessToken');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = localStorage.getItem('accessToken');
+    console.warn('DEBUG api-client - Request interceptor:', {
+      url: config.url,
+      method: config.method,
+      hasAccessToken: !!accessToken,
+    });
+
+    if (accessToken && config.headers) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
     // Add tenant ID
@@ -35,6 +41,11 @@ apiClient.interceptors.request.use(
     if (tenantId && config.headers) {
       config.headers['X-Tenant-Id'] = tenantId;
     }
+
+    console.warn('DEBUG api-client - Request headers:', {
+      Authorization: config.headers.Authorization ? 'Bearer [PRESENT]' : 'MISSING',
+      'X-Tenant-Id': config.headers['X-Tenant-Id'] || 'MISSING'
+    });
 
     return config;
   },
