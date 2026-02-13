@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/stores/auth-store';
 import type { LoginRequest } from '@/types/auth';
+import { UserType } from '@/types/auth';
 import { toast } from '@/hooks/use-toast';
 
 export function useAuth() {
