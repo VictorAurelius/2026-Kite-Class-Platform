@@ -369,7 +369,8 @@ public class AuthServiceImpl implements AuthService {
                             .build();
 
                     return refreshTokenRepository.save(tokenEntity)
-                            .doOnSuccess(saved -> log.info("DEBUG: Refresh token saved to DB: id={}, token={}, userId={}",
+                            .doOnSuccess(saved -> log.info(
+                                    "DEBUG: Refresh token saved to DB: id={}, token={}, userId={}",
                                     saved.getId(), refreshToken, user.getId()))
                             .map(saved -> LoginResponse.builder()
                                     .accessToken(accessToken)
