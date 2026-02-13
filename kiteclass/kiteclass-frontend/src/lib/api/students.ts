@@ -25,6 +25,9 @@ export const studentsApi = {
       '/api/v1/students',
       { params }
     );
+    console.log('DEBUG students.ts - Raw response:', response.data);
+    console.log('DEBUG students.ts - Unwrapped data:', response.data.data);
+    console.log('DEBUG students.ts - Content field:', response.data.data?.content);
     return response.data.data; // Unwrap ApiResponse wrapper
   },
 
