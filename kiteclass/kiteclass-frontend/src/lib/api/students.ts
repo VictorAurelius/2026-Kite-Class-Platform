@@ -21,27 +21,27 @@ export const studentsApi = {
   getStudents: async (
     params: StudentSearchParams = {}
   ): Promise<PaginatedResponse<Student>> => {
-    const response = await apiClient.get<PaginatedResponse<Student>>(
+    const response = await apiClient.get<any>(
       '/api/v1/students',
       { params }
     );
-    return response.data;
+    return response.data.data; // Unwrap ApiResponse wrapper
   },
 
   /**
    * Get student by ID.
    */
   getStudent: async (id: number): Promise<Student> => {
-    const response = await apiClient.get<Student>(`/api/v1/students/${id}`);
-    return response.data;
+    const response = await apiClient.get<any>(`/api/v1/students/${id}`);
+    return response.data.data; // Unwrap ApiResponse wrapper
   },
 
   /**
    * Create new student.
    */
   createStudent: async (data: CreateStudentRequest): Promise<Student> => {
-    const response = await apiClient.post<Student>('/api/v1/students', data);
-    return response.data;
+    const response = await apiClient.post<any>('/api/v1/students', data);
+    return response.data.data; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -51,11 +51,11 @@ export const studentsApi = {
     id: number,
     data: UpdateStudentRequest
   ): Promise<Student> => {
-    const response = await apiClient.patch<Student>(
+    const response = await apiClient.patch<any>(
       `/api/v1/students/${id}`,
       data
     );
-    return response.data;
+    return response.data.data; // Unwrap ApiResponse wrapper
   },
 
   /**
