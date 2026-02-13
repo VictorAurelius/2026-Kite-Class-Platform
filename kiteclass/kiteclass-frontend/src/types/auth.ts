@@ -85,7 +85,6 @@ export interface ParentProfile {
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
-  OTHER = 'OTHER',
 }
 
 export enum StudentStatus {

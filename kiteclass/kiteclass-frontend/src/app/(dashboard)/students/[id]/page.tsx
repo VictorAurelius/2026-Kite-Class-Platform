@@ -144,8 +144,6 @@ export default function StudentDetailPage({
                     ? 'Nam'
                     : student.gender === 'FEMALE'
                     ? 'Nữ'
-                    : student.gender === 'OTHER'
-                    ? 'Khác'
                     : '—'}
                 </p>
               </div>
