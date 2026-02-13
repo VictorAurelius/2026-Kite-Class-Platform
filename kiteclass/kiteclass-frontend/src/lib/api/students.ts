@@ -12,7 +12,7 @@ import type {
   UpdateStudentRequest,
   StudentSearchParams,
 } from '@/types/student';
-import type { PaginatedResponse } from '@/types/api';
+import type { ApiResponse, PaginatedResponse } from '@/types/api';
 
 export const studentsApi = {
   /**
@@ -21,13 +21,10 @@ export const studentsApi = {
   getStudents: async (
     params: StudentSearchParams = {}
   ): Promise<PaginatedResponse<Student>> => {
-    const response = await apiClient.get<any>(
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<Student>>>(
       '/api/v1/students',
       { params }
     );
-    console.log('DEBUG students.ts - Raw response:', response.data);
-    console.log('DEBUG students.ts - Unwrapped data:', response.data.data);
-    console.log('DEBUG students.ts - Content field:', response.data.data?.content);
     return response.data.data; // Unwrap ApiResponse wrapper
   },
 
@@ -35,7 +32,7 @@ export const studentsApi = {
    * Get student by ID.
    */
   getStudent: async (id: number): Promise<Student> => {
-    const response = await apiClient.get<any>(`/api/v1/students/${id}`);
+    const response = await apiClient.get<ApiResponse<Student>>(`/api/v1/students/${id}`);
     return response.data.data; // Unwrap ApiResponse wrapper
   },
 
@@ -43,7 +40,7 @@ export const studentsApi = {
    * Create new student.
    */
   createStudent: async (data: CreateStudentRequest): Promise<Student> => {
-    const response = await apiClient.post<any>('/api/v1/students', data);
+    const response = await apiClient.post<ApiResponse<Student>>('/api/v1/students', data);
     return response.data.data; // Unwrap ApiResponse wrapper
   },
 
@@ -54,7 +51,7 @@ export const studentsApi = {
     id: number,
     data: UpdateStudentRequest
   ): Promise<Student> => {
-    const response = await apiClient.patch<any>(
+    const response = await apiClient.patch<ApiResponse<Student>>(
       `/api/v1/students/${id}`,
       data
     );
