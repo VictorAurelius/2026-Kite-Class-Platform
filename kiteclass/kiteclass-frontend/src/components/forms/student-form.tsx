@@ -21,7 +21,10 @@ const studentSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
   phone: z.string().optional(),
   dateOfBirth: z.string().optional(),
-  gender: z.nativeEnum(Gender).optional(),
+  gender: z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.nativeEnum(Gender).optional()
+  ),
   address: z.string().optional(),
   status: z.nativeEnum(StudentStatus).optional(),
 });
@@ -38,7 +41,6 @@ interface StudentFormProps {
 const genderOptions = [
   { label: 'Nam', value: Gender.MALE },
   { label: 'Nữ', value: Gender.FEMALE },
-  { label: 'Khác', value: Gender.OTHER },
 ];
 
 const statusOptions = [

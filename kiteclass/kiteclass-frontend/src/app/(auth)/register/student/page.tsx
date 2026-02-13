@@ -24,7 +24,7 @@ interface RegisterFormData {
   name: string;
   phone: string;
   dateOfBirth: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  gender: 'MALE' | 'FEMALE';
   address: string;
 }
 
@@ -262,7 +262,6 @@ export default function StudentRegisterPage() {
             >
               <option value="MALE">Nam</option>
               <option value="FEMALE">Nữ</option>
-              <option value="OTHER">Khác</option>
             </select>
           </div>
 
