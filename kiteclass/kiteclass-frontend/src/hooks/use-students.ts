@@ -50,6 +50,12 @@ export function useCreateStudent() {
       router.push('/students');
     },
     onError: (error: AxiosError<{message?: string; error?: string}>) => {
+      // Log raw error first
+      console.error('Create student raw error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
       const errorMessage = error.response?.data?.message
         || error.response?.data?.error
         || error.message
@@ -61,12 +67,6 @@ export function useCreateStudent() {
         : errorCode === 401
         ? 'Lỗi 401 - Chưa đăng nhập'
         : 'Lỗi';
-
-      console.error('Create student error:', {
-        status: errorCode,
-        message: errorMessage,
-        fullError: error
-      });
 
       toast({
         title: errorTitle,
