@@ -1050,3 +1050,5 @@ thật là, dropdown là Nam, Nữ, ... mà lại hiện lỗi này
 ngoài ra bỏ option OTHER đi
 
 đã lưu đầy đủ vẫn báo 403, ngoài ra tôi đã nói phải báo lỗi lên màn hình thay vì phải vào console để check
+
+đổi phương châm => log trả ra log của image frontend thành vì console của browser
