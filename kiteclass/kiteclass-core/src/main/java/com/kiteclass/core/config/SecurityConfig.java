@@ -39,11 +39,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF for internal endpoints (protected by HMAC authentication)
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/internal/**")
-                )
-                // All requests require authentication (handled by InternalRequestFilter)
+                // Disable CSRF - not needed since Core is behind Gateway
+                // Gateway handles authentication, Core trusts X-User-Id/X-User-Roles headers
+                .csrf(csrf -> csrf.disable())
+                // All requests permitted - authentication handled by Gateway
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 );
