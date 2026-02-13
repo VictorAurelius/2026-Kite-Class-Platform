@@ -15,7 +15,7 @@ export const authApi = {
    */
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/api/v1/auth/login', credentials);
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -32,7 +32,7 @@ export const authApi = {
     const response = await apiClient.post<ApiResponse<AuthResponse>>('/api/v1/auth/refresh', {
       refreshToken,
     });
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
