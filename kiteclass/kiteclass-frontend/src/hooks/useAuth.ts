@@ -24,19 +24,22 @@ export function useAuth() {
     onSuccess: (data) => {
       // Construct User object from AuthResponse
       const user = {
-        id: data.userId,
-        email: data.profile?.email || '',
-        name: data.profile?.name || 'User',
-        userType: data.userType,
-        referenceId: data.profile?.id.toString(),
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        userType: data.user.roles[0] as UserType, // Use first role as userType
+        referenceId: data.user.profile?.id.toString(),
       };
 
-      setAuth(user, data.accessToken, data.refreshToken, data.instanceId);
+      // Extract tenantId from JWT access token (for now use a placeholder)
+      const tenantId = '11111111-1111-1111-1111-111111111111'; // TODO: Extract from JWT
+
+      setAuth(user, data.accessToken, data.refreshToken, tenantId);
 
       // Store tokens in localStorage for API client interceptor
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('tenantId', data.instanceId);
+      localStorage.setItem('tenantId', tenantId);
 
       toast({
         title: 'Login successful',
