@@ -42,16 +42,9 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
 
     @Override
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
-        String path = exchange.getRequest().getPath().value();
-        String method = exchange.getRequest().getMethod().name();
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        log.warn("DEBUG SecurityContextRepository - Request: {} {}", method, path);
-        log.warn("DEBUG SecurityContextRepository - Authorization header: {}",
-                authHeader != null ? "Bearer [PRESENT]" : "MISSING");
-
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            log.warn("DEBUG SecurityContextRepository - No valid auth header, returning empty context");
             return Mono.empty();
         }
 
