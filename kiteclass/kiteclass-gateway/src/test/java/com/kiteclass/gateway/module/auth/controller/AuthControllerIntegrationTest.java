@@ -21,6 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.time.Instant;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests for {@link AuthController} with real database and full Spring context.
@@ -223,6 +228,57 @@ class AuthControllerIntegrationTest {
                 .jsonPath("$.success").isEqualTo(true)
                 .jsonPath("$.data.accessToken").exists()
                 .jsonPath("$.data.refreshToken").exists();
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/login - Refresh token persisted to database")
+    void shouldPersistRefreshTokenToDatabaseOnLogin() throws Exception {
+        // Given
+        LoginRequest loginRequest = new LoginRequest("owner@kiteclass.local", "Admin@123");
+
+        // When - Login
+        byte[] responseBody = webTestClient.post()
+                .uri("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(loginRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .returnResult()
+                .getResponseBody();
+
+        // Extract tokens from response
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        String refreshToken = jsonNode.get("data").get("refreshToken").asText();
+        Long userId = jsonNode.get("data").get("user").get("id").asLong();
+
+        // Then - Verify refresh token exists in database
+        refreshTokenRepository.findByToken(refreshToken)
+                .as(StepVerifier::create)
+                .assertNext(token -> {
+                    assertThat(token.getToken()).isEqualTo(refreshToken);
+                    assertThat(token.getUserId()).isEqualTo(userId);
+                    assertThat(token.getExpiresAt()).isAfter(Instant.now());
+                })
+                .verifyComplete();
+
+        // And - Verify token can be used for refresh
+        RefreshTokenRequest refreshRequest = new RefreshTokenRequest(refreshToken);
+        webTestClient.post()
+                .uri("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(refreshRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.success").isEqualTo(true)
+                .jsonPath("$.data.accessToken").exists()
+                .jsonPath("$.data.refreshToken").exists();
+
+        // And - Verify old token was deleted and new token exists
+        refreshTokenRepository.findByToken(refreshToken)
+                .as(StepVerifier::create)
+                .verifyComplete(); // Old token should be deleted
     }
 
     @Test
