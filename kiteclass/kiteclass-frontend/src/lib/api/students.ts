@@ -25,7 +25,7 @@ export const studentsApi = {
       '/api/v1/students',
       { params }
     );
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -33,7 +33,7 @@ export const studentsApi = {
    */
   getStudent: async (id: number): Promise<Student> => {
     const response = await apiClient.get<ApiResponse<Student>>(`/api/v1/students/${id}`);
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -41,7 +41,7 @@ export const studentsApi = {
    */
   createStudent: async (data: CreateStudentRequest): Promise<Student> => {
     const response = await apiClient.post<ApiResponse<Student>>('/api/v1/students', data);
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
@@ -55,7 +55,7 @@ export const studentsApi = {
       `/api/v1/students/${id}`,
       data
     );
-    return response.data.data; // Unwrap ApiResponse wrapper
+    return response.data.data!; // Unwrap ApiResponse wrapper
   },
 
   /**
