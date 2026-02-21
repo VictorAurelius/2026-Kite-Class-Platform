@@ -159,7 +159,7 @@ release/v1.0.0
 
 [optional footer]
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: VictorAurelius <vankiet14491@gmail.com>
 ```
 
 ### Commit Types
@@ -194,7 +194,7 @@ Tests:
 
 Files: 19 files
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: VictorAurelius <vankiet14491@gmail.com>
 
 # Bug fix
 fix(attendance): correct percentage calculation
@@ -238,7 +238,7 @@ Tests:
 
 Files: 15 files changed
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: VictorAurelius <vankiet14491@gmail.com>
 EOF
 )"
 ```
@@ -868,7 +868,7 @@ Tests:
 
 Files: 15 files changed
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: VictorAurelius <vankiet14491@gmail.com>
 EOF
 )"
 ```

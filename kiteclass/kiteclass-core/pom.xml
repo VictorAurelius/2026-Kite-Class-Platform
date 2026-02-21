@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.10</version>
+        <version>3.5.11</version>
         <relativePath/>
     </parent>
 
@@ -179,7 +179,14 @@
                     </annotationProcessorPaths>
                     <compilerArgs>
                         <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                        <!-- Treat deprecation warnings as visible in build output -->
+                        <arg>-Xlint:deprecation</arg>
+                        <!-- Show unchecked warnings -->
+                        <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
+                    <!-- Ensure warnings are shown in output -->
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>
