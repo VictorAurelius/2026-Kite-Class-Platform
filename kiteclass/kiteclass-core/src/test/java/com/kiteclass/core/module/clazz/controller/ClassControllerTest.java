@@ -6,7 +6,11 @@ import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
-import com.kiteclass.core.module.clazz.dto.*;
+import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
+import com.kiteclass.core.module.clazz.dto.ClassCodeResponse;
+import com.kiteclass.core.module.clazz.dto.ClassResponse;
+import com.kiteclass.core.module.clazz.dto.ClassSessionResponse;
+import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.service.ClassService;
 import com.kiteclass.core.testutil.ClassTestDataBuilder;
@@ -30,8 +34,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Unit tests for {@link ClassController}.
