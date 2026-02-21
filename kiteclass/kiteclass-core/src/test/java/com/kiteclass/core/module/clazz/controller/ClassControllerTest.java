@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.5.0
  */
 @WebMvcTest(ClassController.class)
+@ActiveProfiles("test")
 @Import({ ClassControllerTest.MockConfig.class, TestSecurityConfig.class, TestTenantContextFilter.class })
 @DisplayName("ClassController Tests")
 class ClassControllerTest {

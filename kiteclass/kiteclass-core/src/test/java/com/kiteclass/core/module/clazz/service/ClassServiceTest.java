@@ -135,8 +135,8 @@ class ClassServiceTest {
 
         @Test
         void createClass_shouldThrow_whenNameAlreadyExists() {
+                // classMapper.toEntity() is NOT called when name check throws first
                 when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(defaultCourse));
-                when(classMapper.toEntity(any())).thenReturn(defaultClass);
                 when(classRepository.existsByNameAndCourseIdAndInstanceIdAndDeletedFalse(
                                 any(), any(), any())).thenReturn(true);
 
@@ -152,8 +152,8 @@ class ClassServiceTest {
                                 LocalDate.of(2026, 5, 1),
                                 LocalDate.of(2026, 3, 1), // endDate < startDate
                                 20);
+                // classMapper.toEntity() is NOT called — validateDates() throws first
                 when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(defaultCourse));
-                when(classMapper.toEntity(any())).thenReturn(defaultClass);
                 when(classRepository.existsByNameAndCourseIdAndInstanceIdAndDeletedFalse(
                                 any(), any(), any())).thenReturn(false);
 
@@ -382,14 +382,15 @@ class ClassServiceTest {
                                         s.getStatus(), s.getAttendanceTaken());
                 });
 
-                // Mon-Wed-Fri schedule: 3 weeks = 9 sessions
+                // Mon-Wed-Fri: 2026-03-02(Mon) to 2026-03-16(Mon)
+                // Week1: 3/2, 3/4, 3/6 | Week2: 3/9, 3/11, 3/13 | Extra: 3/16 = 7 sessions
                 CreateScheduleRequest req = new CreateScheduleRequest(
                                 List.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY),
                                 LocalTime.of(18, 0), LocalTime.of(20, 0));
 
                 List<ClassSessionResponse> sessions = classService.createSchedule(1L, req);
 
-                assertThat(sessions).hasSize(9); // 3 weeks * 3 days
+                assertThat(sessions).hasSize(7); // 2 full weeks (6) + Mon 3/16 (1)
         }
 
         @Test
