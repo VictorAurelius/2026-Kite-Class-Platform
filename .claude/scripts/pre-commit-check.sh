@@ -7,11 +7,25 @@
 #
 # Or install as git hook:
 #   ln -s ../../.claude/scripts/pre-commit-check.sh .git/hooks/pre-commit
+#
+# Requirements:
+#   - Java 21 (JAVA_HOME must be set): ~/.local/java/jdk-21.0.5+11
+#   - Maven: ~/.m2/wrapper/dists/apache-maven-3.9.6/bin/mvn
+#   - Node.js + pnpm: for frontend checks
 
-set -e
+# NOTE: Do NOT use `set -e` here - we want to collect all violations
+# set -e
 
 echo "🔍 Running Skills Compliance Check..."
 echo ""
+
+# Auto-configure JAVA_HOME if not set
+if [ -z "$JAVA_HOME" ] && [ -d "$HOME/.local/java/jdk-21.0.5+11" ]; then
+    export JAVA_HOME="$HOME/.local/java/jdk-21.0.5+11"
+    export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
+MAVEN_CMD="$HOME/.m2/wrapper/dists/apache-maven-3.9.6/bin/mvn"
 
 # Colors for output
 RED='\033[0;31m'
@@ -221,7 +235,92 @@ fi
 echo ""
 
 # ==============================================================================
-# 9. Check Commit Message Length (note: full check in commit-msg hook)
+# 9. Check pom.xml Spring Boot Version (maven-dependencies.md)
+# ==============================================================================
+echo "📦 Checking pom.xml Spring Boot version..."
+
+APPROVED_SB_VERSION="3.5.11"
+POM_FILES_CHANGED=$(git diff --cached --name-only | grep "pom\.xml" || true)
+
+if [ -n "$POM_FILES_CHANGED" ]; then
+    SB_VERSION_VIOLATIONS=0
+    for pom in $POM_FILES_CHANGED; do
+        if [ -f "$pom" ]; then
+            # Get version from staged content
+            STAGED_VERSION=$(git show ":$pom" 2>/dev/null | grep -A2 "spring-boot-starter-parent" | grep "<version>" | head -1 | sed 's/.*<version>\(.*\)<\/version>.*/\1/' | tr -d ' ')
+            if [ -n "$STAGED_VERSION" ] && [ "$STAGED_VERSION" != "$APPROVED_SB_VERSION" ]; then
+                echo -e "${RED}❌ pom.xml Spring Boot version mismatch: found $STAGED_VERSION, expected $APPROVED_SB_VERSION${NC}"
+                echo "   File: $pom"
+                echo "   Update to: <version>$APPROVED_SB_VERSION</version>"
+                echo "   Skill: maven-dependencies.md"
+                SB_VERSION_VIOLATIONS=$((SB_VERSION_VIOLATIONS + 1))
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+        fi
+    done
+    if [ "$SB_VERSION_VIOLATIONS" -eq 0 ]; then
+        echo -e "${GREEN}✅ Spring Boot version OK ($APPROVED_SB_VERSION)${NC}"
+    fi
+else
+    echo -e "${GREEN}✅ No pom.xml changes to check${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 10. Java Compile + Checkstyle (IDE Problems Check)
+# ==============================================================================
+echo "☕ Checking Java compile + Checkstyle (IDE Problems)..."
+
+JAVA_FILES_CHANGED=$(git diff --cached --name-only | grep "\.java$" || true)
+STAGED_POM_CHANGED=$(git diff --cached --name-only | grep "pom\.xml" || true)
+
+if [ -n "$JAVA_FILES_CHANGED" ] || [ -n "$STAGED_POM_CHANGED" ]; then
+    if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ] && [ -f "$MAVEN_CMD" ]; then
+        # Determine which service was modified
+        CORE_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-core" | head -1 || true)
+        GATEWAY_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-gateway" | head -1 || true)
+
+        if [ -n "$CORE_CHANGED" ]; then
+            echo "   Compiling kiteclass-core..."
+            CORE_RESULT=$(JAVA_HOME="$JAVA_HOME" bash "$MAVEN_CMD" \
+                -f /mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml \
+                compile -q 2>&1 | tail -5)
+            if echo "$CORE_RESULT" | grep -q "BUILD SUCCESS\|up to date"; then
+                echo -e "${GREEN}   ✅ kiteclass-core: 0 checkstyle violations, compile OK${NC}"
+            else
+                CHECKSTYLE_ERRORS=$(JAVA_HOME="$JAVA_HOME" bash "$MAVEN_CMD" \
+                    -f /mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml \
+                    checkstyle:check 2>&1 | grep "\[ERROR\].*\.java" | head -10)
+                echo -e "${RED}❌ kiteclass-core compile/checkstyle FAILED:${NC}"
+                echo "$CHECKSTYLE_ERRORS"
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+        fi
+
+        if [ -n "$GATEWAY_CHANGED" ]; then
+            echo "   Compiling kiteclass-gateway..."
+            GATEWAY_RESULT=$(JAVA_HOME="$JAVA_HOME" bash "$MAVEN_CMD" \
+                -f /mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml \
+                compile -q 2>&1 | tail -5)
+            if echo "$GATEWAY_RESULT" | grep -q "BUILD SUCCESS\|up to date"; then
+                echo -e "${GREEN}   ✅ kiteclass-gateway: 0 checkstyle violations, compile OK${NC}"
+            else
+                echo -e "${RED}❌ kiteclass-gateway compile/checkstyle FAILED${NC}"
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Java/Maven not configured — skipping compile check${NC}"
+        echo "   Set JAVA_HOME to: ~/.local/java/jdk-21.0.5+11"
+        echo "   See: .claude/skills/ide-problem-check.md"
+    fi
+else
+    echo -e "${GREEN}✅ No Java files changed — skipping compile check${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 11. Check Commit Message Length (note: full check in commit-msg hook)
 # ==============================================================================
 echo "📏 Checking commit message length..."
 echo -e "${GREEN}✅ Commit message will be validated in commit-msg hook${NC}"

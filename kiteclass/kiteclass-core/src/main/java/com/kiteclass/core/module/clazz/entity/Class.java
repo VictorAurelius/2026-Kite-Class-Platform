@@ -3,7 +3,11 @@ package com.kiteclass.core.module.clazz.entity;
 import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -239,8 +243,12 @@ public class Class extends BaseEntity {
      * @return true if code exists and is not expired
      */
     public boolean isCodeValid() {
-        if (classCode == null) return false;
-        if (codeExpiresAt == null) return true;
+        if (classCode == null) {
+            return false;
+        }
+        if (codeExpiresAt == null) {
+            return true;
+        }
         return Instant.now().isBefore(codeExpiresAt);
     }
 

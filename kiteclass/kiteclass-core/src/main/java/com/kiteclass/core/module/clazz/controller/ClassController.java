@@ -2,7 +2,14 @@ package com.kiteclass.core.module.clazz.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.common.dto.PageResponse;
-import com.kiteclass.core.module.clazz.dto.*;
+import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
+import com.kiteclass.core.module.clazz.dto.ClassCodeResponse;
+import com.kiteclass.core.module.clazz.dto.ClassResponse;
+import com.kiteclass.core.module.clazz.dto.ClassSessionResponse;
+import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
+import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
+import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
+import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import com.kiteclass.core.module.clazz.service.ClassService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
