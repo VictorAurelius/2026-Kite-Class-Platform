@@ -57,7 +57,8 @@ class ClassMapperTest {
 
         assertThat(entity.getId()).isNull();
         assertThat(entity.getCourseId()).isNull();
-        assertThat(entity.getStatus()).isNull(); // set by service
+        // status is NOT mapped from request — @Builder.Default applies SCHEDULED
+        assertThat(entity.getStatus()).isEqualTo(ClassStatus.SCHEDULED);
     }
 
     @Test
