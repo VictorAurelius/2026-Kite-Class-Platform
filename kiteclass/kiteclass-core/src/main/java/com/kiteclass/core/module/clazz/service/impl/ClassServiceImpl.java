@@ -84,7 +84,7 @@ public class ClassServiceImpl implements ClassService {
         // Validate name uniqueness within course + tenant
         if (classRepository.existsByNameAndCourseIdAndInstanceIdAndDeletedFalse(
                 request.name(), courseId, tenantId)) {
-            throw new DuplicateResourceException("CLASS_NAME_EXISTS", request.name());
+            throw new DuplicateResourceException("CLASS_NAME_EXISTS", (Object) request.name());
         }
 
         // Validate dates (BR-CLASS-005)
@@ -136,7 +136,7 @@ public class ClassServiceImpl implements ClassService {
             if (request.name() != null && !request.name().equals(clazz.getName())) {
                 if (classRepository.existsByNameAndCourseIdAndInstanceIdAndDeletedFalse(
                         request.name(), clazz.getCourseId(), tenantId)) {
-                    throw new DuplicateResourceException("CLASS_NAME_EXISTS", request.name());
+                    throw new DuplicateResourceException("CLASS_NAME_EXISTS", (Object) request.name());
                 }
                 clazz.setName(request.name());
             }
@@ -295,7 +295,7 @@ public class ClassServiceImpl implements ClassService {
         if (request.customCode() != null && !request.customCode().isBlank()) {
             code = request.customCode().toUpperCase();
             if (classRepository.existsByClassCodeAndDeletedFalse(code)) {
-                throw new DuplicateResourceException("CLASS_CODE_EXISTS", code);
+                throw new DuplicateResourceException("CLASS_CODE_EXISTS", (Object) code);
             }
         } else {
             code = generateUniqueCode();
@@ -324,7 +324,6 @@ public class ClassServiceImpl implements ClassService {
             throw new ValidationException("CLASS_INVALID_TIME");
         }
 
-        UUID tenantId = TenantContext.getCurrentTenant();
         int maxSessionNumber = classSessionRepository.findMaxSessionNumberByClassId(classId);
         List<ClassSession> sessions = new ArrayList<>();
 
@@ -340,8 +339,8 @@ public class ClassServiceImpl implements ClassService {
                         .sessionDate(current)
                         .startTime(request.startTime())
                         .endTime(request.endTime())
-                        .instanceId(tenantId)
                         .build();
+                // instanceId is auto-set by EntityPersistenceListener from TenantContext
                 sessions.add(session);
             }
             current = current.plusDays(1);

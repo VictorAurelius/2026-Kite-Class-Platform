@@ -11,6 +11,11 @@ import org.mapstruct.Mapping;
 /**
  * MapStruct mapper for Class and ClassSession entities.
  *
+ * <p>Note: BaseEntity fields (id, instanceId, createdAt, updatedAt, createdBy,
+ * updatedBy, deleted, version) are NOT listed in @Mapping(ignore=true) because
+ * they are not exposed via the Lombok @Builder and MapStruct cannot target them.
+ * These fields are set by EntityPersistenceListener and JPA auditing.
+ *
  * @author KiteClass Team
  * @since 2.5.0
  */
@@ -19,12 +24,13 @@ public interface ClassMapper {
 
     /**
      * Maps CreateClassRequest to Class entity.
-     * courseId and status are set by the service layer.
+     *
+     * <p>Only Class-own fields are mapped; BaseEntity fields are excluded from
+     * the builder by Lombok and handled by EntityPersistenceListener / JPA.
      *
      * @param request the creation request
      * @return Class entity (not yet persisted)
      */
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "courseId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "currentEnrolled", ignore = true)
@@ -33,13 +39,6 @@ public interface ClassMapper {
     @Mapping(target = "startedAt", ignore = true)
     @Mapping(target = "completedAt", ignore = true)
     @Mapping(target = "cancelledAt", ignore = true)
-    @Mapping(target = "instanceId", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "version", ignore = true)
     Class toEntity(CreateClassRequest request);
 
     /**
