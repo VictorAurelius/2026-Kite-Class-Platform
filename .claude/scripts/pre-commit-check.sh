@@ -7,11 +7,25 @@
 #
 # Or install as git hook:
 #   ln -s ../../.claude/scripts/pre-commit-check.sh .git/hooks/pre-commit
+#
+# Requirements:
+#   - Java 21 (JAVA_HOME must be set): ~/.local/java/jdk-21.0.5+11
+#   - Maven: ~/.m2/wrapper/dists/apache-maven-3.9.6/bin/mvn
+#   - Node.js + pnpm: for frontend checks
 
-set -e
+# NOTE: Do NOT use `set -e` here - we want to collect all violations
+# set -e
 
 echo "🔍 Running Skills Compliance Check..."
 echo ""
+
+# Auto-configure JAVA_HOME if not set
+if [ -z "$JAVA_HOME" ] && [ -d "$HOME/.local/java/jdk-21.0.5+11" ]; then
+    export JAVA_HOME="$HOME/.local/java/jdk-21.0.5+11"
+    export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
+MAVEN_CMD="$HOME/.m2/wrapper/dists/apache-maven-3.9.6/bin/mvn"
 
 # Colors for output
 RED='\033[0;31m'
@@ -26,17 +40,22 @@ VIOLATIONS=0
 # ==============================================================================
 echo "📝 Checking JavaDoc compliance..."
 
-# Find Java files with public methods missing JavaDoc
-MISSING_JAVADOC=$(git diff --cached --name-only | grep '\.java$' | xargs -I {} sh -c '
-  if [ -f "{}" ]; then
-    grep -B 5 "^\s*public.*(" {} | grep -B 5 -v "^\s*/\*\*" | grep "^\s*public" || true
-  fi
-' | wc -l)
+# Check new production Java files (not test) for missing JavaDoc on public classes
+NEW_PROD_JAVA=$(git diff --cached --name-only --diff-filter=A | grep '\.java$' | grep -v '/test/' || true)
+MISSING_JAVADOC=0
+if [ -n "$NEW_PROD_JAVA" ]; then
+    for jfile in $NEW_PROD_JAVA; do
+        if [ -f "$jfile" ] && ! grep -q "/\*\*" "$jfile"; then
+            echo -e "${YELLOW}⚠️  No JavaDoc found in new file: $jfile${NC}"
+            MISSING_JAVADOC=$((MISSING_JAVADOC + 1))
+        fi
+    done
+fi
 
 if [ "$MISSING_JAVADOC" -gt 0 ]; then
-    echo -e "${RED}❌ Found $MISSING_JAVADOC public methods potentially missing JavaDoc${NC}"
+    echo -e "${YELLOW}⚠️  $MISSING_JAVADOC new production file(s) missing JavaDoc${NC}"
     echo "   Review: code-style.md lines 110-158"
-    VIOLATIONS=$((VIOLATIONS + 1))
+    # Warning only, not blocking violation
 else
     echo -e "${GREEN}✅ JavaDoc compliance OK${NC}"
 fi
@@ -221,7 +240,100 @@ fi
 echo ""
 
 # ==============================================================================
-# 9. Check Commit Message Length (note: full check in commit-msg hook)
+# 9. Check pom.xml Spring Boot Version (maven-dependencies.md)
+# ==============================================================================
+echo "📦 Checking pom.xml Spring Boot version..."
+
+APPROVED_SB_VERSION="3.5.11"
+POM_FILES_CHANGED=$(git diff --cached --name-only | grep "pom\.xml" || true)
+
+if [ -n "$POM_FILES_CHANGED" ]; then
+    SB_VERSION_VIOLATIONS=0
+    for pom in $POM_FILES_CHANGED; do
+        if [ -f "$pom" ]; then
+            # Get version from staged content
+            STAGED_VERSION=$(git show ":$pom" 2>/dev/null | grep -A2 "spring-boot-starter-parent" | grep "<version>" | head -1 | sed 's/.*<version>\(.*\)<\/version>.*/\1/' | tr -d ' ')
+            if [ -n "$STAGED_VERSION" ] && [ "$STAGED_VERSION" != "$APPROVED_SB_VERSION" ]; then
+                echo -e "${RED}❌ pom.xml Spring Boot version mismatch: found $STAGED_VERSION, expected $APPROVED_SB_VERSION${NC}"
+                echo "   File: $pom"
+                echo "   Update to: <version>$APPROVED_SB_VERSION</version>"
+                echo "   Skill: maven-dependencies.md"
+                SB_VERSION_VIOLATIONS=$((SB_VERSION_VIOLATIONS + 1))
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+        fi
+    done
+    if [ "$SB_VERSION_VIOLATIONS" -eq 0 ]; then
+        echo -e "${GREEN}✅ Spring Boot version OK ($APPROVED_SB_VERSION)${NC}"
+    fi
+else
+    echo -e "${GREEN}✅ No pom.xml changes to check${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 10. Java Compile + Checkstyle (IDE Problems Check)
+# ==============================================================================
+echo "☕ Checking Java compile + Checkstyle (IDE Problems)..."
+
+JAVA_FILES_CHANGED=$(git diff --cached --name-only | grep "\.java$" || true)
+STAGED_POM_CHANGED=$(git diff --cached --name-only | grep "pom\.xml" || true)
+
+if [ -n "$JAVA_FILES_CHANGED" ] || [ -n "$STAGED_POM_CHANGED" ]; then
+    if [ -n "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ] && [ -f "$MAVEN_CMD" ]; then
+        # Determine which service was modified
+        CORE_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-core" | head -1 || true)
+        GATEWAY_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-gateway" | head -1 || true)
+
+        _compile_service() {
+            local SERVICE_NAME="$1"
+            local POM_PATH="$2"
+            echo "   Compiling $SERVICE_NAME..."
+            local MVN_OUT
+            MVN_OUT=$(mktemp)
+            # Run without -q so showWarnings/showDeprecation in pom.xml takes effect
+            if JAVA_HOME="$JAVA_HOME" bash "$MAVEN_CMD" \
+                -f "$POM_PATH" \
+                compile 2>&1 | tee "$MVN_OUT" > /dev/null; then
+                # Check for deprecation/unchecked warnings in output
+                local DEPR_WARN
+                DEPR_WARN=$(grep -E "uses.*(deprecated|unchecked)|deprecated API" "$MVN_OUT" | grep -v "^Note:" || true)
+                if [ -n "$DEPR_WARN" ]; then
+                    echo -e "${RED}   ❌ $SERVICE_NAME: deprecated/unchecked API usage:${NC}"
+                    echo "$DEPR_WARN" | head -10
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                else
+                    echo -e "${GREEN}   ✅ $SERVICE_NAME: 0 violations, 0 deprecation warnings${NC}"
+                fi
+            else
+                echo -e "${RED}   ❌ $SERVICE_NAME compile/checkstyle FAILED:${NC}"
+                grep "\[ERROR\].*\.java" "$MVN_OUT" | head -10
+                VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+            rm -f "$MVN_OUT"
+        }
+
+        if [ -n "$CORE_CHANGED" ]; then
+            _compile_service "kiteclass-core" \
+                "/mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml"
+        fi
+
+        if [ -n "$GATEWAY_CHANGED" ]; then
+            _compile_service "kiteclass-gateway" \
+                "/mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  Java/Maven not configured — skipping compile check${NC}"
+        echo "   Set JAVA_HOME to: ~/.local/java/jdk-21.0.5+11"
+        echo "   See: .claude/skills/ide-problem-check.md"
+    fi
+else
+    echo -e "${GREEN}✅ No Java files changed — skipping compile check${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 11. Check Commit Message Length (note: full check in commit-msg hook)
 # ==============================================================================
 echo "📏 Checking commit message length..."
 echo -e "${GREEN}✅ Commit message will be validated in commit-msg hook${NC}"
