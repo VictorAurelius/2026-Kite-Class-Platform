@@ -4,9 +4,9 @@ import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
-import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.dto.*;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.entity.ClassSession;
@@ -35,6 +35,9 @@ import java.util.UUID;
 /**
  * Implementation of ClassService for managing class lifecycle.
  *
+ * <p>All error messages are resolved from messages.properties / messages_vi.properties
+ * using error codes. No hard-coded messages in service layer.
+ *
  * @author KiteClass Team
  * @since 2.5.0
  */
@@ -42,11 +45,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ClassServiceImpl implements ClassService {
-
-    private static final String CLASS_NOT_FOUND = "CLASS_NOT_FOUND";
-    private static final String COURSE_NOT_FOUND = "COURSE_NOT_FOUND";
-    private static final String CLASS_CODE_EXISTS = "CLASS_CODE_EXISTS";
-    private static final String CLASS_NAME_EXISTS = "CLASS_NAME_EXISTS";
 
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
@@ -64,22 +62,22 @@ public class ClassServiceImpl implements ClassService {
 
         UUID tenantId = TenantContext.getCurrentTenant();
 
-        // Validate course exists and is not ARCHIVED
+        // Validate course exists (BR-CLASS-001)
         Course course = courseRepository.findByIdAndDeletedFalse(courseId)
-                .orElseThrow(() -> new EntityNotFoundException(COURSE_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
 
+        // Validate course is not ARCHIVED (BR-CLASS-001)
         if (CourseStatus.ARCHIVED.equals(course.getStatus())) {
-            throw new BusinessException("CLASS_COURSE_ARCHIVED",
-                    "Không thể tạo lớp học cho khóa học đã lưu trữ");
+            throw new ValidationException("CLASS_COURSE_ARCHIVED");
         }
 
-        // Validate name uniqueness within course and tenant
+        // Validate name uniqueness within course + tenant
         if (classRepository.existsByNameAndCourseIdAndInstanceIdAndDeletedFalse(
                 request.name(), courseId, tenantId)) {
-            throw new DuplicateResourceException(CLASS_NAME_EXISTS, request.name());
+            throw new DuplicateResourceException("CLASS_NAME_EXISTS", request.name());
         }
 
-        // Validate dates
+        // Validate dates (BR-CLASS-005)
         validateDates(request.startDate(), request.endDate());
 
         // Build entity
@@ -89,7 +87,6 @@ public class ClassServiceImpl implements ClassService {
         clazz.setCurrentEnrolled(0);
         clazz.setInstanceId(tenantId);
 
-        // Apply defaults
         if (clazz.getLocationType() == null) {
             clazz.setLocationType(Class.LocationType.IN_PERSON);
         }
@@ -111,13 +108,12 @@ public class ClassServiceImpl implements ClassService {
         UUID tenantId = TenantContext.getCurrentTenant();
         Class clazz = findClassOrThrow(classId);
 
-        // COMPLETED/CANCELLED classes are read-only
+        // COMPLETED/CANCELLED are read-only (BR-CLASS-006)
         if (clazz.getStatus() == ClassStatus.COMPLETED || clazz.getStatus() == ClassStatus.CANCELLED) {
-            throw new BusinessException("CLASS_READ_ONLY",
-                    "Không thể chỉnh sửa lớp học đã " + clazz.getStatus().getDisplayNameVi());
+            throw new ValidationException("CLASS_READ_ONLY", clazz.getStatus());
         }
 
-        // Update allowed fields
+        // Always-allowed updates
         if (request.description() != null) {
             clazz.setDescription(request.description());
         }
@@ -125,13 +121,12 @@ public class ClassServiceImpl implements ClassService {
             clazz.setLocationDetail(request.locationDetail());
         }
 
-        // Schedule-related fields: only for SCHEDULED classes
         if (clazz.getStatus() == ClassStatus.SCHEDULED) {
+            // All fields editable when SCHEDULED
             if (request.name() != null && !request.name().equals(clazz.getName())) {
-                // Check name uniqueness
                 if (classRepository.existsByNameAndCourseIdAndInstanceIdAndDeletedFalse(
                         request.name(), clazz.getCourseId(), tenantId)) {
-                    throw new DuplicateResourceException(CLASS_NAME_EXISTS, request.name());
+                    throw new DuplicateResourceException("CLASS_NAME_EXISTS", request.name());
                 }
                 clazz.setName(request.name());
             }
@@ -149,19 +144,17 @@ public class ClassServiceImpl implements ClassService {
             }
             validateDates(clazz.getStartDate(), clazz.getEndDate());
         } else {
-            // IN_PROGRESS: block schedule/date changes
+            // IN_PROGRESS: schedule/dates are locked (BR-CLASS-006)
             if (request.schedule() != null || request.startDate() != null || request.endDate() != null) {
-                throw new BusinessException("CLASS_SCHEDULE_LOCKED",
-                        "Không thể thay đổi lịch học của lớp đang diễn ra");
+                throw new ValidationException("CLASS_SCHEDULE_LOCKED");
             }
         }
 
-        // Max students: can increase anytime, can decrease only if >= current_enrolled
+        // Max students: can reduce only if still >= current_enrolled (BR-CLASS-003)
         if (request.maxStudents() != null) {
             if (request.maxStudents() < clazz.getCurrentEnrolled()) {
-                throw new BusinessException("CLASS_CAPACITY_VIOLATION",
-                        "Số học sinh tối đa không thể nhỏ hơn số học sinh hiện tại: "
-                                + clazz.getCurrentEnrolled());
+                throw new ValidationException("CLASS_CAPACITY_VIOLATION",
+                        (Object) clazz.getCurrentEnrolled());
             }
             clazz.setMaxStudents(request.maxStudents());
         }
@@ -207,9 +200,7 @@ public class ClassServiceImpl implements ClassService {
         Class clazz = findClassOrThrow(classId);
 
         if (!clazz.canStart()) {
-            throw new BusinessException("CLASS_CANNOT_START",
-                    "Chỉ có thể bắt đầu lớp học ở trạng thái SCHEDULED. Trạng thái hiện tại: "
-                            + clazz.getStatus().getDisplayNameVi());
+            throw new ValidationException("CLASS_CANNOT_START", clazz.getStatus());
         }
 
         clazz.setStatus(ClassStatus.IN_PROGRESS);
@@ -229,9 +220,7 @@ public class ClassServiceImpl implements ClassService {
         Class clazz = findClassOrThrow(classId);
 
         if (!clazz.canComplete()) {
-            throw new BusinessException("CLASS_CANNOT_COMPLETE",
-                    "Chỉ có thể hoàn thành lớp học đang diễn ra. Trạng thái hiện tại: "
-                            + clazz.getStatus().getDisplayNameVi());
+            throw new ValidationException("CLASS_CANNOT_COMPLETE", clazz.getStatus());
         }
 
         clazz.setStatus(ClassStatus.COMPLETED);
@@ -251,8 +240,7 @@ public class ClassServiceImpl implements ClassService {
         Class clazz = findClassOrThrow(classId);
 
         if (!clazz.canCancel()) {
-            throw new BusinessException("CLASS_CANNOT_CANCEL",
-                    "Không thể hủy lớp học đã " + clazz.getStatus().getDisplayNameVi());
+            throw new ValidationException("CLASS_CANNOT_CANCEL", clazz.getStatus());
         }
 
         clazz.setStatus(ClassStatus.CANCELLED);
@@ -271,19 +259,16 @@ public class ClassServiceImpl implements ClassService {
 
         Class clazz = findClassOrThrow(classId);
 
-        if (!clazz.canDelete()) {
-            if (clazz.getStatus() != ClassStatus.SCHEDULED) {
-                throw new BusinessException("CLASS_CANNOT_DELETE",
-                        "Chỉ có thể xóa lớp học ở trạng thái SCHEDULED");
-            }
-            throw new BusinessException("CLASS_HAS_STUDENTS",
-                    "Không thể xóa lớp học đã có học sinh. Hãy hủy lớp học thay vì xóa");
+        if (clazz.getStatus() != ClassStatus.SCHEDULED) {
+            throw new ValidationException("CLASS_CANNOT_DELETE", clazz.getStatus());
         }
 
-        // Soft delete sessions first
-        classSessionRepository.softDeleteByClassId(classId);
+        if (clazz.getCurrentEnrolled() > 0) {
+            throw new ValidationException("CLASS_HAS_STUDENTS",
+                    (Object) clazz.getCurrentEnrolled());
+        }
 
-        // Soft delete class
+        classSessionRepository.softDeleteByClassId(classId);
         clazz.markAsDeleted();
         classRepository.save(clazz);
         log.info("Class deleted: id={}", classId);
@@ -298,13 +283,11 @@ public class ClassServiceImpl implements ClassService {
 
         String code;
         if (request.customCode() != null && !request.customCode().isBlank()) {
-            // Use custom code - validate uniqueness
             code = request.customCode().toUpperCase();
             if (classRepository.existsByClassCodeAndDeletedFalse(code)) {
-                throw new DuplicateResourceException(CLASS_CODE_EXISTS, code);
+                throw new DuplicateResourceException("CLASS_CODE_EXISTS", code);
             }
         } else {
-            // Auto-generate unique code
             code = generateUniqueCode();
         }
 
@@ -324,13 +307,11 @@ public class ClassServiceImpl implements ClassService {
         Class clazz = findClassOrThrow(classId);
 
         if (clazz.getStartDate() == null || clazz.getEndDate() == null) {
-            throw new BusinessException("CLASS_NO_DATES",
-                    "Lớp học phải có ngày bắt đầu và kết thúc trước khi tạo lịch học");
+            throw new ValidationException("CLASS_NO_DATES");
         }
 
         if (!request.endTime().isAfter(request.startTime())) {
-            throw new BusinessException("CLASS_INVALID_TIME",
-                    "Giờ kết thúc phải sau giờ bắt đầu");
+            throw new ValidationException("CLASS_INVALID_TIME");
         }
 
         UUID tenantId = TenantContext.getCurrentTenant();
@@ -340,7 +321,6 @@ public class ClassServiceImpl implements ClassService {
         LocalDate current = clazz.getStartDate();
         int sessionNumber = maxSessionNumber + 1;
 
-        // Loop from startDate to endDate, generate a session for each matching day
         while (!current.isAfter(clazz.getEndDate())) {
             DayOfWeek currentDay = current.getDayOfWeek();
             if (request.daysOfWeek().contains(currentDay)) {
@@ -382,13 +362,12 @@ public class ClassServiceImpl implements ClassService {
 
     private Class findClassOrThrow(Long classId) {
         return classRepository.findByIdAndDeletedFalse(classId)
-                .orElseThrow(() -> new EntityNotFoundException(CLASS_NOT_FOUND));
+                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId));
     }
 
     private void validateDates(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
-            throw new BusinessException("CLASS_INVALID_DATES",
-                    "Ngày kết thúc phải sau ngày bắt đầu");
+            throw new ValidationException("CLASS_INVALID_DATES");
         }
     }
 
@@ -397,8 +376,7 @@ public class ClassServiceImpl implements ClassService {
         int attempts = 0;
         do {
             if (attempts++ > 20) {
-                throw new BusinessException("CLASS_CODE_GENERATION_FAILED",
-                        "Không thể tạo mã lớp học duy nhất. Vui lòng thử lại.");
+                throw new ValidationException("CLASS_CODE_GENERATION_FAILED");
             }
             code = randomCode();
         } while (classRepository.existsByClassCodeAndDeletedFalse(code));
