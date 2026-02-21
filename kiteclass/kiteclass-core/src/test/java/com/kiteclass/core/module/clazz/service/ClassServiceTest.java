@@ -7,7 +7,13 @@ import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
-import com.kiteclass.core.module.clazz.dto.*;
+import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
+import com.kiteclass.core.module.clazz.dto.ClassCodeResponse;
+import com.kiteclass.core.module.clazz.dto.ClassResponse;
+import com.kiteclass.core.module.clazz.dto.ClassSessionResponse;
+import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
+import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
+import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.entity.ClassSession;
 import com.kiteclass.core.module.clazz.mapper.ClassMapper;
@@ -39,7 +45,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link ClassServiceImpl}.

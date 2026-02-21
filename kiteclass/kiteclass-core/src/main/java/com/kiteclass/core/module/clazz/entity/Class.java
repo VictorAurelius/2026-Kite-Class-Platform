@@ -245,9 +245,39 @@ public class Class extends BaseEntity {
     }
 
     /**
-     * Enum for class location type.
+     * Location type for a class.
+     *
+     * <p>Determines whether the class is held in person or online.
      */
     public enum LocationType {
-        IN_PERSON, ONLINE
+
+        IN_PERSON("Trực tiếp", "Class held in physical classroom"),
+        ONLINE("Trực tuyến", "Class held online via video conference");
+
+        private final String displayNameVi;
+        private final String description;
+
+        LocationType(String displayNameVi, String description) {
+            this.displayNameVi = displayNameVi;
+            this.description = description;
+        }
+
+        /**
+         * Returns Vietnamese display name.
+         *
+         * @return display name in Vietnamese
+         */
+        public String getDisplayNameVi() {
+            return displayNameVi;
+        }
+
+        /**
+         * Returns description of this location type.
+         *
+         * @return description
+         */
+        public String getDescription() {
+            return description;
+        }
     }
 }

@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.security.SecureRandom;
 import java.time.DayOfWeek;
@@ -43,11 +44,13 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
+@Validated
 @RequiredArgsConstructor
 public class ClassServiceImpl implements ClassService {
 
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
+    private static final int MAX_CODE_GENERATION_ATTEMPTS = 20;
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final ClassRepository classRepository;
@@ -375,7 +378,7 @@ public class ClassServiceImpl implements ClassService {
         String code;
         int attempts = 0;
         do {
-            if (attempts++ > 20) {
+            if (attempts++ > MAX_CODE_GENERATION_ATTEMPTS) {
                 throw new ValidationException("CLASS_CODE_GENERATION_FAILED");
             }
             code = randomCode();

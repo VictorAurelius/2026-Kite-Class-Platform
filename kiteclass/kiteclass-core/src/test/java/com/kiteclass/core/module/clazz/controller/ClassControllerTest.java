@@ -11,11 +11,15 @@ import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.service.ClassService;
 import com.kiteclass.core.testutil.ClassTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,7 +28,8 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -35,8 +40,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.5.0
  */
 @WebMvcTest(ClassController.class)
-@Import({TestSecurityConfig.class, TestTenantContextFilter.class})
+@Import({ClassControllerTest.MockConfig.class, TestSecurityConfig.class, TestTenantContextFilter.class})
+@DisplayName("ClassController Tests")
 class ClassControllerTest {
+
+    @TestConfiguration
+    static class MockConfig {
+        @Bean
+        @Primary
+        public ClassService classService() {
+            return Mockito.mock(ClassService.class);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,13 +59,14 @@ class ClassControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private ClassService classService;
 
     private ClassResponse defaultResponse;
 
     @BeforeEach
     void setUp() {
+        Mockito.reset(classService);
         com.kiteclass.core.module.clazz.entity.Class clazz =
                 ClassTestDataBuilder.createDefaultClass();
         defaultResponse = new ClassResponse(
@@ -66,6 +82,7 @@ class ClassControllerTest {
     // =========================================================================
 
     @Test
+    @DisplayName("createClass should return 201 with valid request")
     void createClass_shouldReturn201_withValidRequest() throws Exception {
         when(classService.createClass(eq(1L), any())).thenReturn(defaultResponse);
 
@@ -79,6 +96,7 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("createClass should return 400 when name too short")
     void createClass_shouldReturn400_whenNameTooShort() throws Exception {
         CreateClassRequest badRequest = new CreateClassRequest(
                 "AB", null, null, null, null, null, null, 10);
@@ -90,6 +108,7 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("createClass should return 400 when maxStudents is zero")
     void createClass_shouldReturn400_whenMaxStudentsZero() throws Exception {
         CreateClassRequest badRequest = new CreateClassRequest(
                 "Valid Name", null, null, null, null, null, null, 0);
@@ -105,6 +124,7 @@ class ClassControllerTest {
     // =========================================================================
 
     @Test
+    @DisplayName("getClass should return 200 when class found")
     void getClass_shouldReturn200_whenFound() throws Exception {
         when(classService.getClass(1L)).thenReturn(defaultResponse);
 
@@ -115,6 +135,7 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("getClass should return 404 when class not found")
     void getClass_shouldReturn404_whenNotFound() throws Exception {
         when(classService.getClass(999L))
                 .thenThrow(new EntityNotFoundException("CLASS_NOT_FOUND"));
@@ -128,6 +149,7 @@ class ClassControllerTest {
     // =========================================================================
 
     @Test
+    @DisplayName("startClass should return 200 when class is SCHEDULED")
     void startClass_shouldReturn200_whenScheduled() throws Exception {
         ClassResponse inProgressResponse = new ClassResponse(
                 1L, 1L, "English B1", null, null, Class.LocationType.IN_PERSON, null,
@@ -141,16 +163,18 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("startClass should return 400 when class already started")
     void startClass_shouldReturn400_whenAlreadyStarted() throws Exception {
         when(classService.startClass(1L))
                 .thenThrow(new BusinessException("CLASS_CANNOT_START",
-                        "Lớp học đã bắt đầu rồi"));
+                        org.springframework.http.HttpStatus.BAD_REQUEST));
 
         mockMvc.perform(post("/api/v1/classes/1/start"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @DisplayName("completeClass should return 200 with COMPLETED status")
     void completeClass_shouldReturn200_whenInProgress() throws Exception {
         ClassResponse completedResponse = new ClassResponse(
                 1L, 1L, "English B1", null, null, Class.LocationType.IN_PERSON, null,
@@ -164,6 +188,7 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("cancelClass should return 200 when reason provided")
     void cancelClass_shouldReturn200_withReason() throws Exception {
         ClassResponse cancelledResponse = new ClassResponse(
                 1L, 1L, "English B1", null, null, Class.LocationType.IN_PERSON, null,
@@ -180,6 +205,7 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("cancelClass should return 400 when reason is blank")
     void cancelClass_shouldReturn400_whenReasonBlank() throws Exception {
         CancelClassRequest badRequest = new CancelClassRequest("");
 
@@ -194,6 +220,7 @@ class ClassControllerTest {
     // =========================================================================
 
     @Test
+    @DisplayName("deleteClass should return 204 when deleted")
     void deleteClass_shouldReturn204_whenDeleted() throws Exception {
         doNothing().when(classService).deleteClass(1L);
 
@@ -206,6 +233,7 @@ class ClassControllerTest {
     // =========================================================================
 
     @Test
+    @DisplayName("generateCode should return 200 with generated code")
     void generateCode_shouldReturn200_withCode() throws Exception {
         when(classService.generateClassCode(eq(1L), any()))
                 .thenReturn(new ClassCodeResponse("ABC12345", null));
@@ -223,6 +251,7 @@ class ClassControllerTest {
     // =========================================================================
 
     @Test
+    @DisplayName("createSchedule should return 201 with generated sessions")
     void createSchedule_shouldReturn201_withSessions() throws Exception {
         List<ClassSessionResponse> sessions = List.of(
                 new ClassSessionResponse(1L, 1L, 1, null, null, null, null, null, null, false),
@@ -240,6 +269,7 @@ class ClassControllerTest {
     }
 
     @Test
+    @DisplayName("listSessions should return 200 with session list")
     void listSessions_shouldReturn200_withSessionList() throws Exception {
         when(classService.listSessions(1L)).thenReturn(List.of());
 
