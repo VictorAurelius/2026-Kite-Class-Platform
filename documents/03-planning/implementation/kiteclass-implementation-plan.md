@@ -180,7 +180,7 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 2.4: Course Module** *(PR-REVIEW-1.2 complete)*
 - ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 - ✅ **PR 2.12: Spring Boot 3.5.10 Upgrade** *(PR-REVIEW-2.5 complete)*
-- ⏳ PR 2.5: Class Module
+- ✅ **PR 2.5: Class Module** *(KC-003, merged 2026-02-22, 42 tests)*
 - ⏳ PR 2.6: Enrollment Module
 - ⏳ PR 2.7: Attendance Module
 - ⏳ PR 2.7.1: Assignment Module
@@ -190,18 +190,19 @@ Every PR must meet these quality gates before merge:
 - ⏳ PR 2.9: Settings & Preferences
 - ⏳ PR 2.10: Core Docker & Final Integration
 
-**Core Status:** 7/15 PRs completed (46.7%)
-**Tests:** 229 passing (197 unit + 32 integration), 0 failures
-**Spring Boot:** ✅ 3.5.10 (matches Gateway version)
-**Latest Modules Complete:**
+**Core Status:** 8/15 PRs completed (53.3%) — Last updated: 2026-02-22
+**Tests:** 292 passing (260 unit + 32 integration), 0 failures
+**Spring Boot:** ✅ 3.5.11
+**Modules Complete:**
 - ✅ Student Module: CRUD, multi-tenant, validation, soft delete
 - ✅ Teacher Module: CRUD, status management (ACTIVE/ON_LEAVE/TERMINATED), multi-tenant
 - ✅ Course Module: CRUD, lifecycle (DRAFT → PUBLISHED → ARCHIVED), soft delete restrictions
+- ✅ **Class Module (PR 2.5):** CRUD, lifecycle (SCHEDULED → IN_PROGRESS → COMPLETED), class code generation, schedule/sessions, 42 tests
 **Cross-Service APIs Ready:**
 - ✅ GET /internal/students/{id} - Retrieve student profile
 - ✅ POST /internal/students - Create student during registration
 - ✅ DELETE /internal/students/{id} - Soft delete student
-**🚨 NEXT PRIORITY:** PR 1.8 Gateway Integration (now unblocked)
+**🚨 NEXT PRIORITY:** PR 2.6 Enrollment Module (dependencies met: Student ✅, Class ✅)
 
 **New PRs Added (2026-01-28):**
 - PR 2.3.1: Teacher Module (BLOCKING for Course/Class) - from teacher-module-business-logic.md
@@ -1490,11 +1491,13 @@ Thực hiện Course Module của kiteclass-core-service-plan.md.
 - Class Module: Classes reference course_id
 ```
 
-## ⏳ PR 2.5 - Class Module
+## ✅ PR 2.5 - Class Module
 
-**Status:** ⏳ NOT STARTED
-**Dependencies:** PR 2.3.1 Teacher Module, PR 2.4 Course Module
+**Status:** ✅ MERGED (2026-02-22) — Branch: KC-003 — PR #5
+**Dependencies:** PR 2.3.1 Teacher Module ✅, PR 2.4 Course Module ✅
 **Business Logic:** docs/modules/class-module-business-logic.md
+**Tests:** 42 (ServiceTest 27, ControllerTest 14, IntegrationTest 11, MapperTest 4)
+**Migration:** V7__create_class_tables.sql
 
 ```
 Thực hiện Class Module của kiteclass-core-service-plan.md.

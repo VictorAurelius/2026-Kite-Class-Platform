@@ -1,7 +1,7 @@
 # Skills Compliance Checklist
 
-**Version:** 1.1
-**Last Updated:** 2026-01-27
+**Version:** 1.3
+**Last Updated:** 2026-02-22
 **Purpose:** Ensure ALL project skills are verified after EVERY PR before committing
 
 ---
@@ -26,6 +26,15 @@
    - Stage all modified files: `git add -A`
    - Commit with proper message format
    - Include Co-Authored-By line
+
+4. ✅ **Update MEMORY.md** → `~/.claude/projects/-mnt-e-2026-Kite-Class-Platform/memory/MEMORY.md`
+   - Add new patterns discovered during this PR
+   - Update project state (PR counts, test counts)
+   - Add any new "NEVER DO" rules found
+
+5. ✅ **Update CURRENT-STATUS.md** → `documents/04-implementation/CURRENT-STATUS.md`
+   - Mark PR as completed with merge date
+   - Update next priority queue
 
 **WHY THIS IS CRITICAL:**
 - If conversation runs out of context, the status must be preserved
@@ -188,7 +197,7 @@ git diff pom.xml
 ```
 
 **Requirements:**
-- [ ] Spring Boot version: **3.5.10** (not 3.2.x)
+- [ ] Spring Boot version: **3.5.11** (not 3.5.10 or older)
 - [ ] JJWT version: **0.12.6** (not 0.12.3)
 - [ ] MapStruct version: **1.6.3** (not 1.5.5)
 - [ ] SpringDoc version: **2.8.4** (not 2.3.0)
@@ -200,6 +209,40 @@ git diff pom.xml
 - Using outdated dependency versions
 - Adding unnecessary dependencies
 - Wrong scope for dependencies
+
+---
+
+---
+
+### Phase 2.5: IDE Problem Check (MANDATORY — Learned from PR 2.5)
+
+**Run BEFORE every commit with Java changes:**
+
+```bash
+# Core Service — compile + checkstyle + deprecation check
+JAVA_HOME=/home/vkiet/.local/java/jdk-21.0.5+11 \
+  bash ~/.m2/wrapper/dists/apache-maven-3.9.6/bin/mvn \
+  -f /mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml \
+  compile 2>&1 | grep -E "ERROR|deprecated|warning:" | grep -v Download
+
+# Gateway Service (same pattern, different pom path)
+```
+
+**Requirements — all must pass:**
+- [ ] 0 Checkstyle violations (wildcard imports, NeedBraces, etc.)
+- [ ] 0 deprecation warnings (`-Xlint:deprecation` enabled in pom.xml)
+- [ ] BUILD SUCCESS
+
+**Critical patterns to check before coding:**
+- [ ] No `@Mapping(ignore=true)` for BaseEntity fields (id, instanceId, createdAt, etc.)
+- [ ] No `.instanceId()` / `.id()` on Lombok builders (BaseEntity fields not in builder)
+- [ ] All single-arg exception calls use `new Object[0]` or `(Object)` cast to avoid deprecated ctor
+- [ ] `@ActiveProfiles("test")` on all `@WebMvcTest` controller tests
+- [ ] `@ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)` on all `@SpringBootTest` integration tests
+- [ ] No unnecessary stubs (Mockito strict mode = UnnecessaryStubbingException)
+- [ ] `@Builder.Default` fields are never null in tests — assert the default value
+
+See: `ide-problem-check.md` for full guide.
 
 ---
 
