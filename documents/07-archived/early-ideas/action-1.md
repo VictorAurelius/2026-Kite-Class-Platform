@@ -1090,3 +1090,8 @@ Cụ thể còn warning chưa được phát hiện:
 ClassServiceImpl: The constructor ValidationException(String) is deprecated
 
 commit all file changing
+
+1. commit 2 file đang staged và không phải check lại CI
+2. cập nhật hết status vào master plan và các file liên quan
+3. cập nhật hết các kinh nghiệm sau PR 2.5 này để tránh mắc phải trong các PR sau gây tốn token
+4. cập nhật lại settings.local của claude để cấp quyền bao quát hơn, tránh hỏi quyền trong tương lai

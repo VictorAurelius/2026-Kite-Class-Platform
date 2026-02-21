@@ -6,9 +6,6 @@ import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
-import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
-import com.kiteclass.core.module.clazz.dto.ClassCodeResponse;
-import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
@@ -46,7 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for Class module.
  *
- * <p>Tests the full stack: Controller → Service → Repository → Database.
+ * <p>
+ * Tests the full stack: Controller → Service → Repository → Database.
  *
  * @author KiteClass Team
  * @since 2.5.0
@@ -54,258 +52,264 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
+@Import({ TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class })
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class ClassIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private ClassRepository classRepository;
-    @Autowired private ClassSessionRepository sessionRepository;
-    @Autowired private CourseRepository courseRepository;
+        @Autowired
+        private MockMvc mockMvc;
+        @Autowired
+        private ObjectMapper objectMapper;
+        @Autowired
+        private ClassRepository classRepository;
+        @Autowired
+        private ClassSessionRepository sessionRepository;
+        @Autowired
+        private CourseRepository courseRepository;
 
-    private Course savedCourse;
-    private final UUID tenantId = ClassTestDataBuilder.DEFAULT_TENANT;
+        private Course savedCourse;
+        private final UUID tenantId = ClassTestDataBuilder.DEFAULT_TENANT;
 
-    @BeforeEach
-    void setUp() {
-        // Set TenantContext so EntityPersistenceListener can auto-set instanceId
-        TenantContext.setCurrentTenant(tenantId);
-        try {
-            Course course = CourseTestDataBuilder.createDefaultCourse();
-            course.setId(null);
-            course.setTeacherId(null); // FK to teachers table — no teacher needed for class tests
-            course.setStatus(CourseStatus.PUBLISHED);
-            // instanceId auto-set by EntityPersistenceListener from TenantContext
-            savedCourse = courseRepository.save(course);
-        } finally {
-            TenantContext.clear();
+        @BeforeEach
+        void setUp() {
+                // Set TenantContext so EntityPersistenceListener can auto-set instanceId
+                TenantContext.setCurrentTenant(tenantId);
+                try {
+                        Course course = CourseTestDataBuilder.createDefaultCourse();
+                        course.setId(null);
+                        course.setTeacherId(null); // FK to teachers table — no teacher needed for class tests
+                        course.setStatus(CourseStatus.PUBLISHED);
+                        // instanceId auto-set by EntityPersistenceListener from TenantContext
+                        savedCourse = courseRepository.save(course);
+                } finally {
+                        TenantContext.clear();
+                }
         }
-    }
 
-    // =========================================================================
-    // Create class
-    // =========================================================================
+        // =========================================================================
+        // Create class
+        // =========================================================================
 
-    @Test
-    void createClass_shouldPersistToDatabase() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                ClassTestDataBuilder.createDefaultCreateRequest());
+        @Test
+        void createClass_shouldPersistToDatabase() throws Exception {
+                String requestBody = objectMapper.writeValueAsString(
+                                ClassTestDataBuilder.createDefaultCreateRequest());
 
-        mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.status").value("SCHEDULED"))
-                .andExpect(jsonPath("$.data.currentEnrolled").value(0));
+                mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.status").value("SCHEDULED"))
+                                .andExpect(jsonPath("$.data.currentEnrolled").value(0));
 
-        long count = classRepository.countByCourseIdAndDeletedFalse(savedCourse.getId());
-        assertThat(count).isEqualTo(1);
-    }
+                long count = classRepository.countByCourseIdAndDeletedFalse(savedCourse.getId());
+                assertThat(count).isEqualTo(1);
+        }
 
-    @Test
-    void createClass_shouldReturn404_whenCourseNotFound() throws Exception {
-        mockMvc.perform(post("/api/v1/courses/99999/classes")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                ClassTestDataBuilder.createDefaultCreateRequest())))
-                .andExpect(status().isNotFound());
-    }
+        @Test
+        void createClass_shouldReturn404_whenCourseNotFound() throws Exception {
+                mockMvc.perform(post("/api/v1/courses/99999/classes")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                ClassTestDataBuilder.createDefaultCreateRequest())))
+                                .andExpect(status().isNotFound());
+        }
 
-    @Test
-    void createClass_shouldReturn409_whenNameDuplicated() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                ClassTestDataBuilder.createDefaultCreateRequest());
+        @Test
+        void createClass_shouldReturn409_whenNameDuplicated() throws Exception {
+                String requestBody = objectMapper.writeValueAsString(
+                                ClassTestDataBuilder.createDefaultCreateRequest());
 
-        // Create first
-        mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated());
+                // Create first
+                mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                                .andExpect(status().isCreated());
 
-        // Try to create duplicate
-        mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isConflict());
-    }
+                // Try to create duplicate
+                mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestBody))
+                                .andExpect(status().isConflict());
+        }
 
-    // =========================================================================
-    // Lifecycle integration tests
-    // =========================================================================
+        // =========================================================================
+        // Lifecycle integration tests
+        // =========================================================================
 
-    @Test
-    void startClass_shouldChangeStatus_toInProgress() throws Exception {
-        Class clazz = createAndSaveClass();
+        @Test
+        void startClass_shouldChangeStatus_toInProgress() throws Exception {
+                Class clazz = createAndSaveClass();
 
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/start")
-                        .header("X-Tenant-Id", tenantId.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("IN_PROGRESS"));
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/start")
+                                .header("X-Tenant-Id", tenantId.toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.status").value("IN_PROGRESS"));
 
-        Class updated = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
-        assertThat(updated.getStatus()).isEqualTo(ClassStatus.IN_PROGRESS);
-        assertThat(updated.getStartedAt()).isNotNull();
-    }
+                Class updated = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
+                assertThat(updated.getStatus()).isEqualTo(ClassStatus.IN_PROGRESS);
+                assertThat(updated.getStartedAt()).isNotNull();
+        }
 
-    @Test
-    void completeClass_shouldChangeStatus_toCompleted() throws Exception {
-        Class clazz = createAndSaveClass();
+        @Test
+        void completeClass_shouldChangeStatus_toCompleted() throws Exception {
+                Class clazz = createAndSaveClass();
 
-        // Start first
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/start")
-                        .header("X-Tenant-Id", tenantId.toString()))
-                .andExpect(status().isOk());
+                // Start first
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/start")
+                                .header("X-Tenant-Id", tenantId.toString()))
+                                .andExpect(status().isOk());
 
-        // Then complete
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/complete")
-                        .header("X-Tenant-Id", tenantId.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
-    }
+                // Then complete
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/complete")
+                                .header("X-Tenant-Id", tenantId.toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+        }
 
-    @Test
-    void cancelClass_shouldChangeStatus_toCancelled() throws Exception {
-        Class clazz = createAndSaveClass();
+        @Test
+        void cancelClass_shouldChangeStatus_toCancelled() throws Exception {
+                Class clazz = createAndSaveClass();
 
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/cancel")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                ClassTestDataBuilder.createCancelRequest())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("CANCELLED"));
-    }
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/cancel")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                ClassTestDataBuilder.createCancelRequest())))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.status").value("CANCELLED"));
+        }
 
-    @Test
-    void deleteClass_shouldSoftDelete() throws Exception {
-        Class clazz = createAndSaveClass();
+        @Test
+        void deleteClass_shouldSoftDelete() throws Exception {
+                Class clazz = createAndSaveClass();
 
-        mockMvc.perform(delete("/api/v1/classes/" + clazz.getId())
-                        .header("X-Tenant-Id", tenantId.toString()))
-                .andExpect(status().isNoContent());
+                mockMvc.perform(delete("/api/v1/classes/" + clazz.getId())
+                                .header("X-Tenant-Id", tenantId.toString()))
+                                .andExpect(status().isNoContent());
 
-        assertThat(classRepository.findByIdAndDeletedFalse(clazz.getId())).isEmpty();
-    }
+                assertThat(classRepository.findByIdAndDeletedFalse(clazz.getId())).isEmpty();
+        }
 
-    // =========================================================================
-    // Schedule integration
-    // =========================================================================
+        // =========================================================================
+        // Schedule integration
+        // =========================================================================
 
-    @Test
-    void createSchedule_shouldGenerateSessions_forTwoWeekMWF() throws Exception {
-        Class clazz = createAndSaveClass(); // startDate 2026-03-01, endDate 2026-05-31
+        @Test
+        void createSchedule_shouldGenerateSessions_forTwoWeekMWF() throws Exception {
+                Class clazz = createAndSaveClass(); // startDate 2026-03-01, endDate 2026-05-31
 
-        // Override with 2-week range: 2026-03-02 (Mon) to 2026-03-15 (Sun) → 6 MWF sessions
-        Class updatedClass = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
-        updatedClass.setStartDate(LocalDate.of(2026, 3, 2));
-        updatedClass.setEndDate(LocalDate.of(2026, 3, 15));
-        classRepository.save(updatedClass);
+                // Override with 2-week range: 2026-03-02 (Mon) to 2026-03-15 (Sun) → 6 MWF
+                // sessions
+                Class updatedClass = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
+                updatedClass.setStartDate(LocalDate.of(2026, 3, 2));
+                updatedClass.setEndDate(LocalDate.of(2026, 3, 15));
+                classRepository.save(updatedClass);
 
-        CreateScheduleRequest scheduleRequest = new CreateScheduleRequest(
-                List.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY),
-                LocalTime.of(18, 0), LocalTime.of(20, 0));
+                CreateScheduleRequest scheduleRequest = new CreateScheduleRequest(
+                                List.of(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY),
+                                LocalTime.of(18, 0), LocalTime.of(20, 0));
 
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/schedule")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(scheduleRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.length()").value(6));
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/schedule")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(scheduleRequest)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.data.length()").value(6));
 
-        long sessionCount = sessionRepository.countByClassIdAndDeletedFalse(clazz.getId());
-        assertThat(sessionCount).isEqualTo(6);
-    }
+                long sessionCount = sessionRepository.countByClassIdAndDeletedFalse(clazz.getId());
+                assertThat(sessionCount).isEqualTo(6);
+        }
 
-    @Test
-    void listSessions_shouldReturnOrderedSessions() throws Exception {
-        Class clazz = createAndSaveClass();
-        Class updatedClass = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
-        updatedClass.setStartDate(LocalDate.of(2026, 3, 2));
-        updatedClass.setEndDate(LocalDate.of(2026, 3, 9));
-        classRepository.save(updatedClass);
+        @Test
+        void listSessions_shouldReturnOrderedSessions() throws Exception {
+                Class clazz = createAndSaveClass();
+                Class updatedClass = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
+                updatedClass.setStartDate(LocalDate.of(2026, 3, 2));
+                updatedClass.setEndDate(LocalDate.of(2026, 3, 9));
+                classRepository.save(updatedClass);
 
-        // Create schedule first
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/schedule")
-                .header("X-Tenant-Id", tenantId.toString())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                        new CreateScheduleRequest(
-                                List.of(DayOfWeek.MONDAY),
-                                LocalTime.of(9, 0), LocalTime.of(11, 0)))));
+                // Create schedule first
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/schedule")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                new CreateScheduleRequest(
+                                                                List.of(DayOfWeek.MONDAY),
+                                                                LocalTime.of(9, 0), LocalTime.of(11, 0)))));
 
-        // List sessions
-        mockMvc.perform(get("/api/v1/classes/" + clazz.getId() + "/sessions")
-                        .header("X-Tenant-Id", tenantId.toString()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data").isArray());
-    }
+                // List sessions
+                mockMvc.perform(get("/api/v1/classes/" + clazz.getId() + "/sessions")
+                                .header("X-Tenant-Id", tenantId.toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data").isArray());
+        }
 
-    // =========================================================================
-    // Multi-tenant isolation
-    // =========================================================================
+        // =========================================================================
+        // Multi-tenant isolation
+        // =========================================================================
 
-    @Test
-    void getClass_shouldReturn404_whenAccessedFromDifferentTenant() throws Exception {
-        Class clazz = createAndSaveClass();
+        @Test
+        void getClass_shouldReturn404_whenAccessedFromDifferentTenant() throws Exception {
+                Class clazz = createAndSaveClass();
 
-        UUID differentTenant = UUID.randomUUID();
-        mockMvc.perform(get("/api/v1/classes/" + clazz.getId())
-                        .header("X-Tenant-Id", differentTenant.toString()))
-                .andExpect(status().isNotFound());
-    }
+                UUID differentTenant = UUID.randomUUID();
+                mockMvc.perform(get("/api/v1/classes/" + clazz.getId())
+                                .header("X-Tenant-Id", differentTenant.toString()))
+                                .andExpect(status().isNotFound());
+        }
 
-    @Test
-    void createClass_sameCourseName_shouldSucceed_forDifferentTenants() throws Exception {
-        // Create class for tenant A
-        mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                ClassTestDataBuilder.createDefaultCreateRequest())))
-                .andExpect(status().isCreated());
+        @Test
+        void createClass_sameCourseName_shouldSucceed_forDifferentTenants() throws Exception {
+                // Create class for tenant A
+                mockMvc.perform(post("/api/v1/courses/" + savedCourse.getId() + "/classes")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                ClassTestDataBuilder.createDefaultCreateRequest())))
+                                .andExpect(status().isCreated());
 
-        // Same name for different tenant should be checked against different course
-        // (This test validates multi-tenant boundary at course level)
-        assertThat(classRepository.countByCourseIdAndDeletedFalse(savedCourse.getId())).isEqualTo(1);
-    }
+                // Same name for different tenant should be checked against different course
+                // (This test validates multi-tenant boundary at course level)
+                assertThat(classRepository.countByCourseIdAndDeletedFalse(savedCourse.getId())).isEqualTo(1);
+        }
 
-    // =========================================================================
-    // Class code
-    // =========================================================================
+        // =========================================================================
+        // Class code
+        // =========================================================================
 
-    @Test
-    void generateCode_shouldSetCodeOnClass() throws Exception {
-        Class clazz = createAndSaveClass();
+        @Test
+        void generateCode_shouldSetCodeOnClass() throws Exception {
+                Class clazz = createAndSaveClass();
 
-        mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/generate-code")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                ClassTestDataBuilder.createCodeRequest())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.classCode").isNotEmpty());
+                mockMvc.perform(post("/api/v1/classes/" + clazz.getId() + "/generate-code")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                ClassTestDataBuilder.createCodeRequest())))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.data.classCode").isNotEmpty());
 
-        Class updated = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
-        assertThat(updated.getClassCode()).isNotNull();
-        assertThat(updated.getClassCode()).hasSize(8);
-    }
+                Class updated = classRepository.findByIdAndDeletedFalse(clazz.getId()).orElseThrow();
+                assertThat(updated.getClassCode()).isNotNull();
+                assertThat(updated.getClassCode()).hasSize(8);
+        }
 
-    // =========================================================================
-    // Helper
-    // =========================================================================
+        // =========================================================================
+        // Helper
+        // =========================================================================
 
-    private Class createAndSaveClass() {
-        Class clazz = ClassTestDataBuilder.createDefaultClass();
-        clazz.setId(null);
-        clazz.setCourseId(savedCourse.getId());
-        clazz.setInstanceId(tenantId);
-        clazz.setVersion(null);
-        return classRepository.save(clazz);
-    }
+        private Class createAndSaveClass() {
+                Class clazz = ClassTestDataBuilder.createDefaultClass();
+                clazz.setId(null);
+                clazz.setCourseId(savedCourse.getId());
+                clazz.setInstanceId(tenantId);
+                clazz.setVersion(null);
+                return classRepository.save(clazz);
+        }
 }
