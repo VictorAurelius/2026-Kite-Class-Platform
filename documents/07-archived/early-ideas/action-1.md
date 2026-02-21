@@ -1052,3 +1052,41 @@ ngoài ra bỏ option OTHER đi
 đã lưu đầy đủ vẫn báo 403, ngoài ra tôi đã nói phải báo lỗi lên màn hình thay vì phải vào console để check
 
 đổi phương châm => log trả ra log của image frontend thành vì console của browser
+
+hãy đọc documents/04-implementation/CURRENT_STATUS.md và các file tham chiếu liên quan để hiểu trạng thái phát triển hiện tại
+
+sau đó nêu action tiếp theo
+
+skill hiện tại đã đề cập không hard-code message chưa?, check lại kết quả implement
+
+checklist lại kết quả implement 1 lần nữa với tất cả các skill để tìm ra lỗi và thực hiện sửa
+
+bạn có thể tự đọc check problems của IDE không?
+
+cài JAVA hoặc bất cứ công cụ cần thiết nào trong wsl để thực hiện check problems IDE, tạo skill về vấn đề này
+
+ngoài ra file pom.xml của các service đang bị lỗi: Newer patch version of Spring Bo   ot available: 3.5.11
+
+=> skill đã đề cập đến vấn đề này chưa, không được để xảy ra lỗi này mà, hãy check lại commit của branch này xem có thay đổi version không và revert lại, sửa code cho đúng theo phiên bản
+
+cập nhật githook để check việc sửa file pom.xml, problems trong IDE phải clean, author không có claude (đã đề cập ở skill commit)
+
+Tôi vẫn chưa hài lòng với kết quả check problems IDE này, vì còn nhiều problems chưa được phát hiện:
+1. ClassMapper: Unknown property "id" in result type Class.ClassBuilder. Did you mean "null"?
+2. ClassServiceImpl:
+The method instanceId(UUID) is undefined for the type ClassSession.ClassSessionBuilder
+3: ClassControllerTest: 
+The constructor EntityNotFoundException(String) is deprecated
+
+=> cần update skill hoặc đổi phương pháp để check hiệu quả hơn
+
+hãy sửa settings.local để cấp quyền JAVA_HOME và các quyền khách cho claude để claude đỡ hỏi và tiếp tục
+
+sao vẫn hỏi nữa vậy, xem lại
+
+Tôi vẫn chưa hài lòng với kết quả check problems IDE này => cần update skill hoặc đổi phương pháp để check hiệu quả hơn
+
+Cụ thể còn warning chưa được phát hiện:
+ClassServiceImpl: The constructor ValidationException(String) is deprecated
+
+commit all file changing
