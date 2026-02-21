@@ -6,12 +6,16 @@ import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
-import com.kiteclass.core.module.clazz.dto.*;
+import com.kiteclass.core.module.clazz.dto.CancelClassRequest;
+import com.kiteclass.core.module.clazz.dto.ClassCodeResponse;
+import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
+import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.repository.CourseRepository;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.testutil.ClassTestDataBuilder;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,11 +70,18 @@ class ClassIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        Course course = CourseTestDataBuilder.createDefaultCourse();
-        course.setId(null);
-        course.setStatus(CourseStatus.PUBLISHED);
-        course.setInstanceId(tenantId);
-        savedCourse = courseRepository.save(course);
+        // Set TenantContext so EntityPersistenceListener can auto-set instanceId
+        TenantContext.setCurrentTenant(tenantId);
+        try {
+            Course course = CourseTestDataBuilder.createDefaultCourse();
+            course.setId(null);
+            course.setTeacherId(null); // FK to teachers table — no teacher needed for class tests
+            course.setStatus(CourseStatus.PUBLISHED);
+            // instanceId auto-set by EntityPersistenceListener from TenantContext
+            savedCourse = courseRepository.save(course);
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     // =========================================================================
