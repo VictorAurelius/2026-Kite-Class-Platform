@@ -179,7 +179,14 @@
                     </annotationProcessorPaths>
                     <compilerArgs>
                         <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                        <!-- Treat deprecation warnings as visible in build output -->
+                        <arg>-Xlint:deprecation</arg>
+                        <!-- Show unchecked warnings -->
+                        <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
+                    <!-- Ensure warnings are shown in output -->
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>

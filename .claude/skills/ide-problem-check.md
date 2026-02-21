@@ -44,6 +44,57 @@ java -version
 
 ---
 
+## Vấn Đề Thường Gặp — Deprecated Constructor Ambiguity
+
+### Nguyên nhân
+Java ưu tiên **exact match** hơn **varargs**. Khi một class có cả 2 constructors:
+```java
+@Deprecated
+public SomeException(String message) { ... }          // exact match
+
+public SomeException(String code, Object... args) { } // varargs
+```
+
+Gọi `new SomeException("CODE")` → Java chọn **deprecated** constructor (exact match)!
+
+### Pattern đúng — force varargs
+```java
+// ❌ SAI — Java chọn deprecated SomeException(String)
+throw new ValidationException("CLASS_NOT_FOUND");
+throw new DuplicateResourceException("EMAIL_EXISTS", email);  // String arg!
+
+// ✅ ĐÚNG — force varargs với new Object[0] hoặc (Object) cast
+throw new ValidationException("CLASS_NOT_FOUND", new Object[0]);
+throw new DuplicateResourceException("EMAIL_EXISTS", (Object) email);
+```
+
+### Áp dụng cho tất cả exceptions trong project
+| Exception | Deprecated ctor | Fix |
+|-----------|----------------|-----|
+| `ValidationException("CODE")` | `(String message)` | `("CODE", new Object[0])` |
+| `EntityNotFoundException("CODE")` | `(String message)` | `("CODE", (Object) id)` |
+| `DuplicateResourceException("CODE", str)` | `(String field, String value)` | `("CODE", (Object) str)` |
+
+### Phát hiện bằng Maven
+Thêm vào `pom.xml` (đã có trong core/gateway):
+```xml
+<configuration>
+    <compilerArgs>
+        <arg>-Xlint:deprecation</arg>
+        <arg>-Xlint:unchecked</arg>
+    </compilerArgs>
+    <showWarnings>true</showWarnings>
+    <showDeprecation>true</showDeprecation>
+</configuration>
+```
+
+**Chạy không có `-q`** để thấy warnings:
+```bash
+mvn compile 2>&1 | grep "deprecated\|warning:"
+```
+
+---
+
 ## Chạy IDE Problem Check
 
 ### Backend (Java)

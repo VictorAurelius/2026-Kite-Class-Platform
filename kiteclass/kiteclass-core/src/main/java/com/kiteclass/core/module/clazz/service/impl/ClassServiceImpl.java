@@ -78,7 +78,7 @@ public class ClassServiceImpl implements ClassService {
 
         // Validate course is not ARCHIVED (BR-CLASS-001)
         if (CourseStatus.ARCHIVED.equals(course.getStatus())) {
-            throw new ValidationException("CLASS_COURSE_ARCHIVED");
+            throw new ValidationException("CLASS_COURSE_ARCHIVED", new Object[0]);
         }
 
         // Validate name uniqueness within course + tenant
@@ -156,7 +156,7 @@ public class ClassServiceImpl implements ClassService {
         } else {
             // IN_PROGRESS: schedule/dates are locked (BR-CLASS-006)
             if (request.schedule() != null || request.startDate() != null || request.endDate() != null) {
-                throw new ValidationException("CLASS_SCHEDULE_LOCKED");
+                throw new ValidationException("CLASS_SCHEDULE_LOCKED", new Object[0]);
             }
         }
 
@@ -317,11 +317,11 @@ public class ClassServiceImpl implements ClassService {
         Class clazz = findClassOrThrow(classId);
 
         if (clazz.getStartDate() == null || clazz.getEndDate() == null) {
-            throw new ValidationException("CLASS_NO_DATES");
+            throw new ValidationException("CLASS_NO_DATES", new Object[0]);
         }
 
         if (!request.endTime().isAfter(request.startTime())) {
-            throw new ValidationException("CLASS_INVALID_TIME");
+            throw new ValidationException("CLASS_INVALID_TIME", new Object[0]);
         }
 
         int maxSessionNumber = classSessionRepository.findMaxSessionNumberByClassId(classId);
@@ -376,7 +376,7 @@ public class ClassServiceImpl implements ClassService {
 
     private void validateDates(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
-            throw new ValidationException("CLASS_INVALID_DATES");
+            throw new ValidationException("CLASS_INVALID_DATES", new Object[0]);
         }
     }
 
@@ -385,7 +385,7 @@ public class ClassServiceImpl implements ClassService {
         int attempts = 0;
         do {
             if (attempts++ > MAX_CODE_GENERATION_ATTEMPTS) {
-                throw new ValidationException("CLASS_CODE_GENERATION_FAILED");
+                throw new ValidationException("CLASS_CODE_GENERATION_FAILED", new Object[0]);
             }
             code = randomCode();
         } while (classRepository.existsByClassCodeAndDeletedFalse(code));

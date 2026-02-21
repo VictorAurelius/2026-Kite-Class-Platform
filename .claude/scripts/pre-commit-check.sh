@@ -285,40 +285,42 @@ if [ -n "$JAVA_FILES_CHANGED" ] || [ -n "$STAGED_POM_CHANGED" ]; then
         CORE_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-core" | head -1 || true)
         GATEWAY_CHANGED=$(echo "$JAVA_FILES_CHANGED $STAGED_POM_CHANGED" | tr ' ' '\n' | grep "kiteclass-gateway" | head -1 || true)
 
-        if [ -n "$CORE_CHANGED" ]; then
-            echo "   Compiling kiteclass-core..."
+        _compile_service() {
+            local SERVICE_NAME="$1"
+            local POM_PATH="$2"
+            echo "   Compiling $SERVICE_NAME..."
+            local MVN_OUT
             MVN_OUT=$(mktemp)
+            # Run without -q so showWarnings/showDeprecation in pom.xml takes effect
             if JAVA_HOME="$JAVA_HOME" bash "$MAVEN_CMD" \
-                -f /mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml \
-                compile -q 2>"$MVN_OUT"; then
-                # Check for deprecation warnings in stderr
-                if grep -q "deprecated API\|uses unchecked" "$MVN_OUT" 2>/dev/null; then
-                    echo -e "${YELLOW}   ⚠️  kiteclass-core: compile OK but has deprecation warnings${NC}"
-                    grep "deprecated API\|uses unchecked" "$MVN_OUT" | head -5
+                -f "$POM_PATH" \
+                compile 2>&1 | tee "$MVN_OUT" > /dev/null; then
+                # Check for deprecation/unchecked warnings in output
+                local DEPR_WARN
+                DEPR_WARN=$(grep -E "uses.*(deprecated|unchecked)|deprecated API" "$MVN_OUT" | grep -v "^Note:" || true)
+                if [ -n "$DEPR_WARN" ]; then
+                    echo -e "${RED}   ❌ $SERVICE_NAME: deprecated/unchecked API usage:${NC}"
+                    echo "$DEPR_WARN" | head -10
+                    VIOLATIONS=$((VIOLATIONS + 1))
                 else
-                    echo -e "${GREEN}   ✅ kiteclass-core: 0 checkstyle violations, compile OK${NC}"
+                    echo -e "${GREEN}   ✅ $SERVICE_NAME: 0 violations, 0 deprecation warnings${NC}"
                 fi
             else
-                echo -e "${RED}   ❌ kiteclass-core compile/checkstyle FAILED:${NC}"
-                grep "\[ERROR\].*\.java\|ERROR" "$MVN_OUT" | head -10
+                echo -e "${RED}   ❌ $SERVICE_NAME compile/checkstyle FAILED:${NC}"
+                grep "\[ERROR\].*\.java" "$MVN_OUT" | head -10
                 VIOLATIONS=$((VIOLATIONS + 1))
             fi
             rm -f "$MVN_OUT"
+        }
+
+        if [ -n "$CORE_CHANGED" ]; then
+            _compile_service "kiteclass-core" \
+                "/mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml"
         fi
 
         if [ -n "$GATEWAY_CHANGED" ]; then
-            echo "   Compiling kiteclass-gateway..."
-            MVN_OUT=$(mktemp)
-            if JAVA_HOME="$JAVA_HOME" bash "$MAVEN_CMD" \
-                -f /mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml \
-                compile -q 2>"$MVN_OUT"; then
-                echo -e "${GREEN}   ✅ kiteclass-gateway: 0 checkstyle violations, compile OK${NC}"
-            else
-                echo -e "${RED}   ❌ kiteclass-gateway compile/checkstyle FAILED:${NC}"
-                grep "\[ERROR\].*\.java\|ERROR" "$MVN_OUT" | head -10
-                VIOLATIONS=$((VIOLATIONS + 1))
-            fi
-            rm -f "$MVN_OUT"
+            _compile_service "kiteclass-gateway" \
+                "/mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml"
         fi
     else
         echo -e "${YELLOW}⚠️  Java/Maven not configured — skipping compile check${NC}"
