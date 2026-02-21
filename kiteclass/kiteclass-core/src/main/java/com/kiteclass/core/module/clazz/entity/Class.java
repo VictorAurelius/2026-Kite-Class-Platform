@@ -1,0 +1,253 @@
+package com.kiteclass.core.module.clazz.entity;
+
+import com.kiteclass.core.common.constant.ClassStatus;
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.time.LocalDate;
+
+/**
+ * Class entity representing a specific instance of a course.
+ *
+ * <p>A class is a concrete learning event within a course, with:
+ * <ul>
+ *   <li>Schedule and location details</li>
+ *   <li>Student capacity management</li>
+ *   <li>Class code for self-enrollment</li>
+ *   <li>Lifecycle: SCHEDULED → IN_PROGRESS → COMPLETED</li>
+ * </ul>
+ *
+ * <p>Business Rules:
+ * <ul>
+ *   <li>BR-CLASS-001: Must belong to an existing non-ARCHIVED course</li>
+ *   <li>BR-CLASS-003: current_enrolled <= max_students</li>
+ *   <li>BR-CLASS-004: class_code must be unique (when set)</li>
+ *   <li>BR-CLASS-005: end_date > start_date (when both provided)</li>
+ *   <li>BR-CLASS-006: Schedule editable only when SCHEDULED</li>
+ * </ul>
+ *
+ * @author KiteClass Team
+ * @since 2.5.0
+ */
+@Entity
+@Table(
+        name = "classes",
+        indexes = {
+                @Index(name = "idx_classes_course_id", columnList = "course_id"),
+                @Index(name = "idx_classes_status", columnList = "status"),
+                @Index(name = "idx_classes_start_date", columnList = "start_date"),
+                @Index(name = "idx_classes_instance_id", columnList = "instance_id"),
+                @Index(name = "idx_classes_deleted", columnList = "deleted")
+        }
+)
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Class extends BaseEntity {
+
+    /**
+     * Foreign key to the parent course.
+     * Required, must reference an existing non-ARCHIVED course.
+     */
+    @Column(name = "course_id", nullable = false)
+    private Long courseId;
+
+    /**
+     * Class name.
+     * Required, 5-200 characters.
+     * Example: "English B1 - Evening Mon-Wed-Fri"
+     * Must be unique within the same course and tenant.
+     */
+    @Column(name = "name", nullable = false, length = 200)
+    private String name;
+
+    /**
+     * Class description.
+     * Optional, max 2000 characters.
+     */
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    /**
+     * Human-readable schedule text.
+     * Optional, max 200 characters.
+     * Example: "Mon-Wed-Fri 18:00-20:00"
+     */
+    @Column(name = "schedule", length = 200)
+    private String schedule;
+
+    /**
+     * Location type: IN_PERSON or ONLINE.
+     * Required, defaults to IN_PERSON.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "location_type", nullable = false, length = 20)
+    @Builder.Default
+    private LocationType locationType = LocationType.IN_PERSON;
+
+    /**
+     * Location detail.
+     * Optional, max 200 characters.
+     * Example: "Room 101" or "https://zoom.us/j/123456"
+     */
+    @Column(name = "location_detail", length = 200)
+    private String locationDetail;
+
+    /**
+     * Class start date.
+     * Optional. When set, must be before end_date.
+     */
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    /**
+     * Class end date.
+     * Optional. When set, must be after start_date.
+     */
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    /**
+     * Maximum number of students allowed.
+     * Required, defaults to 30, must be >= 1.
+     */
+    @Column(name = "max_students", nullable = false)
+    @Builder.Default
+    private Integer maxStudents = 30;
+
+    /**
+     * Current number of active enrolled students.
+     * Managed automatically, starts at 0.
+     * Must be <= max_students.
+     */
+    @Column(name = "current_enrolled", nullable = false)
+    @Builder.Default
+    private Integer currentEnrolled = 0;
+
+    /**
+     * Unique class code for student self-enrollment.
+     * Optional, 6-20 uppercase alphanumeric characters.
+     * Example: "ABC123XY"
+     */
+    @Column(name = "class_code", length = 20)
+    private String classCode;
+
+    /**
+     * Expiry timestamp for the class code.
+     * After this time, students cannot use the code to enroll.
+     */
+    @Column(name = "code_expires_at")
+    private Instant codeExpiresAt;
+
+    /**
+     * Lifecycle status of the class.
+     * SCHEDULED → IN_PROGRESS → COMPLETED
+     *         ↓
+     *      CANCELLED
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private ClassStatus status = ClassStatus.SCHEDULED;
+
+    /**
+     * Timestamp when class transitioned to IN_PROGRESS.
+     */
+    @Column(name = "started_at")
+    private Instant startedAt;
+
+    /**
+     * Timestamp when class transitioned to COMPLETED.
+     */
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
+    /**
+     * Timestamp when class transitioned to CANCELLED.
+     */
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
+
+    // =========================================================================
+    // Business Logic Methods
+    // =========================================================================
+
+    /**
+     * Checks if the class can accept new enrollments.
+     *
+     * @return true if status is SCHEDULED or IN_PROGRESS and not at capacity
+     */
+    public boolean canEnroll() {
+        return (status == ClassStatus.SCHEDULED || status == ClassStatus.IN_PROGRESS)
+                && currentEnrolled < maxStudents;
+    }
+
+    /**
+     * Checks if the schedule can be modified.
+     * Schedule is locked once class transitions to IN_PROGRESS.
+     *
+     * @return true if class is SCHEDULED
+     */
+    public boolean canEditSchedule() {
+        return status == ClassStatus.SCHEDULED;
+    }
+
+    /**
+     * Checks if the class can be started.
+     *
+     * @return true if status is SCHEDULED
+     */
+    public boolean canStart() {
+        return status == ClassStatus.SCHEDULED;
+    }
+
+    /**
+     * Checks if the class can be completed.
+     *
+     * @return true if status is IN_PROGRESS
+     */
+    public boolean canComplete() {
+        return status == ClassStatus.IN_PROGRESS;
+    }
+
+    /**
+     * Checks if the class can be cancelled.
+     *
+     * @return true if status is SCHEDULED or IN_PROGRESS
+     */
+    public boolean canCancel() {
+        return status == ClassStatus.SCHEDULED || status == ClassStatus.IN_PROGRESS;
+    }
+
+    /**
+     * Checks if the class can be deleted.
+     * Only SCHEDULED classes with no enrolled students can be deleted.
+     *
+     * @return true if SCHEDULED with 0 enrollments
+     */
+    public boolean canDelete() {
+        return status == ClassStatus.SCHEDULED && currentEnrolled == 0;
+    }
+
+    /**
+     * Checks if class code is valid (not expired).
+     *
+     * @return true if code exists and is not expired
+     */
+    public boolean isCodeValid() {
+        if (classCode == null) return false;
+        if (codeExpiresAt == null) return true;
+        return Instant.now().isBefore(codeExpiresAt);
+    }
+
+    /**
+     * Enum for class location type.
+     */
+    public enum LocationType {
+        IN_PERSON, ONLINE
+    }
+}
