@@ -333,12 +333,12 @@ Step 4: Results
   - Vietnamese UI labels and error messages
   - Soft delete confirmation with window.confirm
 
-**Phase 2: IMMEDIATE PRIORITY** (Backend APIs available, ready for visual testing)
-- ⏳ PR 3.5: Teacher Management Pages → **NEEDS: PR 2.3.1 ✅ (Done)**
-- ⏳ PR 3.6: Course Management Pages → **NEEDS: PR 2.4 ✅ (Done)**
+**Phase 2: COMPLETE** ✅
+- ✅ **PR 3.5: Teacher Management Pages** *(merged 2026-02-22)*
+- ✅ **PR 3.6: Course Management Pages** *(merged 2026-02-22, Publish/Archive lifecycle)*
 
-**Phase 3: Remaining Modules** (Backend pending)
-- ⏳ PR 3.7: Class Management Pages → NEEDS: PR 2.5 (pending)
+**Phase 3: Remaining Modules**
+- ⏳ **PR 3.7: Class Management Pages → NEEDS: PR 2.5 ✅ (Done — NEXT)**
 - ⏳ PR 3.8: Attendance Management → NEEDS: PR 2.7 (pending)
 - ⏳ PR 3.9: Billing Pages → NEEDS: PR 2.8, 2.8.1 (pending)
 - ⏳ PR 3.10: Settings & AI Branding System → NEEDS: KiteHub AI Agent Module (pending)
@@ -346,7 +346,8 @@ Step 4: Results
 - ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
 - ⏳ PR 3.13: E2E Tests & Polish
 
-**Frontend Status:** 4/13 PRs completed (31%) - PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅
+**Frontend Status:** 6/13 PRs completed (46%) — Last updated: 2026-02-22
+PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models

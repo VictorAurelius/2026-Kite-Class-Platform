@@ -1,5 +1,5 @@
 # 🎯 KiteClass Implementation Status
-**Last Updated:** 2026-02-22
+**Last Updated:** 2026-02-22 (post PR 3.5 + 3.6 merge)
 **Session:** Context-safe summary for continuation
 **Purpose:** Quick reference for next Claude session to understand current state and continue work
 
@@ -11,14 +11,25 @@
 |---------|--------------|-----------|----------|---------|
 | **Gateway** | 10 | 10 | 100% | ✅ COMPLETE |
 | **Core** | 8 | 15 | 53% | 🟡 In Progress |
-| **Frontend** | 1 | 13 | 8% | 🟡 Just Started |
-| **TOTAL** | 19 | 38 | 50% | 🟡 Mid-Development |
+| **Frontend** | 6 | 13 | 46% | 🟡 In Progress |
+| **TOTAL** | 24 | 38 | 63% | 🟡 Mid-Development |
 
 ---
 
 ## ✅ COMPLETED WORK (Latest First)
 
-### 🔥 Recent Session (2026-02-22)
+### 🔥 Recent Session (2026-02-22) — PR 3.5 + 3.6
+**Focus:** Frontend catch-up — Teacher & Course Management Pages
+
+#### PRs Merged (squash, PR #6):
+- **PR 3.5 Teacher Management:** list, new, detail, edit; TeacherStatus badges; aligned types with backend
+- **PR 3.6 Course Management:** list, new, detail, edit; Publish/Archive lifecycle actions; price in VND; CourseStatus DRAFT/PUBLISHED/ARCHIVED
+- Created `kiteclass-frontend/docs/QUICK-START.md`
+- Frontend: 1/13 → **6/13 (46%)**
+
+---
+
+### Session (2026-02-22) — PR 2.5 Class Module
 **Focus:** PR 2.5 Class Module — MERGED to main ✅
 
 #### PR #5 Merged (squash):
@@ -190,9 +201,11 @@
 
 ### 🎯 NEXT PRIORITY QUEUE:
 1. ✅ **PR 2.5** - Class Module (MERGED 2026-02-22)
-2. **PR 2.6** - Enrollment Module (READY - Class/Student dependencies met ✅)
-3. **PR 2.6** - Enrollment Module
-4. **PR 2.7** - Attendance Module
+2. ✅ **PR 3.5** - Teacher Management Pages (MERGED 2026-02-22)
+3. ✅ **PR 3.6** - Course Management Pages (MERGED 2026-02-22)
+4. **PR 3.7** - Class Management Pages (NEXT — backend PR 2.5 ✅)
+5. **PR 2.6** - Enrollment Module (backend)
+6. **PR 2.7** - Attendance Module
 5. **PR 2.7.1** - Assignment Module
 6. **PR 2.7.2** - Grade Module
 7. **PR 2.8** - Invoice Module
@@ -208,35 +221,28 @@
 
 ---
 
-## 🎨 FRONTEND (1/13 PRs Complete - 8%)
+## 🎨 FRONTEND (6/13 PRs Complete - 46%)
 
 ### Completed PRs:
-1. ✅ **PR 3.1:** Project Setup & Core Infrastructure
-   - Next.js 15.1.6 + TypeScript
-   - Tailwind CSS + shadcn/ui
-   - React Query for data fetching
-   - Zustand for state management
-   - ESLint + Prettier configured
+1. ✅ **PR 3.1:** Project Setup (Next.js 15, Tailwind, shadcn/ui, React Query, Zustand)
+2. ✅ **PR 3.2:** Auth Pages (Login, Forgot/Reset Password)
+3. ✅ **PR 3.3:** Auth Implementation (JWT, token refresh, auth store)
+4. ✅ **PR 3.4:** Student Management Pages (CRUD, search, pagination)
+5. ✅ **PR 3.5:** Teacher Management Pages (CRUD, status: ACTIVE/INACTIVE/ON_LEAVE)
+6. ✅ **PR 3.6:** Course Management Pages (CRUD, Publish/Archive lifecycle, VND price)
 
 ### Current State:
-- **Login Page:** ✅ Working (JWT authentication)
-- **Student Registration:** ✅ Working (fixed 403 error)
-- **Student List:** ✅ Working (table with pagination)
-- **Student Create/Edit:** ✅ Working (forms with validation)
+- **Auth:** ✅ Login, forgot/reset password
+- **Students:** ✅ List, create, detail, edit
+- **Teachers:** ✅ List, create, detail, edit + status management
+- **Courses:** ✅ List, create, detail (Publish/Archive buttons), edit + field locking
 - **Dashboard:** ✅ Basic placeholder
-- **Header:** ✅ Layout with logout
 
 ### 🎯 NEXT PRIORITY:
-**PR 3.4: Student Management Pages (REFINEMENT)**
-- **Current Status:** Basic CRUD works, needs polish
-- **Improvements Needed:**
-  - Add search/filter functionality
-  - Add sorting controls
-  - Improve error messages (Vietnamese)
-  - Add loading states
-  - Add confirmation dialogs for delete
-  - Add success notifications
-- **Then Move To:** PR 3.5 Teacher Management Pages (after backend PR 1.8)
+**PR 3.7: Class Management Pages** (backend PR 2.5 ✅ ready)
+- Class lifecycle actions: Start / Complete / Cancel
+- Schedule & Sessions view
+- Class code generation UI
 
 ### Quality Standards Met:
 - ✅ TypeScript strict mode (no `any` types)
