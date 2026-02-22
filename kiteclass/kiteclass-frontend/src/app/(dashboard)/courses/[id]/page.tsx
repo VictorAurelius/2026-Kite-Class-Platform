@@ -1,0 +1,211 @@
+/**
+ * Course detail page with lifecycle actions (Publish / Archive).
+ *
+ * @author KiteClass Team
+ * @since 3.6.0
+ */
+
+'use client';
+
+export const dynamic = 'force-dynamic';
+
+import { use } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Pencil, Trash2, BookOpen, Archive } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout';
+import { StatusBadge, LoadingSpinner, ErrorAlert } from '@/components/common';
+import { Button } from '@/components/ui/button';
+import { useCourse, useDeleteCourse, usePublishCourse, useArchiveCourse } from '@/hooks/use-courses';
+import { CourseStatus } from '@/types/course';
+
+const statusVariants: Record<CourseStatus, 'success' | 'warning' | 'default' | 'error'> = {
+  [CourseStatus.DRAFT]: 'warning',
+  [CourseStatus.PUBLISHED]: 'success',
+  [CourseStatus.ARCHIVED]: 'default',
+};
+
+const statusLabels: Record<CourseStatus, string> = {
+  [CourseStatus.DRAFT]: 'Bản nháp',
+  [CourseStatus.PUBLISHED]: 'Đã xuất bản',
+  [CourseStatus.ARCHIVED]: 'Đã lưu trữ',
+};
+
+export default function CourseDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const courseId = parseInt(id);
+  const router = useRouter();
+
+  const { data: course, isLoading, error } = useCourse(courseId);
+  const deleteMutation = useDeleteCourse();
+  const publishMutation = usePublishCourse();
+  const archiveMutation = useArchiveCourse();
+
+  const handleDelete = () => {
+    if (window.confirm('Xóa khóa học này? Hành động không thể hoàn tác.')) {
+      deleteMutation.mutate(courseId, {
+        onSuccess: () => router.push('/courses'),
+      });
+    }
+  };
+
+  const handlePublish = () => {
+    if (window.confirm('Xuất bản khóa học? Sau khi xuất bản, một số trường sẽ bị giới hạn chỉnh sửa.')) {
+      publishMutation.mutate(courseId);
+    }
+  };
+
+  const handleArchive = () => {
+    if (window.confirm('Lưu trữ khóa học? Khóa học sẽ chuyển sang chế độ chỉ đọc.')) {
+      archiveMutation.mutate(courseId);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center py-12"><LoadingSpinner /></div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <DashboardLayout>
+        <ErrorAlert title="Lỗi" message="Không tìm thấy khóa học" />
+      </DashboardLayout>
+    );
+  }
+
+  const isDraft = course.status === CourseStatus.DRAFT;
+  const isPublished = course.status === CourseStatus.PUBLISHED;
+
+  return (
+    <DashboardLayout>
+      <div className="mx-auto max-w-4xl space-y-6">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">{course.name}</h1>
+              <StatusBadge
+                status={statusLabels[course.status]}
+                variant={statusVariants[course.status]}
+              />
+            </div>
+            <p className="mt-1 font-mono text-sm text-muted-foreground">{course.code}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {isDraft && (
+              <Button onClick={handlePublish} disabled={publishMutation.isPending}>
+                <BookOpen className="mr-2 h-4 w-4" />
+                Xuất bản
+              </Button>
+            )}
+            {isPublished && (
+              <Button variant="outline" onClick={handleArchive} disabled={archiveMutation.isPending}>
+                <Archive className="mr-2 h-4 w-4" />
+                Lưu trữ
+              </Button>
+            )}
+            {!course.status.includes('ARCHIVED') && (
+              <Link href={`/courses/${id}/edit`}>
+                <Button variant="outline">
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Chỉnh sửa
+                </Button>
+              </Link>
+            )}
+            {isDraft && (
+              <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Xóa
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Info Card */}
+        <div className="rounded-lg border bg-card p-6 space-y-6">
+          {/* Basic */}
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Thời lượng</p>
+              <p className="mt-1">{course.durationWeeks != null ? `${course.durationWeeks} tuần` : '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Số buổi học</p>
+              <p className="mt-1">{course.totalSessions ?? '—'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Học phí</p>
+              <p className="mt-1">
+                {course.price != null
+                  ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price)
+                  : 'Miễn phí'}
+              </p>
+            </div>
+          </div>
+
+          {/* Description */}
+          {course.description && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Mô tả</p>
+              <p className="mt-1 whitespace-pre-line">{course.description}</p>
+            </div>
+          )}
+
+          {/* Objectives */}
+          {course.objectives && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Mục tiêu học tập</p>
+              <p className="mt-1 whitespace-pre-line">{course.objectives}</p>
+            </div>
+          )}
+
+          {/* Syllabus */}
+          {course.syllabus && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Giáo trình</p>
+              <p className="mt-1 whitespace-pre-line">{course.syllabus}</p>
+            </div>
+          )}
+
+          {/* Prerequisites & Target */}
+          {(course.prerequisites || course.targetAudience) && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {course.prerequisites && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Yêu cầu đầu vào</p>
+                  <p className="mt-1 whitespace-pre-line">{course.prerequisites}</p>
+                </div>
+              )}
+              {course.targetAudience && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Đối tượng</p>
+                  <p className="mt-1 whitespace-pre-line">{course.targetAudience}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Timestamps */}
+          <div className="grid grid-cols-2 gap-4 border-t pt-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Ngày tạo</p>
+              <p className="mt-1">{new Date(course.createdAt).toLocaleString('vi-VN')}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Cập nhật lần cuối</p>
+              <p className="mt-1">{new Date(course.updatedAt).toLocaleString('vi-VN')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
