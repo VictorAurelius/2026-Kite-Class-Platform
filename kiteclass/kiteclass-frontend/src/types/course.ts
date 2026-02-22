@@ -1,5 +1,6 @@
 /**
  * Course domain types.
+ * Matches backend CourseResponse and CreateCourseRequest DTOs.
  *
  * @author KiteClass Team
  * @since 1.0.0
@@ -7,17 +8,19 @@
 
 export interface Course {
   id: number;
-  code: string;
   name: string;
+  code: string;
   description?: string;
-  credits?: number;
-  teacherId: number;
-  teacherName?: string;
-  capacity?: number;
-  enrolled?: number;
-  startDate?: string;
-  endDate?: string;
+  syllabus?: string;
+  objectives?: string;
+  prerequisites?: string;
+  targetAudience?: string;
+  teacherId?: number;
+  durationWeeks?: number;
+  totalSessions?: number;
+  price?: number;
   status: CourseStatus;
+  coverImageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,32 +28,37 @@ export interface Course {
 export enum CourseStatus {
   DRAFT = 'DRAFT',
   PUBLISHED = 'PUBLISHED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
   ARCHIVED = 'ARCHIVED',
 }
 
 export interface CreateCourseRequest {
-  code: string;
   name: string;
+  code: string;
   description?: string;
-  credits?: number;
-  teacherId: number;
-  capacity?: number;
-  startDate?: string;
-  endDate?: string;
+  syllabus?: string;
+  objectives?: string;
+  prerequisites?: string;
+  targetAudience?: string;
+  teacherId?: number;
+  durationWeeks?: number;
+  totalSessions?: number;
+  price?: number;
+  coverImageUrl?: string;
 }
 
 export interface UpdateCourseRequest {
-  code?: string;
   name?: string;
+  code?: string;
   description?: string;
-  credits?: number;
+  syllabus?: string;
+  objectives?: string;
+  prerequisites?: string;
+  targetAudience?: string;
   teacherId?: number;
-  capacity?: number;
-  startDate?: string;
-  endDate?: string;
-  status?: CourseStatus;
+  durationWeeks?: number;
+  totalSessions?: number;
+  price?: number;
+  coverImageUrl?: string;
 }
 
 export interface CourseSearchParams {
