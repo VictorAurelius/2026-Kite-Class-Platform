@@ -1,5 +1,6 @@
 /**
  * Teacher domain types.
+ * Matches backend TeacherResponse and CreateTeacherRequest DTOs.
  *
  * @author KiteClass Team
  * @since 1.0.0
@@ -11,10 +12,12 @@ export interface Teacher {
   id: number;
   name: string;
   email: string;
-  phone?: string;
+  phoneNumber?: string;
   specialization?: string;
-  qualifications?: string;
-  hireDate?: string;
+  bio?: string;
+  qualification?: string;
+  experienceYears?: number;
+  avatarUrl?: string;
   status: TeacherStatus;
   createdAt: string;
   updatedAt: string;
@@ -23,18 +26,20 @@ export interface Teacher {
 export interface CreateTeacherRequest {
   name: string;
   email: string;
-  phone?: string;
+  phoneNumber?: string;
   specialization?: string;
-  qualifications?: string;
-  hireDate?: string;
+  bio?: string;
+  qualification?: string;
+  experienceYears?: number;
 }
 
 export interface UpdateTeacherRequest {
   name?: string;
-  email?: string;
-  phone?: string;
+  phoneNumber?: string;
   specialization?: string;
-  qualifications?: string;
+  bio?: string;
+  qualification?: string;
+  experienceYears?: number;
   status?: TeacherStatus;
 }
 
