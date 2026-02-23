@@ -88,7 +88,7 @@ describe('NewStudentPage Integration', () => {
 
     // Wait for success toast
     await waitFor(() => {
-      expect(screen.getByText(/tạo học viên thành công/i)).toBeInTheDocument();
+      expect(screen.getByText(/đã tạo học viên mới/i)).toBeInTheDocument();
     });
 
     // Verify redirect to students list

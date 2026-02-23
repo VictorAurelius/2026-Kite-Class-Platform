@@ -194,9 +194,14 @@ describe('StudentsListPage Integration', () => {
       })
     );
 
-    // Find and click delete button (assuming it's in the table row)
-    const deleteButtons = screen.getAllByRole('button', { name: /xóa/i });
-    await user.click(deleteButtons[0]);
+    // Find delete button by icon (third button in actions column for each row)
+    const allButtons = screen.getAllByRole('button');
+    // Filter to get only icon buttons (size="icon" buttons without text)
+    const iconButtons = allButtons.filter(btn => !btn.textContent);
+    // Delete button is every 3rd icon button (after View and Edit)
+    const firstDeleteButton = iconButtons[2];
+
+    await user.click(firstDeleteButton);
 
     // Verify confirmation was called
     expect(window.confirm).toHaveBeenCalledWith(
@@ -206,7 +211,7 @@ describe('StudentsListPage Integration', () => {
     // Wait for toast notification (from mutation success)
     await waitFor(() => {
       // Toast should show success message
-      expect(screen.getByText(/xóa học viên thành công/i)).toBeInTheDocument();
+      expect(screen.getByText(/đã xóa học viên/i)).toBeInTheDocument();
     });
   });
 
@@ -219,9 +224,12 @@ describe('StudentsListPage Integration', () => {
     // Wait for data to load
     await waitFor(() => screen.getByText('Nguyễn Văn A'));
 
-    // Find and click delete button
-    const deleteButtons = screen.getAllByRole('button', { name: /xóa/i });
-    await user.click(deleteButtons[0]);
+    // Find delete button by icon
+    const allButtons = screen.getAllByRole('button');
+    const iconButtons = allButtons.filter(btn => !btn.textContent);
+    const firstDeleteButton = iconButtons[2];
+
+    await user.click(firstDeleteButton);
 
     // Verify confirmation was called
     expect(window.confirm).toHaveBeenCalledWith(
@@ -233,7 +241,7 @@ describe('StudentsListPage Integration', () => {
 
     // Should not show toast notification
     expect(
-      screen.queryByText(/xóa học viên thành công/i)
+      screen.queryByText(/đã xóa học viên/i)
     ).not.toBeInTheDocument();
   });
 

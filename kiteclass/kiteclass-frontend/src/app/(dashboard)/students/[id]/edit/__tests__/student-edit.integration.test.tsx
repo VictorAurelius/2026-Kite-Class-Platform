@@ -98,7 +98,7 @@ describe('EditStudentPage Integration', () => {
     // Wait for success toast
     await waitFor(() => {
       expect(
-        screen.getByText(/cập nhật học viên thành công/i)
+        screen.getByText(/đã cập nhật thông tin học viên/i)
       ).toBeInTheDocument();
     });
 
