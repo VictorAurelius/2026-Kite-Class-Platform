@@ -78,6 +78,10 @@ services:
       SPRING_RABBITMQ_PASSWORD: kiteclass123
       # Internal API secret for HMAC authentication
       INTERNAL_API_SECRET: dev-internal-secret-change-in-production
+      # Disable Flyway (Gateway manages all migrations)
+      SPRING_FLYWAY_ENABLED: false
+      # Disable Hibernate schema validation (tables created by Gateway)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     depends_on:
       postgres:
         condition: service_healthy
