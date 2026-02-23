@@ -64,13 +64,3 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
 }));
-
-// Mock useToast hook globally to avoid errors in Toaster component
-vi.mock('@/hooks/use-toast', () => ({
-  useToast: () => ({
-    toast: vi.fn(),
-    toasts: [],
-    dismiss: vi.fn(),
-  }),
-  toast: vi.fn(),
-}));
