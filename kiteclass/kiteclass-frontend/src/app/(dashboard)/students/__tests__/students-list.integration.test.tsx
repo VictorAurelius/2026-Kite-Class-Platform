@@ -86,47 +86,49 @@ describe('StudentsListPage Integration', () => {
 
         if (page === '1') {
           return HttpResponse.json({
-            content: [
-              {
-                id: 3,
-                name: 'Lê Thị C',
-                email: 'lethic@gmail.com',
-                phone: '0901234569',
-                status: 'ACTIVE',
-                dateOfBirth: '2005-03-15',
-                address: '789 Đường XYZ, Hà Nội',
-                createdAt: '2026-01-01T00:00:00Z',
-                updatedAt: '2026-01-01T00:00:00Z',
-              },
-            ],
-            page: {
-              size: 20,
-              number: 1,
+            success: true,
+            data: {
+              content: [
+                {
+                  id: 3,
+                  name: 'Lê Thị C',
+                  email: 'lethic@gmail.com',
+                  phone: '0901234569',
+                  status: 'ACTIVE',
+                  dateOfBirth: '2005-03-15',
+                  address: '789 Đường XYZ, Hà Nội',
+                  createdAt: '2026-01-01T00:00:00Z',
+                  updatedAt: '2026-01-01T00:00:00Z',
+                },
+              ],
               totalElements: 3,
               totalPages: 2,
+              size: 20,
+              number: 1,
             },
           });
         }
 
         return HttpResponse.json({
-          content: [
-            {
-              id: 1,
-              name: 'Nguyễn Văn A',
-              email: 'nguyenvana@gmail.com',
-              phone: '0901234567',
-              status: 'ACTIVE',
-              dateOfBirth: '2005-01-15',
-              address: '123 Đường ABC, TP.HCM',
-              createdAt: '2026-01-01T00:00:00Z',
-              updatedAt: '2026-01-01T00:00:00Z',
-            },
-          ],
-          page: {
-            size: 20,
-            number: 0,
+          success: true,
+          data: {
+            content: [
+              {
+                id: 1,
+                name: 'Nguyễn Văn A',
+                email: 'nguyenvana@gmail.com',
+                phone: '0901234567',
+                status: 'ACTIVE',
+                dateOfBirth: '2005-01-15',
+                address: '123 Đường ABC, TP.HCM',
+                createdAt: '2026-01-01T00:00:00Z',
+                updatedAt: '2026-01-01T00:00:00Z',
+              },
+            ],
             totalElements: 3,
             totalPages: 2,
+            size: 20,
+            number: 0,
           },
         });
       })
@@ -212,7 +214,9 @@ describe('StudentsListPage Integration', () => {
 
   it('should not delete student when confirmation is cancelled', async () => {
     const user = userEvent.setup();
-    mockConfirm(false); // User cancels deletion
+
+    // Reset and mock confirm to return false
+    window.confirm = vi.fn(() => false);
 
     render(<StudentsPage />);
 
