@@ -8,6 +8,7 @@ import { AllTheProviders } from '@/test/utils';
 import { useStudents, useStudent, useCreateStudent, useUpdateStudent, useDeleteStudent } from '../use-students';
 import { server } from '@/mocks/server';
 import { http, HttpResponse } from 'msw';
+import { Gender } from '@/types/auth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -23,7 +24,7 @@ describe('useStudents Hooks', () => {
       });
 
       expect(result.current.data?.content).toHaveLength(2);
-      expect(result.current.data?.content[0].name).toBe('John Doe');
+      expect(result.current.data!.content[0]!.name).toBe('John Doe');
     });
 
     it('should handle API errors gracefully', async () => {
@@ -79,7 +80,7 @@ describe('useStudents Hooks', () => {
         name: 'New Student',
         email: 'new@student.com',
         phone: '0909999999',
-        gender: 'MALE' as const,
+        gender: Gender.MALE,
       };
 
       result.current.mutate(newStudent);
@@ -109,7 +110,7 @@ describe('useStudents Hooks', () => {
         name: 'Test',
         email: 'existing@student.com',
         phone: '0909999999',
-        gender: 'MALE' as const,
+        gender: Gender.MALE,
       });
 
       await waitFor(() => {

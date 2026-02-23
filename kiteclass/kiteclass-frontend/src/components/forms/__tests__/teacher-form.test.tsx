@@ -44,7 +44,7 @@ describe('TeacherForm', () => {
     });
 
     // Verify the submitted data contains our fields
-    const submittedData = onSubmit.mock.calls[0][0];
+    const submittedData = onSubmit.mock.calls[0]![0];
     expect(submittedData).toMatchObject({
       name: 'Nguyễn Văn A',
       email: 'teacher@example.com',

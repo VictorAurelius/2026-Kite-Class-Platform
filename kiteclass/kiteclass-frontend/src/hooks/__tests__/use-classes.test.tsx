@@ -38,7 +38,7 @@ describe('useClasses Hooks', () => {
       });
 
       expect(result.current.data?.content).toHaveLength(1);
-      expect(result.current.data?.content[0].name).toBe('Math 101 - Morning Class');
+      expect(result.current.data!.content[0]!.name).toBe('Math 101 - Morning Class');
     });
 
     it('should handle API errors gracefully', async () => {

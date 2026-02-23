@@ -6,6 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@/test/utils';
 import userEvent from '@testing-library/user-event';
 import { StudentForm } from '../student-form';
+import { Gender } from '@/types/auth';
 
 describe('StudentForm', () => {
   it('should render all required fields', () => {
@@ -33,7 +34,7 @@ describe('StudentForm', () => {
       expect(onSubmit).toHaveBeenCalled();
     });
 
-    const submittedData = onSubmit.mock.calls[0][0];
+    const submittedData = onSubmit.mock.calls[0]![0];
     expect(submittedData).toMatchObject({
       name: 'John Doe',
       email: 'john@example.com',
@@ -53,7 +54,7 @@ describe('StudentForm', () => {
       name: 'Jane Smith',
       email: 'jane@example.com',
       phone: '0907654321',
-      gender: 'FEMALE' as const,
+      gender: Gender.FEMALE,
     };
 
     render(<StudentForm onSubmit={vi.fn()} isSubmitting={false} initialData={initialData} />);

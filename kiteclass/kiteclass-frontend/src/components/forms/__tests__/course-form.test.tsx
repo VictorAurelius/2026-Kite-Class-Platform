@@ -48,7 +48,7 @@ describe('CourseForm', () => {
       expect(onSubmit).toHaveBeenCalled();
     });
 
-    const submittedData = onSubmit.mock.calls[0][0];
+    const submittedData = onSubmit.mock.calls[0]![0];
     expect(submittedData).toMatchObject({
       name: 'English for Business',
       code: 'ENG-B1-001',

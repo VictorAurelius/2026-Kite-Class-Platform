@@ -26,7 +26,7 @@ describe('useTeachers Hooks', () => {
       });
 
       expect(result.current.data?.content).toHaveLength(1);
-      expect(result.current.data?.content[0].name).toBe('Mr. Smith');
+      expect(result.current.data!.content[0]!.name).toBe('Mr. Smith');
     });
 
     it('should handle API errors gracefully', async () => {

@@ -34,7 +34,7 @@ describe('useCourses Hooks', () => {
       });
 
       expect(result.current.data?.content).toHaveLength(1);
-      expect(result.current.data?.content[0].name).toBe('Mathematics 101');
+      expect(result.current.data!.content[0]!.name).toBe('Mathematics 101');
     });
 
     it('should handle API errors gracefully', async () => {
