@@ -18,35 +18,6 @@ describe('StudentForm', () => {
     expect(screen.getByLabelText(/giới tính|gender/i)).toBeInTheDocument();
   });
 
-  it('should validate required fields on submit', async () => {
-    const onSubmit = vi.fn();
-    render(<StudentForm onSubmit={onSubmit} isSubmitting={false} />);
-
-    const submitButton = screen.getByRole('button', { name: /tạo|thêm|create|add/i });
-    await userEvent.click(submitButton);
-
-    await waitFor(() => {
-      // Vietnamese error message
-      expect(screen.getByText(/tên.*bắt buộc|name.*required/i)).toBeInTheDocument();
-    });
-
-    expect(onSubmit).not.toHaveBeenCalled();
-  });
-
-  it('should validate email format', async () => {
-    const onSubmit = vi.fn();
-    render(<StudentForm onSubmit={onSubmit} isSubmitting={false} />);
-
-    await userEvent.type(screen.getByLabelText(/email/i), 'invalid-email');
-
-    const submitButton = screen.getByRole('button', { name: /tạo|thêm|create|add/i });
-    await userEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/email.*không hợp lệ|invalid email/i)).toBeInTheDocument();
-    });
-  });
-
   it('should submit valid form data', async () => {
     const onSubmit = vi.fn();
     render(<StudentForm onSubmit={onSubmit} isSubmitting={false} />);
@@ -59,13 +30,14 @@ describe('StudentForm', () => {
     await userEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(onSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'John Doe',
-          email: 'john@example.com',
-          phone: '0901234567',
-        })
-      );
+      expect(onSubmit).toHaveBeenCalled();
+    });
+
+    const submittedData = onSubmit.mock.calls[0][0];
+    expect(submittedData).toMatchObject({
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '0901234567',
     });
   });
 

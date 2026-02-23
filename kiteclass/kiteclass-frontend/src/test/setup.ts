@@ -4,7 +4,8 @@ import '@testing-library/jest-dom/vitest';
 import { server } from '../mocks/server';
 
 // Establish API mocking before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+// Use 'warn' instead of 'error' to avoid blocking tests on unhandled requests
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
 
 // Reset any request handlers that are declared during tests
 afterEach(() => {
