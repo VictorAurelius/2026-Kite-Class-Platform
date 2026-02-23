@@ -21,13 +21,7 @@ function createTestQueryClient() {
         retry: false,
       },
     },
-    logger: {
-      // eslint-disable-next-line no-console
-      log: console.log,
-      // eslint-disable-next-line no-console
-      warn: console.warn,
-      error: () => {}, // Suppress error logs in tests
-    },
+    // Note: logger option removed in React Query v5
   });
 }
 

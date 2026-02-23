@@ -109,7 +109,7 @@ describe('useStudents Hooks', () => {
         name: 'Test',
         email: 'existing@student.com',
         phone: '0909999999',
-        gender: 'MALE',
+        gender: 'MALE' as const,
       });
 
       await waitFor(() => {
