@@ -25,8 +25,8 @@ describe('useTeachers Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.content).toHaveLength(1);
-      expect(result.current.data!.content[0]!.name).toBe('Mr. Smith');
+      expect(result.current.data?.content).toHaveLength(2);
+      expect(result.current.data!.content[0]!.name).toBe('Nguyễn Thị Giáo');
     });
 
     it('should handle API errors gracefully', async () => {
@@ -59,8 +59,8 @@ describe('useTeachers Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.name).toBe('Mr. Smith');
-      expect(result.current.data?.email).toBe('smith@teacher.com');
+      expect(result.current.data?.name).toBe('Nguyễn Thị Giáo');
+      expect(result.current.data?.email).toBe('giao.nguyen@kiteclass.local');
     });
 
     it('should not fetch when ID is 0', () => {

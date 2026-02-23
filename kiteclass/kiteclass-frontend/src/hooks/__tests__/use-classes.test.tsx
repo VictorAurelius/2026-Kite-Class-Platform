@@ -37,8 +37,8 @@ describe('useClasses Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.content).toHaveLength(1);
-      expect(result.current.data!.content[0]!.name).toBe('Math 101 - Morning Class');
+      expect(result.current.data?.content).toHaveLength(2);
+      expect(result.current.data!.content[0]!.name).toBe('Lớp Tiếng Anh Buổi Sáng');
     });
 
     it('should handle API errors gracefully', async () => {
@@ -71,7 +71,7 @@ describe('useClasses Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.name).toBe('Math 101 - Morning Class');
+      expect(result.current.data?.name).toBe('Lớp Tiếng Anh Buổi Sáng');
       expect(result.current.data?.status).toBe('SCHEDULED');
     });
 

@@ -13,12 +13,6 @@ import { useAuthStore } from '@/stores/auth-store';
 import { server as _server } from '@/mocks/server';
 import { http as _http, HttpResponse as _HttpResponse } from 'msw';
 
-
-// Mock toast để tránh errors
-vi.mock('@/hooks/use-toast', () => ({
-  toast: vi.fn(),
-}));
-
 describe('useAuth', () => {
   beforeEach(() => {
     // Clear auth store before each test
