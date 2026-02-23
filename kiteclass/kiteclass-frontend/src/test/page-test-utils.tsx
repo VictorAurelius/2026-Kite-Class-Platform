@@ -70,12 +70,13 @@ export function mockEmptyList(endpoint: string) {
   server.use(
     http.get(endpoint, () => {
       return HttpResponse.json({
-        content: [],
-        page: {
-          size: 10,
-          number: 0,
+        success: true,
+        data: {
+          content: [],
           totalElements: 0,
           totalPages: 0,
+          size: 10,
+          number: 0,
         },
       });
     })
