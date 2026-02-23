@@ -16,6 +16,7 @@ import { mock404, mockValidationError } from '@/test/page-test-utils';
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  usePathname: vi.fn(() => '/students/1/edit'),
 }));
 
 describe('EditStudentPage Integration', () => {

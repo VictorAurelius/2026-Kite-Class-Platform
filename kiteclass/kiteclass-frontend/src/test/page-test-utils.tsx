@@ -193,3 +193,16 @@ export function mockRouterPush() {
 
   return { mockPush, mockRouter };
 }
+
+/**
+ * Student form field labels for consistent testing.
+ */
+export const STUDENT_FORM_LABELS = {
+  name: /tên học viên/i,
+  email: /email/i,
+  phone: /số điện thoại/i,
+  dateOfBirth: /ngày sinh/i,
+  address: /địa chỉ/i,
+  gender: /giới tính/i,
+  status: /trạng thái/i,
+} as const;

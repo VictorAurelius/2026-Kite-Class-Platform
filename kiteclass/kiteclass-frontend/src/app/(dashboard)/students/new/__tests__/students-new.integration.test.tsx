@@ -19,6 +19,7 @@ import {
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  usePathname: vi.fn(() => '/students/new'),
 }));
 
 describe('NewStudentPage Integration', () => {
@@ -46,7 +47,7 @@ describe('NewStudentPage Integration', () => {
     ).toBeInTheDocument();
 
     // Check form fields are present
-    expect(screen.getByLabelText(/họ và tên/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/tên học viên/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/số điện thoại/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/ngày sinh/i)).toBeInTheDocument();
@@ -78,7 +79,7 @@ describe('NewStudentPage Integration', () => {
     );
 
     // Fill in required fields
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Nguyễn Văn Test');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Nguyễn Văn Test');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
@@ -125,7 +126,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Fill in form with duplicate email
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Test User');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Test User');
     await user.type(screen.getByLabelText(/email/i), duplicateEmail);
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
@@ -157,7 +158,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Fill in form with invalid data
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Test User');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Test User');
     await user.type(screen.getByLabelText(/email/i), 'invalid-email');
     await user.type(screen.getByLabelText(/số điện thoại/i), '123');
 
@@ -196,7 +197,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Fill in form
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Test User');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Test User');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
@@ -240,7 +241,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Fill in form
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Test User');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Test User');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
@@ -266,7 +267,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Fill in form with invalid email
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Test User');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Test User');
     await user.type(screen.getByLabelText(/email/i), 'not-an-email');
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
@@ -285,7 +286,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Fill in form with invalid phone
-    await user.type(screen.getByLabelText(/họ và tên/i), 'Test User');
+    await user.type(screen.getByLabelText(/tên học viên/i), 'Test User');
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/số điện thoại/i), '123'); // Too short
 
