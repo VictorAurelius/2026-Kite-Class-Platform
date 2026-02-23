@@ -1106,3 +1106,5 @@ cập nhật lại tài liệu để có thể thực hiện phase 2 ở máy kh
 đọc 04-implementation để biết action ưu tiên tiếp theo
 
 push và check CI xem đạt coverage chưa?
+
+fix code + test để nâng coverage, đặc biệt với những phần đang thấp

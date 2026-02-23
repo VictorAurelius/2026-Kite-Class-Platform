@@ -22,6 +22,22 @@ describe('Utils', () => {
       // twMerge should handle conflicting classes
       expect(cn('p-4', 'p-2')).toBe('p-2');
     });
+
+    it('should handle empty inputs', () => {
+      expect(cn()).toBe('');
+    });
+
+    it('should handle null and undefined', () => {
+      expect(cn('foo', null, 'bar', undefined, 'baz')).toBe('foo bar baz');
+    });
+
+    it('should handle arrays', () => {
+      expect(cn(['foo', 'bar'], 'baz')).toBe('foo bar baz');
+    });
+
+    it('should handle objects', () => {
+      expect(cn({ foo: true, bar: false, baz: true })).toBe('foo baz');
+    });
   });
 
   describe('formatDate', () => {
