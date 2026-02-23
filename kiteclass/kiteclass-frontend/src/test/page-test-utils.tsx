@@ -5,6 +5,7 @@
  * @since 2026-02-23
  */
 
+import { vi } from 'vitest';
 import { server } from '@/mocks/server';
 import { http, HttpResponse } from 'msw';
 

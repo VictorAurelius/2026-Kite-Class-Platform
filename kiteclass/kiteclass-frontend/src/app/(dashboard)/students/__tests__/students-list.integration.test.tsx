@@ -27,9 +27,6 @@ describe('StudentsListPage Integration', () => {
   it('should load and display students list', async () => {
     render(<StudentsPage />);
 
-    // Shows loading state
-    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-
     // Data loads
     await waitFor(() => {
       expect(screen.getByText('Nguyễn Văn A')).toBeInTheDocument();

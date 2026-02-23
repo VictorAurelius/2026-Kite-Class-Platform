@@ -1095,3 +1095,8 @@ commit all file changing
 2. cập nhật hết status vào master plan và các file liên quan
 3. cập nhật hết các kinh nghiệm sau PR 2.5 này để tránh mắc phải trong các PR sau gây tốn token
 4. cập nhật lại settings.local của claude để cấp quyền bao quát hơn, tránh hỏi quyền trong tương lai
+
+tạo plan để test auto cho tất cả các màn hình đã implement
+
+phải lưu plan vào documents/03-planning trước khi thực hiện
+cập nhật skill
