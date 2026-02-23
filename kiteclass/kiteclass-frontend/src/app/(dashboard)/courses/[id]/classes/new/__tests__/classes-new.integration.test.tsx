@@ -18,6 +18,7 @@ import { render, screen, waitFor } from '@/test/utils';
 import userEvent from '@testing-library/user-event';
 import NewClassPage from '../page';
 import { useRouter } from 'next/navigation';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { server } from '@/mocks/server';
 import { http, HttpResponse } from 'msw';
 import { mockValidationError } from '@/test/page-test-utils';
@@ -41,7 +42,7 @@ describe('NewClassPage Integration', () => {
   const mockParams = Promise.resolve({ id: '1' });
 
   beforeEach(() => {
-    vi.mocked(useRouter).mockReturnValue(mockRouter as any);
+    vi.mocked(useRouter).mockReturnValue(mockRouter as AppRouterInstance);
     mockPush.mockClear();
   });
 
