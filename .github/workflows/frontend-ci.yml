@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: kiteclass/kiteclass-frontend/.next
+          path: .next
           retention-days: 7
 
   frontend-e2e:
