@@ -84,7 +84,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Wait for success toast
@@ -103,7 +103,7 @@ describe('NewStudentPage Integration', () => {
     render(<NewStudentPage />);
 
     // Submit without filling fields
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Verify validation errors appear (from zod schema)
@@ -131,7 +131,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Verify error toast
@@ -163,7 +163,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/số điện thoại/i), '123');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Verify API validation errors shown in toast
@@ -202,7 +202,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Verify error toast
@@ -245,7 +245,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
 
     // Submit form
     await user.click(submitButton);
@@ -272,7 +272,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/số điện thoại/i), '0901234567');
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Verify email validation error
@@ -291,7 +291,7 @@ describe('NewStudentPage Integration', () => {
     await user.type(screen.getByLabelText(/số điện thoại/i), '123'); // Too short
 
     // Submit form
-    const submitButton = screen.getByRole('button', { name: /tạo học viên/i });
+    const submitButton = screen.getByRole('button', { name: /tạo mới/i });
     await user.click(submitButton);
 
     // Verify phone validation error

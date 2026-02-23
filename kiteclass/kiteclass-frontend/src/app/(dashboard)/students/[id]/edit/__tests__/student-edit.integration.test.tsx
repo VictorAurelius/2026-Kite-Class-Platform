@@ -92,7 +92,7 @@ describe('EditStudentPage Integration', () => {
 
     // Submit form
     const submitButton = screen.getByRole('button', {
-      name: /cập nhật học viên/i,
+      name: /cập nhật/i,
     });
     await user.click(submitButton);
 
@@ -125,7 +125,7 @@ describe('EditStudentPage Integration', () => {
 
     // Should not show form
     expect(
-      screen.queryByRole('button', { name: /cập nhật học viên/i })
+      screen.queryByRole('button', { name: /cập nhật/i })
     ).not.toBeInTheDocument();
   });
 
@@ -144,7 +144,7 @@ describe('EditStudentPage Integration', () => {
 
     // Submit form
     const submitButton = screen.getByRole('button', {
-      name: /cập nhật học viên/i,
+      name: /cập nhật/i,
     });
     await user.click(submitButton);
 
@@ -178,7 +178,7 @@ describe('EditStudentPage Integration', () => {
 
     // Submit form
     const submitButton = screen.getByRole('button', {
-      name: /cập nhật học viên/i,
+      name: /cập nhật/i,
     });
     await user.click(submitButton);
 
@@ -223,7 +223,7 @@ describe('EditStudentPage Integration', () => {
 
     // Submit form
     const submitButton = screen.getByRole('button', {
-      name: /cập nhật học viên/i,
+      name: /cập nhật/i,
     });
     await user.click(submitButton);
 
@@ -270,7 +270,7 @@ describe('EditStudentPage Integration', () => {
     await user.type(nameInput, 'Updated');
 
     const submitButton = screen.getByRole('button', {
-      name: /cập nhật học viên/i,
+      name: /cập nhật/i,
     });
 
     // Submit form
@@ -327,7 +327,7 @@ describe('EditStudentPage Integration', () => {
 
     // Submit form
     const submitButton = screen.getByRole('button', {
-      name: /cập nhật học viên/i,
+      name: /cập nhật/i,
     });
     await user.click(submitButton);
 
