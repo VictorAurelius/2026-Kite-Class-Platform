@@ -154,12 +154,17 @@ export function mockDuplicateEmailError(endpoint: string, email: string) {
  * Mock a validation error response with field-specific errors.
  *
  * @param endpoint - API endpoint pattern
- * @param fieldErrors - Map of field names to error messages
+ * @param fieldErrors - Map of field names to error messages (converts strings to arrays)
  */
 export function mockValidationError(
   endpoint: string,
   fieldErrors: Record<string, string>
 ) {
+  // Convert string values to arrays to match backend API format
+  const formattedErrors = Object.fromEntries(
+    Object.entries(fieldErrors).map(([key, value]) => [key, [value]])
+  );
+
   server.use(
     http.post(endpoint, () => {
       return HttpResponse.json(
@@ -167,7 +172,7 @@ export function mockValidationError(
           status: 400,
           error: 'VALIDATION_ERROR',
           message: 'Dữ liệu không hợp lệ',
-          fieldErrors,
+          fieldErrors: formattedErrors,
         },
         { status: 400 }
       );

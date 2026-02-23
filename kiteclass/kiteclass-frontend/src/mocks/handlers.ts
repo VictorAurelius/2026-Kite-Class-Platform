@@ -217,26 +217,44 @@ export const handlers = [
   }),
 
   // ==================== Courses API ====================
-  http.get(`${BASE_URL}/api/v1/courses`, () => {
+  http.get(`${BASE_URL}/api/v1/courses`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '0');
+    const size = parseInt(url.searchParams.get('size') || '20');
+
     return HttpResponse.json({
       success: true,
       data: {
         content: [
           {
             id: 1,
-            name: 'Mathematics 101',
-            code: 'MATH101',
-            description: 'Introduction to Mathematics',
-            price: 500000,
+            name: 'Tiếng Anh Giao Tiếp Cơ Bản',
+            code: 'ENG-B1-001',
+            description: 'Khóa học tiếng Anh giao tiếp cho người mới bắt đầu',
+            price: 3000000,
+            durationWeeks: 12,
+            totalSessions: 24,
             status: 'PUBLISHED',
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: '2024-01-01T00:00:00Z',
+            createdAt: '2026-01-01T00:00:00Z',
+            updatedAt: '2026-01-01T00:00:00Z',
+          },
+          {
+            id: 2,
+            name: 'Toán Học Nâng Cao',
+            code: 'MATH-A1-001',
+            description: 'Khóa học toán nâng cao cho học sinh THPT',
+            price: 2500000,
+            durationWeeks: 10,
+            totalSessions: 20,
+            status: 'DRAFT',
+            createdAt: '2026-01-01T00:00:00Z',
+            updatedAt: '2026-01-01T00:00:00Z',
           },
         ],
-        totalElements: 1,
+        totalElements: 2,
         totalPages: 1,
-        size: 20,
-        number: 0,
+        size,
+        number: page,
       },
     });
   }),
@@ -247,13 +265,15 @@ export const handlers = [
       success: true,
       data: {
         id: Number(id),
-        name: 'Mathematics 101',
-        code: 'MATH101',
-        description: 'Introduction to Mathematics',
-        price: 500000,
+        name: 'Tiếng Anh Giao Tiếp Cơ Bản',
+        code: 'ENG-B1-001',
+        description: 'Khóa học tiếng Anh giao tiếp cho người mới bắt đầu',
+        price: 3000000,
+        durationWeeks: 12,
+        totalSessions: 24,
         status: 'PUBLISHED',
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
       },
     });
   }),
