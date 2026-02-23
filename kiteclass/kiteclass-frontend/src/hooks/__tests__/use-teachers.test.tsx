@@ -5,7 +5,7 @@
  * @since 3.8.0
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { AllTheProviders } from '@/test/utils';
 import { useTeachers, useTeacher, useCreateTeacher, useUpdateTeacher, useDeleteTeacher } from '../use-teachers';

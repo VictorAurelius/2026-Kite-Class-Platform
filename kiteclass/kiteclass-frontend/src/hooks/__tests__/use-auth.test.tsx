@@ -6,14 +6,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { AllTheProviders } from '@/test/utils';
 import { useAuth } from '../useAuth';
 import { useAuthStore } from '@/stores/auth-store';
-import { server } from '@/mocks/server';
-import { http, HttpResponse } from 'msw';
+import { server as _server } from '@/mocks/server';
+import { http as _http, HttpResponse as _HttpResponse } from 'msw';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const _BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Mock toast để tránh errors
 vi.mock('@/hooks/use-toast', () => ({

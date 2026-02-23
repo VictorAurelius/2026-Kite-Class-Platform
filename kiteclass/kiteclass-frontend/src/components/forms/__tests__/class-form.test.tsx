@@ -5,9 +5,8 @@
  * @since 3.8.0
  */
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@/test/utils';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@/test/utils';
 import { ClassForm } from '../class-form';
 
 describe('ClassForm', () => {

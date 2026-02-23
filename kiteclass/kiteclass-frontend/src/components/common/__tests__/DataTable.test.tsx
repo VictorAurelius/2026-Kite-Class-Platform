@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@/test/utils';
+import { render, screen } from '@/test/utils';
 import userEvent from '@testing-library/user-event';
 import { DataTable } from '../data-table';
 import { ColumnDef } from '@tanstack/react-table';

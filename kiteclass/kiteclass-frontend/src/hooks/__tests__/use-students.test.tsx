@@ -2,7 +2,7 @@
  * useStudents Hooks Integration Tests
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { AllTheProviders } from '@/test/utils';
 import { useStudents, useStudent, useCreateStudent, useUpdateStudent, useDeleteStudent } from '../use-students';
