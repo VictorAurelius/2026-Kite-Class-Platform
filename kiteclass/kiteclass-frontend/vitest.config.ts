@@ -23,10 +23,10 @@ export default defineConfig({
         'src/components/ui/**', // Shadcn components don't need coverage
       ],
       thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 70,
-        statements: 70,
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80,
       },
     },
   },

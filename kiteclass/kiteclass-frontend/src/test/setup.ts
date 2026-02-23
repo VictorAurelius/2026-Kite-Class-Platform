@@ -1,11 +1,20 @@
-import { afterEach } from 'vitest';
+import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+import { server } from '../mocks/server';
 
-// Cleanup after each test case
+// Establish API mocking before all tests
+// Use 'warn' instead of 'error' to avoid blocking tests on unhandled requests
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+
+// Reset any request handlers that are declared during tests
 afterEach(() => {
+  server.resetHandlers();
   cleanup();
 });
+
+// Clean up after the tests are finished
+afterAll(() => server.close());
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -42,3 +51,16 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
+
+// Mock Next.js router
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    prefetch: vi.fn(),
+    pathname: '/',
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}));

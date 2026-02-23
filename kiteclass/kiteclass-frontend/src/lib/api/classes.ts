@@ -1,0 +1,154 @@
+/**
+ * Class API functions.
+ *
+ * @author KiteClass Team
+ * @since 3.7.0
+ */
+
+import { apiClient } from '@/lib/api-client';
+import type {
+  Class,
+  CreateClassRequest,
+  UpdateClassRequest,
+  CancelClassRequest,
+  ClassSession,
+  ClassCodeResponse,
+  CreateScheduleRequest,
+  GenerateClassCodeRequest,
+  ClassSearchCriteria,
+} from '@/types/class';
+import type { ApiResponse, PaginatedResponse } from '@/types/api';
+
+export const classesApi = {
+  /**
+   * Get classes for a course (paginated)
+   */
+  getByCourse: async (
+    courseId: number,
+    params: Omit<ClassSearchCriteria, 'courseId'> = {}
+  ): Promise<PaginatedResponse<Class>> => {
+    const response = await apiClient.get<ApiResponse<PaginatedResponse<Class>>>(
+      `/api/v1/courses/${courseId}/classes`,
+      { params }
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Get class by ID
+   */
+  getById: async (id: number): Promise<Class> => {
+    const response = await apiClient.get<ApiResponse<Class>>(`/api/v1/classes/${id}`);
+    return response.data.data!;
+  },
+
+  /**
+   * Create a new class within a course
+   */
+  create: async (courseId: number, data: CreateClassRequest): Promise<Class> => {
+    const response = await apiClient.post<ApiResponse<Class>>(
+      `/api/v1/courses/${courseId}/classes`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Update a class (partial update)
+   */
+  update: async (id: number, data: UpdateClassRequest): Promise<Class> => {
+    const response = await apiClient.patch<ApiResponse<Class>>(
+      `/api/v1/classes/${id}`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Delete a class (SCHEDULED with 0 enrollments only)
+   */
+  delete: async (id: number): Promise<void> => {
+    await apiClient.delete(`/api/v1/classes/${id}`);
+  },
+
+  // =========================================================================
+  // Lifecycle actions
+  // =========================================================================
+
+  /**
+   * Start a class (SCHEDULED → IN_PROGRESS)
+   */
+  start: async (id: number): Promise<Class> => {
+    const response = await apiClient.post<ApiResponse<Class>>(
+      `/api/v1/classes/${id}/start`
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Complete a class (IN_PROGRESS → COMPLETED)
+   */
+  complete: async (id: number): Promise<Class> => {
+    const response = await apiClient.post<ApiResponse<Class>>(
+      `/api/v1/classes/${id}/complete`
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Cancel a class (SCHEDULED/IN_PROGRESS → CANCELLED)
+   */
+  cancel: async (id: number, data: CancelClassRequest): Promise<Class> => {
+    const response = await apiClient.post<ApiResponse<Class>>(
+      `/api/v1/classes/${id}/cancel`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  // =========================================================================
+  // Class code
+  // =========================================================================
+
+  /**
+   * Generate or regenerate class enrollment code
+   */
+  generateCode: async (
+    id: number,
+    data: GenerateClassCodeRequest = {}
+  ): Promise<ClassCodeResponse> => {
+    const response = await apiClient.post<ApiResponse<ClassCodeResponse>>(
+      `/api/v1/classes/${id}/generate-code`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  // =========================================================================
+  // Schedule & Sessions
+  // =========================================================================
+
+  /**
+   * Create class schedule and generate sessions
+   */
+  createSchedule: async (
+    id: number,
+    data: CreateScheduleRequest
+  ): Promise<ClassSession[]> => {
+    const response = await apiClient.post<ApiResponse<ClassSession[]>>(
+      `/api/v1/classes/${id}/schedule`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Get all sessions for a class
+   */
+  getSessions: async (id: number): Promise<ClassSession[]> => {
+    const response = await apiClient.get<ApiResponse<ClassSession[]>>(
+      `/api/v1/classes/${id}/sessions`
+    );
+    return response.data.data!;
+  },
+};
