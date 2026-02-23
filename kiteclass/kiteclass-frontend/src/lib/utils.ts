@@ -10,6 +10,9 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
     month: '2-digit',
@@ -22,6 +25,9 @@ export function formatDate(dateString: string): string {
  */
 export function formatDateTime(dateTimeString: string): string {
   const date = new Date(dateTimeString);
+  if (isNaN(date.getTime())) {
+    return 'Invalid Date';
+  }
   return new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
     month: '2-digit',
