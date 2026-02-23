@@ -77,8 +77,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: .next
+          path: kiteclass/kiteclass-frontend/.next
           retention-days: 7
+          if-no-files-found: ignore
 
   frontend-e2e:
     name: E2E Tests (Playwright)
