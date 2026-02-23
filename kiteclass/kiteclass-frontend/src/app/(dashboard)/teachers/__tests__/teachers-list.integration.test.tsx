@@ -195,8 +195,9 @@ describe('TeachersListPage Integration', () => {
     const iconButtons = allButtons.filter(btn => !btn.textContent);
     // Delete button is every 3rd icon button (after View and Edit)
     const firstDeleteButton = iconButtons[2];
+    expect(firstDeleteButton).toBeDefined();
 
-    await user.click(firstDeleteButton);
+    await user.click(firstDeleteButton!);
 
     // Verify confirmation was called
     expect(window.confirm).toHaveBeenCalledWith(
@@ -225,8 +226,9 @@ describe('TeachersListPage Integration', () => {
     const allButtons = screen.getAllByRole('button');
     const iconButtons = allButtons.filter(btn => !btn.textContent);
     const firstDeleteButton = iconButtons[2];
+    expect(firstDeleteButton).toBeDefined();
 
-    await user.click(firstDeleteButton);
+    await user.click(firstDeleteButton!);
 
     // Verify confirmation was called
     expect(window.confirm).toHaveBeenCalledWith(

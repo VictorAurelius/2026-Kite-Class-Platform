@@ -1102,3 +1102,7 @@ phải lưu plan vào documents/03-planning trước khi thực hiện
 cập nhật skill
 
 cập nhật lại tài liệu để có thể thực hiện phase 2 ở máy khác
+
+đọc 04-implementation để biết action ưu tiên tiếp theo
+
+push và check CI xem đạt coverage chưa?

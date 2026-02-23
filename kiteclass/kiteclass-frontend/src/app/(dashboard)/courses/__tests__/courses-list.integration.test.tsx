@@ -123,8 +123,9 @@ describe('CoursesListPage Integration', () => {
     const firstDeleteButton = iconButtons.find(btn =>
       btn.querySelector('svg')?.classList.contains('lucide-trash-2')
     ) || iconButtons[2];
+    expect(firstDeleteButton).toBeDefined();
 
-    await user.click(firstDeleteButton);
+    await user.click(firstDeleteButton!);
 
     // Verify confirmation was called
     expect(window.confirm).toHaveBeenCalledWith(
@@ -155,8 +156,9 @@ describe('CoursesListPage Integration', () => {
     const firstDeleteButton = iconButtons.find(btn =>
       btn.querySelector('svg')?.classList.contains('lucide-trash-2')
     ) || iconButtons[2];
+    expect(firstDeleteButton).toBeDefined();
 
-    await user.click(firstDeleteButton);
+    await user.click(firstDeleteButton!);
 
     // Verify confirmation was called
     expect(window.confirm).toHaveBeenCalledWith(

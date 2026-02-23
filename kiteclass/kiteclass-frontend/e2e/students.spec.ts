@@ -344,7 +344,7 @@ test.describe('Students Module - Navigation', () => {
     // Should have breadcrumb or back links
     // (Adjust selectors based on actual implementation)
     const breadcrumb = page.locator('nav[aria-label="breadcrumb"], .breadcrumb');
-    const hasNavigation = await breadcrumb.isVisible().catch(() => false);
+    await breadcrumb.isVisible().catch(() => false);
 
     // Just verify page loaded correctly if no breadcrumb
     await expect(page.getByText(/chỉnh sửa học viên/i)).toBeVisible();
