@@ -130,26 +130,40 @@ export const handlers = [
   }),
 
   // ==================== Teachers API ====================
-  http.get(`${BASE_URL}/api/v1/teachers`, () => {
+  http.get(`${BASE_URL}/api/v1/teachers`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '0');
+    const size = parseInt(url.searchParams.get('size') || '20');
+
     return HttpResponse.json({
       success: true,
       data: {
         content: [
           {
             id: 1,
-            name: 'Mr. Smith',
-            email: 'smith@teacher.com',
-            phone: '0911111111',
-            specialization: 'Mathematics',
+            name: 'Nguyễn Thị Giáo',
+            email: 'giao.nguyen@kiteclass.local',
+            phoneNumber: '0901234567',
+            specialization: 'Toán học',
             status: 'ACTIVE',
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: '2024-01-01T00:00:00Z',
+            createdAt: '2026-01-01T00:00:00Z',
+            updatedAt: '2026-01-01T00:00:00Z',
+          },
+          {
+            id: 2,
+            name: 'Trần Văn Học',
+            email: 'hoc.tran@kiteclass.local',
+            phoneNumber: '0901234568',
+            specialization: 'Văn học',
+            status: 'ACTIVE',
+            createdAt: '2026-01-01T00:00:00Z',
+            updatedAt: '2026-01-01T00:00:00Z',
           },
         ],
-        totalElements: 1,
+        totalElements: 2,
         totalPages: 1,
-        size: 20,
-        number: 0,
+        size,
+        number: page,
       },
     });
   }),
@@ -160,13 +174,13 @@ export const handlers = [
       success: true,
       data: {
         id: Number(id),
-        name: 'Mr. Smith',
-        email: 'smith@teacher.com',
-        phone: '0911111111',
-        specialization: 'Mathematics',
+        name: 'Nguyễn Thị Giáo',
+        email: 'giao.nguyen@kiteclass.local',
+        phoneNumber: '0901234567',
+        specialization: 'Toán học',
         status: 'ACTIVE',
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
       },
     });
   }),
