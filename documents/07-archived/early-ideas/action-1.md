@@ -1100,3 +1100,5 @@ tạo plan để test auto cho tất cả các màn hình đã implement
 
 phải lưu plan vào documents/03-planning trước khi thực hiện
 cập nhật skill
+
+cập nhật lại tài liệu để có thể thực hiện phase 2 ở máy khác
