@@ -16,6 +16,9 @@
 # Claude Code local settings (never commit)
 .claude/settings.local.json
 
+# Docker build logs (local only, different per machine)
+.docker-build-logs/
+
 # Temporary files
 *.tmp
 *.temp

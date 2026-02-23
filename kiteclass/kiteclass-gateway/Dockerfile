@@ -19,6 +19,23 @@ RUN ./mvnw clean package -DskipTests -Dcheckstyle.skip=true -B
 
 # Stage 2: Runtime
 FROM eclipse-temurin:17-jre-alpine
+
+# Build arguments for version tracking
+ARG BUILD_TAG="dev"
+ARG COMMIT_HASH="unknown"
+ARG BUILD_DATE="unknown"
+ARG PR_NUMBER="N/A"
+ARG BRANCH="unknown"
+
+# Labels for image metadata
+LABEL org.opencontainers.image.title="KiteClass Gateway Service"
+LABEL org.opencontainers.image.description="API Gateway with authentication"
+LABEL org.opencontainers.image.version="${BUILD_TAG}"
+LABEL com.kiteclass.commit-hash="${COMMIT_HASH}"
+LABEL com.kiteclass.build-date="${BUILD_DATE}"
+LABEL com.kiteclass.pr-number="${PR_NUMBER}"
+LABEL com.kiteclass.branch="${BRANCH}"
+
 WORKDIR /app
 
 # Create non-root user
