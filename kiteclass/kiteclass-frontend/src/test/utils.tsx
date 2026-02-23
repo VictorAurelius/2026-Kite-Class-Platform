@@ -8,6 +8,7 @@
 import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
 
 // Create a custom render function that includes providers
 function createTestQueryClient() {
@@ -35,6 +36,7 @@ export function AllTheProviders({ children }: AllTheProvidersProps) {
   return (
     <QueryClientProvider client={testQueryClient}>
       {children}
+      <Toaster />
     </QueryClientProvider>
   );
 }
