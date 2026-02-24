@@ -26,10 +26,12 @@
             - text: Email
             - textbox "Email" [ref=e30]:
               - /placeholder: you@example.com
+              - text: owner@kiteclass.local
           - generic [ref=e31]:
             - text: Password
             - textbox "Password" [ref=e32]:
               - /placeholder: ••••••••
+              - text: Admin@123
           - generic [ref=e33]:
             - generic [ref=e34]:
               - checkbox "Remember me" [ref=e35] [cursor=pointer]

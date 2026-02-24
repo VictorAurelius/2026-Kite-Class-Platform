@@ -1112,3 +1112,8 @@ fix code + test để nâng coverage, đặc biệt với những phần đang t
 cập nhật context để có thể tiếp tục ở máy khác
 
 tôi đã code thêm ở máy khác, đọc lại status hiện tại và đưa ra action tiếp theo
+
+C. Pivot sang real backend
+=> backend có build docker rồi
+
+cứ debug CORS cho hết bug đi

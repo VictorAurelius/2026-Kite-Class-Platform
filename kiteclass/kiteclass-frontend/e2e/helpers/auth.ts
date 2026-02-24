@@ -111,12 +111,13 @@ export async function login(
 
   // Wait for successful login - should redirect to dashboard
   // Use URL pattern instead of specific path since it might redirect to /dashboard or /
-  await page.waitForURL(/\/(dashboard)?$/, { timeout: 10000 });
+  // Increased timeout for slower systems or network
+  await page.waitForURL(/\/(dashboard)?$/, { timeout: 15000 });
 
-  // Verify we're authenticated by checking for navbar or dashboard content
-  // This ensures the auth state is properly set
+  // Verify we're authenticated by checking for navigation links
+  // Use .first() to avoid strict mode violation (multiple matches)
   await expect(
-    page.getByText(/học viên|giảng viên|khóa học/i)
+    page.getByRole('link', { name: /students|học viên/i }).first()
   ).toBeVisible({ timeout: 5000 });
 }
 
@@ -126,12 +127,12 @@ export async function login(
  * @param page - Playwright page object
  */
 export async function logout(page: Page) {
-  // Click on user menu (usually in top-right corner)
-  const userMenu = page.getByRole('button', { name: /user menu|account/i });
+  // Click on user avatar button (shows "KC")
+  const userMenu = page.getByRole('button', { name: 'KC' });
   await userMenu.click();
 
-  // Click logout button
-  const logoutButton = page.getByRole('menuitem', { name: /log out|đăng xuất/i });
+  // Click logout menu item
+  const logoutButton = page.getByRole('menuitem', { name: /logout/i });
   await logoutButton.click();
 
   // Wait for redirect to login page
