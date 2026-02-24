@@ -1,8 +1,52 @@
 # Frontend Testing Progress - Phases 1-5 Summary
 
-**Last Updated:** 2026-02-23
+**Last Updated:** 2026-02-24
 **Branch:** `feature/PR-3.10-course-error-handling`
-**Status:** ✅ 5 phases completed (4 integration + 1 E2E)
+**Status:** ✅ E2E tests verified with real backend (CORS fixed)
+
+## 🎉 Latest Update (2026-02-24)
+
+### CORS Fix & E2E Verification with Real Backend
+
+**Achievement:** Successfully debugged and fixed CORS, enabling E2E tests to run against real backend API.
+
+**Backend Changes (Gateway):**
+- Added `CorsWebFilter` with `HIGHEST_PRECEDENCE` to run before Security filters
+- Configured CORS for `localhost:3000` (frontend dev/E2E)
+- Fixed OPTIONS preflight 403 → 200 OK
+- Commit: `db1aec1` - fix(gateway): add CORS support for dev/E2E testing
+
+**Frontend Changes:**
+- Updated auth helper to use real backend (removed MSW route mocking)
+- Fixed test credentials: `owner@kiteclass.local / Admin@123`
+- Fixed strict mode violations and timing issues
+- Commits: `e733800`, `90eb7f4`
+
+**E2E Test Results:**
+
+| Module | Tests | Passing | Flaky | Status |
+|--------|-------|---------|-------|--------|
+| **Auth** | 11 | 10 (91%) | 1 | ✅ Verified |
+| Students Detail/Edit | 20 | - | - | ⏳ Pending |
+| Classes | 15 | - | - | ⏳ Pending |
+
+**Auth Tests Breakdown:**
+- ✅ Display login page
+- ✅ Login successfully with valid credentials
+- ✅ Show error with invalid credentials
+- ✅ Validate email format
+- ✅ Validate password length
+- ✅ Redirect to login when not authenticated
+- ✅ Logout successfully
+- ✅ Handle remember me checkbox
+- ✅ Forgot password link
+- ✅ Sign up link
+- ⚠️ Persist authentication (flaky - passes with retry)
+
+**Infrastructure:**
+- Docker stack running: PostgreSQL, Redis, RabbitMQ, Core, Gateway
+- E2E tests use real API calls (no mocks)
+- Playwright auto-starts frontend dev server
 
 ## Overall Progress
 
