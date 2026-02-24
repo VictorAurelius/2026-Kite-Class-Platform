@@ -20,10 +20,10 @@ test.describe('Students Module - Detail Page', () => {
     await page.goto('/students');
     await expect(page.getByRole('heading', { name: 'Học viên' })).toBeVisible();
 
-    // Click on first student to view details
-    const firstStudent = page.locator('table tbody tr:first-child');
-    await expect(firstStudent).toBeVisible();
-    await firstStudent.click();
+    // Click on first student's view button (Eye icon)
+    const viewButton = page.locator('table tbody tr:first-child button').first();
+    await expect(viewButton).toBeVisible();
+    await viewButton.click();
 
     // Should be on student detail page
     await expect(page).toHaveURL(/\/students\/\d+/);
@@ -340,8 +340,8 @@ test.describe('Students Module - Navigation', () => {
     await page.goto('/students');
     await expect(page.getByRole('heading', { name: 'Học viên' })).toBeVisible();
 
-    // Go to detail
-    await page.locator('table tbody tr:first-child').click();
+    // Go to detail by clicking view button
+    await page.locator('table tbody tr:first-child button').first().click();
     await expect(page).toHaveURL(/\/students\/\d+$/);
 
     // Go to edit
