@@ -8,25 +8,85 @@
  */
 
 import { Page, expect } from '@playwright/test';
+import { setupApiMocks } from './api-mocks';
 
 /**
- * Test user credentials (must match MSW handlers)
+ * Test user credentials (real database user from V8 migration)
  */
 export const TEST_USER = {
-  email: 'test@example.com',
-  password: 'password123',
-  name: 'Test User',
+  email: 'owner@kiteclass.local',
+  password: 'Admin@123',
+  name: 'System Owner',
   role: 'OWNER',
 };
+
+/**
+ * Setup API mocks for authentication endpoints.
+ *
+ * Since MSW doesn't run in Playwright browser context,
+ * we use Playwright's route mocking instead.
+ *
+ * @param page - Playwright page object
+ */
+export async function setupAuthMocks(page: Page) {
+  // Mock login endpoint - use glob pattern for matching
+  await page.route('**/api/v1/auth/login', async (route) => {
+    const request = route.request();
+    const postData = request.postDataJSON();
+
+    if (
+      postData.email === TEST_USER.email &&
+      postData.password === TEST_USER.password
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            accessToken: 'mock-access-token',
+            refreshToken: 'mock-refresh-token',
+            user: {
+              id: 1,
+              email: TEST_USER.email,
+              name: TEST_USER.name,
+              roles: [TEST_USER.role],
+              profile: { id: 1 },
+            },
+          },
+        }),
+      });
+    } else {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: false,
+          message: 'Invalid credentials',
+        }),
+      });
+    }
+  });
+
+  // Mock logout endpoint
+  await page.route('**/api/v1/auth/logout', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+}
 
 /**
  * Login to the application using the test user credentials.
  *
  * This function:
- * 1. Navigates to the login page
- * 2. Fills in email and password
- * 3. Submits the form
- * 4. Waits for redirect to dashboard
+ * 1. Sets up API mocks
+ * 2. Navigates to the login page
+ * 3. Fills in email and password
+ * 4. Submits the form
+ * 5. Waits for redirect to dashboard
  *
  * @param page - Playwright page object
  * @param credentials - Optional custom credentials (defaults to TEST_USER)
@@ -35,6 +95,7 @@ export async function login(
   page: Page,
   credentials: { email: string; password: string } = TEST_USER
 ) {
+  // No need for mocks - using real backend
   // Navigate to login page
   await page.goto('/login');
 
