@@ -13,9 +13,13 @@ import { useAuthStore } from '@/stores/auth-store';
 import { server as _server } from '@/mocks/server';
 import { http as _http, HttpResponse as _HttpResponse } from 'msw';
 
-
-// Mock toast để tránh errors
+// Mock toast to avoid errors when rendering hook in isolation
 vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+    toasts: [],
+    dismiss: vi.fn(),
+  }),
   toast: vi.fn(),
 }));
 

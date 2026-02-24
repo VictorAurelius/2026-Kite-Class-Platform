@@ -33,8 +33,8 @@ describe('useCourses Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.content).toHaveLength(1);
-      expect(result.current.data!.content[0]!.name).toBe('Mathematics 101');
+      expect(result.current.data?.content).toHaveLength(2);
+      expect(result.current.data!.content[0]!.name).toBe('Tiếng Anh Giao Tiếp Cơ Bản');
     });
 
     it('should handle API errors gracefully', async () => {
@@ -67,8 +67,8 @@ describe('useCourses Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.name).toBe('Mathematics 101');
-      expect(result.current.data?.code).toBe('MATH101');
+      expect(result.current.data?.name).toBe('Tiếng Anh Giao Tiếp Cơ Bản');
+      expect(result.current.data?.code).toBe('ENG-B1-001');
     });
 
     it('should not fetch when ID is 0', () => {

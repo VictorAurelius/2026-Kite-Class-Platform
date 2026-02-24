@@ -68,6 +68,20 @@ spring:
           filters:
             - AuthenticationFilter
 
+        - id: core-teachers
+          uri: ${CORE_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/teachers/**
+          filters:
+            - AuthenticationFilter
+
+        - id: core-courses
+          uri: ${CORE_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/courses/**
+          filters:
+            - AuthenticationFilter
+
         - id: core-classes
           uri: ${CORE_SERVICE_URL:http://localhost:8081}
           predicates:
