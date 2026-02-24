@@ -15,12 +15,11 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { login } from './helpers/auth';
 
-// Mock authentication - adjust based on your auth setup
+// Login before each test
 test.beforeEach(async ({ page }) => {
-  // TODO: Replace with actual login flow
-  // For now, assume user is authenticated
-  await page.goto('/');
+  await login(page);
 });
 
 test.describe('Classes Module - Create Flow', () => {

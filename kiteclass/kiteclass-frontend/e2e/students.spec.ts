@@ -10,11 +10,11 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { login } from './helpers/auth';
 
-// Mock authentication
+// Login before each test
 test.beforeEach(async ({ page }) => {
-  // TODO: Replace with actual login flow
-  await page.goto('/');
+  await login(page);
 });
 
 test.describe('Students Module - Detail Page', () => {
