@@ -12,16 +12,13 @@
 import { test, expect } from '@playwright/test';
 import { login } from './helpers/auth';
 
-// Login before each test
-test.beforeEach(async ({ page }) => {
-  await login(page);
-});
-
 test.describe('Students Module - Detail Page', () => {
   test('should view student detail page', async ({ page }) => {
+    await login(page);
+
     // Navigate to students list
     await page.goto('/students');
-    await expect(page.getByText('Học viên')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Học viên' })).toBeVisible();
 
     // Click on first student to view details
     const firstStudent = page.locator('table tbody tr:first-child');
@@ -36,6 +33,8 @@ test.describe('Students Module - Detail Page', () => {
   });
 
   test('should display student information correctly', async ({ page }) => {
+    await login(page);
+
     // Go directly to student detail page (assuming student ID 1 exists)
     await page.goto('/students/1');
 
@@ -50,6 +49,7 @@ test.describe('Students Module - Detail Page', () => {
   });
 
   test('should have edit button on detail page', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1');
 
     // Should have edit button
@@ -59,6 +59,7 @@ test.describe('Students Module - Detail Page', () => {
   });
 
   test('should have delete button on detail page', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1');
 
     // Should have delete button
@@ -67,6 +68,8 @@ test.describe('Students Module - Detail Page', () => {
   });
 
   test('should show error when student not found', async ({ page }) => {
+    await login(page);
+
     // Try to view non-existent student
     await page.goto('/students/99999');
 
@@ -75,6 +78,8 @@ test.describe('Students Module - Detail Page', () => {
   });
 
   test('should show loading spinner while loading student', async ({ page }) => {
+    await login(page);
+
     // Slow down the network to see loading state
     await page.route('**/api/v1/students/*', async route => {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -94,6 +99,7 @@ test.describe('Students Module - Detail Page', () => {
 
 test.describe('Students Module - Edit Page', () => {
   test('should navigate to edit page from detail', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1');
 
     // Click edit button
@@ -106,6 +112,7 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should load existing student data in form', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
 
     // Wait for form to load
@@ -120,6 +127,7 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should update student successfully', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
     await expect(page.getByText(/chỉnh sửa học viên/i)).toBeVisible();
 
@@ -147,6 +155,7 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should validate required fields on edit', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
     await expect(page.getByText(/chỉnh sửa học viên/i)).toBeVisible();
 
@@ -162,6 +171,7 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should validate email format on edit', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
     await expect(page.getByText(/chỉnh sửa học viên/i)).toBeVisible();
 
@@ -178,6 +188,8 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should handle duplicate email error on edit', async ({ page }) => {
+    await login(page);
+
     // Mock duplicate email error
     await page.route('**/api/v1/students/*', route => {
       if (route.request().method() === 'PUT') {
@@ -210,6 +222,8 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should handle server error on edit', async ({ page }) => {
+    await login(page);
+
     // Mock server error
     await page.route('**/api/v1/students/*', route => {
       if (route.request().method() === 'PUT') {
@@ -240,6 +254,7 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should disable submit button while updating', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
     await expect(page.getByText(/chỉnh sửa học viên/i)).toBeVisible();
 
@@ -253,6 +268,8 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should show error when student not found on edit', async ({ page }) => {
+    await login(page);
+
     // Try to edit non-existent student
     await page.goto('/students/99999/edit');
 
@@ -261,6 +278,7 @@ test.describe('Students Module - Edit Page', () => {
   });
 
   test('should have cancel button to go back', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
     await expect(page.getByText(/chỉnh sửa học viên/i)).toBeVisible();
 
@@ -272,6 +290,7 @@ test.describe('Students Module - Edit Page', () => {
 
 test.describe('Students Module - Delete from Detail', () => {
   test('should delete student from detail page with confirmation', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1');
 
     // Click delete button
@@ -292,6 +311,7 @@ test.describe('Students Module - Delete from Detail', () => {
   });
 
   test('should cancel delete when confirmation rejected', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1');
 
     // Get student name before deletion attempt
@@ -314,9 +334,11 @@ test.describe('Students Module - Delete from Detail', () => {
 
 test.describe('Students Module - Navigation', () => {
   test('should navigate from list to detail to edit and back', async ({ page }) => {
+    await login(page);
+
     // Start at students list
     await page.goto('/students');
-    await expect(page.getByText('Học viên')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Học viên' })).toBeVisible();
 
     // Go to detail
     await page.locator('table tbody tr:first-child').click();
@@ -339,6 +361,7 @@ test.describe('Students Module - Navigation', () => {
   });
 
   test('should have breadcrumb navigation', async ({ page }) => {
+    await login(page);
     await page.goto('/students/1/edit');
 
     // Should have breadcrumb or back links
