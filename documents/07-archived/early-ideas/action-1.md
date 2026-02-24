@@ -1095,3 +1095,25 @@ commit all file changing
 2. cập nhật hết status vào master plan và các file liên quan
 3. cập nhật hết các kinh nghiệm sau PR 2.5 này để tránh mắc phải trong các PR sau gây tốn token
 4. cập nhật lại settings.local của claude để cấp quyền bao quát hơn, tránh hỏi quyền trong tương lai
+
+tạo plan để test auto cho tất cả các màn hình đã implement
+
+phải lưu plan vào documents/03-planning trước khi thực hiện
+cập nhật skill
+
+cập nhật lại tài liệu để có thể thực hiện phase 2 ở máy khác
+
+đọc 04-implementation để biết action ưu tiên tiếp theo
+
+push và check CI xem đạt coverage chưa?
+
+fix code + test để nâng coverage, đặc biệt với những phần đang thấp
+
+cập nhật context để có thể tiếp tục ở máy khác
+
+tôi đã code thêm ở máy khác, đọc lại status hiện tại và đưa ra action tiếp theo
+
+C. Pivot sang real backend
+=> backend có build docker rồi
+
+cứ debug CORS cho hết bug đi

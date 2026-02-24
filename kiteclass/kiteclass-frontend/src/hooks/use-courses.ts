@@ -36,12 +36,23 @@ export function useCourse(id: number) {
 }
 
 function useErrorHandler(fallback: string) {
-  return (error: AxiosError<{ message?: string; error?: string }>) => {
-    const message =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      error.message ||
-      fallback;
+  return (error: AxiosError<{
+    message?: string;
+    error?: string;
+    fieldErrors?: Record<string, string[]>;
+  }>) => {
+    // Extract field-level errors if available (validation errors)
+    const fieldErrors = error.response?.data?.fieldErrors;
+    let message = error.response?.data?.message || error.message || fallback;
+
+    // Format field errors into readable message
+    if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      const fieldMessages = Object.entries(fieldErrors)
+        .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
+        .join('\n');
+      message = fieldMessages;
+    }
+
     toast({ title: 'Lỗi', description: message, variant: 'destructive' });
   };
 }

@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Format ISO date string to Vietnamese locale
+ * Uses UTC timezone to match ISO timestamps from backend
  */
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -17,11 +18,13 @@ export function formatDate(dateString: string): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(date);
 }
 
 /**
  * Format ISO datetime string to Vietnamese locale
+ * Uses UTC timezone to match ISO timestamps from backend
  */
 export function formatDateTime(dateTimeString: string): string {
   const date = new Date(dateTimeString);
@@ -34,5 +37,6 @@ export function formatDateTime(dateTimeString: string): string {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'UTC',
   }).format(date);
 }

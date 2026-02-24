@@ -20,6 +20,28 @@ import { toast } from '@/hooks/use-toast';
 
 const TEACHERS_QUERY_KEY = 'teachers';
 
+function useErrorHandler(fallback: string) {
+  return (error: AxiosError<{
+    message?: string;
+    error?: string;
+    fieldErrors?: Record<string, string[]>;
+  }>) => {
+    // Extract field-level errors if available (validation errors)
+    const fieldErrors = error.response?.data?.fieldErrors;
+    let message = error.response?.data?.message || error.message || fallback;
+
+    // Format field errors into readable message
+    if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      const fieldMessages = Object.entries(fieldErrors)
+        .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
+        .join('\n');
+      message = fieldMessages;
+    }
+
+    toast({ title: 'Lỗi', description: message, variant: 'destructive' });
+  };
+}
+
 export function useTeachers(params: TeacherSearchParams = {}) {
   return useQuery({
     queryKey: [TEACHERS_QUERY_KEY, params],
@@ -46,14 +68,7 @@ export function useCreateTeacher() {
       toast({ title: 'Thành công', description: 'Đã tạo giáo viên mới' });
       router.push('/teachers');
     },
-    onError: (error: AxiosError<{ message?: string; error?: string }>) => {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        'Không thể tạo giáo viên';
-      toast({ title: 'Lỗi', description: message, variant: 'destructive' });
-    },
+    onError: useErrorHandler('Không thể tạo giáo viên'),
   });
 }
 
@@ -68,14 +83,7 @@ export function useUpdateTeacher(id: number) {
       toast({ title: 'Thành công', description: 'Đã cập nhật thông tin giáo viên' });
       router.push(`/teachers/${id}`);
     },
-    onError: (error: AxiosError<{ message?: string; error?: string }>) => {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        'Không thể cập nhật giáo viên';
-      toast({ title: 'Lỗi', description: message, variant: 'destructive' });
-    },
+    onError: useErrorHandler('Không thể cập nhật giáo viên'),
   });
 }
 
@@ -88,13 +96,6 @@ export function useDeleteTeacher() {
       queryClient.invalidateQueries({ queryKey: [TEACHERS_QUERY_KEY] });
       toast({ title: 'Thành công', description: 'Đã xóa giáo viên' });
     },
-    onError: (error: AxiosError<{ message?: string; error?: string }>) => {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        'Không thể xóa giáo viên';
-      toast({ title: 'Lỗi', description: message, variant: 'destructive' });
-    },
+    onError: useErrorHandler('Không thể xóa giáo viên'),
   });
 }

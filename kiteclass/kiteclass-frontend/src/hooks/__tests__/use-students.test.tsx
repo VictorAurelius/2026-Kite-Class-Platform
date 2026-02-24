@@ -24,7 +24,7 @@ describe('useStudents Hooks', () => {
       });
 
       expect(result.current.data?.content).toHaveLength(2);
-      expect(result.current.data!.content[0]!.name).toBe('John Doe');
+      expect(result.current.data!.content[0]!.name).toBe('Nguyễn Văn A');
     });
 
     it('should handle API errors gracefully', async () => {
@@ -57,8 +57,8 @@ describe('useStudents Hooks', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data?.name).toBe('John Doe');
-      expect(result.current.data?.email).toBe('john@student.com');
+      expect(result.current.data?.name).toBe('Nguyễn Văn A');
+      expect(result.current.data?.email).toBe('nguyenvana@gmail.com');
     });
 
     it('should not fetch when ID is 0', () => {
