@@ -95,7 +95,10 @@ export async function login(
   page: Page,
   credentials: { email: string; password: string } = TEST_USER
 ) {
-  // No need for mocks - using real backend
+  // Setup API mocks before navigation
+  await setupAuthMocks(page);
+  await setupApiMocks(page);
+
   // Navigate to login page
   await page.goto('/login');
 
@@ -109,10 +112,26 @@ export async function login(
   // Submit form
   await page.click('button[type="submit"]');
 
-  // Wait for successful login - should redirect to dashboard
-  // Use URL pattern instead of specific path since it might redirect to /dashboard or /
-  // Increased timeout for slower systems or network
-  await page.waitForURL(/\/(dashboard)?$/, { timeout: 15000 });
+  // Wait for successful login - redirect can be to /, /dashboard, or any protected route
+  // Just check that we're no longer on /login page
+  await page.waitForURL((url) => !url.pathname.includes('/login'), {
+    timeout: 15000,
+  });
+
+  // Wait for auth store to be set in localStorage (Zustand persist)
+  await page.waitForFunction(
+    () => {
+      const authStorage = localStorage.getItem('auth-storage');
+      if (!authStorage) return false;
+      try {
+        const parsed = JSON.parse(authStorage);
+        return parsed.state?.isAuthenticated === true;
+      } catch {
+        return false;
+      }
+    },
+    { timeout: 5000 }
+  );
 
   // Verify we're authenticated by checking for navigation links
   // Use .first() to avoid strict mode violation (multiple matches)
@@ -156,7 +175,7 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
  * Inject authentication tokens directly into localStorage.
  *
  * Useful for bypassing login UI when you just need authenticated state.
- * Note: This requires MSW to be running to provide valid tokens.
+ * Sets both individual tokens and Zustand auth store.
  *
  * @param page - Playwright page object
  */
@@ -164,9 +183,29 @@ export async function injectAuthTokens(page: Page) {
   await page.goto('/');
 
   await page.evaluate(() => {
+    // Set individual tokens (used by API client)
     localStorage.setItem('accessToken', 'mock-access-token');
     localStorage.setItem('refreshToken', 'mock-refresh-token');
     localStorage.setItem('tenantId', '11111111-1111-1111-1111-111111111111');
+
+    // Set Zustand auth store (used by dashboard layout auth guard)
+    const authStore = {
+      state: {
+        user: {
+          id: 1,
+          email: 'owner@kiteclass.local',
+          name: 'System Owner',
+          userType: 'OWNER',
+          referenceId: '1',
+        },
+        accessToken: 'mock-access-token',
+        refreshToken: 'mock-refresh-token',
+        tenantId: '11111111-1111-1111-1111-111111111111',
+        isAuthenticated: true,
+      },
+      version: 0,
+    };
+    localStorage.setItem('auth-storage', JSON.stringify(authStore));
   });
 
   // Reload to apply auth state

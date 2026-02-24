@@ -17,8 +17,73 @@ import { Page } from '@playwright/test';
  * @param page - Playwright page object
  */
 export async function setupApiMocks(page: Page) {
-  // Students API - use glob patterns
-  await page.route('**/api/v1/students*', async (route) => {
+  // Students API - Single student (use regex pattern for ID)
+  await page.route(/\/api\/v1\/students\/\d+/, async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+    const studentId = parseInt(url.match(/students\/(\d+)/)?.[1] || '0');
+
+    if (method === 'GET') {
+      // Get single student
+      if (studentId === 99999) {
+        // Mock 404 for non-existent student
+        await route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: false,
+            error: 'STUDENT_NOT_FOUND',
+            message: 'Không tìm thấy học viên',
+          }),
+        });
+      } else {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: {
+              id: studentId,
+              name: 'Nguyễn Văn A',
+              email: 'nguyenvana@gmail.com',
+              phone: '0901234567',
+              dateOfBirth: '2005-01-15',
+              gender: 'MALE',
+              address: '123 Đường ABC, TP.HCM',
+              status: 'ACTIVE',
+              createdAt: '2026-01-01T00:00:00Z',
+              updatedAt: '2026-01-01T00:00:00Z',
+            },
+          }),
+        });
+      }
+    } else if (method === 'PUT') {
+      // Update student
+      const postData = route.request().postDataJSON();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: studentId,
+            ...postData,
+            status: 'ACTIVE',
+            createdAt: '2026-01-01T00:00:00Z',
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      });
+    } else if (method === 'DELETE') {
+      // Delete student
+      await route.fulfill({
+        status: 204,
+      });
+    }
+  });
+
+  // Students API - List
+  await page.route('**/api/v1/students', async (route) => {
     const method = route.request().method();
 
     if (method === 'GET') {
