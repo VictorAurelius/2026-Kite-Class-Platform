@@ -1117,3 +1117,13 @@ C. Pivot sang real backend
 => backend có build docker rồi
 
 cứ debug CORS cho hết bug đi
+
+check image kite-class đang running đã build ở version mới nhất chưa
+
+tại sao tôi test thêm khóa học mới mà báo [Fast Refresh] rebuilding
+hot-reloader-client.js:68 [Fast Refresh] done in 766ms
+:8090/api/v1/courses:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+
+nhưng trên màn hình vẫn không có thông báo cụ thể lỗi là gì
+
+đây là lỗi cũ, hãy check lại xem có testcase về bug này chưa và fix

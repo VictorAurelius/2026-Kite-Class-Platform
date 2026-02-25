@@ -67,6 +67,7 @@ describe('NewCoursePage Integration', () => {
               id: 1,
               name: 'Test Course',
               code: 'TEST-001',
+              teacherId: 1,
               status: 'DRAFT',
               createdAt: '2026-02-23T00:00:00Z',
               updatedAt: '2026-02-23T00:00:00Z',
@@ -80,6 +81,17 @@ describe('NewCoursePage Integration', () => {
     // Fill in required fields
     await user.type(screen.getByLabelText(/tên khóa học/i), 'Test Course');
     await user.type(screen.getByLabelText(/mã khóa học/i), 'TEST-001');
+
+    // Select teacher (wait for teachers to load, then select first one)
+    await waitFor(() => {
+      expect(screen.getByText(/chọn giảng viên/i)).toBeInTheDocument();
+    });
+    const teacherSelect = screen.getByRole('combobox');
+    await user.click(teacherSelect);
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /nguyễn thị giáo/i })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('option', { name: /nguyễn thị giáo/i }));
 
     // Submit form
     const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
@@ -136,6 +148,12 @@ describe('NewCoursePage Integration', () => {
     await user.type(screen.getByLabelText(/tên khóa học/i), 'Test Course');
     await user.type(screen.getByLabelText(/mã khóa học/i), 'TEST-001');
 
+    // Select teacher
+    await waitFor(() => expect(screen.getByText(/chọn giảng viên/i)).toBeInTheDocument());
+    await user.click(screen.getByRole('combobox'));
+    await waitFor(() => expect(screen.getByRole('option', { name: /nguyễn thị giáo/i })).toBeInTheDocument());
+    await user.click(screen.getByRole('option', { name: /nguyễn thị giáo/i }));
+
     // Submit form
     const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
     await user.click(submitButton);
@@ -151,7 +169,28 @@ describe('NewCoursePage Integration', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it.skip('should handle validation error from API (400) [SKIP: jsdom validation timing]', async () => {
+  it('should show validation error when teacherId is missing', async () => {
+    const user = userEvent.setup();
+    render(<NewCoursePage />);
+
+    // Fill in form WITHOUT selecting teacher
+    await user.type(screen.getByLabelText(/tên khóa học/i), 'Test Course');
+    await user.type(screen.getByLabelText(/mã khóa học/i), 'TEST-001');
+
+    // Submit form
+    const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
+    await user.click(submitButton);
+
+    // Verify frontend validation error for missing teacher
+    await waitFor(() => {
+      expect(screen.getByText(/vui lòng chọn giảng viên/i)).toBeInTheDocument();
+    });
+
+    // Should not redirect
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('should handle validation error from API (400)', async () => {
     const user = userEvent.setup();
 
     mockValidationError('*/api/v1/courses', {
@@ -164,6 +203,12 @@ describe('NewCoursePage Integration', () => {
     // Fill in form with invalid data
     await user.type(screen.getByLabelText(/tên khóa học/i), 'Test Course');
     await user.type(screen.getByLabelText(/mã khóa học/i), 'invalid code');
+
+    // Select teacher
+    await waitFor(() => expect(screen.getByText(/chọn giảng viên/i)).toBeInTheDocument());
+    await user.click(screen.getByRole('combobox'));
+    await waitFor(() => expect(screen.getByRole('option', { name: /nguyễn thị giáo/i })).toBeInTheDocument());
+    await user.click(screen.getByRole('option', { name: /nguyễn thị giáo/i }));
 
     // Submit form
     const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
