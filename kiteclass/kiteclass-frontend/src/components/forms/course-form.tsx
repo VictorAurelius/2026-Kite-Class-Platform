@@ -9,6 +9,7 @@
 
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,6 +20,7 @@ import { LoadingSpinner } from '@/components/common';
 import { CourseStatus } from '@/types/course';
 import type { CreateCourseRequest, UpdateCourseRequest } from '@/types/course';
 import { useTeachers } from '@/hooks/use-teachers';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -87,6 +89,29 @@ export function CourseForm({
     size: 100, // Get all active teachers
   });
 
+  // Search state for teacher selector
+  const [teacherSearch, setTeacherSearch] = useState('');
+
+  // Filter teachers based on search
+  const filteredTeachers = useMemo(() => {
+    if (!teachersData?.content) return [];
+    if (!teacherSearch) return teachersData.content;
+
+    const search = teacherSearch.toLowerCase();
+    return teachersData.content.filter(
+      (teacher) =>
+        teacher.name.toLowerCase().includes(search) ||
+        teacher.email.toLowerCase().includes(search) ||
+        teacher.specialization?.toLowerCase().includes(search)
+    );
+  }, [teachersData, teacherSearch]);
+
+  // Get current teacher info
+  const currentTeacher = useMemo(() => {
+    if (!initialData?.teacherId || !teachersData?.content) return null;
+    return teachersData.content.find((t) => t.id === initialData.teacherId);
+  }, [initialData?.teacherId, teachersData]);
+
   const {
     register,
     handleSubmit,
@@ -132,43 +157,81 @@ export function CourseForm({
           />
 
           {/* Teacher Selector */}
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <label className="text-sm font-medium">
               Giảng viên <span className="text-destructive">*</span>
             </label>
-            <Controller
-              name="teacherId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
-                  value={field.value ? field.value.toString() : undefined}
-                  defaultValue={field.value ? field.value.toString() : undefined}
-                  disabled={isSubmitting || isReadOnly || isPublished || isLoadingTeachers}
-                >
-                  <SelectTrigger className={errors.teacherId ? 'border-destructive' : ''}>
-                    <SelectValue placeholder="Chọn giảng viên" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingTeachers ? (
-                      <SelectItem value="loading" disabled>
-                        Đang tải...
-                      </SelectItem>
-                    ) : teachersData?.content && teachersData.content.length > 0 ? (
-                      teachersData.content.map((teacher) => (
-                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                          {teacher.name}
+
+            {/* Show current teacher in edit mode */}
+            {isEditing && currentTeacher && (
+              <div className="rounded-md border border-muted bg-muted/50 p-3">
+                <p className="text-sm font-medium">Giảng viên hiện tại:</p>
+                <p className="text-sm text-muted-foreground">
+                  {currentTeacher.name} • {currentTeacher.email}
+                  {currentTeacher.specialization && ` • ${currentTeacher.specialization}`}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {isEditing && <p className="text-sm text-muted-foreground">Thay đổi giảng viên:</p>}
+
+              {/* Search input */}
+              <Input
+                type="text"
+                placeholder="Tìm kiếm giảng viên (tên, email, chuyên môn)..."
+                value={teacherSearch}
+                onChange={(e) => setTeacherSearch(e.target.value)}
+                disabled={isSubmitting || isReadOnly || isPublished || isLoadingTeachers}
+                className="mb-2"
+              />
+
+              {/* Teacher selector */}
+              <Controller
+                name="teacherId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
+                    value={field.value ? field.value.toString() : undefined}
+                    defaultValue={field.value ? field.value.toString() : undefined}
+                    disabled={isSubmitting || isReadOnly || isPublished || isLoadingTeachers}
+                  >
+                    <SelectTrigger className={errors.teacherId ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="Chọn giảng viên" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isLoadingTeachers ? (
+                        <SelectItem value="loading" disabled>
+                          Đang tải...
                         </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="empty" disabled>
-                        Không có giảng viên
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+                      ) : filteredTeachers.length > 0 ? (
+                        filteredTeachers.map((teacher) => (
+                          <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{teacher.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {teacher.email}
+                                {teacher.specialization && ` • ${teacher.specialization}`}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : teacherSearch ? (
+                        <SelectItem value="no-results" disabled>
+                          Không tìm thấy kết quả cho "{teacherSearch}"
+                        </SelectItem>
+                      ) : (
+                        <SelectItem value="empty" disabled>
+                          Không có giảng viên
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
             {errors.teacherId && (
               <p className="text-sm text-destructive">{errors.teacherId.message}</p>
             )}
