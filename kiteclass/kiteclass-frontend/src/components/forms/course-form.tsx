@@ -34,7 +34,7 @@ const courseSchema = z.object({
   code: z.string().min(1, 'Mã khóa học không được để trống'),
   teacherId: z.preprocess(
     (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
-    z.number().int().positive('Vui lòng chọn giảng viên')
+    z.number().int().positive('Vui lòng chọn giảng viên').optional()
   ),
   description: z.string().optional(),
   syllabus: z.string().optional(),
@@ -92,19 +92,27 @@ export function CourseForm({
   // Search state for teacher selector
   const [teacherSearch, setTeacherSearch] = useState('');
 
-  // Filter teachers based on search
+  // Filter teachers based on search (exclude current teacher in edit mode)
   const filteredTeachers = useMemo(() => {
     if (!teachersData?.content) return [];
-    if (!teacherSearch) return teachersData.content;
+
+    // Exclude current teacher from dropdown in edit mode
+    let teachers = teachersData.content;
+    if (isEditing && initialData?.teacherId) {
+      teachers = teachers.filter((t) => t.id !== initialData.teacherId);
+    }
+
+    // Apply search filter
+    if (!teacherSearch) return teachers;
 
     const search = teacherSearch.toLowerCase();
-    return teachersData.content.filter(
+    return teachers.filter(
       (teacher) =>
         teacher.name.toLowerCase().includes(search) ||
         teacher.email.toLowerCase().includes(search) ||
         teacher.specialization?.toLowerCase().includes(search)
     );
-  }, [teachersData, teacherSearch]);
+  }, [teachersData, teacherSearch, isEditing, initialData?.teacherId]);
 
   // Get current teacher info
   const currentTeacher = useMemo(() => {
