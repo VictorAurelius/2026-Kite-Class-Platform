@@ -53,10 +53,13 @@ const courseSchema = z.object({
     (v) => (v === '' || v === undefined ? undefined : Number(v)),
     z.number().min(0, 'Học phí phải >= 0').optional()
   ),
-  coverImageUrl: z.preprocess(
-    (v) => (v === '' ? undefined : v),
-    z.string().url('URL ảnh không hợp lệ').optional()
-  ),
+  coverImageUrl: z
+    .string()
+    .optional()
+    .transform((val) => val === '' ? undefined : val)
+    .refine((val) => !val || /^https?:\/\/.+/.test(val), {
+      message: 'URL ảnh không hợp lệ (phải bắt đầu với http:// hoặc https://)',
+    }),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;
@@ -249,6 +252,7 @@ export function CourseForm({
             placeholder="12"
             error={errors.durationWeeks?.message}
             disabled={isSubmitting || isReadOnly || isPublished}
+            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             {...register('durationWeeks')}
           />
           <FormInput
@@ -257,6 +261,7 @@ export function CourseForm({
             placeholder="36"
             error={errors.totalSessions?.message}
             disabled={isSubmitting || isReadOnly || isPublished}
+            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             {...register('totalSessions')}
           />
           <FormInput

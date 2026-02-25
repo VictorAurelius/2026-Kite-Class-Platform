@@ -1147,3 +1147,5 @@ bạn hiểu sai về 2 bug rồi
 tức là GIÁO VIÊN A đã gán vào course 1 rồi nhưng vẫn được chọn giáo viên A để thay đổi vào course 1, API không được get giáo viên hiện tại vào combobox dù status hiện tại của course là gì?
 
 ![alt text](image-1.png) => nó vẫn yêu cầu nhập trường URL, không cho tôi cập nhật
+
+![alt text](image-2.png) => vẫn bị nhé, hãy test cho kỹ, ngoài ra, bỏ nút tăng số tuần, số buổi đi, chứ cho nhập bình thường thôi
