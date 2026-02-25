@@ -1127,3 +1127,15 @@ hot-reloader-client.js:68 [Fast Refresh] done in 766ms
 nhưng trên màn hình vẫn không có thông báo cụ thể lỗi là gì
 
 đây là lỗi cũ, hãy check lại xem có testcase về bug này chưa và fix
+
+http://localhost:3000/courses/3/edit
+vẫn không hiển thị giảng viên trên combobox
+
+=> thực hiện tạo 1 ô hiển thị giảng viên hiện tại và 1 ô chọn giảng viên mới có combobox và có thể search trên combobox
+
+bấm cập nhật trong mode edit thì ra như ảnh
+![alt text](image.png)
+
+2 bug:
+1. require những trường optional
+2. được chọn thay đổi giáo viên hiện tại => logic bug

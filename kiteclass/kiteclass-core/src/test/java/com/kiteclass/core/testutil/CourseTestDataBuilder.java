@@ -207,16 +207,18 @@ public class CourseTestDataBuilder {
      */
     public static UpdateCourseRequest createDefaultUpdateRequest() {
         return new UpdateCourseRequest(
-                "Updated Course Name",
-                "Updated description",
-                "Updated syllabus",
-                "Updated objectives",
-                "Updated prerequisites",
-                "Updated target audience",
-                15,
-                45,
-                new BigDecimal("6000000.00"),
-                "https://example.com/updated-cover.jpg"
+                "Updated Course Name",      // name
+                null,                       // code (usually not updated)
+                null,                       // teacherId (usually not updated)
+                "Updated description",      // description
+                "Updated syllabus",         // syllabus
+                "Updated objectives",       // objectives
+                "Updated prerequisites",    // prerequisites
+                "Updated target audience",  // targetAudience
+                15,                         // durationWeeks
+                45,                         // totalSessions
+                new BigDecimal("6000000.00"), // price
+                "https://example.com/updated-cover.jpg" // coverImageUrl
         );
     }
 
@@ -227,16 +229,18 @@ public class CourseTestDataBuilder {
      */
     public static UpdateCourseRequest createLimitedUpdateRequest() {
         return new UpdateCourseRequest(
-                null, // name not allowed for PUBLISHED
-                "Updated description only",
-                "Updated syllabus only",
-                "Updated objectives only",
-                null, // prerequisites not allowed for PUBLISHED
-                null, // targetAudience not allowed for PUBLISHED
-                null, // durationWeeks not allowed for PUBLISHED
-                null, // totalSessions not allowed for PUBLISHED
-                new BigDecimal("5500000.00"),
-                "https://example.com/new-cover.jpg"
+                null, // name - not allowed for PUBLISHED
+                null, // code - not allowed for PUBLISHED
+                null, // teacherId - not allowed for PUBLISHED
+                "Updated description only", // description - allowed
+                "Updated syllabus only",    // syllabus - allowed
+                "Updated objectives only",  // objectives - allowed
+                null, // prerequisites - not allowed for PUBLISHED
+                null, // targetAudience - not allowed for PUBLISHED
+                null, // durationWeeks - not allowed for PUBLISHED
+                null, // totalSessions - not allowed for PUBLISHED
+                new BigDecimal("5500000.00"), // price - allowed
+                "https://example.com/new-cover.jpg" // coverImageUrl - allowed
         );
     }
 
@@ -248,16 +252,18 @@ public class CourseTestDataBuilder {
      */
     public static UpdateCourseRequest createUpdateRequestWithDescription(String description) {
         return new UpdateCourseRequest(
-                null,
-                description,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                null,        // name
+                null,        // code
+                null,        // teacherId
+                description, // description
+                null,        // syllabus
+                null,        // objectives
+                null,        // prerequisites
+                null,        // targetAudience
+                null,        // durationWeeks
+                null,        // totalSessions
+                null,        // price
+                null         // coverImageUrl
         );
     }
 }
