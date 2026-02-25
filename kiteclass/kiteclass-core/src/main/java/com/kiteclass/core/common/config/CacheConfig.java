@@ -62,12 +62,14 @@ public class CacheConfig {
 
         // Enable default typing to store @class type information in Redis
         // This prevents ClassCastException when deserializing cached objects
+        // Use PROPERTY format to store @class as JSON property (not WRAPPER_ARRAY)
         PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfBaseType(Object.class)
                 .build();
         objectMapper.activateDefaultTyping(
                 typeValidator,
-                ObjectMapper.DefaultTyping.NON_FINAL
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
         );
 
         // Create serializer with configured ObjectMapper
