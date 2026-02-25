@@ -51,7 +51,12 @@ const courseSchema = z.object({
     (v) => (v === '' || v === undefined ? undefined : Number(v)),
     z.number().min(0, 'Học phí phải >= 0').optional()
   ),
-  coverImageUrl: z.string().url('URL ảnh không hợp lệ').optional().or(z.literal('')),
+  coverImageUrl: z
+    .string()
+    .optional()
+    .refine((val) => !val || val === '' || /^https?:\/\/.+/.test(val), {
+      message: 'URL ảnh không hợp lệ',
+    }),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;
@@ -137,7 +142,8 @@ export function CourseForm({
               render={({ field }) => (
                 <Select
                   onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
-                  value={field.value?.toString()}
+                  value={field.value ? field.value.toString() : undefined}
+                  defaultValue={field.value ? field.value.toString() : undefined}
                   disabled={isSubmitting || isReadOnly || isPublished || isLoadingTeachers}
                 >
                   <SelectTrigger className={errors.teacherId ? 'border-destructive' : ''}>
