@@ -271,15 +271,17 @@ class CourseServiceTest {
         Course publishedCourse = CourseTestDataBuilder.createPublishedCourse();
         UpdateCourseRequest restrictedUpdate = new UpdateCourseRequest(
                 "New Name", // name is restricted for PUBLISHED
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                null,       // code
+                null,       // teacherId
+                null,       // description
+                null,       // syllabus
+                null,       // objectives
+                null,       // prerequisites
+                null,       // targetAudience
+                null,       // durationWeeks
+                null,       // totalSessions
+                null,       // price
+                null        // coverImageUrl
         );
         when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(publishedCourse));
 

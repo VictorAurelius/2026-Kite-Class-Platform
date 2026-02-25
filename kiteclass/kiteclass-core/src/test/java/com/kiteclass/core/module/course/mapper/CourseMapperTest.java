@@ -94,16 +94,18 @@ class CourseMapperTest {
         CourseStatus originalStatus = course.getStatus();
 
         UpdateCourseRequest request = new UpdateCourseRequest(
-                "Updated Name",
-                "Updated description",
-                null,  // Should not update syllabus
-                "Updated objectives",
-                null,  // Should not update prerequisites
-                null,  // Should not update target audience
-                15,    // Update duration
-                null,  // Should not update total sessions
-                new BigDecimal("6000000.00"),
-                "https://example.com/new-cover.jpg"
+                "Updated Name",      // name
+                null,                // code - should not update
+                null,                // teacherId - should not update
+                "Updated description", // description
+                null,                // syllabus - should not update
+                "Updated objectives", // objectives
+                null,                // prerequisites - should not update
+                null,                // targetAudience - should not update
+                15,                  // durationWeeks - update duration
+                null,                // totalSessions - should not update
+                new BigDecimal("6000000.00"), // price
+                "https://example.com/new-cover.jpg" // coverImageUrl
         );
 
         // When
@@ -125,7 +127,7 @@ class CourseMapperTest {
     }
 
     @Test
-    void updateEntity_shouldNotUpdateCodeTeacherIdOrStatus() {
+    void updateEntity_shouldNotUpdateNullFieldsOrStatus() {
         // Given
         Course course = CourseTestDataBuilder.createDefaultCourse();
         String originalCode = course.getCode();
@@ -133,16 +135,18 @@ class CourseMapperTest {
         CourseStatus originalStatus = course.getStatus();
 
         UpdateCourseRequest request = new UpdateCourseRequest(
-                "New Name",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                "New Name",  // name - update
+                null,        // code - null, should not update
+                null,        // teacherId - null, should not update
+                null,        // description - null, should not update
+                null,        // syllabus - null, should not update
+                null,        // objectives - null, should not update
+                null,        // prerequisites - null, should not update
+                null,        // targetAudience - null, should not update
+                null,        // durationWeeks - null, should not update
+                null,        // totalSessions - null, should not update
+                null,        // price - null, should not update
+                null         // coverImageUrl - null, should not update
         );
 
         // When

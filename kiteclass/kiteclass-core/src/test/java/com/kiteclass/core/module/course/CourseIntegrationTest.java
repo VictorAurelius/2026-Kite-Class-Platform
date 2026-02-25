@@ -216,6 +216,8 @@ class CourseIntegrationTest {
         // When: Update the course
         UpdateCourseRequest updateRequest = new UpdateCourseRequest(
             "Data Structures and Algorithms",  // name
+            null,  // code - keep existing
+            null,  // teacherId - keep existing
             "Updated description with algorithms",  // description
             null,  // syllabus - keep existing
             null,  // objectives - keep existing
@@ -677,20 +679,6 @@ class CourseIntegrationTest {
             .andExpect(status().isOk());
 
         // When/Then: Try to update code (restricted field)
-        UpdateCourseRequest updateCodeRequest = new UpdateCourseRequest(
-            null,  // name
-            null,  // description
-            null,  // syllabus
-            null,  // objectives
-            null,  // prerequisites
-            null,  // targetAudience
-            null,  // durationWeeks
-            null,  // totalSessions
-            null,  // price
-            null   // coverImageUrl
-        );
-
-        // Use reflection or create a request with code field
         String updateWithCodeJson = "{\"code\":\"NEW-CODE\"}";
         mockMvc.perform(put("/api/v1/courses/{id}", courseId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -745,7 +733,9 @@ class CourseIntegrationTest {
 
         // When: Update allowed fields (description, objectives, price)
         UpdateCourseRequest updateRequest = new UpdateCourseRequest(
-            null,  // name - keep existing
+            null,  // name - keep existing (restricted)
+            null,  // code - keep existing (restricted)
+            null,  // teacherId - keep existing (restricted)
             "Updated description after publish",  // description - allowed
             "Updated syllabus",  // syllabus - allowed
             "Updated objectives",  // objectives - allowed
