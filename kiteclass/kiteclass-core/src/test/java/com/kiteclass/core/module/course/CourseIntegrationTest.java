@@ -643,6 +643,134 @@ class CourseIntegrationTest {
     }
 
     @Test
+    @DisplayName("PUT /api/v1/courses/{id} - Should reject update of restricted fields for PUBLISHED course")
+    void shouldRejectUpdateOfRestrictedFieldsForPublishedCourse() throws Exception {
+        // Given: Create and publish a course
+        CreateCourseRequest createRequest = new CreateCourseRequest(
+            "Published Course",
+            "PUB-101",
+            "Test description",
+            "Test syllabus",
+            "Test objectives",
+            "Test prerequisites",
+            "Test audience",
+            teacherId,
+            10,
+            20,
+            new BigDecimal("5000000")
+        );
+
+        String createResponse = mockMvc.perform(post("/api/v1/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long courseId = objectMapper.readTree(createResponse).get("data").get("id").asLong();
+
+        // Publish the course
+        mockMvc.perform(post("/api/v1/courses/{id}/publish", courseId)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk());
+
+        // When/Then: Try to update code (restricted field)
+        UpdateCourseRequest updateCodeRequest = new UpdateCourseRequest(
+            null,  // name
+            null,  // description
+            null,  // syllabus
+            null,  // objectives
+            null,  // prerequisites
+            null,  // targetAudience
+            null,  // durationWeeks
+            null,  // totalSessions
+            null,  // price
+            null   // coverImageUrl
+        );
+
+        // Use reflection or create a request with code field
+        String updateWithCodeJson = "{\"code\":\"NEW-CODE\"}";
+        mockMvc.perform(put("/api/v1/courses/{id}", courseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(updateWithCodeJson))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("COURSE_INVALID_UPDATE_PUBLISHED"));
+
+        // When/Then: Try to update teacherId (restricted field)
+        String updateWithTeacherJson = "{\"teacherId\":" + teacher2Id + "}";
+        mockMvc.perform(put("/api/v1/courses/{id}", courseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(updateWithTeacherJson))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("COURSE_INVALID_UPDATE_PUBLISHED"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/courses/{id} - Should allow update of allowed fields for PUBLISHED course")
+    void shouldAllowUpdateOfAllowedFieldsForPublishedCourse() throws Exception {
+        // Given: Create and publish a course
+        CreateCourseRequest createRequest = new CreateCourseRequest(
+            "Published Course 2",
+            "PUB-102",
+            "Original description",
+            "Original syllabus",
+            "Original objectives",
+            "Original prerequisites",
+            "Original audience",
+            teacherId,
+            10,
+            20,
+            new BigDecimal("5000000")
+        );
+
+        String createResponse = mockMvc.perform(post("/api/v1/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long courseId = objectMapper.readTree(createResponse).get("data").get("id").asLong();
+
+        // Publish the course
+        mockMvc.perform(post("/api/v1/courses/{id}/publish", courseId)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk());
+
+        // When: Update allowed fields (description, objectives, price)
+        UpdateCourseRequest updateRequest = new UpdateCourseRequest(
+            null,  // name - keep existing
+            "Updated description after publish",  // description - allowed
+            "Updated syllabus",  // syllabus - allowed
+            "Updated objectives",  // objectives - allowed
+            null,  // prerequisites - keep existing (restricted)
+            null,  // targetAudience - keep existing (restricted)
+            null,  // durationWeeks - keep existing (restricted)
+            null,  // totalSessions - keep existing (restricted)
+            new BigDecimal("6000000"),  // price - allowed
+            "https://example.com/cover.jpg"  // coverImageUrl - allowed
+        );
+
+        // Then: Update should succeed
+        mockMvc.perform(put("/api/v1/courses/{id}", courseId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.description").value("Updated description after publish"))
+            .andExpect(jsonPath("$.data.objectives").value("Updated objectives"))
+            .andExpect(jsonPath("$.data.price").value(6000000))
+            .andExpect(jsonPath("$.data.code").value("PUB-102")); // Unchanged
+    }
+
+    @Test
     @DisplayName("DELETE /api/v1/courses/{id} - Verify soft delete does not physically remove")
     void shouldVerifySoftDelete() throws Exception {
         // Given: Create a course

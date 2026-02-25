@@ -334,7 +334,8 @@ public class CourseServiceImpl implements CourseService {
         // PUBLISHED courses have limited edits
         if (course.isPublished()) {
             // Check if trying to update restricted fields
-            if (request.name() != null || request.durationWeeks() != null ||
+            if (request.name() != null || request.code() != null ||
+                request.teacherId() != null || request.durationWeeks() != null ||
                 request.totalSessions() != null || request.prerequisites() != null ||
                 request.targetAudience() != null) {
                 throw new ValidationException("COURSE_INVALID_UPDATE_PUBLISHED", new Object[0]);

@@ -17,9 +17,11 @@ import java.math.BigDecimal;
  *   <li>ARCHIVED: Read-only, no updates allowed</li>
  * </ul>
  *
- * <p>Note: Code and teacherId are typically not updated after creation.
+ * <p>Note: Code and teacherId cannot be updated for PUBLISHED courses.
  *
  * @param name Course name
+ * @param code Course code (uppercase, dashes allowed)
+ * @param teacherId Teacher ID
  * @param description Course description
  * @param syllabus Course syllabus
  * @param objectives Learning objectives
@@ -35,6 +37,13 @@ import java.math.BigDecimal;
 public record UpdateCourseRequest(
         @Size(min = 5, max = 200, message = "Tên khóa học phải từ 5-200 ký tự")
         String name,
+
+        @Pattern(regexp = "^[A-Z0-9-]+$", message = "Mã khóa học chỉ được chứa chữ in hoa, số và dấu gạch ngang")
+        @Size(min = 3, max = 50, message = "Mã khóa học phải từ 3-50 ký tự")
+        String code,
+
+        @Positive(message = "ID giảng viên phải là số dương")
+        Long teacherId,
 
         @Size(max = 5000, message = "Mô tả không được quá 5000 ký tự")
         String description,

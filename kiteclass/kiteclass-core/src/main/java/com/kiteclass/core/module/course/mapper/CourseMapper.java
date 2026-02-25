@@ -51,15 +51,16 @@ public interface CourseMapper {
      * Updates existing Course entity with UpdateCourseRequest DTO.
      *
      * <p>Only updates non-null fields from request (partial update).
-     * ID, audit fields, code, teacherId, and status are not updated via this method.
+     * ID, audit fields, and status are not updated via this method.
      * Status changes are handled via separate service methods (publish, archive).
+     *
+     * <p>Note: Code and teacherId can be updated for DRAFT courses only.
+     * Service layer validates update restrictions based on course status.
      *
      * @param course the course entity to update
      * @param request the update request DTO
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "code", ignore = true)
-    @Mapping(target = "teacherId", ignore = true)
     @Mapping(target = "instanceId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
