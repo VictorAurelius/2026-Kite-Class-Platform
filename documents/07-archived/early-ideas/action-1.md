@@ -1139,3 +1139,11 @@ bấm cập nhật trong mode edit thì ra như ảnh
 2 bug:
 1. require những trường optional
 2. được chọn thay đổi giáo viên hiện tại => logic bug
+
+bạn hiểu sai về 2 bug rồi
+
+1. require những trường optional, tức là khi tôi bấm cập nhật thì nó vẫn require những trường optional thì mới cho cập nhật
+2. được chọn thay đổi giáo viên hiện tại => logic bug
+tức là GIÁO VIÊN A đã gán vào course 1 rồi nhưng vẫn được chọn giáo viên A để thay đổi vào course 1, API không được get giáo viên hiện tại vào combobox dù status hiện tại của course là gì?
+
+![alt text](image-1.png) => nó vẫn yêu cầu nhập trường URL, không cho tôi cập nhật

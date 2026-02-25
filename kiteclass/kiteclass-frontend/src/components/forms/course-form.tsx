@@ -53,12 +53,10 @@ const courseSchema = z.object({
     (v) => (v === '' || v === undefined ? undefined : Number(v)),
     z.number().min(0, 'Học phí phải >= 0').optional()
   ),
-  coverImageUrl: z
-    .string()
-    .optional()
-    .refine((val) => !val || val === '' || /^https?:\/\/.+/.test(val), {
-      message: 'URL ảnh không hợp lệ',
-    }),
+  coverImageUrl: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url('URL ảnh không hợp lệ').optional()
+  ),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;
