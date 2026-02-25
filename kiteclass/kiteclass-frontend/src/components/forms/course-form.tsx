@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FormInput } from '@/components/forms';
@@ -18,10 +18,22 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common';
 import { CourseStatus } from '@/types/course';
 import type { CreateCourseRequest, UpdateCourseRequest } from '@/types/course';
+import { useTeachers } from '@/hooks/use-teachers';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const courseSchema = z.object({
   name: z.string().min(1, 'Tên khóa học không được để trống'),
   code: z.string().min(1, 'Mã khóa học không được để trống'),
+  teacherId: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().positive('Vui lòng chọn giảng viên')
+  ),
   description: z.string().optional(),
   syllabus: z.string().optional(),
   objectives: z.string().optional(),
@@ -63,9 +75,17 @@ export function CourseForm({
   const isArchived = courseStatus === CourseStatus.ARCHIVED;
   const isReadOnly = isArchived;
 
+  // Fetch teachers for dropdown
+  const { data: teachersData, isLoading: isLoadingTeachers } = useTeachers({
+    status: 'ACTIVE',
+    page: 0,
+    size: 100, // Get all active teachers
+  });
+
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
@@ -105,6 +125,49 @@ export function CourseForm({
             disabled={isSubmitting || isReadOnly || isPublished}
             {...register('code')}
           />
+
+          {/* Teacher Selector */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Giảng viên <span className="text-destructive">*</span>
+            </label>
+            <Controller
+              name="teacherId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
+                  value={field.value?.toString()}
+                  disabled={isSubmitting || isReadOnly || isPublished || isLoadingTeachers}
+                >
+                  <SelectTrigger className={errors.teacherId ? 'border-destructive' : ''}>
+                    <SelectValue placeholder="Chọn giảng viên" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingTeachers ? (
+                      <SelectItem value="loading" disabled>
+                        Đang tải...
+                      </SelectItem>
+                    ) : teachersData?.content && teachersData.content.length > 0 ? (
+                      teachersData.content.map((teacher) => (
+                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                          {teacher.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="empty" disabled>
+                        Không có giảng viên
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.teacherId && (
+              <p className="text-sm text-destructive">{errors.teacherId.message}</p>
+            )}
+          </div>
+
           <FormInput
             label="Thời lượng (tuần)"
             type="number"
