@@ -132,7 +132,7 @@ export function CourseForm({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
       {isPublished && (
         <div className="rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
           ⚠️ Khóa học đã xuất bản — chỉ có thể chỉnh sửa mô tả, giáo trình, mục tiêu và học phí.
