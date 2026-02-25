@@ -27,8 +27,10 @@ services:
     container_name: kiteclass-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
+    # Disable persistence for dev (no volumes, no saves)
+    # volumes:
+    #   - redis_data:/data
+    command: redis-server --save "" --appendonly no
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
