@@ -9,13 +9,14 @@
 
 export const dynamic = 'force-dynamic';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Pencil, Trash2, BookOpen, Archive } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { StatusBadge, LoadingSpinner, ErrorAlert } from '@/components/common';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useCourse, useDeleteCourse, usePublishCourse, useArchiveCourse } from '@/hooks/use-courses';
 import { CourseStatus } from '@/types/course';
 
@@ -45,24 +46,22 @@ export default function CourseDetailPage({
   const publishMutation = usePublishCourse();
   const archiveMutation = useArchiveCourse();
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+
   const handleDelete = () => {
-    if (window.confirm('Xóa khóa học này? Hành động không thể hoàn tác.')) {
-      deleteMutation.mutate(courseId, {
-        onSuccess: () => router.push('/courses'),
-      });
-    }
+    deleteMutation.mutate(courseId, {
+      onSuccess: () => router.push('/courses'),
+    });
   };
 
   const handlePublish = () => {
-    if (window.confirm('Xuất bản khóa học? Sau khi xuất bản, một số trường sẽ bị giới hạn chỉnh sửa.')) {
-      publishMutation.mutate(courseId);
-    }
+    publishMutation.mutate(courseId);
   };
 
   const handleArchive = () => {
-    if (window.confirm('Lưu trữ khóa học? Khóa học sẽ chuyển sang chế độ chỉ đọc.')) {
-      archiveMutation.mutate(courseId);
-    }
+    archiveMutation.mutate(courseId);
   };
 
   if (isLoading) {
@@ -101,13 +100,13 @@ export default function CourseDetailPage({
           </div>
           <div className="flex flex-wrap gap-2">
             {isDraft && (
-              <Button onClick={handlePublish} disabled={publishMutation.isPending}>
+              <Button onClick={() => setPublishDialogOpen(true)} disabled={publishMutation.isPending}>
                 <BookOpen className="mr-2 h-4 w-4" />
                 Xuất bản
               </Button>
             )}
             {isPublished && (
-              <Button variant="outline" onClick={handleArchive} disabled={archiveMutation.isPending}>
+              <Button variant="outline" onClick={() => setArchiveDialogOpen(true)} disabled={archiveMutation.isPending}>
                 <Archive className="mr-2 h-4 w-4" />
                 Lưu trữ
               </Button>
@@ -121,7 +120,7 @@ export default function CourseDetailPage({
               </Link>
             )}
             {isDraft && (
-              <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} disabled={deleteMutation.isPending}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Xóa
               </Button>
@@ -206,6 +205,35 @@ export default function CourseDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        open={publishDialogOpen}
+        onOpenChange={setPublishDialogOpen}
+        onConfirm={handlePublish}
+        title="Xuất bản khóa học"
+        description="Sau khi xuất bản, một số trường sẽ bị giới hạn chỉnh sửa (tên, mã khóa học, giảng viên). Bạn có chắc chắn muốn xuất bản?"
+        confirmText="Xuất bản"
+      />
+
+      <ConfirmDialog
+        open={archiveDialogOpen}
+        onOpenChange={setArchiveDialogOpen}
+        onConfirm={handleArchive}
+        title="Lưu trữ khóa học"
+        description="Khóa học sẽ chuyển sang chế độ chỉ đọc và không thể chỉnh sửa. Bạn có chắc chắn muốn lưu trữ?"
+        confirmText="Lưu trữ"
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Xóa khóa học"
+        description="Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan đến khóa học sẽ bị xóa vĩnh viễn."
+        confirmText="Xóa"
+        variant="destructive"
+      />
     </DashboardLayout>
   );
 }
