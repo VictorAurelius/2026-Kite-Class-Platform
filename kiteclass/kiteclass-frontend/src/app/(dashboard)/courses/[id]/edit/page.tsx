@@ -58,6 +58,7 @@ export default function EditCoursePage({
             initialData={{
               name: course.name,
               code: course.code,
+              teacherId: course.teacherId,
               description: course.description,
               syllabus: course.syllabus,
               objectives: course.objectives,
