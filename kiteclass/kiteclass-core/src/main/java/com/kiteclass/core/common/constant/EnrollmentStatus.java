@@ -1,54 +1,47 @@
 package com.kiteclass.core.common.constant;
 
-import lombok.Getter;
-
 /**
- * Status values for Enrollment entity.
+ * Enrollment status enumeration.
  *
- * <p>Represents student enrollment lifecycle:
+ * <p>Represents the lifecycle status of a student's enrollment in a class:
  * <ul>
- *   <li>PENDING: Enrollment requested, awaiting approval</li>
- *   <li>ACTIVE: Enrollment active, student attending class</li>
- *   <li>COMPLETED: Enrollment completed (class finished)</li>
- *   <li>DROPPED: Student dropped from class</li>
- *   <li>CANCELLED: Enrollment cancelled before start</li>
+ *   <li>{@link #ACTIVE} - Student is currently enrolled and attending</li>
+ *   <li>{@link #PENDING_PAYMENT} - Enrollment pending payment confirmation</li>
+ *   <li>{@link #COMPLETED} - Enrollment completed (class finished)</li>
+ *   <li>{@link #WITHDRAWN} - Student withdrew from the class</li>
+ *   <li>{@link #CANCELLED} - Enrollment cancelled by admin/system</li>
  * </ul>
  *
  * @author KiteClass Team
- * @since 2.2.0
+ * @since 2.6.0
  */
-@Getter
 public enum EnrollmentStatus {
-
-    PENDING("Chờ xác nhận", "Enrollment requested, awaiting approval"),
-    ACTIVE("Đang học", "Enrollment active, student attending class"),
-    COMPLETED("Đã hoàn thành", "Enrollment completed (class finished)"),
-    DROPPED("Đã nghỉ", "Student dropped from class"),
-    CANCELLED("Đã hủy", "Enrollment cancelled before start");
-
-    private final String displayNameVi;
-    private final String description;
-
-    EnrollmentStatus(String displayNameVi, String description) {
-        this.displayNameVi = displayNameVi;
-        this.description = description;
-    }
+    /**
+     * Student is currently enrolled and actively participating in the class.
+     */
+    ACTIVE,
 
     /**
-     * Checks if enrollment is active.
-     *
-     * @return true if status is ACTIVE
+     * Enrollment created but pending payment confirmation.
+     * Student cannot attend class until payment is confirmed.
      */
-    public boolean isActive() {
-        return this == ACTIVE;
-    }
+    PENDING_PAYMENT,
 
     /**
-     * Checks if enrollment is finalized (cannot be modified).
-     *
-     * @return true if status is COMPLETED, DROPPED, or CANCELLED
+     * Enrollment completed successfully.
+     * Class has finished and student has completed the course.
      */
-    public boolean isFinal() {
-        return this == COMPLETED || this == DROPPED || this == CANCELLED;
-    }
+    COMPLETED,
+
+    /**
+     * Student withdrew from the class.
+     * May be eligible for partial refund based on withdrawal policy.
+     */
+    WITHDRAWN,
+
+    /**
+     * Enrollment cancelled by admin or system.
+     * Full refund typically issued if applicable.
+     */
+    CANCELLED
 }
