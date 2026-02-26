@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common';
 import { CourseStatus } from '@/types/course';
 import type { CreateCourseRequest, UpdateCourseRequest } from '@/types/course';
+import { TeacherStatus } from '@/types/auth';
 import { useTeachers } from '@/hooks/use-teachers';
 import { Input } from '@/components/ui/input';
 import {
@@ -82,7 +83,7 @@ export function CourseForm({
 
   // Fetch teachers for dropdown
   const { data: teachersData, isLoading: isLoadingTeachers } = useTeachers({
-    status: 'ACTIVE',
+    status: TeacherStatus.ACTIVE,
     page: 0,
     size: 100, // Get all active teachers
   });
