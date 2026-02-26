@@ -2219,6 +2219,387 @@ ContactMessage ⭐ V4.1
 4. If guest converts → Lead status = CONVERTED
 ```
 
+## 5.5. Trial Learning Extensions (V4.1 - Phase 2)
+
+### Overview
+
+Support for trial users (leads) to access limited course content before conversion to paid students. This extends the Marketing Module's lead capture with actual learning functionality.
+
+**Key Features**:
+- Trial users authenticated via magic links (passwordless)
+- Daily quota limit (3 lessons/day)
+- Self-paced learning (no class enrollment required in Phase 1)
+- Progress preserved after conversion to paid student
+
+### Tables
+
+#### `leads` (Extended)
+
+**Purpose**: Track trial users separately from paid students. Each lead has a user_id FK to support authentication and trial learning access.
+
+```sql
+CREATE TABLE leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    user_id UUID NOT NULL, -- FK to Gateway users(id) - soft reference
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    source VARCHAR(50) NOT NULL, -- LANDING_PAGE, CONTACT_FORM, TRIAL_SIGNUP, REFERRAL
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW', -- NEW, CONTACTED, CONVERTED, LOST
+    course_interest_id BIGINT REFERENCES courses(id) ON DELETE SET NULL,
+    registration_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    converted_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT uq_leads_email_instance UNIQUE (email, instance_id),
+    CONSTRAINT chk_lead_source CHECK (source IN ('LANDING_PAGE', 'CONTACT_FORM', 'TRIAL_SIGNUP', 'REFERRAL')),
+    CONSTRAINT chk_lead_status CHECK (status IN ('NEW', 'CONTACTED', 'CONVERTED', 'LOST'))
+);
+
+CREATE INDEX idx_leads_instance_id ON leads(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_leads_user_id ON leads(user_id);
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_status ON leads(status) WHERE deleted = FALSE;
+CREATE INDEX idx_leads_created_at ON leads(created_at);
+
+COMMENT ON TABLE leads IS 'Trial users tracking - separate from students for different lifecycle';
+COMMENT ON COLUMN leads.user_id IS 'FK to Gateway users.id (soft reference for cross-service)';
+COMMENT ON COLUMN leads.status IS 'Lead lifecycle: NEW → CONTACTED → CONVERTED/LOST';
+```
+
+**Design Note**: This table already exists in Section 5.2.2 but is extended here with `user_id` column to support trial authentication. The table serves dual purpose: marketing lead capture + trial user tracking.
+
+#### `trial_quotas` (NEW)
+
+**Purpose**: Enforce daily lesson access limits (3 lessons/day) for trial users.
+
+```sql
+CREATE TABLE trial_quotas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    user_id UUID NOT NULL, -- FK to Gateway users(id)
+    quota_date DATE NOT NULL,
+    lessons_accessed INT NOT NULL DEFAULT 0,
+    quota_limit INT NOT NULL DEFAULT 3, -- Default 3 lessons per day
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_trial_quotas_user_date UNIQUE (user_id, quota_date, instance_id),
+    CONSTRAINT chk_quota_limit_positive CHECK (quota_limit > 0),
+    CONSTRAINT chk_lessons_accessed_non_negative CHECK (lessons_accessed >= 0)
+);
+
+CREATE INDEX idx_trial_quotas_user_id ON trial_quotas(user_id);
+CREATE INDEX idx_trial_quotas_date ON trial_quotas(quota_date);
+CREATE INDEX idx_trial_quotas_user_date ON trial_quotas(user_id, quota_date);
+
+COMMENT ON TABLE trial_quotas IS 'Daily lesson access limits for trial users (default 3 lessons/day)';
+COMMENT ON COLUMN trial_quotas.quota_date IS 'Date of quota (resets daily at midnight)';
+COMMENT ON COLUMN trial_quotas.lessons_accessed IS 'Number of lessons accessed on quota_date';
+```
+
+**Quota Reset Logic**: New quota record created per user per day. No cleanup needed - records serve as access history.
+
+#### Extensions to Existing Tables
+
+**`courses` table extension**:
+```sql
+ALTER TABLE courses ADD COLUMN is_trial BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_courses_trial ON courses(is_trial) WHERE deleted = FALSE;
+
+COMMENT ON COLUMN courses.is_trial IS 'Mark course as trial-accessible (single course approach, not separate trial course)';
+```
+
+**`lessons` table extension**:
+```sql
+ALTER TABLE lessons ADD COLUMN is_trial_accessible BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_lessons_trial ON lessons(is_trial_accessible) WHERE deleted = FALSE;
+
+COMMENT ON COLUMN lessons.is_trial_accessible IS 'Mark lesson accessible to trial users (typically first 1-3 lessons per course)';
+```
+
+**Design Rationale**: Single course with flags instead of separate trial course to avoid content duplication and simplify conversion.
+
+### Gateway Schema Extension
+
+#### `users.role` enum extension
+
+```sql
+-- Migration V12 (Gateway Service)
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'TRIAL_USER';
+
+COMMENT ON TYPE user_role IS 'User roles: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, TRIAL_USER (as of V12)';
+```
+
+**Complete `user_role` enum values**:
+- SUPER_ADMIN (system admin)
+- ADMIN (tenant admin)
+- TEACHER (course instructor)
+- STUDENT (paid learner)
+- TRIAL_USER (trial learner) ⭐ NEW
+
+**Purpose**: Support TRIAL_USER role for authentication and authorization of trial users at Gateway layer.
+
+### ERD - Trial Learning Extension
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    TRIAL LEARNING ERD                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Gateway Service                 Core Service                    │
+│                                                                  │
+│  ┌──────────────┐                                               │
+│  │    users     │                                               │
+│  ├──────────────┤                                               │
+│  │ id (PK)      │──────┐                                        │
+│  │ email        │      │                                        │
+│  │ role (enum)  │      │ user_id (FK - soft reference)         │
+│  │ instance_id  │      │                                        │
+│  └──────────────┘      │                                        │
+│       │                │                                        │
+│       │ role =         ▼                                        │
+│       │ TRIAL_USER  ┌──────────────┐                           │
+│       │             │    leads     │                           │
+│       │             ├──────────────┤                           │
+│       │             │ id (PK)      │                           │
+│       │             │ user_id (FK) │─────┐                     │
+│       │             │ email        │     │                     │
+│       │             │ status       │     │                     │
+│       │             │ source       │     │                     │
+│       │             │ course_id    │──┐  │                     │
+│       │             └──────────────┘  │  │                     │
+│       │                                │  │                     │
+│       │                                │  │                     │
+│       └─────┐                          │  │                     │
+│             │                          │  │                     │
+│             │ user_id (FK)             │  │                     │
+│             ▼                          │  │                     │
+│      ┌──────────────┐                 │  │                     │
+│      │trial_quotas  │                 │  │                     │
+│      ├──────────────┤                 │  │                     │
+│      │ id (PK)      │                 │  │                     │
+│      │ user_id (FK) │                 │  │                     │
+│      │ quota_date   │                 │  │                     │
+│      │ lessons_     │                 │  │                     │
+│      │   accessed   │                 │  │                     │
+│      │ quota_limit  │                 │  │                     │
+│      └──────────────┘                 │  │                     │
+│                                        │  │                     │
+│                                        │  │                     │
+│                                        ▼  ▼                     │
+│                                    ┌──────────────┐            │
+│                                    │   courses    │            │
+│                                    ├──────────────┤            │
+│                                    │ id (PK)      │            │
+│                                    │ is_trial ⭐  │            │
+│                                    └──────────────┘            │
+│                                           │                     │
+│                                           │ course_id           │
+│                                           ▼                     │
+│                                    ┌──────────────┐            │
+│                                    │   lessons    │            │
+│                                    ├──────────────┤            │
+│                                    │ id (PK)      │            │
+│                                    │ course_id    │            │
+│                                    │ is_trial_    │            │
+│                                    │  accessible⭐│            │
+│                                    └──────────────┘            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+⭐ = New columns for trial learning
+```
+
+### Data Flow
+
+**Trial Registration Flow**:
+```
+1. Guest submits trial signup form (email, name, phone)
+   ↓
+2. Core Service creates Lead record (status = NEW, source = TRIAL_SIGNUP)
+   ↓
+3. Core calls Gateway API to generate magic link
+   ↓
+4. Gateway creates User (role = TRIAL_USER) and sends magic link email
+   ↓
+5. Guest clicks magic link → Gateway verifies token → returns JWT
+   ↓
+6. Core updates Lead.user_id with Gateway user ID
+```
+
+**Trial Lesson Access Flow**:
+```
+1. Trial user requests lesson (JWT with role = TRIAL_USER)
+   ↓
+2. Core checks lesson.is_trial_accessible = TRUE
+   ↓
+3. Core checks trial_quotas: lessons_accessed < quota_limit (3)
+   ↓
+4. If quota OK: Increment lessons_accessed, return lesson content
+   ↓
+5. If quota exceeded: Return 429 Too Many Requests
+```
+
+**Lead → Student Conversion Flow**:
+```
+1. Trial user completes payment
+   ↓
+2. Payment service verifies transaction
+   ↓
+3. Core calls Gateway API to update user.role: TRIAL_USER → STUDENT
+   ↓
+4. Core updates Lead.status = CONVERTED, Lead.converted_at = NOW()
+   ↓
+5. Core creates Enrollment record (reuses existing user_id)
+   ↓
+6. Progress preserved (lesson_progress table uses user_id, not student_id)
+```
+
+### Business Rules
+
+- **BR-TRIAL-001**: Trial users (TRIAL_USER role) can only access lessons where `is_trial_accessible = TRUE`
+  - Implementation: LessonService checks role + lesson flag before returning content
+  - Error: `TRIAL_USER_PAID_LESSON_ACCESS_DENIED` if accessing paid lesson
+
+- **BR-TRIAL-002**: Trial users have 3 lessons/day quota limit enforced by `trial_quotas` table
+  - Implementation: TrialQuotaService.checkAndIncrementQuota() called before lesson access
+  - Quota resets daily (checked by `quota_date` column)
+  - Error: `TRIAL_QUOTA_EXCEEDED` if quota exhausted
+
+- **BR-TRIAL-003**: Lead → Student conversion updates `users.role` from TRIAL_USER to STUDENT (same user_id, progress preserved)
+  - Implementation: Gateway API PUT /users/{id}/role
+  - Same user_id → lesson_progress records automatically available to student
+
+- **BR-TRIAL-004**: Each lead must have unique email per tenant (instance_id)
+  - Implementation: `CONSTRAINT uq_leads_email_instance UNIQUE (email, instance_id)`
+  - Error: `LEAD_EMAIL_EXISTS` if duplicate registration attempt
+
+- **BR-TRIAL-005**: Trial quota resets daily at midnight (checked by `quota_date`)
+  - Implementation: New TrialQuota record created per user per day
+  - No cleanup job needed - records serve as access history
+
+- **BR-TRIAL-006**: Trial users cannot enroll in classes (self-paced learning only in Phase 1)
+  - Implementation: EnrollmentService rejects class_id if user role = TRIAL_USER
+  - Error: `TRIAL_USER_CLASS_ENROLLMENT_NOT_ALLOWED`
+
+### Design Rationale
+
+#### Why separate Leads table instead of merging with Students?
+
+**Decision**: Use separate `leads` table, not merge with `students` table.
+
+**Rationale**:
+- Different data lifecycle (leads can be NEW, CONTACTED, LOST - states not applicable to students)
+- Different business processes (lead nurturing vs student management)
+- Clear domain separation (sales/marketing vs education)
+- Analytics needs (conversion funnel tracking, source attribution)
+- Students may come from non-trial sources (direct signup, offline registration)
+
+**Alternative considered**: Add `is_trial` flag to students table
+- **Rejected**: Mixes two different domains, complicates student queries with trial-specific logic
+
+#### Why TRIAL_USER role in Gateway instead of Core-only?
+
+**Decision**: Add TRIAL_USER to Gateway's `user_role` enum.
+
+**Rationale**:
+- Authentication handled at Gateway layer (JWT tokens need role claims)
+- API Gateway needs role-based routing (e.g., rate limiting stricter for trial users)
+- Consistent with multi-tenant security model (all role authorization at Gateway)
+- Frontend can show/hide features based on JWT role claim
+
+**Alternative considered**: Keep TRIAL_USER status only in Core Service
+- **Rejected**: Requires Core to make auth decisions, breaks Gateway responsibility
+
+#### Why 3 lessons/day quota limit?
+
+**Decision**: Default quota_limit = 3 lessons per day.
+
+**Rationale**:
+- Balance between "try before buy" (enough to evaluate quality) and "create urgency" (limited access encourages conversion)
+- Prevent abuse (unlimited free access would reduce paid conversions)
+- Psychological: 3 lessons ≈ 1-2 hours learning → enough to see value
+- Conversion window: 7-10 days to complete ~20 trial lessons → encourages conversion within 2 weeks
+
+**Alternative considered**: Unlimited trial access for 7 days
+- **Rejected**: Users might binge-watch all content and not convert
+
+#### Why single course with `is_trial` flag instead of separate trial course?
+
+**Decision**: Mark existing courses with `is_trial = TRUE`, not create separate "trial" courses.
+
+**Rationale**:
+- Avoid content duplication (same lessons copied to trial + paid courses)
+- Easier content management (update once, applies to both trial and paid users)
+- Simpler conversion (no data migration between courses)
+- Consistent progress tracking (same course_id before and after conversion)
+
+**Alternative considered**: Create separate courses for trial users
+- **Rejected**: Content duplication, complex conversion logic, sync issues
+
+#### Why self-paced learning (no class enrollment) for trial Phase 1?
+
+**Decision**: Trial users access lessons directly (no class enrollment required) in Phase 1.
+
+**Rationale**:
+- Simpler onboarding (no scheduling conflicts, no class selection complexity)
+- Immediate access (no waiting for class to start)
+- Lower barrier to entry (guest can start learning within 5 minutes)
+- Phase 1 focus: Validate "try before buy" concept before adding class features
+
+**Alternative considered**: Allow trial users to join classes
+- **Deferred to Phase 2**: Requires class capacity management, teacher-student interaction, attendance tracking
+
+#### Why UPDATE ROLE approach for Lead → Student conversion?
+
+**Decision**: Update existing user's role (TRIAL_USER → STUDENT), not create new student record.
+
+**Rationale**:
+- Progress preservation automatic (same user_id → lesson_progress records preserved)
+- Audit trail preserved (created_at, updated_at on user record)
+- Simpler implementation (no data migration, no foreign key updates)
+- Lead record kept for analytics (conversion funnel tracking)
+
+**Alternative considered**: Create new student record, delete user
+- **Rejected**: Loses progress, complicates foreign key relationships, loses audit trail
+
+#### Why magic link authentication instead of password?
+
+**Decision**: Trial users authenticate via magic links (passwordless), not traditional password.
+
+**Rationale**:
+- Faster onboarding (no password complexity requirements, no "forgot password" flow)
+- Better UX for trial (guest clicks link in email → instant access)
+- Security: One-time tokens (30-minute expiry) reduce credential theft risk
+- Mobile-friendly (no typing passwords on small screens)
+
+**Alternative considered**: Traditional email + password registration
+- **Rejected**: Higher friction → lower conversion rate from guest to trial user
+
+### Implementation Notes
+
+- **Migration**: V12 required (see database-migration-plan.md Section 5.5)
+- **Gateway Service**: Must handle TRIAL_USER authentication and JWT generation
+- **Core Service**: Must implement TrialQuotaService for quota enforcement before lesson access
+- **Frontend**: Must display quota counter (e.g., "2/3 lessons today") and upgrade CTA when quota exceeded
+- **Testing**: Integration tests must cover multi-tenant isolation (trial users can't cross tenants)
+
+### Performance Considerations
+
+- **Index on `trial_quotas(user_id, quota_date)`**: Composite index for fast daily quota lookup
+- **Soft delete on leads**: Use `deleted = FALSE` in WHERE clauses to filter soft-deleted records
+- **Cache trial course lessons**: Cache `SELECT * FROM lessons WHERE course_id = X AND is_trial_accessible = TRUE` (static data)
+
+### Security Notes
+
+- **Rate limiting**: Trial users have stricter rate limits (30 req/min vs 100 req/min for students)
+- **CORS**: Trial users access lessons from landing page domain → requires CORS whitelist per tenant
+- **Magic link tokens**: Stored in Redis with 30-minute TTL, deleted after one use
+
 ---
 
 # 6. ENTITY RELATIONSHIP DIAGRAMS

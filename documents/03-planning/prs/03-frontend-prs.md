@@ -3,8 +3,9 @@
 **Project**: kiteclass-frontend
 **Version**: V4.1 (Bundled Model)
 **Tech Stack**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
-**Total PRs**: 15 (13 original + 2 V4.1)
-**Completed**: 7 (47%)
+**Total PRs**: 17 (13 original + 2 V4.1 LMS + 2 V4.1 Trial Learning)
+**Completed**: 7 (41%)
+**Planned**: 2 (PR 3.13-3.14 Trial Learning)
 **Status**: 🔄 Active development
 **Last Updated**: 2026-02-26
 
@@ -340,7 +341,260 @@
 
 ---
 
-### PR 3.13: AI Branding System ⭐ NEW (Phase 2)
+### PR 3.13: Trial Learning UI ⭐ NEW
+**Status**: 📋 Planned (V4.1 Phase 2)
+**Priority**: HIGH
+**Estimated Effort**: 16-20 hours
+**Dependencies**: Core PR 2.13 (Trial Registration API)
+**Blocks**: None
+
+#### Objective
+Implement trial user interface with quota display, trial lesson viewer, teacher profile, and contact form.
+
+#### Changes
+
+**1. Trial Dashboard Page**
+
+**Route**: `/trial/dashboard`
+**File**: `app/(trial)/dashboard/page.tsx` (create)
+
+**Features**:
+- Display quota status (X/3 lessons today)
+- List trial-accessible lessons
+- Show trial course details
+- "Upgrade to Full Access" CTA
+
+**Key Components**:
+- `QuotaCard`: Show "🎓 2/3 lessons today" with progress bar
+- `TrialLessonList`: List of trial lessons with lock icon on paid lessons
+- `UpgradeCard`: CTA button "Upgrade Now - ₫299k"
+
+**2. Trial Lesson Viewer**
+
+**Route**: `/trial/lessons/[id]`
+**File**: `app/(trial)/lessons/[id]/page.tsx` (create)
+
+**Features**:
+- Display lesson content (text, video)
+- Restricted features (no downloads, no comments)
+- "Unlock Full Course" banner at bottom
+- Auto-track progress (call API on lesson view)
+
+**Restricted features** (disabled for trial users):
+- Download resources
+- Post comments
+- Access quiz/assignments
+- Certificate generation
+
+**3. Teacher Public Profile Page**
+
+**Route**: `/teachers/[id]/profile`
+**File**: `app/(public)/teachers/[id]/profile/page.tsx` (create)
+
+**Features**:
+- Teacher bio, photo, specialization
+- Courses taught (public info only)
+- Contact button → opens contact form modal
+
+**4. Contact Form Component**
+
+**Component**: `components/ContactForm.tsx` (create)
+
+**Features**:
+- Fields: name, email, phone, message
+- Submit to `/api/v1/contact` endpoint
+- Success message: "We'll get back to you within 24 hours"
+
+**5. Trial Registration Page**
+
+**Route**: `/trial/register`
+**File**: `app/(public)/trial/register/page.tsx` (create)
+
+**Features**:
+- Registration form (email, name, phone)
+- Submit → Create lead → Send magic link email
+- Success message: "Check your email for magic link"
+
+**6. Layout & Navigation**
+
+**File**: `app/(trial)/layout.tsx` (create)
+
+**Features**:
+- Trial-specific header with quota display in navbar
+- Limited navigation (no admin/teacher features)
+- "Upgrade" button in header
+
+#### Testing
+
+**Component Tests (Vitest + Testing Library)**:
+- Test QuotaCard renders correctly
+- Test TrialLessonList filters trial lessons
+- Test ContactForm validation
+- Test TrialDashboard quota exceeded state
+
+**E2E Tests (Playwright)**:
+- Test trial registration flow
+- Test lesson viewing (quota increment)
+- Test quota limit reached (show upgrade modal)
+- Test contact form submission
+
+#### UI/UX Specifications
+
+**Quota Display**:
+- Green: 0-1 lessons used (plenty left)
+- Yellow: 2 lessons used (1 left)
+- Red: 3 lessons used (quota exceeded)
+- Reset message: "Resets tomorrow at midnight"
+
+**Trial Lesson Restrictions**:
+- Video playback: Allowed
+- Download resources: Disabled (show "Upgrade to download" tooltip)
+- Comments: Disabled (show "Upgrade to join discussion")
+- Quiz: Disabled (show lock icon)
+
+**Upgrade CTAs**:
+- Position: Top banner, bottom of lesson, after quota exceeded
+- Message: "Unlock full course for ₫299k - Cancel anytime"
+- Button color: Primary (attention-grabbing)
+
+**Last Updated**: 2026-02-26
+
+---
+
+### PR 3.14: Lead Conversion Flow ⭐ NEW
+**Status**: 📋 Planned (V4.1 Phase 2)
+**Priority**: MEDIUM
+**Estimated Effort**: 12-16 hours
+**Dependencies**: Core PR 2.14 (Conversion API), PR 3.13 (Trial UI)
+**Blocks**: None
+
+#### Objective
+Implement payment integration and Lead→Student conversion flow UI.
+
+#### Changes
+
+**1. Upgrade/Payment Page**
+
+**Route**: `/trial/upgrade`
+**File**: `app/(trial)/upgrade/page.tsx` (create)
+
+**Features**:
+- Display course details and price (₫299,000)
+- Payment form integration (mock Phase 1)
+- Terms & conditions checkbox
+- Submit → Call payment API → Call conversion API
+
+**2. Payment Form Component (Mock Phase 1)**
+
+**Component**: `components/PaymentForm.tsx` (create)
+
+**Features**:
+- Mock payment fields (card number, expiry, CVV)
+- Phase 1: Always succeeds (for testing)
+- Phase 2: Integrate real payment gateway (Stripe, VNPay)
+
+**Form Fields**:
+```tsx
+- Card Number (placeholder: "4111 1111 1111 1111")
+- Expiry (placeholder: "12/25")
+- CVV (placeholder: "123")
+- Terms & Conditions checkbox
+- Pay ₫299,000 button
+```
+
+**Test Mode Banner**:
+```
+🧪 Test Mode: Use any card number (e.g., 4111 1111 1111 1111)
+```
+
+**3. Conversion Success Page**
+
+**Route**: `/trial/upgrade/success`
+**File**: `app/(trial)/upgrade/success/page.tsx` (create)
+
+**Features**:
+- Congratulations message
+- Display enrollment details
+- "Continue Learning" button → redirect to student dashboard
+- Show preserved progress
+
+**UI Elements**:
+- CheckCircle icon (large, green)
+- "Welcome to Full Access!" heading
+- Progress summary (X lessons completed)
+- Benefits list (all lessons, downloads, Q&A, certificate)
+- CTA: "Continue Learning →"
+
+**4. Auth Context Update**
+
+**File**: `contexts/AuthContext.tsx`
+
+**Changes**: Handle role change from TRIAL_USER to STUDENT
+
+```tsx
+// Listen for role changes (after conversion)
+useEffect(() => {
+    const interval = setInterval(async () => {
+      if (user?.role === 'TRIAL_USER') {
+        // Check if role changed (user converted)
+        const currentUser = await api.get('/api/v1/auth/me');
+        if (currentUser.role !== user.role) {
+          setUser(currentUser);
+          toast.success("Your account has been upgraded!");
+        }
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [user]);
+```
+
+#### Testing
+
+**Component Tests**:
+- Test PaymentForm validation
+- Test ConversionSuccess displays progress
+- Test UpgradePage payment flow
+
+**E2E Tests (Playwright)**:
+- Test full conversion flow: trial → payment → success → student dashboard
+- Test preserved progress (lessons completed before conversion still marked complete)
+- Test role change handling (UI updates after conversion)
+
+#### UI/UX Specifications
+
+**Payment Page**:
+- Clear pricing breakdown
+- Security badges (SSL, secure payment icons)
+- 30-day money-back guarantee message
+- FAQ accordion (common questions)
+
+**Success Page**:
+- Celebrate conversion (confetti animation optional)
+- Show before/after comparison (trial vs full access)
+- Highlight preserved progress (visual timeline)
+- Clear next action (CTA button)
+
+#### Error Handling
+
+**Payment Failure**:
+- Show error message with retry option
+- Preserve form data (don't clear on failure)
+- Suggest alternative payment methods
+
+**Conversion Failure**:
+- Log error to Sentry
+- Show support contact info
+- Manual conversion fallback (admin intervention)
+
+**Last Updated**: 2026-02-26
+
+---
+
+### PR 3.15: AI Branding System ⭐ NEW (Phase 2)
+**Status**: Pending (Future Enhancement, renumbered from 3.13)
+**Dependencies**: PR 3.12 Guest Pages, AI Service integration
+**Estimated**: 2-3 weeks
 **Status**: Pending (Future Enhancement)
 **Dependencies**: PR 3.12 Guest Pages, AI Service integration
 **Estimated**: 2-3 weeks
@@ -399,8 +653,8 @@
 
 ## Phase 4: Final Polish
 
-### PR 3.14: E2E Tests & Polish ⏳
-**Status**: Pending
+### PR 3.16: E2E Tests & Polish ⏳
+**Status**: Pending (renumbered from 3.14)
 **Dependencies**: All features complete
 **Estimated**: 2-3 weeks
 
@@ -424,8 +678,8 @@
 
 ---
 
-### PR 3.15: Deployment & DevOps ⏳
-**Status**: Pending
+### PR 3.17: Deployment & DevOps ⏳
+**Status**: Pending (renumbered from 3.15)
 **Estimated**: 1 week
 
 **Tasks**:
@@ -441,15 +695,16 @@
 
 ## 📊 Summary
 
-**Total PRs**: 15
-**Completed**: 7 (47%)
+**Total PRs**: 17 (15 original + 2 new V4.1 Phase 2)
+**Completed**: 7 (41%)
 **In Progress**: 0
+**Planned**: 2 (PR 3.13-3.14 Trial Learning)
 **Pending**: 8
 
 **By Phase**:
 - Phase 1 (Infrastructure): 3/3 ✅
 - Phase 2 (Admin Pages): 4/8 (50%)
-- Phase 3 (Guest Pages): 0/2 (0%)
+- Phase 3 (Guest Pages): 0/4 (0%) - includes 2 new trial PRs
 - Phase 4 (Polish): 0/2 (0%)
 
 **Next 3 PRs**:

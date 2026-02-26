@@ -3,8 +3,9 @@
 **Service**: kiteclass-core
 **Version**: V4.1 (Bundled Model)
 **Tech Stack**: Spring Boot 3.5.11, Java 17, PostgreSQL 15
-**Total PRs**: 17 (15 original + 2 V4.1)
-**Completed**: 8 (47%)
+**Total PRs**: 19 (15 original + 2 V4.1 LMS + 2 V4.1 Trial Learning)
+**Completed**: 8 (42%)
+**Planned**: 2 (PR 2.13-2.14 Trial Learning)
 **Status**: 🔄 Active development
 **Last Updated**: 2026-02-26
 
@@ -442,8 +443,515 @@
 
 ---
 
-### PR 2.13: Settings & Preferences ⏳
-**Status**: Pending (moved from PR 2.9)
+## Phase 5: Trial Learning System (V4.1 Phase 2) ⭐ NEW
+
+### PR 2.13: Trial Registration & Quota Management ⭐ NEW
+**Status**: 📋 Planned (V4.1 Phase 2)
+**Priority**: HIGH
+**Estimated Effort**: 16-20 hours
+**Dependencies**: Gateway PR 1.13 (TRIAL_USER support), Migration V12
+**Blocks**: Frontend PR 3.13 (Trial UI)
+
+#### Objective
+Implement trial user registration, daily quota enforcement, and trial lesson access control.
+
+#### Changes
+
+**1. Lead Entity & Repository**
+
+**File**: `com.kiteclass.core.module.lead.entity.Lead.java` (create)
+
+```java
+@Entity
+@Table(name = "leads")
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "instanceId", type = "uuid"))
+@Filter(name = "tenantFilter", condition = "instance_id = :instanceId AND deleted = false")
+public class Lead extends BaseEntity {
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId; // FK to Gateway users.id
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", nullable = false)
+    private LeadSource source; // LANDING_PAGE, CONTACT_FORM, TRIAL_SIGNUP, REFERRAL
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private LeadStatus status; // NEW, CONTACTED, CONVERTED, LOST
+
+    @Column(name = "course_interest_id")
+    private Long courseInterestId;
+
+    @Column(name = "registration_date", nullable = false)
+    private Instant registrationDate;
+
+    @Column(name = "converted_at")
+    private Instant convertedAt;
+}
+```
+
+**Repository**:
+```java
+public interface LeadRepository extends JpaRepository<Lead, UUID> {
+    Optional<Lead> findByEmailAndInstanceIdAndDeletedFalse(String email, UUID instanceId);
+    Optional<Lead> findByUserIdAndDeletedFalse(UUID userId);
+    List<Lead> findByInstanceIdAndStatusAndDeletedFalse(UUID instanceId, LeadStatus status, Pageable pageable);
+}
+```
+
+**2. Trial Quota Entity & Repository**
+
+**File**: `com.kiteclass.core.module.lead.entity.TrialQuota.java` (create)
+
+```java
+@Entity
+@Table(name = "trial_quotas")
+public class TrialQuota extends BaseEntity {
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
+
+    @Column(name = "quota_date", nullable = false)
+    private LocalDate quotaDate;
+
+    @Column(name = "lessons_accessed", nullable = false)
+    private Integer lessonsAccessed = 0;
+
+    @Column(name = "quota_limit", nullable = false)
+    private Integer quotaLimit = 3; // Default 3 lessons/day
+}
+```
+
+**Repository**:
+```java
+public interface TrialQuotaRepository extends JpaRepository<TrialQuota, UUID> {
+    Optional<TrialQuota> findByUserIdAndQuotaDateAndInstanceId(UUID userId, LocalDate quotaDate, UUID instanceId);
+}
+```
+
+**3. Lead Service**
+
+**Interface**: `LeadService.java`
+```java
+public interface LeadService {
+    LeadResponse registerForTrial(CreateLeadRequest request);
+    LeadResponse getLeadByUserId(UUID userId);
+}
+```
+
+**Implementation Highlights**:
+- Check for duplicate email (per tenant)
+- Call Gateway API to generate magic link
+- Create Lead record (user_id set after magic link verification)
+- Send email with magic link
+
+**4. Trial Quota Service**
+
+**Interface**: `TrialQuotaService.java`
+```java
+public interface TrialQuotaService {
+    int checkAndIncrementQuota(UUID userId);
+    QuotaStatus getQuotaStatus(UUID userId);
+}
+```
+
+**Implementation Logic**:
+```java
+@Transactional
+public int checkAndIncrementQuota(UUID userId) {
+    UUID instanceId = TenantContext.getInstanceId();
+    LocalDate today = LocalDate.now();
+
+    // Find or create today's quota record
+    TrialQuota quota = trialQuotaRepository
+        .findByUserIdAndQuotaDateAndInstanceId(userId, today, instanceId)
+        .orElseGet(() -> createNewQuota(userId, instanceId, today));
+
+    // Check quota
+    if (quota.getLessonsAccessed() >= quota.getQuotaLimit()) {
+        throw new QuotaExceededException("TRIAL_QUOTA_EXCEEDED", quota.getQuotaLimit());
+    }
+
+    // Increment
+    quota.setLessonsAccessed(quota.getLessonsAccessed() + 1);
+    quota = trialQuotaRepository.save(quota);
+
+    return quota.getQuotaLimit() - quota.getLessonsAccessed();
+}
+```
+
+**5. Lesson Service Enhancement**
+
+**Add method to LessonService**:
+```java
+/**
+ * Get lesson details with access control
+ * @param lessonId Lesson ID
+ * @param userId User ID from JWT
+ * @param userRole User role from JWT
+ * @return Lesson details if user has access
+ * @throws AccessDeniedException if trial user accessing paid lesson or quota exceeded
+ */
+LessonResponse getLessonWithAccessControl(Long lessonId, UUID userId, String userRole);
+```
+
+**Implementation**:
+```java
+@Override
+public LessonResponse getLessonWithAccessControl(Long lessonId, UUID userId, String userRole) {
+    Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
+        .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+
+    // Trial user access control
+    if ("TRIAL_USER".equals(userRole)) {
+        // Check if lesson is trial-accessible
+        if (!lesson.isTrialAccessible()) {
+            throw new AccessDeniedException("TRIAL_USER_PAID_LESSON_ACCESS_DENIED");
+        }
+
+        // Check and increment quota
+        int remainingQuota = trialQuotaService.checkAndIncrementQuota(userId);
+
+        // Add quota info to response
+        LessonResponse response = LessonMapper.toResponse(lesson);
+        response.setRemainingQuota(remainingQuota);
+        return response;
+    }
+
+    // Student/Teacher: check enrollment (existing logic)
+    // ...
+
+    return LessonMapper.toResponse(lesson);
+}
+```
+
+**6. REST Endpoints**
+
+**File**: `LeadController.java` (create)
+```java
+@RestController
+@RequestMapping("/api/v1/leads")
+public class LeadController {
+
+    @PostMapping("/register-trial")
+    public ResponseEntity<LeadResponse> registerForTrial(@RequestBody @Valid CreateLeadRequest request) {
+        LeadResponse response = leadService.registerForTrial(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('TRIAL_USER')")
+    public ResponseEntity<LeadResponse> getMyLead(@RequestHeader("X-User-Id") UUID userId) {
+        LeadResponse response = leadService.getLeadByUserId(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/quota")
+    @PreAuthorize("hasRole('TRIAL_USER')")
+    public ResponseEntity<QuotaStatus> getQuotaStatus(@RequestHeader("X-User-Id") UUID userId) {
+        QuotaStatus status = trialQuotaService.getQuotaStatus(userId);
+        return ResponseEntity.ok(status);
+    }
+}
+```
+
+#### DTOs
+
+**CreateLeadRequest**:
+```java
+public record CreateLeadRequest(
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    String email,
+
+    @NotBlank(message = "Name is required")
+    @Size(max = 255)
+    String name,
+
+    @Size(max = 20)
+    String phone,
+
+    Long courseInterestId
+) {}
+```
+
+**QuotaStatus**:
+```java
+public record QuotaStatus(
+    int lessonsAccessed,
+    int quotaLimit,
+    int remaining,
+    LocalDate quotaDate
+) {}
+```
+
+#### Testing
+
+**Unit Tests**:
+- LeadServiceTest: Test registration, duplicate email check
+- TrialQuotaServiceTest: Test quota enforcement, daily reset
+- LessonServiceTest: Test trial access control
+
+**Integration Tests**:
+- Test trial registration flow end-to-end
+- Test quota exceeded scenario
+- Test multi-tenant isolation (trial user can't access other tenant's lessons)
+
+#### Error Codes
+
+- `LEAD_EMAIL_EXISTS`: Email already registered for trial
+- `TRIAL_QUOTA_EXCEEDED`: Daily lesson quota (3) exceeded
+- `TRIAL_USER_PAID_LESSON_ACCESS_DENIED`: Trial user trying to access paid lesson
+- `LESSON_NOT_FOUND`: Lesson ID invalid
+
+**Last Updated**: 2026-02-26
+
+---
+
+### PR 2.14: Lead to Student Conversion ⭐ NEW
+**Status**: 📋 Planned (V4.1 Phase 2)
+**Priority**: MEDIUM
+**Estimated Effort**: 12-16 hours
+**Dependencies**: Core PR 2.13 (Trial Registration)
+**Blocks**: Frontend PR 3.14 (Conversion Flow UI)
+
+#### Objective
+Implement Lead→Student conversion workflow with payment verification and progress preservation.
+
+#### Changes
+
+**1. Payment Service Integration (Mock for Phase 1)**
+
+**Interface**: `PaymentService.java` (create)
+```java
+public interface PaymentService {
+    /**
+     * Verify payment completed for user
+     * @param userId User ID
+     * @param courseId Course ID purchased
+     * @return Payment details
+     * @throws PaymentNotCompletedException if payment not found or incomplete
+     */
+    PaymentVerificationResponse verifyPayment(UUID userId, Long courseId);
+}
+```
+
+**Mock Implementation (Phase 1)**:
+```java
+@Service
+@Profile("!prod")
+public class MockPaymentService implements PaymentService {
+
+    @Override
+    public PaymentVerificationResponse verifyPayment(UUID userId, Long courseId) {
+        // Mock: Always return success for testing
+        return new PaymentVerificationResponse(
+            UUID.randomUUID(), // transactionId
+            BigDecimal.valueOf(299000), // amount
+            "VND",
+            PaymentStatus.COMPLETED,
+            Instant.now()
+        );
+    }
+}
+```
+
+**2. Lead Service - Conversion Method**
+
+**Add to LeadService interface**:
+```java
+/**
+ * Convert lead to student after payment completion
+ * @param leadId Lead ID
+ * @param request Conversion request with payment info
+ * @return Conversion result with new student role
+ */
+ConversionResponse convertToStudent(UUID leadId, ConvertLeadRequest request);
+```
+
+**Implementation**:
+```java
+@Override
+@Transactional
+public ConversionResponse convertToStudent(UUID leadId, @Valid ConvertLeadRequest request) {
+    UUID instanceId = TenantContext.getInstanceId();
+
+    // Get lead
+    Lead lead = leadRepository.findByIdAndDeletedFalse(leadId)
+        .orElseThrow(() -> new EntityNotFoundException("LEAD_NOT_FOUND", leadId));
+
+    // Check lead status
+    if (lead.getStatus() == LeadStatus.CONVERTED) {
+        throw new ValidationException("LEAD_ALREADY_CONVERTED");
+    }
+
+    // Verify payment completed
+    PaymentVerificationResponse payment = paymentService.verifyPayment(
+        lead.getUserId(),
+        request.getCourseId()
+    );
+
+    // Call Gateway API to update user role: TRIAL_USER → STUDENT
+    gatewayClient.updateUserRole(lead.getUserId(), "STUDENT");
+
+    // Update lead status
+    lead.setStatus(LeadStatus.CONVERTED);
+    lead.setConvertedAt(Instant.now());
+    leadRepository.save(lead);
+
+    // Create enrollment (existing enrollment service)
+    EnrollmentResponse enrollment = enrollmentService.createEnrollment(
+        new CreateEnrollmentRequest(
+            null, // studentId not needed, use userId
+            request.getCourseId(),
+            null  // classId optional
+        ),
+        lead.getUserId() // Use existing user_id
+    );
+
+    return new ConversionResponse(
+        lead.getUserId(),
+        "STUDENT",
+        enrollment.getId(),
+        payment.getTransactionId()
+    );
+}
+```
+
+**3. Gateway Client**
+
+**File**: `GatewayClient.java`
+
+**Add method**:
+```java
+/**
+ * Update user role in Gateway service
+ * @param userId User ID
+ * @param newRole New role (e.g., "STUDENT")
+ */
+void updateUserRole(UUID userId, String newRole);
+```
+
+**Implementation (using WebClient)**:
+```java
+@Override
+public void updateUserRole(UUID userId, String newRole) {
+    webClient.put()
+        .uri("/api/v1/users/{userId}/role", userId)
+        .bodyValue(Map.of("role", newRole))
+        .retrieve()
+        .bodyToMono(Void.class)
+        .block();
+}
+```
+
+**4. REST Endpoint**
+
+**Add to LeadController**:
+```java
+@PostMapping("/{leadId}/convert")
+@PreAuthorize("hasRole('TRIAL_USER')")
+public ResponseEntity<ConversionResponse> convertToStudent(
+    @PathVariable UUID leadId,
+    @RequestBody @Valid ConvertLeadRequest request,
+    @RequestHeader("X-User-Id") UUID userId
+) {
+    ConversionResponse response = leadService.convertToStudent(leadId, request);
+    return ResponseEntity.ok(response);
+}
+```
+
+#### DTOs
+
+**ConvertLeadRequest**:
+```java
+public record ConvertLeadRequest(
+    @NotNull(message = "Course ID is required")
+    Long courseId,
+
+    @NotNull(message = "Payment transaction ID is required")
+    UUID paymentTransactionId
+) {}
+```
+
+**ConversionResponse**:
+```java
+public record ConversionResponse(
+    UUID userId,
+    String newRole,
+    Long enrollmentId,
+    UUID paymentTransactionId,
+    Instant convertedAt
+) {}
+```
+
+#### Progress Preservation Logic
+
+**Key insight**: Progress is preserved automatically because:
+1. `lesson_progress` table uses `user_id` (not student_id)
+2. Conversion keeps same `user_id`, only changes `role`
+3. No data migration needed
+
+**Verification query**:
+```sql
+-- After conversion, student can see all previous progress
+SELECT lp.lesson_id, lp.progress_percent, lp.completed
+FROM lesson_progress lp
+WHERE lp.user_id = :userId; -- Same user_id before and after conversion
+```
+
+#### Testing
+
+**Unit Tests**:
+- LeadServiceTest: Test conversion success
+- LeadServiceTest: Test conversion with payment failure
+- LeadServiceTest: Test already converted lead
+
+**Integration Tests**:
+- Test full flow: trial registration → access 3 lessons → payment → conversion → verify progress preserved
+- Test multi-tenant isolation
+
+#### Error Codes
+
+- `LEAD_NOT_FOUND`: Lead ID invalid
+- `LEAD_ALREADY_CONVERTED`: Lead already converted to student
+- `PAYMENT_NOT_COMPLETED`: Payment verification failed
+- `GATEWAY_USER_UPDATE_FAILED`: Failed to update user role in Gateway
+
+#### Design Notes
+
+**Why UPDATE ROLE instead of CREATE NEW STUDENT?**
+- Preserve progress (same user_id)
+- Preserve audit trail (created_at, updated_at)
+- Simpler implementation (no data migration)
+- Lead record kept for analytics (conversion funnel tracking)
+
+**Why keep Lead record after conversion?**
+- Analytics: Track conversion rate, source attribution
+- Audit trail: When/how user converted
+- Sales reporting: Lead source performance
+
+**Last Updated**: 2026-02-26
+
+---
+
+### PR 2.15: Settings & Preferences ⏳
+**Status**: Pending (moved from PR 2.9, renumbered from 2.13)
 **Dependencies**: All modules complete
 **Estimated**: 1-2 weeks
 
@@ -458,8 +966,8 @@
 
 ---
 
-### PR 2.14: Core Docker & Final Integration ⏳
-**Status**: Pending (moved from PR 2.10)
+### PR 2.16: Core Docker & Final Integration ⏳
+**Status**: Pending (moved from PR 2.10, renumbered from 2.14)
 **Dependencies**: All PRs complete
 **Estimated**: 3-4 days
 
@@ -475,9 +983,10 @@
 
 ## 📊 Summary
 
-**Total PRs**: 17
-**Completed**: 8 (47%)
+**Total PRs**: 19 (2 new V4.1 Phase 2)
+**Completed**: 8 (42%)
 **In Progress**: 1 (PR 2.6)
+**Planned**: 2 (PR 2.13-2.14 Trial Learning)
 **Pending**: 8
 
 **By Phase**:
@@ -485,6 +994,7 @@
 - Phase 2 (Core Modules): 5/9 (56%)
 - Phase 3 (V4.1 New Modules): 0/2 (0%)
 - Phase 4 (Infrastructure): 2/4 (50%)
+- Phase 5 (V4.1 Trial Learning): 0/2 (0%) ⭐ NEW
 
 **Test Coverage**: 292 tests passing (260 unit + 32 integration)
 

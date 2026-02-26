@@ -1103,6 +1103,425 @@ DELETE FROM course_modules WHERE course_id IN (
 
 ---
 
+# V12: TRIAL LEARNING SUPPORT (V4.1 - Phase 2) ⭐ NEW
+
+**Date**: 2026-Q2 (planned)
+**Dependencies**: V11 (Demo LMS Content), V10 (Marketing Tables - leads table exists)
+**Services affected**: Gateway (users enum), Core (leads extension, trial_quotas, courses, lessons)
+
+## Purpose
+
+Add trial user support for "try before buy" learning experience. Extends Marketing Module's lead capture with actual learning functionality.
+
+**Key Features**:
+- Trial users authenticated via magic links (passwordless)
+- Daily quota limit (3 lessons/day)
+- Self-paced learning (no class enrollment required in Phase 1)
+- Progress preserved after conversion to paid student
+
+## Changes
+
+### Gateway Service
+
+**File**: `kiteclass-gateway/src/main/resources/db/migration/V12__add_trial_user_role.sql`
+
+```sql
+-- V12: Add TRIAL_USER role to user_role enum
+-- Purpose: Support trial user authentication and authorization
+
+-- Step 1: Add new enum value
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'TRIAL_USER';
+
+-- Step 2: Verify enum values
+COMMENT ON TYPE user_role IS 'User roles: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, TRIAL_USER (as of V12)';
+
+-- Step 3: Add index for trial users (performance optimization)
+CREATE INDEX IF NOT EXISTS idx_users_role_trial
+ON users(role)
+WHERE role = 'TRIAL_USER' AND deleted = FALSE;
+
+COMMENT ON INDEX idx_users_role_trial IS 'Fast lookup for trial users in rate limiting and access control';
+```
+
+**Verification**:
+```sql
+-- Check enum values
+SELECT enumlabel, enumsortorder
+FROM pg_enum
+WHERE enumtypid = 'user_role'::regtype
+ORDER BY enumsortorder;
+
+-- Expected output includes: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, TRIAL_USER
+```
+
+**Rollback**:
+```sql
+-- WARNING: Cannot remove enum value in PostgreSQL without recreating enum
+-- Alternative: Mark as deprecated in comments
+COMMENT ON TYPE user_role IS 'User roles: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, TRIAL_USER (deprecated V13+ - do not use)';
+
+-- Manual cleanup required: Update all TRIAL_USER rows to STUDENT before removing
+UPDATE users SET role = 'STUDENT' WHERE role = 'TRIAL_USER';
+
+-- Drop index
+DROP INDEX IF EXISTS idx_users_role_trial;
+```
+
+### Core Service
+
+**File**: `kiteclass-core/src/main/resources/db/migration/V12__create_trial_learning_tables.sql`
+
+```sql
+-- V12: Create Trial Learning Tables
+-- Purpose: Support trial users with daily lesson quotas
+-- Dependencies: V10 (leads table must exist)
+
+-- =============================================================================
+-- SECTION 1: Extend leads table with user_id column
+-- =============================================================================
+
+-- Add user_id column to existing leads table (from V10)
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS user_id UUID;
+
+-- Add index for user_id lookups
+CREATE INDEX IF NOT EXISTS idx_leads_user_id ON leads(user_id);
+
+-- Add comment
+COMMENT ON COLUMN leads.user_id IS 'FK to Gateway users.id (soft reference for cross-service). NULL for non-trial leads.';
+
+-- Update constraint to allow NULL user_id (non-trial leads don't have user accounts)
+-- Existing constraint uq_leads_email_instance remains unchanged
+
+-- =============================================================================
+-- SECTION 2: Create trial_quotas table
+-- =============================================================================
+
+CREATE TABLE trial_quotas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    user_id UUID NOT NULL, -- FK to Gateway users(id)
+    quota_date DATE NOT NULL,
+    lessons_accessed INT NOT NULL DEFAULT 0,
+    quota_limit INT NOT NULL DEFAULT 3, -- Default 3 lessons per day
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    -- Constraints
+    CONSTRAINT uq_trial_quotas_user_date UNIQUE (user_id, quota_date, instance_id),
+    CONSTRAINT chk_quota_limit_positive CHECK (quota_limit > 0),
+    CONSTRAINT chk_lessons_accessed_non_negative CHECK (lessons_accessed >= 0),
+    CONSTRAINT chk_lessons_not_exceed_limit CHECK (lessons_accessed <= quota_limit)
+);
+
+-- Indexes
+CREATE INDEX idx_trial_quotas_user_id ON trial_quotas(user_id);
+CREATE INDEX idx_trial_quotas_date ON trial_quotas(quota_date);
+CREATE INDEX idx_trial_quotas_user_date ON trial_quotas(user_id, quota_date);
+
+-- Comments
+COMMENT ON TABLE trial_quotas IS 'Daily lesson access limits for trial users (default 3 lessons/day). Resets daily.';
+COMMENT ON COLUMN trial_quotas.quota_date IS 'Date of quota (resets daily at midnight UTC)';
+COMMENT ON COLUMN trial_quotas.lessons_accessed IS 'Number of lessons accessed on quota_date (incremented on lesson view)';
+COMMENT ON COLUMN trial_quotas.quota_limit IS 'Maximum lessons allowed per day (default 3, configurable per tenant)';
+
+-- =============================================================================
+-- SECTION 3: Extend courses table with is_trial flag
+-- =============================================================================
+
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS is_trial BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Index for filtering trial courses
+CREATE INDEX IF NOT EXISTS idx_courses_trial ON courses(is_trial) WHERE is_trial = TRUE AND deleted = FALSE;
+
+COMMENT ON COLUMN courses.is_trial IS 'Mark course as trial-accessible (single course approach, not separate trial course). Typically one trial course per tenant.';
+
+-- =============================================================================
+-- SECTION 4: Extend lessons table with is_trial_accessible flag
+-- =============================================================================
+
+ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_trial_accessible BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Index for filtering trial lessons
+CREATE INDEX IF NOT EXISTS idx_lessons_trial ON lessons(is_trial_accessible) WHERE is_trial_accessible = TRUE AND deleted = FALSE;
+
+-- Composite index for trial lesson queries (course + trial flag)
+CREATE INDEX IF NOT EXISTS idx_lessons_course_trial ON lessons(course_id, is_trial_accessible) WHERE deleted = FALSE;
+
+COMMENT ON COLUMN lessons.is_trial_accessible IS 'Mark lesson accessible to trial users (typically first 1-3 lessons per course). Must be part of a course where is_trial = TRUE.';
+
+-- =============================================================================
+-- SECTION 5: Add trigger for trial_quotas updated_at
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION update_trial_quotas_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_trial_quotas_updated_at
+BEFORE UPDATE ON trial_quotas
+FOR EACH ROW
+EXECUTE FUNCTION update_trial_quotas_updated_at();
+
+COMMENT ON TRIGGER update_trial_quotas_updated_at ON trial_quotas IS 'Auto-update updated_at on quota changes';
+```
+
+**Verification**:
+```sql
+-- Check tables created
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_name IN ('leads', 'trial_quotas')
+ORDER BY table_name;
+
+-- Check columns added
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'courses' AND column_name = 'is_trial';
+
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'lessons' AND column_name = 'is_trial_accessible';
+
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'leads' AND column_name = 'user_id';
+
+-- Check constraints
+SELECT constraint_name, constraint_type
+FROM information_schema.table_constraints
+WHERE table_name IN ('leads', 'trial_quotas')
+ORDER BY table_name, constraint_name;
+
+-- Check indexes
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename IN ('trial_quotas', 'courses', 'lessons')
+  AND indexname LIKE '%trial%'
+ORDER BY tablename, indexname;
+```
+
+**Rollback**:
+```sql
+-- Rollback V12: Remove trial learning tables and columns
+
+-- Step 1: Drop triggers
+DROP TRIGGER IF EXISTS update_trial_quotas_updated_at ON trial_quotas;
+DROP FUNCTION IF EXISTS update_trial_quotas_updated_at();
+
+-- Step 2: Drop indexes
+DROP INDEX IF EXISTS idx_lessons_course_trial;
+DROP INDEX IF EXISTS idx_lessons_trial;
+DROP INDEX IF EXISTS idx_courses_trial;
+DROP INDEX IF EXISTS idx_trial_quotas_user_date;
+DROP INDEX IF EXISTS idx_trial_quotas_date;
+DROP INDEX IF EXISTS idx_trial_quotas_user_id;
+DROP INDEX IF EXISTS idx_leads_user_id;
+
+-- Step 3: Drop columns
+ALTER TABLE lessons DROP COLUMN IF EXISTS is_trial_accessible;
+ALTER TABLE courses DROP COLUMN IF EXISTS is_trial;
+ALTER TABLE leads DROP COLUMN IF EXISTS user_id;
+
+-- Step 4: Drop tables
+DROP TABLE IF EXISTS trial_quotas CASCADE;
+
+-- Note: leads table is NOT dropped (created in V10, only user_id column removed)
+```
+
+## Testing
+
+### Pre-Migration Checks
+
+```bash
+# Backup database before migration
+pg_dump -U postgres -d kiteclass_dev > kiteclass_dev_pre_v12_backup.sql
+
+# Check current migration status
+SELECT version, description, installed_on, success
+FROM flyway_schema_history
+ORDER BY installed_rank DESC
+LIMIT 5;
+```
+
+### Post-Migration Verification
+
+```sql
+-- 1. Verify Gateway enum
+\dT+ user_role
+
+-- 2. Verify Core tables
+\dt+ trial_quotas
+
+-- 3. Test trial quota insertion
+INSERT INTO trial_quotas (instance_id, user_id, quota_date, lessons_accessed, quota_limit)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000', -- test tenant
+    gen_random_uuid(), -- test user
+    CURRENT_DATE,
+    0,
+    3
+);
+
+-- 4. Test quota constraints
+-- Should FAIL (negative lessons_accessed)
+INSERT INTO trial_quotas (instance_id, user_id, quota_date, lessons_accessed, quota_limit)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000',
+    gen_random_uuid(),
+    CURRENT_DATE,
+    -1, -- Invalid
+    3
+);
+-- Expected: ERROR: new row for relation "trial_quotas" violates check constraint "chk_lessons_accessed_non_negative"
+
+-- 5. Test updated_at trigger
+UPDATE trial_quotas SET lessons_accessed = 1 WHERE id = (SELECT id FROM trial_quotas LIMIT 1);
+SELECT id, lessons_accessed, created_at, updated_at FROM trial_quotas LIMIT 1;
+-- Expected: updated_at > created_at
+
+-- 6. Cleanup test data
+DELETE FROM trial_quotas WHERE instance_id = '550e8400-e29b-41d4-a716-446655440000';
+```
+
+## Data Migration (if needed)
+
+If converting existing "guest" users to trial users (ONLY if applicable):
+
+```sql
+-- WARNING: Run ONLY if your system has existing guest users to convert
+-- DO NOT run in production without DBA review
+
+-- Step 1: Identify guest users (example criteria: email contains 'guest' or 'trial')
+SELECT id, email, role, created_at
+FROM users
+WHERE role = 'STUDENT'
+  AND (email LIKE '%guest%' OR email LIKE '%trial%')
+LIMIT 10;
+
+-- Step 2: Update user role to TRIAL_USER (test with LIMIT first)
+-- BEGIN TRANSACTION;
+
+UPDATE users
+SET role = 'TRIAL_USER', updated_at = NOW()
+WHERE role = 'STUDENT'
+  AND email LIKE '%trial%'
+  AND created_at > '2026-01-01'; -- Only recent signups
+
+-- Step 3: Create lead records for trial users
+INSERT INTO leads (instance_id, user_id, name, email, source, status, registration_date, created_at, updated_at)
+SELECT
+    u.instance_id,
+    u.id,
+    COALESCE(u.full_name, u.email),
+    u.email,
+    'TRIAL_SIGNUP',
+    'NEW',
+    u.created_at,
+    NOW(),
+    NOW()
+FROM users u
+WHERE u.role = 'TRIAL_USER'
+  AND NOT EXISTS (
+    SELECT 1 FROM leads l WHERE l.user_id = u.id
+  );
+
+-- Step 4: Verify changes
+SELECT u.id, u.email, u.role, l.status, l.source
+FROM users u
+LEFT JOIN leads l ON l.user_id = u.id
+WHERE u.role = 'TRIAL_USER'
+LIMIT 10;
+
+-- COMMIT; -- Only commit if verification looks correct
+-- ROLLBACK; -- Use this if something looks wrong
+```
+
+## Deployment Notes
+
+### Deployment Order (CRITICAL)
+
+1. **Gateway first**: Run Gateway V12 migration to add TRIAL_USER enum
+2. **Core second**: Run Core V12 migration to create tables/columns
+3. **Verify**: Query enum values, table existence, constraints
+4. **Application deployment**: Deploy Gateway service, then Core service
+
+**Rationale**: Core migration references TRIAL_USER enum in comments/documentation. While not a hard FK dependency, deploying Gateway first maintains logical consistency.
+
+### Downtime Requirements
+
+- **No downtime required** (additive changes only)
+- Migrations add columns with DEFAULT values → no NULL conflicts
+- New tables created → no disruption to existing queries
+- Enum values added → backward compatible (existing roles still work)
+
+### Performance Impact
+
+- **Negligible**: New indexes created with `IF NOT EXISTS`
+- Estimated migration time: < 30 seconds per database
+- No table locks on existing data
+
+### Monitoring After Deployment
+
+```sql
+-- 1. Check trial user count
+SELECT role, COUNT(*)
+FROM users
+WHERE deleted = FALSE
+GROUP BY role;
+
+-- 2. Check trial quota usage
+SELECT
+    quota_date,
+    COUNT(*) as active_users,
+    AVG(lessons_accessed) as avg_lessons,
+    SUM(CASE WHEN lessons_accessed >= quota_limit THEN 1 ELSE 0 END) as quota_exceeded_count
+FROM trial_quotas
+WHERE quota_date >= CURRENT_DATE - INTERVAL '7 days'
+GROUP BY quota_date
+ORDER BY quota_date DESC;
+
+-- 3. Check trial course configuration
+SELECT id, code, name, is_trial, deleted
+FROM courses
+WHERE is_trial = TRUE;
+
+-- 4. Check trial lesson count per course
+SELECT
+    c.id as course_id,
+    c.code,
+    c.name,
+    COUNT(l.id) as total_lessons,
+    COUNT(CASE WHEN l.is_trial_accessible THEN 1 END) as trial_lessons
+FROM courses c
+LEFT JOIN lessons l ON l.course_id = c.id AND l.deleted = FALSE
+WHERE c.is_trial = TRUE AND c.deleted = FALSE
+GROUP BY c.id, c.code, c.name;
+```
+
+## Related PRs
+
+- **Gateway PR 1.13**: Trial User Authentication Support (magic link, JWT)
+- **Core PR 2.13**: Trial Registration & Quota Management (LeadService, TrialQuotaService)
+- **Core PR 2.14**: Lead to Student Conversion (payment verification, role update)
+- **Frontend PR 3.13**: Trial Learning UI (dashboard, lesson viewer, quota display)
+- **Frontend PR 3.14**: Lead Conversion Flow (payment form, success page)
+
+## Migration Timeline
+
+- **Week 1**: Gateway V12 deployment (enum addition)
+- **Week 2**: Core V12 deployment (tables + columns)
+- **Week 3**: Application code deployment (PRs 1.13, 2.13, 2.14)
+- **Week 4**: Frontend deployment (PRs 3.13, 3.14) + End-to-end testing
+
+**Total estimated time**: 4 weeks (includes testing and staged rollout)
+
+---
+
 # ROLLBACK STRATEGY
 
 ## Rollback Scripts
@@ -1195,9 +1614,10 @@ flyway repair
 9. ⭐ V9: LMS Tables (V4.1 - course_modules, lessons, learning_resources, lesson_progress)
 10. ⭐ V10: Marketing Tables (V4.1 - landing_pages, leads, contact_messages)
 11. ⭐ V11: Demo LMS Content (Optional - testing only)
+12. ⭐ V12: Trial Learning Support (V4.1 Phase 2 - TRIAL_USER role, trial_quotas, lesson access control)
 
-**Total:** 11 migrations (8 existing + 3 new V4.1)
-**Estimated time:** 3-4 hours (with testing + V4.1 additions)
+**Total:** 12 migrations (8 existing + 4 new V4.1)
+**Estimated time:** 4-5 hours (with testing + V4.1 additions)
 
 **Ready for:**
 - Development environment
