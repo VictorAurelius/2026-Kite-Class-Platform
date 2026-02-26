@@ -1,0 +1,206 @@
+package com.kiteclass.core.module.enrollment.service;
+
+import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.exception.ValidationException;
+import com.kiteclass.core.module.clazz.entity.Class;
+import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
+import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
+import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
+import com.kiteclass.core.module.enrollment.entity.Enrollment;
+import com.kiteclass.core.module.enrollment.mapper.EnrollmentMapper;
+import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
+import com.kiteclass.core.module.student.entity.Student;
+import com.kiteclass.core.module.student.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
+/**
+ * Implementation of {@link EnrollmentService}.
+ *
+ * @author KiteClass Team
+ * @since 2.6.0
+ */
+@Slf4j
+@Service
+@Validated
+@RequiredArgsConstructor
+public class EnrollmentServiceImpl implements EnrollmentService {
+
+    private final EnrollmentRepository enrollmentRepository;
+    private final StudentRepository studentRepository;
+    private final ClassRepository classRepository;
+    private final EnrollmentMapper enrollmentMapper;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Override
+    @Transactional
+    public EnrollmentResponse enrollStudent(CreateEnrollmentRequest request) {
+        log.info("Enrolling student {} in class {}", request.getStudentId(), request.getClassId());
+
+        // Validate student exists and is active
+        Student student = studentRepository.findByIdAndDeletedFalse(request.getStudentId())
+                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", request.getStudentId()));
+
+        // Validate class exists and is not cancelled
+        Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
+                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", request.getClassId()));
+
+        // BR-ENROLL-002: Check for duplicate enrollment
+        if (enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                request.getStudentId(),
+                request.getClassId(),
+                EnrollmentStatus.ACTIVE)) {
+            log.warn("Student {} is already enrolled in class {}", request.getStudentId(), request.getClassId());
+            throw new ValidationException("ENROLLMENT_DUPLICATE",
+                    request.getStudentId(), request.getClassId());
+        }
+
+        // BR-ENROLL-001: Check class capacity
+        long activeEnrollmentCount = enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
+                request.getClassId(),
+                EnrollmentStatus.ACTIVE
+        );
+
+        if (activeEnrollmentCount >= clazz.getMaxStudents()) {
+            log.warn("Class {} is at full capacity ({}/{})",
+                    request.getClassId(), activeEnrollmentCount, clazz.getMaxStudents());
+            throw new ValidationException("CLASS_FULL",
+                    request.getClassId(), clazz.getMaxStudents());
+        }
+
+        // Create enrollment entity
+        Enrollment enrollment = enrollmentMapper.toEntity(request);
+        enrollment.setInstanceId(student.getInstanceId()); // Multi-tenant
+
+        // BR-ENROLL-003: final_amount calculated automatically in @PrePersist
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        log.info("Successfully enrolled student {} in class {} with enrollment ID {}",
+                request.getStudentId(), request.getClassId(), savedEnrollment.getId());
+
+        // Publish ENROLLMENT_CREATED event for invoice generation
+        // TODO: Implement EnrollmentCreatedEvent when Invoice module is ready
+        // eventPublisher.publishEvent(new EnrollmentCreatedEvent(savedEnrollment));
+
+        return enrollmentMapper.toResponse(savedEnrollment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EnrollmentResponse getEnrollmentById(Long id) {
+        log.debug("Fetching enrollment with ID: {}", id);
+
+        Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", id));
+
+        return enrollmentMapper.toResponse(enrollment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EnrollmentResponse> getEnrollmentsByStudent(Long studentId, Pageable pageable) {
+        log.debug("Fetching enrollments for student: {}", studentId);
+
+        // Validate student exists
+        if (!studentRepository.existsById(studentId)) {
+            throw new EntityNotFoundException("STUDENT_NOT_FOUND", studentId);
+        }
+
+        Page<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndDeletedFalse(
+                studentId, pageable
+        );
+
+        return enrollments.map(enrollmentMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EnrollmentResponse> getEnrollmentsByClass(Long classId, Pageable pageable) {
+        log.debug("Fetching enrollments for class: {}", classId);
+
+        // Validate class exists
+        if (!classRepository.existsById(classId)) {
+            throw new EntityNotFoundException("CLASS_NOT_FOUND", classId);
+        }
+
+        Page<Enrollment> enrollments = enrollmentRepository.findByClassIdAndDeletedFalse(
+                classId, pageable
+        );
+
+        return enrollments.map(enrollmentMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EnrollmentResponse> getEnrollmentsByClassAndStatus(
+            Long classId,
+            EnrollmentStatus status,
+            Pageable pageable) {
+        log.debug("Fetching enrollments for class {} with status {}", classId, status);
+
+        // Validate class exists
+        if (!classRepository.existsById(classId)) {
+            throw new EntityNotFoundException("CLASS_NOT_FOUND", classId);
+        }
+
+        Page<Enrollment> enrollments = enrollmentRepository.findByClassIdAndStatusAndDeletedFalse(
+                classId, status, pageable
+        );
+
+        return enrollments.map(enrollmentMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public EnrollmentResponse updateEnrollmentStatus(
+            Long id,
+            UpdateEnrollmentStatusRequest request) {
+        log.info("Updating enrollment {} status to {}", id, request.getStatus());
+
+        Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", id));
+
+        EnrollmentStatus oldStatus = enrollment.getStatus();
+        enrollment.setStatus(request.getStatus());
+
+        if (request.getNotes() != null && !request.getNotes().isBlank()) {
+            enrollment.setNotes(request.getNotes());
+        }
+
+        Enrollment updated = enrollmentRepository.save(enrollment);
+
+        log.info("Enrollment {} status updated from {} to {}",
+                id, oldStatus, request.getStatus());
+
+        return enrollmentMapper.toResponse(updated);
+    }
+
+    @Override
+    @Transactional
+    public EnrollmentResponse withdrawStudent(Long id) {
+        log.info("Withdrawing student from enrollment: {}", id);
+
+        Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", id));
+
+        if (enrollment.getStatus() == EnrollmentStatus.WITHDRAWN) {
+            log.warn("Enrollment {} is already withdrawn", id);
+            throw new ValidationException("ENROLLMENT_ALREADY_WITHDRAWN", id);
+        }
+
+        enrollment.setStatus(EnrollmentStatus.WITHDRAWN);
+        Enrollment updated = enrollmentRepository.save(enrollment);
+
+        log.info("Student withdrawn from enrollment {}", id);
+
+        return enrollmentMapper.toResponse(updated);
+    }
+}

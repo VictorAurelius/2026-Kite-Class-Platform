@@ -1165,3 +1165,19 @@ GET http://localhost:8090/api/v1/courses/5 500 (Internal Server Error)
 ![alt text](image-3.png)
 
 => sao nội dung toast lại nửa Anh, nửa Việt, check lại do lỗi BE hay FE => đồng hóa lại nội dung, có 2 message string, 1 thuần Anh, 1 thuần Việt => đã có phương châm trong skill rồi, check lại skill
+
+  - ⚠️ Coverage upload failed (missing Codecov token - không ảnh hưởng functionality)
+
+  Frontend CI: FAILED ❌ (Pre-existing issue)
+
+  Lỗi: courses-new.integration.test.tsx - Unable to find option "nguyễn thị giáo"
+
+bật mode plan, fix bug đúng theo workflow cho 2 lỗi này của core và FE
+
+bật mode plan, fix CI đến khi pass thì thôi
+
+được rồi check lại master plan để xem action ưu tiên tiếp theo
+
+sao status của FE mới hoàn thành mỗi PR 3.1?
+
+giải thích sơ qua cho tôi về mối quan hệ giữa các module trong kiteclass-core hiện tại
