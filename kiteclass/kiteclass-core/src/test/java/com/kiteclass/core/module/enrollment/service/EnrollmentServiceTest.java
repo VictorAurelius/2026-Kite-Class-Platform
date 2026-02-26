@@ -75,9 +75,9 @@ class EnrollmentServiceTest {
         testStudent = Student.builder()
                 .name("Test Student")
                 .email("student@test.com")
-                .instanceId(tenantId)
                 .build();
         testStudent.setId(1L);
+        testStudent.setInstanceId(tenantId);
 
         testClass = Class.builder()
                 .courseId(1L)
@@ -101,9 +101,9 @@ class EnrollmentServiceTest {
                 .discountPercent(new BigDecimal("10.00"))
                 .finalAmount(new BigDecimal("900.00"))
                 .status(EnrollmentStatus.PENDING_PAYMENT)
-                .instanceId(tenantId)
                 .build();
         testEnrollment.setId(1L);
+        testEnrollment.setInstanceId(tenantId);
 
         testResponse = EnrollmentResponse.builder()
                 .id(1L)
