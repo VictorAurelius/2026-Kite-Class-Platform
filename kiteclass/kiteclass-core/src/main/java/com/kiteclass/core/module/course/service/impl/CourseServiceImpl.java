@@ -21,12 +21,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of CourseService interface.
@@ -53,6 +60,14 @@ public class CourseServiceImpl implements CourseService {
     private final TeacherRepository teacherRepository;
     private final TeacherCourseRepository teacherCourseRepository;
     private final CourseMapper courseMapper;
+    private final MessageSource messageSource;
+
+    // Field name message keys for validation
+    private static final String FIELD_NAME = "field.course.name";
+    private static final String FIELD_DESCRIPTION = "field.course.description";
+    private static final String FIELD_SYLLABUS = "field.course.syllabus";
+    private static final String FIELD_OBJECTIVES = "field.course.objectives";
+    private static final String FIELD_DURATION_WEEKS = "field.course.durationWeeks";
 
     /**
      * Tạo khóa học mới.
@@ -352,27 +367,31 @@ public class CourseServiceImpl implements CourseService {
      * @throws ValidationException if required fields are missing
      */
     private void validatePublishRequirements(Course course) {
-        StringBuilder missingFields = new StringBuilder();
+        List<String> missingFieldKeys = new ArrayList<>();
 
         if (course.getName() == null || course.getName().isBlank()) {
-            missingFields.append("Tên khóa học, ");
+            missingFieldKeys.add(FIELD_NAME);
         }
         if (course.getDescription() == null || course.getDescription().isBlank()) {
-            missingFields.append("Mô tả, ");
+            missingFieldKeys.add(FIELD_DESCRIPTION);
         }
         if (course.getSyllabus() == null || course.getSyllabus().isBlank()) {
-            missingFields.append("Giáo trình, ");
+            missingFieldKeys.add(FIELD_SYLLABUS);
         }
         if (course.getObjectives() == null || course.getObjectives().isBlank()) {
-            missingFields.append("Mục tiêu học tập, ");
+            missingFieldKeys.add(FIELD_OBJECTIVES);
         }
         if (course.getDurationWeeks() == null || course.getDurationWeeks() <= 0) {
-            missingFields.append("Thời lượng (tuần), ");
+            missingFieldKeys.add(FIELD_DURATION_WEEKS);
         }
 
-        if (missingFields.length() > 0) {
-            // Remove trailing comma and space
-            String missing = missingFields.substring(0, missingFields.length() - 2);
+        if (!missingFieldKeys.isEmpty()) {
+            // Resolve field names to localized strings
+            Locale locale = LocaleContextHolder.getLocale();
+            String missing = missingFieldKeys.stream()
+                    .map(key -> messageSource.getMessage(key, null, locale))
+                    .collect(Collectors.joining(", "));
+
             throw new ValidationException("COURSE_MISSING_REQUIRED_FIELDS", (Object) missing);
         }
     }
