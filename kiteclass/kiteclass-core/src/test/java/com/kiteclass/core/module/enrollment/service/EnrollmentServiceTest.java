@@ -73,19 +73,19 @@ class EnrollmentServiceTest {
         UUID tenantId = UUID.randomUUID();
 
         testStudent = Student.builder()
-                .id(1L)
                 .name("Test Student")
                 .email("student@test.com")
                 .instanceId(tenantId)
                 .build();
+        testStudent.setId(1L);
 
         testClass = Class.builder()
-                .id(1L)
                 .courseId(1L)
                 .name("Test Class")
                 .maxStudents(30)
                 .currentEnrolled(0)
                 .build();
+        testClass.setId(1L);
 
         createRequest = CreateEnrollmentRequest.builder()
                 .studentId(1L)
@@ -95,7 +95,6 @@ class EnrollmentServiceTest {
                 .build();
 
         testEnrollment = Enrollment.builder()
-                .id(1L)
                 .studentId(1L)
                 .classId(1L)
                 .tuitionAmount(new BigDecimal("1000.00"))
@@ -104,6 +103,7 @@ class EnrollmentServiceTest {
                 .status(EnrollmentStatus.PENDING_PAYMENT)
                 .instanceId(tenantId)
                 .build();
+        testEnrollment.setId(1L);
 
         testResponse = EnrollmentResponse.builder()
                 .id(1L)
