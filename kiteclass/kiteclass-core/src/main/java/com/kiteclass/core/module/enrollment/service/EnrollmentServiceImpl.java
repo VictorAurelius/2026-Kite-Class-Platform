@@ -47,11 +47,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         // Validate student exists and is active
         Student student = studentRepository.findByIdAndDeletedFalse(request.getStudentId())
-                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", request.getStudentId()));
+                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) request.getStudentId()));
 
         // Validate class exists and is not cancelled
         Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
-                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", request.getClassId()));
+                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
 
         // BR-ENROLL-002: Check for duplicate enrollment
         if (enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
@@ -99,7 +99,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.debug("Fetching enrollment with ID: {}", id);
 
         Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
 
         return enrollmentMapper.toResponse(enrollment);
     }
@@ -111,7 +111,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         // Validate student exists
         if (!studentRepository.existsById(studentId)) {
-            throw new EntityNotFoundException("STUDENT_NOT_FOUND", studentId);
+            throw new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId);
         }
 
         Page<Enrollment> enrollments = enrollmentRepository.findByStudentIdAndDeletedFalse(
@@ -128,7 +128,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         // Validate class exists
         if (!classRepository.existsById(classId)) {
-            throw new EntityNotFoundException("CLASS_NOT_FOUND", classId);
+            throw new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId);
         }
 
         Page<Enrollment> enrollments = enrollmentRepository.findByClassIdAndDeletedFalse(
@@ -148,7 +148,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         // Validate class exists
         if (!classRepository.existsById(classId)) {
-            throw new EntityNotFoundException("CLASS_NOT_FOUND", classId);
+            throw new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId);
         }
 
         Page<Enrollment> enrollments = enrollmentRepository.findByClassIdAndStatusAndDeletedFalse(
@@ -166,7 +166,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("Updating enrollment {} status to {}", id, request.getStatus());
 
         Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
 
         EnrollmentStatus oldStatus = enrollment.getStatus();
         enrollment.setStatus(request.getStatus());
@@ -189,7 +189,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("Withdrawing student from enrollment: {}", id);
 
         Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) id));
 
         if (enrollment.getStatus() == EnrollmentStatus.WITHDRAWN) {
             log.warn("Enrollment {} is already withdrawn", id);
