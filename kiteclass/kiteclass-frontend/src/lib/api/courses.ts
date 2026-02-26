@@ -36,7 +36,7 @@ export const coursesApi = {
   },
 
   update: async (id: number, data: UpdateCourseRequest): Promise<Course> => {
-    const response = await apiClient.patch<ApiResponse<Course>>(
+    const response = await apiClient.put<ApiResponse<Course>>(
       `/api/v1/courses/${id}`,
       data
     );
