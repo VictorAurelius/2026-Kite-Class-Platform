@@ -26,10 +26,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,6 +60,9 @@ class CourseServiceTest {
 
     @Mock
     private CourseMapper courseMapper;
+
+    @Mock
+    private MessageSource messageSource;
 
     @InjectMocks
     private CourseServiceImpl courseService;
@@ -360,6 +365,10 @@ class CourseServiceTest {
         Course incompleteCourse = CourseTestDataBuilder.createDefaultCourse();
         incompleteCourse.setSyllabus(null); // Missing required field
         when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(incompleteCourse));
+
+        // Mock MessageSource to return localized field names
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class)))
+                .thenReturn("Syllabus"); // Return any field name
 
         // When & Then
         assertThatThrownBy(() -> courseService.publishCourse(1L))
