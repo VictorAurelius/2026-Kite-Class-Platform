@@ -12,8 +12,6 @@ import userEvent from '@testing-library/user-event';
 import ClassesPage from '../page';
 import {
   mockConfirm,
-  mock500,
-  mockEmptyList,
   waitForLoadingToFinish,
 } from '@/test/page-test-utils';
 import { server } from '@/mocks/server';

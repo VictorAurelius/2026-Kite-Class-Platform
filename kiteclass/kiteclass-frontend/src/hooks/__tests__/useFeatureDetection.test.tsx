@@ -5,7 +5,7 @@
  * @since 2026-02-23
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useFeatureDetection } from '../useFeatureDetection';
 import { AllTheProviders } from '@/test/utils';

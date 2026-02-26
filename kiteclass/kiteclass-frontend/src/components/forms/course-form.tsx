@@ -225,7 +225,7 @@ export function CourseForm({
                         ))
                       ) : teacherSearch ? (
                         <SelectItem value="no-results" disabled>
-                          Không tìm thấy kết quả cho "{teacherSearch}"
+                          Không tìm thấy kết quả cho &quot;{teacherSearch}&quot;
                         </SelectItem>
                       ) : (
                         <SelectItem value="empty" disabled>

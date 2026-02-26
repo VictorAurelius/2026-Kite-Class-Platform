@@ -89,7 +89,7 @@ describe('apiClient', () => {
     });
 
     it('should handle refresh when no refresh token exists', () => {
-      const error = {
+      const _error = {
         config: { headers: {}, _retry: false },
         response: { status: 401 },
       };
