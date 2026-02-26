@@ -64,12 +64,13 @@ jobs:
           ./mvnw jacoco:report
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
+        if: always()
+        continue-on-error: true
         with:
           files: ./kiteclass/kiteclass-gateway/target/site/jacoco/jacoco.xml
           flags: gateway
           name: gateway-coverage
-          fail_ci_if_error: false
 
       - name: Archive test results
         if: always()
