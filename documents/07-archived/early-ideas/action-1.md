@@ -1153,3 +1153,15 @@ tức là GIÁO VIÊN A đã gán vào course 1 rồi nhưng vẫn được ch�
 ý tôi là tôi không muốn nhập 3 trường Thời lượng (tuần), Tổng số buổi học, url mà vẫn được phép cập nhật, ví dụ tôi chỉ muốn cập nhật học phí thay vì 3 trường kia
 
 test lại 1 lần nữa, vẫn chưa được, dùng autotest đi, 1 case đơn giản mà bạn fix quá lâu, bật plan mode
+
+rebuild lại image để tôi test manual
+
+bây giờ tôi cập nhật mỗi học phí thì chỉ hiển thị Failed to load resource: the server responded with a status of 500 (Internal Server Error) hay check log và debug
+
+GET http://localhost:8090/api/v1/courses/5 500 (Internal Server Error)
+
+=> không dùng đúng script rebuild nên lại lỗi rồi
+
+![alt text](image-3.png)
+
+=> sao nội dung toast lại nửa Anh, nửa Việt, check lại do lỗi BE hay FE => đồng hóa lại nội dung, có 2 message string, 1 thuần Anh, 1 thuần Việt => đã có phương châm trong skill rồi, check lại skill
