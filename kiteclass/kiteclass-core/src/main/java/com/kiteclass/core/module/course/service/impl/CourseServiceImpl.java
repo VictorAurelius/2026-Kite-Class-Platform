@@ -355,19 +355,19 @@ public class CourseServiceImpl implements CourseService {
         StringBuilder missingFields = new StringBuilder();
 
         if (course.getName() == null || course.getName().isBlank()) {
-            missingFields.append("name, ");
+            missingFields.append("Tên khóa học, ");
         }
         if (course.getDescription() == null || course.getDescription().isBlank()) {
-            missingFields.append("description, ");
+            missingFields.append("Mô tả, ");
         }
         if (course.getSyllabus() == null || course.getSyllabus().isBlank()) {
-            missingFields.append("syllabus, ");
+            missingFields.append("Giáo trình, ");
         }
         if (course.getObjectives() == null || course.getObjectives().isBlank()) {
-            missingFields.append("objectives, ");
+            missingFields.append("Mục tiêu học tập, ");
         }
         if (course.getDurationWeeks() == null || course.getDurationWeeks() <= 0) {
-            missingFields.append("durationWeeks, ");
+            missingFields.append("Thời lượng (tuần), ");
         }
 
         if (missingFields.length() > 0) {
