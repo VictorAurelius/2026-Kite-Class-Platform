@@ -1,9 +1,12 @@
 # Báo Cáo Đánh Giá Lại Kiến Trúc Service - KiteClass Platform
 
 **Ngày tạo:** 2026-01-30
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1 (V4.1 update) ⭐
+**Last Updated:** 2026-02-26
 **Tác giả:** Nguyễn Văn Kiệt
 **Loại:** Architecture Decision Record (ADR)
+
+> ⭐ **V4.1 Update**: Thêm quyết định bundling LMS + Marketing modules vào Core Service thay vì tạo services riêng. Chi tiết xem `system-architecture-v4.md`.
 
 ---
 

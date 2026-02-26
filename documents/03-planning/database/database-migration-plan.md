@@ -1,14 +1,15 @@
 # DATABASE MIGRATION PLAN
 
-**Version:** 1.0
+**Version:** 4.1 (Bundled Model) ⭐
 **Created:** 2026-01-30
+**Last Updated:** 2026-02-26 ⭐
 **Database:** PostgreSQL 15
 **Migration Tool:** Flyway
 
 **Tham chiếu:**
-- `backend-implementation-plan-v2.md`
-- `kitehub-implementation-plan.md`
-- `system-architecture-v3-final.md` (PHẦN 6B-6F)
+- `database-design.md` (V4.1)
+- `core-service-implementation.md` (V4.1)
+- `system-architecture-v4.md` (V4.1)
 
 ---
 
@@ -22,7 +23,11 @@
 6. [V5: AI Branding Jobs](#v5-ai-branding-jobs)
 7. [V6: Subscriptions](#v6-subscriptions)
 8. [V7: Storage Tracking](#v7-storage-tracking)
-9. [Rollback Strategy](#rollback-strategy)
+9. [V8: Indexes](#v8-indexes)
+10. [V9: LMS Tables (V4.1)](#v9-lms-tables-v41) ⭐ NEW
+11. [V10: Marketing Tables (V4.1)](#v10-marketing-tables-v41) ⭐ NEW
+12. [V11: Demo LMS Content (Optional)](#v11-demo-lms-content-optional) ⭐ NEW
+13. [Rollback Strategy](#rollback-strategy)
 
 ---
 
@@ -609,6 +614,495 @@ ANALYZE storage_usage;
 
 ---
 
+# V9: LMS TABLES (V4.1) ⭐ NEW
+
+**File:** `V9__create_lms_tables.sql`
+**Purpose:** Create LMS module tables for structured learning paths
+**Target:** Core Database (per-tenant)
+
+```sql
+-- ============================================================================
+-- V9: Create LMS Module Tables (V4.1 Bundled Model)
+-- Purpose: Course modules, lessons, resources, and progress tracking
+-- ============================================================================
+
+-- 1. Course Modules Table
+CREATE TABLE course_modules (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+
+    -- Content
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    order_number INTEGER NOT NULL DEFAULT 0,
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_course_modules_course_order
+        UNIQUE (course_id, order_number, instance_id, deleted)
+);
+
+-- Indexes
+CREATE INDEX idx_course_modules_course_id ON course_modules(course_id) WHERE deleted = FALSE;
+CREATE INDEX idx_course_modules_instance_id ON course_modules(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_course_modules_order ON course_modules(course_id, order_number) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE course_modules IS 'Learning modules within courses (V4.1)';
+COMMENT ON COLUMN course_modules.order_number IS 'Display order within course (unique per course)';
+
+-- 2. Lessons Table
+CREATE TABLE lessons (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    module_id BIGINT NOT NULL REFERENCES course_modules(id) ON DELETE CASCADE,
+
+    -- Content
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    video_url VARCHAR(500),
+
+    -- Access Control ⭐ KEY
+    is_trial BOOLEAN DEFAULT FALSE NOT NULL,
+
+    -- Metadata
+    order_number INTEGER NOT NULL DEFAULT 0,
+    estimated_duration INTEGER, -- minutes
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_lessons_module_order
+        UNIQUE (module_id, order_number, instance_id, deleted),
+    CONSTRAINT chk_lessons_duration
+        CHECK (estimated_duration IS NULL OR estimated_duration > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_lessons_module_id ON lessons(module_id) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_is_trial ON lessons(is_trial) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_instance_id ON lessons(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_order ON lessons(module_id, order_number) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE lessons IS 'Individual lessons within modules (V4.1)';
+COMMENT ON COLUMN lessons.is_trial IS 'Guest access flag: TRUE = public, FALSE = requires enrollment';
+COMMENT ON COLUMN lessons.estimated_duration IS 'Estimated completion time in minutes';
+
+-- 3. Learning Resources Table
+CREATE TABLE learning_resources (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+
+    -- Resource Info
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    url VARCHAR(500),
+    file_size BIGINT, -- bytes
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_learning_resources_type
+        CHECK (type IN ('PDF', 'VIDEO', 'SLIDES', 'QUIZ', 'OTHER')),
+    CONSTRAINT chk_learning_resources_size
+        CHECK (file_size IS NULL OR file_size > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_learning_resources_lesson_id ON learning_resources(lesson_id) WHERE deleted = FALSE;
+CREATE INDEX idx_learning_resources_type ON learning_resources(type) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE learning_resources IS 'Additional learning materials attached to lessons (V4.1)';
+COMMENT ON COLUMN learning_resources.type IS 'Resource type: PDF, VIDEO, SLIDES, QUIZ, OTHER';
+
+-- 4. Lesson Progress Table
+CREATE TABLE lesson_progress (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    user_id BIGINT NOT NULL, -- From Gateway users table
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+
+    -- Progress Tracking
+    completed BOOLEAN DEFAULT FALSE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    progress_percent INTEGER DEFAULT 0 NOT NULL,
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_lesson_progress_user_lesson
+        UNIQUE (user_id, lesson_id, instance_id),
+    CONSTRAINT chk_lesson_progress_percent
+        CHECK (progress_percent >= 0 AND progress_percent <= 100),
+    CONSTRAINT chk_lesson_progress_completed
+        CHECK (
+            (completed = FALSE AND completed_at IS NULL) OR
+            (completed = TRUE AND completed_at IS NOT NULL)
+        )
+);
+
+-- Indexes
+CREATE INDEX idx_lesson_progress_user_id ON lesson_progress(user_id);
+CREATE INDEX idx_lesson_progress_lesson_id ON lesson_progress(lesson_id);
+CREATE INDEX idx_lesson_progress_completed ON lesson_progress(completed);
+CREATE INDEX idx_lesson_progress_instance_id ON lesson_progress(instance_id);
+
+-- Comments
+COMMENT ON TABLE lesson_progress IS 'Student learning progress per lesson (V4.1)';
+COMMENT ON COLUMN lesson_progress.progress_percent IS 'Progress percentage (0-100)';
+
+-- 5. Trigger for updated_at
+CREATE OR REPLACE FUNCTION update_lms_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_course_modules_updated_at
+    BEFORE UPDATE ON course_modules
+    FOR EACH ROW
+    EXECUTE FUNCTION update_lms_updated_at();
+
+CREATE TRIGGER update_lessons_updated_at
+    BEFORE UPDATE ON lessons
+    FOR EACH ROW
+    EXECUTE FUNCTION update_lms_updated_at();
+
+CREATE TRIGGER update_learning_resources_updated_at
+    BEFORE UPDATE ON learning_resources
+    FOR EACH ROW
+    EXECUTE FUNCTION update_lms_updated_at();
+
+CREATE TRIGGER update_lesson_progress_updated_at
+    BEFORE UPDATE ON lesson_progress
+    FOR EACH ROW
+    EXECUTE FUNCTION update_lms_updated_at();
+```
+
+**Rollback V9:**
+```sql
+DROP TRIGGER IF EXISTS update_lesson_progress_updated_at ON lesson_progress;
+DROP TRIGGER IF EXISTS update_learning_resources_updated_at ON learning_resources;
+DROP TRIGGER IF EXISTS update_lessons_updated_at ON lessons;
+DROP TRIGGER IF EXISTS update_course_modules_updated_at ON course_modules;
+DROP FUNCTION IF EXISTS update_lms_updated_at();
+DROP TABLE IF EXISTS lesson_progress CASCADE;
+DROP TABLE IF EXISTS learning_resources CASCADE;
+DROP TABLE IF EXISTS lessons CASCADE;
+DROP TABLE IF EXISTS course_modules CASCADE;
+```
+
+---
+
+# V10: MARKETING TABLES (V4.1) ⭐ NEW
+
+**File:** `V10__create_marketing_tables.sql`
+**Purpose:** Create Marketing module tables for landing pages and lead capture
+**Target:** Core Database (per-tenant)
+
+```sql
+-- ============================================================================
+-- V10: Create Marketing Module Tables (V4.1 Bundled Model)
+-- Purpose: Landing pages, lead management, and contact forms
+-- ============================================================================
+
+-- 1. Landing Pages Table
+CREATE TABLE landing_pages (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant Relationship (1:1)
+    instance_id UUID NOT NULL UNIQUE,
+
+    -- Hero Section
+    hero_title VARCHAR(200),
+    hero_subtitle VARCHAR(500),
+    hero_image_url VARCHAR(500),
+
+    -- About Section
+    teacher_bio TEXT,
+    logo_url VARCHAR(500),
+    tagline VARCHAR(200),
+
+    -- Branding
+    primary_color VARCHAR(7), -- Hex #RRGGBB
+    secondary_color VARCHAR(7),
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    -- Constraints
+    CONSTRAINT chk_landing_pages_primary_color
+        CHECK (primary_color IS NULL OR primary_color ~ '^#[0-9A-Fa-f]{6}$'),
+    CONSTRAINT chk_landing_pages_secondary_color
+        CHECK (secondary_color IS NULL OR secondary_color ~ '^#[0-9A-Fa-f]{6}$')
+);
+
+-- Indexes
+CREATE INDEX idx_landing_pages_instance_id ON landing_pages(instance_id);
+
+-- Comments
+COMMENT ON TABLE landing_pages IS 'Tenant-specific landing page content (1:1 per tenant) - V4.1';
+COMMENT ON COLUMN landing_pages.instance_id IS '1:1 with tenant (unique constraint)';
+COMMENT ON COLUMN landing_pages.primary_color IS 'Primary brand color in hex format (#RRGGBB)';
+
+-- 2. Leads Table
+CREATE TABLE leads (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant
+    instance_id UUID NOT NULL,
+
+    -- Lead Info
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
+    phone VARCHAR(20),
+
+    -- Source & Status
+    source VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW',
+
+    -- Interest
+    course_interest_id BIGINT REFERENCES courses(id),
+    message TEXT,
+
+    -- Workflow Tracking
+    last_contacted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_leads_source
+        CHECK (source IN ('LANDING_PAGE', 'CONTACT_FORM', 'TRIAL', 'REFERRAL')),
+    CONSTRAINT chk_leads_status
+        CHECK (status IN ('NEW', 'CONTACTED', 'CONVERTED', 'LOST'))
+);
+
+-- Indexes
+CREATE INDEX idx_leads_instance_id ON leads(instance_id);
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_status ON leads(status);
+CREATE INDEX idx_leads_created_at ON leads(created_at DESC);
+CREATE INDEX idx_leads_source ON leads(source);
+
+-- Comments
+COMMENT ON TABLE leads IS 'Guest leads for conversion tracking (V4.1)';
+COMMENT ON COLUMN leads.source IS 'Lead origin: LANDING_PAGE, CONTACT_FORM, TRIAL, REFERRAL';
+COMMENT ON COLUMN leads.status IS 'Workflow: NEW → CONTACTED → CONVERTED/LOST';
+
+-- 3. Contact Messages Table
+CREATE TABLE contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant
+    instance_id UUID NOT NULL,
+
+    -- Message Info
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    message TEXT NOT NULL,
+
+    -- Read Tracking
+    is_read BOOLEAN DEFAULT FALSE NOT NULL,
+    read_at TIMESTAMP WITH TIME ZONE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_contact_messages_read
+        CHECK (
+            (is_read = FALSE AND read_at IS NULL) OR
+            (is_read = TRUE AND read_at IS NOT NULL)
+        )
+);
+
+-- Indexes
+CREATE INDEX idx_contact_messages_instance_id ON contact_messages(instance_id);
+CREATE INDEX idx_contact_messages_is_read ON contact_messages(is_read) WHERE is_read = FALSE;
+CREATE INDEX idx_contact_messages_created_at ON contact_messages(created_at DESC);
+
+-- Comments
+COMMENT ON TABLE contact_messages IS 'Guest contact form submissions (V4.1)';
+COMMENT ON COLUMN contact_messages.is_read IS 'Marked as read by admin';
+
+-- 4. Triggers for updated_at
+CREATE OR REPLACE FUNCTION update_marketing_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_landing_pages_updated_at
+    BEFORE UPDATE ON landing_pages
+    FOR EACH ROW
+    EXECUTE FUNCTION update_marketing_updated_at();
+
+CREATE TRIGGER update_leads_updated_at
+    BEFORE UPDATE ON leads
+    FOR EACH ROW
+    EXECUTE FUNCTION update_marketing_updated_at();
+```
+
+**Rollback V10:**
+```sql
+DROP TRIGGER IF EXISTS update_leads_updated_at ON leads;
+DROP TRIGGER IF EXISTS update_landing_pages_updated_at ON landing_pages;
+DROP FUNCTION IF EXISTS update_marketing_updated_at();
+DROP TABLE IF EXISTS contact_messages CASCADE;
+DROP TABLE IF EXISTS leads CASCADE;
+DROP TABLE IF EXISTS landing_pages CASCADE;
+```
+
+---
+
+# V11: DEMO LMS CONTENT (OPTIONAL) ⭐ NEW
+
+**File:** `V11__seed_demo_lms_content.sql`
+**Purpose:** Insert demo course structure for testing
+**Target:** Core Database (per-tenant)
+**WARNING:** FOR DEMO/TESTING ONLY - DELETE IN PRODUCTION
+
+```sql
+-- ============================================================================
+-- V11: Seed Demo LMS Content (V4.1 Bundled Model)
+-- Purpose: Insert demo course structure for testing
+-- WARNING: FOR DEMO/TESTING ONLY - DELETE IN PRODUCTION
+-- ============================================================================
+
+-- Note: Assumes demo course exists with code 'DEMO-JAVA-2026'
+-- If not, create one first or adjust the WHERE clause
+
+-- Insert demo modules
+DO $$
+DECLARE
+    v_course_id BIGINT;
+    v_instance_id UUID;
+    v_module_1_id BIGINT;
+    v_module_2_id BIGINT;
+BEGIN
+    -- Get course and instance_id
+    SELECT id, instance_id INTO v_course_id, v_instance_id
+    FROM courses
+    WHERE code = 'DEMO-JAVA-2026' AND deleted = FALSE
+    LIMIT 1;
+
+    IF v_course_id IS NULL THEN
+        RAISE NOTICE 'Demo course not found. Skipping LMS content seeding.';
+        RETURN;
+    END IF;
+
+    -- Insert Module 1
+    INSERT INTO course_modules (course_id, title, description, order_number, instance_id, created_at, updated_at, deleted)
+    VALUES (
+        v_course_id,
+        'Module 1: Introduction to Java',
+        'Learn the basics of Java programming language',
+        1,
+        v_instance_id,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP,
+        FALSE
+    )
+    RETURNING id INTO v_module_1_id;
+
+    -- Insert Module 2
+    INSERT INTO course_modules (course_id, title, description, order_number, instance_id, created_at, updated_at, deleted)
+    VALUES (
+        v_course_id,
+        'Module 2: Object-Oriented Programming',
+        'Master OOP concepts in Java',
+        2,
+        v_instance_id,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP,
+        FALSE
+    )
+    RETURNING id INTO v_module_2_id;
+
+    -- Insert Lessons for Module 1 (1 trial, 2 paid)
+    INSERT INTO lessons (module_id, title, content, video_url, is_trial, order_number, estimated_duration, instance_id, created_at, updated_at, deleted)
+    VALUES
+        (v_module_1_id, 'Lesson 1.1: What is Java? (FREE)', 'Introduction to Java and its ecosystem. This is a free trial lesson.', 'https://example.com/video/java-intro.mp4', TRUE, 1, 30, v_instance_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE),
+        (v_module_1_id, 'Lesson 1.2: Installing Java JDK', 'Step-by-step guide to install Java Development Kit.', 'https://example.com/video/java-install.mp4', FALSE, 2, 45, v_instance_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE),
+        (v_module_1_id, 'Lesson 1.3: Your First Java Program', 'Write and run your first Hello World program.', 'https://example.com/video/hello-world.mp4', FALSE, 3, 60, v_instance_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE);
+
+    -- Insert Lessons for Module 2 (1 trial, 2 paid)
+    INSERT INTO lessons (module_id, title, content, video_url, is_trial, order_number, estimated_duration, instance_id, created_at, updated_at, deleted)
+    VALUES
+        (v_module_2_id, 'Lesson 2.1: Classes and Objects (FREE)', 'Understanding classes and objects in Java. This is a free trial lesson.', 'https://example.com/video/classes-objects.mp4', TRUE, 1, 50, v_instance_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE),
+        (v_module_2_id, 'Lesson 2.2: Inheritance and Polymorphism', 'Learn about inheritance and polymorphism concepts.', 'https://example.com/video/inheritance.mp4', FALSE, 2, 70, v_instance_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE),
+        (v_module_2_id, 'Lesson 2.3: Interfaces and Abstract Classes', 'Deep dive into interfaces and abstract classes.', 'https://example.com/video/interfaces.mp4', FALSE, 3, 65, v_instance_id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE);
+
+    RAISE NOTICE 'Demo LMS content seeded successfully.';
+END $$;
+```
+
+**Rollback V11:**
+```sql
+-- Delete all demo content (lessons → modules)
+DELETE FROM lessons WHERE module_id IN (
+    SELECT id FROM course_modules WHERE course_id IN (
+        SELECT id FROM courses WHERE code = 'DEMO-JAVA-2026'
+    )
+);
+
+DELETE FROM course_modules WHERE course_id IN (
+    SELECT id FROM courses WHERE code = 'DEMO-JAVA-2026'
+);
+```
+
+---
+
 # ROLLBACK STRATEGY
 
 ## Rollback Scripts
@@ -698,9 +1192,12 @@ flyway repair
 6. ✅ V6: Subscriptions (Lifecycle tracking)
 7. ✅ V7: Storage Tracking (MEDIA package)
 8. ✅ V8: Performance Indexes
+9. ⭐ V9: LMS Tables (V4.1 - course_modules, lessons, learning_resources, lesson_progress)
+10. ⭐ V10: Marketing Tables (V4.1 - landing_pages, leads, contact_messages)
+11. ⭐ V11: Demo LMS Content (Optional - testing only)
 
-**Total:** 8 migrations
-**Estimated time:** 2-3 hours (with testing)
+**Total:** 11 migrations (8 existing + 3 new V4.1)
+**Estimated time:** 3-4 hours (with testing + V4.1 additions)
 
 **Ready for:**
 - Development environment

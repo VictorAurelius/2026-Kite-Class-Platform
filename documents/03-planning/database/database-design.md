@@ -1,15 +1,17 @@
 # THIẾT KẾ DATABASE
-## KiteClass Platform V3.1
+## KiteClass Platform V4.1 (Bundled Model) ⭐
 
 ## Thông tin tài liệu
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Dự án** | KiteClass Platform V3.1 |
+| **Dự án** | KiteClass Platform V4.1 (Bundled Model) |
 | **Loại tài liệu** | Database Design Document |
+| **Version** | 4.1 |
 | **Ngày tạo** | 23/12/2025 |
+| **Last Updated** | 2026-02-26 ⭐ |
 | **DBMS** | PostgreSQL 15+ |
-| **Tham chiếu** | system-architecture-v3-final.md |
+| **Tham chiếu** | system-architecture-v4.md |
 
 ---
 
@@ -18,9 +20,11 @@
 1. [Tổng quan Database Architecture](#1-tổng-quan-database-architecture)
 2. [KiteHub Database](#2-kitehub-database)
 3. [KiteClass Instance Database](#3-kiteclass-instance-database)
-4. [Entity Relationship Diagrams](#4-entity-relationship-diagrams)
-5. [Indexes & Performance](#5-indexes--performance)
-6. [Data Migration & Seeding](#6-data-migration--seeding)
+4. [LMS Module Schema (V4.1)](#4-lms-module-schema-v41) ⭐ NEW
+5. [Marketing Module Schema (V4.1)](#5-marketing-module-schema-v41) ⭐ NEW
+6. [Entity Relationship Diagrams](#6-entity-relationship-diagrams)
+7. [Indexes & Performance](#7-indexes--performance)
+8. [Data Migration & Seeding](#8-data-migration--seeding)
 
 ---
 
@@ -1727,7 +1731,497 @@ CREATE INDEX idx_parent_children_child ON parent_children(child_id);
 
 ---
 
-# 4. ENTITY RELATIONSHIP DIAGRAMS
+# 4. LMS MODULE SCHEMA (V4.1) ⭐ NEW
+
+## 4.1. Overview
+
+LMS (Learning Management System) module cho phép tổ chức nội dung khóa học thành modules, lessons, và theo dõi tiến độ học tập của học viên. Hỗ trợ chế độ trial (guest có thể xem lessons miễn phí).
+
+## 4.2. Tables
+
+### 4.2.1. course_modules
+
+```sql
+CREATE TABLE course_modules (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+
+    -- Content
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    order_number INTEGER NOT NULL DEFAULT 0,
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_course_modules_course_order
+        UNIQUE (course_id, order_number, instance_id, deleted)
+);
+
+-- Indexes
+CREATE INDEX idx_course_modules_course_id ON course_modules(course_id) WHERE deleted = FALSE;
+CREATE INDEX idx_course_modules_instance_id ON course_modules(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_course_modules_order ON course_modules(course_id, order_number) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE course_modules IS 'Learning modules within a course (V4.1)';
+COMMENT ON COLUMN course_modules.order_number IS 'Display order within course (unique per course)';
+COMMENT ON COLUMN course_modules.instance_id IS 'Tenant ID for multi-tenancy';
+```
+
+**Business Rules:**
+- BR-LMS-001: `order_number` must be unique per course (within same tenant)
+- BR-LMS-002: Deleting a course cascades to all modules
+- BR-LMS-003: Soft delete preserves history
+
+---
+
+### 4.2.2. lessons
+
+```sql
+CREATE TABLE lessons (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    module_id BIGINT NOT NULL REFERENCES course_modules(id) ON DELETE CASCADE,
+
+    -- Content
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    video_url VARCHAR(500),
+
+    -- Access Control ⭐ KEY
+    is_trial BOOLEAN DEFAULT FALSE NOT NULL,
+
+    -- Metadata
+    order_number INTEGER NOT NULL DEFAULT 0,
+    estimated_duration INTEGER, -- minutes
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_lessons_module_order
+        UNIQUE (module_id, order_number, instance_id, deleted),
+    CONSTRAINT chk_lessons_duration
+        CHECK (estimated_duration IS NULL OR estimated_duration > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_lessons_module_id ON lessons(module_id) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_is_trial ON lessons(is_trial) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_instance_id ON lessons(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_order ON lessons(module_id, order_number) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE lessons IS 'Individual lessons within modules (V4.1)';
+COMMENT ON COLUMN lessons.is_trial IS 'Guest access flag: TRUE = public, FALSE = requires enrollment';
+COMMENT ON COLUMN lessons.estimated_duration IS 'Estimated completion time in minutes';
+```
+
+**Business Rules:**
+- BR-LMS-004: `is_trial = TRUE` → Guest users can access
+- BR-LMS-005: `is_trial = FALSE` → Only enrolled students can access
+- BR-LMS-006: `order_number` unique per module
+- BR-LMS-007: Deleting module cascades to all lessons
+
+---
+
+### 4.2.3. learning_resources
+
+```sql
+CREATE TABLE learning_resources (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+
+    -- Resource Info
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    url VARCHAR(500),
+    file_size BIGINT, -- bytes
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_learning_resources_type
+        CHECK (type IN ('PDF', 'VIDEO', 'SLIDES', 'QUIZ', 'OTHER')),
+    CONSTRAINT chk_learning_resources_size
+        CHECK (file_size IS NULL OR file_size > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_learning_resources_lesson_id ON learning_resources(lesson_id) WHERE deleted = FALSE;
+CREATE INDEX idx_learning_resources_type ON learning_resources(type) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE learning_resources IS 'Additional learning materials attached to lessons (V4.1)';
+COMMENT ON COLUMN learning_resources.type IS 'Resource type: PDF, VIDEO, SLIDES, QUIZ, OTHER';
+COMMENT ON COLUMN learning_resources.file_size IS 'File size in bytes (null for external URLs)';
+```
+
+**Business Rules:**
+- BR-LMS-008: Type must be one of predefined values
+- BR-LMS-009: URL or file_size (at least one) should be present
+- BR-LMS-010: Access control inherits from parent lesson
+
+---
+
+### 4.2.4. lesson_progress
+
+```sql
+CREATE TABLE lesson_progress (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    user_id BIGINT NOT NULL, -- From Gateway users table
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+
+    -- Progress Tracking
+    completed BOOLEAN DEFAULT FALSE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    progress_percent INTEGER DEFAULT 0 NOT NULL,
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_lesson_progress_user_lesson
+        UNIQUE (user_id, lesson_id, instance_id),
+    CONSTRAINT chk_lesson_progress_percent
+        CHECK (progress_percent >= 0 AND progress_percent <= 100),
+    CONSTRAINT chk_lesson_progress_completed
+        CHECK (
+            (completed = FALSE AND completed_at IS NULL) OR
+            (completed = TRUE AND completed_at IS NOT NULL)
+        )
+);
+
+-- Indexes
+CREATE INDEX idx_lesson_progress_user_id ON lesson_progress(user_id);
+CREATE INDEX idx_lesson_progress_lesson_id ON lesson_progress(lesson_id);
+CREATE INDEX idx_lesson_progress_completed ON lesson_progress(completed);
+CREATE INDEX idx_lesson_progress_instance_id ON lesson_progress(instance_id);
+
+-- Comments
+COMMENT ON TABLE lesson_progress IS 'Student learning progress per lesson (V4.1)';
+COMMENT ON COLUMN lesson_progress.completed IS 'Mark lesson as complete (triggers completed_at)';
+COMMENT ON COLUMN lesson_progress.progress_percent IS 'Progress percentage (0-100)';
+```
+
+**Business Rules:**
+- BR-LMS-011: One progress record per user-lesson pair
+- BR-LMS-012: When `completed = TRUE`, `completed_at` must be set
+- BR-LMS-013: `progress_percent` must be between 0-100
+- BR-LMS-014: Progress auto-creates on first lesson access
+
+---
+
+## 4.3. LMS Module ERD
+
+```
+Course (existing)
+  │
+  └──< course_modules (1:N) ⭐ V4.1
+        │ order_number (unique per course)
+        │
+        └──< lessons (1:N) ⭐ V4.1
+              │ order_number (unique per module)
+              │ is_trial (guest access flag)
+              │
+              ├──< learning_resources (1:N) ⭐ V4.1
+              │     (PDF, VIDEO, SLIDES, QUIZ)
+              │
+              └──< lesson_progress (1:N) ⭐ V4.1
+                    │ completed, progress_percent
+                    └──> User (Gateway service)
+```
+
+---
+
+## 4.4. Sample Data Flow
+
+### Guest User (Trial Lesson)
+```
+1. Guest views course page
+2. System lists modules (course_modules)
+3. System lists lessons where is_trial = TRUE
+4. Guest clicks trial lesson
+5. System displays content + video_url
+6. No progress tracking (guest not authenticated)
+```
+
+### Enrolled Student
+```
+1. Student logs in → JWT with enrollment check
+2. System lists all lessons (trial + paid)
+3. Student clicks lesson
+4. System checks: enrollment exists? → Grant access
+5. System creates/updates lesson_progress record
+6. Student marks complete → progress_percent = 100, completed = TRUE
+```
+
+---
+
+# 5. MARKETING MODULE SCHEMA (V4.1) ⭐ NEW
+
+## 5.1. Overview
+
+Marketing module quản lý landing pages, lead capture, và contact forms cho từng tenant. Mỗi tenant có một landing page duy nhất với branding riêng.
+
+## 5.2. Tables
+
+### 5.2.1. landing_pages
+
+```sql
+CREATE TABLE landing_pages (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant Relationship (1:1)
+    instance_id UUID NOT NULL UNIQUE,
+
+    -- Hero Section
+    hero_title VARCHAR(200),
+    hero_subtitle VARCHAR(500),
+    hero_image_url VARCHAR(500),
+
+    -- About Section
+    teacher_bio TEXT,
+    logo_url VARCHAR(500),
+    tagline VARCHAR(200),
+
+    -- Branding
+    primary_color VARCHAR(7), -- Hex #RRGGBB
+    secondary_color VARCHAR(7),
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    -- Constraints
+    CONSTRAINT chk_landing_pages_primary_color
+        CHECK (primary_color IS NULL OR primary_color ~ '^#[0-9A-Fa-f]{6}$'),
+    CONSTRAINT chk_landing_pages_secondary_color
+        CHECK (secondary_color IS NULL OR secondary_color ~ '^#[0-9A-Fa-f]{6}$')
+);
+
+-- Indexes
+CREATE INDEX idx_landing_pages_instance_id ON landing_pages(instance_id);
+
+-- Comments
+COMMENT ON TABLE landing_pages IS 'Tenant-specific landing page content (1:1 per tenant) - V4.1';
+COMMENT ON COLUMN landing_pages.instance_id IS '1:1 with tenant (unique constraint)';
+COMMENT ON COLUMN landing_pages.primary_color IS 'Primary brand color in hex format (#RRGGBB)';
+```
+
+**Business Rules:**
+- BR-MKT-001: Each tenant has exactly ONE landing page (1:1 relationship)
+- BR-MKT-002: Colors must be valid hex format (#RRGGBB)
+- BR-MKT-003: Landing page auto-creates when tenant provisions
+- BR-MKT-004: All fields optional (gradual setup)
+
+---
+
+### 5.2.2. leads
+
+```sql
+CREATE TABLE leads (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant
+    instance_id UUID NOT NULL,
+
+    -- Lead Info
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
+    phone VARCHAR(20),
+
+    -- Source & Status
+    source VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW',
+
+    -- Interest
+    course_interest_id BIGINT REFERENCES courses(id),
+    message TEXT,
+
+    -- Workflow Tracking
+    last_contacted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_leads_source
+        CHECK (source IN ('LANDING_PAGE', 'CONTACT_FORM', 'TRIAL', 'REFERRAL')),
+    CONSTRAINT chk_leads_status
+        CHECK (status IN ('NEW', 'CONTACTED', 'CONVERTED', 'LOST'))
+);
+
+-- Indexes
+CREATE INDEX idx_leads_instance_id ON leads(instance_id);
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_status ON leads(status);
+CREATE INDEX idx_leads_created_at ON leads(created_at DESC);
+CREATE INDEX idx_leads_source ON leads(source);
+
+-- Comments
+COMMENT ON TABLE leads IS 'Guest leads for conversion tracking (V4.1)';
+COMMENT ON COLUMN leads.source IS 'Lead origin: LANDING_PAGE, CONTACT_FORM, TRIAL, REFERRAL';
+COMMENT ON COLUMN leads.status IS 'Workflow: NEW → CONTACTED → CONVERTED/LOST';
+```
+
+**Business Rules:**
+- BR-MKT-005: Status workflow: NEW → CONTACTED → CONVERTED/LOST
+- BR-MKT-006: When guest signs up → Lead auto-creates with source = TRIAL
+- BR-MKT-007: When contact form submitted → Lead + ContactMessage created
+- BR-MKT-008: When lead converts → Status = CONVERTED + link to Student
+
+**Status Transitions:**
+```
+NEW (initial)
+  │
+  ├──> CONTACTED (admin reaches out)
+  │      │
+  │      ├──> CONVERTED (signs up as student)
+  │      └──> LOST (not interested)
+  │
+  └──> LOST (immediate rejection)
+```
+
+---
+
+### 5.2.3. contact_messages
+
+```sql
+CREATE TABLE contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant
+    instance_id UUID NOT NULL,
+
+    -- Message Info
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    message TEXT NOT NULL,
+
+    -- Read Tracking
+    is_read BOOLEAN DEFAULT FALSE NOT NULL,
+    read_at TIMESTAMP WITH TIME ZONE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_contact_messages_read
+        CHECK (
+            (is_read = FALSE AND read_at IS NULL) OR
+            (is_read = TRUE AND read_at IS NOT NULL)
+        )
+);
+
+-- Indexes
+CREATE INDEX idx_contact_messages_instance_id ON contact_messages(instance_id);
+CREATE INDEX idx_contact_messages_is_read ON contact_messages(is_read) WHERE is_read = FALSE;
+CREATE INDEX idx_contact_messages_created_at ON contact_messages(created_at DESC);
+
+-- Comments
+COMMENT ON TABLE contact_messages IS 'Guest contact form submissions (V4.1)';
+COMMENT ON COLUMN contact_messages.is_read IS 'Marked as read by admin';
+```
+
+**Business Rules:**
+- BR-MKT-009: When `is_read = TRUE`, `read_at` must be set
+- BR-MKT-010: Messages sorted by `created_at DESC` (newest first)
+- BR-MKT-011: Contact form submission auto-creates Lead + ContactMessage
+
+---
+
+## 5.3. Marketing Module ERD
+
+```
+LandingPage (1:1 with Tenant/Instance) ⭐ V4.1
+  │ instance_id (UNIQUE)
+  │ hero_title, hero_image_url, primary_color
+  │
+  └──── (Tenant/Instance)
+
+Lead ⭐ V4.1
+  │ source, status (NEW → CONTACTED → CONVERTED/LOST)
+  │
+  ├──> Course (optional interest via course_interest_id)
+  │
+  └──> Instance/Tenant (via instance_id)
+
+ContactMessage ⭐ V4.1
+  │ message, is_read, read_at
+  │
+  └──> Instance/Tenant (via instance_id)
+```
+
+---
+
+## 5.4. Integration Flow
+
+### Guest Submits Contact Form
+```
+1. Guest fills contact form on landing page
+2. Backend creates:
+   a. Lead record (source = CONTACT_FORM, status = NEW)
+   b. ContactMessage record (is_read = FALSE)
+3. Admin sees notification (unread message count)
+4. Admin marks message as read → is_read = TRUE, read_at = NOW()
+5. Admin follows up → Lead status = CONTACTED
+6. Guest signs up → Lead status = CONVERTED
+```
+
+### Guest Requests Trial
+```
+1. Guest clicks "Try Free Lesson" on landing page
+2. Backend creates:
+   a. Lead record (source = TRIAL, status = NEW)
+3. System grants access to lessons where is_trial = TRUE
+4. If guest converts → Lead status = CONVERTED
+```
+
+---
+
+# 6. ENTITY RELATIONSHIP DIAGRAMS
 
 ## 4.1. Core ERD
 
@@ -1911,7 +2405,7 @@ CREATE INDEX idx_parent_children_child ON parent_children(child_id);
 
 ---
 
-# 5. INDEXES & PERFORMANCE
+# 7. INDEXES & PERFORMANCE
 
 ## 5.1. Index Strategy
 
@@ -2103,7 +2597,7 @@ ORDER BY idx_scan DESC;
 
 ---
 
-# 6. DATA MIGRATION & SEEDING
+# 8. DATA MIGRATION & SEEDING
 
 ## 6.1. Initial Data Seeding
 

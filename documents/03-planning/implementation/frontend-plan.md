@@ -5,9 +5,12 @@
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Project** | kiteclass-frontend |
+| **Version** | V4.1 (Bundled Model) ⭐ |
 | **Tech Stack** | Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI |
-| **Mục đích** | Multi-portal frontend: Teacher, Student, Parent |
+| **Mục đích** | Multi-portal frontend: Teacher, Student, Parent, Guest |
+| **Last Updated** | 2026-02-26 |
 | **Tham chiếu** | architecture-overview, ui-components, theme-system, api-design |
+| **New in V4.1** | Guest Pages (Landing, Catalog, Trial Viewer, Contact Form) |
 
 ---
 

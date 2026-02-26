@@ -1,8 +1,8 @@
 # INTEGRATION TESTING STRATEGY
 
-**Version:** 1.1 (Added KiteHub ↔ KiteClass Integration Tests)
+**Version:** 1.2 (V4.1 - Added LMS + Marketing Integration Tests) ⭐
 **Created:** 2026-01-30
-**Last Updated:** 2026-01-30
+**Last Updated:** 2026-02-26 ⭐
 **Purpose:** Integration testing cho KiteClass & KiteHub services
 
 **Tham chiếu:**
@@ -1421,6 +1421,306 @@ jobs:
 
 ---
 
+# V4.1 LMS + MARKETING INTEGRATION TESTS ⭐ NEW
+
+## LMS Module Tests
+
+### Test: Guest Access Control (Trial Lessons)
+
+```java
+@SpringBootTest
+@Transactional
+class LMSAccessControlIntegrationTest {
+
+    @Autowired
+    private LessonService lessonService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
+
+    @Test
+    @DisplayName("Guest should access trial lessons without enrollment")
+    void guestAccess_trialLesson_success() {
+        // Given
+        Course course = createCourse();
+        CourseModule module = createModule(course);
+        Lesson trialLesson = createLesson(module, true); // isTrial = true
+
+        // When - Guest (no auth) accesses trial lesson
+        LessonResponse response = lessonService.getLessonById(trialLesson.getId());
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.isTrial()).isTrue();
+        assertThat(response.content()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Guest should NOT access paid lessons without enrollment")
+    void guestAccess_paidLesson_forbidden() {
+        // Given
+        Course course = createCourse();
+        CourseModule module = createModule(course);
+        Lesson paidLesson = createLesson(module, false); // isTrial = false
+
+        // When/Then - Guest accesses paid lesson → 403 Forbidden
+        assertThatThrownBy(() -> lessonService.getLessonById(paidLesson.getId()))
+            .isInstanceOf(AccessDeniedException.class)
+            .hasMessageContaining("ENROLLMENT_REQUIRED");
+    }
+
+    @Test
+    @DisplayName("Student with enrollment should access all lessons")
+    void studentAccess_withEnrollment_success() {
+        // Given
+        Student student = createStudent();
+        Course course = createCourse();
+        Enrollment enrollment = createActiveEnrollment(student, course);
+
+        CourseModule module = createModule(course);
+        Lesson trialLesson = createLesson(module, true);
+        Lesson paidLesson = createLesson(module, false);
+
+        // When - Student accesses both types
+        LessonResponse trial = lessonService.getLessonById(trialLesson.getId());
+        LessonResponse paid = lessonService.getLessonById(paidLesson.getId());
+
+        // Then
+        assertThat(trial).isNotNull();
+        assertThat(paid).isNotNull();
+    }
+}
+```
+
+### Test: Learning Progress Tracking
+
+```java
+@SpringBootTest
+@Transactional
+class LearningProgressIntegrationTest {
+
+    @Autowired
+    private LessonProgressService progressService;
+
+    @Test
+    @DisplayName("Lesson completion should update progress")
+    void lessonCompletion_updatesProgress() {
+        // Given
+        Student student = createStudent();
+        Lesson lesson = createLesson(true);
+
+        // When
+        progressService.markLessonComplete(student.getId(), lesson.getId());
+
+        // Then
+        LessonProgress progress = progressService.getProgress(student.getId(), lesson.getId());
+        assertThat(progress.isCompleted()).isTrue();
+        assertThat(progress.getProgressPercent()).isEqualTo(100);
+        assertThat(progress.getCompletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Course progress should calculate correctly")
+    void courseProgress_calculatesCorrectly() {
+        // Given
+        Course course = createCourse();
+        CourseModule module = createModule(course);
+        Lesson lesson1 = createLesson(module, false);
+        Lesson lesson2 = createLesson(module, false);
+        Lesson lesson3 = createLesson(module, false);
+
+        Student student = createStudent();
+        createActiveEnrollment(student, course);
+
+        // When - Complete 2 out of 3 lessons
+        progressService.markLessonComplete(student.getId(), lesson1.getId());
+        progressService.markLessonComplete(student.getId(), lesson2.getId());
+
+        // Then
+        int progress = progressService.getCourseProgress(student.getId(), course.getId());
+        assertThat(progress).isEqualTo(66); // 2/3 * 100 = 66%
+    }
+}
+```
+
+---
+
+## Marketing Module Tests
+
+### Test: Landing Page Management
+
+```java
+@SpringBootTest
+@Transactional
+class LandingPageIntegrationTest {
+
+    @Autowired
+    private LandingPageService landingPageService;
+
+    @Test
+    @DisplayName("Each tenant should have exactly one landing page")
+    void landingPage_onePerTenant() {
+        // Given
+        UUID tenantId = UUID.randomUUID();
+
+        // When - Create landing page
+        UpdateLandingPageRequest request = new UpdateLandingPageRequest(
+            "Learn Java with Kiet",
+            "Master Java in 3 months",
+            "20 years of teaching experience...",
+            "https://example.com/hero.jpg",
+            "https://example.com/logo.png",
+            "Your path to Java mastery",
+            "#3B82F6",
+            "#10B981"
+        );
+        landingPageService.updateLandingPage(tenantId, request);
+
+        // Then
+        LandingPageResponse page = landingPageService.getLandingPage(tenantId);
+        assertThat(page).isNotNull();
+        assertThat(page.heroTitle()).isEqualTo("Learn Java with Kiet");
+
+        // When - Update again (should not create duplicate)
+        request = request.withHeroTitle("Updated Title");
+        landingPageService.updateLandingPage(tenantId, request);
+
+        // Then - Still one record
+        long count = landingPageRepository.countByInstanceId(tenantId);
+        assertThat(count).isEqualTo(1);
+    }
+}
+```
+
+### Test: Lead Capture & Workflow
+
+```java
+@SpringBootTest
+@Transactional
+class LeadManagementIntegrationTest {
+
+    @Autowired
+    private LeadService leadService;
+
+    @Autowired
+    private ContactService contactService;
+
+    @Test
+    @DisplayName("Contact form should create lead + message")
+    void contactForm_createsLeadAndMessage() {
+        // Given
+        UUID tenantId = UUID.randomUUID();
+        ContactFormRequest request = new ContactFormRequest(
+            "Nguyen Van A",
+            "nguyenvana@gmail.com",
+            "0901234567",
+            "Tôi muốn đăng ký học Java"
+        );
+
+        // When
+        contactService.submitContactForm(tenantId, request);
+
+        // Then - Lead created
+        Page<LeadResponse> leads = leadService.getLeads(
+            tenantId, null, LeadSource.CONTACT_FORM, PageRequest.of(0, 10)
+        );
+        assertThat(leads.getContent()).hasSize(1);
+        assertThat(leads.getContent().get(0).email()).isEqualTo("nguyenvana@gmail.com");
+        assertThat(leads.getContent().get(0).status()).isEqualTo(LeadStatus.NEW);
+
+        // And - Contact message created
+        Page<ContactMessageResponse> messages = contactService.getMessages(
+            tenantId, false, PageRequest.of(0, 10)
+        );
+        assertThat(messages.getContent()).hasSize(1);
+        assertThat(messages.getContent().get(0).isRead()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Lead status workflow should transition correctly")
+    void leadStatusWorkflow_transitions() {
+        // Given
+        Lead lead = createLead(LeadStatus.NEW);
+
+        // When - Admin contacts lead
+        leadService.updateLeadStatus(lead.getId(), LeadStatus.CONTACTED);
+
+        // Then
+        Lead updated = leadRepository.findById(lead.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(LeadStatus.CONTACTED);
+        assertThat(updated.getLastContactedAt()).isNotNull();
+
+        // When - Lead converts (signs up as student)
+        leadService.convertLead(lead.getId(), createStudent().getId());
+
+        // Then
+        Lead converted = leadRepository.findById(lead.getId()).orElseThrow();
+        assertThat(converted.getStatus()).isEqualTo(LeadStatus.CONVERTED);
+    }
+}
+```
+
+### Test: Guest-to-Student Conversion Funnel
+
+```java
+@SpringBootTest
+@Transactional
+class ConversionFunnelIntegrationTest {
+
+    @Autowired
+    private LeadService leadService;
+
+    @Autowired
+    private StudentService studentService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
+
+    @Test
+    @DisplayName("Full conversion flow: Guest → Trial → Lead → Student → Enrollment")
+    void fullConversionFlow() {
+        UUID tenantId = UUID.randomUUID();
+        String email = "guest@example.com";
+
+        // Step 1: Guest views trial lesson (create lead)
+        CreateLeadRequest trialRequest = new CreateLeadRequest(
+            email, "Nguyen Van B", "0901234568",
+            LeadSource.TRIAL, null, "Interested in Java course"
+        );
+        LeadResponse lead = leadService.createLead(tenantId, trialRequest);
+        assertThat(lead.status()).isEqualTo(LeadStatus.NEW);
+
+        // Step 2: Admin contacts lead
+        leadService.updateLeadStatus(lead.id(), LeadStatus.CONTACTED);
+
+        // Step 3: Guest converts to student (signs up)
+        CreateStudentRequest studentRequest = new CreateStudentRequest(
+            "Nguyen Van B", email, "0901234568", null, null, null, null
+        );
+        StudentResponse student = studentService.createStudent(studentRequest);
+
+        // Step 4: Mark lead as converted
+        leadService.convertLead(lead.id(), student.id());
+
+        Lead converted = leadRepository.findById(lead.id()).orElseThrow();
+        assertThat(converted.getStatus()).isEqualTo(LeadStatus.CONVERTED);
+
+        // Step 5: Create enrollment
+        Course course = createCourse();
+        EnrollmentRequest enrollRequest = new EnrollmentRequest(
+            student.id(), course.getId(), LocalDate.now(), null, null, null
+        );
+        EnrollmentResponse enrollment = enrollmentService.createEnrollment(enrollRequest);
+
+        // Then - Full funnel complete
+        assertThat(enrollment.status()).isEqualTo(EnrollmentStatus.ACTIVE);
+        assertThat(student.email()).isEqualTo(email);
+    }
+}
+```
+
+---
+
 # SUMMARY
 
 **Testing Coverage:**
@@ -1429,12 +1729,14 @@ jobs:
 3. ✅ VietQR Payment (order creation, confirmation, expiry)
 4. ✅ Guest & Trial System (lifecycle, analytics)
 5. ✅ Expand Services (ENGAGEMENT, MEDIA, PREMIUM)
-6. ✅ E2E Scenarios (critical user flows)
-7. ✅ Performance Tests (load testing with k6)
-8. ✅ CI/CD Integration (GitHub Actions)
+6. ⭐ **V4.1 LMS Module** (guest access control, progress tracking)
+7. ⭐ **V4.1 Marketing Module** (landing page, lead workflow, conversion funnel)
+8. ✅ E2E Scenarios (critical user flows)
+9. ✅ Performance Tests (load testing with k6)
+10. ✅ CI/CD Integration (GitHub Actions)
 
 **Test Metrics:**
-- Total tests: ~750 (500 unit + 200 integration + 50 E2E)
+- Total tests: ~800 (530 unit + 220 integration + 50 E2E)
 - Coverage goal: 80%+
 - P95 response time: <200ms
 - Error rate: <1%

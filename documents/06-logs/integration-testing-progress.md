@@ -1,8 +1,11 @@
 # Integration Testing Progress Report
 
-**Ngày cập nhật**: 2026-02-24 07:30 UTC
+**Ngày cập nhật**: 2026-02-24 07:30 UTC (baseline)
+**Last Updated**: 2026-02-26 (added V4.1 notes)
 **Branch**: `feature/PR-3.11-students-integration-tests`
 **Trạng thái**: ✅ **HOÀN THÀNH TẤT CẢ PHASES (1-4)**
+
+> ⭐ **V4.1 Update**: Sẽ thêm integration tests cho LMS Module (guest access control, progress tracking) và Marketing Module (landing page, lead workflow). Tham khảo `integration-testing-strategy.md` section V4.1.
 
 ---
 

@@ -5,10 +5,13 @@
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Service** | kiteclass-gateway |
+| **Version** | V4.1 (Bundled Model) ⭐ |
 | **Tech Stack** | Spring Boot 3.5+, Spring Cloud Gateway, Java 17 |
-| **Mục đích** | API Gateway + User Service + Authentication |
+| **Mục đích** | API Gateway + User Service + Authentication + Guest Access |
 | **Port** | 8080 |
+| **Last Updated** | 2026-02-26 |
 | **Tham chiếu** | architecture-overview, api-design, database-design, **maven-dependencies** |
+| **New in V4.1** | Guest user type handling, Trial lesson access control routing |
 
 > **QUAN TRỌNG:** Luôn check `.claude/skills/maven-dependencies.md` để lấy versions chuẩn trước khi tạo pom.xml
 

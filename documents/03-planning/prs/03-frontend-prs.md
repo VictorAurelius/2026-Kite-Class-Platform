@@ -1,14 +1,17 @@
 # Frontend - PR Implementation List
 
 **Project**: kiteclass-frontend
+**Version**: V4.1 (Bundled Model)
 **Tech Stack**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
-**Total PRs**: 15
+**Total PRs**: 15 (13 original + 2 V4.1)
 **Completed**: 7 (47%)
 **Status**: 🔄 Active development
+**Last Updated**: 2026-02-26
 
 **Reference**:
 - Technical plan: [`frontend-plan.md`](../implementation/frontend-plan.md)
 - Master index: [`00-master-pr-index.md`](./00-master-pr-index.md)
+- Backend PRs: [`02-core-prs.md`](./02-core-prs.md) (PR 2.9 LMS, PR 2.10 Marketing)
 
 ---
 

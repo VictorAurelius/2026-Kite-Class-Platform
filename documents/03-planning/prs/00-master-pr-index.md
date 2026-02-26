@@ -33,9 +33,15 @@ documents/03-planning/
 
 ## 🎯 Priority PRs (Next 3)
 
+### Current Sprint
 1. **PR 2.6**: Core - Enrollment Module (dependencies met: Student ✅, Class ✅)
 2. **PR 2.7**: Core - Attendance Module
 3. **PR 3.8**: Frontend - Attendance Management Pages
+
+### V4.1 Guest Features (High Priority)
+4. **PR 2.9**: Core - LMS Module ⭐ NEW (guest learning, trial lessons)
+5. **PR 2.10**: Core - Marketing Module ⭐ NEW (landing page, leads)
+6. **PR 3.12**: Frontend - Guest Pages ⭐ NEW (depends on 2.9, 2.10)
 
 ---
 

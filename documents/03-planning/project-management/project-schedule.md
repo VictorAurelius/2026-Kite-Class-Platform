@@ -1,13 +1,14 @@
 # LỊCH TRÌNH TRIỂN KHAI DỰ ÁN
-## KiteClass Platform V3.1
+## KiteClass Platform V4.1 (Bundled Model)
 
 ## Thông tin tài liệu
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Dự án** | KiteClass Platform V3.1 |
+| **Dự án** | KiteClass Platform V4.1 (Bundled Model) |
 | **Loại tài liệu** | Project Schedule |
 | **Ngày tạo** | 23/12/2025 |
+| **Last Updated** | 2026-02-26 ⭐ |
 | **Phương pháp** | Agile Scrum (2-week sprints) |
 
 ---
@@ -185,6 +186,28 @@
 │  □ Attendance notifications                                                      │
 │  □ Payment reminders                                                             │
 │                                                                                  │
+│  SPRINT 2.7 (W24+): V4.1 Guest-Facing Features ⭐ NEW                             │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│  Backend (Core Service):                                                         │
+│  □ LMS Module (PR 2.9): CourseModule, Lesson, LearningResource, LessonProgress  │
+│     - Trial lesson access control (isTrial flag)                                 │
+│     - Guest can view trial lessons without login                                 │
+│     - Student progress tracking                                                  │
+│  □ Marketing Module (PR 2.10): LandingPage, Lead, ContactMessage                │
+│     - Landing page content API                                                   │
+│     - Lead capture and management                                                │
+│     - Contact form processing                                                    │
+│                                                                                  │
+│  Frontend:                                                                       │
+│  □ Guest Pages (PR 3.12): Landing, Catalog, Trial Viewer, Contact               │
+│     - Multi-tenant landing pages                                                 │
+│     - Course catalog with trial badges                                           │
+│     - Trial lesson viewer                                                        │
+│     - Contact form with lead creation                                            │
+│  □ AI Branding (PR 3.13 - Phase 2): Logo/tagline generator (future)             │
+│                                                                                  │
+│  Estimated: 3-4 weeks (can be done in parallel with Phase 3)                     │
+│                                                                                  │
 │  DELIVERABLES:                                                                   │
 │  ────────────────────────────────────────────────────────────────────────────── │
 │  ✓ Complete Learning Module                                                      │
@@ -192,8 +215,11 @@
 │  ✓ Parent Portal (basic)                                                         │
 │  ✓ Notification System                                                           │
 │  ✓ All dashboards (Admin, Teacher, Student, Parent)                              │
+│  ⭐ V4.1: LMS Module (guest learning, trial lessons)                             │
+│  ⭐ V4.1: Marketing Module (landing page, lead capture)                          │
+│  ⭐ V4.1: Guest Pages (landing, catalog, trial viewer)                           │
 │                                                                                  │
-│  MILESTONE: Core Features Complete ★                                             │
+│  MILESTONE: Core Features Complete (including V4.1 Guest Features) ★             │
 │                                                                                  │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```

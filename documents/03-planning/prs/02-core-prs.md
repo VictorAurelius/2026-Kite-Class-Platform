@@ -1,14 +1,17 @@
 # Core Service - PR Implementation List
 
 **Service**: kiteclass-core
+**Version**: V4.1 (Bundled Model)
 **Tech Stack**: Spring Boot 3.5.11, Java 17, PostgreSQL 15
-**Total PRs**: 17
+**Total PRs**: 17 (15 original + 2 V4.1)
 **Completed**: 8 (47%)
 **Status**: 🔄 Active development
+**Last Updated**: 2026-02-26
 
 **Reference**:
 - Technical plan: [`core-service-implementation.md`](../implementation/core-service-implementation.md)
 - Master index: [`00-master-pr-index.md`](./00-master-pr-index.md)
+- Database design: [`database-design.md`](../database/database-design.md)
 
 ---
 
@@ -317,11 +320,10 @@
 - Quiz engine (optional, Phase 2)
 
 **Entities**:
-- `CourseModule` (id, courseId, title, order, description)
-- `Lesson` (id, moduleId, title, content, videoUrl, isTrial, order)
-- `LearningResource` (id, lessonId, type, url, title)
-- `LessonProgress` (id, userId, lessonId, completed, completedAt)
-- `CourseProgress` (id, userId, courseId, progress, lastAccessedAt)
+- `CourseModule` (id, courseId, title, orderNumber, description, instanceId)
+- `Lesson` (id, moduleId, title, content, videoUrl, isTrial, orderNumber, estimatedDuration, instanceId)
+- `LearningResource` (id, lessonId, type, url, title, fileSize, instanceId)
+- `LessonProgress` (id, userId, lessonId, completed, completedAt, progressPercent, instanceId)
 
 **Endpoints**:
 - **Guest/Public**:
@@ -370,10 +372,9 @@
 - Email notifications to teacher
 
 **Entities**:
-- `LandingPageContent` (id, tenantId, teacherBio, heroImage, tagline)
-- `CourseHighlight` (id, contentId, courseId, order) - Featured courses
-- `Lead` (id, tenantId, email, name, phone, source, status, courseInterest)
-- `ContactMessage` (id, tenantId, name, email, message, createdAt)
+- `LandingPage` (id, instanceId[unique], heroTitle, heroSubtitle, heroImageUrl, teacherBio, logoUrl, tagline, primaryColor, secondaryColor)
+- `Lead` (id, instanceId, email, name, phone, source, status, courseInterestId, message, lastContactedAt)
+- `ContactMessage` (id, instanceId, name, email, phone, message, isRead, readAt)
 
 **Endpoints**:
 - **Public**:

@@ -2332,6 +2332,224 @@ Conversion: Upgrade to paid student
 
 ---
 
+## 4.5. V4.1 LMS + Marketing Modules ⭐ NEW
+
+### Q4.5.1: Trial Lesson Access Control
+**Câu hỏi:** Guest có thể xem lesson nào mà không cần đăng nhập?
+
+**Proposed Design:**
+```
+Course Structure:
+  Module 1: Introduction (FREE)
+    - Lesson 1.1: What is Java? (isTrial = TRUE) ✅ Guest access
+    - Lesson 1.2: Installing JDK (isTrial = FALSE) 🔒 Enrollment required
+    - Lesson 1.3: First Program (isTrial = FALSE) 🔒 Enrollment required
+  Module 2: OOP Concepts
+    - Lesson 2.1: Classes & Objects (isTrial = TRUE) ✅ Guest access
+    - ...
+```
+
+**Business Rules:**
+- BR-LMS-001: Guest can view lessons where `isTrial = TRUE` without login
+- BR-LMS-002: Student must have active enrollment to access `isTrial = FALSE` lessons
+- BR-LMS-003: Lesson progress only tracked for authenticated users
+
+**Vui lòng confirm:**
+- [ ] ✅ OK, implement theo thiết kế trên
+- [ ] ❌ Thay đổi: _____________________
+
+**Response trang Lesson cho Guest:**
+```json
+{
+  "lessonId": 123,
+  "title": "Lesson 1.1: What is Java?",
+  "isTrial": true,
+  "content": "...", // Full content for trial
+  "videoUrl": "https://...",
+  "resources": [
+    {"type": "PDF", "title": "Slides", "url": "..."}
+  ],
+  "nextLesson": {
+    "id": 124,
+    "title": "Lesson 1.2: Installing JDK",
+    "isTrial": false,
+    "locked": true, // Show lock icon
+    "ctaText": "Đăng ký học để tiếp tục"
+  }
+}
+```
+
+**Confirm response format:**
+- [ ] ✅ OK
+- [ ] ❌ Cần điều chỉnh: _____________________
+
+---
+
+### Q4.5.2: Landing Page Customization Scope
+**Câu hỏi:** Landing page của mỗi tenant có thể customize những gì?
+
+**Proposed Customizable Fields:**
+```
+Hero Section:
+  - heroTitle: "Học lập trình cùng Thầy Kiệt"
+  - heroSubtitle: "Master Java in 3 months"
+  - heroImageUrl: "https://..."
+  - logoUrl: "https://..."
+
+About Teacher:
+  - teacherBio: "20 years of experience..."
+  - teacherPhotoUrl: "https://..."
+
+Branding:
+  - primaryColor: "#3B82F6" (blue)
+  - secondaryColor: "#10B981" (green)
+  - tagline: "Your path to Java mastery"
+
+Course Highlights:
+  - Featured courses (manually selected by teacher)
+  - Auto-display 3-5 most popular courses
+```
+
+**Vui lòng confirm:**
+- [ ] ✅ OK, đủ customization
+- [ ] ❌ Cần thêm: _____________________
+
+**Landing Page URL Format:**
+```
+https://{tenant-slug}.kiteclass.vn           (Custom subdomain)
+OR
+https://kiteclass.vn/{tenant-slug}           (Shared domain)
+```
+
+**Prefer which URL format?**
+- [ ] Custom subdomain (requires DNS setup)
+- [ ] Shared domain with slug (simpler)
+- [ ] Both options (configurable)
+
+---
+
+### Q4.5.3: Lead Workflow & Conversion
+**Câu hỏi:** Khi guest submit contact form, workflow thế nào?
+
+**Proposed Lead Status Workflow:**
+```
+NEW → CONTACTED → CONVERTED → LOST
+
+NEW:
+  - Guest submit contact form
+  - Lead auto-created with status = NEW
+  - Email notification sent to teacher
+
+CONTACTED:
+  - Teacher marks as "Đã liên hệ"
+  - lastContactedAt timestamp recorded
+
+CONVERTED:
+  - Guest signs up as student
+  - Lead linked to Student record
+  - Status = CONVERTED (success metric)
+
+LOST:
+  - Lead not interested
+  - Mark as LOST to clean up pipeline
+```
+
+**Contact Form Data Captured:**
+```json
+{
+  "name": "Nguyen Van A",
+  "email": "nguyenvana@gmail.com",
+  "phone": "0901234567",
+  "message": "Tôi muốn đăng ký học Java",
+  "courseInterestId": 123, // Optional: which course interested in
+  "source": "CONTACT_FORM" // or "LANDING_PAGE", "TRIAL"
+}
+```
+
+**Vui lòng confirm:**
+- [ ] ✅ Workflow OK
+- [ ] ❌ Thay đổi: _____________________
+
+**Email Notification to Teacher:**
+- [ ] Immediate (realtime) - Send email ngay khi guest submit
+- [ ] Batched (daily digest) - Gom leads trong ngày, send 1 email tổng hợp
+- [ ] Configurable by teacher
+
+---
+
+### Q4.5.4: Learning Progress Tracking
+**Câu hỏi:** Tiến độ học tập được track như thế nào?
+
+**Proposed Design:**
+```
+Student completes lesson:
+  → LessonProgress record created/updated
+  → {
+      userId: 456,
+      lessonId: 123,
+      completed: true,
+      completedAt: "2026-02-26T10:00:00Z",
+      progressPercent: 100
+    }
+
+Course Progress Calculation:
+  → completedLessons / totalLessons * 100
+  → E.g., 5 completed / 10 total = 50%
+
+Display to Student:
+  - Progress bar on course page
+  - Checkmarks on completed lessons
+  - "Continue Learning" CTA shows next lesson
+  - Certificate awarded when 100% complete (future)
+```
+
+**Progress Display Options:**
+- [ ] Show % only (e.g., "50% complete")
+- [ ] Show % + count (e.g., "5/10 lessons completed")
+- [ ] Show % + estimated time remaining (e.g., "~2 hours left")
+
+**Vui lòng chọn:**
+- [ ] Option 1: % only
+- [ ] Option 2: % + count (Recommended)
+- [ ] Option 3: % + estimated time
+- [ ] All of the above (most info)
+
+---
+
+### Q4.5.5: Guest Pages SEO Strategy
+**Câu hỏi:** Landing page cần SEO như thế nào để tăng organic traffic?
+
+**Proposed SEO Features:**
+```
+Meta Tags (per tenant):
+  <title>{heroTitle} | KiteClass</title>
+  <meta name="description" content="{heroSubtitle}" />
+  <meta name="keywords" content="học lập trình, Java, online course" />
+
+Open Graph (Social Sharing):
+  <meta property="og:title" content="{heroTitle}" />
+  <meta property="og:description" content="{teacherBio}" />
+  <meta property="og:image" content="{heroImageUrl}" />
+  <meta property="og:url" content="https://kiteclass.vn/{tenant-slug}" />
+
+Structured Data (Schema.org):
+  - Course schema for each course
+  - Organization schema for teacher
+  - Review schema (if ratings enabled)
+```
+
+**Vui lòng confirm:**
+- [ ] ✅ Implement full SEO as proposed
+- [ ] ❌ Chỉ cần basic meta tags
+- [ ] ❌ SEO là low priority (Phase 2)
+
+**Sitemap Generation:**
+- [ ] Auto-generate sitemap.xml for each tenant
+- [ ] Manual submission to Google Search Console
+- [ ] Not needed initially
+
+---
+
 # PART 5: INTEGRATION & DEPENDENCIES
 
 ## 5.1. Backend API Readiness
