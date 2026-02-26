@@ -120,15 +120,15 @@ class EnrollmentServiceTest {
     @DisplayName("Should enroll student successfully")
     void shouldEnrollStudentSuccessfully() {
         // Arrange
-        when(studentRepository.findByIdAndDeleted(1L, false))
+        when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeleted(1L, false))
+        when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeleted(
-                1L, 1L, EnrollmentStatus.ACTIVE, false))
+        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                1L, 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(false);
-        when(enrollmentRepository.countByClassIdAndStatusAndDeleted(
-                1L, EnrollmentStatus.ACTIVE, false))
+        when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
+                1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(0L);
         when(enrollmentMapper.toEntity(createRequest))
                 .thenReturn(testEnrollment);
@@ -153,7 +153,7 @@ class EnrollmentServiceTest {
     @DisplayName("Should throw exception when student not found")
     void shouldThrowExceptionWhenStudentNotFound() {
         // Arrange
-        when(studentRepository.findByIdAndDeleted(1L, false))
+        when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
@@ -167,9 +167,9 @@ class EnrollmentServiceTest {
     @DisplayName("Should throw exception when class not found")
     void shouldThrowExceptionWhenClassNotFound() {
         // Arrange
-        when(studentRepository.findByIdAndDeleted(1L, false))
+        when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeleted(1L, false))
+        when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.empty());
 
         // Act & Assert
@@ -183,12 +183,12 @@ class EnrollmentServiceTest {
     @DisplayName("Should throw exception when student already enrolled")
     void shouldThrowExceptionWhenStudentAlreadyEnrolled() {
         // Arrange
-        when(studentRepository.findByIdAndDeleted(1L, false))
+        when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeleted(1L, false))
+        when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeleted(
-                1L, 1L, EnrollmentStatus.ACTIVE, false))
+        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                1L, 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(true);
 
         // Act & Assert
@@ -202,15 +202,15 @@ class EnrollmentServiceTest {
     @DisplayName("Should throw exception when class is full")
     void shouldThrowExceptionWhenClassIsFull() {
         // Arrange
-        when(studentRepository.findByIdAndDeleted(1L, false))
+        when(studentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testStudent));
-        when(classRepository.findByIdAndDeleted(1L, false))
+        when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeleted(
-                1L, 1L, EnrollmentStatus.ACTIVE, false))
+        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                1L, 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(false);
-        when(enrollmentRepository.countByClassIdAndStatusAndDeleted(
-                1L, EnrollmentStatus.ACTIVE, false))
+        when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
+                1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(30L); // Class is at capacity
 
         // Act & Assert
@@ -228,7 +228,7 @@ class EnrollmentServiceTest {
                 .status(EnrollmentStatus.ACTIVE)
                 .build();
 
-        when(enrollmentRepository.findByIdAndDeleted(1L, false))
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testEnrollment));
         when(enrollmentRepository.save(any(Enrollment.class)))
                 .thenReturn(testEnrollment);
@@ -249,7 +249,7 @@ class EnrollmentServiceTest {
         // Arrange
         testEnrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-        when(enrollmentRepository.findByIdAndDeleted(1L, false))
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testEnrollment));
         when(enrollmentRepository.save(any(Enrollment.class)))
                 .thenReturn(testEnrollment);
@@ -272,7 +272,7 @@ class EnrollmentServiceTest {
         // Arrange
         testEnrollment.setStatus(EnrollmentStatus.WITHDRAWN);
 
-        when(enrollmentRepository.findByIdAndDeleted(1L, false))
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testEnrollment));
 
         // Act & Assert
