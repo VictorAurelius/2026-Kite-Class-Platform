@@ -2803,11 +2803,51 @@ services:
 - [ ] Marketing: ContactMessage entity + read tracking
 - [ ] Marketing: Lead conversion to Student integration
 
+## Phase 4.5: V4.1 Trial Learning System (Phase 2) ⭐ NEW
+- [ ] Lead entity extension: Add `user_id` column (FK to Gateway users)
+- [ ] TrialQuota entity: Daily lesson access limits (3 lessons/day)
+- [ ] LeadSource enum: LANDING_PAGE, CONTACT_FORM, TRIAL_SIGNUP, REFERRAL
+- [ ] LeadStatus enum: NEW, CONTACTED, CONVERTED, LOST
+- [ ] LeadService: registerForTrial() - Create lead + call Gateway magic link API
+- [ ] LeadService: getLeadByUserId() - Fetch lead profile for trial users
+- [ ] LeadService: convertToStudent() - Payment verification + role update + enrollment
+- [ ] TrialQuotaService: checkAndIncrementQuota() - Enforce 3 lessons/day limit
+- [ ] TrialQuotaService: getQuotaStatus() - Return remaining quota for UI display
+- [ ] LessonService enhancement: getLessonWithAccessControl() - Check TRIAL_USER role + quota
+- [ ] GatewayClient: updateUserRole() - Call Gateway API to update TRIAL_USER → STUDENT
+- [ ] PaymentService (mock): verifyPayment() - Mock payment verification for Phase 1
+- [ ] LeadController: POST /register-trial, GET /me, GET /quota, POST /{id}/convert
+- [ ] Lesson access control: Check `is_trial_accessible` flag before returning content
+- [ ] Multi-tenant isolation: All queries filtered by `instance_id`
+- [ ] Error codes: LEAD_EMAIL_EXISTS, TRIAL_QUOTA_EXCEEDED, TRIAL_USER_PAID_LESSON_ACCESS_DENIED
+- [ ] Validation: Email uniqueness per tenant, quota limits (0-3), conversion payment verification
+
+**Implementation Order**:
+1. Entities first: Lead, TrialQuota (with Hibernate filters)
+2. Repositories: LeadRepository, TrialQuotaRepository
+3. Services: LeadService, TrialQuotaService (with @Transactional)
+4. Enhancement: LessonService.getLessonWithAccessControl()
+5. Controllers: LeadController endpoints
+6. Integration: GatewayClient for cross-service calls
+7. Testing: Unit tests + Integration tests for quota enforcement
+
+**Key Patterns**:
+- Use TenantContext.getInstanceId() for multi-tenant queries
+- Quota reset logic: New record per user per day (no cleanup needed)
+- Progress preservation: lesson_progress uses user_id (not student_id) → automatic preservation
+- Magic link flow: Core calls Gateway API, Gateway sends email, user verifies, Core updates Lead.user_id
+
+**References**:
+- PR 2.13: Trial Registration & Quota Management
+- PR 2.14: Lead to Student Conversion
+- Migration V12: CREATE TABLE trial_quotas, ALTER TABLE leads ADD user_id
+
 ## Phase 5: Database
 - [ ] Flyway migrations V1-V8 (Core modules)
 - [ ] V9: LMS tables (course_modules, lessons, learning_resources, lesson_progress) ⭐ NEW
 - [ ] V10: Marketing tables (landing_pages, leads, contact_messages) ⭐ NEW
 - [ ] V11: Seed demo LMS content (optional) ⭐ NEW
+- [ ] V12: Trial Learning tables (trial_quotas, leads.user_id extension, courses.is_trial, lessons.is_trial_accessible) ⭐ NEW Phase 2
 - [ ] Indexes optimization
 - [ ] Seed data for testing
 
@@ -2815,9 +2855,11 @@ services:
 - [ ] Unit tests for all services (>80% coverage)
 - [ ] LMS module tests: CourseModuleService, LessonService, LearningProgressService ⭐ NEW
 - [ ] Marketing module tests: LandingPageService, LeadService, ContactService ⭐ NEW
+- [ ] Trial Learning tests: LeadService, TrialQuotaService, LessonService.getLessonWithAccessControl() ⭐ NEW Phase 2
 - [ ] Integration tests for repositories
 - [ ] LMS integration tests (guest access control) ⭐ NEW
 - [ ] Marketing integration tests (lead workflow) ⭐ NEW
+- [ ] Trial Learning integration tests: Quota enforcement, multi-tenant isolation, conversion flow ⭐ NEW Phase 2
 - [ ] Controller tests with MockMvc
 - [ ] Test data builders
 

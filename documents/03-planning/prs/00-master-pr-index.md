@@ -20,12 +20,17 @@ documents/03-planning/
 
 ## 📊 Overall Progress
 
-| Service | Completed | Total | Progress | Status |
-|---------|-----------|-------|----------|--------|
-| **Gateway** | 9 | 10 | 90% | ✅ Near complete |
-| **Core** | 8 | 17 | 47% | 🔄 Active development |
-| **Frontend** | 7 | 15 | 47% | 🔄 Active development |
-| **Total** | 24 | 42 | 57% | 🔄 On track |
+| Service | Completed | Planned | Total | Progress | Status |
+|---------|-----------|---------|-------|----------|--------|
+| **Gateway** | 9 | 1 | 11 | 82% | ✅ Near complete |
+| **Core** | 8 | 2 | 19 | 42% | 🔄 Active development |
+| **Frontend** | 7 | 2 | 17 | 41% | 🔄 Active development |
+| **Total** | 24 | 5 | 47 | 51% | 🔄 On track |
+
+**New in V4.1 Phase 2 (Trial Learning)**: 5 PRs added
+- Gateway PR 1.13: Trial User Authentication
+- Core PR 2.13-2.14: Trial Registration & Conversion
+- Frontend PR 3.13-3.14: Trial UI & Payment Flow
 
 **Last Updated**: 2026-02-26
 
@@ -47,7 +52,7 @@ documents/03-planning/
 
 ## 📚 Service-Specific PR Lists
 
-### Gateway Service (9/10 completed - 90%)
+### Gateway Service (9/11 completed - 82%)
 
 **Detail file**: [`01-gateway-prs.md`](./01-gateway-prs.md)
 
@@ -55,6 +60,7 @@ documents/03-planning/
 - ✅ PR 1.1-1.7: Setup, Auth, User, Email, Internal API Security
 - ✅ PR 1.12: Spring Boot 3.5.10 Upgrade
 - ⏳ PR 1.8: UserType + ReferenceId Pattern (BLOCKED - need finalize)
+- ⭐ **PR 1.13**: Trial User Authentication Support (PLANNED - V4.1 Phase 2)
 
 **Key Milestones**:
 - Auth system complete with JWT refresh tokens
@@ -63,9 +69,14 @@ documents/03-planning/
 - Internal API security with HMAC-SHA256
 - Spring Boot 3.5.10 + Spring Cloud 2025.0.0
 
+**New V4.1 Phase 2**:
+- TRIAL_USER role support (Migration V12)
+- Magic link authentication (passwordless)
+- Stricter rate limiting for trial users (30 req/min)
+
 ---
 
-### Core Service (8/17 completed - 47%)
+### Core Service (8/19 completed - 42%)
 
 **Detail file**: [`02-core-prs.md`](./02-core-prs.md)
 
@@ -77,6 +88,8 @@ documents/03-planning/
 - ⏳ PR 2.7-2.10: Attendance, Assignment, Grade, Billing
 - ⭐ **PR 2.9**: LMS Module (NEW - V4.1)
 - ⭐ **PR 2.10**: Marketing Module (NEW - V4.1)
+- ⭐ **PR 2.13**: Trial Registration & Quota Management (PLANNED - V4.1 Phase 2)
+- ⭐ **PR 2.14**: Lead to Student Conversion (PLANNED - V4.1 Phase 2)
 
 **Key Milestones**:
 - Multi-tenant architecture with Hibernate filters
@@ -88,9 +101,17 @@ documents/03-planning/
 - LMS Module: Course structure (Modules → Lessons), trial access, progress tracking
 - Marketing Module: Landing page API, Lead management, Contact forms
 
+**New V4.1 Phase 2 (Trial Learning)**:
+- Lead entity extension: user_id column (FK to Gateway)
+- TrialQuota entity: Daily lesson access limits (3 lessons/day)
+- LeadService: Trial registration + magic link integration
+- TrialQuotaService: Quota enforcement
+- LessonService enhancement: Access control for TRIAL_USER role
+- Lead→Student conversion: Payment verification + role update
+
 ---
 
-### Frontend (7/15 completed - 47%)
+### Frontend (7/17 completed - 41%)
 
 **Detail file**: [`03-frontend-prs.md`](./03-frontend-prs.md)
 
@@ -98,6 +119,17 @@ documents/03-planning/
 - ✅ PR 3.1-3.7: Infrastructure, Auth, Student, Teacher, Course, Class pages
 - ⏳ PR 3.8-3.11: Attendance, Billing, Settings, Parent portal
 - ⭐ **PR 3.12**: Guest Pages (NEW - V4.1)
+- ⭐ **PR 3.13**: Trial Learning UI (PLANNED - V4.1 Phase 2)
+- ⭐ **PR 3.14**: Lead Conversion Flow (PLANNED - V4.1 Phase 2)
+
+**New V4.1 Phase 2 (Trial Learning)**:
+- Trial dashboard: Quota display (X/3 lessons today)
+- Trial lesson viewer: Restricted features (no downloads, comments)
+- Teacher public profile + contact form
+- Trial registration page: Magic link flow
+- Payment/upgrade page: Mock payment form (Phase 1)
+- Conversion success page: Show preserved progress
+- Auth context: Handle role change TRIAL_USER → STUDENT
 - ⭐ **PR 3.13**: AI Branding System (NEW - V4.1)
 - ⏳ PR 3.14: E2E Tests & Polish
 

@@ -1794,13 +1794,56 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 - [ ] Refresh token
 - [ ] Password reset (optional)
 
+## Phase 4.5: Trial User Authentication (V4.1 Phase 2) ⭐ NEW
+- [ ] UserRole enum: Add TRIAL_USER value (via Migration V12)
+- [ ] MagicLinkService: generateMagicLink() - Create secure token (UUID) with 30min expiry
+- [ ] MagicLinkService: verifyMagicLink() - Verify token + create/find User (role=TRIAL_USER) + generate JWT
+- [ ] MagicLinkService: createTrialUser() - Helper to create User with TRIAL_USER role
+- [ ] MagicLinkController: POST /auth/magic-link/send - Generate token + send email
+- [ ] MagicLinkController: GET /auth/magic-link/verify?token={token} - Verify + return JWT
+- [ ] MagicLinkData record: Store email, instanceId, createdAt in Redis
+- [ ] Redis storage: Key pattern `magic_link:{token}`, TTL 30 minutes
+- [ ] Email integration: Use existing EmailService to send magic link emails
+- [ ] JWT claims: Ensure TRIAL_USER role included in token payload
+- [ ] SecurityConfig: Add TRIAL_USER to authorized roles for trial endpoints
+- [ ] Rate limiting: Apply stricter limits for TRIAL_USER (30 req/min vs 100 req/min)
+- [ ] RateLimitConfig: userRoleKeyResolver() - Detect TRIAL_USER role from JWT
+- [ ] One-time use: Delete token from Redis after successful verification
+- [ ] Error handling: InvalidTokenException for expired/invalid magic links
+- [ ] Multi-tenant support: Magic links scoped to instanceId
+
+**Implementation Order**:
+1. Migration V12: ALTER TYPE user_role ADD VALUE 'TRIAL_USER'
+2. MagicLinkService: Business logic for token generation/verification
+3. MagicLinkController: REST endpoints for magic link flow
+4. SecurityConfig: Update authorization rules for TRIAL_USER
+5. RateLimitConfig: Add role-based rate limiting
+6. Testing: Unit tests + Integration tests for magic link flow
+
+**Key Patterns**:
+- Use Redis for token storage (existing RedisTemplate)
+- Reuse EmailService for magic link emails
+- JWT generation: Reuse existing JwtTokenProvider
+- Magic link URL format: `{baseUrl}/auth/verify?token={uuid}`
+- Token expiry: 30 minutes (Duration.ofMinutes(30))
+- Security: HTTPS required for magic link URLs
+
+**References**:
+- PR 1.13: Trial User Authentication Support
+- Migration V12: user_role enum extension (Gateway)
+- Core PR 2.13: Trial registration calls this API
+
 ## Phase 5: Database
-- [ ] Flyway migrations
+- [ ] Flyway migrations V1-V11 (existing)
+- [ ] V12: Add TRIAL_USER to user_role enum ⭐ NEW Phase 2
 - [ ] Seed data (roles, permissions, default user)
 
 ## Phase 6: Testing & Deployment
 - [ ] Unit tests
 - [ ] Integration tests
+- [ ] Magic link authentication tests: Token generation, verification, expiry, one-time use ⭐ NEW Phase 2
+- [ ] TRIAL_USER JWT tests: Role in claims, token validation ⭐ NEW Phase 2
+- [ ] Rate limiting tests: TRIAL_USER stricter limits ⭐ NEW Phase 2
 - [ ] Dockerfile
 - [ ] Documentation
 

@@ -2896,6 +2896,65 @@ describe('useStudents', () => {
 - [ ] Hook tests with MSW
 - [ ] E2E tests with Playwright
 
+## Phase 10: Trial User Experience (V4.1 Phase 2) ⭐ NEW
+- [ ] Trial dashboard page: `/trial/dashboard`
+- [ ] Trial lesson viewer: `/trial/lessons/[id]`
+- [ ] Teacher public profile: `/teachers/[id]/profile`
+- [ ] Contact form component: `components/ContactForm.tsx`
+- [ ] Trial registration page: `/trial/register`
+- [ ] Trial layout: `app/(trial)/layout.tsx` with quota display in navbar
+- [ ] Payment/upgrade page: `/trial/upgrade`
+- [ ] Payment form component (mock Phase 1): `components/PaymentForm.tsx`
+- [ ] Conversion success page: `/trial/upgrade/success`
+- [ ] Auth context update: Handle role change TRIAL_USER → STUDENT
+- [ ] QuotaCard component: Display "X/3 lessons today" with progress bar
+- [ ] TrialLessonList component: List trial lessons with lock icons on paid lessons
+- [ ] UpgradeCard component: CTA "Upgrade Now - ₫299k"
+- [ ] RestrictedFeaturesBanner: Show disabled features (downloads, comments, quiz)
+- [ ] UnlockCourseBanner: Bottom banner with upgrade CTA
+- [ ] ProgressSummary component: Show preserved progress after conversion
+- [ ] useTrialQuota hook: Fetch and track remaining quota
+- [ ] useMagicLinkAuth hook: Handle magic link verification flow
+- [ ] Component tests: QuotaCard, TrialLessonList, ContactForm, PaymentForm
+- [ ] E2E tests: Trial registration → lesson viewing → quota limit → payment → conversion
+
+**Implementation Order**:
+1. Routes structure: Create `(trial)` route group
+2. Trial layout: Header with quota badge + limited navigation
+3. Registration page: Form + magic link flow
+4. Dashboard: Quota display + trial lesson list
+5. Lesson viewer: Content display + restricted features
+6. Payment flow: Mock payment form + conversion
+7. Success page: Congratulations + preserved progress display
+8. Testing: Component tests + E2E flow tests
+
+**Key Components**:
+- **QuotaCard**: Green (0-1 used), Yellow (2 used), Red (3 used/quota exceeded)
+- **TrialLessonList**: Filter `is_trial_accessible = true`, show lock icon on paid lessons
+- **PaymentForm**: Mock in Phase 1 (always succeeds), real gateway in Phase 2
+- **ConversionSuccess**: Show before/after comparison, preserved progress timeline
+
+**UI/UX Requirements**:
+- Quota display: Real-time updates, reset countdown ("Resets tomorrow at midnight")
+- Trial restrictions: Tooltips on disabled features ("Upgrade to download")
+- Upgrade CTAs: Top banner, bottom of lesson, after quota exceeded
+- Mobile-responsive: All trial pages must work on mobile (primary device for trial users)
+- Loading states: Skeleton loaders for quota checks, lesson content
+- Error handling: Clear messages for quota exceeded, payment failures
+
+**API Integration**:
+- POST `/api/v1/leads/register-trial` - Create lead + send magic link
+- GET `/api/v1/auth/magic-link/verify?token={token}` - Verify magic link → get JWT
+- GET `/api/v1/leads/me` - Get trial user profile
+- GET `/api/v1/leads/quota` - Get current quota status
+- GET `/api/v1/lessons/{id}` - Get lesson with access control (auto-checks quota)
+- POST `/api/v1/leads/{id}/convert` - Convert trial user to student (after payment)
+
+**References**:
+- PR 3.13: Trial Learning UI
+- PR 3.14: Lead Conversion Flow
+- Backend: Core PR 2.13 (Trial Registration), PR 2.14 (Conversion)
+
 ---
 
 # NOTES FOR CLAUDE
