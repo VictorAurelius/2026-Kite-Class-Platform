@@ -52,6 +52,32 @@ global.ResizeObserver = class ResizeObserver {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
+// Mock PointerEvent for Radix UI components
+// Radix UI v2+ uses pointer events exclusively
+class MockPointerEvent extends Event {
+  button: number;
+  ctrlKey: boolean;
+  pointerType: string;
+
+  constructor(type: string, props: PointerEventInit = {}) {
+    super(type, props);
+    this.button = props.button || 0;
+    this.ctrlKey = props.ctrlKey || false;
+    this.pointerType = props.pointerType || 'mouse';
+  }
+}
+// @ts-expect-error - PointerEvent not in jsdom
+global.PointerEvent = MockPointerEvent;
+
+// Mock hasPointerCapture and related methods for Radix UI
+// Radix Select checks hasPointerCapture on target elements
+if (typeof Element !== 'undefined') {
+  Element.prototype.hasPointerCapture = Element.prototype.hasPointerCapture || (() => false);
+  Element.prototype.setPointerCapture = Element.prototype.setPointerCapture || (() => {});
+  Element.prototype.releasePointerCapture = Element.prototype.releasePointerCapture || (() => {});
+  Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || (() => {});
+}
+
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
