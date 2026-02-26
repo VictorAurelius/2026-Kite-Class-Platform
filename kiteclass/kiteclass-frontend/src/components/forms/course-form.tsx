@@ -42,24 +42,21 @@ const courseSchema = z.object({
   prerequisites: z.string().optional(),
   targetAudience: z.string().optional(),
   durationWeeks: z.preprocess(
-    (v) => (v === '' || v === undefined ? undefined : Number(v)),
+    (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
     z.number().int().min(1, 'Thời lượng phải >= 1 tuần').optional()
   ),
   totalSessions: z.preprocess(
-    (v) => (v === '' || v === undefined ? undefined : Number(v)),
+    (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
     z.number().int().min(1, 'Số buổi phải >= 1').optional()
   ),
   price: z.preprocess(
     (v) => (v === '' || v === undefined ? undefined : Number(v)),
     z.number().min(0, 'Học phí phải >= 0').optional()
   ),
-  coverImageUrl: z
-    .string()
-    .optional()
-    .transform((val) => val === '' ? undefined : val)
-    .refine((val) => !val || /^https?:\/\/.+/.test(val), {
-      message: 'URL ảnh không hợp lệ (phải bắt đầu với http:// hoặc https://)',
-    }),
+  coverImageUrl: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : v),
+    z.string().regex(/^https?:\/\/.+/, 'URL ảnh không hợp lệ (phải bắt đầu với http:// hoặc https://)').optional()
+  ),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;

@@ -1151,3 +1151,5 @@ tức là GIÁO VIÊN A đã gán vào course 1 rồi nhưng vẫn được ch�
 ![alt text](image-2.png) => vẫn bị nhé, hãy test cho kỹ, ngoài ra, bỏ nút tăng số tuần, số buổi đi, chứ cho nhập bình thường thôi
 
 ý tôi là tôi không muốn nhập 3 trường Thời lượng (tuần), Tổng số buổi học, url mà vẫn được phép cập nhật, ví dụ tôi chỉ muốn cập nhật học phí thay vì 3 trường kia
+
+test lại 1 lần nữa, vẫn chưa được, dùng autotest đi, 1 case đơn giản mà bạn fix quá lâu, bật plan mode
