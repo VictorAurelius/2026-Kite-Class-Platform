@@ -17,6 +17,7 @@ import com.kiteclass.core.module.storage.repository.UploadedFileRepository;
 import com.kiteclass.core.module.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -105,7 +106,7 @@ public class StorageServiceImpl implements StorageService {
         if (request.fileSize() > MAX_FILE_SIZE) {
             log.warn("File size exceeds maximum: {} bytes (max: {})", request.fileSize(), MAX_FILE_SIZE);
             throw new BusinessException("FILE_SIZE_EXCEEDS_MAXIMUM",
-                request.fileSize(), MAX_FILE_SIZE);
+                HttpStatus.BAD_REQUEST, request.fileSize(), MAX_FILE_SIZE);
         }
 
         // Check quota
@@ -153,12 +154,12 @@ public class StorageServiceImpl implements StorageService {
 
         if (!file.isPending()) {
             log.warn("File {} is not PENDING (status: {})", fileId, file.getStatus());
-            throw new BusinessException("FILE_NOT_PENDING", (Object) fileId);
+            throw new BusinessException("FILE_NOT_PENDING", HttpStatus.CONFLICT, fileId);
         }
 
         if (file.isExpired()) {
             log.warn("File {} has expired (expiresAt: {})", fileId, file.getExpiresAt());
-            throw new BusinessException("FILE_UPLOAD_EXPIRED", (Object) fileId);
+            throw new BusinessException("FILE_UPLOAD_EXPIRED", HttpStatus.GONE, fileId);
         }
 
         // Verify file exists in S3
@@ -169,7 +170,7 @@ public class StorageServiceImpl implements StorageService {
                 .build());
         } catch (NoSuchKeyException e) {
             log.error("File not found in S3: {}", file.getStoragePath());
-            throw new BusinessException("FILE_NOT_FOUND_IN_S3", (Object) file.getStoragePath());
+            throw new BusinessException("FILE_NOT_FOUND_IN_S3", HttpStatus.NOT_FOUND, file.getStoragePath());
         }
 
         // Confirm upload
@@ -194,7 +195,7 @@ public class StorageServiceImpl implements StorageService {
 
         if (!file.isConfirmed()) {
             log.warn("File {} is not CONFIRMED (status: {})", fileId, file.getStatus());
-            throw new BusinessException("FILE_NOT_CONFIRMED", (Object) fileId);
+            throw new BusinessException("FILE_NOT_CONFIRMED", HttpStatus.CONFLICT, fileId);
         }
 
         // Check access control
@@ -279,7 +280,7 @@ public class StorageServiceImpl implements StorageService {
     private void validateFileType(String mimeType) {
         if (!ALLOWED_MIME_TYPES.contains(mimeType.toLowerCase())) {
             log.warn("File type not allowed: {}", mimeType);
-            throw new BusinessException("FILE_TYPE_NOT_ALLOWED", (Object) mimeType);
+            throw new BusinessException("FILE_TYPE_NOT_ALLOWED", HttpStatus.BAD_REQUEST, mimeType);
         }
     }
 
@@ -298,7 +299,7 @@ public class StorageServiceImpl implements StorageService {
             log.warn("Quota exceeded for tenant: {}, available: {} bytes, required: {} bytes",
                 tenantId, quota.getRemainingBytes(), fileSize);
             throw new BusinessException("STORAGE_QUOTA_EXCEEDED",
-                quota.getRemainingBytes(), fileSize);
+                HttpStatus.INSUFFICIENT_STORAGE, quota.getRemainingBytes(), fileSize);
         }
     }
 
@@ -372,12 +373,12 @@ public class StorageServiceImpl implements StorageService {
 
         if (file.isPrivate() && !file.getUploaderId().equals(requesterId)) {
             log.warn("Access denied - PRIVATE file {} requested by non-owner {}", file.getId(), requesterId);
-            throw new BusinessException("FILE_ACCESS_DENIED");
+            throw new BusinessException("FILE_ACCESS_DENIED", HttpStatus.FORBIDDEN);
         }
 
         if (file.isTenantScoped() && !file.getInstanceId().equals(tenantId)) {
             log.warn("Access denied - TENANT file {} requested by different tenant {}", file.getId(), tenantId);
-            throw new BusinessException("FILE_ACCESS_DENIED");
+            throw new BusinessException("FILE_ACCESS_DENIED", HttpStatus.FORBIDDEN);
         }
     }
 
