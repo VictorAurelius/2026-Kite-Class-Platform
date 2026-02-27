@@ -228,11 +228,13 @@ class EnrollmentIntegrationTest {
         // savedClass.maxStudents = 3
         // Enroll 3 students and activate them
         for (int i = 0; i < 3; i++) {
-            Student student = StudentTestDataBuilder.createDefaultStudent();
-            student.setId(null);
-            student.setEmail("student" + i + "@example.com");
-            student.setPhone("012345678" + i);
-            Student saved = studentRepository.save(student);
+            TenantContext.setCurrentTenant(tenantId);
+            try {
+                Student student = StudentTestDataBuilder.createDefaultStudent();
+                student.setId(null);
+                student.setEmail("student" + i + "@example.com");
+                student.setPhone("012345678" + i);
+                Student saved = studentRepository.save(student);
 
             CreateEnrollmentRequest request = EnrollmentTestDataBuilder.createRequestForStudentAndClass(
                     saved.getId(),
@@ -245,31 +247,39 @@ class EnrollmentIntegrationTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated());
 
-            // Activate enrollment
-            Enrollment enrollment = enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(
-                    saved.getId(), savedClass.getId()
-            ).orElseThrow();
-            enrollment.setStatus(EnrollmentStatus.ACTIVE);
-            enrollmentRepository.save(enrollment);
+                // Activate enrollment
+                Enrollment enrollment = enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(
+                        saved.getId(), savedClass.getId()
+                ).orElseThrow();
+                enrollment.setStatus(EnrollmentStatus.ACTIVE);
+                enrollmentRepository.save(enrollment);
+            } finally {
+                TenantContext.clear();
+            }
         }
 
         // Try to enroll 4th student - should fail (class full)
-        Student extraStudent = StudentTestDataBuilder.createDefaultStudent();
-        extraStudent.setId(null);
-        extraStudent.setEmail("extra@example.com");
-        extraStudent.setPhone("0123456790");
-        Student savedExtra = studentRepository.save(extraStudent);
+        TenantContext.setCurrentTenant(tenantId);
+        try {
+            Student extraStudent = StudentTestDataBuilder.createDefaultStudent();
+            extraStudent.setId(null);
+            extraStudent.setEmail("extra@example.com");
+            extraStudent.setPhone("0123456790");
+            Student savedExtra = studentRepository.save(extraStudent);
 
-        CreateEnrollmentRequest request = EnrollmentTestDataBuilder.createRequestForStudentAndClass(
-                savedExtra.getId(),
-                savedClass.getId()
-        );
+            CreateEnrollmentRequest request = EnrollmentTestDataBuilder.createRequestForStudentAndClass(
+                    savedExtra.getId(),
+                    savedClass.getId()
+            );
 
-        mockMvc.perform(post("/api/v1/enrollments")
-                        .header("X-Tenant-Id", tenantId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+            mockMvc.perform(post("/api/v1/enrollments")
+                            .header("X-Tenant-Id", tenantId.toString())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     // =========================================================================
@@ -419,6 +429,7 @@ class EnrollmentIntegrationTest {
         try {
             Course course1 = CourseTestDataBuilder.createDefaultCourse();
             course1.setId(null);
+            course1.setCode("TENANT1-COURSE"); // Unique code
             course1.setTeacherId(null);
             course1.setStatus(CourseStatus.PUBLISHED);
             Course savedCourse1 = courseRepository.save(course1);
@@ -476,6 +487,7 @@ class EnrollmentIntegrationTest {
             try {
                 Course course = CourseTestDataBuilder.createDefaultCourse();
                 course.setId(null);
+                course.setCode("COURSE-" + i); // Unique code
                 course.setTeacherId(null);
                 course.setStatus(CourseStatus.PUBLISHED);
                 Course savedCourse = courseRepository.save(course);
@@ -523,22 +535,27 @@ class EnrollmentIntegrationTest {
     void getEnrollmentsByClass_shouldReturn200_withPagination() throws Exception {
         // Create 2 students and enroll them in same class
         for (int i = 0; i < 2; i++) {
-            Student student = StudentTestDataBuilder.createDefaultStudent();
-            student.setId(null);
-            student.setEmail("student" + i + "@test.com");
-            student.setPhone("098765432" + i);
-            Student saved = studentRepository.save(student);
+            TenantContext.setCurrentTenant(tenantId);
+            try {
+                Student student = StudentTestDataBuilder.createDefaultStudent();
+                student.setId(null);
+                student.setEmail("student" + i + "@test.com");
+                student.setPhone("098765432" + i);
+                Student saved = studentRepository.save(student);
 
-            CreateEnrollmentRequest request = EnrollmentTestDataBuilder.createRequestForStudentAndClass(
-                    saved.getId(),
-                    savedClass.getId()
-            );
+                CreateEnrollmentRequest request = EnrollmentTestDataBuilder.createRequestForStudentAndClass(
+                        saved.getId(),
+                        savedClass.getId()
+                );
 
-            mockMvc.perform(post("/api/v1/enrollments")
-                            .header("X-Tenant-Id", tenantId.toString())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isCreated());
+                mockMvc.perform(post("/api/v1/enrollments")
+                                .header("X-Tenant-Id", tenantId.toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                        .andExpect(status().isCreated());
+            } finally {
+                TenantContext.clear();
+            }
         }
 
         // Get all enrollments for class
