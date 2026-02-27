@@ -1,0 +1,10 @@
+# Test profile configuration
+# This file is loaded when @ActiveProfiles("test") is used
+
+spring:
+  flyway:
+    # Clean schema before migration in tests (allows re-running with existing schema)
+    clean-on-validation-error: true
+    clean-disabled: false
+    # Baseline existing schema if needed
+    baseline-on-migrate: true
