@@ -176,10 +176,10 @@ class StorageIntegrationTest {
     @DisplayName("POST /api/v1/storage/upload-url - Should enforce quota limit")
     void shouldEnforceQuotaLimit() throws Exception {
         // Given - Upload files until quota is almost exhausted
-        // FREE tier = 1 GB, upload 11 files of 95 MB each (1045 MB total)
+        // FREE tier = 1 GB (1024 MB), upload 10 files of 95 MB each (950 MB total)
         long fileSize = 95L * 1024 * 1024; // 95 MB
 
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 10; i++) {
             PresignedUploadRequest request = new PresignedUploadRequest(
                 "file-" + i + ".mp4",
                 fileSize,
@@ -196,7 +196,7 @@ class StorageIntegrationTest {
                 .andExpect(status().isCreated());
         }
 
-        // Now upload one more file (should exceed quota)
+        // Now upload 11th file (950 + 95 = 1045 MB > 1024 MB quota)
         PresignedUploadRequest finalRequest = new PresignedUploadRequest(
             "final-file.mp4",
             fileSize,
