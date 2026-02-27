@@ -2,9 +2,12 @@
 # This file is loaded when @ActiveProfiles("test") is used
 
 spring:
+  # Disable Flyway in Core Service tests (Gateway manages migrations in production)
+  # Tests use JPA to auto-create schema from entities
   flyway:
-    # Clean schema before migration in tests (allows re-running with existing schema)
-    clean-on-validation-error: true
-    clean-disabled: false
-    # Baseline existing schema if needed
-    baseline-on-migrate: true
+    enabled: false
+
+  # Let Hibernate create schema from entities for tests
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
