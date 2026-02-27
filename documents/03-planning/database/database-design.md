@@ -2343,6 +2343,127 @@ COMMENT ON TYPE user_role IS 'User roles: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, 
 
 **Purpose**: Support TRIAL_USER role for authentication and authorization of trial users at Gateway layer.
 
+## 5.6. Storage & File Management (V4.1 - Phase 2)
+
+### Overview
+
+Comprehensive file storage service supporting avatars, documents, videos, certificates, and assignments. Uses S3-compatible storage (MinIO dev, AWS S3 prod) with presigned URLs for secure upload/download, storage quota tracking, and multi-tenant isolation.
+
+**Key Features**:
+- Direct client-to-S3 uploads via presigned URLs (bypass backend)
+- Storage quota enforcement (Trial: 500MB, Basic: 5GB, Pro: 50GB)
+- Multi-tenant isolation (bucket prefixes + instance_id)
+- File lifecycle tracking (UPLOADING → PROCESSING → READY → FAILED)
+- Access control (PRIVATE, COURSE, PUBLIC)
+- Video metadata support (duration, resolution, codec)
+- Soft delete with 30-day grace period
+
+**Related Documentation**: See [Storage Service Design](../implementation/storage-service-design.md) for complete architecture, API flows, and implementation details.
+
+### Tables
+
+#### `uploaded_files`
+
+**Purpose**: Store metadata for all uploaded files (avatars, documents, videos, certificates, assignments). Actual file content stored in S3.
+
+```sql
+CREATE TABLE uploaded_files (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    uploaded_by UUID NOT NULL, -- FK to Gateway users(id) - soft reference
+    file_type VARCHAR(50) NOT NULL, -- AVATAR, DOCUMENT, VIDEO, CERTIFICATE, ASSIGNMENT
+    original_filename VARCHAR(255) NOT NULL,
+    storage_path VARCHAR(500) NOT NULL UNIQUE, -- S3 path: {tenant-id}/{type}/{uuid}.ext
+    file_size_bytes BIGINT NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'UPLOADING', -- UPLOADING, PROCESSING, READY, FAILED
+    duration_seconds INT, -- Video metadata
+    resolution VARCHAR(20), -- Video metadata (e.g., "1920x1080")
+    video_codec VARCHAR(50), -- Video metadata (e.g., "h264")
+    access_level VARCHAR(50) NOT NULL DEFAULT 'PRIVATE', -- PRIVATE, COURSE, PUBLIC
+    related_entity_type VARCHAR(50), -- student, teacher, course, assignment, etc.
+    related_entity_id VARCHAR(50), -- UUID of related entity
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT chk_file_type CHECK (file_type IN ('AVATAR', 'DOCUMENT', 'VIDEO', 'CERTIFICATE', 'ASSIGNMENT')),
+    CONSTRAINT chk_file_status CHECK (status IN ('UPLOADING', 'PROCESSING', 'READY', 'FAILED')),
+    CONSTRAINT chk_access_level CHECK (access_level IN ('PRIVATE', 'COURSE', 'PUBLIC')),
+    CONSTRAINT chk_file_size_positive CHECK (file_size_bytes > 0)
+);
+
+CREATE INDEX idx_uploaded_files_instance_id ON uploaded_files(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_uploaded_by ON uploaded_files(uploaded_by) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_type ON uploaded_files(file_type) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_entity ON uploaded_files(related_entity_type, related_entity_id) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_status ON uploaded_files(status) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_created_at ON uploaded_files(created_at);
+
+COMMENT ON TABLE uploaded_files IS 'File metadata storage - actual files in S3';
+COMMENT ON COLUMN uploaded_files.uploaded_by IS 'FK to Gateway users.id (soft reference)';
+COMMENT ON COLUMN uploaded_files.storage_path IS 'S3 object key: {tenant-id}/{type}/{uuid}.{ext}';
+COMMENT ON COLUMN uploaded_files.status IS 'Upload lifecycle: UPLOADING → PROCESSING → READY → FAILED';
+COMMENT ON COLUMN uploaded_files.access_level IS 'Access control: PRIVATE (uploader only), COURSE (teacher+students), PUBLIC (all authenticated)';
+```
+
+**File Type Limits**:
+- AVATAR: max 10MB (image/png, image/jpeg, image/webp)
+- DOCUMENT: max 50MB (application/pdf, .docx, .xlsx)
+- VIDEO: max 2GB (video/mp4, video/webm)
+- CERTIFICATE: max 5MB (application/pdf)
+- ASSIGNMENT: max 50MB (application/pdf, .docx)
+
+**Storage Path Format**: `{tenant-id}/{file-type}/{file-uuid}.{extension}`
+- Example: `550e8400-e29b-41d4-a716-446655440000/avatars/abc123.png`
+
+#### `storage_quotas`
+
+**Purpose**: Track storage usage per tenant and enforce limits.
+
+```sql
+CREATE TABLE storage_quotas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL UNIQUE, -- One quota per tenant
+    quota_bytes BIGINT NOT NULL DEFAULT 1073741824, -- Default 1GB
+    used_bytes BIGINT NOT NULL DEFAULT 0,
+    last_calculated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT chk_quota_bytes_positive CHECK (quota_bytes > 0),
+    CONSTRAINT chk_used_bytes_non_negative CHECK (used_bytes >= 0)
+);
+
+CREATE INDEX idx_storage_quotas_instance_id ON storage_quotas(instance_id);
+
+COMMENT ON TABLE storage_quotas IS 'Per-tenant storage quota tracking';
+COMMENT ON COLUMN storage_quotas.quota_bytes IS 'Maximum storage allowed (Trial: 500MB, Basic: 5GB, Pro: 50GB, Enterprise: custom)';
+COMMENT ON COLUMN storage_quotas.used_bytes IS 'Current storage usage (calculated from uploaded_files)';
+COMMENT ON COLUMN storage_quotas.last_calculated_at IS 'Last time quota was recalculated (scheduled job)';
+```
+
+**Quota Tiers** (example values):
+- Trial: 500 MB (524,288,000 bytes)
+- Basic: 5 GB (5,368,709,120 bytes)
+- Pro: 50 GB (53,687,091,200 bytes)
+- Enterprise: Custom (unlimited)
+
+**Quota Calculation**:
+```sql
+-- Scheduled job (daily) to recalculate quotas
+UPDATE storage_quotas sq
+SET used_bytes = (
+    SELECT COALESCE(SUM(file_size_bytes), 0)
+    FROM uploaded_files uf
+    WHERE uf.instance_id = sq.instance_id
+      AND uf.status = 'READY'
+      AND uf.deleted = FALSE
+),
+last_calculated_at = NOW(),
+updated_at = NOW();
+```
+
 ### ERD - Trial Learning Extension
 
 ```

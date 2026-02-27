@@ -27,7 +27,9 @@
 10. [V9: LMS Tables (V4.1)](#v9-lms-tables-v41) ⭐ NEW
 11. [V10: Marketing Tables (V4.1)](#v10-marketing-tables-v41) ⭐ NEW
 12. [V11: Demo LMS Content (Optional)](#v11-demo-lms-content-optional) ⭐ NEW
-13. [Rollback Strategy](#rollback-strategy)
+13. [V12: Trial Learning Support (V4.1 Phase 2)](#v12-trial-learning-support-v41---phase-2) ⭐ NEW
+14. [V13: File Storage Tables (V4.1 Phase 2)](#v13-file-storage-tables-v41---phase-2) ⭐ NEW
+15. [Rollback Strategy](#rollback-strategy)
 
 ---
 
@@ -1522,6 +1524,320 @@ GROUP BY c.id, c.code, c.name;
 
 ---
 
+# V13: FILE STORAGE TABLES (V4.1 - Phase 2) ⭐ NEW
+
+**Date**: 2026-Q2 (planned)
+**Dependencies**: V12 (Trial Learning System)
+**Services affected**: Core (uploaded_files, storage_quotas tables)
+
+## Purpose
+
+Add comprehensive file storage support with S3-compatible storage (MinIO dev, AWS S3 prod), presigned URLs for secure upload/download, storage quota tracking, and multi-tenant isolation.
+
+**Key Features**:
+- Direct client-to-S3 uploads via presigned URLs (10min upload, 24h download)
+- Storage quota enforcement (Trial: 500MB, Basic: 5GB, Pro: 50GB)
+- Multi-tenant isolation (bucket prefixes + instance_id)
+- File lifecycle tracking (UPLOADING → PROCESSING → READY → FAILED)
+- Access control (PRIVATE, COURSE, PUBLIC)
+- Video metadata support (duration, resolution, codec)
+- Soft delete with 30-day grace period
+
+**Related Documentation**: See [Storage Service Design](../implementation/storage-service-design.md) for complete architecture, flows, and implementation details.
+
+## Changes
+
+### Core Service
+
+**File**: `kiteclass-core/src/main/resources/db/migration/V13__create_file_storage_tables.sql`
+
+```sql
+-- V13: Create File Storage Tables
+-- Purpose: Support file uploads (avatars, documents, videos, certificates, assignments)
+-- Dependencies: None (standalone tables)
+
+-- =============================================================================
+-- SECTION 1: uploaded_files table
+-- =============================================================================
+
+CREATE TABLE uploaded_files (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    uploaded_by UUID NOT NULL, -- FK to Gateway users(id) - soft reference
+    file_type VARCHAR(50) NOT NULL,
+    original_filename VARCHAR(255) NOT NULL,
+    storage_path VARCHAR(500) NOT NULL UNIQUE,
+    file_size_bytes BIGINT NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'UPLOADING',
+
+    -- Video metadata (nullable for non-video files)
+    duration_seconds INT,
+    resolution VARCHAR(20),
+    video_codec VARCHAR(50),
+
+    -- Access control
+    access_level VARCHAR(50) NOT NULL DEFAULT 'PRIVATE',
+    related_entity_type VARCHAR(50),
+    related_entity_id VARCHAR(50),
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Constraints
+    CONSTRAINT chk_file_type CHECK (file_type IN ('AVATAR', 'DOCUMENT', 'VIDEO', 'CERTIFICATE', 'ASSIGNMENT')),
+    CONSTRAINT chk_file_status CHECK (status IN ('UPLOADING', 'PROCESSING', 'READY', 'FAILED')),
+    CONSTRAINT chk_access_level CHECK (access_level IN ('PRIVATE', 'COURSE', 'PUBLIC')),
+    CONSTRAINT chk_file_size_positive CHECK (file_size_bytes > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_uploaded_files_instance_id ON uploaded_files(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_uploaded_by ON uploaded_files(uploaded_by) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_type ON uploaded_files(file_type) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_entity ON uploaded_files(related_entity_type, related_entity_id) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_status ON uploaded_files(status) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_created_at ON uploaded_files(created_at);
+
+-- Comments
+COMMENT ON TABLE uploaded_files IS 'File metadata storage - actual files in S3 (V4.1)';
+COMMENT ON COLUMN uploaded_files.uploaded_by IS 'FK to Gateway users.id (soft reference for cross-service)';
+COMMENT ON COLUMN uploaded_files.storage_path IS 'S3 object key: {tenant-id}/{file-type}/{uuid}.{ext}';
+COMMENT ON COLUMN uploaded_files.status IS 'Upload lifecycle: UPLOADING → PROCESSING → READY → FAILED';
+COMMENT ON COLUMN uploaded_files.access_level IS 'Access control: PRIVATE (uploader only), COURSE (teacher+students), PUBLIC (all authenticated)';
+
+-- =============================================================================
+-- SECTION 2: storage_quotas table
+-- =============================================================================
+
+CREATE TABLE storage_quotas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL UNIQUE, -- One quota per tenant
+    quota_bytes BIGINT NOT NULL DEFAULT 1073741824, -- Default 1GB
+    used_bytes BIGINT NOT NULL DEFAULT 0,
+    last_calculated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_quota_bytes_positive CHECK (quota_bytes > 0),
+    CONSTRAINT chk_used_bytes_non_negative CHECK (used_bytes >= 0)
+);
+
+-- Indexes
+CREATE INDEX idx_storage_quotas_instance_id ON storage_quotas(instance_id);
+
+-- Comments
+COMMENT ON TABLE storage_quotas IS 'Per-tenant storage quota tracking (V4.1)';
+COMMENT ON COLUMN storage_quotas.quota_bytes IS 'Maximum storage allowed (Trial: 500MB, Basic: 5GB, Pro: 50GB, Enterprise: custom)';
+COMMENT ON COLUMN storage_quotas.used_bytes IS 'Current storage usage (calculated from uploaded_files)';
+COMMENT ON COLUMN storage_quotas.last_calculated_at IS 'Last time quota was recalculated (scheduled job)';
+
+-- =============================================================================
+-- SECTION 3: Triggers for updated_at
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION update_storage_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_uploaded_files_updated_at
+BEFORE UPDATE ON uploaded_files
+FOR EACH ROW
+EXECUTE FUNCTION update_storage_updated_at();
+
+CREATE TRIGGER update_storage_quotas_updated_at
+BEFORE UPDATE ON storage_quotas
+FOR EACH ROW
+EXECUTE FUNCTION update_storage_updated_at();
+
+COMMENT ON TRIGGER update_uploaded_files_updated_at ON uploaded_files IS 'Auto-update updated_at on file metadata changes';
+COMMENT ON TRIGGER update_storage_quotas_updated_at ON storage_quotas IS 'Auto-update updated_at on quota changes';
+```
+
+**Verification**:
+```sql
+-- Check tables created
+SELECT table_name, table_type
+FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_name IN ('uploaded_files', 'storage_quotas')
+ORDER BY table_name;
+
+-- Check columns
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'uploaded_files'
+ORDER BY ordinal_position;
+
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'storage_quotas'
+ORDER BY ordinal_position;
+
+-- Check constraints
+SELECT constraint_name, constraint_type
+FROM information_schema.table_constraints
+WHERE table_name IN ('uploaded_files', 'storage_quotas')
+ORDER BY table_name, constraint_name;
+
+-- Check indexes
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename IN ('uploaded_files', 'storage_quotas')
+ORDER BY tablename, indexname;
+```
+
+**Rollback**:
+```sql
+-- Rollback V13: Remove file storage tables
+
+-- Step 1: Drop triggers
+DROP TRIGGER IF EXISTS update_storage_quotas_updated_at ON storage_quotas;
+DROP TRIGGER IF EXISTS update_uploaded_files_updated_at ON uploaded_files;
+DROP FUNCTION IF EXISTS update_storage_updated_at();
+
+-- Step 2: Drop tables (CASCADE in case of FKs)
+DROP TABLE IF EXISTS storage_quotas CASCADE;
+DROP TABLE IF EXISTS uploaded_files CASCADE;
+```
+
+## Testing
+
+### Pre-Migration Checks
+
+```bash
+# Backup database before migration
+pg_dump -U postgres -d kiteclass_dev > kiteclass_dev_pre_v13_backup.sql
+
+# Check current migration status
+SELECT version, description, installed_on, success
+FROM flyway_schema_history
+ORDER BY installed_rank DESC
+LIMIT 5;
+```
+
+### Post-Migration Verification
+
+```sql
+-- 1. Verify tables created
+\dt+ uploaded_files storage_quotas
+
+-- 2. Test file record insertion
+INSERT INTO uploaded_files (
+    instance_id, uploaded_by, file_type, original_filename,
+    storage_path, file_size_bytes, mime_type, status, access_level
+)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000', -- test tenant
+    gen_random_uuid(), -- test user
+    'AVATAR',
+    'profile.png',
+    '550e8400-e29b-41d4-a716-446655440000/avatars/abc123.png',
+    102400, -- 100KB
+    'image/png',
+    'READY',
+    'PRIVATE'
+);
+
+-- 3. Test storage quota insertion
+INSERT INTO storage_quotas (instance_id, quota_bytes, used_bytes)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000',
+    1073741824, -- 1GB
+    0
+);
+
+-- 4. Test quota constraints
+-- Should FAIL (negative used_bytes)
+INSERT INTO storage_quotas (instance_id, quota_bytes, used_bytes)
+VALUES (
+    gen_random_uuid(),
+    1073741824,
+    -100 -- Invalid
+);
+-- Expected: ERROR: new row for relation "storage_quotas" violates check constraint "chk_used_bytes_non_negative"
+
+-- 5. Test updated_at trigger
+UPDATE uploaded_files SET status = 'PROCESSING' WHERE id = (SELECT id FROM uploaded_files LIMIT 1);
+SELECT id, status, created_at, updated_at FROM uploaded_files LIMIT 1;
+-- Expected: updated_at > created_at
+
+-- 6. Test quota calculation query
+UPDATE storage_quotas sq
+SET used_bytes = (
+    SELECT COALESCE(SUM(file_size_bytes), 0)
+    FROM uploaded_files uf
+    WHERE uf.instance_id = sq.instance_id
+      AND uf.status = 'READY'
+      AND uf.deleted = FALSE
+),
+last_calculated_at = CURRENT_TIMESTAMP;
+
+SELECT * FROM storage_quotas LIMIT 1;
+
+-- 7. Cleanup test data
+DELETE FROM uploaded_files WHERE instance_id = '550e8400-e29b-41d4-a716-446655440000';
+DELETE FROM storage_quotas WHERE instance_id = '550e8400-e29b-41d4-a716-446655440000';
+```
+
+## Data Seeding (Optional)
+
+```sql
+-- Create default quota for existing tenants (if needed)
+INSERT INTO storage_quotas (instance_id, quota_bytes, used_bytes)
+SELECT DISTINCT instance_id, 1073741824, 0 -- 1GB default
+FROM courses
+WHERE deleted = FALSE
+ON CONFLICT (instance_id) DO NOTHING;
+```
+
+## Related PRs
+
+- **Core PR 2.10.1**: Storage & File Management Service (FileService, StorageQuotaService, FileRetentionService)
+- **Frontend PR 3.10**: Profile picture upload (Settings page)
+- **Frontend PR 3.12**: Guest Pages (teacher photos, hero images upload)
+- **Frontend PR 3.13**: AI Branding (logo upload via FileService)
+
+## File Type Limits
+
+```
+AVATAR: max 10MB (image/png, image/jpeg, image/webp)
+DOCUMENT: max 50MB (application/pdf, .docx, .xlsx)
+VIDEO: max 2GB (video/mp4, video/webm)
+CERTIFICATE: max 5MB (application/pdf)
+ASSIGNMENT: max 50MB (application/pdf, .docx)
+```
+
+## Storage Quota Tiers
+
+```
+Trial: 500 MB (524,288,000 bytes)
+Basic: 5 GB (5,368,709,120 bytes)
+Pro: 50 GB (53,687,091,200 bytes)
+Enterprise: Custom (unlimited)
+```
+
+## Migration Timeline
+
+- **Week 1**: Core V13 deployment (tables creation)
+- **Week 2**: MinIO Docker setup + S3 configuration
+- **Week 3**: Application code deployment (PR 2.10.1)
+- **Week 4**: Frontend deployment (PRs 3.10, 3.12) + End-to-end testing
+
+**Total estimated time**: 4 weeks (includes testing and staged rollout)
+
+---
+
 # ROLLBACK STRATEGY
 
 ## Rollback Scripts
@@ -1615,9 +1931,10 @@ flyway repair
 10. ⭐ V10: Marketing Tables (V4.1 - landing_pages, leads, contact_messages)
 11. ⭐ V11: Demo LMS Content (Optional - testing only)
 12. ⭐ V12: Trial Learning Support (V4.1 Phase 2 - TRIAL_USER role, trial_quotas, lesson access control)
+13. ⭐ V13: File Storage Tables (V4.1 Phase 2 - uploaded_files, storage_quotas) ⭐ NEW
 
-**Total:** 12 migrations (8 existing + 4 new V4.1)
-**Estimated time:** 4-5 hours (with testing + V4.1 additions)
+**Total:** 13 migrations (8 existing + 5 new V4.1)
+**Estimated time:** 5-6 hours (with testing + V4.1 additions)
 
 **Ready for:**
 - Development environment
