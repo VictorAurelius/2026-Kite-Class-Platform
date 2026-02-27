@@ -133,6 +133,9 @@ public class StorageServiceImpl implements StorageService {
         UploadedFile saved = uploadedFileRepository.save(file);
         log.info("Created PENDING upload file record with ID: {}", saved.getId());
 
+        // Update quota immediately (PENDING files count towards quota to prevent abuse)
+        updateQuotaUsage(tenantId, request.fileSize(), true);
+
         // Generate presigned PUT URL
         String uploadUrl = generatePresignedPutUrl(storagePath);
 
@@ -173,12 +176,9 @@ public class StorageServiceImpl implements StorageService {
             throw new BusinessException("FILE_NOT_FOUND_IN_S3", HttpStatus.NOT_FOUND, file.getStoragePath());
         }
 
-        // Confirm upload
+        // Confirm upload (quota already updated when PENDING file was created)
         file.confirmUpload();
         UploadedFile confirmed = uploadedFileRepository.save(file);
-
-        // Update quota usage
-        updateQuotaUsage(file.getInstanceId(), file.getFileSize(), true);
 
         log.info("Confirmed upload for file ID: {}, size: {} bytes", fileId, file.getFileSize());
         return storageMapper.toMetadataResponse(confirmed);
