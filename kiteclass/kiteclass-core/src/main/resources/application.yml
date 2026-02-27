@@ -87,3 +87,13 @@ springdoc:
 internal:
   api:
     secret: ${INTERNAL_API_SECRET:changeme-in-production-must-match-gateway}
+
+# Storage Configuration (S3/MinIO)
+storage:
+  s3:
+    endpoint: ${STORAGE_S3_ENDPOINT:http://localhost:9000}
+    region: ${STORAGE_S3_REGION:us-east-1}
+    access-key-id: ${STORAGE_S3_ACCESS_KEY:minioadmin}
+    secret-access-key: ${STORAGE_S3_SECRET_KEY:minioadmin}
+    bucket-name: ${STORAGE_S3_BUCKET:kiteclass-files}
+    path-style-access-enabled: true
