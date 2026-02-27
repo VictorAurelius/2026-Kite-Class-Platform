@@ -4652,6 +4652,85 @@ Hoàn thiện Frontend với E2E tests.
 
 ---
 
+## PR 2.10.1: Storage & File Management Service
+
+**Objective**: Implement file storage service với presigned URLs, storage quota tracking, và multi-tenant isolation.
+
+**Context**:
+- **Design**: documents/03-planning/implementation/storage-service-design.md (3,623 lines)
+- **Database**: Migration V13 (uploaded_files, storage_quotas)
+- **Dependencies**: MinIO Docker container (docker-compose.dev.yml)
+- **Blocks**: PR 2.15 (Settings), PR 3.10 (Profile upload), PR 3.12 (Guest Pages)
+
+### Implementation Tasks
+
+#### 1. Database Migration (V13)
+
+Create migration file:
+```bash
+cd kiteclass/kiteclass-core/src/main/resources/db/migration
+touch V13__create_file_storage_tables.sql
+```
+
+**Migration Content**:
+- `uploaded_files` table (15 columns)
+- `storage_quotas` table (7 columns)
+- Indexes for performance
+- Test with: `./mvnw flyway:migrate && ./mvnw flyway:info`
+
+#### 2. Entities
+
+Create `UploadedFile`, `StorageQuota` entities với Hibernate `@FilterDef` for multi-tenant isolation.
+
+#### 3. Configuration (S3 Client)
+
+Add AWS SDK dependencies, create `S3Config` bean, configure MinIO endpoint trong `application.yml`.
+
+#### 4. Services
+
+- **FileService**: `initiateUpload()`, `completeUpload()`, `generateDownloadUrl()`, `softDelete()`
+- **StorageQuotaService**: `getQuota()`, `checkQuota()`, `recalculateQuotas()` (scheduled)
+- **FileRetentionService**: `cleanupExpiredFiles()` (scheduled, 30-day grace period)
+
+#### 5. Controllers
+
+- **FileController**: POST /upload/initiate, POST /{id}/complete, GET /{id}/download, DELETE /{id}
+- **StorageQuotaController**: GET /quota, POST /quota/recalculate
+
+#### 6. Testing
+
+Extend `TestContainersConfiguration` với `MinIOContainer`, create integration tests cho upload flow và quota enforcement.
+
+#### 7. Docker Compose
+
+Add MinIO service to `docker-compose.dev.yml`, create `init-minio.sh` script để initialize bucket.
+
+### Acceptance Criteria
+
+- [ ] V13 migration applied successfully
+- [ ] Entities created with Hibernate filters
+- [ ] S3 configuration working (MinIO local, AWS S3 configurable)
+- [ ] FileService implements upload/download flows
+- [ ] Presigned URLs generated correctly (10min upload, 24h download)
+- [ ] Storage quota enforced before upload
+- [ ] Multi-tenant isolation working
+- [ ] Integration tests passing
+- [ ] MinIO Testcontainer configured
+- [ ] Local testing successful (MinIO Console accessible)
+- [ ] Documentation complete
+
+### Estimated Effort
+
+**2-3 weeks** (10-15 working days)
+
+### Reference
+
+- **Design**: [Storage Service Design](./storage-service-design.md) (3,623 lines, 10 sections)
+- **Database**: [Database Design](../database/database-design.md) (Storage Tables section)
+- **API**: [API Design](../../.claude/skills/api-design.md) (File Management API section)
+
+---
+
 # HƯỚNG DẪN SỬ DỤNG
 
 ## Branch Strategy (UPDATED 2026-01-27)
