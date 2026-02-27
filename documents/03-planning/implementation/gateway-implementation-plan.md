@@ -1574,6 +1574,89 @@ public class AuthController {
 
 ---
 
+## Cross-Service File Access
+
+**Scenario**: Gateway service cần serve avatar URLs hoặc validate file access permissions trước khi cho phép download.
+
+### Challenge
+
+- Storage Service owns file metadata (`uploaded_files` table)
+- Gateway service handles authentication/authorization
+- Frontend requests files through Gateway (hoặc direct từ Storage Service?)
+
+### Architecture Options
+
+**Option 1: Direct Storage Service Access (Recommended)**
+- Frontend calls Storage Service directly: `GET /api/v1/files/{id}/download`
+- Storage Service validates token (JWT validation filter)
+- Returns presigned S3 URL (24h expiry)
+- **Pros**: No extra hop through Gateway, lower latency
+- **Cons**: Storage Service must implement full JWT validation
+
+**Option 2: Gateway Proxy**
+- Frontend calls Gateway: `GET /api/gateway/files/{id}/download`
+- Gateway validates token, proxies to Storage Service
+- Storage Service returns presigned URL
+- **Pros**: Centralized auth validation
+- **Cons**: Extra network hop, higher latency
+
+**Recommendation**: **Option 1** (Direct Access) với:
+- Storage Service implements `JwtAuthenticationFilter` (reuse from Gateway)
+- Shared JWT secret (environment variable)
+- Storage Service validates token, checks user permissions (uploaded_by, access_level)
+
+### Avatar URL in User Profile Response
+
+**Problem**: User profile response needs avatar URL, but avatar stored in Storage Service.
+
+**Solution**: Store `avatar_file_id` in Gateway `users` table (denormalized)
+
+1. When user uploads avatar:
+   - Frontend calls Storage Service → Get `fileId`
+   - Frontend calls Gateway: `PUT /api/v1/users/me { avatarFileId: "uuid" }`
+   - Gateway updates `users.avatar_file_id = uuid`
+
+2. When fetching user profile:
+   - Gateway returns `avatarFileId` in response
+   - Frontend calls Storage Service: `GET /api/v1/files/{avatarFileId}/download` → Get presigned URL
+   - Frontend displays image từ presigned URL
+
+**Alternative** (simpler):
+- Gateway stores full S3 URL: `users.avatar_url = "https://cdn.../avatar.png"`
+- Sync via RabbitMQ event: Storage Service publishes `AvatarUploadedEvent` → Gateway subscriber updates `users.avatar_url`
+
+### CORS Configuration
+
+Storage Service must allow cross-origin requests từ Frontend:
+
+```java
+@Configuration
+public class CorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:3000"); // Dev
+        config.addAllowedOrigin("https://kiteclass.vn"); // Prod
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+}
+```
+
+### Related PRs
+
+- PR 1.12: Gateway JWT validation sharing with Storage Service
+- PR 2.10.1: Storage Service file management
+- PR 3.10: Frontend profile picture upload
+
+**Documentation**: See [Storage Service Design](./storage-service-design.md) for access control matrix (PRIVATE, COURSE, PUBLIC).
+
+---
+
 # PHASE 5: DATABASE MIGRATIONS
 
 ## Flyway Migration Files
