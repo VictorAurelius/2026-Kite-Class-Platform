@@ -30,6 +30,121 @@ Báo cáo này đánh giá 2 thay đổi quan trọng đối với kiến trúc 
 3. [Best Practices & Recommendations](#best-practices--recommendations)
 4. [Implementation Roadmap](#implementation-roadmap)
 5. [Risk Assessment](#risk-assessment)
+6. [Storage Integration Decision](#storage-integration-decision)
+
+---
+
+## Storage Integration Decision (Updated 2026-02-27)
+
+### Context
+
+KiteClass Platform cần file storage cho avatars, documents, videos, certificates. Câu hỏi: Dedicated Storage Service hay integrate trực tiếp vào Core Service?
+
+### Design Finalized
+
+**Decision**: Dedicated **Storage Service** (PR 2.10.1) với S3-compatible storage backend.
+
+**Rationale**:
+- **Separation of concerns**: File management logic tách biệt với business logic (Student, Course, Attendance)
+- **Scalability**: Storage Service có thể scale independently khi file volume tăng
+- **Reusability**: Frontend, Gateway, Media Service đều có thể dùng chung Storage APIs
+- **Technology choice**: S3 SDK, presigned URLs, quota tracking - không làm phình Core Service
+
+### Architecture
+
+**Object Storage**: MinIO (dev), AWS S3 hoặc CloudFlare R2 (prod)
+- **MinIO** (dev): Self-hosted S3-compatible, Testcontainers cho integration tests
+- **AWS S3** (prod): Managed service, high availability
+- **CloudFlare R2** (prod alternative): Zero egress fees, cheaper for CDN use case
+
+**Upload Method**: Presigned URLs (client uploads directly to S3, bypass backend)
+- **Pros**: Lower backend load, faster upload (no proxy)
+- **Cons**: Client phải handle S3 errors (network issues, quota exceeded)
+- **Why**: Scalability - backend chỉ generate URL, không stream file data
+
+**Metadata Storage**: PostgreSQL (`uploaded_files`, `storage_quotas` tables)
+- **uploaded_files**: File metadata (original filename, storage path, size, status, access control)
+- **storage_quotas**: Per-tenant quota tracking (Trial: 500MB, Basic: 5GB, Pro: 50GB)
+
+**Multi-tenant Isolation**:
+- **Storage path prefix**: `{tenant-id}/{file-type}/{uuid}.{ext}` (e.g., `tenant-123/avatars/abc.png`)
+- **Database filter**: Hibernate `@FilterDef` on `instance_id` column
+- **S3 bucket policies** (optional): IAM policies prevent cross-tenant access
+
+### Migration Path
+
+**V13 Migration**: `V13__create_file_storage_tables.sql`
+- Create `uploaded_files` table (15 columns: id, instance_id, uploaded_by, file_type, storage_path, file_size_bytes, mime_type, status, access_level, etc.)
+- Create `storage_quotas` table (7 columns: id, instance_id, quota_bytes, used_bytes, last_calculated_at, etc.)
+- Add indexes for performance (instance_id, uploaded_by, file_type, status)
+
+**Backward Compatibility**:
+- Keep existing `avatar_url VARCHAR(500)` columns in students/teachers tables
+- Add new `avatar_file_id UUID` column (nullable)
+- Migrate existing URLs to `uploaded_files` records (background job)
+- Phase out `avatar_url` after 2-3 versions
+
+### Quota Enforcement
+
+**Default Tiers**:
+- **Trial**: 500 MB (524,288,000 bytes)
+- **Basic**: 5 GB (5,368,709,120 bytes)
+- **Pro**: 50 GB (53,687,091,200 bytes)
+- **Enterprise**: Custom (unlimited)
+
+**Enforcement Point**: Before generating presigned upload URL
+- Check current usage: `SELECT used_bytes FROM storage_quotas WHERE instance_id = ?`
+- Check if `used_bytes + file_size <= quota_bytes`
+- If exceeded → Reject with `403 STORAGE_QUOTA_EXCEEDED`
+
+**Scheduled Job**: Daily quota recalculation
+```sql
+UPDATE storage_quotas sq
+SET used_bytes = (
+    SELECT COALESCE(SUM(file_size_bytes), 0)
+    FROM uploaded_files uf
+    WHERE uf.instance_id = sq.instance_id
+      AND uf.status = 'READY'
+      AND uf.deleted = FALSE
+),
+last_calculated_at = NOW();
+```
+
+### Access Control
+
+**Three Levels**:
+- **PRIVATE**: Only `uploaded_by` user can download (e.g., personal documents)
+- **COURSE**: Teacher + enrolled students can download (e.g., course syllabus, lecture videos)
+- **PUBLIC**: All authenticated users can download (e.g., marketing images, public teacher profiles)
+
+**Enforcement**: In `FileService.generateDownloadUrl()` method
+- Fetch `uploaded_files` record
+- Check `access_level`:
+  - PRIVATE: Verify `uploaded_by == current_user_id`
+  - COURSE: Verify user is teacher OR enrolled student (query enrollments table)
+  - PUBLIC: Allow if authenticated
+- Generate presigned download URL (24h expiry)
+
+### Related PRs
+
+- **PR 2.10.1**: Storage & File Management Service (Core)
+- **PR 3.10**: Profile picture upload (Frontend)
+- **PR 3.12**: Guest Pages (teacher photos, hero images)
+
+**Documentation**: See [Storage Service Design](../../03-planning/implementation/storage-service-design.md) for complete API flows, testing guides, and local development setup (MinIO Console).
+
+### Comparison: Storage Service vs Core Integration
+
+| Aspect | Dedicated Storage Service ✅ | Integrated in Core |
+|--------|------------------------------|---------------------|
+| **Separation of Concerns** | ✅ Clean separation | ❌ Mixed with business logic |
+| **Scalability** | ✅ Independent scaling | ❌ Core Service bloat |
+| **Reusability** | ✅ Shared APIs (Gateway, Frontend, Media) | ⚠️ Core-specific |
+| **Technology Stack** | ✅ S3 SDK isolated | ❌ Core dependencies grow |
+| **Testing** | ✅ MinIO Testcontainer isolated | ❌ Core tests slower |
+| **Deployment** | ⚠️ One more service | ✅ Simpler deployment |
+
+**Decision**: Dedicated Storage Service wins - benefits outweigh deployment complexity.
 
 ---
 
