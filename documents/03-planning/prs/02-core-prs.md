@@ -3,11 +3,11 @@
 **Service**: kiteclass-core
 **Version**: V4.1 (Bundled Model)
 **Tech Stack**: Spring Boot 3.5.11, Java 17, PostgreSQL 15
-**Total PRs**: 19 (15 original + 2 V4.1 LMS + 2 V4.1 Trial Learning)
-**Completed**: 8 (42%)
-**Planned**: 2 (PR 2.13-2.14 Trial Learning)
+**Total PRs**: 20 (15 original + 2 V4.1 LMS + 2 V4.1 Trial Learning + 1 V4.1 Storage) ⭐
+**Completed**: 8 (40%)
+**Planned**: 3 (PR 2.10.1 Storage, PR 2.13-2.14 Trial Learning)
 **Status**: 🔄 Active development
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-02-27 ⭐
 
 **Reference**:
 - Technical plan: [`core-service-implementation.md`](../implementation/core-service-implementation.md)
@@ -411,6 +411,116 @@
 - Logo generation (DALL-E integration)
 - Tagline generation (GPT-4 integration)
 - Color scheme suggestions
+
+---
+
+### PR 2.10.1: Storage & File Management Service ⭐ NEW
+**Status**: Pending
+**Dependencies**: PR 2.2 (Core Common Components) ✅
+**Blocks**: PR 2.15 (Settings), PR 3.10 (Frontend Profile), PR 3.12 (Frontend Guest Pages)
+**Estimated**: 2-3 weeks
+**Priority**: 🔥 High (foundation for avatar, document, video uploads)
+
+**Description**:
+Implement comprehensive file storage service với S3-compatible storage (MinIO dev, AWS S3 prod), presigned URLs cho secure upload/download, storage quota tracking, và multi-tenant isolation.
+
+**Features**:
+- Direct client-to-S3 uploads via presigned URLs (bypass backend)
+- Storage quota enforcement (Trial: 500MB, Basic: 5GB, Pro: 50GB)
+- Multi-tenant isolation (bucket prefixes + instance_id)
+- File lifecycle tracking (UPLOADING → PROCESSING → READY → FAILED)
+- Access control (PRIVATE, COURSE, PUBLIC)
+- Video metadata support (duration, resolution, codec)
+- Soft delete với 30-day grace period
+- Scheduled jobs: quota calculation, file retention cleanup
+
+**Entities**:
+- `UploadedFile` (id, instanceId, uploadedBy, fileType, originalFilename, storagePath, fileSizeBytes, mimeType, status, durationSeconds, resolution, videoCodec, accessLevel, relatedEntityType, relatedEntityId, deleted)
+- `StorageQuota` (id, instanceId[unique], quotaBytes, usedBytes, lastCalculatedAt)
+
+**Services**:
+- `FileService` - Upload/download flows, validation, quota check
+  - `InitiateUploadRequest initiateUpload(fileName, fileSize, fileType, mimeType)` → presigned upload URL (10min expiry)
+  - `void completeUpload(fileId)` → mark file READY
+  - `DownloadResponse generateDownloadUrl(fileId)` → presigned download URL (24h expiry)
+  - `void softDelete(fileId)` → mark deleted=true
+- `StorageQuotaService` - Quota calculation (scheduled), enforcement
+  - `QuotaResponse getQuota(tenantId)` → current usage
+  - `void recalculateQuotas()` → scheduled job (daily)
+  - `boolean checkQuota(tenantId, fileSize)` → before upload
+- `FileRetentionService` - Cleanup expired deleted files (scheduled)
+  - `void cleanupExpiredFiles()` → delete files older than 30 days
+
+**Controllers**:
+- `FileController` - REST endpoints:
+  - POST /api/v1/files/upload/initiate - Generate presigned upload URL
+  - POST /api/v1/files/{id}/complete - Mark upload complete
+  - GET /api/v1/files/{id}/download - Generate presigned download URL
+  - DELETE /api/v1/files/{id} - Soft delete file
+- `StorageQuotaController`:
+  - GET /api/v1/storage/quota - Get tenant quota
+  - POST /api/v1/storage/quota/recalculate - Manual recalculation (admin)
+
+**DTOs**:
+- `InitiateUploadRequest` (fileName, fileSize, fileType, mimeType)
+- `InitiateUploadResponse` (uploadUrl, fileId, expiresIn)
+- `CompleteUploadResponse` (fileId, status, downloadUrl)
+- `DownloadResponse` (downloadUrl, expiresIn, fileName, fileSizeBytes, mimeType)
+- `QuotaResponse` (quotaBytes, usedBytes, availableBytes, usagePercent)
+
+**File Types**:
+- AVATAR: max 10MB (image/png, image/jpeg, image/webp)
+- DOCUMENT: max 50MB (application/pdf, .docx, .xlsx)
+- VIDEO: max 2GB (video/mp4, video/webm)
+- CERTIFICATE: max 5MB (application/pdf)
+- ASSIGNMENT: max 50MB (application/pdf, .docx)
+
+**Configuration**:
+- S3Client bean (AWS SDK v2.20.26)
+- S3Presigner bean
+- Storage properties (endpoint, bucket, credentials, region)
+- MinIO Docker service trong docker-compose.dev.yml
+- Storage path format: `{tenant-id}/{file-type}/{uuid}.{ext}`
+
+**Business Rules**:
+- BR-STO-001: Quota check before generating presigned URL
+- BR-STO-002: Files isolated by tenant (instance_id filter)
+- BR-STO-003: Soft delete with 30-day retention
+- BR-STO-004: Access control enforced on download
+  - PRIVATE: Only uploaded_by user
+  - COURSE: Teacher + enrolled students
+  - PUBLIC: All authenticated users
+- BR-STO-005: Video files require processing (status: UPLOADING → PROCESSING → READY)
+
+**Testing**:
+- 10+ unit tests minimum
+- MinIO Testcontainer integration
+- FileUploadIntegrationTest (full upload flow: initiate → upload → complete → download)
+- StorageQuotaIntegrationTest (quota enforcement, exceeding limit)
+- Multi-tenant isolation tests (cannot access other tenant's files)
+- Presigned URL tests (expiry, invalid URLs)
+- File retention tests (cleanup after 30 days)
+
+**Database Migration**: `V13__create_file_storage_tables.sql`
+
+**Documentation**:
+- [`storage-service-design.md`](../implementation/storage-service-design.md) - Complete architecture, flows, testing guides
+- Local testing guide (MinIO Console, curl examples)
+- init-minio.sh script for local setup
+
+**Acceptance Criteria**:
+- [ ] Database migrations applied successfully
+- [ ] Entities created với Hibernate filters
+- [ ] FileService implements upload/download flows
+- [ ] Presigned URLs generated correctly (10min upload, 24h download)
+- [ ] Storage quota enforced before upload
+- [ ] Multi-tenant isolation working (files isolated by instance_id)
+- [ ] Integration tests passing (upload, download, quota, isolation)
+- [ ] MinIO Testcontainer configured
+- [ ] Local testing với MinIO Console successful
+- [ ] Documentation complete
+
+**Implementation Reference**: `documents/03-planning/implementation/storage-service-design.md` (3,623 lines)
 
 ---
 
