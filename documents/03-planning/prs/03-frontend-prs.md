@@ -208,7 +208,12 @@
 
 ### PR 3.10: Settings & Profile Pages ⏳
 **Status**: Pending
-**Dependencies**: PR 2.13 Settings Module (backend)
+**Dependencies**:
+- ⚠️ **NEW**: PR 2.10.1 Storage Service (for profile picture upload)
+- PR 2.13 Settings Module (backend)
+- PR 3.1 Frontend Project Setup
+- PR 3.2 Authentication Pages
+
 **Estimated**: 1 week
 
 **Pages**:
@@ -221,12 +226,19 @@
 - System settings (date format, timezone, language)
 - User preferences (notifications, theme)
 - Email templates customization
-- Profile picture upload
+- **NEW**: Profile picture upload:
+  - Use `FileUploadDropzone` component
+  - Call Storage Service APIs (`/api/v1/files/upload/initiate`)
+  - Preview before upload (thumbnail)
+  - Update user profile với `avatarFileId`
+  - Display current avatar với presigned download URL
+  - Storage quota indicator (show used/total storage)
 
 **Components**:
 - SettingsForm (system settings)
 - ProfileForm (user profile)
 - ChangePasswordForm
+- **NEW**: ProfilePictureUpload (avatar upload form with FileUploadDropzone)
 
 **Testing**: Settings update tests, profile tests
 
