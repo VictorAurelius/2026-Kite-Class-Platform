@@ -337,6 +337,7 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 - ✅ **PR 2.12: Spring Boot 3.5.10 Upgrade** *(PR-REVIEW-2.5 complete)*
 - ✅ **PR 2.5: Class Module** *(KC-003, merged 2026-02-22, 42 tests)*
+- ✅ **PR 2.10.1: File Storage Module** *(merged 2026-02-27, 6 integration tests, S3/MinIO)*
 - ⏳ PR 2.6: Enrollment Module
 - ⏳ PR 2.7: Attendance Module
 - ⏳ PR 2.7.1: Assignment Module
@@ -346,14 +347,15 @@ Every PR must meet these quality gates before merge:
 - ⏳ PR 2.9: Settings & Preferences
 - ⏳ PR 2.10: Core Docker & Final Integration
 
-**Core Status:** 8/15 PRs completed (53.3%) — Last updated: 2026-02-22
-**Tests:** 292 passing (260 unit + 32 integration), 0 failures
-**Spring Boot:** ✅ 3.5.11
+**Core Status:** 9/16 PRs completed (56.3%) — Last updated: 2026-02-27
+**Tests:** 303 passing (269 unit + 34 integration), 0 failures, 31 skipped
+**Spring Boot:** ✅ 3.5.10
 **Modules Complete:**
 - ✅ Student Module: CRUD, multi-tenant, validation, soft delete
 - ✅ Teacher Module: CRUD, status management (ACTIVE/ON_LEAVE/TERMINATED), multi-tenant
 - ✅ Course Module: CRUD, lifecycle (DRAFT → PUBLISHED → ARCHIVED), soft delete restrictions
 - ✅ **Class Module (PR 2.5):** CRUD, lifecycle (SCHEDULED → IN_PROGRESS → COMPLETED), class code generation, schedule/sessions, 42 tests
+- ✅ **Storage Module (PR 2.10.1):** S3/MinIO presigned URLs, quota enforcement, file type validation, multi-tenant isolation, 6 tests
 **Cross-Service APIs Ready:**
 - ✅ GET /internal/students/{id} - Retrieve student profile
 - ✅ POST /internal/students - Create student during registration
@@ -5315,16 +5317,25 @@ Hoàn thiện Frontend với E2E tests.
 
 **Objective**: Implement file storage service với presigned URLs, storage quota tracking, và multi-tenant isolation.
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ **COMPLETED** (2026-02-27) - PR #14 merged
 
 **Dependencies:**
-- [ ] PR 0: Database Foundation (uploaded_files, storage_quotas tables trong V1)
+- [x] PR 0: Database Foundation (uploaded_files, storage_quotas tables trong V10)
 
-**Blocks:**
-- PR 2.7.1 (Assignment Module - file attachments)
-- PR 2.15 (Settings - profile pictures)
-- PR 3.10 (Profile upload UI)
-- PR 3.12 (Guest Pages - hero images, teacher photos)
+**Unblocks:**
+- ✅ PR 2.7.1 (Assignment Module - file attachments)
+- ✅ PR 2.15 (Settings - profile pictures)
+- ✅ PR 3.10 (Profile upload UI)
+- ✅ PR 3.12 (Guest Pages - hero images, teacher photos)
+
+**Deliverables:**
+- ✅ Migration V10__create_storage_tables.sql (uploaded_files, storage_quotas)
+- ✅ S3/MinIO integration with presigned URLs
+- ✅ Storage quota enforcement (FREE 1GB, BASIC 10GB, PRO 50GB, ENTERPRISE 100GB)
+- ✅ File type whitelist validation (images, documents, videos, audio)
+- ✅ Multi-tenant isolation via storage path prefix
+- ✅ 6 integration tests (all passing)
+- ✅ Docker Compose MinIO service configured
 
 **Context**:
 - **Design**: documents/03-planning/implementation/storage-service-design.md (3,623 lines)
