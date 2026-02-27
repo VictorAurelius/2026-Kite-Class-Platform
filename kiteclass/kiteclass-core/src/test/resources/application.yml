@@ -1,0 +1,15 @@
+# Test configuration for ALL tests (loaded automatically)
+# Overrides src/main/resources/application.yml for test execution
+
+spring:
+  # CRITICAL: Disable Flyway for all Core Service tests
+  # Reason: Gateway manages migrations in production, Core has Flyway disabled
+  # Tests use Hibernate DDL auto to create schema from entities
+  flyway:
+    enabled: false
+
+  # Let Hibernate create schema from entities for tests
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
