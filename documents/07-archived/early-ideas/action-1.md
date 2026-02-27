@@ -1231,3 +1231,6 @@ lưu ý, việc thay đổi đường dẫn sẽ phải thay đổi code bên tr
 
 tạo skill để vấn đề location của file mới
 bật plan mode
+
+
+file PR-11-DESCRIPTION để làm gì đây, tại sao lại để ở root
