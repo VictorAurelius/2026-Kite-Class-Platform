@@ -1234,3 +1234,6 @@ bật plan mode
 
 
 file PR-11-DESCRIPTION để làm gì đây, tại sao lại để ở root
+
+check lại xem PR này đã đảm bảo skill chưa
+ví dụ: cập nhật status vào plan
