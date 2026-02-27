@@ -32,21 +32,18 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfiguration {
 
-    @SuppressWarnings("resource") // Container is reused and managed by Testcontainers framework
+    @SuppressWarnings("resource") // Container is managed by Testcontainers framework
     private static final PostgreSQLContainer<?> postgres =
-        new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
-            .withReuse(true);
+        new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
 
-    @SuppressWarnings("resource") // Container is reused and managed by Testcontainers framework
+    @SuppressWarnings("resource") // Container is managed by Testcontainers framework
     private static final GenericContainer<?> redis =
         new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-            .withExposedPorts(6379)
-            .withReuse(true);
+            .withExposedPorts(6379);
 
-    @SuppressWarnings("resource") // Container is reused and managed by Testcontainers framework
+    @SuppressWarnings("resource") // Container is managed by Testcontainers framework
     private static final MinIOContainer minio =
-        new MinIOContainer(DockerImageName.parse("minio/minio:latest"))
-            .withReuse(true);
+        new MinIOContainer(DockerImageName.parse("minio/minio:latest"));
 
     static {
         postgres.start();
@@ -56,7 +53,7 @@ public class TestContainersConfiguration {
 
     /**
      * PostgreSQL container bean.
-     * Container is reused across all tests for performance.
+     * Container is created fresh for each test run to ensure clean state.
      *
      * @return configured PostgreSQL container
      */
@@ -67,7 +64,7 @@ public class TestContainersConfiguration {
 
     /**
      * Redis container bean.
-     * Container is reused across all tests for performance.
+     * Container is created fresh for each test run to ensure clean state.
      *
      * @return configured Redis container
      */
@@ -78,7 +75,7 @@ public class TestContainersConfiguration {
 
     /**
      * MinIO container bean (S3-compatible storage).
-     * Container is reused across all tests for performance.
+     * Container is created fresh for each test run to ensure clean state.
      *
      * @return configured MinIO container
      */
