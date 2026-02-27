@@ -2067,11 +2067,13 @@ Thực hiện Class Module của kiteclass-core-service-plan.md.
 - Attendance Module: ClassSession-Attendance relationship
 ```
 
-## ⏳ PR 2.6 - Enrollment Module
+## ✅ PR 2.6 - Enrollment Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #15 merged on 2026-02-27)
 **Dependencies:** PR 2.3 Student Module, PR 2.5 Class Module
 **Business Logic:** docs/modules/enrollment-module-business-logic.md
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/15
+**Test Results:** 22 tests (8 unit + 14 integration) - ALL PASS
 
 ```
 Thực hiện Enrollment Module của kiteclass-core-service-plan.md.
