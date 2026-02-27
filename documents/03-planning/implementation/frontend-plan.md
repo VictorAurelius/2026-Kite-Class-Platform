@@ -2218,6 +2218,230 @@ export function StudentForm({ defaultValues, onSubmit, isLoading }: StudentFormP
 
 ---
 
+# PHASE 7B: FILE UPLOAD COMPONENTS ⭐ NEW
+
+## Purpose
+Provide reusable file upload components with S3 presigned URL integration for avatar, document, and video uploads.
+
+## Components
+
+### 1. `FileUploadDropzone.tsx`
+
+```tsx
+interface FileUploadDropzoneProps {
+  onFileSelect: (file: File) => void;
+  accept: string; // "image/*", "application/pdf", etc.
+  maxSize: number; // bytes
+  fileType: 'AVATAR' | 'DOCUMENT' | 'VIDEO' | 'CERTIFICATE';
+  disabled?: boolean;
+}
+
+export function FileUploadDropzone({
+  onFileSelect,
+  accept,
+  maxSize,
+  fileType,
+  disabled
+}: FileUploadDropzoneProps) {
+  // Implementation with react-dropzone
+  // Client-side validation (file type, size)
+  // Preview before upload
+}
+```
+
+**Features**:
+- Drag-and-drop zone với visual feedback
+- File type validation (client-side)
+- File size validation (check against maxSize)
+- Image preview (thumbnail) cho AVATAR type
+- PDF first page preview cho DOCUMENT type
+
+### 2. `FileUploadProgress.tsx`
+
+```tsx
+interface FileUploadProgressProps {
+  fileId: string;
+  fileName: string;
+  progress: number; // 0-100
+  status: 'uploading' | 'processing' | 'ready' | 'failed';
+  onCancel?: () => void;
+  error?: string;
+}
+
+export function FileUploadProgress({
+  fileId,
+  fileName,
+  progress,
+  status,
+  onCancel,
+  error
+}: FileUploadProgressProps) {
+  // Linear progress bar
+  // Status icons (CheckCircle, XCircle, Spinner)
+  // Cancel button (abort upload)
+}
+```
+
+**Features**:
+- Linear progress bar (Shadcn Progress component)
+- Status indicators with icons
+- Cancel button để abort upload
+- Error messages với retry button
+
+### 3. `useFileUpload.ts` Hook
+
+```tsx
+interface UseFileUploadReturn {
+  initiateUpload: (file: File, fileType: string) => Promise<{ uploadUrl: string; fileId: string }>;
+  uploadToS3: (uploadUrl: string, file: File, onProgress: (percent: number) => void) => Promise<void>;
+  completeUpload: (fileId: string) => Promise<{ downloadUrl: string }>;
+  isUploading: boolean;
+  progress: number;
+  error: string | null;
+  reset: () => void;
+}
+
+export function useFileUpload(): UseFileUploadReturn {
+  // State management
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  // API calls
+  const initiateUpload = async (file: File, fileType: string) => {
+    const res = await fetch('/api/v1/files/upload/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileSize: file.size,
+        fileType,
+        mimeType: file.type
+      })
+    });
+    return res.json();
+  };
+
+  const uploadToS3 = async (uploadUrl: string, file: File, onProgress) => {
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = (e.loaded / e.total) * 100;
+        onProgress(percent);
+      }
+    });
+    // XMLHttpRequest for progress tracking
+  };
+
+  const completeUpload = async (fileId: string) => {
+    const res = await fetch(`/api/v1/files/${fileId}/complete`, { method: 'POST' });
+    return res.json();
+  };
+
+  return { initiateUpload, uploadToS3, completeUpload, isUploading, progress, error, reset };
+}
+```
+
+### 4. `StorageQuotaIndicator.tsx`
+
+```tsx
+interface StorageQuotaProps {
+  quotaBytes: number;
+  usedBytes: number;
+  onRefresh?: () => void;
+}
+
+export function StorageQuotaIndicator({ quotaBytes, usedBytes, onRefresh }: StorageQuotaProps) {
+  const usagePercent = (usedBytes / quotaBytes) * 100;
+  const color = usagePercent > 90 ? 'destructive' : usagePercent > 80 ? 'warning' : 'default';
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Storage Usage</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Progress value={usagePercent} className={`h-2 ${color}`} />
+        <p className="text-sm mt-2">
+          {formatBytes(usedBytes)} / {formatBytes(quotaBytes)} used ({usagePercent.toFixed(1)}%)
+        </p>
+        {onRefresh && <Button onClick={onRefresh}>Refresh</Button>}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Integration Example
+
+```tsx
+// In Settings/Profile page (PR 3.10)
+function ProfilePage() {
+  const { initiateUpload, uploadToS3, completeUpload, isUploading, progress } = useFileUpload();
+
+  const handleAvatarUpload = async (file: File) => {
+    try {
+      // 1. Initiate
+      const { uploadUrl, fileId } = await initiateUpload(file, 'AVATAR');
+
+      // 2. Upload to S3
+      await uploadToS3(uploadUrl, file, (p) => console.log('Progress:', p));
+
+      // 3. Complete
+      const { downloadUrl } = await completeUpload(fileId);
+
+      // 4. Update user profile
+      await updateUserAvatar(fileId); // Or downloadUrl
+    } catch (err) {
+      console.error('Upload failed:', err);
+    }
+  };
+
+  return (
+    <div>
+      <FileUploadDropzone
+        onFileSelect={handleAvatarUpload}
+        accept="image/*"
+        maxSize={10 * 1024 * 1024} // 10MB
+        fileType="AVATAR"
+        disabled={isUploading}
+      />
+      {isUploading && (
+        <FileUploadProgress
+          fileId="temp"
+          fileName="avatar.png"
+          progress={progress}
+          status="uploading"
+        />
+      )}
+    </div>
+  );
+}
+```
+
+## File Type Constraints (Backend-enforced)
+
+- **AVATAR**: max 10MB (image/png, image/jpeg, image/webp)
+- **DOCUMENT**: max 50MB (application/pdf, .docx, .xlsx)
+- **VIDEO**: max 2GB (video/mp4, video/webm)
+- **CERTIFICATE**: max 5MB (application/pdf)
+- **ASSIGNMENT**: max 50MB (application/pdf, .docx)
+
+## Dependencies
+
+- `react-dropzone` for drag-and-drop
+- `@shadcn/ui` Progress, Card, Button components
+- Fetch API hoặc Axios cho HTTP requests
+- XMLHttpRequest cho upload progress tracking
+
+## Related PRs
+
+- PR 3.10: Settings & Profile (first consumer)
+- PR 3.12: Guest Pages (teacher photos, hero images)
+- PR 3.13: AI Branding (logo upload)
+
+---
+
 # PHASE 8: PAGE IMPLEMENTATIONS
 
 ## 8.1. Login Page
