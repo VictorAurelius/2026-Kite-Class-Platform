@@ -16,7 +16,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_FILE="$PROJECT_ROOT/docker-compose.dev.yml"
+# Default to kiteclass compose file (can be overridden with environment variable)
+COMPOSE_FILE="${COMPOSE_FILE:-$PROJECT_ROOT/kiteclass/docker-compose.dev.yml}"
 
 cd "$PROJECT_ROOT"
 

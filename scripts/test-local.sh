@@ -3,7 +3,8 @@
 # Runs tests and automatically cleans up Testcontainers
 #
 # Usage:
-#   ./scripts/test-local.sh [core|gateway|all]
+#   ./scripts/test-local.sh [core|gateway|all]                    # KiteClass (default)
+#   ./scripts/test-local.sh <project> [core|gateway|all]          # Specific project
 
 set -e
 
@@ -14,10 +15,17 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-SERVICE="${1:-all}"
+# Parse arguments - backward compatible
+if [[ "$1" == "kiteclass" || "$1" == "kitehub" ]]; then
+    PROJECT="$1"
+    SERVICE="${2:-all}"
+else
+    PROJECT="kiteclass"  # Default to kiteclass for backward compatibility
+    SERVICE="${1:-all}"
+fi
 
 echo -e "${BLUE}================================================${NC}"
-echo -e "${BLUE}  KiteClass - Local Test Runner${NC}"
+echo -e "${BLUE}  $PROJECT - Local Test Runner${NC}"
 echo -e "${BLUE}================================================${NC}"
 echo ""
 
@@ -36,32 +44,32 @@ case "$SERVICE" in
     core)
         echo -e "${BLUE}📦 Testing Core Service...${NC}"
         echo ""
-        cd kiteclass/kiteclass-core
+        cd $PROJECT/$PROJECT-core
         ./mvnw clean test
         ;;
     gateway)
         echo -e "${BLUE}🚪 Testing Gateway Service...${NC}"
         echo ""
-        cd kiteclass/kiteclass-gateway
+        cd $PROJECT/$PROJECT-gateway
         ./mvnw clean test
         ;;
     all)
         echo -e "${BLUE}📦 Testing Core Service...${NC}"
         echo ""
-        cd kiteclass/kiteclass-core
+        cd $PROJECT/$PROJECT-core
         ./mvnw clean test
         cd ../..
 
         echo ""
         echo -e "${BLUE}🚪 Testing Gateway Service...${NC}"
         echo ""
-        cd kiteclass/kiteclass-gateway
+        cd $PROJECT/$PROJECT-gateway
         ./mvnw clean test
         cd ../..
         ;;
     *)
         echo -e "${RED}❌ Invalid service: $SERVICE${NC}"
-        echo "Usage: $0 [core|gateway|all]"
+        echo "Usage: $0 [<project>] [core|gateway|all]"
         exit 1
         ;;
 esac
