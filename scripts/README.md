@@ -130,7 +130,57 @@ Hiển thị trạng thái của:
 ./scripts/dev-status.sh
 ```
 
-### 4. `seed-data.sh` - Tạo dữ liệu mẫu
+### 4. `docker-build.sh` - Build Docker images with version tracking
+
+Build tất cả Docker images với automatic version tagging dựa trên git commit và PR number.
+
+**Usage:**
+```bash
+# Build all services
+./scripts/docker-build.sh
+```
+
+**Features:**
+- ✅ Auto-detect PR number from branch name
+- ✅ Tag images with `pr-{PR}-{commit}` or `{branch}-{commit}`
+- ✅ Save build history to `.docker-build-logs/build-history.log`
+- ✅ Track current version in `.docker-build-logs/current-version.txt`
+- ✅ Embed metadata as Docker labels
+
+**See also:** `DOCKER-BUILD-GUIDE.md` for full documentation
+
+### 5. `docker-version.sh` - Show current Docker build version
+
+Hiển thị version của Docker images hiện tại đang chạy.
+
+**Usage:**
+```bash
+./scripts/docker-version.sh
+```
+
+**Shows:**
+- Current build tag (e.g., `pr-3.8-43f9a72`)
+- Branch name and commit hash
+- PR number (if applicable)
+- Running containers status
+
+### 6. `check-problems.sh` - Check IDE problems
+
+Kiểm tra Java compile errors, Checkstyle violations, và TypeScript errors.
+
+**Usage:**
+```bash
+./scripts/check-problems.sh
+```
+
+**Checks:**
+- ✅ Core Service (Java + Checkstyle)
+- ✅ Gateway Service (Java + Checkstyle)
+- ✅ Frontend (TypeScript + ESLint)
+
+**Note:** Script này giống với những gì IDE run khi bạn mở project.
+
+### 7. `seed-data.sh` - Tạo dữ liệu mẫu
 
 Tạo:
 - 5 học viên mẫu

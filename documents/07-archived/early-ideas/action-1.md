@@ -1218,3 +1218,16 @@ check lại toàn bộ thư mục documents để xem tất cả các file nào 
 bật plan mode
 
 Lưu ý: tất cả các file phải khớp logic với nhau
+
+hãy cập nhật lại readme của documents để biến nó thành bản đồ cho documents để các plan sau có thể cập nhật dễ hơn, thay vì phải quét toàn bộ documents
+
+dùng 1 file thôi, tôi chỉ cần bản đồ, thông tin khác có thể bỏ qua
+
+tôi thấy thư mục nginx và các file nằm ngoài cùng đang chưa được phân loại vào đúng thư mục
+ví dụ cái nào thuộc kiteclass thì nên để trong kiteclass
+hãy giúp tôi phân loại lại
+
+lưu ý, việc thay đổi đường dẫn sẽ phải thay đổi code bên trong của file được phân loại
+
+tạo skill để vấn đề location của file mới
+bật plan mode
