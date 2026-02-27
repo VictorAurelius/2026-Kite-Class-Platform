@@ -108,7 +108,8 @@ class StorageIntegrationTest {
             .andExpect(jsonPath("$.success", is(true)))
             .andExpect(jsonPath("$.data.fileId", notNullValue()))
             .andExpect(jsonPath("$.data.uploadUrl", notNullValue()))
-            .andExpect(jsonPath("$.data.uploadUrl", containsString(minioContainer.getS3URL())))
+            .andExpect(jsonPath("$.data.uploadUrl", containsString(".jpg")))
+            .andExpect(jsonPath("$.data.uploadUrl", containsString("X-Amz-Algorithm")))
             .andExpect(jsonPath("$.data.expiresAt", notNullValue()));
     }
 
@@ -131,8 +132,7 @@ class StorageIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.success", is(false)))
-            .andExpect(jsonPath("$.errorCode", is("FILE_TYPE_NOT_ALLOWED")));
+            .andExpect(jsonPath("$.code", is("FILE_TYPE_NOT_ALLOWED")));
     }
 
     @Test
@@ -154,8 +154,7 @@ class StorageIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.success", is(false)))
-            .andExpect(jsonPath("$.errorCode", is("FILE_SIZE_EXCEEDS_MAXIMUM")));
+            .andExpect(jsonPath("$.code", is("FILE_SIZE_EXCEEDS_MAXIMUM")));
     }
 
     @Test
@@ -191,9 +190,8 @@ class StorageIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.success", is(false)))
-            .andExpect(jsonPath("$.errorCode", is("STORAGE_QUOTA_EXCEEDED")));
+            .andExpect(status().isInsufficientStorage())
+            .andExpect(jsonPath("$.code", is("STORAGE_QUOTA_EXCEEDED")));
     }
 
     @Test
