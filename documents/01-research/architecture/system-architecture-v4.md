@@ -295,6 +295,54 @@ GET  /api/v1/contact-messages            # List contact messages
 
 ---
 
+### Storage & File Management
+
+**Implementation**: See [Storage Service Design](../../03-planning/implementation/storage-service-design.md)
+
+**Architecture:**
+- Object storage: MinIO (dev), AWS S3 (prod), CloudFlare R2 (CDN)
+- Metadata database: PostgreSQL (uploaded_files, storage_quotas tables)
+- Upload method: Presigned URLs (client → S3 direct, bypass backend)
+- Download method: Presigned URLs with access control
+- Quota tracking: Per-tenant limits (Trial: 500MB, Basic: 5GB, Pro: 50GB)
+
+**File Types:**
+- Avatars (10MB): User profile pictures
+- Documents (50MB): Course materials, assignments
+- Videos (2GB): Lecture recordings (see Media Service for streaming)
+- Certificates (5MB): Student achievement certificates
+
+**Multi-tenant Isolation:**
+- Storage path: `{tenant-id}/{file-type}/{uuid}.{ext}`
+- Database: `instance_id` column + Hibernate filter
+- S3 bucket policies (optional): Prevent cross-tenant access
+
+**API Endpoints:**
+```
+# File upload/download
+POST /api/v1/files/upload/initiate       # Generate presigned upload URL
+POST /api/v1/files/{id}/complete         # Mark upload complete
+GET  /api/v1/files/{id}/download         # Generate presigned download URL
+DELETE /api/v1/files/{id}                # Soft delete (30-day retention)
+
+# Storage quota
+GET  /api/v1/storage/quota               # Get tenant quota
+POST /api/v1/storage/quota/recalculate   # Manual recalculation (admin)
+```
+
+**Business Logic:**
+- Quota enforcement: Check before generating presigned URL
+- Access control: PRIVATE (uploader only), COURSE (teacher+students), PUBLIC (all authenticated)
+- File lifecycle: UPLOADING → PROCESSING → READY → FAILED
+- Soft delete: 30-day grace period before permanent deletion
+- Scheduled jobs: Daily quota recalculation, cleanup expired files
+
+**Migration**: V13 (File Storage Tables)
+
+**RAM Impact**: ~50MB (lightweight, presigned URLs offload work to S3)
+
+---
+
 ## 3. Media Service Architecture (Chi tiết)
 
 ### 3.1. Phase 1: Thesis Demo (MinIO + FFmpeg)
