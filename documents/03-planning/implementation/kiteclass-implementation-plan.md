@@ -2568,8 +2568,47 @@ Thực hiện Invoice Module - Hóa đơn học phí, trả góp, late fees, ref
 ## ⏳ PR 2.8.1 - Payment Module
 
 **Status:** ⏳ NOT STARTED
-**Dependencies:** PR 2.8 Invoice Module
+**Dependencies:**
+- [ ] PR 0: Database Foundation
+- [ ] PR 2.8: Invoice Module
 **Business Logic:** docs/modules/payment-module-business-logic.md
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Payment gateway timeout (VNPay, MoMo, ZaloPay) | Medium | High | Implement retry với exponential backoff, webhook fallback, timeout = 30s |
+| Transaction idempotency failure (duplicate payments) | Low | Critical | Use unique transaction_id, database unique constraint, check before process |
+| Webhook signature verification bypass | Low | Critical | Validate signature với gateway secret, log failed attempts, rate limiting |
+| Payment state inconsistency (gateway PAID but local PENDING) | Medium | High | Scheduled reconciliation job (hourly), manual review queue, alerts |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Overpayment không handle → accounting errors | Low | High | Overpayment detection, auto-refund or credit to account, admin notification |
+| Refund workflow chậm → customer complaints | Medium | Medium | SLA tracking (24h for refund approval), email notifications, escalation |
+| Payment reconciliation mismatch → revenue loss | Medium | Critical | Daily reconciliation report, automated alerts, manual review process |
+| Payment method fraud (fake bank transfer proof) | Low | High | Manual verification for large amounts, flag suspicious transactions |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Webhook không receive (firewall, network issue) | Medium | High | Polling fallback (query gateway API every 5min), manual sync endpoint |
+| Invoice update event lost → payment not reflected | Low | High | Event retry mechanism, compensation transaction, audit logs |
+| Gateway API version change → integration break | Low | Medium | Version pinning, monitor gateway changelog, integration tests |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Webhook endpoint overwhelmed (burst payments) | Low | Medium | Rate limiting, async processing với queue, horizontal scaling |
+| Reconciliation query timeout với 100K+ payments | Medium | Medium | Pagination, composite index (status, created_at), batch processing |
+| Payment QR code generation chậm | Low | Low | Cache QR codes, async generation, CDN distribution |
+
+#### Data Migration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| N/A (new tables trong V1) | - | - | Tables created in PR 0 V1 migration |
 
 ```
 Thực hiện Payment Module - Payment processing, gateways, reconciliation.
