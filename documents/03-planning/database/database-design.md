@@ -77,7 +77,6 @@
 │  │  ├────────────────┤  │  │  ├────────────────┤  │  │  ├────────────────┤   │   │
 │  │  │ • students     │  │  │  │ • students     │  │  │  │ • students     │   │   │
 │  │  │ • teachers     │  │  │  │ • teachers     │  │  │  │ • teachers     │   │   │
-│  │  │ • parents      │  │  │  │ • parents      │  │  │  │ • parents      │   │   │
 │  │  │ • classes      │  │  │  │ • classes      │  │  │  │ • classes      │   │   │
 │  │  │ • attendance   │  │  │  │ • attendance   │  │  │  │ • attendance   │   │   │
 │  │  │ • invoices     │  │  │  │ • invoices     │  │  │  │ • invoices     │   │   │
@@ -170,13 +169,13 @@ Mỗi KiteClass instance (tenant) sử dụng **2 databases riêng biệt** theo
 │  │  Tables:                                                  │ │
 │  │  • students         (student profiles)                    │ │
 │  │  • teachers         (teacher profiles)                    │ │
-│  │  • parents          (parent profiles)                     │ │
 │  │  • classes          (class management)                    │ │
 │  │  • enrollments      (student-class relationship)          │ │
 │  │  • attendance       (attendance tracking)                 │ │
 │  │  • invoices         (billing)                             │ │
 │  │  • payments         (payment records)                     │ │
 │  │  • gamification tables                                    │ │
+│  │  (parents/parent_children → Parent Service future)        │ │
 │  └───────────────────────────────────────────────────────────┘ │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -214,7 +213,7 @@ CREATE INDEX idx_users_user_type ON users(user_type);
 CREATE INDEX idx_users_reference_id ON users(reference_id);
 ```
 
-#### Core Database - students/teachers/parents tables
+#### Core Database - students/teachers tables
 
 ```sql
 -- Students table (Core DB)
@@ -241,16 +240,8 @@ CREATE TABLE teachers (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
--- Parents table (Core DB)
-CREATE TABLE parents (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    relationship VARCHAR(50),
-    -- NO userId field - linked via Gateway.users.reference_id
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
+-- Note: Parents table thuộc Parent Service (Optional Addon - Future)
+-- Sẽ có separate database khi Parent Service được implement
 ```
 
 ### Mapping Logic
@@ -260,7 +251,7 @@ CREATE TABLE parents (
 | `ADMIN` | `NULL` | Admin không có entity trong Core |
 | `STAFF` | `NULL` | Staff không có entity trong Core |
 | `TEACHER` | `teachers.id` | Teacher profile trong Core |
-| `PARENT` | `parents.id` | Parent profile trong Core |
+| `PARENT` | `parents.id` (future) | Parent profile trong Parent Service (optional addon) |
 | `STUDENT` | `students.id` | Student profile trong Core |
 
 ### Ví dụ: Student Login Flow
@@ -936,57 +927,11 @@ CREATE INDEX idx_teachers_department ON teachers(department);
 -- NO userId field - linked via Gateway.users.reference_id
 ```
 
-### 3.3.3. parents
-
-```sql
-CREATE TABLE parents (
-    id BIGSERIAL PRIMARY KEY,
-
-    -- Profile
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255),
-    phone VARCHAR(20),
-    avatar_url VARCHAR(500),
-
-    -- Relationship
-    relationship VARCHAR(50),
-    -- father, mother, guardian
-
-    -- Address
-    address TEXT,
-
-    -- Audit
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    deleted BOOLEAN DEFAULT FALSE
-);
-
-CREATE INDEX idx_parents_email ON parents(email) WHERE deleted = FALSE;
-CREATE INDEX idx_parents_phone ON parents(phone);
-
--- NO userId field - linked via Gateway.users.reference_id
-```
-
-### 3.3.4. parent_children
-
-```sql
-CREATE TABLE parent_children (
-    id BIGSERIAL PRIMARY KEY,
-
-    parent_id BIGINT NOT NULL REFERENCES parents(id) ON DELETE CASCADE,
-    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-
-    relationship VARCHAR(50) NOT NULL,
-    is_primary_contact BOOLEAN DEFAULT FALSE,
-
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-
-    CONSTRAINT uk_parent_children UNIQUE (parent_id, student_id)
-);
-
-CREATE INDEX idx_parent_children_parent ON parent_children(parent_id);
-CREATE INDEX idx_parent_children_student ON parent_children(student_id);
-```
+**⚠️ Note về Parent Service:**
+- `parents` và `parent_children` tables thuộc **Parent Service (Optional Addon - Future)**
+- Parent Service là separate optional service theo Architecture V4.1
+- Không thuộc Core Database scope
+- Sẽ có separate database khi Parent Service được implement trong tương lai
 
 ---
 

@@ -383,6 +383,12 @@ Every PR must meet these quality gates before merge:
 - After 2026-01-28: 14 Core PRs (added 3 new PRs: 2.3.1, 2.7.1, 2.7.2; split PR 2.8 into 2.8 + 2.8.1)
 - After 2026-02-04: **15 Core PRs** (added PR 2.12: Spring Boot Upgrade)
 
+**⚠️ Note về Parent Service:**
+- Parent Service là **Optional Addon (Future)** theo Architecture V4.1
+- KHÔNG thuộc Core Service scope (separate service với separate database)
+- Parent-related features sẽ được implement sau khi Core Service stable
+- Current Core PRs KHÔNG bao gồm Parent Module
+
 ## Frontend (feature/frontend branch)
 ✅ **PR 3.1 COMPLETE** - Infrastructure foundation ready for visual testing
 
