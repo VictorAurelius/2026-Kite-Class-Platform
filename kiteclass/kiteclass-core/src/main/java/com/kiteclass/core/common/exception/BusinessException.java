@@ -59,19 +59,6 @@ public class BusinessException extends RuntimeException {
     }
 
     /**
-     * Creates a business exception with message.
-     *
-     * @param message error message
-     * @param status  HTTP status to return
-     */
-    public BusinessException(String message, HttpStatus status, String code) {
-        super(message);
-        this.code = code;
-        this.status = status;
-        this.args = null;
-    }
-
-    /**
      * Creates a business exception with code, status, cause, and message args.
      *
      * @param code   error code
