@@ -78,6 +78,162 @@ Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
 3. ✅ All: Check `development-workflow.md` for commit message format
 4. ✅ Git hooks will run automatically (checks JavaDoc, error codes, TypeScript types, etc.)
 
+---
+
+# RISK ASSESSMENT GUIDELINES
+
+Tất cả PRs có độ phức tạp >= Medium **PHẢI** bao gồm Risk Assessment section.
+
+## Risk Categories
+
+### 1. Technical Risks (Rủi ro Kỹ thuật)
+- **External dependencies:** S3, Redis, RabbitMQ, third-party APIs
+- **Complex algorithms:** Financial calculations, grading formulas, late penalty logic
+- **Performance bottlenecks:** N+1 queries, large file uploads, batch processing
+- **Configuration errors:** CORS settings, timeout values, connection pools
+
+**Examples:**
+- S3 timeout for 2GB video uploads
+- Redis serialization error với LocalDate fields
+- RabbitMQ message loss khi consumer down
+- CORS rejection khi frontend gọi presigned URL
+
+### 2. Business Risks (Rủi ro Nghiệp vụ)
+- **Data integrity:** Financial data consistency, grade calculation accuracy
+- **Workflow errors:** Payment reconciliation, enrollment state transitions
+- **Permission conflicts:** RBAC misconfiguration, unauthorized access
+- **User experience issues:** Confusing error messages, missing validations
+
+**Examples:**
+- Invoice total không khớp với payment amount
+- Teacher vô tình delete assignment khi có submissions
+- Student thấy điểm của người khác (multi-tenant leak)
+- Error message tiếng Anh khi user chọn tiếng Việt
+
+### 3. Integration Risks (Rủi ro Tích hợp)
+- **Cross-service communication:** Gateway ↔ Core, Feign client failures
+- **Event-driven workflows:** RabbitMQ event ordering, duplicate processing
+- **External API failures:** Payment gateway downtime, email service timeout
+- **Database FK constraints:** Soft references (reference_id) integrity
+
+**Examples:**
+- Gateway tạo user nhưng Core không tạo student → orphaned user
+- ASSIGNMENT_GRADED event fire 2 lần → duplicate notifications
+- VietQR API down → payment verification fails
+- Teacher delete nhưng user_id reference vẫn tồn tại
+
+### 4. Performance Risks (Rủi ro Hiệu năng)
+- **Scalability:** Pagination missing, batch operations, concurrent users
+- **Query optimization:** Missing indexes, N+1 selects, cartesian joins
+- **Caching strategy:** Cache invalidation, stale data, memory leaks
+- **Concurrent operations:** Race conditions, deadlocks, optimistic locking
+
+**Examples:**
+- GET /classes?page=1&size=1000 → OOM error
+- Attendance report query full table scan (missing index trên instance_id + date)
+- Redis cache không xóa khi update student → UI hiện data cũ
+- 2 requests update invoice cùng lúc → version conflict
+
+### 5. Data Migration Risks (Rủi ro Di chuyển Dữ liệu)
+- **Schema changes:** ALTER TABLE on large tables, index creation time
+- **Data transformation:** Type conversions, NULL handling, default values
+- **Rollback strategy:** Irreversible migrations, data loss on rollback
+- **Production data integrity:** Unique constraint violations, FK conflicts
+
+**Examples:**
+- ALTER TABLE students ADD COLUMN phone → 5 phút downtime
+- Migrate VARCHAR(20) → VARCHAR(50) → data truncated
+- V5 migration fails → rollback loses V4 data
+- Add UNIQUE constraint nhưng production có duplicates
+
+## Probability & Impact Levels
+
+### Probability (Xác suất)
+- **Low (<10%):** Rare edge case, well-tested pattern
+- **Medium (10-50%):** Known limitation, depends on external factors
+- **High (>50%):** Common scenario, poor test coverage
+
+### Impact (Tác động)
+- **Low:** Minor inconvenience, < 1 hour fix, no data loss
+- **Medium:** 1-day fix required, temporary workaround needed
+- **High:** Critical failure, data loss, security breach, requires emergency hotfix
+
+## Mitigation Strategies (Chiến lược Giảm thiểu)
+
+### Prevention (Ngăn chặn)
+- Input validation với Jakarta Bean Validation
+- Database constraints (CHECK, FK, UNIQUE)
+- Comprehensive unit/integration tests
+- Feature flags for gradual rollout
+
+### Detection (Phát hiện)
+- Application monitoring (Prometheus, Grafana)
+- Structured logging with correlation IDs
+- Health checks và alerting
+- Automated test failures in CI
+
+### Recovery (Phục hồi)
+- Database rollback scripts
+- Circuit breaker for external APIs
+- Retry logic với exponential backoff
+- Manual recovery procedures (runbook)
+
+## Risk Assessment Template
+
+```markdown
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| S3 timeout cho large files | Medium | Medium | Tăng TTL lên 30min, thêm progress tracking |
+| Redis cache miss → DB overload | Low | High | Implement cache warming, add rate limiting |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Teacher xóa nhầm assignment | Medium | Medium | Soft delete + 30-day recovery, confirmation modal |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Gateway user creation fails nhưng Core student created | Low | High | Use Saga pattern, implement compensating transaction |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Attendance report query timeout với 10K students | High | Medium | Add pagination, create composite index (instance_id, date, class_id) |
+
+#### Data Migration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| V5 migration fails on production | Low | Critical | Test on staging với production data snapshot, prepare rollback script |
+```
+
+## Khi nào cần Risk Assessment?
+
+**PHẢI CÓ (Required):**
+- External dependencies (S3, payment gateway, email service)
+- Financial calculations (invoices, payments, refunds)
+- Cross-service integration (Gateway ↔ Core)
+- File uploads/storage management
+- Database migrations (ALTER TABLE, data transformation)
+- Complex business logic (grading, attendance, enrollment)
+
+**NÊN CÓ (Recommended):**
+- Multi-step workflows (registration, payment, enrollment)
+- New technology/library integration
+- Performance-critical features (reports, analytics)
+- PRs affecting existing data
+
+**KHÔNG CẦN (Skip):**
+- Simple CRUD với standard patterns
+- UI-only changes (CSS, layout)
+- Documentation updates
+- Test additions without code changes
+
+---
+
 ## 🎯 Quality Standards - Non-Negotiable Requirements
 
 Every PR must meet these quality gates before merge:
@@ -562,6 +718,306 @@ Trong quá trình review architecture, phát hiện **thiếu sót nghiêm trọ
 │ PR 3.1, 3.2, 3.3... (Frontend)                             │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+# GIAI ĐOẠN 0: DATABASE FOUNDATION (PREREQUISITE)
+
+## PR 0: Database Foundation
+
+**Status:** ⏳ NOT STARTED
+**Branch:** `feature/PR-0-database-foundation`
+**Dependencies:** NONE
+**Blocks:** ALL feature PRs (PR 1.1+, PR 2.1+, PR 3.1+)
+
+### Tại sao cần PR 0?
+
+**Vấn đề hiện tại:**
+- Migration numbering bắt đầu từ V2, V7 (không có V1 foundation)
+- Mỗi PR tạo migration riêng → phân mảnh, khó bảo trì
+- Developer phải đợi PR trước để biết version number tiếp theo
+- Không có cái nhìn tổng quan về toàn bộ schema database
+
+**Giải pháp với PR 0:**
+- **V1 chứa TẤT CẢ core tables** ngay từ đầu
+- Feature PRs chỉ cần **ALTER TABLE** (thêm columns) → đơn giản hơn
+- Tách biệt rõ ràng: V1 = foundation, V2+ = incremental changes
+- Cho phép parallel development (không conflict migrations)
+- Có complete schema reference ngay từ đầu
+
+### Scope
+
+**PR 0.1: Gateway Foundation (kiteclass-gateway)**
+- **Migration:** `V1__create_gateway_schema.sql`
+- **Tables:**
+  - users (authentication core)
+  - roles (RBAC system)
+  - permissions (granular access control)
+  - user_roles (many-to-many)
+  - refresh_tokens (JWT refresh mechanism)
+  - password_reset_tokens (password recovery)
+- **Seed data:**
+  - 5 default roles: OWNER, ADMIN, TEACHER, STUDENT, PARENT
+  - Default owner account: owner@kiteclass.local / Admin@123
+  - 30+ permissions: users:read, users:write, classes:manage, billing:view, reports:export, ...
+- **Indexes:** Email unique, role lookups, token expiry
+- **Constraints:** FK relationships, email format, status enums
+
+**PR 0.2: Core Foundation (kiteclass-core)**
+- **Migration:** `V1__create_core_schema.sql`
+- **Tables (40+ business tables):**
+  - **Academic:** students, teachers, courses, classes, enrollments, attendance_records
+  - **Learning:** assignments, submissions, grades, grading_scales, point_rules
+  - **Financial:** invoices, invoice_items, payments, payment_methods
+  - **Settings:** instance_settings, notification_preferences, academic_calendars
+  - **LMS (V4.1):** course_modules, lessons, learning_resources, lesson_progress
+  - **Marketing (V4.1):** landing_pages, leads, contact_messages
+- **Seed data:**
+  - 9 grading scales: A+ (4.0) to F (0.0)
+  - Point rules for gamification: ATTENDANCE (10), ASSIGNMENT (20), EXAM (50)
+- **Indexes:**
+  - Multi-tenant: instance_id on ALL tables
+  - Search optimization: name, email, code fields
+  - FK indexes for joins
+  - Composite indexes for common queries
+- **Constraints:**
+  - FK relationships (with ON DELETE CASCADE/SET NULL)
+  - Check constraints: status enums, amounts > 0, percentages 0-100
+  - Unique constraints per tenant: email, code, enrollment
+  - Audit fields: created_at, updated_at, created_by, updated_by on ALL tables
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| V1 migration quá lớn → timeout | Medium | High | Chia thành 2 files (Gateway, Core), chạy tuần tự, benchmark locally trước |
+| Index creation chậm → deployment delay | Medium | Medium | Tạo indexes với CREATE INDEX CONCURRENTLY, đo performance trên staging |
+| Schema mismatch với entities đã implement | Medium | High | Generate entities từ migration, compare schemas với existing code |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Default permissions sai → security breach | Low | Critical | Peer review permissions matrix, test RBAC với từng role |
+| Seed data không đầy đủ → application crash | Low | Medium | Integration tests verify seed data loaded correctly |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| V1 schema incompatible với existing entities | Medium | High | Run `./mvnw clean compile` sau migration, fix entity annotations |
+| Cross-service FK references broken | Low | Medium | Use soft references (user_type + reference_id pattern) |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| 40+ table creation → slow deploy | Low | Low | Benchmark trên staging (<30s acceptable), parallel index creation |
+| Missing indexes → slow queries | Low | Medium | Analyze common queries, add indexes preemptively |
+
+### Tasks
+
+**Gateway Foundation (V1):**
+1. [ ] Tạo file `kiteclass-gateway/src/main/resources/db/migration/V1__create_gateway_schema.sql`
+2. [ ] Copy SQL từ `database-design.md` Section 3.2 (Gateway tables)
+3. [ ] Thêm indexes cho email, role, token lookups
+4. [ ] Thêm seed data: 5 roles, 30+ permissions, default owner
+5. [ ] Test migration: `cd kiteclass-gateway && ./mvnw flyway:migrate`
+6. [ ] Verify tables: `psql -d gateway_db -c "\dt"`
+7. [ ] Verify seed data: `SELECT * FROM roles; SELECT * FROM permissions LIMIT 10;`
+
+**Core Foundation (V1):**
+1. [ ] Tạo file `kiteclass-core/src/main/resources/db/migration/V1__create_core_schema.sql`
+2. [ ] Copy SQL từ `database-design.md` Section 3.3-3.4 (Core tables)
+3. [ ] Thêm ALL 40+ business tables với complete indexes
+4. [ ] Thêm seed data: grading scales, point rules
+5. [ ] Test migration: `cd kiteclass-core && ./mvnw flyway:migrate`
+6. [ ] Verify tables: `psql -d core_db -c "\dt" | wc -l` (expect 40+)
+7. [ ] Verify seed data: `SELECT * FROM grading_scales; SELECT * FROM point_rules;`
+
+**Documentation:**
+1. [ ] Update `database-migration-plan.md` với V1 Gateway/Core sections
+2. [ ] Tạo `pr-dependency-graph-v2.md` với PR 0 làm root node
+3. [ ] Update ALL PRs trong implementation plan: thêm "Depends on: PR 0"
+
+**Quality Gates:**
+1. [ ] Gateway V1 passes: 6 tables created, 5 roles seeded, 30+ permissions seeded
+2. [ ] Core V1 passes: 40+ tables created, 9 grading scales seeded, point rules seeded
+3. [ ] All indexes created without errors
+4. [ ] `flyway_schema_history` shows V1 for both services
+5. [ ] No compilation errors: `./mvnw clean compile` succeeds
+6. [ ] Docker containers start successfully: `docker-compose -f docker-compose.dev.yml up -d`
+
+### Verification Commands
+
+```bash
+# Gateway V1 Verification
+docker exec -it kiteclass-gateway-db psql -U postgres -d gateway_db -c "
+  SELECT table_name FROM information_schema.tables
+  WHERE table_schema = 'public'
+  ORDER BY table_name;
+"
+# Expected: 6 tables (users, roles, permissions, user_roles, refresh_tokens, password_reset_tokens)
+
+docker exec -it kiteclass-gateway-db psql -U postgres -d gateway_db -c "
+  SELECT name FROM roles ORDER BY name;
+"
+# Expected: ADMIN, OWNER, PARENT, STUDENT, TEACHER
+
+docker exec -it kiteclass-gateway-db psql -U postgres -d gateway_db -c "
+  SELECT COUNT(*) as permission_count FROM permissions;
+"
+# Expected: 30+
+
+# Core V1 Verification
+docker exec -it kiteclass-core-db psql -U postgres -d core_db -c "
+  SELECT COUNT(*) as table_count
+  FROM information_schema.tables
+  WHERE table_schema = 'public';
+"
+# Expected: 40+
+
+docker exec -it kiteclass-core-db psql -U postgres -d core_db -c "
+  SELECT grade, description, gpa FROM grading_scales
+  ORDER BY gpa DESC;
+"
+# Expected: A+ to F with GPA 4.0 to 0.0
+
+docker exec -it kiteclass-core-db psql -U postgres -d core_db -c "
+  SELECT version, description, success FROM flyway_schema_history
+  ORDER BY installed_rank;
+"
+# Expected: V1 with success = true
+
+# Application Compilation Check
+cd kiteclass/kiteclass-gateway && ./mvnw clean compile
+cd kiteclass/kiteclass-core && ./mvnw clean compile
+# Expected: BUILD SUCCESS (no entity-schema mismatches)
+```
+
+### Migration Content Preview
+
+**Gateway V1 Structure:**
+```sql
+-- V1__create_gateway_schema.sql (excerpt)
+
+-- Users table (authentication core)
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    role VARCHAR(20) NOT NULL, -- OWNER, ADMIN, TEACHER, STUDENT, PARENT
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    user_type VARCHAR(20), -- STUDENT, TEACHER, PARENT (for reference_id linking)
+    reference_id BIGINT, -- FK to Core service entity (soft reference)
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN DEFAULT FALSE,
+    CONSTRAINT uk_users_email_instance UNIQUE (email, instance_id, deleted)
+);
+
+CREATE INDEX idx_users_instance ON users(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_reference ON users(user_type, reference_id) WHERE reference_id IS NOT NULL;
+
+-- ... (5 more tables: roles, permissions, user_roles, refresh_tokens, password_reset_tokens)
+
+-- Seed data
+INSERT INTO roles (name, description) VALUES
+    ('OWNER', 'Instance owner with full access'),
+    ('ADMIN', 'Administrator with management access'),
+    ('TEACHER', 'Teacher with class and student management'),
+    ('STUDENT', 'Student with learning access'),
+    ('PARENT', 'Parent with child monitoring access');
+
+INSERT INTO permissions (name, description, resource, action) VALUES
+    ('users:read', 'View users', 'users', 'read'),
+    ('users:write', 'Create/update users', 'users', 'write'),
+    ('classes:manage', 'Manage classes', 'classes', 'manage'),
+    ('billing:view', 'View billing information', 'billing', 'view'),
+    -- ... (30+ total)
+
+-- Default owner account
+INSERT INTO users (instance_id, email, password_hash, full_name, role, status)
+SELECT
+    '00000000-0000-0000-0000-000000000000'::uuid, -- Bootstrap instance
+    'owner@kiteclass.local',
+    '$2a$10$... (bcrypt of Admin@123)',
+    'System Owner',
+    'OWNER',
+    'ACTIVE';
+```
+
+**Core V1 Structure:**
+```sql
+-- V1__create_core_schema.sql (excerpt)
+
+-- Students table
+CREATE TABLE students (
+    id BIGSERIAL PRIMARY KEY,
+    instance_id UUID NOT NULL,
+    student_code VARCHAR(20) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    date_of_birth DATE,
+    address TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    version INTEGER DEFAULT 0,
+    CONSTRAINT uk_students_code_instance UNIQUE (student_code, instance_id, deleted)
+);
+
+CREATE INDEX idx_students_instance ON students(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_students_code ON students(student_code);
+CREATE INDEX idx_students_email ON students(email) WHERE deleted = FALSE;
+CREATE INDEX idx_students_name ON students(last_name, first_name);
+
+-- ... (40+ more tables: teachers, courses, classes, enrollments, attendance, assignments, grades, invoices, payments, etc.)
+
+-- Seed data: Grading scales
+INSERT INTO grading_scales (instance_id, grade, description, min_percentage, max_percentage, gpa)
+VALUES
+    ('00000000-0000-0000-0000-000000000000', 'A+', 'Xuất sắc', 95, 100, 4.0),
+    ('00000000-0000-0000-0000-000000000000', 'A', 'Giỏi', 90, 94, 3.7),
+    ('00000000-0000-0000-0000-000000000000', 'B+', 'Khá', 85, 89, 3.5),
+    -- ... (9 total grades)
+    ('00000000-0000-0000-0000-000000000000', 'F', 'Trượt', 0, 49, 0.0);
+
+-- Seed data: Point rules
+INSERT INTO point_rules (instance_id, activity_type, points, description)
+VALUES
+    ('00000000-0000-0000-0000-000000000000', 'ATTENDANCE', 10, 'Điểm danh đầy đủ'),
+    ('00000000-0000-0000-0000-000000000000', 'ASSIGNMENT_SUBMIT', 20, 'Nộp bài tập đúng hạn'),
+    ('00000000-0000-0000-0000-000000000000', 'EXAM_PASS', 50, 'Thi đạt yêu cầu');
+```
+
+### Post-Migration Actions
+
+**After Gateway V1:**
+1. Verify entities match schema: `UserEntity`, `RoleEntity`, `PermissionEntity`
+2. Update `TestSecurityConfig` to use seeded roles (if needed)
+3. Update integration tests to use default owner account
+
+**After Core V1:**
+1. Verify ALL 40+ entities match schema (run compilation)
+2. Fix any `@Table`, `@Column` mismatches
+3. Update seed data in `TestContainersConfiguration` (if using different values)
+4. Run full test suite: `./scripts/test-local.sh all`
+
+### Related Documents
+
+- **Source:** `documents/03-planning/database/database-design.md` (V4.1)
+- **Migration Plan:** `documents/03-planning/database/database-migration-plan.md`
+- **Architecture:** `documents/02-design/system-architecture-v4.md`
+- **Cross-Service:** `.claude/skills/cross-service-data-strategy.md`
 
 ---
 
@@ -1720,8 +2176,48 @@ Thực hiện Attendance Module của kiteclass-core-service-plan.md.
 ## ⏳ PR 2.7.1 - Assignment Module
 
 **Status:** ⏳ NOT STARTED
-**Dependencies:** PR 2.5 Class Module, PR 2.3 Student Module, PR 2.3.1 Teacher Module
+**Dependencies:**
+- [ ] PR 0: Database Foundation
+- [ ] PR 2.5: Class Module
+- [ ] PR 2.3: Student Module
+- [ ] PR 2.3.1: Teacher Module
+- [ ] PR 2.10.1: File Storage Module (for attachment uploads)
 **Business Logic:** docs/modules/assignment-module-business-logic.md
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| File storage dependency chưa ready | High | High | Block by PR 2.10.1, use uploaded_files table reference |
+| Late penalty calculation sai với timezone | Medium | Medium | Unit test all edge cases (DST transitions, midnight boundaries) |
+| Attachment upload timeout (large files) | Medium | Medium | Use presigned S3 URLs với 30min TTL, implement progress tracking |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Teacher permission conflicts (CO_TEACHER vs MAIN_TEACHER) | Medium | Medium | Enforce MAIN_TEACHER-only for grading, clear error messages |
+| Late penalty áp dụng không công bằng | Low | High | Add admin review workflow before finalize, audit log all score changes |
+| Student submit nhiều lần → version conflict | Medium | Low | Allow resubmission trước deadline, lock sau khi graded |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| ASSIGNMENT_GRADED event timing issue | Medium | Medium | Use eventual consistency, Grade Module retry on failure |
+| File deletion khi assignment deleted | Low | Medium | Soft delete assignments, hard delete files sau 30 days |
+| Class không tồn tại khi create assignment | Low | Medium | Validate class_id với ClassService trước khi save |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Large file uploads → S3 timeout | Medium | Medium | Use presigned URL direct upload (client → S3), 30min TTL |
+| Batch grading → N+1 query | Medium | Medium | Use JOIN FETCH submissions, add index on (assignment_id, student_id) |
+| findPendingGrading query slow với 1000+ submissions | Low | Medium | Add pagination, composite index (status, class_id, due_date) |
+
+#### Data Migration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| N/A (new tables in V1 foundation) | - | - | Tables created in PR 0 V1 migration |
 
 ```
 Thực hiện Assignment Module - Assignment lifecycle, late penalties, grading workflow.
@@ -1929,8 +2425,48 @@ Thực hiện Grade Module - Weighted grade calculation, GPA, transcripts.
 ## ⏳ PR 2.8 - Invoice Module
 
 **Status:** ⏳ NOT STARTED
-**Dependencies:** PR 2.6 Enrollment Module, PR 2.3 Student Module, PR 2.5 Class Module
+**Dependencies:**
+- [ ] PR 0: Database Foundation
+- [ ] PR 2.6: Enrollment Module
+- [ ] PR 2.3: Student Module
+- [ ] PR 2.5: Class Module
 **Business Logic:** docs/modules/invoice-module-business-logic.md
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Financial calculation precision loss (floating point) | Medium | Critical | Use BIGINT for amounts (VND cents), BigDecimal trong Java, validation tests |
+| VietQR integration timeout/failure | Medium | High | Cache QR images, fallback manual payment, retry logic với exponential backoff |
+| Invoice number collision (race condition) | Low | High | Use database sequence với padding, pessimistic locking, unique constraint |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Invoice total không khớp với payment amount | Medium | Critical | Double-entry validation, automated reconciliation reports, admin alerts |
+| Late fee calculation không công bằng | Low | Medium | Clear late fee policy trong invoice, grace period configurable, audit logs |
+| Refund workflow phức tạp → processing delays | Medium | Medium | Multi-step approval workflow, email notifications, SLA tracking |
+| Discount áp dụng sai → revenue loss | Medium | High | Require approval cho discounts > 20%, audit log all adjustments |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| ENROLLMENT_CREATED event miss → no invoice | Low | Critical | Retry mechanism, manual invoice creation endpoint, monitoring alerts |
+| Payment reconciliation mismatch (VietQR vs actual payment) | Medium | High | Daily reconciliation job, manual review queue, transaction ID matching |
+| Refund processing failure → stuck requests | Low | High | Compensation transaction pattern, manual intervention endpoint |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Invoice generation chậm với complex calculations | Low | Medium | Pre-calculate totals, cache course prices, async processing for bulk |
+| QR code generation blocking request | Medium | Medium | Async QR generation, cache results, use background job |
+| Overdue invoice query slow với 10K+ invoices | Medium | Medium | Add composite index (status, due_date, instance_id), pagination |
+
+#### Data Migration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| N/A (new tables trong V1) | - | - | Tables created in PR 0 V1 migration |
 
 ```
 Thực hiện Invoice Module - Hóa đơn học phí, trả góp, late fees, refund handling.
@@ -4656,11 +5192,58 @@ Hoàn thiện Frontend với E2E tests.
 
 **Objective**: Implement file storage service với presigned URLs, storage quota tracking, và multi-tenant isolation.
 
+**Status:** ⏳ NOT STARTED
+
+**Dependencies:**
+- [ ] PR 0: Database Foundation (uploaded_files, storage_quotas tables trong V1)
+
+**Blocks:**
+- PR 2.7.1 (Assignment Module - file attachments)
+- PR 2.15 (Settings - profile pictures)
+- PR 3.10 (Profile upload UI)
+- PR 3.12 (Guest Pages - hero images, teacher photos)
+
 **Context**:
 - **Design**: documents/03-planning/implementation/storage-service-design.md (3,623 lines)
-- **Database**: Migration V13 (uploaded_files, storage_quotas)
+- **Database**: V1 migration (uploaded_files, storage_quotas tables)
 - **Dependencies**: MinIO Docker container (docker-compose.dev.yml)
-- **Blocks**: PR 2.15 (Settings), PR 3.10 (Profile upload), PR 3.12 (Guest Pages)
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| S3/MinIO configuration sai → upload fail | High | High | Comprehensive local testing với MinIO Console, validate bucket permissions |
+| Presigned URL expiry quá ngắn → upload timeout | Medium | Medium | 10min cho upload (có retry), 24h cho download, configurable trong application.yml |
+| Storage quota race condition (concurrent uploads) | Medium | Medium | Use database row locking (`SELECT FOR UPDATE`), atomic quota check + file insert |
+| MinIO Testcontainer startup chậm → CI timeout | Medium | Low | Increase Testcontainer startup timeout, use `@Container` static field |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Storage quota quá strict → user frustration | Medium | Medium | Clear quota display trong UI, upgrade prompts, soft limits với warnings |
+| Soft delete 30-day window → accidental permanent delete | Low | High | Email notification trước khi delete, admin recovery endpoint, audit logs |
+| File type restriction quá chặt → workflow block | Low | Medium | Support common types (PDF, DOCX, MP4, PNG, JPG), configurable whitelist |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Multi-tenant isolation leak (wrong bucket prefix) | Low | Critical | Unit test tenant ID in storage path, integration test với 2 tenants |
+| Testcontainers MinIO không cleanup → disk full | Medium | Low | Auto-cleanup trong test teardown, document manual cleanup script |
+| S3 presigned URL CORS issue với frontend | High | Medium | Configure CORS trong MinIO/S3 bucket policy, test OPTIONS request |
+| Orphaned files khi entity deleted (assignments, students) | Medium | Medium | Cascade delete listeners, scheduled cleanup job for orphaned files |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Storage quota calculation chậm với 10K+ files | Medium | Medium | Scheduled job (nightly), cache quota trong Redis, incremental updates |
+| Large video uploads (2GB) → memory issues | Low | High | Stream upload via presigned URL (client → S3 direct), không qua backend |
+| S3 API rate limit exceeded (burst uploads) | Low | Medium | Implement rate limiting, batch operations, exponential backoff retry |
+
+#### Data Migration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| N/A (new tables trong V1) | - | - | Tables created in PR 0 V1 migration, no existing data to migrate |
 
 ### Implementation Tasks
 

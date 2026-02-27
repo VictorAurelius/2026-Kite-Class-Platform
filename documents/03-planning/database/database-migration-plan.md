@@ -84,10 +84,386 @@ Instance Database (Per-tenant):
 
 ---
 
-# V1: INSTANCE CONFIGURATION
+# V1: GATEWAY FOUNDATION (PR 0.1) ⭐ NEW
 
-**File:** `V1__add_instance_configs.sql`
-**Purpose:** Feature detection & tier management
+**File:** `kiteclass-gateway/src/main/resources/db/migration/V1__create_gateway_schema.sql`
+**Purpose:** Complete Gateway database foundation - authentication, authorization, user management
+**Target:** Gateway Database (per-tenant)
+**PR Reference:** PR 0 (Database Foundation)
+
+## Overview
+
+Tạo TẤT CẢ core tables cho Gateway service ngay từ đầu. Feature PRs sau này chỉ cần ALTER TABLE để add columns.
+
+## Tables Created
+
+1. **users** - Authentication core (email, password_hash, role, status)
+2. **roles** - RBAC system (OWNER, ADMIN, TEACHER, STUDENT, PARENT)
+3. **permissions** - Granular access control (users:read, classes:manage, ...)
+4. **user_roles** - Many-to-many role assignments
+5. **refresh_tokens** - JWT refresh mechanism
+6. **password_reset_tokens** - Password recovery workflow
+
+## Migration Content
+
+```sql
+-- ============================================================================
+-- V1: Create Gateway Schema (Foundation)
+-- Purpose: Complete authentication & authorization setup
+-- PR: 0 (Database Foundation)
+-- ============================================================================
+
+-- =============================================================================
+-- SECTION 1: Users Table (Authentication Core)
+-- =============================================================================
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    role VARCHAR(20) NOT NULL, -- OWNER, ADMIN, TEACHER, STUDENT, PARENT
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+
+    -- Cross-Service Linking (UserType + ReferenceId pattern)
+    user_type VARCHAR(20), -- STUDENT, TEACHER, PARENT
+    reference_id BIGINT, -- FK to Core service entity (soft reference)
+
+    -- Account Security
+    email_verified BOOLEAN DEFAULT FALSE,
+    verification_token VARCHAR(255),
+    verification_expires_at TIMESTAMP,
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by UUID,
+    updated_by UUID,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_users_email_instance UNIQUE (email, instance_id, deleted),
+    CONSTRAINT chk_users_role CHECK (role IN ('OWNER', 'ADMIN', 'TEACHER', 'STUDENT', 'PARENT')),
+    CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'SUSPENDED')),
+    CONSTRAINT chk_users_type CHECK (user_type IS NULL OR user_type IN ('STUDENT', 'TEACHER', 'PARENT'))
+);
+
+-- Indexes
+CREATE INDEX idx_users_instance ON users(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_status ON users(status) WHERE deleted = FALSE;
+CREATE INDEX idx_users_reference ON users(user_type, reference_id) WHERE reference_id IS NOT NULL;
+CREATE INDEX idx_users_verification ON users(verification_token) WHERE verification_token IS NOT NULL;
+
+-- Comments
+COMMENT ON TABLE users IS 'Gateway users - authentication and authorization (V1)';
+COMMENT ON COLUMN users.user_type IS 'Entity type in Core service: STUDENT, TEACHER, PARENT';
+COMMENT ON COLUMN users.reference_id IS 'Soft FK to Core service entity ID';
+
+-- =============================================================================
+-- SECTION 2: Roles Table
+-- =============================================================================
+
+CREATE TABLE roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(200),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Indexes
+CREATE INDEX idx_roles_name ON roles(name);
+
+-- Seed Data: Default Roles
+INSERT INTO roles (name, description) VALUES
+    ('OWNER', 'Instance owner with full administrative access'),
+    ('ADMIN', 'Administrator with management capabilities'),
+    ('TEACHER', 'Teacher with class and student management'),
+    ('STUDENT', 'Student with learning access'),
+    ('PARENT', 'Parent with child monitoring access');
+
+-- Comments
+COMMENT ON TABLE roles IS 'System roles for RBAC (V1)';
+
+-- =============================================================================
+-- SECTION 3: Permissions Table
+-- =============================================================================
+
+CREATE TABLE permissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(200),
+    resource VARCHAR(50) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+-- Indexes
+CREATE INDEX idx_permissions_name ON permissions(name);
+CREATE INDEX idx_permissions_resource ON permissions(resource);
+
+-- Seed Data: Core Permissions
+INSERT INTO permissions (name, description, resource, action) VALUES
+    -- User Management
+    ('users:read', 'View users', 'users', 'read'),
+    ('users:write', 'Create/update users', 'users', 'write'),
+    ('users:delete', 'Delete users', 'users', 'delete'),
+    ('users:manage_roles', 'Assign roles to users', 'users', 'manage_roles'),
+
+    -- Student Management
+    ('students:read', 'View students', 'students', 'read'),
+    ('students:write', 'Create/update students', 'students', 'write'),
+    ('students:delete', 'Delete students', 'students', 'delete'),
+
+    -- Teacher Management
+    ('teachers:read', 'View teachers', 'teachers', 'read'),
+    ('teachers:write', 'Create/update teachers', 'teachers', 'write'),
+    ('teachers:delete', 'Delete teachers', 'teachers', 'delete'),
+
+    -- Class Management
+    ('classes:read', 'View classes', 'classes', 'read'),
+    ('classes:write', 'Create/update classes', 'classes', 'write'),
+    ('classes:delete', 'Delete classes', 'classes', 'delete'),
+    ('classes:manage', 'Full class management', 'classes', 'manage'),
+
+    -- Course Management
+    ('courses:read', 'View courses', 'courses', 'read'),
+    ('courses:write', 'Create/update courses', 'courses', 'write'),
+    ('courses:delete', 'Delete courses', 'courses', 'delete'),
+    ('courses:publish', 'Publish courses', 'courses', 'publish'),
+
+    -- Attendance
+    ('attendance:read', 'View attendance records', 'attendance', 'read'),
+    ('attendance:write', 'Record attendance', 'attendance', 'write'),
+
+    -- Assignments & Grading
+    ('assignments:read', 'View assignments', 'assignments', 'read'),
+    ('assignments:write', 'Create/update assignments', 'assignments', 'write'),
+    ('assignments:grade', 'Grade submissions', 'assignments', 'grade'),
+
+    -- Billing & Invoices
+    ('billing:read', 'View billing information', 'billing', 'read'),
+    ('billing:write', 'Create/update invoices', 'billing', 'write'),
+    ('billing:manage_payments', 'Process payments', 'billing', 'manage_payments'),
+
+    -- Reports & Analytics
+    ('reports:view', 'View reports', 'reports', 'view'),
+    ('reports:export', 'Export reports', 'reports', 'export'),
+    ('analytics:view', 'View analytics dashboard', 'analytics', 'view'),
+
+    -- Settings
+    ('settings:read', 'View settings', 'settings', 'read'),
+    ('settings:write', 'Update settings', 'settings', 'write');
+
+-- Comments
+COMMENT ON TABLE permissions IS 'Granular permissions for RBAC (V1)';
+
+-- =============================================================================
+-- SECTION 4: User Roles Table (Many-to-Many)
+-- =============================================================================
+
+CREATE TABLE user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    assigned_by UUID,
+
+    CONSTRAINT uk_user_roles_user_role UNIQUE (user_id, role_id)
+);
+
+-- Indexes
+CREATE INDEX idx_user_roles_user ON user_roles(user_id);
+CREATE INDEX idx_user_roles_role ON user_roles(role_id);
+
+-- Comments
+COMMENT ON TABLE user_roles IS 'User role assignments (many-to-many) - V1';
+
+-- =============================================================================
+-- SECTION 5: Refresh Tokens Table
+-- =============================================================================
+
+CREATE TABLE refresh_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(500) NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    revoked BOOLEAN DEFAULT FALSE NOT NULL,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    device_info VARCHAR(500)
+);
+
+-- Indexes
+CREATE INDEX idx_refresh_tokens_user ON refresh_tokens(user_id);
+CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token) WHERE revoked = FALSE;
+CREATE INDEX idx_refresh_tokens_expires ON refresh_tokens(expires_at) WHERE revoked = FALSE;
+
+-- Comments
+COMMENT ON TABLE refresh_tokens IS 'JWT refresh tokens for authentication (V1)';
+
+-- =============================================================================
+-- SECTION 6: Password Reset Tokens Table
+-- =============================================================================
+
+CREATE TABLE password_reset_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(500) NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE NOT NULL,
+    used_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Indexes
+CREATE INDEX idx_password_reset_tokens_user ON password_reset_tokens(user_id);
+CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token) WHERE used = FALSE;
+CREATE INDEX idx_password_reset_tokens_expires ON password_reset_tokens(expires_at) WHERE used = FALSE;
+
+-- Comments
+COMMENT ON TABLE password_reset_tokens IS 'Password reset tokens for account recovery (V1)';
+
+-- =============================================================================
+-- SECTION 7: Triggers for updated_at
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION update_gateway_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_gateway_updated_at();
+
+CREATE TRIGGER update_roles_updated_at
+    BEFORE UPDATE ON roles
+    FOR EACH ROW
+    EXECUTE FUNCTION update_gateway_updated_at();
+
+-- =============================================================================
+-- SECTION 8: Seed Data - Default Owner Account
+-- =============================================================================
+
+-- Insert default owner account (for bootstrapping first instance)
+-- Password: Admin@123 (bcrypt hash)
+INSERT INTO users (instance_id, email, password_hash, full_name, role, status, email_verified)
+VALUES (
+    '00000000-0000-0000-0000-000000000000'::uuid, -- Bootstrap instance ID
+    'owner@kiteclass.local',
+    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', -- bcrypt(Admin@123)
+    'System Owner',
+    'OWNER',
+    'ACTIVE',
+    TRUE
+);
+
+-- =============================================================================
+-- END OF V1 MIGRATION
+-- =============================================================================
+```
+
+## Verification
+
+```sql
+-- Check tables created
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;
+-- Expected: 6 tables
+
+-- Check roles seeded
+SELECT * FROM roles ORDER BY name;
+-- Expected: ADMIN, OWNER, PARENT, STUDENT, TEACHER
+
+-- Check permissions seeded
+SELECT COUNT(*) as permission_count FROM permissions;
+-- Expected: 30+
+
+-- Check default owner account
+SELECT email, role, status FROM users WHERE email = 'owner@kiteclass.local';
+-- Expected: owner@kiteclass.local, OWNER, ACTIVE
+```
+
+---
+
+# V1: CORE FOUNDATION (PR 0.2) ⭐ NEW
+
+**File:** `kiteclass-core/src/main/resources/db/migration/V1__create_core_schema.sql`
+**Purpose:** Complete Core database foundation - 40+ business tables
+**Target:** Core Database (per-tenant)
+**PR Reference:** PR 0 (Database Foundation)
+
+## Overview
+
+Tạo TẤT CẢ 40+ business tables cho Core service. Bao gồm:
+- Academic tables (students, teachers, courses, classes, enrollments, attendance)
+- Learning tables (assignments, submissions, grades, grading_scales)
+- Financial tables (invoices, invoice_items, payments)
+- LMS tables (course_modules, lessons, learning_resources, lesson_progress)
+- Marketing tables (landing_pages, leads, contact_messages)
+- File storage tables (uploaded_files, storage_quotas)
+
+## Migration Strategy
+
+**Do to size (40+ tables), migration content is extracted from `database-design.md`:**
+- Section 3.3: Core Business Tables (students, teachers, courses, classes, enrollments, attendance, assignments, grades, invoices, payments)
+- Section 4: LMS Module Schema (course_modules, lessons, learning_resources, lesson_progress)
+- Section 5: Marketing Module Schema (landing_pages, leads, contact_messages)
+- Section: File Storage Tables (uploaded_files, storage_quotas)
+
+## Verification
+
+```sql
+-- Check table count
+SELECT COUNT(*) as table_count
+FROM information_schema.tables
+WHERE table_schema = 'public';
+-- Expected: 40+
+
+-- Check grading scales seeded
+SELECT grade, description, gpa FROM grading_scales
+ORDER BY gpa DESC;
+-- Expected: A+ (4.0) to F (0.0) - 9 grades
+
+-- Check point rules seeded
+SELECT * FROM point_rules ORDER BY points DESC;
+-- Expected: ATTENDANCE (10), ASSIGNMENT (20), EXAM (50)
+
+-- Check key tables exist
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_name IN ('students', 'teachers', 'courses', 'classes', 'enrollments',
+                     'attendance_records', 'assignments', 'grades', 'invoices', 'payments',
+                     'course_modules', 'lessons', 'landing_pages', 'uploaded_files')
+ORDER BY table_name;
+-- Expected: All 14 tables present
+```
+
+---
+
+# V1: INSTANCE CONFIGURATION (DEPRECATED) ⚠️
+
+**IMPORTANT:** This V1 was for KiteHub database. It is now **DEPRECATED** in favor of PR 0 V1 migrations above.
+
+**Migration renumbering:**
+- Old: V1 (KiteHub instance_configs) → **Move to KiteHub service migration** (out of scope for KiteClass Core/Gateway)
+- New V1: Gateway Foundation (PR 0.1) + Core Foundation (PR 0.2)
+
+**File:** `V1__add_instance_configs.sql` (ARCHIVED - for KiteHub service only)
+**Purpose:** Feature detection & tier management (KiteHub database, NOT Gateway/Core)
 
 ```sql
 -- ============================================================================
