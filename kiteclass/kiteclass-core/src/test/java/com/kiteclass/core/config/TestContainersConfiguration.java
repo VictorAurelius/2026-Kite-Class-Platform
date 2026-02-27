@@ -6,13 +6,14 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
  * Testcontainers configuration for Core Service integration tests.
  *
- * <p>Provides PostgreSQL and Redis containers for all @SpringBootTest tests.
+ * <p>Provides PostgreSQL, Redis, and MinIO containers for all @SpringBootTest tests.
  * Containers are automatically started and properties configured.
  *
  * <p>Usage in tests:
@@ -21,7 +22,7 @@ import org.testcontainers.utility.DockerImageName;
  * @Import(TestContainersConfiguration.class)
  * @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
  * class MyIntegrationTest {
- *     // Tests here will use PostgreSQL and Redis from Testcontainers
+ *     // Tests here will use PostgreSQL, Redis, and MinIO from Testcontainers
  * }
  * }</pre>
  *
@@ -42,9 +43,15 @@ public class TestContainersConfiguration {
             .withExposedPorts(6379)
             .withReuse(true);
 
+    @SuppressWarnings("resource") // Container is reused and managed by Testcontainers framework
+    private static final MinIOContainer minio =
+        new MinIOContainer(DockerImageName.parse("minio/minio:latest"))
+            .withReuse(true);
+
     static {
         postgres.start();
         redis.start();
+        minio.start();
     }
 
     /**
@@ -70,12 +77,23 @@ public class TestContainersConfiguration {
     }
 
     /**
+     * MinIO container bean (S3-compatible storage).
+     * Container is reused across all tests for performance.
+     *
+     * @return configured MinIO container
+     */
+    @Bean
+    public MinIOContainer minioContainer() {
+        return minio;
+    }
+
+    /**
      * Context initializer that configures datasource and Redis properties from Testcontainers.
      */
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
         /**
-         * Configures Spring datasource and Redis properties from Testcontainers.
+         * Configures Spring datasource, Redis, and MinIO properties from Testcontainers.
          *
          * @param applicationContext the application context to initialize
          */
@@ -86,7 +104,11 @@ public class TestContainersConfiguration {
                 "spring.datasource.username=" + postgres.getUsername(),
                 "spring.datasource.password=" + postgres.getPassword(),
                 "spring.data.redis.host=" + redis.getHost(),
-                "spring.data.redis.port=" + redis.getMappedPort(6379)
+                "spring.data.redis.port=" + redis.getMappedPort(6379),
+                "storage.s3.endpoint=" + minio.getS3URL(),
+                "storage.s3.access-key-id=" + minio.getUserName(),
+                "storage.s3.secret-access-key=" + minio.getPassword(),
+                "storage.s3.bucket-name=test-bucket"
             ).applyTo(applicationContext.getEnvironment());
         }
     }
