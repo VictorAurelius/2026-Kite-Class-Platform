@@ -175,21 +175,42 @@ class StorageIntegrationTest {
     @Test
     @DisplayName("POST /api/v1/storage/upload-url - Should enforce quota limit")
     void shouldEnforceQuotaLimit() throws Exception {
-        // Given - file size exceeds FREE tier quota (1 GB)
-        PresignedUploadRequest request = new PresignedUploadRequest(
-            "huge-file.mp4",
-            2L * 1024 * 1024 * 1024, // 2 GB (FREE tier = 1 GB)
+        // Given - Upload files until quota is almost exhausted
+        // FREE tier = 1 GB, upload 11 files of 95 MB each (1045 MB total)
+        long fileSize = 95L * 1024 * 1024; // 95 MB
+
+        for (int i = 0; i < 11; i++) {
+            PresignedUploadRequest request = new PresignedUploadRequest(
+                "file-" + i + ".mp4",
+                fileSize,
+                "video/mp4",
+                FileType.VIDEO,
+                AccessLevel.PRIVATE
+            );
+
+            mockMvc.perform(post("/api/v1/storage/upload-url")
+                    .header("X-User-Id", userId)
+                    .header("X-Tenant-Id", tenantId.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+        }
+
+        // Now upload one more file (should exceed quota)
+        PresignedUploadRequest finalRequest = new PresignedUploadRequest(
+            "final-file.mp4",
+            fileSize,
             "video/mp4",
             FileType.VIDEO,
             AccessLevel.PRIVATE
         );
 
-        // When & Then
+        // When & Then - Should reject due to quota exceeded
         mockMvc.perform(post("/api/v1/storage/upload-url")
                 .header("X-User-Id", userId)
                 .header("X-Tenant-Id", tenantId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(finalRequest)))
             .andExpect(status().isInsufficientStorage())
             .andExpect(jsonPath("$.code", is("STORAGE_QUOTA_EXCEEDED")));
     }
