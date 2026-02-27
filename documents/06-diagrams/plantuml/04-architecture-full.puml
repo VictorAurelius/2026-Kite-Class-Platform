@@ -100,6 +100,7 @@ package "KITECLASS INSTANCES\n[Kubernetes Deployment | Per-Tenant Isolation]" as
             component "Attendance" as ATTEND
             component "Grading" as GRADE
             component "Billing\n[VietQR Integration]" as BILLING
+            component "File Management\n[S3 Storage]" as FILE_SVC
         }
 
         package "Engagement Service\n[Spring Boot | 512MB RAM] 📦 OPTIONAL" as ENG_SVC #FFB74D {
@@ -118,6 +119,7 @@ package "KITECLASS INSTANCES\n[Kubernetes Deployment | Per-Tenant Isolation]" as
             storage "Class Tables" as CLS_TBL
             storage "Billing Tables" as BILL_TBL
             storage "Gamification" as GAME_TBL
+            storage "Storage Metadata\n[uploaded_files,\nstorage_quotas]" as STORAGE_TBL
         }
 
         queue "Instance Queue\n[RabbitMQ]" as INST_Q #FF5722
@@ -187,7 +189,9 @@ KC_AUTH --> ZALO : "OTP"
 BILLING --> VIETQR : "QR Payment"
 NOTIF --> ZALO : "Notification"
 NOTIF --> EMAIL
-MEDIA_SVC --> S3 : "Storage"
+MEDIA_SVC --> S3 : "Video Storage"
+FILE_SVC --> S3 : "Presigned URLs\n(upload/download)"
+FILE_SVC --> STORAGE_TBL : "Metadata"
 
 ' ==================== INFRASTRUCTURE CONNECTIONS ====================
 LB --> KITEHUB
