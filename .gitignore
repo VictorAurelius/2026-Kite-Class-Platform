@@ -1,6 +1,6 @@
-# Project Root .gitignore
+# Monorepo Root .gitignore
 
-# CI/CD Logs
+# CI/CD Logs (all projects)
 .log/*.txt
 .log/*.log
 .log/*.dump
@@ -8,6 +8,7 @@
 .log/auto/
 .log/temp/
 .log/run-*/
+*/.log/
 
 # But keep scripts
 !.log/check-ci.sh
@@ -18,6 +19,7 @@
 
 # Docker build logs (local only, different per machine)
 .docker-build-logs/
+*/.docker-build-logs/
 
 # Temporary files
 *.tmp

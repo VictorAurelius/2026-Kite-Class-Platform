@@ -2332,6 +2332,224 @@ Conversion: Upgrade to paid student
 
 ---
 
+## 4.5. V4.1 LMS + Marketing Modules ⭐ NEW
+
+### Q4.5.1: Trial Lesson Access Control
+**Câu hỏi:** Guest có thể xem lesson nào mà không cần đăng nhập?
+
+**Proposed Design:**
+```
+Course Structure:
+  Module 1: Introduction (FREE)
+    - Lesson 1.1: What is Java? (isTrial = TRUE) ✅ Guest access
+    - Lesson 1.2: Installing JDK (isTrial = FALSE) 🔒 Enrollment required
+    - Lesson 1.3: First Program (isTrial = FALSE) 🔒 Enrollment required
+  Module 2: OOP Concepts
+    - Lesson 2.1: Classes & Objects (isTrial = TRUE) ✅ Guest access
+    - ...
+```
+
+**Business Rules:**
+- BR-LMS-001: Guest can view lessons where `isTrial = TRUE` without login
+- BR-LMS-002: Student must have active enrollment to access `isTrial = FALSE` lessons
+- BR-LMS-003: Lesson progress only tracked for authenticated users
+
+**Vui lòng confirm:**
+- [ ] ✅ OK, implement theo thiết kế trên
+- [ ] ❌ Thay đổi: _____________________
+
+**Response trang Lesson cho Guest:**
+```json
+{
+  "lessonId": 123,
+  "title": "Lesson 1.1: What is Java?",
+  "isTrial": true,
+  "content": "...", // Full content for trial
+  "videoUrl": "https://...",
+  "resources": [
+    {"type": "PDF", "title": "Slides", "url": "..."}
+  ],
+  "nextLesson": {
+    "id": 124,
+    "title": "Lesson 1.2: Installing JDK",
+    "isTrial": false,
+    "locked": true, // Show lock icon
+    "ctaText": "Đăng ký học để tiếp tục"
+  }
+}
+```
+
+**Confirm response format:**
+- [ ] ✅ OK
+- [ ] ❌ Cần điều chỉnh: _____________________
+
+---
+
+### Q4.5.2: Landing Page Customization Scope
+**Câu hỏi:** Landing page của mỗi tenant có thể customize những gì?
+
+**Proposed Customizable Fields:**
+```
+Hero Section:
+  - heroTitle: "Học lập trình cùng Thầy Kiệt"
+  - heroSubtitle: "Master Java in 3 months"
+  - heroImageUrl: "https://..."
+  - logoUrl: "https://..."
+
+About Teacher:
+  - teacherBio: "20 years of experience..."
+  - teacherPhotoUrl: "https://..."
+
+Branding:
+  - primaryColor: "#3B82F6" (blue)
+  - secondaryColor: "#10B981" (green)
+  - tagline: "Your path to Java mastery"
+
+Course Highlights:
+  - Featured courses (manually selected by teacher)
+  - Auto-display 3-5 most popular courses
+```
+
+**Vui lòng confirm:**
+- [ ] ✅ OK, đủ customization
+- [ ] ❌ Cần thêm: _____________________
+
+**Landing Page URL Format:**
+```
+https://{tenant-slug}.kiteclass.vn           (Custom subdomain)
+OR
+https://kiteclass.vn/{tenant-slug}           (Shared domain)
+```
+
+**Prefer which URL format?**
+- [ ] Custom subdomain (requires DNS setup)
+- [ ] Shared domain with slug (simpler)
+- [ ] Both options (configurable)
+
+---
+
+### Q4.5.3: Lead Workflow & Conversion
+**Câu hỏi:** Khi guest submit contact form, workflow thế nào?
+
+**Proposed Lead Status Workflow:**
+```
+NEW → CONTACTED → CONVERTED → LOST
+
+NEW:
+  - Guest submit contact form
+  - Lead auto-created with status = NEW
+  - Email notification sent to teacher
+
+CONTACTED:
+  - Teacher marks as "Đã liên hệ"
+  - lastContactedAt timestamp recorded
+
+CONVERTED:
+  - Guest signs up as student
+  - Lead linked to Student record
+  - Status = CONVERTED (success metric)
+
+LOST:
+  - Lead not interested
+  - Mark as LOST to clean up pipeline
+```
+
+**Contact Form Data Captured:**
+```json
+{
+  "name": "Nguyen Van A",
+  "email": "nguyenvana@gmail.com",
+  "phone": "0901234567",
+  "message": "Tôi muốn đăng ký học Java",
+  "courseInterestId": 123, // Optional: which course interested in
+  "source": "CONTACT_FORM" // or "LANDING_PAGE", "TRIAL"
+}
+```
+
+**Vui lòng confirm:**
+- [ ] ✅ Workflow OK
+- [ ] ❌ Thay đổi: _____________________
+
+**Email Notification to Teacher:**
+- [ ] Immediate (realtime) - Send email ngay khi guest submit
+- [ ] Batched (daily digest) - Gom leads trong ngày, send 1 email tổng hợp
+- [ ] Configurable by teacher
+
+---
+
+### Q4.5.4: Learning Progress Tracking
+**Câu hỏi:** Tiến độ học tập được track như thế nào?
+
+**Proposed Design:**
+```
+Student completes lesson:
+  → LessonProgress record created/updated
+  → {
+      userId: 456,
+      lessonId: 123,
+      completed: true,
+      completedAt: "2026-02-26T10:00:00Z",
+      progressPercent: 100
+    }
+
+Course Progress Calculation:
+  → completedLessons / totalLessons * 100
+  → E.g., 5 completed / 10 total = 50%
+
+Display to Student:
+  - Progress bar on course page
+  - Checkmarks on completed lessons
+  - "Continue Learning" CTA shows next lesson
+  - Certificate awarded when 100% complete (future)
+```
+
+**Progress Display Options:**
+- [ ] Show % only (e.g., "50% complete")
+- [ ] Show % + count (e.g., "5/10 lessons completed")
+- [ ] Show % + estimated time remaining (e.g., "~2 hours left")
+
+**Vui lòng chọn:**
+- [ ] Option 1: % only
+- [ ] Option 2: % + count (Recommended)
+- [ ] Option 3: % + estimated time
+- [ ] All of the above (most info)
+
+---
+
+### Q4.5.5: Guest Pages SEO Strategy
+**Câu hỏi:** Landing page cần SEO như thế nào để tăng organic traffic?
+
+**Proposed SEO Features:**
+```
+Meta Tags (per tenant):
+  <title>{heroTitle} | KiteClass</title>
+  <meta name="description" content="{heroSubtitle}" />
+  <meta name="keywords" content="học lập trình, Java, online course" />
+
+Open Graph (Social Sharing):
+  <meta property="og:title" content="{heroTitle}" />
+  <meta property="og:description" content="{teacherBio}" />
+  <meta property="og:image" content="{heroImageUrl}" />
+  <meta property="og:url" content="https://kiteclass.vn/{tenant-slug}" />
+
+Structured Data (Schema.org):
+  - Course schema for each course
+  - Organization schema for teacher
+  - Review schema (if ratings enabled)
+```
+
+**Vui lòng confirm:**
+- [ ] ✅ Implement full SEO as proposed
+- [ ] ❌ Chỉ cần basic meta tags
+- [ ] ❌ SEO là low priority (Phase 2)
+
+**Sitemap Generation:**
+- [ ] Auto-generate sitemap.xml for each tenant
+- [ ] Manual submission to Google Search Console
+- [ ] Not needed initially
+
+---
+
 # PART 5: INTEGRATION & DEPENDENCIES
 
 ## 5.1. Backend API Readiness
@@ -3384,6 +3602,446 @@ public class EmailService {
 **No changes needed** - Continue using existing Zalo OTP service.
 
 **Backup option:** Add Twilio SMS for international numbers (post-MVP)
+
+---
+
+# PART 6: TRIAL LEARNING SYSTEM (V4.1 Phase 2) ⭐ NEW
+
+**Context:** Trial Learning System cho phép potential students (leads) trải nghiệm một số lessons trước khi trả phí. Khác với PART 4 (Owner trial = 14 days platform access), đây là student trial = 3 lessons/day quota.
+
+**Key Principles:**
+1. **Trial users = Leads** - Separate from paid students
+2. **Passwordless auth** - Magic link via email (faster onboarding)
+3. **Daily quota limit** - 3 lessons/day (balance "try before buy" vs "create urgency")
+4. **Single course approach** - Mark existing courses with `is_trial` flag (no separate trial courses)
+5. **Progress preservation** - Same user_id before/after conversion (no data migration)
+
+---
+
+## 6.1. Trial User Authentication
+
+### Q6.1.1: Why Magic Link vs Traditional Password? ✅ ANSWERED
+
+**Question:** Tại sao dùng magic link (passwordless) thay vì email + password?
+
+**Options:**
+- [x] Magic link (passwordless) - Recommended
+- [ ] Traditional email + password
+- [ ] Social login (Google, Facebook)
+
+**Answer:** Magic link cho trial users
+
+**Rationale:**
+1. **Faster onboarding**: Guest nhập email → nhận link → click → bắt đầu học (< 2 phút)
+   - Không cần nhớ password, không cần password complexity rules
+   - Không có "Forgot password" flow (giảm friction)
+2. **Better UX for trial**: Guest chưa commit trả tiền → không muốn create account phức tạp
+3. **Mobile-friendly**: Không cần gõ password trên điện thoại (dễ sai)
+4. **Security**: One-time token (30 min expiry), không có password để bị leak
+5. **Email verification implicit**: Nếu nhận được email → prove ownership
+
+**Implementation:**
+- Gateway Service: MagicLinkService generates UUID token, stores in Redis (TTL 30min)
+- Email sent với link: `https://kiteclass.com/auth/verify?token={uuid}`
+- User clicks → Gateway verifies token → creates User (role=TRIAL_USER) → returns JWT
+- Token deleted after use (one-time)
+
+**Post-conversion:** Sau khi trial user converts to paid student, yêu cầu set password (one-time setup)
+
+**Reference:** Gateway PR 1.13 - Magic Link Authentication
+
+---
+
+### Q6.1.2: Why TRIAL_USER Role in Gateway vs Core-Only? ✅ ANSWERED
+
+**Question:** Tại sao thêm TRIAL_USER vào Gateway's user_role enum thay vì chỉ track ở Core Service?
+
+**Options:**
+- [x] Add TRIAL_USER to Gateway enum - Recommended
+- [ ] Keep TRIAL_USER status only in Core (leads table)
+
+**Answer:** TRIAL_USER trong Gateway user_role enum
+
+**Rationale:**
+1. **Authentication at Gateway layer**: Gateway handles all authentication (JWT generation)
+   - JWT needs role claim for authorization
+   - Frontend checks `user.role` from JWT to show/hide features
+2. **API Gateway routing**: Gateway needs role-based rules
+   - Rate limiting stricter for TRIAL_USER (30 req/min vs 100 req/min for STUDENT)
+   - Authorization: TRIAL_USER can access `/api/v1/lessons/*` but not `/api/v1/classes/*`
+3. **Consistent with multi-tenant security model**: All role-based authorization at Gateway
+4. **Cross-service consistency**: If role only in Core, Gateway can't enforce trial restrictions
+
+**Implementation:**
+- Migration V12 (Gateway): `ALTER TYPE user_role ADD VALUE 'TRIAL_USER'`
+- JwtTokenProvider includes role in claims: `{..., "role": "TRIAL_USER", ...}`
+- SecurityConfig adds TRIAL_USER to authorized roles for trial endpoints
+
+**Alternative rejected:** Keep status only in Core → Gateway can't make auth decisions, breaks responsibility boundary
+
+**Reference:** Database Design Section 5.5 - Gateway Schema Extension
+
+---
+
+## 6.2. Trial Learning Business Logic
+
+### Q6.2.1: Why 3 Lessons/Day Quota Limit? ✅ ANSWERED
+
+**Question:** Tại sao chọn quota_limit = 3 lessons/day?
+
+**Options:**
+- [ ] 1 lesson/day (too restrictive?)
+- [x] 3 lessons/day (recommended)
+- [ ] 5 lessons/day
+- [ ] Unlimited lessons for 7 days (time-based trial)
+
+**Answer:** 3 lessons/day quota
+
+**Rationale:**
+1. **Balance "try before buy" and "create urgency"**:
+   - 3 lessons ≈ 1-2 hours learning → enough to evaluate course quality
+   - Not enough to finish entire course → encourages paid conversion
+2. **Prevent abuse**: Unlimited access → users might binge-watch all content without paying
+3. **Conversion window**:
+   - Trial course has ~20 lessons
+   - 3 lessons/day → 7-10 days to complete trial content
+   - Creates urgency: "Need to finish soon → should upgrade this week"
+4. **Psychological**: Number 3 is digestible ("Just 3 lessons today") vs 5 feels like work
+5. **Configurable per tenant**: quota_limit column allows future customization (e.g., premium trial = 5 lessons/day)
+
+**Implementation:**
+- `trial_quotas` table: `quota_limit INT DEFAULT 3`
+- TrialQuotaService checks: `IF lessons_accessed >= quota_limit THEN throw QuotaExceededException`
+- Quota resets daily (new record per user per day)
+
+**Conversion funnel**:
+```
+Day 1: Access 3 lessons (10% progress)
+Day 2: Access 3 lessons (20% progress)
+Day 3: Access 3 lessons (30% progress) → "Want to finish? Upgrade now!"
+Day 4: Quota exceeded → Show upgrade modal
+```
+
+**Reference:** Core PR 2.13 - Trial Quota Management
+
+---
+
+### Q6.2.2: Why Separate Leads Table vs Merge with Students? ✅ ANSWERED
+
+**Question:** Tại sao tạo `leads` table riêng thay vì thêm `is_trial` flag vào `students` table?
+
+**Options:**
+- [x] Separate `leads` table - Recommended
+- [ ] Add `is_trial` flag to `students` table
+- [ ] Use Gateway `users` table only (no Core table)
+
+**Answer:** Separate `leads` table
+
+**Rationale:**
+1. **Different data lifecycle**:
+   - Leads: NEW → CONTACTED → CONVERTED/LOST (sales workflow)
+   - Students: ACTIVE → INACTIVE → GRADUATED (education workflow)
+   - Mixing them complicates queries (e.g., "count active students" would need `WHERE is_trial = false`)
+2. **Different business processes**:
+   - Leads: Nurturing campaigns, conversion tracking, source attribution
+   - Students: Enrollment, attendance, grades, certificates
+3. **Clear domain separation**:
+   - Sales/Marketing domain: Leads, conversion funnel, ROI tracking
+   - Education domain: Students, courses, learning progress
+4. **Analytics needs**:
+   - Marketing: "Conversion rate by source (TRIAL_SIGNUP vs LANDING_PAGE)"
+   - Marketing: "Average time to convert: 7 days"
+   - Would pollute student analytics if merged
+5. **Students may come from non-trial sources**:
+   - Direct signup (no trial)
+   - Offline registration (in-person)
+   - Corporate training (bulk enrollment)
+
+**Implementation:**
+- `leads` table: id, user_id (FK to Gateway), email, source, status, converted_at
+- `students` table: unchanged (id, user_id, enrollment_id, ...)
+- After conversion: Lead.status = CONVERTED, create enrollment (no data migration)
+
+**Alternative rejected:** Add `is_trial` to students → mixes domains, complicates business logic
+
+**Reference:** Database Design Section 5.5 - Design Rationale
+
+---
+
+### Q6.2.3: Why Single Course with is_trial Flag vs Separate Trial Course? ✅ ANSWERED
+
+**Question:** Tại sao đánh dấu existing courses với `is_trial = true` thay vì tạo course riêng cho trial users?
+
+**Options:**
+- [x] Single course with `is_trial` flag + `lessons.is_trial_accessible` - Recommended
+- [ ] Create separate "Trial Course" with duplicated content
+- [ ] Create "Trial Course" with subset of lessons (references to main course)
+
+**Answer:** Single course approach (mark with flag)
+
+**Rationale:**
+1. **Avoid content duplication**:
+   - Separate trial course → need to copy lessons, videos, resources
+   - When main course updates → need to update trial course too (sync nightmare)
+2. **Easier content management**:
+   - Teacher updates main course → trial users automatically see updates
+   - Single source of truth
+3. **Simpler conversion**:
+   - Same course_id before/after conversion
+   - Progress tracking: lesson_progress table uses same course_id → no data migration
+4. **Consistent analytics**:
+   - "Total completions for Course 101" includes both trial and paid users
+   - Can filter by user role if needed: `WHERE user.role = 'STUDENT'`
+5. **Flexible trial configuration**:
+   - Teacher marks first 3 lessons as `is_trial_accessible = true`
+   - Easy to change: "Let's make first 5 lessons free" → update flags, no course duplication
+
+**Implementation:**
+- `courses` table: `is_trial BOOLEAN DEFAULT FALSE` (typically 1 trial course per tenant)
+- `lessons` table: `is_trial_accessible BOOLEAN DEFAULT FALSE` (first 1-3 lessons)
+- LessonService checks: `IF user.role = TRIAL_USER AND lesson.is_trial_accessible = false THEN throw AccessDeniedException`
+
+**Alternative rejected:** Separate trial course → duplication, sync issues, complex conversion logic
+
+**Reference:** Database Design Section 5.5 - Design Rationale (Q4)
+
+---
+
+## 6.3. Trial to Student Conversion
+
+### Q6.3.1: Why UPDATE ROLE vs CREATE NEW STUDENT? ✅ ANSWERED
+
+**Question:** Khi trial user converts to paid student, tại sao UPDATE existing user's role thay vì CREATE new student record?
+
+**Options:**
+- [x] UPDATE user.role: TRIAL_USER → STUDENT - Recommended
+- [ ] CREATE new User + Student, DELETE old Trial user
+- [ ] MERGE Trial and Student data (complex migration)
+
+**Answer:** UPDATE role approach
+
+**Rationale:**
+1. **Progress preservation automatic**:
+   - `lesson_progress` table uses `user_id` (not student_id)
+   - Same user_id before/after conversion → all progress automatically visible
+   - No data migration needed
+2. **Audit trail preserved**:
+   - Same User record → `created_at` shows original trial registration date
+   - Can track: "User registered on 2026-01-15, converted on 2026-01-22 (7 days trial)"
+3. **Simpler implementation**:
+   - Core calls Gateway API: `PUT /users/{id}/role` with `{role: "STUDENT"}`
+   - Core updates: `leads.status = CONVERTED, leads.converted_at = NOW()`
+   - Core creates enrollment (reuses existing user_id)
+   - No foreign key updates, no data copying
+4. **Lead record kept for analytics**:
+   - Lead table: `{user_id: "abc", source: "TRIAL_SIGNUP", status: "CONVERTED", converted_at: "2026-01-22"}`
+   - Marketing can track: "Trial signup source = Google Ads → converted → ROI = +$299"
+
+**Implementation:**
+```java
+// Core PR 2.14 - Lead Conversion
+public ConversionResponse convertToStudent(UUID leadId, ConvertLeadRequest request) {
+    // 1. Verify payment
+    paymentService.verifyPayment(lead.getUserId(), request.getCourseId());
+
+    // 2. Update role in Gateway
+    gatewayClient.updateUserRole(lead.getUserId(), "STUDENT");
+
+    // 3. Update lead status
+    lead.setStatus(LeadStatus.CONVERTED);
+    lead.setConvertedAt(Instant.now());
+
+    // 4. Create enrollment (reuses user_id)
+    enrollmentService.createEnrollment(lead.getUserId(), request.getCourseId());
+
+    return new ConversionResponse(lead.getUserId(), "STUDENT", enrollmentId);
+}
+```
+
+**Progress preservation query**:
+```sql
+-- After conversion, student sees all previous progress
+SELECT lp.lesson_id, lp.progress_percent, lp.completed
+FROM lesson_progress lp
+WHERE lp.user_id = :userId; -- Same user_id → progress preserved
+```
+
+**Alternative rejected:** CREATE new user + DELETE old → loses progress, loses audit trail, complex FK updates
+
+**Reference:** Core PR 2.14 - Lead to Student Conversion
+
+---
+
+### Q6.3.2: Why Self-Paced (No Class Enrollment) for Trial Phase 1? ✅ ANSWERED
+
+**Question:** Tại sao trial users không thể enroll vào classes (chỉ access lessons trực tiếp) trong Phase 1?
+
+**Options:**
+- [x] Self-paced learning only (no class enrollment) for Phase 1 - Recommended
+- [ ] Allow trial users to join classes immediately
+- [ ] Create separate "Trial Classes" với limited features
+
+**Answer:** Self-paced learning for Phase 1, defer class enrollment to Phase 2
+
+**Rationale:**
+1. **Simpler onboarding**:
+   - No scheduling conflicts (trial user can start learning immediately)
+   - No class selection complexity ("Which class to join?")
+   - No waiting for class to start (instant access)
+2. **Lower barrier to entry**:
+   - Guest clicks "Try Free" → access lessons within 5 minutes
+   - vs "Join class" → need to check schedule, wait for enrollment approval, etc.
+3. **Phase 1 focus: Validate "try before buy" concept**:
+   - Prove that quota system works (3 lessons/day)
+   - Prove that trial → paid conversion works
+   - Add class features later once core flow validated
+4. **Avoid class capacity management**:
+   - If trial users join classes → consume class seats
+   - Teachers might be annoyed: "Half my class is trial users who won't pay"
+5. **Simpler testing**:
+   - Phase 1: Test quota enforcement, lesson access, conversion flow
+   - Phase 2: Test class enrollment, attendance, teacher-student interaction
+
+**Implementation (Phase 1)**:
+- EnrollmentService: `IF user.role = TRIAL_USER AND request.classId != null THEN throw TrialUserClassEnrollmentNotAllowedException`
+- Frontend: Hide "Enroll in Class" button for trial users
+- Show: "Self-paced learning. Upgrade to join live classes!"
+
+**Phase 2 (Future)**:
+- Allow trial users to join "trial classes" (separate from paid classes)
+- Or: Allow observing classes (read-only, no interaction)
+- Or: Allow joining last 30min of class as observer
+
+**Alternative rejected:** Allow full class access → complex capacity management, teacher friction
+
+**Reference:** Database Design Section 5.5 - Business Rules (BR-TRIAL-006)
+
+---
+
+## 6.4. Trial Learning Technical Implementation
+
+### Q6.4.1: Why Magic Link Expires in 30 Minutes? ✅ ANSWERED
+
+**Question:** Tại sao magic link expiry = 30 minutes (không phải 1 hour hoặc 24 hours)?
+
+**Options:**
+- [ ] 10 minutes (too short?)
+- [x] 30 minutes (recommended)
+- [ ] 1 hour
+- [ ] 24 hours (link còn dùng được cả ngày)
+
+**Answer:** 30 minutes expiry
+
+**Rationale:**
+1. **Security**: Shorter expiry → smaller window for token theft
+   - If email account compromised → attacker has limited time
+   - Prevents token reuse after long delay
+2. **Balance between security and UX**:
+   - 30 minutes enough for user to: Check email (5min) → Click link (30 sec)
+   - Not too short: User distracted by phone call → comes back 10min later → still works
+3. **Industry standard**: Most passwordless systems use 15-30 minutes
+   - Slack magic links: 30 minutes
+   - Medium magic links: 15 minutes
+   - GitHub magic links: 30 minutes
+4. **Encourage immediate action**: "Limited time" creates urgency
+   - User more likely to complete signup immediately
+   - Reduces abandoned signups
+
+**Implementation:**
+- Redis TTL: `redisTemplate.opsForValue().set(key, data, Duration.ofMinutes(30))`
+- If expired: Show error "Magic link expired. Request a new one."
+- User can request new link (no penalty)
+
+**Edge case handling**:
+- User requests link → doesn't check email for 1 hour → link expired → Show clear error + "Resend link" button
+
+**Alternative rejected:** 24 hours → too long, security risk, user might forget context
+
+**Reference:** Gateway PR 1.13 - Magic Link Security
+
+---
+
+### Q6.4.2: Why Lead Conversion Requires Payment Verification? ✅ ANSWERED
+
+**Question:** Tại sao Lead→Student conversion yêu cầu verify payment trước khi update role?
+
+**Options:**
+- [x] Verify payment BEFORE conversion - Recommended
+- [ ] Update role immediately, verify payment async (trust-based)
+- [ ] Manual approval by admin (slow)
+
+**Answer:** Verify payment before conversion
+
+**Rationale:**
+1. **Prevent fraud**:
+   - User could bypass payment and get student access
+   - Without verification: POST /leads/{id}/convert → instant STUDENT role → free access
+2. **Atomic transaction**:
+   - Payment success → Role update → Enrollment created (all or nothing)
+   - If payment fails → rollback entire conversion
+3. **Clear business logic**:
+   ```java
+   if (!paymentService.verifyPayment(userId, courseId)) {
+       throw new PaymentNotCompletedException("PAYMENT_NOT_FOUND");
+   }
+   // Only proceed if payment verified
+   gatewayClient.updateUserRole(userId, "STUDENT");
+   ```
+4. **Audit trail**: Conversion record includes `payment_transaction_id`
+   - Can track: "User paid ₫299k via VNPay on 2026-01-22 → converted"
+   - Accounting reconciliation: "All conversions have matching payments"
+
+**Implementation (Phase 1 - Mock)**:
+```java
+@Service
+@Profile("!prod")
+public class MockPaymentService implements PaymentService {
+    public PaymentVerificationResponse verifyPayment(UUID userId, Long courseId) {
+        // Always return success for testing
+        return new PaymentVerificationResponse(UUID.randomUUID(), 299000, "COMPLETED");
+    }
+}
+```
+
+**Implementation (Phase 2 - Real)**:
+- Integrate VNPay/Stripe API
+- Check payment status: `GET /payments/{transactionId}/status`
+- Only convert if status = COMPLETED
+
+**Alternative rejected:** Trust-based (no verification) → fraud risk, accounting issues
+
+**Reference:** Core PR 2.14 - Payment Verification
+
+---
+
+## 6.5. Summary
+
+**Trial Learning System Design Decisions:**
+
+| Decision | Chosen Approach | Rationale |
+|----------|----------------|-----------|
+| Authentication | Magic link (passwordless) | Faster onboarding, mobile-friendly, security |
+| Role location | TRIAL_USER in Gateway enum | Consistent auth model, JWT claims, API routing |
+| Quota limit | 3 lessons/day | Balance "try before buy" vs "create urgency" |
+| Data model | Separate leads table | Different lifecycle, clear domain separation |
+| Course approach | Single course with flags | No duplication, easier management, simpler conversion |
+| Conversion strategy | UPDATE role (same user_id) | Progress preserved, audit trail, simpler implementation |
+| Trial scope | Self-paced (no classes) Phase 1 | Simpler onboarding, validate core flow first |
+| Magic link expiry | 30 minutes | Security vs UX balance, industry standard |
+| Payment verification | Required before conversion | Prevent fraud, atomic transaction, audit trail |
+
+**Implementation References:**
+- Database: Migration V12 (Gateway enum + Core tables)
+- Gateway: PR 1.13 (Magic link auth)
+- Core: PR 2.13 (Trial registration), PR 2.14 (Conversion)
+- Frontend: PR 3.13 (Trial UI), PR 3.14 (Payment flow)
+
+**Next Steps:**
+1. Review and approve all 8 design decisions
+2. Implement Gateway PR 1.13 (TRIAL_USER authentication)
+3. Implement Core PR 2.13 (Quota management)
+4. Implement Core PR 2.14 (Conversion flow)
+5. Implement Frontend PR 3.13-3.14 (Trial UI)
 
 ---
 

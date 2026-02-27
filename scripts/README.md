@@ -1,389 +1,192 @@
-# KiteClass Development Scripts
+# Shared Monorepo Scripts
 
-Scripts tự động hóa cho môi trường development. Tương thích với WSL.
+Generic utilities shared across all projects in the monorepo.
 
-## 🚀 Quick Start
+## 📁 Structure
 
-### Option 1: Docker Compose (⚡ NHANH - Recommended)
-
-```bash
-# Khởi động tất cả services với Docker
-./scripts/dev-docker.sh up
-
-# Xem logs
-./scripts/dev-docker.sh logs
-
-# Dừng tất cả
-./scripts/dev-docker.sh down
+```
+scripts/
+├── test-local.sh                # Generic test runner with auto-cleanup
+├── dev-docker.sh                # Docker Compose wrapper
+├── cleanup-testcontainers.sh    # Testcontainers cleanup utility
+└── README.md                    # This file
 ```
 
-**Ưu điểm:**
-- ✅ **Cực nhanh** - Không cần compile mỗi lần
-- ✅ **Stable** - Docker images đã build sẵn
-- ✅ **Hot reload** - Frontend tự động reload khi code thay đổi
-- ✅ **Production-like** - Giống môi trường production
+## 🛠️ Available Scripts
 
-### Option 2: Native (Chậm hơn)
-
-```bash
-# Khởi động tất cả services native
-./scripts/dev-start.sh
-
-# Kiểm tra trạng thái
-./scripts/dev-status.sh
-
-# Dừng tất cả services
-./scripts/dev-stop.sh
-```
-
-## 📋 Available Scripts
-
-### 1. `dev-docker.sh` - Docker Compose (⚡ RECOMMENDED)
-
-Khởi động tất cả services bằng Docker Compose - **NHANH NHẤT!**
+### test-local.sh
+Run tests for any project with automatic Testcontainers cleanup.
 
 **Usage:**
 ```bash
-# Start all services
+# KiteClass (default, backward compatible)
+./scripts/test-local.sh [core|gateway|all]
+
+# Specific project
+./scripts/test-local.sh <project> [core|gateway|all]
+
+# Examples
+./scripts/test-local.sh core              # Test kiteclass-core
+./scripts/test-local.sh gateway           # Test kiteclass-gateway
+./scripts/test-local.sh all               # Test all kiteclass services
+./scripts/test-local.sh kiteclass core    # Explicit project
+./scripts/test-local.sh kitehub backend   # Future: test kitehub-backend
+```
+
+**Features:**
+- Automatically cleans up Testcontainers after tests
+- Runs cleanup even if tests fail (via trap)
+- Colored output for better readability
+- Backward compatible with existing usage
+
+### dev-docker.sh
+Docker Compose wrapper for development environments.
+
+**Usage:**
+```bash
+./scripts/dev-docker.sh [command]
+
+# Commands
+./scripts/dev-docker.sh up        # Start all services
+./scripts/dev-docker.sh down      # Stop all services
+./scripts/dev-docker.sh build     # Build Docker images
+./scripts/dev-docker.sh rebuild   # Rebuild and restart
+./scripts/dev-docker.sh logs      # Show logs
+./scripts/dev-docker.sh restart   # Restart services
+./scripts/dev-docker.sh status    # Show container status
+./scripts/dev-docker.sh clean     # Remove containers and volumes
+```
+
+**Configuration:**
+```bash
+# Default: kiteclass/docker-compose.dev.yml
 ./scripts/dev-docker.sh up
 
-# Stop all services
-./scripts/dev-docker.sh down
+# Override with environment variable
+COMPOSE_FILE=kitehub/docker-compose.dev.yml ./scripts/dev-docker.sh up
+```
 
-# Rebuild images
-./scripts/dev-docker.sh build
+**Features:**
+- Health checks for all services
+- Colored output with status indicators
+- Confirmation prompt for destructive operations
+
+### cleanup-testcontainers.sh
+Clean up orphaned Testcontainers (project-agnostic).
+
+**Usage:**
+```bash
+./scripts/cleanup-testcontainers.sh
+```
+
+**When to use:**
+- After interrupting tests with Ctrl+C
+- When Testcontainers fail to auto-cleanup
+- Before running tests to ensure clean state
+- To free up system resources
+
+**Identifies and removes:**
+- Containers with label `org.testcontainers=true`
+- Both running and stopped containers
+- Automatically called by `test-local.sh`
+
+## 📦 Project-Specific Scripts
+
+Each project has its own scripts directory for project-specific utilities:
+
+- **[KiteClass Scripts](../kiteclass/scripts/)** - KiteClass development tools
+  - `init-admin.sh` - Initialize admin user
+  - `seed-data.sh` - Seed sample data
+  - `dev-start.sh` - Start services locally (without Docker)
+  - `dev-rebuild.sh` - Rebuild and restart Docker services
+  - `dev-status.sh` - Check service status
+  - `dev-stop.sh` - Stop local services
+  - `docker-build.sh` - Build Docker images with versioning
+  - `docker-version.sh` - Show current Docker image versions
+  - `check-problems.sh` - Check for compile/lint errors
+
+- **[KiteHub Scripts](../kitehub/scripts/)** _(future)_ - KiteHub development tools
+
+## 🔧 Design Principles
+
+### Why Separate Shared Scripts?
+
+1. **Reusability** - Same scripts work for all projects
+2. **Maintainability** - Update once, benefit everywhere
+3. **Consistency** - Same workflow across projects
+4. **Simplicity** - No duplication of common utilities
+
+### Backward Compatibility
+
+Scripts maintain backward compatibility with existing usage:
+- `test-local.sh` defaults to `kiteclass` project
+- `dev-docker.sh` uses `COMPOSE_FILE` environment variable
+- No breaking changes to current workflows
+
+### Project-Specific vs Shared
+
+**Use shared scripts for:**
+- Generic operations (tests, docker, cleanup)
+- Cross-project utilities
+- Operations that work the same way everywhere
+
+**Use project-specific scripts for:**
+- Business logic (seed data, init admin)
+- Project-specific workflows
+- Service management within a project
+
+## 📝 Examples
+
+### Running Tests
+
+```bash
+# Quick test (default project)
+./scripts/test-local.sh all
+
+# Test specific service
+./scripts/test-local.sh core
+
+# Test different project
+./scripts/test-local.sh kitehub backend
+```
+
+### Docker Development
+
+```bash
+# Start KiteClass (default)
+./scripts/dev-docker.sh up
+
+# Start KiteHub (future)
+COMPOSE_FILE=kitehub/docker-compose.dev.yml ./scripts/dev-docker.sh up
 
 # View logs
 ./scripts/dev-docker.sh logs
 
-# Check status
-./scripts/dev-docker.sh status
-
-# Restart services
-./scripts/dev-docker.sh restart
-
-# Clean everything
+# Cleanup
 ./scripts/dev-docker.sh clean
 ```
 
-**Services included:**
-- PostgreSQL (port 5432)
-- Redis (port 6379)
-- Core Service (port 8081) - **Docker image**
-- Gateway Service (port 8080) - **Docker image**
-- Frontend (port 3000) - **Docker với hot reload**
-
-**Ưu điểm:**
-- ⚡ **Nhanh** - Images đã build sẵn, không compile mỗi lần
-- 🔄 **Hot reload** - Frontend tự động reload
-- 🐳 **Isolated** - Mỗi service trong container riêng
-- 🏥 **Health checks** - Tự động check service health
-- 📊 **Easy monitoring** - `docker-compose ps` để xem status
-
-### 2. `dev-start.sh` - Native startup (Chậm hơn)
-
-Tự động khởi động:
-- ✅ PostgreSQL (Docker)
-- ✅ Redis (Docker)
-- ✅ Core Service (port 8081)
-- ✅ Gateway Service (port 8080)
-- ✅ Frontend (port 3000)
-
-**Usage:**
-```bash
-./scripts/dev-start.sh
-```
-
-**Output:**
-- Frontend: http://localhost:3000
-- Gateway: http://localhost:8080
-- Core: http://localhost:8081
-- Logs: `.log/` directory
-
-**Dừng services:**
-- Nhấn `Ctrl+C` hoặc chạy `./scripts/dev-stop.sh`
-
-### 2. `dev-stop.sh` - Dừng tất cả services
-
-Dừng toàn bộ:
-- Backend processes (Gateway + Core)
-- Frontend process
-- Docker containers (PostgreSQL + Redis)
-
-**Usage:**
-```bash
-./scripts/dev-stop.sh
-```
-
-### 3. `dev-status.sh` - Kiểm tra trạng thái
-
-Hiển thị trạng thái của:
-- Frontend (port 3000)
-- Gateway (port 8080)
-- Core (port 8081)
-- PostgreSQL container
-- Redis container
-- Log files
-
-**Usage:**
-```bash
-./scripts/dev-status.sh
-```
-
-### 4. `seed-data.sh` - Tạo dữ liệu mẫu
-
-Tạo:
-- 5 học viên mẫu
-- 3 giáo viên mẫu
-
-**Usage:**
-```bash
-# Bước 1: Login vào http://localhost:3000/login
-# Bước 2: Lấy accessToken và tenantId từ localStorage (F12)
-# Bước 3: Chạy script
-./scripts/seed-data.sh YOUR_ACCESS_TOKEN YOUR_TENANT_ID
-```
-
-**Hoặc chạy không tham số để xem hướng dẫn:**
-```bash
-./scripts/seed-data.sh
-```
-
-## 📝 Logs
-
-Tất cả logs được lưu tại `.log/`:
+### Cleanup Containers
 
 ```bash
-# Xem logs Frontend
-tail -f .log/frontend.log
+# After interrupted tests
+Ctrl+C  # Interrupt tests
+./scripts/cleanup-testcontainers.sh
 
-# Xem logs Gateway
-tail -f .log/gateway.log
-
-# Xem logs Core
-tail -f .log/core.log
-
-# Xem tất cả logs
-tail -f .log/*.log
+# Before starting fresh
+./scripts/cleanup-testcontainers.sh
+./scripts/test-local.sh all
 ```
 
-## 🔧 Prerequisites
+## 🤝 Contributing
 
-Scripts sẽ tự động kiểm tra các tool cần thiết:
+When adding new shared scripts:
+1. Ensure they are truly generic (work for all projects)
+2. Use parameters/environment variables for project-specific paths
+3. Maintain backward compatibility when possible
+4. Document usage in this README
+5. Add colored output for better UX
 
-- ✅ **Docker** - Để chạy PostgreSQL và Redis
-- ✅ **Java 21+** - Để chạy Spring Boot
-- ✅ **Node.js 20+** - Để chạy Next.js
-- ✅ **pnpm** - Package manager cho frontend
+---
 
-### Cài đặt trên WSL/Ubuntu
-
-```bash
-# Docker
-sudo apt update
-sudo apt install docker.io
-sudo usermod -aG docker $USER
-# Logout và login lại
-
-# Java 21
-sudo apt install openjdk-21-jdk
-
-# Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# pnpm
-npm install -g pnpm
-```
-
-## 🐛 Troubleshooting
-
-### Lỗi: Port already in use
-
-```bash
-# Kiểm tra port đang được sử dụng
-lsof -i :3000  # Frontend
-lsof -i :8080  # Gateway
-lsof -i :8081  # Core
-
-# Kill process
-kill -9 <PID>
-
-# Hoặc dùng script stop
-./scripts/dev-stop.sh
-```
-
-### Lỗi: Docker containers không khởi động
-
-```bash
-# Kiểm tra Docker service
-sudo service docker status
-sudo service docker start
-
-# Xóa containers cũ và khởi động lại
-docker rm -f kiteclass-postgres kiteclass-redis
-./scripts/dev-start.sh
-```
-
-### Lỗi: Maven build fails
-
-```bash
-# Clean và rebuild
-cd kiteclass/kiteclass-gateway
-./mvnw clean install
-
-cd ../kiteclass-core
-./mvnw clean install
-```
-
-### Lỗi: Frontend dependencies
-
-```bash
-cd kiteclass/kiteclass-frontend
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
-
-## 🎯 Workflow Thông Thường
-
-### Development Session
-
-```bash
-# 1. Khởi động môi trường
-./scripts/dev-start.sh
-
-# 2. Chờ tất cả services sẵn sàng (khoảng 2-3 phút)
-
-# 3. Truy cập http://localhost:3000
-
-# 4. Đăng ký/đăng nhập tài khoản
-
-# 5. (Optional) Tạo dữ liệu mẫu - xem section "📦 Import Dữ Liệu Mẫu" bên dưới
-#    Cần lấy accessToken và tenantId từ localStorage trước
-./scripts/seed-data.sh YOUR_TOKEN YOUR_TENANT_ID
-
-# 6. Làm việc...
-
-# 6. Khi xong, dừng services
-# Nhấn Ctrl+C hoặc:
-./scripts/dev-stop.sh
-```
-
-### Kiểm tra nhanh
-
-```bash
-# Kiểm tra services đang chạy
-./scripts/dev-status.sh
-
-# Xem logs real-time
-tail -f .log/frontend.log
-```
-
-## 📦 Import Dữ Liệu Mẫu
-
-### Cách 1: Sử dụng Seed Script (Recommended)
-
-Script `seed-data.sh` sẽ tự động tạo:
-- ✅ **5 học viên** với thông tin đầy đủ (tên, email, số điện thoại, địa chỉ)
-- ✅ **3 giáo viên** với chuyên môn khác nhau (Computer Science, Math, Chemistry)
-
-**Bước thực hiện:**
-
-```bash
-# Bước 1: Truy cập ứng dụng
-open http://localhost:3000
-
-# Bước 2: Đăng ký tài khoản mới hoặc đăng nhập
-
-# Bước 3: Mở Developer Tools (F12), vào tab Console, chạy lệnh:
-localStorage.getItem('accessToken')    # Copy token
-localStorage.getItem('tenantId')       # Copy tenant ID
-
-# Bước 4: Chạy script với token và tenant ID vừa copy
-./scripts/seed-data.sh "YOUR_ACCESS_TOKEN" "YOUR_TENANT_ID"
-
-# Ví dụ:
-# ./scripts/seed-data.sh "eyJhbGciOiJIUzUxMiJ9..." "550e8400-e29b-41d4-a716-446655440000"
-```
-
-**Output mẫu khi thành công:**
-```
-🌱 Tạo dữ liệu mẫu cho KiteClass...
-✅ Student 1 created: Nguyễn Văn An
-✅ Student 2 created: Trần Thị Bình
-...
-✅ Teacher 1 created: Dr. John Smith
-...
-🎉 Hoàn tất! Đã tạo 5 students và 3 teachers.
-```
-
-### Cách 2: Thêm thủ công qua UI
-
-Truy cập các trang quản lý trong ứng dụng:
-- Students: http://localhost:3000/students
-- Teachers: http://localhost:3000/teachers
-
-Click nút "Add New" và điền thông tin.
-
-### Kiểm tra dữ liệu đã import
-
-```bash
-# Kết nối vào PostgreSQL
-docker exec -it kiteclass-postgres psql -U kiteclass -d kiteclass_dev
-
-# Kiểm tra số lượng students
-SELECT COUNT(*) FROM students WHERE deleted = false;
-
-# Kiểm tra số lượng teachers
-SELECT COUNT(*) FROM teachers WHERE deleted = false;
-
-# Xem danh sách students
-SELECT name, email FROM students WHERE deleted = false;
-
-# Thoát
-\q
-```
-
-## 📊 Database Access
-
-### PostgreSQL
-
-```bash
-# Connection info
-Host: localhost
-Port: 5432
-Database: kiteclass_dev
-User: kiteclass
-Password: kiteclass123
-
-# Connect với psql
-docker exec -it kiteclass-postgres psql -U kiteclass -d kiteclass_dev
-
-# Hoặc dùng GUI tools (DBeaver, pgAdmin)
-```
-
-### Redis
-
-```bash
-# Connect với redis-cli
-docker exec -it kiteclass-redis redis-cli
-
-# Test connection
-PING  # Should return PONG
-
-# List all keys
-KEYS *
-```
-
-## 🔐 Security Note
-
-- Database credentials chỉ dùng cho development
-- Không commit `.env.local` vào git
-- Scripts này KHÔNG dùng cho production
-
-## 📚 More Info
-
-- Frontend README: `kiteclass/kiteclass-frontend/README.md`
-- Backend Gateway: `kiteclass/kiteclass-gateway/README.md`
-- Backend Core: `kiteclass/kiteclass-core/README.md`
-- Implementation Plan: `documents/03-planning/implementation/kiteclass-implementation-plan.md`
+**Last Updated**: 2026-02-27

@@ -1,11 +1,15 @@
 #!/bin/bash
 # Development rebuild script with proper cache clearing
-# Usage: ./scripts/dev-rebuild.sh [service]
-# Example: ./scripts/dev-rebuild.sh frontend
-#          ./scripts/dev-rebuild.sh core
-#          ./scripts/dev-rebuild.sh all
+# Usage: ./kiteclass/scripts/dev-rebuild.sh [service]
+# Example: ./kiteclass/scripts/dev-rebuild.sh frontend
+#          ./kiteclass/scripts/dev-rebuild.sh core
+#          ./kiteclass/scripts/dev-rebuild.sh all
 
 set -e
+
+# Get script directory and navigate to kiteclass root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
 # Colors for output
 RED='\033[0;31m'

@@ -5,9 +5,12 @@
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Service** | kiteclass-core-service |
-| **Tech Stack** | Spring Boot 3.2+, Java 17, PostgreSQL 15 |
-| **Mục đích** | Core business logic: Classes, Students, Attendance, Billing |
+| **Version** | V4.1 (Bundled Model) ⭐ NEW |
+| **Tech Stack** | Spring Boot 3.5.11, Java 17, PostgreSQL 15 |
+| **RAM** | ~900MB (650MB base + 250MB LMS/Marketing) |
+| **Mục đích** | Core business logic: Classes, Students, Attendance, Billing, LMS, Marketing |
 | **Tham chiếu** | architecture-overview, database-design, api-design |
+| **Last Updated** | 2026-02-26 |
 
 ---
 
@@ -1564,7 +1567,892 @@ public class Payment extends BaseEntity {
 
 ---
 
-# PHASE 4: DATABASE MIGRATIONS
+## File Storage Integration (Cross-Cutting)
+
+**Purpose**: Integrate Storage Service với các modules hiện có (Student, Teacher, Course) để hỗ trợ avatar upload, document attachments.
+
+### Current State
+
+- **Student** entity có `avatar_url: VARCHAR(500)` - stores URL string
+- **Teacher** entity có `avatar_url: VARCHAR(500)` - stores URL string
+- **Course** entity CÓ THỂ cần `syllabus_file_id: UUID` - FK to uploaded_files
+
+### After PR 2.10.1 (Storage Service)
+
+**Option 1: File ID Reference (Recommended)**
+- Change `avatar_url` type to `UUID` (FK to uploaded_files table)
+- Better audit trail (who uploaded, when, file size, access control)
+- Can enforce access control (PRIVATE, COURSE, PUBLIC)
+
+**Option 2: Direct S3 URL (Simpler)**
+- Keep `avatar_url: VARCHAR(500)` as S3 URL: `https://cdn.kiteclass.vn/tenant-123/avatars/abc.png`
+- No FK reference to uploaded_files (looser coupling)
+- Simpler to implement, no cross-table joins
+
+**Recommendation**: **Option 1** (File ID Reference) cho:
+- Better audit trail
+- Access control enforcement
+- Storage quota tracking (know which user consumes how much)
+
+### Avatar Upload Flow (Frontend → Storage Service)
+
+1. **Frontend initiates upload**:
+   ```
+   POST /api/v1/files/upload/initiate
+   Body: { fileName, fileSize, fileType: "AVATAR", mimeType: "image/png" }
+   Response: { uploadUrl, fileId, expiresIn: 600 }
+   ```
+
+2. **Frontend uploads to S3 directly**:
+   ```
+   PUT {uploadUrl}
+   Body: <file binary>
+   Headers: { Content-Type: image/png }
+   ```
+
+3. **Frontend completes upload**:
+   ```
+   POST /api/v1/files/{fileId}/complete
+   Response: { fileId, status: "READY", downloadUrl }
+   ```
+
+4. **Frontend updates Student/Teacher**:
+   ```
+   PUT /api/v1/students/{id}
+   Body: { avatarFileId: "{fileId}" }  // NEW field
+   ```
+
+5. **Backend updates entity**:
+   ```java
+   student.setAvatarFileId(avatarFileId);
+   studentRepository.save(student);
+   ```
+
+6. **Frontend displays avatar**:
+   ```
+   GET /api/v1/files/{avatarFileId}/download
+   Response: { downloadUrl: "https://s3.../presigned-url", expiresIn: 86400 }
+   ```
+
+### Migration Strategy
+
+1. Add new column `avatar_file_id UUID` to students/teachers tables (nullable)
+2. Keep old `avatar_url VARCHAR(500)` for backward compatibility (deprecated)
+3. Migrate existing URLs to uploaded_files records (background job)
+4. Update APIs to accept both `avatarUrl` (deprecated) and `avatarFileId` (new)
+5. Phase out `avatar_url` sau 2-3 versions
+
+### Document Attachments (Course Syllabus, Assignment Submissions)
+
+- Similar flow như avatar upload
+- **Course**: `syllabus_file_id UUID` (FK to uploaded_files)
+- **Assignment Submission**: `submission_file_id UUID` (FK to uploaded_files)
+- Access control: `access_level = 'COURSE'` (only teacher + enrolled students)
+
+### Service Layer Changes
+
+```java
+// StudentService.java
+@Service
+public class StudentServiceImpl implements StudentService {
+    private final FileServiceClient fileServiceClient; // Feign client to Storage Service
+
+    public StudentResponse updateAvatar(Long studentId, UUID avatarFileId) {
+        // 1. Verify file exists and is READY
+        FileMetadataResponse file = fileServiceClient.getFileMetadata(avatarFileId);
+        if (!file.getStatus().equals("READY")) {
+            throw new InvalidFileStateException("File not ready");
+        }
+
+        // 2. Update student
+        Student student = studentRepository.findById(studentId);
+        student.setAvatarFileId(avatarFileId);
+        studentRepository.save(student);
+
+        return mapToResponse(student);
+    }
+}
+```
+
+### DTOs Update
+
+```java
+// StudentResponse.java
+public class StudentResponse {
+    private Long id;
+    private String email;
+    private String firstName;
+    private String lastName;
+
+    @Deprecated
+    private String avatarUrl; // Keep for backward compatibility
+
+    private UUID avatarFileId; // NEW - FK to uploaded_files
+    private String avatarDownloadUrl; // NEW - Presigned URL (fetched from Storage Service)
+}
+```
+
+**Related Documentation**: See [Storage Service Design](./storage-service-design.md) for complete API flows, quota enforcement, and testing strategies.
+
+**Related PRs**:
+- PR 2.10.1: Storage Service (foundation)
+- PR 2.3.2: Student Module Update (avatar_file_id migration)
+- PR 2.3.3: Teacher Module Update (avatar_file_id migration)
+
+---
+
+# PHASE 4: V4.1 GUEST-FACING MODULES (Bundled Model) ⭐ NEW
+
+## 4.1. Module: LMS (Learning Management System)
+
+### Overview
+Enable guest learning features and student progress tracking. This module provides structured learning paths with course modules, lessons, and progress tracking.
+
+### Package Structure
+
+```
+module/lms/
+├── controller/
+│   ├── CourseModuleController.java
+│   ├── LessonController.java
+│   └── LearningProgressController.java
+├── service/
+│   ├── CourseModuleService.java
+│   ├── LessonService.java
+│   └── LearningProgressService.java
+├── repository/
+│   ├── CourseModuleRepository.java
+│   ├── LessonRepository.java
+│   ├── LearningResourceRepository.java
+│   └── LessonProgressRepository.java
+├── entity/
+│   ├── CourseModule.java
+│   ├── Lesson.java
+│   ├── LearningResource.java
+│   └── LessonProgress.java
+├── dto/
+│   ├── CourseModuleResponse.java
+│   ├── LessonResponse.java
+│   ├── CreateModuleRequest.java
+│   ├── CreateLessonRequest.java
+│   └── LearningProgressResponse.java
+└── mapper/
+    ├── CourseModuleMapper.java
+    └── LessonMapper.java
+```
+
+### Entities
+
+#### CourseModule.java
+```java
+package com.kiteclass.core.module.lms.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import com.kiteclass.core.module.course.entity.Course;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "course_modules", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"course_id", "order_number", "instance_id"})
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CourseModule extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
+
+    @Column(name = "title", nullable = false, length = 200)
+    private String title;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "order_number", nullable = false)
+    @Builder.Default
+    private Integer orderNumber = 0;
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Lesson> lessons = new ArrayList<>();
+}
+```
+
+#### Lesson.java
+```java
+package com.kiteclass.core.module.lms.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "lessons", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"module_id", "order_number", "instance_id"})
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Lesson extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id", nullable = false)
+    private CourseModule module;
+
+    @Column(name = "title", nullable = false, length = 200)
+    private String title;
+
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "video_url", length = 500)
+    private String videoUrl;
+
+    @Column(name = "is_trial", nullable = false)
+    @Builder.Default
+    private boolean isTrial = false;  // ⭐ KEY: Guest access control
+
+    @Column(name = "order_number", nullable = false)
+    @Builder.Default
+    private Integer orderNumber = 0;
+
+    @Column(name = "estimated_duration") // minutes
+    private Integer estimatedDuration;
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<LearningResource> resources = new ArrayList<>();
+}
+```
+
+#### LearningResource.java
+```java
+package com.kiteclass.core.module.lms.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "learning_resources")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LearningResource extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_id", nullable = false)
+    private Lesson lesson;
+
+    @Column(name = "type", nullable = false, length = 50)
+    private String type; // PDF, VIDEO, SLIDES, QUIZ, OTHER
+
+    @Column(name = "title", nullable = false, length = 200)
+    private String title;
+
+    @Column(name = "url", length = 500)
+    private String url;
+
+    @Column(name = "file_size") // bytes
+    private Long fileSize;
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+}
+```
+
+#### LessonProgress.java
+```java
+package com.kiteclass.core.module.lms.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "lesson_progress", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"user_id", "lesson_id", "instance_id"})
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LessonProgress extends BaseEntity {
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId; // From Gateway User.id
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_id", nullable = false)
+    private Lesson lesson;
+
+    @Column(name = "completed", nullable = false)
+    @Builder.Default
+    private boolean completed = false;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
+
+    @Column(name = "progress_percent")
+    @Builder.Default
+    private Integer progressPercent = 0;
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+}
+```
+
+### Business Rules
+
+- **BR-LMS-001**: Guest users can only access lessons where `isTrial = true`
+- **BR-LMS-002**: Student must have active enrollment in course to access paid lessons (`isTrial = false`)
+- **BR-LMS-003**: Progress auto-saves when user marks lesson as completed
+- **BR-LMS-004**: Module `order_number` must be unique per course
+- **BR-LMS-005**: Lesson `order_number` must be unique per module
+
+### REST Endpoints
+
+#### Public/Guest Endpoints
+```java
+// CourseModuleController
+GET  /api/v1/courses/{courseId}/modules
+     - List all modules for a course (with lessons metadata)
+     - Authorization: Public (guest access)
+     - Returns: List<CourseModuleResponse> with lesson counts
+
+GET  /api/v1/modules/{moduleId}/lessons
+     - List lessons in a module
+     - Authorization: Public (guest sees only trial lessons)
+     - Returns: List<LessonResponse> (filtered by isTrial if guest)
+```
+
+#### Student Endpoints
+```java
+// LessonController
+GET  /api/v1/lessons/{lessonId}
+     - View lesson detail
+     - Authorization: Student with enrollment OR isTrial = true
+     - Returns: LessonResponse with content and resources
+
+POST /api/v1/lessons/{lessonId}/complete
+     - Mark lesson as completed
+     - Authorization: Student only
+     - Body: { progressPercent: 100 }
+     - Returns: LearningProgressResponse
+
+// LearningProgressController
+GET  /api/v1/courses/{courseId}/progress
+     - Get student learning progress for a course
+     - Authorization: Student only
+     - Returns: CourseProgressResponse (modules, lessons, completion %)
+```
+
+#### Teacher/Admin Endpoints
+```java
+// CourseModuleController
+POST /api/v1/courses/{courseId}/modules
+     - Create new module
+     - Authorization: Teacher/Admin
+     - Body: CreateModuleRequest
+     - Returns: CourseModuleResponse
+
+PUT  /api/v1/modules/{moduleId}
+     - Update module
+     - Authorization: Teacher/Admin
+     - Body: UpdateModuleRequest
+     - Returns: CourseModuleResponse
+
+DELETE /api/v1/modules/{moduleId}
+     - Delete module (soft delete)
+     - Authorization: Teacher/Admin
+     - Returns: 204 No Content
+
+// LessonController
+POST /api/v1/modules/{moduleId}/lessons
+     - Add lesson to module
+     - Authorization: Teacher/Admin
+     - Body: CreateLessonRequest
+     - Returns: LessonResponse
+
+PUT  /api/v1/lessons/{lessonId}
+     - Update lesson (including toggling isTrial)
+     - Authorization: Teacher/Admin
+     - Body: UpdateLessonRequest
+     - Returns: LessonResponse
+
+DELETE /api/v1/lessons/{lessonId}
+     - Delete lesson (soft delete)
+     - Authorization: Teacher/Admin
+     - Returns: 204 No Content
+```
+
+### DTOs
+
+```java
+// CourseModuleResponse
+public record CourseModuleResponse(
+    Long id,
+    Long courseId,
+    String title,
+    String description,
+    Integer orderNumber,
+    Integer lessonCount,
+    Integer trialLessonCount
+) {}
+
+// LessonResponse
+public record LessonResponse(
+    Long id,
+    Long moduleId,
+    String title,
+    String content,
+    String videoUrl,
+    boolean isTrial,
+    Integer orderNumber,
+    Integer estimatedDuration,
+    List<LearningResourceResponse> resources
+) {}
+
+// CreateModuleRequest
+public record CreateModuleRequest(
+    @NotBlank @Size(max = 200) String title,
+    @Size(max = 5000) String description,
+    @Min(0) Integer orderNumber
+) {}
+
+// CreateLessonRequest
+public record CreateLessonRequest(
+    @NotBlank @Size(max = 200) String title,
+    @Size(max = 10000) String content,
+    @URL String videoUrl,
+    @NotNull boolean isTrial,
+    @Min(0) Integer orderNumber,
+    @Min(1) Integer estimatedDuration
+) {}
+
+// LearningProgressResponse
+public record LearningProgressResponse(
+    Long lessonId,
+    String lessonTitle,
+    boolean completed,
+    Instant completedAt,
+    Integer progressPercent
+) {}
+```
+
+### Testing Requirements
+
+#### Unit Tests (CourseModuleServiceTest, LessonServiceTest)
+- Create module with valid data
+- Update module order number
+- Delete module cascades to lessons
+- Create lesson with isTrial flag
+- Update lesson content and toggle isTrial
+- Validate unique constraints (module order, lesson order)
+- **Minimum: 8 tests per service**
+
+#### Integration Tests
+- Guest can access trial lessons only
+- Student with enrollment can access all lessons
+- Student without enrollment blocked from paid lessons
+- Progress tracking persists correctly
+- Module/lesson ordering maintained
+
+---
+
+## 4.2. Module: Marketing
+
+### Overview
+Landing page management, lead capture, and contact forms for guest-to-student conversion funnel.
+
+### Package Structure
+
+```
+module/marketing/
+├── controller/
+│   ├── LandingPageController.java
+│   ├── LeadController.java
+│   └── ContactController.java
+├── service/
+│   ├── LandingPageService.java
+│   ├── LeadService.java
+│   └── ContactService.java
+├── repository/
+│   ├── LandingPageRepository.java
+│   ├── LeadRepository.java
+│   └── ContactMessageRepository.java
+├── entity/
+│   ├── LandingPage.java
+│   ├── Lead.java
+│   └── ContactMessage.java
+└── dto/
+    ├── LandingPageResponse.java
+    ├── LeadResponse.java
+    ├── ContactFormRequest.java
+    └── UpdateLandingPageRequest.java
+```
+
+### Entities
+
+#### LandingPage.java
+```java
+package com.kiteclass.core.module.marketing.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "landing_pages")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LandingPage extends BaseEntity {
+
+    @Column(name = "instance_id", nullable = false, unique = true)
+    private UUID instanceId; // One landing page per tenant
+
+    @Column(name = "hero_title", length = 200)
+    private String heroTitle;
+
+    @Column(name = "hero_subtitle", length = 500)
+    private String heroSubtitle;
+
+    @Column(name = "teacher_bio", columnDefinition = "TEXT")
+    private String teacherBio;
+
+    @Column(name = "hero_image_url", length = 500)
+    private String heroImageUrl;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
+    @Column(name = "tagline", length = 200)
+    private String tagline;
+
+    @Column(name = "primary_color", length = 7) // Hex color #RRGGBB
+    private String primaryColor;
+
+    @Column(name = "secondary_color", length = 7)
+    private String secondaryColor;
+}
+```
+
+#### Lead.java
+```java
+package com.kiteclass.core.module.marketing.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import com.kiteclass.core.module.course.entity.Course;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "leads", indexes = {
+    @Index(name = "idx_leads_instance_id", columnList = "instance_id"),
+    @Index(name = "idx_leads_email", columnList = "email"),
+    @Index(name = "idx_leads_status", columnList = "status"),
+    @Index(name = "idx_leads_created_at", columnList = "created_at")
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Lead extends BaseEntity {
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
+    @Column(name = "email", nullable = false, length = 255)
+    private String email;
+
+    @Column(name = "name", length = 100)
+    private String name;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", nullable = false, length = 50)
+    private LeadSource source; // LANDING_PAGE, CONTACT_FORM, TRIAL, REFERRAL
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 50)
+    @Builder.Default
+    private LeadStatus status = LeadStatus.NEW; // NEW, CONTACTED, CONVERTED, LOST
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_interest_id")
+    private Course courseInterest;
+
+    @Column(name = "message", columnDefinition = "TEXT")
+    private String message;
+
+    @Column(name = "last_contacted_at")
+    private Instant lastContactedAt;
+}
+```
+
+#### ContactMessage.java
+```java
+package com.kiteclass.core.module.marketing.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "contact_messages", indexes = {
+    @Index(name = "idx_contact_messages_instance_id", columnList = "instance_id"),
+    @Index(name = "idx_contact_messages_is_read", columnList = "is_read"),
+    @Index(name = "idx_contact_messages_created_at", columnList = "created_at")
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ContactMessage extends BaseEntity {
+
+    @Column(name = "instance_id", nullable = false)
+    private UUID instanceId;
+
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
+
+    @Column(name = "email", nullable = false, length = 255)
+    private String email;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Column(name = "message", nullable = false, columnDefinition = "TEXT")
+    private String message;
+
+    @Column(name = "is_read", nullable = false)
+    @Builder.Default
+    private boolean isRead = false;
+
+    @Column(name = "read_at")
+    private Instant readAt;
+}
+```
+
+#### Enums
+
+```java
+// LeadSource.java
+public enum LeadSource {
+    LANDING_PAGE("Landing Page"),
+    CONTACT_FORM("Contact Form"),
+    TRIAL("Trial Enrollment"),
+    REFERRAL("Referral");
+
+    private final String displayName;
+}
+
+// LeadStatus.java
+public enum LeadStatus {
+    NEW("Mới"),
+    CONTACTED("Đã liên hệ"),
+    CONVERTED("Đã chuyển đổi"),
+    LOST("Mất khách");
+
+    private final String displayName;
+}
+```
+
+### Business Rules
+
+- **BR-MKT-001**: Each tenant has exactly one landing page (1:1 relationship with instance_id)
+- **BR-MKT-002**: Lead automatically created when guest submits contact form or trial request
+- **BR-MKT-003**: Lead status transitions: NEW → CONTACTED → CONVERTED/LOST
+- **BR-MKT-004**: When lead converts to student, status = CONVERTED (link to Student entity)
+- **BR-MKT-005**: Contact messages sorted by created_at DESC (newest first)
+
+### REST Endpoints
+
+#### Public Endpoints
+```java
+// LandingPageController
+GET  /api/v1/tenants/{instanceId}/landing
+     - Get landing page content for a tenant
+     - Authorization: Public (guest access)
+     - Returns: LandingPageResponse
+
+// LeadController
+POST /api/v1/leads
+     - Register as lead (trial request)
+     - Authorization: Public (guest access)
+     - Body: CreateLeadRequest
+     - Returns: LeadResponse
+
+// ContactController
+POST /api/v1/contact
+     - Send contact message
+     - Authorization: Public (guest access)
+     - Body: ContactFormRequest
+     - Returns: 201 Created
+```
+
+#### Admin/Teacher Endpoints
+```java
+// LandingPageController
+PUT  /api/v1/tenants/{instanceId}/landing
+     - Update landing page content
+     - Authorization: Admin/Teacher
+     - Body: UpdateLandingPageRequest
+     - Returns: LandingPageResponse
+
+// LeadController
+GET  /api/v1/leads
+     - List leads with filters
+     - Authorization: Admin/Teacher
+     - Query: ?status=NEW&source=LANDING_PAGE&page=0&size=20
+     - Returns: PageResponse<LeadResponse>
+
+PUT  /api/v1/leads/{leadId}
+     - Update lead status/notes
+     - Authorization: Admin/Teacher
+     - Body: UpdateLeadRequest
+     - Returns: LeadResponse
+
+// ContactController
+GET  /api/v1/contact/messages
+     - List contact messages
+     - Authorization: Admin/Teacher
+     - Query: ?isRead=false&page=0&size=20
+     - Returns: PageResponse<ContactMessageResponse>
+
+PUT  /api/v1/contact/messages/{messageId}/read
+     - Mark message as read
+     - Authorization: Admin/Teacher
+     - Returns: 204 No Content
+```
+
+### DTOs
+
+```java
+// LandingPageResponse
+public record LandingPageResponse(
+    Long id,
+    UUID instanceId,
+    String heroTitle,
+    String heroSubtitle,
+    String teacherBio,
+    String heroImageUrl,
+    String logoUrl,
+    String tagline,
+    String primaryColor,
+    String secondaryColor
+) {}
+
+// LeadResponse
+public record LeadResponse(
+    Long id,
+    String name,
+    String email,
+    String phone,
+    LeadSource source,
+    LeadStatus status,
+    Long courseInterestId,
+    String message,
+    Instant createdAt,
+    Instant lastContactedAt
+) {}
+
+// CreateLeadRequest
+public record CreateLeadRequest(
+    @NotBlank @Email String email,
+    @NotBlank @Size(max = 100) String name,
+    @Pattern(regexp = "^0\\d{9}$") String phone,
+    @NotNull LeadSource source,
+    Long courseInterestId,
+    @Size(max = 5000) String message
+) {}
+
+// ContactFormRequest
+public record ContactFormRequest(
+    @NotBlank @Size(max = 100) String name,
+    @NotBlank @Email String email,
+    @Pattern(regexp = "^0\\d{9}$") String phone,
+    @NotBlank @Size(max = 5000) String message
+) {}
+
+// UpdateLandingPageRequest
+public record UpdateLandingPageRequest(
+    @Size(max = 200) String heroTitle,
+    @Size(max = 500) String heroSubtitle,
+    @Size(max = 10000) String teacherBio,
+    @URL String heroImageUrl,
+    @URL String logoUrl,
+    @Size(max = 200) String tagline,
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") String primaryColor,
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$") String secondaryColor
+) {}
+```
+
+### Testing Requirements
+
+#### Unit Tests (LandingPageServiceTest, LeadServiceTest, ContactServiceTest)
+- Create/update landing page per tenant
+- Create lead from contact form
+- Update lead status (NEW → CONTACTED → CONVERTED)
+- Create contact message from guest
+- Mark contact message as read
+- Filter leads by status/source
+- **Minimum: 8 tests per service**
+
+#### Integration Tests
+- Guest can view landing page without authentication
+- Guest can submit contact form (creates lead + contact message)
+- Admin can update landing page branding
+- Admin can list unread contact messages
+- Lead status workflow validation
+
+---
+
+# PHASE 5: DATABASE MIGRATIONS
 
 ## Flyway Migration Files
 
@@ -1577,7 +2465,271 @@ src/main/resources/db/migration/
 ├── V5__create_attendance_tables.sql
 ├── V6__create_billing_tables.sql
 ├── V7__create_settings_tables.sql
-└── V8__seed_initial_data.sql
+├── V8__seed_initial_data.sql
+├── V9__create_lms_tables.sql          # ⭐ V4.1 NEW
+├── V10__create_marketing_tables.sql   # ⭐ V4.1 NEW
+└── V11__seed_demo_lms_content.sql     # ⭐ V4.1 NEW (Optional)
+```
+
+### V9__create_lms_tables.sql (NEW V4.1)
+
+```sql
+-- V9: Create LMS Module Tables
+-- Purpose: Course structure (modules → lessons → resources) and progress tracking
+
+CREATE TABLE course_modules (
+    id BIGSERIAL PRIMARY KEY,
+    course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    order_number INTEGER NOT NULL DEFAULT 0,
+
+    -- Multi-tenant & Audit
+    instance_id UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT uk_course_modules_course_order
+        UNIQUE (course_id, order_number, instance_id, deleted)
+);
+
+CREATE INDEX idx_course_modules_course_id ON course_modules(course_id);
+CREATE INDEX idx_course_modules_instance_id ON course_modules(instance_id);
+
+COMMENT ON TABLE course_modules IS 'Learning modules within a course';
+COMMENT ON COLUMN course_modules.order_number IS 'Display order (unique per course)';
+
+-- Lessons Table
+CREATE TABLE lessons (
+    id BIGSERIAL PRIMARY KEY,
+    module_id BIGINT NOT NULL REFERENCES course_modules(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    video_url VARCHAR(500),
+    is_trial BOOLEAN NOT NULL DEFAULT FALSE,
+    order_number INTEGER NOT NULL DEFAULT 0,
+    estimated_duration INTEGER, -- minutes
+
+    -- Multi-tenant & Audit
+    instance_id UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT uk_lessons_module_order
+        UNIQUE (module_id, order_number, instance_id, deleted)
+);
+
+CREATE INDEX idx_lessons_module_id ON lessons(module_id);
+CREATE INDEX idx_lessons_is_trial ON lessons(is_trial) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_instance_id ON lessons(instance_id);
+
+COMMENT ON COLUMN lessons.is_trial IS 'Guest access flag: true = public, false = requires enrollment';
+
+-- Learning Resources Table
+CREATE TABLE learning_resources (
+    id BIGSERIAL PRIMARY KEY,
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    url VARCHAR(500),
+    file_size BIGINT, -- bytes
+
+    -- Multi-tenant & Audit
+    instance_id UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT chk_learning_resources_type
+        CHECK (type IN ('PDF', 'VIDEO', 'SLIDES', 'QUIZ', 'OTHER'))
+);
+
+CREATE INDEX idx_learning_resources_lesson_id ON learning_resources(lesson_id);
+
+-- Lesson Progress Table
+CREATE TABLE lesson_progress (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    progress_percent INTEGER DEFAULT 0,
+
+    -- Multi-tenant & Audit
+    instance_id UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uk_lesson_progress_user_lesson
+        UNIQUE (user_id, lesson_id, instance_id),
+    CONSTRAINT chk_progress_percent_range
+        CHECK (progress_percent >= 0 AND progress_percent <= 100)
+);
+
+CREATE INDEX idx_lesson_progress_user_id ON lesson_progress(user_id);
+CREATE INDEX idx_lesson_progress_lesson_id ON lesson_progress(lesson_id);
+CREATE INDEX idx_lesson_progress_completed ON lesson_progress(completed);
+
+COMMENT ON TABLE lesson_progress IS 'Student learning progress per lesson';
+```
+
+### V10__create_marketing_tables.sql (NEW V4.1)
+
+```sql
+-- V10: Create Marketing Module Tables
+-- Purpose: Landing page content, lead capture, and contact management
+
+CREATE TABLE landing_pages (
+    id BIGSERIAL PRIMARY KEY,
+    instance_id UUID NOT NULL UNIQUE,
+    hero_title VARCHAR(200),
+    hero_subtitle VARCHAR(500),
+    teacher_bio TEXT,
+    hero_image_url VARCHAR(500),
+    logo_url VARCHAR(500),
+    tagline VARCHAR(200),
+    primary_color VARCHAR(7),
+    secondary_color VARCHAR(7),
+
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT,
+    updated_by BIGINT
+);
+
+CREATE INDEX idx_landing_pages_instance_id ON landing_pages(instance_id);
+
+COMMENT ON TABLE landing_pages IS 'Tenant-specific landing page content (1:1 with tenant)';
+COMMENT ON COLUMN landing_pages.primary_color IS 'Hex color for branding (#RRGGBB)';
+
+-- Leads Table
+CREATE TABLE leads (
+    id BIGSERIAL PRIMARY KEY,
+    instance_id UUID NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
+    phone VARCHAR(20),
+    source VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW',
+    course_interest_id BIGINT REFERENCES courses(id),
+    message TEXT,
+
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_contacted_at TIMESTAMP WITH TIME ZONE,
+
+    CONSTRAINT chk_leads_source
+        CHECK (source IN ('LANDING_PAGE', 'CONTACT_FORM', 'TRIAL', 'REFERRAL')),
+    CONSTRAINT chk_leads_status
+        CHECK (status IN ('NEW', 'CONTACTED', 'CONVERTED', 'LOST'))
+);
+
+CREATE INDEX idx_leads_instance_id ON leads(instance_id);
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_status ON leads(status);
+CREATE INDEX idx_leads_created_at ON leads(created_at);
+
+COMMENT ON TABLE leads IS 'Guest leads for conversion tracking';
+
+-- Contact Messages Table
+CREATE TABLE contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+    instance_id UUID NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    message TEXT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Audit
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    read_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX idx_contact_messages_instance_id ON contact_messages(instance_id);
+CREATE INDEX idx_contact_messages_is_read ON contact_messages(is_read);
+CREATE INDEX idx_contact_messages_created_at ON contact_messages(created_at);
+
+COMMENT ON TABLE contact_messages IS 'Guest contact form submissions';
+```
+
+### V11__seed_demo_lms_content.sql (NEW V4.1 - Optional)
+
+```sql
+-- V11: Seed Demo LMS Content
+-- Purpose: Insert demo course structure for testing
+-- WARNING: FOR DEMO/TESTING ONLY - DELETE IN PRODUCTION
+
+-- Note: Assumes demo course exists from V8__seed_initial_data.sql
+-- Insert demo modules
+INSERT INTO course_modules (course_id, title, description, order_number, instance_id, created_at, updated_at, deleted)
+SELECT
+    c.id,
+    'Module 1: Introduction to Java',
+    'Learn the basics of Java programming language',
+    1,
+    c.instance_id,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    FALSE
+FROM courses c WHERE c.code = 'DEMO-JAVA-2026';
+
+INSERT INTO course_modules (course_id, title, description, order_number, instance_id, created_at, updated_at, deleted)
+SELECT
+    c.id,
+    'Module 2: Object-Oriented Programming',
+    'Master OOP concepts in Java',
+    2,
+    c.instance_id,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    FALSE
+FROM courses c WHERE c.code = 'DEMO-JAVA-2026';
+
+-- Insert demo lessons (1 trial, 2 paid per module)
+INSERT INTO lessons (module_id, title, content, video_url, is_trial, order_number, estimated_duration, instance_id, created_at, updated_at, deleted)
+SELECT
+    m.id,
+    'Lesson 1.1: What is Java? (FREE)',
+    'Introduction to Java and its ecosystem. This is a free trial lesson.',
+    'https://example.com/video/java-intro.mp4',
+    TRUE, -- Trial lesson
+    1,
+    30,
+    m.instance_id,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    FALSE
+FROM course_modules m WHERE m.title = 'Module 1: Introduction to Java';
+
+INSERT INTO lessons (module_id, title, content, video_url, is_trial, order_number, estimated_duration, instance_id, created_at, updated_at, deleted)
+SELECT
+    m.id,
+    'Lesson 1.2: Installing Java JDK',
+    'Step-by-step guide to install Java Development Kit.',
+    'https://example.com/video/java-install.mp4',
+    FALSE, -- Paid lesson
+    2,
+    45,
+    m.instance_id,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    FALSE
+FROM course_modules m WHERE m.title = 'Module 1: Introduction to Java';
+
+-- Add more lessons as needed...
 ```
 
 ### V1__init_schema.sql
@@ -1638,19 +2790,58 @@ CREATE INDEX idx_students_name ON core.students(name) WHERE deleted = false;
 ```
 src/test/java/com/kiteclass/core/
 ├── module/
-│   └── student/
+│   ├── student/
+│   │   ├── controller/StudentControllerTest.java
+│   │   ├── service/StudentServiceTest.java
+│   │   └── repository/StudentRepositoryTest.java
+│   ├── lms/                                    # ⭐ V4.1 NEW
+│   │   ├── controller/
+│   │   │   ├── CourseModuleControllerTest.java
+│   │   │   └── LessonControllerTest.java
+│   │   ├── service/
+│   │   │   ├── CourseModuleServiceTest.java
+│   │   │   └── LessonServiceTest.java
+│   │   └── repository/
+│   │       ├── CourseModuleRepositoryTest.java
+│   │       └── LessonRepositoryTest.java
+│   └── marketing/                             # ⭐ V4.1 NEW
 │       ├── controller/
-│       │   └── StudentControllerTest.java
+│       │   ├── LandingPageControllerTest.java
+│       │   └── LeadControllerTest.java
 │       ├── service/
-│       │   └── StudentServiceTest.java
+│       │   ├── LandingPageServiceTest.java
+│       │   └── LeadServiceTest.java
 │       └── repository/
-│           └── StudentRepositoryTest.java
+│           ├── LandingPageRepositoryTest.java
+│           └── LeadRepositoryTest.java
 ├── integration/
-│   └── StudentIntegrationTest.java
+│   ├── StudentIntegrationTest.java
+│   ├── LMSIntegrationTest.java               # ⭐ V4.1 NEW
+│   └── MarketingIntegrationTest.java         # ⭐ V4.1 NEW
 └── testutil/
     ├── IntegrationTestBase.java
-    └── TestDataBuilder.java
+    ├── TestDataBuilder.java
+    └── LMSTestDataBuilder.java               # ⭐ V4.1 NEW
 ```
+
+## V4.1 Test Coverage Requirements
+
+### LMS Module Tests
+- **CourseModuleServiceTest**: Create/update/delete modules, order validation
+- **LessonServiceTest**: Create/update lessons, toggle isTrial flag, access control
+- **LearningProgressServiceTest**: Mark complete, track progress percentage
+- **LMSIntegrationTest**: Guest access to trial lessons, student enrollment check
+
+### Marketing Module Tests
+- **LandingPageServiceTest**: Create/update tenant landing page (1:1 constraint)
+- **LeadServiceTest**: Create lead, update status (NEW → CONTACTED → CONVERTED)
+- **ContactServiceTest**: Submit contact form, mark as read
+- **MarketingIntegrationTest**: Guest form submission, lead conversion workflow
+
+### Minimum Coverage
+- **Unit tests**: Minimum 8 tests per service
+- **Line coverage**: >80%
+- **Branch coverage**: >75%
 
 ## Test Examples
 
@@ -1726,7 +2917,7 @@ services:
 - [ ] Configuration classes (JPA, Cache, RabbitMQ)
 - [ ] Message properties (i18n)
 
-## Phase 3: Business Modules
+## Phase 3: Business Modules (Core)
 - [ ] Student module (CRUD + search)
 - [ ] Course module
 - [ ] Class module with schedules
@@ -1736,18 +2927,77 @@ services:
 - [ ] Payment module
 - [ ] Parent module
 
-## Phase 4: Database
-- [ ] All Flyway migrations
+## Phase 4: V4.1 Guest-Facing Modules ⭐ NEW
+- [ ] LMS: CourseModule entity + CRUD
+- [ ] LMS: Lesson entity + CRUD + isTrial access control
+- [ ] LMS: LearningResource entity
+- [ ] LMS: LessonProgress tracking
+- [ ] Marketing: LandingPage entity + CRUD (1:1 per tenant)
+- [ ] Marketing: Lead entity + status workflow
+- [ ] Marketing: ContactMessage entity + read tracking
+- [ ] Marketing: Lead conversion to Student integration
+
+## Phase 4.5: V4.1 Trial Learning System (Phase 2) ⭐ NEW
+- [ ] Lead entity extension: Add `user_id` column (FK to Gateway users)
+- [ ] TrialQuota entity: Daily lesson access limits (3 lessons/day)
+- [ ] LeadSource enum: LANDING_PAGE, CONTACT_FORM, TRIAL_SIGNUP, REFERRAL
+- [ ] LeadStatus enum: NEW, CONTACTED, CONVERTED, LOST
+- [ ] LeadService: registerForTrial() - Create lead + call Gateway magic link API
+- [ ] LeadService: getLeadByUserId() - Fetch lead profile for trial users
+- [ ] LeadService: convertToStudent() - Payment verification + role update + enrollment
+- [ ] TrialQuotaService: checkAndIncrementQuota() - Enforce 3 lessons/day limit
+- [ ] TrialQuotaService: getQuotaStatus() - Return remaining quota for UI display
+- [ ] LessonService enhancement: getLessonWithAccessControl() - Check TRIAL_USER role + quota
+- [ ] GatewayClient: updateUserRole() - Call Gateway API to update TRIAL_USER → STUDENT
+- [ ] PaymentService (mock): verifyPayment() - Mock payment verification for Phase 1
+- [ ] LeadController: POST /register-trial, GET /me, GET /quota, POST /{id}/convert
+- [ ] Lesson access control: Check `is_trial_accessible` flag before returning content
+- [ ] Multi-tenant isolation: All queries filtered by `instance_id`
+- [ ] Error codes: LEAD_EMAIL_EXISTS, TRIAL_QUOTA_EXCEEDED, TRIAL_USER_PAID_LESSON_ACCESS_DENIED
+- [ ] Validation: Email uniqueness per tenant, quota limits (0-3), conversion payment verification
+
+**Implementation Order**:
+1. Entities first: Lead, TrialQuota (with Hibernate filters)
+2. Repositories: LeadRepository, TrialQuotaRepository
+3. Services: LeadService, TrialQuotaService (with @Transactional)
+4. Enhancement: LessonService.getLessonWithAccessControl()
+5. Controllers: LeadController endpoints
+6. Integration: GatewayClient for cross-service calls
+7. Testing: Unit tests + Integration tests for quota enforcement
+
+**Key Patterns**:
+- Use TenantContext.getInstanceId() for multi-tenant queries
+- Quota reset logic: New record per user per day (no cleanup needed)
+- Progress preservation: lesson_progress uses user_id (not student_id) → automatic preservation
+- Magic link flow: Core calls Gateway API, Gateway sends email, user verifies, Core updates Lead.user_id
+
+**References**:
+- PR 2.13: Trial Registration & Quota Management
+- PR 2.14: Lead to Student Conversion
+- Migration V12: CREATE TABLE trial_quotas, ALTER TABLE leads ADD user_id
+
+## Phase 5: Database
+- [ ] Flyway migrations V1-V8 (Core modules)
+- [ ] V9: LMS tables (course_modules, lessons, learning_resources, lesson_progress) ⭐ NEW
+- [ ] V10: Marketing tables (landing_pages, leads, contact_messages) ⭐ NEW
+- [ ] V11: Seed demo LMS content (optional) ⭐ NEW
+- [ ] V12: Trial Learning tables (trial_quotas, leads.user_id extension, courses.is_trial, lessons.is_trial_accessible) ⭐ NEW Phase 2
 - [ ] Indexes optimization
 - [ ] Seed data for testing
 
-## Phase 5: Testing
+## Phase 6: Testing
 - [ ] Unit tests for all services (>80% coverage)
+- [ ] LMS module tests: CourseModuleService, LessonService, LearningProgressService ⭐ NEW
+- [ ] Marketing module tests: LandingPageService, LeadService, ContactService ⭐ NEW
+- [ ] Trial Learning tests: LeadService, TrialQuotaService, LessonService.getLessonWithAccessControl() ⭐ NEW Phase 2
 - [ ] Integration tests for repositories
+- [ ] LMS integration tests (guest access control) ⭐ NEW
+- [ ] Marketing integration tests (lead workflow) ⭐ NEW
+- [ ] Trial Learning integration tests: Quota enforcement, multi-tenant isolation, conversion flow ⭐ NEW Phase 2
 - [ ] Controller tests with MockMvc
 - [ ] Test data builders
 
-## Phase 6: Deployment
+## Phase 7: Deployment
 - [ ] Dockerfile
 - [ ] docker-compose.yml
 - [ ] Health check endpoints

@@ -18,7 +18,7 @@ if [ -f "$VERSION_FILE" ]; then
     cat "$VERSION_FILE"
 else
     echo -e "${YELLOW}⚠️  No build version found.${NC}"
-    echo -e "   Run ${GREEN}./docker-build.sh${NC} to build images first."
+    echo -e "   Run ${GREEN}./scripts/docker-build.sh${NC} to build images first."
 fi
 
 echo ""
@@ -31,5 +31,5 @@ echo ""
 echo -e "${YELLOW}💡 Quick commands:${NC}"
 echo -e "  View build history: ${GREEN}cat $LOG_FILE${NC}"
 echo -e "  View last 5 builds: ${GREEN}tail -n 100 $LOG_FILE${NC}"
-echo -e "  Rebuild:            ${GREEN}./docker-build.sh${NC}"
+echo -e "  Rebuild:            ${GREEN}./scripts/docker-build.sh${NC}"
 echo ""
