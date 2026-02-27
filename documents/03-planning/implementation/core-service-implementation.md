@@ -1567,6 +1567,140 @@ public class Payment extends BaseEntity {
 
 ---
 
+## File Storage Integration (Cross-Cutting)
+
+**Purpose**: Integrate Storage Service với các modules hiện có (Student, Teacher, Course) để hỗ trợ avatar upload, document attachments.
+
+### Current State
+
+- **Student** entity có `avatar_url: VARCHAR(500)` - stores URL string
+- **Teacher** entity có `avatar_url: VARCHAR(500)` - stores URL string
+- **Course** entity CÓ THỂ cần `syllabus_file_id: UUID` - FK to uploaded_files
+
+### After PR 2.10.1 (Storage Service)
+
+**Option 1: File ID Reference (Recommended)**
+- Change `avatar_url` type to `UUID` (FK to uploaded_files table)
+- Better audit trail (who uploaded, when, file size, access control)
+- Can enforce access control (PRIVATE, COURSE, PUBLIC)
+
+**Option 2: Direct S3 URL (Simpler)**
+- Keep `avatar_url: VARCHAR(500)` as S3 URL: `https://cdn.kiteclass.vn/tenant-123/avatars/abc.png`
+- No FK reference to uploaded_files (looser coupling)
+- Simpler to implement, no cross-table joins
+
+**Recommendation**: **Option 1** (File ID Reference) cho:
+- Better audit trail
+- Access control enforcement
+- Storage quota tracking (know which user consumes how much)
+
+### Avatar Upload Flow (Frontend → Storage Service)
+
+1. **Frontend initiates upload**:
+   ```
+   POST /api/v1/files/upload/initiate
+   Body: { fileName, fileSize, fileType: "AVATAR", mimeType: "image/png" }
+   Response: { uploadUrl, fileId, expiresIn: 600 }
+   ```
+
+2. **Frontend uploads to S3 directly**:
+   ```
+   PUT {uploadUrl}
+   Body: <file binary>
+   Headers: { Content-Type: image/png }
+   ```
+
+3. **Frontend completes upload**:
+   ```
+   POST /api/v1/files/{fileId}/complete
+   Response: { fileId, status: "READY", downloadUrl }
+   ```
+
+4. **Frontend updates Student/Teacher**:
+   ```
+   PUT /api/v1/students/{id}
+   Body: { avatarFileId: "{fileId}" }  // NEW field
+   ```
+
+5. **Backend updates entity**:
+   ```java
+   student.setAvatarFileId(avatarFileId);
+   studentRepository.save(student);
+   ```
+
+6. **Frontend displays avatar**:
+   ```
+   GET /api/v1/files/{avatarFileId}/download
+   Response: { downloadUrl: "https://s3.../presigned-url", expiresIn: 86400 }
+   ```
+
+### Migration Strategy
+
+1. Add new column `avatar_file_id UUID` to students/teachers tables (nullable)
+2. Keep old `avatar_url VARCHAR(500)` for backward compatibility (deprecated)
+3. Migrate existing URLs to uploaded_files records (background job)
+4. Update APIs to accept both `avatarUrl` (deprecated) and `avatarFileId` (new)
+5. Phase out `avatar_url` sau 2-3 versions
+
+### Document Attachments (Course Syllabus, Assignment Submissions)
+
+- Similar flow như avatar upload
+- **Course**: `syllabus_file_id UUID` (FK to uploaded_files)
+- **Assignment Submission**: `submission_file_id UUID` (FK to uploaded_files)
+- Access control: `access_level = 'COURSE'` (only teacher + enrolled students)
+
+### Service Layer Changes
+
+```java
+// StudentService.java
+@Service
+public class StudentServiceImpl implements StudentService {
+    private final FileServiceClient fileServiceClient; // Feign client to Storage Service
+
+    public StudentResponse updateAvatar(Long studentId, UUID avatarFileId) {
+        // 1. Verify file exists and is READY
+        FileMetadataResponse file = fileServiceClient.getFileMetadata(avatarFileId);
+        if (!file.getStatus().equals("READY")) {
+            throw new InvalidFileStateException("File not ready");
+        }
+
+        // 2. Update student
+        Student student = studentRepository.findById(studentId);
+        student.setAvatarFileId(avatarFileId);
+        studentRepository.save(student);
+
+        return mapToResponse(student);
+    }
+}
+```
+
+### DTOs Update
+
+```java
+// StudentResponse.java
+public class StudentResponse {
+    private Long id;
+    private String email;
+    private String firstName;
+    private String lastName;
+
+    @Deprecated
+    private String avatarUrl; // Keep for backward compatibility
+
+    private UUID avatarFileId; // NEW - FK to uploaded_files
+    private String avatarDownloadUrl; // NEW - Presigned URL (fetched from Storage Service)
+}
+```
+
+**Related Documentation**: See [Storage Service Design](./storage-service-design.md) for complete API flows, quota enforcement, and testing strategies.
+
+**Related PRs**:
+- PR 2.10.1: Storage Service (foundation)
+- PR 2.3.2: Student Module Update (avatar_file_id migration)
+- PR 2.3.3: Teacher Module Update (avatar_file_id migration)
+
+---
+
 # PHASE 4: V4.1 GUEST-FACING MODULES (Bundled Model) ⭐ NEW
 
 ## 4.1. Module: LMS (Learning Management System)
