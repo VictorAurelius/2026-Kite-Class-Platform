@@ -1602,6 +1602,43 @@ Implement UserType + ReferenceId pattern để liên kết Gateway User với Co
 - Updated all Javadocs
 - Clear notes about Teacher/Parent placeholders
 
+### Risk Assessment (Lessons Learned)
+
+#### Technical Risks (Encountered)
+| Risk | Occurred? | Impact | Resolution |
+|------|-----------|--------|------------|
+| Feign client configuration mismatch | ✅ Yes | Medium | Fixed with correct application.yml config, added URL validation |
+| HMAC signature verification failure | ✅ Yes | High | Documented X-Internal-Request header format, added integration tests |
+| DTOs out of sync (Gateway ↔ Core) | ⚠️ Partial | Medium | Used placeholder DTOs, documented sync requirements |
+| Circuit breaker not configured | ✅ Yes | Low | Added fallback methods, graceful degradation on 503 |
+
+#### Business Risks (Encountered)
+| Risk | Occurred? | Impact | Resolution |
+|------|-----------|--------|------------|
+| Profile not fetched for TEACHER/PARENT (incomplete Core) | ✅ Yes | Low | Return null for placeholders, clear documentation, no blocking errors |
+| User created but profile fetch fails (404) | ✅ Yes | Medium | Graceful fallback, log warning, allow login to proceed |
+| Stale profile data cached | ❌ No | - | Not implemented caching yet (future risk) |
+
+#### Integration Risks (Encountered)
+| Risk | Occurred? | Impact | Resolution |
+|------|-----------|--------|------------|
+| Core service unavailable (503) | ✅ Yes | Medium | Graceful degradation, return null profile, log error |
+| Gateway-Core version mismatch | ❌ No | - | Mitigated by shared DTOs, versioning not needed yet |
+| Event ordering issues (registration saga) | ❌ No | - | Registration flow NOT implemented yet (future PR) |
+
+#### Performance Risks (Lessons Learned)
+| Risk | Occurred? | Impact | Resolution |
+|------|-----------|--------|------------|
+| Login latency increased (profile fetch adds 50-100ms) | ✅ Yes | Low | Acceptable for now, future: cache profiles in Redis |
+| N+1 problem for batch profile fetching | ❌ No | - | Not implemented yet (no bulk operations) |
+
+#### Recommendations for Future PRs
+1. **Caching Strategy:** Implement Redis cache cho profiles (TTL = 5min)
+2. **Bulk Operations:** Add CoreServiceClient.getStudentsBatch() for batch fetching
+3. **Registration Saga:** Use Saga pattern với compensating transactions
+4. **Health Checks:** Add /actuator/health endpoint dependency checks
+5. **Circuit Breaker:** Configure Resilience4j với proper thresholds
+
 **What Remains (Blocked by Core):**
 
 ### ⏳ Teacher Profile Fetching
@@ -2306,8 +2343,49 @@ Thực hiện Assignment Module - Assignment lifecycle, late penalties, grading 
 ## ⏳ PR 2.7.2 - Grade Module
 
 **Status:** ⏳ NOT STARTED
-**Dependencies:** PR 2.7.1 Assignment Module, PR 2.7 Attendance Module
+**Dependencies:**
+- [ ] PR 0: Database Foundation
+- [ ] PR 2.7: Attendance Module
+- [ ] PR 2.7.1: Assignment Module
 **Business Logic:** docs/modules/grade-module-business-logic.md
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Weighted score calculation rounding errors | Medium | High | Use BigDecimal cho all calculations, round only at display, unit test với edge cases |
+| GPA mapping inconsistency (letter grade → GPA) | Low | Medium | Load grading_scales từ database, configurable per tenant, validation tests |
+| Component weights không sum to 100% | Medium | Medium | Validation check trước khi finalize, clear error message, auto-suggest adjustments |
+| Event-driven updates race condition (2 events cùng lúc) | Low | Medium | Use optimistic locking (@Version), idempotent event handlers, retry logic |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Teacher finalize grade quá sớm → student complaint | Medium | Medium | Require confirmation modal, show component breakdown, allow unfinalizing within grace period |
+| Component weight changes sau khi finalized → unfair | Low | High | Lock weight config when ANY grade finalized, warning message, require admin approval |
+| Pass/fail threshold không rõ ràng → confusion | Medium | Low | Display threshold prominently, color-code grades (red/green), tooltips explain criteria |
+| Transcript GPA calculation sai → student record error | Low | Critical | Double-check logic with academic standards, extensive unit tests, manual review process |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| ATTENDANCE_MARKED event miss → incomplete grade | Medium | High | Periodic reconciliation job, manual refresh endpoint, audit log event processing |
+| ASSIGNMENT_GRADED event duplicate → wrong score | Low | Medium | Idempotent handlers (check component_ref_id exists), deduplication logic |
+| Grade components from deleted assignments → orphaned data | Medium | Medium | Soft delete assignments with grace period, cascade delete components after 30 days |
+| Enrollment status change AFTER grade finalized | Low | Medium | Validate enrollment still ACTIVE before finalize, warning if student withdrawn |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Transcript generation slow với 100+ classes | Medium | Medium | Async generation, cache results, background job với progress tracking |
+| calculateFinalScore query N+1 problem | Medium | Low | JOIN FETCH grade_components, add index on (grade_id, component_type) |
+| Batch finalization timeout (50+ students) | Low | Medium | Process in batches of 10, async job, progress UI updates |
+
+#### Data Migration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| N/A (new tables trong V1) | - | - | Tables created in PR 0 V1 migration |
 
 ```
 Thực hiện Grade Module - Weighted grade calculation, GPA, transcripts.
@@ -5965,6 +6043,215 @@ export default function DashboardPage() {
 **Summary:**
 - ✅ **Completed:** PR 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7 (7 PRs)
 - ⏳ **Waiting for Backend:** PR 3.8, 3.9, 3.10, 3.11 (4 PRs)
+
+---
+
+
+# GENERIC RISK ASSESSMENTS (Cross-PR Patterns)
+
+## Frontend File Upload PRs (PR 3.10, 3.12, and related)
+
+**Applies to:** Any Frontend PR implementing file uploads (profile pictures, hero images, teacher photos, document uploads)
+
+**Dependencies:**
+- [ ] PR 0: Database Foundation
+- [ ] PR 2.10.1: File Storage Module (Backend API ready)
+
+### Risk Assessment
+
+#### Technical Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| CORS rejection khi upload trực tiếp lên S3 | High | High | Configure S3 bucket CORS policy, test OPTIONS preflight, document setup trong README |
+| Presigned URL expiry giữa chừng upload | Medium | Medium | Show countdown timer (10min), pause/resume upload support, clear expiry warning |
+| File size validation mismatch (client vs server) | Medium | Low | Duplicate validation: client-side check trước upload, server check khi initiate |
+| Image preview rendering slow (large files) | Low | Low | Use FileReader với max preview size (500KB), show thumbnail instead of full image |
+| Browser compatibility (FileReader, Blob API) | Low | Low | Check caniuse.com, polyfill cho old browsers, graceful degradation message |
+
+#### Business Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| User upload NSFW/inappropriate content | Medium | Medium | Client-side file type check, backend moderation (future), report abuse feature |
+| User không hiểu quota limit → frustration | High | Medium | Show quota bar prominently, upgrade prompt, clear error when quota exceeded |
+| Upload fails silently → user không biết | Medium | High | Toast notification on all states (uploading/success/error), progress indicator |
+| Mobile user upload large files → timeout | Medium | Medium | Warn on mobile (suggest compress), allow retry, show estimated time |
+
+#### Integration Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Backend API not ready (PR 2.10.1 incomplete) | High | Critical | Mock API responses với MSW, stub presigned URLs, integration tests |
+| presigned URL format mismatch | Medium | High | Validate URL format, test with real S3/MinIO, document expected response |
+| Uploaded file không appear trong UI ngay | Medium | Medium | Optimistic UI update, invalidate React Query cache after upload, refresh button |
+| CORS preflight OPTIONS not allowed | High | High | Document S3 CORS config required, test với real S3 bucket, error message guide |
+
+#### Performance Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Large image files (10MB+) hang browser | Medium | Medium | Client-side compression (browser-image-compression), show progress, chunk upload |
+| Multiple simultaneous uploads → UI freeze | Low | Medium | Queue uploads (max 3 concurrent), show queue status, cancel option |
+| Image preview memory leak | Low | Low | Revoke blob URLs after use (URL.revokeObjectURL), cleanup useEffect |
+| Re-render storm khi upload progress updates | Low | Low | Throttle progress updates (every 100ms), use useTransition |
+
+#### UX Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Drag-and-drop không obvious | Medium | Low | Clear visual cues (dashed border, icon), hover state, instructional text |
+| Error message không actionable | High | Medium | Specific errors: "File too large (max 10MB)", "Invalid format (use JPG/PNG)" |
+| Upload success không clear | Medium | Low | Success toast + visual feedback (checkmark icon), updated preview immediately |
+| Mobile upload UX poor | Medium | Medium | Test on real devices, consider native file picker, compress automatically |
+
+#### Data Loss Risks
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| User close tab during upload → lost progress | Medium | Medium | Warn before unload (beforeunload event), resume support (future), save draft |
+| Network interruption mid-upload | Medium | High | Implement retry logic, show "retrying..." message, allow manual retry |
+| Browser crash during upload → corrupted upload | Low | High | Server-side validation (file size, integrity), cleanup incomplete uploads |
+
+### Frontend Implementation Checklist
+
+**Required for ALL file upload PRs:**
+
+#### 1. File Selection UI
+- [ ] File input button với clear label ("Upload Profile Picture")
+- [ ] Drag-and-drop zone với visual feedback
+- [ ] File type restrictions displayed ("JPG, PNG only")
+- [ ] File size limit displayed ("Max 10MB")
+- [ ] Current quota usage shown ("2.3GB / 5GB used")
+
+#### 2. Upload Flow
+- [ ] Client-side validation (type, size) BEFORE API call
+- [ ] Call POST /api/v1/files/upload/initiate
+- [ ] Receive presigned URL + file metadata
+- [ ] Upload directly to S3 với presigned URL (PUT request)
+- [ ] Call POST /api/v1/files/{id}/complete to confirm
+- [ ] Handle all error states (quota exceeded, invalid file, network error)
+
+#### 3. Progress Indication
+- [ ] Progress bar showing upload percentage
+- [ ] Estimated time remaining (optional)
+- [ ] Cancel button to abort upload
+- [ ] Success/error toast notifications
+
+#### 4. Preview & Confirmation
+- [ ] Image preview before upload (thumbnail)
+- [ ] Crop/resize UI (optional, for profile pictures)
+- [ ] Preview after successful upload
+- [ ] Delete/replace option
+
+#### 5. Error Handling
+- [ ] Network error → "Connection lost. Retrying..." + retry button
+- [ ] File too large → "File exceeds 10MB limit. Please use a smaller image."
+- [ ] Quota exceeded → "Storage full (5GB/5GB). Upgrade to Pro for 50GB." + upgrade link
+- [ ] Invalid type → "Only JPG and PNG images are supported."
+- [ ] CORS error → "Upload failed. Please contact support." (log to Sentry)
+
+#### 6. Accessibility
+- [ ] File input has aria-label
+- [ ] Progress bar has aria-live="polite"
+- [ ] Error messages announced to screen readers
+- [ ] Keyboard navigation support (Enter to select file)
+
+#### 7. Testing
+- [ ] Unit test: file validation logic
+- [ ] Unit test: progress calculation
+- [ ] Integration test (MSW): successful upload flow
+- [ ] Integration test (MSW): error scenarios (quota, size, type)
+- [ ] E2E test (Playwright): upload real file
+- [ ] Manual test: real S3/MinIO upload
+
+### Code Examples
+
+**React Hook for File Upload:**
+```typescript
+// hooks/use-file-upload.ts
+export function useFileUpload(fileType: FileType) {
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+
+  const upload = async (file: File) => {
+    try {
+      setStatus('uploading');
+
+      // 1. Initiate upload (get presigned URL)
+      const { data } = await api.post('/api/v1/files/upload/initiate', {
+        fileType,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+      });
+
+      // 2. Upload to S3 with progress
+      await axios.put(data.presignedUrl, file, {
+        headers: { 'Content-Type': file.type },
+        onUploadProgress: (e) => {
+          const percent = Math.round((e.loaded / e.total!) * 100);
+          setProgress(percent);
+        },
+      });
+
+      // 3. Complete upload
+      await api.post(`/api/v1/files/${data.fileId}/complete`);
+
+      setStatus('success');
+      return data.fileId;
+    } catch (error) {
+      setStatus('error');
+      throw error;
+    }
+  };
+
+  return { upload, progress, status };
+}
+```
+
+**File Input Component:**
+```typescript
+// components/file-input.tsx
+export function FileInput({ onFileSelect, accept, maxSizeMB }: Props) {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Client-side validation
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      toast.error(`File too large. Max size: ${maxSizeMB}MB`);
+      return;
+    }
+
+    onFileSelect(file);
+  };
+
+  return (
+    <div>
+      <input
+        type="file"
+        accept={accept}
+        onChange={handleChange}
+        className="hidden"
+        id="file-input"
+        aria-label="Upload file"
+      />
+      <label
+        htmlFor="file-input"
+        className="cursor-pointer border-2 border-dashed p-4 rounded-lg hover:bg-gray-50"
+      >
+        <UploadIcon className="mx-auto" />
+        <p>Click to upload or drag and drop</p>
+        <p className="text-sm text-gray-500">
+          {accept} (max {maxSizeMB}MB)
+        </p>
+      </label>
+    </div>
+  );
+}
+```
+
+### Reference Documents
+
+- **Backend API:** PR 2.10.1 (File Storage Module)
+- **Design Doc:** documents/03-planning/implementation/storage-service-design.md
+- **S3 Setup:** Docker Compose MinIO configuration
+- **CORS Config:** S3 bucket policy examples
 
 ---
 
