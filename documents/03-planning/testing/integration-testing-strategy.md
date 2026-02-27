@@ -1,8 +1,8 @@
 # INTEGRATION TESTING STRATEGY
 
-**Version:** 1.1 (Added KiteHub ↔ KiteClass Integration Tests)
+**Version:** 1.2 (V4.1 - Added LMS + Marketing Integration Tests) ⭐
 **Created:** 2026-01-30
-**Last Updated:** 2026-01-30
+**Last Updated:** 2026-02-26 ⭐
 **Purpose:** Integration testing cho KiteClass & KiteHub services
 
 **Tham chiếu:**
@@ -1421,6 +1421,671 @@ jobs:
 
 ---
 
+# V4.1 LMS + MARKETING INTEGRATION TESTS ⭐ NEW
+
+## LMS Module Tests
+
+### Test: Guest Access Control (Trial Lessons)
+
+```java
+@SpringBootTest
+@Transactional
+class LMSAccessControlIntegrationTest {
+
+    @Autowired
+    private LessonService lessonService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
+
+    @Test
+    @DisplayName("Guest should access trial lessons without enrollment")
+    void guestAccess_trialLesson_success() {
+        // Given
+        Course course = createCourse();
+        CourseModule module = createModule(course);
+        Lesson trialLesson = createLesson(module, true); // isTrial = true
+
+        // When - Guest (no auth) accesses trial lesson
+        LessonResponse response = lessonService.getLessonById(trialLesson.getId());
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.isTrial()).isTrue();
+        assertThat(response.content()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Guest should NOT access paid lessons without enrollment")
+    void guestAccess_paidLesson_forbidden() {
+        // Given
+        Course course = createCourse();
+        CourseModule module = createModule(course);
+        Lesson paidLesson = createLesson(module, false); // isTrial = false
+
+        // When/Then - Guest accesses paid lesson → 403 Forbidden
+        assertThatThrownBy(() -> lessonService.getLessonById(paidLesson.getId()))
+            .isInstanceOf(AccessDeniedException.class)
+            .hasMessageContaining("ENROLLMENT_REQUIRED");
+    }
+
+    @Test
+    @DisplayName("Student with enrollment should access all lessons")
+    void studentAccess_withEnrollment_success() {
+        // Given
+        Student student = createStudent();
+        Course course = createCourse();
+        Enrollment enrollment = createActiveEnrollment(student, course);
+
+        CourseModule module = createModule(course);
+        Lesson trialLesson = createLesson(module, true);
+        Lesson paidLesson = createLesson(module, false);
+
+        // When - Student accesses both types
+        LessonResponse trial = lessonService.getLessonById(trialLesson.getId());
+        LessonResponse paid = lessonService.getLessonById(paidLesson.getId());
+
+        // Then
+        assertThat(trial).isNotNull();
+        assertThat(paid).isNotNull();
+    }
+}
+```
+
+### Test: Learning Progress Tracking
+
+```java
+@SpringBootTest
+@Transactional
+class LearningProgressIntegrationTest {
+
+    @Autowired
+    private LessonProgressService progressService;
+
+    @Test
+    @DisplayName("Lesson completion should update progress")
+    void lessonCompletion_updatesProgress() {
+        // Given
+        Student student = createStudent();
+        Lesson lesson = createLesson(true);
+
+        // When
+        progressService.markLessonComplete(student.getId(), lesson.getId());
+
+        // Then
+        LessonProgress progress = progressService.getProgress(student.getId(), lesson.getId());
+        assertThat(progress.isCompleted()).isTrue();
+        assertThat(progress.getProgressPercent()).isEqualTo(100);
+        assertThat(progress.getCompletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Course progress should calculate correctly")
+    void courseProgress_calculatesCorrectly() {
+        // Given
+        Course course = createCourse();
+        CourseModule module = createModule(course);
+        Lesson lesson1 = createLesson(module, false);
+        Lesson lesson2 = createLesson(module, false);
+        Lesson lesson3 = createLesson(module, false);
+
+        Student student = createStudent();
+        createActiveEnrollment(student, course);
+
+        // When - Complete 2 out of 3 lessons
+        progressService.markLessonComplete(student.getId(), lesson1.getId());
+        progressService.markLessonComplete(student.getId(), lesson2.getId());
+
+        // Then
+        int progress = progressService.getCourseProgress(student.getId(), course.getId());
+        assertThat(progress).isEqualTo(66); // 2/3 * 100 = 66%
+    }
+}
+```
+
+---
+
+## Marketing Module Tests
+
+### Test: Landing Page Management
+
+```java
+@SpringBootTest
+@Transactional
+class LandingPageIntegrationTest {
+
+    @Autowired
+    private LandingPageService landingPageService;
+
+    @Test
+    @DisplayName("Each tenant should have exactly one landing page")
+    void landingPage_onePerTenant() {
+        // Given
+        UUID tenantId = UUID.randomUUID();
+
+        // When - Create landing page
+        UpdateLandingPageRequest request = new UpdateLandingPageRequest(
+            "Learn Java with Kiet",
+            "Master Java in 3 months",
+            "20 years of teaching experience...",
+            "https://example.com/hero.jpg",
+            "https://example.com/logo.png",
+            "Your path to Java mastery",
+            "#3B82F6",
+            "#10B981"
+        );
+        landingPageService.updateLandingPage(tenantId, request);
+
+        // Then
+        LandingPageResponse page = landingPageService.getLandingPage(tenantId);
+        assertThat(page).isNotNull();
+        assertThat(page.heroTitle()).isEqualTo("Learn Java with Kiet");
+
+        // When - Update again (should not create duplicate)
+        request = request.withHeroTitle("Updated Title");
+        landingPageService.updateLandingPage(tenantId, request);
+
+        // Then - Still one record
+        long count = landingPageRepository.countByInstanceId(tenantId);
+        assertThat(count).isEqualTo(1);
+    }
+}
+```
+
+### Test: Lead Capture & Workflow
+
+```java
+@SpringBootTest
+@Transactional
+class LeadManagementIntegrationTest {
+
+    @Autowired
+    private LeadService leadService;
+
+    @Autowired
+    private ContactService contactService;
+
+    @Test
+    @DisplayName("Contact form should create lead + message")
+    void contactForm_createsLeadAndMessage() {
+        // Given
+        UUID tenantId = UUID.randomUUID();
+        ContactFormRequest request = new ContactFormRequest(
+            "Nguyen Van A",
+            "nguyenvana@gmail.com",
+            "0901234567",
+            "Tôi muốn đăng ký học Java"
+        );
+
+        // When
+        contactService.submitContactForm(tenantId, request);
+
+        // Then - Lead created
+        Page<LeadResponse> leads = leadService.getLeads(
+            tenantId, null, LeadSource.CONTACT_FORM, PageRequest.of(0, 10)
+        );
+        assertThat(leads.getContent()).hasSize(1);
+        assertThat(leads.getContent().get(0).email()).isEqualTo("nguyenvana@gmail.com");
+        assertThat(leads.getContent().get(0).status()).isEqualTo(LeadStatus.NEW);
+
+        // And - Contact message created
+        Page<ContactMessageResponse> messages = contactService.getMessages(
+            tenantId, false, PageRequest.of(0, 10)
+        );
+        assertThat(messages.getContent()).hasSize(1);
+        assertThat(messages.getContent().get(0).isRead()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Lead status workflow should transition correctly")
+    void leadStatusWorkflow_transitions() {
+        // Given
+        Lead lead = createLead(LeadStatus.NEW);
+
+        // When - Admin contacts lead
+        leadService.updateLeadStatus(lead.getId(), LeadStatus.CONTACTED);
+
+        // Then
+        Lead updated = leadRepository.findById(lead.getId()).orElseThrow();
+        assertThat(updated.getStatus()).isEqualTo(LeadStatus.CONTACTED);
+        assertThat(updated.getLastContactedAt()).isNotNull();
+
+        // When - Lead converts (signs up as student)
+        leadService.convertLead(lead.getId(), createStudent().getId());
+
+        // Then
+        Lead converted = leadRepository.findById(lead.getId()).orElseThrow();
+        assertThat(converted.getStatus()).isEqualTo(LeadStatus.CONVERTED);
+    }
+}
+```
+
+### Test: Guest-to-Student Conversion Funnel
+
+```java
+@SpringBootTest
+@Transactional
+class ConversionFunnelIntegrationTest {
+
+    @Autowired
+    private LeadService leadService;
+
+    @Autowired
+    private StudentService studentService;
+
+    @Autowired
+    private EnrollmentService enrollmentService;
+
+    @Test
+    @DisplayName("Full conversion flow: Guest → Trial → Lead → Student → Enrollment")
+    void fullConversionFlow() {
+        UUID tenantId = UUID.randomUUID();
+        String email = "guest@example.com";
+
+        // Step 1: Guest views trial lesson (create lead)
+        CreateLeadRequest trialRequest = new CreateLeadRequest(
+            email, "Nguyen Van B", "0901234568",
+            LeadSource.TRIAL, null, "Interested in Java course"
+        );
+        LeadResponse lead = leadService.createLead(tenantId, trialRequest);
+        assertThat(lead.status()).isEqualTo(LeadStatus.NEW);
+
+        // Step 2: Admin contacts lead
+        leadService.updateLeadStatus(lead.id(), LeadStatus.CONTACTED);
+
+        // Step 3: Guest converts to student (signs up)
+        CreateStudentRequest studentRequest = new CreateStudentRequest(
+            "Nguyen Van B", email, "0901234568", null, null, null, null
+        );
+        StudentResponse student = studentService.createStudent(studentRequest);
+
+        // Step 4: Mark lead as converted
+        leadService.convertLead(lead.id(), student.id());
+
+        Lead converted = leadRepository.findById(lead.id()).orElseThrow();
+        assertThat(converted.getStatus()).isEqualTo(LeadStatus.CONVERTED);
+
+        // Step 5: Create enrollment
+        Course course = createCourse();
+        EnrollmentRequest enrollRequest = new EnrollmentRequest(
+            student.id(), course.getId(), LocalDate.now(), null, null, null
+        );
+        EnrollmentResponse enrollment = enrollmentService.createEnrollment(enrollRequest);
+
+        // Then - Full funnel complete
+        assertThat(enrollment.status()).isEqualTo(EnrollmentStatus.ACTIVE);
+        assertThat(student.email()).isEqualTo(email);
+    }
+}
+```
+
+---
+
+# 7. TRIAL LEARNING SYSTEM INTEGRATION TESTS (V4.1 Phase 2) ⭐ NEW
+
+## 7.1. Trial User Registration & Magic Link Flow
+
+**Test Scenario**: Guest registers for trial → receives magic link → verifies → becomes TRIAL_USER
+
+```java
+@Test
+void testTrialRegistrationWithMagicLink() {
+    // Given - Guest wants to try course
+    String email = "trial@example.com";
+    CreateLeadRequest request = new CreateLeadRequest(
+        email, "Nguyễn Văn Trial", "0912345678", courseId
+    );
+
+    // When - Register for trial
+    LeadResponse lead = leadService.registerForTrial(request);
+
+    // Then - Lead created with NEW status
+    assertThat(lead.status()).isEqualTo(LeadStatus.NEW);
+    assertThat(lead.source()).isEqualTo(LeadSource.TRIAL_SIGNUP);
+    assertThat(lead.userId()).isNull(); // Not set yet (magic link not verified)
+
+    // When - Gateway generates magic link (mocked)
+    String magicToken = gatewayClient.generateMagicLink(email, instanceId);
+    assertThat(magicToken).isNotNull();
+
+    // When - User clicks magic link (Gateway verifies token)
+    AuthResponse authResponse = gatewayClient.verifyMagicLink(magicToken);
+    assertThat(authResponse.role()).isEqualTo("TRIAL_USER");
+
+    // When - Core updates lead with user_id
+    UUID userId = extractUserIdFromJwt(authResponse.accessToken());
+    lead = leadService.updateLeadUserId(lead.id(), userId);
+
+    // Then - Lead has user_id, ready for trial learning
+    assertThat(lead.userId()).isEqualTo(userId);
+}
+```
+
+**Assertions**:
+- Lead created with status NEW
+- Magic link token expires in 30 minutes
+- JWT contains role = TRIAL_USER
+- Lead.user_id updated after verification
+
+---
+
+## 7.2. Trial Quota Enforcement
+
+**Test Scenario**: Trial user accesses lessons → quota tracked → limit enforced
+
+```java
+@Test
+void testTrialQuotaEnforcement() {
+    // Given - Trial user with 3 lessons/day quota
+    UUID userId = createTrialUser("trial@example.com");
+    Long lesson1Id = createTrialLesson("Lesson 1");
+    Long lesson2Id = createTrialLesson("Lesson 2");
+    Long lesson3Id = createTrialLesson("Lesson 3");
+    Long lesson4Id = createTrialLesson("Lesson 4");
+
+    // When - Access lesson 1
+    LessonResponse lesson1 = lessonService.getLessonWithAccessControl(lesson1Id, userId, "TRIAL_USER");
+    assertThat(lesson1.remainingQuota()).isEqualTo(2); // 2/3 remaining
+
+    // When - Access lesson 2
+    LessonResponse lesson2 = lessonService.getLessonWithAccessControl(lesson2Id, userId, "TRIAL_USER");
+    assertThat(lesson2.remainingQuota()).isEqualTo(1); // 1/3 remaining
+
+    // When - Access lesson 3
+    LessonResponse lesson3 = lessonService.getLessonWithAccessControl(lesson3Id, userId, "TRIAL_USER");
+    assertThat(lesson3.remainingQuota()).isEqualTo(0); // 0/3 remaining (quota exhausted)
+
+    // When - Try to access lesson 4 (quota exceeded)
+    assertThatThrownBy(() -> lessonService.getLessonWithAccessControl(lesson4Id, userId, "TRIAL_USER"))
+        .isInstanceOf(QuotaExceededException.class)
+        .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("TRIAL_QUOTA_EXCEEDED"));
+
+    // When - Check quota status
+    QuotaStatus status = trialQuotaService.getQuotaStatus(userId);
+    assertThat(status.lessonsAccessed()).isEqualTo(3);
+    assertThat(status.quotaLimit()).isEqualTo(3);
+    assertThat(status.remaining()).isEqualTo(0);
+}
+```
+
+**Assertions**:
+- Quota increments after each lesson access
+- Remaining quota decreases correctly
+- QuotaExceededException thrown when limit reached
+- QuotaStatus returns accurate counts
+
+---
+
+## 7.3. Trial Access Control (Paid Lesson Restriction)
+
+**Test Scenario**: Trial user tries to access paid lesson → denied
+
+```java
+@Test
+void testTrialUserCannotAccessPaidLesson() {
+    // Given - Trial user
+    UUID userId = createTrialUser("trial@example.com");
+
+    // Given - Trial-accessible lesson
+    Long trialLessonId = createLesson("Intro", true); // is_trial_accessible = true
+
+    // Given - Paid-only lesson
+    Long paidLessonId = createLesson("Advanced", false); // is_trial_accessible = false
+
+    // When - Access trial lesson (allowed)
+    LessonResponse trialLesson = lessonService.getLessonWithAccessControl(trialLessonId, userId, "TRIAL_USER");
+    assertThat(trialLesson.id()).isEqualTo(trialLessonId);
+
+    // When - Try to access paid lesson (denied)
+    assertThatThrownBy(() -> lessonService.getLessonWithAccessControl(paidLessonId, userId, "TRIAL_USER"))
+        .isInstanceOf(AccessDeniedException.class)
+        .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("TRIAL_USER_PAID_LESSON_ACCESS_DENIED"));
+}
+```
+
+**Assertions**:
+- Trial users can access `is_trial_accessible = true` lessons
+- Trial users CANNOT access `is_trial_accessible = false` lessons
+- Clear error message for access denial
+
+---
+
+## 7.4. Multi-Tenant Isolation (Trial Users)
+
+**Test Scenario**: Trial user can only access lessons in own tenant
+
+```java
+@Test
+void testTrialUserMultiTenantIsolation() {
+    // Given - Two tenants
+    UUID tenant1 = UUID.randomUUID();
+    UUID tenant2 = UUID.randomUUID();
+
+    // Given - Trial user in tenant1
+    UUID userId = createTrialUserInTenant("trial@tenant1.com", tenant1);
+
+    // Given - Trial lesson in tenant1
+    Long tenant1LessonId = createLessonInTenant("Lesson T1", true, tenant1);
+
+    // Given - Trial lesson in tenant2
+    Long tenant2LessonId = createLessonInTenant("Lesson T2", true, tenant2);
+
+    // When - Access lesson in own tenant (allowed)
+    setTenantContext(tenant1);
+    LessonResponse lesson1 = lessonService.getLessonWithAccessControl(tenant1LessonId, userId, "TRIAL_USER");
+    assertThat(lesson1.id()).isEqualTo(tenant1LessonId);
+
+    // When - Try to access lesson in other tenant (denied)
+    setTenantContext(tenant2);
+    assertThatThrownBy(() -> lessonService.getLessonWithAccessControl(tenant2LessonId, userId, "TRIAL_USER"))
+        .isInstanceOf(EntityNotFoundException.class)
+        .satisfies(e -> assertThat(e.getMessage()).containsIgnoringCase("LESSON_NOT_FOUND"));
+
+    // Hibernate filter prevents cross-tenant access
+}
+```
+
+**Assertions**:
+- Trial users only see lessons in their tenant
+- Cross-tenant access blocked by Hibernate filters
+- Clear error (LESSON_NOT_FOUND) for unauthorized access
+
+---
+
+## 7.5. Lead to Student Conversion Flow
+
+**Test Scenario**: Trial user completes payment → converts to STUDENT → progress preserved
+
+```java
+@Test
+void testLeadConversionWithProgressPreservation() {
+    // Given - Trial user with progress
+    UUID userId = createTrialUser("trial@example.com");
+    Long lesson1Id = createTrialLesson("Lesson 1");
+    Long lesson2Id = createTrialLesson("Lesson 2");
+
+    // Given - Trial user completes 2 lessons
+    lessonService.getLessonWithAccessControl(lesson1Id, userId, "TRIAL_USER");
+    lessonProgressService.updateProgress(lesson1Id, userId, 100); // 100% complete
+
+    lessonService.getLessonWithAccessControl(lesson2Id, userId, "TRIAL_USER");
+    lessonProgressService.updateProgress(lesson2Id, userId, 50); // 50% complete
+
+    // When - User completes payment (mocked)
+    UUID transactionId = mockPaymentService.processPayment(userId, courseId, 299000);
+    assertThat(transactionId).isNotNull();
+
+    // When - Convert lead to student
+    Lead lead = leadRepository.findByUserIdAndDeletedFalse(userId).orElseThrow();
+    ConvertLeadRequest request = new ConvertLeadRequest(courseId, transactionId);
+    ConversionResponse response = leadService.convertToStudent(lead.id(), request);
+
+    // Then - Conversion successful
+    assertThat(response.userId()).isEqualTo(userId); // Same user_id
+    assertThat(response.newRole()).isEqualTo("STUDENT");
+    assertThat(response.enrollmentId()).isNotNull();
+
+    // Then - Lead status updated
+    Lead convertedLead = leadRepository.findById(lead.id()).orElseThrow();
+    assertThat(convertedLead.getStatus()).isEqualTo(LeadStatus.CONVERTED);
+    assertThat(convertedLead.getConvertedAt()).isNotNull();
+
+    // Then - Progress preserved (same user_id)
+    List<LessonProgress> progress = lessonProgressRepository.findByUserId(userId);
+    assertThat(progress).hasSize(2);
+    assertThat(progress).extracting(LessonProgress::getProgressPercent)
+        .containsExactlyInAnyOrder(100, 50);
+
+    // Then - User can now access paid lessons
+    Long paidLessonId = createLesson("Advanced", false); // is_trial_accessible = false
+    LessonResponse paidLesson = lessonService.getLessonWithAccessControl(paidLessonId, userId, "STUDENT");
+    assertThat(paidLesson.id()).isEqualTo(paidLessonId); // Now accessible
+}
+```
+
+**Assertions**:
+- Payment verified before conversion
+- User role updated: TRIAL_USER → STUDENT (same user_id)
+- Lead status: NEW → CONVERTED
+- Progress preserved (lesson_progress uses user_id)
+- Student can access paid lessons after conversion
+
+---
+
+## 7.6. Daily Quota Reset
+
+**Test Scenario**: Quota resets daily at midnight
+
+```java
+@Test
+void testDailyQuotaReset() {
+    // Given - Trial user exhausts quota on Day 1
+    UUID userId = createTrialUser("trial@example.com");
+    Long lesson1Id = createTrialLesson("Lesson 1");
+    Long lesson2Id = createTrialLesson("Lesson 2");
+    Long lesson3Id = createTrialLesson("Lesson 3");
+    Long lesson4Id = createTrialLesson("Lesson 4");
+
+    // Day 1: Access 3 lessons
+    lessonService.getLessonWithAccessControl(lesson1Id, userId, "TRIAL_USER");
+    lessonService.getLessonWithAccessControl(lesson2Id, userId, "TRIAL_USER");
+    lessonService.getLessonWithAccessControl(lesson3Id, userId, "TRIAL_USER");
+
+    // Day 1: Quota exceeded
+    assertThatThrownBy(() -> lessonService.getLessonWithAccessControl(lesson4Id, userId, "TRIAL_USER"))
+        .isInstanceOf(QuotaExceededException.class);
+
+    // When - Next day (simulate by changing quota_date)
+    LocalDate nextDay = LocalDate.now().plusDays(1);
+    // Quota service creates new record for nextDay
+
+    // Then - Quota reset (new record with lessons_accessed = 0)
+    QuotaStatus statusDay2 = trialQuotaService.getQuotaStatus(userId);
+    // Note: In real implementation, getQuotaStatus() checks current date
+    // For testing, we manually set quota_date or use time mocking (e.g., Clock)
+
+    assertThat(statusDay2.quotaDate()).isEqualTo(nextDay);
+    assertThat(statusDay2.lessonsAccessed()).isEqualTo(0);
+    assertThat(statusDay2.remaining()).isEqualTo(3); // Reset to 3
+
+    // Day 2: Can access lessons again
+    LessonResponse lesson = lessonService.getLessonWithAccessControl(lesson4Id, userId, "TRIAL_USER");
+    assertThat(lesson.remainingQuota()).isEqualTo(2); // 1 accessed, 2 remaining
+}
+```
+
+**Assertions**:
+- New quota record created for each day
+- Previous day's quota does not affect next day
+- Quota resets to default limit (3 lessons)
+
+**Implementation Note**: Use `Clock` bean for time mocking in tests:
+```java
+@TestConfiguration
+static class TestClockConfig {
+    @Bean
+    public Clock clock() {
+        return Clock.fixed(Instant.parse("2026-02-26T00:00:00Z"), ZoneId.systemDefault());
+    }
+}
+```
+
+---
+
+## 7.7. E2E Scenario: Full Trial to Paid Flow
+
+**Test Scenario**: Complete user journey from trial registration to paid student
+
+```java
+@Test
+void testFullTrialToPaidFlow() {
+    // Step 1: Guest registers for trial
+    CreateLeadRequest registerRequest = new CreateLeadRequest(
+        "guest@example.com", "Nguyễn Văn Guest", "0912345678", courseId
+    );
+    LeadResponse lead = leadService.registerForTrial(registerRequest);
+    assertThat(lead.status()).isEqualTo(LeadStatus.NEW);
+
+    // Step 2: Guest verifies magic link → becomes TRIAL_USER
+    String magicToken = gatewayClient.generateMagicLink(lead.email(), instanceId);
+    AuthResponse auth = gatewayClient.verifyMagicLink(magicToken);
+    UUID userId = extractUserIdFromJwt(auth.accessToken());
+    leadService.updateLeadUserId(lead.id(), userId);
+
+    // Step 3: Trial user accesses 3 lessons over 3 days
+    Long lesson1 = createTrialLesson("Intro to Java");
+    Long lesson2 = createTrialLesson("Variables & Data Types");
+    Long lesson3 = createTrialLesson("Control Flow");
+
+    lessonService.getLessonWithAccessControl(lesson1, userId, "TRIAL_USER");
+    lessonProgressService.updateProgress(lesson1, userId, 100);
+
+    lessonService.getLessonWithAccessControl(lesson2, userId, "TRIAL_USER");
+    lessonProgressService.updateProgress(lesson2, userId, 100);
+
+    lessonService.getLessonWithAccessControl(lesson3, userId, "TRIAL_USER");
+    lessonProgressService.updateProgress(lesson3, userId, 75);
+
+    // Step 4: Trial user exhausts quota → sees upgrade prompt
+    Long lesson4 = createTrialLesson("Functions");
+    assertThatThrownBy(() -> lessonService.getLessonWithAccessControl(lesson4, userId, "TRIAL_USER"))
+        .isInstanceOf(QuotaExceededException.class);
+
+    // Step 5: User decides to upgrade → completes payment
+    UUID transactionId = mockPaymentService.processPayment(userId, courseId, 299000);
+
+    // Step 6: Convert to paid student
+    ConvertLeadRequest convertRequest = new ConvertLeadRequest(courseId, transactionId);
+    ConversionResponse conversion = leadService.convertToStudent(lead.id(), convertRequest);
+
+    // Verify conversion
+    assertThat(conversion.newRole()).isEqualTo("STUDENT");
+    assertThat(conversion.enrollmentId()).isNotNull();
+
+    // Step 7: Student can now access ALL lessons (no quota)
+    Long paidLesson = createLesson("Advanced OOP", false); // Paid-only
+    LessonResponse lesson = lessonService.getLessonWithAccessControl(paidLesson, userId, "STUDENT");
+    assertThat(lesson.id()).isEqualTo(paidLesson);
+
+    // Step 8: Verify progress preserved
+    List<LessonProgress> progress = lessonProgressRepository.findByUserId(userId);
+    assertThat(progress).hasSize(3); // Lessons 1-3 from trial period
+    assertThat(progress).extracting(LessonProgress::getProgressPercent)
+        .contains(100, 100, 75); // Progress preserved
+
+    // Full flow complete!
+}
+```
+
+**Assertions**:
+- Each step validates expected state
+- Progress tracked throughout trial period
+- Quota enforcement works correctly
+- Conversion preserves all progress
+- Student role grants full access
+
+---
+
 # SUMMARY
 
 **Testing Coverage:**
@@ -1429,12 +2094,24 @@ jobs:
 3. ✅ VietQR Payment (order creation, confirmation, expiry)
 4. ✅ Guest & Trial System (lifecycle, analytics)
 5. ✅ Expand Services (ENGAGEMENT, MEDIA, PREMIUM)
-6. ✅ E2E Scenarios (critical user flows)
-7. ✅ Performance Tests (load testing with k6)
-8. ✅ CI/CD Integration (GitHub Actions)
+6. ⭐ **V4.1 LMS Module** (guest access control, progress tracking)
+7. ⭐ **V4.1 Marketing Module** (landing page, lead workflow, conversion funnel)
+8. ⭐ **V4.1 Phase 2 Trial Learning System** (magic link auth, quota enforcement, access control, conversion flow) ⭐ NEW
+9. ✅ E2E Scenarios (critical user flows)
+10. ✅ Performance Tests (load testing with k6)
+11. ✅ CI/CD Integration (GitHub Actions)
+
+**Trial Learning Test Scenarios (Section 7) ⭐ NEW**:
+- 7.1: Trial registration with magic link flow
+- 7.2: Trial quota enforcement (3 lessons/day)
+- 7.3: Trial access control (paid lesson restriction)
+- 7.4: Multi-tenant isolation (trial users)
+- 7.5: Lead to student conversion with progress preservation
+- 7.6: Daily quota reset logic
+- 7.7: E2E scenario (full trial to paid flow)
 
 **Test Metrics:**
-- Total tests: ~750 (500 unit + 200 integration + 50 E2E)
+- Total tests: ~850+ (550 unit + 240 integration + 60 E2E)
 - Coverage goal: 80%+
 - P95 response time: <200ms
 - Error rate: <1%

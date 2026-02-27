@@ -1,5 +1,9 @@
 # E2E Testing Progress Report
 
+**Last Updated**: 2026-02-26 (added V4.1 notes)
+
+> ⭐ **V4.1 Update**: Sẽ thêm E2E tests cho Guest Pages (landing → course catalog → trial lesson → contact form → lead conversion). Tham khảo `03-frontend-prs.md` PR 3.12.
+
 **Ngày cập nhật**: 2026-02-24
 **Trạng thái**: Tạm dừng E2E, chuyển sang Integration Tests
 

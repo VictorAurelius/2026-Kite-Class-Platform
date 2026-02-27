@@ -2,6 +2,9 @@
 
 TÊN ĐỀ TÀI: XÂY DỰNG HỆ THỐNG QUẢN LÝ TRUNG TÂM GIÁO DỤC THEO KIẾN TRÚC MICROSERVICES - KITECLASS PLATFORM
 
+**Phiên bản:** V4.1 (Bundled Model - Tích hợp LMS + Marketing) ⭐
+**Cập nhật:** 26/02/2026
+
 SINH VIÊN THỰC HIỆN: NGUYỄN VĂN KIỆT
 
 
@@ -35,15 +38,19 @@ KiteClass Platform được phát triển nhằm giải quyết các vấn đề
 
 - Triển khai hệ thống Gamification với điểm thưởng, huy hiệu để tăng hứng thú học tập cho học viên.
 
+- ⭐ **V4.1 NEW:** Xây dựng module LMS (Learning Management System) cho phép học viên truy cập bài học có cấu trúc (modules → lessons), hỗ trợ trial lessons cho khách vãng lai.
+
+- ⭐ **V4.1 NEW:** Phát triển module Marketing với landing page cá nhân hóa, hệ thống quản lý leads và conversion tracking để hỗ trợ giảng viên trong việc thu hút học viên mới.
+
 1.3. Phạm vi nghiên cứu
 
 Đối tượng sử dụng: Các trung tâm ngoại ngữ, trung tâm kỹ năng, trung tâm luyện thi, giảng viên độc lập.
 
-Phạm vi chức năng: Quản lý lớp học, học viên, điểm danh, điểm số, học phí, phụ huynh, gamification, AI marketing và vận hành nền tảng.
+Phạm vi chức năng: Quản lý lớp học, học viên, điểm danh, điểm số, học phí, phụ huynh, gamification, AI marketing, vận hành nền tảng, **LMS (quản lý nội dung học tập), Marketing (landing page, lead management)** ⭐ V4.1.
 
-Phạm vi kỹ thuật: Áp dụng kiến trúc Microservices (3-5 services) cho KiteClass instances, Modular Monolith cho KiteHub, triển khai trên Kubernetes.
+Phạm vi kỹ thuật: Áp dụng kiến trúc Microservices (3-5 services) cho KiteClass instances, Modular Monolith cho KiteHub, triển khai trên Kubernetes. **V4.1: Core Service mở rộng ~900MB (bao gồm LMS + Marketing)** ⭐.
 
-Các actors trong hệ thống: Customer (khách hàng mua gói), Admin KiteHub (quản trị nền tảng), Center Owner (chủ trung tâm), Center Admin (quản trị viên), Teacher (giáo viên), Student (học viên), Parent (phụ huynh).
+Các actors trong hệ thống: Customer (khách hàng mua gói), Admin KiteHub (quản trị nền tảng), Center Owner (chủ trung tâm), Center Admin (quản trị viên), Teacher (giáo viên), Student (học viên), Parent (phụ huynh), **Guest (khách vãng lai xem trial lessons)** ⭐ V4.1.
 
 
 PHẦN 2: KIẾN TRÚC HỆ THỐNG VÀ LÝ DO LỰA CHỌN
@@ -58,7 +65,7 @@ KiteHub Platform (Modular Monolith):
 - Bao gồm các module: Sale (bán hàng, thanh toán), Message (chat hỗ trợ, thông báo), Maintaining (quản lý và provision instance), AI Agent (tạo nội dung marketing)
 - Frontend: Landing page, Admin dashboard, Customer portal
 
-KiteClass Instances (Microservices - Tối ưu V3.1):
+KiteClass Instances (Microservices - Tối ưu V4.1):
 - Mỗi instance là một hệ thống quản lý trung tâm độc lập
 - Áp dụng kiến trúc Microservices với 3-5 services linh hoạt thay vì 7 services cố định như thiết kế ban đầu
 - Services bắt buộc: User+Gateway Service (xác thực, quản lý người dùng, API gateway), Core Service (lớp học, học viên, điểm danh, điểm số, học phí), Frontend (giao diện người dùng)
@@ -66,15 +73,15 @@ KiteClass Instances (Microservices - Tối ưu V3.1):
 
 [Xem sơ đồ kiến trúc chi tiết trong file 05-system-overview-v3.png]
 
-2.2. Thay đổi kiến trúc từ V2 sang V3.1
+2.2. Thay đổi kiến trúc từ V2 sang V4.1
 
-So sánh kiến trúc V2 và V3.1:
-- Số services: V2 có 7 services cố định, V3.1 có 3-5 services linh hoạt. Lý do: Giảm 40% RAM, dễ maintain, linh hoạt theo gói dịch vụ.
-- Gateway Service: V2 có Gateway riêng, V3.1 merge vào User Service. Lý do: Giảm 1 container, giảm network latency, đơn giản hóa deployment.
-- Parent Portal: V2 không có, V3.1 có. Lý do: Học từ BeeClass, nhu cầu thực tế cao tại Việt Nam.
-- Billing với VietQR: V2 không có, V3.1 có. Lý do: Thanh toán QR Code phổ biến tại Việt Nam.
-- Gamification: V2 không có, V3.1 có. Lý do: Tăng engagement cho học viên, học từ BeeClass.
-- RAM tối thiểu/instance: V2 cần ~4GB, V3.1 chỉ cần ~2.5GB. Lý do: Tối ưu số services và resource allocation.
+So sánh kiến trúc V2 và V4.1:
+- Số services: V2 có 7 services cố định, V4.1 có 3-5 services linh hoạt. Lý do: Giảm 40% RAM, dễ maintain, linh hoạt theo gói dịch vụ.
+- Gateway Service: V2 có Gateway riêng, V4.1 merge vào User Service. Lý do: Giảm 1 container, giảm network latency, đơn giản hóa deployment.
+- Parent Portal: V2 không có, V4.1 có. Lý do: Học từ BeeClass, nhu cầu thực tế cao tại Việt Nam.
+- Billing với VietQR: V2 không có, V4.1 có. Lý do: Thanh toán QR Code phổ biến tại Việt Nam.
+- Gamification: V2 không có, V4.1 có. Lý do: Tăng engagement cho học viên, học từ BeeClass.
+- RAM tối thiểu/instance: V2 cần ~4GB, V4.1 chỉ cần ~2.5GB. Lý do: Tối ưu số services và resource allocation.
 
 2.3. Lý do sử dụng Microservices cho KiteClass Instance
 
@@ -146,7 +153,7 @@ KiteClass Instance Actors:
 - Center Admin: Quản trị viên, quản lý lớp học, học viên, học phí
 - Teacher: Giáo viên, điểm danh, chấm điểm, giao bài tập
 - Student: Học viên, xem lịch học, điểm số, làm bài tập
-- Parent: Phụ huynh, theo dõi con, thanh toán học phí (NEW trong V3.1)
+- Parent: Phụ huynh, theo dõi con, thanh toán học phí (NEW trong V4.1)
 
 3.2. Use Cases chính theo Actor
 
@@ -403,7 +410,7 @@ Sơ đồ:
 2. 02-bfd-actors.png - Business Flow Diagram theo Actor
 3. 03-erd.png - Entity Relationship Diagram
 4. 04-architecture-full.png - Kiến trúc đầy đủ với Tech Stack
-5. 05-system-overview-v3.png - System Overview V3.1
+5. 05-system-overview-v3.png - System Overview V4.1
 6. 06-business-flow-v3.png - Complete Business Flow
 
 Tài liệu tham khảo:

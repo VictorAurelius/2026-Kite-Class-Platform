@@ -1181,3 +1181,53 @@ bật mode plan, fix CI đến khi pass thì thôi
 sao status của FE mới hoàn thành mỗi PR 3.1?
 
 giải thích sơ qua cho tôi về mối quan hệ giữa các module trong kiteclass-core hiện tại
+
+giải thích cho tôi lại về business logic của module enrollment và attendence
+
+vậy tôi bàn lại chút về use case của core-kietclass
+nó có trợ giúp B-learning không nhỉ?
+ví dụ như Khóa học có module có lesson và có bài giảng, tài liệu, bài tập để học
+
+hay nó nằm ở service khác?
+
+đọc lại các tài liệu về kiến trúc và nghiệp vụ để trả lời
+
+best practice hiện tại là mở rộng core đúng không?
+
+tôi muốn Khách hàng của kitehub chỉ cần đăng ký core là có thể làm được 4 chức năng chính:
+1. web giới thiệu cho khách hàng: giới thiệu về giảng viên, tổ chức, các thông tin liên quan. UI cho AI branding generate
+2. chức năng quản lý class
+3. guest có thể vào xem khóa học và đăng ký học thử => cần LMS
+4. guest có thể liên hệ với giảng viên và đăng ký học chính thức
+
+vậy best practice là gì?
+
+hãy cập nhật tất cả các file: file kiến trúc, file planning, file business-logic, master PR
+
+=> tất cả documents cần cập nhật
+
+có lẽ đến lúc nên tách kiteclass-implementation-plan.md ra rồi, hãy lọc hết các PR theo service ra thành các file nhỏ hơn và kiteclass-implementation-plan.md sẽ chỉ còn là file lưu index thôi
+
+các file plan khác với các file chứa PR nhé, nếu dễ nhầm lẫn hãy tạo folder con để chứa master PR plan
+
+bạn mới cập nhật mỗi system design, use case design, master PR
+chưa thấy cập nhật: business-logic, technical plans, database-design, ...
+
+check lại toàn bộ thư mục documents để xem tất cả các file nào cần cập nhật và cập nhật thì đẩy version lên
+
+bật plan mode
+
+Lưu ý: tất cả các file phải khớp logic với nhau
+
+hãy cập nhật lại readme của documents để biến nó thành bản đồ cho documents để các plan sau có thể cập nhật dễ hơn, thay vì phải quét toàn bộ documents
+
+dùng 1 file thôi, tôi chỉ cần bản đồ, thông tin khác có thể bỏ qua
+
+tôi thấy thư mục nginx và các file nằm ngoài cùng đang chưa được phân loại vào đúng thư mục
+ví dụ cái nào thuộc kiteclass thì nên để trong kiteclass
+hãy giúp tôi phân loại lại
+
+lưu ý, việc thay đổi đường dẫn sẽ phải thay đổi code bên trong của file được phân loại
+
+tạo skill để vấn đề location của file mới
+bật plan mode

@@ -1,15 +1,17 @@
 # THIẾT KẾ DATABASE
-## KiteClass Platform V3.1
+## KiteClass Platform V4.1 (Bundled Model) ⭐
 
 ## Thông tin tài liệu
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Dự án** | KiteClass Platform V3.1 |
+| **Dự án** | KiteClass Platform V4.1 (Bundled Model) |
 | **Loại tài liệu** | Database Design Document |
+| **Version** | 4.1 |
 | **Ngày tạo** | 23/12/2025 |
+| **Last Updated** | 2026-02-26 ⭐ |
 | **DBMS** | PostgreSQL 15+ |
-| **Tham chiếu** | system-architecture-v3-final.md |
+| **Tham chiếu** | system-architecture-v4.md |
 
 ---
 
@@ -18,9 +20,11 @@
 1. [Tổng quan Database Architecture](#1-tổng-quan-database-architecture)
 2. [KiteHub Database](#2-kitehub-database)
 3. [KiteClass Instance Database](#3-kiteclass-instance-database)
-4. [Entity Relationship Diagrams](#4-entity-relationship-diagrams)
-5. [Indexes & Performance](#5-indexes--performance)
-6. [Data Migration & Seeding](#6-data-migration--seeding)
+4. [LMS Module Schema (V4.1)](#4-lms-module-schema-v41) ⭐ NEW
+5. [Marketing Module Schema (V4.1)](#5-marketing-module-schema-v41) ⭐ NEW
+6. [Entity Relationship Diagrams](#6-entity-relationship-diagrams)
+7. [Indexes & Performance](#7-indexes--performance)
+8. [Data Migration & Seeding](#8-data-migration--seeding)
 
 ---
 
@@ -1727,7 +1731,999 @@ CREATE INDEX idx_parent_children_child ON parent_children(child_id);
 
 ---
 
-# 4. ENTITY RELATIONSHIP DIAGRAMS
+# 4. LMS MODULE SCHEMA (V4.1) ⭐ NEW
+
+## 4.1. Overview
+
+LMS (Learning Management System) module cho phép tổ chức nội dung khóa học thành modules, lessons, và theo dõi tiến độ học tập của học viên. Hỗ trợ chế độ trial (guest có thể xem lessons miễn phí).
+
+## 4.2. Tables
+
+### 4.2.1. course_modules
+
+```sql
+CREATE TABLE course_modules (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+
+    -- Content
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    order_number INTEGER NOT NULL DEFAULT 0,
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_course_modules_course_order
+        UNIQUE (course_id, order_number, instance_id, deleted)
+);
+
+-- Indexes
+CREATE INDEX idx_course_modules_course_id ON course_modules(course_id) WHERE deleted = FALSE;
+CREATE INDEX idx_course_modules_instance_id ON course_modules(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_course_modules_order ON course_modules(course_id, order_number) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE course_modules IS 'Learning modules within a course (V4.1)';
+COMMENT ON COLUMN course_modules.order_number IS 'Display order within course (unique per course)';
+COMMENT ON COLUMN course_modules.instance_id IS 'Tenant ID for multi-tenancy';
+```
+
+**Business Rules:**
+- BR-LMS-001: `order_number` must be unique per course (within same tenant)
+- BR-LMS-002: Deleting a course cascades to all modules
+- BR-LMS-003: Soft delete preserves history
+
+---
+
+### 4.2.2. lessons
+
+```sql
+CREATE TABLE lessons (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    module_id BIGINT NOT NULL REFERENCES course_modules(id) ON DELETE CASCADE,
+
+    -- Content
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    video_url VARCHAR(500),
+
+    -- Access Control ⭐ KEY
+    is_trial BOOLEAN DEFAULT FALSE NOT NULL,
+
+    -- Metadata
+    order_number INTEGER NOT NULL DEFAULT 0,
+    estimated_duration INTEGER, -- minutes
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    version INTEGER DEFAULT 0 NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_lessons_module_order
+        UNIQUE (module_id, order_number, instance_id, deleted),
+    CONSTRAINT chk_lessons_duration
+        CHECK (estimated_duration IS NULL OR estimated_duration > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_lessons_module_id ON lessons(module_id) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_is_trial ON lessons(is_trial) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_instance_id ON lessons(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_lessons_order ON lessons(module_id, order_number) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE lessons IS 'Individual lessons within modules (V4.1)';
+COMMENT ON COLUMN lessons.is_trial IS 'Guest access flag: TRUE = public, FALSE = requires enrollment';
+COMMENT ON COLUMN lessons.estimated_duration IS 'Estimated completion time in minutes';
+```
+
+**Business Rules:**
+- BR-LMS-004: `is_trial = TRUE` → Guest users can access
+- BR-LMS-005: `is_trial = FALSE` → Only enrolled students can access
+- BR-LMS-006: `order_number` unique per module
+- BR-LMS-007: Deleting module cascades to all lessons
+
+---
+
+### 4.2.3. learning_resources
+
+```sql
+CREATE TABLE learning_resources (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+
+    -- Resource Info
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    url VARCHAR(500),
+    file_size BIGINT, -- bytes
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_learning_resources_type
+        CHECK (type IN ('PDF', 'VIDEO', 'SLIDES', 'QUIZ', 'OTHER')),
+    CONSTRAINT chk_learning_resources_size
+        CHECK (file_size IS NULL OR file_size > 0)
+);
+
+-- Indexes
+CREATE INDEX idx_learning_resources_lesson_id ON learning_resources(lesson_id) WHERE deleted = FALSE;
+CREATE INDEX idx_learning_resources_type ON learning_resources(type) WHERE deleted = FALSE;
+
+-- Comments
+COMMENT ON TABLE learning_resources IS 'Additional learning materials attached to lessons (V4.1)';
+COMMENT ON COLUMN learning_resources.type IS 'Resource type: PDF, VIDEO, SLIDES, QUIZ, OTHER';
+COMMENT ON COLUMN learning_resources.file_size IS 'File size in bytes (null for external URLs)';
+```
+
+**Business Rules:**
+- BR-LMS-008: Type must be one of predefined values
+- BR-LMS-009: URL or file_size (at least one) should be present
+- BR-LMS-010: Access control inherits from parent lesson
+
+---
+
+### 4.2.4. lesson_progress
+
+```sql
+CREATE TABLE lesson_progress (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Relationship
+    user_id BIGINT NOT NULL, -- From Gateway users table
+    lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+
+    -- Progress Tracking
+    completed BOOLEAN DEFAULT FALSE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    progress_percent INTEGER DEFAULT 0 NOT NULL,
+
+    -- Multi-tenant
+    instance_id UUID NOT NULL,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT uk_lesson_progress_user_lesson
+        UNIQUE (user_id, lesson_id, instance_id),
+    CONSTRAINT chk_lesson_progress_percent
+        CHECK (progress_percent >= 0 AND progress_percent <= 100),
+    CONSTRAINT chk_lesson_progress_completed
+        CHECK (
+            (completed = FALSE AND completed_at IS NULL) OR
+            (completed = TRUE AND completed_at IS NOT NULL)
+        )
+);
+
+-- Indexes
+CREATE INDEX idx_lesson_progress_user_id ON lesson_progress(user_id);
+CREATE INDEX idx_lesson_progress_lesson_id ON lesson_progress(lesson_id);
+CREATE INDEX idx_lesson_progress_completed ON lesson_progress(completed);
+CREATE INDEX idx_lesson_progress_instance_id ON lesson_progress(instance_id);
+
+-- Comments
+COMMENT ON TABLE lesson_progress IS 'Student learning progress per lesson (V4.1)';
+COMMENT ON COLUMN lesson_progress.completed IS 'Mark lesson as complete (triggers completed_at)';
+COMMENT ON COLUMN lesson_progress.progress_percent IS 'Progress percentage (0-100)';
+```
+
+**Business Rules:**
+- BR-LMS-011: One progress record per user-lesson pair
+- BR-LMS-012: When `completed = TRUE`, `completed_at` must be set
+- BR-LMS-013: `progress_percent` must be between 0-100
+- BR-LMS-014: Progress auto-creates on first lesson access
+
+---
+
+## 4.3. LMS Module ERD
+
+```
+Course (existing)
+  │
+  └──< course_modules (1:N) ⭐ V4.1
+        │ order_number (unique per course)
+        │
+        └──< lessons (1:N) ⭐ V4.1
+              │ order_number (unique per module)
+              │ is_trial (guest access flag)
+              │
+              ├──< learning_resources (1:N) ⭐ V4.1
+              │     (PDF, VIDEO, SLIDES, QUIZ)
+              │
+              └──< lesson_progress (1:N) ⭐ V4.1
+                    │ completed, progress_percent
+                    └──> User (Gateway service)
+```
+
+---
+
+## 4.4. Sample Data Flow
+
+### Guest User (Trial Lesson)
+```
+1. Guest views course page
+2. System lists modules (course_modules)
+3. System lists lessons where is_trial = TRUE
+4. Guest clicks trial lesson
+5. System displays content + video_url
+6. No progress tracking (guest not authenticated)
+```
+
+### Enrolled Student
+```
+1. Student logs in → JWT with enrollment check
+2. System lists all lessons (trial + paid)
+3. Student clicks lesson
+4. System checks: enrollment exists? → Grant access
+5. System creates/updates lesson_progress record
+6. Student marks complete → progress_percent = 100, completed = TRUE
+```
+
+---
+
+# 5. MARKETING MODULE SCHEMA (V4.1) ⭐ NEW
+
+## 5.1. Overview
+
+Marketing module quản lý landing pages, lead capture, và contact forms cho từng tenant. Mỗi tenant có một landing page duy nhất với branding riêng.
+
+## 5.2. Tables
+
+### 5.2.1. landing_pages
+
+```sql
+CREATE TABLE landing_pages (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant Relationship (1:1)
+    instance_id UUID NOT NULL UNIQUE,
+
+    -- Hero Section
+    hero_title VARCHAR(200),
+    hero_subtitle VARCHAR(500),
+    hero_image_url VARCHAR(500),
+
+    -- About Section
+    teacher_bio TEXT,
+    logo_url VARCHAR(500),
+    tagline VARCHAR(200),
+
+    -- Branding
+    primary_color VARCHAR(7), -- Hex #RRGGBB
+    secondary_color VARCHAR(7),
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_by BIGINT,
+    updated_by BIGINT,
+
+    -- Constraints
+    CONSTRAINT chk_landing_pages_primary_color
+        CHECK (primary_color IS NULL OR primary_color ~ '^#[0-9A-Fa-f]{6}$'),
+    CONSTRAINT chk_landing_pages_secondary_color
+        CHECK (secondary_color IS NULL OR secondary_color ~ '^#[0-9A-Fa-f]{6}$')
+);
+
+-- Indexes
+CREATE INDEX idx_landing_pages_instance_id ON landing_pages(instance_id);
+
+-- Comments
+COMMENT ON TABLE landing_pages IS 'Tenant-specific landing page content (1:1 per tenant) - V4.1';
+COMMENT ON COLUMN landing_pages.instance_id IS '1:1 with tenant (unique constraint)';
+COMMENT ON COLUMN landing_pages.primary_color IS 'Primary brand color in hex format (#RRGGBB)';
+```
+
+**Business Rules:**
+- BR-MKT-001: Each tenant has exactly ONE landing page (1:1 relationship)
+- BR-MKT-002: Colors must be valid hex format (#RRGGBB)
+- BR-MKT-003: Landing page auto-creates when tenant provisions
+- BR-MKT-004: All fields optional (gradual setup)
+
+---
+
+### 5.2.2. leads
+
+```sql
+CREATE TABLE leads (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant
+    instance_id UUID NOT NULL,
+
+    -- Lead Info
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(100),
+    phone VARCHAR(20),
+
+    -- Source & Status
+    source VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW',
+
+    -- Interest
+    course_interest_id BIGINT REFERENCES courses(id),
+    message TEXT,
+
+    -- Workflow Tracking
+    last_contacted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_leads_source
+        CHECK (source IN ('LANDING_PAGE', 'CONTACT_FORM', 'TRIAL', 'REFERRAL')),
+    CONSTRAINT chk_leads_status
+        CHECK (status IN ('NEW', 'CONTACTED', 'CONVERTED', 'LOST'))
+);
+
+-- Indexes
+CREATE INDEX idx_leads_instance_id ON leads(instance_id);
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_status ON leads(status);
+CREATE INDEX idx_leads_created_at ON leads(created_at DESC);
+CREATE INDEX idx_leads_source ON leads(source);
+
+-- Comments
+COMMENT ON TABLE leads IS 'Guest leads for conversion tracking (V4.1)';
+COMMENT ON COLUMN leads.source IS 'Lead origin: LANDING_PAGE, CONTACT_FORM, TRIAL, REFERRAL';
+COMMENT ON COLUMN leads.status IS 'Workflow: NEW → CONTACTED → CONVERTED/LOST';
+```
+
+**Business Rules:**
+- BR-MKT-005: Status workflow: NEW → CONTACTED → CONVERTED/LOST
+- BR-MKT-006: When guest signs up → Lead auto-creates with source = TRIAL
+- BR-MKT-007: When contact form submitted → Lead + ContactMessage created
+- BR-MKT-008: When lead converts → Status = CONVERTED + link to Student
+
+**Status Transitions:**
+```
+NEW (initial)
+  │
+  ├──> CONTACTED (admin reaches out)
+  │      │
+  │      ├──> CONVERTED (signs up as student)
+  │      └──> LOST (not interested)
+  │
+  └──> LOST (immediate rejection)
+```
+
+---
+
+### 5.2.3. contact_messages
+
+```sql
+CREATE TABLE contact_messages (
+    id BIGSERIAL PRIMARY KEY,
+
+    -- Tenant
+    instance_id UUID NOT NULL,
+
+    -- Message Info
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    message TEXT NOT NULL,
+
+    -- Read Tracking
+    is_read BOOLEAN DEFAULT FALSE NOT NULL,
+    read_at TIMESTAMP WITH TIME ZONE,
+
+    -- Audit fields
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT chk_contact_messages_read
+        CHECK (
+            (is_read = FALSE AND read_at IS NULL) OR
+            (is_read = TRUE AND read_at IS NOT NULL)
+        )
+);
+
+-- Indexes
+CREATE INDEX idx_contact_messages_instance_id ON contact_messages(instance_id);
+CREATE INDEX idx_contact_messages_is_read ON contact_messages(is_read) WHERE is_read = FALSE;
+CREATE INDEX idx_contact_messages_created_at ON contact_messages(created_at DESC);
+
+-- Comments
+COMMENT ON TABLE contact_messages IS 'Guest contact form submissions (V4.1)';
+COMMENT ON COLUMN contact_messages.is_read IS 'Marked as read by admin';
+```
+
+**Business Rules:**
+- BR-MKT-009: When `is_read = TRUE`, `read_at` must be set
+- BR-MKT-010: Messages sorted by `created_at DESC` (newest first)
+- BR-MKT-011: Contact form submission auto-creates Lead + ContactMessage
+
+---
+
+## 5.3. Marketing Module ERD
+
+```
+LandingPage (1:1 with Tenant/Instance) ⭐ V4.1
+  │ instance_id (UNIQUE)
+  │ hero_title, hero_image_url, primary_color
+  │
+  └──── (Tenant/Instance)
+
+Lead ⭐ V4.1
+  │ source, status (NEW → CONTACTED → CONVERTED/LOST)
+  │
+  ├──> Course (optional interest via course_interest_id)
+  │
+  └──> Instance/Tenant (via instance_id)
+
+ContactMessage ⭐ V4.1
+  │ message, is_read, read_at
+  │
+  └──> Instance/Tenant (via instance_id)
+```
+
+---
+
+## 5.4. Integration Flow
+
+### Guest Submits Contact Form
+```
+1. Guest fills contact form on landing page
+2. Backend creates:
+   a. Lead record (source = CONTACT_FORM, status = NEW)
+   b. ContactMessage record (is_read = FALSE)
+3. Admin sees notification (unread message count)
+4. Admin marks message as read → is_read = TRUE, read_at = NOW()
+5. Admin follows up → Lead status = CONTACTED
+6. Guest signs up → Lead status = CONVERTED
+```
+
+### Guest Requests Trial
+```
+1. Guest clicks "Try Free Lesson" on landing page
+2. Backend creates:
+   a. Lead record (source = TRIAL, status = NEW)
+3. System grants access to lessons where is_trial = TRUE
+4. If guest converts → Lead status = CONVERTED
+```
+
+## 5.5. Trial Learning Extensions (V4.1 - Phase 2)
+
+### Overview
+
+Support for trial users (leads) to access limited course content before conversion to paid students. This extends the Marketing Module's lead capture with actual learning functionality.
+
+**Key Features**:
+- Trial users authenticated via magic links (passwordless)
+- Daily quota limit (3 lessons/day)
+- Self-paced learning (no class enrollment required in Phase 1)
+- Progress preserved after conversion to paid student
+
+### Tables
+
+#### `leads` (Extended)
+
+**Purpose**: Track trial users separately from paid students. Each lead has a user_id FK to support authentication and trial learning access.
+
+```sql
+CREATE TABLE leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    user_id UUID NOT NULL, -- FK to Gateway users(id) - soft reference
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    source VARCHAR(50) NOT NULL, -- LANDING_PAGE, CONTACT_FORM, TRIAL_SIGNUP, REFERRAL
+    status VARCHAR(50) NOT NULL DEFAULT 'NEW', -- NEW, CONTACTED, CONVERTED, LOST
+    course_interest_id BIGINT REFERENCES courses(id) ON DELETE SET NULL,
+    registration_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    converted_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT uq_leads_email_instance UNIQUE (email, instance_id),
+    CONSTRAINT chk_lead_source CHECK (source IN ('LANDING_PAGE', 'CONTACT_FORM', 'TRIAL_SIGNUP', 'REFERRAL')),
+    CONSTRAINT chk_lead_status CHECK (status IN ('NEW', 'CONTACTED', 'CONVERTED', 'LOST'))
+);
+
+CREATE INDEX idx_leads_instance_id ON leads(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_leads_user_id ON leads(user_id);
+CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_leads_status ON leads(status) WHERE deleted = FALSE;
+CREATE INDEX idx_leads_created_at ON leads(created_at);
+
+COMMENT ON TABLE leads IS 'Trial users tracking - separate from students for different lifecycle';
+COMMENT ON COLUMN leads.user_id IS 'FK to Gateway users.id (soft reference for cross-service)';
+COMMENT ON COLUMN leads.status IS 'Lead lifecycle: NEW → CONTACTED → CONVERTED/LOST';
+```
+
+**Design Note**: This table already exists in Section 5.2.2 but is extended here with `user_id` column to support trial authentication. The table serves dual purpose: marketing lead capture + trial user tracking.
+
+#### `trial_quotas` (NEW)
+
+**Purpose**: Enforce daily lesson access limits (3 lessons/day) for trial users.
+
+```sql
+CREATE TABLE trial_quotas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    user_id UUID NOT NULL, -- FK to Gateway users(id)
+    quota_date DATE NOT NULL,
+    lessons_accessed INT NOT NULL DEFAULT 0,
+    quota_limit INT NOT NULL DEFAULT 3, -- Default 3 lessons per day
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_trial_quotas_user_date UNIQUE (user_id, quota_date, instance_id),
+    CONSTRAINT chk_quota_limit_positive CHECK (quota_limit > 0),
+    CONSTRAINT chk_lessons_accessed_non_negative CHECK (lessons_accessed >= 0)
+);
+
+CREATE INDEX idx_trial_quotas_user_id ON trial_quotas(user_id);
+CREATE INDEX idx_trial_quotas_date ON trial_quotas(quota_date);
+CREATE INDEX idx_trial_quotas_user_date ON trial_quotas(user_id, quota_date);
+
+COMMENT ON TABLE trial_quotas IS 'Daily lesson access limits for trial users (default 3 lessons/day)';
+COMMENT ON COLUMN trial_quotas.quota_date IS 'Date of quota (resets daily at midnight)';
+COMMENT ON COLUMN trial_quotas.lessons_accessed IS 'Number of lessons accessed on quota_date';
+```
+
+**Quota Reset Logic**: New quota record created per user per day. No cleanup needed - records serve as access history.
+
+#### Extensions to Existing Tables
+
+**`courses` table extension**:
+```sql
+ALTER TABLE courses ADD COLUMN is_trial BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_courses_trial ON courses(is_trial) WHERE deleted = FALSE;
+
+COMMENT ON COLUMN courses.is_trial IS 'Mark course as trial-accessible (single course approach, not separate trial course)';
+```
+
+**`lessons` table extension**:
+```sql
+ALTER TABLE lessons ADD COLUMN is_trial_accessible BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_lessons_trial ON lessons(is_trial_accessible) WHERE deleted = FALSE;
+
+COMMENT ON COLUMN lessons.is_trial_accessible IS 'Mark lesson accessible to trial users (typically first 1-3 lessons per course)';
+```
+
+**Design Rationale**: Single course with flags instead of separate trial course to avoid content duplication and simplify conversion.
+
+### Gateway Schema Extension
+
+#### `users.role` enum extension
+
+```sql
+-- Migration V12 (Gateway Service)
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'TRIAL_USER';
+
+COMMENT ON TYPE user_role IS 'User roles: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, TRIAL_USER (as of V12)';
+```
+
+**Complete `user_role` enum values**:
+- SUPER_ADMIN (system admin)
+- ADMIN (tenant admin)
+- TEACHER (course instructor)
+- STUDENT (paid learner)
+- TRIAL_USER (trial learner) ⭐ NEW
+
+**Purpose**: Support TRIAL_USER role for authentication and authorization of trial users at Gateway layer.
+
+## 5.6. Storage & File Management (V4.1 - Phase 2)
+
+### Overview
+
+Comprehensive file storage service supporting avatars, documents, videos, certificates, and assignments. Uses S3-compatible storage (MinIO dev, AWS S3 prod) with presigned URLs for secure upload/download, storage quota tracking, and multi-tenant isolation.
+
+**Key Features**:
+- Direct client-to-S3 uploads via presigned URLs (bypass backend)
+- Storage quota enforcement (Trial: 500MB, Basic: 5GB, Pro: 50GB)
+- Multi-tenant isolation (bucket prefixes + instance_id)
+- File lifecycle tracking (UPLOADING → PROCESSING → READY → FAILED)
+- Access control (PRIVATE, COURSE, PUBLIC)
+- Video metadata support (duration, resolution, codec)
+- Soft delete with 30-day grace period
+
+**Related Documentation**: See [Storage Service Design](../implementation/storage-service-design.md) for complete architecture, API flows, and implementation details.
+
+### Tables
+
+#### `uploaded_files`
+
+**Purpose**: Store metadata for all uploaded files (avatars, documents, videos, certificates, assignments). Actual file content stored in S3.
+
+```sql
+CREATE TABLE uploaded_files (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL,
+    uploaded_by UUID NOT NULL, -- FK to Gateway users(id) - soft reference
+    file_type VARCHAR(50) NOT NULL, -- AVATAR, DOCUMENT, VIDEO, CERTIFICATE, ASSIGNMENT
+    original_filename VARCHAR(255) NOT NULL,
+    storage_path VARCHAR(500) NOT NULL UNIQUE, -- S3 path: {tenant-id}/{type}/{uuid}.ext
+    file_size_bytes BIGINT NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'UPLOADING', -- UPLOADING, PROCESSING, READY, FAILED
+    duration_seconds INT, -- Video metadata
+    resolution VARCHAR(20), -- Video metadata (e.g., "1920x1080")
+    video_codec VARCHAR(50), -- Video metadata (e.g., "h264")
+    access_level VARCHAR(50) NOT NULL DEFAULT 'PRIVATE', -- PRIVATE, COURSE, PUBLIC
+    related_entity_type VARCHAR(50), -- student, teacher, course, assignment, etc.
+    related_entity_id VARCHAR(50), -- UUID of related entity
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT chk_file_type CHECK (file_type IN ('AVATAR', 'DOCUMENT', 'VIDEO', 'CERTIFICATE', 'ASSIGNMENT')),
+    CONSTRAINT chk_file_status CHECK (status IN ('UPLOADING', 'PROCESSING', 'READY', 'FAILED')),
+    CONSTRAINT chk_access_level CHECK (access_level IN ('PRIVATE', 'COURSE', 'PUBLIC')),
+    CONSTRAINT chk_file_size_positive CHECK (file_size_bytes > 0)
+);
+
+CREATE INDEX idx_uploaded_files_instance_id ON uploaded_files(instance_id) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_uploaded_by ON uploaded_files(uploaded_by) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_type ON uploaded_files(file_type) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_entity ON uploaded_files(related_entity_type, related_entity_id) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_status ON uploaded_files(status) WHERE deleted = FALSE;
+CREATE INDEX idx_uploaded_files_created_at ON uploaded_files(created_at);
+
+COMMENT ON TABLE uploaded_files IS 'File metadata storage - actual files in S3';
+COMMENT ON COLUMN uploaded_files.uploaded_by IS 'FK to Gateway users.id (soft reference)';
+COMMENT ON COLUMN uploaded_files.storage_path IS 'S3 object key: {tenant-id}/{type}/{uuid}.{ext}';
+COMMENT ON COLUMN uploaded_files.status IS 'Upload lifecycle: UPLOADING → PROCESSING → READY → FAILED';
+COMMENT ON COLUMN uploaded_files.access_level IS 'Access control: PRIVATE (uploader only), COURSE (teacher+students), PUBLIC (all authenticated)';
+```
+
+**File Type Limits**:
+- AVATAR: max 10MB (image/png, image/jpeg, image/webp)
+- DOCUMENT: max 50MB (application/pdf, .docx, .xlsx)
+- VIDEO: max 2GB (video/mp4, video/webm)
+- CERTIFICATE: max 5MB (application/pdf)
+- ASSIGNMENT: max 50MB (application/pdf, .docx)
+
+**Storage Path Format**: `{tenant-id}/{file-type}/{file-uuid}.{extension}`
+- Example: `550e8400-e29b-41d4-a716-446655440000/avatars/abc123.png`
+
+#### `storage_quotas`
+
+**Purpose**: Track storage usage per tenant and enforce limits.
+
+```sql
+CREATE TABLE storage_quotas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id UUID NOT NULL UNIQUE, -- One quota per tenant
+    quota_bytes BIGINT NOT NULL DEFAULT 1073741824, -- Default 1GB
+    used_bytes BIGINT NOT NULL DEFAULT 0,
+    last_calculated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT chk_quota_bytes_positive CHECK (quota_bytes > 0),
+    CONSTRAINT chk_used_bytes_non_negative CHECK (used_bytes >= 0)
+);
+
+CREATE INDEX idx_storage_quotas_instance_id ON storage_quotas(instance_id);
+
+COMMENT ON TABLE storage_quotas IS 'Per-tenant storage quota tracking';
+COMMENT ON COLUMN storage_quotas.quota_bytes IS 'Maximum storage allowed (Trial: 500MB, Basic: 5GB, Pro: 50GB, Enterprise: custom)';
+COMMENT ON COLUMN storage_quotas.used_bytes IS 'Current storage usage (calculated from uploaded_files)';
+COMMENT ON COLUMN storage_quotas.last_calculated_at IS 'Last time quota was recalculated (scheduled job)';
+```
+
+**Quota Tiers** (example values):
+- Trial: 500 MB (524,288,000 bytes)
+- Basic: 5 GB (5,368,709,120 bytes)
+- Pro: 50 GB (53,687,091,200 bytes)
+- Enterprise: Custom (unlimited)
+
+**Quota Calculation**:
+```sql
+-- Scheduled job (daily) to recalculate quotas
+UPDATE storage_quotas sq
+SET used_bytes = (
+    SELECT COALESCE(SUM(file_size_bytes), 0)
+    FROM uploaded_files uf
+    WHERE uf.instance_id = sq.instance_id
+      AND uf.status = 'READY'
+      AND uf.deleted = FALSE
+),
+last_calculated_at = NOW(),
+updated_at = NOW();
+```
+
+### ERD - Trial Learning Extension
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    TRIAL LEARNING ERD                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Gateway Service                 Core Service                    │
+│                                                                  │
+│  ┌──────────────┐                                               │
+│  │    users     │                                               │
+│  ├──────────────┤                                               │
+│  │ id (PK)      │──────┐                                        │
+│  │ email        │      │                                        │
+│  │ role (enum)  │      │ user_id (FK - soft reference)         │
+│  │ instance_id  │      │                                        │
+│  └──────────────┘      │                                        │
+│       │                │                                        │
+│       │ role =         ▼                                        │
+│       │ TRIAL_USER  ┌──────────────┐                           │
+│       │             │    leads     │                           │
+│       │             ├──────────────┤                           │
+│       │             │ id (PK)      │                           │
+│       │             │ user_id (FK) │─────┐                     │
+│       │             │ email        │     │                     │
+│       │             │ status       │     │                     │
+│       │             │ source       │     │                     │
+│       │             │ course_id    │──┐  │                     │
+│       │             └──────────────┘  │  │                     │
+│       │                                │  │                     │
+│       │                                │  │                     │
+│       └─────┐                          │  │                     │
+│             │                          │  │                     │
+│             │ user_id (FK)             │  │                     │
+│             ▼                          │  │                     │
+│      ┌──────────────┐                 │  │                     │
+│      │trial_quotas  │                 │  │                     │
+│      ├──────────────┤                 │  │                     │
+│      │ id (PK)      │                 │  │                     │
+│      │ user_id (FK) │                 │  │                     │
+│      │ quota_date   │                 │  │                     │
+│      │ lessons_     │                 │  │                     │
+│      │   accessed   │                 │  │                     │
+│      │ quota_limit  │                 │  │                     │
+│      └──────────────┘                 │  │                     │
+│                                        │  │                     │
+│                                        │  │                     │
+│                                        ▼  ▼                     │
+│                                    ┌──────────────┐            │
+│                                    │   courses    │            │
+│                                    ├──────────────┤            │
+│                                    │ id (PK)      │            │
+│                                    │ is_trial ⭐  │            │
+│                                    └──────────────┘            │
+│                                           │                     │
+│                                           │ course_id           │
+│                                           ▼                     │
+│                                    ┌──────────────┐            │
+│                                    │   lessons    │            │
+│                                    ├──────────────┤            │
+│                                    │ id (PK)      │            │
+│                                    │ course_id    │            │
+│                                    │ is_trial_    │            │
+│                                    │  accessible⭐│            │
+│                                    └──────────────┘            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+⭐ = New columns for trial learning
+```
+
+### Data Flow
+
+**Trial Registration Flow**:
+```
+1. Guest submits trial signup form (email, name, phone)
+   ↓
+2. Core Service creates Lead record (status = NEW, source = TRIAL_SIGNUP)
+   ↓
+3. Core calls Gateway API to generate magic link
+   ↓
+4. Gateway creates User (role = TRIAL_USER) and sends magic link email
+   ↓
+5. Guest clicks magic link → Gateway verifies token → returns JWT
+   ↓
+6. Core updates Lead.user_id with Gateway user ID
+```
+
+**Trial Lesson Access Flow**:
+```
+1. Trial user requests lesson (JWT with role = TRIAL_USER)
+   ↓
+2. Core checks lesson.is_trial_accessible = TRUE
+   ↓
+3. Core checks trial_quotas: lessons_accessed < quota_limit (3)
+   ↓
+4. If quota OK: Increment lessons_accessed, return lesson content
+   ↓
+5. If quota exceeded: Return 429 Too Many Requests
+```
+
+**Lead → Student Conversion Flow**:
+```
+1. Trial user completes payment
+   ↓
+2. Payment service verifies transaction
+   ↓
+3. Core calls Gateway API to update user.role: TRIAL_USER → STUDENT
+   ↓
+4. Core updates Lead.status = CONVERTED, Lead.converted_at = NOW()
+   ↓
+5. Core creates Enrollment record (reuses existing user_id)
+   ↓
+6. Progress preserved (lesson_progress table uses user_id, not student_id)
+```
+
+### Business Rules
+
+- **BR-TRIAL-001**: Trial users (TRIAL_USER role) can only access lessons where `is_trial_accessible = TRUE`
+  - Implementation: LessonService checks role + lesson flag before returning content
+  - Error: `TRIAL_USER_PAID_LESSON_ACCESS_DENIED` if accessing paid lesson
+
+- **BR-TRIAL-002**: Trial users have 3 lessons/day quota limit enforced by `trial_quotas` table
+  - Implementation: TrialQuotaService.checkAndIncrementQuota() called before lesson access
+  - Quota resets daily (checked by `quota_date` column)
+  - Error: `TRIAL_QUOTA_EXCEEDED` if quota exhausted
+
+- **BR-TRIAL-003**: Lead → Student conversion updates `users.role` from TRIAL_USER to STUDENT (same user_id, progress preserved)
+  - Implementation: Gateway API PUT /users/{id}/role
+  - Same user_id → lesson_progress records automatically available to student
+
+- **BR-TRIAL-004**: Each lead must have unique email per tenant (instance_id)
+  - Implementation: `CONSTRAINT uq_leads_email_instance UNIQUE (email, instance_id)`
+  - Error: `LEAD_EMAIL_EXISTS` if duplicate registration attempt
+
+- **BR-TRIAL-005**: Trial quota resets daily at midnight (checked by `quota_date`)
+  - Implementation: New TrialQuota record created per user per day
+  - No cleanup job needed - records serve as access history
+
+- **BR-TRIAL-006**: Trial users cannot enroll in classes (self-paced learning only in Phase 1)
+  - Implementation: EnrollmentService rejects class_id if user role = TRIAL_USER
+  - Error: `TRIAL_USER_CLASS_ENROLLMENT_NOT_ALLOWED`
+
+### Design Rationale
+
+#### Why separate Leads table instead of merging with Students?
+
+**Decision**: Use separate `leads` table, not merge with `students` table.
+
+**Rationale**:
+- Different data lifecycle (leads can be NEW, CONTACTED, LOST - states not applicable to students)
+- Different business processes (lead nurturing vs student management)
+- Clear domain separation (sales/marketing vs education)
+- Analytics needs (conversion funnel tracking, source attribution)
+- Students may come from non-trial sources (direct signup, offline registration)
+
+**Alternative considered**: Add `is_trial` flag to students table
+- **Rejected**: Mixes two different domains, complicates student queries with trial-specific logic
+
+#### Why TRIAL_USER role in Gateway instead of Core-only?
+
+**Decision**: Add TRIAL_USER to Gateway's `user_role` enum.
+
+**Rationale**:
+- Authentication handled at Gateway layer (JWT tokens need role claims)
+- API Gateway needs role-based routing (e.g., rate limiting stricter for trial users)
+- Consistent with multi-tenant security model (all role authorization at Gateway)
+- Frontend can show/hide features based on JWT role claim
+
+**Alternative considered**: Keep TRIAL_USER status only in Core Service
+- **Rejected**: Requires Core to make auth decisions, breaks Gateway responsibility
+
+#### Why 3 lessons/day quota limit?
+
+**Decision**: Default quota_limit = 3 lessons per day.
+
+**Rationale**:
+- Balance between "try before buy" (enough to evaluate quality) and "create urgency" (limited access encourages conversion)
+- Prevent abuse (unlimited free access would reduce paid conversions)
+- Psychological: 3 lessons ≈ 1-2 hours learning → enough to see value
+- Conversion window: 7-10 days to complete ~20 trial lessons → encourages conversion within 2 weeks
+
+**Alternative considered**: Unlimited trial access for 7 days
+- **Rejected**: Users might binge-watch all content and not convert
+
+#### Why single course with `is_trial` flag instead of separate trial course?
+
+**Decision**: Mark existing courses with `is_trial = TRUE`, not create separate "trial" courses.
+
+**Rationale**:
+- Avoid content duplication (same lessons copied to trial + paid courses)
+- Easier content management (update once, applies to both trial and paid users)
+- Simpler conversion (no data migration between courses)
+- Consistent progress tracking (same course_id before and after conversion)
+
+**Alternative considered**: Create separate courses for trial users
+- **Rejected**: Content duplication, complex conversion logic, sync issues
+
+#### Why self-paced learning (no class enrollment) for trial Phase 1?
+
+**Decision**: Trial users access lessons directly (no class enrollment required) in Phase 1.
+
+**Rationale**:
+- Simpler onboarding (no scheduling conflicts, no class selection complexity)
+- Immediate access (no waiting for class to start)
+- Lower barrier to entry (guest can start learning within 5 minutes)
+- Phase 1 focus: Validate "try before buy" concept before adding class features
+
+**Alternative considered**: Allow trial users to join classes
+- **Deferred to Phase 2**: Requires class capacity management, teacher-student interaction, attendance tracking
+
+#### Why UPDATE ROLE approach for Lead → Student conversion?
+
+**Decision**: Update existing user's role (TRIAL_USER → STUDENT), not create new student record.
+
+**Rationale**:
+- Progress preservation automatic (same user_id → lesson_progress records preserved)
+- Audit trail preserved (created_at, updated_at on user record)
+- Simpler implementation (no data migration, no foreign key updates)
+- Lead record kept for analytics (conversion funnel tracking)
+
+**Alternative considered**: Create new student record, delete user
+- **Rejected**: Loses progress, complicates foreign key relationships, loses audit trail
+
+#### Why magic link authentication instead of password?
+
+**Decision**: Trial users authenticate via magic links (passwordless), not traditional password.
+
+**Rationale**:
+- Faster onboarding (no password complexity requirements, no "forgot password" flow)
+- Better UX for trial (guest clicks link in email → instant access)
+- Security: One-time tokens (30-minute expiry) reduce credential theft risk
+- Mobile-friendly (no typing passwords on small screens)
+
+**Alternative considered**: Traditional email + password registration
+- **Rejected**: Higher friction → lower conversion rate from guest to trial user
+
+### Implementation Notes
+
+- **Migration**: V12 required (see database-migration-plan.md Section 5.5)
+- **Gateway Service**: Must handle TRIAL_USER authentication and JWT generation
+- **Core Service**: Must implement TrialQuotaService for quota enforcement before lesson access
+- **Frontend**: Must display quota counter (e.g., "2/3 lessons today") and upgrade CTA when quota exceeded
+- **Testing**: Integration tests must cover multi-tenant isolation (trial users can't cross tenants)
+
+### Performance Considerations
+
+- **Index on `trial_quotas(user_id, quota_date)`**: Composite index for fast daily quota lookup
+- **Soft delete on leads**: Use `deleted = FALSE` in WHERE clauses to filter soft-deleted records
+- **Cache trial course lessons**: Cache `SELECT * FROM lessons WHERE course_id = X AND is_trial_accessible = TRUE` (static data)
+
+### Security Notes
+
+- **Rate limiting**: Trial users have stricter rate limits (30 req/min vs 100 req/min for students)
+- **CORS**: Trial users access lessons from landing page domain → requires CORS whitelist per tenant
+- **Magic link tokens**: Stored in Redis with 30-minute TTL, deleted after one use
+
+---
+
+# 6. ENTITY RELATIONSHIP DIAGRAMS
 
 ## 4.1. Core ERD
 
@@ -1911,7 +2907,7 @@ CREATE INDEX idx_parent_children_child ON parent_children(child_id);
 
 ---
 
-# 5. INDEXES & PERFORMANCE
+# 7. INDEXES & PERFORMANCE
 
 ## 5.1. Index Strategy
 
@@ -2103,7 +3099,7 @@ ORDER BY idx_scan DESC;
 
 ---
 
-# 6. DATA MIGRATION & SEEDING
+# 8. DATA MIGRATION & SEEDING
 
 ## 6.1. Initial Data Seeding
 

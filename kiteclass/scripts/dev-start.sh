@@ -142,7 +142,7 @@ wait_for_port 6379 "Redis"
 
 # 4. Start Core Service
 echo -e "\n${BLUE}⚙️  Khởi động Core Service (port 8081)...${NC}"
-cd "$PROJECT_ROOT/kiteclass/kiteclass-core"
+cd "$PROJECT_ROOT/kiteclass-core"
 ./mvnw spring-boot:run > "$LOGS_DIR/core.log" 2>&1 &
 CORE_PID=$!
 echo "$CORE_PID" >> "$PIDS_FILE"
@@ -151,7 +151,7 @@ wait_for_http "http://localhost:8081/actuator/health" "Core Service"
 
 # 5. Start Gateway Service
 echo -e "\n${BLUE}🌐 Khởi động Gateway Service (port 8080)...${NC}"
-cd "$PROJECT_ROOT/kiteclass/kiteclass-gateway"
+cd "$PROJECT_ROOT/kiteclass-gateway"
 ./mvnw spring-boot:run > "$LOGS_DIR/gateway.log" 2>&1 &
 GATEWAY_PID=$!
 echo "$GATEWAY_PID" >> "$PIDS_FILE"
@@ -160,7 +160,7 @@ wait_for_http "http://localhost:8080/actuator/health" "Gateway Service"
 
 # 6. Setup frontend environment
 echo -e "\n${BLUE}⚛️  Setup Frontend...${NC}"
-cd "$PROJECT_ROOT/kiteclass/kiteclass-frontend"
+cd "$PROJECT_ROOT/kiteclass-frontend"
 
 if [ ! -f ".env.local" ]; then
     echo -e "${YELLOW}📝 Tạo .env.local...${NC}"

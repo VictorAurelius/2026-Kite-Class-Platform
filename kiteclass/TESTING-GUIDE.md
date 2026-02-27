@@ -279,8 +279,8 @@ git pull origin main
 
 | Script | Mô tả | Usage |
 |--------|-------|-------|
-| `docker-build.sh` | Build Docker images with version tracking | `./docker-build.sh` |
-| `docker-version.sh` | Show current Docker build version | `./docker-version.sh` |
+| `scripts/docker-build.sh` | Build Docker images with version tracking | `./scripts/docker-build.sh` |
+| `scripts/docker-version.sh` | Show current Docker build version | `./scripts/docker-version.sh` |
 
 ### Development
 

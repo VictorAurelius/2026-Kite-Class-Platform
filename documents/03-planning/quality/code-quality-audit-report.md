@@ -1247,6 +1247,237 @@ Documentation quality standards are **comprehensive and well-enforced**.
 
 ---
 
+## 8. TRIAL LEARNING SYSTEM QUALITY CHECKLIST (V4.1 Phase 2) ⭐ NEW
+
+### 8.1. Database Quality
+
+**Migration V12 Verification**:
+- [ ] Gateway: `user_role` enum includes TRIAL_USER value
+- [ ] Core: `trial_quotas` table created with correct schema
+- [ ] Core: `leads.user_id` column added (nullable, FK soft reference)
+- [ ] Core: `courses.is_trial` flag added
+- [ ] Core: `lessons.is_trial_accessible` flag added
+- [ ] Indexes created: `idx_trial_quotas_user_date`, `idx_lessons_trial`, `idx_courses_trial`
+- [ ] Constraints validated: `chk_quota_limit_positive`, `chk_lessons_accessed_non_negative`
+- [ ] Rollback scripts tested (can safely revert V12)
+
+**Data Integrity**:
+- [ ] `trial_quotas.quota_date` UNIQUE per (user_id, quota_date, instance_id)
+- [ ] `leads.email` UNIQUE per tenant (instance_id)
+- [ ] `lesson_progress` uses `user_id` (not student_id) for progress preservation
+- [ ] Soft delete pattern applied (`deleted = FALSE` in queries)
+
+**Verification Queries**:
+```sql
+-- Check enum values
+SELECT enumlabel FROM pg_enum WHERE enumtypid = 'user_role'::regtype;
+-- Expected: SUPER_ADMIN, ADMIN, TEACHER, STUDENT, TRIAL_USER
+
+-- Check table created
+SELECT table_name FROM information_schema.tables WHERE table_name = 'trial_quotas';
+
+-- Check quota constraint
+INSERT INTO trial_quotas (instance_id, user_id, quota_date, lessons_accessed, quota_limit)
+VALUES ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000', CURRENT_DATE, -1, 3);
+-- Expected: ERROR: check constraint "chk_lessons_accessed_non_negative" violated
+```
+
+---
+
+### 8.2. Gateway Service Quality
+
+**TRIAL_USER Authentication**:
+- [ ] MagicLinkService generates secure UUID tokens (not predictable)
+- [ ] Magic link tokens stored in Redis with 30-minute TTL
+- [ ] Magic link tokens deleted after one-time use (no reuse possible)
+- [ ] JWT includes role = TRIAL_USER in claims
+- [ ] JwtTokenProvider validates TRIAL_USER role correctly
+- [ ] SecurityConfig authorizes TRIAL_USER for trial endpoints only
+- [ ] Rate limiting: TRIAL_USER = 30 req/min (stricter than STUDENT = 100 req/min)
+- [ ] Email service sends magic link emails (template tested)
+
+**Security Checks**:
+- [ ] Magic link URLs require HTTPS (no plain HTTP)
+- [ ] Token expiry enforced (30 minutes, not configurable by user)
+- [ ] Invalid tokens return clear error: "Magic link expired or invalid"
+- [ ] CORS whitelisting per tenant (trial users from landing page domain)
+- [ ] No password stored for TRIAL_USER (passwordless auth only)
+
+**Test Coverage**:
+- [ ] MagicLinkServiceTest: Token generation, verification, expiry, one-time use
+- [ ] JwtTokenProviderTest: TRIAL_USER role in claims
+- [ ] MagicLinkAuthFlowTest: Full integration test (send link → verify → get JWT)
+- [ ] RateLimitingTest: TRIAL_USER limits enforced
+
+**Code Quality**:
+- [ ] No hardcoded secrets (Redis host, email credentials in config files)
+- [ ] Error handling: All exceptions mapped to user-friendly messages
+- [ ] Logging: Magic link generation logged (audit trail)
+- [ ] Metrics: Track magic link success/failure rates
+
+---
+
+### 8.3. Core Service Quality
+
+**Trial Registration (PR 2.13)**:
+- [ ] LeadService: Duplicate email check per tenant (email + instance_id unique)
+- [ ] LeadService: Calls Gateway magic link API correctly (error handling)
+- [ ] TrialQuotaService: Quota enforcement logic correct (3 lessons/day)
+- [ ] TrialQuotaService: Daily quota reset (new record per day, no cleanup job)
+- [ ] LessonService: Access control checks `is_trial_accessible` flag
+- [ ] LessonService: Access control checks user role = TRIAL_USER
+- [ ] LessonService: Quota incremented BEFORE returning lesson content (transactional)
+- [ ] Multi-tenant filters enabled (TenantContext.getInstanceId() used in all queries)
+
+**Lead Conversion (PR 2.14)**:
+- [ ] PaymentService: Payment verification before role update (prevent fraud)
+- [ ] GatewayClient: Updates user role (TRIAL_USER → STUDENT) atomically
+- [ ] LeadService: Lead status updated to CONVERTED with timestamp
+- [ ] EnrollmentService: Creates enrollment with existing user_id (no new student record)
+- [ ] Progress preservation verified: `lesson_progress` uses same user_id
+- [ ] Rollback handling: If payment verification fails, no role update
+- [ ] Error codes clear: PAYMENT_NOT_COMPLETED, LEAD_ALREADY_CONVERTED
+
+**Test Coverage**:
+- [ ] LeadServiceTest: Registration, duplicate email, conversion
+- [ ] TrialQuotaServiceTest: Quota enforcement, daily reset, edge cases
+- [ ] LessonServiceTest: Access control (trial vs paid lessons)
+- [ ] Integration test: Full flow (registration → quota → conversion → progress preserved)
+- [ ] Multi-tenant isolation test: Trial user can't access other tenant's lessons
+
+**Code Quality**:
+- [ ] All services use `@Transactional` correctly
+- [ ] Error messages i18n-ready (use MessageSource, not hardcoded Vietnamese)
+- [ ] Validation: Jakarta Bean Validation on DTOs
+- [ ] Logging: All business events logged (trial registration, quota exceeded, conversion)
+
+---
+
+### 8.4. Frontend Quality
+
+**Trial UI (PR 3.13)**:
+- [ ] Trial dashboard: Quota display accurate (X/3 lessons today)
+- [ ] Trial lesson viewer: Restricted features disabled (downloads, comments, quiz)
+- [ ] Teacher public profile: Contact form functional
+- [ ] Trial registration: Magic link flow tested end-to-end
+- [ ] Loading states: Skeleton loaders for quota checks, lesson content
+- [ ] Error handling: Quota exceeded shows upgrade modal (not error page)
+- [ ] Mobile-responsive: All trial pages work on mobile (primary device for trial users)
+- [ ] Accessibility: WCAG 2.1 AA compliance (keyboard navigation, screen reader)
+
+**Conversion Flow (PR 3.14)**:
+- [ ] Payment form: Mock payment works (Phase 1), validation correct
+- [ ] Payment form: Clear "Test Mode" banner (no confusion with real payment)
+- [ ] Conversion success: Shows preserved progress (visual timeline)
+- [ ] Auth context: Handles role change (TRIAL_USER → STUDENT) automatically
+- [ ] Upgrade CTAs: Positioned correctly (top banner, bottom of lesson, after quota exceeded)
+- [ ] Error handling: Payment failure shows retry option (not stuck state)
+
+**Test Coverage**:
+- [ ] Component tests: QuotaCard, TrialLessonList, ContactForm, PaymentForm
+- [ ] Hook tests: useTrialQuota, useMagicLinkAuth
+- [ ] E2E tests (Playwright): Full trial flow (registration → lessons → payment → success)
+- [ ] E2E tests: Quota limit reached (show upgrade modal)
+- [ ] E2E tests: Role change handling (UI updates after conversion)
+
+**Code Quality**:
+- [ ] TypeScript: No `any` types (strict mode enabled)
+- [ ] React Query: Proper caching, refetching, error handling
+- [ ] Form validation: Zod schemas with clear error messages
+- [ ] Performance: Lazy loading for trial pages (not in main bundle)
+
+---
+
+### 8.5. Security Testing
+
+**Authentication Security**:
+- [ ] Magic link tokens: Not predictable (UUID v4, cryptographically secure)
+- [ ] Magic link expiry: Enforced on server-side (not client-side)
+- [ ] JWT tokens: Signed with secret key, expiry enforced
+- [ ] Rate limiting: Trial users can't spam lesson access (30 req/min enforced)
+
+**Authorization Security**:
+- [ ] TRIAL_USER can only access `is_trial_accessible = true` lessons (verified in tests)
+- [ ] TRIAL_USER cannot access `/api/v1/classes/*` endpoints (403 Forbidden)
+- [ ] TRIAL_USER cannot access paid-only features (downloads, comments)
+- [ ] Multi-tenant isolation: Trial users can't access other tenants' data
+
+**Fraud Prevention**:
+- [ ] Payment verification required before conversion (no bypass possible)
+- [ ] Conversion API requires valid payment transaction ID
+- [ ] Quota enforcement on server-side (not client-side)
+- [ ] Magic link one-time use (token deleted after verification)
+
+**Security Test Cases**:
+- [ ] Test: Try to access paid lesson as TRIAL_USER → 403 Forbidden
+- [ ] Test: Try to reuse magic link → Invalid token error
+- [ ] Test: Try to bypass payment verification → Conversion fails
+- [ ] Test: Try to exceed quota by rapid requests → 429 Too Many Requests
+
+---
+
+### 8.6. Deployment Readiness
+
+**Migration Safety**:
+- [ ] V12 migration tested on dev environment (no errors)
+- [ ] V12 rollback script tested (can safely revert)
+- [ ] Migration downtime: None required (additive changes only)
+- [ ] Migration order documented: Gateway first, then Core
+
+**Monitoring Setup**:
+- [ ] Metrics: Trial user count, quota usage, conversion rate
+- [ ] Logs: All trial events logged (registration, quota exceeded, conversion)
+- [ ] Alerts: Quota service errors, magic link failures, payment verification failures
+- [ ] Dashboards: Trial funnel (registration → access → conversion)
+
+**Documentation**:
+- [ ] API docs updated: New endpoints documented (magic link, trial registration, conversion)
+- [ ] Architecture docs updated: database-design.md, database-migration-plan.md
+- [ ] PR docs updated: 01-gateway-prs.md, 02-core-prs.md, 03-frontend-prs.md
+- [ ] Testing docs updated: integration-testing-strategy.md (Section 7)
+
+**CI/CD Verification**:
+- [ ] All tests pass: Unit tests, integration tests, E2E tests
+- [ ] Code coverage: >80% for new trial learning code
+- [ ] Static analysis: No critical Sonar issues
+- [ ] Build artifacts: Docker images built successfully
+
+---
+
+### 8.7. Summary Checklist
+
+**Before Merging PRs**:
+- [ ] All unit tests pass (Gateway, Core, Frontend)
+- [ ] All integration tests pass (quota enforcement, multi-tenant isolation)
+- [ ] E2E tests pass (full trial flow)
+- [ ] Code review completed (2+ reviewers)
+- [ ] Security review completed (OWASP Top 10 check)
+- [ ] Documentation updated (API docs, architecture docs)
+- [ ] Migration tested on dev/staging (no errors)
+
+**Before Deploying to Production**:
+- [ ] Smoke tests pass on staging (trial registration works)
+- [ ] Load tests pass (1000 trial users, quota service handles load)
+- [ ] Monitoring/alerting configured (trial metrics tracked)
+- [ ] Rollback plan documented (can revert V12 if needed)
+- [ ] Support team trained (handle trial user issues)
+
+**Production Readiness Criteria**:
+- [ ] All critical gaps (P0) addressed
+- [ ] All high priority gaps (P1) addressed
+- [ ] Test coverage: >80%
+- [ ] Security testing: Passed
+- [ ] Performance testing: P95 < 200ms
+- [ ] Documentation: Complete
+
+**Approval Required From**:
+- [ ] Tech Lead (architecture review)
+- [ ] QA Lead (testing coverage review)
+- [ ] Security Team (security review)
+- [ ] Product Owner (business logic review)
+
+---
+
 ## NEXT STEPS
 
 ### Immediate (Today)

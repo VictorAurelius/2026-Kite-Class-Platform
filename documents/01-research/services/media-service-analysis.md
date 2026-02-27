@@ -6,6 +6,25 @@
 
 ---
 
+## Related Documentation
+
+⚠️ **IMPORTANT**: This document focuses specifically on **video streaming** with HLS, live streaming with RTMP, video transcoding with FFmpeg, and Ant Media Server integration.
+
+**For general file storage** (avatars, documents, certificates, non-streaming videos):
+See [Storage Service Design](../../03-planning/implementation/storage-service-design.md) for:
+- File upload/download flows (presigned URLs)
+- Storage quota management
+- Multi-tenant file isolation
+- Database schema (uploaded_files, storage_quotas)
+
+**Both services share the same object storage backend** (MinIO dev, AWS S3 prod).
+
+**Scope separation**:
+- **Media Service** (this document): Video streaming (HLS), live streaming (RTMP), transcoding (FFmpeg)
+- **Storage Service**: General file uploads (avatars, PDFs, non-streaming videos)
+
+---
+
 ## 1. Tổng Quan
 
 ### 1.1. Mục đích báo cáo

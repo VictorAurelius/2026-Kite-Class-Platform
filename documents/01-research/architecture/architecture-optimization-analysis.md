@@ -4,11 +4,13 @@
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Tên dự án** | KiteClass Platform V3 |
-| **Phiên bản** | 1.0 |
+| **Tên dự án** | KiteClass Platform V4.1 ⭐ |
+| **Phiên bản** | 1.1 (V4.1 Bundled Model) |
 | **Ngày tạo** | 23/12/2025 |
+| **Last Updated** | 2026-02-26 |
 | **Loại tài liệu** | Báo cáo phân tích kiến trúc |
-| **Tham chiếu** | system-architecture-v3-final.md, service-optimization-report.md |
+| **Tham chiếu** | system-architecture-v4.md, service-optimization-report.md |
+| **V4.1 Changes** | Core Service mở rộng: +LMS Module (~150MB), +Marketing Module (~100MB) |
 
 ---
 

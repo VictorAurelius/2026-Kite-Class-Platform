@@ -5,12 +5,13 @@
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Tên dự án** | KiteClass Platform V3.1 |
-| **Phiên bản** | 3.1 (Optimized) |
-| **Ngày tạo** | 23/12/2025 |
+| **Tên dự án** | KiteClass Platform V4.1 |
+| **Phiên bản** | 4.1 (Bundled Model) |
+| **Ngày cập nhật** | 2026-02-26 |
 | **Loại tài liệu** | Use Case Specification |
-| **Tham chiếu** | system-architecture-v3-final.md |
+| **Tham chiếu** | system-architecture-v4.md |
 | **Thay đổi V3.1** | Merge Gateway+User Service, Add Engagement Service |
+| **Thay đổi V4.1** | Add LMS Module (guest learning) + Marketing Module (landing page, leads) to Core Service |
 
 ---
 
@@ -937,13 +938,14 @@
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Mô tả** | Service chính quản lý nghiệp vụ giáo dục cốt lõi |
+| **Mô tả** | Service chính quản lý nghiệp vụ giáo dục cốt lõi + Guest features |
 | **Công nghệ** | Java Spring Boot |
 | **Database** | PostgreSQL (instance-specific) |
-| **Modules** | Class, Learning, Billing |
-| **RAM** | ~768MB |
-| **Actors** | CENTER_OWNER, CENTER_ADMIN, TEACHER, STUDENT |
+| **Modules** | Class, Learning, Billing, **LMS (NEW)**, **Marketing (NEW)** |
+| **RAM** | ~900MB (~650MB admin + 250MB LMS/Marketing) |
+| **Actors** | CENTER_OWNER, CENTER_ADMIN, TEACHER, STUDENT, **GUEST (NEW)** |
 | **Lưu ý V3.1** | Gamification, Parent, Forum đã chuyển sang Engagement Service (tùy chọn) |
+| **Lưu ý V4.1** | LMS + Marketing modules merged vào Core (bundled model) |
 
 ## 5.2. CLASS MODULE - Use Cases
 
@@ -1251,6 +1253,344 @@
 │     - Còn nợ = Tổng - Đã đóng                                                  │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │ Postcondition: Thanh toán được ghi nhận                                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 5.5. LMS MODULE - Use Cases ⭐ NEW V4.1
+
+### UC-LMS-01: Guest xem course structure
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-LMS-01: Guest xem course structure (Modules, Lessons)                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: Guest (Khách chưa đăng ký)                                               │
+│ Precondition: Tenant có published course                                        │
+│ Trigger: Guest truy cập trang catalog, click vào khóa học                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Guest truy cập https://acme.kiteclass.com/courses                           │
+│ 2. Hệ thống hiển thị danh sách khóa học:                                       │
+│    - Tên khóa học, ảnh thumbnail                                               │
+│    - Teacher profile, rating                                                   │
+│    - Số lessons, thời lượng                                                    │
+│    - Học phí                                                                   │
+│    - Badge "Học thử miễn phí" nếu có trial lessons                             │
+│ 3. Guest click vào khóa học quan tâm                                           │
+│ 4. Hệ thống hiển thị trang chi tiết:                                           │
+│    - Course overview (mục tiêu, đối tượng)                                     │
+│    - Teacher bio với ảnh                                                       │
+│    - Course syllabus (modules + lessons):                                       │
+│      ├─ Module 1: Introduction                                                │
+│      │  ├─ Lesson 1.1: Welcome (FREE TRIAL) 🎁                                │
+│      │  └─ Lesson 1.2: Course Overview (PAID) 🔒                              │
+│      ├─ Module 2: Advanced Topics                                             │
+│      │  ├─ Lesson 2.1: Deep Dive (PAID) 🔒                                    │
+│      │  └─ Lesson 2.2: Hands-on Lab (PAID) 🔒                                 │
+│    - CTA: "Học thử miễn phí" (prominent button)                                │
+│ 5. Guest có thể:                                                               │
+│    a. Click "Học thử miễn phí" → UC-LMS-02                                    │
+│    b. Click "Đăng ký học chính thức" → Contact form                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Guest hiểu course structure, biết có trial lessons                │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### UC-LMS-02: Guest học thử (Trial Lessons)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-LMS-02: Guest học thử miễn phí                                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: Guest                                                                    │
+│ Precondition: Course có trial lessons (isTrial=true)                            │
+│ Trigger: Guest click "Học thử miễn phí" hoặc click vào trial lesson             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Guest click "Học thử miễn phí"                                              │
+│ 2. Hệ thống hiển thị form đăng ký học thử:                                     │
+│    - Email (*) - để nhận link truy cập                                         │
+│    - Họ tên (optional)                                                         │
+│    - Số điện thoại (optional)                                                  │
+│ 3. Guest nhập email và submit                                                  │
+│ 4. Hệ thống:                                                                   │
+│    a. Validate email format                                                    │
+│    b. Tạo Lead record (status=TRIAL)                                           │
+│    c. Gửi email với link truy cập trial lessons                                │
+│ 5. Guest click link trong email                                                │
+│ 6. Hệ thống redirect đến Trial Viewer page:                                    │
+│    - Video player (nếu lesson có video)                                        │
+│    - Lesson content (markdown/HTML)                                            │
+│    - Learning resources (PDF, slides download)                                 │
+│    - Progress tracker (đã xem bao nhiêu trial lessons)                         │
+│ 7. Guest học bài, xem video                                                   │
+│ 8. Sau khi học xong, hiển thị CTA:                                             │
+│    - "Đăng ký học chính thức" → Contact form                                   │
+│    - "Xem thêm khóa học khác" → Catalog                                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Alternative Flow:                                                               │
+│ 3a. Email đã đăng ký trial trước:                                              │
+│     - Tự động gửi lại link access                                              │
+│     - "Bạn đã đăng ký học thử, check email để tiếp tục"                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Guest đã học thử, Lead được ghi nhận để follow up                │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### UC-LMS-03: Student học lesson và track progress
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-LMS-03: Student học lesson (Enrolled students)                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: STUDENT (đã enrolled vào class)                                          │
+│ Precondition: Student đã đăng nhập, có active enrollment                        │
+│ Trigger: Student truy cập trang học của lớp                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Student đăng nhập và vào "My Classes"                                       │
+│ 2. Student chọn lớp đang học                                                   │
+│ 3. Hệ thống hiển thị:                                                          │
+│    - Course progress: 45% hoàn thành (progress bar)                            │
+│    - Module list với lessons:                                                  │
+│      ├─ Module 1: ✅ Completed (3/3 lessons)                                   │
+│      ├─ Module 2: 🔄 In Progress (1/3 lessons)                                │
+│      │  ├─ Lesson 2.1: ✅ Completed                                           │
+│      │  ├─ Lesson 2.2: ▶️  Current (Continue learning)                        │
+│      │  └─ Lesson 2.3: 🔒 Locked (complete 2.2 first)                         │
+│      └─ Module 3: 🔒 Locked                                                   │
+│ 4. Student click vào lesson                                                   │
+│ 5. Hệ thống hiển thị lesson viewer:                                            │
+│    - Video player (track watch time)                                           │
+│    - Lesson content                                                            │
+│    - Learning resources (PDF, code samples)                                    │
+│    - Quiz (optional) - nếu lesson có quiz                                      │
+│    - Navigation: Previous | Next lesson                                        │
+│    - "Mark as Complete" button                                                 │
+│ 6. Student học bài, xem video                                                 │
+│ 7. Student click "Mark as Complete"                                            │
+│ 8. Hệ thống:                                                                   │
+│    a. Lưu LessonProgress (completed=true, completedAt=now)                     │
+│    b. Update CourseProgress (recalculate %)                                    │
+│    c. Unlock lesson tiếp theo (nếu sequential)                                 │
+│    d. Trigger Gamification: +10 điểm (nếu có)                                  │
+│    e. Redirect đến lesson tiếp theo                                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Progress được lưu, student có thể tiếp tục học                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### UC-LMS-04: Teacher quản lý course content
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-LMS-04: Teacher tạo/sửa course modules và lessons                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: TEACHER                                                                  │
+│ Precondition: Teacher được assign course                                        │
+│ Trigger: Teacher muốn thêm/sửa nội dung khóa học                                │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Teacher đăng nhập, vào "My Courses"                                         │
+│ 2. Teacher chọn course cần quản lý                                             │
+│ 3. Hệ thống hiển thị trang "Course Content Editor":                            │
+│    - Danh sách modules (drag-drop để reorder)                                  │
+│    - Button "Add Module", "Add Lesson"                                         │
+│ 4. Teacher click "Add Module"                                                  │
+│ 5. Nhập thông tin module:                                                      │
+│    - Module title (*)                                                          │
+│    - Description                                                               │
+│    - Order (auto-increment)                                                    │
+│ 6. Teacher click "Add Lesson" trong module                                     │
+│ 7. Nhập thông tin lesson:                                                      │
+│    - Lesson title (*)                                                          │
+│    - Content (rich text editor)                                                │
+│    - Video URL (optional) - link từ Media Service                              │
+│    - Learning resources (upload PDF, slides)                                    │
+│    - ☑️ Is Trial (checkbox) - cho phép guest xem miễn phí                     │
+│    - Order (auto-increment)                                                    │
+│ 8. Teacher submit                                                              │
+│ 9. Hệ thống:                                                                   │
+│    a. Validate required fields                                                 │
+│    b. Lưu lesson vào database                                                  │
+│    c. Update module lesson count                                               │
+│    d. Update course structure                                                  │
+│ 10. Teacher có thể:                                                            │
+│     - Edit lesson content                                                      │
+│     - Toggle "Is Trial" để mở/đóng trial                                       │
+│     - Reorder lessons (drag-drop)                                              │
+│     - Delete lesson (soft delete)                                              │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Course content được cập nhật, students thấy ngay                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 5.6. MARKETING MODULE - Use Cases ⭐ NEW V4.1
+
+### UC-MKT-01: Guest xem landing page
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-MKT-01: Guest xem landing page của tenant                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: Guest (Khách truy cập website)                                           │
+│ Precondition: Tenant đã publish landing page                                    │
+│ Trigger: Guest truy cập subdomain tenant (e.g., acme.kiteclass.com)             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Guest truy cập https://acme.kiteclass.com                                   │
+│ 2. Hệ thống:                                                                   │
+│    a. Extract tenant từ subdomain                                              │
+│    b. Load landing page content từ database                                    │
+│    c. Render landing page                                                      │
+│ 3. Guest thấy landing page với:                                                │
+│    - Hero section:                                                             │
+│      • Logo, tagline ("Học lập trình cùng Thầy Kiệt")                          │
+│      • Hero image/background                                                   │
+│      • CTA: "Xem khóa học" + "Liên hệ"                                         │
+│    - About Teacher section:                                                     │
+│      • Ảnh teacher                                                             │
+│      • Bio (kinh nghiệm, chuyên môn)                                           │
+│      • Achievements/certifications                                             │
+│    - Course Highlights (3-5 courses nổi bật):                                  │
+│      • Tên khóa học, thumbnail                                                 │
+│      • Summary (ngắn gọn)                                                      │
+│      • "Xem chi tiết" button                                                   │
+│    - Social Proof:                                                             │
+│      • Student testimonials                                                    │
+│      • Stats (100+ students, 4.8★ rating)                                      │
+│    - Contact section:                                                           │
+│      • Contact form inline                                                     │
+│      • Email, phone, address                                                   │
+│ 4. Guest có thể:                                                               │
+│    a. Click "Xem khóa học" → Catalog page                                      │
+│    b. Click "Liên hệ" → Scroll to contact form                                 │
+│    c. Click course card → Course detail                                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Guest có thông tin về teacher và courses                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### UC-MKT-02: Guest đăng ký học thử
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-MKT-02: Guest đăng ký học thử qua landing page                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: Guest                                                                    │
+│ Precondition: Đang ở landing page hoặc course detail                            │
+│ Trigger: Guest click "Đăng ký học thử" CTA                                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Guest click "Đăng ký học thử" button                                        │
+│ 2. Hiển thị modal/popup form:                                                  │
+│    - Họ tên (*)                                                                │
+│    - Email (*)                                                                 │
+│    - Số điện thoại (*)                                                         │
+│    - Khóa học quan tâm (dropdown, pre-selected)                                │
+│    - Tin nhắn (optional)                                                       │
+│ 3. Guest điền thông tin và submit                                              │
+│ 4. Hệ thống:                                                                   │
+│    a. Validate form (email format, phone format)                               │
+│    b. Tạo Lead record:                                                         │
+│       - tenantId, email, name, phone                                           │
+│       - source = "LANDING_PAGE"                                                │
+│       - status = "NEW"                                                         │
+│       - courseInterest = selected course                                       │
+│    c. Gửi email confirmation đến guest:                                        │
+│       "Cảm ơn bạn đã đăng ký! Chúng tôi sẽ liên hệ trong 24h"                 │
+│    d. Gửi notification đến teacher:                                            │
+│       "Bạn có lead mới: [Tên] - [Phone] - Quan tâm [Course]"                  │
+│ 5. Hiển thị success message:                                                   │
+│    "✅ Đăng ký thành công! Check email để nhận link học thử."                  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Alternative Flow:                                                               │
+│ 4a. Email đã tồn tại trong hệ thống:                                           │
+│     - Cập nhật Lead (update courseInterest, lastContactedAt)                   │
+│     - Gửi email với link trial lessons ngay                                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Lead được ghi nhận, teacher nhận notification                    │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### UC-MKT-03: Guest liên hệ giảng viên
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-MKT-03: Guest gửi tin nhắn liên hệ                                           │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: Guest                                                                    │
+│ Precondition: Đang ở landing page hoặc contact page                             │
+│ Trigger: Guest muốn hỏi thêm thông tin                                          │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Guest scroll đến Contact section hoặc click "Liên hệ"                       │
+│ 2. Điền form:                                                                  │
+│    - Họ tên (*)                                                                │
+│    - Email (*)                                                                 │
+│    - Số điện thoại                                                             │
+│    - Tin nhắn (*) - textarea                                                   │
+│ 3. Guest submit                                                                │
+│ 4. Hệ thống:                                                                   │
+│    a. Validate form                                                            │
+│    b. Tạo ContactMessage record:                                               │
+│       - tenantId, name, email, message                                         │
+│       - createdAt                                                              │
+│    c. Tạo/Update Lead (source="CONTACT_FORM", status="NEW")                   │
+│    d. Gửi email notification đến teacher:                                      │
+│       Subject: "Tin nhắn mới từ [Name]"                                        │
+│       Body: Message content + contact info                                     │
+│ 5. Hiển thị success:                                                           │
+│    "✅ Tin nhắn đã gửi! Chúng tôi sẽ phản hồi trong 24h."                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Teacher nhận được tin nhắn qua email                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### UC-MKT-04: Teacher customize landing page
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ UC-MKT-04: Teacher tùy chỉnh landing page                                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Actor: TEACHER, CENTER_OWNER                                                    │
+│ Precondition: Teacher đã đăng nhập                                              │
+│ Trigger: Teacher muốn update landing page content                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Main Flow:                                                                      │
+│ 1. Teacher vào /admin/landing-page                                             │
+│ 2. Hệ thống hiển thị editor với sections:                                      │
+│    - Hero section:                                                             │
+│      • Upload logo                                                             │
+│      • Tagline (input text)                                                    │
+│      • Hero background image                                                   │
+│    - About Teacher:                                                             │
+│      • Upload teacher photo                                                    │
+│      • Bio (rich text editor)                                                  │
+│      • Achievements list (add/remove items)                                    │
+│    - Course Highlights:                                                         │
+│      • Select courses to feature (multi-select)                                │
+│      • Reorder (drag-drop)                                                     │
+│    - Contact Info:                                                              │
+│      • Email, phone, address                                                   │
+│ 3. Teacher chỉnh sửa content                                                   │
+│ 4. Teacher click "Preview" → Xem preview trong tab mới                         │
+│ 5. Teacher click "Publish"                                                     │
+│ 6. Hệ thống:                                                                   │
+│    a. Validate required fields                                                 │
+│    b. Upload images to storage (nếu có)                                        │
+│    c. Lưu LandingPageContent vào database                                      │
+│    d. Clear cache (nếu có caching)                                             │
+│ 7. Hiển thị success: "✅ Landing page updated!"                                │
+│ 8. Link: "View live page" → https://[tenant].kiteclass.com                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Future Enhancement (Phase 2):                                                   │
+│ - AI Branding Generator:                                                        │
+│   • Teacher nhập: name, keywords (e.g., "Java programming")                    │
+│   • AI generate: logo, tagline, color scheme                                   │
+│   • Teacher review và apply                                                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ Postcondition: Landing page updated, guest thấy content mới ngay                │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 

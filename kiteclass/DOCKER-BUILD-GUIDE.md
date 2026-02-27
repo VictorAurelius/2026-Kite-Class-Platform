@@ -22,7 +22,7 @@ Hướng dẫn build và quản lý Docker images với version tracking để s
 
 ```bash
 # Build tất cả services với version tracking
-./docker-build.sh
+./scripts/docker-build.sh
 ```
 
 Script sẽ:
@@ -52,7 +52,7 @@ Script sẽ:
 
 ```bash
 # Xem version hiện tại
-./docker-version.sh
+./scripts/docker-version.sh
 ```
 
 **Output:**
@@ -106,7 +106,7 @@ Lịch sử tất cả các lần build (append-only).
 git checkout feature/PR-3.9-student-pages
 
 # Build images
-./docker-build.sh
+./scripts/docker-build.sh
 # → Build tag: pr-3.9-a1b2c3d
 
 # Làm việc...
@@ -120,11 +120,11 @@ git checkout feature/PR-3.9-student-pages
 git pull origin feature/PR-3.9-student-pages
 
 # Build images (cùng commit = cùng tag)
-./docker-build.sh
+./scripts/docker-build.sh
 # → Build tag: pr-3.9-a1b2c3d (giống Máy A)
 
 # Check version để verify
-./docker-version.sh
+./scripts/docker-version.sh
 ```
 
 ### Khi Cần Rebuild Exact Version:
@@ -137,7 +137,7 @@ cat .docker-build-logs/current-version.txt
 git checkout a1b2c3d
 
 # Rebuild
-./docker-build.sh
+./scripts/docker-build.sh
 ```
 
 ## 🏷️ Image Tagging Convention
@@ -174,7 +174,7 @@ docker inspect kiteclass-core:pr-3.8-43f9a72 --format '{{json .Config.Labels}}' 
 git checkout feature/PR-3.8-frontend-testing
 
 # Build images
-./docker-build.sh
+./scripts/docker-build.sh
 # Tag: pr-3.8-43f9a72
 
 # Start services
@@ -200,7 +200,7 @@ docker compose -f docker-compose.dev.yml down
 git checkout main
 
 # Rebuild với main version
-./docker-build.sh
+./scripts/docker-build.sh
 # Tag: main-ef12cf1
 
 # Start services
@@ -250,7 +250,7 @@ docker compose -f docker-compose.dev.yml build --no-cache
 ### Version file bị mất
 ```bash
 # Rebuild để recreate
-./docker-build.sh
+./scripts/docker-build.sh
 ```
 
 ### Images chiếm nhiều disk
@@ -264,8 +264,8 @@ docker system prune -a --volumes
 
 ## 📚 Related Files
 
-- `docker-build.sh` - Build script với version tracking
-- `docker-version.sh` - Show current version
+- `scripts/docker-build.sh` - Build script với version tracking
+- `scripts/docker-version.sh` - Show current version
 - `docker-compose.dev.yml` - Development compose file
 - `.docker-build-logs/` - Version tracking data (local only)
 - `kiteclass/kiteclass-core/Dockerfile` - Core service
@@ -276,12 +276,12 @@ docker system prune -a --volumes
 
 1. **Luôn check version** trước khi start coding:
    ```bash
-   ./docker-version.sh
+   ./scripts/docker-version.sh
    ```
 
 2. **Rebuild sau khi pull code**:
    ```bash
-   git pull && ./docker-build.sh
+   git pull && ./scripts/docker-build.sh
    ```
 
 3. **Xem logs để debug**:

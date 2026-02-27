@@ -4,6 +4,10 @@
 
 set -e
 
+# Get script directory and navigate to kiteclass root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
 # Setup Java 21
 export JAVA_HOME="/home/vkiet/.local/java/jdk-21.0.5+11"
 export PATH="$JAVA_HOME/bin:$PATH"
@@ -21,7 +25,7 @@ echo ""
 
 # Backend - Core Service
 echo "📦 Checking Core Service (Java + Checkstyle)..."
-cd kiteclass/kiteclass-core
+cd kiteclass-core
 $MVN compile -q
 echo "✅ Core Service: OK"
 echo ""

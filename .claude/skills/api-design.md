@@ -683,6 +683,219 @@ services:
 
 ---
 
+## File Management API
+
+### POST /api/v1/files/upload/initiate
+Khởi tạo upload file và nhận presigned URL.
+
+**Headers:**
+- `X-Tenant-Id`: UUID (required)
+- `X-User-Id`: UUID (required)
+- `Authorization`: Bearer token
+
+**Request Body:**
+```json
+{
+  "fileName": "avatar.png",
+  "fileSize": 102400,
+  "fileType": "AVATAR",
+  "mimeType": "image/png"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "uploadUrl": "https://s3.amazonaws.com/bucket/presigned-url?...",
+    "fileId": "550e8400-e29b-41d4-a716-446655440000",
+    "expiresIn": 600
+  }
+}
+```
+
+**Response (403 Forbidden - Quota exceeded):**
+```json
+{
+  "error": {
+    "code": "STORAGE_QUOTA_EXCEEDED",
+    "message": "Storage quota exceeded. Current: 980MB / 1GB. Required: 100MB.",
+    "details": {
+      "quotaBytes": 1073741824,
+      "usedBytes": 1027604480,
+      "requestedBytes": 104857600
+    }
+  }
+}
+```
+
+**File Type Limits:**
+- AVATAR: max 10MB (image/png, image/jpeg, image/webp)
+- DOCUMENT: max 50MB (application/pdf, .docx, .xlsx)
+- VIDEO: max 2GB (video/mp4, video/webm)
+- CERTIFICATE: max 5MB (application/pdf)
+- ASSIGNMENT: max 50MB (application/pdf, .docx)
+
+---
+
+### POST /api/v1/files/{fileId}/complete
+Đánh dấu upload hoàn tất sau khi client upload lên S3.
+
+**Headers:**
+- `X-Tenant-Id`: UUID (required)
+- `X-User-Id`: UUID (required)
+
+**Path Parameters:**
+- `fileId`: UUID
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "fileId": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "READY",
+    "downloadUrl": "https://s3.amazonaws.com/presigned-download-url?..."
+  }
+}
+```
+
+**Response (404 Not Found):**
+```json
+{
+  "error": {
+    "code": "FILE_NOT_FOUND",
+    "message": "File not found with ID: {fileId}"
+  }
+}
+```
+
+---
+
+### GET /api/v1/files/{fileId}/download
+Lấy presigned URL để download file.
+
+**Headers:**
+- `X-Tenant-Id`: UUID (required)
+- `X-User-Id`: UUID (required)
+
+**Path Parameters:**
+- `fileId`: UUID
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "downloadUrl": "https://s3.amazonaws.com/presigned-download-url?...",
+    "expiresIn": 86400,
+    "fileName": "avatar.png",
+    "fileSizeBytes": 102400,
+    "mimeType": "image/png"
+  }
+}
+```
+
+**Response (403 Forbidden - Access denied):**
+```json
+{
+  "error": {
+    "code": "FILE_ACCESS_DENIED_PRIVATE",
+    "message": "You do not have permission to access this file.",
+    "details": {
+      "accessLevel": "PRIVATE",
+      "uploadedBy": "other-user-id"
+    }
+  }
+}
+```
+
+**Access Control:**
+- **PRIVATE**: Chỉ user upload mới download được
+- **COURSE**: Teacher + học viên enrolled mới download được
+- **PUBLIC**: Tất cả authenticated users đều download được
+
+---
+
+### DELETE /api/v1/files/{fileId}
+Soft delete file (đánh dấu deleted=true, giữ 30 ngày).
+
+**Headers:**
+- `X-Tenant-Id`: UUID (required)
+- `X-User-Id`: UUID (required)
+
+**Path Parameters:**
+- `fileId`: UUID
+
+**Response (204 No Content)**
+
+**Response (404 Not Found):**
+```json
+{
+  "error": {
+    "code": "FILE_NOT_FOUND",
+    "message": "File not found with ID: {fileId}"
+  }
+}
+```
+
+**Business Rule:**
+- File được giữ trong 30 ngày trước khi xóa vĩnh viễn
+- Scheduled job chạy hàng ngày để cleanup files cũ hơn 30 ngày
+
+---
+
+### GET /api/v1/storage/quota
+Lấy thông tin storage quota của tenant.
+
+**Headers:**
+- `X-Tenant-Id`: UUID (required)
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "quotaBytes": 1073741824,
+    "usedBytes": 536870912,
+    "availableBytes": 536870912,
+    "usagePercent": 50.0,
+    "lastCalculatedAt": "2026-02-27T10:00:00Z"
+  }
+}
+```
+
+**Quota Tiers:**
+- Trial: 500 MB (524,288,000 bytes)
+- Basic: 5 GB (5,368,709,120 bytes)
+- Pro: 50 GB (53,687,091,200 bytes)
+- Enterprise: Custom (unlimited)
+
+---
+
+### POST /api/v1/storage/quota/recalculate
+Trigger manual quota recalculation (admin only).
+
+**Headers:**
+- `X-Tenant-Id`: UUID (required)
+- `Authorization`: Bearer token (admin role required)
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "quotaBytes": 1073741824,
+    "usedBytes": 536870912,
+    "availableBytes": 536870912,
+    "usagePercent": 50.0,
+    "lastCalculatedAt": "2026-02-27T10:30:00Z"
+  }
+}
+```
+
+**Business Rule:**
+- Scheduled job chạy daily để tự động recalculate
+- Endpoint này cho admin manual trigger khi cần thiết
+
+---
+
 ## Theme & Settings API
 
 ### GET /api/v1/settings/branding

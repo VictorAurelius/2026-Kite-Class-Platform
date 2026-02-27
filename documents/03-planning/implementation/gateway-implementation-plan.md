@@ -5,10 +5,13 @@
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Service** | kiteclass-gateway |
+| **Version** | V4.1 (Bundled Model) ⭐ |
 | **Tech Stack** | Spring Boot 3.5+, Spring Cloud Gateway, Java 17 |
-| **Mục đích** | API Gateway + User Service + Authentication |
+| **Mục đích** | API Gateway + User Service + Authentication + Guest Access |
 | **Port** | 8080 |
+| **Last Updated** | 2026-02-26 |
 | **Tham chiếu** | architecture-overview, api-design, database-design, **maven-dependencies** |
+| **New in V4.1** | Guest user type handling, Trial lesson access control routing |
 
 > **QUAN TRỌNG:** Luôn check `.claude/skills/maven-dependencies.md` để lấy versions chuẩn trước khi tạo pom.xml
 
@@ -1571,6 +1574,89 @@ public class AuthController {
 
 ---
 
+## Cross-Service File Access
+
+**Scenario**: Gateway service cần serve avatar URLs hoặc validate file access permissions trước khi cho phép download.
+
+### Challenge
+
+- Storage Service owns file metadata (`uploaded_files` table)
+- Gateway service handles authentication/authorization
+- Frontend requests files through Gateway (hoặc direct từ Storage Service?)
+
+### Architecture Options
+
+**Option 1: Direct Storage Service Access (Recommended)**
+- Frontend calls Storage Service directly: `GET /api/v1/files/{id}/download`
+- Storage Service validates token (JWT validation filter)
+- Returns presigned S3 URL (24h expiry)
+- **Pros**: No extra hop through Gateway, lower latency
+- **Cons**: Storage Service must implement full JWT validation
+
+**Option 2: Gateway Proxy**
+- Frontend calls Gateway: `GET /api/gateway/files/{id}/download`
+- Gateway validates token, proxies to Storage Service
+- Storage Service returns presigned URL
+- **Pros**: Centralized auth validation
+- **Cons**: Extra network hop, higher latency
+
+**Recommendation**: **Option 1** (Direct Access) với:
+- Storage Service implements `JwtAuthenticationFilter` (reuse from Gateway)
+- Shared JWT secret (environment variable)
+- Storage Service validates token, checks user permissions (uploaded_by, access_level)
+
+### Avatar URL in User Profile Response
+
+**Problem**: User profile response needs avatar URL, but avatar stored in Storage Service.
+
+**Solution**: Store `avatar_file_id` in Gateway `users` table (denormalized)
+
+1. When user uploads avatar:
+   - Frontend calls Storage Service → Get `fileId`
+   - Frontend calls Gateway: `PUT /api/v1/users/me { avatarFileId: "uuid" }`
+   - Gateway updates `users.avatar_file_id = uuid`
+
+2. When fetching user profile:
+   - Gateway returns `avatarFileId` in response
+   - Frontend calls Storage Service: `GET /api/v1/files/{avatarFileId}/download` → Get presigned URL
+   - Frontend displays image từ presigned URL
+
+**Alternative** (simpler):
+- Gateway stores full S3 URL: `users.avatar_url = "https://cdn.../avatar.png"`
+- Sync via RabbitMQ event: Storage Service publishes `AvatarUploadedEvent` → Gateway subscriber updates `users.avatar_url`
+
+### CORS Configuration
+
+Storage Service must allow cross-origin requests từ Frontend:
+
+```java
+@Configuration
+public class CorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("http://localhost:3000"); // Dev
+        config.addAllowedOrigin("https://kiteclass.vn"); // Prod
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+}
+```
+
+### Related PRs
+
+- PR 1.12: Gateway JWT validation sharing with Storage Service
+- PR 2.10.1: Storage Service file management
+- PR 3.10: Frontend profile picture upload
+
+**Documentation**: See [Storage Service Design](./storage-service-design.md) for access control matrix (PRIVATE, COURSE, PUBLIC).
+
+---
+
 # PHASE 5: DATABASE MIGRATIONS
 
 ## Flyway Migration Files
@@ -1791,13 +1877,56 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 - [ ] Refresh token
 - [ ] Password reset (optional)
 
+## Phase 4.5: Trial User Authentication (V4.1 Phase 2) ⭐ NEW
+- [ ] UserRole enum: Add TRIAL_USER value (via Migration V12)
+- [ ] MagicLinkService: generateMagicLink() - Create secure token (UUID) with 30min expiry
+- [ ] MagicLinkService: verifyMagicLink() - Verify token + create/find User (role=TRIAL_USER) + generate JWT
+- [ ] MagicLinkService: createTrialUser() - Helper to create User with TRIAL_USER role
+- [ ] MagicLinkController: POST /auth/magic-link/send - Generate token + send email
+- [ ] MagicLinkController: GET /auth/magic-link/verify?token={token} - Verify + return JWT
+- [ ] MagicLinkData record: Store email, instanceId, createdAt in Redis
+- [ ] Redis storage: Key pattern `magic_link:{token}`, TTL 30 minutes
+- [ ] Email integration: Use existing EmailService to send magic link emails
+- [ ] JWT claims: Ensure TRIAL_USER role included in token payload
+- [ ] SecurityConfig: Add TRIAL_USER to authorized roles for trial endpoints
+- [ ] Rate limiting: Apply stricter limits for TRIAL_USER (30 req/min vs 100 req/min)
+- [ ] RateLimitConfig: userRoleKeyResolver() - Detect TRIAL_USER role from JWT
+- [ ] One-time use: Delete token from Redis after successful verification
+- [ ] Error handling: InvalidTokenException for expired/invalid magic links
+- [ ] Multi-tenant support: Magic links scoped to instanceId
+
+**Implementation Order**:
+1. Migration V12: ALTER TYPE user_role ADD VALUE 'TRIAL_USER'
+2. MagicLinkService: Business logic for token generation/verification
+3. MagicLinkController: REST endpoints for magic link flow
+4. SecurityConfig: Update authorization rules for TRIAL_USER
+5. RateLimitConfig: Add role-based rate limiting
+6. Testing: Unit tests + Integration tests for magic link flow
+
+**Key Patterns**:
+- Use Redis for token storage (existing RedisTemplate)
+- Reuse EmailService for magic link emails
+- JWT generation: Reuse existing JwtTokenProvider
+- Magic link URL format: `{baseUrl}/auth/verify?token={uuid}`
+- Token expiry: 30 minutes (Duration.ofMinutes(30))
+- Security: HTTPS required for magic link URLs
+
+**References**:
+- PR 1.13: Trial User Authentication Support
+- Migration V12: user_role enum extension (Gateway)
+- Core PR 2.13: Trial registration calls this API
+
 ## Phase 5: Database
-- [ ] Flyway migrations
+- [ ] Flyway migrations V1-V11 (existing)
+- [ ] V12: Add TRIAL_USER to user_role enum ⭐ NEW Phase 2
 - [ ] Seed data (roles, permissions, default user)
 
 ## Phase 6: Testing & Deployment
 - [ ] Unit tests
 - [ ] Integration tests
+- [ ] Magic link authentication tests: Token generation, verification, expiry, one-time use ⭐ NEW Phase 2
+- [ ] TRIAL_USER JWT tests: Role in claims, token validation ⭐ NEW Phase 2
+- [ ] Rate limiting tests: TRIAL_USER stricter limits ⭐ NEW Phase 2
 - [ ] Dockerfile
 - [ ] Documentation
 

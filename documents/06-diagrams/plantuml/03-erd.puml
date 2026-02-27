@@ -3,7 +3,7 @@
 skinparam backgroundColor #FFFFFF
 skinparam linetype ortho
 
-title KITECLASS PLATFORM V3.1 - ENTITY RELATIONSHIP DIAGRAM (ERD)
+title KITECLASS PLATFORM V4.1 - ENTITY RELATIONSHIP DIAGRAM (ERD)\nUpdated: 2026-02-27 (Added Storage Module)
 
 ' ==================== KITEHUB DATABASE ====================
 package "KITEHUB DATABASE" as HUBDB #E3F2FD {
@@ -305,6 +305,41 @@ package "KITECLASS INSTANCE DATABASE\n(Per-Tenant)" as INSTDB #FFF3E0 {
             linked_at : TIMESTAMP
         }
     }
+
+    package "Storage Module" as STORAGE_MOD #E1BEE7 {
+        entity "uploaded_files" as uploaded_files {
+            * id : UUID <<PK>>
+            --
+            * instance_id : UUID
+            * uploaded_by : UUID <<FK>>
+            * file_type : VARCHAR(50)
+            * original_filename : VARCHAR(255)
+            * storage_path : VARCHAR(500) <<UNIQUE>>
+            * file_size_bytes : BIGINT
+            * mime_type : VARCHAR(100)
+            * status : VARCHAR(50)
+            duration_seconds : INT
+            resolution : VARCHAR(20)
+            video_codec : VARCHAR(50)
+            * access_level : VARCHAR(50)
+            related_entity_type : VARCHAR(50)
+            related_entity_id : VARCHAR(50)
+            * created_at : TIMESTAMP
+            * updated_at : TIMESTAMP
+            * deleted : BOOLEAN
+        }
+
+        entity "storage_quotas" as storage_quotas {
+            * id : UUID <<PK>>
+            --
+            * instance_id : UUID <<UNIQUE>>
+            * quota_bytes : BIGINT
+            * used_bytes : BIGINT
+            * last_calculated_at : TIMESTAMP
+            * created_at : TIMESTAMP
+            * updated_at : TIMESTAMP
+        }
+    }
 }
 
 ' ==================== RELATIONSHIPS - KITEHUB ====================
@@ -337,5 +372,9 @@ users ||--o{ stu_badges : "student"
 users ||--|| parents
 parents ||--o{ parent_children
 users ||--o{ parent_children : "student"
+
+' Storage relationships
+users ||--o{ uploaded_files : "uploads"
+instances ||--|| storage_quotas : "has quota"
 
 @enduml
