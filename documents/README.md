@@ -304,6 +304,33 @@ documents/
 
 ---
 
+---
+
+## 🗂️ File Organization
+
+Để xác định vị trí đúng cho file/folder mới, sử dụng skill `/organize`:
+
+```bash
+# Usage
+/organize <filename> [type]
+
+# Examples
+/organize backup-db.sh script
+/organize redis.conf config
+/organize v5-architecture.md docs
+```
+
+**Rules**:
+- Scripts → `scripts/`
+- Docker orchestration → root (docker-compose.*.yml)
+- Service-specific → `kiteclass/[service]/`
+- Documentation → `documents/[category]/`
+- Nginx config → `nginx/`
+
+**See**: `.claude/skills/organize.md` for detailed rules and decision algorithm.
+
+---
+
 ## 📌 Key Documents (Start Here)
 
 Nếu bạn mới bắt đầu hoặc cần overview:
