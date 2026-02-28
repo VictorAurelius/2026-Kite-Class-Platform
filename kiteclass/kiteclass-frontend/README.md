@@ -100,3 +100,4 @@ NEXT_PUBLIC_APP_VERSION=1.0.0
 ## License
 
 Proprietary - KiteClass Platform
+# CI trigger
