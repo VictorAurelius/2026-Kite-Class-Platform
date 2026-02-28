@@ -8,7 +8,6 @@
  */
 
 import { Page, expect } from '@playwright/test';
-import { setupApiMocks } from './api-mocks';
 
 /**
  * Test user credentials (real database user from V8 migration)
