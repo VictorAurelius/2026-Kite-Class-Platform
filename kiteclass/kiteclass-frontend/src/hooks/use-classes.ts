@@ -206,3 +206,43 @@ export function useCreateSchedule() {
     onError: useErrorHandler('Không thể tạo lịch học'),
   });
 }
+
+// =========================================================================
+// Aggregate hooks
+// =========================================================================
+
+/**
+ * Get all active classes across all courses
+ * This is a workaround since backend doesn't have a direct endpoint for all classes.
+ * It fetches all courses first, then fetches classes for each course, and merges them.
+ */
+export function useAllActiveClasses() {
+  const { data: coursesData } = useQuery({
+    queryKey: ['courses'],
+    queryFn: async () => {
+      const { default: coursesApi } = await import('@/lib/api/courses');
+      return coursesApi.getAll({ page: 0, size: 100 });
+    },
+  });
+
+  return useQuery({
+    queryKey: [CLASSES_KEY, 'all-active'],
+    queryFn: async () => {
+      if (!coursesData?.content) return [];
+
+      // Fetch classes for all courses in parallel
+      const classPromises = coursesData.content.map((course) =>
+        classesApi.getByCourse(course.id, { page: 0, size: 100 })
+      );
+
+      const classesResults = await Promise.all(classPromises);
+
+      // Merge all classes and filter for active ones (SCHEDULED or IN_PROGRESS)
+      const allClasses = classesResults.flatMap((result) => result.content);
+      return allClasses.filter(
+        (c) => c.status === 'SCHEDULED' || c.status === 'IN_PROGRESS'
+      );
+    },
+    enabled: !!coursesData?.content,
+  });
+}

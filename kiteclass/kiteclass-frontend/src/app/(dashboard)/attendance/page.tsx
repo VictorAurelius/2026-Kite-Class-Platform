@@ -22,10 +22,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useAllActiveClasses } from '@/hooks/use-classes';
 
 export default function AttendanceOverviewPage() {
-  // TODO: Fetch all classes from API (need to add useAllClasses hook)
-  const activeClasses: any[] = [];
+  const { data: activeClasses = [], isLoading } = useAllActiveClasses();
 
   return (
     <DashboardLayout>
@@ -129,50 +129,59 @@ export default function AttendanceOverviewPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activeClasses.map((classItem) => (
-                  <TableRow key={classItem.id}>
-                    <TableCell className="font-medium">
-                      {classItem.name}
-                    </TableCell>
-                    <TableCell>
-                      <code className="rounded bg-muted px-2 py-1 text-sm">
-                        {classItem.classCode || 'N/A'}
-                      </code>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        {classItem.currentEnrolled}/{classItem.maxStudents}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          classItem.status === 'IN_PROGRESS'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-                        }`}
-                      >
-                        {classItem.status === 'IN_PROGRESS'
-                          ? 'Đang học'
-                          : 'Sắp học'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {classItem.startDate || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/classes/${classItem.id}/attendance`}>
-                        <Button size="sm">
-                          <Clock className="mr-2 h-4 w-4" />
-                          Điểm danh
-                        </Button>
-                      </Link>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="py-12 text-center text-muted-foreground"
+                    >
+                      <p>Đang tải...</p>
                     </TableCell>
                   </TableRow>
-                ))}
-
-                {activeClasses.length === 0 && (
+                ) : activeClasses.length > 0 ? (
+                  activeClasses.map((classItem) => (
+                    <TableRow key={classItem.id}>
+                      <TableCell className="font-medium">
+                        {classItem.name}
+                      </TableCell>
+                      <TableCell>
+                        <code className="rounded bg-muted px-2 py-1 text-sm">
+                          {classItem.classCode || 'N/A'}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          {classItem.currentEnrolled}/{classItem.maxStudents}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                            classItem.status === 'IN_PROGRESS'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                          }`}
+                        >
+                          {classItem.status === 'IN_PROGRESS'
+                            ? 'Đang học'
+                            : 'Sắp học'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {classItem.startDate || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link href={`/classes/${classItem.id}/attendance`}>
+                          <Button size="sm">
+                            <Clock className="mr-2 h-4 w-4" />
+                            Điểm danh
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
                     <TableCell
                       colSpan={6}

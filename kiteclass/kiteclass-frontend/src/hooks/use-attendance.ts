@@ -46,6 +46,21 @@ export function useAttendanceByEnrollment(
 }
 
 /**
+ * Get all attendance records for a class (across all sessions).
+ */
+export function useAttendanceByClass(
+  classId: number,
+  params: AttendanceSearchParams = {},
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: [ATTENDANCE_QUERY_KEY, 'class', classId, params],
+    queryFn: () => attendanceApi.getAttendanceByClass(classId, params),
+    enabled: options?.enabled !== false && !!classId,
+  });
+}
+
+/**
  * Get attendance by session (class roster).
  */
 export function useAttendanceBySession(
