@@ -25,7 +25,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useClass } from '@/hooks/use-classes';
+import { Label } from '@/components/ui/label';
+import { useClass, useClassSessions } from '@/hooks/use-classes';
 import { useActiveEnrollmentsByClass } from '@/hooks/use-enrollments';
 import { useMarkBulkAttendance } from '@/hooks/use-attendance';
 import {
@@ -52,14 +53,23 @@ export default function TakeAttendancePage({
   const classId = parseInt(id);
   const router = useRouter();
 
-  // Mock session ID - in real app, this would come from query params or route
-  const [sessionId] = useState(1); // TODO: Get from route/query params
-
+  // Fetch class sessions
   const { data: classData, isLoading: classLoading } = useClass(classId);
+  const { data: sessions, isLoading: sessionsLoading } = useClassSessions(classId);
   const { data: enrollments, isLoading: enrollmentsLoading } =
     useActiveEnrollmentsByClass(classId, { size: 100 });
 
+  // Selected session for attendance
+  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+
   const markBulkMutation = useMarkBulkAttendance();
+
+  // Auto-select first session if available
+  useState(() => {
+    if (sessions && sessions.length > 0 && !selectedSessionId) {
+      setSelectedSessionId(sessions[0].id);
+    }
+  });
 
   // Initialize attendance state from enrollments
   const [attendanceRows, setAttendanceRows] = useState<StudentAttendanceRow[]>(
@@ -107,10 +117,10 @@ export default function TakeAttendancePage({
   };
 
   const handleSaveAttendance = async () => {
-    if (!sessionId) {
+    if (!selectedSessionId) {
       toast({
         title: 'Lỗi',
-        description: 'Không có thông tin buổi học',
+        description: 'Vui lòng chọn buổi học để điểm danh',
         variant: 'destructive',
       });
       return;
@@ -124,7 +134,7 @@ export default function TakeAttendancePage({
 
     try {
       await markBulkMutation.mutateAsync({
-        sessionId,
+        sessionId: selectedSessionId,
         records,
       });
 
@@ -135,7 +145,7 @@ export default function TakeAttendancePage({
     }
   };
 
-  if (classLoading || enrollmentsLoading) {
+  if (classLoading || enrollmentsLoading || sessionsLoading) {
     return (
       <DashboardLayout>
         <LoadingSpinner />
@@ -147,6 +157,14 @@ export default function TakeAttendancePage({
     return (
       <DashboardLayout>
         <ErrorAlert message="Không tìm thấy lớp học" />
+      </DashboardLayout>
+    );
+  }
+
+  if (!sessions || sessions.length === 0) {
+    return (
+      <DashboardLayout>
+        <ErrorAlert message="Lớp học chưa có lịch học. Vui lòng tạo lịch học trước khi điểm danh." />
       </DashboardLayout>
     );
   }
@@ -190,6 +208,40 @@ export default function TakeAttendancePage({
             </Button>
           </div>
         </div>
+
+        {/* Session Selector */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Label htmlFor="session-select" className="min-w-[100px] font-medium">
+                Buổi học:
+              </Label>
+              <Select
+                value={selectedSessionId?.toString() || ''}
+                onValueChange={(value) => setSelectedSessionId(parseInt(value))}
+              >
+                <SelectTrigger id="session-select" className="w-full max-w-md">
+                  <SelectValue placeholder="Chọn buổi học để điểm danh" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sessions?.map((session) => (
+                    <SelectItem key={session.id} value={session.id.toString()}>
+                      Buổi {session.sessionNumber} -{' '}
+                      {new Date(session.scheduledDate).toLocaleDateString('vi-VN', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                      {session.status === 'COMPLETED' && ' (Đã hoàn thành)'}
+                      {session.status === 'CANCELLED' && ' (Đã hủy)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-5">

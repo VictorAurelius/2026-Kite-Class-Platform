@@ -135,4 +135,53 @@ export const attendanceApi = {
     );
     return response.data.data!;
   },
+
+  /**
+   * Get all attendance records for a class (across all sessions).
+   * This is a workaround since backend doesn't have a direct endpoint.
+   * It fetches all sessions for the class, then fetches attendance for each session.
+   */
+  getAttendanceByClass: async (
+    classId: number,
+    params: AttendanceSearchParams = {}
+  ): Promise<PaginatedResponse<Attendance>> => {
+    // First, fetch all sessions for this class
+    const { classesApi } = await import('./classes');
+    const sessions = await classesApi.getSessions(classId);
+
+    if (!sessions || sessions.length === 0) {
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: params.size || 20,
+        number: params.page || 0,
+      };
+    }
+
+    // Fetch attendance for all sessions in parallel
+    const attendancePromises = sessions.map((session) =>
+      attendanceApi.getAttendanceBySession(session.id, { page: 0, size: 1000 })
+    );
+
+    const results = await Promise.all(attendancePromises);
+
+    // Merge all attendance records
+    const allAttendance = results.flatMap((result) => result.content);
+
+    // Apply pagination
+    const page = params.page || 0;
+    const size = params.size || 20;
+    const start = page * size;
+    const end = start + size;
+    const paginatedContent = allAttendance.slice(start, end);
+
+    return {
+      content: paginatedContent,
+      totalElements: allAttendance.length,
+      totalPages: Math.ceil(allAttendance.length / size),
+      size,
+      number: page,
+    };
+  },
 };
