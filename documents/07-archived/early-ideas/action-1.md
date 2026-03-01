@@ -1245,3 +1245,6 @@ giao tiếp bằng tiếng việt
 action tiếp theo là gì
 
 module attendence này không có PR FE tương ứng à? có phải là thiếu sót không nhỉ?
+
+1. tạo ra rất nhiều file nằm trong root => phải để trong docs của service trong kiteclass hoặc root của kiteclass
+2. phải start toàn bộ service của kiteclass
