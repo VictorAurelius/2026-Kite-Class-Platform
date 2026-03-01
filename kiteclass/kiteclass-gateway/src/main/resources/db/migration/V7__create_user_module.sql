@@ -26,10 +26,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Create indexes on users table
-CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
-CREATE INDEX idx_users_status ON users(status) WHERE deleted = FALSE;
-CREATE INDEX idx_users_deleted ON users(deleted);
-CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_users_deleted ON users(deleted);
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
 
 -- Create roles table
 CREATE TABLE IF NOT EXISTS roles (
@@ -67,8 +67,8 @@ CREATE TABLE IF NOT EXISTS user_roles (
 );
 
 -- Create indexes on user_roles table
-CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
-CREATE INDEX idx_user_roles_role_id ON user_roles(role_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_role_id ON user_roles(role_id);
 
 -- =====================================================
 -- Seed Default Roles

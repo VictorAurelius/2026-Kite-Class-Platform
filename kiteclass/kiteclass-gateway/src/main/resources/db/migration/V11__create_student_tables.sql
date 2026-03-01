@@ -40,11 +40,11 @@ CREATE TABLE students (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX idx_students_email ON students(email) WHERE deleted = FALSE;
-CREATE INDEX idx_students_phone ON students(phone) WHERE deleted = FALSE;
-CREATE INDEX idx_students_status ON students(status) WHERE deleted = FALSE;
-CREATE INDEX idx_students_deleted ON students(deleted);
-CREATE INDEX idx_students_name ON students(name) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_students_email ON students(email) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_students_phone ON students(phone) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_students_status ON students(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_students_deleted ON students(deleted);
+CREATE INDEX IF NOT EXISTS idx_students_name ON students(name) WHERE deleted = FALSE;
 
 -- Add comments for documentation
 COMMENT ON TABLE students IS 'Stores student information for KiteClass system';

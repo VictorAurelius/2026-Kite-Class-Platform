@@ -59,17 +59,17 @@ CREATE TABLE enrollments (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_enrollments_student_id ON enrollments(student_id);
-CREATE INDEX idx_enrollments_class_id ON enrollments(class_id);
-CREATE INDEX idx_enrollments_status ON enrollments(status);
-CREATE INDEX idx_enrollments_instance_id ON enrollments(instance_id);
-CREATE INDEX idx_enrollments_deleted ON enrollments(deleted);
-CREATE INDEX idx_enrollments_enrollment_date ON enrollments(enrollment_date);
+CREATE INDEX IF NOT EXISTS idx_enrollments_student_id ON enrollments(student_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_class_id ON enrollments(class_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_status ON enrollments(status);
+CREATE INDEX IF NOT EXISTS idx_enrollments_instance_id ON enrollments(instance_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_deleted ON enrollments(deleted);
+CREATE INDEX IF NOT EXISTS idx_enrollments_enrollment_date ON enrollments(enrollment_date);
 
 -- Composite index for common queries
-CREATE INDEX idx_enrollments_class_status ON enrollments(class_id, status)
+CREATE INDEX IF NOT EXISTS idx_enrollments_class_status ON enrollments(class_id, status)
     WHERE deleted = FALSE;
-CREATE INDEX idx_enrollments_student_status ON enrollments(student_id, status)
+CREATE INDEX IF NOT EXISTS idx_enrollments_student_status ON enrollments(student_id, status)
     WHERE deleted = FALSE;
 
 -- Comments
