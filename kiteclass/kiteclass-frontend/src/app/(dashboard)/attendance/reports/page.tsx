@@ -32,9 +32,11 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAllActiveClasses } from '@/hooks/use-classes';
 import { useAttendanceByClass } from '@/hooks/use-attendance';
 import { AttendanceStatusLabels } from '@/types/attendance';
+import { AttendanceCalendar } from '@/components/attendance';
 
 export default function AttendanceReportsPage() {
   const { data: classes = [] } = useAllActiveClasses();
@@ -313,6 +315,15 @@ export default function AttendanceReportsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Calendar View */}
+            <AttendanceCalendar
+              attendanceRecords={attendanceData?.content || []}
+              onDateClick={(date) => {
+                console.log('Clicked date:', date);
+                // TODO: Show attendance details for this date
+              }}
+            />
 
             {/* Student-level Statistics */}
             <Card>
