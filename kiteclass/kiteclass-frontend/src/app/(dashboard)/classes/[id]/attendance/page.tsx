@@ -11,12 +11,12 @@ export const dynamic = 'force-dynamic';
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, CheckCircle2, Users } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout';
 import { LoadingSpinner, ErrorAlert } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -24,25 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useClass, useClassSessions } from '@/hooks/use-classes';
 import { useActiveEnrollmentsByClass } from '@/hooks/use-enrollments';
 import { useMarkBulkAttendance } from '@/hooks/use-attendance';
 import {
   AttendanceStatus,
-  AttendanceStatusLabels,
-  AttendanceStatusColors,
   type AttendanceRecord,
 } from '@/types/attendance';
+import {
+  AttendanceFormList,
+  AttendanceStatsCards,
+  type StudentAttendanceRow,
+} from '@/components/attendance';
 import { toast } from '@/hooks/use-toast';
-
-interface StudentAttendanceRow {
-  enrollmentId: number;
-  studentName: string;
-  status: AttendanceStatus;
-  notes: string;
-}
 
 export default function TakeAttendancePage({
   params,
@@ -244,128 +239,14 @@ export default function TakeAttendancePage({
         </Card>
 
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">
-                Tổng số
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-green-600">
-                Có mặt
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.present}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-red-600">
-                Vắng
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.absent}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-yellow-600">
-                Đi trễ
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.late}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-600">
-                Có phép
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.excused}</div>
-            </CardContent>
-          </Card>
-        </div>
+        <AttendanceStatsCards stats={stats} />
 
         {/* Attendance List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Danh sách học viên ({attendanceRows.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {attendanceRows.map((row) => (
-                <div
-                  key={row.enrollmentId}
-                  className="flex items-start gap-4 rounded-lg border p-4"
-                >
-                  {/* Student Name */}
-                  <div className="flex-1">
-                    <p className="font-medium">{row.studentName}</p>
-                  </div>
-
-                  {/* Status Selector */}
-                  <div className="w-48">
-                    <Select
-                      value={row.status}
-                      onValueChange={(value) =>
-                        handleStatusChange(
-                          row.enrollmentId,
-                          value as AttendanceStatus
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(AttendanceStatus).map((status) => (
-                          <SelectItem key={status} value={status}>
-                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${AttendanceStatusColors[status]}`}>
-                              {AttendanceStatusLabels[status]}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Notes */}
-                  <div className="w-64">
-                    <Textarea
-                      placeholder="Ghi chú (nếu có)..."
-                      value={row.notes}
-                      onChange={(e) =>
-                        handleNotesChange(row.enrollmentId, e.target.value)
-                      }
-                      className="min-h-[60px]"
-                    />
-                  </div>
-                </div>
-              ))}
-
-              {attendanceRows.length === 0 && (
-                <div className="py-12 text-center text-muted-foreground">
-                  <Users className="mx-auto h-12 w-12 opacity-20" />
-                  <p className="mt-4">Không có học viên nào trong lớp này</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <AttendanceFormList
+          rows={attendanceRows}
+          onStatusChange={handleStatusChange}
+          onNotesChange={handleNotesChange}
+        />
       </div>
     </DashboardLayout>
   );
