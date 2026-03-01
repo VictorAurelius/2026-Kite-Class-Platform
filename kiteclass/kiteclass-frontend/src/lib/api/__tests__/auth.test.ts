@@ -33,13 +33,20 @@ describe('authApi', () => {
       const mockAuthResponse: AuthResponse = {
         accessToken: 'access-token-123',
         refreshToken: 'refresh-token-456',
+        tokenType: 'Bearer',
         expiresIn: 3600,
-        userType: 'STUDENT',
+        user: {
+          id: 1,
+          email: 'test@example.com',
+          name: 'Test User',
+          roles: ['STUDENT'],
+        },
       };
 
       const mockApiResponse: ApiResponse<AuthResponse> = {
         success: true,
         data: mockAuthResponse,
+        timestamp: '2026-02-24T00:00:00.000Z',
       };
 
       vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockApiResponse });
@@ -89,13 +96,20 @@ describe('authApi', () => {
       const mockAuthResponse: AuthResponse = {
         accessToken: 'new-access-token-123',
         refreshToken: 'new-refresh-token-456',
+        tokenType: 'Bearer',
         expiresIn: 3600,
-        userType: 'STUDENT',
+        user: {
+          id: 1,
+          email: 'test@example.com',
+          name: 'Test User',
+          roles: ['STUDENT'],
+        },
       };
 
       const mockApiResponse: ApiResponse<AuthResponse> = {
         success: true,
         data: mockAuthResponse,
+        timestamp: '2026-02-24T00:00:00.000Z',
       };
 
       vi.mocked(apiClient.post).mockResolvedValueOnce({ data: mockApiResponse });

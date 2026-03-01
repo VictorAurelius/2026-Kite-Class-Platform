@@ -8,7 +8,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FeatureGate } from '../FeatureGate';
-import { FeatureName, PricingTier } from '@/types/feature-detection';
+import { FeatureName, PricingTier, InstanceStatus } from '@/types/feature-detection';
 import * as useFeatureDetectionModule from '@/hooks/useFeatureDetection';
 
 // Mock useFeatureDetection hook
@@ -86,7 +86,7 @@ describe('FeatureGate', () => {
             maxStudents: Infinity,
             maxCourses: Infinity,
           },
-          status: 'ACTIVE' as const,
+          status: InstanceStatus.ACTIVE,
         },
         hasFeature: vi.fn(() => true),
         requireFeature: vi.fn(),
@@ -125,7 +125,7 @@ describe('FeatureGate', () => {
             maxStudents: 50,
             maxCourses: 10,
           },
-          status: 'ACTIVE' as const,
+          status: InstanceStatus.ACTIVE,
         },
         hasFeature: vi.fn(() => false),
         requireFeature: vi.fn(),
@@ -167,7 +167,7 @@ describe('FeatureGate', () => {
             maxStudents: 50,
             maxCourses: 10,
           },
-          status: 'ACTIVE' as const,
+          status: InstanceStatus.ACTIVE,
         },
         hasFeature: vi.fn(() => false),
         requireFeature: vi.fn(),
@@ -208,7 +208,7 @@ describe('FeatureGate', () => {
             maxStudents: 50,
             maxCourses: 10,
           },
-          status: 'ACTIVE' as const,
+          status: InstanceStatus.ACTIVE,
         },
         hasFeature: vi.fn(() => false),
         requireFeature: vi.fn(),
