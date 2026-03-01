@@ -15,8 +15,8 @@ COMMENT ON COLUMN users.user_type IS 'Type of user: ADMIN, STAFF (no referenceId
 COMMENT ON COLUMN users.reference_id IS 'Foreign key to Core service entity (students.id, teachers.id, parents.id). NULL for ADMIN/STAFF.';
 
 -- Create indexes for better query performance
-CREATE INDEX idx_users_user_type ON users(user_type);
-CREATE INDEX idx_users_reference_id ON users(reference_id);
+CREATE INDEX IF NOT EXISTS idx_users_user_type ON users(user_type);
+CREATE INDEX IF NOT EXISTS idx_users_reference_id ON users(reference_id);
 
 -- Update existing owner account to ADMIN type (already has userType = ADMIN as default)
 -- No action needed as DEFAULT 'ADMIN' handles this

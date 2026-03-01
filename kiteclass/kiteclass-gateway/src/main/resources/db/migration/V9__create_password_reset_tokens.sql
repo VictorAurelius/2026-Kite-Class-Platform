@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
 );
 
 -- Create indexes on password_reset_tokens table
-CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);
-CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
-CREATE INDEX idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at);
-CREATE INDEX idx_password_reset_tokens_used_at ON password_reset_tokens(used_at);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_used_at ON password_reset_tokens(used_at);
 
 -- Add comments for documentation
 COMMENT ON TABLE password_reset_tokens IS 'Stores password reset tokens for email-based password recovery';

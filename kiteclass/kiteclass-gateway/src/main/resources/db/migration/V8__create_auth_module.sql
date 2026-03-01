@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 );
 
 -- Create indexes on role_permissions table
-CREATE INDEX idx_role_permissions_role_id ON role_permissions(role_id);
-CREATE INDEX idx_role_permissions_permission_id ON role_permissions(permission_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id);
+CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id);
 
 -- Create refresh_tokens table
 CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 );
 
 -- Create indexes on refresh_tokens table
-CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
-CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
-CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 
 -- =====================================================
 -- Seed Role Permissions

@@ -67,16 +67,16 @@ CREATE TABLE classes (
 );
 
 -- Indexes for classes table
-CREATE INDEX idx_classes_course_id ON classes(course_id) WHERE deleted = FALSE;
-CREATE INDEX idx_classes_status ON classes(status) WHERE deleted = FALSE;
-CREATE INDEX idx_classes_start_date ON classes(start_date) WHERE deleted = FALSE;
-CREATE INDEX idx_classes_instance_id ON classes(instance_id);
-CREATE UNIQUE INDEX idx_classes_class_code_unique
+CREATE INDEX IF NOT EXISTS idx_classes_course_id ON classes(course_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_classes_status ON classes(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_classes_start_date ON classes(start_date) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_classes_instance_id ON classes(instance_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_classes_class_code_unique
     ON classes(class_code)
     WHERE class_code IS NOT NULL AND deleted = FALSE;
 
 -- Composite unique: class name per course per tenant
-CREATE UNIQUE INDEX uk_classes_name_course_instance
+CREATE UNIQUE INDEX IF NOT EXISTS uk_classes_name_course_instance
     ON classes(name, course_id, instance_id)
     WHERE deleted = FALSE;
 
@@ -166,13 +166,13 @@ CREATE TABLE class_sessions (
 );
 
 -- Indexes for class_sessions
-CREATE INDEX idx_class_sessions_class_id ON class_sessions(class_id) WHERE deleted = FALSE;
-CREATE INDEX idx_class_sessions_date ON class_sessions(session_date) WHERE deleted = FALSE;
-CREATE INDEX idx_class_sessions_status ON class_sessions(status) WHERE deleted = FALSE;
-CREATE INDEX idx_class_sessions_instance_id ON class_sessions(instance_id);
+CREATE INDEX IF NOT EXISTS idx_class_sessions_class_id ON class_sessions(class_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_class_sessions_date ON class_sessions(session_date) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_class_sessions_status ON class_sessions(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_class_sessions_instance_id ON class_sessions(instance_id);
 
 -- Unique session number per class
-CREATE UNIQUE INDEX uk_class_sessions_number
+CREATE UNIQUE INDEX IF NOT EXISTS uk_class_sessions_number
     ON class_sessions(class_id, session_number)
     WHERE deleted = FALSE;
 
