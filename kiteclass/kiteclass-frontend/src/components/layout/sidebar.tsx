@@ -15,7 +15,7 @@ import {
   GraduationCap,
   BookOpen,
   Calendar,
-  FileText,
+  ClipboardCheck,
   Settings,
   DollarSign,
   BarChart,
@@ -33,14 +33,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: Home },
-  { title: 'Students', href: '/students', icon: Users },
-  { title: 'Teachers', href: '/teachers', icon: GraduationCap },
-  { title: 'Courses', href: '/courses', icon: BookOpen },
-  { title: 'Classes', href: '/classes', icon: Calendar },
-  { title: 'Attendance', href: '/attendance', icon: FileText },
-  { title: 'Billing', href: '/billing', icon: DollarSign },
-  { title: 'Reports', href: '/reports', icon: BarChart },
-  { title: 'Settings', href: '/settings', icon: Settings },
+  { title: 'Học viên', href: '/students', icon: Users },
+  { title: 'Giáo viên', href: '/teachers', icon: GraduationCap },
+  { title: 'Khóa học', href: '/courses', icon: BookOpen },
+  { title: 'Lớp học', href: '/classes', icon: Calendar },
+  { title: 'Điểm danh', href: '/attendance', icon: ClipboardCheck },
+  { title: 'Thu chi', href: '/billing', icon: DollarSign },
+  { title: 'Báo cáo', href: '/reports', icon: BarChart },
+  { title: 'Cài đặt', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {

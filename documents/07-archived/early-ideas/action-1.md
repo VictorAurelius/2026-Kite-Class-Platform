@@ -1239,3 +1239,9 @@ check lại xem PR này đã đảm bảo skill chưa
 ví dụ: cập nhật status vào plan
 
 CI pass chưa?
+
+giao tiếp bằng tiếng việt
+
+action tiếp theo là gì
+
+module attendence này không có PR FE tương ứng à? có phải là thiếu sót không nhỉ?
