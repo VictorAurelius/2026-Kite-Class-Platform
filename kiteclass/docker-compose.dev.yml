@@ -100,7 +100,7 @@ services:
   # Core Service
   core:
     build:
-      context: ./kiteclass/kiteclass-core
+      context: ./kiteclass-core
       dockerfile: Dockerfile
     container_name: kiteclass-core
     ports:
@@ -149,7 +149,7 @@ services:
   # Gateway Service
   gateway:
     build:
-      context: ./kiteclass/kiteclass-gateway
+      context: ./kiteclass-gateway
       dockerfile: Dockerfile
     container_name: kiteclass-gateway
     ports:
@@ -216,7 +216,7 @@ services:
   # Frontend (Development mode with hot reload)
   frontend:
     build:
-      context: ./kiteclass/kiteclass-frontend
+      context: ./kiteclass-frontend
       dockerfile: Dockerfile.dev
     container_name: kiteclass-frontend
     ports:
@@ -225,7 +225,7 @@ services:
       NEXT_PUBLIC_API_URL: http://localhost:8090
     volumes:
       # Mount entire project for hot reload (Next.js needs access to all config files)
-      - ./kiteclass/kiteclass-frontend:/app
+      - ./kiteclass-frontend:/app
       # Exclude node_modules and .next to use container versions
       - /app/node_modules
       - /app/.next
