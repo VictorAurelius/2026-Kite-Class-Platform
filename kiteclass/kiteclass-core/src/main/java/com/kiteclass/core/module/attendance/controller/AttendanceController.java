@@ -203,7 +203,7 @@ public class AttendanceController {
      * @param teacherId teacher ID from header (must be MAIN_TEACHER)
      * @return updated attendance record
      */
-    @PatchMapping("/attendance/{id}")
+    @PatchMapping("/{id}")
     @Operation(summary = "Update attendance status",
                description = "Updates attendance status and recalculates points. Only MAIN_TEACHER can update.")
     public ResponseEntity<AttendanceResponse> updateAttendanceStatus(
