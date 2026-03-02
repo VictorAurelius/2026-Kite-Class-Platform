@@ -104,7 +104,7 @@ class PaymentIntegrationTest {
                 .build();
 
         // Act
-        String responseJson = mockMvc.perform(post("/api/v1/payments")
+        mockMvc.perform(post("/api/v1/payments")
                         .header("X-Tenant-Id", tenantId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -112,8 +112,7 @@ class PaymentIntegrationTest {
                 .andExpect(jsonPath("$.paymentNumber").exists())
                 .andExpect(jsonPath("$.paymentStatus").value("COMPLETED"))
                 .andExpect(jsonPath("$.paymentMethod").value("CASH"))
-                .andExpect(jsonPath("$.amount").value(500000.00))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.amount").value(500000.00));
 
         // Assert - Payment created and completed
         List<Payment> payments = paymentRepository.findByInvoiceIdAndDeletedFalse(savedInvoice.getId());
@@ -256,7 +255,7 @@ class PaymentIntegrationTest {
     @DisplayName("Should reject payment when invoice already paid")
     void shouldRejectPaymentWhenInvoiceAlreadyPaid() throws Exception {
         // Arrange - Mark invoice as PAID
-        savedInvoice.setAmountPaid(savedInvoice.getFinalAmount());
+        savedInvoice.setAmountPaid(savedInvoice.getTotal());
         savedInvoice.setStatus(InvoiceStatus.PAID);
         invoiceRepository.save(savedInvoice);
 

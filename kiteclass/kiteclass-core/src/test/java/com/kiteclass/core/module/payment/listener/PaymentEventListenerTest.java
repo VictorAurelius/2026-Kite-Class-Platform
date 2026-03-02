@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.payment.listener;
 
-import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import com.kiteclass.core.module.payment.entity.Payment;
