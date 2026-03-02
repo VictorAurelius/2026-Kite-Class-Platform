@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.invoice.service;
 
+import com.kiteclass.core.config.RedisTestConfig;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
@@ -23,7 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.8.0
  */
 @SpringBootTest
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
+@Import({TestContainersConfiguration.class, TestSecurityConfig.class,
+         TestTenantContextFilter.class, RedisTestConfig.class})
 @Transactional
 class InvoiceNumberGeneratorTest {
 
