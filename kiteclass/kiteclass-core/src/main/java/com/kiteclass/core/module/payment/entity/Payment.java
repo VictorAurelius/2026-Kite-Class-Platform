@@ -3,7 +3,6 @@ package com.kiteclass.core.module.payment.entity;
 import com.kiteclass.core.common.entity.BaseEntity;
 import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.module.payment.enums.PaymentStatus;
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -18,7 +17,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -79,8 +77,7 @@ public class Payment extends BaseEntity {
     @Column(name = "qr_code_url", columnDefinition = "TEXT")
     private String qrCodeUrl;
 
-    @Type(JsonBinaryType.class)
-    @Column(name = "gateway_response", columnDefinition = "jsonb")
+    @Column(name = "gateway_response", columnDefinition = "TEXT")
     private String gatewayResponse;
 
     @Column(name = "receipt_number", length = 50)
