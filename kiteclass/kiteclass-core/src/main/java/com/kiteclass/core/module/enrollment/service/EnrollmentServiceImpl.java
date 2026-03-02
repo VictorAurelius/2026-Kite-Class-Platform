@@ -86,9 +86,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("Successfully enrolled student {} in class {} with enrollment ID {}",
                 request.getStudentId(), request.getClassId(), savedEnrollment.getId());
 
-        // Publish ENROLLMENT_CREATED event for invoice generation
-        // TODO: Implement EnrollmentCreatedEvent when Invoice module is ready
-        // eventPublisher.publishEvent(new EnrollmentCreatedEvent(savedEnrollment));
+        // Publish ENROLLMENT_CREATED event for invoice generation (PR 2.8)
+        eventPublisher.publishEvent(
+                new com.kiteclass.core.module.enrollment.event.EnrollmentCreatedEvent(
+                        this, savedEnrollment));
 
         return enrollmentMapper.toResponse(savedEnrollment);
     }
