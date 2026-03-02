@@ -13,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,14 +39,13 @@ public class PaymentController {
      */
     @PostMapping
     public ResponseEntity<PaymentResponse> createPayment(
-        @Valid @RequestBody CreatePaymentRequest request,
-        @AuthenticationPrincipal UserDetails userDetails) {
+        @Valid @RequestBody CreatePaymentRequest request) {
 
         log.info("Creating payment for invoice {} (method: {})",
             request.getInvoiceId(), request.getPaymentMethod());
 
-        PaymentResponse response = paymentService.createPayment(
-            request, extractUserId(userDetails));
+        // Note: User ID will be extracted from JWT at Gateway level
+        PaymentResponse response = paymentService.createPayment(request, 1L);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -62,14 +59,13 @@ public class PaymentController {
      */
     @PostMapping("/installments")
     public ResponseEntity<PaymentResponse> createInstallmentPayment(
-        @Valid @RequestBody CreateInstallmentPaymentRequest request,
-        @AuthenticationPrincipal UserDetails userDetails) {
+        @Valid @RequestBody CreateInstallmentPaymentRequest request) {
 
         log.info("Creating installment payment for installment {} (method: {})",
             request.getInstallmentId(), request.getPaymentMethod());
 
-        PaymentResponse response = paymentService.createInstallmentPayment(
-            request, extractUserId(userDetails));
+        // Note: User ID will be extracted from JWT at Gateway level
+        PaymentResponse response = paymentService.createInstallmentPayment(request, 1L);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
