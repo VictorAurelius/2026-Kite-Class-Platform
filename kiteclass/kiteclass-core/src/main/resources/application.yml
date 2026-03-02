@@ -97,3 +97,22 @@ storage:
     secret-access-key: ${STORAGE_S3_SECRET_KEY:minioadmin}
     bucket-name: ${STORAGE_S3_BUCKET:kiteclass-files}
     path-style-access-enabled: true
+
+# Payment Gateway Configuration
+payment:
+  vnpay:
+    api-url: ${VNPAY_API_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    tmn-code: ${VNPAY_TMN_CODE:}
+    hash-secret: ${VNPAY_HASH_SECRET:}
+  momo:
+    api-url: ${MOMO_API_URL:https://test-payment.momo.vn/v2/gateway/api/create}
+    partner-code: ${MOMO_PARTNER_CODE:}
+    access-key: ${MOMO_ACCESS_KEY:}
+    secret-key: ${MOMO_SECRET_KEY:}
+  zalopay:
+    api-url: ${ZALOPAY_API_URL:https://sb-openapi.zalopay.vn/v2/create}
+    app-id: ${ZALOPAY_APP_ID:}
+    key1: ${ZALOPAY_KEY1:}
+    key2: ${ZALOPAY_KEY2:}
+  return-url: ${PAYMENT_RETURN_URL:http://localhost:3000/payment/return}
+  notify-url: ${PAYMENT_NOTIFY_URL:http://localhost:8081/api/v1/payments/webhook}

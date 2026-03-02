@@ -43,7 +43,7 @@ public class RefundRequestServiceImpl implements RefundRequestService {
 
         // Validate invoice exists
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(request.getInvoiceId())
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", request.getInvoiceId()));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) request.getInvoiceId()));
 
         // Validate refund amount does not exceed amount paid
         if (request.getRefundAmount().compareTo(invoice.getAmountPaid()) > 0) {
@@ -72,7 +72,7 @@ public class RefundRequestServiceImpl implements RefundRequestService {
         log.info("Approving refund request {}", id);
 
         RefundRequest refundRequest = refundRequestRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", (Object) id));
 
         refundRequest.approve(approvedBy);
 
@@ -89,7 +89,7 @@ public class RefundRequestServiceImpl implements RefundRequestService {
         log.info("Rejecting refund request {}: {}", id, reason);
 
         RefundRequest refundRequest = refundRequestRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", (Object) id));
 
         refundRequest.reject(rejectedBy, reason);
 
@@ -106,7 +106,7 @@ public class RefundRequestServiceImpl implements RefundRequestService {
         log.info("Processing refund request {}", id);
 
         RefundRequest refundRequest = refundRequestRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", (Object) id));
 
         if (!refundRequest.canProcess()) {
             throw new ValidationException("REFUND_CANNOT_PROCESS", id);
@@ -114,7 +114,7 @@ public class RefundRequestServiceImpl implements RefundRequestService {
 
         // Get invoice
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(refundRequest.getInvoiceId())
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", refundRequest.getInvoiceId()));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) refundRequest.getInvoiceId()));
 
         // Create refund adjustment (negative amount)
         InvoiceAdjustment adjustment = InvoiceAdjustment.builder()
@@ -151,7 +151,7 @@ public class RefundRequestServiceImpl implements RefundRequestService {
         log.debug("Fetching refund request with ID: {}", id);
 
         RefundRequest refundRequest = refundRequestRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("REFUND_REQUEST_NOT_FOUND", (Object) id));
 
         return invoiceMapper.toRefundResponse(refundRequest);
     }
