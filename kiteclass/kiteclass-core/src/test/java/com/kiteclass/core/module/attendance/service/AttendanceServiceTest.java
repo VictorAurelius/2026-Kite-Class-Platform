@@ -2,7 +2,9 @@ package com.kiteclass.core.module.attendance.service;
 
 import com.kiteclass.core.common.constant.AttendanceStatus;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.attendance.dto.AttendanceResponse;
 import com.kiteclass.core.module.attendance.dto.AttendanceStatsResponse;
@@ -11,9 +13,13 @@ import com.kiteclass.core.module.attendance.dto.UpdateAttendanceStatusRequest;
 import com.kiteclass.core.module.attendance.entity.Attendance;
 import com.kiteclass.core.module.attendance.mapper.AttendanceMapper;
 import com.kiteclass.core.module.attendance.repository.AttendanceRepository;
+import com.kiteclass.core.module.clazz.entity.ClassSession;
+import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.gamification.service.PointService;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import com.kiteclass.core.testutil.AttendanceTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -58,10 +65,19 @@ class AttendanceServiceTest {
     private EnrollmentRepository enrollmentRepository;
 
     @Mock
+    private ClassSessionRepository classSessionRepository;
+
+    @Mock
+    private TeacherClassRepository teacherClassRepository;
+
+    @Mock
     private AttendanceMapper attendanceMapper;
 
     @Mock
     private PointService pointService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private AttendanceServiceImpl attendanceService;
@@ -70,6 +86,8 @@ class AttendanceServiceTest {
     private CreateAttendanceRequest createRequest;
     private Attendance testAttendance;
     private AttendanceResponse testResponse;
+    private ClassSession testSession;
+    private TeacherClass testTeacherClass;
 
     @BeforeEach
     void setUp() {
@@ -98,6 +116,20 @@ class AttendanceServiceTest {
                 .status(AttendanceStatus.PRESENT)
                 .pointsAwarded(0)
                 .build();
+
+        testSession = ClassSession.builder()
+                .classId(1L)
+                .sessionNumber(1)
+                .attendanceTaken(false)
+                .build();
+        testSession.setId(1L);
+
+        testTeacherClass = TeacherClass.builder()
+                .teacherId(1L)
+                .classId(1L)
+                .role(TeacherClassRole.MAIN_TEACHER)
+                .build();
+        testTeacherClass.setId(1L);
     }
 
     @Test
@@ -258,18 +290,53 @@ class AttendanceServiceTest {
                 .thenReturn(Optional.of(testAttendance));
         when(enrollmentRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testEnrollment));
+        when(classSessionRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testSession));
+        when(teacherClassRepository.findByTeacherIdAndClassId(1L, 1L))
+                .thenReturn(Optional.of(testTeacherClass));
         when(attendanceRepository.save(any(Attendance.class)))
                 .thenReturn(testAttendance);
         when(attendanceMapper.toResponse(testAttendance))
                 .thenReturn(testResponse);
 
         // Act
-        AttendanceResponse result = attendanceService.updateAttendanceStatus(1L, updateRequest);
+        AttendanceResponse result = attendanceService.updateAttendanceStatus(1L, updateRequest, 1L);
 
         // Assert
         assertThat(result).isNotNull();
         verify(attendanceRepository).save(any(Attendance.class));
         verify(pointService).updateAttendancePoints(eq(1L), eq(1L), eq(0), anyString());
+    }
+
+    @Test
+    @DisplayName("Should throw PermissionDeniedException when teacher is not MAIN_TEACHER")
+    void shouldThrowPermissionDeniedWhenNotMainTeacher() {
+        // Arrange
+        UpdateAttendanceStatusRequest updateRequest =
+                AttendanceTestDataBuilder.createUpdateStatusRequest(AttendanceStatus.EXCUSED);
+
+        TeacherClass assistantTeacher = TeacherClass.builder()
+                .teacherId(2L)
+                .classId(1L)
+                .role(TeacherClassRole.ASSISTANT)
+                .build();
+
+        when(attendanceRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testAttendance));
+        when(enrollmentRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testEnrollment));
+        when(classSessionRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testSession));
+        when(teacherClassRepository.findByTeacherIdAndClassId(2L, 1L))
+                .thenReturn(Optional.of(assistantTeacher));
+
+        // Act & Assert
+        assertThatThrownBy(() -> attendanceService.updateAttendanceStatus(1L, updateRequest, 2L))
+                .isInstanceOf(PermissionDeniedException.class)
+                .satisfies(e -> assertThat(e.getMessage())
+                        .containsIgnoringCase("ONLY_MAIN_TEACHER"));
+
+        verify(attendanceRepository, never()).save(any());
     }
 
     @Test

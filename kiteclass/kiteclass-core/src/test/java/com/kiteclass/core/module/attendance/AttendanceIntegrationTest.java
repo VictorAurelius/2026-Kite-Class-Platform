@@ -2,10 +2,13 @@ package com.kiteclass.core.module.attendance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.AttendanceStatus;
+import com.kiteclass.core.common.constant.ClassSessionStatus;
 import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.common.constant.StudentStatus;
+import com.kiteclass.core.common.constant.TeacherClassRole;
+import com.kiteclass.core.common.constant.TeacherStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
@@ -14,13 +17,19 @@ import com.kiteclass.core.module.attendance.dto.CreateAttendanceRequest;
 import com.kiteclass.core.module.attendance.dto.UpdateAttendanceStatusRequest;
 import com.kiteclass.core.module.attendance.repository.AttendanceRepository;
 import com.kiteclass.core.module.clazz.entity.Class;
+import com.kiteclass.core.module.clazz.entity.ClassSession;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
+import com.kiteclass.core.module.teacher.entity.Teacher;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
+import com.kiteclass.core.module.teacher.repository.TeacherRepository;
 import com.kiteclass.core.testutil.AttendanceTestDataBuilder;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
@@ -38,13 +47,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,10 +88,18 @@ class AttendanceIntegrationTest {
     private ClassRepository classRepository;
     @Autowired
     private CourseRepository courseRepository;
+    @Autowired
+    private TeacherRepository teacherRepository;
+    @Autowired
+    private TeacherClassRepository teacherClassRepository;
+    @Autowired
+    private ClassSessionRepository classSessionRepository;
 
     private Student savedStudent;
     private Class savedClass;
     private Enrollment savedEnrollment;
+    private Teacher savedTeacher;
+    private ClassSession savedSession;
     private final UUID tenantId = AttendanceTestDataBuilder.DEFAULT_TENANT;
     private final Long sessionId = 1L; // Mock session ID
 
@@ -116,6 +134,36 @@ class AttendanceIntegrationTest {
             student.setEmail("student1@example.com");
             student.setStatus(StudentStatus.ACTIVE);
             savedStudent = studentRepository.save(student);
+
+            // Create teacher
+            Teacher teacher = Teacher.builder()
+                    .name("Test Teacher")
+                    .email("teacher@example.com")
+                    .phoneNumber("1234567890")
+                    .specialization("Test")
+                    .status(TeacherStatus.ACTIVE)
+                    .build();
+            savedTeacher = teacherRepository.save(teacher);
+
+            // Create teacher-class assignment (MAIN_TEACHER)
+            TeacherClass teacherClass = TeacherClass.builder()
+                    .teacherId(savedTeacher.getId())
+                    .classId(savedClass.getId())
+                    .role(TeacherClassRole.MAIN_TEACHER)
+                    .build();
+            teacherClassRepository.save(teacherClass);
+
+            // Create class session
+            ClassSession session = ClassSession.builder()
+                    .classId(savedClass.getId())
+                    .sessionNumber(1)
+                    .sessionDate(LocalDate.now())
+                    .startTime(LocalTime.of(9, 0))
+                    .endTime(LocalTime.of(11, 0))
+                    .status(ClassSessionStatus.SCHEDULED)
+                    .attendanceTaken(false)
+                    .build();
+            savedSession = classSessionRepository.save(session);
 
             // Create enrollment
             Enrollment enrollment = Enrollment.builder()
@@ -266,8 +314,9 @@ class AttendanceIntegrationTest {
         UpdateAttendanceStatusRequest updateRequest =
                 AttendanceTestDataBuilder.createUpdateStatusRequest(AttendanceStatus.EXCUSED);
 
-        mockMvc.perform(put("/api/v1/attendance/" + attendanceId)
+        mockMvc.perform(patch("/api/v1/attendance/" + attendanceId)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-Teacher-Id", savedTeacher.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
