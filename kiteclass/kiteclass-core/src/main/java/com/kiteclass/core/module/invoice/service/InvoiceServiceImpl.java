@@ -66,7 +66,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         // 1. Validate enrollment exists
         Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(enrollmentId)
-                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", enrollmentId));
+                .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) enrollmentId));
 
         // 2. Check invoice not already exists (BR-INV-005)
         if (invoiceRepository.existsByEnrollmentIdAndDeletedFalse(enrollmentId)) {
@@ -75,10 +75,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         // 3. Get class and course info for item description
         Class clazz = classRepository.findByIdAndDeletedFalse(enrollment.getClassId())
-                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", enrollment.getClassId()));
+                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) enrollment.getClassId()));
 
         Course course = courseRepository.findByIdAndDeletedFalse(clazz.getCourseId())
-                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", clazz.getCourseId()));
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) clazz.getCourseId()));
 
         // 4. Generate invoice number (thread-safe)
         String invoiceNumber = invoiceNumberGenerator.generate(enrollment.getInstanceId());
@@ -141,7 +141,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         log.debug("Fetching invoice with ID: {}", id);
 
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) id));
 
         return invoiceMapper.toResponse(invoice);
     }
@@ -163,7 +163,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         // Validate invoice exists and can be modified
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", invoiceId));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) invoiceId));
 
         if (invoice.getStatus() == InvoiceStatus.PAID) {
             throw new ValidationException("INVOICE_ALREADY_PAID", invoiceId);
@@ -199,7 +199,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         // Validate invoice exists and is overdue
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", invoiceId));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) invoiceId));
 
         if (invoice.getStatus() == InvoiceStatus.PAID) {
             throw new ValidationException("INVOICE_ALREADY_PAID", invoiceId);
@@ -254,7 +254,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         log.info("Cancelling invoice {}", id);
 
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) id));
 
         if (!invoice.canCancel()) {
             throw new ValidationException("INVOICE_CANNOT_CANCEL", id);
