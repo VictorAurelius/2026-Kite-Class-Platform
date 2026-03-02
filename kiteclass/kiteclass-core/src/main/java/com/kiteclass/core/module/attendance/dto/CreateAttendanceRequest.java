@@ -50,4 +50,10 @@ public class CreateAttendanceRequest {
      */
     @Size(max = 500, message = "Notes must not exceed 500 characters")
     private String notes;
+
+    /**
+     * Teacher ID who marked the attendance.
+     * Optional, will be set from request header in controller.
+     */
+    private Long markedBy;
 }

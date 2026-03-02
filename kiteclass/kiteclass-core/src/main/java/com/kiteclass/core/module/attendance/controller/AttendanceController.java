@@ -20,10 +20,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,19 +73,28 @@ public class AttendanceController {
 
     /**
      * Mark attendance for multiple students in a session (bulk operation).
+     * Only MAIN_TEACHER can mark attendance.
      *
+     * @param classId class ID
+     * @param sessionId session ID
      * @param request bulk attendance request
+     * @param teacherId teacher ID from header (must be MAIN_TEACHER)
      * @return list of created attendance records
      */
-    @PostMapping("/bulk")
+    @PostMapping("/classes/{classId}/sessions/{sessionId}/attendance")
     @Operation(summary = "Bulk mark attendance for a session",
-               description = "Creates multiple attendance records for a session in a single transaction.")
+               description = "Creates multiple attendance records for a session. Only MAIN_TEACHER can mark attendance.")
     public ResponseEntity<List<AttendanceResponse>> markBulkAttendance(
-            @Valid @RequestBody BulkAttendanceRequest request) {
-        log.info("POST /api/v1/attendance/bulk - Bulk marking attendance for {} students in session {}",
-                request.getRecords().size(), request.getSessionId());
+            @Parameter(description = "Class ID") @PathVariable Long classId,
+            @Parameter(description = "Session ID") @PathVariable Long sessionId,
+            @Valid @RequestBody BulkAttendanceRequest request,
+            @Parameter(description = "Teacher ID", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+        log.info("POST /api/v1/classes/{}/sessions/{}/attendance - Bulk marking attendance for {} students by teacher {}",
+                classId, sessionId, request.getRecords().size(), teacherId);
 
-        List<AttendanceResponse> responses = attendanceService.markBulkAttendance(request);
+        List<AttendanceResponse> responses = attendanceService.markBulkAttendance(
+                classId, sessionId, request, teacherId);
         return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
 
@@ -129,18 +139,20 @@ public class AttendanceController {
     /**
      * Get all attendance records for a session (session roster).
      *
+     * @param classId class ID
      * @param sessionId session ID
      * @param pageable pagination parameters
      * @return page of attendance records
      */
-    @GetMapping("/session/{sessionId}")
+    @GetMapping("/classes/{classId}/sessions/{sessionId}/attendance")
     @Operation(summary = "Get attendance roster for a session",
                description = "Returns all attendance records for a specific session.")
     public ResponseEntity<Page<AttendanceResponse>> getAttendanceBySession(
+            @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Session ID") @PathVariable Long sessionId,
             @PageableDefault(sort = "enrollmentId", direction = Sort.Direction.ASC)
             Pageable pageable) {
-        log.debug("GET /api/v1/attendance/session/{}", sessionId);
+        log.debug("GET /api/v1/classes/{}/sessions/{}/attendance", classId, sessionId);
 
         Page<AttendanceResponse> response = attendanceService.getAttendanceBySession(
                 sessionId, pageable
@@ -184,20 +196,25 @@ public class AttendanceController {
 
     /**
      * Update attendance status.
+     * Only MAIN_TEACHER can update attendance.
      *
      * @param id attendance ID
      * @param request status update request
+     * @param teacherId teacher ID from header (must be MAIN_TEACHER)
      * @return updated attendance record
      */
-    @PutMapping("/{id}")
+    @PatchMapping("/attendance/{id}")
     @Operation(summary = "Update attendance status",
-               description = "Updates attendance status and recalculates points.")
+               description = "Updates attendance status and recalculates points. Only MAIN_TEACHER can update.")
     public ResponseEntity<AttendanceResponse> updateAttendanceStatus(
             @Parameter(description = "Attendance ID") @PathVariable Long id,
-            @Valid @RequestBody UpdateAttendanceStatusRequest request) {
-        log.info("PUT /api/v1/attendance/{} - Updating to status {}", id, request.getStatus());
+            @Valid @RequestBody UpdateAttendanceStatusRequest request,
+            @Parameter(description = "Teacher ID", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+        log.info("PATCH /api/v1/attendance/{} - Updating to status {} by teacher {}",
+                id, request.getStatus(), teacherId);
 
-        AttendanceResponse response = attendanceService.updateAttendanceStatus(id, request);
+        AttendanceResponse response = attendanceService.updateAttendanceStatus(id, request, teacherId);
         return ResponseEntity.ok(response);
     }
 
