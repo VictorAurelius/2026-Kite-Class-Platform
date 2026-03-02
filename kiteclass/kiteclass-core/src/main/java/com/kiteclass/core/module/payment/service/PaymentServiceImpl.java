@@ -189,9 +189,16 @@ public class PaymentServiceImpl implements PaymentService {
         UUID tenantId = null;
         try {
             // 1. Log webhook for audit
+            String requestPayloadJson;
+            try {
+                requestPayloadJson = objectMapper.writeValueAsString(params);
+            } catch (Exception e) {
+                requestPayloadJson = params.toString();
+            }
+
             PaymentWebhookLog webhookLog = PaymentWebhookLog.builder()
                 .gateway(gateway.name())
-                .requestPayload(objectMapper.writeValueAsString(params))
+                .requestPayload(requestPayloadJson)
                 .signature(params.getOrDefault("vnp_SecureHash",
                     params.getOrDefault("signature", "")))
                 .build();
@@ -239,7 +246,14 @@ public class PaymentServiceImpl implements PaymentService {
                 String gatewayTxnId = params.getOrDefault("vnp_TransactionNo",
                     params.getOrDefault("transId", ""));
 
-                payment.complete(gatewayTxnId, objectMapper.writeValueAsString(params));
+                String gatewayResponseJson;
+                try {
+                    gatewayResponseJson = objectMapper.writeValueAsString(params);
+                } catch (Exception e) {
+                    gatewayResponseJson = params.toString();
+                }
+
+                payment.complete(gatewayTxnId, gatewayResponseJson);
 
                 // 6. Publish PaymentCompletedEvent (will trigger invoice update)
                 eventPublisher.publishEvent(new PaymentCompletedEvent(this, payment));
