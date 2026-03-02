@@ -85,10 +85,10 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse createPayment(CreatePaymentRequest request, Long userId) {
         // 1. Validate invoice exists and can accept payment
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(request.getInvoiceId())
-            .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", request.getInvoiceId()));
+            .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) request.getInvoiceId()));
 
         if (invoice.getStatus() == InvoiceStatus.PAID) {
-            throw new ValidationException("INVOICE_ALREADY_PAID");
+            throw new ValidationException("INVOICE_ALREADY_PAID", (Object) null);
         }
 
         // 2. Validate amount <= balance due
@@ -168,7 +168,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentById(Long id) {
         Payment payment = paymentRepository.findByIdAndDeletedFalse(id)
-            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", id));
+            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", (Object) id));
 
         return paymentMapper.toResponse(payment);
     }
@@ -294,7 +294,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public PaymentStatus queryPaymentStatus(Long paymentId) {
         Payment payment = paymentRepository.findByIdAndDeletedFalse(paymentId)
-            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", paymentId));
+            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", (Object) paymentId));
 
         if (payment.getPaymentMethod().isOnline()) {
             PaymentGatewayClient gatewayClient = gatewayClients.get(payment.getPaymentMethod());
@@ -308,7 +308,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void cancelPayment(Long paymentId) {
         Payment payment = paymentRepository.findByIdAndDeletedFalse(paymentId)
-            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", paymentId));
+            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", (Object) paymentId));
 
         payment.cancel();
         paymentRepository.save(payment);
@@ -320,7 +320,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void processRefund(Long paymentId) {
         Payment payment = paymentRepository.findByIdAndDeletedFalse(paymentId)
-            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", paymentId));
+            .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", (Object) paymentId));
 
         if (payment.getPaymentMethod().isOnline()) {
             PaymentGatewayClient gatewayClient = gatewayClients.get(payment.getPaymentMethod());
