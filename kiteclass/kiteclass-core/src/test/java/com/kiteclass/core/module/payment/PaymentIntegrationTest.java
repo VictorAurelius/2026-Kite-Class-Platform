@@ -385,4 +385,87 @@ class PaymentIntegrationTest {
         assertThat(cancelledPayment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(cancelledPayment.getFailureReason()).contains("Cancelled by user");
     }
+
+    @Test
+    @DisplayName("Should process refund and update invoice amountPaid")
+    void shouldProcessRefundAndUpdateInvoiceAmountPaid() throws Exception {
+        // Arrange - Create and complete a CASH payment
+        CreatePaymentRequest request = CreatePaymentRequest.builder()
+                .invoiceId(savedInvoice.getId())
+                .amount(new BigDecimal("500000.00"))
+                .paymentMethod(PaymentMethod.CASH)
+                .build();
+
+        String createResponse = mockMvc.perform(post("/api/v1/payments")
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        Long paymentId = objectMapper.readTree(createResponse).get("id").asLong();
+
+        // Verify invoice updated
+        Invoice afterPayment = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
+        assertThat(afterPayment.getAmountPaid()).isEqualByComparingTo(new BigDecimal("500000.00"));
+
+        // Act - Process refund
+        mockMvc.perform(post("/api/v1/payments/" + paymentId + "/refund")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isNoContent());
+
+        // Assert - Payment refunded
+        Payment refundedPayment = paymentRepository.findByIdAndDeletedFalse(paymentId).orElseThrow();
+        assertThat(refundedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(refundedPayment.getRefundedAt()).isNotNull();
+
+        // Assert - Invoice amountPaid decreased back to 0
+        Invoice afterRefund = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
+        assertThat(afterRefund.getAmountPaid()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(afterRefund.getStatus()).isEqualTo(InvoiceStatus.SENT); // Back to SENT from PARTIAL
+    }
+
+    @Test
+    @DisplayName("Should handle partial refund correctly")
+    void shouldHandlePartialRefund() throws Exception {
+        // Arrange - Make 2 payments totaling 800k
+        CreatePaymentRequest payment1 = CreatePaymentRequest.builder()
+                .invoiceId(savedInvoice.getId())
+                .amount(new BigDecimal("500000.00"))
+                .paymentMethod(PaymentMethod.CASH)
+                .build();
+
+        CreatePaymentRequest payment2 = CreatePaymentRequest.builder()
+                .invoiceId(savedInvoice.getId())
+                .amount(new BigDecimal("300000.00"))
+                .paymentMethod(PaymentMethod.CASH)
+                .build();
+
+        String response1 = mockMvc.perform(post("/api/v1/payments")
+                .header("X-Tenant-Id", tenantId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(payment1)))
+                .andReturn().getResponse().getContentAsString();
+
+        mockMvc.perform(post("/api/v1/payments")
+                .header("X-Tenant-Id", tenantId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(payment2)));
+
+        Long payment1Id = objectMapper.readTree(response1).get("id").asLong();
+
+        // Verify total paid = 800k
+        Invoice afterPayments = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
+        assertThat(afterPayments.getAmountPaid()).isEqualByComparingTo(new BigDecimal("800000.00"));
+
+        // Act - Refund first payment (500k)
+        mockMvc.perform(post("/api/v1/payments/" + payment1Id + "/refund")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isNoContent());
+
+        // Assert - Invoice amountPaid decreased: 800k - 500k = 300k
+        Invoice afterRefund = invoiceRepository.findById(savedInvoice.getId()).orElseThrow();
+        assertThat(afterRefund.getAmountPaid()).isEqualByComparingTo(new BigDecimal("300000.00"));
+        assertThat(afterRefund.getStatus()).isEqualTo(InvoiceStatus.PARTIAL);
+    }
 }

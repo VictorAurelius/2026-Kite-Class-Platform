@@ -17,6 +17,7 @@ import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.module.payment.enums.PaymentStatus;
 import com.kiteclass.core.module.payment.event.PaymentCompletedEvent;
 import com.kiteclass.core.module.payment.event.PaymentCreatedEvent;
+import com.kiteclass.core.module.payment.event.PaymentRefundedEvent;
 import com.kiteclass.core.module.payment.gateway.PaymentGatewayClient;
 import com.kiteclass.core.module.payment.mapper.PaymentMapper;
 import com.kiteclass.core.module.payment.repository.PaymentRepository;
@@ -322,15 +323,21 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findByIdAndDeletedFalse(paymentId)
             .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND", (Object) paymentId));
 
+        // 1. Call gateway refund API (for online payments)
         if (payment.getPaymentMethod().isOnline()) {
             PaymentGatewayClient gatewayClient = gatewayClients.get(payment.getPaymentMethod());
             gatewayClient.processRefund(payment.getTransactionId(), payment.getAmount());
         }
 
+        // 2. Mark payment as refunded
         payment.refund();
         paymentRepository.save(payment);
 
-        log.info("Processed refund for payment {}", payment.getPaymentNumber());
+        // 3. Publish PaymentRefundedEvent (triggers invoice amount update)
+        eventPublisher.publishEvent(new PaymentRefundedEvent(this, payment));
+
+        log.info("Processed refund for payment {} (amount: {})",
+            payment.getPaymentNumber(), payment.getAmount());
     }
 
     @Override
