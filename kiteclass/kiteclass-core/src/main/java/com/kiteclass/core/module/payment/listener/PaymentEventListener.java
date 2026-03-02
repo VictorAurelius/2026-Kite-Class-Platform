@@ -40,7 +40,7 @@ public class PaymentEventListener {
         try {
             // Update Invoice.amountPaid
             Invoice invoice = invoiceRepository.findById(payment.getInvoiceId())
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", payment.getInvoiceId()));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) payment.getInvoiceId()));
 
             BigDecimal newAmountPaid = invoice.getAmountPaid().add(payment.getAmount());
             invoice.setAmountPaid(newAmountPaid);
