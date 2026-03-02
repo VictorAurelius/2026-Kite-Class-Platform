@@ -160,16 +160,4 @@ public class PaymentController {
 
         return ResponseEntity.ok(new PaymentStatusResponse(status));
     }
-
-    /**
-     * Extracts user ID from UserDetails.
-     * For now, returns a mock user ID.
-     *
-     * @param userDetails authenticated user
-     * @return user ID
-     */
-    private Long extractUserId(UserDetails userDetails) {
-        // TODO: Extract from JWT or UserDetails when auth is fully implemented
-        return 1L;
-    }
 }
