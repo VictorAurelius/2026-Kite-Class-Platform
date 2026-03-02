@@ -78,6 +78,8 @@ class PaymentIntegrationTest {
         // Create test invoice
         savedInvoice = Invoice.builder()
                 .invoiceNumber("INV-2026-000001")
+                .studentId(1L) // Required field
+                .classId(1L)
                 .enrollmentId(1L)
                 .issueDate(LocalDate.now())
                 .dueDate(LocalDate.now().plusDays(30))

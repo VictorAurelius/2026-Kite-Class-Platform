@@ -170,8 +170,11 @@ class VNPayGatewayClientTest {
         BigDecimal amount = new BigDecimal("500000.00");
 
         // Act & Assert
-        // Currently stub implementation - should not throw
-        vnpayGatewayClient.processRefund(transactionId, amount);
+        // Currently stub implementation - should throw UnsupportedOperationException
+        org.junit.jupiter.api.Assertions.assertThrows(
+            UnsupportedOperationException.class,
+            () -> vnpayGatewayClient.processRefund(transactionId, amount)
+        );
     }
 
     /**
