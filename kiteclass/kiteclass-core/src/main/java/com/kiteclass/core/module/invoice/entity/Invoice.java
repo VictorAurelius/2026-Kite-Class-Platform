@@ -301,14 +301,12 @@ public class Invoice extends BaseEntity {
             if (this.paidAt == null) {
                 this.paidAt = LocalDateTime.now();
             }
-        }
-        // Partially paid
-        else if (amountPaid.compareTo(BigDecimal.ZERO) > 0) {
+        } else if (amountPaid.compareTo(BigDecimal.ZERO) > 0) {
+            // Partially paid
             this.status = InvoiceStatus.PARTIAL;
-        }
-        // Overdue
-        else if (dueDate != null && LocalDate.now().isAfter(dueDate) &&
-                 status != InvoiceStatus.DRAFT) {
+        } else if (dueDate != null && LocalDate.now().isAfter(dueDate) &&
+                   status != InvoiceStatus.DRAFT) {
+            // Overdue
             this.status = InvoiceStatus.OVERDUE;
         }
     }

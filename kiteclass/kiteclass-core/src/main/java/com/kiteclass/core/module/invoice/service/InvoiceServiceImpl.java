@@ -228,11 +228,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         invoice.addAdjustment(adjustment);
 
-        // Update status to OVERDUE if not already
-        if (invoice.getStatus() != InvoiceStatus.OVERDUE) {
-            // Status will be updated by @PreUpdate calculateTotals()
-        }
-
+        // Status will be updated to OVERDUE by @PreUpdate calculateTotals()
         Invoice saved = invoiceRepository.save(invoice);
 
         log.info("Applied late fee {} to invoice {}, new total: {}",
