@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -107,10 +108,13 @@ class PaymentServiceTest {
         testInvoice = Invoice.builder()
                 .invoiceNumber("INV-2026-000001")
                 .enrollmentId(1L)
-                .totalAmount(new BigDecimal("1000000.00"))
-                .taxAmount(new BigDecimal("0.00"))
-                .discountAmount(new BigDecimal("0.00"))
-                .finalAmount(new BigDecimal("1000000.00"))
+                .issueDate(LocalDate.now())
+                .dueDate(LocalDate.now().plusDays(30))
+                .periodStart(LocalDate.now())
+                .periodEnd(LocalDate.now().plusDays(90))
+                .subtotal(new BigDecimal("1000000.00"))
+                .discount(new BigDecimal("0.00"))
+                .total(new BigDecimal("1000000.00"))
                 .amountPaid(new BigDecimal("0.00"))
                 .status(InvoiceStatus.SENT)
                 .build();

@@ -81,10 +81,11 @@ class PaymentIntegrationTest {
                 .enrollmentId(1L)
                 .issueDate(LocalDate.now())
                 .dueDate(LocalDate.now().plusDays(30))
-                .totalAmount(new BigDecimal("1000000.00"))
-                .taxAmount(new BigDecimal("0.00"))
-                .discountAmount(new BigDecimal("0.00"))
-                .finalAmount(new BigDecimal("1000000.00"))
+                .periodStart(LocalDate.now())
+                .periodEnd(LocalDate.now().plusDays(90))
+                .subtotal(new BigDecimal("1000000.00"))
+                .discount(new BigDecimal("0.00"))
+                .total(new BigDecimal("1000000.00"))
                 .amountPaid(new BigDecimal("0.00"))
                 .status(InvoiceStatus.SENT)
                 .build();
@@ -280,7 +281,7 @@ class PaymentIntegrationTest {
         // Arrange
         CreatePaymentRequest request = CreatePaymentRequest.builder()
                 .invoiceId(savedInvoice.getId())
-                .amount(new BigDecimal("1500000.00")) // Exceeds finalAmount
+                .amount(new BigDecimal("1500000.00")) // Exceeds total
                 .paymentMethod(PaymentMethod.CASH)
                 .build();
 

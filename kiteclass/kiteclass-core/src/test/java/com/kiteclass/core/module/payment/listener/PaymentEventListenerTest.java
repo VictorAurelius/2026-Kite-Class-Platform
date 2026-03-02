@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,7 +55,13 @@ class PaymentEventListenerTest {
         testInvoice = Invoice.builder()
                 .invoiceNumber("INV-2026-000001")
                 .enrollmentId(1L)
-                .finalAmount(new BigDecimal("1000000.00"))
+                .issueDate(LocalDate.now())
+                .dueDate(LocalDate.now().plusDays(30))
+                .periodStart(LocalDate.now())
+                .periodEnd(LocalDate.now().plusDays(90))
+                .subtotal(new BigDecimal("1000000.00"))
+                .discount(new BigDecimal("0.00"))
+                .total(new BigDecimal("1000000.00"))
                 .amountPaid(new BigDecimal("0.00"))
                 .build();
         testInvoice.setId(1L);
@@ -117,7 +124,7 @@ class PaymentEventListenerTest {
     }
 
     @Test
-    @DisplayName("Should handle full payment - update amountPaid to finalAmount")
+    @DisplayName("Should handle full payment - update amountPaid to total")
     void shouldHandleFullPayment() {
         // Arrange - Payment covers full invoice
         testPayment.setAmount(new BigDecimal("1000000.00"));
@@ -132,7 +139,7 @@ class PaymentEventListenerTest {
         // Act
         paymentEventListener.onPaymentCompleted(event);
 
-        // Assert - amountPaid should equal finalAmount
+        // Assert - amountPaid should equal total
         verify(invoiceRepository).save(argThat(invoice ->
                 invoice.getAmountPaid().compareTo(new BigDecimal("1000000.00")) == 0
         ));
