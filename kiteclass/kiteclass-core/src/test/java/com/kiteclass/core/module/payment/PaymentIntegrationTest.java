@@ -3,7 +3,6 @@ package com.kiteclass.core.module.payment;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.InvoiceStatus;
 import com.kiteclass.core.common.context.TenantContext;
-import com.kiteclass.core.config.RedisTestConfig;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
@@ -50,8 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class,
-        TestTenantContextFilter.class, RedisTestConfig.class})
+@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 @DisplayName("Payment Integration Tests")
