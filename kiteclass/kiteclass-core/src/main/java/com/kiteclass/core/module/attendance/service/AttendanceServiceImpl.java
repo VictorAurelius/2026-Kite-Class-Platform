@@ -2,20 +2,28 @@ package com.kiteclass.core.module.attendance.service;
 
 import com.kiteclass.core.common.constant.AttendanceStatus;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.attendance.dto.AttendanceResponse;
 import com.kiteclass.core.module.attendance.dto.AttendanceStatsResponse;
 import com.kiteclass.core.module.attendance.dto.BulkAttendanceRequest;
 import com.kiteclass.core.module.attendance.dto.CreateAttendanceRequest;
 import com.kiteclass.core.module.attendance.dto.UpdateAttendanceStatusRequest;
+import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.module.attendance.entity.Attendance;
+import com.kiteclass.core.module.attendance.event.AttendanceMarkedEvent;
 import com.kiteclass.core.module.attendance.mapper.AttendanceMapper;
 import com.kiteclass.core.module.attendance.repository.AttendanceRepository;
+import com.kiteclass.core.module.clazz.entity.ClassSession;
+import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.gamification.service.PointService;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +32,8 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link AttendanceService}.
@@ -39,8 +49,11 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final ClassSessionRepository classSessionRepository;
+    private final TeacherClassRepository teacherClassRepository;
     private final AttendanceMapper attendanceMapper;
     private final PointService pointService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -96,34 +109,94 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional
-    public List<AttendanceResponse> markBulkAttendance(BulkAttendanceRequest request) {
-        log.info("Bulk marking attendance for {} students in session {}",
-                request.getRecords().size(), request.getSessionId());
+    public List<AttendanceResponse> markBulkAttendance(
+            Long classId,
+            Long sessionId,
+            BulkAttendanceRequest request,
+            Long teacherId
+    ) {
+        log.info("Bulk marking attendance for {} students in session {} by teacher {}",
+                request.getRecords().size(), sessionId, teacherId);
 
+        // 1. Permission Check: Verify teacher is MAIN_TEACHER in this class
+        TeacherClass teacherClass = teacherClassRepository
+                .findByTeacherIdAndClassId(teacherId, classId)
+                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
+
+        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
+            log.warn("Teacher {} is not MAIN_TEACHER in class {} (role: {})",
+                    teacherId, classId, teacherClass.getRole());
+            throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MARK_ATTENDANCE");
+        }
+
+        // 2. Validate session exists and belongs to class
+        ClassSession session = classSessionRepository.findByIdAndDeletedFalse(sessionId)
+                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", sessionId));
+
+        if (!session.getClassId().equals(classId)) {
+            log.warn("Session {} does not belong to class {}", sessionId, classId);
+            throw new ValidationException("SESSION_NOT_IN_CLASS");
+        }
+
+        // 3. Validate all enrollments belong to this class
+        Set<Long> enrollmentIds = request.getRecords().stream()
+                .map(BulkAttendanceRequest.AttendanceRecord::getEnrollmentId)
+                .collect(Collectors.toSet());
+
+        List<Enrollment> enrollments = enrollmentRepository.findAllById(enrollmentIds);
+
+        if (enrollments.size() != enrollmentIds.size()) {
+            log.warn("Not all enrollment IDs found: expected {}, found {}",
+                    enrollmentIds.size(), enrollments.size());
+            throw new EntityNotFoundException("ENROLLMENT_NOT_FOUND");
+        }
+
+        // Verify all enrollments are for this class
+        boolean allInClass = enrollments.stream()
+                .allMatch(e -> e.getClassId().equals(classId) && !e.isDeleted());
+
+        if (!allInClass) {
+            log.warn("Not all enrollments belong to class {}", classId);
+            throw new ValidationException("ENROLLMENT_NOT_IN_CLASS");
+        }
+
+        // 4. Create or update attendance records
+        List<Attendance> attendanceList = new ArrayList<>();
         List<AttendanceResponse> responses = new ArrayList<>();
 
         for (BulkAttendanceRequest.AttendanceRecord record : request.getRecords()) {
             CreateAttendanceRequest singleRequest = CreateAttendanceRequest.builder()
                     .enrollmentId(record.getEnrollmentId())
-                    .sessionId(request.getSessionId())
+                    .sessionId(sessionId)
                     .status(record.getStatus())
                     .notes(record.getNotes())
+                    .markedBy(teacherId)
                     .build();
 
-            try {
-                AttendanceResponse response = markAttendance(singleRequest);
-                responses.add(response);
-            } catch (Exception e) {
-                log.error("Failed to mark attendance for enrollment {} in session {}: {}",
-                        record.getEnrollmentId(), request.getSessionId(), e.getMessage());
-                // In bulk operation, we continue even if one fails
-                // Alternatively, could rollback entire transaction
-                throw e; // For now, fail entire bulk operation on first error
-            }
+            // Mark attendance (reuse existing method)
+            AttendanceResponse response = markAttendance(singleRequest);
+            responses.add(response);
+
+            // Collect attendance for event
+            Attendance attendance = attendanceRepository.findByIdAndDeletedFalse(response.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("ATTENDANCE_NOT_FOUND", response.getId()));
+            attendanceList.add(attendance);
         }
 
-        log.info("Successfully marked {} attendance records for session {}",
-                responses.size(), request.getSessionId());
+        // 5. Update ClassSession.attendanceTaken flag
+        session.setAttendanceTaken(true);
+        classSessionRepository.save(session);
+
+        // 6. Publish AttendanceMarkedEvent (AFTER save, WITHIN transaction)
+        eventPublisher.publishEvent(new AttendanceMarkedEvent(
+                this,
+                attendanceList,
+                sessionId,
+                teacherId
+        ));
+
+        log.info("Successfully marked {} attendance records for session {} by teacher {}",
+                attendanceList.size(), sessionId, teacherId);
 
         return responses;
     }
@@ -177,9 +250,14 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional
-    public AttendanceResponse updateAttendanceStatus(Long id, UpdateAttendanceStatusRequest request) {
-        log.info("Updating attendance {} to status {}", id, request.getStatus());
+    public AttendanceResponse updateAttendanceStatus(
+            Long id,
+            UpdateAttendanceStatusRequest request,
+            Long teacherId
+    ) {
+        log.info("Updating attendance {} to status {} by teacher {}", id, request.getStatus(), teacherId);
 
+        // 1. Find attendance record
         Attendance attendance = attendanceRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException("ATTENDANCE_NOT_FOUND", (Object) id));
 
@@ -187,12 +265,28 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND",
                         (Object) attendance.getEnrollmentId()));
 
-        // Update status and notes
+        // 2. Get session to find classId
+        ClassSession session = classSessionRepository.findByIdAndDeletedFalse(attendance.getSessionId())
+                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", attendance.getSessionId()));
+
+        // 3. Permission check: Verify teacher is MAIN_TEACHER
+        TeacherClass teacherClass = teacherClassRepository
+                .findByTeacherIdAndClassId(teacherId, session.getClassId())
+                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
+
+        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
+            log.warn("Teacher {} is not MAIN_TEACHER in class {} (role: {})",
+                    teacherId, session.getClassId(), teacherClass.getRole());
+            throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_UPDATE_ATTENDANCE");
+        }
+
+        // 4. Update status and notes
         AttendanceStatus oldStatus = attendance.getStatus();
         attendance.setStatus(request.getStatus());
         if (request.getNotes() != null) {
             attendance.setNotes(request.getNotes());
         }
+        attendance.setMarkedBy(teacherId);
 
         // Recalculate points (done in @PreUpdate)
         Attendance updatedAttendance = attendanceRepository.save(attendance);
@@ -200,7 +294,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         // Update points in gamification system if status changed
         if (oldStatus != request.getStatus()) {
             String pointDescription = String.format("Attendance updated: %s for session %d",
-                    updatedAttendance.getStatus().getDisplayNameVi(),
+                    updatedAttendance.getStatus(),
                     updatedAttendance.getSessionId());
 
             pointService.updateAttendancePoints(
@@ -210,9 +304,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                     pointDescription
             );
 
-            log.info("Updated attendance {} points from {} ({} pts) to {} ({} pts)",
-                    id, oldStatus, oldStatus.getPointsDeduction(),
-                    request.getStatus(), request.getStatus().getPointsDeduction());
+            log.info("Updated attendance {} from status {} to {}",
+                    id, oldStatus, request.getStatus());
         }
 
         return enrichResponse(updatedAttendance, enrollment);
