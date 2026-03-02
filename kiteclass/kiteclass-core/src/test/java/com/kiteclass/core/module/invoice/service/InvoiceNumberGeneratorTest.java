@@ -75,18 +75,18 @@ class InvoiceNumberGeneratorTest {
 
     @Test
     void generate_multipleInvoices_incrementsCorrectly() {
-        // When: Generate and save 5 invoices
+        // When: Generate and save 5 invoices (each with unique enrollment_id)
         String inv1 = invoiceNumberGenerator.generate(tenantId);
-        invoiceRepository.save(createInvoice(inv1));
+        invoiceRepository.save(createInvoice(inv1, 1L));
 
         String inv2 = invoiceNumberGenerator.generate(tenantId);
-        invoiceRepository.save(createInvoice(inv2));
+        invoiceRepository.save(createInvoice(inv2, 2L));
 
         String inv3 = invoiceNumberGenerator.generate(tenantId);
-        invoiceRepository.save(createInvoice(inv3));
+        invoiceRepository.save(createInvoice(inv3, 3L));
 
         String inv4 = invoiceNumberGenerator.generate(tenantId);
-        invoiceRepository.save(createInvoice(inv4));
+        invoiceRepository.save(createInvoice(inv4, 4L));
 
         String inv5 = invoiceNumberGenerator.generate(tenantId);
 
@@ -99,11 +99,15 @@ class InvoiceNumberGeneratorTest {
     }
 
     private Invoice createInvoice(String invoiceNumber) {
+        return createInvoice(invoiceNumber, 1L);
+    }
+
+    private Invoice createInvoice(String invoiceNumber, Long enrollmentId) {
         Invoice invoice = Invoice.builder()
                 .invoiceNumber(invoiceNumber)
                 .studentId(1L)
                 .classId(1L)
-                .enrollmentId(1L)
+                .enrollmentId(enrollmentId)
                 .status(InvoiceStatus.SENT)
                 .issueDate(LocalDate.now())
                 .dueDate(LocalDate.now().plusDays(7))
