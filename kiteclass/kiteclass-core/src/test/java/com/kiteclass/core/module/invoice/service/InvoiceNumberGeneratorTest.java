@@ -56,8 +56,12 @@ class InvoiceNumberGeneratorTest {
 
     @Test
     void generate_secondInvoice_incrementsSequence() {
-        // Given: First invoice created
+        // Given: First invoice created and saved
         String first = invoiceNumberGenerator.generate(tenantId);
+        var invoice1 = InvoiceTestDataBuilder.createDefaultInvoice();
+        invoice1.setInvoiceNumber(first);
+        invoice1.setInstanceId(tenantId);
+        invoiceRepository.save(invoice1);
 
         // When: Generate second invoice
         String second = invoiceNumberGenerator.generate(tenantId);
@@ -68,11 +72,31 @@ class InvoiceNumberGeneratorTest {
 
     @Test
     void generate_multipleInvoices_incrementsCorrectly() {
-        // When: Generate 5 invoices
+        // When: Generate and save 5 invoices
         String inv1 = invoiceNumberGenerator.generate(tenantId);
+        var invoice1 = InvoiceTestDataBuilder.createDefaultInvoice();
+        invoice1.setInvoiceNumber(inv1);
+        invoice1.setInstanceId(tenantId);
+        invoiceRepository.save(invoice1);
+
         String inv2 = invoiceNumberGenerator.generate(tenantId);
+        var invoice2 = InvoiceTestDataBuilder.createDefaultInvoice();
+        invoice2.setInvoiceNumber(inv2);
+        invoice2.setInstanceId(tenantId);
+        invoiceRepository.save(invoice2);
+
         String inv3 = invoiceNumberGenerator.generate(tenantId);
+        var invoice3 = InvoiceTestDataBuilder.createDefaultInvoice();
+        invoice3.setInvoiceNumber(inv3);
+        invoice3.setInstanceId(tenantId);
+        invoiceRepository.save(invoice3);
+
         String inv4 = invoiceNumberGenerator.generate(tenantId);
+        var invoice4 = InvoiceTestDataBuilder.createDefaultInvoice();
+        invoice4.setInvoiceNumber(inv4);
+        invoice4.setInstanceId(tenantId);
+        invoiceRepository.save(invoice4);
+
         String inv5 = invoiceNumberGenerator.generate(tenantId);
 
         // Then: All sequential
