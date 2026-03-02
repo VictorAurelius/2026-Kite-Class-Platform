@@ -294,7 +294,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         // Update points in gamification system if status changed
         if (oldStatus != request.getStatus()) {
             String pointDescription = String.format("Attendance updated: %s for session %d",
-                    updatedAttendance.getStatus().getDisplayNameVi(),
+                    updatedAttendance.getStatus(),
                     updatedAttendance.getSessionId());
 
             pointService.updateAttendancePoints(
@@ -304,9 +304,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                     pointDescription
             );
 
-            log.info("Updated attendance {} points from {} ({} pts) to {} ({} pts)",
-                    id, oldStatus, oldStatus.getPointsDeduction(),
-                    request.getStatus(), request.getStatus().getPointsDeduction());
+            log.info("Updated attendance {} from status {} to {}",
+                    id, oldStatus, request.getStatus());
         }
 
         return enrichResponse(updatedAttendance, enrollment);
