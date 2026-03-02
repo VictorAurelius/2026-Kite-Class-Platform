@@ -13,6 +13,7 @@ import lombok.Getter;
  *   <li>PARTIAL: Partially paid</li>
  *   <li>OVERDUE: Past due date without payment</li>
  *   <li>CANCELLED: Invoice cancelled</li>
+ *   <li>REFUNDED: Invoice refunded (full or partial)</li>
  * </ul>
  *
  * @author KiteClass Team
@@ -26,7 +27,8 @@ public enum InvoiceStatus {
     PAID("Đã thanh toán", true),
     PARTIAL("Thanh toán một phần", false),
     OVERDUE("Quá hạn", false),
-    CANCELLED("Đã hủy", true);
+    CANCELLED("Đã hủy", true),
+    REFUNDED("Đã hoàn tiền", true);
 
     private final String displayNameVi;
     private final boolean isFinal;  // Cannot change after this status
