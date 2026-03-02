@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
@@ -23,7 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2.8.0
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
+@ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class InvoiceNumberGeneratorTest {
 
