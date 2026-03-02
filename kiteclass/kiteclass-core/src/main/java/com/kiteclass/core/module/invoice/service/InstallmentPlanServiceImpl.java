@@ -12,7 +12,6 @@ import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.mapper.InvoiceMapper;
 import com.kiteclass.core.module.invoice.repository.InstallmentPlanRepository;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
-import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +38,6 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
     private final InstallmentPlanRepository installmentPlanRepository;
     private final InvoiceRepository invoiceRepository;
     private final InvoiceMapper invoiceMapper;
-    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -49,16 +47,16 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
 
         // Validate invoice exists
         Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(request.getInvoiceId())
-                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", request.getInvoiceId()));
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) request.getInvoiceId()));
 
         // Check plan not already exists
         if (installmentPlanRepository.existsByInvoiceIdAndDeletedFalse(request.getInvoiceId())) {
-            throw new ValidationException("INSTALLMENT_PLAN_ALREADY_EXISTS", request.getInvoiceId());
+            throw new ValidationException("INSTALLMENT_PLAN_ALREADY_EXISTS", (Object) request.getInvoiceId());
         }
 
         // Validate invoice is not paid
         if (invoice.getStatus().isFinal()) {
-            throw new ValidationException("INVOICE_ALREADY_PAID", request.getInvoiceId());
+            throw new ValidationException("INVOICE_ALREADY_PAID", (Object) request.getInvoiceId());
         }
 
         // Create plan
@@ -111,7 +109,7 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
         log.info("Approving installment plan {}", planId);
 
         InstallmentPlan plan = installmentPlanRepository.findByIdAndDeletedFalse(planId)
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", planId));
+                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", (Object) planId));
 
         plan.approve(approvedBy);
         plan.activate(); // Transition to ACTIVE
@@ -129,7 +127,7 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
         log.info("Rejecting installment plan {}: {}", planId, reason);
 
         InstallmentPlan plan = installmentPlanRepository.findByIdAndDeletedFalse(planId)
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", planId));
+                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", (Object) planId));
 
         plan.reject(reason);
 
@@ -150,12 +148,12 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
                 .filter(p -> p.getInstallments().stream()
                         .anyMatch(i -> i.getId().equals(installmentId)))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_NOT_FOUND", installmentId));
+                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_NOT_FOUND", (Object) installmentId));
 
         Installment installment = plan.getInstallments().stream()
                 .filter(i -> i.getId().equals(installmentId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_NOT_FOUND", installmentId));
+                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_NOT_FOUND", (Object) installmentId));
 
         // Record payment
         installment.recordPayment(amount);
@@ -182,7 +180,7 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
         log.debug("Fetching installment plan with ID: {}", id);
 
         InstallmentPlan plan = installmentPlanRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", (Object) id));
 
         return invoiceMapper.toPlanResponse(plan);
     }
@@ -193,7 +191,7 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
         log.debug("Fetching installment plan for invoice ID: {}", invoiceId);
 
         InstallmentPlan plan = installmentPlanRepository.findByInvoiceIdAndDeletedFalse(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND"));
+                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_PLAN_NOT_FOUND", (Object) invoiceId));
 
         return invoiceMapper.toPlanResponse(plan);
     }

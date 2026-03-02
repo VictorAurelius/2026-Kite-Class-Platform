@@ -19,7 +19,6 @@ import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
-import com.kiteclass.core.testutil.ClassTestDataBuilder;
 import com.kiteclass.core.testutil.CourseTestDataBuilder;
 import com.kiteclass.core.testutil.EnrollmentTestDataBuilder;
 import com.kiteclass.core.testutil.StudentTestDataBuilder;
