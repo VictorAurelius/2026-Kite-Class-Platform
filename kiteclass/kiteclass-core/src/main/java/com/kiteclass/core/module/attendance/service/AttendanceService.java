@@ -51,15 +51,32 @@ public interface AttendanceService {
     /**
      * Mark attendance for multiple students in a session (bulk operation).
      *
-     * <p>All records must be for the same session.
-     * Updates session.attendanceTaken flag after successful completion.
+     * <p>Business Rules Enforced:
+     * <ul>
+     *   <li>BR-ATTEND-004: Only MAIN_TEACHER can mark attendance</li>
+     *   <li>BR-ATTEND-001: All enrollments must exist and be ACTIVE</li>
+     *   <li>BR-ATTEND-002: Session must exist and belong to the class</li>
+     *   <li>BR-ATTEND-003: Cannot mark duplicate attendance</li>
+     * </ul>
      *
+     * <p>Updates session.attendanceTaken flag after successful completion.
+     * Publishes AttendanceMarkedEvent for future Grade Module integration.
+     *
+     * @param classId class ID
+     * @param sessionId session ID
      * @param request bulk attendance request
+     * @param teacherId teacher ID who is marking attendance (must be MAIN_TEACHER)
      * @return list of created attendance records
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if session not found
      * @throws com.kiteclass.core.common.exception.ValidationException if business rules violated
+     * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not MAIN_TEACHER
      */
-    List<AttendanceResponse> markBulkAttendance(@Valid BulkAttendanceRequest request);
+    List<AttendanceResponse> markBulkAttendance(
+        Long classId,
+        Long sessionId,
+        @Valid BulkAttendanceRequest request,
+        Long teacherId
+    );
 
     /**
      * Get attendance record by ID.
@@ -91,14 +108,25 @@ public interface AttendanceService {
     /**
      * Update attendance status.
      *
+     * <p>Business Rules Enforced:
+     * <ul>
+     *   <li>BR-ATTEND-004: Only MAIN_TEACHER can update attendance</li>
+     * </ul>
+     *
      * <p>Recalculates points and updates student_points table.
      *
      * @param id attendance ID
      * @param request update request
+     * @param teacherId teacher ID who is updating attendance (must be MAIN_TEACHER)
      * @return updated attendance record
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if not found
+     * @throws com.kiteclass.core.common.exception.PermissionDeniedException if teacher is not MAIN_TEACHER
      */
-    AttendanceResponse updateAttendanceStatus(Long id, @Valid UpdateAttendanceStatusRequest request);
+    AttendanceResponse updateAttendanceStatus(
+        Long id,
+        @Valid UpdateAttendanceStatusRequest request,
+        Long teacherId
+    );
 
     /**
      * Get attendance statistics for a student.
