@@ -2,10 +2,10 @@ package com.kiteclass.core.module.attendance;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.AttendanceStatus;
-import com.kiteclass.core.common.constant.ClassSessionStatus;
 import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.constant.SessionStatus;
 import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.common.constant.TeacherStatus;
@@ -160,7 +160,7 @@ class AttendanceIntegrationTest {
                     .sessionDate(LocalDate.now())
                     .startTime(LocalTime.of(9, 0))
                     .endTime(LocalTime.of(11, 0))
-                    .status(ClassSessionStatus.SCHEDULED)
+                    .status(SessionStatus.SCHEDULED)
                     .attendanceTaken(false)
                     .build();
             savedSession = classSessionRepository.save(session);
