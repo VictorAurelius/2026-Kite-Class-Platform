@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.payment.entity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -13,7 +12,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -49,8 +47,7 @@ public class PaymentWebhookLog {
     @Column(name = "gateway", nullable = false, length = 50)
     private String gateway;
 
-    @Type(JsonBinaryType.class)
-    @Column(name = "request_payload", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "request_payload", nullable = false, columnDefinition = "TEXT")
     private String requestPayload;
 
     @Column(name = "signature", length = 512)

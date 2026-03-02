@@ -24,7 +24,7 @@ CREATE TABLE payments (
     gateway_transaction_id VARCHAR(255),
     payment_url TEXT,
     qr_code_url TEXT,
-    gateway_response JSONB,
+    gateway_response TEXT,
 
     -- Receipt
     receipt_number VARCHAR(50),
@@ -73,7 +73,7 @@ CREATE TABLE payment_webhook_logs (
     instance_id UUID NOT NULL,
     payment_id BIGINT REFERENCES payments(id),
     gateway VARCHAR(50) NOT NULL,
-    request_payload JSONB NOT NULL,
+    request_payload TEXT NOT NULL,
     signature VARCHAR(512),
     signature_valid BOOLEAN,
     processed BOOLEAN DEFAULT FALSE,

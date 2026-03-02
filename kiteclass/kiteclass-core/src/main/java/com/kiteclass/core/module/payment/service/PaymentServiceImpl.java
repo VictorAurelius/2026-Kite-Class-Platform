@@ -1,10 +1,10 @@
 package com.kiteclass.core.module.payment.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kiteclass.core.common.constant.InvoiceStatus;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.invoice.entity.Invoice;
-import com.kiteclass.core.module.invoice.enums.InvoiceStatus;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import com.kiteclass.core.module.payment.dto.CreateInstallmentPaymentRequest;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
