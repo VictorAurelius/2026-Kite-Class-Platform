@@ -63,7 +63,6 @@ public interface AssignmentMapper {
      * Map Submission entity to SubmissionResponse.
      */
     @Mapping(target = "createdAt", expression = "java(toLocalDateTime(submission.getCreatedAt()))")
-    @Mapping(target = "updatedAt", expression = "java(toLocalDateTime(submission.getUpdatedAt()))")
     @Mapping(target = "isLate",
             expression = "java(submission.getSubmissionDate() != null "
                     + "&& dueDate != null && submission.isLate(dueDate))")
