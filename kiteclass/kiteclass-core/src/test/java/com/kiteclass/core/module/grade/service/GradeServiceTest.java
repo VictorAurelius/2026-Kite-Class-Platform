@@ -106,8 +106,7 @@ class GradeServiceTest {
         // Setup test student
         testStudent = Student.builder()
                 .email("student@test.com")
-                .firstName("John")
-                .lastName("Doe")
+                .name("John Doe")
                 .build();
         testStudent.setId(studentId);
         testStudent.setInstanceId(tenantId);
@@ -406,7 +405,7 @@ class GradeServiceTest {
         TeacherClass assistantTeacher = TeacherClass.builder()
                 .teacherId(teacherId)
                 .classId(classId)
-                .role(TeacherClassRole.ASSISTANT_TEACHER)
+                .role(TeacherClassRole.ASSISTANT)
                 .build();
 
         FinalizeGradeRequest request = FinalizeGradeRequest.builder()
