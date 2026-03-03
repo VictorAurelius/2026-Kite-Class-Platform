@@ -114,6 +114,7 @@ class LessonProgressServiceTest {
         // Given
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
+        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
         when(lessonProgressRepository.findByUserIdAndLessonIdAndDeletedFalse(userId, 1L))
                 .thenReturn(Optional.empty());
         when(lessonProgressRepository.save(any(LessonProgress.class))).thenReturn(testProgress);
@@ -153,6 +154,7 @@ class LessonProgressServiceTest {
         // Given
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
+        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
         when(lessonProgressRepository.findByUserIdAndLessonIdAndDeletedFalse(userId, 1L))
                 .thenReturn(Optional.of(testProgress));
         when(lessonProgressRepository.save(any(LessonProgress.class))).thenReturn(testProgress);
@@ -183,6 +185,7 @@ class LessonProgressServiceTest {
         testProgress.markAsCompleted(); // Already completed
 
         when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testLesson));
+        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
         when(lessonProgressRepository.findByUserIdAndLessonIdAndDeletedFalse(userId, 1L))
                 .thenReturn(Optional.of(testProgress));
         when(lmsMapper.toProgressResponse(any())).thenReturn(

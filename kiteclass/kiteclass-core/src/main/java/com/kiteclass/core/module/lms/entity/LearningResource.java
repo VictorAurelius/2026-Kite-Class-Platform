@@ -8,7 +8,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -70,11 +69,4 @@ public class LearningResource extends BaseEntity {
      */
     @Column(name = "file_size")
     private Long fileSize;
-
-    /**
-     * Version field for optimistic locking
-     */
-    @Version
-    @Column(name = "version")
-    private Long version;
 }

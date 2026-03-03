@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -82,13 +81,6 @@ public class LessonProgress extends BaseEntity {
     @Column(name = "progress_percent", nullable = false)
     @Builder.Default
     private Integer progressPercent = 0;
-
-    /**
-     * Version field for optimistic locking
-     */
-    @Version
-    @Column(name = "version")
-    private Long version;
 
     /**
      * Helper method to mark a lesson as completed (idempotent - BR-LMS-010).

@@ -68,7 +68,6 @@ public interface LmsMapper {
      * @return CourseModule entity
      */
     @Mapping(target = "courseId", ignore = true)  // Set by service layer
-    @Mapping(target = "version", ignore = true)
     CourseModule toModuleEntity(CreateCourseModuleRequest request);
 
     /**
@@ -86,7 +85,6 @@ public interface LmsMapper {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateModuleEntity(@MappingTarget CourseModule entity, UpdateCourseModuleRequest request);
 
@@ -116,7 +114,6 @@ public interface LmsMapper {
      */
     @Mapping(target = "moduleId", ignore = true)  // Set by service layer
     @Mapping(target = "isTrial", defaultValue = "false")  // Default to false if not provided
-    @Mapping(target = "version", ignore = true)
     Lesson toLessonEntity(CreateLessonRequest request);
 
     /**
@@ -134,7 +131,6 @@ public interface LmsMapper {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
-    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateLessonEntity(@MappingTarget Lesson entity, UpdateLessonRequest request);
 
@@ -163,7 +159,6 @@ public interface LmsMapper {
      * @return LearningResource entity
      */
     @Mapping(target = "lessonId", ignore = true)  // Set by service layer
-    @Mapping(target = "version", ignore = true)
     LearningResource toResourceEntity(CreateLearningResourceRequest request);
 
     // ==================== LessonProgress Mappings ====================

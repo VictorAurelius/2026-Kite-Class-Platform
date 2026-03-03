@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -92,13 +91,6 @@ public class Lesson extends BaseEntity {
      */
     @Column(name = "estimated_duration")
     private Integer estimatedDuration;
-
-    /**
-     * Version field for optimistic locking
-     */
-    @Version
-    @Column(name = "version")
-    private Long version;
 
     /**
      * Helper method to check if this is a trial lesson.

@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -69,11 +68,4 @@ public class CourseModule extends BaseEntity {
      */
     @Column(name = "order_number", nullable = false)
     private Integer orderNumber;
-
-    /**
-     * Version field for optimistic locking
-     */
-    @Version
-    @Column(name = "version")
-    private Long version;
 }
