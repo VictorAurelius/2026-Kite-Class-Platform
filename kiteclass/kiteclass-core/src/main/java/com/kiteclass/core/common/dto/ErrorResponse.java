@@ -31,6 +31,8 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
 
+    @Builder.Default
+    private boolean success = false;
     private String code;
     private String message;
     private String path;
