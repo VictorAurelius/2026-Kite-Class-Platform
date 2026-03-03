@@ -130,7 +130,6 @@ class AssignmentServiceTest {
                 .role(TeacherClassRole.MAIN_TEACHER)
                 .build();
         mainTeacherClass.setId(1L);
-        mainTeacherClass.setInstanceId(tenantId);
     }
 
     // ==================== Create Assignment Tests ====================
