@@ -20,6 +20,9 @@ import com.kiteclass.core.module.assignment.repository.AssignmentRepository;
 import com.kiteclass.core.module.assignment.repository.SubmissionRepository;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.teacher.constant.TeacherClassRole;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +49,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final SubmissionRepository submissionRepository;
     private final ClassRepository classRepository;
+    private final TeacherClassRepository teacherClassRepository;
     private final AssignmentMapper assignmentMapper;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -57,7 +61,11 @@ public class AssignmentServiceImpl implements AssignmentService {
             .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", request.getClassId()));
 
         // 2. Permission check: Only MAIN_TEACHER can create assignments
-        if (!clazz.getMainTeacherId().equals(teacherId)) {
+        TeacherClass teacherClass = teacherClassRepository
+                .findByTeacherIdAndClassId(teacherId, request.getClassId())
+                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
+
+        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
             throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_CREATE_ASSIGNMENT");
         }
 
@@ -371,10 +379,11 @@ public class AssignmentServiceImpl implements AssignmentService {
     }
 
     private void validateTeacherPermission(Assignment assignment, Long teacherId) {
-        Class clazz = classRepository.findByIdAndDeletedFalse(assignment.getClassId())
-            .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", assignment.getClassId()));
+        TeacherClass teacherClass = teacherClassRepository
+                .findByTeacherIdAndClassId(teacherId, assignment.getClassId())
+                .orElseThrow(() -> new PermissionDeniedException("TEACHER_NOT_IN_CLASS"));
 
-        if (!clazz.getMainTeacherId().equals(teacherId)) {
+        if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
             throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MANAGE_ASSIGNMENT");
         }
     }
