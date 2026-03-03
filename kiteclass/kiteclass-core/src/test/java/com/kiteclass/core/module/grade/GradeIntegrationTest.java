@@ -132,7 +132,6 @@ class GradeIntegrationTest {
                 .classId(testClass.getId())
                 .role(TeacherClassRole.MAIN_TEACHER)
                 .build();
-        teacherClass.setInstanceId(tenantId);
         teacherClassRepository.save(teacherClass);
 
         // Create test student
@@ -157,6 +156,7 @@ class GradeIntegrationTest {
 
         // Create grading scale
         testGradingScale = GradingScale.builder()
+                .scaleName("Standard")
                 .letterGrade("B+")
                 .gpaValue(BigDecimal.valueOf(3.3))
                 .minScore(BigDecimal.valueOf(87.00))
