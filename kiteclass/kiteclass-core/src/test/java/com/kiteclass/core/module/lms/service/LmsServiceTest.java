@@ -235,8 +235,6 @@ class LmsServiceTest {
 
         // Then - Should succeed (no enrollment check in Phase 1)
         assertThat(result).isNotNull();
-                .isInstanceOf(PermissionDeniedException.class)
-                .hasMessageContaining("ENROLLMENT_REQUIRED");
     }
 
     // ==================== Teacher CRUD Tests ====================
