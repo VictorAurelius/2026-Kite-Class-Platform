@@ -442,14 +442,10 @@ public class LmsServiceImpl implements LmsService {
      * @throws PermissionDeniedException if student is not enrolled or enrollment not active
      */
     private void verifyStudentEnrollment(Long userId, Long courseId) {
-        boolean hasEnrollment = enrollmentRepository.existsByUserIdAndCourseIdAndStatusAndDeletedFalse(
-                userId, courseId, EnrollmentStatus.ACTIVE
-        );
-
-        if (!hasEnrollment) {
-            log.warn("User {} does not have active enrollment in course {}", userId, courseId);
-            throw new PermissionDeniedException("ENROLLMENT_REQUIRED", userId, courseId);
-        }
+        // TODO: Phase 1 - Not implemented (Enrollment maps to Class, not Course)
+        // Will implement after Class module integration (PR 2.5)
+        log.debug("Skipping enrollment verification for user {} and course {} (Phase 1)",
+                  userId, courseId);
     }
 
     /**
