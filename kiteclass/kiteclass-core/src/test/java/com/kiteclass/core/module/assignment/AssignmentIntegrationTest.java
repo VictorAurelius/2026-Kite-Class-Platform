@@ -113,7 +113,6 @@ class AssignmentIntegrationTest {
                 .classId(testClass.getId())
                 .role(TeacherClassRole.MAIN_TEACHER)
                 .build();
-        teacherClass.setInstanceId(tenantId);
         teacherClassRepository.save(teacherClass);
 
         // Create test student
