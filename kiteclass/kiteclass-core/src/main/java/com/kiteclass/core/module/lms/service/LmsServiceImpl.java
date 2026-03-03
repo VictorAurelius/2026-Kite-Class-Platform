@@ -1,14 +1,12 @@
 package com.kiteclass.core.module.lms.service;
 
 import com.kiteclass.core.common.constant.CourseStatus;
-import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.repository.CourseRepository;
-import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.lms.dto.request.CreateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
@@ -53,7 +51,8 @@ public class LmsServiceImpl implements LmsService {
     private final LessonRepository lessonRepository;
     private final LearningResourceRepository learningResourceRepository;
     private final CourseRepository courseRepository;
-    private final EnrollmentRepository enrollmentRepository;
+    // TODO: Re-add after Class module integration (PR 2.5) for enrollment verification
+    // private final EnrollmentRepository enrollmentRepository;
     private final LmsMapper lmsMapper;
 
     // ==================== Public Endpoints (Guest Access) ====================
