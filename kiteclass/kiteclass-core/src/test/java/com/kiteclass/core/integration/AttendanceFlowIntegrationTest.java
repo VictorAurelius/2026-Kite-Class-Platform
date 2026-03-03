@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -102,11 +101,17 @@ class AttendanceFlowIntegrationTest {
 
         // Create course
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "PHY101",
-                "Physics Basics",
-                "Introduction to Physics",
-                BigDecimal.valueOf(3.0),
-                "Syllabus"
+                "Physics Basics",              // name
+                "PHY101",                      // code
+                "Introduction to Physics",     // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -145,13 +150,21 @@ class AttendanceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // Enroll student
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
 
-        mockMvc.perform(post("/api/v1/enrollments")
+        MvcResult enrollResult = mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(enrollRequest)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long enrollmentId = objectMapper.readTree(enrollResult.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
 
         // ========== Step 2: Get Class Sessions ==========
         MvcResult sessionsResult = mockMvc.perform(get("/api/v1/classes/" + classId + "/sessions")
@@ -173,13 +186,11 @@ class AttendanceFlowIntegrationTest {
         Long session3Id = sessions.get(2).get("id").asLong();
 
         // ========== Step 3: Mark Attendance for Session 1 (PRESENT) ==========
-        CreateAttendanceRequest attendance1 = new CreateAttendanceRequest(
-                session1Id,
-                studentId,
-                AttendanceStatus.PRESENT,
-                LocalTime.of(8, 0),
-                null
-        );
+        CreateAttendanceRequest attendance1 = CreateAttendanceRequest.builder()
+                .enrollmentId(enrollmentId)
+                .sessionId(session1Id)
+                .status(AttendanceStatus.PRESENT)
+                .build();
 
         mockMvc.perform(post("/api/v1/attendance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -189,13 +200,11 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.status").value("PRESENT"));
 
         // ========== Step 4: Mark Attendance for Session 2 (PRESENT) ==========
-        CreateAttendanceRequest attendance2 = new CreateAttendanceRequest(
-                session2Id,
-                studentId,
-                AttendanceStatus.PRESENT,
-                LocalTime.of(8, 5),
-                null
-        );
+        CreateAttendanceRequest attendance2 = CreateAttendanceRequest.builder()
+                .enrollmentId(enrollmentId)
+                .sessionId(session2Id)
+                .status(AttendanceStatus.PRESENT)
+                .build();
 
         mockMvc.perform(post("/api/v1/attendance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -204,13 +213,12 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // ========== Step 5: Mark Attendance for Session 3 (ABSENT) ==========
-        CreateAttendanceRequest attendance3 = new CreateAttendanceRequest(
-                session3Id,
-                studentId,
-                AttendanceStatus.ABSENT,
-                null,
-                "Sick leave"
-        );
+        CreateAttendanceRequest attendance3 = CreateAttendanceRequest.builder()
+                .enrollmentId(enrollmentId)
+                .sessionId(session3Id)
+                .status(AttendanceStatus.ABSENT)
+                .notes("Sick leave")
+                .build();
 
         mockMvc.perform(post("/api/v1/attendance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -250,11 +258,17 @@ class AttendanceFlowIntegrationTest {
     void testMultipleStudentsAttendance() throws Exception {
         // ========== Setup: Create 3 Students + Class ==========
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "CHEM101",
-                "Chemistry",
-                "Basic Chemistry",
-                BigDecimal.valueOf(3.0),
-                "Syllabus"
+                "Chemistry",                   // name
+                "CHEM101",                     // code
+                "Basic Chemistry",             // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -291,8 +305,9 @@ class AttendanceFlowIntegrationTest {
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        // Create 3 students
+        // Create 3 students and store their enrollment IDs
         Long[] studentIds = new Long[3];
+        Long[] enrollmentIds = new Long[3];
         for (int i = 0; i < 3; i++) {
             CreateStudentRequest studentRequest = new CreateStudentRequest(
                     "Student " + (i + 1),
@@ -314,13 +329,22 @@ class AttendanceFlowIntegrationTest {
             studentIds[i] = objectMapper.readTree(studentResult.getResponse().getContentAsString())
                     .get("data").get("id").asLong();
 
-            // Enroll student
-            CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentIds[i], classId);
-            mockMvc.perform(post("/api/v1/enrollments")
+            // Enroll student and store enrollment ID
+            CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                    .studentId(studentIds[i])
+                    .classId(classId)
+                    .tuitionAmount(BigDecimal.valueOf(5000000))
+                    .build();
+
+            MvcResult enrollResult = mockMvc.perform(post("/api/v1/enrollments")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("X-Tenant-Id", tenantId.toString())
                             .content(objectMapper.writeValueAsString(enrollRequest)))
-                    .andExpect(status().isCreated());
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            enrollmentIds[i] = objectMapper.readTree(enrollResult.getResponse().getContentAsString())
+                    .get("data").get("id").asLong();
         }
 
         // ========== Get First Session ==========
@@ -340,13 +364,11 @@ class AttendanceFlowIntegrationTest {
 
         // ========== Mark Attendance for All Students ==========
         // Student 1: PRESENT
-        CreateAttendanceRequest attendance1 = new CreateAttendanceRequest(
-                sessionId,
-                studentIds[0],
-                AttendanceStatus.PRESENT,
-                LocalTime.of(8, 0),
-                null
-        );
+        CreateAttendanceRequest attendance1 = CreateAttendanceRequest.builder()
+                .enrollmentId(enrollmentIds[0])
+                .sessionId(sessionId)
+                .status(AttendanceStatus.PRESENT)
+                .build();
         mockMvc.perform(post("/api/v1/attendance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
@@ -354,13 +376,12 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // Student 2: LATE
-        CreateAttendanceRequest attendance2 = new CreateAttendanceRequest(
-                sessionId,
-                studentIds[1],
-                AttendanceStatus.LATE,
-                LocalTime.of(8, 15),
-                "15 minutes late"
-        );
+        CreateAttendanceRequest attendance2 = CreateAttendanceRequest.builder()
+                .enrollmentId(enrollmentIds[1])
+                .sessionId(sessionId)
+                .status(AttendanceStatus.LATE)
+                .notes("15 minutes late")
+                .build();
         mockMvc.perform(post("/api/v1/attendance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
@@ -368,13 +389,12 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // Student 3: ABSENT
-        CreateAttendanceRequest attendance3 = new CreateAttendanceRequest(
-                sessionId,
-                studentIds[2],
-                AttendanceStatus.ABSENT,
-                null,
-                "Sick"
-        );
+        CreateAttendanceRequest attendance3 = CreateAttendanceRequest.builder()
+                .enrollmentId(enrollmentIds[2])
+                .sessionId(sessionId)
+                .status(AttendanceStatus.ABSENT)
+                .notes("Sick")
+                .build();
         mockMvc.perform(post("/api/v1/attendance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())

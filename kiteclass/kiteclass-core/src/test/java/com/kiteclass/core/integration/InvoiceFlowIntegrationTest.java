@@ -99,11 +99,17 @@ class InvoiceFlowIntegrationTest {
 
         // ========== Step 2: Create Course + Class ==========
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "ART101",
-                "Art Fundamentals",
-                "Introduction to Art",
-                BigDecimal.valueOf(2.0),
-                "Syllabus"
+                "Art Fundamentals",            // name
+                "ART101",                      // code
+                "Introduction to Art",         // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -141,7 +147,11 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 3: Enroll Student (Invoice Should Be Auto-Created) ==========
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
 
         MvcResult enrollResult = mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -241,11 +251,17 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "MUS101",
-                "Music Theory",
-                "Introduction to Music",
-                BigDecimal.valueOf(2.0),
-                "Syllabus"
+                "Music Theory",                // name
+                "MUS101",                      // code
+                "Introduction to Music",       // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -283,7 +299,11 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Enroll Student ==========
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())

@@ -100,11 +100,17 @@ class EnrollmentFlowIntegrationTest {
 
         // ========== Step 2: Create Course ==========
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "ENG101",
-                "English Basics",
-                "Introduction to English",
-                BigDecimal.valueOf(3.0),
-                "Week 1-16: Grammar and vocabulary"
+                "English Basics",              // name
+                "ENG101",                      // code
+                "Introduction to English",     // description
+                "Week 1-16: Grammar and vocabulary", // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -147,7 +153,11 @@ class EnrollmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 4: Enroll Student in Class ==========
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000)) // 5M VND
+                .build();
 
         MvcResult enrollResult = mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -229,11 +239,17 @@ class EnrollmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "MATH202",
-                "Advanced Math",
-                "Advanced topics",
-                BigDecimal.valueOf(4.0),
-                "Syllabus"
+                "Advanced Math",               // name
+                "MATH202",                     // code
+                "Advanced topics",             // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -271,7 +287,11 @@ class EnrollmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== First Enrollment: Should Succeed ==========
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
 
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)

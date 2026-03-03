@@ -103,11 +103,17 @@ class AssignmentFlowIntegrationTest {
 
         // Create course
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "BIO101",
-                "Biology Basics",
-                "Introduction to Biology",
-                BigDecimal.valueOf(3.0),
-                "Syllabus"
+                "Biology Basics",              // name
+                "BIO101",                      // code
+                "Introduction to Biology",     // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -146,7 +152,11 @@ class AssignmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // Enroll student
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
 
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -155,13 +165,15 @@ class AssignmentFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // ========== Step 2: Teacher Creates Assignment ==========
-        CreateAssignmentRequest assignmentRequest = new CreateAssignmentRequest(
-                classId,
-                "Lab Report 1",
-                "Write a lab report on cell structure",
-                LocalDateTime.now().plusDays(14),
-                BigDecimal.valueOf(100.0)
-        );
+        CreateAssignmentRequest assignmentRequest = CreateAssignmentRequest.builder()
+                .classId(classId)
+                .title("Lab Report 1")
+                .description("Write a lab report on cell structure")
+                .dueDate(LocalDateTime.now().plusDays(14))
+                .maxScore(BigDecimal.valueOf(100.0))
+                .weightPercent(BigDecimal.valueOf(20.0))
+                .allowLateSubmission(false)
+                .build();
 
         MvcResult assignmentResult = mockMvc.perform(post("/api/v1/assignments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -176,12 +188,10 @@ class AssignmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 3: Student Submits Assignment ==========
-        SubmitAssignmentRequest submitRequest = new SubmitAssignmentRequest(
-                studentId,
-                assignmentId,
-                "Here is my lab report on cell structure. Submitted via text.",
-                null // No file URL for simplicity
-        );
+        SubmitAssignmentRequest submitRequest = SubmitAssignmentRequest.builder()
+                .assignmentId(assignmentId)
+                .notes("Here is my lab report on cell structure. Submitted via text.")
+                .build();
 
         MvcResult submissionResult = mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/submit")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -197,10 +207,10 @@ class AssignmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 4: Teacher Grades Submission ==========
-        GradeSubmissionRequest gradeRequest = new GradeSubmissionRequest(
-                BigDecimal.valueOf(85.0),
-                "Good work! Well-organized report with clear observations."
-        );
+        GradeSubmissionRequest gradeRequest = GradeSubmissionRequest.builder()
+                .score(BigDecimal.valueOf(85.0))
+                .feedback("Good work! Well-organized report with clear observations.")
+                .build();
 
         mockMvc.perform(post("/api/v1/assignments/submissions/" + submissionId + "/grade")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -261,11 +271,17 @@ class AssignmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "GEO101",
-                "Geography",
-                "Introduction to Geography",
-                BigDecimal.valueOf(3.0),
-                "Syllabus"
+                "Geography",                   // name
+                "GEO101",                      // code
+                "Introduction to Geography",   // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -302,7 +318,11 @@ class AssignmentFlowIntegrationTest {
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
@@ -310,13 +330,15 @@ class AssignmentFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // ========== Create Assignment with Past Due Date ==========
-        CreateAssignmentRequest assignmentRequest = new CreateAssignmentRequest(
-                classId,
-                "Essay 1",
-                "Write an essay on climate change",
-                LocalDateTime.now().minusDays(7), // Due date in the past
-                BigDecimal.valueOf(100.0)
-        );
+        CreateAssignmentRequest assignmentRequest = CreateAssignmentRequest.builder()
+                .classId(classId)
+                .title("Essay 1")
+                .description("Write an essay on climate change")
+                .dueDate(LocalDateTime.now().minusDays(7)) // Due date in the past
+                .maxScore(BigDecimal.valueOf(100.0))
+                .weightPercent(BigDecimal.valueOf(30.0))
+                .allowLateSubmission(true) // Allow late submission for this test
+                .build();
 
         MvcResult assignmentResult = mockMvc.perform(post("/api/v1/assignments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -329,12 +351,10 @@ class AssignmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Student Submits After Deadline ==========
-        SubmitAssignmentRequest submitRequest = new SubmitAssignmentRequest(
-                studentId,
-                assignmentId,
-                "Late submission - apologies for the delay",
-                null
-        );
+        SubmitAssignmentRequest submitRequest = SubmitAssignmentRequest.builder()
+                .assignmentId(assignmentId)
+                .notes("Late submission - apologies for the delay")
+                .build();
 
         mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/submit")
                         .contentType(MediaType.APPLICATION_JSON)

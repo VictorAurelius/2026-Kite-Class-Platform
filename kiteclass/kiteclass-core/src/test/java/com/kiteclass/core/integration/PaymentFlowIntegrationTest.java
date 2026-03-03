@@ -101,11 +101,17 @@ class PaymentFlowIntegrationTest {
 
         // ========== Step 2: Create Course + Class ==========
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "LIT101",
-                "Literature Basics",
-                "Introduction to Literature",
-                BigDecimal.valueOf(3.0),
-                "Syllabus"
+                "Literature Basics",           // name
+                "LIT101",                      // code
+                "Introduction to Literature",  // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -143,7 +149,11 @@ class PaymentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 3: Enroll Student (Invoice Auto-Created) ==========
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
 
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -169,11 +179,11 @@ class PaymentFlowIntegrationTest {
         BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
 
         // ========== Step 5: Initiate Payment ==========
-        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(
-                invoiceId,
-                totalAmount,
-                PaymentMethod.BANK_TRANSFER
-        );
+        CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
+                .invoiceId(invoiceId)
+                .amount(totalAmount)
+                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .build();
 
         MvcResult paymentResult = mockMvc.perform(post("/api/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -254,11 +264,17 @@ class PaymentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         CreateCourseRequest courseRequest = new CreateCourseRequest(
-                "HIS101",
-                "History",
-                "Introduction to History",
-                BigDecimal.valueOf(3.0),
-                "Syllabus"
+                "History",                     // name
+                "HIS101",                      // code
+                "Introduction to History",     // description
+                "Syllabus",                    // syllabus
+                null,                          // objectives
+                null,                          // prerequisites
+                null,                          // targetAudience
+                1L,                            // teacherId
+                null,                          // durationWeeks
+                null,                          // totalSessions
+                null                           // price
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
@@ -295,7 +311,11 @@ class PaymentFlowIntegrationTest {
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(BigDecimal.valueOf(5000000))
+                .build();
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
@@ -319,11 +339,11 @@ class PaymentFlowIntegrationTest {
         BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
 
         // ========== Initiate Payment ==========
-        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(
-                invoiceId,
-                totalAmount,
-                PaymentMethod.BANK_TRANSFER
-        );
+        CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
+                .invoiceId(invoiceId)
+                .amount(totalAmount)
+                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .build();
 
         MvcResult paymentResult = mockMvc.perform(post("/api/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -360,11 +380,11 @@ class PaymentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
 
         // ========== Verify Can Retry Payment ==========
-        CreatePaymentRequest retryPayment = new CreatePaymentRequest(
-                invoiceId,
-                totalAmount,
-                PaymentMethod.CASH
-        );
+        CreatePaymentRequest retryPayment = CreatePaymentRequest.builder()
+                .invoiceId(invoiceId)
+                .amount(totalAmount)
+                .paymentMethod(PaymentMethod.CASH)
+                .build();
 
         mockMvc.perform(post("/api/v1/payments")
                         .contentType(MediaType.APPLICATION_JSON)
