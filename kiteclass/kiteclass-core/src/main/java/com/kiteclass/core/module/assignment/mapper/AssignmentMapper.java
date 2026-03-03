@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.assignment.mapper;
 
-import com.kiteclass.core.common.constant.AssignmentStatus;
 import com.kiteclass.core.module.assignment.dto.request.CreateAssignmentRequest;
 import com.kiteclass.core.module.assignment.dto.request.UpdateAssignmentRequest;
 import com.kiteclass.core.module.assignment.dto.response.AssignmentResponse;
@@ -70,7 +69,9 @@ public interface AssignmentMapper {
     /**
      * Map Submission entity to SubmissionResponse.
      */
-    @Mapping(target = "isLate", expression = "java(submission.getSubmissionDate() != null && dueDate != null && submission.isLate(dueDate))")
+    @Mapping(target = "isLate",
+            expression = "java(submission.getSubmissionDate() != null "
+                    + "&& dueDate != null && submission.isLate(dueDate))")
     @Mapping(target = "penaltyApplied", expression = "java(calculatePenalty(submission))")
     SubmissionResponse toSubmissionResponse(Submission submission, @Context LocalDateTime dueDate);
 
