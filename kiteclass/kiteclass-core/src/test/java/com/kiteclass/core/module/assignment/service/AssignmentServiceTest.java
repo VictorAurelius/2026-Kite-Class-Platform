@@ -19,6 +19,9 @@ import com.kiteclass.core.module.assignment.repository.AssignmentRepository;
 import com.kiteclass.core.module.assignment.repository.SubmissionRepository;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
+import com.kiteclass.core.common.constant.TeacherClassRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,6 +69,9 @@ class AssignmentServiceTest {
     private ClassRepository classRepository;
 
     @Mock
+    private TeacherClassRepository teacherClassRepository;
+
+    @Mock
     private AssignmentMapper assignmentMapper;
 
     @Mock
@@ -77,6 +83,7 @@ class AssignmentServiceTest {
     private Class testClass;
     private Assignment testAssignment;
     private Submission testSubmission;
+    private TeacherClass mainTeacherClass;
     private UUID tenantId;
     private Long mainTeacherId;
     private Long studentId;
@@ -88,8 +95,7 @@ class AssignmentServiceTest {
         studentId = 200L;
 
         testClass = Class.builder()
-                .className("Math 101")
-                .mainTeacherId(mainTeacherId)
+                .name("Math 101")
                 .build();
         testClass.setId(1L);
         testClass.setInstanceId(tenantId);
@@ -117,6 +123,14 @@ class AssignmentServiceTest {
                 .build();
         testSubmission.setId(1L);
         testSubmission.setInstanceId(tenantId);
+
+        mainTeacherClass = TeacherClass.builder()
+                .teacherId(mainTeacherId)
+                .classId(1L)
+                .role(TeacherClassRole.MAIN_TEACHER)
+                .build();
+        mainTeacherClass.setId(1L);
+        mainTeacherClass.setInstanceId(tenantId);
     }
 
     // ==================== Create Assignment Tests ====================
@@ -135,6 +149,8 @@ class AssignmentServiceTest {
                 .build();
 
         when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
         when(assignmentMapper.toEntity(request)).thenReturn(testAssignment);
         when(assignmentRepository.save(any(Assignment.class))).thenReturn(testAssignment);
         when(assignmentMapper.toResponse(testAssignment))
