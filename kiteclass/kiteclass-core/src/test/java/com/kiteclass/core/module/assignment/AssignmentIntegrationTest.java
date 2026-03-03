@@ -18,6 +18,9 @@ import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
+import com.kiteclass.core.common.constant.TeacherClassRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,6 +82,9 @@ class AssignmentIntegrationTest {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Autowired
+    private TeacherClassRepository teacherClassRepository;
+
     private Class testClass;
     private Student testStudent;
     private Assignment testAssignment;
@@ -93,20 +99,26 @@ class AssignmentIntegrationTest {
 
         // Create test class
         testClass = Class.builder()
-                .className("Math 101")
+                .name("Math 101")
                 .classCode("MATH-101")
-                .mainTeacherId(mainTeacherId)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusMonths(3))
                 .build();
         testClass.setInstanceId(tenantId);
         testClass = classRepository.save(testClass);
 
+        // Create teacher-class relationship
+        TeacherClass teacherClass = TeacherClass.builder()
+                .teacherId(mainTeacherId)
+                .classId(testClass.getId())
+                .role(TeacherClassRole.MAIN_TEACHER)
+                .build();
+        teacherClass.setInstanceId(tenantId);
+        teacherClassRepository.save(teacherClass);
+
         // Create test student
         testStudent = Student.builder()
-                .userId(studentId)
-                .firstName("John")
-                .lastName("Doe")
+                .name("John Doe")
                 .dateOfBirth(LocalDate.of(2005, 1, 1))
                 .email("john.doe@example.com")
                 .phone("0123456789")
@@ -210,13 +222,13 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(post("/api/v1/assignments/submit")
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", testStudent.getUserId().toString())
+                        .header("X-User-Id", testStudent.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.assignmentId").value(testAssignment.getId()))
-                .andExpect(jsonPath("$.data.studentId").value(testStudent.getUserId()))
+                .andExpect(jsonPath("$.data.studentId").value(testStudent.getId()))
                 .andExpect(jsonPath("$.data.status").value("PENDING"));
     }
 
@@ -229,7 +241,7 @@ class AssignmentIntegrationTest {
 
         Submission existingSubmission = Submission.builder()
                 .assignmentId(testAssignment.getId())
-                .studentId(testStudent.getUserId())
+                .studentId(testStudent.getId())
                 .submissionDate(LocalDateTime.now())
                 .status(SubmissionStatus.PENDING)
                 .build();
@@ -243,7 +255,7 @@ class AssignmentIntegrationTest {
 
         mockMvc.perform(post("/api/v1/assignments/submit")
                         .header("X-Tenant-Id", tenantId.toString())
-                        .header("X-User-Id", testStudent.getUserId().toString())
+                        .header("X-User-Id", testStudent.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -258,7 +270,7 @@ class AssignmentIntegrationTest {
         // Create submission
         Submission submission = Submission.builder()
                 .assignmentId(testAssignment.getId())
-                .studentId(testStudent.getUserId())
+                .studentId(testStudent.getId())
                 .submissionDate(LocalDateTime.now())
                 .status(SubmissionStatus.PENDING)
                 .build();
@@ -292,7 +304,7 @@ class AssignmentIntegrationTest {
         // Create late submission
         Submission submission = Submission.builder()
                 .assignmentId(testAssignment.getId())
-                .studentId(testStudent.getUserId())
+                .studentId(testStudent.getId())
                 .submissionDate(LocalDateTime.now()) // 2 days late
                 .status(SubmissionStatus.PENDING)
                 .build();
@@ -365,7 +377,7 @@ class AssignmentIntegrationTest {
         // Create submission
         Submission submission = Submission.builder()
                 .assignmentId(testAssignment.getId())
-                .studentId(testStudent.getUserId())
+                .studentId(testStudent.getId())
                 .submissionDate(LocalDateTime.now())
                 .status(SubmissionStatus.PENDING)
                 .build();
