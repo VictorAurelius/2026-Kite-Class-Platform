@@ -31,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -121,8 +123,10 @@ public class LmsServiceImpl implements LmsService {
     public List<CourseModuleDetailResponse> getCourseStructureForStudent(Long courseId, Long userId) {
         log.info("Fetching course structure for student userId: {} courseId: {}", userId, courseId);
 
-        // Verify enrollment (BR-LMS-002)
-        verifyStudentEnrollment(userId, courseId);
+        // TODO: Verify enrollment (BR-LMS-002)
+        // Phase 1: Enrollment maps to Class, not Course. Skip verification for now.
+        // Will implement after Class module integration (PR 2.5)
+        // verifyStudentEnrollment(userId, courseId);
 
         // Fetch modules + ALL lessons
         List<CourseModule> modules = courseModuleRepository
@@ -152,10 +156,11 @@ public class LmsServiceImpl implements LmsService {
         }
 
         // If not trial, verify enrollment (BR-LMS-002)
-        CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
-
-        verifyStudentEnrollment(userId, module.getCourseId());
+        // TODO: Phase 1 - Skip enrollment verification (Enrollment maps to Class, not Course)
+        // Will implement after Class module integration (PR 2.5)
+        // CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
+        //         .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+        // verifyStudentEnrollment(userId, module.getCourseId());
 
         return buildLessonDetailResponse(lesson);
     }
@@ -484,8 +489,8 @@ public class LmsServiceImpl implements LmsService {
                 .orderNumber(module.getOrderNumber())
                 .lessons(lmsMapper.toLessonResponseList(lessons))
                 .lessonCount(lessons.size())
-                .createdAt(module.getCreatedAt())
-                .updatedAt(module.getUpdatedAt())
+                .createdAt(convertToLocalDateTime(module.getCreatedAt()))
+                .updatedAt(convertToLocalDateTime(module.getUpdatedAt()))
                 .build();
     }
 
@@ -510,8 +515,18 @@ public class LmsServiceImpl implements LmsService {
                 .estimatedDuration(lesson.getEstimatedDuration())
                 .resources(lmsMapper.toResourceResponseList(resources))
                 .resourceCount(resources.size())
-                .createdAt(lesson.getCreatedAt())
-                .updatedAt(lesson.getUpdatedAt())
+                .createdAt(convertToLocalDateTime(lesson.getCreatedAt()))
+                .updatedAt(convertToLocalDateTime(lesson.getUpdatedAt()))
                 .build();
+    }
+
+    /**
+     * Converts Instant to LocalDateTime using system default timezone.
+     *
+     * @param instant the Instant to convert
+     * @return LocalDateTime in system default timezone, or null if input is null
+     */
+    private LocalDateTime convertToLocalDateTime(java.time.Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }

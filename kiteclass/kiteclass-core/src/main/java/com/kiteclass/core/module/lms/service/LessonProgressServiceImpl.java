@@ -85,9 +85,9 @@ public class LessonProgressServiceImpl implements LessonProgressService {
             progress = LessonProgress.builder()
                     .userId(userId)
                     .lessonId(lessonId)
-                    .instanceId(lesson.getInstanceId())
                     .build();
             progress.markAsCompleted();
+            // Note: instanceId will be set automatically by JPA @PrePersist in BaseEntity
             progress = lessonProgressRepository.save(progress);
 
             log.info("Created progress record and marked lesson {} as completed for user {}", lessonId, userId);
