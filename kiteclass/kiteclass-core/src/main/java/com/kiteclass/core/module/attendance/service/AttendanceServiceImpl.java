@@ -131,11 +131,11 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         // 2. Validate session exists and belongs to class
         ClassSession session = classSessionRepository.findByIdAndDeletedFalse(sessionId)
-                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", sessionId));
+                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", (Object) sessionId));
 
         if (!session.getClassId().equals(classId)) {
             log.warn("Session {} does not belong to class {}", sessionId, classId);
-            throw new ValidationException("SESSION_NOT_IN_CLASS");
+            throw new ValidationException("SESSION_NOT_IN_CLASS", new Object[0]);
         }
 
         // 3. Validate all enrollments belong to this class
@@ -148,7 +148,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (enrollments.size() != enrollmentIds.size()) {
             log.warn("Not all enrollment IDs found: expected {}, found {}",
                     enrollmentIds.size(), enrollments.size());
-            throw new EntityNotFoundException("ENROLLMENT_NOT_FOUND");
+            throw new EntityNotFoundException("ENROLLMENT_NOT_FOUND", new Object[0]);
         }
 
         // Verify all enrollments are for this class
@@ -157,7 +157,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         if (!allInClass) {
             log.warn("Not all enrollments belong to class {}", classId);
-            throw new ValidationException("ENROLLMENT_NOT_IN_CLASS");
+            throw new ValidationException("ENROLLMENT_NOT_IN_CLASS", new Object[0]);
         }
 
         // 4. Create or update attendance records
@@ -179,7 +179,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             // Collect attendance for event
             Attendance attendance = attendanceRepository.findByIdAndDeletedFalse(response.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("ATTENDANCE_NOT_FOUND", response.getId()));
+                    .orElseThrow(() -> new EntityNotFoundException("ATTENDANCE_NOT_FOUND", (Object) response.getId()));
             attendanceList.add(attendance);
         }
 
@@ -267,7 +267,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         // 2. Get session to find classId
         ClassSession session = classSessionRepository.findByIdAndDeletedFalse(attendance.getSessionId())
-                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", attendance.getSessionId()));
+                .orElseThrow(() -> new EntityNotFoundException("SESSION_NOT_FOUND", (Object) attendance.getSessionId()));
 
         // 3. Permission check: Verify teacher is MAIN_TEACHER
         TeacherClass teacherClass = teacherClassRepository

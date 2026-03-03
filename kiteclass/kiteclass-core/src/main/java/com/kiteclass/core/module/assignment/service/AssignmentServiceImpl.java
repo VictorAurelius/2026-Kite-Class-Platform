@@ -58,7 +58,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     public AssignmentResponse createAssignment(CreateAssignmentRequest request, Long teacherId) {
         // 1. Validate class exists
         Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
-            .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", request.getClassId()));
+            .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
 
         // 2. Permission check: Only MAIN_TEACHER can create assignments
         TeacherClass teacherClass = teacherClassRepository
@@ -100,7 +100,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         // 3. Validate: Cannot update published/closed assignment significantly
         if (assignment.getStatus() != AssignmentStatus.DRAFT) {
             if (request.getMaxScore() != null || request.getWeightPercent() != null) {
-                throw new ValidationException("CANNOT_CHANGE_SCORES_AFTER_PUBLISH");
+                throw new ValidationException("CANNOT_CHANGE_SCORES_AFTER_PUBLISH", new Object[0]);
             }
         }
 
@@ -126,7 +126,7 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         // 3. Validate status
         if (assignment.getStatus() != AssignmentStatus.DRAFT) {
-            throw new ValidationException("ASSIGNMENT_ALREADY_PUBLISHED");
+            throw new ValidationException("ASSIGNMENT_ALREADY_PUBLISHED", new Object[0]);
         }
 
         // 4. Publish
@@ -168,7 +168,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         // 3. Validate: Cannot delete if has submissions
         long submissionCount = submissionRepository.countByAssignmentIdAndDeletedFalse(id);
         if (submissionCount > 0) {
-            throw new ValidationException("CANNOT_DELETE_ASSIGNMENT_WITH_SUBMISSIONS");
+            throw new ValidationException("CANNOT_DELETE_ASSIGNMENT_WITH_SUBMISSIONS", new Object[0]);
         }
 
         // 4. Soft delete
@@ -209,14 +209,14 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         // 2. Validate: Assignment must accept submissions
         if (!assignment.isAcceptingSubmissions()) {
-            throw new ValidationException("ASSIGNMENT_NOT_ACCEPTING_SUBMISSIONS");
+            throw new ValidationException("ASSIGNMENT_NOT_ACCEPTING_SUBMISSIONS", new Object[0]);
         }
 
         // 3. Check if student already submitted
         submissionRepository.findByAssignmentIdAndStudentIdAndDeletedFalse(
             request.getAssignmentId(), studentId)
             .ifPresent(existing -> {
-                throw new ValidationException("STUDENT_ALREADY_SUBMITTED");
+                throw new ValidationException("STUDENT_ALREADY_SUBMITTED", new Object[0]);
             });
 
         // 4. Create submission
@@ -268,7 +268,7 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         // 8. Publish event for Grade Module
         Class clazz = classRepository.findByIdAndDeletedFalse(assignment.getClassId())
-            .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", assignment.getClassId()));
+            .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) assignment.getClassId()));
 
         eventPublisher.publishEvent(new AssignmentGradedEvent(this, gradedSubmission, clazz.getId()));
 
@@ -292,7 +292,7 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         // 4. Validate: Must be graded first
         if (submission.getStatus() != SubmissionStatus.GRADED) {
-            throw new ValidationException("SUBMISSION_NOT_GRADED");
+            throw new ValidationException("SUBMISSION_NOT_GRADED", new Object[0]);
         }
 
         // 5. Return to student
@@ -370,12 +370,12 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     private Assignment findAssignmentById(Long id) {
         return assignmentRepository.findByIdAndDeletedFalse(id)
-            .orElseThrow(() -> new EntityNotFoundException("ASSIGNMENT_NOT_FOUND", id));
+            .orElseThrow(() -> new EntityNotFoundException("ASSIGNMENT_NOT_FOUND", (Object) id));
     }
 
     private Submission findSubmissionById(Long id) {
         return submissionRepository.findByIdAndDeletedFalse(id)
-            .orElseThrow(() -> new EntityNotFoundException("SUBMISSION_NOT_FOUND", id));
+            .orElseThrow(() -> new EntityNotFoundException("SUBMISSION_NOT_FOUND", (Object) id));
     }
 
     private void validateTeacherPermission(Assignment assignment, Long teacherId) {

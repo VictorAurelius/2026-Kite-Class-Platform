@@ -42,6 +42,12 @@ public interface AssignmentMapper {
     @Mapping(target = "classId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(UpdateAssignmentRequest request, @MappingTarget Assignment assignment);
 

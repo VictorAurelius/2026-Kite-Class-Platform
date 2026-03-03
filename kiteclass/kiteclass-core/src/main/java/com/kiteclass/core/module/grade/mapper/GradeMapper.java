@@ -46,6 +46,14 @@ public interface GradeMapper {
     @Mapping(target = "grade", ignore = true)
     @Mapping(target = "componentType", ignore = true)
     @Mapping(target = "componentRefId", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "weightedScore", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateComponentEntity(UpdateGradeComponentRequest request, @MappingTarget GradeComponent component);
 

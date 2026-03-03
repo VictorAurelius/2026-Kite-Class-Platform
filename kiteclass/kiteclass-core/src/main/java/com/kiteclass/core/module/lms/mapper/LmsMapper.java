@@ -85,6 +85,7 @@ public interface LmsMapper {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateModuleEntity(@MappingTarget CourseModule entity, UpdateCourseModuleRequest request);
 
@@ -131,6 +132,7 @@ public interface LmsMapper {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateLessonEntity(@MappingTarget Lesson entity, UpdateLessonRequest request);
 

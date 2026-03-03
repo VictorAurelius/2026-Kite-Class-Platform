@@ -68,11 +68,11 @@ public class GradeServiceImpl implements GradeService {
     public GradeResponse initializeGrade(Long studentId, Long classId) {
         // 1. Validate student exists
         Student student = studentRepository.findByIdAndDeletedFalse(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
+                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
 
         // 2. Validate class exists
         Class clazz = classRepository.findByIdAndDeletedFalse(classId)
-                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", classId));
+                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId));
 
         // 3. Check if grade already exists (unique constraint)
         Optional<Grade> existing = gradeRepository.findByStudentIdAndClassIdAndDeletedFalse(studentId, classId);
@@ -137,7 +137,7 @@ public class GradeServiceImpl implements GradeService {
 
         // 2. Validate: Cannot modify finalized grade
         if (grade.isFinalized()) {
-            throw new ValidationException("CANNOT_MODIFY_FINALIZED_GRADE");
+            throw new ValidationException("CANNOT_MODIFY_FINALIZED_GRADE", new Object[0]);
         }
 
         // 3. Check if component already exists (by type and refId)
@@ -177,11 +177,11 @@ public class GradeServiceImpl implements GradeService {
     public GradeComponentResponse updateComponent(Long componentId, UpdateGradeComponentRequest request) {
         // 1. Find component
         GradeComponent component = gradeComponentRepository.findByIdAndDeletedFalse(componentId)
-                .orElseThrow(() -> new EntityNotFoundException("GRADE_COMPONENT_NOT_FOUND", componentId));
+                .orElseThrow(() -> new EntityNotFoundException("GRADE_COMPONENT_NOT_FOUND", (Object) componentId));
 
         // 2. Validate: Cannot modify finalized grade
         if (component.getGrade().isFinalized()) {
-            throw new ValidationException("CANNOT_MODIFY_FINALIZED_GRADE");
+            throw new ValidationException("CANNOT_MODIFY_FINALIZED_GRADE", new Object[0]);
         }
 
         // 3. Update fields (only non-null values)
@@ -214,14 +214,14 @@ public class GradeServiceImpl implements GradeService {
     public void deleteComponent(Long componentId, Long teacherId) {
         // 1. Find component
         GradeComponent component = gradeComponentRepository.findByIdAndDeletedFalse(componentId)
-                .orElseThrow(() -> new EntityNotFoundException("GRADE_COMPONENT_NOT_FOUND", componentId));
+                .orElseThrow(() -> new EntityNotFoundException("GRADE_COMPONENT_NOT_FOUND", (Object) componentId));
 
         // 2. Permission check
         validateTeacherPermission(component.getGrade(), teacherId);
 
         // 3. Validate: Cannot modify finalized grade
         if (component.getGrade().isFinalized()) {
-            throw new ValidationException("CANNOT_MODIFY_FINALIZED_GRADE");
+            throw new ValidationException("CANNOT_MODIFY_FINALIZED_GRADE", new Object[0]);
         }
 
         // 4. Soft delete
@@ -262,12 +262,12 @@ public class GradeServiceImpl implements GradeService {
 
         // 3. Validate: Already finalized
         if (grade.isFinalized()) {
-            throw new ValidationException("GRADE_ALREADY_FINALIZED");
+            throw new ValidationException("GRADE_ALREADY_FINALIZED", new Object[0]);
         }
 
         // 4. Validate: Weights must sum to 100%
         if (!grade.isWeightsSumValid()) {
-            throw new ValidationException("GRADE_WEIGHTS_MUST_SUM_TO_100");
+            throw new ValidationException("GRADE_WEIGHTS_MUST_SUM_TO_100", new Object[0]);
         }
 
         // 5. Calculate final score if not already done
@@ -300,7 +300,7 @@ public class GradeServiceImpl implements GradeService {
 
         // 2. Validate: Not finalized
         if (!grade.isFinalized()) {
-            throw new ValidationException("GRADE_NOT_FINALIZED");
+            throw new ValidationException("GRADE_NOT_FINALIZED", new Object[0]);
         }
 
         // 3. Unfinalize
@@ -319,7 +319,7 @@ public class GradeServiceImpl implements GradeService {
     public TranscriptResponse generateTranscript(Long studentId, String semester) {
         // 1. Validate student exists
         Student student = studentRepository.findByIdAndDeletedFalse(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", studentId));
+                .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
 
         // 2. Check if transcript already exists
         Optional<Transcript> existing = transcriptRepository
@@ -333,7 +333,7 @@ public class GradeServiceImpl implements GradeService {
         List<Grade> finalizedGrades = gradeRepository.findFinalizedGradesByStudentId(studentId);
 
         if (finalizedGrades.isEmpty()) {
-            throw new ValidationException("NO_FINALIZED_GRADES_FOR_STUDENT");
+            throw new ValidationException("NO_FINALIZED_GRADES_FOR_STUDENT", new Object[0]);
         }
 
         // 4. Calculate semester GPA (assuming all grades are for this semester)
@@ -407,7 +407,7 @@ public class GradeServiceImpl implements GradeService {
     public Map<String, Object> calculateClassStatistics(Long classId) {
         // 1. Validate class exists
         Class clazz = classRepository.findByIdAndDeletedFalse(classId)
-                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", classId));
+                .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId));
 
         // 2. Get all grades for class
         List<Grade> grades = gradeRepository.findByClassIdAndDeletedFalseOrderByFinalScoreDesc(classId);
@@ -446,7 +446,7 @@ public class GradeServiceImpl implements GradeService {
      */
     private Grade findGradeById(Long id) {
         return gradeRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("GRADE_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("GRADE_NOT_FOUND", (Object) id));
     }
 
     /**
