@@ -73,36 +73,36 @@ class LessonProgressServiceTest {
         tenantId = UUID.randomUUID();
 
         testCourse = Course.builder()
-                .id(1L)
                 .name("Test Course")
                 .code("TEST-001")
                 .build();
+        testCourse.setId(1L);
         testCourse.setInstanceId(tenantId);
 
         testModule = CourseModule.builder()
-                .id(1L)
                 .courseId(1L)
                 .title("Module 1")
                 .orderNumber(1)
                 .build();
+        testModule.setId(1L);
         testModule.setInstanceId(tenantId);
 
         testLesson = Lesson.builder()
-                .id(1L)
                 .moduleId(1L)
                 .title("Test Lesson")
                 .isTrial(false)
                 .orderNumber(1)
                 .build();
+        testLesson.setId(1L);
         testLesson.setInstanceId(tenantId);
 
         testProgress = LessonProgress.builder()
-                .id(1L)
                 .userId(200L)
                 .lessonId(1L)
                 .completed(false)
                 .progressPercent(0)
                 .build();
+        testProgress.setId(1L);
         testProgress.setInstanceId(tenantId);
     }
 

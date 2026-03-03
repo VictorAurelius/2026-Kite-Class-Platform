@@ -1,13 +1,11 @@
 package com.kiteclass.core.module.lms.service;
 
 import com.kiteclass.core.common.constant.CourseStatus;
-import com.kiteclass.core.common.constant.EnrollmentStatus;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.repository.CourseRepository;
-import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.lms.dto.request.CreateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
 import com.kiteclass.core.module.lms.dto.response.CourseModuleDetailResponse;
@@ -60,8 +58,9 @@ class LmsServiceTest {
     @Mock
     private CourseRepository courseRepository;
 
-    @Mock
-    private EnrollmentRepository enrollmentRepository;
+    // TODO: Re-add after Class module integration (PR 2.5)
+    // @Mock
+    // private EnrollmentRepository enrollmentRepository;
 
     @Mock
     private LmsMapper lmsMapper;
@@ -80,41 +79,41 @@ class LmsServiceTest {
         tenantId = UUID.randomUUID();
 
         testCourse = Course.builder()
-                .id(1L)
                 .name("Test Course")
                 .code("TEST-001")
                 .teacherId(100L)
                 .status(CourseStatus.PUBLISHED)
                 .build();
+        testCourse.setId(1L);
         testCourse.setInstanceId(tenantId);
 
         testModule = CourseModule.builder()
-                .id(1L)
                 .courseId(1L)
                 .title("Module 1")
                 .description("Test module")
                 .orderNumber(1)
                 .build();
+        testModule.setId(1L);
         testModule.setInstanceId(tenantId);
 
         trialLesson = Lesson.builder()
-                .id(1L)
                 .moduleId(1L)
                 .title("Trial Lesson")
                 .content("Trial content")
                 .isTrial(true)
                 .orderNumber(1)
                 .build();
+        trialLesson.setId(1L);
         trialLesson.setInstanceId(tenantId);
 
         testLesson = Lesson.builder()
-                .id(2L)
                 .moduleId(1L)
                 .title("Paid Lesson")
                 .content("Paid content")
                 .isTrial(false)
                 .orderNumber(2)
                 .build();
+        testLesson.setId(2L);
         testLesson.setInstanceId(tenantId);
     }
 
@@ -187,12 +186,10 @@ class LmsServiceTest {
     // ==================== Student Access Tests ====================
 
     @Test
-    @DisplayName("getCourseStructureForStudent - should return all lessons with valid enrollment")
-    void getCourseStructureForStudent_shouldReturnAllLessons_whenEnrolled() {
-        // Given
+    @DisplayName("getCourseStructureForStudent - should return all lessons")
+    void getCourseStructureForStudent_shouldReturnAllLessons() {
+        // Given - Phase 1: Enrollment check disabled (maps to Class, not Course)
         Long userId = 200L;
-        when(enrollmentRepository.existsByUserIdAndCourseIdAndStatusAndDeletedFalse(
-                userId, 1L, EnrollmentStatus.ACTIVE)).thenReturn(true);
         when(courseModuleRepository.findByCourseIdAndDeletedFalseOrderByOrderNumber(1L))
                 .thenReturn(List.of(testModule));
         when(lessonRepository.findByModuleIdAndDeletedFalseOrderByOrderNumber(1L))
@@ -204,20 +201,15 @@ class LmsServiceTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(enrollmentRepository).existsByUserIdAndCourseIdAndStatusAndDeletedFalse(
-                userId, 1L, EnrollmentStatus.ACTIVE);
         verify(lessonRepository).findByModuleIdAndDeletedFalseOrderByOrderNumber(1L);
     }
 
     @Test
-    @DisplayName("getLessonForStudent - should allow access to paid lesson with enrollment")
-    void getLessonForStudent_shouldAllowAccess_whenEnrolled() {
-        // Given
+    @DisplayName("getLessonForStudent - should allow access to paid lesson")
+    void getLessonForStudent_shouldAllowAccess() {
+        // Given - Phase 1: Enrollment check disabled (maps to Class, not Course)
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
-        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        when(enrollmentRepository.existsByUserIdAndCourseIdAndStatusAndDeletedFalse(
-                userId, 1L, EnrollmentStatus.ACTIVE)).thenReturn(true);
         when(learningResourceRepository.findByLessonIdAndDeletedFalse(2L)).thenReturn(List.of());
         when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
 
@@ -226,22 +218,23 @@ class LmsServiceTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(enrollmentRepository).existsByUserIdAndCourseIdAndStatusAndDeletedFalse(
-                userId, 1L, EnrollmentStatus.ACTIVE);
     }
 
     @Test
-    @DisplayName("getLessonForStudent - should deny access without enrollment")
-    void getLessonForStudent_shouldDenyAccess_whenNotEnrolled() {
-        // Given
+    @DisplayName("getLessonForStudent - should allow access (Phase 1: no enrollment check)")
+    void getLessonForStudent_shouldAllowAccess_phase1() {
+        // Given - Phase 1: Enrollment check disabled
+        // TODO: Re-enable after Class module integration (PR 2.5)
         Long userId = 200L;
         when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
-        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
-        when(enrollmentRepository.existsByUserIdAndCourseIdAndStatusAndDeletedFalse(
-                userId, 1L, EnrollmentStatus.ACTIVE)).thenReturn(false);
+        when(learningResourceRepository.findByLessonIdAndDeletedFalse(2L)).thenReturn(List.of());
+        when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
 
-        // When & Then
-        assertThatThrownBy(() -> lmsService.getLessonForStudent(2L, userId))
+        // When
+        LessonDetailResponse result = lmsService.getLessonForStudent(2L, userId);
+
+        // Then - Should succeed (no enrollment check in Phase 1)
+        assertThat(result).isNotNull();
                 .isInstanceOf(PermissionDeniedException.class)
                 .hasMessageContaining("ENROLLMENT_REQUIRED");
     }
