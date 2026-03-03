@@ -2,6 +2,7 @@ package com.kiteclass.core.module.assignment.service;
 
 import com.kiteclass.core.common.constant.AssignmentStatus;
 import com.kiteclass.core.common.constant.SubmissionStatus;
+import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
@@ -22,6 +23,7 @@ import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.teacher.entity.TeacherClass;
 import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import com.kiteclass.core.common.constant.TeacherClassRole;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -94,6 +96,9 @@ class AssignmentServiceTest {
         mainTeacherId = 100L;
         studentId = 200L;
 
+        // Set tenant context for tests
+        TenantContext.setCurrentTenant(tenantId);
+
         testClass = Class.builder()
                 .name("Math 101")
                 .build();
@@ -130,6 +135,12 @@ class AssignmentServiceTest {
                 .role(TeacherClassRole.MAIN_TEACHER)
                 .build();
         mainTeacherClass.setId(1L);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Clear tenant context to avoid interference with other tests
+        TenantContext.clear();
     }
 
     // ==================== Create Assignment Tests ====================
@@ -328,6 +339,7 @@ class AssignmentServiceTest {
 
         when(submissionRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testSubmission));
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
+        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
         when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
                 .thenReturn(Optional.of(mainTeacherClass));
         when(submissionRepository.save(any(Submission.class))).thenReturn(testSubmission);

@@ -16,6 +16,8 @@ import com.kiteclass.core.module.assignment.repository.AssignmentRepository;
 import com.kiteclass.core.module.assignment.repository.SubmissionRepository;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
+import com.kiteclass.core.module.course.entity.Course;
+import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.student.entity.Student;
 import com.kiteclass.core.module.student.repository.StudentRepository;
 import com.kiteclass.core.module.teacher.entity.TeacherClass;
@@ -80,11 +82,15 @@ class AssignmentIntegrationTest {
     private ClassRepository classRepository;
 
     @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
     private StudentRepository studentRepository;
 
     @Autowired
     private TeacherClassRepository teacherClassRepository;
 
+    private Course testCourse;
     private Class testClass;
     private Student testStudent;
     private Assignment testAssignment;
@@ -97,8 +103,20 @@ class AssignmentIntegrationTest {
         // Set tenant context
         TenantContext.setCurrentTenant(tenantId);
 
+        // Create test course first
+        testCourse = Course.builder()
+                .name("Math Course")
+                .code("MATH-COURSE-001")
+                .description("Mathematics")
+                .price(BigDecimal.valueOf(1000))
+                .teacherId(mainTeacherId)
+                .build();
+        testCourse.setInstanceId(tenantId);
+        testCourse = courseRepository.save(testCourse);
+
         // Create test class
         testClass = Class.builder()
+                .courseId(testCourse.getId())
                 .name("Math 101")
                 .classCode("MATH-101")
                 .startDate(LocalDate.now())
