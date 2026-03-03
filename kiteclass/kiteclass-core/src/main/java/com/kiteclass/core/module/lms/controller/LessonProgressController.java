@@ -45,7 +45,8 @@ public class LessonProgressController {
     @PostMapping("/lessons/{lessonId}/complete")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Mark lesson as completed",
-               description = "Idempotent operation. Creates progress record if not exists, updates if already exists. Publishes LessonCompletedEvent.")
+               description = "Idempotent operation. Creates progress record if not exists, "
+                   + "updates if already exists. Publishes LessonCompletedEvent.")
     public ApiResponse<LessonProgressResponse> completeLesson(
             @PathVariable Long lessonId,
             @Parameter(description = "Student user ID", required = true)
