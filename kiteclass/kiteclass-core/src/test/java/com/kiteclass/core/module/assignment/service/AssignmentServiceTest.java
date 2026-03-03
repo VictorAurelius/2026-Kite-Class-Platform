@@ -178,11 +178,13 @@ class AssignmentServiceTest {
                 .build();
 
         when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(999L, 1L))
+                .thenReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> assignmentService.createAssignment(request, 999L))
                 .isInstanceOf(PermissionDeniedException.class)
-                .hasMessageContaining("ONLY_MAIN_TEACHER_CAN_CREATE_ASSIGNMENT");
+                .hasMessageContaining("TEACHER_NOT_IN_CLASS");
     }
 
     @Test
@@ -213,7 +215,8 @@ class AssignmentServiceTest {
     void shouldPublishAssignment_whenStatusIsDraft() {
         // Given
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
-        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
         when(assignmentRepository.save(any(Assignment.class))).thenReturn(testAssignment);
         when(assignmentMapper.toResponse(testAssignment))
                 .thenReturn(AssignmentResponse.builder().id(1L).build());
@@ -233,7 +236,8 @@ class AssignmentServiceTest {
         // Given
         testAssignment.setStatus(AssignmentStatus.PUBLISHED);
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
-        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
 
         // When & Then
         assertThatThrownBy(() -> assignmentService.publishAssignment(1L, mainTeacherId))
@@ -324,7 +328,8 @@ class AssignmentServiceTest {
 
         when(submissionRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testSubmission));
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
-        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
         when(submissionRepository.save(any(Submission.class))).thenReturn(testSubmission);
         when(assignmentMapper.toSubmissionResponse(any(Submission.class), any(LocalDateTime.class)))
                 .thenReturn(SubmissionResponse.builder().id(1L).build());
@@ -349,7 +354,8 @@ class AssignmentServiceTest {
 
         when(submissionRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testSubmission));
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
-        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
 
         // When & Then
         assertThatThrownBy(() -> assignmentService.gradeSubmission(1L, request, mainTeacherId))
@@ -364,7 +370,8 @@ class AssignmentServiceTest {
     void shouldThrowValidationException_whenDeletingAssignmentWithSubmissions() {
         // Given
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
-        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
         when(submissionRepository.countByAssignmentIdAndDeletedFalse(1L)).thenReturn(5L);
 
         // When & Then
@@ -378,7 +385,8 @@ class AssignmentServiceTest {
     void shouldDeleteAssignment_whenNoSubmissions() {
         // Given
         when(assignmentRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAssignment));
-        when(classRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testClass));
+        when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
+                .thenReturn(Optional.of(mainTeacherClass));
         when(submissionRepository.countByAssignmentIdAndDeletedFalse(1L)).thenReturn(0L);
         when(assignmentRepository.save(any(Assignment.class))).thenReturn(testAssignment);
 
