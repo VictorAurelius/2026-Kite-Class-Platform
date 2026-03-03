@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.grade.service;
 
-import com.kiteclass.core.common.constant.GradeComponentType;
 import com.kiteclass.core.common.constant.GradeStatus;
 import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.common.context.TenantContext;
@@ -88,8 +87,9 @@ public class GradeServiceImpl implements GradeService {
                 .classId(classId)
                 .status(GradeStatus.IN_PROGRESS)
                 .passThreshold(BigDecimal.valueOf(50.0))
-                .instanceId(TenantContext.getCurrentTenant())
                 .build();
+
+        grade.setInstanceId(TenantContext.getCurrentTenant());
 
         Grade savedGrade = gradeRepository.save(grade);
 
@@ -372,8 +372,9 @@ public class GradeServiceImpl implements GradeService {
                 .totalCourses(finalizedGrades.size())
                 .passedCourses(passedCourses)
                 .failedCourses(failedCourses)
-                .instanceId(TenantContext.getCurrentTenant())
                 .build();
+
+        transcript.setInstanceId(TenantContext.getCurrentTenant());
 
         Transcript savedTranscript = transcriptRepository.save(transcript);
 
