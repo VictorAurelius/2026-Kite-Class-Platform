@@ -8,8 +8,8 @@ import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
-import com.kiteclass.core.module.enrollment.dto.EnrollmentRequest;
-import com.kiteclass.core.module.payment.dto.PaymentRequest;
+import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
+import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -143,7 +143,7 @@ class PaymentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 3: Enroll Student (Invoice Auto-Created) ==========
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
 
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -169,7 +169,7 @@ class PaymentFlowIntegrationTest {
         BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
 
         // ========== Step 5: Initiate Payment ==========
-        PaymentRequest paymentRequest = new PaymentRequest(
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(
                 invoiceId,
                 totalAmount,
                 PaymentMethod.BANK_TRANSFER
@@ -295,7 +295,7 @@ class PaymentFlowIntegrationTest {
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
@@ -319,7 +319,7 @@ class PaymentFlowIntegrationTest {
         BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
 
         // ========== Initiate Payment ==========
-        PaymentRequest paymentRequest = new PaymentRequest(
+        CreatePaymentRequest paymentRequest = new CreatePaymentRequest(
                 invoiceId,
                 totalAmount,
                 PaymentMethod.BANK_TRANSFER
@@ -360,7 +360,7 @@ class PaymentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
 
         // ========== Verify Can Retry Payment ==========
-        PaymentRequest retryPayment = new PaymentRequest(
+        CreatePaymentRequest retryPayment = new CreatePaymentRequest(
                 invoiceId,
                 totalAmount,
                 PaymentMethod.CASH

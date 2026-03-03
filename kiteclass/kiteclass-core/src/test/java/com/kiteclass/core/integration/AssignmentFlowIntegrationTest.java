@@ -5,12 +5,12 @@ import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
-import com.kiteclass.core.module.assignment.dto.CreateAssignmentRequest;
-import com.kiteclass.core.module.assignment.dto.GradeSubmissionRequest;
-import com.kiteclass.core.module.assignment.dto.SubmitAssignmentRequest;
+import com.kiteclass.core.module.assignment.dto.request.CreateAssignmentRequest;
+import com.kiteclass.core.module.assignment.dto.request.GradeSubmissionRequest;
+import com.kiteclass.core.module.assignment.dto.request.SubmitAssignmentRequest;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
-import com.kiteclass.core.module.enrollment.dto.EnrollmentRequest;
+import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -146,7 +146,7 @@ class AssignmentFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // Enroll student
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
 
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -302,7 +302,7 @@ class AssignmentFlowIntegrationTest {
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())

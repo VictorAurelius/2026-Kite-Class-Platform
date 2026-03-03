@@ -8,7 +8,7 @@ import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
-import com.kiteclass.core.module.enrollment.dto.EnrollmentRequest;
+import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -141,7 +141,7 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Step 3: Enroll Student (Invoice Should Be Auto-Created) ==========
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
 
         MvcResult enrollResult = mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -283,7 +283,7 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // ========== Enroll Student ==========
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())

@@ -6,10 +6,10 @@ import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
-import com.kiteclass.core.module.attendance.dto.AttendanceRequest;
+import com.kiteclass.core.module.attendance.dto.CreateAttendanceRequest;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
-import com.kiteclass.core.module.enrollment.dto.EnrollmentRequest;
+import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -145,7 +145,7 @@ class AttendanceFlowIntegrationTest {
                 .get("data").get("id").asLong();
 
         // Enroll student
-        EnrollmentRequest enrollRequest = new EnrollmentRequest(studentId, classId);
+        CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentId, classId);
 
         mockMvc.perform(post("/api/v1/enrollments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -173,7 +173,7 @@ class AttendanceFlowIntegrationTest {
         Long session3Id = sessions.get(2).get("id").asLong();
 
         // ========== Step 3: Mark Attendance for Session 1 (PRESENT) ==========
-        AttendanceRequest attendance1 = new AttendanceRequest(
+        CreateAttendanceRequest attendance1 = new CreateAttendanceRequest(
                 session1Id,
                 studentId,
                 AttendanceStatus.PRESENT,
@@ -189,7 +189,7 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.status").value("PRESENT"));
 
         // ========== Step 4: Mark Attendance for Session 2 (PRESENT) ==========
-        AttendanceRequest attendance2 = new AttendanceRequest(
+        CreateAttendanceRequest attendance2 = new CreateAttendanceRequest(
                 session2Id,
                 studentId,
                 AttendanceStatus.PRESENT,
@@ -204,7 +204,7 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // ========== Step 5: Mark Attendance for Session 3 (ABSENT) ==========
-        AttendanceRequest attendance3 = new AttendanceRequest(
+        CreateAttendanceRequest attendance3 = new CreateAttendanceRequest(
                 session3Id,
                 studentId,
                 AttendanceStatus.ABSENT,
@@ -315,7 +315,7 @@ class AttendanceFlowIntegrationTest {
                     .get("data").get("id").asLong();
 
             // Enroll student
-            EnrollmentRequest enrollRequest = new EnrollmentRequest(studentIds[i], classId);
+            CreateEnrollmentRequest enrollRequest = new CreateEnrollmentRequest(studentIds[i], classId);
             mockMvc.perform(post("/api/v1/enrollments")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("X-Tenant-Id", tenantId.toString())
@@ -340,7 +340,7 @@ class AttendanceFlowIntegrationTest {
 
         // ========== Mark Attendance for All Students ==========
         // Student 1: PRESENT
-        AttendanceRequest attendance1 = new AttendanceRequest(
+        CreateAttendanceRequest attendance1 = new CreateAttendanceRequest(
                 sessionId,
                 studentIds[0],
                 AttendanceStatus.PRESENT,
@@ -354,7 +354,7 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // Student 2: LATE
-        AttendanceRequest attendance2 = new AttendanceRequest(
+        CreateAttendanceRequest attendance2 = new CreateAttendanceRequest(
                 sessionId,
                 studentIds[1],
                 AttendanceStatus.LATE,
@@ -368,7 +368,7 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(status().isCreated());
 
         // Student 3: ABSENT
-        AttendanceRequest attendance3 = new AttendanceRequest(
+        CreateAttendanceRequest attendance3 = new CreateAttendanceRequest(
                 sessionId,
                 studentIds[2],
                 AttendanceStatus.ABSENT,
