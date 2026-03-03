@@ -2,8 +2,18 @@ package com.kiteclass.core.module.lms.entity;
 
 import com.kiteclass.core.common.constant.ResourceType;
 import com.kiteclass.core.common.entity.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * LearningResource entity - supplemental materials attached to lessons.

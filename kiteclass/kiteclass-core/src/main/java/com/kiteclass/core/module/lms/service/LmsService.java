@@ -5,7 +5,11 @@ import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateLessonRequest;
-import com.kiteclass.core.module.lms.dto.response.*;
+import com.kiteclass.core.module.lms.dto.response.CourseModuleDetailResponse;
+import com.kiteclass.core.module.lms.dto.response.CourseModuleResponse;
+import com.kiteclass.core.module.lms.dto.response.LearningResourceResponse;
+import com.kiteclass.core.module.lms.dto.response.LessonDetailResponse;
+import com.kiteclass.core.module.lms.dto.response.LessonResponse;
 
 import java.util.List;
 

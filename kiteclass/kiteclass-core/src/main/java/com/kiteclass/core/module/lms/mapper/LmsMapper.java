@@ -5,12 +5,21 @@ import com.kiteclass.core.module.lms.dto.request.CreateLearningResourceRequest;
 import com.kiteclass.core.module.lms.dto.request.CreateLessonRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateCourseModuleRequest;
 import com.kiteclass.core.module.lms.dto.request.UpdateLessonRequest;
-import com.kiteclass.core.module.lms.dto.response.*;
+import com.kiteclass.core.module.lms.dto.response.CourseModuleDetailResponse;
+import com.kiteclass.core.module.lms.dto.response.CourseModuleResponse;
+import com.kiteclass.core.module.lms.dto.response.LearningResourceResponse;
+import com.kiteclass.core.module.lms.dto.response.LessonDetailResponse;
+import com.kiteclass.core.module.lms.dto.response.LessonProgressResponse;
+import com.kiteclass.core.module.lms.dto.response.LessonResponse;
 import com.kiteclass.core.module.lms.entity.CourseModule;
 import com.kiteclass.core.module.lms.entity.LearningResource;
 import com.kiteclass.core.module.lms.entity.Lesson;
 import com.kiteclass.core.module.lms.entity.LessonProgress;
-import org.mapstruct.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
