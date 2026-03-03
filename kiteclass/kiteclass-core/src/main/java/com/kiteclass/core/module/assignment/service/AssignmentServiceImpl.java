@@ -2,6 +2,7 @@ package com.kiteclass.core.module.assignment.service;
 
 import com.kiteclass.core.common.constant.AssignmentStatus;
 import com.kiteclass.core.common.constant.SubmissionStatus;
+import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
@@ -20,7 +21,6 @@ import com.kiteclass.core.module.assignment.repository.AssignmentRepository;
 import com.kiteclass.core.module.assignment.repository.SubmissionRepository;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
-import com.kiteclass.core.module.teacher.constant.TeacherClassRole;
 import com.kiteclass.core.module.teacher.entity.TeacherClass;
 import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
 import lombok.RequiredArgsConstructor;
