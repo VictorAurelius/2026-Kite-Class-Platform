@@ -19,6 +19,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -180,4 +183,17 @@ public interface LmsMapper {
      * @return list of LessonProgressResponse DTOs
      */
     List<LessonProgressResponse> toProgressResponseList(List<LessonProgress> entities);
+
+    // ==================== Helper Methods ====================
+
+    /**
+     * Converts Instant to LocalDateTime for DTO mapping.
+     * Uses system default timezone for conversion.
+     *
+     * @param instant the Instant value to convert
+     * @return LocalDateTime in system default timezone, or null if input is null
+     */
+    default LocalDateTime map(Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    }
 }
