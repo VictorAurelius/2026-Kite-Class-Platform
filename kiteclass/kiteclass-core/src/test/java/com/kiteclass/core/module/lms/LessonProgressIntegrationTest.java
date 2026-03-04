@@ -1,6 +1,5 @@
 package com.kiteclass.core.module.lms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.config.TestContainersConfiguration;

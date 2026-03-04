@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.lms.service;
 
 import com.kiteclass.core.common.constant.CourseStatus;
-import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.course.entity.Course;
