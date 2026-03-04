@@ -16,7 +16,6 @@ import com.kiteclass.core.module.grade.dto.request.CreateGradeComponentRequest;
 import com.kiteclass.core.module.grade.dto.request.FinalizeGradeRequest;
 import com.kiteclass.core.module.grade.entity.Grade;
 import com.kiteclass.core.module.grade.entity.GradingScale;
-import com.kiteclass.core.module.grade.repository.GradeComponentRepository;
 import com.kiteclass.core.module.grade.repository.GradeRepository;
 import com.kiteclass.core.module.grade.repository.GradingScaleRepository;
 import com.kiteclass.core.module.student.entity.Student;
@@ -73,9 +72,6 @@ class GradeIntegrationTest {
     private GradeRepository gradeRepository;
 
     @Autowired
-    private GradeComponentRepository gradeComponentRepository;
-
-    @Autowired
     private GradingScaleRepository gradingScaleRepository;
 
     @Autowired
@@ -97,7 +93,6 @@ class GradeIntegrationTest {
     private GradingScale testGradingScale;
     private final UUID tenantId = UUID.randomUUID();
     private final Long mainTeacherId = 100L;
-    private final Long studentId = 200L;
 
     @BeforeEach
     void setUp() {
