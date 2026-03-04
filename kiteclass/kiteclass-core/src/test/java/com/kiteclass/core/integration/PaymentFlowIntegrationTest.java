@@ -128,11 +128,11 @@ class PaymentFlowIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString()));
 
         CreateClassRequest classRequest = new CreateClassRequest(
-                courseId,
                 "Literature Basics - Spring 2026",
                 "Spring 2026",
-                2026,
-                "[]",
+                null,
+                null,
+                null,
                 LocalDate.now().plusDays(7),
                 LocalDate.now().plusDays(120),
                 25
@@ -291,11 +291,11 @@ class PaymentFlowIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString()));
 
         CreateClassRequest classRequest = new CreateClassRequest(
-                courseId,
                 "History - Spring 2026",
                 "Spring 2026",
-                2026,
-                "[]",
+                null,
+                null,
+                null,
                 LocalDate.now().plusDays(7),
                 LocalDate.now().plusDays(120),
                 30

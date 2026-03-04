@@ -14,7 +14,6 @@ import com.kiteclass.core.module.payment.entity.Payment;
 import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.module.payment.enums.PaymentStatus;
 import com.kiteclass.core.module.payment.event.PaymentCompletedEvent;
-import com.kiteclass.core.module.payment.event.PaymentCreatedEvent;
 import com.kiteclass.core.module.payment.gateway.PaymentGatewayClient;
 import com.kiteclass.core.module.payment.mapper.PaymentMapper;
 import com.kiteclass.core.module.payment.repository.PaymentRepository;

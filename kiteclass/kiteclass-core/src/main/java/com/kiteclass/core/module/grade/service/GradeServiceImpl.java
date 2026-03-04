@@ -69,10 +69,12 @@ public class GradeServiceImpl implements GradeService {
         // 1. Validate student exists
         Student student = studentRepository.findByIdAndDeletedFalse(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
+        log.debug("Initializing grade for student: {} ({})", student.getName(), student.getEmail());
 
         // 2. Validate class exists
         Class clazz = classRepository.findByIdAndDeletedFalse(classId)
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId));
+        log.debug("Initializing grade for class: {}", clazz.getName());
 
         // 3. Check if grade already exists (unique constraint)
         Optional<Grade> existing = gradeRepository.findByStudentIdAndClassIdAndDeletedFalse(studentId, classId);
@@ -320,6 +322,7 @@ public class GradeServiceImpl implements GradeService {
         // 1. Validate student exists
         Student student = studentRepository.findByIdAndDeletedFalse(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("STUDENT_NOT_FOUND", (Object) studentId));
+        log.debug("Generating transcript for student: {} ({})", student.getName(), student.getEmail());
 
         // 2. Check if transcript already exists
         Optional<Transcript> existing = transcriptRepository
@@ -408,6 +411,7 @@ public class GradeServiceImpl implements GradeService {
         // 1. Validate class exists
         Class clazz = classRepository.findByIdAndDeletedFalse(classId)
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) classId));
+        log.debug("Calculating statistics for class: {}", clazz.getName());
 
         // 2. Get all grades for class
         List<Grade> grades = gradeRepository.findByClassIdAndDeletedFalseOrderByFinalScoreDesc(classId);

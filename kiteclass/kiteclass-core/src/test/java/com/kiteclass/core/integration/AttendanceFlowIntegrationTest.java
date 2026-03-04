@@ -129,11 +129,11 @@ class AttendanceFlowIntegrationTest {
 
         // Create class
         CreateClassRequest classRequest = new CreateClassRequest(
-                courseId,
                 "Physics Basics - Spring 2026",
                 "Spring 2026",
-                2026,
-                "[]",
+                null,
+                null,
+                null,
                 LocalDate.now().plusDays(7),
                 LocalDate.now().plusDays(120),
                 30
@@ -285,11 +285,11 @@ class AttendanceFlowIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString()));
 
         CreateClassRequest classRequest = new CreateClassRequest(
-                courseId,
                 "Chemistry - Spring 2026",
                 "Spring 2026",
-                2026,
-                "[]",
+                null,
+                null,
+                null,
                 LocalDate.now().plusDays(7),
                 LocalDate.now().plusDays(120),
                 30

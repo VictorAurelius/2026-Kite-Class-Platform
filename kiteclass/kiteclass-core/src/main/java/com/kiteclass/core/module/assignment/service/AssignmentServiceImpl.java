@@ -59,6 +59,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         // 1. Validate class exists
         Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
             .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
+        log.debug("Creating assignment for class: {}", clazz.getName());
 
         // 2. Permission check: Only MAIN_TEACHER can create assignments
         TeacherClass teacherClass = teacherClassRepository
@@ -236,7 +237,7 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         log.info("Student {} submitted assignment {}", studentId, assignment.getId());
 
-        return assignmentMapper.toSubmissionResponse(savedSubmission, assignment.getDueDate());
+        return enrichSubmissionResponse(savedSubmission, assignment.getDueDate());
     }
 
     @Override
@@ -275,7 +276,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         log.info("Teacher {} graded submission {} with score {} (adjusted: {})",
             teacherId, submissionId, request.getScore(), gradedSubmission.getAdjustedScore());
 
-        return assignmentMapper.toSubmissionResponse(gradedSubmission, assignment.getDueDate());
+        return enrichSubmissionResponse(gradedSubmission, assignment.getDueDate());
     }
 
     @Override
@@ -302,7 +303,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         log.info("Teacher {} returned submission {} to student {}",
             teacherId, submissionId, submission.getStudentId());
 
-        return assignmentMapper.toSubmissionResponse(returnedSubmission, assignment.getDueDate());
+        return enrichSubmissionResponse(returnedSubmission, assignment.getDueDate());
     }
 
     @Override
@@ -310,7 +311,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     public SubmissionResponse getSubmissionById(Long id) {
         Submission submission = findSubmissionById(id);
         Assignment assignment = findAssignmentById(submission.getAssignmentId());
-        return assignmentMapper.toSubmissionResponse(submission, assignment.getDueDate());
+        return enrichSubmissionResponse(submission, assignment.getDueDate());
     }
 
     @Override
@@ -319,7 +320,9 @@ public class AssignmentServiceImpl implements AssignmentService {
         Assignment assignment = findAssignmentById(assignmentId);
         List<Submission> submissions = submissionRepository
             .findByAssignmentIdAndDeletedFalseOrderBySubmissionDateDesc(assignmentId);
-        return assignmentMapper.toSubmissionResponseList(submissions, assignment.getDueDate());
+        return submissions.stream()
+            .map(sub -> enrichSubmissionResponse(sub, assignment.getDueDate()))
+            .toList();
     }
 
     @Override
@@ -334,7 +337,7 @@ public class AssignmentServiceImpl implements AssignmentService {
             return null;
         }
 
-        return assignmentMapper.toSubmissionResponse(submission, assignment.getDueDate());
+        return enrichSubmissionResponse(submission, assignment.getDueDate());
     }
 
     @Override
@@ -347,7 +350,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         return submissions.stream()
             .map(submission -> {
                 Assignment assignment = findAssignmentById(submission.getAssignmentId());
-                return assignmentMapper.toSubmissionResponse(submission, assignment.getDueDate());
+                return enrichSubmissionResponse(submission, assignment.getDueDate());
             })
             .toList();
     }
@@ -361,7 +364,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         return submissions.stream()
             .map(submission -> {
                 Assignment assignment = findAssignmentById(submission.getAssignmentId());
-                return assignmentMapper.toSubmissionResponse(submission, assignment.getDueDate());
+                return enrichSubmissionResponse(submission, assignment.getDueDate());
             })
             .toList();
     }
@@ -386,5 +389,28 @@ public class AssignmentServiceImpl implements AssignmentService {
         if (teacherClass.getRole() != TeacherClassRole.MAIN_TEACHER) {
             throw new PermissionDeniedException("ONLY_MAIN_TEACHER_CAN_MANAGE_ASSIGNMENT");
         }
+    }
+
+    /**
+     * Enrich SubmissionResponse with computed fields (isLate, penaltyApplied).
+     */
+    private SubmissionResponse enrichSubmissionResponse(Submission submission, LocalDateTime dueDate) {
+        SubmissionResponse response = assignmentMapper.toSubmissionResponse(submission);
+
+        // Compute isLate
+        if (submission.getSubmissionDate() != null && dueDate != null) {
+            response.setIsLate(submission.isLate(dueDate));
+        } else {
+            response.setIsLate(false);
+        }
+
+        // Compute penaltyApplied
+        if (submission.getScore() != null && submission.getAdjustedScore() != null) {
+            response.setPenaltyApplied(submission.getScore().subtract(submission.getAdjustedScore()));
+        } else {
+            response.setPenaltyApplied(BigDecimal.ZERO);
+        }
+
+        return response;
     }
 }

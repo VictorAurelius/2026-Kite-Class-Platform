@@ -131,11 +131,11 @@ class EnrollmentFlowIntegrationTest {
 
         // ========== Step 3: Create Class ==========
         CreateClassRequest classRequest = new CreateClassRequest(
-                courseId,
                 "English Basics - Spring 2026",
                 "Spring 2026",
-                2026,
-                "[]",
+                null,
+                null,
+                null,
                 LocalDate.now().plusDays(7),
                 LocalDate.now().plusDays(120),
                 30
@@ -266,11 +266,11 @@ class EnrollmentFlowIntegrationTest {
                 .header("X-Tenant-Id", tenantId.toString()));
 
         CreateClassRequest classRequest = new CreateClassRequest(
-                courseId,
                 "Advanced Math - Fall 2026",
                 "Fall 2026",
-                2026,
-                "[]",
+                null,
+                null,
+                null,
                 LocalDate.now().plusDays(30),
                 LocalDate.now().plusDays(150),
                 25

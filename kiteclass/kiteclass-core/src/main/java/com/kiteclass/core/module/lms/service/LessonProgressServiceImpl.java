@@ -52,6 +52,7 @@ public class LessonProgressServiceImpl implements LessonProgressService {
         if (!lesson.isTrialLesson()) {
             CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
                     .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
+            log.debug("Lesson belongs to module: {}", module.getTitle());
 
             // Note: Enrollment check is simplified here. In production, consider adding enrollment service dependency.
             // For now, we'll allow progress tracking without strict enrollment check (can be added later).

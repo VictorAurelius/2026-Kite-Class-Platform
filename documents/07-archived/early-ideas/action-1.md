@@ -1250,3 +1250,52 @@ module attendence này không có PR FE tương ứng à? có phải là thiếu
 2. phải start toàn bộ service của kiteclass
 
 check commit mới, status hiện tại, CI và đưa ra action tiếp theo
+
+fix hết IDE warning
+
+bật mode plan, check lại lần nữa, còn rất nhiều IDE warnings:
+1. No implementation was created for AssignmentMapper due to having a problem in the erroneous element null. Hint: this often means that some other annotation processor was supposed to process the erroneous element. You can also enable MapStruct verbose mode by setting -Amapstruct.verbose=true as a compilation argument.Java(0)
+com.kiteclass.core.module.assignment.mapper.AssignmentMapper
+
+2. AssignmentServiceImpl: The value of the local variable clazz is not usedJava(536870973)
+Class clazz - com.kiteclass.core.module.assignment.service.AssignmentServiceImpl.createAssignment(CreateAssignmentRequest, Long)
+
+3. GradeServiceImpl: The value of the local variable student is not used
+The value of the local variable clazz is not used
+The value of the local variable student is not usedJava(536870973)
+Student student - com.kiteclass.core.module.grade.service.GradeServiceImpl.generateTranscript(Long, String)
+
+The value of the local variable clazz is not usedJava(536870973)
+Class clazz - com.kiteclass.core.module.grade.service.GradeServiceImpl.calculateClassStatistics(Long)
+
+4. LessonProgressServiceImpl: The value of the local variable module is not usedJava(536870973)
+CourseModule module - com.kiteclass.core.module.lms.service.LessonProgressServiceImpl.completeLesson(Long, Long)
+
+The method verifyStudentEnrollment(Long, Long) from the type LmsServiceImpl is never used locally
+
+5. The constructor CreateClassRequest(Long, String, String, int, String, LocalDate, LocalDate, int) is undefinedJava(134217858)
+com.kiteclass.core.module.clazz.dto.CreateClassRequest
+Request DTO for creating a new class within a course.
+
+The courseId is provided via path variable in the controller, not included in the request body.
+
+Parameters:
+name Class name (5-200 chars, required)
+description Class description (optional, max 2000 chars)
+schedule Schedule text (optional, max 200 chars)
+locationType IN_PERSON or ONLINE (optional, defaults to IN_PERSON)
+locationDetail Room or URL (optional, max 200 chars)
+
+new CreateClassRequest(
+                courseId,
+                "Biology Basics - Spring 2026",
+                "Spring 2026",
+                2026,
+                "[]",
+                LocalDate.now().plusDays(7),
+                LocalDate.now().plusDays(120),
+                30
+        )
+
+
+và các lỗi tương tự ở các file khác

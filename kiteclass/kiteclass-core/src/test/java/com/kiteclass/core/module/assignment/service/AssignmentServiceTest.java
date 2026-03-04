@@ -273,7 +273,7 @@ class AssignmentServiceTest {
         when(submissionRepository.findByAssignmentIdAndStudentIdAndDeletedFalse(1L, studentId))
                 .thenReturn(Optional.empty());
         when(submissionRepository.save(any(Submission.class))).thenReturn(testSubmission);
-        when(assignmentMapper.toSubmissionResponse(any(Submission.class), any(LocalDateTime.class)))
+        when(assignmentMapper.toSubmissionResponse(any(Submission.class)))
                 .thenReturn(SubmissionResponse.builder().id(1L).build());
 
         // When
@@ -343,7 +343,7 @@ class AssignmentServiceTest {
         when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
                 .thenReturn(Optional.of(mainTeacherClass));
         when(submissionRepository.save(any(Submission.class))).thenReturn(testSubmission);
-        when(assignmentMapper.toSubmissionResponse(any(Submission.class), any(LocalDateTime.class)))
+        when(assignmentMapper.toSubmissionResponse(any(Submission.class)))
                 .thenReturn(SubmissionResponse.builder().id(1L).build());
 
         // When

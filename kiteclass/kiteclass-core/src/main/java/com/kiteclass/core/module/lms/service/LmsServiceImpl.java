@@ -434,20 +434,6 @@ public class LmsServiceImpl implements LmsService {
     }
 
     /**
-     * Verifies that the student has an active enrollment in the course.
-     *
-     * @param userId the user ID
-     * @param courseId the course ID
-     * @throws PermissionDeniedException if student is not enrolled or enrollment not active
-     */
-    private void verifyStudentEnrollment(Long userId, Long courseId) {
-        // TODO: Phase 1 - Not implemented (Enrollment maps to Class, not Course)
-        // Will implement after Class module integration (PR 2.5)
-        log.debug("Skipping enrollment verification for user {} and course {} (Phase 1)",
-                  userId, courseId);
-    }
-
-    /**
      * Finds a lesson and handles tenant context for guest access.
      *
      * @param lessonId the lesson ID
