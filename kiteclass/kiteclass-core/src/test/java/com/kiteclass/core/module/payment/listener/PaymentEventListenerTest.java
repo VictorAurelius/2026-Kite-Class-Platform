@@ -241,7 +241,7 @@ class PaymentEventListenerTest {
         when(invoiceRepository.save(testInvoice))
                 .thenReturn(testInvoice);
         when(installmentPlanService.recordInstallmentPayment(eq(installmentId), any(BigDecimal.class)))
-                .thenThrow(new EntityNotFoundException("INSTALLMENT_NOT_FOUND", installmentId));
+                .thenThrow(new EntityNotFoundException("INSTALLMENT_NOT_FOUND", (Object) installmentId));
 
         PaymentCompletedEvent event = new PaymentCompletedEvent(this, testPayment);
 
