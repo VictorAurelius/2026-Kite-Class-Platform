@@ -1299,3 +1299,9 @@ new CreateClassRequest(
 
 
 và các lỗi tương tự ở các file khác
+
+hãy check lại PR plan xem cụ thể các TODO này đang chờ PR nào?
+
+check PR 2.8 đã hoàn thành chưa?
+
+vật plan mode và thực hiện
