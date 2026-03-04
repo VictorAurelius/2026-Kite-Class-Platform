@@ -32,8 +32,9 @@ export function useAuth() {
         referenceId: data.user.profile?.id.toString(),
       };
 
-      // Extract tenantId from JWT access token (for now use a placeholder)
-      const tenantId = '11111111-1111-1111-1111-111111111111'; // TODO: Extract from JWT
+      // TODO: [BLOCKED] Add tenantId to JWT claims in Gateway (JwtTokenProvider.java), then decode here
+      // Currently using placeholder - all requests use same tenant in development
+      const tenantId = '11111111-1111-1111-1111-111111111111';
 
       setAuth(user, data.accessToken, data.refreshToken, tenantId);
 

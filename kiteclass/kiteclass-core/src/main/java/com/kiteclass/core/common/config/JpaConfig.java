@@ -1,5 +1,6 @@
 package com.kiteclass.core.common.config;
 
+import com.kiteclass.core.common.context.UserContext;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,15 +17,18 @@ import java.util.Optional;
  * <ul>
  *   <li>createdAt - automatically set on entity creation</li>
  *   <li>updatedAt - automatically updated on entity modification</li>
- *   <li>createdBy - set via AuditorAware bean</li>
- *   <li>updatedBy - updated via AuditorAware bean</li>
+ *   <li>createdBy - set via AuditorAware bean (from UserContext)</li>
+ *   <li>updatedBy - updated via AuditorAware bean (from UserContext)</li>
  * </ul>
  *
- * <p>Currently uses a simple implementation that returns null for auditor.
- * This will be replaced with actual user ID from SecurityContext when authentication is integrated.
+ * <p>User ID is extracted from X-User-Id header (forwarded by Gateway) and stored in
+ * UserContext by TenantFilterInterceptor. Returns empty if user context not set
+ * (e.g., unauthenticated requests, background jobs).
  *
  * @author KiteClass Team
  * @since 2.2.0
+ * @see com.kiteclass.core.common.context.UserContext
+ * @see com.kiteclass.core.config.TenantFilterInterceptor
  */
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
@@ -33,23 +37,14 @@ public class JpaConfig {
     /**
      * Provides the current auditor (user) for JPA auditing.
      *
-     * <p>TODO: Replace with actual user ID from SecurityContext when authentication is integrated.
-     * For now, returns empty Optional to allow auditing to work without authentication.
+     * <p>Extracts user ID from UserContext (set by TenantFilterInterceptor from X-User-Id header).
+     * Returns empty if user context not set (e.g., unauthenticated requests, background jobs).
      *
      * @return AuditorAware that provides current user ID
      */
     @Bean
     public AuditorAware<Long> auditorProvider() {
-        return () -> {
-            // TODO: Get user ID from SecurityContext
-            // Example: return Optional.ofNullable(SecurityContextHolder.getContext())
-            //     .map(SecurityContext::getAuthentication)
-            //     .filter(Authentication::isAuthenticated)
-            //     .map(Authentication::getPrincipal)
-            //     .map(principal -> ((UserDetails) principal).getUserId());
-
-            return Optional.empty(); // Return null for now until authentication is integrated
-        };
+        return () -> Optional.ofNullable(UserContext.getCurrentUser());
     }
 
     /**

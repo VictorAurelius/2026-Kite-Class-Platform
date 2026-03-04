@@ -52,7 +52,8 @@ public class PaymentEventListener {
             log.info("Updated invoice {} amountPaid to {} (payment {})",
                 invoice.getInvoiceNumber(), newAmountPaid, payment.getPaymentNumber());
 
-            // TODO: Update Installment if applicable when Installment module is ready
+            // TODO: [PR-INSTALLMENT] Implement Installment entity and update status when payment completes
+            // Need to add Installment module: entity, repository, service to track payment plans
             if (payment.getInstallmentId() != null) {
                 log.warn("Installment payment not supported yet (installmentId: {})",
                     payment.getInstallmentId());

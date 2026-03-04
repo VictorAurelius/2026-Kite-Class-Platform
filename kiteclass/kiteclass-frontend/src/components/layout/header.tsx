@@ -19,15 +19,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Header() {
-  const handleLogout = () => {
-    // TODO: Implement logout logic (clear tokens, redirect)
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('tenantId');
-    window.location.href = '/login';
-  };
+  const { logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6">
@@ -89,7 +84,7 @@ export function Header() {
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+            <DropdownMenuItem onClick={() => logout()} className="text-red-600">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </DropdownMenuItem>

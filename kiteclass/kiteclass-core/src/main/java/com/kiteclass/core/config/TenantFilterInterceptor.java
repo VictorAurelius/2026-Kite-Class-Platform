@@ -1,6 +1,7 @@
 package com.kiteclass.core.config;
 
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.context.UserContext;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,15 +17,17 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.UUID;
 
 /**
- * Interceptor that enables Hibernate tenant filter for all requests.
+ * Interceptor that enables Hibernate tenant filter and sets user context for all requests.
  *
  * <p>For each request:
  * <ol>
  *   <li>Extracts tenant ID from X-Tenant-Id header</li>
  *   <li>Sets tenant ID in TenantContext (ThreadLocal)</li>
  *   <li>Enables Hibernate "tenantFilter" with tenant ID</li>
+ *   <li>Extracts user ID from X-User-Id header (forwarded by Gateway)</li>
+ *   <li>Sets user ID in UserContext (ThreadLocal)</li>
  *   <li>All queries automatically filtered to current tenant</li>
- *   <li>Clears context after request completion</li>
+ *   <li>Clears both contexts after request completion</li>
  * </ol>
  *
  * <p>This ensures multi-tenant data isolation at database query level.
@@ -34,6 +37,7 @@ import java.util.UUID;
  * @since 2.2.0
  * @see com.kiteclass.core.common.entity.BaseEntity
  * @see com.kiteclass.core.common.context.TenantContext
+ * @see com.kiteclass.core.common.context.UserContext
  */
 @Slf4j
 @Component
@@ -95,11 +99,26 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
             log.debug("No X-Tenant-Id header found, tenant filter not enabled");
         }
 
+        // Set user context from X-User-Id header (for JPA auditing)
+        String userIdHeader = request.getHeader("X-User-Id");
+        if (userIdHeader != null && !userIdHeader.isBlank()) {
+            try {
+                Long userId = Long.parseLong(userIdHeader);
+                UserContext.setCurrentUser(userId);
+                log.debug("User context set for user: {}", userId);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid X-User-Id header format: {}", userIdHeader);
+                // Let request continue without user context (auditing will use null)
+            }
+        } else {
+            log.debug("No X-User-Id header found, user context not set");
+        }
+
         return true;
     }
 
     /**
-     * After completion: Clear tenant context.
+     * After completion: Clear tenant and user contexts.
      * Must be called to prevent memory leaks and cross-request data leakage.
      *
      * @param request current HTTP request
@@ -115,6 +134,7 @@ public class TenantFilterInterceptor implements HandlerInterceptor {
         Exception ex
     ) {
         TenantContext.clear();
-        log.debug("Tenant context cleared");
+        UserContext.clear();
+        log.debug("Tenant and user contexts cleared");
     }
 }
