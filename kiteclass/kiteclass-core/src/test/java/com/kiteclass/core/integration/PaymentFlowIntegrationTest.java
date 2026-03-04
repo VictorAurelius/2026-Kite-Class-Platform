@@ -2,7 +2,7 @@ package com.kiteclass.core.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.Gender;
-import com.kiteclass.core.common.constant.PaymentMethod;
+import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;

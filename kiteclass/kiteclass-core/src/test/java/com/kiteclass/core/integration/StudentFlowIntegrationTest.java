@@ -103,9 +103,16 @@ class StudentFlowIntegrationTest {
         Long studentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // ========== Step 2: Update Student Profile ==========
-        UpdateStudentRequest updateRequest = new UpdateStudentRequest();
-        updateRequest.setPhone("+84909999999");
-        updateRequest.setAddress("456 New Address, Hanoi");
+        UpdateStudentRequest updateRequest = new UpdateStudentRequest(
+                null,  // name
+                null,  // email
+                "+84909999999",  // phone
+                null,  // dateOfBirth
+                null,  // gender
+                "456 New Address, Hanoi",  // address
+                null,  // status
+                null   // note
+        );
 
         mockMvc.perform(put("/api/v1/students/" + studentId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -126,21 +133,37 @@ class StudentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.address").value("456 New Address, Hanoi"))
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"));
 
-        // ========== Step 4: Update Student Status to SUSPENDED ==========
-        UpdateStudentRequest suspendRequest = new UpdateStudentRequest();
-        suspendRequest.setStatus(StudentStatus.SUSPENDED);
+        // ========== Step 4: Update Student Status to INACTIVE ==========
+        UpdateStudentRequest inactiveRequest = new UpdateStudentRequest(
+                null,  // name
+                null,  // email
+                null,  // phone
+                null,  // dateOfBirth
+                null,  // gender
+                null,  // address
+                StudentStatus.INACTIVE,  // status
+                null   // note
+        );
 
         mockMvc.perform(put("/api/v1/students/" + studentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
-                        .content(objectMapper.writeValueAsString(suspendRequest)))
+                        .content(objectMapper.writeValueAsString(inactiveRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value("SUSPENDED"));
+                .andExpect(jsonPath("$.data.status").value("INACTIVE"));
 
         // ========== Step 5: Reactivate Student ==========
-        UpdateStudentRequest reactivateRequest = new UpdateStudentRequest();
-        reactivateRequest.setStatus(StudentStatus.ACTIVE);
+        UpdateStudentRequest reactivateRequest = new UpdateStudentRequest(
+                null,  // name
+                null,  // email
+                null,  // phone
+                null,  // dateOfBirth
+                null,  // gender
+                null,  // address
+                StudentStatus.ACTIVE,  // status
+                null   // note
+        );
 
         mockMvc.perform(put("/api/v1/students/" + studentId)
                         .contentType(MediaType.APPLICATION_JSON)
