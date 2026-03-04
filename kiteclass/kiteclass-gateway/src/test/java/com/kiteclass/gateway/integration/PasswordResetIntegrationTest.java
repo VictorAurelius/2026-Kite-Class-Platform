@@ -34,9 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("Password Reset Integration Tests")
 class PasswordResetIntegrationTest {
 
-    @SuppressWarnings("resource") // Managed by Testcontainers framework
-
-
     @Autowired
     private WebTestClient webTestClient;
 
@@ -262,13 +259,5 @@ class PasswordResetIntegrationTest {
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isBadRequest();
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/auth/reset-password - Should invalidate all refresh tokens after reset")
-    void shouldInvalidateRefreshTokensAfterReset() {
-        // This test would require setting up refresh tokens first
-        // For now, we'll verify the core reset functionality works
-        // TODO: Enhance this test when refresh token integration is needed
     }
 }
