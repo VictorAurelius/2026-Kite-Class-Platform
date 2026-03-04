@@ -56,9 +56,6 @@ class LessonProgressIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private CourseRepository courseRepository;
 
     @Autowired

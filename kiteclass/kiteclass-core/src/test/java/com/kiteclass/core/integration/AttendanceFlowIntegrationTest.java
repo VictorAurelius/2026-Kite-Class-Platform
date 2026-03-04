@@ -242,11 +242,10 @@ class AttendanceFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.studentId").value(studentId))
                 .andExpect(jsonPath("$.data.classId").value(classId));
 
-        // Check if grade has components (may be empty if event processing is async)
-        MvcResult gradeResult = mockMvc.perform(get("/api/v1/grades/" + studentId)
+        // Verify grade endpoint is accessible (components may be empty if async)
+        mockMvc.perform(get("/api/v1/grades/" + studentId)
                         .header("X-Tenant-Id", tenantId.toString()))
-                .andExpect(status().isOk())
-                .andReturn();
+                .andExpect(status().isOk());
 
         // ========== Step 8: Calculate Attendance Percentage ==========
         // Expected: 2 PRESENT out of 3 sessions = 66.67%

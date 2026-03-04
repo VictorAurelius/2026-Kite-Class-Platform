@@ -99,7 +99,6 @@ class AttendanceIntegrationTest {
     private Class savedClass;
     private Enrollment savedEnrollment;
     private Teacher savedTeacher;
-    private ClassSession savedSession;
     private final UUID tenantId = AttendanceTestDataBuilder.DEFAULT_TENANT;
     private final Long sessionId = 1L; // Mock session ID
 
@@ -153,7 +152,7 @@ class AttendanceIntegrationTest {
                     .build();
             teacherClassRepository.save(teacherClass);
 
-            // Create class session
+            // Create class session (not used in tests, but required for data consistency)
             ClassSession session = ClassSession.builder()
                     .classId(savedClass.getId())
                     .sessionNumber(1)
@@ -163,7 +162,7 @@ class AttendanceIntegrationTest {
                     .status(SessionStatus.SCHEDULED)
                     .attendanceTaken(false)
                     .build();
-            savedSession = classSessionRepository.save(session);
+            classSessionRepository.save(session);
 
             // Create enrollment
             Enrollment enrollment = Enrollment.builder()
