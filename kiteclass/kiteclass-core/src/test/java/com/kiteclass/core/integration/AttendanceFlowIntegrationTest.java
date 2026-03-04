@@ -82,7 +82,7 @@ class AttendanceFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Diana Attendance",
                 "diana.attend@test.com",
-                "+84904444444",
+                "0904444444",
                 LocalDate.of(2008, 8, 10),
                 Gender.FEMALE,
                 "Address",
@@ -311,7 +311,7 @@ class AttendanceFlowIntegrationTest {
             CreateStudentRequest studentRequest = new CreateStudentRequest(
                     "Student " + (i + 1),
                     "student" + (i + 1) + "@test.com",
-                    "+8490555555" + i,
+                    "090555555" + i,
                     LocalDate.of(2008, 1, i + 1),
                     Gender.MALE,
                     "Address " + (i + 1),

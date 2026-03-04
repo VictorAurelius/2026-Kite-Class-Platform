@@ -82,7 +82,7 @@ class PaymentFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Isabella Payment",
                 "isabella.payment@test.com",
-                "+84910000000",
+                "0910000000",
                 LocalDate.of(2008, 12, 12),
                 Gender.FEMALE,
                 "Address",
@@ -246,7 +246,7 @@ class PaymentFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Jack Failed",
                 "jack.failed@test.com",
-                "+84911111111",
+                "0911111111",
                 LocalDate.of(2008, 1, 13),
                 Gender.MALE,
                 "Address",

@@ -1302,6 +1302,61 @@ và các lỗi tương tự ở các file khác
 
 hãy check lại PR plan xem cụ thể các TODO này đang chờ PR nào?
 
-check PR 2.8 đã hoàn thành chưa?
+check PR 1.4 đã hoàn thành chưa?
 
 vật plan mode và thực hiện
+
+vậy 2 TODO còn lại cần xử lý như thế nào?
+[{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/common/config/RabbitConfig.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "536871362",
+	"severity": 2,
+	"message": "TODO: Define actual exchanges, queues, and bindings when event-driven features are implemented.",
+	"source": "Java",
+	"startLineNumber": 39,
+	"startColumn": 7,
+	"endLineNumber": 39,
+	"endColumn": 102,
+	"origin": "extHost1"
+},{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/common/config/RabbitConfig.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "536871362",
+	"severity": 2,
+	"message": "TODO: Define exchanges, queues, and bindings when event-driven features are implemented",
+	"source": "Java",
+	"startLineNumber": 85,
+	"startColumn": 8,
+	"endLineNumber": 85,
+	"endColumn": 95,
+	"origin": "extHost1"
+}]
+
+[{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/src/test/java/com/kiteclass/gateway/integration/PasswordResetIntegrationTest.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "1102",
+	"severity": 2,
+	"message": "At least one of the problems in category 'resource' is not analysed due to a compiler option being ignored",
+	"source": "Java",
+	"startLineNumber": 37,
+	"startColumn": 23,
+	"endLineNumber": 37,
+	"endColumn": 33,
+	"origin": "extHost1"
+},{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/src/test/java/com/kiteclass/gateway/integration/PasswordResetIntegrationTest.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "536871362",
+	"severity": 2,
+	"message": "TODO: Enhance this test when refresh token integration is needed",
+	"source": "Java",
+	"startLineNumber": 272,
+	"startColumn": 12,
+	"endLineNumber": 272,
+	"endColumn": 76,
+	"origin": "extHost1"
+}]
+
+push, check CI pass and merge to main

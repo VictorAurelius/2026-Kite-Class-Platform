@@ -79,11 +79,11 @@ class StudentFlowIntegrationTest {
         CreateStudentRequest createRequest = new CreateStudentRequest(
                 "Alice Johnson",
                 "alice.flow@test.com",
-                "+84901234567",
+                "0901234567",
                 LocalDate.of(2008, 5, 15),
                 Gender.FEMALE,
                 "123 Test Street, Hanoi",
-                "Parent: Jane Johnson, Phone: +84912345678"
+                "Parent: Jane Johnson, Phone: 0912345678"
         );
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/students")
@@ -106,7 +106,7 @@ class StudentFlowIntegrationTest {
         UpdateStudentRequest updateRequest = new UpdateStudentRequest(
                 null,  // name
                 null,  // email
-                "+84909999999",  // phone
+                "0909999999",  // phone
                 null,  // dateOfBirth
                 null,  // gender
                 "456 New Address, Hanoi",  // address
@@ -120,7 +120,7 @@ class StudentFlowIntegrationTest {
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.phone").value("+84909999999"))
+                .andExpect(jsonPath("$.data.phone").value("0909999999"))
                 .andExpect(jsonPath("$.data.address").value("456 New Address, Hanoi"));
 
         // ========== Step 3: Get Student to Verify Update ==========
@@ -129,7 +129,7 @@ class StudentFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.name").value("Alice Johnson"))
-                .andExpect(jsonPath("$.data.phone").value("+84909999999"))
+                .andExpect(jsonPath("$.data.phone").value("0909999999"))
                 .andExpect(jsonPath("$.data.address").value("456 New Address, Hanoi"))
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"));
 
@@ -199,7 +199,7 @@ class StudentFlowIntegrationTest {
         CreateStudentRequest requestA = new CreateStudentRequest(
                 "Student A",
                 "student.a@tenant-a.com",
-                "+84901111111",
+                "0901111111",
                 LocalDate.of(2008, 1, 1),
                 Gender.MALE,
                 "Address A",
@@ -221,7 +221,7 @@ class StudentFlowIntegrationTest {
         CreateStudentRequest requestB = new CreateStudentRequest(
                 "Student B",
                 "student.b@tenant-b.com",
-                "+84902222222",
+                "0902222222",
                 LocalDate.of(2008, 2, 2),
                 Gender.FEMALE,
                 "Address B",
