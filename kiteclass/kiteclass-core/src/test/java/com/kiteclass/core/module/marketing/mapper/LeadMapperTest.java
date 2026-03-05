@@ -5,7 +5,6 @@ import com.kiteclass.core.module.marketing.dto.request.CreateLeadRequest;
 import com.kiteclass.core.module.marketing.dto.request.UpdateLeadRequest;
 import com.kiteclass.core.module.marketing.dto.response.LeadResponse;
 import com.kiteclass.core.module.marketing.entity.Lead;
-import com.kiteclass.core.module.marketing.enums.LeadSource;
 import com.kiteclass.core.module.marketing.enums.LeadStatus;
 import com.kiteclass.core.testutil.LeadTestDataBuilder;
 import org.junit.jupiter.api.Test;

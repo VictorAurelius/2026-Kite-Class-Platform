@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.marketing.service;
 
 import com.kiteclass.core.common.context.TenantContext;
-import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.module.marketing.dto.request.CreateContactMessageRequest;
 import com.kiteclass.core.module.marketing.dto.response.ContactMessageResponse;
 import com.kiteclass.core.module.marketing.entity.ContactMessage;
@@ -17,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 

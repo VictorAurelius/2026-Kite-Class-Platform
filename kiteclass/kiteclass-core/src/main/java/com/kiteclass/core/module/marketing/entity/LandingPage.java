@@ -10,8 +10,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
 
 import java.util.UUID;
 
@@ -25,8 +23,7 @@ import java.util.UUID;
 @Table(name = "landing_pages")
 @Getter
 @Setter
-@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "instanceId", type = UUID.class))
-@Filter(name = "tenantFilter", condition = "instance_id = :instanceId AND deleted = false")
+@Filter(name = "tenantFilter", condition = "instance_id = :tenantId AND deleted = false")
 public class LandingPage extends BaseEntity {
 
     @Column(name = "instance_id", nullable = false)

@@ -1370,3 +1370,5 @@ check lại toàn bộ status của PR 1., 2., 3. ở các master plan và cập
 bật plan mode và thực hiện hoàn chỉnh PR
 
 bật plan mode và hoàn thành phase Testing + test + check CI pass
+
+check CI

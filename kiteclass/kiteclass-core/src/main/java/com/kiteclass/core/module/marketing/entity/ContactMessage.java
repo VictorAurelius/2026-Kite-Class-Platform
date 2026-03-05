@@ -10,8 +10,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -26,8 +24,7 @@ import java.util.UUID;
 @Table(name = "contact_messages")
 @Getter
 @Setter
-@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "instanceId", type = UUID.class))
-@Filter(name = "tenantFilter", condition = "instance_id = :instanceId AND deleted = false")
+@Filter(name = "tenantFilter", condition = "instance_id = :tenantId AND deleted = false")
 public class ContactMessage extends BaseEntity {
 
     @Column(name = "instance_id", nullable = false)
