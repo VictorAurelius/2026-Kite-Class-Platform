@@ -1362,3 +1362,9 @@ vậy 2 TODO còn lại cần xử lý như thế nào?
 push, check CI pass and merge to main
 
 fix đến khi CI pass
+
+bạn nhầm lẫn status rồi
+
+check lại toàn bộ status của PR 1., 2., 3. ở các master plan và cập nhật vào index plan, tham chiếu status ở index plan để nhớ context hơn
+
+bật plan mode và thực hiện hoàn chỉnh PR
