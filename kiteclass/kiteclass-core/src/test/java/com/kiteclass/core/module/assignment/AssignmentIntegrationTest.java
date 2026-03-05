@@ -96,7 +96,6 @@ class AssignmentIntegrationTest {
     private Assignment testAssignment;
     private final UUID tenantId = UUID.randomUUID();
     private final Long mainTeacherId = 100L;
-    private final Long studentId = 200L;
 
     @BeforeEach
     void setUp() {

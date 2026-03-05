@@ -9,7 +9,6 @@ import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.assignment.dto.request.CreateAssignmentRequest;
 import com.kiteclass.core.module.assignment.dto.request.GradeSubmissionRequest;
 import com.kiteclass.core.module.assignment.dto.request.SubmitAssignmentRequest;
-import com.kiteclass.core.module.assignment.dto.request.UpdateAssignmentRequest;
 import com.kiteclass.core.module.assignment.dto.response.AssignmentResponse;
 import com.kiteclass.core.module.assignment.dto.response.SubmissionResponse;
 import com.kiteclass.core.module.assignment.entity.Assignment;
@@ -42,12 +41,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -273,7 +268,7 @@ class AssignmentServiceTest {
         when(submissionRepository.findByAssignmentIdAndStudentIdAndDeletedFalse(1L, studentId))
                 .thenReturn(Optional.empty());
         when(submissionRepository.save(any(Submission.class))).thenReturn(testSubmission);
-        when(assignmentMapper.toSubmissionResponse(any(Submission.class), any(LocalDateTime.class)))
+        when(assignmentMapper.toSubmissionResponse(any(Submission.class)))
                 .thenReturn(SubmissionResponse.builder().id(1L).build());
 
         // When
@@ -343,7 +338,7 @@ class AssignmentServiceTest {
         when(teacherClassRepository.findByTeacherIdAndClassId(mainTeacherId, 1L))
                 .thenReturn(Optional.of(mainTeacherClass));
         when(submissionRepository.save(any(Submission.class))).thenReturn(testSubmission);
-        when(assignmentMapper.toSubmissionResponse(any(Submission.class), any(LocalDateTime.class)))
+        when(assignmentMapper.toSubmissionResponse(any(Submission.class)))
                 .thenReturn(SubmissionResponse.builder().id(1L).build());
 
         // When

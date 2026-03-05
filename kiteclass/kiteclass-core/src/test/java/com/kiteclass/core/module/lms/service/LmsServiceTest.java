@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.lms.service;
 
 import com.kiteclass.core.common.constant.CourseStatus;
-import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.PermissionDeniedException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.course.entity.Course;
@@ -58,9 +57,11 @@ class LmsServiceTest {
     @Mock
     private CourseRepository courseRepository;
 
-    // TODO: Re-add after Class module integration (PR 2.5)
-    // @Mock
-    // private EnrollmentRepository enrollmentRepository;
+    @Mock
+    private com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
+
+    @Mock
+    private com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
 
     @Mock
     private LmsMapper lmsMapper;
@@ -205,11 +206,25 @@ class LmsServiceTest {
     }
 
     @Test
-    @DisplayName("getLessonForStudent - should allow access to paid lesson")
-    void getLessonForStudent_shouldAllowAccess() {
-        // Given - Phase 1: Enrollment check disabled (maps to Class, not Course)
+    @DisplayName("getLessonForStudent - should allow access when enrolled")
+    void getLessonForStudent_enrolled_shouldAllowAccess() {
+        // Setup: Student has ACTIVE enrollment in class
         Long userId = 200L;
+        Long classId = 1000L;
+
+        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
+                .courseId(1L)
+                .name("Test Class")
+                .build();
+        testClass.setId(classId);
+
         when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
+        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
+        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(testClass)));
+        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
+                .thenReturn(true);
         when(learningResourceRepository.findByLessonIdAndDeletedFalse(2L)).thenReturn(List.of());
         when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
 
@@ -218,23 +233,70 @@ class LmsServiceTest {
 
         // Then
         assertThat(result).isNotNull();
+        verify(enrollmentRepository).existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE);
     }
 
     @Test
-    @DisplayName("getLessonForStudent - should allow access (Phase 1: no enrollment check)")
-    void getLessonForStudent_shouldAllowAccess_phase1() {
-        // Given - Phase 1: Enrollment check disabled
-        // TODO: Re-enable after Class module integration (PR 2.5)
+    @DisplayName("getLessonForStudent - should deny access when not enrolled")
+    void getLessonForStudent_notEnrolled_shouldDenyAccess() {
+        // Setup: Student has NO enrollment
         Long userId = 200L;
+        Long classId = 1000L;
+
+        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
+                .courseId(1L)
+                .name("Test Class")
+                .build();
+        testClass.setId(classId);
+
         when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
-        when(learningResourceRepository.findByLessonIdAndDeletedFalse(2L)).thenReturn(List.of());
+        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
+        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(testClass)));
+        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                userId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE))
+                .thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> lmsService.getLessonForStudent(2L, userId))
+                .isInstanceOf(PermissionDeniedException.class)
+                .hasMessageContaining("STUDENT_NOT_ENROLLED_IN_COURSE");
+    }
+
+    @Test
+    @DisplayName("getLessonForStudent - should allow trial lesson without enrollment")
+    void getLessonForStudent_trialLesson_shouldAllowAccess() {
+        // Given - Trial lesson, no enrollment check needed
+        Long userId = 200L;
+        when(lessonRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(trialLesson));
+        when(learningResourceRepository.findByLessonIdAndDeletedFalse(1L)).thenReturn(List.of());
         when(lmsMapper.toResourceResponseList(anyList())).thenReturn(List.of());
 
         // When
-        LessonDetailResponse result = lmsService.getLessonForStudent(2L, userId);
+        LessonDetailResponse result = lmsService.getLessonForStudent(1L, userId);
 
-        // Then - Should succeed (no enrollment check in Phase 1)
+        // Then
         assertThat(result).isNotNull();
+        verify(enrollmentRepository, never()).existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("getLessonForStudent - should deny when course has no classes")
+    void getLessonForStudent_noCourseClasses_shouldDenyAccess() {
+        // Setup: Course exists but has no classes
+        Long userId = 200L;
+
+        when(lessonRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.of(testLesson));
+        when(courseModuleRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testModule));
+        when(classRepository.findByCourseIdAndDeletedFalse(eq(1L), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of()));
+
+        // When & Then
+        assertThatThrownBy(() -> lmsService.getLessonForStudent(2L, userId))
+                .isInstanceOf(PermissionDeniedException.class)
+                .hasMessageContaining("STUDENT_NOT_ENROLLED_IN_COURSE");
     }
 
     // ==================== Teacher CRUD Tests ====================

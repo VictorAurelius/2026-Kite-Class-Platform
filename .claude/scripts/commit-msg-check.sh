@@ -68,17 +68,18 @@ if ! echo "$SUBJECT_LINE" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|
 fi
 
 # ==============================================================================
-# Check 3: No "Claude" in Co-Authored-By
+# Check 3: No AI/Claude in Co-Authored-By or Author
 # ==============================================================================
 FULL_MSG=$(cat "$COMMIT_MSG_FILE")
-if echo "$FULL_MSG" | grep -iq "Co-Authored-By.*[Cc]laude"; then
+if echo "$FULL_MSG" | grep -iE "Co-Authored-By.*(claude|AI Assistant|noreply@anthropic\.com)"; then
     echo ""
-    echo -e "${RED}❌ Commit message contains 'Claude' in Co-Authored-By line${NC}"
+    echo -e "${RED}❌ Commit message contains AI attribution in Co-Authored-By line${NC}"
+    echo "   Found: Claude / AI Assistant / noreply@anthropic.com"
     echo "   This violates authorship policy"
     echo ""
     echo "   Remove or replace Co-Authored-By line:"
-    echo "   - Remove: Delete the Co-Authored-By line"
-    echo "   - Replace: Use your real name/email"
+    echo "   - Remove: Delete the Co-Authored-By line completely"
+    echo "   - Replace: Use only human collaborators"
     VIOLATIONS=$((VIOLATIONS + 1))
 fi
 

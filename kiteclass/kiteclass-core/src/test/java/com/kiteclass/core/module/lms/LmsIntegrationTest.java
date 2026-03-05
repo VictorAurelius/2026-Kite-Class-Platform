@@ -71,6 +71,9 @@ class LmsIntegrationTest {
     @Autowired
     private EnrollmentRepository enrollmentRepository;
 
+    @Autowired
+    private com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
+
     private Course testCourse;
     private CourseModule testModule;
     private Lesson trialLesson;
@@ -196,19 +199,9 @@ class LmsIntegrationTest {
     // ==================== Student Access Tests ====================
 
     @Test
-    @org.junit.jupiter.api.Disabled("Phase 1: Enrollment maps to Class, not Course. Re-enable after PR 2.5")
-    @DisplayName("Student - Get course structure should return all lessons when enrolled")
-    void getCourseStructure_student_enrolled_shouldReturnAllLessons() throws Exception {
-        // Create enrollment
-        Enrollment enrollment = Enrollment.builder()
-                .studentId(studentId)
-                .classId(testCourse.getId()) // TODO: Use classId after Class module
-                .status(EnrollmentStatus.ACTIVE)
-                .tuitionAmount(new BigDecimal("1000.00"))
-                .build();
-        enrollment.setInstanceId(tenantId);
-        enrollmentRepository.save(enrollment);
-
+    @DisplayName("Student - Get course structure should return all lessons (no enrollment check)")
+    void getCourseStructure_student_shouldReturnAllLessons() throws Exception {
+        // Note: getCourseStructureForStudent does NOT verify enrollment (UX decision)
         mockMvc.perform(get("/api/v1/lms/courses/{courseId}/modules", testCourse.getId())
                         .header("X-Tenant-Id", tenantId.toString())
                         .header("X-User-Id", studentId.toString())
@@ -221,13 +214,22 @@ class LmsIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Phase 1: Enrollment maps to Class, not Course. Re-enable after PR 2.5")
     @DisplayName("Student - Get paid lesson should succeed when enrolled")
     void getLesson_student_enrolled_shouldSucceed() throws Exception {
-        // Create enrollment
+        // Create class
+        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
+                .courseId(testCourse.getId())
+                .name("Test Class")
+                .startDate(java.time.LocalDate.now())
+                .endDate(java.time.LocalDate.now().plusMonths(3))
+                .build();
+        testClass.setInstanceId(tenantId);
+        testClass = classRepository.save(testClass);
+
+        // Create ACTIVE enrollment
         Enrollment enrollment = Enrollment.builder()
                 .studentId(studentId)
-                .classId(testCourse.getId()) // TODO: Use classId after Class module
+                .classId(testClass.getId())
                 .status(EnrollmentStatus.ACTIVE)
                 .tuitionAmount(new BigDecimal("1000.00"))
                 .build();
@@ -245,9 +247,49 @@ class LmsIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Phase 1: Enrollment maps to Class, not Course. Re-enable after PR 2.5")
     @DisplayName("Student - Get paid lesson should return 403 when not enrolled")
     void getLesson_student_notEnrolled_shouldReturn403() throws Exception {
+        // Create class BUT no enrollment
+        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
+                .courseId(testCourse.getId())
+                .name("Test Class")
+                .startDate(java.time.LocalDate.now())
+                .endDate(java.time.LocalDate.now().plusMonths(3))
+                .build();
+        testClass.setInstanceId(tenantId);
+        classRepository.save(testClass);
+
+        mockMvc.perform(get("/api/v1/lms/lessons/{lessonId}", paidLesson.getId())
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-User-Id", studentId.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("Student - Get paid lesson should return 403 when enrollment is PENDING_PAYMENT")
+    void getLesson_student_pendingPayment_shouldReturn403() throws Exception {
+        // Create class
+        com.kiteclass.core.module.clazz.entity.Class testClass = com.kiteclass.core.module.clazz.entity.Class.builder()
+                .courseId(testCourse.getId())
+                .name("Test Class")
+                .startDate(java.time.LocalDate.now())
+                .endDate(java.time.LocalDate.now().plusMonths(3))
+                .build();
+        testClass.setInstanceId(tenantId);
+        testClass = classRepository.save(testClass);
+
+        // Create PENDING_PAYMENT enrollment (should NOT grant access)
+        Enrollment enrollment = Enrollment.builder()
+                .studentId(studentId)
+                .classId(testClass.getId())
+                .status(EnrollmentStatus.PENDING_PAYMENT)
+                .tuitionAmount(new BigDecimal("1000.00"))
+                .build();
+        enrollment.setInstanceId(tenantId);
+        enrollmentRepository.save(enrollment);
+
         mockMvc.perform(get("/api/v1/lms/lessons/{lessonId}", paidLesson.getId())
                         .header("X-Tenant-Id", tenantId.toString())
                         .header("X-User-Id", studentId.toString())

@@ -1,7 +1,10 @@
 package com.kiteclass.core.module.payment.listener;
 
+import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.module.invoice.dto.InstallmentPlanResponse;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
+import com.kiteclass.core.module.invoice.service.InstallmentPlanService;
 import com.kiteclass.core.module.payment.entity.Payment;
 import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.module.payment.enums.PaymentStatus;
@@ -20,7 +23,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +44,9 @@ class PaymentEventListenerTest {
 
     @Mock
     private InvoiceRepository invoiceRepository;
+
+    @Mock
+    private InstallmentPlanService installmentPlanService;
 
     @InjectMocks
     private PaymentEventListener paymentEventListener;
@@ -195,10 +204,86 @@ class PaymentEventListenerTest {
     }
 
     @Test
-    @DisplayName("Should log warning for installment payments - not yet implemented")
-    void shouldLogWarningForInstallmentPayments() {
+    @DisplayName("Should record installment payment when installmentId present")
+    void shouldRecordInstallmentPaymentWhenInstallmentIdPresent() {
         // Arrange - Payment linked to installment
-        testPayment.setInstallmentId(1L);
+        Long installmentId = 1000L;
+        testPayment.setInstallmentId(installmentId);
+
+        when(invoiceRepository.findById(1L))
+                .thenReturn(Optional.of(testInvoice));
+        when(invoiceRepository.save(testInvoice))
+                .thenReturn(testInvoice);
+        when(installmentPlanService.recordInstallmentPayment(eq(installmentId), eq(testPayment.getAmount())))
+                .thenReturn(mock(InstallmentPlanResponse.class));
+
+        PaymentCompletedEvent event = new PaymentCompletedEvent(this, testPayment);
+
+        // Act
+        paymentEventListener.onPaymentCompleted(event);
+
+        // Assert
+        verify(installmentPlanService).recordInstallmentPayment(installmentId, testPayment.getAmount());
+        verify(invoiceRepository).save(argThat(invoice ->
+                invoice.getAmountPaid().compareTo(new BigDecimal("500000.00")) == 0
+        ));
+    }
+
+    @Test
+    @DisplayName("Should continue when installment not found")
+    void shouldContinueWhenInstallmentNotFound() {
+        // Arrange
+        Long installmentId = 9999L;
+        testPayment.setInstallmentId(installmentId);
+
+        when(invoiceRepository.findById(1L))
+                .thenReturn(Optional.of(testInvoice));
+        when(invoiceRepository.save(testInvoice))
+                .thenReturn(testInvoice);
+        when(installmentPlanService.recordInstallmentPayment(eq(installmentId), any(BigDecimal.class)))
+                .thenThrow(new EntityNotFoundException("INSTALLMENT_NOT_FOUND", (Object) installmentId));
+
+        PaymentCompletedEvent event = new PaymentCompletedEvent(this, testPayment);
+
+        // Act - Should NOT throw exception
+        paymentEventListener.onPaymentCompleted(event);
+
+        // Assert - Invoice still updated despite installment failure
+        verify(invoiceRepository).save(argThat(invoice ->
+                invoice.getAmountPaid().compareTo(new BigDecimal("500000.00")) == 0
+        ));
+    }
+
+    @Test
+    @DisplayName("Should continue when installment already paid")
+    void shouldContinueWhenInstallmentAlreadyPaid() {
+        // Arrange
+        Long installmentId = 1000L;
+        testPayment.setInstallmentId(installmentId);
+
+        when(invoiceRepository.findById(1L))
+                .thenReturn(Optional.of(testInvoice));
+        when(invoiceRepository.save(testInvoice))
+                .thenReturn(testInvoice);
+        when(installmentPlanService.recordInstallmentPayment(eq(installmentId), any(BigDecimal.class)))
+                .thenThrow(new IllegalStateException("Cannot pay installment with status: PAID"));
+
+        PaymentCompletedEvent event = new PaymentCompletedEvent(this, testPayment);
+
+        // Act - Should NOT throw exception
+        paymentEventListener.onPaymentCompleted(event);
+
+        // Assert - Invoice still updated despite installment failure
+        verify(invoiceRepository).save(argThat(invoice ->
+                invoice.getAmountPaid().compareTo(new BigDecimal("500000.00")) == 0
+        ));
+    }
+
+    @Test
+    @DisplayName("Should skip installment when installmentId is null")
+    void shouldSkipInstallmentWhenInstallmentIdIsNull() {
+        // Arrange - Payment without installment
+        testPayment.setInstallmentId(null);
 
         when(invoiceRepository.findById(1L))
                 .thenReturn(Optional.of(testInvoice));
@@ -210,7 +295,8 @@ class PaymentEventListenerTest {
         // Act
         paymentEventListener.onPaymentCompleted(event);
 
-        // Assert - Should still update invoice despite installment warning
+        // Assert - Installment service NOT called
+        verify(installmentPlanService, never()).recordInstallmentPayment(any(), any());
         verify(invoiceRepository).save(argThat(invoice ->
                 invoice.getAmountPaid().compareTo(new BigDecimal("500000.00")) == 0
         ));

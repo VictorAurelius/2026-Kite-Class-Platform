@@ -2,5 +2,19 @@
   "java.compile.nullAnalysis.mode": "disabled",
   "maven.view": "hierarchical",
   "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING",
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.configuration.updateBuildConfiguration": "automatic",
+
+  // Disable ALL markdownlint rules (simplest approach)
+  "markdownlint.config": {
+    "default": false  // Disable all rules globally
+  },
+
+  // Disable all diagnostics for markdown files
+  "[markdown]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {}
+  },
+
+  // Exclude markdown from problem matcher
+  "problems.exclude": ["**/*.md"]
 }

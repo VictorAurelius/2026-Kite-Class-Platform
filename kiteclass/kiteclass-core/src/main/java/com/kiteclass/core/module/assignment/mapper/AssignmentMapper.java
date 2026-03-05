@@ -7,13 +7,11 @@ import com.kiteclass.core.module.assignment.dto.response.SubmissionResponse;
 import com.kiteclass.core.module.assignment.entity.Assignment;
 import com.kiteclass.core.module.assignment.entity.Submission;
 import org.mapstruct.BeanMapping;
-import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -42,6 +40,12 @@ public interface AssignmentMapper {
     @Mapping(target = "classId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(UpdateAssignmentRequest request, @MappingTarget Assignment assignment);
 
@@ -61,18 +65,17 @@ public interface AssignmentMapper {
 
     /**
      * Map Submission entity to SubmissionResponse.
+     * Note: isLate and penaltyApplied are computed in service layer.
      */
     @Mapping(target = "createdAt", expression = "java(toLocalDateTime(submission.getCreatedAt()))")
-    @Mapping(target = "isLate",
-            expression = "java(submission.getSubmissionDate() != null "
-                    + "&& dueDate != null && submission.isLate(dueDate))")
-    @Mapping(target = "penaltyApplied", expression = "java(calculatePenalty(submission))")
-    SubmissionResponse toSubmissionResponse(Submission submission, @Context LocalDateTime dueDate);
+    @Mapping(target = "isLate", ignore = true)
+    @Mapping(target = "penaltyApplied", ignore = true)
+    SubmissionResponse toSubmissionResponse(Submission submission);
 
     /**
      * Map list of Submission entities to list of SubmissionResponse.
      */
-    List<SubmissionResponse> toSubmissionResponseList(List<Submission> submissions, @Context LocalDateTime dueDate);
+    List<SubmissionResponse> toSubmissionResponseList(List<Submission> submissions);
 
     /**
      * Convert Instant to LocalDateTime.
@@ -90,15 +93,5 @@ public interface AssignmentMapper {
     default boolean isOverdue(Assignment assignment) {
         return assignment.getDueDate() != null &&
                LocalDateTime.now().isAfter(assignment.getDueDate());
-    }
-
-    /**
-     * Calculate penalty applied to submission.
-     */
-    default BigDecimal calculatePenalty(Submission submission) {
-        if (submission.getScore() == null || submission.getAdjustedScore() == null) {
-            return BigDecimal.ZERO;
-        }
-        return submission.getScore().subtract(submission.getAdjustedScore());
     }
 }

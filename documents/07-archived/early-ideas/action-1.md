@@ -1250,3 +1250,115 @@ module attendence này không có PR FE tương ứng à? có phải là thiếu
 2. phải start toàn bộ service của kiteclass
 
 check commit mới, status hiện tại, CI và đưa ra action tiếp theo
+
+fix hết IDE warning
+
+bật mode plan, check lại lần nữa, còn rất nhiều IDE warnings:
+1. No implementation was created for AssignmentMapper due to having a problem in the erroneous element null. Hint: this often means that some other annotation processor was supposed to process the erroneous element. You can also enable MapStruct verbose mode by setting -Amapstruct.verbose=true as a compilation argument.Java(0)
+com.kiteclass.core.module.assignment.mapper.AssignmentMapper
+
+2. AssignmentServiceImpl: The value of the local variable clazz is not usedJava(536870973)
+Class clazz - com.kiteclass.core.module.assignment.service.AssignmentServiceImpl.createAssignment(CreateAssignmentRequest, Long)
+
+3. GradeServiceImpl: The value of the local variable student is not used
+The value of the local variable clazz is not used
+The value of the local variable student is not usedJava(536870973)
+Student student - com.kiteclass.core.module.grade.service.GradeServiceImpl.generateTranscript(Long, String)
+
+The value of the local variable clazz is not usedJava(536870973)
+Class clazz - com.kiteclass.core.module.grade.service.GradeServiceImpl.calculateClassStatistics(Long)
+
+4. LessonProgressServiceImpl: The value of the local variable module is not usedJava(536870973)
+CourseModule module - com.kiteclass.core.module.lms.service.LessonProgressServiceImpl.completeLesson(Long, Long)
+
+The method verifyStudentEnrollment(Long, Long) from the type LmsServiceImpl is never used locally
+
+5. The constructor CreateClassRequest(Long, String, String, int, String, LocalDate, LocalDate, int) is undefinedJava(134217858)
+com.kiteclass.core.module.clazz.dto.CreateClassRequest
+Request DTO for creating a new class within a course.
+
+The courseId is provided via path variable in the controller, not included in the request body.
+
+Parameters:
+name Class name (5-200 chars, required)
+description Class description (optional, max 2000 chars)
+schedule Schedule text (optional, max 200 chars)
+locationType IN_PERSON or ONLINE (optional, defaults to IN_PERSON)
+locationDetail Room or URL (optional, max 200 chars)
+
+new CreateClassRequest(
+                courseId,
+                "Biology Basics - Spring 2026",
+                "Spring 2026",
+                2026,
+                "[]",
+                LocalDate.now().plusDays(7),
+                LocalDate.now().plusDays(120),
+                30
+        )
+
+
+và các lỗi tương tự ở các file khác
+
+hãy check lại PR plan xem cụ thể các TODO này đang chờ PR nào?
+
+check PR 1.4 đã hoàn thành chưa?
+
+vật plan mode và thực hiện
+
+vậy 2 TODO còn lại cần xử lý như thế nào?
+[{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/common/config/RabbitConfig.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "536871362",
+	"severity": 2,
+	"message": "TODO: Define actual exchanges, queues, and bindings when event-driven features are implemented.",
+	"source": "Java",
+	"startLineNumber": 39,
+	"startColumn": 7,
+	"endLineNumber": 39,
+	"endColumn": 102,
+	"origin": "extHost1"
+},{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/common/config/RabbitConfig.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "536871362",
+	"severity": 2,
+	"message": "TODO: Define exchanges, queues, and bindings when event-driven features are implemented",
+	"source": "Java",
+	"startLineNumber": 85,
+	"startColumn": 8,
+	"endLineNumber": 85,
+	"endColumn": 95,
+	"origin": "extHost1"
+}]
+
+[{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/src/test/java/com/kiteclass/gateway/integration/PasswordResetIntegrationTest.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "1102",
+	"severity": 2,
+	"message": "At least one of the problems in category 'resource' is not analysed due to a compiler option being ignored",
+	"source": "Java",
+	"startLineNumber": 37,
+	"startColumn": 23,
+	"endLineNumber": 37,
+	"endColumn": 33,
+	"origin": "extHost1"
+},{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/src/test/java/com/kiteclass/gateway/integration/PasswordResetIntegrationTest.java",
+	"owner": "_generated_diagnostic_collection_name_#7",
+	"code": "536871362",
+	"severity": 2,
+	"message": "TODO: Enhance this test when refresh token integration is needed",
+	"source": "Java",
+	"startLineNumber": 272,
+	"startColumn": 12,
+	"endLineNumber": 272,
+	"endColumn": 76,
+	"origin": "extHost1"
+}]
+
+push, check CI pass and merge to main
+
+fix đến khi CI pass

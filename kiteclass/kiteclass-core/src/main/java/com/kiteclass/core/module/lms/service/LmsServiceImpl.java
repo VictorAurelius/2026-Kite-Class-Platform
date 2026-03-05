@@ -51,8 +51,8 @@ public class LmsServiceImpl implements LmsService {
     private final LessonRepository lessonRepository;
     private final LearningResourceRepository learningResourceRepository;
     private final CourseRepository courseRepository;
-    // TODO: Re-add after Class module integration (PR 2.5) for enrollment verification
-    // private final EnrollmentRepository enrollmentRepository;
+    private final com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
+    private final com.kiteclass.core.module.clazz.repository.ClassRepository classRepository;
     private final LmsMapper lmsMapper;
 
     // ==================== Public Endpoints (Guest Access) ====================
@@ -64,7 +64,7 @@ public class LmsServiceImpl implements LmsService {
 
         // 1. Look up course WITHOUT tenant context (guest access)
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", courseId));
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
 
         // 2. Verify course is PUBLISHED (BR: only published courses visible to guests)
         if (course.getStatus() != CourseStatus.PUBLISHED) {
@@ -122,10 +122,8 @@ public class LmsServiceImpl implements LmsService {
     public List<CourseModuleDetailResponse> getCourseStructureForStudent(Long courseId, Long userId) {
         log.info("Fetching course structure for student userId: {} courseId: {}", userId, courseId);
 
-        // TODO: Verify enrollment (BR-LMS-002)
-        // Phase 1: Enrollment maps to Class, not Course. Skip verification for now.
-        // Will implement after Class module integration (PR 2.5)
-        // verifyStudentEnrollment(userId, courseId);
+        // Note: We do NOT verify enrollment here to allow students to see course structure
+        // before enrolling (better UX for marketing/preview purposes)
 
         // Fetch modules + ALL lessons
         List<CourseModule> modules = courseModuleRepository
@@ -146,7 +144,7 @@ public class LmsServiceImpl implements LmsService {
         log.info("Fetching lesson detail for student userId: {} lessonId: {}", userId, lessonId);
 
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         // If trial, allow access immediately
         if (lesson.isTrialLesson()) {
@@ -155,11 +153,9 @@ public class LmsServiceImpl implements LmsService {
         }
 
         // If not trial, verify enrollment (BR-LMS-002)
-        // TODO: Phase 1 - Skip enrollment verification (Enrollment maps to Class, not Course)
-        // Will implement after Class module integration (PR 2.5)
-        // CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-        //         .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
-        // verifyStudentEnrollment(userId, module.getCourseId());
+        CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
+        verifyStudentEnrollment(userId, module.getCourseId());
 
         return buildLessonDetailResponse(lesson);
     }
@@ -197,7 +193,7 @@ public class LmsServiceImpl implements LmsService {
         log.info("Updating moduleId: {} by teacherId: {}", moduleId, teacherId);
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(moduleId)
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", moduleId));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) moduleId));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -224,7 +220,7 @@ public class LmsServiceImpl implements LmsService {
         log.info("Deleting moduleId: {} by teacherId: {}", moduleId, teacherId);
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(moduleId)
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", moduleId));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) moduleId));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -248,7 +244,7 @@ public class LmsServiceImpl implements LmsService {
         log.info("Fetching module {} for teacher {}", moduleId, teacherId);
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(moduleId)
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", moduleId));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) moduleId));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -265,7 +261,7 @@ public class LmsServiceImpl implements LmsService {
         log.info("Creating lesson for moduleId: {} by teacherId: {}", moduleId, teacherId);
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(moduleId)
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", moduleId));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) moduleId));
 
         // Verify teacher is course owner
         Course course = verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -296,10 +292,10 @@ public class LmsServiceImpl implements LmsService {
         log.info("Updating lessonId: {} by teacherId: {}", lessonId, teacherId);
 
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -326,10 +322,10 @@ public class LmsServiceImpl implements LmsService {
         log.info("Deleting lessonId: {} by teacherId: {}", lessonId, teacherId);
 
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -347,10 +343,10 @@ public class LmsServiceImpl implements LmsService {
         log.info("Fetching lesson {} for teacher {}", lessonId, teacherId);
 
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -366,10 +362,10 @@ public class LmsServiceImpl implements LmsService {
         log.info("Adding resource to lessonId: {} by teacherId: {}", lessonId, teacherId);
 
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
 
         // Verify teacher is course owner
         Course course = verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -391,13 +387,13 @@ public class LmsServiceImpl implements LmsService {
         log.info("Deleting resourceId: {} by teacherId: {}", resourceId, teacherId);
 
         LearningResource resource = learningResourceRepository.findByIdAndDeletedFalse(resourceId)
-                .orElseThrow(() -> new EntityNotFoundException("RESOURCE_NOT_FOUND", resourceId));
+                .orElseThrow(() -> new EntityNotFoundException("RESOURCE_NOT_FOUND", (Object) resourceId));
 
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(resource.getLessonId())
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", resource.getLessonId()));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) resource.getLessonId()));
 
         CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+                .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
 
         // Verify teacher is course owner
         verifyCourseOwnership(module.getCourseId(), teacherId);
@@ -422,7 +418,7 @@ public class LmsServiceImpl implements LmsService {
      */
     private Course verifyCourseOwnership(Long courseId, Long teacherId) {
         Course course = courseRepository.findByIdAndDeletedFalse(courseId)
-                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", courseId));
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
 
         if (!course.getTeacherId().equals(teacherId)) {
             log.warn("Teacher {} is not owner of course {} (owner: {})",
@@ -434,17 +430,43 @@ public class LmsServiceImpl implements LmsService {
     }
 
     /**
-     * Verifies that the student has an active enrollment in the course.
+     * Verifies that student has ACTIVE enrollment in ANY class of the course.
+     * BR-LMS-002: Student must have active enrollment to access paid lessons.
      *
-     * @param userId the user ID
+     * @param studentId the student user ID
      * @param courseId the course ID
-     * @throws PermissionDeniedException if student is not enrolled or enrollment not active
+     * @throws PermissionDeniedException if student not enrolled in any class
      */
-    private void verifyStudentEnrollment(Long userId, Long courseId) {
-        // TODO: Phase 1 - Not implemented (Enrollment maps to Class, not Course)
-        // Will implement after Class module integration (PR 2.5)
-        log.debug("Skipping enrollment verification for user {} and course {} (Phase 1)",
-                  userId, courseId);
+    private void verifyStudentEnrollment(Long studentId, Long courseId) {
+        log.debug("Verifying enrollment for student {} in course {}", studentId, courseId);
+
+        // Find all classes for this course
+        List<com.kiteclass.core.module.clazz.entity.Class> courseClasses = classRepository
+                .findByCourseIdAndDeletedFalse(courseId, org.springframework.data.domain.Pageable.unpaged())
+                .getContent();
+
+        if (courseClasses.isEmpty()) {
+            log.warn("Course {} has no classes", courseId);
+            throw new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE");
+        }
+
+        // Extract class IDs
+        List<Long> classIds = courseClasses.stream()
+                .map(com.kiteclass.core.module.clazz.entity.Class::getId)
+                .collect(Collectors.toList());
+
+        // Check if student has ACTIVE enrollment in ANY class
+        boolean hasActiveEnrollment = classIds.stream()
+                .anyMatch(classId -> enrollmentRepository
+                    .existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+                        studentId, classId, com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE));
+
+        if (!hasActiveEnrollment) {
+            log.warn("Student {} not enrolled in course {}", studentId, courseId);
+            throw new PermissionDeniedException("STUDENT_NOT_ENROLLED_IN_COURSE");
+        }
+
+        log.debug("Student {} has active enrollment in course {}", studentId, courseId);
     }
 
     /**
@@ -456,7 +478,7 @@ public class LmsServiceImpl implements LmsService {
     private Lesson findLessonWithTenantContext(Long lessonId) {
         // Try to find lesson first to get its instance ID
         Lesson lesson = lessonRepository.findById(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         // Set tenant context if not already set
         if (!TenantContext.isSet()) {
@@ -465,7 +487,7 @@ public class LmsServiceImpl implements LmsService {
 
         // Re-query with tenant filter active
         return lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
     }
 
     /**

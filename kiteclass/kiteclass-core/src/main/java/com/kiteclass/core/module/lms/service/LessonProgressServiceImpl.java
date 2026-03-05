@@ -46,12 +46,13 @@ public class LessonProgressServiceImpl implements LessonProgressService {
 
         // Verify lesson exists
         Lesson lesson = lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         // For paid lessons, verify enrollment (trial lessons don't require enrollment)
         if (!lesson.isTrialLesson()) {
             CourseModule module = courseModuleRepository.findByIdAndDeletedFalse(lesson.getModuleId())
-                    .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", lesson.getModuleId()));
+                    .orElseThrow(() -> new EntityNotFoundException("MODULE_NOT_FOUND", (Object) lesson.getModuleId()));
+            log.debug("Lesson belongs to module: {}", module.getTitle());
 
             // Note: Enrollment check is simplified here. In production, consider adding enrollment service dependency.
             // For now, we'll allow progress tracking without strict enrollment check (can be added later).
@@ -106,7 +107,7 @@ public class LessonProgressServiceImpl implements LessonProgressService {
 
         // Verify course exists
         courseRepository.findByIdAndDeletedFalse(courseId)
-                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", courseId));
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
 
         // BR-LMS-004: Calculate progress = (completedLessons / totalLessons) * 100
         long totalLessons = lessonRepository.countLessonsByCourseId(courseId);
@@ -139,7 +140,7 @@ public class LessonProgressServiceImpl implements LessonProgressService {
 
         // Verify lesson exists
         lessonRepository.findByIdAndDeletedFalse(lessonId)
-                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", lessonId));
+                .orElseThrow(() -> new EntityNotFoundException("LESSON_NOT_FOUND", (Object) lessonId));
 
         // Find progress record
         Optional<LessonProgress> progressOpt = lessonProgressRepository

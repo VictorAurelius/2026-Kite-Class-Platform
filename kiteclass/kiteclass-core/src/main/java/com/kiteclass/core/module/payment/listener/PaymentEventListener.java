@@ -3,6 +3,7 @@ package com.kiteclass.core.module.payment.listener;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
+import com.kiteclass.core.module.invoice.service.InstallmentPlanService;
 import com.kiteclass.core.module.payment.entity.Payment;
 import com.kiteclass.core.module.payment.event.PaymentCompletedEvent;
 import com.kiteclass.core.module.payment.event.PaymentRefundedEvent;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 public class PaymentEventListener {
 
     private final InvoiceRepository invoiceRepository;
+    private final InstallmentPlanService installmentPlanService;
 
     /**
      * Handles PaymentCompletedEvent.
@@ -52,10 +54,32 @@ public class PaymentEventListener {
             log.info("Updated invoice {} amountPaid to {} (payment {})",
                 invoice.getInvoiceNumber(), newAmountPaid, payment.getPaymentNumber());
 
-            // TODO: Update Installment if applicable when Installment module is ready
+            // Update installment payment tracking if applicable
             if (payment.getInstallmentId() != null) {
-                log.warn("Installment payment not supported yet (installmentId: {})",
-                    payment.getInstallmentId());
+                try {
+                    installmentPlanService.recordInstallmentPayment(
+                        payment.getInstallmentId(),
+                        payment.getAmount()
+                    );
+
+                    log.info("Recorded installment payment: installmentId={}, amount={}, paymentNumber={}",
+                        payment.getInstallmentId(), payment.getAmount(), payment.getPaymentNumber());
+
+                } catch (EntityNotFoundException e) {
+                    log.warn("Installment not found for payment {}: {}",
+                        payment.getPaymentNumber(), e.getMessage());
+                    // Continue - installment may have been deleted
+
+                } catch (IllegalStateException e) {
+                    log.warn("Cannot record payment for installment (payment {}): {}",
+                        payment.getPaymentNumber(), e.getMessage());
+                    // Continue - installment status may not allow payment (PAID/CANCELLED)
+
+                } catch (Exception e) {
+                    log.error("Failed to record installment payment for {}: {}",
+                        payment.getPaymentNumber(), e.getMessage(), e);
+                    // Continue - don't fail invoice update for installment tracking failure
+                }
             }
 
         } catch (Exception e) {
