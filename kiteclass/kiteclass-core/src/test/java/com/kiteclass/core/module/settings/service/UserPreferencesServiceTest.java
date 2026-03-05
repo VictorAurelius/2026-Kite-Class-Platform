@@ -4,8 +4,6 @@ import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.module.settings.dto.request.UpdateUserPreferencesRequest;
 import com.kiteclass.core.module.settings.dto.response.UserPreferencesResponse;
 import com.kiteclass.core.module.settings.entity.UserPreferences;
-import com.kiteclass.core.module.settings.enums.Language;
-import com.kiteclass.core.module.settings.enums.Theme;
 import com.kiteclass.core.module.settings.mapper.UserPreferencesMapper;
 import com.kiteclass.core.module.settings.repository.UserPreferencesRepository;
 import com.kiteclass.core.testutil.UserPreferencesTestDataBuilder;
@@ -25,7 +23,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
