@@ -47,7 +47,8 @@ class LeadMapperTest {
         assertThat(response.getSource()).isEqualTo(lead.getSource());
         assertThat(response.getStatus()).isEqualTo(lead.getStatus());
         assertThat(response.getMessage()).isEqualTo(lead.getMessage());
-        assertThat(response.getCreatedAt()).isNotNull();
+        // createdAt/updatedAt are null in unit test (set by JPA lifecycle in integration tests)
+        assertThat(response.getCreatedAt()).isEqualTo(lead.getCreatedAt());
     }
 
     @Test
