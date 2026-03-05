@@ -328,39 +328,51 @@ Every PR must meet these quality gates before merge:
 **Internal API Security:** ✅ HMAC-SHA256 with InternalRequestFilter
 **⚠️ CRITICAL:** Missing UserType + ReferenceId pattern (PR 1.8 needed)
 
-## Core Service (feature/core branch)
+## Core Service
 - ✅ PR 2.1: Core Project Setup
 - ✅ PR 2.2: Core Common Components
 - ✅ PR 2.3: Student Module
 - ✅ **PR 2.3.1: Teacher Module** *(PR-REVIEW-1.1 complete)*
 - ✅ **PR 2.4: Course Module** *(PR-REVIEW-1.2 complete)*
+- ✅ **PR 2.5: Class Module** *(KC-003, merged 2026-02-22, 42 tests)*
+- ✅ **PR 2.6: Enrollment Module** *(PR #15, merged 2026-02-27, 22 tests)*
+- ✅ **PR 2.7: Attendance Module** *(PR #22, merged 2026-03-02)*
+- ✅ **PR 2.7.1: Assignment Module** *(merged 2026-03-03, 26 tests)*
+- ✅ **PR 2.7.2: Grade Module** *(PR #24, merged 2026-03-03)*
+- ✅ **PR 2.8: Invoice Module** *(PR #19, merged 2026-03-02)*
+- ✅ **PR 2.8.1: Payment Module** *(PR #21, merged 2026-03-02)*
+- ✅ **PR 2.9: Settings & Preferences** *(PR #26, merged 2026-03-05)*
+- ✅ **PR 2.10: Core Docker & Final Integration** *(PR #25, merged 2026-03-05)*
+- ✅ **PR 2.10.1: File Storage Module** *(PR #14, merged 2026-02-27, 6 integration tests, S3/MinIO)*
 - ✅ **PR 2.11: Internal APIs for Gateway** *(cross-service linking)*
 - ✅ **PR 2.12: Spring Boot 3.5.10 Upgrade** *(PR-REVIEW-2.5 complete)*
-- ✅ **PR 2.5: Class Module** *(KC-003, merged 2026-02-22, 42 tests)*
-- ✅ **PR 2.10.1: File Storage Module** *(merged 2026-02-27, 6 integration tests, S3/MinIO)*
-- ⏳ PR 2.6: Enrollment Module
-- ⏳ PR 2.7: Attendance Module
-- ⏳ PR 2.7.1: Assignment Module
-- ⏳ PR 2.7.2: Grade Module
-- ⏳ PR 2.8: Invoice Module
-- ⏳ PR 2.8.1: Payment Module
-- ⏳ PR 2.9: Settings & Preferences
-- ⏳ PR 2.10: Core Docker & Final Integration
 
-**Core Status:** 9/16 PRs completed (56.3%) — Last updated: 2026-02-27
-**Tests:** 303 passing (269 unit + 34 integration), 0 failures, 31 skipped
+**🎁 BONUS (not in original plan):**
+- ✅ **Marketing Module** *(PR #27, merged 2026-03-05, 16 tests)* - LandingPage, Lead, ContactMessage
+
+**Core Status:** 17/17 PRs completed (100%) + 1 bonus — Last updated: 2026-03-05
+**Tests:** 527+ passing, 59 skipped (by design)
 **Spring Boot:** ✅ 3.5.10
 **Modules Complete:**
 - ✅ Student Module: CRUD, multi-tenant, validation, soft delete
 - ✅ Teacher Module: CRUD, status management (ACTIVE/ON_LEAVE/TERMINATED), multi-tenant
 - ✅ Course Module: CRUD, lifecycle (DRAFT → PUBLISHED → ARCHIVED), soft delete restrictions
 - ✅ **Class Module (PR 2.5):** CRUD, lifecycle (SCHEDULED → IN_PROGRESS → COMPLETED), class code generation, schedule/sessions, 42 tests
+- ✅ **Enrollment Module (PR 2.6):** Student enrollment, capacity checks, tuition calculation, 22 tests
+- ✅ **Attendance Module (PR 2.7):** Attendance marking, permission checks, attendance rate calculation
+- ✅ **Assignment Module (PR 2.7.1):** Assignment lifecycle, late penalties, grading workflow, 26 tests
+- ✅ **Grade Module (PR 2.7.2):** Weighted grade calculation, component scores, final grade computation
+- ✅ **Invoice Module (PR 2.8):** Invoice generation, payment tracking, overdue management
+- ✅ **Payment Module (PR 2.8.1):** Payment processing, installment tracking, payment methods
+- ✅ **Settings Module (PR 2.9):** Branding, user preferences, theme/language settings
 - ✅ **Storage Module (PR 2.10.1):** S3/MinIO presigned URLs, quota enforcement, file type validation, multi-tenant isolation, 6 tests
+- ✅ **Marketing Module (BONUS):** Landing pages, lead capture, contact messages, 16 tests
 **Cross-Service APIs Ready:**
 - ✅ GET /internal/students/{id} - Retrieve student profile
 - ✅ POST /internal/students - Create student during registration
 - ✅ DELETE /internal/students/{id} - Soft delete student
-**🚨 NEXT PRIORITY:** PR 2.6 Enrollment Module (dependencies met: Student ✅, Class ✅)
+- ✅ GET /internal/teachers/{id} - Retrieve teacher profile
+**🎉 CORE SERVICE COMPLETE!** All planned PRs merged successfully.
 
 **New PRs Added (2026-01-28):**
 - PR 2.3.1: Teacher Module (BLOCKING for Course/Class) - from teacher-module-business-logic.md
@@ -503,14 +515,18 @@ Step 4: Results
 
 **Phase 3: Remaining Modules**
 - ✅ **PR 3.7: Class Management Pages** *(merged 2026-02-24)*
-- ⏳ PR 3.8: Attendance Management → NEEDS: PR 2.7 (pending)
-- ⏳ PR 3.9: Billing Pages → NEEDS: PR 2.8, 2.8.1 (pending)
-- ⏳ PR 3.10: Settings & AI Branding System → NEEDS: KiteHub AI Agent Module (pending)
-- ⏳ PR 3.11: Parent Portal → NEEDS: PR 2.9 (pending)
-- ⏳ PR 3.12: Reports & Analytics → NEEDS: PR 2.9 (pending)
-- ⏳ PR 3.13: E2E Tests & Polish
+- ✅ **PR 3.8: Frontend Testing & Coverage** *(PR #7, merged 2026-02-24, 164 tests, 83% coverage)*
+- 🔄 **PR 3.8+: Integration + E2E Tests** *(PR #8, OPEN)* - Phases 1-5 testing
+- ⏳ PR 3.9: Attendance Management → **Backend Ready** ✅ PR 2.7 (merged 2026-03-02)
+- ⏳ PR 3.10: Billing Pages → **Backend Ready** ✅ PR 2.8, 2.8.1 (merged 2026-03-02)
+- ⏳ PR 3.11: Settings & Preferences → **Backend Ready** ✅ PR 2.9 (merged 2026-03-05)
+- ⏳ PR 3.12: Marketing/Preview Website → **Backend Ready** ✅ Marketing Module (merged 2026-03-05)
+- ⏳ PR 3.13: Parent Portal → **Backend Pending** (Parent Module not yet implemented)
+- ⏳ PR 3.14: Reports & Analytics
+- ⏳ PR 3.15: E2E Tests & Polish
 
-**Frontend Status:** 7/13 PRs completed (54%) — Last updated: 2026-02-26
+**Frontend Status:** 8/15 PRs completed (53%), 1 PR open — Last updated: 2026-03-05
+**🎉 ALL BACKEND DEPENDENCIES READY** for PR 3.9-3.12! Can implement immediately.
 PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
