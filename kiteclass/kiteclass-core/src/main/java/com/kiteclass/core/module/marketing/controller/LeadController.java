@@ -87,7 +87,8 @@ public class LeadController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Search leads", description = "Searches leads with optional filters and pagination (requires ADMIN or TEACHER role)")
+    @Operation(summary = "Search leads",
+            description = "Searches leads with optional filters and pagination")
     public ApiResponse<PageResponse<LeadResponse>> getLeads(
             @Parameter(description = "Lead status filter") @RequestParam(required = false) LeadStatus status,
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,

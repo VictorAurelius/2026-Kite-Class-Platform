@@ -82,7 +82,8 @@ public class ContactMessageController {
      */
     @GetMapping("/api/v1/contact-messages")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Search contact messages", description = "Searches contact messages with optional filters and pagination (requires ADMIN or TEACHER role)")
+    @Operation(summary = "Search contact messages",
+            description = "Searches contact messages with optional filters and pagination")
     public ApiResponse<PageResponse<ContactMessageResponse>> getContactMessages(
             @Parameter(description = "Filter by read status") @RequestParam(required = false) Boolean isRead,
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,
@@ -114,7 +115,8 @@ public class ContactMessageController {
      */
     @GetMapping("/api/v1/contact-messages/unread-count")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    @Operation(summary = "Count unread messages", description = "Counts unread contact messages for a tenant (requires ADMIN or TEACHER role)")
+    @Operation(summary = "Count unread messages",
+            description = "Counts unread contact messages for a tenant")
     public ApiResponse<Long> getUnreadCount(
             @RequestHeader(value = "X-Tenant-Id", required = true) UUID tenantId) {
         log.debug("REST request to count unread messages for tenant: {}", tenantId);
