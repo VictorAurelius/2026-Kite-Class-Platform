@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Response DTO for ContactMessage entity.
@@ -28,9 +28,9 @@ public class ContactMessageResponse {
     private String message;
 
     private Boolean isRead;
-    private LocalDateTime readAt;
+    private Instant readAt;
     private String readBy;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

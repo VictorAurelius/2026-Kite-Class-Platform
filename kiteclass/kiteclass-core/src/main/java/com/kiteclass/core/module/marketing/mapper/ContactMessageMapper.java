@@ -45,6 +45,9 @@ public interface ContactMessageMapper {
     @Mapping(target = "isRead", ignore = true)
     @Mapping(target = "readAt", ignore = true)
     @Mapping(target = "readBy", ignore = true)
+    @Mapping(target = "replied", ignore = true)
+    @Mapping(target = "repliedAt", ignore = true)
+    @Mapping(target = "replyMessage", ignore = true)
     ContactMessage toEntity(CreateContactMessageRequest request);
 
     /**
@@ -65,6 +68,9 @@ public interface ContactMessageMapper {
     @Mapping(target = "name", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "phone", ignore = true)
+    @Mapping(target = "replied", ignore = true)
+    @Mapping(target = "repliedAt", ignore = true)
+    @Mapping(target = "replyMessage", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)

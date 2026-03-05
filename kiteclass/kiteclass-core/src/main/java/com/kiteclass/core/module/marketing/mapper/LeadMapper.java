@@ -43,6 +43,10 @@ public interface LeadMapper {
      * @return Lead entity
      */
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "courseInterest", ignore = true)
+    @Mapping(target = "registrationDate", ignore = true)
+    @Mapping(target = "lastContactedAt", ignore = true)
+    @Mapping(target = "convertedAt", ignore = true)
     Lead toEntity(CreateLeadRequest request);
 
     /**
@@ -58,6 +62,10 @@ public interface LeadMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "instanceId", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "courseInterest", ignore = true)
+    @Mapping(target = "registrationDate", ignore = true)
+    @Mapping(target = "lastContactedAt", ignore = true)
+    @Mapping(target = "convertedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
