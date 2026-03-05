@@ -42,12 +42,20 @@ public interface ContactMessageMapper {
      * @param request the create request DTO
      * @return ContactMessage entity
      */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
     @Mapping(target = "isRead", ignore = true)
     @Mapping(target = "readAt", ignore = true)
     @Mapping(target = "readBy", ignore = true)
     @Mapping(target = "replied", ignore = true)
     @Mapping(target = "repliedAt", ignore = true)
     @Mapping(target = "replyMessage", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     ContactMessage toEntity(CreateContactMessageRequest request);
 
     /**

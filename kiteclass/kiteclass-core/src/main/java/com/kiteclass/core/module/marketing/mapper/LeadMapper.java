@@ -31,6 +31,7 @@ public interface LeadMapper {
      * @param lead the lead entity
      * @return LeadResponse DTO
      */
+    @Mapping(source = "courseInterest.id", target = "courseInterestId")
     LeadResponse toResponse(Lead lead);
 
     /**
@@ -42,11 +43,19 @@ public interface LeadMapper {
      * @param request the create request DTO
      * @return Lead entity
      */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "courseInterest", ignore = true)
     @Mapping(target = "registrationDate", ignore = true)
     @Mapping(target = "lastContactedAt", ignore = true)
     @Mapping(target = "convertedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     Lead toEntity(CreateLeadRequest request);
 
     /**
