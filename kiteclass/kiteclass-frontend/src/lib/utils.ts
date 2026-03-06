@@ -40,3 +40,13 @@ export function formatDateTime(dateTimeString: string): string {
     timeZone: 'UTC',
   }).format(date);
 }
+
+/**
+ * Format number to Vietnamese currency (VND)
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(amount);
+}

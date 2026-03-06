@@ -1,0 +1,90 @@
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  studentId: number;
+  classId: number;
+  enrollmentId: number;
+  status: InvoiceStatus;
+  issueDate: string; // LocalDate from backend
+  dueDate: string;
+  periodStart: string;
+  periodEnd: string;
+  subtotal: number;
+  discount: number;
+  total: number;
+  amountPaid: number;
+  balanceDue: number;
+  paidAt?: string;
+  notes?: string;
+  items: InvoiceItem[];
+  adjustments: InvoiceAdjustment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum InvoiceStatus {
+  DRAFT = 'DRAFT',
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+}
+
+export interface InvoiceItem {
+  id: number;
+  type: InvoiceItemType;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+  referenceId?: number;
+}
+
+export enum InvoiceItemType {
+  TUITION = 'TUITION',
+  MATERIAL = 'MATERIAL',
+  REGISTRATION = 'REGISTRATION',
+  EXAM = 'EXAM',
+  OTHER = 'OTHER',
+}
+
+export interface InvoiceAdjustment {
+  id: number;
+  type: InvoiceAdjustmentType;
+  description: string;
+  amount: number;
+  reason?: string;
+}
+
+export enum InvoiceAdjustmentType {
+  DISCOUNT = 'DISCOUNT',
+  LATE_FEE = 'LATE_FEE',
+  PENALTY = 'PENALTY',
+  WAIVER = 'WAIVER',
+  OTHER = 'OTHER',
+}
+
+export interface CreateInvoiceRequest {
+  studentId: number;
+  classId?: number;
+  issueDate?: string;
+  dueDate: string;
+  periodStart: string;
+  periodEnd: string;
+  notes?: string;
+}
+
+export interface ApplyAdjustmentRequest {
+  type: InvoiceAdjustmentType;
+  description: string;
+  amount: number;
+  reason?: string;
+}
+
+export interface InvoiceSearchParams {
+  studentId?: number;
+  status?: InvoiceStatus;
+  page?: number;
+  size?: number;
+  sort?: string;
+}
