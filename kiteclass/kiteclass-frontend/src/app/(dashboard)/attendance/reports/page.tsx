@@ -35,6 +35,7 @@ import { Progress } from '@/components/ui/progress';
 import { useAllActiveClasses } from '@/hooks/use-classes';
 import { useAttendanceByClass } from '@/hooks/use-attendance';
 import { AttendanceStatusLabels } from '@/types/attendance';
+import type { Class } from '@/types/class';
 import { AttendanceCalendar } from '@/components/attendance';
 
 export default function AttendanceReportsPage() {
@@ -161,7 +162,7 @@ export default function AttendanceReportsPage() {
                     <SelectValue placeholder="Chọn lớp học để xem báo cáo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.map((classItem) => (
+                    {classes.map((classItem: Class) => (
                       <SelectItem key={classItem.id} value={classItem.id.toString()}>
                         {classItem.name} - {classItem.classCode}
                       </SelectItem>
