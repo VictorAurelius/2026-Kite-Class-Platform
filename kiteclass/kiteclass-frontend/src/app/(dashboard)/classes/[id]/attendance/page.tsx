@@ -62,7 +62,7 @@ export default function TakeAttendancePage({
   // Auto-select first session if available
   useState(() => {
     if (sessions && sessions.length > 0 && !selectedSessionId) {
-      setSelectedSessionId(sessions[0].id);
+      setSelectedSessionId(sessions[0]!.id);
     }
   });
 
