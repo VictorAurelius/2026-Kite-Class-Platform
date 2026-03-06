@@ -419,7 +419,12 @@ Every PR must meet these quality gates before merge:
 - ⚠️ **PR 3.9:** Attendance Module (code exists, not merged as PR yet, 2026-03-05)
 
 **Pending PRs:**
-- ⏳ PR 3.4: Public Routes & Landing Pages
+- 🔄 **PR 3.4: Public Routes & Landing Pages** *(IN PROGRESS - feature/PR-3.4-public-routes-landing)*
+  - ✅ Phase 1: Public layout & route structure
+  - ✅ Phase 2: Course catalog & detail pages
+  - ✅ Landing page with AI Branding integration
+  - ✅ V19 seed data migration (default landing page)
+  - ⏳ Phase 3: Testing, polish, error handling
 - ⏳ PR 3.10: Billing & VietQR Payment System
 - ⏳ PR 3.11: Settings & AI Branding
 - ⏳ PR 3.12: Parent Portal
