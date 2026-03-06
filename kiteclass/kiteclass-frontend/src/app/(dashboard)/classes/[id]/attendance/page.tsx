@@ -127,17 +127,13 @@ export default function TakeAttendancePage({
       notes: row.notes || undefined,
     }));
 
-    try {
-      await markBulkMutation.mutateAsync({
-        sessionId: selectedSessionId,
-        records,
-      });
+    await markBulkMutation.mutateAsync({
+      sessionId: selectedSessionId,
+      records,
+    });
 
-      // Navigate back to class detail
-      router.push(`/classes/${classId}`);
-    } catch (_error) {
-      // Error handled by mutation
-    }
+    // Navigate back to class detail (only if mutation succeeds)
+    router.push(`/classes/${classId}`);
   };
 
   if (classLoading || enrollmentsLoading || sessionsLoading) {

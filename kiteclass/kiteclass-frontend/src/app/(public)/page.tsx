@@ -304,8 +304,8 @@ export default async function LandingPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm mb-4">
-                  "KiteClass giúp tôi quản lý hơn 200 học viên một cách dễ dàng.
-                  Tính năng điểm danh tự động và LMS rất tiện lợi!"
+                  &ldquo;KiteClass giúp tôi quản lý hơn 200 học viên một cách dễ dàng.
+                  Tính năng điểm danh tự động và LMS rất tiện lợi!&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
                   <div
@@ -327,8 +327,8 @@ export default async function LandingPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm mb-4">
-                  "Báo cáo tài chính chi tiết giúp tôi nắm rõ doanh thu và chi
-                  phí. Thanh toán online cũng rất tiện cho phụ huynh."
+                  &ldquo;Báo cáo tài chính chi tiết giúp tôi nắm rõ doanh thu và chi
+                  phí. Thanh toán online cũng rất tiện cho phụ huynh.&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
                   <div
@@ -350,8 +350,8 @@ export default async function LandingPage() {
             <Card>
               <CardContent className="pt-6">
                 <p className="text-sm mb-4">
-                  "Hệ thống rất dễ sử dụng, nhân viên chỉ cần 1 ngày là làm
-                  quen. Support team cũng rất nhiệt tình!"
+                  &ldquo;Hệ thống rất dễ sử dụng, nhân viên chỉ cần 1 ngày là làm
+                  quen. Support team cũng rất nhiệt tình!&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
                   <div
