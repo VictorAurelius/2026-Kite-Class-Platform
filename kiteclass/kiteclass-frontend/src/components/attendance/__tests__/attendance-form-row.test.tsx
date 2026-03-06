@@ -5,6 +5,7 @@
  * @since 2.7.0 (PR 3.8)
  */
 
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AttendanceFormRow } from '../attendance-form-row';
 import { AttendanceStatus } from '@/types/attendance';
@@ -15,12 +16,12 @@ describe.skip('AttendanceFormRow', () => {
     studentName: 'Nguyễn Văn A',
     status: AttendanceStatus.PRESENT,
     notes: '',
-    onStatusChange: jest.fn(),
-    onNotesChange: jest.fn(),
+    onStatusChange: vi.fn(),
+    onNotesChange: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders student name correctly', () => {
