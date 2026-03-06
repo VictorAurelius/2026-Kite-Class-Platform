@@ -62,7 +62,7 @@ export default function PublicLayout({
               Trang chủ
             </Link>
             <Link
-              href="/courses"
+              href="/catalog"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
               Khóa học
@@ -120,7 +120,7 @@ export default function PublicLayout({
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
-                    href="/courses"
+                    href="/catalog"
                     className="text-muted-foreground hover:text-primary"
                   >
                     Khóa học

@@ -148,7 +148,7 @@ export default async function CourseDetailPage({
           Trang chủ
         </Link>
         {' / '}
-        <Link href="/courses" className="hover:text-primary">
+        <Link href="/catalog" className="hover:text-primary">
           Khóa học
         </Link>
         {' / '}

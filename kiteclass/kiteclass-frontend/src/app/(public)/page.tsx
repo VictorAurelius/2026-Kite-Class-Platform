@@ -145,7 +145,7 @@ export default async function LandingPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/courses">Xem khóa học</Link>
+              <Link href="/catalog">Xem khóa học</Link>
             </Button>
           </div>
         </div>
