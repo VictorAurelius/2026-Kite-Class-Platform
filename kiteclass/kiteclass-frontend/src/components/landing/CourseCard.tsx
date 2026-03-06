@@ -26,8 +26,8 @@ interface CourseCardProps {
 
 export function CourseCard({ course }: CourseCardProps) {
   // Format price
-  const formatPrice = (price: number | null) => {
-    if (price === null || price === 0) return 'Miễn phí';
+  const formatPrice = (price: number | null | undefined) => {
+    if (price === null || price === undefined || price === 0) return 'Miễn phí';
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
