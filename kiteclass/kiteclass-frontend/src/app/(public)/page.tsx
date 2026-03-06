@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { publicApi } from '@/lib/api/public';
 import {
   ArrowRight,
   BookOpen,
