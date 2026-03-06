@@ -32,10 +32,10 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAllActiveClasses } from '@/hooks/use-classes';
 import { useAttendanceByClass } from '@/hooks/use-attendance';
 import { AttendanceStatusLabels } from '@/types/attendance';
+import type { Class } from '@/types/class';
 import { AttendanceCalendar } from '@/components/attendance';
 
 export default function AttendanceReportsPage() {
@@ -79,10 +79,10 @@ export default function AttendanceReportsPage() {
               makeup: 0,
             };
           }
-          acc[record.enrollmentId].total++;
-          acc[record.enrollmentId][record.status.toLowerCase() as keyof typeof acc[typeof record.enrollmentId]]++;
+          acc[record.enrollmentId]!.total++;
+          acc[record.enrollmentId]![record.status.toLowerCase() as keyof typeof acc[typeof record.enrollmentId]]++;
           return acc;
-        }, {} as Record<number, any>)
+        }, {} as Record<number, { studentName: string; total: number; present: number; absent: number; late: number; excused: number; makeup: number }>)
       )
     : [];
 
@@ -162,7 +162,7 @@ export default function AttendanceReportsPage() {
                     <SelectValue placeholder="Chọn lớp học để xem báo cáo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {classes.map((classItem) => (
+                    {classes.map((classItem: Class) => (
                       <SelectItem key={classItem.id} value={classItem.id.toString()}>
                         {classItem.name} - {classItem.classCode}
                       </SelectItem>
@@ -319,8 +319,7 @@ export default function AttendanceReportsPage() {
             {/* Calendar View */}
             <AttendanceCalendar
               attendanceRecords={attendanceData?.content || []}
-              onDateClick={(date) => {
-                console.log('Clicked date:', date);
+              onDateClick={(_date) => {
                 // TODO: Show attendance details for this date
               }}
             />

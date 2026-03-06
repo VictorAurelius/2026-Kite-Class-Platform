@@ -62,7 +62,7 @@ export default function TakeAttendancePage({
   // Auto-select first session if available
   useState(() => {
     if (sessions && sessions.length > 0 && !selectedSessionId) {
-      setSelectedSessionId(sessions[0].id);
+      setSelectedSessionId(sessions[0]!.id);
     }
   });
 
@@ -127,17 +127,13 @@ export default function TakeAttendancePage({
       notes: row.notes || undefined,
     }));
 
-    try {
-      await markBulkMutation.mutateAsync({
-        sessionId: selectedSessionId,
-        records,
-      });
+    await markBulkMutation.mutateAsync({
+      sessionId: selectedSessionId,
+      records,
+    });
 
-      // Navigate back to class detail
-      router.push(`/classes/${classId}`);
-    } catch (error) {
-      // Error handled by mutation
-    }
+    // Navigate back to class detail (only if mutation succeeds)
+    router.push(`/classes/${classId}`);
   };
 
   if (classLoading || enrollmentsLoading || sessionsLoading) {
@@ -222,7 +218,7 @@ export default function TakeAttendancePage({
                   {sessions?.map((session) => (
                     <SelectItem key={session.id} value={session.id.toString()}>
                       Buổi {session.sessionNumber} -{' '}
-                      {new Date(session.scheduledDate).toLocaleDateString('vi-VN', {
+                      {new Date(session.sessionDate).toLocaleDateString('vi-VN', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',

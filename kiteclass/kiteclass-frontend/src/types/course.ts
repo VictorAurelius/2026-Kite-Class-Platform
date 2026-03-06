@@ -19,6 +19,8 @@ export interface Course {
   durationWeeks?: number;
   totalSessions?: number;
   price?: number;
+  level?: string;
+  maxStudents?: number;
   status: CourseStatus;
   coverImageUrl?: string;
   createdAt: string;
