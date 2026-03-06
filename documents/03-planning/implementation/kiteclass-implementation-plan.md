@@ -406,7 +406,7 @@ Every PR must meet these quality gates before merge:
 - Current Core PRs KHÔNG bao gồm Parent Module
 
 ## Frontend
-**Frontend Status:** 5.5/12 PRs completed (45.8%) — Last updated: 2026-03-06
+**Frontend Status:** 7/15 PRs completed (46.7%) — Last updated: 2026-03-06
 **Tests:** 236 passing, 58 skipped (294 total)
 **Coverage:** 49.94% (target: 80%)
 
@@ -414,18 +414,12 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 3.1:** Project Setup (Next.js 15, TypeScript, Vitest, Shadcn/UI) - implicit
 - ✅ **PR 3.2:** Shared Components & Layout System (GitHub PR #2, 2026-02-09)
 - ✅ **PR 3.3:** Authentication Pages (GitHub PR #3, 2026-02-09)
+- ✅ **PR 3.4:** Public Routes & Landing Pages (GitHub PR #30, 2026-03-06)
 - ✅ **PR 3.5+3.6+3.7 COMBINED:** Students, Teachers, Courses, Classes (GitHub PR #6, 2026-02-22)
 - ✅ **PR 3.8:** Frontend Testing & Coverage (GitHub PR #7, 2026-02-23)
-- ⚠️ **PR 3.9:** Attendance Module (code exists, not merged as PR yet, 2026-03-05)
+- ✅ **PR 3.9:** Attendance Module (implemented 2026-03-05, components + pages + tests)
 
 **Pending PRs:**
-- 🔄 **PR 3.4: Public Routes & Landing Pages** *(PR #30 - READY FOR REVIEW)*
-  - ✅ Phase 1: Public layout & route structure
-  - ✅ Phase 2: Course catalog & detail pages
-  - ✅ Phase 3: Landing page with AI Branding integration
-  - ✅ Phase 4: Error handling, accessibility, SEO
-  - ✅ V19 seed data migration (default landing page)
-  - ⏳ CI verification in progress
 - ⏳ PR 3.10: Billing & VietQR Payment System
 - ⏳ PR 3.11: Settings & AI Branding
 - ⏳ PR 3.12: Parent Portal
@@ -551,9 +545,9 @@ Step 4: Results
 - ⏳ PR 3.14: Reports & Analytics
 - ⏳ PR 3.15: E2E Tests & Polish
 
-**Frontend Status:** 8/15 PRs completed (53%), 1 PR open — Last updated: 2026-03-05
-**🎉 ALL BACKEND DEPENDENCIES READY** for PR 3.9-3.12! Can implement immediately.
-PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅
+**Frontend Status:** 9/15 PRs completed (60%) — Last updated: 2026-03-06
+**🎉 ALL BACKEND DEPENDENCIES READY** for PR 3.10-3.12! Can implement immediately.
+PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅, PR 3.8 ✅, PR 3.9 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
@@ -568,8 +562,8 @@ PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 �
 - ✅ Student management (CRUD, search, pagination)
 **CRITICAL:** Frontend PRs 3.5-3.6 ready for implementation (Backend APIs available)
 
-**Overall Progress:** 20/37 PRs completed (54%)
-**Last Updated:** 2026-02-09 (PR 3.4 merged: Student Management Pages)
+**Overall Progress:** 22/37 PRs completed (59%)
+**Last Updated:** 2026-03-06 (PR 3.4: Public Routes & Landing Pages merged, PR 3.9: Attendance Module completed)
 
 ---
 
