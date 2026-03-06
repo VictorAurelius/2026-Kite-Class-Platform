@@ -350,7 +350,7 @@ Every PR must meet these quality gates before merge:
 **🎁 BONUS (not in original plan):**
 - ✅ **Marketing Module** *(PR #27, merged 2026-03-05, 16 tests)* - LandingPage, Lead, ContactMessage
 
-**Core Status:** 17/17 PRs completed (100%) + 1 bonus — Last updated: 2026-03-05
+**Core Status:** 17/17 PRs completed (100%) + 1 bonus — Last updated: 2026-03-06
 **Tests:** 527+ passing, 59 skipped (by design)
 **Spring Boot:** ✅ 3.5.10
 **Modules Complete:**
@@ -358,15 +358,17 @@ Every PR must meet these quality gates before merge:
 - ✅ Teacher Module: CRUD, status management (ACTIVE/ON_LEAVE/TERMINATED), multi-tenant
 - ✅ Course Module: CRUD, lifecycle (DRAFT → PUBLISHED → ARCHIVED), soft delete restrictions
 - ✅ **Class Module (PR 2.5):** CRUD, lifecycle (SCHEDULED → IN_PROGRESS → COMPLETED), class code generation, schedule/sessions, 42 tests
-- ✅ **Enrollment Module (PR 2.6):** Student enrollment, capacity checks, tuition calculation, 22 tests
-- ✅ **Attendance Module (PR 2.7):** Attendance marking, permission checks, attendance rate calculation
-- ✅ **Assignment Module (PR 2.7.1):** Assignment lifecycle, late penalties, grading workflow, 26 tests
-- ✅ **Grade Module (PR 2.7.2):** Weighted grade calculation, component scores, final grade computation
-- ✅ **Invoice Module (PR 2.8):** Invoice generation, payment tracking, overdue management
-- ✅ **Payment Module (PR 2.8.1):** Payment processing, installment tracking, payment methods
-- ✅ **Settings Module (PR 2.9):** Branding, user preferences, theme/language settings
-- ✅ **Storage Module (PR 2.10.1):** S3/MinIO presigned URLs, quota enforcement, file type validation, multi-tenant isolation, 6 tests
-- ✅ **Marketing Module (BONUS):** Landing pages, lead capture, contact messages, 16 tests
+- ✅ **Enrollment Module (PR 2.6):** Student enrollment, capacity checks, tuition calculation, 22 tests (PR #15, 2026-02-27)
+- ✅ **Attendance Module (PR 2.7):** Attendance marking, permission checks, attendance rate calculation, 11 tests (PR #22, 2026-03-02)
+- ✅ **Assignment Module (PR 2.7.1):** Assignment lifecycle, late penalties, grading workflow, 26 tests (merged 2026-03-02)
+- ✅ **Grade Module (PR 2.7.2):** Weighted grade calculation, component scores, final grade computation, 17 tests (PR #24, 2026-03-03)
+- ✅ **Invoice Module (PR 2.8):** Invoice generation, payment tracking, overdue management (PR #19, 2026-03-02)
+- ✅ **Payment Module (PR 2.8.1):** Payment processing, installment tracking, payment methods (PR #21, 2026-03-02)
+- ✅ **LMS Module (PR 2.9):** 3-tier course structure (course→unit→lesson), guest access, enrollment verification (PR #23, 2026-03-03)
+- ✅ **Settings Module (PR 2.9):** Branding, user preferences, theme/language settings (PR #26, 2026-03-05)
+- ✅ **Core Integration (PR 2.10):** Docker, integration tests, seed data (PR #25, 2026-03-03)
+- ✅ **Storage Module (PR 2.10.1):** S3/MinIO presigned URLs, quota enforcement, file type validation, multi-tenant isolation, 6 tests (PR #14, 2026-02-27)
+- ✅ **Marketing Module (BONUS):** Landing pages, lead capture, contact messages, 16 tests (PR #27, 2026-03-05)
 **Cross-Service APIs Ready:**
 - ✅ GET /internal/students/{id} - Retrieve student profile
 - ✅ POST /internal/students - Create student during registration
@@ -2161,11 +2163,13 @@ Thực hiện Enrollment Module của kiteclass-core-service-plan.md.
 - Grade Module: Auto-initialize grade record when enrolled
 ```
 
-## ⏳ PR 2.7 - Attendance Module
+## ✅ PR 2.7 - Attendance Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #22 merged on 2026-03-02)
 **Dependencies:** PR 2.3 Student Module, PR 2.5 Class Module, PR 2.3.1 Teacher Module
 **Business Logic:** docs/modules/attendance-module-business-logic.md
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/22
+**Test Results:** 11 service tests + integration tests - ALL PASS
 
 ```
 Thực hiện Attendance Module của kiteclass-core-service-plan.md.
@@ -2236,16 +2240,17 @@ Thực hiện Attendance Module của kiteclass-core-service-plan.md.
 - Grade Module: ATTENDANCE_MARKED event updates Attendance component score
 ```
 
-## ⏳ PR 2.7.1 - Assignment Module
+## ✅ PR 2.7.1 - Assignment Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (merged on 2026-03-02)
 **Dependencies:**
-- [ ] PR 0: Database Foundation
-- [ ] PR 2.5: Class Module
-- [ ] PR 2.3: Student Module
-- [ ] PR 2.3.1: Teacher Module
-- [ ] PR 2.10.1: File Storage Module (for attachment uploads)
+- [x] PR 0: Database Foundation
+- [x] PR 2.5: Class Module
+- [x] PR 2.3: Student Module
+- [x] PR 2.3.1: Teacher Module
+- [x] PR 2.10.1: File Storage Module (for attachment uploads)
 **Business Logic:** docs/modules/assignment-module-business-logic.md
+**Test Results:** 26 tests - ALL PASS
 
 ### Risk Assessment
 
@@ -2366,14 +2371,16 @@ Thực hiện Assignment Module - Assignment lifecycle, late penalties, grading 
 - Grade Module: ASSIGNMENT_GRADED event updates Assignment component score
 ```
 
-## ⏳ PR 2.7.2 - Grade Module
+## ✅ PR 2.7.2 - Grade Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #24 merged on 2026-03-03)
 **Dependencies:**
-- [ ] PR 0: Database Foundation
-- [ ] PR 2.7: Attendance Module
-- [ ] PR 2.7.1: Assignment Module
+- [x] PR 0: Database Foundation
+- [x] PR 2.7: Attendance Module
+- [x] PR 2.7.1: Assignment Module
 **Business Logic:** docs/modules/grade-module-business-logic.md
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/24
+**Test Results:** 17 service tests + integration tests - ALL PASS
 
 ### Risk Assessment
 
@@ -2526,15 +2533,17 @@ Thực hiện Grade Module - Weighted grade calculation, GPA, transcripts.
 - Teacher Module: Permission checks for finalize
 ```
 
-## ⏳ PR 2.8 - Invoice Module
+## ✅ PR 2.8 - Invoice Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #19 merged on 2026-03-02)
 **Dependencies:**
-- [ ] PR 0: Database Foundation
-- [ ] PR 2.6: Enrollment Module
-- [ ] PR 2.3: Student Module
-- [ ] PR 2.5: Class Module
+- [x] PR 0: Database Foundation
+- [x] PR 2.6: Enrollment Module
+- [x] PR 2.3: Student Module
+- [x] PR 2.5: Class Module
 **Business Logic:** docs/modules/invoice-module-business-logic.md
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/19
+**Test Results:** Invoice generation and tracking tests - ALL PASS
 
 ### Risk Assessment
 
@@ -2669,13 +2678,15 @@ Thực hiện Invoice Module - Hóa đơn học phí, trả góp, late fees, ref
 - Class Module: Invoice.class_id FK, refund calculation
 ```
 
-## ⏳ PR 2.8.1 - Payment Module
+## ✅ PR 2.8.1 - Payment Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #21 merged on 2026-03-02)
 **Dependencies:**
-- [ ] PR 0: Database Foundation
-- [ ] PR 2.8: Invoice Module
+- [x] PR 0: Database Foundation
+- [x] PR 2.8: Invoice Module
 **Business Logic:** docs/modules/payment-module-business-logic.md
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/21
+**Test Results:** Payment processing and installment tracking tests - ALL PASS
 
 ### Risk Assessment
 
@@ -2819,11 +2830,13 @@ Thực hiện Payment Module - Payment processing, gateways, reconciliation.
 - VNPay/MoMo/ZaloPay: External payment gateways
 ```
 
-## ⏳ PR 2.9 - Settings & Preferences Module
+## ✅ PR 2.9 - Settings & Preferences Module
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #26 merged on 2026-03-05)
 **Dependencies:** None (independent module)
 **Note:** Parent Module moved to Engagement Service (P1 priority)
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/26
+**Test Results:** Branding and user preferences tests - ALL PASS
 
 ```
 Thực hiện Settings & Preferences Module của kiteclass-core-service-plan.md.
@@ -2889,10 +2902,12 @@ Thực hiện Settings & Preferences Module của kiteclass-core-service-plan.md
 - All modules: UserPreferences for user-specific settings
 ```
 
-## ⏳ PR 2.10 - Core Docker & Final Integration
+## ✅ PR 2.10 - Core Docker & Final Integration
 
-**Status:** ⏳ NOT STARTED
+**Status:** ✅ COMPLETED (PR #25 merged on 2026-03-03)
 **Dependencies:** All Core Service PRs (2.1 - 2.9)
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/25
+**Note:** LMS Module merged as part of this PR (PR #23)
 
 ```
 Hoàn thiện kiteclass-core - Docker, integration tests, seed data.
