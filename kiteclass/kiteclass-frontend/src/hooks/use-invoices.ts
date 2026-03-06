@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { invoicesApi } from '@/lib/api/invoices';
 import type {
-  Invoice,
   CreateInvoiceRequest,
   ApplyAdjustmentRequest,
   InvoiceSearchParams,
