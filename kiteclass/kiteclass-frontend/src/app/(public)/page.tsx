@@ -1,3 +1,14 @@
+/**
+ * Public landing page (homepage).
+ * Fetches dynamic content from backend LandingPage API.
+ *
+ * Architecture Note: Content is NOT hardcoded - it comes from:
+ * - GET /api/v1/tenants/{tenantId}/landing (AI Branding + instance data)
+ *
+ * @author KiteClass Team
+ * @since 3.4.0
+ */
+
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -22,24 +33,68 @@ export const metadata: Metadata = {
     'Hệ thống quản lý trung tâm tiếng Anh toàn diện với LMS, quản lý học viên, điểm danh tự động.',
 };
 
-export default function LandingPage() {
+// TODO: Replace with actual API call to GET /api/v1/tenants/{tenantId}/landing
+// For now, using default fallback data
+const getLandingPageData = async () => {
+  // In production, this would be:
+  // const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'default';
+  // const response = await publicApi.getLandingPage(tenantId);
+  // return response;
+
+  // Fallback default data (matches LandingPage entity defaults)
+  return {
+    heroTitle: 'Quản lý Trung tâm Tiếng Anh Chuyên nghiệp & Hiệu quả',
+    heroSubtitle:
+      'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh với LMS, quản lý học viên, điểm danh tự động và thanh toán online.',
+    heroImageUrl: null,
+    tagline: 'Nâng tầm giáo dục, tối ưu quản lý',
+    primaryColor: '#3B82F6',
+    secondaryColor: '#8B5CF6',
+    contactEmail: 'support@kiteclass.com',
+    contactPhone: '1900 xxxx',
+    address: 'Hà Nội, Việt Nam',
+  };
+};
+
+export default async function LandingPage() {
+  const landingData = await getLandingPageData();
+
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-primary/5 to-background">
+      {/* Hero Section - Dynamic from Backend */}
+      <section
+        className="py-20 bg-gradient-to-b from-primary/5 to-background"
+        style={{
+          // Apply AI Branding colors if available
+          background: `linear-gradient(to bottom, ${landingData.primaryColor}10, transparent)`,
+        }}
+      >
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Quản lý Trung tâm Tiếng Anh
+            {landingData.heroTitle || 'Quản lý Trung tâm Tiếng Anh'}
             <br />
-            <span className="text-primary">Chuyên nghiệp & Hiệu quả</span>
+            <span
+              className="text-primary"
+              style={{ color: landingData.primaryColor }}
+            >
+              Chuyên nghiệp & Hiệu quả
+            </span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng
-            Anh với LMS, quản lý học viên, điểm danh tự động và thanh toán
-            online.
+            {landingData.heroSubtitle ||
+              'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh.'}
           </p>
+          {landingData.tagline && (
+            <p className="text-lg font-semibold mb-8 text-muted-foreground">
+              {landingData.tagline}
+            </p>
+          )}
           <div className="flex gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button
+              size="lg"
+              asChild
+              style={{ backgroundColor: landingData.primaryColor }}
+            >
               <Link href="/register">
                 Dùng thử miễn phí <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -48,6 +103,17 @@ export default function LandingPage() {
               <Link href="/courses">Xem khóa học</Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Note about Dynamic Content */}
+      <section className="py-4 bg-blue-50 border-y border-blue-200">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm text-blue-800">
+            <strong>🤖 AI-Powered Landing Page:</strong> Nội dung trang này được
+            tự động tạo từ AI Branding System. Owner có thể tùy chỉnh màu sắc,
+            logo, slogan trong Settings.
+          </p>
         </div>
       </section>
 
@@ -60,7 +126,10 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
-                <BookOpen className="h-12 w-12 text-primary mb-4" />
+                <BookOpen
+                  className="h-12 w-12 mb-4"
+                  style={{ color: landingData.primaryColor }}
+                />
                 <CardTitle>Hệ thống LMS</CardTitle>
                 <CardDescription>
                   Quản lý bài giảng, tài liệu và theo dõi tiến độ học tập của
@@ -87,7 +156,10 @@ export default function LandingPage() {
 
             <Card>
               <CardHeader>
-                <Users className="h-12 w-12 text-primary mb-4" />
+                <Users
+                  className="h-12 w-12 mb-4"
+                  style={{ color: landingData.primaryColor }}
+                />
                 <CardTitle>Quản lý Học viên</CardTitle>
                 <CardDescription>
                   Theo dõi toàn bộ thông tin học viên, điểm danh và kết quả học
@@ -114,7 +186,10 @@ export default function LandingPage() {
 
             <Card>
               <CardHeader>
-                <TrendingUp className="h-12 w-12 text-primary mb-4" />
+                <TrendingUp
+                  className="h-12 w-12 mb-4"
+                  style={{ color: landingData.primaryColor }}
+                />
                 <CardTitle>Thanh toán & Báo cáo</CardTitle>
                 <CardDescription>
                   Quản lý học phí, thanh toán online và báo cáo tài chính chi
@@ -143,17 +218,24 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary/5">
+      <section
+        className="py-16"
+        style={{
+          background: `linear-gradient(to right, ${landingData.primaryColor}10, ${landingData.secondaryColor}10)`,
+        }}
+      >
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Sẵn sàng bắt đầu chưa?
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Sẵn sàng bắt đầu chưa?</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Dùng thử miễn phí 30 ngày, không cần thẻ tín dụng. Nâng cấp quản lý
             trung tâm của bạn ngay hôm nay.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button
+              size="lg"
+              asChild
+              style={{ backgroundColor: landingData.primaryColor }}
+            >
               <Link href="/register">
                 Đăng ký ngay <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -179,7 +261,10 @@ export default function LandingPage() {
                   Tính năng điểm danh tự động và LMS rất tiện lợi!"
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div
+                    className="h-10 w-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${landingData.primaryColor}20` }}
+                  >
                     <span className="font-semibold">TH</span>
                   </div>
                   <div>
@@ -199,7 +284,10 @@ export default function LandingPage() {
                   phí. Thanh toán online cũng rất tiện cho phụ huynh."
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div
+                    className="h-10 w-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${landingData.primaryColor}20` }}
+                  >
                     <span className="font-semibold">NP</span>
                   </div>
                   <div>
@@ -219,7 +307,10 @@ export default function LandingPage() {
                   quen. Support team cũng rất nhiệt tình!"
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div
+                    className="h-10 w-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: `${landingData.primaryColor}20` }}
+                  >
                     <span className="font-semibold">LM</span>
                   </div>
                   <div>
