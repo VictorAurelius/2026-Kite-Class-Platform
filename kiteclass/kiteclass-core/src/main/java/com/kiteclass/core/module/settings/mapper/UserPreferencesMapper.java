@@ -36,6 +36,15 @@ public interface UserPreferencesMapper {
      * @param request update request DTO
      * @param userPreferences target entity to update
      */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "instanceId", ignore = true)
+    @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @Mapping(target = "language", source = "language", qualifiedByName = "stringToLanguage")
     @Mapping(target = "theme", source = "theme", qualifiedByName = "stringToTheme")
     void updateFromRequest(UpdateUserPreferencesRequest request, @MappingTarget UserPreferences userPreferences);

@@ -9,7 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -29,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Unit tests for UserPreferencesController.
+ *
+ * <p>Uses @TestConfiguration to provide mock beans instead of deprecated @MockBean.
  *
  * @since 2.9
  */
@@ -44,8 +48,21 @@ class UserPreferencesControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Autowired
     private UserPreferencesService userPreferencesService;
+
+    @TestConfiguration
+    static class TestConfig {
+        /**
+         * Provides a mock UserPreferencesService for testing.
+         *
+         * @return mock UserPreferencesService instance
+         */
+        @Bean
+        public UserPreferencesService userPreferencesService() {
+            return mock(UserPreferencesService.class);
+        }
+    }
 
     @Test
     @DisplayName("Should get user preferences")

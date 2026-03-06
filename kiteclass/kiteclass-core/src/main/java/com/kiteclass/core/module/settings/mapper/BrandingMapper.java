@@ -30,5 +30,15 @@ public interface BrandingMapper {
      * @param request update request DTO
      * @param branding target entity to update
      */
+    @org.mapstruct.Mapping(target = "id", ignore = true)
+    @org.mapstruct.Mapping(target = "instanceId", ignore = true)
+    @org.mapstruct.Mapping(target = "createdAt", ignore = true)
+    @org.mapstruct.Mapping(target = "updatedAt", ignore = true)
+    @org.mapstruct.Mapping(target = "createdBy", ignore = true)
+    @org.mapstruct.Mapping(target = "updatedBy", ignore = true)
+    @org.mapstruct.Mapping(target = "deleted", ignore = true)
+    @org.mapstruct.Mapping(target = "version", ignore = true)
+    @org.mapstruct.Mapping(target = "faviconUrl", ignore = true)
+    @org.mapstruct.Mapping(target = "logoUrl", ignore = true)
     void updateFromRequest(UpdateBrandingRequest request, @MappingTarget Branding branding);
 }

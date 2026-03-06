@@ -1372,3 +1372,5 @@ bật plan mode và thực hiện hoàn chỉnh PR
 bật plan mode và hoàn thành phase Testing + test + check CI pass
 
 check CI
+
+tiếp tục PR tiếp theo
