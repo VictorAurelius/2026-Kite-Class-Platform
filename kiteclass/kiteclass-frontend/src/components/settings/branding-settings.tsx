@@ -97,6 +97,7 @@ export function BrandingSettings() {
         <CardContent className="space-y-4">
           {branding?.logoUrl && (
             <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={branding.logoUrl}
                 alt="Logo"
