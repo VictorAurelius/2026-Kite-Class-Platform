@@ -220,7 +220,7 @@ export function useAllActiveClasses() {
   const { data: coursesData } = useQuery({
     queryKey: ['courses'],
     queryFn: async () => {
-      const { default: coursesApi } = await import('@/lib/api/courses');
+      const { coursesApi } = await import('@/lib/api/courses');
       return coursesApi.getAll({ page: 0, size: 100 });
     },
   });

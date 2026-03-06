@@ -155,7 +155,9 @@ export const attendanceApi = {
         totalElements: 0,
         totalPages: 0,
         size: params.size || 20,
-        number: params.page || 0,
+        page: params.page || 0,
+        first: true,
+        last: true,
       };
     }
 
@@ -181,7 +183,9 @@ export const attendanceApi = {
       totalElements: allAttendance.length,
       totalPages: Math.ceil(allAttendance.length / size),
       size,
-      number: page,
+      page,
+      first: page === 0,
+      last: page === Math.ceil(allAttendance.length / size) - 1,
     };
   },
 };
