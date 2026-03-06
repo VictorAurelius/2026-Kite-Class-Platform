@@ -66,9 +66,11 @@ export function CourseCard({ course }: CourseCardProps) {
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between gap-2 mb-2">
-          <Badge className={getLevelColor(course.level)}>
-            {getLevelLabel(course.level)}
-          </Badge>
+          {course.level && (
+            <Badge className={getLevelColor(course.level)}>
+              {getLevelLabel(course.level)}
+            </Badge>
+          )}
           {course.status === 'PUBLISHED' && (
             <Badge variant="outline" className="text-green-600 border-green-600">
               Đang tuyển sinh
