@@ -39,6 +39,8 @@ const sampleCourses = [
     price: 3000000,
     maxStudents: 20,
     status: 'PUBLISHED',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
   },
   {
     id: 2,
@@ -51,6 +53,8 @@ const sampleCourses = [
     price: 5000000,
     maxStudents: 15,
     status: 'PUBLISHED',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
   },
   {
     id: 3,
@@ -63,6 +67,8 @@ const sampleCourses = [
     price: 4500000,
     maxStudents: 12,
     status: 'PUBLISHED',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
   },
   {
     id: 4,
@@ -75,6 +81,8 @@ const sampleCourses = [
     price: 2500000,
     maxStudents: 15,
     status: 'PUBLISHED',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
   },
   {
     id: 5,
@@ -87,6 +95,8 @@ const sampleCourses = [
     price: 3500000,
     maxStudents: 20,
     status: 'PUBLISHED',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
   },
   {
     id: 6,
@@ -99,6 +109,8 @@ const sampleCourses = [
     price: 2000000,
     maxStudents: 10,
     status: 'PUBLISHED',
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
   },
 ];
 
