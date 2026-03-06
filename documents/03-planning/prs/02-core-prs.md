@@ -359,8 +359,9 @@
 
 ---
 
-### PR 2.10: Marketing Module ⭐ NEW
-**Status**: Pending
+### PR 2.10: Marketing Module ✅
+**Status**: Completed (2026-03-06)
+**PR**: #29
 **Dependencies**: Teacher ✅, Course ✅
 **Estimated**: 1-2 weeks
 **Priority**: 🔥 High (guest-facing features)
