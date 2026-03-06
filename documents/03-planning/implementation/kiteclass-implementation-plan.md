@@ -405,8 +405,26 @@ Every PR must meet these quality gates before merge:
 - Parent-related features sẽ được implement sau khi Core Service stable
 - Current Core PRs KHÔNG bao gồm Parent Module
 
-## Frontend (feature/frontend branch)
-✅ **PR 3.1 COMPLETE** - Infrastructure foundation ready for visual testing
+## Frontend
+**Frontend Status:** 5.5/12 PRs completed (45.8%) — Last updated: 2026-03-06
+**Tests:** 236 passing, 58 skipped (294 total)
+**Coverage:** 49.94% (target: 80%)
+
+**Completed PRs:**
+- ✅ **PR 3.1:** Project Setup (Next.js 15, TypeScript, Vitest, Shadcn/UI) - implicit
+- ✅ **PR 3.2:** Shared Components & Layout System (GitHub PR #2, 2026-02-09)
+- ✅ **PR 3.3:** Authentication Pages (GitHub PR #3, 2026-02-09)
+- ✅ **PR 3.5+3.6+3.7 COMBINED:** Students, Teachers, Courses, Classes (GitHub PR #6, 2026-02-22)
+- ✅ **PR 3.8:** Frontend Testing & Coverage (GitHub PR #7, 2026-02-23)
+- ⚠️ **PR 3.9:** Attendance Module (code exists, not merged as PR yet, 2026-03-05)
+
+**Pending PRs:**
+- ⏳ PR 3.4: Public Routes & Landing Pages
+- ⏳ PR 3.10: Billing & VietQR Payment System
+- ⏳ PR 3.11: Settings & AI Branding
+- ⏳ PR 3.12: Parent Portal
+- ⏳ PR 3.13: Reports & Analytics
+- ⏳ PR 3.14: E2E Tests & Polish
 
 ### 🎯 PAIRED DEVELOPMENT STRATEGY (NEW)
 
@@ -3229,7 +3247,11 @@ Thực hiện Phase 1 của kiteclass-frontend-plan.md + Testing setup.
 - [ ] Playwright configured for E2E
 ```
 
-## ⏳ PR 3.2 - Frontend Core Infrastructure & Feature Detection
+## ✅ PR 3.2 - Shared Components & Layout System
+
+**Status:** ✅ COMPLETED (GitHub PR #2, merged 2026-02-09)
+**Features:** Sidebar, Header, DashboardLayout, common components, data tables
+**Note:** Merged original PR 3.2 (Core Infrastructure) + PR 3.5 (Shared Components) content
 
 ```
 Thực hiện Phase 2 của kiteclass-frontend-plan.md + Feature Detection + Theme types.
@@ -3385,7 +3407,11 @@ export function invalidateConfigCache(): void;
 - [ ] Feature cache tested with TTL scenarios ⭐ NEW
 ```
 
-## ⏳ PR 3.3 - Providers & Layout (Multi-Tenant + Feature Flags)
+## ✅ PR 3.3 - Authentication Pages
+
+**Status:** ✅ COMPLETED (GitHub PR #3, merged 2026-02-09)
+**Features:** Login, Register, Forgot Password, Reset Password pages
+**Note:** Providers & Layout content was included in PR 3.2
 
 ```
 Thực hiện Phase 3-5 của kiteclass-frontend-plan.md + FeatureFlagProvider.
@@ -4041,9 +4067,17 @@ Tạo shared components theo kiteclass-frontend-plan.md.
 - Components render correctly với các props
 ```
 
-## ⏳ PR 3.6 - Auth Pages
+## ✅ PR 3.5 + 3.6 + 3.7 - COMBINED: Students, Teachers, Courses, Classes
+
+**Status:** ✅ COMPLETED (GitHub PR #6, merged 2026-02-22)
+**Features:** Full CRUD for Students, Teachers, Courses, Classes modules
+**Scope:** Merged multiple PRs for efficiency - includes Dashboard layout
 
 ```
+NOTE: Original PR 3.6 was "Auth Pages" but was completed as PR 3.3.
+This combined PR covers PR 3.5 (Shared Components - partial),
+PR 3.6 (Dashboard), and PR 3.7 (Students/Teachers/Courses/Classes).
+
 Thực hiện Auth pages của kiteclass-frontend-plan.md.
 
 **Tuân thủ skills:**
@@ -4077,9 +4111,17 @@ Thực hiện Auth pages của kiteclass-frontend-plan.md.
 - Login với owner@kiteclass.local / Admin@123 thành công
 ```
 
-## ⏳ PR 3.7 - Dashboard ## ⏳ PR 3.6 - Dashboard & Students Module Students Module
+## ✅ PR 3.8 - Frontend Testing & Coverage
+
+**Status:** ✅ COMPLETED (GitHub PR #7, merged 2026-02-23)
+**Tests:** 236 passing, 58 skipped (294 total)
+**Coverage:** 49.94% (target: 80%)
+**Scope:** Unit tests, integration tests, MSW mocking setup
 
 ```
+NOTE: Original PR 3.7 was merged into PR #6 (Combined Students/Teachers/Courses/Classes).
+This is PR 3.8 from the plan.
+
 Thực hiện Dashboard và Students module.
 
 **Tuân thủ skills:**
@@ -4277,7 +4319,12 @@ Thực hiện Courses và Classes module.
 - Visibility badges display correctly ⭐ NEW (PART 4)
 ```
 
-## ⏳ PR 3.9 - Attendance Module
+## ⚠️ PR 3.9 - Attendance Module
+
+**Status:** ⚠️ CODE EXISTS (commits present on 2026-03-05, not merged as separate PR)
+**Features:** Attendance marking UI, session selector, attendance reports
+**Components:** AttendanceMarkForm, AttendanceReport, session management
+**Note:** Code implemented and committed to main, formal PR merge pending
 
 ```
 Thực hiện Attendance module.
