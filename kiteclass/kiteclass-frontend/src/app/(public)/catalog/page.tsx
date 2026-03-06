@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Search, Filter } from 'lucide-react';
 import Link from 'next/link';
+import { CourseStatus } from '@/types/course';
 
 export const metadata: Metadata = {
   title: 'Khóa học',
@@ -38,7 +39,7 @@ const sampleCourses = [
     durationWeeks: 12,
     price: 3000000,
     maxStudents: 20,
-    status: 'PUBLISHED',
+    status: 'PUBLISHED' as CourseStatus,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   },
@@ -52,7 +53,7 @@ const sampleCourses = [
     durationWeeks: 16,
     price: 5000000,
     maxStudents: 15,
-    status: 'PUBLISHED',
+    status: 'PUBLISHED' as CourseStatus,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   },
@@ -66,7 +67,7 @@ const sampleCourses = [
     durationWeeks: 10,
     price: 4500000,
     maxStudents: 12,
-    status: 'PUBLISHED',
+    status: 'PUBLISHED' as CourseStatus,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   },
@@ -80,7 +81,7 @@ const sampleCourses = [
     durationWeeks: 20,
     price: 2500000,
     maxStudents: 15,
-    status: 'PUBLISHED',
+    status: 'PUBLISHED' as CourseStatus,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   },
@@ -94,7 +95,7 @@ const sampleCourses = [
     durationWeeks: 12,
     price: 3500000,
     maxStudents: 20,
-    status: 'PUBLISHED',
+    status: 'PUBLISHED' as CourseStatus,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   },
@@ -108,7 +109,7 @@ const sampleCourses = [
     durationWeeks: 8,
     price: 2000000,
     maxStudents: 10,
-    status: 'PUBLISHED',
+    status: 'PUBLISHED' as CourseStatus,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   },
