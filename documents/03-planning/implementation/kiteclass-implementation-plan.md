@@ -418,9 +418,9 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 3.5+3.6+3.7 COMBINED:** Students, Teachers, Courses, Classes (GitHub PR #6, 2026-02-22)
 - ✅ **PR 3.8:** Frontend Testing & Coverage (GitHub PR #7, 2026-02-23)
 - ✅ **PR 3.9:** Attendance Module (implemented 2026-03-05, components + pages + tests)
+- ✅ **PR 3.10:** Billing & Payment System (implemented 2026-03-06, invoice & payment pages)
 
 **Pending PRs:**
-- ⏳ PR 3.10: Billing & VietQR Payment System
 - ⏳ PR 3.11: Settings & AI Branding
 - ⏳ PR 3.12: Parent Portal
 - ⏳ PR 3.13: Reports & Analytics
@@ -537,17 +537,17 @@ Step 4: Results
 - ✅ **PR 3.7: Class Management Pages** *(merged 2026-02-24)*
 - ✅ **PR 3.8: Frontend Testing & Coverage** *(PR #7, merged 2026-02-24, 164 tests, 83% coverage)*
 - 🔄 **PR 3.8+: Integration + E2E Tests** *(PR #8, OPEN)* - Phases 1-5 testing
-- ⏳ PR 3.9: Attendance Management → **Backend Ready** ✅ PR 2.7 (merged 2026-03-02)
-- ⏳ PR 3.10: Billing Pages → **Backend Ready** ✅ PR 2.8, 2.8.1 (merged 2026-03-02)
+- ✅ PR 3.9: Attendance Management → Completed (PR #30 merged 2026-03-05)
+- ✅ PR 3.10: Billing Pages → Completed (PR #31 merged 2026-03-06)
 - ⏳ PR 3.11: Settings & Preferences → **Backend Ready** ✅ PR 2.9 (merged 2026-03-05)
 - ⏳ PR 3.12: Marketing/Preview Website → **Backend Ready** ✅ Marketing Module (merged 2026-03-05)
 - ⏳ PR 3.13: Parent Portal → **Backend Pending** (Parent Module not yet implemented)
 - ⏳ PR 3.14: Reports & Analytics
 - ⏳ PR 3.15: E2E Tests & Polish
 
-**Frontend Status:** 9/15 PRs completed (60%) — Last updated: 2026-03-06
-**🎉 ALL BACKEND DEPENDENCIES READY** for PR 3.10-3.12! Can implement immediately.
-PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅, PR 3.8 ✅, PR 3.9 ✅
+**Frontend Status:** 10/15 PRs completed (67%) — Last updated: 2026-03-06
+**🎉 ALL BACKEND DEPENDENCIES READY** for PR 3.11-3.12! Can implement immediately.
+PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅, PR 3.8 ✅, PR 3.9 ✅, PR 3.10 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
@@ -4359,10 +4359,18 @@ Thực hiện Attendance module.
 - Mark attendance cho class hoạt động
 ```
 
-## ⏳ PR 3.10 - Billing & VietQR Payment System
+## ✅ PR 3.10 - Billing & Payment System (Frontend)
+
+**Status:** ✅ COMPLETED (PR #31 merged on 2026-03-06)
+**Dependencies:**
+- [x] PR 2.8: Invoice Module (Backend)
+- [x] PR 2.8.1: Payment Module (Backend)
+**PR Link:** https://github.com/VictorAurelius/2026-Kite-Class-Platform/pull/31
 
 ```
-Thực hiện Billing module với VietQR payment integration (2 levels).
+Thực hiện Billing module frontend với invoice management và payment processing.
+
+**Note:** VietQR integration sẽ được implement trong PR riêng sau khi backend VietQR service hoàn thành.
 
 **Reference:**
 - system-architecture-v3-final.md PHẦN 6F: Payment System (VietQR)
