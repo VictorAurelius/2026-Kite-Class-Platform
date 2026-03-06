@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export const metadata: Metadata = {
   title: {
@@ -31,8 +32,16 @@ export default function PublicLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to main content (accessibility) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded"
+      >
+        Chuyển đến nội dung chính
+      </a>
+
       {/* Public Header */}
-      <header className="border-b bg-white sticky top-0 z-50">
+      <header className="border-b bg-white sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
@@ -41,7 +50,11 @@ export default function PublicLayout({
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav
+            className="hidden md:flex items-center gap-6"
+            role="navigation"
+            aria-label="Điều hướng chính"
+          >
             <Link
               href="/"
               className="text-sm font-medium hover:text-primary transition-colors"
@@ -81,10 +94,12 @@ export default function PublicLayout({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1" role="main">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
 
       {/* Public Footer */}
-      <footer className="border-t bg-muted/50 mt-auto">
+      <footer className="border-t bg-muted/50 mt-auto" role="contentinfo">
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* About */}

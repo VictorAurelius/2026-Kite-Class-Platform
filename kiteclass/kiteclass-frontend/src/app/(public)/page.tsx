@@ -31,6 +31,19 @@ export const metadata: Metadata = {
   title: 'Trang chủ',
   description:
     'Hệ thống quản lý trung tâm tiếng Anh toàn diện với LMS, quản lý học viên, điểm danh tự động.',
+  openGraph: {
+    title: 'KiteClass - Quản lý Trung tâm Tiếng Anh Chuyên nghiệp',
+    description:
+      'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh với LMS, quản lý học viên, điểm danh tự động và thanh toán online.',
+    type: 'website',
+    locale: 'vi_VN',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'KiteClass - Quản lý Trung tâm Tiếng Anh Chuyên nghiệp',
+    description:
+      'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh.',
+  },
 };
 
 const getLandingPageData = async () => {
@@ -63,8 +76,35 @@ const getLandingPageData = async () => {
 export default async function LandingPage() {
   const landingData = await getLandingPageData();
 
+  // Structured data for SEO
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: 'KiteClass',
+    description: landingData.heroSubtitle,
+    url: process.env.NEXT_PUBLIC_APP_URL || 'https://kiteclass.com',
+    email: landingData.contactEmail,
+    telephone: landingData.contactPhone,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: landingData.address || 'Hà Nội',
+      addressCountry: 'VN',
+    },
+    offers: {
+      '@type': 'Offer',
+      category: 'Khóa học tiếng Anh',
+    },
+  };
+
   return (
-    <div className="flex flex-col">
+    <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+
+      <div className="flex flex-col">
       {/* Hero Section - Dynamic from Backend */}
       <section
         className="py-20 bg-gradient-to-b from-primary/5 to-background"
@@ -111,7 +151,10 @@ export default async function LandingPage() {
       </section>
 
       {/* Note about Dynamic Content */}
-      <section className="py-4 bg-blue-50 border-y border-blue-200">
+      <aside
+        className="py-4 bg-blue-50 border-y border-blue-200"
+        aria-label="Thông tin về AI Branding"
+      >
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-blue-800">
             <strong>🤖 AI-Powered Landing Page:</strong> Nội dung trang này được
@@ -119,7 +162,7 @@ export default async function LandingPage() {
             logo, slogan trong Settings.
           </p>
         </div>
-      </section>
+      </aside>
 
       {/* Features Section */}
       <section className="py-16">
