@@ -1374,3 +1374,5 @@ bật plan mode và hoàn thành phase Testing + test + check CI pass
 check CI
 
 tiếp tục PR tiếp theo
+
+check lại status của FE để cập nhật lại index PR
