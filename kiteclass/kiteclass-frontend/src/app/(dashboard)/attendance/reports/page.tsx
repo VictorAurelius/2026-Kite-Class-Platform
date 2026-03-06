@@ -78,8 +78,8 @@ export default function AttendanceReportsPage() {
               makeup: 0,
             };
           }
-          acc[record.enrollmentId].total++;
-          acc[record.enrollmentId][record.status.toLowerCase() as keyof typeof acc[typeof record.enrollmentId]]++;
+          acc[record.enrollmentId]!.total++;
+          acc[record.enrollmentId]![record.status.toLowerCase() as keyof typeof acc[typeof record.enrollmentId]]++;
           return acc;
         }, {} as Record<number, { studentName: string; total: number; present: number; absent: number; late: number; excused: number; makeup: number }>)
       )
