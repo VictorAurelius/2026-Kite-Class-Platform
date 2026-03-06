@@ -72,7 +72,7 @@ export default function AttendanceOverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {activeClasses.reduce((sum, c) => sum + c.currentEnrolled, 0)}
+                {activeClasses.reduce((sum: number, c) => sum + c.currentEnrolled, 0)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Đang tham gia học
