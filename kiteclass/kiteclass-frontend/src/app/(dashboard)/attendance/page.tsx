@@ -23,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAllActiveClasses } from '@/hooks/use-classes';
+import type { Class } from '@/types/class';
 
 export default function AttendanceOverviewPage() {
   const { data: activeClasses = [], isLoading } = useAllActiveClasses();
@@ -72,7 +73,7 @@ export default function AttendanceOverviewPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {activeClasses.reduce((sum: number, c) => sum + c.currentEnrolled, 0)}
+                {activeClasses.reduce((sum: number, c: Class) => sum + c.currentEnrolled, 0)}
               </div>
               <p className="text-xs text-muted-foreground">
                 Đang tham gia học
