@@ -33,27 +33,31 @@ export const metadata: Metadata = {
     'Hệ thống quản lý trung tâm tiếng Anh toàn diện với LMS, quản lý học viên, điểm danh tự động.',
 };
 
-// TODO: Replace with actual API call to GET /api/v1/tenants/{tenantId}/landing
-// For now, using default fallback data
 const getLandingPageData = async () => {
-  // In production, this would be:
-  // const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || 'default';
-  // const response = await publicApi.getLandingPage(tenantId);
-  // return response;
+  try {
+    // Get tenant ID from environment or use default Demo School tenant
+    const tenantId =
+      process.env.NEXT_PUBLIC_TENANT_ID || '11111111-1111-1111-1111-111111111111';
 
-  // Fallback default data (matches LandingPage entity defaults)
-  return {
-    heroTitle: 'Quản lý Trung tâm Tiếng Anh Chuyên nghiệp & Hiệu quả',
-    heroSubtitle:
-      'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh với LMS, quản lý học viên, điểm danh tự động và thanh toán online.',
-    heroImageUrl: null,
-    tagline: 'Nâng tầm giáo dục, tối ưu quản lý',
-    primaryColor: '#3B82F6',
-    secondaryColor: '#8B5CF6',
-    contactEmail: 'support@kiteclass.com',
-    contactPhone: '1900 xxxx',
-    address: 'Hà Nội, Việt Nam',
-  };
+    // Fetch from backend API
+    const response = await publicApi.getLandingPage(tenantId);
+    return response;
+  } catch (error) {
+    // Fallback data if API fails (matches V19 seed data)
+    console.error('Failed to fetch landing page data:', error);
+    return {
+      heroTitle: 'Quản lý Trung tâm Tiếng Anh Chuyên nghiệp & Hiệu quả',
+      heroSubtitle:
+        'Nền tảng quản lý toàn diện giúp tối ưu hóa vận hành trung tâm tiếng Anh với LMS, quản lý học viên, điểm danh tự động và thanh toán online.',
+      heroImageUrl: null,
+      tagline: 'Nâng tầm giáo dục, tối ưu quản lý',
+      primaryColor: '#3B82F6',
+      secondaryColor: '#8B5CF6',
+      contactEmail: 'support@kiteclass.com',
+      contactPhone: '1900 xxxx',
+      address: 'Hà Nội, Việt Nam',
+    };
+  }
 };
 
 export default async function LandingPage() {
