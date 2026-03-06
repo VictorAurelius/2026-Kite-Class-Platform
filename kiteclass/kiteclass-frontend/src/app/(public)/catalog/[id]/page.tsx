@@ -91,9 +91,10 @@ const getCourseData = async (id: string) => {
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const course = await getCourseData(params.id);
+  const { id } = await params;
+  const course = await getCourseData(id);
 
   if (!course) {
     return {
@@ -110,9 +111,10 @@ export async function generateMetadata({
 export default async function CourseDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const course = await getCourseData(params.id);
+  const { id } = await params;
+  const course = await getCourseData(id);
 
   if (!course) {
     notFound();
