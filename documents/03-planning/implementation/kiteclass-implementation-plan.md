@@ -420,9 +420,10 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 3.9:** Attendance Module (implemented 2026-03-05, components + pages + tests)
 - ✅ **PR 3.10:** Billing & Payment System (implemented 2026-03-06, invoice & payment pages)
 - ✅ **PR 3.11:** Settings & Preferences (implemented 2026-03-06, branding & user preferences)
+- ✅ **PR 3.12:** Marketing Website Enhancements (implemented 2026-03-06, search, filter, contact form)
 
 **Pending PRs:**
-- ⏳ PR 3.12: Parent Portal
+- ⏳ PR 3.13: Parent Portal
 - ⏳ PR 3.13: Reports & Analytics
 - ⏳ PR 3.14: E2E Tests & Polish
 
@@ -539,15 +540,14 @@ Step 4: Results
 - 🔄 **PR 3.8+: Integration + E2E Tests** *(PR #8, OPEN)* - Phases 1-5 testing
 - ✅ PR 3.9: Attendance Management → Completed (PR #30 merged 2026-03-05)
 - ✅ PR 3.10: Billing Pages → Completed (PR #31 merged 2026-03-06)
-- ✅ PR 3.11: Settings & Preferences → Completed (PR #32 created 2026-03-06)
-- ⏳ PR 3.12: Marketing/Preview Website → **Backend Ready** ✅ Marketing Module (merged 2026-03-05)
+- ✅ PR 3.11: Settings & Preferences → Completed (PR #32 merged 2026-03-06)
+- ✅ PR 3.12: Marketing Website Enhancements → Completed (PR #33 created 2026-03-06)
 - ⏳ PR 3.13: Parent Portal → **Backend Pending** (Parent Module not yet implemented)
 - ⏳ PR 3.14: Reports & Analytics
 - ⏳ PR 3.15: E2E Tests & Polish
 
-**Frontend Status:** 11/15 PRs completed (73%) — Last updated: 2026-03-06
-**🎉 ALL BACKEND DEPENDENCIES READY** for PR 3.12! Can implement immediately.
-PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅, PR 3.8 ✅, PR 3.9 ✅, PR 3.10 ✅, PR 3.11 ✅
+**Frontend Status:** 12/15 PRs completed (80%) — Last updated: 2026-03-06
+PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅, PR 3.8 ✅, PR 3.9 ✅, PR 3.10 ✅, PR 3.11 ✅, PR 3.12 ✅
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
