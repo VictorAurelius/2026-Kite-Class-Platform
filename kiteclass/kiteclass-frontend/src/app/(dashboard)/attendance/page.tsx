@@ -140,7 +140,7 @@ export default function AttendanceOverviewPage() {
                     </TableCell>
                   </TableRow>
                 ) : activeClasses.length > 0 ? (
-                  activeClasses.map((classItem) => (
+                  activeClasses.map((classItem: Class) => (
                     <TableRow key={classItem.id}>
                       <TableCell className="font-medium">
                         {classItem.name}
