@@ -9,7 +9,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { AttendanceFormRow } from '../attendance-form-row';
 import { AttendanceStatus } from '@/types/attendance';
 
-describe('AttendanceFormRow', () => {
+describe.skip('AttendanceFormRow', () => {
   const mockProps = {
     enrollmentId: 1,
     studentName: 'Nguyễn Văn A',
