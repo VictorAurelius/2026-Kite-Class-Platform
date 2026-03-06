@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAllActiveClasses } from '@/hooks/use-classes';
 import { useAttendanceByClass } from '@/hooks/use-attendance';
 import { AttendanceStatusLabels } from '@/types/attendance';
@@ -82,7 +81,7 @@ export default function AttendanceReportsPage() {
           acc[record.enrollmentId].total++;
           acc[record.enrollmentId][record.status.toLowerCase() as keyof typeof acc[typeof record.enrollmentId]]++;
           return acc;
-        }, {} as Record<number, any>)
+        }, {} as Record<number, { studentName: string; total: number; present: number; absent: number; late: number; excused: number; makeup: number }>)
       )
     : [];
 
@@ -319,8 +318,7 @@ export default function AttendanceReportsPage() {
             {/* Calendar View */}
             <AttendanceCalendar
               attendanceRecords={attendanceData?.content || []}
-              onDateClick={(date) => {
-                console.log('Clicked date:', date);
+              onDateClick={(_date) => {
                 // TODO: Show attendance details for this date
               }}
             />

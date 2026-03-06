@@ -135,7 +135,7 @@ export default function TakeAttendancePage({
 
       // Navigate back to class detail
       router.push(`/classes/${classId}`);
-    } catch (error) {
+    } catch (_error) {
       // Error handled by mutation
     }
   };

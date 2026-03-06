@@ -83,7 +83,7 @@ describe('AttendanceStatsCards', () => {
   });
 
   it('renders 6 cards when showMakeup is true', () => {
-    const { container } = render(<AttendanceStatsCards stats={mockStats} showMakeup />);
+    render(<AttendanceStatsCards stats={mockStats} showMakeup />);
     expect(screen.getByText('Học bù')).toBeInTheDocument();
   });
 });
