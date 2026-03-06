@@ -218,7 +218,7 @@ export default function TakeAttendancePage({
                   {sessions?.map((session) => (
                     <SelectItem key={session.id} value={session.id.toString()}>
                       Buổi {session.sessionNumber} -{' '}
-                      {new Date(session.scheduledDate).toLocaleDateString('vi-VN', {
+                      {new Date(session.sessionDate).toLocaleDateString('vi-VN', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
