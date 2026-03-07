@@ -1376,3 +1376,16 @@ check CI
 tiếp tục PR tiếp theo
 
 check lại status của FE để cập nhật lại index PR
+hãy đọc kiteclass/DOCKER-BUILD-GUIDE.md và giúp tôi build image trên local này, tôi đã bật docker desktop
+
+up lên luôn
+
+check code frontend xem landing page ở đâu?
+
+đọc documents\03-planning\prs\03-frontend-prs.md để xem làm sao vào được landing page
+
+đọc documents\02-academic\word-reports\bao-cao-thuc-tap\CONTEXT_BAO_CAO_THUC_TAP.md để hiểu về báo cáo thực tập
+
+đọc documents\02-academic\word-reports\bao-cao-thuc-tap\create_bao_cao_thuc_tap.py để hiểu về scripts báo cáo thực tập
+
+tôi cần chỉnh sửa khoảng thời gian thực tập ở tiêu đề, phụ lục, kế hoạch thực tập từ 01/12/2025 đến 31/01/2026, hãy giúp tôi chỉnh sửa 2 tài liệu trên và generate lại báo cáo word bằng cách chạy script

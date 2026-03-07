@@ -43,7 +43,7 @@ INTERNSHIP_INFO = {
     "advisor": "TS. Nguyễn Đức Dư",
     "company_mentor": "Trịnh Công Vượng (Project Manager)",
     "start_date": "01/12/2025",
-    "end_date": "01/03/2026",
+    "end_date": "31/01/2026",
 }
 
 # ============== CONSTANTS ==============
@@ -1435,11 +1435,7 @@ def add_chapter2(doc):
             ("6", "05/01 – 11/01", "Training và thực hành thiết kế API RESTful"),
             ("7", "12/01 – 18/01", "Giới thiệu AI Checker, training thiết kế Batch"),
             ("8", "19/01 – 25/01", "Thực hành thiết kế Batch Processing"),
-            ("9", "26/01 – 01/02", "Thiết kế độc lập, xử lý Shiteki (feedback) đợt 1"),
-            ("10", "02/02 – 08/02", "Xử lý Shiteki đợt 2, hoàn thiện thiết kế"),
-            ("11", "09/02 – 15/02", "Tổng hợp sản phẩm, kiểm tra chất lượng"),
-            ("12", "16/02 – 22/02", "Viết báo cáo thực tập, chuẩn bị tài liệu"),
-            ("13", "23/02 – 01/03", "Hoàn thiện báo cáo, nộp sản phẩm cuối cùng"),
+            ("9", "26/01 – 31/01", "Tổng hợp sản phẩm, viết báo cáo thực tập, nộp sản phẩm cuối cùng"),
         ],
         col_widths=[2.0, 3.5, 10.5],
         reset=True
@@ -2275,29 +2271,13 @@ def add_appendix(doc):
          "Thiết kế APIs cho Course Management, sử dụng Claude AI kiểm tra chất lượng, fix issues (naming inconsistency, missing error cases, incomplete docs), training Spring Batch (Job, Step, ItemReader, ItemProcessor, ItemWriter)",
          "Viết API documentation rõ ràng đầy đủ, hiểu chunk processing, integrate AI vào workflow nâng cao chất lượng. Hoàn thành APIs cho Course Management, hiểu cơ bản Spring Batch"),
 
-        ("9", "26/01 – 01/02/2026",
-         "Thiết kế Batch Job Import User từ CSV, Job structure 5 blocks (Chuẩn bị, Khởi tạo, Kiểm tra, Xử lý, Kết thúc), Shell Script (input params, return codes), pseudo code ItemReader/Processor/Writer, SQL queries (SELECT, INSERT, UPDATE)",
-         "Phân tích batch requirements chia steps, transaction management trong batch, xử lý error và rollback chunk processing. Hoàn thành thiết kế Batch Job đầu tiên với 5 blocks và SQL"),
-
-        ("10", "02/02 – 08/02/2026",
-         "Thiết kế Batch Job Generate Monthly Report, áp dụng chunk processing (size=1000), xử lý feedback (Shiteki) đợt 1 từ Leader Review, fix lỗi (logic sai, thiếu validation, inconsistent naming), refactor đảm bảo nhất quán DB/Screen/API/Batch",
-         "Xử lý review feedback có hệ thống, hiểu tầm quan trọng consistency, tự review trước submit. Hoàn thành Batch Job thứ 2, xử lý 80% feedback đợt 1"),
-
-        ("11", "09/02 – 15/02/2026",
-         "Hoàn thành feedback đợt 1 submit lại, thiết kế độc lập module Enrollment Management, áp dụng tất cả kiến thức (DB/Screen/API/Batch), sử dụng Claude AI tự review, tổng hợp tài liệu theo chuẩn template",
-         "Làm việc độc lập từ phân tích đến hoàn thiện thiết kế, tự kiểm tra chất lượng và phát hiện lỗi, time management đúng deadline. Hoàn thành Enrollment Management, pass review ngay lần đầu"),
-
-        ("12", "16/02 – 22/02/2026",
-         "Xử lý feedback đợt 2 từ Customer Review, tinh chỉnh theo góp ý khách hàng, kiểm tra cross-reference (DB↔API, Screen↔API), viết báo cáo thực tập, chuẩn bị tài liệu tổng hợp (ERD, API spec, Batch flow diagram)",
-         "Communication với khách hàng qua tài liệu, tầm quan trọng cross-reference checking, viết báo cáo kỹ thuật chuẩn học thuật. Hoàn thành xử lý feedback đợt 2, bắt đầu báo cáo"),
-
-        ("13", "23/02 – 01/03/2026",
-         "Hoàn thiện tất cả tài liệu (DB/Screen/API/Batch), tạo tổng hợp (System Architecture, Database ERD, API Documentation), viết hoàn chỉnh báo cáo theo chuẩn UTC, chuẩn bị slide thuyết trình, nộp sản phẩm và nhận feedback tích cực",
-         "Tổng hợp và trình bày kết quả, viết báo cáo kỹ thuật chuyên nghiệp, kỹ năng thuyết trình và communication. Hoàn thành đầy đủ sản phẩm, đánh giá cao từ mentor và công ty"),
+        ("9", "26/01 – 31/01/2026",
+         "Thiết kế Batch Job Import User từ CSV, tổng hợp tài liệu (ERD, API spec, Batch flow diagram), viết báo cáo thực tập theo chuẩn UTC, nộp sản phẩm và nhận feedback tích cực từ mentor và công ty",
+         "Phân tích batch requirements chia steps, tổng hợp và trình bày kết quả toàn bộ quá trình, viết báo cáo kỹ thuật chuyên nghiệp. Hoàn thành đầy đủ sản phẩm và báo cáo đúng hạn"),
     ]
 
-    # Create table (14 rows = 1 header + 13 data rows)
-    table = doc.add_table(rows=14, cols=4)
+    # Create table (10 rows = 1 header + 9 data rows)
+    table = doc.add_table(rows=10, cols=4)
     table.style = 'Table Grid'
 
     # Set column widths
