@@ -32,7 +32,8 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const monthTitle = screen.getByRole('heading', { level: 3 });
+      // CardTitle renders as a div, so look for the month name text
+      const monthTitle = screen.getByText(/tháng/i); // Vietnamese month names contain "tháng"
       expect(monthTitle).toBeInTheDocument();
     });
 
@@ -114,7 +115,7 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const currentMonth = screen.getByRole('heading', { level: 3 }).textContent;
+      const currentMonth = screen.getByText(/tháng/i).textContent;
 
       // Click previous button (first chevron button)
       const buttons = screen.getAllByRole('button');
@@ -126,7 +127,7 @@ describe('EnhancedAttendanceCalendar', () => {
       if (prevButton) {
         fireEvent.click(prevButton);
 
-        const newMonth = screen.getByRole('heading', { level: 3 }).textContent;
+        const newMonth = screen.getByText(/tháng/i).textContent;
         // Month should change (not strictly equal)
         expect(newMonth).toBeDefined();
       }
@@ -137,7 +138,7 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const currentMonth = screen.getByRole('heading', { level: 3 }).textContent;
+      const currentMonth = screen.getByText(/tháng/i).textContent;
 
       // Click next button (last chevron button)
       const buttons = screen.getAllByRole('button');
@@ -145,7 +146,7 @@ describe('EnhancedAttendanceCalendar', () => {
 
       fireEvent.click(nextButton);
 
-      const newMonth = screen.getByRole('heading', { level: 3 }).textContent;
+      const newMonth = screen.getByText(/tháng/i).textContent;
       expect(newMonth).toBeDefined();
     });
 
@@ -157,8 +158,8 @@ describe('EnhancedAttendanceCalendar', () => {
       const todayButton = screen.getByText('Hôm nay');
       fireEvent.click(todayButton);
 
-      // Should navigate to current month
-      const monthTitle = screen.getByRole('heading', { level: 3 });
+      // Should navigate to current month - verify month title exists
+      const monthTitle = screen.getByText(/tháng/i);
       expect(monthTitle).toBeInTheDocument();
     });
   });

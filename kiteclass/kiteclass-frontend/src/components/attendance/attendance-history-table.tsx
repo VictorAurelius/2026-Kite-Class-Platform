@@ -71,7 +71,7 @@ export function AttendanceHistoryTable({
       {totalPages > 1 && onPageChange && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Hiển thị {page * size + 1} - {Math.min((page + 1) * size, totalElements)}{' '}
+            Hiển thị {page * size + 1} - {page * size + data.length}{' '}
             trong tổng số {totalElements} bản ghi
           </div>
           <div className="flex gap-2">

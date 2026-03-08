@@ -53,6 +53,7 @@ export function AttendanceTrendsChart({
     const xLabelStep = Math.floor(data.length / xLabelCount) || 1;
     const xLabels = data
       .filter((_, i) => i % xLabelStep === 0)
+      .slice(0, 7) // Ensure max 7 labels
       .map((point, index) => {
         const date = new Date(point.date);
         const day = String(date.getDate()).padStart(2, '0');

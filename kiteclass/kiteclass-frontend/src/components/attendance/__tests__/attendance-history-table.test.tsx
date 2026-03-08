@@ -64,7 +64,8 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      expect(screen.getByText('Nguyễn Văn A')).toBeInTheDocument();
+      // Multiple instances of student name (one per record)
+      expect(screen.getAllByText('Nguyễn Văn A').length).toBeGreaterThan(0);
     });
 
     it('renders all records', () => {

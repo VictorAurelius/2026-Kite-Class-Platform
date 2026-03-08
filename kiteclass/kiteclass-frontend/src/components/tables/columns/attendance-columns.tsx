@@ -20,6 +20,13 @@ import {
  */
 export const getAttendanceHistoryColumns = (): ColumnDef<Attendance>[] => [
   {
+    accessorKey: 'studentName',
+    header: 'Học viên',
+    cell: ({ row }) => (
+      <div className="font-medium">{row.original.studentName}</div>
+    ),
+  },
+  {
     accessorKey: 'markedDate',
     header: 'Ngày',
     cell: ({ row }) => {
