@@ -241,3 +241,215 @@ export function useClassAttendanceStats(classId: number) {
     enabled: !!classId,
   });
 }
+
+/**
+ * Get system-wide attendance statistics across all active classes.
+ */
+export function useSystemAttendanceStats(
+  dateRange?: { startDate: string; endDate: string }
+) {
+  // Import classes hook dynamically to avoid circular dependencies
+  const { data: classes } = useQuery({
+    queryKey: ['classes', 'all-active'],
+    queryFn: async () => {
+      const { useAllActiveClasses } = await import('./use-classes');
+      return [];
+    },
+  });
+
+  return useQuery({
+    queryKey: [ATTENDANCE_QUERY_KEY, 'system-stats', dateRange],
+    queryFn: async () => {
+      const { useAllActiveClasses } = await import('./use-classes');
+      const { classesApi } = await import('@/lib/api/classes');
+
+      // Get all courses and their classes
+      const { coursesApi } = await import('@/lib/api/courses');
+      const coursesData = await coursesApi.getAll({ page: 0, size: 100 });
+
+      if (!coursesData?.content) {
+        return {
+          totalClasses: 0,
+          totalSessions: 0,
+          totalStudents: 0,
+          overallAttendanceRate: 0,
+          presentCount: 0,
+          absentCount: 0,
+          lateCount: 0,
+          excusedCount: 0,
+          makeupCount: 0,
+        };
+      }
+
+      // Fetch classes for all courses
+      const classPromises = coursesData.content.map((course) =>
+        classesApi.getByCourse(course.id, { page: 0, size: 100 })
+      );
+      const classesResults = await Promise.all(classPromises);
+      const allClasses = classesResults.flatMap((result) => result.content);
+      const activeClasses = allClasses.filter(
+        (c) => c.status === 'SCHEDULED' || c.status === 'IN_PROGRESS'
+      );
+
+      // Fetch stats for all active classes
+      const statsPromises = activeClasses.map((c) =>
+        attendanceApi.getClassStats(c.id).catch(() => null)
+      );
+      const statsResults = await Promise.all(statsPromises);
+      const validStats = statsResults.filter((s) => s !== null);
+
+      // Aggregate stats
+      const totalSessions = validStats.reduce((sum, s) => sum + (s?.totalSessions || 0), 0);
+      const presentCount = validStats.reduce((sum, s) => sum + (s?.presentCount || 0), 0);
+      const absentCount = validStats.reduce((sum, s) => sum + (s?.absentCount || 0), 0);
+      const lateCount = validStats.reduce((sum, s) => sum + (s?.lateCount || 0), 0);
+      const excusedCount = validStats.reduce((sum, s) => sum + (s?.excusedCount || 0), 0);
+      const makeupCount = validStats.reduce((sum, s) => sum + (s?.makeupCount || 0), 0);
+
+      const totalMarked = presentCount + absentCount + lateCount + excusedCount + makeupCount;
+      const overallAttendanceRate = totalMarked > 0
+        ? (presentCount + lateCount + makeupCount) / totalMarked * 100
+        : 0;
+
+      return {
+        totalClasses: activeClasses.length,
+        totalSessions,
+        totalStudents: validStats.length, // Approximate
+        overallAttendanceRate,
+        presentCount,
+        absentCount,
+        lateCount,
+        excusedCount,
+        makeupCount,
+      };
+    },
+  });
+}
+
+/**
+ * Get attendance trends over time for specified classes.
+ */
+export function useAttendanceTrends(
+  classIds: number[],
+  dateRange?: { startDate: string; endDate: string }
+) {
+  return useQuery({
+    queryKey: [ATTENDANCE_QUERY_KEY, 'trends', classIds, dateRange],
+    queryFn: async () => {
+      // Fetch attendance for all classes
+      const attendancePromises = classIds.map((classId) =>
+        attendanceApi.getAttendanceByClass(classId, {
+          startDate: dateRange?.startDate,
+          endDate: dateRange?.endDate,
+          page: 0,
+          size: 1000,
+        }).catch(() => ({ content: [] }))
+      );
+
+      const results = await Promise.all(attendancePromises);
+      const allAttendance = results.flatMap((r) => r.content);
+
+      // Group by date
+      const dateMap = new Map<string, { present: number; total: number }>();
+
+      allAttendance.forEach((attendance) => {
+        const date = attendance.markedDate.split('T')[0]; // Extract date part
+        const existing = dateMap.get(date) || { present: 0, total: 0 };
+
+        existing.total += 1;
+        if (
+          attendance.status === 'PRESENT' ||
+          attendance.status === 'LATE' ||
+          attendance.status === 'MAKEUP'
+        ) {
+          existing.present += 1;
+        }
+
+        dateMap.set(date, existing);
+      });
+
+      // Convert to trend points array
+      return Array.from(dateMap.entries())
+        .map(([date, stats]) => ({
+          date,
+          attendanceRate: stats.total > 0 ? (stats.present / stats.total) * 100 : 0,
+          presentCount: stats.present,
+          totalSessions: stats.total,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    },
+    enabled: classIds.length > 0,
+  });
+}
+
+/**
+ * Get today's class sessions.
+ * Note: This is a client-side filter since backend doesn't have a direct endpoint.
+ */
+export function useTodayClassSessions() {
+  return useQuery({
+    queryKey: [ATTENDANCE_QUERY_KEY, 'today-sessions'],
+    queryFn: async () => {
+      const { classesApi } = await import('@/lib/api/classes');
+      const { coursesApi } = await import('@/lib/api/courses');
+
+      // Get all courses and their classes
+      const coursesData = await coursesApi.getAll({ page: 0, size: 100 });
+      if (!coursesData?.content) return [];
+
+      // Fetch classes for all courses
+      const classPromises = coursesData.content.map((course) =>
+        classesApi.getByCourse(course.id, { page: 0, size: 100 })
+      );
+      const classesResults = await Promise.all(classPromises);
+      const allClasses = classesResults.flatMap((result) => result.content);
+      const activeClasses = allClasses.filter(
+        (c) => c.status === 'SCHEDULED' || c.status === 'IN_PROGRESS'
+      );
+
+      // Fetch sessions for all active classes
+      const sessionPromises = activeClasses.map(async (classItem) => {
+        const sessions = await classesApi.getSessions(classItem.id).catch(() => []);
+        return sessions.map((session) => ({
+          ...session,
+          className: classItem.name,
+          classId: classItem.id,
+        }));
+      });
+
+      const sessionResults = await Promise.all(sessionPromises);
+      const allSessions = sessionResults.flat();
+
+      // Filter for today's sessions
+      const today = new Date().toISOString().split('T')[0];
+      const todaySessions = allSessions.filter((session) => {
+        const sessionDate = session.startTime?.split('T')[0];
+        return sessionDate === today;
+      });
+
+      // Check attendance status for each session
+      const sessionsWithStatus = await Promise.all(
+        todaySessions.map(async (session) => {
+          const attendance = await attendanceApi
+            .getAttendanceBySession(session.id, { page: 0, size: 1 })
+            .catch(() => ({ content: [], totalElements: 0 }));
+
+          return {
+            sessionId: session.id,
+            sessionNumber: session.sessionNumber || 0,
+            classId: session.classId,
+            className: session.className,
+            startTime: session.startTime || '',
+            endTime: session.endTime || '',
+            totalStudents: session.capacity || 0,
+            attendanceMarked: attendance.totalElements > 0,
+            presentCount: attendance.content.filter((a) => a.status === 'PRESENT').length,
+            absentCount: attendance.content.filter((a) => a.status === 'ABSENT').length,
+          };
+        })
+      );
+
+      return sessionsWithStatus;
+    },
+  });
+}

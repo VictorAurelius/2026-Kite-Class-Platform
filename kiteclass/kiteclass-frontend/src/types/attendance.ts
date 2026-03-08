@@ -135,3 +135,80 @@ export interface AttendanceCalendarDay {
   absentCount: number;
   lateCount: number;
 }
+
+/**
+ * Date range filter.
+ */
+export interface DateRange {
+  startDate: string; // ISO date
+  endDate: string; // ISO date
+}
+
+/**
+ * Attendance calendar event (clickable day with attendance data).
+ */
+export interface AttendanceCalendarEvent {
+  date: string; // ISO date
+  sessionId?: number;
+  sessionNumber?: number;
+  className?: string;
+  status?: AttendanceStatus;
+  notes?: string;
+  attendanceId?: number;
+}
+
+/**
+ * System-wide attendance statistics (across all classes).
+ */
+export interface SystemAttendanceStats {
+  totalClasses: number;
+  totalSessions: number;
+  totalStudents: number;
+  overallAttendanceRate: number; // percentage (0-100)
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  excusedCount: number;
+  makeupCount: number;
+}
+
+/**
+ * Attendance trend data point for charts.
+ */
+export interface AttendanceTrendPoint {
+  date: string; // ISO date
+  attendanceRate: number; // percentage (0-100)
+  presentCount: number;
+  totalSessions: number;
+}
+
+/**
+ * Per-class attendance breakdown for admin dashboard.
+ */
+export interface ClassAttendanceBreakdown {
+  classId: number;
+  className: string;
+  teacherName?: string;
+  totalSessions: number;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  excusedCount: number;
+  attendanceRate: number; // percentage (0-100)
+}
+
+/**
+ * Today's class session for teacher dashboard.
+ */
+export interface TodayClassSession {
+  sessionId: number;
+  sessionNumber: number;
+  classId: number;
+  className: string;
+  startTime: string; // ISO datetime
+  endTime: string; // ISO datetime
+  totalStudents: number;
+  attendanceMarked: boolean;
+  presentCount?: number;
+  absentCount?: number;
+}

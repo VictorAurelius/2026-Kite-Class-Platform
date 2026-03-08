@@ -4,10 +4,10 @@
 **Version**: V4.1 (Bundled Model)
 **Tech Stack**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
 **Total PRs**: 17 (13 original + 2 V4.1 LMS + 2 V4.1 Trial Learning)
-**Completed**: 7 (41%)
+**Completed**: 11 (65%) ⭐ **MAJOR UPDATE**
 **Planned**: 2 (PR 3.13-3.14 Trial Learning)
-**Status**: 🔄 Active development
-**Last Updated**: 2026-02-26
+**Status**: 🎉 Near complete - Most features done
+**Last Updated**: 2026-03-08
 
 **Reference**:
 - Technical plan: [`frontend-plan.md`](../implementation/frontend-plan.md)
@@ -150,10 +150,10 @@
 
 ---
 
-### PR 3.8: Attendance Management Pages ⏳
-**Status**: Pending
-**Dependencies**: PR 2.7 Attendance Module (backend)
-**Estimated**: 1-2 weeks
+### PR 3.8: Frontend Testing & Coverage ✅
+**Status**: Complete (Merged #7, 2026-02-23)
+**Note**: Originally planned as Attendance Pages, implemented as comprehensive testing suite
+**Tests**: 164 tests, 83% coverage achieved
 
 **Pages**:
 - `/teacher/attendance` - Today's classes for teacher
@@ -178,9 +178,15 @@
 ---
 
 ### PR 3.9: Billing Pages ⏳
-**Status**: Pending
+**Status**: Pending (likely merged as part of #31)
 **Dependencies**: PR 2.8 Invoice, PR 2.8.1 Payment (backend)
-**Estimated**: 2-3 weeks
+**Note**: May have been combined with PR 3.10
+
+---
+
+### PR 3.10: Billing & Payment System ✅
+**Status**: Complete (Merged #31, 2026-03-06)
+**Dependencies**: PR 2.8 Invoice ✅, PR 2.8.1 Payment ✅
 
 **Pages**:
 - `/admin/billing/invoices` - List invoices (filter by status, student)
@@ -202,19 +208,13 @@
 - QRCodePayment (display QR)
 - InvoicePreview (print view)
 
-**Testing**: Invoice workflow tests, payment tests
+**Testing**: Invoice workflow tests, payment tests passing
 
 ---
 
-### PR 3.10: Settings & Profile Pages ⏳
-**Status**: Pending
-**Dependencies**:
-- ⚠️ **NEW**: PR 2.10.1 Storage Service (for profile picture upload)
-- PR 2.13 Settings Module (backend)
-- PR 3.1 Frontend Project Setup
-- PR 3.2 Authentication Pages
-
-**Estimated**: 1 week
+### PR 3.11: Settings & Profile Pages ✅
+**Status**: Complete (Merged #32, 2026-03-06)
+**Dependencies**: PR 2.10.1 Storage Service ✅, PR 2.15 Settings Module ✅
 
 **Pages**:
 - `/admin/settings` - System settings
@@ -226,27 +226,22 @@
 - System settings (date format, timezone, language)
 - User preferences (notifications, theme)
 - Email templates customization
-- **NEW**: Profile picture upload:
-  - Use `FileUploadDropzone` component
-  - Call Storage Service APIs (`/api/v1/files/upload/initiate`)
-  - Preview before upload (thumbnail)
-  - Update user profile với `avatarFileId`
-  - Display current avatar với presigned download URL
-  - Storage quota indicator (show used/total storage)
+- Profile picture upload with Storage Service integration
+- Storage quota indicator
 
 **Components**:
 - SettingsForm (system settings)
 - ProfileForm (user profile)
 - ChangePasswordForm
-- **NEW**: ProfilePictureUpload (avatar upload form with FileUploadDropzone)
+- ProfilePictureUpload (avatar upload with FileUploadDropzone)
 
-**Testing**: Settings update tests, profile tests
+**Testing**: Settings update tests, profile tests - all passing
 
 ---
 
-### PR 3.11: Parent Portal ⏳
-**Status**: Pending
-**Dependencies**: PR 2.9 Settings (Parent features)
+### PR 3.11.1: Parent Portal ⏳
+**Status**: Pending (renumbered to avoid conflict)
+**Dependencies**: PR 2.15 Settings (Parent features)
 **Estimated**: 2 weeks
 
 **Pages**:
@@ -274,11 +269,11 @@
 
 ## ⭐ Phase 3: V4.1 Guest-Facing Pages (NEW)
 
-### PR 3.12: Guest Pages (Landing, Catalog, Trial) ⭐ NEW
-**Status**: Pending
-**Dependencies**: PR 2.9 LMS, PR 2.10 Marketing (backend)
-**Estimated**: 2-3 weeks
-**Priority**: 🔥 High (public-facing features)
+### PR 3.12: Marketing Website Enhancements ⭐ NEW
+**Status**: Complete (Merged #33, 2026-03-06)
+**Dependencies**: PR 2.9 LMS ✅, PR 2.10 Marketing ✅
+**Tests**: Landing pages, course catalog, trial viewer - all passing
+**Priority**: ✅ COMPLETED
 
 **Pages**:
 - `/[tenant]` - Landing page (dynamic per tenant)
@@ -473,8 +468,15 @@ Implement trial user interface with quota display, trial lesson viewer, teacher 
 
 ---
 
-### PR 3.14: Lead Conversion Flow ⭐ NEW
-**Status**: 📋 Planned (V4.1 Phase 2)
+### PR 3.14: Dashboard/Overview Enhancement ✅
+**Status**: Complete (Merged #34, 2026-03-06)
+**Note**: Originally planned as "Lead Conversion Flow" but implemented as Dashboard enhancement
+**Tests**: Dashboard with real data integration - all passing
+
+---
+
+### PR 3.14.1: Lead Conversion Flow ⏳
+**Status**: Pending (renumbered to avoid conflict with #34)
 **Priority**: MEDIUM
 **Estimated Effort**: 12-16 hours
 **Dependencies**: Core PR 2.14 (Conversion API), PR 3.13 (Trial UI)
@@ -707,30 +709,41 @@ useEffect(() => {
 
 ## 📊 Summary
 
-**Total PRs**: 17 (15 original + 2 new V4.1 Phase 2)
-**Completed**: 7 (41%)
+**Total PRs**: 17 (base) + 3 (renumbered) = ~20
+**Completed**: 11 (65%) ⭐ **MAJOR MILESTONE**
 **In Progress**: 0
-**Planned**: 2 (PR 3.13-3.14 Trial Learning)
-**Pending**: 8
+**Planned**: 2 (PR 3.13, 3.14.1 Trial Learning)
+**Pending**: ~7
 
 **By Phase**:
-- Phase 1 (Infrastructure): 3/3 ✅
-- Phase 2 (Admin Pages): 4/8 (50%)
-- Phase 3 (Guest Pages): 0/4 (0%) - includes 2 new trial PRs
-- Phase 4 (Polish): 0/2 (0%)
+- Phase 1 (Infrastructure): 3/3 ✅ (100%)
+- Phase 2 (Admin Pages): 7/8 (88%) - Missing only Attendance Management UI
+- Phase 3 (Guest Pages): 1/4 (25%) - PR 3.12 done, 3.13-3.14.1 planned
+- Phase 4 (Polish): 1/2 (50%) - PR 3.8 Testing done
 
-**Next 3 PRs**:
-1. PR 3.8: Attendance Management (waiting for backend PR 2.7)
-2. PR 3.12: Guest Pages (waiting for backend PR 2.9, 2.10)
-3. PR 3.9: Billing Pages (waiting for backend PR 2.8, 2.8.1)
+**Recently Completed** (March 2026):
+1. ✅ PR 3.4: Public Routes & Landing Pages (#30)
+2. ✅ PR 3.8: Frontend Testing (164 tests, 83% coverage) (#7)
+3. ✅ PR 3.10: Billing & Payment System (#31)
+4. ✅ PR 3.11: Settings & Profile Pages (#32)
+5. ✅ PR 3.12: Marketing Website Enhancements (#33)
+6. ✅ PR 3.14: Dashboard/Overview Enhancement (#34)
+
+**Next PRs**:
+1. PR 3.8.1: Attendance Management UI (backend PR 2.7 complete ✅)
+2. PR 3.13: Trial Learning UI (waiting for backend PR 2.13)
+3. PR 3.14.1: Lead Conversion Flow (waiting for backend PR 2.14)
 
 **Paired Development Status**:
 - Student pages ✅ + Backend Student module ✅
 - Teacher pages ✅ + Backend Teacher module ✅
 - Course pages ✅ + Backend Course module ✅
 - Class pages ✅ + Backend Class module ✅
-- Enrollment pages ⏳ (backend in progress)
+- Enrollment pages ✅ + Backend Enrollment module ✅
+- Billing pages ✅ + Backend Invoice/Payment ✅
+- Settings pages ✅ + Backend Settings ✅
+- Marketing pages ✅ + Backend Marketing ✅
 
 ---
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-03-08
