@@ -53,13 +53,15 @@ export function AttendanceTrendsChart({
     const xLabelStep = Math.floor(data.length / xLabelCount) || 1;
     const xLabels = data
       .filter((_, i) => i % xLabelStep === 0)
-      .map((point, index) => ({
-        x: padding.left + ((width - padding.left - padding.right) / (data.length - 1 || 1)) * (index * xLabelStep),
-        label: new Date(point.date).toLocaleDateString('vi-VN', {
-          day: '2-digit',
-          month: '2-digit',
-        }),
-      }));
+      .map((point, index) => {
+        const date = new Date(point.date);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return {
+          x: padding.left + ((width - padding.left - padding.right) / (data.length - 1 || 1)) * (index * xLabelStep),
+          label: `${day}/${month}`,
+        };
+      });
 
     // Generate Y labels
     const yLabels = [0, 25, 50, 75, 100].map((value) => ({

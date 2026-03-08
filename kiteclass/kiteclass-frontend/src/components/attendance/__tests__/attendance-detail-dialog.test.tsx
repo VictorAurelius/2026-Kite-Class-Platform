@@ -127,8 +127,12 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('Có mặt')).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument(); // 1 PRESENT
+      const presentLabel = screen.getByText('Có mặt');
+      expect(presentLabel).toBeInTheDocument();
+
+      // Find the count in the same container as the label
+      const container = presentLabel.closest('.text-center');
+      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
     });
 
     it('displays absent count', () => {
@@ -141,8 +145,12 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('Vắng')).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument(); // 1 ABSENT
+      const absentLabel = screen.getByText('Vắng');
+      expect(absentLabel).toBeInTheDocument();
+
+      // Find the count in the same container as the label
+      const container = absentLabel.closest('.text-center');
+      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
     });
 
     it('displays late count', () => {
@@ -155,8 +163,12 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('Đi trễ')).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument(); // 1 LATE
+      const lateLabel = screen.getByText('Đi trễ');
+      expect(lateLabel).toBeInTheDocument();
+
+      // Find the count in the same container as the label
+      const container = lateLabel.closest('.text-center');
+      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
     });
 
     it('displays excused count', () => {
@@ -169,8 +181,12 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('Có phép')).toBeInTheDocument();
-      expect(screen.getByText('1')).toBeInTheDocument(); // 1 EXCUSED
+      const excusedLabel = screen.getByText('Có phép');
+      expect(excusedLabel).toBeInTheDocument();
+
+      // Find the count in the same container as the label
+      const container = excusedLabel.closest('.text-center');
+      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
     });
 
     it('displays makeup count', () => {
@@ -199,7 +215,9 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('Nguyễn Văn A')).toBeInTheDocument();
+      // Should display student name in record details (multiple times for different sessions)
+      const studentNames = screen.getAllByText('Nguyễn Văn A');
+      expect(studentNames.length).toBeGreaterThan(0);
     });
 
     it('displays session numbers', () => {
@@ -228,10 +246,11 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('Có mặt')).toBeInTheDocument();
-      expect(screen.getByText('Vắng')).toBeInTheDocument();
-      expect(screen.getByText('Đi trễ')).toBeInTheDocument();
-      expect(screen.getByText('Có phép')).toBeInTheDocument();
+      // Status badges appear both in stats summary and in record details
+      expect(screen.getAllByText('Có mặt').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Vắng').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Đi trễ').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Có phép').length).toBeGreaterThan(0);
     });
 
     it('displays notes when available', () => {
@@ -318,7 +337,10 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      expect(screen.getByText('1')).toBeInTheDocument(); // Total count
+      // Check total count specifically
+      const totalLabel = screen.getByText('Tổng');
+      const container = totalLabel.closest('.text-center');
+      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
     });
 
     it('handles records without notes', () => {
