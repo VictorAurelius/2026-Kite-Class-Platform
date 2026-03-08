@@ -118,7 +118,7 @@ describe('AttendanceDetailDialog', () => {
     });
 
     it('displays present count', () => {
-      render(
+      const { container } = render(
         <AttendanceDetailDialog
           open={true}
           onOpenChange={mockOnOpenChange}
@@ -127,16 +127,22 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      const presentLabel = screen.getByText('Có mặt');
-      expect(presentLabel).toBeInTheDocument();
+      // Find stats summary section (has bg-muted class)
+      const statsSection = container.querySelector('.bg-muted');
+      expect(statsSection).toBeInTheDocument();
 
-      // Find the count in the same container as the label
-      const container = presentLabel.closest('.text-center');
-      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
+      // Get direct child divs with text-center class (stats divs)
+      const statDivs = statsSection?.querySelectorAll(':scope > .text-center');
+      expect(statDivs?.length).toBe(6); // total, present, absent, late, excused, makeup
+
+      // Second div should be present count (index 1)
+      const presentDiv = statDivs?.[1];
+      expect(presentDiv?.querySelector('.text-2xl')).toHaveTextContent('1');
+      expect(presentDiv?.textContent).toContain('Có mặt');
     });
 
     it('displays absent count', () => {
-      render(
+      const { container } = render(
         <AttendanceDetailDialog
           open={true}
           onOpenChange={mockOnOpenChange}
@@ -145,16 +151,17 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      const absentLabel = screen.getByText('Vắng');
-      expect(absentLabel).toBeInTheDocument();
+      const statsSection = container.querySelector('.bg-muted');
+      const statDivs = statsSection?.querySelectorAll(':scope > .text-center');
 
-      // Find the count in the same container as the label
-      const container = absentLabel.closest('.text-center');
-      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
+      // Third div should be absent count (index 2)
+      const absentDiv = statDivs?.[2];
+      expect(absentDiv?.querySelector('.text-2xl')).toHaveTextContent('1');
+      expect(absentDiv?.textContent).toContain('Vắng');
     });
 
     it('displays late count', () => {
-      render(
+      const { container } = render(
         <AttendanceDetailDialog
           open={true}
           onOpenChange={mockOnOpenChange}
@@ -163,16 +170,17 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      const lateLabel = screen.getByText('Đi trễ');
-      expect(lateLabel).toBeInTheDocument();
+      const statsSection = container.querySelector('.bg-muted');
+      const statDivs = statsSection?.querySelectorAll(':scope > .text-center');
 
-      // Find the count in the same container as the label
-      const container = lateLabel.closest('.text-center');
-      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
+      // Fourth div should be late count (index 3)
+      const lateDiv = statDivs?.[3];
+      expect(lateDiv?.querySelector('.text-2xl')).toHaveTextContent('1');
+      expect(lateDiv?.textContent).toContain('Đi trễ');
     });
 
     it('displays excused count', () => {
-      render(
+      const { container } = render(
         <AttendanceDetailDialog
           open={true}
           onOpenChange={mockOnOpenChange}
@@ -181,12 +189,13 @@ describe('AttendanceDetailDialog', () => {
         />
       );
 
-      const excusedLabel = screen.getByText('Có phép');
-      expect(excusedLabel).toBeInTheDocument();
+      const statsSection = container.querySelector('.bg-muted');
+      const statDivs = statsSection?.querySelectorAll(':scope > .text-center');
 
-      // Find the count in the same container as the label
-      const container = excusedLabel.closest('.text-center');
-      expect(container?.querySelector('.text-2xl')).toHaveTextContent('1');
+      // Fifth div should be excused count (index 4)
+      const excusedDiv = statDivs?.[4];
+      expect(excusedDiv?.querySelector('.text-2xl')).toHaveTextContent('1');
+      expect(excusedDiv?.textContent).toContain('Có phép');
     });
 
     it('displays makeup count', () => {

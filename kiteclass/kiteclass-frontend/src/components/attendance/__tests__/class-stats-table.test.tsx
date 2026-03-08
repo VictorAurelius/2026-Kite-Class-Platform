@@ -78,8 +78,10 @@ describe('ClassStatsTable', () => {
       render(<ClassStatsTable data={mockClassBreakdown} isLoading={false} />);
 
       expect(screen.getByText('Cao nhất')).toBeInTheDocument();
-      expect(screen.getByText('91.1%')).toBeInTheDocument();
-      expect(screen.getByText('Hóa Lớp 12C')).toBeInTheDocument();
+      // 91.1% appears in both summary card and table
+      expect(screen.getAllByText('91.1%').length).toBeGreaterThan(0);
+      // Hóa Lớp 12C appears in both summary card and table
+      expect(screen.getAllByText('Hóa Lớp 12C').length).toBeGreaterThan(0);
     });
   });
 
@@ -87,9 +89,10 @@ describe('ClassStatsTable', () => {
     it('renders all class names', () => {
       render(<ClassStatsTable data={mockClassBreakdown} isLoading={false} />);
 
-      expect(screen.getByText('Toán Lớp 10A')).toBeInTheDocument();
-      expect(screen.getByText('Lý Lớp 11B')).toBeInTheDocument();
-      expect(screen.getByText('Hóa Lớp 12C')).toBeInTheDocument();
+      // Class names appear in table (and possibly in summary for best class)
+      expect(screen.getAllByText('Toán Lớp 10A').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Lý Lớp 11B').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Hóa Lớp 12C').length).toBeGreaterThan(0);
     });
 
     it('renders teacher names', () => {
@@ -103,9 +106,11 @@ describe('ClassStatsTable', () => {
     it('renders session counts', () => {
       render(<ClassStatsTable data={mockClassBreakdown} isLoading={false} />);
 
-      expect(screen.getByText('20')).toBeInTheDocument(); // Toán
-      expect(screen.getByText('18')).toBeInTheDocument(); // Lý
-      expect(screen.getByText('22')).toBeInTheDocument(); // Hóa
+      // Session counts: 20 (Toán), 18 (Lý), 22 (Hóa)
+      // These may appear in summary card totals AND table
+      expect(screen.getAllByText('20').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('18').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('22').length).toBeGreaterThan(0);
     });
 
     it('renders present counts', () => {
@@ -119,25 +124,31 @@ describe('ClassStatsTable', () => {
     it('renders absent counts', () => {
       render(<ClassStatsTable data={mockClassBreakdown} isLoading={false} />);
 
-      expect(screen.getByText('30')).toBeInTheDocument();
-      expect(screen.getByText('45')).toBeInTheDocument();
-      expect(screen.getByText('20')).toBeInTheDocument();
+      // Absent counts for each class appear in table
+      expect(screen.getAllByText('30').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('45').length).toBeGreaterThan(0);
+      // 20 appears multiple times (sessions count + absent count)
+      expect(screen.getAllByText('20').length).toBeGreaterThan(0);
     });
 
     it('renders late counts', () => {
       render(<ClassStatsTable data={mockClassBreakdown} isLoading={false} />);
 
-      expect(screen.getByText('15')).toBeInTheDocument();
-      expect(screen.getByText('20')).toBeInTheDocument();
-      expect(screen.getByText('18')).toBeInTheDocument();
+      // Late counts for each class appear in table
+      expect(screen.getAllByText('15').length).toBeGreaterThan(0);
+      // 20 appears multiple times (sessions + late counts)
+      expect(screen.getAllByText('20').length).toBeGreaterThan(0);
+      // 18 appears multiple times (sessions + late counts)
+      expect(screen.getAllByText('18').length).toBeGreaterThan(0);
     });
 
     it('renders attendance rates', () => {
       render(<ClassStatsTable data={mockClassBreakdown} isLoading={false} />);
 
-      expect(screen.getByText('90.0%')).toBeInTheDocument();
-      expect(screen.getByText('84.4%')).toBeInTheDocument();
-      expect(screen.getByText('91.1%')).toBeInTheDocument();
+      // Attendance rates appear in table (and possibly in summary cards)
+      expect(screen.getAllByText('90.0%').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('84.4%').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('91.1%').length).toBeGreaterThan(0);
     });
   });
 
@@ -185,9 +196,14 @@ describe('ClassStatsTable', () => {
       const table = container.querySelector('table');
       expect(table).toBeInTheDocument();
 
-      // First row should be highest rate (91.1%)
-      const firstRate = screen.getAllByText(/\d+\.\d+%/)[0];
-      expect(firstRate.textContent).toContain('91.1');
+      // Get all rates from table body (not summary cards)
+      const tbody = table?.querySelector('tbody');
+      const rates = Array.from(tbody?.querySelectorAll('.text-green-600, .text-yellow-600, .text-red-600') || [])
+        .filter(el => el.textContent?.includes('%'));
+
+      // First table row should have highest rate (91.1%)
+      expect(rates.length).toBeGreaterThan(0);
+      expect(rates[0].textContent).toContain('91.1');
     });
 
     it('sorts by class name ascending', () => {
@@ -251,7 +267,8 @@ describe('ClassStatsTable', () => {
 
       render(<ClassStatsTable data={dataWithZeroRate} isLoading={false} />);
 
-      expect(screen.getByText('0.0%')).toBeInTheDocument();
+      // 0.0% appears in both summary card and table
+      expect(screen.getAllByText('0.0%').length).toBeGreaterThan(0);
     });
 
     it('handles perfect attendance rate', () => {
@@ -265,7 +282,8 @@ describe('ClassStatsTable', () => {
 
       render(<ClassStatsTable data={dataWithPerfectRate} isLoading={false} />);
 
-      expect(screen.getByText('100.0%')).toBeInTheDocument();
+      // 100.0% appears in both summary card (average) and table (best class)
+      expect(screen.getAllByText('100.0%').length).toBeGreaterThan(0);
     });
   });
 
