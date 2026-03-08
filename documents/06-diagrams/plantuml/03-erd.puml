@@ -1,380 +1,379 @@
 @startuml erd
 !theme plain
+!pragma layout smetana
 skinparam backgroundColor #FFFFFF
 skinparam linetype ortho
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam classBackgroundColor #FFFDE7
+skinparam classBorderColor #888888
+skinparam ArrowColor #555555
 
-title KITECLASS PLATFORM V4.1 - ENTITY RELATIONSHIP DIAGRAM (ERD)\nUpdated: 2026-02-27 (Added Storage Module)
+title KITECLASS INSTANCE DB - ENTITY RELATIONSHIP DIAGRAM (V4.1)\nUpdated: 2026-03-07
 
-' ==================== KITEHUB DATABASE ====================
-package "KITEHUB DATABASE" as HUBDB #E3F2FD {
+' ==================== GATEWAY DB ====================
+package "GATEWAY DATABASE" as GWDB #E3F2FD {
 
-    package "sales schema" as SALES #BBDEFB {
-        entity "customers" as customers {
-            * id : BIGSERIAL <<PK>>
-            --
-            organization_name : VARCHAR(255)
-            email : VARCHAR(255) <<UNIQUE>>
-            phone : VARCHAR(20)
-            status : VARCHAR(50)
-            logo_url : TEXT
-            slogan : TEXT
-            created_at : TIMESTAMP
+    package "Auth Module" as AUTH_MOD #BBDEFB {
+        class users {
+            id
+            email <<UNIQUE>>
+            password_hash
+            first_name / last_name
+            user_type (ADMIN/TEACHER/STUDENT/PARENT/TRIAL)
+            reference_id
+            status
+            instance_id
         }
-
-        entity "pricing_plans" as plans {
-            * id : BIGSERIAL <<PK>>
-            --
-            code : VARCHAR(50) <<UNIQUE>>
-            name : VARCHAR(100)
-            monthly_price : DECIMAL(12,2)
-            yearly_price : DECIMAL(12,2)
-            max_students : INTEGER
-            includes_engagement : BOOLEAN
-            includes_media : BOOLEAN
+        class refresh_tokens {
+            id
+            user_id <<FK>>
+            token_hash <<UNIQUE>>
+            expires_at
+            used / revoked
         }
-
-        entity "subscriptions" as subscriptions {
-            * id : BIGSERIAL <<PK>>
-            --
-            * customer_id : BIGINT <<FK>>
-            * plan_id : BIGINT <<FK>>
-            subdomain : VARCHAR(50) <<UNIQUE>>
-            billing_cycle : VARCHAR(20)
-            start_date : DATE
-            end_date : DATE
-            addons : JSONB
-            status : VARCHAR(50)
-        }
-
-        entity "orders" as orders {
-            * id : BIGSERIAL <<PK>>
-            --
-            order_number : VARCHAR(50) <<UNIQUE>>
-            * customer_id : BIGINT <<FK>>
-            subscription_id : BIGINT <<FK>>
-            * plan_id : BIGINT <<FK>>
-            subtotal : DECIMAL(12,2)
-            discount : DECIMAL(12,2)
-            total : DECIMAL(12,2)
-            status : VARCHAR(50)
-        }
-
-        entity "payments" as payments {
-            * id : BIGSERIAL <<PK>>
-            --
-            payment_number : VARCHAR(50) <<UNIQUE>>
-            * order_id : BIGINT <<FK>>
-            amount : DECIMAL(12,2)
-            payment_method : VARCHAR(50)
-            transaction_id : VARCHAR(100)
-            status : VARCHAR(50)
-            paid_at : TIMESTAMP
-        }
-    }
-
-    package "maintaining schema" as MAINT #C8E6C9 {
-        entity "instances" as instances {
-            * id : BIGSERIAL <<PK>>
-            --
-            * subscription_id : BIGINT <<FK>>
-            instance_code : VARCHAR(50) <<UNIQUE>>
-            subdomain : VARCHAR(50) <<UNIQUE>>
-            config : JSONB
-            status : VARCHAR(50)
-            health_status : VARCHAR(50)
-            provisioned_at : TIMESTAMP
-        }
-    }
-
-    package "messages schema" as MSGS #FFF9C4 {
-        entity "chat_sessions" as chats {
-            * id : BIGSERIAL <<PK>>
-            --
-            customer_id : BIGINT
-            agent_id : BIGINT
-            channel : VARCHAR(50)
-            status : VARCHAR(50)
-            started_at : TIMESTAMP
-            ended_at : TIMESTAMP
-        }
-
-        entity "chat_messages" as chat_msgs {
-            * id : BIGSERIAL <<PK>>
-            --
-            * session_id : BIGINT <<FK>>
-            sender_type : VARCHAR(20)
-            content : TEXT
-            created_at : TIMESTAMP
-        }
-    }
-
-    package "ai_agents schema" as AI_SCHEMA #F3E5F5 {
-        entity "ai_sessions" as ai_sessions {
-            * id : BIGSERIAL <<PK>>
-            --
-            customer_id : BIGINT
-            agent_type : VARCHAR(50)
-            input_data : JSONB
-            output_data : JSONB
-            status : VARCHAR(50)
-            created_at : TIMESTAMP
-        }
-
-        entity "marketing_assets" as assets {
-            * id : BIGSERIAL <<PK>>
-            --
-            * session_id : BIGINT <<FK>>
-            asset_type : VARCHAR(50)
-            content_url : TEXT
-            metadata : JSONB
+        class password_reset_tokens {
+            id
+            user_id <<FK>>
+            token_hash <<UNIQUE>>
+            expires_at
+            used
         }
     }
 }
 
-' ==================== KITECLASS INSTANCE DATABASE ====================
-package "KITECLASS INSTANCE DATABASE\n(Per-Tenant)" as INSTDB #FFF3E0 {
+' ==================== CORE DB ====================
+package "CORE DATABASE (Multi-tenant: instance_id)" as COREDB #FFF3E0 {
 
-    package "User Module" as USER_MOD #FFE0B2 {
-        entity "users" as users {
-            * id : BIGSERIAL <<PK>>
-            --
-            email : VARCHAR(255) <<UNIQUE>>
-            password_hash : VARCHAR(255)
-            first_name : VARCHAR(100)
-            last_name : VARCHAR(100)
-            phone : VARCHAR(20)
-            avatar_url : TEXT
-            status : VARCHAR(50)
-            oauth_provider : VARCHAR(50)
+    ' --- PEOPLE ---
+    package "People Module" as PEOPLE_MOD #FFECB3 {
+        class students {
+            id
+            first_name / last_name
+            email <<UNIQUE/tenant>>
+            phone
+            date_of_birth
+            gender
+            address
+            parent_name / parent_phone
+            status (ACTIVE/INACTIVE/SUSPENDED)
+            instance_id
         }
-
-        entity "roles" as roles {
-            * id : BIGSERIAL <<PK>>
-            --
-            code : VARCHAR(50) <<UNIQUE>>
-            name : VARCHAR(100)
-            description : TEXT
-            level : INTEGER
-        }
-
-        entity "user_roles" as user_roles {
-            * user_id : BIGINT <<FK>>
-            * role_id : BIGINT <<FK>>
+        class teachers {
+            id
+            first_name / last_name
+            email <<UNIQUE/tenant>>
+            phone
+            specialization
+            experience_years
+            bio
+            status (ACTIVE/ON_LEAVE/TERMINATED)
+            instance_id
         }
     }
 
-    package "Class Module" as CLASS_MOD #FFCC80 {
-        entity "courses" as courses {
-            * id : BIGSERIAL <<PK>>
-            --
-            code : VARCHAR(50) <<UNIQUE>>
-            name : VARCHAR(255)
-            description : TEXT
-            level : VARCHAR(50)
-            subject : VARCHAR(100)
-            duration_months : INTEGER
-            fee : DECIMAL(12,2)
+    ' --- COURSE & CLASS ---
+    package "Course & Class Module" as COURSE_MOD #FFE0B2 {
+        class courses {
+            id
+            code <<UNIQUE/tenant>>
+            name
+            description / syllabus
+            level / subject
+            duration_months
+            fee
+            status (DRAFT/PUBLISHED/ARCHIVED)
+            teacher_id <<FK>>
+            instance_id
         }
-
-        entity "classes" as classes {
-            * id : BIGSERIAL <<PK>>
-            --
-            * course_id : BIGINT <<FK>>
-            code : VARCHAR(50)
-            name : VARCHAR(255)
-            teacher_id : BIGINT <<FK>>
-            room_id : BIGINT <<FK>>
-            max_students : INTEGER
-            start_date : DATE
-            end_date : DATE
-            status : VARCHAR(50)
+        class classes {
+            id
+            code <<UNIQUE/tenant>>
+            name
+            course_id <<FK>>
+            max_students
+            start_date / end_date
+            status (SCHEDULED/ONGOING/COMPLETED/CANCELLED)
+            instance_id
         }
-
-        entity "class_schedules" as schedules {
-            * id : BIGSERIAL <<PK>>
-            --
-            * class_id : BIGINT <<FK>>
-            day_of_week : INTEGER
-            start_time : TIME
-            end_time : TIME
+        class class_schedules {
+            id
+            class_id <<FK>>
+            day_of_week
+            start_time / end_time
+            instance_id
         }
-
-        entity "enrollments" as enrollments {
-            * id : BIGSERIAL <<PK>>
-            --
-            * student_id : BIGINT <<FK>>
-            * class_id : BIGINT <<FK>>
-            enrolled_at : TIMESTAMP
-            status : VARCHAR(50)
+        class class_sessions {
+            id
+            class_id <<FK>>
+            session_date
+            start_time / end_time
+            status (SCHEDULED/COMPLETED/CANCELLED)
+            instance_id
         }
-    }
-
-    package "Learning Module" as LEARN_MOD #A5D6A7 {
-        entity "attendance" as attendance {
-            * id : BIGSERIAL <<PK>>
-            --
-            * enrollment_id : BIGINT <<FK>>
-            * schedule_date : DATE
-            status : VARCHAR(20)
-            check_in_time : TIMESTAMP
-            note : TEXT
+        class teacher_courses {
+            teacher_id <<FK>>
+            course_id <<FK>>
+            role (MAIN/ASSISTANT)
         }
-
-        entity "grades" as grades {
-            * id : BIGSERIAL <<PK>>
-            --
-            * enrollment_id : BIGINT <<FK>>
-            grade_type : VARCHAR(50)
-            score : DECIMAL(5,2)
-            max_score : DECIMAL(5,2)
-            comment : TEXT
-            graded_at : TIMESTAMP
+        class teacher_classes {
+            teacher_id <<FK>>
+            class_id <<FK>>
+            role (MAIN/SUBSTITUTE)
         }
     }
 
+    ' --- ENROLLMENT ---
+    package "Enrollment Module" as ENROLL_MOD #C8E6C9 {
+        class enrollments {
+            id
+            student_id <<FK>>
+            class_id <<FK>>
+            enrolled_at
+            status (PENDING/ACTIVE/COMPLETED/CANCELLED/WAITLISTED)
+            version
+            instance_id
+        }
+    }
+
+    ' --- ATTENDANCE ---
+    package "Attendance Module" as ATTEND_MOD #A5D6A7 {
+        class attendance {
+            id
+            enrollment_id <<FK>>
+            session_id <<FK>>
+            status (PRESENT/ABSENT/LATE/EXCUSED)
+            check_in_time
+            note
+            instance_id
+        }
+    }
+
+    ' --- GRADE ---
+    package "Grade Module" as GRADE_MOD #80CBC4 {
+        class grades {
+            id
+            enrollment_id <<FK>>
+            grade_type (MIDTERM/FINAL/QUIZ/ASSIGNMENT)
+            score / max_score
+            comment
+            graded_by <<FK>>
+            instance_id
+        }
+    }
+
+    ' --- BILLING ---
     package "Billing Module" as BILL_MOD #EF9A9A {
-        entity "invoices" as invoices {
-            * id : BIGSERIAL <<PK>>
-            --
-            invoice_number : VARCHAR(50) <<UNIQUE>>
-            * student_id : BIGINT <<FK>>
-            * class_id : BIGINT <<FK>>
-            period_start : DATE
-            period_end : DATE
-            subtotal : DECIMAL(12,2)
-            discount : DECIMAL(12,2)
-            total : DECIMAL(12,2)
-            status : VARCHAR(50)
-            due_date : DATE
-            qr_code_url : TEXT
+        class invoices {
+            id
+            invoice_number <<UNIQUE/tenant>>
+            student_id <<FK>>
+            class_id <<FK>>
+            enrollment_id <<FK>>
+            period_start / period_end
+            subtotal / discount / total
+            status (DRAFT/SENT/PAID/PARTIAL/OVERDUE/CANCELLED)
+            due_date
+            instance_id
         }
-
-        entity "student_payments" as stu_payments {
-            * id : BIGSERIAL <<PK>>
-            --
-            * invoice_id : BIGINT <<FK>>
-            amount : DECIMAL(12,2)
-            payment_method : VARCHAR(50)
-            transaction_id : VARCHAR(100)
-            status : VARCHAR(50)
-            paid_at : TIMESTAMP
+        class invoice_items {
+            id
+            invoice_id <<FK>>
+            description
+            quantity / unit_price / total
+            instance_id
         }
-    }
-
-    package "Gamification Module" as GAME_MOD #CE93D8 {
-        entity "student_points" as points {
-            * id : BIGSERIAL <<PK>>
-            --
-            * student_id : BIGINT <<FK>>
-            points : INTEGER
-            lifetime_points : INTEGER
-            level : INTEGER
-        }
-
-        entity "badges" as badges {
-            * id : BIGSERIAL <<PK>>
-            --
-            code : VARCHAR(50) <<UNIQUE>>
-            name : VARCHAR(100)
-            description : TEXT
-            icon_url : TEXT
-            criteria : JSONB
-        }
-
-        entity "student_badges" as stu_badges {
-            * student_id : BIGINT <<FK>>
-            * badge_id : BIGINT <<FK>>
-            earned_at : TIMESTAMP
+        class payments {
+            id
+            invoice_id <<FK>>
+            amount
+            payment_method (CASH/BANK_TRANSFER/MOMO/VNPAY)
+            transaction_id
+            status (PENDING/COMPLETED/FAILED/REFUNDED)
+            paid_at
+            instance_id
         }
     }
 
-    package "Parent Module" as PARENT_MOD #80CBC4 {
-        entity "parents" as parents {
-            * id : BIGSERIAL <<PK>>
-            --
-            * user_id : BIGINT <<FK>>
-            zalo_id : VARCHAR(100)
-            notification_preferences : JSONB
+    ' --- ASSIGNMENT ---
+    package "Assignment Module" as ASSIGN_MOD #CE93D8 {
+        class assignments {
+            id
+            class_id <<FK>>
+            title / description
+            due_date
+            max_score
+            instance_id
         }
-
-        entity "parent_children" as parent_children {
-            * parent_id : BIGINT <<FK>>
-            * student_id : BIGINT <<FK>>
-            relationship : VARCHAR(50)
-            verified : BOOLEAN
-            linked_at : TIMESTAMP
+        class assignment_submissions {
+            id
+            assignment_id <<FK>>
+            student_id <<FK>>
+            content / file_url
+            score
+            submitted_at
+            instance_id
         }
     }
 
-    package "Storage Module" as STORAGE_MOD #E1BEE7 {
-        entity "uploaded_files" as uploaded_files {
-            * id : UUID <<PK>>
-            --
-            * instance_id : UUID
-            * uploaded_by : UUID <<FK>>
-            * file_type : VARCHAR(50)
-            * original_filename : VARCHAR(255)
-            * storage_path : VARCHAR(500) <<UNIQUE>>
-            * file_size_bytes : BIGINT
-            * mime_type : VARCHAR(100)
-            * status : VARCHAR(50)
-            duration_seconds : INT
-            resolution : VARCHAR(20)
-            video_codec : VARCHAR(50)
-            * access_level : VARCHAR(50)
-            related_entity_type : VARCHAR(50)
-            related_entity_id : VARCHAR(50)
-            * created_at : TIMESTAMP
-            * updated_at : TIMESTAMP
-            * deleted : BOOLEAN
+    ' --- LMS MODULE ---
+    package "LMS Module (V4.1 NEW)" as LMS_MOD #B3E5FC {
+        class course_modules {
+            id
+            course_id <<FK>>
+            title / description
+            order_index
+            instance_id
         }
+        class lessons {
+            id
+            module_id <<FK>>
+            title / content
+            video_url
+            is_trial
+            order_index
+            instance_id
+        }
+        class learning_resources {
+            id
+            lesson_id <<FK>>
+            type (PDF/VIDEO/SLIDE/LINK)
+            title / url
+            instance_id
+        }
+        class lesson_progress {
+            id
+            user_id <<FK>>
+            lesson_id <<FK>>
+            completed
+            completed_at
+            instance_id
+        }
+        class course_progress {
+            id
+            user_id <<FK>>
+            course_id <<FK>>
+            progress_percent
+            last_accessed_at
+            instance_id
+        }
+    }
 
-        entity "storage_quotas" as storage_quotas {
-            * id : UUID <<PK>>
-            --
-            * instance_id : UUID <<UNIQUE>>
-            * quota_bytes : BIGINT
-            * used_bytes : BIGINT
-            * last_calculated_at : TIMESTAMP
-            * created_at : TIMESTAMP
-            * updated_at : TIMESTAMP
+    ' --- MARKETING MODULE ---
+    package "Marketing Module (V4.1 NEW)" as MKT_MOD #E1BEE7 {
+        class landing_page_content {
+            id
+            teacher_bio / tagline
+            hero_image_url
+            instance_id <<UNIQUE>>
+        }
+        class course_highlights {
+            id
+            content_id <<FK>>
+            course_id <<FK>>
+            order_index
+        }
+        class leads {
+            id
+            email / name / phone
+            source (LANDING/TRIAL/CONTACT)
+            status (NEW/CONTACTED/CONVERTED/LOST)
+            instance_id
+        }
+        class contact_messages {
+            id
+            name / email / phone
+            message
+            instance_id
+        }
+    }
+
+    ' --- STORAGE MODULE ---
+    package "Storage Module" as STORAGE_MOD #F8BBD9 {
+        class uploaded_files {
+            id (UUID)
+            uploaded_by <<FK>>
+            file_type (AVATAR/DOCUMENT/VIDEO/CERTIFICATE)
+            original_filename
+            storage_path <<UNIQUE>>
+            file_size_bytes
+            mime_type
+            status (UPLOADING/READY/FAILED/DELETED)
+            access_level (PRIVATE/COURSE/PUBLIC)
+            related_entity_type / id
+            instance_id
+        }
+        class storage_quotas {
+            id (UUID)
+            instance_id <<UNIQUE>>
+            quota_bytes / used_bytes
+            last_calculated_at
+        }
+    }
+
+    ' --- SETTINGS ---
+    package "Settings Module" as SETTINGS_MOD #F5F5F5 {
+        class settings {
+            id
+            key <<UNIQUE/tenant>>
+            value
+            instance_id
         }
     }
 }
 
-' ==================== RELATIONSHIPS - KITEHUB ====================
-customers ||--o{ subscriptions
-customers ||--o{ orders
-plans ||--o{ subscriptions
-plans ||--o{ orders
-subscriptions ||--|| instances
-orders ||--o{ payments
-subscriptions ||--o{ orders
-chats ||--o{ chat_msgs
-ai_sessions ||--o{ assets
+' ==================== GATEWAY RELATIONSHIPS ====================
+users ||--o{ refresh_tokens : "has"
+users ||--o{ password_reset_tokens : "has"
 
-' ==================== RELATIONSHIPS - KITECLASS ====================
-users ||--o{ user_roles
-roles ||--o{ user_roles
-courses ||--o{ classes
-users ||--o{ classes : "teacher"
-classes ||--o{ schedules
-classes ||--o{ enrollments
-users ||--o{ enrollments : "student"
-enrollments ||--o{ attendance
-enrollments ||--o{ grades
-users ||--o{ invoices : "student"
-classes ||--o{ invoices
-invoices ||--o{ stu_payments
-users ||--o{ points : "student"
-badges ||--o{ stu_badges
-users ||--o{ stu_badges : "student"
-users ||--|| parents
-parents ||--o{ parent_children
-users ||--o{ parent_children : "student"
+' ==================== CORE RELATIONSHIPS ====================
 
-' Storage relationships
-users ||--o{ uploaded_files : "uploads"
-instances ||--|| storage_quotas : "has quota"
+' People - Course
+teachers ||--o{ teacher_courses : "teaches"
+courses  ||--o{ teacher_courses : "taught by"
+teachers ||--o{ teacher_classes : "teaches"
+classes  ||--o{ teacher_classes : "taught by"
+
+' Course → Class
+courses ||--o{ classes : "has"
+
+' Class → Schedule & Session
+classes ||--o{ class_schedules : "has"
+classes ||--o{ class_sessions : "generates"
+
+' Student → Enrollment
+students ||--o{ enrollments : "enrolls"
+classes  ||--o{ enrollments : "has"
+
+' Enrollment → Attendance, Grade
+enrollments ||--o{ attendance : "tracked"
+class_sessions ||--o{ attendance : "for session"
+enrollments ||--o{ grades : "graded"
+
+' Enrollment → Invoice
+enrollments ||--o{ invoices : "billed"
+students ||--o{ invoices : "receives"
+classes  ||--o{ invoices : "for"
+invoices ||--o{ invoice_items : "has"
+invoices ||--o{ payments : "paid by"
+
+' Assignment
+classes ||--o{ assignments : "has"
+assignments ||--o{ assignment_submissions : "submitted by"
+students ||--o{ assignment_submissions : "submits"
+
+' LMS
+courses ||--o{ course_modules : "has"
+course_modules ||--o{ lessons : "contains"
+lessons ||--o{ learning_resources : "has"
+lessons ||--o{ lesson_progress : "tracked by"
+courses ||--o{ course_progress : "tracked by"
+
+' Marketing
+landing_page_content ||--o{ course_highlights : "features"
+courses ||--o{ course_highlights : "highlighted in"
+
+' Storage
+uploaded_files }o--|| storage_quotas : "counted in (instance)"
 
 @enduml

@@ -1389,3 +1389,7 @@ check code frontend xem landing page ở đâu?
 đọc documents\02-academic\word-reports\bao-cao-thuc-tap\create_bao_cao_thuc_tap.py để hiểu về scripts báo cáo thực tập
 
 tôi cần chỉnh sửa khoảng thời gian thực tập ở tiêu đề, phụ lục, kế hoạch thực tập từ 01/12/2025 đến 31/01/2026, hãy giúp tôi chỉnh sửa 2 tài liệu trên và generate lại báo cáo word bằng cách chạy script
+
+đọc documents\README.md và documents\06-diagrams\README.md
+=> tìm báo cáo kiến trúc và tạo sơ đồ kiến trúc cho kiteclass
+=> tạo thiết kế DB => chỉ cần entity và quan hệ 
