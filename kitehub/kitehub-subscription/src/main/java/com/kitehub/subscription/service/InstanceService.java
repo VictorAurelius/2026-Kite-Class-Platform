@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 public class InstanceService {
 
     private final InstanceRepository instanceRepository;
+    private final DatabaseProvisioningService databaseProvisioningService;
+    private final com.kitehub.subscription.config.MultiTenantDataSourceConfig dataSourceConfig;
 
     /**
      * Create a new trial instance.
@@ -57,16 +59,25 @@ public class InstanceService {
         instance.setTier(request.getTier());
         instance.setCustomDomain(request.getCustomDomain());
 
-        // Set placeholder database credentials (will be provisioned in PR 4.2)
-        instance.setDatabaseUrl("jdbc:postgresql://kitehub-postgres:5432/kiteclass_" + UUID.randomUUID().toString().substring(0, 8));
-        instance.setDatabaseUsername("kiteclass_user");
-        instance.setDatabasePassword("encrypted_password_placeholder");
+        // Set temporary placeholder credentials
+        instance.setDatabaseUrl("pending");
+        instance.setDatabaseUsername("pending");
+        instance.setDatabasePassword("pending");
 
         // Start trial
         instance.startTrial();
 
-        // Save
+        // Save instance first (generates ID)
         Instance saved = instanceRepository.save(instance);
+
+        // Provision database for the instance
+        try {
+            databaseProvisioningService.provisionDatabase(saved.getId());
+            log.info("Database provisioned for instance: {}", saved.getId());
+        } catch (Exception e) {
+            log.error("Failed to provision database for instance: {}", saved.getId(), e);
+            // Continue - database credentials will be set to pending
+        }
 
         log.info("Created trial instance: {} (expires: {})", saved.getId(), saved.getTrialExpiresAt());
 
@@ -175,6 +186,15 @@ public class InstanceService {
             throw new IllegalArgumentException("Instance already deleted: " + id);
         }
 
+        // Close connection pool for this instance
+        try {
+            dataSourceConfig.closeDataSource(id);
+            log.info("Closed DataSource for instance: {}", id);
+        } catch (Exception e) {
+            log.warn("Failed to close DataSource for instance: {}", id, e);
+        }
+
+        // Soft delete instance
         instance.softDelete();
         instance.setStatus(InstanceStatus.DELETED);
         instanceRepository.save(instance);

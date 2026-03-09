@@ -11,7 +11,13 @@
 - **Trial System**: 14-day free trial with automatic expiration tracking
 - **Pricing Tiers**: FREE, BASIC, PREMIUM, ENTERPRISE
 - **Soft Delete**: Safe deletion with recovery option
-- **Multi-Tenant Ready**: Foundation for database provisioning (PR 4.2)
+- **Database Provisioning** ⭐ NEW (PR 4.2):
+  - Automatic database creation for each instance
+  - Secure credential generation (32-char random passwords)
+  - Dynamic connection pooling (HikariCP)
+  - Tier-based pool limits (FREE: 5, BASIC: 10, PREMIUM: 20, ENTERPRISE: 50)
+  - Scheduled daily backups (2:00 AM)
+  - Weekly cleanup of deleted instances (30-day retention)
 
 ---
 
@@ -74,6 +80,54 @@ curl http://localhost:8081/api/platform/instances/subdomain/myschool
 ```bash
 curl -X DELETE http://localhost:8081/api/platform/instances/{id}
 ```
+
+---
+
+## Database Provisioning (PR 4.2)
+
+### Automatic Provisioning
+
+When a new instance is created, the system automatically:
+1. Generates unique database name: `kiteclass_{uuid_short}`
+2. Creates database credentials (32-char secure random password)
+3. Updates instance with connection info
+
+### Connection Pooling
+
+**Tier-Based Limits:**
+- FREE: 5 connections
+- BASIC: 10 connections
+- PREMIUM: 20 connections
+- ENTERPRISE: 50 connections
+
+**Pool Configuration (HikariCP):**
+- Minimum idle: 50% of max pool size
+- Connection timeout: 30 seconds
+- Idle timeout: 10 minutes
+- Max lifetime: 30 minutes
+
+**Example Usage:**
+```java
+@Autowired
+private MultiTenantDataSourceConfig dataSourceConfig;
+
+// Get DataSource for instance
+DataSource ds = dataSourceConfig.getDataSource(instanceId);
+
+// Close DataSource when instance deleted
+dataSourceConfig.closeDataSource(instanceId);
+```
+
+### Scheduled Tasks
+
+**Daily Backup (2:00 AM):**
+- Backs up all ACTIVE instance databases
+- TODO: Upload to S3 (s3://kiteclass-backups/)
+- 7-day retention policy
+
+**Weekly Cleanup (Sunday 3:00 AM):**
+- Removes instances deleted > 30 days ago
+- Permanent database deletion
 
 ---
 
