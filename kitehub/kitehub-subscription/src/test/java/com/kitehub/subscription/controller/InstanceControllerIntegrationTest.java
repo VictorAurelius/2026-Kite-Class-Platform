@@ -1,0 +1,209 @@
+package com.kitehub.subscription.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.dto.CreateInstanceRequest;
+import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.repository.InstanceRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Integration tests for InstanceController.
+ *
+ * @author KiteHub Team
+ * @since 1.0.0
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@DisplayName("InstanceController Integration Tests")
+class InstanceControllerIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private InstanceRepository instanceRepository;
+
+    @BeforeEach
+    void setUp() {
+        instanceRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("Should create trial instance successfully")
+    void shouldCreateTrialInstanceSuccessfully() throws Exception {
+        // Given
+        CreateInstanceRequest request = CreateInstanceRequest.builder()
+            .subdomain("test-integration")
+            .organizationName("Integration Test Org")
+            .ownerId(UUID.randomUUID())
+            .tier(PricingTier.BASIC)
+            .build();
+
+        // When & Then
+        MvcResult result = mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.subdomain").value(request.getSubdomain()))
+            .andExpect(jsonPath("$.organizationName").value(request.getOrganizationName()))
+            .andExpect(jsonPath("$.tier").value(request.getTier().toString()))
+            .andExpect(jsonPath("$.status").value(InstanceStatus.TRIAL.toString()))
+            .andExpect(jsonPath("$.isOnTrial").value(true))
+            .andExpect(jsonPath("$.trialDaysLeft").exists())
+            .andReturn();
+
+        InstanceResponse response = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            InstanceResponse.class
+        );
+
+        assertThat(response.getId()).isNotNull();
+        assertThat(response.getTrialExpiresAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should return 400 when subdomain is invalid")
+    void shouldReturn400WhenSubdomainInvalid() throws Exception {
+        // Given
+        CreateInstanceRequest request = CreateInstanceRequest.builder()
+            .subdomain("TEST_INVALID") // Uppercase not allowed
+            .organizationName("Test Org")
+            .ownerId(UUID.randomUUID())
+            .tier(PricingTier.BASIC)
+            .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should get instance by ID successfully")
+    void shouldGetInstanceByIdSuccessfully() throws Exception {
+        // Given
+        CreateInstanceRequest createRequest = CreateInstanceRequest.builder()
+            .subdomain("test-get-by-id")
+            .organizationName("Get By ID Test")
+            .ownerId(UUID.randomUUID())
+            .tier(PricingTier.BASIC)
+            .build();
+
+        MvcResult createResult = mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        InstanceResponse created = objectMapper.readValue(
+            createResult.getResponse().getContentAsString(),
+            InstanceResponse.class
+        );
+
+        // When & Then
+        mockMvc.perform(get("/api/platform/instances/{id}", created.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(created.getId().toString()))
+            .andExpect(jsonPath("$.subdomain").value(createRequest.getSubdomain()));
+    }
+
+    @Test
+    @DisplayName("Should get instance by subdomain successfully")
+    void shouldGetInstanceBySubdomainSuccessfully() throws Exception {
+        // Given
+        CreateInstanceRequest createRequest = CreateInstanceRequest.builder()
+            .subdomain("test-get-by-subdomain")
+            .organizationName("Get By Subdomain Test")
+            .ownerId(UUID.randomUUID())
+            .tier(PricingTier.BASIC)
+            .build();
+
+        mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated());
+
+        // When & Then
+        mockMvc.perform(get("/api/platform/instances/subdomain/{subdomain}", createRequest.getSubdomain()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.subdomain").value(createRequest.getSubdomain()))
+            .andExpect(jsonPath("$.organizationName").value(createRequest.getOrganizationName()));
+    }
+
+    @Test
+    @DisplayName("Should delete instance successfully")
+    void shouldDeleteInstanceSuccessfully() throws Exception {
+        // Given
+        CreateInstanceRequest createRequest = CreateInstanceRequest.builder()
+            .subdomain("test-delete")
+            .organizationName("Delete Test")
+            .ownerId(UUID.randomUUID())
+            .tier(PricingTier.BASIC)
+            .build();
+
+        MvcResult createResult = mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        InstanceResponse created = objectMapper.readValue(
+            createResult.getResponse().getContentAsString(),
+            InstanceResponse.class
+        );
+
+        // When & Then
+        mockMvc.perform(delete("/api/platform/instances/{id}", created.getId()))
+            .andExpect(status().isNoContent());
+
+        // Verify instance is soft deleted
+        mockMvc.perform(get("/api/platform/instances/{id}", created.getId()))
+            .andExpect(status().isBadRequest()); // Should return error for deleted instance
+    }
+
+    @Test
+    @DisplayName("Should not allow duplicate subdomain")
+    void shouldNotAllowDuplicateSubdomain() throws Exception {
+        // Given
+        CreateInstanceRequest request = CreateInstanceRequest.builder()
+            .subdomain("duplicate-test")
+            .organizationName("Duplicate Test")
+            .ownerId(UUID.randomUUID())
+            .tier(PricingTier.BASIC)
+            .build();
+
+        // Create first instance
+        mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
+
+        // Try to create second instance with same subdomain
+        mockMvc.perform(post("/api/platform/instances")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+    }
+}
