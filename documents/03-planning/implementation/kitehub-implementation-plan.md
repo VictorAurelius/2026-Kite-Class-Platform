@@ -54,7 +54,7 @@
 
 ```yaml
 Platform Services (KiteHub):
-  Framework: Spring Boot 3.2+
+  Framework: Spring Boot 3.5.10
   Language: Java 17
   Database: PostgreSQL 15 (shared for platform data)
   Cache: Redis 7

@@ -34,7 +34,7 @@
 
 ```yaml
 Backend:
-  Framework: Spring Boot 3.2+
+  Framework: Spring Boot 3.5.10
   Language: Java 17
   Database: PostgreSQL 15
   Cache: Redis 7

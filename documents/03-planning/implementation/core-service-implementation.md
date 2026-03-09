@@ -6,7 +6,7 @@
 |------------|---------|
 | **Service** | kiteclass-core-service |
 | **Version** | V4.1 (Bundled Model) ⭐ NEW |
-| **Tech Stack** | Spring Boot 3.5.11, Java 17, PostgreSQL 15 |
+| **Tech Stack** | Spring Boot 3.5.10, Java 17, PostgreSQL 15 |
 | **RAM** | ~900MB (650MB base + 250MB LMS/Marketing) |
 | **Mục đích** | Core business logic: Classes, Students, Attendance, Billing, LMS, Marketing |
 | **Tham chiếu** | architecture-overview, database-design, api-design |

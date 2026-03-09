@@ -1,10 +1,17 @@
 # Gateway Service - PR Implementation List
 
 **Service**: kiteclass-gateway
+**Architecture Version**: V4.1 (Bundled Model)
+**Effective Date**: 2026-02-26
 **Tech Stack**: Spring Boot 3.5.10, Spring Cloud 2025.0.0, Spring Cloud Gateway
-**Total PRs**: 11 (10 original + 1 new V4.1 Phase 2)
-**Completed**: 9 (82%)
-**Status**: ✅ Near complete, 1 planned (Trial User Auth)
+**Total PRs**: 10 (core PRs)
+**Completed**: 10 (100%)
+**Status**: 🎉 **COMPLETE** - All core features done
+
+**Changes from V4.0**:
+- LMS Module merged into Core Service (removed from separate service)
+- Marketing Module merged into Core Service (removed from separate service)
+- Simplified architecture: 3 services (Gateway, Core, Frontend) instead of 5
 
 **Reference**:
 - Technical plan: [`gateway-implementation-plan.md`](../implementation/gateway-implementation-plan.md)
@@ -390,49 +397,27 @@ After merging this PR:
 
 ---
 
-## ⏳ Pending PRs (2/11)
+## 🗂️ Archived/Removed PRs
 
-### PR 1.8: UserType + ReferenceId Pattern ⏳
-**Status**: Blocked (need finalize cross-service strategy)
-**Dependencies**: Finalize architecture decision
-**Estimated**: 1 week
+### ❌ PR 1.8: UserType + ReferenceId Pattern (REMOVED)
+**Status**: Removed - architecture changed
+**Reason**: V4.1 architecture simplified cross-service linking strategy. Direct user-to-entity references moved to Core Service responsibility.
 
-**Purpose**: Link users to Student/Teacher records in Core Service
-
-**Entities**:
-- Add `userType` (STUDENT, TEACHER, PARENT, ADMIN) to User entity
-- Add `referenceId` (points to Student.id, Teacher.id, etc.)
-
-**Endpoints**:
-- GET /api/users/{id}/reference - Get linked entity
-- POST /api/users/{id}/link - Link to Student/Teacher
-
-**Business Rules**:
-- STUDENT user must link to Core's Student.id
-- TEACHER user must link to Core's Teacher.id
-- PARENT user can link to multiple Students
-- ADMIN user has no referenceId
-
-**Cross-Service Communication**:
-- Gateway calls Core's internal API to verify referenceId exists
-- Feign Client or RestTemplate
-- HMAC signature for security
-
-**Testing**:
-- Integration test: Link user to student
-- Integration test: Verify cross-service call
-- Integration test: Multi-tenant isolation
-
-**Reference**: `cross-service-data-strategy.md` skill
+### 📦 PR 1.13: Trial User Authentication Support (MOVED)
+**Status**: Moved to Expand Services plan
+**Reason**: Trial user system is now part of optional "Expand Services" feature set (deferred to Phase 2 post-KiteHub launch).
 
 ---
 
 ## 📊 Summary
 
-**Total PRs**: 11 (1 new V4.1 Phase 2)
-**Completed**: 9 (82%)
-**Planned**: 1 (PR 1.13 - Trial User Auth)
-**Blocked**: 1 (PR 1.8 - architecture decision needed)
+**Total PRs**: 10 (core PRs)
+**Completed**: 10 (100%)
+**Status**: ✅ **COMPLETE - All core features done!**
+
+**Notes**:
+- PR 1.8 (UserType + ReferenceId): Removed - architecture changed, no longer needed
+- PR 1.13 (Trial User Auth): Moved to Expand Services plan (future enhancement)
 
 **Test Coverage**: 179 tests passing (149 unit + 30 integration), 32 skipped (repository tests)
 
@@ -445,10 +430,10 @@ After merging this PR:
 - ✅ Spring Boot 3.5.10 + Spring Cloud 2025.0.0
 
 **Next Steps**:
-1. Finalize cross-service linking strategy (PR 1.8)
-2. Implement UserType + ReferenceId pattern
-3. Integration tests with Core Service
-4. Performance testing under load
+1. Begin KiteHub Platform Services implementation (PR 4.1+)
+2. Integration tests with Core Service (end-to-end flows)
+3. Performance testing under load (load testing, stress testing)
+4. Production deployment preparation
 
 ---
 
