@@ -44,12 +44,12 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Make Maven wrapper executable
-        working-directory: kitehub/kitehub-platform
+        working-directory: kitehub
         run: chmod +x mvnw
 
       - name: Build Platform Module
-        working-directory: kitehub/kitehub-platform
-        run: ./mvnw clean install -DskipTests
+        working-directory: kitehub
+        run: ./mvnw clean install -pl kitehub-platform -am -DskipTests
 
   test-subscription:
     name: Test KiteHub Subscription Service
@@ -73,21 +73,13 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Make Maven wrapper executable (Platform)
-        working-directory: kitehub/kitehub-platform
+      - name: Make Maven wrapper executable
+        working-directory: kitehub
         run: chmod +x mvnw
 
-      - name: Build Platform Module
-        working-directory: kitehub/kitehub-platform
-        run: ./mvnw clean install -DskipTests
-
-      - name: Make Maven wrapper executable (Subscription)
-        working-directory: kitehub/kitehub-subscription
-        run: chmod +x mvnw
-
-      - name: Run Tests
-        working-directory: kitehub/kitehub-subscription
-        run: ./mvnw clean test
+      - name: Build and Test Subscription Service
+        working-directory: kitehub
+        run: ./mvnw clean test -pl kitehub-subscription -am
 
       - name: Upload Test Results
         if: always()
@@ -127,21 +119,13 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Make Maven wrapper executable (Platform)
-        working-directory: kitehub/kitehub-platform
-        run: chmod +x mvnw
-
-      - name: Build Platform Module
-        working-directory: kitehub/kitehub-platform
-        run: ./mvnw clean install -DskipTests
-
-      - name: Make Maven wrapper executable (Subscription)
-        working-directory: kitehub/kitehub-subscription
+      - name: Make Maven wrapper executable
+        working-directory: kitehub
         run: chmod +x mvnw
 
       - name: Run Code Quality Checks
-        working-directory: kitehub/kitehub-subscription
-        run: ./mvnw verify -DskipTests
+        working-directory: kitehub
+        run: ./mvnw verify -pl kitehub-subscription -am -DskipTests
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
