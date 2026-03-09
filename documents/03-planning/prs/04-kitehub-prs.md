@@ -46,6 +46,37 @@ KiteHub là platform-level service quản lý multi-tenant, subscription, AI bra
 
 ---
 
+## DATABASE SCHEMA STRATEGY ⭐
+
+**Best Practice:** Create complete database schema upfront before feature development.
+
+**Implementation:**
+- **PR 4.1** creates ALL 5 tables (V1-V5 Flyway migrations)
+  - V1: `instances` (trial tracking, subdomain routing)
+  - V2: `subscriptions` (billing cycles, pricing tiers)
+  - V3: `payments` (VietQR transactions)
+  - V4: `branding_jobs` (AI generation queue)
+  - V5: `email_logs` (AWS SES tracking)
+
+- **Subsequent PRs** (4.4, 4.6, 4.9, 4.12) only implement business logic:
+  - Entities, repositories, services, controllers
+  - No schema changes required
+
+**Benefits:**
+1. ✅ Single source of truth for database design
+2. ✅ All FK constraints defined upfront
+3. ✅ No schema drift across feature PRs
+4. ✅ Database reviewable before code implementation
+5. ✅ Faster feature PR reviews (focus on logic, not schema)
+
+**Why This Matters:**
+- Prevents schema conflicts between PRs
+- Enables parallel feature development
+- Simplifies database change tracking
+- Follows industry best practices (Rails, Django patterns)
+
+---
+
 ## PHASE 1: MULTI-TENANT INFRASTRUCTURE (3 PRs)
 
 ### ⏳ PR 4.1 - Platform Core Setup & Instance Management
@@ -112,7 +143,12 @@ Create KiteHub platform with multi-tenant instance management
    DELETED:   Soft deleted
    ```
 
-5. **Database Schema** (`V1__create_instances_table.sql`)
+5. **Database Schema - ALL TABLES CREATED UPFRONT** ⭐
+
+   **Best Practice:** Create complete database schema before feature development.
+   All 5 tables created in PR 4.1 (V1-V5 migrations), subsequent PRs only implement business logic.
+
+   **V1: Instances Table** (`V1__create_instances_table.sql`)
    ```sql
    CREATE TABLE instances (
        id UUID PRIMARY KEY,
@@ -124,7 +160,7 @@ Create KiteHub platform with multi-tenant instance management
        status VARCHAR(20) NOT NULL,
        database_url VARCHAR(500) NOT NULL,
        database_username VARCHAR(100) NOT NULL,
-       database_password VARCHAR(255) NOT NULL, -- Encrypted
+       database_password VARCHAR(255) NOT NULL,
        trial_started_at TIMESTAMP,
        trial_expires_at TIMESTAMP,
        subscription_id UUID,
@@ -132,13 +168,97 @@ Create KiteHub platform with multi-tenant instance management
        created_at TIMESTAMP NOT NULL,
        updated_at TIMESTAMP NOT NULL,
        created_by VARCHAR(100),
+       updated_by VARCHAR(100),
        deleted BOOLEAN DEFAULT FALSE
    );
-
-   CREATE INDEX idx_instances_subdomain ON instances(subdomain);
-   CREATE INDEX idx_instances_owner ON instances(owner_id);
-   CREATE INDEX idx_instances_status ON instances(status);
    ```
+
+   **V2: Subscriptions Table** (`V2__create_subscriptions_table.sql`)
+   ```sql
+   CREATE TABLE subscriptions (
+       id UUID PRIMARY KEY,
+       instance_id UUID NOT NULL,
+       tier VARCHAR(20) NOT NULL,
+       billing_cycle VARCHAR(20) NOT NULL,  -- MONTHLY, ANNUALLY
+       price_vnd BIGINT NOT NULL,
+       status VARCHAR(20) NOT NULL,  -- ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+       started_at TIMESTAMP NOT NULL,
+       expires_at TIMESTAMP NOT NULL,
+       auto_renew BOOLEAN DEFAULT TRUE,
+       created_at TIMESTAMP NOT NULL,
+       updated_at TIMESTAMP NOT NULL,
+       deleted BOOLEAN DEFAULT FALSE,
+       FOREIGN KEY (instance_id) REFERENCES instances(id)
+   );
+   ```
+
+   **V3: Payments Table** (`V3__create_payments_table.sql`)
+   ```sql
+   CREATE TABLE payments (
+       id UUID PRIMARY KEY,
+       subscription_id UUID NOT NULL,
+       amount_vnd BIGINT NOT NULL,
+       currency VARCHAR(3) DEFAULT 'VND',
+       payment_method VARCHAR(30) NOT NULL,  -- VIETQR, MOMO, VNPAY
+       status VARCHAR(20) NOT NULL,  -- PENDING, COMPLETED, FAILED, REFUNDED
+       qr_code_url VARCHAR(500),
+       transaction_id VARCHAR(100),
+       paid_at TIMESTAMP,
+       created_at TIMESTAMP NOT NULL,
+       updated_at TIMESTAMP NOT NULL,
+       deleted BOOLEAN DEFAULT FALSE,
+       FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
+   );
+   ```
+
+   **V4: Branding Jobs Table** (`V4__create_branding_jobs_table.sql`)
+   ```sql
+   CREATE TABLE branding_jobs (
+       id UUID PRIMARY KEY,
+       instance_id UUID NOT NULL,
+       status VARCHAR(20) NOT NULL,  -- QUEUED, PROCESSING, COMPLETED, FAILED
+       progress INTEGER DEFAULT 0,  -- 0-100
+       current_step VARCHAR(100),
+       logo_url VARCHAR(500),
+       organization_name VARCHAR(200) NOT NULL,
+       assets_generated TEXT,  -- JSON
+       error_message TEXT,
+       queued_at TIMESTAMP NOT NULL,
+       started_at TIMESTAMP,
+       completed_at TIMESTAMP,
+       created_at TIMESTAMP NOT NULL,
+       updated_at TIMESTAMP NOT NULL,
+       deleted BOOLEAN DEFAULT FALSE,
+       FOREIGN KEY (instance_id) REFERENCES instances(id)
+   );
+   ```
+
+   **V5: Email Logs Table** (`V5__create_email_logs_table.sql`)
+   ```sql
+   CREATE TABLE email_logs (
+       id UUID PRIMARY KEY,
+       instance_id UUID,  -- Nullable for platform emails
+       recipient_email VARCHAR(255) NOT NULL,
+       subject VARCHAR(500) NOT NULL,
+       template_name VARCHAR(100) NOT NULL,
+       message_id VARCHAR(255),  -- AWS SES ID
+       status VARCHAR(20) NOT NULL,  -- QUEUED, SENT, DELIVERED, BOUNCED
+       queued_at TIMESTAMP NOT NULL,
+       sent_at TIMESTAMP,
+       delivered_at TIMESTAMP,
+       created_at TIMESTAMP NOT NULL,
+       updated_at TIMESTAMP NOT NULL,
+       deleted BOOLEAN DEFAULT FALSE,
+       FOREIGN KEY (instance_id) REFERENCES instances(id)
+   );
+   ```
+
+   **Schema Benefits:**
+   - All FK constraints defined upfront
+   - Indexes created for performance
+   - Referential integrity enforced
+   - No schema drift across feature PRs
+   - Database changes tracked in single PR
 
 6. **Repository & Service**
    - `InstanceRepository.java`
@@ -179,7 +299,12 @@ Create KiteHub platform with multi-tenant instance management
 - `kitehub-subscription/src/main/java/com/kitehub/subscription/repository/InstanceRepository.java`
 - `kitehub-subscription/src/main/java/com/kitehub/subscription/service/InstanceService.java`
 - `kitehub-subscription/src/main/java/com/kitehub/subscription/controller/InstanceController.java`
-- `kitehub-subscription/src/main/resources/db/migration/V1__create_instances_table.sql`
+- `kitehub-subscription/src/main/resources/db/migration/V1__create_instances_table.sql` ⭐
+- `kitehub-subscription/src/main/resources/db/migration/V2__create_subscriptions_table.sql` 🆕
+- `kitehub-subscription/src/main/resources/db/migration/V3__create_payments_table.sql` 🆕
+- `kitehub-subscription/src/main/resources/db/migration/V4__create_branding_jobs_table.sql` 🆕
+- `kitehub-subscription/src/main/resources/db/migration/V5__create_email_logs_table.sql` 🆕
+- `kitehub-subscription/README.md` (updated with all schema docs)
 - `docker-compose.kitehub.yml`
 
 **Acceptance Criteria:**

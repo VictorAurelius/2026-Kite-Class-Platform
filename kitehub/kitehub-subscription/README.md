@@ -79,6 +79,10 @@ curl -X DELETE http://localhost:8081/api/platform/instances/{id}
 
 ## Database Schema
 
+**Total Tables:** 5 (created upfront in PR 4.1 following best practice)
+
+### V1: Instances Table
+
 ```sql
 CREATE TABLE instances (
     id UUID PRIMARY KEY,
@@ -100,6 +104,93 @@ CREATE TABLE instances (
     deleted BOOLEAN DEFAULT FALSE
 );
 ```
+
+### V2: Subscriptions Table
+
+```sql
+CREATE TABLE subscriptions (
+    id UUID PRIMARY KEY,
+    instance_id UUID NOT NULL,             -- FK to instances
+    tier VARCHAR(20) NOT NULL,             -- FREE, BASIC, PREMIUM, ENTERPRISE
+    billing_cycle VARCHAR(20) NOT NULL,    -- MONTHLY, ANNUALLY
+    price_vnd BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL,           -- ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+    started_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    auto_renew BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
+);
+```
+
+### V3: Payments Table
+
+```sql
+CREATE TABLE payments (
+    id UUID PRIMARY KEY,
+    subscription_id UUID NOT NULL,         -- FK to subscriptions
+    amount_vnd BIGINT NOT NULL,
+    currency VARCHAR(3) DEFAULT 'VND',
+    payment_method VARCHAR(30) NOT NULL,   -- VIETQR, MOMO, VNPAY, BANK_TRANSFER
+    status VARCHAR(20) NOT NULL,           -- PENDING, COMPLETED, FAILED, REFUNDED
+    qr_code_url VARCHAR(500),
+    transaction_id VARCHAR(100),
+    paid_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
+);
+```
+
+### V4: Branding Jobs Table
+
+```sql
+CREATE TABLE branding_jobs (
+    id UUID PRIMARY KEY,
+    instance_id UUID NOT NULL,             -- FK to instances
+    status VARCHAR(20) NOT NULL,           -- QUEUED, PROCESSING, COMPLETED, FAILED
+    progress INTEGER DEFAULT 0,            -- 0-100
+    current_step VARCHAR(100),
+    logo_url VARCHAR(500),
+    organization_name VARCHAR(200) NOT NULL,
+    assets_generated TEXT,                 -- JSON array of generated assets
+    error_message TEXT,
+    queued_at TIMESTAMP NOT NULL,
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
+);
+```
+
+### V5: Email Logs Table
+
+```sql
+CREATE TABLE email_logs (
+    id UUID PRIMARY KEY,
+    instance_id UUID,                      -- Nullable: platform emails have no instance
+    recipient_email VARCHAR(255) NOT NULL,
+    subject VARCHAR(500) NOT NULL,
+    template_name VARCHAR(100) NOT NULL,   -- welcome, trial-ending, payment-confirmation
+    message_id VARCHAR(255),               -- AWS SES Message ID
+    status VARCHAR(20) NOT NULL,           -- QUEUED, SENT, DELIVERED, BOUNCED, COMPLAINED
+    queued_at TIMESTAMP NOT NULL,
+    sent_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    deleted BOOLEAN DEFAULT FALSE
+);
+```
+
+**Schema Design:**
+- All tables created upfront (V1-V5) before feature development
+- Foreign key constraints enforce referential integrity
+- Indexes on frequently queried columns (subdomain, status, FK columns)
+- Soft delete pattern with `deleted` boolean flag
+- Audit fields: `created_at`, `updated_at`, `created_by`, `updated_by`
 
 ---
 
