@@ -1,0 +1,226 @@
+version: '3.9'
+
+services:
+  # ============================================================================
+  # INFRASTRUCTURE SERVICES
+  # ============================================================================
+
+  kitehub-postgres:
+    image: postgres:15-alpine
+    container_name: kitehub-postgres
+    environment:
+      POSTGRES_DB: kitehub
+      POSTGRES_USER: kitehub
+      POSTGRES_PASSWORD: kitehub_dev_password
+    ports:
+      - "5433:5432"  # Avoid conflict with KiteClass postgres (5432)
+    volumes:
+      - kitehub-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitehub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  kitehub-redis:
+    image: redis:7-alpine
+    container_name: kitehub-redis
+    ports:
+      - "6380:6379"  # Avoid conflict with KiteClass redis (6379)
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  kitehub-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kitehub-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: kitehub
+      RABBITMQ_DEFAULT_PASS: kitehub_dev_password
+    ports:
+      - "5673:5672"   # AMQP port (avoid conflict with KiteClass: 5672)
+      - "15673:15672" # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  # ============================================================================
+  # PLATFORM SERVICES (Uncomment when implementing)
+  # ============================================================================
+
+  # kitehub-subscription:
+  #   build:
+  #     context: ./kitehub-subscription
+  #     dockerfile: Dockerfile
+  #   container_name: kitehub-subscription
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+  #     SPRING_DATASOURCE_USERNAME: kitehub
+  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+  #     SPRING_REDIS_HOST: kitehub-redis
+  #     SPRING_REDIS_PORT: 6379
+  #     SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+  #     SPRING_RABBITMQ_PORT: 5672
+  #     SPRING_RABBITMQ_USERNAME: kitehub
+  #     SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
+  #   ports:
+  #     - "8081:8080"
+  #   depends_on:
+  #     kitehub-postgres:
+  #       condition: service_healthy
+  #     kitehub-redis:
+  #       condition: service_healthy
+  #     kitehub-rabbitmq:
+  #       condition: service_healthy
+  #   networks:
+  #     - kitehub-network
+  #   restart: unless-stopped
+
+  # kitehub-payment:
+  #   build:
+  #     context: ./kitehub-payment
+  #     dockerfile: Dockerfile
+  #   container_name: kitehub-payment
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+  #     SPRING_DATASOURCE_USERNAME: kitehub
+  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+  #     SPRING_REDIS_HOST: kitehub-redis
+  #     SPRING_REDIS_PORT: 6379
+  #     VIETQR_API_KEY: ${VIETQR_API_KEY}
+  #     VIETQR_API_SECRET: ${VIETQR_API_SECRET}
+  #   ports:
+  #     - "8082:8080"
+  #   depends_on:
+  #     kitehub-postgres:
+  #       condition: service_healthy
+  #     kitehub-redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - kitehub-network
+  #   restart: unless-stopped
+
+  # kitehub-branding:
+  #   build:
+  #     context: ./kitehub-branding
+  #     dockerfile: Dockerfile
+  #   container_name: kitehub-branding
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+  #     SPRING_DATASOURCE_USERNAME: kitehub
+  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+  #     SPRING_REDIS_HOST: kitehub-redis
+  #     SPRING_REDIS_PORT: 6379
+  #     SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+  #     SPRING_RABBITMQ_PORT: 5672
+  #     OPENAI_API_KEY: ${OPENAI_API_KEY}
+  #     AWS_S3_BUCKET: kitehub-branding-assets
+  #     AWS_REGION: ap-southeast-1
+  #   ports:
+  #     - "8083:8080"
+  #   depends_on:
+  #     kitehub-postgres:
+  #       condition: service_healthy
+  #     kitehub-redis:
+  #       condition: service_healthy
+  #     kitehub-rabbitmq:
+  #       condition: service_healthy
+  #   networks:
+  #     - kitehub-network
+  #   restart: unless-stopped
+
+  # kitehub-email:
+  #   build:
+  #     context: ./kitehub-email
+  #     dockerfile: Dockerfile
+  #   container_name: kitehub-email
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+  #     SPRING_DATASOURCE_USERNAME: kitehub
+  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+  #     SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+  #     SPRING_RABBITMQ_PORT: 5672
+  #     AWS_SES_REGION: ap-southeast-1
+  #     AWS_SES_FROM_EMAIL: noreply@kiteclass.com
+  #   ports:
+  #     - "8084:8080"
+  #   depends_on:
+  #     kitehub-postgres:
+  #       condition: service_healthy
+  #     kitehub-rabbitmq:
+  #       condition: service_healthy
+  #   networks:
+  #     - kitehub-network
+  #   restart: unless-stopped
+
+  # kitehub-admin:
+  #   build:
+  #     context: ./kitehub-admin
+  #     dockerfile: Dockerfile
+  #   container_name: kitehub-admin
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+  #     SPRING_DATASOURCE_USERNAME: kitehub
+  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+  #     SPRING_REDIS_HOST: kitehub-redis
+  #     SPRING_REDIS_PORT: 6379
+  #   ports:
+  #     - "8085:8080"
+  #   depends_on:
+  #     kitehub-postgres:
+  #       condition: service_healthy
+  #     kitehub-redis:
+  #       condition: service_healthy
+  #   networks:
+  #     - kitehub-network
+  #   restart: unless-stopped
+
+  # kitehub-gateway:
+  #   build:
+  #     context: ./kitehub-gateway
+  #     dockerfile: Dockerfile
+  #   container_name: kitehub-gateway
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_REDIS_HOST: kitehub-redis
+  #     SPRING_REDIS_PORT: 6379
+  #     # Service discovery (hardcoded for local dev)
+  #     SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
+  #     PAYMENT_SERVICE_URL: http://kitehub-payment:8080
+  #     BRANDING_SERVICE_URL: http://kitehub-branding:8080
+  #     EMAIL_SERVICE_URL: http://kitehub-email:8080
+  #     ADMIN_SERVICE_URL: http://kitehub-admin:8080
+  #   ports:
+  #     - "9000:9000"
+  #   depends_on:
+  #     - kitehub-subscription
+  #     - kitehub-payment
+  #     - kitehub-branding
+  #     - kitehub-email
+  #     - kitehub-admin
+  #   networks:
+  #     - kitehub-network
+  #   restart: unless-stopped
+
+volumes:
+  kitehub-postgres-data:
+    driver: local
+
+networks:
+  kitehub-network:
+    driver: bridge

@@ -1,9 +1,16 @@
 # KITEHUB PR PLAN - Platform Services
 
 **Service:** KiteHub (Platform-level)
+**Architecture Version:** V4.1 (Bundled Model)
+**Effective Date:** 2026-02-26
 **Repository:** `kitehub/` (new microservices)
 **Total PRs:** 15 PRs
 **Timeline:** 7-8 tuần
+
+**Changes from V4.0:**
+- New service added in V4.1 (not present in V4.0)
+- Handles multi-tenant SaaS layer (subscriptions, payments, AI branding)
+- Decoupled from KiteClass Core (instance-level business logic)
 
 **Reference:**
 - `kitehub-implementation-plan.md`

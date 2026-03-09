@@ -1,8 +1,14 @@
 # Core Service - PR Implementation List
 
 **Service**: kiteclass-core
-**Version**: V4.1 (Bundled Model)
-**Tech Stack**: Spring Boot 3.5.11, Java 17, PostgreSQL 15
+**Architecture Version**: V4.1 (Bundled Model)
+**Effective Date**: 2026-02-26
+**Tech Stack**: Spring Boot 3.5.10, Java 17, PostgreSQL 15
+
+**Changes from V4.0**:
+- LMS Module integrated (PR 2.9): Courses, lessons, video streaming, progress tracking
+- Marketing Module integrated (PR 2.10): Landing pages, SEO, lead capture
+- All business logic consolidated in single service for better maintainability
 **Total PRs**: 20 (15 original + 2 V4.1 LMS + 2 V4.1 Trial Learning + 1 V4.1 Storage)
 **Completed**: 15 (75%) ⭐ **MAJOR UPDATE**
 **Planned**: 2 (PR 2.13-2.14 Trial Learning)
@@ -24,7 +30,7 @@
 **Description**: Initialize Spring Boot project with multi-tenant architecture
 
 **Tasks**:
-- Maven project with Spring Boot 3.5.11
+- Maven project with Spring Boot 3.5.10
 - BaseEntity with audit fields (createdAt, updatedAt, createdBy, updatedBy)
 - Soft delete support (deleted flag)
 - Hibernate multi-tenant filters

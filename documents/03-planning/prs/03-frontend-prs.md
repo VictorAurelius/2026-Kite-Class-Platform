@@ -1,8 +1,14 @@
 # Frontend - PR Implementation List
 
 **Project**: kiteclass-frontend
-**Version**: V4.1 (Bundled Model)
+**Architecture Version**: V4.1 (Bundled Model)
+**Effective Date**: 2026-02-26
 **Tech Stack**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/UI
+
+**Changes from V4.0**:
+- LMS pages integrated (PR 3.11): Course catalog, lesson viewer, video player
+- Marketing pages integrated (PR 3.12): Public landing pages, SEO optimization
+- All pages now consume single Core Service API (simplified API client)
 **Total PRs**: 18 (13 original + 3 enhancements + 2 V4.1 Trial Learning)
 **Completed**: 12 (67%) ⭐ **MAJOR UPDATE**
 **Planned**: 2 (PR 3.13-3.14.1 Trial Learning)

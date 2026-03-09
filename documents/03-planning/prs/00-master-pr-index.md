@@ -20,6 +20,37 @@ documents/03-planning/
 
 ---
 
+## 📝 PR Naming Convention
+
+**Format:**
+- **Main PRs**: `X.Y` (sequential numbering)
+  - Example: 1.1, 1.2, 1.3, 2.1, 2.2, 3.1, 3.2
+  - Used for: Core features, main functionality
+
+- **Enhancement PRs**: `X.Y.Z` (sub-version)
+  - Example: 1.4.1 (Docker for PR 1.4 Auth), 2.8.1 (Payment enhancement to 2.8 Invoice)
+  - Used for: Add-ons, improvements, extensions to existing PRs
+
+- **Renumbered PRs**: Use next available number
+  - Example: 3.14.1 (was going to be 3.13, but 3.13 moved to different service)
+
+**Prefix by Service:**
+- `1.x` = Gateway Service PRs
+- `2.x` = Core Service PRs
+- `3.x` = Frontend PRs
+- `4.x` = KiteHub Platform Service PRs
+- `5.x` = Expand Services PRs (future)
+
+**Examples:**
+- ✅ PR 1.4: JWT Authentication (main feature)
+- ✅ PR 1.4.1: Docker Compose for Auth (enhancement to 1.4)
+- ✅ PR 2.3: Student Module (main feature)
+- ✅ PR 2.3.1: Teacher Module (closely related to 2.3)
+- ✅ PR 2.8: Invoice Module (main feature)
+- ✅ PR 2.8.1: VietQR Payment Integration (enhancement to 2.8)
+
+---
+
 ## 📊 Overall Progress
 
 | Service | Completed | Total | Progress | Status |
