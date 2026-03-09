@@ -102,7 +102,9 @@ export function AttendanceTrendsChart({
     .join(' ');
 
   // Generate area path (for gradient fill)
-  const areaD = `${pathD} L ${points[points.length - 1].x} 90 L ${points[0].x} 90 Z`;
+  const areaD = points.length > 0
+    ? `${pathD} L ${points[points.length - 1]!.x} 90 L ${points[0]!.x} 90 Z`
+    : '';
 
   return (
     <Card>

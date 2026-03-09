@@ -54,24 +54,26 @@ export default function AdminAttendanceStatsPage() {
   const classBreakdown: ClassAttendanceBreakdown[] = useMemo(() => {
     if (!classes) return [];
 
-    return classes
-      .map((classItem, index) => {
-        const stats = classStatsQueries[index]?.data;
-        if (!stats) return null;
+    const breakdown: ClassAttendanceBreakdown[] = [];
 
-        return {
-          classId: classItem.id,
-          className: classItem.name,
-          teacherName: undefined, // TODO: Fetch teacher name
-          totalSessions: stats.totalSessions,
-          presentCount: stats.presentCount,
-          absentCount: stats.absentCount,
-          lateCount: stats.lateCount,
-          excusedCount: stats.excusedCount,
-          attendanceRate: stats.attendanceRate,
-        };
-      })
-      .filter((item): item is ClassAttendanceBreakdown => item !== null);
+    classes.forEach((classItem, index) => {
+      const stats = classStatsQueries[index]?.data;
+      if (!stats) return;
+
+      breakdown.push({
+        classId: classItem.id,
+        className: classItem.name,
+        teacherName: undefined, // TODO: Fetch teacher name
+        totalSessions: stats.totalSessions,
+        presentCount: stats.presentCount,
+        absentCount: stats.absentCount,
+        lateCount: stats.lateCount,
+        excusedCount: stats.excusedCount,
+        attendanceRate: stats.attendanceRate,
+      });
+    });
+
+    return breakdown;
   }, [classes, classStatsQueries]);
 
   // Handle CSV export

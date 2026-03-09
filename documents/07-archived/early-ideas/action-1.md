@@ -1399,3 +1399,7 @@ tôi cần chỉnh sửa khoảng thời gian thực tập ở tiêu đề, ph�
 check lại toàn bộ skill để xem đảm bảo skill chưa?
 
 tôi thấy vẫn chưa đảm bảo, ví dụ về skill workflow phải tạo branch mới chẳng hạn
+
+đã cập nhật status vào plan chưa?
+
+PR ưu tiên tiếp theo là gì?
