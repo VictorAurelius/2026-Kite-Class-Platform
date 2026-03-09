@@ -50,4 +50,29 @@ public enum PricingTier {
     public boolean allowsCustomDomain() {
         return this == PREMIUM || this == ENTERPRISE;
     }
+
+    /**
+     * Get annual price with 10% discount.
+     *
+     * @return Annual price in VNĐ
+     */
+    public long getAnnualPrice() {
+        if (this == FREE || this == ENTERPRISE) {
+            return 0L; // Free or custom pricing
+        }
+        // Annual = Monthly * 12 - 10% discount
+        return (long) (priceVND * 12 * 0.9);
+    }
+
+    /**
+     * Get price based on billing cycle.
+     *
+     * @param billingCycle Billing cycle
+     * @return Price in VNĐ
+     */
+    public long getPrice(com.kitehub.platform.domain.enums.BillingCycle billingCycle) {
+        return billingCycle == com.kitehub.platform.domain.enums.BillingCycle.ANNUALLY
+            ? getAnnualPrice()
+            : priceVND;
+    }
 }

@@ -219,6 +219,230 @@ POST /api/platform/instances/{id}/extend-trial?days=7
 
 ---
 
+## Subscription Management (PR 4.4)
+
+### Pricing Tiers & Billing Cycles
+
+**Monthly Pricing:**
+- **BASIC**: ₫500,000/month (500k VNĐ)
+- **PREMIUM**: ₫1,500,000/month (1.5M VNĐ)
+- **ENTERPRISE**: ₫3,000,000/month (3M VNĐ)
+
+**Annual Pricing (10% discount):**
+- **BASIC**: ₫5,400,000/year (saves ₫600k)
+- **PREMIUM**: ₫16,200,000/year (saves ₫1.8M)
+- **ENTERPRISE**: ₫32,400,000/year (saves ₫3.6M)
+
+### Subscription Lifecycle
+
+**Status Flow:**
+```
+ACTIVE → CANCELLED (manual cancel)
+       → EXPIRED (auto-expire when expiresAt passed)
+       → SUSPENDED (admin action)
+```
+
+**Auto-Renewal:**
+- Default: `autoRenew = true`
+- Renews automatically at end of billing cycle
+- Can be disabled by user or on cancellation
+
+### CRUD Operations
+
+**Create Subscription:**
+```bash
+POST /api/platform/subscriptions
+Content-Type: application/json
+
+{
+  "instanceId": "uuid",
+  "tier": "BASIC",
+  "billingCycle": "MONTHLY",
+  "autoRenew": true
+}
+
+Response 201:
+{
+  "id": "uuid",
+  "instanceId": "uuid",
+  "tier": "BASIC",
+  "billingCycle": "MONTHLY",
+  "priceVnd": 500000,
+  "status": "ACTIVE",
+  "startedAt": "2026-03-09T10:00:00",
+  "expiresAt": "2026-04-09T10:00:00",
+  "autoRenew": true,
+  "isActive": true,
+  "isExpired": false
+}
+```
+
+**Get Subscription by ID:**
+```bash
+GET /api/platform/subscriptions/{id}
+```
+
+**Get Active Subscription for Instance:**
+```bash
+GET /api/platform/subscriptions/instance/{instanceId}/active
+```
+
+**Get All Subscriptions for Instance:**
+```bash
+GET /api/platform/subscriptions/instance/{instanceId}
+```
+
+### Tier Changes
+
+**Upgrade (Immediate with Prorated Charge):**
+
+Upgrade happens immediately. Customer pays prorated charge for remaining days.
+
+```bash
+PATCH /api/platform/subscriptions/{id}/upgrade
+Content-Type: application/json
+
+{
+  "newTier": "PREMIUM"
+}
+```
+
+**Prorated Charge Formula:**
+```
+priceDifference = newTierPrice - oldTierPrice
+dailyRate = priceDifference / cycleDays (30 for monthly, 365 for annual)
+proratedCharge = dailyRate × daysLeft
+
+Example:
+- Current: BASIC (₫500k/month)
+- Upgrade to: PREMIUM (₫1.5M/month)
+- Days left: 15 days
+- Calculation: (1,500,000 - 500,000) / 30 × 15 = ₫500,000
+```
+
+**Downgrade (End of Cycle):**
+
+Downgrade happens at end of current billing cycle. No refund for current period.
+
+```bash
+PATCH /api/platform/subscriptions/{id}/downgrade
+Content-Type: application/json
+
+{
+  "newTier": "BASIC"
+}
+```
+
+**Note:** MVP implementation applies downgrade immediately (with log warning). Production should defer until cycle end.
+
+### Cancellation
+
+**Cancel Immediately:**
+```bash
+DELETE /api/platform/subscriptions/{id}?immediate=true
+```
+- Sets `expiresAt` to now
+- Status → CANCELLED
+- Instance access revoked immediately
+
+**Cancel at End of Cycle (Default):**
+```bash
+DELETE /api/platform/subscriptions/{id}?immediate=false
+```
+- Sets `autoRenew = false`
+- Status → CANCELLED
+- Access continues until `expiresAt`
+- No charge at renewal
+
+### Business Rules & Validation
+
+**Subscription Creation:**
+- ✅ Instance must exist and not have active subscription
+- ✅ Cannot create subscription for FREE tier (trial only)
+- ✅ Price calculated based on tier + billing cycle
+- ✅ Instance status updated to ACTIVE
+- ✅ Trial period ended if upgrading from trial
+
+**Tier Changes:**
+- ✅ Upgrade: New tier must be higher than current (ordinal comparison)
+- ✅ Downgrade: New tier must be lower than current
+- ✅ Only ACTIVE subscriptions can be upgraded/downgraded
+- ❌ Cannot upgrade FREE → BASIC (must create new subscription)
+
+**Cancellation:**
+- ✅ Can cancel ACTIVE subscriptions
+- ✅ Already CANCELLED subscriptions are no-op (logged)
+- ✅ Immediate cancel affects instance access immediately
+- ✅ End-of-cycle cancel allows grace period
+
+### Code Examples
+
+**Create Subscription from Trial:**
+```java
+@Autowired
+private SubscriptionService subscriptionService;
+@Autowired
+private TrialService trialService;
+
+// Convert trial to paid subscription
+CreateSubscriptionRequest request = CreateSubscriptionRequest.builder()
+    .instanceId(instanceId)
+    .tier(PricingTier.BASIC)
+    .billingCycle(BillingCycle.MONTHLY)
+    .autoRenew(true)
+    .build();
+
+SubscriptionResponse subscription = subscriptionService.createSubscription(request);
+
+// Trial automatically ended
+trialService.convertTrialToSubscription(instanceId);
+```
+
+**Upgrade with Prorated Charge:**
+```java
+// User wants to upgrade from BASIC to PREMIUM
+UUID subscriptionId = subscription.getId();
+PricingTier newTier = PricingTier.PREMIUM;
+
+SubscriptionResponse upgraded = subscriptionService.upgradeSubscription(subscriptionId, newTier);
+
+// Prorated charge calculated and logged
+// TODO (PR 4.6): Create payment record for prorated charge
+```
+
+**Check Subscription Status:**
+```java
+@Autowired
+private SubscriptionRepository subscriptionRepository;
+
+Optional<Subscription> activeSub = subscriptionRepository.findActiveByInstanceId(instanceId);
+
+if (activeSub.isPresent()) {
+    Subscription sub = activeSub.get();
+    boolean active = sub.isActive();  // status == ACTIVE
+    boolean expired = sub.isExpired(); // expiresAt < now
+}
+```
+
+### Integration with Other Components
+
+**Trial → Subscription Flow:**
+1. User starts 14-day trial (PR 4.3)
+2. User decides to subscribe before trial expires
+3. POST /api/platform/subscriptions (creates paid subscription)
+4. `SubscriptionService.createSubscription()` updates instance:
+   - Status: TRIAL → ACTIVE
+   - Sets `subscriptionId` and `subscriptionExpiresAt`
+5. Trial period ended, full access granted
+
+**Payment Integration (PR 4.6 - TODO):**
+- Create Payment record on subscription creation
+- Create Payment record for prorated charge on upgrade
+- Link subscription renewals to payment records
+- Handle payment failures (suspend subscription)
+
+---
+
 ## Database Schema
 
 **Total Tables:** 5 (created upfront in PR 4.1 following best practice)
