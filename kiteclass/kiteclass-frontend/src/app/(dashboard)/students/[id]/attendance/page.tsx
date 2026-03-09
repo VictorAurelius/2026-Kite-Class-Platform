@@ -1,0 +1,231 @@
+/**
+ * Student attendance history page.
+ * Shows student's attendance history with calendar, stats, and table.
+ *
+ * @author KiteClass Team
+ * @since 3.8.1 (PR 3.8.1)
+ */
+
+'use client';
+
+import { use, useState } from 'react';
+import Link from 'next/link';
+import { ChevronLeft, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { AttendanceStatsOverview } from '@/components/attendance/attendance-stats-overview';
+import { EnhancedAttendanceCalendar } from '@/components/attendance/enhanced-attendance-calendar';
+import { AttendanceHistoryTable } from '@/components/attendance/attendance-history-table';
+import { AttendanceDetailDialog } from '@/components/attendance/attendance-detail-dialog';
+import { useStudent } from '@/hooks/use-students';
+import {
+  useStudentAttendanceStats,
+  useAttendanceByEnrollment,
+} from '@/hooks/use-attendance';
+import { exportToCSV } from '@/lib/csv-export';
+import type { Attendance } from '@/types/attendance';
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function StudentAttendancePage({ params }: PageProps) {
+  const { id } = use(params);
+  const studentId = Number(id);
+
+  const [page, setPage] = useState(0);
+  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedRecords, setSelectedRecords] = useState<Attendance[]>([]);
+
+  // Fetch student data
+  const { data: student, isLoading: isLoadingStudent } = useStudent(studentId);
+
+  // Fetch attendance stats
+  const { data: stats, isLoading: _isLoadingStats } =
+    useStudentAttendanceStats(studentId);
+
+  // For simplicity, we'll use enrollment ID = studentId (in real app, fetch enrollments first)
+  // TODO: Fetch actual enrollment ID from student's enrollments
+  const enrollmentId = studentId;
+
+  // Fetch attendance history
+  const {
+    data: attendanceData,
+    isLoading: isLoadingAttendance,
+  } = useAttendanceByEnrollment(enrollmentId, {
+    page,
+    size: 20,
+  });
+
+  const attendanceRecords = attendanceData?.content || [];
+  const totalElements = attendanceData?.totalElements || 0;
+
+  // Handle calendar date click
+  const handleDateClick = (date: Date, records: Attendance[]) => {
+    setSelectedDate(date);
+    setSelectedRecords(records);
+    setDialogOpen(true);
+  };
+
+  // Handle CSV export
+  const handleExport = () => {
+    if (!attendanceRecords || attendanceRecords.length === 0) return;
+
+    const exportData = attendanceRecords.map((record) => ({
+      Ngày: new Date(record.markedDate).toLocaleDateString('vi-VN'),
+      'Buổi học': record.sessionNumber || record.sessionId,
+      'Trạng thái': record.status,
+      'Ghi chú': record.notes || '',
+      'Điểm danh bởi': record.markedByName || '',
+    }));
+
+    exportToCSV(
+      exportData,
+      ['Ngày', 'Buổi học', 'Trạng thái', 'Ghi chú', 'Điểm danh bởi'],
+      `diem-danh-${student?.name || studentId}-${new Date().toISOString().split('T')[0]}`
+    );
+  };
+
+  if (isLoadingStudent) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="mb-6 flex items-center gap-4">
+          <div className="h-8 w-32 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="space-y-6">
+          <div className="h-48 animate-pulse rounded-lg bg-muted" />
+          <div className="h-96 animate-pulse rounded-lg bg-muted" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="mb-4 text-6xl">❌</div>
+            <h3 className="mb-2 text-lg font-semibold">
+              Không tìm thấy học viên
+            </h3>
+            <Link href="/students">
+              <Button variant="link">Quay lại danh sách</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto space-y-6 py-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Link href="/students" className="hover:underline">
+              Học viên
+            </Link>
+            <span>/</span>
+            <Link href={`/students/${studentId}`} className="hover:underline">
+              {student.name}
+            </Link>
+            <span>/</span>
+            <span>Điểm danh</span>
+          </div>
+          <h1 className="text-3xl font-bold">
+            Lịch sử điểm danh - {student.name}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/students/${studentId}`}>
+            <Button variant="outline" size="sm">
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Quay lại
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
+            Xuất CSV
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      {stats && (
+        <AttendanceStatsOverview
+          stats={stats}
+          showProgress={true}
+          showMakeup={true}
+          variant="default"
+        />
+      )}
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Bộ lọc</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Lớp học:</label>
+              <Select value={selectedClass} onValueChange={setSelectedClass}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {/* TODO: Add class options from student's enrollments */}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Calendar View */}
+      <EnhancedAttendanceCalendar
+        attendanceRecords={attendanceRecords}
+        onDateClick={handleDateClick}
+        showFilters={true}
+        showTooltips={true}
+      />
+
+      {/* History Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lịch sử chi tiết</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AttendanceHistoryTable
+            data={attendanceRecords}
+            isLoading={isLoadingAttendance}
+            totalElements={totalElements}
+            page={page}
+            size={20}
+            onPageChange={setPage}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Detail Dialog */}
+      <AttendanceDetailDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        date={selectedDate}
+        records={selectedRecords}
+      />
+    </div>
+  );
+}

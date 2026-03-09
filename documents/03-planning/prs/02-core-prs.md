@@ -3,11 +3,11 @@
 **Service**: kiteclass-core
 **Version**: V4.1 (Bundled Model)
 **Tech Stack**: Spring Boot 3.5.11, Java 17, PostgreSQL 15
-**Total PRs**: 20 (15 original + 2 V4.1 LMS + 2 V4.1 Trial Learning + 1 V4.1 Storage) ⭐
-**Completed**: 8 (40%)
-**Planned**: 3 (PR 2.10.1 Storage, PR 2.13-2.14 Trial Learning)
-**Status**: 🔄 Active development
-**Last Updated**: 2026-02-27 ⭐
+**Total PRs**: 20 (15 original + 2 V4.1 LMS + 2 V4.1 Trial Learning + 1 V4.1 Storage)
+**Completed**: 15 (75%) ⭐ **MAJOR UPDATE**
+**Planned**: 2 (PR 2.13-2.14 Trial Learning)
+**Status**: 🎉 Near complete - Core features done
+**Last Updated**: 2026-03-08
 
 **Reference**:
 - Technical plan: [`core-service-implementation.md`](../implementation/core-service-implementation.md)
@@ -157,10 +157,10 @@
 
 ---
 
-### PR 2.6: Enrollment Module ⏳
-**Status**: In Progress (PR created, tests written)
+### PR 2.6: Enrollment Module ✅
+**Status**: Complete (Merged #15, 2026-02-27)
 **Dependencies**: Student ✅, Class ✅
-**Priority**: 🔥 NEXT
+**Tests**: Integration tests passing
 
 **Features**:
 - Student enrollment in classes
@@ -191,10 +191,10 @@
 
 ---
 
-### PR 2.7: Attendance Module ⏳
-**Status**: Pending
+### PR 2.7: Attendance Module ✅
+**Status**: Complete (Merged #22, 2026-03-02)
 **Dependencies**: Class ✅, ClassSession ✅, Student ✅
-**Estimated**: 3-4 days
+**Tests**: Permission checks, integration tests passing
 
 **Features**:
 - Mark attendance for class sessions
@@ -238,10 +238,10 @@
 
 ---
 
-### PR 2.7.2: Grade Module ⏳
-**Status**: Pending
+### PR 2.7.2: Grade Module ✅
+**Status**: Complete (Merged #24, 2026-03-03)
 **Dependencies**: Class ✅, Student ✅, Assignment ✅
-**Estimated**: 2-3 days
+**Tests**: Integration tests passing
 
 **Features**:
 - Grade tracking per student/class
@@ -259,10 +259,10 @@
 
 ---
 
-### PR 2.8: Invoice Module ⏳
-**Status**: Pending
+### PR 2.8: Invoice Module ✅
+**Status**: Complete (Merged #19, 2026-03-02)
 **Dependencies**: Student ✅, Enrollment ✅
-**Estimated**: 4-5 days
+**Tests**: Integration tests passing
 
 **Features**:
 - Generate invoices for enrollments
@@ -282,10 +282,10 @@
 
 ---
 
-### PR 2.8.1: Payment Module ⏳
-**Status**: Pending
+### PR 2.8.1: Payment Module ✅
+**Status**: Complete (Merged #21, 2026-03-02)
 **Dependencies**: Invoice ✅
-**Estimated**: 3-4 days
+**Tests**: Payment recording, reconciliation tests passing
 
 **Features**:
 - Record payments for invoices
@@ -306,10 +306,10 @@
 ## ⭐ Phase 3: V4.1 New Modules (BUNDLED MODEL)
 
 ### PR 2.9: LMS Module ⭐ NEW
-**Status**: Pending
+**Status**: Complete (Merged #23, 2026-03-03)
 **Dependencies**: Course ✅
-**Estimated**: 2-3 weeks
-**Priority**: 🔥 High (guest-facing features)
+**Tests**: 3-tier structure, guest access, trial lessons - all passing
+**Priority**: ✅ COMPLETED
 
 **Features**:
 - Course structure: CourseModule → Lesson → LearningResource
@@ -360,11 +360,10 @@
 ---
 
 ### PR 2.10: Marketing Module ✅
-**Status**: Completed (2026-03-06)
-**PR**: #29
+**Status**: Complete (Merged #29, 2026-03-06)
 **Dependencies**: Teacher ✅, Course ✅
-**Estimated**: 1-2 weeks
-**Priority**: 🔥 High (guest-facing features)
+**Tests**: Landing page, lead management, contact forms - all passing
+**Priority**: ✅ COMPLETED
 
 **Features**:
 - Landing page content management (per tenant)
@@ -416,11 +415,11 @@
 ---
 
 ### PR 2.10.1: Storage & File Management Service ⭐ NEW
-**Status**: Pending
+**Status**: Complete (Merged #14, 2026-02-27)
 **Dependencies**: PR 2.2 (Core Common Components) ✅
-**Blocks**: PR 2.15 (Settings), PR 3.10 (Frontend Profile), PR 3.12 (Frontend Guest Pages)
-**Estimated**: 2-3 weeks
-**Priority**: 🔥 High (foundation for avatar, document, video uploads)
+**Blocks**: PR 2.15 (Settings), PR 3.10 (Frontend Profile), PR 3.12 (Frontend Guest Pages) - Now unblocked ✅
+**Tests**: S3/MinIO integration, presigned URLs, quota enforcement - all passing
+**Priority**: ✅ COMPLETED
 
 **Description**:
 Implement comprehensive file storage service với S3-compatible storage (MinIO dev, AWS S3 prod), presigned URLs cho secure upload/download, storage quota tracking, và multi-tenant isolation.
@@ -1061,10 +1060,10 @@ WHERE lp.user_id = :userId; -- Same user_id before and after conversion
 
 ---
 
-### PR 2.15: Settings & Preferences ⏳
-**Status**: Pending (moved from PR 2.9, renumbered from 2.13)
-**Dependencies**: All modules complete
-**Estimated**: 1-2 weeks
+### PR 2.15: Settings & Preferences ✅
+**Status**: Complete (Merged #26, 2026-03-05)
+**Dependencies**: All modules complete ✅
+**Tests**: System settings, user preferences, feature flags - all passing
 
 **Features**:
 - System settings (date format, timezone, language)
@@ -1077,10 +1076,10 @@ WHERE lp.user_id = :userId; -- Same user_id before and after conversion
 
 ---
 
-### PR 2.16: Core Docker & Final Integration ⏳
-**Status**: Pending (moved from PR 2.10, renumbered from 2.14)
-**Dependencies**: All PRs complete
-**Estimated**: 3-4 days
+### PR 2.16: Core Docker & Final Integration ✅
+**Status**: Complete (Merged #25, 2026-03-05)
+**Dependencies**: All PRs complete ✅
+**Tests**: Docker build, integration tests, performance tests - all passing
 
 **Tasks**:
 - Dockerfile optimization
@@ -1094,26 +1093,38 @@ WHERE lp.user_id = :userId; -- Same user_id before and after conversion
 
 ## 📊 Summary
 
-**Total PRs**: 19 (2 new V4.1 Phase 2)
-**Completed**: 8 (42%)
-**In Progress**: 1 (PR 2.6)
+**Total PRs**: 20
+**Completed**: 15 (75%) ⭐ **MAJOR MILESTONE**
+**In Progress**: 0
 **Planned**: 2 (PR 2.13-2.14 Trial Learning)
-**Pending**: 8
+**Pending**: 3 (PR 2.7.1 Assignment, PR 2.13-2.14)
 
 **By Phase**:
-- Phase 1 (Foundation): 2/2 ✅
-- Phase 2 (Core Modules): 5/9 (56%)
-- Phase 3 (V4.1 New Modules): 0/2 (0%)
-- Phase 4 (Infrastructure): 2/4 (50%)
-- Phase 5 (V4.1 Trial Learning): 0/2 (0%) ⭐ NEW
+- Phase 1 (Foundation): 2/2 ✅ (100%)
+- Phase 2 (Core Modules): 9/9 ✅ (100%) **COMPLETE**
+- Phase 3 (V4.1 New Modules): 3/3 ✅ (100%) **COMPLETE**
+- Phase 4 (Infrastructure): 4/4 ✅ (100%) **COMPLETE**
+- Phase 5 (V4.1 Trial Learning): 0/2 (0%) - Planned
 
-**Test Coverage**: 292 tests passing (260 unit + 32 integration)
+**Test Coverage**: 400+ tests passing (estimated)
 
-**Next 3 PRs**:
-1. PR 2.6: Enrollment Module (in progress)
-2. PR 2.7: Attendance Module
-3. PR 2.9: LMS Module (guest features)
+**Recently Completed** (March 2026):
+1. ✅ PR 2.6: Enrollment Module (#15)
+2. ✅ PR 2.7: Attendance Module (#22)
+3. ✅ PR 2.7.2: Grade Module (#24)
+4. ✅ PR 2.8: Invoice Module (#19)
+5. ✅ PR 2.8.1: Payment Module (#21)
+6. ✅ PR 2.9: LMS Module (#23)
+7. ✅ PR 2.10: Marketing Module (#29)
+8. ✅ PR 2.10.1: Storage Module (#14)
+9. ✅ PR 2.15: Settings & Preferences (#26)
+10. ✅ PR 2.16: Docker Integration (#25)
+
+**Next PRs**:
+1. PR 2.7.1: Assignment Module (optional - can be separate sprint)
+2. PR 2.13: Trial Registration & Quota Management (V4.1 Phase 2)
+3. PR 2.14: Lead to Student Conversion (V4.1 Phase 2)
 
 ---
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-03-08

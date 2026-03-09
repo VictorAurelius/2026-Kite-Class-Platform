@@ -1393,3 +1393,9 @@ tôi cần chỉnh sửa khoảng thời gian thực tập ở tiêu đề, ph�
 đọc documents\README.md và documents\06-diagrams\README.md
 => tìm báo cáo kiến trúc và tạo sơ đồ kiến trúc cho kiteclass
 => tạo thiết kế DB => chỉ cần entity và quan hệ 
+
+đọc documents\README.md để check status master PR plan hiện tại và check action tiếp theo
+
+check lại toàn bộ skill để xem đảm bảo skill chưa?
+
+tôi thấy vẫn chưa đảm bảo, ví dụ về skill workflow phải tạo branch mới chẳng hạn

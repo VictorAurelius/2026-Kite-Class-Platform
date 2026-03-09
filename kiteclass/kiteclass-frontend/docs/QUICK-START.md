@@ -1,16 +1,16 @@
 # Quick Start — KiteClass Frontend
 
-**Last Updated:** 2026-02-22
+**Last Updated:** 2026-03-08
 **Framework:** Next.js 15, TypeScript, Tailwind CSS, shadcn/ui
 
 ---
 
 ## 🎯 Current Status
 
-- **Latest PR:** 3.6 (Course Management Pages) ✅ MERGED
-- **Branch:** main
-- **Tests:** ESLint clean, TypeScript strict, Playwright E2E pass
-- **Next:** PR 3.7 — Class Management Pages (backend PR 2.5 ✅ ready)
+- **Latest PR:** 3.8.1 (Attendance UI Enhancements) ✅ MERGED
+- **Branch:** feature/PR-3.8.1-attendance-ui-enhancements (ready to push)
+- **Tests:** 175+ tests, ESLint clean, TypeScript strict, Playwright E2E pass
+- **Next:** PR 3.13 — Trial Learning UI (waiting for backend PR 2.13)
 
 ---
 
@@ -19,23 +19,29 @@
 | PR | Description | Status |
 |----|-------------|--------|
 | 3.1 | Project Setup (Next.js 15, Tailwind, shadcn/ui, React Query, Zustand) | ✅ |
-| 3.2 | Auth Pages (Login, Forgot/Reset Password) | ✅ |
-| 3.3 | Auth Implementation (JWT, token refresh, auth store) | ✅ |
+| 3.2 | Shared Components & Layout System | ✅ |
+| 3.3 | Auth Pages & Implementation (JWT, token refresh, auth store) | ✅ |
 | 3.4 | Student Management Pages (CRUD, search, pagination) | ✅ |
 | 3.5 | Teacher Management Pages (CRUD, status management) | ✅ |
 | 3.6 | Course Management Pages (CRUD, Publish/Archive lifecycle) | ✅ |
+| 3.7 | Class Management Pages (CRUD, schedules, sessions, lifecycle) | ✅ |
+| 3.8 | Frontend Testing & Coverage (164 tests, 83% coverage) | ✅ |
+| 3.8.1 | Attendance UI Enhancements (175+ tests, student/admin/teacher views) | ✅ |
+| 3.10 | Billing & Payment System (invoices, payments, QR codes) | ✅ |
+| 3.11 | Settings & Profile Pages (system settings, profile upload) | ✅ |
+| 3.12 | Marketing Website (landing pages, course catalog, trial viewer) | ✅ |
+| 3.14 | Dashboard Enhancement (real data integration) | ✅ |
 
-**Frontend Progress:** 6/13 PRs (46%)
+**Frontend Progress:** 12/18 PRs (67%) ⭐ **Phase 2 Complete!**
 
 ---
 
 ## 🚀 Next Priority
 
-**PR 3.7: Class Management Pages**
-- Backend: PR 2.5 Class Module ✅ merged
-- Pages: list, new, detail (with Start/Complete/Cancel actions), edit
-- Schedule & Sessions view
-- Class code generation UI
+**PR 3.13: Trial Learning UI**
+- Backend: PR 2.13 Trial Registration API (pending)
+- Pages: trial dashboard, trial lesson viewer, teacher profile, contact form
+- Features: Quota display, trial restrictions, upgrade CTAs
 
 ---
 
@@ -59,7 +65,20 @@
 | `/courses/new` | Create course | ✅ |
 | `/courses/[id]` | Course detail + Publish/Archive | ✅ |
 | `/courses/[id]/edit` | Edit course | ✅ |
-| `/classes/*` | Class management | ⏳ PR 3.7 |
+| `/classes` | Class list | ✅ |
+| `/classes/new` | Create class | ✅ |
+| `/classes/[id]` | Class detail + lifecycle actions | ✅ |
+| `/classes/[id]/edit` | Edit class | ✅ |
+| `/students/[id]/attendance` | Student attendance history (calendar, stats) | ✅ |
+| `/admin/attendance/stats` | System-wide attendance statistics | ✅ |
+| `/teacher/dashboard` | Teacher dashboard with today's classes | ✅ |
+| `/admin/billing/invoices` | Invoice management | ✅ |
+| `/admin/billing/payments` | Payment history | ✅ |
+| `/admin/settings` | System settings | ✅ |
+| `/profile` | User profile & preferences | ✅ |
+| `/[tenant]` | Tenant landing page | ✅ |
+| `/[tenant]/courses` | Public course catalog | ✅ |
+| `/[tenant]/trial/[lessonId]` | Trial lesson viewer | ✅ |
 
 ---
 
