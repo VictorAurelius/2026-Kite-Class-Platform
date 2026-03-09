@@ -316,9 +316,10 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 1.5**: Email Service *(added to plan)*
 - ✅ **PR 1.6**: Gateway Configuration (Rate Limiting + Logging)
 - ✅ **PR 1.7**: Internal API Security (HMAC-SHA256) *(PR-REVIEW-2.4 complete)*
+- ✅ **PR 1.8**: Cross-Service Integration (Student + Teacher profile fetching) *(completed 2026-03-09)*
 - ✅ **PR 1.12**: Spring Boot 3.5.10 Upgrade *(PR-REVIEW-2.5 complete)*
 
-**Gateway Status:** 9/10 PRs completed (90%)
+**Gateway Status:** 10/10 PRs completed (100%) 🎉
 **Tests:** 179 passing (149 unit + 30 integration), 32 skipped (by design)
 **Spring Boot:** ✅ 3.5.10 + Spring Cloud 2025.0.0
 **Docker:** ✅ PostgreSQL, Redis configured
@@ -326,7 +327,8 @@ Every PR must meet these quality gates before merge:
 **Rate Limiting:** ✅ Bucket4j (100 req/min IP, 1000 req/min user)
 **Logging:** ✅ Request/Response logging with correlation IDs
 **Internal API Security:** ✅ HMAC-SHA256 with InternalRequestFilter
-**⚠️ CRITICAL:** Missing UserType + ReferenceId pattern (PR 1.8 needed)
+**Cross-Service Integration:** ✅ WebClient with HMAC auth, Student + Teacher profile fetching
+**🎉 GATEWAY SERVICE COMPLETE!** All planned PRs merged successfully.
 
 ## Core Service
 - ✅ PR 2.1: Core Project Setup
@@ -563,8 +565,8 @@ PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 �
 - ✅ Student management (CRUD, search, pagination)
 **CRITICAL:** Frontend PRs 3.5-3.6 ready for implementation (Backend APIs available)
 
-**Overall Progress:** 24/37 PRs completed (65%)
-**Last Updated:** 2026-03-09 (PR 3.8.1: Attendance UI Enhancements completed)
+**Overall Progress:** 25/37 PRs completed (68%)
+**Last Updated:** 2026-03-09 (PR 1.8: Gateway Cross-Service Integration completed, PR 3.15: E2E Tests in progress)
 
 ---
 
