@@ -8,12 +8,14 @@ documents/03-planning/
 ├── implementation/          # Technical plans (HOW to build)
 │   ├── core-service-implementation.md
 │   ├── frontend-plan.md
-│   └── gateway-implementation-plan.md
+│   ├── gateway-implementation-plan.md
+│   └── kitehub-implementation-plan.md
 └── prs/                     # PR lists (WHAT to build)
     ├── 00-master-pr-index.md        # ← You are here
     ├── 01-gateway-prs.md
     ├── 02-core-prs.md
-    └── 03-frontend-prs.md
+    ├── 03-frontend-prs.md
+    └── 04-kitehub-prs.md
 ```
 
 ---
@@ -24,38 +26,45 @@ documents/03-planning/
 |---------|-----------|---------|-------|----------|--------|
 | **Gateway** | 9 | 1 | 11 | 82% | ✅ Near complete |
 | **Core** | 15 | 2 | 20 | 75% | 🎉 **Near complete** ⭐ |
-| **Frontend** | 11 | 2 | ~20 | 65% | 🎉 **Accelerated** ⭐ |
-| **Total** | 35 | 5 | ~51 | **69%** | 🚀 **Major milestone** |
+| **Frontend** | 14 | 1 | 15 | 93% | 🎉 **Near complete** ⭐ |
+| **KiteHub** | 0 | 15 | 15 | 0% | 🚀 **Platform Service - NEW** |
+| **Total** | 38 | 19 | 61 | **62%** | 🚀 **Platform expansion** |
 
-**Major Update (March 2026)**: 11 PRs completed in one week!
-- Core: +7 PRs (Enrollment, Attendance, Grade, Invoice, Payment, LMS, Marketing, Storage, Settings, Docker)
-- Frontend: +4 PRs (Public Routes, Testing, Billing, Settings, Marketing, Dashboard)
+**Major Update (March 2026)**: Platform expansion & landing pages!
+- Frontend: Landing pages 100% complete (catalog, course detail, about, contact)
+- Backend: Seed data with 8 courses + LMS modules for realistic testing
+- KiteHub: NEW platform service with 15 PRs planned (AI Branding, Multi-tenant SaaS)
 
-**New in V4.1 Phase 2 (Trial Learning)**: 5 PRs added
-- Gateway PR 1.13: Trial User Authentication
-- Core PR 2.13-2.14: Trial Registration & Conversion
-- Frontend PR 3.13-3.14.1: Trial UI & Payment Flow
+**Previous Updates**:
+- 11 PRs completed in one week (Core: +7, Frontend: +4)
+- V4.1 Phase 2 (Trial Learning): 5 PRs planned
 
-**Last Updated**: 2026-03-08
+**Last Updated**: 2026-03-09
 
 ---
 
 ## 🎯 Priority PRs (Next Actions)
 
-### Immediate - Can Start Now
-1. **PR 3.8.1**: Frontend - Attendance Management UI (backend ready ✅)
-2. **PR 2.7.1**: Core - Assignment Module (optional, can defer)
+### KiteHub Platform - HIGH PRIORITY 🚀
+1. **PR 4.1**: KiteHub - Platform Core Setup (ready to start)
+2. **PR 4.2**: KiteHub - Database Provisioning Service
+3. **PR 4.8**: KiteHub - OpenAI Integration (CORE VALUE)
+4. **PR 4.9**: KiteHub - AI Branding Job Queue
+
+### KiteClass Core - Medium Priority
+5. **PR 3.8.1**: Frontend - Attendance Management UI (backend ready ✅)
+6. **PR 2.7.1**: Core - Assignment Module (optional, can defer)
 
 ### V4.1 Phase 2 - Trial Learning (Blocked, waiting for planning)
-3. **PR 1.13**: Gateway - Trial User Authentication
-4. **PR 2.13**: Core - Trial Registration & Quota Management
-5. **PR 3.13**: Frontend - Trial Learning UI
-6. **PR 2.14**: Core - Lead to Student Conversion
-7. **PR 3.14.1**: Frontend - Lead Conversion Flow
+7. **PR 1.13**: Gateway - Trial User Authentication
+8. **PR 2.13**: Core - Trial Registration & Quota Management
+9. **PR 3.13**: Frontend - Trial Learning UI (moved to Expand Service plan)
+10. **PR 2.14**: Core - Lead to Student Conversion
+11. **PR 3.14.1**: Frontend - Lead Conversion Flow
 
 ### Polish & Finalization
-8. **PR 3.16**: Frontend - E2E Tests & Polish
-9. **PR 3.17**: Frontend - Deployment & DevOps
+12. **PR 3.16**: Frontend - E2E Tests & Polish
+13. **PR 3.17**: Frontend - Deployment & DevOps
 
 ---
 
@@ -161,6 +170,57 @@ documents/03-planning/
 
 ---
 
+### KiteHub Platform (0/15 completed - 0%) 🚀 NEW
+
+**Detail file**: [`04-kitehub-prs.md`](./04-kitehub-prs.md)
+
+**Status**: 🚀 **PLANNING PHASE - Platform-level SaaS service**
+
+**Architecture**:
+- Database per tenant (complete isolation)
+- Multi-tenant platform managing KiteClass instances
+- AI-powered branding (OpenAI GPT-4 Vision + DALL-E 3)
+- Subscription management with VietQR payments
+- RabbitMQ async job processing
+
+**Phases** (7-8 weeks timeline):
+1. ⏳ **PR 4.1-4.3**: Multi-Tenant Infrastructure (3 PRs)
+2. ⏳ **PR 4.4-4.5**: Subscription Management (2 PRs)
+3. ⏳ **PR 4.6-4.7**: Payment Integration (2 PRs)
+4. ⏳ **PR 4.8-4.11**: AI Branding Service (4 PRs) ⭐ **CORE VALUE**
+5. ⏳ **PR 4.12**: Email Service (1 PR)
+6. ⏳ **PR 4.13**: Admin Portal (1 PR)
+7. ⏳ **PR 4.14**: API Gateway (1 PR)
+8. ⏳ **PR 4.15**: Infrastructure (1 PR)
+
+**Critical Path**: PR 4.1 → 4.2 → 4.8 → 4.9 → 4.10 (Multi-tenant + AI Branding)
+
+**Key Features**:
+- AI Branding: Auto-generate logo, colors, marketing copy from teacher input
+- Trial Management: 14-day trial with quota tracking
+- Subscription Tiers: FREE, BASIC (500k VNĐ/month), PREMIUM (1.5M), ENTERPRISE (custom)
+- Payment Gateway: VietQR integration for subscription payments
+- Instance Provisioning: Auto-create databases and deploy KiteClass instances
+- Admin Portal: Manage tenants, subscriptions, usage analytics
+
+**Tech Stack**:
+- Spring Boot 3.5.10 (Core Service)
+- Spring Cloud Gateway (API Gateway)
+- PostgreSQL (multi-tenant metadata)
+- Redis (caching, rate limiting)
+- RabbitMQ (async job queue)
+- OpenAI API (GPT-4 Vision, DALL-E 3)
+- MinIO/S3 (asset storage)
+- Next.js 14 (Admin Portal)
+
+**Value Proposition**:
+- Turn KiteClass from single-tenant to multi-tenant SaaS platform
+- Enable teachers to create branded landing pages in minutes
+- Monetization via subscription model
+- Scale to hundreds of language centers
+
+---
+
 ## 🎯 Architecture Version: V4.1 (Bundled Model)
 
 **Key Changes from V4.0**:
@@ -186,6 +246,7 @@ documents/03-planning/
 - [`core-service-implementation.md`](../implementation/core-service-implementation.md) - Core technical design
 - [`frontend-plan.md`](../implementation/frontend-plan.md) - Frontend technical design
 - [`gateway-implementation-plan.md`](../implementation/gateway-implementation-plan.md) - Gateway technical design
+- [`kitehub-implementation-plan.md`](../implementation/kitehub-implementation-plan.md) - KiteHub platform technical design
 
 **Skills**:
 - `.claude/skills/` - All development guidelines and best practices
@@ -234,11 +295,12 @@ Changes:
 
 ---
 
-**Document Version**: 2.0 ⭐ **Major Update**
+**Document Version**: 3.0 ⭐ **Platform Expansion**
 **Created**: 2026-02-26
-**Last Updated**: 2026-03-08
+**Last Updated**: 2026-03-09
 **Major Milestones**:
+- 2026-03-09: KiteHub Platform added (15 PRs), Landing Pages 100% complete
 - 2026-03-06: 11 PRs merged in one day (biggest merge day)
-- Overall progress: 51% → **69%** (+18%)
+- Overall progress: 51% → 62% → **69%**
 - Core Service: 42% → **75%** (+33%)
-- Frontend: 41% → **65%** (+24%)
+- Frontend: 41% → **93%** (+52%)
