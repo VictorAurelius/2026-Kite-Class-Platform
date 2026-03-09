@@ -103,9 +103,8 @@ public class DatabaseProvisioningService {
             return;
         }
 
-        String dbName = extractDatabaseName(instance.getDatabaseUrl());
-
         // TODO: Backup database before deletion
+        // String dbName = extractDatabaseName(instance.getDatabaseUrl());
         // backupDatabase(dbName);
 
         // TODO: Drop database and user
@@ -183,10 +182,12 @@ public class DatabaseProvisioningService {
 
     /**
      * Extract database name from JDBC URL.
+     * Note: Currently unused locally, will be needed when database deletion TODO is implemented.
      *
      * @param databaseUrl JDBC URL
      * @return Database name
      */
+    @SuppressWarnings("unused")
     private String extractDatabaseName(String databaseUrl) {
         // Extract from jdbc:postgresql://host:port/dbname
         String[] parts = databaseUrl.split("/");
@@ -210,10 +211,12 @@ public class DatabaseProvisioningService {
     /**
      * Decrypt password from storage.
      * TODO: Implement AES-256-GCM decryption
+     * Note: Currently unused, will be needed when database credentials need to be retrieved.
      *
      * @param encryptedPassword Encrypted password
      * @return Plain text password
      */
+    @SuppressWarnings("unused")
     private String decryptPassword(String encryptedPassword) {
         // TODO: Implement decryption
         return encryptedPassword;

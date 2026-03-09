@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
@@ -25,7 +24,6 @@ import java.util.UUID;
 public class TrialService {
 
     private final InstanceRepository instanceRepository;
-    private static final int DEFAULT_TRIAL_DAYS = 14;
 
     /**
      * Start trial period for instance.

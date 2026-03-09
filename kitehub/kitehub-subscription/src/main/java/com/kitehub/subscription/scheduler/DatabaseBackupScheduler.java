@@ -60,9 +60,8 @@ public class DatabaseBackupScheduler {
     public void cleanupDeletedInstances() {
         log.info("Starting weekly cleanup of deleted instances");
 
-        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-
         // TODO: Add query to find deleted instances older than 30 days
+        // LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         // List<Instance> deletedInstances = instanceRepository.findDeletedBefore(thirtyDaysAgo);
 
         log.info("Weekly cleanup job completed");

@@ -1407,3 +1407,5 @@ PR ưu tiên tiếp theo là gì?
 tồn tại rất nhiều IDE warning
 
 đổi lên bản 3.5.11 như core và chạy test để fix
+
+các file được generated: target đang bị git tính là changing
