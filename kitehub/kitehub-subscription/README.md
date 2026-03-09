@@ -18,6 +18,13 @@
   - Tier-based pool limits (FREE: 5, BASIC: 10, PREMIUM: 20, ENTERPRISE: 50)
   - Scheduled daily backups (2:00 AM)
   - Weekly cleanup of deleted instances (30-day retention)
+- **Trial Tracking & Expiration** 🆕 (PR 4.3):
+  - Automatic 14-day trial period on instance creation
+  - Daily expiration check (8:00 AM)
+  - Trial extension (admin only, 1-90 days)
+  - Warning levels: MEDIUM (2-3 days left), HIGH (1 day left), EXPIRED
+  - Auto-suspend on expiration
+  - Trial-to-subscription conversion
 
 ---
 
@@ -128,6 +135,87 @@ dataSourceConfig.closeDataSource(instanceId);
 **Weekly Cleanup (Sunday 3:00 AM):**
 - Removes instances deleted > 30 days ago
 - Permanent database deletion
+
+---
+
+## Trial Tracking & Expiration (PR 4.3)
+
+### Automatic Trial Management
+
+**Trial Period:**
+- 14 days from instance creation
+- Status: TRIAL
+- Auto-starts with `instance.startTrial()`
+
+**Trial Status Tracking:**
+```java
+@Autowired
+private TrialService trialService;
+
+// Get trial status
+TrialStatusResponse status = trialService.getTrialStatus(instanceId);
+// Returns: daysLeft, warningLevel, isOnTrial, etc.
+
+// Check if expired
+boolean expired = trialService.isTrialExpired(instanceId);
+```
+
+### Warning Levels
+
+| Days Left | Warning Level | Action |
+|-----------|--------------|--------|
+| 4+ days | NONE | No warning |
+| 2-3 days | MEDIUM | "Trial ending soon" |
+| 1 day | HIGH | "Last day of trial" |
+| 0 days | EXPIRED | "Trial expired" + Auto-suspend |
+
+### Scheduled Expiration Check
+
+**Daily at 8:00 AM:**
+- Check all TRIAL instances
+- Suspend if expired (status → SUSPENDED)
+- TODO: Send email notifications (PR 4.12)
+  - 3 days before: "Trial ending soon"
+  - 1 day before: "Last day of trial"
+  - On expiry: "Trial expired, please subscribe"
+
+### Admin Operations
+
+**Extend Trial (1-90 days):**
+```bash
+POST /api/platform/instances/{id}/extend-trial?days=7
+```
+
+**Convert to Subscription:**
+```java
+trialService.convertTrialToSubscription(instanceId);
+// Status: TRIAL → ACTIVE
+```
+
+### API Endpoints
+
+**Get Trial Status:**
+```bash
+GET /api/platform/instances/{id}/trial-status
+
+Response:
+{
+  "instanceId": "uuid",
+  "subdomain": "myschool",
+  "status": "TRIAL",
+  "isOnTrial": true,
+  "trialStartedAt": "2026-03-01T00:00:00",
+  "trialExpiresAt": "2026-03-15T00:00:00",
+  "daysLeft": 7,
+  "needsWarning": false,
+  "warningLevel": "NONE"
+}
+```
+
+**Extend Trial (Admin):**
+```bash
+POST /api/platform/instances/{id}/extend-trial?days=7
+```
 
 ---
 

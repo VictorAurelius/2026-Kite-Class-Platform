@@ -2,8 +2,10 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.service.InstanceService;
+import com.kitehub.subscription.service.TrialService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class InstanceController {
 
     private final InstanceService instanceService;
+    private final TrialService trialService;
 
     /**
      * Create a new trial instance.
@@ -99,6 +102,34 @@ public class InstanceController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInstance(@PathVariable UUID id) {
         instanceService.deleteInstance(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Get trial status for instance.
+     *
+     * @param id instance UUID
+     * @return trial status response
+     */
+    @GetMapping("/{id}/trial-status")
+    public ResponseEntity<TrialStatusResponse> getTrialStatus(@PathVariable UUID id) {
+        TrialStatusResponse response = trialService.getTrialStatus(id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Extend trial period (admin only).
+     *
+     * @param id instance UUID
+     * @param days number of days to extend
+     * @return no content
+     */
+    @PostMapping("/{id}/extend-trial")
+    public ResponseEntity<Void> extendTrial(
+        @PathVariable UUID id,
+        @RequestParam int days
+    ) {
+        trialService.extendTrial(id, days);
         return ResponseEntity.noContent().build();
     }
 }
