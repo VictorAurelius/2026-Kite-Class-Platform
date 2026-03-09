@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+
+# Build artifacts (will be built inside container)
+**/target/
+**/build/
+**/.next/
+**/node_modules/
+**/dist/
+
+# Logs
+**/*.log
+**/logs/
+
+# Testing
+**/coverage/
+**/.nyc_output/
+
+# Environment files (should use K8s secrets)
+**/.env
+**/.env.local
+**/.env.production
+
+# Documentation
+**/README.md
+**/docs/
+**/documents/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+**/Dockerfile*
+**/docker-compose*.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+**/tmp/
+**/temp/
+**/*.swp
+**/*.swo
+**/*~

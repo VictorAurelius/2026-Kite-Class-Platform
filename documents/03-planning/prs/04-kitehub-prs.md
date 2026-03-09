@@ -1152,73 +1152,111 @@ API Gateway with routing to platform & instances
 
 ## INFRASTRUCTURE & DEPLOYMENT (1 PR)
 
-### ⏳ PR 4.15 - Docker Compose & K8s Manifests
+### ⏳ PR 4.15 - KiteClass Docker Build & Deployment Strategy ⭐ **CRITICAL**
 
-**Duration:** 2 ngày
-**Dependencies:** All above
-**Priority:** MEDIUM
-**Complexity:** Low
+**Duration:** 3-4 ngày
+**Dependencies:** None (can start immediately!)
+**Priority:** HIGH (blocks instance provisioning)
+**Complexity:** MEDIUM
 
 **Scope:**
-Deployment configuration
+Complete Docker deployment strategy for KiteClass instances managed by KiteHub.
 
 **Tasks:**
 
-1. **Docker Compose** (`docker-compose.kitehub.yml`)
-   ```yaml
-   services:
-     kitehub-postgres:
-       image: postgres:15-alpine
+1. **KiteClass Production Dockerfiles** 🆕
+   Create production-ready multi-stage Dockerfiles:
+   - `docker/kiteclass/Dockerfile.core` - Spring Boot Core (~220MB)
+   - `docker/kiteclass/Dockerfile.gateway` - Spring Cloud Gateway (~200MB)
+   - `docker/kiteclass/Dockerfile.frontend` - Next.js 14 standalone (~150MB)
+   - `docker/kiteclass/.dockerignore` - Optimize build context
 
-     kitehub-redis:
-       image: redis:7-alpine
+2. **GitHub Actions CI/CD** 🆕
+   - File: `.github/workflows/docker-build-push.yml`
+   - Trigger: Push to main, tags (v*.*.*), manual
+   - Build multi-platform (amd64, arm64)
+   - Push to AWS ECR: `kiteclass/core:v1.0.0`
+   - Security scan with Trivy
+   - Upload scan to GitHub Security
 
-     kitehub-rabbitmq:
-       image: rabbitmq:3-management-alpine
+3. **KiteHub Provisioning Integration**
+   Update `InstanceProvisioningService` to:
+   - Pull KiteClass images from ECR
+   - Deploy to Kubernetes per-tenant
+   - Configure environment (DATABASE_URL, INSTANCE_ID)
+   - Run Flyway migrations
+   - Support version upgrades & rollbacks
 
-     kitehub-subscription:
-       build: ./kitehub-subscription
-       environment:
-         - SPRING_PROFILES_ACTIVE=dev
+4. **Docker Compose (KiteHub Platform)**
+   - `docker-compose.kitehub.yml` - Local dev environment
+   - Services: PostgreSQL, Redis, RabbitMQ, all KiteHub services
 
-     kitehub-payment:
-       build: ./kitehub-payment
+5. **Kubernetes Manifests**
+   - KiteHub platform services (subscription, payment, branding, etc.)
+   - KiteClass instance templates (core, gateway, frontend)
+   - ConfigMaps, Secrets, HPA
 
-     kitehub-branding:
-       build: ./kitehub-branding
-
-     kitehub-email:
-       build: ./kitehub-email
-
-     kitehub-admin:
-       build: ./kitehub-admin
-
-     kitehub-gateway:
-       build: ./kitehub-gateway
-       ports:
-         - "9000:9000"
-   ```
-
-2. **Kubernetes Manifests**
-   - Deployment, Service, Ingress for each service
-   - ConfigMaps for configuration
-   - Secrets for sensitive data
-   - HPA (Horizontal Pod Autoscaler)
-
-3. **CI/CD Pipeline** (GitHub Actions)
-   - Build Docker images
-   - Push to registry
-   - Deploy to K8s
+6. **Deployment Documentation** 🆕
+   - File: `documents/03-planning/implementation/kiteclass-docker-deployment.md`
+   - Architecture diagram (GitHub → ECR → K8s)
+   - Version management strategy
+   - Security best practices
+   - Cost optimization
+   - Rollback procedures
 
 **Files:**
+- `docker/kiteclass/Dockerfile.*` (3 files) 🆕
+- `docker/kiteclass/.dockerignore` 🆕
+- `.github/workflows/docker-build-push.yml` 🆕
+- `documents/03-planning/implementation/kiteclass-docker-deployment.md` 🆕
 - `docker-compose.kitehub.yml`
 - `k8s/kitehub/*.yaml`
-- `.github/workflows/kitehub-ci.yml`
+- `k8s/kiteclass-template/*.yaml` 🆕
 
 **Acceptance Criteria:**
-- [ ] Docker Compose starts all services
-- [ ] K8s manifests valid
-- [ ] CI/CD pipeline runs
+- [ ] KiteClass Dockerfiles created (multi-stage builds)
+- [ ] Image sizes optimized (Core < 250MB, Frontend < 200MB)
+- [ ] GitHub Actions workflow working
+- [ ] Test push to ECR successful (tag v0.1.0-beta)
+- [ ] Trivy security scan passing (no critical CVEs)
+- [ ] KiteHub can pull images and provision instances
+- [ ] Instance upgrade flow tested (v1.0.0 → v1.1.0)
+- [ ] Rollback procedure documented
+- [ ] Docker Compose starts all KiteHub services
+- [ ] Documentation complete
+
+**Testing:**
+```bash
+# 1. Build KiteClass images locally
+cd /mnt/e/person/2026-Kite-Class-Platform
+docker build -f docker/kiteclass/Dockerfile.core \
+  -t kiteclass-core:test .
+
+# 2. Run locally
+docker run -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/test \
+  -e INSTANCE_ID=00000000-0000-0000-0000-000000000001 \
+  kiteclass-core:test
+
+# 3. Health check
+curl http://localhost:8080/actuator/health
+
+# 4. Push test tag to trigger CI/CD
+git tag v0.1.0-beta
+git push origin v0.1.0-beta
+# Watch GitHub Actions build & push to ECR
+
+# 5. Test KiteHub provisioning
+curl -X POST http://kitehub:9000/api/v1/instances \
+  -H "Content-Type: application/json" \
+  -d '{"subdomain":"test1","version":"v0.1.0-beta"}'
+```
+
+**Reference:**
+- `documents/03-planning/implementation/kiteclass-docker-deployment.md`
+
+**Why This PR is Critical:**
+Without Docker images, KiteHub cannot provision KiteClass instances. This PR enables the entire multi-tenant architecture!
 
 ---
 
