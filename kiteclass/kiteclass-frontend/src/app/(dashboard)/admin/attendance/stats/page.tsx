@@ -39,7 +39,7 @@ export default function AdminAttendanceStatsPage() {
 
   // Fetch trends data
   const classIds = classes?.map((c) => c.id) || [];
-  const { data: trends, isLoading: isLoadingTrends } = useAttendanceTrends(
+  const { data: trends, isLoading: _isLoadingTrends } = useAttendanceTrends(
     classIds,
     { startDate, endDate }
   );

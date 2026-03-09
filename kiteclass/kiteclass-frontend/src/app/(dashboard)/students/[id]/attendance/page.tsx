@@ -50,7 +50,7 @@ export default function StudentAttendancePage({ params }: PageProps) {
   const { data: student, isLoading: isLoadingStudent } = useStudent(studentId);
 
   // Fetch attendance stats
-  const { data: stats, isLoading: isLoadingStats } =
+  const { data: stats, isLoading: _isLoadingStats } =
     useStudentAttendanceStats(studentId);
 
   // For simplicity, we'll use enrollment ID = studentId (in real app, fetch enrollments first)

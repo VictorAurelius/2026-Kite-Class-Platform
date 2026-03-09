@@ -13,7 +13,7 @@
  * @returns CSV string
  */
 export function convertToCSV(
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   headers: string[]
 ): string {
   if (!data || data.length === 0) {
@@ -87,7 +87,7 @@ export function downloadCSV(csv: string, filename: string): void {
  * @param filename - Name of file to download
  */
 export function exportToCSV(
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   headers: string[],
   filename: string
 ): void {

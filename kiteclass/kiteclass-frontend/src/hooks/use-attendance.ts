@@ -249,10 +249,10 @@ export function useSystemAttendanceStats(
   dateRange?: { startDate: string; endDate: string }
 ) {
   // Import classes hook dynamically to avoid circular dependencies
-  const { data: classes } = useQuery({
+  const { data: _classes } = useQuery({
     queryKey: ['classes', 'all-active'],
     queryFn: async () => {
-      const { useAllActiveClasses } = await import('./use-classes');
+      const { useAllActiveClasses: _useAllActiveClasses } = await import('./use-classes');
       return [];
     },
   });
@@ -260,7 +260,7 @@ export function useSystemAttendanceStats(
   return useQuery({
     queryKey: [ATTENDANCE_QUERY_KEY, 'system-stats', dateRange],
     queryFn: async () => {
-      const { useAllActiveClasses } = await import('./use-classes');
+      const { useAllActiveClasses: _useAllActiveClasses } = await import('./use-classes');
       const { classesApi } = await import('@/lib/api/classes');
 
       // Get all courses and their classes

@@ -5,7 +5,7 @@
  * @since 3.8.1 (PR 3.8.1)
  */
 
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { EnhancedAttendanceCalendar } from '../enhanced-attendance-calendar';
 import { mockAttendanceRecords } from '@/__tests__/fixtures/attendance';
@@ -115,7 +115,7 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const currentMonth = screen.getByText(/tháng/i).textContent;
+      const _currentMonth = screen.getByText(/tháng/i).textContent;
 
       // Click previous button (first chevron button)
       const buttons = screen.getAllByRole('button');
@@ -138,7 +138,7 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const currentMonth = screen.getByText(/tháng/i).textContent;
+      const _currentMonth = screen.getByText(/tháng/i).textContent;
 
       // Click next button (last chevron button)
       const buttons = screen.getAllByRole('button');
