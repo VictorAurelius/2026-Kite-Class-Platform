@@ -43,5 +43,6 @@ public class CreateSubscriptionRequest {
     /**
      * Auto-renew flag (default true).
      */
+    @Builder.Default
     private Boolean autoRenew = true;
 }

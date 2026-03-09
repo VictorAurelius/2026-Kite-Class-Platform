@@ -135,8 +135,8 @@ public class MultiTenantDataSourceConfig {
      */
     public int getTotalActiveConnections() {
         return dataSources.values().stream()
-            .mapToInt(HikariDataSource::getHikariPoolMXBean)
-            .map(pool -> pool.getActiveConnections())
+            .map(HikariDataSource::getHikariPoolMXBean)
+            .mapToInt(pool -> pool.getActiveConnections())
             .sum();
     }
 
