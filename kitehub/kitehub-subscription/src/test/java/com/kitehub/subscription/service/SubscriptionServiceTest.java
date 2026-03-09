@@ -78,6 +78,8 @@ class SubscriptionServiceTest {
         savedSubscription.setBillingCycle(BillingCycle.MONTHLY);
         savedSubscription.setPriceVnd(500_000L);
         savedSubscription.setStatus(SubscriptionStatus.ACTIVE);
+        savedSubscription.setStartedAt(java.time.LocalDateTime.now());
+        savedSubscription.setExpiresAt(java.time.LocalDateTime.now().plusMonths(1));
         
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(savedSubscription);
         when(instanceRepository.save(any(Instance.class))).thenReturn(instance);

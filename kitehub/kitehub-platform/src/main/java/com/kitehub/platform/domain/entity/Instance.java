@@ -142,10 +142,17 @@ public class Instance extends BaseEntity {
      * @return days left in trial period, or 0 if not on trial or expired
      */
     public long getTrialDaysLeft() {
-        if (!isOnTrial()) {
+        // Check status and expiry date
+        if (status != InstanceStatus.TRIAL || trialExpiresAt == null) {
             return 0;
         }
-        return ChronoUnit.DAYS.between(LocalDateTime.now(), trialExpiresAt);
+
+        // Use date comparison (not datetime) to avoid timing precision issues
+        LocalDate today = LocalDate.now();
+        LocalDate expiryDate = trialExpiresAt.toLocalDate();
+
+        long days = ChronoUnit.DAYS.between(today, expiryDate);
+        return Math.max(0, days);
     }
 
     /**

@@ -80,6 +80,7 @@ public class Subscription extends BaseEntity {
      */
     public boolean isActive() {
         return status == SubscriptionStatus.ACTIVE
+            && expiresAt != null
             && LocalDateTime.now().isBefore(expiresAt);
     }
 
@@ -89,8 +90,8 @@ public class Subscription extends BaseEntity {
      * @return true if expired
      */
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt)
-            || status == SubscriptionStatus.EXPIRED;
+        return status == SubscriptionStatus.EXPIRED
+            || (expiresAt != null && LocalDateTime.now().isAfter(expiresAt));
     }
 
     /**

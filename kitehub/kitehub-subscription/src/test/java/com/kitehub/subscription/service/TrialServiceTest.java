@@ -162,9 +162,7 @@ class TrialServiceTest {
     @Test
     @DisplayName("Should throw exception when extension days invalid")
     void shouldThrowExceptionWhenExtensionDaysInvalid() {
-        // Given
-        instance.startTrial();
-        when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
+        // Given - no setup needed, validation happens before repository call
 
         // When & Then
         assertThatThrownBy(() -> trialService.extendTrial(instanceId, 0))

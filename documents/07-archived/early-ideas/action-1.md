@@ -1403,3 +1403,7 @@ tôi thấy vẫn chưa đảm bảo, ví dụ về skill workflow phải tạo 
 đã cập nhật status vào plan chưa?
 
 PR ưu tiên tiếp theo là gì?
+
+tồn tại rất nhiều IDE warning
+
+đổi lên bản 3.5.11 như core và chạy test để fix
