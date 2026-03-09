@@ -425,9 +425,7 @@ Every PR must meet these quality gates before merge:
 - ✅ **PR 3.12:** Marketing Website Enhancements (implemented 2026-03-06, search, filter, contact form)
 
 **Pending PRs:**
-- ⏳ PR 3.13: Parent Portal (Backend Pending)
-- ✅ PR 3.14: Dashboard/Overview Enhancement (Completed)
-- ⏳ PR 3.15: E2E Tests & Polish
+- (None - All core Frontend PRs completed! PR 3.13 Parent Portal moved to Expand Service plan)
 
 ### 🎯 PAIRED DEVELOPMENT STRATEGY (NEW)
 
@@ -545,12 +543,13 @@ Step 4: Results
 - ✅ PR 3.10: Billing Pages → Completed (PR #31 merged 2026-03-06)
 - ✅ PR 3.11: Settings & Preferences → Completed (PR #32 merged 2026-03-06)
 - ✅ PR 3.12: Marketing Website Enhancements → Completed (PR #33 merged 2026-03-06)
-- ⏳ PR 3.13: Parent Portal → **Backend Pending** (Parent Module not yet implemented)
 - ✅ PR 3.14: Dashboard/Overview Enhancement → Completed (PR #34 merged 2026-03-06)
 - ✅ PR 3.15: E2E Tests & Polish → Completed (PR #36 merged 2026-03-09)
+- (PR 3.13: Parent Portal moved to Expand Service plan - not part of core Frontend scope)
 
-**Frontend Status:** 14/15 PRs completed (93%) 🎉 — Last updated: 2026-03-09
+**Frontend Status:** 14/14 PRs completed (100%) 🎉🎉 — Last updated: 2026-03-09
 PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 ✅, PR 3.8 ✅, PR 3.9 ✅, PR 3.10 ✅, PR 3.11 ✅, PR 3.12 ✅, PR 3.14 ✅, PR 3.15 ✅
+**Note:** PR 3.13 (Parent Portal) moved to Expand Service plan per architecture guidelines
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Zustand
 **Infrastructure Ready:**
 - ✅ TypeScript types for all domain models
@@ -565,8 +564,9 @@ PR 3.1 ✅, PR 3.2 ✅, PR 3.3 ✅, PR 3.4 ✅, PR 3.5 ✅, PR 3.6 ✅, PR 3.7 �
 - ✅ Student management (CRUD, search, pagination)
 **CRITICAL:** Frontend PRs 3.5-3.6 ready for implementation (Backend APIs available)
 
-**Overall Progress:** 26/37 PRs completed (70%)
-**Last Updated:** 2026-03-09 (PR 3.15: E2E Tests & Polish completed - Frontend 93% done!)
+**Overall Progress:** 26/36 PRs completed (72%) 🎉
+**Last Updated:** 2026-03-09 (Frontend 100% complete! All core modules done: Gateway, Core Service, and Frontend)
+**Milestone:** All three main services (Gateway, Core, Frontend) are now 100% complete for core functionality! 🚀
 
 ---
 
@@ -6367,6 +6367,213 @@ export function FileInput({ onFileSelect, accept, maxSizeMB }: Props) {
 - **Design Doc:** documents/03-planning/implementation/storage-service-design.md
 - **S3 Setup:** Docker Compose MinIO configuration
 - **CORS Config:** S3 bucket policy examples
+
+---
+
+# EXPAND SERVICE PLAN (Future Enhancements)
+
+**Status:** Not yet started (0/10 PRs completed)
+**Purpose:** Extended features beyond core functionality (Parent Portal, Advanced Analytics, AI/ML features)
+**Architecture:** Separate microservice(s) with dedicated databases per Architecture V4.1
+
+## Why Separate Plan?
+
+Per system architecture, these features are **optional addons** that:
+- Require separate microservices (not part of Gateway/Core/Frontend core scope)
+- Have independent scaling and deployment requirements
+- Target different user personas (Parents vs Admin/Teachers)
+- Should not block core product launch
+
+## Parent Portal Module
+
+### PR EXP-1: Parent Service Backend (Backend)
+
+**Scope:** Implement Parent microservice with separate database
+
+**Tasks:**
+1. Create Parent Service (Spring Boot microservice)
+   - Separate PostgreSQL database for Parent data
+   - Parent entity (linked to Students via studentId references)
+   - Parent authentication (Zalo OTP integration)
+   - Parent-Student relationship management
+2. Parent APIs:
+   - POST /api/v1/parents - Register parent via Zalo OTP
+   - GET /api/v1/parents/{id}/children - Get parent's children
+   - GET /api/v1/parents/{id}/children/{studentId}/attendance - View child attendance (read-only)
+   - GET /api/v1/parents/{id}/children/{studentId}/grades - View child grades (read-only)
+   - GET /api/v1/parents/{id}/invoices - View family invoices
+3. Security:
+   - JWT authentication for parents (separate token issuer)
+   - Parent can only access own children's data
+   - Read-only access to student data
+4. Cross-service integration:
+   - Feign Client to Core Service for student/attendance/grade data
+   - RabbitMQ events for student enrollment changes
+
+**Tech Stack:**
+- Spring Boot 3.5.10
+- Spring Cloud 2025.0.0 (service discovery, config)
+- PostgreSQL (dedicated Parent DB)
+- Redis (parent session cache)
+- Zalo OTP SDK (parent authentication)
+
+**Tests:**
+- Unit tests for Parent business logic
+- Integration tests with Testcontainers
+- Cross-service integration tests with Core Service
+- Security tests (parent isolation)
+
+**Reference:**
+- Architecture V4.1 Section: Parent Service as Optional Addon
+- Zalo OTP integration guide
+
+**Estimated Time:** 2-3 weeks
+
+---
+
+### PR EXP-2: Parent Portal Frontend (Frontend - Previously PR 3.13)
+
+**Scope:** Implement Parent Portal UI (moved from core Frontend plan)
+
+**Why Moved Here:**
+- Parent Portal targets different user persona (Parents vs Teachers/Admins)
+- Requires separate authentication flow (Zalo OTP)
+- Has different feature set (read-only views, simplified UI)
+- Should not block core Frontend completion
+- Per architecture, belongs to Expand Service scope
+
+**Prerequisites:**
+- PR EXP-1: Parent Service Backend completed
+- Parent APIs available and tested
+
+**Tasks:**
+1. Parent authentication pages:
+   - Parent login via Zalo OTP
+   - Phone number verification
+   - Parent registration flow
+2. Parent dashboard:
+   - Parent home page with children overview
+   - Quick links to attendance, grades, invoices
+3. Children management:
+   - Children list page (read-only)
+   - Child detail page with basic info
+4. Attendance view:
+   - Child attendance calendar (read-only)
+   - Attendance rate visualization
+   - Monthly attendance summary
+5. Grades view:
+   - Child grades by subject (read-only)
+   - Grade trends chart
+   - Performance overview
+6. Invoices view:
+   - Family invoices list
+   - Invoice detail with payment status
+   - Payment history
+
+**Files:**
+- `src/app/(parent)/` - Parent portal routes
+- `src/lib/api/parents.ts` - Parent API client
+- `src/hooks/use-parent.ts` - React Query hooks for parent data
+- `src/components/parent/` - Parent-specific components
+- `src/stores/parent-auth-store.ts` - Zustand store for parent auth
+
+**Tech Stack:**
+- Next.js 15 (App Router)
+- TypeScript
+- Tailwind CSS + Shadcn/UI
+- React Query (data fetching)
+- Zustand (parent auth state)
+
+**Feature Flags:**
+- `parentPortal` - Enable/disable parent portal per tenant
+- Tier-based: Available in PREMIUM and ENTERPRISE tiers only
+
+**Tests:**
+- Component tests with React Testing Library
+- E2E tests with Playwright (parent login, view attendance, view grades)
+- Accessibility tests
+
+**Reference:**
+- frontend-development.md: React patterns
+- ui-components.md: Dashboard layouts
+- frontend-code-quality.md: Testing requirements
+
+**Estimated Time:** 1-2 weeks
+
+**Status:** ⏳ Pending (Backend PR EXP-1 not yet started)
+
+---
+
+## Advanced Analytics Module (Future)
+
+### PR EXP-3: Advanced Analytics Backend
+- Machine learning for student performance prediction
+- Custom report builder
+- Data export to BI tools (Power BI, Tableau)
+
+### PR EXP-4: Advanced Analytics Frontend
+- Interactive dashboards with Chart.js/D3.js
+- Custom report designer
+- Scheduled report delivery
+
+---
+
+## AI/ML Features (Future)
+
+### PR EXP-5: AI Grading Assistant
+- Automated assignment grading
+- Plagiarism detection
+- AI-powered feedback generation
+
+### PR EXP-6: Smart Attendance
+- Facial recognition for attendance marking
+- Automated attendance reports
+- Absence pattern detection
+
+---
+
+## Communication Enhancements (Future)
+
+### PR EXP-7: In-App Messaging
+- Real-time chat between teachers and parents
+- Group messaging for classes
+- Announcement broadcasting
+
+### PR EXP-8: Video Conferencing Integration
+- Zoom/Google Meet integration
+- Virtual classroom support
+- Recorded session playback
+
+---
+
+## Expand Service Roadmap
+
+**Phase 1: Parent Portal** (Q2 2026)
+- PR EXP-1: Parent Service Backend (3 weeks)
+- PR EXP-2: Parent Portal Frontend (2 weeks)
+- Total: 5 weeks
+
+**Phase 2: Advanced Analytics** (Q3 2026)
+- PR EXP-3: Analytics Backend (4 weeks)
+- PR EXP-4: Analytics Frontend (3 weeks)
+- Total: 7 weeks
+
+**Phase 3: AI/ML Features** (Q4 2026)
+- PR EXP-5: AI Grading (6 weeks)
+- PR EXP-6: Smart Attendance (4 weeks)
+- Total: 10 weeks
+
+**Phase 4: Communication** (Q1 2027)
+- PR EXP-7: In-App Messaging (5 weeks)
+- PR EXP-8: Video Integration (4 weeks)
+- Total: 9 weeks
+
+**Total Estimated Timeline:** ~31 weeks (7-8 months) for all expand features
+
+---
+
+**Expand Service Status:** 0/10 PRs completed (0%)
+**Next Priority:** PR EXP-1 (Parent Service Backend) - After core services stabilize
 
 ---
 
