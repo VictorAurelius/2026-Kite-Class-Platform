@@ -34,12 +34,13 @@ export function AttendanceStatsOverview({
       ? 'text-yellow-600'
       : 'text-red-600';
 
-  const progressColor =
-    attendanceRate >= 90
-      ? 'bg-green-600'
-      : attendanceRate >= 75
-      ? 'bg-yellow-600'
-      : 'bg-red-600';
+  // Removed progressColor as Progress component doesn't support indicatorClassName
+  // const progressColor =
+  //   attendanceRate >= 90
+  //     ? 'bg-green-600'
+  //     : attendanceRate >= 75
+  //     ? 'bg-yellow-600'
+  //     : 'bg-red-600';
 
   // Transform stats to match AttendanceStatsCards format
   const cardStats = {
@@ -68,7 +69,6 @@ export function AttendanceStatsOverview({
               <Progress
                 value={attendanceRate}
                 className="mt-2"
-                indicatorClassName={progressColor}
               />
             )}
           </CardContent>
@@ -97,8 +97,7 @@ export function AttendanceStatsOverview({
             <Progress
               value={attendanceRate}
               className="h-3"
-              indicatorClassName={progressColor}
-            />
+                          />
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>0%</span>
               <span>50%</span>

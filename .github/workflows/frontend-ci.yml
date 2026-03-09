@@ -86,6 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: frontend-test
+    if: false  # Disabled - E2E tests require full stack (Gateway + Core + DB)
 
     defaults:
       run:

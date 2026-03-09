@@ -353,7 +353,7 @@ export function useAttendanceTrends(
       const dateMap = new Map<string, { present: number; total: number }>();
 
       allAttendance.forEach((attendance) => {
-        const date = attendance.markedDate.split('T')[0]; // Extract date part
+        const date = attendance.markedDate.split('T')[0] || attendance.markedDate; // Extract date part
         const existing = dateMap.get(date) || { present: 0, total: 0 };
 
         existing.total += 1;
@@ -421,9 +421,9 @@ export function useTodayClassSessions() {
       const allSessions = sessionResults.flat();
 
       // Filter for today's sessions
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0] || '';
       const todaySessions = allSessions.filter((session) => {
-        const sessionDate = session.startTime?.split('T')[0];
+        const sessionDate = session.startTime?.split('T')[0] || '';
         return sessionDate === today;
       });
 
@@ -441,7 +441,7 @@ export function useTodayClassSessions() {
             className: session.className,
             startTime: session.startTime || '',
             endTime: session.endTime || '',
-            totalStudents: session.capacity || 0,
+            totalStudents: 0, // TODO: Fetch from enrollment data
             attendanceMarked: attendance.totalElements > 0,
             presentCount: attendance.content.filter((a) => a.status === 'PRESENT').length,
             absentCount: attendance.content.filter((a) => a.status === 'ABSENT').length,

@@ -80,7 +80,7 @@ export function generateTrendsData(
   const dateMap = new Map<string, { present: number; total: number }>();
 
   rawData.forEach((record) => {
-    const date = record.markedDate.split('T')[0]; // Extract date part
+    const date = record.markedDate.split('T')[0] || '' || record.markedDate; // Extract date part
     const existing = dateMap.get(date) || { present: 0, total: 0 };
 
     existing.total += 1;
@@ -174,8 +174,8 @@ export function getDefaultDateRange(): { startDate: string; endDate: string } {
   startDate.setDate(startDate.getDate() - 30);
 
   return {
-    startDate: startDate.toISOString().split('T')[0],
-    endDate: endDate.toISOString().split('T')[0],
+    startDate: startDate.toISOString().split('T')[0] || '',
+    endDate: endDate.toISOString().split('T')[0] || '',
   };
 }
 
