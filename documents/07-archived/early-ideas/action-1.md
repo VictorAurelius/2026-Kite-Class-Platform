@@ -1417,3 +1417,7 @@ clear các CI trên main kể từ PR 4.3 mà check CI pass
 bổ sung vấn đề này vào plan
 
 check lại status của các PR 4. và cập nhật cho đúng
+
+bật mode plan và thực hiện
+
+lưu lại plan dạng md trong documents trước
