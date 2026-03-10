@@ -1,0 +1,128 @@
+package com.kitehub.platform.domain.entity;
+
+import com.kitehub.platform.domain.enums.PaymentMethod;
+import com.kitehub.platform.domain.enums.PaymentStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+/**
+ * Payment entity for subscription billing.
+ *
+ * @author KiteHub Team
+ * @since 1.0.0
+ */
+@Entity
+@Table(name = "payments")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Payment extends BaseEntity {
+
+    @Column(name = "subscription_id", nullable = false)
+    private UUID subscriptionId;
+
+    @Column(name = "amount_vnd", nullable = false)
+    private Long amountVnd;
+
+    @Column(name = "currency", nullable = false, length = 3)
+    private String currency = "VND";
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false, length = 30)
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private PaymentStatus status = PaymentStatus.PENDING;
+
+    @Column(name = "qr_code_url", length = 500)
+    private String qrCodeUrl;
+
+    @Column(name = "transaction_id", length = 100)
+    private String transactionId;
+
+    @Column(name = "bank_code", length = 20)
+    private String bankCode;
+
+    @Column(name = "account_number", length = 50)
+    private String accountNumber;
+
+    @Column(name = "account_name", length = 200)
+    private String accountName;
+
+    @Column(name = "payment_content", length = 500)
+    private String paymentContent;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
+    @Column(name = "refund_reason", length = 500)
+    private String refundReason;
+
+    /**
+     * Mark payment as completed.
+     *
+     * @param transactionId Bank transaction ID
+     */
+    public void complete(String transactionId) {
+        this.status = PaymentStatus.COMPLETED;
+        this.transactionId = transactionId;
+        this.paidAt = LocalDateTime.now();
+    }
+
+    /**
+     * Mark payment as failed.
+     */
+    public void fail() {
+        this.status = PaymentStatus.FAILED;
+    }
+
+    /**
+     * Refund payment.
+     *
+     * @param reason Refund reason
+     */
+    public void refund(String reason) {
+        this.status = PaymentStatus.REFUNDED;
+        this.refundReason = reason;
+        this.refundedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Cancel payment.
+     */
+    public void cancel() {
+        this.status = PaymentStatus.CANCELLED;
+    }
+
+    /**
+     * Check if payment is completed.
+     *
+     * @return true if payment is completed
+     */
+    public boolean isCompleted() {
+        return status == PaymentStatus.COMPLETED;
+    }
+
+    /**
+     * Check if payment is pending.
+     *
+     * @return true if payment is pending
+     */
+    public boolean isPending() {
+        return status == PaymentStatus.PENDING;
+    }
+}
