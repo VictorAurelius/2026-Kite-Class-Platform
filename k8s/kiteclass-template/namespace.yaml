@@ -1,0 +1,13 @@
+# KiteClass Instance Namespace Template
+# Replace {{INSTANCE_ID}} with actual instance UUID
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kiteclass-{{INSTANCE_ID}}
+  labels:
+    app: kiteclass
+    instance-id: "{{INSTANCE_ID}}"
+    organization: "{{ORGANIZATION_NAME}}"
+    tier: "{{SUBSCRIPTION_TIER}}"
+    environment: production

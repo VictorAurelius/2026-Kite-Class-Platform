@@ -1,0 +1,264 @@
+# Kubernetes Manifests
+
+This directory contains Kubernetes deployment manifests for KiteHub platform and KiteClass instances.
+
+## Directory Structure
+
+```
+k8s/
+├── kitehub/                    # KiteHub platform services
+│   ├── namespace.yaml          # KiteHub namespace
+│   ├── configmap.yaml          # Platform-wide config
+│   ├── secrets.yaml            # Platform secrets template
+│   └── branding-deployment.yaml # Example: Branding service
+│
+└── kiteclass-template/         # KiteClass instance templates
+    ├── namespace.yaml          # Instance namespace template
+    ├── configmap.yaml          # Instance config template
+    ├── secrets.yaml            # Instance secrets template
+    ├── core-deployment.yaml    # Core service deployment
+    ├── gateway-deployment.yaml # Gateway deployment
+    ├── frontend-deployment.yaml # Frontend deployment
+    └── ingress.yaml            # Ingress template
+```
+
+## KiteHub Platform Deployment
+
+### Prerequisites
+
+1. Kubernetes cluster (EKS, GKE, AKS, or self-hosted)
+2. `kubectl` configured with cluster access
+3. Secrets configured in AWS Secrets Manager or similar
+
+### Deploy KiteHub Platform
+
+```bash
+# 1. Create namespace
+kubectl apply -f kitehub/namespace.yaml
+
+# 2. Create ConfigMap
+kubectl apply -f kitehub/configmap.yaml
+
+# 3. Create Secrets (replace REPLACE_WITH_BASE64 with actual values)
+# DO NOT commit secrets to Git!
+kubectl apply -f kitehub/secrets.yaml
+
+# 4. Deploy services
+kubectl apply -f kitehub/branding-deployment.yaml
+# Repeat for other services (subscription, payment, admin, gateway)
+
+# 5. Verify deployment
+kubectl get pods -n kitehub
+kubectl get svc -n kitehub
+```
+
+## KiteClass Instance Provisioning
+
+### Manual Instance Creation (Testing)
+
+```bash
+# 1. Set variables
+export INSTANCE_ID="a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+export ORGANIZATION_NAME="Test School"
+export SUBSCRIPTION_TIER="BASIC"
+export SUBDOMAIN="testschool"
+export KITECLASS_VERSION="v1.0.0"
+export ECR_REGISTRY="123456789012.dkr.ecr.ap-southeast-1.amazonaws.com"
+
+# 2. Create namespace
+cat kiteclass-template/namespace.yaml | \
+  sed "s/{{INSTANCE_ID}}/$INSTANCE_ID/g" | \
+  sed "s/{{ORGANIZATION_NAME}}/$ORGANIZATION_NAME/g" | \
+  sed "s/{{SUBSCRIPTION_TIER}}/$SUBSCRIPTION_TIER/g" | \
+  kubectl apply -f -
+
+# 3. Create ConfigMap
+cat kiteclass-template/configmap.yaml | \
+  sed "s/{{INSTANCE_ID}}/$INSTANCE_ID/g" | \
+  sed "s/{{ORGANIZATION_NAME}}/$ORGANIZATION_NAME/g" | \
+  sed "s/{{SUBSCRIPTION_TIER}}/$SUBSCRIPTION_TIER/g" | \
+  sed "s/{{SUBDOMAIN}}/$SUBDOMAIN/g" | \
+  sed "s/{{RATE_LIMIT}}/500/g" | \
+  sed "s/{{STORAGE_QUOTA}}/10/g" | \
+  kubectl apply -f -
+
+# 4. Create Secrets (populated by KiteHub)
+# In production, this is done by InstanceProvisioningService
+
+# 5. Deploy services
+for service in core gateway frontend; do
+  cat kiteclass-template/${service}-deployment.yaml | \
+    sed "s/{{INSTANCE_ID}}/$INSTANCE_ID/g" | \
+    sed "s/{{KITECLASS_VERSION}}/$KITECLASS_VERSION/g" | \
+    sed "s|{{ECR_REGISTRY}}|$ECR_REGISTRY|g" | \
+    sed "s/{{HPA_MAX_REPLICAS}}/5/g" | \
+    kubectl apply -f -
+done
+
+# 6. Create Ingress
+cat kiteclass-template/ingress.yaml | \
+  sed "s/{{INSTANCE_ID}}/$INSTANCE_ID/g" | \
+  sed "s/{{SUBDOMAIN}}/$SUBDOMAIN/g" | \
+  sed "s/{{RATE_LIMIT_RPS}}/10/g" | \
+  sed "s/{{MAX_UPLOAD_SIZE}}/10m/g" | \
+  kubectl apply -f -
+
+# 7. Verify deployment
+kubectl get pods -n kiteclass-$INSTANCE_ID
+kubectl get svc -n kiteclass-$INSTANCE_ID
+kubectl get ingress -n kiteclass-$INSTANCE_ID
+```
+
+### Automated Provisioning (Production)
+
+In production, KiteHub's `InstanceProvisioningService` handles instance creation:
+
+1. User signs up → `SubscriptionService.createSubscription()`
+2. Database provisioned → `DatabaseProvisioningService.createDatabase()`
+3. K8s resources created → `KubernetesService.deployInstance()`
+4. DNS configured → `DNSService.createSubdomain()`
+5. Instance activated → `Instance.status = ACTIVE`
+
+## Template Variables Reference
+
+### KiteClass Instance Templates
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{INSTANCE_ID}}` | Instance UUID | `a1b2c3d4-e5f6-7890-abcd-ef1234567890` |
+| `{{INSTANCE_ID_SHORT}}` | First 8 chars of UUID | `a1b2c3d4` |
+| `{{ORGANIZATION_NAME}}` | School/org name | `"Test School"` |
+| `{{SUBSCRIPTION_TIER}}` | Tier level | `FREE`, `BASIC`, `PREMIUM`, `ENTERPRISE` |
+| `{{SUBDOMAIN}}` | Subdomain | `testschool` |
+| `{{KITECLASS_VERSION}}` | Image version | `v1.0.0`, `v1.1.0` |
+| `{{ECR_REGISTRY}}` | AWS ECR registry | `123456789012.dkr.ecr.ap-southeast-1.amazonaws.com` |
+| `{{HPA_MAX_REPLICAS}}` | Max autoscaling pods | `2` (FREE), `5` (BASIC), `10` (PREMIUM), `20` (ENTERPRISE) |
+| `{{RATE_LIMIT}}` | Requests/minute | `100` (FREE), `500` (BASIC), `2000` (PREMIUM), `10000` (ENTERPRISE) |
+| `{{STORAGE_QUOTA}}` | Storage in GB | `1` (FREE), `10` (BASIC), `100` (PREMIUM), `1000` (ENTERPRISE) |
+| `{{DATABASE_URL_BASE64}}` | JDBC URL (base64) | Generated by DatabaseProvisioningService |
+| `{{DATABASE_USERNAME_BASE64}}` | DB username (base64) | `kiteclass_a1b2c3d4` |
+| `{{DATABASE_PASSWORD_BASE64}}` | DB password (base64) | Random 32-char string |
+| `{{JWT_SECRET_BASE64}}` | JWT signing key (base64) | Random 256-bit key |
+
+## Resource Quotas by Tier
+
+| Tier | Replicas | CPU | Memory | Storage | Rate Limit |
+|------|----------|-----|--------|---------|------------|
+| **FREE** | 1-2 | 250m-500m | 512Mi-1Gi | 1GB | 100 req/min |
+| **BASIC** | 2-5 | 500m-1 | 1Gi-2Gi | 10GB | 500 req/min |
+| **PREMIUM** | 2-10 | 1-2 | 2Gi-4Gi | 100GB | 2000 req/min |
+| **ENTERPRISE** | 5-20 | 2-4 | 4Gi-8Gi | 1TB | 10000 req/min |
+
+## Monitoring & Observability
+
+### Health Checks
+
+```bash
+# Check pod health
+kubectl get pods -n kiteclass-{instance-id} -w
+
+# Check logs
+kubectl logs -n kiteclass-{instance-id} deployment/kiteclass-core --tail=100 -f
+
+# Check events
+kubectl get events -n kiteclass-{instance-id} --sort-by='.lastTimestamp'
+```
+
+### Metrics
+
+All services expose Prometheus metrics at `/actuator/prometheus` (Spring Boot) or `/metrics` (Next.js).
+
+```bash
+# Port-forward to view metrics
+kubectl port-forward -n kiteclass-{instance-id} deployment/kiteclass-core 8080:8080
+curl http://localhost:8080/actuator/prometheus
+```
+
+## Troubleshooting
+
+### Pod not starting
+
+```bash
+# Check pod status
+kubectl describe pod -n kiteclass-{instance-id} <pod-name>
+
+# Check logs
+kubectl logs -n kiteclass-{instance-id} <pod-name>
+
+# Check events
+kubectl get events -n kiteclass-{instance-id}
+```
+
+### Database connection issues
+
+```bash
+# Check database secret
+kubectl get secret -n kiteclass-{instance-id} kiteclass-database -o yaml
+
+# Test connection from pod
+kubectl exec -it -n kiteclass-{instance-id} <pod-name> -- /bin/sh
+# Inside pod:
+curl -v telnet://kitehub-postgres.kitehub.svc.cluster.local:5432
+```
+
+### Ingress not working
+
+```bash
+# Check ingress
+kubectl get ingress -n kiteclass-{instance-id}
+kubectl describe ingress -n kiteclass-{instance-id} kiteclass-ingress
+
+# Check TLS certificate
+kubectl get certificate -n kiteclass-{instance-id}
+
+# Test DNS
+nslookup {subdomain}.kiteclass.com
+```
+
+## Upgrade Strategy
+
+### Rolling Update (Zero Downtime)
+
+```bash
+# Update image version
+kubectl set image deployment/kiteclass-core \
+  core={new-image}:{new-version} \
+  -n kiteclass-{instance-id}
+
+# Watch rollout status
+kubectl rollout status deployment/kiteclass-core -n kiteclass-{instance-id}
+
+# Rollback if needed
+kubectl rollout undo deployment/kiteclass-core -n kiteclass-{instance-id}
+```
+
+### Blue-Green Deployment
+
+1. Deploy new version alongside old version
+2. Test new version
+3. Switch traffic to new version (update Ingress)
+4. Remove old version
+
+## Security Best Practices
+
+1. **Never commit secrets to Git** - Use K8s Secrets or external secret managers
+2. **Enable Pod Security Policies** - Restrict privileged containers
+3. **Network Policies** - Isolate instance traffic
+4. **RBAC** - Limit service account permissions
+5. **Image Scanning** - Scan images with Trivy before deployment
+6. **TLS Everywhere** - Enforce HTTPS with cert-manager
+
+## Cost Optimization
+
+1. **Horizontal Pod Autoscaling** - Scale based on load
+2. **Resource Requests/Limits** - Prevent resource waste
+3. **Node Autoscaling** - Scale cluster nodes dynamically
+4. **Spot Instances** - Use for non-critical workloads
+5. **Storage Classes** - Use appropriate storage tiers
+
+## Support
+
+For issues with K8s deployments:
+1. Check pod logs: `kubectl logs -n kiteclass-{instance-id} <pod-name>`
+2. Check events: `kubectl get events -n kiteclass-{instance-id}`
+3. Contact DevOps team: devops@kiteclass.com

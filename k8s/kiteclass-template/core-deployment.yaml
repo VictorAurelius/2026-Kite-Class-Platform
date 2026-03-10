@@ -1,0 +1,136 @@
+# KiteClass Core Service Deployment Template
+# Replace all {{VARIABLE}} placeholders before applying
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiteclass-core
+  namespace: kiteclass-{{INSTANCE_ID}}
+  labels:
+    app: kiteclass-core
+    instance-id: "{{INSTANCE_ID}}"
+    version: "{{KITECLASS_VERSION}}"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kiteclass-core
+      instance-id: "{{INSTANCE_ID}}"
+  template:
+    metadata:
+      labels:
+        app: kiteclass-core
+        instance-id: "{{INSTANCE_ID}}"
+        version: "{{KITECLASS_VERSION}}"
+    spec:
+      containers:
+      - name: core
+        image: {{ECR_REGISTRY}}/kiteclass/core:{{KITECLASS_VERSION}}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        - name: INSTANCE_ID
+          value: "{{INSTANCE_ID}}"
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: kiteclass-database
+              key: url
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: kiteclass-database
+              key: username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: kiteclass-database
+              key: password
+        - name: SPRING_DATA_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: kiteclass-config
+              key: redis.host
+        - name: SPRING_DATA_REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: kiteclass-config
+              key: redis.port
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: kiteclass-jwt
+              key: secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kiteclass-core
+  namespace: kiteclass-{{INSTANCE_ID}}
+  labels:
+    app: kiteclass-core
+    instance-id: "{{INSTANCE_ID}}"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: kiteclass-core
+    instance-id: "{{INSTANCE_ID}}"
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kiteclass-core-hpa
+  namespace: kiteclass-{{INSTANCE_ID}}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kiteclass-core
+  minReplicas: 2
+  maxReplicas: {{HPA_MAX_REPLICAS}} # Based on tier: FREE=2, BASIC=5, PREMIUM=10, ENTERPRISE=20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
