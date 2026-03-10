@@ -13,6 +13,10 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,7 +44,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @since 1.0
  */
-@WebMvcTest(AdminController.class)
+@WebMvcTest(controllers = AdminController.class,
+             excludeAutoConfiguration = {
+                     DataSourceAutoConfiguration.class,
+                     DataSourceTransactionManagerAutoConfiguration.class,
+                     HibernateJpaAutoConfiguration.class
+             },
+             useDefaultFilters = false)
+@org.springframework.context.annotation.ComponentScan(basePackageClasses = AdminController.class,
+        useDefaultFilters = false,
+        includeFilters = @org.springframework.context.annotation.ComponentScan.Filter(
+                type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE,
+                classes = AdminController.class))
 class AdminControllerTest {
 
     @Autowired
@@ -105,20 +120,20 @@ class AdminControllerTest {
         instance1.setId(UUID.randomUUID());
         instance1.setOrganizationName("Org 1");
         instance1.setSubdomain("org1");
-        instance1.setStatus("ACTIVE");
-        instance1.setOwnerEmail("owner1@example.com");
+        instance1.setStatus(InstanceStatus.ACTIVE);
         instance1.setCreatedAt(LocalDateTime.now());
+        instance1.setUpdatedAt(LocalDateTime.now());
 
         Instance instance2 = new Instance();
         instance2.setId(UUID.randomUUID());
         instance2.setOrganizationName("Org 2");
         instance2.setSubdomain("org2");
-        instance2.setStatus("TRIAL");
-        instance2.setOwnerEmail("owner2@example.com");
+        instance2.setStatus(InstanceStatus.TRIAL);
         instance2.setCreatedAt(LocalDateTime.now());
+        instance2.setUpdatedAt(LocalDateTime.now());
 
         when(instanceRepository.findAll()).thenReturn(Arrays.asList(instance1, instance2));
-        when(subscriptionRepository.findByInstanceId(any())).thenReturn(Optional.empty());
+        when(subscriptionRepository.findActiveByInstanceId(any())).thenReturn(Optional.empty());
 
         // When & Then
         mockMvc.perform(get("/api/platform/admin/instances"))
@@ -140,18 +155,17 @@ class AdminControllerTest {
         instance.setId(instanceId);
         instance.setOrganizationName("Test Org");
         instance.setSubdomain("testorg");
-        instance.setStatus("ACTIVE");
-        instance.setOwnerEmail("test@example.com");
+        instance.setStatus(InstanceStatus.ACTIVE);
         instance.setCreatedAt(LocalDateTime.now());
         instance.setUpdatedAt(LocalDateTime.now());
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
         when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> {
             Instance saved = i.getArgument(0);
-            saved.setStatus("SUSPENDED");
+            saved.setStatus(InstanceStatus.SUSPENDED);
             return saved;
         });
-        when(subscriptionRepository.findByInstanceId(instanceId)).thenReturn(Optional.empty());
+        when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
 
         // When & Then
         mockMvc.perform(patch("/api/platform/admin/instances/{id}/suspend", instanceId))
@@ -169,18 +183,17 @@ class AdminControllerTest {
         instance.setId(instanceId);
         instance.setOrganizationName("Test Org");
         instance.setSubdomain("testorg");
-        instance.setStatus("SUSPENDED");
-        instance.setOwnerEmail("test@example.com");
+        instance.setStatus(InstanceStatus.SUSPENDED);
         instance.setCreatedAt(LocalDateTime.now());
         instance.setUpdatedAt(LocalDateTime.now());
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
         when(instanceRepository.save(any(Instance.class))).thenAnswer(i -> {
             Instance saved = i.getArgument(0);
-            saved.setStatus("ACTIVE");
+            saved.setStatus(InstanceStatus.ACTIVE);
             return saved;
         });
-        when(subscriptionRepository.findByInstanceId(instanceId)).thenReturn(Optional.empty());
+        when(subscriptionRepository.findActiveByInstanceId(instanceId)).thenReturn(Optional.empty());
 
         // When & Then
         mockMvc.perform(patch("/api/platform/admin/instances/{id}/activate", instanceId))

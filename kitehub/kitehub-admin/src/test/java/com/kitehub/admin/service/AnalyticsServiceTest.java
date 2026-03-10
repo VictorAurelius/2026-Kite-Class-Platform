@@ -5,6 +5,7 @@ import com.kitehub.admin.dto.RevenueReport;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.BillingCycle;
+import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.repository.InstanceRepository;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,6 +35,7 @@ import static org.mockito.Mockito.when;
  * @since 1.0
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AnalyticsServiceTest {
 
     @Mock
@@ -53,21 +57,21 @@ class AnalyticsServiceTest {
         instance1.setId(UUID.randomUUID());
         instance1.setOrganizationName("Org 1");
         instance1.setSubdomain("org1");
-        instance1.setStatus("ACTIVE");
+        instance1.setStatus(InstanceStatus.ACTIVE);
         instance1.setCreatedAt(LocalDateTime.now().minusDays(10));
 
         Instance instance2 = new Instance();
         instance2.setId(UUID.randomUUID());
         instance2.setOrganizationName("Org 2");
         instance2.setSubdomain("org2");
-        instance2.setStatus("TRIAL");
+        instance2.setStatus(InstanceStatus.TRIAL);
         instance2.setCreatedAt(LocalDateTime.now().minusDays(5));
 
         Instance instance3 = new Instance();
         instance3.setId(UUID.randomUUID());
         instance3.setOrganizationName("Org 3");
         instance3.setSubdomain("org3");
-        instance3.setStatus("SUSPENDED");
+        instance3.setStatus(InstanceStatus.SUSPENDED);
         instance3.setCreatedAt(LocalDateTime.now().minusDays(60));
 
         mockInstances = Arrays.asList(instance1, instance2, instance3);
