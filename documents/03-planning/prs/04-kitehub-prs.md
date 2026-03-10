@@ -442,12 +442,14 @@ Track trial period and handle expiration
 
 ## PHASE 2: SUBSCRIPTION MANAGEMENT (2 PRs)
 
-### ⏳ PR 4.4 - Subscription CRUD & Tier Management
+### ✅ PR 4.4 - Subscription CRUD & Tier Management
 
+**Status:** COMPLETE (#42)
 **Duration:** 3 ngày
 **Dependencies:** PR 4.1
 **Priority:** HIGH
 **Complexity:** Medium
+**Completed:** 2026-03-09
 
 **Scope:**
 Subscription lifecycle management
@@ -507,10 +509,10 @@ Subscription lifecycle management
 - `kitehub-subscription/src/main/resources/db/migration/V2__create_subscriptions_table.sql`
 
 **Acceptance Criteria:**
-- [ ] Can create subscription
-- [ ] Upgrade/downgrade works
-- [ ] Prorated charges calculated correctly
-- [ ] Cancellation handles immediate vs end-of-cycle
+- [x] Can create subscription
+- [x] Upgrade/downgrade works
+- [x] Prorated charges calculated correctly
+- [x] Cancellation handles immediate vs end-of-cycle
 
 ---
 
