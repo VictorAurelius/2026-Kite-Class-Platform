@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chào Mừng Đến Với KiteClass</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Chào Mừng Đến Với KiteClass! 🚀</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${organizationName}">Organization</strong>,</p>
+
+        <p>Cảm ơn bạn đã đăng ký sử dụng KiteClass Platform!</p>
+
+        <p>Tài khoản của bạn đã được tạo thành công và bạn có thể bắt đầu sử dụng ngay.</p>
+
+        <h3>Thông Tin Tài Khoản:</h3>
+        <ul>
+            <li><strong>Tổ chức:</strong> <span th:text="${organizationName}">Organization</span></li>
+            <li><strong>Gói dùng thử:</strong> <span th:text="${trialDays}">14</span> ngày</li>
+            <li><strong>Hết hạn:</strong> <span th:text="${expiryDate}">2026-03-24</span></li>
+        </ul>
+
+        <p>Bạn có thể truy cập hệ thống tại:</p>
+        <a th:href="${loginUrl}" class="button">Đăng Nhập Ngay</a>
+
+        <p style="margin-top: 30px;">Nếu bạn cần hỗ trợ, vui lòng liên hệ chúng tôi qua email support@kiteclass.com</p>
+
+        <p>Chúc bạn có trải nghiệm tuyệt vời!</p>
+
+        <p><strong>Đội ngũ KiteClass</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 KiteClass Platform. All rights reserved.</p>
+        <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+    </div>
+</body>
+</html>

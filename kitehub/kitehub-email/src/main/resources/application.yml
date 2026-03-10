@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: kitehub-email
+
+  # Thymeleaf for email templates
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+
+server:
+  port: 8084
+
+# AWS SES Configuration
+aws:
+  ses:
+    region: ${AWS_SES_REGION:ap-southeast-1}
+    from-email: ${AWS_SES_FROM_EMAIL:noreply@kiteclass.com}
+    from-name: ${AWS_SES_FROM_NAME:KiteClass Platform}
+    mock-mode: ${AWS_SES_MOCK_MODE:true}  # true for local dev, false for production
+    # Credentials from environment or IAM role
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+# Logging
+logging:
+  level:
+    com.kitehub.email: DEBUG
+    org.springframework.web: INFO
+    software.amazon.awssdk: INFO
