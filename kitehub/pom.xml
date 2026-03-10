@@ -36,6 +36,7 @@
         <module>kitehub-branding</module>
         <module>kitehub-email</module>
         <module>kitehub-admin</module>
+        <module>kitehub-gateway</module>
     </modules>
 
     <dependencyManagement>
