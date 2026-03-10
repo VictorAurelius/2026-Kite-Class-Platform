@@ -33,6 +33,7 @@
         <module>kitehub-platform</module>
         <module>kitehub-subscription</module>
         <module>kitehub-branding</module>
+        <module>kitehub-email</module>
     </modules>
 
     <dependencyManagement>

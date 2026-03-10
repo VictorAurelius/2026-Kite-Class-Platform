@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gói Dùng Thử Sắp Hết Hạn</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #f5576c;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⏰ Gói Dùng Thử Sắp Hết Hạn</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${organizationName}">Organization</strong>,</p>
+
+        <div class="warning">
+            <p><strong>Thông báo:</strong> Gói dùng thử của bạn sẽ hết hạn trong <strong th:text="${daysRemaining}">3</strong> ngày nữa.</p>
+            <p><strong>Ngày hết hạn:</strong> <span th:text="${expiryDate}">2026-03-24</span></p>
+        </div>
+
+        <p>Để tiếp tục sử dụng KiteClass Platform mà không bị gián đoạn, vui lòng nâng cấp lên gói trả phí.</p>
+
+        <h3>Các Gói Dịch Vụ:</h3>
+        <ul>
+            <li><strong>BASIC:</strong> 500.000đ/tháng - Đầy đủ tính năng cơ bản</li>
+            <li><strong>PREMIUM:</strong> 1.500.000đ/tháng - Tính năng nâng cao + AI Branding</li>
+            <li><strong>ENTERPRISE:</strong> Liên hệ - Tùy chỉnh theo nhu cầu</li>
+        </ul>
+
+        <a th:href="${upgradeUrl}" class="button">Nâng Cấp Ngay</a>
+
+        <p style="margin-top: 30px;">Nếu bạn có câu hỏi, vui lòng liên hệ chúng tôi qua email support@kiteclass.com</p>
+
+        <p><strong>Đội ngũ KiteClass</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 KiteClass Platform. All rights reserved.</p>
+    </div>
+</body>
+</html>
