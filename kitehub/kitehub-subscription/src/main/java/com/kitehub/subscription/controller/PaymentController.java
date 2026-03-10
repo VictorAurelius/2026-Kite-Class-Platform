@@ -1,5 +1,6 @@
 package com.kitehub.subscription.controller;
 
+import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -43,6 +45,20 @@ public class PaymentController {
     ) {
         PaymentResponse response = paymentService.createPayment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Get all payments with optional filters.
+     *
+     * @param status Payment status filter (optional)
+     * @return List of payment responses
+     */
+    @GetMapping
+    public ResponseEntity<List<PaymentResponse>> getAllPayments(
+        @RequestParam(required = false) PaymentStatus status
+    ) {
+        List<PaymentResponse> responses = paymentService.getAllPayments(status);
+        return ResponseEntity.ok(responses);
     }
 
     /**

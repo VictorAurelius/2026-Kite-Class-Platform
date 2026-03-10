@@ -246,6 +246,46 @@ public class SubscriptionService {
     }
 
     /**
+     * Activate subscription after payment completed.
+     * Changes subscription status to ACTIVE and updates expiry date.
+     *
+     * @param subscriptionId Subscription UUID
+     * @return Activated subscription response
+     */
+    @Transactional
+    public SubscriptionResponse activateSubscription(UUID subscriptionId) {
+        log.info("Activating subscription: {}", subscriptionId);
+
+        Subscription subscription = subscriptionRepository.findById(subscriptionId)
+            .orElseThrow(() -> new IllegalArgumentException("Subscription not found: " + subscriptionId));
+
+        // Verify subscription is not already active
+        if (subscription.getStatus() == SubscriptionStatus.ACTIVE) {
+            log.warn("Subscription already active: {}", subscriptionId);
+            return SubscriptionResponse.fromEntity(subscription);
+        }
+
+        // Activate subscription
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setStartedAt(LocalDateTime.now());
+        subscription.setExpiresAt(calculateExpiryDate(LocalDateTime.now(), subscription.getBillingCycle()));
+
+        Subscription activated = subscriptionRepository.save(subscription);
+
+        // Update instance status to ACTIVE
+        Instance instance = instanceRepository.findById(subscription.getInstanceId())
+            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + subscription.getInstanceId()));
+
+        instance.setStatus(InstanceStatus.ACTIVE);
+        instance.setSubscriptionExpiresAt(activated.getExpiresAt());
+        instanceRepository.save(instance);
+
+        log.info("Activated subscription: {} for instance: {}", subscriptionId, instance.getId());
+
+        return SubscriptionResponse.fromEntity(activated);
+    }
+
+    /**
      * Get subscriptions expiring within the next 30 days.
      *
      * @return List of expiring subscriptions
