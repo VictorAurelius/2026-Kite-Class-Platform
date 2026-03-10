@@ -1415,3 +1415,5 @@ squash các commit fix và check lại xem đảm bảo skill chưa? ví dụ fi
 clear các CI trên main kể từ PR 4.3 mà check CI pass
 
 bổ sung vấn đề này vào plan
+
+check lại status của các PR 4. và cập nhật cho đúng

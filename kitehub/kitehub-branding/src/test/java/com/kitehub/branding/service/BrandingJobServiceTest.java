@@ -1,0 +1,176 @@
+package com.kitehub.branding.service;
+
+import com.kitehub.branding.config.RabbitMQConfig;
+import com.kitehub.branding.domain.entity.BrandingJob;
+import com.kitehub.branding.domain.enums.JobStatus;
+import com.kitehub.branding.dto.BrandingJobMessage;
+import com.kitehub.branding.repository.BrandingJobRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+/**
+ * Tests for BrandingJobService.
+ *
+ * @since 1.0
+ */
+@ExtendWith(MockitoExtension.class)
+class BrandingJobServiceTest {
+
+    @Mock
+    private BrandingJobRepository jobRepository;
+
+    @Mock
+    private RabbitTemplate rabbitTemplate;
+
+    @InjectMocks
+    private BrandingJobService jobService;
+
+    private UUID instanceId;
+    private String organizationName;
+    private String language;
+    private String logoUrl;
+
+    @BeforeEach
+    void setUp() {
+        instanceId = UUID.randomUUID();
+        organizationName = "Test Organization";
+        language = "vi";
+        logoUrl = "https://s3.amazonaws.com/test-logo.png";
+    }
+
+    @Test
+    void testCreateJob_Success() {
+        // Given
+        BrandingJob savedJob = new BrandingJob();
+        savedJob.setId(UUID.randomUUID());
+        savedJob.setInstanceId(instanceId);
+        savedJob.setOrganizationName(organizationName);
+        savedJob.setLanguage(language);
+        savedJob.setLogoUrl(logoUrl);
+        savedJob.setStatus(JobStatus.QUEUED);
+
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(savedJob);
+
+        // When
+        BrandingJob result = jobService.createJob(instanceId, organizationName, language, logoUrl);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getInstanceId()).isEqualTo(instanceId);
+        assertThat(result.getStatus()).isEqualTo(JobStatus.QUEUED);
+        assertThat(result.getProgress()).isEqualTo(0);
+
+        // Verify RabbitMQ message sent
+        ArgumentCaptor<BrandingJobMessage> messageCaptor = ArgumentCaptor.forClass(BrandingJobMessage.class);
+        verify(rabbitTemplate).convertAndSend(
+                eq(RabbitMQConfig.BRANDING_EXCHANGE),
+                eq(RabbitMQConfig.BRANDING_ROUTING_KEY),
+                messageCaptor.capture()
+        );
+
+        BrandingJobMessage message = messageCaptor.getValue();
+        assertThat(message.getJobId()).isEqualTo(savedJob.getId());
+        assertThat(message.getInstanceId()).isEqualTo(instanceId);
+    }
+
+    @Test
+    void testUpdateJobProgress() {
+        // Given
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = new BrandingJob();
+        job.setId(jobId);
+        job.setStatus(JobStatus.QUEUED);
+        job.setProgress(0);
+
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
+
+        // When
+        jobService.updateJobProgress(jobId, JobStatus.PROCESSING, 50, "Generating images");
+
+        // Then
+        verify(jobRepository).save(argThat(savedJob ->
+            savedJob.getStatus() == JobStatus.PROCESSING &&
+            savedJob.getProgress() == 50 &&
+            "Generating images".equals(savedJob.getCurrentStep())
+        ));
+    }
+
+    @Test
+    void testMarkJobFailed() {
+        // Given
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = new BrandingJob();
+        job.setId(jobId);
+        job.setStatus(JobStatus.PROCESSING);
+        job.setRetryCount(0);
+
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
+
+        // When
+        jobService.markJobFailed(jobId, "OpenAI API error");
+
+        // Then
+        verify(jobRepository).save(argThat(savedJob ->
+            savedJob.getStatus() == JobStatus.FAILED &&
+            "OpenAI API error".equals(savedJob.getErrorMessage()) &&
+            savedJob.getRetryCount() == 1
+        ));
+    }
+
+    @Test
+    void testCancelJob_Success() {
+        // Given
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = new BrandingJob();
+        job.setId(jobId);
+        job.setInstanceId(instanceId);
+        job.setStatus(JobStatus.QUEUED);
+
+        when(jobRepository.findByIdAndInstanceId(jobId, instanceId)).thenReturn(Optional.of(job));
+        when(jobRepository.save(any(BrandingJob.class))).thenReturn(job);
+
+        // When
+        boolean result = jobService.cancelJob(jobId, instanceId);
+
+        // Then
+        assertThat(result).isTrue();
+        verify(jobRepository).save(argThat(savedJob ->
+            savedJob.getStatus() == JobStatus.CANCELLED
+        ));
+    }
+
+    @Test
+    void testCancelJob_AlreadyCompleted() {
+        // Given
+        UUID jobId = UUID.randomUUID();
+        BrandingJob job = new BrandingJob();
+        job.setId(jobId);
+        job.setInstanceId(instanceId);
+        job.setStatus(JobStatus.COMPLETED);
+
+        when(jobRepository.findByIdAndInstanceId(jobId, instanceId)).thenReturn(Optional.of(job));
+
+        // When
+        boolean result = jobService.cancelJob(jobId, instanceId);
+
+        // Then
+        assertThat(result).isFalse();
+        verify(jobRepository, never()).save(any());
+    }
+}
