@@ -34,6 +34,7 @@
         <module>kitehub-subscription</module>
         <module>kitehub-branding</module>
         <module>kitehub-email</module>
+        <module>kitehub-admin</module>
     </modules>
 
     <dependencyManagement>

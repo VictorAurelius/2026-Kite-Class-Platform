@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: kitehub-admin
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitehub}
+    username: ${DATABASE_USERNAME:kitehub}
+    password: ${DATABASE_PASSWORD:kitehub_dev_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+server:
+  port: ${SERVER_PORT:8083}
+
+logging:
+  level:
+    com.kitehub.admin: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
