@@ -1,0 +1,46 @@
+package com.kitehub.branding.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.UUID;
+
+/**
+ * Message payload for branding job queue.
+ *
+ * @since 1.0
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class BrandingJobMessage implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Job ID.
+     */
+    private UUID jobId;
+
+    /**
+     * Instance ID.
+     */
+    private UUID instanceId;
+
+    /**
+     * Organization name.
+     */
+    private String organizationName;
+
+    /**
+     * Language code (vi, en).
+     */
+    private String language;
+
+    /**
+     * Logo file URL (S3).
+     */
+    private String logoUrl;
+}
