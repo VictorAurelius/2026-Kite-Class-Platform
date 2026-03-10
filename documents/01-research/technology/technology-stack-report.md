@@ -119,7 +119,7 @@
 
 | Layer | Technology | Version | Lý do chọn |
 |-------|------------|---------|------------|
-| **Backend** | Java Spring Boot | 3.2+ | Enterprise-grade, mature ecosystem |
+| **Backend** | Java Spring Boot | 3.5.10 | Enterprise-grade, mature ecosystem |
 | **Frontend** | Next.js (React) | 14+ | SSR/SSG for landing pages, SEO |
 | **Database** | PostgreSQL | 16+ | ACID, JSON support, full-text search |
 | **Cache** | Redis | 7+ | Session storage, caching |
@@ -225,7 +225,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.5.10</version>
     </parent>
 
     <groupId>com.kiteclass</groupId>
@@ -872,7 +872,7 @@ spec:
 
 | Layer | Technology | Lý do |
 |-------|------------|-------|
-| **Backend** | Java Spring Boot 3.2+ | CRUD operations, business logic, JPA perfect fit |
+| **Backend** | Java Spring Boot 3.5.10 | CRUD operations, business logic, JPA perfect fit |
 | **Database** | PostgreSQL 16+ | Relational data (classes, lessons, schedules) |
 | **Cache** | Redis | Session, frequently accessed class data |
 
@@ -996,7 +996,7 @@ CREATE INDEX idx_schedules_class ON main_class.schedules(class_id);
 
 | Layer | Technology | Lý do |
 |-------|------------|-------|
-| **Backend** | Java Spring Boot 3.2+ | Security, authentication, Spring Security native |
+| **Backend** | Java Spring Boot 3.5.10 | Security, authentication, Spring Security native |
 | **Database** | PostgreSQL 16+ | User data, roles, permissions |
 | **Cache** | Redis | Session storage, JWT blacklist |
 
@@ -1109,7 +1109,7 @@ CREATE INDEX idx_roles_instance ON users.roles(instance_id);
 
 | Layer | Technology | Lý do |
 |-------|------------|-------|
-| **Backend** | Java Spring Boot 3.2+ | Complex business logic, grading calculations |
+| **Backend** | Java Spring Boot 3.5.10 | Complex business logic, grading calculations |
 | **Database** | PostgreSQL 16+ | Transactional data (grades, attendance) |
 | **Cache** | Redis | Leaderboards, statistics |
 
@@ -1182,7 +1182,7 @@ CREATE INDEX idx_grades_class_student ON cmc.grades(class_id, student_id);
 
 | Layer | Technology | Lý do |
 |-------|------------|-------|
-| **Backend** | Java Spring Boot 3.2+ | Video metadata, progress tracking |
+| **Backend** | Java Spring Boot 3.5.10 | Video metadata, progress tracking |
 | **Processing** | FFmpeg (separate worker) | Video transcoding |
 | **Database** | PostgreSQL 16+ | Video metadata, watch progress |
 | **Storage** | AWS S3 | Video files storage |
@@ -1346,7 +1346,7 @@ CREATE INDEX idx_participants_session ON streaming.participants(session_id);
 
 | Layer | Technology | Lý do |
 |-------|------------|-------|
-| **Backend** | Java Spring Boot 3.2+ | CRUD, moderation logic |
+| **Backend** | Java Spring Boot 3.5.10 | CRUD, moderation logic |
 | **Database** | PostgreSQL 16+ | Threaded discussions, full-text search |
 | **Search** | PostgreSQL Full-Text | Built-in pg_trgm for search |
 
@@ -1981,7 +1981,7 @@ CMD ["node", "dist/server.js"]
 
 | Component | Technology | Rationale |
 |-----------|------------|-----------|
-| **KiteHub Backend** | Java Spring Boot 3.2+ | Enterprise-grade, mature, team expertise |
+| **KiteHub Backend** | Java Spring Boot 3.5.10 | Enterprise-grade, mature, team expertise |
 | **Message Service** | Node.js + Socket.io | Real-time performance, WebSocket native |
 | **AI Agent** | Python + FastAPI | ML libraries, AI service integrations |
 | **KiteClass Services (Most)** | Java Spring Boot | Consistency, shared libraries |
