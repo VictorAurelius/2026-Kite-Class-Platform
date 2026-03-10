@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.kitehub.admin.controller.AdminControllerTest" time="0.004" tests="6" errors="0" skipped="6" failures="0">
+  <properties/>
+  <testcase name="testGetAllSubscriptions" classname="com.kitehub.admin.controller.AdminControllerTest" time="0.0">
+    <skipped message="Environment variable [ENABLE_INTEGRATION_TESTS] does not exist"/>
+  </testcase>
+  <testcase name="testGetAllInstances" classname="com.kitehub.admin.controller.AdminControllerTest" time="0.0">
+    <skipped message="Environment variable [ENABLE_INTEGRATION_TESTS] does not exist"/>
+  </testcase>
+  <testcase name="testSuspendInstance" classname="com.kitehub.admin.controller.AdminControllerTest" time="0.0">
+    <skipped message="Environment variable [ENABLE_INTEGRATION_TESTS] does not exist"/>
+  </testcase>
+  <testcase name="testGetDashboard" classname="com.kitehub.admin.controller.AdminControllerTest" time="0.0">
+    <skipped message="Environment variable [ENABLE_INTEGRATION_TESTS] does not exist"/>
+  </testcase>
+  <testcase name="testGetRevenue" classname="com.kitehub.admin.controller.AdminControllerTest" time="0.0">
+    <skipped message="Environment variable [ENABLE_INTEGRATION_TESTS] does not exist"/>
+  </testcase>
+  <testcase name="testActivateInstance" classname="com.kitehub.admin.controller.AdminControllerTest" time="0.0">
+    <skipped message="Environment variable [ENABLE_INTEGRATION_TESTS] does not exist"/>
+  </testcase>
+</testsuite>
