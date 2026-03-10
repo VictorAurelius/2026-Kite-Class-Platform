@@ -1,0 +1,6 @@
+com/kitehub/gateway/KiteHubGatewayApplication.class
+com/kitehub/gateway/config/RateLimitConfig.class
+com/kitehub/gateway/controller/FallbackController.class
+com/kitehub/gateway/filter/TenantResolverFilter$Config.class
+com/kitehub/gateway/filter/TenantResolverFilter.class
+com/kitehub/gateway/repository/InstanceRepository.class
