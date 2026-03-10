@@ -1,7 +1,6 @@
 package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Payment;
-import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
@@ -29,6 +28,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionService subscriptionService;
     private final VietQRService vietQRService;
 
     /**
@@ -106,6 +106,27 @@ public class PaymentService {
     }
 
     /**
+     * Get all payments with optional filters.
+     *
+     * @param status Payment status filter (optional)
+     * @return List of payment responses
+     */
+    @Transactional(readOnly = true)
+    public List<PaymentResponse> getAllPayments(PaymentStatus status) {
+        List<Payment> payments;
+
+        if (status != null) {
+            payments = paymentRepository.findByStatus(status);
+        } else {
+            payments = paymentRepository.findAll();
+        }
+
+        return payments.stream()
+            .map(PaymentResponse::fromEntity)
+            .toList();
+    }
+
+    /**
      * Process payment webhook notification.
      * Called when payment gateway confirms payment.
      *
@@ -143,7 +164,15 @@ public class PaymentService {
 
         log.info("Payment completed: {} for subscription: {}", payment.getId(), payment.getSubscriptionId());
 
-        // TODO: Trigger subscription activation (integrate with SubscriptionService)
+        // Trigger subscription activation
+        try {
+            subscriptionService.activateSubscription(payment.getSubscriptionId());
+            log.info("Subscription activated: {}", payment.getSubscriptionId());
+        } catch (Exception e) {
+            log.error("Failed to activate subscription: {}", payment.getSubscriptionId(), e);
+            // Payment is still completed, but subscription activation failed
+            // This should be handled by admin/retry mechanism
+        }
     }
 
     /**
