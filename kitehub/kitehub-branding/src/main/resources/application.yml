@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: kitehub-branding
+
+server:
+  port: 8083
+
+# OpenAI Configuration
+openai:
+  api:
+    key: ${OPENAI_API_KEY:sk-mock-key-for-local-testing}
+    base-url: https://api.openai.com/v1
+  models:
+    vision: gpt-4-vision-preview
+    dalle: dall-e-3
+    text: gpt-4-turbo
+  rate-limit:
+    requests-per-minute: 10
+  timeout:
+    seconds: 60
+
+# Logging
+logging:
+  level:
+    com.kitehub.branding: DEBUG
+    org.springframework.web: INFO
