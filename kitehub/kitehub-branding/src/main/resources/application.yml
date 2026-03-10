@@ -19,6 +19,17 @@ openai:
   timeout:
     seconds: 60
 
+# Storage Configuration
+storage:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID:mock-access-key}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:mock-secret-key}
+    region: ${AWS_REGION:ap-southeast-1}
+    bucket: ${S3_BUCKET:kitehub-assets}
+    endpoint: ${S3_ENDPOINT:} # For MinIO/LocalStack
+    cdn-domain: ${CDN_DOMAIN:cdn.kiteclass.com}
+    mock-mode: ${S3_MOCK_MODE:true} # true for local dev, false for production
+
 # Logging
 logging:
   level:
