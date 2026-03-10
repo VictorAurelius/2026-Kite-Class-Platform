@@ -262,7 +262,7 @@ public class SubscriptionService {
         );
 
         return expiringSubscriptions.stream()
-            .map(this::mapToResponse)
+            .map(SubscriptionResponse::fromEntity)
             .toList();
     }
 
