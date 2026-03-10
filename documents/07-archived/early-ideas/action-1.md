@@ -1413,3 +1413,5 @@ các file được generated: target đang bị git tính là changing
 squash các commit fix và check lại xem đảm bảo skill chưa? ví dụ fix nhưng không tạo branch mới đang không đảm bảo skill
 
 clear các CI trên main kể từ PR 4.3 mà check CI pass
+
+bổ sung vấn đề này vào plan
