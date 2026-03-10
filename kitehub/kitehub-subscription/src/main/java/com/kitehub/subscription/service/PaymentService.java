@@ -44,7 +44,7 @@ public class PaymentService {
             request.getSubscriptionId(), request.getAmountVnd());
 
         // Verify subscription exists
-        Subscription subscription = subscriptionRepository.findById(request.getSubscriptionId())
+        subscriptionRepository.findById(request.getSubscriptionId())
             .orElseThrow(() -> new IllegalArgumentException(
                 "Subscription not found: " + request.getSubscriptionId()));
 
