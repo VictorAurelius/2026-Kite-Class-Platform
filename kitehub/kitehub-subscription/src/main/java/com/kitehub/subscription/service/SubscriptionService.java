@@ -246,6 +246,27 @@ public class SubscriptionService {
     }
 
     /**
+     * Get subscriptions expiring within the next 30 days.
+     *
+     * @return List of expiring subscriptions
+     */
+    @Transactional(readOnly = true)
+    public List<SubscriptionResponse> getExpiringSubscriptions() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime thirtyDaysFromNow = now.plusDays(30);
+
+        List<Subscription> expiringSubscriptions = subscriptionRepository.findExpiringBetween(
+            now,
+            thirtyDaysFromNow,
+            SubscriptionStatus.ACTIVE
+        );
+
+        return expiringSubscriptions.stream()
+            .map(SubscriptionResponse::fromEntity)
+            .toList();
+    }
+
+    /**
      * Calculate prorated charge for tier upgrade.
      *
      * @param oldTier Current tier

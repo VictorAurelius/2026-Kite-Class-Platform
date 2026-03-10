@@ -3,6 +3,7 @@ package com.kitehub.subscription.controller;
 import com.kitehub.subscription.dto.CreateSubscriptionRequest;
 import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.dto.TierChangeRequest;
+import com.kitehub.subscription.service.SubscriptionRenewalService;
 import com.kitehub.subscription.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
+    private final SubscriptionRenewalService renewalService;
 
     /**
      * Create a new subscription.
@@ -122,5 +124,30 @@ public class SubscriptionController {
     ) {
         subscriptionService.cancelSubscription(id, immediate);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Manually renew subscription.
+     * Creates new billing cycle and reactivates suspended instance if needed.
+     *
+     * @param id Subscription UUID
+     * @return No content
+     */
+    @PostMapping("/{id}/renew")
+    public ResponseEntity<Void> renewSubscription(@PathVariable UUID id) {
+        renewalService.manualRenewal(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Get expiring subscriptions.
+     * Returns subscriptions expiring within the next 30 days.
+     *
+     * @return List of expiring subscription responses
+     */
+    @GetMapping("/expiring")
+    public ResponseEntity<List<SubscriptionResponse>> getExpiringSubscriptions() {
+        List<SubscriptionResponse> responses = subscriptionService.getExpiringSubscriptions();
+        return ResponseEntity.ok(responses);
     }
 }
