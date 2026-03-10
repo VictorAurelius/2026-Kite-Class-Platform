@@ -1,0 +1,38 @@
+# KiteClass Instance ConfigMap Template
+# Replace all {{VARIABLE}} placeholders before applying
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kiteclass-config
+  namespace: kiteclass-{{INSTANCE_ID}}
+  labels:
+    app: kiteclass
+    instance-id: "{{INSTANCE_ID}}"
+data:
+  # Instance Metadata
+  instance.id: "{{INSTANCE_ID}}"
+  instance.name: "{{ORGANIZATION_NAME}}"
+  instance.tier: "{{SUBSCRIPTION_TIER}}"
+  instance.domain: "{{SUBDOMAIN}}.kiteclass.com"
+
+  # Redis (shared across all instances)
+  redis.host: "kitehub-redis.kitehub.svc.cluster.local"
+  redis.port: "6379"
+
+  # Application Settings
+  spring.profiles.active: "production"
+
+  # Rate Limiting (based on tier)
+  # FREE: 100 req/min, BASIC: 500 req/min, PREMIUM: 2000 req/min, ENTERPRISE: 10000 req/min
+  rate-limit.requests-per-minute: "{{RATE_LIMIT}}"
+
+  # Storage Quotas (based on tier)
+  # FREE: 1GB, BASIC: 10GB, PREMIUM: 100GB, ENTERPRISE: 1TB
+  storage.quota-gb: "{{STORAGE_QUOTA}}"
+
+  # Feature Flags (based on tier)
+  features.custom-branding: "{{FEATURE_CUSTOM_BRANDING}}"
+  features.api-access: "{{FEATURE_API_ACCESS}}"
+  features.sso: "{{FEATURE_SSO}}"
+  features.advanced-analytics: "{{FEATURE_ANALYTICS}}"

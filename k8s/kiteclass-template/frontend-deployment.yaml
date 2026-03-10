@@ -1,0 +1,112 @@
+# KiteClass Frontend Deployment Template
+# Replace all {{VARIABLE}} placeholders before applying
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiteclass-frontend
+  namespace: kiteclass-{{INSTANCE_ID}}
+  labels:
+    app: kiteclass-frontend
+    instance-id: "{{INSTANCE_ID}}"
+    version: "{{KITECLASS_VERSION}}"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kiteclass-frontend
+      instance-id: "{{INSTANCE_ID}}"
+  template:
+    metadata:
+      labels:
+        app: kiteclass-frontend
+        instance-id: "{{INSTANCE_ID}}"
+        version: "{{KITECLASS_VERSION}}"
+    spec:
+      containers:
+      - name: frontend
+        image: {{ECR_REGISTRY}}/kiteclass/frontend:{{KITECLASS_VERSION}}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          value: "http://kiteclass-gateway:8080"
+        - name: NEXT_PUBLIC_INSTANCE_ID
+          value: "{{INSTANCE_ID}}"
+        - name: NEXT_PUBLIC_ORGANIZATION_NAME
+          value: "{{ORGANIZATION_NAME}}"
+        - name: NEXT_TELEMETRY_DISABLED
+          value: "1"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kiteclass-frontend
+  namespace: kiteclass-{{INSTANCE_ID}}
+  labels:
+    app: kiteclass-frontend
+    instance-id: "{{INSTANCE_ID}}"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: kiteclass-frontend
+    instance-id: "{{INSTANCE_ID}}"
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kiteclass-frontend-hpa
+  namespace: kiteclass-{{INSTANCE_ID}}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kiteclass-frontend
+  minReplicas: 2
+  maxReplicas: {{HPA_MAX_REPLICAS}}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
