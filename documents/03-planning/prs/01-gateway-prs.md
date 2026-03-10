@@ -32,7 +32,7 @@ Gateway Service là entry point cho tất cả API requests. Chịu trách nhi�
 
 ---
 
-## ✅ Completed PRs (9/10)
+## ✅ Completed PRs (9/9)
 
 ### PR 1.1: Project Setup ✅
 **Status**: Complete
@@ -173,9 +173,9 @@ X-Internal-Timestamp: Unix timestamp
 
 ---
 
-### PR 1.13: Trial User Authentication Support ⭐ NEW
-**Status**: 📋 Planned (V4.1 Phase 2)
-**Priority**: HIGH (blocker for Core PR 2.13)
+### PR 1.13: Trial User Authentication Support 📦 MOVED
+**Status**: 📦 Moved to Expand Services (see Archived section)
+**Original Priority**: HIGH (blocker for Core PR 2.13)
 **Estimated Effort**: 8-12 hours
 **Dependencies**: Migration V12 (TRIAL_USER enum)
 **Blocks**: Core PR 2.13 (Trial Registration)
