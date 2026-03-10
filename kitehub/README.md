@@ -10,10 +10,10 @@
 
 ### 1. Start Infrastructure Only
 
-Start PostgreSQL, Redis, and RabbitMQ for local development:
+Start PostgreSQL, Redis, RabbitMQ, and MinIO for local development:
 
 ```bash
-docker-compose -f docker-compose.kitehub.yml up -d kitehub-postgres kitehub-redis kitehub-rabbitmq
+docker-compose -f docker-compose.kitehub.yml up -d kitehub-postgres kitehub-redis kitehub-rabbitmq kitehub-minio
 ```
 
 ### 2. Verify Infrastructure
@@ -34,6 +34,20 @@ docker exec -it kitehub-redis redis-cli ping
 ```bash
 open http://localhost:15673
 # Login: kitehub / kitehub_dev_password
+```
+
+**MinIO Console:**
+```bash
+open http://localhost:9191
+# Login: kitehub / kitehub_dev_password
+# API Endpoint: http://localhost:9100
+# Default bucket: kitehub-assets
+```
+
+**Verify MinIO Bucket:**
+```bash
+docker exec -it kitehub-minio mc ls kitehub/
+# Expected: kitehub-assets/
 ```
 
 ### 3. Run Services Locally (IntelliJ/VSCode)
