@@ -82,4 +82,31 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     @Query("SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' " +
            "AND s.expiresAt < :now AND s.deleted = false")
     List<Subscription> findExpired(@Param("now") LocalDateTime now);
+
+    /**
+     * Find subscriptions expiring between two dates with specific status.
+     *
+     * @param startDate Start of time range
+     * @param endDate End of time range
+     * @param status Subscription status
+     * @return List of subscriptions expiring in range
+     */
+    @Query("SELECT s FROM Subscription s WHERE s.status = :status " +
+           "AND s.expiresAt >= :startDate AND s.expiresAt <= :endDate " +
+           "AND s.deleted = false")
+    List<Subscription> findExpiringBetween(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        @Param("status") SubscriptionStatus status
+    );
+
+    /**
+     * Find all expired subscriptions (ACTIVE or EXPIRED status, past expiration date).
+     *
+     * @param now Current timestamp
+     * @return List of expired subscriptions
+     */
+    @Query("SELECT s FROM Subscription s WHERE (s.status = 'ACTIVE' OR s.status = 'EXPIRED') " +
+           "AND s.expiresAt < :now AND s.deleted = false")
+    List<Subscription> findExpiredSubscriptions(@Param("now") LocalDateTime now);
 }
