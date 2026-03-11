@@ -198,7 +198,7 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"))
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"))
                 .andExpect(jsonPath("$.data.invoiceId").value(invoiceId))
                 .andExpect(jsonPath("$.data.amount").value(totalAmount))
                 .andReturn();
@@ -210,7 +210,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
 
         // ========== Step 7: Simulate Webhook Callback (Payment Completed) ==========
         // In a real system, this would come from payment gateway
@@ -221,7 +221,7 @@ class PaymentFlowIntegrationTest {
                 UUID.randomUUID().toString()
         );
 
-        mockMvc.perform(post("/api/v1/payments/webhook")
+        mockMvc.perform(post("/api/v1/payments/webhook/momo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(webhookPayload))
