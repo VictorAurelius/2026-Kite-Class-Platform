@@ -1,6 +1,5 @@
 package com.kitehub.admin.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.BillingCycle;
