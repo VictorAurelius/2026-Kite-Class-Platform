@@ -179,7 +179,7 @@ class InvoiceFlowIntegrationTest {
                 .andReturn();
 
         var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
-                .get("data");
+                .get("data").get("content");  // Page wrapper: get content array
 
         // Should have at least one invoice
         if (invoices.size() < 1) {
@@ -332,7 +332,7 @@ class InvoiceFlowIntegrationTest {
                 .andReturn();
 
         var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
-                .get("data");
+                .get("data").get("content");  // Page wrapper: get content array
 
         if (invoices.size() > 0) {
             // Verify totalAmount = amount - discount + tax

@@ -176,7 +176,7 @@ class PaymentFlowIntegrationTest {
                 .andReturn();
 
         var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
-                .get("data");
+                .get("data").get("content");  // Page wrapper: get content array
 
         if (invoices.size() < 1) {
             System.out.println("WARNING: No invoice found - may be async creation");
@@ -337,7 +337,7 @@ class PaymentFlowIntegrationTest {
                 .andReturn();
 
         var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
-                .get("data");
+                .get("data").get("content");  // Page wrapper: get content array
 
         if (invoices.size() < 1) {
             return;
