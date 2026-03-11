@@ -221,8 +221,10 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 3. Find payment by transaction ID
+            // Support multiple formats: VNPay (vnp_TxnRef), MoMo (orderId), Generic (transactionId)
             String transactionId = params.getOrDefault("vnp_TxnRef",
-                params.getOrDefault("orderId", ""));
+                params.getOrDefault("orderId",
+                    params.getOrDefault("transactionId", "")));
             Payment payment = paymentRepository.findByTransactionIdAndDeletedFalse(transactionId)
                 .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND_BY_TRANSACTION", transactionId));
 
@@ -239,10 +241,12 @@ public class PaymentServiceImpl implements PaymentService {
             }
 
             // 5. Update payment status based on gateway response
+            // Support multiple formats: VNPay (vnp_ResponseCode), MoMo (resultCode), Generic (status)
             String responseCode = params.getOrDefault("vnp_ResponseCode",
-                params.getOrDefault("resultCode", ""));
+                params.getOrDefault("resultCode",
+                    params.getOrDefault("status", "")));
 
-            if ("00".equals(responseCode) || "0".equals(responseCode)) {
+            if ("00".equals(responseCode) || "0".equals(responseCode) || "COMPLETED".equalsIgnoreCase(responseCode)) {
                 // Success
                 String gatewayTxnId = params.getOrDefault("vnp_TransactionNo",
                     params.getOrDefault("transId", ""));
