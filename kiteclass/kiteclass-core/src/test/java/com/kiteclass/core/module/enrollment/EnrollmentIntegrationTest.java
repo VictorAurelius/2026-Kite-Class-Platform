@@ -214,12 +214,12 @@ class EnrollmentIntegrationTest {
         enrollment.setStatus(EnrollmentStatus.ACTIVE);
         enrollmentRepository.save(enrollment);
 
-        // Second enrollment - duplicate (should fail)
+        // Second enrollment - duplicate (should fail with 409 Conflict)
         mockMvc.perform(post("/api/v1/enrollments")
                         .header("X-Tenant-Id", tenantId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
