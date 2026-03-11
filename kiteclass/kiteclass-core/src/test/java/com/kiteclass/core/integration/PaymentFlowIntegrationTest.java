@@ -11,6 +11,7 @@ import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
+import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
-@org.junit.jupiter.api.Disabled("TODO: Fix test data setup - requires teacher/course fixtures")
 
 class PaymentFlowIntegrationTest {
 
@@ -70,11 +70,17 @@ class PaymentFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TestDataBuilder testDataBuilder;
+
     private UUID tenantId;
+    private Long teacherId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         tenantId = UUID.randomUUID();
+        // Create test teacher for course creation
+        teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
     }
 
     @Test
@@ -110,7 +116,7 @@ class PaymentFlowIntegrationTest {
                 null,                          // objectives
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
+                teacherId,                     // teacherId (from test fixture)
                 null,                          // durationWeeks
                 null,                          // totalSessions
                 null                           // price
@@ -273,7 +279,7 @@ class PaymentFlowIntegrationTest {
                 null,                          // objectives
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
+                teacherId,                     // teacherId (from test fixture)
                 null,                          // durationWeeks
                 null,                          // totalSessions
                 null                           // price
