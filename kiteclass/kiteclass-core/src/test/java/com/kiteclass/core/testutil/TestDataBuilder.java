@@ -82,7 +82,7 @@ public class TestDataBuilder {
         CreateTeacherRequest teacherRequest = new CreateTeacherRequest(
                 name,                           // name
                 email,                          // email
-                "+84900000000",                 // phoneNumber
+                "0900000000",                   // phoneNumber
                 specialization,                 // specialization
                 "Experienced educator",         // bio
                 "Bachelor of Education",        // qualification
