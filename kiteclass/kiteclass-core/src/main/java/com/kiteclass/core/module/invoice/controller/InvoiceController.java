@@ -50,16 +50,16 @@ public class InvoiceController {
     /**
      * Gets invoices by student ID, paginated.
      *
-     * @param studentId the student ID (query parameter)
+     * @param studentId the student ID (path variable)
      * @param pageable pagination parameters
      * @return page of invoice response DTOs
      */
-    @GetMapping
+    @GetMapping("/student/{studentId}")
     public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoicesByStudent(
-            @RequestParam Long studentId,
+            @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        log.info("GET /api/v1/invoices?studentId={}", studentId);
+        log.info("GET /api/v1/invoices/student/{}", studentId);
         Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
         return ResponseEntity.ok(ApiResponse.success(invoices));
     }
@@ -107,6 +107,56 @@ public class InvoiceController {
         log.info("GET /api/v1/invoices/overdue");
         Page<InvoiceResponse> invoices = invoiceService.getOverdueInvoices(pageable);
         return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    /**
+     * Gets unpaid invoices for a student, paginated.
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return page of unpaid invoice response DTOs
+     */
+    @GetMapping("/student/{studentId}/unpaid")
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getUnpaidInvoicesByStudent(
+            @PathVariable Long studentId,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        log.info("GET /api/v1/invoices/student/{}/unpaid", studentId);
+        // TODO: PR-2.14 - Filter by paymentStatus != PAID in service layer
+        Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    /**
+     * Gets overdue invoices for a student, paginated.
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return page of overdue invoice response DTOs
+     */
+    @GetMapping("/student/{studentId}/overdue")
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoicesByStudent(
+            @PathVariable Long studentId,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        log.info("GET /api/v1/invoices/student/{}/overdue", studentId);
+        // TODO: PR-2.14 - Filter by dueDate < today AND paymentStatus != PAID
+        Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    /**
+     * Marks invoice as paid (manual payment recording).
+     *
+     * @param id the invoice ID
+     * @return updated invoice response DTO
+     */
+    @PostMapping("/{id}/mark-paid")
+    public ResponseEntity<ApiResponse<InvoiceResponse>> markInvoiceAsPaid(@PathVariable Long id) {
+        log.info("POST /api/v1/invoices/{}/mark-paid", id);
+        // TODO: PR-2.14 - Implement markAsPaid in service layer (update paymentStatus)
+        InvoiceResponse invoice = invoiceService.getInvoiceById(id);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
