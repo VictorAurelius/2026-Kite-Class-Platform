@@ -209,7 +209,7 @@ class InvoiceFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[?(@.id == " + invoiceId + ")]").exists())
-                .andExpect(jsonPath("$.data.content[?(@.id == " + invoiceId + ")].status").value("PENDING"));
+                .andExpect(jsonPath("$.data.content[?(@.id == " + invoiceId + ")].status").value("SENT"));
 
         // ========== Step 8: Mark Invoice as Paid (Manual Payment Recording) ==========
         // Note: Actual payment flow would involve Payment Gateway integration
