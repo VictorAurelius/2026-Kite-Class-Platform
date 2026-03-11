@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.enrollment.controller;
 
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
@@ -57,13 +58,14 @@ public class EnrollmentController {
     @PostMapping
     @Operation(summary = "Enroll a student in a class",
                description = "Creates a new enrollment. Validates capacity and prevents duplicates.")
-    public ResponseEntity<EnrollmentResponse> enrollStudent(
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> enrollStudent(
             @Valid @RequestBody CreateEnrollmentRequest request) {
         log.info("POST /api/v1/enrollments - Enrolling student {} in class {}",
                 request.getStudentId(), request.getClassId());
 
         EnrollmentResponse response = enrollmentService.enrollStudent(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response, "Student enrolled successfully"));
     }
 
     /**
@@ -74,12 +76,12 @@ public class EnrollmentController {
      */
     @GetMapping("/{id}")
     @Operation(summary = "Get enrollment by ID")
-    public ResponseEntity<EnrollmentResponse> getEnrollment(
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> getEnrollment(
             @Parameter(description = "Enrollment ID") @PathVariable Long id) {
         log.debug("GET /api/v1/enrollments/{}", id);
 
         EnrollmentResponse response = enrollmentService.getEnrollmentById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -91,7 +93,7 @@ public class EnrollmentController {
      */
     @GetMapping("/student/{studentId}")
     @Operation(summary = "Get all enrollments for a student")
-    public ResponseEntity<Page<EnrollmentResponse>> getEnrollmentsByStudent(
+    public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getEnrollmentsByStudent(
             @Parameter(description = "Student ID") @PathVariable Long studentId,
             @PageableDefault(sort = "enrollmentDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
@@ -100,7 +102,7 @@ public class EnrollmentController {
         Page<EnrollmentResponse> response = enrollmentService.getEnrollmentsByStudent(
                 studentId, pageable
         );
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -113,7 +115,7 @@ public class EnrollmentController {
      */
     @GetMapping("/class/{classId}")
     @Operation(summary = "Get all enrollments for a class")
-    public ResponseEntity<Page<EnrollmentResponse>> getEnrollmentsByClass(
+    public ResponseEntity<ApiResponse<Page<EnrollmentResponse>>> getEnrollmentsByClass(
             @Parameter(description = "Class ID") @PathVariable Long classId,
             @Parameter(description = "Filter by status (optional)")
             @RequestParam(required = false) EnrollmentStatus status,
@@ -130,7 +132,7 @@ public class EnrollmentController {
             response = enrollmentService.getEnrollmentsByClass(classId, pageable);
         }
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -143,13 +145,13 @@ public class EnrollmentController {
     @PutMapping("/{id}/status")
     @Operation(summary = "Update enrollment status",
                description = "Updates enrollment status (e.g., PENDING_PAYMENT → ACTIVE)")
-    public ResponseEntity<EnrollmentResponse> updateEnrollmentStatus(
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> updateEnrollmentStatus(
             @Parameter(description = "Enrollment ID") @PathVariable Long id,
             @Valid @RequestBody UpdateEnrollmentStatusRequest request) {
         log.info("PUT /api/v1/enrollments/{}/status to {}", id, request.getStatus());
 
         EnrollmentResponse response = enrollmentService.updateEnrollmentStatus(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "Enrollment status updated successfully"));
     }
 
     /**
@@ -161,11 +163,11 @@ public class EnrollmentController {
     @PutMapping("/{id}/withdraw")
     @Operation(summary = "Withdraw a student from a class",
                description = "Sets enrollment status to WITHDRAWN")
-    public ResponseEntity<EnrollmentResponse> withdrawStudent(
+    public ResponseEntity<ApiResponse<EnrollmentResponse>> withdrawStudent(
             @Parameter(description = "Enrollment ID") @PathVariable Long id) {
         log.info("PUT /api/v1/enrollments/{}/withdraw", id);
 
         EnrollmentResponse response = enrollmentService.withdrawStudent(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response, "Student withdrawn successfully"));
     }
 }
