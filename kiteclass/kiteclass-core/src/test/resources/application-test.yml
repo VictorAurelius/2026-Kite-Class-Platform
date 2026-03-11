@@ -2,6 +2,10 @@
 # This file is loaded when @ActiveProfiles("test") is used
 
 spring:
+  # Allow test beans to override production beans (for mocking)
+  main:
+    allow-bean-definition-overriding: true
+
   # Disable Flyway in Core Service tests (Gateway manages migrations in production)
   # Tests use JPA to auto-create schema from entities
   flyway:
