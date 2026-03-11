@@ -165,7 +165,7 @@ class InvoiceFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(enrollRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.paymentStatus").exists())
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
                 .andReturn();
 
         Long enrollmentId = objectMapper.readTree(enrollResult.getResponse().getContentAsString())
