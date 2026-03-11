@@ -8,7 +8,6 @@ import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
-import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,17 +66,11 @@ class StudentFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private TestDataBuilder testDataBuilder;
-
     private UUID tenantId;
-    private Long teacherId;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         tenantId = UUID.randomUUID();
-        // Create test teacher for course creation
-        teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
     }
 
     @Test
