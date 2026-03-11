@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.config.TestContainersConfiguration;
+import com.kiteclass.core.config.TestPaymentGatewayConfig;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
@@ -58,7 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
+@Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class, TestPaymentGatewayConfig.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 
