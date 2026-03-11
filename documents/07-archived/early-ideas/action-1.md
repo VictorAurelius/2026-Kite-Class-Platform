@@ -1436,3 +1436,9 @@ tạo báo cáo phân loại
 2. TODO nào có thể implement ngay
 3. TODO nào còn chờ expand services
 4. TODO nào thuộc phân loại khác
+
+tạo báo cáo dạng md và lưu trong documents, đối với các TODO implement vào code thì cần tạo PR vào PR plan tương ứng trước khi thực hiện
+
+ý tôi là PR tạo mới thì phải lưu trong master PR plan của service, chứ không chỉ lưu ở báo cáo QA đâu
+
+sao vẫn còn TODO, nếu đang implement rồi thì xóa TODO đi, comment như code bình thường => thêm rule này vào skill và update lại

@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.enrollment.service;
 
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
@@ -190,7 +191,7 @@ class EnrollmentServiceTest {
 
         // Act & Assert
         assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
-                .isInstanceOf(ValidationException.class)
+                .isInstanceOf(DuplicateResourceException.class)
                 .satisfies(e -> assertThat(e.getMessage())
                         .containsIgnoringCase("ENROLLMENT_DUPLICATE"));
     }

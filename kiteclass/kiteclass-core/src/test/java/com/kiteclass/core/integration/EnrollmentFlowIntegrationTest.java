@@ -180,13 +180,12 @@ class EnrollmentFlowIntegrationTest {
         Long enrollmentId = objectMapper.readTree(enrollResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        // ========== Step 5: Verify Invoice Was Auto-Created ==========
+        // ========== Step 5: Verify Enrollment Status ==========
         // Note: Invoice creation might be async (event-driven), so we may need to wait or check later
-        // For now, we'll verify the enrollment has payment status
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").exists());
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"));
 
         // Try to fetch invoices for this student
         mockMvc.perform(get("/api/v1/invoices/student/" + studentId)

@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.enrollment.service;
 
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
@@ -60,7 +61,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 request.getStudentId(),
                 request.getClassId()).isPresent()) {
             log.warn("Student {} is already enrolled in class {}", request.getStudentId(), request.getClassId());
-            throw new ValidationException("ENROLLMENT_DUPLICATE",
+            throw new DuplicateResourceException("ENROLLMENT_DUPLICATE",
                     request.getStudentId(), request.getClassId());
         }
 
