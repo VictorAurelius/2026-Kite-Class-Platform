@@ -130,10 +130,10 @@ class EnrollmentIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.studentId").value(savedStudent.getId()))
-                .andExpect(jsonPath("$.classId").value(savedClass.getId()))
-                .andExpect(jsonPath("$.status").value("PENDING_PAYMENT"))
-                .andExpect(jsonPath("$.finalAmount").value(1000.00));
+                .andExpect(jsonPath("$.data.studentId").value(savedStudent.getId()))
+                .andExpect(jsonPath("$.data.classId").value(savedClass.getId()))
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
+                .andExpect(jsonPath("$.data.finalAmount").value(1000.00));
 
         // Verify in database
         long count = enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
@@ -156,9 +156,9 @@ class EnrollmentIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.tuitionAmount").value(1000.00))
-                .andExpect(jsonPath("$.discountPercent").value(10.00))
-                .andExpect(jsonPath("$.finalAmount").value(900.00)); // 1000 - 10%
+                .andExpect(jsonPath("$.data.tuitionAmount").value(1000.00))
+                .andExpect(jsonPath("$.data.discountPercent").value(10.00))
+                .andExpect(jsonPath("$.data.finalAmount").value(900.00)); // 1000 - 10%
     }
 
     // =========================================================================
@@ -214,12 +214,12 @@ class EnrollmentIntegrationTest {
         enrollment.setStatus(EnrollmentStatus.ACTIVE);
         enrollmentRepository.save(enrollment);
 
-        // Second enrollment - duplicate (should fail)
+        // Second enrollment - duplicate (should fail with 409 Conflict)
         mockMvc.perform(post("/api/v1/enrollments")
                         .header("X-Tenant-Id", tenantId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -300,14 +300,14 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // Get by ID
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(enrollmentId))
-                .andExpect(jsonPath("$.studentId").value(savedStudent.getId()));
+                .andExpect(jsonPath("$.data.id").value(enrollmentId))
+                .andExpect(jsonPath("$.data.studentId").value(savedStudent.getId()));
     }
 
     @Test
@@ -336,7 +336,7 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // Update status to ACTIVE
         UpdateEnrollmentStatusRequest updateRequest = EnrollmentTestDataBuilder
@@ -347,7 +347,7 @@ class EnrollmentIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
 
         // Verify in database
         Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(enrollmentId).orElseThrow();
@@ -373,13 +373,13 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // Withdraw
         mockMvc.perform(put("/api/v1/enrollments/" + enrollmentId + "/withdraw")
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("WITHDRAWN"));
+                .andExpect(jsonPath("$.data.status").value("WITHDRAWN"));
 
         // Verify in database
         Enrollment enrollment = enrollmentRepository.findByIdAndDeletedFalse(enrollmentId).orElseThrow();
@@ -401,7 +401,7 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // First withdraw - success
         mockMvc.perform(put("/api/v1/enrollments/" + enrollmentId + "/withdraw")
@@ -463,7 +463,7 @@ class EnrollmentIntegrationTest {
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString();
 
-            Long enrollmentId = objectMapper.readTree(response1).get("id").asLong();
+            Long enrollmentId = objectMapper.readTree(response1).get("data").get("id").asLong();
 
             // Tenant 2: Try to access tenant1's enrollment - should get 404
             mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
@@ -522,8 +522,8 @@ class EnrollmentIntegrationTest {
         mockMvc.perform(get("/api/v1/enrollments/student/" + savedStudent.getId())
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(2));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(2));
     }
 
     // =========================================================================
@@ -561,7 +561,7 @@ class EnrollmentIntegrationTest {
         mockMvc.perform(get("/api/v1/enrollments/class/" + savedClass.getId())
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(2));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content.length()").value(2));
     }
 }

@@ -192,6 +192,102 @@ public void deleteStudent(Long id) {
 }
 ```
 
+### TODO Comments - Best Practices
+
+**CRITICAL RULE: Khi TODO đã được implement → XÓA TODO ngay lập tức**
+
+```java
+// ❌ WRONG - TODO đã implement nhưng vẫn để TODO comment
+@BeforeEach
+void setUp() throws Exception {
+    tenantId = UUID.randomUUID();
+    // TODO: Create test teacher
+    teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
+}
+
+// ✅ CORRECT - TODO đã implement → xóa TODO, viết comment như code bình thường
+@BeforeEach
+void setUp() throws Exception {
+    tenantId = UUID.randomUUID();
+    // Create test teacher fixture for course creation
+    teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
+}
+```
+
+**Quy tắc TODO Comments:**
+
+1. **TODO chỉ dùng khi chưa implement**
+   ```java
+   // ✅ Hợp lệ - feature thật sự chưa có
+   public void sendEmail(String to, String subject) {
+       // TODO: Integrate with EmailService when PR 4.12 is merged
+       log.info("Email sending stubbed: {} - {}", to, subject);
+   }
+   ```
+
+2. **TODO phải có context rõ ràng**
+   ```java
+   // ❌ WRONG - không rõ phải làm gì
+   // TODO: fix this
+
+   // ✅ CORRECT - rõ ràng, có blocker
+   // TODO: Replace with real VietQR API call (waiting for production credentials)
+   return "STUBBED_QR_CODE";
+   ```
+
+3. **TODO phải có assignee hoặc blocker**
+   ```java
+   // ✅ Good - có blocker rõ ràng
+   // TODO: Implement after PR 2.13 (TestDataBuilder) is merged
+
+   // ✅ Good - có reference
+   // TODO: [BLOCKED by KMS setup] Encrypt password with AES-256-GCM
+
+   // ❌ BAD - không biết ai làm, khi nào làm
+   // TODO: improve performance
+   ```
+
+4. **Khi commit code → kiểm tra TODO đã resolve**
+   - Nếu TODO đã implement trong commit này → **XÓA TODO comment**
+   - Nếu TODO chưa implement → giữ TODO với context đầy đủ
+   - **NEVER commit code với TODO đã implement**
+
+5. **TODO trong test code**
+   ```java
+   // ❌ WRONG - test đã pass nhưng vẫn có TODO
+   @Test
+   void testUserCreation() {
+       // TODO: Add validation tests
+       User user = userService.create(request);
+       assertThat(user).isNotNull();
+       assertThat(user.getEmail()).isEqualTo(request.email());  // ← Validation đã test rồi!
+   }
+
+   // ✅ CORRECT - xóa TODO, viết comment mô tả test
+   @Test
+   void testUserCreation_withValidation() {
+       // Test user creation with email validation
+       User user = userService.create(request);
+       assertThat(user).isNotNull();
+       assertThat(user.getEmail()).isEqualTo(request.email());
+   }
+   ```
+
+**Pre-commit Checklist:**
+- [ ] Tìm tất cả TODO trong staged files: `git diff --cached | grep TODO`
+- [ ] Xác nhận mỗi TODO:
+  - ✅ Đã implement? → **XÓA TODO**, viết comment bình thường
+  - ⏳ Chưa implement? → Giữ TODO với context đầy đủ (blocker, assignee, PR reference)
+
+**Tools:**
+```bash
+# Tìm TODO trong code đã staged
+git diff --cached | grep -i "TODO"
+
+# Tìm TODO trong toàn bộ source code (loại trừ node_modules)
+grep -r "TODO" src/ --include="*.java" --include="*.ts" --include="*.tsx"
+```
+
 ---
 
 ## Code Formatting

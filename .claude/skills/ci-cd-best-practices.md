@@ -71,6 +71,34 @@ permissions:
 
 ## ✅ Pre-Commit Checklist
 
+### 🔴 CRITICAL: Local Test Requirement
+
+**MUST run tests locally BEFORE pushing to CI:**
+
+```bash
+# For backend changes
+./scripts/test-local.sh core      # Core service
+./scripts/test-local.sh gateway   # Gateway service
+./scripts/test-local.sh all       # All services
+
+# For frontend changes
+cd frontend && pnpm test
+```
+
+**Golden Rule:**
+- ✅ **Push to CI ONLY when ALL local tests PASS**
+- ❌ **NO trial-and-error on CI** - fix locally first
+- ❌ **NO "let's see if CI passes"** - verify locally
+- ✅ **CI should run clean** - no surprises
+
+**If you push without local testing:**
+- Wastes CI resources (GitHub Actions minutes)
+- Blocks other developers with failing builds
+- Creates noise in PR review process
+- Requires additional commits to fix (pollutes git history)
+
+---
+
 ### 1. Local Test Verification
 
 ```bash
@@ -83,8 +111,10 @@ cd kiteclass/kiteclass-gateway
 
 **If tests fail:**
 - ❌ DO NOT commit if NEW tests fail
+- ❌ DO NOT push to CI until tests pass locally
 - ✅ OK to commit if EXISTING tests fail with @Disabled
 - 📝 Document reason in @Disabled annotation
+- 🔧 Fix locally, then push to CI
 
 ---
 
@@ -229,12 +259,20 @@ xdg-open target/site/jacoco/index.html  # Linux
 
 **Steps:**
 ```bash
-1. Reproduce failure locally
+1. Reproduce failure locally (CRITICAL - DON'T skip this)
 2. Debug and fix issue
-3. Verify fix: ./mvnw test
+3. Verify fix locally: ./mvnw test (MUST pass before step 5)
 4. Commit fix with descriptive message
-5. Push and verify CI passes
+5. ONLY push after ALL local tests pass
+6. Verify CI passes (should be green if local passed)
 ```
+
+**Why local testing is mandatory:**
+- ✅ Catches issues before CI (faster feedback)
+- ✅ Saves CI resources (GitHub Actions minutes)
+- ✅ Prevents broken builds that block team
+- ✅ Enables proper debugging with IDE tools
+- ❌ CI is NOT a testing playground
 
 ### Strategy 2: Disable with TODO (TEMPORARY)
 

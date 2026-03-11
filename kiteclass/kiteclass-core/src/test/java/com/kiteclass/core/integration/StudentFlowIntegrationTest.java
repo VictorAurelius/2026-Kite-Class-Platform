@@ -57,7 +57,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
-@org.junit.jupiter.api.Disabled("TODO: Fix test data setup - requires teacher/course fixtures")
 
 class StudentFlowIntegrationTest {
 

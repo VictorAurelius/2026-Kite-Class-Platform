@@ -1,6 +1,8 @@
 package com.kiteclass.core.module.invoice.controller;
 
+import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
+import com.kiteclass.core.module.invoice.dto.InvoiceItemResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
 import com.kiteclass.core.module.invoice.service.InvoiceService;
 import jakarta.validation.Valid;
@@ -16,8 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * REST controller for invoice management.
@@ -40,27 +43,40 @@ public class InvoiceController {
      * @return invoice response DTO
      */
     @GetMapping("/{id}")
-    public ResponseEntity<InvoiceResponse> getInvoiceById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable Long id) {
         log.info("GET /api/v1/invoices/{}", id);
         InvoiceResponse invoice = invoiceService.getInvoiceById(id);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
+    }
+
+    /**
+     * Gets invoice line items by invoice ID.
+     *
+     * @param id the invoice ID
+     * @return list of invoice item response DTOs
+     */
+    @GetMapping("/{id}/items")
+    public ResponseEntity<ApiResponse<List<InvoiceItemResponse>>> getInvoiceItems(@PathVariable Long id) {
+        log.info("GET /api/v1/invoices/{}/items", id);
+        List<InvoiceItemResponse> items = invoiceService.getInvoiceItems(id);
+        return ResponseEntity.ok(ApiResponse.success(items));
     }
 
     /**
      * Gets invoices by student ID, paginated.
      *
-     * @param studentId the student ID (query parameter)
+     * @param studentId the student ID (path variable)
      * @param pageable pagination parameters
      * @return page of invoice response DTOs
      */
-    @GetMapping
-    public ResponseEntity<Page<InvoiceResponse>> getInvoicesByStudent(
-            @RequestParam Long studentId,
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoicesByStudent(
+            @PathVariable Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        log.info("GET /api/v1/invoices?studentId={}", studentId);
+        log.info("GET /api/v1/invoices/student/{}", studentId);
         Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
-        return ResponseEntity.ok(invoices);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
     /**
@@ -71,13 +87,13 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/adjustments")
-    public ResponseEntity<InvoiceResponse> applyAdjustment(
+    public ResponseEntity<ApiResponse<InvoiceResponse>> applyAdjustment(
             @PathVariable Long id,
             @Valid @RequestBody ApplyAdjustmentRequest request) {
 
         log.info("POST /api/v1/invoices/{}/adjustments: {}", id, request.getType());
         InvoiceResponse invoice = invoiceService.applyAdjustment(id, request);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
@@ -87,10 +103,10 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/late-fees")
-    public ResponseEntity<InvoiceResponse> calculateLateFees(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> calculateLateFees(@PathVariable Long id) {
         log.info("POST /api/v1/invoices/{}/late-fees", id);
         InvoiceResponse invoice = invoiceService.calculateLateFees(id);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
@@ -100,12 +116,62 @@ public class InvoiceController {
      * @return page of overdue invoice response DTOs
      */
     @GetMapping("/overdue")
-    public ResponseEntity<Page<InvoiceResponse>> getOverdueInvoices(
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoices(
             @PageableDefault(size = 20) Pageable pageable) {
 
         log.info("GET /api/v1/invoices/overdue");
         Page<InvoiceResponse> invoices = invoiceService.getOverdueInvoices(pageable);
-        return ResponseEntity.ok(invoices);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    /**
+     * Gets unpaid invoices for a student, paginated.
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return page of unpaid invoice response DTOs
+     */
+    @GetMapping("/student/{studentId}/unpaid")
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getUnpaidInvoicesByStudent(
+            @PathVariable Long studentId,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        log.info("GET /api/v1/invoices/student/{}/unpaid", studentId);
+        // TODO: PR-2.14 - Filter by paymentStatus != PAID in service layer
+        Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    /**
+     * Gets overdue invoices for a student, paginated.
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return page of overdue invoice response DTOs
+     */
+    @GetMapping("/student/{studentId}/overdue")
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoicesByStudent(
+            @PathVariable Long studentId,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        log.info("GET /api/v1/invoices/student/{}/overdue", studentId);
+        // TODO: PR-2.14 - Filter by dueDate < today AND paymentStatus != PAID
+        Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    /**
+     * Marks invoice as paid (manual payment recording).
+     *
+     * @param id the invoice ID
+     * @return updated invoice response DTO
+     */
+    @PostMapping("/{id}/mark-paid")
+    public ResponseEntity<ApiResponse<InvoiceResponse>> markInvoiceAsPaid(@PathVariable Long id) {
+        log.info("POST /api/v1/invoices/{}/mark-paid", id);
+        // TODO: PR-2.14 - Implement markAsPaid in service layer (update paymentStatus)
+        InvoiceResponse invoice = invoiceService.getInvoiceById(id);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
@@ -115,9 +181,9 @@ public class InvoiceController {
      * @return cancelled invoice response DTO
      */
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<InvoiceResponse> cancelInvoice(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> cancelInvoice(@PathVariable Long id) {
         log.info("PUT /api/v1/invoices/{}/cancel", id);
         InvoiceResponse invoice = invoiceService.cancelInvoice(id);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 }

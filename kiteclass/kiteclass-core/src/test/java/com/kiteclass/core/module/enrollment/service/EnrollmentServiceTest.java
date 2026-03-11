@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.enrollment.service;
 
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
@@ -123,9 +124,8 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                1L, 1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(false);
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.empty());
         when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
                 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(0L);
@@ -186,13 +186,12 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                1L, 1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(true);
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.of(new Enrollment()));
 
         // Act & Assert
         assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
-                .isInstanceOf(ValidationException.class)
+                .isInstanceOf(DuplicateResourceException.class)
                 .satisfies(e -> assertThat(e.getMessage())
                         .containsIgnoringCase("ENROLLMENT_DUPLICATE"));
     }
@@ -205,9 +204,8 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                1L, 1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(false);
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.empty());
         when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
                 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(30L); // Class is at capacity

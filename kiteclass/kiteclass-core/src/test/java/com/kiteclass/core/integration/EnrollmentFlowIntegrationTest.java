@@ -9,6 +9,7 @@ import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
+import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,8 +59,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
-@org.junit.jupiter.api.Disabled("TODO: Fix test data setup - requires teacher/course fixtures")
-
 class EnrollmentFlowIntegrationTest {
 
     @Autowired
@@ -68,11 +67,17 @@ class EnrollmentFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TestDataBuilder testDataBuilder;
+
     private UUID tenantId;
+    private Long teacherId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         tenantId = UUID.randomUUID();
+        // Create test teacher for course creation
+        teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
     }
 
     @Test
@@ -82,7 +87,7 @@ class EnrollmentFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Bob Enrollment",
                 "bob.enroll@test.com",
-                "+84901234567",
+                "0901234567",
                 LocalDate.of(2008, 6, 20),
                 Gender.MALE,
                 "789 Enrollment St, Hanoi",
@@ -106,11 +111,11 @@ class EnrollmentFlowIntegrationTest {
                 "ENG101",                      // code
                 "Introduction to English",     // description
                 "Week 1-16: Grammar and vocabulary", // syllabus
-                null,                          // objectives
+                "Learn fundamental English grammar and vocabulary", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
-                null,                          // durationWeeks
+                teacherId,                     // teacherId (from test fixture)
+                16,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -143,7 +148,7 @@ class EnrollmentFlowIntegrationTest {
                 30
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))
@@ -169,19 +174,18 @@ class EnrollmentFlowIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.studentId").value(studentId))
                 .andExpect(jsonPath("$.data.classId").value(classId))
-                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
                 .andReturn();
 
         Long enrollmentId = objectMapper.readTree(enrollResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
-        // ========== Step 5: Verify Invoice Was Auto-Created ==========
+        // ========== Step 5: Verify Enrollment Status ==========
         // Note: Invoice creation might be async (event-driven), so we may need to wait or check later
-        // For now, we'll verify the enrollment has payment status
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").exists());
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"));
 
         // Try to fetch invoices for this student
         mockMvc.perform(get("/api/v1/invoices/student/" + studentId)
@@ -223,7 +227,7 @@ class EnrollmentFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Charlie Dup",
                 "charlie.dup@test.com",
-                "+84903333333",
+                "0903333333",
                 LocalDate.of(2008, 3, 15),
                 Gender.MALE,
                 "Address",
@@ -245,11 +249,11 @@ class EnrollmentFlowIntegrationTest {
                 "MATH202",                     // code
                 "Advanced topics",             // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Master advanced mathematical concepts and problem-solving", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
-                null,                          // durationWeeks
+                teacherId,                     // teacherId (from test fixture)
+                12,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -278,7 +282,7 @@ class EnrollmentFlowIntegrationTest {
                 25
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))

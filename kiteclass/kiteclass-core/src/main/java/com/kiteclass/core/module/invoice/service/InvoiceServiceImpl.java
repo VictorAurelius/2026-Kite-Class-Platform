@@ -12,6 +12,7 @@ import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.enrollment.entity.Enrollment;
 import com.kiteclass.core.module.enrollment.repository.EnrollmentRepository;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
+import com.kiteclass.core.module.invoice.dto.InvoiceItemResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.entity.InvoiceAdjustment;
@@ -33,6 +34,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service implementation for invoice management.
@@ -144,6 +147,21 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) id));
 
         return invoiceMapper.toResponse(invoice);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InvoiceItemResponse> getInvoiceItems(Long invoiceId) {
+        log.debug("Fetching items for invoice ID: {}", invoiceId);
+
+        // Validate invoice exists and tenant access
+        Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) invoiceId));
+
+        // Map items to DTOs
+        return invoice.getItems().stream()
+                .map(invoiceMapper::toItemResponse)
+                .collect(Collectors.toList());
     }
 
     @Override

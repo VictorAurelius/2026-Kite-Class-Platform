@@ -11,6 +11,7 @@ import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
+import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,8 +60,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
-@org.junit.jupiter.api.Disabled("TODO: Fix test data setup - requires teacher/course fixtures")
-
 class AttendanceFlowIntegrationTest {
 
     @Autowired
@@ -69,11 +68,17 @@ class AttendanceFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TestDataBuilder testDataBuilder;
+
     private UUID tenantId;
+    private Long teacherId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         tenantId = UUID.randomUUID();
+        // Create test teacher for course creation
+        teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
     }
 
     @Test
@@ -107,11 +112,11 @@ class AttendanceFlowIntegrationTest {
                 "PHY101",                      // code
                 "Introduction to Physics",     // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Understand fundamental physics concepts and principles", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
-                null,                          // durationWeeks
+                teacherId,                     // teacherId (from test fixture)
+                12,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -141,7 +146,7 @@ class AttendanceFlowIntegrationTest {
                 30
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))
@@ -263,11 +268,11 @@ class AttendanceFlowIntegrationTest {
                 "CHEM101",                     // code
                 "Basic Chemistry",             // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Learn fundamental chemistry concepts and reactions", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
-                null,                          // durationWeeks
+                teacherId,                     // teacherId (from test fixture)
+                10,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -296,7 +301,7 @@ class AttendanceFlowIntegrationTest {
                 30
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))

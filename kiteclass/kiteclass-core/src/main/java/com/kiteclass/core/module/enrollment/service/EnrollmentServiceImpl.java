@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.enrollment.service;
 
 import com.kiteclass.core.common.constant.EnrollmentStatus;
+import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.clazz.entity.Class;
@@ -21,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.math.BigDecimal;
 
 /**
  * Implementation of {@link EnrollmentService}.
@@ -53,13 +56,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
 
-        // BR-ENROLL-002: Check for duplicate enrollment
-        if (enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+        // BR-ENROLL-002: Check for duplicate enrollment (regardless of status)
+        if (enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(
                 request.getStudentId(),
-                request.getClassId(),
-                EnrollmentStatus.ACTIVE)) {
+                request.getClassId()).isPresent()) {
             log.warn("Student {} is already enrolled in class {}", request.getStudentId(), request.getClassId());
-            throw new ValidationException("ENROLLMENT_DUPLICATE",
+            throw new DuplicateResourceException("ENROLLMENT_DUPLICATE",
                     request.getStudentId(), request.getClassId());
         }
 
@@ -79,6 +81,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         // Create enrollment entity
         Enrollment enrollment = enrollmentMapper.toEntity(request);
         enrollment.setInstanceId(student.getInstanceId()); // Multi-tenant
+
+        // Set default discount percent if not provided
+        if (enrollment.getDiscountPercent() == null) {
+            enrollment.setDiscountPercent(BigDecimal.ZERO);
+        }
 
         // BR-ENROLL-003: final_amount calculated automatically in @PrePersist
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);

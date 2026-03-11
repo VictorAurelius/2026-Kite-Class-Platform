@@ -1,11 +1,14 @@
 package com.kiteclass.core.module.invoice.service;
 
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
+import com.kiteclass.core.module.invoice.dto.InvoiceItemResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 /**
  * Service interface for invoice management.
@@ -37,6 +40,14 @@ public interface InvoiceService {
      * @return invoice response DTO
      */
     InvoiceResponse getInvoiceById(Long id);
+
+    /**
+     * Gets invoice line items by invoice ID.
+     *
+     * @param invoiceId the invoice ID
+     * @return list of invoice item response DTOs
+     */
+    List<InvoiceItemResponse> getInvoiceItems(Long invoiceId);
 
     /**
      * Gets all invoices for a student, paginated.

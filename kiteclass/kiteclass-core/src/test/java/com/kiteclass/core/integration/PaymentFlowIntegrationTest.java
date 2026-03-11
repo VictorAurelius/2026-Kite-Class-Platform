@@ -11,6 +11,7 @@ import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
+import com.kiteclass.core.testutil.TestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +61,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({TestContainersConfiguration.class, TestSecurityConfig.class, TestTenantContextFilter.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
-@org.junit.jupiter.api.Disabled("TODO: Fix test data setup - requires teacher/course fixtures")
 
 class PaymentFlowIntegrationTest {
 
@@ -70,11 +70,17 @@ class PaymentFlowIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private TestDataBuilder testDataBuilder;
+
     private UUID tenantId;
+    private Long teacherId;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         tenantId = UUID.randomUUID();
+        // Create test teacher for course creation
+        teacherId = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenantId);
     }
 
     @Test
@@ -107,11 +113,11 @@ class PaymentFlowIntegrationTest {
                 "LIT101",                      // code
                 "Introduction to Literature",  // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Explore fundamental literary analysis and appreciation", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
-                null,                          // durationWeeks
+                teacherId,                     // teacherId (from test fixture)
+                12,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -140,7 +146,7 @@ class PaymentFlowIntegrationTest {
                 25
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))
@@ -170,7 +176,7 @@ class PaymentFlowIntegrationTest {
                 .andReturn();
 
         var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
-                .get("data");
+                .get("data").get("content");  // Page wrapper: get content array
 
         if (invoices.size() < 1) {
             System.out.println("WARNING: No invoice found - may be async creation");
@@ -178,7 +184,7 @@ class PaymentFlowIntegrationTest {
         }
 
         Long invoiceId = invoices.get(0).get("id").asLong();
-        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
+        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("total").asText());
 
         // ========== Step 5: Initiate Payment ==========
         CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
@@ -192,30 +198,31 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.status").value("PENDING"))
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"))
                 .andExpect(jsonPath("$.data.invoiceId").value(invoiceId))
                 .andExpect(jsonPath("$.data.amount").value(totalAmount))
                 .andReturn();
 
-        Long paymentId = objectMapper.readTree(paymentResult.getResponse().getContentAsString())
-                .get("data").get("id").asLong();
+        var paymentData = objectMapper.readTree(paymentResult.getResponse().getContentAsString()).get("data");
+        Long paymentId = paymentData.get("id").asLong();
+        String transactionId = paymentData.get("transactionId").asText();
 
         // ========== Step 6: Verify Payment Status ==========
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("PENDING"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
 
         // ========== Step 7: Simulate Webhook Callback (Payment Completed) ==========
         // In a real system, this would come from payment gateway
-        // For testing, we simulate webhook processing
+        // For testing, we simulate webhook processing with actual transactionId
         String webhookPayload = String.format(
-                "{\"paymentId\":\"%d\",\"status\":\"COMPLETED\",\"transactionId\":\"TXN-%s\",\"gateway\":\"TEST_GATEWAY\"}",
+                "{\"paymentId\":\"%d\",\"status\":\"COMPLETED\",\"transactionId\":\"%s\",\"gateway\":\"TEST_GATEWAY\"}",
                 paymentId,
-                UUID.randomUUID().toString()
+                transactionId
         );
 
-        mockMvc.perform(post("/api/v1/payments/webhook")
+        mockMvc.perform(post("/api/v1/payments/webhook/momo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(webhookPayload))
@@ -225,20 +232,20 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
 
         // ========== Step 9: Verify Invoice Status Updated to PAID ==========
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PAID"));
+                .andExpect(jsonPath("$.data.status").value("PAID"));
 
         // ========== Step 10: Verify Payment History ==========
         mockMvc.perform(get("/api/v1/payments/invoice/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.id == " + paymentId + ")]").exists())
-                .andExpect(jsonPath("$.data[?(@.id == " + paymentId + ")].status").value("COMPLETED"));
+                .andExpect(jsonPath("$.data[?(@.id == " + paymentId + ")].paymentStatus").value("COMPLETED"));
     }
 
     @Test
@@ -270,11 +277,11 @@ class PaymentFlowIntegrationTest {
                 "HIS101",                      // code
                 "Introduction to History",     // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Study major historical events and their global impact", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
-                1L,                            // teacherId
-                null,                          // durationWeeks
+                teacherId,                     // teacherId (from test fixture)
+                10,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -303,7 +310,7 @@ class PaymentFlowIntegrationTest {
                 30
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))
@@ -331,14 +338,14 @@ class PaymentFlowIntegrationTest {
                 .andReturn();
 
         var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
-                .get("data");
+                .get("data").get("content");  // Page wrapper: get content array
 
         if (invoices.size() < 1) {
             return;
         }
 
         Long invoiceId = invoices.get(0).get("id").asLong();
-        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
+        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("total").asText());
 
         // ========== Initiate Payment ==========
         CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
@@ -354,16 +361,18 @@ class PaymentFlowIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        Long paymentId = objectMapper.readTree(paymentResult.getResponse().getContentAsString())
-                .get("data").get("id").asLong();
+        var paymentData = objectMapper.readTree(paymentResult.getResponse().getContentAsString()).get("data");
+        Long paymentId = paymentData.get("id").asLong();
+        String transactionId = paymentData.get("transactionId").asText();
 
         // ========== Simulate Failed Webhook ==========
         String failedWebhook = String.format(
-                "{\"paymentId\":\"%d\",\"status\":\"FAILED\",\"errorCode\":\"INSUFFICIENT_FUNDS\",\"errorMessage\":\"Insufficient balance\"}",
-                paymentId
+                "{\"paymentId\":\"%d\",\"status\":\"FAILED\",\"transactionId\":\"%s\",\"errorCode\":\"INSUFFICIENT_FUNDS\",\"errorMessage\":\"Insufficient balance\"}",
+                paymentId,
+                transactionId
         );
 
-        mockMvc.perform(post("/api/v1/payments/webhook")
+        mockMvc.perform(post("/api/v1/payments/webhook/momo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(failedWebhook))
@@ -373,13 +382,13 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("FAILED"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("FAILED"));
 
-        // ========== Verify Invoice Status Still PENDING ==========
+        // ========== Verify Invoice Status Still SENT (unpaid) ==========
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
+                .andExpect(jsonPath("$.data.status").value("SENT"));
 
         // ========== Verify Can Retry Payment ==========
         CreatePaymentRequest retryPayment = CreatePaymentRequest.builder()
@@ -393,6 +402,6 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(retryPayment)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.status").value("PENDING"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
     }
 }
