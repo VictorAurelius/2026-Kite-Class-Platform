@@ -146,7 +146,7 @@ class PaymentFlowIntegrationTest {
                 25
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))
@@ -309,7 +309,7 @@ class PaymentFlowIntegrationTest {
                 30
         );
 
-        MvcResult classResult = mockMvc.perform(post("/api/v1/classes")
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(classRequest)))
