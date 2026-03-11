@@ -26,3 +26,12 @@
 *.temp
 .DS_Store
 Thumbs.db
+
+# Maven build artifacts
+**/target/
+target/
+**/target/**
+*.class
+*.jar
+*.war
+*.ear
