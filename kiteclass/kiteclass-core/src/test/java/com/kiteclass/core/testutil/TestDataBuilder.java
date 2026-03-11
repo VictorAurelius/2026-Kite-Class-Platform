@@ -1,16 +1,12 @@
 package com.kiteclass.core.testutil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kiteclass.core.common.constant.Gender;
-import com.kiteclass.core.common.constant.TeacherStatus;
 import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -83,18 +79,15 @@ public class TestDataBuilder {
         // Generate unique email with timestamp to avoid conflicts in parallel tests
         String email = "teacher." + System.currentTimeMillis() + "@kiteclass.test";
 
-        CreateTeacherRequest teacherRequest = CreateTeacherRequest.builder()
-                .name(name)
-                .email(email)
-                .phone("+84900000000")
-                .dateOfBirth(LocalDate.of(1985, 1, 15))
-                .gender(Gender.MALE)
-                .address("123 Test Street, Hanoi")
-                .specialization(specialization)
-                .qualifications("Bachelor of Education")
-                .experience(5)
-                .status(TeacherStatus.ACTIVE)
-                .build();
+        CreateTeacherRequest teacherRequest = new CreateTeacherRequest(
+                name,                           // name
+                email,                          // email
+                "+84900000000",                 // phoneNumber
+                specialization,                 // specialization
+                "Experienced educator",         // bio
+                "Bachelor of Education",        // qualification
+                5                               // experienceYears
+        );
 
         MvcResult result = mockMvc.perform(post("/api/v1/teachers")
                         .contentType(MediaType.APPLICATION_JSON)
