@@ -300,7 +300,7 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // Get by ID
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
@@ -336,7 +336,7 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // Update status to ACTIVE
         UpdateEnrollmentStatusRequest updateRequest = EnrollmentTestDataBuilder
@@ -373,7 +373,7 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // Withdraw
         mockMvc.perform(put("/api/v1/enrollments/" + enrollmentId + "/withdraw")
@@ -401,7 +401,7 @@ class EnrollmentIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
-        Long enrollmentId = objectMapper.readTree(response).get("id").asLong();
+        Long enrollmentId = objectMapper.readTree(response).get("data").get("id").asLong();
 
         // First withdraw - success
         mockMvc.perform(put("/api/v1/enrollments/" + enrollmentId + "/withdraw")
@@ -463,7 +463,7 @@ class EnrollmentIntegrationTest {
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString();
 
-            Long enrollmentId = objectMapper.readTree(response1).get("id").asLong();
+            Long enrollmentId = objectMapper.readTree(response1).get("data").get("id").asLong();
 
             // Tenant 2: Try to access tenant1's enrollment - should get 404
             mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
