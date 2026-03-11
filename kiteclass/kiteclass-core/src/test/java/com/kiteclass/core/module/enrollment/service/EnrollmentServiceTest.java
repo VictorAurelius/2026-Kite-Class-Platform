@@ -186,7 +186,7 @@ class EnrollmentServiceTest {
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
         when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
-                .thenReturn(Optional.of(Enrollment.builder().id(999L).build()));
+                .thenReturn(Optional.of(new Enrollment()));
 
         // Act & Assert
         assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
