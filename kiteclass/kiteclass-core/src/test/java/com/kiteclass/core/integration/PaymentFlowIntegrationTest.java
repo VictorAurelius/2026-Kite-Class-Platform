@@ -113,11 +113,11 @@ class PaymentFlowIntegrationTest {
                 "LIT101",                      // code
                 "Introduction to Literature",  // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Explore fundamental literary analysis and appreciation", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
                 teacherId,                     // teacherId (from test fixture)
-                null,                          // durationWeeks
+                12,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -276,11 +276,11 @@ class PaymentFlowIntegrationTest {
                 "HIS101",                      // code
                 "Introduction to History",     // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Study major historical events and their global impact", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
                 teacherId,                     // teacherId (from test fixture)
-                null,                          // durationWeeks
+                10,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );

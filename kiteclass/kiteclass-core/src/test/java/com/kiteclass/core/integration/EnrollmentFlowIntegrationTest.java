@@ -87,7 +87,7 @@ class EnrollmentFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Bob Enrollment",
                 "bob.enroll@test.com",
-                "+84901234567",
+                "0901234567",
                 LocalDate.of(2008, 6, 20),
                 Gender.MALE,
                 "789 Enrollment St, Hanoi",
@@ -111,11 +111,11 @@ class EnrollmentFlowIntegrationTest {
                 "ENG101",                      // code
                 "Introduction to English",     // description
                 "Week 1-16: Grammar and vocabulary", // syllabus
-                null,                          // objectives
+                "Learn fundamental English grammar and vocabulary", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
                 teacherId,                     // teacherId (from test fixture)
-                null,                          // durationWeeks
+                16,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -228,7 +228,7 @@ class EnrollmentFlowIntegrationTest {
         CreateStudentRequest studentRequest = new CreateStudentRequest(
                 "Charlie Dup",
                 "charlie.dup@test.com",
-                "+84903333333",
+                "0903333333",
                 LocalDate.of(2008, 3, 15),
                 Gender.MALE,
                 "Address",
@@ -250,11 +250,11 @@ class EnrollmentFlowIntegrationTest {
                 "MATH202",                     // code
                 "Advanced topics",             // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Master advanced mathematical concepts and problem-solving", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
                 teacherId,                     // teacherId (from test fixture)
-                null,                          // durationWeeks
+                12,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );

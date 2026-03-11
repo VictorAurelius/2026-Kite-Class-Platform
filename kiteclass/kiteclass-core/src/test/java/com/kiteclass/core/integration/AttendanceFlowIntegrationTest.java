@@ -112,11 +112,11 @@ class AttendanceFlowIntegrationTest {
                 "PHY101",                      // code
                 "Introduction to Physics",     // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Understand fundamental physics concepts and principles", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
                 teacherId,                     // teacherId (from test fixture)
-                null,                          // durationWeeks
+                12,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
@@ -268,11 +268,11 @@ class AttendanceFlowIntegrationTest {
                 "CHEM101",                     // code
                 "Basic Chemistry",             // description
                 "Syllabus",                    // syllabus
-                null,                          // objectives
+                "Learn fundamental chemistry concepts and reactions", // objectives (required for publish)
                 null,                          // prerequisites
                 null,                          // targetAudience
                 teacherId,                     // teacherId (from test fixture)
-                null,                          // durationWeeks
+                10,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
                 null                           // price
         );
