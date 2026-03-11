@@ -3,7 +3,6 @@ package com.kitehub.gateway.filter;
 import com.kitehub.gateway.repository.InstanceRepository;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;

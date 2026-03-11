@@ -1423,3 +1423,5 @@ bật mode plan và thực hiện
 lưu lại plan dạng md trong documents trước
 
 có Hướng dẫn tiếng việt để tôi test 100% cho dự án và đưa dự án lên env production chưa, bật mode plan để thực hiện
+
+fix IDE warning theo đúng quy trình của skill

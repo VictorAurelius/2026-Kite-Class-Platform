@@ -160,20 +160,20 @@ public class ContentGenerationService {
      * Generate feature highlights (3-5 features).
      */
     private List<Feature> generateFeatures(String orgName, String theme, String language) {
-        String prompt = String.format(
-                "List 4 key features of '%s', an education center with %s style. " +
-                "For each feature, provide: " +
-                "1. Title (max 30 chars in %s) " +
-                "2. Description (1-2 sentences in %s) " +
-                "Format as JSON array: [{\"title\": \"...\", \"description\": \"...\", \"icon\": \"video|calendar|trophy|users\"}]",
-                orgName,
-                theme,
-                language.equals("vi") ? "Vietnamese" : "English",
-                language.equals("vi") ? "Vietnamese" : "English"
-        );
+        // TODO: Implement proper JSON parsing in future PR
+        // String prompt = String.format(
+        //         "List 4 key features of '%s', an education center with %s style. " +
+        //         "For each feature, provide: " +
+        //         "1. Title (max 30 chars in %s) " +
+        //         "2. Description (1-2 sentences in %s) " +
+        //         "Format as JSON array: [{\"title\": \"...\", \"description\": \"...\", \"icon\": \"video|calendar|trophy|users\"}]",
+        //         orgName,
+        //         theme,
+        //         language.equals("vi") ? "Vietnamese" : "English",
+        //         language.equals("vi") ? "Vietnamese" : "English"
+        // );
 
         // For now, return mock features (OpenAI JSON parsing can be complex)
-        // TODO: Implement proper JSON parsing in future PR
         if (language.equals("vi")) {
             return Arrays.asList(
                     Feature.builder()

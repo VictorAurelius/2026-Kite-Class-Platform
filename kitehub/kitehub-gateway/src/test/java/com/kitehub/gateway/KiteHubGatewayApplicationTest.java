@@ -3,7 +3,7 @@ package com.kitehub.gateway;
 import com.kitehub.gateway.repository.InstanceRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -21,7 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 })
 class KiteHubGatewayApplicationTest {
 
-    @MockBean
+    @MockitoBean
     private InstanceRepository instanceRepository;
 
     /**

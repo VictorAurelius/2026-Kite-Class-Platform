@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -257,7 +258,7 @@ public class AnalyticsService {
 
         // Simple distribution: divide total revenue evenly
         long dayCount = endDate.toEpochDay() - startDate.toEpochDay() + 1;
-        BigDecimal dailyAmount = dayCount > 0 ? totalRevenue.divide(BigDecimal.valueOf(dayCount), 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO;
+        BigDecimal dailyAmount = dayCount > 0 ? totalRevenue.divide(BigDecimal.valueOf(dayCount), 2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {

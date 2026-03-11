@@ -49,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AdminControllerTest {
 
     @Container
+    @SuppressWarnings("resource") // Testcontainers manages lifecycle
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
             .withDatabaseName("kitehub_test")
             .withUsername("test")
@@ -64,9 +65,6 @@ class AdminControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private InstanceRepository instanceRepository;
