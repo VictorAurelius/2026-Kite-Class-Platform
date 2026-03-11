@@ -2,6 +2,7 @@ package com.kiteclass.core.module.invoice.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
+import com.kiteclass.core.module.invoice.dto.InvoiceItemResponse;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
 import com.kiteclass.core.module.invoice.service.InvoiceService;
 import jakarta.validation.Valid;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * REST controller for invoice management.
@@ -44,6 +47,19 @@ public class InvoiceController {
         log.info("GET /api/v1/invoices/{}", id);
         InvoiceResponse invoice = invoiceService.getInvoiceById(id);
         return ResponseEntity.ok(ApiResponse.success(invoice));
+    }
+
+    /**
+     * Gets invoice line items by invoice ID.
+     *
+     * @param id the invoice ID
+     * @return list of invoice item response DTOs
+     */
+    @GetMapping("/{id}/items")
+    public ResponseEntity<ApiResponse<List<InvoiceItemResponse>>> getInvoiceItems(@PathVariable Long id) {
+        log.info("GET /api/v1/invoices/{}/items", id);
+        List<InvoiceItemResponse> items = invoiceService.getInvoiceItems(id);
+        return ResponseEntity.ok(ApiResponse.success(items));
     }
 
     /**
