@@ -123,9 +123,8 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                1L, 1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(false);
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.empty());
         when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
                 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(0L);
@@ -186,9 +185,8 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                1L, 1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(true);
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.of(Enrollment.builder().id(999L).build()));
 
         // Act & Assert
         assertThatThrownBy(() -> enrollmentService.enrollStudent(createRequest))
@@ -205,9 +203,8 @@ class EnrollmentServiceTest {
                 .thenReturn(Optional.of(testStudent));
         when(classRepository.findByIdAndDeletedFalse(1L))
                 .thenReturn(Optional.of(testClass));
-        when(enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
-                1L, 1L, EnrollmentStatus.ACTIVE))
-                .thenReturn(false);
+        when(enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(1L, 1L))
+                .thenReturn(Optional.empty());
         when(enrollmentRepository.countByClassIdAndStatusAndDeletedFalse(
                 1L, EnrollmentStatus.ACTIVE))
                 .thenReturn(30L); // Class is at capacity
