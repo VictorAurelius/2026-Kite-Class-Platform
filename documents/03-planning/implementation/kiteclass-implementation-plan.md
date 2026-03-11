@@ -352,7 +352,32 @@ Every PR must meet these quality gates before merge:
 **🎁 BONUS (not in original plan):**
 - ✅ **Marketing Module** *(PR #27, merged 2026-03-05, 16 tests)* - LandingPage, Lead, ContactMessage
 
-**Core Status:** 17/17 PRs completed (100%) + 1 bonus — Last updated: 2026-03-06
+**🔧 IMPROVEMENTS (from TODO analysis 2026-03-11):**
+- ⏳ **PR 2.9.1: UserPreferences Authentication Fix** *(Quick win - 30 min)*
+  - Extract userId from JWT instead of path parameter
+  - Security improvement, better API design
+  - TODOs resolved: 1
+  - Branch: `feature/PR-2.9.1-userprefs-auth-fix`
+  - Risk: LOW
+
+- ⏳ **PR 2.13: Integration Test Improvements** ⭐ **(HIGHEST PRIORITY)**
+  - Create TestDataBuilder utility for test fixtures
+  - Implement setUp() for 6 integration test classes (Attendance, Class, Course, Enrollment, Gradebook, Timetable)
+  - Unblocks 6 integration tests currently skipping setup
+  - TODOs resolved: 6
+  - Branch: `feature/PR-2.13-integration-test-improvements`
+  - Risk: LOW, Effort: 2-3 hours
+  - **Impact:** Improves test coverage immediately
+
+- ⏳ **PR 2.14: Email Service Integration (Core side)** *(Blocked by routing)*
+  - Integrate EmailClient (Feign) with ContactMessage, Lead services
+  - Notification emails for teachers/leads
+  - TODOs resolved: 5 (Core side)
+  - Branch: `feature/PR-2.14-email-integration-core`
+  - Risk: MEDIUM
+  - Prerequisites: Email service routing in Gateway
+
+**Core Status:** 17/17 PRs completed (100%) + 1 bonus + 3 improvements pending — Last updated: 2026-03-11
 **Tests:** 527+ passing, 59 skipped (by design)
 **Spring Boot:** ✅ 3.5.10
 **Modules Complete:**
@@ -426,6 +451,17 @@ Every PR must meet these quality gates before merge:
 
 **Pending PRs:**
 - (None - All core Frontend PRs completed! PR 3.13 Parent Portal moved to Expand Service plan)
+
+**🔧 IMPROVEMENTS (from TODO analysis 2026-03-11):**
+- ⏳ **PR 3.13: Frontend Data Fetching Improvements** *(Reusing PR number)*
+  - Fetch enrollment data dynamically (no hardcoding)
+  - Fetch teacher names from teacher service
+  - Show attendance details for selected dates
+  - Populate class options from enrollments
+  - TODOs resolved: 6
+  - Branch: `feature/PR-3.13-frontend-data-fetching`
+  - Risk: LOW, Effort: 3-4 hours
+  - **Impact:** Better UX, feature completeness, no hardcoded data
 
 ### 🎯 PAIRED DEVELOPMENT STRATEGY (NEW)
 
@@ -6574,6 +6610,358 @@ Per system architecture, these features are **optional addons** that:
 
 **Expand Service Status:** 0/10 PRs completed (0%)
 **Next Priority:** PR EXP-1 (Parent Service Backend) - After core services stabilize
+
+---
+
+# KITEHUB SERVICE PLAN (Multi-Tenant SaaS Platform)
+
+**Purpose:** KiteHub is the multi-tenant SaaS management platform for KiteClass instances
+**Architecture:** Separate microservices (Subscription, Branding, Database Provisioning)
+**Status:** Partially implemented, improvements identified from TODO analysis (2026-03-11)
+
+## Why Separate from Core?
+
+KiteHub manages the **SaaS layer** above KiteClass instances:
+- Instance provisioning and lifecycle management
+- Subscription tier management (FREE, BASIC, PREMIUM, ENTERPRISE)
+- Payment integration (VietQR, bank transfers)
+- Branding customization (AI-powered content generation)
+- Database provisioning and backups
+- Multi-tenant isolation and security
+
+**Core vs KiteHub:**
+- **KiteClass Core:** Business logic for education management (students, courses, attendance)
+- **KiteHub:** SaaS infrastructure for managing multiple KiteClass instances
+
+---
+
+## KiteHub Subscription Service
+
+**Current Status:** Basic CRUD implemented, production blockers identified
+
+### ⏳ PR 4.3: KMS Integration & Database Password Encryption 🔴 **CRITICAL**
+
+**Why critical:** Production deployment blocker, security compliance requirement
+
+**Scope:** Implement AES-256-GCM encryption for database passwords
+
+**Tasks:**
+1. **KMS Integration:**
+   - Integrate AWS KMS or HashiCorp Vault
+   - Configure encryption key provisioning
+   - Implement key rotation strategy
+   - Setup secure key storage
+
+2. **Encryption Service:**
+   - Implement AES-256-GCM encryption/decryption
+   - Encrypt database passwords before storing
+   - Decrypt passwords when creating datasources
+
+3. **Update Services:**
+   - `DatabaseProvisioningService`: Encrypt generated passwords
+   - `MultiTenantDataSourceConfig`: Decrypt passwords at runtime
+   - `DatabaseCredentials`: Add decryption method
+
+4. **Security Testing:**
+   - Test encryption/decryption cycle
+   - Verify no plain-text passwords in logs/database
+   - Security audit and penetration testing
+
+**Files affected:**
+- `DatabaseProvisioningService.java` (3 TODOs)
+- `MultiTenantDataSourceConfig.java` (1 TODO)
+- `DatabaseCredentials.java` (1 TODO)
+
+**TODOs resolved:** 5
+
+**Prerequisites:**
+- ❌ AWS KMS account setup
+- ❌ Key provisioning
+- ❌ Security review approval
+
+**Branch:** `feature/PR-4.3-kms-password-encryption`
+
+**Risk:** 🔴 HIGH (security-critical)
+**Effort:** 1 week (3 days setup + 2 days implementation + 2 days testing/audit)
+**Blocks:** Production deployment
+
+**Acceptance Criteria:**
+- [ ] KMS integrated (AWS KMS or Vault)
+- [ ] AES-256-GCM encryption implemented
+- [ ] All database passwords encrypted at rest
+- [ ] Decryption works for datasource creation
+- [ ] Key rotation process documented
+- [ ] Security audit passed
+- [ ] Zero plain-text passwords in logs/database
+
+---
+
+### ⏳ PR 4.4: Database Provisioning Automation 🔴 **CRITICAL**
+
+**Why critical:** Blocks SaaS instance provisioning in production
+
+**Scope:** Automate database creation, deletion, health checks, and backups via cloud provider APIs
+
+**Tasks:**
+1. **Cloud Provider Integration:**
+   - AWS RDS API integration (or GCP Cloud SQL)
+   - Terraform/Ansible automation scripts
+   - VPC and networking configuration
+   - Database instance creation/deletion
+
+2. **Database Operations:**
+   - Create database instances programmatically (remove stub)
+   - Delete databases with safety checks
+   - Health check queries
+   - Load credentials from encrypted storage
+
+3. **Backup Infrastructure:**
+   - Automated backup creation (snapshots)
+   - S3 bucket for long-term storage
+   - Backup retention policies
+   - Restore from backup functionality
+
+4. **Monitoring:**
+   - CloudWatch/Stackdriver integration
+   - Alerting rules for failed operations
+   - Health check dashboards
+
+**Files affected:**
+- `DatabaseProvisioningService.java` (6 TODOs: create, delete, health check, credentials)
+- `DatabaseBackupScheduler.java` (2 TODOs: S3 upload)
+
+**TODOs resolved:** 8
+
+**Prerequisites:**
+- ❌ AWS RDS/GCP Cloud SQL account
+- ❌ Terraform infrastructure code
+- ❌ S3 bucket for backups
+- ❌ VPC configuration
+
+**Branch:** `feature/PR-4.4-database-provisioning`
+
+**Risk:** 🔴 CRITICAL (infrastructure)
+**Effort:** 2 weeks (5 days setup + 5 days implementation + 4 days testing)
+**Blocks:** SaaS multi-tenant provisioning
+
+**Acceptance Criteria:**
+- [ ] Database creation via cloud API (not stubbed)
+- [ ] Database deletion with safety checks
+- [ ] Health check queries working
+- [ ] Backup creation automated
+- [ ] Backup restore tested
+- [ ] Terraform scripts committed
+- [ ] Staging environment tested
+- [ ] Monitoring/alerting configured
+- [ ] Documentation updated
+
+---
+
+### ⏳ PR 4.6: Payment Integration (VietQR + Webhooks) 🔴 **HIGH PRIORITY**
+
+**Why high priority:** Blocks paid subscriptions (revenue generation)
+
+**Scope:** Integrate VietQR API for payment QR generation and webhook processing
+
+**Tasks:**
+1. **VietQR API Integration:**
+   - Real VietQR API integration (remove stub)
+   - Generate QR codes with payment info
+   - Bank API verification
+   - Transaction matching logic
+
+2. **Webhook Security:**
+   - HMAC-SHA256 signature verification
+   - Request validation and sanitization
+   - Replay attack prevention (nonce + timestamp)
+   - Idempotency handling
+
+3. **Payment Records:**
+   - Create Payment entity/schema
+   - Persist payment transactions
+   - Link payments to subscriptions
+   - Handle prorated charges
+
+4. **Subscription Lifecycle:**
+   - Auto-upgrade tier after payment confirmation
+   - Handle pending tier changes
+   - Send payment confirmation emails
+   - Invoice generation
+
+**Files affected:**
+- `VietQRService.java` (4 TODOs)
+- `PaymentWebhookController.java` (4 TODOs)
+- `SubscriptionService.java` (2 TODOs: payment records, tier changes)
+- `SubscriptionRenewalService.java` (payment invoices)
+
+**TODOs resolved:** 12
+
+**Prerequisites:**
+- ❌ VietQR production credentials
+- ❌ Bank API contract & credentials
+- ❌ Payment gateway webhook URL
+- ❌ Webhook signing secret
+- ❌ Payment database schema migration
+
+**Branch:** `feature/PR-4.6-payment-integration`
+
+**Risk:** 🔴 HIGH (financial transactions)
+**Effort:** 2-3 weeks (after credentials available)
+**Blocks:** Revenue generation
+
+**Acceptance Criteria:**
+- [ ] VietQR API integrated (real QR codes)
+- [ ] Bank API verification working
+- [ ] Webhook signature verification (HMAC-SHA256)
+- [ ] Replay attack prevention
+- [ ] Payment records persisted
+- [ ] Transaction matching logic
+- [ ] Tier upgrade after payment
+- [ ] Refund process documented
+- [ ] Test payments successful on staging
+- [ ] Security audit passed
+
+---
+
+### ⏳ PR 4.12: Email Service Integration (Subscription side)
+
+**Why needed:** Professional communication, user engagement
+
+**Scope:** Integrate email notifications for subscription events
+
+**Tasks:**
+1. **EmailClient Setup:**
+   - Feign client to Email Service
+   - HMAC authentication for internal calls
+
+2. **Subscription Notifications:**
+   - Trial expiration warnings (7 days, 3 days, 1 day)
+   - Trial ended notification
+   - Subscription expiration warnings
+   - Subscription expired notification
+   - Payment confirmation emails
+
+3. **Email Templates:**
+   - Create/update Thymeleaf templates
+   - Localization support (EN, VI)
+
+**Files affected:**
+- `SubscriptionExpirationChecker.java` (2 TODOs)
+- `TrialExpirationChecker.java` (2 TODOs)
+
+**TODOs resolved:** 4
+
+**Prerequisites:**
+- ❌ Email service routing configured in Gateway
+- Core side: PR 2.14 (Email integration for Core services)
+
+**Branch:** `feature/PR-4.12-email-integration-subscription`
+
+**Risk:** 🟡 MEDIUM
+**Effort:** 1 week (after email routing ready)
+
+**Acceptance Criteria:**
+- [ ] EmailClient Feign interface created
+- [ ] All 4 scheduled email notifications working
+- [ ] Email templates created/updated
+- [ ] Test emails sent successfully
+- [ ] Error handling (email service down, async/fire-and-forget)
+
+---
+
+## KiteHub Branding Service
+
+**Current Status:** Basic AI content generation working, improvements identified
+
+### ⏳ PR 4.9: Branding Job Queue & Persistence
+
+**Scope:** Job queue system for branding content generation
+
+**Tasks:**
+1. Create BrandingJob entity (database persistence)
+2. Background job processing
+3. Job status tracking (PENDING, IN_PROGRESS, COMPLETED, FAILED)
+4. Content persistence (store generated content)
+
+**TODOs resolved:** 3 (content persistence, query/delete from BrandingJob)
+
+**Branch:** `feature/PR-4.9-branding-job-queue`
+
+**Risk:** 🟡 MEDIUM
+**Effort:** 3 days
+
+---
+
+### ⏳ PR 4.9.1: OpenAI JSON Parsing Improvements *(Quick win)*
+
+**Why implement:** Technical debt cleanup, better error handling
+
+**Scope:** Proper JSON parsing for OpenAI API responses
+
+**Tasks:**
+1. **Add ObjectMapper Integration:**
+   - Inject ObjectMapper into OpenAIClient
+   - Parse JSON response structure
+
+2. **Update Parsing Logic:**
+   - Parse `response.choices[0].message.content` as JSON
+   - Extract structured data from JSON
+   - Remove string parsing workaround
+
+3. **Error Handling:**
+   - Try JSON parsing first
+   - Fallback to string if parsing fails
+   - Log warnings for unparseable responses
+
+**Files affected:**
+- `OpenAIClient.java` (1 TODO)
+- `ContentGenerationService.java` (1 TODO)
+
+**TODOs resolved:** 2
+
+**Prerequisites:** None (can implement now!)
+
+**Branch:** `feature/PR-4.9.1-openai-json-parsing`
+
+**Risk:** 🟢 LOW
+**Effort:** 1 hour
+
+**Acceptance Criteria:**
+- [ ] ObjectMapper integrated
+- [ ] JSON parsing implemented with error handling
+- [ ] String parsing workaround removed
+- [ ] Unit tests for JSON parsing edge cases
+- [ ] All existing tests still pass
+
+---
+
+## KiteHub Status Summary
+
+**Total PRs:** 5 improvement PRs identified from TODO analysis
+
+**Priority Breakdown:**
+- 🔴 **CRITICAL (Production blockers):** 2 PRs (4.3 Password Encryption, 4.4 Database Provisioning)
+- 🔴 **HIGH (Revenue blockers):** 1 PR (4.6 Payment Integration)
+- 🟡 **MEDIUM (Enhancements):** 2 PRs (4.9 Job Queue, 4.12 Email Integration)
+- 🟢 **LOW (Quick wins):** 1 PR (4.9.1 JSON Parsing - 1 hour)
+
+**Blockers:**
+- AWS KMS account (blocks PR 4.3)
+- AWS RDS + Terraform (blocks PR 4.4)
+- VietQR credentials (blocks PR 4.6)
+- Email routing (blocks PR 4.12)
+- Job queue design (blocks PR 4.9)
+
+**Quick Wins (Can implement now):**
+- ✅ PR 4.9.1: OpenAI JSON Parsing (1 hour, no dependencies)
+
+**Timeline Estimate:**
+- Quick wins: 1 hour
+- Security & Infrastructure: 3-4 weeks (after prerequisites)
+- Payment Integration: 2-3 weeks (after credentials)
+- Enhancements: 1-2 weeks
+
+**Next Priority:** PR 4.9.1 (Quick win) → PR 4.3 (Security) → PR 4.4 (Infrastructure) → PR 4.6 (Payment)
 
 ---
 
