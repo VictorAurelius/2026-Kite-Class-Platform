@@ -5,7 +5,6 @@ import com.kiteclass.core.module.payment.dto.CreateInstallmentPaymentRequest;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.payment.dto.PaymentResponse;
 import com.kiteclass.core.module.payment.dto.PaymentStatusResponse;
-import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.module.payment.enums.PaymentStatus;
 import com.kiteclass.core.module.payment.service.PaymentService;
 import jakarta.validation.Valid;
@@ -17,9 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * REST controller for payment operations.
@@ -163,75 +160,5 @@ public class PaymentController {
         PaymentStatus status = paymentService.queryPaymentStatus(id);
 
         return ResponseEntity.ok(ApiResponse.success(new PaymentStatusResponse(status)));
-    }
-
-    /**
-     * Handle MoMo payment gateway webhook callback.
-     *
-     * @param payload webhook payload from MoMo
-     * @return success response
-     */
-    @PostMapping("/webhook/momo")
-    public ResponseEntity<ApiResponse<Void>> handleMoMoWebhook(@RequestBody Map<String, Object> payload) {
-        log.info("Received MoMo webhook: {}", payload);
-
-        // Convert Map<String, Object> to Map<String, String>
-        Map<String, String> params = convertToStringMap(payload);
-
-        paymentService.processWebhookCallback(PaymentMethod.MOMO, params);
-
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    /**
-     * Handle VNPay payment gateway webhook callback.
-     *
-     * @param payload webhook payload from VNPay
-     * @return success response
-     */
-    @PostMapping("/webhook/vnpay")
-    public ResponseEntity<ApiResponse<Void>> handleVNPayWebhook(@RequestBody Map<String, Object> payload) {
-        log.info("Received VNPay webhook: {}", payload);
-
-        // Convert Map<String, Object> to Map<String, String>
-        Map<String, String> params = convertToStringMap(payload);
-
-        paymentService.processWebhookCallback(PaymentMethod.VNPAY, params);
-
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    /**
-     * Handle ZaloPay payment gateway webhook callback.
-     *
-     * @param payload webhook payload from ZaloPay
-     * @return success response
-     */
-    @PostMapping("/webhook/zalopay")
-    public ResponseEntity<ApiResponse<Void>> handleZaloPayWebhook(@RequestBody Map<String, Object> payload) {
-        log.info("Received ZaloPay webhook: {}", payload);
-
-        // Convert Map<String, Object> to Map<String, String>
-        Map<String, String> params = convertToStringMap(payload);
-
-        paymentService.processWebhookCallback(PaymentMethod.ZALOPAY, params);
-
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    /**
-     * Converts Map<String, Object> to Map<String, String>.
-     *
-     * @param source source map with Object values
-     * @return converted map with String values
-     */
-    private Map<String, String> convertToStringMap(Map<String, Object> source) {
-        Map<String, String> result = new HashMap<>();
-        source.forEach((key, value) -> {
-            if (value != null) {
-                result.put(key, value.toString());
-            }
-        });
-        return result;
     }
 }
