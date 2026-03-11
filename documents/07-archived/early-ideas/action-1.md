@@ -1425,3 +1425,14 @@ lưu lại plan dạng md trong documents trước
 có Hướng dẫn tiếng việt để tôi test 100% cho dự án và đưa dự án lên env production chưa, bật mode plan để thực hiện
 
 fix IDE warning theo đúng quy trình của skill
+
+check files changing:
+1. có 1 file tôi fix IDE warnings => checkout branch fix và commit
+2. nhiều file generated vẫn bị git check, hãy cấu hình lại
+
+3. bật mode plan và kiểm tra đủ 60 TODO còn tồn tại trong code
+tạo báo cáo phân loại
+1. TODO nào có thể loại bỏ
+2. TODO nào có thể implement ngay
+3. TODO nào còn chờ expand services
+4. TODO nào thuộc phân loại khác
