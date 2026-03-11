@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.payment.controller;
 
+import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.payment.dto.CreateInstallmentPaymentRequest;
 import com.kiteclass.core.module.payment.dto.CreatePaymentRequest;
 import com.kiteclass.core.module.payment.dto.PaymentResponse;
@@ -38,7 +39,7 @@ public class PaymentController {
      * @return payment response with payment URL (if online payment)
      */
     @PostMapping
-    public ResponseEntity<PaymentResponse> createPayment(
+    public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
         @Valid @RequestBody CreatePaymentRequest request) {
 
         log.info("Creating payment for invoice {} (method: {})",
@@ -47,7 +48,7 @@ public class PaymentController {
         // Note: User ID will be extracted from JWT at Gateway level
         PaymentResponse response = paymentService.createPayment(request, 1L);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     /**
@@ -58,7 +59,7 @@ public class PaymentController {
      * @return payment response with payment URL (if online payment)
      */
     @PostMapping("/installments")
-    public ResponseEntity<PaymentResponse> createInstallmentPayment(
+    public ResponseEntity<ApiResponse<PaymentResponse>> createInstallmentPayment(
         @Valid @RequestBody CreateInstallmentPaymentRequest request) {
 
         log.info("Creating installment payment for installment {} (method: {})",
@@ -67,7 +68,7 @@ public class PaymentController {
         // Note: User ID will be extracted from JWT at Gateway level
         PaymentResponse response = paymentService.createInstallmentPayment(request, 1L);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     /**
@@ -77,12 +78,12 @@ public class PaymentController {
      * @return payment response
      */
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(@PathVariable Long id) {
         log.debug("Getting payment by ID: {}", id);
 
         PaymentResponse response = paymentService.getPaymentById(id);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -92,12 +93,12 @@ public class PaymentController {
      * @return list of payment responses
      */
     @GetMapping("/invoice/{invoiceId}")
-    public ResponseEntity<List<PaymentResponse>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
+    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentsByInvoice(@PathVariable Long invoiceId) {
         log.debug("Getting payments for invoice: {}", invoiceId);
 
         List<PaymentResponse> responses = paymentService.getPaymentsByInvoice(invoiceId);
 
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     /**
@@ -107,13 +108,13 @@ public class PaymentController {
      * @return page of pending payments
      */
     @GetMapping("/pending")
-    public ResponseEntity<Page<PaymentResponse>> getPendingPayments(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<PaymentResponse>>> getPendingPayments(Pageable pageable) {
         log.debug("Getting pending payments (page: {}, size: {})",
             pageable.getPageNumber(), pageable.getPageSize());
 
         Page<PaymentResponse> responses = paymentService.getPendingPayments(pageable);
 
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     /**
@@ -153,11 +154,11 @@ public class PaymentController {
      * @return payment status response
      */
     @GetMapping("/{id}/status")
-    public ResponseEntity<PaymentStatusResponse> queryPaymentStatus(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PaymentStatusResponse>> queryPaymentStatus(@PathVariable Long id) {
         log.debug("Querying payment status for: {}", id);
 
         PaymentStatus status = paymentService.queryPaymentStatus(id);
 
-        return ResponseEntity.ok(new PaymentStatusResponse(status));
+        return ResponseEntity.ok(ApiResponse.success(new PaymentStatusResponse(status)));
     }
 }

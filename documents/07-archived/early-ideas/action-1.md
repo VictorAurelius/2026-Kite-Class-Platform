@@ -1442,3 +1442,10 @@ tạo báo cáo dạng md và lưu trong documents, đối với các TODO imple
 ý tôi là PR tạo mới thì phải lưu trong master PR plan của service, chứ không chỉ lưu ở báo cáo QA đâu
 
 sao vẫn còn TODO, nếu đang implement rồi thì xóa TODO đi, comment như code bình thường => thêm rule này vào skill và update lại
+
+check CI status gần nhất để biết bug
+clear history failed của CI branch này
+fix và chạy test ở local trước khi push lên CI
+
+bật mode plan, check CI status và fix hết 8 failure còn lại
+chạy local thành công mới push CI

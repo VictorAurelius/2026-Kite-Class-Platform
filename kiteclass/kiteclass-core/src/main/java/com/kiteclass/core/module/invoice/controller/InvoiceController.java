@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.invoice.controller;
 
+import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.invoice.dto.ApplyAdjustmentRequest;
 import com.kiteclass.core.module.invoice.dto.InvoiceResponse;
 import com.kiteclass.core.module.invoice.service.InvoiceService;
@@ -40,10 +41,10 @@ public class InvoiceController {
      * @return invoice response DTO
      */
     @GetMapping("/{id}")
-    public ResponseEntity<InvoiceResponse> getInvoiceById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable Long id) {
         log.info("GET /api/v1/invoices/{}", id);
         InvoiceResponse invoice = invoiceService.getInvoiceById(id);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
@@ -54,13 +55,13 @@ public class InvoiceController {
      * @return page of invoice response DTOs
      */
     @GetMapping
-    public ResponseEntity<Page<InvoiceResponse>> getInvoicesByStudent(
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoicesByStudent(
             @RequestParam Long studentId,
             @PageableDefault(size = 20) Pageable pageable) {
 
         log.info("GET /api/v1/invoices?studentId={}", studentId);
         Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
-        return ResponseEntity.ok(invoices);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
     /**
@@ -71,13 +72,13 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/adjustments")
-    public ResponseEntity<InvoiceResponse> applyAdjustment(
+    public ResponseEntity<ApiResponse<InvoiceResponse>> applyAdjustment(
             @PathVariable Long id,
             @Valid @RequestBody ApplyAdjustmentRequest request) {
 
         log.info("POST /api/v1/invoices/{}/adjustments: {}", id, request.getType());
         InvoiceResponse invoice = invoiceService.applyAdjustment(id, request);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
@@ -87,10 +88,10 @@ public class InvoiceController {
      * @return updated invoice response DTO
      */
     @PostMapping("/{id}/late-fees")
-    public ResponseEntity<InvoiceResponse> calculateLateFees(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> calculateLateFees(@PathVariable Long id) {
         log.info("POST /api/v1/invoices/{}/late-fees", id);
         InvoiceResponse invoice = invoiceService.calculateLateFees(id);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 
     /**
@@ -100,12 +101,12 @@ public class InvoiceController {
      * @return page of overdue invoice response DTOs
      */
     @GetMapping("/overdue")
-    public ResponseEntity<Page<InvoiceResponse>> getOverdueInvoices(
+    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getOverdueInvoices(
             @PageableDefault(size = 20) Pageable pageable) {
 
         log.info("GET /api/v1/invoices/overdue");
         Page<InvoiceResponse> invoices = invoiceService.getOverdueInvoices(pageable);
-        return ResponseEntity.ok(invoices);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
     /**
@@ -115,9 +116,9 @@ public class InvoiceController {
      * @return cancelled invoice response DTO
      */
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<InvoiceResponse> cancelInvoice(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<InvoiceResponse>> cancelInvoice(@PathVariable Long id) {
         log.info("PUT /api/v1/invoices/{}/cancel", id);
         InvoiceResponse invoice = invoiceService.cancelInvoice(id);
-        return ResponseEntity.ok(invoice);
+        return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 }

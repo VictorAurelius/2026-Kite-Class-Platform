@@ -185,6 +185,7 @@ class AssignmentFlowIntegrationTest {
         MvcResult assignmentResult = mockMvc.perform(post("/api/v1/assignments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-Teacher-Id", teacherId.toString())
                         .content(objectMapper.writeValueAsString(assignmentRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.title").value("Lab Report 1"))
@@ -350,6 +351,7 @@ class AssignmentFlowIntegrationTest {
         MvcResult assignmentResult = mockMvc.perform(post("/api/v1/assignments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-Teacher-Id", teacherId.toString())
                         .content(objectMapper.writeValueAsString(assignmentRequest)))
                 .andExpect(status().isCreated())
                 .andReturn();
