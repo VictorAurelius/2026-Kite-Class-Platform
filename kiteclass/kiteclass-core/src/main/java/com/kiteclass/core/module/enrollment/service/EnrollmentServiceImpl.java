@@ -80,6 +80,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Enrollment enrollment = enrollmentMapper.toEntity(request);
         enrollment.setInstanceId(student.getInstanceId()); // Multi-tenant
 
+        // Set default discount percent if not provided
+        if (enrollment.getDiscountPercent() == null) {
+            enrollment.setDiscountPercent(BigDecimal.ZERO);
+        }
+
         // BR-ENROLL-003: final_amount calculated automatically in @PrePersist
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
 
