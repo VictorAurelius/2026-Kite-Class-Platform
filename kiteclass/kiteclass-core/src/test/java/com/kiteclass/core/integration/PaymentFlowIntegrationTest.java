@@ -184,7 +184,7 @@ class PaymentFlowIntegrationTest {
         }
 
         Long invoiceId = invoices.get(0).get("id").asLong();
-        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
+        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("total").asText());
 
         // ========== Step 5: Initiate Payment ==========
         CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
@@ -237,7 +237,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PAID"));
+                .andExpect(jsonPath("$.data.status").value("PAID"));
 
         // ========== Step 10: Verify Payment History ==========
         mockMvc.perform(get("/api/v1/payments/invoice/" + invoiceId)
@@ -344,7 +344,7 @@ class PaymentFlowIntegrationTest {
         }
 
         Long invoiceId = invoices.get(0).get("id").asLong();
-        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("totalAmount").asText());
+        BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("total").asText());
 
         // ========== Initiate Payment ==========
         CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
@@ -385,7 +385,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
 
         // ========== Verify Can Retry Payment ==========
         CreatePaymentRequest retryPayment = CreatePaymentRequest.builder()

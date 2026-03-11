@@ -196,8 +196,8 @@ class InvoiceFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.studentId").value(studentId))
                 .andExpect(jsonPath("$.data.classId").value(classId))
-                .andExpect(jsonPath("$.data.paymentStatus").value(PaymentStatus.PENDING.name()))
-                .andExpect(jsonPath("$.data.totalAmount").exists());
+                .andExpect(jsonPath("$.data.status").value(PaymentStatus.PENDING.name()))
+                .andExpect(jsonPath("$.data.total").exists());
 
         // ========== Step 6: Check Invoice Line Items ==========
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId + "/items")
@@ -210,7 +210,7 @@ class InvoiceFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content[?(@.id == " + invoiceId + ")]").exists())
-                .andExpect(jsonPath("$.data.content[?(@.id == " + invoiceId + ")].paymentStatus").value("PENDING"));
+                .andExpect(jsonPath("$.data.content[?(@.id == " + invoiceId + ")].status").value("PENDING"));
 
         // ========== Step 8: Mark Invoice as Paid (Manual Payment Recording) ==========
         // Note: Actual payment flow would involve Payment Gateway integration
@@ -220,20 +220,20 @@ class InvoiceFlowIntegrationTest {
         mockMvc.perform(post("/api/v1/invoices/" + invoiceId + "/mark-paid")
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PAID"));
+                .andExpect(jsonPath("$.data.status").value("PAID"));
 
         // ========== Step 9: Verify Invoice Status Updated ==========
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PAID"));
+                .andExpect(jsonPath("$.data.status").value("PAID"));
         */
 
         // ========== Step 10: Verify Enrollment Payment Status Updated ==========
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PAID"));
+                .andExpect(jsonPath("$.data.status").value("PAID"));
     }
 
     @Test
@@ -338,11 +338,11 @@ class InvoiceFlowIntegrationTest {
                 .get("data").get("content");  // Page wrapper: get content array
 
         if (invoices.size() > 0) {
-            // Verify totalAmount = amount - discount + tax
+            // Verify total = amount - discount + tax
             mockMvc.perform(get("/api/v1/invoices/" + invoices.get(0).get("id").asLong())
                             .header("X-Tenant-Id", tenantId.toString()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.totalAmount").exists());
+                    .andExpect(jsonPath("$.data.total").exists());
         }
     }
 }
