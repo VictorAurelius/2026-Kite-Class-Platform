@@ -198,7 +198,7 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.status").value("PENDING"))
+                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"))
                 .andExpect(jsonPath("$.data.invoiceId").value(invoiceId))
                 .andExpect(jsonPath("$.data.amount").value(totalAmount))
                 .andReturn();
@@ -210,7 +210,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("PENDING"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
 
         // ========== Step 7: Simulate Webhook Callback (Payment Completed) ==========
         // In a real system, this would come from payment gateway
@@ -231,7 +231,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
 
         // ========== Step 9: Verify Invoice Status Updated to PAID ==========
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
@@ -244,7 +244,7 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.id == " + paymentId + ")]").exists())
-                .andExpect(jsonPath("$.data[?(@.id == " + paymentId + ")].status").value("COMPLETED"));
+                .andExpect(jsonPath("$.data[?(@.id == " + paymentId + ")].paymentStatus").value("COMPLETED"));
     }
 
     @Test
@@ -379,13 +379,13 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("FAILED"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("FAILED"));
 
-        // ========== Verify Invoice Status Still PENDING ==========
+        // ========== Verify Invoice Status Still SENT (unpaid) ==========
         mockMvc.perform(get("/api/v1/invoices/" + invoiceId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("PENDING"));
+                .andExpect(jsonPath("$.data.status").value("SENT"));
 
         // ========== Verify Can Retry Payment ==========
         CreatePaymentRequest retryPayment = CreatePaymentRequest.builder()
@@ -399,6 +399,6 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(retryPayment)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.status").value("PENDING"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
     }
 }

@@ -2,7 +2,6 @@ package com.kiteclass.core.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.Gender;
-import com.kiteclass.core.common.constant.PaymentStatus;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
@@ -196,7 +195,7 @@ class InvoiceFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.studentId").value(studentId))
                 .andExpect(jsonPath("$.data.classId").value(classId))
-                .andExpect(jsonPath("$.data.status").value(PaymentStatus.PENDING.name()))
+                .andExpect(jsonPath("$.data.status").value("SENT"))
                 .andExpect(jsonPath("$.data.total").exists());
 
         // ========== Step 6: Check Invoice Line Items ==========
