@@ -203,8 +203,9 @@ class PaymentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.amount").value(totalAmount))
                 .andReturn();
 
-        Long paymentId = objectMapper.readTree(paymentResult.getResponse().getContentAsString())
-                .get("data").get("id").asLong();
+        var paymentData = objectMapper.readTree(paymentResult.getResponse().getContentAsString()).get("data");
+        Long paymentId = paymentData.get("id").asLong();
+        String transactionId = paymentData.get("transactionId").asText();
 
         // ========== Step 6: Verify Payment Status ==========
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
@@ -214,11 +215,11 @@ class PaymentFlowIntegrationTest {
 
         // ========== Step 7: Simulate Webhook Callback (Payment Completed) ==========
         // In a real system, this would come from payment gateway
-        // For testing, we simulate webhook processing
+        // For testing, we simulate webhook processing with actual transactionId
         String webhookPayload = String.format(
-                "{\"paymentId\":\"%d\",\"status\":\"COMPLETED\",\"transactionId\":\"TXN-%s\",\"gateway\":\"TEST_GATEWAY\"}",
+                "{\"paymentId\":\"%d\",\"status\":\"COMPLETED\",\"transactionId\":\"%s\",\"gateway\":\"TEST_GATEWAY\"}",
                 paymentId,
-                UUID.randomUUID().toString()
+                transactionId
         );
 
         mockMvc.perform(post("/api/v1/payments/webhook/momo")
@@ -360,16 +361,18 @@ class PaymentFlowIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        Long paymentId = objectMapper.readTree(paymentResult.getResponse().getContentAsString())
-                .get("data").get("id").asLong();
+        var paymentData = objectMapper.readTree(paymentResult.getResponse().getContentAsString()).get("data");
+        Long paymentId = paymentData.get("id").asLong();
+        String transactionId = paymentData.get("transactionId").asText();
 
         // ========== Simulate Failed Webhook ==========
         String failedWebhook = String.format(
-                "{\"paymentId\":\"%d\",\"status\":\"FAILED\",\"errorCode\":\"INSUFFICIENT_FUNDS\",\"errorMessage\":\"Insufficient balance\"}",
-                paymentId
+                "{\"paymentId\":\"%d\",\"status\":\"FAILED\",\"transactionId\":\"%s\",\"errorCode\":\"INSUFFICIENT_FUNDS\",\"errorMessage\":\"Insufficient balance\"}",
+                paymentId,
+                transactionId
         );
 
-        mockMvc.perform(post("/api/v1/payments/webhook")
+        mockMvc.perform(post("/api/v1/payments/webhook/momo")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(failedWebhook))
