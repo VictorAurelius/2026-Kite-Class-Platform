@@ -55,11 +55,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Class clazz = classRepository.findByIdAndDeletedFalse(request.getClassId())
                 .orElseThrow(() -> new EntityNotFoundException("CLASS_NOT_FOUND", (Object) request.getClassId()));
 
-        // BR-ENROLL-002: Check for duplicate enrollment
-        if (enrollmentRepository.existsByStudentIdAndClassIdAndStatusAndDeletedFalse(
+        // BR-ENROLL-002: Check for duplicate enrollment (regardless of status)
+        if (enrollmentRepository.findByStudentIdAndClassIdAndDeletedFalse(
                 request.getStudentId(),
-                request.getClassId(),
-                EnrollmentStatus.ACTIVE)) {
+                request.getClassId()).isPresent()) {
             log.warn("Student {} is already enrolled in class {}", request.getStudentId(), request.getClassId());
             throw new ValidationException("ENROLLMENT_DUPLICATE",
                     request.getStudentId(), request.getClassId());

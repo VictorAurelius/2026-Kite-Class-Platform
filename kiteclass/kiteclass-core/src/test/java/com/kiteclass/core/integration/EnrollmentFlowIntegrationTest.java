@@ -174,7 +174,7 @@ class EnrollmentFlowIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.studentId").value(studentId))
                 .andExpect(jsonPath("$.data.classId").value(classId))
-                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.status").value("PENDING_PAYMENT"))
                 .andReturn();
 
         Long enrollmentId = objectMapper.readTree(enrollResult.getResponse().getContentAsString())
