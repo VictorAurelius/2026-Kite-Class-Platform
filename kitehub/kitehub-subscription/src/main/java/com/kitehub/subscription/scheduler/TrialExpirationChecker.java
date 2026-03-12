@@ -2,6 +2,7 @@ package com.kitehub.subscription.scheduler;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.TrialService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class TrialExpirationChecker {
 
     private final InstanceRepository instanceRepository;
     private final TrialService trialService;
+    private final EmailServiceClient emailServiceClient;
 
     /**
      * Check all trial instances and suspend expired ones.
@@ -48,8 +50,12 @@ public class TrialExpirationChecker {
                 trialService.suspendExpiredTrial(instance.getId());
                 suspendedCount++;
 
-                // TODO: Send "Trial Expired" email notification (PR 4.12)
-                log.info("Trial expired notification should be sent to instance: {} (subdomain: {})",
+                // Send trial expired email notification
+                emailServiceClient.sendTrialExpired(
+                    instance.getContactEmail(),
+                    instance.getOrganizationName()
+                );
+                log.info("Trial expired notification sent to instance: {} (subdomain: {})",
                     instance.getId(), instance.getSubdomain());
 
             } catch (Exception e) {
@@ -81,8 +87,13 @@ public class TrialExpirationChecker {
             if (shouldSendWarning(daysLeft)) {
                 String warningType = getWarningType(daysLeft);
 
-                // TODO: Send warning email (PR 4.12)
-                log.info("Trial warning should be sent: {} for instance: {} (subdomain: {}, days left: {})",
+                // Send trial expiration warning email
+                emailServiceClient.sendTrialExpirationWarning(
+                    instance.getContactEmail(),
+                    instance.getOrganizationName(),
+                    daysLeft
+                );
+                log.info("Trial warning sent: {} for instance: {} (subdomain: {}, days left: {})",
                     warningType, instance.getId(), instance.getSubdomain(), daysLeft);
 
                 warningsSent++;

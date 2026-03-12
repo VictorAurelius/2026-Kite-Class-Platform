@@ -79,3 +79,9 @@ webhook:
     # Shared secret for HMAC-SHA256 signature verification
     # IMPORTANT: Store in environment variable, not in code
     secret: ${WEBHOOK_PAYMENT_SECRET:}
+
+# Email service configuration
+email:
+  service:
+    # URL of KiteHub Email Service (internal service-to-service communication)
+    url: ${EMAIL_SERVICE_URL:http://localhost:8083}

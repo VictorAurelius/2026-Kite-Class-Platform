@@ -27,6 +27,7 @@ public class InstanceResponse {
     private String customDomain;
     private String organizationName;
     private UUID ownerId;
+    private String contactEmail;
     private PricingTier tier;
     private InstanceStatus status;
     private LocalDateTime trialStartedAt;

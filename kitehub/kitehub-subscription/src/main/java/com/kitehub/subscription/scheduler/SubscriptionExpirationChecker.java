@@ -1,7 +1,10 @@
 package com.kitehub.subscription.scheduler;
 
+import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
+import com.kitehub.subscription.client.EmailServiceClient;
+import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +28,9 @@ import java.util.List;
 public class SubscriptionExpirationChecker {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final InstanceRepository instanceRepository;
     private final SubscriptionRenewalService renewalService;
+    private final EmailServiceClient emailServiceClient;
 
     /**
      * Daily job to check expiring subscriptions and send reminders.
@@ -118,15 +123,33 @@ public class SubscriptionExpirationChecker {
 
     /**
      * Send renewal reminder email.
-     * TODO: Integrate with Email Service (PR 4.12)
      *
      * @param subscription Subscription to send reminder for
      * @param daysUntilExpiration Days until expiration
      */
     private void sendRenewalReminder(Subscription subscription, long daysUntilExpiration) {
-        // TODO: Send email via Email Service
-        log.info("Renewal reminder would be sent for subscription: {} ({} days until expiration)",
-            subscription.getId(), daysUntilExpiration);
+        try {
+            // Get instance for contact email
+            Instance instance = instanceRepository.findById(subscription.getInstanceId())
+                .orElse(null);
+
+            if (instance != null && instance.getContactEmail() != null) {
+                emailServiceClient.sendRenewalReminder(
+                    instance.getContactEmail(),
+                    instance.getOrganizationName(),
+                    daysUntilExpiration,
+                    subscription.getTier().name(),
+                    subscription.getPriceVnd()
+                );
+                log.info("Renewal reminder sent for subscription: {} ({} days until expiration)",
+                    subscription.getId(), daysUntilExpiration);
+            } else {
+                log.warn("Cannot send renewal reminder - instance or contact email not found for subscription: {}",
+                    subscription.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send renewal reminder for subscription: {}", subscription.getId(), e);
+        }
     }
 
     /**

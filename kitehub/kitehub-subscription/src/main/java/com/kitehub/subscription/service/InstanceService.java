@@ -56,6 +56,7 @@ public class InstanceService {
         instance.setSubdomain(request.getSubdomain());
         instance.setOrganizationName(request.getOrganizationName());
         instance.setOwnerId(request.getOwnerId());
+        instance.setContactEmail(request.getContactEmail());
         instance.setTier(request.getTier());
         instance.setCustomDomain(request.getCustomDomain());
 
@@ -245,6 +246,7 @@ public class InstanceService {
             .customDomain(instance.getCustomDomain())
             .organizationName(instance.getOrganizationName())
             .ownerId(instance.getOwnerId())
+            .contactEmail(instance.getContactEmail())
             .tier(instance.getTier())
             .status(instance.getStatus())
             .trialStartedAt(instance.getTrialStartedAt())

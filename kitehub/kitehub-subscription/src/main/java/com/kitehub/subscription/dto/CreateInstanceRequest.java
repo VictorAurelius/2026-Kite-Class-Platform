@@ -36,6 +36,9 @@ public class CreateInstanceRequest {
     @NotNull(message = "Owner ID is required")
     private UUID ownerId;
 
+    @Size(max = 255, message = "Contact email must not exceed 255 characters")
+    private String contactEmail;
+
     @NotNull(message = "Pricing tier is required")
     private PricingTier tier;
 

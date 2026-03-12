@@ -63,6 +63,14 @@ public class Instance extends BaseEntity {
     private UUID ownerId;
 
     /**
+     * Contact email for instance owner.
+     * Used for notifications (trial expiration, payment reminders, etc.).
+     */
+    @Size(max = 255, message = "Contact email must not exceed 255 characters")
+    @Column(name = "contact_email", length = 255)
+    private String contactEmail;
+
+    /**
      * Pricing tier.
      */
     @NotNull(message = "Tier is required")
