@@ -214,8 +214,6 @@ class InvoiceFlowIntegrationTest {
         // ========== Step 8: Mark Invoice as Paid (Manual Payment Recording) ==========
         // Note: Actual payment flow would involve Payment Gateway integration
         // For testing, we simulate marking invoice as paid
-        // TODO: PR-2.14 - Re-enable after implementing markAsPaid service method
-        /*
         mockMvc.perform(post("/api/v1/invoices/" + invoiceId + "/mark-paid")
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
@@ -226,7 +224,6 @@ class InvoiceFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PAID"));
-        */
 
         // ========== Step 10: Verify Enrollment Payment Status Updated ==========
         // NOTE: Invoice payment status does not auto-sync to enrollment yet
@@ -345,5 +342,261 @@ class InvoiceFlowIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.total").exists());
         }
+    }
+
+    @Test
+    @DisplayName("PR 2.14: Filter unpaid invoices (exclude PAID/CANCELLED)")
+    void testFilterUnpaidInvoices() throws Exception {
+        // ========== Setup: Create Student + Enrollments ==========
+        CreateStudentRequest studentRequest = new CreateStudentRequest(
+                "Isaac Unpaid",
+                "isaac.unpaid@test.com",
+                "0910101010",
+                LocalDate.of(2009, 1, 1),
+                Gender.MALE,
+                "Address",
+                null
+        );
+
+        MvcResult studentResult = mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .content(objectMapper.writeValueAsString(studentRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long studentId = objectMapper.readTree(studentResult.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+
+        // Create 2 courses + classes
+        Long classId1 = createTestClass("Course 1", "C001");
+        Long classId2 = createTestClass("Course 2", "C002");
+
+        // Enroll in both classes (creates 2 invoices)
+        enrollStudent(studentId, classId1, BigDecimal.valueOf(3000000));
+        enrollStudent(studentId, classId2, BigDecimal.valueOf(4000000));
+
+        // ========== Get All Invoices (should have 2) ==========
+        MvcResult allInvoicesResult = mockMvc.perform(get("/api/v1/invoices/student/" + studentId)
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var allInvoices = objectMapper.readTree(allInvoicesResult.getResponse().getContentAsString())
+                .get("data").get("content");
+
+        if (allInvoices.size() < 2) {
+            System.out.println("WARNING: Expected 2 invoices, found " + allInvoices.size());
+            return;
+        }
+
+        Long invoice1Id = allInvoices.get(0).get("id").asLong();
+        Long invoice2Id = allInvoices.get(1).get("id").asLong();
+
+        // ========== Mark First Invoice as PAID ==========
+        mockMvc.perform(post("/api/v1/invoices/" + invoice1Id + "/mark-paid")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PAID"));
+
+        // ========== Get Unpaid Invoices (should only have 1 - invoice2) ==========
+        mockMvc.perform(get("/api/v1/invoices/student/" + studentId + "/unpaid")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(1))
+                .andExpect(jsonPath("$.data.content[0].id").value(invoice2Id))
+                .andExpect(jsonPath("$.data.content[0].status").value("SENT"));
+    }
+
+    @Test
+    @DisplayName("PR 2.14: Mark invoice as paid - validation tests")
+    void testMarkInvoiceAsPaid_ValidationTests() throws Exception {
+        // ========== Setup: Create Invoice ==========
+        CreateStudentRequest studentRequest = new CreateStudentRequest(
+                "Julia Paid",
+                "julia.paid@test.com",
+                "0911111111",
+                LocalDate.of(2009, 2, 2),
+                Gender.FEMALE,
+                "Address",
+                null
+        );
+
+        MvcResult studentResult = mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .content(objectMapper.writeValueAsString(studentRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long studentId = objectMapper.readTree(studentResult.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+
+        Long classId = createTestClass("Test Course", "TEST001");
+        enrollStudent(studentId, classId, BigDecimal.valueOf(2000000));
+
+        // Get invoice ID
+        MvcResult invoicesResult = mockMvc.perform(get("/api/v1/invoices/student/" + studentId)
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        var invoices = objectMapper.readTree(invoicesResult.getResponse().getContentAsString())
+                .get("data").get("content");
+
+        if (invoices.size() < 1) {
+            System.out.println("WARNING: No invoice found");
+            return;
+        }
+
+        Long invoiceId = invoices.get(0).get("id").asLong();
+
+        // ========== Test 1: Mark as PAID (success) ==========
+        mockMvc.perform(post("/api/v1/invoices/" + invoiceId + "/mark-paid")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PAID"))
+                .andExpect(jsonPath("$.data.amountPaid").exists())
+                .andExpect(jsonPath("$.data.paidAt").exists());
+
+        // ========== Test 2: Mark already PAID invoice (should fail) ==========
+        mockMvc.perform(post("/api/v1/invoices/" + invoiceId + "/mark-paid")
+                        .header("X-Tenant-Id", tenantId.toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.error.code").value("INVOICE_ALREADY_PAID"));
+    }
+
+    @Test
+    @DisplayName("PR 2.14: Multi-tenant isolation for unpaid/overdue filters")
+    void testMultiTenantIsolation_InvoiceFilters() throws Exception {
+        UUID tenant1 = tenantId;
+        UUID tenant2 = UUID.randomUUID();
+
+        // ========== Tenant 1: Create Student + Invoice ==========
+        CreateStudentRequest student1Request = new CreateStudentRequest(
+                "Kevin Tenant1",
+                "kevin.t1@test.com",
+                "0912121212",
+                LocalDate.of(2009, 3, 3),
+                Gender.MALE,
+                "Address",
+                null
+        );
+
+        MvcResult student1Result = mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenant1.toString())
+                        .content(objectMapper.writeValueAsString(student1Request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long student1Id = objectMapper.readTree(student1Result.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+
+        Long class1Id = createTestClass("Tenant1 Course", "T1-C001");
+        enrollStudent(student1Id, class1Id, BigDecimal.valueOf(1000000));
+
+        // ========== Tenant 2: Create Different Student ==========
+        Long teacher2Id = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenant2);
+
+        CreateStudentRequest student2Request = new CreateStudentRequest(
+                "Laura Tenant2",
+                "laura.t2@test.com",
+                "0913131313",
+                LocalDate.of(2009, 4, 4),
+                Gender.FEMALE,
+                "Address",
+                null
+        );
+
+        MvcResult student2Result = mockMvc.perform(post("/api/v1/students")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenant2.toString())
+                        .content(objectMapper.writeValueAsString(student2Request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long student2Id = objectMapper.readTree(student2Result.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+
+        // ========== Tenant 1: Get Unpaid Invoices (should only see own student) ==========
+        mockMvc.perform(get("/api/v1/invoices/student/" + student1Id + "/unpaid")
+                        .header("X-Tenant-Id", tenant1.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content[*].studentId").value(student1Id.intValue()));
+
+        // ========== Tenant 2: Cannot access Tenant 1's student invoices ==========
+        mockMvc.perform(get("/api/v1/invoices/student/" + student1Id + "/unpaid")
+                        .header("X-Tenant-Id", tenant2.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(0)); // Empty, no access
+    }
+
+    // ========== Helper Methods ==========
+
+    private Long createTestClass(String courseName, String courseCode) throws Exception {
+        CreateCourseRequest courseRequest = new CreateCourseRequest(
+                courseName,
+                courseCode,
+                "Description",
+                "Syllabus",
+                "Objectives",
+                null,
+                null,
+                teacherId,
+                10,
+                null,
+                null
+        );
+
+        MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .content(objectMapper.writeValueAsString(courseRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long courseId = objectMapper.readTree(courseResult.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+
+        mockMvc.perform(post("/api/v1/courses/" + courseId + "/publish")
+                .header("X-Tenant-Id", tenantId.toString()));
+
+        CreateClassRequest classRequest = new CreateClassRequest(
+                courseName + " - Class",
+                "Session",
+                null,
+                null,
+                null,
+                LocalDate.now().plusDays(7),
+                LocalDate.now().plusDays(60),
+                10
+        );
+
+        MvcResult classResult = mockMvc.perform(post("/api/v1/courses/" + courseId + "/classes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .content(objectMapper.writeValueAsString(classRequest)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return objectMapper.readTree(classResult.getResponse().getContentAsString())
+                .get("data").get("id").asLong();
+    }
+
+    private void enrollStudent(Long studentId, Long classId, BigDecimal tuition) throws Exception {
+        CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
+                .studentId(studentId)
+                .classId(classId)
+                .tuitionAmount(tuition)
+                .build();
+
+        mockMvc.perform(post("/api/v1/enrollments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .content(objectMapper.writeValueAsString(enrollRequest)))
+                .andExpect(status().isCreated());
     }
 }

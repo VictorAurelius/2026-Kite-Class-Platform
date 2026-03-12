@@ -94,4 +94,35 @@ public interface InvoiceService {
      * @return cancelled invoice response DTO
      */
     InvoiceResponse cancelInvoice(Long id);
+
+    /**
+     * Gets unpaid invoices for a student, paginated.
+     * Unpaid = status not in (PAID, CANCELLED, REFUNDED).
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return page of unpaid invoice response DTOs
+     * @since 2.14
+     */
+    Page<InvoiceResponse> getUnpaidInvoicesByStudent(Long studentId, Pageable pageable);
+
+    /**
+     * Gets overdue unpaid invoices for a student, paginated.
+     * Overdue = dueDate < today AND status not in (PAID, CANCELLED, REFUNDED).
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return page of overdue invoice response DTOs
+     * @since 2.14
+     */
+    Page<InvoiceResponse> getOverdueInvoicesByStudent(Long studentId, Pageable pageable);
+
+    /**
+     * Marks invoice as paid (manual payment recording).
+     *
+     * @param id the invoice ID
+     * @return updated invoice response DTO
+     * @since 2.14
+     */
+    InvoiceResponse markInvoiceAsPaid(Long id);
 }
