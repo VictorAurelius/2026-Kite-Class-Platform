@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import({TestContainersConfiguration.class, RedisTestConfig.class})
+@Import({TestContainersConfiguration.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class StudentCacheIntegrationTest {
