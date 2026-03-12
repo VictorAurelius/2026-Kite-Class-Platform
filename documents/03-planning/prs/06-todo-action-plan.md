@@ -423,7 +423,15 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
 - [x] PR 2.13: Integration test improvements (DONE ✅)
 - [x] PR 2.15: Fix remaining test failures (DONE ✅)
 - [x] PR #49: Merged to main (DONE ✅)
-- [ ] **PR 2.14: Invoice payment methods** (3 CRITICAL TODOs) - TODAY
+- [x] **PR 2.15: Async gradebook events** (2 HIGH TODOs) - DONE ✅
+  - [x] AssignmentCreatedEvent domain event
+  - [x] GradeEventListener with 2 handlers
+  - [x] Event publishing in AssignmentService
+  - [x] Auto-create Grade on enrollment (idempotent)
+  - [x] Auto-create GradeComponents on assignment (batch)
+  - [x] All tests passing (555 tests, 0 failures)
+  - [x] PR #53 merged to main
+- [ ] **PR 2.14: Invoice payment methods** (3 CRITICAL TODOs) - NEXT
   - [ ] Task 1: Filter unpaid (1h)
   - [ ] Task 2: Filter overdue (1h)
   - [ ] Task 3: Mark as paid (1.5h)
@@ -435,12 +443,6 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
   - [ ] Re-enable `@Cacheable` annotations
   - [ ] Tests (cache hit/miss per tenant)
 
-- [ ] **PR 2.15: Async gradebook events** (2 HIGH TODOs)
-  - [ ] Enrollment → Grade auto-init
-  - [ ] Assignment → Grade batch auto-init
-  - [ ] Event publishing + listeners
-  - [ ] Async tests
-
 ### Week 3+ (Backlog - MEDIUM Priority)
 - [ ] Test fixtures setup (6 TODOs) - Value: High, Effort: 3h
 - [ ] Frontend data fetching (6 TODOs) - Value: Medium, Effort: 4h
@@ -451,12 +453,13 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
 
 | Week | Resolved | Remaining | % Complete |
 |------|----------|-----------|------------|
-| Week 1 (Current) | 0 | 12 | 0% |
-| Week 1 End (Target) | 3 | 9 | 25% (PR 2.14) |
-| Week 2 End (Target) | 6 | 6 | 50% (PR 2.14.1 + 2.15) |
+| Week 1 (Current) | 2 | 10 | 17% (PR 2.15 ✅) |
+| Week 1 End (Target) | 5 | 7 | 42% (PR 2.14) |
+| Week 2 End (Target) | 6 | 6 | 50% (PR 2.14.1) |
 | Week 3+ | 12 | 0 | 100% |
 
 **Current Focus:** 🔥 PR 2.14 - Invoice payment methods (3 TODOs)
+**Just Completed:** ✅ PR 2.15 - Async gradebook events (2 TODOs)
 
 ---
 
@@ -517,6 +520,42 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
 
 ---
 
-**Last Updated:** 2026-03-12
+**Last Updated:** 2026-03-12 (After PR 2.15 completion)
 **Next Review:** After PR 2.14 completion (end of week 1)
-**Status:** ✅ Ready for execution
+**Status:** ✅ In progress (2/12 TODOs resolved, PR 2.15 merged)
+
+---
+
+## ✅ Completed PRs
+
+### PR 2.15: Async Gradebook Events (MERGED - 2026-03-12)
+
+**TODOs Resolved:** 2 (Enrollment → Grade, Assignment → GradeComponents)
+**Implementation:**
+- Created `AssignmentCreatedEvent` domain event
+- Added `GradeEventListener` with 2 event handlers
+- Auto-create Grade when student enrolls (idempotent operation)
+- Auto-create GradeComponents when assignment created (batch processing)
+- Event-driven architecture with silent error handling
+- Multi-tenant context preserved in async handlers
+
+**Technical Details:**
+- Used sync events (not async) to match existing pattern
+- Fixed compilation errors (use ID fields not entity relationships)
+- All 555 tests passing, 0 failures
+- PR #53 merged via squash commit
+
+**Commits:**
+- `62ad405` - feat(grade): Add assignment created event
+- `8bb9eb1` - feat(grade): Publish assignment event
+- `a03f3a8` - feat(grade): Add event-driven grade init
+- `9f96a21` - feat(grade): Add grade event listener
+- `e838322` - fix(grade): Use ID fields not relationships
+
+**Files Modified:**
+- `AssignmentCreatedEvent.java` (NEW)
+- `AssignmentServiceImpl.java` (event publishing)
+- `GradeEventListener.java` (NEW)
+- `GradeService.java` (2 new method signatures)
+- `GradeServiceImpl.java` (2 method implementations)
+- `messages_vi.properties` (ASSIGNMENT_NOT_FOUND)
