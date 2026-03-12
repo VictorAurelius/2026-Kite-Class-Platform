@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
+import com.kitehub.subscription.dto.DatabaseCredentials;
 import com.kitehub.subscription.dto.InstanceResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,9 @@ class InstanceServiceTest {
     @Mock
     private InstanceRepository instanceRepository;
 
+    @Mock
+    private DatabaseProvisioningService databaseProvisioningService;
+
     @InjectMocks
     private InstanceService instanceService;
 
@@ -49,6 +53,15 @@ class InstanceServiceTest {
             .ownerId(UUID.randomUUID())
             .tier(PricingTier.BASIC)
             .build();
+
+        // Mock database provisioning service to return test credentials
+        DatabaseCredentials mockCredentials = DatabaseCredentials.builder()
+            .databaseUrl("jdbc:postgresql://localhost:5433/kiteclass_test")
+            .username("kiteclass_test_user")
+            .password("test_password")
+            .build();
+        when(databaseProvisioningService.provisionDatabase(any(UUID.class)))
+            .thenReturn(mockCredentials);
     }
 
     @Test

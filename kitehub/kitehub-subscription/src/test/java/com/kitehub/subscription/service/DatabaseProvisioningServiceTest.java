@@ -20,7 +20,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Unit tests for DatabaseProvisioningService.
@@ -59,13 +61,13 @@ class DatabaseProvisioningServiceTest {
         ReflectionTestUtils.setField(provisioningService, "masterHost", "localhost");
         ReflectionTestUtils.setField(provisioningService, "masterPort", "5433");
 
-        // Configure encryption mock behavior
+        // Configure encryption mock behavior (lenient to avoid strict stubbing issues)
         // Encrypt: add "ENCRYPTED_" prefix
-        when(encryptionService.encrypt(anyString()))
+        lenient().when(encryptionService.encrypt(anyString()))
             .thenAnswer(invocation -> "ENCRYPTED_" + invocation.getArgument(0));
 
         // Decrypt: remove "ENCRYPTED_" prefix
-        when(encryptionService.decrypt(anyString()))
+        lenient().when(encryptionService.decrypt(anyString()))
             .thenAnswer(invocation -> {
                 String encrypted = invocation.getArgument(0);
                 return encrypted.startsWith("ENCRYPTED_")
