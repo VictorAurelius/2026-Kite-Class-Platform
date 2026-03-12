@@ -57,6 +57,13 @@ database:
   master:
     host: localhost
     port: 5433
+  admin:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: postgres
+    password: ${POSTGRES_ADMIN_PASSWORD:}
+  lifecycle:
+    # Enable actual database creation/deletion (false for MVP/testing)
+    enabled: ${DATABASE_LIFECYCLE_ENABLED:false}
 
 # Encryption configuration for sensitive data (database passwords)
 encryption:

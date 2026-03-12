@@ -36,6 +36,13 @@ database:
   master:
     host: localhost
     port: 5433
+  admin:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+  lifecycle:
+    # Disable actual database lifecycle in tests
+    enabled: false
 
 # Logging
 logging:

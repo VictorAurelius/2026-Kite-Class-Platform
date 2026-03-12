@@ -40,6 +40,12 @@ class DatabaseProvisioningServiceTest {
     @Mock
     private EncryptionService encryptionService;
 
+    @Mock
+    private DatabaseConnectionService connectionService;
+
+    @Mock
+    private FlywayMigrationService migrationService;
+
     @InjectMocks
     private DatabaseProvisioningService provisioningService;
 
@@ -60,6 +66,7 @@ class DatabaseProvisioningServiceTest {
         // Set master database properties via reflection
         ReflectionTestUtils.setField(provisioningService, "masterHost", "localhost");
         ReflectionTestUtils.setField(provisioningService, "masterPort", "5433");
+        ReflectionTestUtils.setField(provisioningService, "lifecycleEnabled", false);
 
         // Configure encryption mock behavior (lenient to avoid strict stubbing issues)
         // Encrypt: add "ENCRYPTED_" prefix
