@@ -1,14 +1,17 @@
 package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
+import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.BillingCycle;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.dto.CreateSubscriptionRequest;
 import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +45,9 @@ class SubscriptionServiceTest {
 
     @Mock
     private InstanceRepository instanceRepository;
+
+    @Mock
+    private PaymentRepository paymentRepository;
 
     @InjectMocks
     private SubscriptionService subscriptionService;
@@ -124,7 +130,13 @@ class SubscriptionServiceTest {
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setExpiresAt(java.time.LocalDateTime.now().plusDays(15));
 
+        Payment savedPayment = new Payment();
+        savedPayment.setId(UUID.randomUUID());
+        savedPayment.setAmountVnd(500_000L);
+        savedPayment.setStatus(PaymentStatus.PENDING);
+
         when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
         when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
 
         // When
@@ -132,7 +144,72 @@ class SubscriptionServiceTest {
 
         // Then
         assertThat(response.getTier()).isEqualTo(PricingTier.PREMIUM);
+        verify(paymentRepository).save(any(Payment.class));
         verify(subscriptionRepository).save(any(Subscription.class));
+    }
+
+    @Test
+    @DisplayName("Should create payment record for tier upgrade")
+    void shouldCreatePaymentForUpgrade() {
+        // Given
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setInstanceId(instanceId);
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(java.time.LocalDateTime.now().plusDays(15));
+
+        Payment savedPayment = new Payment();
+        savedPayment.setId(UUID.randomUUID());
+        savedPayment.setAmountVnd(500_000L);
+        savedPayment.setStatus(PaymentStatus.PENDING);
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
+        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
+
+        // When
+        subscriptionService.upgradeSubscription(subscriptionId, PricingTier.PREMIUM);
+
+        // Then
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentRepository).save(paymentCaptor.capture());
+
+        Payment capturedPayment = paymentCaptor.getValue();
+        assertThat(capturedPayment.getSubscriptionId()).isEqualTo(subscriptionId);
+        // Prorated charge for 14 days: (1.5M - 500k) / 30 * 14 = 466,667 VNĐ
+        assertThat(capturedPayment.getAmountVnd()).isCloseTo(466_667L, org.assertj.core.data.Offset.offset(100L));
+        assertThat(capturedPayment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(capturedPayment.getPaymentContent()).contains("Prorated charge");
+    }
+
+    @Test
+    @DisplayName("Should store pending tier for downgrade")
+    void shouldStorePendingTierForDowngrade() {
+        // Given
+        UUID subscriptionId = UUID.randomUUID();
+        Subscription subscription = new Subscription();
+        subscription.setId(subscriptionId);
+        subscription.setTier(PricingTier.PREMIUM);
+        subscription.setBillingCycle(BillingCycle.MONTHLY);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setExpiresAt(java.time.LocalDateTime.now().plusDays(15));
+
+        when(subscriptionRepository.findById(subscriptionId)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.save(any(Subscription.class))).thenReturn(subscription);
+
+        // When
+        SubscriptionResponse response = subscriptionService.downgradeSubscription(subscriptionId, PricingTier.BASIC);
+
+        // Then
+        ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+        verify(subscriptionRepository).save(captor.capture());
+
+        Subscription saved = captor.getValue();
+        assertThat(saved.getPendingTier()).isEqualTo(PricingTier.BASIC);
+        assertThat(saved.getTier()).isEqualTo(PricingTier.PREMIUM); // Current tier unchanged
     }
 
     @Test

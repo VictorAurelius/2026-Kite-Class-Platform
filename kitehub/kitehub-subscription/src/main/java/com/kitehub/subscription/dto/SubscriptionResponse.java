@@ -33,6 +33,8 @@ public class SubscriptionResponse {
     private LocalDateTime startedAt;
     private LocalDateTime expiresAt;
     private Boolean autoRenew;
+    private PricingTier pendingTier;
+    private UUID pendingPaymentId;
     private Boolean isActive;
     private Boolean isExpired;
 
@@ -53,6 +55,8 @@ public class SubscriptionResponse {
             .startedAt(subscription.getStartedAt())
             .expiresAt(subscription.getExpiresAt())
             .autoRenew(subscription.getAutoRenew())
+            .pendingTier(subscription.getPendingTier())
+            .pendingPaymentId(subscription.getPendingPaymentId())
             .isActive(subscription.isActive())
             .isExpired(subscription.isExpired())
             .build();

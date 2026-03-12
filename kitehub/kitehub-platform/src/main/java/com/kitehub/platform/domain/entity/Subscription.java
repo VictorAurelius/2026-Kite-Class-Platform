@@ -74,6 +74,19 @@ public class Subscription extends BaseEntity {
     private Boolean autoRenew = true;
 
     /**
+     * Pending tier for downgrade (applied at end of billing cycle).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pending_tier", length = 20)
+    private PricingTier pendingTier;
+
+    /**
+     * Payment ID for pending tier upgrade (prorated payment).
+     */
+    @Column(name = "pending_payment_id")
+    private UUID pendingPaymentId;
+
+    /**
      * Check if subscription is active.
      *
      * @return true if active and not expired

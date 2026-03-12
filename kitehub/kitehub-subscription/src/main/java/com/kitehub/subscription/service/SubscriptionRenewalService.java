@@ -1,10 +1,14 @@
 package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
+import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PaymentMethod;
+import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +31,7 @@ public class SubscriptionRenewalService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final InstanceRepository instanceRepository;
+    private final PaymentRepository paymentRepository;
     private static final int GRACE_PERIOD_DAYS = 3;
 
     /**
@@ -56,12 +61,28 @@ public class SubscriptionRenewalService {
             return false;
         }
 
-        // TODO: Create payment invoice (integrate with Payment Service in PR 4.6)
-        // For now, just extend the subscription
-        LocalDateTime newExpiresAt = LocalDateTime.now().plusMonths(1);
+        // Apply pending tier change if exists (downgrade scheduled at end of cycle)
+        if (subscription.getPendingTier() != null) {
+            log.info("Applying pending tier change from {} to {} for subscription {}",
+                subscription.getTier(), subscription.getPendingTier(), subscriptionId);
+            subscription.setTier(subscription.getPendingTier());
+            subscription.setPriceVnd(subscription.getPendingTier().getPrice(subscription.getBillingCycle()));
+            subscription.setPendingTier(null);  // Clear pending tier
+        }
+
+        // Create payment invoice for renewal
+        Payment renewalPayment = createRenewalPayment(subscription);
+        Payment savedPayment = paymentRepository.save(renewalPayment);
+
+        // Extend subscription (will be activated when payment completes)
+        LocalDateTime newExpiresAt = subscription.getExpiresAt().plusMonths(1);
         subscription.setExpiresAt(newExpiresAt);
         subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setPendingPaymentId(savedPayment.getId());
         subscriptionRepository.save(subscription);
+
+        log.info("Created renewal payment invoice: {} (amount: {} VNĐ)",
+            savedPayment.getId(), savedPayment.getAmountVnd());
 
         // TODO: Send payment reminder email (integrate with Email Service in PR 4.12)
         log.info("Renewal email would be sent for subscription: {}", subscriptionId);
@@ -172,5 +193,31 @@ public class SubscriptionRenewalService {
         }
 
         return java.time.temporal.ChronoUnit.DAYS.between(LocalDateTime.now(), subscription.getExpiresAt());
+    }
+
+    /**
+     * Create payment invoice for subscription renewal.
+     *
+     * @param subscription Subscription to renew
+     * @return Created payment record (not saved)
+     */
+    private Payment createRenewalPayment(Subscription subscription) {
+        Payment payment = new Payment();
+        payment.setSubscriptionId(subscription.getId());
+        payment.setAmountVnd(subscription.getPriceVnd());
+        payment.setCurrency("VND");
+        payment.setPaymentMethod(PaymentMethod.VIETQR); // Default to VietQR for subscription payments
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setPaymentContent(String.format(
+            "Subscription renewal for %s tier - %s (Instance: %s)",
+            subscription.getTier(),
+            subscription.getBillingCycle(),
+            subscription.getInstanceId()
+        ));
+
+        log.info("Created renewal payment invoice: {} VNĐ for subscription {}",
+            subscription.getPriceVnd(), subscription.getId());
+
+        return payment;
     }
 }
