@@ -92,7 +92,8 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "students", key = "#id + '-' + T(com.kiteclass.core.config.TenantContext).getCurrentTenant()")
+    // TODO: Re-enable caching with proper multi-tenant key generator
+    // @Cacheable(value = "students", key = "#id")
     public StudentResponse getStudentById(Long id) {
         log.debug("Fetching student with ID: {}", id);
 
