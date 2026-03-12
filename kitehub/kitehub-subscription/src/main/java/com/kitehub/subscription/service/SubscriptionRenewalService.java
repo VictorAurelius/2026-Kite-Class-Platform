@@ -86,8 +86,8 @@ public class SubscriptionRenewalService {
         log.info("Created renewal payment invoice: {} (amount: {} VNĐ)",
             savedPayment.getId(), savedPayment.getAmountVnd());
 
-        // TODO: Send payment reminder email (integrate with Email Service in PR 4.12)
-        log.info("Renewal email would be sent for subscription: {}", subscriptionId);
+        // Payment reminder emails are sent by SubscriptionExpirationChecker scheduler
+        // (7, 3, and 1 days before expiration)
 
         log.info("Subscription renewed successfully: {} (expires: {})", subscriptionId, newExpiresAt);
         return true;
