@@ -13,6 +13,7 @@ import com.kiteclass.core.module.student.repository.StudentRepository;
 import com.kiteclass.core.module.student.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +54,6 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "students", allEntries = true)
     public StudentResponse createStudent(CreateStudentRequest request, java.util.UUID tenantId) {
         log.info("Creating student with email: {}, tenantId: {}", request.email(), tenantId);
 
@@ -91,8 +91,7 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional(readOnly = true)
-    // TODO: Re-enable caching with proper multi-tenant key generator
-    // @Cacheable(value = "students", key = "#id")
+    @Cacheable(value = "students", keyGenerator = "multiTenantKeyGenerator")
     public StudentResponse getStudentById(Long id) {
         log.debug("Fetching student with ID: {}", id);
 
@@ -146,7 +145,7 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "students", key = "#id")
+    @CacheEvict(value = "students", keyGenerator = "multiTenantKeyGenerator")
     public StudentResponse updateStudent(Long id, UpdateStudentRequest request) {
         log.info("Updating student with ID: {}", id);
 
@@ -190,7 +189,7 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional
-    @CacheEvict(value = "students", key = "#id")
+    @CacheEvict(value = "students", keyGenerator = "multiTenantKeyGenerator")
     public void deleteStudent(Long id) {
         log.info("Deleting student with ID: {}", id);
 
