@@ -1,9 +1,14 @@
 package com.kitehub.subscription.service;
 
+import com.kitehub.subscription.dto.vietqr.VietQRRequest;
+import com.kitehub.subscription.dto.vietqr.VietQRResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
 
@@ -19,6 +24,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VietQRService {
 
+    private final RestTemplate restTemplate;
+
     @Value("${payment.vietqr.bank-code:VCB}")
     private String bankCode;
 
@@ -31,9 +38,14 @@ public class VietQRService {
     @Value("${payment.vietqr.api-url:https://api.vietqr.io/v2/generate}")
     private String apiUrl;
 
+    @Value("${payment.vietqr.api-key:#{null}}")
+    private String apiKey;
+
+    @Value("${payment.vietqr.template:compact}")
+    private String defaultTemplate;
+
     /**
      * Generate VietQR code for payment.
-     * TODO: Integrate with real VietQR API when credentials are available.
      *
      * @param paymentId Payment UUID
      * @param amountVnd Payment amount in VND
@@ -45,19 +57,69 @@ public class VietQRService {
 
         String paymentContent = generatePaymentContent(subscriptionId);
 
-        // TODO: Call real VietQR API
-        // For MVP: Return mock QR code URL
-        String mockQrUrl = String.format(
-            "https://img.vietqr.io/image/%s-%s-%s.jpg?amount=%d&addInfo=%s",
-            bankCode,
-            accountNumber,
-            "compact",
-            amountVnd,
-            paymentContent
-        );
+        try {
+            // Build VietQR API request
+            VietQRRequest request = VietQRRequest.builder()
+                .acqId(bankCode)
+                .accountNo(accountNumber)
+                .accountName(accountName)
+                .amount(amountVnd)
+                .addInfo(paymentContent)
+                .template(defaultTemplate)
+                .build();
 
-        log.info("Generated QR code URL: {}", mockQrUrl);
-        return mockQrUrl;
+            // Set up headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            if (apiKey != null && !apiKey.isEmpty()) {
+                headers.set("x-client-id", apiKey);
+            }
+
+            HttpEntity<VietQRRequest> httpEntity = new HttpEntity<>(request, headers);
+
+            // Call VietQR API
+            log.debug("Calling VietQR API: POST {}", apiUrl);
+            ResponseEntity<VietQRResponse> response = restTemplate.exchange(
+                apiUrl,
+                HttpMethod.POST,
+                httpEntity,
+                VietQRResponse.class
+            );
+
+            // Handle response
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                VietQRResponse vietQRResponse = response.getBody();
+
+                if ("00".equals(vietQRResponse.getCode()) && vietQRResponse.getData() != null) {
+                    String qrDataUrl = vietQRResponse.getData().getQrDataUrl();
+                    log.info("Successfully generated VietQR code: {}", qrDataUrl);
+                    return qrDataUrl;
+                } else {
+                    log.error("VietQR API returned error: {} - {}",
+                        vietQRResponse.getCode(), vietQRResponse.getDescription());
+                    throw new RuntimeException("Failed to generate QR code: " + vietQRResponse.getDescription());
+                }
+            } else {
+                log.error("VietQR API returned unexpected status: {}", response.getStatusCode());
+                throw new RuntimeException("Failed to generate QR code: unexpected response");
+            }
+
+        } catch (RestClientException e) {
+            log.error("Failed to call VietQR API", e);
+
+            // Fallback to public image URL if API fails
+            String fallbackUrl = String.format(
+                "https://img.vietqr.io/image/%s-%s-%s.jpg?amount=%d&addInfo=%s",
+                bankCode,
+                accountNumber,
+                defaultTemplate,
+                amountVnd,
+                paymentContent
+            );
+
+            log.warn("Using fallback QR URL: {}", fallbackUrl);
+            return fallbackUrl;
+        }
     }
 
     /**
@@ -74,21 +136,51 @@ public class VietQRService {
 
     /**
      * Verify payment transaction.
-     * TODO: Integrate with bank API to verify transaction.
+     *
+     * <p><strong>IMPORTANT:</strong> Automated payment verification requires integration
+     * with bank APIs (e.g., Vietcombank API, TPBank API) which need:
+     * <ul>
+     *   <li>Bank API credentials and authentication</li>
+     *   <li>Webhook setup for real-time notifications</li>
+     *   <li>Transaction polling mechanisms</li>
+     * </ul>
+     *
+     * <p>Current implementation returns false (manual verification required).
+     * For production use, implement one of:
+     * <ol>
+     *   <li>Bank API integration (requires credentials)</li>
+     *   <li>Payment gateway webhook (e.g., VNPay, MoMo)</li>
+     *   <li>Admin dashboard for manual verification</li>
+     * </ol>
      *
      * @param transactionId Bank transaction ID
-     * @param expectedAmount Expected payment amount
-     * @param expectedContent Expected payment content
-     * @return true if payment is verified
+     * @param expectedAmount Expected payment amount in VND
+     * @param expectedContent Expected payment content/description
+     * @return true if payment is verified, false if verification failed or not implemented
      */
     public boolean verifyPayment(String transactionId, Long expectedAmount, String expectedContent) {
         log.info("Verifying payment transaction: {} (amount: {}, content: {})",
             transactionId, expectedAmount, expectedContent);
 
-        // TODO: Query bank API to verify transaction
-        // For MVP: Mock verification (always returns true for testing)
-        log.warn("Payment verification not implemented - using mock (returns true)");
-        return true;
+        try {
+            // Bank API integration would go here
+            // Example (pseudocode):
+            // BankTransaction transaction = bankApiClient.getTransaction(transactionId);
+            // return transaction.getAmount().equals(expectedAmount) &&
+            //        transaction.getContent().contains(expectedContent) &&
+            //        transaction.getStatus().equals("SUCCESS");
+
+            log.warn("Automated payment verification not implemented - requires bank API integration");
+            log.info("Manual verification required for transaction: {}", transactionId);
+
+            // Return false to indicate manual verification is needed
+            // Admin should verify payment manually via bank statement
+            return false;
+
+        } catch (Exception e) {
+            log.error("Error during payment verification for transaction: {}", transactionId, e);
+            return false;
+        }
     }
 
     /**
