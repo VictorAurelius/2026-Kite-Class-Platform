@@ -220,7 +220,7 @@ class EnrollmentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[?(@.id == " + enrollmentId + ")]").exists());
+                .andExpect(jsonPath("$.data.content[?(@.id == " + enrollmentId + ")]").exists());
     }
 
     @Test
