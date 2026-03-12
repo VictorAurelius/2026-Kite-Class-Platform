@@ -158,6 +158,9 @@ class AssignmentFlowIntegrationTest {
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
 
+        // Assign teacher to class as MAIN_TEACHER (required for creating assignments)
+        testDataBuilder.assignMainTeacherToClass(teacherId, classId, tenantId);
+
         // Enroll student
         CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
                 .studentId(studentId)
@@ -325,6 +328,9 @@ class AssignmentFlowIntegrationTest {
 
         Long classId = objectMapper.readTree(classResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
+
+        // Assign teacher to class as MAIN_TEACHER (required for creating assignments)
+        testDataBuilder.assignMainTeacherToClass(teacherId, classId, tenantId);
 
         CreateEnrollmentRequest enrollRequest = CreateEnrollmentRequest.builder()
                 .studentId(studentId)
