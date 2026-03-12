@@ -47,7 +47,7 @@ public class PaymentWebhookController {
      *   "amount": 500000,
      *   "content": "KITECLASS ABC123DE",
      *   "bankCode": "VCB",
-     *   "signature": "abc123..." // TODO: Verify signature
+     *   "signature": "abc123..." // HMAC-SHA256 signature for verification
      * }
      *
      * @param payload Webhook payload from payment gateway

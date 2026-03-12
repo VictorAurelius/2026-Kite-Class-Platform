@@ -85,10 +85,10 @@ public class DatabaseProvisioningService {
             log.info("Simulating database creation (lifecycle disabled): {}", dbName);
         }
 
-        // Update instance with database credentials
+        // Update instance with database credentials (password encrypted using AES-256-GCM)
         instance.setDatabaseUrl(databaseUrl);
         instance.setDatabaseUsername(username);
-        instance.setDatabasePassword(encryptPassword(password)); // TODO: Implement encryption
+        instance.setDatabasePassword(encryptPassword(password));
 
         instanceRepository.save(instance);
 
