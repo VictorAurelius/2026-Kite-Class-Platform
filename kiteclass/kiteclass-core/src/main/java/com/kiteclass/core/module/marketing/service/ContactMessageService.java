@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Service interface for ContactMessage business logic.
  *
- * <p>Business Rule: BR-MKT-003 - Contact message triggers email to teacher (TODO).
+ * <p>Business Rule: BR-MKT-003 - Contact message triggers email notification to teacher/admin.
  *
  * @since 2.10
  */
@@ -21,8 +21,7 @@ public interface ContactMessageService {
      * Creates a new contact message from website visitor.
      *
      * <p>Sets isRead to false initially.
-     *
-     * TODO: BR-MKT-003 - Integrate with EmailService to notify teacher
+     * Sends email notification to admin (BR-MKT-003).
      *
      * @param request  the create request with message details
      * @param tenantId the tenant ID (instance ID) for multi-tenant isolation

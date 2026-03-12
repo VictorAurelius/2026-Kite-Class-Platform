@@ -3,6 +3,7 @@ package com.kiteclass.core.module.marketing.service.impl;
 import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.service.email.EmailService;
 import com.kiteclass.core.module.marketing.dto.request.CreateContactMessageRequest;
 import com.kiteclass.core.module.marketing.dto.response.ContactMessageResponse;
 import com.kiteclass.core.module.marketing.entity.ContactMessage;
@@ -35,6 +36,7 @@ public class ContactMessageServiceImpl implements ContactMessageService {
 
     private final ContactMessageRepository contactMessageRepository;
     private final ContactMessageMapper contactMessageMapper;
+    private final EmailService emailService;
 
     /**
      * Creates a new contact message from website visitor.
@@ -54,10 +56,24 @@ public class ContactMessageServiceImpl implements ContactMessageService {
         // CRITICAL: Set instanceId for multi-tenant isolation
         contactMessage.setInstanceId(tenantId);
 
-        // TODO: BR-MKT-003 - Send notification email to teacher
-        // emailService.sendContactNotificationEmail(tenantId, contactMessage);
-
         ContactMessage saved = contactMessageRepository.save(contactMessage);
+
+        // BR-MKT-003: Send notification email to teacher/admin
+        try {
+            // TODO(future): Get admin email from tenant settings instead of hardcoding
+            String adminEmail = "admin@kiteclass.com";
+            emailService.sendContactNotification(
+                    adminEmail,
+                    request.getName(),
+                    request.getEmail(),
+                    request.getSubject(),
+                    request.getMessage()
+            );
+            log.info("Sent contact notification email to: {}", adminEmail);
+        } catch (Exception e) {
+            // Don't fail contact message creation if email fails
+            log.error("Failed to send contact notification email: {}", e.getMessage(), e);
+        }
 
         log.info("Created contact message with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
         return contactMessageMapper.toResponse(saved);

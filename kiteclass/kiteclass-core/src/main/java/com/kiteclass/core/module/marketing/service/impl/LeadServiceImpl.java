@@ -4,6 +4,7 @@ import com.kiteclass.core.common.context.TenantContext;
 import com.kiteclass.core.common.dto.PageResponse;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.common.exception.ValidationException;
+import com.kiteclass.core.common.service.email.EmailService;
 import com.kiteclass.core.module.marketing.dto.request.CreateLeadRequest;
 import com.kiteclass.core.module.marketing.dto.request.UpdateLeadRequest;
 import com.kiteclass.core.module.marketing.dto.response.LeadResponse;
@@ -38,6 +39,7 @@ public class LeadServiceImpl implements LeadService {
 
     private final LeadRepository leadRepository;
     private final LeadMapper leadMapper;
+    private final EmailService emailService;
 
     /**
      * Creates a new lead from trial registration.
@@ -66,10 +68,16 @@ public class LeadServiceImpl implements LeadService {
         // CRITICAL: Set instanceId for multi-tenant isolation
         lead.setInstanceId(tenantId);
 
-        // TODO: BR-MKT-004 - Send confirmation email to lead
-        // emailService.sendLeadConfirmationEmail(lead.getEmail(), lead.getName());
-
         Lead saved = leadRepository.save(lead);
+
+        // BR-MKT-004: Send confirmation email to lead
+        try {
+            emailService.sendLeadConfirmation(request.getEmail(), request.getName());
+            log.info("Sent confirmation email to lead: {}", request.getEmail());
+        } catch (Exception e) {
+            // Don't fail lead creation if email fails
+            log.error("Failed to send lead confirmation email: {}", e.getMessage(), e);
+        }
 
         log.info("Created lead with ID: {}, instanceId: {}", saved.getId(), saved.getInstanceId());
         return leadMapper.toResponse(saved);
