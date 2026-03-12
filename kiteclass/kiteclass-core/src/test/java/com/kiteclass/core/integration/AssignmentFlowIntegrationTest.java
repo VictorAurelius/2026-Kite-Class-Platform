@@ -192,11 +192,18 @@ class AssignmentFlowIntegrationTest {
                         .content(objectMapper.writeValueAsString(assignmentRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.title").value("Lab Report 1"))
-                .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.data.status").value("DRAFT"))  // Assignments start as DRAFT
                 .andReturn();
 
         Long assignmentId = objectMapper.readTree(assignmentResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
+
+        // Publish assignment so it can accept submissions
+        mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/publish")
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-Teacher-Id", teacherId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
 
         // ========== Step 3: Student Submits Assignment ==========
         SubmitAssignmentRequest submitRequest = SubmitAssignmentRequest.builder()
@@ -364,6 +371,13 @@ class AssignmentFlowIntegrationTest {
 
         Long assignmentId = objectMapper.readTree(assignmentResult.getResponse().getContentAsString())
                 .get("data").get("id").asLong();
+
+        // Publish assignment so it can accept submissions
+        mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/publish")
+                        .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-Teacher-Id", teacherId.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
 
         // ========== Student Submits Before Deadline ==========
         // Note: Due date is now in future (required by @Future validation)
