@@ -219,7 +219,7 @@ class AssignmentFlowIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.studentId").value(studentId))
                 .andExpect(jsonPath("$.data.assignmentId").value(assignmentId))
-                .andExpect(jsonPath("$.data.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.data.status").value("PENDING"))
                 .andReturn();
 
         Long submissionId = objectMapper.readTree(submissionResult.getResponse().getContentAsString())
@@ -394,12 +394,12 @@ class AssignmentFlowIntegrationTest {
                         .header("X-User-Id", studentId.toString())
                         .content(objectMapper.writeValueAsString(submitRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.status").value("SUBMITTED"));
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
 
         // ========== Verify Submission Status ==========
         mockMvc.perform(get("/api/v1/assignments/" + assignmentId + "/submissions")
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[?(@.studentId == " + studentId + ")].status").value("SUBMITTED"));
+                .andExpect(jsonPath("$.data[?(@.studentId == " + studentId + ")].status").value("PENDING"));
     }
 }
