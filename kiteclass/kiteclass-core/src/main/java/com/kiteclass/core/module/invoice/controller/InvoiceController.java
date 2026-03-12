@@ -137,8 +137,7 @@ public class InvoiceController {
             @PageableDefault(size = 20) Pageable pageable) {
 
         log.info("GET /api/v1/invoices/student/{}/unpaid", studentId);
-        // TODO: PR-2.14 - Filter by paymentStatus != PAID in service layer
-        Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
+        Page<InvoiceResponse> invoices = invoiceService.getUnpaidInvoicesByStudent(studentId, pageable);
         return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
@@ -155,8 +154,7 @@ public class InvoiceController {
             @PageableDefault(size = 20) Pageable pageable) {
 
         log.info("GET /api/v1/invoices/student/{}/overdue", studentId);
-        // TODO: PR-2.14 - Filter by dueDate < today AND paymentStatus != PAID
-        Page<InvoiceResponse> invoices = invoiceService.getInvoicesByStudent(studentId, pageable);
+        Page<InvoiceResponse> invoices = invoiceService.getOverdueInvoicesByStudent(studentId, pageable);
         return ResponseEntity.ok(ApiResponse.success(invoices));
     }
 
@@ -169,8 +167,7 @@ public class InvoiceController {
     @PostMapping("/{id}/mark-paid")
     public ResponseEntity<ApiResponse<InvoiceResponse>> markInvoiceAsPaid(@PathVariable Long id) {
         log.info("POST /api/v1/invoices/{}/mark-paid", id);
-        // TODO: PR-2.14 - Implement markAsPaid in service layer (update paymentStatus)
-        InvoiceResponse invoice = invoiceService.getInvoiceById(id);
+        InvoiceResponse invoice = invoiceService.markInvoiceAsPaid(id);
         return ResponseEntity.ok(ApiResponse.success(invoice));
     }
 

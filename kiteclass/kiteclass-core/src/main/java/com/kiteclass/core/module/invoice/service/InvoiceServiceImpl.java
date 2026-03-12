@@ -33,6 +33,7 @@ import org.springframework.validation.annotation.Validated;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -282,6 +283,58 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice saved = invoiceRepository.save(invoice);
 
         log.info("Cancelled invoice {}", id);
+
+        return invoiceMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<InvoiceResponse> getUnpaidInvoicesByStudent(Long studentId, Pageable pageable) {
+        log.debug("Fetching unpaid invoices for student ID: {}", studentId);
+
+        Page<Invoice> unpaidInvoices = invoiceRepository.findUnpaidByStudentId(studentId, pageable);
+        return unpaidInvoices.map(invoiceMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<InvoiceResponse> getOverdueInvoicesByStudent(Long studentId, Pageable pageable) {
+        log.debug("Fetching overdue invoices for student ID: {}", studentId);
+
+        Page<Invoice> overdueInvoices = invoiceRepository.findOverdueByStudentId(
+                studentId, LocalDate.now(), pageable);
+
+        return overdueInvoices.map(invoiceMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public InvoiceResponse markInvoiceAsPaid(Long id) {
+        log.info("Marking invoice {} as paid", id);
+
+        // 1. Validate invoice exists
+        Invoice invoice = invoiceRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("INVOICE_NOT_FOUND", (Object) id));
+
+        // 2. Check not already paid
+        if (invoice.getStatus() == InvoiceStatus.PAID) {
+            throw new ValidationException("INVOICE_ALREADY_PAID", id);
+        }
+
+        // 3. Check not cancelled
+        if (invoice.getStatus() == InvoiceStatus.CANCELLED) {
+            throw new ValidationException("INVOICE_CANCELLED", id);
+        }
+
+        // 4. Update status and payment tracking
+        invoice.setStatus(InvoiceStatus.PAID);
+        invoice.setAmountPaid(invoice.getTotal());
+        invoice.setPaidAt(LocalDateTime.now());
+
+        // 5. Save
+        Invoice saved = invoiceRepository.save(invoice);
+
+        log.info("Marked invoice {} as paid, total: {}", id, saved.getTotal());
 
         return invoiceMapper.toResponse(saved);
     }

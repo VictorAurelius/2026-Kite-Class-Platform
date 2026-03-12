@@ -92,4 +92,38 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<String> findLatestInvoiceNumber(@Param("tenantId") UUID tenantId,
                                           @Param("pattern") String pattern,
                                           Pageable pageable);
+
+    /**
+     * Finds unpaid invoices for a student (excluding soft-deleted), paginated.
+     * Unpaid = status not in (PAID, CANCELLED, REFUNDED).
+     *
+     * @param studentId the student ID
+     * @param pageable pagination parameters
+     * @return Page of unpaid invoices
+     * @since 2.14
+     */
+    @Query("SELECT i FROM Invoice i WHERE i.deleted = false " +
+           "AND i.studentId = :studentId " +
+           "AND i.status NOT IN ('PAID', 'CANCELLED', 'REFUNDED') " +
+           "ORDER BY i.dueDate ASC")
+    Page<Invoice> findUnpaidByStudentId(@Param("studentId") Long studentId, Pageable pageable);
+
+    /**
+     * Finds overdue unpaid invoices for a student (excluding soft-deleted), paginated.
+     * Overdue = dueDate < today AND status not in (PAID, CANCELLED, REFUNDED).
+     *
+     * @param studentId the student ID
+     * @param currentDate the current date for comparison
+     * @param pageable pagination parameters
+     * @return Page of overdue unpaid invoices
+     * @since 2.14
+     */
+    @Query("SELECT i FROM Invoice i WHERE i.deleted = false " +
+           "AND i.studentId = :studentId " +
+           "AND i.dueDate < :currentDate " +
+           "AND i.status NOT IN ('PAID', 'CANCELLED', 'REFUNDED') " +
+           "ORDER BY i.dueDate ASC")
+    Page<Invoice> findOverdueByStudentId(@Param("studentId") Long studentId,
+                                          @Param("currentDate") LocalDate currentDate,
+                                          Pageable pageable);
 }
