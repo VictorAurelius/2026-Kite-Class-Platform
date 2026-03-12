@@ -50,7 +50,10 @@ public class DatabaseProvisioningService {
         Instance instance = instanceRepository.findById(instanceId)
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
 
-        if (instance.getDatabaseUrl() != null && !instance.getDatabaseUrl().isEmpty()) {
+        // Check if database is already provisioned (skip placeholder "pending" value)
+        if (instance.getDatabaseUrl() != null
+            && !instance.getDatabaseUrl().isEmpty()
+            && !"pending".equals(instance.getDatabaseUrl())) {
             log.warn("Database already provisioned for instance: {}", instanceId);
             return DatabaseCredentials.fromInstance(instance, encryptionService);
         }
