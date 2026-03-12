@@ -212,8 +212,8 @@ class EnrollmentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[?(@.id == " + enrollmentId + ")]").exists())
-                .andExpect(jsonPath("$.data[?(@.id == " + enrollmentId + ")].status").value("ACTIVE"));
+                .andExpect(jsonPath("$.data.content[?(@.id == " + enrollmentId + ")]").exists())
+                .andExpect(jsonPath("$.data.content[?(@.id == " + enrollmentId + ")].status").value("PENDING_PAYMENT"));
 
         // ========== Step 8: Verify Enrollment in Class's List ==========
         mockMvc.perform(get("/api/v1/enrollments/class/" + classId)
