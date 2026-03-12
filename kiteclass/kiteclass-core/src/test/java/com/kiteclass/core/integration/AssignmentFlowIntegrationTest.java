@@ -240,11 +240,11 @@ class AssignmentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.score").value(85.0))
                 .andExpect(jsonPath("$.data.status").value("GRADED"));
 
-        // ========== Step 5: Verify Assignment in Student's List ==========
-        mockMvc.perform(get("/api/v1/assignments/student/" + studentId)
+        // ========== Step 5: Verify Assignment in Student's Submissions ==========
+        mockMvc.perform(get("/api/v1/assignments/submissions/student/" + studentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[?(@.id == " + assignmentId + ")]").exists());
+                .andExpect(jsonPath("$.data[?(@.assignmentId == " + assignmentId + ")]").exists());
 
         // ========== Step 6: Verify Submission is Graded ==========
         mockMvc.perform(get("/api/v1/assignments/submissions/" + submissionId)
