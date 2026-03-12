@@ -452,7 +452,7 @@ public class GradeServiceImpl implements GradeService {
                         .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) enrollmentId));
 
         // 2. Delegate to existing initializeGrade (handles duplicate check)
-        return initializeGrade(enrollment.getStudent().getId(), enrollment.getaClass().getId());
+        return initializeGrade(enrollment.getStudentId(), enrollment.getClassId());
     }
 
     @Override
@@ -485,12 +485,12 @@ public class GradeServiceImpl implements GradeService {
                 // 3a. Get or create grade
                 Grade grade = gradeRepository
                         .findByStudentIdAndClassIdAndDeletedFalse(
-                                enrollment.getStudent().getId(),
-                                enrollment.getaClass().getId())
+                                enrollment.getStudentId(),
+                                enrollment.getClassId())
                         .orElseGet(() -> {
                             Grade newGrade = Grade.builder()
-                                    .student(enrollment.getStudent())
-                                    .aClass(enrollment.getaClass())
+                                    .studentId(enrollment.getStudentId())
+                                    .classId(enrollment.getClassId())
                                     .status(com.kiteclass.core.common.constant.GradeStatus.IN_PROGRESS)
                                     .passThreshold(BigDecimal.valueOf(50.0))
                                     .build();
@@ -524,12 +524,12 @@ public class GradeServiceImpl implements GradeService {
                     componentsCreated++;
 
                     log.debug("Created grade component for student {} in assignment {}",
-                            enrollment.getStudent().getId(), assignmentId);
+                            enrollment.getStudentId(), assignmentId);
                 }
 
             } catch (Exception e) {
                 log.error("Failed to create grade component for student {} in assignment {}: {}",
-                        enrollment.getStudent().getId(), assignmentId, e.getMessage());
+                        enrollment.getStudentId(), assignmentId, e.getMessage());
                 // Continue with next enrollment (don't fail entire batch)
             }
         }
