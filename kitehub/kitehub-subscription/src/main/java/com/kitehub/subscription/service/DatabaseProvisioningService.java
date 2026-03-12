@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -26,6 +30,9 @@ public class DatabaseProvisioningService {
 
     private final InstanceRepository instanceRepository;
     private final EncryptionService encryptionService;
+    private final DatabaseConnectionService connectionService;
+    private final FlywayMigrationService migrationService;
+
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int PASSWORD_LENGTH = 32;
 
@@ -34,6 +41,9 @@ public class DatabaseProvisioningService {
 
     @Value("${database.master.port:5433}")
     private String masterPort;
+
+    @Value("${database.lifecycle.enabled:false}")
+    private boolean lifecycleEnabled;
 
     /**
      * Provision a new database for the instance.
@@ -66,13 +76,14 @@ public class DatabaseProvisioningService {
         // Create database URL
         String databaseUrl = buildDatabaseUrl(dbName);
 
-        // TODO: Actual database creation (requires PostgreSQL admin connection)
-        // For MVP: Simulate database creation
-        log.info("Simulating database creation: {}", dbName);
-        // createPhysicalDatabase(dbName, username, password);
-
-        // TODO: Run Flyway migrations
-        // runMigrations(databaseUrl, username, password);
+        // Create physical database (if lifecycle enabled)
+        if (lifecycleEnabled) {
+            createPhysicalDatabase(dbName, username, password);
+            migrationService.runMigrations(databaseUrl, username, password);
+            log.info("Physical database created and migrated: {}", dbName);
+        } else {
+            log.info("Simulating database creation (lifecycle disabled): {}", dbName);
+        }
 
         // Update instance with database credentials
         instance.setDatabaseUrl(databaseUrl);
@@ -107,12 +118,18 @@ public class DatabaseProvisioningService {
             return;
         }
 
-        // TODO: Backup database before deletion
-        // String dbName = extractDatabaseName(instance.getDatabaseUrl());
-        // backupDatabase(dbName);
+        String dbName = extractDatabaseName(instance.getDatabaseUrl());
 
-        // TODO: Drop database and user
-        // dropPhysicalDatabase(dbName, instance.getDatabaseUsername());
+        // Drop physical database (if lifecycle enabled)
+        if (lifecycleEnabled) {
+            // TODO: Implement backup before deletion (S3 integration in future PR)
+            // backupDatabase(dbName);
+
+            dropPhysicalDatabase(dbName, instance.getDatabaseUsername());
+            log.info("Physical database dropped: {}", dbName);
+        } else {
+            log.info("Simulating database deletion (lifecycle disabled): {}", dbName);
+        }
 
         log.info("Database deleted successfully for instance: {}", instanceId);
     }
@@ -127,14 +144,33 @@ public class DatabaseProvisioningService {
         Instance instance = instanceRepository.findById(instanceId)
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
 
-        if (instance.getDatabaseUrl() == null) {
+        if (instance.getDatabaseUrl() == null || "pending".equals(instance.getDatabaseUrl())) {
             return false;
         }
 
-        // TODO: Implement actual health check
-        // Try to connect to database and run simple query
-        log.info("Checking database health for instance: {}", instanceId);
-        return true; // Simulate healthy database
+        // Actual health check (if lifecycle enabled)
+        if (lifecycleEnabled) {
+            try {
+                String decryptedPassword = encryptionService.decrypt(instance.getDatabasePassword());
+                try (Connection conn = connectionService.getTenantConnection(
+                        instance.getDatabaseUrl(),
+                        instance.getDatabaseUsername(),
+                        decryptedPassword);
+                     Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT 1")) {
+
+                    boolean healthy = rs.next();
+                    log.info("Database health check for instance {}: {}", instanceId, healthy ? "HEALTHY" : "UNHEALTHY");
+                    return healthy;
+                }
+            } catch (SQLException e) {
+                log.error("Health check failed for instance {}: {}", instanceId, e.getMessage());
+                return false;
+            }
+        } else {
+            log.info("Simulating database health check (lifecycle disabled) for instance: {}", instanceId);
+            return true; // Simulate healthy database
+        }
     }
 
     /**
@@ -186,16 +222,141 @@ public class DatabaseProvisioningService {
 
     /**
      * Extract database name from JDBC URL.
-     * Note: Currently unused locally, will be needed when database deletion TODO is implemented.
      *
      * @param databaseUrl JDBC URL
      * @return Database name
      */
-    @SuppressWarnings("unused")
     private String extractDatabaseName(String databaseUrl) {
         // Extract from jdbc:postgresql://host:port/dbname
         String[] parts = databaseUrl.split("/");
         return parts[parts.length - 1];
+    }
+
+    /**
+     * Create physical PostgreSQL database and user.
+     *
+     * @param dbName Database name
+     * @param username Database username
+     * @param password Database password (plain text)
+     * @throws RuntimeException if database creation fails
+     */
+    private void createPhysicalDatabase(String dbName, String username, String password) {
+        log.info("Creating physical database: {}", dbName);
+
+        try (Connection conn = connectionService.getAdminConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Create user with password
+            String createUserSql = String.format(
+                "CREATE USER %s WITH PASSWORD '%s'",
+                sanitizeIdentifier(username),
+                sanitizePassword(password)
+            );
+            stmt.execute(createUserSql);
+            log.debug("Created user: {}", username);
+
+            // Create database owned by user
+            String createDbSql = String.format(
+                "CREATE DATABASE %s OWNER %s ENCODING 'UTF8'",
+                sanitizeIdentifier(dbName),
+                sanitizeIdentifier(username)
+            );
+            stmt.execute(createDbSql);
+            log.debug("Created database: {}", dbName);
+
+            // Grant all privileges
+            String grantSql = String.format(
+                "GRANT ALL PRIVILEGES ON DATABASE %s TO %s",
+                sanitizeIdentifier(dbName),
+                sanitizeIdentifier(username)
+            );
+            stmt.execute(grantSql);
+            log.debug("Granted privileges on {} to {}", dbName, username);
+
+            log.info("Physical database created successfully: {}", dbName);
+
+        } catch (SQLException e) {
+            log.error("Failed to create database {}: {}", dbName, e.getMessage(), e);
+            throw new RuntimeException("Database creation failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Drop physical PostgreSQL database and user.
+     *
+     * @param dbName Database name
+     * @param username Database username
+     * @throws RuntimeException if database deletion fails
+     */
+    private void dropPhysicalDatabase(String dbName, String username) {
+        log.info("Dropping physical database: {}", dbName);
+
+        try (Connection conn = connectionService.getAdminConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Terminate all connections to the database
+            String terminateSql = String.format(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity " +
+                "WHERE datname = '%s' AND pid <> pg_backend_pid()",
+                sanitizeIdentifier(dbName)
+            );
+            stmt.execute(terminateSql);
+            log.debug("Terminated connections to database: {}", dbName);
+
+            // Drop database
+            String dropDbSql = String.format(
+                "DROP DATABASE IF EXISTS %s",
+                sanitizeIdentifier(dbName)
+            );
+            stmt.execute(dropDbSql);
+            log.debug("Dropped database: {}", dbName);
+
+            // Drop user
+            String dropUserSql = String.format(
+                "DROP USER IF EXISTS %s",
+                sanitizeIdentifier(username)
+            );
+            stmt.execute(dropUserSql);
+            log.debug("Dropped user: {}", username);
+
+            log.info("Physical database dropped successfully: {}", dbName);
+
+        } catch (SQLException e) {
+            log.error("Failed to drop database {}: {}", dbName, e.getMessage(), e);
+            throw new RuntimeException("Database deletion failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sanitize SQL identifier to prevent SQL injection.
+     * Validates that identifier contains only alphanumeric characters and underscores.
+     *
+     * @param identifier SQL identifier (database name, username, etc.)
+     * @return Sanitized identifier
+     * @throws IllegalArgumentException if identifier contains invalid characters
+     */
+    private String sanitizeIdentifier(String identifier) {
+        if (identifier == null || identifier.isEmpty()) {
+            throw new IllegalArgumentException("Identifier cannot be null or empty");
+        }
+        if (!identifier.matches("^[a-zA-Z0-9_]+$")) {
+            throw new IllegalArgumentException("Invalid identifier: " + identifier);
+        }
+        return identifier;
+    }
+
+    /**
+     * Sanitize password by escaping single quotes.
+     *
+     * @param password Plain text password
+     * @return Sanitized password
+     */
+    private String sanitizePassword(String password) {
+        if (password == null) {
+            throw new IllegalArgumentException("Password cannot be null");
+        }
+        // Escape single quotes by doubling them
+        return password.replace("'", "''");
     }
 
     /**
