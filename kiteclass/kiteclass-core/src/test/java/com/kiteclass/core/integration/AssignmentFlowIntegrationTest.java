@@ -234,6 +234,7 @@ class AssignmentFlowIntegrationTest {
         mockMvc.perform(post("/api/v1/assignments/submissions/" + submissionId + "/grade")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
+                        .header("X-Teacher-Id", teacherId.toString())
                         .content(objectMapper.writeValueAsString(gradeRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.score").value(85.0))
