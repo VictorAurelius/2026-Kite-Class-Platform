@@ -2,7 +2,6 @@ package com.kiteclass.core.module.student;
 
 import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.context.TenantContext;
-import com.kiteclass.core.config.RedisTestConfig;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
