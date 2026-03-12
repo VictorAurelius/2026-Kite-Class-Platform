@@ -410,16 +410,15 @@ public class TestDataBuilder {
      * @param teacherId the teacher ID
      * @param classId the class ID
      * @param role the teacher's role in the class (MAIN_TEACHER or ASSISTANT_TEACHER)
-     * @param tenantId the tenant ID
+     * @param tenantId the tenant ID (not used - TeacherClass doesn't have instanceId)
      * @since 2.15
      */
     public void assignTeacherToClass(Long teacherId, Long classId, TeacherClassRole role, UUID tenantId) {
-        TeacherClass teacherClass = new TeacherClass();
-        teacherClass.setTeacherId(teacherId);
-        teacherClass.setClassId(classId);
-        teacherClass.setRole(role);
-        teacherClass.setInstanceId(tenantId);
-        teacherClass.setDeleted(false);
+        TeacherClass teacherClass = TeacherClass.builder()
+                .teacherId(teacherId)
+                .classId(classId)
+                .role(role)
+                .build();
         teacherClassRepository.save(teacherClass);
     }
 
