@@ -109,7 +109,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
            "WHERE s.deleted = false " +
            "AND (:search IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "     OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "AND (:status IS NULL OR s.status = :status)")
+           "AND (:status IS NULL OR STR(s.status) = :status)")
     Page<Student> findBySearchCriteria(
             @Param("search") String search,
             @Param("status") String status,
