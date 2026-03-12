@@ -105,23 +105,11 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @param pageable pagination parameters
      * @return page of matching students
      */
-    @Query(value = """
-            SELECT * FROM students s
-            WHERE s.deleted = false
-            AND s.instance_id = :#{T(com.kiteclass.core.config.TenantContext).getCurrentTenant()}
-            AND (CAST(:search AS text) IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
-                OR LOWER(s.email) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
-            AND (CAST(:status AS text) IS NULL OR s.status = CAST(:status AS text))
-            """,
-            countQuery = """
-            SELECT COUNT(*) FROM students s
-            WHERE s.deleted = false
-            AND s.instance_id = :#{T(com.kiteclass.core.config.TenantContext).getCurrentTenant()}
-            AND (CAST(:search AS text) IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%'))
-                OR LOWER(s.email) LIKE LOWER(CONCAT('%', CAST(:search AS text), '%')))
-            AND (CAST(:status AS text) IS NULL OR s.status = CAST(:status AS text))
-            """,
-            nativeQuery = true)
+    @Query("SELECT s FROM Student s " +
+           "WHERE s.deleted = false " +
+           "AND (:search IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "     OR LOWER(s.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (:status IS NULL OR s.status = :status)")
     Page<Student> findBySearchCriteria(
             @Param("search") String search,
             @Param("status") String status,
