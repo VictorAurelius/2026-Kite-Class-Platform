@@ -1,0 +1,43 @@
+# Test configuration for kitehub-subscription
+# Overrides main application.yml for integration tests
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false
+
+# Encryption configuration for tests
+encryption:
+  # Empty key allows EncryptionService to generate temporary key for tests
+  master-key: ""
+  algorithm: AES-256-GCM
+
+# Webhook configuration for tests
+webhook:
+  payment:
+    secret: "test-webhook-secret-for-integration-tests"
+
+# Database master configuration
+database:
+  master:
+    host: localhost
+    port: 5433
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.kitehub: DEBUG
