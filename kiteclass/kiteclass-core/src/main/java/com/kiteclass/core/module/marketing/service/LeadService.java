@@ -16,7 +16,7 @@ import java.util.UUID;
  * <p>Business Rules:
  * <ul>
  *   <li>BR-MKT-002: Lead email must be unique per tenant</li>
- *   <li>BR-MKT-004: Lead creation sends confirmation email (TODO)</li>
+ *   <li>BR-MKT-004: Lead creation sends confirmation email</li>
  * </ul>
  *
  * @since 2.10
@@ -28,8 +28,7 @@ public interface LeadService {
      *
      * <p>Implements BR-MKT-002: Validates email uniqueness within tenant.
      * Sets initial status to NEW.
-     *
-     * TODO: BR-MKT-004 - Integrate with EmailService to send confirmation email
+     * Sends confirmation email to lead (BR-MKT-004).
      *
      * @param request  the create request with lead details
      * @param tenantId the tenant ID (instance ID) for multi-tenant isolation
