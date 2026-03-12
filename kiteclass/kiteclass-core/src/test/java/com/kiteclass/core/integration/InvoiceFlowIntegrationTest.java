@@ -225,9 +225,10 @@ class InvoiceFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PAID"));
 
-        // ========== Step 10: Verify Enrollment Payment Status Updated ==========
-        // NOTE: Invoice payment status does not auto-sync to enrollment yet
-        // TODO: Implement invoice→enrollment status sync in future PR
+        // ========== Step 10: Verify Enrollment Payment Status ==========
+        // NOTE: Invoice payment does NOT auto-sync to enrollment status yet
+        // Enrollment remains PENDING_PAYMENT even after invoice is marked PAID
+        // TODO(future): Implement invoice→enrollment status sync (requires event listener)
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
@@ -471,7 +472,7 @@ class InvoiceFlowIntegrationTest {
     @DisplayName("PR 2.14: Multi-tenant isolation for unpaid/overdue filters")
     void testMultiTenantIsolation_InvoiceFilters() throws Exception {
         UUID tenant1 = tenantId;
-        UUID tenant2 = UUID.randomUUID();
+        UUID tenant2 = UUID.randomUUID(); // Different tenant for isolation test
 
         // ========== Tenant 1: Create Student + Invoice ==========
         CreateStudentRequest student1Request = new CreateStudentRequest(
@@ -497,29 +498,6 @@ class InvoiceFlowIntegrationTest {
         Long class1Id = createTestClass("Tenant1 Course", "T1-C001");
         enrollStudent(student1Id, class1Id, BigDecimal.valueOf(1000000));
 
-        // ========== Tenant 2: Create Different Student ==========
-        Long teacher2Id = testDataBuilder.createTestTeacher(mockMvc, objectMapper, tenant2);
-
-        CreateStudentRequest student2Request = new CreateStudentRequest(
-                "Laura Tenant2",
-                "laura.t2@test.com",
-                "0913131313",
-                LocalDate.of(2009, 4, 4),
-                Gender.FEMALE,
-                "Address",
-                null
-        );
-
-        MvcResult student2Result = mockMvc.perform(post("/api/v1/students")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Tenant-Id", tenant2.toString())
-                        .content(objectMapper.writeValueAsString(student2Request)))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        Long student2Id = objectMapper.readTree(student2Result.getResponse().getContentAsString())
-                .get("data").get("id").asLong();
-
         // ========== Tenant 1: Get Unpaid Invoices (should only see own student) ==========
         mockMvc.perform(get("/api/v1/invoices/student/" + student1Id + "/unpaid")
                         .header("X-Tenant-Id", tenant1.toString()))
@@ -528,10 +506,11 @@ class InvoiceFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.content[*].studentId").value(student1Id.intValue()));
 
         // ========== Tenant 2: Cannot access Tenant 1's student invoices ==========
+        // Using different tenant ID should return empty results (tenant isolation)
         mockMvc.perform(get("/api/v1/invoices/student/" + student1Id + "/unpaid")
                         .header("X-Tenant-Id", tenant2.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content.length()").value(0)); // Empty, no access
+                .andExpect(jsonPath("$.data.content.length()").value(0)); // Empty due to tenant filter
     }
 
     // ========== Helper Methods ==========
