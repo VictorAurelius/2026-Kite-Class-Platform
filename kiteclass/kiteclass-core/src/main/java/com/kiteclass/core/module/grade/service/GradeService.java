@@ -152,4 +152,33 @@ public interface GradeService {
      * @return statistics map
      */
     java.util.Map<String, Object> calculateClassStatistics(Long classId);
+
+    /**
+     * Initialize grade for enrollment (called by event listener).
+     *
+     * <p>Idempotent - returns existing grade if already initialized.
+     * This method is triggered by ENROLLMENT_CREATED event to automatically
+     * create a grade record when a student enrolls in a class.
+     *
+     * @param enrollmentId enrollment ID
+     * @return created or existing grade response
+     * @throws EntityNotFoundException if enrollment not found
+     * @since 2.15
+     */
+    GradeResponse initializeGradeForEnrollment(Long enrollmentId);
+
+    /**
+     * Initialize grade components for all enrolled students in assignment.
+     *
+     * <p>Called when new assignment is created. Creates a GradeComponent
+     * entry for each active enrollment in the class, with initial score = 0.
+     * Idempotent - skips if component already exists.
+     *
+     * @param assignmentId assignment ID
+     * @param classId class ID
+     * @return count of grade components created
+     * @throws EntityNotFoundException if assignment not found
+     * @since 2.15
+     */
+    int initializeGradeComponentsForAssignment(Long assignmentId, Long classId);
 }
