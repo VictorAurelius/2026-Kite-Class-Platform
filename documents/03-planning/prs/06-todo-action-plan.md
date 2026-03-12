@@ -431,11 +431,12 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
   - [x] Auto-create GradeComponents on assignment (batch)
   - [x] All tests passing (555 tests, 0 failures)
   - [x] PR #53 merged to main
-- [ ] **PR 2.14: Invoice payment methods** (3 CRITICAL TODOs) - NEXT
-  - [ ] Task 1: Filter unpaid (1h)
-  - [ ] Task 2: Filter overdue (1h)
-  - [ ] Task 3: Mark as paid (1.5h)
-  - [ ] Tests (30 min)
+- [x] **PR 2.14: Invoice payment methods** (3 CRITICAL TODOs) - DONE ✅
+  - [x] Task 1: Filter unpaid invoices (findUnpaidByStudentId)
+  - [x] Task 2: Filter overdue invoices (findOverdueByStudentId)
+  - [x] Task 3: Mark invoice as paid (markInvoiceAsPaid)
+  - [x] Integration tests (558 tests, 0 failures)
+  - [x] PR #50 merged to main
 
 ### Week 2 (2026-03-13 → 2026-03-19)
 - [ ] **PR 2.14.1: Student caching** (1 HIGH TODO)
@@ -453,13 +454,14 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
 
 | Week | Resolved | Remaining | % Complete |
 |------|----------|-----------|------------|
-| Week 1 (Current) | 2 | 10 | 17% (PR 2.15 ✅) |
-| Week 1 End (Target) | 5 | 7 | 42% (PR 2.14) |
+| Week 1 (Current) | 5 | 7 | 42% (PR 2.14 ✅ + PR 2.15 ✅) |
 | Week 2 End (Target) | 6 | 6 | 50% (PR 2.14.1) |
 | Week 3+ | 12 | 0 | 100% |
 
-**Current Focus:** 🔥 PR 2.14 - Invoice payment methods (3 TODOs)
-**Just Completed:** ✅ PR 2.15 - Async gradebook events (2 TODOs)
+**Current Focus:** 🟡 PR 2.14.1 - Student caching (1 HIGH TODO)
+**Just Completed:**
+- ✅ PR 2.15 - Async gradebook events (2 TODOs)
+- ✅ PR 2.14 - Invoice payment methods (3 TODOs)
 
 ---
 
@@ -520,13 +522,45 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
 
 ---
 
-**Last Updated:** 2026-03-12 (After PR 2.15 completion)
-**Next Review:** After PR 2.14 completion (end of week 1)
-**Status:** ✅ In progress (2/12 TODOs resolved, PR 2.15 merged)
+**Last Updated:** 2026-03-12 (After PR 2.14 + PR 2.15 completion)
+**Next Review:** After PR 2.14.1 completion (week 2)
+**Status:** ✅ In progress (5/12 TODOs resolved, 42% complete)
 
 ---
 
 ## ✅ Completed PRs
+
+### PR 2.14: Invoice Payment Methods (MERGED - 2026-03-12)
+
+**TODOs Resolved:** 3 CRITICAL (unpaid filter, overdue filter, mark as paid)
+**Implementation:**
+- Added `findUnpaidByStudentId` repository query (status NOT IN PAID/CANCELLED/REFUNDED)
+- Added `findOverdueByStudentId` repository query (dueDate < today AND unpaid)
+- Implemented `getUnpaidInvoicesByStudent` service method
+- Implemented `getOverdueInvoicesByStudent` service method
+- Implemented `markInvoiceAsPaid` service method (set status=PAID, amountPaid, paidAt)
+- 3 controller TODOs resolved (lines 140, 158, 172)
+
+**Technical Details:**
+- Multi-tenant support in repository queries
+- Validation: Cannot mark already-paid invoice
+- Pagination support for all filter endpoints
+- All 558 tests passing, 0 failures
+- PR #50 merged via squash commit
+
+**Test Coverage:**
+- `testFilterUnpaidInvoices`: Creates 2 invoices, marks 1 paid, expects 1 unpaid
+- `testMarkInvoiceAsPaid_ValidationTests`: Success + validation tests
+- `testMultiTenantIsolation_InvoiceFilters`: Tenant isolation verification
+
+**Files Modified:**
+- `InvoiceController.java` (3 TODOs resolved)
+- `InvoiceRepository.java` (2 new queries)
+- `InvoiceService.java` (3 new method signatures)
+- `InvoiceServiceImpl.java` (3 method implementations)
+- `InvoiceFlowIntegrationTest.java` (3 new tests)
+
+---
 
 ### PR 2.15: Async Gradebook Events (MERGED - 2026-03-12)
 
