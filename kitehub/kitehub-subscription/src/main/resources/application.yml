@@ -85,3 +85,15 @@ email:
   service:
     # URL of KiteHub Email Service (internal service-to-service communication)
     url: ${EMAIL_SERVICE_URL:http://localhost:8083}
+
+# Payment configuration
+payment:
+  vietqr:
+    # VietQR API configuration
+    api-url: ${VIETQR_API_URL:https://api.vietqr.io/v2/generate}
+    api-key: ${VIETQR_API_KEY:}  # Optional: For VietQR Premium API features
+    # Bank account information for payment QR codes
+    bank-code: ${VIETQR_BANK_CODE:VCB}  # VCB = Vietcombank
+    account-number: ${VIETQR_ACCOUNT_NUMBER:1234567890}
+    account-name: ${VIETQR_ACCOUNT_NAME:CONG TY KITECLASS}
+    template: ${VIETQR_TEMPLATE:compact}  # compact, print, or qr_only
