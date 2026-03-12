@@ -1,5 +1,7 @@
 package com.kitehub.branding.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.branding.config.OpenAIConfig;
 import com.kitehub.branding.dto.LogoAnalysis;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class OpenAIClient {
 
     private final WebClient openAIWebClient;
     private final OpenAIConfig openAIConfig;
+    private final ObjectMapper objectMapper;
 
     /**
      * Analyze logo using GPT-4 Vision.
@@ -159,8 +162,22 @@ public class OpenAIClient {
 
             log.debug("Raw GPT-4 Vision response: {}", content);
 
-            // TODO: Parse JSON from content (implement JSON parsing logic)
-            // For MVP: Return mock data
+            // Parse JSON from content using Jackson ObjectMapper
+            String jsonContent = extractJson(content);
+            LogoAnalysis analysis = objectMapper.readValue(jsonContent, LogoAnalysis.class);
+
+            // Set raw analysis for debugging/audit trail
+            analysis.setRawAnalysis(content);
+
+            log.info("Successfully parsed logo analysis: {} colors, theme={}",
+                analysis.getPrimaryColors().size(), analysis.getTheme());
+
+            return analysis;
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse JSON from OpenAI response: {}", e.getMessage());
+
+            // Fallback to mock data for development/testing
+            log.warn("Using fallback mock data for logo analysis");
             return LogoAnalysis.builder()
                 .primaryColors(List.of("#FF5733", "#33FF57"))
                 .secondaryColors(List.of("#3357FF", "#F3FF33"))
@@ -168,12 +185,36 @@ public class OpenAIClient {
                 .typography("sans-serif, clean")
                 .targetAudience("students and educators")
                 .brandPersonality(List.of("innovative", "friendly", "professional"))
-                .rawAnalysis(content)
+                .rawAnalysis("Fallback data (JSON parsing failed)")
                 .build();
         } catch (Exception e) {
             log.error("Failed to parse logo analysis response", e);
             throw new RuntimeException("Failed to parse GPT-4 Vision response", e);
         }
+    }
+
+    /**
+     * Extract JSON from content string.
+     * OpenAI sometimes returns JSON with markdown code blocks (```json ... ```).
+     *
+     * @param content Content string potentially containing JSON
+     * @return Extracted JSON string
+     */
+    private String extractJson(String content) {
+        // Remove markdown code blocks if present
+        String cleaned = content.trim();
+
+        if (cleaned.startsWith("```json")) {
+            cleaned = cleaned.substring(7); // Remove ```json
+        } else if (cleaned.startsWith("```")) {
+            cleaned = cleaned.substring(3); // Remove ```
+        }
+
+        if (cleaned.endsWith("```")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 3); // Remove trailing ```
+        }
+
+        return cleaned.trim();
     }
 
     /**

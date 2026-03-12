@@ -1,5 +1,7 @@
 package com.kitehub.branding.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.branding.client.OpenAIClient;
 import com.kitehub.branding.dto.Feature;
 import com.kitehub.branding.dto.LandingPageContent;
@@ -22,6 +24,7 @@ import java.util.List;
 public class ContentGenerationService {
 
     private final OpenAIClient openAIClient;
+    private final ObjectMapper objectMapper;
 
     /**
      * Generate complete landing page content based on logo analysis.
@@ -160,20 +163,51 @@ public class ContentGenerationService {
      * Generate feature highlights (3-5 features).
      */
     private List<Feature> generateFeatures(String orgName, String theme, String language) {
-        // TODO: Implement proper JSON parsing in future PR
-        // String prompt = String.format(
-        //         "List 4 key features of '%s', an education center with %s style. " +
-        //         "For each feature, provide: " +
-        //         "1. Title (max 30 chars in %s) " +
-        //         "2. Description (1-2 sentences in %s) " +
-        //         "Format as JSON array: [{\"title\": \"...\", \"description\": \"...\", \"icon\": \"video|calendar|trophy|users\"}]",
-        //         orgName,
-        //         theme,
-        //         language.equals("vi") ? "Vietnamese" : "English",
-        //         language.equals("vi") ? "Vietnamese" : "English"
-        // );
+        try {
+            String prompt = String.format(
+                "List 4 key features of '%s', an education center with %s style. " +
+                "For each feature, provide: " +
+                "1. Title (max 30 chars in %s) " +
+                "2. Description (1-2 sentences in %s) " +
+                "3. Icon (choose from: video, calendar, trophy, users, star, book) " +
+                "Format as JSON array: [{\"title\": \"...\", \"description\": \"...\", \"icon\": \"...\"}] " +
+                "Return ONLY valid JSON array, no additional text.",
+                orgName,
+                theme,
+                language.equals("vi") ? "Vietnamese" : "English",
+                language.equals("vi") ? "Vietnamese" : "English"
+            );
 
-        // For now, return mock features (OpenAI JSON parsing can be complex)
+            String response = openAIClient.generateText(prompt).block().trim();
+
+            log.debug("Raw features response: {}", response);
+
+            // Extract and parse JSON
+            String jsonContent = extractJson(response);
+            List<Feature> features = objectMapper.readValue(
+                jsonContent,
+                new TypeReference<List<Feature>>() {}
+            );
+
+            log.info("Successfully generated {} features for {}", features.size(), orgName);
+            return features;
+
+        } catch (Exception e) {
+            log.error("Failed to generate features via OpenAI: {}", e.getMessage());
+            log.warn("Using fallback mock features for {}", language);
+
+            // Fallback to mock features for development/testing
+            return getMockFeatures(language);
+        }
+    }
+
+    /**
+     * Get fallback mock features for development/testing.
+     *
+     * @param language Content language
+     * @return List of mock features
+     */
+    private List<Feature> getMockFeatures(String language) {
         if (language.equals("vi")) {
             return Arrays.asList(
                     Feature.builder()
@@ -221,6 +255,30 @@ public class ContentGenerationService {
                             .build()
             );
         }
+    }
+
+    /**
+     * Extract JSON from content string.
+     * OpenAI sometimes returns JSON with markdown code blocks (```json ... ```).
+     *
+     * @param content Content string potentially containing JSON
+     * @return Extracted JSON string
+     */
+    private String extractJson(String content) {
+        // Remove markdown code blocks if present
+        String cleaned = content.trim();
+
+        if (cleaned.startsWith("```json")) {
+            cleaned = cleaned.substring(7); // Remove ```json
+        } else if (cleaned.startsWith("```")) {
+            cleaned = cleaned.substring(3); // Remove ```
+        }
+
+        if (cleaned.endsWith("```")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 3); // Remove trailing ```
+        }
+
+        return cleaned.trim();
     }
 
     /**
