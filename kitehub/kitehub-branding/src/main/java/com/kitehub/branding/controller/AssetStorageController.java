@@ -1,6 +1,10 @@
 package com.kitehub.branding.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.dto.BrandingAsset;
+import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.S3StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +40,8 @@ import java.util.UUID;
 public class AssetStorageController {
 
     private final S3StorageService s3StorageService;
+    private final BrandingJobService brandingJobService;
+    private final ObjectMapper objectMapper;
 
     /**
      * Upload asset for instance.
@@ -69,12 +77,19 @@ public class AssetStorageController {
             .uploadedAt(Instant.now().getEpochSecond())
             .build();
 
+        // Persist asset to BrandingJob
+        try {
+            persistAssetToJob(instanceId, asset);
+        } catch (Exception e) {
+            log.error("Failed to persist asset to BrandingJob for instance: {}", instanceId, e);
+            // Continue - upload succeeded even if persistence failed
+        }
+
         return ResponseEntity.ok(asset);
     }
 
     /**
      * Get all assets for instance.
-     * For MVP: Returns mock data. Full implementation in PR 4.9.
      *
      * @param instanceId Instance UUID
      * @return List of assets
@@ -83,28 +98,36 @@ public class AssetStorageController {
     public ResponseEntity<List<BrandingAsset>> getAssets(@PathVariable UUID instanceId) {
         log.info("Getting assets for instance: {}", instanceId);
 
-        // For MVP: Return mock data
-        // TODO PR 4.9: Query from BrandingJob entity
-        List<BrandingAsset> mockAssets = List.of(
-            BrandingAsset.builder()
-                .type("profile")
-                .variant("cutout")
-                .url(s3StorageService.getAssetUrl("instances/" + instanceId + "/branding/profile/cutout.png"))
-                .sizeBytes(125000L)
-                .contentType("image/png")
-                .uploadedAt(Instant.now().getEpochSecond())
-                .build(),
-            BrandingAsset.builder()
-                .type("hero")
-                .variant("variant1")
-                .url(s3StorageService.getAssetUrl("instances/" + instanceId + "/branding/hero/variant1.jpg"))
-                .sizeBytes(350000L)
-                .contentType("image/jpeg")
-                .uploadedAt(Instant.now().getEpochSecond())
-                .build()
-        );
+        try {
+            // Query from BrandingJob entity
+            List<BrandingJob> jobs = brandingJobService.getJobsByInstance(instanceId);
 
-        return ResponseEntity.ok(mockAssets);
+            if (jobs.isEmpty()) {
+                log.debug("No branding jobs found for instance: {}", instanceId);
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            // Get most recent completed job
+            BrandingJob latestJob = jobs.stream()
+                .filter(job -> job.getAssetsGenerated() != null && !job.getAssetsGenerated().isEmpty())
+                .findFirst()
+                .orElse(null);
+
+            if (latestJob == null) {
+                log.debug("No assets generated yet for instance: {}", instanceId);
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            // Parse assetsGenerated JSON
+            List<BrandingAsset> assets = parseAssetsJson(latestJob.getAssetsGenerated());
+            log.info("Retrieved {} assets for instance: {}", assets.size(), instanceId);
+
+            return ResponseEntity.ok(assets);
+
+        } catch (Exception e) {
+            log.error("Failed to retrieve assets for instance: {}", instanceId, e);
+            return ResponseEntity.ok(Collections.emptyList());
+        }
     }
 
     /**
@@ -117,14 +140,47 @@ public class AssetStorageController {
     public ResponseEntity<Map<String, String>> deleteAssets(@PathVariable UUID instanceId) {
         log.info("Deleting assets for instance: {}", instanceId);
 
-        // For MVP: Mock deletion
-        // TODO PR 4.9: Delete from S3 and update BrandingJob entity
-        log.info("Mock mode: Asset deletion simulated for instance {}", instanceId);
+        try {
+            // Get all jobs for instance
+            List<BrandingJob> jobs = brandingJobService.getJobsByInstance(instanceId);
 
-        return ResponseEntity.ok(Map.of(
-            "status", "success",
-            "message", "Assets deleted for instance " + instanceId
-        ));
+            int deletedCount = 0;
+
+            for (BrandingJob job : jobs) {
+                if (job.getAssetsGenerated() != null && !job.getAssetsGenerated().isEmpty()) {
+                    // Parse assets
+                    List<BrandingAsset> assets = parseAssetsJson(job.getAssetsGenerated());
+
+                    // Delete each asset from S3
+                    for (BrandingAsset asset : assets) {
+                        try {
+                            String path = extractPathFromUrl(asset.getUrl());
+                            s3StorageService.deleteAsset(path);
+                            deletedCount++;
+                        } catch (Exception e) {
+                            log.warn("Failed to delete asset: {}", asset.getUrl(), e);
+                        }
+                    }
+
+                    // Clear assetsGenerated in BrandingJob
+                    brandingJobService.updateGeneratedAssets(job.getId(), null);
+                }
+            }
+
+            log.info("Deleted {} assets for instance: {}", deletedCount, instanceId);
+
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", String.format("Deleted %d assets for instance %s", deletedCount, instanceId)
+            ));
+
+        } catch (Exception e) {
+            log.error("Failed to delete assets for instance: {}", instanceId, e);
+            return ResponseEntity.ok(Map.of(
+                "status", "error",
+                "message", "Failed to delete assets: " + e.getMessage()
+            ));
+        }
     }
 
     /**
@@ -140,5 +196,91 @@ public class AssetStorageController {
 
         String nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
         return nameWithoutExt.replaceAll("\\d+_", ""); // Remove timestamp
+    }
+
+    /**
+     * Persist asset to BrandingJob.
+     *
+     * @param instanceId Instance UUID
+     * @param asset Asset to persist
+     */
+    private void persistAssetToJob(UUID instanceId, BrandingAsset asset) throws IOException {
+        List<BrandingJob> jobs = brandingJobService.getJobsByInstance(instanceId);
+
+        BrandingJob job;
+
+        if (jobs.isEmpty()) {
+            // No job exists - this shouldn't happen in normal flow, but handle it
+            log.warn("No BrandingJob found for instance: {}, cannot persist asset", instanceId);
+            return;
+        }
+
+        // Get most recent job
+        job = jobs.get(0);
+
+        // Parse existing assets
+        List<BrandingAsset> assets = new ArrayList<>();
+        if (job.getAssetsGenerated() != null && !job.getAssetsGenerated().isEmpty()) {
+            assets = parseAssetsJson(job.getAssetsGenerated());
+        }
+
+        // Add new asset
+        assets.add(asset);
+
+        // Serialize back to JSON
+        String assetsJson = objectMapper.writeValueAsString(assets);
+        brandingJobService.updateGeneratedAssets(job.getId(), assetsJson);
+
+        log.debug("Persisted asset to BrandingJob: {} for instance: {}", job.getId(), instanceId);
+    }
+
+    /**
+     * Parse assetsGenerated JSON to list of BrandingAsset.
+     *
+     * @param assetsJson JSON string
+     * @return List of assets
+     */
+    private List<BrandingAsset> parseAssetsJson(String assetsJson) {
+        if (assetsJson == null || assetsJson.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            return objectMapper.readValue(assetsJson, new TypeReference<List<BrandingAsset>>() {});
+        } catch (Exception e) {
+            log.error("Failed to parse assetsGenerated JSON: {}", assetsJson, e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Extract S3 path from asset URL.
+     *
+     * @param url Asset URL
+     * @return S3 object key
+     */
+    private String extractPathFromUrl(String url) {
+        // Handle CDN URLs (e.g., https://cdn.kiteclass.com/instances/xxx/...)
+        // Handle S3 URLs (e.g., https://bucket.s3.region.amazonaws.com/instances/xxx/...)
+        // Handle presigned URLs (e.g., https://bucket.s3.region.amazonaws.com/instances/xxx?...)
+        // Handle mock URLs (e.g., https://mock-cdn.kiteclass.com/instances/xxx/...)
+
+        String path = url;
+
+        // Remove query parameters
+        int queryIndex = path.indexOf('?');
+        if (queryIndex > 0) {
+            path = path.substring(0, queryIndex);
+        }
+
+        // Extract path after domain
+        int instancesIndex = path.indexOf("/instances/");
+        if (instancesIndex > 0) {
+            return path.substring(instancesIndex + 1); // Remove leading slash
+        }
+
+        // Fallback: return full URL
+        log.warn("Could not extract S3 path from URL: {}", url);
+        return url;
     }
 }
