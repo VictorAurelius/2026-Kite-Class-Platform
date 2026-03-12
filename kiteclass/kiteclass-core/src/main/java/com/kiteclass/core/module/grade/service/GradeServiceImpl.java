@@ -469,7 +469,9 @@ public class GradeServiceImpl implements GradeService {
         List<com.kiteclass.core.module.enrollment.entity.Enrollment> enrollments =
                 enrollmentRepository.findByClassIdAndStatusAndDeletedFalse(
                         classId,
-                        com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE);
+                        com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE,
+                        org.springframework.data.domain.Pageable.unpaged())
+                .getContent();
 
         if (enrollments.isEmpty()) {
             log.warn("No active enrollments found for class {}", classId);
@@ -498,7 +500,7 @@ public class GradeServiceImpl implements GradeService {
 
                 // 3b. Check if component already exists (idempotent)
                 Optional<GradeComponent> existing = gradeComponentRepository
-                        .findByGradeIdAndComponentTypeAndComponentRefIdAndDeletedFalse(
+                        .findByGradeIdAndComponentTypeAndComponentRefId(
                                 grade.getId(),
                                 com.kiteclass.core.common.constant.GradeComponentType.ASSIGNMENT,
                                 assignmentId);

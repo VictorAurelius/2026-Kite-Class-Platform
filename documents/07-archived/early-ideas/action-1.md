@@ -1449,3 +1449,11 @@ fix và chạy test ở local trước khi push lên CI
 
 bật mode plan, check CI status và fix hết 8 failure còn lại
 chạy local thành công mới push CI
+
+hãy thêm vào skill: sau khi hoàn thành 1 branch (trừ main) thì clear hết CI failed của branch đó, chỉ giữ lại 1 CI pass gần nhất, thường là CI pass để chứng minh branch đó hoàn thành, không ảnh hưởng đến code tổng thế của dự án
+
+bật mode plan để:
+1. cập nhật skill trên
+2. thực hiện trên branch hiện tại và merge PR
+3. tạo plan để clean up history CI hiện tại của dự án dựa trên skill này
+4. tôi thấy 2 branch fix test gần đây sản sinh ra thêm TODO, hãy cập nhật lại plan TODO để đề xuất action tiếp theo
