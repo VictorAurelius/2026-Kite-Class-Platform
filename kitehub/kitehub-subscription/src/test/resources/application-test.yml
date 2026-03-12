@@ -21,8 +21,9 @@ spring:
 
 # Encryption configuration for tests
 encryption:
-  # Empty key allows EncryptionService to generate temporary key for tests
-  master-key: ""
+  # Fixed test key (32 bytes, base64-encoded) - ensures consistent encryption/decryption
+  # IMPORTANT: This is for TESTING ONLY, never use in production
+  master-key: "0t3EshARw42BpdWNO4a2hjDZxVqOgPYUCfSKyOI0KFA="
   algorithm: AES-256-GCM
 
 # Webhook configuration for tests
