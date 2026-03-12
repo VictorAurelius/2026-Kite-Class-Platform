@@ -1,13 +1,17 @@
 package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
+import com.kitehub.platform.domain.entity.Payment;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PaymentMethod;
+import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.dto.CreateSubscriptionRequest;
 import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,7 @@ public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final InstanceRepository instanceRepository;
+    private final PaymentRepository paymentRepository;
 
     /**
      * Create a new subscription for instance.
@@ -162,7 +167,12 @@ public class SubscriptionService {
         subscription.setTier(newTier);
         subscription.setPriceVnd(newTier.getPrice(subscription.getBillingCycle()));
 
-        // TODO: Create payment record for prorated charge (PR 4.6)
+        // Create payment record for prorated charge
+        Payment proratedPayment = createProratedPayment(subscription, proratedCharge);
+        Payment savedPayment = paymentRepository.save(proratedPayment);
+
+        // Link payment to subscription
+        subscription.setPendingPaymentId(savedPayment.getId());
 
         Subscription updated = subscriptionRepository.save(subscription);
 
@@ -196,16 +206,12 @@ public class SubscriptionService {
         }
 
         // Downgrade happens at end of cycle - store as pending change
-        // TODO: Implement pending tier change (store in separate table or field)
-        // For MVP: Log warning and update immediately
-        log.warn("Downgrade should happen at end of cycle ({}). For MVP: Updating immediately.", subscription.getExpiresAt());
-
-        subscription.setTier(newTier);
-        subscription.setPriceVnd(newTier.getPrice(subscription.getBillingCycle()));
+        subscription.setPendingTier(newTier);
 
         Subscription updated = subscriptionRepository.save(subscription);
 
-        log.info("Downgraded subscription: {} to tier {}", subscriptionId, newTier);
+        log.info("Scheduled downgrade for subscription: {} to tier {} (will apply at {})",
+            subscriptionId, newTier, subscription.getExpiresAt());
 
         return SubscriptionResponse.fromEntity(updated);
     }
@@ -326,6 +332,32 @@ public class SubscriptionService {
 
         // Prorated charge = daily rate * days left
         return Math.round(dailyRate * daysLeft);
+    }
+
+    /**
+     * Create payment record for prorated tier upgrade charge.
+     *
+     * @param subscription Subscription being upgraded
+     * @param amount Prorated amount to charge
+     * @return Created payment record (not saved)
+     */
+    private Payment createProratedPayment(Subscription subscription, long amount) {
+        Payment payment = new Payment();
+        payment.setSubscriptionId(subscription.getId());
+        payment.setAmountVnd(amount);
+        payment.setCurrency("VND");
+        payment.setPaymentMethod(PaymentMethod.VIETQR); // Default to VietQR for subscription payments
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setPaymentContent(String.format(
+            "Prorated charge for tier upgrade to %s (Instance: %s)",
+            subscription.getTier(),
+            subscription.getInstanceId()
+        ));
+
+        log.info("Created prorated payment record: {} VNĐ for subscription {}",
+            amount, subscription.getId());
+
+        return payment;
     }
 
     /**
