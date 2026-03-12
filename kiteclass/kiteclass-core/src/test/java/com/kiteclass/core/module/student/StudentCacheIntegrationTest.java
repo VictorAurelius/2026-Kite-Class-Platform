@@ -2,6 +2,7 @@ package com.kiteclass.core.module.student;
 
 import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.config.RedisTestConfig;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestContainersConfiguration.class)
+@Import({TestContainersConfiguration.class, RedisTestConfig.class})
 @ContextConfiguration(initializers = TestContainersConfiguration.Initializer.class)
 @Transactional
 class StudentCacheIntegrationTest {
