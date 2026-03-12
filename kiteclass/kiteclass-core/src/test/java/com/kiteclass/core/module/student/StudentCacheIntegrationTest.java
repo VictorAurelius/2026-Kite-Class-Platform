@@ -59,8 +59,15 @@ class StudentCacheIntegrationTest {
         tenant1 = UUID.randomUUID();
         tenant2 = UUID.randomUUID();
 
-        // Clear all caches before each test
+        // CRITICAL: Clear all caches before each test to prevent
+        // deserialization errors from old cached data with different schema
         Objects.requireNonNull(cacheManager.getCache("students")).clear();
+
+        // Also clear cache manager's internal cache (if using RedisCacheManager)
+        // This ensures no leftover serialized data from previous test runs
+        cacheManager.getCacheNames().forEach(name ->
+            Objects.requireNonNull(cacheManager.getCache(name)).clear()
+        );
     }
 
     @AfterEach
