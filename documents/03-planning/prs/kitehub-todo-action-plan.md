@@ -71,21 +71,27 @@
 
 ## 🟡 HIGH PRIORITY - Core Features
 
-### PR 4.17: Database Lifecycle Management (6-8 hours)
-**Branch:** `feature/PR-4.17-database-lifecycle`
+### PR 4.17: Database Lifecycle Management ✅ COMPLETE
+**Branch:** `feature/PR-4.17-database-lifecycle` (merged)
+**PR:** #58
+**Merged:** 2026-03-12
 **Priority:** 🟡 HIGH (Core functionality)
-**Depends on:** PR 4.16 (encryption)
+**Depends on:** PR 4.16 (encryption) ✅
 
 **Problem:** Database provisioning is simulated, not creating real databases
 
-**TODOs (7 total):**
-1. `DatabaseProvisioningService.java:65` - Actual database creation
-2. `DatabaseProvisioningService.java:70` - Run Flyway migrations
-3. `DatabaseProvisioningService.java:106` - Backup before deletion
-4. `DatabaseProvisioningService.java:110` - Drop database and user
-5. `DatabaseProvisioningService.java:130` - Health check implementation
-6. `DatabaseBackupScheduler.java:63` - Query deleted instances
-7. `DatabaseBackupScheduler.java:72,82` - Implement S3 backup (2 TODOs)
+**Implementation Summary:**
+- ✅ Created `DatabaseConnectionService` for admin connections
+- ✅ Created `FlywayMigrationService` for schema migrations
+- ✅ Implemented `createPhysicalDatabase()` - CREATE DATABASE/USER
+- ✅ Implemented `dropPhysicalDatabase()` - DROP DATABASE/USER with termination
+- ✅ Implemented actual `checkDatabaseHealth()` - SELECT 1 query
+- ✅ Added 19 KiteClass schema migrations
+- ✅ SQL injection protection (identifier sanitization)
+- ✅ Feature flag: `database.lifecycle.enabled` (default: false)
+- ✅ Unit tests for all new services
+- ⚠️ S3 backup integration (deferred to future PR)
+- ⚠️ Testcontainers integration tests (deferred to future PR)
 
 **Implementation Steps:**
 
@@ -286,21 +292,30 @@ class DatabaseProvisioningIntegrationTest {
 }
 ```
 
-**Files to Create/Modify:**
-- `DatabaseConnectionService.java` (NEW)
-- `FlywayMigrationService.java` (NEW)
-- `S3BackupService.java` (NEW)
-- `DatabaseProvisioningService.java` (MODIFY - implement all methods)
-- `DatabaseBackupScheduler.java` (MODIFY - implement backup)
-- `DatabaseProvisioningIntegrationTest.java` (NEW)
+**Files Created/Modified:**
+- ✅ `DatabaseConnectionService.java` (NEW)
+- ✅ `FlywayMigrationService.java` (NEW)
+- ✅ `DatabaseProvisioningService.java` (MODIFIED - implemented all methods)
+- ✅ `application.yml` (MODIFIED - added database.admin, lifecycle config)
+- ✅ `application-test.yml` (MODIFIED - lifecycle.enabled = false)
+- ✅ `DatabaseConnectionServiceTest.java` (NEW)
+- ✅ `FlywayMigrationServiceTest.java` (NEW)
+- ✅ `DatabaseProvisioningServiceTest.java` (MODIFIED - added new mocks)
+- ✅ 19 SQL migration files (NEW - KiteClass schema)
+- ⚠️ `S3BackupService.java` (DEFERRED to future PR)
+- ⚠️ `DatabaseBackupScheduler.java` (DEFERRED to future PR)
+- ⚠️ `DatabaseProvisioningIntegrationTest.java` (DEFERRED to future PR)
 
 **Success Criteria:**
-- [ ] Real databases created in PostgreSQL
-- [ ] Flyway migrations run on new instances
-- [ ] Databases properly deleted with cleanup
-- [ ] Health check returns actual connection status
-- [ ] Backups uploaded to S3
-- [ ] Integration tests passing
+- ✅ Real databases created in PostgreSQL (with feature flag)
+- ✅ Flyway migrations run on new instances
+- ✅ Databases properly deleted with cleanup
+- ✅ Health check returns actual connection status
+- ✅ SQL injection protection implemented
+- ✅ Feature flag for dev/prod modes
+- ✅ Unit tests passing (76 total)
+- ⚠️ Backups uploaded to S3 (deferred)
+- ⚠️ Integration tests with Testcontainers (deferred)
 
 ---
 
