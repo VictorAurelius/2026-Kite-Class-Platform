@@ -3,6 +3,7 @@ package com.kitehub.subscription.scheduler;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.TrialService;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,9 @@ class TrialExpirationCheckerTest {
 
     @Mock
     private TrialService trialService;
+
+    @Mock
+    private EmailServiceClient emailServiceClient;
 
     @InjectMocks
     private TrialExpirationChecker expirationChecker;
@@ -190,6 +194,7 @@ class TrialExpirationCheckerTest {
         instance.setSubdomain(subdomain);
         instance.setOrganizationName("Test Organization");
         instance.setOwnerId(UUID.randomUUID());
+        instance.setContactEmail("test@example.com");
         instance.setTier(PricingTier.BASIC);
         instance.setStatus(status);
         return instance;

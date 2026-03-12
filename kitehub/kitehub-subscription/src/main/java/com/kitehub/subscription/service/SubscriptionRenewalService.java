@@ -7,6 +7,7 @@ import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
+import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
@@ -32,6 +33,7 @@ public class SubscriptionRenewalService {
     private final SubscriptionRepository subscriptionRepository;
     private final InstanceRepository instanceRepository;
     private final PaymentRepository paymentRepository;
+    private final EmailServiceClient emailServiceClient;
     private static final int GRACE_PERIOD_DAYS = 3;
 
     /**
@@ -177,8 +179,14 @@ public class SubscriptionRenewalService {
             log.info("Instance suspended due to expired subscription: {}", instance.getId());
         }
 
-        // TODO: Send suspension notification email
-        log.info("Suspension email would be sent for instance: {}", instance.getId());
+        // Send suspension notification email
+        if (instance.getContactEmail() != null) {
+            emailServiceClient.sendSuspensionNotification(
+                instance.getContactEmail(),
+                instance.getOrganizationName()
+            );
+            log.info("Suspension notification sent to instance: {}", instance.getId());
+        }
     }
 
     /**
