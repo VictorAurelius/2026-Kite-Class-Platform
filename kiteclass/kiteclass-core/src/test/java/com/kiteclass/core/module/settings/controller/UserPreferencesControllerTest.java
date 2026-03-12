@@ -85,7 +85,8 @@ class UserPreferencesControllerTest {
         when(userPreferencesService.getUserPreferences(userId)).thenReturn(response);
 
         // When & Then
-        mockMvc.perform(get("/api/v1/users/{userId}/preferences", userId))
+        mockMvc.perform(get("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(userId))
@@ -118,6 +119,7 @@ class UserPreferencesControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -152,6 +154,7 @@ class UserPreferencesControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -172,6 +175,7 @@ class UserPreferencesControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -188,6 +192,7 @@ class UserPreferencesControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -245,6 +250,7 @@ class UserPreferencesControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -274,6 +280,7 @@ class UserPreferencesControllerTest {
 
         // When & Then
         mockMvc.perform(patch("/api/v1/users/{userId}/preferences", userId)
+                        .header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
