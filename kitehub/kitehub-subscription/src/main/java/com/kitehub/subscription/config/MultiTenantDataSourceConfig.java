@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MultiTenantDataSourceConfig {
 
     private final InstanceRepository instanceRepository;
+    private final com.kitehub.subscription.service.EncryptionService encryptionService;
     private final Map<UUID, HikariDataSource> dataSources = new ConcurrentHashMap<>();
 
     // Connection pool size limits by pricing tier
@@ -66,7 +67,9 @@ public class MultiTenantDataSourceConfig {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(instance.getDatabaseUrl());
         config.setUsername(instance.getDatabaseUsername());
-        config.setPassword(instance.getDatabasePassword()); // TODO: Decrypt password
+        // Decrypt password for database connection
+        String decryptedPassword = encryptionService.decrypt(instance.getDatabasePassword());
+        config.setPassword(decryptedPassword);
 
         // Set pool size based on pricing tier
         int poolSize = getPoolSizeForTier(instance.getTier());

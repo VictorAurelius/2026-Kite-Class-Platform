@@ -25,6 +25,7 @@ import java.util.UUID;
 public class DatabaseProvisioningService {
 
     private final InstanceRepository instanceRepository;
+    private final EncryptionService encryptionService;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int PASSWORD_LENGTH = 32;
 
@@ -49,9 +50,12 @@ public class DatabaseProvisioningService {
         Instance instance = instanceRepository.findById(instanceId)
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
 
-        if (instance.getDatabaseUrl() != null && !instance.getDatabaseUrl().isEmpty()) {
+        // Check if database is already provisioned (skip placeholder "pending" value)
+        if (instance.getDatabaseUrl() != null
+            && !instance.getDatabaseUrl().isEmpty()
+            && !"pending".equals(instance.getDatabaseUrl())) {
             log.warn("Database already provisioned for instance: {}", instanceId);
-            return DatabaseCredentials.fromInstance(instance);
+            return DatabaseCredentials.fromInstance(instance, encryptionService);
         }
 
         // Generate database name and credentials
@@ -195,30 +199,22 @@ public class DatabaseProvisioningService {
     }
 
     /**
-     * Encrypt password for storage.
-     * TODO: Implement AES-256-GCM encryption with master key
+     * Encrypt password for storage using AES-256-GCM.
      *
      * @param plainPassword Plain text password
-     * @return Encrypted password
+     * @return Encrypted password (Base64-encoded)
      */
     private String encryptPassword(String plainPassword) {
-        // TODO: Implement encryption
-        // For MVP: Store as-is (INSECURE - for development only)
-        log.warn("Password encryption not implemented - storing plain text (DEVELOPMENT ONLY)");
-        return plainPassword;
+        return encryptionService.encrypt(plainPassword);
     }
 
     /**
-     * Decrypt password from storage.
-     * TODO: Implement AES-256-GCM decryption
-     * Note: Currently unused, will be needed when database credentials need to be retrieved.
+     * Decrypt password from storage using AES-256-GCM.
      *
-     * @param encryptedPassword Encrypted password
+     * @param encryptedPassword Encrypted password (Base64-encoded)
      * @return Plain text password
      */
-    @SuppressWarnings("unused")
-    private String decryptPassword(String encryptedPassword) {
-        // TODO: Implement decryption
-        return encryptedPassword;
+    public String decryptPassword(String encryptedPassword) {
+        return encryptionService.decrypt(encryptedPassword);
     }
 }

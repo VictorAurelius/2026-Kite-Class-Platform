@@ -20,7 +20,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Unit tests for DatabaseProvisioningService.
@@ -34,6 +36,9 @@ class DatabaseProvisioningServiceTest {
 
     @Mock
     private InstanceRepository instanceRepository;
+
+    @Mock
+    private EncryptionService encryptionService;
 
     @InjectMocks
     private DatabaseProvisioningService provisioningService;
@@ -55,6 +60,20 @@ class DatabaseProvisioningServiceTest {
         // Set master database properties via reflection
         ReflectionTestUtils.setField(provisioningService, "masterHost", "localhost");
         ReflectionTestUtils.setField(provisioningService, "masterPort", "5433");
+
+        // Configure encryption mock behavior (lenient to avoid strict stubbing issues)
+        // Encrypt: add "ENCRYPTED_" prefix
+        lenient().when(encryptionService.encrypt(anyString()))
+            .thenAnswer(invocation -> "ENCRYPTED_" + invocation.getArgument(0));
+
+        // Decrypt: remove "ENCRYPTED_" prefix
+        lenient().when(encryptionService.decrypt(anyString()))
+            .thenAnswer(invocation -> {
+                String encrypted = invocation.getArgument(0);
+                return encrypted.startsWith("ENCRYPTED_")
+                    ? encrypted.substring("ENCRYPTED_".length())
+                    : encrypted;
+            });
     }
 
     @Test
@@ -103,7 +122,7 @@ class DatabaseProvisioningServiceTest {
         // Given
         instance.setDatabaseUrl("jdbc:postgresql://localhost:5433/kiteclass_abc123");
         instance.setDatabaseUsername("kiteclass_abc123_user");
-        instance.setDatabasePassword("existing_password");
+        instance.setDatabasePassword("ENCRYPTED_existing_password"); // Stored encrypted
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
 
@@ -113,7 +132,7 @@ class DatabaseProvisioningServiceTest {
         // Then
         assertThat(credentials.getDatabaseUrl()).isEqualTo("jdbc:postgresql://localhost:5433/kiteclass_abc123");
         assertThat(credentials.getUsername()).isEqualTo("kiteclass_abc123_user");
-        assertThat(credentials.getPassword()).isEqualTo("existing_password");
+        assertThat(credentials.getPassword()).isEqualTo("existing_password"); // Decrypted
 
         // Should not save again
         verify(instanceRepository, never()).save(any());

@@ -51,3 +51,24 @@ logging:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Database master configuration for provisioning tenant databases
+database:
+  master:
+    host: localhost
+    port: 5433
+
+# Encryption configuration for sensitive data (database passwords)
+encryption:
+  # Master encryption key (32 bytes, Base64-encoded)
+  # Generate new key: EncryptionService.generateMasterKey()
+  # IMPORTANT: Store in environment variable, not in code
+  master-key: ${ENCRYPTION_MASTER_KEY:}
+  algorithm: AES-256-GCM
+
+# Webhook configuration for payment notifications
+webhook:
+  payment:
+    # Shared secret for HMAC-SHA256 signature verification
+    # IMPORTANT: Store in environment variable, not in code
+    secret: ${WEBHOOK_PAYMENT_SECRET:}

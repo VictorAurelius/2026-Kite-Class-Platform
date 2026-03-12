@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
+import com.kitehub.subscription.dto.DatabaseCredentials;
 import com.kitehub.subscription.dto.InstanceResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Unit tests for InstanceService.
@@ -36,6 +38,9 @@ class InstanceServiceTest {
     @Mock
     private InstanceRepository instanceRepository;
 
+    @Mock
+    private DatabaseProvisioningService databaseProvisioningService;
+
     @InjectMocks
     private InstanceService instanceService;
 
@@ -49,6 +54,15 @@ class InstanceServiceTest {
             .ownerId(UUID.randomUUID())
             .tier(PricingTier.BASIC)
             .build();
+
+        // Mock database provisioning service to return test credentials (lenient for tests that don't use it)
+        DatabaseCredentials mockCredentials = DatabaseCredentials.builder()
+            .databaseUrl("jdbc:postgresql://localhost:5433/kiteclass_test")
+            .username("kiteclass_test_user")
+            .password("test_password")
+            .build();
+        lenient().when(databaseProvisioningService.provisionDatabase(any(UUID.class)))
+            .thenReturn(mockCredentials);
     }
 
     @Test
