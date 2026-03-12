@@ -15,6 +15,7 @@ import com.kiteclass.core.module.assignment.dto.response.AssignmentResponse;
 import com.kiteclass.core.module.assignment.dto.response.SubmissionResponse;
 import com.kiteclass.core.module.assignment.entity.Assignment;
 import com.kiteclass.core.module.assignment.entity.Submission;
+import com.kiteclass.core.module.assignment.event.AssignmentCreatedEvent;
 import com.kiteclass.core.module.assignment.event.AssignmentGradedEvent;
 import com.kiteclass.core.module.assignment.mapper.AssignmentMapper;
 import com.kiteclass.core.module.assignment.repository.AssignmentRepository;
@@ -85,6 +86,9 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         log.info("Created assignment {} for class {} by teacher {}",
             savedAssignment.getId(), request.getClassId(), teacherId);
+
+        // Publish event for grade component initialization
+        eventPublisher.publishEvent(new AssignmentCreatedEvent(this, savedAssignment));
 
         return assignmentMapper.toResponse(savedAssignment);
     }

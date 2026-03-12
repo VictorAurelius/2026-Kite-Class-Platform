@@ -61,6 +61,8 @@ public class GradeServiceImpl implements GradeService {
     private final ClassRepository classRepository;
     private final StudentRepository studentRepository;
     private final TeacherClassRepository teacherClassRepository;
+    private final com.kiteclass.core.module.enrollment.repository.EnrollmentRepository enrollmentRepository;
+    private final com.kiteclass.core.module.assignment.repository.AssignmentRepository assignmentRepository;
     private final GradeMapper gradeMapper;
 
     @Override
@@ -437,6 +439,101 @@ public class GradeServiceImpl implements GradeService {
         log.info("Calculated statistics for class {}: {}", classId, stats);
 
         return stats;
+    }
+
+    @Override
+    @Transactional
+    public GradeResponse initializeGradeForEnrollment(Long enrollmentId) {
+        log.debug("Initializing grade for enrollment: {}", enrollmentId);
+
+        // 1. Fetch enrollment with student and class info
+        com.kiteclass.core.module.enrollment.entity.Enrollment enrollment =
+                enrollmentRepository.findByIdAndDeletedFalse(enrollmentId)
+                        .orElseThrow(() -> new EntityNotFoundException("ENROLLMENT_NOT_FOUND", (Object) enrollmentId));
+
+        // 2. Delegate to existing initializeGrade (handles duplicate check)
+        return initializeGrade(enrollment.getStudent().getId(), enrollment.getaClass().getId());
+    }
+
+    @Override
+    @Transactional
+    public int initializeGradeComponentsForAssignment(Long assignmentId, Long classId) {
+        log.info("Initializing grade components for assignment {} in class {}", assignmentId, classId);
+
+        // 1. Validate assignment exists
+        com.kiteclass.core.module.assignment.entity.Assignment assignment =
+                assignmentRepository.findByIdAndDeletedFalse(assignmentId)
+                        .orElseThrow(() -> new EntityNotFoundException("ASSIGNMENT_NOT_FOUND", (Object) assignmentId));
+
+        // 2. Find all ACTIVE enrollments in class
+        List<com.kiteclass.core.module.enrollment.entity.Enrollment> enrollments =
+                enrollmentRepository.findByClassIdAndStatusAndDeletedFalse(
+                        classId,
+                        com.kiteclass.core.common.constant.EnrollmentStatus.ACTIVE);
+
+        if (enrollments.isEmpty()) {
+            log.warn("No active enrollments found for class {}", classId);
+            return 0;
+        }
+
+        // 3. For each enrollment, ensure Grade exists and add component
+        int componentsCreated = 0;
+        for (com.kiteclass.core.module.enrollment.entity.Enrollment enrollment : enrollments) {
+            try {
+                // 3a. Get or create grade
+                Grade grade = gradeRepository
+                        .findByStudentIdAndClassIdAndDeletedFalse(
+                                enrollment.getStudent().getId(),
+                                enrollment.getaClass().getId())
+                        .orElseGet(() -> {
+                            Grade newGrade = Grade.builder()
+                                    .student(enrollment.getStudent())
+                                    .aClass(enrollment.getaClass())
+                                    .status(com.kiteclass.core.common.constant.GradeStatus.IN_PROGRESS)
+                                    .passThreshold(BigDecimal.valueOf(50.0))
+                                    .build();
+                            newGrade.setInstanceId(com.kiteclass.core.common.context.TenantContext.getCurrentTenant());
+                            return gradeRepository.save(newGrade);
+                        });
+
+                // 3b. Check if component already exists (idempotent)
+                Optional<GradeComponent> existing = gradeComponentRepository
+                        .findByGradeIdAndComponentTypeAndComponentRefIdAndDeletedFalse(
+                                grade.getId(),
+                                com.kiteclass.core.common.constant.GradeComponentType.ASSIGNMENT,
+                                assignmentId);
+
+                if (existing.isEmpty()) {
+                    // 3c. Create component with initial values
+                    GradeComponent component = GradeComponent.builder()
+                            .grade(grade)
+                            .componentType(com.kiteclass.core.common.constant.GradeComponentType.ASSIGNMENT)
+                            .componentName(assignment.getTitle())
+                            .componentRefId(assignmentId)
+                            .score(BigDecimal.ZERO)  // Not submitted yet
+                            .maxScore(assignment.getMaxScore())
+                            .weightPercent(assignment.getWeightPercent())
+                            .build();
+
+                    component.calculateWeightedScore();
+                    component.setInstanceId(com.kiteclass.core.common.context.TenantContext.getCurrentTenant());
+
+                    gradeComponentRepository.save(component);
+                    componentsCreated++;
+
+                    log.debug("Created grade component for student {} in assignment {}",
+                            enrollment.getStudent().getId(), assignmentId);
+                }
+
+            } catch (Exception e) {
+                log.error("Failed to create grade component for student {} in assignment {}: {}",
+                        enrollment.getStudent().getId(), assignmentId, e.getMessage());
+                // Continue with next enrollment (don't fail entire batch)
+            }
+        }
+
+        log.info("Created {} grade components for assignment {}", componentsCreated, assignmentId);
+        return componentsCreated;
     }
 
     // ==================== Helper Methods ====================
