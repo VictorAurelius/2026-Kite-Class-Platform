@@ -11,6 +11,19 @@ Danh sách prompts để thực hiện các plans theo thứ tự.
 
 ---
 
+## 🔥 Current Focus
+
+**Active TODO Tracking:** [TODO Action Plan](../prs/06-todo-action-plan.md)
+
+**Đang thực hiện:** PR 2.14 - Invoice payment methods (3 CRITICAL TODOs)
+- Filter unpaid invoices
+- Filter overdue invoices
+- Mark invoice as paid
+
+**Tiếp theo:** PR 2.14.1 - Student caching (multi-tenant key generator)
+
+---
+
 # 📚 AVAILABLE SKILLS REFERENCE
 
 Tất cả skills trong `.claude/skills/` - tham chiếu khi cần:
