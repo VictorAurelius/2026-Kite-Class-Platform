@@ -464,7 +464,7 @@ class InvoiceFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error.code").value("INVOICE_ALREADY_PAID"));
+                .andExpect(jsonPath("$.code").value("INVOICE_ALREADY_PAID"));
     }
 
     @Test
