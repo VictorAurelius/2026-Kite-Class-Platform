@@ -6,6 +6,10 @@ import com.kiteclass.core.module.payment.enums.PaymentMethod;
 import com.kiteclass.core.config.TestContainersConfiguration;
 import com.kiteclass.core.config.TestSecurityConfig;
 import com.kiteclass.core.config.TestTenantContextFilter;
+import com.kiteclass.core.module.payment.dto.gateway.PaymentGatewayRequest;
+import com.kiteclass.core.module.payment.dto.gateway.PaymentInitiationResponse;
+import com.kiteclass.core.module.payment.enums.PaymentStatus;
+import com.kiteclass.core.module.payment.gateway.PaymentGatewayClient;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
@@ -63,6 +67,59 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 
 class PaymentFlowIntegrationTest {
+
+    /**
+     * Mock payment gateway clients for testing.
+     * Provides test implementations that skip real gateway interactions.
+     */
+    @org.springframework.boot.test.context.TestConfiguration
+    static class MockPaymentGatewayConfiguration {
+
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        public PaymentGatewayClient vnpayGatewayClient() {
+            PaymentGatewayClient mock = org.mockito.Mockito.mock(PaymentGatewayClient.class);
+            org.mockito.Mockito.when(mock.initiatePayment(org.mockito.ArgumentMatchers.any(PaymentGatewayRequest.class)))
+                .thenAnswer(invocation -> PaymentInitiationResponse.builder()
+                    .paymentUrl("https://test.vnpay.vn/pay/" + ((PaymentGatewayRequest) invocation.getArgument(0)).getTransactionId())
+                    .qrCodeUrl("https://test.vnpay.vn/qr/test")
+                    .expiresAt(java.time.LocalDateTime.now().plusMinutes(15))
+                    .build());
+            org.mockito.Mockito.when(mock.verifySignature(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+            org.mockito.Mockito.when(mock.queryPaymentStatus(org.mockito.ArgumentMatchers.anyString())).thenReturn(PaymentStatus.PENDING);
+            return mock;
+        }
+
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        public PaymentGatewayClient momoGatewayClient() {
+            PaymentGatewayClient mock = org.mockito.Mockito.mock(PaymentGatewayClient.class);
+            org.mockito.Mockito.when(mock.initiatePayment(org.mockito.ArgumentMatchers.any(PaymentGatewayRequest.class)))
+                .thenAnswer(invocation -> PaymentInitiationResponse.builder()
+                    .paymentUrl("https://test.momo.vn/pay/" + ((PaymentGatewayRequest) invocation.getArgument(0)).getTransactionId())
+                    .qrCodeUrl("https://test.momo.vn/qr/test")
+                    .expiresAt(java.time.LocalDateTime.now().plusMinutes(15))
+                    .build());
+            org.mockito.Mockito.when(mock.verifySignature(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+            org.mockito.Mockito.when(mock.queryPaymentStatus(org.mockito.ArgumentMatchers.anyString())).thenReturn(PaymentStatus.PENDING);
+            return mock;
+        }
+
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        public PaymentGatewayClient zalopayGatewayClient() {
+            PaymentGatewayClient mock = org.mockito.Mockito.mock(PaymentGatewayClient.class);
+            org.mockito.Mockito.when(mock.initiatePayment(org.mockito.ArgumentMatchers.any(PaymentGatewayRequest.class)))
+                .thenAnswer(invocation -> PaymentInitiationResponse.builder()
+                    .paymentUrl("https://test.zalopay.vn/pay/" + ((PaymentGatewayRequest) invocation.getArgument(0)).getTransactionId())
+                    .qrCodeUrl("https://test.zalopay.vn/qr/test")
+                    .expiresAt(java.time.LocalDateTime.now().plusMinutes(15))
+                    .build());
+            org.mockito.Mockito.when(mock.verifySignature(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyString())).thenReturn(true);
+            org.mockito.Mockito.when(mock.queryPaymentStatus(org.mockito.ArgumentMatchers.anyString())).thenReturn(PaymentStatus.PENDING);
+            return mock;
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -187,10 +244,12 @@ class PaymentFlowIntegrationTest {
         BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("total").asText());
 
         // ========== Step 5: Initiate Payment ==========
+        // Use online payment method (VNPAY) to test webhook flow
+        // Offline methods (BANK_TRANSFER, CASH) auto-complete and cannot receive webhooks
         CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
                 .invoiceId(invoiceId)
                 .amount(totalAmount)
-                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .paymentMethod(PaymentMethod.VNPAY)
                 .build();
 
         MvcResult paymentResult = mockMvc.perform(post("/api/v1/payments")
@@ -198,7 +257,7 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(paymentRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"))
+                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"))
                 .andExpect(jsonPath("$.data.invoiceId").value(invoiceId))
                 .andExpect(jsonPath("$.data.amount").value(totalAmount))
                 .andReturn();
@@ -211,7 +270,7 @@ class PaymentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/payments/" + paymentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
 
         // ========== Step 7: Simulate Webhook Callback (Payment Completed) ==========
         // In a real system, this would come from payment gateway
@@ -348,10 +407,12 @@ class PaymentFlowIntegrationTest {
         BigDecimal totalAmount = new BigDecimal(invoices.get(0).get("total").asText());
 
         // ========== Initiate Payment ==========
+        // Use online payment method (VNPAY) to test webhook failure flow
+        // Offline methods (BANK_TRANSFER, CASH) cannot receive failure webhooks
         CreatePaymentRequest paymentRequest = CreatePaymentRequest.builder()
                 .invoiceId(invoiceId)
                 .amount(totalAmount)
-                .paymentMethod(PaymentMethod.BANK_TRANSFER)
+                .paymentMethod(PaymentMethod.VNPAY)
                 .build();
 
         MvcResult paymentResult = mockMvc.perform(post("/api/v1/payments")
@@ -391,6 +452,7 @@ class PaymentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.status").value("SENT"));
 
         // ========== Verify Can Retry Payment ==========
+        // Retry with offline payment method (CASH) - auto-completes immediately
         CreatePaymentRequest retryPayment = CreatePaymentRequest.builder()
                 .invoiceId(invoiceId)
                 .amount(totalAmount)
@@ -402,6 +464,6 @@ class PaymentFlowIntegrationTest {
                         .header("X-Tenant-Id", tenantId.toString())
                         .content(objectMapper.writeValueAsString(retryPayment)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.paymentStatus").value("PENDING"));
+                .andExpect(jsonPath("$.data.paymentStatus").value("COMPLETED"));
     }
 }

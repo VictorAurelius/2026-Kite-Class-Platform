@@ -14,7 +14,6 @@ import com.kiteclass.core.module.student.service.StudentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -92,7 +91,8 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "students", key = "#id")
+    // TODO: Re-enable caching with proper multi-tenant key generator
+    // @Cacheable(value = "students", key = "#id")
     public StudentResponse getStudentById(Long id) {
         log.debug("Fetching student with ID: {}", id);
 

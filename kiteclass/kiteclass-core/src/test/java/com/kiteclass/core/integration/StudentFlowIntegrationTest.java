@@ -250,7 +250,7 @@ class StudentFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/students")
                         .header("X-Tenant-Id", tenantA.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[?(@.name == 'Student A')]").exists())
-                .andExpect(jsonPath("$.data[?(@.name == 'Student B')]").doesNotExist());
+                .andExpect(jsonPath("$.data.content[?(@.name == 'Student A')]").exists())
+                .andExpect(jsonPath("$.data.content[?(@.name == 'Student B')]").doesNotExist());
     }
 }

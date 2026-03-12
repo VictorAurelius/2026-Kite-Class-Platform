@@ -2,9 +2,13 @@ package com.kiteclass.core.testutil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.Gender;
+import com.kiteclass.core.common.constant.TeacherClassRole;
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.teacher.dto.CreateTeacherRequest;
+import com.kiteclass.core.module.teacher.entity.TeacherClass;
+import com.kiteclass.core.module.teacher.repository.TeacherClassRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,7 +43,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.13
  */
 @Component
+@RequiredArgsConstructor
 public class TestDataBuilder {
+
+    private final TeacherClassRepository teacherClassRepository;
 
     /**
      * Creates a test teacher with default values.
@@ -392,5 +399,38 @@ public class TestDataBuilder {
                 .get("data")
                 .get("id")
                 .asLong();
+    }
+
+    /**
+     * Assigns a teacher to a class with specified role.
+     *
+     * <p>Creates a TeacherClass relationship to enable teacher permissions
+     * for class operations (create assignments, manage students, etc.).
+     *
+     * @param teacherId the teacher ID
+     * @param classId the class ID
+     * @param role the teacher's role in the class (MAIN_TEACHER or ASSISTANT_TEACHER)
+     * @param tenantId the tenant ID (not used - TeacherClass doesn't have instanceId)
+     * @since 2.15
+     */
+    public void assignTeacherToClass(Long teacherId, Long classId, TeacherClassRole role, UUID tenantId) {
+        TeacherClass teacherClass = TeacherClass.builder()
+                .teacherId(teacherId)
+                .classId(classId)
+                .role(role)
+                .build();
+        teacherClassRepository.save(teacherClass);
+    }
+
+    /**
+     * Assigns a teacher to a class as MAIN_TEACHER (convenience method).
+     *
+     * @param teacherId the teacher ID
+     * @param classId the class ID
+     * @param tenantId the tenant ID
+     * @since 2.15
+     */
+    public void assignMainTeacherToClass(Long teacherId, Long classId, UUID tenantId) {
+        assignTeacherToClass(teacherId, classId, TeacherClassRole.MAIN_TEACHER, tenantId);
     }
 }
