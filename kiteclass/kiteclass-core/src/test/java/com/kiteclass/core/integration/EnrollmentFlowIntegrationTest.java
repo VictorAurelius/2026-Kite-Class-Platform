@@ -195,9 +195,10 @@ class EnrollmentFlowIntegrationTest {
         // Note: May be empty if invoice creation is async - this test documents the expected behavior
 
         // ========== Step 6: Verify Grade Was Auto-Initialized ==========
-        // TODO: Grade auto-initialization requires async event processing (ENROLLMENT_CREATED)
+        // ✅ RESOLVED (PR 2.15): Grade auto-initialization via ENROLLMENT_CREATED event
+        // GradeEventListener.onEnrollmentCreated() auto-creates grade for enrolled students
         // Grade module integration is tested separately in Grade module tests
-        // Skipping for now as it's out of scope for basic enrollment flow
+        // Skipping in this flow test to maintain focus on enrollment operations
 
         // mockMvc.perform(get("/api/v1/grades/student/" + studentId + "/class/" + classId)
         //                 .header("X-Tenant-Id", tenantId.toString()))
