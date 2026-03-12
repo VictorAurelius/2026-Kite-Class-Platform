@@ -30,79 +30,42 @@
 
 ## 🔴 CRITICAL PRIORITY - Security (MUST FIX)
 
-### PR 4.16: Database Password Encryption (4-5 hours)
-**Branch:** `feature/PR-4.16-password-encryption`
+### PR 4.16: Database Password Encryption ✅ COMPLETE
+**Branch:** `feature/PR-4.16-password-encryption` (merged)
+**PR:** #57
+**Merged:** 2026-03-12
 **Priority:** 🔴 CRITICAL (Security vulnerability)
 
 **Problem:** Database passwords stored in plain text - INSECURE for production
 
-**TODOs (8 total):**
-1. `DatabaseProvisioningService.java:76` - Implement encryption when saving
-2. `DatabaseProvisioningService.java:199` - Implement AES-256-GCM encryption
-3. `DatabaseProvisioningService.java:205` - Encryption implementation
-4. `DatabaseProvisioningService.java:213` - Implement AES-256-GCM decryption
-5. `DatabaseProvisioningService.java:221` - Decryption implementation
-6. `MultiTenantDataSourceConfig.java:69` - Decrypt password when loading
-7. `DatabaseCredentials.java:47` - Decrypt password in DTO
-8. `PaymentWebhookController.java:39,55,75,82` - Webhook signature verification (4 TODOs)
+**Implementation Summary:**
+- ✅ Created `EncryptionService.java` with AES-256-GCM encryption
+- ✅ Updated `DatabaseProvisioningService` to encrypt/decrypt passwords
+- ✅ Updated `MultiTenantDataSourceConfig` to decrypt passwords when creating connections
+- ✅ Updated `DatabaseCredentials.fromInstance()` to decrypt passwords
+- ✅ Implemented webhook signature verification with HMAC-SHA256
+- ✅ Added comprehensive tests (14 encryption tests, 9 webhook tests)
+- ✅ Fixed integration test issue with "pending" placeholder handling
+- ✅ All CI checks passing (74 tests)
 
-**Implementation Steps:**
-1. Create `EncryptionService.java`:
-   ```java
-   @Service
-   public class EncryptionService {
-       @Value("${encryption.master-key}")
-       private String masterKey;
-
-       public String encrypt(String plainText) {
-           // AES-256-GCM with master key
-       }
-
-       public String decrypt(String cipherText) {
-           // AES-256-GCM decryption
-       }
-   }
-   ```
-
-2. Update `DatabaseProvisioningService`:
-   - Inject `EncryptionService`
-   - Call `encryptPassword()` before saving
-   - Implement `decryptPassword()` using service
-
-3. Update `MultiTenantDataSourceConfig`:
-   - Decrypt password before creating DataSource
-
-4. Implement webhook signature verification:
-   - HMAC-SHA256 with shared secret
-   - Verify signature before processing payment
-
-5. Add tests:
-   - `EncryptionServiceTest` - round-trip encryption
-   - `PaymentWebhookControllerTest` - signature verification
-
-**Configuration:**
-```yaml
-# application.yml
-encryption:
-  master-key: ${ENCRYPTION_MASTER_KEY} # From environment variable
-  algorithm: AES-256-GCM
-```
-
-**Files to Modify:**
+**Files Modified:**
 - `DatabaseProvisioningService.java`
 - `MultiTenantDataSourceConfig.java`
 - `DatabaseCredentials.java`
 - `PaymentWebhookController.java`
 - `EncryptionService.java` (NEW)
 - `EncryptionServiceTest.java` (NEW)
+- `PaymentWebhookControllerTest.java` (NEW)
+- `application.yml` (added encryption & webhook config)
+- `application-test.yml` (NEW - test configuration)
 
 **Success Criteria:**
-- [ ] Password encrypted before saving to DB
-- [ ] Password decrypted when loading DataSource
-- [ ] Master key configurable via environment variable
-- [ ] Webhook signature verified
-- [ ] Tests passing (encryption round-trip)
-- [ ] Documentation: Master key rotation strategy
+- ✅ Password encrypted before saving to DB
+- ✅ Password decrypted when loading DataSource
+- ✅ Master key configurable via environment variable
+- ✅ Webhook signature verified
+- ✅ Tests passing (encryption round-trip)
+- ⚠️ Documentation: Master key rotation strategy (TODO future)
 
 ---
 
