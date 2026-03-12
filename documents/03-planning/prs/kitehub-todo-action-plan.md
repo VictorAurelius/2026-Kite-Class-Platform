@@ -465,11 +465,13 @@ private void processRenewal(Subscription subscription) {
 - `V12__add_pending_tier.sql` (migration)
 
 **Success Criteria:**
-- [ ] Prorated charges calculated correctly
-- [ ] Payment records created on tier upgrade
-- [ ] Pending tier changes stored and processed
-- [ ] Invoices generated on renewal
-- [ ] Tests covering edge cases (same-day upgrade, downgrade)
+- ✅ Prorated charges calculated correctly
+- ✅ Payment records created on tier upgrade
+- ✅ Pending tier changes stored and processed
+- ✅ Invoices generated on renewal
+- ✅ Tests covering edge cases (same-day upgrade, downgrade)
+- ✅ Database migration V6 for pending tier fields
+- ✅ 91 tests passing (7 SubscriptionService + 10 SubscriptionRenewalService)
 
 ---
 
@@ -842,15 +844,15 @@ public <T> T parseStructuredOutput(String content, Class<T> clazz) {
 
 ---
 
-### Phase 2: Core Features (Week 2-3)
+### Phase 2: Core Features (Week 2-3) ✅ **COMPLETE**
 **Goal:** Complete database lifecycle and payment integration
 
-| PR | Priority | Effort | TODOs Resolved |
-|----|----------|--------|----------------|
-| PR 4.17: Database Lifecycle | 🟡 HIGH | 6-8h | 7 |
-| PR 4.18: Payment Integration | 🟡 HIGH | 4-5h | 3 |
+| PR | Priority | Effort | TODOs Resolved | Status |
+|----|----------|--------|----------------|--------|
+| PR 4.17: Database Lifecycle | 🟡 HIGH | 6-8h | 7 | ✅ Merged (#58) |
+| PR 4.18: Payment Integration | 🟡 HIGH | 4-5h | 3 | ✅ Merged (#59) |
 
-**Total:** 10-13 hours, 10 TODOs
+**Total:** 10-13 hours, 10 TODOs, **ALL COMPLETE**
 
 ---
 
