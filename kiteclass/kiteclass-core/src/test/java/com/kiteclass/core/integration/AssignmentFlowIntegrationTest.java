@@ -211,7 +211,7 @@ class AssignmentFlowIntegrationTest {
                 .notes("Here is my lab report on cell structure. Submitted via text.")
                 .build();
 
-        MvcResult submissionResult = mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/submit")
+        MvcResult submissionResult = mockMvc.perform(post("/api/v1/assignments/submit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .header("X-User-Id", studentId.toString())
@@ -388,7 +388,7 @@ class AssignmentFlowIntegrationTest {
                 .notes("Submission with notes")
                 .build();
 
-        mockMvc.perform(post("/api/v1/assignments/" + assignmentId + "/submit")
+        mockMvc.perform(post("/api/v1/assignments/submit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Tenant-Id", tenantId.toString())
                         .header("X-User-Id", studentId.toString())
