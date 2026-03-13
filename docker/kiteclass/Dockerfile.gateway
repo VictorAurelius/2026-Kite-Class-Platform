@@ -12,6 +12,9 @@ COPY kiteclass/kiteclass-gateway/.mvn .mvn
 COPY kiteclass/kiteclass-gateway/mvnw .
 COPY kiteclass/kiteclass-gateway/pom.xml .
 
+# Make Maven wrapper executable (fix permission denied in Docker)
+RUN chmod +x mvnw
+
 # Download dependencies (cached layer)
 RUN ./mvnw dependency:go-offline -B
 
