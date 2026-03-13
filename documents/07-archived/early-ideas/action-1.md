@@ -1490,3 +1490,30 @@ Hãy fix theo best practice để IDE không báo lỗi này:
 	"endColumn": 33,
 	"origin": "extHost1"
 }]
+
+IDE vẫn báo lỗi nếu fix như vậy
+[{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/config/TestContainersConfiguration.java",
+	"owner": "_generated_diagnostic_collection_name_#4",
+	"code": "1102",
+	"severity": 2,
+	"message": "At least one of the problems in category 'resource' is not analysed due to a compiler option being ignored",
+	"source": "Java",
+	"startLineNumber": 36,
+	"startColumn": 24,
+	"endLineNumber": 36,
+	"endColumn": 34,
+	"origin": "extHost1"
+},{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/config/TestContainersConfiguration.java",
+	"owner": "_generated_diagnostic_collection_name_#4",
+	"code": "1102",
+	"severity": 2,
+	"message": "At least one of the problems in category 'resource' is not analysed due to a compiler option being ignored",
+	"source": "Java",
+	"startLineNumber": 47,
+	"startColumn": 24,
+	"endLineNumber": 47,
+	"endColumn": 34,
+	"origin": "extHost1"
+}]

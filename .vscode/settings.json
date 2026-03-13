@@ -4,6 +4,10 @@
   "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING",
   "java.configuration.updateBuildConfiguration": "automatic",
 
+  // Java compiler settings - sync with Maven (Java 17)
+  "java.jdt.ls.java.home": null,
+  "java.errors.incompleteClasspath.severity": "ignore",
+
   // Disable ALL markdownlint rules (simplest approach)
   "markdownlint.config": {
     "default": false  // Disable all rules globally
