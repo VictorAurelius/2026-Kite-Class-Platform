@@ -188,4 +188,45 @@ public class CourseController {
         CourseResponse response = courseService.archiveCourse(id);
         return ApiResponse.success(response, "Course archived successfully");
     }
+
+    /**
+     * Adds a prerequisite to a course.
+     *
+     * <p>Validates that no circular dependency is created.
+     * Example: "Algebra 2" requires "Algebra 1" → POST /courses/{algebra2Id}/prerequisites/{algebra1Id}
+     *
+     * @param id the course ID
+     * @param prerequisiteId the prerequisite course ID to add
+     * @return ApiResponse with success message and HTTP 200
+     */
+    @PostMapping("/{id}/prerequisites/{prerequisiteId}")
+    @Operation(summary = "Add prerequisite to course",
+            description = "Adds a prerequisite course. Prevents circular dependencies using DFS validation.")
+    public ApiResponse<Void> addPrerequisite(
+            @Parameter(description = "Course ID") @PathVariable Long id,
+            @Parameter(description = "Prerequisite course ID") @PathVariable Long prerequisiteId) {
+        log.info("REST request to add prerequisite {} to course {}", prerequisiteId, id);
+        courseService.addPrerequisite(id, prerequisiteId);
+        return ApiResponse.success(null, "Prerequisite added successfully");
+    }
+
+    /**
+     * Removes a prerequisite from a course.
+     *
+     * <p>Operation is idempotent - no error if prerequisite not present.
+     *
+     * @param id the course ID
+     * @param prerequisiteId the prerequisite course ID to remove
+     * @return ApiResponse with success message and HTTP 200
+     */
+    @DeleteMapping("/{id}/prerequisites/{prerequisiteId}")
+    @Operation(summary = "Remove prerequisite from course",
+            description = "Removes a prerequisite course. Idempotent operation.")
+    public ApiResponse<Void> removePrerequisite(
+            @Parameter(description = "Course ID") @PathVariable Long id,
+            @Parameter(description = "Prerequisite course ID") @PathVariable Long prerequisiteId) {
+        log.info("REST request to remove prerequisite {} from course {}", prerequisiteId, id);
+        courseService.removePrerequisite(id, prerequisiteId);
+        return ApiResponse.success(null, "Prerequisite removed successfully");
+    }
 }

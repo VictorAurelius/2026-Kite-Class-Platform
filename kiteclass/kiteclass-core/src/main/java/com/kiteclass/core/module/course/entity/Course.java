@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Course entity representing a course in the system.
@@ -173,6 +175,31 @@ public class Course extends BaseEntity {
     @Column(name = "cover_image_url", length = 500)
     private String coverImageUrl;
 
+    /**
+     * Courses that are prerequisites for this course.
+     * Many-to-many self-referential relationship.
+     * Example: "Algebra 2" has prerequisite course "Algebra 1".
+     * Circular dependencies are prevented by application logic (DFS algorithm).
+     */
+    @ManyToMany
+    @JoinTable(
+        name = "course_prerequisites",
+        joinColumns = @JoinColumn(name = "course_id"),
+        inverseJoinColumns = @JoinColumn(name = "prerequisite_id")
+    )
+    @Builder.Default
+    private Set<Course> prerequisiteCourses = new HashSet<>();
+
+    /**
+     * Courses that depend on this course (inverse relationship).
+     * Many-to-many mappedBy relationship.
+     * Example: If "Algebra 1" is prerequisite for "Algebra 2", then "Algebra 2" is in dependentCourses of "Algebra 1".
+     * Not persisted, derived from prerequisiteCourses relationship.
+     */
+    @ManyToMany(mappedBy = "prerequisiteCourses")
+    @Builder.Default
+    private Set<Course> dependentCourses = new HashSet<>();
+
     // Relationships will be added when implementing other modules
     // @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "teacher_id", insertable = false, updatable = false)
@@ -183,6 +210,32 @@ public class Course extends BaseEntity {
     //
     // @OneToMany(mappedBy = "courseId")
     // private List<Class> classes;
+
+    /**
+     * Adds a prerequisite to this course.
+     * Updates bidirectional relationship (this.prerequisiteCourses + prerequisite.dependentCourses).
+     *
+     * @param prerequisite Course to add as prerequisite
+     */
+    public void addPrerequisite(Course prerequisite) {
+        if (prerequisite != null) {
+            this.prerequisiteCourses.add(prerequisite);
+            prerequisite.getDependentCourses().add(this);
+        }
+    }
+
+    /**
+     * Removes a prerequisite from this course.
+     * Updates bidirectional relationship (this.prerequisiteCourses + prerequisite.dependentCourses).
+     *
+     * @param prerequisite Course to remove as prerequisite
+     */
+    public void removePrerequisite(Course prerequisite) {
+        if (prerequisite != null) {
+            this.prerequisiteCourses.remove(prerequisite);
+            prerequisite.getDependentCourses().remove(this);
+        }
+    }
 
     /**
      * Checks if course can be fully edited based on status.

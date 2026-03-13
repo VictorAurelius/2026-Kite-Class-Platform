@@ -2,6 +2,7 @@ package com.kiteclass.core.module.course.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Response DTO for Course entity.
@@ -21,7 +22,8 @@ import java.time.Instant;
  * @param description Course description
  * @param syllabus Course syllabus
  * @param objectives Learning objectives
- * @param prerequisites Course prerequisites
+ * @param prerequisites Course prerequisites (text description)
+ * @param prerequisiteCourses List of prerequisite courses (relationship)
  * @param targetAudience Target audience description
  * @param teacherId Teacher ID who created the course
  * @param durationWeeks Course duration in weeks
@@ -42,6 +44,7 @@ public record CourseResponse(
         String syllabus,
         String objectives,
         String prerequisites,
+        List<PrerequisiteCourseDTO> prerequisiteCourses,
         String targetAudience,
         Long teacherId,
         Integer durationWeeks,
