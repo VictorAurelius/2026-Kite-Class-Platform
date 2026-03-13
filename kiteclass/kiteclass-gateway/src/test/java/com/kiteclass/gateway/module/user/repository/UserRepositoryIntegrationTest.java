@@ -26,8 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("UserRepository Integration Tests")
 class UserRepositoryIntegrationTest {
 
-    @SuppressWarnings("resource") // Managed by Testcontainers framework
-
 
     @Autowired
     private UserRepository userRepository;

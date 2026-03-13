@@ -34,9 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("Account Locking Integration Tests")
 class AccountLockingIntegrationTest {
 
-    @SuppressWarnings("resource") // Managed by Testcontainers framework
-
-
     @Autowired
     private WebTestClient webTestClient;
 
