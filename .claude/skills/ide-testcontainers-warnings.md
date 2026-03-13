@@ -238,6 +238,57 @@ public abstract class IntegrationTestBase {
 
 ---
 
+## 🔧 Maven m2e Lifecycle Mapping Warning
+
+**Problem:** IDE shows warning on checkstyle plugin execution:
+```
+Plugin execution not covered by lifecycle configuration:
+org.apache.maven.plugins:maven-checkstyle-plugin:3.6.0:check
+```
+
+**Solution:** Add m2e lifecycle-mapping to `pom.xml`:
+
+```xml
+<build>
+    <pluginManagement>
+        <plugins>
+            <!-- Suppress m2e warning for checkstyle -->
+            <plugin>
+                <groupId>org.eclipse.m2e</groupId>
+                <artifactId>lifecycle-mapping</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <lifecycleMappingMetadata>
+                        <pluginExecutions>
+                            <pluginExecution>
+                                <pluginExecutionFilter>
+                                    <groupId>org.apache.maven.plugins</groupId>
+                                    <artifactId>maven-checkstyle-plugin</artifactId>
+                                    <versionRange>[3.0,)</versionRange>
+                                    <goals>
+                                        <goal>check</goal>
+                                    </goals>
+                                </pluginExecutionFilter>
+                                <action>
+                                    <ignore/>
+                                </action>
+                            </pluginExecution>
+                        </pluginExecutions>
+                    </lifecycleMappingMetadata>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+    <plugins>
+        <!-- Existing plugins here -->
+    </plugins>
+</build>
+```
+
+**Note:** This only affects IDE behavior, not actual `mvn build` execution.
+
+---
+
 ## ⚠️ Common Issues
 
 ### Issue 1: "Cannot resolve @Container"

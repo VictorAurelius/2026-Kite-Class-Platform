@@ -13,7 +13,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.r2dbc.connection.R2dbcTransactionManager;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 import redis.embedded.RedisServer;
 
@@ -43,31 +42,24 @@ import java.net.ServerSocket;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfiguration {
 
-    /**
-     * PostgreSQL container for integration tests (shared static instance).
-     */
-    @Container
-    private static final PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
-                    .withDatabaseName("testdb")
-                    .withUsername("test")
-                    .withPassword("test")
-                    .withReuse(true);
-
-    static {
-        postgres.start();
-    }
-
+    @SuppressWarnings("resource") // Closed in @PreDestroy stopRedis()
     private RedisServer redisServer;
 
     /**
-     * PostgreSQL container bean.
+     * PostgreSQL container for integration tests.
      *
      * @return configured PostgreSQL container with reuse enabled
      */
     @Bean
+    @SuppressWarnings("resource") // Managed by Testcontainers lifecycle
     PostgreSQLContainer<?> postgresContainer() {
-        return postgres;
+        PostgreSQLContainer<?> container = new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
+                .withDatabaseName("testdb")
+                .withUsername("test")
+                .withPassword("test")
+                .withReuse(true);
+        container.start();
+        return container;
     }
 
     /**
@@ -78,6 +70,7 @@ public class TestContainersConfiguration {
      */
     @Bean
     @Primary
+    @SuppressWarnings("resource") // Closed by Spring on context shutdown
     DataSource dataSource(PostgreSQLContainer<?> container) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(container.getJdbcUrl());
@@ -95,6 +88,7 @@ public class TestContainersConfiguration {
      */
     @Bean
     @Primary
+    @SuppressWarnings("resource") // Closed by Spring on context shutdown
     ConnectionFactory connectionFactory(PostgreSQLContainer<?> container) {
         ConnectionFactoryOptions options = ConnectionFactoryOptions.builder()
                 .option(ConnectionFactoryOptions.DRIVER, "postgresql")
@@ -131,6 +125,7 @@ public class TestContainersConfiguration {
      */
     @Bean
     @Primary
+    @SuppressWarnings("resource") // RedisServer closed in @PreDestroy stopRedis()
     LettuceConnectionFactory redisConnectionFactory() throws IOException {
         // Find random available port to avoid conflicts between test contexts
         int redisPort = findAvailablePort();
