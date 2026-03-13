@@ -340,6 +340,140 @@ echo -e "${GREEN}✅ Commit message will be validated in commit-msg hook${NC}"
 echo ""
 
 # ==============================================================================
+# 12. TDD Timestamp Check (Superpowers-inspired, WARNING mode Week 1-4)
+# ==============================================================================
+echo "🧪 Checking TDD compliance (test-first development)..."
+
+# Get modified Java files (excluding tests)
+MODIFIED_JAVA=$(git diff --cached --name-only --diff-filter=ACM | grep "src/main/.*\.java$" || true)
+
+if [ -n "$MODIFIED_JAVA" ]; then
+    TDD_WARNINGS=0
+
+    for java_file in $MODIFIED_JAVA; do
+        # Find corresponding test file
+        test_file=$(echo "$java_file" | sed 's/src\/main/src\/test/' | sed 's/\.java$/Test.java/')
+
+        # Check if test file exists and was also modified
+        if [ -f "$test_file" ]; then
+            # Check if test file is staged
+            if git diff --cached --name-only | grep -q "^$test_file$"; then
+                # Both files modified - check which was modified first (timestamp in commit)
+                java_time=$(git log -1 --format=%ct -- "$java_file" 2>/dev/null || echo 0)
+                test_time=$(git log -1 --format=%ct -- "$test_file" 2>/dev/null || echo 0)
+
+                # If code was modified after test (not TDD)
+                if [ "$java_time" -gt "$test_time" ] && [ "$test_time" -ne 0 ]; then
+                    echo -e "${YELLOW}⚠️  TDD Warning: Code modified after test (not RED-GREEN-REFACTOR)${NC}"
+                    echo "   Code: $java_file"
+                    echo "   Test: $test_file"
+                    echo "   💡 TDD best practice: Write test FIRST (RED) → Implement (GREEN) → Refactor"
+                    echo "   📖 See: .claude/skills/tdd-enforcement.md"
+                    TDD_WARNINGS=$((TDD_WARNINGS + 1))
+                fi
+            else
+                echo -e "${YELLOW}⚠️  TDD Warning: Code modified but test not staged${NC}"
+                echo "   Code: $java_file"
+                echo "   Test: $test_file (exists but not staged)"
+                echo "   💡 Consider: Did you update the test for this code change?"
+                TDD_WARNINGS=$((TDD_WARNINGS + 1))
+            fi
+        else
+            echo -e "${YELLOW}⚠️  Missing test file: $test_file${NC}"
+            echo "   Code: $java_file"
+            echo "   💡 Consider: Add test for new code"
+            TDD_WARNINGS=$((TDD_WARNINGS + 1))
+        fi
+    done
+
+    if [ "$TDD_WARNINGS" -eq 0 ]; then
+        echo -e "${GREEN}✅ TDD compliance looks good${NC}"
+    else
+        echo ""
+        echo -e "${YELLOW}ℹ️  Found $TDD_WARNINGS TDD advisory notice(s)${NC}"
+        echo "   NOTE: This is WARNING mode (Week 1-4) - commit NOT blocked"
+        echo "   Week 5+ will switch to BLOCKING mode"
+    fi
+else
+    echo -e "${GREEN}✅ No Java code changes — skipping TDD check${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 13. Two-Stage Review Reminder (Superpowers-inspired)
+# ==============================================================================
+echo "🔍 Checking for code review readiness indicators..."
+
+# Check if commit message or branch name suggests PR is ready for review
+COMMIT_MSG_FILE=".git/COMMIT_EDITMSG"
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+
+REVIEW_KEYWORDS="ready for review|please review|review this|pr review|code review"
+
+# Check branch name or recent commit messages
+NEEDS_REVIEW=false
+if echo "$BRANCH_NAME" | grep -iE "(review|ready)" > /dev/null 2>&1; then
+    NEEDS_REVIEW=true
+elif git log -1 --pretty=%B 2>/dev/null | grep -iE "$REVIEW_KEYWORDS" > /dev/null 2>&1; then
+    NEEDS_REVIEW=true
+fi
+
+if [ "$NEEDS_REVIEW" = true ]; then
+    echo -e "${YELLOW}📋 Code Review Reminder: Use Two-Stage Review Process${NC}"
+    echo ""
+    echo "   Stage 1: Specification Compliance (15-20 min) 🔴 BLOCKING"
+    echo "   ✓ Requirements match PR description"
+    echo "   ✓ All acceptance criteria met"
+    echo "   ✓ Edge cases covered"
+    echo "   ✓ Tests prove requirements"
+    echo ""
+    echo "   Stage 2: Code Quality (20-30 min) 🟠🟡 GRADED"
+    echo "   🔴 Critical: Security, data loss, breaking changes"
+    echo "   🟠 Major: Performance, test coverage, error handling"
+    echo "   🟡 Minor: Naming, duplication, docs"
+    echo ""
+    echo "   📖 See: .claude/skills/two-stage-code-review.md"
+else
+    echo -e "${GREEN}✅ No review indicators detected${NC}"
+fi
+echo ""
+
+# ==============================================================================
+# 14. Systematic Debugging Reminder (Superpowers-inspired)
+# ==============================================================================
+echo "🐛 Checking for bug fix commits..."
+
+# Check if commit message suggests bug fix
+COMMIT_KEYWORDS="fix|bug|debug|issue|error|crash|fail"
+
+if git log -1 --pretty=%B 2>/dev/null | grep -iE "$COMMIT_KEYWORDS" > /dev/null 2>&1; then
+    echo -e "${YELLOW}🔬 Debugging Reminder: Use Systematic 4-Phase Process${NC}"
+    echo ""
+    echo "   Phase 1: Reproduce (15-30 min)"
+    echo "   ✓ Create failing test case"
+    echo "   ✓ Document exact steps"
+    echo "   ✓ Verify consistency (not flaky)"
+    echo ""
+    echo "   Phase 2: Trace (30-60 min)"
+    echo "   ✓ Use debugger or logging"
+    echo "   ✓ Identify divergence point"
+    echo ""
+    echo "   Phase 3: Root Cause (30-45 min)"
+    echo "   ✓ Apply 5 Whys technique"
+    echo "   ✓ Distinguish symptom from cause"
+    echo ""
+    echo "   Phase 4: Defensive Fix (1-2 hours)"
+    echo "   ✓ Add regression test"
+    echo "   ✓ Fix related scenarios"
+    echo "   ✓ Update troubleshooting.md"
+    echo ""
+    echo "   📖 See: .claude/skills/systematic-debugging.md"
+else
+    echo -e "${GREEN}✅ No bug fix detected${NC}"
+fi
+echo ""
+
+# ==============================================================================
 # Summary
 # ==============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
