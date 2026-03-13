@@ -204,6 +204,8 @@ class SubscriptionServiceTest {
         SubscriptionResponse response = subscriptionService.downgradeSubscription(subscriptionId, PricingTier.BASIC);
 
         // Then
+        assertThat(response).isNotNull();
+
         ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
         verify(subscriptionRepository).save(captor.capture());
 

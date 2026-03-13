@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -122,7 +121,7 @@ class AssetStorageControllerTest {
 
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
-        when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
+        when(objectMapper.readValue(eq(assetsJson), any()))
             .thenReturn(expectedAssets);
 
         // When
@@ -190,11 +189,11 @@ class AssetStorageControllerTest {
 
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
-        when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
+        when(objectMapper.readValue(eq(assetsJson), any()))
             .thenReturn(assets);
 
         // When
-        ResponseEntity response = controller.deleteAssets(instanceId);
+        ResponseEntity<Void> response = controller.deleteAssets(instanceId);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -213,7 +212,7 @@ class AssetStorageControllerTest {
             .thenReturn(Collections.singletonList(brandingJob));
 
         // When
-        ResponseEntity response = controller.deleteAssets(instanceId);
+        ResponseEntity<Void> response = controller.deleteAssets(instanceId);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -236,13 +235,13 @@ class AssetStorageControllerTest {
 
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
-        when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
+        when(objectMapper.readValue(eq(assetsJson), any()))
             .thenReturn(assets);
 
         doThrow(new RuntimeException("S3 error")).when(s3StorageService).deleteAsset(anyString());
 
         // When
-        ResponseEntity response = controller.deleteAssets(instanceId);
+        ResponseEntity<Void> response = controller.deleteAssets(instanceId);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
