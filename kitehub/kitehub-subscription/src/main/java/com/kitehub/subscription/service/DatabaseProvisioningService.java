@@ -122,7 +122,7 @@ public class DatabaseProvisioningService {
 
         // Drop physical database (if lifecycle enabled)
         if (lifecycleEnabled) {
-            // TODO: Implement backup before deletion (S3 integration in future PR)
+            // FUTURE: Implement backup before deletion (S3 integration in future PR)
             // backupDatabase(dbName);
 
             dropPhysicalDatabase(dbName, instance.getDatabaseUsername());

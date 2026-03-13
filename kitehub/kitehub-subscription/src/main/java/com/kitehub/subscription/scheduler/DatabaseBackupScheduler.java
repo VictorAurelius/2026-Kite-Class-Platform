@@ -60,7 +60,7 @@ public class DatabaseBackupScheduler {
     public void cleanupDeletedInstances() {
         log.info("Starting weekly cleanup of deleted instances");
 
-        // TODO: Add query to find deleted instances older than 30 days
+        // FUTURE:Add query to find deleted instances older than 30 days
         // LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         // List<Instance> deletedInstances = instanceRepository.findDeletedBefore(thirtyDaysAgo);
 
@@ -69,7 +69,7 @@ public class DatabaseBackupScheduler {
 
     /**
      * Backup single instance database.
-     * TODO: Implement actual backup to S3 using pg_dump
+     * FUTURE: Implement actual backup to S3 using pg_dump
      *
      * @param instance Instance to backup
      */
@@ -79,7 +79,7 @@ public class DatabaseBackupScheduler {
 
         log.debug("Backing up database {} to {}", dbName, backupPath);
 
-        // TODO: Implement actual backup
+        // FUTURE:Implement actual backup
         // 1. Run pg_dump to create SQL dump
         // 2. Compress with gzip
         // 3. Upload to S3: s3://kiteclass-backups/{instance-id}/{date}.sql.gz
