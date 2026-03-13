@@ -97,7 +97,9 @@ class CourseControllerTest {
         // Given
         CourseResponse response = new CourseResponse(
                 1L, "Test Course", "TEST-001", "Description",
-                "Syllabus", "Objectives", "Prerequisites", "Target Audience",
+                "Syllabus", "Objectives", "Prerequisites",
+                java.util.List.of(),  // prerequisiteCourses
+                "Target Audience",
                 1L, 12, 36, new BigDecimal("5000000.00"), "DRAFT",
                 "https://example.com/cover.jpg", null, null
         );
@@ -121,6 +123,7 @@ class CourseControllerTest {
         CourseResponse response = new CourseResponse(
                 1L, request.name(), "TEST-001", request.description(),
                 request.syllabus(), request.objectives(), request.prerequisites(),
+                java.util.List.of(),  // prerequisiteCourses
                 request.targetAudience(), 1L, request.durationWeeks(),
                 request.totalSessions(), request.price(), "DRAFT",
                 request.coverImageUrl(), null, null
@@ -153,7 +156,9 @@ class CourseControllerTest {
         // Given
         CourseResponse response = new CourseResponse(
                 1L, "Test Course", "TEST-001", "Description",
-                "Syllabus", "Objectives", "Prerequisites", "Target Audience",
+                "Syllabus", "Objectives", "Prerequisites",
+                java.util.List.of(),  // prerequisiteCourses
+                "Target Audience",
                 1L, 12, 36, new BigDecimal("5000000.00"), "PUBLISHED",
                 "https://example.com/cover.jpg", null, null
         );
@@ -174,7 +179,9 @@ class CourseControllerTest {
         // Given
         CourseResponse response = new CourseResponse(
                 1L, "Test Course", "TEST-001", "Description",
-                "Syllabus", "Objectives", "Prerequisites", "Target Audience",
+                "Syllabus", "Objectives", "Prerequisites",
+                java.util.List.of(),  // prerequisiteCourses
+                "Target Audience",
                 1L, 12, 36, new BigDecimal("5000000.00"), "ARCHIVED",
                 "https://example.com/cover.jpg", null, null
         );
