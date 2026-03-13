@@ -39,7 +39,7 @@ public record CreateTeacherRequest(
         @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại không hợp lệ (phải là 10 số bắt đầu bằng 0)")
         String phoneNumber,
 
-        @Size(max = 100, message = "Chuyên môn không được quá 100 ký tự")
+        @Size(max = 100, message = "{TEACHER_SPECIALIZATION_TOO_LONG}")
         String specialization,
 
         @Size(max = 2000, message = "Giới thiệu không được quá 2000 ký tự")
