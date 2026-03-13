@@ -947,4 +947,124 @@ class CourseIntegrationTest {
 
         return objectMapper.readTree(response).get("data").get("id").asLong();
     }
+
+    // ========== Course Search by Level and Category Tests ==========
+
+    @Test
+    @DisplayName("GET /api/v1/courses/search - Should search by level only")
+    void shouldSearchCoursesByLevelOnly() throws Exception {
+        // Given: Create courses with different levels
+        createCourseWithLevelAndCategory("Beginner Math", "BEG-MATH", "Beginner", "Math");
+        createCourseWithLevelAndCategory("Advanced Math", "ADV-MATH", "Advanced", "Math");
+        createCourseWithLevelAndCategory("Beginner Science", "BEG-SCI", "Beginner", "Science");
+
+        // When: Search by level="Beginner"
+        // Then: Returns only Beginner courses
+        mockMvc.perform(get("/api/v1/courses/search")
+                .param("level", "Beginner")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.content.length()").value(2))
+            .andExpect(jsonPath("$.data.content[*].level", everyItem(is("Beginner"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/courses/search - Should search by category only")
+    void shouldSearchCoursesByCategoryOnly() throws Exception {
+        // Given: Create courses with different categories
+        createCourseWithLevelAndCategory("Beginner Math", "CAT-MATH-1", "Beginner", "Math");
+        createCourseWithLevelAndCategory("Advanced Math", "CAT-MATH-2", "Advanced", "Math");
+        createCourseWithLevelAndCategory("Beginner Science", "CAT-SCI", "Beginner", "Science");
+
+        // When: Search by category="Math"
+        // Then: Returns only Math courses
+        mockMvc.perform(get("/api/v1/courses/search")
+                .param("category", "Math")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.content.length()").value(2))
+            .andExpect(jsonPath("$.data.content[*].category", everyItem(is("Math"))));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/courses/search - Should search by both level and category")
+    void shouldSearchCoursesByLevelAndCategory() throws Exception {
+        // Given: Create courses with different combinations
+        createCourseWithLevelAndCategory("Beginner Math", "BOTH-BEG-MATH", "Beginner", "Math");
+        createCourseWithLevelAndCategory("Advanced Math", "BOTH-ADV-MATH", "Advanced", "Math");
+        createCourseWithLevelAndCategory("Beginner Science", "BOTH-BEG-SCI", "Beginner", "Science");
+
+        // When: Search by level="Beginner" AND category="Math"
+        // Then: Returns only courses matching both criteria
+        mockMvc.perform(get("/api/v1/courses/search")
+                .param("level", "Beginner")
+                .param("category", "Math")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.content.length()").value(1))
+            .andExpect(jsonPath("$.data.content[0].level").value("Beginner"))
+            .andExpect(jsonPath("$.data.content[0].category").value("Math"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/courses/search - Should return all courses when no filters")
+    void shouldSearchCoursesWithNoFilters() throws Exception {
+        // Given: Create multiple courses
+        createCourseWithLevelAndCategory("Course 1", "NO-FILTER-1", "Beginner", "Math");
+        createCourseWithLevelAndCategory("Course 2", "NO-FILTER-2", "Advanced", "Science");
+
+        // When: Search with no parameters (both null)
+        // Then: Returns all courses
+        mockMvc.perform(get("/api/v1/courses/search")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.content.length()").value(greaterThanOrEqualTo(2)));
+    }
+
+    /**
+     * Helper method to create a course with level and category for testing.
+     *
+     * @param name Course name
+     * @param code Course code
+     * @param level Course level (e.g., "Beginner", "Intermediate", "Advanced")
+     * @param category Course category (e.g., "Math", "Science", "Language")
+     * @return Course ID
+     * @throws Exception if creation fails
+     */
+    private Long createCourseWithLevelAndCategory(String name, String code, String level, String category) throws Exception {
+        // Note: This assumes CreateCourseRequest will have level and category fields
+        // Will be added in implementation phase
+        String requestJson = String.format("""
+            {
+                "name": "%s",
+                "code": "%s",
+                "description": "Test description",
+                "syllabus": "Test syllabus",
+                "objectives": "Test objectives",
+                "prerequisites": "None",
+                "targetAudience": "Students",
+                "level": "%s",
+                "category": "%s",
+                "teacherId": %d,
+                "durationWeeks": 10,
+                "totalSessions": 20,
+                "price": 1000000
+            }
+            """, name, code, level, category, teacherId);
+
+        String response = mockMvc.perform(post("/api/v1/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(requestJson))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        return objectMapper.readTree(response).get("data").get("id").asLong();
+    }
 }
