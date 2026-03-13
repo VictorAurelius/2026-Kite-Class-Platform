@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Purpose:** Multi-tenant SaaS platform management (subscriptions, payments, AI branding, email notifications)
-**Architecture:** Microservices on Spring Boot 3.5.10
+**Architecture:** Microservices on Spring Boot 3.5.11
 
 ---
 

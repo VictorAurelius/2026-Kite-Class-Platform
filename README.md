@@ -86,7 +86,7 @@ See [scripts/README.md](scripts/README.md) for details.
 ## 🧰 Tech Stack Overview
 
 ### KiteClass
-- **Backend**: Spring Boot 3.5.10, Spring Cloud 2025.0.0
+- **Backend**: Spring Boot 3.5.11, Spring Cloud 2025.0.0
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Database**: PostgreSQL 15
 - **Cache**: Redis 7
@@ -107,6 +107,7 @@ For detailed project documentation:
 - [KiteClass Platform](kiteclass/README.md)
 - [Implementation Plan](documents/03-planning/implementation/kiteclass-implementation-plan.md)
 - [Architecture Overview](documents/01-research/architecture/system-architecture-v4.md)
+- [Documentation Map](documents/README.md) - Complete documentation navigation guide
 
 ---
 

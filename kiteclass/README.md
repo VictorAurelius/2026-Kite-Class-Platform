@@ -81,11 +81,11 @@ kiteclass-platform/
 - Documentation → `documents/[category]/`
 - Nginx config → `nginx/`
 
-**See**: `.claude/skills/organize.md` for detailed rules.
+**See**: `/.claude/skills/organize.md` (root directory) for detailed rules.
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Spring Boot 3.5.10, Spring Cloud 2025.0.0
+- **Backend**: Spring Boot 3.5.11, Spring Cloud 2025.0.0
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Database**: PostgreSQL 15
 - **Cache**: Redis 7
@@ -124,10 +124,11 @@ kiteclass-platform/
 
 ## 📖 More Info
 
-- **Frontend**: [kiteclass/kiteclass-frontend/README.md](kiteclass/kiteclass-frontend/README.md)
-- **Gateway**: [kiteclass/kiteclass-gateway/README.md](kiteclass/kiteclass-gateway/README.md)
-- **Core**: [kiteclass/kiteclass-core/README.md](kiteclass/kiteclass-core/README.md)
-- **Scripts**: [scripts/README.md](scripts/README.md)
+- **Project Documentation**: [../documents/README.md](../documents/README.md) - Complete documentation map
+- **Architecture**: [../documents/01-research/architecture/system-architecture-v4.md](../documents/01-research/architecture/system-architecture-v4.md)
+- **Implementation Plan**: [../documents/03-planning/implementation/kiteclass-implementation-plan.md](../documents/03-planning/implementation/kiteclass-implementation-plan.md)
+- **Scripts Guide**: [scripts/README.md](scripts/README.md)
+- **Workflow Improvements**: See documentation map for dev-rebuild.sh, cleanup-testcontainers.sh
 
 ---
 
