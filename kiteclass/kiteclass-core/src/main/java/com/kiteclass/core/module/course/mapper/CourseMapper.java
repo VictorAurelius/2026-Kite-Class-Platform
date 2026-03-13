@@ -2,9 +2,13 @@ package com.kiteclass.core.module.course.mapper;
 
 import com.kiteclass.core.module.course.dto.CreateCourseRequest;
 import com.kiteclass.core.module.course.dto.CourseResponse;
+import com.kiteclass.core.module.course.dto.PrerequisiteCourseDTO;
 import com.kiteclass.core.module.course.dto.UpdateCourseRequest;
 import com.kiteclass.core.module.course.entity.Course;
 import org.mapstruct.*;
+
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * MapStruct mapper for Course entity and DTOs.
@@ -27,11 +31,50 @@ public interface CourseMapper {
     /**
      * Maps Course entity to CourseResponse DTO.
      *
+     * <p>Custom implementation to:
+     * <ul>
+     *   <li>Convert status enum to string</li>
+     *   <li>Map prerequisite courses to PrerequisiteCourseDTO list (sorted by name)</li>
+     * </ul>
+     *
      * @param course the course entity
      * @return CourseResponse DTO
      */
-    @Mapping(target = "status", expression = "java(course.getStatus().name())")
-    CourseResponse toResponse(Course course);
+    default CourseResponse toResponse(Course course) {
+        if (course == null) {
+            return null;
+        }
+
+        // Map prerequisite courses to DTO list, sorted by name
+        List<PrerequisiteCourseDTO> prerequisiteCourses = course.getPrerequisiteCourses().stream()
+            .map(prereq -> new PrerequisiteCourseDTO(
+                prereq.getId(),
+                prereq.getName(),
+                prereq.getCode()
+            ))
+            .sorted(Comparator.comparing(PrerequisiteCourseDTO::name))
+            .toList();
+
+        return new CourseResponse(
+            course.getId(),
+            course.getName(),
+            course.getCode(),
+            course.getDescription(),
+            course.getSyllabus(),
+            course.getObjectives(),
+            course.getPrerequisites(),
+            prerequisiteCourses,
+            course.getTargetAudience(),
+            course.getTeacherId(),
+            course.getDurationWeeks(),
+            course.getTotalSessions(),
+            course.getPrice(),
+            course.getStatus() != null ? course.getStatus().name() : null,
+            course.getCoverImageUrl(),
+            course.getCreatedAt(),
+            course.getUpdatedAt()
+        );
+    }
 
     /**
      * Maps CreateCourseRequest DTO to Course entity.
