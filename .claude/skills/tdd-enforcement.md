@@ -416,6 +416,114 @@ echo "✅ TDD compliance verified"
 
 ---
 
+## ⚠️ Git Hook Limitations (Discovered in Pilot Testing)
+
+### Known Limitations
+
+**1. Pre-commit Hook Cannot Access Current Commit Message**
+
+**Problem:**
+- Pre-commit runs BEFORE commit message is written
+- Cannot check commit message for keywords like "ready for review" or "fix bug"
+- Check #13 (Review Reminder) and #14 (Debug Reminder) only check:
+  - Branch name (e.g., `feature/review-ready`)
+  - PREVIOUS commit message (from `git log -1`)
+
+**Impact:**
+- ✅ Works if branch named with keywords (e.g., `fix/bug-123`)
+- ⚠️ Doesn't detect keywords in CURRENT commit message
+- ⚠️ May show reminder from previous commit context
+
+**Workaround:**
+- Use descriptive branch names: `feature/ready-for-review-*`
+- Or accept that reminders based on previous commit
+- Or move checks to `commit-msg` hook (has message access)
+
+**Example:**
+```bash
+# Commit message: "fix: Add phone validation"
+# Hook shows: "🔬 Debugging Reminder" (because previous commit had "fix")
+# This is expected behavior in pre-commit hook
+```
+
+---
+
+**2. Timestamp Check Uses Git History, Not Filesystem**
+
+**Problem:**
+- Hook checks `git log -1 --format=%ct` (commit timestamp)
+- For NEW files (never committed), timestamp is 0
+- May not catch test-after-code if both files are new in same commit
+
+**Impact:**
+- ✅ Works correctly for MODIFIED files
+- ⚠️ May miss violation for NEWLY CREATED files committed together
+
+**Workaround:**
+- Commit test file first, then code file (separate commits)
+- Or manually verify TDD workflow for greenfield code
+
+**Example:**
+```bash
+# Both files new, committed together:
+git add StudentServiceTest.java StudentServiceImpl.java
+git commit -m "feat: Add student service"
+# Hook may not detect order violation (both timestamp=0 initially)
+```
+
+---
+
+**3. Only Checks Java Files (Backend)**
+
+**Problem:**
+- Current hook only checks `src/main/.*\.java$` pattern
+- Frontend TDD (TypeScript/React) not checked
+
+**Impact:**
+- ✅ Backend TDD enforced
+- ❌ Frontend TDD not enforced
+
+**Future Enhancement:**
+- Extend hook to check `.tsx` files
+- Pattern: `src/components/*.tsx` → `src/__tests__/*.test.tsx`
+
+---
+
+**4. Warning Mode (Week 1-4) Not Blocking**
+
+**Problem:**
+- Warnings are advisory only (commit still succeeds)
+- Developers might ignore warnings
+
+**Impact:**
+- ⚠️ TDD compliance not guaranteed during warning period
+- ✅ Builds awareness before enforcement
+
+**Mitigation:**
+- Switch to BLOCKING mode Week 5+ (exit 1 on violation)
+- Track compliance rate during warning period
+- Address violations before blocking mode starts
+
+---
+
+### Acceptable Limitations
+
+**These are by design:**
+
+1. **Pre-commit vs Commit-msg Trade-off**
+   - Pre-commit: Checks files before commit (good for code)
+   - Commit-msg: Checks message content (good for review/debug reminders)
+   - **Decision:** Keep in pre-commit for code checks, accept message limitation
+
+2. **Git History Dependency**
+   - Relies on git log for timestamps
+   - **Decision:** Acceptable - encourages incremental commits (test → code)
+
+3. **Backend-Only Initially**
+   - **Decision:** Start with Java, add frontend later (Week 3-4)
+
+---
+
 ## 🎯 KiteClass Examples
 
 ### Example 1: Student Service (Java)

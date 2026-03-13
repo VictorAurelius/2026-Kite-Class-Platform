@@ -35,6 +35,90 @@ Replace vague, multi-hour tasks with **2-5 minute focused tasks**:
 
 ---
 
+## 📝 When to Document Task Breakdown
+
+**Based on Pilot Testing Feedback:**
+
+### Document Full Breakdown (in .md file)
+
+**When:**
+- ✅ Features >30 minutes total
+- ✅ Multiple files affected (>3 files)
+- ✅ Team collaboration (others need to understand plan)
+- ✅ Complexity Medium or High
+- ✅ New developers on project (learning reference)
+
+**Benefits:**
+- Clear roadmap for implementation
+- Easy to resume after interruption
+- Reviewers understand intent
+- Reusable pattern for similar features
+
+**Example:** Pilot PR 1 (35 min, 12 tasks) → Document in `pilot-pr-1-task-breakdown.md`
+
+---
+
+### Verbal/Mental Breakdown Only
+
+**When:**
+- ⏭️ Features <10 minutes total
+- ⏭️ Single file change (obvious steps)
+- ⏭️ Solo work (no collaboration needed)
+- ⏭️ Complexity Low (routine task)
+
+**Benefits:**
+- No documentation overhead
+- Faster for trivial features
+- Still use formula mentally (file + change + verify)
+
+**Example:**
+```markdown
+# Mental breakdown (no doc needed):
+1. Add @NotNull to parameter (2 min)
+2. Update test (3 min)
+3. Run tests (2 min)
+Total: 7 min
+
+✅ No need to create task-breakdown.md for this
+```
+
+---
+
+### Middle Ground: Inline Breakdown
+
+**When:**
+- Features 10-30 minutes
+- Modest complexity (3-5 tasks)
+- Quick reference needed (not formal doc)
+
+**How:** List tasks in commit message or PR description
+
+**Example:**
+```markdown
+## Tasks (20 min total)
+1. Add validation annotation (3 min)
+2. Update DTO (2 min)
+3. Add test cases (10 min)
+4. Run test suite (5 min)
+```
+
+✅ Lightweight documentation, sufficient for small PRs
+
+---
+
+## Decision Matrix: To Document or Not?
+
+| Feature Size | Files Changed | Complexity | Documentation Level |
+|--------------|---------------|------------|---------------------|
+| <10 min | 1 file | Low | ⏭️ **None** (mental only) |
+| 10-30 min | 2-3 files | Low-Medium | 📝 **Inline** (PR description) |
+| 30-60 min | 3-5 files | Medium | 📄 **Light Doc** (task list + time) |
+| >60 min | 5+ files | Medium-High | 📚 **Full Doc** (with code samples) |
+
+**Rule of Thumb:** If you'd forget the plan after lunch break → Document it
+
+---
+
 ## 🎯 Why Break Down Tasks?
 
 ### Benefits:
