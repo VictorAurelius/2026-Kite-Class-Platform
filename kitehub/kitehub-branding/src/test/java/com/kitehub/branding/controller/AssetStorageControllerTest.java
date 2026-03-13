@@ -104,6 +104,7 @@ class AssetStorageControllerTest {
 
     @Test
     @DisplayName("Should get assets from BrandingJob")
+    @SuppressWarnings("unchecked")
     void shouldGetAssetsFromBrandingJob() throws Exception {
         // Given
         List<BrandingAsset> expectedAssets = new ArrayList<>();
@@ -121,7 +122,7 @@ class AssetStorageControllerTest {
 
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
-        when(objectMapper.readValue(eq(assetsJson), any()))
+        when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
             .thenReturn(expectedAssets);
 
         // When
@@ -170,6 +171,7 @@ class AssetStorageControllerTest {
 
     @Test
     @DisplayName("Should delete assets from S3 and clear BrandingJob")
+    @SuppressWarnings("unchecked")
     void shouldDeleteAssetsFromS3AndClearBrandingJob() throws Exception {
         // Given
         List<BrandingAsset> assets = new ArrayList<>();
@@ -189,11 +191,11 @@ class AssetStorageControllerTest {
 
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
-        when(objectMapper.readValue(eq(assetsJson), any()))
+        when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
             .thenReturn(assets);
 
         // When
-        ResponseEntity<Void> response = controller.deleteAssets(instanceId);
+        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -212,7 +214,7 @@ class AssetStorageControllerTest {
             .thenReturn(Collections.singletonList(brandingJob));
 
         // When
-        ResponseEntity<Void> response = controller.deleteAssets(instanceId);
+        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -222,6 +224,7 @@ class AssetStorageControllerTest {
 
     @Test
     @DisplayName("Should continue deletion even if S3 delete fails")
+    @SuppressWarnings("unchecked")
     void shouldContinueDeletionEvenIfS3DeleteFails() throws Exception {
         // Given
         List<BrandingAsset> assets = new ArrayList<>();
@@ -235,13 +238,13 @@ class AssetStorageControllerTest {
 
         when(brandingJobService.getJobsByInstance(instanceId))
             .thenReturn(Collections.singletonList(brandingJob));
-        when(objectMapper.readValue(eq(assetsJson), any()))
+        when(objectMapper.readValue(eq(assetsJson), any(com.fasterxml.jackson.core.type.TypeReference.class)))
             .thenReturn(assets);
 
         doThrow(new RuntimeException("S3 error")).when(s3StorageService).deleteAsset(anyString());
 
         // When
-        ResponseEntity<Void> response = controller.deleteAssets(instanceId);
+        ResponseEntity<Map<String, String>> response = controller.deleteAssets(instanceId);
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
