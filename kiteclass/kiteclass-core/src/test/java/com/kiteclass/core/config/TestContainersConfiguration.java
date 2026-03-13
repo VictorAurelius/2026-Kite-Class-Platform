@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -32,16 +33,16 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfiguration {
 
-    @SuppressWarnings("resource") // Container is managed by Testcontainers framework
+    @Container
     private static final PostgreSQLContainer<?> postgres =
         new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
 
-    @SuppressWarnings("resource") // Container is managed by Testcontainers framework
+    @Container
     private static final GenericContainer<?> redis =
         new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379);
 
-    @SuppressWarnings("resource") // Container is managed by Testcontainers framework
+    @Container
     private static final MinIOContainer minio =
         new MinIOContainer(DockerImageName.parse("minio/minio:latest"));
 

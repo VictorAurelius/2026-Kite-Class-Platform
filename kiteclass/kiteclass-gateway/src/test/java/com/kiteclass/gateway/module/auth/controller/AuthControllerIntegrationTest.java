@@ -39,8 +39,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("AuthController Integration Tests")
 class AuthControllerIntegrationTest {
 
-    @SuppressWarnings("resource") // Managed by Testcontainers framework
-
 
     @Autowired
     private WebTestClient webTestClient;

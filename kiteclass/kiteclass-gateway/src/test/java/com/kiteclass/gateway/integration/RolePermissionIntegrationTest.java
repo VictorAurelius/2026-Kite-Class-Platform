@@ -29,8 +29,6 @@ import java.util.List;
 @DisplayName("Role & Permission Integration Tests")
 class RolePermissionIntegrationTest {
 
-    @SuppressWarnings("resource") // Managed by Testcontainers framework
-
 
     @Autowired
     private WebTestClient webTestClient;

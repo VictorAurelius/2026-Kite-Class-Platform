@@ -23,8 +23,6 @@ import java.util.List;
 @DisplayName("JWT Authentication Integration Tests")
 class JwtAuthenticationIntegrationTest {
 
-    @SuppressWarnings("resource") // Managed by Testcontainers framework
-
 
     @Autowired
     private WebTestClient webTestClient;
