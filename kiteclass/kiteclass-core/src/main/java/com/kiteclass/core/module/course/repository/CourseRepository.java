@@ -165,4 +165,32 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             @Param("teacherId") Long teacherId,
             Pageable pageable
     );
+
+    /**
+     * Searches courses by level and/or category with pagination.
+     *
+     * <p>Search criteria:
+     * <ul>
+     *   <li>level: filters by course difficulty level (null = all levels)</li>
+     *   <li>category: filters by course category (null = all categories)</li>
+     * </ul>
+     *
+     * <p>Only returns non-deleted courses.
+     *
+     * @param level    the course level filter (can be null)
+     * @param category the course category filter (can be null)
+     * @param pageable pagination parameters
+     * @return page of matching courses
+     */
+    @Query("""
+            SELECT c FROM Course c
+            WHERE c.deleted = false
+            AND (:level IS NULL OR c.level = :level)
+            AND (:category IS NULL OR c.category = :category)
+            """)
+    Page<Course> findByLevelAndCategory(
+            @Param("level") String level,
+            @Param("category") String category,
+            Pageable pageable
+    );
 }

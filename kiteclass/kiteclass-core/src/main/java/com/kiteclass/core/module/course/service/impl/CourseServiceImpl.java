@@ -499,4 +499,38 @@ public class CourseServiceImpl implements CourseService {
 
         log.info("Removed prerequisite {} from course {}", prerequisiteId, courseId);
     }
+
+    @Override
+    public PageResponse<CourseResponse> searchByLevelAndCategory(
+            String level,
+            String category,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // Create sort
+        Sort.Direction sortDirection = "DESC".equalsIgnoreCase(direction) ?
+                Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(sortDirection, sortBy);
+
+        // Create pageable
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Search courses
+        Page<Course> coursePage = courseRepository.findByLevelAndCategory(level, category, pageable);
+
+        // Map to DTOs
+        List<CourseResponse> content = coursePage.getContent().stream()
+                .map(courseMapper::toResponse)
+                .toList();
+
+        // Return page response
+        return PageResponse.of(
+                content,
+                coursePage.getNumber(),
+                coursePage.getSize(),
+                coursePage.getTotalElements()
+        );
+    }
 }
