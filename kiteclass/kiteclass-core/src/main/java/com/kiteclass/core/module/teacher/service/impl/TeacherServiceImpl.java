@@ -185,4 +185,39 @@ public class TeacherServiceImpl implements TeacherService {
 
         log.info("Deleted teacher with ID: {}", id);
     }
+
+    @Override
+    public PageResponse<TeacherResponse> searchBySpecialization(
+            String specialization,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        log.info("Searching teachers by specialization: {}", specialization);
+
+        // Delegate to existing findBySearchCriteria method
+        // (specialization search is subset of general search)
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<Teacher> teacherPage = teacherRepository.findBySearchCriteria(
+                specialization,  // search parameter matches specialization field
+                null,            // status filter not needed
+                pageable
+        );
+
+        List<TeacherResponse> content = teacherPage.getContent().stream()
+                .map(teacherMapper::toResponse)
+                .toList();
+
+        return new PageResponse<>(
+                content,
+                teacherPage.getNumber(),
+                teacherPage.getSize(),
+                teacherPage.getTotalElements(),
+                teacherPage.getTotalPages(),
+                teacherPage.isLast()
+        );
+    }
 }
