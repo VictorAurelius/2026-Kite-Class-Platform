@@ -151,7 +151,9 @@ export default async function CourseDetailPage({
   };
 
   // Get level label
-  const getLevelLabel = (level: string) => {
+  const getLevelLabel = (level: string | undefined) => {
+    if (!level) return 'Chưa xác định';
+
     switch (level) {
       case 'Beginner':
         return 'Cơ bản';
