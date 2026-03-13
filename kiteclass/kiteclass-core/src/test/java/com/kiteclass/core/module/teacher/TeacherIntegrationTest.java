@@ -689,4 +689,144 @@ class TeacherIntegrationTest {
             .andExpect(jsonPath("$.fieldErrors.specialization[0]",
                     containsString("100")));
     }
+
+    // ========== Teacher Search by Specialization Tests (PR W5-2) ==========
+
+    @Test
+    @DisplayName("GET /api/v1/teachers/search - Should find teacher by exact specialization")
+    void shouldFindTeacherByExactSpecialization() throws Exception {
+        // Given: Create teacher with "Mathematics" specialization
+        CreateTeacherRequest request = new CreateTeacherRequest(
+            "Math Teacher",
+            "exactmath@test.com",
+            "0901234567",
+            "Mathematics",
+            "Math teacher bio",
+            "Bachelor of Mathematics",
+            5
+        );
+
+        mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
+
+        // When: Search for "Mathematics"
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "Mathematics")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].specialization").value("Mathematics"))
+            .andExpect(jsonPath("$.data.content[0].email").value("exactmath@test.com"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/teachers/search - Should find teachers by partial specialization")
+    void shouldFindTeachersByPartialSpecialization() throws Exception {
+        // Given: Create teachers with Math-related specializations
+        createTeacherWithSpecialization("Math Teacher 1", "partialmath1@test.com", "Mathematics");
+        createTeacherWithSpecialization("Math Teacher 2", "partialmath2@test.com", "Advanced Mathematics");
+        createTeacherWithSpecialization("Physics Teacher", "physics@test.com", "Physics");
+
+        // When: Search for "Math" (should match 2 teachers)
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "Math")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.totalElements").value(2))
+            .andExpect(jsonPath("$.data.content[0].specialization", containsString("Math")))
+            .andExpect(jsonPath("$.data.content[1].specialization", containsString("Math")));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/teachers/search - Should be case-insensitive")
+    void shouldSearchCaseInsensitive() throws Exception {
+        // Given: Create teacher with "English Literature" specialization
+        createTeacherWithSpecialization("English Teacher", "caseeng@test.com", "English Literature");
+
+        // When: Search with lowercase
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "english")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].specialization").value("English Literature"));
+
+        // And: Search with uppercase
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "ENGLISH")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content[0].specialization").value("English Literature"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/teachers/search - Should support pagination and sorting")
+    void shouldSupportPaginationAndSortingInSearch() throws Exception {
+        // Given: Create 3 teachers with same specialization
+        createTeacherWithSpecialization("Charlie Math", "charlie@test.com", "Mathematics");
+        createTeacherWithSpecialization("Alice Math", "alice@test.com", "Mathematics");
+        createTeacherWithSpecialization("Bob Math", "bob@test.com", "Mathematics");
+
+        // When: Search with pagination (page 0, size 2, sort by name ASC)
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "Math")
+                .param("page", "0")
+                .param("size", "2")
+                .param("sortBy", "name")
+                .param("direction", "ASC")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content.length()").value(2))
+            .andExpect(jsonPath("$.data.totalElements").value(3))
+            .andExpect(jsonPath("$.data.totalPages").value(2))
+            .andExpect(jsonPath("$.data.content[0].name").value("Alice Math"))
+            .andExpect(jsonPath("$.data.content[1].name").value("Bob Math"));
+
+        // And: Get second page
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "Math")
+                .param("page", "1")
+                .param("size", "2")
+                .param("sortBy", "name")
+                .param("direction", "ASC")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content.length()").value(1))
+            .andExpect(jsonPath("$.data.content[0].name").value("Charlie Math"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/teachers/search - Should return empty page when no matches")
+    void shouldReturnEmptyPageWhenNoMatches() throws Exception {
+        // Given: Create teacher with "Physics" specialization
+        createTeacherWithSpecialization("Physics Teacher", "nomatch@test.com", "Physics");
+
+        // When: Search for non-existent specialization
+        mockMvc.perform(get("/api/v1/teachers/search")
+                .param("specialization", "NonExistent")
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.content.length()").value(0))
+            .andExpect(jsonPath("$.data.totalElements").value(0));
+    }
+
+    // Helper method for creating teachers with specific specialization
+    private void createTeacherWithSpecialization(String name, String email, String specialization) throws Exception {
+        CreateTeacherRequest request = new CreateTeacherRequest(
+            name,
+            email,
+            "0901234567",
+            specialization,
+            "Bio",
+            "Qualification",
+            5
+        );
+
+        mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated());
+    }
 }
