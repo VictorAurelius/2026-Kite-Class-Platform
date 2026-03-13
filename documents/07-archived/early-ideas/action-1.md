@@ -1463,3 +1463,30 @@ bật mode plan để:
 nhưng vẫn còn lỗi, hãy fix theo đúng quy trình
 
 các TODO cho chức năng tương lai thì note là FUTURETODO hoặc giá trị hợp lý để IDE không báo problems
+
+Hãy fix theo best practice để IDE không báo lỗi này:
+[{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/config/TestContainersConfiguration.java",
+	"owner": "_generated_diagnostic_collection_name_#4",
+	"code": "1102",
+	"severity": 2,
+	"message": "At least one of the problems in category 'resource' is not analysed due to a compiler option being ignored",
+	"source": "Java",
+	"startLineNumber": 35,
+	"startColumn": 23,
+	"endLineNumber": 35,
+	"endColumn": 33,
+	"origin": "extHost1"
+},{
+	"resource": "/E:/person/2026-Kite-Class-Platform/kiteclass/kiteclass-core/src/test/java/com/kiteclass/core/config/TestContainersConfiguration.java",
+	"owner": "_generated_diagnostic_collection_name_#4",
+	"code": "1102",
+	"severity": 2,
+	"message": "At least one of the problems in category 'resource' is not analysed due to a compiler option being ignored",
+	"source": "Java",
+	"startLineNumber": 44,
+	"startColumn": 23,
+	"endLineNumber": 44,
+	"endColumn": 33,
+	"origin": "extHost1"
+}]
