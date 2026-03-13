@@ -124,7 +124,8 @@ class VietQRServiceTest {
         vietQRService.generateQRCode(paymentId, amount, subscriptionId);
 
         // Then
-        ArgumentCaptor<HttpEntity> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<HttpEntity<VietQRRequest>> captor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplate).exchange(
             anyString(),
             eq(HttpMethod.POST),
@@ -165,7 +166,8 @@ class VietQRServiceTest {
         vietQRService.generateQRCode(paymentId, amount, subscriptionId);
 
         // Then
-        ArgumentCaptor<HttpEntity> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<HttpEntity<VietQRRequest>> captor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplate).exchange(
             anyString(),
             eq(HttpMethod.POST),
