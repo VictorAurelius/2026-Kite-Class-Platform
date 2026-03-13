@@ -11,6 +11,7 @@ WORKDIR /app
 COPY kiteclass/kiteclass-gateway/.mvn .mvn
 COPY kiteclass/kiteclass-gateway/mvnw .
 COPY kiteclass/kiteclass-gateway/pom.xml .
+COPY kiteclass/kiteclass-gateway/checkstyle.xml .
 
 # Make Maven wrapper executable (fix permission denied in Docker)
 RUN chmod +x mvnw
