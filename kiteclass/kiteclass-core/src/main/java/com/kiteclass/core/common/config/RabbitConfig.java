@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  * }
  * </pre>
  *
- * <p>TODO: Define actual exchanges, queues, and bindings when event-driven features are implemented.
+ * <p>FUTURE: Define actual exchanges, queues, and bindings when event-driven features are implemented.
  *
  * @author KiteClass Team
  * @since 2.2.0
@@ -82,7 +82,7 @@ public class RabbitConfig {
         return factory;
     }
 
-    // TODO: Define exchanges, queues, and bindings when event-driven features are implemented
+    // FUTURE: Define exchanges, queues, and bindings when event-driven features are implemented
     //
     // Example:
     //

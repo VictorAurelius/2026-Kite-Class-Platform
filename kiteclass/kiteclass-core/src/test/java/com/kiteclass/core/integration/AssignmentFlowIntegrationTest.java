@@ -254,7 +254,7 @@ class AssignmentFlowIntegrationTest {
                 .andExpect(jsonPath("$.data.status").value("GRADED"));
 
         // ========== Step 7: Verify Grade Has Assignment Component ==========
-        // TODO: This verification requires async event processing (ASSIGNMENT_GRADED)
+        // FUTURE: This verification requires async event processing (ASSIGNMENT_GRADED)
         // Grade module integration is tested separately in Grade module tests
         // Skipping for now as it's out of scope for basic assignment flow
 
@@ -385,7 +385,7 @@ class AssignmentFlowIntegrationTest {
 
         // ========== Student Submits Before Deadline ==========
         // Note: Due date is now in future (required by @Future validation)
-        // TODO: Refactor to properly test late submission with time manipulation
+        // FUTURE: Refactor to properly test late submission with time manipulation
         SubmitAssignmentRequest submitRequest = SubmitAssignmentRequest.builder()
                 .assignmentId(assignmentId)
                 .notes("Submission with notes")

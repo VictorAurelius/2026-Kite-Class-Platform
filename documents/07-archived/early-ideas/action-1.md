@@ -1457,3 +1457,9 @@ bật mode plan để:
 2. thực hiện trên branch hiện tại và merge PR
 3. tạo plan để clean up history CI hiện tại của dự án dựa trên skill này
 4. tôi thấy 2 branch fix test gần đây sản sinh ra thêm TODO, hãy cập nhật lại plan TODO để đề xuất action tiếp theo
+
+đọc PROJECT_STATUS.md
+
+nhưng vẫn còn lỗi, hãy fix theo đúng quy trình
+
+các TODO cho chức năng tương lai thì note là FUTURETODO hoặc giá trị hợp lý để IDE không báo problems
