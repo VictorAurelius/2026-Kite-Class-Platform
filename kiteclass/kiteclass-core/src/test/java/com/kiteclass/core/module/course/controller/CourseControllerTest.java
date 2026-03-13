@@ -73,6 +73,7 @@ class CourseControllerTest {
         CourseResponse response = new CourseResponse(
                 1L, request.name(), request.code(), request.description(),
                 request.syllabus(), request.objectives(), request.prerequisites(),
+                java.util.List.of(),  // prerequisiteCourses - empty list
                 request.targetAudience(), request.teacherId(), request.durationWeeks(),
                 request.totalSessions(), request.price(), "DRAFT", null, null, null
         );

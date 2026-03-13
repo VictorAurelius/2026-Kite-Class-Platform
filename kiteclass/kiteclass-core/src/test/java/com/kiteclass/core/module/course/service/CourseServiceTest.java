@@ -84,6 +84,7 @@ class CourseServiceTest {
                 course.getSyllabus(),
                 course.getObjectives(),
                 course.getPrerequisites(),
+                java.util.List.of(),  // prerequisiteCourses - empty list
                 course.getTargetAudience(),
                 course.getTeacherId(),
                 course.getDurationWeeks(),
