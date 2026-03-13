@@ -565,4 +565,125 @@ class TeacherIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[?(@.id == " + teacherId + ")]").doesNotExist());
     }
+
+    // ========== Specialization Validation Tests (PR W5-1) ==========
+
+    @Test
+    @DisplayName("POST /api/v1/teachers - Should reject specialization exceeding 100 characters")
+    void shouldRejectTooLongSpecialization() throws Exception {
+        // Given: Specialization with 101 characters
+        String tooLongSpecialization = "A".repeat(101);
+        CreateTeacherRequest request = new CreateTeacherRequest(
+            "Test Teacher",
+            "teacher@test.com",
+            "0901234567",
+            tooLongSpecialization,  // 101 chars - exceeds limit
+            "Bio",
+            "Qualification",
+            5
+        );
+
+        // When/Then: Should return 400 Bad Request with validation error
+        mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.message", containsString("Chuyên môn")));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/teachers - Should accept specialization at max length (100 chars)")
+    void shouldAcceptSpecializationAtMaxLength() throws Exception {
+        // Given: Specialization with exactly 100 characters
+        String maxLengthSpecialization = "A".repeat(100);
+        CreateTeacherRequest request = new CreateTeacherRequest(
+            "Test Teacher",
+            "maxspec@test.com",
+            "0901234567",
+            maxLengthSpecialization,  // Exactly 100 chars - should be valid
+            "Bio",
+            "Qualification",
+            5
+        );
+
+        // When/Then: Should create successfully
+        mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.data.specialization").value(maxLengthSpecialization));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/teachers - Should accept null specialization (optional field)")
+    void shouldAcceptNullSpecialization() throws Exception {
+        // Given: Request without specialization (null)
+        CreateTeacherRequest request = new CreateTeacherRequest(
+            "Test Teacher",
+            "nullspec@test.com",
+            "0901234567",
+            null,  // Null specialization - should be valid (optional)
+            "Bio",
+            "Qualification",
+            5
+        );
+
+        // When/Then: Should create successfully
+        mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.data.name").value("Test Teacher"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/teachers/{id} - Should reject specialization update exceeding 100 characters")
+    void shouldRejectTooLongSpecializationOnUpdate() throws Exception {
+        // Given: Create a teacher first
+        CreateTeacherRequest createRequest = new CreateTeacherRequest(
+            "Original Teacher",
+            "update@test.com",
+            "0901234567",
+            "Mathematics",
+            "Bio",
+            "Qualification",
+            5
+        );
+
+        String createResponse = mockMvc.perform(post("/api/v1/teachers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        Long teacherId = objectMapper.readTree(createResponse).get("data").get("id").asLong();
+
+        // When: Update with too long specialization
+        String tooLongSpecialization = "B".repeat(101);
+        UpdateTeacherRequest updateRequest = new UpdateTeacherRequest(
+            "Updated Teacher",
+            "update@test.com",
+            "0901234567",
+            tooLongSpecialization,  // 101 chars - exceeds limit
+            "Updated Bio",
+            "Updated Qualification",
+            10
+        );
+
+        // Then: Should return 400 Bad Request
+        mockMvc.perform(put("/api/v1/teachers/{id}", teacherId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(updateRequest)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.message", containsString("Chuyên môn")));
+    }
 }
