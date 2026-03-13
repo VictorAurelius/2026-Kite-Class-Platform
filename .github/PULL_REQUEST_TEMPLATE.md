@@ -1,43 +1,192 @@
 # Pull Request
 
-## PR Information
+## Summary
+<!-- Brief summary of what this PR does (1-2 sentences) -->
 
-**PR Type:** (chọn một)
-- [ ] 🔒 Security Fix (Phase 1)
-- [ ] ✅ Testing Implementation (Phase 2)
-- [ ] 🎭 E2E Testing (Phase 3)
-- [ ] ⚙️ CI/CD Setup (Phase 3)
-- [ ] 📊 Performance Testing (Phase 4)
-- [ ] 📚 Documentation (Phase 4)
+## Related Issues/PRs
+<!-- Link to related issues or implementation plan section -->
+- Implements PR [X.X] from [kiteclass-implementation-plan.md](../documents/03-planning/implementation/kiteclass-implementation-plan.md)
+- Closes #[issue number] (if applicable)
 
-**Related PR Plan:** `PR X.Y` từ `documents/plans/code-review-pr-plan.md`
-
-**Assignee:** @username
-
-**Estimated Effort:** X days
-
-**Priority:**
-- [ ] 🔴 P0 - Critical (MUST merge)
-- [ ] 🟡 P1 - High (SHOULD merge)
-- [ ] 🟢 P2 - Medium (NICE to merge)
+## Type of Change
+<!-- Check all that apply -->
+- [ ] 🚀 New feature (non-breaking change which adds functionality)
+- [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
+- [ ] ♻️ Refactoring (code improvement without functional changes)
+- [ ] 📝 Documentation update
+- [ ] ⚙️ Configuration change (docker, CI/CD, dependencies)
+- [ ] 🧪 Test improvements
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 
 ---
 
-## Description
+# Two-Stage Code Review Checklist
 
-### What does this PR do?
+> **Review Process**: Stage 1 (Spec Compliance) MUST PASS before proceeding to Stage 2 (Code Quality)
+> **Reference**: `.claude/skills/two-stage-code-review.md`
 
-(Mô tả ngắn gọn những gì PR này làm)
+## Stage 1: Specification Compliance (15-20 min) 🔴 BLOCKING
 
-### Why is this change needed?
+**Reviewer must verify ALL checkboxes before proceeding to Stage 2:**
 
-(Tại sao cần thay đổi này? Link đến code quality audit findings nếu có)
+### Requirements Match
+- [ ] Matches PR description exactly
+- [ ] Implements all acceptance criteria from plan
+- [ ] No missing features (incomplete implementation)
+- [ ] No extra features (scope creep)
 
-### Related Issues/PRs
+### Edge Cases Coverage
+- [ ] Handles null/empty inputs (validation present)
+- [ ] Handles invalid data (error responses correct)
+- [ ] Handles errors gracefully (try-catch, proper exceptions)
+- [ ] Multi-tenant isolation verified (if applicable)
 
-- Closes #XXX
-- Depends on #YYY
-- Related to #ZZZ
+### KiteClass-Specific Security Checks (Stage 1)
+- [ ] All repository queries include `instance_id` filter
+- [ ] No hardcoded instance IDs (`UUID.fromString(...)`)
+- [ ] Services use `TenantContext.getCurrentInstanceId()`
+- [ ] Cross-tenant access tests added and passing
+- [ ] API responses filtered by current tenant
+- [ ] Input validation (`@Valid`, `@NotNull`, `@Size`)
+- [ ] Authentication required for non-public endpoints
+- [ ] Authorization enforced (role-based access)
+
+### File Paths Match Plan
+- [ ] Code files in correct locations (per implementation-plan.md)
+- [ ] Test files in corresponding test directories
+- [ ] No unexpected file changes (only planned files modified)
+
+### API Contracts Match Design
+- [ ] Request/Response DTOs match api-design.md
+- [ ] HTTP status codes correct (200, 201, 400, 404, 500, etc.)
+- [ ] Endpoint paths follow conventions (`/api/v1/...`)
+
+### Tests Prove Requirements Met
+- [ ] Every acceptance criterion has corresponding test
+- [ ] Tests actually verify the requirement (not just code coverage)
+- [ ] All tests pass (green) ✅
+- [ ] Test coverage ≥ 80% on new code
+
+### Stage 1 Outcome
+- [ ] ✅ **PASS** - All requirements met, proceed to Stage 2
+- [ ] ❌ **FAIL** - Requirements issues found, return to developer
+
+**If FAIL, list issues here:**
+<!--
+- Missing requirement: [description]
+- Edge case not handled: [description]
+-->
+
+---
+
+## Stage 2: Code Quality (20-30 min) 🟠🟡 GRADED
+
+**Only review if Stage 1 PASSED**
+
+### 🔴 Critical Issues (BLOCKING - Must Fix)
+- [ ] No security vulnerabilities (SQL injection, XSS, auth bypass)
+- [ ] No data loss risks (missing transactions, incorrect deletes)
+- [ ] No breaking changes (API contract changes without versioning)
+- [ ] No secrets in code/logs
+- [ ] Financial data properly secured (if applicable)
+
+**Critical issues found:**
+<!--
+- [File:Line] Security: [description]
+-->
+
+---
+
+### 🟠 Major Issues (Recommended - Should Fix)
+- [ ] No N+1 queries or performance problems
+- [ ] Error handling present (proper exception types with error codes)
+- [ ] Class/method size reasonable (<300 lines class, <50 lines method)
+- [ ] No code duplication (DRY principle followed)
+- [ ] Proper logging (no sensitive data, appropriate levels)
+
+**Major issues found:**
+<!--
+- [File:Line] Performance: [description]
+- [File:Line] Error Handling: [description]
+-->
+
+---
+
+### 🟡 Minor Issues (Optional - Nice to Have)
+- [ ] Naming is clear and descriptive
+- [ ] JavaDoc present on public methods
+- [ ] Code style consistent (Checkstyle passing)
+- [ ] No commented-out code
+- [ ] No TODO comments left for implemented features
+
+**Minor issues found:**
+<!--
+- [File:Line] Naming: [suggestion]
+-->
+
+---
+
+### Stage 2 Outcome
+- [ ] ✅ **APPROVE** - No critical/major issues
+- [ ] 🟠 **APPROVE with recommendations** - Major issues noted, not blocking
+- [ ] 🔴 **BLOCK** - Critical issues must be fixed
+
+**Summary:**
+<!-- Brief summary of code quality review -->
+
+---
+
+# Superpowers Skills Applied
+
+**Check all skills actively used in this PR:**
+<!-- Reference: `.claude/skills/` directory -->
+
+### Week 1 Skills (Superpowers-Inspired)
+- [ ] **Systematic Debugging** - Used 4-phase process (Reproduce → Trace → Root Cause → Defensive Fix)
+  - Regression test added: `[TestClass#testMethod]`
+  - Updated troubleshooting.md: [Yes/No]
+  - Root cause documented in: [commit message / MEMORY.md / troubleshooting.md]
+
+- [ ] **Socratic Brainstorming** - Documented design decision
+  - Decision doc: `[file path or section in implementation-plan.md]`
+  - Alternatives considered: [Number]
+  - Trade-offs documented: [Yes/No]
+
+- [ ] **Test-Driven Development** - Followed RED-GREEN-REFACTOR
+  - Test written first: [Yes/No]
+  - Test file modified before code: [Yes/No]
+  - All phases completed: RED → GREEN → REFACTOR
+
+- [ ] **Two-Stage Review** - Self-reviewed before requesting review
+  - Stage 1 self-check: [Pass/Fail]
+  - Stage 2 self-check: [No Critical / X Major / Y Minor issues found]
+  - Self-review time: [X min]
+
+- [ ] **Task Breakdown** - Broke work into 2-5 min tasks
+  - Task count: [Number]
+  - Average time per task: [X min]
+  - Tasks documented in: [commit messages / plan comments]
+
+### Existing Skills
+- [ ] **Multi-tenant Testing** - Applied tenant isolation patterns
+  - Tenant filter tests added: [Yes/No]
+  - Cross-tenant access tests: [Yes/No]
+
+- [ ] **Spring Boot Testing Quality** - Used proper test slices
+  - Test type: [@SpringBootTest / @WebMvcTest / @DataJpaTest]
+  - TestContainers used: [Yes/No]
+
+- [ ] **Code Style** - Followed naming conventions and structure
+  - Checkstyle passed: [Yes/No]
+  - Import ordering correct: [Yes/No]
+
+- [ ] **Error Logging** - Proper exception handling with error codes
+  - Error codes used: `[ERROR_CODE_1, ERROR_CODE_2]`
+  - Messages i18n-ready: [Yes/No]
+
+- [ ] **API Design** - RESTful conventions, proper status codes
+  - Endpoint follows `/api/v1/{resource}` pattern: [Yes/No]
+  - Status codes correct: [List: 200, 201, 404, etc.]
 
 ---
 
@@ -71,70 +220,6 @@
 - Unit Tests: X tests
 - Integration Tests: Y tests
 - E2E Tests: Z tests
-
----
-
-## Code Review Checklist
-
-### KiteClass-Specific Checks (MANDATORY)
-
-#### Multi-Tenant Security
-- [ ] All repository queries include `instance_id` filter
-- [ ] No hardcoded instance IDs (`UUID.fromString(...)`)
-- [ ] Services use `TenantContext.getCurrentInstanceId()`
-- [ ] Cross-tenant access tests added and passing
-- [ ] API responses filtered by current tenant
-
-#### Feature Detection
-- [ ] STANDARD/PREMIUM endpoints have `@RequireFeature` annotation
-- [ ] Feature config cached with 1-hour TTL
-- [ ] Tier limits enforced (maxStudents, maxCourses, storageGB)
-- [ ] API returns 403 Forbidden for unavailable features
-- [ ] Feature detection tests added
-
-#### Payment Security (if applicable)
-- [ ] Amount validation matches tier pricing (499k/999k)
-- [ ] Double-payment prevention implemented
-- [ ] Order expiry validation (10-minute QR)
-- [ ] Transaction idempotency guaranteed
-- [ ] Audit logging for payment state changes
-- [ ] No financial data in logs
-
-#### Trial System (if applicable)
-- [ ] Trial days remaining calculated correctly
-- [ ] Grace period (3 days) enforced
-- [ ] Instance suspended after grace period
-- [ ] Status transitions validated
-- [ ] Trial system tests added
-
-#### General Security
-- [ ] Input validation (`@Valid`, `@NotNull`, `@Size`)
-- [ ] No SQL injection vulnerabilities (using JPA/JPQL)
-- [ ] No XSS vulnerabilities (frontend sanitization)
-- [ ] Authentication required for non-public endpoints
-- [ ] Authorization enforced (role-based access)
-- [ ] No secrets in code/logs
-
-### General Quality Checks
-
-- [ ] Code follows project style guidelines
-- [ ] Self-reviewed code before requesting review
-- [ ] Added/updated tests (coverage ≥80%)
-- [ ] All tests passing locally
-- [ ] No compilation warnings
-- [ ] Updated documentation (if needed)
-- [ ] No duplicate code
-- [ ] Performance acceptable (no obvious bottlenecks)
-
-### Testing Requirements
-
-- [ ] Unit tests cover happy path
-- [ ] Unit tests cover edge cases
-- [ ] Unit tests cover error scenarios
-- [ ] Integration tests for API endpoints (if applicable)
-- [ ] E2E tests for critical flows (if applicable)
-- [ ] All new tests passing
-- [ ] No test warnings or flaky tests
 
 ---
 
@@ -276,17 +361,23 @@ NEW_VAR_NAME=default_value
 ## Reviewer Notes
 
 **For Reviewers:**
-- Review against `.claude/skills/development-workflow.md` (KiteClass-Specific Checklist)
-- Check security implications (especially for Phase 1 PRs)
-- Verify test coverage meets requirements
+- **MUST** follow Two-Stage Review process (see `.claude/skills/two-stage-code-review.md`)
+- **Stage 1 BLOCKS Stage 2**: If spec compliance fails, return to developer immediately
+- Check security implications (especially multi-tenant isolation)
+- Verify test coverage ≥ 80% on new code
 - Run tests locally before approving
 
-**Review Checklist:**
-- [ ] Code quality acceptable
-- [ ] Tests comprehensive
-- [ ] Security considerations addressed
-- [ ] Documentation adequate
-- [ ] No obvious issues
+**Review Time Estimates:**
+- Stage 1 (Spec Compliance): 15-20 min
+- Stage 2 (Code Quality): 20-30 min
+- **Total**: ~40-50 min per PR
+
+---
+
+**Resources:**
+- Implementation Plan: `documents/03-planning/implementation/kiteclass-implementation-plan.md`
+- Skills Directory: `.claude/skills/`
+- Architecture Docs: `documents/01-research/architecture/`
 
 ---
 
