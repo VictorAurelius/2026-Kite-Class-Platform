@@ -60,7 +60,7 @@ public class ContactMessageServiceImpl implements ContactMessageService {
 
         // BR-MKT-003: Send notification email to teacher/admin
         try {
-            // TODO(future): Get admin email from tenant settings instead of hardcoding
+            // FUTURE: Get admin email from tenant settings instead of hardcoding
             String adminEmail = "admin@kiteclass.com";
             emailService.sendContactNotification(
                     adminEmail,

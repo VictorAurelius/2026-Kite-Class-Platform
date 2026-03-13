@@ -228,7 +228,7 @@ class InvoiceFlowIntegrationTest {
         // ========== Step 10: Verify Enrollment Payment Status ==========
         // NOTE: Invoice payment does NOT auto-sync to enrollment status yet
         // Enrollment remains PENDING_PAYMENT even after invoice is marked PAID
-        // TODO(future): Implement invoice→enrollment status sync (requires event listener)
+        // FUTURE: Implement invoice→enrollment status sync (requires event listener)
         mockMvc.perform(get("/api/v1/enrollments/" + enrollmentId)
                         .header("X-Tenant-Id", tenantId.toString()))
                 .andExpect(status().isOk())

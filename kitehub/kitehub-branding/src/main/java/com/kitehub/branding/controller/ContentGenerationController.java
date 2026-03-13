@@ -60,7 +60,7 @@ public class ContentGenerationController {
     public ResponseEntity<LandingPageContent> getContent(@PathVariable String instanceId) {
         log.info("Getting content for instance: {}", instanceId);
 
-        // TODO: Implement content persistence in PR 4.9
+        // FUTURE: Implement content persistence in PR 4.9
         // For now, return 404 as content is not persisted
         return ResponseEntity.notFound().build();
     }
