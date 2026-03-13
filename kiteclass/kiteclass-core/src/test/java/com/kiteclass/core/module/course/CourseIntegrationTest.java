@@ -806,4 +806,145 @@ class CourseIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[?(@.id == " + courseId + ")]").doesNotExist());
     }
+
+    // ========== Course Prerequisites Tests ==========
+
+    @Test
+    @DisplayName("POST /{id}/prerequisites/{prerequisiteId} - Should add prerequisite successfully")
+    void shouldAddPrerequisite() throws Exception {
+        // Given: Create 2 courses (Algebra 1 and Algebra 2)
+        Long algebra1 = createCourse("Algebra 1", "ALG-101");
+        Long algebra2 = createCourse("Algebra 2", "ALG-201");
+
+        // When: Add Algebra 1 as prerequisite to Algebra 2
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", algebra2, algebra1)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+
+        // Then: Algebra 2 response includes Algebra 1 as prerequisite
+        mockMvc.perform(get("/api/v1/courses/{id}", algebra2)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.prerequisites").isArray())
+            .andExpect(jsonPath("$.data.prerequisites[0].id").value(algebra1))
+            .andExpect(jsonPath("$.data.prerequisites[0].name").value("Algebra 1"))
+            .andExpect(jsonPath("$.data.prerequisites[0].code").value("ALG-101"));
+    }
+
+    @Test
+    @DisplayName("POST /{id}/prerequisites/{id} - Should prevent self-prerequisite")
+    void shouldPreventSelfPrerequisite() throws Exception {
+        // Given: Create course
+        Long courseId = createCourse("Math 101", "MATH-101");
+
+        // When: Try to add course as its own prerequisite
+        // Then: Should return 400 Bad Request
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", courseId, courseId)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("COURSE_CIRCULAR_PREREQUISITE"));
+    }
+
+    @Test
+    @DisplayName("POST - Should prevent direct circular dependency (A→B, B→A)")
+    void shouldPreventDirectCircularDependency() throws Exception {
+        // Given: Create A→B (Course B requires Course A)
+        Long courseA = createCourse("Course A", "COURSE-A");
+        Long courseB = createCourse("Course B", "COURSE-B");
+
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", courseB, courseA)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk());
+
+        // When: Try to add B→A (would create cycle: A→B→A)
+        // Then: Should return 400 Bad Request
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", courseA, courseB)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("COURSE_CIRCULAR_PREREQUISITE"));
+    }
+
+    @Test
+    @DisplayName("POST - Should prevent transitive circular dependency (A→B→C, C→A)")
+    void shouldPreventTransitiveCircularDependency() throws Exception {
+        // Given: Create A→B→C chain (C requires B, B requires A)
+        Long courseA = createCourse("Course A", "CHAIN-A");
+        Long courseB = createCourse("Course B", "CHAIN-B");
+        Long courseC = createCourse("Course C", "CHAIN-C");
+
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", courseB, courseA)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", courseC, courseB)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk());
+
+        // When: Try to add C→A (would create transitive cycle: A→B→C→A)
+        // Then: Should return 400 Bad Request
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", courseA, courseC)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("COURSE_CIRCULAR_PREREQUISITE"));
+    }
+
+    @Test
+    @DisplayName("DELETE /{id}/prerequisites/{prerequisiteId} - Should remove prerequisite successfully")
+    void shouldRemovePrerequisite() throws Exception {
+        // Given: Create 2 courses and add prerequisite relationship
+        Long calculus1 = createCourse("Calculus I", "CALC-101");
+        Long calculus2 = createCourse("Calculus II", "CALC-201");
+
+        mockMvc.perform(post("/api/v1/courses/{id}/prerequisites/{prereqId}", calculus2, calculus1)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk());
+
+        // When: Remove the prerequisite
+        mockMvc.perform(delete("/api/v1/courses/{id}/prerequisites/{prereqId}", calculus2, calculus1)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+
+        // Then: Course should have no prerequisites
+        mockMvc.perform(get("/api/v1/courses/{id}", calculus2)
+                .header("X-Tenant-Id", tenantId.toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.prerequisites").isEmpty());
+    }
+
+    /**
+     * Helper method to create a course for testing.
+     *
+     * @param name Course name
+     * @param code Course code
+     * @return Course ID
+     * @throws Exception if creation fails
+     */
+    private Long createCourse(String name, String code) throws Exception {
+        CreateCourseRequest request = new CreateCourseRequest(
+            name,
+            code,
+            "Test description for " + name,
+            "Test syllabus",
+            "Test objectives",
+            "Test prerequisites",
+            "Test audience",
+            teacherId,
+            10,
+            20,
+            new BigDecimal("1000000")
+        );
+
+        String response = mockMvc.perform(post("/api/v1/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Tenant-Id", tenantId.toString())
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        return objectMapper.readTree(response).get("data").get("id").asLong();
+    }
 }
