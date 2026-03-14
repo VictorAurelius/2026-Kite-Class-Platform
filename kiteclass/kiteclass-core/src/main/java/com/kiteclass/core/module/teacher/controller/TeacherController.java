@@ -16,7 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -158,7 +158,7 @@ public class TeacherController {
             summary = "Search teachers by specialization",
             description = "Searches teachers by specialization with partial match and case-insensitive"
     )
-    public ResponseEntity<PageResponse<TeacherResponse>> searchBySpecialization(
+    public ApiResponse<PageResponse<TeacherResponse>> searchBySpecialization(
             @Parameter(description = "Specialization search query") @RequestParam String specialization,
             @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
@@ -170,6 +170,6 @@ public class TeacherController {
         PageResponse<TeacherResponse> results = teacherService.searchBySpecialization(
                 specialization, page, size, sortBy, direction);
 
-        return ResponseEntity.ok(results);
+        return ApiResponse.success(results);
     }
 }
