@@ -71,6 +71,8 @@ public interface CourseMapper {
             course.getPrice(),
             course.getStatus() != null ? course.getStatus().name() : null,
             course.getCoverImageUrl(),
+            course.getLevel(),
+            course.getCategory(),
             course.getCreatedAt(),
             course.getUpdatedAt()
         );
