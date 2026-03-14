@@ -105,7 +105,9 @@ class CourseMapperTest {
                 15,                  // durationWeeks - update duration
                 null,                // totalSessions - should not update
                 new BigDecimal("6000000.00"), // price
-                "https://example.com/new-cover.jpg" // coverImageUrl
+                "https://example.com/new-cover.jpg", // coverImageUrl
+                null,  // level
+                null   // category
         );
 
         // When

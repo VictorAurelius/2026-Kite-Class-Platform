@@ -116,7 +116,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             name, code, description,
             null, null, null, null,
-            defaultTeacherId, 12, 24, BigDecimal.valueOf(1000000)
+            defaultTeacherId, 12, 24, BigDecimal.valueOf(1000000),
+            null, null
         );
 
         // When: Create course
@@ -140,7 +141,7 @@ class CourseSecurityTest {
         // When: Update with SQL injection attempt
         String maliciousName = "'; UPDATE courses SET deleted=true WHERE '1'='1";
         UpdateCourseRequest request = new UpdateCourseRequest(
-            maliciousName, null, null, null, null, null, null, null, null, null, null, null
+            maliciousName, null, null, null, null, null, null, null, null, null, null, null, null, null
         );
 
         CourseResponse updated = courseService.updateCourse(course.id(), request);

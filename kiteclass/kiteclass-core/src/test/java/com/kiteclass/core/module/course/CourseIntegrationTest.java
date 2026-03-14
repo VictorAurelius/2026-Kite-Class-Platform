@@ -782,7 +782,9 @@ class CourseIntegrationTest {
             null,  // durationWeeks - keep existing (restricted)
             null,  // totalSessions - keep existing (restricted)
             new BigDecimal("6000000"),  // price - allowed
-            "https://example.com/cover.jpg"  // coverImageUrl - allowed
+            "https://example.com/cover.jpg",  // coverImageUrl - allowed
+            null,  // level
+            null   // category
         );
 
         // Then: Update should succeed

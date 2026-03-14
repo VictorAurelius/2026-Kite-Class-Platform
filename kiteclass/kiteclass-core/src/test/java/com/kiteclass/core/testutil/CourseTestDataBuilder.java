@@ -263,7 +263,9 @@ public class CourseTestDataBuilder {
                 null,        // durationWeeks
                 null,        // totalSessions
                 null,        // price
-                null         // coverImageUrl
+                null         // coverImageUrl,
+        null,  // level
+        null   // category
         );
     }
 }

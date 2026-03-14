@@ -75,7 +75,7 @@ class CourseControllerTest {
                 request.syllabus(), request.objectives(), request.prerequisites(),
                 java.util.List.of(),  // prerequisiteCourses - empty list
                 request.targetAudience(), request.teacherId(), request.durationWeeks(),
-                request.totalSessions(), request.price(), "DRAFT", null, null, null
+                request.totalSessions(), request.price(), "DRAFT", null, null, null, null, null
         );
 
         when(courseService.createCourse(any(CreateCourseRequest.class))).thenReturn(response);
