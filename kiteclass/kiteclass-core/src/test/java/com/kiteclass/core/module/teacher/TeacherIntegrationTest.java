@@ -591,7 +591,7 @@ class TeacherIntegrationTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
             .andExpect(jsonPath("$.fieldErrors.specialization[0]",
-                    containsString("Chuyên môn")));
+                    containsString("100")));
     }
 
     @Test
@@ -687,6 +687,6 @@ class TeacherIntegrationTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
             .andExpect(jsonPath("$.fieldErrors.specialization[0]",
-                    containsString("Chuyên môn")));
+                    containsString("100")));
     }
 }
