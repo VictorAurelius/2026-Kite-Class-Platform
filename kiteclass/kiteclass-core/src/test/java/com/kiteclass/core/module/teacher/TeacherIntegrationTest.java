@@ -590,7 +590,8 @@ class TeacherIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-            .andExpect(jsonPath("$.message", containsString("Chuyên môn")));
+            .andExpect(jsonPath("$.fieldErrors.specialization[0]",
+                    containsString("Chuyên môn")));
     }
 
     @Test
@@ -685,6 +686,7 @@ class TeacherIntegrationTest {
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-            .andExpect(jsonPath("$.message", containsString("Chuyên môn")));
+            .andExpect(jsonPath("$.fieldErrors.specialization[0]",
+                    containsString("Chuyên môn")));
     }
 }
