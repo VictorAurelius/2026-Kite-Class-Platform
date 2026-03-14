@@ -162,7 +162,9 @@ class CourseIntegrationTest {
             teacherId,
             8,
             16,
-            new BigDecimal("3000000", null, null)
+            new BigDecimal("3000000"),
+            null,  // level
+            null   // category
         );
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
@@ -305,7 +307,9 @@ class CourseIntegrationTest {
                 teacherId,
                 10,
                 20,
-                new BigDecimal("1000000", null, null)
+                new BigDecimal("1000000"),
+                null,  // level
+                null   // category
             );
 
             mockMvc.perform(post("/api/v1/courses")
@@ -342,7 +346,9 @@ class CourseIntegrationTest {
             teacherId,
             12,
             24,
-            new BigDecimal("8000000", null, null)
+            new BigDecimal("8000000"),
+            null,  // level
+            null   // category
         );
 
         CreateCourseRequest request2 = new CreateCourseRequest(
@@ -356,7 +362,9 @@ class CourseIntegrationTest {
             teacherId,
             8,
             16,
-            new BigDecimal("3000000", null, null)
+            new BigDecimal("3000000"),
+            null,  // level
+            null   // category
         );
 
         mockMvc.perform(post("/api/v1/courses")
@@ -395,7 +403,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         // When/Then
@@ -422,7 +432,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         // When/Then
@@ -459,7 +471,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         mockMvc.perform(post("/api/v1/courses")
@@ -480,7 +494,9 @@ class CourseIntegrationTest {
             teacherId,
             12,
             24,
-            new BigDecimal("2000000", null, null)
+            new BigDecimal("2000000"),
+            null,  // level
+            null   // category
         );
 
         mockMvc.perform(post("/api/v1/courses")
@@ -506,7 +522,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
@@ -542,7 +560,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
@@ -579,7 +599,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         mockMvc.perform(post("/api/v1/courses")
@@ -612,7 +634,9 @@ class CourseIntegrationTest {
             teacherId,
             8,
             16,
-            new BigDecimal("4000000", null, null)
+            new BigDecimal("4000000"),
+            null,  // level
+            null   // category
         );
 
         CreateCourseRequest request2 = new CreateCourseRequest(
@@ -626,7 +650,9 @@ class CourseIntegrationTest {
             teacher2Id,  // Different teacher
             10,
             20,
-            new BigDecimal("2000000", null, null)
+            new BigDecimal("2000000"),
+            null,  // level
+            null   // category
         );
 
         mockMvc.perform(post("/api/v1/courses")
@@ -667,7 +693,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("5000000", null, null)
+            new BigDecimal("5000000"),
+            null,  // level
+            null   // category
         );
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
@@ -720,7 +748,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("5000000", null, null)
+            new BigDecimal("5000000"),
+            null,  // level
+            null   // category
         );
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
@@ -783,7 +813,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000", null, null)
+            new BigDecimal("1000000"),
+            null,  // level
+            null   // category
         );
 
         String createResponse = mockMvc.perform(post("/api/v1/courses")
