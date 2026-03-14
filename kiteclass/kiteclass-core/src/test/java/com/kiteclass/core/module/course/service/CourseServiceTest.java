@@ -289,9 +289,9 @@ class CourseServiceTest {
                 null,       // durationWeeks
                 null,       // totalSessions
                 null,       // price
-                null        // coverImageUrl,
-        null,  // level
-        null   // category
+                null,       // coverImageUrl
+                null,       // level
+                null        // category
         );
         when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(publishedCourse));
 
