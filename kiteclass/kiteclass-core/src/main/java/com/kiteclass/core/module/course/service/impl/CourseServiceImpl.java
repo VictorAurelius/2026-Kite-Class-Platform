@@ -14,6 +14,7 @@ import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.mapper.CourseMapper;
 import com.kiteclass.core.module.course.repository.CourseRepository;
 import com.kiteclass.core.module.course.service.CourseService;
+import com.kiteclass.core.module.course.validator.PrerequisiteValidator;
 import com.kiteclass.core.module.teacher.entity.TeacherCourse;
 import com.kiteclass.core.module.teacher.repository.TeacherCourseRepository;
 import com.kiteclass.core.module.teacher.repository.TeacherRepository;
@@ -61,6 +62,7 @@ public class CourseServiceImpl implements CourseService {
     private final TeacherCourseRepository teacherCourseRepository;
     private final CourseMapper courseMapper;
     private final MessageSource messageSource;
+    private final PrerequisiteValidator prerequisiteValidator;
 
     // Field name message keys for validation
     private static final String FIELD_NAME = "field.course.name";
@@ -425,5 +427,76 @@ public class CourseServiceImpl implements CourseService {
     private String toSnakeCase(String camelCase) {
         // Convert camelCase to snake_case using regex
         return camelCase.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    /**
+     * Thêm điều kiện tiên quyết vào khóa học.
+     *
+     * <p>Validates:
+     * <ul>
+     *   <li>Both course and prerequisite exist and not deleted</li>
+     *   <li>No self-prerequisite (course != prerequisite)</li>
+     *   <li>No circular dependency via DFS algorithm</li>
+     * </ul>
+     *
+     * @param courseId ID của khóa học cần thêm điều kiện tiên quyết
+     * @param prerequisiteId ID của khóa học điều kiện tiên quyết
+     * @throws EntityNotFoundException nếu course hoặc prerequisite không tồn tại
+     * @throws ValidationException nếu tạo vòng lặp phụ thuộc (circular dependency)
+     */
+    @Override
+    @Transactional
+    @CacheEvict(value = "courses", allEntries = true)
+    public void addPrerequisite(Long courseId, Long prerequisiteId) {
+        log.info("Adding prerequisite {} to course {}", prerequisiteId, courseId);
+
+        // Validate circular dependency using DFS
+        if (prerequisiteValidator.wouldCreateCycle(courseId, prerequisiteId)) {
+            throw new ValidationException("COURSE_CIRCULAR_PREREQUISITE", courseId, prerequisiteId);
+        }
+
+        // Fetch course and prerequisite (validates both exist)
+        Course course = courseRepository.findByIdAndDeletedFalse(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
+
+        Course prerequisite = courseRepository.findByIdAndDeletedFalse(prerequisiteId)
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) prerequisiteId));
+
+        // Add prerequisite (helper method handles bidirectional relationship)
+        course.addPrerequisite(prerequisite);
+        courseRepository.save(course);
+
+        log.info("Added prerequisite {} to course {}", prerequisiteId, courseId);
+    }
+
+    /**
+     * Xóa điều kiện tiên quyết khỏi khóa học.
+     *
+     * <p>Operation is idempotent - no error if prerequisite not present.
+     *
+     * @param courseId ID của khóa học cần xóa điều kiện tiên quyết
+     * @param prerequisiteId ID của khóa học điều kiện tiên quyết cần xóa
+     * @throws EntityNotFoundException nếu course không tồn tại
+     */
+    @Override
+    @Transactional
+    @CacheEvict(value = "courses", allEntries = true)
+    public void removePrerequisite(Long courseId, Long prerequisiteId) {
+        log.info("Removing prerequisite {} from course {}", prerequisiteId, courseId);
+
+        // Fetch course (validates exists)
+        Course course = courseRepository.findByIdAndDeletedFalse(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("COURSE_NOT_FOUND", (Object) courseId));
+
+        // Fetch prerequisite (if exists)
+        Course prerequisite = courseRepository.findByIdAndDeletedFalse(prerequisiteId).orElse(null);
+
+        if (prerequisite != null) {
+            // Remove prerequisite (helper method handles bidirectional relationship)
+            course.removePrerequisite(prerequisite);
+            courseRepository.save(course);
+        }
+
+        log.info("Removed prerequisite {} from course {}", prerequisiteId, courseId);
     }
 }

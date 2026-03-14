@@ -153,4 +153,38 @@ public interface CourseService {
      * @throws com.kiteclass.core.common.exception.ValidationException if course cannot be archived
      */
     CourseResponse archiveCourse(Long id);
+
+    /**
+     * Adds a prerequisite to a course.
+     *
+     * <p>Business Rules:
+     * <ul>
+     *   <li>Both course and prerequisite must exist and not be deleted</li>
+     *   <li>Cannot create self-prerequisite (course cannot require itself)</li>
+     *   <li>Cannot create circular dependencies (DFS validation)</li>
+     * </ul>
+     *
+     * <p>Example: "Algebra 2" requires "Algebra 1" → adds Algebra 1 as prerequisite of Algebra 2
+     *
+     * @param courseId ID of course to add prerequisite to
+     * @param prerequisiteId ID of prerequisite course to add
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course or prerequisite not found
+     * @throws com.kiteclass.core.common.exception.ValidationException if adding would create circular dependency
+     */
+    void addPrerequisite(Long courseId, Long prerequisiteId);
+
+    /**
+     * Removes a prerequisite from a course.
+     *
+     * <p>Business Rules:
+     * <ul>
+     *   <li>Course must exist and not be deleted</li>
+     *   <li>If prerequisite doesn't exist in relationship, operation is idempotent (no error)</li>
+     * </ul>
+     *
+     * @param courseId ID of course to remove prerequisite from
+     * @param prerequisiteId ID of prerequisite course to remove
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course not found
+     */
+    void removePrerequisite(Long courseId, Long prerequisiteId);
 }
