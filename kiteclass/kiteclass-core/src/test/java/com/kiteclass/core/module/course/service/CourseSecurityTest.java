@@ -204,7 +204,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             xssPayload, "XSS101", "Security Testing",
             null, null, null, null,
-            defaultTeacherId, 8, 16, BigDecimal.valueOf(500000)
+            defaultTeacherId, 8, 16, BigDecimal.valueOf(500000),
+            null, null  // level, category
         );
 
         // When: Create course
@@ -225,7 +226,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             "HTML Basics", "HTML101", xssDescription,
             null, null, null, null,
-            defaultTeacherId, 6, 12, BigDecimal.valueOf(300000)
+            defaultTeacherId, 6, 12, BigDecimal.valueOf(300000),
+            null, null  // level, category
         );
 
         // When: Create course
@@ -245,7 +247,8 @@ class CourseSecurityTest {
         // When: Update with XSS in syllabus
         String xssSyllabus = "<iframe src='javascript:alert(1)'></iframe>";
         UpdateCourseRequest request = new UpdateCourseRequest(
-            null, null, null, null, xssSyllabus, null, null, null, null, null, null, null
+            null, null, null, null, xssSyllabus, null, null, null, null, null, null, null,
+            null, null  // level, category
         );
 
         CourseResponse updated = courseService.updateCourse(course.id(), request);
@@ -269,7 +272,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             "Another Course", "UNIQUE101", "Description",
             null, null, null, null,
-            defaultTeacherId, 10, 20, BigDecimal.valueOf(800000)
+            defaultTeacherId, 10, 20, BigDecimal.valueOf(800000),
+            null, null  // level, category
         );
 
         // Then: Should throw DuplicateResourceException
@@ -285,7 +289,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             "Invalid Course", "INVALID101", "Description",
             null, null, null, null,
-            defaultTeacherId, 0, 0, BigDecimal.valueOf(500000)
+            defaultTeacherId, 0, 0, BigDecimal.valueOf(500000),
+            null, null  // level, category
         );
 
         // When/Then: Should throw validation exception
@@ -300,7 +305,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             "Price Test", "PRICE101", "Description",
             null, null, null, null,
-            defaultTeacherId, 8, 16, BigDecimal.valueOf(-1000)
+            defaultTeacherId, 8, 16, BigDecimal.valueOf(-1000),
+            null, null  // level, category
         );
 
         // When/Then: Should throw validation exception
@@ -325,7 +331,8 @@ class CourseSecurityTest {
 
         // When: Try to update archived course
         UpdateCourseRequest request = new UpdateCourseRequest(
-            "Updated Name", null, null, null, null, null, null, null, null, null, null, null
+            "Updated Name", null, null, null, null, null, null, null, null, null, null, null,
+            null, null  // level, category
         );
 
         // Then: Should throw ValidationException
@@ -346,7 +353,8 @@ class CourseSecurityTest {
 
         // When: Try to update restricted field (durationWeeks) on published course
         UpdateCourseRequest request = new UpdateCourseRequest(
-            null, null, null, null, null, null, null, null, 20, null, null, null
+            null, null, null, null, null, null, null, null, 20, null, null, null,
+            null, null  // level, category
         );
 
         // Then: Should throw ValidationException
@@ -367,7 +375,8 @@ class CourseSecurityTest {
 
         // When: Update allowed field (description) on published course
         UpdateCourseRequest request = new UpdateCourseRequest(
-            null, null, null, "Updated description for published course", null, null, null, null, null, null, null, null
+            null, null, null, "Updated description for published course", null, null, null, null, null, null, null, null,
+            null, null  // level, category
         );
 
         CourseResponse updated = courseService.updateCourse(course.id(), request);
@@ -404,7 +413,8 @@ class CourseSecurityTest {
         CreateCourseRequest request = new CreateCourseRequest(
             name, code, "Test course description",
             null, null, null, null,
-            teacherId, 10, 20, BigDecimal.valueOf(1000000)
+            teacherId, 10, 20, BigDecimal.valueOf(1000000),
+            null, null  // level, category
         );
         return courseService.createCourse(request);
     }

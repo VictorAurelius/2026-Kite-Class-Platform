@@ -148,7 +148,9 @@ class CourseMapperTest {
                 null,        // durationWeeks - null, should not update
                 null,        // totalSessions - null, should not update
                 null,        // price - null, should not update
-                null         // coverImageUrl - null, should not update
+                null,        // coverImageUrl - null, should not update
+                null,        // level - null, should not update
+                null         // category - null, should not update
         );
 
         // When

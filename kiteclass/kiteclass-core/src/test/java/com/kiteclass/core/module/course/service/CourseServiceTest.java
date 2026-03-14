@@ -92,8 +92,8 @@ class CourseServiceTest {
                 course.getPrice(),
                 course.getStatus().name(),
                 course.getCoverImageUrl(),
-                null,  // level
-                null,  // category
+                course.getLevel(),
+                course.getCategory(),
                 null,  // createdAt
                 null   // updatedAt
         );

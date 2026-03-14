@@ -531,7 +531,9 @@ class InvoiceFlowIntegrationTest {
                 teacherId,
                 10,
                 null,
-                null
+                null,
+                null,  // level
+                null   // category
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
