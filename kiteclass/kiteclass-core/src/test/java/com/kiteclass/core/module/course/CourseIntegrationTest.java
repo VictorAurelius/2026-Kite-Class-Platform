@@ -826,10 +826,10 @@ class CourseIntegrationTest {
         mockMvc.perform(get("/api/v1/courses/{id}", algebra2)
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.prerequisites").isArray())
-            .andExpect(jsonPath("$.data.prerequisites[0].id").value(algebra1))
-            .andExpect(jsonPath("$.data.prerequisites[0].name").value("Algebra 1"))
-            .andExpect(jsonPath("$.data.prerequisites[0].code").value("ALG-101"));
+            .andExpect(jsonPath("$.data.prerequisiteCourses").isArray())
+            .andExpect(jsonPath("$.data.prerequisiteCourses[0].id").value(algebra1))
+            .andExpect(jsonPath("$.data.prerequisiteCourses[0].name").value("Algebra 1"))
+            .andExpect(jsonPath("$.data.prerequisiteCourses[0].code").value("ALG-101"));
     }
 
     @Test
@@ -910,7 +910,7 @@ class CourseIntegrationTest {
         mockMvc.perform(get("/api/v1/courses/{id}", calculus2)
                 .header("X-Tenant-Id", tenantId.toString()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.prerequisites").isEmpty());
+            .andExpect(jsonPath("$.data.prerequisiteCourses").isEmpty());
     }
 
     /**
