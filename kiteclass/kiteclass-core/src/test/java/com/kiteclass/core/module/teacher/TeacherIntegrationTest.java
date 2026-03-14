@@ -674,7 +674,8 @@ class TeacherIntegrationTest {
             tooLongSpecialization,  // 101 chars - exceeds limit
             "Updated Bio",
             "Updated Qualification",
-            10
+            10,
+            null  // status - keep existing
         );
 
         // Then: Should return 400 Bad Request
