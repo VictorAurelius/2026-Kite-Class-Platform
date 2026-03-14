@@ -120,7 +120,9 @@ class AssignmentFlowIntegrationTest {
                 teacherId,                     // teacherId (from test fixture)
                 10,                            // durationWeeks (required for publish)
                 null,                          // totalSessions
-                null                           // price
+                null,                          // price
+                null,                          // level
+                null                           // category
         );
 
         MvcResult courseResult = mockMvc.perform(post("/api/v1/courses")
