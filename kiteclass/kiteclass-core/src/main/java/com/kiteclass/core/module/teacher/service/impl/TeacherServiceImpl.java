@@ -17,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,5 +186,32 @@ public class TeacherServiceImpl implements TeacherService {
         teacherRepository.save(teacher);
 
         log.info("Deleted teacher with ID: {}", id);
+    }
+
+    @Override
+    public PageResponse<TeacherResponse> searchBySpecialization(
+            String specialization,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        log.info("Searching teachers by specialization: {}", specialization);
+
+        // Delegate to existing findBySearchCriteria method
+        // (specialization search is subset of general search)
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<Teacher> teacherPage = teacherRepository.findBySearchCriteria(
+                specialization,  // search parameter matches specialization field
+                null,            // status filter not needed
+                pageable
+        );
+
+        Page<TeacherResponse> responsePage = teacherPage
+                .map(teacherMapper::toResponse);
+
+        return PageResponse.from(responsePage);
     }
 }

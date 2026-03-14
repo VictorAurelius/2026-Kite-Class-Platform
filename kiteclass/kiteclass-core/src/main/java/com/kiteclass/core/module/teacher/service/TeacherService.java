@@ -84,4 +84,25 @@ public interface TeacherService {
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if teacher not found
      */
     void deleteTeacher(Long id);
+
+    /**
+     * Searches teachers by specialization (partial match, case-insensitive).
+     *
+     * <p>Finds teachers whose specialization contains the given query string.
+     * For example, "Math" matches "Mathematics", "Math Teacher", etc.
+     *
+     * @param specialization the specialization search query
+     * @param page page number (0-indexed)
+     * @param size page size
+     * @param sortBy field to sort by (e.g., "name", "specialization")
+     * @param direction sort direction ("ASC" or "DESC")
+     * @return paginated teacher search results
+     */
+    PageResponse<TeacherResponse> searchBySpecialization(
+            String specialization,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 }

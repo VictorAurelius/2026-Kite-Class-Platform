@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -150,5 +151,25 @@ public class TeacherController {
         log.info("REST request to delete teacher with ID: {}", id);
         teacherService.deleteTeacher(id);
         return ApiResponse.success(null, "Teacher deleted successfully");
+    }
+
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search teachers by specialization",
+            description = "Searches teachers by specialization with partial match and case-insensitive"
+    )
+    public ApiResponse<PageResponse<TeacherResponse>> searchBySpecialization(
+            @Parameter(description = "Specialization search query") @RequestParam String specialization,
+            @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Sort field") @RequestParam(defaultValue = "name") String sortBy,
+            @Parameter(description = "Sort direction") @RequestParam(defaultValue = "ASC") String direction) {
+
+        log.info("REST request to search teachers by specialization: {}", specialization);
+
+        PageResponse<TeacherResponse> results = teacherService.searchBySpecialization(
+                specialization, page, size, sortBy, direction);
+
+        return ApiResponse.success(results);
     }
 }
