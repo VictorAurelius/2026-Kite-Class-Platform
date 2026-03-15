@@ -71,6 +71,8 @@ public interface CourseMapper {
             course.getPrice(),
             course.getStatus() != null ? course.getStatus().name() : null,
             course.getCoverImageUrl(),
+            course.getLevel(),
+            course.getCategory(),
             course.getCreatedAt(),
             course.getUpdatedAt()
         );
@@ -88,6 +90,8 @@ public interface CourseMapper {
      */
     @Mapping(target = "coverImageUrl", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "prerequisiteCourses", ignore = true)
+    @Mapping(target = "dependentCourses", ignore = true)
     Course toEntity(CreateCourseRequest request);
 
     /**
@@ -112,6 +116,8 @@ public interface CourseMapper {
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "prerequisiteCourses", ignore = true)
+    @Mapping(target = "dependentCourses", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(@MappingTarget Course course, UpdateCourseRequest request);
 }

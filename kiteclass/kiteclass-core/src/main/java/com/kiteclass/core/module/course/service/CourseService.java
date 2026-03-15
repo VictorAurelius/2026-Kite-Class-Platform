@@ -187,4 +187,32 @@ public interface CourseService {
      * @throws com.kiteclass.core.common.exception.EntityNotFoundException if course not found
      */
     void removePrerequisite(Long courseId, Long prerequisiteId);
+
+    /**
+     * Searches courses by level and/or category with pagination.
+     *
+     * <p>Search criteria:
+     * <ul>
+     *   <li>level: filters by course difficulty level (null = all levels)</li>
+     *   <li>category: filters by course category (null = all categories)</li>
+     * </ul>
+     *
+     * <p>Both parameters are optional. If both are null, returns all courses.
+     *
+     * @param level     the course level filter (can be null)
+     * @param category  the course category filter (can be null)
+     * @param page      the page number (0-indexed)
+     * @param size      the page size
+     * @param sortBy    the field to sort by (default: "name")
+     * @param direction the sort direction (ASC or DESC)
+     * @return PageResponse with matching courses
+     */
+    PageResponse<CourseResponse> searchByLevelAndCategory(
+            String level,
+            String category,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
 }

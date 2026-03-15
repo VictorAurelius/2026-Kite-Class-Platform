@@ -200,6 +200,24 @@ public class Course extends BaseEntity {
     @Builder.Default
     private Set<Course> dependentCourses = new HashSet<>();
 
+    /**
+     * Course difficulty level.
+     * Max 50 characters.
+     * Examples: "Beginner", "Intermediate", "Advanced"
+     * Used for filtering and student guidance.
+     */
+    @Column(name = "level", length = 50)
+    private String level;
+
+    /**
+     * Course category/subject area.
+     * Max 100 characters.
+     * Examples: "Math", "Science", "Language", "Technology", "Business"
+     * Used for course organization and filtering.
+     */
+    @Column(name = "category", length = 100)
+    private String category;
+
     // Relationships will be added when implementing other modules
     // @ManyToOne(fetch = FetchType.LAZY)
     // @JoinColumn(name = "teacher_id", insertable = false, updatable = false)

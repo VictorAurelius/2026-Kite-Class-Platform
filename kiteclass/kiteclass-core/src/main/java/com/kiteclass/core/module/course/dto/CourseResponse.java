@@ -31,6 +31,8 @@ import java.util.List;
  * @param price Course price in VND
  * @param status Current status (DRAFT, PUBLISHED, ARCHIVED)
  * @param coverImageUrl URL to course cover image
+ * @param level Course difficulty level
+ * @param category Course category/subject area
  * @param createdAt Timestamp when course was created
  * @param updatedAt Timestamp when course was last updated
  * @author KiteClass Team
@@ -52,6 +54,8 @@ public record CourseResponse(
         BigDecimal price,
         String status,
         String coverImageUrl,
+        String level,
+        String category,
         Instant createdAt,
         Instant updatedAt
 ) {

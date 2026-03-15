@@ -131,7 +131,9 @@ public class CourseTestDataBuilder {
                 1L,
                 8,
                 24,
-                new BigDecimal("3000000.00")
+                new BigDecimal("3000000.00"),
+                null,  // level
+                null   // category
         );
     }
 
@@ -153,7 +155,9 @@ public class CourseTestDataBuilder {
                 1L,
                 10,
                 30,
-                new BigDecimal("4000000.00")
+                new BigDecimal("4000000.00"),
+                null,  // level
+                null   // category
         );
     }
 
@@ -175,7 +179,9 @@ public class CourseTestDataBuilder {
                 teacherId,
                 10,
                 30,
-                new BigDecimal("4000000.00")
+                new BigDecimal("4000000.00"),
+                null,  // level
+                null   // category
         );
     }
 
@@ -196,7 +202,9 @@ public class CourseTestDataBuilder {
                 1L,
                 null,
                 null,
-                null
+                null,
+                null,  // level
+                null   // category
         );
     }
 
@@ -218,7 +226,9 @@ public class CourseTestDataBuilder {
                 15,                         // durationWeeks
                 45,                         // totalSessions
                 new BigDecimal("6000000.00"), // price
-                "https://example.com/updated-cover.jpg" // coverImageUrl
+                "https://example.com/updated-cover.jpg", // coverImageUrl
+                null,                       // level
+                null                        // category
         );
     }
 
@@ -240,7 +250,9 @@ public class CourseTestDataBuilder {
                 null, // durationWeeks - not allowed for PUBLISHED
                 null, // totalSessions - not allowed for PUBLISHED
                 new BigDecimal("5500000.00"), // price - allowed
-                "https://example.com/new-cover.jpg" // coverImageUrl - allowed
+                "https://example.com/new-cover.jpg", // coverImageUrl - allowed
+                null, // level
+                null  // category
         );
     }
 
@@ -263,7 +275,9 @@ public class CourseTestDataBuilder {
                 null,        // durationWeeks
                 null,        // totalSessions
                 null,        // price
-                null         // coverImageUrl
+                null,        // coverImageUrl
+                null,        // level
+                null         // category
         );
     }
 }

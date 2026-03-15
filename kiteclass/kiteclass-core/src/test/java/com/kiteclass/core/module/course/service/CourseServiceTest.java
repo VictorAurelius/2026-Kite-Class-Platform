@@ -84,7 +84,7 @@ class CourseServiceTest {
                 course.getSyllabus(),
                 course.getObjectives(),
                 course.getPrerequisites(),
-                java.util.List.of(),  // prerequisiteCourses - empty list
+                java.util.List.of(),  // prerequisiteCourses
                 course.getTargetAudience(),
                 course.getTeacherId(),
                 course.getDurationWeeks(),
@@ -92,8 +92,10 @@ class CourseServiceTest {
                 course.getPrice(),
                 course.getStatus().name(),
                 course.getCoverImageUrl(),
-                null,
-                null
+                course.getLevel(),
+                course.getCategory(),
+                null,  // createdAt
+                null   // updatedAt
         );
         createRequest = CourseTestDataBuilder.createDefaultCreateRequest();
         updateRequest = CourseTestDataBuilder.createDefaultUpdateRequest();
@@ -287,7 +289,9 @@ class CourseServiceTest {
                 null,       // durationWeeks
                 null,       // totalSessions
                 null,       // price
-                null        // coverImageUrl
+                null,       // coverImageUrl
+                null,       // level
+                null        // category
         );
         when(courseRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(publishedCourse));
 

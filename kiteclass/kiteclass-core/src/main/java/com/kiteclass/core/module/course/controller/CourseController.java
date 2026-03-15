@@ -152,6 +152,45 @@ public class CourseController {
     }
 
     /**
+     * Searches courses by level and/or category with pagination.
+     *
+     * <p>Both level and category parameters are optional.
+     * If both are null, returns all courses.
+     *
+     * @param level     the course level filter (e.g., "Beginner", "Intermediate", "Advanced")
+     * @param category  the course category filter (e.g., "Math", "Science", "Language")
+     * @param page      page number (0-indexed)
+     * @param size      page size
+     * @param sortBy    field to sort by (default: "name")
+     * @param direction sort direction (ASC or DESC)
+     * @return ApiResponse with page of courses and HTTP 200
+     */
+    @GetMapping("/search")
+    @Operation(summary = "Search courses by level and category",
+            description = "Searches courses by difficulty level and/or category with pagination")
+    public ApiResponse<PageResponse<CourseResponse>> searchByLevelAndCategory(
+            @Parameter(description = "Course level filter (e.g., Beginner, Intermediate, Advanced)")
+            @RequestParam(required = false) String level,
+            @Parameter(description = "Course category filter (e.g., Math, Science, Language)")
+            @RequestParam(required = false) String category,
+            @Parameter(description = "Page number (0-indexed)")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size")
+            @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "Field to sort by")
+            @RequestParam(defaultValue = "name") String sortBy,
+            @Parameter(description = "Sort direction (ASC or DESC)")
+            @RequestParam(defaultValue = "ASC") String direction) {
+        log.debug("REST request to search courses by level='{}', category='{}', page={}, size={}",
+                level, category, page, size);
+
+        PageResponse<CourseResponse> response = courseService.searchByLevelAndCategory(
+                level, category, page, size, sortBy, direction);
+
+        return ApiResponse.success(response);
+    }
+
+    /**
      * Publishes a course (changes status from DRAFT to PUBLISHED).
      *
      * <p>Course must have all required fields filled.

@@ -70,6 +70,12 @@ public record UpdateCourseRequest(
         BigDecimal price,
 
         @Size(max = 500, message = "URL ảnh bìa không được quá 500 ký tự")
-        String coverImageUrl
+        String coverImageUrl,
+
+        @Size(max = 50, message = "Cấp độ khóa học không được quá 50 ký tự")
+        String level,
+
+        @Size(max = 100, message = "Danh mục khóa học không được quá 100 ký tự")
+        String category
 ) {
 }

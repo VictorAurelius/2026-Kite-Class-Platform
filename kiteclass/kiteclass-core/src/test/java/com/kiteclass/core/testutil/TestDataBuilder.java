@@ -326,7 +326,9 @@ public class TestDataBuilder {
                 teacherId,                              // teacherId
                 null,                                   // durationWeeks (null = not publishable)
                 null,                                   // totalSessions
-                null                                    // price
+                null,                                   // price
+                null,                                   // level
+                null                                    // category
         );
 
         MvcResult result = mockMvc.perform(post("/api/v1/courses")
@@ -385,7 +387,9 @@ public class TestDataBuilder {
                 teacherId,                              // teacherId
                 8,                                      // durationWeeks (REQUIRED for publish)
                 16,                                     // totalSessions
-                BigDecimal.valueOf(5000000)            // price (5,000,000 VND)
+                BigDecimal.valueOf(5000000),           // price (5,000,000 VND)
+                null,                                   // level
+                null                                    // category
         );
 
         MvcResult result = mockMvc.perform(post("/api/v1/courses")

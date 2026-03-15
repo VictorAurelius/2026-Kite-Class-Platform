@@ -39,6 +39,8 @@ import java.math.BigDecimal;
  * @param durationWeeks Course duration in weeks
  * @param totalSessions Total number of sessions
  * @param price Course price in VND
+ * @param level Course difficulty level
+ * @param category Course category/subject area
  * @author KiteClass Team
  * @since 2.4.0
  */
@@ -77,6 +79,12 @@ public record CreateCourseRequest(
         Integer totalSessions,
 
         @DecimalMin(value = "0.0", message = "Giá khóa học phải >= 0")
-        BigDecimal price
+        BigDecimal price,
+
+        @Size(max = 50, message = "Cấp độ khóa học không được quá 50 ký tự")
+        String level,
+
+        @Size(max = 100, message = "Danh mục khóa học không được quá 100 ký tự")
+        String category
 ) {
 }

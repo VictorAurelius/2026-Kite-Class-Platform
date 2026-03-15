@@ -75,7 +75,7 @@ class CourseControllerTest {
                 request.syllabus(), request.objectives(), request.prerequisites(),
                 java.util.List.of(),  // prerequisiteCourses - empty list
                 request.targetAudience(), request.teacherId(), request.durationWeeks(),
-                request.totalSessions(), request.price(), "DRAFT", null, null, null
+                request.totalSessions(), request.price(), "DRAFT", null, null, null, null, null
         );
 
         when(courseService.createCourse(any(CreateCourseRequest.class))).thenReturn(response);
@@ -101,7 +101,8 @@ class CourseControllerTest {
                 java.util.List.of(),  // prerequisiteCourses
                 "Target Audience",
                 1L, 12, 36, new BigDecimal("5000000.00"), "DRAFT",
-                "https://example.com/cover.jpg", null, null
+                "https://example.com/cover.jpg", null, null,  // level, category
+                null, null  // createdAt, updatedAt
         );
 
         when(courseService.getCourseById(1L)).thenReturn(response);
@@ -126,7 +127,8 @@ class CourseControllerTest {
                 java.util.List.of(),  // prerequisiteCourses
                 request.targetAudience(), 1L, request.durationWeeks(),
                 request.totalSessions(), request.price(), "DRAFT",
-                request.coverImageUrl(), null, null
+                request.coverImageUrl(), request.level(), request.category(),
+                null, null  // createdAt, updatedAt
         );
 
         when(courseService.updateCourse(eq(1L), any(UpdateCourseRequest.class))).thenReturn(response);
@@ -160,7 +162,8 @@ class CourseControllerTest {
                 java.util.List.of(),  // prerequisiteCourses
                 "Target Audience",
                 1L, 12, 36, new BigDecimal("5000000.00"), "PUBLISHED",
-                "https://example.com/cover.jpg", null, null
+                "https://example.com/cover.jpg", null, null,  // level, category
+                null, null  // createdAt, updatedAt
         );
 
         when(courseService.publishCourse(1L)).thenReturn(response);
@@ -183,7 +186,8 @@ class CourseControllerTest {
                 java.util.List.of(),  // prerequisiteCourses
                 "Target Audience",
                 1L, 12, 36, new BigDecimal("5000000.00"), "ARCHIVED",
-                "https://example.com/cover.jpg", null, null
+                "https://example.com/cover.jpg", null, null,  // level, category
+                null, null  // createdAt, updatedAt
         );
 
         when(courseService.archiveCourse(1L)).thenReturn(response);
