@@ -40,7 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 /**
  * Implementation of PaymentService.
@@ -181,7 +181,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         return payments.stream()
             .map(paymentMapper::toResponse)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -246,7 +246,7 @@ public class PaymentServiceImpl implements PaymentService {
                 params.getOrDefault("resultCode",
                     params.getOrDefault("status", "")));
 
-            if ("00".equals(responseCode) || "0".equals(responseCode) || "COMPLETED".equalsIgnoreCase(responseCode)) {
+            if (isSuccessResponseCode(responseCode)) {
                 // Success
                 String gatewayTxnId = params.getOrDefault("vnp_TransactionNo",
                     params.getOrDefault("transId", ""));
@@ -372,5 +372,15 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private String generateTransactionId() {
         return "TXN" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    /**
+     * Checks if gateway response code indicates success.
+     * Supports VNPay ("00"), MoMo ("0"), and generic ("COMPLETED").
+     */
+    private boolean isSuccessResponseCode(String responseCode) {
+        return "00".equals(responseCode)
+            || "0".equals(responseCode)
+            || "COMPLETED".equalsIgnoreCase(responseCode);
     }
 }

@@ -36,7 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 /**
  * Service implementation for invoice management.
@@ -162,7 +162,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         // Map items to DTOs
         return invoice.getItems().stream()
                 .map(invoiceMapper::toItemResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
