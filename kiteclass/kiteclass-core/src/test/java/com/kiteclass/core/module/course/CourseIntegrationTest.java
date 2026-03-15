@@ -975,7 +975,9 @@ class CourseIntegrationTest {
             teacherId,
             10,
             20,
-            new BigDecimal("1000000")
+            new BigDecimal("1000000"),
+            null,
+            null
         );
 
         String response = mockMvc.perform(post("/api/v1/courses")
