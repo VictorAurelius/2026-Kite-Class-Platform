@@ -114,7 +114,7 @@ public class GradeServiceImpl implements GradeService {
     public GradeResponse getStudentGrade(Long studentId, Long classId) {
         Grade grade = gradeRepository.findByStudentIdAndClassIdAndDeletedFalse(studentId, classId)
                 .orElseThrow(() -> new EntityNotFoundException("GRADE_NOT_FOUND",
-                        String.format("studentId=%d, classId=%d", studentId, classId)));
+                        (Object) (studentId + "/" + classId)));
 
         return gradeMapper.toResponse(grade);
     }
@@ -393,7 +393,7 @@ public class GradeServiceImpl implements GradeService {
     public TranscriptResponse getTranscript(Long studentId, String semester) {
         Transcript transcript = transcriptRepository.findByStudentIdAndSemesterAndDeletedFalse(studentId, semester)
                 .orElseThrow(() -> new EntityNotFoundException("TRANSCRIPT_NOT_FOUND",
-                        String.format("studentId=%d, semester=%s", studentId, semester)));
+                        (Object) (studentId + "/" + semester)));
 
         return gradeMapper.toTranscriptResponse(transcript);
     }
@@ -588,7 +588,7 @@ public class GradeServiceImpl implements GradeService {
                             .filter(s -> s.containsScore(finalScore))
                             .findFirst()
                             .orElseThrow(() -> new EntityNotFoundException("GRADING_SCALE_NOT_FOUND",
-                                    String.format("score=%s", finalScore)));
+                                    (Object) finalScore));
                 });
 
         // Set letter grade and GPA
