@@ -8,12 +8,7 @@
   "java.jdt.ls.java.home": null,
   "java.errors.incompleteClasspath.severity": "ignore",
 
-  // Disable resource leak warnings for Testcontainers static fields
-  "java.eclipse.settings": {
-    "org.eclipse.jdt.core.compiler.problem.potentiallyUnclosedCloseable": "ignore",
-    "org.eclipse.jdt.core.compiler.problem.unclosedCloseable": "ignore",
-    "org.eclipse.jdt.core.compiler.problem.explicitlyClosedAutoCloseable": "ignore"
-  },
+  // Resource leak warnings disabled via kiteclass-core/.settings/org.eclipse.jdt.core.prefs
 
   // Disable ALL markdownlint rules (simplest approach)
   "markdownlint.config": {
@@ -23,9 +18,22 @@
   // Disable all diagnostics for markdown files
   "[markdown]": {
     "editor.formatOnSave": false,
-    "editor.codeActionsOnSave": {}
+    "editor.codeActionsOnSave": {},
+    "cSpell.enabled": false
   },
 
-  // Exclude markdown from problem matcher
-  "problems.exclude": ["**/*.md"]
+  // Hide markdown diagnostics from Problems panel
+  "markdown.validate.enabled": false,
+  "markdownlint.run": "onSave",
+
+  // cSpell: add Vietnamese language + project words
+  "cSpell.language": "en,vi",
+  "cSpell.words": [
+    "kiteclass",
+    "kitehub",
+    "vietqr"
+  ],
+  "cSpell.enableFiletypes": [
+    "!markdown"
+  ]
 }
