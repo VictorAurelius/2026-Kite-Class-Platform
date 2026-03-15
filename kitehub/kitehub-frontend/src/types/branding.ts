@@ -1,28 +1,34 @@
-export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+export interface LogoAnalysis {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  theme: 'MODERN' | 'CLASSIC' | 'PLAYFUL' | 'MINIMAL';
+  brandPersonality: string[];
+}
 
 export interface BrandingJob {
-  id: number;
-  instanceId: number;
-  status: JobStatus;
-  progress: number;
-  currentStep: string | null;
-  logoUrl: string | null;
+  id: string; // UUID
+  instanceId: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  progress: number; // 0-100
+  currentStep: string; // "Analyzing logo", "Generating profiles", etc.
+  analysis: LogoAnalysis;
   createdAt: string;
-  completedAt: string | null;
+  completedAt?: string;
 }
 
 export interface BrandingAsset {
-  id: number;
-  instanceId: number;
+  id: string;
+  instanceId: string;
   type: 'PROFILE' | 'HERO' | 'LOGO' | 'BANNER' | 'OG_IMAGE';
   url: string;
-  cdnUrl: string | null;
+  s3Key: string;
   createdAt: string;
 }
 
-export interface LogoAnalysis {
-  primaryColors: string[];
-  theme: string;
-  brandPersonality: string;
-  suggestedFonts: string[];
+export interface MarketingContent {
+  title: string;
+  subtitle: string;
+  tagline: string;
+  aboutUs: string;
 }

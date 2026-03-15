@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ReactQueryProvider>
             {children}
+            <Toaster position="top-right" richColors />
           </ReactQueryProvider>
         </ThemeProvider>
       </body>
