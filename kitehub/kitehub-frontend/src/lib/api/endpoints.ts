@@ -15,19 +15,19 @@ export const endpoints = {
 
   // Subscription
   subscriptions: {
-    active: (instanceId: number) => `${API_BASE}/subscriptions/instance/${instanceId}/active`,
-    byInstance: (instanceId: number) => `${API_BASE}/subscriptions/instance/${instanceId}`,
-    upgrade: (id: number) => `${API_BASE}/subscriptions/${id}/upgrade`,
-    downgrade: (id: number) => `${API_BASE}/subscriptions/${id}/downgrade`,
-    cancel: (id: number) => `${API_BASE}/subscriptions/${id}`,
+    active: (instanceId: string) => `${API_BASE}/subscriptions/instance/${instanceId}/active`,
+    byInstance: (instanceId: string) => `${API_BASE}/subscriptions/instance/${instanceId}`,
+    upgrade: (id: string) => `${API_BASE}/subscriptions/${id}/upgrade`,
+    downgrade: (id: string) => `${API_BASE}/subscriptions/${id}/downgrade`,
+    cancel: (id: string) => `${API_BASE}/subscriptions/${id}`,
   },
 
   // Payment
   payments: {
     create: `${API_BASE}/payments`,
-    byId: (id: number) => `${API_BASE}/payments/${id}`,
-    qrCode: (id: number) => `${API_BASE}/payments/${id}/qr-code`,
-    bySubscription: (subId: number) => `${API_BASE}/payments/subscription/${subId}`,
+    byId: (id: string) => `${API_BASE}/payments/${id}`,
+    qrCode: (id: string) => `${API_BASE}/payments/${id}/qr-code`,
+    bySubscription: (subId: string) => `${API_BASE}/payments/subscription/${subId}`,
   },
 
   // Branding
