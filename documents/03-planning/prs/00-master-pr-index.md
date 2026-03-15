@@ -38,8 +38,9 @@ documents/03-planning/
 - `1.x` = Gateway Service PRs
 - `2.x` = Core Service PRs
 - `3.x` = Frontend PRs
-- `4.x` = KiteHub Platform Service PRs
-- `5.x` = Expand Services PRs (future)
+- `4.x` = KiteHub Backend Service PRs
+- `5.x` = KiteHub Frontend PRs
+- `6.x` = Expand Services PRs (future)
 
 **Examples:**
 - ✅ PR 1.4: JWT Authentication (main feature)
@@ -58,8 +59,9 @@ documents/03-planning/
 | **Gateway** | 10 | 10 | **100%** | 🎉 **COMPLETE** ⭐ |
 | **Core** | 17 | 17 | **100%** | 🎉 **COMPLETE** ⭐ |
 | **Frontend** | 14 | 14 | **100%** | 🎉 **COMPLETE** ⭐ |
-| **KiteHub** | 11 | 15 | **73.3%** | 📧 **Email Service Ready** |
-| **Total** | 52 | 56 | **92.9%** | 🎉 **Core complete + Notifications ready!** |
+| **KiteHub Backend** | 11 | 15 | **73.3%** | 📧 **Email Service Ready** |
+| **KiteHub Frontend** | 0 | 10 | **0%** | 📋 **Planned** |
+| **Total** | 52 | 66 | **78.8%** | 🎉 **Core complete, KiteHub FE planned** |
 
 **Major Update (March 2026)**: 🎉 **CORE PLATFORM 100% COMPLETE!**
 - **Gateway**: 10/10 PRs (100%) - Authentication, user management, rate limiting ✅
@@ -104,6 +106,19 @@ All core functionality is production-ready! 🚀
 - ⏳ **PR 4.13**: Admin Portal API
 - ⏳ **PR 4.14**: API Gateway
 - ⏳ **PR 4.15**: Infrastructure & Docker
+
+### KiteHub Frontend - NEW 🆕
+**Planned (0/10 - 0%):**
+- ⏳ **PR 5.1**: Project Setup & Shared Infrastructure
+- ⏳ **PR 5.2**: Marketing Pages (Landing + Pricing + Auth)
+- ⏳ **PR 5.3**: Customer Dashboard & Instance Management
+- ⏳ **PR 5.4**: Subscription & Billing Management
+- ⏳ **PR 5.5**: AI Branding Portal
+- ⏳ **PR 5.6**: Customer Settings & Profile
+- ⏳ **PR 5.7**: Admin Instance & Payment Management (requires Backend PR 4.13)
+- ⏳ **PR 5.8**: Admin Dashboard & Analytics (requires Backend PR 4.13)
+- ⏳ **PR 5.9**: Testing Suite (Unit + Component + E2E)
+- ⏳ **PR 5.10**: Docker & CI/CD Integration
 
 ### Expand Service - FUTURE (Moved from Core)
 **Optional enhancements (defer to Phase 2):**
@@ -215,7 +230,28 @@ All core functionality is production-ready! 🚀
 
 ---
 
-### KiteHub Platform (7/15 completed - 46.7%) 🚀 IN PROGRESS
+### KiteHub Frontend (0/10 planned - 0%) 📋 NEW
+
+**Detail file**: [`05-kitehub-frontend-prs.md`](./05-kitehub-frontend-prs.md)
+
+**Status**: 📋 **PLANNED — Customer & Admin Portal cho KiteHub**
+
+**Mục đích:** Giao diện web để:
+1. **Khách hàng B2B** — Landing page, pricing, đăng ký trial, quản lý subscription, AI branding
+2. **Admin nền tảng** — Dashboard analytics, quản lý instances, xác nhận thanh toán
+
+**Phases** (5-6 weeks):
+1. ⏳ **PR 5.1-5.2**: Infrastructure + Marketing Pages (Landing, Pricing, Auth)
+2. ⏳ **PR 5.3-5.6**: Customer Portal (Dashboard, Billing, Branding, Settings)
+3. ⏳ **PR 5.7-5.8**: Admin Portal (Instances, Payments, Dashboard, Revenue)
+4. ⏳ **PR 5.9-5.10**: Testing + Docker/CI
+
+**Tech Stack**: Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI, React Query, Recharts
+**Estimated effort**: 38-47 giờ
+
+---
+
+### KiteHub Backend (11/15 completed - 73.3%) 🚀 IN PROGRESS
 
 **Detail file**: [`04-kitehub-prs.md`](./04-kitehub-prs.md)
 
