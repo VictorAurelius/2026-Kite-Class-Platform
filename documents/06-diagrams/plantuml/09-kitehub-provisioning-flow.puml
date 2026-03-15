@@ -1,0 +1,200 @@
+@startuml kitehub-provisioning-flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.5
+skinparam participantBackgroundColor #FFFDE7
+skinparam participantBorderColor #888888
+skinparam noteBackgroundColor #F5F5F5
+
+title KITEHUB - QUY TRÌNH ĐĂNG KÝ & PROVISIONING\nCustomer Onboarding Flow | Updated: 2026-03-15
+
+' ==================== PARTICIPANTS ====================
+actor "Khách hàng" as CUST #90CAF9
+participant "KiteHub\nFrontend" as FE #E3F2FD
+participant "Gateway\n:9000" as GW #FFF3E0
+participant "Subscription\nService\n:8081" as SUB #C5CAE9
+participant "Payment\nService\n:8082" as PAY #B3E5FC
+participant "Branding\nService\n:8083" as BRAND #C8E6C9
+participant "Email\nService\n:8084" as EMAIL #F8BBD0
+database "PostgreSQL\n:5433" as DB #F57C00
+queue "RabbitMQ\n:5673" as MQ #FF7043
+entity "MinIO/S3\n:9100" as S3 #78909C
+participant "OpenAI\nAPI" as AI #CFD8DC
+participant "VietQR\nAPI" as QR #CFD8DC
+participant "AWS\nSES" as SES #CFD8DC
+
+' ==================== PHASE 1: REGISTRATION ====================
+== Phase 1: Đăng ký & Dùng thử (Trial 14 ngày) ==
+
+CUST -> FE : Chọn gói dịch vụ\nNhập thông tin tổ chức
+FE -> GW : POST /api/subscriptions/register
+GW -> SUB : Route request
+
+activate SUB #C5CAE9
+SUB -> DB : INSERT instances\n(status=TRIAL, tier=FREE)
+SUB -> DB : INSERT subscriptions\n(status=ACTIVE, trial=14d)
+
+SUB -> MQ : Publish:\n"instance.created"
+MQ -> EMAIL : Consume:\n"instance.created"
+activate EMAIL #F8BBD0
+EMAIL -> SES : Send welcome email\n(template: welcome)
+SES --> EMAIL : Message ID
+EMAIL -> DB : INSERT email_logs\n(status=SENT)
+deactivate EMAIL
+
+SUB --> GW : 201 Created\n{instanceId, subdomain}
+deactivate SUB
+GW --> FE : Response
+FE --> CUST : "Tài khoản đã tạo!\nBắt đầu dùng thử 14 ngày"
+
+' ==================== PHASE 2: AI BRANDING ====================
+== Phase 2: AI Branding (Tùy chọn - ~30 giây) ==
+
+CUST -> FE : Upload logo\nChọn brand personality\n(PROFESSIONAL/CREATIVE/...)
+FE -> GW : POST /api/branding/jobs
+GW -> BRAND : Route request
+
+activate BRAND #C8E6C9
+BRAND -> DB : INSERT branding_jobs\n(status=QUEUED, progress=0%)
+BRAND --> GW : 202 Accepted\n{jobId}
+GW --> FE : Response
+FE --> CUST : "Đang tạo branding..."
+
+note over BRAND
+  **AI Pipeline (~30s, ~$0.19)**
+end note
+
+BRAND -> AI : Step 1: GPT-4 Vision\nAnalyze logo (20%)
+AI --> BRAND : Logo analysis JSON\n(colors, style, mood)
+
+BRAND -> AI : Step 2-6: DALL-E 3\nGenerate assets (40-85%)
+AI --> BRAND : Profile images\nHero banners\nBrand logos\nSocial banners
+
+BRAND -> AI : Step 7: Generate\nmarketing copy (95%)
+AI --> BRAND : Marketing text\n(tagline, description)
+
+BRAND -> S3 : Step 8: Upload all assets\nto s3://kitehub-assets/\ninstances/{id}/branding/
+S3 --> BRAND : Asset URLs
+
+BRAND -> DB : UPDATE branding_jobs\n(status=COMPLETED,\nprogress=100%,\nassets_generated=JSON)
+
+BRAND -> MQ : Publish:\n"branding.completed"
+deactivate BRAND
+
+MQ -> EMAIL : Consume:\n"branding.completed"
+activate EMAIL #F8BBD0
+EMAIL -> SES : Send branding email\n(template: branding-completed)
+deactivate EMAIL
+
+FE -> GW : GET /api/branding/jobs/{id}\n(polling status)
+GW -> BRAND : Route
+BRAND --> FE : {status: COMPLETED,\nassets: [...URLs]}
+FE --> CUST : "Branding hoàn tất!\nXem preview"
+
+' ==================== PHASE 3: PAYMENT ====================
+== Phase 3: Nâng cấp & Thanh toán ==
+
+CUST -> FE : Chọn tier: BASIC/PREMIUM\nChọn billing: MONTHLY/ANNUALLY
+FE -> GW : POST /api/payments/create
+GW -> PAY : Route request
+
+activate PAY #B3E5FC
+PAY -> DB : INSERT payments\n(status=PENDING)
+PAY -> QR : Generate VietQR\n(amount, content)
+QR --> PAY : QR code URL
+PAY -> DB : UPDATE payments\n(qr_code_url)
+PAY --> GW : {paymentId, qrCodeUrl}
+deactivate PAY
+
+GW --> FE : Response
+FE --> CUST : Hiển thị QR code\n"Quét để thanh toán"
+
+... Khách hàng quét QR & chuyển khoản ...
+
+QR -> PAY : Webhook callback\n(HMAC-SHA256 signed)
+activate PAY #B3E5FC
+PAY -> PAY : Verify HMAC-SHA256\nsignature
+PAY -> DB : UPDATE payments\n(status=COMPLETED,\ntransaction_id, paid_at)
+
+PAY -> MQ : Publish:\n"payment.completed"
+deactivate PAY
+
+MQ -> SUB : Consume:\n"payment.completed"
+activate SUB #C5CAE9
+SUB -> DB : UPDATE subscriptions\n(tier=BASIC/PREMIUM,\nstatus=ACTIVE)
+SUB -> DB : UPDATE instances\n(tier=BASIC/PREMIUM,\nstatus=ACTIVE)
+deactivate SUB
+
+MQ -> EMAIL : Consume:\n"payment.completed"
+activate EMAIL #F8BBD0
+EMAIL -> SES : Send payment email\n(template: payment-confirmation)
+deactivate EMAIL
+
+' ==================== PHASE 4: PROVISIONING ====================
+== Phase 4: Instance Provisioning (3-5 phút) ==
+
+SUB -> SUB : Trigger provisioning\nfor upgraded instance
+activate SUB #C5CAE9
+
+SUB -> DB : Create new PostgreSQL DB:\nkiteclass_{instance_id}
+
+note over SUB, DB
+  **Database Provisioning:**
+  1. CREATE DATABASE kiteclass_{id}
+  2. Run Flyway V1-V18 migrations
+  3. INSERT admin user (from instance owner)
+  4. INSERT default settings
+  5. INSERT default roles (ADMIN, TEACHER, STUDENT)
+end note
+
+SUB -> DB : Store DB credentials\n(AES-256-GCM encrypted)
+SUB -> DB : UPDATE instances\n(database_url, status=ACTIVE)
+
+SUB -> MQ : Publish:\n"instance.provisioned"
+deactivate SUB
+
+MQ -> EMAIL : Consume:\n"instance.provisioned"
+activate EMAIL #F8BBD0
+EMAIL -> SES : Send access email\n(template: instance-ready)\n"https://{subdomain}.kiteclass.com"
+deactivate EMAIL
+
+FE --> CUST : "Instance sẵn sàng!\nTruy cập: {subdomain}.kiteclass.com"
+
+' ==================== PHASE 5: TRIAL EXPIRY ====================
+== Phase 5: Quản lý Trial & Gia hạn ==
+
+note over SUB, EMAIL
+  **Scheduled Jobs (Cron):**
+  - Daily: Check trial expiry dates
+  - 3 days before: Send trial-ending email
+  - 1 day before: Send urgent reminder
+  - On expiry: Suspend instance (status=SUSPENDED)
+end note
+
+SUB -> MQ : Publish:\n"trial.expiring" (3d)
+MQ -> EMAIL : Consume
+activate EMAIL #F8BBD0
+EMAIL -> SES : template: trial-ending-3d
+deactivate EMAIL
+
+SUB -> MQ : Publish:\n"trial.expiring" (1d)
+MQ -> EMAIL : Consume
+activate EMAIL #F8BBD0
+EMAIL -> SES : template: trial-ending-1d
+deactivate EMAIL
+
+SUB -> DB : UPDATE instances\n(status=SUSPENDED)\nafter trial expires
+
+' ==================== LEGEND ====================
+legend bottom
+|= Phase |= Duration |= Key Actions |
+| 1. Registration | Instant | Create trial instance, send welcome email |
+| 2. AI Branding | ~30 seconds | Logo analysis, asset generation, S3 upload |
+| 3. Payment | User-dependent | VietQR generation, webhook verification |
+| 4. Provisioning | 3-5 minutes | DB creation, migrations, seed data |
+| 5. Trial Mgmt | Automated | Expiry emails (3d, 1d), auto-suspend |
+endlegend
+
+@enduml

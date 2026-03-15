@@ -1,0 +1,189 @@
+@startuml kitehub-architecture
+!theme plain
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam defaultFontSize 11
+skinparam ArrowColor #555555
+
+title KITEHUB PLATFORM - KIẾN TRÚC MICROSERVICES\nMulti-Tenant SaaS Management | Updated: 2026-03-15
+
+' ==================== ACTORS ====================
+actor "Khách hàng\n(B2B)" as CUSTOMER #90CAF9
+actor "Admin\nKiteHub" as ADMIN #EF9A9A
+
+' ==================== KITEHUB FRONTEND ====================
+package "KiteHub Frontend\n[Next.js 15 | TypeScript | Tailwind | Shadcn/UI]" as FE #E3F2FD {
+    component "Marketing Website\n(Landing, Pricing,\nDemo Request)" as FE_MKT
+    component "Customer Portal\n(Dashboard, Billing,\nBranding, Settings)" as FE_PORTAL
+    component "Admin Portal\n(Instances, Payments,\nAnalytics)" as FE_ADMIN
+}
+
+' ==================== API GATEWAY ====================
+package "KiteHub Gateway\n[Spring Cloud Gateway | Port 9000]" as GW #FFF3E0 {
+    component "API Routing\n& Load Balancing" as GW_ROUTE
+    component "Rate Limiting\n(Redis)" as GW_RATE
+    component "JWT Auth\n& RBAC" as GW_AUTH
+    component "Request Logging\n& Monitoring" as GW_LOG
+}
+
+' ==================== MICROSERVICES ====================
+package "KiteHub Microservices" as SERVICES #FFFDE7 {
+
+    package "Subscription Service\n[Port 8081]" as SUB_SVC #C5CAE9 {
+        component "Trial Management\n(14-day free trial)" as SUB_TRIAL
+        component "Plan Management\n(FREE → ENTERPRISE)" as SUB_PLAN
+        component "Instance Provisioning\n(DB + Flyway + Seed)" as SUB_PROV
+        component "Tier Upgrade/Downgrade\n(Prorated billing)" as SUB_TIER
+    }
+
+    package "Payment Service\n[Port 8082]" as PAY_SVC #B3E5FC {
+        component "VietQR Integration\n(QR Code Generation)" as PAY_QR
+        component "Webhook Handler\n(HMAC-SHA256 verify)" as PAY_HOOK
+        component "Invoice Generation\n& Receipt" as PAY_INV
+        component "Refund Processing" as PAY_REFUND
+    }
+
+    package "Branding Service\n[Port 8083]" as BRAND_SVC #C8E6C9 {
+        component "Job Queue\n& Progress Tracking" as BRAND_QUEUE
+        component "Logo Analysis\n(GPT-4 Vision)" as BRAND_LOGO
+        component "Asset Generation\n(DALL-E 3)" as BRAND_GEN
+        component "S3 Upload\n& CDN Management" as BRAND_S3
+    }
+
+    package "Email Service\n[Port 8084]" as EMAIL_SVC #F8BBD0 {
+        component "Template Engine\n(welcome, trial-ending,\npayment, branding)" as EMAIL_TPL
+        component "AWS SES Integration\n& Delivery Tracking" as EMAIL_SES
+        component "Bounce & Complaint\nHandling" as EMAIL_BOUNCE
+    }
+
+    package "Admin Service\n[Port 8085]" as ADMIN_SVC #FFE0B2 {
+        component "Instance Management\n& Monitoring" as ADMIN_INST
+        component "Payment Analytics\n& Revenue Reports" as ADMIN_ANALYTICS
+        component "System Health\n& Metrics" as ADMIN_HEALTH
+    }
+}
+
+' ==================== INFRASTRUCTURE ====================
+package "Infrastructure" as INFRA #ECEFF1 {
+    database "PostgreSQL 15\n[Port 5433]\nkitehub DB\n(instances, subscriptions,\npayments, branding_jobs,\nemail_logs)" as DB #F57C00
+    storage "Redis 7\n[Port 6380]\nCache, Rate Limiting,\nSession" as CACHE #EF5350
+    queue "RabbitMQ 3\n[Port 5673]\nAsync Events" as MQ #FF7043
+    storage "MinIO / S3\n[Port 9100]\nBranding Assets" as S3 #78909C
+}
+
+' ==================== EXTERNAL SERVICES ====================
+package "External Services" as EXT #CFD8DC {
+    component "VietQR API\n(Payment QR)" as EXT_QR
+    component "OpenAI API\n(GPT-4V + DALL-E 3)" as EXT_AI
+    component "AWS SES\n(Email Delivery)" as EXT_SES
+    component "CloudFront CDN\n(cdn.kiteclass.com)" as EXT_CDN
+}
+
+' ==================== PROVISIONED INSTANCES ====================
+package "KiteClass Instances\n(Provisioned by KiteHub)" as INSTANCES #E8F5E9 {
+    component "Instance #1\nabc.kiteclass.com\n[Gateway + Core + FE]" as KC1
+    component "Instance #2\nxyz.kiteclass.com\n[Gateway + Core + FE]" as KC2
+    component "Instance #N\n..." as KCN
+}
+
+' ==================== ACTOR CONNECTIONS ====================
+CUSTOMER --> FE_MKT  : "Tìm hiểu\nĐăng ký"
+CUSTOMER --> FE_PORTAL : "Quản lý\ntài khoản"
+ADMIN    --> FE_ADMIN : "Giám sát\nhệ thống"
+
+' ==================== FRONTEND -> GATEWAY ====================
+FE --> GW_ROUTE : "REST API\n(HTTPS)"
+
+' ==================== GATEWAY -> SERVICES ====================
+GW_ROUTE --> SUB_SVC   : "/api/subscriptions"
+GW_ROUTE --> PAY_SVC   : "/api/payments"
+GW_ROUTE --> BRAND_SVC : "/api/branding"
+GW_ROUTE --> ADMIN_SVC : "/api/admin"
+GW_RATE  --> CACHE     : "Rate counters"
+GW_AUTH  --> CACHE     : "Session/Token"
+
+' ==================== SERVICE -> INFRASTRUCTURE ====================
+SUB_SVC   --> DB    : "CRUD"
+PAY_SVC   --> DB    : "CRUD"
+BRAND_SVC --> DB    : "Job status"
+EMAIL_SVC --> DB    : "Email logs"
+ADMIN_SVC --> DB    : "Read/Analytics"
+
+SUB_SVC   --> MQ    : "trial.expiring\ninstance.created"
+PAY_SVC   --> MQ    : "payment.completed\npayment.failed"
+BRAND_SVC --> MQ    : "branding.completed\nbranding.failed"
+EMAIL_SVC <-- MQ    : "Consume all\nemail events"
+
+BRAND_SVC --> S3    : "Upload assets"
+S3        --> EXT_CDN : "CDN delivery"
+
+' ==================== SERVICE -> EXTERNAL ====================
+PAY_QR    --> EXT_QR  : "Generate QR\nVerify webhook"
+BRAND_LOGO --> EXT_AI : "Vision analysis"
+BRAND_GEN  --> EXT_AI : "Image generation"
+EMAIL_SES  --> EXT_SES : "Send emails"
+
+' ==================== PROVISIONING ====================
+SUB_PROV ..> KC1 : "Provision"
+SUB_PROV ..> KC2 : "Provision"
+SUB_PROV ..> KCN : "Provision"
+
+' ==================== LEGEND ====================
+legend right
+|= Service |= Port |= Responsibility |
+| Gateway | 9000 | Routing, Auth, Rate Limit |
+| Subscription | 8081 | Trials, Plans, Provisioning |
+| Payment | 8082 | VietQR, Webhooks, Invoices |
+| Branding | 8083 | AI Logo/Banner Generation |
+| Email | 8084 | SES, Templates, Tracking |
+| Admin | 8085 | Monitoring, Analytics |
+
+|= Infrastructure |= Port |
+| PostgreSQL | 5433 |
+| Redis | 6380 |
+| RabbitMQ | 5673 |
+| MinIO | 9100 |
+
+|= Pricing Tier |= Students |= Price/mo |
+| FREE | 10 | 0 VND |
+| BASIC | 50 | 500k VND |
+| PREMIUM | 200 | 1.5M VND |
+| ENTERPRISE | Unlimited | Custom |
+endlegend
+
+' ==================== NOTES ====================
+note bottom of SUB_SVC
+  **Provisioning Flow:**
+  1. Create PostgreSQL DB (kiteclass_{id})
+  2. Run Flyway migrations (V1-V18)
+  3. Seed admin user + settings
+  4. Configure subdomain routing
+  5. Deploy KiteClass services
+end note
+
+note bottom of BRAND_SVC
+  **AI Pipeline (9 steps):**
+  1. Upload logo → GPT-4V analysis
+  2. Generate profile images
+  3. Generate hero banners
+  4. Generate brand logos (SVG)
+  5. Generate social banners
+  6. Generate OG image
+  7. Generate marketing copy
+  8. Upload all to S3/CDN
+  ~30 seconds | ~$0.19/job
+end note
+
+note bottom of PAY_SVC
+  **Payment Methods:**
+  - VietQR (primary)
+  - MoMo, VNPay
+  - Bank Transfer
+  - Manual (admin)
+  **Security:** HMAC-SHA256 webhook
+end note
+
+@enduml

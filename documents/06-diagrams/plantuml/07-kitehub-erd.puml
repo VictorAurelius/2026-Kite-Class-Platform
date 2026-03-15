@@ -1,0 +1,280 @@
+@startuml kitehub-erd
+!theme plain
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam linetype ortho
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam classBackgroundColor #FFFDE7
+skinparam classBorderColor #888888
+skinparam ArrowColor #555555
+
+title KITEHUB PLATFORM DB - ENTITY RELATIONSHIP DIAGRAM\nMulti-Tenant SaaS Management | Updated: 2026-03-15
+
+' ==================== KITEHUB PLATFORM DB ====================
+package "KITEHUB PLATFORM DATABASE" as KHDB #E8EAF6 {
+
+    ' --- INSTANCE MANAGEMENT ---
+    package "Instance Management" as INST_MOD #C5CAE9 {
+        class instances {
+            **id** : UUID <<PK>>
+            --
+            subdomain : VARCHAR(50) <<UNIQUE>>
+            custom_domain : VARCHAR(255)
+            organization_name : VARCHAR(200)
+            owner_id : UUID
+            contact_email : VARCHAR(255)
+            tier : VARCHAR(20)
+            status : VARCHAR(20)
+            --
+            database_url : VARCHAR(500)
+            database_username : VARCHAR(100)
+            database_password : VARCHAR(255) <<ENCRYPTED>>
+            --
+            trial_started_at : TIMESTAMP
+            trial_expires_at : TIMESTAMP
+            subscription_id : UUID <<FK>>
+            subscription_expires_at : TIMESTAMP
+            --
+            created_at / updated_at : TIMESTAMP
+            created_by / updated_by : VARCHAR
+            deleted : BOOLEAN
+        }
+
+        note right of instances
+            **Status:** TRIAL → ACTIVE → SUSPENDED → DELETED
+            **Tier:** FREE | BASIC | PREMIUM | ENTERPRISE
+            **Trial:** 14 days, auto-suspend after expiry
+            **Password:** AES-256-GCM encrypted
+        end note
+    }
+
+    ' --- SUBSCRIPTION MANAGEMENT ---
+    package "Subscription & Billing" as SUB_MOD #B3E5FC {
+        class subscriptions {
+            **id** : UUID <<PK>>
+            --
+            instance_id : UUID <<FK>>
+            tier : VARCHAR(20)
+            billing_cycle : VARCHAR(20)
+            price_vnd : BIGINT
+            status : VARCHAR(20)
+            --
+            started_at : TIMESTAMP
+            expires_at : TIMESTAMP
+            auto_renew : BOOLEAN
+            --
+            pending_tier : VARCHAR(20)
+            pending_payment_id : UUID <<FK>>
+            --
+            created_at / updated_at : TIMESTAMP
+            deleted : BOOLEAN
+        }
+
+        note right of subscriptions
+            **Billing:** MONTHLY | ANNUALLY (10% off)
+            **Status:** ACTIVE | CANCELLED | EXPIRED | SUSPENDED
+            **Upgrade:** Immediate, prorated charge
+            **Downgrade:** End of billing cycle
+        end note
+
+        class payments {
+            **id** : UUID <<PK>>
+            --
+            subscription_id : UUID <<FK>>
+            amount_vnd : BIGINT
+            currency : VARCHAR(3)
+            payment_method : VARCHAR(30)
+            status : VARCHAR(20)
+            --
+            qr_code_url : VARCHAR(500)
+            transaction_id : VARCHAR(100)
+            bank_code : VARCHAR(20)
+            account_number : VARCHAR(50)
+            account_name : VARCHAR(100)
+            payment_content : VARCHAR(500)
+            --
+            paid_at : TIMESTAMP
+            refunded_at : TIMESTAMP
+            refund_reason : VARCHAR(500)
+            --
+            created_at / updated_at : TIMESTAMP
+            deleted : BOOLEAN
+        }
+
+        note bottom of payments
+            **Method:** VIETQR | MOMO | VNPAY
+                      BANK_TRANSFER | MANUAL
+            **Status:** PENDING → COMPLETED
+                       PENDING → FAILED
+                       COMPLETED → REFUNDED
+            **VietQR:** QR code auto-generated
+            **Webhook:** HMAC-SHA256 verified
+        end note
+    }
+
+    ' --- AI BRANDING ---
+    package "AI Branding Service" as BRAND_MOD #C8E6C9 {
+        class branding_jobs {
+            **id** : UUID <<PK>>
+            --
+            instance_id : UUID <<FK>>
+            status : VARCHAR(20)
+            progress : INTEGER (0-100)
+            current_step : VARCHAR(100)
+            --
+            logo_url : VARCHAR(500)
+            organization_name : VARCHAR(200)
+            brand_personality : VARCHAR(50)
+            color_scheme : VARCHAR(50)
+            --
+            logo_analysis : TEXT <<JSON>>
+            theme_extracted : VARCHAR(50)
+            assets_generated : TEXT <<JSON>>
+            --
+            error_message : TEXT
+            retry_count : INTEGER (0-5)
+            --
+            queued_at : TIMESTAMP
+            started_at : TIMESTAMP
+            completed_at : TIMESTAMP
+            --
+            created_at / updated_at : TIMESTAMP
+            deleted : BOOLEAN
+        }
+
+        note right of branding_jobs
+            **AI Pipeline:**
+            1. Upload logo
+            2. GPT-4 Vision analysis (20%)
+            3. Generate profile images (40%)
+            4. Generate hero banners (60%)
+            5. Generate brand logos (75%)
+            6. Generate social banners (85%)
+            7. Generate OG image (90%)
+            8. Generate marketing copy (95%)
+            9. Upload to S3 (100%)
+            --
+            **Personality:** PROFESSIONAL | CREATIVE
+              PLAYFUL | MODERN | ELEGANT | BOLD
+            **Status:** QUEUED → PROCESSING →
+              COMPLETED | FAILED | CANCELLED
+        end note
+    }
+
+    ' --- EMAIL NOTIFICATIONS ---
+    package "Email Notifications" as EMAIL_MOD #F8BBD0 {
+        class email_logs {
+            **id** : UUID <<PK>>
+            --
+            instance_id : UUID <<FK>> (nullable)
+            recipient_email : VARCHAR(255)
+            recipient_name : VARCHAR(200)
+            subject : VARCHAR(500)
+            --
+            template_name : VARCHAR(100)
+            template_variables : TEXT <<JSON>>
+            --
+            message_id : VARCHAR(255)
+            status : VARCHAR(20)
+            --
+            queued_at : TIMESTAMP
+            sent_at : TIMESTAMP
+            delivered_at : TIMESTAMP
+            bounced_at : TIMESTAMP
+            complained_at : TIMESTAMP
+            --
+            error_message : TEXT
+            bounce_type : VARCHAR(50)
+            bounce_reason : TEXT
+            retry_count : INTEGER (0-5)
+            --
+            created_at / updated_at : TIMESTAMP
+            deleted : BOOLEAN
+        }
+
+        note right of email_logs
+            **Templates:**
+            - welcome
+            - trial-ending (3d, 1d)
+            - subscription-created
+            - payment-confirmation
+            - branding-completed
+            --
+            **Status:** QUEUED → SENT → DELIVERED
+                       SENT → BOUNCED | COMPLAINED
+            **Provider:** AWS SES
+            **Bounce:** TRANSIENT | PERMANENT
+        end note
+    }
+}
+
+' ==================== PRICING REFERENCE ====================
+package "Pricing Tiers Reference" as PRICING #FFF9C4 {
+    class pricing_tiers <<reference>> {
+        --
+        **FREE**    : 10 students, 1 teacher, 500MB  | 0 VND
+        **BASIC**   : 50 students, 5 teachers, 2GB   | 500k VND/mo
+        **PREMIUM** : 200 students, 20 teachers, 10GB | 1.5M VND/mo
+        **ENTERPRISE** : Unlimited                     | Custom
+        --
+        Annual billing: 10% discount
+        Custom domain: PREMIUM+ only
+    }
+}
+
+' ==================== S3 ASSET STORAGE (External) ====================
+package "Asset Storage (S3/MinIO)" as S3_MOD #E0E0E0 {
+    class branding_assets <<external>> {
+        --
+        s3://kitehub-assets/instances/{instanceId}/branding/
+        ├── profile/ (cutout, circle, square)
+        ├── hero/ (variant1, variant2, variant3)
+        ├── logos/ (light.svg, dark.svg)
+        ├── banners/ (facebook, youtube)
+        └── og_image.jpg
+        --
+        CDN: cdn.kiteclass.com (CloudFront)
+        Versioning: 3 latest versions kept
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+
+' Instance → Subscription (1:N)
+instances ||--o{ subscriptions : "has subscriptions"
+
+' Subscription → Payment (1:N)
+subscriptions ||--o{ payments : "paid by"
+
+' Instance → Branding Jobs (1:N)
+instances ||--o{ branding_jobs : "generates branding"
+
+' Instance → Email Logs (1:N)
+instances ||--o{ email_logs : "receives emails"
+
+' Branding Job → S3 Assets (1:1)
+branding_jobs ..> branding_assets : "uploads to S3"
+
+' Subscription → Pending Payment (0..1)
+subscriptions ..> payments : "pending_payment_id"
+
+' Instance ← Subscription (current)
+instances ..> subscriptions : "subscription_id (current)"
+
+' ==================== EXTERNAL CONNECTIONS ====================
+note as EXTERNAL_NOTE
+    **External Integrations:**
+    - **VietQR API** → Payment QR generation
+    - **OpenAI API** → GPT-4 Vision + DALL-E 3
+    - **AWS SES** → Email delivery
+    - **S3/MinIO** → Asset storage
+    - **PostgreSQL** → Per-tenant DB provisioning
+
+    **Each Instance provisions:**
+    - Isolated PostgreSQL database (kiteclass_{id})
+    - Flyway migrations (V1-V18)
+    - Seed data (admin user, default settings)
+end note
+
+@enduml

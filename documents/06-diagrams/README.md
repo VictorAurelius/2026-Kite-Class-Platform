@@ -21,6 +21,9 @@ mv *.png ../rendered/
 - `04-*`: Architecture full view
 - `05-*`: System overview v3
 - `06-*`: Business flow v3
+- `07-*`: KiteHub ERD (database schema)
+- `08-*`: KiteHub architecture (microservices)
+- `09-*`: KiteHub provisioning flow (onboarding)
 
 ## Standalone Diagrams
 - `architecture-diagram.puml`: General architecture
