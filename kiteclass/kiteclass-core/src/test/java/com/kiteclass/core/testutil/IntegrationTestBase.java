@@ -38,6 +38,7 @@ public abstract class IntegrationTestBase {
      * <p>Uses PostgreSQL 15 image.
      * Container is shared across all tests in the same JVM.
      */
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     @Container
     protected static final PostgreSQLContainer<?> postgresContainer =
             new PostgreSQLContainer<>("postgres:15-alpine")
