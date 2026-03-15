@@ -1,0 +1,91 @@
+'use client';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Check, X, ArrowRight } from 'lucide-react';
+import { PLAN_DETAILS, formatPrice, getTierRank, type PricingTier } from '@/lib/pricing';
+
+interface TierSelectorProps {
+  currentTier: PricingTier;
+  selectedTier: PricingTier | null;
+  onSelect: (tier: PricingTier) => void;
+}
+
+export function TierSelector({ currentTier, selectedTier, onSelect }: TierSelectorProps) {
+  const tiers: PricingTier[] = ['FREE', 'BASIC', 'PREMIUM', 'ENTERPRISE'];
+
+  const handleSelect = (tier: PricingTier) => {
+    if (tier === currentTier) return; // Can't select current tier
+    if (tier === 'ENTERPRISE') {
+      alert('Vui lòng liên hệ sales@kiteclass.com để biết thêm chi tiết về gói Enterprise');
+      return;
+    }
+    onSelect(tier);
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Chọn gói mới</h2>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {tiers.map((tier) => {
+          const plan = PLAN_DETAILS[tier];
+          const isCurrent = tier === currentTier;
+          const isSelected = tier === selectedTier;
+          const isDisabled = isCurrent || tier === 'ENTERPRISE';
+
+          const tierRank = getTierRank(tier);
+          const currentRank = getTierRank(currentTier);
+          const changeType = tierRank > currentRank ? 'upgrade' :
+                           tierRank < currentRank ? 'downgrade' : null;
+
+          return (
+            <Card
+              key={tier}
+              className={`
+                cursor-pointer transition-all
+                ${isSelected ? 'border-primary shadow-lg ring-2 ring-primary' : ''}
+                ${isCurrent ? 'opacity-60 cursor-not-allowed' : ''}
+                ${isDisabled ? '' : 'hover:shadow-md'}
+              `}
+              onClick={() => !isDisabled && handleSelect(tier)}
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between mb-2">
+                  <CardTitle className="text-lg">{plan.name}</CardTitle>
+                  {isCurrent && <Badge variant="secondary">Hiện tại</Badge>}
+                  {isSelected && <Badge>Đã chọn</Badge>}
+                </div>
+                <CardDescription className="text-xl font-bold text-foreground">
+                  {formatPrice(plan.monthlyPrice, 'MONTHLY')}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-3">
+                {/* Key Features (top 3) */}
+                <div className="space-y-1.5">
+                  {plan.features.slice(0, 3).map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Change Indicator */}
+                {changeType && !isCurrent && (
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <ArrowRight className={`h-4 w-4 ${changeType === 'upgrade' ? 'text-green-600' : 'text-orange-600'}`} />
+                    <span className={`text-sm font-medium ${changeType === 'upgrade' ? 'text-green-600' : 'text-orange-600'}`}>
+                      {changeType === 'upgrade' ? 'Nâng cấp' : 'Hạ gói'}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
