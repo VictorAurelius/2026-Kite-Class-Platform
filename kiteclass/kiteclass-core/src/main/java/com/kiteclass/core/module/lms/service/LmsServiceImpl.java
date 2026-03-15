@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 /**
  * Implementation of {@link LmsService}.
@@ -87,7 +87,7 @@ public class LmsServiceImpl implements LmsService {
                                 .findByModuleIdAndIsTrialTrueAndDeletedFalseOrderByOrderNumber(module.getId());
                         return buildModuleDetailResponse(module, trialLessons);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
         } finally {
             // 5. Restore previous context
             if (previousTenant != null) {
@@ -135,7 +135,7 @@ public class LmsServiceImpl implements LmsService {
                             .findByModuleIdAndDeletedFalseOrderByOrderNumber(module.getId());
                     return buildModuleDetailResponse(module, allLessons);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -453,7 +453,7 @@ public class LmsServiceImpl implements LmsService {
         // Extract class IDs
         List<Long> classIds = courseClasses.stream()
                 .map(com.kiteclass.core.module.clazz.entity.Class::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         // Check if student has ACTIVE enrollment in ANY class
         boolean hasActiveEnrollment = classIds.stream()
