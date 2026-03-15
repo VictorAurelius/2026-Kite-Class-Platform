@@ -1,0 +1,44 @@
+'use client';
+
+import type { ReactNode } from 'react';
+import { Sidebar } from './Sidebar';
+import { useAuthStore } from '@/stores/auth-store';
+import { useRouter } from 'next/navigation';
+
+export function AdminLayout({ children }: { children: ReactNode }) {
+  const { isAuthenticated, user, clearAuth } = useAuthStore();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    clearAuth();
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    router.push('/login');
+  };
+
+  if (!isAuthenticated || user?.role !== 'ADMIN') {
+    router.push('/login');
+    return null;
+  }
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar variant="admin" />
+      <div className="flex-1 flex flex-col">
+        <header className="border-b h-16 flex items-center justify-between px-6">
+          <h2 className="text-lg font-semibold">Admin Portal</h2>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">{user?.email}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Đăng xuất
+            </button>
+          </div>
+        </header>
+        <main className="flex-1 p-6">{children}</main>
+      </div>
+    </div>
+  );
+}
