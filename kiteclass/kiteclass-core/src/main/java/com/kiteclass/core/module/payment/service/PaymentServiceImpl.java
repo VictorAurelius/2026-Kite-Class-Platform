@@ -226,7 +226,7 @@ public class PaymentServiceImpl implements PaymentService {
                 params.getOrDefault("orderId",
                     params.getOrDefault("transactionId", "")));
             Payment payment = paymentRepository.findByTransactionIdAndDeletedFalse(transactionId)
-                .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND_BY_TRANSACTION", transactionId));
+                .orElseThrow(() -> new EntityNotFoundException("PAYMENT_NOT_FOUND_BY_TRANSACTION", (Object) transactionId));
 
             webhookLog.setPaymentId(payment.getId());
             webhookLog.setInstanceId(payment.getInstanceId());
