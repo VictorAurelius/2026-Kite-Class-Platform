@@ -33,15 +33,18 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestContainersConfiguration {
 
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     @Container
     private static final PostgreSQLContainer<?> postgres =
         new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
 
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     @Container
     private static final GenericContainer<?> redis =
         new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379);
 
+    @SuppressWarnings("resource") // Testcontainers manages container lifecycle
     @Container
     private static final MinIOContainer minio =
         new MinIOContainer(DockerImageName.parse("minio/minio:latest"));
