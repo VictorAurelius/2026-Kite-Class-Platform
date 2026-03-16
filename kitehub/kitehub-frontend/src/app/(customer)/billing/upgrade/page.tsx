@@ -26,7 +26,7 @@ export default function UpgradePage() {
   // Get user's instance and subscription
   const { data: instances } = useOwnerInstances(user?.id);
   const instanceId = instances?.[0]?.id;
-  const { data: subscription, isLoading } = useActiveSubscription(instanceId);
+  const { data: subscription, isLoading } = useActiveSubscription(instanceId?.toString());
 
   // Mutations
   const upgrade = useUpgradeSubscription();
@@ -86,9 +86,10 @@ export default function UpgradePage() {
         toast.success('Đã lên lịch hạ gói. Thay đổi sẽ có hiệu lực cuối kỳ thanh toán.');
         router.push('/billing?success=downgrade');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to change tier:', error);
-      toast.error(error.response?.data?.message || 'Không thể thay đổi gói. Vui lòng thử lại.');
+      const message = error instanceof Error ? error.message : 'Không thể thay đổi gói. Vui lòng thử lại.';
+      toast.error(message);
     } finally {
       setIsProcessing(false);
     }

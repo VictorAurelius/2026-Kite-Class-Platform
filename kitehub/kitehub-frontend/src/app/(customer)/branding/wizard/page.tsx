@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useBrandingJob, useAnalyzeLogo, useCreateBrandingJob } from '@/hooks/use-branding';
-import { StepIndicator } from '@/components/billing/StepIndicator';
 import { UploadStep } from '@/components/branding/UploadStep';
 import { AnalyzeStep } from '@/components/branding/AnalyzeStep';
 import { GenerateStep } from '@/components/branding/GenerateStep';
@@ -45,7 +44,7 @@ export default function BrandingWizardPage() {
       const result = await analyzeMutation.mutateAsync(url);
       setAnalysis(result);
       setStep(2);
-    } catch (error) {
+    } catch {
       toast.error('Phân tích logo thất bại. Vui lòng thử lại.');
     }
   };
@@ -60,7 +59,7 @@ export default function BrandingWizardPage() {
       });
       setJobId(job.id);
       setStep(3);
-    } catch (error) {
+    } catch {
       toast.error('Khởi tạo job thất bại. Vui lòng thử lại.');
     }
   };

@@ -18,7 +18,7 @@ export default function PaymentHistoryPage() {
   // Get user's instance and subscription
   const { data: instances } = useOwnerInstances(user?.id);
   const instanceId = instances?.[0]?.id;
-  const { data: subscription } = useActiveSubscription(instanceId);
+  const { data: subscription } = useActiveSubscription(instanceId?.toString());
 
   // Get payment history
   const { data: payments, isLoading, error } = usePaymentHistory(subscription?.id);

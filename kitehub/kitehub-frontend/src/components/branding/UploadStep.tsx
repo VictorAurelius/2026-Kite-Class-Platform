@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { useUploadAsset } from '@/hooks/use-branding';
 import { toast } from 'sonner';
 
@@ -83,7 +83,7 @@ export function UploadStep({ instanceId, onUploadComplete }: UploadStepProps) {
       });
       toast.success('Tải logo lên thành công!');
       onUploadComplete(asset.url);
-    } catch (error) {
+    } catch {
       toast.error('Tải logo lên thất bại. Vui lòng thử lại.');
     }
   };

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowRight, Check, Info, AlertCircle } from 'lucide-react';
+import { ArrowRight, Info, AlertCircle } from 'lucide-react';
 import type { Subscription, PricingTier } from '@/types/subscription';
 import { PLAN_DETAILS, calculateProration, getDaysRemaining, isUpgrade, formatPrice } from '@/lib/pricing';
 

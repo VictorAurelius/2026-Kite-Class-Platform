@@ -1,5 +1,8 @@
 import type { PricingTier, PlanDetails, BillingCycle } from '@/types/subscription';
 
+// Re-export types for convenience
+export type { PricingTier, PlanDetails, BillingCycle };
+
 /**
  * Plan details for all pricing tiers
  */

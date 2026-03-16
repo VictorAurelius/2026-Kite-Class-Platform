@@ -77,7 +77,7 @@ export function useCreatePayment() {
       );
       return data.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate payment queries
       queryClient.invalidateQueries({ queryKey: ['payments'] });
 

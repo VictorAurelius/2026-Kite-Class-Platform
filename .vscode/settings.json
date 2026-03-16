@@ -1,4 +1,33 @@
 {
+  // ========== TypeScript / Next.js ==========
+  // Enable TypeScript strict checking in IDE (shows errors without running build)
+  "typescript.tsdk": "kitehub/kitehub-frontend/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Enable Next.js plugin for better type checking
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+
+  // Show errors immediately while typing
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": true,
+
+  // Auto-fix on save (optional but helpful)
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  // ========== Java / Spring Boot ==========
   "java.compile.nullAnalysis.mode": "disabled",
   "maven.view": "hierarchical",
   "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING",
