@@ -82,7 +82,7 @@ describe('AttendanceCalendar', () => {
     expect(buttonsWithAttendance.length).toBeGreaterThan(0);
 
     // Click on the first date with attendance
-    const firstButton = buttonsWithAttendance[0].closest('button');
+    const firstButton = buttonsWithAttendance[0]!.closest('button');
     if (firstButton) {
       fireEvent.click(firstButton);
       expect(mockOnDateClick).toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe('AttendanceCalendar', () => {
     render(<AttendanceCalendar attendanceRecords={[]} />);
 
     const initialMonth = screen.getByRole('heading').textContent;
-    const nextButton = screen.getAllByRole('button')[2]; // Third button is next
+    const nextButton = screen.getAllByRole('button')[2]!; // Third button is next
 
     fireEvent.click(nextButton);
 
@@ -129,7 +129,7 @@ describe('AttendanceCalendar', () => {
     render(<AttendanceCalendar attendanceRecords={[]} />);
 
     const initialMonth = screen.getByRole('heading').textContent;
-    const prevButton = screen.getAllByRole('button')[1]; // Second button is previous
+    const prevButton = screen.getAllByRole('button')[1]!; // Second button is previous
 
     fireEvent.click(prevButton);
 
@@ -140,7 +140,7 @@ describe('AttendanceCalendar', () => {
   it('returns to current month when today button is clicked', () => {
     render(<AttendanceCalendar attendanceRecords={[]} />);
 
-    const nextButton = screen.getAllByRole('button')[2];
+    const nextButton = screen.getAllByRole('button')[2]!;
     fireEvent.click(nextButton); // Go to next month
 
     const todayButton = screen.getByText('Hôm nay');

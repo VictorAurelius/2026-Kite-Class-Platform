@@ -79,7 +79,7 @@ describe('AttendanceTrendsChart', () => {
         const title = circle.querySelector('title');
         expect(title).toBeInTheDocument();
         expect(title?.textContent).toContain(
-          mockAttendanceTrends[index].attendanceRate.toFixed(1)
+          mockAttendanceTrends[index]!.attendanceRate.toFixed(1)
         );
       });
     });
@@ -195,7 +195,7 @@ describe('AttendanceTrendsChart', () => {
   describe('Edge Cases', () => {
     it('handles single data point', () => {
       const { container } = render(
-        <AttendanceTrendsChart data={[mockAttendanceTrends[0]]} />
+        <AttendanceTrendsChart data={[mockAttendanceTrends[0]!]} />
       );
 
       const svg = container.querySelector('svg');
@@ -230,7 +230,7 @@ describe('AttendanceTrendsChart', () => {
 
     it('handles zero attendance rates', () => {
       const dataWithZero = [
-        { ...mockAttendanceTrends[0], attendanceRate: 0 },
+        { ...mockAttendanceTrends[0]!, attendanceRate: 0 },
       ];
 
       const { container } = render(<AttendanceTrendsChart data={dataWithZero} />);
@@ -241,7 +241,7 @@ describe('AttendanceTrendsChart', () => {
 
     it('handles 100% attendance rates', () => {
       const dataWithPerfect = [
-        { ...mockAttendanceTrends[0], attendanceRate: 100 },
+        { ...mockAttendanceTrends[0]!, attendanceRate: 100 },
       ];
 
       const { container } = render(<AttendanceTrendsChart data={dataWithPerfect} />);
@@ -252,10 +252,10 @@ describe('AttendanceTrendsChart', () => {
 
     it('handles varying attendance rates', () => {
       const varyingData = [
-        { ...mockAttendanceTrends[0], attendanceRate: 20 },
-        { ...mockAttendanceTrends[1], attendanceRate: 50 },
-        { ...mockAttendanceTrends[2], attendanceRate: 80 },
-        { ...mockAttendanceTrends[3], attendanceRate: 95 },
+        { ...mockAttendanceTrends[0]!, attendanceRate: 20 },
+        { ...mockAttendanceTrends[1]!, attendanceRate: 50 },
+        { ...mockAttendanceTrends[2]!, attendanceRate: 80 },
+        { ...mockAttendanceTrends[3]!, attendanceRate: 95 },
       ];
 
       const { container } = render(<AttendanceTrendsChart data={varyingData} />);

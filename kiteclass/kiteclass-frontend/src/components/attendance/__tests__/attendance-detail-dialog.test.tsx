@@ -271,9 +271,9 @@ describe('AttendanceDetailDialog', () => {
   describe('Grouping by Session', () => {
     it('groups records by session', () => {
       const multiSessionRecords = [
-        { ...mockAttendanceRecords[0], sessionNumber: 1 },
-        { ...mockAttendanceRecords[1], sessionNumber: 1 },
-        { ...mockAttendanceRecords[2], sessionNumber: 2 },
+        { ...mockAttendanceRecords[0]!, sessionNumber: 1 },
+        { ...mockAttendanceRecords[1]!, sessionNumber: 1 },
+        { ...mockAttendanceRecords[2]!, sessionNumber: 2 },
       ];
 
       render(
@@ -319,7 +319,7 @@ describe('AttendanceDetailDialog', () => {
           open={true}
           onOpenChange={mockOnOpenChange}
           date={testDate}
-          records={[mockAttendanceRecords[0]]}
+          records={[mockAttendanceRecords[0]!]}
         />
       );
 
