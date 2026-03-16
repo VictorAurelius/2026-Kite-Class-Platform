@@ -51,11 +51,14 @@ export const endpoints = {
     dashboard: `${API_BASE}/admin/dashboard`,
     revenue: `${API_BASE}/admin/revenue`,
     instances: `${API_BASE}/admin/instances`,
-    suspend: (id: number) => `${API_BASE}/admin/instances/${id}/suspend`,
-    activate: (id: number) => `${API_BASE}/admin/instances/${id}/activate`,
+    instanceById: (id: string) => `${API_BASE}/admin/instances/${id}`,
+    suspend: (id: string) => `${API_BASE}/admin/instances/${id}/suspend`,
+    activate: (id: string) => `${API_BASE}/admin/instances/${id}/activate`,
+    extendTrial: (id: string) => `${API_BASE}/instances/${id}/extend-trial`,
+    subscriptions: `${API_BASE}/admin/subscriptions`,
     pendingPayments: `${API_BASE}/admin/payments/pending`,
-    confirmPayment: (id: number) => `${API_BASE}/admin/payments/${id}/confirm`,
-    rejectPayment: (id: number) => `${API_BASE}/admin/payments/${id}/reject`,
+    confirmPayment: (id: string) => `${API_BASE}/admin/payments/${id}/confirm`,
+    rejectPayment: (id: string) => `${API_BASE}/admin/payments/${id}/reject`,
   },
 
   // Auth
