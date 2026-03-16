@@ -25,14 +25,15 @@ export function mockConfirm(returnValue = true) {
  * Mock a 404 Not Found response for a specific endpoint.
  *
  * @param endpoint - API endpoint pattern (supports wildcards)
+ * @param errorCode - Optional error code (default: 'NOT_FOUND')
  */
-export function mock404(endpoint: string) {
+export function mock404(endpoint: string, errorCode = 'NOT_FOUND') {
   server.use(
     http.get(endpoint, () => {
       return HttpResponse.json(
         {
           status: 404,
-          error: 'NOT_FOUND',
+          error: errorCode,
           message: 'Resource not found',
         },
         { status: 404 }

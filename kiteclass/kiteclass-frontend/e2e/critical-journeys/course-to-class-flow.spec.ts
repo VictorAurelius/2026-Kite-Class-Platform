@@ -45,7 +45,7 @@ test.describe('Critical Journey: Course Publishing & Class Creation', () => {
     // Select teacher (assume teacher with ID 1 exists from mocks)
     const teacherSelect = page.locator('button[role="combobox"]').first();
     await teacherSelect.click();
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
 
     // Submit form
     await page.click('button[type="submit"]');
@@ -149,7 +149,7 @@ test.describe('Critical Journey: Course Publishing & Class Creation', () => {
 
     // Select teacher
     await page.locator('button[role="combobox"]').first().click();
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
 
     // Submit
     await page.click('button[type="submit"]');
@@ -168,7 +168,7 @@ test.describe('Critical Journey: Course Publishing & Class Creation', () => {
 
     // For now, assume DRAFT courses don't appear in selector
     // If they do appear, we'd need to test that create class fails
-    const draftCourseOption = page.getByText(courseName);
+    // const draftCourseOption = page.getByText(courseName);
 
     // This might be visible or not depending on business rules
     // Just verify the page doesn't crash

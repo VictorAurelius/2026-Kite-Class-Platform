@@ -15,7 +15,6 @@ import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.
 import { server } from '@/mocks/server';
 import { http, HttpResponse } from 'msw';
 import { mockConfirm, mock404 } from '@/test/page-test-utils';
-import { ClassStatus } from '@/types/class';
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
@@ -124,7 +123,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
           success: true,
           data: {
             id: 1,
-            status: ClassStatus.IN_PROGRESS,
+            status: 'IN_PROGRESS',
             startedAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
@@ -160,7 +159,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
             courseId: 1,
             name: 'Lớp Đang Học',
             classCode: 'IN-PROGRESS-001',
-            status: ClassStatus.IN_PROGRESS,
+            status: 'IN_PROGRESS',
             schedule: 'Thứ 2, 4, 6: 08:00-10:00',
             locationType: 'IN_PERSON',
             locationDetail: 'Phòng A101',
@@ -197,7 +196,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
             courseId: 1,
             name: 'Lớp Đang Học',
             classCode: 'IN-PROGRESS-001',
-            status: ClassStatus.IN_PROGRESS,
+            status: 'IN_PROGRESS',
             currentEnrolled: 15,
             maxStudents: 30,
             createdAt: '2026-01-01T00:00:00Z',
@@ -210,7 +209,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
           success: true,
           data: {
             id: 1,
-            status: ClassStatus.COMPLETED,
+            status: 'COMPLETED',
             completedAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
@@ -248,7 +247,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
             courseId: 1,
             name: 'Lớp Đang Học',
             classCode: 'IN-PROGRESS-001',
-            status: ClassStatus.IN_PROGRESS,
+            status: 'IN_PROGRESS',
             currentEnrolled: 15,
             maxStudents: 30,
             createdAt: '2026-01-01T00:00:00Z',
@@ -284,7 +283,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
             courseId: 1,
             name: 'Lớp Đang Học',
             classCode: 'IN-PROGRESS-001',
-            status: ClassStatus.IN_PROGRESS,
+            status: 'IN_PROGRESS',
             currentEnrolled: 15,
             maxStudents: 30,
             createdAt: '2026-01-01T00:00:00Z',
@@ -324,7 +323,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
             courseId: 1,
             name: 'Lớp Đang Học',
             classCode: 'IN-PROGRESS-001',
-            status: ClassStatus.IN_PROGRESS,
+            status: 'IN_PROGRESS',
             currentEnrolled: 15,
             maxStudents: 30,
             createdAt: '2026-01-01T00:00:00Z',
@@ -339,7 +338,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
           success: true,
           data: {
             id: 1,
-            status: ClassStatus.CANCELLED,
+            status: 'CANCELLED',
             cancelReason: body.reason,
             cancelledAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -481,7 +480,7 @@ describe.skip('ClassDetailPage Integration - SKIPPED: Next.js 15 use(params) inc
             courseId: 1,
             name: 'Lớp Chưa Có Học Viên',
             classCode: 'EMPTY-001',
-            status: ClassStatus.SCHEDULED,
+            status: 'SCHEDULED',
             currentEnrolled: 0,
             maxStudents: 30,
             createdAt: '2026-01-01T00:00:00Z',

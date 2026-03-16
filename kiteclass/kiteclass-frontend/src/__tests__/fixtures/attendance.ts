@@ -5,12 +5,13 @@
  * @since 3.8.1 (PR 3.8.1)
  */
 
-import type {
-  Attendance,
-  AttendanceStatsResponse,
-  TodayClassSession,
-  AttendanceTrendPoint,
-  ClassAttendanceBreakdown,
+import {
+  AttendanceStatus,
+  type Attendance,
+  type AttendanceStatsResponse,
+  type TodayClassSession,
+  type AttendanceTrendPoint,
+  type ClassAttendanceBreakdown,
 } from '@/types/attendance';
 
 export const mockAttendanceStats: AttendanceStatsResponse = {
@@ -56,7 +57,7 @@ export const mockAttendanceRecords: Attendance[] = [
     studentName: 'Nguyễn Văn A',
     sessionId: 1,
     sessionNumber: 1,
-    status: 'PRESENT',
+    status: AttendanceStatus.PRESENT,
     markedDate: '2026-03-01T09:00:00Z',
     markedBy: 1,
     markedByName: 'GV Trần B',
@@ -71,7 +72,7 @@ export const mockAttendanceRecords: Attendance[] = [
     studentName: 'Nguyễn Văn A',
     sessionId: 2,
     sessionNumber: 2,
-    status: 'ABSENT',
+    status: AttendanceStatus.ABSENT,
     markedDate: '2026-03-03T09:00:00Z',
     markedBy: 1,
     markedByName: 'GV Trần B',
@@ -86,7 +87,7 @@ export const mockAttendanceRecords: Attendance[] = [
     studentName: 'Nguyễn Văn A',
     sessionId: 3,
     sessionNumber: 3,
-    status: 'LATE',
+    status: AttendanceStatus.LATE,
     markedDate: '2026-03-05T09:00:00Z',
     markedBy: 1,
     markedByName: 'GV Trần B',
@@ -101,7 +102,7 @@ export const mockAttendanceRecords: Attendance[] = [
     studentName: 'Nguyễn Văn A',
     sessionId: 4,
     sessionNumber: 4,
-    status: 'EXCUSED',
+    status: AttendanceStatus.EXCUSED,
     markedDate: '2026-03-07T09:00:00Z',
     markedBy: 1,
     markedByName: 'GV Trần B',
