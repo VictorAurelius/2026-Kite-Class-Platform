@@ -1,4 +1,9 @@
-import type { AdminInstanceSummary, AdminPayment } from '@/types/admin';
+import type {
+  AdminInstanceSummary,
+  AdminPayment,
+  DashboardStats,
+  RevenueReport,
+} from '@/types/admin';
 
 export const mockInstances: AdminInstanceSummary[] = [
   {
@@ -93,3 +98,26 @@ export const mockPendingPayments: AdminPayment[] = [
 
 export const mockEmptyInstances: AdminInstanceSummary[] = [];
 export const mockEmptyPayments: AdminPayment[] = [];
+
+export const mockDashboardStats: DashboardStats = {
+  totalInstances: 150,
+  activeInstances: 120,
+  trialInstances: 25,
+  suspendedInstances: 5,
+  totalRevenue: 450000000, // 450 million VND
+  monthlyRevenue: 89000000, // 89 million VND
+  pendingPayments: 8,
+  newInstancesThisMonth: 12,
+};
+
+export const mockRevenueReport: RevenueReport = {
+  items: [
+    { period: '2026-01', revenue: 75000000, paymentCount: 25 },
+    { period: '2026-02', revenue: 82000000, paymentCount: 28 },
+    { period: '2026-03', revenue: 89000000, paymentCount: 32 },
+  ],
+  totalRevenue: 246000000,
+  period: 'MONTHLY',
+  startDate: '2026-01-01',
+  endDate: '2026-03-31',
+};
