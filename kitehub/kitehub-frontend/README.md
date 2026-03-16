@@ -151,11 +151,115 @@ NEXT_PUBLIC_API_URL=https://api.kiteclass.com
 ### Development
 
 ```bash
-npm run dev      # Start dev server (http://localhost:3000)
+npm run dev      # Start dev server (http://localhost:3001)
 npm run build    # Production build
 npm run start    # Start production server
 npm run lint     # Run ESLint
 npm run format   # Format with Prettier
+npm run test     # Run unit tests
+npm run test:e2e # Run E2E tests
+```
+
+## Running with Docker
+
+### Docker Build
+
+```bash
+# Build Docker image
+cd kitehub/kitehub-frontend
+docker build -t kitehub-frontend:latest .
+
+# Verify image size (should be < 150MB)
+docker images kitehub-frontend:latest
+
+# Run container
+docker run -d \
+  --name kitehub-frontend \
+  -p 3001:3001 \
+  -e NEXT_PUBLIC_API_URL=http://localhost:9000 \
+  kitehub-frontend:latest
+
+# Check health
+curl http://localhost:3001/api/health
+
+# View logs
+docker logs -f kitehub-frontend
+
+# Stop container
+docker stop kitehub-frontend
+docker rm kitehub-frontend
+```
+
+### Docker Compose
+
+The recommended way to run KiteHub Frontend with all dependencies:
+
+```bash
+# From project root
+docker compose -f docker-compose.kitehub.yml up -d
+
+# View logs
+docker compose -f docker-compose.kitehub.yml logs -f kitehub-frontend
+
+# Stop services
+docker compose -f docker-compose.kitehub.yml down
+
+# Rebuild after code changes
+docker compose -f docker-compose.kitehub.yml up -d --build
+```
+
+### Environment Variables (Docker)
+
+Copy `.env.docker.example` to configure:
+
+```env
+# Required
+NEXT_PUBLIC_API_URL=http://gateway:9000   # Docker network
+NODE_ENV=production
+PORT=3001
+
+# Optional
+NEXT_TELEMETRY_DISABLED=1
+```
+
+### Docker Troubleshooting
+
+**Image too large (>150MB)**
+```bash
+# Check layer sizes
+docker history kitehub-frontend:latest
+
+# Common fixes:
+# - Ensure .dockerignore excludes node_modules
+# - Verify standalone output is enabled in next.config.js
+```
+
+**Container exits immediately**
+```bash
+# Check logs
+docker logs kitehub-frontend
+
+# Common issues:
+# - Missing standalone build: ensure 'pnpm build' ran successfully
+# - Port conflict: check if 3001 is already in use
+```
+
+**Health check fails**
+```bash
+# Test health endpoint inside container
+docker exec kitehub-frontend curl http://localhost:3001/api/health
+
+# Check if Next.js server started
+docker exec kitehub-frontend ps aux | grep node
+```
+
+**Can't connect to backend API**
+```bash
+# Verify API URL
+docker exec kitehub-frontend env | grep NEXT_PUBLIC_API_URL
+
+# Test connectivity from container
+docker exec kitehub-frontend curl http://gateway:9000/health
 ```
 
 ## API Integration
@@ -317,23 +421,66 @@ import { Button } from '@/components/ui/button';
 
 ## Deployment
 
-### Vercel (Recommended)
+### Option 1: Docker (Recommended for Production)
+
+**Prerequisites:**
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+
+**Steps:**
+```bash
+# 1. Build image
+docker build -t kitehub-frontend:v1.0.0 .
+
+# 2. Run with Docker Compose
+docker compose -f docker-compose.kitehub.yml up -d
+
+# 3. Verify deployment
+curl http://localhost:3001/api/health
+```
+
+**Production Checklist:**
+- [ ] Image size < 150MB
+- [ ] Health check responds within 3s
+- [ ] Environment variables configured
+- [ ] Logs accessible via `docker logs`
+- [ ] Auto-restart enabled (`restart: unless-stopped`)
+
+### Option 2: Vercel (Recommended for Staging)
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
 
-# Deploy
+# Deploy to production
 vercel --prod
 ```
 
-### Environment Variables
+**Environment Variables:**
 Set in Vercel dashboard:
-- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_API_URL` - Backend API URL
+
+### Option 3: Manual Build
+
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm run start
+
+# Or use PM2 for process management
+pm2 start npm --name "kitehub-frontend" -- start
+```
 
 ### Build Output
+
 ```bash
 npm run build
-# Output: .next/ folder
+# Output:
+# - .next/ folder (all build artifacts)
+# - .next/standalone/ folder (Docker-optimized)
+# - .next/static/ folder (static assets)
 ```
 
 ## Contributing

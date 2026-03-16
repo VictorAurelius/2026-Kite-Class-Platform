@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # KiteHub Frontend - Customer & Admin Portal
+  kitehub-frontend:
+    build:
+      context: ./kitehub/kitehub-frontend
+      dockerfile: Dockerfile
+    image: kitehub-frontend:latest
+    container_name: kitehub-frontend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - NEXT_PUBLIC_API_URL=http://gateway:9000
+      - NEXT_TELEMETRY_DISABLED=1
+    networks:
+      - kitehub-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    depends_on:
+      - gateway
+    labels:
+      - "com.kiteclass.service=kitehub-frontend"
+      - "com.kiteclass.environment=production"
+
+  # API Gateway (placeholder - to be implemented in PR 4.14)
+  gateway:
+    image: nginx:alpine
+    container_name: kitehub-gateway
+    ports:
+      - "9000:9000"
+    networks:
+      - kitehub-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    labels:
+      - "com.kiteclass.service=gateway"
+      - "com.kiteclass.environment=production"
+
+networks:
+  kitehub-network:
+    driver: bridge
+    name: kitehub-network
+
+volumes:
+  kitehub-data:
+    name: kitehub-data
