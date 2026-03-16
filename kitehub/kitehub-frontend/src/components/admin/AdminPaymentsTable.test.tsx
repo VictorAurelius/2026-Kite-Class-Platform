@@ -100,7 +100,7 @@ describe('AdminPaymentsTable', () => {
       expect(checkboxes.length).toBeGreaterThan(1);
 
       // Select first payment
-      await user.click(checkboxes[1]);
+      await user.click(checkboxes[1]!);
 
       // Should show bulk action bar
       expect(screen.getByText(/Đã chọn/)).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('AdminPaymentsTable', () => {
 
       // Click "select all" checkbox
       const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
+      await user.click(checkboxes[0]!);
 
       // Should show both selected
       expect(screen.getByText(/Đã chọn/)).toBeInTheDocument();
@@ -126,7 +126,7 @@ describe('AdminPaymentsTable', () => {
 
       // Select all
       const checkboxes = screen.getAllByRole('checkbox');
-      await user.click(checkboxes[0]);
+      await user.click(checkboxes[0]!);
 
       // Click "Bỏ chọn" button
       const deselectButton = screen.getByText('Bỏ chọn');
@@ -144,7 +144,7 @@ describe('AdminPaymentsTable', () => {
 
       // Find and click first "Xác nhận" button
       const confirmButtons = screen.getAllByRole('button', { name: /Xác nhận/i });
-      await user.click(confirmButtons[0]);
+      await user.click(confirmButtons[0]!);
 
       // Dialog should open
       await waitFor(() => {
@@ -158,7 +158,7 @@ describe('AdminPaymentsTable', () => {
 
       // Open dialog
       const confirmButtons = screen.getAllByRole('button', { name: /Xác nhận/i });
-      await user.click(confirmButtons[0]);
+      await user.click(confirmButtons[0]!);
 
       // Wait for dialog
       await waitFor(() => {
@@ -167,7 +167,7 @@ describe('AdminPaymentsTable', () => {
 
       // Find confirm button in dialog - it should be disabled
       const dialogButtons = screen.getAllByRole('button', { name: /Xác nhận/i });
-      const dialogConfirmButton = dialogButtons[dialogButtons.length - 1];
+      const dialogConfirmButton = dialogButtons[dialogButtons.length - 1]!;
 
       expect(dialogConfirmButton).toBeDisabled();
     });
@@ -178,7 +178,7 @@ describe('AdminPaymentsTable', () => {
 
       // Open dialog
       const confirmButtons = screen.getAllByRole('button', { name: /Xác nhận/i });
-      await user.click(confirmButtons[0]);
+      await user.click(confirmButtons[0]!);
 
       // Wait for dialog
       await waitFor(() => {
@@ -187,12 +187,12 @@ describe('AdminPaymentsTable', () => {
 
       // Enter transaction ID in text input
       const inputs = screen.getAllByRole('textbox');
-      const transactionInput = inputs[0];
+      const transactionInput = inputs[0]!;
       await user.type(transactionInput, 'TXN123456');
 
       // Find and click confirm in dialog
       const dialogButtons = screen.getAllByRole('button', { name: /Xác nhận/i });
-      const dialogConfirmButton = dialogButtons[dialogButtons.length - 1];
+      const dialogConfirmButton = dialogButtons[dialogButtons.length - 1]!;
       await user.click(dialogConfirmButton);
 
       // Mutation should be called
@@ -210,7 +210,7 @@ describe('AdminPaymentsTable', () => {
 
       // Open dialog
       const confirmButtons = screen.getAllByRole('button', { name: /Xác nhận/i });
-      await user.click(confirmButtons[0]);
+      await user.click(confirmButtons[0]!);
 
       // Wait for dialog
       await waitFor(() => {
@@ -235,7 +235,7 @@ describe('AdminPaymentsTable', () => {
 
       // Find and click first "Từ chối" button (in table row, not dialog)
       const rejectButtons = screen.getAllByRole('button', { name: /Từ chối/i });
-      await user.click(rejectButtons[0]);
+      await user.click(rejectButtons[0]!);
 
       // Dialog should open - look for dialog heading
       await waitFor(() => {
@@ -249,7 +249,7 @@ describe('AdminPaymentsTable', () => {
 
       // Open dialog
       const rejectButtons = screen.getAllByRole('button', { name: /Từ chối/i });
-      await user.click(rejectButtons[0]);
+      await user.click(rejectButtons[0]!);
 
       // Wait for dialog
       await waitFor(() => {
@@ -258,7 +258,7 @@ describe('AdminPaymentsTable', () => {
 
       // Find reject button in dialog - should be disabled without reason
       const dialogButtons = screen.getAllByRole('button', { name: /Từ chối/i });
-      const dialogRejectButton = dialogButtons[dialogButtons.length - 1];
+      const dialogRejectButton = dialogButtons[dialogButtons.length - 1]!;
 
       expect(dialogRejectButton).toBeDisabled();
     });
@@ -269,7 +269,7 @@ describe('AdminPaymentsTable', () => {
 
       // Open dialog
       const rejectButtons = screen.getAllByRole('button', { name: /Từ chối/i });
-      await user.click(rejectButtons[0]);
+      await user.click(rejectButtons[0]!);
 
       // Wait for dialog
       await waitFor(() => {
@@ -282,7 +282,7 @@ describe('AdminPaymentsTable', () => {
 
       // Click reject in dialog
       const dialogButtons = screen.getAllByRole('button', { name: /Từ chối/i });
-      const dialogRejectButton = dialogButtons[dialogButtons.length - 1];
+      const dialogRejectButton = dialogButtons[dialogButtons.length - 1]!;
       await user.click(dialogRejectButton);
 
       // Mutation should be called

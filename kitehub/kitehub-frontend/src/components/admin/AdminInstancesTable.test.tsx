@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@/test/test-utils';
+import { render, screen, waitFor } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import { AdminInstancesTable } from './AdminInstancesTable';
 import { mockInstances, mockEmptyInstances } from '@/test/mocks/admin-data';
@@ -149,7 +149,7 @@ describe('AdminInstancesTable', () => {
       render(<AdminInstancesTable instances={mockInstances} />);
 
       // Open status select
-      const statusSelect = screen.getAllByRole('combobox')[0];
+      const statusSelect = screen.getAllByRole('combobox')[0]!;
       await user.click(statusSelect);
 
       // Select ACTIVE
@@ -165,7 +165,7 @@ describe('AdminInstancesTable', () => {
       const user = userEvent.setup();
       render(<AdminInstancesTable instances={mockInstances} />);
 
-      const statusSelect = screen.getAllByRole('combobox')[0];
+      const statusSelect = screen.getAllByRole('combobox')[0]!;
       await user.click(statusSelect);
 
       const trialOption = screen.getByRole('option', { name: 'Dùng thử' });
@@ -179,7 +179,7 @@ describe('AdminInstancesTable', () => {
       const user = userEvent.setup();
       render(<AdminInstancesTable instances={mockInstances} />);
 
-      const statusSelect = screen.getAllByRole('combobox')[0];
+      const statusSelect = screen.getAllByRole('combobox')[0]!;
       await user.click(statusSelect);
 
       const suspendedOption = screen.getByRole('option', { name: 'Tạm ngưng' });
@@ -196,7 +196,7 @@ describe('AdminInstancesTable', () => {
       render(<AdminInstancesTable instances={mockInstances} />);
 
       // Second combobox is tier filter
-      const tierSelect = screen.getAllByRole('combobox')[1];
+      const tierSelect = screen.getAllByRole('combobox')[1]!;
       await user.click(tierSelect);
 
       const premiumOption = screen.getByRole('option', { name: 'Premium' });
@@ -217,7 +217,7 @@ describe('AdminInstancesTable', () => {
       await user.type(searchInput, 'Trung');
 
       // Filter by SUSPENDED (Trường DEF is suspended but doesn't match "Trung")
-      const statusSelect = screen.getAllByRole('combobox')[0];
+      const statusSelect = screen.getAllByRole('combobox')[0]!;
       await user.click(statusSelect);
       const suspendedOption = screen.getByRole('option', { name: 'Tạm ngưng' });
       await user.click(suspendedOption);
