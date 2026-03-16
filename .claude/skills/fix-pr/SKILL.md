@@ -1,6 +1,10 @@
-# Fix PR Quality Issues
+---
+name: fix-pr
+description: Fix quality issues identified by /check-pr for a specific PR
+disable-model-invocation: true
+---
 
-<command-name>fix-pr</command-name>
+# Fix PR Quality Issues
 
 **Usage:** `/fix-pr <PR-number>`
 
@@ -12,13 +16,13 @@
 
 ## Instructions
 
-Khi user invoke `/fix-pr <number>`:
+Khi user invoke `/fix-pr $ARGUMENTS`:
 
 ### Bước 1: Get PR Status & Check Results
 
 ```bash
 # Check if PR is merged
-gh pr view <number> --json state,mergedAt,headRefName
+gh pr view $ARGUMENTS --json state,mergedAt,headRefName
 
 # Get the check-pr results (from previous run or re-run)
 ```
@@ -31,7 +35,7 @@ gh pr view <number> --json state,mergedAt,headRefName
 
 ```bash
 # Checkout PR branch
-gh pr checkout <number>
+gh pr checkout $ARGUMENTS
 
 # Or if local branch exists
 git checkout <branch-name>
@@ -52,7 +56,7 @@ git checkout <branch-name>
 # Create follow-up branch
 git checkout main
 git pull origin main
-git checkout -b fix/PR-<number>-quality-improvements
+git checkout -b fix/PR-$ARGUMENTS-quality-improvements
 ```
 
 **Actions:**
@@ -69,7 +73,7 @@ git checkout -b fix/PR-<number>-quality-improvements
 **Nếu thiếu brainstorm:**
 
 ```markdown
-## Retroactive Brainstorm: PR-<number>
+## Retroactive Brainstorm: PR-$ARGUMENTS
 
 > Note: This brainstorm was created retroactively to document design decisions.
 
@@ -98,7 +102,7 @@ git checkout -b fix/PR-<number>-quality-improvements
 **Nếu thiếu breakdown:**
 
 ```markdown
-## Retroactive Task Breakdown: PR-<number>
+## Retroactive Task Breakdown: PR-$ARGUMENTS
 
 > Note: This breakdown was created retroactively.
 
@@ -125,7 +129,7 @@ git checkout -b fix/PR-<number>-quality-improvements
 
 **Option B: Document why tests not needed**
 ```markdown
-## Test Coverage Note: PR-<number>
+## Test Coverage Note: PR-$ARGUMENTS
 
 **Files without tests:**
 - `file1.ts` - Config only, no logic
@@ -140,7 +144,7 @@ git checkout -b fix/PR-<number>-quality-improvements
 **Nếu thiếu review evidence:**
 
 ```markdown
-## Retroactive Code Review: PR-<number>
+## Retroactive Code Review: PR-$ARGUMENTS
 
 ### Self-Review Checklist
 - [x] Code follows project conventions
@@ -166,7 +170,7 @@ git checkout -b fix/PR-<number>-quality-improvements
 **Detect Dependencies:**
 ```bash
 # Find PRs that depend on this one
-gh pr list --search "base:main" --json number,title,body | jq '.[] | select(.body | contains("PR-<number>"))'
+gh pr list --search "base:main" --json number,title,body | jq '.[] | select(.body | contains("PR-$ARGUMENTS"))'
 
 # Find PRs this one depends on
 # (Check PR description for references)
@@ -175,7 +179,7 @@ gh pr list --search "base:main" --json number,title,body | jq '.[] | select(.bod
 **Dependency Matrix:**
 
 ```markdown
-## Dependency Analysis: PR-<number>
+## Dependency Analysis: PR-$ARGUMENTS
 
 ### This PR depends on:
 | PR | Status | Impact |
@@ -190,7 +194,7 @@ gh pr list --search "base:main" --json number,title,body | jq '.[] | select(.bod
 | #B | Merged | May need follow-up fix |
 
 ### Recommended Fix Order:
-1. Fix PR-<number> first
+1. Fix PR-$ARGUMENTS first
 2. Then update PR-#A (rebase)
 3. Create follow-up for PR-#B if needed
 ```
@@ -212,14 +216,14 @@ gh pr list --search "base:main" --json number,title,body | jq '.[] | select(.bod
 
 ```bash
 # 1. Checkout branch
-gh pr checkout <number>
+gh pr checkout $ARGUMENTS
 
 # 2. Make fixes
 # [Add tests, update docs, etc.]
 
 # 3. Commit fixes
 git add .
-git commit -m "fix(quality): Add missing methodology artifacts for PR-<number>
+git commit -m "fix(quality): Add missing methodology artifacts for PR-$ARGUMENTS
 
 Changes:
 - Add retroactive brainstorm documentation
@@ -232,7 +236,7 @@ Quality improvement for Superpowers compliance."
 git push origin <branch>
 
 # 5. Update PR description
-gh pr edit <number> --body "$(cat <<'EOF'
+gh pr edit $ARGUMENTS --body "$(cat <<'EOF'
 [Updated PR description with methodology artifacts]
 EOF
 )"
@@ -242,7 +246,7 @@ EOF
 
 ```bash
 # 1. Create follow-up branch
-git checkout -b fix/PR-<number>-quality
+git checkout -b fix/PR-$ARGUMENTS-quality
 
 # 2. Add missing artifacts
 # - Tests
@@ -251,20 +255,20 @@ git checkout -b fix/PR-<number>-quality
 
 # 3. Commit
 git add .
-git commit -m "fix(quality): Add missing artifacts for PR-<number>
+git commit -m "fix(quality): Add missing artifacts for PR-$ARGUMENTS
 
 Retroactive quality improvements:
 - Add tests for [feature]
 - Document design decisions
 - [Other improvements]
 
-Follows up on PR #<number>."
+Follows up on PR #$ARGUMENTS."
 
 # 4. Create PR
-gh pr create --title "fix(quality): Quality improvements for PR-<number>" --body "$(cat <<'EOF'
+gh pr create --title "fix(quality): Quality improvements for PR-$ARGUMENTS" --body "$(cat <<'EOF'
 ## Summary
 
-Retroactive quality improvements for PR #<number>.
+Retroactive quality improvements for PR #$ARGUMENTS.
 
 ### Original PR Issues
 - [ ] Missing brainstorm → Added to docs
@@ -277,7 +281,7 @@ Retroactive quality improvements for PR #<number>.
 - [Other changes]
 
 ### Related
-- Follows up: #<number>
+- Follows up: #$ARGUMENTS
 - Depends on: #X (if any)
 - Blocks: #Y (if any)
 
@@ -294,10 +298,10 @@ EOF
 
 ### Bước 6: Verify Fix
 
-Sau khi fix, chạy lại `/check-pr <number>` để verify:
+Sau khi fix, chạy lại `/check-pr $ARGUMENTS` để verify:
 
 ```markdown
-## Fix Verification: PR-<number>
+## Fix Verification: PR-$ARGUMENTS
 
 ### Before Fix
 | Category | Score |
@@ -325,7 +329,7 @@ Sau khi fix, chạy lại `/check-pr <number>` để verify:
 ## Output Summary
 
 ```markdown
-## Fix Plan: PR-<number>
+## Fix Plan: PR-$ARGUMENTS
 
 ### Status
 - PR State: Open/Merged
@@ -352,7 +356,7 @@ Sau khi fix, chạy lại `/check-pr <number>` để verify:
 ### Next Steps
 1. [First action]
 2. [Second action]
-3. Run `/check-pr <number>` to verify
+3. Run `/check-pr $ARGUMENTS` to verify
 ```
 
 ---
@@ -366,9 +370,3 @@ Sau khi fix, chạy lại `/check-pr <number>` để verify:
 | PR Merged, missing tests | Follow-up PR with tests |
 | PR Merged, missing docs | Add to docs folder |
 | Multiple PRs affected | Create dependency graph, fix in order |
-
----
-
-**Version:** 1.0
-**Created:** 2026-03-16
-**Purpose:** Fix quality issues identified by /check-pr

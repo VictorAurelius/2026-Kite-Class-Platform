@@ -1,6 +1,10 @@
-# Start PR / Check PR Quality
+---
+name: start-pr
+description: Start a new PR with Superpowers methodology or check current PR quality
+disable-model-invocation: true
+---
 
-<command-name>start-pr</command-name>
+# Start PR / Check PR Quality
 
 **Usage:**
 - `/start-pr` - Check PR hiện tại (verify artifacts, quality)
@@ -10,7 +14,7 @@
 
 ## Instructions
 
-Khi user invoke `/start-pr`:
+Khi user invoke `/start-pr $ARGUMENTS`:
 
 ### Mode 1: Check PR hiện tại (không có argument)
 
@@ -170,9 +174,3 @@ Thực hiện breakdown theo `.claude/skills/task-breakdown-guide.md`:
 - `.claude/skills/task-breakdown-guide.md` - Detailed breakdown guide
 - `.claude/skills/tdd-enforcement.md` - TDD patterns
 - `.claude/skills/two-stage-code-review.md` - Self-review checklist
-
----
-
-**Version:** 1.0
-**Created:** 2026-03-16
-**Purpose:** Ensure Superpowers methodology compliance for every PR

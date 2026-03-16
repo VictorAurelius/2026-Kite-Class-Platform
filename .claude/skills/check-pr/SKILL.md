@@ -1,6 +1,10 @@
-# Check PR Quality
+---
+name: check-pr
+description: Audit a completed PR for Superpowers methodology compliance
+disable-model-invocation: true
+---
 
-<command-name>check-pr</command-name>
+# Check PR Quality
 
 **Usage:** `/check-pr <PR-number>`
 
@@ -10,19 +14,19 @@
 
 ## Instructions
 
-Khi user invoke `/check-pr <number>`:
+Khi user invoke `/check-pr $ARGUMENTS`:
 
 ### Bước 1: Fetch PR Information
 
 ```bash
 # Get PR details
-gh pr view <number> --json title,body,state,commits,files,additions,deletions,author,createdAt,mergedAt
+gh pr view $ARGUMENTS --json title,body,state,commits,files,additions,deletions,author,createdAt,mergedAt
 
 # Get commit history
-gh pr view <number> --json commits --jq '.commits[].messageHeadline'
+gh pr view $ARGUMENTS --json commits --jq '.commits[].messageHeadline'
 
 # Get files changed
-gh pr view <number> --json files --jq '.files[].path'
+gh pr view $ARGUMENTS --json files --jq '.files[].path'
 ```
 
 ### Bước 2: Analyze Superpowers Compliance
@@ -60,7 +64,7 @@ Kiểm tra từng tiêu chí:
 **Analyze commit order:**
 ```bash
 # Check if test files committed before/with implementation
-gh pr view <number> --json commits --jq '.commits[] | {sha: .oid[0:7], msg: .messageHeadline}'
+gh pr view $ARGUMENTS --json commits --jq '.commits[] | {sha: .oid[0:7], msg: .messageHeadline}'
 ```
 
 **Criteria:**
@@ -179,15 +183,9 @@ gh pr view <number> --json commits --jq '.commits[] | {sha: .oid[0:7], msg: .mes
 
 ---
 
-### Lessons Learned
+### Next Steps
 
-[What went well, what to improve]
-
-**Strengths:**
-- [What was done well]
-
-**Areas for Improvement:**
-- [What could be better next time]
+If score < 80, run `/fix-pr $ARGUMENTS` to create improvement plan.
 ```
 
 ---
@@ -207,18 +205,3 @@ gh pr view <number> --json commits --jq '.commits[] | {sha: .oid[0:7], msg: .mes
 - Task Breakdown: Tasks with estimates
 - TDD: Tests committed before implementation
 - Code Review: Self-review + test plan + clean commits
-
----
-
-## Related Skills
-
-- `.claude/skills/brainstorming-methodology.md` - Brainstorm criteria
-- `.claude/skills/task-breakdown-guide.md` - Breakdown criteria
-- `.claude/skills/tdd-enforcement.md` - TDD criteria
-- `.claude/skills/two-stage-code-review.md` - Review criteria
-
----
-
-**Version:** 1.0
-**Created:** 2026-03-16
-**Purpose:** Audit completed PRs for Superpowers methodology compliance
