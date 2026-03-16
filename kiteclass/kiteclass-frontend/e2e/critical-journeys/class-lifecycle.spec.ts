@@ -28,7 +28,7 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     await courseSelector.click();
 
     // Select first course from dropdown
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
     await page.waitForTimeout(1000); // Wait for classes to load
 
     // Step 3: Navigate to a SCHEDULED class detail page
@@ -95,7 +95,7 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     await page.click('a[href="/classes"]');
     const courseSelector = page.locator('button[role="combobox"]').first();
     await courseSelector.click();
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
     await page.waitForTimeout(1000);
 
     // Navigate to class detail
@@ -154,7 +154,7 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     await page.click('a[href="/classes"]');
     const courseSelector = page.locator('button[role="combobox"]').first();
     await courseSelector.click();
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
     await page.waitForTimeout(1000);
 
     await page.locator('table tbody tr').first().locator('button').first().click();
@@ -213,7 +213,7 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     await page.click('a[href="/classes"]');
     const courseSelector = page.locator('button[role="combobox"]').first();
     await courseSelector.click();
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
     await page.waitForTimeout(1000);
 
     await page.locator('table tbody tr').first().locator('button').first().click();
@@ -251,7 +251,7 @@ test.describe('Critical Journey: Class Lifecycle', () => {
     await page.click('a[href="/classes"]');
     const courseSelector = page.locator('button[role="combobox"]').first();
     await courseSelector.click();
-    await page.click('[role="option"]').first();
+    await page.locator('[role="option"]').first().click();
     await page.waitForTimeout(1000);
 
     await page.locator('table tbody tr').first().locator('button').first().click();

@@ -18,7 +18,7 @@ import path from 'path';
 test.describe('Branding Settings', () => {
   test.beforeEach(async ({ page }) => {
     // Login as owner/admin
-    await login(page, 'owner@kiteclass.local', 'Admin@123');
+    await login(page);
 
     // Navigate to settings
     await page.goto('/settings');
@@ -124,7 +124,7 @@ test.describe('Branding Settings', () => {
 
       if (hasColorInput) {
         // Get current color
-        const currentColor = await colorInput.inputValue();
+        const _currentColor = await colorInput.inputValue();
 
         // Change color
         await colorInput.fill('#FF5733');
