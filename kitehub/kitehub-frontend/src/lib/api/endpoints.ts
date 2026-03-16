@@ -32,11 +32,11 @@ export const endpoints = {
 
   // Branding
   branding: {
-    analyzelogo: `${API_BASE}/branding/ai/analyze-logo`,
-    jobs: `${API_BASE}/branding/jobs`,
-    jobById: (id: number) => `${API_BASE}/branding/jobs/${id}`,
-    jobAssets: (id: number) => `${API_BASE}/branding/jobs/${id}/assets`,
     uploadAsset: (instanceId: number, type: string) => `${API_BASE}/branding/assets/${instanceId}/${type}`,
+    analyzeLogo: `${API_BASE}/branding/ai/analyze-logo`,
+    jobs: `${API_BASE}/branding/jobs`,
+    jobById: (id: string) => `${API_BASE}/branding/jobs/${id}`,
+    jobAssets: (id: string) => `${API_BASE}/branding/jobs/${id}/assets`,
     listAssets: (instanceId: number) => `${API_BASE}/branding/assets/${instanceId}`,
     generateContent: `${API_BASE}/branding/content/generate`,
   },
