@@ -123,9 +123,6 @@ test.describe('Branding Settings', () => {
       const hasColorInput = await colorInput.isVisible().catch(() => false);
 
       if (hasColorInput) {
-        // Get current color
-        const _currentColor = await colorInput.inputValue();
-
         // Change color
         await colorInput.fill('#FF5733');
 

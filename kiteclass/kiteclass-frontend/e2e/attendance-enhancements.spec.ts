@@ -293,7 +293,7 @@ test.describe('Attendance Enhancements - PR 3.8.1', () => {
 
       // Get current month
       const monthTitle = page.locator('h3').first();
-      const currentMonth = await monthTitle.textContent();
+      const _currentMonth = await monthTitle.textContent();
 
       // Click next month button
       const nextButton = page.locator('button').filter({ has: page.locator('svg') }).last();
@@ -384,7 +384,7 @@ test.describe('Attendance Enhancements - PR 3.8.1', () => {
       await expect(page.locator('.grid-cols-7')).toBeVisible({ timeout: 5000 });
 
       // Should show appropriate empty state messages
-      const emptyMessage = page.locator('text=/Chưa có lịch sử|Không có dữ liệu/i');
+      const _emptyMessage = page.locator('text=/Chưa có lịch sử|Không có dữ liệu/i');
       // Empty message might or might not be visible depending on data
     });
   });
