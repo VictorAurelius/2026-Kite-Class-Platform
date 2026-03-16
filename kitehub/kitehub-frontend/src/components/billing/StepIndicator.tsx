@@ -7,7 +7,7 @@ interface StepIndicatorProps {
   totalSteps: number;
 }
 
-export function StepIndicator({ currentStep, totalSteps }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, totalSteps: _totalSteps }: StepIndicatorProps) {
   const steps = [
     { number: 1, label: 'Chọn gói' },
     { number: 2, label: 'Xác nhận' },

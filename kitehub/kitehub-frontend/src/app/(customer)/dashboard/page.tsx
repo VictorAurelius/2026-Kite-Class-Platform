@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { EmptyState } from '@/components/common/EmptyState';
+import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 
 export default function DashboardPage() {
@@ -37,10 +38,11 @@ export default function DashboardPage() {
         <EmptyState
           title="Chưa có instance nào"
           description="Tạo instance KiteClass đầu tiên để bắt đầu quản lý trung tâm giáo dục"
-          action={{
-            label: 'Tạo instance mới',
-            onClick: () => window.location.href = '/register',
-          }}
+          action={
+            <Button onClick={() => window.location.href = '/register'}>
+              Tạo instance mới
+            </Button>
+          }
         />
       )}
 

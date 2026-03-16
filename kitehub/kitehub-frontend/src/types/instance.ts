@@ -12,6 +12,9 @@ export interface Instance {
   databaseName: string;
   createdAt: string;
   updatedAt: string;
+  // Custom domain settings (PR 5.6)
+  customDomain?: string | null;
+  customDomainVerified?: boolean;
 }
 
 export type SubscriptionTier = 'FREE' | 'BASIC' | 'PREMIUM' | 'ENTERPRISE';

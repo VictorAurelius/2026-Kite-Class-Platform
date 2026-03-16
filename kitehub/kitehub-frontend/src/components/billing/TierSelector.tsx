@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { PLAN_DETAILS, formatPrice, getTierRank, type PricingTier } from '@/lib/pricing';
 
 interface TierSelectorProps {

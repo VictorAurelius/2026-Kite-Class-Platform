@@ -1,4 +1,5 @@
-import type { SubscriptionTier } from './instance';
+// SubscriptionTier is defined in ./instance.ts but we use PricingTier here
+// import type { SubscriptionTier } from './instance';
 
 export type BillingCycle = 'MONTHLY' | 'ANNUALLY';
 export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PENDING';

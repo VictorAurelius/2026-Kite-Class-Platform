@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { Subscription, TierChangeRequest, PricingTier } from '@/types/subscription';
+import type { Subscription, PricingTier } from '@/types/subscription';
 import type { ApiResponse } from '@/types/api';
 
 /**
@@ -58,7 +58,7 @@ export function useUpgradeSubscription() {
       );
       return data.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate all subscription queries
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
     },

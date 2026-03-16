@@ -19,7 +19,7 @@ export default function BillingPage() {
   const instanceId = instances?.[0]?.id;
 
   // Get active subscription
-  const { data: subscription, isLoading: subLoading, error: subError } = useActiveSubscription(instanceId);
+  const { data: subscription, isLoading: subLoading, error: subError } = useActiveSubscription(instanceId?.toString());
 
   // Handle success messages from redirects
   useEffect(() => {

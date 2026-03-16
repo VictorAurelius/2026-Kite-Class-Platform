@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import type { PaymentStatus } from '@/types/payment';
