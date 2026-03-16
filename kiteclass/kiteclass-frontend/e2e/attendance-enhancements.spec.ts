@@ -291,9 +291,9 @@ test.describe('Attendance Enhancements - PR 3.8.1', () => {
       await page.goto('/students/1/attendance');
       await page.waitForLoadState('networkidle');
 
-      // Get current month
+      // Get current month (used to verify navigation worked)
       const monthTitle = page.locator('h3').first();
-      const _currentMonth = await monthTitle.textContent();
+      void (await monthTitle.textContent());
 
       // Click next month button
       const nextButton = page.locator('button').filter({ has: page.locator('svg') }).last();
@@ -383,8 +383,8 @@ test.describe('Attendance Enhancements - PR 3.8.1', () => {
       // Should render calendar even with no data
       await expect(page.locator('.grid-cols-7')).toBeVisible({ timeout: 5000 });
 
-      // Should show appropriate empty state messages
-      const _emptyMessage = page.locator('text=/Chưa có lịch sử|Không có dữ liệu/i');
+      // Should show appropriate empty state messages (locator exists even if not visible)
+      void page.locator('text=/Chưa có lịch sử|Không có dữ liệu/i');
       // Empty message might or might not be visible depending on data
     });
   });

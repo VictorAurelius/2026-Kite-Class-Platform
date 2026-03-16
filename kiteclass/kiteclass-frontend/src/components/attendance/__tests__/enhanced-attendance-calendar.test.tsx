@@ -9,6 +9,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { EnhancedAttendanceCalendar } from '../enhanced-attendance-calendar';
 import { mockAttendanceRecords } from '@/__tests__/fixtures/attendance';
+import { AttendanceStatus } from '@/types/attendance';
 
 describe('EnhancedAttendanceCalendar', () => {
   describe('Rendering', () => {
@@ -115,7 +116,7 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const _currentMonth = screen.getByText(/tháng/i).textContent;
+      void screen.getByText(/tháng/i).textContent;
 
       // Click previous button (first chevron button)
       const buttons = screen.getAllByRole('button');
@@ -138,11 +139,11 @@ describe('EnhancedAttendanceCalendar', () => {
         <EnhancedAttendanceCalendar attendanceRecords={mockAttendanceRecords} />
       );
 
-      const _currentMonth = screen.getByText(/tháng/i).textContent;
+      void screen.getByText(/tháng/i).textContent;
 
       // Click next button (last chevron button)
       const buttons = screen.getAllByRole('button');
-      const nextButton = buttons[buttons.length - 1];
+      const nextButton = buttons[buttons.length - 1]!;
 
       fireEvent.click(nextButton);
 
@@ -232,9 +233,9 @@ describe('EnhancedAttendanceCalendar', () => {
     it('applies green background for high attendance dates', () => {
       const highAttendanceRecords = [
         ...Array(10).fill(null).map((_, i) => ({
-          ...mockAttendanceRecords[0],
+          ...mockAttendanceRecords[0]!,
           id: i + 1,
-          status: 'PRESENT' as const,
+          status: AttendanceStatus.PRESENT,
         })),
       ];
 
@@ -249,9 +250,9 @@ describe('EnhancedAttendanceCalendar', () => {
     it('applies red background for low attendance dates', () => {
       const lowAttendanceRecords = [
         ...Array(10).fill(null).map((_, i) => ({
-          ...mockAttendanceRecords[1], // ABSENT
+          ...mockAttendanceRecords[1]!, // ABSENT
           id: i + 1,
-          status: 'ABSENT' as const,
+          status: AttendanceStatus.ABSENT,
         })),
       ];
 

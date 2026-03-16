@@ -89,7 +89,7 @@ describe('Course Form Validation - Optional Fields', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Thời lượng phải >= 1 tuần');
+        expect(result.error.issues[0]!.message).toContain('Thời lượng phải >= 1 tuần');
       }
     });
 
@@ -100,7 +100,7 @@ describe('Course Form Validation - Optional Fields', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Thời lượng phải >= 1 tuần');
+        expect(result.error.issues[0]!.message).toContain('Thời lượng phải >= 1 tuần');
       }
     });
   });
@@ -157,7 +157,7 @@ describe('Course Form Validation - Optional Fields', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Số buổi phải >= 1');
+        expect(result.error.issues[0]!.message).toContain('Số buổi phải >= 1');
       }
     });
 
@@ -168,7 +168,7 @@ describe('Course Form Validation - Optional Fields', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Số buổi phải >= 1');
+        expect(result.error.issues[0]!.message).toContain('Số buổi phải >= 1');
       }
     });
   });
@@ -236,7 +236,7 @@ describe('Course Form Validation - Optional Fields', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('URL ảnh không hợp lệ');
+        expect(result.error.issues[0]!.message).toContain('URL ảnh không hợp lệ');
       }
     });
 
@@ -247,7 +247,7 @@ describe('Course Form Validation - Optional Fields', () => {
       });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('URL ảnh không hợp lệ');
+        expect(result.error.issues[0]!.message).toContain('URL ảnh không hợp lệ');
       }
     });
   });

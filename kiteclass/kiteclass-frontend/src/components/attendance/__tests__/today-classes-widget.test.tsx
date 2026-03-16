@@ -118,9 +118,9 @@ describe('TodayClassesWidget', () => {
 
     it('shows correct pending count', () => {
       const sessions = [
-        { ...mockTodayClassSessions[0], attendanceMarked: false },
-        { ...mockTodayClassSessions[1], attendanceMarked: true },
-        { ...mockTodayClassSessions[2], attendanceMarked: false },
+        { ...mockTodayClassSessions[0]!, attendanceMarked: false },
+        { ...mockTodayClassSessions[1]!, attendanceMarked: true },
+        { ...mockTodayClassSessions[2]!, attendanceMarked: false },
       ];
 
       render(<TodayClassesWidget sessions={sessions} isLoading={false} />);
@@ -201,7 +201,7 @@ describe('TodayClassesWidget', () => {
 
     it('updates count when sessions change', () => {
       const { rerender } = render(
-        <TodayClassesWidget sessions={[mockTodayClassSessions[0]]} isLoading={false} />
+        <TodayClassesWidget sessions={[mockTodayClassSessions[0]!]} isLoading={false} />
       );
 
       expect(screen.getByText(/Lớp học hôm nay \(1\)/)).toBeInTheDocument();

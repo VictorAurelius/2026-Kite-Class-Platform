@@ -203,7 +203,7 @@ describe('ClassStatsTable', () => {
 
       // First table row should have highest rate (91.1%)
       expect(rates.length).toBeGreaterThan(0);
-      expect(rates[0].textContent).toContain('91.1');
+      expect(rates[0]!.textContent).toContain('91.1');
     });
 
     it('sorts by class name ascending', () => {
@@ -238,7 +238,7 @@ describe('ClassStatsTable', () => {
   describe('Edge Cases', () => {
     it('handles single class', () => {
       render(
-        <ClassStatsTable data={[mockClassBreakdown[0]]} isLoading={false} />
+        <ClassStatsTable data={[mockClassBreakdown[0]!]} isLoading={false} />
       );
 
       expect(screen.getByText('Tổng lớp học')).toBeInTheDocument();
@@ -259,7 +259,7 @@ describe('ClassStatsTable', () => {
     it('handles zero attendance rate', () => {
       const dataWithZeroRate = [
         {
-          ...mockClassBreakdown[0],
+          ...mockClassBreakdown[0]!,
           attendanceRate: 0,
           presentCount: 0,
         },
@@ -274,7 +274,7 @@ describe('ClassStatsTable', () => {
     it('handles perfect attendance rate', () => {
       const dataWithPerfectRate = [
         {
-          ...mockClassBreakdown[0],
+          ...mockClassBreakdown[0]!,
           attendanceRate: 100,
           absentCount: 0,
         },

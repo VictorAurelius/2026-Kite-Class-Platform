@@ -96,7 +96,7 @@ describe('NewCoursePage Integration', () => {
       expect(screen.getAllByText(/nguyễn thị giáo/i).length).toBeGreaterThan(0);
     });
     const teacherOptions = screen.getAllByText(/nguyễn thị giáo/i);
-    await user.click(teacherOptions[teacherOptions.length - 1]); // Click last one (Portal render)
+    await user.click(teacherOptions[teacherOptions.length - 1]!); // Click last one (Portal render)
 
     // Submit form
     const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
@@ -158,7 +158,7 @@ describe('NewCoursePage Integration', () => {
     await user.click(screen.getByRole('combobox'));
     await waitFor(() => expect(screen.getAllByText(/nguyễn thị giáo/i).length).toBeGreaterThan(0));
     const teacherOptions = screen.getAllByText(/nguyễn thị giáo/i);
-    await user.click(teacherOptions[teacherOptions.length - 1]);
+    await user.click(teacherOptions[teacherOptions.length - 1]!);
 
     // Submit form
     const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
@@ -215,7 +215,7 @@ describe('NewCoursePage Integration', () => {
     await user.click(screen.getByRole('combobox'));
     await waitFor(() => expect(screen.getAllByText(/nguyễn thị giáo/i).length).toBeGreaterThan(0));
     const teacherOptions = screen.getAllByText(/nguyễn thị giáo/i);
-    await user.click(teacherOptions[teacherOptions.length - 1]);
+    await user.click(teacherOptions[teacherOptions.length - 1]!);
 
     // Submit form
     const submitButton = screen.getByRole('button', { name: /tạo khóa học/i });
