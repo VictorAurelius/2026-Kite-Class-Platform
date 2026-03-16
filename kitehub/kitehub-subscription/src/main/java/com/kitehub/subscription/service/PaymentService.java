@@ -220,4 +220,84 @@ public class PaymentService {
 
         return payment.getQrCodeUrl();
     }
+
+    // ==================== ADMIN METHODS ====================
+
+    /**
+     * Get all pending payments (Admin).
+     *
+     * @return List of pending payment responses
+     */
+    @Transactional(readOnly = true)
+    public List<PaymentResponse> getPendingPayments() {
+        log.info("Admin fetching pending payments");
+        List<Payment> payments = paymentRepository.findPendingPayments();
+        return payments.stream()
+            .map(PaymentResponse::fromEntity)
+            .toList();
+    }
+
+    /**
+     * Confirm payment manually (Admin).
+     *
+     * @param paymentId Payment UUID
+     * @param transactionId Bank transaction ID
+     * @return Updated payment response
+     * @throws IllegalArgumentException if payment not found or not pending
+     */
+    @Transactional
+    public PaymentResponse confirmPayment(UUID paymentId, String transactionId) {
+        log.info("Admin confirming payment: {} with transactionId: {}", paymentId, transactionId);
+
+        Payment payment = paymentRepository.findById(paymentId)
+            .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new IllegalArgumentException("Payment is not pending: " + payment.getStatus());
+        }
+
+        // Mark payment as completed
+        payment.complete(transactionId);
+        payment = paymentRepository.save(payment);
+
+        log.info("Payment confirmed: {} for subscription: {}", payment.getId(), payment.getSubscriptionId());
+
+        // Trigger subscription activation
+        try {
+            subscriptionService.activateSubscription(payment.getSubscriptionId());
+            log.info("Subscription activated: {}", payment.getSubscriptionId());
+        } catch (Exception e) {
+            log.error("Failed to activate subscription: {}", payment.getSubscriptionId(), e);
+        }
+
+        return PaymentResponse.fromEntity(payment);
+    }
+
+    /**
+     * Reject payment manually (Admin).
+     *
+     * @param paymentId Payment UUID
+     * @param reason Rejection reason
+     * @return Updated payment response
+     * @throws IllegalArgumentException if payment not found or not pending
+     */
+    @Transactional
+    public PaymentResponse rejectPayment(UUID paymentId, String reason) {
+        log.info("Admin rejecting payment: {} with reason: {}", paymentId, reason);
+
+        Payment payment = paymentRepository.findById(paymentId)
+            .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new IllegalArgumentException("Payment is not pending: " + payment.getStatus());
+        }
+
+        // Mark payment as failed
+        payment.fail();
+        payment = paymentRepository.save(payment);
+
+        log.info("Payment rejected: {} (reason: {})", payment.getId(), reason);
+
+        return PaymentResponse.fromEntity(payment);
+    }
 }
