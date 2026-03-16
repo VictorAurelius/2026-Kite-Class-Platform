@@ -11,7 +11,7 @@ import { login } from './helpers/auth';
 test.describe('Billing & Payment System', () => {
   test.beforeEach(async ({ page }) => {
     // Login as owner/admin before each test
-    await login(page, 'owner@kiteclass.local', 'Admin@123');
+    await login(page);
   });
 
   test('displays invoice list', async ({ page }) => {

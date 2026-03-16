@@ -212,13 +212,13 @@ test.describe('Critical Journey: Dashboard Navigation', () => {
     await page.click('a[href="/classes"]');
 
     // Initially no create button (must select course first)
-    const initialCreateButton = page.getByRole('link', { name: /thêm lớp học/i });
+    // const initialCreateButton = page.getByRole('link', { name: /thêm lớp học/i });
 
     // Select a course
     const courseSelector = page.locator('button[role="combobox"]').first();
     if (await courseSelector.isVisible()) {
       await courseSelector.click();
-      await page.click('[role="option"]').first();
+      await page.locator('[role="option"]').first().click();
       await page.waitForTimeout(500);
 
       // Now create button should appear

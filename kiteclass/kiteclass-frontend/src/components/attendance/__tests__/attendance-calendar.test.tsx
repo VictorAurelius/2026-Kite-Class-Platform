@@ -5,6 +5,7 @@
  * @since 2.7.0 (PR 3.8)
  */
 
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AttendanceCalendar } from '../attendance-calendar';
 import { AttendanceStatus } from '@/types/attendance';
@@ -67,7 +68,7 @@ describe('AttendanceCalendar', () => {
   });
 
   it.skip('calls onDateClick when a date with attendance is clicked', () => {
-    const mockOnDateClick = jest.fn();
+    const mockOnDateClick = vi.fn();
 
     render(
       <AttendanceCalendar

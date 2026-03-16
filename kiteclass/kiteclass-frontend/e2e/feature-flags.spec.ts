@@ -14,7 +14,7 @@ import { login } from './helpers/auth';
 test.describe('Feature Flags & Tier-Based Access', () => {
   test.beforeEach(async ({ page }) => {
     // Login as owner (default tier: FREE or BASIC)
-    await login(page, 'owner@kiteclass.local', 'Admin@123');
+    await login(page);
   });
 
   test('displays subscription tier in settings', async ({ page }) => {

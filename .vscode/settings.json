@@ -1,7 +1,7 @@
 {
   // ========== TypeScript / Next.js ==========
-  // Enable TypeScript strict checking in IDE (shows errors without running build)
-  "typescript.tsdk": "kitehub/kitehub-frontend/node_modules/typescript/lib",
+  // Let VS Code auto-detect TypeScript per project (works for monorepo)
+  // Each frontend (kiteclass-frontend, kitehub-frontend) uses its own node_modules/typescript
   "typescript.enablePromptUseWorkspaceTsdk": true,
 
   // Enable Next.js plugin for better type checking
