@@ -1,3 +1,5 @@
+name: kitehub
+
 services:
   # ============================================================================
   # INFRASTRUCTURE SERVICES
@@ -11,7 +13,7 @@ services:
       POSTGRES_USER: kitehub
       POSTGRES_PASSWORD: kitehub_dev_password
     ports:
-      - "5433:5432"  # Avoid conflict with KiteClass postgres (5432)
+      - "5433:5432"
     volumes:
       - kitehub-postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +28,7 @@ services:
     image: redis:7-alpine
     container_name: kitehub-redis
     ports:
-      - "6380:6379"  # Avoid conflict with KiteClass redis (6379)
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -42,8 +44,8 @@ services:
       RABBITMQ_DEFAULT_USER: kitehub
       RABBITMQ_DEFAULT_PASS: kitehub_dev_password
     ports:
-      - "5673:5672"   # AMQP port (avoid conflict with KiteClass: 5672)
-      - "15673:15672" # Management UI
+      - "5673:5672"
+      - "15673:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -60,8 +62,8 @@ services:
       MINIO_ROOT_USER: kitehub
       MINIO_ROOT_PASSWORD: kitehub_dev_password
     ports:
-      - "9100:9000"  # API port (avoid conflict with KiteClass: 9000)
-      - "9191:9091"  # Console port (avoid conflict with KiteClass: 9001)
+      - "9100:9000"
+      - "9191:9091"
     volumes:
       - kitehub-minio-data:/data
     healthcheck:
@@ -72,13 +74,15 @@ services:
     networks:
       - kitehub-network
 
-  # MinIO Client - Create default bucket
+  # Init container: Creates MinIO bucket on first run, then exits
+  # Status "Exited (0)" is expected - means setup completed successfully
   kitehub-minio-setup:
     image: minio/mc:latest
     container_name: kitehub-minio-setup
     depends_on:
       kitehub-minio:
         condition: service_healthy
+    restart: on-failure
     entrypoint: >
       /bin/sh -c "
       mc alias set kitehub http://kitehub-minio:9000 kitehub kitehub_dev_password;
@@ -90,7 +94,22 @@ services:
       - kitehub-network
 
   # ============================================================================
-  # PLATFORM SERVICES
+  # BASE IMAGE - Build first, used by all backend services
+  # ============================================================================
+
+  kitehub-base:
+    build:
+      context: .
+      dockerfile: kitehub-base/Dockerfile
+    image: kitehub-base:latest
+    container_name: kitehub-base
+    # This is a build-only service, no runtime container needed
+    command: ["echo", "Base image built successfully"]
+    profiles:
+      - build-only
+
+  # ============================================================================
+  # PLATFORM SERVICES - All extend kitehub-base
   # ============================================================================
 
   kitehub-subscription:
@@ -123,8 +142,6 @@ services:
     networks:
       - kitehub-network
     restart: unless-stopped
-    labels:
-      - "com.kitehub.service=subscription"
 
   kitehub-branding:
     build:
@@ -145,7 +162,6 @@ services:
       SPRING_RABBITMQ_USERNAME: kitehub
       SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder}
-      # MinIO S3 Configuration
       AWS_ACCESS_KEY_ID: kitehub
       AWS_SECRET_ACCESS_KEY: kitehub_dev_password
       S3_ENDPOINT: http://kitehub-minio:9000
@@ -167,8 +183,6 @@ services:
     networks:
       - kitehub-network
     restart: unless-stopped
-    labels:
-      - "com.kitehub.service=branding"
 
   kitehub-email:
     build:
@@ -185,7 +199,6 @@ services:
       SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
       AWS_SES_REGION: ap-southeast-1
       AWS_SES_FROM_EMAIL: noreply@kiteclass.com
-      # Mock mode for local dev (no real emails sent)
       EMAIL_MOCK_MODE: "true"
     ports:
       - "8084:8080"
@@ -195,8 +208,6 @@ services:
     networks:
       - kitehub-network
     restart: unless-stopped
-    labels:
-      - "com.kitehub.service=email"
 
   kitehub-admin:
     build:
@@ -222,8 +233,6 @@ services:
     networks:
       - kitehub-network
     restart: unless-stopped
-    labels:
-      - "com.kitehub.service=admin"
 
   kitehub-gateway:
     build:
@@ -239,7 +248,6 @@ services:
       REDIS_HOST: kitehub-redis
       REDIS_PORT: 6379
       SERVER_PORT: 9000
-      # Service discovery (hardcoded for local dev)
       SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
       BRANDING_SERVICE_URL: http://kitehub-branding:8080
       EMAIL_SERVICE_URL: http://kitehub-email:8080
@@ -262,8 +270,6 @@ services:
     networks:
       - kitehub-network
     restart: unless-stopped
-    labels:
-      - "com.kitehub.service=gateway"
 
   # ============================================================================
   # FRONTEND SERVICE
@@ -287,8 +293,6 @@ services:
     networks:
       - kitehub-network
     restart: unless-stopped
-    labels:
-      - "com.kitehub.service=frontend"
 
 volumes:
   kitehub-postgres-data:
