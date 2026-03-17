@@ -133,6 +133,9 @@ services:
     container_name: kitehub-branding
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+      DATABASE_USERNAME: kitehub
+      DATABASE_PASSWORD: kitehub_dev_password
       SPRING_REDIS_HOST: kitehub-redis
       SPRING_REDIS_PORT: 6379
       SPRING_RABBITMQ_HOST: kitehub-rabbitmq
@@ -151,6 +154,8 @@ services:
     ports:
       - "8083:8080"
     depends_on:
+      kitehub-postgres:
+        condition: service_healthy
       kitehub-redis:
         condition: service_healthy
       kitehub-rabbitmq:
