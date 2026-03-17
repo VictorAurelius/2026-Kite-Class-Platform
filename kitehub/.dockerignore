@@ -1,0 +1,43 @@
+# Build artifacts
+**/target/
+**/*.jar
+**/*.class
+
+# IDE
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# Git
+.git/
+.gitignore
+**/.gitkeep
+
+# Documentation
+*.md
+LICENSE
+docs/
+
+# Test files (not needed in Docker)
+**/src/test/
+
+# Frontend (has its own Dockerfile)
+kitehub-frontend/
+
+# Maven wrapper (will use installed Maven in Docker)
+.mvn/
+mvnw
+mvnw.cmd
+
+# Logs
+**/*.log
+
+# Docker files (prevent recursive copy)
+**/Dockerfile
+**/.dockerignore
+docker-compose*.yml
+
+# Editor temp files
+**/*~
+**/*.swp
+**/*.swo

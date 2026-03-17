@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # ============================================================================
   # INFRASTRUCTURE SERVICES
@@ -92,170 +90,191 @@ services:
       - kitehub-network
 
   # ============================================================================
-  # PLATFORM SERVICES (Uncomment when implementing)
+  # PLATFORM SERVICES
   # ============================================================================
 
-  # kitehub-subscription:
-  #   build:
-  #     context: ./kitehub-subscription
-  #     dockerfile: Dockerfile
-  #   container_name: kitehub-subscription
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
-  #     SPRING_DATASOURCE_USERNAME: kitehub
-  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
-  #     SPRING_REDIS_HOST: kitehub-redis
-  #     SPRING_REDIS_PORT: 6379
-  #     SPRING_RABBITMQ_HOST: kitehub-rabbitmq
-  #     SPRING_RABBITMQ_PORT: 5672
-  #     SPRING_RABBITMQ_USERNAME: kitehub
-  #     SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
-  #   ports:
-  #     - "8081:8080"
-  #   depends_on:
-  #     kitehub-postgres:
-  #       condition: service_healthy
-  #     kitehub-redis:
-  #       condition: service_healthy
-  #     kitehub-rabbitmq:
-  #       condition: service_healthy
-  #   networks:
-  #     - kitehub-network
-  #   restart: unless-stopped
+  kitehub-subscription:
+    build:
+      context: .
+      dockerfile: kitehub-subscription/Dockerfile
+    image: kitehub-subscription:latest
+    container_name: kitehub-subscription
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+      SPRING_DATASOURCE_USERNAME: kitehub
+      SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: kitehub
+      SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
+    ports:
+      - "8081:8080"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-rabbitmq:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    labels:
+      - "com.kitehub.service=subscription"
 
-  # kitehub-payment:
-  #   build:
-  #     context: ./kitehub-payment
-  #     dockerfile: Dockerfile
-  #   container_name: kitehub-payment
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
-  #     SPRING_DATASOURCE_USERNAME: kitehub
-  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
-  #     SPRING_REDIS_HOST: kitehub-redis
-  #     SPRING_REDIS_PORT: 6379
-  #     VIETQR_API_KEY: ${VIETQR_API_KEY}
-  #     VIETQR_API_SECRET: ${VIETQR_API_SECRET}
-  #   ports:
-  #     - "8082:8080"
-  #   depends_on:
-  #     kitehub-postgres:
-  #       condition: service_healthy
-  #     kitehub-redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - kitehub-network
-  #   restart: unless-stopped
+  kitehub-branding:
+    build:
+      context: .
+      dockerfile: kitehub-branding/Dockerfile
+    image: kitehub-branding:latest
+    container_name: kitehub-branding
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: kitehub
+      SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder}
+      # MinIO S3 Configuration
+      AWS_ACCESS_KEY_ID: kitehub
+      AWS_SECRET_ACCESS_KEY: kitehub_dev_password
+      S3_ENDPOINT: http://kitehub-minio:9000
+      S3_BUCKET: kitehub-assets
+      AWS_REGION: ap-southeast-1
+      S3_MOCK_MODE: "false"
+      CDN_DOMAIN: localhost:9100
+    ports:
+      - "8083:8080"
+    depends_on:
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-rabbitmq:
+        condition: service_healthy
+      kitehub-minio:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    labels:
+      - "com.kitehub.service=branding"
 
-  # kitehub-branding:
-  #   build:
-  #     context: ./kitehub-branding
-  #     dockerfile: Dockerfile
-  #   container_name: kitehub-branding
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_REDIS_HOST: kitehub-redis
-  #     SPRING_REDIS_PORT: 6379
-  #     SPRING_RABBITMQ_HOST: kitehub-rabbitmq
-  #     SPRING_RABBITMQ_PORT: 5672
-  #     OPENAI_API_KEY: ${OPENAI_API_KEY}
-  #     # MinIO S3 Configuration
-  #     AWS_ACCESS_KEY_ID: kitehub
-  #     AWS_SECRET_ACCESS_KEY: kitehub_dev_password
-  #     S3_ENDPOINT: http://kitehub-minio:9000
-  #     S3_BUCKET: kitehub-assets
-  #     AWS_REGION: ap-southeast-1
-  #     S3_MOCK_MODE: false  # Use real MinIO instead of mock
-  #     CDN_DOMAIN: localhost:9100  # MinIO API port
-  #   ports:
-  #     - "8083:8080"
-  #   depends_on:
-  #     kitehub-redis:
-  #       condition: service_healthy
-  #     kitehub-rabbitmq:
-  #       condition: service_healthy
-  #     kitehub-minio:
-  #       condition: service_healthy
-  #   networks:
-  #     - kitehub-network
-  #   restart: unless-stopped
+  kitehub-email:
+    build:
+      context: .
+      dockerfile: kitehub-email/Dockerfile
+    image: kitehub-email:latest
+    container_name: kitehub-email
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: kitehub
+      SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
+      AWS_SES_REGION: ap-southeast-1
+      AWS_SES_FROM_EMAIL: noreply@kiteclass.com
+      # Mock mode for local dev (no real emails sent)
+      EMAIL_MOCK_MODE: "true"
+    ports:
+      - "8084:8080"
+    depends_on:
+      kitehub-rabbitmq:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    labels:
+      - "com.kitehub.service=email"
 
-  # kitehub-email:
-  #   build:
-  #     context: ./kitehub-email
-  #     dockerfile: Dockerfile
-  #   container_name: kitehub-email
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
-  #     SPRING_DATASOURCE_USERNAME: kitehub
-  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
-  #     SPRING_RABBITMQ_HOST: kitehub-rabbitmq
-  #     SPRING_RABBITMQ_PORT: 5672
-  #     AWS_SES_REGION: ap-southeast-1
-  #     AWS_SES_FROM_EMAIL: noreply@kiteclass.com
-  #   ports:
-  #     - "8084:8080"
-  #   depends_on:
-  #     kitehub-postgres:
-  #       condition: service_healthy
-  #     kitehub-rabbitmq:
-  #       condition: service_healthy
-  #   networks:
-  #     - kitehub-network
-  #   restart: unless-stopped
+  kitehub-admin:
+    build:
+      context: .
+      dockerfile: kitehub-admin/Dockerfile
+    image: kitehub-admin:latest
+    container_name: kitehub-admin
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+      SPRING_DATASOURCE_USERNAME: kitehub
+      SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+    ports:
+      - "8085:8080"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    labels:
+      - "com.kitehub.service=admin"
 
-  # kitehub-admin:
-  #   build:
-  #     context: ./kitehub-admin
-  #     dockerfile: Dockerfile
-  #   container_name: kitehub-admin
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
-  #     SPRING_DATASOURCE_USERNAME: kitehub
-  #     SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
-  #     SPRING_REDIS_HOST: kitehub-redis
-  #     SPRING_REDIS_PORT: 6379
-  #   ports:
-  #     - "8085:8080"
-  #   depends_on:
-  #     kitehub-postgres:
-  #       condition: service_healthy
-  #     kitehub-redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - kitehub-network
-  #   restart: unless-stopped
+  kitehub-gateway:
+    build:
+      context: .
+      dockerfile: kitehub-gateway/Dockerfile
+    image: kitehub-gateway:latest
+    container_name: kitehub-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+      SERVER_PORT: 9000
+      # Service discovery (hardcoded for local dev)
+      SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
+      BRANDING_SERVICE_URL: http://kitehub-branding:8080
+      EMAIL_SERVICE_URL: http://kitehub-email:8080
+      ADMIN_SERVICE_URL: http://kitehub-admin:8080
+    ports:
+      - "9000:9000"
+    depends_on:
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-subscription:
+        condition: service_started
+      kitehub-branding:
+        condition: service_started
+      kitehub-email:
+        condition: service_started
+      kitehub-admin:
+        condition: service_started
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    labels:
+      - "com.kitehub.service=gateway"
 
-  # kitehub-gateway:
-  #   build:
-  #     context: ./kitehub-gateway
-  #     dockerfile: Dockerfile
-  #   container_name: kitehub-gateway
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_REDIS_HOST: kitehub-redis
-  #     SPRING_REDIS_PORT: 6379
-  #     # Service discovery (hardcoded for local dev)
-  #     SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
-  #     PAYMENT_SERVICE_URL: http://kitehub-payment:8080
-  #     BRANDING_SERVICE_URL: http://kitehub-branding:8080
-  #     EMAIL_SERVICE_URL: http://kitehub-email:8080
-  #     ADMIN_SERVICE_URL: http://kitehub-admin:8080
-  #   ports:
-  #     - "9000:9000"
-  #   depends_on:
-  #     - kitehub-subscription
-  #     - kitehub-payment
-  #     - kitehub-branding
-  #     - kitehub-email
-  #     - kitehub-admin
-  #   networks:
-  #     - kitehub-network
-  #   restart: unless-stopped
+  # ============================================================================
+  # FRONTEND SERVICE
+  # ============================================================================
+
+  kitehub-frontend:
+    build:
+      context: ./kitehub-frontend
+      dockerfile: Dockerfile
+    image: kitehub-frontend:latest
+    container_name: kitehub-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: http://kitehub-gateway:9000
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "3001:3001"
+    depends_on:
+      - kitehub-gateway
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    labels:
+      - "com.kitehub.service=frontend"
 
 volumes:
   kitehub-postgres-data:
