@@ -80,4 +80,12 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
      * @return count of instances
      */
     long countByOwnerIdAndDeletedFalse(UUID ownerId);
+
+    /**
+     * Check if contact email exists (not deleted).
+     *
+     * @param contactEmail email to check
+     * @return true if exists, false otherwise
+     */
+    boolean existsByContactEmailAndDeletedFalse(String contactEmail);
 }

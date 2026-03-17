@@ -7,6 +7,7 @@ export const endpoints = {
     byId: (id: number) => `${API_BASE}/instances/${id}`,
     byOwner: (ownerId: number) => `${API_BASE}/instances/owner/${ownerId}`,
     create: `${API_BASE}/instances`,
+    register: `${API_BASE}/instances/register`,
     update: (id: number) => `${API_BASE}/instances/${id}`,
     delete: (id: number) => `${API_BASE}/instances/${id}`,
     trialStatus: (id: number) => `${API_BASE}/instances/${id}/trial-status`,
