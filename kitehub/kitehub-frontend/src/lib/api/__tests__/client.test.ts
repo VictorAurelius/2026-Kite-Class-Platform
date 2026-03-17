@@ -4,7 +4,7 @@
  * @since PR 5.10
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 
 // Mock axios before importing apiClient
@@ -90,11 +90,13 @@ describe('apiClient', () => {
       await import('../client');
 
       // Get the request interceptor function
-      const interceptorCall = (axios.create().interceptors.request.use as ReturnType<typeof vi.fn>).mock.calls[0];
+      const mockCalls = (axios.create().interceptors.request.use as ReturnType<typeof vi.fn>).mock.calls;
+      const interceptorCall = mockCalls[0];
+      if (!interceptorCall) throw new Error('No interceptor registered');
       const requestInterceptor = interceptorCall[0];
 
       const config = {
-        headers: {},
+        headers: {} as Record<string, string>,
       };
 
       const result = requestInterceptor(config);
@@ -113,7 +115,9 @@ describe('apiClient', () => {
       vi.resetModules();
       await import('../client');
 
-      const interceptorCall = (axios.create().interceptors.request.use as ReturnType<typeof vi.fn>).mock.calls[0];
+      const mockCalls = (axios.create().interceptors.request.use as ReturnType<typeof vi.fn>).mock.calls;
+      const interceptorCall = mockCalls[0];
+      if (!interceptorCall) throw new Error('No interceptor registered');
       const requestInterceptor = interceptorCall[0];
 
       const config = {

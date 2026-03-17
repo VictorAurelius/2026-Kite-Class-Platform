@@ -19,7 +19,7 @@ vi.mock('@/lib/api/client', () => ({
 
 import apiClient from '@/lib/api/client';
 
-const mockApiClient = apiClient as { get: ReturnType<typeof vi.fn> };
+const mockApiClient = apiClient as unknown as { get: ReturnType<typeof vi.fn> };
 
 function createWrapper() {
   const queryClient = new QueryClient({
