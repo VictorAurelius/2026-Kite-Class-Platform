@@ -229,8 +229,11 @@ services:
     container_name: kitehub-gateway
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_REDIS_HOST: kitehub-redis
-      SPRING_REDIS_PORT: 6379
+      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
+      DATABASE_USERNAME: kitehub
+      DATABASE_PASSWORD: kitehub_dev_password
+      REDIS_HOST: kitehub-redis
+      REDIS_PORT: 6379
       SERVER_PORT: 9000
       # Service discovery (hardcoded for local dev)
       SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
@@ -240,6 +243,8 @@ services:
     ports:
       - "9000:9000"
     depends_on:
+      kitehub-postgres:
+        condition: service_healthy
       kitehub-redis:
         condition: service_healthy
       kitehub-subscription:
