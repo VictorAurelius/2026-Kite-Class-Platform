@@ -1,3 +1,5 @@
+name: kitehub
+
 services:
   # ============================================================================
   # INFRASTRUCTURE SERVICES
