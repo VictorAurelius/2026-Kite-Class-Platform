@@ -31,13 +31,13 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      const response = await apiClient.post(endpoints.instances.create, {
+      const response = await apiClient.post(endpoints.instances.register, {
         organizationName: data.organizationName,
         subdomain: data.subdomain,
         ownerEmail: data.ownerEmail,
         ownerPassword: data.ownerPassword,
       });
-      const { user, accessToken, refreshToken } = response.data.data;
+      const { user, accessToken, refreshToken } = response.data;
       setAuth(user, accessToken, refreshToken);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);

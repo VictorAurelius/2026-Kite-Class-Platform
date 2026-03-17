@@ -11,12 +11,13 @@ spring:
             allowedOrigins:
               - "http://localhost:3001"
               - "http://localhost:3000"
+              - "http://kitehub-frontend:3001"
             allowedMethods:
               - GET
               - POST
               - PUT
-              - DELETE
               - PATCH
+              - DELETE
               - OPTIONS
             allowedHeaders:
               - "*"
@@ -35,7 +36,7 @@ spring:
                 name: authCircuitBreaker
                 fallbackUri: forward:/fallback/auth
 
-        # Platform APIs - Instances
+        # Platform APIs - Instance Management (Subscription Service)
         - id: platform-instances
           uri: http://kitehub-subscription:8080
           predicates:

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface User {
-  id: number;
+  id: string;  // UUID from backend
   email: string;
   name: string;
   role: 'OWNER' | 'ADMIN';

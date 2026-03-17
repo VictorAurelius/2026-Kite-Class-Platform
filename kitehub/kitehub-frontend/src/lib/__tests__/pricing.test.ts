@@ -150,7 +150,7 @@ describe('pricing', () => {
 
     it('calculates yearly proration correctly', () => {
       // FREE to BASIC yearly: 5,400,000 / 365 * 100 days
-      const result = calculateProration('FREE', 'BASIC', 100, 'YEARLY');
+      const result = calculateProration('FREE', 'BASIC', 100, 'ANNUALLY');
       const expected = Math.round((5400000 / 365) * 100);
       expect(result).toBe(expected);
     });
@@ -174,19 +174,19 @@ describe('pricing', () => {
     });
 
     it('formats yearly price with suffix', () => {
-      const result = formatPrice(5400000, 'YEARLY');
+      const result = formatPrice(5400000, 'ANNUALLY');
       expect(result).toMatch(/5[.,]400[.,]000/);
       expect(result).toContain('/năm');
     });
 
     it('returns "Liên hệ" for -1 (custom pricing)', () => {
       expect(formatPrice(-1, 'MONTHLY')).toBe('Liên hệ');
-      expect(formatPrice(-1, 'YEARLY')).toBe('Liên hệ');
+      expect(formatPrice(-1, 'ANNUALLY')).toBe('Liên hệ');
     });
 
     it('returns "Miễn phí" for 0', () => {
       expect(formatPrice(0, 'MONTHLY')).toBe('Miễn phí');
-      expect(formatPrice(0, 'YEARLY')).toBe('Miễn phí');
+      expect(formatPrice(0, 'ANNUALLY')).toBe('Miễn phí');
     });
 
     it('defaults to MONTHLY if cycle not specified', () => {
@@ -195,7 +195,7 @@ describe('pricing', () => {
     });
 
     it('formats large numbers correctly', () => {
-      const result = formatPrice(16200000, 'YEARLY');
+      const result = formatPrice(16200000, 'ANNUALLY');
       expect(result).toMatch(/16[.,]200[.,]000/);
     });
   });

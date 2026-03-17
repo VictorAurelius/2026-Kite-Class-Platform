@@ -2,6 +2,8 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.RegisterInstanceRequest;
+import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.service.InstanceService;
@@ -38,6 +40,19 @@ public class InstanceController {
     @PostMapping
     public ResponseEntity<InstanceResponse> createInstance(@Valid @RequestBody CreateInstanceRequest request) {
         InstanceResponse response = instanceService.createTrialInstance(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Register a new trial instance (self-service registration).
+     * Creates owner and instance in one step.
+     *
+     * @param request registration request
+     * @return registration response with user info and tokens
+     */
+    @PostMapping("/register")
+    public ResponseEntity<RegisterInstanceResponse> registerInstance(@Valid @RequestBody RegisterInstanceRequest request) {
+        RegisterInstanceResponse response = instanceService.registerInstance(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

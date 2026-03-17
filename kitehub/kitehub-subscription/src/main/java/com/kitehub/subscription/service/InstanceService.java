@@ -2,12 +2,17 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.RegisterInstanceRequest;
+import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.repository.InstanceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +36,9 @@ public class InstanceService {
     private final InstanceRepository instanceRepository;
     private final DatabaseProvisioningService databaseProvisioningService;
     private final com.kitehub.subscription.config.MultiTenantDataSourceConfig dataSourceConfig;
+    private final TokenService tokenService;
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
      * Create a new trial instance.
@@ -83,6 +91,82 @@ public class InstanceService {
         log.info("Created trial instance: {} (expires: {})", saved.getId(), saved.getTrialExpiresAt());
 
         return toResponse(saved);
+    }
+
+    /**
+     * Register a new trial instance with owner (self-service registration).
+     *
+     * @param request registration request
+     * @return registration response with user info and tokens
+     */
+    public RegisterInstanceResponse registerInstance(RegisterInstanceRequest request) {
+        log.info("Registering new instance for subdomain: {}, email: {}", request.getSubdomain(), request.getOwnerEmail());
+
+        // Validate subdomain uniqueness
+        if (instanceRepository.existsBySubdomainAndDeletedFalse(request.getSubdomain())) {
+            throw new IllegalArgumentException("Subdomain already exists: " + request.getSubdomain());
+        }
+
+        // Validate email uniqueness (check if owner email already has an instance)
+        if (instanceRepository.existsByContactEmailAndDeletedFalse(request.getOwnerEmail())) {
+            throw new IllegalArgumentException("Email already registered: " + request.getOwnerEmail());
+        }
+
+        // Generate owner ID
+        UUID ownerId = UUID.randomUUID();
+
+        // Hash password (for future use when we have user table)
+        String hashedPassword = passwordEncoder.encode(request.getOwnerPassword());
+        log.debug("Password hashed for owner: {}", ownerId);
+
+        // Create instance entity
+        Instance instance = new Instance();
+        instance.setSubdomain(request.getSubdomain());
+        instance.setOrganizationName(request.getOrganizationName());
+        instance.setOwnerId(ownerId);
+        instance.setContactEmail(request.getOwnerEmail());
+        instance.setTier(PricingTier.FREE); // Always FREE for trial registration
+
+        // Set temporary placeholder credentials
+        instance.setDatabaseUrl("pending");
+        instance.setDatabaseUsername("pending");
+        instance.setDatabasePassword("pending");
+
+        // Start trial
+        instance.startTrial();
+
+        // Save instance first (generates ID)
+        Instance saved = instanceRepository.save(instance);
+
+        // Provision database for the instance
+        try {
+            databaseProvisioningService.provisionDatabase(saved.getId());
+            log.info("Database provisioned for instance: {}", saved.getId());
+        } catch (Exception e) {
+            log.error("Failed to provision database for instance: {}", saved.getId(), e);
+            // Continue - database credentials will be set to pending
+        }
+
+        // Generate tokens
+        String accessToken = tokenService.generateAccessToken(ownerId, request.getOwnerEmail(), "OWNER");
+        String refreshToken = tokenService.generateRefreshToken(ownerId);
+
+        // Build user info
+        RegisterInstanceResponse.UserInfo userInfo = RegisterInstanceResponse.UserInfo.builder()
+            .id(ownerId)
+            .email(request.getOwnerEmail())
+            .name(request.getOrganizationName())
+            .role("OWNER")
+            .build();
+
+        log.info("Registered trial instance: {} for owner: {}", saved.getId(), ownerId);
+
+        return RegisterInstanceResponse.builder()
+            .user(userInfo)
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .instance(toResponse(saved))
+            .build();
     }
 
     /**

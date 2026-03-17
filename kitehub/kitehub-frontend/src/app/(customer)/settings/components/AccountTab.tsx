@@ -10,7 +10,7 @@ import { User, Building2, Lock, Save } from 'lucide-react';
 
 interface AccountTabProps {
   user: {
-    id?: number;
+    id?: string;
     email?: string;
     name?: string;
     role?: 'OWNER' | 'ADMIN';

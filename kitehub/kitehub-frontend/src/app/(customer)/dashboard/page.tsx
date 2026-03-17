@@ -69,9 +69,9 @@ export default function DashboardPage() {
                   {formatDate(instance.createdAt)}
                 </span>
               </div>
-              {instance.status === 'TRIAL' && instance.trialEndDate && (
+              {instance.isOnTrial && instance.trialExpiresAt && (
                 <div className="mt-3 rounded bg-blue-50 px-3 py-1.5 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                  Trial hết hạn: {formatDate(instance.trialEndDate)}
+                  Trial còn {instance.trialDaysLeft} ngày (hết hạn: {formatDate(instance.trialExpiresAt)})
                 </div>
               )}
             </Link>

@@ -15,10 +15,9 @@ export default function InstanceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const instanceId = Number(id);
-  const { data: instance, isLoading, error } = useInstance(instanceId);
+  const { data: instance, isLoading, error } = useInstance(id);
   const { data: trialStatus } = useTrialStatus(
-    instance?.status === 'TRIAL' ? instanceId : undefined
+    instance?.isOnTrial ? instance.id : undefined
   );
 
   if (isLoading) return <LoadingSpinner className="mt-12" />;
@@ -56,7 +55,7 @@ export default function InstanceDetailPage({
             </div>
             <div className="flex justify-between">
               <dt className="text-sm text-muted-foreground">Email</dt>
-              <dd className="text-sm font-medium">{instance.ownerEmail}</dd>
+              <dd className="text-sm font-medium">{instance.contactEmail ?? '-'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-sm text-muted-foreground">Gói</dt>

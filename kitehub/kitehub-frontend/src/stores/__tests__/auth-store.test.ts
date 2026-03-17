@@ -33,7 +33,7 @@ describe('auth-store', () => {
 
   describe('setAuth', () => {
     const mockUser = {
-      id: 1,
+      id: 'user-uuid-1',
       email: 'test@example.com',
       name: 'Test User',
       role: 'OWNER' as const,
@@ -82,7 +82,7 @@ describe('auth-store', () => {
     beforeEach(() => {
       // Set some auth state first
       useAuthStore.getState().setAuth(
-        { id: 1, email: 'test@example.com', name: 'Test', role: 'OWNER' },
+        { id: 'user-uuid-1', email: 'test@example.com', name: 'Test', role: 'OWNER' },
         'access-token',
         'refresh-token'
       );
@@ -114,7 +114,7 @@ describe('auth-store', () => {
   describe('updateUser', () => {
     beforeEach(() => {
       useAuthStore.getState().setAuth(
-        { id: 1, email: 'old@example.com', name: 'Old Name', role: 'OWNER' },
+        { id: 'user-uuid-1', email: 'old@example.com', name: 'Old Name', role: 'OWNER' },
         'access-token',
         'refresh-token'
       );
@@ -138,7 +138,7 @@ describe('auth-store', () => {
       useAuthStore.getState().updateUser({ name: 'New Name' });
 
       const state = useAuthStore.getState();
-      expect(state.user?.id).toBe(1);
+      expect(state.user?.id).toBe('user-uuid-1');
       expect(state.user?.email).toBe('old@example.com');
       expect(state.user?.role).toBe('OWNER');
     });

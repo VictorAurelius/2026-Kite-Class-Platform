@@ -4,13 +4,14 @@ export const endpoints = {
   // Instance
   instances: {
     list: `${API_BASE}/instances`,
-    byId: (id: number) => `${API_BASE}/instances/${id}`,
-    byOwner: (ownerId: number) => `${API_BASE}/instances/owner/${ownerId}`,
+    byId: (id: string) => `${API_BASE}/instances/${id}`,
+    byOwner: (ownerId: string) => `${API_BASE}/instances/owner/${ownerId}`,
     create: `${API_BASE}/instances`,
-    update: (id: number) => `${API_BASE}/instances/${id}`,
-    delete: (id: number) => `${API_BASE}/instances/${id}`,
-    trialStatus: (id: number) => `${API_BASE}/instances/${id}/trial-status`,
-    extendTrial: (id: number) => `${API_BASE}/instances/${id}/extend-trial`,
+    register: `${API_BASE}/instances/register`,
+    update: (id: string) => `${API_BASE}/instances/${id}`,
+    delete: (id: string) => `${API_BASE}/instances/${id}`,
+    trialStatus: (id: string) => `${API_BASE}/instances/${id}/trial-status`,
+    extendTrial: (id: string) => `${API_BASE}/instances/${id}/extend-trial`,
   },
 
   // Subscription
@@ -32,12 +33,12 @@ export const endpoints = {
 
   // Branding
   branding: {
-    uploadAsset: (instanceId: number, type: string) => `${API_BASE}/branding/assets/${instanceId}/${type}`,
+    uploadAsset: (instanceId: string, type: string) => `${API_BASE}/branding/assets/${instanceId}/${type}`,
     analyzeLogo: `${API_BASE}/branding/ai/analyze-logo`,
     jobs: `${API_BASE}/branding/jobs`,
     jobById: (id: string) => `${API_BASE}/branding/jobs/${id}`,
     jobAssets: (id: string) => `${API_BASE}/branding/jobs/${id}/assets`,
-    listAssets: (instanceId: number) => `${API_BASE}/branding/assets/${instanceId}`,
+    listAssets: (instanceId: string) => `${API_BASE}/branding/assets/${instanceId}`,
     generateContent: `${API_BASE}/branding/content/generate`,
   },
 

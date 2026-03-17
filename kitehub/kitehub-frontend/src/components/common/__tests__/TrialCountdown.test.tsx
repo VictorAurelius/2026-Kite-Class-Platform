@@ -11,7 +11,7 @@ import type { TrialStatus } from '@/types/instance';
 
 describe('TrialCountdown', () => {
   const baseTrial: TrialStatus = {
-    instanceId: 1,
+    instanceId: 'inst-uuid-1',
     trialEndDate: '2026-03-30T00:00:00Z',
     daysRemaining: 14,
     warningLevel: 'NONE',
