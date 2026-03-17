@@ -1,50 +1,34 @@
-# KiteHub Subscription Service Dockerfile
+# KiteHub Subscription Service
+# Extends kitehub-base for fast builds with cached dependencies
 # Build context: kitehub/ (parent directory)
 
-# Build stage
-FROM eclipse-temurin:17-jdk-alpine AS builder
+# ============================================================================
+# BUILD STAGE - Uses base image with cached dependencies
+# ============================================================================
+FROM kitehub-base:latest AS builder
 WORKDIR /build
 
-# Install Maven
-RUN apk add --no-cache maven
-
-# Copy ALL pom files for dependency resolution (Maven multi-module requirement)
-COPY pom.xml ./
-COPY kitehub-platform/pom.xml ./kitehub-platform/
-COPY kitehub-subscription/pom.xml ./kitehub-subscription/
-COPY kitehub-branding/pom.xml ./kitehub-branding/
-COPY kitehub-email/pom.xml ./kitehub-email/
-COPY kitehub-admin/pom.xml ./kitehub-admin/
-COPY kitehub-gateway/pom.xml ./kitehub-gateway/
-
-# Download dependencies (cache layer)
-RUN mvn dependency:go-offline -pl kitehub-platform,kitehub-subscription -am -B || true
-
-# Copy source code for required modules
+# Copy source code for this module and its dependencies
 COPY kitehub-platform/src ./kitehub-platform/src
 COPY kitehub-subscription/src ./kitehub-subscription/src
 
-# Create empty src directories for other modules (Maven requires them)
-RUN mkdir -p kitehub-branding/src/main/java \
-    kitehub-email/src/main/java \
-    kitehub-admin/src/main/java \
-    kitehub-gateway/src/main/java
-
-# Build only the target module and its dependencies
+# Build only this module and dependencies (fast - deps already cached)
 RUN mvn clean package -pl kitehub-subscription -am -DskipTests -B
 
-# Runtime stage
+# ============================================================================
+# RUNTIME STAGE - Minimal JRE image
+# ============================================================================
 FROM eclipse-temurin:17-jre-alpine AS runtime
 WORKDIR /app
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl
 
-# Create non-root user
+# Create non-root user for security
 RUN addgroup --system --gid 1001 spring && \
     adduser --system --uid 1001 spring
 
-# Copy executable jar from builder (kitehub-subscription uses <classifier>exec</classifier>)
+# Copy executable JAR (kitehub-subscription uses classifier=exec)
 COPY --from=builder /build/kitehub-subscription/target/*-exec.jar app.jar
 
 # Set ownership
@@ -52,15 +36,12 @@ RUN chown -R spring:spring /app
 
 USER spring
 
-# Expose port
 EXPOSE 8080
 
 # Health check using Spring Actuator
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-# JVM options for container
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Run the application
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
