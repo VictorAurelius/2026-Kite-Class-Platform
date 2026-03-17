@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,23 @@ public class AuthService {
 
     @Value("${jwt.secret:kitehub-super-secret-key-that-is-at-least-256-bits-long-for-hs384-algorithm}")
     private String jwtSecret;
+
+    /**
+     * Initialize demo user for testing.
+     */
+    @PostConstruct
+    public void initDemoUser() {
+        // Create demo user if not exists
+        String demoEmail = "demo@kitehub.com";
+        if (!USER_STORE.containsKey(demoEmail)) {
+            UUID demoUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+            String passwordHash = passwordEncoder.encode("Demo@123");
+            USER_STORE.put(demoEmail, new UserCredentials(
+                demoUserId, demoEmail, "Demo Organization", passwordHash, "OWNER"
+            ));
+            log.info("Demo user created: {} / Demo@123", demoEmail);
+        }
+    }
 
     /**
      * Register a new instance with owner account.
