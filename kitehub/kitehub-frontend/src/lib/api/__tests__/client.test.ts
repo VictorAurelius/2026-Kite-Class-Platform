@@ -132,14 +132,14 @@ describe('apiClient', () => {
   describe('exports', () => {
     it('exports apiClient as default', async () => {
       vi.resetModules();
-      const module = await import('../client');
-      expect(module.default).toBeDefined();
+      const clientModule = await import('../client');
+      expect(clientModule.default).toBeDefined();
     });
 
     it('exports named apiClient', async () => {
       vi.resetModules();
-      const module = await import('../client');
-      expect(module.apiClient).toBeDefined();
+      const clientModule = await import('../client');
+      expect(clientModule.apiClient).toBeDefined();
     });
   });
 });
