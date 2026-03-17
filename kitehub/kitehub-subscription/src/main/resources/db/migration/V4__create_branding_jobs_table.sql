@@ -46,8 +46,9 @@ CREATE INDEX idx_branding_jobs_queued ON branding_jobs(queued_at DESC);
 CREATE INDEX idx_branding_jobs_deleted ON branding_jobs(deleted) WHERE deleted = false;
 
 -- Index for finding stale processing jobs (for monitoring)
-CREATE INDEX idx_branding_jobs_stale ON branding_jobs(started_at)
-    WHERE status = 'PROCESSING' AND started_at < NOW() - INTERVAL '30 minutes';
+-- Use simple index on started_at; filter at query time for stale jobs
+CREATE INDEX idx_branding_jobs_processing ON branding_jobs(started_at)
+    WHERE status = 'PROCESSING';
 
 -- Check constraint for valid status
 ALTER TABLE branding_jobs ADD CONSTRAINT chk_branding_job_status
