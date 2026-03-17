@@ -4,9 +4,9 @@ spring:
 
   cloud:
     gateway:
-      # CORS configuration
+      # CORS Configuration for frontend
       globalcors:
-        cors-configurations:
+        corsConfigurations:
           '[/**]':
             allowedOrigins:
               - "http://localhost:3001"
@@ -25,6 +25,17 @@ spring:
             maxAge: 3600
 
       routes:
+        # Auth APIs - handled by Subscription Service
+        - id: auth
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
         # Platform APIs - Instance Management (Subscription Service)
         - id: platform-instances
           uri: http://kitehub-subscription:8080
@@ -33,8 +44,8 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: subscriptionCircuitBreaker
-                fallbackUri: forward:/fallback/subscription
+                name: instancesCircuitBreaker
+                fallbackUri: forward:/fallback/instances
 
         # Platform APIs - Subscription Service
         - id: platform-subscription
@@ -159,6 +170,10 @@ resilience4j:
         failureRateThreshold: 50
         eventConsumerBufferSize: 10
     instances:
+      authCircuitBreaker:
+        baseConfig: default
+      instancesCircuitBreaker:
+        baseConfig: default
       subscriptionCircuitBreaker:
         baseConfig: default
       paymentCircuitBreaker:
