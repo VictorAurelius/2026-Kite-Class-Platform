@@ -101,6 +101,7 @@ services:
     container_name: kitehub-subscription
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
       SPRING_DATASOURCE_USERNAME: kitehub
       SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
@@ -133,6 +134,7 @@ services:
     container_name: kitehub-branding
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
       DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
       DATABASE_USERNAME: kitehub
       DATABASE_PASSWORD: kitehub_dev_password
@@ -176,6 +178,7 @@ services:
     container_name: kitehub-email
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
       SPRING_RABBITMQ_HOST: kitehub-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: kitehub
@@ -203,6 +206,7 @@ services:
     container_name: kitehub-admin
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kitehub
       SPRING_DATASOURCE_USERNAME: kitehub
       SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
