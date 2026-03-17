@@ -44,8 +44,8 @@ RUN apk add --no-cache curl
 RUN addgroup --system --gid 1001 spring && \
     adduser --system --uid 1001 spring
 
-# Copy jar from builder
-COPY --from=builder /build/kitehub-subscription/target/*.jar app.jar
+# Copy executable jar from builder (kitehub-subscription uses <classifier>exec</classifier>)
+COPY --from=builder /build/kitehub-subscription/target/*-exec.jar app.jar
 
 # Set ownership
 RUN chown -R spring:spring /app
