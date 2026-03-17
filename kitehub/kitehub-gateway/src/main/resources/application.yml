@@ -61,17 +61,17 @@ spring:
                 fallbackUri: forward:/fallback/email
 
         # Instance APIs - Route to KiteClass instances
-        # Requires TenantResolverFilter to extract subdomain
-        - id: instance-apis
-          uri: http://kiteclass-gateway:8080
-          predicates:
-            - Path=/api/v1/**
-          filters:
-            - TenantResolver
-            - name: CircuitBreaker
-              args:
-                name: instanceCircuitBreaker
-                fallbackUri: forward:/fallback/instance
+        # TODO: Implement TenantResolverGatewayFilterFactory
+        # - id: instance-apis
+        #   uri: http://kiteclass-gateway:8080
+        #   predicates:
+        #     - Path=/api/v1/**
+        #   filters:
+        #     - TenantResolver
+        #     - name: CircuitBreaker
+        #       args:
+        #         name: instanceCircuitBreaker
+        #         fallbackUri: forward:/fallback/instance
 
       # Default filters applied to all routes
       default-filters:
