@@ -39,6 +39,30 @@
 - ❌ Viết code trước tests
 - ❌ Commit mà không có tests đi kèm
 
+## CRITICAL: Docker Scripts Required
+
+**KHÔNG BAO GIỜ** chạy lệnh Docker trực tiếp. **LUÔN LUÔN** dùng scripts.
+
+```bash
+# ❌ WRONG
+docker-compose -f docker-compose.kitehub.yml up -d
+
+# ✅ CORRECT
+./scripts/up.sh
+```
+
+**KiteHub scripts** (`kitehub/scripts/`):
+- `up.sh` / `down.sh` - Start/stop stack
+- `logs.sh` - View logs
+- `build-all.sh` - Build all images
+- `rebuild.sh` - Rebuild single service
+- `status.sh` - Check status
+- `exec.sh` - Run command in container
+- `clean.sh` - Cleanup resources
+- `help.sh` - Show all commands
+
+Tham khảo: `.claude/skills/docker-scripts-required.md`
+
 ## Git Workflow
 
 - **ALWAYS** create feature branch before changes
