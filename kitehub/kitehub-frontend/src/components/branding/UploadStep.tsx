@@ -8,7 +8,7 @@ import { useUploadAsset } from '@/hooks/use-branding';
 import { toast } from 'sonner';
 
 interface UploadStepProps {
-  instanceId: number;
+  instanceId: string;
   onUploadComplete: (logoUrl: string) => void;
 }
 

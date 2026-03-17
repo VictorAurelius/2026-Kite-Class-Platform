@@ -16,11 +16,11 @@ describe('endpoints', () => {
     });
 
     it('generates byId endpoint', () => {
-      expect(endpoints.instances.byId(123)).toBe(`${API_BASE}/instances/123`);
+      expect(endpoints.instances.byId('uuid-123')).toBe(`${API_BASE}/instances/uuid-123`);
     });
 
     it('generates byOwner endpoint', () => {
-      expect(endpoints.instances.byOwner(456)).toBe(`${API_BASE}/instances/owner/456`);
+      expect(endpoints.instances.byOwner('owner-uuid-456')).toBe(`${API_BASE}/instances/owner/owner-uuid-456`);
     });
 
     it('has create endpoint', () => {
@@ -28,19 +28,19 @@ describe('endpoints', () => {
     });
 
     it('generates update endpoint', () => {
-      expect(endpoints.instances.update(789)).toBe(`${API_BASE}/instances/789`);
+      expect(endpoints.instances.update('uuid-789')).toBe(`${API_BASE}/instances/uuid-789`);
     });
 
     it('generates delete endpoint', () => {
-      expect(endpoints.instances.delete(101)).toBe(`${API_BASE}/instances/101`);
+      expect(endpoints.instances.delete('uuid-101')).toBe(`${API_BASE}/instances/uuid-101`);
     });
 
     it('generates trialStatus endpoint', () => {
-      expect(endpoints.instances.trialStatus(111)).toBe(`${API_BASE}/instances/111/trial-status`);
+      expect(endpoints.instances.trialStatus('uuid-111')).toBe(`${API_BASE}/instances/uuid-111/trial-status`);
     });
 
     it('generates extendTrial endpoint', () => {
-      expect(endpoints.instances.extendTrial(222)).toBe(`${API_BASE}/instances/222/extend-trial`);
+      expect(endpoints.instances.extendTrial('uuid-222')).toBe(`${API_BASE}/instances/uuid-222/extend-trial`);
     });
   });
 
@@ -86,7 +86,7 @@ describe('endpoints', () => {
 
   describe('branding', () => {
     it('generates uploadAsset endpoint', () => {
-      expect(endpoints.branding.uploadAsset(123, 'logo')).toBe(`${API_BASE}/branding/assets/123/logo`);
+      expect(endpoints.branding.uploadAsset('inst-123', 'logo')).toBe(`${API_BASE}/branding/assets/inst-123/logo`);
     });
 
     it('has analyzeLogo endpoint', () => {
@@ -106,7 +106,7 @@ describe('endpoints', () => {
     });
 
     it('generates listAssets endpoint', () => {
-      expect(endpoints.branding.listAssets(789)).toBe(`${API_BASE}/branding/assets/789`);
+      expect(endpoints.branding.listAssets('inst-789')).toBe(`${API_BASE}/branding/assets/inst-789`);
     });
 
     it('has generateContent endpoint', () => {

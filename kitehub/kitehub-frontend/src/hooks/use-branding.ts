@@ -16,7 +16,7 @@ export function useUploadAsset() {
       type,
       file,
     }: {
-      instanceId: number;
+      instanceId: string;
       type: string;
       file: File;
     }) => {
@@ -57,7 +57,7 @@ export function useAnalyzeLogo() {
 export function useCreateBrandingJob() {
   return useMutation({
     mutationFn: async (request: {
-      instanceId: number;
+      instanceId: string;
       logoUrl: string;
       analysis: LogoAnalysis;
     }) => {
@@ -113,7 +113,7 @@ export function useJobAssets(jobId: string | undefined) {
 /**
  * List all assets for instance
  */
-export function useAssets(instanceId: number | undefined) {
+export function useAssets(instanceId: string | undefined) {
   return useQuery({
     queryKey: ['branding', 'assets', instanceId],
     queryFn: async () => {
@@ -132,7 +132,7 @@ export function useAssets(instanceId: number | undefined) {
 export function useGenerateContent() {
   return useMutation({
     mutationFn: async (request: {
-      instanceId: number;
+      instanceId: string;
       analysis: LogoAnalysis;
     }) => {
       const { data } = await apiClient.post<ApiResponse<MarketingContent>>(

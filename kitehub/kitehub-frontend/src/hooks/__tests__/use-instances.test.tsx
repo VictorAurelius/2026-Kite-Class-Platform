@@ -48,15 +48,15 @@ describe('use-instances', () => {
   describe('useOwnerInstances', () => {
     it('fetches instances for owner when ownerId is provided', async () => {
       const mockInstances = [
-        { id: 1, name: 'Test Instance 1' },
-        { id: 2, name: 'Test Instance 2' },
+        { id: 'uuid-1', name: 'Test Instance 1' },
+        { id: 'uuid-2', name: 'Test Instance 2' },
       ];
 
       mockApiClient.get.mockResolvedValueOnce({
-        data: { data: mockInstances },
+        data: mockInstances,
       });
 
-      const { result } = renderHook(() => useOwnerInstances(123), {
+      const { result } = renderHook(() => useOwnerInstances('owner-uuid-123'), {
         wrapper: createWrapper(),
       });
 
@@ -64,7 +64,7 @@ describe('use-instances', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/platform/instances/owner/123');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/platform/instances/owner/owner-uuid-123');
       expect(result.current.data).toEqual(mockInstances);
     });
 
@@ -81,7 +81,7 @@ describe('use-instances', () => {
     it('handles error response', async () => {
       mockApiClient.get.mockRejectedValueOnce(new Error('Network error'));
 
-      const { result } = renderHook(() => useOwnerInstances(123), {
+      const { result } = renderHook(() => useOwnerInstances('owner-uuid-123'), {
         wrapper: createWrapper(),
       });
 
@@ -95,13 +95,13 @@ describe('use-instances', () => {
 
   describe('useInstance', () => {
     it('fetches single instance when id is provided', async () => {
-      const mockInstance = { id: 456, name: 'Single Instance' };
+      const mockInstance = { id: 'instance-uuid-456', name: 'Single Instance' };
 
       mockApiClient.get.mockResolvedValueOnce({
-        data: { data: mockInstance },
+        data: mockInstance,
       });
 
-      const { result } = renderHook(() => useInstance(456), {
+      const { result } = renderHook(() => useInstance('instance-uuid-456'), {
         wrapper: createWrapper(),
       });
 
@@ -109,7 +109,7 @@ describe('use-instances', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/platform/instances/456');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/platform/instances/instance-uuid-456');
       expect(result.current.data).toEqual(mockInstance);
     });
 
@@ -131,10 +131,10 @@ describe('use-instances', () => {
       };
 
       mockApiClient.get.mockResolvedValueOnce({
-        data: { data: mockTrialStatus },
+        data: mockTrialStatus,
       });
 
-      const { result } = renderHook(() => useTrialStatus(789), {
+      const { result } = renderHook(() => useTrialStatus('instance-uuid-789'), {
         wrapper: createWrapper(),
       });
 
@@ -142,7 +142,7 @@ describe('use-instances', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/platform/instances/789/trial-status');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/api/platform/instances/instance-uuid-789/trial-status');
       expect(result.current.data).toEqual(mockTrialStatus);
     });
 

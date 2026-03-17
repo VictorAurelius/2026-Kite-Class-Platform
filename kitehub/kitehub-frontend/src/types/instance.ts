@@ -1,18 +1,23 @@
 export type InstanceStatus = 'TRIAL' | 'ACTIVE' | 'SUSPENDED' | 'EXPIRED';
 
 export interface Instance {
-  id: number;
+  id: string;  // UUID from backend
   organizationName: string;
   subdomain: string;
-  ownerEmail: string;
+  ownerId: string;  // UUID
   contactEmail: string | null;
   status: InstanceStatus;
   tier: SubscriptionTier;
-  trialEndDate: string | null;
-  databaseName: string;
+  trialStartedAt: string | null;
+  trialExpiresAt: string | null;
+  trialDaysLeft: number | null;
+  subscriptionId: string | null;
+  subscriptionExpiresAt: string | null;
+  isActive: boolean;
+  isOnTrial: boolean;
   createdAt: string;
   updatedAt: string;
-  // Custom domain settings (PR 5.6)
+  // Custom domain settings
   customDomain?: string | null;
   customDomainVerified?: boolean;
 }
@@ -20,7 +25,7 @@ export interface Instance {
 export type SubscriptionTier = 'FREE' | 'BASIC' | 'PREMIUM' | 'ENTERPRISE';
 
 export interface TrialStatus {
-  instanceId: number;
+  instanceId: string;
   trialEndDate: string;
   daysRemaining: number;
   warningLevel: 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH' | 'EXPIRED';
