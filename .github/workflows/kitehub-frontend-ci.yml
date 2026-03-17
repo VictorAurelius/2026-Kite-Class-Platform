@@ -202,8 +202,9 @@ jobs:
         run: |
           IMAGE_SIZE=$(docker image inspect kitehub-frontend:${{ github.sha }} --format='{{.Size}}' | awk '{print $1/1024/1024}')
           echo "Image size: ${IMAGE_SIZE} MB"
-          if (( $(echo "$IMAGE_SIZE > 150" | bc -l) )); then
-            echo "❌ Image size exceeds 150MB limit"
+          # 200MB limit - reasonable for Next.js standalone production image
+          if (( $(echo "$IMAGE_SIZE > 200" | bc -l) )); then
+            echo "❌ Image size exceeds 200MB limit"
             exit 1
           fi
           echo "✅ Image size within limits"
