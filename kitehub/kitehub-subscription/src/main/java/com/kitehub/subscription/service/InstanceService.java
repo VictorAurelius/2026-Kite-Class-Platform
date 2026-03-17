@@ -11,8 +11,6 @@ import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.repository.InstanceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,8 +35,6 @@ public class InstanceService {
     private final DatabaseProvisioningService databaseProvisioningService;
     private final com.kitehub.subscription.config.MultiTenantDataSourceConfig dataSourceConfig;
     private final TokenService tokenService;
-
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
      * Create a new trial instance.
@@ -114,10 +110,6 @@ public class InstanceService {
 
         // Generate owner ID
         UUID ownerId = UUID.randomUUID();
-
-        // Hash password (for future use when we have user table)
-        String hashedPassword = passwordEncoder.encode(request.getOwnerPassword());
-        log.debug("Password hashed for owner: {}", ownerId);
 
         // Create instance entity
         Instance instance = new Instance();
