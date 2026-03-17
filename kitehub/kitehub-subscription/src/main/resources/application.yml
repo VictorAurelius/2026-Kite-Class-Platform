@@ -29,6 +29,8 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
     validate-on-migrate: true
+    # Note: Tenant schema migrations are in db/tenant-schema/kiteclass/
+    # These are applied dynamically when provisioning tenant databases
 
 server:
   port: 8081
