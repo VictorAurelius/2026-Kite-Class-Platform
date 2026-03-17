@@ -4,7 +4,38 @@ spring:
 
   cloud:
     gateway:
+      # CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3001"
+              - "http://localhost:3000"
+              - "http://kitehub-frontend:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+
       routes:
+        # Platform APIs - Instance Management (Subscription Service)
+        - id: platform-instances
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/instances/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # Platform APIs - Subscription Service
         - id: platform-subscription
           uri: http://kitehub-subscription:8080
