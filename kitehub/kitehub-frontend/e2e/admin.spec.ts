@@ -83,10 +83,9 @@ test.describe('Admin Instances Page', () => {
   });
 
   test('should show instances table or loading state', async ({ page }) => {
-    await page.waitForTimeout(3000);
-    // Either shows table content or error/loading
-    const content = page.locator('main');
-    await expect(content).toBeVisible();
+    // Page should display content area with heading already verified
+    const subheading = page.getByText(/xem và quản lý/i);
+    await expect(subheading).toBeVisible();
   });
 });
 

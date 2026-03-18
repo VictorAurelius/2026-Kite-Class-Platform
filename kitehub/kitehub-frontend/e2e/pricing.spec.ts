@@ -17,10 +17,10 @@ test.describe('Pricing Page', () => {
   });
 
   test('should display all 4 pricing tiers', async ({ page }) => {
-    await expect(page.getByText('FREE')).toBeVisible();
-    await expect(page.getByText('BASIC')).toBeVisible();
-    await expect(page.getByText('PREMIUM')).toBeVisible();
-    await expect(page.getByText('ENTERPRISE')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'FREE' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'BASIC' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'PREMIUM' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'ENTERPRISE' })).toBeVisible();
   });
 
   test('should show free tier as Miễn phí', async ({ page }) => {

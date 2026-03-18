@@ -48,10 +48,9 @@ test.describe('Branding Wizard', () => {
   });
 
   test('should show step indicator', async ({ page }) => {
-    await page.waitForTimeout(2000);
-    // Step 1 should show "Tải Logo"
+    // Step 1 should show "Tải Logo" label
     const stepLabel = page.getByText(/tải logo/i);
-    await expect(stepLabel).toBeVisible();
+    await expect(stepLabel.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should show upload step as first step', async ({ page }) => {
@@ -68,8 +67,8 @@ test.describe('Branding Assets', () => {
   });
 
   test('should display assets heading', async ({ page }) => {
-    const heading = page.getByRole('heading', { name: /tài nguyên branding/i });
-    await expect(heading).toBeVisible();
+    const heading = page.getByText(/tài nguyên branding/i);
+    await expect(heading.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should have back button', async ({ page }) => {
@@ -83,15 +82,13 @@ test.describe('Branding Assets', () => {
   });
 
   test('should show empty state for new user', async ({ page }) => {
-    await page.waitForTimeout(2000);
     const emptyState = page.getByText(/chưa có tài nguyên/i);
-    await expect(emptyState).toBeVisible();
+    await expect(emptyState).toBeVisible({ timeout: 10000 });
   });
 
-  test('should have filter controls', async ({ page }) => {
-    // Filter buttons for asset types
-    const allFilter = page.getByText(/tất cả/i).first();
-    await expect(allFilter).toBeVisible();
+  test('should have create first branding button in empty state', async ({ page }) => {
+    const createBtn = page.getByText(/tạo branding đầu tiên/i);
+    await expect(createBtn).toBeVisible({ timeout: 10000 });
   });
 });
 

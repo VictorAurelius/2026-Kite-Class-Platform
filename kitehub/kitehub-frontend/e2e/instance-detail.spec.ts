@@ -59,7 +59,8 @@ test.describe('Instance Detail Page', () => {
   });
 
   test('should have AI branding button', async ({ page }) => {
-    const brandingBtn = page.getByRole('link', { name: /ai branding/i });
+    // Use exact match to avoid matching sidebar link
+    const brandingBtn = page.getByRole('link', { name: 'AI Branding', exact: true });
     await expect(brandingBtn).toBeVisible();
   });
 });

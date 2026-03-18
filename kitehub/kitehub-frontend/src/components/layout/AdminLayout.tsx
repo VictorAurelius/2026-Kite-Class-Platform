@@ -1,13 +1,26 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, user, clearAuth } = useAuthStore();
   const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Wait for zustand to hydrate from localStorage
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated && (!isAuthenticated || user?.role !== 'ADMIN')) {
+      router.replace('/login');
+    }
+  }, [isHydrated, isAuthenticated, user, router]);
 
   const handleLogout = () => {
     clearAuth();
@@ -16,9 +29,13 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  if (!isAuthenticated || user?.role !== 'ADMIN') {
-    router.push('/login');
-    return null;
+  // Show loading while hydrating or redirecting
+  if (!isHydrated || !isAuthenticated || user?.role !== 'ADMIN') {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (
