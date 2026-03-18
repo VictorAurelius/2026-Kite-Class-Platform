@@ -1,0 +1,80 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image tag to deploy (e.g., v1.0.0)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type DEPLOY to confirm'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  EKS_CLUSTER: kitehub-eks
+  HELM_NAMESPACE: kitehub
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm deployment
+        if: ${{ github.event.inputs.confirm != 'DEPLOY' }}
+        run: |
+          echo "Deployment not confirmed. Type 'DEPLOY' to proceed."
+          exit 1
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+
+      - name: Deploy with Helm
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          TAG: ${{ github.event.inputs.version }}
+        run: |
+          helm upgrade --install kitehub ./helm/kitehub \
+            --namespace ${{ env.HELM_NAMESPACE }} \
+            --set global.image.registry=$REGISTRY/kitehub \
+            --set global.image.tag=$TAG \
+            --set global.database.host=${{ secrets.RDS_ENDPOINT }} \
+            --set global.redis.host=${{ secrets.REDIS_ENDPOINT }} \
+            --wait --timeout 10m
+
+      - name: Verify deployment
+        run: |
+          kubectl -n ${{ env.HELM_NAMESPACE }} rollout status deployment/kitehub-gateway --timeout=300s
+          kubectl -n ${{ env.HELM_NAMESPACE }} rollout status deployment/kitehub-subscription --timeout=300s
+          echo "Production deployment verified"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed - rolling back"
+          helm rollback kitehub 0 -n ${{ env.HELM_NAMESPACE }}

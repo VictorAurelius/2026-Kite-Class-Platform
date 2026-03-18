@@ -1,0 +1,75 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'kitehub/**'
+      - 'kiteclass/**'
+      - 'helm/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  EKS_CLUSTER: kitehub-eks
+  HELM_NAMESPACE: kitehub
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push images
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          TAG: staging-${{ github.sha }}
+        run: |
+          for service in kitehub-subscription kitehub-gateway kitehub-branding kitehub-admin kitehub-email kitehub-frontend; do
+            echo "Building $service..."
+            docker build -t $REGISTRY/kitehub/$service:$TAG \
+              -f kitehub/$service/Dockerfile kitehub/
+            docker push $REGISTRY/kitehub/$service:$TAG
+          done
+
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+
+      - name: Deploy with Helm
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          TAG: staging-${{ github.sha }}
+        run: |
+          helm upgrade --install kitehub ./helm/kitehub \
+            --namespace ${{ env.HELM_NAMESPACE }} --create-namespace \
+            --set global.image.registry=$REGISTRY/kitehub \
+            --set global.image.tag=$TAG \
+            --set global.database.host=${{ secrets.RDS_ENDPOINT }} \
+            --set global.redis.host=${{ secrets.REDIS_ENDPOINT }} \
+            --wait --timeout 5m
+
+      - name: Smoke test
+        run: |
+          GATEWAY_URL=$(kubectl -n ${{ env.HELM_NAMESPACE }} get svc kitehub-gateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          curl -sf "http://$GATEWAY_URL:9000/actuator/health" || exit 1
+          echo "Staging deployment healthy"
+
+      - name: Notify
+        if: always()
+        run: echo "Staging deploy ${{ job.status }} - ${{ github.sha }}"
