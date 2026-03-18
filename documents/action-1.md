@@ -39,3 +39,5 @@ production: chuyên nghiệp, bảo mật, không bug, không điểm yếu
 các PR fix đã đáp ứng được chưa?
 
 tôi muốn refactor lại UI của kitehub, có nhiều template rất đẹp cho nền tảng SaaS liệu có sử dụng tài nguyên đó để refactor lại UI kitehub đẹp hơn nhưng vẫn giữ được đặc điểm của kitehub không?
+
+giới thiệu về các công nghệ dùng ở track C để cho tôi hiểu qua
