@@ -20,3 +20,20 @@ tạo test ECE coverage 100% cho BE kitehub, test pass
 fix thì phải làm gì cho đúng quy trình?
 
 push and check CI
+
+theo design dùng công cụ nào để khởi tạo instance
+
+tôi lo lắng việc không phân biệt rõ giữa môi trường local và production trong các vấn đề:
+1. code
+2. tài liệu
+3. dữ liệu mẫu: mock, tài khoản, dữ liệu về demo, dữ liệu về kiteteam, ...
+4. các cấu hình bảo mật
+
+hãy tạo PR để đánh giá và hoàn thiện vấn đề này, hãy hỏi tôi để xác nhận rõ yêu cầu
+
+tách thành PR plan riêng
+nhưng bạn cần lưu ý, mục tiêu của tôi ở đây là tách rõ môi trường local và production
+
+local: ưu tiên, setup nhanh, test chuẩn, thuận tiện cho dev
+production: chuyên nghiệp, bảo mật, không bug, không điểm yếu
+các PR fix đã đáp ứng được chưa?
