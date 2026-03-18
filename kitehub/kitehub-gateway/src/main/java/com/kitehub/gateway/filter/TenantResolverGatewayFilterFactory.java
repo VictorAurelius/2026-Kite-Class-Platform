@@ -29,7 +29,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-public class TenantResolverFilter extends AbstractGatewayFilterFactory<TenantResolverFilter.Config> {
+public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFactory<TenantResolverGatewayFilterFactory.Config> {
 
     private static final String X_TENANT_ID_HEADER = "X-Tenant-Id";
     private static final String X_INSTANCE_SUBDOMAIN_HEADER = "X-Instance-Subdomain";
@@ -40,7 +40,7 @@ public class TenantResolverFilter extends AbstractGatewayFilterFactory<TenantRes
 
     private final InstanceRepository instanceRepository;
 
-    public TenantResolverFilter(InstanceRepository instanceRepository) {
+    public TenantResolverGatewayFilterFactory(InstanceRepository instanceRepository) {
         super(Config.class);
         this.instanceRepository = instanceRepository;
     }
