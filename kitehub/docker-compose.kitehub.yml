@@ -16,6 +16,7 @@ services:
       - "5433:5432"
     volumes:
       - kitehub-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kitehub"]
       interval: 10s
@@ -260,6 +261,7 @@ services:
       BRANDING_SERVICE_URL: http://kitehub-branding:8080
       EMAIL_SERVICE_URL: http://kitehub-email:8080
       ADMIN_SERVICE_URL: http://kitehub-admin:8080
+      KITECLASS_CORE_URL: http://kiteclass-core:8080
     ports:
       - "9000:9000"
     depends_on:
@@ -275,6 +277,54 @@ services:
         condition: service_started
       kitehub-admin:
         condition: service_started
+      kiteclass-core:
+        condition: service_started
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # KITECLASS CORE SERVICE (Shared multi-tenant instance)
+  # ============================================================================
+
+  kiteclass-core:
+    build:
+      context: ../kiteclass/kiteclass-core
+      dockerfile: Dockerfile
+    image: kiteclass-core:latest
+    container_name: kiteclass-core
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kiteclass_shared
+      SPRING_DATASOURCE_USERNAME: kitehub
+      SPRING_DATASOURCE_PASSWORD: kitehub_dev_password
+      SPRING_DATA_REDIS_HOST: kitehub-redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: kitehub
+      SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      STORAGE_S3_ENDPOINT: http://kitehub-minio:9000
+      STORAGE_S3_ACCESS_KEY: kitehub
+      STORAGE_S3_SECRET_KEY: kitehub_dev_password
+      INTERNAL_API_SECRET: kitehub-internal-secret-dev
+    ports:
+      - "8088:8080"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     networks:
       - kitehub-network
     restart: unless-stopped

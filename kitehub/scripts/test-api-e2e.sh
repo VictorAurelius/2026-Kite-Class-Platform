@@ -506,10 +506,68 @@ STATUS=$(extract_status "$RESP")
 assert_status "Tenant routing rejects no-subdomain request" 400 "$STATUS"
 
 # ============================================================
-# 9. DATABASE PROVISIONING
+# 9. KITECLASS API (via TenantResolver)
 # ============================================================
 echo ""
-echo -e "${YELLOW}[9/11] Database Provisioning${NC}"
+echo -e "${YELLOW}[9/12] KiteClass API (via Gateway)${NC}"
+
+# Get instance subdomain
+RESP=$(http_get "/api/platform/admin/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
+BODY=$(extract_body "$RESP")
+INSTANCE_SUBDOMAIN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('subdomain',''))" 2>/dev/null)
+
+# Test KiteClass students endpoint via gateway
+RESP=$(curl -s -w "\n%{http_code}" \
+  -H "X-Instance-Subdomain: $INSTANCE_SUBDOMAIN" \
+  -H "X-Tenant-Id: $INSTANCE_ID" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$GATEWAY/api/v1/students")
+STATUS=$(extract_status "$RESP")
+assert_status "GET /api/v1/students (via TenantResolver)" 200 "$STATUS"
+
+# Test KiteClass courses endpoint
+RESP=$(curl -s -w "\n%{http_code}" \
+  -H "X-Instance-Subdomain: $INSTANCE_SUBDOMAIN" \
+  -H "X-Tenant-Id: $INSTANCE_ID" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$GATEWAY/api/v1/courses")
+STATUS=$(extract_status "$RESP")
+assert_status "GET /api/v1/courses (via TenantResolver)" 200 "$STATUS"
+
+# Test KiteClass teachers endpoint
+RESP=$(curl -s -w "\n%{http_code}" \
+  -H "X-Instance-Subdomain: $INSTANCE_SUBDOMAIN" \
+  -H "X-Tenant-Id: $INSTANCE_ID" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$GATEWAY/api/v1/teachers")
+STATUS=$(extract_status "$RESP")
+assert_status "GET /api/v1/teachers (via TenantResolver)" 200 "$STATUS"
+
+# Test create student via KiteClass
+RESP=$(curl -s -w "\n%{http_code}" -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Instance-Subdomain: $INSTANCE_SUBDOMAIN" \
+  -H "X-Tenant-Id: $INSTANCE_ID" \
+  -H "X-User-Id: 1" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -d "{\"name\":\"E2E Test Student\",\"email\":\"student@test.com\"}" \
+  "$GATEWAY/api/v1/students")
+STATUS=$(extract_status "$RESP")
+TOTAL=$((TOTAL + 1))
+if [ "$STATUS" -eq 200 ] || [ "$STATUS" -eq 201 ]; then
+  PASS=$((PASS + 1))
+  echo -e "  ${GREEN}✓${NC} POST /api/v1/students (create student) HTTP $STATUS"
+else
+  FAIL=$((FAIL + 1))
+  FAILURES="$FAILURES\n  ✗ POST /api/v1/students: expected 200/201, got $STATUS"
+  echo -e "  ${RED}✗${NC} POST /api/v1/students (HTTP $STATUS)"
+fi
+
+# ============================================================
+# 10. DATABASE PROVISIONING
+# ============================================================
+echo ""
+echo -e "${YELLOW}[10/12] Database Provisioning${NC}"
 
 # Check instance has real database URL via admin endpoint (not "pending")
 RESP=$(http_get "/api/platform/admin/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
@@ -585,7 +643,7 @@ fi
 # 9. DATA ISOLATION (2nd instance)
 # ============================================================
 echo ""
-echo -e "${YELLOW}[10/11] Data Isolation${NC}"
+echo -e "${YELLOW}[11/12] Data Isolation${NC}"
 
 TIMESTAMP2=$(date +%s)
 REG_EMAIL2="e2e-iso-${TIMESTAMP2}@example.com"
@@ -626,7 +684,7 @@ http_delete "/api/platform/instances/$INSTANCE_ID2" "$TOKEN2" > /dev/null 2>&1
 # 10. CLEANUP - DELETE INSTANCE
 # ============================================================
 echo ""
-echo -e "${YELLOW}[11/11] Cleanup & Delete${NC}"
+echo -e "${YELLOW}[12/12] Cleanup & Delete${NC}"
 
 RESP=$(http_delete "/api/platform/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
 STATUS=$(extract_status "$RESP")
