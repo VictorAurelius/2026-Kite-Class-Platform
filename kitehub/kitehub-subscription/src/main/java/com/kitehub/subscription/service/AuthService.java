@@ -39,8 +39,21 @@ public class AuthService {
     // In-memory user storage (for demo - should be replaced with proper user table)
     private static final Map<String, UserCredentials> USER_STORE = new ConcurrentHashMap<>();
 
-    @Value("${jwt.secret:kitehub-super-secret-key-that-is-at-least-256-bits-long-for-hs384-algorithm}")
+    @Value("${jwt.secret:#{null}}")
     private String jwtSecret;
+
+    @PostConstruct
+    public void validateConfig() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException(
+                "JWT_SECRET is not configured! Set jwt.secret property or JWT_SECRET env var. " +
+                "Generate with: openssl rand -base64 64");
+        }
+        if (jwtSecret.length() < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 characters (256 bits)");
+        }
+        log.info("JWT secret configured (length: {} chars)", jwtSecret.length());
+    }
 
     /**
      * Initialize demo user for testing.
@@ -71,7 +84,7 @@ public class AuthService {
                 }
             }
 
-            log.info("Demo user ready: {} / Demo@123", demoEmail);
+            log.info("Demo user ready: {}", demoEmail);
         }
     }
 

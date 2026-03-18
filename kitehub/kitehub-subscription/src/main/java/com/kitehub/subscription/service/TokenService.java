@@ -27,10 +27,15 @@ public class TokenService {
     private final long refreshTokenExpiration;
 
     public TokenService(
-        @Value("${jwt.secret:kitehub-development-secret-key-must-be-at-least-256-bits}") String secret,
+        @Value("${jwt.secret:#{null}}") String secret,
         @Value("${jwt.access-token-expiration:86400000}") long accessTokenExpiration,
         @Value("${jwt.refresh-token-expiration:604800000}") long refreshTokenExpiration
     ) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                "JWT_SECRET is not configured! Set jwt.secret property or JWT_SECRET env var. " +
+                "Generate with: openssl rand -base64 64");
+        }
         // Ensure secret is at least 256 bits (32 bytes)
         String paddedSecret = secret.length() >= 32 ? secret : secret + "0".repeat(32 - secret.length());
         this.secretKey = Keys.hmacShaKeyFor(paddedSecret.getBytes(StandardCharsets.UTF_8));
