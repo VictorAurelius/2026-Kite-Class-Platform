@@ -1,6 +1,1 @@
--- V9: Add version column to enrollments table
--- Fixes missing version field from BaseEntity for optimistic locking
-
-ALTER TABLE enrollments ADD COLUMN version BIGINT;
-
-COMMENT ON COLUMN enrollments.version IS 'Version for optimistic locking';
+-- No-op: All tables and columns already created in V1__create_core_schema.sql
