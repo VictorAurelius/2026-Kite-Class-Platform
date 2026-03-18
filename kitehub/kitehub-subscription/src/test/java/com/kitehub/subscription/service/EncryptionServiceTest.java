@@ -19,7 +19,7 @@ class EncryptionServiceTest {
     void setUp() {
         // Generate a test master key
         String masterKey = EncryptionService.generateMasterKey();
-        encryptionService = new EncryptionService(masterKey);
+        encryptionService = new EncryptionService(masterKey, "test");
     }
 
     @Test
@@ -169,7 +169,7 @@ class EncryptionServiceTest {
     @Test
     void shouldCreateServiceWithoutMasterKeyForDevelopment() {
         // When - create service without master key
-        EncryptionService devService = new EncryptionService(null);
+        EncryptionService devService = new EncryptionService(null, "dev");
 
         // Then - should still work with temporary key
         String plainPassword = "TestPassword";
@@ -185,7 +185,7 @@ class EncryptionServiceTest {
         String invalidKey = java.util.Base64.getEncoder().encodeToString(new byte[16]);
 
         // When/Then
-        assertThatThrownBy(() -> new EncryptionService(invalidKey))
+        assertThatThrownBy(() -> new EncryptionService(invalidKey, "test"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Master key must be 32 bytes");
     }

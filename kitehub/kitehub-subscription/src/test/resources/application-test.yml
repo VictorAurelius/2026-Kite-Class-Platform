@@ -19,6 +19,10 @@ spring:
   flyway:
     enabled: false
 
+# JWT configuration for tests
+jwt:
+  secret: "test-jwt-secret-key-for-integration-tests-must-be-at-least-32-chars-long"
+
 # Encryption configuration for tests
 encryption:
   # Fixed test key (32 bytes, base64-encoded) - ensures consistent encryption/decryption

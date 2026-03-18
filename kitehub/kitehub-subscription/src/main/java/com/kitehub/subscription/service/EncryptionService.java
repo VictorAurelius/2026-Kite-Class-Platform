@@ -39,10 +39,16 @@ public class EncryptionService {
      * @param masterKeyBase64 Base64-encoded master encryption key (32 bytes for AES-256)
      */
     public EncryptionService(
-            @Value("${encryption.master-key:#{null}}") String masterKeyBase64) {
+            @Value("${encryption.master-key:#{null}}") String masterKeyBase64,
+            @Value("${spring.profiles.active:dev}") String activeProfile) {
         this.secureRandom = new SecureRandom();
 
         if (masterKeyBase64 == null || masterKeyBase64.isEmpty()) {
+            if ("prod".equals(activeProfile) || "production".equals(activeProfile)) {
+                throw new IllegalStateException(
+                    "ENCRYPTION_MASTER_KEY is required in production! " +
+                    "Generate with: openssl rand -base64 32");
+            }
             log.warn("No master encryption key provided. Generating temporary key (NOT FOR PRODUCTION)");
             this.masterKey = generateTemporaryKey();
         } else {
