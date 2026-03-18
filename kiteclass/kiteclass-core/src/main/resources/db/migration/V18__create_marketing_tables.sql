@@ -7,7 +7,7 @@
 -- Purpose: Per-tenant landing page content
 -- Business Rule: BR-MKT-001 - Each tenant has ONE landing page
 -- =====================================================
-CREATE TABLE landing_pages (
+CREATE TABLE IF NOT EXISTS landing_pages (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
 
@@ -52,14 +52,14 @@ CREATE TABLE landing_pages (
 );
 
 -- Index for tenant lookup
-CREATE INDEX idx_landing_pages_instance ON landing_pages(instance_id) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS idx_landing_pages_instance ON landing_pages(instance_id) WHERE deleted = false;
 
 -- =====================================================
 -- Table: leads
 -- Purpose: Track potential students (trial registrations)
 -- Business Rule: BR-MKT-002 - Lead email unique per tenant
 -- =====================================================
-CREATE TABLE leads (
+CREATE TABLE IF NOT EXISTS leads (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
 
@@ -97,17 +97,17 @@ CREATE TABLE leads (
 );
 
 -- Indexes
-CREATE INDEX idx_leads_instance ON leads(instance_id) WHERE deleted = false;
-CREATE INDEX idx_leads_status ON leads(instance_id, status) WHERE deleted = false;
-CREATE INDEX idx_leads_email ON leads(email) WHERE deleted = false;
-CREATE INDEX idx_leads_registration_date ON leads(registration_date DESC);
+CREATE INDEX IF NOT EXISTS idx_leads_instance ON leads(instance_id) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(instance_id, status) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS idx_leads_registration_date ON leads(registration_date DESC);
 
 -- =====================================================
 -- Table: contact_messages
 -- Purpose: Contact form submissions from guests
 -- Business Rule: BR-MKT-003 - Triggers email to teacher
 -- =====================================================
-CREATE TABLE contact_messages (
+CREATE TABLE IF NOT EXISTS contact_messages (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
 
@@ -140,9 +140,9 @@ CREATE TABLE contact_messages (
 );
 
 -- Indexes
-CREATE INDEX idx_contact_messages_instance ON contact_messages(instance_id) WHERE deleted = false;
-CREATE INDEX idx_contact_messages_unread ON contact_messages(instance_id, is_read) WHERE deleted = false AND is_read = false;
-CREATE INDEX idx_contact_messages_created ON contact_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contact_messages_instance ON contact_messages(instance_id) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS idx_contact_messages_unread ON contact_messages(instance_id, is_read) WHERE deleted = false AND is_read = false;
+CREATE INDEX IF NOT EXISTS idx_contact_messages_created ON contact_messages(created_at DESC);
 
 -- =====================================================
 -- Comments

@@ -5,7 +5,7 @@
 -- ========================================
 -- Table: branding (1 row per tenant)
 -- ========================================
-CREATE TABLE branding (
+CREATE TABLE IF NOT EXISTS branding (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
 
@@ -42,12 +42,12 @@ CREATE TABLE branding (
 );
 
 -- Index for multi-tenant queries
-CREATE INDEX idx_branding_instance_id ON branding(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_branding_instance_id ON branding(instance_id) WHERE deleted = FALSE;
 
 -- ========================================
 -- Table: user_preferences
 -- ========================================
-CREATE TABLE user_preferences (
+CREATE TABLE IF NOT EXISTS user_preferences (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
 
@@ -76,8 +76,8 @@ CREATE TABLE user_preferences (
 );
 
 -- Index for multi-tenant queries
-CREATE INDEX idx_user_preferences_instance_id ON user_preferences(instance_id) WHERE deleted = FALSE;
-CREATE INDEX idx_user_preferences_user_id ON user_preferences(instance_id, user_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_user_preferences_instance_id ON user_preferences(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(instance_id, user_id) WHERE deleted = FALSE;
 
 -- ========================================
 -- Comments
