@@ -133,3 +133,37 @@ jobs:
         with:
           files: kitehub/kitehub-subscription/target/site/jacoco/jacoco.xml
           flags: kitehub-subscription
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified --results=verified
+        continue-on-error: true
+
+      - name: Check for hardcoded passwords in docker-compose
+        run: |
+          echo "Checking docker-compose files for hardcoded passwords..."
+          FOUND=0
+          for file in $(find . -name "docker-compose*.yml" -not -path "./.git/*"); do
+            # Check for passwords that are NOT env var references
+            if grep -P "PASSWORD:.*[^}]$" "$file" | grep -v '${' | grep -v '#' | grep -qv "CHANGE_ME"; then
+              echo "❌ Hardcoded password found in: $file"
+              grep -n -P "PASSWORD:.*[^}]$" "$file" | grep -v '${' | grep -v '#'
+              FOUND=1
+            fi
+          done
+          if [ $FOUND -eq 0 ]; then
+            echo "✅ No hardcoded passwords found in docker-compose files"
+          else
+            echo "::warning::Hardcoded passwords detected in docker-compose files"
+          fi
