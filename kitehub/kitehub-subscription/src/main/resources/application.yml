@@ -57,12 +57,12 @@ logging:
 # Database master configuration for provisioning tenant databases
 database:
   master:
-    host: localhost
-    port: 5433
+    host: ${DATABASE_MASTER_HOST:localhost}
+    port: ${DATABASE_MASTER_PORT:5433}
   admin:
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: postgres
-    password: ${POSTGRES_ADMIN_PASSWORD:}
+    url: ${DATABASE_ADMIN_URL:jdbc:postgresql://localhost:5433/postgres}
+    username: ${DATABASE_ADMIN_USERNAME:postgres}
+    password: ${DATABASE_ADMIN_PASSWORD:}
   lifecycle:
     # Enable actual database creation/deletion (false for MVP/testing)
     enabled: ${DATABASE_LIFECYCLE_ENABLED:false}

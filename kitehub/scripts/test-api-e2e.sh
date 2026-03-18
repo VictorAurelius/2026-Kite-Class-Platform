@@ -374,7 +374,7 @@ assert_status "GET /api/platform/admin/subscriptions" 200 "$STATUS" "$BODY"
 # 5. CORS
 # ============================================================
 echo ""
-echo -e "${YELLOW}[5/8] CORS & Gateway${NC}"
+echo -e "${YELLOW}[5/10] CORS & Gateway${NC}"
 
 # OPTIONS preflight
 RESP=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS \
@@ -423,7 +423,7 @@ fi
 # 6. SUBSCRIPTION ENDPOINTS
 # ============================================================
 echo ""
-echo -e "${YELLOW}[6/8] Subscription Endpoints${NC}"
+echo -e "${YELLOW}[6/10] Subscription Endpoints${NC}"
 
 # Get subscriptions for instance (may be empty for trial)
 RESP=$(http_get "/api/platform/subscriptions/instance/$INSTANCE_ID" "$ACCESS_TOKEN")
@@ -446,7 +446,7 @@ fi
 # 7. BRANDING ENDPOINTS (via gateway)
 # ============================================================
 echo ""
-echo -e "${YELLOW}[7/8] Branding Endpoints (via gateway)${NC}"
+echo -e "${YELLOW}[7/10] Branding Endpoints (via gateway)${NC}"
 
 # Branding assets list (may be empty)
 RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $ACCESS_TOKEN" \
@@ -462,10 +462,127 @@ STATUS=$(extract_status "$RESP")
 assert_status "GET /api/platform/branding/jobs" 200 "$STATUS"
 
 # ============================================================
-# 8. CLEANUP - DELETE INSTANCE
+# 8. DATABASE PROVISIONING
 # ============================================================
 echo ""
-echo -e "${YELLOW}[8/8] Cleanup & Delete${NC}"
+echo -e "${YELLOW}[8/10] Database Provisioning${NC}"
+
+# Check instance has real database URL via admin endpoint (not "pending")
+RESP=$(http_get "/api/platform/admin/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
+BODY=$(extract_body "$RESP")
+DB_URL=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('databaseUrl','pending'))" 2>/dev/null)
+
+TOTAL=$((TOTAL + 1))
+if [ "$DB_URL" != "pending" ] && [ "$DB_URL" != "None" ] && [ -n "$DB_URL" ]; then
+  PASS=$((PASS + 1))
+  echo -e "  ${GREEN}✓${NC} Instance has real databaseUrl: $(echo "$DB_URL" | head -c 60)..."
+else
+  FAIL=$((FAIL + 1))
+  FAILURES="$FAILURES\n  ✗ Instance databaseUrl is still 'pending' or empty (DB provisioning not enabled?)"
+  echo -e "  ${RED}✗${NC} Instance databaseUrl = '$DB_URL' (expected real JDBC URL)"
+fi
+
+# Check database name follows pattern kiteclass_*
+TOTAL=$((TOTAL + 1))
+if echo "$DB_URL" | grep -q "kiteclass_"; then
+  PASS=$((PASS + 1))
+  echo -e "  ${GREEN}✓${NC} Database name follows kiteclass_{id} pattern"
+else
+  FAIL=$((FAIL + 1))
+  FAILURES="$FAILURES\n  ✗ Database URL doesn't contain 'kiteclass_' pattern"
+  echo -e "  ${RED}✗${NC} Database URL doesn't follow naming pattern"
+fi
+
+# Verify database actually exists by connecting via PostgreSQL
+DB_NAME=$(echo "$DB_URL" | python3 -c "import sys; url=sys.stdin.read().strip(); print(url.split('/')[-1] if '/' in url else '')" 2>/dev/null)
+if [ -n "$DB_NAME" ] && [ "$DB_NAME" != "pending" ]; then
+  # Check DB exists via admin connection
+  DB_EXISTS=$(docker exec kitehub-postgres psql -U kitehub -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" 2>/dev/null | tr -d '[:space:]')
+  TOTAL=$((TOTAL + 1))
+  if [ "$DB_EXISTS" = "1" ]; then
+    PASS=$((PASS + 1))
+    echo -e "  ${GREEN}✓${NC} Database '$DB_NAME' exists in PostgreSQL"
+  else
+    FAIL=$((FAIL + 1))
+    FAILURES="$FAILURES\n  ✗ Database '$DB_NAME' does NOT exist in PostgreSQL"
+    echo -e "  ${RED}✗${NC} Database '$DB_NAME' not found in PostgreSQL"
+  fi
+
+  # Check tables were created by Flyway migrations
+  TABLE_COUNT=$(docker exec kitehub-postgres psql -U kitehub -d "$DB_NAME" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'" 2>/dev/null | tr -d '[:space:]')
+  TOTAL=$((TOTAL + 1))
+  if [ -n "$TABLE_COUNT" ] && [ "$TABLE_COUNT" -gt 5 ] 2>/dev/null; then
+    PASS=$((PASS + 1))
+    echo -e "  ${GREEN}✓${NC} Database has $TABLE_COUNT tables (Flyway migrations ran)"
+  else
+    FAIL=$((FAIL + 1))
+    FAILURES="$FAILURES\n  ✗ Database has $TABLE_COUNT tables (expected >5 from Flyway)"
+    echo -e "  ${RED}✗${NC} Database has ${TABLE_COUNT:-0} tables (expected >5)"
+  fi
+
+  # Check key tables exist (students, courses, teachers)
+  for TABLE in students courses teachers; do
+    TABLE_EXISTS=$(docker exec kitehub-postgres psql -U kitehub -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='$TABLE'" 2>/dev/null | tr -d '[:space:]')
+    TOTAL=$((TOTAL + 1))
+    if [ "$TABLE_EXISTS" = "1" ]; then
+      PASS=$((PASS + 1))
+      echo -e "  ${GREEN}✓${NC} Table '$TABLE' exists"
+    else
+      FAIL=$((FAIL + 1))
+      FAILURES="$FAILURES\n  ✗ Table '$TABLE' missing in provisioned DB"
+      echo -e "  ${RED}✗${NC} Table '$TABLE' missing"
+    fi
+  done
+else
+  echo -e "  ${YELLOW}⚠${NC} Skipping DB existence checks (no valid DB name)"
+fi
+
+# ============================================================
+# 9. DATA ISOLATION (2nd instance)
+# ============================================================
+echo ""
+echo -e "${YELLOW}[9/10] Data Isolation${NC}"
+
+TIMESTAMP2=$(date +%s)
+REG_EMAIL2="e2e-iso-${TIMESTAMP2}@example.com"
+REG_SUBDOMAIN2="e2e-iso-${TIMESTAMP2}"
+
+RESP=$(http_post "/api/auth/register" "{
+  \"organizationName\": \"Isolation Test Org\",
+  \"subdomain\": \"$REG_SUBDOMAIN2\",
+  \"ownerEmail\": \"$REG_EMAIL2\",
+  \"ownerPassword\": \"Test@12345\"
+}")
+BODY2=$(extract_body "$RESP")
+STATUS2=$(extract_status "$RESP")
+assert_status "Register 2nd instance for isolation test" 201 "$STATUS2"
+
+INSTANCE_ID2=$(echo "$BODY2" | python3 -c "import sys,json; print(json.load(sys.stdin).get('instance',{}).get('id',''))" 2>/dev/null)
+TOKEN2=$(echo "$BODY2" | python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null)
+
+# Verify 2nd instance has different database (via admin)
+RESP2=$(http_get "/api/platform/admin/instances/$INSTANCE_ID2" "$TOKEN2")
+BODY2=$(extract_body "$RESP2")
+DB_URL2=$(echo "$BODY2" | python3 -c "import sys,json; print(json.load(sys.stdin).get('databaseUrl','pending'))" 2>/dev/null)
+
+TOTAL=$((TOTAL + 1))
+if [ "$DB_URL" != "$DB_URL2" ] && [ "$DB_URL2" != "pending" ] && [ "$DB_URL2" != "None" ]; then
+  PASS=$((PASS + 1))
+  echo -e "  ${GREEN}✓${NC} 2nd instance has different database (isolation confirmed)"
+else
+  FAIL=$((FAIL + 1))
+  FAILURES="$FAILURES\n  ✗ 2nd instance has same or pending DB URL (no isolation)"
+  echo -e "  ${RED}✗${NC} Data isolation failed: DB_URL1=$DB_URL, DB_URL2=$DB_URL2"
+fi
+
+# Cleanup 2nd instance
+http_delete "/api/platform/instances/$INSTANCE_ID2" "$TOKEN2" > /dev/null 2>&1
+
+# ============================================================
+# 10. CLEANUP - DELETE INSTANCE
+# ============================================================
+echo ""
+echo -e "${YELLOW}[10/10] Cleanup & Delete${NC}"
 
 RESP=$(http_delete "/api/platform/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
 STATUS=$(extract_status "$RESP")
