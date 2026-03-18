@@ -61,3 +61,67 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
   const token = await getAuthToken(page);
   return token !== null && token.length > 0;
 }
+
+/**
+ * Set up mock auth state in localStorage (skips registration flow).
+ * Useful for testing pages that need auth but don't need real API data.
+ */
+export async function setupMockAuth(page: Page, role: 'OWNER' | 'ADMIN' = 'OWNER'): Promise<void> {
+  const currentUrl = page.url();
+  if (currentUrl === 'about:blank' || !currentUrl.startsWith('http')) {
+    await page.goto('/');
+  }
+
+  const authState = {
+    state: {
+      user: {
+        id: '00000000-0000-0000-0000-000000000099',
+        email: role === 'ADMIN' ? 'admin@kitehub.com' : 'mock@kitehub.com',
+        name: role === 'ADMIN' ? 'Admin User' : 'Mock User',
+        role,
+      },
+      accessToken: 'mock-access-token',
+      refreshToken: 'mock-refresh-token',
+      isAuthenticated: true,
+    },
+    version: 0,
+  };
+
+  await page.evaluate((state) => {
+    localStorage.setItem('kitehub-auth', JSON.stringify(state));
+  }, authState);
+}
+
+/**
+ * Register a new user and return to specified page.
+ * Returns the instance ID from the redirect URL.
+ */
+export async function registerAndNavigate(page: Page, targetUrl: string): Promise<void> {
+  await clearBrowserStorage(page);
+  await page.goto('/register');
+
+  const data = {
+    organizationName: 'Test Organization',
+    subdomain: generateTestSubdomain(),
+    email: generateTestEmail(),
+    password: 'TestPassword123!',
+  };
+
+  await page.getByPlaceholder('Trung tâm Anh ngữ ABC').fill(data.organizationName);
+  await page.getByPlaceholder('abc-center').fill(data.subdomain);
+  await page.getByPlaceholder('email@example.com').fill(data.email);
+
+  const passwordFields = page.locator('input[type="password"]');
+  await passwordFields.first().fill(data.password);
+  await passwordFields.nth(1).fill(data.password);
+
+  await page.getByRole('button', { name: /tạo tài khoản/i }).click();
+  await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
+
+  if (targetUrl !== '/dashboard') {
+    await page.goto(targetUrl);
+  }
+}
+
+// Re-export expect for use in helpers
+import { expect } from '@playwright/test';
