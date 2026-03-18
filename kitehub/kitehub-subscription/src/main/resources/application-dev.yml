@@ -1,0 +1,24 @@
+# =============================================================================
+# DEV PROFILE - Local development settings
+# =============================================================================
+# Activated by: SPRING_PROFILES_ACTIVE=dev (default in docker-compose)
+#
+# Characteristics:
+#   - Verbose logging (SQL, Hibernate)
+#   - Relaxed security (CORS allows localhost)
+#   - Mock services acceptable
+#   - Temporary encryption key OK (with warning)
+
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        use_sql_comments: true
+
+logging:
+  level:
+    root: INFO
+    com.kitehub: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG

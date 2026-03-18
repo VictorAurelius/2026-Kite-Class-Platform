@@ -3,12 +3,12 @@ spring:
     name: kitehub-subscription
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/kitehub
-    username: kitehub
-    password: kitehub_dev_password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/kitehub}
+    username: ${SPRING_DATASOURCE_USERNAME:kitehub}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: ${HIKARI_MAX_POOL:10}
       minimum-idle: 2
       connection-timeout: 30000
       idle-timeout: 600000
@@ -21,7 +21,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        use_sql_comments: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
@@ -29,13 +28,9 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
     validate-on-migrate: true
-    # Note: Tenant schema migrations are in db/tenant-schema/kiteclass/
-    # These are applied dynamically when provisioning tenant databases
 
 server:
-  port: 8081
-  servlet:
-    context-path: /
+  port: ${SERVER_PORT:8081}
 
 management:
   endpoints:
@@ -44,17 +39,13 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: always
+      show-details: ${HEALTH_SHOW_DETAILS:always}
 
-logging:
-  level:
-    root: INFO
-    com.kitehub: DEBUG
-    org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+# JWT configuration
+jwt:
+  secret: ${JWT_SECRET:#{null}}
 
-# Database master configuration for provisioning tenant databases
+# Database provisioning
 database:
   master:
     host: ${DATABASE_MASTER_HOST:localhost}
@@ -64,38 +55,29 @@ database:
     username: ${DATABASE_ADMIN_USERNAME:postgres}
     password: ${DATABASE_ADMIN_PASSWORD:}
   lifecycle:
-    # Enable actual database creation/deletion (false for MVP/testing)
     enabled: ${DATABASE_LIFECYCLE_ENABLED:false}
 
-# Encryption configuration for sensitive data (database passwords)
+# Encryption
 encryption:
-  # Master encryption key (32 bytes, Base64-encoded)
-  # Generate new key: EncryptionService.generateMasterKey()
-  # IMPORTANT: Store in environment variable, not in code
   master-key: ${ENCRYPTION_MASTER_KEY:}
   algorithm: AES-256-GCM
 
-# Webhook configuration for payment notifications
+# Webhook
 webhook:
   payment:
-    # Shared secret for HMAC-SHA256 signature verification
-    # IMPORTANT: Store in environment variable, not in code
     secret: ${WEBHOOK_PAYMENT_SECRET:}
 
-# Email service configuration
+# Email service
 email:
   service:
-    # URL of KiteHub Email Service (internal service-to-service communication)
     url: ${EMAIL_SERVICE_URL:http://localhost:8083}
 
-# Payment configuration
+# Payment
 payment:
   vietqr:
-    # VietQR API configuration
     api-url: ${VIETQR_API_URL:https://api.vietqr.io/v2/generate}
-    api-key: ${VIETQR_API_KEY:}  # Optional: For VietQR Premium API features
-    # Bank account information for payment QR codes
-    bank-code: ${VIETQR_BANK_CODE:VCB}  # VCB = Vietcombank
-    account-number: ${VIETQR_ACCOUNT_NUMBER:1234567890}
-    account-name: ${VIETQR_ACCOUNT_NAME:CONG TY KITECLASS}
-    template: ${VIETQR_TEMPLATE:compact}  # compact, print, or qr_only
+    api-key: ${VIETQR_API_KEY:}
+    bank-code: ${VIETQR_BANK_CODE:VCB}
+    account-number: ${VIETQR_ACCOUNT_NUMBER:}
+    account-name: ${VIETQR_ACCOUNT_NAME:}
+    template: ${VIETQR_TEMPLATE:compact}
