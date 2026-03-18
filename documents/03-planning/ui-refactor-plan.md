@@ -1,191 +1,319 @@
 # KiteHub UI Refactor Plan
 
 **Ngày tạo**: 2026-03-18
+**Cập nhật**: 2026-03-18 (v2 - thêm template references + user persona)
 **Scope**: Toàn bộ KiteHub Frontend (Landing, Auth, Dashboard, Admin)
-**Mục tiêu**: UI chuyên nghiệp ngang SaaS templates top Figma, giữ brand identity KiteHub
 
 ---
 
-## 1. Đánh giá UI hiện tại
+## Mục tiêu đỏ
+
+1. **Landing page phải ĐẸP NHẤT có thể** - first impression quyết định conversion
+2. **Dashboard/Portal phải PHÙ HỢP với tệp người dùng KiteClass** - chủ trung tâm giáo dục VN
+
+---
+
+## 1. Tệp người dùng KiteClass
+
+### Persona chính: Chủ trung tâm ngoại ngữ / giáo dục tại Việt Nam
+
+| Đặc điểm | Chi tiết |
+|-----------|----------|
+| **Tuổi** | 28-50 |
+| **Giới tính** | Nữ chiếm 60-70% (ngành giáo dục VN) |
+| **Trình độ IT** | Trung bình - thấp (dùng Facebook, Zalo thành thạo, ít dùng phần mềm quản lý) |
+| **Thiết bị** | Laptop (70%) + Điện thoại (30%) |
+| **Nỗi đau** | Quản lý bằng Excel/sổ tay, thiếu chuyên nghiệp, mất thời gian |
+| **Mong muốn** | Phần mềm DỄ DÙNG, ĐẸP, TIẾNG VIỆT, giá hợp lý |
+| **Tâm lý** | Ngại công nghệ, thích giao diện quen thuộc (giống app VN đã dùng) |
+
+### UI principles cho tệp này
+
+| Principle | Áp dụng |
+|-----------|---------|
+| **Đơn giản trước hết** | Ít options hiển thị, progressive disclosure |
+| **Tiếng Việt 100%** | Không dùng thuật ngữ IT tiếng Anh trong UI |
+| **Visual guidance** | Icons rõ ràng, labels cụ thể, tooltips khi cần |
+| **Familiar patterns** | Giống Zalo, Facebook layout (sidebar left, content right) |
+| **Trust & credibility** | Logo, testimonials, số liệu thực, chứng nhận |
+| **Mobile-friendly** | Nhiều người check bằng điện thoại |
+| **Warm colors** | Không quá corporate (cold blue), thêm warm tones |
+| **Onboarding nhẹ** | Không overwhelm, hướng dẫn từng bước |
+
+---
+
+## 2. Template References
+
+### Landing Page: [saas-landing-page-template](https://github.com/karthikmudunuri/saas-landing-page-template)
+**Lấy:**
+- ✅ Framer Motion animations (scroll-triggered)
+- ✅ Dark gradient hero với animated elements
+- ✅ Feature showcase layout
+- ✅ Smooth section transitions
+
+**Customize cho KiteHub:**
+- Đổi dark theme → light/bright theme (education = friendly, approachable)
+- Thêm education imagery (classroom, students, teachers)
+- Tiếng Việt content với emotional copy
+- Trust signals phù hợp VN (số trung tâm, số học viên)
+
+### Dashboard: [next-shadcn-dashboard-starter](https://github.com/Kiranism/next-shadcn-dashboard-starter)
+**Lấy:**
+- ✅ Sidebar navigation pattern (collapsible, icons)
+- ✅ Stats cards layout
+- ✅ Table components
+- ✅ Chart integration (recharts)
+
+**Customize cho KiteHub:**
+- Đơn giản hóa (ít metrics hơn, focus vào actions)
+- Vietnamese labels
+- Warm color palette
+- Larger click targets (người dùng ít IT)
+
+### Toàn bộ: [SaaS-Boilerplate](https://github.com/ixartz/SaaS-Boilerplate)
+**Lấy:**
+- ✅ Auth flow pattern
+- ✅ Pricing page structure
+- ✅ Multi-tenancy UI patterns
+
+---
+
+## 3. Đánh giá UI hiện tại
 
 ### Điểm mạnh (giữ lại)
-- ✅ Tech stack tốt: Next.js 15 + shadcn/ui + Tailwind
-- ✅ Brand colors đã define: Sky Blue (#00A3E0) + Orange (#FF8C00) + Teal
-- ✅ Dark mode support (HSL variables)
-- ✅ Card-based design pattern nhất quán
+- ✅ Tech stack: Next.js 15 + shadcn/ui + Tailwind
+- ✅ Brand colors: Sky Blue (#00A3E0) + Orange (#FF8C00) + Teal
+- ✅ Dark mode support
+- ✅ Card-based design pattern
 - ✅ Responsive breakpoints
 
 ### Điểm yếu (cần fix)
-- ❌ Sidebar dùng emoji icons (📊, 💳, 🎨) → amateur
-- ❌ Login/Register form dùng raw `<input>` thay vì shadcn components
-- ❌ Không có custom font (dùng default system)
-- ❌ Landing page thiếu social proof, trust signals
-- ❌ Dashboard cards quá đơn giản, thiếu data visualization
-- ❌ Mobile sidebar không collapse
-- ❌ Spacing/typography không có hệ thống rõ ràng
-- ❌ Không có illustration/graphics (chỉ có text + icons)
-- ❌ Button variants không nhất quán
+- ❌ Sidebar: emoji icons → amateur
+- ❌ Auth forms: raw `<input>` → cần shadcn components
+- ❌ Landing: thiếu animations, trust signals, emotional copy
+- ❌ Dashboard: quá đơn giản, thiếu data visualization
+- ❌ Mobile: sidebar không collapse
+- ❌ Typography: không có custom font
+- ❌ Illustrations: không có graphics
+- ❌ Onboarding: người dùng mới không biết bắt đầu từ đâu
 
 ---
 
-## 2. Design Direction: Modern Education SaaS
+## 4. Brand Identity
 
-### Tham khảo SaaS Templates (Figma Community)
-
-**Style phù hợp cho Education SaaS:**
-
-| Trend | Áp dụng cho KiteHub |
-|-------|---------------------|
-| **Glassmorphism** | Header, modal overlays (đã có, tăng cường) |
-| **Gradient accents** | Hero section, CTA buttons, section dividers |
-| **Bento grid** | Dashboard cards, feature showcase |
-| **Micro-interactions** | Button hover, card hover, page transitions |
-| **Illustration** | Hero illustration, empty states, onboarding |
-| **Data visualization** | Dashboard charts, admin analytics |
-| **Rounded corners** | Tăng border-radius lên 12-16px cho cards |
-| **Soft shadows** | Layered shadows thay vì flat borders |
-
-### Brand Identity giữ lại
-
+### Giữ nguyên
 ```
-Primary:    Sky Blue (#00A3E0) → "Trust, Technology, Education"
-Accent:     Orange (#FF8C00) → "Energy, Action, CTA"
-Teal:       (#2DB39E) → "Growth, Success"
-Background: Off-white (#FAFBFC) → Clean, spacious
+Primary:    Sky Blue (#00A3E0) → Trust, Technology
+Accent:     Orange (#FF8C00) → Energy, CTA
+Teal:       (#2DB39E) → Growth, Success
 ```
 
-### Typography upgrade
-
+### Thêm mới
 ```
-Headings:   Inter (Google Fonts) - Clean, professional, great Vietnamese support
-Body:       Inter - Consistent
-Mono:       JetBrains Mono - Code/data display
+Warm Beige:  (#FFF8F0) → Friendly background (thay pure white)
+Soft Purple: (#8B5CF6) → Premium/AI features
+Light Green: (#10B981) → Success states
+```
+
+### Typography
+```
+Headings:   Inter (next/font) - Clean, excellent Vietnamese
+Body:       Inter
+Mono:       JetBrains Mono (data/code)
+```
+
+### Tone
+```
+Landing:    Professional nhưng WARM - "Chúng tôi hiểu nỗi đau của bạn"
+Dashboard:  Clean, calm, efficient - "Mọi thứ bạn cần, ở một nơi"
+Admin:      Data-focused, actionable - "Kiểm soát toàn bộ"
 ```
 
 ---
 
-## 3. Refactor PRs (chia theo pages)
+## 5. Refactor PRs
 
 ### PR-UI-1: Design System Foundation
-**Priority**: P0 (làm trước tất cả UI PRs)
+**Priority**: 🔴 P0
+**Template ref**: [next-shadcn-dashboard-starter](https://github.com/Kiranism/next-shadcn-dashboard-starter) (component patterns)
 **Scope**:
-- [ ] Add Inter font (Google Fonts hoặc next/font)
-- [ ] Update tailwind.config: border-radius 12px, custom shadows, spacing scale
-- [ ] Add semantic colors: success, warning, info (thay hardcoded green/yellow)
-- [ ] Upgrade Button component: variants (primary, secondary, ghost, destructive, outline)
-- [ ] Replace emoji sidebar icons → lucide-react icons
-- [ ] Add collapsible mobile sidebar (Sheet component)
-- [ ] Create GradientText, GradientButton components
-- [ ] Create SectionTitle, PageHeader shared components
+- [ ] Inter font via next/font/google
+- [ ] tailwind.config: border-radius 12px, layered shadows, warm bg color
+- [ ] Semantic colors: success (#10B981), warning (#F59E0B), info (#3B82F6)
+- [ ] Button: gradient variant, icon variant, loading state
+- [ ] Sidebar: lucide icons, collapsible mobile (Sheet), active indicator
+- [ ] New: PageHeader, SectionTitle, GradientButton, GradientText
+- [ ] Warm Beige background (#FFF8F0) cho light mode
 **Estimate**: 1 ngày
 
-### PR-UI-2: Landing Page Redesign
-**Priority**: P0
+### PR-UI-2: Landing Page - "Đẹp nhất có thể"
+**Priority**: 🔴🔴 P0 (mục tiêu đỏ)
+**Template ref**: [saas-landing-page-template](https://github.com/karthikmudunuri/saas-landing-page-template) (animations, layout)
 **Scope**:
-- [ ] Hero: Gradient background + illustration + animated text
-- [ ] Features: Bento grid layout (thay vì 3-column cards)
-- [ ] Stats: Animated counters (instances served, students, etc.)
-- [ ] Testimonials: Carousel/slider thay vì static cards
-- [ ] Pricing preview: Highlighted popular plan + feature comparison
-- [ ] Trust signals: "Trusted by X schools", partner logos
-- [ ] CTA section: Gradient bg + compelling copy
-- [ ] Footer: Richer layout (social links, newsletter, legal)
-**Estimate**: 1-2 ngày
+- [ ] **Hero**:
+  - Gradient mesh background (warm tones, không dark)
+  - Animated headline: "Quản lý trung tâm giáo dục thông minh"
+  - Sub-headline emotional: "Dành thời gian cho việc giảng dạy, để KiteClass lo phần còn lại"
+  - CTA gradient button: "Dùng thử miễn phí 14 ngày"
+  - Hero illustration: classroom/education SVG hoặc Lottie animation
+  - Floating UI mockup screenshots
+- [ ] **Social proof bar**: "Được X+ trung tâm tin dùng"
+- [ ] **Features**: Bento grid (6 features)
+  - Quản lý học viên, Lịch học & điểm danh, Thanh toán & hóa đơn
+  - AI Branding, Báo cáo & thống kê, Đa chi nhánh
+  - Mỗi feature: icon + title + description + mini screenshot
+- [ ] **How it works**: 3 steps (Đăng ký → Cấu hình → Sử dụng)
+- [ ] **Stats**: Animated counters (scroll-triggered via Framer Motion)
+- [ ] **Testimonials**: Carousel (chủ trung tâm VN, ảnh thật, quotes)
+- [ ] **Pricing**: 4 tiers, highlighted PREMIUM, toggle tháng/năm
+  - Giá VND (không USD)
+  - Feature comparison table
+- [ ] **FAQ**: Accordion (câu hỏi phổ biến)
+- [ ] **CTA bottom**: "Bắt đầu miễn phí ngay hôm nay" + trust signals
+- [ ] **Footer**: Social links (Facebook, Zalo), hotline, email, legal
+- [ ] **Animations**: Framer Motion scroll-triggered, stagger children
+**Estimate**: 2-3 ngày
 
-### PR-UI-3: Auth Pages Polish
+### PR-UI-3: Auth Pages
 **Priority**: P1
+**Template ref**: [SaaS-Boilerplate](https://github.com/ixartz/SaaS-Boilerplate) (auth pattern)
 **Scope**:
-- [ ] Login: Split layout (left: illustration/branding, right: form)
-- [ ] Register: Multi-step wizard thay vì 1 form dài
-- [ ] Use shadcn Input/Label components (thay raw `<input>`)
-- [ ] Social login buttons (Google, Microsoft) - UI only, logic later
+- [ ] Login: Split layout (left: education illustration + tagline, right: form)
+- [ ] Register: 3-step wizard (1. Thông tin → 2. Tên miền → 3. Xác nhận)
+- [ ] shadcn Input/Label thay raw HTML
 - [ ] Password strength indicator
-- [ ] Animated transitions giữa login ↔ register
+- [ ] Error states rõ ràng (tiếng Việt)
+- [ ] Mobile: single column, illustration hidden
 **Estimate**: 1 ngày
 
 ### PR-UI-4: Dashboard & Customer Portal
 **Priority**: P1
+**Template ref**: [next-shadcn-dashboard-starter](https://github.com/Kiranism/next-shadcn-dashboard-starter) (layout, charts)
+**Người dùng**: Chủ trung tâm (IT thấp-trung bình)
 **Scope**:
-- [ ] Dashboard: Bento grid layout (stats cards + instance card + quick actions)
-- [ ] Stats cards: Icon + number + trend indicator (↑↓)
-- [ ] Instance cards: Richer layout (logo, subdomain, metrics, status badge)
-- [ ] Welcome banner: "Good morning, [Name]" with gradient
-- [ ] Quick actions: Create instance, View billing, AI branding
-- [ ] Sidebar: Polish navigation (active indicator, hover effects, icons)
-- [ ] Billing pages: Cleaner pricing cards, payment flow wizard
-- [ ] Settings: Tab content improved, form validation UX
+- [ ] **Welcome banner**: "Chào [Tên], chúc bạn một ngày hiệu quả!"
+- [ ] **Dashboard**:
+  - Bento grid: Instance card lớn (chính) + stats nhỏ (phụ)
+  - Quick actions rõ ràng: "Truy cập KiteClass", "Nâng cấp", "Hỗ trợ"
+  - Ít metrics (chỉ: học viên, lớp, doanh thu tháng)
+- [ ] **Instance cards**:
+  - Logo/avatar trung tâm
+  - Tên + subdomain
+  - Status badge lớn, rõ ràng
+  - Trial countdown prominent
+  - 1 CTA button rõ ràng: "Vào quản lý"
+- [ ] **Sidebar**:
+  - Icons + labels rõ ràng (tiếng Việt)
+  - Active state nổi bật
+  - Collapse trên mobile
+  - 4 items: Tổng quan, Thanh toán, Thương hiệu, Cài đặt
+- [ ] **Billing**: Pricing cards đơn giản, giá VND
+- [ ] **Settings**: Forms với labels rõ, validation messages tiếng Việt
 **Estimate**: 2 ngày
 
 ### PR-UI-5: Admin Portal
 **Priority**: P2
+**Template ref**: [next-shadcn-dashboard-starter](https://github.com/Kiranism/next-shadcn-dashboard-starter) (charts, tables)
 **Scope**:
-- [ ] Dashboard: Revenue chart (recharts), instance growth line chart
-- [ ] Stats cards: Animated numbers, color-coded (green/red/blue/orange)
-- [ ] Instance table: Better filters, bulk actions toolbar
-- [ ] Payment table: Status pills, quick approve/reject
-- [ ] Detail pages: Tabbed layout, action cards
+- [ ] Revenue chart: Line/Bar chart (recharts)
+- [ ] Stats: Animated counters, color-coded cards
+- [ ] Instance table: Search, filter, status pills
+- [ ] Payment table: Quick approve/reject buttons
 **Estimate**: 1 ngày
 
 ### PR-UI-6: Animations & Polish
 **Priority**: P2
 **Scope**:
-- [ ] Page transitions (framer-motion hoặc CSS)
-- [ ] Skeleton loading states (thay vì spinner)
-- [ ] Toast notifications style upgrade (sonner customization)
-- [ ] Scroll-triggered animations cho landing page
-- [ ] Dark mode polish (test tất cả pages)
-- [ ] 404 page with illustration
-- [ ] Favicon, meta images (OG image)
+- [ ] Framer Motion page transitions
+- [ ] Skeleton loading (thay spinner)
+- [ ] Scroll animations cho landing
+- [ ] Dark mode polish
+- [ ] 404 page
+- [ ] OG image, favicon
+- [ ] Performance: Lighthouse score > 90
 **Estimate**: 1 ngày
 
 ---
 
-## 4. Execution Order
+## 6. Execution Order
 
 ```
-PR-UI-1 (Design System) ──→ PR-UI-2 (Landing) ──→ PR-UI-3 (Auth)
-                               ↓
-                          PR-UI-4 (Dashboard) ──→ PR-UI-5 (Admin)
-                                                       ↓
-                                                PR-UI-6 (Polish)
+PR-UI-1 (Design System) ──→ PR-UI-2 (Landing - MỤC TIÊU ĐỎ)
+                                  ↓
+                             PR-UI-3 (Auth) ──→ PR-UI-4 (Dashboard)
+                                                      ↓
+                                                PR-UI-5 (Admin) ──→ PR-UI-6 (Polish)
 ```
 
-**Total estimate**: 7-8 ngày
+**Total estimate**: 8-10 ngày
 
 ---
 
-## 5. Component Inventory (New/Upgraded)
+## 7. Landing Page Wireframe (PR-UI-2)
 
-### New Components
-| Component | Purpose | Used In |
-|-----------|---------|---------|
-| `GradientButton` | CTA buttons with gradient | Landing, Auth |
-| `GradientText` | Animated gradient headings | Landing, Hero |
-| `BentoGrid` | Responsive bento layout | Dashboard, Features |
-| `StatCard` | Animated stat display | Dashboard, Admin |
-| `FeatureCard` | Rich feature showcase | Landing |
-| `TestimonialCarousel` | Sliding testimonials | Landing |
-| `PageHeader` | Consistent page title + description | All pages |
-| `MobileSidebar` | Collapsible mobile nav (Sheet) | Dashboard, Admin |
-| `SkeletonLoader` | Skeleton loading states | All data pages |
-| `PasswordStrength` | Password strength meter | Register |
-
-### Upgraded Components
-| Component | Current | After |
-|-----------|---------|-------|
-| `Sidebar` | Emoji icons, no mobile | Lucide icons, collapsible |
-| `Button` | Basic variants | + gradient, + icon, + loading |
-| `Input` | Raw HTML in auth | shadcn Input everywhere |
-| `Badge` | Basic | + animated, + color variants |
-| `Card` | Flat border | Soft shadow, hover lift |
+```
+┌─────────────────────────────────────────────────┐
+│  HEADER: Logo | Tính năng | Bảng giá | Đăng nhập | [Dùng thử] │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  HERO:                                          │
+│  ┌─────────────────┐  ┌──────────────────┐     │
+│  │ Quản lý trung   │  │  [UI Mockup      │     │
+│  │ tâm giáo dục    │  │   Screenshot]    │     │
+│  │ thông minh      │  │                  │     │
+│  │                 │  │                  │     │
+│  │ [Dùng thử 14   │  └──────────────────┘     │
+│  │  ngày miễn phí] │                           │
+│  └─────────────────┘                           │
+│                                                 │
+│  SOCIAL PROOF: "500+ trung tâm | 50,000+ học viên"│
+│                                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  FEATURES (Bento Grid):                         │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │ 👨‍🎓 Quản lý │ │ 📅 Lịch học │ │ 💳 Thanh  │       │
+│  │ học viên  │ │ điểm danh │ │ toán     │       │
+│  ├──────────┤ ├──────────┤ ├──────────┤       │
+│  │ 🎨 AI    │ │ 📊 Báo cáo│ │ 🏢 Đa    │       │
+│  │ Branding │ │ thống kê  │ │ chi nhánh│       │
+│  └──────────┘ └──────────┘ └──────────┘       │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  HOW IT WORKS:                                  │
+│  ① Đăng ký → ② Cấu hình → ③ Sử dụng          │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  TESTIMONIALS: [←] "Quote từ chủ TT" [→]       │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  PRICING: [Tháng/Năm]                          │
+│  ┌────┐ ┌────┐ ┌─────────┐ ┌────┐             │
+│  │FREE│ │BASIC│ │★PREMIUM★│ │ENTER│             │
+│  │ 0đ │ │199k│ │  399k   │ │Liên │             │
+│  │    │ │/th │ │  /tháng  │ │ hệ  │             │
+│  └────┘ └────┘ └─────────┘ └────┘             │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│  FAQ: [Accordion questions]                     │
+├─────────────────────────────────────────────────┤
+│  CTA: "Bắt đầu miễn phí" + Hotline + Zalo     │
+├─────────────────────────────────────────────────┤
+│  FOOTER: Links | Social | Legal | © KiteClass   │
+└─────────────────────────────────────────────────┘
+```
 
 ---
 
-## 6. Không thay đổi
+## 8. Không thay đổi
 
 - ✅ Tech stack (Next.js 15, shadcn/ui, Tailwind, TypeScript)
 - ✅ File structure (app router, component organization)
 - ✅ API layer (axios, endpoints, hooks)
 - ✅ State management (zustand, react-query)
-- ✅ Brand colors (Sky Blue, Orange, Teal)
+- ✅ Brand colors core (Sky Blue, Orange, Teal)
 - ✅ All existing functionality (chỉ upgrade UI, không thay đổi logic)
+- ✅ E2E tests (110 FE + 63 BE phải vẫn pass sau refactor)
