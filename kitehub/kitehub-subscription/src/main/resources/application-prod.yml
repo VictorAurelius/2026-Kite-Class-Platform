@@ -1,0 +1,40 @@
+# =============================================================================
+# PRODUCTION PROFILE - Strict security, minimal logging
+# =============================================================================
+# Activated by: SPRING_PROFILES_ACTIVE=prod
+#
+# Requirements (app will FAIL to start without these):
+#   - JWT_SECRET (min 32 chars)
+#   - ENCRYPTION_MASTER_KEY (32 bytes, Base64)
+#   - SPRING_DATASOURCE_PASSWORD
+#   - DATABASE_ADMIN_PASSWORD
+#
+# Characteristics:
+#   - Minimal logging (no SQL, no debug)
+#   - Strict security
+#   - No mock services
+#   - Real database provisioning required
+
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        use_sql_comments: false
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    root: WARN
+    com.kitehub: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+
+# Production: real DB provisioning required
+database:
+  lifecycle:
+    enabled: true
