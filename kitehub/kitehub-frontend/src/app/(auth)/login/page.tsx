@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await apiClient.post(endpoints.auth.login, data);
-      const { user, accessToken, refreshToken } = response.data.data;
+      const { user, accessToken, refreshToken } = response.data;
       setAuth(user, accessToken, refreshToken);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
