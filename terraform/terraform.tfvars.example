@@ -1,0 +1,27 @@
+# =============================================================================
+# KiteHub Terraform Variables
+# =============================================================================
+# Copy this file: cp terraform.tfvars.example terraform.tfvars
+# Then edit with your values
+# =============================================================================
+
+aws_region  = "ap-southeast-1"
+environment = "production"
+
+# EKS
+eks_cluster_version    = "1.29"
+eks_node_instance_type = "t3.medium"
+eks_node_min_size      = 2
+eks_node_max_size      = 5
+eks_node_desired_size  = 2
+
+# RDS
+rds_instance_class    = "db.t3.medium"
+rds_allocated_storage = 50
+rds_multi_az          = true
+
+# Redis
+redis_node_type = "cache.t3.micro"
+
+# Domain
+domain_name = "kiteclass.com"
