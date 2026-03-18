@@ -7,6 +7,6 @@ ALTER TABLE teachers
 ADD COLUMN specialization VARCHAR(50);
 
 -- Index for filtering/searching by specialization
-CREATE INDEX idx_teachers_specialization ON teachers(specialization);
+CREATE INDEX IF NOT EXISTS idx_teachers_specialization ON teachers(specialization);
 
 -- Note: Existing teachers will have NULL specialization, update manually or via API

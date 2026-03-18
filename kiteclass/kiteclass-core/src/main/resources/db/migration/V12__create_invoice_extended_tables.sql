@@ -40,8 +40,8 @@ BEGIN
 END $$;
 
 -- Add soft delete index
-CREATE INDEX IF NOT EXISTS idx_invoices_deleted ON invoices(deleted) WHERE deleted = FALSE;
-CREATE INDEX IF NOT EXISTS idx_invoices_enrollment ON invoices(enrollment_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_invoices_deleted ON invoices(deleted) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_invoices_enrollment ON invoices(enrollment_id) WHERE deleted = FALSE;
 
 -- Update status constraint to match InvoiceStatus enum
 ALTER TABLE invoices DROP CONSTRAINT IF EXISTS chk_invoices_status;
@@ -57,7 +57,7 @@ COMMENT ON COLUMN invoices.deleted IS 'Soft delete flag for multi-tenant isolati
 -- SECTION 2: Invoice Adjustments Table
 -- =================================================================
 
-CREATE TABLE invoice_adjustments (
+CREATE TABLE IF NOT EXISTS invoice_adjustments (
     id BIGSERIAL PRIMARY KEY,
 
     -- Foreign Keys
@@ -82,8 +82,8 @@ CREATE TABLE invoice_adjustments (
     )
 );
 
-CREATE INDEX idx_adjustments_invoice ON invoice_adjustments(invoice_id);
-CREATE INDEX idx_adjustments_type ON invoice_adjustments(type);
+CREATE INDEX IF NOT EXISTS idx_adjustments_invoice ON invoice_adjustments(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_adjustments_type ON invoice_adjustments(type);
 
 COMMENT ON TABLE invoice_adjustments IS 'Invoice adjustments (discounts, fees, charges, refunds)';
 COMMENT ON COLUMN invoice_adjustments.type IS 'DISCOUNT (negative), LATE_FEE, ADDITIONAL_CHARGE, REFUND';
@@ -93,7 +93,7 @@ COMMENT ON COLUMN invoice_adjustments.amount IS 'Positive for charges, negative 
 -- SECTION 3: Installment Plans Table
 -- =================================================================
 
-CREATE TABLE installment_plans (
+CREATE TABLE IF NOT EXISTS installment_plans (
     id BIGSERIAL PRIMARY KEY,
 
     -- Multi-tenant
@@ -131,9 +131,9 @@ CREATE TABLE installment_plans (
     CONSTRAINT chk_plan_installments CHECK (number_of_installments BETWEEN 2 AND 12)
 );
 
-CREATE INDEX idx_plans_invoice ON installment_plans(invoice_id);
-CREATE INDEX idx_plans_instance ON installment_plans(instance_id) WHERE deleted = FALSE;
-CREATE INDEX idx_plans_status ON installment_plans(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_plans_invoice ON installment_plans(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_plans_instance ON installment_plans(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_plans_status ON installment_plans(status) WHERE deleted = FALSE;
 
 -- Trigger for updated_at
 CREATE TRIGGER trg_installment_plans_updated_at
@@ -149,7 +149,7 @@ COMMENT ON COLUMN installment_plans.status IS 'PENDING → APPROVED → ACTIVE �
 -- SECTION 4: Installments Table
 -- =================================================================
 
-CREATE TABLE installments (
+CREATE TABLE IF NOT EXISTS installments (
     id BIGSERIAL PRIMARY KEY,
 
     -- Foreign Keys
@@ -180,9 +180,9 @@ CREATE TABLE installments (
     CONSTRAINT chk_installment_paid_amount CHECK (paid_amount >= 0 AND paid_amount <= amount)
 );
 
-CREATE INDEX idx_installments_plan ON installments(plan_id);
-CREATE INDEX idx_installments_status ON installments(status);
-CREATE INDEX idx_installments_due_date ON installments(due_date);
+CREATE INDEX IF NOT EXISTS idx_installments_plan ON installments(plan_id);
+CREATE INDEX IF NOT EXISTS idx_installments_status ON installments(status);
+CREATE INDEX IF NOT EXISTS idx_installments_due_date ON installments(due_date);
 
 COMMENT ON TABLE installments IS 'Individual installment payments within a plan';
 COMMENT ON COLUMN installments.installment_number IS 'Installment sequence number (1, 2, 3, ...)';
@@ -192,7 +192,7 @@ COMMENT ON COLUMN installments.paid_amount IS 'Amount paid so far (for partial p
 -- SECTION 5: Refund Requests Table
 -- =================================================================
 
-CREATE TABLE refund_requests (
+CREATE TABLE IF NOT EXISTS refund_requests (
     id BIGSERIAL PRIMARY KEY,
 
     -- Multi-tenant
@@ -237,9 +237,9 @@ CREATE TABLE refund_requests (
     CONSTRAINT chk_refund_amount CHECK (refund_amount > 0)
 );
 
-CREATE INDEX idx_refunds_invoice ON refund_requests(invoice_id);
-CREATE INDEX idx_refunds_instance ON refund_requests(instance_id) WHERE deleted = FALSE;
-CREATE INDEX idx_refunds_status ON refund_requests(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_refunds_invoice ON refund_requests(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_refunds_instance ON refund_requests(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_refunds_status ON refund_requests(status) WHERE deleted = FALSE;
 
 -- Trigger for updated_at
 CREATE TRIGGER trg_refund_requests_updated_at

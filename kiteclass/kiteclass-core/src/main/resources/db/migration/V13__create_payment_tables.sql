@@ -3,7 +3,7 @@
 -- Date: 2026-03-02
 
 -- Payments table
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
 
@@ -55,12 +55,12 @@ CREATE TABLE payments (
     CONSTRAINT chk_payment_amount CHECK (amount > 0)
 );
 
-CREATE INDEX idx_payments_instance ON payments(instance_id);
-CREATE INDEX idx_payments_invoice ON payments(invoice_id);
-CREATE INDEX idx_payments_installment ON payments(installment_id);
-CREATE INDEX idx_payments_status ON payments(payment_status);
-CREATE INDEX idx_payments_transaction ON payments(transaction_id);
-CREATE INDEX idx_payments_deleted ON payments(deleted) WHERE deleted = false;
+CREATE INDEX IF NOT EXISTS idx_payments_instance ON payments(instance_id);
+CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_payments_installment ON payments(installment_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(payment_status);
+CREATE INDEX IF NOT EXISTS idx_payments_transaction ON payments(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_payments_deleted ON payments(deleted) WHERE deleted = false;
 
 COMMENT ON TABLE payments IS 'Payment records for invoice and installment payments';
 COMMENT ON COLUMN payments.transaction_id IS 'Unique transaction ID for idempotency (prevents duplicate payments)';
@@ -68,7 +68,7 @@ COMMENT ON COLUMN payments.gateway_transaction_id IS 'Transaction ID from paymen
 COMMENT ON COLUMN payments.gateway_response IS 'Full JSON response from gateway for audit trail';
 
 -- Webhook logs for audit trail
-CREATE TABLE payment_webhook_logs (
+CREATE TABLE IF NOT EXISTS payment_webhook_logs (
     id BIGSERIAL PRIMARY KEY,
     instance_id UUID NOT NULL,
     payment_id BIGINT REFERENCES payments(id),
@@ -81,9 +81,9 @@ CREATE TABLE payment_webhook_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_webhook_logs_payment ON payment_webhook_logs(payment_id);
-CREATE INDEX idx_webhook_logs_gateway ON payment_webhook_logs(gateway);
-CREATE INDEX idx_webhook_logs_created ON payment_webhook_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_payment ON payment_webhook_logs(payment_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_gateway ON payment_webhook_logs(gateway);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_created ON payment_webhook_logs(created_at);
 
 COMMENT ON TABLE payment_webhook_logs IS 'Audit trail for payment gateway webhook callbacks';
 COMMENT ON COLUMN payment_webhook_logs.signature_valid IS 'HMAC signature verification result (security check)';
