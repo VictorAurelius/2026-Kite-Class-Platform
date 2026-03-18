@@ -230,26 +230,26 @@ RESP=$(http_post "/api/auth/refresh" "{
 STATUS=$(extract_status "$RESP")
 assert_status "POST /api/auth/refresh (invalid) returns 400" 400 "$STATUS"
 
-# AUTH - DEMO USER LOGIN
+# AUTH - RE-LOGIN (verify register → login flow works)
 RESP=$(http_post "/api/auth/login" "{
-  \"email\": \"demo@kitehub.com\",
-  \"password\": \"Demo@123\"
+  \"email\": \"$REG_EMAIL\",
+  \"password\": \"Test@12345\"
 }")
 BODY=$(extract_body "$RESP")
 STATUS=$(extract_status "$RESP")
 
-assert_status "POST /api/auth/login (demo user)" 200 "$STATUS" "$BODY"
+assert_status "POST /api/auth/login (re-login registered user)" 200 "$STATUS" "$BODY"
 
-# Check demo user has instances
-DEMO_INSTANCES=$(echo "$BODY" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('instances',[])))" 2>/dev/null)
+# Check user has instances after re-login
+LOGIN_INSTANCES=$(echo "$BODY" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('instances',[])))" 2>/dev/null)
 TOTAL=$((TOTAL + 1))
-if [ "$DEMO_INSTANCES" -gt 0 ] 2>/dev/null; then
+if [ "$LOGIN_INSTANCES" -gt 0 ] 2>/dev/null; then
   PASS=$((PASS + 1))
-  echo -e "  ${GREEN}✓${NC} Demo user has instances ($DEMO_INSTANCES)"
+  echo -e "  ${GREEN}✓${NC} Re-login user has instances ($LOGIN_INSTANCES)"
 else
   FAIL=$((FAIL + 1))
-  FAILURES="$FAILURES\n  ✗ Demo user has no instances"
-  echo -e "  ${RED}✗${NC} Demo user has no instances"
+  FAILURES="$FAILURES\n  ✗ Re-login user has no instances"
+  echo -e "  ${RED}✗${NC} Re-login user has no instances"
 fi
 
 # ============================================================
