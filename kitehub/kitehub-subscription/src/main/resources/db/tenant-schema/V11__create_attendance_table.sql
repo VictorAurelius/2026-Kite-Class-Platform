@@ -8,7 +8,7 @@
 -- EXCUSED: Student was absent with valid excuse
 -- MAKEUP: Makeup session attendance
 
-CREATE TABLE attendance (
+CREATE TABLE IF NOT EXISTS attendance (
     -- Primary Key
     id BIGSERIAL PRIMARY KEY,
 
@@ -53,18 +53,18 @@ CREATE TABLE attendance (
 );
 
 -- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_attendance_enrollment_id ON attendance(enrollment_id);
-CREATE INDEX IF NOT EXISTS idx_attendance_session_id ON attendance(session_id);
-CREATE INDEX IF NOT EXISTS idx_attendance_status ON attendance(status);
-CREATE INDEX IF NOT EXISTS idx_attendance_instance_id ON attendance(instance_id);
-CREATE INDEX IF NOT EXISTS idx_attendance_deleted ON attendance(deleted);
-CREATE INDEX IF NOT EXISTS idx_attendance_marked_date ON attendance(marked_date);
-CREATE INDEX IF NOT EXISTS idx_attendance_marked_by ON attendance(marked_by);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_enrollment_id ON attendance(enrollment_id);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_session_id ON attendance(session_id);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_status ON attendance(status);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_instance_id ON attendance(instance_id);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_deleted ON attendance(deleted);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_marked_date ON attendance(marked_date);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_marked_by ON attendance(marked_by);
 
 -- Composite indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_attendance_enrollment_status ON attendance(enrollment_id, status)
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_enrollment_status ON attendance(enrollment_id, status)
     WHERE deleted = FALSE;
-CREATE INDEX IF NOT EXISTS idx_attendance_session_status ON attendance(session_id, status)
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_attendance_session_status ON attendance(session_id, status)
     WHERE deleted = FALSE;
 
 -- Comments

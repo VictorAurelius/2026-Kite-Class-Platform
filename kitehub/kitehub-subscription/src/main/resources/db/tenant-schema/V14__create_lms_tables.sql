@@ -3,7 +3,7 @@
 -- Dependencies: V4 (courses table), V10 (enrollments table)
 
 -- Table 1: course_modules (2nd tier - modules within a course)
-CREATE TABLE course_modules (
+CREATE TABLE IF NOT EXISTS course_modules (
     id BIGSERIAL PRIMARY KEY,
     course_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
@@ -24,19 +24,19 @@ CREATE TABLE course_modules (
 );
 
 -- Unique constraint: order_number must be unique within a course (per tenant)
-CREATE UNIQUE INDEX uk_course_modules_course_order
+CREATE UNIQUE INDEX IF NOT EXISTS uk_course_modules_course_order
     ON course_modules(course_id, order_number, instance_id)
     WHERE deleted = FALSE;
 
 -- Indexes for performance
-CREATE INDEX idx_course_modules_course_id ON course_modules(course_id) WHERE deleted = FALSE;
-CREATE INDEX idx_course_modules_instance_id ON course_modules(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_course_modules_course_id ON course_modules(course_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_course_modules_instance_id ON course_modules(instance_id) WHERE deleted = FALSE;
 
 COMMENT ON TABLE course_modules IS 'Course modules - 2nd tier in Course → Module → Lesson hierarchy';
 COMMENT ON COLUMN course_modules.order_number IS 'Display order within course (must be unique per course)';
 
 -- Table 2: lessons (3rd tier - lessons within a module)
-CREATE TABLE lessons (
+CREATE TABLE IF NOT EXISTS lessons (
     id BIGSERIAL PRIMARY KEY,
     module_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
@@ -60,14 +60,14 @@ CREATE TABLE lessons (
 );
 
 -- Unique constraint: order_number must be unique within a module (per tenant)
-CREATE UNIQUE INDEX uk_lessons_module_order
+CREATE UNIQUE INDEX IF NOT EXISTS uk_lessons_module_order
     ON lessons(module_id, order_number, instance_id)
     WHERE deleted = FALSE;
 
 -- Indexes for performance
-CREATE INDEX idx_lessons_module_id ON lessons(module_id) WHERE deleted = FALSE;
-CREATE INDEX idx_lessons_is_trial ON lessons(is_trial) WHERE deleted = FALSE AND is_trial = TRUE;
-CREATE INDEX idx_lessons_instance_id ON lessons(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_lessons_module_id ON lessons(module_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_lessons_is_trial ON lessons(is_trial) WHERE deleted = FALSE AND is_trial = TRUE;
+CREATE INDEX IF NOT EXISTS idx_lessons_instance_id ON lessons(instance_id) WHERE deleted = FALSE;
 
 COMMENT ON TABLE lessons IS 'Lessons - 3rd tier in Course → Module → Lesson hierarchy';
 COMMENT ON COLUMN lessons.is_trial IS 'If true, guest users can access this lesson without enrollment';
@@ -75,7 +75,7 @@ COMMENT ON COLUMN lessons.order_number IS 'Display order within module (must be 
 COMMENT ON COLUMN lessons.estimated_duration IS 'Estimated lesson duration in minutes';
 
 -- Table 3: learning_resources (supplemental materials for lessons)
-CREATE TABLE learning_resources (
+CREATE TABLE IF NOT EXISTS learning_resources (
     id BIGSERIAL PRIMARY KEY,
     lesson_id BIGINT NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('VIDEO', 'PDF', 'SLIDE', 'AUDIO', 'LINK', 'CODE', 'OTHER')),
@@ -97,16 +97,16 @@ CREATE TABLE learning_resources (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_learning_resources_lesson_id ON learning_resources(lesson_id) WHERE deleted = FALSE;
-CREATE INDEX idx_learning_resources_type ON learning_resources(type) WHERE deleted = FALSE;
-CREATE INDEX idx_learning_resources_instance_id ON learning_resources(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_learning_resources_lesson_id ON learning_resources(lesson_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_learning_resources_type ON learning_resources(type) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_learning_resources_instance_id ON learning_resources(instance_id) WHERE deleted = FALSE;
 
 COMMENT ON TABLE learning_resources IS 'Supplemental learning materials attached to lessons (videos, PDFs, slides, etc.)';
 COMMENT ON COLUMN learning_resources.type IS 'Resource type: VIDEO, PDF, SLIDE, AUDIO, LINK, CODE, OTHER';
 COMMENT ON COLUMN learning_resources.file_size IS 'File size in bytes (optional)';
 
 -- Table 4: lesson_progress (student progress tracking)
-CREATE TABLE lesson_progress (
+CREATE TABLE IF NOT EXISTS lesson_progress (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,  -- User ID (supports future TRIAL_USER tracking)
     lesson_id BIGINT NOT NULL,
@@ -128,15 +128,15 @@ CREATE TABLE lesson_progress (
 );
 
 -- Unique constraint: one progress record per user per lesson (per tenant)
-CREATE UNIQUE INDEX uk_lesson_progress_user_lesson
+CREATE UNIQUE INDEX IF NOT EXISTS uk_lesson_progress_user_lesson
     ON lesson_progress(user_id, lesson_id, instance_id)
     WHERE deleted = FALSE;
 
 -- Indexes for performance
-CREATE INDEX idx_lesson_progress_user_id ON lesson_progress(user_id) WHERE deleted = FALSE;
-CREATE INDEX idx_lesson_progress_lesson_id ON lesson_progress(lesson_id) WHERE deleted = FALSE;
-CREATE INDEX idx_lesson_progress_completed ON lesson_progress(completed) WHERE deleted = FALSE AND completed = TRUE;
-CREATE INDEX idx_lesson_progress_instance_id ON lesson_progress(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_id ON lesson_progress(user_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson_id ON lesson_progress(lesson_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_completed ON lesson_progress(completed) WHERE deleted = FALSE AND completed = TRUE;
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_instance_id ON lesson_progress(instance_id) WHERE deleted = FALSE;
 
 COMMENT ON TABLE lesson_progress IS 'Student progress tracking for lessons';
 COMMENT ON COLUMN lesson_progress.user_id IS 'User ID (NOT enrollmentId - supports future trial user tracking)';

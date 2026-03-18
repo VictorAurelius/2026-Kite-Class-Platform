@@ -3,7 +3,7 @@
 -- Dependencies: V5 (classes), V3 (students), V4 (teachers)
 
 -- Table 1: assignments (teacher creates assignments for classes)
-CREATE TABLE assignments (
+CREATE TABLE IF NOT EXISTS assignments (
     id BIGSERIAL PRIMARY KEY,
     class_id BIGINT NOT NULL,
     title VARCHAR(200) NOT NULL,
@@ -30,14 +30,14 @@ CREATE TABLE assignments (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_assignments_class_id ON assignments(class_id) WHERE deleted = FALSE;
-CREATE INDEX idx_assignments_status ON assignments(status) WHERE deleted = FALSE;
-CREATE INDEX idx_assignments_due_date ON assignments(due_date) WHERE deleted = FALSE;
-CREATE INDEX idx_assignments_instance_id ON assignments(instance_id) WHERE deleted = FALSE;
-CREATE INDEX idx_assignments_created_by ON assignments(created_by) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_assignments_class_id ON assignments(class_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_assignments_status ON assignments(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_assignments_due_date ON assignments(due_date) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_assignments_instance_id ON assignments(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_assignments_created_by ON assignments(created_by) WHERE deleted = FALSE;
 
 -- Composite index for findPendingGrading query optimization
-CREATE INDEX idx_assignments_status_class_due ON assignments(status, class_id, due_date) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_assignments_status_class_due ON assignments(status, class_id, due_date) WHERE deleted = FALSE;
 
 COMMENT ON TABLE assignments IS 'Teacher-created assignments for classes';
 COMMENT ON COLUMN assignments.weight_percent IS 'Assignment weight in final grade (0-100%)';
@@ -45,7 +45,7 @@ COMMENT ON COLUMN assignments.late_penalty_percent IS 'Penalty per day for late 
 COMMENT ON COLUMN assignments.status IS 'DRAFT (not visible), PUBLISHED (students can submit), CLOSED (no submissions)';
 
 -- Table 2: submissions (student submissions for assignments)
-CREATE TABLE submissions (
+CREATE TABLE IF NOT EXISTS submissions (
     id BIGSERIAL PRIMARY KEY,
     assignment_id BIGINT NOT NULL,
     student_id BIGINT NOT NULL,
@@ -75,18 +75,18 @@ CREATE TABLE submissions (
 );
 
 -- Unique constraint: one submission per student per assignment (per tenant)
-CREATE UNIQUE INDEX uk_submissions_assignment_student
+CREATE UNIQUE INDEX IF NOT EXISTS uk_submissions_assignment_student
     ON submissions(assignment_id, student_id, instance_id)
     WHERE deleted = FALSE;
 
 -- Indexes for performance
-CREATE INDEX idx_submissions_assignment_id ON submissions(assignment_id) WHERE deleted = FALSE;
-CREATE INDEX idx_submissions_student_id ON submissions(student_id) WHERE deleted = FALSE;
-CREATE INDEX idx_submissions_status ON submissions(status) WHERE deleted = FALSE;
-CREATE INDEX idx_submissions_instance_id ON submissions(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_submissions_assignment_id ON submissions(assignment_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_submissions_student_id ON submissions(student_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS idx_submissions_instance_id ON submissions(instance_id) WHERE deleted = FALSE;
 
 -- Composite index for findPendingGrading query
-CREATE INDEX idx_submissions_status_assignment ON submissions(status, assignment_id) WHERE deleted = FALSE AND status = 'PENDING';
+CREATE INDEX IF NOT EXISTS idx_submissions_status_assignment ON submissions(status, assignment_id) WHERE deleted = FALSE AND status = 'PENDING';
 
 COMMENT ON TABLE submissions IS 'Student submissions for assignments';
 COMMENT ON COLUMN submissions.score IS 'Original score before late penalty (0 to assignment.max_score)';
