@@ -183,22 +183,153 @@ Track B (Production):
 Có thể chạy song song:
   Track A và Track B independent, chỉ share .env pattern từ PR-A1
   → PR-A1 nên làm trước cả 2 tracks
+
+Track C (AWS):
+  PR-C1 (Terraform) ───→ PR-C2 (Helm) ───→ PR-C3 (CI/CD deploy)
+                                                     ↓
+                                              PR-C4 (Secrets Manager)
+
+Track C depends on:
+  - PR-B1 (fail-fast) - code phải sẵn sàng trước khi deploy
+  - PR-B2 (profiles) - cần prod profile
 ```
 
 ---
 
-## Execution Order (Recommended)
+## Track C: AWS INFRASTRUCTURE
 
-| Order | PR | Track | Priority | Dependencies |
-|-------|-----|-------|----------|-------------|
-| 1 | **PR-A1** | Local | P0 | None - làm đầu tiên |
-| 2 | **PR-B1** | Prod | P0 | PR-A1 (.env pattern) |
-| 3 | **PR-A2** | Local | P0 | PR-A1 |
-| 4 | **PR-B2** | Prod | P0 | PR-B1 |
-| 5 | **PR-A3** | Local | P1 | PR-A2 |
-| 6 | **PR-B3** | Prod | P1 | PR-B2 |
-| 7 | **PR-A4** | Local | P2 | PR-A1, A2, A3 |
-| 8 | **PR-B4** | Prod | P1 | PR-B2 |
+> Mục tiêu: Người chưa kinh nghiệm AWS → chạy Terraform → EKS cluster sẵn sàng → deploy thành công
+
+### PR-C1: Terraform - AWS Infrastructure
+**Priority**: 🔴 P0 (blocking cho production)
+**Scope**:
+- [ ] VPC + Subnets (public/private) + NAT Gateway
+- [ ] EKS Cluster (Kubernetes managed)
+  - Node group: 2-3 nodes (t3.medium)
+  - Auto-scaling: 2-10 nodes
+- [ ] RDS PostgreSQL (db.t3.medium)
+  - Multi-AZ cho HA
+  - Automated backups (7 days)
+  - Encrypted storage
+- [ ] ElastiCache Redis (cache.t3.micro)
+- [ ] Amazon MQ (RabbitMQ managed)
+- [ ] S3 Bucket (assets, branding images)
+- [ ] ECR Repositories (3: core, gateway, frontend)
+- [ ] IAM Roles (EKS, CI/CD OIDC)
+- [ ] Security Groups (restrict access)
+- [ ] `terraform/README.md` - step-by-step guide:
+  ```bash
+  # 1. Install terraform + AWS CLI
+  # 2. Configure AWS credentials
+  aws configure
+  # 3. Initialize and apply
+  cd terraform
+  terraform init
+  terraform plan
+  terraform apply
+  # 4. Configure kubectl
+  aws eks update-kubeconfig --name kitehub-cluster
+  ```
+- [ ] `terraform/variables.tf` - tất cả configurable (region, instance sizes, etc.)
+- [ ] `terraform/outputs.tf` - export RDS endpoint, EKS endpoint, ECR URLs
+
+**Estimate**: 2-3 ngày
+**Output**: `terraform apply` → full AWS infrastructure sẵn sàng
+
+### PR-C2: Helm Charts cho KiteHub + KiteClass
+**Priority**: 🔴 P0 (blocking cho production)
+**Scope**:
+- [ ] `helm/kitehub/` - KiteHub platform chart:
+  - Subchart: gateway, subscription, branding, email, admin, frontend
+  - `values.yaml`: defaults cho production
+  - `values-dev.yaml`: overrides cho staging
+  - Secrets references (AWS Secrets Manager)
+  - Ingress + TLS (cert-manager)
+- [ ] `helm/kiteclass-instance/` - KiteClass per-instance chart:
+  - Templates từ k8s/kiteclass-template/ (hiện có)
+  - `values.yaml` template cho mỗi instance
+  - Resource quotas by tier
+  - HPA (Horizontal Pod Autoscaler) config
+- [ ] Helm test hooks (verify deployment)
+- [ ] `helm/README.md`:
+  ```bash
+  # Deploy KiteHub platform
+  helm install kitehub ./helm/kitehub \
+    --namespace kitehub \
+    --values helm/kitehub/values-prod.yaml
+
+  # Deploy a KiteClass instance
+  helm install customer1 ./helm/kiteclass-instance \
+    --namespace kiteclass-instances \
+    --set instanceId=abc123 \
+    --set subdomain=customer1 \
+    --set tier=BASIC
+  ```
+
+**Estimate**: 2-3 ngày
+**Dependencies**: PR-C1 (EKS phải tồn tại)
+
+### PR-C3: CI/CD Deploy to AWS (GitHub Actions)
+**Priority**: 🟠 P1
+**Scope**:
+- [ ] `.github/workflows/deploy-staging.yml`:
+  - Trigger: push to `develop` branch
+  - Build → Push ECR → Helm upgrade staging
+  - Smoke tests after deploy
+- [ ] `.github/workflows/deploy-production.yml`:
+  - Trigger: manual (workflow_dispatch) hoặc tag release
+  - Build → Push ECR → Helm upgrade production
+  - Canary deployment (10% → 50% → 100%)
+  - Automatic rollback nếu health check fail
+- [ ] `.github/workflows/provision-instance.yml`:
+  - Trigger: webhook từ KiteHub Subscription Service
+  - Input: instanceId, subdomain, tier
+  - Steps: Helm install kiteclass-instance
+- [ ] GitHub Environments (staging, production) với approval gates
+- [ ] Slack notification on deploy success/failure
+
+**Estimate**: 2 ngày
+**Dependencies**: PR-C1, PR-C2
+
+### PR-C4: AWS Secrets Manager Integration
+**Priority**: 🟠 P1
+**Scope**:
+- [ ] External Secrets Operator trên EKS
+  - Auto-sync AWS Secrets Manager → K8s Secrets
+- [ ] Secret structure:
+  ```
+  kitehub/production/database    → RDS credentials
+  kitehub/production/jwt         → JWT signing key
+  kitehub/production/encryption  → AES master key
+  kitehub/production/openai      → OpenAI API key
+  kitehub/production/rabbitmq    → Amazon MQ credentials
+  ```
+- [ ] Terraform module tạo secrets (initial values)
+- [ ] Rotation policy: 90 ngày cho DB passwords
+- [ ] `scripts/rotate-secrets.sh` - manual rotation script
+- [ ] Document: cách thêm secret mới
+
+**Estimate**: 1-2 ngày
+**Dependencies**: PR-C1 (AWS infra), PR-C2 (Helm references secrets)
+
+---
+
+## Execution Order (Updated - 12 PRs)
+
+| Order | PR | Track | Priority | Dependencies | Status |
+|-------|-----|-------|----------|-------------|--------|
+| 1 | **PR-A1** | Local | P0 | None | ✅ **DONE** |
+| 2 | **PR-B1** | Prod | P0 | PR-A1 | ⬜ Next |
+| 3 | **PR-A2** | Local | P0 | PR-A1 | ⬜ |
+| 4 | **PR-B2** | Prod | P0 | PR-B1 | ⬜ |
+| 5 | **PR-A3** | Local | P1 | PR-A2 | ⬜ |
+| 6 | **PR-B3** | Prod | P1 | PR-B2 | ⬜ |
+| 7 | **PR-C1** | AWS | P0 | PR-B1, B2 | ⬜ |
+| 8 | **PR-C2** | AWS | P0 | PR-C1 | ⬜ |
+| 9 | **PR-C3** | AWS | P1 | PR-C1, C2 | ⬜ |
+| 10 | **PR-C4** | AWS | P1 | PR-C1, C2 | ⬜ |
+| 11 | **PR-A4** | Local | P2 | PR-A1-A3 | ⬜ |
+| 12 | **PR-B4** | Prod | P1 | PR-B2 | ⬜ |
 
 ---
 
@@ -217,5 +348,26 @@ Có thể chạy song song:
 2. Zero hardcoded secrets trong code/docker-compose
 3. Không có demo/test data ở production
 4. Secret scanning trong CI pipeline
+5. Production deployment checklist hoàn chỉnh
+6. Security headers + rate limiting configured
+
+### AWS ✅ khi:
+1. `terraform apply` → full AWS infrastructure (EKS, RDS, Redis, S3) trong < 30 phút
+2. `helm install kitehub` → platform running trên EKS
+3. `helm install kiteclass-instance` → new instance deployed trong < 5 phút
+4. CI/CD: merge to main → auto-deploy staging → manual approve → production
+5. Secrets managed bởi AWS Secrets Manager (không .env trên server)
+6. SSL/TLS via cert-manager + Let's Encrypt
+7. Monitoring: Prometheus + Grafana dashboards hoạt động
+8. Người chưa kinh nghiệm AWS → đọc docs → deploy thành công
+
+### Effort Estimate Tổng
+
+| Track | PRs | Estimate | Skill Required |
+|-------|-----|----------|----------------|
+| A (Local) | 4 | 3-4 ngày | Docker, Shell |
+| B (Production) | 4 | 3-4 ngày | Spring Boot, Security |
+| C (AWS) | 4 | 6-8 ngày | Terraform, K8s, AWS, Helm |
+| **Total** | **12** | **12-16 ngày** | |
 5. Production deployment checklist hoàn chỉnh
 6. Security headers + rate limiting configured
