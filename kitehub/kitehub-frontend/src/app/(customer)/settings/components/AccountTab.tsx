@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { User, Building2, Lock, Save } from 'lucide-react';
+import apiClient from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
 
 interface AccountTabProps {
   user: {
@@ -46,9 +48,17 @@ export function AccountTab({ user, phone, organizationName }: AccountTabProps) {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProfileSaving(true);
-    // TODO: Implement profile update API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsProfileSaving(false);
+    try {
+      await apiClient.put(endpoints.auth.profile, {
+        email: user?.email,
+        name: profileForm.name,
+        phone: profileForm.phone,
+      });
+    } catch {
+      alert('Không thể cập nhật thông tin');
+    } finally {
+      setIsProfileSaving(false);
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -58,9 +68,17 @@ export function AccountTab({ user, phone, organizationName }: AccountTabProps) {
       return;
     }
     setIsPasswordSaving(true);
-    // TODO: Implement password change API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsPasswordSaving(false);
+    try {
+      await apiClient.post(endpoints.auth.changePassword, {
+        email: user?.email,
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+    } catch {
+      alert('Mật khẩu hiện tại không đúng');
+    } finally {
+      setIsPasswordSaving(false);
+    }
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 

@@ -18,6 +18,8 @@ import {
 import { AlertTriangle, XCircle, Trash2 } from 'lucide-react';
 import { Instance } from '@/types/instance';
 import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
 
 interface DangerZoneProps {
   instance: Instance | undefined;
@@ -37,9 +39,9 @@ export function DangerZone({ instance }: DangerZoneProps) {
   const handleCancelSubscription = async () => {
     setIsCanceling(true);
     try {
-      // TODO: Implement cancel subscription API call
-      // await cancelSubscription(instance?.subscriptionId);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (instance?.subscriptionId) {
+        await apiClient.delete(endpoints.subscriptions.cancel(instance.subscriptionId));
+      }
       setCancelDialogOpen(false);
       router.push('/billing?success=cancelled');
     } catch (error) {
@@ -54,9 +56,9 @@ export function DangerZone({ instance }: DangerZoneProps) {
 
     setIsDeleting(true);
     try {
-      // TODO: Implement delete instance API call
-      // await deleteInstance(instance?.id);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (instance?.id) {
+        await apiClient.delete(endpoints.instances.delete(instance.id));
+      }
       setDeleteDialogOpen(false);
       router.push('/?deleted=true');
     } catch (error) {
