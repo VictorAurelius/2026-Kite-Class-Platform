@@ -8,7 +8,7 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://localhost:3000,http://kitehub-frontend:3001}
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://localhost:3000,http://kitehub-frontend:3001,http://kiteclass-frontend:3000}
             allowedMethods:
               - GET
               - POST
