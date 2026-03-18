@@ -38,6 +38,9 @@ public class VietQRService {
     @Value("${payment.vietqr.api-url:https://api.vietqr.io/v2/generate}")
     private String apiUrl;
 
+    @Value("${payment.vietqr.mock-mode:false}")
+    private boolean mockMode;
+
     @Value("${payment.vietqr.api-key:#{null}}")
     private String apiKey;
 
@@ -54,6 +57,12 @@ public class VietQRService {
      */
     public String generateQRCode(UUID paymentId, Long amountVnd, UUID subscriptionId) {
         log.info("Generating VietQR code for payment: {} (amount: {} VND)", paymentId, amountVnd);
+
+        if (mockMode) {
+            log.info("[MOCK] Returning mock QR code URL for payment: {}", paymentId);
+            return String.format("https://placehold.co/300x300/4CAF50/white?text=MOCK+QR%%0A%s%%0A%d+VND",
+                paymentId.toString().substring(0, 8), amountVnd);
+        }
 
         String paymentContent = generatePaymentContent(subscriptionId);
 
