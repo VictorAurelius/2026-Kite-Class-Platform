@@ -462,10 +462,54 @@ STATUS=$(extract_status "$RESP")
 assert_status "GET /api/platform/branding/jobs" 200 "$STATUS"
 
 # ============================================================
-# 8. DATABASE PROVISIONING
+# 8. TENANT ROUTING
 # ============================================================
 echo ""
-echo -e "${YELLOW}[8/10] Database Provisioning${NC}"
+echo -e "${YELLOW}[8/11] Tenant Routing${NC}"
+
+# Get instance subdomain for routing test
+RESP=$(http_get "/api/platform/admin/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
+BODY=$(extract_body "$RESP")
+INSTANCE_SUBDOMAIN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('subdomain',''))" 2>/dev/null)
+
+# Test tenant routing with X-Instance-Subdomain header
+# This should resolve to the instance and route to KiteClass Core
+# KiteClass Core may not be running (503/502), but the tenant RESOLVER should work
+RESP=$(curl -s -w "\n%{http_code}" \
+  -H "X-Instance-Subdomain: $INSTANCE_SUBDOMAIN" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$GATEWAY/api/v1/students")
+STATUS=$(extract_status "$RESP")
+TOTAL=$((TOTAL + 1))
+# 502/503 = KiteClass Core not running (expected in PR 6.2, will be fixed in PR 6.3)
+# 200 = KiteClass Core running and responding
+# 400/404 = Tenant resolver rejected (BAD - means filter doesn't work)
+if [ "$STATUS" -eq 502 ] || [ "$STATUS" -eq 503 ] || [ "$STATUS" -eq 200 ]; then
+  PASS=$((PASS + 1))
+  echo -e "  ${GREEN}✓${NC} Tenant routing resolved (HTTP $STATUS - KiteClass Core ${STATUS} is expected)"
+else
+  FAIL=$((FAIL + 1))
+  FAILURES="$FAILURES\n  ✗ Tenant routing failed: got $STATUS (expected 502/503 since KiteClass Core not running)"
+  echo -e "  ${RED}✗${NC} Tenant routing failed (HTTP $STATUS)"
+fi
+
+# Test tenant routing with invalid subdomain
+RESP=$(curl -s -w "\n%{http_code}" \
+  -H "X-Instance-Subdomain: nonexistent-subdomain-12345" \
+  "$GATEWAY/api/v1/students")
+STATUS=$(extract_status "$RESP")
+assert_status "Tenant routing rejects unknown subdomain" 404 "$STATUS"
+
+# Test tenant routing without any subdomain/header (localhost)
+RESP=$(curl -s -w "\n%{http_code}" "$GATEWAY/api/v1/students")
+STATUS=$(extract_status "$RESP")
+assert_status "Tenant routing rejects no-subdomain request" 400 "$STATUS"
+
+# ============================================================
+# 9. DATABASE PROVISIONING
+# ============================================================
+echo ""
+echo -e "${YELLOW}[9/11] Database Provisioning${NC}"
 
 # Check instance has real database URL via admin endpoint (not "pending")
 RESP=$(http_get "/api/platform/admin/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
@@ -541,7 +585,7 @@ fi
 # 9. DATA ISOLATION (2nd instance)
 # ============================================================
 echo ""
-echo -e "${YELLOW}[9/10] Data Isolation${NC}"
+echo -e "${YELLOW}[10/11] Data Isolation${NC}"
 
 TIMESTAMP2=$(date +%s)
 REG_EMAIL2="e2e-iso-${TIMESTAMP2}@example.com"
@@ -582,7 +626,7 @@ http_delete "/api/platform/instances/$INSTANCE_ID2" "$TOKEN2" > /dev/null 2>&1
 # 10. CLEANUP - DELETE INSTANCE
 # ============================================================
 echo ""
-echo -e "${YELLOW}[10/10] Cleanup & Delete${NC}"
+echo -e "${YELLOW}[11/11] Cleanup & Delete${NC}"
 
 RESP=$(http_delete "/api/platform/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
 STATUS=$(extract_status "$RESP")

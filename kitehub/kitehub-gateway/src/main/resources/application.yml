@@ -102,18 +102,17 @@ spring:
                 name: emailCircuitBreaker
                 fallbackUri: forward:/fallback/email
 
-        # Instance APIs - Route to KiteClass instances
-        # TODO: Implement TenantResolverGatewayFilterFactory
-        # - id: instance-apis
-        #   uri: http://kiteclass-gateway:8080
-        #   predicates:
-        #     - Path=/api/v1/**
-        #   filters:
-        #     - TenantResolver
-        #     - name: CircuitBreaker
-        #       args:
-        #         name: instanceCircuitBreaker
-        #         fallbackUri: forward:/fallback/instance
+        # Instance APIs - Route to KiteClass Core (via TenantResolver)
+        - id: instance-apis
+          uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}
+          predicates:
+            - Path=/api/v1/**
+          filters:
+            - TenantResolver
+            - name: CircuitBreaker
+              args:
+                name: instanceCircuitBreaker
+                fallbackUri: forward:/fallback/instance
 
       # Default filters applied to all routes
       default-filters:
