@@ -39,9 +39,43 @@ production: chuyên nghiệp, bảo mật, không bug, không điểm yếu
 các PR fix đã đáp ứng được chưa?
 
 tôi muốn refactor lại UI của kitehub, có nhiều template rất đẹp cho nền tảng SaaS liệu có sử dụng tài nguyên đó để refactor lại UI kitehub đẹp hơn nhưng vẫn giữ được đặc điểm của kitehub không?
+ví dụ tài nguyên:
+https://www.figma.com/community/website-templates/saas?resource_type=files
+
+https://www.figma.com/community/website-templates/e-learning?resource_type=files
 
 giới thiệu về các công nghệ dùng ở track C để cho tôi hiểu qua
 
 tôi có thắc mắc về file terraform bạn tạo, bởi vì tôi đang ở Việt Nam nên để tối ưu chí phi, region AWS nên chọn là gì, có phải ap-southeast-1 như hiện tại không? best practice là gì?
 
 check lại status plan xem đã cập nhật hết chưa? cleanup CI theo policy chưa? action tiếp theo là gì? còn PR nào?
+
+kitehub đã chạy local end-to-end rồi đúng không? các AI được dùng ở local đúng như design đúng không?
+
+check lại design, AI sẽ là AI local thay vì AI qua API key mà nhỉ?
+
+tạo tài liệu thôi
+
+bạn chọn template nào theo plan?
+
+cập nhật plan theo template này
+mục tiêu đỏ: landing pages phải đẹp nhất có thể, còn lại UI phải phù hợp, tương thích với tệp người dùng kiteclass
+
+tương tự, tôi muốn cải thiện cả UI của kiteclass theo templates nữa
+kitehub chỉ cần 1 UI nhưng tôi muốn kiteclass có nhiều UI để cho người dùng chọn lựa, có được không?
+
+việc định nghĩa "nhiều UI" cần quay lại câu chuyện branding, từ dữ liệu input của khách hàng, AI branding sẽ render được nhiều ảnh khác nhau, vậy để xử lý lượng output này lên UI thì best practice cho định nghĩa "nhiều UI" và cho kiteclass FE là gì?
+
+Sau khi AI branding thì sẽ đưa output lên các UI để cho người dùng chọn, vậy cần render kiteclass FE ra raw link để khách hàng xem đúng không? liệu đây có phải best practice?
+
+tức là sẽ khiến FE instance nặng lên đúng không?
+
+nhưng mà chỉ đổi CSS mà không đổi layout của landing pages thì có hợp lý để tiếp cận khách hàng không?
+
+ngoài ra còn 1 vấn đề nữa, lượng output (ảnh) được AI branding tạo ra sẽ được đẩy lên UI theo quy chuẩn, quy tắc gì, liệu có nên cho phép người dùng chọn vị trí cho output branding lên UI không?
+
+1 vấn đề nữa, thiết kế hiện tại yêu cầu mọi input đều phải qua AI branding, nhưng có những AI như chứng chỉ học viên đạt được, không cần qua branding, chỉ cần đầy lên UI, vậy có cần thiết kế lại quy trình khởi tạo instance không?
+
+vậy đối với mỗi loại khách hàng: giáo viên độc lập, trung tâm, trường học, ... sẽ cần ít nhất 1 template + mỗi template sẽ có nhiều theme để tránh trùng lặp giữa các instance? liệu có hợp lý?
+
+hãy quét toàn bộ documents để tìm tài liệu liên quan, bắt đầu PR để update toàn bộ tài liệu theo design mới

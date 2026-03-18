@@ -308,7 +308,21 @@ PR-UI-1 (Design System) ──→ PR-UI-2 (Landing - MỤC TIÊU ĐỎ)
 
 ---
 
-## 8. Không thay đổi
+## 8. KiteClass FE (Liên quan)
+
+**Xem chi tiết**: [kiteclass-theme-system-design.md](kiteclass-theme-system-design.md)
+
+KiteHub UI refactor (tài liệu này) chỉ cover **KiteHub Frontend** (platform portal).
+KiteClass Frontend (student/teacher UI) có system riêng:
+- 2 base templates (Personal / Organization)
+- AI-generated themes (CSS Variables)
+- 12+ configurable sections
+- Slot-based content placement (AI + CMS)
+- 5 PRs riêng (PR-THEME-1 → PR-THEME-5, ~12 ngày)
+
+---
+
+## 9. Không thay đổi
 
 - ✅ Tech stack (Next.js 15, shadcn/ui, Tailwind, TypeScript)
 - ✅ File structure (app router, component organization)
