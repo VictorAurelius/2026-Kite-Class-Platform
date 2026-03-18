@@ -41,3 +41,7 @@ các PR fix đã đáp ứng được chưa?
 tôi muốn refactor lại UI của kitehub, có nhiều template rất đẹp cho nền tảng SaaS liệu có sử dụng tài nguyên đó để refactor lại UI kitehub đẹp hơn nhưng vẫn giữ được đặc điểm của kitehub không?
 
 giới thiệu về các công nghệ dùng ở track C để cho tôi hiểu qua
+
+tôi có thắc mắc về file terraform bạn tạo, bởi vì tôi đang ở Việt Nam nên để tối ưu chí phi, region AWS nên chọn là gì, có phải ap-southeast-1 như hiện tại không? best practice là gì?
+
+check lại status plan xem đã cập nhật hết chưa? cleanup CI theo policy chưa? action tiếp theo là gì? còn PR nào?
