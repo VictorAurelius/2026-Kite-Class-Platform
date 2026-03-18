@@ -467,8 +467,8 @@ assert_status "GET /api/platform/branding/jobs" 200 "$STATUS"
 echo ""
 echo -e "${YELLOW}[8/10] Database Provisioning${NC}"
 
-# Check instance has real database URL (not "pending")
-RESP=$(http_get "/api/platform/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
+# Check instance has real database URL via admin endpoint (not "pending")
+RESP=$(http_get "/api/platform/admin/instances/$INSTANCE_ID" "$ACCESS_TOKEN")
 BODY=$(extract_body "$RESP")
 DB_URL=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('databaseUrl','pending'))" 2>/dev/null)
 
@@ -560,8 +560,8 @@ assert_status "Register 2nd instance for isolation test" 201 "$STATUS2"
 INSTANCE_ID2=$(echo "$BODY2" | python3 -c "import sys,json; print(json.load(sys.stdin).get('instance',{}).get('id',''))" 2>/dev/null)
 TOKEN2=$(echo "$BODY2" | python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null)
 
-# Verify 2nd instance has different database
-RESP2=$(http_get "/api/platform/instances/$INSTANCE_ID2" "$TOKEN2")
+# Verify 2nd instance has different database (via admin)
+RESP2=$(http_get "/api/platform/admin/instances/$INSTANCE_ID2" "$TOKEN2")
 BODY2=$(extract_body "$RESP2")
 DB_URL2=$(echo "$BODY2" | python3 -c "import sys,json; print(json.load(sys.stdin).get('databaseUrl','pending'))" 2>/dev/null)
 

@@ -130,6 +130,14 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: kitehub
       SPRING_RABBITMQ_PASSWORD: kitehub_dev_password
+      # Database provisioning config
+      DATABASE_LIFECYCLE_ENABLED: "true"
+      DATABASE_MASTER_HOST: kitehub-postgres
+      DATABASE_MASTER_PORT: 5432
+      DATABASE_ADMIN_URL: jdbc:postgresql://kitehub-postgres:5432/postgres
+      DATABASE_ADMIN_USERNAME: kitehub
+      DATABASE_ADMIN_PASSWORD: kitehub_dev_password
+      ENCRYPTION_MASTER_KEY: tOHICYANHtUnqfwWc+MwtOnvzf/Pnwz/2ZXsnWEtRuU=
     ports:
       - "8081:8080"
     depends_on:
