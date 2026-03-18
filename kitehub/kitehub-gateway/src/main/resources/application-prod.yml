@@ -1,0 +1,12 @@
+# =============================================================================
+# PRODUCTION PROFILE - Gateway
+# =============================================================================
+# CORS: Only allow production domain
+# Logging: Minimal
+# Security headers: Strict
+
+logging:
+  level:
+    root: WARN
+    com.kitehub.gateway: INFO
+    org.springframework.cloud.gateway: WARN
