@@ -5,7 +5,7 @@
 -- Date: 2026-02-27
 
 -- Create uploaded_files table
-CREATE TABLE uploaded_files (
+CREATE TABLE IF NOT EXISTS uploaded_files (
     -- Primary key
     id BIGSERIAL PRIMARY KEY,
 
@@ -47,7 +47,7 @@ CREATE TABLE uploaded_files (
 );
 
 -- Create storage_quotas table
-CREATE TABLE storage_quotas (
+CREATE TABLE IF NOT EXISTS storage_quotas (
     -- Primary key
     id BIGSERIAL PRIMARY KEY,
 
@@ -72,17 +72,17 @@ CREATE TABLE storage_quotas (
 );
 
 -- Create indexes for uploaded_files
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_instance_id ON uploaded_files(instance_id) WHERE deleted = FALSE;
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status) WHERE deleted = FALSE;
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_expires_at ON uploaded_files(expires_at) WHERE status = 'PENDING' AND deleted = FALSE;
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_uploader_id ON uploaded_files(uploader_id) WHERE deleted = FALSE;
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_deleted ON uploaded_files(deleted);
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_deleted_at ON uploaded_files(deleted_at) WHERE deleted = TRUE;
-CREATE INDEX IF NOT EXISTS idx_uploaded_files_instance_status ON uploaded_files(instance_id, status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_instance_id ON uploaded_files(instance_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_status ON uploaded_files(status) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_expires_at ON uploaded_files(expires_at) WHERE status = 'PENDING' AND deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_uploader_id ON uploaded_files(uploader_id) WHERE deleted = FALSE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_deleted ON uploaded_files(deleted);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_deleted_at ON uploaded_files(deleted_at) WHERE deleted = TRUE;
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_uploaded_files_instance_status ON uploaded_files(instance_id, status) WHERE deleted = FALSE;
 
 -- Create indexes for storage_quotas
-CREATE INDEX IF NOT EXISTS idx_storage_quotas_instance_id ON storage_quotas(instance_id);
-CREATE INDEX IF NOT EXISTS idx_storage_quotas_tier ON storage_quotas(tier);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_storage_quotas_instance_id ON storage_quotas(instance_id);
+CREATE INDEX IF NOT EXISTS IF NOT EXISTS idx_storage_quotas_tier ON storage_quotas(tier);
 
 -- Add trigger for updated_at on uploaded_files
 CREATE OR REPLACE FUNCTION update_uploaded_files_updated_at()

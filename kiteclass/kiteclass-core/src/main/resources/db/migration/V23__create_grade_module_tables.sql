@@ -12,7 +12,7 @@
 ALTER TABLE IF EXISTS grades RENAME TO individual_grades;
 
 -- 2. Create new grades table (final grades per student per class)
-CREATE TABLE grades (
+CREATE TABLE IF NOT EXISTS grades (
     id BIGSERIAL PRIMARY KEY,
 
     -- Multi-tenant
@@ -61,7 +61,7 @@ CREATE TABLE grades (
 );
 
 -- 3. Create grade_components table (individual component scores)
-CREATE TABLE grade_components (
+CREATE TABLE IF NOT EXISTS grade_components (
     id BIGSERIAL PRIMARY KEY,
 
     -- Multi-tenant
@@ -100,7 +100,7 @@ CREATE TABLE grade_components (
 );
 
 -- 4. Create grading_scales table (configurable grading scale)
-CREATE TABLE grading_scales (
+CREATE TABLE IF NOT EXISTS grading_scales (
     id BIGSERIAL PRIMARY KEY,
 
     -- Multi-tenant
@@ -133,7 +133,7 @@ CREATE TABLE grading_scales (
 );
 
 -- 5. Create transcripts table (student academic records)
-CREATE TABLE transcripts (
+CREATE TABLE IF NOT EXISTS transcripts (
     id BIGSERIAL PRIMARY KEY,
 
     -- Multi-tenant
@@ -180,31 +180,31 @@ CREATE TABLE transcripts (
 -- =====================================================
 
 -- Grades indexes
-CREATE INDEX idx_grades_instance_id ON grades(instance_id);
-CREATE INDEX idx_grades_student_id ON grades(student_id);
-CREATE INDEX idx_grades_class_id ON grades(class_id);
-CREATE INDEX idx_grades_status ON grades(status);
-CREATE INDEX idx_grades_deleted ON grades(deleted);
+CREATE INDEX IF NOT EXISTS idx_grades_instance_id ON grades(instance_id);
+CREATE INDEX IF NOT EXISTS idx_grades_student_id ON grades(student_id);
+CREATE INDEX IF NOT EXISTS idx_grades_class_id ON grades(class_id);
+CREATE INDEX IF NOT EXISTS idx_grades_status ON grades(status);
+CREATE INDEX IF NOT EXISTS idx_grades_deleted ON grades(deleted);
 
 -- Grade components indexes
-CREATE INDEX idx_grade_components_instance_id ON grade_components(instance_id);
-CREATE INDEX idx_grade_components_grade_id ON grade_components(grade_id);
-CREATE INDEX idx_grade_components_type ON grade_components(component_type);
-CREATE INDEX idx_grade_components_ref_id ON grade_components(component_ref_id);
-CREATE INDEX idx_grade_components_deleted ON grade_components(deleted);
+CREATE INDEX IF NOT EXISTS idx_grade_components_instance_id ON grade_components(instance_id);
+CREATE INDEX IF NOT EXISTS idx_grade_components_grade_id ON grade_components(grade_id);
+CREATE INDEX IF NOT EXISTS idx_grade_components_type ON grade_components(component_type);
+CREATE INDEX IF NOT EXISTS idx_grade_components_ref_id ON grade_components(component_ref_id);
+CREATE INDEX IF NOT EXISTS idx_grade_components_deleted ON grade_components(deleted);
 
 -- Grading scales indexes
-CREATE INDEX idx_grading_scales_instance_id ON grading_scales(instance_id);
-CREATE INDEX idx_grading_scales_scale_name ON grading_scales(scale_name);
-CREATE INDEX idx_grading_scales_is_default ON grading_scales(is_default);
-CREATE INDEX idx_grading_scales_deleted ON grading_scales(deleted);
+CREATE INDEX IF NOT EXISTS idx_grading_scales_instance_id ON grading_scales(instance_id);
+CREATE INDEX IF NOT EXISTS idx_grading_scales_scale_name ON grading_scales(scale_name);
+CREATE INDEX IF NOT EXISTS idx_grading_scales_is_default ON grading_scales(is_default);
+CREATE INDEX IF NOT EXISTS idx_grading_scales_deleted ON grading_scales(deleted);
 
 -- Transcripts indexes
-CREATE INDEX idx_transcripts_instance_id ON transcripts(instance_id);
-CREATE INDEX idx_transcripts_student_id ON transcripts(student_id);
-CREATE INDEX idx_transcripts_academic_year ON transcripts(academic_year);
-CREATE INDEX idx_transcripts_semester ON transcripts(semester);
-CREATE INDEX idx_transcripts_deleted ON transcripts(deleted);
+CREATE INDEX IF NOT EXISTS idx_transcripts_instance_id ON transcripts(instance_id);
+CREATE INDEX IF NOT EXISTS idx_transcripts_student_id ON transcripts(student_id);
+CREATE INDEX IF NOT EXISTS idx_transcripts_academic_year ON transcripts(academic_year);
+CREATE INDEX IF NOT EXISTS idx_transcripts_semester ON transcripts(semester);
+CREATE INDEX IF NOT EXISTS idx_transcripts_deleted ON transcripts(deleted);
 
 -- =====================================================
 -- Seed Data: Default Grading Scale
