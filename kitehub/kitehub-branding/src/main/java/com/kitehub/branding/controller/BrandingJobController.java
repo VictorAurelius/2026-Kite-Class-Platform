@@ -113,7 +113,7 @@ public class BrandingJobController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(job.getGeneratedAssets());
+        return ResponseEntity.ok(job.getAssetsGenerated());
     }
 
     @DeleteMapping("/{id}")
