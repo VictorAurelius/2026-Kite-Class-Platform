@@ -63,6 +63,18 @@ test.describe('Instance Detail Page', () => {
     const brandingBtn = page.getByRole('link', { name: 'AI Branding', exact: true });
     await expect(brandingBtn).toBeVisible();
   });
+
+  test('should navigate to upgrade when clicking upgrade button', async ({ page }) => {
+    const upgradeBtn = page.getByRole('link', { name: /nâng cấp/i });
+    await upgradeBtn.click();
+    await expect(page).toHaveURL(/\/billing\/upgrade|\/billing/);
+  });
+
+  test('should navigate to branding when clicking AI Branding button', async ({ page }) => {
+    const brandingBtn = page.getByRole('link', { name: 'AI Branding', exact: true });
+    await brandingBtn.click();
+    await expect(page).toHaveURL('/branding');
+  });
 });
 
 test.describe('Instance Detail - Unauthenticated', () => {

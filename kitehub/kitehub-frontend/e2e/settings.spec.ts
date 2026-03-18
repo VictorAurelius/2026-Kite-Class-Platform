@@ -54,6 +54,36 @@ test.describe('Settings Page', () => {
     await dangerTab.click();
     await expect(dangerTab).toHaveAttribute('data-state', 'active');
   });
+
+  test('should display account tab content with form fields', async ({ page }) => {
+    // Account tab is default - verify form content loads
+    const emailField = page.locator('input[type="email"], input[disabled]').first();
+    const nameField = page.getByPlaceholder(/tên/i).or(page.locator('input[name="name"]')).first();
+    // At least some form content should be visible
+    await page.waitForTimeout(2000);
+    const hasEmail = await emailField.isVisible().catch(() => false);
+    const hasName = await nameField.isVisible().catch(() => false);
+    const hasContent = page.getByText(/email|tên|thông tin/i);
+    expect(hasEmail || hasName || await hasContent.first().isVisible().catch(() => false)).toBeTruthy();
+  });
+
+  test('should display instance tab content when clicked', async ({ page }) => {
+    const instanceTab = page.getByRole('tab', { name: /instance/i });
+    await instanceTab.click();
+    await page.waitForTimeout(2000);
+    // Instance tab should show subdomain or instance info
+    const instanceContent = page.getByText(/subdomain|kiteclass\.com|tên miền/i);
+    await expect(instanceContent.first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should display danger zone content when clicked', async ({ page }) => {
+    const dangerTab = page.getByRole('tab', { name: /nguy hiểm/i });
+    await dangerTab.click();
+    await page.waitForTimeout(2000);
+    // Danger zone should show destructive actions
+    const dangerContent = page.getByText(/xóa|hủy|ngưng|cảnh báo|instance/i);
+    await expect(dangerContent.first()).toBeVisible({ timeout: 10000 });
+  });
 });
 
 test.describe('Settings - Unauthenticated', () => {

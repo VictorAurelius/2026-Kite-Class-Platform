@@ -63,6 +63,19 @@ test.describe('Admin Dashboard', () => {
     const instancesLink = page.getByRole('link', { name: /instances/i });
     await expect(instancesLink).toBeVisible();
   });
+
+  test('should navigate to instances from quick action link', async ({ page }) => {
+    await page.waitForTimeout(2000);
+    const manageLink = page.getByRole('link', { name: /quản lý instance/i });
+    await manageLink.click();
+    await expect(page).toHaveURL('/admin/instances');
+  });
+
+  test('should navigate to payments from sidebar', async ({ page }) => {
+    const paymentsLink = page.getByRole('link', { name: /thanh toán/i });
+    await paymentsLink.click();
+    await expect(page).toHaveURL('/admin/payments');
+  });
 });
 
 test.describe('Admin Instances Page', () => {

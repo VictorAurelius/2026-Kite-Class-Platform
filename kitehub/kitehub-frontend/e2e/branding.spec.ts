@@ -35,6 +35,14 @@ test.describe('Branding Dashboard', () => {
     const brandingLink = page.getByRole('link', { name: /ai branding/i });
     await expect(brandingLink).toBeVisible();
   });
+
+  test('should navigate to wizard when clicking create branding', async ({ page }) => {
+    const createBtn = page.getByRole('link', { name: /tạo branding/i }).or(
+      page.getByRole('button', { name: /tạo branding/i })
+    );
+    await createBtn.first().click();
+    await expect(page).toHaveURL('/branding/wizard', { timeout: 10000 });
+  });
 });
 
 test.describe('Branding Wizard', () => {
