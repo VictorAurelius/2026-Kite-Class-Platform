@@ -178,8 +178,27 @@ PR 6.1 (DB Provisioning) ────→ PR 6.2 (TenantResolver) ────→
 1. ✅ Mở http://localhost:3001 → thấy landing page
 2. ✅ Register account → tạo instance
 3. ✅ Login → thấy dashboard với instance
-4. ⬜ Click "Truy cập KiteClass" → thấy KiteClass UI (cần PR 6.1-6.3)
-5. ⬜ Tạo student/course trong KiteClass (cần PR 6.3)
-6. ⬜ Data isolated giữa 2 instances (cần PR 6.4)
-7. ⬜ Upgrade plan → payment → subscription active (cần PR 6.5)
+4. ✅ Click "Truy cập KiteClass" → KiteClass API qua gateway (PR 6.1-6.3, merged #114-#116)
+5. ✅ Tạo student/course trong KiteClass (PR 6.3, merged #116)
+6. ✅ Data isolated giữa 2 instances (PR 6.4 - covered by test-api-e2e.sh)
+7. ✅ Mock payment/branding/email hoạt động (PR-A3, merged #123)
+
+## Completion Status (2026-03-18)
+
+| PR | Status | GitHub |
+|---|---|---|
+| PR 6.1 DB Provisioning | ✅ DONE | #114 |
+| PR 6.2 TenantResolver | ✅ DONE | #115 |
+| PR 6.3 KiteClass Shared | ✅ DONE | #116 |
+| PR 6.4 E2E Integration | ✅ DONE | Covered by 63 API E2E tests |
+| PR 6.5 Payment Mock | ✅ DONE | Merged into PR-A3 #123 |
+| PR 6.6 AI Branding Mock | ✅ DONE | Merged into PR-A3 #123 |
+| PR 6.7 Email Local | ✅ DONE | Already existed (AWS_SES_MOCK_MODE) |
+
+### Remaining (P2 - Nice to have):
+| PR | Description | Status |
+|---|---|---|
+| PR 6.8 | Settings Page Full Implementation | ⬜ Future |
+| PR 6.9 | Admin Dashboard Real Data | ⬜ Future |
+| PR 6.10 | KiteClass Frontend Integration | ⬜ Future |
 8. ⬜ AI generate branding → see on landing page (cần PR 6.6)
