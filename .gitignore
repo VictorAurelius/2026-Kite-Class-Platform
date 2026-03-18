@@ -28,6 +28,14 @@
 *.key
 *.pem
 
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/*.tfvars
+!terraform/*.tfvars.example
+terraform/.terraform.lock.hcl
+
 # Docker build logs (local only, different per machine)
 .docker-build-logs/
 */.docker-build-logs/
