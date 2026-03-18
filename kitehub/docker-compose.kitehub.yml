@@ -349,6 +349,29 @@ services:
       - kitehub-network
     restart: unless-stopped
 
+  # ============================================================================
+  # KITECLASS FRONTEND (Student/Teacher UI)
+  # ============================================================================
+
+  kiteclass-frontend:
+    build:
+      context: ../kiteclass/kiteclass-frontend
+      dockerfile: Dockerfile
+    image: kiteclass-frontend:latest
+    container_name: kiteclass-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://kitehub-gateway:9000/api/v1
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - kitehub-gateway
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
 volumes:
   kitehub-postgres-data:
     driver: local
