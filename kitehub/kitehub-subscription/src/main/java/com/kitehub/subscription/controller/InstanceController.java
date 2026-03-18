@@ -37,6 +37,17 @@ public class InstanceController {
      * @param request create instance request
      * @return created instance response
      */
+    /**
+     * List all instances.
+     *
+     * @return list of all instance responses
+     */
+    @GetMapping
+    public ResponseEntity<List<InstanceResponse>> listInstances() {
+        List<InstanceResponse> responses = instanceService.listAllInstances();
+        return ResponseEntity.ok(responses);
+    }
+
     @PostMapping
     public ResponseEntity<InstanceResponse> createInstance(@Valid @RequestBody CreateInstanceRequest request) {
         InstanceResponse response = instanceService.createTrialInstance(request);
@@ -99,6 +110,15 @@ public class InstanceController {
      * @param request update request
      * @return updated instance response
      */
+    @PutMapping("/{id}")
+    public ResponseEntity<InstanceResponse> updateInstancePut(
+        @PathVariable UUID id,
+        @Valid @RequestBody UpdateInstanceRequest request
+    ) {
+        InstanceResponse response = instanceService.updateInstance(id, request);
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<InstanceResponse> updateInstance(
         @PathVariable UUID id,

@@ -194,6 +194,19 @@ public class InstanceService {
     }
 
     /**
+     * List all instances.
+     *
+     * @return list of all instance responses
+     */
+    @Transactional(readOnly = true)
+    public List<InstanceResponse> listAllInstances() {
+        return instanceRepository.findAll().stream()
+            .filter(i -> !i.isDeleted())
+            .map(this::toResponse)
+            .collect(Collectors.toList());
+    }
+
+    /**
      * Get all instances for owner.
      *
      * @param ownerId owner UUID

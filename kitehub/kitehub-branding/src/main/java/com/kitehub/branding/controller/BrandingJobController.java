@@ -24,7 +24,7 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/branding/jobs")
+@RequestMapping("/api/platform/branding/jobs")
 @RequiredArgsConstructor
 public class BrandingJobController {
 
@@ -96,6 +96,26 @@ public class BrandingJobController {
      * @param id job ID
      * @return 204 if cancelled, 404 if not found, 400 if already completed
      */
+    /**
+     * Get assets for a completed branding job.
+     *
+     * @param instanceId instance ID from header
+     * @param id job ID
+     * @return list of generated assets
+     */
+    @GetMapping("/{id}/assets")
+    public ResponseEntity<?> getJobAssets(
+            @RequestHeader("X-Instance-Id") UUID instanceId,
+            @PathVariable UUID id) {
+
+        BrandingJob job = jobService.getJob(id, instanceId);
+        if (job == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(job.getGeneratedAssets());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelJob(
             @RequestHeader("X-Instance-Id") UUID instanceId,

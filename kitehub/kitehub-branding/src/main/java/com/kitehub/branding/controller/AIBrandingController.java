@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
  * @since 1.0.0
  */
 @RestController
-@RequestMapping("/api/platform/ai")
+@RequestMapping("/api/platform/branding/ai")
 @RequiredArgsConstructor
 public class AIBrandingController {
 

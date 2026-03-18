@@ -85,6 +85,22 @@ public class AdminController {
      * @param id instance ID
      * @return updated instance summary
      */
+    /**
+     * Get instance detail by ID.
+     *
+     * @param id instance ID
+     * @return instance summary
+     */
+    @GetMapping("/instances/{id}")
+    public ResponseEntity<InstanceSummary> getInstanceById(@PathVariable UUID id) {
+        log.info("Admin requested instance detail: {}", id);
+
+        Instance instance = instanceRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + id));
+
+        return ResponseEntity.ok(convertToSummary(instance));
+    }
+
     @PatchMapping("/instances/{id}/suspend")
     public ResponseEntity<InstanceSummary> suspendInstance(@PathVariable UUID id) {
         log.info("Admin suspending instance: {}", id);

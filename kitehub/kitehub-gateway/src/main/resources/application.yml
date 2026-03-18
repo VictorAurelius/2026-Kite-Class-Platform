@@ -95,7 +95,7 @@ spring:
         - id: platform-email
           uri: http://kitehub-email:8080
           predicates:
-            - Path=/api/platform/email/**
+            - Path=/api/platform/emails/**
           filters:
             - name: CircuitBreaker
               args:

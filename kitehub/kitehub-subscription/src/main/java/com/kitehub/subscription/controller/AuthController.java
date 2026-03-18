@@ -1,9 +1,6 @@
 package com.kitehub.subscription.controller;
 
-import com.kitehub.subscription.dto.LoginRequest;
-import com.kitehub.subscription.dto.LoginResponse;
-import com.kitehub.subscription.dto.RegisterRequest;
-import com.kitehub.subscription.dto.RegisterResponse;
+import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +42,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Refresh access token using refresh token.
+     *
+     * @param request refresh token request
+     * @return new access token
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refresh(@RequestBody RefreshRequest request) {
+        RefreshResponse response = authService.refresh(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
 }
