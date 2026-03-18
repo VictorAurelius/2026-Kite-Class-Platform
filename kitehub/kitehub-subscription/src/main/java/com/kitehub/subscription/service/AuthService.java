@@ -189,6 +189,34 @@ public class AuthService {
     }
 
     /**
+     * Update user profile.
+     */
+    public void updateProfile(String email, String name, String phone) {
+        UserCredentials user = USER_STORE.get(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        USER_STORE.put(email, new UserCredentials(user.id(), user.email(), name != null ? name : user.name(), user.passwordHash(), user.role()));
+        log.info("Profile updated for: {}", email);
+    }
+
+    /**
+     * Change user password.
+     */
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        UserCredentials user = USER_STORE.get(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        if (!passwordEncoder.matches(currentPassword, user.passwordHash())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        String newHash = passwordEncoder.encode(newPassword);
+        USER_STORE.put(email, new UserCredentials(user.id(), user.email(), user.name(), newHash, user.role()));
+        log.info("Password changed for: {}", email);
+    }
+
+    /**
      * Generate JWT access token.
      */
     private String generateAccessToken(UUID userId, String email, String role) {

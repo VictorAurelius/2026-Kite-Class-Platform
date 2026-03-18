@@ -56,4 +56,28 @@ public class AuthController {
         RefreshResponse response = authService.refresh(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Update user profile.
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<java.util.Map<String, Object>> updateProfile(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        String name = request.get("name");
+        String phone = request.get("phone");
+        authService.updateProfile(email, name, phone);
+        return ResponseEntity.ok(java.util.Map.of("message", "Profile updated"));
+    }
+
+    /**
+     * Change password.
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<java.util.Map<String, Object>> changePassword(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        String currentPassword = request.get("currentPassword");
+        String newPassword = request.get("newPassword");
+        authService.changePassword(email, currentPassword, newPassword);
+        return ResponseEntity.ok(java.util.Map.of("message", "Password changed"));
+    }
 }

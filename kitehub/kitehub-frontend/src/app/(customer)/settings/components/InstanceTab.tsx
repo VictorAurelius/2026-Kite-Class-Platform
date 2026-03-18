@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import apiClient from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
 import { Globe, Bell, ExternalLink, Copy, CheckCircle2, Info } from 'lucide-react';
 import { Instance } from '@/types/instance';
 
@@ -38,9 +40,15 @@ export function InstanceTab({ instance }: InstanceTabProps) {
 
   const handleSaveDomain = async () => {
     setIsSaving(true);
-    // TODO: Implement custom domain API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
+    try {
+      if (instance?.id) {
+        await apiClient.put(endpoints.instances.update(instance.id), { customDomain });
+      }
+    } catch {
+      alert('Không thể lưu tên miền');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleNotificationChange = (key: keyof typeof notifications) => {

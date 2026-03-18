@@ -67,5 +67,7 @@ export const endpoints = {
     login: '/api/auth/login',
     register: '/api/auth/register',
     refresh: '/api/auth/refresh',
+    profile: '/api/auth/profile',
+    changePassword: '/api/auth/change-password',
   },
 } as const;
