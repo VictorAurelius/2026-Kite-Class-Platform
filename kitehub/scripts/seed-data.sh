@@ -44,7 +44,8 @@ register_user() {
   BODY=$(echo "$RESP" | sed '$d')
 
   if [ "$STATUS" -eq 201 ]; then
-    echo -e "  ${GREEN}✓${NC} Created: $email ($org_name)"
+    echo -e "  ${GREEN}✓${NC} Created: $email ($org_name)" >&2
+    # Output JSON to stdout for parsing
     echo "$BODY"
     return 0
   elif [ "$STATUS" -eq 400 ]; then
@@ -57,13 +58,13 @@ register_user() {
     BODY=$(echo "$RESP" | sed '$d')
 
     if [ "$STATUS" -eq 200 ]; then
-      echo -e "  ${YELLOW}⚠${NC} Already exists: $email (logged in)"
+      echo -e "  ${YELLOW}⚠${NC} Already exists: $email (logged in)" >&2
       echo "$BODY"
       return 0
     fi
   fi
 
-  echo -e "  ${RED}✗${NC} Failed to create: $email (HTTP $STATUS)"
+  echo -e "  ${RED}✗${NC} Failed to create: $email (HTTP $STATUS)" >&2
   return 1
 }
 
