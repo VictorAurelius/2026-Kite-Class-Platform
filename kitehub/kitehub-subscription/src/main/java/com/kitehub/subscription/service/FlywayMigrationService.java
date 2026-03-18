@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FlywayMigrationService {
 
-    private static final String MIGRATIONS_LOCATION = "classpath:db/tenant-schema/kiteclass";
+    private static final String MIGRATIONS_LOCATION = "classpath:db/tenant-schema";
 
     /**
      * Run Flyway migrations on a tenant database.
