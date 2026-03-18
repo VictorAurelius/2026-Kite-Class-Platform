@@ -31,6 +31,14 @@ public class OpenAIClient {
     private final ObjectMapper objectMapper;
 
     /**
+     * Check if running in mock mode (API key starts with sk-mock or sk-placeholder).
+     */
+    private boolean isMockMode() {
+        String apiKey = openAIConfig.getApi().getKey();
+        return apiKey == null || apiKey.startsWith("sk-mock") || apiKey.startsWith("sk-placeholder");
+    }
+
+    /**
      * Analyze logo using GPT-4 Vision.
      * Extracts colors, theme, typography, target audience, and brand personality.
      *
@@ -39,6 +47,17 @@ public class OpenAIClient {
      * @return Logo analysis result
      */
     public Mono<LogoAnalysis> analyzeLogo(String imageUrl, String organizationName) {
+        if (isMockMode()) {
+            log.info("[MOCK] Returning sample logo analysis for: {}", organizationName);
+            return Mono.just(LogoAnalysis.builder()
+                .primaryColors(List.of("#2196F3", "#FF5722", "#4CAF50"))
+                .theme("Modern & Professional")
+                .typography("Clean Sans-Serif")
+                .targetAudience("Students and parents seeking quality education")
+                .brandPersonality("Trustworthy, innovative, approachable")
+                .build());
+        }
+
         log.info("Analyzing logo for organization: {}", organizationName);
 
         String prompt = buildLogoAnalysisPrompt(organizationName);
@@ -76,6 +95,12 @@ public class OpenAIClient {
      * @return Generated image URL
      */
     public Mono<String> generateImage(String prompt, String size) {
+        if (isMockMode()) {
+            log.info("[MOCK] Returning placeholder image URL");
+            return Mono.just("https://placehold.co/1792x1024/2196F3/white?text=" +
+                java.net.URLEncoder.encode("KiteClass Branding", java.nio.charset.StandardCharsets.UTF_8));
+        }
+
         log.info("Generating image with DALL-E 3: {}", prompt);
 
         Map<String, Object> requestBody = Map.of(
@@ -104,6 +129,12 @@ public class OpenAIClient {
      * @return Generated marketing copy
      */
     public Mono<String> generateText(String prompt) {
+        if (isMockMode()) {
+            log.info("[MOCK] Returning sample marketing copy");
+            return Mono.just("Chào mừng đến với trung tâm giáo dục hàng đầu. " +
+                "Chúng tôi cung cấp chương trình học chất lượng cao với đội ngũ giảng viên giàu kinh nghiệm.");
+        }
+
         log.info("Generating marketing copy with GPT-4 Turbo");
 
         Map<String, Object> requestBody = Map.of(
