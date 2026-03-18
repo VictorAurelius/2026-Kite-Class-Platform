@@ -1,0 +1,60 @@
+{{- $tierConfig := index .Values.tiers .Values.tier }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiteclass-core-{{ .Values.instanceId | trunc 8 }}
+  labels:
+    app: kiteclass-core
+    instance: {{ .Values.instanceId }}
+    tier: {{ .Values.tier }}
+spec:
+  replicas: {{ $tierConfig.replicas }}
+  selector:
+    matchLabels:
+      app: kiteclass-core
+      instance: {{ .Values.instanceId }}
+  template:
+    metadata:
+      labels:
+        app: kiteclass-core
+        instance: {{ .Values.instanceId }}
+        tier: {{ .Values.tier }}
+    spec:
+      containers:
+        - name: core
+          image: "{{ .Values.image.registry }}/kiteclass-core:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: INSTANCE_ID
+              value: {{ .Values.instanceId | quote }}
+            - name: SPRING_DATASOURCE_URL
+              value: {{ .Values.database.url | quote }}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.database.username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kiteclass-{{ .Values.instanceId | trunc 8 }}-secrets
+                  key: db-password
+          resources:
+            requests:
+              cpu: {{ $tierConfig.cpu.request }}
+              memory: {{ $tierConfig.memory.request }}
+            limits:
+              cpu: {{ $tierConfig.cpu.limit }}
+              memory: {{ $tierConfig.memory.limit }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10

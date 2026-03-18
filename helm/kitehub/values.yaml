@@ -1,0 +1,98 @@
+# Default values for KiteHub platform
+
+global:
+  image:
+    registry: ""  # ECR registry URL (from terraform output)
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  database:
+    host: ""      # RDS endpoint (from terraform output)
+    port: 5432
+    name: kitehub
+    username: kitehub
+
+  redis:
+    host: ""      # ElastiCache endpoint (from terraform output)
+    port: 6379
+
+  rabbitmq:
+    host: ""      # Amazon MQ endpoint
+    port: 5672
+    username: kitehub
+
+  s3:
+    bucket: ""    # S3 bucket name (from terraform output)
+    region: ap-southeast-1
+
+# --- Services ---
+
+gateway:
+  replicas: 2
+  image:
+    name: kitehub-gateway
+  port: 9000
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: 500m, memory: 1Gi }
+  cors:
+    allowedOrigins: "https://kiteclass.com,https://www.kiteclass.com"
+
+subscription:
+  replicas: 2
+  image:
+    name: kitehub-subscription
+  port: 8080
+  resources:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits:   { cpu: 1000m, memory: 2Gi }
+
+branding:
+  replicas: 1
+  image:
+    name: kitehub-branding
+  port: 8080
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: 500m, memory: 1Gi }
+
+admin:
+  replicas: 1
+  image:
+    name: kitehub-admin
+  port: 8080
+  resources:
+    requests: { cpu: 250m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+email:
+  replicas: 1
+  image:
+    name: kitehub-email
+  port: 8080
+  resources:
+    requests: { cpu: 125m, memory: 256Mi }
+    limits:   { cpu: 250m, memory: 512Mi }
+
+frontend:
+  replicas: 2
+  image:
+    name: kitehub-frontend
+  port: 3001
+  resources:
+    requests: { cpu: 125m, memory: 256Mi }
+    limits:   { cpu: 250m, memory: 512Mi }
+
+# --- Ingress ---
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: ""  # ACM certificate ARN
+  hosts:
+    - host: kiteclass.com
+      paths: ["/"]
+    - host: api.kiteclass.com
+      paths: ["/"]
