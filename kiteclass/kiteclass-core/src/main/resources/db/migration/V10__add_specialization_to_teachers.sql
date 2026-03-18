@@ -3,10 +3,10 @@
 -- Date: 2026-03-13
 -- Description: Add specialization field to track teacher's subject expertise
 
-ALTER TABLE teachers
-ADD COLUMN specialization VARCHAR(50);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teachers' AND column_name='specialization') THEN
+    ALTER TABLE teachers ADD COLUMN specialization VARCHAR(50);
+  END IF;
+END $$;
 
--- Index for filtering/searching by specialization
 CREATE INDEX IF NOT EXISTS idx_teachers_specialization ON teachers(specialization);
-
--- Note: Existing teachers will have NULL specialization, update manually or via API
