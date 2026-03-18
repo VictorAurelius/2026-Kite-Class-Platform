@@ -110,6 +110,43 @@ test.describe('Login Flow', () => {
     await expect(page.getByRole('button', { name: /đăng nhập/i })).toBeVisible();
   });
 
+  test('should login successfully with valid credentials', async ({ page }) => {
+    // First register a user
+    await page.goto('/register');
+    const data = createRegistrationData();
+
+    await page.getByPlaceholder('Trung tâm Anh ngữ ABC').fill(data.organizationName);
+    await page.getByPlaceholder('abc-center').fill(data.subdomain);
+    await page.getByPlaceholder('email@example.com').fill(data.email);
+
+    const passwordFields = page.locator('input[type="password"]');
+    await passwordFields.first().fill(data.password);
+    await passwordFields.nth(1).fill(data.password);
+
+    await page.getByRole('button', { name: /tạo tài khoản/i }).click();
+    await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
+
+    // Logout
+    const logoutButton = page.getByRole('button', { name: /đăng xuất/i });
+    if (await logoutButton.isVisible().catch(() => false)) {
+      await logoutButton.click();
+    }
+    await clearBrowserStorage(page);
+
+    // Now login with the same credentials
+    await page.goto('/login');
+    await page.getByPlaceholder('email@example.com').fill(data.email);
+    await page.locator('input[type="password"]').fill(data.password);
+    await page.getByRole('button', { name: /đăng nhập/i }).click();
+
+    // Should redirect to dashboard
+    await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
+
+    // Should be authenticated
+    const authenticated = await isAuthenticated(page);
+    expect(authenticated).toBe(true);
+  });
+
   test('should show error for invalid credentials', async ({ page }) => {
     await page.getByPlaceholder('email@example.com').fill(invalidCredentials.email);
     await page.locator('input[type="password"]').fill(invalidCredentials.password);

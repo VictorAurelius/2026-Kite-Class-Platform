@@ -31,7 +31,7 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      const response = await apiClient.post(endpoints.instances.register, {
+      const response = await apiClient.post(endpoints.auth.register, {
         organizationName: data.organizationName,
         subdomain: data.subdomain,
         ownerEmail: data.ownerEmail,
