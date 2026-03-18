@@ -54,7 +54,7 @@ public class OpenAIClient {
                 .theme("Modern & Professional")
                 .typography("Clean Sans-Serif")
                 .targetAudience("Students and parents seeking quality education")
-                .brandPersonality("Trustworthy, innovative, approachable")
+                .brandPersonality(List.of("Trustworthy", "Innovative", "Approachable"))
                 .build());
         }
 

@@ -37,3 +37,5 @@ nhưng bạn cần lưu ý, mục tiêu của tôi ở đây là tách rõ môi 
 local: ưu tiên, setup nhanh, test chuẩn, thuận tiện cho dev
 production: chuyên nghiệp, bảo mật, không bug, không điểm yếu
 các PR fix đã đáp ứng được chưa?
+
+tôi muốn refactor lại UI của kitehub, có nhiều template rất đẹp cho nền tảng SaaS liệu có sử dụng tài nguyên đó để refactor lại UI kitehub đẹp hơn nhưng vẫn giữ được đặc điểm của kitehub không?
