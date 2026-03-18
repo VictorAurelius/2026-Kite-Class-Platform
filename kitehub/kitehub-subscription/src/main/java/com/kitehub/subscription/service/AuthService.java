@@ -56,39 +56,6 @@ public class AuthService {
     }
 
     /**
-     * Initialize demo user for testing.
-     */
-    @PostConstruct
-    public void initDemoUser() {
-        String demoEmail = "demo@kitehub.com";
-        if (!USER_STORE.containsKey(demoEmail)) {
-            UUID demoUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-            String passwordHash = passwordEncoder.encode("Demo@123");
-            USER_STORE.put(demoEmail, new UserCredentials(
-                demoUserId, demoEmail, "Demo Organization", passwordHash, "OWNER"
-            ));
-
-            // Create demo instance if not exists
-            if (!instanceRepository.existsByContactEmailAndDeletedFalse(demoEmail)) {
-                try {
-                    CreateInstanceRequest req = new CreateInstanceRequest();
-                    req.setSubdomain("demo");
-                    req.setOrganizationName("Demo Organization");
-                    req.setOwnerId(demoUserId);
-                    req.setContactEmail(demoEmail);
-                    req.setTier(PricingTier.FREE);
-                    instanceService.createTrialInstance(req);
-                    log.info("Demo instance created for: {}", demoEmail);
-                } catch (Exception e) {
-                    log.warn("Could not create demo instance: {}", e.getMessage());
-                }
-            }
-
-            log.info("Demo user ready: {}", demoEmail);
-        }
-    }
-
-    /**
      * Register a new instance with owner account.
      *
      * @param request registration request
