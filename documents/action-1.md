@@ -16,3 +16,7 @@ commit cả các file đang changing
 
 tạo test ECE coverage 100% cho BE kitehub, test pass
 đặt mục tiêu đỏ, không có bug nào cho kitehub ở môi trường local
+
+fix thì phải làm gì cho đúng quy trình?
+
+push and check CI

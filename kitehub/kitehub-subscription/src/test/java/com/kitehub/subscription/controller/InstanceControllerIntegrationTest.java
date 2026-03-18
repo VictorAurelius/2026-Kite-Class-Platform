@@ -180,7 +180,7 @@ class InstanceControllerIntegrationTest {
 
         // Verify instance is soft deleted
         mockMvc.perform(get("/api/platform/instances/{id}", created.getId()))
-            .andExpect(status().isBadRequest()); // Should return error for deleted instance
+            .andExpect(status().isNotFound()); // Deleted instance returns 404
     }
 
     @Test

@@ -26,12 +26,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for TenantResolverFilter.
+ * Tests for TenantResolverGatewayFilterFactory.
  *
  * @since 1.0
  */
 @ExtendWith(MockitoExtension.class)
-class TenantResolverFilterTest {
+class TenantResolverGatewayFilterFactoryTest {
 
     @Mock
     private InstanceRepository instanceRepository;
@@ -39,13 +39,13 @@ class TenantResolverFilterTest {
     @Mock
     private GatewayFilterChain filterChain;
 
-    private TenantResolverFilter tenantResolverFilter;
+    private TenantResolverGatewayFilterFactory tenantResolverFilter;
 
     private Instance activeInstance;
 
     @BeforeEach
     void setUp() {
-        tenantResolverFilter = new TenantResolverFilter(instanceRepository);
+        tenantResolverFilter = new TenantResolverGatewayFilterFactory(instanceRepository);
 
         // Create active instance
         activeInstance = new Instance();
@@ -82,7 +82,7 @@ class TenantResolverFilterTest {
         });
 
         // When
-        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverFilter.Config())
+        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverGatewayFilterFactory.Config())
                 .filter(exchange, filterChain);
 
         // Then
@@ -103,7 +103,7 @@ class TenantResolverFilterTest {
         when(instanceRepository.findByCustomDomain("nonexistent.kiteclass.com")).thenReturn(Optional.empty());
 
         // When
-        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverFilter.Config())
+        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverGatewayFilterFactory.Config())
                 .filter(exchange, filterChain);
 
         // Then
@@ -127,7 +127,7 @@ class TenantResolverFilterTest {
         when(instanceRepository.findBySubdomain("customer1")).thenReturn(Optional.of(activeInstance));
 
         // When
-        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverFilter.Config())
+        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverGatewayFilterFactory.Config())
                 .filter(exchange, filterChain);
 
         // Then
@@ -160,7 +160,7 @@ class TenantResolverFilterTest {
         });
 
         // When
-        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverFilter.Config())
+        Mono<Void> result = tenantResolverFilter.apply(new TenantResolverGatewayFilterFactory.Config())
                 .filter(exchange, filterChain);
 
         // Then
