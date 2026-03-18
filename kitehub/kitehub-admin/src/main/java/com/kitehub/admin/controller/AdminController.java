@@ -144,9 +144,16 @@ public class AdminController {
     @GetMapping("/revenue")
     public ResponseEntity<RevenueReport> getRevenue(
             @RequestParam(defaultValue = "MONTHLY") String period,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
+        // Default to current month if not provided
+        if (startDate == null) {
+            startDate = LocalDate.now().withDayOfMonth(1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
         log.info("Admin requested revenue report: {} from {} to {}", period, startDate, endDate);
 
         RevenueReport report = analyticsService.getRevenueReport(period, startDate, endDate);

@@ -9,6 +9,7 @@ import com.kitehub.subscription.dto.RegisterInstanceRequest;
 import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.repository.InstanceRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -170,10 +171,10 @@ public class InstanceService {
     @Transactional(readOnly = true)
     public InstanceResponse getInstanceById(UUID id) {
         Instance instance = instanceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + id));
+            .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + id));
 
         if (instance.isDeleted()) {
-            throw new IllegalArgumentException("Instance has been deleted: " + id);
+            throw new EntityNotFoundException("Instance not found: " + id);
         }
 
         return toResponse(instance);
@@ -188,7 +189,7 @@ public class InstanceService {
     @Transactional(readOnly = true)
     public InstanceResponse getInstanceBySubdomain(String subdomain) {
         Instance instance = instanceRepository.findBySubdomainAndDeletedFalse(subdomain)
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + subdomain));
+            .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + subdomain));
 
         return toResponse(instance);
     }
@@ -230,7 +231,7 @@ public class InstanceService {
         log.info("Updating instance: {}", id);
 
         Instance instance = instanceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + id));
+            .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + id));
 
         if (instance.isDeleted()) {
             throw new IllegalArgumentException("Cannot update deleted instance: " + id);
@@ -270,7 +271,7 @@ public class InstanceService {
         log.info("Deleting instance: {}", id);
 
         Instance instance = instanceRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + id));
+            .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + id));
 
         if (instance.isDeleted()) {
             throw new IllegalArgumentException("Instance already deleted: " + id);

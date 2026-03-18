@@ -13,3 +13,6 @@ tạo PR mới theo chuẩn superpowers:
 viết đủ test ECE cho kitehub, coverage đạt 100%, test pass
 
 commit cả các file đang changing
+
+tạo test ECE coverage 100% cho BE kitehub, test pass
+đặt mục tiêu đỏ, không có bug nào cho kitehub ở môi trường local
