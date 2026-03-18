@@ -17,6 +17,17 @@
 # Claude Code local settings (never commit)
 .claude/settings.local.json
 
+# Environment files (contain secrets - never commit)
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.docker.example
+
+# Encryption keys
+*.key
+*.pem
+
 # Docker build logs (local only, different per machine)
 .docker-build-logs/
 */.docker-build-logs/
