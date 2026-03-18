@@ -1,0 +1,14 @@
+{{- range $name, $svc := dict "gateway" .Values.gateway "subscription" .Values.subscription "branding" .Values.branding "admin" .Values.admin "email" .Values.email "frontend" .Values.frontend }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kitehub-{{ $name }}
+spec:
+  selector:
+    app: kitehub-{{ $name }}
+  ports:
+    - port: {{ $svc.port }}
+      targetPort: {{ $svc.port }}
+  type: ClusterIP
+{{- end }}

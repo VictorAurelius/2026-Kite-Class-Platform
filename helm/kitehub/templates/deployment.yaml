@@ -1,0 +1,68 @@
+{{- range $name, $svc := dict "gateway" .Values.gateway "subscription" .Values.subscription "branding" .Values.branding "admin" .Values.admin "email" .Values.email "frontend" .Values.frontend }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kitehub-{{ $name }}
+  labels:
+    app: kitehub-{{ $name }}
+spec:
+  replicas: {{ $svc.replicas }}
+  selector:
+    matchLabels:
+      app: kitehub-{{ $name }}
+  template:
+    metadata:
+      labels:
+        app: kitehub-{{ $name }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: "{{ $.Values.global.image.registry }}/{{ $svc.image.name }}:{{ $.Values.global.image.tag }}"
+          imagePullPolicy: {{ $.Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: {{ $svc.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: SERVER_PORT
+              value: "{{ $svc.port }}"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://{{ $.Values.global.database.host }}:{{ $.Values.global.database.port }}/{{ $.Values.global.database.name }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "{{ $.Values.global.database.username }}"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: db-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: jwt-secret
+            - name: ENCRYPTION_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: encryption-key
+          resources:
+            requests:
+              cpu: {{ $svc.resources.requests.cpu }}
+              memory: {{ $svc.resources.requests.memory }}
+            limits:
+              cpu: {{ $svc.resources.limits.cpu }}
+              memory: {{ $svc.resources.limits.memory }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ $svc.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ $svc.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+{{- end }}

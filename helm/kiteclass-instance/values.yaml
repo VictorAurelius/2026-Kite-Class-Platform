@@ -1,0 +1,39 @@
+# Per-instance values (set via --set or values file)
+
+instanceId: ""
+subdomain: ""
+organizationName: ""
+tier: "FREE"  # FREE, BASIC, PREMIUM, ENTERPRISE
+
+image:
+  registry: ""
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+database:
+  url: ""
+  username: ""
+  # password from secret
+
+# Tier-based resource quotas
+tiers:
+  FREE:
+    replicas: 1
+    cpu: { request: 250m, limit: 500m }
+    memory: { request: 512Mi, limit: 1Gi }
+    rateLimit: 100
+  BASIC:
+    replicas: 2
+    cpu: { request: 500m, limit: 1000m }
+    memory: { request: 1Gi, limit: 2Gi }
+    rateLimit: 500
+  PREMIUM:
+    replicas: 2
+    cpu: { request: 1000m, limit: 2000m }
+    memory: { request: 2Gi, limit: 4Gi }
+    rateLimit: 2000
+  ENTERPRISE:
+    replicas: 3
+    cpu: { request: 2000m, limit: 4000m }
+    memory: { request: 4Gi, limit: 8Gi }
+    rateLimit: 10000

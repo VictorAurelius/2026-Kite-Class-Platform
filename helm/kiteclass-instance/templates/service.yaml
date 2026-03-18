@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kiteclass-{{ .Values.instanceId | trunc 8 }}
+  labels:
+    app: kiteclass-core
+    instance: {{ .Values.instanceId }}
+spec:
+  selector:
+    app: kiteclass-core
+    instance: {{ .Values.instanceId }}
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
