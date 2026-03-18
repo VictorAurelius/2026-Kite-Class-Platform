@@ -85,6 +85,22 @@ public class AdminController {
      * @param id instance ID
      * @return updated instance summary
      */
+    /**
+     * Get instance detail by ID.
+     *
+     * @param id instance ID
+     * @return instance summary
+     */
+    @GetMapping("/instances/{id}")
+    public ResponseEntity<InstanceSummary> getInstanceById(@PathVariable UUID id) {
+        log.info("Admin requested instance detail: {}", id);
+
+        Instance instance = instanceRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + id));
+
+        return ResponseEntity.ok(convertToSummary(instance));
+    }
+
     @PatchMapping("/instances/{id}/suspend")
     public ResponseEntity<InstanceSummary> suspendInstance(@PathVariable UUID id) {
         log.info("Admin suspending instance: {}", id);
@@ -128,9 +144,16 @@ public class AdminController {
     @GetMapping("/revenue")
     public ResponseEntity<RevenueReport> getRevenue(
             @RequestParam(defaultValue = "MONTHLY") String period,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
+        // Default to current month if not provided
+        if (startDate == null) {
+            startDate = LocalDate.now().withDayOfMonth(1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
         log.info("Admin requested revenue report: {} from {} to {}", period, startDate, endDate);
 
         RevenueReport report = analyticsService.getRevenueReport(period, startDate, endDate);

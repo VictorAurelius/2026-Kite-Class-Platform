@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.jsonwebtoken.Claims;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -46,7 +47,6 @@ public class AuthService {
      */
     @PostConstruct
     public void initDemoUser() {
-        // Create demo user if not exists
         String demoEmail = "demo@kitehub.com";
         if (!USER_STORE.containsKey(demoEmail)) {
             UUID demoUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -54,7 +54,24 @@ public class AuthService {
             USER_STORE.put(demoEmail, new UserCredentials(
                 demoUserId, demoEmail, "Demo Organization", passwordHash, "OWNER"
             ));
-            log.info("Demo user created: {} / Demo@123", demoEmail);
+
+            // Create demo instance if not exists
+            if (!instanceRepository.existsByContactEmailAndDeletedFalse(demoEmail)) {
+                try {
+                    CreateInstanceRequest req = new CreateInstanceRequest();
+                    req.setSubdomain("demo");
+                    req.setOrganizationName("Demo Organization");
+                    req.setOwnerId(demoUserId);
+                    req.setContactEmail(demoEmail);
+                    req.setTier(PricingTier.FREE);
+                    instanceService.createTrialInstance(req);
+                    log.info("Demo instance created for: {}", demoEmail);
+                } catch (Exception e) {
+                    log.warn("Could not create demo instance: {}", e.getMessage());
+                }
+            }
+
+            log.info("Demo user ready: {} / Demo@123", demoEmail);
         }
     }
 
@@ -149,6 +166,46 @@ public class AuthService {
             .refreshToken(refreshToken)
             .instances(instances)
             .build();
+    }
+
+    /**
+     * Refresh access token using refresh token.
+     *
+     * @param refreshToken the refresh token
+     * @return new access and refresh tokens
+     */
+    public RefreshResponse refresh(String refreshToken) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(refreshToken)
+                .getPayload();
+
+            String type = claims.get("type", String.class);
+            if (!"refresh".equals(type)) {
+                throw new IllegalArgumentException("Invalid token type");
+            }
+
+            UUID userId = UUID.fromString(claims.getSubject());
+
+            // Find user by ID
+            UserCredentials user = USER_STORE.values().stream()
+                .filter(u -> u.id().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            String newAccessToken = generateAccessToken(user.id(), user.email(), user.role());
+            String newRefreshToken = generateRefreshToken(user.id());
+
+            return RefreshResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
     }
 
     /**
