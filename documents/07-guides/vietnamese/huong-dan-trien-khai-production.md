@@ -1,9 +1,16 @@
 # Hướng Dẫn Triển Khai Production - KiteClass Platform
 
-**Phiên bản:** 1.0
+**Phiên bản:** 1.1
 **Ngày tạo:** 2026-03-10
+**Cập nhật:** 2026-03-19
 **Mục đích:** Hướng dẫn chi tiết cách triển khai KiteClass Platform lên production
 **Đối tượng:** DevOps Engineers, SRE, System Administrators
+
+> **Lưu ý (2026-03-19):** KiteHub platform đã chuyển sang **Oracle Cloud Always Free** ($0/tháng) làm primary.
+> AWS (EKS/RDS) giữ làm backup. KiteClass instances vẫn dùng AWS.
+> Xem hướng dẫn Oracle: [kitehub-oracle-cloud-deployment.md](../../03-planning/infrastructure/kitehub-oracle-cloud-deployment.md)
+> Xem hướng dẫn tổng hợp: [PRODUCTION-DEPLOY.md](../PRODUCTION-DEPLOY.md)
+> Tài liệu bên dưới giữ nguyên cho AWS backup option.
 
 ---
 
