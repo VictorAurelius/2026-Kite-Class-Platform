@@ -122,3 +122,6 @@ chưa đẹp lắm nhỉ, chữ nghiêng nên để dưới chữ kitehub sẽ �
 slogan có style chưa đẹp lắm
 
 nên thêm nền để nổi bật hơn không
+
+1. chưa có logo, slogan cho dashboard
+2. còn rất nhiều khoảng trống, có thể bổ sung quảng cáo cho kitehub, kiteclass, có đường dẫn rõ ràng cho quảng cáo
