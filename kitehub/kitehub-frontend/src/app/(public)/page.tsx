@@ -219,40 +219,52 @@ const pricingTiers = [
 
 const faqs = [
   {
-    q: 'Trial 14 ngày có giới hạn gì không?',
-    a: 'Không. Bạn được dùng tất cả tính năng của gói PREMIUM trong 14 ngày, bao gồm AI Branding, đa chi nhánh, và báo cáo nâng cao. Không cần thẻ tín dụng, không tự động gia hạn.',
+    q: 'Dùng thử 14 ngày thì cần chuẩn bị gì?',
+    a: 'Không cần chuẩn bị gì cả! Chỉ cần email và 30 giây để tạo tài khoản. Bạn sẽ được dùng toàn bộ tính năng như gói cao cấp nhất — quản lý học viên, lịch học, điểm danh, thanh toán, và cả AI tạo website. Sau 14 ngày, bạn tự quyết định có tiếp tục hay không, không bị tính phí tự động.',
     icon: Sparkles,
     category: 'Bắt đầu',
   },
   {
-    q: 'Thanh toán bằng hình thức nào?',
-    a: 'Hỗ trợ chuyển khoản ngân hàng qua QR code VietQR (tất cả ngân hàng Việt Nam), ví điện tử Momo và ZaloPay. Doanh nghiệp có thể yêu cầu hóa đơn VAT. Thanh toán tự động nhắc nhở khi gần hết hạn.',
+    q: 'Tôi đang dùng Excel/sổ tay, chuyển sang KiteClass có mất dữ liệu không?',
+    a: 'Không mất gì cả. Đội ngũ KiteClass sẽ hỗ trợ bạn nhập dữ liệu học viên, lớp học từ file Excel vào hệ thống. Thường chỉ mất 1-2 ngày là toàn bộ thông tin được chuyển sang. Bạn cũng có thể nhập tay dần dần — hệ thống hoạt động ngay cả khi chưa có đầy đủ dữ liệu.',
+    icon: Users,
+    category: 'Bắt đầu',
+  },
+  {
+    q: 'Thanh toán bằng cách nào? Có xuất hóa đơn không?',
+    a: 'Rất đơn giản — bạn quét mã QR trên ứng dụng ngân hàng (Vietcombank, Techcombank, MB Bank,... tất cả đều được), hoặc thanh toán qua Momo, ZaloPay. Hệ thống tự nhận diện khi bạn chuyển khoản thành công. Nếu trung tâm cần hóa đơn VAT (hóa đơn đỏ), chúng tôi xuất và gửi qua email trong vòng 24 giờ.',
     icon: CreditCard,
     category: 'Thanh toán',
   },
   {
-    q: 'Có thể nâng cấp hoặc hạ gói giữa chừng không?',
-    a: 'Hoàn toàn được. Bạn có thể thay đổi gói bất kỳ lúc nào trong phần Cài đặt. Chi phí được tính theo ngày sử dụng thực tế — nâng cấp chỉ trả phần chênh lệch, hạ gói được hoàn tiền dư.',
+    q: 'Nếu muốn nâng cấp hoặc hạ gói thì sao?',
+    a: 'Bạn vào phần "Thanh toán" trong menu, chọn gói mới và xác nhận. Nếu nâng cấp, bạn chỉ trả thêm phần chênh lệch cho những ngày còn lại. Nếu hạ gói, số tiền dư sẽ được chuyển sang tháng sau. Không có phí phạt, không có ràng buộc hợp đồng. Bạn cũng có thể hủy bất kỳ lúc nào.',
     icon: ArrowRight,
     category: 'Thanh toán',
   },
   {
-    q: 'Dữ liệu của tôi có an toàn không?',
-    a: 'Dữ liệu được mã hóa AES-256 khi lưu trữ và TLS 1.3 khi truyền tải. Hệ thống chạy trên AWS Singapore với sao lưu tự động hàng ngày. Mỗi trung tâm có database riêng biệt, đảm bảo không ai truy cập được dữ liệu của bạn.',
+    q: 'Thông tin học viên có bị lộ không? Tôi rất lo về bảo mật.',
+    a: 'Chúng tôi hiểu sự lo lắng của bạn. Mỗi trung tâm có một "két sắt" dữ liệu riêng — không ai (kể cả trung tâm khác dùng KiteClass) có thể xem được thông tin của bạn. Dữ liệu được "khóa" bằng công nghệ bảo mật ngân hàng (mã hóa AES-256) và lưu tại trung tâm dữ liệu Singapore với sao lưu tự động mỗi ngày. Nói đơn giản: an toàn như gửi tiền ngân hàng.',
     icon: Shield,
     category: 'Bảo mật',
   },
   {
-    q: 'Tôi không giỏi công nghệ, có dùng được không?',
-    a: 'KiteClass được thiết kế cho người không chuyên IT. Giao diện hoàn toàn tiếng Việt, thao tác đơn giản như dùng Facebook. Đội ngũ hỗ trợ sẵn sàng hướng dẫn bạn qua chat, điện thoại hoặc video call.',
-    icon: Users,
+    q: 'Tôi không rành công nghệ lắm, có dùng được không?',
+    a: 'Hoàn toàn được! KiteClass được thiết kế đặc biệt cho người không chuyên IT. Giao diện giống như dùng Facebook hay Zalo — bấm nút, chọn, nhập thông tin, vậy thôi. Toàn bộ bằng tiếng Việt, không có thuật ngữ khó hiểu. Khi mới bắt đầu, hệ thống sẽ hướng dẫn bạn từng bước. Và nếu bị kẹt ở đâu, bạn nhắn tin hoặc gọi cho đội ngũ hỗ trợ — chúng tôi sẵn sàng hướng dẫn qua điện thoại hoặc video call.',
+    icon: GraduationCap,
     category: 'Hỗ trợ',
   },
   {
-    q: 'KiteClass có hỗ trợ trên điện thoại không?',
-    a: 'Có. Giao diện responsive hoạt động tốt trên mọi thiết bị: máy tính, tablet, điện thoại. Bạn có thể điểm danh, xem báo cáo, nhận thông báo ngay trên điện thoại mà không cần cài app.',
+    q: 'Tôi có thể dùng trên điện thoại được không?',
+    a: 'Được luôn! Bạn mở trình duyệt trên điện thoại (Chrome, Safari) và truy cập trang quản lý — không cần cài thêm ứng dụng nào. Giao diện tự động điều chỉnh cho màn hình nhỏ nên rất dễ dùng. Nhiều chủ trung tâm dùng điện thoại để điểm danh ngay tại lớp, kiểm tra báo cáo khi đang di chuyển, hoặc nhận thông báo khi có học viên mới đăng ký.',
     icon: Phone,
     category: 'Sản phẩm',
+  },
+  {
+    q: 'Chi phí hàng tháng có cao không?',
+    a: 'Gói cơ bản chỉ từ 199.000đ/tháng (bằng 2 ly cà phê mỗi ngày). So với thuê nhân viên quản lý thủ công hoặc mất học viên vì thiếu chuyên nghiệp, đây là khoản đầu tư rất hợp lý. Nhiều trung tâm cho biết tiết kiệm được 3-5 triệu/tháng chi phí vận hành sau khi dùng KiteClass. Và bạn được dùng thử miễn phí 14 ngày trước khi quyết định.',
+    icon: BarChart3,
+    category: 'Thanh toán',
   },
 ];
 
@@ -560,11 +572,7 @@ export default function HomePage() {
             </motion.div>
           ) : (
             /* ---- One expanded: panel left + mini cards right ---- */
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex gap-6 flex-col lg:flex-row"
-            >
+            <div className="flex gap-6 flex-col lg:flex-row items-start">
               {/* Expanded panel (left, ~2/3) */}
               {(() => {
                 const f = features[expandedFeature!];
@@ -573,8 +581,8 @@ export default function HomePage() {
                 return (
                   <motion.div
                     key={f.title}
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={false}
+                    animate={{ opacity: 1 }}
                     className={`flex-1 lg:flex-[2] rounded-2xl border shadow-soft-xl ring-2 ring-primary/20 overflow-hidden ${f.bg}`}
                   >
                     <div className="flex items-center justify-between p-5 border-b">
@@ -675,7 +683,7 @@ export default function HomePage() {
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </section>
@@ -861,11 +869,7 @@ export default function HomePage() {
             </div>
           ) : (
             /* ---- One expanded: answer left + other questions right ---- */
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex gap-6 flex-col lg:flex-row"
-            >
+            <div className="flex gap-6 flex-col lg:flex-row items-start">
               {/* Expanded answer (left, ~2/3) */}
               {(() => {
                 const faq = faqs[openFaq!];
@@ -873,30 +877,36 @@ export default function HomePage() {
                 const FaqIcon = faq.icon;
                 return (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    key={openFaq}
+                    initial={false}
+                    animate={{ opacity: 1 }}
                     className="flex-1 lg:flex-[2] rounded-2xl border bg-card shadow-soft-xl ring-2 ring-primary/20 overflow-hidden"
                   >
-                    <div className="flex items-center justify-between p-5 border-b bg-primary/5">
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-xl bg-primary/10 p-2 text-primary">
-                          <FaqIcon className="h-5 w-5" />
+                    <div className="flex items-center justify-between p-6 border-b bg-primary/5">
+                      <div className="flex items-center gap-4">
+                        <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                          <FaqIcon className="h-6 w-6" />
                         </div>
                         <div>
-                          <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
-                          <h3 className="text-base font-semibold mt-0.5">{faq.q}</h3>
+                          <span className="text-xs font-medium text-primary uppercase tracking-wider">{faq.category}</span>
+                          <h3 className="text-lg font-bold mt-0.5">{faq.q}</h3>
                         </div>
                       </div>
                       <button onClick={() => setOpenFaq(null)} className="rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors text-muted-foreground border">
                         Thu gọn
                       </button>
                     </div>
-                    <div className="p-6">
-                      <p className="text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
-                      <div className="mt-6 flex items-center gap-4">
-                        <span className="text-xs text-muted-foreground">Câu trả lời có hữu ích không?</span>
-                        <button className="rounded-lg border px-3 py-1 text-xs hover:bg-primary/10 hover:text-primary transition-colors">👍 Có</button>
-                        <button className="rounded-lg border px-3 py-1 text-xs hover:bg-muted transition-colors">Chưa rõ</button>
+                    <div className="p-8">
+                      <p className="text-base leading-relaxed text-foreground/80">{faq.a}</p>
+                      <div className="mt-8 pt-6 border-t flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-muted-foreground">Câu trả lời có hữu ích không?</span>
+                          <button className="rounded-lg border px-4 py-1.5 text-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">👍 Có</button>
+                          <button className="rounded-lg border px-4 py-1.5 text-sm hover:bg-muted transition-colors">Chưa rõ</button>
+                        </div>
+                        <Link href="/register" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+                          Dùng thử ngay <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
                       </div>
                     </div>
                   </motion.div>
@@ -904,28 +914,28 @@ export default function HomePage() {
               })()}
 
               {/* Other questions (right, ~1/3) */}
-              <div className="lg:flex-1 flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-visible">
+              <div className="lg:flex-1 flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-visible lg:sticky lg:top-24">
                 {faqs.map((faq, i) => {
                   if (i === openFaq) return null;
                   const FaqIcon = faq.icon;
                   return (
-                    <motion.button
+                    <button
                       key={i}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
                       onClick={() => setOpenFaq(i)}
-                      className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-soft hover:shadow-soft-lg transition-all text-left min-w-[220px] lg:min-w-0"
+                      className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left min-w-[240px] lg:min-w-0"
                     >
-                      <div className="shrink-0 rounded-lg bg-muted p-1.5 text-muted-foreground">
-                        <FaqIcon className="h-3.5 w-3.5" />
+                      <div className="shrink-0 rounded-lg bg-muted p-2 text-muted-foreground">
+                        <FaqIcon className="h-4 w-4" />
                       </div>
-                      <p className="text-xs font-medium truncate">{faq.q}</p>
-                    </motion.button>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
+                        <p className="text-sm font-medium mt-0.5 line-clamp-2">{faq.q}</p>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </section>
