@@ -159,6 +159,6 @@ PR-SEC-1 (Email verify) ──→ PR-SEC-2 (Rate limit)
 | PR-SEC-2 Rate limit | ✅ DONE | #150 |
 | PR-ONBOARD-1 Welcome wizard | ⬜ Chờ duyệt | - |
 | PR-ONBOARD-2 Dashboard | ⬜ Chờ duyệt | - |
-| PR-LOCAL-1 Tenant URL | ⬜ Chờ duyệt | - |
+| PR-LOCAL-1 Tenant URL | ✅ DONE | #151 |
 | PR-SEC-3 Captcha | ⬜ Chờ duyệt | - |
 | PR-SEC-4 Phone OTP | ⬜ Chờ duyệt | - |
