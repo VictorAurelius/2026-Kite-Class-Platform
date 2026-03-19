@@ -15,5 +15,16 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
+// Mock IntersectionObserver (required by framer-motion)
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  takeRecords() {
+    return [];
+  }
+  unobserve() {}
+};
+
 // Mock scrollIntoView
 Element.prototype.scrollIntoView = () => {};
