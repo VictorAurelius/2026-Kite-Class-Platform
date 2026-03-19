@@ -38,6 +38,13 @@ const features = [
     color: 'from-blue-500 to-blue-600',
     bg: 'bg-blue-50 dark:bg-blue-950/30',
     img: '👨‍🎓',
+    longDesc: 'Quản lý toàn bộ thông tin học viên từ hồ sơ cá nhân, lịch sử học tập, điểm số đến ghi chú riêng. Hệ thống tự động cập nhật bảng điểm và gửi báo cáo cho phụ huynh.',
+    benefits: ['Hồ sơ học viên đầy đủ (ảnh, liên hệ, ghi chú)', 'Theo dõi tiến độ qua từng khóa học', 'Bảng điểm tự động tính GPA', 'Tìm kiếm & lọc nhanh theo tên, lớp, trạng thái'],
+    mockupRows: [
+      { name: 'Nguyễn Văn An', class: 'IELTS 7.0', status: 'active' },
+      { name: 'Trần Thị Bình', class: 'TOEIC 800', status: 'active' },
+      { name: 'Lê Hoàng Cường', class: 'Giao tiếp B2', status: 'trial' },
+    ],
   },
   {
     icon: Clock,
@@ -46,6 +53,13 @@ const features = [
     color: 'from-green-500 to-green-600',
     bg: 'bg-green-50 dark:bg-green-950/30',
     img: '📅',
+    longDesc: 'Tạo lịch học theo tuần/tháng, điểm danh bằng 1 chạm. Hệ thống tự động gửi thông báo vắng mặt cho phụ huynh qua email hoặc Zalo.',
+    benefits: ['Lịch kéo-thả trực quan', 'Điểm danh 1 chạm cho cả lớp', 'Thông báo vắng tự động cho phụ huynh', 'Thống kê chuyên cần theo học viên/lớp'],
+    mockupRows: [
+      { name: 'Thứ 2 - IELTS 7.0', class: '18:00 - 20:00', status: 'active' },
+      { name: 'Thứ 4 - TOEIC 800', class: '19:00 - 21:00', status: 'active' },
+      { name: 'Thứ 7 - Kids English', class: '09:00 - 11:00', status: 'trial' },
+    ],
   },
   {
     icon: CreditCard,
@@ -54,6 +68,13 @@ const features = [
     color: 'from-orange-500 to-orange-600',
     bg: 'bg-orange-50 dark:bg-orange-950/30',
     img: '💳',
+    longDesc: 'Tạo hóa đơn tự động theo khóa học, theo dõi công nợ, nhắc thanh toán. Hỗ trợ QR code VietQR, Momo, ZaloPay. Xuất hóa đơn VAT cho doanh nghiệp.',
+    benefits: ['Tạo hóa đơn tự động theo khóa học', 'Thanh toán QR code (VietQR, Momo)', 'Nhắc thanh toán tự động qua email', 'Báo cáo doanh thu theo tháng/quý/năm'],
+    mockupRows: [
+      { name: 'Nguyễn Văn An - IELTS', class: '2.500.000đ', status: 'active' },
+      { name: 'Trần Thị Bình - TOEIC', class: '1.800.000đ', status: 'pending' },
+      { name: 'Lê Hoàng Cường - B2', class: '2.000.000đ', status: 'active' },
+    ],
   },
   {
     icon: Palette,
@@ -62,6 +83,13 @@ const features = [
     color: 'from-purple-500 to-purple-600',
     bg: 'bg-purple-50 dark:bg-purple-950/30',
     img: '🎨',
+    longDesc: 'Upload logo → AI phân tích màu sắc, phong cách → tự động tạo website landing page, banner, profile image. Chỉ mất 5 phút để có website chuyên nghiệp.',
+    benefits: ['AI phân tích logo & tạo bộ nhận diện', 'Website landing page tự động', 'Banner & hình ảnh marketing', 'Nhiều theme để lựa chọn'],
+    mockupRows: [
+      { name: 'Logo Analysis', class: 'Blue, Modern', status: 'active' },
+      { name: 'Hero Banner', class: '1792x1024', status: 'active' },
+      { name: 'Marketing Copy', class: 'Vietnamese', status: 'active' },
+    ],
   },
   {
     icon: BarChart3,
@@ -70,6 +98,13 @@ const features = [
     color: 'from-pink-500 to-pink-600',
     bg: 'bg-pink-50 dark:bg-pink-950/30',
     img: '📊',
+    longDesc: 'Dashboard tổng quan với biểu đồ doanh thu, xu hướng tuyển sinh, tỷ lệ chuyên cần. Xuất báo cáo PDF/Excel cho quản lý và nhà đầu tư.',
+    benefits: ['Dashboard tổng quan real-time', 'Biểu đồ doanh thu theo tháng/quý', 'Phân tích xu hướng tuyển sinh', 'Xuất báo cáo PDF/Excel'],
+    mockupRows: [
+      { name: 'Doanh thu T3/2026', class: '₫45.600.000', status: 'active' },
+      { name: 'Học viên mới', class: '+12 (↑15%)', status: 'active' },
+      { name: 'Tỷ lệ chuyên cần', class: '94.5%', status: 'active' },
+    ],
   },
   {
     icon: Building2,
@@ -78,6 +113,13 @@ const features = [
     color: 'from-teal-500 to-teal-600',
     bg: 'bg-teal-50 dark:bg-teal-950/30',
     img: '🏢',
+    longDesc: 'Quản lý nhiều cơ sở/chi nhánh từ 1 tài khoản duy nhất. Phân quyền nhân viên theo vai trò (quản lý, giáo viên, kế toán). Báo cáo tổng hợp toàn hệ thống.',
+    benefits: ['Quản lý nhiều chi nhánh từ 1 tài khoản', 'Phân quyền theo vai trò (quản lý, GV, kế toán)', 'Báo cáo tổng hợp toàn hệ thống', 'Chuyển học viên giữa các chi nhánh'],
+    mockupRows: [
+      { name: 'Chi nhánh Quận 1', class: '120 học viên', status: 'active' },
+      { name: 'Chi nhánh Quận 7', class: '85 học viên', status: 'active' },
+      { name: 'Chi nhánh Thủ Đức', class: '45 học viên', status: 'trial' },
+    ],
   },
 ];
 
@@ -176,10 +218,42 @@ const pricingTiers = [
 ];
 
 const faqs = [
-  { q: 'Trial 14 ngày có giới hạn gì không?', a: 'Không. Bạn được dùng tất cả tính năng của gói PREMIUM trong 14 ngày. Không cần thẻ tín dụng.' },
-  { q: 'Thanh toán bằng hình thức nào?', a: 'Chuyển khoản ngân hàng (QR code VietQR), Momo, ZaloPay. Hóa đơn VAT cho doanh nghiệp.' },
-  { q: 'Có thể nâng cấp hoặc hạ gói giữa chừng không?', a: 'Có. Bạn có thể thay đổi gói bất kỳ lúc nào. Chi phí được tính theo ngày sử dụng.' },
-  { q: 'Dữ liệu có an toàn không?', a: 'Dữ liệu được mã hóa AES-256, lưu trên AWS Singapore. Sao lưu tự động hàng ngày. Tuân thủ quy định bảo vệ dữ liệu.' },
+  {
+    q: 'Trial 14 ngày có giới hạn gì không?',
+    a: 'Không. Bạn được dùng tất cả tính năng của gói PREMIUM trong 14 ngày, bao gồm AI Branding, đa chi nhánh, và báo cáo nâng cao. Không cần thẻ tín dụng, không tự động gia hạn.',
+    icon: Sparkles,
+    category: 'Bắt đầu',
+  },
+  {
+    q: 'Thanh toán bằng hình thức nào?',
+    a: 'Hỗ trợ chuyển khoản ngân hàng qua QR code VietQR (tất cả ngân hàng Việt Nam), ví điện tử Momo và ZaloPay. Doanh nghiệp có thể yêu cầu hóa đơn VAT. Thanh toán tự động nhắc nhở khi gần hết hạn.',
+    icon: CreditCard,
+    category: 'Thanh toán',
+  },
+  {
+    q: 'Có thể nâng cấp hoặc hạ gói giữa chừng không?',
+    a: 'Hoàn toàn được. Bạn có thể thay đổi gói bất kỳ lúc nào trong phần Cài đặt. Chi phí được tính theo ngày sử dụng thực tế — nâng cấp chỉ trả phần chênh lệch, hạ gói được hoàn tiền dư.',
+    icon: ArrowRight,
+    category: 'Thanh toán',
+  },
+  {
+    q: 'Dữ liệu của tôi có an toàn không?',
+    a: 'Dữ liệu được mã hóa AES-256 khi lưu trữ và TLS 1.3 khi truyền tải. Hệ thống chạy trên AWS Singapore với sao lưu tự động hàng ngày. Mỗi trung tâm có database riêng biệt, đảm bảo không ai truy cập được dữ liệu của bạn.',
+    icon: Shield,
+    category: 'Bảo mật',
+  },
+  {
+    q: 'Tôi không giỏi công nghệ, có dùng được không?',
+    a: 'KiteClass được thiết kế cho người không chuyên IT. Giao diện hoàn toàn tiếng Việt, thao tác đơn giản như dùng Facebook. Đội ngũ hỗ trợ sẵn sàng hướng dẫn bạn qua chat, điện thoại hoặc video call.',
+    icon: Users,
+    category: 'Hỗ trợ',
+  },
+  {
+    q: 'KiteClass có hỗ trợ trên điện thoại không?',
+    a: 'Có. Giao diện responsive hoạt động tốt trên mọi thiết bị: máy tính, tablet, điện thoại. Bạn có thể điểm danh, xem báo cáo, nhận thông báo ngay trên điện thoại mà không cần cài app.',
+    icon: Phone,
+    category: 'Sản phẩm',
+  },
 ];
 
 // ============================================================
@@ -332,8 +406,156 @@ const scaleIn = {
 // PAGE
 // ============================================================
 
+// ============================================================
+// FEATURE DETAIL PANEL
+// ============================================================
+
+function FeatureDetailPanel({ feature, onClose }: { feature: typeof features[0]; onClose: () => void }) {
+  const Icon = feature.icon;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.3 }}
+        className="bg-card border rounded-2xl shadow-soft-xl max-w-4xl w-full max-h-[85vh] overflow-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className={`p-6 ${feature.bg} border-b`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`inline-flex rounded-xl bg-gradient-to-br ${feature.color} p-3 text-white shadow-sm`}>
+                <Icon className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground">{feature.desc}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Split panel content */}
+        <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
+          {/* Left: Description + Benefits */}
+          <div className="p-6 space-y-6">
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Mô tả</h4>
+              <p className="text-sm leading-relaxed">{feature.longDesc}</p>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tính năng nổi bật</h4>
+              <ul className="space-y-3">
+                {feature.benefits.map((b) => (
+                  <motion.li
+                    key={b}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-start gap-3 text-sm"
+                  >
+                    <CheckCircle className={`h-5 w-5 shrink-0 mt-0.5 bg-gradient-to-br ${feature.color} text-white rounded-full p-0.5`} />
+                    {b}
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+            <Link
+              href="/register"
+              className={`inline-flex items-center gap-2 rounded-xl bg-gradient-to-r ${feature.color} px-5 py-2.5 text-sm font-semibold text-white hover:shadow-soft-lg transition-all`}
+            >
+              Dùng thử miễn phí <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Right: Mockup illustration */}
+          <div className="p-6 bg-muted/20">
+            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Giao diện minh họa</h4>
+
+            {/* Mini dashboard mockup */}
+            <div className="rounded-xl border bg-card shadow-soft overflow-hidden">
+              {/* Title bar */}
+              <div className="flex items-center gap-2 border-b bg-muted/50 px-3 py-2">
+                <div className="flex gap-1">
+                  <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                  <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                </div>
+                <div className="ml-2 h-4 w-32 rounded bg-muted text-[10px] flex items-center px-2 text-muted-foreground">
+                  {feature.title}
+                </div>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2 p-3">
+                {['Tổng', 'Hoạt động', 'Mới'].map((label, i) => (
+                  <div key={label} className="rounded-lg bg-muted/40 p-2 text-center">
+                    <div className={`text-lg font-bold bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}>
+                      {[feature.mockupRows.length * 42, feature.mockupRows.length * 38, feature.mockupRows.length * 3][i]}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Data rows */}
+              <div className="px-3 pb-3 space-y-2">
+                {feature.mockupRows.map((row, i) => (
+                  <motion.div
+                    key={row.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.15 }}
+                    className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${feature.color} flex items-center justify-center text-white text-xs font-bold`}>
+                        {row.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium">{row.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{row.class}</div>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                      row.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      row.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    }`}>
+                      {row.status === 'active' ? 'Hoạt động' : row.status === 'pending' ? 'Chờ TT' : 'Dùng thử'}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <p className="mt-3 text-[11px] text-muted-foreground text-center">
+              * Hình ảnh minh họa. Giao diện thực tế có thể khác.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ============================================================
+// PAGE
+// ============================================================
+
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<typeof features[0] | null>(null);
   return (
     <div className="overflow-hidden">
       {/* ========== HERO ========== */}
@@ -482,9 +704,12 @@ export default function HomePage() {
                 <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
 
-                <div className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => setSelectedFeature(f)}
+                  className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity hover:underline"
+                >
                   Tìm hiểu thêm <ArrowRight className="h-3 w-3" />
-                </div>
+                </button>
               </motion.div>
             ))}
           </motion.div>
@@ -635,43 +860,61 @@ export default function HomePage() {
 
       {/* ========== FAQ ========== */}
       <section className="py-20 sm:py-28">
-        <div className="container max-w-3xl">
-          <SectionTitle title="Câu hỏi thường gặp" />
+        <div className="container max-w-4xl">
+          <SectionTitle
+            title="Câu hỏi thường gặp"
+            subtitle="Không tìm thấy câu trả lời? Liên hệ đội ngũ hỗ trợ qua chat hoặc email."
+          />
 
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <motion.div
-                key={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeInUp}
-                className="rounded-xl border bg-card overflow-hidden"
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="flex w-full items-center justify-between p-5 text-left text-sm font-medium hover:bg-muted/50 transition-colors"
-                >
-                  {faq.q}
-                  <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </motion.div>
-                </button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {faqs.map((faq, i) => {
+              const FaqIcon = faq.icon;
+              const isOpen = openFaq === i;
+              return (
                 <motion.div
-                  initial={false}
-                  animate={{ height: openFaq === i ? 'auto' : 0, opacity: openFaq === i ? 1 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
+                  key={i}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={fadeInUp}
+                  className={`rounded-2xl border bg-card overflow-hidden transition-all ${isOpen ? 'shadow-soft-lg ring-1 ring-primary/20 sm:col-span-2' : 'shadow-soft hover:shadow-soft-lg'}`}
                 >
-                  <div className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">
-                    {faq.a}
-                  </div>
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    className="flex w-full items-center gap-3 p-5 text-left hover:bg-muted/30 transition-colors"
+                  >
+                    <div className={`shrink-0 rounded-xl p-2 transition-colors ${isOpen ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                      <FaqIcon className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
+                      <p className="text-sm font-medium mt-0.5">{faq.q}</p>
+                    </div>
+                    <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </motion.div>
+                  </button>
+                  <motion.div
+                    initial={false}
+                    animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-5 pl-14 text-sm text-muted-foreground leading-relaxed">
+                      {faq.a}
+                    </div>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+
+      {/* ========== FEATURE DETAIL MODAL ========== */}
+      {selectedFeature && (
+        <FeatureDetailPanel feature={selectedFeature} onClose={() => setSelectedFeature(null)} />
+      )}
 
       {/* ========== CTA BOTTOM ========== */}
       <section className="relative py-20 sm:py-28 overflow-hidden">

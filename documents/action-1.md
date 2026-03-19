@@ -85,3 +85,7 @@ hãy tạo 1 skill continue, skill này yêu cầu thực hiện action ưu tiê
 chưa ăn skill, có vẽ chưa đúng cấu trúc? hay cần restart?
 
 vẫn chưa được, bổ sung vào PR, thêm hình ảnh và hiệu ứng để landing pages phong phú hơn
+
+tiếp tục bổ sung vào PR:
+1. Tất cả tính năng bạn cần => có nút tìm hiểu thêm => bấm vào thì ra panel chia đôi hợp lý mô tả về tính năng + hình ảnh
+2. Câu hỏi thường gặp => hơi đơn giản => cải thiện như trên hoặc hợp lý hơn
