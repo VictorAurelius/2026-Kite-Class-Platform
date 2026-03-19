@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   Users,
-  GraduationCap,
-  BookOpen,
   CheckCircle,
   CreditCard,
   Palette,
@@ -19,7 +17,6 @@ import {
   ChevronDown,
   Phone,
   Mail,
-  MapPin,
 } from 'lucide-react';
 import { useState } from 'react';
 import { GradientButton } from '@/components/ui/gradient-button';
@@ -328,7 +325,7 @@ export default function HomePage() {
                     <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">"{t.text}"</p>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">&ldquo;{t.text}&rdquo;</p>
                 <div className="mt-4 border-t pt-4">
                   <p className="text-sm font-semibold">{t.name}</p>
                   <p className="text-xs text-muted-foreground">{t.role}</p>

@@ -79,3 +79,7 @@ ngoài ra còn 1 vấn đề nữa, lượng output (ảnh) được AI branding
 vậy đối với mỗi loại khách hàng: giáo viên độc lập, trung tâm, trường học, ... sẽ cần ít nhất 1 template + mỗi template sẽ có nhiều theme để tránh trùng lặp giữa các instance? liệu có hợp lý?
 
 hãy quét toàn bộ documents để tìm tài liệu liên quan, bắt đầu PR để update toàn bộ tài liệu theo design mới
+
+hãy tạo 1 skill continue, skill này yêu cầu thực hiện action ưu tiên nhất, theo chuẩn của action đó
+
+chưa ăn skill, có vẽ chưa đúng cấu trúc? hay cần restart?
