@@ -79,3 +79,29 @@ ngoài ra còn 1 vấn đề nữa, lượng output (ảnh) được AI branding
 vậy đối với mỗi loại khách hàng: giáo viên độc lập, trung tâm, trường học, ... sẽ cần ít nhất 1 template + mỗi template sẽ có nhiều theme để tránh trùng lặp giữa các instance? liệu có hợp lý?
 
 hãy quét toàn bộ documents để tìm tài liệu liên quan, bắt đầu PR để update toàn bộ tài liệu theo design mới
+
+hãy tạo 1 skill continue, skill này yêu cầu thực hiện action ưu tiên nhất, theo chuẩn của action đó
+
+chưa ăn skill, có vẽ chưa đúng cấu trúc? hay cần restart?
+
+vẫn chưa được, bổ sung vào PR, thêm hình ảnh và hiệu ứng để landing pages phong phú hơn
+
+tiếp tục bổ sung vào PR:
+1. Tất cả tính năng bạn cần => có nút tìm hiểu thêm => bấm vào thì ra panel chia đôi hợp lý mô tả về tính năng + hình ảnh
+2. Câu hỏi thường gặp => hơi đơn giản => cải thiện như trên hoặc hợp lý hơn
+
+đối với 2 section trên, tôi muốn nó mở rộng ở trên chính page thay vì mở dialog, mở rộng ra visual tốt hơn
+
+đối với cả 2 section, tôi muốn khi 1 tab mở rộng thì các tab nhỏ còn lại đầy hết về bên phải trên 1 hàng dọc được không, đẹp mắt hơn so với hiện tại
+
+Features - khi expand: lần đầu bấm sẽ tab expand sẽ bị dịch xuống so với cột feature vài px, sau khi đổi sang feature khác thì mới về ngang lại
+
+FAQ - khi expand:
+1. vẫn hơi bé
+2. nội dung giải thích còn tòm tắt, cho người hiểu về tech, chưa phù hợp với tệp khách hàng của kiteclass, cần bổ sung content kỹ hơn
+
+FAG cần chia 2 hàng dọc để khớp height của panel được mở rộng, panel mở rộng cần thêm width cho đẹp hơn, height thì phải khớp với hàng dọc
+
+các panel ở 2 cột đạng bị thu gọn, check lại margin và mở lại ra với height hàng hợp lý
+
+width không đủ khiến height bị kéo quá dài

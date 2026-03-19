@@ -1,5 +1,4 @@
 {
-  "defaultMode": "bypassPermissions",
   "permissions": {
     "allow": [
       "Bash",
@@ -7,7 +6,9 @@
       "WebSearch",
       "Read",
       "Write",
-      "Edit"
+      "Edit",
+      "Skill(update-config)"
     ]
-  }
+  },
+  "defaultMode": "bypassPermissions"
 }
