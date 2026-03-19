@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Users,
   CheckCircle,
@@ -22,7 +22,7 @@ import {
   BookOpen,
   Play,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { SectionTitle } from '@/components/ui/section-title';
 
@@ -187,46 +187,15 @@ const faqs = [
 // ============================================================
 
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started) {
-          setStarted(true);
-          const duration = 2000;
-          const totalSteps = 60;
-          const increment = value / totalSteps;
-          let current = 0;
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= value) {
-              setCount(value);
-              clearInterval(timer);
-            } else {
-              setCount(Math.floor(current));
-            }
-          }, duration / totalSteps);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.5 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [value, started]);
-
   return (
-    <div ref={ref}>
-      <span className="tabular-nums">{count.toLocaleString()}</span>
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+    >
+      <span className="tabular-nums">{value.toLocaleString()}</span>
       <span>{suffix}</span>
-    </div>
+    </motion.div>
   );
 }
 
@@ -365,14 +334,10 @@ const scaleIn = {
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, -100]);
-
   return (
     <div className="overflow-hidden">
       {/* ========== HERO ========== */}
-      <section ref={heroRef} className="relative py-20 sm:py-28 lg:py-32">
+      <section className="relative py-20 sm:py-28 lg:py-32">
         {/* Animated gradient background */}
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <motion.div
@@ -393,7 +358,6 @@ export default function HomePage() {
 
         <div className="container">
           <motion.div
-            style={{ y: heroY }}
             initial="hidden"
             animate="visible"
             variants={stagger}
