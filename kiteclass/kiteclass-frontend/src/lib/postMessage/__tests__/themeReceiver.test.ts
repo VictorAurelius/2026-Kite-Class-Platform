@@ -1,0 +1,265 @@
+/**
+ * Tests for postMessage theme receiver.
+ *
+ * @since PR-THEME-1
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { initThemeReceiver, ALLOWED_ORIGINS } from '../themeReceiver';
+import type { ThemeMessage } from '@/lib/theme/types';
+import { DEFAULT_THEME } from '@/lib/theme/defaultTheme';
+
+describe('Theme Receiver', () => {
+  let cleanup: (() => void) | null = null;
+  let mockCallback: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    mockCallback = vi.fn();
+    cleanup = null;
+  });
+
+  afterEach(() => {
+    if (cleanup) {
+      cleanup();
+    }
+  });
+
+  describe('initThemeReceiver', () => {
+    it('should add message event listener', () => {
+      const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+
+      cleanup = initThemeReceiver(mockCallback);
+
+      expect(addEventListenerSpy).toHaveBeenCalledWith(
+        'message',
+        expect.any(Function)
+      );
+
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('should return cleanup function', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      expect(typeof cleanup).toBe('function');
+    });
+
+    it('should remove event listener when cleanup is called', () => {
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+      cleanup = initThemeReceiver(mockCallback);
+      cleanup();
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'message',
+        expect.any(Function)
+      );
+
+      removeEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('Message handling', () => {
+    it('should call callback with valid theme message', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: 'http://localhost:3001', // KiteHub origin
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).toHaveBeenCalledWith(DEFAULT_THEME);
+    });
+
+    it('should ignore messages with wrong type', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const wrongTypeMessage = {
+        type: 'WRONG_TYPE',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: wrongTypeMessage,
+        origin: 'http://localhost:3001',
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should ignore messages with invalid theme', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const invalidMessage = {
+        type: 'APPLY_THEME',
+        theme: {
+          colors: { primary: '#123' }, // incomplete
+        },
+      };
+
+      const event = new MessageEvent('message', {
+        data: invalidMessage,
+        origin: 'http://localhost:3001',
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should ignore messages from untrusted origins', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: 'https://evil.com', // untrusted
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should accept messages from localhost:3001 (KiteHub)', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: 'http://localhost:3001',
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).toHaveBeenCalledWith(DEFAULT_THEME);
+    });
+
+    it('should accept messages from production KiteHub', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: 'https://kitehub.kiteclass.com',
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).toHaveBeenCalledWith(DEFAULT_THEME);
+    });
+
+    it('should accept custom theme variations', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const customTheme = {
+        ...DEFAULT_THEME,
+        colors: {
+          ...DEFAULT_THEME.colors,
+          primary: '#DC2626',
+        },
+      };
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: customTheme,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: 'http://localhost:3001',
+      });
+
+      window.dispatchEvent(event);
+
+      expect(mockCallback).toHaveBeenCalledWith(customTheme);
+    });
+
+    it('should handle malformed message data gracefully', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const event = new MessageEvent('message', {
+        data: 'not an object',
+        origin: 'http://localhost:3001',
+      });
+
+      // Should not throw
+      expect(() => window.dispatchEvent(event)).not.toThrow();
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should handle null message data', () => {
+      cleanup = initThemeReceiver(mockCallback);
+
+      const event = new MessageEvent('message', {
+        data: null,
+        origin: 'http://localhost:3001',
+      });
+
+      expect(() => window.dispatchEvent(event)).not.toThrow();
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ALLOWED_ORIGINS', () => {
+    it('should include localhost origins', () => {
+      expect(ALLOWED_ORIGINS).toContain('http://localhost:3001');
+      expect(ALLOWED_ORIGINS).toContain('http://localhost:3000');
+    });
+
+    it('should include production origins', () => {
+      expect(ALLOWED_ORIGINS).toContain('https://kitehub.kiteclass.com');
+      expect(ALLOWED_ORIGINS).toContain('https://kiteclass.com');
+    });
+  });
+
+  describe('Multiple receivers', () => {
+    it('should support multiple concurrent receivers', () => {
+      const callback1 = vi.fn();
+      const callback2 = vi.fn();
+
+      const cleanup1 = initThemeReceiver(callback1);
+      const cleanup2 = initThemeReceiver(callback2);
+
+      const validMessage: ThemeMessage = {
+        type: 'APPLY_THEME',
+        theme: DEFAULT_THEME,
+      };
+
+      const event = new MessageEvent('message', {
+        data: validMessage,
+        origin: 'http://localhost:3001',
+      });
+
+      window.dispatchEvent(event);
+
+      // Both callbacks should be called
+      expect(callback1).toHaveBeenCalledWith(DEFAULT_THEME);
+      expect(callback2).toHaveBeenCalledWith(DEFAULT_THEME);
+
+      cleanup1();
+      cleanup2();
+    });
+  });
+});
