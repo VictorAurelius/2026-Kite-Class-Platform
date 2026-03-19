@@ -67,13 +67,14 @@ describe('HomePage', () => {
 
     it('renders all 6 feature cards', () => {
       render(<HomePage />);
-      expect(screen.getByText('Quản lý học viên')).toBeInTheDocument();
-      expect(screen.getByText('Lịch học & Điểm danh')).toBeInTheDocument();
-      expect(screen.getByText('Thanh toán & Hóa đơn')).toBeInTheDocument();
-      // "AI Branding" appears multiple times (feature + pricing), use getAllByText
+      // Feature titles may appear in both features section and pricing features
+      // Use getAllByText for features that appear in pricing tiers
+      expect(screen.getAllByText('Quản lý học viên').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Lịch học & Điểm danh').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Thanh toán & Hóa đơn').length).toBeGreaterThan(0);
       expect(screen.getAllByText('AI Branding').length).toBeGreaterThan(0);
-      expect(screen.getByText('Báo cáo & Thống kê')).toBeInTheDocument();
-      expect(screen.getByText('Đa chi nhánh')).toBeInTheDocument();
+      expect(screen.getAllByText('Báo cáo & Thống kê').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Đa chi nhánh').length).toBeGreaterThan(0);
     });
   });
 
