@@ -17,14 +17,18 @@ global.ResizeObserver = class ResizeObserver {
 
 // Mock IntersectionObserver (required by framer-motion)
 global.IntersectionObserver = class IntersectionObserver {
+  readonly root: Element | null = null;
+  readonly rootMargin: string = '';
+  readonly thresholds: ReadonlyArray<number> = [];
+
   constructor() {}
   disconnect() {}
   observe() {}
-  takeRecords() {
+  takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
   unobserve() {}
-};
+} as any;
 
 // Mock scrollIntoView
 Element.prototype.scrollIntoView = () => {};
