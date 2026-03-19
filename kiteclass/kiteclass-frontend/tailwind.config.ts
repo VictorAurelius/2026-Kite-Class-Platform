@@ -10,6 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // shadcn/ui colors (existing)
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -43,11 +44,30 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        // Theme system colors (new - PR-THEME-1)
+        // Use these for branding-aware components
+        'theme-primary': 'var(--theme-primary)',
+        'theme-secondary': 'var(--theme-secondary)',
+        'theme-accent': 'var(--theme-accent)',
+        'theme-background': 'var(--theme-background)',
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        // Theme system border radius
+        theme: 'var(--theme-border-radius)',
+      },
+      boxShadow: {
+        // Theme system shadows
+        'theme-sm': 'var(--theme-shadow-sm)',
+        'theme-md': 'var(--theme-shadow-md)',
+        'theme-lg': 'var(--theme-shadow-lg)',
+      },
+      fontFamily: {
+        // Theme system fonts
+        'theme-heading': 'var(--theme-font-heading)',
+        'theme-body': 'var(--theme-font-body)',
       },
     },
   },

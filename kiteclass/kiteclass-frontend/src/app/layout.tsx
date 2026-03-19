@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeReceiver } from '@/components/theme/ThemeReceiver';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
@@ -19,10 +21,13 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
-        <ReactQueryProvider>
-          {children}
-          <Toaster />
-        </ReactQueryProvider>
+        <ThemeProvider>
+          <ThemeReceiver />
+          <ReactQueryProvider>
+            {children}
+            <Toaster />
+          </ReactQueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

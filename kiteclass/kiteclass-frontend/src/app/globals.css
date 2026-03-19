@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* shadcn/ui design system colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -24,6 +25,20 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+
+    /* Theme system variables (PR-THEME-1) */
+    /* These are set dynamically by ThemeProvider based on AI branding */
+    /* Default values match DEFAULT_THEME */
+    --theme-primary: #3B82F6;
+    --theme-secondary: #8B5CF6;
+    --theme-accent: #F59E0B;
+    --theme-background: #FFFFFF;
+    --theme-font-heading: Inter, system-ui, -apple-system, sans-serif;
+    --theme-font-body: Inter, system-ui, -apple-system, sans-serif;
+    --theme-border-radius: 8px;
+    --theme-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --theme-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   .dark {

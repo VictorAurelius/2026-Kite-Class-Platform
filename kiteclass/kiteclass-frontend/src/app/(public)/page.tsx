@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { publicApi } from '@/lib/api/public';
+import { ThemeSync } from '@/components/theme/ThemeSync';
 import {
   ArrowRight,
   BookOpen,
@@ -111,23 +112,20 @@ export default async function LandingPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
+      {/* Sync backend AI colors with theme system */}
+      <ThemeSync
+        primaryColor={landingData.primaryColor}
+        secondaryColor={landingData.secondaryColor}
+      />
+
       <div className="flex flex-col">
       {/* Hero Section - Dynamic from Backend */}
-      <section
-        className="py-20 bg-gradient-to-b from-primary/5 to-background"
-        style={{
-          // Apply AI Branding colors if available
-          background: `linear-gradient(to bottom, ${landingData.primaryColor}10, transparent)`,
-        }}
-      >
+      <section className="py-20 bg-gradient-to-b from-theme-primary/5 to-background">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             {landingData.heroTitle || 'Quản lý Trung tâm Tiếng Anh'}
             <br />
-            <span
-              className="text-primary"
-              style={{ color: landingData.primaryColor }}
-            >
+            <span className="text-theme-primary">
               Chuyên nghiệp & Hiệu quả
             </span>
           </h1>
@@ -144,7 +142,7 @@ export default async function LandingPage({
             <Button
               size="lg"
               asChild
-              style={{ backgroundColor: landingData.primaryColor }}
+              className="bg-theme-primary hover:bg-theme-primary/90"
             >
               <Link href="/register">
                 Dùng thử miễn phí <ArrowRight className="ml-2 h-5 w-5" />
@@ -180,10 +178,7 @@ export default async function LandingPage({
           <div className="grid md:grid-cols-3 gap-8">
             <Card>
               <CardHeader>
-                <BookOpen
-                  className="h-12 w-12 mb-4"
-                  style={{ color: landingData.primaryColor }}
-                />
+                <BookOpen className="h-12 w-12 mb-4 text-theme-primary" />
                 <CardTitle>Hệ thống LMS</CardTitle>
                 <CardDescription>
                   Quản lý bài giảng, tài liệu và theo dõi tiến độ học tập của
@@ -210,10 +205,7 @@ export default async function LandingPage({
 
             <Card>
               <CardHeader>
-                <Users
-                  className="h-12 w-12 mb-4"
-                  style={{ color: landingData.primaryColor }}
-                />
+                <Users className="h-12 w-12 mb-4 text-theme-primary" />
                 <CardTitle>Quản lý Học viên</CardTitle>
                 <CardDescription>
                   Theo dõi toàn bộ thông tin học viên, điểm danh và kết quả học
@@ -240,10 +232,7 @@ export default async function LandingPage({
 
             <Card>
               <CardHeader>
-                <TrendingUp
-                  className="h-12 w-12 mb-4"
-                  style={{ color: landingData.primaryColor }}
-                />
+                <TrendingUp className="h-12 w-12 mb-4 text-theme-primary" />
                 <CardTitle>Thanh toán & Báo cáo</CardTitle>
                 <CardDescription>
                   Quản lý học phí, thanh toán online và báo cáo tài chính chi
@@ -272,12 +261,7 @@ export default async function LandingPage({
       </section>
 
       {/* CTA Section */}
-      <section
-        className="py-16"
-        style={{
-          background: `linear-gradient(to right, ${landingData.primaryColor}10, ${landingData.secondaryColor}10)`,
-        }}
-      >
+      <section className="py-16 bg-gradient-to-r from-theme-primary/10 to-theme-secondary/10">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Sẵn sàng bắt đầu chưa?</h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -288,7 +272,7 @@ export default async function LandingPage({
             <Button
               size="lg"
               asChild
-              style={{ backgroundColor: landingData.primaryColor }}
+              className="bg-theme-primary hover:bg-theme-primary/90"
             >
               <Link href="/register">
                 Đăng ký ngay <ArrowRight className="ml-2 h-5 w-5" />
@@ -315,10 +299,7 @@ export default async function LandingPage({
                   Tính năng điểm danh tự động và LMS rất tiện lợi!&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div
-                    className="h-10 w-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${landingData.primaryColor}20` }}
-                  >
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-theme-primary/10">
                     <span className="font-semibold">TH</span>
                   </div>
                   <div>
@@ -338,10 +319,7 @@ export default async function LandingPage({
                   phí. Thanh toán online cũng rất tiện cho phụ huynh.&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div
-                    className="h-10 w-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${landingData.primaryColor}20` }}
-                  >
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-theme-primary/10">
                     <span className="font-semibold">NP</span>
                   </div>
                   <div>
@@ -361,10 +339,7 @@ export default async function LandingPage({
                   quen. Support team cũng rất nhiệt tình!&rdquo;
                 </p>
                 <div className="flex items-center gap-3">
-                  <div
-                    className="h-10 w-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${landingData.primaryColor}20` }}
-                  >
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-theme-primary/10">
                     <span className="font-semibold">LM</span>
                   </div>
                   <div>

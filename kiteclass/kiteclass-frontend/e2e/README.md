@@ -2,58 +2,38 @@
 
 End-to-end tests using Playwright.
 
-## Structure
-
-```
-e2e/
-├── auth.spec.ts          # Authentication flows
-├── students.spec.ts      # Student management
-├── classes.spec.ts       # Class management
-├── attendance.spec.ts    # Attendance marking
-└── billing.spec.ts       # Billing operations
-```
-
-## Running E2E Tests
+## Running Tests
 
 ```bash
 # Run all E2E tests
 pnpm test:e2e
 
-# Run in headed mode (see browser)
-pnpm exec playwright test --headed
-
 # Run specific test file
-pnpm exec playwright test e2e/auth.spec.ts
+pnpm test:e2e -- e2e/theme.spec.ts
 
-# Debug mode
-pnpm exec playwright test --debug
-
-# UI mode
-pnpm exec playwright test --ui
+# Run in headed mode (see browser)
+pnpm test:e2e -- --headed
 ```
 
-## Writing E2E Tests
+## Test Files
 
-Example:
+- `auth.spec.ts` - Authentication flows
+- `theme.spec.ts` - Theme system (PR-THEME-1) - 17 tests
+- `billing.spec.ts` - Billing and payments
+- `branding.spec.ts` - AI branding
+- `classes.spec.ts` - Class management
+- `attendance-enhancements.spec.ts` - Attendance
 
-```typescript
-import { test, expect } from '@playwright/test';
+## Theme Tests
 
-test.describe('Authentication', () => {
-  test('should login successfully', async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', 'owner@kiteclass.local');
-    await page.fill('input[name="password"]', 'Admin@123');
-    await page.click('button[type="submit"]');
+See [theme.spec.ts](./theme.spec.ts) for comprehensive theme system tests.
 
-    await expect(page).toHaveURL('/dashboard');
-  });
-});
-```
+**Test Coverage:**
+- Default theme loading
+- Theme persistence (localStorage)
+- postMessage live updates
+- Invalid data handling
+- Tailwind utilities integration
+- Visual consistency
 
-## Tips
-
-- Use `test.beforeEach()` for common setup (login, navigation)
-- Use `page.locator()` instead of `page.$()` for better auto-waiting
-- Use `await expect(page).toHaveURL()` to verify navigation
-- Use `await expect(element).toBeVisible()` to verify UI state
+**Total:** 17 test cases covering all theme system functionality.
