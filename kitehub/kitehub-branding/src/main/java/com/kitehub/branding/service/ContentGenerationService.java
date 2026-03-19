@@ -2,7 +2,7 @@ package com.kitehub.branding.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kitehub.branding.client.OpenAIClient;
+import com.kitehub.branding.client.AIClient;
 import com.kitehub.branding.dto.Feature;
 import com.kitehub.branding.dto.LandingPageContent;
 import com.kitehub.branding.dto.LogoAnalysis;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ContentGenerationService {
 
-    private final OpenAIClient openAIClient;
+    private final AIClient aiClient;
     private final ObjectMapper objectMapper;
 
     /**
@@ -70,7 +70,7 @@ public class ContentGenerationService {
                 theme
         );
 
-        String title = openAIClient.generateText(prompt).block();
+        String title = aiClient.generateText(prompt).block();
         return truncate(title.trim().replace("\"", ""), 60);
     }
 
@@ -89,7 +89,7 @@ public class ContentGenerationService {
                 theme
         );
 
-        String subtitle = openAIClient.generateText(prompt).block();
+        String subtitle = aiClient.generateText(prompt).block();
         return truncate(subtitle.trim().replace("\"", ""), 150);
     }
 
@@ -106,7 +106,7 @@ public class ContentGenerationService {
                 brandPersonality
         );
 
-        String tagline = openAIClient.generateText(prompt).block();
+        String tagline = aiClient.generateText(prompt).block();
         return truncate(tagline.trim().replace("\"", ""), 30);
     }
 
@@ -124,7 +124,7 @@ public class ContentGenerationService {
                 theme
         );
 
-        return openAIClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt).block().trim();
     }
 
     /**
@@ -140,7 +140,7 @@ public class ContentGenerationService {
                 targetAudience
         );
 
-        return openAIClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt).block().trim();
     }
 
     /**
@@ -156,7 +156,7 @@ public class ContentGenerationService {
                 theme
         );
 
-        return openAIClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt).block().trim();
     }
 
     /**
@@ -178,7 +178,7 @@ public class ContentGenerationService {
                 language.equals("vi") ? "Vietnamese" : "English"
             );
 
-            String response = openAIClient.generateText(prompt).block().trim();
+            String response = aiClient.generateText(prompt).block().trim();
 
             log.debug("Raw features response: {}", response);
 

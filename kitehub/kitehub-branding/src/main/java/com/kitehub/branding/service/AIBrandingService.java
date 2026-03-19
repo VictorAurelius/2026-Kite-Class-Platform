@@ -1,6 +1,6 @@
 package com.kitehub.branding.service;
 
-import com.kitehub.branding.client.OpenAIClient;
+import com.kitehub.branding.client.AIClient;
 import com.kitehub.branding.dto.LogoAnalysis;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * Service for AI-powered branding generation.
+ * Uses AIClient abstraction to support multiple providers (OpenAI, Ollama).
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AIBrandingService {
 
-    private final OpenAIClient openAIClient;
+    private final AIClient aiClient;
 
     /**
      * Analyze logo and extract brand identity.
@@ -28,8 +29,8 @@ public class AIBrandingService {
      * @return Logo analysis
      */
     public Mono<LogoAnalysis> analyzeLogo(String logoUrl, String organizationName) {
-        log.info("Analyzing logo for: {}", organizationName);
-        return openAIClient.analyzeLogo(logoUrl, organizationName);
+        log.info("Analyzing logo for: {} (provider: {})", organizationName, aiClient.getProviderName());
+        return aiClient.analyzeLogo(logoUrl, organizationName);
     }
 
     /**
@@ -42,7 +43,7 @@ public class AIBrandingService {
      */
     public Mono<String> generateHeroImage(String organizationName, String theme, String colors) {
         String prompt = buildHeroImagePrompt(organizationName, theme, colors);
-        return openAIClient.generateImage(prompt, "1792x1024");
+        return aiClient.generateImage(prompt, "1792x1024");
     }
 
     /**
@@ -55,7 +56,7 @@ public class AIBrandingService {
      */
     public Mono<String> generateMarketingCopy(String organizationName, String theme, String targetAudience) {
         String prompt = buildMarketingCopyPrompt(organizationName, theme, targetAudience);
-        return openAIClient.generateText(prompt);
+        return aiClient.generateText(prompt);
     }
 
     /**

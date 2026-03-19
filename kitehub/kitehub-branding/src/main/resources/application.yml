@@ -35,7 +35,17 @@ spring:
 server:
   port: 8083
 
-# OpenAI Configuration
+# AI Provider Configuration
+# provider: "ollama" (local) or "openai" (cloud)
+ai:
+  provider: ${AI_PROVIDER:openai}
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://kitehub-ollama:11434}
+    text-model: ${OLLAMA_TEXT_MODEL:llama3.1:8b}
+    vision-model: ${OLLAMA_VISION_MODEL:llava:13b}
+    timeout-seconds: ${OLLAMA_TIMEOUT:120}
+
+# OpenAI Configuration (used when ai.provider=openai)
 openai:
   api:
     key: ${OPENAI_API_KEY:sk-mock-key-for-local-testing}
