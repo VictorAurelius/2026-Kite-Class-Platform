@@ -169,6 +169,11 @@ export function OnboardingWizard({ instance, open, onClose }: OnboardingWizardPr
   const isLastStep = currentStep === steps.length - 1;
   const isFirstStep = currentStep === 0;
 
+  // Guard: if currentStepData is undefined (shouldn't happen), close dialog
+  if (!currentStepData) {
+    return null;
+  }
+
   const handleNext = () => {
     if (isLastStep) {
       handleComplete();
