@@ -5,10 +5,18 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { clearBrowserStorage, registerAndNavigate } from './utils/test-helpers';
+import {
+  clearBrowserStorage,
+  registerAndNavigate,
+  mockBillingAPIs,
+  mockAllAuthAPIs,
+} from './utils/test-helpers';
 
 test.describe('Billing Page', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mocks before navigation
+    await mockAllAuthAPIs(page);
+    await mockBillingAPIs(page);
     await registerAndNavigate(page, '/billing');
   });
 
@@ -31,8 +39,8 @@ test.describe('Billing Page', () => {
 
   test('should display plan comparison or error', async ({ page }) => {
     await page.waitForTimeout(3000);
-    // If no error, plan comparison shows tiers
-    const tiers = page.getByText(/FREE|BASIC|PREMIUM|ENTERPRISE/i);
+    // If no error, plan comparison shows tiers (Vietnamese names)
+    const tiers = page.getByText(/Miễn phí|Cơ bản|Cao cấp|Doanh nghiệp/i);
     const error = page.getByText(/không thể tải|lỗi/i);
     const hasTiers = await tiers.first().isVisible().catch(() => false);
     const hasError = await error.first().isVisible().catch(() => false);
@@ -47,6 +55,9 @@ test.describe('Billing Page', () => {
 
 test.describe('Billing Upgrade Page', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mocks before navigation
+    await mockAllAuthAPIs(page);
+    await mockBillingAPIs(page);
     await registerAndNavigate(page, '/billing/upgrade');
   });
 
@@ -65,6 +76,9 @@ test.describe('Billing Upgrade Page', () => {
 
 test.describe('Billing History Page', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mocks before navigation
+    await mockAllAuthAPIs(page);
+    await mockBillingAPIs(page);
     await registerAndNavigate(page, '/billing/history');
   });
 

@@ -5,10 +5,18 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { clearBrowserStorage, registerAndNavigate } from './utils/test-helpers';
+import {
+  clearBrowserStorage,
+  registerAndNavigate,
+  mockSettingsAPIs,
+  mockAuthRegisterAPI
+} from './utils/test-helpers';
 
 test.describe('Settings Page', () => {
   test.beforeEach(async ({ page }) => {
+    // Set up mocks before navigation
+    await mockAuthRegisterAPI(page); // Mock registration API
+    await mockSettingsAPIs(page);     // Mock settings APIs
     await registerAndNavigate(page, '/settings');
   });
 

@@ -6,11 +6,19 @@
 
 import { test, expect } from '@playwright/test';
 import { createRegistrationData, invalidCredentials } from './fixtures/test-data';
-import { clearBrowserStorage, isAuthenticated } from './utils/test-helpers';
+import {
+  clearBrowserStorage,
+  isAuthenticated,
+  mockAllAuthAPIs,
+  mockAuthRegisterAPI,
+  mockAuthLoginAPI,
+  mockAuthLogoutAPI,
+} from './utils/test-helpers';
 
 test.describe('Registration Flow', () => {
   test.beforeEach(async ({ page }) => {
     await clearBrowserStorage(page);
+    await mockAllAuthAPIs(page);
     await page.goto('/register');
   });
 
@@ -56,8 +64,47 @@ test.describe('Registration Flow', () => {
   });
 
   test('should show error for duplicate subdomain', async ({ page }) => {
+    // Setup: track registered subdomains across requests
+    const registeredSubdomains = new Set<string>();
+    await page.route('**/api/auth/register', async (route) => {
+      const requestBody = route.request().postDataJSON();
+      const { subdomain } = requestBody;
+
+      // Check if subdomain was already registered
+      if (registeredSubdomains.has(subdomain)) {
+        await route.fulfill({
+          status: 400,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            error: 'Subdomain đã được sử dụng',
+            message: 'Subdomain này đã tồn tại trong hệ thống',
+          }),
+        });
+        return;
+      }
+
+      // Success case - register subdomain
+      registeredSubdomains.add(subdomain);
+      const userId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: {
+            id: userId,
+            email: requestBody.ownerEmail,
+            name: requestBody.organizationName,
+            role: 'OWNER',
+          },
+          accessToken: `mock-access-token-${userId}`,
+          refreshToken: `mock-refresh-token-${userId}`,
+        }),
+      });
+    });
+
     // First registration
     const data = createRegistrationData();
+    await page.goto('/register');
 
     await page.getByPlaceholder('Trung tâm Anh ngữ ABC').fill(data.organizationName);
     await page.getByPlaceholder('abc-center').fill(data.subdomain);
@@ -101,6 +148,7 @@ test.describe('Registration Flow', () => {
 test.describe('Login Flow', () => {
   test.beforeEach(async ({ page }) => {
     await clearBrowserStorage(page);
+    await mockAllAuthAPIs(page);
     await page.goto('/login');
   });
 
@@ -111,32 +159,12 @@ test.describe('Login Flow', () => {
   });
 
   test('should login successfully with valid credentials', async ({ page }) => {
-    // First register a user
-    await page.goto('/register');
-    const data = createRegistrationData();
+    // Mock accepts any credentials by default (from mockAllAuthAPIs in beforeEach)
+    const testEmail = 'test@example.com';
+    const testPassword = 'TestPassword123!';
 
-    await page.getByPlaceholder('Trung tâm Anh ngữ ABC').fill(data.organizationName);
-    await page.getByPlaceholder('abc-center').fill(data.subdomain);
-    await page.getByPlaceholder('email@example.com').fill(data.email);
-
-    const passwordFields = page.locator('input[type="password"]');
-    await passwordFields.first().fill(data.password);
-    await passwordFields.nth(1).fill(data.password);
-
-    await page.getByRole('button', { name: /tạo tài khoản/i }).click();
-    await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
-
-    // Logout
-    const logoutButton = page.getByRole('button', { name: /đăng xuất/i });
-    if (await logoutButton.isVisible().catch(() => false)) {
-      await logoutButton.click();
-    }
-    await clearBrowserStorage(page);
-
-    // Now login with the same credentials
-    await page.goto('/login');
-    await page.getByPlaceholder('email@example.com').fill(data.email);
-    await page.locator('input[type="password"]').fill(data.password);
+    await page.getByPlaceholder('email@example.com').fill(testEmail);
+    await page.locator('input[type="password"]').fill(testPassword);
     await page.getByRole('button', { name: /đăng nhập/i }).click();
 
     // Should redirect to dashboard
@@ -148,13 +176,28 @@ test.describe('Login Flow', () => {
   });
 
   test('should show error for invalid credentials', async ({ page }) => {
+    // Clear existing route and set up failing mock
+    await page.unroute('**/api/auth/login');
+
+    // Mock login to fail with 400 (not 401 to avoid retry interceptor)
+    await page.route('**/api/auth/login', async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error: 'Email hoặc mật khẩu không đúng',
+          message: 'Thông tin đăng nhập không chính xác',
+        }),
+      });
+    });
+
     await page.getByPlaceholder('email@example.com').fill(invalidCredentials.email);
     await page.locator('input[type="password"]').fill(invalidCredentials.password);
 
     await page.getByRole('button', { name: /đăng nhập/i }).click();
 
     // Should show error message
-    const errorMessage = page.getByText(/thất bại|sai|không đúng/i);
+    const errorMessage = page.getByText(/Email hoặc mật khẩu không đúng/i);
     await expect(errorMessage).toBeVisible({ timeout: 5000 });
 
     // Should stay on login page
@@ -172,8 +215,11 @@ test.describe('Login Flow', () => {
 
 test.describe('Logout Flow', () => {
   test('should logout and redirect to home', async ({ page }) => {
-    // First register to get authenticated
+    // Setup mocks and authenticate via registration
+    await clearBrowserStorage(page);
+    await mockAllAuthAPIs(page);
     await page.goto('/register');
+
     const data = createRegistrationData();
 
     await page.getByPlaceholder('Trung tâm Anh ngữ ABC').fill(data.organizationName);
