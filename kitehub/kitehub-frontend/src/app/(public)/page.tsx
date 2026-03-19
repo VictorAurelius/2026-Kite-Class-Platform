@@ -407,155 +407,12 @@ const scaleIn = {
 // ============================================================
 
 // ============================================================
-// FEATURE DETAIL PANEL
-// ============================================================
-
-function FeatureDetailPanel({ feature, onClose }: { feature: typeof features[0]; onClose: () => void }) {
-  const Icon = feature.icon;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ duration: 0.3 }}
-        className="bg-card border rounded-2xl shadow-soft-xl max-w-4xl w-full max-h-[85vh] overflow-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className={`p-6 ${feature.bg} border-b`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`inline-flex rounded-xl bg-gradient-to-br ${feature.color} p-3 text-white shadow-sm`}>
-                <Icon className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.desc}</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground">
-              ✕
-            </button>
-          </div>
-        </div>
-
-        {/* Split panel content */}
-        <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
-          {/* Left: Description + Benefits */}
-          <div className="p-6 space-y-6">
-            <div>
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Mô tả</h4>
-              <p className="text-sm leading-relaxed">{feature.longDesc}</p>
-            </div>
-            <div>
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tính năng nổi bật</h4>
-              <ul className="space-y-3">
-                {feature.benefits.map((b) => (
-                  <motion.li
-                    key={b}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-start gap-3 text-sm"
-                  >
-                    <CheckCircle className={`h-5 w-5 shrink-0 mt-0.5 bg-gradient-to-br ${feature.color} text-white rounded-full p-0.5`} />
-                    {b}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-            <Link
-              href="/register"
-              className={`inline-flex items-center gap-2 rounded-xl bg-gradient-to-r ${feature.color} px-5 py-2.5 text-sm font-semibold text-white hover:shadow-soft-lg transition-all`}
-            >
-              Dùng thử miễn phí <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          {/* Right: Mockup illustration */}
-          <div className="p-6 bg-muted/20">
-            <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Giao diện minh họa</h4>
-
-            {/* Mini dashboard mockup */}
-            <div className="rounded-xl border bg-card shadow-soft overflow-hidden">
-              {/* Title bar */}
-              <div className="flex items-center gap-2 border-b bg-muted/50 px-3 py-2">
-                <div className="flex gap-1">
-                  <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                </div>
-                <div className="ml-2 h-4 w-32 rounded bg-muted text-[10px] flex items-center px-2 text-muted-foreground">
-                  {feature.title}
-                </div>
-              </div>
-
-              {/* Stats row */}
-              <div className="grid grid-cols-3 gap-2 p-3">
-                {['Tổng', 'Hoạt động', 'Mới'].map((label, i) => (
-                  <div key={label} className="rounded-lg bg-muted/40 p-2 text-center">
-                    <div className={`text-lg font-bold bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}>
-                      {[feature.mockupRows.length * 42, feature.mockupRows.length * 38, feature.mockupRows.length * 3][i]}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">{label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Data rows */}
-              <div className="px-3 pb-3 space-y-2">
-                {feature.mockupRows.map((row, i) => (
-                  <motion.div
-                    key={row.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.15 }}
-                    className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${feature.color} flex items-center justify-center text-white text-xs font-bold`}>
-                        {row.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="text-xs font-medium">{row.name}</div>
-                        <div className="text-[10px] text-muted-foreground">{row.class}</div>
-                      </div>
-                    </div>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                      row.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                      row.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    }`}>
-                      {row.status === 'active' ? 'Hoạt động' : row.status === 'pending' ? 'Chờ TT' : 'Dùng thử'}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            <p className="mt-3 text-[11px] text-muted-foreground text-center">
-              * Hình ảnh minh họa. Giao diện thực tế có thể khác.
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ============================================================
 // PAGE
 // ============================================================
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<typeof features[0] | null>(null);
+  const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
   return (
     <div className="overflow-hidden">
       {/* ========== HERO ========== */}
@@ -670,7 +527,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== FEATURES BENTO GRID ========== */}
+      {/* ========== FEATURES ========== */}
       <section className="py-20 sm:py-28">
         <div className="container">
           <SectionTitle
@@ -683,35 +540,157 @@ export default function HomePage() {
             whileInView="visible"
             viewport={{ once: true, margin: '-100px' }}
             variants={stagger}
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            className="space-y-6"
           >
-            {features.map((f, i) => (
-              <motion.div
-                key={f.title}
-                variants={i % 2 === 0 ? fadeInLeft : fadeInRight}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className={`group relative rounded-2xl border p-6 shadow-soft hover:shadow-soft-xl transition-all duration-300 overflow-hidden ${f.bg}`}
-              >
-                {/* Background decoration */}
-                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition-opacity" />
-                <div className="absolute right-4 top-4 text-4xl opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all">
-                  {f.img}
-                </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {features.map((f, i) => {
+                const isExpanded = expandedFeature === i;
+                const Icon = f.icon;
+                return (
+                  <motion.div
+                    key={f.title}
+                    variants={fadeInUp}
+                    layout
+                    className={`group relative rounded-2xl border shadow-soft transition-all duration-300 overflow-hidden ${
+                      isExpanded
+                        ? 'sm:col-span-2 lg:col-span-3 shadow-soft-xl ring-2 ring-primary/20'
+                        : 'hover:shadow-soft-xl'
+                    } ${f.bg}`}
+                  >
+                    {!isExpanded ? (
+                      /* ---- Collapsed Card ---- */
+                      <div className="p-6">
+                        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition-opacity" />
+                        <div className="absolute right-4 top-4 text-4xl opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all">
+                          {f.img}
+                        </div>
+                        <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                        <button
+                          onClick={() => setExpandedFeature(i)}
+                          className="mt-4 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          Tìm hiểu thêm <ArrowRight className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      /* ---- Expanded Inline Panel ---- */
+                      <div>
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-5 border-b">
+                          <div className="flex items-center gap-3">
+                            <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
+                              <Icon className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-bold">{f.title}</h3>
+                              <p className="text-sm text-muted-foreground">{f.desc}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setExpandedFeature(null)}
+                            className="rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground text-sm"
+                          >
+                            Thu gọn ✕
+                          </button>
+                        </div>
 
-                <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
-                  <f.icon className="h-6 w-6" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                        {/* Split content */}
+                        <div className="grid md:grid-cols-2">
+                          {/* Left: description + benefits */}
+                          <div className="p-6 space-y-5">
+                            <div>
+                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Mô tả chi tiết</h4>
+                              <p className="text-sm leading-relaxed">{f.longDesc}</p>
+                            </div>
+                            <div>
+                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tính năng nổi bật</h4>
+                              <ul className="space-y-2.5">
+                                {f.benefits.map((b, bi) => (
+                                  <motion.li
+                                    key={b}
+                                    initial={{ opacity: 0, x: -15 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: bi * 0.1 }}
+                                    className="flex items-start gap-2.5 text-sm"
+                                  >
+                                    <CheckCircle className={`h-4 w-4 shrink-0 mt-0.5 bg-gradient-to-br ${f.color} text-white rounded-full p-0.5`} />
+                                    {b}
+                                  </motion.li>
+                                ))}
+                              </ul>
+                            </div>
+                            <Link
+                              href="/register"
+                              className={`inline-flex items-center gap-2 rounded-xl bg-gradient-to-r ${f.color} px-5 py-2.5 text-sm font-semibold text-white hover:shadow-soft-lg transition-all`}
+                            >
+                              Dùng thử miễn phí <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          </div>
 
-                <button
-                  onClick={() => setSelectedFeature(f)}
-                  className="mt-4 flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity hover:underline"
-                >
-                  Tìm hiểu thêm <ArrowRight className="h-3 w-3" />
-                </button>
-              </motion.div>
-            ))}
+                          {/* Right: mockup */}
+                          <div className="p-6 bg-muted/20 border-t md:border-t-0 md:border-l">
+                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Giao diện minh họa</h4>
+                            <div className="rounded-xl border bg-card shadow-soft overflow-hidden">
+                              <div className="flex items-center gap-2 border-b bg-muted/50 px-3 py-2">
+                                <div className="flex gap-1">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+                                  <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
+                                </div>
+                                <span className="ml-2 text-[10px] text-muted-foreground">{f.title}</span>
+                              </div>
+                              <div className="grid grid-cols-3 gap-2 p-3">
+                                {['Tổng', 'Hoạt động', 'Mới'].map((label, si) => (
+                                  <div key={label} className="rounded-lg bg-muted/40 p-2 text-center">
+                                    <div className={`text-lg font-bold bg-gradient-to-r ${f.color} bg-clip-text text-transparent`}>
+                                      {[f.mockupRows.length * 42, f.mockupRows.length * 38, f.mockupRows.length * 3][si]}
+                                    </div>
+                                    <div className="text-[10px] text-muted-foreground">{label}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="px-3 pb-3 space-y-2">
+                                {f.mockupRows.map((row, ri) => (
+                                  <motion.div
+                                    key={row.name}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: ri * 0.12 }}
+                                    className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${f.color} flex items-center justify-center text-white text-xs font-bold`}>
+                                        {row.name.charAt(0)}
+                                      </div>
+                                      <div>
+                                        <div className="text-xs font-medium">{row.name}</div>
+                                        <div className="text-[10px] text-muted-foreground">{row.class}</div>
+                                      </div>
+                                    </div>
+                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                                      row.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
+                                      row.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30' :
+                                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
+                                    }`}>
+                                      {row.status === 'active' ? 'Hoạt động' : row.status === 'pending' ? 'Chờ TT' : 'Dùng thử'}
+                                    </span>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </div>
+                            <p className="mt-2 text-[10px] text-muted-foreground text-center">* Hình ảnh minh họa</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
       </section>
@@ -910,11 +889,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ========== FEATURE DETAIL MODAL ========== */}
-      {selectedFeature && (
-        <FeatureDetailPanel feature={selectedFeature} onClose={() => setSelectedFeature(null)} />
-      )}
 
       {/* ========== CTA BOTTOM ========== */}
       <section className="relative py-20 sm:py-28 overflow-hidden">

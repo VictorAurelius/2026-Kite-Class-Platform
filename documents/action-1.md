@@ -89,3 +89,5 @@ vẫn chưa được, bổ sung vào PR, thêm hình ảnh và hiệu ứng đ�
 tiếp tục bổ sung vào PR:
 1. Tất cả tính năng bạn cần => có nút tìm hiểu thêm => bấm vào thì ra panel chia đôi hợp lý mô tả về tính năng + hình ảnh
 2. Câu hỏi thường gặp => hơi đơn giản => cải thiện như trên hoặc hợp lý hơn
+
+đối với 2 section trên, tôi muốn nó mở rộng ở trên chính page thay vì mở dialog, mở rộng ra visual tốt hơn
