@@ -40,6 +40,7 @@ public class AuthService {
     private final InstanceRepository instanceRepository;
     private final InstanceService instanceService;
     private final UserRepository userRepository;
+    private final CaptchaService captchaService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Value("${jwt.secret:#{null}}")
@@ -77,6 +78,12 @@ public class AuthService {
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
         log.info("Registering new instance: {}", request.getSubdomain());
+
+        // Verify captcha token (if captcha is enabled)
+        if (!captchaService.verifyCaptcha(request.getCaptchaToken())) {
+            log.warn("Registration blocked: captcha verification failed for subdomain={}", request.getSubdomain());
+            throw new IllegalArgumentException("Xác minh captcha thất bại. Vui lòng thử lại.");
+        }
 
         if (userRepository.existsByEmail(request.getOwnerEmail())) {
             throw new IllegalArgumentException("Email already registered");

@@ -51,6 +51,13 @@ kitehub:
     enabled: ${EMAIL_VERIFICATION_ENABLED:false}
     base-url: ${VERIFICATION_BASE_URL:http://localhost:3001}
 
+# hCaptcha
+captcha:
+  enabled: ${CAPTCHA_ENABLED:false}
+  site-key: ${HCAPTCHA_SITE_KEY:10000000-ffff-ffff-ffff-000000000001}
+  secret-key: ${HCAPTCHA_SECRET_KEY:0x0000000000000000000000000000000000000000}
+  verify-url: https://hcaptcha.com/siteverify
+
 # Database provisioning
 database:
   master:

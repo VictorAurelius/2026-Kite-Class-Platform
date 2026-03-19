@@ -27,4 +27,10 @@ public class RegisterRequest {
     @NotBlank
     @Size(min = 8)
     private String ownerPassword;
+
+    /**
+     * hCaptcha token for spam prevention.
+     * Optional - validated only when captcha.enabled=true.
+     */
+    private String captchaToken;
 }
