@@ -101,3 +101,5 @@ FAQ - khi expand:
 2. nội dung giải thích còn tòm tắt, cho người hiểu về tech, chưa phù hợp với tệp khách hàng của kiteclass, cần bổ sung content kỹ hơn
 
 FAG cần chia 2 hàng dọc để khớp height của panel được mở rộng, panel mở rộng cần thêm width cho đẹp hơn, height thì phải khớp với hàng dọc
+
+các panel ở 2 cột đạng bị thu gọn, check lại margin và mở lại ra với height hàng hợp lý

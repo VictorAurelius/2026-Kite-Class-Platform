@@ -913,25 +913,29 @@ export default function HomePage() {
                 );
               })()}
 
-              {/* Other questions (right, ~1/4, 2 columns) */}
-              <div className="lg:flex-1 grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 auto-rows-fr overflow-x-auto lg:overflow-visible content-start">
+              {/* Other questions (right, 2 columns, match panel height) */}
+              <div className="lg:flex-[1.2] grid grid-cols-2 gap-4 content-stretch">
                 {faqs.map((faq, i) => {
                   if (i === openFaq) return null;
                   const FaqIcon = faq.icon;
-                  const isActive = i === openFaq;
                   return (
                     <button
                       key={i}
                       onClick={() => setOpenFaq(i)}
-                      className={`flex flex-col gap-2 rounded-xl border bg-card p-3.5 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left ${isActive ? 'ring-2 ring-primary' : ''}`}
+                      className="flex flex-col justify-between gap-3 rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="shrink-0 rounded-lg bg-muted p-1.5 text-muted-foreground">
-                          <FaqIcon className="h-3.5 w-3.5" />
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">
+                            <FaqIcon className="h-4 w-4" />
+                          </div>
+                          <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">{faq.category}</span>
                         </div>
-                        <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
+                        <p className="text-sm font-medium leading-snug">{faq.q}</p>
                       </div>
-                      <p className="text-xs font-medium leading-snug line-clamp-2">{faq.q}</p>
+                      <span className="text-xs text-primary font-medium flex items-center gap-1 mt-1">
+                        Xem trả lời <ArrowRight className="h-3 w-3" />
+                      </span>
                     </button>
                   );
                 })}
