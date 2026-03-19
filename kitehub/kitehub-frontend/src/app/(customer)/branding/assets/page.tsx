@@ -19,6 +19,7 @@ import {
   Filter,
   Grid3x3,
   Sparkles,
+  Images,
 } from 'lucide-react';
 import type { BrandingAsset } from '@/types/branding';
 
@@ -44,7 +45,7 @@ export default function BrandingAssetsPage() {
 
   if (instancesLoading || assetsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
@@ -77,35 +78,42 @@ export default function BrandingAssetsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center gap-4 mb-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/branding')}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Quay lại
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Tài Nguyên Branding</h1>
-            <p className="text-sm text-muted-foreground">
-              {filteredAssets.length} tài nguyên
-            </p>
-          </div>
         </div>
-        <Button onClick={() => router.push('/branding/wizard')}>
-          <Sparkles className="w-4 h-4 mr-2" />
-          Tạo Mới
-        </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-purple-500/10 p-3 text-purple-600">
+              <Images className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Tài nguyên Branding</h1>
+              <p className="text-muted-foreground">
+                {filteredAssets.length} tài nguyên
+              </p>
+            </div>
+          </div>
+          <Button onClick={() => router.push('/branding/wizard')}>
+            <Sparkles className="w-4 h-4 mr-2" />
+            Tạo mới
+          </Button>
+        </div>
       </div>
 
       {assets && assets.length > 0 ? (
         <>
           {/* Filters */}
-          <Card className="p-4 mb-6">
+          <Card className="p-4 shadow-soft">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search */}
               <div className="flex-1 relative">
@@ -149,7 +157,7 @@ export default function BrandingAssetsPage() {
           ) : (
             <EmptyState
               icon={<Filter className="w-12 h-12" />}
-              title="Không Tìm Thấy Tài Nguyên"
+              title="Không tìm thấy tài nguyên"
               description="Thử thay đổi bộ lọc hoặc tìm kiếm"
             />
           )}
@@ -157,12 +165,12 @@ export default function BrandingAssetsPage() {
       ) : (
         <EmptyState
           icon={<Grid3x3 className="w-12 h-12" />}
-          title="Chưa Có Tài Nguyên Branding"
+          title="Chưa có tài nguyên Branding"
           description="Bắt đầu tạo bộ nhận diện thương hiệu với AI ngay bây giờ"
           action={
             <Button onClick={() => router.push('/branding/wizard')}>
               <Sparkles className="w-4 h-4 mr-2" />
-              Tạo Branding Đầu Tiên
+              Tạo Branding đầu tiên
             </Button>
           }
         />
@@ -178,7 +186,7 @@ interface AssetCardProps {
 
 function AssetCard({ asset, onDownload }: AssetCardProps) {
   return (
-    <Card className="overflow-hidden group">
+    <Card className="overflow-hidden group shadow-soft hover:shadow-lg transition-shadow">
       {/* Image Preview */}
       <div className="aspect-video bg-muted flex items-center justify-center relative">
         <img
