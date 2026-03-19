@@ -8,6 +8,11 @@ package com.kitehub.platform.domain.enums;
  */
 public enum InstanceStatus {
     /**
+     * Pending email verification (no DB provisioned yet).
+     */
+    PENDING,
+
+    /**
      * Trial period (14 days free).
      */
     TRIAL,

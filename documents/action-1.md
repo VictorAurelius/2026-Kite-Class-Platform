@@ -156,3 +156,60 @@ Application error: a client-side exception has occurred (see the browser console
     at u_ (4db8f4eb-8775624467b798ad.js:1:127898)
     at 4db8f4eb-8775624467b798ad.js:1:127261
 l @ 8729-5ef5e08926c685e5.js:1
+
+
+rebuild thành công chưa?
+
+Bảng giá trong landing pages rõ ràng đẹp trong trong /billing
+
+kitehub local đang bảo đảm luồng end-to-end chưa?
+
+đã triển khai PR AI Local đâu mà vẫn đảm bảo end-to-end sao?
+
+bạn nghĩ sao với việc trên môi trường production vẫn dùng AI scope của local?
+
+tại sao lại Cần GPU server? chạy ở local cũng dùng CPU thôi mà, lên production cũng vậy?
+
+ở local RAM ít thì dùng Ollama ít tham số, trên cloud RAM oke hơn thì nên đổi model không?
+
+Production (server 32-64GB RAM) => ước lượng chi phí KiteHub
+
+khớp với free tier thì sao?
+free tier có EC2 16GB đến 32GB RAM không?
+
+check lại xem free tier EC2 của AWS, thông tin có vẻ sai
+
+tốt, tạo PR để cập nhật toàn bộ design môi trường production của kitehub sang sử dụng Oracle Cloud. Nhưng lưu ý kiteclass instance vẫn sử dụng AWS đúng không? thông tin về Oracle Cloud bạn vừa cung cấp, hãy cho tôi link web để tôi xác thực
+
+vẫn cần backup production kitehub trên AWS, tránh việc không deploy được trên Oracle
+
+PR này ngoài cập nhật docs ra có cần cập nhật các file cấu hình đã có không?
+
+check xem còn gaps nào không?
+
+có vấn đề: vậy kitehub sẽ phải deploy bằng console hãy cùng có thể tự động bằng terraform hoặc 1 công cụ nào khác? có tài liệu tiếng việt về hướng dẫn deploy kitehub chưa?
+
+quay lại 1 số vấn đề về design, về việc kitehub local đã end-to-end chưa:
+1. hiện tại đang cho register domain luôn mà đăng ký thành công thì khởi động instance luôn? hay phải hoàn thành flow mới có instance?
+2. đối với tệp khách hàng của kiteclass, khi đăng ký thành công vào dashboard thì phải có dialog hướng dẫn user hoàn thành flow đẻ khởi động instance, hướng dẫn các URL để làm gì
+3. việc sử dụng URL domain ở môi trường local nên là gì? ở production thì cần cấu hình như thế nào? mục tiêu ở local bấm vào link thì ra được instance kiteclass khởi tạo thì hiện tại cần thêm PR không?
+4. việc không đăng ký thẻ tín dụng để khởi động instance sẽ dẫn đến những hậu quả nào? spam instance? best practice là gì để kiểm soát?
+
+cấu hình kiểm tra thẻ có tốn PR không?
+
+viết 1 báo cáo tiếng việt về vấn đề này để tôi hỏi leader
+lưu vấn đề này thành gap để xử lý sau
+
+tạo plan chứa các PR để fix các vấn đề trên
+
+kitehub-onboarding-security-plan.md ưu tiên, hãy các PR local AI ưu tiên bây giờ?
+
+bỏ qua PR cần confirm thì kitehub-onboarding-security-plan.md còn những PR khác mà?
+
+tài liệu tiếng việt để tôi hỏi leader đâu?
+
+tôi chỉ cần confirm phần này thôi mà: 2.4. Không có cơ chế chống spam đăng ký
+
+ý tôi là viết riêng ra thành 1 tài liệu đủ context để hỏi
+
+leader đã confirm, tiếp tục PR

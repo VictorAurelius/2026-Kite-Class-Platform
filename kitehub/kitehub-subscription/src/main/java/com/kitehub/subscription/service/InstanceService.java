@@ -103,6 +103,79 @@ public class InstanceService {
     }
 
     /**
+     * Create a PENDING instance (no DB provisioned, awaiting email verification).
+     *
+     * @param subdomain Instance subdomain
+     * @param organizationName Organization name
+     * @param ownerId Owner user ID
+     * @param contactEmail Contact email
+     * @return Created instance response (status=PENDING)
+     */
+    @Transactional
+    public InstanceResponse createPendingInstance(String subdomain, String organizationName,
+                                                   UUID ownerId, String contactEmail) {
+        log.info("Creating PENDING instance for subdomain: {}", subdomain);
+
+        if (instanceRepository.existsBySubdomainAndDeletedFalse(subdomain)) {
+            throw new IllegalArgumentException("Subdomain already exists: " + subdomain);
+        }
+
+        // Check instance limit
+        long count = instanceRepository.countByOwnerIdAndDeletedFalse(ownerId);
+        if (count >= MAX_FREE_INSTANCES_PER_OWNER) {
+            throw new IllegalArgumentException(
+                    "Bạn đã đạt giới hạn " + MAX_FREE_INSTANCES_PER_OWNER
+                    + " trung tâm miễn phí. Vui lòng nâng cấp gói để tạo thêm.");
+        }
+
+        Instance instance = new Instance();
+        instance.setSubdomain(subdomain);
+        instance.setOrganizationName(organizationName);
+        instance.setOwnerId(ownerId);
+        instance.setContactEmail(contactEmail);
+        instance.setTier(PricingTier.FREE);
+        instance.setStatus(InstanceStatus.PENDING);
+        instance.setDatabaseUrl("pending");
+        instance.setDatabaseUsername("pending");
+        instance.setDatabasePassword("pending");
+
+        Instance saved = instanceRepository.save(instance);
+        log.info("Created PENDING instance: {}", saved.getId());
+
+        return toResponse(saved);
+    }
+
+    /**
+     * Activate a PENDING instance: start trial + provision database.
+     *
+     * @param instanceId Instance ID
+     */
+    @Transactional
+    public void activatePendingInstance(UUID instanceId) {
+        Instance instance = instanceRepository.findById(instanceId)
+                .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + instanceId));
+
+        if (instance.getStatus() != InstanceStatus.PENDING) {
+            log.warn("Instance {} is not PENDING (status: {}), skipping activation", instanceId, instance.getStatus());
+            return;
+        }
+
+        // Start trial
+        instance.startTrial();
+        instanceRepository.save(instance);
+
+        // Provision database
+        try {
+            databaseProvisioningService.provisionDatabase(instanceId);
+            log.info("Database provisioned for activated instance: {}", instanceId);
+        } catch (Exception e) {
+            log.error("Failed to provision database for instance: {}", instanceId, e);
+        }
+
+        log.info("Activated PENDING instance: {} → TRIAL", instanceId);
+    }
+
+    /**
      * Register a new trial instance with owner (self-service registration).
      *
      * @param request registration request
