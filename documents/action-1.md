@@ -115,3 +115,10 @@ Dành thời gian cho việc giảng dạy, để KiteClass lo phần còn lại
 
 Nền tảng quản lý trung tâm giáo dục thông minh.
 => nên in nghiêng và là 1 thể với logo sẽ đẹp hơn
+
+![alt text](image.png)
+chưa đẹp lắm nhỉ, chữ nghiêng nên để dưới chữ kitehub sẽ đẹp hơn đúng không
+
+slogan có style chưa đẹp lắm
+
+nên thêm nền để nổi bật hơn không

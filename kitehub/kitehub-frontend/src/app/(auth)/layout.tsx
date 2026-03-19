@@ -8,13 +8,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 relative overflow-hidden">
         <div className="flex flex-col justify-center p-12 xl:p-16 relative z-10">
           <div className="mb-10">
-            <div className="flex items-end gap-2">
-              <KiteLogo size="lg" />
-              <p className="text-sm italic text-muted-foreground mb-1">Nền tảng quản lý giáo dục thông minh</p>
+            <KiteLogo size="lg" />
+            <p className="mt-1 text-sm italic text-muted-foreground tracking-wide">Nền tảng quản lý giáo dục thông minh</p>
+
+            <div className="mt-8 rounded-2xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-primary/10 p-6 max-w-md">
+              <p className="text-lg font-semibold text-foreground/90 leading-relaxed">
+                Giảng dạy là đam mê —
+              </p>
+              <p className="text-lg text-primary font-bold">
+                quản lý để KiteClass lo.
+              </p>
             </div>
-            <p className="mt-6 text-xl font-medium text-foreground/80 max-w-md leading-relaxed">
-              &ldquo;Giảng dạy là đam mê — <br />quản lý để KiteClass lo.&rdquo;
-            </p>
           </div>
 
           <div className="space-y-5 max-w-sm">
