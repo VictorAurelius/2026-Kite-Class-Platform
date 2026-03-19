@@ -103,3 +103,5 @@ FAQ - khi expand:
 FAG cần chia 2 hàng dọc để khớp height của panel được mở rộng, panel mở rộng cần thêm width cho đẹp hơn, height thì phải khớp với hàng dọc
 
 các panel ở 2 cột đạng bị thu gọn, check lại margin và mở lại ra với height hàng hợp lý
+
+width không đủ khiến height bị kéo quá dài

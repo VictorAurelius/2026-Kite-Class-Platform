@@ -832,7 +832,7 @@ export default function HomePage() {
 
       {/* ========== FAQ ========== */}
       <section className="py-20 sm:py-28">
-        <div className="container max-w-4xl">
+        <div className="container">
           <SectionTitle
             title="Câu hỏi thường gặp"
             subtitle="Không tìm thấy câu trả lời? Liên hệ đội ngũ hỗ trợ qua chat hoặc email."
@@ -880,7 +880,7 @@ export default function HomePage() {
                     key={openFaq}
                     initial={false}
                     animate={{ opacity: 1 }}
-                    className="lg:flex-[3] rounded-2xl border bg-card shadow-soft-xl ring-2 ring-primary/20 overflow-hidden flex flex-col"
+                    className="lg:flex-[2] rounded-2xl border bg-card shadow-soft-xl ring-2 ring-primary/20 overflow-hidden flex flex-col"
                   >
                     <div className="flex items-center justify-between p-6 border-b bg-primary/5">
                       <div className="flex items-center gap-4">
@@ -914,7 +914,7 @@ export default function HomePage() {
               })()}
 
               {/* Other questions (right, 2 columns, match panel height) */}
-              <div className="lg:flex-[1.2] grid grid-cols-2 gap-4 content-stretch">
+              <div className="lg:flex-[1.5] grid grid-cols-2 gap-3 content-start">
                 {faqs.map((faq, i) => {
                   if (i === openFaq) return null;
                   const FaqIcon = faq.icon;
@@ -922,20 +922,15 @@ export default function HomePage() {
                     <button
                       key={i}
                       onClick={() => setOpenFaq(i)}
-                      className="flex flex-col justify-between gap-3 rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left"
+                      className="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left"
                     >
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">
-                            <FaqIcon className="h-4 w-4" />
-                          </div>
-                          <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">{faq.category}</span>
-                        </div>
-                        <p className="text-sm font-medium leading-snug">{faq.q}</p>
+                      <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary mt-0.5">
+                        <FaqIcon className="h-4 w-4" />
                       </div>
-                      <span className="text-xs text-primary font-medium flex items-center gap-1 mt-1">
-                        Xem trả lời <ArrowRight className="h-3 w-3" />
-                      </span>
+                      <div>
+                        <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">{faq.category}</span>
+                        <p className="text-sm font-medium leading-snug mt-0.5">{faq.q}</p>
+                      </div>
                     </button>
                   );
                 })}
