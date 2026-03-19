@@ -9,7 +9,7 @@ import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
-import { ArrowRight, Building2, Palette, CreditCard, ExternalLink, Clock } from 'lucide-react';
+import { ArrowRight, Building2, Palette, CreditCard, Clock } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
