@@ -8,9 +8,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 relative overflow-hidden">
         <div className="flex flex-col justify-center p-12 xl:p-16 relative z-10">
           <div className="mb-10">
-            <KiteLogo size="lg" />
-            <p className="mt-4 text-lg text-foreground/70 max-w-md leading-relaxed">
-              Nền tảng quản lý trung tâm giáo dục thông minh. Dành thời gian cho việc giảng dạy, để KiteClass lo phần còn lại.
+            <div className="flex items-end gap-2">
+              <KiteLogo size="lg" />
+              <p className="text-sm italic text-muted-foreground mb-1">Nền tảng quản lý giáo dục thông minh</p>
+            </div>
+            <p className="mt-6 text-xl font-medium text-foreground/80 max-w-md leading-relaxed">
+              &ldquo;Giảng dạy là đam mê — <br />quản lý để KiteClass lo.&rdquo;
             </p>
           </div>
 
