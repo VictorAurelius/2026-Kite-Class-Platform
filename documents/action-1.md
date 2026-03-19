@@ -125,3 +125,14 @@ nên thêm nền để nổi bật hơn không
 
 1. chưa có logo, slogan cho dashboard
 2. còn rất nhiều khoảng trống, có thể bổ sung quảng cáo cho kitehub, kiteclass, có đường dẫn rõ ràng cho quảng cáo
+
+vào đâu để test?
+
+check xem seed data chưa
+
+vậy là có gaps? không có cách nào vào được http://localhost:3001/admin?
+tại sao không có user table? design thiếu hay sao? nên đặt ở đâu? ở gateway như kiteclass?
+
+best practice theo design hiện tại là gì?
+
+lưu lại chưa hoàn thành PR 141 và tạo PR để fix gaps trong đúng series PR và thực hiện fix theo chuẩn superpowers
