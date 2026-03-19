@@ -868,9 +868,9 @@ export default function HomePage() {
               })}
             </div>
           ) : (
-            /* ---- One expanded: answer left + other questions right ---- */
-            <div className="flex gap-6 flex-col lg:flex-row items-start">
-              {/* Expanded answer (left, ~2/3) */}
+            /* ---- One expanded: answer left (~3/4) + 2-col questions right (~1/4) ---- */
+            <div className="flex gap-5 flex-col lg:flex-row items-stretch">
+              {/* Expanded answer (left, ~3/4) */}
               {(() => {
                 const faq = faqs[openFaq!];
                 if (!faq) return null;
@@ -880,7 +880,7 @@ export default function HomePage() {
                     key={openFaq}
                     initial={false}
                     animate={{ opacity: 1 }}
-                    className="flex-1 lg:flex-[2] rounded-2xl border bg-card shadow-soft-xl ring-2 ring-primary/20 overflow-hidden"
+                    className="lg:flex-[3] rounded-2xl border bg-card shadow-soft-xl ring-2 ring-primary/20 overflow-hidden flex flex-col"
                   >
                     <div className="flex items-center justify-between p-6 border-b bg-primary/5">
                       <div className="flex items-center gap-4">
@@ -892,15 +892,15 @@ export default function HomePage() {
                           <h3 className="text-lg font-bold mt-0.5">{faq.q}</h3>
                         </div>
                       </div>
-                      <button onClick={() => setOpenFaq(null)} className="rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors text-muted-foreground border">
+                      <button onClick={() => setOpenFaq(null)} className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors text-muted-foreground border">
                         Thu gọn
                       </button>
                     </div>
-                    <div className="p-8">
+                    <div className="p-8 flex-1 flex flex-col justify-between">
                       <p className="text-base leading-relaxed text-foreground/80">{faq.a}</p>
-                      <div className="mt-8 pt-6 border-t flex items-center justify-between">
+                      <div className="mt-8 pt-6 border-t flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-muted-foreground">Câu trả lời có hữu ích không?</span>
+                          <span className="text-sm text-muted-foreground">Hữu ích không?</span>
                           <button className="rounded-lg border px-4 py-1.5 text-sm hover:bg-primary/10 hover:text-primary hover:border-primary transition-colors">👍 Có</button>
                           <button className="rounded-lg border px-4 py-1.5 text-sm hover:bg-muted transition-colors">Chưa rõ</button>
                         </div>
@@ -913,24 +913,25 @@ export default function HomePage() {
                 );
               })()}
 
-              {/* Other questions (right, ~1/3) */}
-              <div className="lg:flex-1 flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-visible lg:sticky lg:top-24">
+              {/* Other questions (right, ~1/4, 2 columns) */}
+              <div className="lg:flex-1 grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 auto-rows-fr overflow-x-auto lg:overflow-visible content-start">
                 {faqs.map((faq, i) => {
                   if (i === openFaq) return null;
                   const FaqIcon = faq.icon;
+                  const isActive = i === openFaq;
                   return (
                     <button
                       key={i}
                       onClick={() => setOpenFaq(i)}
-                      className="flex items-center gap-3 rounded-xl border bg-card p-4 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left min-w-[240px] lg:min-w-0"
+                      className={`flex flex-col gap-2 rounded-xl border bg-card p-3.5 shadow-soft hover:shadow-soft-lg hover:border-primary/30 transition-all text-left ${isActive ? 'ring-2 ring-primary' : ''}`}
                     >
-                      <div className="shrink-0 rounded-lg bg-muted p-2 text-muted-foreground">
-                        <FaqIcon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="shrink-0 rounded-lg bg-muted p-1.5 text-muted-foreground">
+                          <FaqIcon className="h-3.5 w-3.5" />
+                        </div>
                         <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
-                        <p className="text-sm font-medium mt-0.5 line-clamp-2">{faq.q}</p>
                       </div>
+                      <p className="text-xs font-medium leading-snug line-clamp-2">{faq.q}</p>
                     </button>
                   );
                 })}

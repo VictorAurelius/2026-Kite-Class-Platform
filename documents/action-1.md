@@ -99,3 +99,5 @@ Features - khi expand: lần đầu bấm sẽ tab expand sẽ bị dịch xuố
 FAQ - khi expand:
 1. vẫn hơi bé
 2. nội dung giải thích còn tòm tắt, cho người hiểu về tech, chưa phù hợp với tệp khách hàng của kiteclass, cần bổ sung content kỹ hơn
+
+FAG cần chia 2 hàng dọc để khớp height của panel được mở rộng, panel mở rộng cần thêm width cho đẹp hơn, height thì phải khớp với hàng dọc
