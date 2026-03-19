@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, type LucideIcon } from 'lucide-react';
+import { KiteLogo } from '@/components/brand/KiteLogo';
 
 interface NavItem {
   href: string;
@@ -32,11 +33,12 @@ export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admi
   return (
     <aside className="w-64 border-r bg-muted/30 min-h-screen p-4">
       <div className="mb-8">
-        <Link href="/" className="text-xl font-bold text-primary">
-          KiteHub
+        <Link href="/" className="block">
+          <KiteLogo size="sm" />
+          <p className="mt-0.5 text-[10px] italic text-muted-foreground">Quản lý giáo dục thông minh</p>
         </Link>
         {variant === 'admin' && (
-          <span className="ml-2 rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+          <span className="mt-2 inline-block rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
             Admin
           </span>
         )}
