@@ -525,163 +525,157 @@ export default function HomePage() {
             subtitle="Từ quản lý học viên đến AI tạo website — KiteClass giúp bạn vận hành trung tâm chuyên nghiệp hơn."
           />
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={stagger}
-            className="space-y-6"
-          >
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {expandedFeature === null ? (
+            /* ---- All collapsed: 3-column grid ---- */
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-100px' }}
+              variants={stagger}
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            >
               {features.map((f, i) => {
-                const isExpanded = expandedFeature === i;
                 const Icon = f.icon;
                 return (
                   <motion.div
                     key={f.title}
                     variants={fadeInUp}
-                    layout
-                    className={`group relative rounded-2xl border shadow-soft transition-all duration-300 overflow-hidden ${
-                      isExpanded
-                        ? 'sm:col-span-2 lg:col-span-3 shadow-soft-xl ring-2 ring-primary/20'
-                        : 'hover:shadow-soft-xl'
-                    } ${f.bg}`}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                    className={`group relative rounded-2xl border p-6 shadow-soft hover:shadow-soft-xl transition-all duration-300 overflow-hidden cursor-pointer ${f.bg}`}
+                    onClick={() => setExpandedFeature(i)}
                   >
-                    {!isExpanded ? (
-                      /* ---- Collapsed Card ---- */
-                      <div className="p-6">
-                        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition-opacity" />
-                        <div className="absolute right-4 top-4 text-4xl opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all">
-                          {f.img}
-                        </div>
-                        <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
-                        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-                        <button
-                          onClick={() => setExpandedFeature(i)}
-                          className="mt-4 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                        >
-                          Tìm hiểu thêm <ArrowRight className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      /* ---- Expanded Inline Panel ---- */
-                      <div>
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-5 border-b">
-                          <div className="flex items-center gap-3">
-                            <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
-                              <Icon className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold">{f.title}</h3>
-                              <p className="text-sm text-muted-foreground">{f.desc}</p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => setExpandedFeature(null)}
-                            className="rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground text-sm"
-                          >
-                            Thu gọn ✕
-                          </button>
-                        </div>
-
-                        {/* Split content */}
-                        <div className="grid md:grid-cols-2">
-                          {/* Left: description + benefits */}
-                          <div className="p-6 space-y-5">
-                            <div>
-                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Mô tả chi tiết</h4>
-                              <p className="text-sm leading-relaxed">{f.longDesc}</p>
-                            </div>
-                            <div>
-                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tính năng nổi bật</h4>
-                              <ul className="space-y-2.5">
-                                {f.benefits.map((b, bi) => (
-                                  <motion.li
-                                    key={b}
-                                    initial={{ opacity: 0, x: -15 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: bi * 0.1 }}
-                                    className="flex items-start gap-2.5 text-sm"
-                                  >
-                                    <CheckCircle className={`h-4 w-4 shrink-0 mt-0.5 bg-gradient-to-br ${f.color} text-white rounded-full p-0.5`} />
-                                    {b}
-                                  </motion.li>
-                                ))}
-                              </ul>
-                            </div>
-                            <Link
-                              href="/register"
-                              className={`inline-flex items-center gap-2 rounded-xl bg-gradient-to-r ${f.color} px-5 py-2.5 text-sm font-semibold text-white hover:shadow-soft-lg transition-all`}
-                            >
-                              Dùng thử miễn phí <ArrowRight className="h-4 w-4" />
-                            </Link>
-                          </div>
-
-                          {/* Right: mockup */}
-                          <div className="p-6 bg-muted/20 border-t md:border-t-0 md:border-l">
-                            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Giao diện minh họa</h4>
-                            <div className="rounded-xl border bg-card shadow-soft overflow-hidden">
-                              <div className="flex items-center gap-2 border-b bg-muted/50 px-3 py-2">
-                                <div className="flex gap-1">
-                                  <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-                                  <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                                </div>
-                                <span className="ml-2 text-[10px] text-muted-foreground">{f.title}</span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 p-3">
-                                {['Tổng', 'Hoạt động', 'Mới'].map((label, si) => (
-                                  <div key={label} className="rounded-lg bg-muted/40 p-2 text-center">
-                                    <div className={`text-lg font-bold bg-gradient-to-r ${f.color} bg-clip-text text-transparent`}>
-                                      {[f.mockupRows.length * 42, f.mockupRows.length * 38, f.mockupRows.length * 3][si]}
-                                    </div>
-                                    <div className="text-[10px] text-muted-foreground">{label}</div>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="px-3 pb-3 space-y-2">
-                                {f.mockupRows.map((row, ri) => (
-                                  <motion.div
-                                    key={row.name}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: ri * 0.12 }}
-                                    className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${f.color} flex items-center justify-center text-white text-xs font-bold`}>
-                                        {row.name.charAt(0)}
-                                      </div>
-                                      <div>
-                                        <div className="text-xs font-medium">{row.name}</div>
-                                        <div className="text-[10px] text-muted-foreground">{row.class}</div>
-                                      </div>
-                                    </div>
-                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                                      row.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
-                                      row.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30' :
-                                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30'
-                                    }`}>
-                                      {row.status === 'active' ? 'Hoạt động' : row.status === 'pending' ? 'Chờ TT' : 'Dùng thử'}
-                                    </span>
-                                  </motion.div>
-                                ))}
-                              </div>
-                            </div>
-                            <p className="mt-2 text-[10px] text-muted-foreground text-center">* Hình ảnh minh họa</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br opacity-10 group-hover:opacity-20 transition-opacity" />
+                    <div className="absolute right-4 top-4 text-4xl opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all">{f.img}</div>
+                    <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                    <span className="mt-4 flex items-center gap-1 text-xs font-medium text-primary">
+                      Tìm hiểu thêm <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </motion.div>
                 );
               })}
-            </div>
-          </motion.div>
+            </motion.div>
+          ) : (
+            /* ---- One expanded: panel left + mini cards right ---- */
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex gap-6 flex-col lg:flex-row"
+            >
+              {/* Expanded panel (left, ~2/3) */}
+              {(() => {
+                const f = features[expandedFeature];
+                const Icon = f.icon;
+                return (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`flex-1 lg:flex-[2] rounded-2xl border shadow-soft-xl ring-2 ring-primary/20 overflow-hidden ${f.bg}`}
+                  >
+                    <div className="flex items-center justify-between p-5 border-b">
+                      <div className="flex items-center gap-3">
+                        <div className={`inline-flex rounded-xl bg-gradient-to-br ${f.color} p-3 text-white shadow-sm`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold">{f.title}</h3>
+                          <p className="text-sm text-muted-foreground">{f.desc}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setExpandedFeature(null)}
+                        className="rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors text-muted-foreground border"
+                      >
+                        Thu gọn
+                      </button>
+                    </div>
+                    <div className="grid md:grid-cols-2">
+                      <div className="p-6 space-y-5">
+                        <div>
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Mô tả chi tiết</h4>
+                          <p className="text-sm leading-relaxed">{f.longDesc}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tính năng nổi bật</h4>
+                          <ul className="space-y-2.5">
+                            {f.benefits.map((b, bi) => (
+                              <motion.li key={b} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: bi * 0.1 }} className="flex items-start gap-2.5 text-sm">
+                                <CheckCircle className={`h-4 w-4 shrink-0 mt-0.5 bg-gradient-to-br ${f.color} text-white rounded-full p-0.5`} />
+                                {b}
+                              </motion.li>
+                            ))}
+                          </ul>
+                        </div>
+                        <Link href="/register" className={`inline-flex items-center gap-2 rounded-xl bg-gradient-to-r ${f.color} px-5 py-2.5 text-sm font-semibold text-white hover:shadow-soft-lg transition-all`}>
+                          Dùng thử miễn phí <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </div>
+                      <div className="p-6 bg-muted/20 border-t md:border-t-0 md:border-l">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Giao diện minh họa</h4>
+                        <div className="rounded-xl border bg-card shadow-soft overflow-hidden">
+                          <div className="flex items-center gap-2 border-b bg-muted/50 px-3 py-2">
+                            <div className="flex gap-1"><div className="h-2.5 w-2.5 rounded-full bg-red-400" /><div className="h-2.5 w-2.5 rounded-full bg-yellow-400" /><div className="h-2.5 w-2.5 rounded-full bg-green-400" /></div>
+                            <span className="ml-2 text-[10px] text-muted-foreground">{f.title}</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 p-3">
+                            {['Tổng', 'Hoạt động', 'Mới'].map((label, si) => (
+                              <div key={label} className="rounded-lg bg-muted/40 p-2 text-center">
+                                <div className={`text-lg font-bold bg-gradient-to-r ${f.color} bg-clip-text text-transparent`}>{[f.mockupRows.length * 42, f.mockupRows.length * 38, f.mockupRows.length * 3][si]}</div>
+                                <div className="text-[10px] text-muted-foreground">{label}</div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="px-3 pb-3 space-y-2">
+                            {f.mockupRows.map((row, ri) => (
+                              <motion.div key={row.name} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: ri * 0.12 }} className="flex items-center justify-between rounded-lg bg-muted/30 p-2.5">
+                                <div className="flex items-center gap-2">
+                                  <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${f.color} flex items-center justify-center text-white text-xs font-bold`}>{row.name.charAt(0)}</div>
+                                  <div><div className="text-xs font-medium">{row.name}</div><div className="text-[10px] text-muted-foreground">{row.class}</div></div>
+                                </div>
+                                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${row.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : row.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30'}`}>
+                                  {row.status === 'active' ? 'Hoạt động' : row.status === 'pending' ? 'Chờ TT' : 'Dùng thử'}
+                                </span>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
+
+              {/* Mini cards column (right, ~1/3) */}
+              <div className="lg:flex-1 flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-visible">
+                {features.map((f, i) => {
+                  if (i === expandedFeature) return null;
+                  const Icon = f.icon;
+                  return (
+                    <motion.button
+                      key={f.title}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => setExpandedFeature(i)}
+                      className={`flex items-center gap-3 rounded-xl border p-3 shadow-soft hover:shadow-soft-lg transition-all text-left min-w-[200px] lg:min-w-0 ${f.bg}`}
+                    >
+                      <div className={`shrink-0 inline-flex rounded-lg bg-gradient-to-br ${f.color} p-2 text-white`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">{f.title}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{f.desc}</p>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -835,48 +829,102 @@ export default function HomePage() {
             subtitle="Không tìm thấy câu trả lời? Liên hệ đội ngũ hỗ trợ qua chat hoặc email."
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {faqs.map((faq, i) => {
-              const FaqIcon = faq.icon;
-              const isOpen = openFaq === i;
-              return (
-                <motion.div
-                  key={i}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={fadeInUp}
-                  className={`rounded-2xl border bg-card overflow-hidden transition-all ${isOpen ? 'shadow-soft-lg ring-1 ring-primary/20 sm:col-span-2' : 'shadow-soft hover:shadow-soft-lg'}`}
-                >
-                  <button
-                    onClick={() => setOpenFaq(isOpen ? null : i)}
-                    className="flex w-full items-center gap-3 p-5 text-left hover:bg-muted/30 transition-colors"
+          {openFaq === null ? (
+            /* ---- All collapsed: 2-column grid ---- */
+            <div className="grid gap-4 sm:grid-cols-2">
+              {faqs.map((faq, i) => {
+                const FaqIcon = faq.icon;
+                return (
+                  <motion.button
+                    key={i}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                    onClick={() => setOpenFaq(i)}
+                    className="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition-all text-left group"
                   >
-                    <div className={`shrink-0 rounded-xl p-2 transition-colors ${isOpen ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                      <FaqIcon className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1">
-                      <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
-                      <p className="text-sm font-medium mt-0.5">{faq.q}</p>
-                    </div>
-                    <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <div className="flex items-center gap-3">
+                      <div className="shrink-0 rounded-xl bg-muted p-2 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <FaqIcon className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
+                        <p className="text-sm font-medium mt-0.5">{faq.q}</p>
+                      </div>
                       <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    </motion.div>
-                  </button>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          ) : (
+            /* ---- One expanded: answer left + other questions right ---- */
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex gap-6 flex-col lg:flex-row"
+            >
+              {/* Expanded answer (left, ~2/3) */}
+              {(() => {
+                const faq = faqs[openFaq];
+                const FaqIcon = faq.icon;
+                return (
                   <motion.div
-                    initial={false}
-                    animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 lg:flex-[2] rounded-2xl border bg-card shadow-soft-xl ring-2 ring-primary/20 overflow-hidden"
                   >
-                    <div className="px-5 pb-5 pl-14 text-sm text-muted-foreground leading-relaxed">
-                      {faq.a}
+                    <div className="flex items-center justify-between p-5 border-b bg-primary/5">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-primary/10 p-2 text-primary">
+                          <FaqIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{faq.category}</span>
+                          <h3 className="text-base font-semibold mt-0.5">{faq.q}</h3>
+                        </div>
+                      </div>
+                      <button onClick={() => setOpenFaq(null)} className="rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors text-muted-foreground border">
+                        Thu gọn
+                      </button>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                      <div className="mt-6 flex items-center gap-4">
+                        <span className="text-xs text-muted-foreground">Câu trả lời có hữu ích không?</span>
+                        <button className="rounded-lg border px-3 py-1 text-xs hover:bg-primary/10 hover:text-primary transition-colors">👍 Có</button>
+                        <button className="rounded-lg border px-3 py-1 text-xs hover:bg-muted transition-colors">Chưa rõ</button>
+                      </div>
                     </div>
                   </motion.div>
-                </motion.div>
-              );
-            })}
-          </div>
+                );
+              })()}
+
+              {/* Other questions (right, ~1/3) */}
+              <div className="lg:flex-1 flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-visible">
+                {faqs.map((faq, i) => {
+                  if (i === openFaq) return null;
+                  const FaqIcon = faq.icon;
+                  return (
+                    <motion.button
+                      key={i}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => setOpenFaq(i)}
+                      className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-soft hover:shadow-soft-lg transition-all text-left min-w-[220px] lg:min-w-0"
+                    >
+                      <div className="shrink-0 rounded-lg bg-muted p-1.5 text-muted-foreground">
+                        <FaqIcon className="h-3.5 w-3.5" />
+                      </div>
+                      <p className="text-xs font-medium truncate">{faq.q}</p>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
