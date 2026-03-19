@@ -567,7 +567,8 @@ export default function HomePage() {
             >
               {/* Expanded panel (left, ~2/3) */}
               {(() => {
-                const f = features[expandedFeature];
+                const f = features[expandedFeature!];
+                if (!f) return null;
                 const Icon = f.icon;
                 return (
                   <motion.div
@@ -867,7 +868,8 @@ export default function HomePage() {
             >
               {/* Expanded answer (left, ~2/3) */}
               {(() => {
-                const faq = faqs[openFaq];
+                const faq = faqs[openFaq!];
+                if (!faq) return null;
                 const FaqIcon = faq.icon;
                 return (
                   <motion.div
