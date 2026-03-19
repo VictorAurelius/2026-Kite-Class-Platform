@@ -205,13 +205,13 @@ export function AdminInstancesTable({ instances }: AdminInstancesTableProps) {
                     <code className="text-sm">{instance.subdomain}</code>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusConfig[instance.status].variant}>
-                      {statusConfig[instance.status].label}
+                    <Badge variant={statusConfig[instance.status]?.variant ?? 'outline'}>
+                      {statusConfig[instance.status]?.label ?? instance.status ?? 'N/A'}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className={tierConfig[instance.tier].color}>
-                      {tierConfig[instance.tier].label}
+                    <span className={tierConfig[instance.tier]?.color ?? 'text-muted-foreground'}>
+                      {tierConfig[instance.tier]?.label ?? instance.tier ?? 'N/A'}
                     </span>
                   </TableCell>
                   <TableCell>

@@ -136,3 +136,23 @@ tại sao không có user table? design thiếu hay sao? nên đặt ở đâu? 
 best practice theo design hiện tại là gì?
 
 lưu lại chưa hoàn thành PR 141 và tạo PR để fix gaps trong đúng series PR và thực hiện fix theo chuẩn superpowers
+
+tìm tục tạo PR fix lỗi
+http://localhost:3001/admin/instances
+Application error: a client-side exception has occurred (see the browser console for more information).
+8729-5ef5e08926c685e5.js:1 TypeError: Cannot read properties of undefined (reading 'color')
+    at page-e5e50a862746f7ea.js:1:7720
+    at Array.map (<anonymous>)
+    at P (page-e5e50a862746f7ea.js:1:7210)
+    at ll (4db8f4eb-8775624467b798ad.js:1:34819)
+    at aZ (4db8f4eb-8775624467b798ad.js:1:61420)
+    at ol (4db8f4eb-8775624467b798ad.js:1:72774)
+    at uu (4db8f4eb-8775624467b798ad.js:1:112190)
+    at 4db8f4eb-8775624467b798ad.js:1:112035
+    at ui (4db8f4eb-8775624467b798ad.js:1:112043)
+    at i8 (4db8f4eb-8775624467b798ad.js:1:109180)
+    at uO (4db8f4eb-8775624467b798ad.js:1:129152)
+    at uT (4db8f4eb-8775624467b798ad.js:1:127581)
+    at u_ (4db8f4eb-8775624467b798ad.js:1:127898)
+    at 4db8f4eb-8775624467b798ad.js:1:127261
+l @ 8729-5ef5e08926c685e5.js:1
