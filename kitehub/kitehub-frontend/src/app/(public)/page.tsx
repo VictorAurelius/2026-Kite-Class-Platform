@@ -188,15 +188,21 @@ const faqs = [
 
 function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
   const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const el = ref.current;
+    if (!el) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && !started) {
+          setStarted(true);
           const duration = 2000;
-          const steps = 60;
-          const increment = value / steps;
+          const totalSteps = 60;
+          const increment = value / totalSteps;
           let current = 0;
           const timer = setInterval(() => {
             current += increment;
@@ -206,15 +212,15 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
             } else {
               setCount(Math.floor(current));
             }
-          }, duration / steps);
+          }, duration / totalSteps);
           observer.disconnect();
         }
       },
       { threshold: 0.5 }
     );
-    if (ref.current) observer.observe(ref.current);
+    observer.observe(el);
     return () => observer.disconnect();
-  }, [value]);
+  }, [value, started]);
 
   return (
     <div ref={ref}>
