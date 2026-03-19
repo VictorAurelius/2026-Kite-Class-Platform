@@ -13,13 +13,15 @@ import { formatDate } from '@/lib/utils';
 import {
   ArrowRight, Building2, Palette, CreditCard, Clock, Sparkles,
   TrendingUp, Smartphone, Zap, CheckCircle2, Circle, AlertTriangle,
-  ExternalLink,
+  ExternalLink, HelpCircle,
 } from 'lucide-react';
 import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
+import { OnboardingWizard, useOnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const { data: instances, isLoading, error, refetch } = useOwnerInstances(user?.id);
+  const { shouldShow, showWizard, hideWizard } = useOnboardingWizard();
 
   const greeting = (() => {
     const hour = new Date().getHours();
@@ -35,6 +37,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Onboarding Wizard */}
+      {firstInstance && (
+        <OnboardingWizard
+          instance={firstInstance}
+          open={shouldShow && !isLoading}
+          onClose={hideWizard}
+        />
+      )}
+
       {/* Welcome Banner */}
       <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6 sm:p-8">
         <h1 className="text-2xl font-bold">
@@ -67,6 +78,13 @@ export default function DashboardPage() {
             <Building2 className="h-4 w-4" />
             Cài đặt
           </Link>
+          <button
+            onClick={showWizard}
+            className="inline-flex items-center gap-2 rounded-xl border bg-card px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary transition-all shadow-soft"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Xem hướng dẫn
+          </button>
         </div>
       </div>
 
