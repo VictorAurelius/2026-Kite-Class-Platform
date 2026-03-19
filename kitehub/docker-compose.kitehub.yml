@@ -93,6 +93,48 @@ services:
       - kitehub-network
 
   # ============================================================================
+  # AI SERVICES (Local Development)
+  # ============================================================================
+
+  kitehub-ollama:
+    image: ollama/ollama:latest
+    container_name: kitehub-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - kitehub-ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - kitehub-network
+    profiles:
+      - ai-local
+
+  kitehub-ollama-setup:
+    image: ollama/ollama:latest
+    container_name: kitehub-ollama-setup
+    depends_on:
+      kitehub-ollama:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Pulling AI models for local development...';
+      OLLAMA_HOST=http://kitehub-ollama:11434 ollama pull llama3.1:8b;
+      echo 'Text model (llama3.1:8b) ready';
+      echo 'Skipping vision model (llava:13b) - pull manually if needed: ollama pull llava:13b';
+      echo 'All models ready!';
+      "
+    networks:
+      - kitehub-network
+    profiles:
+      - ai-local
+
+  # ============================================================================
   # BASE IMAGE - Build first, used by all backend services
   # ============================================================================
 
@@ -167,6 +209,10 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      OLLAMA_BASE_URL: http://kitehub-ollama:11434
+      OLLAMA_TEXT_MODEL: ${OLLAMA_TEXT_MODEL:-llama3.1:8b}
+      OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava:13b}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-kitehub}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?required}
@@ -376,6 +422,8 @@ volumes:
   kitehub-postgres-data:
     driver: local
   kitehub-minio-data:
+    driver: local
+  kitehub-ollama-models:
     driver: local
 
 networks:

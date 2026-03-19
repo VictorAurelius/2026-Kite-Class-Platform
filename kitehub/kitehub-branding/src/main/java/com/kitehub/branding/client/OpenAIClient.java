@@ -24,7 +24,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OpenAIClient {
+public class OpenAIClient implements AIClient {
 
     private final WebClient openAIWebClient;
     private final OpenAIConfig openAIConfig;
@@ -263,6 +263,11 @@ public class OpenAIClient {
             log.error("Failed to parse image generation response", e);
             throw new RuntimeException("Failed to parse DALL-E 3 response", e);
         }
+    }
+
+    @Override
+    public String getProviderName() {
+        return isMockMode() ? "openai-mock" : "openai";
     }
 
     /**
