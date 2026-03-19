@@ -43,8 +43,20 @@ public class InstanceService {
      * @param request create instance request
      * @return created instance response
      */
+    private static final int MAX_FREE_INSTANCES_PER_OWNER = 2;
+
     public InstanceResponse createTrialInstance(CreateInstanceRequest request) {
         log.info("Creating trial instance for subdomain: {}", request.getSubdomain());
+
+        // Validate instance limit per owner
+        if (request.getOwnerId() != null) {
+            long count = instanceRepository.countByOwnerIdAndDeletedFalse(request.getOwnerId());
+            if (count >= MAX_FREE_INSTANCES_PER_OWNER) {
+                throw new IllegalArgumentException(
+                        "Bạn đã đạt giới hạn " + MAX_FREE_INSTANCES_PER_OWNER
+                        + " trung tâm miễn phí. Vui lòng nâng cấp gói để tạo thêm.");
+            }
+        }
 
         // Validate subdomain uniqueness
         if (instanceRepository.existsBySubdomainAndDeletedFalse(request.getSubdomain())) {

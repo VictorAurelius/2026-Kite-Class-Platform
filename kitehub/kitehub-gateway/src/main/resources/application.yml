@@ -23,6 +23,23 @@ spring:
 
       routes:
         # Auth APIs - handled by Subscription Service
+        - id: auth-register
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/auth/register
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 3
+                redis-rate-limiter.burstCapacity: 5
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/fallback/auth
+
         - id: auth
           uri: http://kitehub-subscription:8080
           predicates:
