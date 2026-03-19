@@ -3,25 +3,26 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { LayoutDashboard, CreditCard, Palette, Settings, Building2, TrendingUp, type LucideIcon } from 'lucide-react';
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 const customerNav: NavItem[] = [
-  { href: '/dashboard', label: 'Tổng quan', icon: '📊' },
-  { href: '/billing', label: 'Thanh toán', icon: '💳' },
-  { href: '/branding', label: 'AI Branding', icon: '🎨' },
-  { href: '/settings', label: 'Cài đặt', icon: '⚙️' },
+  { href: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+  { href: '/billing', label: 'Thanh toán', icon: CreditCard },
+  { href: '/branding', label: 'AI Branding', icon: Palette },
+  { href: '/settings', label: 'Cài đặt', icon: Settings },
 ];
 
 const adminNav: NavItem[] = [
-  { href: '/admin', label: 'Dashboard', icon: '📊' },
-  { href: '/admin/instances', label: 'Instances', icon: '🏢' },
-  { href: '/admin/payments', label: 'Thanh toán', icon: '💳' },
-  { href: '/admin/revenue', label: 'Doanh thu', icon: '📈' },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/instances', label: 'Instances', icon: Building2 },
+  { href: '/admin/payments', label: 'Thanh toán', icon: CreditCard },
+  { href: '/admin/revenue', label: 'Doanh thu', icon: TrendingUp },
 ];
 
 export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admin' }) {
@@ -41,21 +42,25 @@ export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admi
         )}
       </div>
       <nav className="space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-              pathname === item.href
-                ? 'bg-primary/10 text-primary font-medium'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            )}
-          >
-            <span>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all',
+                isActive
+                  ? 'bg-primary/10 text-primary font-medium shadow-sm'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
     </aside>
   );

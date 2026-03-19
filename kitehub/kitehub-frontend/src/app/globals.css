@@ -25,11 +25,18 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 199 89% 48%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     /* Custom KiteHub colors */
     --kite-sky: 199 89% 48%;
     --kite-orange: 25 95% 53%;
     --kite-teal: 168 76% 42%;
+    /* Semantic colors */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -109,6 +116,11 @@
       opacity: 1;
       transform: translateX(0);
     }
+  }
+
+  @keyframes gradient {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 100% center; }
   }
 
   /* Smooth hover transitions for cards */

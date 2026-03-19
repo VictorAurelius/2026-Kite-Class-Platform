@@ -61,6 +61,16 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        xl: 'calc(var(--radius) + 4px)',
+      },
+      boxShadow: {
+        soft: '0 2px 8px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)',
+        'soft-lg': '0 4px 12px rgba(0,0,0,0.05), 0 8px 32px rgba(0,0,0,0.08)',
+        'soft-xl': '0 8px 24px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.10)',
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
     },
   },
