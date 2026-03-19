@@ -8,7 +8,7 @@ import { PaymentHistoryTable } from '@/components/billing/PaymentHistoryTable';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Receipt } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function PaymentHistoryPage() {
@@ -25,7 +25,7 @@ export default function PaymentHistoryPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
@@ -33,12 +33,11 @@ export default function PaymentHistoryPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="space-y-4">
         <ErrorAlert message="Không thể tải lịch sử thanh toán" />
         <Button
           variant="outline"
           onClick={() => router.push('/billing')}
-          className="mt-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại
@@ -48,21 +47,30 @@ export default function PaymentHistoryPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/billing')}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
-        </Button>
-        <h1 className="text-3xl font-bold mb-2">Lịch sử thanh toán</h1>
-        <p className="text-muted-foreground">
-          Xem tất cả các giao dịch thanh toán của bạn
-        </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center gap-4 mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/billing')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-primary/10 p-3 text-primary">
+            <Receipt className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Lịch sử thanh toán</h1>
+            <p className="text-muted-foreground">
+              Xem tất cả các giao dịch thanh toán của bạn
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Payment History Table */}

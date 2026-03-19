@@ -7,12 +7,16 @@ import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
 import { PlanComparison } from '@/components/billing/PlanComparison';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
-import { useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { CreditCard, Receipt, ArrowUpCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function BillingPage() {
   const user = useAuthStore((state) => state.user);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Get user's instances (assuming 1 user = 1 instance for now)
   const { data: instances, isLoading: instancesLoading, error: instancesError } = useOwnerInstances(user?.id);
@@ -25,16 +29,15 @@ export default function BillingPage() {
   useEffect(() => {
     const success = searchParams.get('success');
     if (success === 'payment') {
-      // Show success toast (will implement in Task #8)
-      console.log('Payment successful!');
+      toast.success('Thanh toán thành công!');
     } else if (success === 'downgrade') {
-      console.log('Downgrade scheduled successfully!');
+      toast.success('Đã lên lịch hạ gói thành công!');
     }
   }, [searchParams]);
 
   if (instancesLoading || subLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
@@ -47,27 +50,64 @@ export default function BillingPage() {
   // subError (400) = no subscription yet (trial user) → show plan comparison
   if (!subscription || subError) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Chưa có gói đăng ký</h1>
-          <p className="text-muted-foreground mb-6">
-            Bạn chưa có gói đăng ký nào. Vui lòng chọn gói phù hợp với nhu cầu của bạn.
-          </p>
-          <PlanComparison currentTier={null} />
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-primary/10 p-3 text-primary">
+              <CreditCard className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Chưa có gói đăng ký</h1>
+              <p className="text-muted-foreground">
+                Bạn đang trong giai đoạn dùng thử. Chọn gói phù hợp với nhu cầu của bạn.
+              </p>
+            </div>
+          </div>
         </div>
+
+        <PlanComparison currentTier={null} />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Thanh toán & Đăng ký</h1>
-        <p className="text-muted-foreground mt-2">
-          Quản lý gói đăng ký và lịch sử thanh toán của bạn
-        </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-primary/10 p-3 text-primary">
+              <CreditCard className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Thanh toán & Đăng ký</h1>
+              <p className="text-muted-foreground">
+                Quản lý gói đăng ký và lịch sử thanh toán của bạn
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/billing/history')}
+            >
+              <Receipt className="mr-2 h-4 w-4" />
+              Lịch sử
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => router.push('/billing/upgrade')}
+            >
+              <ArrowUpCircle className="mr-2 h-4 w-4" />
+              Nâng cấp
+            </Button>
+          </div>
+        </div>
       </div>
 
+      {/* Content */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <CurrentPlanCard subscription={subscription} />

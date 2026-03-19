@@ -123,8 +123,8 @@ export default function AdminInstanceDetailPage() {
 
   if (error || !instance) {
     return (
-      <div>
-        <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại
         </Button>
@@ -134,38 +134,42 @@ export default function AdminInstanceDetailPage() {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{instance.organizationName}</h1>
-            <p className="text-muted-foreground">
-              <code>{instance.subdomain}.kiteclass.com</code>
-            </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Quay lại
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">{instance.organizationName}</h1>
+              <p className="text-muted-foreground">
+                <code className="text-sm">{instance.subdomain}.kiteclass.com</code>
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={statusConfig[instance.status].variant} className="text-sm">
-            {statusConfig[instance.status].label}
-          </Badge>
-          <span className={`font-medium ${tierConfig[instance.tier].color}`}>
-            {tierConfig[instance.tier].label}
-          </span>
+          <div className="flex items-center gap-2">
+            <Badge variant={statusConfig[instance.status]?.variant ?? 'outline'} className="text-sm">
+              {statusConfig[instance.status]?.label ?? instance.status}
+            </Badge>
+            <span className={`font-medium ${tierConfig[instance.tier]?.color ?? 'text-muted-foreground'}`}>
+              {tierConfig[instance.tier]?.label ?? instance.tier}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Content Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Instance Info */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Building className="h-4 w-4" />
+              </div>
               Thông tin Instance
             </CardTitle>
           </CardHeader>
@@ -192,10 +196,12 @@ export default function AdminInstanceDetailPage() {
         </Card>
 
         {/* Owner Info */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
+              <div className="rounded-lg bg-blue-500/10 p-2 text-blue-600">
+                <Mail className="h-4 w-4" />
+              </div>
               Thông tin chủ sở hữu
             </CardTitle>
           </CardHeader>
@@ -212,10 +218,12 @@ export default function AdminInstanceDetailPage() {
         </Card>
 
         {/* Subscription Info */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+              <div className="rounded-lg bg-green-500/10 p-2 text-green-600">
+                <Calendar className="h-4 w-4" />
+              </div>
               Subscription
             </CardTitle>
           </CardHeader>
@@ -223,14 +231,14 @@ export default function AdminInstanceDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-muted-foreground">Gói</Label>
-                <p className={tierConfig[instance.tier].color}>
-                  {tierConfig[instance.tier].label}
+                <p className={tierConfig[instance.tier]?.color ?? 'text-muted-foreground'}>
+                  {tierConfig[instance.tier]?.label ?? instance.tier}
                 </p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Trạng thái</Label>
-                <Badge variant={statusConfig[instance.status].variant}>
-                  {statusConfig[instance.status].label}
+                <Badge variant={statusConfig[instance.status]?.variant ?? 'outline'}>
+                  {statusConfig[instance.status]?.label ?? instance.status}
                 </Badge>
               </div>
               {instance.status === 'TRIAL' && (
@@ -250,27 +258,35 @@ export default function AdminInstanceDetailPage() {
         </Card>
 
         {/* Statistics */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+              <div className="rounded-lg bg-amber-500/10 p-2 text-amber-600">
+                <Users className="h-4 w-4" />
+              </div>
               Thống kê
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-4 bg-muted rounded-lg">
-                <Users className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+              <div className="p-4 bg-muted/50 rounded-xl">
+                <div className="rounded-lg bg-primary/10 p-2 text-primary w-fit mx-auto mb-2">
+                  <Users className="h-5 w-5" />
+                </div>
                 <p className="text-2xl font-bold">{instance.totalUsers}</p>
                 <p className="text-sm text-muted-foreground">Users</p>
               </div>
-              <div className="p-4 bg-muted rounded-lg">
-                <GraduationCap className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+              <div className="p-4 bg-muted/50 rounded-xl">
+                <div className="rounded-lg bg-green-500/10 p-2 text-green-600 w-fit mx-auto mb-2">
+                  <GraduationCap className="h-5 w-5" />
+                </div>
                 <p className="text-2xl font-bold">{instance.totalStudents}</p>
                 <p className="text-sm text-muted-foreground">Học sinh</p>
               </div>
-              <div className="p-4 bg-muted rounded-lg">
-                <BookOpen className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+              <div className="p-4 bg-muted/50 rounded-xl">
+                <div className="rounded-lg bg-blue-500/10 p-2 text-blue-600 w-fit mx-auto mb-2">
+                  <BookOpen className="h-5 w-5" />
+                </div>
                 <p className="text-2xl font-bold">{instance.totalCourses}</p>
                 <p className="text-sm text-muted-foreground">Khóa học</p>
               </div>
@@ -279,23 +295,25 @@ export default function AdminInstanceDetailPage() {
         </Card>
 
         {/* Database Info */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
+              <div className="rounded-lg bg-purple-500/10 p-2 text-purple-600">
+                <Database className="h-4 w-4" />
+              </div>
               Database
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Label className="text-muted-foreground">Database URL</Label>
-            <p className="font-mono text-sm break-all bg-muted p-2 rounded mt-1">
+            <p className="font-mono text-sm break-all bg-muted/50 p-3 rounded-xl mt-2 border">
               {instance.databaseUrl || 'Không có thông tin'}
             </p>
           </CardContent>
         </Card>
 
         {/* Admin Actions */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
             <CardTitle>Hành động Admin</CardTitle>
             <CardDescription>

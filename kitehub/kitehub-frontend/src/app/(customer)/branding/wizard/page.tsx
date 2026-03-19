@@ -10,6 +10,8 @@ import { AnalyzeStep } from '@/components/branding/AnalyzeStep';
 import { GenerateStep } from '@/components/branding/GenerateStep';
 import { ReviewStep } from '@/components/branding/ReviewStep';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Sparkles, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import type { LogoAnalysis } from '@/types/branding';
 
@@ -70,22 +72,42 @@ export default function BrandingWizardPage() {
 
   if (!instanceId) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-2">Trình Hướng Dẫn AI Branding</h1>
-      <p className="text-muted-foreground mb-8">
-        Tạo bộ nhận diện thương hiệu hoàn chỉnh từ logo của bạn
-      </p>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center gap-4 mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/branding')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-purple-500/10 p-3 text-purple-600">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Trình hướng dẫn AI Branding</h1>
+            <p className="text-muted-foreground">
+              Tạo bộ nhận diện thương hiệu hoàn chỉnh từ logo của bạn
+            </p>
+          </div>
+        </div>
+      </div>
 
       <BrandingStepIndicator currentStep={step} />
 
-      <div className="mt-8">
+      <div className="mt-2">
         {step === 1 && (
           <UploadStep
             instanceId={instanceId}
@@ -133,7 +155,7 @@ function BrandingStepIndicator({ currentStep }: { currentStep: number }) {
           <div className="flex flex-col items-center">
             <div
               className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
+                w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all
                 ${step.number < currentStep
                   ? 'bg-primary text-primary-foreground'
                   : step.number === currentStep
@@ -142,31 +164,21 @@ function BrandingStepIndicator({ currentStep }: { currentStep: number }) {
               `}
             >
               {step.number < currentStep ? (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+                <Check className="w-5 h-5" />
               ) : (
                 step.number
               )}
             </div>
-            <p className="text-sm mt-2 font-medium">{step.label}</p>
+            <p className={`text-sm mt-2 font-medium ${step.number <= currentStep ? 'text-foreground' : 'text-muted-foreground'}`}>
+              {step.label}
+            </p>
           </div>
 
           {/* Connector Line */}
           {idx < steps.length - 1 && (
             <div
               className={`
-                h-0.5 w-16 md:w-24 mx-2 md:mx-4 mb-6
+                h-0.5 w-16 md:w-24 mx-2 md:mx-4 mb-6 transition-colors
                 ${step.number < currentStep ? 'bg-primary' : 'bg-muted'}
               `}
             />

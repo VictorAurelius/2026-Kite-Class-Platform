@@ -9,7 +9,7 @@ import { PaymentStatusCard } from '@/components/billing/PaymentStatusCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PaymentPage() {
@@ -31,7 +31,7 @@ export default function PaymentPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
@@ -39,12 +39,11 @@ export default function PaymentPage() {
 
   if (error || !payment) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="space-y-4">
         <ErrorAlert message="Không tìm thấy thông tin thanh toán" />
         <Button
           variant="outline"
           onClick={() => router.push('/billing')}
-          className="mt-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Quay lại trang thanh toán
@@ -54,21 +53,30 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/billing')}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Quay lại
-        </Button>
-        <h1 className="text-3xl font-bold">Thanh toán</h1>
-        <p className="text-muted-foreground mt-1">
-          Hoàn tất thanh toán để nâng cấp gói đăng ký
-        </p>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center gap-4 mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/billing')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Quay lại
+          </Button>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-primary/10 p-3 text-primary">
+            <CreditCard className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Thanh toán</h1>
+            <p className="text-muted-foreground">
+              Hoàn tất thanh toán để nâng cấp gói đăng ký
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Payment Status */}
@@ -90,7 +98,7 @@ export default function PaymentPage() {
 
       {/* Auto-refresh indicator for PENDING status */}
       {payment.status === 'PENDING' && (
-        <div className="mt-6 text-center">
+        <div className="text-center">
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
             Tự động kiểm tra trạng thái thanh toán mỗi 5 giây
@@ -100,7 +108,7 @@ export default function PaymentPage() {
 
       {/* Failed/Expired actions */}
       {(payment.status === 'FAILED' || payment.status === 'EXPIRED') && (
-        <div className="mt-6 flex justify-center gap-4">
+        <div className="flex justify-center gap-4">
           <Button
             variant="outline"
             onClick={() => router.push('/billing')}

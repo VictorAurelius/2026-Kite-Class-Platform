@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Sparkles, Image as ImageIcon, Grid3x3, ArrowRight } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Grid3x3, ArrowRight, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function BrandingDashboardPage() {
@@ -30,7 +30,7 @@ export default function BrandingDashboardPage() {
 
   if (instancesLoading || assetsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
@@ -40,45 +40,54 @@ export default function BrandingDashboardPage() {
   const recentAssets = assets?.slice(0, 6) || [];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">AI Branding</h1>
-          <p className="text-muted-foreground">
-            Quản lý và tạo bộ nhận diện thương hiệu với AI
-          </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-purple-500/10 p-3 text-purple-600">
+              <Palette className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">AI Branding</h1>
+              <p className="text-muted-foreground">
+                Quản lý và tạo bộ nhận diện thương hiệu với AI
+              </p>
+            </div>
+          </div>
+          <Button onClick={() => router.push('/branding/wizard')}>
+            <Sparkles className="w-4 h-4 mr-2" />
+            Tạo Branding mới
+          </Button>
         </div>
-        <Button onClick={() => router.push('/branding/wizard')} size="lg">
-          <Sparkles className="w-4 h-4 mr-2" />
-          Tạo Branding Mới
-        </Button>
       </div>
 
       {/* Status Card */}
-      <Card className="mb-8">
+      <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="w-5 h-5" />
-            Trạng Thái Branding
+            <div className="rounded-lg bg-purple-500/10 p-2 text-purple-600">
+              <ImageIcon className="h-4 w-4" />
+            </div>
+            Trạng thái Branding
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard
-              label="Tổng Tài Nguyên"
+              label="Tổng tài nguyên"
               value={assets?.length || 0}
-              icon={<ImageIcon className="w-5 h-5 text-muted-foreground" />}
+              icon={<ImageIcon className="w-5 h-5 text-purple-600" />}
             />
             <StatCard
               label="Profile Images"
               value={assets?.filter((a) => a.type === 'PROFILE').length || 0}
-              icon={<ImageIcon className="w-5 h-5 text-muted-foreground" />}
+              icon={<ImageIcon className="w-5 h-5 text-blue-600" />}
             />
             <StatCard
               label="Hero Images"
               value={assets?.filter((a) => a.type === 'HERO').length || 0}
-              icon={<ImageIcon className="w-5 h-5 text-muted-foreground" />}
+              icon={<ImageIcon className="w-5 h-5 text-green-600" />}
             />
           </div>
         </CardContent>
@@ -86,11 +95,11 @@ export default function BrandingDashboardPage() {
 
       {/* Recent Assets */}
       {hasAssets ? (
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Tài Nguyên Gần Đây</CardTitle>
+            <CardTitle>Tài nguyên gần đây</CardTitle>
             <Button variant="ghost" onClick={() => router.push('/branding/assets')}>
-              Xem Tất Cả
+              Xem tất cả
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </CardHeader>
@@ -105,12 +114,12 @@ export default function BrandingDashboardPage() {
       ) : (
         <EmptyState
           icon={<Grid3x3 className="w-12 h-12" />}
-          title="Chưa Có Tài Nguyên Branding"
+          title="Chưa có tài nguyên Branding"
           description="Bắt đầu tạo bộ nhận diện thương hiệu với AI ngay bây giờ"
           action={
             <Button onClick={() => router.push('/branding/wizard')}>
               <Sparkles className="w-4 h-4 mr-2" />
-              Tạo Branding Đầu Tiên
+              Tạo Branding đầu tiên
             </Button>
           }
         />
@@ -128,7 +137,7 @@ interface StatCardProps {
 function StatCard({ label, value, icon }: StatCardProps) {
   return (
     <div className="flex items-center gap-4">
-      <div className="p-3 bg-muted rounded-lg">
+      <div className="p-3 bg-muted/50 rounded-xl">
         {icon}
       </div>
       <div>
