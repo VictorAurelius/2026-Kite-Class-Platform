@@ -31,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Pause, Play, Calendar, Loader2, Building, Mail, Phone, Database, Users, GraduationCap, BookOpen } from 'lucide-react';
 import type { InstanceStatus, SubscriptionTier } from '@/types/instance';
 import { toast } from 'sonner';
+import { getTenantDisplayUrl } from '@/lib/tenant-url';
 
 const statusConfig: Record<InstanceStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   TRIAL: { label: 'Dùng thử', variant: 'secondary' },
@@ -146,7 +147,7 @@ export default function AdminInstanceDetailPage() {
             <div>
               <h1 className="text-2xl font-bold">{instance.organizationName}</h1>
               <p className="text-muted-foreground">
-                <code className="text-sm">{instance.subdomain}.kiteclass.com</code>
+                <code className="text-sm">{getTenantDisplayUrl(instance.subdomain)}</code>
               </p>
             </div>
           </div>

@@ -47,11 +47,12 @@ export const metadata: Metadata = {
   },
 };
 
-const getLandingPageData = async () => {
+const getLandingPageData = async (tenantOverride?: string) => {
   try {
-    // Get tenant ID from environment or use default Demo School tenant
-    const tenantId =
-      process.env.NEXT_PUBLIC_TENANT_ID || '11111111-1111-1111-1111-111111111111';
+    // Priority: query param tenant > env var > default
+    const tenantId: string = tenantOverride
+      ?? process.env.NEXT_PUBLIC_TENANT_ID
+      ?? '11111111-1111-1111-1111-111111111111';
 
     // Fetch from backend API
     const response = await publicApi.getLandingPage(tenantId);
@@ -74,8 +75,13 @@ const getLandingPageData = async () => {
   }
 };
 
-export default async function LandingPage() {
-  const landingData = await getLandingPageData();
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tenant?: string }>;
+}) {
+  const params = await searchParams;
+  const landingData = await getLandingPageData(params.tenant);
 
   // Structured data for SEO
   const structuredData = {

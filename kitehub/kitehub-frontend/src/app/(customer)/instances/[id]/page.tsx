@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { Building2, ExternalLink, CreditCard, Palette, ArrowLeft, Info, Clock } from 'lucide-react';
+import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
 
 export default function InstanceDetailPage({
   params,
@@ -53,7 +54,7 @@ export default function InstanceDetailPage({
             <div>
               <h1 className="text-2xl font-bold">{instance.organizationName}</h1>
               <p className="text-muted-foreground">
-                <code className="text-sm">{instance.subdomain}.kiteclass.com</code>
+                <code className="text-sm">{getTenantDisplayUrl(instance.subdomain)}</code>
               </p>
             </div>
           </div>
@@ -122,7 +123,7 @@ export default function InstanceDetailPage({
       <div className="flex flex-wrap gap-3">
         <Button asChild>
           <a
-            href={`https://${instance.subdomain}.kiteclass.com`}
+            href={getTenantUrl(instance.subdomain)}
             target="_blank"
             rel="noopener noreferrer"
           >
