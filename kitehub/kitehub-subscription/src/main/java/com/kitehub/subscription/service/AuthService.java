@@ -1,8 +1,11 @@
 package com.kitehub.subscription.service;
 
+import com.kitehub.platform.domain.entity.User;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -13,17 +16,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import io.jsonwebtoken.Claims;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Authentication service for KiteHub platform.
- * Handles user registration, login, and JWT token management.
+ * Uses PostgreSQL users table for persistent storage.
  *
  * @since 1.0.0
  */
@@ -34,10 +35,8 @@ public class AuthService {
 
     private final InstanceRepository instanceRepository;
     private final InstanceService instanceService;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    // In-memory user storage (for demo - should be replaced with proper user table)
-    private static final Map<String, UserCredentials> USER_STORE = new ConcurrentHashMap<>();
 
     @Value("${jwt.secret:#{null}}")
     private String jwtSecret;
@@ -53,57 +52,51 @@ public class AuthService {
             throw new IllegalStateException("JWT_SECRET must be at least 32 characters (256 bits)");
         }
         log.info("JWT secret configured (length: {} chars)", jwtSecret.length());
+        log.info("Users in DB: {}", userRepository.count());
     }
 
-    /**
-     * Register a new instance with owner account.
-     *
-     * @param request registration request
-     * @return registration response with tokens
-     */
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
         log.info("Registering new instance: {}", request.getSubdomain());
 
-        // Check if email already registered
-        if (USER_STORE.containsKey(request.getOwnerEmail())) {
+        if (userRepository.existsByEmail(request.getOwnerEmail())) {
             throw new IllegalArgumentException("Email already registered");
         }
 
-        // Check subdomain availability
         if (instanceRepository.existsBySubdomainAndDeletedFalse(request.getSubdomain())) {
             throw new IllegalArgumentException("Subdomain already exists");
         }
 
-        // Create user
-        UUID userId = UUID.randomUUID();
-        String passwordHash = passwordEncoder.encode(request.getOwnerPassword());
-        USER_STORE.put(request.getOwnerEmail(), new UserCredentials(
-            userId, request.getOwnerEmail(), request.getOrganizationName(), passwordHash, "OWNER"
-        ));
+        // Create user in DB
+        User user = User.builder()
+            .email(request.getOwnerEmail())
+            .name(request.getOrganizationName())
+            .passwordHash(passwordEncoder.encode(request.getOwnerPassword()))
+            .role("OWNER")
+            .build();
+        user = userRepository.save(user);
 
         // Create instance
         CreateInstanceRequest instanceRequest = new CreateInstanceRequest();
         instanceRequest.setSubdomain(request.getSubdomain());
         instanceRequest.setOrganizationName(request.getOrganizationName());
-        instanceRequest.setOwnerId(userId);
+        instanceRequest.setOwnerId(user.getId());
         instanceRequest.setContactEmail(request.getOwnerEmail());
         instanceRequest.setTier(PricingTier.FREE);
 
         InstanceResponse instance = instanceService.createTrialInstance(instanceRequest);
 
-        // Generate tokens
-        String accessToken = generateAccessToken(userId, request.getOwnerEmail(), "OWNER");
-        String refreshToken = generateRefreshToken(userId);
+        String accessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = generateRefreshToken(user.getId());
 
-        log.info("Registered new instance: {} for user: {}", instance.getId(), userId);
+        log.info("Registered user: {} instance: {}", user.getId(), instance.getId());
 
         return RegisterResponse.builder()
             .user(RegisterResponse.UserInfo.builder()
-                .id(userId)
-                .email(request.getOwnerEmail())
-                .name(request.getOrganizationName())
-                .role("OWNER")
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole())
                 .build())
             .accessToken(accessToken)
             .refreshToken(refreshToken)
@@ -111,36 +104,30 @@ public class AuthService {
             .build();
     }
 
-    /**
-     * Login with email and password.
-     *
-     * @param request login request
-     * @return login response with tokens
-     */
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
         log.info("Login attempt for: {}", request.getEmail());
 
-        UserCredentials user = USER_STORE.get(request.getEmail());
-        if (user == null || !passwordEncoder.matches(request.getPassword(), user.passwordHash())) {
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        // Get user's instances
-        List<InstanceResponse> instances = instanceService.getInstancesByOwner(user.id());
+        List<InstanceResponse> instances = instanceService.getInstancesByOwner(user.getId());
 
-        // Generate tokens
-        String accessToken = generateAccessToken(user.id(), user.email(), user.role());
-        String refreshToken = generateRefreshToken(user.id());
+        String accessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = generateRefreshToken(user.getId());
 
-        log.info("Login successful for user: {}", user.id());
+        log.info("Login successful for user: {}", user.getId());
 
         return LoginResponse.builder()
             .user(LoginResponse.UserInfo.builder()
-                .id(user.id())
-                .email(user.email())
-                .name(user.name())
-                .role(user.role())
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .role(user.getRole())
                 .build())
             .accessToken(accessToken)
             .refreshToken(refreshToken)
@@ -148,12 +135,6 @@ public class AuthService {
             .build();
     }
 
-    /**
-     * Refresh access token using refresh token.
-     *
-     * @param refreshToken the refresh token
-     * @return new access and refresh tokens
-     */
     public RefreshResponse refresh(String refreshToken) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -170,14 +151,11 @@ public class AuthService {
 
             UUID userId = UUID.fromString(claims.getSubject());
 
-            // Find user by ID
-            UserCredentials user = USER_STORE.values().stream()
-                .filter(u -> u.id().equals(userId))
-                .findFirst()
+            User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            String newAccessToken = generateAccessToken(user.id(), user.email(), user.role());
-            String newRefreshToken = generateRefreshToken(user.id());
+            String newAccessToken = generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+            String newRefreshToken = generateRefreshToken(user.getId());
 
             return RefreshResponse.builder()
                 .accessToken(newAccessToken)
@@ -188,37 +166,28 @@ public class AuthService {
         }
     }
 
-    /**
-     * Update user profile.
-     */
+    @Transactional
     public void updateProfile(String email, String name, String phone) {
-        UserCredentials user = USER_STORE.get(email);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-        USER_STORE.put(email, new UserCredentials(user.id(), user.email(), name != null ? name : user.name(), user.passwordHash(), user.role()));
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (name != null) user.setName(name);
+        if (phone != null) user.setPhone(phone);
+        userRepository.save(user);
         log.info("Profile updated for: {}", email);
     }
 
-    /**
-     * Change user password.
-     */
+    @Transactional
     public void changePassword(String email, String currentPassword, String newPassword) {
-        UserCredentials user = USER_STORE.get(email);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-        if (!passwordEncoder.matches(currentPassword, user.passwordHash())) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
-        String newHash = passwordEncoder.encode(newPassword);
-        USER_STORE.put(email, new UserCredentials(user.id(), user.email(), user.name(), newHash, user.role()));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
         log.info("Password changed for: {}", email);
     }
 
-    /**
-     * Generate JWT access token.
-     */
     private String generateAccessToken(UUID userId, String email, String role) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
@@ -234,9 +203,6 @@ public class AuthService {
             .compact();
     }
 
-    /**
-     * Generate JWT refresh token.
-     */
     private String generateRefreshToken(UUID userId) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
         Instant now = Instant.now();
@@ -249,9 +215,4 @@ public class AuthService {
             .signWith(key)
             .compact();
     }
-
-    /**
-     * Internal record for storing user credentials.
-     */
-    private record UserCredentials(UUID id, String email, String name, String passwordHash, String role) {}
 }
