@@ -105,3 +105,20 @@ FAG cần chia 2 hàng dọc để khớp height của panel được mở rộn
 các panel ở 2 cột đạng bị thu gọn, check lại margin và mở lại ra với height hàng hợp lý
 
 width không đủ khiến height bị kéo quá dài
+
+việc nêu thành tích bao nhiêu trung tâm, bao nhiêu user không hợp lý lắm vì chưa có thật, nên nêu về điểm mạnh, feature
+
+ngoài ra còn thiếu logo nữa
+
+Dành thời gian cho việc giảng dạy, để KiteClass lo phần còn lại.
+=> có sologan hay hơn không nhỉ, và nên đặt trong format sologan
+
+Nền tảng quản lý trung tâm giáo dục thông minh.
+=> nên in nghiêng và là 1 thể với logo sẽ đẹp hơn
+
+![alt text](image.png)
+chưa đẹp lắm nhỉ, chữ nghiêng nên để dưới chữ kitehub sẽ đẹp hơn đúng không
+
+slogan có style chưa đẹp lắm
+
+nên thêm nền để nổi bật hơn không

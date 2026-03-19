@@ -9,6 +9,7 @@ import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/auth-store';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { KiteLogo } from '@/components/brand/KiteLogo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -50,101 +51,102 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="rounded-lg border bg-card p-8 shadow-sm">
-      <div className="text-center">
-        <Link href="/" className="text-2xl font-bold text-primary">KiteHub</Link>
-        <h1 className="mt-4 text-xl font-semibold">Đăng ký dùng thử 14 ngày</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Không cần thẻ tín dụng</p>
+    <div>
+      <div className="mb-8">
+        <Link href="/"><KiteLogo size="md" /></Link>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Đăng ký dùng thử 14 ngày</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Không cần thẻ tín dụng • Hủy bất kỳ lúc nào</p>
       </div>
 
       {error && (
-        <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="mb-6 flex items-center gap-2 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium">Tên tổ chức</label>
+          <label className="block text-sm font-medium mb-1.5">Tên tổ chức</label>
           <input
             {...register('organizationName')}
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
             placeholder="Trung tâm Anh ngữ ABC"
           />
           {errors.organizationName && (
-            <p className="mt-1 text-xs text-destructive">{errors.organizationName.message}</p>
+            <p className="mt-1.5 text-xs text-destructive">{errors.organizationName.message}</p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Subdomain</label>
-          <div className="mt-1 flex items-center">
+          <label className="block text-sm font-medium mb-1.5">Subdomain</label>
+          <div className="flex items-center">
             <input
               {...register('subdomain')}
-              className="w-full rounded-l-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-l-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
               placeholder="abc-center"
             />
-            <span className="rounded-r-md border border-l-0 bg-muted px-3 py-2 text-sm text-muted-foreground">
+            <span className="rounded-r-xl border border-l-0 bg-muted px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
               .kiteclass.com
             </span>
           </div>
           {subdomain && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              URL: https://{subdomain}.kiteclass.com
+            <p className="mt-1.5 text-xs text-primary font-medium">
+              🌐 https://{subdomain}.kiteclass.com
             </p>
           )}
           {errors.subdomain && (
-            <p className="mt-1 text-xs text-destructive">{errors.subdomain.message}</p>
+            <p className="mt-1.5 text-xs text-destructive">{errors.subdomain.message}</p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Email</label>
+          <label className="block text-sm font-medium mb-1.5">Email</label>
           <input
             type="email"
             {...register('ownerEmail')}
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
             placeholder="email@example.com"
           />
           {errors.ownerEmail && (
-            <p className="mt-1 text-xs text-destructive">{errors.ownerEmail.message}</p>
+            <p className="mt-1.5 text-xs text-destructive">{errors.ownerEmail.message}</p>
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium">Mật khẩu</label>
-          <input
-            type="password"
-            {...register('ownerPassword')}
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          {errors.ownerPassword && (
-            <p className="mt-1 text-xs text-destructive">{errors.ownerPassword.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium">Xác nhận mật khẩu</label>
-          <input
-            type="password"
-            {...register('confirmPassword')}
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          {errors.confirmPassword && (
-            <p className="mt-1 text-xs text-destructive">{errors.confirmPassword.message}</p>
-          )}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Mật khẩu</label>
+            <input
+              type="password"
+              {...register('ownerPassword')}
+              className="w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+            />
+            {errors.ownerPassword && (
+              <p className="mt-1.5 text-xs text-destructive">{errors.ownerPassword.message}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Xác nhận mật khẩu</label>
+            <input
+              type="password"
+              {...register('confirmPassword')}
+              className="w-full rounded-xl border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1.5 text-xs text-destructive">{errors.confirmPassword.message}</p>
+            )}
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Đang tạo...' : 'Tạo tài khoản dùng thử'}
+          {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản dùng thử'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-8 text-center text-sm text-muted-foreground">
         Đã có tài khoản?{' '}
         <Link href="/login" className="font-medium text-primary hover:underline">
           Đăng nhập
