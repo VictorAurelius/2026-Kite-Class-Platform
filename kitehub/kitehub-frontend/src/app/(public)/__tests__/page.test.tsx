@@ -12,10 +12,12 @@ describe('HomePage', () => {
   describe('Hero Section', () => {
     it('renders main headline with all parts', () => {
       render(<HomePage />);
-      // Headline is split across multiple elements, test each part
-      expect(screen.getByText(/Quản lý trung tâm/)).toBeInTheDocument();
-      expect(screen.getByText(/giáo dục/)).toBeInTheDocument();
-      expect(screen.getByText(/thông minh hơn/)).toBeInTheDocument();
+      // Headline is split across multiple elements
+      // Use getByRole to target the h1 specifically
+      const heading = screen.getByRole('heading', { level: 1 });
+      expect(heading).toHaveTextContent(/Quản lý trung tâm/);
+      expect(heading).toHaveTextContent(/giáo dục/);
+      expect(heading).toHaveTextContent(/thông minh hơn/);
     });
 
     it('renders platform badge', () => {
@@ -68,7 +70,8 @@ describe('HomePage', () => {
       expect(screen.getByText('Quản lý học viên')).toBeInTheDocument();
       expect(screen.getByText('Lịch học & Điểm danh')).toBeInTheDocument();
       expect(screen.getByText('Thanh toán & Hóa đơn')).toBeInTheDocument();
-      expect(screen.getByText('AI Branding')).toBeInTheDocument();
+      // "AI Branding" appears multiple times (feature + pricing), use getAllByText
+      expect(screen.getAllByText('AI Branding').length).toBeGreaterThan(0);
       expect(screen.getByText('Báo cáo & Thống kê')).toBeInTheDocument();
       expect(screen.getByText('Đa chi nhánh')).toBeInTheDocument();
     });
