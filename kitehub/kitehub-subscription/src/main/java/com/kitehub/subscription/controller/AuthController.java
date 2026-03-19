@@ -58,6 +58,31 @@ public class AuthController {
     }
 
     /**
+     * Verify email address using token from verification email.
+     *
+     * @param token Verification token
+     * @return Login response with tokens (user is now verified)
+     */
+    @PostMapping("/verify-email")
+    public ResponseEntity<LoginResponse> verifyEmail(@RequestParam String token) {
+        LoginResponse response = authService.verifyEmail(token);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Resend verification email.
+     *
+     * @param request Contains email address
+     * @return Success message
+     */
+    @PostMapping("/resend-verification")
+    public ResponseEntity<java.util.Map<String, Object>> resendVerification(@RequestBody java.util.Map<String, String> request) {
+        String email = request.get("email");
+        authService.resendVerification(email);
+        return ResponseEntity.ok(java.util.Map.of("message", "Email xác nhận đã được gửi lại"));
+    }
+
+    /**
      * Update user profile.
      */
     @PutMapping("/profile")

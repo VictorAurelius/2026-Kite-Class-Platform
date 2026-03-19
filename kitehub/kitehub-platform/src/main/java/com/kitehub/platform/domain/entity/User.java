@@ -37,6 +37,16 @@ public class User {
     @Column(nullable = false)
     private String role;
 
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private boolean emailVerified = false;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    @Column(name = "token_expires_at")
+    private LocalDateTime tokenExpiresAt;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
