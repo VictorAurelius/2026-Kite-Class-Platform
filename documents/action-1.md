@@ -105,3 +105,7 @@ FAG cần chia 2 hàng dọc để khớp height của panel được mở rộn
 các panel ở 2 cột đạng bị thu gọn, check lại margin và mở lại ra với height hàng hợp lý
 
 width không đủ khiến height bị kéo quá dài
+
+việc nêu thành tích bao nhiêu trung tâm, bao nhiêu user không hợp lý lắm vì chưa có thật, nên nêu về điểm mạnh, feature
+
+ngoài ra còn thiếu logo nữa

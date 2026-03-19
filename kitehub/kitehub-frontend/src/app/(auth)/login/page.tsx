@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { KiteLogo } from '@/components/brand/KiteLogo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,8 +46,8 @@ export default function LoginPage() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/" className="text-2xl font-bold text-primary">KiteHub</Link>
-        <h1 className="mt-4 text-2xl font-bold tracking-tight">Đăng nhập</h1>
+        <Link href="/"><KiteLogo size="md" /></Link>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Đăng nhập</h1>
         <p className="mt-1 text-sm text-muted-foreground">Chào mừng bạn quay lại! Nhập thông tin để tiếp tục.</p>
       </div>
 

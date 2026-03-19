@@ -1,33 +1,40 @@
-import { GraduationCap, Users, BarChart3, Sparkles } from 'lucide-react';
+import { Clock, Shield, Palette, Smartphone, Zap, CreditCard } from 'lucide-react';
+import { KiteLogo } from '@/components/brand/KiteLogo';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      {/* Left: Illustration panel (hidden on mobile) */}
+      {/* Left: Feature highlights (hidden on mobile) */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 relative overflow-hidden">
         <div className="flex flex-col justify-center p-12 xl:p-16 relative z-10">
-          <div className="mb-8">
-            <span className="text-3xl font-bold text-primary">KiteClass</span>
-            <p className="mt-3 text-lg text-foreground/70 max-w-md leading-relaxed">
-              Nền tảng quản lý trung tâm giáo dục thông minh. Tiết kiệm thời gian, tăng hiệu quả vận hành.
+          <div className="mb-10">
+            <KiteLogo size="lg" />
+            <p className="mt-4 text-lg text-foreground/70 max-w-md leading-relaxed">
+              Nền tảng quản lý trung tâm giáo dục thông minh. Dành thời gian cho việc giảng dạy, để KiteClass lo phần còn lại.
             </p>
           </div>
 
-          <div className="space-y-4 max-w-sm">
+          <div className="space-y-5 max-w-sm">
             {[
-              { icon: Users, text: 'Quản lý 500+ trung tâm giáo dục' },
-              { icon: GraduationCap, text: '50,000+ học viên đang sử dụng' },
-              { icon: BarChart3, text: 'Tiết kiệm 3-5 giờ mỗi ngày' },
-              { icon: Sparkles, text: 'AI tạo website tự động trong 5 phút' },
+              { icon: Zap, text: 'Thiết lập trong 30 giây, dùng ngay không cần cài đặt' },
+              { icon: Clock, text: 'Điểm danh, lịch học, nhắc nhở tự động' },
+              { icon: CreditCard, text: 'Quản lý học phí, hóa đơn, QR thanh toán' },
+              { icon: Palette, text: 'AI tạo website chuyên nghiệp cho trung tâm' },
+              { icon: Smartphone, text: 'Dùng được trên mọi thiết bị, không cần cài app' },
+              { icon: Shield, text: 'Dữ liệu mã hóa, sao lưu tự động mỗi ngày' },
             ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3">
-                <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">
+              <div key={item.text} className="flex items-start gap-3">
+                <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary mt-0.5">
                   <item.icon className="h-4 w-4" />
                 </div>
-                <span className="text-sm text-foreground/70">{item.text}</span>
+                <span className="text-sm text-foreground/70 leading-relaxed">{item.text}</span>
               </div>
             ))}
           </div>
+
+          <p className="mt-10 text-xs text-muted-foreground">
+            Dùng thử miễn phí 14 ngày • Không cần thẻ tín dụng
+          </p>
         </div>
 
         {/* Decorative blobs */}

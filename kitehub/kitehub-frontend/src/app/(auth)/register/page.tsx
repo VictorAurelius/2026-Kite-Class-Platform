@@ -9,6 +9,7 @@ import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/auth-store';
 import apiClient from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { KiteLogo } from '@/components/brand/KiteLogo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -52,8 +53,8 @@ export default function RegisterPage() {
   return (
     <div>
       <div className="mb-8">
-        <Link href="/" className="text-2xl font-bold text-primary">KiteHub</Link>
-        <h1 className="mt-4 text-2xl font-bold tracking-tight">Đăng ký dùng thử 14 ngày</h1>
+        <Link href="/"><KiteLogo size="md" /></Link>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Đăng ký dùng thử 14 ngày</h1>
         <p className="mt-1 text-sm text-muted-foreground">Không cần thẻ tín dụng • Hủy bất kỳ lúc nào</p>
       </div>
 
