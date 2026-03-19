@@ -83,3 +83,5 @@ hãy quét toàn bộ documents để tìm tài liệu liên quan, bắt đầu 
 hãy tạo 1 skill continue, skill này yêu cầu thực hiện action ưu tiên nhất, theo chuẩn của action đó
 
 chưa ăn skill, có vẽ chưa đúng cấu trúc? hay cần restart?
+
+vẫn chưa được, bổ sung vào PR, thêm hình ảnh và hiệu ứng để landing pages phong phú hơn
