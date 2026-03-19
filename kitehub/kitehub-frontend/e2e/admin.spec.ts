@@ -5,12 +5,13 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { clearBrowserStorage, setupMockAuth } from './utils/test-helpers';
+import { clearBrowserStorage, setupMockAuth, mockAllAdminAPIs } from './utils/test-helpers';
 
 test.describe('Admin Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await clearBrowserStorage(page);
     await setupMockAuth(page, 'ADMIN');
+    await mockAllAdminAPIs(page);
     await page.goto('/admin');
   });
 

@@ -123,5 +123,79 @@ export async function registerAndNavigate(page: Page, targetUrl: string): Promis
   }
 }
 
+/**
+ * Mock admin dashboard API with sample data.
+ */
+export async function mockAdminDashboardAPI(page: Page): Promise<void> {
+  await page.route('**/api/platform/admin/dashboard', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        totalInstances: 25,
+        activeInstances: 18,
+        trialInstances: 5,
+        suspendedInstances: 2,
+        totalRevenue: 25000000,
+        monthlyRevenue: 5000000,
+        pendingPayments: 3,
+        newInstancesThisMonth: 4,
+      }),
+    });
+  });
+}
+
+/**
+ * Mock admin instances list API.
+ */
+export async function mockAdminInstancesAPI(page: Page): Promise<void> {
+  await page.route('**/api/platform/admin/instances', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: '1',
+          organizationName: 'Test Org 1',
+          subdomain: 'test1',
+          status: 'ACTIVE',
+          tier: 'BASIC',
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          organizationName: 'Test Org 2',
+          subdomain: 'test2',
+          status: 'TRIAL',
+          tier: 'BASIC',
+          createdAt: new Date().toISOString(),
+        },
+      ]),
+    });
+  });
+}
+
+/**
+ * Mock admin payments API.
+ */
+export async function mockAdminPaymentsAPI(page: Page): Promise<void> {
+  await page.route('**/api/platform/admin/payments/pending', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    });
+  });
+}
+
+/**
+ * Mock all admin APIs for testing.
+ */
+export async function mockAllAdminAPIs(page: Page): Promise<void> {
+  await mockAdminDashboardAPI(page);
+  await mockAdminInstancesAPI(page);
+  await mockAdminPaymentsAPI(page);
+}
+
 // Re-export expect for use in helpers
 import { expect } from '@playwright/test';
