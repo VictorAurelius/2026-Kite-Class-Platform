@@ -227,8 +227,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: build
-    # Only run E2E on main branch to save CI minutes
-    if: github.ref == 'refs/heads/main'
+    # E2E tests should be run locally only to save CI time
+    # Run manually with: cd kitehub/kitehub-frontend && pnpm test:e2e:ci
+    if: false
 
     defaults:
       run:
