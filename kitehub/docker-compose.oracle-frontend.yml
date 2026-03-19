@@ -1,0 +1,67 @@
+# =============================================================================
+# KiteHub Production - Oracle Cloud Frontend + AI (VM 2)
+# =============================================================================
+# Deploy: docker compose -f docker-compose.oracle-frontend.yml up -d
+# Docs:   documents/03-planning/infrastructure/kitehub-oracle-cloud-deployment.md
+# =============================================================================
+
+name: kitehub-frontend-prod
+
+services:
+  kitehub-frontend:
+    image: kitehub-frontend:latest
+    container_name: kitehub-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:9000}
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "127.0.0.1:3001:3001"
+    restart: unless-stopped
+
+  kiteclass-frontend:
+    image: kiteclass-frontend:latest
+    container_name: kiteclass-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:9000}/api/v1
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+  kitehub-ollama:
+    image: ollama/ollama:latest
+    container_name: kitehub-ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/tags || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: kitehub-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - kitehub-frontend
+      - kiteclass-frontend
+    restart: unless-stopped
+
+volumes:
+  ollama-models:
+    driver: local
