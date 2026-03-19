@@ -40,11 +40,12 @@ export default function BillingPage() {
     );
   }
 
-  if (instancesError || subError) {
+  if (instancesError) {
     return <ErrorAlert message="Không thể tải thông tin thanh toán. Vui lòng thử lại." />;
   }
 
-  if (!subscription) {
+  // subError (400) = no subscription yet (trial user) → show plan comparison
+  if (!subscription || subError) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
