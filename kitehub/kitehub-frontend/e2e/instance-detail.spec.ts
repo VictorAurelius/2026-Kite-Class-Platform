@@ -5,17 +5,24 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { clearBrowserStorage, registerAndNavigate } from './utils/test-helpers';
+import { clearBrowserStorage, setupMockAuth, mockInstanceDetailAPI, mockInstancesAPI } from './utils/test-helpers';
 
 test.describe('Instance Detail Page', () => {
-  test.beforeEach(async ({ page }) => {
-    // Register and navigate to dashboard, then click into instance detail
-    await registerAndNavigate(page, '/dashboard');
+  const instanceId = '00000000-0000-0000-0000-000000000001';
 
-    // Click on instance card to navigate to detail
-    const instanceLink = page.locator('a[href*="/instances/"]').first();
-    await instanceLink.click();
-    await expect(page).toHaveURL(/\/instances\/[\w-]+/, { timeout: 10000 });
+  test.beforeEach(async ({ page }) => {
+    // Setup mock auth and APIs
+    await setupMockAuth(page, 'OWNER');
+
+    // Mock instance owner list API (for dashboard) - use same instance ID
+    await mockInstancesAPI(page, instanceId);
+
+    // Mock instance detail API
+    await mockInstanceDetailAPI(page, instanceId, 'TRIAL');
+
+    // Navigate directly to instance detail page
+    await page.goto(`/instances/${instanceId}`);
+    await expect(page).toHaveURL(`/instances/${instanceId}`, { timeout: 10000 });
   });
 
   test('should display organization name', async ({ page }) => {

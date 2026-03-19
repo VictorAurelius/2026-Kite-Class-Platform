@@ -5,10 +5,20 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { clearBrowserStorage, registerAndNavigate } from './utils/test-helpers';
+import {
+  clearBrowserStorage,
+  registerAndNavigate,
+  mockInstancesAPI,
+  mockBrandingAPIs,
+  mockAuthRegisterAPI
+} from './utils/test-helpers';
 
 test.describe('Branding Dashboard', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mocks BEFORE navigation
+    await mockAuthRegisterAPI(page); // Mock registration API
+    await mockInstancesAPI(page);
+    await mockBrandingAPIs(page, false); // Empty state
     await registerAndNavigate(page, '/branding');
   });
 
@@ -47,6 +57,10 @@ test.describe('Branding Dashboard', () => {
 
 test.describe('Branding Wizard', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mocks BEFORE navigation
+    await mockAuthRegisterAPI(page); // Mock registration API
+    await mockInstancesAPI(page);
+    await mockBrandingAPIs(page, false);
     await registerAndNavigate(page, '/branding/wizard');
   });
 
@@ -71,6 +85,10 @@ test.describe('Branding Wizard', () => {
 
 test.describe('Branding Assets', () => {
   test.beforeEach(async ({ page }) => {
+    // Setup mocks BEFORE navigation
+    await mockAuthRegisterAPI(page); // Mock registration API
+    await mockInstancesAPI(page);
+    await mockBrandingAPIs(page, false); // Empty state
     await registerAndNavigate(page, '/branding/assets');
   });
 
