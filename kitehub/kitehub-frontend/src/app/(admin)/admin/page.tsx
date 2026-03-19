@@ -16,6 +16,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdminDashboard } from '@/hooks/use-admin';
+import { Building2, CheckCircle, Clock, XCircle, TrendingUp, CreditCard, ArrowRight, DollarSign } from 'lucide-react';
 
 /**
  * Format number as Vietnamese currency (VND).
@@ -71,117 +72,84 @@ export default function AdminDashboardPage() {
     return null;
   }
 
+  const statCards = [
+    { label: 'Tổng Instance', value: stats.totalInstances, icon: Building2, color: 'from-primary to-primary/70', bg: 'bg-primary/10 text-primary' },
+    { label: 'Đang hoạt động', value: stats.activeInstances, icon: CheckCircle, color: 'from-green-500 to-green-600', bg: 'bg-green-50 text-green-600 dark:bg-green-950/30' },
+    { label: 'Đang dùng thử', value: stats.trialInstances, icon: Clock, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 text-blue-600 dark:bg-blue-950/30' },
+    { label: 'Tạm ngưng', value: stats.suspendedInstances, icon: XCircle, color: 'from-red-500 to-red-600', bg: 'bg-red-50 text-red-600 dark:bg-red-950/30' },
+  ];
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tổng Instance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalInstances}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Đang hoạt động
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600">
-              {stats.activeInstances}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Đang dùng thử
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
-              {stats.trialInstances}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Tạm ngưng
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-600">
-              {stats.suspendedInstances}
-            </div>
-          </CardContent>
-        </Card>
+        {statCards.map((s) => (
+          <Card key={s.label} className="shadow-soft hover:shadow-soft-lg transition-all">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">{s.label}</p>
+                  <p className="mt-1 text-3xl font-bold">{s.value}</p>
+                </div>
+                <div className={`rounded-xl p-3 ${s.bg}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Revenue & Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Revenue Card */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Doanh thu</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Doanh thu
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Tổng doanh thu</span>
-              <span className="text-xl font-semibold">
-                {formatVND(stats.totalRevenue)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Doanh thu tháng này</span>
-              <span className="text-xl font-semibold">
-                {formatVND(stats.monthlyRevenue)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Thanh toán chờ xác nhận</span>
-              <span className="text-xl font-semibold text-orange-600">
-                {stats.pendingPayments}
-              </span>
-            </div>
+            {[
+              { label: 'Tổng doanh thu', value: formatVND(stats.totalRevenue), color: '' },
+              { label: 'Doanh thu tháng này', value: formatVND(stats.monthlyRevenue), color: '' },
+              { label: 'Thanh toán chờ xác nhận', value: String(stats.pendingPayments), color: 'text-orange-600' },
+            ].map((r) => (
+              <div key={r.label} className="flex justify-between items-center py-1">
+                <span className="text-sm text-muted-foreground">{r.label}</span>
+                <span className={`text-lg font-semibold ${r.color}`}>{r.value}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
-        {/* New Instances & Quick Actions */}
-        <Card>
+        <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Tổng quan</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Tổng quan
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Instance mới trong tháng</span>
-              <span className="text-xl font-semibold text-green-600">
-                {stats.newInstancesThisMonth}
-              </span>
+            <div className="flex justify-between items-center py-1">
+              <span className="text-sm text-muted-foreground">Instance mới trong tháng</span>
+              <span className="text-lg font-semibold text-green-600">{stats.newInstancesThisMonth}</span>
             </div>
 
-            {/* Quick Actions */}
-            <div className="pt-4 space-y-2">
+            <div className="pt-2 space-y-2">
               <Link
                 href="/admin/instances"
-                className="block w-full px-4 py-2 text-center bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors text-sm font-semibold"
               >
-                Quản lý Instance
+                Quản lý Instance <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/admin/payments"
-                className="block w-full px-4 py-2 text-center bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border-2 rounded-xl hover:border-primary hover:text-primary transition-colors text-sm font-semibold"
               >
+                <CreditCard className="h-4 w-4" />
                 Xem Thanh toán
               </Link>
             </div>
