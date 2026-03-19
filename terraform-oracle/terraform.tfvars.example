@@ -1,0 +1,34 @@
+# =============================================================================
+# Oracle Cloud - Terraform Variables
+# =============================================================================
+# Copy to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# How to get OCI credentials:
+#   1. Login: https://cloud.oracle.com
+#   2. User Settings → API Keys → Add API Key
+#   3. Download private key + copy fingerprint
+#   4. Note your tenancy OCID and user OCID
+# =============================================================================
+
+# --- OCI Authentication ---
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaa..."
+user_ocid        = "ocid1.user.oc1..aaaa..."
+fingerprint      = "xx:xx:xx:xx:..."
+private_key_path = "~/.oci/oci_api_key.pem"
+compartment_ocid = "ocid1.tenancy.oc1..aaaa..."  # Use tenancy OCID for root compartment
+
+# --- Region ---
+# IMPORTANT: Choose carefully! Cannot change after account creation.
+# Recommended: ap-singapore-1, ap-sydney-1, ap-seoul-1, ap-osaka-1
+# Avoid: us-ashburn-1, eu-frankfurt-1 (often out of ARM capacity)
+region = "ap-singapore-1"
+
+# --- SSH Key ---
+ssh_public_key = "ssh-rsa AAAA... your-key"
+
+# --- Compute (Always Free: max 4 OCPU + 24GB total) ---
+vm_backend_ocpus      = 2
+vm_backend_memory_gb  = 12
+vm_frontend_ocpus     = 2
+vm_frontend_memory_gb = 12

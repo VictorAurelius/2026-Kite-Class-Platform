@@ -75,24 +75,29 @@ Cloud-only (OpenAI):
 
 ---
 
-## 3. Architecture: Local vs Production
+## 3. Architecture: Unified Ollama (Local + Production)
 
-### Local Development
+**Quyết định (2026-03-19)**: Dùng Ollama cho cả local và production.
+- Production chạy trên Oracle Cloud Always Free (ARM, 24GB RAM)
+- Cùng provider → behavior nhất quán, $0 AI cost
+- AWS backup: fallback sang OpenAI API nếu cần
+
+### Architecture (cập nhật)
 
 ```
 KiteHub Branding Service
     ↓
-AIBrandingService
-    ↓ (check profile)
-    ├── dev profile → OllamaClient (localhost:11434)
-    │   ├── llava:13b (logo analysis)
-    │   ├── llama3.1:8b (marketing copy)
-    │   └── ComfyUI (image generation) *optional
+AIBrandingService → AIClient interface
+    ↓ (check ai.provider config)
+    ├── ai.provider=ollama (LOCAL + PRODUCTION)
+    │   ├── Local:  llama3.1:8b (laptop 16GB)
+    │   ├── Oracle: llama3.1:8b (ARM 12GB VM)
+    │   └── Image generation: placeholder (PR-AI-2)
     │
-    └── prod profile → OpenAIClient (api.openai.com)
+    └── ai.provider=openai (AWS BACKUP)
         ├── GPT-4 Vision (logo analysis)
         ├── GPT-4o-mini (marketing copy)
-        └── [Stable Diffusion XL on GPU server] (image generation)
+        └── DALL-E 3 (image generation)
 ```
 
 ### Docker Compose (local)
@@ -151,16 +156,16 @@ Option C: Hybrid (Recommended)
 
 ## 4. PRs cần implement
 
-### PR-AI-1: Ollama container + OllamaClient
+### PR-AI-1: Ollama container + OllamaClient ✅ DONE (#147)
 **Priority**: P1
 **Scope**:
-- [ ] Thêm Ollama + ollama-setup vào docker-compose
-- [ ] Tạo `OllamaClient.java` (tương tự OpenAIClient, gọi Ollama API)
-- [ ] Ollama API tương thích OpenAI format: `POST /api/chat`, `POST /api/generate`
-- [ ] AIBrandingService switch giữa OpenAI/Ollama dựa trên profile
-- [ ] application-dev.yml: `ai.provider: ollama`
-- [ ] application-prod.yml: `ai.provider: openai`
-**Estimate**: 2 ngày
+- [x] Thêm Ollama + ollama-setup vào docker-compose (profile: ai-local)
+- [x] Tạo `AIClient` interface (abstraction layer)
+- [x] Tạo `OllamaClient.java` (gọi Ollama /api/chat)
+- [x] `AIProviderConfig` switch giữa OpenAI/Ollama dựa trên `ai.provider`
+- [x] AIBrandingService + ContentGenerationService dùng AIClient
+- [x] 33 tests pass (5 tests mới)
+**Estimate**: 2 ngày → **Actual**: 0.5 ngày
 
 ### PR-AI-2: Image generation (ComfyUI hoặc Stable Diffusion)
 **Priority**: P2

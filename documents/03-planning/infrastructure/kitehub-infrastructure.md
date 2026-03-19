@@ -1,9 +1,14 @@
 # KiteHub Infrastructure Design
 
-**Version:** 1.0
+**Version:** 1.1
 **Created:** 2026-03-09
+**Updated:** 2026-03-19
 **Purpose:** Define infrastructure architecture for KiteHub platform services
 **Status:** Design phase (before implementation)
+
+> **Note (2026-03-19):** Production deployment đã chuyển sang **Oracle Cloud Always Free** (primary) với **AWS làm backup**.
+> Chi tiết: [kitehub-oracle-cloud-deployment.md](kitehub-oracle-cloud-deployment.md)
+> Tài liệu này giữ nguyên thiết kế Kubernetes/AWS gốc cho reference và backup option.
 
 ---
 

@@ -1,4 +1,166 @@
-# Production Deployment Checklist
+# Production Deployment Guide
+
+## Strategy: Dual-Cloud
+
+| | Primary | Backup |
+|--|---------|--------|
+| **KiteHub Platform** | Oracle Cloud Always Free ($0) | AWS ($338/tháng) |
+| **KiteClass Instances** | AWS | - |
+
+**Chi tiết architecture**: [kitehub-oracle-cloud-deployment.md](../03-planning/infrastructure/kitehub-oracle-cloud-deployment.md)
+
+---
+
+# Option A: Oracle Cloud Always Free (PRIMARY - $0/tháng)
+
+## Prerequisites
+
+- [ ] Oracle Cloud account: https://www.oracle.com/cloud/free/
+- [ ] **Upgrade sang PAYG** (vẫn free, tránh idle reclamation)
+- [ ] SSH key pair generated
+- [ ] Domain registered + Cloudflare DNS (free)
+- [ ] Docker + Docker Compose knowledge
+
+## Step 1: Create VMs
+
+```bash
+# Qua Oracle Cloud Console (cloud.oracle.com):
+# 1. Create VCN (Virtual Cloud Network)
+#    - CIDR: 10.0.0.0/16
+#    - Public subnet: 10.0.1.0/24
+#    - Security List: allow 22, 80, 443, 9000
+
+# 2. Create VM 1 - Backend
+#    Shape: VM.Standard.A1.Flex
+#    OCPU: 2, Memory: 12GB
+#    Boot volume: 100GB
+#    Image: Oracle Linux 9 (ARM)
+
+# 3. Create VM 2 - Frontend + AI
+#    Shape: VM.Standard.A1.Flex
+#    OCPU: 2, Memory: 12GB
+#    Boot volume: 100GB
+#    Image: Oracle Linux 9 (ARM)
+```
+
+> ⚠️ Nếu gặp "Out of Capacity" → thử region khác hoặc retry sau vài giờ.
+
+## Step 2: Setup Docker (cả 2 VMs)
+
+```bash
+ssh opc@<VM_IP>
+
+# Install Docker
+sudo dnf install -y docker
+sudo systemctl enable --now docker
+sudo usermod -aG docker opc
+
+# Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-aarch64" \
+  -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Verify
+docker --version
+docker-compose --version
+```
+
+## Step 3: Deploy Backend (VM 1)
+
+```bash
+# Clone repo (hoặc copy docker-compose + .env)
+git clone https://github.com/VictorAurelius/2026-Kite-Class-Platform.git
+cd 2026-Kite-Class-Platform/kitehub
+
+# Setup environment
+cp .env.example .env
+# Edit .env: set JWT_SECRET, ENCRYPTION_MASTER_KEY, passwords
+# Set AI_PROVIDER=ollama (hoặc openai nếu dùng AWS backup)
+
+# Start backend services only
+docker compose -f docker-compose.prod-backend.yml up -d
+
+# Verify
+docker compose ps
+curl http://localhost:9000/actuator/health
+```
+
+## Step 4: Deploy Frontend + AI (VM 2)
+
+```bash
+# On VM 2
+cd 2026-Kite-Class-Platform/kitehub
+
+# Pull Ollama model
+docker run -d --name ollama -v ollama-data:/root/.ollama -p 11434:11434 ollama/ollama
+docker exec ollama ollama pull llama3.1:8b
+# ~4.7GB download, takes 5-10 minutes
+
+# Start frontend + nginx
+docker compose -f docker-compose.prod-frontend.yml up -d
+
+# Verify
+curl http://localhost:3001
+curl http://localhost:11434/api/tags  # Ollama health
+```
+
+## Step 5: SSL + Domain
+
+```bash
+# On VM 2 (Nginx)
+sudo apt install certbot python3-certbot-nginx  # hoặc dnf
+
+# Get SSL cert
+sudo certbot --nginx -d kiteclass.com -d api.kiteclass.com
+
+# Auto-renew
+sudo crontab -e
+# 0 3 * * * certbot renew --quiet
+```
+
+**Cloudflare DNS** (alternative - recommended):
+- Add A record: `kiteclass.com` → VM 2 public IP
+- Add A record: `api.kiteclass.com` → VM 2 public IP
+- Enable Cloudflare Proxy (orange cloud) → free SSL + CDN
+
+## Step 6: Verify E2E
+
+```bash
+# From your laptop
+curl https://kiteclass.com                    # Frontend
+curl https://api.kiteclass.com/actuator/health # Gateway
+curl -X POST https://api.kiteclass.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@kitehub.com","password":"Admin@KiteHub123"}'
+```
+
+## Step 7: Backup Setup
+
+```bash
+# Daily PostgreSQL backup → Oracle Object Storage
+# On VM 1, create backup script:
+cat > /home/opc/backup-db.sh << 'SCRIPT'
+#!/bin/bash
+DATE=$(date +%Y%m%d_%H%M%S)
+docker exec kitehub-postgres pg_dumpall -U kitehub > /tmp/kitehub_${DATE}.sql
+gzip /tmp/kitehub_${DATE}.sql
+# Upload to Oracle Object Storage (oci cli)
+oci os object put --bucket-name kitehub-backups \
+  --file /tmp/kitehub_${DATE}.sql.gz \
+  --name "db/kitehub_${DATE}.sql.gz"
+rm /tmp/kitehub_${DATE}.sql.gz
+# Keep only last 7 days locally
+find /tmp -name "kitehub_*.sql.gz" -mtime +7 -delete
+SCRIPT
+chmod +x /home/opc/backup-db.sh
+
+# Add to cron (daily at 3 AM)
+echo "0 3 * * * /home/opc/backup-db.sh" | crontab -
+```
+
+---
+
+# Option B: AWS (BACKUP - ~$338/tháng)
 
 ## Prerequisites
 
@@ -13,8 +175,6 @@
 - [ ] Domain registered: `kiteclass.com` (or your domain)
 - [ ] DNS managed by Route53 (or external DNS)
 - [ ] Wildcard SSL: `*.kiteclass.com`
-
----
 
 ## Step 1: Infrastructure (Terraform)
 
@@ -49,19 +209,9 @@ kubectl get nodes  # Verify connection
 ## Step 3: Secrets
 
 ```bash
-# Generate secrets
 JWT_SECRET=$(openssl rand -base64 64)
 ENCRYPTION_KEY=$(openssl rand -base64 32)
-DB_PASSWORD=$(aws rds describe-db-instances --query ... )  # From Terraform output
 
-# Create in AWS Secrets Manager
-aws secretsmanager create-secret --name kitehub/production/jwt \
-  --secret-string "$JWT_SECRET"
-
-aws secretsmanager create-secret --name kitehub/production/encryption \
-  --secret-string "$ENCRYPTION_KEY"
-
-# Or create Kubernetes secrets directly
 kubectl create namespace kitehub
 kubectl -n kitehub create secret generic kitehub-secrets \
   --from-literal=jwt-secret="$JWT_SECRET" \
@@ -83,82 +233,83 @@ helm install kitehub ./helm/kitehub \
 ## Step 5: Verify
 
 ```bash
-# Check pods
 kubectl -n kitehub get pods
-
-# Check services
 kubectl -n kitehub get svc
-
-# Health check
 curl https://api.kiteclass.com/actuator/health
 ```
 
-## Step 6: SSL/TLS (cert-manager)
+---
+
+# Switching Between Oracle ↔ AWS
+
+## Oracle → AWS (khi Oracle fail)
 
 ```bash
-# Install cert-manager
-helm install cert-manager jetstack/cert-manager \
-  --namespace cert-manager --create-namespace \
-  --set installCRDs=true
+# 1. Terraform apply (nếu chưa có infra)
+cd terraform && terraform apply
 
-# Create ClusterIssuer for Let's Encrypt
-kubectl apply -f k8s/cert-manager/cluster-issuer.yaml
+# 2. Deploy
+helm install kitehub ./helm/kitehub -n kitehub
+
+# 3. DNS: update kiteclass.com → AWS ALB
+# Cloudflare: change A record to ALB DNS name
+
+# 4. AI: set ai.provider=openai (hoặc deploy Ollama trên EC2)
+```
+
+**Thời gian**: ~2-3 giờ (nếu Terraform đã apply trước)
+
+## AWS → Oracle (khi Oracle available lại)
+
+```bash
+# 1. Verify Oracle VMs running
+ssh opc@<VM_IP> docker compose ps
+
+# 2. Restore DB from backup
+docker exec -i kitehub-postgres psql -U kitehub < backup.sql
+
+# 3. DNS: update kiteclass.com → Oracle LB IP
+# 4. AI: set ai.provider=ollama
 ```
 
 ---
 
-## Environment Variables (ALL Required)
+# Environment Variables (ALL Required)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `JWT_SECRET` | JWT signing key (min 64 chars) | `openssl rand -base64 64` |
-| `ENCRYPTION_MASTER_KEY` | AES-256 key (32 bytes base64) | `openssl rand -base64 32` |
-| `SPRING_DATASOURCE_URL` | RDS JDBC URL | `jdbc:postgresql://rds-endpoint:5432/kitehub` |
-| `SPRING_DATASOURCE_PASSWORD` | RDS password | From Terraform output |
-| `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
-| `VIETQR_API_KEY` | VietQR Premium key | From VietQR dashboard |
-| `WEBHOOK_PAYMENT_SECRET` | HMAC secret for webhooks | `openssl rand -base64 32` |
+| Variable | Description | Oracle | AWS |
+|----------|-------------|--------|-----|
+| `JWT_SECRET` | JWT signing key (min 64 chars) | .env on VM | Secrets Manager |
+| `ENCRYPTION_MASTER_KEY` | AES-256 key | .env on VM | Secrets Manager |
+| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC URL | localhost:5432 | RDS endpoint |
+| `SPRING_DATASOURCE_PASSWORD` | DB password | .env on VM | RDS managed |
+| `AI_PROVIDER` | AI provider | `ollama` | `openai` |
+| `OPENAI_API_KEY` | OpenAI key (AWS only) | Not needed | `sk-...` |
+| `VIETQR_API_KEY` | VietQR key | Same | Same |
 
 ---
 
-## Rollback
+# Rollback
 
+## Oracle
 ```bash
-# List releases
+# SSH to VM
+docker compose down
+docker compose -f docker-compose.prod-backend.yml up -d  # with previous image tags
+```
+
+## AWS
+```bash
 helm history kitehub -n kitehub
-
-# Rollback to previous version
 helm rollback kitehub <REVISION> -n kitehub
-
-# Emergency: scale down
-kubectl -n kitehub scale deployment --all --replicas=0
 ```
 
 ---
 
-## Monitoring
+# Cost Summary
 
-```bash
-# Install Prometheus + Grafana
-helm install monitoring prometheus-community/kube-prometheus-stack \
-  --namespace monitoring --create-namespace
-
-# Access Grafana
-kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
-# Default: admin / prom-operator
-```
-
----
-
-## Cost Estimate (Monthly)
-
-| Resource | Spec | Cost |
-|----------|------|------|
-| EKS Cluster | Control plane | ~$73 |
-| EC2 (3x t3.medium) | Worker nodes | ~$90 |
-| RDS (db.t3.medium) | Multi-AZ PostgreSQL | ~$100 |
-| ElastiCache (cache.t3.micro) | Redis | ~$15 |
-| Amazon MQ (mq.t3.micro) | RabbitMQ | ~$30 |
-| S3 | Storage | ~$5 |
-| ALB | Load balancer | ~$25 |
-| **Total** | | **~$338/month** |
+| | Oracle (Primary) | AWS (Backup) |
+|--|-----------------|--------------|
+| Monthly | **$0** | ~$338 |
+| Annual | **$0** | ~$4,056 |
+| AI | $0 (Ollama) | ~$180/year (OpenAI) |
+| **Savings** | **~$4,000/year** | Baseline |

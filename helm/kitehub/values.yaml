@@ -1,4 +1,8 @@
 # Default values for KiteHub platform
+#
+# This Helm chart is for AWS (EKS) deployment (backup option).
+# Primary deployment: Oracle Cloud with Docker Compose.
+# See: documents/03-planning/infrastructure/kitehub-oracle-cloud-deployment.md
 
 global:
   image:
@@ -24,6 +28,10 @@ global:
   s3:
     bucket: ""    # S3 bucket name (from terraform output)
     region: ap-southeast-1
+
+  ai:
+    provider: openai  # AWS uses OpenAI API (Oracle uses Ollama)
+    # openaiApiKey set via secret
 
 # --- Services ---
 
