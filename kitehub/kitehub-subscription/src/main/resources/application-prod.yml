@@ -38,3 +38,7 @@ logging:
 database:
   lifecycle:
     enabled: true
+
+# Production: Enable captcha to prevent spam
+captcha:
+  enabled: true

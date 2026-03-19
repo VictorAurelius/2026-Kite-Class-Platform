@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/stores/auth-store';
 import apiClient from '@/lib/api/client';
@@ -16,6 +17,8 @@ export default function RegisterPage() {
   const { setAuth } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha>(null);
 
   const {
     register,
@@ -37,6 +40,7 @@ export default function RegisterPage() {
         subdomain: data.subdomain,
         ownerEmail: data.ownerEmail,
         ownerPassword: data.ownerPassword,
+        captchaToken: captchaToken,
       });
       const { user, accessToken, refreshToken } = response.data;
       setAuth(user, accessToken, refreshToken);
@@ -45,6 +49,9 @@ export default function RegisterPage() {
       router.push('/dashboard');
     } catch {
       setError('Đăng ký thất bại. Subdomain hoặc email có thể đã được sử dụng.');
+      // Reset captcha on error
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -136,6 +143,18 @@ export default function RegisterPage() {
             )}
           </div>
         </div>
+
+        {process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY && (
+          <div className="flex justify-center">
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY}
+              onVerify={(token) => setCaptchaToken(token)}
+              onExpire={() => setCaptchaToken(null)}
+              onError={() => setCaptchaToken(null)}
+            />
+          </div>
+        )}
 
         <button
           type="submit"

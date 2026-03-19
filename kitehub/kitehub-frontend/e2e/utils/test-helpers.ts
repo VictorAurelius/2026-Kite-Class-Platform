@@ -530,6 +530,37 @@ export async function mockAuthLogoutAPI(page: Page): Promise<void> {
 }
 
 /**
+ * Mock hCaptcha verification (for cases where NEXT_PUBLIC_HCAPTCHA_SITE_KEY is set).
+ * In normal E2E tests, captcha is disabled (no site key), so this is not called.
+ * But if someone enables captcha in test env, this will prevent test failures.
+ *
+ * @since PR-SEC-3
+ */
+export async function mockHCaptchaAPI(page: Page): Promise<void> {
+  // Mock hCaptcha siteverify API (not actually called in tests since captcha.enabled=false)
+  // But intercept it just in case to avoid external API calls
+  await page.route('**/hcaptcha.com/siteverify', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        challenge_ts: new Date().toISOString(),
+        hostname: 'localhost',
+      }),
+    });
+  });
+
+  // Mock hCaptcha JS API loading (prevent external script load)
+  await page.route('**/hcaptcha.com/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      body: '',
+    });
+  });
+}
+
+/**
  * Mock all auth APIs for testing.
  * By default, allows successful registration and login.
  * @since PR 5.12
@@ -538,6 +569,7 @@ export async function mockAllAuthAPIs(page: Page): Promise<void> {
   await mockAuthRegisterAPI(page);
   await mockAuthLoginAPI(page);
   await mockAuthLogoutAPI(page);
+  await mockHCaptchaAPI(page); // PR-SEC-3: Mock captcha (no-op if captcha disabled)
 }
 
 /**
