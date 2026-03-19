@@ -156,7 +156,7 @@ PR-SEC-1 (Email verify) ──→ PR-SEC-2 (Rate limit)
 | PR | Status | GitHub |
 |----|--------|--------|
 | PR-SEC-1 Email verification | ⬜ Chờ duyệt | - |
-| PR-SEC-2 Rate limit | ⬜ Chờ duyệt | - |
+| PR-SEC-2 Rate limit | ✅ DONE | #150 |
 | PR-ONBOARD-1 Welcome wizard | ⬜ Chờ duyệt | - |
 | PR-ONBOARD-2 Dashboard | ⬜ Chờ duyệt | - |
 | PR-LOCAL-1 Tenant URL | ⬜ Chờ duyệt | - |
