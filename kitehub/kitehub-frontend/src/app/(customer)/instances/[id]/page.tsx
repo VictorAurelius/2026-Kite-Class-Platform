@@ -7,7 +7,10 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { TrialCountdown } from '@/components/common/TrialCountdown';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
+import { Building2, ExternalLink, CreditCard, Palette, ArrowLeft, Info, Clock } from 'lucide-react';
 
 export default function InstanceDetailPage({
   params,
@@ -20,92 +23,125 @@ export default function InstanceDetailPage({
     instance?.isOnTrial ? instance.id : undefined
   );
 
-  if (isLoading) return <LoadingSpinner className="mt-12" />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner />
+      </div>
+    );
+  }
   if (error) return <ErrorAlert message="Không thể tải thông tin instance" />;
   if (!instance) return null;
 
   return (
-    <div>
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
-          Dashboard
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-medium">{instance.organizationName}</span>
-      </div>
-
-      <div className="mt-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{instance.organizationName}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {instance.subdomain}.kiteclass.com
-          </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center gap-4 mb-3">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Dashboard
+            </Link>
+          </Button>
         </div>
-        <StatusBadge status={instance.status} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-primary/10 p-3 text-primary">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">{instance.organizationName}</h1>
+              <p className="text-muted-foreground">
+                <code className="text-sm">{instance.subdomain}.kiteclass.com</code>
+              </p>
+            </div>
+          </div>
+          <StatusBadge status={instance.status} />
+        </div>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+      {/* Content Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Instance Info */}
-        <div className="rounded-lg border p-6">
-          <h2 className="text-lg font-semibold">Thông tin</h2>
-          <dl className="mt-4 space-y-3">
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground">Subdomain</dt>
-              <dd className="text-sm font-medium">{instance.subdomain}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground">Email</dt>
-              <dd className="text-sm font-medium">{instance.contactEmail ?? '-'}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground">Gói</dt>
-              <dd className="text-sm font-medium">{instance.tier}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-sm text-muted-foreground">Ngày tạo</dt>
-              <dd className="text-sm font-medium">{formatDate(instance.createdAt)}</dd>
-            </div>
-          </dl>
-        </div>
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Info className="h-4 w-4" />
+              </div>
+              Thông tin
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="space-y-3">
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground">Subdomain</dt>
+                <dd className="text-sm font-medium">{instance.subdomain}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground">Email</dt>
+                <dd className="text-sm font-medium">{instance.contactEmail ?? '-'}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground">Gói</dt>
+                <dd className="text-sm font-medium">{instance.tier}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-sm text-muted-foreground">Ngày tạo</dt>
+                <dd className="text-sm font-medium">{formatDate(instance.createdAt)}</dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
 
         {/* Trial Status */}
         {trialStatus && (
-          <div className="rounded-lg border p-6">
-            <h2 className="text-lg font-semibold">Trial</h2>
-            <div className="mt-4">
+          <Card className="shadow-soft">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="rounded-lg bg-amber-500/10 p-2 text-amber-600">
+                  <Clock className="h-4 w-4" />
+                </div>
+                Trial
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <TrialCountdown trial={trialStatus} />
-            </div>
-            {trialStatus.daysRemaining <= 3 && !trialStatus.expired && (
-              <div className="mt-4 rounded bg-orange-50 p-3 text-sm text-orange-700 dark:bg-orange-950 dark:text-orange-300">
-                Trial sắp hết hạn. Nâng cấp gói để tiếp tục sử dụng.
-              </div>
-            )}
-          </div>
+              {trialStatus.daysRemaining <= 3 && !trialStatus.expired && (
+                <div className="mt-4 rounded-xl bg-orange-50 dark:bg-orange-950/30 p-3 text-sm text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                  Trial sắp hết hạn. Nâng cấp gói để tiếp tục sử dụng.
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-8 flex flex-wrap gap-3">
-        <a
-          href={`https://${instance.subdomain}.kiteclass.com`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Truy cập KiteClass
-        </a>
-        <Link
-          href="/billing"
-          className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-        >
-          Nâng cấp gói
-        </Link>
-        <Link
-          href="/branding"
-          className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-        >
-          AI Branding
-        </Link>
+      <div className="flex flex-wrap gap-3">
+        <Button asChild>
+          <a
+            href={`https://${instance.subdomain}.kiteclass.com`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Truy cập KiteClass
+          </a>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/billing">
+            <CreditCard className="mr-2 h-4 w-4" />
+            Nâng cấp gói
+          </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/branding">
+            <Palette className="mr-2 h-4 w-4" />
+            AI Branding
+          </Link>
+        </Button>
       </div>
     </div>
   );

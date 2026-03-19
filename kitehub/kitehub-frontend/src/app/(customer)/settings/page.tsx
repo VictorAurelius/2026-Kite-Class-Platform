@@ -17,7 +17,7 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <LoadingSpinner />
       </div>
     );
@@ -28,12 +28,20 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Cài đặt</h1>
-        <p className="text-muted-foreground mt-2">
-          Quản lý tài khoản và cấu hình instance của bạn
-        </p>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border p-6">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl bg-primary/10 p-3 text-primary">
+            <Settings className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Cài đặt</h1>
+            <p className="text-muted-foreground">
+              Quản lý tài khoản và cấu hình instance của bạn
+            </p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="account" className="w-full">
