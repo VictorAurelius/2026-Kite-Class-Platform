@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
   Users,
   GraduationCap,
@@ -9,277 +12,450 @@ import {
   ArrowRight,
   Star,
   Sparkles,
+  BarChart3,
+  Building2,
+  Clock,
+  Shield,
+  ChevronDown,
+  Phone,
+  Mail,
+  MapPin,
 } from 'lucide-react';
+import { useState } from 'react';
+import { GradientButton } from '@/components/ui/gradient-button';
+import { SectionTitle } from '@/components/ui/section-title';
+
+// ============================================================
+// DATA
+// ============================================================
 
 const features = [
   {
     icon: Users,
     title: 'Quản lý học viên',
-    desc: 'Hồ sơ chi tiết, theo dõi tiến độ, bảng điểm tự động cập nhật.',
+    desc: 'Hồ sơ chi tiết, theo dõi tiến độ, bảng điểm tự động.',
+    color: 'text-blue-500 bg-blue-50',
   },
   {
-    icon: GraduationCap,
-    title: 'Quản lý giảng viên',
-    desc: 'Phân công lịch dạy, theo dõi chuyên môn, đánh giá hiệu suất.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Khóa học & Lớp học',
-    desc: 'Tạo khóa học, quản lý lịch học, chia sẻ tài liệu LMS.',
-  },
-  {
-    icon: CheckCircle,
-    title: 'Điểm danh thông minh',
-    desc: 'Check-in/out tự động, báo cáo chuyên cần real-time.',
+    icon: Clock,
+    title: 'Lịch học & Điểm danh',
+    desc: 'Tạo lịch, điểm danh tự động, thông báo cho phụ huynh.',
+    color: 'text-green-500 bg-green-50',
   },
   {
     icon: CreditCard,
     title: 'Thanh toán & Hóa đơn',
-    desc: 'VietQR, trả góp linh hoạt, xuất hóa đơn điện tử.',
+    desc: 'Quản lý học phí, tạo hóa đơn, nhắc thanh toán tự động.',
+    color: 'text-orange-500 bg-orange-50',
   },
   {
     icon: Palette,
-    title: 'Branding AI',
-    desc: 'Tạo logo, landing page tự động với AI trong vài phút.',
+    title: 'AI Branding',
+    desc: 'Tạo website & thương hiệu tự động bằng trí tuệ nhân tạo.',
+    color: 'text-purple-500 bg-purple-50',
+  },
+  {
+    icon: BarChart3,
+    title: 'Báo cáo & Thống kê',
+    desc: 'Dashboard trực quan, báo cáo doanh thu, phân tích học viên.',
+    color: 'text-pink-500 bg-pink-50',
+  },
+  {
+    icon: Building2,
+    title: 'Đa chi nhánh',
+    desc: 'Quản lý nhiều cơ sở từ 1 tài khoản, phân quyền nhân viên.',
+    color: 'text-teal-500 bg-teal-50',
   },
 ];
 
-const stats = [
-  { value: '500+', label: 'Trung tâm tin dùng' },
-  { value: '50,000+', label: 'Học viên đang học' },
-  { value: '99.9%', label: 'Uptime cam kết' },
+const steps = [
+  { num: '01', title: 'Đăng ký miễn phí', desc: 'Tạo tài khoản trong 30 giây, không cần thẻ tín dụng.' },
+  { num: '02', title: 'Cấu hình trung tâm', desc: 'Thêm khóa học, giáo viên, lịch học. AI hỗ trợ tạo website.' },
+  { num: '03', title: 'Bắt đầu sử dụng', desc: 'Quản lý học viên, điểm danh, thu học phí ngay lập tức.' },
 ];
 
 const testimonials = [
   {
-    name: 'Nguyễn Văn A',
-    role: 'Giám đốc Trung tâm Anh ngữ ABC',
-    content: 'KiteHub giúp chúng tôi tiết kiệm 10 giờ mỗi tuần cho công việc quản lý. Giao diện đơn giản, dễ dùng.',
-    avatar: 'NA',
+    name: 'Nguyễn Thị Minh Anh',
+    role: 'Giám đốc Trung tâm Anh ngữ SkyLight',
+    text: 'Trước đây tôi quản lý bằng Excel, mất cả ngày. KiteClass giúp tôi tiết kiệm 3 tiếng mỗi ngày và không bao giờ quên ghi điểm danh nữa.',
+    rating: 5,
   },
   {
-    name: 'Trần Thị B',
-    role: 'Quản lý Trung tâm Toán học XYZ',
-    content: 'Tính năng điểm danh tự động là tuyệt vời. Phụ huynh rất hài lòng khi nhận thông báo real-time.',
-    avatar: 'TB',
+    name: 'Trần Văn Đức',
+    role: 'Chủ lớp Toán tư duy MathGenius',
+    text: 'Phụ huynh rất hài lòng khi nhận thông báo tự động về tiến độ học của con. Tỷ lệ giữ chân học viên tăng 40% sau 3 tháng dùng KiteClass.',
+    rating: 5,
   },
   {
-    name: 'Lê Văn C',
-    role: 'Founder Music Academy',
-    content: 'Từ khi dùng KiteHub, số lượng học viên đăng ký mới tăng 30% nhờ landing page chuyên nghiệp.',
-    avatar: 'LC',
+    name: 'Lê Hoàng Phương',
+    role: 'Trưởng phòng đào tạo, Trung tâm IT Academy',
+    text: 'Chức năng AI Branding tạo website cho trung tâm chỉ trong 5 phút. Trông rất chuyên nghiệp, phụ huynh ấn tượng ngay từ lần đầu truy cập.',
+    rating: 5,
   },
 ];
 
+const pricingTiers = [
+  {
+    name: 'FREE',
+    price: 'Miễn phí',
+    period: '',
+    desc: 'Dùng thử đầy đủ tính năng trong 14 ngày',
+    features: ['Tối đa 30 học viên', '1 giáo viên', '3 khóa học', 'Điểm danh cơ bản', 'Hỗ trợ email'],
+    cta: 'Bắt đầu miễn phí',
+    popular: false,
+  },
+  {
+    name: 'BASIC',
+    price: '199.000đ',
+    period: '/tháng',
+    desc: 'Cho giáo viên độc lập và lớp nhỏ',
+    features: ['Tối đa 100 học viên', '5 giáo viên', '10 khóa học', 'Thanh toán & hóa đơn', 'Báo cáo cơ bản', 'Hỗ trợ chat'],
+    cta: 'Dùng thử 14 ngày',
+    popular: false,
+  },
+  {
+    name: 'PREMIUM',
+    price: '399.000đ',
+    period: '/tháng',
+    desc: 'Cho trung tâm vừa và lớn',
+    features: ['Không giới hạn học viên', 'Không giới hạn giáo viên', 'AI Branding', 'Đa chi nhánh', 'Báo cáo nâng cao', 'API tích hợp', 'Hỗ trợ ưu tiên'],
+    cta: 'Dùng thử 14 ngày',
+    popular: true,
+  },
+  {
+    name: 'ENTERPRISE',
+    price: 'Liên hệ',
+    period: '',
+    desc: 'Giải pháp tùy chỉnh cho trường học lớn',
+    features: ['Tất cả tính năng Premium', 'SLA 99.9%', 'Server riêng', 'Tùy chỉnh giao diện', 'Đào tạo nhân viên', 'Quản lý chuyên biệt'],
+    cta: 'Liên hệ tư vấn',
+    popular: false,
+  },
+];
+
+const faqs = [
+  { q: 'Trial 14 ngày có giới hạn gì không?', a: 'Không. Bạn được dùng tất cả tính năng của gói PREMIUM trong 14 ngày. Không cần thẻ tín dụng.' },
+  { q: 'Thanh toán bằng hình thức nào?', a: 'Chuyển khoản ngân hàng (QR code VietQR), Momo, ZaloPay. Hóa đơn VAT cho doanh nghiệp.' },
+  { q: 'Có thể nâng cấp hoặc hạ gói giữa chừng không?', a: 'Có. Bạn có thể thay đổi gói bất kỳ lúc nào. Chi phí được tính theo ngày sử dụng.' },
+  { q: 'Dữ liệu có an toàn không?', a: 'Dữ liệu được mã hóa AES-256, lưu trên AWS Singapore. Sao lưu tự động hàng ngày. Tuân thủ quy định bảo vệ dữ liệu.' },
+];
+
+// ============================================================
+// ANIMATION VARIANTS
+// ============================================================
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.1 } },
+};
+
+// ============================================================
+// PAGE
+// ============================================================
+
 export default function HomePage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
   return (
-    <>
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute bottom-20 right-10 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
-        </div>
+    <div className="overflow-hidden">
+      {/* ========== HERO ========== */}
+      <section className="relative py-20 sm:py-28 lg:py-36">
+        {/* Gradient background */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        <div className="absolute top-20 left-1/4 -z-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-10 right-1/4 -z-10 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
 
-        <div className="container py-20 md:py-32">
-          <div className="mx-auto max-w-4xl text-center">
-            {/* Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm backdrop-blur">
-              <Sparkles className="h-4 w-4 text-accent" />
-              <span>Dùng thử miễn phí 14 ngày</span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Để học viên của bạn
-              <span className="relative mx-2">
-                <span className="relative z-10 text-primary">bay cao</span>
-                <svg
-                  className="absolute -bottom-2 left-0 h-3 w-full text-primary/30"
-                  viewBox="0 0 200 12"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M0 10 Q50 0 100 10 T200 10"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                </svg>
+        <div className="container">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="mx-auto max-w-4xl text-center"
+          >
+            <motion.div variants={fadeInUp}>
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+                <Sparkles className="h-4 w-4" />
+                Nền tảng quản lý giáo dục #1 Việt Nam
               </span>
-              hơn mỗi ngày
-            </h1>
+            </motion.div>
 
-            {/* Subheadline */}
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              KiteHub là nền tảng quản lý trung tâm giáo dục toàn diện.
-              Quản lý học viên, khóa học, điểm danh, thanh toán — tất cả trong một.
-            </p>
+            <motion.h1
+              variants={fadeInUp}
+              className="mt-8 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
+            >
+              Quản lý trung tâm giáo dục{' '}
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                thông minh hơn
+              </span>
+            </motion.h1>
 
-            {/* CTA Buttons */}
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/register"
-                className="group inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
-              >
-                Bắt đầu miễn phí
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <motion.p
+              variants={fadeInUp}
+              className="mt-6 text-lg text-muted-foreground sm:text-xl max-w-2xl mx-auto"
+            >
+              Dành thời gian cho việc giảng dạy, để KiteClass lo phần còn lại.
+              Quản lý học viên, lịch học, thanh toán — tất cả trong một nền tảng.
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/register">
+                <GradientButton size="lg">
+                  Dùng thử miễn phí 14 ngày
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </GradientButton>
               </Link>
               <Link
                 href="/pricing"
-                className="inline-flex items-center gap-2 rounded-lg border bg-background px-8 py-3.5 text-sm font-semibold transition-colors hover:bg-muted"
+                className="inline-flex items-center gap-2 rounded-xl border px-6 py-3.5 text-sm font-medium hover:bg-muted transition-colors"
               >
                 Xem bảng giá
               </Link>
-            </div>
+            </motion.div>
 
-            {/* Trust indicators */}
-            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Không cần thẻ tín dụng</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Setup trong 5 phút</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Hỗ trợ 24/7</span>
-              </div>
+            <motion.p variants={fadeInUp} className="mt-4 text-sm text-muted-foreground">
+              Không cần thẻ tín dụng • Hủy bất kỳ lúc nào
+            </motion.p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ========== SOCIAL PROOF ========== */}
+      <section className="border-y bg-muted/30 py-6">
+        <div className="container">
+          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              <span><strong className="text-foreground">500+</strong> trung tâm tin dùng</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <span><strong className="text-foreground">50,000+</strong> học viên</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              <span><strong className="text-foreground">4.9/5</strong> đánh giá</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="border-y bg-muted/30 py-20">
+      {/* ========== FEATURES BENTO GRID ========== */}
+      <section className="py-20 sm:py-28">
         <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Mọi thứ bạn cần để vận hành hiệu quả
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Một nền tảng duy nhất thay thế hàng chục công cụ riêng lẻ
-            </p>
-          </div>
+          <SectionTitle
+            title="Tất cả tính năng bạn cần"
+            subtitle="Từ quản lý học viên đến AI tạo website — KiteClass giúp bạn vận hành trung tâm chuyên nghiệp hơn."
+          />
 
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="group relative rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-primary/50"
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={stagger}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {features.map((f) => (
+              <motion.div
+                key={f.title}
+                variants={fadeInUp}
+                className="group rounded-2xl border bg-card p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300"
               >
-                <div className="mb-4 inline-flex rounded-xl bg-primary/10 p-3">
-                  <feature.icon className="h-6 w-6 text-primary" />
+                <div className={`inline-flex rounded-xl p-3 ${f.color}`}>
+                  <f.icon className="h-6 w-6" />
                 </div>
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                  {feature.desc}
-                </p>
-              </div>
+                <h3 className="mt-4 text-lg font-semibold">{f.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ========== HOW IT WORKS ========== */}
+      <section className="py-20 sm:py-28 bg-muted/20">
+        <div className="container">
+          <SectionTitle
+            title="Bắt đầu trong 3 bước"
+            subtitle="Không cần kiến thức kỹ thuật. Thiết lập trung tâm của bạn chỉ trong vài phút."
+          />
+
+          <div className="grid gap-8 sm:grid-cols-3 max-w-4xl mx-auto">
+            {steps.map((s) => (
+              <motion.div
+                key={s.num}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeInUp}
+                className="text-center"
+              >
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-2xl font-bold text-white shadow-soft">
+                  {s.num}
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20">
+      {/* ========== TESTIMONIALS ========== */}
+      <section className="py-20 sm:py-28">
         <div className="container">
-          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-3">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-4xl font-bold text-primary md:text-5xl">
-                  {stat.value}
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          <SectionTitle
+            title="Khách hàng nói gì về KiteClass"
+            subtitle="Hơn 500 trung tâm đã tin dùng KiteClass để quản lý hoạt động giáo dục."
+          />
 
-      {/* Testimonials Section */}
-      <section className="border-t bg-muted/30 py-20">
-        <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Được tin dùng bởi hàng trăm trung tâm
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Xem những gì khách hàng nói về KiteHub
-            </p>
-          </div>
-
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-            {testimonials.map((testimonial) => (
-              <div
-                key={testimonial.name}
-                className="rounded-2xl border bg-card p-6 shadow-sm"
+          <div className="grid gap-6 sm:grid-cols-3">
+            {testimonials.map((t) => (
+              <motion.div
+                key={t.name}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeInUp}
+                className="rounded-2xl border bg-card p-6 shadow-soft"
               >
-                <div className="flex items-center gap-1 text-yellow-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
+                <div className="flex gap-1">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-                  &ldquo;{testimonial.content}&rdquo;
-                </p>
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold">{testimonial.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {testimonial.role}
-                    </div>
-                  </div>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">"{t.text}"</p>
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-sm font-semibold">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.role}</p>
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== PRICING ========== */}
+      <section className="py-20 sm:py-28 bg-muted/20" id="pricing">
+        <div className="container">
+          <SectionTitle
+            title="Bảng giá"
+            subtitle="Chọn gói phù hợp với quy mô trung tâm của bạn. Dùng thử miễn phí 14 ngày."
+          />
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
+            {pricingTiers.map((tier) => (
+              <motion.div
+                key={tier.name}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeInUp}
+                className={`relative rounded-2xl border bg-card p-6 shadow-soft ${
+                  tier.popular ? 'border-primary shadow-soft-lg ring-2 ring-primary/20' : ''
+                }`}
+              >
+                {tier.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+                    Phổ biến nhất
+                  </span>
+                )}
+                <h3 className="text-lg font-bold">{tier.name}</h3>
+                <div className="mt-4">
+                  <span className="text-3xl font-bold">{tier.price}</span>
+                  {tier.period && <span className="text-sm text-muted-foreground">{tier.period}</span>}
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{tier.desc}</p>
+                <ul className="mt-6 space-y-2">
+                  {tier.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={tier.name === 'ENTERPRISE' ? '#contact' : '/register'}
+                  className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-colors ${
+                    tier.popular
+                      ? 'bg-primary text-white hover:bg-primary/90'
+                      : 'border hover:bg-muted'
+                  }`}
+                >
+                  {tier.cta}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== FAQ ========== */}
+      <section className="py-20 sm:py-28">
+        <div className="container max-w-3xl">
+          <SectionTitle title="Câu hỏi thường gặp" />
+
+          <div className="space-y-3">
+            {faqs.map((faq, i) => (
+              <div key={i} className="rounded-xl border bg-card">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="flex w-full items-center justify-between p-4 text-left text-sm font-medium hover:bg-muted/50 transition-colors rounded-xl"
+                >
+                  {faq.q}
+                  <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                </button>
+                {openFaq === i && (
+                  <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
+                    {faq.a}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container">
-          <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-16 text-center text-primary-foreground shadow-2xl sm:px-16">
-            {/* Background decoration */}
-            <div className="absolute inset-0 -z-10">
-              <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-              <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-            </div>
-
+      {/* ========== CTA BOTTOM ========== */}
+      <section className="py-20 sm:py-28 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+        <div className="container text-center">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+          >
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Sẵn sàng nâng tầm trung tâm của bạn?
+              Bắt đầu miễn phí ngay hôm nay
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80">
-              Bắt đầu dùng thử miễn phí ngay hôm nay. Không cần thẻ tín dụng,
-              không ràng buộc.
+            <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+              Hơn 500 trung tâm đã chọn KiteClass. Tạo tài khoản trong 30 giây và trải nghiệm sự khác biệt.
             </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-8 py-3.5 text-sm font-semibold text-primary shadow-lg transition-all hover:bg-white/90"
-              >
-                Đăng ký miễn phí
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-              >
-                Xem bảng giá chi tiết
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/register">
+                <GradientButton size="lg">
+                  Dùng thử miễn phí 14 ngày
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </GradientButton>
               </Link>
             </div>
-          </div>
+            <div className="mt-6 flex items-center justify-center gap-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Hotline: 1900-xxxx
+              </span>
+              <span className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                support@kiteclass.com
+              </span>
+            </div>
+          </motion.div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
