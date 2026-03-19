@@ -570,7 +570,7 @@ export default function HomePage() {
           />
 
           <div className="grid gap-6 sm:grid-cols-3">
-            {testimonials.map((t, i) => (
+            {testimonials.map((t) => (
               <motion.div
                 key={t.name}
                 initial="hidden"
