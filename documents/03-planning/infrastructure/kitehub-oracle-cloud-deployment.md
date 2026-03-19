@@ -102,31 +102,92 @@ Internet → Oracle LB (10 Mbps, free)
 
 ---
 
-## 4. Cảnh báo & Giải pháp
+## 4. Best Practices & Cảnh báo
 
-### ⚠️ Idle Reclamation (CRITICAL)
+> Tổng hợp từ Oracle docs + community best practices.
 
-**Vấn đề**: VM idle 7 ngày liên tiếp (CPU <20%, network <20%, memory <20%) → bị Oracle tự động dừng/xóa.
+### 🔴 PAYG ngay sau khi tạo account (BẮT BUỘC)
 
-**Giải pháp**: Chuyển sang **Pay-As-You-Go (PAYG)** account.
+**Vấn đề**: Account free-tier thuần bị idle reclamation (VM idle 7 ngày → xóa) và thường gặp "Out of Capacity".
+
+**Giải pháp**: Chuyển sang **Pay-As-You-Go (PAYG)** ngay sau khi tạo account.
 - Vẫn dùng toàn bộ Always Free resources
 - Vẫn $0 nếu không vượt free limit
 - **Không bị idle reclamation**
-- **Không bị "Out of Capacity" thường xuyên**
+- **Ít gặp "Out of Capacity" hơn**
 
 > ⛔ KHÔNG dùng cron job fake CPU load → rủi ro vi phạm ToS → bị ban account.
 
 **Source**: https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm
 
-### ⚠️ ARM Instance Capacity
+### 🔴 Chọn home region kỹ (BẮT BUỘC)
 
-**Vấn đề**: Nhiều region phổ biến (Ashburn, Phoenix) thường hết slot ARM.
+**Vấn đề**: Home region **không thể đổi** sau khi tạo account. Always Free compute chỉ tạo được ở home region. Các region popular (US East, Frankfurt, Mumbai) thường hết ARM capacity.
+
+**Giải pháp**: Chọn region ít popular khi đăng ký:
+- **Khuyến nghị**: Singapore, Sydney, Seoul, Osaka, Tokyo
+- **Tránh**: US-Ashburn, US-Phoenix, Frankfurt, Mumbai, London
+- PAYG account được ưu tiên capacity hơn
+- Có sẵn AWS backup nếu không tạo được
+
+### 🟠 Billing alert $1 (QUAN TRỌNG)
+
+**Vấn đề**: Với PAYG, có thể bị charge nhỏ ngoài ý muốn (trial resources chuyển sang paid khi trial hết).
+
+**Giải pháp**: OCI Console → Budgets → tạo budget alert ở **$1** để nhận email ngay nếu có charge.
+
+### 🟠 ARM-native Docker images (QUAN TRỌNG)
+
+**Vấn đề**: x86 images chạy qua emulation trên ARM → chậm hơn 3-5x, tốn RAM hơn.
 
 **Giải pháp**:
-1. Chọn region ít popular (Tokyo, Osaka, Seoul, Mumbai, Sydney)
-2. PAYG account được ưu tiên capacity hơn
-3. Retry tạo VM vào giờ thấp điểm
-4. Có sẵn AWS backup nếu không tạo được
+- Ưu tiên Docker images có tag `linux/arm64` hoặc `aarch64`
+- Kiểm tra: `docker manifest inspect <image> | grep arm64`
+- Spring Boot (JDK 21) ✅ native ARM
+- Next.js (Node.js) ✅ native ARM
+- PostgreSQL ✅ native ARM
+- Redis ✅ native ARM
+- Ollama ✅ native ARM
+- Dùng `restart: unless-stopped` trong Docker Compose
+
+### 🟠 Oracle có 2 lớp firewall (QUAN TRỌNG)
+
+**Vấn đề**: Nhiều người chỉ mở Security List (cloud-level) mà quên iptables (instance-level) → service không expose được.
+
+**Giải pháp**: Mở **cả 2 lớp**:
+```bash
+# 1. Oracle Console: VCN → Security List → Ingress Rules
+#    Allow TCP 22, 80, 443 from 0.0.0.0/0
+
+# 2. Instance-level: iptables
+sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+sudo netfilter-persistent save
+```
+
+### 🟡 Không allocate tối đa RAM ngay (NÊN LÀM)
+
+**Vấn đề**: Dùng hết 4 CPU + 24GB cho 2 VMs ngay từ đầu → CPU utilization thấp (vì app chưa có traffic) → gần ngưỡng idle.
+
+**Giải pháp**: Bắt đầu nhỏ hơn:
+- VM 1: 1 OCPU / 8GB (backend đủ dùng)
+- VM 2: 1 OCPU / 8GB (frontend + Ollama 8b vừa khít)
+- Scale lên khi có traffic thật
+- CPU utilization cao hơn tự nhiên → an toàn hơn
+
+### 🟡 Backup ra ngoài Oracle (NÊN LÀM)
+
+**Vấn đề**: Always Free instances vẫn có thể bị reclaim vì policy violations hoặc Oracle thay đổi chính sách.
+
+**Giải pháp**:
+- `pg_dump` daily → Object Storage (20GB free) **VÀ** rsync/SCP về local machine
+- Docker volumes backup → local
+- Git repo đã có toàn bộ code (không lo mất)
+- Database là thứ duy nhất cần backup kỹ
+
+### 🟡 Monitor với OCI metrics (NÊN LÀM)
+
+**Giải pháp**: Dùng `docker stats` hoặc OCI built-in metrics (free) để theo dõi CPU, RAM real-time. Phát hiện khi nào gần đụng quota.
 
 ### ⚠️ Không có Managed Database
 
@@ -134,7 +195,7 @@ Internet → Oracle LB (10 Mbps, free)
 
 **Giải pháp**:
 - PostgreSQL chạy trong Docker trên VM 1
-- Backup thủ công: `pg_dump` → Object Storage (20GB free)
+- Backup: `pg_dump` → Object Storage + local
 - Không có Multi-AZ, không auto-failover
 - **Chấp nhận được cho giai đoạn đầu** (ít users)
 
@@ -146,6 +207,19 @@ Internet → Oracle LB (10 Mbps, free)
 - KiteHub giai đoạn đầu: ít users → đủ
 - Static assets serve từ CDN (Cloudflare free) → giảm load LB
 - Khi cần hơn → chuyển sang AWS hoặc paid Oracle
+
+### Checklist ưu tiên
+
+| Việc | Mức độ | Khi nào |
+|------|--------|---------|
+| Chuyển PAYG | 🔴 Bắt buộc | Ngay sau tạo account |
+| Chọn region ít popular | 🔴 Bắt buộc | Lúc đăng ký |
+| Billing alert $1 | 🟠 Quan trọng | Sau khi có PAYG |
+| ARM-native Docker images | 🟠 Quan trọng | Khi build images |
+| Mở 2 lớp firewall | 🟠 Quan trọng | Khi tạo VM |
+| Backup định kỳ ra ngoài | 🟡 Nên làm | Sau khi deploy |
+| OCI metrics monitoring | 🟡 Nên làm | Sau khi deploy |
+| Bắt đầu VM nhỏ, scale sau | 🟡 Nên làm | Khi tạo VM |
 
 ---
 
