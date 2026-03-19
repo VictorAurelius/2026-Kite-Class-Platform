@@ -43,7 +43,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       <Sidebar variant="admin" />
       <div className="flex-1 flex flex-col">
         <header className="border-b h-16 flex items-center justify-between px-6">
-          <h2 className="text-lg font-semibold">Admin Portal</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">Quản trị hệ thống</h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{user?.email}</span>
             <button
