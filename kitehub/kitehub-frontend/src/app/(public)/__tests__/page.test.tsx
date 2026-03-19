@@ -10,36 +10,57 @@ import HomePage from '../page';
 
 describe('HomePage', () => {
   describe('Hero Section', () => {
-    it('renders main headline', () => {
+    it('renders main headline with all parts', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Quản lý trung tâm giáo dục thông minh hơn/)).toBeInTheDocument();
+      // Headline is split across multiple elements, test each part
+      expect(screen.getByText(/Quản lý trung tâm/)).toBeInTheDocument();
+      expect(screen.getByText(/giáo dục/)).toBeInTheDocument();
+      expect(screen.getByText(/thông minh hơn/)).toBeInTheDocument();
     });
 
-    it('renders trial badge', () => {
+    it('renders platform badge', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Dùng thử miễn phí 14 ngày/)).toBeInTheDocument();
+      expect(screen.getByText(/Nền tảng quản lý giáo dục #1 Việt Nam/)).toBeInTheDocument();
     });
 
     it('renders CTA buttons', () => {
       render(<HomePage />);
-      // CTA buttons appear in multiple sections (hero and bottom CTA)
-      expect(screen.getAllByRole('link', { name: /Bắt đầu miễn phí/i }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole('link', { name: /bảng giá/i }).length).toBeGreaterThan(0);
+      // "Dùng thử miễn phí 14 ngày" appears multiple times (hero + CTA sections)
+      expect(screen.getAllByText(/Dùng thử miễn phí 14 ngày/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/Xem bảng giá/i)).toBeInTheDocument();
     });
 
     it('renders trust indicators', () => {
       render(<HomePage />);
-      // Trust indicators appear in hero section - use getAllByText since text may appear elsewhere
-      expect(screen.getAllByText(/Không cần thẻ tín dụng/).length).toBeGreaterThan(0);
-      expect(screen.getByText(/Chấm dứt bất cứ lúc nào/)).toBeInTheDocument();
-      expect(screen.getByText(/Hỗ trợ 24\/7/)).toBeInTheDocument();
+      // Trust indicators in single line with checkmarks
+      expect(screen.getByText(/Không cần thẻ tín dụng/)).toBeInTheDocument();
+      expect(screen.getByText(/Hủy bất kỳ lúc nào/)).toBeInTheDocument();
+      expect(screen.getByText(/Hỗ trợ tiếng Việt/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Stats Section', () => {
+    it('renders stat values', () => {
+      render(<HomePage />);
+      expect(screen.getByText('500')).toBeInTheDocument();
+      expect(screen.getByText('50,000')).toBeInTheDocument();
+      expect(screen.getByText('99')).toBeInTheDocument();
+      expect(screen.getByText('4')).toBeInTheDocument();
+    });
+
+    it('renders stat labels', () => {
+      render(<HomePage />);
+      expect(screen.getByText('Trung tâm tin dùng')).toBeInTheDocument();
+      expect(screen.getByText('Học viên quản lý')).toBeInTheDocument();
+      expect(screen.getByText('Uptime cam kết')).toBeInTheDocument();
+      expect(screen.getByText('Đánh giá trung bình')).toBeInTheDocument();
     });
   });
 
   describe('Features Section', () => {
     it('renders section title', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Mọi thứ bạn cần để vận hành hiệu quả/)).toBeInTheDocument();
+      expect(screen.getByText(/Tất cả tính năng bạn cần/)).toBeInTheDocument();
     });
 
     it('renders all 6 feature cards', () => {
@@ -53,28 +74,10 @@ describe('HomePage', () => {
     });
   });
 
-  describe('Stats Section', () => {
-    it('renders stat values', () => {
-      render(<HomePage />);
-      expect(screen.getByText('500+')).toBeInTheDocument();
-      expect(screen.getByText('50,000+')).toBeInTheDocument();
-      expect(screen.getByText('99.9%')).toBeInTheDocument();
-      expect(screen.getByText('4.9/5')).toBeInTheDocument();
-    });
-
-    it('renders stat labels', () => {
-      render(<HomePage />);
-      expect(screen.getByText('Trung tâm tin dùng')).toBeInTheDocument();
-      expect(screen.getByText('Học viên đang học')).toBeInTheDocument();
-      expect(screen.getByText('Uptime cam kết')).toBeInTheDocument();
-      expect(screen.getByText('Đánh giá từ khách hàng')).toBeInTheDocument();
-    });
-  });
-
   describe('Testimonials Section', () => {
     it('renders section title', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Được tin dùng bởi hàng trăm trung tâm/)).toBeInTheDocument();
+      expect(screen.getByText(/Khách hàng nói gì về KiteClass/)).toBeInTheDocument();
     });
 
     it('renders testimonial names', () => {
@@ -86,20 +89,23 @@ describe('HomePage', () => {
 
     it('renders testimonial content', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Việc quản lý hơn 500 học viên/)).toBeInTheDocument();
+      // Check first testimonial text exists
+      expect(screen.getByText(/Trước đây tôi quản lý bằng Excel/)).toBeInTheDocument();
     });
   });
 
-  describe('CTA Section', () => {
-    it('renders final CTA title', () => {
+  describe('Pricing Section', () => {
+    it('renders section title', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Sẵn sàng nâng tầm trung tâm của bạn/)).toBeInTheDocument();
+      expect(screen.getByText(/Bảng giá/)).toBeInTheDocument();
     });
 
-    it('renders register link', () => {
+    it('renders pricing tiers', () => {
       render(<HomePage />);
-      const registerLinks = screen.getAllByRole('link', { name: /Đăng ký miễn phí/i });
-      expect(registerLinks.length).toBeGreaterThan(0);
+      expect(screen.getByText('FREE')).toBeInTheDocument();
+      expect(screen.getByText('BASIC')).toBeInTheDocument();
+      expect(screen.getByText('PREMIUM')).toBeInTheDocument();
+      expect(screen.getByText('ENTERPRISE')).toBeInTheDocument();
     });
   });
 
@@ -107,6 +113,7 @@ describe('HomePage', () => {
     it('links to register page', () => {
       render(<HomePage />);
       const registerLinks = screen.getAllByRole('link', { name: /miễn phí/i });
+      expect(registerLinks.length).toBeGreaterThan(0);
       registerLinks.forEach(link => {
         expect(link).toHaveAttribute('href', '/register');
       });
@@ -115,6 +122,7 @@ describe('HomePage', () => {
     it('links to pricing page', () => {
       render(<HomePage />);
       const pricingLinks = screen.getAllByRole('link', { name: /bảng giá/i });
+      expect(pricingLinks.length).toBeGreaterThan(0);
       pricingLinks.forEach(link => {
         expect(link).toHaveAttribute('href', '/pricing');
       });
