@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -30,7 +31,7 @@ export function InstanceTab({ instance }: InstanceTabProps) {
 
   const isPremium = instance?.tier === 'PREMIUM';
   const subdomain = instance?.subdomain || 'your-subdomain';
-  const fullUrl = `https://${subdomain}.kiteclass.com`;
+  const fullUrl = getTenantUrl(subdomain);
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(fullUrl);
@@ -141,7 +142,7 @@ export function InstanceTab({ instance }: InstanceTabProps) {
                     <span className="text-muted-foreground">CNAME</span>{' '}
                     <span className="text-primary">{customDomain || 'your-domain.com'}</span>{' '}
                     <span className="text-muted-foreground">→</span>{' '}
-                    <span>{subdomain}.kiteclass.com</span>
+                    <span>{getTenantDisplayUrl(subdomain)}</span>
                   </div>
                 </AlertDescription>
               </Alert>

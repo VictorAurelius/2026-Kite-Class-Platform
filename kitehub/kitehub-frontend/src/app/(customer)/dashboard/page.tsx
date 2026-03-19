@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils';
 import { ArrowRight, Building2, Palette, CreditCard, Clock, Sparkles, TrendingUp, Smartphone, Zap } from 'lucide-react';
+import { getTenantDisplayUrl } from '@/lib/tenant-url';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -100,7 +101,7 @@ export default function DashboardPage() {
                       <div className="min-w-0">
                         <h3 className="font-semibold text-base truncate">{instance.organizationName}</h3>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {instance.subdomain}.kiteclass.com
+                          {getTenantDisplayUrl(instance.subdomain)}
                         </p>
                       </div>
                       <StatusBadge status={instance.status} />
