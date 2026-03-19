@@ -12,8 +12,7 @@ describe('HomePage', () => {
   describe('Hero Section', () => {
     it('renders main headline', () => {
       render(<HomePage />);
-      expect(screen.getByText(/Để học viên của bạn/)).toBeInTheDocument();
-      expect(screen.getByText('bay cao')).toBeInTheDocument();
+      expect(screen.getByText(/Quản lý trung tâm giáo dục thông minh hơn/)).toBeInTheDocument();
     });
 
     it('renders trial badge', () => {
@@ -32,7 +31,7 @@ describe('HomePage', () => {
       render(<HomePage />);
       // Trust indicators appear in hero section - use getAllByText since text may appear elsewhere
       expect(screen.getAllByText(/Không cần thẻ tín dụng/).length).toBeGreaterThan(0);
-      expect(screen.getByText(/Setup trong 5 phút/)).toBeInTheDocument();
+      expect(screen.getByText(/Chấm dứt bất cứ lúc nào/)).toBeInTheDocument();
       expect(screen.getByText(/Hỗ trợ 24\/7/)).toBeInTheDocument();
     });
   });
@@ -46,11 +45,11 @@ describe('HomePage', () => {
     it('renders all 6 feature cards', () => {
       render(<HomePage />);
       expect(screen.getByText('Quản lý học viên')).toBeInTheDocument();
-      expect(screen.getByText('Quản lý giảng viên')).toBeInTheDocument();
-      expect(screen.getByText('Khóa học & Lớp học')).toBeInTheDocument();
-      expect(screen.getByText('Điểm danh thông minh')).toBeInTheDocument();
+      expect(screen.getByText('Lịch học & Điểm danh')).toBeInTheDocument();
       expect(screen.getByText('Thanh toán & Hóa đơn')).toBeInTheDocument();
-      expect(screen.getByText('Branding AI')).toBeInTheDocument();
+      expect(screen.getByText('AI Branding')).toBeInTheDocument();
+      expect(screen.getByText('Báo cáo & Thống kê')).toBeInTheDocument();
+      expect(screen.getByText('Đa chi nhánh')).toBeInTheDocument();
     });
   });
 
@@ -60,6 +59,7 @@ describe('HomePage', () => {
       expect(screen.getByText('500+')).toBeInTheDocument();
       expect(screen.getByText('50,000+')).toBeInTheDocument();
       expect(screen.getByText('99.9%')).toBeInTheDocument();
+      expect(screen.getByText('4.9/5')).toBeInTheDocument();
     });
 
     it('renders stat labels', () => {
@@ -67,6 +67,7 @@ describe('HomePage', () => {
       expect(screen.getByText('Trung tâm tin dùng')).toBeInTheDocument();
       expect(screen.getByText('Học viên đang học')).toBeInTheDocument();
       expect(screen.getByText('Uptime cam kết')).toBeInTheDocument();
+      expect(screen.getByText('Đánh giá từ khách hàng')).toBeInTheDocument();
     });
   });
 
@@ -78,14 +79,14 @@ describe('HomePage', () => {
 
     it('renders testimonial names', () => {
       render(<HomePage />);
-      expect(screen.getByText('Nguyễn Văn A')).toBeInTheDocument();
-      expect(screen.getByText('Trần Thị B')).toBeInTheDocument();
-      expect(screen.getByText('Lê Văn C')).toBeInTheDocument();
+      expect(screen.getByText('Nguyễn Thị Minh Anh')).toBeInTheDocument();
+      expect(screen.getByText('Trần Văn Đức')).toBeInTheDocument();
+      expect(screen.getByText('Lê Hoàng Phương')).toBeInTheDocument();
     });
 
     it('renders testimonial content', () => {
       render(<HomePage />);
-      expect(screen.getByText(/KiteHub giúp chúng tôi tiết kiệm 10 giờ/)).toBeInTheDocument();
+      expect(screen.getByText(/Việc quản lý hơn 500 học viên/)).toBeInTheDocument();
     });
   });
 
