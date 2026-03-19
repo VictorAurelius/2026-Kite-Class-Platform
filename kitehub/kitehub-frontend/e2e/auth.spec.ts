@@ -10,9 +10,6 @@ import {
   clearBrowserStorage,
   isAuthenticated,
   mockAllAuthAPIs,
-  mockAuthRegisterAPI,
-  mockAuthLoginAPI,
-  mockAuthLogoutAPI,
 } from './utils/test-helpers';
 
 test.describe('Registration Flow', () => {
