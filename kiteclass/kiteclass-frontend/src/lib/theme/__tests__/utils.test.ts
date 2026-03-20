@@ -61,10 +61,10 @@ describe('Theme Utils', () => {
       const cssVars = themeToCSS(theme);
 
       expect(cssVars).toEqual({
-        '--theme-primary': '#1E40AF',
-        '--theme-secondary': '#3B82F6',
-        '--theme-accent': '#F59E0B',
-        '--theme-background': '#FFFFFF',
+        '--theme-primary': '30 64 175',
+        '--theme-secondary': '59 130 246',
+        '--theme-accent': '245 158 11',
+        '--theme-background': '255 255 255',
         '--theme-font-heading': 'Inter',
         '--theme-font-body': 'Inter',
         '--theme-border-radius': '12px',
@@ -77,10 +77,10 @@ describe('Theme Utils', () => {
     it('should handle default theme correctly', () => {
       const cssVars = themeToCSS(DEFAULT_THEME);
 
-      expect(cssVars['--theme-primary']).toBe('#3B82F6');
-      expect(cssVars['--theme-secondary']).toBe('#8B5CF6');
-      expect(cssVars['--theme-accent']).toBe('#F59E0B');
-      expect(cssVars['--theme-background']).toBe('#FFFFFF');
+      expect(cssVars['--theme-primary']).toBe('59 130 246');
+      expect(cssVars['--theme-secondary']).toBe('139 92 246');
+      expect(cssVars['--theme-accent']).toBe('245 158 11');
+      expect(cssVars['--theme-background']).toBe('255 255 255');
     });
   });
 
@@ -110,19 +110,19 @@ describe('Theme Utils', () => {
       // Check that setProperty was called for each variable
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-primary',
-        '#1E40AF'
+        '30 64 175'
       );
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-secondary',
-        '#3B82F6'
+        '59 130 246'
       );
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-accent',
-        '#F59E0B'
+        '245 158 11'
       );
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-background',
-        '#FFFFFF'
+        '255 255 255'
       );
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-font-heading',
@@ -171,7 +171,7 @@ describe('Theme Utils', () => {
 
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-primary',
-        '#3B82F6'
+        '59 130 246'
       );
     });
   });
@@ -230,14 +230,14 @@ describe('Theme Utils', () => {
 
   describe('getThemeVariable', () => {
     it('should get theme variable value', () => {
-      mockDocumentElement.style.getPropertyValue.mockReturnValue('#3B82F6');
+      mockDocumentElement.style.getPropertyValue.mockReturnValue('59 130 246');
 
       const value = getThemeVariable('--theme-primary');
 
       expect(mockDocumentElement.style.getPropertyValue).toHaveBeenCalledWith(
         '--theme-primary'
       );
-      expect(value).toBe('#3B82F6');
+      expect(value).toBe('59 130 246');
     });
 
     it('should return empty string if variable not set', () => {
@@ -261,11 +261,11 @@ describe('Theme Utils', () => {
     });
 
     it('should trim whitespace from returned value', () => {
-      mockDocumentElement.style.getPropertyValue.mockReturnValue('  #3B82F6  ');
+      mockDocumentElement.style.getPropertyValue.mockReturnValue('  59 130 246  ');
 
       const value = getThemeVariable('--theme-primary');
 
-      expect(value).toBe('#3B82F6');
+      expect(value).toBe('59 130 246');
     });
   });
 
@@ -295,9 +295,9 @@ describe('Theme Utils', () => {
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledTimes(10);
 
       // Simulate reading a variable
-      mockDocumentElement.style.getPropertyValue.mockReturnValue('#1E40AF');
+      mockDocumentElement.style.getPropertyValue.mockReturnValue('30 64 175');
       const primary = getThemeVariable('--theme-primary');
-      expect(primary).toBe('#1E40AF');
+      expect(primary).toBe('30 64 175');
 
       // Remove theme
       removeThemeVariables();
@@ -318,7 +318,7 @@ describe('Theme Utils', () => {
       applyThemeVariables(theme1);
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-primary',
-        '#3B82F6'
+        '59 130 246'
       );
 
       // Clear mock
@@ -328,7 +328,7 @@ describe('Theme Utils', () => {
       applyThemeVariables(theme2);
       expect(mockDocumentElement.style.setProperty).toHaveBeenCalledWith(
         '--theme-primary',
-        '#DC2626'
+        '220 38 38'
       );
     });
   });
