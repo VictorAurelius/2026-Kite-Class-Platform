@@ -225,16 +225,31 @@ Phase 4 (DevOps):
 
 | PR | Status | GitHub | Score |
 |----|--------|--------|-------|
-| PR-Q1 Admin test | ⬜ | - | +1 |
-| PR-Q2 Gateway test | ⬜ | - | +1 |
-| PR-Q3 E2E warmup | ⬜ | - | +1 |
+| PR-Q1 Admin test | ✅ DONE | #168 | +1 |
+| PR-Q2 Gateway test | ✅ DONE | #169 | +1 |
+| PR-Q3 E2E warmup | ✅ DONE | #170 | +1 |
 | PR-Q4 FE tests | ⬜ | - | +2 |
 | PR-Q5 Unskip tests | ⬜ | - | +1 |
-| PR-Q6 Admin tests | ⬜ | - | +1 |
+| PR-Q6 Admin tests | ✅ DONE | #171 | +1 |
 | PR-Q7 Email thật | ⬜ | - | +2 |
 | PR-Q8 Theme visual | ⬜ | - | +1 |
 | PR-Q9 AI branding | ⬜ | - | +2 |
 | PR-Q10 Docker CI | ⬜ | - | +1 |
 | PR-Q11 Monitoring | ⬜ | - | +2 |
 | PR-Q12 CMS editor | ⬜ | - | +2 |
-| **Total** | | | **+17** |
+| **Total** | **4/12 done** | | **+4 earned, +13 remaining** |
+
+**Current Score: 87/100**
+
+---
+
+## PR Workflow Checklist
+
+Sau mỗi PR merge, thực hiện:
+1. `gh pr merge --squash` → merge PR
+2. `git checkout main && git pull origin main` → update local
+3. `git push origin --delete <branch>` → xóa remote branch
+4. `git branch -D <branch>` → xóa local branch
+5. Wait CI → `gh run list --limit 5` → verify all green
+6. Clean branch runs → `gh run list | select(branch != main) | delete`
+7. Update completion status trong file này
