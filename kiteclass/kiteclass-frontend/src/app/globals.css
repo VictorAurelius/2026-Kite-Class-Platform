@@ -29,10 +29,10 @@
     /* Theme system variables (PR-THEME-1) */
     /* These are set dynamically by ThemeProvider based on AI branding */
     /* Default values match DEFAULT_THEME */
-    --theme-primary: #3B82F6;
-    --theme-secondary: #8B5CF6;
-    --theme-accent: #F59E0B;
-    --theme-background: #FFFFFF;
+    --theme-primary: 59 130 246;
+    --theme-secondary: 139 92 246;
+    --theme-accent: 245 158 11;
+    --theme-background: 255 255 255;
     --theme-font-heading: Inter, system-ui, -apple-system, sans-serif;
     --theme-font-body: Inter, system-ui, -apple-system, sans-serif;
     --theme-border-radius: 8px;

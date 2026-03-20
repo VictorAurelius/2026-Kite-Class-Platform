@@ -51,9 +51,13 @@ export function ThemePreviewPanel() {
     };
     setTheme(newTheme);
 
-    // Direct CSS update for instant visual feedback
+    // Direct CSS update (RGB format for Tailwind opacity support)
     Object.entries(draft).forEach(([key, value]) => {
-      document.documentElement.style.setProperty(`--theme-${key}`, value);
+      const hex = value.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      document.documentElement.style.setProperty(`--theme-${key}`, `${r} ${g} ${b}`);
     });
 
     setHasChanges(false);
@@ -61,18 +65,17 @@ export function ThemePreviewPanel() {
 
   const handleReset = () => {
     resetTheme();
-    // Reset draft to default
     setDraft({
       primary: '#3B82F6',
       secondary: '#8B5CF6',
       accent: '#F59E0B',
       background: '#FFFFFF',
     });
-    // Reset CSS variables
-    document.documentElement.style.setProperty('--theme-primary', '#3B82F6');
-    document.documentElement.style.setProperty('--theme-secondary', '#8B5CF6');
-    document.documentElement.style.setProperty('--theme-accent', '#F59E0B');
-    document.documentElement.style.setProperty('--theme-background', '#FFFFFF');
+    // Reset CSS variables (RGB format)
+    document.documentElement.style.setProperty('--theme-primary', '59 130 246');
+    document.documentElement.style.setProperty('--theme-secondary', '139 92 246');
+    document.documentElement.style.setProperty('--theme-accent', '245 158 11');
+    document.documentElement.style.setProperty('--theme-background', '255 255 255');
     setHasChanges(false);
   };
 
