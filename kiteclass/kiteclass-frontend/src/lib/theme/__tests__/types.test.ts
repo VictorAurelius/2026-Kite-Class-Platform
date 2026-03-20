@@ -57,22 +57,22 @@ describe('Theme Types', () => {
       expect(isThemeConfig(invalid)).toBe(false);
     });
 
-    it('should return false when colors are incomplete', () => {
-      const invalid = {
+    it('should return true when colors are partial (only primary required)', () => {
+      const partial = {
         colors: {
           primary: '#1E40AF',
-          // missing secondary, accent, background
+          // missing secondary, accent, background → OK, merged with defaults
         },
         fonts: { heading: 'Inter', body: 'Inter' },
         borderRadius: '8px',
         shadows: { sm: '', md: '', lg: '' },
       };
 
-      expect(isThemeConfig(invalid)).toBe(false);
+      expect(isThemeConfig(partial)).toBe(true);
     });
 
-    it('should return false when fonts are missing', () => {
-      const invalid = {
+    it('should return true when fonts are missing (partial config)', () => {
+      const partial = {
         colors: {
           primary: '#1E40AF',
           secondary: '#3B82F6',
@@ -83,11 +83,12 @@ describe('Theme Types', () => {
         shadows: { sm: '', md: '', lg: '' },
       };
 
-      expect(isThemeConfig(invalid)).toBe(false);
+      // Only colors.primary required, fonts optional
+      expect(isThemeConfig(partial)).toBe(true);
     });
 
-    it('should return false when borderRadius is missing', () => {
-      const invalid = {
+    it('should return true for partial config (only colors.primary required)', () => {
+      const partial = {
         colors: {
           primary: '#1E40AF',
           secondary: '#3B82F6',
@@ -98,41 +99,32 @@ describe('Theme Types', () => {
         shadows: { sm: '', md: '', lg: '' },
       };
 
-      expect(isThemeConfig(invalid)).toBe(false);
+      // borderRadius missing but colors.primary present → valid
+      expect(isThemeConfig(partial)).toBe(true);
     });
 
-    it('should return false when shadows are missing', () => {
-      const invalid = {
+    it('should return true when shadows are missing (partial config)', () => {
+      const partial = {
         colors: {
           primary: '#1E40AF',
-          secondary: '#3B82F6',
-          accent: '#F59E0B',
-          background: '#FFFFFF',
         },
         fonts: { heading: 'Inter', body: 'Inter' },
         borderRadius: '8px',
       };
 
-      expect(isThemeConfig(invalid)).toBe(false);
+      // Only colors.primary required
+      expect(isThemeConfig(partial)).toBe(true);
     });
 
-    it('should return false when shadows are incomplete', () => {
-      const invalid = {
+    it('should return true when shadows are incomplete (partial config)', () => {
+      const partial = {
         colors: {
           primary: '#1E40AF',
-          secondary: '#3B82F6',
-          accent: '#F59E0B',
-          background: '#FFFFFF',
-        },
-        fonts: { heading: 'Inter', body: 'Inter' },
-        borderRadius: '8px',
-        shadows: {
-          sm: '0 1px 2px rgba(0,0,0,0.05)',
-          // missing md, lg
         },
       };
 
-      expect(isThemeConfig(invalid)).toBe(false);
+      // Minimal valid config
+      expect(isThemeConfig(partial)).toBe(true);
     });
 
     it('should return false when color values are not strings', () => {
@@ -202,15 +194,16 @@ describe('Theme Types', () => {
       expect(isThemeMessage(invalid)).toBe(false);
     });
 
-    it('should return false when theme is invalid', () => {
-      const invalid = {
+    it('should return true for partial theme (only colors.primary)', () => {
+      const partial = {
         type: 'APPLY_THEME',
         theme: {
-          colors: { primary: '#1E40AF' }, // incomplete
+          colors: { primary: '#1E40AF' }, // minimal valid
         },
       };
 
-      expect(isThemeMessage(invalid)).toBe(false);
+      // colors.primary is sufficient for valid theme
+      expect(isThemeMessage(partial)).toBe(true);
     });
 
     it('should return false when theme is missing', () => {
