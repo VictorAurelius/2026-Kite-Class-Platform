@@ -137,6 +137,45 @@ echo "=============================================="
 echo ""
 
 # ============================================================
+# 0. WARM-UP: Wait for all services to be ready
+# ============================================================
+echo -e "${YELLOW}[0/8] Waiting for services...${NC}"
+
+MAX_WAIT=60
+WAITED=0
+while [ $WAITED -lt $MAX_WAIT ]; do
+  HEALTH=$(curl -sf "$GATEWAY/actuator/health" 2>/dev/null | head -c 100 || echo "")
+  if echo "$HEALTH" | grep -q '"status":"UP"'; then
+    echo -e "  ${GREEN}✓${NC} Gateway healthy (${WAITED}s)"
+    # Wait for gateway routes to resolve (downstream services)
+    echo -e "  ... warming up downstream services"
+    for i in 1 2 3 4 5; do
+      ROUTE_CHECK=$(curl -sf -o /dev/null -w "%{http_code}" \
+        -X POST -H "Content-Type: application/json" \
+        -d '{"email":"warmup@test.com","password":"test"}' \
+        "$GATEWAY/api/auth/login" 2>/dev/null || echo "000")
+      if [ "$ROUTE_CHECK" != "404" ] && [ "$ROUTE_CHECK" != "000" ] && [ "$ROUTE_CHECK" != "502" ]; then
+        echo -e "  ${GREEN}✓${NC} All services ready (auth returned $ROUTE_CHECK)"
+        break
+      fi
+      sleep 3
+    done
+    break
+  fi
+  sleep 2
+  WAITED=$((WAITED + 2))
+  echo -e "  ... waiting (${WAITED}s)"
+done
+
+if [ $WAITED -ge $MAX_WAIT ]; then
+  echo -e "  ${RED}✗${NC} Gateway not ready after ${MAX_WAIT}s"
+  echo "  Make sure Docker stack is running: ./scripts/up.sh"
+  exit 1
+fi
+
+echo ""
+
+# ============================================================
 # 1. GATEWAY HEALTH
 # ============================================================
 echo -e "${YELLOW}[1/8] Gateway Health${NC}"
