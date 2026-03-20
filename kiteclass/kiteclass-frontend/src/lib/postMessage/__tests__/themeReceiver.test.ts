@@ -96,13 +96,13 @@ describe('Theme Receiver', () => {
       expect(mockCallback).not.toHaveBeenCalled();
     });
 
-    it('should ignore messages with invalid theme', () => {
+    it('should ignore messages with invalid theme (no colors)', () => {
       cleanup = initThemeReceiver(mockCallback);
 
       const invalidMessage = {
         type: 'APPLY_THEME',
         theme: {
-          colors: { primary: '#123' }, // incomplete
+          fonts: { heading: 'Inter' }, // no colors.primary → invalid
         },
       };
 

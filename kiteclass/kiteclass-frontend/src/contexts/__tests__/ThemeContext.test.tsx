@@ -92,21 +92,21 @@ describe('ThemeContext', () => {
       expect(result.current.theme).toEqual(DEFAULT_THEME);
     });
 
-    it('should use default theme if localStorage has incomplete theme', () => {
-      const incompleteTheme = {
+    it('should load partial theme from localStorage (only colors.primary needed)', () => {
+      const partialTheme = {
         colors: {
           primary: '#DC2626',
-          // missing other required fields
         },
       };
 
-      localStorageMock.setItem('kiteclass_theme', JSON.stringify(incompleteTheme));
+      localStorageMock.setItem('kiteclass_theme', JSON.stringify(partialTheme));
 
       const { result } = renderHook(() => useTheme(), {
         wrapper: ThemeProvider,
       });
 
-      expect(result.current.theme).toEqual(DEFAULT_THEME);
+      // Partial theme is valid, should be loaded
+      expect(result.current.theme.colors.primary).toBe('#DC2626');
     });
   });
 
