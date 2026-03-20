@@ -35,10 +35,14 @@ export function ThemePreviewPanel() {
   }
 
   const handleColorChange = (field: string, value: string) => {
-    setTheme({
+    const newTheme = {
       ...theme,
       colors: { ...theme.colors, [field]: value },
-    });
+    };
+    setTheme(newTheme);
+
+    // Also directly apply CSS variable for instant feedback
+    document.documentElement.style.setProperty(`--theme-${field}`, value);
   };
 
   return (
