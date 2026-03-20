@@ -14,7 +14,9 @@ cd "$(dirname "$0")/.."
 if [ $# -eq 0 ]; then
     echo "Usage: ./scripts/rebuild.sh <service|all> [--no-cache]"
     echo ""
-    echo "Services: subscription, branding, email, admin, gateway, frontend, all"
+    echo "KiteHub:    subscription, branding, email, admin, gateway, frontend"
+    echo "KiteClass:  kiteclass-core, kiteclass-frontend"
+    echo "All:        all"
     exit 1
 fi
 
@@ -35,8 +37,8 @@ if [ "$SERVICE" = "all" ]; then
     exit 0
 fi
 
-# Add kitehub- prefix if not present
-if [[ "$SERVICE" != kitehub-* ]]; then
+# Add kitehub- prefix if not present (skip kiteclass-* services)
+if [[ "$SERVICE" != kitehub-* ]] && [[ "$SERVICE" != kiteclass-* ]]; then
     SERVICE="kitehub-$SERVICE"
 fi
 
