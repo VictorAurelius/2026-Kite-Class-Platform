@@ -41,7 +41,7 @@ class SESEmailServiceTest {
         sesProperties.setFromName("KiteClass Platform");
         sesProperties.setMockMode(true); // Mock mode for testing
 
-        sesEmailService = new SESEmailService(sesProperties, null, templateEngine);
+        sesEmailService = new SESEmailService(sesProperties, null, null, templateEngine);
     }
 
     @Test
