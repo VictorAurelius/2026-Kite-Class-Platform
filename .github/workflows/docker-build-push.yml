@@ -89,7 +89,7 @@ jobs:
     name: Push to AWS ECR
     runs-on: ubuntu-latest
     needs: build-test  # Only run after build-test succeeds
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_CONFIGURED == 'true'
     permissions:
       id-token: write # Required for AWS OIDC
       contents: read
@@ -182,16 +182,15 @@ jobs:
 
           echo "✅ Docker images build verification passed"
 
-          # Handle push-to-ecr status (informational only, not blocking)
-          if [ "${{ needs.push-to-ecr.result }}" == "success" ]; then
-            echo "✅ Images pushed to ECR successfully"
-            echo "Images available at:"
-            echo "- Core: ${{ env.ECR_REPOSITORY_CORE }}"
-            echo "- Gateway: ${{ env.ECR_REPOSITORY_GATEWAY }}"
-            echo "- Frontend: ${{ env.ECR_REPOSITORY_FRONTEND }}"
-          elif [ "${{ needs.push-to-ecr.result }}" == "skipped" ]; then
-            echo "⏭️  ECR push skipped (not main branch or AWS not configured)"
-          else
-            echo "⚠️  ECR push failed (check AWS credentials)"
-            # NOTE: Not exiting here - build verification still succeeded
-          fi
+          # Handle push-to-ecr status (informational, never blocks)
+          case "${{ needs.push-to-ecr.result }}" in
+            success)
+              echo "✅ Images pushed to ECR successfully"
+              ;;
+            skipped)
+              echo "⏭️  ECR push skipped (not main branch or PR)"
+              ;;
+            *)
+              echo "⚠️  ECR push: ${{ needs.push-to-ecr.result }} (AWS credentials not configured - expected)"
+              ;;
+          esac
