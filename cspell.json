@@ -1,0 +1,32 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "springframework",
+    "mapstruct",
+    "openfeign",
+    "circuitbreaker",
+    "webflux",
+    "thymeleaf",
+    "flywaydb",
+    "jsonwebtoken",
+    "jjwt",
+    "projectlombok",
+    "springdoc",
+    "projectreactor",
+    "ozimov",
+    "jacoco",
+    "kiteclass",
+    "kitehub",
+    "hcaptcha"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    "target",
+    "pnpm-lock.yaml",
+    "package-lock.json"
+  ]
+}
