@@ -5,16 +5,16 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { initThemeReceiver, ALLOWED_ORIGINS } from '../themeReceiver';
+import { initThemeReceiver, ALLOWED_ORIGINS, type ThemeUpdateCallback } from '../themeReceiver';
 import type { ThemeMessage } from '@/lib/theme/types';
 import { DEFAULT_THEME } from '@/lib/theme/defaultTheme';
 
 describe('Theme Receiver', () => {
   let cleanup: (() => void) | null = null;
-  let mockCallback: ReturnType<typeof vi.fn>;
+  let mockCallback: ThemeUpdateCallback;
 
   beforeEach(() => {
-    mockCallback = vi.fn();
+    mockCallback = vi.fn<ThemeUpdateCallback>();
     cleanup = null;
   });
 

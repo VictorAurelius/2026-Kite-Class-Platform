@@ -86,7 +86,7 @@ public class CaptchaService {
             if (success) {
                 log.info("Captcha verification SUCCESS");
             } else {
-                log.warn("Captcha verification FAILED: error-codes={}", verifyResponse.getErrorCodes());
+                log.warn("Captcha verification FAILED: error-codes={}", (Object) verifyResponse.getErrorCodes());
             }
 
             return success;

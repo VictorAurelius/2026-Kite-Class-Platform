@@ -148,8 +148,8 @@ export default function RegisterPage() {
           <div className="flex justify-center">
             <HCaptcha
               ref={captchaRef}
-              sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY}
-              onVerify={(token) => setCaptchaToken(token)}
+              sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ?? ''}
+              onVerify={(token: string) => setCaptchaToken(token)}
               onExpire={() => setCaptchaToken(null)}
               onError={() => setCaptchaToken(null)}
             />
