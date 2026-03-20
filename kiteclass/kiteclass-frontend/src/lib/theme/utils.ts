@@ -8,36 +8,41 @@
  */
 
 import type { ThemeConfig } from './types';
-import { THEME_CSS_VARS } from './defaultTheme';
+import { THEME_CSS_VARS, DEFAULT_THEME } from './defaultTheme';
+
+/**
+ * Merge partial theme with defaults.
+ * Allows postMessage to send only colors without fonts/shadows.
+ */
+function mergeWithDefaults(theme: ThemeConfig): ThemeConfig {
+  return {
+    colors: { ...DEFAULT_THEME.colors, ...theme.colors },
+    fonts: { ...DEFAULT_THEME.fonts, ...theme.fonts },
+    borderRadius: theme.borderRadius ?? DEFAULT_THEME.borderRadius,
+    shadows: { ...DEFAULT_THEME.shadows, ...theme.shadows },
+  };
+}
 
 /**
  * Converts a ThemeConfig object to a flat CSS variables object.
+ * Merges with defaults for any missing fields.
  *
- * @param theme - Theme configuration to convert
+ * @param theme - Theme configuration to convert (can be partial)
  * @returns Object mapping CSS variable names to values
- *
- * @example
- * ```typescript
- * const cssVars = themeToCSS(myTheme);
- * // {
- * //   '--theme-primary': '#3B82F6',
- * //   '--theme-secondary': '#8B5CF6',
- * //   ...
- * // }
- * ```
  */
 export function themeToCSS(theme: ThemeConfig): Record<string, string> {
+  const merged = mergeWithDefaults(theme);
   return {
-    [THEME_CSS_VARS.PRIMARY]: theme.colors.primary,
-    [THEME_CSS_VARS.SECONDARY]: theme.colors.secondary,
-    [THEME_CSS_VARS.ACCENT]: theme.colors.accent,
-    [THEME_CSS_VARS.BACKGROUND]: theme.colors.background,
-    [THEME_CSS_VARS.FONT_HEADING]: theme.fonts.heading,
-    [THEME_CSS_VARS.FONT_BODY]: theme.fonts.body,
-    [THEME_CSS_VARS.BORDER_RADIUS]: theme.borderRadius,
-    [THEME_CSS_VARS.SHADOW_SM]: theme.shadows.sm,
-    [THEME_CSS_VARS.SHADOW_MD]: theme.shadows.md,
-    [THEME_CSS_VARS.SHADOW_LG]: theme.shadows.lg,
+    [THEME_CSS_VARS.PRIMARY]: merged.colors.primary,
+    [THEME_CSS_VARS.SECONDARY]: merged.colors.secondary,
+    [THEME_CSS_VARS.ACCENT]: merged.colors.accent,
+    [THEME_CSS_VARS.BACKGROUND]: merged.colors.background,
+    [THEME_CSS_VARS.FONT_HEADING]: merged.fonts.heading,
+    [THEME_CSS_VARS.FONT_BODY]: merged.fonts.body,
+    [THEME_CSS_VARS.BORDER_RADIUS]: merged.borderRadius,
+    [THEME_CSS_VARS.SHADOW_SM]: merged.shadows.sm,
+    [THEME_CSS_VARS.SHADOW_MD]: merged.shadows.md,
+    [THEME_CSS_VARS.SHADOW_LG]: merged.shadows.lg,
   };
 }
 
