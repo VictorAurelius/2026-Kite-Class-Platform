@@ -85,9 +85,6 @@ export function initThemeReceiver(onThemeUpdate: ThemeUpdateCallback): () => voi
       return;
     }
 
-    // Valid theme message from trusted origin
-    console.log('[Theme Receiver] Received valid theme update from:', event.origin);
-
     // Call callback with theme
     onThemeUpdate(event.data.theme);
   };
