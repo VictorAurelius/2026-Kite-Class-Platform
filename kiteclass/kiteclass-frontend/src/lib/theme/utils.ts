@@ -14,12 +14,12 @@ import { THEME_CSS_VARS, DEFAULT_THEME } from './defaultTheme';
  * Merge partial theme with defaults.
  * Allows postMessage to send only colors without fonts/shadows.
  */
-function mergeWithDefaults(theme: ThemeConfig): ThemeConfig {
+function mergeWithDefaults(theme: Partial<ThemeConfig> & Pick<ThemeConfig, 'colors'>): ThemeConfig {
   return {
-    colors: { ...DEFAULT_THEME.colors, ...theme.colors },
-    fonts: { ...DEFAULT_THEME.fonts, ...theme.fonts },
+    colors: { ...DEFAULT_THEME.colors, ...(theme.colors || {}) },
+    fonts: { ...DEFAULT_THEME.fonts, ...(theme.fonts || {}) },
     borderRadius: theme.borderRadius ?? DEFAULT_THEME.borderRadius,
-    shadows: { ...DEFAULT_THEME.shadows, ...theme.shadows },
+    shadows: { ...DEFAULT_THEME.shadows, ...(theme.shadows || {}) },
   };
 }
 
