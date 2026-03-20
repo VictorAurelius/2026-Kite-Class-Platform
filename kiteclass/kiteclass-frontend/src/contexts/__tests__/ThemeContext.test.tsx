@@ -268,10 +268,13 @@ describe('ThemeContext', () => {
 
   describe('SSR compatibility', () => {
     it('should handle missing localStorage gracefully', () => {
-      // Remove localStorage
+      // Override localStorage to simulate SSR (undefined)
       const originalLocalStorage = global.localStorage;
-      // @ts-expect-error - intentionally removing localStorage for test
-      delete global.localStorage;
+      Object.defineProperty(global, 'localStorage', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      });
 
       const { result } = renderHook(() => useTheme(), {
         wrapper: ThemeProvider,
