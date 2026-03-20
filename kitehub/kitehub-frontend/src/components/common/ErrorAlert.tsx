@@ -6,7 +6,7 @@ interface ErrorAlertProps {
 
 export function ErrorAlert({ title = 'Lỗi', message, onRetry }: ErrorAlertProps) {
   return (
-    <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+    <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4" data-testid="error-alert">
       <h3 className="text-sm font-medium text-destructive">{title}</h3>
       <p className="mt-1 text-sm text-destructive/80">{message}</p>
       {onRetry && (

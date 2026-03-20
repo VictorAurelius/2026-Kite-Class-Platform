@@ -13,7 +13,7 @@ const sizeMap = {
 
 export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) {
   return (
-    <div className={cn('flex items-center justify-center', className)}>
+    <div className={cn('flex items-center justify-center', className)} data-testid="loading-spinner">
       <div
         className={cn(
           'animate-spin rounded-full border-2 border-muted border-t-primary',
