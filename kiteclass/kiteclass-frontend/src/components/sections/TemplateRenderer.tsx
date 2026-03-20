@@ -1,11 +1,12 @@
 /**
  * Dynamic template renderer.
- * Renders enabled sections in configured order based on TemplateConfig.
+ * Renders enabled sections in configured order, passing slot data to each.
  *
- * @since PR-THEME-2
+ * @since PR-THEME-2, updated PR-THEME-3
  */
 
 import type { TemplateConfig, SectionId } from '@/lib/template/types';
+import type { SlotData } from '@/lib/template/slots';
 import { getEnabledSections } from '@/lib/template/types';
 import { HeroSection } from './HeroSection';
 import { AboutSection } from './AboutSection';
@@ -25,9 +26,15 @@ interface LandingData {
   [key: string]: unknown;
 }
 
+/**
+ * Per-section slot data from backend or CMS.
+ */
+export type SectionSlotMap = Partial<Record<SectionId, SlotData>>;
+
 interface TemplateRendererProps {
   template: TemplateConfig;
   data: LandingData;
+  slots?: SectionSlotMap;
 }
 
 const SECTION_LABELS: Record<SectionId, string> = {
@@ -46,19 +53,18 @@ const SECTION_LABELS: Record<SectionId, string> = {
   contact: 'Liên hệ',
 };
 
-function renderSection(sectionId: SectionId, data: LandingData) {
+function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: SlotData) {
   switch (sectionId) {
     case 'hero':
-      return <HeroSection title={data.heroTitle as string} subtitle={data.heroSubtitle as string} tagline={data.tagline as string} />;
+      return <HeroSection slots={sectionSlots} title={data.heroTitle as string} subtitle={data.heroSubtitle as string} tagline={data.tagline as string} />;
     case 'about':
-      return <AboutSection />;
+      return <AboutSection slots={sectionSlots} />;
     case 'courses':
-      return <FeaturesSection />;
+      return <FeaturesSection slots={sectionSlots} />;
     case 'testimonials':
-      return <TestimonialsSection />;
+      return <TestimonialsSection slots={sectionSlots} />;
     case 'contact':
-      return <ContactSection email={data.contactEmail} phone={data.contactPhone} address={data.address} />;
-    // Sections with CTA inserted after courses
+      return <ContactSection slots={sectionSlots} email={data.contactEmail} phone={data.contactPhone} address={data.address} />;
     case 'pricing':
       return <PlaceholderSection title={SECTION_LABELS.pricing} description="Thông tin bảng giá sẽ được cập nhật sớm." />;
     case 'teachers':
@@ -80,15 +86,14 @@ function renderSection(sectionId: SectionId, data: LandingData) {
   }
 }
 
-export function TemplateRenderer({ template, data }: TemplateRendererProps) {
+export function TemplateRenderer({ template, data, slots = {} }: TemplateRendererProps) {
   const sections = getEnabledSections(template);
 
   return (
     <div className="flex flex-col">
       {sections.map((section) => (
         <div key={section.id}>
-          {renderSection(section.id, data)}
-          {/* Insert CTA after courses section */}
+          {renderSection(section.id, data, slots[section.id])}
           {section.id === 'courses' && <CTASection />}
         </div>
       ))}
