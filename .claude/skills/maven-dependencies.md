@@ -23,7 +23,7 @@ Tài liệu quy định:
 
 | Framework | Version | Ghi chú |
 |-----------|---------|---------|
-| Spring Boot | **3.5.11** | LTS, active support |
+| Spring Boot | **3.5.12** | LTS, active support |
 | Spring Cloud | **2024.0.0** | Compatible với Boot 3.5.x |
 | Java | **17** hoặc **21** | LTS versions |
 
@@ -262,7 +262,7 @@ Các dependencies sau KHÔNG được Spring Boot quản lý, PHẢI khai báo v
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.11</version>
+        <version>3.5.12</version>
     </parent>
 
     <groupId>com.kiteclass</groupId>
@@ -307,7 +307,7 @@ Các dependencies sau KHÔNG được Spring Boot quản lý, PHẢI khai báo v
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.11</version>
+        <version>3.5.12</version>
     </parent>
 
     <groupId>com.kiteclass</groupId>

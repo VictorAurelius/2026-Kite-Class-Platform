@@ -197,7 +197,7 @@ git diff pom.xml
 ```
 
 **Requirements:**
-- [ ] Spring Boot version: **3.5.11** (not 3.5.10 or older)
+- [ ] Spring Boot version: **3.5.12** (not 3.5.10 or older)
 - [ ] JJWT version: **0.12.6** (not 0.12.3)
 - [ ] MapStruct version: **1.6.3** (not 1.5.5)
 - [ ] SpringDoc version: **2.8.4** (not 2.3.0)

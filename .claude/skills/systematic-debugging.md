@@ -79,7 +79,7 @@ Replace ad-hoc trial-and-error debugging with **systematic 4-phase process** ins
 **Test:** StudentServiceTest#testMultiTenantFilterBug
 **Consistent:** Yes (fails 5/5 runs)
 **Environment:**
-- Spring Boot 3.5.11
+- Spring Boot 3.5.12
 - PostgreSQL 15
 - Tenant ID: 12345
 - Redis: Cleared before test

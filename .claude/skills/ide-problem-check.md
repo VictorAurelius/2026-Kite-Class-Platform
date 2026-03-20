@@ -234,7 +234,7 @@ JAVA_HOME=~/.local/java/jdk-21.0.5+11 bash ~/.m2/wrapper/dists/apache-maven-3.9.
 | Tool | Version | Notes |
 |------|---------|-------|
 | Java | 21.0.5 (Temurin) | LTS, no sudo needed |
-| Spring Boot | **3.5.11** | Luôn dùng version mới nhất trong skill |
+| Spring Boot | **3.5.12** | Luôn dùng version mới nhất trong skill |
 | Maven | 3.9.6 | Đã có sẵn qua mvnw |
 | Node.js | 18.x | Pre-installed trong WSL |
 | pnpm | 10.x | Install via npm |

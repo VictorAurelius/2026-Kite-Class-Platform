@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { renderHook, act } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '../ThemeContext';
 import type { ThemeConfig } from '@/lib/theme/types';
@@ -270,7 +270,7 @@ describe('ThemeContext', () => {
     it('should handle missing localStorage gracefully', () => {
       // Remove localStorage
       const originalLocalStorage = global.localStorage;
-      // @ts-ignore
+      // @ts-expect-error - intentionally removing localStorage for test
       delete global.localStorage;
 
       const { result } = renderHook(() => useTheme(), {
