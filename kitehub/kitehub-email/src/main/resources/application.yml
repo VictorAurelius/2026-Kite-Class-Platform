@@ -10,8 +10,23 @@ spring:
     encoding: UTF-8
     cache: false
 
+  # SMTP Configuration (for MailHog local dev or real SMTP)
+  mail:
+    host: ${SMTP_HOST:kitehub-mailhog}
+    port: ${SMTP_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
 server:
   port: 8084
+
+# Email provider: "smtp" (MailHog/real SMTP) or "ses" (AWS SES) or "mock" (log only)
+email:
+  provider: ${EMAIL_PROVIDER:mock}
 
 # AWS SES Configuration
 aws:

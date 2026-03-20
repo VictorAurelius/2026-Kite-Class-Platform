@@ -75,6 +75,15 @@ services:
     networks:
       - kitehub-network
 
+  kitehub-mailhog:
+    image: mailhog/mailhog:latest
+    container_name: kitehub-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - kitehub-network
+
   kitehub-minio-setup:
     image: minio/mc:latest
     container_name: kitehub-minio-setup
@@ -251,7 +260,10 @@ services:
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       AWS_SES_REGION: ap-southeast-1
       AWS_SES_FROM_EMAIL: noreply@kiteclass.com
-      EMAIL_MOCK_MODE: "true"
+      AWS_SES_MOCK_MODE: "true"
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
+      SMTP_HOST: kitehub-mailhog
+      SMTP_PORT: 1025
     ports:
       - "8084:8080"
     depends_on:
