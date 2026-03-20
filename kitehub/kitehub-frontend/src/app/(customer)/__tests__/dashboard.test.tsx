@@ -82,8 +82,8 @@ describe('DashboardPage', () => {
 
     // Check instances are displayed
     expect(screen.getByText('Trung tâm của bạn')).toBeInTheDocument();
-    expect(screen.getByText(mockInstances[0].name)).toBeInTheDocument();
-    expect(screen.getByText(mockInstances[1].name)).toBeInTheDocument();
+    expect(screen.getByText(mockInstances[0]!.name)).toBeInTheDocument();
+    expect(screen.getByText(mockInstances[1]!.name)).toBeInTheDocument();
   });
 
   it('renders empty state when no instances', () => {

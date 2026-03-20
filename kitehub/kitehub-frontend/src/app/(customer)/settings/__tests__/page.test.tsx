@@ -47,7 +47,6 @@ vi.mock('../components/DangerZone', () => ({
 }));
 
 // Import mocks
-import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 
 describe('SettingsPage', () => {
@@ -136,6 +135,6 @@ describe('SettingsPage', () => {
 
     const accountTab = screen.getByTestId('account-tab');
     expect(accountTab).toHaveTextContent(mockUser.email);
-    expect(accountTab).toHaveTextContent(mockInstances[0].organizationName);
+    expect(accountTab).toHaveTextContent(mockInstances[0]!.organizationName);
   });
 });

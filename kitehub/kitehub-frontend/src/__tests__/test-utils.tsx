@@ -23,7 +23,7 @@ function renderWithProviders(
     defaultOptions: {
       queries: {
         retry: false, // Disable retries in tests
-        cacheTime: 0,
+        gcTime: 0, // React Query v5: renamed from cacheTime
       },
     },
   });

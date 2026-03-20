@@ -117,7 +117,7 @@ describe('useSubscriptions hooks', () => {
 
   describe('useUpgradeSubscription', () => {
     it('upgrades subscription successfully', async () => {
-      const upgradedSub = { ...mockSubscription, tier: 'PRO' };
+      const upgradedSub = { ...mockSubscription, tier: 'PREMIUM' };
 
       (apiClient.patch as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: { data: upgradedSub },
@@ -129,7 +129,7 @@ describe('useSubscriptions hooks', () => {
 
       result.current.mutate({
         subscriptionId: 'sub-123',
-        newTier: 'PRO',
+        newTier: 'PREMIUM',
       });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -152,7 +152,7 @@ describe('useSubscriptions hooks', () => {
 
       result.current.mutate({
         subscriptionId: 'sub-123',
-        newTier: 'PRO',
+        newTier: 'PREMIUM',
       });
 
       await waitFor(() => expect(result.current.isError).toBe(true));

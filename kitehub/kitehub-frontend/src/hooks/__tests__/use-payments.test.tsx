@@ -170,8 +170,8 @@ describe('usePayments hooks', () => {
 
       result.current.mutate({
         subscriptionId: 'sub-123',
-        amount: 299000,
-        method: 'bank_transfer',
+        amountVnd: 299000,
+        paymentMethod: 'BANK_TRANSFER',
       });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -181,7 +181,7 @@ describe('usePayments hooks', () => {
         expect.any(String),
         expect.objectContaining({
           subscriptionId: 'sub-123',
-          amount: 299000,
+          amountVnd: 299000,
         })
       );
     });
@@ -197,8 +197,8 @@ describe('usePayments hooks', () => {
 
       result.current.mutate({
         subscriptionId: 'sub-123',
-        amount: 299000,
-        method: 'bank_transfer',
+        amountVnd: 299000,
+        paymentMethod: 'BANK_TRANSFER',
       });
 
       await waitFor(() => expect(result.current.isError).toBe(true));
@@ -221,8 +221,8 @@ describe('usePayments hooks', () => {
 
       result.current.mutate({
         subscriptionId: 'sub-123',
-        amount: 299000,
-        method: 'bank_transfer',
+        amountVnd: 299000,
+        paymentMethod: 'BANK_TRANSFER',
       });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));

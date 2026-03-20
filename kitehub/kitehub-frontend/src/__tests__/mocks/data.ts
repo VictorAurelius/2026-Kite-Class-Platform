@@ -61,6 +61,7 @@ export const mockSubscription = {
   id: 'sub-123',
   userId: 'user-123',
   planId: 'basic',
+  tier: 'BASIC',
   status: 'active',
   currentPeriodEnd: '2026-12-31T23:59:59Z',
   cancelAtPeriodEnd: false,
