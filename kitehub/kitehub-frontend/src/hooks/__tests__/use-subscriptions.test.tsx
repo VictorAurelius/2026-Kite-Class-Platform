@@ -137,7 +137,7 @@ describe('useSubscriptions hooks', () => {
       expect(result.current.data).toEqual(upgradedSub);
       expect(apiClient.patch).toHaveBeenCalledWith(
         expect.stringContaining('sub-123'),
-        { newTier: 'PRO' }
+        { newTier: 'PREMIUM' }
       );
     });
 
