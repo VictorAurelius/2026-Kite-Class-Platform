@@ -1,0 +1,37 @@
+# Test configuration for KiteHub Admin Service
+# Uses H2 in PostgreSQL compatibility mode
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: never
+
+jwt:
+  secret: abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ01
+
+encryption:
+  master-key: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+
+database:
+  lifecycle:
+    enabled: false
+
+captcha:
+  enabled: false
+
+kitehub:
+  email-verification:
+    enabled: false
+  email-service:
+    enabled: false
