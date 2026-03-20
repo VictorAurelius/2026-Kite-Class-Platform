@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "language": "en",
+  "language": "en,vi",
   "words": [
     "springframework",
     "mapstruct",
@@ -11,6 +11,7 @@
     "flywaydb",
     "jsonwebtoken",
     "jjwt",
+    "Jwts",
     "projectlombok",
     "springdoc",
     "projectreactor",
@@ -18,7 +19,8 @@
     "jacoco",
     "kiteclass",
     "kitehub",
-    "hcaptcha"
+    "hcaptcha",
+    "COVEREDRATIO"
   ],
   "ignorePaths": [
     "node_modules",
