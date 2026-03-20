@@ -121,40 +121,12 @@ export function isThemeConfig(value: unknown): value is ThemeConfig {
 
   const obj = value as Record<string, unknown>;
 
-  // Check colors
+  // Only require colors.primary as minimum valid theme
+  // Other fields are optional and will use defaults
   if (
     typeof obj.colors !== 'object' ||
     obj.colors === null ||
-    typeof (obj.colors as Record<string, unknown>).primary !== 'string' ||
-    typeof (obj.colors as Record<string, unknown>).secondary !== 'string' ||
-    typeof (obj.colors as Record<string, unknown>).accent !== 'string' ||
-    typeof (obj.colors as Record<string, unknown>).background !== 'string'
-  ) {
-    return false;
-  }
-
-  // Check fonts
-  if (
-    typeof obj.fonts !== 'object' ||
-    obj.fonts === null ||
-    typeof (obj.fonts as Record<string, unknown>).heading !== 'string' ||
-    typeof (obj.fonts as Record<string, unknown>).body !== 'string'
-  ) {
-    return false;
-  }
-
-  // Check borderRadius
-  if (typeof obj.borderRadius !== 'string') {
-    return false;
-  }
-
-  // Check shadows
-  if (
-    typeof obj.shadows !== 'object' ||
-    obj.shadows === null ||
-    typeof (obj.shadows as Record<string, unknown>).sm !== 'string' ||
-    typeof (obj.shadows as Record<string, unknown>).md !== 'string' ||
-    typeof (obj.shadows as Record<string, unknown>).lg !== 'string'
+    typeof (obj.colors as Record<string, unknown>).primary !== 'string'
   ) {
     return false;
   }
