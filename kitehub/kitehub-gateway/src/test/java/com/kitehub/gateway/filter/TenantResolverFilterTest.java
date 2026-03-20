@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
@@ -99,8 +100,8 @@ class TenantResolverGatewayFilterFactoryTest {
 
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
-        when(instanceRepository.findBySubdomain("nonexistent")).thenReturn(Optional.empty());
-        when(instanceRepository.findByCustomDomain("nonexistent.kiteclass.com")).thenReturn(Optional.empty());
+        lenient().when(instanceRepository.findBySubdomain("nonexistent")).thenReturn(Optional.empty());
+        lenient().when(instanceRepository.findByCustomDomain("nonexistent.kiteclass.com")).thenReturn(Optional.empty());
 
         // When
         Mono<Void> result = tenantResolverFilter.apply(new TenantResolverGatewayFilterFactory.Config())
@@ -148,8 +149,8 @@ class TenantResolverGatewayFilterFactoryTest {
 
         MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
-        when(instanceRepository.findBySubdomain("school.example.com")).thenReturn(Optional.empty());
-        when(instanceRepository.findByCustomDomain("school.example.com")).thenReturn(Optional.of(activeInstance));
+        lenient().when(instanceRepository.findBySubdomain("school.example.com")).thenReturn(Optional.empty());
+        lenient().when(instanceRepository.findByCustomDomain("school.example.com")).thenReturn(Optional.of(activeInstance));
 
         // Capture modified exchange
         when(filterChain.filter(any(ServerWebExchange.class))).thenAnswer(invocation -> {
