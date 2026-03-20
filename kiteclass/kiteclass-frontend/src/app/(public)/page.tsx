@@ -58,11 +58,16 @@ const getLandingPageData = async (tenantOverride?: string) => {
 export default async function LandingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tenant?: string; template?: string }>;
+  searchParams: Promise<{ tenant?: string; template?: string; primary?: string; secondary?: string; accent?: string }>;
 }) {
   const params = await searchParams;
   const landingData = await getLandingPageData(params.tenant);
   const template = getTemplate(params.template);
+
+  // Override colors from query params (for testing themes)
+  if (params.primary) landingData.primaryColor = `#${params.primary}`;
+  if (params.secondary) landingData.secondaryColor = `#${params.secondary}`;
+  if (params.accent) (landingData as Record<string, unknown>).accentColor = `#${params.accent}`;
 
   // SEO structured data
   const structuredData = {
