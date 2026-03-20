@@ -41,6 +41,7 @@ public class AuthService {
     private final InstanceService instanceService;
     private final UserRepository userRepository;
     private final CaptchaService captchaService;
+    private final EmailSenderService emailSenderService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Value("${jwt.secret:#{null}}")
@@ -320,8 +321,7 @@ public class AuthService {
         String param = "token";
         String verifyUrl = verificationBaseUrl + "/verify-email?" + param + "=" + verificationCode;
         log.info("[EMAIL] Verification link for {}: {}", email, verifyUrl);
-        // TODO: Call kitehub-email service REST API to send actual email
-        // For now, log the URL (visible in docker logs)
+        emailSenderService.sendVerificationEmail(email, verifyUrl);
     }
 
     private String generateAccessToken(UUID userId, String email, String role) {
