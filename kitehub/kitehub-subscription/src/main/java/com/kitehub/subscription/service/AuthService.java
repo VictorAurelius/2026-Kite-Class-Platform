@@ -7,7 +7,6 @@ import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.UserRepository;
-import com.kitehub.subscription.service.EmailSenderService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
