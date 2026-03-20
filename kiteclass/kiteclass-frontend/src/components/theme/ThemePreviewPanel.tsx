@@ -13,13 +13,17 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Palette, X, RotateCcw } from 'lucide-react';
+import { Palette, X, RotateCcw, Check } from 'lucide-react';
 
 export function ThemePreviewPanel() {
   const searchParams = useSearchParams();
   const showPreview = searchParams.get('preview') === 'theme';
   const { theme, setTheme, resetTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(true);
+
+  // Draft colors (not applied yet, only on Apply click)
+  const [draft, setDraft] = useState({ ...theme.colors });
+  const [hasChanges, setHasChanges] = useState(false);
 
   if (!showPreview) return null;
   if (!isOpen) {
@@ -34,15 +38,42 @@ export function ThemePreviewPanel() {
     );
   }
 
-  const handleColorChange = (field: string, value: string) => {
+  const handleDraftChange = (field: string, value: string) => {
+    setDraft(prev => ({ ...prev, [field]: value }));
+    setHasChanges(true);
+  };
+
+  const handleApply = () => {
+    // Apply draft colors to theme + CSS variables
     const newTheme = {
       ...theme,
-      colors: { ...theme.colors, [field]: value },
+      colors: { ...theme.colors, ...draft },
     };
     setTheme(newTheme);
 
-    // Also directly apply CSS variable for instant feedback
-    document.documentElement.style.setProperty(`--theme-${field}`, value);
+    // Direct CSS update for instant visual feedback
+    Object.entries(draft).forEach(([key, value]) => {
+      document.documentElement.style.setProperty(`--theme-${key}`, value);
+    });
+
+    setHasChanges(false);
+  };
+
+  const handleReset = () => {
+    resetTheme();
+    // Reset draft to default
+    setDraft({
+      primary: '#3B82F6',
+      secondary: '#8B5CF6',
+      accent: '#F59E0B',
+      background: '#FFFFFF',
+    });
+    // Reset CSS variables
+    document.documentElement.style.setProperty('--theme-primary', '#3B82F6');
+    document.documentElement.style.setProperty('--theme-secondary', '#8B5CF6');
+    document.documentElement.style.setProperty('--theme-accent', '#F59E0B');
+    document.documentElement.style.setProperty('--theme-background', '#FFFFFF');
+    setHasChanges(false);
   };
 
   return (
@@ -62,30 +93,42 @@ export function ThemePreviewPanel() {
       <div className="space-y-3 p-3">
         <ColorPicker
           label="Primary"
-          value={theme.colors.primary}
-          onChange={(v) => handleColorChange('primary', v)}
+          value={draft.primary}
+          onChange={(v) => handleDraftChange('primary', v)}
         />
         <ColorPicker
           label="Secondary"
-          value={theme.colors.secondary}
-          onChange={(v) => handleColorChange('secondary', v)}
+          value={draft.secondary}
+          onChange={(v) => handleDraftChange('secondary', v)}
         />
         <ColorPicker
           label="Accent"
-          value={theme.colors.accent}
-          onChange={(v) => handleColorChange('accent', v)}
+          value={draft.accent}
+          onChange={(v) => handleDraftChange('accent', v)}
         />
         <ColorPicker
           label="Background"
-          value={theme.colors.background}
-          onChange={(v) => handleColorChange('background', v)}
+          value={draft.background}
+          onChange={(v) => handleDraftChange('background', v)}
         />
       </div>
 
-      {/* Actions */}
-      <div className="border-t p-3">
+      {/* Apply Button */}
+      <div className="border-t p-3 space-y-2">
         <button
-          onClick={resetTheme}
+          onClick={handleApply}
+          disabled={!hasChanges}
+          className={`flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+            hasChanges
+              ? 'bg-primary text-white hover:bg-primary/90'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
+          }`}
+        >
+          <Check className="h-4 w-4" />
+          Áp dụng Theme
+        </button>
+        <button
+          onClick={handleReset}
           className="flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
         >
           <RotateCcw className="h-3.5 w-3.5" />
@@ -93,14 +136,15 @@ export function ThemePreviewPanel() {
         </button>
       </div>
 
-      {/* Current Values */}
+      {/* Preview Colors */}
       <div className="border-t p-3">
-        <p className="text-xs text-muted-foreground mb-1">CSS Variables:</p>
-        <code className="text-[10px] text-muted-foreground block">
-          --theme-primary: {theme.colors.primary}<br />
-          --theme-secondary: {theme.colors.secondary}<br />
-          --theme-accent: {theme.colors.accent}
-        </code>
+        <p className="text-xs text-muted-foreground mb-2">Xem trước:</p>
+        <div className="flex gap-2">
+          <div className="h-8 w-8 rounded-lg border" style={{ backgroundColor: draft.primary }} title="Primary" />
+          <div className="h-8 w-8 rounded-lg border" style={{ backgroundColor: draft.secondary }} title="Secondary" />
+          <div className="h-8 w-8 rounded-lg border" style={{ backgroundColor: draft.accent }} title="Accent" />
+          <div className="h-8 w-8 rounded-lg border" style={{ backgroundColor: draft.background }} title="Background" />
+        </div>
       </div>
     </div>
   );
