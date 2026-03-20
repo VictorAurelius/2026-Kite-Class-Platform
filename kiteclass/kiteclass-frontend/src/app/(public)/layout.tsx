@@ -35,7 +35,7 @@ export default function PublicLayout({
       {/* Skip to main content (accessibility) */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-theme-primary-foreground focus:rounded"
       >
         Chuyển đến nội dung chính
       </a>
@@ -45,7 +45,7 @@ export default function PublicLayout({
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
+            <GraduationCap className="h-8 w-8 text-theme-primary" />
             <span className="text-2xl font-bold">KiteClass</span>
           </Link>
 
@@ -57,25 +57,25 @@ export default function PublicLayout({
           >
             <Link
               href="/"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-theme-primary transition-colors"
             >
               Trang chủ
             </Link>
             <Link
               href="/catalog"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-theme-primary transition-colors"
             >
               Khóa học
             </Link>
             <Link
               href="/about"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-theme-primary transition-colors"
             >
               Giới thiệu
             </Link>
             <Link
               href="/contact"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium hover:text-theme-primary transition-colors"
             >
               Liên hệ
             </Link>
@@ -86,7 +86,7 @@ export default function PublicLayout({
             <Button variant="ghost" asChild>
               <Link href="/login">Đăng nhập</Link>
             </Button>
-            <Button asChild>
+            <Button asChild className="bg-theme-primary hover:bg-theme-primary/90 text-white">
               <Link href="/register">Đăng ký</Link>
             </Button>
           </div>
@@ -105,7 +105,7 @@ export default function PublicLayout({
             {/* About */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <GraduationCap className="h-6 w-6 text-primary" />
+                <GraduationCap className="h-6 w-6 text-theme-primary" />
                 <span className="font-bold text-lg">KiteClass</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -121,7 +121,7 @@ export default function PublicLayout({
                 <li>
                   <Link
                     href="/catalog"
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-theme-primary"
                   >
                     Khóa học
                   </Link>
@@ -129,7 +129,7 @@ export default function PublicLayout({
                 <li>
                   <Link
                     href="/about"
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-theme-primary"
                   >
                     Giới thiệu
                   </Link>
@@ -137,7 +137,7 @@ export default function PublicLayout({
                 <li>
                   <Link
                     href="/contact"
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-theme-primary"
                   >
                     Liên hệ
                   </Link>
@@ -152,7 +152,7 @@ export default function PublicLayout({
                 <li>
                   <Link
                     href="/login"
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-theme-primary"
                   >
                     Đăng nhập
                   </Link>
@@ -160,7 +160,7 @@ export default function PublicLayout({
                 <li>
                   <Link
                     href="/register"
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-muted-foreground hover:text-theme-primary"
                   >
                     Đăng ký
                   </Link>
@@ -190,7 +190,7 @@ export default function PublicLayout({
                 href="https://claude.ai"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary"
+                className="hover:text-theme-primary"
               >
                 Claude Code
               </a>

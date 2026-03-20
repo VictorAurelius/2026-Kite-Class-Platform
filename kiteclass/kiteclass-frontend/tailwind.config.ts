@@ -45,11 +45,11 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
         // Theme system colors (new - PR-THEME-1)
-        // Use these for branding-aware components
-        'theme-primary': 'var(--theme-primary)',
-        'theme-secondary': 'var(--theme-secondary)',
-        'theme-accent': 'var(--theme-accent)',
-        'theme-background': 'var(--theme-background)',
+        // CSS vars store RGB values (e.g., '59 130 246') for opacity support
+        'theme-primary': 'rgb(var(--theme-primary) / <alpha-value>)',
+        'theme-secondary': 'rgb(var(--theme-secondary) / <alpha-value>)',
+        'theme-accent': 'rgb(var(--theme-accent) / <alpha-value>)',
+        'theme-background': 'rgb(var(--theme-background) / <alpha-value>)',
       },
       borderRadius: {
         lg: 'var(--radius)',

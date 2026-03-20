@@ -2,74 +2,46 @@
  * Theme Sync Component
  *
  * Syncs backend landing page colors with theme system.
- * Applies AI-generated colors from backend to theme CSS variables.
+ * Directly sets CSS variables on :root for immediate visual effect.
  *
- * @since PR-THEME-1 (Task #9)
+ * @since PR-THEME-1, fixed PR-THEME-3
  */
 
 'use client';
 
 import { useEffect } from 'react';
-import { useTheme } from '@/contexts/ThemeContext';
 
 interface ThemeSyncProps {
-  /** Primary color from backend AI Branding */
   primaryColor?: string;
-  /** Secondary color from backend AI Branding */
   secondaryColor?: string;
-  /** Accent color from backend AI Branding (optional) */
   accentColor?: string;
 }
 
-/**
- * ThemeSync Component
- *
- * Applies backend AI-generated colors to the theme system.
- * Should be placed near the top of pages that fetch branding data.
- *
- * @example
- * ```tsx
- * <ThemeSync
- *   primaryColor={landingData.primaryColor}
- *   secondaryColor={landingData.secondaryColor}
- * />
- * ```
- */
-export function ThemeSync({
-  primaryColor,
-  secondaryColor,
-  accentColor,
-}: ThemeSyncProps) {
-  const { theme, setTheme } = useTheme();
+function hexToRgb(hex: string): string {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return '59 130 246';
+  return `${r} ${g} ${b}`;
+}
 
+export function ThemeSync({ primaryColor, secondaryColor, accentColor }: ThemeSyncProps) {
   useEffect(() => {
-    // Only update if backend has provided colors different from current theme
-    if (!primaryColor && !secondaryColor && !accentColor) {
-      return;
+    if (typeof document === 'undefined') return;
+
+    const root = document.documentElement;
+
+    if (primaryColor) {
+      root.style.setProperty('--theme-primary', hexToRgb(primaryColor));
     }
-
-    // Check if colors have changed
-    const hasColorChanges =
-      (primaryColor && primaryColor !== theme.colors.primary) ||
-      (secondaryColor && secondaryColor !== theme.colors.secondary) ||
-      (accentColor && accentColor !== theme.colors.accent);
-
-    if (!hasColorChanges) {
-      return;
+    if (secondaryColor) {
+      root.style.setProperty('--theme-secondary', hexToRgb(secondaryColor));
     }
+    if (accentColor) {
+      root.style.setProperty('--theme-accent', hexToRgb(accentColor));
+    }
+  }, [primaryColor, secondaryColor, accentColor]);
 
-    // Apply backend colors to theme
-    setTheme({
-      ...theme,
-      colors: {
-        ...theme.colors,
-        ...(primaryColor && { primary: primaryColor }),
-        ...(secondaryColor && { secondary: secondaryColor }),
-        ...(accentColor && { accent: accentColor }),
-      },
-    });
-  }, [primaryColor, secondaryColor, accentColor, theme, setTheme]);
-
-  // This component doesn't render anything
   return null;
 }

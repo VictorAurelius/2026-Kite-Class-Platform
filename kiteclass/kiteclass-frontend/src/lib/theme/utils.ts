@@ -24,8 +24,22 @@ function mergeWithDefaults(theme: Partial<ThemeConfig> & Pick<ThemeConfig, 'colo
 }
 
 /**
+ * Convert hex color (#RRGGBB) to space-separated RGB (R G B).
+ * Required for Tailwind CSS opacity modifier support.
+ * e.g., '#3B82F6' → '59 130 246'
+ */
+function hexToRgb(hex: string): string {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return hex;
+  return `${r} ${g} ${b}`;
+}
+
+/**
  * Converts a ThemeConfig object to a flat CSS variables object.
- * Merges with defaults for any missing fields.
+ * Colors are converted to RGB format for Tailwind opacity support.
  *
  * @param theme - Theme configuration to convert (can be partial)
  * @returns Object mapping CSS variable names to values
@@ -33,10 +47,10 @@ function mergeWithDefaults(theme: Partial<ThemeConfig> & Pick<ThemeConfig, 'colo
 export function themeToCSS(theme: ThemeConfig): Record<string, string> {
   const merged = mergeWithDefaults(theme);
   return {
-    [THEME_CSS_VARS.PRIMARY]: merged.colors.primary,
-    [THEME_CSS_VARS.SECONDARY]: merged.colors.secondary,
-    [THEME_CSS_VARS.ACCENT]: merged.colors.accent,
-    [THEME_CSS_VARS.BACKGROUND]: merged.colors.background,
+    [THEME_CSS_VARS.PRIMARY]: hexToRgb(merged.colors.primary),
+    [THEME_CSS_VARS.SECONDARY]: hexToRgb(merged.colors.secondary),
+    [THEME_CSS_VARS.ACCENT]: hexToRgb(merged.colors.accent),
+    [THEME_CSS_VARS.BACKGROUND]: hexToRgb(merged.colors.background),
     [THEME_CSS_VARS.FONT_HEADING]: merged.fonts.heading,
     [THEME_CSS_VARS.FONT_BODY]: merged.fonts.body,
     [THEME_CSS_VARS.BORDER_RADIUS]: merged.borderRadius,
