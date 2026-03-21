@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * Logo analysis result from GPT-4 Vision.
+ * Logo analysis result from AI vision model (Ollama llava:13b or GPT-4 Vision).
+ * Frontend expects single color values, not arrays.
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -20,22 +21,27 @@ import java.util.List;
 public class LogoAnalysis {
 
     /**
-     * Primary brand colors (hex codes).
+     * Primary brand color (hex code, e.g., "#FF5733").
      */
-    private List<String> primaryColors;
+    private String primaryColor;
 
     /**
-     * Secondary brand colors (hex codes).
+     * Secondary brand color (hex code, e.g., "#3498DB").
      */
-    private List<String> secondaryColors;
+    private String secondaryColor;
 
     /**
-     * Design theme (modern, traditional, playful, professional).
+     * Accent color for highlights and CTAs (hex code, e.g., "#F39C12").
+     */
+    private String accentColor;
+
+    /**
+     * Design theme enum: MODERN, CLASSIC, PLAYFUL, MINIMAL.
      */
     private String theme;
 
     /**
-     * Typography style.
+     * Typography style (e.g., "Modern Sans-serif", "Classic Serif").
      */
     private String typography;
 
@@ -45,12 +51,12 @@ public class LogoAnalysis {
     private String targetAudience;
 
     /**
-     * Brand personality traits.
+     * Brand personality traits (e.g., ["Professional", "Friendly", "Innovative"]).
      */
     private List<String> brandPersonality;
 
     /**
-     * Raw analysis text from GPT-4 Vision.
+     * Raw analysis text from AI vision model.
      */
     private String rawAnalysis;
 }

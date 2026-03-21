@@ -150,8 +150,10 @@ public class OllamaClient implements AIClient {
         } catch (JsonProcessingException e) {
             log.warn("[Ollama] Failed to parse logo analysis JSON, using fallback: {}", e.getMessage());
             return Mono.just(LogoAnalysis.builder()
-                    .primaryColors(List.of("#2196F3", "#FF5722", "#4CAF50"))
-                    .theme("Modern & Professional")
+                    .primaryColor("#2196F3")
+                    .secondaryColor("#FF5722")
+                    .accentColor("#4CAF50")
+                    .theme("MODERN")
                     .typography("Clean Sans-Serif")
                     .targetAudience("Students and parents seeking quality education")
                     .brandPersonality(List.of("Trustworthy", "Innovative", "Approachable"))
@@ -176,14 +178,15 @@ public class OllamaClient implements AIClient {
     private String buildLogoAnalysisPrompt(String organizationName) {
         return String.format("""
                 Analyze this logo for %s. Extract the following information in JSON format:
-                1. primaryColors: List of primary colors (hex codes)
-                2. secondaryColors: List of secondary colors (hex codes)
-                3. theme: Design theme (modern/traditional/playful/professional)
-                4. typography: Typography style description
-                5. targetAudience: Target audience description
-                6. brandPersonality: List of brand personality traits
+                1. primaryColor: The main brand color (single hex code, e.g., "#2196F3")
+                2. secondaryColor: The secondary brand color (single hex code, e.g., "#FF5722")
+                3. accentColor: The accent color for highlights/CTAs (single hex code, e.g., "#4CAF50")
+                4. theme: Design theme enum - ONLY use one of: MODERN, CLASSIC, PLAYFUL, MINIMAL
+                5. typography: Typography style description (e.g., "Modern Sans-serif")
+                6. targetAudience: Target audience description
+                7. brandPersonality: Array of brand personality traits (e.g., ["Professional", "Friendly"])
 
-                Return ONLY valid JSON with these fields.
+                Return ONLY valid JSON with these exact field names.
                 """, organizationName);
     }
 }
