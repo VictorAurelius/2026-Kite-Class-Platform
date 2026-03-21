@@ -401,7 +401,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      NEXT_PUBLIC_API_URL: http://kitehub-gateway:9000
+      NEXT_PUBLIC_API_URL: http://localhost:9000
       NEXT_PUBLIC_KITECLASS_URL_PATTERN: ${NEXT_PUBLIC_KITECLASS_URL_PATTERN:-http://localhost:3000?tenant={subdomain}}
       NEXT_TELEMETRY_DISABLED: 1
     ports:
@@ -425,7 +425,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      NEXT_PUBLIC_API_URL: http://kitehub-gateway:9000/api/v1
+      NEXT_PUBLIC_API_URL: http://localhost:9000/api/v1
       NEXT_TELEMETRY_DISABLED: 1
     ports:
       - "3000:3000"
