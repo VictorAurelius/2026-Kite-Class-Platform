@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { SECTION_SLOTS, type SectionId } from '@/lib/template/slots';
+import { SECTION_SLOTS } from '@/lib/template/slots';
+import type { SectionId } from '@/lib/template/types';
 import { toast } from '@/hooks/use-toast';
+import type { LandingPageContent } from '@/lib/cms/api/landing';
 
 interface CMSEditorProps {
   tenantId: string;
-  initialData?: Record<string, any>;
-  onSave?: (data: Record<string, any>) => Promise<void>;
+  initialData?: LandingPageContent;
+  onSave?: (data: LandingPageContent) => Promise<void>;
 }
 
 interface SlotFormData {
@@ -22,17 +24,17 @@ interface SlotFormData {
   };
 }
 
-export function CMSEditor({ tenantId, initialData = {}, onSave }: CMSEditorProps) {
+export function CMSEditor({ tenantId: _tenantId, initialData = {}, onSave }: CMSEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { register, handleSubmit, formState: { isDirty, errors } } = useForm<SlotFormData>({
-    defaultValues: initialData,
+    defaultValues: initialData as SlotFormData,
   });
 
   const handleSaveForm = async (data: SlotFormData) => {
     setIsSaving(true);
     try {
       if (onSave) {
-        await onSave(data);
+        await onSave(data as LandingPageContent);
       }
       toast({
         title: 'Success',
@@ -130,7 +132,7 @@ export function CMSEditor({ tenantId, initialData = {}, onSave }: CMSEditorProps
 
                       {errors[fieldName as keyof SlotFormData] && (
                         <p className="text-sm text-destructive">
-                          {errors[fieldName as keyof SlotFormData]?.message as string}
+                          {String(errors[fieldName as keyof SlotFormData]?.message || '')}
                         </p>
                       )}
                     </div>
