@@ -5,6 +5,9 @@ import { CMSEditor } from '@/components/cms/CMSEditor';
 import { landingApi, transformApiResponseToFormData, transformFormDataToApiRequest, type LandingPageContent } from '@/lib/cms/api/landing';
 import { useTenantFromUrl } from '@/hooks/useTenantFromUrl';
 
+// Disable static generation for this page (uses useSearchParams)
+export const dynamic = 'force-dynamic';
+
 export default function CMSEditPage() {
   const [initialData, setInitialData] = useState<LandingPageContent>({});
   const [loading, setLoading] = useState(true);
