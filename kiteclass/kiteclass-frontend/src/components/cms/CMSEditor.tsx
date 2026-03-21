@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { SECTION_SLOTS, type SectionId } from '@/lib/template/slots';
+import { SECTION_SLOTS } from '@/lib/template/slots';
+import type { SectionId } from '@/lib/template/types';
 import { toast } from '@/hooks/use-toast';
 import type { LandingPageContent } from '@/lib/cms/api/landing';
 
