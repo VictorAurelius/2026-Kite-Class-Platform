@@ -45,8 +45,10 @@ class ContentGenerationControllerTest {
     void testGenerateContent_Success() throws Exception {
         // Given
         LogoAnalysis logoAnalysis = LogoAnalysis.builder()
-                .primaryColors(Arrays.asList("#FF5722"))
-                .theme("modern")
+                .primaryColor("#FF5722")
+                .secondaryColor("#2196F3")
+                .accentColor("#4CAF50")
+                .theme("MODERN")
                 .targetAudience("Students")
                 .brandPersonality(Arrays.asList("Friendly"))
                 .build();
@@ -100,8 +102,10 @@ class ContentGenerationControllerTest {
     void testGenerateContent_DefaultLanguage() throws Exception {
         // Given - request without language (should default to "vi")
         LogoAnalysis logoAnalysis = LogoAnalysis.builder()
-                .primaryColors(Arrays.asList("#FF5722"))
-                .theme("modern")
+                .primaryColor("#FF5722")
+                .secondaryColor("#2196F3")
+                .accentColor("#4CAF50")
+                .theme("MODERN")
                 .targetAudience("Students")
                 .brandPersonality(Arrays.asList("Friendly"))
                 .build();

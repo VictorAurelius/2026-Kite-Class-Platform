@@ -37,9 +37,10 @@ class ContentGenerationServiceTest {
     @BeforeEach
     void setUp() {
         logoAnalysis = LogoAnalysis.builder()
-                .primaryColors(Arrays.asList("#FF5722", "#2196F3"))
-                .secondaryColors(Arrays.asList("#FFC107", "#4CAF50"))
-                .theme("modern")
+                .primaryColor("#FF5722")
+                .secondaryColor("#2196F3")
+                .accentColor("#4CAF50")
+                .theme("MODERN")
                 .typography("Sans-serif, clean")
                 .targetAudience("Students aged 15-25")
                 .brandPersonality(Arrays.asList("Innovative", "Friendly", "Professional"))

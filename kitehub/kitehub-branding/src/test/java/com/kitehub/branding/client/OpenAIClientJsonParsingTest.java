@@ -48,9 +48,10 @@ class OpenAIClientJsonParsingTest {
         // Given
         String validJson = """
             {
-              "primaryColors": ["#FF5733", "#33FF57"],
-              "secondaryColors": ["#3357FF"],
-              "theme": "modern",
+              "primaryColor": "#FF5733",
+              "secondaryColor": "#33FF57",
+              "accentColor": "#3357FF",
+              "theme": "MODERN",
               "typography": "sans-serif",
               "targetAudience": "students",
               "brandPersonality": ["innovative", "friendly"]
@@ -68,9 +69,10 @@ class OpenAIClientJsonParsingTest {
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getPrimaryColors()).containsExactly("#FF5733", "#33FF57");
-        assertThat(result.getSecondaryColors()).containsExactly("#3357FF");
-        assertThat(result.getTheme()).isEqualTo("modern");
+        assertThat(result.getPrimaryColor()).isEqualTo("#FF5733");
+        assertThat(result.getSecondaryColor()).isEqualTo("#33FF57");
+        assertThat(result.getAccentColor()).isEqualTo("#3357FF");
+        assertThat(result.getTheme()).isEqualTo("MODERN");
         assertThat(result.getTypography()).isEqualTo("sans-serif");
         assertThat(result.getTargetAudience()).isEqualTo("students");
         assertThat(result.getBrandPersonality()).containsExactly("innovative", "friendly");
@@ -83,9 +85,10 @@ class OpenAIClientJsonParsingTest {
         String jsonWithMarkdown = """
             ```json
             {
-              "primaryColors": ["#FF0000"],
-              "secondaryColors": ["#00FF00"],
-              "theme": "traditional",
+              "primaryColor": "#FF0000",
+              "secondaryColor": "#00FF00",
+              "accentColor": "#0000FF",
+              "theme": "CLASSIC",
               "typography": "serif",
               "targetAudience": "adults",
               "brandPersonality": ["professional"]
@@ -104,8 +107,9 @@ class OpenAIClientJsonParsingTest {
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getPrimaryColors()).containsExactly("#FF0000");
-        assertThat(result.getTheme()).isEqualTo("traditional");
+        assertThat(result.getPrimaryColor()).isEqualTo("#FF0000");
+        assertThat(result.getSecondaryColor()).isEqualTo("#00FF00");
+        assertThat(result.getTheme()).isEqualTo("CLASSIC");
     }
 
     @Test
@@ -126,8 +130,9 @@ class OpenAIClientJsonParsingTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getRawAnalysis()).contains("Fallback data");
-        assertThat(result.getTheme()).isEqualTo("modern");
-        assertThat(result.getPrimaryColors()).hasSize(2);
+        assertThat(result.getTheme()).isEqualTo("MODERN");
+        assertThat(result.getPrimaryColor()).isEqualTo("#FF5733");
+        assertThat(result.getSecondaryColor()).isEqualTo("#33FF57");
     }
 
     @Test
