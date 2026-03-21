@@ -252,4 +252,85 @@ class AssetStorageControllerTest {
 
         verify(brandingJobService).updateGeneratedAssets(eq(brandingJob.getId()), isNull());
     }
+
+    @Test
+    @DisplayName("Should auto-create BrandingJob when uploading asset without existing job")
+    void shouldAutoCreateBrandingJobWhenUploadingWithoutExistingJob() throws Exception {
+        // Given: No existing job
+        String assetType = "LOGO";
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "logo.png",
+            "image/png",
+            "logo image data".getBytes()
+        );
+
+        String expectedPath = "instances/" + instanceId + "/branding/LOGO/logo_123456.png";
+        String expectedUrl = "http://localhost:9100/" + expectedPath;
+
+        // First call returns empty list (no existing job)
+        when(brandingJobService.getJobsByInstance(instanceId))
+            .thenReturn(Collections.emptyList());
+
+        // Auto-create job
+        BrandingJob newJob = new BrandingJob();
+        newJob.setId(UUID.randomUUID());
+        newJob.setInstanceId(instanceId);
+        when(brandingJobService.createJob(eq(instanceId), eq("Draft"), eq("vi"), anyString()))
+            .thenReturn(newJob);
+
+        when(s3StorageService.generateAssetPath(eq(instanceId), eq(assetType), anyString()))
+            .thenReturn(expectedPath);
+        when(s3StorageService.uploadAsset(any(), eq(expectedPath), eq("image/png"), anyLong()))
+            .thenReturn(expectedUrl);
+
+        // When: Upload asset
+        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
+
+        // Then: Should auto-create job and upload successfully
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getType()).isEqualTo(assetType);
+        assertThat(response.getBody().getUrl()).isEqualTo(expectedUrl);
+
+        // Verify job was created automatically
+        verify(brandingJobService).createJob(eq(instanceId), eq("Draft"), eq("vi"), anyString());
+        verify(s3StorageService).uploadAsset(any(), eq(expectedPath), eq("image/png"), anyLong());
+    }
+
+    @Test
+    @DisplayName("Should use existing BrandingJob when available")
+    void shouldUseExistingBrandingJobWhenAvailable() throws Exception {
+        // Given: Existing job
+        String assetType = "HERO";
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "hero.jpg",
+            "image/jpeg",
+            "hero image data".getBytes()
+        );
+
+        String expectedPath = "instances/" + instanceId + "/branding/HERO/hero_123456.jpg";
+        String expectedUrl = "http://localhost:9100/" + expectedPath;
+
+        // Existing job available
+        when(brandingJobService.getJobsByInstance(instanceId))
+            .thenReturn(Collections.singletonList(brandingJob));
+
+        when(s3StorageService.generateAssetPath(eq(instanceId), eq(assetType), anyString()))
+            .thenReturn(expectedPath);
+        when(s3StorageService.uploadAsset(any(), eq(expectedPath), eq("image/jpeg"), anyLong()))
+            .thenReturn(expectedUrl);
+
+        // When: Upload asset
+        ResponseEntity<BrandingAsset> response = controller.uploadAsset(instanceId, assetType, file);
+
+        // Then: Should use existing job, NOT create new one
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+
+        // Verify NO new job created
+        verify(brandingJobService, never()).createJob(any(), any(), any(), any());
+        verify(s3StorageService).uploadAsset(any(), eq(expectedPath), eq("image/jpeg"), anyLong());
+    }
 }

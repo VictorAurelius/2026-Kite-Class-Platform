@@ -14,8 +14,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build-time arguments for Next.js public environment variables
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_KITECLASS_URL_PATTERN
+# Safe defaults for local development - override in docker-compose for production
+ARG NEXT_PUBLIC_API_URL=http://localhost:9000
+ARG NEXT_PUBLIC_KITECLASS_URL_PATTERN=http://localhost:3000?tenant={subdomain}
 
 # Expose as environment variables for Next.js build
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
