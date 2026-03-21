@@ -232,14 +232,14 @@ Phase 4 (DevOps):
 | PR-Q5 Unskip tests | ⬜ (77 skips, 1 day effort) | - | +1 |
 | PR-Q6 Admin tests | ✅ DONE | #171 | +1 |
 | PR-Q7 Email thật | ✅ DONE | #173 | +2 |
-| PR-Q8 Theme visual | ⬜ (needs manual browser test) | - | +1 |
+| PR-Q8 Theme visual | ✅ DONE | #175 | +1 |
 | PR-Q9 AI branding | ⬜ (2 days, complex) | - | +2 |
 | PR-Q10 Docker CI | ✅ DONE | #172 | +1 |
 | PR-Q11 Monitoring | ⬜ | - | +2 |
 | PR-Q12 CMS editor | ⬜ (2 days, complex) | - | +2 |
-| **Total** | **8/12 done** | | **+10 earned, +7 remaining** |
+| **Total** | **9/12 done** | | **+11 earned, +6 remaining** |
 
-**Current Score: 93/100 (A)**
+**Current Score: 94/100 (A+)**
 
 ---
 
