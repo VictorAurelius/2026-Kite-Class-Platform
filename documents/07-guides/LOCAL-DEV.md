@@ -76,8 +76,20 @@ cd 2026-Kite-Class-Platform/kitehub
 
 ### View logs
 ```bash
-./scripts/logs.sh subscription -f   # Follow subscription logs
-./scripts/logs.sh gateway --tail 50 # Last 50 lines
+./scripts/logs.sh subscription -f      # Follow subscription logs
+./scripts/logs.sh gateway --tail 50    # Last 50 lines
+./scripts/logs-pretty.sh               # All logs with color highlighting
+./scripts/logs-pretty.sh --errors      # Show only errors/warnings
+./scripts/logs-pretty.sh gateway -f    # Follow gateway logs (colored)
+```
+
+### Monitor system health
+```bash
+./scripts/status.sh                    # Full status: health + resources + errors
+./scripts/status.sh --simple           # Quick status without resources
+./scripts/monitor.sh                   # Background monitor (30s interval)
+./scripts/monitor.sh --interval 60     # Custom interval
+./scripts/monitor.sh --notify          # Desktop notifications on failure
 ```
 
 ### Run tests
@@ -152,14 +164,20 @@ PAYMENT_MOCK_MODE=false
 
 ### Services won't start
 ```bash
-./scripts/status.sh --health     # Check which service is unhealthy
-docker logs kitehub-subscription # Check error logs
+./scripts/status.sh              # Check which service is unhealthy
+./scripts/logs-pretty.sh --errors # See recent errors
+docker logs kitehub-subscription # Detailed logs for specific service
 ```
+
+**Common causes:**
+- Docker not running → Start Docker Desktop
+- Ports in use → `lsof -i :9000` to find process
+- Database not ready → Wait 10s after start
 
 ### "POSTGRES_PASSWORD is required"
 ```bash
 # .env file missing or incomplete
-./scripts/setup.sh  # Regenerates .env
+./scripts/setup.sh  # Regenerates .env with secure defaults
 ```
 
 ### Database connection errors after rebuild
@@ -169,9 +187,32 @@ docker logs kitehub-subscription # Check error logs
 ./scripts/seed-data.sh
 ```
 
+### High CPU usage
+```bash
+./scripts/status.sh              # Check resource usage
+docker stats                     # Real-time stats
+# Consider: Reduce replicas in docker-compose.yml
+```
+
+### Service keeps restarting
+```bash
+./scripts/monitor.sh --interval 10 --notify  # Monitor in background
+./scripts/logs-pretty.sh gateway --follow    # Watch logs live
+# Check: Memory limits in docker-compose.yml
+```
+
 ### Port already in use
 ```bash
 # Check what's using the port
 lsof -i :9000
 # Kill the process or change port in .env
+```
+
+### Monitor logs continuously
+```bash
+# Run monitor in background (logs to logs/monitor.log)
+./scripts/monitor.sh --notify &
+
+# Check monitor logs
+tail -f kitehub/logs/monitor.log
 ```
