@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@/test/utils';
 import { CMSEditor } from '../CMSEditor';
 
 // Mock useToast
-jest.mock('@/hooks/use-toast', () => ({
-  toast: jest.fn(),
+vi.mock('@/hooks/use-toast', () => ({
+  toast: vi.fn(),
 }));
 
 describe('CMSEditor', () => {
