@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ThemePreviewPanel } from '../ThemePreviewPanel';
@@ -111,7 +111,9 @@ describe('ThemePreviewPanel', () => {
     // Verify localStorage.setItem was called with theme data
     await waitFor(() => {
       expect(localStorage.setItem).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const calls = (localStorage.setItem as any).mock.calls;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const themeCall = calls.find((call: any) => call[0] === 'kiteclass_theme');
       expect(themeCall).toBeDefined();
 
