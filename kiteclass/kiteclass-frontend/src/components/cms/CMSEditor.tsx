@@ -27,14 +27,14 @@ interface SlotFormData {
 export function CMSEditor({ tenantId: _tenantId, initialData = {}, onSave }: CMSEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { register, handleSubmit, formState: { isDirty, errors } } = useForm<SlotFormData>({
-    defaultValues: initialData,
+    defaultValues: initialData as SlotFormData,
   });
 
   const handleSaveForm = async (data: SlotFormData) => {
     setIsSaving(true);
     try {
       if (onSave) {
-        await onSave(data);
+        await onSave(data as LandingPageContent);
       }
       toast({
         title: 'Success',
