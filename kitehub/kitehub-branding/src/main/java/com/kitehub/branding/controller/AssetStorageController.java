@@ -210,13 +210,13 @@ public class AssetStorageController {
         BrandingJob job;
 
         if (jobs.isEmpty()) {
-            // No job exists - this shouldn't happen in normal flow, but handle it
-            log.warn("No BrandingJob found for instance: {}, cannot persist asset", instanceId);
-            return;
+            // No job exists - create a draft job automatically
+            log.info("Auto-creating draft BrandingJob for instance: {}", instanceId);
+            job = brandingJobService.createJob(instanceId, "Draft", "vi", asset.getUrl());
+        } else {
+            // Get most recent job
+            job = jobs.get(0);
         }
-
-        // Get most recent job
-        job = jobs.get(0);
 
         // Parse existing assets
         List<BrandingAsset> assets = new ArrayList<>();

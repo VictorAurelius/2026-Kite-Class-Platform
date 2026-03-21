@@ -1,0 +1,290 @@
+name: kitehub-only
+
+# KiteHub Platform Only (no KiteClass)
+# Use this for testing KiteHub features without KiteClass
+
+services:
+  # ============================================================================
+  # INFRASTRUCTURE SERVICES
+  # ============================================================================
+
+  kitehub-postgres:
+    image: postgres:15-alpine
+    container_name: kitehub-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-kitehub}
+      POSTGRES_USER: ${POSTGRES_USER:-kitehub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    ports:
+      - "5433:5432"
+    volumes:
+      - kitehub-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kitehub}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  kitehub-redis:
+    image: redis:7-alpine
+    container_name: kitehub-redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  kitehub-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kitehub-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-kitehub}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  kitehub-minio:
+    image: minio/minio:latest
+    container_name: kitehub-minio
+    command: server /data --console-address ":9091"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kitehub}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+    ports:
+      - "9100:9000"
+      - "9191:9091"
+    volumes:
+      - kitehub-minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kitehub-network
+
+  kitehub-mailhog:
+    image: mailhog/mailhog:latest
+    container_name: kitehub-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - kitehub-network
+
+  # ============================================================================
+  # KITEHUB PLATFORM SERVICES
+  # ============================================================================
+
+  kitehub-subscription:
+    build:
+      context: .
+      dockerfile: kitehub-subscription/Dockerfile
+    image: kitehub-subscription:latest
+    container_name: kitehub-subscription
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
+      DATABASE_LIFECYCLE_ENABLED: "true"
+      DATABASE_MASTER_HOST: kitehub-postgres
+      DATABASE_MASTER_PORT: 5432
+      DATABASE_ADMIN_URL: jdbc:postgresql://kitehub-postgres:5432/postgres
+      DATABASE_ADMIN_USERNAME: ${POSTGRES_USER:-kitehub}
+      DATABASE_ADMIN_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+    ports:
+      - "8081:8080"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-rabbitmq:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+  kitehub-branding:
+    build:
+      context: .
+      dockerfile: kitehub-branding/Dockerfile
+    image: kitehub-branding:latest
+    container_name: kitehub-branding
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
+      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-kitehub}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?required}
+      S3_ENDPOINT: http://kitehub-minio:9000
+      S3_BUCKET: kitehub-assets
+      AWS_REGION: ap-southeast-1
+      S3_MOCK_MODE: "false"
+      CDN_DOMAIN: localhost:9100
+    ports:
+      - "8083:8080"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-rabbitmq:
+        condition: service_healthy
+      kitehub-minio:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+  kitehub-email:
+    build:
+      context: .
+      dockerfile: kitehub-email/Dockerfile
+    image: kitehub-email:latest
+    container_name: kitehub-email
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
+      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
+      SMTP_HOST: kitehub-mailhog
+      SMTP_PORT: 1025
+    ports:
+      - "8084:8080"
+    depends_on:
+      kitehub-rabbitmq:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+  kitehub-admin:
+    build:
+      context: .
+      dockerfile: kitehub-admin/Dockerfile
+    image: kitehub-admin:latest
+    container_name: kitehub-admin
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_PORT: 6379
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+    ports:
+      - "8085:8080"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+  kitehub-gateway:
+    build:
+      context: .
+      dockerfile: kitehub-gateway/Dockerfile
+    image: kitehub-gateway:latest
+    container_name: kitehub-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      REDIS_HOST: kitehub-redis
+      REDIS_PORT: 6379
+      SERVER_PORT: 9000
+      SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
+      BRANDING_SERVICE_URL: http://kitehub-branding:8080
+      EMAIL_SERVICE_URL: http://kitehub-email:8080
+      ADMIN_SERVICE_URL: http://kitehub-admin:8080
+    ports:
+      - "9000:9000"
+    depends_on:
+      kitehub-postgres:
+        condition: service_healthy
+      kitehub-redis:
+        condition: service_healthy
+      kitehub-subscription:
+        condition: service_started
+      kitehub-branding:
+        condition: service_started
+      kitehub-email:
+        condition: service_started
+      kitehub-admin:
+        condition: service_started
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+  kitehub-frontend:
+    build:
+      context: ./kitehub-frontend
+      dockerfile: Dockerfile
+    image: kitehub-frontend:latest
+    container_name: kitehub-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: http://kitehub-gateway:9000
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "3001:3001"
+    depends_on:
+      - kitehub-gateway
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+
+volumes:
+  kitehub-postgres-data:
+    driver: local
+  kitehub-minio-data:
+    driver: local
+
+networks:
+  kitehub-network:
+    driver: bridge
