@@ -274,8 +274,9 @@ class AuthControllerIntegrationTest {
                 .jsonPath("$.data.refreshToken").exists();
 
         // And - Verify old token was deleted (wait for reactive transaction to complete)
-        // Note: Added delay to prevent flakiness from reactive transaction timing
-        Mono.delay(java.time.Duration.ofMillis(100))
+        // Note: Increased delay from 100ms to 500ms to handle variable CI timing
+        // Reactive WebFlux transactions may take longer on slower CI runners
+        Mono.delay(java.time.Duration.ofMillis(500))
                 .then(refreshTokenRepository.findByToken(refreshToken))
                 .as(StepVerifier::create)
                 .verifyComplete(); // Old token should be deleted
