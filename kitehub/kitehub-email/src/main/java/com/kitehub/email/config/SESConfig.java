@@ -24,9 +24,10 @@ public class SESConfig {
 
     /**
      * Create SES client bean (only when not in mock mode).
+     * Default behavior when property not specified depends on application.yml default.
      */
     @Bean
-    @ConditionalOnProperty(name = "aws.ses.mock-mode", havingValue = "false")
+    @ConditionalOnProperty(name = "aws.ses.mock-mode", havingValue = "false", matchIfMissing = false)
     public SesClient sesClient(SESProperties properties) {
         log.info("Initializing AWS SES client for region: {}", properties.getRegion());
 
