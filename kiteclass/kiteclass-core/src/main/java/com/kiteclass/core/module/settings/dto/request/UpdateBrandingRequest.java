@@ -39,6 +39,9 @@ public class UpdateBrandingRequest {
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Accent color must be valid hex format (#RRGGBB)")
     private String accentColor;
 
+    // Optional: AI-generated complete theme JSON (colors, typography, spacing, layout)
+    private String themeConfigJson;
+
     @Email(message = "Contact email must be valid email format")
     @Size(max = 255, message = "Contact email must not exceed 255 characters")
     private String contactEmail;
