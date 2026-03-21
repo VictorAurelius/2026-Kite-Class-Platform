@@ -46,6 +46,36 @@ spec:
                 secretKeyRef:
                   name: kitehub-secrets
                   key: encryption-key
+            {{- if eq $name "branding" }}
+            # S3/CDN configuration for branding service
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: s3-access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: s3-secret-key
+            - name: S3_BUCKET
+              value: "{{ $.Values.global.s3.bucket }}"
+            - name: AWS_REGION
+              value: "{{ $.Values.global.s3.region }}"
+            - name: S3_ENDPOINT
+              value: ""  # Empty for real AWS S3 (not MinIO)
+            - name: CDN_DOMAIN
+              value: "cdn.kiteclass.com"  # Production CDN domain
+            - name: S3_MOCK_MODE
+              value: "false"  # Use real S3 in production
+            - name: AI_PROVIDER
+              value: "{{ $.Values.global.ai.provider }}"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: openai-api-key
+            {{- end }}
           resources:
             requests:
               cpu: {{ $svc.resources.requests.cpu }}
