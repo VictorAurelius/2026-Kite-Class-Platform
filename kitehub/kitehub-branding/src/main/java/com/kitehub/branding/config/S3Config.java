@@ -47,7 +47,8 @@ public class S3Config {
 
         // Use custom endpoint if provided (MinIO/LocalStack)
         if (endpoint != null && !endpoint.isEmpty()) {
-            builder.endpointOverride(URI.create(endpoint));
+            builder.endpointOverride(URI.create(endpoint))
+                   .forcePathStyle(true); // Required for MinIO/LocalStack
         }
 
         // Set credentials
@@ -69,8 +70,15 @@ public class S3Config {
     @ConditionalOnProperty(name = "storage.s3.mock-mode", havingValue = "false")
     public S3Presigner s3Presigner() {
 
+        // S3Presigner uses S3Configuration to enable path-style access
+        software.amazon.awssdk.services.s3.S3Configuration s3Config =
+            software.amazon.awssdk.services.s3.S3Configuration.builder()
+                .pathStyleAccessEnabled(true) // Required for MinIO/LocalStack
+                .build();
+
         software.amazon.awssdk.services.s3.presigner.S3Presigner.Builder builder = S3Presigner.builder()
-            .region(Region.of(region));
+            .region(Region.of(region))
+            .serviceConfiguration(s3Config);
 
         if (endpoint != null && !endpoint.isEmpty()) {
             builder.endpointOverride(URI.create(endpoint));

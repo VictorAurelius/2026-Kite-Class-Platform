@@ -91,7 +91,9 @@ public class S3StorageService {
 
         // Use CDN domain if configured
         if (s3Config.getCdnDomain() != null && !s3Config.getCdnDomain().isEmpty()) {
-            return String.format("https://%s/%s", s3Config.getCdnDomain(), path);
+            // Use http:// for localhost (MinIO), https:// for production CDN
+            String protocol = s3Config.getCdnDomain().contains("localhost") ? "http" : "https";
+            return String.format("%s://%s/%s", protocol, s3Config.getCdnDomain(), path);
         }
 
         // Generate presigned URL (valid for 1 hour)
