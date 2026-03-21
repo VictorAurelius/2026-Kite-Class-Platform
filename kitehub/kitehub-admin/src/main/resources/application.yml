@@ -4,7 +4,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/kitehub}
     username: ${DATABASE_USERNAME:kitehub}
-    password: ${DATABASE_PASSWORD:kitehub_dev_password}
+    password: ${DATABASE_PASSWORD:}  # No default - must be provided via env var
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

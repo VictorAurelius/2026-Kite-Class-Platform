@@ -32,8 +32,8 @@ email:
 aws:
   ses:
     region: ${AWS_SES_REGION:ap-southeast-1}
-    from-email: ${AWS_SES_FROM_EMAIL:noreply@kiteclass.com}
-    from-name: ${AWS_SES_FROM_NAME:KiteClass Platform}
+    from-email: ${AWS_SES_FROM_EMAIL:noreply@localhost}  # Safe local default
+    from-name: ${AWS_SES_FROM_NAME:Local Dev Platform}  # Safe local default
     mock-mode: ${AWS_SES_MOCK_MODE:true}  # true for local dev, false for production
     # Credentials from environment or IAM role
     access-key: ${AWS_ACCESS_KEY_ID:}

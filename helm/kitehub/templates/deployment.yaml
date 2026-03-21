@@ -76,6 +76,32 @@ spec:
                   name: kitehub-secrets
                   key: openai-api-key
             {{- end }}
+            {{- if eq $name "email" }}
+            # AWS SES configuration for email service
+            - name: EMAIL_PROVIDER
+              value: "ses"
+            - name: AWS_SES_REGION
+              value: "{{ $.Values.global.aws.region }}"
+            - name: AWS_SES_FROM_EMAIL
+              value: "noreply@kiteclass.com"
+            - name: AWS_SES_FROM_NAME
+              value: "KiteClass Platform"
+            - name: AWS_SES_MOCK_MODE
+              value: "false"  # Use real SES in production
+            # AWS credentials from secrets (or use IAM role)
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: aws-access-key-id
+                  optional: true  # Optional if using IAM role
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kitehub-secrets
+                  key: aws-secret-access-key
+                  optional: true  # Optional if using IAM role
+            {{- end }}
           resources:
             requests:
               cpu: {{ $svc.resources.requests.cpu }}
