@@ -40,9 +40,12 @@ docker build -t kitehub-base:latest -f kitehub-base/Dockerfile .
 
 # Build all services
 docker-compose -f docker-compose.kitehub.yml build
+
+# IMPORTANT: Build kiteclass-frontend separately to avoid Tailwind CSS errors
+docker-compose -f docker-compose.kitehub.yml build --no-cache kiteclass-frontend
 ```
 
-**Build time:** ~15 minutes
+**Build time:** ~20 minutes
 
 ## 3. Start Stack
 
@@ -87,6 +90,7 @@ Common issues:
 - **Missing JWT_SECRET**: Ensure .env is properly configured
 - **Database password mismatch**: Run `docker-compose down -v` and restart
 - **Line ending issues**: Run `sed -i 's/\r$//' docker/postgres/init-kiteclass-db.sh`
+- **kiteclass-frontend Tailwind compile error**: Rebuild with `docker-compose -f docker-compose.kitehub.yml build --no-cache kiteclass-frontend`
 
 ### Stop Stack
 
