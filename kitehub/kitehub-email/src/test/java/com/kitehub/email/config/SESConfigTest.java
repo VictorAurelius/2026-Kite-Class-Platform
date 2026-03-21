@@ -2,9 +2,7 @@ package com.kitehub.email.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.services.ses.SesClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
