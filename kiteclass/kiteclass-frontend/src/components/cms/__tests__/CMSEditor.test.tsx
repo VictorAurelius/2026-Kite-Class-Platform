@@ -2,10 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test/utils';
 import { CMSEditor } from '../CMSEditor';
 
-// Mock useToast
-vi.mock('@/hooks/use-toast', () => ({
-  toast: vi.fn(),
-}));
+// Mock useToast while preserving other exports
+vi.mock('@/hooks/use-toast', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    toast: vi.fn(),
+  };
+});
 
 describe('CMSEditor', () => {
   const mockTenantId = 'test-tenant-123';
