@@ -66,7 +66,7 @@ export const landingApi = {
  * Convert CMS form data to API request format
  */
 export function transformFormDataToApiRequest(
-  formData: Record<string, any>
+  formData: LandingPageContent
 ): SaveLandingPageRequest {
   const { hero, about, contact } = formData;
 
@@ -90,7 +90,7 @@ export function transformFormDataToApiRequest(
 /**
  * Convert API response to CMS form data format
  */
-export function transformApiResponseToFormData(apiData: any): Record<string, any> {
+export function transformApiResponseToFormData(apiData: SaveLandingPageRequest): LandingPageContent {
   return {
     hero: {
       title: apiData.heroTitle,

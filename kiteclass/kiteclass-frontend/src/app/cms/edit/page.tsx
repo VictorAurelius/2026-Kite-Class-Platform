@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { CMSEditor } from '@/components/cms/CMSEditor';
-import { landingApi, transformApiResponseToFormData, transformFormDataToApiRequest } from '@/lib/cms/api/landing';
+import { landingApi, transformApiResponseToFormData, transformFormDataToApiRequest, type LandingPageContent } from '@/lib/cms/api/landing';
 import { useTenantFromUrl } from '@/hooks/useTenantFromUrl';
 
 export default function CMSEditPage() {
-  const [initialData, setInitialData] = useState<Record<string, any>>({});
+  const [initialData, setInitialData] = useState<LandingPageContent>({});
   const [loading, setLoading] = useState(true);
   const tenantId = useTenantFromUrl();
 
@@ -28,7 +28,7 @@ export default function CMSEditPage() {
     loadLandingData();
   }, [tenantId]);
 
-  const handleSave = async (formData: Record<string, any>) => {
+  const handleSave = async (formData: LandingPageContent) => {
     if (!tenantId) throw new Error('Tenant ID not found');
 
     const apiData = transformFormDataToApiRequest(formData);

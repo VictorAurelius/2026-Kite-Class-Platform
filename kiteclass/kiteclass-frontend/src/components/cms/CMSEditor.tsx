@@ -9,11 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { SECTION_SLOTS, type SectionId } from '@/lib/template/slots';
 import { toast } from '@/hooks/use-toast';
+import type { LandingPageContent } from '@/lib/cms/api/landing';
 
 interface CMSEditorProps {
   tenantId: string;
-  initialData?: Record<string, any>;
-  onSave?: (data: Record<string, any>) => Promise<void>;
+  initialData?: LandingPageContent;
+  onSave?: (data: LandingPageContent) => Promise<void>;
 }
 
 interface SlotFormData {
@@ -22,7 +23,7 @@ interface SlotFormData {
   };
 }
 
-export function CMSEditor({ tenantId, initialData = {}, onSave }: CMSEditorProps) {
+export function CMSEditor({ tenantId: _tenantId, initialData = {}, onSave }: CMSEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { register, handleSubmit, formState: { isDirty, errors } } = useForm<SlotFormData>({
     defaultValues: initialData,
