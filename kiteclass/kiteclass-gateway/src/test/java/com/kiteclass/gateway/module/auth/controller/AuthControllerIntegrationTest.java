@@ -230,7 +230,6 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
-    @Disabled("Flaky test - reactive transaction timing causes intermittent failures when checking deleted token")
     @DisplayName("POST /api/v1/auth/login - Refresh token persisted to database")
     void shouldPersistRefreshTokenToDatabaseOnLogin() throws Exception {
         // Given
@@ -275,8 +274,10 @@ class AuthControllerIntegrationTest {
                 .jsonPath("$.data.accessToken").exists()
                 .jsonPath("$.data.refreshToken").exists();
 
-        // And - Verify old token was deleted and new token exists
-        refreshTokenRepository.findByToken(refreshToken)
+        // And - Verify old token was deleted (wait for reactive transaction to complete)
+        // Note: Added delay to prevent flakiness from reactive transaction timing
+        Mono.delay(java.time.Duration.ofMillis(100))
+                .then(refreshTokenRepository.findByToken(refreshToken))
                 .as(StepVerifier::create)
                 .verifyComplete(); // Old token should be deleted
     }
