@@ -34,12 +34,12 @@ public class S3Config {
 
     /**
      * Create S3Client bean.
-     * Only created when mock-mode is false.
+     * Only created when mock-mode is false (or not specified).
      *
      * @return Configured S3Client
      */
     @Bean
-    @ConditionalOnProperty(name = "storage.s3.mock-mode", havingValue = "false")
+    @ConditionalOnProperty(name = "storage.s3.mock-mode", havingValue = "false", matchIfMissing = true)
     public S3Client s3Client() {
 
         software.amazon.awssdk.services.s3.S3ClientBuilder builder = S3Client.builder()
@@ -62,12 +62,12 @@ public class S3Config {
 
     /**
      * Create S3Presigner bean for presigned URLs.
-     * Only created when mock-mode is false.
+     * Only created when mock-mode is false (or not specified).
      *
      * @return Configured S3Presigner
      */
     @Bean
-    @ConditionalOnProperty(name = "storage.s3.mock-mode", havingValue = "false")
+    @ConditionalOnProperty(name = "storage.s3.mock-mode", havingValue = "false", matchIfMissing = true)
     public S3Presigner s3Presigner() {
 
         // S3Presigner uses S3Configuration to enable path-style access
