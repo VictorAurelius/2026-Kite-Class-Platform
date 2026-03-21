@@ -7,6 +7,8 @@ import { useTenantFromUrl } from '@/hooks/useTenantFromUrl';
 
 // Disable static generation for this page (uses useSearchParams)
 export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 0;
 
 export default function CMSEditPage() {
   const [initialData, setInitialData] = useState<LandingPageContent>({});
