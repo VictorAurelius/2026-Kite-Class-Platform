@@ -287,6 +287,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
       SPRING_REDIS_HOST: kitehub-redis
       SPRING_REDIS_PORT: 6379
+      # Security secrets (shared with subscription service)
+      ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required - run ./scripts/setup.sh}
     ports:
       - "8085:8080"
     depends_on:
