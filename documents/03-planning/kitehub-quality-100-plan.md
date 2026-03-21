@@ -228,7 +228,7 @@ Phase 4 (DevOps):
 | PR-Q1 Admin test | ✅ DONE | #168 | +1 |
 | PR-Q2 Gateway test | ✅ DONE | #169 | +1 |
 | PR-Q3 E2E warmup | ✅ DONE | #170 | +1 |
-| PR-Q4 FE tests | ⬜ | - | +2 |
+| PR-Q4 FE tests | ✅ DONE | #174 | +2 |
 | PR-Q5 Unskip tests | ⬜ (77 skips, 1 day effort) | - | +1 |
 | PR-Q6 Admin tests | ✅ DONE | #171 | +1 |
 | PR-Q7 Email thật | ✅ DONE | #173 | +2 |
@@ -237,9 +237,9 @@ Phase 4 (DevOps):
 | PR-Q10 Docker CI | ✅ DONE | #172 | +1 |
 | PR-Q11 Monitoring | ⬜ | - | +2 |
 | PR-Q12 CMS editor | ⬜ (2 days, complex) | - | +2 |
-| **Total** | **7/12 done** | | **+8 earned, +9 remaining** |
+| **Total** | **8/12 done** | | **+10 earned, +7 remaining** |
 
-**Current Score: 91/100 (A)**
+**Current Score: 93/100 (A)**
 
 ---
 
