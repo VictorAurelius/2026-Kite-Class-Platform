@@ -132,7 +132,7 @@ export function CMSEditor({ tenantId: _tenantId, initialData = {}, onSave }: CMS
 
                       {errors[fieldName as keyof SlotFormData] && (
                         <p className="text-sm text-destructive">
-                          {errors[fieldName as keyof SlotFormData]?.message as string}
+                          {String(errors[fieldName as keyof SlotFormData]?.message || '')}
                         </p>
                       )}
                     </div>
