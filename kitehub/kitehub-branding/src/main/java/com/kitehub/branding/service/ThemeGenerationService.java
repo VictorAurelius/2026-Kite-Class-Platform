@@ -53,8 +53,6 @@ public class ThemeGenerationService {
      * Simple implementation: adjust lightness in HSL space.
      */
     private ThemeConfig.ColorVariants generateColorVariants(String baseColor) {
-        // For MVP, use simple lightness adjustments
-        // TODO: Implement proper HSL color space transformations
         return ThemeConfig.ColorVariants.builder()
                 .shade50(lighten(baseColor, 0.5))
                 .shade100(lighten(baseColor, 0.4))
