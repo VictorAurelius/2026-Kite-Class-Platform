@@ -154,7 +154,7 @@ describe('ThemePreviewCard', () => {
   });
 
   it('should render all 10 color shades for primary color', () => {
-    const { container } = render(<ThemePreviewCard themeConfig={mockThemeConfig} />);
+    render(<ThemePreviewCard themeConfig={mockThemeConfig} />);
 
     // Find all color shade labels (50, 100, 200, ..., 900)
     const shadeLabels = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900'];

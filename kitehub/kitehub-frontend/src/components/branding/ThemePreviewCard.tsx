@@ -1,7 +1,6 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Palette, Type, Maximize2 } from 'lucide-react';
 import { ThemeConfig, ColorVariants } from '@/types/theme';
 
