@@ -1,14 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Download, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Download, CheckCircle2, ExternalLink, Loader2 } from 'lucide-react';
 import { useJobAssets } from '@/hooks/use-branding';
-import type { BrandingAsset } from '@/types/branding';
+import { useThemeGeneration } from '@/hooks/use-theme-generation';
+import { ThemePreviewCard } from './ThemePreviewCard';
+import type { BrandingAsset, LogoAnalysis } from '@/types/branding';
 
 interface ReviewStepProps {
   jobId: string;
+  analysis: LogoAnalysis | null;
   onPublish: () => void;
 }
 
@@ -28,8 +32,16 @@ const ASSET_TYPE_DESCRIPTIONS: Record<string, string> = {
   OG_IMAGE: 'Ảnh hiển thị khi chia sẻ link trên mạng xã hội',
 };
 
-export function ReviewStep({ jobId, onPublish }: ReviewStepProps) {
+export function ReviewStep({ jobId, analysis, onPublish }: ReviewStepProps) {
   const { data: assets, isLoading } = useJobAssets(jobId);
+  const { themeConfig, isLoading: isGeneratingTheme, generateTheme } = useThemeGeneration();
+
+  // Auto-generate theme when analysis is available
+  useEffect(() => {
+    if (analysis && !themeConfig && !isGeneratingTheme) {
+      generateTheme(analysis);
+    }
+  }, [analysis, themeConfig, isGeneratingTheme, generateTheme]);
 
   if (isLoading) {
     return (
@@ -70,6 +82,21 @@ export function ReviewStep({ jobId, onPublish }: ReviewStepProps) {
 
   return (
     <div className="space-y-6">
+      {/* Theme Preview */}
+      {isGeneratingTheme && (
+        <Card className="p-8">
+          <div className="flex items-center justify-center gap-3">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <p className="text-muted-foreground">Đang tạo theme configuration...</p>
+          </div>
+        </Card>
+      )}
+
+      {themeConfig && (
+        <ThemePreviewCard themeConfig={themeConfig} />
+      )}
+
+      {/* Assets Grid */}
       <Card className="p-8">
         <div className="flex items-center gap-3 mb-4">
           <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -79,7 +106,6 @@ export function ReviewStep({ jobId, onPublish }: ReviewStepProps) {
           Xem trước các tài nguyên branding đã được tạo. Bạn có thể tải về từng tài nguyên hoặc xuất bản toàn bộ.
         </p>
 
-        {/* Assets Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {assets.map((asset) => (
             <AssetCard

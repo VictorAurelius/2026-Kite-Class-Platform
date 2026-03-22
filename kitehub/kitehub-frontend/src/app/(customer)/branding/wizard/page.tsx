@@ -130,6 +130,7 @@ export default function BrandingWizardPage() {
         {step === 4 && jobId && (
           <ReviewStep
             jobId={jobId}
+            analysis={analysis}
             onPublish={handlePublish}
           />
         )}
