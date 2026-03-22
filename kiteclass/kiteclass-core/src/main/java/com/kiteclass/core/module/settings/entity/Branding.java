@@ -63,6 +63,11 @@ public class Branding extends BaseEntity {
     @Column(name = "accent_color", nullable = false, length = 7)
     private String accentColor = "#10B981";
 
+    // Theme configuration (AI-generated complete theme JSON)
+
+    @Column(name = "theme_config_json", columnDefinition = "TEXT")
+    private String themeConfigJson;
+
     // Contact information
 
     @Email(message = "Contact email must be valid email format")

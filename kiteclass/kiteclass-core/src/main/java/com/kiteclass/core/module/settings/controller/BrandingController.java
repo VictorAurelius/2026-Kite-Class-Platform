@@ -80,4 +80,17 @@ public class BrandingController {
         BrandingResponse branding = brandingService.uploadFavicon(fileUrl);
         return ResponseEntity.ok(ApiResponse.success(branding));
     }
+
+    /**
+     * Get theme config JSON for current tenant.
+     * Lightweight endpoint that returns only the AI-generated theme configuration.
+     * Public endpoint (no authentication required).
+     *
+     * @return theme config JSON string
+     */
+    @GetMapping("/theme")
+    public ResponseEntity<ApiResponse<String>> getThemeConfig() {
+        String themeConfig = brandingService.getThemeConfig();
+        return ResponseEntity.ok(ApiResponse.success(themeConfig));
+    }
 }

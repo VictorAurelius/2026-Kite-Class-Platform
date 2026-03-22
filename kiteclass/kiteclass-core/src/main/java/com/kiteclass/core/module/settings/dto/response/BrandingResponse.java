@@ -28,6 +28,9 @@ public class BrandingResponse {
     private String secondaryColor;
     private String accentColor;
 
+    // Theme configuration (AI-generated complete theme JSON)
+    private String themeConfigJson;
+
     // Contact information
     private String contactEmail;
     private String contactPhone;

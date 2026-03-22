@@ -1,16 +1,45 @@
 #!/bin/bash
 # Start KiteHub stack
-# Usage: ./scripts/up.sh [service...]
+# Usage: ./scripts/up.sh [--profile PROFILE] [service...]
 
 set -e
 cd "$(dirname "$0")/.."
 
-if [ $# -eq 0 ]; then
+PROFILE=""
+SERVICES=()
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --profile)
+            PROFILE="$2"
+            shift 2
+            ;;
+        *)
+            SERVICES+=("$1")
+            shift
+            ;;
+    esac
+done
+
+# Build docker-compose command
+CMD="docker-compose -f docker-compose.kitehub.yml"
+if [ -n "$PROFILE" ]; then
+    CMD="$CMD --profile $PROFILE"
+fi
+
+if [ ${#SERVICES[@]} -eq 0 ]; then
     echo "Starting all KiteHub services..."
-    docker-compose -f docker-compose.kitehub.yml up -d
+    if [ -n "$PROFILE" ]; then
+        echo "Profile: $PROFILE"
+    fi
+    $CMD up -d
 else
-    echo "Starting: $@"
-    docker-compose -f docker-compose.kitehub.yml up -d "$@"
+    echo "Starting: ${SERVICES[@]}"
+    if [ -n "$PROFILE" ]; then
+        echo "Profile: $PROFILE"
+    fi
+    $CMD up -d "${SERVICES[@]}"
 fi
 
 echo ""

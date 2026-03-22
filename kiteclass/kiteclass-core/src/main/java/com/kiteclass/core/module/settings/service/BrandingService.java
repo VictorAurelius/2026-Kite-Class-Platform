@@ -45,4 +45,12 @@ public interface BrandingService {
      * @return updated branding response
      */
     BrandingResponse uploadFavicon(String fileUrl);
+
+    /**
+     * Get theme config JSON for current tenant.
+     * Returns only the AI-generated theme configuration.
+     *
+     * @return theme config JSON string (or null if not set)
+     */
+    String getThemeConfig();
 }

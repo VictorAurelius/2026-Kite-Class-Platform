@@ -1,7 +1,9 @@
 package com.kitehub.branding.controller;
 
 import com.kitehub.branding.dto.LogoAnalysis;
+import com.kitehub.branding.dto.ThemeConfig;
 import com.kitehub.branding.service.AIBrandingService;
+import com.kitehub.branding.service.ThemeGenerationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -27,6 +29,7 @@ import reactor.core.publisher.Mono;
 public class AIBrandingController {
 
     private final AIBrandingService aiBrandingService;
+    private final ThemeGenerationService themeGenerationService;
 
     /**
      * Analyze logo and extract brand identity.
@@ -74,6 +77,19 @@ public class AIBrandingController {
                 request.getTargetAudience()
             )
             .map(text -> ResponseEntity.ok(new TextGenerationResponse(text)));
+    }
+
+    /**
+     * Generate complete theme configuration from logo analysis.
+     * This endpoint creates a full theme JSON with colors, typography, spacing, and layout.
+     *
+     * @param analysis Logo analysis from AI
+     * @return Complete theme configuration ready for KiteClass frontend
+     */
+    @PostMapping("/generate-theme")
+    public ResponseEntity<ThemeConfig> generateTheme(@Valid @RequestBody LogoAnalysis analysis) {
+        ThemeConfig themeConfig = themeGenerationService.generateThemeConfig(analysis);
+        return ResponseEntity.ok(themeConfig);
     }
 
     // Request/Response DTOs

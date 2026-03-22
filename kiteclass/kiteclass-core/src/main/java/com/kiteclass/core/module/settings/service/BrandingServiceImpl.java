@@ -111,6 +111,19 @@ public class BrandingServiceImpl implements BrandingService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public String getThemeConfig() {
+        UUID instanceId = TenantContext.getCurrentTenant();
+
+        return brandingRepository.findByInstanceIdAndDeletedFalse(instanceId)
+                .map(Branding::getThemeConfigJson)
+                .orElse(null);
+    }
+
+    /**
      * Create default branding for tenant.
      *
      * @param instanceId tenant instance ID
