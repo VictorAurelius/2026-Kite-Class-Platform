@@ -180,16 +180,16 @@ describe('useThemeGeneration', () => {
 
     const { result } = renderHook(() => useThemeGeneration());
 
-    // Call generateTheme
-    result.current.generateTheme(mockLogoAnalysis);
+    // Call generateTheme and wait
+    await result.current.generateTheme(mockLogoAnalysis);
 
-    // Wait for completion
+    // Wait for state update
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toContain('Failed to generate theme');
     });
 
     // Should have error
-    expect(result.current.error).toContain('Failed to generate theme');
     expect(result.current.themeConfig).toBeNull();
   });
 
@@ -199,16 +199,16 @@ describe('useThemeGeneration', () => {
 
     const { result } = renderHook(() => useThemeGeneration());
 
-    // Call generateTheme
-    result.current.generateTheme(mockLogoAnalysis);
+    // Call generateTheme and wait
+    await result.current.generateTheme(mockLogoAnalysis);
 
-    // Wait for completion
+    // Wait for state update
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe('Network error');
     });
 
     // Should have error
-    expect(result.current.error).toBe('Network error');
     expect(result.current.themeConfig).toBeNull();
   });
 
