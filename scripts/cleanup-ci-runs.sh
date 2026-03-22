@@ -64,9 +64,9 @@ cleanup_branch() {
     return
   fi
 
-  # Get runs to delete (skip first line - header, skip second line - most recent)
-  gh run list --branch "$branch" --limit 100 | tail -n +2 | \
-    awk '{print $NF}' > /tmp/delete_runs_$$.txt
+  # Get runs to delete (all except most recent) using JSON for reliable ID extraction
+  gh run list --branch "$branch" --limit 100 \
+    --json databaseId --jq '.[1:] | .[].databaseId' > /tmp/delete_runs_$$.txt
 
   local delete_count=$(wc -l < /tmp/delete_runs_$$.txt)
 
