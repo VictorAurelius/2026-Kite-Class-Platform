@@ -1125,7 +1125,7 @@ S3 Glacier (1 year): $0.004/GB = ~$1/month
 ## Related Documentation
 
 - [KiteHub Infrastructure](../implementation/kitehub-infrastructure.md)
-- [Security Design](../../05-qa-and-best-practices/security-design.md)
+- [Security Design](../../04-quality/security-design.md)
 - [Deployment Runbooks](./deployment-runbooks.md)
 
 ---

@@ -23,7 +23,7 @@
 
 ## SOURCE OF TRUTH: ARCHITECTURE V4.1
 
-Theo `documents/01-research/architecture/system-architecture-v4.md`:
+Theo `documents/07-archived/research/architecture/system-architecture-v4.md`:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
@@ -54,7 +54,7 @@ Theo `documents/01-research/architecture/system-architecture-v4.md`:
 
 ### 1. Architecture Gaps Report Update ✅
 
-**File:** `documents/05-qa-and-best-practices/architecture-gaps-analysis-2026-02-27.md`
+**File:** `documents/04-quality/architecture-gaps-analysis-2026-02-27.md`
 
 **Changes:**
 

@@ -32,7 +32,7 @@
    - Update project state (PR counts, test counts)
    - Add any new "NEVER DO" rules found
 
-5. ✅ **Update CURRENT-STATUS.md** → `documents/04-implementation/CURRENT-STATUS.md`
+5. ✅ **Update CURRENT-STATUS.md** → `documents/07-archived/implementation/CURRENT-STATUS.md`
    - Mark PR as completed with merge date
    - Update next priority queue
 

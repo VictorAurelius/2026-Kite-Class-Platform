@@ -377,7 +377,7 @@ NEW_VAR_NAME=default_value
 **Resources:**
 - Implementation Plan: `documents/03-planning/implementation/kiteclass-implementation-plan.md`
 - Skills Directory: `.claude/skills/`
-- Architecture Docs: `documents/01-research/architecture/`
+- Architecture Docs: `documents/07-archived/research/architecture/`
 
 ---
 

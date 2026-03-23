@@ -737,7 +737,7 @@ spec:
 
 **Related Documentation:**
 - [Database Provisioning Design](./kitehub-database-provisioning.md) (Task 2.2)
-- [Security Design](../05-qa-and-best-practices/security-design.md) (Task 2.4)
+- [Security Design](../04-quality/security-design.md) (Task 2.4)
 - [KiteHub Implementation Plan](./kitehub-implementation-plan.md)
 - [Docker Compose Template](../../kitehub/docker-compose.kitehub.yml)
 

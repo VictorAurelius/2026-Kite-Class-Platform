@@ -448,7 +448,7 @@ CREATE INDEX idx_attendance_class_date ON class_attendance(class_id, date);
 **After Brainstorming:**
 - Update `implementation-plan.md` with design decision reference
 - Link to specific PR section
-- Add to `documents/01-research/` if significant architectural change
+- Add to `documents/07-archived/research/` if significant architectural change
 
 ---
 

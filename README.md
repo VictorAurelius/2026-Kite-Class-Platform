@@ -106,7 +106,7 @@ Each project has its own contributing guidelines:
 For detailed project documentation:
 - [KiteClass Platform](kiteclass/README.md)
 - [Implementation Plan](documents/03-planning/implementation/kiteclass-implementation-plan.md)
-- [Architecture Overview](documents/01-research/architecture/system-architecture-v4.md)
+- [Architecture Overview](documents/07-archived/research/architecture/system-architecture-v4.md)
 - [Documentation Map](documents/README.md) - Complete documentation navigation guide
 
 ---

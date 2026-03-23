@@ -34,7 +34,7 @@
 - [ ] Wait healthy: `./scripts/wait-for-healthy.sh`
 - [ ] Run E2E: `./scripts/test-api-e2e.sh` — phải pass 100%
 - [ ] Fix bất kỳ test nào fail
-- [ ] Screenshot evidence lưu vào `documents/05-qa-and-best-practices/`
+- [ ] Screenshot evidence lưu vào `documents/04-quality/`
 
 **Lý do:** E2E chỉ được 6/10 vì chưa verify realtime với Docker. Cần chạy thật 1 lần.
 

@@ -807,7 +807,7 @@ public void verifyStudentListContract() {
 
 **File to Create:**
 
-**documents/05-qa-and-best-practices/security-design.md**
+**documents/04-quality/security-design.md**
 
 **Content Outline:**
 
@@ -1216,7 +1216,7 @@ These services are optional add-ons that customers can purchase separately:
    - Reference: InstanceController, StudentController, DTOs
 
 5. **Task 2.4** - Security Design Document (4-6h)
-   - Create: `documents/05-qa-and-best-practices/security-design.md`
+   - Create: `documents/04-quality/security-design.md`
    - Document: Multi-tenant isolation, encryption, auth/authz, compliance
    - Reference: TenantContextFilter, security configs, Hibernate filters
 

@@ -1925,8 +1925,8 @@ graph TD
 
 ### Resources
 
-- **Deployment Procedures:** `documents/04-operations/runbooks/deployment-procedures.md`
-- **Monitoring Guide:** `documents/04-operations/runbooks/monitoring-observability.md`
+- **Deployment Procedures:** `documents/05-guides/operations/runbooks/deployment-procedures.md`
+- **Monitoring Guide:** `documents/05-guides/operations/runbooks/monitoring-observability.md`
 - **KiteHub Infrastructure:** `documents/03-planning/implementation/kitehub-infrastructure.md`
 - **Scripts:** `scripts/smoke-tests.sh`, `scripts/dev-rebuild.sh`
 
