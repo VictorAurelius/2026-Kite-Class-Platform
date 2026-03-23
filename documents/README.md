@@ -8,14 +8,14 @@ Bản đồ tổng quan documents để navigate và update dễ dàng.
 
 | Topic | Files | Location |
 |-------|-------|----------|
-| **Architecture** | system-architecture-v4.md, service-architecture-revision-report.md, 04-architecture-full.puml | 01-research/architecture/, 06-diagrams/plantuml/ |
+| **Architecture** | system-architecture-v4.md, service-architecture-revision-report.md, 04-architecture-full.puml | 07-archived/research/architecture/, 06-diagrams/plantuml/ |
 | **Database** | database-design.md, database-migration-plan.md, 03-erd.puml | 03-planning/database/, 06-diagrams/plantuml/ |
 | **Storage Service** | storage-service-design.md, 02-core-prs.md, frontend-plan.md | 03-planning/implementation/, 03-planning/prs/ |
 | **API Design** | api-design.md | .claude/skills/ |
 | **PR Planning** | 00-master-pr-index.md, 01-gateway-prs.md, 02-core-prs.md, 03-frontend-prs.md | 03-planning/prs/ |
 | **Implementation** | kiteclass-implementation-plan.md, core-service-implementation.md, frontend-plan.md, gateway-implementation-plan.md | 03-planning/implementation/ |
 | **Testing** | testing-strategy.md | 03-planning/testing/ |
-| **Service Analysis** | service-use-cases-v3.md, media-service-analysis.md | 01-research/services/ |
+| **Service Analysis** | service-use-cases-v3.md, media-service-analysis.md | 07-archived/research/services/ |
 
 ---
 
@@ -120,7 +120,7 @@ Bản đồ tổng quan documents để navigate và update dễ dàng.
 
 ### 🟢 MEDIUM - Update khi có design decisions hoặc research findings
 
-#### `01-research/architecture/system-architecture-v4.md`
+#### `07-archived/research/architecture/system-architecture-v4.md`
 **Nội dung**: System architecture v4 overview (services, layers, data flow)
 **Update khi**:
 - Thêm layer mới (e.g., Storage layer)
@@ -128,7 +128,7 @@ Bản đồ tổng quan documents để navigate và update dễ dàng.
 - Major architectural changes
 **Related**: 04-architecture-full.puml, service-architecture-revision-report.md
 
-#### `01-research/architecture/service-architecture-revision-report.md`
+#### `07-archived/research/architecture/service-architecture-revision-report.md`
 **Nội dung**: Architecture decision records (ADRs)
 **Update khi**:
 - Thêm design decision mới (e.g., Storage Integration Decision)
@@ -143,7 +143,7 @@ Bản đồ tổng quan documents để navigate và update dễ dàng.
 - Thay đổi quota tiers
 **Related**: 02-core-prs.md, database-design.md, api-design.md
 
-#### `01-research/services/media-service-analysis.md`
+#### `07-archived/research/services/media-service-analysis.md`
 **Nội dung**: Media Service analysis (video streaming, HLS, RTMP)
 **Update khi**:
 - Research video streaming solutions
@@ -239,15 +239,8 @@ Bản đồ tổng quan documents để navigate và update dễ dàng.
 
 ```
 documents/
-├── 01-research/
-│   ├── architecture/
-│   │   ├── system-architecture-v4.md ⭐ (Main architecture doc)
-│   │   └── service-architecture-revision-report.md ⭐ (ADRs)
-│   ├── services/
-│   │   ├── service-use-cases-v3.md (214 use cases)
-│   │   └── media-service-analysis.md (Video streaming)
-│   └── technology/
-│       └── technology-stack-report.md
+├── 01-business/          (Business logic rules)
+├── 02-architecture/      (Technical design)
 │
 ├── 03-planning/
 │   ├── database/
@@ -267,9 +260,23 @@ documents/
 │       ├── 02-core-prs.md ⭐⭐ (Core PRs)
 │       └── 03-frontend-prs.md ⭐⭐ (Frontend PRs)
 │
+├── 04-quality/           (Audits, gap checks - was 05-qa-and-best-practices)
+├── 05-guides/            (Deploy guides, Vietnamese docs)
+│   ├── operations/       (Runbooks, monitoring)
+│   └── vietnamese/       (Vietnamese guides)
+│
 ├── 06-diagrams/plantuml/
 │   ├── 03-erd.puml ⭐⭐⭐ (CRITICAL - ERD)
 │   └── 04-architecture-full.puml ⭐⭐⭐ (CRITICAL - Architecture)
+│
+├── 07-archived/          (Old docs, reference only)
+│   ├── research/         (was 01-research)
+│   ├── academic/         (was 02-academic)
+│   ├── implementation/   (was 04-implementation)
+│   ├── compliance/       (was 06-compliance)
+│   ├── logs/             (was 06-logs)
+│   ├── early-ideas/
+│   └── old-plans/
 │
 └── .claude/skills/
     └── api-design.md ⭐⭐⭐ (CRITICAL - API specs)
@@ -335,7 +342,7 @@ documents/
 
 Nếu bạn mới bắt đầu hoặc cần overview:
 
-1. **Architecture**: `01-research/architecture/system-architecture-v4.md`
+1. **Architecture**: `07-archived/research/architecture/system-architecture-v4.md`
 2. **Database**: `03-planning/database/database-design.md`
 3. **Implementation**: `03-planning/implementation/kiteclass-implementation-plan.md`
 4. **PRs**: `03-planning/prs/00-master-pr-index.md`

@@ -495,7 +495,7 @@ public void initializeGradesForAssignment(Long assignmentId, Long courseId) {
 ## 🔗 References
 
 ### Internal Docs
-- **TODO Analysis:** `documents/05-qa-and-best-practices/todo-comments-analysis-report.md`
+- **TODO Analysis:** `documents/04-quality/todo-comments-analysis-report.md`
 - **Master Plan:** `documents/03-planning/implementation/kiteclass-implementation-plan.md`
 - **PR Dependency Graph:** `documents/03-planning/implementation/pr-dependency-graph-v2.md`
 

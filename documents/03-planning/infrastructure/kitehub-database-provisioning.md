@@ -1228,7 +1228,7 @@ public void cleanupOldBackups() {
 ## Related Documentation
 
 - [KiteHub Infrastructure Design](./kitehub-infrastructure.md)
-- [Security Design](../../05-qa-and-best-practices/security-design.md)
+- [Security Design](../../04-quality/security-design.md)
 - [KiteHub Implementation Plan](./kitehub-implementation-plan.md)
 
 ---

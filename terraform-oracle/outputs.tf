@@ -50,7 +50,7 @@ output "next_steps" {
   value       = <<-EOT
     1. SSH to backend: ssh opc@${oci_core_instance.backend.public_ip}
     2. SSH to frontend: ssh opc@${oci_core_instance.frontend.public_ip}
-    3. Deploy: see documents/07-guides/PRODUCTION-DEPLOY.md (Option A)
+    3. Deploy: see documents/05-guides/vietnamese/PRODUCTION-DEPLOY.md (Option A)
     4. DNS: point kiteclass.com → ${oci_core_instance.frontend.public_ip}
     5. Nginx config: set GATEWAY_HOST=${oci_core_instance.backend.private_ip}
   EOT
