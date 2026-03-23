@@ -54,7 +54,7 @@ class TrialExpirationCheckerTest {
 
     @BeforeEach
     void setUp() {
-        when(trialConfig.getWarningDays()).thenReturn(java.util.List.of(3, 1));
+        lenient().when(trialConfig.getWarningDays()).thenReturn(java.util.List.of(3, 1));
 
         expiredInstance = createInstance("expired-org", InstanceStatus.TRIAL);
         expiredInstance.startTrial(14);
