@@ -441,7 +441,7 @@ export function useTodayClassSessions() {
             className: session.className,
             startTime: session.startTime || '',
             endTime: session.endTime || '',
-            totalStudents: 0, // TODO: Fetch from enrollment data
+            totalStudents: 0, // Enrollment count not yet available from session endpoint
             attendanceMarked: attendance.totalElements > 0,
             presentCount: attendance.content.filter((a) => a.status === 'PRESENT').length,
             absentCount: attendance.content.filter((a) => a.status === 'ABSENT').length,

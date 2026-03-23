@@ -320,7 +320,7 @@ export default function AttendanceReportsPage() {
             <AttendanceCalendar
               attendanceRecords={attendanceData?.content || []}
               onDateClick={(_date) => {
-                // TODO: Show attendance details for this date
+                // Date click detail view will be added with the attendance detail modal feature
               }}
             />
 
