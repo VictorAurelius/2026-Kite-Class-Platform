@@ -265,3 +265,7 @@ AFTER (mới — check 3 tầng):
 | Quality audit quá muộn | Phát hiện gaps khi đã build xong | Audit ở PR #188 thay vì PR #50 |
 | CI green = done | Bỏ sót business logic sai | Score 91/100 nhưng gap 45% |
 | Không tách Planning PR vs Implementation PR | Requirements thay đổi giữa chừng | Mix docs + code + config trong 1 PR |
+| Agent PR chỉ sửa files được chỉ định | Miss test configs, mock setup | @PostConstruct crash @SpringBootTest vì thiếu config |
+| Merge song song không check conflict trước | InstanceService conflict | 2 PRs cùng sửa 1 file → resolve thủ công |
+| Merge xong không update plans | Plans outdated, gaps report sai | 5 PRs done nhưng plans vẫn hiện ⬜ TODO |
+| CI pass = quality OK | Integration issues ẩn | Individual PR pass nhưng main có thể fail |

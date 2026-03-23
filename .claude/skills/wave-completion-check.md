@@ -192,10 +192,52 @@ ls documents/01-business/kitehub/
 
 ---
 
+## Level 6: Post-wave Documentation Sync (BẮT BUỘC)
+
+Wave 1 cho thấy: **nếu không enforce, plans/reports sẽ outdated ngay sau merge.**
+
+```bash
+# 1. SaaS plan completion status
+grep "⬜\|✅" documents/03-planning/kitehub-saas-implementation-plan.md | tail -20
+# Verify: PRs vừa merge đã mark ✅ + PR number
+
+# 2. Gap reports updated
+grep "⬜\|✅" documents/04-quality/business-gap-check-*-kitehub.md | grep -c "✅"
+grep "⬜\|✅" documents/04-quality/business-gap-check-*-kiteclass.md | grep -c "✅"
+# Verify: gaps fixed trong wave đã mark ✅
+
+# 3. Parallel strategy updated
+grep "Wave.*COMPLETED\|Wave.*TODO" documents/03-planning/parallel-execution-strategy.md
+# Verify: current wave marked COMPLETED
+
+# 4. Refactor plan updated (nếu có refactor PR)
+grep "✅\|⬜" documents/03-planning/docs-and-skills-refactor-plan.md
+# Verify: completed items marked
+
+# 5. Minor issues noted
+# Verify: wave check report có "Issues Found" section với items tracked
+```
+
+**PHẢI commit doc updates TRƯỚC khi bắt đầu wave tiếp.**
+
+---
+
 ## Rules
 
 - PHẢI chạy SAU mỗi wave, TRƯỚC khi bắt đầu wave tiếp
 - Level 1 (CI) fail → STOP, fix trước
 - Level 2-3 có fail → fix trước khi Wave tiếp
 - Level 4-5 là informational — track trends
+- **Level 6 (doc sync) là BẮT BUỘC** — commit updates trước Wave tiếp
 - Lưu report: `documents/04-quality/wave-[X]-completion-check.md`
+
+---
+
+## Lessons Learned
+
+### Wave 1 (2026-03-23)
+- **Agent miss test configs:** `@PostConstruct` trong PR #195 crash `@SpringBootTest` vì `application.yml` (không phải `application-test.yml`) không có secret. Fix: thêm config vào BASE test yml.
+- **Agent miss UnnecessaryStubbingException:** PR #197 mock `trialConfig` trong `setUp()` nhưng không phải mọi test dùng → Mockito strict mode fail. Fix: `lenient()`.
+- **Merge conflict predictable:** PR #195 + #197 cùng sửa `InstanceService.java` → conflict. Nên merge PR ít sửa shared files trước.
+- **Doc update dễ quên:** Sau merge 4 PRs, plans/gap reports vẫn hiện ⬜ TODO → phải enforce Level 6 check.
+- **CI pass ≠ quality OK:** PR CI pass riêng lẻ, nhưng integration issues chỉ phát hiện khi merge vào main.
