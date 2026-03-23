@@ -46,7 +46,7 @@ class TenantResolverGatewayFilterFactoryTest {
 
     @BeforeEach
     void setUp() {
-        tenantResolverFilter = new TenantResolverGatewayFilterFactory(instanceRepository);
+        tenantResolverFilter = new TenantResolverGatewayFilterFactory(instanceRepository, ".kiteclass.com");
 
         // Create active instance
         activeInstance = new Instance();
@@ -136,6 +136,36 @@ class TenantResolverGatewayFilterFactoryTest {
                 .verifyComplete();
 
         assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @Test
+    void testTenantResolver_CustomBaseDomain_Success() {
+        // Given - filter with custom base domain
+        TenantResolverGatewayFilterFactory customFilter =
+                new TenantResolverGatewayFilterFactory(instanceRepository, ".myschool.io");
+
+        MockServerHttpRequest request = MockServerHttpRequest
+                .get("http://customer1.myschool.io/api/v1/students")
+                .build();
+
+        MockServerWebExchange exchange = MockServerWebExchange.from(request);
+
+        when(instanceRepository.findBySubdomain("customer1")).thenReturn(Optional.of(activeInstance));
+
+        when(filterChain.filter(any(ServerWebExchange.class))).thenAnswer(invocation -> {
+            ServerWebExchange modifiedExchange = invocation.getArgument(0);
+            String tenantId = modifiedExchange.getRequest().getHeaders().getFirst("X-Tenant-Id");
+            assertThat(tenantId).isEqualTo(activeInstance.getId().toString());
+            return Mono.empty();
+        });
+
+        // When
+        Mono<Void> result = customFilter.apply(new TenantResolverGatewayFilterFactory.Config())
+                .filter(exchange, filterChain);
+
+        // Then
+        StepVerifier.create(result)
+                .verifyComplete();
     }
 
     @Test

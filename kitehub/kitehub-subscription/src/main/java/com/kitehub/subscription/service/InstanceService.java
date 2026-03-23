@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -45,8 +46,33 @@ public class InstanceService {
      */
     private static final int MAX_FREE_INSTANCES_PER_OWNER = 2;
 
+    // Reserved subdomains that cannot be used for tenant instances
+    private static final Set<String> RESERVED_SUBDOMAINS = Set.of(
+        "admin", "api", "www", "mail", "ftp", "smtp",
+        "test", "staging", "dev", "demo", "app",
+        "billing", "support", "help", "docs",
+        "status", "cdn", "assets", "static",
+        "ns1", "ns2", "mx", "pop", "imap",
+        "dashboard", "portal", "login", "register"
+    );
+
+    /**
+     * Validate that a subdomain is not reserved.
+     *
+     * @param subdomain subdomain to validate
+     * @throws IllegalArgumentException if subdomain is reserved
+     */
+    private void validateSubdomainNotReserved(String subdomain) {
+        if (RESERVED_SUBDOMAINS.contains(subdomain.toLowerCase())) {
+            throw new IllegalArgumentException("Subdomain '" + subdomain + "' is reserved");
+        }
+    }
+
     public InstanceResponse createTrialInstance(CreateInstanceRequest request) {
         log.info("Creating trial instance for subdomain: {}", request.getSubdomain());
+
+        // Validate subdomain is not reserved
+        validateSubdomainNotReserved(request.getSubdomain());
 
         // Validate instance limit per owner
         if (request.getOwnerId() != null) {
@@ -116,6 +142,9 @@ public class InstanceService {
                                                    UUID ownerId, String contactEmail) {
         log.info("Creating PENDING instance for subdomain: {}", subdomain);
 
+        // Validate subdomain is not reserved
+        validateSubdomainNotReserved(subdomain);
+
         if (instanceRepository.existsBySubdomainAndDeletedFalse(subdomain)) {
             throw new IllegalArgumentException("Subdomain already exists: " + subdomain);
         }
@@ -183,6 +212,9 @@ public class InstanceService {
      */
     public RegisterInstanceResponse registerInstance(RegisterInstanceRequest request) {
         log.info("Registering new instance for subdomain: {}, email: {}", request.getSubdomain(), request.getOwnerEmail());
+
+        // Validate subdomain is not reserved
+        validateSubdomainNotReserved(request.getSubdomain());
 
         // Validate subdomain uniqueness
         if (instanceRepository.existsBySubdomainAndDeletedFalse(request.getSubdomain())) {

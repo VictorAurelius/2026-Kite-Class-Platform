@@ -15,3 +15,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+# Internal API secret for tests (fail-fast validation requires a non-blank value)
+internal:
+  api:
+    secret: test-internal-secret-for-unit-tests-only
