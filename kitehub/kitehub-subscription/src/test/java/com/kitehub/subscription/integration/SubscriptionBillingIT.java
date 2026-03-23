@@ -175,7 +175,7 @@ class SubscriptionBillingIT {
         CreateSubscriptionRequest subRequest = CreateSubscriptionRequest.builder()
             .instanceId(instance.getId())
             .tier(PricingTier.PREMIUM)
-            .billingCycle(BillingCycle.YEARLY)
+            .billingCycle(BillingCycle.ANNUALLY)
             .build();
 
         mockMvc.perform(post("/api/platform/subscriptions")
