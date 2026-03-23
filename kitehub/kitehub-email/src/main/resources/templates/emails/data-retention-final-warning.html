@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cảnh Báo Cuối: Dữ Liệu Sắp Bị Xóa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #F9FAFB;
+        }
+        .header {
+            background: #991B1B;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .critical-warning {
+            background: #FEF2F2;
+            border: 2px solid #DC2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .critical-warning h2 {
+            color: #DC2626;
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+        .critical-warning p {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .info-box {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #DC2626;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KiteHub</h1>
+        <p>⚠ Cảnh Báo Khẩn Cấp</p>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${ownerName}">Admin</strong>,</p>
+
+        <div class="critical-warning">
+            <h2>DỮ LIỆU SẼ BỊ XÓA SAU 24 GIỜ</h2>
+            <p>Đây là cảnh báo cuối cùng trước khi dữ liệu bị xóa vĩnh viễn.</p>
+        </div>
+
+        <p>Thông tin instance của bạn:</p>
+        <div class="info-box">
+            <p><strong>Instance:</strong> <span th:text="${instanceName}">kiteclass</span></p>
+            <p><strong>Subdomain:</strong> <span th:text="${subdomain}">abc</span>.kiteclass.vn</p>
+            <p><strong>Ngày xóa dữ liệu:</strong> <span th:text="${deletionDate}">2026-03-24</span></p>
+        </div>
+
+        <p>Tất cả dữ liệu bao gồm:</p>
+        <ul>
+            <li>Danh sách học sinh và giáo viên</li>
+            <li>Lịch sử điểm danh</li>
+            <li>Thông tin lớp học và khóa học</li>
+            <li>Báo cáo và thống kê</li>
+        </ul>
+        <p>...sẽ bị <strong>xóa vĩnh viễn</strong> sau 24 giờ nữa và KHÔNG THỂ KHÔI PHỤC.</p>
+
+        <p>Gia hạn subscription ngay bây giờ để bảo toàn toàn bộ dữ liệu.</p>
+
+        <a th:href="${renewUrl}" class="button">Gia hạn ngay để giữ dữ liệu</a>
+
+        <p style="margin-top: 30px;"><strong>Đội ngũ KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 KiteHub. All rights reserved.</p>
+        <p>Cần hỗ trợ khẩn cấp? Liên hệ ngay <a href="mailto:support@kitehub.com" style="color: #666;">support@kitehub.com</a></p>
+        <p>Nếu bạn không muốn nhận email này, vui lòng <a href="#" style="color: #666;">hủy đăng ký</a>.</p>
+    </div>
+</body>
+</html>

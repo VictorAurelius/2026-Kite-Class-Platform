@@ -130,8 +130,21 @@ public class DataRetentionService {
                 }
 
                 LocalDateTime retentionExpiry = suspendedAt.plusDays(retentionDays);
+                LocalDateTime now = LocalDateTime.now();
 
-                if (LocalDateTime.now().isAfter(retentionExpiry)) {
+                // Send final warning 1 day before deletion
+                long daysUntilExpiry = ChronoUnit.DAYS.between(now, retentionExpiry);
+                if (daysUntilExpiry == 1 && instance.getContactEmail() != null) {
+                    emailServiceClient.sendDataRetentionFinalWarning(
+                        instance.getId(),
+                        instance.getContactEmail(),
+                        instance.getSubdomain()
+                    );
+                    log.info("Data retention final warning sent for instance {} (subdomain: {})",
+                        instance.getId(), instance.getSubdomain());
+                }
+
+                if (now.isAfter(retentionExpiry)) {
                     // Log for future backup implementation (pg_dump)
                     log.info("Retention expired for instance {} (subdomain: {}). "
                         + "FUTURE: backup data via pg_dump before deletion.",
