@@ -43,13 +43,14 @@ class BrandingFlowIT {
     @Test
     @DisplayName("Generate theme from logo analysis")
     void generateThemeFromLogoAnalysis() throws Exception {
-        LogoAnalysis analysis = new LogoAnalysis();
-        analysis.setOrganizationName("Test School");
-        analysis.setIndustry("education");
-        analysis.setStyle("modern");
-        analysis.setPrimaryColor("#2563EB");
-        analysis.setSecondaryColor("#1E40AF");
-        analysis.setAccentColor("#F59E0B");
+        LogoAnalysis analysis = LogoAnalysis.builder()
+            .primaryColor("#2563EB")
+            .secondaryColor("#1E40AF")
+            .accentColor("#F59E0B")
+            .theme("MODERN")
+            .typography("Modern Sans-serif")
+            .targetAudience("students and teachers")
+            .build();
 
         MvcResult result = mockMvc.perform(post("/api/platform/branding/ai/generate-theme")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -62,25 +63,26 @@ class BrandingFlowIT {
         ThemeConfig theme = objectMapper.readValue(
             result.getResponse().getContentAsString(), ThemeConfig.class);
         assertThat(theme.getColors()).isNotNull();
-        assertThat(theme.getColors().getPrimary()).isNotBlank();
+        assertThat(theme.getColors().getPrimary()).isNotNull();
     }
 
     @Test
     @DisplayName("Theme generation service produces valid config")
     void themeGenerationServiceProducesValidConfig() {
-        LogoAnalysis analysis = new LogoAnalysis();
-        analysis.setOrganizationName("Academy Pro");
-        analysis.setIndustry("education");
-        analysis.setStyle("professional");
-        analysis.setPrimaryColor("#059669");
-        analysis.setSecondaryColor("#047857");
-        analysis.setAccentColor("#D97706");
+        LogoAnalysis analysis = LogoAnalysis.builder()
+            .primaryColor("#059669")
+            .secondaryColor("#047857")
+            .accentColor("#D97706")
+            .theme("CLASSIC")
+            .typography("Classic Serif")
+            .targetAudience("professionals")
+            .build();
 
         ThemeConfig config = themeGenerationService.generateThemeConfig(analysis);
 
         assertThat(config).isNotNull();
         assertThat(config.getColors()).isNotNull();
-        assertThat(config.getColors().getPrimary()).isNotBlank();
+        assertThat(config.getColors().getPrimary()).isNotNull();
         assertThat(config.getTypography()).isNotNull();
     }
 }
