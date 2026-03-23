@@ -116,6 +116,35 @@ spring:
                 name: emailCircuitBreaker
                 fallbackUri: forward:/fallback/email
 
+        # Swagger UI routes - per-service API documentation
+        - id: subscription-docs
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/docs/subscription/**
+          filters:
+            - RewritePath=/docs/subscription(?<segment>/?.*), ${segment}
+
+        - id: branding-docs
+          uri: http://kitehub-branding:8080
+          predicates:
+            - Path=/docs/branding/**
+          filters:
+            - RewritePath=/docs/branding(?<segment>/?.*), ${segment}
+
+        - id: admin-docs
+          uri: http://kitehub-admin:8080
+          predicates:
+            - Path=/docs/admin/**
+          filters:
+            - RewritePath=/docs/admin(?<segment>/?.*), ${segment}
+
+        - id: email-docs
+          uri: http://kitehub-email:8080
+          predicates:
+            - Path=/docs/email/**
+          filters:
+            - RewritePath=/docs/email(?<segment>/?.*), ${segment}
+
         # Instance APIs - Route to KiteClass Core (via TenantResolver)
         - id: instance-apis
           uri: ${KITECLASS_CORE_URL:http://kiteclass-core:8080}

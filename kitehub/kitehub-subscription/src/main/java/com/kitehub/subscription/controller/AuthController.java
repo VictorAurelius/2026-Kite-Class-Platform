@@ -2,6 +2,8 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "User registration, login, and token management")
 public class AuthController {
 
     private final AuthService authService;

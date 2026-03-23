@@ -5,6 +5,7 @@ import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.dto.TierChangeRequest;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
 import com.kitehub.subscription.service.SubscriptionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/platform/subscriptions")
 @RequiredArgsConstructor
+@Tag(name = "Subscriptions", description = "Subscription lifecycle, tier changes, and renewal management")
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;

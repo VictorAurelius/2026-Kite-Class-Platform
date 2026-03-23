@@ -8,6 +8,7 @@ import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.service.InstanceService;
 import com.kitehub.subscription.service.TrialService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/platform/instances")
 @RequiredArgsConstructor
+@Tag(name = "Instances", description = "Instance provisioning, trial management, and CRUD operations")
 public class InstanceController {
 
     private final InstanceService instanceService;

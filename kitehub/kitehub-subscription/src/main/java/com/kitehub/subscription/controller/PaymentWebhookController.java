@@ -1,6 +1,7 @@
 package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.service.PaymentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import java.util.TreeMap;
 @RestController
 @RequestMapping("/api/platform/webhooks/payment")
 @RequiredArgsConstructor
+@Tag(name = "Payment Webhooks", description = "Payment notification webhooks from VietQR/Bank")
 public class PaymentWebhookController {
 
     private final PaymentService paymentService;

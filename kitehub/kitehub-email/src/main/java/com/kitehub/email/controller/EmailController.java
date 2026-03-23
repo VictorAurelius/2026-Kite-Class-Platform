@@ -3,6 +3,7 @@ package com.kitehub.email.controller;
 import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
 import com.kitehub.email.service.SESEmailService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/platform/emails")
 @RequiredArgsConstructor
+@Tag(name = "Email", description = "Internal email sending API (SMTP/SES)")
 public class EmailController {
 
     private final SESEmailService sesEmailService;

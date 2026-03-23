@@ -6,6 +6,7 @@ import com.kitehub.admin.dto.InstanceSummary;
 import com.kitehub.admin.dto.RejectPaymentRequest;
 import com.kitehub.admin.dto.RevenueReport;
 import com.kitehub.admin.service.AnalyticsService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.InstanceStatus;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/platform/admin")
 @RequiredArgsConstructor
+@Tag(name = "Admin", description = "Platform administration, analytics, instance management, and payment operations")
 public class AdminController {
 
     private final AnalyticsService analyticsService;
