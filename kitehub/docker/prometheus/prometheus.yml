@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'kitehub-subscription'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['kitehub-subscription:8080']
+
+  - job_name: 'kitehub-branding'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['kitehub-branding:8080']
+
+  - job_name: 'kitehub-email'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['kitehub-email:8080']
+
+  - job_name: 'kitehub-admin'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['kitehub-admin:8080']
+
+  - job_name: 'kitehub-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['kitehub-gateway:9000']
+
+  - job_name: 'kiteclass-core'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['kiteclass-core:8080']
