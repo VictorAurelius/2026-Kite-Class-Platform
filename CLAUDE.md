@@ -15,24 +15,24 @@
 1. **Quick Brainstorm** (5-10 phút)
    - Phân tích scope, risks, edge cases
    - Xác định dependencies và blockers
-   - Tham khảo: `.claude/skills/brainstorming-methodology.md`
+   - Tham khảo: `.claude/skills/core/brainstorming-methodology.md`
 
 2. **Task Breakdown** (5-10 phút)
    - Chia nhỏ thành tasks cụ thể
    - Estimate effort cho mỗi task
-   - Tham khảo: `.claude/skills/task-breakdown-guide.md`
+   - Tham khảo: `.claude/skills/core/task-breakdown-guide.md`
 
 3. **TDD - Test First** (cho code changes)
    - Viết tests TRƯỚC khi viết code
    - Red → Green → Refactor
-   - Tham khảo: `.claude/skills/tdd-enforcement.md`
+   - Tham khảo: `.claude/skills/core/tdd-enforcement.md`
 
 4. **Implementation**
    - Implement theo task breakdown
    - Commit thường xuyên
 
 5. **Code Review** (self-review trước khi PR)
-   - Tham khảo: `.claude/skills/two-stage-code-review.md`
+   - Tham khảo: `.claude/skills/core/two-stage-code-review.md`
 
 ### KHÔNG được bỏ qua:
 - ❌ Nhảy thẳng vào code mà không brainstorm
@@ -61,7 +61,7 @@ docker-compose -f docker-compose.kitehub.yml up -d
 - `clean.sh` - Cleanup resources
 - `help.sh` - Show all commands
 
-Tham khảo: `.claude/skills/docker-scripts-required.md`
+Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts)
 
 ## Git Workflow
 
@@ -83,12 +83,29 @@ Tham khảo: `.claude/skills/docker-scripts-required.md`
 
 ## Skills Reference
 
-All skills in `.claude/skills/`:
-- `brainstorming-methodology.md` - Quick brainstorm process
-- `task-breakdown-guide.md` - Task decomposition
-- `tdd-enforcement.md` - Test-first development
-- `two-stage-code-review.md` - Self-review checklist
-- `systematic-debugging.md` - 4-phase debugging
+Index đầy đủ: `.claude/skills/_README-skills-index.md`
+
+### Core Skills (Superpowers — dùng mỗi PR)
+- `core/brainstorming-methodology.md` - Quick brainstorm process
+- `core/task-breakdown-guide.md` - Task decomposition
+- `core/tdd-enforcement.md` - Test-first development
+- `core/two-stage-code-review.md` - Self-review checklist
+- `core/systematic-debugging.md` - 4-phase debugging
+
+### Check & Audit
 - `pre-flight-check.md` - 3-layer check: PR / Domain / Project
 - `business-gap-check.md` - Business logic gap analysis
 - `quality-audit/SKILL.md` - Quality scoring (100 points)
+- `wave-completion-check.md` - Wave completion verification
+
+### Technical Standards (consolidated)
+- `backend/backend-standards.md` - Code style, API, DB, enums, errors, Maven
+- `frontend/frontend-standards.md` - TypeScript, React, Shadcn, theme, i18n
+- `testing/testing-standards.md` - Spring Boot tests, frontend tests, E2E, security
+- `devops/devops-standards.md` - Docker scripts, CI/CD, deployment, cloud
+
+### Workflow
+- `workflow/continue/` - /continue skill
+- `workflow/check-pr/` - /check-pr skill
+- `workflow/fix-pr/` - /fix-pr skill
+- `workflow/start-pr/` - /start-pr skill
