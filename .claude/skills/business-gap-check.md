@@ -1,6 +1,6 @@
 # Skill: Business Gap Check
 
-**Version:** 1.0
+**Version:** 1.1
 **Last Updated:** 2026-03-23
 **Purpose:** Phát hiện gaps trong business logic giữa code thực tế và yêu cầu SaaS chuẩn
 
@@ -11,6 +11,17 @@
 ```
 /business-gap-check [kitehub|kiteclass|all]
 ```
+
+## Relationship với /quality-audit
+
+| | `/quality-audit` | `/business-gap-check` |
+|--|-------------------|----------------------|
+| **Focus** | Kỹ thuật (tests, CI, docs, code style) | Nghiệp vụ (business logic đúng/sai) |
+| **Output** | Score /100, Grade A-D | Pass/Fail %, gap list |
+| **Ví dụ** | "CI green ✅" | "Trial limit sai (2 thay vì 1) ❌" |
+| **Khi dùng** | Đánh giá chất lượng tổng quan | Verify nghiệp vụ trước production |
+
+**Bổ sung nhau:** quality-audit có thể cho 91/100 nhưng business-gap chỉ 45% — code chạy tốt nhưng logic sai.
 
 ---
 
@@ -133,6 +144,103 @@ grep -rn "admin\|root\|test\|demo" kitehub/kitehub-*/src/main --include="*.java"
 | Business constants externalized | Search `@ConfigurationProperties` | Tất cả constants từ config |
 | Frontend reads config | Search `/api/platform/config` | Public config API |
 | Admin can change config | Search admin config endpoint | Hoặc YAML cũng được |
+
+### Bước 2B: KiteClass-specific Checks (khi target = kiteclass hoặc all)
+
+Thay thế Bước 2 bằng các checks dưới đây khi target là `kiteclass`:
+
+```bash
+# KiteClass data collection
+grep -rn "final.*=.*[0-9]" kiteclass/kiteclass-core/src/main --include="*.java" | grep -v "serialVersionUID\|logger\|LOG\|VERSION"
+grep -rn "TODO\|FIXME\|HACK\|FUTURE" kiteclass/kiteclass-core/src/main --include="*.java"
+grep -rn "TODO\|FIXME" kiteclass/kiteclass-frontend/src --include="*.ts" --include="*.tsx"
+grep -rn "Map<String.*>.*@RequestBody\|@RequestBody.*Map" kiteclass/kiteclass-core/src/main --include="*.java"
+grep -rn "@Valid" kiteclass/kiteclass-core/src/main --include="*.java" -l | wc -l
+grep -rn "@RequestBody" kiteclass/kiteclass-core/src/main --include="*.java" | wc -l
+grep -rn "@Scheduled" kiteclass/kiteclass-core/src/main --include="*.java"
+grep -rn "ConfigurationProperties\|@Value" kiteclass/kiteclass-core/src/main --include="*.java"
+grep -rn "@FilterDef\|@Filter\|tenantFilter" kiteclass/kiteclass-core/src/main --include="*.java"
+grep -rn "changeme\|default.*secret\|placeholder" kiteclass/kiteclass-core/src/main --include="*.java"
+find kiteclass/kiteclass-core/src/main -name "*Controller.java" | wc -l
+find kiteclass/kiteclass-core/src/test -name "*IT.java" | wc -l
+grep -rn "@Disabled" kiteclass/kiteclass-core/src/test --include="*.java"
+```
+
+#### KC-2.1 Multi-tenant Isolation
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| Hibernate tenant filter on BaseEntity | Search `@FilterDef("tenantFilter")` | Có trên BaseEntity |
+| TenantContext ThreadLocal | Search `TenantContext` class | Set by interceptor |
+| Filter auto-enabled on all queries | Search `enableFilter("tenantFilter")` trong JPA config | Auto-enable |
+| Integration test prove isolation | Search `*IT.java` test tenant isolation | Test 2 tenants không thấy data nhau |
+| No raw SQL bypass filter | Search native queries, verify có WHERE tenant | Không bypass |
+
+#### KC-2.2 Module Completeness
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| All 15 modules have Controller | Count Controllers vs module dirs | 1:1 match |
+| Student CRUD complete | Endpoints: list, get, create, update, delete | Đủ 5 operations |
+| Teacher CRUD complete | Same as student | Đủ 5 operations |
+| Course → Class → Enrollment flow | Code path verify | End-to-end |
+| Attendance recording + report | AttendanceController endpoints | Record + report |
+| Payment gateway integration | VNPay/MoMo/ZaloPay gateway clients | Ít nhất 1 hoạt động |
+
+#### KC-2.3 Input Validation
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| @Valid coverage | Count @Valid vs @RequestBody | >90% coverage |
+| GlobalExceptionHandler | Search ControllerAdvice | Xử lý validation errors |
+| No untyped Map request bodies | Search `Map.*@RequestBody` | 0 hoặc chỉ webhooks |
+| DTO constraint annotations | Search @NotBlank, @NotNull, @Size | Trên tất cả DTOs |
+
+#### KC-2.4 Security
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| Internal API secret secure | Search default value | Không phải "changeme" |
+| Internal API filter exists | Search InternalRequestFilter | HMAC + timestamp |
+| Payment credentials externalized | Search @Value payment.* | Từ env vars |
+| CORS configured | Search CORS trong gateway | Configurable |
+| No sensitive data in logs | Search log.info/debug cho password, secret | Không log sensitive |
+
+#### KC-2.5 Frontend Quality
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| 0 TODO/FIXME | grep TODO trong src/ | 0 |
+| useAuth tenant context | Search useAuth hook | Decode tenantId từ JWT, không hardcode |
+| SEO basics (robots, sitemap) | Search robots.ts, sitemap.ts | Có |
+| OpenGraph metadata | Search openGraph trong layout/page | Có trên public pages |
+| No console.log in production | Search console.log | 0 (trừ dev-only) |
+
+#### KC-2.6 Configuration
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| Business constants externalized | Search hardcoded final = [number] | Từ @ConfigurationProperties |
+| Storage config externalized | Search StorageProperties | Có |
+| Payment URLs configurable | Search payment.* @Value | Configurable |
+| Late fee / grace period configurable | Search hardcoded rates | Từ config |
+
+#### KC-2.7 Scheduled Jobs & Async
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| Payment expiry check | Search @Scheduled trong payment | Có |
+| Storage cleanup | Search StorageCleanupScheduler | Có |
+| RabbitMQ event-driven | Search RabbitConfig exchanges/queues | Defined (không chỉ placeholder) |
+
+#### KC-2.8 Testing
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| 0 @Disabled tests | grep @Disabled | 0 |
+| Integration tests exist | find *IT.java | >0 |
+| Tenant isolation test | Search test prove 2 tenants isolated | Có |
+| CI green | gh run list | All pass |
 
 ### Bước 3: Output Gap Report
 
