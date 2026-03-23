@@ -3,6 +3,7 @@ package com.kitehub.branding.controller;
 import com.kitehub.branding.dto.LandingPageContent;
 import com.kitehub.branding.dto.LogoAnalysis;
 import com.kitehub.branding.service.ContentGenerationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/platform/branding/content")
 @RequiredArgsConstructor
+@Tag(name = "Content Generation", description = "AI-generated landing page content")
 public class ContentGenerationController {
 
     private final ContentGenerationService contentGenerationService;

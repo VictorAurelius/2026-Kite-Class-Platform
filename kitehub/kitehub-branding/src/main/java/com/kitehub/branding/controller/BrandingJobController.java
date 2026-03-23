@@ -2,6 +2,7 @@ package com.kitehub.branding.controller;
 
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.service.BrandingJobService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/platform/branding/jobs")
 @RequiredArgsConstructor
+@Tag(name = "Branding Jobs", description = "Branding job lifecycle management")
 public class BrandingJobController {
 
     private final BrandingJobService jobService;

@@ -6,6 +6,7 @@ import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.dto.BrandingAsset;
 import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.S3StorageService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -37,6 +38,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/platform/branding/assets")
 @RequiredArgsConstructor
+@Tag(name = "Asset Storage", description = "Upload, retrieve, and delete branding assets (S3)")
 public class AssetStorageController {
 
     private final S3StorageService s3StorageService;

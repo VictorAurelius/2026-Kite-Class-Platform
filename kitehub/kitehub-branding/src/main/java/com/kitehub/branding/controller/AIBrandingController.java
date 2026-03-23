@@ -4,6 +4,7 @@ import com.kitehub.branding.dto.LogoAnalysis;
 import com.kitehub.branding.dto.ThemeConfig;
 import com.kitehub.branding.service.AIBrandingService;
 import com.kitehub.branding.service.ThemeGenerationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/platform/branding/ai")
 @RequiredArgsConstructor
+@Tag(name = "AI Branding", description = "AI-powered logo analysis, image generation, and theme creation")
 public class AIBrandingController {
 
     private final AIBrandingService aiBrandingService;

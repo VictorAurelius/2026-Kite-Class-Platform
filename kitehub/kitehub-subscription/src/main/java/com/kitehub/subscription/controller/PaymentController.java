@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/platform/payments")
 @RequiredArgsConstructor
+@Tag(name = "Payments", description = "Payment creation, QR code generation, and payment history")
 public class PaymentController {
 
     private final PaymentService paymentService;
