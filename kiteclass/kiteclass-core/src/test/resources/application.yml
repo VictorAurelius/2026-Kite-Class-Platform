@@ -13,3 +13,8 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+
+# Internal API secret for tests
+internal:
+  api:
+    secret: test-internal-secret-for-all-tests
