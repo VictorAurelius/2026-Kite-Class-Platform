@@ -1,5 +1,6 @@
 package com.kiteclass.core.config;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,11 +68,30 @@ public class InternalRequestFilter extends OncePerRequestFilter {
     private static final int TIME_WINDOW_SECONDS = 300;
 
     /**
+     * Old insecure default value that must be rejected.
+     */
+    private static final String INSECURE_DEFAULT = "changeme-in-production";
+
+    /**
      * Shared secret for HMAC signature generation.
      * Must match the secret configured in Gateway service.
      */
-    @Value("${internal.api.secret:changeme-in-production}")
+    @Value("${internal.api.secret:}")
     private String internalApiSecret;
+
+    /**
+     * Validates that the internal API secret is properly configured.
+     * Fails fast at startup if the secret is missing or uses the old insecure default.
+     */
+    @PostConstruct
+    public void validateSecret() {
+        if (internalApiSecret == null || internalApiSecret.isBlank() || INSECURE_DEFAULT.equals(internalApiSecret)) {
+            throw new IllegalStateException(
+                "INTERNAL_API_SECRET must be configured. " +
+                "Set environment variable INTERNAL_API_SECRET or property internal.api.secret"
+            );
+        }
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

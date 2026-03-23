@@ -190,6 +190,8 @@ server:
 
 # Rate limiting by tier
 kitehub:
+  domain:
+    base: ${BASE_DOMAIN:.kiteclass.com}
   rate-limit:
     default-limit: 100
     limits:

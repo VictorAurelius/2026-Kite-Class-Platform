@@ -4,6 +4,7 @@ import com.kitehub.gateway.repository.InstanceRepository;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpStatus;
@@ -33,16 +34,19 @@ public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFac
 
     private static final String X_TENANT_ID_HEADER = "X-Tenant-Id";
     private static final String X_INSTANCE_SUBDOMAIN_HEADER = "X-Instance-Subdomain";
-    private static final String BASE_DOMAIN = ".kiteclass.com";
     private static final Set<InstanceStatus> ALLOWED_STATUSES = Set.of(
         InstanceStatus.ACTIVE, InstanceStatus.TRIAL
     );
 
     private final InstanceRepository instanceRepository;
+    private final String baseDomain;
 
-    public TenantResolverGatewayFilterFactory(InstanceRepository instanceRepository) {
+    public TenantResolverGatewayFilterFactory(
+            InstanceRepository instanceRepository,
+            @Value("${kitehub.domain.base:.kiteclass.com}") String baseDomain) {
         super(Config.class);
         this.instanceRepository = instanceRepository;
+        this.baseDomain = baseDomain;
     }
 
     @Override
@@ -118,9 +122,9 @@ public class TenantResolverGatewayFilterFactory extends AbstractGatewayFilterFac
             host = host.substring(0, host.indexOf(":"));
         }
 
-        // Check for kiteclass.com domain
-        if (host.endsWith(BASE_DOMAIN)) {
-            int endIndex = host.indexOf(BASE_DOMAIN);
+        // Check for base domain (e.g., .kiteclass.com)
+        if (host.endsWith(baseDomain)) {
+            int endIndex = host.indexOf(baseDomain);
             return endIndex > 0 ? host.substring(0, endIndex) : null;
         }
 

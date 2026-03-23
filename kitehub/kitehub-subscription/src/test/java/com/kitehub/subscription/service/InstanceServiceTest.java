@@ -146,6 +146,48 @@ class InstanceServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject reserved subdomain 'admin' for trial instance")
+    void shouldRejectReservedSubdomainForTrialInstance() {
+        // Given
+        validRequest.setSubdomain("admin");
+
+        // When & Then
+        assertThatThrownBy(() -> instanceService.createTrialInstance(validRequest))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("reserved");
+
+        verify(instanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should reject reserved subdomain 'api' for trial instance")
+    void shouldRejectReservedSubdomainApiForTrialInstance() {
+        // Given
+        validRequest.setSubdomain("api");
+
+        // When & Then
+        assertThatThrownBy(() -> instanceService.createTrialInstance(validRequest))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("reserved");
+
+        verify(instanceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should reject reserved subdomain case-insensitively")
+    void shouldRejectReservedSubdomainCaseInsensitive() {
+        // Given
+        validRequest.setSubdomain("Admin");
+
+        // When & Then
+        assertThatThrownBy(() -> instanceService.createTrialInstance(validRequest))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("reserved");
+
+        verify(instanceRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Should calculate trial days left correctly")
     void shouldCalculateTrialDaysLeftCorrectly() {
         // Given

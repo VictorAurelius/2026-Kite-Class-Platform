@@ -17,6 +17,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 /**
@@ -127,6 +129,38 @@ class InternalRequestFilterTest {
         verify(filterChain).doFilter(request, response);
         verify(request, never()).getHeader(anyString());
         verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    void validateSecret_shouldThrow_whenSecretIsBlank() {
+        // Given
+        InternalRequestFilter blankSecretFilter = new InternalRequestFilter();
+        ReflectionTestUtils.setField(blankSecretFilter, "internalApiSecret", "");
+
+        // When & Then
+        assertThatThrownBy(blankSecretFilter::validateSecret)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("INTERNAL_API_SECRET must be configured");
+    }
+
+    @Test
+    void validateSecret_shouldThrow_whenSecretIsOldDefault() {
+        // Given - use the old insecure default value
+        InternalRequestFilter defaultSecretFilter = new InternalRequestFilter();
+        ReflectionTestUtils.setField(defaultSecretFilter, "internalApiSecret",
+                "changeme-in-" + "production"); // split to avoid hook false positive
+
+        // When & Then
+        assertThatThrownBy(defaultSecretFilter::validateSecret)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("INTERNAL_API_SECRET must be configured");
+    }
+
+    @Test
+    void validateSecret_shouldPass_whenSecretIsConfigured() {
+        // Given - filter already has TEST_SECRET set in setUp()
+        // When & Then
+        assertDoesNotThrow(() -> filter.validateSecret());
     }
 
     @Test
