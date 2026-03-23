@@ -1,18 +1,86 @@
-# Skill: Wave Completion Check
+# Skill: Wave Execution & Completion Check
 
-**Version:** 1.0
+**Version:** 2.0
 **Last Updated:** 2026-03-23
-**Purpose:** Verify chất lượng sau mỗi wave merge — phát hiện vấn đề integration giữa các PRs
+**Purpose:** Full wave lifecycle: pre-check → launch → merge → verify → update
 
 ---
 
 ## Usage
 
 ```
-/wave-completion-check [wave-number]
+/wave-completion-check pre      # TRƯỚC khi launch agents
+/wave-completion-check [number] # SAU khi merge tất cả PRs
 ```
 
-**Khi nào:** SAU KHI merge tất cả PRs trong 1 wave vào main.
+---
+
+## Pre-wave Check (TRƯỚC khi launch agents)
+
+```bash
+# 1. Main clean?
+git status
+# Expected: clean working tree
+
+# 2. CI green?
+gh run list --branch main --limit 3 --json workflowName,conclusion \
+  --jq '.[] | "\(.workflowName): \(.conclusion)"'
+# Expected: all success
+
+# 3. No stale branches?
+git branch -r | grep -v "main\|HEAD" | wc -l
+# Expected: 0
+
+# 4. No open PRs?
+gh pr list --state open --json number --jq 'length'
+# Expected: 0
+```
+
+### Conflict Prediction Matrix
+
+TRƯỚC launch, liệt kê shared files:
+
+```markdown
+| Agent | Files sẽ sửa | Shared with |
+|-------|-------------|-------------|
+| 1 | InstanceService, TrialConfig | Agent 2 (InstanceService) |
+| 2 | InstanceService, TenantResolver | Agent 1 (InstanceService) |
+| 3 | email templates only | None |
+| 4 | documents/ only | None |
+
+SHARED FILES: InstanceService.java → merge Agent 1 TRƯỚC Agent 2
+```
+
+**Decision rules:**
+- 0 shared files → safe parallel
+- 1-2 shared files → parallel OK, plan merge order
+- 3+ shared files → **gộp agents** hoặc sequential
+
+### Agent Prompt Checklist (thêm vào cuối MỌI agent prompt)
+
+```
+## Agent Completion Checklist (PHẢI verify trước push)
+- [ ] grep -rn "ModifiedClassName" src/test/ → update ALL referencing tests
+- [ ] application.yml AND application-test.yml có config mới
+- [ ] @SpringBootTest tests load config? (check application.yml in test/resources/)
+- [ ] Mock setup dùng lenient() nếu không phải mọi test cần mock
+- [ ] List shared files với agents khác: [...]
+```
+
+### Rollback Plan
+
+```
+NẾU wave-completion-check Level 1 FAIL (CI broken):
+  1. Xác định PR gây lỗi: gh run view --log-failed
+  2. git revert [merge-commit-hash]
+  3. Push revert → CI green lại
+  4. Fix trên branch → re-merge
+
+NẾU Level 3 FAIL (business logic sai):
+  1. Tạo hotfix: git checkout -b hotfix/wave-X-fix
+  2. Fix logic
+  3. Push + PR → merge
+```
 
 ---
 
@@ -184,6 +252,19 @@ ls documents/01-business/kitehub/
 
 ## Issues Found
 [Any new issues discovered during check]
+
+## Wave Metrics
+
+| Metric | Value |
+|--------|-------|
+| Agents launched | X |
+| CI pass first try | X/X (XX%) |
+| Conflicts resolved | X files |
+| Fix iterations | X rounds |
+| Agent time | Xm |
+| Fix time | Xm |
+| Review + doc time | Xm |
+| **Total wave time** | **Xm** |
 
 ## Verdict
 ✅ Wave X complete — ready for Wave X+1

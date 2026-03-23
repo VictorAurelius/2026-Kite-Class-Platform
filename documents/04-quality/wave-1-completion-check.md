@@ -44,6 +44,19 @@
 | 3 | 5 FUTURE placeholders remain | 🟠 Medium | SAAS-3 (data retention) will fix |
 | 4 | SaaS plan completion status not updated | 🟡 Low | Update below |
 
+## Wave Metrics
+
+| Metric | Value |
+|--------|-------|
+| Agents launched | 4 |
+| CI pass first try | 2/4 (50%) |
+| Conflicts resolved | 1 file (InstanceService.java) |
+| Fix iterations | 2 rounds (#195 test config, #197 lenient mock) |
+| Agent time | ~10 min |
+| Fix time | ~30 min |
+| Review + doc time | ~30 min |
+| **Total wave time** | **~70 min** (vs ~4 hrs sequential) |
+
 ## Verdict
 
 ✅ **Wave 1 complete — ready for Wave 2**
