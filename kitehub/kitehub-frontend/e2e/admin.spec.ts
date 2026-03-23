@@ -69,13 +69,15 @@ test.describe('Admin Dashboard', () => {
     await page.waitForTimeout(2000);
     const manageLink = page.getByRole('link', { name: /quản lý instance/i });
     await manageLink.click();
-    await expect(page).toHaveURL('/admin/instances');
+    // Increase timeout: Next.js compile time for new pages can exceed 5s default
+    await expect(page).toHaveURL('/admin/instances', { timeout: 15000 });
   });
 
   test('should navigate to payments from sidebar', async ({ page }) => {
-    const paymentsLink = page.getByRole('link', { name: /thanh toán/i });
+    // Use exact match to avoid matching "Xem Thanh toán" quick action button
+    const paymentsLink = page.getByRole('link', { name: 'Thanh toán', exact: true });
     await paymentsLink.click();
-    await expect(page).toHaveURL('/admin/payments');
+    await expect(page).toHaveURL('/admin/payments', { timeout: 15000 });
   });
 });
 
