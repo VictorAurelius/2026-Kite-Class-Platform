@@ -102,6 +102,45 @@ services:
       - kitehub-network
 
   # ============================================================================
+  # MONITORING SERVICES
+  # ============================================================================
+
+  kitehub-prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: kitehub-prometheus
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - kitehub-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  kitehub-grafana:
+    image: grafana/grafana:10.4.0
+    container_name: kitehub-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SERVER_HTTP_PORT: 3002
+    volumes:
+      - kitehub-grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3002:3002"
+    depends_on:
+      - kitehub-prometheus
+    networks:
+      - kitehub-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # ============================================================================
   # AI SERVICES (Local Development)
   # ============================================================================
 
@@ -442,6 +481,10 @@ volumes:
   kitehub-minio-data:
     driver: local
   kitehub-ollama-models:
+    driver: local
+  kitehub-prometheus-data:
+    driver: local
+  kitehub-grafana-data:
     driver: local
 
 networks:

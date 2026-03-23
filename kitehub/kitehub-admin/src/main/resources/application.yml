@@ -20,6 +20,16 @@ spring:
 server:
   port: ${SERVER_PORT:8083}
 
+# Actuator & Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
 logging:
   level:
     com.kitehub.admin: DEBUG

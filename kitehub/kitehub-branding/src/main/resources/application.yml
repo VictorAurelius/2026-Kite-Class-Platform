@@ -70,6 +70,16 @@ storage:
     cdn-domain: ${CDN_DOMAIN:localhost:9100} # Safe default for local dev
     mock-mode: ${S3_MOCK_MODE:true} # true for local dev, false for production
 
+# Actuator & Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
 # Logging
 logging:
   level:
