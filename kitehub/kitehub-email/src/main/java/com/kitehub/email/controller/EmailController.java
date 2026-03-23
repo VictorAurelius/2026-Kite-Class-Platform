@@ -4,6 +4,7 @@ import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
 import com.kitehub.email.service.SESEmailService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class EmailController {
      * @return Email response
      */
     @PostMapping("/send")
-    public ResponseEntity<EmailResponse> sendEmail(@RequestBody EmailRequest request) {
+    public ResponseEntity<EmailResponse> sendEmail(@Valid @RequestBody EmailRequest request) {
         log.info("Received email send request for: {}", request.getTo());
 
         EmailResponse response;
