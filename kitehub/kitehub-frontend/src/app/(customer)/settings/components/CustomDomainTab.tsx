@@ -43,7 +43,6 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
   const {
     data: domainStatus,
     isLoading,
-    refetch,
   } = useDomainStatus(canUseCustomDomain ? instance?.id : undefined);
 
   const initiate = useInitiateDomain(instance?.id ?? '');
