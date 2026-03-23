@@ -1,0 +1,4 @@
+# Force LF line endings for shell scripts and mvnw
+*.sh text eol=lf
+mvnw text eol=lf
+mvnw.cmd text eol=crlf
