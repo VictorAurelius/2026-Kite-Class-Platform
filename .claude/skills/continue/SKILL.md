@@ -9,21 +9,26 @@ argument-hint: "[optional context]"
 
 ## Step 1: Xác định Priority Action
 
-Đọc các plan documents theo thứ tự, tìm item ưu tiên cao nhất chưa hoàn thành:
+Đọc các plan documents theo thứ tự ưu tiên (🔴 P0 trước):
 
-1. `documents/03-planning/local-prod-separation-plan.md`
-2. `documents/03-planning/local-e2e-roadmap.md`
-3. `documents/03-planning/ui-refactor-plan.md`
-4. `documents/03-planning/kiteclass-theme-system-design.md`
-5. `documents/03-planning/ai-local-implementation-plan.md`
+**Active Plans (check Completion Status section):**
+1. `documents/03-planning/kitehub-saas-implementation-plan.md` — 17 PRs, business logic
+2. `documents/03-planning/docs-and-skills-refactor-plan.md` — 3 PRs, cleanup
+3. `documents/03-planning/kitehub-quality-improvement-plan-v3.md` — 6 PRs, quality 91→100
+4. `documents/03-planning/kiteclass-quality-improvement-plan.md` — 16 PRs, quality 78→92
+5. `documents/03-planning/parallel-execution-strategy.md` — wave execution guide
 
-Thứ tự ưu tiên: 🔴 P0 > 🟠 P1 > 🟡 P2
+**Parallel execution:** Check parallel-execution-strategy.md cho wave hiện tại.
+Ưu tiên: 🔴 P0 > 🟠 P1 > 🟡 P2
+
+**TRƯỚC KHI code:** Chạy `/pre-flight-check pr` (Layer 1).
+**TRƯỚC KHI bắt đầu module mới:** Chạy `/pre-flight-check domain` (Layer 2).
+**Business docs:** Check `documents/01-business/` cho rules + config keys.
 
 Nếu tất cả plans hoàn thành:
 - Check open PRs: `gh pr list --state open`
 - Check CI: `gh run list --limit 5`
 - Check stale branches: `git branch -r | grep -v main | wc -l`
-- Run E2E verify: `./scripts/test-api-e2e.sh`
 
 Context bổ sung từ user: $ARGUMENTS
 

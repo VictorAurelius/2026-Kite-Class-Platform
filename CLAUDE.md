@@ -71,6 +71,16 @@ Tham khảo: `.claude/skills/docker-scripts-required.md`
 - Test locally before pushing to CI
 - Use `./scripts/test-local.sh` for testing
 
+## CRITICAL: Business Logic Documents
+
+**Location:** `documents/01-business/` — SOURCE OF TRUTH cho business rules
+**Quy tắc:** Xem `documents/01-business/README.md`
+
+- Mỗi domain 1 file, ~100-150 dòng (4 sections: Rules, Flow, Emails, Config)
+- Doc và code PHẢI cùng PR — đổi logic = đổi doc trong cùng commit
+- KHÔNG hardcode business rules — luôn dùng config key từ doc
+- TRƯỚC KHI code module mới → tạo business doc TRƯỚC (`/pre-flight-check domain`)
+
 ## Skills Reference
 
 All skills in `.claude/skills/`:
@@ -79,3 +89,6 @@ All skills in `.claude/skills/`:
 - `tdd-enforcement.md` - Test-first development
 - `two-stage-code-review.md` - Self-review checklist
 - `systematic-debugging.md` - 4-phase debugging
+- `pre-flight-check.md` - 3-layer check: PR / Domain / Project
+- `business-gap-check.md` - Business logic gap analysis
+- `quality-audit/SKILL.md` - Quality scoring (100 points)
