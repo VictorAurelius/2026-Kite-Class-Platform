@@ -137,9 +137,16 @@ echo "=============================================="
 echo ""
 
 # ============================================================
-# 0. WARM-UP: Wait for all services to be ready
+# 0. WARM-UP: Wait for all services to be healthy
 # ============================================================
 echo -e "${YELLOW}[0/8] Waiting for services...${NC}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/wait-for-healthy.sh" ]; then
+  "$SCRIPT_DIR/wait-for-healthy.sh" 180 || { echo -e "${RED}Services not ready. Aborting.${NC}"; exit 1; }
+else
+  echo "  wait-for-healthy.sh not found, falling back to gateway check..."
+fi
 
 MAX_WAIT=60
 WAITED=0
