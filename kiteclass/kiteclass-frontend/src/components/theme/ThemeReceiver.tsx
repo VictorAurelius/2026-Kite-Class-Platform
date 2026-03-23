@@ -35,7 +35,6 @@ export function ThemeReceiver() {
   useEffect(() => {
     // Initialize postMessage listener
     const cleanup = initThemeReceiver((theme) => {
-      console.log('[ThemeReceiver] Applying theme from parent window:', theme);
       setTheme(theme);
     });
 
