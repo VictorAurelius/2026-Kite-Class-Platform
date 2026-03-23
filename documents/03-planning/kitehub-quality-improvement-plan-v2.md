@@ -192,11 +192,11 @@ Phase 3 — Tests + Polish (2-3 ngày):
 
 | PR | Status | GitHub | Score |
 |----|--------|--------|-------|
-| PR-R1 Stale branch cleanup | ⬜ TODO | — | +1 |
-| PR-R2 Swagger/OpenAPI | ⬜ TODO | — | +2 |
-| PR-R3 Input Validation | ⬜ TODO | — | +2 |
-| PR-R4 Monitoring Stack | ⬜ TODO | — | +3 |
-| PR-R5 E2E Reliability | ⬜ TODO | — | +4 |
-| PR-R6 Integration Tests | ⬜ TODO | — | +2 |
-| PR-R7 Code Quality Polish | ⬜ OPTIONAL | — | +2 |
-| **Total** | **0/7** | | **0/16** |
+| PR-R1 Stale branch cleanup | ✅ DONE | direct | +1 |
+| PR-R2 Swagger/OpenAPI | ✅ DONE | #186 | +2 |
+| PR-R3 Input Validation | ✅ DONE | #187 | +2 |
+| PR-R4 Monitoring Stack | ✅ DONE | #188 | +3 |
+| PR-R5 E2E Reliability | ✅ DONE | #189 | +4 |
+| PR-R6 Integration Tests | ✅ DONE | #190 | +2 |
+| PR-R7 Code Quality Polish | ✅ DONE | #191 | +2 |
+| **Total** | **7/7** | | **16/16** |
