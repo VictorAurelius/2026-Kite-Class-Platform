@@ -12,3 +12,7 @@ sao vẫn còn nhiều files changing vậy?
 tôi thấy có 34 files changing mà nhỉ
 
 tôi đã staged all, thực hiện commit all
+
+quality-audit cho kiteclass luôn để estimate
+
+tạo PR plan mới để tiếp tục nâng điểm
