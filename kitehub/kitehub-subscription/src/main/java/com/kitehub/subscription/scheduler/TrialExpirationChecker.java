@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -76,6 +77,7 @@ public class TrialExpirationChecker {
     /**
      * Check trials that need warning notifications.
      * Sends warnings at 3 days, 1 day before expiration.
+     * Also sends midpoint engagement email at configured midpoint day.
      */
     private void checkTrialWarnings() {
         log.debug("Checking for trials needing warnings");
@@ -83,6 +85,8 @@ public class TrialExpirationChecker {
         List<Instance> activeTrials = instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.TRIAL);
 
         int warningsSent = 0;
+        int midpointEmailsSent = 0;
+
         for (Instance instance : activeTrials) {
             long daysLeft = instance.getTrialDaysLeft();
 
@@ -100,9 +104,37 @@ public class TrialExpirationChecker {
 
                 warningsSent++;
             }
+
+            // Check midpoint engagement email
+            if (shouldSendMidpointEmail(instance) && instance.getContactEmail() != null) {
+                emailServiceClient.sendTrialMidpointEmail(
+                    instance.getId(),
+                    instance.getContactEmail(),
+                    instance.getSubdomain()
+                );
+                log.info("Trial midpoint email sent for instance: {} (subdomain: {})",
+                    instance.getId(), instance.getSubdomain());
+                midpointEmailsSent++;
+            }
         }
 
-        log.info("Identified {} trials needing warnings", warningsSent);
+        log.info("Identified {} trials needing warnings, {} midpoint emails sent",
+            warningsSent, midpointEmailsSent);
+    }
+
+    /**
+     * Check if the midpoint engagement email should be sent.
+     * Sends when the instance has been in trial for exactly midpointDay days.
+     *
+     * @param instance Trial instance to check
+     * @return true if midpoint email should be sent
+     */
+    private boolean shouldSendMidpointEmail(Instance instance) {
+        if (instance.getTrialStartedAt() == null) {
+            return false;
+        }
+        long daysSinceStart = ChronoUnit.DAYS.between(instance.getTrialStartedAt(), LocalDateTime.now());
+        return daysSinceStart == trialConfig.getMidpointDay();
     }
 
     /**
