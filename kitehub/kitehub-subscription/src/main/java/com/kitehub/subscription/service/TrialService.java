@@ -2,6 +2,7 @@ package com.kitehub.subscription.service;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.UUID;
 public class TrialService {
 
     private final InstanceRepository instanceRepository;
+    private final TrialConfig trialConfig;
 
     /**
      * Start trial period for instance.
@@ -44,7 +46,7 @@ public class TrialService {
             return;
         }
 
-        instance.startTrial();
+        instance.startTrial(trialConfig.getDurationDays());
         instanceRepository.save(instance);
 
         log.info("Trial started for instance: {} (expires: {})", instanceId, instance.getTrialExpiresAt());

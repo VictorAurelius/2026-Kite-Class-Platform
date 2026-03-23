@@ -8,6 +8,7 @@ import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
+import com.kitehub.subscription.config.SubscriptionConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
@@ -48,6 +49,9 @@ class SubscriptionRenewalServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private SubscriptionConfig subscriptionConfig;
+
     @InjectMocks
     private SubscriptionRenewalService renewalService;
 
@@ -74,6 +78,8 @@ class SubscriptionRenewalServiceTest {
         instance = new Instance();
         instance.setId(instanceId);
         instance.setStatus(InstanceStatus.ACTIVE);
+
+        lenient().when(subscriptionConfig.getGracePeriodDays()).thenReturn(3);
     }
 
     @Test

@@ -177,12 +177,14 @@ public class Instance extends BaseEntity {
     }
 
     /**
-     * Start trial period (14 days).
+     * Start trial period with configurable duration.
+     *
+     * @param durationDays number of days for the trial period
      */
-    public void startTrial() {
+    public void startTrial(int durationDays) {
         this.status = InstanceStatus.TRIAL;
         this.trialStartedAt = LocalDateTime.now();
-        this.trialExpiresAt = LocalDateTime.now().plusDays(14);
+        this.trialExpiresAt = LocalDateTime.now().plusDays(durationDays);
     }
 
     /**
