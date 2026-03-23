@@ -53,8 +53,8 @@ export default function StudentAttendancePage({ params }: PageProps) {
   const { data: stats, isLoading: _isLoadingStats } =
     useStudentAttendanceStats(studentId);
 
-  // For simplicity, we'll use enrollment ID = studentId (in real app, fetch enrollments first)
-  // TODO: Fetch actual enrollment ID from student's enrollments
+  // Note: Using studentId as enrollmentId until enrollment API is available.
+  // When enrollment endpoints are ready, fetch actual enrollment IDs from student's enrollments.
   const enrollmentId = studentId;
 
   // Fetch attendance history
@@ -186,7 +186,7 @@ export default function StudentAttendancePage({ params }: PageProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả</SelectItem>
-                  {/* TODO: Add class options from student's enrollments */}
+                  {/* Class filter options will be populated when enrollment API is available */}
                 </SelectContent>
               </Select>
             </div>

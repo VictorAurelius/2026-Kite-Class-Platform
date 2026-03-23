@@ -63,7 +63,7 @@ export default function AdminAttendanceStatsPage() {
       breakdown.push({
         classId: classItem.id,
         className: classItem.name,
-        teacherName: undefined, // TODO: Fetch teacher name
+        teacherName: classItem.teacherId ? `Teacher #${classItem.teacherId}` : undefined,
         totalSessions: stats.totalSessions,
         presentCount: stats.presentCount,
         absentCount: stats.absentCount,
