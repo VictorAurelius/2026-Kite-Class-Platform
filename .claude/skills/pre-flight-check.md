@@ -16,6 +16,20 @@
 
 ---
 
+## Business Logic Documents
+
+**Location:** `documents/01-business/` (xem `documents/01-business/README.md` cho quy tắc đầy đủ)
+
+**Format mỗi doc:** 4 sections, ~100-150 dòng
+1. **Rules** — bảng business rules + config key + code location
+2. **Flow** — text diagram, max 15 bước
+3. **Emails** — trigger → template → timing → variables
+4. **Config** — YAML keys chính xác
+
+**Rule:** Doc và code PHẢI cùng PR. Đổi logic → đổi doc trong cùng commit.
+
+---
+
 ## Tại sao cần 3 tầng?
 
 ```
