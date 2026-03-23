@@ -176,7 +176,7 @@
 | PR | Scope | Priority | Effort |
 |----|-------|----------|--------|
 | PR-KC-11: Typed webhook DTOs | MoMo + ZaloPay typed request classes | 🟠 P1 | 2 hrs |
-| PR-KC-12: Secure defaults | Internal API secret fail-fast nếu default | 🔴 P0 | 1 hr |
+| PR-KC-12: Secure defaults | ✅ DONE #195 (Wave 1) | 🔴 P0 | ✅ |
 | PR-KC-13: Frontend SEO basics | robots.ts, sitemap.ts | 🟡 P2 | 2 hrs |
 | PR-KC-14: Externalize business constants | Late fee rate, storage grace period | 🟡 P2 | 2 hrs |
 | PR-KC-15: Verify tenant filter | Integration test prove isolation works | 🟠 P1 | 0.5 day |

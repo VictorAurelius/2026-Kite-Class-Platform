@@ -402,10 +402,10 @@ Phase 4 — Marketing (2 ngày):
 
 | PR | Status | GitHub | Phase |
 |----|--------|--------|-------|
-| PR-SAAS-1 Configurable Constants | ⬜ TODO | — | 1 |
-| PR-SAAS-2 Missing Email Templates | ⬜ TODO | — | 1 |
+| PR-SAAS-1 Configurable Constants | ✅ DONE | #197 (Wave 1) | 1 |
+| PR-SAAS-2 Missing Email Templates | ✅ DONE | #194 (Wave 1) | 1 |
 | PR-SAAS-3 Data Retention Service | ⬜ TODO | — | 1 |
-| PR-SAAS-4 Trial Limit 1x | ⬜ TODO | — | 1 |
+| PR-SAAS-4 Trial Limit 1x | ✅ DONE | #197 (Wave 1) | 1 |
 | PR-SAAS-5 Email Sent Log | ⬜ TODO | — | 2 |
 | PR-SAAS-6 SEO Foundation | ⬜ TODO | — | 2 |
 | PR-SAAS-7 Email Lifecycle | ⬜ TODO | — | 2 |
@@ -415,4 +415,13 @@ Phase 4 — Marketing (2 ngày):
 | PR-SAAS-11 Blog MDX | ⬜ TODO | — | 4 |
 | PR-SAAS-12 Public Config API | ⬜ TODO | — | 4 |
 | PR-SAAS-13 Architecture Docs | ⬜ TODO | — | 4 |
-| **Total** | **0/13** | | **~11 ngày** |
+| PR-SAAS-14 Reserved Subdomains | ✅ DONE | #195 (Wave 1) | 1 |
+| PR-SAAS-15 Configurable BASE_DOMAIN | ✅ DONE | #195 (Wave 1) | 1 |
+| PR-SAAS-16 Custom Domain UI | ⬜ TODO | — | 3 |
+| PR-SAAS-17 SSL Automation | ⬜ TODO | — | 4 |
+| **Total** | **5/17** | | |
+
+### Wave 1 Notes (2026-03-23)
+- Pool sizes (MultiTenantDataSourceConfig) vẫn hardcoded → track cho future config PR
+- `changeme-in-production` còn trong application.yml default → safe vì @PostConstruct blocks
+- 5 FUTURE placeholders → fix trong SAAS-3 (data retention)

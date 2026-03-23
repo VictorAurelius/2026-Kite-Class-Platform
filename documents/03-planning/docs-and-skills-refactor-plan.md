@@ -211,14 +211,13 @@ documents/
 
 ## C. Execution
 
-### PR-REFACTOR-1: Documents restructure
+### PR-REFACTOR-1: Documents restructure — ✅ DONE (#196, Wave 1)
 
-**Estimate:** 1 giờ
-**Scope:**
-- [ ] Rename/move folders theo mapping
-- [ ] Tạo `documents/README.md` index
-- [ ] Add deprecation note vào `kiteclass-core/docs/`
-- [ ] Verify: không có broken references
+**Completed:** 2026-03-23
+- [x] Rename/move folders: 01-07 unique, 142 files moved via git mv
+- [x] Tạo `documents/README.md` index
+- [x] 21 cross-references updated
+- [ ] Add deprecation note vào `kiteclass-core/docs/` ← **DEFERRED to REFACTOR-3**
 
 ### PR-REFACTOR-2: Skills consolidation
 

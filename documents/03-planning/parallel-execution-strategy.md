@@ -56,24 +56,18 @@ REFACTOR-2 (skills) ──→ phải sau REFACTOR-1 (docs) vì cross-reference
 
 ## Parallel Execution Plan
 
-### Wave 1 — Foundation (Day 1-2) — 4 agents song song
+### Wave 1 — Foundation (Day 1-2) — ✅ COMPLETED 2026-03-23
 
 ```
-Agent 1 (worktree): SAAS-1 + SAAS-4 (config + trial limit)
-  Files: subscription/config/, InstanceService, Instance.java, TrialExpirationChecker
-
-Agent 2 (worktree): SAAS-14 + SAAS-15 + KC-12 (security fixes)
-  Files: InstanceService validation, TenantResolverFilter, InternalRequestFilter
-
-Agent 3 (worktree): SAAS-2 (missing email templates)
-  Files: kitehub-email/templates/ only
-
-Agent 4 (worktree): REFACTOR-1 + REFACTOR-3 (docs restructure + business docs)
-  Files: documents/ only — KHÔNG đụng code
+Agent 1: SAAS-1 + SAAS-4 → PR #197 ✅ (config + trial limit)
+Agent 2: SAAS-14 + SAAS-15 + KC-12 → PR #195 ✅ (security)
+Agent 3: SAAS-2 → PR #194 ✅ (email templates)
+Agent 4: REFACTOR-1 → PR #196 ✅ (docs restructure)
 ```
 
-**Conflict risk:** LOW — mỗi agent sửa files khác nhau.
-**Merge order:** Agent 4 → Agent 3 → Agent 2 → Agent 1 (ít conflict nhất trước)
+**Merge order used:** #194 → #196 → #197 → #195 (conflict resolved on InstanceService)
+**Issues found:** UnnecessaryStubbingException (#197), @PostConstruct test config (#195)
+**Wave check:** See `documents/04-quality/wave-1-completion-check.md`
 
 ### Wave 2 — SEO + Tests (Day 3-4) — 4 agents song song
 

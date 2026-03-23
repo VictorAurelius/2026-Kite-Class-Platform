@@ -141,16 +141,16 @@
 
 | Gap # | PR | Status |
 |-------|-----|--------|
-| 4, 8, 9, 21 | PR-SAAS-1 (Configurable Constants) | ⬜ TODO |
-| 15 | PR-SAAS-2 (Missing Email Templates) | ⬜ TODO |
+| 4, 8, 9, 21 | PR-SAAS-1 (Configurable Constants) | ✅ DONE #197 |
+| 15 | PR-SAAS-2 (Missing Email Templates) | ✅ DONE #194 |
 | 10-14 | PR-SAAS-3 (Data Retention Service) | ⬜ TODO |
-| 5, 7 | PR-SAAS-4 (Trial Limit 1x) | ⬜ TODO |
+| 5, 7 | PR-SAAS-4 (Trial Limit 1x) | ✅ DONE #197 |
 | 16 | PR-SAAS-5 (Email Sent Log) | ⬜ TODO |
 | 2, 6 | PR-SAAS-7 (Email Lifecycle) | ⬜ TODO |
 | 20 | PR-SAAS-9 (AI Rate Limiting) | ⬜ TODO |
 | 22 | PR-SAAS-12 (Public Config API) | ⬜ TODO |
-| 1 | PR-SAAS-14 (Reserved Subdomains) | ⬜ TODO |
-| 18 | PR-SAAS-15 (Configurable BASE_DOMAIN) | ⬜ TODO |
+| 1 | PR-SAAS-14 (Reserved Subdomains) | ✅ DONE #195 |
+| 18 | PR-SAAS-15 (Configurable BASE_DOMAIN) | ✅ DONE #195 |
 | 19 | PR-SAAS-16 (Custom Domain Verify) | ⬜ TODO |
 | 17 | Chưa có PR — cần thêm unsubscribe link | ⬜ NEW |
 | 3 | PR-V3-3 (Typed DTOs) đã có trong quality plan | ⬜ TODO |
