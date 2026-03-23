@@ -69,9 +69,23 @@ Agent 4: REFACTOR-1 → PR #196 ✅ (docs restructure)
 **Issues found:** UnnecessaryStubbingException (#197), @PostConstruct test config (#195)
 **Wave check:** See `documents/04-quality/wave-1-completion-check.md`
 
-### Wave 2 — SEO + Tests (Day 3-4) — 4 agents song song
+### Wave 2 — SEO + Tests + Retention (Day 3-4) — ✅ COMPLETED 2026-03-23
 
 ```
+Agent 1: SAAS-6 (SEO) → PR #200 ✅
+Agent 2: KC-5 + KC-13 (FE fixes) → PR #198 ✅
+Agent 3: KC-1 + KC-2 + KC-15 (tests) → PR #199 ✅
+Agent 4: SAAS-3 + SAAS-5 (retention + email log) → PR #201 ✅
+All merged via wave/2 → PR #202 → main ✅
+```
+
+**Issues:** classItem.teacherId type error (fixed on wave/2 before merge)
+**CI pass first try:** 3/4 (75%)
+**Conflicts:** 0
+**Wave check:** See `documents/04-quality/wave-2-completion-check.md`
+
+```
+(Original plan preserved below)
 Agent 1 (worktree): SAAS-6 (SEO foundation — kitehub-frontend)
   Files: kitehub-frontend/src/app/ only
 

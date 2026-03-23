@@ -404,10 +404,10 @@ Phase 4 — Marketing (2 ngày):
 |----|--------|--------|-------|
 | PR-SAAS-1 Configurable Constants | ✅ DONE | #197 (Wave 1) | 1 |
 | PR-SAAS-2 Missing Email Templates | ✅ DONE | #194 (Wave 1) | 1 |
-| PR-SAAS-3 Data Retention Service | ⬜ TODO | — | 1 |
+| PR-SAAS-3 Data Retention Service | ✅ DONE | #201→#202 (Wave 2) | 1 |
 | PR-SAAS-4 Trial Limit 1x | ✅ DONE | #197 (Wave 1) | 1 |
-| PR-SAAS-5 Email Sent Log | ⬜ TODO | — | 2 |
-| PR-SAAS-6 SEO Foundation | ⬜ TODO | — | 2 |
+| PR-SAAS-5 Email Sent Log | ✅ DONE | #201→#202 (Wave 2) | 2 |
+| PR-SAAS-6 SEO Foundation | ✅ DONE | #200→#202 (Wave 2) | 2 |
 | PR-SAAS-7 Email Lifecycle | ⬜ TODO | — | 2 |
 | PR-SAAS-8 Template Gallery | ⬜ TODO | — | 3 |
 | PR-SAAS-9 AI Rate Limiting | ⬜ TODO | — | 3 |
@@ -419,7 +419,12 @@ Phase 4 — Marketing (2 ngày):
 | PR-SAAS-15 Configurable BASE_DOMAIN | ✅ DONE | #195 (Wave 1) | 1 |
 | PR-SAAS-16 Custom Domain UI | ⬜ TODO | — | 3 |
 | PR-SAAS-17 SSL Automation | ⬜ TODO | — | 4 |
-| **Total** | **5/17** | | |
+| **Total** | **8/17** | | |
+
+### Wave 2 Notes (2026-03-23)
+- Agent used `classItem.teacherId` but `Class` type has no such field → fix on wave/2
+- Wave branch strategy: 0 conflicts, main never broken
+- CI pass first try: 3/4 (75%, up from 50%)
 
 ### Wave 1 Notes (2026-03-23)
 - Pool sizes (MultiTenantDataSourceConfig) vẫn hardcoded → track cho future config PR
