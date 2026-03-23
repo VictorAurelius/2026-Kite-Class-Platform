@@ -235,6 +235,12 @@ services:
         condition: service_healthy
       kitehub-rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - kitehub-network
     restart: unless-stopped
@@ -280,6 +286,12 @@ services:
         condition: service_healthy
       kitehub-minio:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - kitehub-network
     restart: unless-stopped
@@ -308,6 +320,12 @@ services:
     depends_on:
       kitehub-rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - kitehub-network
     restart: unless-stopped
@@ -336,6 +354,12 @@ services:
         condition: service_healthy
       kitehub-redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - kitehub-network
     restart: unless-stopped
@@ -367,15 +391,21 @@ services:
       kitehub-redis:
         condition: service_healthy
       kitehub-subscription:
-        condition: service_started
+        condition: service_healthy
       kitehub-branding:
-        condition: service_started
+        condition: service_healthy
       kitehub-email:
-        condition: service_started
+        condition: service_healthy
       kitehub-admin:
-        condition: service_started
+        condition: service_healthy
       kiteclass-core:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - kitehub-network
     restart: unless-stopped
