@@ -2,7 +2,6 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.service.AuthService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
