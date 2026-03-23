@@ -3,6 +3,7 @@ package com.kitehub.subscription.scheduler;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
+import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.TrialService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class TrialExpirationChecker {
     private final InstanceRepository instanceRepository;
     private final TrialService trialService;
     private final EmailServiceClient emailServiceClient;
+    private final TrialConfig trialConfig;
 
     /**
      * Check all trial instances and suspend expired ones.
@@ -110,8 +112,8 @@ public class TrialExpirationChecker {
      * @return true if warning should be sent
      */
     private boolean shouldSendWarning(long daysLeft) {
-        // Send warnings at 3 days and 1 day before expiration
-        return daysLeft == 3 || daysLeft == 1;
+        // Send warnings at configurable days before expiration
+        return trialConfig.getWarningDays().contains((int) daysLeft);
     }
 
     /**

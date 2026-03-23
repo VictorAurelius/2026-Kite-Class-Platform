@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.client.EmailServiceClient;
+import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.TrialService;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,9 @@ class TrialExpirationCheckerTest {
     @Mock
     private EmailServiceClient emailServiceClient;
 
+    @Mock
+    private TrialConfig trialConfig;
+
     @InjectMocks
     private TrialExpirationChecker expirationChecker;
 
@@ -50,15 +54,17 @@ class TrialExpirationCheckerTest {
 
     @BeforeEach
     void setUp() {
+        when(trialConfig.getWarningDays()).thenReturn(java.util.List.of(3, 1));
+
         expiredInstance = createInstance("expired-org", InstanceStatus.TRIAL);
-        expiredInstance.startTrial();
+        expiredInstance.startTrial(14);
         expiredInstance.setTrialExpiresAt(LocalDateTime.now().minusDays(1)); // Expired
 
         activeInstance = createInstance("active-org", InstanceStatus.TRIAL);
-        activeInstance.startTrial(); // 14 days left
+        activeInstance.startTrial(14); // 14 days left
 
         warningInstance = createInstance("warning-org", InstanceStatus.TRIAL);
-        warningInstance.startTrial();
+        warningInstance.startTrial(14);
         warningInstance.setTrialExpiresAt(LocalDateTime.now().plusDays(1)); // 1 day left
     }
 
@@ -83,7 +89,7 @@ class TrialExpirationCheckerTest {
     void shouldHandleMultipleExpiredTrials() {
         // Given
         Instance expiredInstance2 = createInstance("expired-org-2", InstanceStatus.TRIAL);
-        expiredInstance2.startTrial();
+        expiredInstance2.startTrial(14);
         expiredInstance2.setTrialExpiresAt(LocalDateTime.now().minusDays(1));
 
         when(instanceRepository.findExpiredTrials(any(LocalDateTime.class)))

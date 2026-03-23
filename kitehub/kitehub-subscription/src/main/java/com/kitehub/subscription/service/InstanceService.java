@@ -8,6 +8,7 @@ import com.kitehub.subscription.dto.InstanceResponse;
 import com.kitehub.subscription.dto.RegisterInstanceRequest;
 import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
+import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class InstanceService {
     private final DatabaseProvisioningService databaseProvisioningService;
     private final com.kitehub.subscription.config.MultiTenantDataSourceConfig dataSourceConfig;
     private final TokenService tokenService;
+    private final TrialConfig trialConfig;
 
     /**
      * Create a new trial instance.
@@ -43,18 +45,14 @@ public class InstanceService {
      * @param request create instance request
      * @return created instance response
      */
-    private static final int MAX_FREE_INSTANCES_PER_OWNER = 2;
-
     public InstanceResponse createTrialInstance(CreateInstanceRequest request) {
         log.info("Creating trial instance for subdomain: {}", request.getSubdomain());
 
-        // Validate instance limit per owner
+        // Validate trial limit: each owner can only use trial once
         if (request.getOwnerId() != null) {
-            long count = instanceRepository.countByOwnerIdAndDeletedFalse(request.getOwnerId());
-            if (count >= MAX_FREE_INSTANCES_PER_OWNER) {
+            if (instanceRepository.existsByOwnerIdAndTrialStartedAtIsNotNull(request.getOwnerId())) {
                 throw new IllegalArgumentException(
-                        "Bạn đã đạt giới hạn " + MAX_FREE_INSTANCES_PER_OWNER
-                        + " trung tâm miễn phí. Vui lòng nâng cấp gói để tạo thêm.");
+                        "Mỗi tài khoản chỉ được dùng thử 1 lần. Vui lòng nâng cấp gói để tạo thêm.");
             }
         }
 
@@ -82,8 +80,8 @@ public class InstanceService {
         instance.setDatabaseUsername("pending");
         instance.setDatabasePassword("pending");
 
-        // Start trial
-        instance.startTrial();
+        // Start trial with configurable duration
+        instance.startTrial(trialConfig.getDurationDays());
 
         // Save instance first (generates ID)
         Instance saved = instanceRepository.save(instance);
@@ -120,12 +118,10 @@ public class InstanceService {
             throw new IllegalArgumentException("Subdomain already exists: " + subdomain);
         }
 
-        // Check instance limit
-        long count = instanceRepository.countByOwnerIdAndDeletedFalse(ownerId);
-        if (count >= MAX_FREE_INSTANCES_PER_OWNER) {
+        // Check trial limit: each owner can only use trial once
+        if (instanceRepository.existsByOwnerIdAndTrialStartedAtIsNotNull(ownerId)) {
             throw new IllegalArgumentException(
-                    "Bạn đã đạt giới hạn " + MAX_FREE_INSTANCES_PER_OWNER
-                    + " trung tâm miễn phí. Vui lòng nâng cấp gói để tạo thêm.");
+                    "Mỗi tài khoản chỉ được dùng thử 1 lần. Vui lòng nâng cấp gói để tạo thêm.");
         }
 
         Instance instance = new Instance();
@@ -160,8 +156,8 @@ public class InstanceService {
             return;
         }
 
-        // Start trial
-        instance.startTrial();
+        // Start trial with configurable duration
+        instance.startTrial(trialConfig.getDurationDays());
         instanceRepository.save(instance);
 
         // Provision database
@@ -210,8 +206,8 @@ public class InstanceService {
         instance.setDatabaseUsername("pending");
         instance.setDatabasePassword("pending");
 
-        // Start trial
-        instance.startTrial();
+        // Start trial with configurable duration
+        instance.startTrial(trialConfig.getDurationDays());
 
         // Save instance first (generates ID)
         Instance saved = instanceRepository.save(instance);

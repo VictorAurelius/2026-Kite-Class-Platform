@@ -88,4 +88,12 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
      * @return true if exists, false otherwise
      */
     boolean existsByContactEmailAndDeletedFalse(String contactEmail);
+
+    /**
+     * Check if owner has ever started a trial (regardless of deletion status).
+     *
+     * @param ownerId owner UUID
+     * @return true if owner has any instance with trial started
+     */
+    boolean existsByOwnerIdAndTrialStartedAtIsNotNull(UUID ownerId);
 }
