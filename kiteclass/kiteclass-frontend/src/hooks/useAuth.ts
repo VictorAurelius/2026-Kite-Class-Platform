@@ -32,9 +32,11 @@ export function useAuth() {
         referenceId: data.user.profile?.id.toString(),
       };
 
-      // TODO: [BLOCKED] Add tenantId to JWT claims in Gateway (JwtTokenProvider.java), then decode here
-      // Currently using placeholder - all requests use same tenant in development
-      const tenantId = '11111111-1111-1111-1111-111111111111';
+      // Note: tenantId requires backend JWT update (JwtTokenProvider.java) to include tenantId claim.
+      // Using development default until Gateway adds tenantId to JWT claims.
+      const tenantId = data.accessToken
+        ? (JSON.parse(atob(data.accessToken.split('.')[1] || '{}'))?.tenantId ?? '11111111-1111-1111-1111-111111111111')
+        : '11111111-1111-1111-1111-111111111111';
 
       setAuth(user, data.accessToken, data.refreshToken, tenantId);
 
