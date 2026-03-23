@@ -12,6 +12,9 @@ export const endpoints = {
     delete: (id: string) => `${API_BASE}/instances/${id}`,
     trialStatus: (id: string) => `${API_BASE}/instances/${id}/trial-status`,
     extendTrial: (id: string) => `${API_BASE}/instances/${id}/extend-trial`,
+    // SAAS-16: Custom domain endpoints
+    domain: (id: string) => `/api/instances/${id}/domain`,
+    domainVerify: (id: string) => `/api/instances/${id}/domain/verify`,
   },
 
   // Subscription

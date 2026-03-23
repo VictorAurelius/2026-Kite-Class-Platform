@@ -107,4 +107,24 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
      */
     List<Instance> findByStatusAndDeletedFalseAndUpdatedAtBefore(
         InstanceStatus status, LocalDateTime before);
+
+    // =========================================================
+    // SAAS-16: Custom domain methods
+    // =========================================================
+
+    /**
+     * Check if a custom domain is already in use (not deleted).
+     *
+     * @param customDomain domain to check
+     * @return true if in use, false otherwise
+     */
+    boolean existsByCustomDomainAndDeletedFalse(String customDomain);
+
+    /**
+     * Find instance by custom domain (not deleted).
+     *
+     * @param customDomain custom domain to search
+     * @return Optional containing instance if found
+     */
+    Optional<Instance> findByCustomDomainAndDeletedFalse(String customDomain);
 }

@@ -46,6 +46,14 @@ vi.mock('../components/DangerZone', () => ({
   ),
 }));
 
+vi.mock('../components/CustomDomainTab', () => ({
+  CustomDomainTab: ({ instance }: { instance?: typeof mockInstances[0] }) => (
+    <div data-testid="custom-domain-tab">
+      Custom Domain for {instance?.id}
+    </div>
+  ),
+}));
+
 // Import mocks
 import { useOwnerInstances } from '@/hooks/use-instances';
 
@@ -102,11 +110,12 @@ describe('SettingsPage', () => {
 
     // Check tab triggers exist (using role=tab from radix-ui)
     const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(3);
+    expect(tabs).toHaveLength(4);
 
     // Check for tab labels (some might be hidden on mobile)
     expect(screen.getByText('Tài khoản')).toBeInTheDocument();
     expect(screen.getByText('Instance')).toBeInTheDocument();
+    expect(screen.getByText('Tên miền')).toBeInTheDocument();
     expect(screen.getByText('Nguy hiểm')).toBeInTheDocument();
   });
 

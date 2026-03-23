@@ -41,11 +41,44 @@ public class Instance extends BaseEntity {
     private String subdomain;
 
     /**
+     * Domain status enum for custom domain verification lifecycle.
+     * NONE: no custom domain set.
+     * PENDING_VERIFY: domain set, waiting for DNS TXT record verification.
+     * VERIFIED: DNS TXT record confirmed, domain active.
+     * FAILED: verification failed (wrong record or timeout).
+     */
+    public enum DomainStatus {
+        NONE, PENDING_VERIFY, VERIFIED, FAILED
+    }
+
+    /**
      * Custom domain (only for PREMIUM and ENTERPRISE tiers).
      */
     @Size(max = 255, message = "Custom domain must not exceed 255 characters")
     @Column(name = "custom_domain", length = 255)
     private String customDomain;
+
+    /**
+     * DNS verification token (format: kitehub-verify={uuid}).
+     * Customer must add this as a TXT record to prove domain ownership.
+     */
+    @Size(max = 255, message = "Domain verify token must not exceed 255 characters")
+    @Column(name = "domain_verify_token", length = 255)
+    private String domainVerifyToken;
+
+    /**
+     * Timestamp when domain was successfully verified.
+     */
+    @Column(name = "domain_verified_at")
+    private LocalDateTime domainVerifiedAt;
+
+    /**
+     * Current status of custom domain verification.
+     * Default: NONE (no custom domain configured).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "domain_status", length = 50)
+    private DomainStatus domainStatus = DomainStatus.NONE;
 
     /**
      * Organization name.
