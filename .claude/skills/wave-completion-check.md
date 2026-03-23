@@ -15,6 +15,65 @@
 
 ---
 
+## Wave Branch Strategy
+
+**Pattern: Integration Branch** — agents merge vào wave branch, không trực tiếp main.
+
+```
+main (protected, luôn sạch)
+  └── wave/2 (integration branch)
+        ├── feature/saas-5-email-log      ← Agent 1 PR → wave/2
+        ├── feature/saas-6-seo            ← Agent 2 PR → wave/2
+        ├── feature/kc-1-5-tests-todos    ← Agent 3 PR → wave/2
+        └── feature/saas-3-retention      ← Agent 4 PR → wave/2
+
+Sau khi tất cả agents merge + wave check pass:
+  wave/2 → PR → main (1 PR duy nhất, đã verify)
+```
+
+### Quy trình chi tiết
+
+```
+1. PRE-WAVE CHECK
+   git checkout main && git pull
+   git checkout -b wave/X
+   git push origin wave/X
+
+2. LAUNCH AGENTS
+   Mỗi agent tạo branch từ wave/X (không từ main)
+   Agent PRs target: wave/X (không phải main)
+
+3. MERGE VÀO WAVE BRANCH
+   Merge từng agent PR vào wave/X
+   Fix conflicts trên wave/X (an toàn)
+   CI chạy trên wave/X
+
+4. WAVE COMPLETION CHECK
+   Chạy đầy đủ 6 levels trên wave/X
+   Fix mọi issues trên wave/X
+
+5. MERGE WAVE → MAIN
+   Tạo PR: wave/X → main
+   Squash merge → 1 commit sạch trên main
+   Main luôn sạch, CI luôn green
+
+6. CLEANUP
+   Delete wave/X branch
+   Delete agent feature branches
+```
+
+### Lợi ích
+
+| Aspect | Trước (direct main) | Sau (wave branch) |
+|--------|---------------------|-------------------|
+| Main stability | Có thể broken giữa merge | Luôn green |
+| Fix conflicts | Fix trên main (nguy hiểm) | Fix trên wave branch (an toàn) |
+| Rollback | Revert từng PR phức tạp | Delete wave branch |
+| Review | Review từng PR lẻ | Review cả wave 1 PR |
+| CI history | Nhiều red/green trên main | Main chỉ green |
+
+---
+
 ## Pre-wave Check (TRƯỚC khi launch agents)
 
 ```bash
@@ -27,12 +86,13 @@ gh run list --branch main --limit 3 --json workflowName,conclusion \
   --jq '.[] | "\(.workflowName): \(.conclusion)"'
 # Expected: all success
 
-# 3. No stale branches?
-git branch -r | grep -v "main\|HEAD" | wc -l
-# Expected: 0
+# 3. Create wave branch
+git checkout main && git pull
+git checkout -b wave/X
+git push origin wave/X
 
-# 4. No open PRs?
-gh pr list --state open --json number --jq 'length'
+# 4. No stale branches?
+git branch -r | grep -v "main\|HEAD\|wave/" | wc -l
 # Expected: 0
 ```
 
@@ -59,6 +119,11 @@ SHARED FILES: InstanceService.java → merge Agent 1 TRƯỚC Agent 2
 ### Agent Prompt Checklist (thêm vào cuối MỌI agent prompt)
 
 ```
+## Agent Rules
+- Tạo branch từ wave/X (KHÔNG từ main): git checkout wave/X && git checkout -b feature/xxx
+- PR target: wave/X (KHÔNG phải main)
+- KHÔNG merge, chỉ push và tạo PR hướng về wave/X
+
 ## Agent Completion Checklist (PHẢI verify trước push)
 - [ ] grep -rn "ModifiedClassName" src/test/ → update ALL referencing tests
 - [ ] application.yml AND application-test.yml có config mới
@@ -322,3 +387,4 @@ grep "✅\|⬜" documents/03-planning/docs-and-skills-refactor-plan.md
 - **Merge conflict predictable:** PR #195 + #197 cùng sửa `InstanceService.java` → conflict. Nên merge PR ít sửa shared files trước.
 - **Doc update dễ quên:** Sau merge 4 PRs, plans/gap reports vẫn hiện ⬜ TODO → phải enforce Level 6 check.
 - **CI pass ≠ quality OK:** PR CI pass riêng lẻ, nhưng integration issues chỉ phát hiện khi merge vào main.
+- **Direct to main nguy hiểm:** Main broken giữa merge 4 PRs. **Giải pháp: Wave branch pattern** (v2.0) — agents merge vào `wave/X`, verify xong mới merge `wave/X → main`.
