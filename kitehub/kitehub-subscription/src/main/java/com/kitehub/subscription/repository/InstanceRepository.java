@@ -96,4 +96,15 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
      * @return true if owner has any instance with trial started
      */
     boolean existsByOwnerIdAndTrialStartedAtIsNotNull(UUID ownerId);
+
+    /**
+     * Find suspended instances that were updated before a given timestamp.
+     * Useful for finding instances that have been suspended longer than the retention period.
+     *
+     * @param status instance status (typically SUSPENDED)
+     * @param before timestamp threshold
+     * @return list of matching instances
+     */
+    List<Instance> findByStatusAndDeletedFalseAndUpdatedAtBefore(
+        InstanceStatus status, LocalDateTime before);
 }
