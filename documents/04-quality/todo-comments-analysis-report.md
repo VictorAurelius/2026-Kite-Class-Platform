@@ -1371,7 +1371,7 @@ grep -r "TODO" --include="*.java" --include="*.ts" --include="*.tsx" --include="
 
 - **Master Implementation Plan:** `documents/03-planning/implementation/kiteclass-implementation-plan.md`
 - **Skills Reference:** `.claude/skills/` (all skills)
-- **Architecture:** `documents/01-research/architecture-overview.md`
+- **Architecture:** `documents/07-archived/research/architecture-overview.md`
 - **Testing Guide:** `.claude/skills/testing-guide.md`
 - **Development Workflow:** `.claude/skills/development-workflow.md`
 

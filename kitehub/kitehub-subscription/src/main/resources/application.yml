@@ -47,6 +47,21 @@ jwt:
 
 # Email verification
 kitehub:
+  trial:
+    duration-days: 14
+    max-per-owner: 1
+    warning-days: 3,1
+    midpoint-day: 7
+  subscription:
+    grace-period-days: 3
+    warning-days: 7,3,1
+  data-retention:
+    trial: 7
+    free: 7
+    basic: 30
+    premium: 60
+    enterprise: 90
+    warning-count: 2
   email-verification:
     enabled: ${EMAIL_VERIFICATION_ENABLED:false}
     base-url: ${VERIFICATION_BASE_URL:http://localhost:3001}

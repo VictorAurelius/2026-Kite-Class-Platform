@@ -893,7 +893,7 @@ aws s3 cp incident-logs.txt s3://kiteclass-security-incidents/$(date +%Y%m%d-%H%
 ## Related Documentation
 
 - [Monitoring & Observability](./monitoring-observability.md)
-- [Security Design](../../05-qa-and-best-practices/security-design.md)
+- [Security Design](../../04-quality/security-design.md)
 - [KiteHub Infrastructure](../implementation/kitehub-infrastructure.md)
 
 ---

@@ -283,7 +283,7 @@ grep -rn "@Disabled" kiteclass/kiteclass-core/src/test --include="*.java"
 
 ### Bước 4: Lưu report
 
-- Save to `documents/05-qa-and-best-practices/business-gap-check-[date]-[target].md`
+- Save to `documents/04-quality/business-gap-check-[date]-[target].md`
 - Cross-reference với existing plans
 
 ---

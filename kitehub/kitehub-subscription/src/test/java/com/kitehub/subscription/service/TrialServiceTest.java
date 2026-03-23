@@ -3,6 +3,7 @@ package com.kitehub.subscription.service;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Unit tests for TrialService.
@@ -35,6 +37,9 @@ class TrialServiceTest {
 
     @Mock
     private InstanceRepository instanceRepository;
+
+    @Mock
+    private TrialConfig trialConfig;
 
     @InjectMocks
     private TrialService trialService;
@@ -53,6 +58,8 @@ class TrialServiceTest {
         instance.setOwnerId(UUID.randomUUID());
         instance.setTier(PricingTier.BASIC);
         instance.setStatus(InstanceStatus.TRIAL);
+
+        lenient().when(trialConfig.getDurationDays()).thenReturn(14);
     }
 
     @Test
@@ -79,7 +86,7 @@ class TrialServiceTest {
     @DisplayName("Should not restart trial if already started")
     void shouldNotRestartTrialIfAlreadyStarted() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         LocalDateTime originalStart = instance.getTrialStartedAt();
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -108,7 +115,7 @@ class TrialServiceTest {
     @DisplayName("Should get trial status correctly")
     void shouldGetTrialStatusCorrectly() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
 
         // When
@@ -129,7 +136,7 @@ class TrialServiceTest {
     @DisplayName("Should extend trial successfully")
     void shouldExtendTrialSuccessfully() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         LocalDateTime originalExpiry = instance.getTrialExpiresAt();
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -178,7 +185,7 @@ class TrialServiceTest {
     @DisplayName("Should detect expired trial")
     void shouldDetectExpiredTrial() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         instance.setTrialExpiresAt(LocalDateTime.now().minusDays(1)); // Expired yesterday
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -194,7 +201,7 @@ class TrialServiceTest {
     @DisplayName("Should detect active trial")
     void shouldDetectActiveTrial() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
 
@@ -209,7 +216,7 @@ class TrialServiceTest {
     @DisplayName("Should convert trial to subscription")
     void shouldConvertTrialToSubscription() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
         when(instanceRepository.save(any(Instance.class))).thenReturn(instance);
 
@@ -228,7 +235,7 @@ class TrialServiceTest {
     @DisplayName("Should suspend expired trial")
     void shouldSuspendExpiredTrial() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         instance.setTrialExpiresAt(LocalDateTime.now().minusDays(1)); // Expired
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -249,7 +256,7 @@ class TrialServiceTest {
     @DisplayName("Should get warning level HIGH for 1 day left")
     void shouldGetWarningLevelHighFor1DayLeft() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         instance.setTrialExpiresAt(LocalDateTime.now().plusDays(1)); // 1 day left
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -266,7 +273,7 @@ class TrialServiceTest {
     @DisplayName("Should get warning level MEDIUM for 2-3 days left")
     void shouldGetWarningLevelMediumFor2To3DaysLeft() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         instance.setTrialExpiresAt(LocalDateTime.now().plusDays(2)); // 2 days left
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -283,7 +290,7 @@ class TrialServiceTest {
     @DisplayName("Should get warning level NONE for more than 3 days left")
     void shouldGetWarningLevelNoneForMoreThan3DaysLeft() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         // Trial just started (14 days left)
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
@@ -300,7 +307,7 @@ class TrialServiceTest {
     @DisplayName("Should get warning level EXPIRED for expired trial")
     void shouldGetWarningLevelExpiredForExpiredTrial() {
         // Given
-        instance.startTrial();
+        instance.startTrial(14);
         instance.setTrialExpiresAt(LocalDateTime.now().minusDays(1)); // Expired
 
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));

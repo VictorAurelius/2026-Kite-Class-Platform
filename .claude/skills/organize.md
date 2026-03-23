@@ -67,15 +67,16 @@ Automatically determine correct location for files/folders trong KiteClass Platf
 - Research docs: competitive analysis, service analysis
 
 **Structure**:
-- `01-research/`: Architecture, services, technology
-- `02-academic/`: Thesis materials
+- `01-business/`: Business logic rules
+- `02-architecture/`: Technical design
 - `03-planning/`: Implementation plans, database, PRs
-- `04-implementation/`: PR reviews, code analysis
+- `04-quality/`: Audits, gap checks
+- `05-guides/`: Deploy guides, Vietnamese docs
 - `06-diagrams/`: PlantUML diagrams
-- `07-archived/`: Old/deprecated documents
+- `07-archived/`: Old/deprecated documents (research, academic, implementation, compliance, logs)
 
 **Examples**:
-- documents/01-research/architecture/system-architecture-v4.md
+- documents/07-archived/research/architecture/system-architecture-v4.md
 - documents/03-planning/prs/02-core-prs.md
 
 ---
@@ -185,7 +186,7 @@ Reason: nginx-related configuration
 ### Example 3: New architecture document
 ```
 Input: v5-architecture.md (docs)
-Output: documents/01-research/architecture/system-architecture-v5.md
+Output: documents/07-archived/research/architecture/system-architecture-v5.md
 Reason: Follows existing versioning pattern in architecture docs
 ```
 

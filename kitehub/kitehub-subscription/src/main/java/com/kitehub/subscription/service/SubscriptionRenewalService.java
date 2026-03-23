@@ -8,6 +8,7 @@ import com.kitehub.platform.domain.enums.PaymentMethod;
 import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
+import com.kitehub.subscription.config.SubscriptionConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.PaymentRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
@@ -34,7 +35,7 @@ public class SubscriptionRenewalService {
     private final InstanceRepository instanceRepository;
     private final PaymentRepository paymentRepository;
     private final EmailServiceClient emailServiceClient;
-    private static final int GRACE_PERIOD_DAYS = 3;
+    private final SubscriptionConfig subscriptionConfig;
 
     /**
      * Process subscription renewal.
@@ -141,7 +142,7 @@ public class SubscriptionRenewalService {
             return false;
         }
 
-        LocalDateTime gracePeriodEnd = subscription.getExpiresAt().plusDays(GRACE_PERIOD_DAYS);
+        LocalDateTime gracePeriodEnd = subscription.getExpiresAt().plusDays(subscriptionConfig.getGracePeriodDays());
         return LocalDateTime.now().isBefore(gracePeriodEnd);
     }
 

@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
+import com.kitehub.subscription.config.SubscriptionConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
@@ -31,6 +32,7 @@ public class SubscriptionExpirationChecker {
     private final InstanceRepository instanceRepository;
     private final SubscriptionRenewalService renewalService;
     private final EmailServiceClient emailServiceClient;
+    private final SubscriptionConfig subscriptionConfig;
 
     /**
      * Daily job to check expiring subscriptions and send reminders.
@@ -62,8 +64,8 @@ public class SubscriptionExpirationChecker {
         for (Subscription subscription : expiringSoon) {
             long daysUntilExpiration = renewalService.getDaysUntilExpiration(subscription);
 
-            // Send reminder at 7, 3, and 1 days before expiration
-            if (daysUntilExpiration == 7 || daysUntilExpiration == 3 || daysUntilExpiration == 1) {
+            // Send reminder at configurable days before expiration
+            if (subscriptionConfig.getWarningDays().contains((int) daysUntilExpiration)) {
                 sendRenewalReminder(subscription, daysUntilExpiration);
 
                 if (daysUntilExpiration == 7) reminders7Days++;

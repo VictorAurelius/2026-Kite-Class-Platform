@@ -6,6 +6,7 @@ import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.DatabaseCredentials;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +42,9 @@ class InstanceServiceTest {
     @Mock
     private DatabaseProvisioningService databaseProvisioningService;
 
+    @Mock
+    private TrialConfig trialConfig;
+
     @InjectMocks
     private InstanceService instanceService;
 
@@ -54,6 +58,9 @@ class InstanceServiceTest {
             .ownerId(UUID.randomUUID())
             .tier(PricingTier.BASIC)
             .build();
+
+        // Mock trial config
+        lenient().when(trialConfig.getDurationDays()).thenReturn(14);
 
         // Mock database provisioning service to return test credentials (lenient for tests that don't use it)
         DatabaseCredentials mockCredentials = DatabaseCredentials.builder()

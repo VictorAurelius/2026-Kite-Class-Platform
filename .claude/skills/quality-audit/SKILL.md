@@ -243,7 +243,7 @@ ls documents/03-planning/*.md | wc -l
 
 ### Bước 4: Lưu kết quả
 
-- Save report to `documents/05-qa-and-best-practices/quality-audit-[date].md`
+- Save report to `documents/04-quality/quality-audit-[date].md`
 - Update `kitehub-quality-100-plan.md` nếu phát hiện gaps mới
 - So sánh với audit trước nếu có
 

@@ -431,7 +431,7 @@ Every PR must meet these quality gates before merge:
   - Fix Security DSL deprecation (Lambda DSL)
   - Migrate Testcontainers tests
   - Create core-ci.yml workflow
-  - See detailed plan: documents/04-implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md
+  - See detailed plan: documents/07-archived/implementation/pr-reviews/PR-1.3-spring-boot-3.5.10-upgrade-plan.md
   - **Why priority**: Gateway already on 3.5.10, Core must match to prevent version conflicts
 
 **Updated PR Count:**

@@ -61,7 +61,7 @@ kiteclass-platform/
 - **[TESTING-GUIDE.md](TESTING-GUIDE.md)** - Testing strategies
 - **[CURRENT-WORK.md](CURRENT-WORK.md)** - Current work tracking
 - **[documents/](documents/)** - Full technical documentation
-  - [Architecture](documents/01-research/architecture/system-architecture-v4.md)
+  - [Architecture](documents/07-archived/research/architecture/system-architecture-v4.md)
   - [Database Design](documents/03-planning/database/database-design.md)
   - [Implementation Plan](documents/03-planning/implementation/kiteclass-implementation-plan.md)
   - [PR Index](documents/03-planning/prs/00-master-pr-index.md)
@@ -125,7 +125,7 @@ kiteclass-platform/
 ## 📖 More Info
 
 - **Project Documentation**: [../documents/README.md](../documents/README.md) - Complete documentation map
-- **Architecture**: [../documents/01-research/architecture/system-architecture-v4.md](../documents/01-research/architecture/system-architecture-v4.md)
+- **Architecture**: [../documents/07-archived/research/architecture/system-architecture-v4.md](../documents/07-archived/research/architecture/system-architecture-v4.md)
 - **Implementation Plan**: [../documents/03-planning/implementation/kiteclass-implementation-plan.md](../documents/03-planning/implementation/kiteclass-implementation-plan.md)
 - **Scripts Guide**: [scripts/README.md](scripts/README.md)
 - **Workflow Improvements**: See documentation map for dev-rebuild.sh, cleanup-testcontainers.sh
