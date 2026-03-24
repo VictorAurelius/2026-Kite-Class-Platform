@@ -13,7 +13,7 @@
 1. FE: Request `GET /api/v1/settings/branding`
 2. System: Resolve `instanceId` from TenantContext
 3. System: Find Branding by `instanceId` (deleted=false)
-4. System: If not found, return default branding object (per BR-SET-02): displayName="KiteClass" (BR-SET-03), tagline (BR-SET-04), colors #3B82F6/#8B5CF6/#10B981 (BR-SET-05..BR-SET-07)
+4. System: If not found, return default branding object (per BR-SET-02): displayName="KiteClass" (BR-SET-03), tagline (BR-SET-04), colors #3B82F6 (BR-SET-05), #8B5CF6 (BR-SET-06), #10B981 (BR-SET-07)
 5. FE: Apply branding to UI (logo, colors, name)
 
 **Postcondition:** Branding data returned. Default values used if no custom branding exists (not persisted).
@@ -35,13 +35,13 @@
 2. Admin: Modifies display name, tagline, colors, contact info, social links
 3. System: Validate color format `#RRGGBB` (per BR-SET-08)
 4. System: Validate displayName not blank, max 200 (per BR-SET-09), tagline max 500 (per BR-SET-10)
-5. System: Validate contactEmail format (per BR-SET-15), contactPhone max 20 (per BR-SET-16)
+5. System: Validate contactEmail format (per BR-SET-15), contactPhone max 20 (per BR-SET-16), social links max 500 chars each (per BR-SET-17)
 6. System: Find existing branding — if not found, create new with defaults + request fields
 7. System: If found, PATCH update only provided fields (per BR-SET-14)
 8. System: Save and return BrandingResponse
 9. FE: Show success toast, update UI
 
-**Postcondition:** Branding record created or updated for tenant (per BR-SET-01).
+**Postcondition:** Branding record created or updated for tenant (per BR-SET-01); themeConfigJson preserved (BR-SET-13); soft-delete flag available per BR-SET-18.
 
 **Errors:**
 | Code | Condition | Message |
