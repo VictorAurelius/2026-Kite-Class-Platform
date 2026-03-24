@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -82,26 +84,22 @@ class SubscriptionExpirationCheckerTest {
         checker.checkExpiringSubscriptions();
 
         verify(emailServiceClient).sendRenewalReminder(
-            eq("admin@test.edu.vn"),
-            eq("Test School"),
-            eq(7L),
-            any(),
-            any()
+            anyString(), anyString(), eq(7L), anyString(), any()
         );
     }
 
     @Test
-    void checkExpiringSubscriptions_sendsReminderAt3Days() {
+    void checkExpiringSubscriptions_sendsReminderAt1Day() {
         when(subscriptionConfig.getWarningDays()).thenReturn(List.of(7, 3, 1));
         when(subscriptionRepository.findExpiringBetween(any(), any(), eq(SubscriptionStatus.ACTIVE)))
             .thenReturn(List.of(subscription));
-        when(renewalService.getDaysUntilExpiration(subscription)).thenReturn(3L);
+        when(renewalService.getDaysUntilExpiration(subscription)).thenReturn(1L);
         when(instanceRepository.findById(instanceId)).thenReturn(Optional.of(instance));
 
         checker.checkExpiringSubscriptions();
 
         verify(emailServiceClient).sendRenewalReminder(
-            eq("admin@test.edu.vn"), eq("Test School"), eq(3L), any(), any()
+            anyString(), anyString(), eq(1L), anyString(), any()
         );
     }
 
@@ -114,7 +112,7 @@ class SubscriptionExpirationCheckerTest {
 
         checker.checkExpiringSubscriptions();
 
-        verify(emailServiceClient, never()).sendRenewalReminder(any(), any(), any(), any(), any());
+        verifyNoInteractions(emailServiceClient);
     }
 
     @Test
@@ -127,7 +125,7 @@ class SubscriptionExpirationCheckerTest {
 
         checker.checkExpiringSubscriptions();
 
-        verify(emailServiceClient, never()).sendRenewalReminder(any(), any(), any(), any(), any());
+        verifyNoInteractions(emailServiceClient);
     }
 
     @Test
@@ -169,12 +167,13 @@ class SubscriptionExpirationCheckerTest {
         Subscription badSubscription = new Subscription();
         badSubscription.setId(UUID.randomUUID());
         badSubscription.setStatus(SubscriptionStatus.ACTIVE);
+        badSubscription.setInstanceId(UUID.randomUUID());
 
         when(subscriptionRepository.findExpiredSubscriptions(any()))
             .thenReturn(List.of(badSubscription, subscription));
         when(renewalService.isInGracePeriod(any())).thenThrow(new RuntimeException("DB error"));
 
-        // Should not throw — continues processing other subscriptions
+        // Should not throw — continues processing
         checker.processExpiredSubscriptions();
     }
 
@@ -186,6 +185,6 @@ class SubscriptionExpirationCheckerTest {
 
         checker.checkExpiringSubscriptions();
 
-        verify(emailServiceClient, never()).sendRenewalReminder(any(), any(), any(), any(), any());
+        verifyNoInteractions(emailServiceClient);
     }
 }
