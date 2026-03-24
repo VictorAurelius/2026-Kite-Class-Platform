@@ -1,0 +1,72 @@
+# {PROJECT_NAME}
+
+> {One-line description of the project}
+
+## Architecture
+
+<!-- Describe your system architecture briefly -->
+<!-- Example: Microservices with API Gateway, React SPA, PostgreSQL -->
+
+| Component | Tech | Description |
+|-----------|------|-------------|
+| {service-1} | {Java/Node/Python} | {what it does} |
+| {frontend} | {React/Vue/etc.} | {what it does} |
+| {database} | {PostgreSQL/MySQL} | {what it does} |
+
+## Prerequisites
+
+- {Runtime} {version} (e.g., Java 21, Node 20, Python 3.12)
+- {Package manager} (e.g., Maven, pnpm, pip)
+- Docker & Docker Compose (for infrastructure)
+- `gh` CLI (for CI monitoring)
+
+## Quick Start
+
+```bash
+# 1. Clone
+git clone {repo-url}
+cd {project-name}
+
+# 2. Start infrastructure
+./scripts/up.sh
+
+# 3. Run tests
+./scripts/test-local.sh
+
+# 4. Start development
+# {add your dev start command}
+```
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `scripts/test-local.sh` | Run tests locally (auto-detects changes) |
+| `scripts/test-local.sh --quick` | Quick lint/compile check |
+| `scripts/check-ci.sh` | Monitor GitHub Actions CI |
+| `scripts/check-ci.sh --status` | Quick CI status |
+| `scripts/pre-commit-check.sh` | Pre-commit compliance checks |
+
+## Project Structure
+
+```
+{project-name}/
+├── .claude/           # Claude Code skills & scripts
+├── .github/           # CI/CD workflows
+├── documents/         # Documentation & business rules
+├── scripts/           # Automation scripts
+├── {service-dirs}/    # Application code
+└── README.md
+```
+
+## Development Workflow
+
+1. Create feature branch: `git checkout -b feature/{description}`
+2. Implement with TDD (test first)
+3. Run local tests: `./scripts/test-local.sh`
+4. Push and monitor CI: `./scripts/check-ci.sh`
+5. Create PR for review
+
+## License
+
+{License type}
