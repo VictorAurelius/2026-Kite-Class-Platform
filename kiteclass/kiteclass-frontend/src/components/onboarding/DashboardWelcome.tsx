@@ -40,17 +40,17 @@ export function DashboardWelcome() {
           Bắt đầu với các bước sau:
         </p>
         <div className="flex flex-wrap gap-2">
-          <Link href="/students">
+          <Link href="/students" aria-label="Thêm học sinh">
             <Button variant="outline" size="sm">
               Thêm học sinh
             </Button>
           </Link>
-          <Link href="/teachers">
+          <Link href="/teachers" aria-label="Thêm giáo viên">
             <Button variant="outline" size="sm">
               Thêm giáo viên
             </Button>
           </Link>
-          <Link href="/courses">
+          <Link href="/courses" aria-label="Tạo khóa học">
             <Button variant="outline" size="sm">
               Tạo khóa học
             </Button>
@@ -61,6 +61,7 @@ export function DashboardWelcome() {
           size="sm"
           className="mt-4"
           onClick={handleDismiss}
+          aria-label="Ẩn hướng dẫn chào mừng"
         >
           Ẩn hướng dẫn
         </Button>

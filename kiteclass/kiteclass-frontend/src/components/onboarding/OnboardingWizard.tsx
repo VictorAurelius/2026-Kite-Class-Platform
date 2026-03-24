@@ -172,7 +172,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
         <div className="mb-4">
           <Link href={step.actionHref}>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" aria-label={step.actionLabel}>
               {step.actionLabel}
             </Button>
           </Link>
@@ -181,7 +181,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
         <div className="flex items-center justify-between">
           <div>
             {currentStep > 1 && (
-              <Button variant="ghost" size="sm" onClick={handleBack}>
+              <Button variant="ghost" size="sm" onClick={handleBack} aria-label={`Quay lại bước ${currentStep - 1}`}>
                 Quay lại
               </Button>
             )}
@@ -189,16 +189,16 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           <div className="flex gap-2">
             {!isLastStep && (
               <>
-                <Button variant="ghost" size="sm" onClick={handleSkip}>
+                <Button variant="ghost" size="sm" onClick={handleSkip} aria-label={`Bỏ qua bước ${currentStep}`}>
                   Bỏ qua
                 </Button>
-                <Button size="sm" onClick={handleNext}>
+                <Button size="sm" onClick={handleNext} aria-label={`Tiếp theo: bước ${currentStep + 1}`}>
                   Tiếp theo
                 </Button>
               </>
             )}
             {isLastStep && (
-              <Button size="sm" onClick={handleFinish}>
+              <Button size="sm" onClick={handleFinish} aria-label="Hoàn thành thiết lập và bắt đầu sử dụng KiteClass">
                 Bắt đầu sử dụng
               </Button>
             )}

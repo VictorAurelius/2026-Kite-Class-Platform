@@ -170,6 +170,7 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
               size="sm"
               onClick={() => remove.mutate()}
               disabled={remove.isPending}
+              aria-label="Xóa tên miền tùy chỉnh đã được xác minh"
             >
               {remove.isPending ? 'Đang xóa...' : 'Xóa tên miền tùy chỉnh'}
             </Button>
@@ -242,6 +243,7 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
               onClick={() => verify.mutate()}
               disabled={verify.isPending}
               data-testid="btn-verify"
+              aria-label="Kiểm tra lại xác minh DNS"
             >
               {verify.isPending ? (
                 <>
@@ -259,6 +261,7 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
               variant="outline"
               onClick={() => remove.mutate()}
               disabled={remove.isPending}
+              aria-label="Hủy thiết lập tên miền đang chờ xác minh"
             >
               Hủy
             </Button>
@@ -327,6 +330,7 @@ export function CustomDomainTab({ instance }: CustomDomainTabProps) {
           }}
           disabled={initiate.isPending || !inputDomain.trim()}
           data-testid="btn-submit-domain"
+          aria-label="Bắt đầu cài đặt tên miền tùy chỉnh"
         >
           {initiate.isPending ? 'Đang xử lý...' : 'Cài đặt tên miền'}
         </Button>
