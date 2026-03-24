@@ -116,3 +116,7 @@ payment:
     key2: ${ZALOPAY_KEY2:}
   return-url: ${PAYMENT_RETURN_URL:http://localhost:3000/payment/return}
   notify-url: ${PAYMENT_NOTIFY_URL:http://localhost:8081/api/v1/payments/webhook}
+
+# Contact Configuration
+contact:
+  admin-email: ${CONTACT_ADMIN_EMAIL:admin@kiteclass.com}

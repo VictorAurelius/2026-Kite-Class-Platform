@@ -53,6 +53,8 @@ import java.util.UUID;
 @Validated
 public class PaymentServiceImpl implements PaymentService {
 
+    private static final String DEFAULT_NOTIFY_URL = "http://localhost:8081/api/v1/payments/webhook";
+
     private final PaymentRepository paymentRepository;
     private final PaymentWebhookLogRepository webhookLogRepository;
     private final InvoiceRepository invoiceRepository;
@@ -65,7 +67,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${payment.return-url:http://localhost:3000/payment/return}")
     private String returnUrl;
 
-    @Value("${payment.notify-url:https://api.kiteclass.vn/api/v1/payments/webhook}")
+    @Value("${payment.notify-url:" + DEFAULT_NOTIFY_URL + "}")
     private String notifyUrl;
 
     private Map<PaymentMethod, PaymentGatewayClient> gatewayClients;
@@ -79,6 +81,19 @@ public class PaymentServiceImpl implements PaymentService {
             applicationContext.getBean("momoGatewayClient", PaymentGatewayClient.class));
         gatewayClients.put(PaymentMethod.ZALOPAY,
             applicationContext.getBean("zalopayGatewayClient", PaymentGatewayClient.class));
+
+        // Fail-safe: warn if notify URL is not explicitly configured or uses default
+        if (notifyUrl == null || notifyUrl.isBlank()) {
+            log.warn("SECURITY: payment.notify-url is not configured! "
+                + "Payment webhooks will not work correctly. "
+                + "Set PAYMENT_NOTIFY_URL environment variable for production.");
+        } else if (DEFAULT_NOTIFY_URL.equals(notifyUrl)) {
+            log.warn("SECURITY: payment.notify-url is using default localhost value '{}'. "
+                + "This MUST be changed for production deployment. "
+                + "Set PAYMENT_NOTIFY_URL environment variable.", notifyUrl);
+        } else {
+            log.info("Payment notify URL configured: {}", notifyUrl);
+        }
     }
 
     @Override

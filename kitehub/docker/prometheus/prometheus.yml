@@ -34,4 +34,4 @@ scrape_configs:
   - job_name: 'kiteclass-core'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['kiteclass-core:8080']
+      - targets: ['kiteclass-core:8081']

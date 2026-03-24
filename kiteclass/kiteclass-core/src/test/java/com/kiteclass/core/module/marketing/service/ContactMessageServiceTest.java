@@ -1,6 +1,7 @@
 package com.kiteclass.core.module.marketing.service;
 
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.service.email.EmailService;
 import com.kiteclass.core.module.marketing.dto.request.CreateContactMessageRequest;
 import com.kiteclass.core.module.marketing.dto.response.ContactMessageResponse;
 import com.kiteclass.core.module.marketing.entity.ContactMessage;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +24,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +43,9 @@ class ContactMessageServiceTest {
     @Mock
     private ContactMessageMapper contactMessageMapper;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private ContactMessageServiceImpl contactMessageService;
 
@@ -51,6 +58,8 @@ class ContactMessageServiceTest {
     void setUp() {
         tenantId = UUID.randomUUID();
         TenantContext.setCurrentTenant(tenantId);
+
+        ReflectionTestUtils.setField(contactMessageService, "adminEmail", "admin@kiteclass.com");
 
         contactMessage = ContactMessageTestDataBuilder.createDefaultContactMessage();
         contactMessage.setInstanceId(tenantId);
@@ -117,6 +126,29 @@ class ContactMessageServiceTest {
         // Then
         verify(contactMessageRepository).save(contactMessage);
         assertThat(contactMessage.getDeleted()).isTrue();
+    }
+
+    @Test
+    void createContactMessage_shouldUseConfiguredAdminEmail() {
+        // Given
+        String customAdminEmail = "teacher@myschool.com";
+        ReflectionTestUtils.setField(contactMessageService, "adminEmail", customAdminEmail);
+
+        when(contactMessageMapper.toEntity(any(CreateContactMessageRequest.class))).thenReturn(contactMessage);
+        when(contactMessageRepository.save(any(ContactMessage.class))).thenReturn(contactMessage);
+        when(contactMessageMapper.toResponse(any(ContactMessage.class))).thenReturn(contactMessageResponse);
+
+        // When
+        contactMessageService.createContactMessage(createRequest, tenantId);
+
+        // Then - verify email is sent to the configured admin email
+        verify(emailService).sendContactNotification(
+                eq(customAdminEmail),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString()
+        );
     }
 
     @Test

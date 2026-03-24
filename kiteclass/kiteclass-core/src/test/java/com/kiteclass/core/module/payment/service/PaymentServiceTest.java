@@ -164,6 +164,23 @@ class PaymentServiceTest {
     }
 
     @Test
+    @DisplayName("Should not throw when notify URL is properly configured")
+    void shouldInitSuccessfullyWithConfiguredNotifyUrl() {
+        // Arrange
+        ReflectionTestUtils.setField(paymentService, "notifyUrl",
+            "https://api.myschool.kiteclass.com/api/v1/payments/webhook");
+        when(applicationContext.getBean("vnpayGatewayClient", PaymentGatewayClient.class))
+                .thenReturn(vnpayGatewayClient);
+        when(applicationContext.getBean("momoGatewayClient", PaymentGatewayClient.class))
+                .thenReturn(momoGatewayClient);
+        when(applicationContext.getBean("zalopayGatewayClient", PaymentGatewayClient.class))
+                .thenReturn(momoGatewayClient);
+
+        // Act & Assert - should not throw
+        paymentService.init();
+    }
+
+    @Test
     @DisplayName("Should create payment successfully with VNPay gateway")
     void shouldCreatePaymentSuccessfully() {
         // Arrange
@@ -507,6 +524,39 @@ class PaymentServiceTest {
         // Assert
         assertThat(status).isEqualTo(PaymentStatus.COMPLETED);
         verify(vnpayGatewayClient).queryPaymentStatus("TXN1234567890abcdefgh");
+    }
+
+    @Test
+    @DisplayName("Should use configured notify URL in gateway request")
+    void shouldUseConfiguredNotifyUrlInGatewayRequest() {
+        // Arrange
+        String customNotifyUrl = "https://api.example.com/api/v1/payments/webhook";
+        ReflectionTestUtils.setField(paymentService, "notifyUrl", customNotifyUrl);
+
+        when(invoiceRepository.findByIdAndDeletedFalse(1L))
+                .thenReturn(Optional.of(testInvoice));
+        when(paymentNumberGenerator.generate(tenantId))
+                .thenReturn("PAY-2026-000001");
+
+        PaymentInitiationResponse gatewayResponse = PaymentInitiationResponse.builder()
+                .paymentUrl("https://vnpay.vn/pay/12345")
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build();
+        when(vnpayGatewayClient.initiatePayment(any(PaymentGatewayRequest.class)))
+                .thenReturn(gatewayResponse);
+
+        when(paymentRepository.save(any(Payment.class)))
+                .thenReturn(testPayment);
+        when(paymentMapper.toResponse(any(Payment.class)))
+                .thenReturn(testResponse);
+
+        // Act
+        paymentService.createPayment(createRequest, 1L);
+
+        // Assert - verify the gateway request uses the configured URL
+        verify(vnpayGatewayClient).initiatePayment(argThat(request ->
+                request.getNotifyUrl().startsWith(customNotifyUrl)
+        ));
     }
 
     @Test
