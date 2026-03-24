@@ -177,7 +177,7 @@ scrape_configs:
 
 **Production (Kubernetes with Prometheus Operator):**
 ```yaml
-# k8s/monitoring/servicemonitor-gateway.yaml
+# infrastructure/k8s/monitoring/servicemonitor-gateway.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:

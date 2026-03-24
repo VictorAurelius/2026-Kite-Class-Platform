@@ -243,13 +243,13 @@ flyway migrate -configFiles=flyway.conf
 
 ### 2. Backend Deployment
 ```bash
-kubectl apply -f k8s/backend-deployment.yml
+kubectl apply -f infrastructure/k8s/backend-deployment.yml
 kubectl rollout status deployment/kiteclass-backend
 ```
 
 ### 3. Frontend Deployment
 ```bash
-kubectl apply -f k8s/frontend-deployment.yml
+kubectl apply -f infrastructure/k8s/frontend-deployment.yml
 kubectl rollout status deployment/kiteclass-frontend
 ```
 

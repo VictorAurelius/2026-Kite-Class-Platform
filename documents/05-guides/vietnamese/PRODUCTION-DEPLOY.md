@@ -222,9 +222,9 @@ kubectl -n kitehub create secret generic kitehub-secrets \
 ## Step 4: Deploy KiteHub Platform
 
 ```bash
-helm install kitehub ./helm/kitehub \
+helm install kitehub ./infrastructure/helm/kitehub \
   --namespace kitehub \
-  --values helm/kitehub/values-prod.yaml \
+  --values infrastructure/helm/kitehub/values-prod.yaml \
   --set global.image.registry=<ECR_REGISTRY> \
   --set global.database.host=<RDS_ENDPOINT> \
   --set global.redis.host=<ELASTICACHE_ENDPOINT>
@@ -249,7 +249,7 @@ curl https://api.kiteclass.com/actuator/health
 cd terraform && terraform apply
 
 # 2. Deploy
-helm install kitehub ./helm/kitehub -n kitehub
+helm install kitehub ./infrastructure/helm/kitehub -n kitehub
 
 # 3. DNS: update kiteclass.com → AWS ALB
 # Cloudflare: change A record to ALB DNS name

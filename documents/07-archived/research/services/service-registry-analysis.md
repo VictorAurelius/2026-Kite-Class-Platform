@@ -595,7 +595,7 @@ services:
 │  PHƯƠNG ÁN B: Kubernetes (Phù hợp scale lớn)                                     │
 │  ─────────────────────────────────────────────────────────────────────────────  │
 │                                                                                  │
-│  # k8s/user-gateway-deployment.yaml                                              │
+│  # infrastructure/k8s/user-gateway-deployment.yaml                                              │
 │  spec:                                                                           │
 │    containers:                                                                   │
 │      - name: user-gateway                                                        │

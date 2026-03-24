@@ -1364,8 +1364,8 @@ Complete Docker deployment strategy for KiteClass instances managed by KiteHub.
 - `.github/workflows/docker-build-push.yml` 🆕
 - `documents/03-planning/implementation/kiteclass-docker-deployment.md` 🆕
 - `docker-compose.kitehub.yml`
-- `k8s/kitehub/*.yaml`
-- `k8s/kiteclass-template/*.yaml` 🆕
+- `infrastructure/k8s/kitehub/*.yaml`
+- `infrastructure/k8s/kiteclass-template/*.yaml` 🆕
 
 **Acceptance Criteria:**
 - [x] KiteClass Dockerfiles created (multi-stage builds)

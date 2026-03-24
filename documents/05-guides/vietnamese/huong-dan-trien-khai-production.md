@@ -171,7 +171,7 @@ curl http://localhost:8080/actuator/health
 
 #### Database Credentials
 
-**File:** `k8s/secrets/database-secret.yaml`
+**File:** `infrastructure/k8s/secrets/database-secret.yaml`
 
 ```yaml
 apiVersion: v1
@@ -191,7 +191,7 @@ stringData:
 **Apply:**
 
 ```bash
-kubectl apply -f k8s/secrets/database-secret.yaml
+kubectl apply -f infrastructure/k8s/secrets/database-secret.yaml
 
 # Verify
 kubectl get secret kiteclass-db-secret -n kiteclass -o yaml
@@ -207,7 +207,7 @@ kubectl get secret kiteclass-db-secret -n kiteclass -o yaml
 
 #### JWT Secrets
 
-**File:** `k8s/secrets/jwt-secret.yaml`
+**File:** `infrastructure/k8s/secrets/jwt-secret.yaml`
 
 ```yaml
 apiVersion: v1
@@ -234,7 +234,7 @@ openssl rand -base64 32
 
 #### Redis Secret
 
-**File:** `k8s/secrets/redis-secret.yaml`
+**File:** `infrastructure/k8s/secrets/redis-secret.yaml`
 
 ```yaml
 apiVersion: v1
@@ -255,7 +255,7 @@ stringData:
 
 #### Instance Metadata
 
-**File:** `k8s/configmaps/instance-config.yaml`
+**File:** `infrastructure/k8s/configmaps/instance-config.yaml`
 
 ```yaml
 apiVersion: v1
@@ -276,7 +276,7 @@ data:
 **Apply:**
 
 ```bash
-kubectl apply -f k8s/configmaps/instance-config.yaml
+kubectl apply -f infrastructure/k8s/configmaps/instance-config.yaml
 ```
 
 ---
@@ -339,7 +339,7 @@ GRANT ALL ON SCHEMA public TO kiteclass_user;
 
 #### Option B: Self-Hosted PostgreSQL (Kubernetes)
 
-**File:** `k8s/postgres/postgres-statefulset.yaml`
+**File:** `infrastructure/k8s/postgres/postgres-statefulset.yaml`
 
 ```yaml
 apiVersion: apps/v1
@@ -393,8 +393,8 @@ spec:
 **Apply:**
 
 ```bash
-kubectl apply -f k8s/postgres/postgres-statefulset.yaml
-kubectl apply -f k8s/postgres/postgres-service.yaml
+kubectl apply -f infrastructure/k8s/postgres/postgres-statefulset.yaml
+kubectl apply -f infrastructure/k8s/postgres/postgres-service.yaml
 ```
 
 ---
@@ -420,7 +420,7 @@ spring:
 kubectl scale deployment/kiteclass-core --replicas=0 -n kiteclass
 
 # Run Flyway migration job
-kubectl apply -f k8s/jobs/flyway-migrate.yaml
+kubectl apply -f infrastructure/k8s/jobs/flyway-migrate.yaml
 
 # Watch job completion
 kubectl logs -f job/flyway-migrate -n kiteclass
@@ -442,7 +442,7 @@ kubectl scale deployment/kiteclass-core --replicas=3 -n kiteclass
 
 #### Step 1: Review Deployment Manifest
 
-**File:** `k8s/kiteclass/core-deployment.yaml`
+**File:** `infrastructure/k8s/kiteclass/core-deployment.yaml`
 
 ```yaml
 apiVersion: apps/v1
@@ -525,10 +525,10 @@ spec:
 
 ```bash
 # Apply deployment
-kubectl apply -f k8s/kiteclass/core-deployment.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/core-deployment.yaml
 
 # Apply service
-kubectl apply -f k8s/kiteclass/core-service.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/core-service.yaml
 
 # Output:
 # deployment.apps/kiteclass-core created
@@ -589,8 +589,8 @@ curl http://localhost:8080/actuator/health
 
 ```bash
 # Apply deployment
-kubectl apply -f k8s/kiteclass/gateway-deployment.yaml
-kubectl apply -f k8s/kiteclass/gateway-service.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/gateway-deployment.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/gateway-service.yaml
 
 # Verify pods
 kubectl get pods -n kiteclass -l app=kiteclass-gateway
@@ -605,8 +605,8 @@ kubectl logs -f deployment/kiteclass-gateway -n kiteclass --tail=50
 
 ```bash
 # Apply deployment
-kubectl apply -f k8s/kiteclass/frontend-deployment.yaml
-kubectl apply -f k8s/kiteclass/frontend-service.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/frontend-deployment.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/frontend-service.yaml
 
 # Verify pods
 kubectl get pods -n kiteclass -l app=kiteclass-frontend
@@ -618,7 +618,7 @@ kubectl get pods -n kiteclass -l app=kiteclass-frontend
 
 #### Ingress với Subdomain Routing
 
-**File:** `k8s/kiteclass/ingress.yaml`
+**File:** `infrastructure/k8s/kiteclass/ingress.yaml`
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -674,7 +674,7 @@ spec:
 **Apply:**
 
 ```bash
-kubectl apply -f k8s/kiteclass/ingress.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/ingress.yaml
 
 # Verify ingress
 kubectl get ingress -n kiteclass
@@ -706,7 +706,7 @@ helm install cert-manager jetstack/cert-manager \
 **Create ClusterIssuer:**
 
 ```yaml
-# k8s/cert-manager/letsencrypt-prod.yaml
+# infrastructure/k8s/cert-manager/letsencrypt-prod.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -724,7 +724,7 @@ spec:
 ```
 
 ```bash
-kubectl apply -f k8s/cert-manager/letsencrypt-prod.yaml
+kubectl apply -f infrastructure/k8s/cert-manager/letsencrypt-prod.yaml
 
 # Verify certificate issued
 kubectl get certificate -n kiteclass
@@ -738,7 +738,7 @@ kubectl get certificate -n kiteclass
 
 ### 3.5. Auto-Scaling (HPA)
 
-**File:** `k8s/kiteclass/hpa.yaml`
+**File:** `infrastructure/k8s/kiteclass/hpa.yaml`
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -771,7 +771,7 @@ spec:
 **Apply:**
 
 ```bash
-kubectl apply -f k8s/kiteclass/hpa.yaml
+kubectl apply -f infrastructure/k8s/kiteclass/hpa.yaml
 
 # Verify HPA
 kubectl get hpa -n kiteclass
@@ -1675,7 +1675,7 @@ aws rds restore-db-instance-from-db-snapshot \
 # (Pre-configured with Terraform/CloudFormation)
 
 # 4. Deploy application to DR cluster
-kubectl apply -f k8s/kiteclass/ --context=dr-cluster
+kubectl apply -f infrastructure/k8s/kiteclass/ --context=dr-cluster
 
 # 5. Update DNS to point to DR region
 # Route53: kiteclass.com → DR Load Balancer

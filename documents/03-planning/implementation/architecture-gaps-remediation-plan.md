@@ -402,8 +402,8 @@ spring:
 **Key Files to Reference:**
 - `kitehub/kitehub-gateway/src/main/resources/application.yml` (routes config)
 - `kitehub/kitehub-gateway/src/main/java/com/kitehub/gateway/filter/TenantResolverFilter.java`
-- `k8s/kitehub/*.yaml` (deployment manifests)
-- `k8s/kiteclass-template/*.yaml` (instance templates)
+- `infrastructure/k8s/kitehub/*.yaml` (deployment manifests)
+- `infrastructure/k8s/kiteclass-template/*.yaml` (instance templates)
 
 ---
 

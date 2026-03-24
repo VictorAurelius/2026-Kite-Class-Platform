@@ -217,7 +217,7 @@ Track C depends on:
 - [ ] ECR Repositories (3: core, gateway, frontend)
 - [ ] IAM Roles (EKS, CI/CD OIDC)
 - [ ] Security Groups (restrict access)
-- [ ] `terraform/README.md` - step-by-step guide:
+- [ ] `infrastructure/terraform-aws/README.md` - step-by-step guide:
   ```bash
   # 1. Install terraform + AWS CLI
   # 2. Configure AWS credentials
@@ -230,8 +230,8 @@ Track C depends on:
   # 4. Configure kubectl
   aws eks update-kubeconfig --name kitehub-cluster
   ```
-- [ ] `terraform/variables.tf` - tất cả configurable (region, instance sizes, etc.)
-- [ ] `terraform/outputs.tf` - export RDS endpoint, EKS endpoint, ECR URLs
+- [ ] `infrastructure/terraform-aws/variables.tf` - tất cả configurable (region, instance sizes, etc.)
+- [ ] `infrastructure/terraform-aws/outputs.tf` - export RDS endpoint, EKS endpoint, ECR URLs
 
 **Estimate**: 2-3 ngày
 **Output**: `terraform apply` → full AWS infrastructure sẵn sàng
@@ -239,27 +239,27 @@ Track C depends on:
 ### PR-C2: Helm Charts cho KiteHub + KiteClass
 **Priority**: 🔴 P0 (blocking cho production)
 **Scope**:
-- [ ] `helm/kitehub/` - KiteHub platform chart:
+- [ ] `infrastructure/helm/kitehub/` - KiteHub platform chart:
   - Subchart: gateway, subscription, branding, email, admin, frontend
   - `values.yaml`: defaults cho production
   - `values-dev.yaml`: overrides cho staging
   - Secrets references (AWS Secrets Manager)
   - Ingress + TLS (cert-manager)
-- [ ] `helm/kiteclass-instance/` - KiteClass per-instance chart:
-  - Templates từ k8s/kiteclass-template/ (hiện có)
+- [ ] `infrastructure/helm/kiteclass-instance/` - KiteClass per-instance chart:
+  - Templates từ infrastructure/k8s/kiteclass-template/ (hiện có)
   - `values.yaml` template cho mỗi instance
   - Resource quotas by tier
   - HPA (Horizontal Pod Autoscaler) config
 - [ ] Helm test hooks (verify deployment)
-- [ ] `helm/README.md`:
+- [ ] `infrastructure/helm/README.md`:
   ```bash
   # Deploy KiteHub platform
-  helm install kitehub ./helm/kitehub \
+  helm install kitehub ./infrastructure/helm/kitehub \
     --namespace kitehub \
-    --values helm/kitehub/values-prod.yaml
+    --values infrastructure/helm/kitehub/values-prod.yaml
 
   # Deploy a KiteClass instance
-  helm install customer1 ./helm/kiteclass-instance \
+  helm install customer1 ./infrastructure/helm/kiteclass-instance \
     --namespace kiteclass-instances \
     --set instanceId=abc123 \
     --set subdomain=customer1 \

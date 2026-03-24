@@ -6,7 +6,7 @@ on:
     paths:
       - 'kitehub/**'
       - 'kiteclass/**'
-      - 'helm/**'
+      - 'infrastructure/helm/**'
 
 permissions:
   id-token: write
@@ -56,7 +56,7 @@ jobs:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           TAG: staging-${{ github.sha }}
         run: |
-          helm upgrade --install kitehub ./helm/kitehub \
+          helm upgrade --install kitehub ./infrastructure/helm/kitehub \
             --namespace ${{ env.HELM_NAMESPACE }} --create-namespace \
             --set global.image.registry=$REGISTRY/kitehub \
             --set global.image.tag=$TAG \

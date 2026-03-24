@@ -128,7 +128,7 @@ jobs:
           aws eks update-kubeconfig --name kiteclass-prod
 
           # Deploy with Helm
-          helm upgrade kiteclass ./k8s/helm/kiteclass \
+          helm upgrade kiteclass ./infrastructure/k8s/infrastructure/helm/kiteclass \
             --namespace kiteclass \
             --set image.tag=${{ github.event.inputs.version }} \
             --wait --timeout 10m
