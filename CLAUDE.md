@@ -104,15 +104,26 @@ git checkout main && git merge wave/X && git push  # KHÔNG!
 4. Tạo PR: wave/X → main (squash merge)
 5. Quality check TRƯỚC khi merge
 
-## CRITICAL: Business Logic Documents
+## CRITICAL: Business Logic Documents — 3-Layer Structure
 
 **Location:** `documents/01-business/` — SOURCE OF TRUTH cho business rules
-**Quy tắc:** Xem `documents/01-business/README.md`
+**Skill chi tiết:** `.claude/skills/reference/business-docs-3-layer.md`
 
-- Mỗi domain 1 file, ~100-150 dòng (4 sections: Rules, Flow, Emails, Config)
+### Cấu trúc: mỗi domain = 1 folder, 3 files
+
+```
+documents/01-business/{project}/{domain}/
+├── rules.md          # Layer 1: Business Rules (constraints, config keys)
+├── use-cases.md      # Layer 2: Use Cases (actor, steps, errors, FE behavior)
+└── api-contract.md   # Layer 3: API Contract (endpoint, request/response, error codes)
+```
+
+### Rules bắt buộc:
+- 3 files per domain — pre-commit hook sẽ warn nếu thiếu
 - Doc và code PHẢI cùng PR — đổi logic = đổi doc trong cùng commit
-- KHÔNG hardcode business rules — luôn dùng config key từ doc
-- TRƯỚC KHI code module mới → tạo business doc TRƯỚC (`/pre-flight-check domain`)
+- KHÔNG hardcode business rules — luôn dùng config key từ rules.md
+- TRƯỚC KHI code module mới → tạo 3 files TRƯỚC (`/pre-flight-check domain`)
+- Verification chain: `BR-xxx → UC-xxx → endpoint → @Mapping → @Test`
 
 ## CRITICAL: Living Documents
 
