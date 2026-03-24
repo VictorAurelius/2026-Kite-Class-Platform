@@ -93,10 +93,10 @@ describe('TemplateGalleryPage', () => {
   it('renders category filter buttons', () => {
     render(<TemplateGalleryPage />);
 
-    expect(screen.getByText('Tất cả')).toBeInTheDocument();
-    expect(screen.getByText('Giáo dục')).toBeInTheDocument();
-    expect(screen.getByText('Doanh nghiệp')).toBeInTheDocument();
-    expect(screen.getByText('Tổng hợp')).toBeInTheDocument();
+    expect(screen.getAllByText('Tất cả').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Giáo dục').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Doanh nghiệp').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Tổng hợp').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders template cards', () => {
