@@ -219,19 +219,15 @@ documents/
 - [x] 21 cross-references updated
 - [ ] Add deprecation note vào `kiteclass-core/docs/` ← **DEFERRED to REFACTOR-3**
 
-### PR-REFACTOR-2: Skills consolidation
+### PR-REFACTOR-2: Skills consolidation — ✅ DONE (#204→#206, Wave 3)
 
-**Estimate:** 2 giờ
-**Scope:**
-- [ ] Tạo folder structure mới
-- [ ] Gộp 10 testing files → 1 `testing-standards.md`
-- [ ] Gộp 7 backend files → 1 `backend-standards.md`
-- [ ] Gộp 4 frontend files → 1 `frontend-standards.md`
-- [ ] Gộp 5 devops files → 1 `devops-standards.md`
-- [ ] Move core skills vào `core/`
-- [ ] Xóa obsolete skills (11 files)
-- [ ] Tạo `README.md` index
-- [ ] Update CLAUDE.md references
+**Completed:** 2026-03-23
+- [x] 49 files → ~20 files
+- [x] Gộp testing, backend, frontend, devops → 4 consolidated files
+- [x] Move core skills vào `core/`
+- [x] Xóa 28+ obsolete skills
+- [x] Tạo `_README-skills-index.md` index
+- [x] Update CLAUDE.md references
 
 ### PR-REFACTOR-3: Business docs migration
 
