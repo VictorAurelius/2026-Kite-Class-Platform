@@ -1,0 +1,159 @@
+@startuml wave-execution-process
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FFFDE7
+skinparam activityBorderColor #888888
+skinparam ArrowColor #555555
+
+title KITE PLATFORM - WAVE EXECUTION PROCESS\nPre-check -> Parallel Agents -> Merge -> Verify | 2026-03-24
+
+start
+
+' ==================== PHASE 1: PLANNING ====================
+partition "Phase 1: Wave Planning" #E3F2FD {
+    :Review implementation plan
+    (kitehub-saas-implementation-plan.md);
+    :Identify PRs for this wave
+    (parallel-execution-strategy.md);
+    :Check dependencies between PRs;
+
+    if (Dependencies resolved?) then (yes)
+        :Group into parallel tracks;
+    else (no)
+        :Reorder PRs to resolve deps;
+        -> Group into parallel tracks;
+    endif
+}
+
+' ==================== PHASE 2: PRE-FLIGHT ====================
+partition "Phase 2: Pre-flight Check (/pre-flight-check)" #C5CAE9 {
+    fork
+        :PR-level check
+        - Scope analysis
+        - Risk assessment
+        - Edge cases;
+    fork again
+        :Domain-level check
+        - Business doc exists?
+        - Config keys defined?
+        - Email templates ready?;
+    fork again
+        :Project-level check
+        - Branch strategy OK?
+        - CI pipeline green?
+        - No blocking PRs?;
+    end fork
+
+    if (All checks pass?) then (yes)
+        :Proceed to implementation;
+    else (no)
+        :Fix blockers first;
+        -> Review implementation plan;
+    endif
+}
+
+' ==================== PHASE 3: PARALLEL EXECUTION ====================
+partition "Phase 3: Parallel Agent Execution" #B3E5FC {
+    :Spawn Claude Code agents
+    (one per PR track);
+
+    fork
+        :Agent A: Backend PR
+        1. Brainstorm (5 min)
+        2. Task breakdown
+        3. TDD (test first)
+        4. Implement
+        5. Self-review;
+    fork again
+        :Agent B: Frontend PR
+        1. Brainstorm (5 min)
+        2. Task breakdown
+        3. TDD (test first)
+        4. Implement
+        5. Self-review;
+    fork again
+        :Agent C: Infra/Docs PR
+        1. Brainstorm (5 min)
+        2. Task breakdown
+        3. Implement
+        4. Self-review;
+    end fork
+
+    :All agents complete;
+}
+
+' ==================== PHASE 4: QUALITY GATE ====================
+partition "Phase 4: Quality Gate" #C8E6C9 {
+    fork
+        :Run CI pipeline
+        (GitHub Actions);
+    fork again
+        :Run local tests
+        (./scripts/test-local.sh);
+    fork again
+        :Code review
+        (/check-pr);
+    end fork
+
+    if (All quality checks pass?) then (yes)
+        :Ready for merge;
+    else (no)
+        :Fix issues (/fix-pr);
+        -> Run CI pipeline;
+    endif
+}
+
+' ==================== PHASE 5: MERGE ====================
+partition "Phase 5: Merge to Wave Branch" #FFE0B2 {
+    :Create PRs to wave branch;
+    :Review PR descriptions;
+    :Merge PRs (squash);
+    :Update implementation plan status;
+}
+
+' ==================== PHASE 6: WAVE COMPLETION ====================
+partition "Phase 6: Wave Completion Check" #F8BBD0 {
+    :Run /wave-completion-check;
+
+    fork
+        :Verify all PRs merged;
+    fork again
+        :Run /quality-audit
+        (target: 90+/100);
+    fork again
+        :Run /business-gap-check
+        (target: <20% gaps);
+    fork again
+        :E2E tests pass
+        (Playwright);
+    end fork
+
+    if (Wave complete?) then (yes)
+        :Merge wave branch to main;
+        :Tag release;
+    else (no)
+        :Create hotfix PRs;
+        -> Create PRs to wave branch;
+    endif
+}
+
+stop
+
+' ==================== LEGEND ====================
+legend right
+|= Phase |= Duration |= Tools |
+| 1. Planning | 15 min | Implementation plan |
+| 2. Pre-flight | 10 min | /pre-flight-check |
+| 3. Execution | 2-4 hours | Parallel agents |
+| 4. Quality | 30 min | CI + /check-pr |
+| 5. Merge | 15 min | git + GitHub |
+| 6. Completion | 30 min | /wave-completion-check |
+|= Methodology (per agent) |
+| Brainstorm -> Breakdown -> TDD -> Implement -> Review |
+|= Parallel Strategy |
+| Up to 5 agents per wave |
+| ~10 days total (vs 20 sequential) |
+endlegend
+
+@enduml

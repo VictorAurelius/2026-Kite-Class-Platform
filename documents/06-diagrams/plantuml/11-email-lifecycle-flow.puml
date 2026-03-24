@@ -1,0 +1,201 @@
+@startuml email-lifecycle-flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.5
+skinparam participantBackgroundColor #FFFDE7
+skinparam participantBorderColor #888888
+skinparam noteBackgroundColor #F5F5F5
+
+title KITEHUB - EMAIL LIFECYCLE (13 TEMPLATES)\nComplete Trigger Timeline | 2026-03-24
+
+' ==================== PARTICIPANTS ====================
+participant "Scheduler\n(Cron)" as CRON #FFE0B2
+participant "Subscription\nService" as SUB #C5CAE9
+participant "Email\nService" as EMAIL #F8BBD0
+participant "AWS SES" as SES #CFD8DC
+actor "Customer" as CUST #90CAF9
+
+' ==================== REGISTRATION ====================
+== Registration (Day 0) ==
+
+SUB -> EMAIL : 1. welcome.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: instance.created event
+  Variables: {orgName, trialDays, expiryDate}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Welcome! 14-day trial started"
+deactivate EMAIL
+
+SUB -> EMAIL : 2. email-verification.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: user registration
+  Variables: {verifyUrl, expiryHours}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Verify your email"
+deactivate EMAIL
+
+' ==================== ONBOARDING ====================
+== Onboarding (Day 2) ==
+
+CRON -> SUB : Check onboarding schedule
+SUB -> EMAIL : 3. onboarding-tips.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 2 days after registration
+  Variables: {orgName, tips, setupUrl}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Tips to get started"
+deactivate EMAIL
+
+' ==================== TRIAL MIDPOINT ====================
+== Trial Midpoint (Day 7) ==
+
+CRON -> SUB : Check trial midpoint
+SUB -> EMAIL : 4. trial-midpoint.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 7 days into trial
+  Variables: {orgName, daysLeft, upgradeUrl}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "7 days left - explore features"
+deactivate EMAIL
+
+' ==================== TRIAL WARNINGS ====================
+== Trial Warnings (Day 11, 13) ==
+
+CRON -> SUB : Check trial expiry
+SUB -> EMAIL : 5. trial-expiration-warning.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 3 days / 1 day before expiry
+  Variables: {orgName, daysRemaining, upgradeUrl}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Trial ending soon!"
+deactivate EMAIL
+
+' ==================== TRIAL EXPIRED ====================
+== Trial Expired (Day 14) ==
+
+CRON -> SUB : Trial expired
+SUB -> EMAIL : 6. trial-expired.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: trial expiry date reached
+  Instance status -> SUSPENDED
+  Variables: {orgName, retentionDays, upgradeUrl}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Trial expired. Data kept 7 days"
+deactivate EMAIL
+
+' ==================== PAYMENT ====================
+== Payment & Subscription ==
+
+SUB -> EMAIL : 7. subscription-created.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: payment.completed event
+  Variables: {orgName, tier, amount, nextBilling}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Subscription active!"
+deactivate EMAIL
+
+CRON -> SUB : Renewal approaching
+SUB -> EMAIL : 8. subscription-renewal-reminder.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 7 days before billing cycle
+  Variables: {orgName, renewDate, amount}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Renewal in 7 days"
+deactivate EMAIL
+
+' ==================== SUBSCRIPTION ISSUES ====================
+== Subscription Issues ==
+
+SUB -> EMAIL : 9. subscription-suspended.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: payment failed / manual suspend
+  Variables: {orgName, reason, supportUrl}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Subscription suspended"
+deactivate EMAIL
+
+SUB -> EMAIL : 10. subscription-expired.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: subscription end date reached
+  Variables: {orgName, retentionDays, renewUrl}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Subscription expired"
+deactivate EMAIL
+
+' ==================== DATA RETENTION ====================
+== Data Retention Warnings (Suspend +3, +6, +7) ==
+
+CRON -> SUB : Check suspended instances
+SUB -> EMAIL : 11. data-retention-warning.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 3 days after suspend (warn 1)
+  Trigger: 6 days after suspend (warn 2)
+  Variables: {orgName, daysLeft}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Data deletion in N days"
+deactivate EMAIL
+
+SUB -> EMAIL : 12. data-retention-final-warning.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 1 day before deletion
+  Variables: {orgName, deleteDate}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "FINAL: Data deleted tomorrow"
+deactivate EMAIL
+
+SUB -> EMAIL : 13. data-deleted.html
+activate EMAIL #F8BBD0
+note right of EMAIL
+  Trigger: 7 days after suspend
+  Instance status -> DELETED
+  Variables: {orgName}
+end note
+EMAIL -> SES : Send
+SES --> CUST : "Data has been permanently deleted"
+deactivate EMAIL
+
+' ==================== LEGEND ====================
+legend bottom
+|= # |= Template |= Trigger |= Timing |
+| 1 | welcome | Registration | Immediate |
+| 2 | email-verification | Registration | Immediate |
+| 3 | onboarding-tips | Scheduler | Day 2 |
+| 4 | trial-midpoint | Scheduler | Day 7 |
+| 5 | trial-expiration-warning | Scheduler | Day 11, 13 |
+| 6 | trial-expired | Scheduler | Day 14 |
+| 7 | subscription-created | Payment event | On payment |
+| 8 | subscription-renewal-reminder | Scheduler | 7d before renewal |
+| 9 | subscription-suspended | Suspend event | On suspend |
+| 10 | subscription-expired | Scheduler | On expiry |
+| 11 | data-retention-warning | Scheduler | Suspend +3, +6 |
+| 12 | data-retention-final-warning | Scheduler | Suspend +6 |
+| 13 | data-deleted | Scheduler | Suspend +7 |
+endlegend
+
+@enduml

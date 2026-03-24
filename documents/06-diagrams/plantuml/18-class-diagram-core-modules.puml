@@ -1,0 +1,303 @@
+@startuml class-diagram-core-modules
+!theme plain
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 10
+skinparam packageStyle rectangle
+skinparam classBackgroundColor #FFFDE7
+skinparam classBorderColor #888888
+skinparam ArrowColor #555555
+
+title KITECLASS - CORE MODULES CLASS DIAGRAM\n15 Modules from Tenant Schema (V1-V18) | 2026-03-24
+
+' ==================== USER MODULE ====================
+package "1. User Module (V1)" #E3F2FD {
+    class User {
+        - id : UUID
+        - email : String
+        - username : String
+        - passwordHash : String
+        - fullName : String
+        - phone : String
+        - role : UserRole
+        - tenantId : UUID
+        + authenticate()
+        + changePassword()
+    }
+    enum UserRole {
+        ADMIN
+        TEACHER
+        STUDENT
+        PARENT
+    }
+}
+
+' ==================== STUDENT MODULE ====================
+package "2. Student Module (V2)" #C5CAE9 {
+    class Student {
+        - id : UUID
+        - userId : UUID
+        - studentCode : String
+        - dateOfBirth : LocalDate
+        - parentName : String
+        - parentPhone : String
+        - address : String
+        - tenantId : UUID
+        + enroll(classId)
+        + getTranscript()
+    }
+}
+
+' ==================== TEACHER MODULE ====================
+package "3. Teacher Module (V3)" #B3E5FC {
+    class Teacher {
+        - id : UUID
+        - userId : UUID
+        - specialization : String
+        - bio : String
+        - hourlyRate : BigDecimal
+        - certifications : List<String>
+        - tenantId : UUID
+        + assignCourse(courseId)
+        + getSchedule()
+    }
+}
+
+' ==================== COURSE MODULE ====================
+package "4. Course Module (V4)" #C8E6C9 {
+    class Course {
+        - id : UUID
+        - name : String
+        - code : String
+        - description : String
+        - category : String
+        - level : CourseLevel
+        - price : BigDecimal
+        - maxStudents : Integer
+        - teacherId : UUID
+        - tenantId : UUID
+        + createClass()
+        + updateCurriculum()
+    }
+    enum CourseLevel {
+        BEGINNER
+        INTERMEDIATE
+        ADVANCED
+    }
+}
+
+' ==================== CLASS MODULE ====================
+package "5. Class Module (V7)" #FFF9C4 {
+    class SchoolClass {
+        - id : UUID
+        - courseId : UUID
+        - name : String
+        - schedule : String
+        - room : String
+        - startDate : LocalDate
+        - endDate : LocalDate
+        - status : ClassStatus
+        - tenantId : UUID
+        + addStudent()
+        + takeAttendance()
+    }
+    enum ClassStatus {
+        PLANNED
+        ACTIVE
+        COMPLETED
+        CANCELLED
+    }
+}
+
+' ==================== ENROLLMENT MODULE ====================
+package "6. Enrollment Module (V8-V9)" #FFE0B2 {
+    class Enrollment {
+        - id : UUID
+        - studentId : UUID
+        - classId : UUID
+        - status : EnrollmentStatus
+        - enrolledAt : LocalDateTime
+        - version : Integer
+        - tenantId : UUID
+        + approve()
+        + drop()
+        + complete()
+    }
+    enum EnrollmentStatus {
+        PENDING
+        ACTIVE
+        COMPLETED
+        DROPPED
+    }
+}
+
+' ==================== GRADE MODULE ====================
+package "7. Grade Module (V10)" #F8BBD0 {
+    class Grade {
+        - id : UUID
+        - enrollmentId : UUID
+        - assignmentId : UUID
+        - score : BigDecimal
+        - maxScore : BigDecimal
+        - feedback : String
+        - gradedBy : UUID
+        - tenantId : UUID
+        + calculate()
+    }
+}
+
+' ==================== ATTENDANCE MODULE ====================
+package "8. Attendance Module (V11)" #E1BEE7 {
+    class Attendance {
+        - id : UUID
+        - enrollmentId : UUID
+        - classId : UUID
+        - date : LocalDate
+        - status : AttendanceStatus
+        - note : String
+        - tenantId : UUID
+    }
+    enum AttendanceStatus {
+        PRESENT
+        ABSENT
+        LATE
+        EXCUSED
+    }
+}
+
+' ==================== INVOICE MODULE ====================
+package "9. Invoice Module (V12)" #FFCCBC {
+    class Invoice {
+        - id : UUID
+        - studentId : UUID
+        - enrollmentId : UUID
+        - amount : BigDecimal
+        - dueDate : LocalDate
+        - status : InvoiceStatus
+        - tenantId : UUID
+        + generatePDF()
+    }
+    enum InvoiceStatus {
+        DRAFT
+        SENT
+        PAID
+        OVERDUE
+        CANCELLED
+    }
+}
+
+' ==================== PAYMENT MODULE ====================
+package "10. Payment Module (V13)" #D7CCC8 {
+    class TenantPayment {
+        - id : UUID
+        - invoiceId : UUID
+        - amount : BigDecimal
+        - method : String
+        - status : String
+        - paidAt : LocalDateTime
+        - tenantId : UUID
+    }
+}
+
+' ==================== LMS MODULE ====================
+package "11. LMS Module (V14)" #B2DFDB {
+    class Lesson {
+        - id : UUID
+        - courseId : UUID
+        - title : String
+        - content : Text
+        - order : Integer
+        - tenantId : UUID
+    }
+    class LessonResource {
+        - id : UUID
+        - lessonId : UUID
+        - type : ResourceType
+        - url : String
+        - tenantId : UUID
+    }
+}
+
+' ==================== ASSIGNMENT MODULE ====================
+package "12. Assignment Module (V15)" #F0F4C3 {
+    class Assignment {
+        - id : UUID
+        - classId : UUID
+        - title : String
+        - description : String
+        - type : AssignmentType
+        - maxScore : BigDecimal
+        - dueDate : LocalDateTime
+        - tenantId : UUID
+    }
+    class Submission {
+        - id : UUID
+        - assignmentId : UUID
+        - studentId : UUID
+        - content : Text
+        - submittedAt : LocalDateTime
+        - tenantId : UUID
+    }
+}
+
+' ==================== STORAGE MODULE ====================
+package "13. Storage Module (V16)" #CFD8DC {
+    class StorageFile {
+        - id : UUID
+        - fileName : String
+        - mimeType : String
+        - size : Long
+        - path : String
+        - uploadedBy : UUID
+        - tenantId : UUID
+    }
+}
+
+' ==================== SETTINGS MODULE ====================
+package "14. Settings Module (V17)" #E0E0E0 {
+    class Setting {
+        - id : UUID
+        - key : String
+        - value : String
+        - category : String
+        - tenantId : UUID
+    }
+}
+
+' ==================== MARKETING MODULE ====================
+package "15. Marketing Module (V18)" #DCEDC8 {
+    class BlogPost {
+        - id : UUID
+        - title : String
+        - slug : String
+        - content : Text
+        - status : PostStatus
+        - tenantId : UUID
+    }
+    class LandingPage {
+        - id : UUID
+        - path : String
+        - metaTitle : String
+        - content : JSON
+        - tenantId : UUID
+    }
+}
+
+' ==================== RELATIONSHIPS ====================
+User ||--o| Student
+User ||--o| Teacher
+Teacher ||--o{ Course
+Course ||--o{ SchoolClass
+Student ||--o{ Enrollment
+SchoolClass ||--o{ Enrollment
+Enrollment ||--o{ Attendance
+Enrollment ||--o{ Grade
+SchoolClass ||--o{ Assignment
+Assignment ||--o{ Grade
+Assignment ||--o{ Submission
+Student ||--o{ Invoice
+Invoice ||--o{ TenantPayment
+Course ||--o{ Lesson
+Lesson ||--o{ LessonResource
+
+@enduml

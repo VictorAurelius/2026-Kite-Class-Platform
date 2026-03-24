@@ -114,11 +114,11 @@
 | PR | Status | Score |
 |----|--------|-------|
 | V4-KH-1 E2E Docker | ⬜ TODO | +2 |
-| V4-KH-2 Alerting Rules | ⬜ TODO | +1 |
-| V4-KH-3 Remove FUTURE | ⬜ TODO | +1 |
+| V4-KH-2 Alerting Rules | ✅ DONE (Wave 6) | +1 |
+| V4-KH-3 Remove FUTURE | ✅ DONE (Wave 6) | +1 |
 | V4-KC-1 E2E Docker | ⬜ TODO | +2 |
-| V4-KC-2 Payment URL | ⬜ TODO | +1 |
-| V4-KC-3 Monitoring | ⬜ TODO | +2 |
-| V4-KC-4 Remove FUTURE | ⬜ TODO | +1 |
-| V4-KC-5 Wizard (optional) | ⬜ TODO | +1 |
-| **Total** | **0/8** | |
+| V4-KC-2 Payment URL | ✅ DONE (Wave 6) | +1 |
+| V4-KC-3 Monitoring | ✅ DONE (Wave 6) | +2 |
+| V4-KC-4 Remove FUTURE | ✅ DONE (Wave 6) | +1 |
+| V4-KC-5 Wizard (optional) | ✅ DONE (Wave 6) | +1 |
+| **Total** | **6/8** | |

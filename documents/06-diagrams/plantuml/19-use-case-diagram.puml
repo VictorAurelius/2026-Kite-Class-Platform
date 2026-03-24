@@ -1,0 +1,172 @@
+@startuml use-case-diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFDE7
+skinparam usecaseBorderColor #888888
+skinparam ArrowColor #555555
+skinparam actorBackgroundColor #FFFFFF
+
+title KITE PLATFORM - USE CASE DIAGRAM\n4 Actors: Student, Teacher, Admin, Owner | 2026-03-24
+
+' ==================== ACTORS ====================
+actor "Student" as STUDENT #A5D6A7
+actor "Parent" as PARENT #C8E6C9
+actor "Teacher" as TEACHER #90CAF9
+actor "Admin\n(School)" as ADMIN #FFE082
+actor "Owner\n(Organization)" as OWNER #EF9A9A
+actor "Platform Admin\n(KiteHub)" as PLATFORM #CE93D8
+
+' ==================== KITECLASS USE CASES ====================
+rectangle "KiteClass — School Management (Tenant App)" as KC #E8F5E9 {
+
+    package "Student Management" as STU_UC #C8E6C9 {
+        usecase "View schedule\n& classes" as UC_SCHEDULE
+        usecase "View grades\n& transcript" as UC_GRADES
+        usecase "View attendance\nrecords" as UC_ATTEND_VIEW
+        usecase "Submit\nassignment" as UC_SUBMIT
+        usecase "Access LMS\nmaterials" as UC_LMS
+    }
+
+    package "Teacher Operations" as TEACH_UC #BBDEFB {
+        usecase "Manage courses\n& classes" as UC_COURSE
+        usecase "Take attendance" as UC_ATTEND
+        usecase "Grade students" as UC_GRADE
+        usecase "Create\nassignments" as UC_ASSIGN
+        usecase "Create lessons\n& resources" as UC_LESSON
+        usecase "View class\nanalytics" as UC_ANALYTICS
+    }
+
+    package "Admin Operations" as ADMIN_UC #FFF9C4 {
+        usecase "Manage students\n(CRUD)" as UC_STU_MGMT
+        usecase "Manage teachers\n(CRUD)" as UC_TEACH_MGMT
+        usecase "Manage\nenrollments" as UC_ENROLL
+        usecase "Generate invoices\n& track payments" as UC_INVOICE
+        usecase "Configure\nschool settings" as UC_SETTINGS
+        usecase "View reports\n& dashboards" as UC_REPORTS
+        usecase "Manage blog\n& landing pages" as UC_MARKETING
+        usecase "Manage file\nstorage" as UC_STORAGE
+    }
+}
+
+' ==================== KITEHUB USE CASES ====================
+rectangle "KiteHub — SaaS Platform (Management)" as KH #E8EAF6 {
+
+    package "Owner Operations" as OWNER_UC #FFE0B2 {
+        usecase "Register\norganization" as UC_REGISTER
+        usecase "Manage\nsubscription" as UC_SUB
+        usecase "View billing\n& payments" as UC_BILLING
+        usecase "Request AI\nbranding" as UC_BRAND
+        usecase "Setup custom\ndomain" as UC_DOMAIN
+        usecase "View instance\ndashboard" as UC_DASHBOARD
+        usecase "Verify email" as UC_VERIFY
+    }
+
+    package "Platform Admin" as PLAT_UC #E1BEE7 {
+        usecase "Monitor all\ninstances" as UC_MONITOR
+        usecase "Manage payments\n& revenue" as UC_PAY_MGMT
+        usecase "View system\nhealth" as UC_HEALTH
+        usecase "Extend trials\nmanually" as UC_EXTEND
+        usecase "Suspend/Delete\ninstances" as UC_SUSPEND
+    }
+}
+
+' ==================== ACTOR CONNECTIONS ====================
+
+' Student
+STUDENT --> UC_SCHEDULE
+STUDENT --> UC_GRADES
+STUDENT --> UC_ATTEND_VIEW
+STUDENT --> UC_SUBMIT
+STUDENT --> UC_LMS
+
+' Parent (limited view)
+PARENT --> UC_GRADES
+PARENT --> UC_ATTEND_VIEW
+
+' Teacher
+TEACHER --> UC_COURSE
+TEACHER --> UC_ATTEND
+TEACHER --> UC_GRADE
+TEACHER --> UC_ASSIGN
+TEACHER --> UC_LESSON
+TEACHER --> UC_ANALYTICS
+
+' Admin (School)
+ADMIN --> UC_STU_MGMT
+ADMIN --> UC_TEACH_MGMT
+ADMIN --> UC_ENROLL
+ADMIN --> UC_INVOICE
+ADMIN --> UC_SETTINGS
+ADMIN --> UC_REPORTS
+ADMIN --> UC_MARKETING
+ADMIN --> UC_STORAGE
+
+' Admin inherits teacher capabilities
+ADMIN --> UC_COURSE
+ADMIN --> UC_ATTEND
+ADMIN --> UC_GRADE
+
+' Owner (Organization)
+OWNER --> UC_REGISTER
+OWNER --> UC_SUB
+OWNER --> UC_BILLING
+OWNER --> UC_BRAND
+OWNER --> UC_DOMAIN
+OWNER --> UC_DASHBOARD
+OWNER --> UC_VERIFY
+
+' Owner also acts as Admin
+OWNER --> UC_STU_MGMT
+OWNER --> UC_SETTINGS
+
+' Platform Admin
+PLATFORM --> UC_MONITOR
+PLATFORM --> UC_PAY_MGMT
+PLATFORM --> UC_HEALTH
+PLATFORM --> UC_EXTEND
+PLATFORM --> UC_SUSPEND
+
+' ==================== NOTES ====================
+note right of OWNER
+  **Owner = B2B Customer**
+  Registers on kitehub.vn
+  Manages subscription & billing
+  Gets KiteClass instance:
+  {subdomain}.kiteclass.com
+end note
+
+note right of ADMIN
+  **Admin = School Administrator**
+  Works within KiteClass instance
+  Full CRUD on all school data
+  Inherits Teacher capabilities
+end note
+
+note left of STUDENT
+  **Student = End User**
+  Accesses via school subdomain
+  View-only for grades/attendance
+  Can submit assignments
+end note
+
+note right of PLATFORM
+  **Platform Admin = KiteHub Staff**
+  Monitors all tenants
+  Manages revenue & health
+  Can extend trials / suspend
+end note
+
+' ==================== LEGEND ====================
+legend bottom
+|= Actor |= Platform |= Key Actions |
+| Student | KiteClass | View grades, submit work, access LMS |
+| Parent | KiteClass | View child grades & attendance |
+| Teacher | KiteClass | Teach, grade, take attendance |
+| Admin | KiteClass | Manage school operations |
+| Owner | KiteHub | Register, subscribe, brand |
+| Platform Admin | KiteHub | Monitor, manage, support |
+endlegend
+
+@enduml

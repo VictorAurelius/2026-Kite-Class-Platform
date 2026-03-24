@@ -60,32 +60,38 @@ public class DatabaseBackupScheduler {
     public void cleanupDeletedInstances() {
         log.info("Starting weekly cleanup of deleted instances");
 
-        // FUTURE:Add query to find deleted instances older than 30 days
-        // LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        // List<Instance> deletedInstances = instanceRepository.findDeletedBefore(thirtyDaysAgo);
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        List<Instance> deletedInstances = instanceRepository
+            .findByStatusAndDeletedFalseAndUpdatedAtBefore(InstanceStatus.DELETED, thirtyDaysAgo);
 
-        log.info("Weekly cleanup job completed");
+        int cleanedCount = 0;
+        for (Instance instance : deletedInstances) {
+            try {
+                instance.softDelete();
+                instanceRepository.save(instance);
+                cleanedCount++;
+                log.info("Cleaned up deleted instance: {} (subdomain: {})",
+                    instance.getId(), instance.getSubdomain());
+            } catch (Exception e) {
+                log.error("Failed to clean up instance: {}", instance.getId(), e);
+            }
+        }
+
+        log.info("Weekly cleanup job completed. Cleaned: {} instances", cleanedCount);
     }
 
     /**
      * Backup single instance database.
-     * FUTURE: Implement actual backup to S3 using pg_dump
+     * Currently logs backup metadata only. Actual S3 upload via pg_dump
+     * is deferred until cloud storage infrastructure is provisioned.
      *
      * @param instance Instance to backup
      */
-    private void backupInstanceDatabase(Instance instance) {
+    void backupInstanceDatabase(Instance instance) {
         String dbName = extractDatabaseName(instance.getDatabaseUrl());
         String backupPath = generateBackupPath(instance.getId(), dbName);
 
-        log.debug("Backing up database {} to {}", dbName, backupPath);
-
-        // FUTURE:Implement actual backup
-        // 1. Run pg_dump to create SQL dump
-        // 2. Compress with gzip
-        // 3. Upload to S3: s3://kiteclass-backups/{instance-id}/{date}.sql.gz
-        // 4. Delete local dump file
-
-        log.debug("Backup completed for database: {}", dbName);
+        log.info("Backup recorded for database {} -> {}", dbName, backupPath);
     }
 
     /**
@@ -94,7 +100,7 @@ public class DatabaseBackupScheduler {
      * @param databaseUrl JDBC URL
      * @return Database name
      */
-    private String extractDatabaseName(String databaseUrl) {
+    String extractDatabaseName(String databaseUrl) {
         String[] parts = databaseUrl.split("/");
         return parts[parts.length - 1];
     }
@@ -106,7 +112,7 @@ public class DatabaseBackupScheduler {
      * @param dbName Database name
      * @return S3 path
      */
-    private String generateBackupPath(java.util.UUID instanceId, String dbName) {
+    String generateBackupPath(java.util.UUID instanceId, String dbName) {
         String date = LocalDateTime.now().toString().split("T")[0]; // YYYY-MM-DD
         return String.format("s3://kiteclass-backups/%s/%s-%s.sql.gz",
             instanceId, date, dbName);

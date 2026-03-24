@@ -1,0 +1,43 @@
+groups:
+  - name: kitehub-service-alerts
+    rules:
+      # Alert: Service Down
+      # Fires when any monitored service is unreachable for 1 minute
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} (instance {{ $labels.instance }}) has been unreachable for more than 1 minute."
+
+      # Alert: High Error Rate
+      # Fires when >5% of responses are 5xx errors over a 5-minute window
+      - alert: HighErrorRate
+        expr: >
+          (
+            sum by (job) (rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            /
+            sum by (job) (rate(http_server_requests_seconds_count[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} has more than 5% server error responses over the last 5 minutes (current value: {{ $value | humanizePercentage }})."
+
+      # Alert: High Response Time
+      # Fires when p99 latency exceeds 2 seconds for 5 minutes
+      - alert: HighResponseTime
+        expr: >
+          histogram_quantile(0.99,
+            sum by (job, le) (rate(http_server_requests_seconds_bucket[5m]))
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p99 response time on {{ $labels.job }}"
+          description: "{{ $labels.job }} p99 response time is above 2 seconds for the last 5 minutes (current value: {{ $value | humanizeDuration }})."

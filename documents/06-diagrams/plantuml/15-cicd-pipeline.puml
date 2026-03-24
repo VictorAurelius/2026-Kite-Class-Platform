@@ -1,0 +1,138 @@
+@startuml cicd-pipeline
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam ArrowColor #555555
+skinparam nodeBackgroundColor #FFFDE7
+
+title KITE PLATFORM - CI/CD PIPELINE\nGitHub Actions -> Docker -> Oracle Cloud | 2026-03-24
+
+' ==================== SOURCE ====================
+package "Source Control" as SCM #E3F2FD {
+    component "GitHub Repository\nkite-class-platform" as REPO
+    component "Feature Branch\n(PR workflow)" as BRANCH
+    component "Main Branch\n(protected)" as MAIN
+}
+
+' ==================== CI PIPELINES ====================
+package "GitHub Actions — CI Pipelines" as CI #FFF3E0 {
+
+    package "core-ci.yml" as CORE_CI #C5CAE9 {
+        component "Build KiteClass Core\n(Maven + Java 21)" as CI_CORE_BUILD
+        component "Unit Tests\n(JUnit 5 + Mockito)" as CI_CORE_TEST
+        component "Checkstyle" as CI_CORE_LINT
+    }
+
+    package "kitehub-ci.yml" as KH_CI #B3E5FC {
+        component "Build KiteHub Services\n(6 Maven modules)" as CI_KH_BUILD
+        component "Unit + Integration Tests" as CI_KH_TEST
+        component "Checkstyle + SpotBugs" as CI_KH_LINT
+    }
+
+    package "frontend-ci.yml + kitehub-frontend-ci.yml" as FE_CI #C8E6C9 {
+        component "Build Frontend\n(Next.js 15 + TypeScript)" as CI_FE_BUILD
+        component "Jest + RTL Tests" as CI_FE_TEST
+        component "ESLint + Type Check" as CI_FE_LINT
+    }
+
+    package "gateway-ci.yml" as GW_CI #FFE0B2 {
+        component "Build Gateway\n(Spring Cloud Gateway)" as CI_GW_BUILD
+        component "Route Tests" as CI_GW_TEST
+    }
+}
+
+' ==================== DOCKER BUILD ====================
+package "Docker Build (docker-build-push.yml)" as DOCKER #ECEFF1 {
+    component "Build Docker Images\n(multi-stage Dockerfile)" as DOCKER_BUILD
+    component "Push to GHCR\n(ghcr.io/kite-class/)" as DOCKER_PUSH
+    component "Tag: latest + SHA" as DOCKER_TAG
+}
+
+' ==================== STAGING ====================
+package "Staging Environment" as STAGING #FFF9C4 {
+    component "deploy-staging.yml\n(auto on main merge)" as DEPLOY_STG
+    component "Docker Compose\n(docker-compose.kitehub.yml)" as COMPOSE_STG
+    component "E2E Tests\n(Playwright)" as E2E
+}
+
+' ==================== PRODUCTION ====================
+package "Production — Oracle Cloud" as PROD #E8F5E9 {
+    component "deploy-production.yml\n(manual trigger)" as DEPLOY_PROD
+
+    node "Oracle Cloud VM" as OCI {
+        component "Nginx\n(reverse proxy + SSL)" as NGINX
+        component "Docker Compose\n(13 containers)" as COMPOSE_PROD
+        database "PostgreSQL 15" as PROD_DB
+        storage "Redis 7" as PROD_REDIS
+        queue "RabbitMQ 3" as PROD_MQ
+        storage "MinIO" as PROD_S3
+    }
+}
+
+' ==================== MONITORING ====================
+package "Monitoring" as MON #F8BBD0 {
+    component "Health Checks\n(/actuator/health)" as HEALTH
+    component "Container Logs\n(Docker logs)" as LOGS
+    component "Application Metrics\n(Micrometer)" as METRICS
+}
+
+' ==================== CONNECTIONS ====================
+BRANCH --> REPO : Push / PR
+REPO --> CI : Trigger on PR
+
+CI_CORE_BUILD --> CI_CORE_TEST
+CI_CORE_TEST --> CI_CORE_LINT
+
+CI_KH_BUILD --> CI_KH_TEST
+CI_KH_TEST --> CI_KH_LINT
+
+CI_FE_BUILD --> CI_FE_TEST
+CI_FE_TEST --> CI_FE_LINT
+
+CI_GW_BUILD --> CI_GW_TEST
+
+REPO --> MAIN : Merge PR\n(requires CI pass)
+MAIN --> DOCKER_BUILD : Trigger build
+DOCKER_BUILD --> DOCKER_TAG
+DOCKER_TAG --> DOCKER_PUSH
+
+DOCKER_PUSH --> DEPLOY_STG : Auto deploy
+DEPLOY_STG --> COMPOSE_STG
+COMPOSE_STG --> E2E : Run E2E tests
+
+E2E --> DEPLOY_PROD : Manual approval
+DEPLOY_PROD --> COMPOSE_PROD : SSH deploy\n(docker compose pull + up)
+
+COMPOSE_PROD --> NGINX
+COMPOSE_PROD --> PROD_DB
+COMPOSE_PROD --> PROD_REDIS
+COMPOSE_PROD --> PROD_MQ
+COMPOSE_PROD --> PROD_S3
+
+COMPOSE_PROD --> HEALTH
+COMPOSE_PROD --> LOGS
+
+' ==================== LEGEND ====================
+legend right
+|= Pipeline |= Trigger |= Actions |
+| core-ci | PR to main | Build, test, lint (KiteClass) |
+| kitehub-ci | PR to main | Build, test, lint (KiteHub) |
+| frontend-ci | PR to main | Build, test, lint (Next.js) |
+| gateway-ci | PR to main | Build, test (Gateway) |
+| docker-build-push | Merge to main | Build images, push GHCR |
+| deploy-staging | After docker push | Auto deploy + E2E |
+| deploy-production | Manual | SSH + docker compose |
+
+|= Docker Images (13 containers) |
+| kitehub-gateway, kitehub-subscription |
+| kitehub-payment, kitehub-branding |
+| kitehub-email, kitehub-admin |
+| kitehub-frontend, kiteclass-core |
+| kiteclass-gateway, kiteclass-frontend |
+| postgresql, redis, rabbitmq |
+endlegend
+
+@enduml

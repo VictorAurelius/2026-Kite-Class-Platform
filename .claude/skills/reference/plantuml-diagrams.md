@@ -13,56 +13,62 @@ This skill provides guidelines and templates for creating technical diagrams usi
 ## PLANTUML SETUP
 
 ### Location
-All PlantUML files are stored in: `/mnt/e/person/2026-Kite-Class-Platform/documents/diagrams/`
+- **Source:** `documents/06-diagrams/plantuml/*.puml`
+- **Rendered:** `documents/06-diagrams/rendered/*.png`
 
 ### Required Tools
-- **plantuml.jar**: Located at `documents/diagrams/plantuml.jar`
+- **PlantUML jar**: Download to `/tmp/plantuml.jar` (not committed)
 - Java Runtime Environment (JRE) 8+
+- Graphviz (optional, for class/deployment diagrams — PlantUML uses Smetana fallback)
+
+### CRITICAL RULE: Always Render
+**Khi tạo hoặc sửa file `.puml` → PHẢI render PNG vào `rendered/` folder và commit cả hai.**
+
+```bash
+cd documents/06-diagrams
+# Download PlantUML nếu chưa có
+curl -L -o /tmp/plantuml.jar "https://github.com/plantuml/plantuml/releases/download/v1.2024.8/plantuml-1.2024.8.jar"
+
+# Render single file
+java -jar /tmp/plantuml.jar -tpng -o "$(pwd)/rendered" plantuml/{filename}.puml
+
+# Render all files
+java -jar /tmp/plantuml.jar -tpng -o "$(pwd)/rendered" plantuml/*.puml
+
+# Commit BOTH source and rendered
+git add plantuml/{filename}.puml rendered/{filename}.png
+```
 
 ### File Naming Convention
 - Use descriptive kebab-case names
 - Include sequence number for ordered diagrams
 - Format: `{number}-{description}.puml`
-- Examples:
-  - `01-architecture-simple.puml`
-  - `02-bfd-actors.puml`
-  - `03-erd.puml`
-  - `05-system-overview-v3.puml`
+- Examples: `01-architecture-simple.puml`, `10-saas-multi-tenant-architecture.puml`
 
 ## RENDERING DIAGRAMS
 
 ### Method 1: PlantUML CLI (Recommended)
 ```bash
-cd /mnt/e/person/2026-Kite-Class-Platform/documents/diagrams
+cd documents/06-diagrams
 
 # Render single diagram
-java -jar plantuml.jar -tpng {filename}.puml
+java -jar /tmp/plantuml.jar -tpng -o "$(pwd)/rendered" plantuml/{filename}.puml
 
 # Render all diagrams
-java -jar plantuml.jar -tpng *.puml
-
-# Render with specific output directory
-java -jar plantuml.jar -tpng {filename}.puml -o generated
+java -jar /tmp/plantuml.jar -tpng -o "$(pwd)/rendered" plantuml/*.puml
 ```
 
-### Method 2: PlantUML Online
-1. Visit: http://www.plantuml.com/plantuml/uml/
-2. Copy `.puml` file content
-3. Paste into editor
-4. Click "Submit"
-5. Download PNG
-
-### Method 3: VS Code Extension
-1. Install "PlantUML" extension
-2. Open `.puml` file
-3. Press `Alt+D` to preview
-4. Right-click → "Export Current Diagram" → PNG
+### PlantUML Syntax Gotchas
+- **KHÔNG dùng `()` trong `:...;`** — PlantUML hiểu nhầm thành stereotype
+- **KHÔNG dùng `{}` trong `:...;`** — PlantUML hiểu nhầm thành creole
+- **KHÔNG dùng `/` giữa text** — PlantUML hiểu nhầm thành separator
+- Thay thế: dùng `[]`, `-`, `,` hoặc viết gọn lại
+- Nếu cần Graphviz (class/deployment diagrams) mà chưa cài → PlantUML dùng Smetana fallback
 
 ### Output Requirements
 - **Format**: PNG
-- **Resolution**: Minimum 1920px width for presentations
 - **Quality**: Text must be readable
-- **Colors**: Ensure proper contrast
+- **Both .puml AND .png** must be committed
 
 ## DIAGRAM TYPES & TEMPLATES
 
@@ -337,15 +343,15 @@ roles ||--o{ user_roles
 
 ### 5. File Organization
 ```
-documents/diagrams/
-├── plantuml.jar                    # PlantUML renderer
-├── 01-architecture-simple.puml     # Simple architecture
-├── 02-bfd-actors.puml             # Business flow
-├── 03-erd.puml                    # Database ERD
-├── 04-architecture-full.puml      # Detailed architecture
-├── 05-system-overview-v3.puml     # System overview
-├── *.png                          # Generated images
-└── README.md                      # Usage instructions
+documents/06-diagrams/
+├── plantuml/                       # Source files
+│   ├── 01-architecture-simple.puml
+│   ├── ...
+│   └── 19-use-case-diagram.puml
+└── rendered/                       # Generated PNGs (committed)
+    ├── architecture-diagram.png
+    ├── ...
+    └── wave-execution-process.png
 ```
 
 ## COMMON PLANTUML COMMANDS
@@ -447,36 +453,20 @@ eks -> db
    - Database → ERD
    - Infrastructure → Deployment Diagram
 
-3. **Create .puml File**
+3. **Create .puml File** in `documents/06-diagrams/plantuml/`
+
+4. **Write PlantUML Code** — avoid `()`, `{}`, `/` inside `:...;`
+
+5. **Render PNG** (MANDATORY)
    ```bash
-   cd /mnt/e/person/2026-Kite-Class-Platform/documents/diagrams
-   # Create with appropriate naming
-   touch 06-new-diagram.puml
+   cd documents/06-diagrams
+   java -jar /tmp/plantuml.jar -tpng -o "$(pwd)/rendered" plantuml/{filename}.puml
    ```
 
-4. **Write PlantUML Code**
-   - Start with template
-   - Add components
-   - Define relationships
-   - Apply styling
-
-5. **Render and Review**
+6. **Commit BOTH** source + rendered
    ```bash
-   java -jar plantuml.jar -tpng 06-new-diagram.puml
-   # Review output PNG
-   ```
-
-6. **Iterate**
-   - Adjust spacing
-   - Fix colors
-   - Add notes
-   - Re-render
-
-7. **Commit**
-   ```bash
-   git add documents/diagrams/06-new-diagram.puml
-   git add documents/diagrams/06-new-diagram.png
-   git commit -m "docs(diagrams): add new diagram for X"
+   git add documents/06-diagrams/plantuml/{name}.puml
+   git add documents/06-diagrams/rendered/{name}.png
    ```
 
 ## TROUBLESHOOTING
@@ -539,13 +529,14 @@ When creating diagrams for reports (e.g., graduation thesis):
 
 ## EXAMPLES IN PROJECT
 
-Current diagrams in the project:
-- `01-architecture-simple.puml` - Simple system overview
-- `02-bfd-actors.puml` - Business flow with actors
-- `03-erd.puml` - Database entity relationships
-- `04-architecture-full.puml` - Detailed architecture
-- `05-system-overview-v3.puml` - System overview version 3
-- `06-business-flow-v3.puml` - Business flow version 3
+Current diagrams (19 total):
+- `01` - Architecture simple | `02` - BFD actors | `03` - ERD
+- `04` - Architecture full | `05` - System overview v3 | `06` - Business flow v3
+- `07` - KiteHub ERD | `08` - KiteHub architecture | `09` - Provisioning flow
+- `10` - SaaS multi-tenant | `11` - Email lifecycle | `12` - Trial-payment-retention
+- `13` - Domain resolution | `14` - AI branding pipeline | `15` - CI/CD pipeline
+- `16` - Database schema full | `17` - Wave execution | `18` - Class diagram modules
+- `19` - Use case diagram
 
 ## RELATED SKILLS
 

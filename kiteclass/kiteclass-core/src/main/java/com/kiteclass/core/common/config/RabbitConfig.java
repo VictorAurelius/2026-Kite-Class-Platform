@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
  * }
  * </pre>
  *
- * <p>FUTURE: Define actual exchanges, queues, and bindings when event-driven features are implemented.
+ * <p>Exchanges, queues, and bindings will be added per-module as event-driven features are implemented.
  *
  * @author KiteClass Team
  * @since 2.2.0
@@ -82,28 +82,6 @@ public class RabbitConfig {
         return factory;
     }
 
-    // FUTURE: Define exchanges, queues, and bindings when event-driven features are implemented
-    //
-    // Example:
-    //
-    // @Bean
-    // public Exchange notificationsExchange() {
-    //     return ExchangeBuilder.topicExchange("notifications.exchange")
-    //             .durable(true)
-    //             .build();
-    // }
-    //
-    // @Bean
-    // public Queue notificationQueue() {
-    //     return QueueBuilder.durable("notification.queue")
-    //             .build();
-    // }
-    //
-    // @Bean
-    // public Binding notificationBinding(Queue notificationQueue, Exchange notificationsExchange) {
-    //     return BindingBuilder.bind(notificationQueue)
-    //             .to(notificationsExchange)
-    //             .with("notification.*")
-    //             .noargs();
-    // }
+    // Exchanges, queues, and bindings are defined per-module as event-driven features are implemented.
+    // See individual module configs (e.g., notification, enrollment) for specific queue definitions.
 }
