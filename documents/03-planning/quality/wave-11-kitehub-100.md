@@ -1,150 +1,96 @@
-# Wave 11 — KiteHub 93→100
+# Wave 11 — KiteHub 93→100 + 3-Layer Business Docs
 
 **Date:** 2026-03-24
 **Baseline:** KiteHub 93/100 (A), Business Gap 95% (57/60)
-**Target:** KiteHub 100/100 (A+), Business Gap 100%
+**Target:** KiteHub 100/100 (A+), Business Gap 100%, 3-Layer docs complete
 
 ---
 
-## Gap Analysis (7 points to recover)
+## Business Docs Restructure
 
-| Category | Current | Target | Gap | PRs needed |
-|----------|---------|--------|-----|-----------|
-| Project Mgmt | 7/10 | 10/10 | -3 | PR-1 |
-| Security | 9/10 | 10/10 | -1 | PR-2 |
-| Backend Tests | 9/10 | 10/10 | -1 | PR-3 |
-| Frontend Tests | 9/10 | 10/10 | -1 | PR-4 |
-| Documentation | 9/10 | 10/10 | -1 | PR-5 |
-| Business Gap | 95% | 100% | -3 gaps | PR-6 |
+### 7 domains KiteHub cần chuyển + bổ sung:
+
+| Domain | rules.md | use-cases.md | api-contract.md |
+|--------|----------|-------------|-----------------|
+| trial-lifecycle | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+| subscription-billing | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+| email-lifecycle | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+| instance-provisioning | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+| domain-management | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+| data-retention | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+| ai-branding | ✅ có (migrate) | ❌ tạo mới | ❌ tạo mới |
+
+**Tổng:** 7 rules.md (migrate) + 7 use-cases.md (mới) + 7 api-contract.md (mới) = 21 files
 
 ---
 
-## PR Definitions
+## PR List
 
-### PR-1: Project Management Finalize [Project Mgmt +3]
+### PR-1: Restructure business docs (7 domains → folders) [CRITICAL]
 
-**Yêu cầu chất lượng:**
-- Tất cả wave completion checks finalized
-- Parallel execution strategy up to date
-- Active plans reflect current reality
+- [ ] Migrate 7 single-file docs → folder structure
+- [ ] Update `documents/01-business/README.md` index
+- [ ] Update cross-references
 
-**Scope:**
-- [ ] Finalize `documents/04-quality/wave-3-completion-check.md` — mark complete, resolve pending items
-- [ ] Update `documents/03-planning/parallel-execution-strategy.md` — reflect Waves 6-9, current project state
-- [ ] Update `documents/03-planning/kitehub-saas-implementation-plan.md` — verify 17/17 status accurate
-- [ ] Clean `documents/action-1.md` — hoặc archive nếu stale
-- [ ] Tạo `documents/03-planning/project-status-2026-03-24.md` — tổng hợp trạng thái: waves completed, scores, remaining work
+### PR-2: Layer 2 — Use Cases cho 7 domains [CRITICAL]
 
-**Verification:** Không còn "in-progress" hoặc "modified" status trong docs đã hoàn thành
+**Extract từ actual code:**
+- [ ] `trial-lifecycle/use-cases.md` — create trial instance, trial expiration, convert to paid
+- [ ] `subscription-billing/use-cases.md` — create subscription, upgrade, downgrade, cancel, renew, prorate
+- [ ] `email-lifecycle/use-cases.md` — trigger flow cho 13 templates, idempotency
+- [ ] `instance-provisioning/use-cases.md` — create instance, provision DB, reserve subdomain, delete
+- [ ] `domain-management/use-cases.md` — setup custom domain, verify DNS, remove domain
+- [ ] `data-retention/use-cases.md` — retention warnings, cleanup, soft delete
+- [ ] `ai-branding/use-cases.md` — generate branding, rate limit check, template gallery
 
-### PR-2: JWT Security Fix [Security +1]
+### PR-3: Layer 3 — API Contracts cho 7 domains [CRITICAL]
 
-**Yêu cầu chất lượng:**
-- JWT secret fail-fast (không có nullable fallback)
-- Production-safe default behavior
+- [ ] 7 api-contract.md files — endpoints từ actual Controllers
+- [ ] Cross-reference UC-IDs
+- [ ] Request/response JSON từ DTOs
 
-**Scope:**
-- [ ] Fix JWT secret `#{null}` fallback trong `kitehub-subscription/src/main/resources/application.yml`
-  - Đổi `jwt.secret: ${JWT_SECRET:#{null}}` → `jwt.secret: ${JWT_SECRET:?JWT_SECRET is required}`
-- [ ] Verify tất cả @Value annotations cho secrets dùng fail-fast pattern
-- [ ] Grep check: `grep -r "#{null}" kitehub/*/src/main/resources/` → phải return 0
-- [ ] Update test configs nếu cần (test application.yml có thể set mock value)
-- [ ] Tests: verify app fails to start without JWT_SECRET
+### PR-4: Project Management Finalize [+3]
 
-**Verification:** `grep -r "#{null}" kitehub/` returns 0
+- [ ] Finalize wave-3-completion-check
+- [ ] Update parallel-execution-strategy
+- [ ] Project status summary
 
-### PR-3: Backend Test Coverage [Backend Tests +1]
+### PR-5: JWT Security + Backend Tests [+2]
 
-**Yêu cầu chất lượng:**
-- Test cho mọi scheduler
-- Test cho mọi service class
+- [ ] JWT fail-fast (remove #{null})
+- [ ] SubscriptionExpirationCheckerTest
 
-**Scope:**
-- [ ] Tạo `SubscriptionExpirationCheckerTest.java` — test:
-  - sendRenewalReminders(): tìm subscriptions sắp hết hạn, gửi email đúng timing
-  - processExpiredSubscriptions(): mark expired, suspend after grace period
-  - Edge cases: no subscriptions, already expired, auto-renew enabled
-- [ ] Verify test coverage: mỗi scheduler có test file tương ứng
-- [ ] Run `mvn test -pl kitehub-subscription` — all pass
+### PR-6: Frontend Tests + API Documentation [+2]
 
-**Verification:** `find kitehub/kitehub-subscription/src/test/ -name "*Test.java" | wc -l` >= 25
+- [ ] InstanceTab tests + missing settings tests
+- [ ] KiteHub API reference doc
 
-### PR-4: Frontend Test Coverage [Frontend Tests +1]
+### PR-7: Close Business Gaps [+3 gaps]
 
-**Yêu cầu chất lượng:**
-- Tests cho tất cả settings components
-- Tests cho InstanceTab
-
-**Scope:**
-- [ ] Tạo test cho `InstanceTab` component (hoặc verify nếu đã có)
-- [ ] Tạo tests cho missing settings components
-- [ ] Verify test count: `find kitehub/kitehub-frontend/src/ -name "*.test.*" | wc -l` >= 38
-
-**Verification:** `npm test` (hoặc `vitest run`) all pass
-
-### PR-5: API Documentation [Documentation +1]
-
-**Yêu cầu chất lượng:**
-- API documentation accessible
-- OpenAPI annotations hoặc manual API doc
-
-**Scope:**
-- [ ] Tạo `documents/02-architecture/kitehub-api-reference.md` — list tất cả endpoints:
-  - Gateway routes
-  - Subscription API (instances, subscriptions, domains, payments)
-  - Branding API (jobs, templates, assets)
-  - Email API (internal)
-  - Admin API (dashboard, instances, revenue)
-- [ ] Mỗi endpoint: method, path, request body, response, auth required
-- [ ] Cross-reference từ service READMEs
-
-**Verification:** Doc exists, covers all controllers
-
-### PR-6: Close Business Gaps [Business Gap +3]
-
-**Yêu cầu chất lượng:**
-- Mỗi gap có code/doc fix
-- TDD cho code changes
-
-**Scope:**
-- [ ] Fix ai-branding.md — clarify service boundary: config nằm trong kitehub-branding (không phải subscription), thêm note rõ
-- [ ] Tạo `kitehub/kitehub-branding/src/test/java/.../service/` — unit tests cho:
-  - AIRateLimitServiceTest — check limit, increment usage, tier-based limits
-  - TemplateGalleryServiceTest — list templates, get by id, filter by category
-- [ ] Document mock API keys — thêm note trong `kitehub/.env.example` và `ai-branding.md`: "OPENAI_API_KEY: sk-mock-key for dev, replace in production"
-- [ ] Run tests: `mvn test -pl kitehub-branding` all pass
-
-**Verification:** Business gap check 60/60 (100%)
+- [ ] Fix ai-branding.md service boundary
+- [ ] KiteHub-branding unit tests (AIRateLimitServiceTest, TemplateGalleryServiceTest)
+- [ ] Document mock API keys
 
 ---
 
 ## Execution
 
-| Agent | PR | Files | Conflict risk |
-|-------|-----|-------|---------------|
-| 1 | PR-1 (Project Mgmt) + PR-5 (API doc) | documents/ only | None |
-| 2 | PR-2 (JWT fix) + PR-3 (Backend tests) | kitehub-subscription/ | Low (different files) |
-| 3 | PR-4 (Frontend tests) | kitehub-frontend/ | None |
-| 4 | PR-6 (Business gaps) | kitehub-branding/ + docs | None |
+| Agent | PRs | Scope |
+|-------|-----|-------|
+| 1 | PR-1 + PR-2 | Restructure + Use Cases |
+| 2 | PR-3 | API Contracts |
+| 3 | PR-4 + PR-5 | Project Mgmt + Security + Tests |
+| 4 | PR-6 + PR-7 | Frontend Tests + Docs + Gaps |
 
 ---
 
 ## Score Projection
 
-| After | Score | Grade |
-|-------|-------|-------|
-| Baseline | 93 | A |
-| +PR-1 (Project Mgmt) | 96 | A+ |
-| +PR-2 (Security) | 97 | A+ |
-| +PR-3 (Backend tests) | 98 | A+ |
-| +PR-4 (Frontend tests) | 99 | A+ |
-| +PR-5 (Documentation) | 100 | A+ |
-| +PR-6 (Business gaps) | 100 + gaps closed | A+ |
-
----
-
-## Dependencies
-
-- Wave 10 (KiteClass) và Wave 11 (KiteHub) **không phụ thuộc nhau**
-- Có thể chạy song song nếu đủ context window
-- Hoặc tuần tự: Wave 10 trước → verify → Wave 11
+| After | Quality | Business Gap |
+|-------|---------|-------------|
+| Baseline | 93/100 | 95% |
+| +PR-1,2,3 (3-layer docs) | 94 | 98% |
+| +PR-4 (Project Mgmt) | 97 | 98% |
+| +PR-5 (Security + Tests) | 99 | 98% |
+| +PR-6 (FE Tests + API doc) | 100 | 98% |
+| +PR-7 (Business gaps) | 100 | 100% |
