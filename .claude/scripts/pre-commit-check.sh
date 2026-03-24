@@ -474,6 +474,72 @@ fi
 echo ""
 
 # ==============================================================================
+# 15. Check New Folder Structure Compliance
+# ==============================================================================
+echo "📂 Checking folder structure compliance..."
+
+# Allowed top-level directories (anything else = warning)
+ALLOWED_ROOT_DIRS="\.claude|\.github|\.vscode|documents|infrastructure|kiteclass|kitehub|scripts|node_modules"
+
+# Detect new directories being added at project root
+NEW_ROOT_DIRS=$(git diff --cached --name-only --diff-filter=A | sed 's|/.*||' | sort -u | grep -v '^\.' | grep -v -E "^($ALLOWED_ROOT_DIRS)$" || true)
+# Also check for dotfiles that create new root dirs (exclude known ones)
+NEW_ROOT_DOTDIRS=$(git diff --cached --name-only --diff-filter=A | grep '^\..*/' | sed 's|/.*||' | sort -u | grep -v -E "^\.(claude|github|vscode|gitignore|gitattributes|log|docker-build-logs)$" || true)
+
+FOLDER_ISSUES=0
+
+if [ -n "$NEW_ROOT_DIRS" ]; then
+    for dir in $NEW_ROOT_DIRS; do
+        # Skip files (only flag directories)
+        if echo "$dir" | grep -q '\.'; then
+            continue
+        fi
+        echo -e "${YELLOW}⚠️  New top-level directory: $dir/${NC}"
+        echo "   Allowed root dirs: documents/, infrastructure/, kiteclass/, kitehub/, scripts/"
+        echo "   Infrastructure files → infrastructure/"
+        echo "   Documentation → documents/"
+        FOLDER_ISSUES=$((FOLDER_ISSUES + 1))
+    done
+fi
+
+# Check for infra files placed outside infrastructure/
+MISPLACED_INFRA=$(git diff --cached --name-only --diff-filter=A | grep -E "^(helm|k8s|terraform|terraform-)" || true)
+if [ -n "$MISPLACED_INFRA" ]; then
+    for f in $MISPLACED_INFRA; do
+        echo -e "${RED}❌ Infrastructure file outside infrastructure/: $f${NC}"
+        echo "   Move to: infrastructure/$f"
+        FOLDER_ISSUES=$((FOLDER_ISSUES + 1))
+        VIOLATIONS=$((VIOLATIONS + 1))
+    done
+fi
+
+# Check for stale patterns: session files, action-*.md at wrong locations
+STALE_PATTERNS=$(git diff --cached --name-only --diff-filter=A | grep -iE "(SESSION-STATUS|CURRENT-WORK|\.log/)" || true)
+if [ -n "$STALE_PATTERNS" ]; then
+    for f in $STALE_PATTERNS; do
+        echo -e "${YELLOW}⚠️  Possible stale/misplaced file: $f${NC}"
+        echo "   Session files should not be committed"
+        echo "   Logs should go to infrastructure/logs/"
+        FOLDER_ISSUES=$((FOLDER_ISSUES + 1))
+    done
+fi
+
+# Check for docker-compose at project root (should be in kitehub/ or kiteclass/)
+ROOT_COMPOSE=$(git diff --cached --name-only --diff-filter=A | grep -E "^docker-compose" || true)
+if [ -n "$ROOT_COMPOSE" ]; then
+    for f in $ROOT_COMPOSE; do
+        echo -e "${YELLOW}⚠️  Docker Compose at project root: $f${NC}"
+        echo "   Canonical compose files live in kitehub/ or kiteclass/"
+        FOLDER_ISSUES=$((FOLDER_ISSUES + 1))
+    done
+fi
+
+if [ "$FOLDER_ISSUES" -eq 0 ]; then
+    echo -e "${GREEN}✅ Folder structure OK${NC}"
+fi
+echo ""
+
+# ==============================================================================
 # Summary
 # ==============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
