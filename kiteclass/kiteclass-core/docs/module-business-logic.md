@@ -1,3 +1,5 @@
+> **DEPRECATED:** Business logic docs have moved to `documents/01-business/kiteclass/`. This file is kept for reference only.
+
 # Hướng Dẫn: Viết Tài Liệu Nghiệp Vụ Module
 
 **Phiên bản:** 2.0 (Tiếng Việt)
