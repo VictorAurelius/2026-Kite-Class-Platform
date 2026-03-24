@@ -1,0 +1,4 @@
+# Environment variables (contains secrets)
+.env
+
+# Do NOT ignore .env.example (it's safe to commit)

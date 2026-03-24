@@ -236,6 +236,39 @@ services:
       - kiteclass-network
     restart: unless-stopped
 
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: kiteclass-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
+      - prometheus_data:/prometheus
+    profiles:
+      - monitoring
+    networks:
+      - kiteclass-network
+
+  # Grafana (Dashboard)
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: kiteclass-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+    networks:
+      - kiteclass-network
+
 networks:
   kiteclass-network:
     driver: bridge
@@ -245,3 +278,5 @@ volumes:
   redis_data:
   rabbitmq_data:
   minio_data:
+  prometheus_data:
+  grafana_data:
