@@ -152,23 +152,28 @@ release/v1.0.0
 
 **KHÔNG BAO GIỜ push code chưa test local.** CI là safety net, không phải nơi phát hiện lỗi lần đầu.
 
+**LUÔN dùng script `scripts/test-local.sh`** — KHÔNG chạy lệnh test tự do.
+
 ```bash
-# Backend (nếu có Java changes):
-cd kiteclass/kiteclass-core && JAVA_HOME=$JAVA_HOME ./mvnw compile -q    # Compile check
-cd kiteclass/kiteclass-core && JAVA_HOME=$JAVA_HOME ./mvnw test -q       # Unit tests
-# Hoặc nếu JAVA_HOME không set: chỉ chạy checkstyle
-cd kiteclass/kiteclass-core && JAVA_HOME=$JAVA_HOME ./mvnw checkstyle:check -q
+# Auto-detect changed files → chạy tests phù hợp
+./scripts/test-local.sh
 
-# Frontend (nếu có TS/TSX changes):
-cd kiteclass/kiteclass-frontend && npx vitest run --reporter=verbose 2>&1 | tail -20
+# Quick mode (compile + checkstyle only, không full test)
+./scripts/test-local.sh --quick
 
-# Gateway (nếu có gateway changes):
-cd kiteclass/kiteclass-gateway && JAVA_HOME=$JAVA_HOME ./mvnw compile -q
+# Test cụ thể
+./scripts/test-local.sh kiteclass core
+./scripts/test-local.sh kiteclass frontend
+./scripts/test-local.sh kiteclass all
 ```
 
-**Nếu JAVA_HOME không available:** tối thiểu phải kiểm tra:
-- Checkstyle rules (grep pattern matching cho ConstantName, wildcard imports)
-- ESLint cho frontend: `npx eslint src/ --quiet`
+Script tự động:
+- Detect files changed (git diff) → chỉ test modules bị ảnh hưởng
+- Skip nếu chỉ thay đổi docs
+- Backend: compile + checkstyle + unit tests
+- Frontend: vitest hoặc eslint (quick mode)
+- Summary: passed/failed/skipped
+- Exit code 1 nếu có failure → block push
 
 **Nếu test fail → fix TRƯỚC khi push.** Không push code broken lên CI.
 
