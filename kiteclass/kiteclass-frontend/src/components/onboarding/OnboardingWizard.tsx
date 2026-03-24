@@ -198,7 +198,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
               </>
             )}
             {isLastStep && (
-              <Button size="sm" onClick={handleFinish} aria-label="Hoàn thành thiết lập và bắt đầu sử dụng KiteClass">
+              <Button size="sm" onClick={handleFinish}>
                 Bắt đầu sử dụng
               </Button>
             )}
