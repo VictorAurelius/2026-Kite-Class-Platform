@@ -1,207 +1,166 @@
 ---
 name: check-pr
-description: Audit a completed PR for Superpowers methodology compliance
-disable-model-invocation: true
+description: Monitor CI và verify chất lượng PR — dùng scripts, không chạy lệnh trực tiếp
+user-invocable: true
+argument-hint: "[PR-number|branch-name]"
 ---
 
-# Check PR Quality
+# /check-pr — Monitor CI & Verify PR Quality
 
-**Usage:** `/check-pr <PR-number>`
+## Usage
 
-**Example:** `/check-pr 95`
-
----
-
-## Instructions
-
-Khi user invoke `/check-pr $ARGUMENTS`:
-
-### Bước 1: Fetch PR Information
-
-```bash
-# Get PR details
-gh pr view $ARGUMENTS --json title,body,state,commits,files,additions,deletions,author,createdAt,mergedAt
-
-# Get commit history
-gh pr view $ARGUMENTS --json commits --jq '.commits[].messageHeadline'
-
-# Get files changed
-gh pr view $ARGUMENTS --json files --jq '.files[].path'
+```
+/check-pr 207              # Check PR #207
+/check-pr wave/3           # Check branch wave/3
+/check-pr                  # Check current branch
 ```
 
-### Bước 2: Analyze Superpowers Compliance
+---
 
-Kiểm tra từng tiêu chí:
+## Rules
 
-#### 1. Brainstorm Document (25 points)
-
-**Tìm trong PR description hoặc commits:**
-- [ ] Scope defined? (5 pts)
-- [ ] Risks identified? (5 pts)
-- [ ] Edge cases listed? (5 pts)
-- [ ] Alternatives considered? (5 pts)
-- [ ] Decision rationale? (5 pts)
-
-**Scoring:**
-- ✅ Full (20-25 pts): Có đầy đủ các items
-- ⚠️ Partial (10-19 pts): Thiếu 1-2 items
-- ❌ Missing (0-9 pts): Không có hoặc thiếu nhiều
-
-#### 2. Task Breakdown (25 points)
-
-**Tìm trong PR description hoặc commits:**
-- [ ] Tasks listed? (10 pts)
-- [ ] Estimates provided? (10 pts)
-- [ ] Logical order? (5 pts)
-
-**Scoring:**
-- ✅ Full (20-25 pts): Có tasks + estimates
-- ⚠️ Partial (10-19 pts): Có tasks, thiếu estimates
-- ❌ Missing (0-9 pts): Không có breakdown
-
-#### 3. TDD Compliance (25 points)
-
-**Analyze commit order:**
-```bash
-# Check if test files committed before/with implementation
-gh pr view $ARGUMENTS --json commits --jq '.commits[] | {sha: .oid[0:7], msg: .messageHeadline}'
-```
-
-**Criteria:**
-- [ ] Test files exist? (10 pts)
-- [ ] Tests committed before/with implementation? (10 pts)
-- [ ] Good test coverage (based on file ratio)? (5 pts)
-
-**Indicators:**
-- Test files: `*.test.ts`, `*.test.tsx`, `*.spec.ts`, `*Test.java`, `*IT.java`
-- Implementation: `*.ts`, `*.tsx`, `*.java` (excluding tests)
-
-**Scoring:**
-- ✅ Full (20-25 pts): Tests trước hoặc cùng lúc implementation
-- ⚠️ Partial (10-19 pts): Tests có nhưng sau implementation
-- ❌ Missing (0-9 pts): Không có tests hoặc rất ít
-
-#### 4. Code Review Quality (25 points)
-
-**Check PR description và comments:**
-- [ ] Self-review mentioned? (5 pts)
-- [ ] Test plan included? (10 pts)
-- [ ] Breaking changes noted? (5 pts)
-- [ ] Clean commit messages? (5 pts)
-
-**Scoring:**
-- ✅ Full (20-25 pts): Có test plan + clean commits
-- ⚠️ Partial (10-19 pts): Thiếu test plan hoặc messy commits
-- ❌ Missing (0-9 pts): No review evidence
+1. **LUÔN dùng scripts** — không chạy `gh run list` trực tiếp nếu có script
+2. **E2E verify ở local** — Docker phải up, chạy `./scripts/test-api-e2e.sh`
+3. **CI monitor bằng script** — `bash scripts/check-ci.sh [branch]`
+4. **Cleanup bằng script** — `bash scripts/cleanup-ci-runs.sh`
 
 ---
 
-### Bước 3: Output Quality Report
+## Step 1: Identify Target
+
+```bash
+# Nếu PR number:
+PR_NUMBER=$ARGUMENTS
+BRANCH=$(gh pr view $PR_NUMBER --json headRefName --jq '.headRefName')
+
+# Nếu branch name:
+BRANCH=$ARGUMENTS
+
+# Nếu không có argument:
+BRANCH=$(git branch --show-current)
+```
+
+---
+
+## Step 2: Monitor CI (bằng script)
+
+```bash
+# LUÔN dùng script
+bash scripts/check-ci.sh $BRANCH
+
+# Nếu timeout → tăng thời gian:
+bash scripts/check-ci.sh $BRANCH 15  # 15 phút timeout
+```
+
+**Script location:** `scripts/check-ci.sh`
+**Behavior:** Poll mỗi 15s, hiển thị status, exit 0 nếu all pass, exit 1 nếu fail.
+
+**Lưu ý:** Script check TẤT CẢ runs trên branch (kể cả cũ). Nếu có failure cũ → check timestamp để phân biệt.
+
+---
+
+## Step 3: Analyze Failures (nếu CI fail)
+
+```bash
+# Tìm failed run ID
+FAILED_RUN=$(gh run list --branch $BRANCH --limit 5 \
+  --json databaseId,workflowName,conclusion \
+  --jq '.[] | select(.conclusion=="failure") | .databaseId' | head -1)
+
+# Xem log lỗi
+gh run view $FAILED_RUN --log-failed 2>/dev/null | tail -30
+
+# Tìm root cause
+gh run view $FAILED_RUN --log-failed 2>/dev/null \
+  | grep -E "ERROR|FAIL|Compilation|cannot find|Tests run.*Failures: [1-9]|Tests run.*Errors: [1-9]" \
+  | head -10
+```
+
+---
+
+## Step 4: Local Verification (TRƯỚC khi merge)
+
+### 4a. E2E Tests (nếu Docker running)
+
+```bash
+# Check Docker status trước
+cd kitehub && ./scripts/status.sh --health 2>/dev/null
+
+# Nếu Docker up:
+./scripts/wait-for-healthy.sh
+./scripts/test-api-e2e.sh
+
+# Nếu Docker down → ghi nhận:
+# "⚠️ Docker not running — E2E skipped, rely on CI"
+```
+
+### 4b. Unit Tests (nếu JAVA_HOME available)
+
+```bash
+# KiteHub
+cd kitehub && JAVA_HOME=/home/vkiet/jdk/jdk-21 ./mvnw clean test -pl kitehub-subscription -am -q
+
+# KiteClass
+cd kiteclass/kiteclass-core && JAVA_HOME=/home/vkiet/jdk/jdk-21 ./mvnw clean test -q
+```
+
+### 4c. Frontend Build
+
+```bash
+cd kitehub/kitehub-frontend && pnpm build
+cd kiteclass/kiteclass-frontend && pnpm build
+```
+
+**Note:** Nếu không thể chạy local → ghi nhận và rely on CI. KHÔNG block merge vì thiếu local test — CI là minimum.
+
+---
+
+## Step 5: Output Report
 
 ```markdown
-## PR Quality Report: #<number>
+## PR Check Report: #[number] ([branch])
 
-**Title:** <PR title>
-**Author:** <author>
-**Status:** <Open/Merged/Closed>
-**Created:** <date>
-**Merged:** <date or N/A>
+### CI Status
+- [ ] All workflows: ✅/❌ (via `scripts/check-ci.sh`)
+- Failed: [list if any]
 
----
+### Local Verification
+- [ ] E2E tests: ✅/❌/⏭️ skipped (Docker: up/down)
+- [ ] Unit tests: ✅/❌/⏭️ skipped (JAVA_HOME: set/unset)
+- [ ] Frontend build: ✅/❌/⏭️ skipped
 
-### Summary
+### Issues Found
+[Any failures with root cause]
 
-| Category | Score | Status |
-|----------|-------|--------|
-| Brainstorm | X/25 | ✅/⚠️/❌ |
-| Task Breakdown | X/25 | ✅/⚠️/❌ |
-| TDD Compliance | X/25 | ✅/⚠️/❌ |
-| Code Review | X/25 | ✅/⚠️/❌ |
-| **Total** | **X/100** | **Grade** |
-
-### Grade Scale
-- 90-100: A (Excellent) - Superpowers fully applied
-- 80-89: B (Good) - Minor improvements needed
-- 70-79: C (Acceptable) - Some methodology gaps
-- 60-69: D (Needs Work) - Significant gaps
-- <60: F (Failed) - Methodology not followed
-
----
-
-### Detailed Analysis
-
-#### 1. Brainstorm (X/25)
-- Scope: ✅/❌ [details]
-- Risks: ✅/❌ [details]
-- Edge Cases: ✅/❌ [details]
-- Alternatives: ✅/❌ [details]
-- Rationale: ✅/❌ [details]
-
-#### 2. Task Breakdown (X/25)
-- Tasks Listed: ✅/❌ [count]
-- Estimates: ✅/❌ [details]
-- Order: ✅/❌ [details]
-
-#### 3. TDD Compliance (X/25)
-- Test Files: ✅/❌ [count]
-- Test-First Order: ✅/❌ [analysis]
-- Coverage Ratio: X% (tests/total files)
-
-**Commit Timeline:**
-| Order | Commit | Type |
-|-------|--------|------|
-| 1 | abc1234 - Add tests | Test ✅ |
-| 2 | def5678 - Implement | Code |
-| ... | ... | ... |
-
-#### 4. Code Review (X/25)
-- Self-Review: ✅/❌
-- Test Plan: ✅/❌
-- Breaking Changes: ✅/❌/N/A
-- Commit Quality: ✅/❌
-
----
-
-### Files Changed
-
-**Total:** X files (+Y/-Z lines)
-
-| Type | Count | Files |
-|------|-------|-------|
-| Tests | X | file1.test.ts, ... |
-| Implementation | Y | file2.ts, ... |
-| Config | Z | ... |
-
----
-
-### Recommendations
-
-[List specific improvements for future PRs]
-
-1. **[Category]:** [Specific recommendation]
-2. **[Category]:** [Specific recommendation]
-
----
-
-### Next Steps
-
-If score < 80, run `/fix-pr $ARGUMENTS` to create improvement plan.
+### Verdict
+✅ Ready to merge
+❌ Fix needed: [description]
+⚠️ Conditional: CI pass but local not verified
 ```
 
 ---
 
-## Quality Thresholds
+## Step 6: Cleanup (sau merge)
 
-### Minimum Acceptable (Grade C = 70+)
+```bash
+# Clean stale branches
+git remote prune origin
 
-- Brainstorm: At least scope defined
-- Task Breakdown: Tasks listed (estimates optional)
-- TDD: Tests exist (order flexible)
-- Code Review: Test plan present
+# Clean worktrees
+rm -rf .claude/worktrees/agent-* 2>/dev/null
+git worktree prune
 
-### Target Quality (Grade A = 90+)
+# Check remaining
+git branch -r | grep -v "main\|HEAD\|wave/" | wc -l
+```
 
-- Brainstorm: Full analysis with alternatives
-- Task Breakdown: Tasks with estimates
-- TDD: Tests committed before implementation
-- Code Review: Self-review + test plan + clean commits
+---
+
+## Integration với Wave Process
+
+```
+Per PR:  /check-pr [PR-number]          ← Sau agent tạo PR
+Wave:    /check-pr wave/X               ← Sau merge tất cả PRs vào wave
+Main:    /check-pr main                 ← Sau merge wave → main
+Full:    /wave-completion-check [X]     ← 6-level check
+```

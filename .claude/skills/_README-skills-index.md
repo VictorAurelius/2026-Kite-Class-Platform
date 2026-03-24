@@ -66,7 +66,8 @@
 
 | File/Folder | Mo ta |
 |-------------|-------|
-| `continue/SKILL.md` | /continue skill - resume interrupted work |
+| `continue/SKILL.md` | /continue — resume PR ưu tiên nhất |
+| `check-pr/SKILL.md` | /check-pr — monitor CI + verify PR bằng scripts |
 | `check-pr/` | /check-pr skill |
 | `fix-pr/` | /fix-pr skill |
 | `start-pr/` | /start-pr skill |
