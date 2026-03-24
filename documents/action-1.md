@@ -154,3 +154,7 @@ ngoài ra tôi cần check lại chất lượng của wave 7 và wave 8 nữa:
 2. đã đúng chuẩn workflow của wave chưa? đang chưa thấy
 
 đưa tất cả action tiếp theo này thành các PR lẻ nằm trong wave 9 và thực hiện
+
+lại vi phạm rule monitor CI rồi?
+
+đang thực hiện hết từ P0 đến P4 và 2 yêu cầu thêm của tôi về wave 7,8 chưa?
