@@ -140,7 +140,41 @@ cd kiteclass/kiteclass-frontend && pnpm build
 
 ---
 
-## Step 6: Cleanup (sau merge)
+## Step 6: Merge (CHỈ khi verdict = ✅)
+
+**KHÔNG merge nếu verdict = ❌ hoặc ⚠️ chưa resolve.**
+
+### 6a. Xác nhận user approve
+
+Hỏi user: "Verdict ✅ — merge PR #[number]?" — KHÔNG tự merge.
+
+### 6b. Merge theo context
+
+```bash
+# PR agent → wave branch:
+gh pr merge [number] --squash --delete-branch
+
+# Wave → main (sau wave-completion-check pass):
+gh pr merge [number] --squash --delete-branch
+git checkout main && git pull
+
+# Hotfix → main (khẩn cấp):
+gh pr merge [number] --squash --delete-branch
+```
+
+### 6c. Verify sau merge
+
+```bash
+# Sync local
+git checkout [target-branch] && git pull
+
+# Verify CI triggered trên target
+bash scripts/check-ci.sh [target-branch] 3
+```
+
+---
+
+## Step 7: Cleanup (sau merge)
 
 ```bash
 # Clean stale branches
@@ -151,7 +185,8 @@ rm -rf .claude/worktrees/agent-* 2>/dev/null
 git worktree prune
 
 # Check remaining
-git branch -r | grep -v "main\|HEAD\|wave/" | wc -l
+echo "Stale branches:" && git branch -r | grep -v "main\|HEAD\|wave/" | wc -l
+echo "Open PRs:" && gh pr list --state open --json number --jq 'length'
 ```
 
 ---
