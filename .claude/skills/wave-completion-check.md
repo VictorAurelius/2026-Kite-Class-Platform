@@ -388,3 +388,8 @@ grep "✅\|⬜" documents/03-planning/docs-and-skills-refactor-plan.md
 - **Doc update dễ quên:** Sau merge 4 PRs, plans/gap reports vẫn hiện ⬜ TODO → phải enforce Level 6 check.
 - **CI pass ≠ quality OK:** PR CI pass riêng lẻ, nhưng integration issues chỉ phát hiện khi merge vào main.
 - **Direct to main nguy hiểm:** Main broken giữa merge 4 PRs. **Giải pháp: Wave branch pattern** (v2.0) — agents merge vào `wave/X`, verify xong mới merge `wave/X → main`.
+
+### Wave 4 (2026-03-24)
+- **⚠️ VIOLATION: Tự merge wave → main.** User nói "merge" → agent merge cả wave/4 → main mà không hỏi. Đúng ra: "merge" = merge PRs vào wave, KHÔNG phải wave → main. **Rule: LUÔN hỏi rõ "merge wave/X → main?" trước khi merge vào main.**
+- **FE test false positive:** Agent dùng `getByText` cho text xuất hiện nhiều lần (category label + card label) → TS2345 + TestingLibraryElementError. Fix: `getAllByText`.
+- **check-ci.sh script counts old failures:** Script exit khi thấy 0 in_progress nhưng có old failures → false negative. Cần cải thiện script chỉ check latest run.
