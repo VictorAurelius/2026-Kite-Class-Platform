@@ -48,6 +48,52 @@
 
 ---
 
+## TeacherClassController — `/api/v1/classes/{classId}/teachers`
+
+### POST /api/v1/classes/{classId}/teachers
+**Use Case:** UC-TCH-07  |  **Auth:** Bearer token  |  **Role:** ADMIN, OWNER, CREATOR
+```json
+// Request
+{ "teacherId": "long", "role": "MAIN_TEACHER | ASSISTANT" }
+// Response 200
+{ "success": true, "data": { "classId": "long", "teacherId": "long", "role": "string" } }
+```
+| Status | Code | Message |
+|--------|------|---------|
+| 400 | Teacher not ACTIVE | "Only active teachers can be assigned to new classes" |
+| 409 | Already assigned | "Teacher already assigned to this class" |
+
+### DELETE /api/v1/classes/{classId}/teachers/{teacherId}
+**Use Case:** UC-TCH-07  |  **Auth:** Bearer token  |  **Role:** ADMIN, OWNER
+- **Response 200:** `ApiResponse<Void>`
+- **404:** `TEACHER_NOT_FOUND` — "Teacher not found in class"
+
+> **Note — UC-TCH-08 (Independent Teacher/Owner Flow):** No dedicated endpoint. OWNER role bypasses all `teacher_classes` permission checks automatically (BR-TCH-007). Owner auto-assigned as CREATOR on course creation and MAIN_TEACHER on class creation.
+
+---
+
+## Internal Teacher API — `/internal/teachers`
+
+### GET /internal/teachers/{id}
+**Use Case:** UC-TCH-09  |  **Auth:** Internal service token
+- **Response 200:** `TeacherResponse`
+- **404:** Teacher not found
+
+### POST /internal/teachers
+**Use Case:** UC-TCH-09  |  **Auth:** Internal service token
+```json
+// Request
+{ "name": "string", "email": "string", "instanceId": "uuid" }
+// Response 201
+{ "id": "long", "name": "string", "email": "string", "status": "ACTIVE" }
+```
+
+### DELETE /internal/teachers/{id}
+**Use Case:** UC-TCH-09  |  **Auth:** Internal service token
+- **Response 204:** No content
+
+---
+
 ## Common Response Wrapper
 
 All endpoints return `ApiResponse<T>`:

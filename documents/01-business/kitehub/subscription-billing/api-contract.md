@@ -92,3 +92,17 @@
 ## GET /api/platform/subscriptions/expiring
 **Auth:** Bearer token (Admin)
 **Response 200:** `[SubscriptionResponse]` (expiring in next 30 days)
+
+---
+
+## Note: UC-SUB-06 — Automated Expiration Scheduler (no HTTP endpoint)
+
+`SubscriptionExpirationChecker` runs daily (scheduler-triggered, no endpoint):
+
+| Time | Action |
+|------|--------|
+| 9 AM | Scan ACTIVE subscriptions expiring in 7/3/1 days → send `renewal-reminder` emails |
+| 10 AM | Mark expired ACTIVE subscriptions → `EXPIRED` |
+| 10 AM | Suspend instances if grace period (3 days) elapsed (SUB-04) |
+
+Monitor via `GET /api/platform/subscriptions/expiring` and instance status.

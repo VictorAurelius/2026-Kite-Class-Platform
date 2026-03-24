@@ -15,10 +15,10 @@
 
 **Steps:**
 1. FE: User selects file to upload
-2. FE: Send POST `/upload-url` with file metadata (fileName, fileSize, mimeType, fileType, accessLevel)
+2. FE: Send POST `/upload-url` with file metadata (fileName, fileSize, mimeType, fileType, accessLevel defaults to PRIVATE per BR-STR-014); follows presigned URL upload flow (BR-STR-001)
 3. System: Validate MIME type against whitelist per BR-STR-005
 4. System: Validate file size <= 100 MB per BR-STR-004
-5. System: Check tenant quota per BR-STR-009 (PENDING files count)
+5. System: Check tenant quota per BR-STR-009 (PENDING files count); file scoped by instance_id per BR-STR-010
 6. System: Create `uploaded_files` record with status=PENDING, set `expires_at` = now + 30min
 7. System: Update quota usage immediately (+fileSize) per BR-STR-009
 8. System: Generate presigned PUT URL (30min TTL) per BR-STR-002
@@ -53,7 +53,7 @@
 **Steps:**
 1. FE: Request GET `/{fileId}/download-url` with X-User-Id and X-Tenant-Id headers
 2. System: Find file, verify status is CONFIRMED
-3. System: Check access control per BR-STR-011/012/013:
+3. System: Check access control per BR-STR-011, BR-STR-012, BR-STR-013:
    - PUBLIC: Allow all
    - PRIVATE: Only uploader (match X-User-Id with uploaderId)
    - TENANT: Same tenant only (match X-Tenant-Id with file's instanceId)
@@ -126,5 +126,10 @@
 2. For each file: delete S3 object, then hard delete DB record
 3. Log success/failure counts
 4. Continue on individual failures (don't abort batch)
+
+**Steps (recalculateQuotaUsage — admin trigger / drift correction):**
+1. Sum actual file sizes from DB (CONFIRMED files only) per tenant
+2. Correct quota used_bytes to match actual total (BR-STR-016)
+3. Log count of tenants recalculated
 
 **Postcondition:** Expired uploads marked, old deleted files purged from S3 and DB

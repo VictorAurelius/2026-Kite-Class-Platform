@@ -53,3 +53,14 @@
 **Errors:**
 - 400: invalid days value
 - 404: instance not found
+
+---
+
+## Note on Automated Use Cases (no HTTP endpoint)
+
+| Use Case | Trigger | Description |
+|----------|---------|-------------|
+| UC-TR-02 | `TrialExpirationCheckerScheduler` (daily) | Check trial instances past expiry date → suspend instance |
+| UC-TR-03 | `TrialExpirationCheckerScheduler` (daily) | Send trial expiration warning emails (3 days before, 1 day before) |
+
+These lifecycle transitions are scheduler-triggered — no HTTP endpoint. Trial status is visible via `GET /api/platform/instances/{id}/trial-status`.
