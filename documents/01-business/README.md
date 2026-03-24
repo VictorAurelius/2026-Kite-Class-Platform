@@ -83,7 +83,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | data-retention | ✅ | ❌ | ❌ | 2026-03-24 |
 | ai-branding | ✅ | ❌ | ❌ | 2026-03-24 |
 
-#### KiteClass (9 domains × 3 layers = 27 files ✅)
+#### KiteClass (12 domains × 3 layers = 36 files ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |
 |--------|-------|-----------|-------------|---------------|
 | student-enrollment | ✅ | ✅ | ✅ | 2026-03-24 |
@@ -95,3 +95,6 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | gamification-points | ✅ | ✅ | ✅ | 2026-03-24 |
 | notification-email | ✅ | ✅ | ✅ | 2026-03-24 |
 | tenant-settings | ✅ | ✅ | ✅ | 2026-03-24 |
+| lms | ✅ | ✅ | ✅ | 2026-03-24 |
+| marketing | ✅ | ✅ | ✅ | 2026-03-24 |
+| storage | ✅ | ✅ | ✅ | 2026-03-24 |

@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Profile;
 @Profile("prod")
 public class SecurityConfigValidator {
 
-    private static final Logger log = LoggerFactory.getLogger(SecurityConfigValidator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityConfigValidator.class);
 
     @Value("${spring.datasource.password:}")
     private String dbPassword;
@@ -35,6 +35,6 @@ public class SecurityConfigValidator {
             throw new IllegalStateException(
                 "SECURITY: Internal API secret must not be blank or default value in production");
         }
-        log.info("Security configuration validated successfully");
+        LOG.info("Security configuration validated successfully");
     }
 }
