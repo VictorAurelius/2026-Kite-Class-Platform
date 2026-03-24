@@ -39,6 +39,11 @@ server:
 # provider: "ollama" (local) or "openai" (cloud)
 ai:
   provider: ${AI_PROVIDER:openai}
+  rate-limit:
+    free-per-day: 3
+    basic-per-day: 10
+    premium-per-day: 50
+    enterprise-per-day: -1
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://kitehub-ollama:11434}
     text-model: ${OLLAMA_TEXT_MODEL:llama3.1:8b}
