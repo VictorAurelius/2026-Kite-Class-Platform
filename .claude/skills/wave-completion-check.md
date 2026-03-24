@@ -283,6 +283,27 @@ ls documents/01-business/kitehub/
 # Verify: business docs match new config values
 ```
 
+#### Business Doc Verification
+- Mỗi PR trong wave có thay đổi business logic → check business doc đi kèm
+- Nếu business doc thiếu → flag as BLOCKER (không merge wave vào main)
+- Cross-reference: đếm domains có code vs domains có doc trong 01-business/
+
+```bash
+# 3. Business doc coverage check
+echo "=== Services with business logic ==="
+ls -d kitehub/kitehub-*/src/main/java/com/kitehub/*/service/ 2>/dev/null | sed 's|.*kitehub-||;s|/src.*||' | sort -u
+echo "=== Business docs ==="
+ls documents/01-business/kitehub/ 2>/dev/null || echo "NO BUSINESS DOCS FOUND"
+# Verify: mỗi service có doc tương ứng
+
+# 4. Config keys in business docs vs code
+echo "=== Config keys in code ==="
+grep -rn "@Value.*kitehub\.\|@ConfigurationProperties" kitehub/kitehub-*/src/main --include="*.java" | grep -v test
+echo "=== Config in business docs ==="
+grep -rn "kitehub\." documents/01-business/ 2>/dev/null || echo "NO CONFIG IN BUSINESS DOCS"
+# Verify: mọi config key trong code có trong business doc
+```
+
 ---
 
 ## Output Report

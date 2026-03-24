@@ -110,3 +110,37 @@ cấu trúc folder của dự án ở đây tôi muốn nói là các folder nh�
 merge và tạo PR mới để sắp xếp lại theo best practice, lưu ý không để ảnh hướng đến chất lượng file
 
 để tránh việc loạn cấu trúc folder sau này, tạo skill check khi commit có tạo folder mới thì check xem có phù hợp không
+
+business logic của toàn bộ dự án theo rule, skills chỉ nằm trong đây thôi à: documents\01-business
+
+check lại kết quả PR về business-logic xử lý như nào trong wave, nó nằm trong wave mấy nhỉ?
+
+vậy là đã đánh giá chất lượng wave không đúng?
+
+tạo 1 wave riêng để fix hết gaps của business-logic
+business-logic là phần cực kỳ quan trọng, độ ưu tiên cao nhất, lỗi này thực sự rất lớn
+
+ngoài ra vẫn chưa có phương án xử lý hợp lý cho các docs phân tán đã đề cập trước đó ở các folder khác: 
+1. kiteclass\docs
+2. kiteclass\kiteclass-core\docs
+3. kiteclass\kiteclass-frontend\docs
+4. kiteclass\kiteclass-gateway\docs
+5. kiteclass
+
+cần có best practice để xử lý
+
+ngoài gaps về business-logic hãy đánh giá lại còn gaps nào nữa
+
+khi bắt đầu 1 session mới, sẽ có nhiều rule, context, skills mà claude cần nắm được để triển khai, vậy CLAUDE.md đã đáp ứng được chưa?
+
+README.md cũng có vẻ outdated nặng, ví dụ: - KiteHub Setup Guide _(future)_
+
+cần có skill để nhắc về các docs có khả năng cập nhật liên tục theo PR và wave
+
+1. kiteclass\docs
+2. kiteclass\kiteclass-core\docs
+3. kiteclass\kiteclass-frontend\docs
+4. kiteclass\kiteclass-gateway\docs
+5. kiteclass
+
+chốt phương án xử lý những docs này như nào nhỉ?

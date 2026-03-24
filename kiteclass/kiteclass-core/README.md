@@ -1,3 +1,5 @@
+> **Business Logic Documentation:** See [documents/01-business/kiteclass/](../../documents/01-business/kiteclass/) — Source of Truth
+
 # KiteClass Core Service
 
 KiteClass Core is the main backend service for the KiteClass education management platform.

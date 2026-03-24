@@ -7,6 +7,16 @@
 - Code comments can be in English (standard practice)
 - Commit messages should be in English (git convention)
 
+## Project Overview
+
+**Kite Platform** = 2 products sharing infrastructure:
+- **KiteHub** — SaaS platform quản lý education instances (6 backend services + gateway + frontend)
+- **KiteClass** — Multi-tenant education platform (core + gateway + frontend), mỗi tenant là 1 trường học
+
+**Architecture:** KiteHub quản lý lifecycle (trial, subscription, billing, domain). KiteClass xử lý nghiệp vụ giáo dục (student, course, class, attendance, grade, payment).
+
+**Shared infrastructure:** PostgreSQL, Redis, RabbitMQ, MinIO — tất cả dùng prefix `kite-` (KHÔNG phải `kitehub-`).
+
 ## CRITICAL: Superpowers Methodology for Every PR
 
 **MẶC ĐỊNH: Mỗi PR PHẢI dùng Superpowers methodology**
@@ -71,6 +81,29 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 - Test locally before pushing to CI
 - Use `./scripts/test-local.sh` for testing
 
+## CRITICAL: Wave Branch Strategy
+
+**MỌI thay đổi PHẢI qua PR**, KHÔNG merge trực tiếp vào main.
+
+```bash
+# ✅ CORRECT workflow
+git checkout -b wave/X          # hoặc feature/description
+# ... làm việc ...
+git push -u origin wave/X
+gh pr create --base main        # Tạo PR
+gh pr merge N --squash          # Squash merge sau review
+
+# ❌ WRONG
+git checkout main && git merge wave/X && git push  # KHÔNG!
+```
+
+**Wave strategy cho parallel work:**
+1. Tạo `wave/X` branch từ main
+2. Agents làm song song (worktree isolation)
+3. Cherry-pick commits vào wave/X
+4. Tạo PR: wave/X → main (squash merge)
+5. Quality check TRƯỚC khi merge
+
 ## CRITICAL: Business Logic Documents
 
 **Location:** `documents/01-business/` — SOURCE OF TRUTH cho business rules
@@ -80,6 +113,20 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 - Doc và code PHẢI cùng PR — đổi logic = đổi doc trong cùng commit
 - KHÔNG hardcode business rules — luôn dùng config key từ doc
 - TRƯỚC KHI code module mới → tạo business doc TRƯỚC (`/pre-flight-check domain`)
+
+## CRITICAL: Living Documents
+
+Các docs sau PHẢI update liên tục theo mỗi PR/wave:
+
+| Doc | Update khi |
+|-----|-----------|
+| `README.md` | Thêm/xóa folder, service, tech stack |
+| `CLAUDE.md` | Thay đổi quy trình, convention, skill |
+| `documents/01-business/*.md` | Thay đổi business logic, config |
+| `documents/01-business/README.md` | Thêm/xóa business doc |
+| `.claude/skills/_README-skills-index.md` | Thêm/xóa/rename skill |
+
+**Rule:** Nếu PR thay đổi business logic nhưng KHÔNG update business doc → PR KHÔNG đạt quality check.
 
 ## Skills Reference
 
@@ -109,3 +156,38 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `workflow/check-pr/` - /check-pr skill
 - `workflow/fix-pr/` - /fix-pr skill
 - `workflow/start-pr/` - /start-pr skill
+
+## Project Folder Structure
+
+```
+2026-Kite-Class-Platform/
+├── .claude/               # Skills, scripts, hooks
+├── .github/               # CI/CD workflows (8 files)
+├── documents/             # Documentation
+│   ├── 01-business/       # Business logic (SOURCE OF TRUTH)
+│   ├── 02-architecture/   # Technical architecture
+│   ├── 03-planning/       # Plans, PRs, strategies
+│   ├── 04-quality/        # Audits, gap checks
+│   ├── 05-guides/         # Deploy guides, operations
+│   ├── 06-diagrams/       # PlantUML + rendered PNG
+│   ├── 07-archived/       # Old docs, research
+│   └── 08-thesis/         # Graduation project refs
+├── infrastructure/        # DevOps
+│   ├── helm/              # Kubernetes Helm charts
+│   ├── k8s/               # K8s manifests
+│   ├── terraform-aws/     # AWS infrastructure
+│   └── terraform-oracle/  # Oracle Cloud
+├── kiteclass/             # KiteClass (core + gateway + frontend)
+├── kitehub/               # KiteHub (6 services + gateway + frontend)
+└── scripts/               # Root CI/QA scripts
+```
+
+## Docker Naming Convention
+
+| Prefix | Dùng cho | Ví dụ |
+|--------|---------|-------|
+| `kite-` | Shared infrastructure | `kite-postgres`, `kite-redis`, `kite-gateway` |
+| `kitehub-` | KiteHub services | `kitehub-subscription`, `kitehub-branding` |
+| `kiteclass-` | KiteClass services | `kiteclass-core`, `kiteclass-frontend` |
+
+**Canonical compose file:** `kitehub/docker-compose.kitehub.yml`

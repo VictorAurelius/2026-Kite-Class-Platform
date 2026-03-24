@@ -7,17 +7,18 @@
 ```
 documents/01-business/          ← TẤT CẢ business logic ở đây
 ├── README.md                   ← File này (index + quy tắc)
-├── kitehub/                    ← KiteHub platform
-│   ├── trial-lifecycle.md
-│   ├── subscription-billing.md
-│   ├── email-lifecycle.md
-│   ├── domain-management.md
-│   └── data-retention.md
-└── kiteclass/                  ← KiteClass core
+├── kitehub/                    ← KiteHub platform (7 docs)
+│   └── trial-lifecycle.md      ← (+ 6 planned)
+└── kiteclass/                  ← KiteClass core (9 docs)
     ├── student-enrollment.md
-    ├── attendance-flow.md
-    ├── payment-flow.md
-    └── ...
+    ├── course-class.md
+    ├── attendance.md
+    ├── grade-assignment.md
+    ├── payment-invoice.md
+    ├── teacher.md
+    ├── notification-email.md
+    ├── tenant-settings.md
+    └── gamification-points.md
 ```
 
 **KHÔNG lưu trong:**
@@ -102,12 +103,18 @@ kitehub:
 
 ### 5. Index — Documents hiện có
 
-#### KiteHub
+#### KiteHub (7)
 | Document | Status | Last Verified |
 |----------|--------|---------------|
-| (chưa tạo — migrate từ analysis) | | |
+| `kitehub/trial-lifecycle.md` | Done | 2026-03-24 |
+| `kitehub/subscription-billing.md` | Planned | — |
+| `kitehub/email-lifecycle.md` | Planned | — |
+| `kitehub/instance-provisioning.md` | Planned | — |
+| `kitehub/domain-management.md` | Planned | — |
+| `kitehub/data-retention.md` | Planned | — |
+| `kitehub/ai-branding.md` | Planned | — |
 
-#### KiteClass
+#### KiteClass (9)
 | Document | Status | Last Verified |
 |----------|--------|---------------|
 | `kiteclass/student-enrollment.md` | Done | 2026-03-24 |
@@ -116,3 +123,6 @@ kitehub:
 | `kiteclass/grade-assignment.md` | Done | 2026-03-24 |
 | `kiteclass/payment-invoice.md` | Done | 2026-03-24 |
 | `kiteclass/teacher.md` | Done | 2026-03-24 |
+| `kiteclass/notification-email.md` | Done | 2026-03-24 |
+| `kiteclass/tenant-settings.md` | Done | 2026-03-24 |
+| `kiteclass/gamification-points.md` | Done | 2026-03-24 |
