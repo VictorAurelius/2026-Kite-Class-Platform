@@ -12,7 +12,8 @@
 #   ./contribute.sh /path/to/project "Lý do đề xuất"
 #   ./contribute.sh /path/to/project "Cải thiện TDD skill" --file skills/core/tdd-enforcement.md
 #   ./contribute.sh --list                    # Xem proposals đang chờ
-#   ./contribute.sh --apply <proposal-id>     # Apply proposal đã review
+#   ./contribute.sh --apply <proposal-id>          # Apply proposal (interactive confirm)
+#   ./contribute.sh --apply <proposal-id> --yes   # Apply without confirm (CI/Claude safe)
 
 set -euo pipefail
 
@@ -42,6 +43,8 @@ fi
 # ─── Apply approved proposal ───
 if [ "${1:-}" = "--apply" ]; then
     PROPOSAL_ID="${2:-}"
+    YES_FLAG=false
+    [ "${3:-}" = "--yes" ] && YES_FLAG=true
     PROPOSAL_FILE="$PROPOSAL_DIR/${PROPOSAL_ID}.proposal"
 
     if [ ! -f "$PROPOSAL_FILE" ]; then
@@ -55,12 +58,14 @@ if [ "${1:-}" = "--apply" ]; then
     echo "═══════════════════════════════════════════════"
     cat "$PROPOSAL_FILE"
     echo ""
-    read -p "Confirm apply? This will update kit files. [y/N] " -n 1 -r
-    echo ""
 
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Cancelled."
-        exit 0
+    if ! $YES_FLAG; then
+        read -p "Confirm apply? This will update kit files. [y/N] " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Cancelled."
+            exit 0
+        fi
     fi
 
     # Apply diffs from proposal

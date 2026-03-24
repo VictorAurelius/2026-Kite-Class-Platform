@@ -105,7 +105,9 @@ ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT_SECONDS ]; do
     RUNS=$(fetch_runs)
 
-    clear
+    # Use separator instead of clear (clear breaks non-interactive shells like Claude Code)
+    echo ""
+    echo "--- poll $(date +%H:%M:%S) ---"
     display_status "$RUNS"
     echo ""
     printf "Elapsed: %d/%d seconds\n" "$ELAPSED" "$TIMEOUT_SECONDS"

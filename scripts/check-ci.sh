@@ -102,7 +102,8 @@ ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT_SECONDS ]; do
     RUNS=$(fetch_runs)
 
-    clear
+    echo ""
+    echo "--- poll $(date +%H:%M:%S) ---"
     display_status "$RUNS"
     echo ""
     printf "⏱️  Elapsed: %d/%d seconds\n" "$ELAPSED" "$TIMEOUT_SECONDS"
