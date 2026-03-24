@@ -138,13 +138,39 @@ release/v1.0.0
 **⏳ WORKFLOW:**
 1. AI: Create feature branch: `git checkout -b feature/PR-X.X-name`
 2. AI: Implement feature → commit locally
-3. AI: Ask user: "Đã sẵn sàng push lên remote và tạo PR?"
-4. **User**: Confirm "yes" hoặc request changes
-5. AI: Push to remote: `git push -u origin feature/branch`
-6. AI: Create PR: `gh pr create --title "..." --body "..."`
-7. AI: Return PR URL to user
+3. **AI: RUN LOCAL TESTS TRƯỚC KHI PUSH** (xem bước 3 chi tiết bên dưới)
+4. AI: Ask user: "Tests pass, sẵn sàng push?"
+5. **User**: Confirm "yes" hoặc request changes
+6. AI: Push to remote: `git push -u origin feature/branch`
+7. AI: Create PR: `gh pr create --title "..." --body "..."`
+8. AI: Monitor CI via `scripts/check-ci.sh` (background)
+9. AI: Return PR URL to user
 
 **IMPORTANT:** Always ask before pushing to remote, even with GitHub CLI
+
+### Bước 3: Self-Test Trước Khi Push (BẮT BUỘC)
+
+**KHÔNG BAO GIỜ push code chưa test local.** CI là safety net, không phải nơi phát hiện lỗi lần đầu.
+
+```bash
+# Backend (nếu có Java changes):
+cd kiteclass/kiteclass-core && JAVA_HOME=$JAVA_HOME ./mvnw compile -q    # Compile check
+cd kiteclass/kiteclass-core && JAVA_HOME=$JAVA_HOME ./mvnw test -q       # Unit tests
+# Hoặc nếu JAVA_HOME không set: chỉ chạy checkstyle
+cd kiteclass/kiteclass-core && JAVA_HOME=$JAVA_HOME ./mvnw checkstyle:check -q
+
+# Frontend (nếu có TS/TSX changes):
+cd kiteclass/kiteclass-frontend && npx vitest run --reporter=verbose 2>&1 | tail -20
+
+# Gateway (nếu có gateway changes):
+cd kiteclass/kiteclass-gateway && JAVA_HOME=$JAVA_HOME ./mvnw compile -q
+```
+
+**Nếu JAVA_HOME không available:** tối thiểu phải kiểm tra:
+- Checkstyle rules (grep pattern matching cho ConstantName, wildcard imports)
+- ESLint cho frontend: `npx eslint src/ --quiet`
+
+**Nếu test fail → fix TRƯỚC khi push.** Không push code broken lên CI.
 
 ---
 
