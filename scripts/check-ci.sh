@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./scripts/check-ci.sh [branch-name] [timeout-minutes]
 
 BRANCH="${1:-$(git branch --show-current)}"
-TIMEOUT_MINUTES="${2:-10}"
+TIMEOUT_MINUTES="${2:-15}"
 POLL_INTERVAL=15 # seconds
 
 echo "🔍 Checking CI status for branch: $BRANCH"
