@@ -1,243 +1,287 @@
 #!/bin/bash
 # upgrade-project.sh — Import starter-kit vào dự án đã có skills
 #
-# Khác với init-project.sh:
-#   - KHÔNG overwrite files đã tồn tại
-#   - So sánh diff và hỏi trước khi merge
-#   - Hỗ trợ selective import (chỉ scripts, chỉ skills, etc.)
+# Plan-based flow (không dùng interactive prompt):
+#   1. --plan  → scan + tạo upgrade-plan.md (user review)
+#   2. --apply → apply theo plan đã review
+#   3. --force → apply tất cả không cần plan
 #
 # Usage:
-#   ./upgrade-project.sh /path/to/existing-project              # Interactive
-#   ./upgrade-project.sh /path/to/existing-project --scripts    # Chỉ scripts
-#   ./upgrade-project.sh /path/to/existing-project --skills     # Chỉ skills
-#   ./upgrade-project.sh /path/to/existing-project --memory     # Chỉ memories
-#   ./upgrade-project.sh /path/to/existing-project --dry-run    # Preview only
-#   ./upgrade-project.sh /path/to/existing-project --force      # Overwrite all
+#   ./upgrade-project.sh /path/to/project --plan              # Tạo plan
+#   ./upgrade-project.sh /path/to/project --plan --scripts    # Plan chỉ scripts
+#   ./upgrade-project.sh /path/to/project --apply             # Apply plan
+#   ./upgrade-project.sh /path/to/project --force             # Apply all, no plan
+#   ./upgrade-project.sh /path/to/project --dry-run           # Preview (= --plan nhưng không ghi file)
 
-set -euo pipefail
+set -uo pipefail
 
 TARGET="${1:-.}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+MODE="plan"  # default
 ONLY_SCRIPTS=false
 ONLY_SKILLS=false
 ONLY_MEMORY=false
-DRY_RUN=false
-FORCE=false
 
 for arg in "${@:2}"; do
     case "$arg" in
+        --plan) MODE="plan" ;;
+        --apply) MODE="apply" ;;
+        --force) MODE="force" ;;
+        --dry-run) MODE="dry-run" ;;
         --scripts) ONLY_SCRIPTS=true ;;
         --skills) ONLY_SKILLS=true ;;
         --memory) ONLY_MEMORY=true ;;
-        --dry-run) DRY_RUN=true ;;
-        --force) FORCE=true ;;
     esac
 done
 
-# If no specific flag → do all
 ALL=true
 $ONLY_SCRIPTS || $ONLY_SKILLS || $ONLY_MEMORY && ALL=false
 
 KIT_VERSION=$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "unknown")
-
-# Check installed version
 INSTALLED_VERSION="none"
-if [ -f "$TARGET/.claude/.starter-kit-version" ]; then
-    INSTALLED_VERSION=$(cat "$TARGET/.claude/.starter-kit-version" | tr -d '[:space:]')
-fi
+[ -f "$TARGET/.claude/.starter-kit-version" ] && INSTALLED_VERSION=$(cat "$TARGET/.claude/.starter-kit-version" | tr -d '[:space:]')
 
-echo "═══════════════════════════════════════════════"
-echo "  Upgrade Existing Project from Starter Kit"
-echo "═══════════════════════════════════════════════"
-echo "  Target:    $TARGET"
-echo "  Kit:       v$KIT_VERSION"
-echo "  Installed: v$INSTALLED_VERSION"
-$DRY_RUN && echo "  Mode:      DRY RUN"
-$FORCE && echo "  Mode:      FORCE (overwrite all)"
-echo ""
-
-if [ "$INSTALLED_VERSION" = "$KIT_VERSION" ] && ! $FORCE; then
-    echo "  ✅ Already on latest version (v$KIT_VERSION)"
-    echo "     Use --force to re-apply"
-    exit 0
-fi
-
+PLAN_FILE="$TARGET/.claude/upgrade-plan.md"
 ADDED=0
 UPDATED=0
 SKIPPED=0
 CONFLICTS=0
 
-# Smart copy: compare before overwrite
-smart_copy() {
-    local src="$1"
-    local dst="$2"
-    local label="$3"
+echo "═══════════════════════════════════════════════"
+echo "  Starter Kit Upgrade (v$INSTALLED_VERSION → v$KIT_VERSION)"
+echo "═══════════════════════════════════════════════"
+echo "  Target: $TARGET"
+echo "  Mode:   $MODE"
+echo ""
 
-    if [ ! -f "$dst" ]; then
-        # New file — always copy
-        echo "  ➕ NEW: $label"
-        if ! $DRY_RUN; then
-            mkdir -p "$(dirname "$dst")"
-            cp "$src" "$dst"
-            [ "${dst##*.}" = "sh" ] && chmod +x "$dst"
-        fi
-        ((ADDED++))
-        return
-    fi
+if [ "$INSTALLED_VERSION" = "$KIT_VERSION" ] && [ "$MODE" != "force" ]; then
+    echo "  ✅ Already on latest version (v$KIT_VERSION)"
+    echo "     Use --force to re-apply"
+    exit 0
+fi
 
-    # File exists — compare
-    if diff -q "$src" "$dst" > /dev/null 2>&1; then
-        # Identical
-        ((SKIPPED++))
-        return
-    fi
+# ─── Collect all file pairs ───
+declare -a PAIRS=()
 
-    if $FORCE; then
-        echo "  🔄 OVERWRITE: $label"
-        if ! $DRY_RUN; then
-            cp "$src" "$dst"
-        fi
-        ((UPDATED++))
-        return
-    fi
-
-    # Different — show diff and ask
-    echo ""
-    echo "  ⚠️  CONFLICT: $label"
-    echo "     Kit version differs from existing file."
-    echo ""
-    diff --color=auto -u "$dst" "$src" 2>/dev/null | head -25
-    echo "     ..."
-    echo ""
-    echo "     Options:"
-    echo "       [k] Keep existing (skip)"
-    echo "       [u] Use kit version (overwrite)"
-    echo "       [m] Merge manually later (copy as .kit-new)"
-    read -p "     Choice [k/u/m]: " -n 1 -r
-    echo ""
-
-    case "$REPLY" in
-        u|U)
-            if ! $DRY_RUN; then cp "$src" "$dst"; fi
-            ((UPDATED++))
-            ;;
-        m|M)
-            if ! $DRY_RUN; then cp "$src" "${dst}.kit-new"; fi
-            echo "     → Saved as ${dst}.kit-new — merge manually"
-            ((CONFLICTS++))
-            ;;
-        *)
-            ((SKIPPED++))
-            ;;
-    esac
+add_pair() {
+    local src="$1" dst="$2" label="$3"
+    PAIRS+=("$src|$dst|$label")
 }
 
-# ─── Scripts ───
 if $ALL || $ONLY_SCRIPTS; then
-    echo "📜 Scripts:"
-    mkdir -p "$TARGET/scripts" "$TARGET/.claude/scripts" 2>/dev/null || true
-    smart_copy "$SCRIPT_DIR/scripts/check-ci.sh" "$TARGET/scripts/check-ci.sh" "scripts/check-ci.sh"
-    smart_copy "$SCRIPT_DIR/scripts/test-local.sh" "$TARGET/scripts/test-local.sh" "scripts/test-local.sh"
-    smart_copy "$SCRIPT_DIR/scripts/pre-commit-check.sh" "$TARGET/.claude/scripts/pre-commit-check.sh" ".claude/scripts/pre-commit-check.sh"
-    echo ""
+    add_pair "$SCRIPT_DIR/scripts/check-ci.sh" "$TARGET/scripts/check-ci.sh" "scripts/check-ci.sh"
+    add_pair "$SCRIPT_DIR/scripts/test-local.sh" "$TARGET/scripts/test-local.sh" "scripts/test-local.sh"
+    add_pair "$SCRIPT_DIR/scripts/pre-commit-check.sh" "$TARGET/.claude/scripts/pre-commit-check.sh" ".claude/scripts/pre-commit-check.sh"
 fi
 
-# ─── Skills ───
 if $ALL || $ONLY_SKILLS; then
-    echo "📋 Skills:"
-    for skill_file in $(find "$SCRIPT_DIR/skills" -name "*.md" | sort); do
-        rel_path="${skill_file#$SCRIPT_DIR/skills/}"
-        smart_copy "$skill_file" "$TARGET/.claude/skills/$rel_path" ".claude/skills/$rel_path"
+    for f in $(find "$SCRIPT_DIR/skills" -name "*.md" | sort); do
+        rel="${f#$SCRIPT_DIR/skills/}"
+        add_pair "$f" "$TARGET/.claude/skills/$rel" ".claude/skills/$rel"
     done
-    echo ""
 fi
 
-# ─── Templates ───
 if $ALL; then
-    echo "📝 Templates:"
-    smart_copy "$SCRIPT_DIR/templates/CLAUDE.md.template" "$TARGET/CLAUDE.md" "CLAUDE.md"
-    smart_copy "$SCRIPT_DIR/templates/README.md.template" "$TARGET/README.md" "README.md"
-    echo ""
+    add_pair "$SCRIPT_DIR/templates/CLAUDE.md.template" "$TARGET/CLAUDE.md" "CLAUDE.md"
+    add_pair "$SCRIPT_DIR/templates/README.md.template" "$TARGET/README.md" "README.md"
 fi
 
-# ─── Memory ───
 if $ALL || $ONLY_MEMORY; then
-    echo "🧠 Seed Memories:"
-    # Detect project memory path
     ABS_TARGET="$(cd "$TARGET" && pwd)"
     MEMORY_DIR="$HOME/.claude/projects/$(echo "$ABS_TARGET" | tr '/' '-')/memory"
-    mkdir -p "$MEMORY_DIR" 2>/dev/null || true
-
     for mem in "$SCRIPT_DIR/memory/"*.md; do
         name=$(basename "$mem")
-        smart_copy "$mem" "$MEMORY_DIR/$name" "memory/$name"
+        add_pair "$mem" "$MEMORY_DIR/$name" "memory/$name"
+    done
+fi
+
+# ─── Classify each file ───
+declare -a NEW_FILES=()
+declare -a CHANGED_FILES=()
+declare -a IDENTICAL_FILES=()
+
+for pair in "${PAIRS[@]}"; do
+    IFS='|' read -r src dst label <<< "$pair"
+    if [ ! -f "$dst" ]; then
+        NEW_FILES+=("$pair")
+    elif diff -q "$src" "$dst" > /dev/null 2>&1; then
+        IDENTICAL_FILES+=("$pair")
+    else
+        CHANGED_FILES+=("$pair")
+    fi
+done
+
+# ─── MODE: plan / dry-run → generate review file ───
+if [ "$MODE" = "plan" ] || [ "$MODE" = "dry-run" ]; then
+    echo "Scanning ${#PAIRS[@]} files..."
+    echo ""
+    echo "  ➕ New:       ${#NEW_FILES[@]}"
+    echo "  📝 Changed:   ${#CHANGED_FILES[@]}"
+    echo "  = Identical:  ${#IDENTICAL_FILES[@]}"
+    echo ""
+
+    if [ ${#NEW_FILES[@]} -eq 0 ] && [ ${#CHANGED_FILES[@]} -eq 0 ]; then
+        echo "  ✅ Nothing to upgrade — all files identical"
+        exit 0
+    fi
+
+    # Generate plan file
+    PLAN_CONTENT="# Upgrade Plan: Starter Kit v$INSTALLED_VERSION → v$KIT_VERSION
+
+Generated: $(date '+%Y-%m-%d %H:%M')
+Target: $TARGET
+
+## How to use this plan
+
+1. Review each section below
+2. For CHANGED files: edit the Action column (accept/skip/merge)
+3. Run: \`upgrade-project.sh $TARGET --apply\`
+
+---
+
+## New Files (will be added automatically)
+
+| File | Action |
+|------|--------|
+"
+    for pair in "${NEW_FILES[@]}"; do
+        IFS='|' read -r src dst label <<< "$pair"
+        PLAN_CONTENT+="| $label | **add** |
+"
     done
 
-    # Create MEMORY.md index if missing
-    if [ ! -f "$MEMORY_DIR/MEMORY.md" ]; then
-        echo "  ➕ Creating MEMORY.md index"
-        if ! $DRY_RUN; then
-            cat > "$MEMORY_DIR/MEMORY.md" << 'MEMEOF'
-# Project Memory Index
+    PLAN_CONTENT+="
+## Changed Files (review required)
 
-## Feedback (lessons learned from starter-kit)
-- [feedback_scripts_not_adhoc.md](feedback_scripts_not_adhoc.md) — Scripts, not ad-hoc commands
-- [feedback_ci_before_scoring.md](feedback_ci_before_scoring.md) — CI must complete before scoring
-- [feedback_self_test_before_push.md](feedback_self_test_before_push.md) — Test local before push
-- [feedback_business_design_first.md](feedback_business_design_first.md) — Business docs before code
-MEMEOF
-        fi
-        ((ADDED++))
-    fi
-    echo ""
-fi
+"
+    for pair in "${CHANGED_FILES[@]}"; do
+        IFS='|' read -r src dst label <<< "$pair"
+        PLAN_CONTENT+="### $label
 
-# ─── Git hooks ───
-if $ALL || $ONLY_SCRIPTS; then
-    if [ -d "$TARGET/.git" ]; then
-        echo "🔗 Git Hooks:"
-        HOOK="$TARGET/.git/hooks/pre-commit"
-        if [ ! -f "$HOOK" ]; then
-            echo "  ➕ Linking pre-commit hook"
-            if ! $DRY_RUN; then
-                ln -sf "../../.claude/scripts/pre-commit-check.sh" "$HOOK"
-            fi
-            ((ADDED++))
-        else
-            echo "  ⏭️  pre-commit hook already exists"
-            ((SKIPPED++))
-        fi
+**Action:** accept / skip / merge ← EDIT THIS
+
+\`\`\`diff
+$(diff -u "$dst" "$src" 2>/dev/null | head -30)
+\`\`\`
+
+---
+
+"
+    done
+
+    PLAN_CONTENT+="## Identical Files (no action needed)
+
+"
+    for pair in "${IDENTICAL_FILES[@]}"; do
+        IFS='|' read -r src dst label <<< "$pair"
+        PLAN_CONTENT+="- $label
+"
+    done
+
+    if [ "$MODE" = "plan" ]; then
+        mkdir -p "$(dirname "$PLAN_FILE")"
+        echo "$PLAN_CONTENT" > "$PLAN_FILE"
+        echo "  📝 Plan created: $PLAN_FILE"
         echo ""
+        echo "  Next steps:"
+        echo "    1. Review: cat $PLAN_FILE"
+        echo "    2. Edit Action for each CHANGED file (accept/skip/merge)"
+        echo "    3. Apply: ./upgrade-project.sh $TARGET --apply"
+    else
+        echo "$PLAN_CONTENT"
+        echo "  (dry-run — no files written)"
     fi
+    exit 0
 fi
 
-# ─── Summary ───
-echo "═══════════════════════════════════════════════"
-echo "  ➕ Added:     $ADDED"
-echo "  🔄 Updated:   $UPDATED"
-echo "  ⏭️  Skipped:   $SKIPPED"
-echo "  ⚠️  Conflicts: $CONFLICTS"
-echo "═══════════════════════════════════════════════"
-$DRY_RUN && echo "  (dry run — no files changed)"
+# ─── MODE: apply → read plan + apply ───
+if [ "$MODE" = "apply" ]; then
+    if [ ! -f "$PLAN_FILE" ]; then
+        echo "  ❌ No plan found at: $PLAN_FILE"
+        echo "     Run first: ./upgrade-project.sh $TARGET --plan"
+        exit 1
+    fi
 
-if [ $CONFLICTS -gt 0 ]; then
+    echo "Applying plan from: $PLAN_FILE"
     echo ""
-    echo "  ⚠️  $CONFLICTS file(s) saved as .kit-new"
-    echo "  Review and merge manually:"
-    find "$TARGET" -name "*.kit-new" 2>/dev/null | sed 's/^/    /'
-fi
 
-# Track installed version
-if ! $DRY_RUN && [ $((ADDED + UPDATED)) -gt 0 ]; then
+    # Apply all new files
+    for pair in "${NEW_FILES[@]}"; do
+        IFS='|' read -r src dst label <<< "$pair"
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
+        [ "${dst##*.}" = "sh" ] && chmod +x "$dst"
+        echo "  ➕ Added: $label"
+        ((ADDED++))
+    done
+
+    # Apply changed files based on plan
+    for pair in "${CHANGED_FILES[@]}"; do
+        IFS='|' read -r src dst label <<< "$pair"
+
+        # Read action from plan file
+        ACTION=$(grep -A1 "### $label" "$PLAN_FILE" 2>/dev/null | grep "Action:" | grep -oE "accept|skip|merge" | head -1 || echo "skip")
+
+        case "$ACTION" in
+            accept)
+                cp "$src" "$dst"
+                echo "  ✅ Updated: $label"
+                ((UPDATED++))
+                ;;
+            merge)
+                cp "$src" "${dst}.kit-new"
+                echo "  📝 Merge: $label → saved as .kit-new"
+                ((CONFLICTS++))
+                ;;
+            skip|*)
+                echo "  ⏭️  Skipped: $label"
+                ((SKIPPED++))
+                ;;
+        esac
+    done
+
+    # Track version
     mkdir -p "$TARGET/.claude"
     echo "$KIT_VERSION" > "$TARGET/.claude/.starter-kit-version"
+
+    # Cleanup plan
+    rm -f "$PLAN_FILE"
+
     echo ""
-    echo "  📦 Installed version: v$KIT_VERSION"
+    echo "═══════════════════════════════════════════════"
+    echo "  ➕ Added: $ADDED  ✅ Updated: $UPDATED  ⏭️ Skipped: $SKIPPED  📝 Merge: $CONFLICTS"
+    echo "  📦 Version: v$KIT_VERSION"
+    echo "═══════════════════════════════════════════════"
+    exit 0
 fi
 
-echo ""
-echo "Next steps:"
-echo "  1. Review imported files"
-echo "  2. Edit CLAUDE.md — replace {placeholders}"
-echo "  3. Edit scripts/test-local.sh — configure PROJECT_DIRS"
+# ─── MODE: force → apply everything ───
+if [ "$MODE" = "force" ]; then
+    echo "Force applying all files..."
+    echo ""
+
+    for pair in "${PAIRS[@]}"; do
+        IFS='|' read -r src dst label <<< "$pair"
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
+        [ "${dst##*.}" = "sh" ] && chmod +x "$dst"
+
+        if [ -f "$dst" ]; then
+            echo "  🔄 $label"
+            ((UPDATED++))
+        else
+            echo "  ➕ $label"
+            ((ADDED++))
+        fi
+    done
+
+    mkdir -p "$TARGET/.claude"
+    echo "$KIT_VERSION" > "$TARGET/.claude/.starter-kit-version"
+
+    echo ""
+    echo "═══════════════════════════════════════════════"
+    echo "  ➕ Added: $ADDED  🔄 Updated: $UPDATED"
+    echo "  📦 Version: v$KIT_VERSION"
+    echo "═══════════════════════════════════════════════"
+fi
