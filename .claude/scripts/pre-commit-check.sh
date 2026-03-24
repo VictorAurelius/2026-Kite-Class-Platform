@@ -564,6 +564,41 @@ fi
 echo ""
 
 # ==============================================================================
+# 16. Check Business Docs 3-Layer Structure
+# ==============================================================================
+echo "📋 Checking business docs 3-layer structure..."
+
+BIZ_LAYER_ISSUES=0
+
+# Check new domain folders have all 3 required files
+NEW_BIZ_DIRS=$(git diff --cached --name-only --diff-filter=A | grep "^documents/01-business/" | sed 's|documents/01-business/[^/]*/\([^/]*\)/.*|\1|' | sort -u || true)
+
+for domain in $NEW_BIZ_DIRS; do
+    # Skip if it's a file not a folder (e.g., README.md)
+    if echo "$domain" | grep -q '\.'; then continue; fi
+
+    # Check each required layer
+    for layer in rules.md use-cases.md api-contract.md; do
+        STAGED=$(git diff --cached --name-only | grep "documents/01-business/.*/$domain/$layer" || true)
+        if [ -z "$STAGED" ]; then
+            # Check if file already exists on disk
+            EXISTING=$(find documents/01-business -path "*/$domain/$layer" 2>/dev/null | head -1)
+            if [ -z "$EXISTING" ]; then
+                echo -e "${YELLOW}⚠️  Business domain '$domain' missing: $layer${NC}"
+                echo "   3-layer required: rules.md, use-cases.md, api-contract.md"
+                echo "   See: .claude/skills/reference/business-docs-3-layer.md"
+                BIZ_LAYER_ISSUES=$((BIZ_LAYER_ISSUES + 1))
+            fi
+        fi
+    done
+done
+
+if [ "$BIZ_LAYER_ISSUES" -eq 0 ]; then
+    echo -e "${GREEN}✅ Business docs 3-layer OK${NC}"
+fi
+echo ""
+
+# ==============================================================================
 # Summary
 # ==============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

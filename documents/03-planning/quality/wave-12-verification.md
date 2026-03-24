@@ -4,6 +4,14 @@
 **Prerequisite:** Wave 10 + Wave 11 complete
 **Target:** 100% consistency across 3 layers + code + tests
 
+## Approach: Audit First, Fix Later
+
+Wave 12 chia 2 phase:
+- **Phase A (12a):** AUDIT only — scan mismatches, tạo report, KHÔNG sửa code
+- **Phase B (12b):** FIX — từng PR lẻ, TDD, CI verify, review trước merge
+
+Code changes tốn thời gian test → phải audit trước để biết scope chính xác.
+
 ---
 
 ## Verification Chain
@@ -27,11 +35,13 @@ rules.md ──→ use-cases.md ──→ api-contract.md ──→ Controller.j
 
 ## PR List
 
-### PR-1: KiteClass Verification [CRITICAL]
+### Phase A: AUDIT (read-only, không sửa code)
 
-**Scope:** 9 domains × 5 checks = 45 verification points
+### PR-A1: Verification Script + KiteClass Audit [CRITICAL]
 
-- [ ] Script tự động: `scripts/verify-business-docs.sh`
+**Scope:** Tạo script + scan 9 KC domains
+
+- [ ] Tạo `scripts/verify-business-docs.sh`
   ```bash
   # For each domain:
   # 1. Extract BR-xxx from rules.md
@@ -46,15 +56,30 @@ rules.md ──→ use-cases.md ──→ api-contract.md ──→ Controller.j
 - [ ] Fix docs nếu code đã implement khác (code proved better approach)
 - [ ] Add missing tests cho untested use case error paths
 
-### PR-2: KiteHub Verification [CRITICAL]
+### PR-A2: KiteHub Audit [CRITICAL]
 
 **Scope:** 7 domains × 5 checks = 35 verification points
 
-- [ ] Same verification script cho KiteHub
-- [ ] Run → fix mismatches
-- [ ] Add missing tests
+- [ ] Run verification script cho KiteHub
+- [ ] Output: mismatch report (KHÔNG sửa code)
 
-### PR-3: Create Verification Skill [HIGH]
+### Phase B: FIX (từng PR lẻ, TDD, CI verify)
+
+### PR-B1..Bn: Fix Mismatches (1 PR per issue)
+
+**Mỗi PR gồm:**
+- [ ] TDD: viết/update test trước
+- [ ] Fix code hoặc update docs
+- [ ] CI green
+- [ ] Review trước merge
+
+**Ví dụ PRs có thể phát sinh:**
+- PR-B1: Fix endpoint X không match api-contract.md
+- PR-B2: Add missing test cho UC-xxx error path
+- PR-B3: Update rules.md — code đã implement khác
+- ...số lượng tùy thuộc kết quả audit
+
+### PR-C1: Create Verification Skill [HIGH]
 
 - [ ] Tạo `.claude/skills/workflow/verify-business-docs/SKILL.md`
   - Auto-run sau Wave complete

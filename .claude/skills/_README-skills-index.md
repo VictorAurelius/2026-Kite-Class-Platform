@@ -82,9 +82,11 @@
 | File | Mo ta |
 |------|-------|
 | `architecture-overview.md` | System architecture overview |
+| `business-docs-3-layer.md` | 3-layer business docs: rules, use-cases, api-contract |
 | `cross-service-data-strategy.md` | Data sharing between services |
 | `email-service.md` | Email service integration |
 | `plantuml-diagrams.md` | PlantUML diagram patterns |
+| `service-docs-standard.md` | Service-level README + QUICK-START standard |
 
 ---
 

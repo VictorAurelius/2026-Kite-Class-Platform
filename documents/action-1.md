@@ -158,3 +158,31 @@ ngoài ra tôi cần check lại chất lượng của wave 7 và wave 8 nữa:
 lại vi phạm rule monitor CI rồi?
 
 đang thực hiện hết từ P0 đến P4 và 2 yêu cầu thêm của tôi về wave 7,8 chưa?
+
+dựa vào bảng scores, action tiếp theo là gì?
+
+wave 11 sẽ hướng đến tiếp tục nâng cao kitehub chứ
+
+tôi muốn wave 10, wave 11:
+1. có các PR lẻ yêu cầu chất lượng rõ ràng
+2. nâng cao kiteclass và kitehub max điểm thay vì fix cục bộ
+3. đương nhiên là tuân thủ 100% skill
+4. tạo plan rõ ràng
+
+thảo luận chút về business-logic
+cần mô tả chi tiết đến mực độ nào để design FE và BE chuẩn xác và code hợp lý
+ví dụ: khi edit 1 course, cần chuyển từ giáo viên A sang giáo viên B thì FE phải hiển thị được giáo viên hiện tại, tìm kiếm được giáo viên hợp lý, chỉ cho phép cập nhật giáo viên khác giáo viên hiện tại, ...
+hoặc best practice tốt hơn
+
+vậy business-logic hiện tại có đáp ứng được không hay code sẽ phải tự handle? từ đó code có tham chiếu đúng đến business-logic và code theo best practice không?
+
+nhưng việc bổ sung vào 1 file duy nhất sẽ khiến file dài dòng, khó tham chiếu
+mỗi layer nên là 1 file?
+
+ngoài ra mốc nào để chứng minh các layer thống nhất và chính xác?
+
+sau khi tạo đủ cho kitehub, kiteclass thì phải có wave để check lại code, test của code đúng không?
+
+Wave chỉ tạo ra sản phẩm cụ thể cho kiteclass, kitehub hay phải tạo cả skill, hoặc cái gì đó định nghĩa cấu trúc và kiểm soát cấu trúc này
+
+Ngoài ra tôi nghĩ wave 12 phải kiểm tra code trước, sau đó tạo PR để xác nhận fix code, dù sao code thay đổi sẽ tốn rất nhiều thời gian để test và xác nhận
