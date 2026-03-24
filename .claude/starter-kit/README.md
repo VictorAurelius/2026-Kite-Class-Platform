@@ -11,20 +11,46 @@ Khi bắt đầu dự án mới với Claude Code và muốn:
 
 ## Setup
 
-```bash
-# Copy starter kit vào dự án mới
-./init-project.sh /path/to/new-project
+### Dự án MỚI (chưa có .claude/)
 
-# Hoặc dự án hiện tại
-./init-project.sh .
+```bash
+./init-project.sh /path/to/new-project
 ```
 
-Script tự động:
-- Copy skills → `.claude/skills/`
-- Copy scripts → `scripts/`
-- Tạo CLAUDE.md + README.md từ template
-- Seed memories (lessons learned) → `~/.claude/projects/`
-- Link pre-commit hook
+Tự động: copy skills + scripts + templates + seed memories + link git hooks.
+
+### Dự án ĐÃ CÓ skills/workflows
+
+```bash
+# Preview — xem sẽ thay đổi gì (không sửa file)
+./upgrade-project.sh /path/to/existing-project --dry-run
+
+# Interactive — hỏi trước mỗi conflict
+./upgrade-project.sh /path/to/existing-project
+
+# Chỉ import scripts (không đụng skills)
+./upgrade-project.sh /path/to/project --scripts
+
+# Chỉ import skills
+./upgrade-project.sh /path/to/project --skills
+
+# Chỉ seed memories
+./upgrade-project.sh /path/to/project --memory
+```
+
+Khi file đã tồn tại và khác kit version → 3 lựa chọn:
+- **[k] Keep** existing (skip)
+- **[u] Use** kit version (overwrite)
+- **[m] Merge** manually (save as `.kit-new` để review)
+
+### Cập nhật starter-kit từ dự án gốc
+
+```bash
+# Khi dự án gốc update skills/scripts → sync vào kit
+./sync-to-kit.sh              # Interactive
+./sync-to-kit.sh --dry-run    # Preview only
+./sync-to-kit.sh --auto       # Auto-sync
+```
 
 ## Cấu trúc
 
