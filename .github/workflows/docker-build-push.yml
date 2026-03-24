@@ -68,7 +68,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/kiteclass/Dockerfile.${{ matrix.service }}
+          file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
           push: false  # Only build, don't push (no registry needed)
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -134,7 +134,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/kiteclass/Dockerfile.${{ matrix.service }}
+          file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
           push: true  # Push to ECR
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
