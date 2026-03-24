@@ -1,0 +1,130 @@
+@startuml domain-resolution-flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowThickness 1.5
+skinparam participantBackgroundColor #FFFDE7
+skinparam participantBorderColor #888888
+skinparam noteBackgroundColor #F5F5F5
+
+title KITEHUB - DOMAIN RESOLUTION FLOW\nSubdomain + Custom Domain Routing | 2026-03-24
+
+' ==================== PARTICIPANTS ====================
+actor "Browser" as BROWSER #90CAF9
+participant "DNS" as DNS #CFD8DC
+participant "Nginx\nReverse Proxy" as NGINX #FFE0B2
+participant "KiteHub\nGateway :9000" as KH_GW #FFF3E0
+participant "Subscription\nService :8081" as SUB #C5CAE9
+database "KiteHub DB" as DB #F57C00
+participant "KiteClass\nGateway" as KC_GW #C8E6C9
+participant "KiteClass\nFrontend" as KC_FE #A5D6A7
+
+' ==================== SUBDOMAIN FLOW ====================
+== Flow A: Subdomain Access (abc.kiteclass.com) ==
+
+BROWSER -> DNS : Resolve abc.kiteclass.com
+DNS --> BROWSER : *.kiteclass.com -> Server IP\n(wildcard DNS A record)
+
+BROWSER -> NGINX : GET https://abc.kiteclass.com
+activate NGINX #FFE0B2
+NGINX -> NGINX : Extract subdomain: "abc"\nfrom Host header
+
+NGINX -> KH_GW : GET /api/internal/instances/resolve?subdomain=abc
+activate KH_GW
+KH_GW -> SUB : Resolve instance
+activate SUB
+SUB -> DB : SELECT * FROM instances\nWHERE subdomain = 'abc'\nAND status IN ('ACTIVE', 'TRIAL')
+DB --> SUB : Instance record\n{id, tier, database_url, status}
+SUB --> KH_GW : {instanceId, dbUrl, tier}
+deactivate SUB
+KH_GW --> NGINX : 200 OK + instance config
+deactivate KH_GW
+
+NGINX -> KC_GW : Proxy to KiteClass\nX-Instance-ID: {id}\nX-Database-URL: {dbUrl}
+activate KC_GW #C8E6C9
+KC_GW -> KC_FE : Serve tenant frontend
+KC_FE --> BROWSER : KiteClass app\n(branded for "abc")
+deactivate KC_GW
+deactivate NGINX
+
+' ==================== CUSTOM DOMAIN FLOW ====================
+== Flow B: Custom Domain Access (learn.example.com) ==
+
+note over BROWSER, DNS
+  **Prerequisites (one-time setup):**
+  1. Customer adds custom domain in KiteHub Portal
+  2. Customer creates CNAME: learn.example.com -> proxy.kiteclass.com
+  3. KiteHub verifies DNS via TXT record: _kiteclass-verify.learn.example.com
+  4. SSL certificate provisioned (Let's Encrypt)
+end note
+
+BROWSER -> DNS : Resolve learn.example.com
+DNS --> BROWSER : CNAME -> proxy.kiteclass.com\n-> Server IP
+
+BROWSER -> NGINX : GET https://learn.example.com
+activate NGINX #FFE0B2
+NGINX -> NGINX : No subdomain match\nCheck custom domain table
+
+NGINX -> KH_GW : GET /api/internal/instances/resolve?domain=learn.example.com
+activate KH_GW
+KH_GW -> SUB : Resolve custom domain
+activate SUB
+SUB -> DB : SELECT * FROM instances\nWHERE custom_domain = 'learn.example.com'\nAND domain_verified = true\nAND tier IN ('PREMIUM', 'ENTERPRISE')
+DB --> SUB : Instance record
+SUB --> KH_GW : {instanceId, dbUrl, tier}
+deactivate SUB
+KH_GW --> NGINX : 200 OK + instance config
+deactivate KH_GW
+
+NGINX -> KC_GW : Proxy to KiteClass\n(same as subdomain flow)
+KC_GW -> KC_FE : Serve tenant frontend
+KC_FE --> BROWSER : KiteClass app\n(custom domain)
+deactivate NGINX
+
+' ==================== DOMAIN SETUP FLOW ====================
+== Flow C: Custom Domain Setup (Admin Action) ==
+
+actor "Customer\n(PREMIUM+)" as CUST #90CAF9
+
+CUST -> KH_GW : POST /api/domains/setup\n{domain: "learn.example.com"}
+activate KH_GW
+KH_GW -> SUB : Validate & setup
+activate SUB
+
+SUB -> DB : Check tier >= PREMIUM
+SUB -> DB : Generate TXT verification token\nSave domain_status = PENDING
+
+SUB --> KH_GW : {verificationToken, cnameTarget}
+deactivate SUB
+KH_GW --> CUST : "Add DNS records:\nCNAME -> proxy.kiteclass.com\nTXT -> {token}"
+deactivate KH_GW
+
+... Customer configures DNS records ...
+
+CUST -> KH_GW : POST /api/domains/verify
+activate KH_GW
+KH_GW -> SUB : Verify DNS
+activate SUB
+SUB -> DNS : Query TXT record\n_kiteclass-verify.learn.example.com
+DNS --> SUB : TXT value matches token
+SUB -> DNS : Query CNAME record
+DNS --> SUB : CNAME -> proxy.kiteclass.com
+
+SUB -> DB : UPDATE instances\nSET domain_verified = true,\ndomain_status = VERIFIED
+SUB --> KH_GW : {verified: true, sslStatus: "provisioning"}
+deactivate SUB
+KH_GW --> CUST : "Domain verified! SSL in progress"
+deactivate KH_GW
+
+' ==================== LEGEND ====================
+legend bottom
+|= Domain Type |= Format |= Tier Required |
+| Subdomain | {name}.kiteclass.com | All tiers |
+| Custom Domain | customer-domain.com | PREMIUM+ |
+|= DNS Records for Custom Domain |
+| CNAME | learn.example.com -> proxy.kiteclass.com |
+| TXT | _kiteclass-verify.learn.example.com -> {token} |
+endlegend
+
+@enduml

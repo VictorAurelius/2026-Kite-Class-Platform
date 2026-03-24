@@ -1,0 +1,148 @@
+@startuml ai-branding-pipeline
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FFFDE7
+skinparam activityBorderColor #888888
+skinparam ArrowColor #555555
+
+title KITEHUB - AI BRANDING PIPELINE\nTemplate -> AI Analysis -> Asset Generation | 2026-03-24
+
+|Customer Portal|
+start
+:Upload organization logo;
+:Select brand personality
+(PROFESSIONAL / CREATIVE /
+PLAYFUL / MODERN / ELEGANT / BOLD);
+:Select color scheme preference;
+:Submit branding request;
+
+|Branding Service :8083|
+:Create BrandingJob
+(status=QUEUED, progress=0%);
+:Return jobId to customer
+(HTTP 202 Accepted);
+
+fork
+    |Customer Portal|
+    :Poll GET /api/branding/jobs/{id}
+    every 3 seconds;
+fork again
+    |Branding Service :8083|
+
+    :Pick job from queue
+    (status -> PROCESSING);
+
+    partition "Step 1: Logo Analysis (20%)" #E8EAF6 {
+        :Send logo to **GPT-4 Vision**;
+        note right
+            Prompt: Analyze this logo.
+            Extract: dominant colors,
+            style, mood, industry.
+            Return: JSON analysis.
+        end note
+        :Receive analysis JSON
+        {colors, style, mood, industry};
+        :Extract theme parameters;
+        :Update progress -> 20%;
+    }
+
+    partition "Step 2: Profile Images (40%)" #C5CAE9 {
+        :Generate profile cutout
+        via **DALL-E 3**;
+        :Generate circle variant;
+        :Generate square variant;
+        :Upload 3 images to S3
+        /instances/{id}/branding/profile/;
+        :Update progress -> 40%;
+    }
+
+    partition "Step 3: Hero Banners (60%)" #B3E5FC {
+        :Generate 3 hero banner variants
+        via **DALL-E 3**;
+        note right
+            Size: 1920x600
+            Style: matches brand personality
+            Colors: from logo analysis
+        end note
+        :Upload to S3
+        /instances/{id}/branding/hero/;
+        :Update progress -> 60%;
+    }
+
+    partition "Step 4: Brand Logos (75%)" #C8E6C9 {
+        :Generate light version (SVG);
+        :Generate dark version (SVG);
+        :Upload to S3
+        /instances/{id}/branding/logos/;
+        :Update progress -> 75%;
+    }
+
+    partition "Step 5: Social Banners (85%)" #FFF9C4 {
+        :Generate Facebook cover
+        (820x312);
+        :Generate YouTube banner
+        (2560x1440);
+        :Upload to S3
+        /instances/{id}/branding/banners/;
+        :Update progress -> 85%;
+    }
+
+    partition "Step 6: OG Image (90%)" #FFE0B2 {
+        :Generate Open Graph image
+        (1200x630);
+        :Upload to S3
+        /instances/{id}/branding/og_image.jpg;
+        :Update progress -> 90%;
+    }
+
+    partition "Step 7: Marketing Copy (95%)" #F8BBD0 {
+        :Generate via **GPT-4**:
+        - Tagline (short)
+        - Description (medium)
+        - About text (long);
+        :Store in assets_generated JSON;
+        :Update progress -> 95%;
+    }
+
+    partition "Step 8: Finalize (100%)" #E8F5E9 {
+        :Compile all asset URLs;
+        :Update BrandingJob
+        (status=COMPLETED, progress=100%,
+        assets_generated=JSON);
+        :Publish event: **branding.completed**
+        to RabbitMQ;
+        :Email Service sends
+        **branding-completed** email;
+    }
+end fork
+
+|Customer Portal|
+:Display branding preview;
+:Customer reviews assets;
+
+if (Customer approves?) then (yes)
+    :Apply branding to KiteClass instance;
+    :CDN serves assets via
+    cdn.kiteclass.com;
+else (no)
+    :Customer can regenerate
+    (max 3 retries per job);
+endif
+
+stop
+
+' ==================== LEGEND ====================
+legend right
+|= Step |= AI Service |= Output |
+| 1. Logo Analysis | GPT-4 Vision | JSON (colors, style) |
+| 2. Profile Images | DALL-E 3 | 3 variants |
+| 3. Hero Banners | DALL-E 3 | 3 variants (1920x600) |
+| 4. Brand Logos | DALL-E 3 | light.svg, dark.svg |
+| 5. Social Banners | DALL-E 3 | FB cover, YT banner |
+| 6. OG Image | DALL-E 3 | 1200x630 |
+| 7. Marketing Copy | GPT-4 | Tagline, desc, about |
+|= Total |= ~30 seconds |= ~$0.19/job |
+endlegend
+
+@enduml

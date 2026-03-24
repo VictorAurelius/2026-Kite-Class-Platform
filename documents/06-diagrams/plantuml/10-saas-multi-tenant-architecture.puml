@@ -1,0 +1,124 @@
+@startuml saas-multi-tenant-architecture
+!theme plain
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam defaultFontSize 11
+skinparam ArrowColor #555555
+
+title KITE PLATFORM - MULTI-TENANT SaaS ARCHITECTURE\nKiteHub (Management) + KiteClass (Tenant Instances) | 2026-03-24
+
+' ==================== USERS ====================
+actor "Platform Owner\n(KiteHub Admin)" as OWNER #EF9A9A
+actor "Organization\n(B2B Customer)" as ORG #90CAF9
+actor "End Users\n(Teacher/Student)" as ENDUSER #A5D6A7
+
+' ==================== KITEHUB MANAGEMENT LAYER ====================
+package "KiteHub — SaaS Management Platform" as KITEHUB #E8EAF6 {
+
+    package "Frontend [Next.js 15]" as KH_FE #E3F2FD {
+        component "Marketing Site\n(kitehub.vn)" as MKT
+        component "Customer Portal\n(dashboard, billing)" as PORTAL
+        component "Admin Portal\n(instances, analytics)" as ADMIN_UI
+    }
+
+    package "API Gateway [Spring Cloud Gateway :9000]" as KH_GW #FFF3E0 {
+        component "JWT Auth + RBAC" as AUTH
+        component "Rate Limiter (Redis)" as RATE
+        component "Request Router" as ROUTER
+    }
+
+    package "Microservices" as KH_SVC #FFFDE7 {
+        component "Subscription Service\n:8081\n(trial, plans, provisioning)" as SUB
+        component "Payment Service\n:8082\n(VietQR, webhooks)" as PAY
+        component "Branding Service\n:8083\n(AI logo/banner gen)" as BRAND
+        component "Email Service\n:8084\n(SES, 13 templates)" as EMAIL
+        component "Admin Service\n:8085\n(monitoring, analytics)" as ADM
+    }
+
+    package "Shared Infrastructure" as KH_INFRA #ECEFF1 {
+        database "PostgreSQL\nkitehub DB" as KH_DB #F57C00
+        storage "Redis\nCache + Sessions" as KH_REDIS #EF5350
+        queue "RabbitMQ\nAsync Events" as KH_MQ #FF7043
+        storage "MinIO/S3\nBranding Assets" as KH_S3 #78909C
+    }
+}
+
+' ==================== TENANT LAYER ====================
+package "KiteClass — Tenant Instances (Provisioned by KiteHub)" as KITECLASS #E8F5E9 {
+
+    package "Tenant A: abc.kiteclass.com" as T_A #C8E6C9 {
+        component "KC Frontend\n[Next.js]" as KC_FE_A
+        component "KC Gateway\n[Spring Cloud]" as KC_GW_A
+        component "KC Core Service\n[Spring Boot]" as KC_CORE_A
+        database "kiteclass_abc\n[Isolated DB]" as KC_DB_A #66BB6A
+    }
+
+    package "Tenant B: xyz.kiteclass.com" as T_B #C8E6C9 {
+        component "KC Frontend" as KC_FE_B
+        component "KC Gateway" as KC_GW_B
+        component "KC Core" as KC_CORE_B
+        database "kiteclass_xyz" as KC_DB_B #66BB6A
+    }
+
+    package "Tenant N: ..." as T_N #C8E6C9 {
+        component "..." as KC_N
+    }
+}
+
+' ==================== CONNECTIONS ====================
+OWNER --> ADMIN_UI : Manage platform
+ORG --> PORTAL : Manage subscription
+ORG --> MKT : Register / Pricing
+ENDUSER --> KC_FE_A : Access school app
+
+KH_FE --> ROUTER : REST API
+ROUTER --> SUB
+ROUTER --> PAY
+ROUTER --> BRAND
+ROUTER --> ADM
+AUTH --> KH_REDIS
+RATE --> KH_REDIS
+
+SUB --> KH_DB
+PAY --> KH_DB
+BRAND --> KH_DB
+EMAIL --> KH_DB
+ADM --> KH_DB
+
+SUB --> KH_MQ : Events
+PAY --> KH_MQ
+BRAND --> KH_MQ
+EMAIL <-- KH_MQ : Consume
+
+BRAND --> KH_S3 : Upload assets
+
+' Provisioning
+SUB ..> KC_DB_A : Provision\n(CREATE DB + Flyway V1-V18)
+SUB ..> KC_DB_B : Provision
+
+KC_FE_A --> KC_GW_A
+KC_GW_A --> KC_CORE_A
+KC_CORE_A --> KC_DB_A
+
+' ==================== LEGEND ====================
+legend right
+|= Layer |= Description |
+| KiteHub | SaaS management, billing, branding |
+| KiteClass | Per-tenant LMS application |
+| Provisioning | Isolated DB per tenant (Flyway) |
+| Domain | *.kiteclass.com (subdomain) |
+| Custom Domain | PREMIUM+ (CNAME verification) |
+endlegend
+
+note bottom of KITECLASS
+  **Tenant Isolation:**
+  - Each tenant gets own PostgreSQL DB
+  - Flyway migrations V1-V18
+  - Shared KiteClass Docker images
+  - Subdomain routing via Nginx
+end note
+
+@enduml
