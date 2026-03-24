@@ -2,6 +2,7 @@ package com.kitehub.subscription.scheduler;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.entity.Subscription;
+import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.platform.domain.enums.SubscriptionStatus;
 import com.kitehub.subscription.client.EmailServiceClient;
 import com.kitehub.subscription.config.SubscriptionConfig;
@@ -71,6 +72,8 @@ class SubscriptionExpirationCheckerTest {
         subscription.setInstanceId(instanceId);
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setExpiresAt(LocalDateTime.now().plusDays(3));
+        subscription.setTier(PricingTier.BASIC);
+        subscription.setPriceVnd(1_000_000L);
     }
 
     @Test
@@ -84,7 +87,7 @@ class SubscriptionExpirationCheckerTest {
         checker.checkExpiringSubscriptions();
 
         verify(emailServiceClient).sendRenewalReminder(
-            anyString(), anyString(), eq(7L), anyString(), any()
+            anyString(), anyString(), eq(7L), anyString(), anyLong()
         );
     }
 
@@ -99,7 +102,7 @@ class SubscriptionExpirationCheckerTest {
         checker.checkExpiringSubscriptions();
 
         verify(emailServiceClient).sendRenewalReminder(
-            anyString(), anyString(), eq(1L), anyString(), any()
+            anyString(), anyString(), eq(1L), anyString(), anyLong()
         );
     }
 
@@ -179,7 +182,6 @@ class SubscriptionExpirationCheckerTest {
 
     @Test
     void checkExpiringSubscriptions_noExpiringSubscriptions_doesNothing() {
-        when(subscriptionConfig.getWarningDays()).thenReturn(List.of(7, 3, 1));
         when(subscriptionRepository.findExpiringBetween(any(), any(), eq(SubscriptionStatus.ACTIVE)))
             .thenReturn(List.of());
 
