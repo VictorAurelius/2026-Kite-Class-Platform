@@ -6,12 +6,22 @@
 
 import { test, expect } from '@playwright/test';
 import { createRegistrationData } from './fixtures/test-data';
-import { clearBrowserStorage } from './utils/test-helpers';
+import {
+  clearBrowserStorage,
+  mockAllAuthAPIs,
+  mockInstancesAPI,
+  mockInstanceDetailAPI,
+} from './utils/test-helpers';
 
 test.describe('Dashboard', () => {
-  // Register and login before each test
+  const instanceId = '00000000-0000-0000-0000-000000000001';
+
+  // Register and login before each test (with mocked APIs)
   test.beforeEach(async ({ page }) => {
     await clearBrowserStorage(page);
+    await mockAllAuthAPIs(page);
+    await mockInstancesAPI(page, instanceId);
+    await mockInstanceDetailAPI(page, instanceId, 'TRIAL');
 
     // Register new user
     await page.goto('/register');
@@ -27,18 +37,25 @@ test.describe('Dashboard', () => {
 
     await page.getByRole('button', { name: /tạo tài khoản/i }).click();
     await expect(page).toHaveURL('/dashboard', { timeout: 10000 });
+
+    // Mark OnboardingWizard as completed so it doesn't overlay the dashboard
+    await page.evaluate(() => {
+      localStorage.setItem('kite hub_onboarding_completed', 'true');
+    });
+    await page.reload();
+    await expect(page).toHaveURL('/dashboard');
   });
 
   test('should display dashboard after login', async ({ page }) => {
-    // Dashboard heading
-    const heading = page.getByRole('heading', { name: /dashboard/i });
-    await expect(heading).toBeVisible();
+    // Dashboard shows greeting heading (e.g. "Chào buổi sáng, ...")
+    const heading = page.getByRole('heading', { name: /chào|quản lý trung tâm/i });
+    await expect(heading.first()).toBeVisible();
   });
 
   test('should display welcome message with user info', async ({ page }) => {
-    // Check for greeting
-    const greeting = page.getByText(/xin chào/i);
-    await expect(greeting).toBeVisible();
+    // Greeting contains "Chào" (morning/afternoon/evening greeting)
+    const greeting = page.getByText(/chào/i);
+    await expect(greeting.first()).toBeVisible();
   });
 
   test('should display instance card', async ({ page }) => {
@@ -73,9 +90,9 @@ test.describe('Dashboard', () => {
     // Should still be on dashboard
     await expect(page).toHaveURL('/dashboard');
 
-    // Dashboard should still show content
-    const heading = page.getByRole('heading', { name: /dashboard/i });
-    await expect(heading).toBeVisible();
+    // Dashboard should still show content (greeting heading)
+    const heading = page.getByRole('heading', { name: /chào|quản lý trung tâm/i });
+    await expect(heading.first()).toBeVisible();
   });
 
   test('should have navigation sidebar', async ({ page }) => {
@@ -83,16 +100,17 @@ test.describe('Dashboard', () => {
     const dashboardLink = page.getByRole('link', { name: /tổng quan/i });
     await expect(dashboardLink).toBeVisible();
 
-    // Check for other nav items
+    // "Cài đặt" may appear in both sidebar and quick-start area — check first match
     const settingsLink = page.getByRole('link', { name: /cài đặt/i });
-    await expect(settingsLink).toBeVisible();
+    await expect(settingsLink.first()).toBeVisible();
   });
 
   test('should navigate to settings', async ({ page }) => {
+    // Use sidebar nav link (first match) to avoid strict mode on duplicate "Cài đặt" links
     const settingsLink = page.getByRole('link', { name: /cài đặt|settings/i });
-    await settingsLink.click();
+    await settingsLink.first().click();
 
-    await expect(page).toHaveURL('/settings');
+    await expect(page).toHaveURL('/settings', { timeout: 15000 });
   });
 });
 

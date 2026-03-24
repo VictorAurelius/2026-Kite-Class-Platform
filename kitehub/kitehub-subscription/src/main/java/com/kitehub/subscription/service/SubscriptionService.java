@@ -38,6 +38,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final InstanceRepository instanceRepository;
     private final PaymentRepository paymentRepository;
+    private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
 
     /**
      * Create a new subscription for instance.
@@ -87,6 +88,19 @@ public class SubscriptionService {
         instanceRepository.save(instance);
 
         log.info("Created subscription: {} for instance: {}", saved.getId(), request.getInstanceId());
+
+        // Send subscription created email
+        try {
+            emailServiceClient.sendSubscriptionCreatedEmail(
+                instance.getId(),
+                instance.getContactEmail(),
+                instance.getOrganizationName(),
+                request.getTier().name(),
+                request.getBillingCycle().name()
+            );
+        } catch (Exception e) {
+            log.error("Failed to send subscription created email for instance: {}", instance.getId(), e);
+        }
 
         return SubscriptionResponse.fromEntity(saved);
     }

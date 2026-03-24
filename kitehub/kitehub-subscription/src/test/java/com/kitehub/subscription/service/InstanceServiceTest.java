@@ -45,6 +45,9 @@ class InstanceServiceTest {
     @Mock
     private TrialConfig trialConfig;
 
+    @Mock
+    private com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
+
     @InjectMocks
     private InstanceService instanceService;
 

@@ -264,6 +264,147 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send trial midpoint engagement email.
+     * Sent at the midpoint of the trial period (default: day 7).
+     *
+     * @param instanceId Instance ID for idempotency tracking
+     * @param to Recipient email address
+     * @param subdomain Instance subdomain
+     */
+    public void sendTrialMidpointEmail(UUID instanceId, String to, String subdomain) {
+        if (alreadySentToday(instanceId, "trial-midpoint", to)) {
+            log.info("Email already sent today: trial-midpoint to {}", to);
+            return;
+        }
+
+        log.info("Sending trial midpoint email to {} (subdomain: {})", to, subdomain);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Bạn đang dùng KiteClass được nửa thời gian trial!")
+                .templateName("trial-midpoint")
+                .variables(Map.of(
+                    "subdomain", subdomain,
+                    "instanceName", subdomain,
+                    "upgradeUrl", "https://kitehub.com/pricing",
+                    "dashboardUrl", String.format("https://%s.kiteclass.vn/dashboard", subdomain)
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "trial-midpoint", to);
+        } catch (Exception e) {
+            log.error("Failed to send trial midpoint email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send onboarding tips email.
+     * Sent ~24 hours after instance activation.
+     *
+     * @param instanceId Instance ID for idempotency tracking
+     * @param to Recipient email address
+     * @param subdomain Instance subdomain
+     */
+    public void sendOnboardingTipsEmail(UUID instanceId, String to, String subdomain) {
+        if (alreadySentToday(instanceId, "onboarding-tips", to)) {
+            log.info("Email already sent today: onboarding-tips to {}", to);
+            return;
+        }
+
+        log.info("Sending onboarding tips email to {} (subdomain: {})", to, subdomain);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Bắt đầu với KiteClass - Các mẹo hữu ích cho bạn")
+                .templateName("onboarding-tips")
+                .variables(Map.of(
+                    "subdomain", subdomain,
+                    "instanceName", subdomain,
+                    "dashboardUrl", String.format("https://%s.kiteclass.vn/dashboard", subdomain)
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "onboarding-tips", to);
+        } catch (Exception e) {
+            log.error("Failed to send onboarding tips email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send subscription expired notification email.
+     * Sent when subscription expires and grace period has passed.
+     *
+     * @param instanceId Instance ID for idempotency tracking
+     * @param to Recipient email address
+     * @param subdomain Instance subdomain
+     */
+    public void sendSubscriptionExpiredEmail(UUID instanceId, String to, String subdomain) {
+        if (alreadySentToday(instanceId, "subscription-expired", to)) {
+            log.info("Email already sent today: subscription-expired to {}", to);
+            return;
+        }
+
+        log.info("Sending subscription expired email to {} (subdomain: {})", to, subdomain);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Subscription KiteClass của bạn đã hết hạn")
+                .templateName("subscription-expired")
+                .variables(Map.of(
+                    "subdomain", subdomain,
+                    "instanceName", subdomain,
+                    "renewUrl", "https://kitehub.com/subscription/renew"
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "subscription-expired", to);
+        } catch (Exception e) {
+            log.error("Failed to send subscription expired email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send data retention final warning email.
+     * Sent 1 day before data deletion.
+     *
+     * @param instanceId Instance ID for idempotency tracking
+     * @param to Recipient email address
+     * @param subdomain Instance subdomain
+     */
+    public void sendDataRetentionFinalWarning(UUID instanceId, String to, String subdomain) {
+        if (alreadySentToday(instanceId, "retention-final-warning", to)) {
+            log.info("Email already sent today: retention-final-warning to {}", to);
+            return;
+        }
+
+        log.info("Sending data retention final warning to {} (subdomain: {})", to, subdomain);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("KHẨN: Dữ liệu KiteClass của bạn sẽ bị xóa sau 24 giờ")
+                .templateName("data-retention-final-warning")
+                .variables(Map.of(
+                    "subdomain", subdomain,
+                    "instanceName", subdomain,
+                    "renewUrl", "https://kitehub.com/subscription/renew"
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "retention-final-warning", to);
+        } catch (Exception e) {
+            log.error("Failed to send data retention final warning email to {}", to, e);
+        }
+    }
+
+    /**
      * Send data deleted notification email.
      *
      * @param instanceId Instance ID
@@ -294,6 +435,72 @@ public class EmailServiceClient {
             recordEmailSent(instanceId, "data-deleted", to);
         } catch (Exception e) {
             log.error("Failed to send data deleted notification email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send welcome email after instance activation.
+     *
+     * @param instanceId Instance ID
+     * @param to Recipient email
+     * @param organizationName Organization name
+     * @param trialDays Number of trial days
+     * @param expiryDate Trial expiry date
+     */
+    public void sendWelcomeEmail(UUID instanceId, String to, String organizationName,
+                                 int trialDays, String expiryDate) {
+        log.info("Sending welcome email to {}", to);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Chào mừng bạn đến với KiteHub!")
+                .templateName("welcome")
+                .variables(Map.of(
+                    "organizationName", organizationName,
+                    "trialDays", trialDays,
+                    "expiryDate", expiryDate,
+                    "loginUrl", "https://kitehub.vn/login"
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "welcome", to);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send subscription created confirmation email.
+     *
+     * @param instanceId Instance ID
+     * @param to Recipient email
+     * @param organizationName Organization name
+     * @param tier Subscription tier
+     * @param billingCycle Billing cycle
+     */
+    public void sendSubscriptionCreatedEmail(UUID instanceId, String to, String organizationName,
+                                             String tier, String billingCycle) {
+        log.info("Sending subscription created email to {}", to);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Subscription đã kích hoạt - " + organizationName)
+                .templateName("subscription-created")
+                .variables(Map.of(
+                    "organizationName", organizationName,
+                    "tier", tier,
+                    "billingCycle", billingCycle,
+                    "dashboardUrl", "https://kitehub.vn/dashboard"
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "subscription-created", to);
+        } catch (Exception e) {
+            log.error("Failed to send subscription created email to {}", to, e);
         }
     }
 

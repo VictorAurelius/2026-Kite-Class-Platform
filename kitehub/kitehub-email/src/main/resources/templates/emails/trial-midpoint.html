@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giữa Kỳ Trial - Bạn Đang Dùng KiteClass Thế Nào?</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #F9FAFB;
+        }
+        .header {
+            background: #3B82F6;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .highlight {
+            background: #F0FDF4;
+            border-left: 4px solid #22C55E;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .feature-list li:before {
+            content: "✓ ";
+            color: #22C55E;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3B82F6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .button-secondary {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #22C55E;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 10px;
+            margin-left: 10px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KiteHub</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${ownerName}">Admin</strong>,</p>
+
+        <p>Bạn đã dùng <strong th:text="${instanceName}">KiteClass</strong> được <strong th:text="${midpointDay}">7</strong> ngày rồi!
+            Chúng tôi muốn biết trải nghiệm của bạn như thế nào.</p>
+
+        <div class="highlight">
+            <p>Bạn còn <strong th:text="${daysLeft}">7</strong> ngày dùng thử. Hãy khám phá thêm các tính năng!</p>
+        </div>
+
+        <p>Những tính năng bạn chưa thử:</p>
+        <ul class="feature-list">
+            <li>Báo cáo học sinh chi tiết theo tuần/tháng</li>
+            <li>Thông báo tự động qua SMS/email cho phụ huynh</li>
+            <li>Quản lý học phí và thanh toán</li>
+            <li>Xuất dữ liệu điểm danh ra Excel/PDF</li>
+        </ul>
+
+        <p>Nâng cấp ngay hôm nay để tiếp tục sau khi trial kết thúc vào ngày
+            <strong th:text="${trialEndDate}">2026-04-07</strong>.</p>
+
+        <a th:href="${dashboardUrl}" class="button">Tiếp tục khám phá</a>
+        <a th:href="${upgradeUrl}" class="button-secondary">Nâng cấp ngay</a>
+
+        <p style="margin-top: 30px;"><strong>Đội ngũ KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 KiteHub. All rights reserved.</p>
+        <p>Nếu bạn không muốn nhận email này, vui lòng <a href="#" style="color: #666;">hủy đăng ký</a>.</p>
+    </div>
+</body>
+</html>

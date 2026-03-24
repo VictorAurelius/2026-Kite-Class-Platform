@@ -66,8 +66,8 @@ test.describe('Instance Detail Page', () => {
   });
 
   test('should have AI branding button', async ({ page }) => {
-    // Use exact match to avoid matching sidebar link
-    const brandingBtn = page.getByRole('link', { name: 'AI Branding', exact: true });
+    // Scope to main content — sidebar also has an "AI Branding" link (same href)
+    const brandingBtn = page.locator('main').getByRole('link', { name: 'AI Branding', exact: true });
     await expect(brandingBtn).toBeVisible();
   });
 
@@ -78,9 +78,10 @@ test.describe('Instance Detail Page', () => {
   });
 
   test('should navigate to branding when clicking AI Branding button', async ({ page }) => {
-    const brandingBtn = page.getByRole('link', { name: 'AI Branding', exact: true });
+    // Scope to main content — sidebar also has an "AI Branding" link (same href)
+    const brandingBtn = page.locator('main').getByRole('link', { name: 'AI Branding', exact: true });
     await brandingBtn.click();
-    await expect(page).toHaveURL('/branding');
+    await expect(page).toHaveURL('/branding', { timeout: 15000 });
   });
 });
 

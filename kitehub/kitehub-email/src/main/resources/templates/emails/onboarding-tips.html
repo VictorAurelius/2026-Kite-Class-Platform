@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bắt Đầu Với KiteClass</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #F9FAFB;
+        }
+        .header {
+            background: #3B82F6;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        .tip-box {
+            background: #EFF6FF;
+            border-left: 4px solid #3B82F6;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .tip-box h3 {
+            margin: 0 0 8px 0;
+            color: #1D4ED8;
+            font-size: 14px;
+        }
+        .tip-box p {
+            margin: 0;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3B82F6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KiteHub</h1>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong th:text="${ownerName}">Admin</strong>,</p>
+
+        <p>Cảm ơn bạn đã đăng ký KiteClass! Instance <strong th:text="${instanceName}">kiteclass</strong> của bạn tại
+            <strong><span th:text="${subdomain}">abc</span>.kiteclass.vn</strong> đã sẵn sàng.</p>
+
+        <p>Dưới đây là một số gợi ý để bắt đầu nhanh:</p>
+
+        <div class="tip-box">
+            <h3>1. Tạo lớp học đầu tiên</h3>
+            <p>Vào phần Quản lý Lớp học để tạo lớp học và thêm học sinh.</p>
+        </div>
+
+        <div class="tip-box">
+            <h3>2. Mời giáo viên</h3>
+            <p>Thêm giáo viên vào hệ thống và phân công lớp học phù hợp.</p>
+        </div>
+
+        <div class="tip-box">
+            <h3>3. Thiết lập thông tin trường</h3>
+            <p>Cập nhật logo, tên trường và thông tin liên hệ trong phần Cài đặt.</p>
+        </div>
+
+        <div class="tip-box">
+            <h3>4. Khám phá báo cáo điểm danh</h3>
+            <p>Theo dõi tỷ lệ điểm danh và hiệu suất học sinh qua Dashboard.</p>
+        </div>
+
+        <p>Bạn có <strong th:text="${trialDaysLeft}">14</strong> ngày dùng thử miễn phí. Hãy tận dụng tối đa!</p>
+
+        <a th:href="${dashboardUrl}" class="button">Vào Dashboard ngay</a>
+
+        <p style="margin-top: 30px;"><strong>Đội ngũ KiteHub</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 KiteHub. All rights reserved.</p>
+        <p>Nếu bạn không muốn nhận email này, vui lòng <a href="#" style="color: #666;">hủy đăng ký</a>.</p>
+    </div>
+</body>
+</html>

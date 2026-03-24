@@ -230,4 +230,157 @@ class EmailServiceClientTest {
             verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
         }
     }
+
+    @Nested
+    @DisplayName("New Email Methods - SAAS-7")
+    class NewEmailMethods {
+
+        @Test
+        @DisplayName("Should check idempotency for trial midpoint email")
+        void shouldCheckIdempotencyForTrialMidpointEmail() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("trial-midpoint"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+            emailServiceClient.sendTrialMidpointEmail(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should send trial midpoint email when not sent today")
+        void shouldSendTrialMidpointEmailWhenNotSentToday() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("trial-midpoint"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
+            mockResponse.setSuccess(true);
+            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
+                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+
+            emailServiceClient.sendTrialMidpointEmail(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+
+            ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
+            verify(emailSentLogRepository).save(captor.capture());
+            assertThat(captor.getValue().getEmailType()).isEqualTo("trial-midpoint");
+        }
+
+        @Test
+        @DisplayName("Should check idempotency for onboarding tips email")
+        void shouldCheckIdempotencyForOnboardingTipsEmail() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("onboarding-tips"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+            emailServiceClient.sendOnboardingTipsEmail(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should send onboarding tips email when not sent today")
+        void shouldSendOnboardingTipsEmailWhenNotSentToday() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("onboarding-tips"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
+            mockResponse.setSuccess(true);
+            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
+                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+
+            emailServiceClient.sendOnboardingTipsEmail(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+
+            ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
+            verify(emailSentLogRepository).save(captor.capture());
+            assertThat(captor.getValue().getEmailType()).isEqualTo("onboarding-tips");
+        }
+
+        @Test
+        @DisplayName("Should check idempotency for subscription expired email")
+        void shouldCheckIdempotencyForSubscriptionExpiredEmail() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("subscription-expired"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+            emailServiceClient.sendSubscriptionExpiredEmail(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should send subscription expired email when not sent today")
+        void shouldSendSubscriptionExpiredEmailWhenNotSentToday() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("subscription-expired"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
+            mockResponse.setSuccess(true);
+            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
+                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+
+            emailServiceClient.sendSubscriptionExpiredEmail(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+
+            ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
+            verify(emailSentLogRepository).save(captor.capture());
+            assertThat(captor.getValue().getEmailType()).isEqualTo("subscription-expired");
+        }
+
+        @Test
+        @DisplayName("Should check idempotency for data retention final warning email")
+        void shouldCheckIdempotencyForDataRetentionFinalWarning() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("retention-final-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(true);
+
+            emailServiceClient.sendDataRetentionFinalWarning(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+        }
+
+        @Test
+        @DisplayName("Should send data retention final warning email when not sent today")
+        void shouldSendDataRetentionFinalWarningWhenNotSentToday() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("retention-final-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
+            mockResponse.setSuccess(true);
+            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
+                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+
+            emailServiceClient.sendDataRetentionFinalWarning(
+                instanceId, "test@example.com", "test");
+
+            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+
+            ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
+            verify(emailSentLogRepository).save(captor.capture());
+            assertThat(captor.getValue().getEmailType()).isEqualTo("retention-final-warning");
+        }
+    }
 }

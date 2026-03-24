@@ -39,6 +39,7 @@ public class InstanceService {
     private final com.kitehub.subscription.config.MultiTenantDataSourceConfig dataSourceConfig;
     private final TokenService tokenService;
     private final TrialConfig trialConfig;
+    private final com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
 
     /**
      * Create a new trial instance.
@@ -198,6 +199,19 @@ public class InstanceService {
         }
 
         log.info("Activated PENDING instance: {} → TRIAL", instanceId);
+
+        // Send welcome email
+        try {
+            emailServiceClient.sendWelcomeEmail(
+                instanceId,
+                instance.getContactEmail(),
+                instance.getOrganizationName(),
+                trialConfig.getDurationDays(),
+                instance.getTrialExpiresAt().toLocalDate().toString()
+            );
+        } catch (Exception e) {
+            log.error("Failed to send welcome email for instance: {}", instanceId, e);
+        }
     }
 
     /**

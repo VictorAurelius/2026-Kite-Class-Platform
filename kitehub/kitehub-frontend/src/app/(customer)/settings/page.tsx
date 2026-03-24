@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AccountTab } from './components/AccountTab';
 import { InstanceTab } from './components/InstanceTab';
 import { DangerZone } from './components/DangerZone';
-import { User, Settings, AlertTriangle } from 'lucide-react';
+import { CustomDomainTab } from './components/CustomDomainTab';
+import { User, Settings, AlertTriangle, Globe } from 'lucide-react';
 
 export default function SettingsPage() {
   const user = useAuthStore((state) => state.user);
@@ -45,7 +46,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="account" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+        <TabsList className="grid w-full grid-cols-4 lg:w-[540px]">
           <TabsTrigger value="account" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Tài khoản</span>
@@ -53,6 +54,10 @@ export default function SettingsPage() {
           <TabsTrigger value="instance" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Instance</span>
+          </TabsTrigger>
+          <TabsTrigger value="domain" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            <span className="hidden sm:inline">Tên miền</span>
           </TabsTrigger>
           <TabsTrigger value="danger" className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
@@ -69,6 +74,10 @@ export default function SettingsPage() {
 
         <TabsContent value="instance" className="mt-6">
           <InstanceTab instance={instance} />
+        </TabsContent>
+
+        <TabsContent value="domain" className="mt-6">
+          <CustomDomainTab instance={instance} />
         </TabsContent>
 
         <TabsContent value="danger" className="mt-6">

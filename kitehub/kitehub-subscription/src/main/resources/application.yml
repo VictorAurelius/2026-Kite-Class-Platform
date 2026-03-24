@@ -68,6 +68,10 @@ kitehub:
   email-service:
     url: ${EMAIL_SERVICE_URL:http://kitehub-email:8080}
     enabled: ${EMAIL_SERVICE_ENABLED:true}
+  domain:
+    verification:
+      timeout-hours: 48
+      mock-mode: ${DOMAIN_VERIFICATION_MOCK:true}
 
 # hCaptcha
 captcha:
