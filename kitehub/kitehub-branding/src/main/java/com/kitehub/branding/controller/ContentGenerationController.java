@@ -62,8 +62,8 @@ public class ContentGenerationController {
     public ResponseEntity<LandingPageContent> getContent(@PathVariable String instanceId) {
         log.info("Getting content for instance: {}", instanceId);
 
-        // FUTURE: Implement content persistence in PR 4.9
-        // For now, return 404 as content is not persisted
+        // Content persistence is deferred until Job Queue infrastructure (PR 4.9).
+        // Currently returns 404 as content is generated on-demand, not persisted.
         return ResponseEntity.notFound().build();
     }
 

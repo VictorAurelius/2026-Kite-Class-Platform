@@ -12,6 +12,7 @@ import com.kiteclass.core.module.marketing.repository.ContactMessageRepository;
 import com.kiteclass.core.module.marketing.service.ContactMessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,9 @@ public class ContactMessageServiceImpl implements ContactMessageService {
     private final ContactMessageMapper contactMessageMapper;
     private final EmailService emailService;
 
+    @Value("${contact.admin-email:admin@kiteclass.com}")
+    private String adminEmail;
+
     /**
      * Creates a new contact message from website visitor.
      *
@@ -60,8 +64,6 @@ public class ContactMessageServiceImpl implements ContactMessageService {
 
         // BR-MKT-003: Send notification email to teacher/admin
         try {
-            // FUTURE: Get admin email from tenant settings instead of hardcoding
-            String adminEmail = "admin@kiteclass.com";
             emailService.sendContactNotification(
                     adminEmail,
                     request.getName(),

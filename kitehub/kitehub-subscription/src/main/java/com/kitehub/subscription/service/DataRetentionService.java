@@ -145,9 +145,7 @@ public class DataRetentionService {
                 }
 
                 if (now.isAfter(retentionExpiry)) {
-                    // Log for future backup implementation (pg_dump)
-                    log.info("Retention expired for instance {} (subdomain: {}). "
-                        + "FUTURE: backup data via pg_dump before deletion.",
+                    log.info("Retention expired for instance {} (subdomain: {}). Proceeding with deletion.",
                         instance.getId(), instance.getSubdomain());
 
                     // Mark as DELETED

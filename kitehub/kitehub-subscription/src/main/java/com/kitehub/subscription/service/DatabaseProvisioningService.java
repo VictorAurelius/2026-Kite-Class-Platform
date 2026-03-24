@@ -122,8 +122,8 @@ public class DatabaseProvisioningService {
 
         // Drop physical database (if lifecycle enabled)
         if (lifecycleEnabled) {
-            // FUTURE: Implement backup before deletion (S3 integration in future PR)
-            // backupDatabase(dbName);
+            // Backup before deletion is deferred until S3 infrastructure is available.
+            // See DatabaseBackupScheduler for the backup strategy.
 
             dropPhysicalDatabase(dbName, instance.getDatabaseUsername());
             log.info("Physical database dropped: {}", dbName);

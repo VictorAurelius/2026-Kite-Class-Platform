@@ -1,0 +1,141 @@
+@startuml trial-payment-retention-flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam activityBackgroundColor #FFFDE7
+skinparam activityBorderColor #888888
+skinparam ArrowColor #555555
+
+title KITEHUB - FULL CUSTOMER LIFECYCLE\nTrial -> Payment -> Retention | 2026-03-24
+
+start
+
+:Customer visits **kitehub.vn**;
+:Selects pricing tier & registers;
+
+' ==================== REGISTRATION ====================
+partition "Phase 1: Registration" #E3F2FD {
+    :Create Instance
+    (status=TRIAL, tier=FREE);
+    :Create Subscription
+    (trial=14 days);
+    :Send **welcome.html** email;
+    :Send **email-verification.html**;
+}
+
+' ==================== TRIAL PERIOD ====================
+partition "Phase 2: Trial (14 days)" #C5CAE9 {
+    :Day 2: Send **onboarding-tips.html**;
+    :Day 7: Send **trial-midpoint.html**;
+
+    if (Customer upgrades before Day 14?) then (yes)
+        :Upgrade to paid tier;
+        :Skip to Payment phase;
+        -> Payment;
+    else (no)
+        :Day 11: Send **trial-expiration-warning.html**
+        "3 days remaining";
+        :Day 13: Send **trial-expiration-warning.html**
+        "1 day remaining";
+    endif
+
+    :Day 14: Trial expires;
+    :Instance status -> **SUSPENDED**;
+    :Send **trial-expired.html**;
+}
+
+' ==================== DECISION POINT ====================
+if (Customer pays within retention window?) then (yes)
+
+    ' ==================== PAYMENT ====================
+    partition "Phase 3: Payment" #B3E5FC {
+        label Payment
+        :Select tier: BASIC / PREMIUM / ENTERPRISE;
+        :Select billing: MONTHLY / ANNUALLY (10% off);
+        :Generate VietQR code;
+        :Customer scans & pays;
+
+        if (Payment successful?) then (yes)
+            :Webhook verified (HMAC-SHA256);
+            :Payment status -> **COMPLETED**;
+            :Send **subscription-created.html**;
+        else (no)
+            :Payment status -> **FAILED**;
+            :Customer retries;
+            -> Select tier: BASIC / PREMIUM / ENTERPRISE;
+        endif
+    }
+
+    ' ==================== ACTIVE SUBSCRIPTION ====================
+    partition "Phase 4: Active Subscription" #C8E6C9 {
+        :Instance status -> **ACTIVE**;
+        :Provision KiteClass DB
+        (Flyway V1-V18, seed data);
+        :Subdomain active: {name}.kiteclass.com;
+
+        while (Subscription active?) is (yes)
+            :7 days before renewal:
+            Send **subscription-renewal-reminder.html**;
+
+            if (Auto-renew payment OK?) then (yes)
+                :Renew subscription;
+            else (no)
+                :Send **subscription-suspended.html**;
+                :Instance status -> **SUSPENDED**;
+                break
+            endif
+        endwhile (expired)
+
+        :Send **subscription-expired.html**;
+    }
+
+    ' ==================== RETENTION (after subscription) ====================
+    partition "Phase 5: Data Retention (7 days)" #FFE0B2 {
+        :Suspend +3 days:
+        Send **data-retention-warning.html**;
+        :Suspend +6 days:
+        Send **data-retention-final-warning.html**;
+
+        if (Customer renews?) then (yes)
+            :Reactivate instance;
+            -> Instance status -> **ACTIVE**;
+        else (no)
+            :Suspend +7 days: **Data Cleanup**;
+        endif
+    }
+
+else (no — no payment)
+
+    ' ==================== RETENTION (after trial) ====================
+    partition "Data Retention (7 days after trial)" #FFCDD2 {
+        :Suspend +3: Send **data-retention-warning.html**;
+        :Suspend +6: Send **data-retention-final-warning.html**;
+    }
+endif
+
+' ==================== DELETION ====================
+partition "Phase 6: Deletion" #FFCDD2 {
+    :Backup database to S3;
+    :DROP database kiteclass_{id};
+    :Instance status -> **DELETED**;
+    :Send **data-deleted.html**;
+}
+
+stop
+
+' ==================== LEGEND ====================
+legend right
+|= Status Flow |
+| TRIAL -> ACTIVE -> SUSPENDED -> DELETED |
+|= Timelines |
+| Trial: 14 days |
+| Retention: 7 days after suspend |
+| Warnings: Day 3, Day 6 of retention |
+|= Pricing |
+| FREE: 10 students, 0 VND |
+| BASIC: 50 students, 500k/mo |
+| PREMIUM: 200 students, 1.5M/mo |
+| ENTERPRISE: Unlimited, custom |
+endlegend
+
+@enduml

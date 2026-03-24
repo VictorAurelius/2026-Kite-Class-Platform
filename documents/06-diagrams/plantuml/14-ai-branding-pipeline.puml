@@ -1,0 +1,90 @@
+@startuml ai-branding-pipeline
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+
+title KITEHUB - AI BRANDING PIPELINE\n2026-03-24
+
+start
+
+:Customer uploads logo &
+selects brand personality;
+
+:Create BrandingJob
+status=QUEUED;
+
+:Return jobId
+HTTP 202 Accepted;
+
+fork
+  :Customer polls
+  GET /api/branding/jobs
+  every 3 seconds;
+fork again
+
+  :Pick job from queue
+  status=PROCESSING;
+
+  #E8EAF6:Step 1: Logo Analysis
+  Send to GPT-4 Vision
+  progress=20%;
+
+  #C5CAE9:Step 2: Profile Images
+  Generate 3 variants via DALL-E 3
+  Upload to S3
+  progress=40%;
+
+  #B3E5FC:Step 3: Hero Banners
+  Generate 3 banners 1920x600
+  via DALL-E 3
+  progress=60%;
+
+  #C8E6C9:Step 4: Brand Logos
+  Generate light + dark SVG
+  progress=75%;
+
+  #FFF9C4:Step 5: Social Banners
+  Facebook cover 820x312
+  YouTube banner 2560x1440
+  progress=85%;
+
+  #FFE0B2:Step 6: OG Image
+  Generate 1200x630
+  progress=90%;
+
+  #F8BBD0:Step 7: Marketing Copy
+  GPT-4 generates tagline,
+  description, about text
+  progress=95%;
+
+  #E8F5E9:Step 8: Finalize
+  Compile asset URLs
+  status=COMPLETED 100%
+  Publish branding.completed event;
+
+end fork
+
+:Display branding preview;
+
+if (Customer approves?) then (yes)
+  :Apply branding to instance;
+  :CDN serves assets;
+else (no)
+  :Regenerate - max 3 retries;
+endif
+
+stop
+
+legend right
+|= Step |= AI Service |= Output |
+| 1. Logo Analysis | GPT-4 Vision | JSON |
+| 2. Profile Images | DALL-E 3 | 3 variants |
+| 3. Hero Banners | DALL-E 3 | 3x 1920x600 |
+| 4. Brand Logos | DALL-E 3 | light + dark SVG |
+| 5. Social Banners | DALL-E 3 | FB + YT |
+| 6. OG Image | DALL-E 3 | 1200x630 |
+| 7. Marketing Copy | GPT-4 | Tagline, desc, about |
+|= Total |= ~30 seconds |= ~$0.19 per job |
+endlegend
+
+@enduml
