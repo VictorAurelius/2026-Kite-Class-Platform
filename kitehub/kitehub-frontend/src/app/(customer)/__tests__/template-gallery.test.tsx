@@ -143,7 +143,7 @@ describe('TemplateGalleryPage', () => {
     render(<TemplateGalleryPage />);
 
     const applyButtons = screen.getAllByText('Áp dụng Template');
-    await user.click(applyButtons[0]);
+    await user.click(applyButtons[0]!);
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
