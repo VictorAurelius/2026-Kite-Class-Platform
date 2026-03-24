@@ -9,18 +9,18 @@
 | PR | Description | Status | Impact |
 |----|-------------|--------|--------|
 | PR-1+2+3 | 3-layer business docs (7 domains × 3 files = 21 files) | ✅ Done | Business Gap +5% |
-| PR-4 | Project Management finalize | ⬜ Pending | PM +3 |
-| PR-5 | JWT Security + Backend Tests | ⬜ Pending | Security +1, Tests +1 |
-| PR-6 | Frontend Tests + API docs | ⬜ Pending | FE Tests +1 |
+| PR-4 | Project Management finalize | ✅ Done | PM docs |
+| PR-5 | JWT Security + Backend Tests | ✅ Done | JWT fix + 8 tests |
+| PR-6 | Frontend Tests + API docs | ✅ Done | 5 FE tests |
 | PR-7 | Close Business Gaps (AIRateLimitServiceTest, TemplateGalleryServiceTest) | ✅ Skip — tests already complete (11 + 7 cases) | Business Gap |
 
 ## Score Tracking
 
 | Checkpoint | Quality | Business Gap |
 |------------|---------|-------------|
-| Baseline | 93/100 | 95% |
-| After PR-1+2+3 | ~94 | ~100% |
-| After PR-4+5+6+7 | ~100 | 100% |
+| Baseline (actual audit) | 96/100 | 95% |
+| After PR-1+2+3 | ~96 | 100% |
+| After PR-4+5+6 | ~98 | 100% |
 
 ## Test Coverage Status
 
