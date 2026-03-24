@@ -49,8 +49,8 @@ echo "=============================================="
 # For backend services, need to rebuild base first if --no-cache
 if [ "$NO_CACHE" = "--no-cache" ] && [ "$SERVICE" != "kitehub-frontend" ]; then
     echo ""
-    echo "[1/3] Rebuilding kitehub-base (dependencies)..."
-    docker build $NO_CACHE -t kitehub-base:latest -f kitehub-base/Dockerfile .
+    echo "[1/3] Rebuilding kite-base (dependencies)..."
+    docker build $NO_CACHE -t kite-base:latest -f kitehub-base/Dockerfile .
 fi
 
 echo ""

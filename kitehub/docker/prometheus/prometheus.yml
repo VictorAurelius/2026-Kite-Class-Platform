@@ -26,10 +26,10 @@ scrape_configs:
     static_configs:
       - targets: ['kitehub-admin:8080']
 
-  - job_name: 'kitehub-gateway'
+  - job_name: 'kite-gateway'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['kitehub-gateway:9000']
+      - targets: ['kite-gateway:9000']
 
   - job_name: 'kiteclass-core'
     metrics_path: '/actuator/prometheus'

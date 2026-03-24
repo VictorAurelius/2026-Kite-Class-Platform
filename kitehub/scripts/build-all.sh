@@ -13,13 +13,13 @@ if [ "$1" = "--no-cache" ]; then
 fi
 
 echo "=============================================="
-echo "  KiteHub Docker Build"
+echo "  Kite Platform Docker Build"
 echo "=============================================="
 
 # Step 1: Build base image first (contains Maven dependencies)
 echo ""
-echo "[1/6] Building kitehub-base image..."
-docker build $CACHE_FLAG -t kitehub-base:latest -f kitehub-base/Dockerfile .
+echo "[1/6] Building kite-base image..."
+docker build $CACHE_FLAG -t kite-base:latest -f kitehub-base/Dockerfile .
 
 # Step 2: Build backend services (in parallel using base image)
 echo ""
@@ -29,7 +29,7 @@ docker-compose -f docker-compose.kitehub.yml build $CACHE_FLAG \
     kitehub-branding \
     kitehub-email \
     kitehub-admin \
-    kitehub-gateway
+    kite-gateway
 
 # Step 3: Build frontend
 echo ""
@@ -43,4 +43,4 @@ echo "=============================================="
 echo ""
 echo "To start: docker-compose -f docker-compose.kitehub.yml up -d"
 echo ""
-docker images | grep kitehub
+docker images | grep -E "kite-|kitehub-|kiteclass-"

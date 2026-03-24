@@ -1,13 +1,13 @@
-name: kitehub
+name: kite-platform
 
 services:
   # ============================================================================
-  # INFRASTRUCTURE SERVICES
+  # INFRASTRUCTURE SERVICES (shared: kite- prefix)
   # ============================================================================
 
-  kitehub-postgres:
+  kite-postgres:
     image: postgres:15-alpine
-    container_name: kitehub-postgres
+    container_name: kite-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-kitehub}
       POSTGRES_USER: ${POSTGRES_USER:-kitehub}
@@ -15,7 +15,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - kitehub-postgres-data:/var/lib/postgresql/data
+      - kite-postgres-data:/var/lib/postgresql/data
       - ./docker/postgres:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kitehub}"]
@@ -23,11 +23,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - kitehub-network
+      - kite-network
 
-  kitehub-redis:
+  kite-redis:
     image: redis:7-alpine
-    container_name: kitehub-redis
+    container_name: kite-redis
     ports:
       - "6380:6379"
     healthcheck:
@@ -36,11 +36,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - kitehub-network
+      - kite-network
 
-  kitehub-rabbitmq:
+  kite-rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: kitehub-rabbitmq
+    container_name: kite-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-kitehub}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
@@ -53,11 +53,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - kitehub-network
+      - kite-network
 
-  kitehub-minio:
+  kite-minio:
     image: minio/minio:latest
-    container_name: kitehub-minio
+    container_name: kite-minio
     command: server /data --console-address ":9091"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kitehub}
@@ -66,91 +66,91 @@ services:
       - "9100:9000"
       - "9191:9091"
     volumes:
-      - kitehub-minio-data:/data
+      - kite-minio-data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - kitehub-network
+      - kite-network
 
-  kitehub-mailhog:
+  kite-mailhog:
     image: mailhog/mailhog:latest
-    container_name: kitehub-mailhog
+    container_name: kite-mailhog
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
     networks:
-      - kitehub-network
+      - kite-network
 
-  kitehub-minio-setup:
+  kite-minio-setup:
     image: minio/mc:latest
-    container_name: kitehub-minio-setup
+    container_name: kite-minio-setup
     depends_on:
-      kitehub-minio:
+      kite-minio:
         condition: service_healthy
     restart: on-failure
     entrypoint: >
       /bin/sh -c "
-      mc alias set kitehub http://kitehub-minio:9000 ${MINIO_ROOT_USER:-kitehub} ${MINIO_ROOT_PASSWORD:?required};
-      mc mb kitehub/kitehub-assets --ignore-existing;
-      mc anonymous set public kitehub/kitehub-assets;
+      mc alias set kite http://kite-minio:9000 ${MINIO_ROOT_USER:-kitehub} ${MINIO_ROOT_PASSWORD:?required};
+      mc mb kite/kitehub-assets --ignore-existing;
+      mc anonymous set public kite/kitehub-assets;
       echo 'MinIO bucket kitehub-assets created successfully';
       "
     networks:
-      - kitehub-network
+      - kite-network
 
   # ============================================================================
-  # MONITORING SERVICES
+  # MONITORING SERVICES (shared: kite- prefix)
   # ============================================================================
 
-  kitehub-prometheus:
+  kite-prometheus:
     image: prom/prometheus:v2.51.0
-    container_name: kitehub-prometheus
+    container_name: kite-prometheus
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - kitehub-prometheus-data:/prometheus
+      - kite-prometheus-data:/prometheus
     ports:
       - "9090:9090"
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
     profiles:
       - monitoring
 
-  kitehub-grafana:
+  kite-grafana:
     image: grafana/grafana:10.4.0
-    container_name: kitehub-grafana
+    container_name: kite-grafana
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_SERVER_HTTP_PORT: 3002
     volumes:
-      - kitehub-grafana-data:/var/lib/grafana
+      - kite-grafana-data:/var/lib/grafana
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
       - "3002:3002"
     depends_on:
-      - kitehub-prometheus
+      - kite-prometheus
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
     profiles:
       - monitoring
 
   # ============================================================================
-  # AI SERVICES (Local Development)
+  # AI SERVICES (shared: kite- prefix)
   # ============================================================================
 
-  kitehub-ollama:
+  kite-ollama:
     image: ollama/ollama:latest
-    container_name: kitehub-ollama
+    container_name: kite-ollama
     ports:
       - "11434:11434"
     volumes:
-      - kitehub-ollama-models:/root/.ollama
+      - kite-ollama-models:/root/.ollama
     healthcheck:
       test: ["CMD-SHELL", "ollama list || exit 1"]
       interval: 15s
@@ -158,46 +158,46 @@ services:
       retries: 10
       start_period: 10s
     networks:
-      - kitehub-network
+      - kite-network
     profiles:
       - ai-local
 
-  kitehub-ollama-setup:
+  kite-ollama-setup:
     image: ollama/ollama:latest
-    container_name: kitehub-ollama-setup
+    container_name: kite-ollama-setup
     depends_on:
-      kitehub-ollama:
+      kite-ollama:
         condition: service_healthy
     restart: "no"
     entrypoint: >
       /bin/sh -c "
       echo 'Pulling AI models for local development...';
-      OLLAMA_HOST=http://kitehub-ollama:11434 ollama pull llama3.1:8b;
+      OLLAMA_HOST=http://kite-ollama:11434 ollama pull llama3.1:8b;
       echo 'Text model (llama3.1:8b) ready';
       echo 'Skipping vision model (llava:13b) - pull manually if needed: ollama pull llava:13b';
       echo 'All models ready!';
       "
     networks:
-      - kitehub-network
+      - kite-network
     profiles:
       - ai-local
 
   # ============================================================================
-  # BASE IMAGE - Build first, used by all backend services
+  # BASE IMAGE - Build first, used by all backend services (shared: kite- prefix)
   # ============================================================================
 
-  kitehub-base:
+  kite-base:
     build:
       context: .
       dockerfile: kitehub-base/Dockerfile
-    image: kitehub-base:latest
-    container_name: kitehub-base
+    image: kite-base:latest
+    container_name: kite-base
     command: ["echo", "Base image built successfully"]
     profiles:
       - build-only
 
   # ============================================================================
-  # PLATFORM SERVICES
+  # KITEHUB PLATFORM SERVICES (kitehub- prefix)
   # ============================================================================
 
   kitehub-subscription:
@@ -209,19 +209,19 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       DATABASE_LIFECYCLE_ENABLED: "true"
-      DATABASE_MASTER_HOST: kitehub-postgres
+      DATABASE_MASTER_HOST: kite-postgres
       DATABASE_MASTER_PORT: 5432
-      DATABASE_ADMIN_URL: jdbc:postgresql://kitehub-postgres:5432/postgres
+      DATABASE_ADMIN_URL: jdbc:postgresql://kite-postgres:5432/postgres
       DATABASE_ADMIN_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_ADMIN_PASSWORD: ${POSTGRES_PASSWORD:?required}
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
@@ -229,11 +229,11 @@ services:
     ports:
       - "8081:8080"
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
@@ -242,7 +242,7 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
   kitehub-branding:
@@ -254,23 +254,23 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       AI_PROVIDER: ${AI_PROVIDER:-openai}
-      OLLAMA_BASE_URL: http://kitehub-ollama:11434
+      OLLAMA_BASE_URL: http://kite-ollama:11434
       OLLAMA_TEXT_MODEL: ${OLLAMA_TEXT_MODEL:-llama3.1:8b}
       OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava:13b}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-kitehub}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?required}
-      S3_ENDPOINT: http://kitehub-minio:9000
+      S3_ENDPOINT: http://kite-minio:9000
       S3_BUCKET: kitehub-assets
       AWS_REGION: ap-southeast-1
       S3_MOCK_MODE: "false"
@@ -278,13 +278,13 @@ services:
     ports:
       - "8083:8080"
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
-      kitehub-minio:
+      kite-minio:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
@@ -293,7 +293,7 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
   kitehub-email:
@@ -305,7 +305,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
@@ -313,12 +313,12 @@ services:
       AWS_SES_FROM_EMAIL: noreply@kiteclass.com
       AWS_SES_MOCK_MODE: "true"
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
-      SMTP_HOST: kitehub-mailhog
+      SMTP_HOST: kite-mailhog
       SMTP_PORT: 1025
     ports:
       - "8084:8080"
     depends_on:
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
@@ -327,7 +327,7 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
   kitehub-admin:
@@ -339,10 +339,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
       # Security secrets (shared with subscription service)
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?ENCRYPTION_MASTER_KEY is required - run ./scripts/setup.sh}
@@ -350,9 +350,9 @@ services:
     ports:
       - "8085:8080"
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
@@ -361,21 +361,21 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
-  kitehub-gateway:
+  kite-gateway:
     build:
       context: .
       dockerfile: kitehub-gateway/Dockerfile
-    image: kitehub-gateway:latest
-    container_name: kitehub-gateway
+    image: kite-gateway:latest
+    container_name: kite-gateway
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      REDIS_HOST: kitehub-redis
+      REDIS_HOST: kite-redis
       REDIS_PORT: 6379
       SERVER_PORT: 9000
       SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
@@ -386,9 +386,9 @@ services:
     ports:
       - "9000:9000"
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
       kitehub-subscription:
         condition: service_healthy
@@ -407,11 +407,11 @@ services:
       retries: 10
       start_period: 30s
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
   # ============================================================================
-  # KITECLASS CORE SERVICE (Shared multi-tenant instance)
+  # KITECLASS CORE SERVICE (kiteclass- prefix)
   # ============================================================================
 
   kiteclass-core:
@@ -422,30 +422,30 @@ services:
     container_name: kiteclass-core
     environment:
       SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/kiteclass_shared
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/kiteclass_shared
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_DATA_REDIS_HOST: kitehub-redis
+      SPRING_DATA_REDIS_HOST: kite-redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       SPRING_FLYWAY_ENABLED: "true"
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_JPA_HIBERNATE_DDL_AUTO: none
-      STORAGE_S3_ENDPOINT: http://kitehub-minio:9000
+      STORAGE_S3_ENDPOINT: http://kite-minio:9000
       STORAGE_S3_ACCESS_KEY: ${MINIO_ROOT_USER:-kitehub}
       STORAGE_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?required}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:?INTERNAL_API_SECRET is required}
     ports:
       - "8088:8080"
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
@@ -454,11 +454,11 @@ services:
       retries: 5
       start_period: 60s
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
   # ============================================================================
-  # FRONTEND SERVICE
+  # FRONTEND SERVICES
   # ============================================================================
 
   kitehub-frontend:
@@ -477,9 +477,9 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - kitehub-gateway
+      - kite-gateway
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
   # ============================================================================
@@ -500,23 +500,23 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - kitehub-gateway
+      - kite-gateway
     networks:
-      - kitehub-network
+      - kite-network
     restart: unless-stopped
 
 volumes:
-  kitehub-postgres-data:
+  kite-postgres-data:
     driver: local
-  kitehub-minio-data:
+  kite-minio-data:
     driver: local
-  kitehub-ollama-models:
+  kite-ollama-models:
     driver: local
-  kitehub-prometheus-data:
+  kite-prometheus-data:
     driver: local
-  kitehub-grafana-data:
+  kite-grafana-data:
     driver: local
 
 networks:
-  kitehub-network:
+  kite-network:
     driver: bridge

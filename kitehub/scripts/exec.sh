@@ -1,5 +1,5 @@
 #!/bin/bash
-# Execute command in KiteHub container
+# Execute command in Kite Platform container
 # Usage: ./scripts/exec.sh <service> [command]
 #
 # Examples:
@@ -26,21 +26,36 @@ fi
 SERVICE=$1
 shift
 
-# Add kitehub- prefix if not present
-if [[ "$SERVICE" != kitehub-* ]]; then
-    SERVICE="kitehub-$SERVICE"
-fi
+# Map short names to container names
+# Shared infra uses kite- prefix, KiteHub services use kitehub- prefix
+case $SERVICE in
+    postgres)    SERVICE="kite-postgres" ;;
+    redis)       SERVICE="kite-redis" ;;
+    rabbitmq)    SERVICE="kite-rabbitmq" ;;
+    minio)       SERVICE="kite-minio" ;;
+    mailhog)     SERVICE="kite-mailhog" ;;
+    gateway)     SERVICE="kite-gateway" ;;
+    subscription) SERVICE="kitehub-subscription" ;;
+    branding)    SERVICE="kitehub-branding" ;;
+    email)       SERVICE="kitehub-email" ;;
+    admin)       SERVICE="kitehub-admin" ;;
+    frontend)    SERVICE="kitehub-frontend" ;;
+    # If already has prefix, keep as-is
+    kite-*|kitehub-*|kiteclass-*) ;;
+    # Default: try kitehub- prefix
+    *)           SERVICE="kitehub-$SERVICE" ;;
+esac
 
 # Default commands for common services
 if [ $# -eq 0 ]; then
     case $SERVICE in
-        kitehub-postgres)
+        kite-postgres)
             docker exec -it $SERVICE psql -U kitehub -d kitehub
             ;;
-        kitehub-redis)
+        kite-redis)
             docker exec -it $SERVICE redis-cli
             ;;
-        kitehub-rabbitmq)
+        kite-rabbitmq)
             docker exec -it $SERVICE rabbitmqctl status
             ;;
         *)

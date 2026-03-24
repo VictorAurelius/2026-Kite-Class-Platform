@@ -1,12 +1,12 @@
 #!/bin/bash
-# View KiteHub logs
+# View Kite Platform logs
 # Usage: ./scripts/logs.sh [service] [-f] [--tail N]
 #
 # Examples:
 #   ./scripts/logs.sh                    # All logs (last 100 lines)
 #   ./scripts/logs.sh -f                 # Follow all logs
-#   ./scripts/logs.sh kitehub-gateway    # Gateway logs only
-#   ./scripts/logs.sh kitehub-gateway -f # Follow gateway logs
+#   ./scripts/logs.sh kite-gateway       # Gateway logs only
+#   ./scripts/logs.sh kite-gateway -f    # Follow gateway logs
 #   ./scripts/logs.sh --tail 50          # Last 50 lines
 
 set -e
@@ -32,12 +32,21 @@ while [[ $# -gt 0 ]]; do
             TAIL="${1#*=}"
             shift
             ;;
-        kitehub-*)
+        kite-*|kitehub-*|kiteclass-*)
             SERVICE="$1"
             shift
             ;;
         *)
-            SERVICE="kitehub-$1"
+            # Map short names to container names
+            case $1 in
+                postgres)    SERVICE="kite-postgres" ;;
+                redis)       SERVICE="kite-redis" ;;
+                rabbitmq)    SERVICE="kite-rabbitmq" ;;
+                minio)       SERVICE="kite-minio" ;;
+                mailhog)     SERVICE="kite-mailhog" ;;
+                gateway)     SERVICE="kite-gateway" ;;
+                *)           SERVICE="kitehub-$1" ;;
+            esac
             shift
             ;;
     esac

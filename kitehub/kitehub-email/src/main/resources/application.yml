@@ -12,7 +12,7 @@ spring:
 
   # SMTP Configuration (for MailHog local dev or real SMTP)
   mail:
-    host: ${SMTP_HOST:kitehub-mailhog}
+    host: ${SMTP_HOST:kite-mailhog}
     port: ${SMTP_PORT:1025}
     properties:
       mail:

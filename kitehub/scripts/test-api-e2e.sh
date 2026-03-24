@@ -645,7 +645,7 @@ fi
 DB_NAME=$(echo "$DB_URL" | python3 -c "import sys; url=sys.stdin.read().strip(); print(url.split('/')[-1] if '/' in url else '')" 2>/dev/null)
 if [ -n "$DB_NAME" ] && [ "$DB_NAME" != "pending" ]; then
   # Check DB exists via admin connection
-  DB_EXISTS=$(docker exec kitehub-postgres psql -U kitehub -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" 2>/dev/null | tr -d '[:space:]')
+  DB_EXISTS=$(docker exec kite-postgres psql -U kitehub -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" 2>/dev/null | tr -d '[:space:]')
   TOTAL=$((TOTAL + 1))
   if [ "$DB_EXISTS" = "1" ]; then
     PASS=$((PASS + 1))
@@ -657,7 +657,7 @@ if [ -n "$DB_NAME" ] && [ "$DB_NAME" != "pending" ]; then
   fi
 
   # Check tables were created by Flyway migrations
-  TABLE_COUNT=$(docker exec kitehub-postgres psql -U kitehub -d "$DB_NAME" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'" 2>/dev/null | tr -d '[:space:]')
+  TABLE_COUNT=$(docker exec kite-postgres psql -U kitehub -d "$DB_NAME" -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'" 2>/dev/null | tr -d '[:space:]')
   TOTAL=$((TOTAL + 1))
   if [ -n "$TABLE_COUNT" ] && [ "$TABLE_COUNT" -gt 5 ] 2>/dev/null; then
     PASS=$((PASS + 1))
@@ -670,7 +670,7 @@ if [ -n "$DB_NAME" ] && [ "$DB_NAME" != "pending" ]; then
 
   # Check key tables exist (students, courses, teachers)
   for TABLE in students courses teachers; do
-    TABLE_EXISTS=$(docker exec kitehub-postgres psql -U kitehub -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='$TABLE'" 2>/dev/null | tr -d '[:space:]')
+    TABLE_EXISTS=$(docker exec kite-postgres psql -U kitehub -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='$TABLE'" 2>/dev/null | tr -d '[:space:]')
     TOTAL=$((TOTAL + 1))
     if [ "$TABLE_EXISTS" = "1" ]; then
       PASS=$((PASS + 1))

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Wait for all KiteHub services to be healthy
+# Wait for all Kite Platform services to be healthy
 # Usage: ./scripts/wait-for-healthy.sh [timeout_seconds]
 
 set -euo pipefail
@@ -9,15 +9,15 @@ INTERVAL=5
 ELAPSED=0
 
 SERVICES=(
-  "kitehub-postgres"
-  "kitehub-redis"
-  "kitehub-rabbitmq"
-  "kitehub-minio"
+  "kite-postgres"
+  "kite-redis"
+  "kite-rabbitmq"
+  "kite-minio"
   "kitehub-subscription"
   "kitehub-branding"
   "kitehub-email"
   "kitehub-admin"
-  "kitehub-gateway"
+  "kite-gateway"
   "kiteclass-core"
 )
 

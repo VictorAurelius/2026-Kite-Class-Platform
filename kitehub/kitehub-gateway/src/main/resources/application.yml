@@ -1,6 +1,6 @@
 spring:
   application:
-    name: kitehub-gateway
+    name: kite-gateway
 
   cloud:
     gateway:

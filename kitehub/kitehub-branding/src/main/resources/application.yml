@@ -45,7 +45,7 @@ ai:
     premium-per-day: 50
     enterprise-per-day: -1
   ollama:
-    base-url: ${OLLAMA_BASE_URL:http://kitehub-ollama:11434}
+    base-url: ${OLLAMA_BASE_URL:http://kite-ollama:11434}
     text-model: ${OLLAMA_TEXT_MODEL:llama3.1:8b}
     vision-model: ${OLLAMA_VISION_MODEL:llava:13b}
     timeout-seconds: ${OLLAMA_TIMEOUT:120}
