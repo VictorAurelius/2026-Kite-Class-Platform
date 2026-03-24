@@ -32,3 +32,27 @@ export interface MarketingContent {
   tagline: string;
   aboutUs: string;
 }
+
+// SAAS-8: Template gallery types
+export interface BrandingTemplate {
+  id: string;
+  name: string;
+  category: string;
+  thumbnailUrl?: string;
+  themeConfig: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface ThemeConfig {
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+  fonts: {
+    heading: string;
+    body: string;
+  };
+  style: string;
+}

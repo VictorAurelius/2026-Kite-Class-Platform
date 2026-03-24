@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
-import { Sparkles, Image as ImageIcon, Grid3x3, ArrowRight, Palette } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Grid3x3, ArrowRight, Palette, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function BrandingDashboardPage() {
@@ -55,10 +55,16 @@ export default function BrandingDashboardPage() {
               </p>
             </div>
           </div>
-          <Button onClick={() => router.push('/branding/wizard')}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            Tạo Branding mới
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push('/branding/templates')}>
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              Template Gallery
+            </Button>
+            <Button onClick={() => router.push('/branding/wizard')}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Tạo Branding mới
+            </Button>
+          </div>
         </div>
       </div>
 
