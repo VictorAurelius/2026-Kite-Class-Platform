@@ -144,3 +144,17 @@ cần có skill để nhắc về các docs có khả năng cập nhật liên t
 5. kiteclass
 
 chốt phương án xử lý những docs này như nào nhỉ?
+
+tôi nghĩ cần thống nhất lại tiếp, chỉ những docs nào mang tính đọc nhanh, tiếp cận nhanh thì để trong folder docs của service và phải thống nhất service nào cũng có, còn muốn tìm hiểu kỹ thì phải vào documents, tạo PR hướng đến wave để tiếp tục tái cấu trúc tốt hơn
+
+Ngoài E2E docker test ra thì action tiếp theo là gì?
+
+ngoài ra tôi cần check lại chất lượng của wave 7 và wave 8 nữa:
+1. tôi đang thấy CI fail
+2. đã đúng chuẩn workflow của wave chưa? đang chưa thấy
+
+đưa tất cả action tiếp theo này thành các PR lẻ nằm trong wave 9 và thực hiện
+
+lại vi phạm rule monitor CI rồi?
+
+đang thực hiện hết từ P0 đến P4 và 2 yêu cầu thêm của tôi về wave 7,8 chưa?

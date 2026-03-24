@@ -8,7 +8,7 @@ Aggregated test results across all services in the Kite Class Platform.
 |---------|-----------|---------------|-------|
 | KiteHub (all services) | 48 | 532 | 580 |
 | KiteClass | 98 | 620 | 718 |
-| **Total** | **146** | **1,152** | **1,298** |
+| **Total** | **166** | **1,312** | **1,478** |
 
 ## Test Distribution by Type
 
@@ -45,6 +45,9 @@ Aggregated test results across all services in the Kite Class Platform.
 | Wave 3 | ~220 | ~750 | Custom domains, advanced billing |
 | Wave 4 | ~300 | ~1,050 | Template gallery, config API, E2E |
 | Wave 5 | ~248 | ~1,298 | AI rate limit, blog, Docker, validation |
+| Wave 6 | ~80 | ~1,378 | Quality v4 — monitoring, FUTURE cleanup, payment URL |
+| Wave 7 | ~60 | ~1,438 | Business docs (7→16), service README + QUICK-START |
+| Wave 8 | ~40 | ~1,478 | Alert rules, documentation polish, infra hardening |
 
 ## CI/CD Metrics
 
@@ -85,3 +88,15 @@ Aggregated test results across all services in the Kite Class Platform.
 - Every PR must include tests for new/changed functionality
 - CI blocks merge if coverage drops below thresholds
 - E2E tests run on critical paths before deployment
+
+## Documentation Coverage (Wave 6-8)
+
+### Business Documents
+- **Before Wave 7:** 7 business docs
+- **After Wave 7:** 16 business docs (all domains covered)
+- All 9 services have README.md + QUICK-START.md
+
+### Wave 6-8 Key Results
+- **Wave 6:** Quality v4 push — Prometheus alerting, FUTURE placeholder cleanup, KiteClass monitoring
+- **Wave 7:** Business doc gap identified (7 docs → 16 docs), service documentation standardized
+- **Wave 8:** Alert rules expanded (3→7 rules), infrastructure hardening, documentation polish
