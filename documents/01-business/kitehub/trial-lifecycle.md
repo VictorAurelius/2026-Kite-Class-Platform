@@ -1,6 +1,6 @@
 # Trial Lifecycle
 
-**Last verified:** 2026-03-23
+**Last verified:** 2026-03-24
 **Config prefix:** `kitehub.trial`
 
 ## 1. Rules
