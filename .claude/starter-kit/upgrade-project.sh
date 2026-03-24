@@ -39,14 +39,29 @@ done
 ALL=true
 $ONLY_SCRIPTS || $ONLY_SKILLS || $ONLY_MEMORY && ALL=false
 
+KIT_VERSION=$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "unknown")
+
+# Check installed version
+INSTALLED_VERSION="none"
+if [ -f "$TARGET/.claude/.starter-kit-version" ]; then
+    INSTALLED_VERSION=$(cat "$TARGET/.claude/.starter-kit-version" | tr -d '[:space:]')
+fi
+
 echo "═══════════════════════════════════════════════"
 echo "  Upgrade Existing Project from Starter Kit"
 echo "═══════════════════════════════════════════════"
-echo "  Target:  $TARGET"
-echo "  Source:  $SCRIPT_DIR"
-$DRY_RUN && echo "  Mode:    DRY RUN"
-$FORCE && echo "  Mode:    FORCE (overwrite all)"
+echo "  Target:    $TARGET"
+echo "  Kit:       v$KIT_VERSION"
+echo "  Installed: v$INSTALLED_VERSION"
+$DRY_RUN && echo "  Mode:      DRY RUN"
+$FORCE && echo "  Mode:      FORCE (overwrite all)"
 echo ""
+
+if [ "$INSTALLED_VERSION" = "$KIT_VERSION" ] && ! $FORCE; then
+    echo "  ✅ Already on latest version (v$KIT_VERSION)"
+    echo "     Use --force to re-apply"
+    exit 0
+fi
 
 ADDED=0
 UPDATED=0
@@ -211,6 +226,14 @@ if [ $CONFLICTS -gt 0 ]; then
     echo "  ⚠️  $CONFLICTS file(s) saved as .kit-new"
     echo "  Review and merge manually:"
     find "$TARGET" -name "*.kit-new" 2>/dev/null | sed 's/^/    /'
+fi
+
+# Track installed version
+if ! $DRY_RUN && [ $((ADDED + UPDATED)) -gt 0 ]; then
+    mkdir -p "$TARGET/.claude"
+    echo "$KIT_VERSION" > "$TARGET/.claude/.starter-kit-version"
+    echo ""
+    echo "  📦 Installed version: v$KIT_VERSION"
 fi
 
 echo ""

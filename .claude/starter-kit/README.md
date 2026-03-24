@@ -1,101 +1,114 @@
 # Claude Code Starter Kit
 
-Bộ skills, scripts, templates rút ra từ kinh nghiệm phát triển dự án thực tế (~200+ PRs, 10+ waves, nhiều lần fix workflow).
+**Version:** 1.0.0 (xem CHANGELOG.md)
+
+Bộ skills, scripts, templates rút ra từ kinh nghiệm phát triển dự án thực tế (~200+ PRs, 10+ waves). Được quản lý như internal package với versioning và review process.
 
 ## Dùng khi nào?
 
-Khi bắt đầu dự án mới với Claude Code và muốn:
-- Workflow chuẩn hóa từ ngày đầu (không mất 3 tháng tự khám phá)
-- Tránh lặp lại sai lầm đã gặp (CI monitoring, business docs, testing)
-- Quality framework có sẵn (audit scoring, gap check)
+- Bắt đầu dự án mới → workflow chuẩn từ ngày đầu
+- Dự án đã có → tiếp nhận best practices không overwrite customizations
+- Dự án phát hiện cải tiến → đóng góp ngược vào kit cho các dự án khác
 
-## Setup
+## 3 Scenarios
 
-### Dự án MỚI (chưa có .claude/)
+### 1. Dự án MỚI
 
 ```bash
 ./init-project.sh /path/to/new-project
 ```
 
-Tự động: copy skills + scripts + templates + seed memories + link git hooks.
-
-### Dự án ĐÃ CÓ skills/workflows
+### 2. Dự án ĐÃ CÓ skills/workflows
 
 ```bash
-# Preview — xem sẽ thay đổi gì (không sửa file)
-./upgrade-project.sh /path/to/existing-project --dry-run
-
-# Interactive — hỏi trước mỗi conflict
-./upgrade-project.sh /path/to/existing-project
-
-# Chỉ import scripts (không đụng skills)
-./upgrade-project.sh /path/to/project --scripts
-
-# Chỉ import skills
-./upgrade-project.sh /path/to/project --skills
-
-# Chỉ seed memories
-./upgrade-project.sh /path/to/project --memory
+./upgrade-project.sh /path/to/project --dry-run    # Preview
+./upgrade-project.sh /path/to/project               # Interactive (keep/use/merge per file)
+./upgrade-project.sh /path/to/project --scripts     # Chỉ scripts
+./upgrade-project.sh /path/to/project --skills      # Chỉ skills
+./upgrade-project.sh /path/to/project --memory      # Chỉ memories
 ```
 
-Khi file đã tồn tại và khác kit version → 3 lựa chọn:
-- **[k] Keep** existing (skip)
-- **[u] Use** kit version (overwrite)
-- **[m] Merge** manually (save as `.kit-new` để review)
+Version tracking tự động — skip nếu đã trên latest version.
 
-### Cập nhật starter-kit từ dự án gốc
+### 3. Đóng góp cải tiến từ dự án → kit
 
 ```bash
-# Khi dự án gốc update skills/scripts → sync vào kit
-./sync-to-kit.sh              # Interactive
-./sync-to-kit.sh --dry-run    # Preview only
-./sync-to-kit.sh --auto       # Auto-sync
+# Bước 1: Tạo proposal (KHÔNG tự động apply)
+./contribute.sh /path/to/project "Cải thiện TDD skill sau incident X"
+
+# Bước 2: Review proposal
+./contribute.sh --list
+cat .proposals/<id>.proposal
+
+# Bước 3: Nếu approved → apply + bump version
+./contribute.sh --apply <proposal-id>
+
+# Bước 4: Update CHANGELOG.md + commit
+```
+
+## Quy trình đóng góp (Governance)
+
+```
+Dự án A phát hiện cải tiến
+        ↓
+  contribute.sh → tạo proposal
+        ↓
+  Review checklist:
+    ✅ Generic (không project-specific)?
+    ✅ Cải thiện chất lượng (không chỉ preference)?
+    ✅ Backward compatible?
+    ✅ CHANGELOG entry?
+        ↓
+  --apply → bump MINOR version
+        ↓
+  Kit v1.1.0 released
+        ↓
+  Dự án B, C: upgrade-project.sh
+        ↓
+  Nhận cải tiến, giữ customizations
 ```
 
 ## Cấu trúc
 
 ```
 starter-kit/
+├── VERSION                ← Semantic versioning (1.0.0)
+├── CHANGELOG.md           ← Lịch sử thay đổi
 ├── README.md              ← File này
-├── init-project.sh        ← Setup script
+├── init-project.sh        ← Setup dự án mới
+├── upgrade-project.sh     ← Import vào dự án đã có (version-aware)
+├── contribute.sh          ← Đề xuất cải tiến (proposal → review → apply)
 ├── skills/
-│   ├── core/              ← 5 files: brainstorm, TDD, review, debug, breakdown
-│   ├── workflow/          ← 1 file: git + PR + CI process
-│   ├── quality/           ← 1 file: 10-category audit framework
-│   └── reference/         ← 2 files: business docs 3-layer, service docs
+│   ├── core/              ← Brainstorm, TDD, Review, Debug, Breakdown
+│   ├── workflow/          ← Git, PR, CI process
+│   ├── quality/           ← Audit framework 100 điểm
+│   └── reference/         ← Business docs 3-layer, service docs
 ├── scripts/
 │   ├── check-ci.sh        ← CI monitoring (--status mode)
-│   ├── test-local.sh      ← Local test runner (auto-detect, quick mode)
-│   └── pre-commit-check.sh ← Commit checks (extensible)
+│   ├── test-local.sh      ← Local test runner (auto-detect, --quick)
+│   └── pre-commit-check.sh ← Pre-commit checks (extensible)
 ├── templates/
-│   ├── CLAUDE.md.template ← Project instructions template
-│   └── README.md.template ← README template
-└── memory/
-    ├── feedback_scripts_not_adhoc.md
-    ├── feedback_ci_before_scoring.md
-    ├── feedback_self_test_before_push.md
-    └── feedback_business_design_first.md
+│   ├── CLAUDE.md.template
+│   └── README.md.template
+├── memory/                ← Seed memories (lessons learned)
+└── .proposals/            ← Pending contribution proposals
 ```
 
-## Sau khi setup
+## Versioning
 
-1. **Edit `CLAUDE.md`** — thay `{placeholders}` bằng thông tin dự án
-2. **Edit `scripts/test-local.sh`** — cấu hình `PROJECT_DIRS` cho project
-3. **Customize skills** — thêm project-specific checks vào `pre-commit-check.sh`
+| Type | Khi nào | Ví dụ |
+|------|---------|-------|
+| MAJOR (x.0.0) | Breaking changes (đổi cấu trúc skill, bỏ script) | 2.0.0 |
+| MINOR (1.x.0) | Thêm skill/script/rule mới | 1.1.0 |
+| PATCH (1.0.x) | Fix bug, cải thiện nội dung | 1.0.1 |
+
+Mỗi dự án track installed version tại `.claude/.starter-kit-version`.
 
 ## Lessons Learned (seed memories)
 
-| Rule | Lý do |
-|------|-------|
-| Scripts, không lệnh ad-hoc | Vi phạm 4+ lần → mỗi lần mất thời gian fix |
-| CI phải complete trước scoring | Kết luận sai khi CI còn chạy |
-| Test local trước push | CI fail 3 lần vì Checkstyle — 5s local vs 9min CI |
+| Rule | Nguồn gốc |
+|------|-----------|
+| Scripts not ad-hoc | Vi phạm 4+ lần → mỗi lần fix skill + memory |
+| CI phải complete trước scoring | Kết luận sai → mất credibility |
+| Test local trước push | 5s local vs 9min CI wait |
 | Business docs trước code | 188 PRs → 22 gaps → 39 PRs fix |
-
-## Workflow tổng quát
-
-```
-Code → Commit → test-local.sh → Push → check-ci.sh → PR → Review → Merge
-         ↑                                                      ↓
-    TDD (Red→Green→Refactor)                          Quality Audit
-```
