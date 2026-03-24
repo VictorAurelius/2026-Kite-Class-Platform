@@ -101,9 +101,14 @@ if [ -d "$TARGET/.git" ]; then
     fi
 fi
 
+# Track installed version
+KIT_VERSION=$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "1.0.0")
+echo "$KIT_VERSION" > "$TARGET/.claude/.starter-kit-version"
+echo "📦 Installed starter-kit v$KIT_VERSION"
+
 echo ""
 echo "═══════════════════════════════════════════════"
-echo "  ✅ Setup complete!"
+echo "  ✅ Setup complete! (starter-kit v$KIT_VERSION)"
 echo "═══════════════════════════════════════════════"
 echo ""
 echo "Next steps:"
