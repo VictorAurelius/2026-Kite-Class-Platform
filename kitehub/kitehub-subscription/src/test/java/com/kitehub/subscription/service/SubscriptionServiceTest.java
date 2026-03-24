@@ -49,6 +49,9 @@ class SubscriptionServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private com.kitehub.subscription.client.EmailServiceClient emailServiceClient;
+
     @InjectMocks
     private SubscriptionService subscriptionService;
 

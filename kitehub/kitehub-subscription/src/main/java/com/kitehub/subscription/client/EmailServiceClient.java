@@ -439,6 +439,72 @@ public class EmailServiceClient {
     }
 
     /**
+     * Send welcome email after instance activation.
+     *
+     * @param instanceId Instance ID
+     * @param to Recipient email
+     * @param organizationName Organization name
+     * @param trialDays Number of trial days
+     * @param expiryDate Trial expiry date
+     */
+    public void sendWelcomeEmail(UUID instanceId, String to, String organizationName,
+                                 int trialDays, String expiryDate) {
+        log.info("Sending welcome email to {}", to);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Chào mừng bạn đến với KiteHub!")
+                .templateName("welcome")
+                .variables(Map.of(
+                    "organizationName", organizationName,
+                    "trialDays", trialDays,
+                    "expiryDate", expiryDate,
+                    "loginUrl", "https://kitehub.vn/login"
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "welcome", to);
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to {}", to, e);
+        }
+    }
+
+    /**
+     * Send subscription created confirmation email.
+     *
+     * @param instanceId Instance ID
+     * @param to Recipient email
+     * @param organizationName Organization name
+     * @param tier Subscription tier
+     * @param billingCycle Billing cycle
+     */
+    public void sendSubscriptionCreatedEmail(UUID instanceId, String to, String organizationName,
+                                             String tier, String billingCycle) {
+        log.info("Sending subscription created email to {}", to);
+
+        try {
+            EmailRequest request = EmailRequest.builder()
+                .to(to)
+                .subject("Subscription đã kích hoạt - " + organizationName)
+                .templateName("subscription-created")
+                .variables(Map.of(
+                    "organizationName", organizationName,
+                    "tier", tier,
+                    "billingCycle", billingCycle,
+                    "dashboardUrl", "https://kitehub.vn/dashboard"
+                ))
+                .build();
+
+            sendEmailRequest(request);
+            recordEmailSent(instanceId, "subscription-created", to);
+        } catch (Exception e) {
+            log.error("Failed to send subscription created email to {}", to, e);
+        }
+    }
+
+    /**
      * Check if an email of the given type was already sent today.
      *
      * @param instanceId Instance ID (nullable)
