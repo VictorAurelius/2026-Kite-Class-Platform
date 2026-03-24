@@ -110,4 +110,9 @@ kitehub:
 #### KiteClass
 | Document | Status | Last Verified |
 |----------|--------|---------------|
-| (chưa tạo — migrate từ kiteclass-core/docs/) | | |
+| `kiteclass/student-enrollment.md` | Done | 2026-03-24 |
+| `kiteclass/course-class.md` | Done | 2026-03-24 |
+| `kiteclass/attendance.md` | Done | 2026-03-24 |
+| `kiteclass/grade-assignment.md` | Done | 2026-03-24 |
+| `kiteclass/payment-invoice.md` | Done | 2026-03-24 |
+| `kiteclass/teacher.md` | Done | 2026-03-24 |
