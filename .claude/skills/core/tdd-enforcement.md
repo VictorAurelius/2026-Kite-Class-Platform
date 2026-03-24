@@ -697,8 +697,13 @@ Before committing, verify TDD was followed:
 - [ ] **GREEN:** Does test PASS now? (green bar)
 - [ ] **REFACTOR:** Did I clean up code? (DRY, clear names)
 - [ ] **REFACTOR:** Do all tests still PASS? (refactor safe)
+- [ ] **PRE-PUSH:** `scripts/test-local.sh` pass? (full suite trước push)
 
 **Git hook will verify:** Test file timestamp < Code file timestamp
+
+**Note về lệnh test:**
+- TDD development: `./mvnw test -Dtest=SpecificTest` OK (chạy test đơn lẻ khi đang code)
+- Trước push: **PHẢI** dùng `scripts/test-local.sh` (full suite, không lệnh ad-hoc)
 
 ---
 
