@@ -22,7 +22,9 @@ gh pr list --state open --json number --jq 'length'
 git branch -r | grep -v "main\|HEAD" | wc -l
 
 # 2. CI status — PHẢI dùng script
-scripts/check-ci.sh
+#    Audit: dùng --status (đọc kết quả, không đợi)
+#    Sau push: dùng không có flag (đợi hoàn thành)
+scripts/check-ci.sh --status
 
 # 3. Backend + Frontend tests — PHẢI dùng script
 scripts/test-local.sh kiteclass all    # hoặc kitehub all
@@ -265,7 +267,8 @@ kiteclass/scripts/monitor.sh health    # hoặc kitehub/scripts/status.sh
 **Quy trình bắt buộc:**
 1. Thu thập data → kiểm tra `gh run list` status
 2. Nếu có run `in_progress` liên quan đến target (branch/PR):
-   - **PHẢI** dùng `scripts/check-ci.sh` để đợi kết quả — KHÔNG dùng `gh run watch` hay bất kỳ lệnh CI trực tiếp nào
+   - **PHẢI** dùng `scripts/check-ci.sh --status` để kiểm tra — KHÔNG dùng lệnh CI trực tiếp
+   - Nếu có runs `in_progress` → dùng `scripts/check-ci.sh` (wait mode) để đợi
    - **PHẢI** báo user: "CI đang chạy, đợi kết quả trước khi chấm điểm CI/CD"
    - **KHÔNG ĐƯỢC** giả định pass/fail
 3. Chỉ sau khi CI completed → mới chấm điểm categories: CI/CD, Backend Tests, E2E
