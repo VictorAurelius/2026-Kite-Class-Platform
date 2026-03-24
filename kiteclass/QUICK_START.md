@@ -36,6 +36,28 @@ curl -X POST http://localhost:9000/api/v1/students \
   -d '{"name": "Nguyen Van A", "email": "a@test.com", "phone": "0901234567"}'
 ```
 
+## Standalone Development (no KiteHub dependency)
+
+If you only need to work on KiteClass without running the full KiteHub stack:
+
+```bash
+# 1. Start minimal infra (PostgreSQL on 5434, Redis on 6381)
+./scripts/dev-up.sh
+
+# 2. Run Core service with standalone profile
+cd kiteclass-core && ./mvnw spring-boot:run \
+  -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:postgresql://localhost:5434/kiteclass_dev \
+  --spring.datasource.username=kiteclass \
+  --spring.datasource.password=kiteclass_dev_password \
+  --spring.data.redis.host=localhost \
+  --spring.data.redis.port=6381"
+
+# 3. Stop when done
+docker compose -f docker-compose.standalone.yml down
+```
+
+Ports are chosen to avoid conflicts with the full KiteHub stack (5432/6379).
+
 ## Testing
 
 ```bash

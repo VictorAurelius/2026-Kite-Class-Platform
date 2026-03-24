@@ -1,0 +1,33 @@
+name: kiteclass-dev
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: kiteclass-dev-postgres
+    environment:
+      POSTGRES_DB: kiteclass_dev
+      POSTGRES_USER: kiteclass
+      POSTGRES_PASSWORD: kiteclass_dev_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - kiteclass-dev-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kiteclass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: kiteclass-dev-redis
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  kiteclass-dev-postgres:
