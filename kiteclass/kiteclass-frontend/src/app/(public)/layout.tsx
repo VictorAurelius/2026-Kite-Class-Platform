@@ -23,6 +23,12 @@ export const metadata: Metadata = {
     locale: 'vi_VN',
     siteName: 'KiteClass',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'KiteClass - Hệ thống Quản lý Trung tâm Tiếng Anh',
+    description:
+      'Nền tảng quản lý trung tâm tiếng Anh toàn diện với LMS, quản lý học viên, điểm danh tự động và thanh toán trực tuyến.',
+  },
 };
 
 export default function PublicLayout({

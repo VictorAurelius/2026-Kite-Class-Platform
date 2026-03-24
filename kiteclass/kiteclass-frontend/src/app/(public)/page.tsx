@@ -16,6 +16,7 @@ import { publicApi } from '@/lib/api/public';
 import { ThemeSync } from '@/components/theme/ThemeSync';
 import { TemplateRenderer } from '@/components/sections/TemplateRenderer';
 import { getTemplate } from '@/lib/template/configs';
+import { OrganizationJsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
   title: 'Trang chủ',
@@ -69,27 +70,15 @@ export default async function LandingPage({
   if (params.secondary) landingData.secondaryColor = `#${params.secondary}`;
   if (params.accent) (landingData as Record<string, unknown>).accentColor = `#${params.accent}`;
 
-  // SEO structured data
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'EducationalOrganization',
-    name: 'KiteClass',
-    description: landingData.heroSubtitle,
-    url: process.env.NEXT_PUBLIC_APP_URL || 'https://kiteclass.com',
-    email: landingData.contactEmail,
-    telephone: landingData.contactPhone,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: landingData.address || 'Hà Nội',
-      addressCountry: 'VN',
-    },
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      <OrganizationJsonLd
+        name="KiteClass"
+        description={landingData.heroSubtitle}
+        url={process.env.NEXT_PUBLIC_APP_URL || 'https://kiteclass.com'}
+        email={landingData.contactEmail}
+        telephone={landingData.contactPhone}
+        address={landingData.address || 'Hà Nội'}
       />
 
       <ThemeSync

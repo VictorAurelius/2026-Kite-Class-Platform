@@ -138,13 +138,44 @@ release/v1.0.0
 **⏳ WORKFLOW:**
 1. AI: Create feature branch: `git checkout -b feature/PR-X.X-name`
 2. AI: Implement feature → commit locally
-3. AI: Ask user: "Đã sẵn sàng push lên remote và tạo PR?"
-4. **User**: Confirm "yes" hoặc request changes
-5. AI: Push to remote: `git push -u origin feature/branch`
-6. AI: Create PR: `gh pr create --title "..." --body "..."`
-7. AI: Return PR URL to user
+3. **AI: RUN LOCAL TESTS TRƯỚC KHI PUSH** (xem bước 3 chi tiết bên dưới)
+4. AI: Ask user: "Tests pass, sẵn sàng push?"
+5. **User**: Confirm "yes" hoặc request changes
+6. AI: Push to remote: `git push -u origin feature/branch`
+7. AI: Create PR: `gh pr create --title "..." --body "..."`
+8. AI: Monitor CI via `scripts/check-ci.sh` (background)
+9. AI: Return PR URL to user
 
 **IMPORTANT:** Always ask before pushing to remote, even with GitHub CLI
+
+### Bước 3: Self-Test Trước Khi Push (BẮT BUỘC)
+
+**KHÔNG BAO GIỜ push code chưa test local.** CI là safety net, không phải nơi phát hiện lỗi lần đầu.
+
+**LUÔN dùng script `scripts/test-local.sh`** — KHÔNG chạy lệnh test tự do.
+
+```bash
+# Auto-detect changed files → chạy tests phù hợp
+./scripts/test-local.sh
+
+# Quick mode (compile + checkstyle only, không full test)
+./scripts/test-local.sh --quick
+
+# Test cụ thể
+./scripts/test-local.sh kiteclass core
+./scripts/test-local.sh kiteclass frontend
+./scripts/test-local.sh kiteclass all
+```
+
+Script tự động:
+- Detect files changed (git diff) → chỉ test modules bị ảnh hưởng
+- Skip nếu chỉ thay đổi docs
+- Backend: compile + checkstyle + unit tests
+- Frontend: vitest hoặc eslint (quick mode)
+- Summary: passed/failed/skipped
+- Exit code 1 nếu có failure → block push
+
+**Nếu test fail → fix TRƯỚC khi push.** Không push code broken lên CI.
 
 ---
 

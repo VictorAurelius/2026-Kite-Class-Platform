@@ -2,6 +2,7 @@ package com.kiteclass.gateway.config;
 
 import com.kiteclass.gateway.security.SecurityContextRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -48,6 +49,13 @@ public class SecurityConfig {
 
     private final SecurityContextRepository securityContextRepository;
 
+    @Value("${cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000,http://localhost:8090,http://127.0.0.1:8090}")
+    private String allowedOriginsConfig;
+
+    private List<String> getAllowedOrigins() {
+        return Arrays.asList(allowedOriginsConfig.split(","));
+    }
+
     /**
      * Password encoder using BCrypt.
      *
@@ -70,13 +78,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow localhost origins for development
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "http://localhost:8090",
-            "http://127.0.0.1:8090"
-        ));
+        // Allow origins from environment variable
+        configuration.setAllowedOrigins(getAllowedOrigins());
 
         // Allow all common HTTP methods
         configuration.setAllowedMethods(Arrays.asList(
@@ -129,12 +132,7 @@ public class SecurityConfig {
                 // Enable CORS FIRST - must run before security filters
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(Arrays.asList(
-                        "http://localhost:3000",
-                        "http://127.0.0.1:3000",
-                        "http://localhost:8090",
-                        "http://127.0.0.1:8090"
-                    ));
+                    config.setAllowedOrigins(getAllowedOrigins());
                     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);

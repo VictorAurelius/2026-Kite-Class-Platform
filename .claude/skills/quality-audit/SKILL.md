@@ -21,40 +21,41 @@ gh pr list --state merged --limit 200 --json number --jq 'length'
 gh pr list --state open --json number --jq 'length'
 git branch -r | grep -v "main\|HEAD" | wc -l
 
-# 2. CI status
-gh run list --limit 10 --json conclusion,name,headBranch --jq '.[] | "\(.conclusion) \(.name) (\(.headBranch))"'
+# 2. CI status — PHẢI dùng script
+#    Audit: dùng --status (đọc kết quả, không đợi)
+#    Sau push: dùng không có flag (đợi hoàn thành)
+scripts/check-ci.sh --status
 
-# 3. Backend tests
-cd kitehub && JAVA_HOME=/home/vkiet/jdk/jdk-21 ./mvnw test -q 2>&1 | grep "Tests run:"
-# Nếu kiteclass: cd kiteclass/kiteclass-core && ./mvnw test
+# 3. Backend + Frontend tests — PHẢI dùng script
+scripts/test-local.sh kiteclass all    # hoặc kitehub all
+# KHÔNG chạy mvnw/vitest/eslint trực tiếp
 
-# 4. Frontend tests
-cd kiteclass/kiteclass-frontend && npx vitest run 2>&1 | grep -E "Test Files|Tests "
-cd kitehub/kitehub-frontend && npx next build 2>&1 | grep -E "pages|error"
+# 4. E2E tests — dùng script có sẵn
+kiteclass/scripts/test-api-e2e.sh
 
-# 5. E2E tests
-cd kitehub && bash scripts/test-api-e2e.sh 2>&1 | grep "Results:"
+# 5. Docker status — dùng script có sẵn
+kiteclass/scripts/dev-status.sh        # hoặc kitehub/scripts/status.sh
 
-# 6. Docker status
-docker compose -f kitehub/docker-compose.kitehub.yml ps --format "table {{.Name}}\t{{.Status}}"
-
-# 7. Code stats
-find kitehub -name "*.java" | grep -v test | wc -l
-find kitehub -name "*Test.java" -o -name "*IT.java" | wc -l
-find kitehub/kitehub-frontend/src -name "*.tsx" -o -name "*.ts" | wc -l
+# 6. Code stats (grep/find OK vì chỉ đếm, không execute)
+find kiteclass -name "*.java" -path "*/src/main/*" | wc -l
+find kiteclass -name "*Test.java" | wc -l
 find kiteclass/kiteclass-frontend/src -name "*.tsx" -o -name "*.ts" | wc -l
 
-# 8. Security check
-grep -r "TODO\|FIXME\|HACK\|XXX" kitehub/kitehub-*/src/main --include="*.java" | wc -l
-grep -r "sk-mock\|password.*=.*['\"]" kitehub/.env 2>/dev/null | wc -l
+# 7. Security check (grep OK vì chỉ scan, không execute)
+grep -r "TODO\|FIXME\|HACK\|XXX" kiteclass/*/src/main --include="*.java" | wc -l
 
-# 9. Documentation
+# 8. Documentation
 find documents -name "*.md" | wc -l
-ls documents/03-planning/*.md | wc -l
 
-# 10. IDE Warnings (if available)
-# Check for common issues in staged/modified files
+# 9. Monitoring
+kiteclass/scripts/monitor.sh health    # hoặc kitehub/scripts/status.sh
 ```
+
+**CRITICAL: KHÔNG chạy lệnh ad-hoc cho:**
+- Tests → `scripts/test-local.sh`
+- CI monitoring → `scripts/check-ci.sh`
+- Docker → `*/scripts/dev-*.sh` hoặc `kitehub/scripts/*.sh`
+- Monitoring → `*/scripts/monitor.sh`
 
 ### Bước 2: Chấm điểm 10 categories (100 điểm)
 
@@ -258,3 +259,19 @@ ls documents/03-planning/*.md | wc -l
 - Nếu E2E fail lần 1 do cold start, chạy lần 2 nhưng GHI NHẬN cold start issue (-2 điểm)
 - Nếu không thể chạy test (Docker down, etc.), ghi 0 điểm cho category đó + note lý do
 - So sánh với quality plan nếu có (`kitehub-quality-100-plan.md`)
+
+### CRITICAL: CI phải hoàn thành trước khi chấm điểm
+
+**KHÔNG BAO GIỜ** kết luận CI/CD score hoặc Backend Tests score khi CI còn đang chạy (`in_progress`).
+
+**Quy trình bắt buộc:**
+1. Thu thập data → kiểm tra `gh run list` status
+2. Nếu có run `in_progress` liên quan đến target (branch/PR):
+   - **PHẢI** dùng `scripts/check-ci.sh --status` để kiểm tra — KHÔNG dùng lệnh CI trực tiếp
+   - Nếu có runs `in_progress` → dùng `scripts/check-ci.sh` (wait mode) để đợi
+   - **PHẢI** báo user: "CI đang chạy, đợi kết quả trước khi chấm điểm CI/CD"
+   - **KHÔNG ĐƯỢC** giả định pass/fail
+3. Chỉ sau khi CI completed → mới chấm điểm categories: CI/CD, Backend Tests, E2E
+4. Nếu user yêu cầu audit gấp → ghi rõ "CI/CD: PENDING (chưa có kết quả)" thay vì đoán điểm
+
+**Lý do:** Audit trước đã kết luận CI pass trong khi thực tế CI đang chạy. Điều này làm sai lệch kết quả đánh giá và có thể dẫn đến merge PR lỗi.

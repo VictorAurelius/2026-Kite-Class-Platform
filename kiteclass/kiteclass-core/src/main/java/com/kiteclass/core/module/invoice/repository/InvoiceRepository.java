@@ -126,4 +126,17 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     Page<Invoice> findOverdueByStudentId(@Param("studentId") Long studentId,
                                           @Param("currentDate") LocalDate currentDate,
                                           Pageable pageable);
+
+    /**
+     * Finds invoices eligible for overdue marking (SENT or PARTIAL with dueDate before given date).
+     * Used by {@link com.kiteclass.core.module.invoice.scheduler.InvoiceOverdueScheduler}.
+     *
+     * @param currentDate the current date for comparison
+     * @return List of invoices that should be marked OVERDUE
+     * @since 2026-03-24
+     */
+    @Query("SELECT i FROM Invoice i WHERE i.deleted = false " +
+           "AND i.dueDate < :currentDate " +
+           "AND i.status IN ('SENT', 'PARTIAL')")
+    List<Invoice> findInvoicesEligibleForOverdue(@Param("currentDate") LocalDate currentDate);
 }

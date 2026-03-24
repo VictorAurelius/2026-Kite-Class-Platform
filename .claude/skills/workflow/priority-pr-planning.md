@@ -130,7 +130,7 @@ Skill này định nghĩa cách tạo **temporary priority PR plans** để th�
 - [ ] **PR Title**: `{type}({service}): {description} (KC-{id})`
 - [ ] **PR Body**: Summary, Problem, Solution, Changes, Testing, Checklist, References
 - [ ] **PR Creation**: Use `gh pr create` with detailed body
-- [ ] **CI Monitoring**: `gh run watch` to monitor tests
+- [ ] **CI Monitoring**: `scripts/check-ci.sh` to monitor tests
 - [ ] **Merge Strategy**: `gh pr merge --squash --delete-branch`
 
 **Reference:** `.claude/skills/development-workflow.md` - Section "Pull Request Process"
@@ -230,8 +230,8 @@ git push -u origin {branch-name}
 # Create PR
 gh pr create --title "..." --body "..."
 
-# Monitor
-gh run watch
+# Monitor CI
+scripts/check-ci.sh
 
 # Merge when green
 gh pr merge --squash --delete-branch
@@ -726,8 +726,8 @@ Fix multi-tenant email uniqueness by scoping to (email, instance_id).
 EOF
 )"
 
-# Step 3: Monitor
-gh run watch
+# Step 3: Monitor CI
+scripts/check-ci.sh
 
 # Step 4: Merge
 gh pr merge --squash --delete-branch

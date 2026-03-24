@@ -201,14 +201,14 @@ pnpm test:coverage
 
 ### Manual Verification
 ```bash
-# Start dev environment
-docker-compose -f docker-compose.dev.yml up
+# Start dev environment — LUÔN dùng scripts
+kiteclass/scripts/dev-up.sh
 
 # Test endpoint
 curl http://localhost:8081/api/students
 
-# Check logs
-docker logs kiteclass-core -f
+# Check logs — LUÔN dùng scripts
+kiteclass/scripts/view-logs.sh core
 ```
 
 ---
