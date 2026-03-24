@@ -1,0 +1,100 @@
+# Claude Code Instructions
+
+## Communication Language
+<!-- Choose: Vietnamese / English / Japanese / etc. -->
+**ALWAYS communicate in {LANGUAGE}**
+- All responses and explanations in {LANGUAGE}
+- Code comments in English (standard practice)
+- Commit messages in English (git convention)
+
+## Project Overview
+**{PROJECT_NAME}** — {brief description of the project}
+
+**Architecture:** {describe your services, tech stack, infrastructure}
+<!-- Example: 3 microservices (API, Worker, Gateway) + React frontend + PostgreSQL + Redis -->
+
+## Development Workflow
+
+### Superpowers Methodology (every PR)
+1. **Quick Brainstorm** (5-10 min) — `.claude/skills/core/brainstorming-methodology.md`
+   - Analyze scope, risks, edge cases
+   - Identify dependencies and blockers
+2. **Task Breakdown** (5-10 min) — `.claude/skills/core/task-breakdown-guide.md`
+   - Split into specific tasks with effort estimates
+3. **TDD - Test First** — `.claude/skills/core/tdd-enforcement.md`
+   - Write tests BEFORE code: Red -> Green -> Refactor
+4. **Implementation**
+   - Follow task breakdown, commit frequently
+5. **Code Review** (self-review) — `.claude/skills/core/two-stage-code-review.md`
+
+### Do NOT skip:
+- Do not jump straight into code without brainstorming
+- Do not write code before tests
+- Do not commit without accompanying tests
+
+## Scripts (MUST use scripts, NOT ad-hoc commands)
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/test-local.sh` | Test locally before push |
+| `scripts/test-local.sh --quick` | Quick lint/compile only |
+| `scripts/check-ci.sh` | Wait for CI after push |
+| `scripts/check-ci.sh --status` | Quick CI status check |
+| `scripts/pre-commit-check.sh` | Pre-commit compliance |
+
+<!-- Add project-specific scripts here -->
+<!-- Example:
+| `scripts/up.sh` | Start Docker stack |
+| `scripts/down.sh` | Stop Docker stack |
+| `scripts/migrate.sh` | Run DB migrations |
+-->
+
+## Git Workflow
+- **ALWAYS** create feature branch before changes
+- **NEVER** commit directly to main
+- **Branch naming:** `feature/{description}` or `fix/{description}`
+- Self-test before push: `scripts/test-local.sh`
+- Monitor CI after push: `scripts/check-ci.sh`
+
+## Business Logic Documents
+<!-- Remove this section if not applicable -->
+**Location:** `documents/01-business/` — SOURCE OF TRUTH
+
+**Structure:** 3-layer per domain:
+```
+documents/01-business/{domain}/
+  rules.md          # Business rules and constraints
+  use-cases.md      # Use cases with actor, steps, errors
+  api-contract.md   # API endpoints, request/response, error codes
+```
+
+**Rules:**
+- Doc and code MUST be in the same PR
+- Do NOT hardcode business rules — use config keys from rules.md
+
+## Living Documents
+<!-- These docs must be updated continuously -->
+
+| Doc | Update when |
+|-----|-----------|
+| `README.md` | Add/remove service, tech stack change |
+| `CLAUDE.md` | Process change, convention change |
+| `documents/01-business/` | Business logic change |
+
+## Project Structure
+```
+{PROJECT_NAME}/
+├── .claude/               # Skills, scripts, hooks
+├── .github/               # CI/CD workflows
+├── documents/             # Documentation
+│   ├── 01-business/       # Business logic (source of truth)
+│   └── ...
+├── {service-1}/           # Service 1
+├── {service-2}/           # Service 2
+├── {frontend}/            # Frontend
+└── scripts/               # CI/QA scripts
+```
+
+## Quality Checks
+- `/quality-audit` — Technical quality score /100
+- `/business-gap-check` — Business coverage %

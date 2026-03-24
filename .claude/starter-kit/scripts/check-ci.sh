@@ -2,13 +2,16 @@
 set -euo pipefail
 
 # check-ci.sh - Check or wait for GitHub Actions CI
+# NOTE: chmod +x this file before use
 #
 # Usage:
 #   ./scripts/check-ci.sh                     # Wait for CI on current branch (default)
 #   ./scripts/check-ci.sh --status            # Quick status check, no waiting
-#   ./scripts/check-ci.sh wave/10             # Wait for CI on specific branch
-#   ./scripts/check-ci.sh wave/10 --status    # Quick status for specific branch
-#   ./scripts/check-ci.sh wave/10 20          # Wait with 20-minute timeout
+#   ./scripts/check-ci.sh my-branch           # Wait for CI on specific branch
+#   ./scripts/check-ci.sh my-branch --status  # Quick status for specific branch
+#   ./scripts/check-ci.sh my-branch 20        # Wait with 20-minute timeout
+#
+# Requirements: gh CLI (https://cli.github.com/)
 
 # Parse arguments
 STATUS_ONLY=false
@@ -41,59 +44,59 @@ display_status() {
     FAILURE=$(echo "$RUNS" | grep -c "failure" || true)
     TOTAL=$(echo "$RUNS" | wc -l)
 
-    echo "═══════════════════════════════════════════════════════════"
+    echo "==========================================================="
     echo "  CI Status: $BRANCH"
-    echo "═══════════════════════════════════════════════════════════"
+    echo "==========================================================="
     echo ""
-    echo "📊 Summary:"
-    echo "  ✅ Success:     $SUCCESS"
-    echo "  ❌ Failure:     $FAILURE"
-    echo "  ⏳ In Progress: $IN_PROGRESS"
-    echo "  📦 Total:       $TOTAL"
+    echo "Summary:"
+    echo "  [PASS]        $SUCCESS"
+    echo "  [FAIL]        $FAILURE"
+    echo "  [IN PROGRESS] $IN_PROGRESS"
+    echo "  [TOTAL]       $TOTAL"
     echo ""
-    echo "───────────────────────────────────────────────────────────"
+    echo "-----------------------------------------------------------"
     echo "Details:"
     while IFS=$'\t' read -r name status conclusion; do
         if [ "$status" = "in_progress" ]; then
-            echo "  ⏳ $name: in_progress"
+            echo "  [..] $name: in_progress"
         elif [ "$conclusion" = "success" ]; then
-            echo "  ✅ $name: success"
+            echo "  [OK] $name: success"
         elif [ "$conclusion" = "failure" ]; then
-            echo "  ❌ $name: failure"
+            echo "  [!!] $name: failure"
         else
-            echo "  📦 $name: $status"
+            echo "  [--] $name: $status"
         fi
     done <<< "$RUNS"
-    echo "───────────────────────────────────────────────────────────"
+    echo "-----------------------------------------------------------"
 
     # Return counts via global vars
     _IN_PROGRESS=$IN_PROGRESS
     _FAILURE=$FAILURE
 }
 
-# ─── Quick status mode ───
+# --- Quick status mode ---
 if $STATUS_ONLY; then
-    echo "🔍 CI status for branch: $BRANCH (quick check)"
+    echo "CI status for branch: $BRANCH (quick check)"
     echo ""
     RUNS=$(fetch_runs)
     display_status "$RUNS"
     echo ""
     if [ "$_IN_PROGRESS" -gt 0 ]; then
-        echo "⏳ CI still running ($_IN_PROGRESS in progress)"
-        echo "   Run without --status to wait for completion"
+        echo "[..] CI still running ($_IN_PROGRESS in progress)"
+        echo "     Run without --status to wait for completion"
         exit 2
     elif [ "$_FAILURE" -gt 0 ]; then
-        echo "❌ CI has failures"
+        echo "[!!] CI has failures"
         exit 1
     else
-        echo "✅ All CI checks passed!"
+        echo "[OK] All CI checks passed!"
         exit 0
     fi
 fi
 
-# ─── Wait mode ───
-echo "🔍 Checking CI status for branch: $BRANCH"
-echo "⏱️  Timeout: ${TIMEOUT_MINUTES} minutes"
+# --- Wait mode ---
+echo "Checking CI status for branch: $BRANCH"
+echo "Timeout: ${TIMEOUT_MINUTES} minutes"
 echo ""
 
 TIMEOUT_SECONDS=$((TIMEOUT_MINUTES * 60))
@@ -102,20 +105,21 @@ ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT_SECONDS ]; do
     RUNS=$(fetch_runs)
 
+    # Use separator instead of clear (clear breaks non-interactive shells like Claude Code)
     echo ""
     echo "--- poll $(date +%H:%M:%S) ---"
     display_status "$RUNS"
     echo ""
-    printf "⏱️  Elapsed: %d/%d seconds\n" "$ELAPSED" "$TIMEOUT_SECONDS"
+    printf "Elapsed: %d/%d seconds\n" "$ELAPSED" "$TIMEOUT_SECONDS"
 
     # Check if all done
     if [ "$_IN_PROGRESS" -eq 0 ]; then
         echo ""
         if [ "$_FAILURE" -eq 0 ]; then
-            echo "✅ All CI checks passed!"
+            echo "[OK] All CI checks passed!"
             exit 0
         else
-            echo "❌ Some CI checks failed!"
+            echo "[!!] Some CI checks failed!"
             echo ""
             echo "Failed runs:"
             echo "$RUNS" | grep "failure" | cut -f1 | sed 's/^/  - /'
@@ -130,7 +134,7 @@ while [ $ELAPSED -lt $TIMEOUT_SECONDS ]; do
 done
 
 echo ""
-echo "⏱️  Timeout reached after ${TIMEOUT_MINUTES} minutes"
+echo "Timeout reached after ${TIMEOUT_MINUTES} minutes"
 echo "CI still in progress. Check manually:"
 echo "  ./scripts/check-ci.sh --status"
 exit 2
