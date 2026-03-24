@@ -43,7 +43,7 @@ management:
 
 # JWT configuration
 jwt:
-  secret: ${JWT_SECRET:#{null}}
+  secret: ${JWT_SECRET:}
 
 # Email verification
 kitehub:
