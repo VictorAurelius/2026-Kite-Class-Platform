@@ -34,6 +34,16 @@ email:
   base-url: http://localhost:3000
   reset-token-expiration: 3600000
 
+# Test secrets — safe dummy values for test context only
+jwt:
+  secret: test-jwt-secret-for-unit-tests-only-min-512-bits-long-aaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
+
+internal:
+  api:
+    secret: test-internal-api-secret-for-tests-only
+
 # Logging for tests
 logging:
   level:

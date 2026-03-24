@@ -64,13 +64,15 @@ export default function TemplateGalleryPage() {
       </div>
 
       {/* Category Filter */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap" role="group" aria-label="Lọc template theo danh mục">
         {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
           <Button
             key={key}
             variant={selectedCategory === key ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedCategory(key)}
+            aria-label={`Lọc template: ${label}`}
+            aria-pressed={selectedCategory === key}
           >
             {label}
           </Button>
@@ -173,6 +175,7 @@ function TemplateCard({ template, onApply, isApplying }: TemplateCardProps) {
           className="w-full"
           onClick={() => onApply(template)}
           disabled={isApplying}
+          aria-label={`Áp dụng template ${template.name}`}
         >
           {isApplying ? (
             <LoadingSpinner />
