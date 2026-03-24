@@ -20,6 +20,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
+import { DashboardWelcome } from '@/components/onboarding/DashboardWelcome';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,6 +89,9 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        {/* Onboarding Welcome Banner */}
+        <DashboardWelcome />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
