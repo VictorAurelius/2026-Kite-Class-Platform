@@ -126,13 +126,14 @@ ls documents/03-planning/*.md | wc -l
 
 #### 8. Documentation (10 điểm)
 
+> **Business docs at `documents/01-business/` are SOURCE OF TRUTH. Score 0 for this category if no business docs exist for implemented domains.**
+
 | Tiêu chí | Điểm | Check |
 |----------|------|-------|
-| Hướng dẫn deploy tiếng Việt | 2 | Check vietnamese/ folder |
-| Architecture docs up-to-date | 2 | Check planning/ docs |
-| API documentation (Swagger/OpenAPI) | 2 | Check /swagger-ui |
-| Plan documents có completion tracking | 2 | Check ✅/⬜ in plans |
-| README + CLAUDE.md up-to-date | 2 | Read and verify |
+| Business docs exist for all implemented domains | 3 | Check `documents/01-business/` has doc for each service with business logic |
+| Business docs match code - config keys, rules | 2 | Cross-check config keys in code vs business doc Config section |
+| Architecture + guides + README up-to-date | 3 | Check planning/ docs, vietnamese/ folder, README, CLAUDE.md |
+| Plans up to date with completion tracking | 2 | Check ✅/⬜ in plans |
 
 #### 9. Code Quality (10 điểm)
 

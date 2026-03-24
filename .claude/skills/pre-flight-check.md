@@ -59,6 +59,8 @@ Layer 3 — Project: "Tất cả modules kết nối đúng không?"
 - [ ] Nếu tạo email trigger → template file ĐÃ TỒN TẠI hoặc tạo trong cùng PR?
 - [ ] Nếu tạo @Scheduled → có idempotency check? (không gửi duplicate)
 - [ ] Nếu thay đổi status transition → document trong code/commit message?
+- [ ] Business doc check: nếu PR thay đổi business logic (service, config, scheduler) → verify `documents/01-business/` có doc tương ứng và đã update
+- [ ] Config key check: mọi @ConfigurationProperties/config key trong code → phải có trong business doc Config section
 
 ### Code Quality
 - [ ] Nếu @RequestBody → có @Valid + typed DTO? (KHÔNG dùng Map<String, Object>)

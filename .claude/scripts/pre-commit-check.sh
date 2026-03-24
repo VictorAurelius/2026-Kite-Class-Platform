@@ -474,6 +474,30 @@ fi
 echo ""
 
 # ==============================================================================
+# 14b. Check: Business docs accompany business logic changes
+# ==============================================================================
+echo "📄 Checking business doc accompanies business logic changes..."
+
+KITEHUB_BIZ_CHANGED=$(git diff --cached --name-only | grep -E "^kitehub/kitehub-(subscription|branding|email|admin|gateway)/src/main/java/" | head -1 || true)
+KITECLASS_BIZ_CHANGED=$(git diff --cached --name-only | grep -E "^kiteclass/kiteclass-core/src/main/java/" | head -1 || true)
+BIZ_DOC_STAGED=$(git diff --cached --name-only | grep "documents/01-business/" | head -1 || true)
+
+if [ -n "$KITEHUB_BIZ_CHANGED" ] || [ -n "$KITECLASS_BIZ_CHANGED" ]; then
+    if [ -z "$BIZ_DOC_STAGED" ]; then
+        echo -e "${YELLOW}⚠️  Business logic changed but no business doc updated${NC}"
+        echo "   Changed: $KITEHUB_BIZ_CHANGED $KITECLASS_BIZ_CHANGED"
+        echo "   Expected: update documents/01-business/ in same commit"
+        echo "   Rule: Doc va code PHAI cung PR (CLAUDE.md)"
+        # WARNING mode, not blocking
+    else
+        echo -e "${GREEN}✅ Business doc update detected${NC}"
+    fi
+else
+    echo -e "${GREEN}✅ No business logic changes to check${NC}"
+fi
+echo ""
+
+# ==============================================================================
 # 15. Check New Folder Structure Compliance
 # ==============================================================================
 echo "📂 Checking folder structure compliance..."
