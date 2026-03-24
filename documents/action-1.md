@@ -186,3 +186,13 @@ sau khi tạo đủ cho kitehub, kiteclass thì phải có wave để check lạ
 Wave chỉ tạo ra sản phẩm cụ thể cho kiteclass, kitehub hay phải tạo cả skill, hoặc cái gì đó định nghĩa cấu trúc và kiểm soát cấu trúc này
 
 Ngoài ra tôi nghĩ wave 12 phải kiểm tra code trước, sau đó tạo PR để xác nhận fix code, dù sao code thay đổi sẽ tốn rất nhiều thời gian để test và xác nhận
+
+check lại chất lượng của wave 12
+
+làm sao để nâng điểm wave 12 100
+
+merge và tạo wave 13
+
+lưu đủ log chưa?
+
+chưa commit hết
