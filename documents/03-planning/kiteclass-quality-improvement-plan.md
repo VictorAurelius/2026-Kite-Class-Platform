@@ -227,8 +227,8 @@ Phase 4 — Finalize:
 | PR-KC-4 Multi-tenant E2E | ✅ DONE | #210→#212 (Wave 4) | +2 |
 | PR-KC-5 Fix FE TODOs | ✅ DONE | #198→#202 (Wave 2) | +1 |
 | PR-KC-6 README + docs | ✅ DONE | #208→#212 (Wave 4) | +2 |
-| PR-KC-7 Standalone Docker | ⬜ TODO | — | +2 |
-| PR-KC-8 Validation hardening | ⬜ TODO | — | +1 |
-| PR-KC-9 Onboarding UX | ⬜ TODO | — | +1 |
+| PR-KC-7 Standalone Docker | ✅ DONE | #216→#218 (Wave 5) | +2 |
+| PR-KC-8 Validation hardening | ✅ DONE | #216→#218 (Wave 5) | +1 |
+| PR-KC-9 Onboarding UX | ✅ DONE | #215→#218 (Wave 5) | +1 |
 | PR-KC-10 Plan tracking | ✅ DONE | #208→#212 (Wave 4) | +1 |
-| **Total** | **7/10** | | **10/14** |
+| **Total** | **10/10 ✅ COMPLETE** | | **14/14** |

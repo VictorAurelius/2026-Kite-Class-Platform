@@ -229,12 +229,11 @@ documents/
 - [x] Tạo `_README-skills-index.md` index
 - [x] Update CLAUDE.md references
 
-### PR-REFACTOR-3: Business docs migration
+### PR-REFACTOR-3: Business docs migration — ✅ DONE (#215→#218, Wave 5)
 
-**Estimate:** 2 giờ
-**Scope:**
-- [ ] Rewrite 11 kiteclass module docs → 8 compact docs (100-150 dòng each)
-- [ ] Tạo KiteHub business docs (trial, subscription, email, domain, retention)
-- [ ] Update index
+**Completed:** 2026-03-24
+- [x] 6 KiteClass business docs (attendance, course-class, grade-assignment, payment-invoice, teacher, student-enrollment)
+- [x] KiteHub business docs (trial-lifecycle created earlier)
+- [x] README.md index updated
 
-**Tổng: 3 PRs, ~5 giờ**
+**Tổng: 3/3 PRs COMPLETE ✅**
