@@ -1,114 +1,107 @@
-# Kite Platform Monorepo
+# Kite Platform
 
-Multi-platform educational technology suite.
+Multi-platform educational technology suite — SaaS management + multi-tenant education.
 
-## 🎯 Projects
+## Projects
 
-- **[KiteClass](kiteclass/)** - Educational management platform (multi-tenant SaaS)
-- **KiteHub** _(Coming soon)_ - SaaS platform for education ecosystem
+- **[KiteHub](kitehub/)** — SaaS platform: tenant management, subscription, billing, branding, email, admin
+  - 6 backend services + API gateway + frontend
+  - Spring Boot 3.5.11, Next.js 15
 
-## 🚀 Getting Started
+- **[KiteClass](kiteclass/)** — Multi-tenant education platform: students, courses, classes, attendance, grades, payments
+  - Core service + API gateway + frontend
+  - Spring Boot 3.5.11, Next.js 15
 
-Each project has its own README with detailed setup instructions:
+## Getting Started
 
-- [KiteClass Setup Guide](kiteclass/README.md)
-- KiteHub Setup Guide _(future)_
+- [KiteHub Quick Start](kitehub/QUICK_START.md)
+- [KiteClass Quick Start](kiteclass/QUICK_START.md)
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 2026-Kite-Class-Platform/
-├── kiteclass/                 # KiteClass Platform
-│   ├── kiteclass-core/        # Spring Boot business logic
-│   ├── kiteclass-gateway/     # Spring Boot API Gateway
-│   ├── kiteclass-frontend/    # Next.js frontend
-│   ├── scripts/               # KiteClass-specific scripts
-│   ├── nginx/                 # KiteClass nginx config
-│   ├── docker-compose.dev.yml # KiteClass stack orchestration
-│   └── README.md              # KiteClass documentation
-│
-├── kitehub/                   # KiteHub Platform (future)
-│   └── ...
-│
-├── documents/                 # Shared documentation (monorepo-level)
-│   ├── 01-research/
-│   ├── 02-academic/
-│   ├── 03-planning/
-│   └── ...
-│
-├── scripts/                   # Shared monorepo utilities
-│   ├── test-local.sh          # Generic test runner
-│   ├── dev-docker.sh          # Generic docker wrapper
-│   └── cleanup-testcontainers.sh
-│
-└── .github/workflows/         # CI/CD for all projects
-    ├── kiteclass-*.yml
-    └── kitehub-*.yml (future)
+├── .claude/               # Skills, scripts, hooks
+├── .github/               # CI/CD workflows (8 files)
+├── documents/             # Documentation
+│   ├── 01-business/       # Business logic (SOURCE OF TRUTH)
+│   ├── 02-architecture/   # Technical architecture
+│   ├── 03-planning/       # Plans, PRs, strategies
+│   ├── 04-quality/        # Audits, gap checks
+│   ├── 05-guides/         # Deploy guides, operations
+│   ├── 06-diagrams/       # PlantUML + rendered PNG
+│   ├── 07-archived/       # Old docs, research
+│   └── 08-thesis/         # Graduation project refs
+├── infrastructure/        # DevOps
+│   ├── helm/              # Kubernetes Helm charts
+│   ├── k8s/               # K8s manifests
+│   ├── terraform-aws/     # AWS infrastructure
+│   └── terraform-oracle/  # Oracle Cloud
+├── kiteclass/             # KiteClass (core + gateway + frontend)
+├── kitehub/               # KiteHub (6 services + gateway + frontend)
+└── scripts/               # Root CI/QA scripts
 ```
 
-## 🛠️ Development Workflow
+## Tech Stack
 
-### Quick Commands
+### Shared
+- **Database:** PostgreSQL 16
+- **Cache:** Redis 7
+- **Messaging:** RabbitMQ 3
+- **Storage:** MinIO (S3-compatible)
+- **AI:** Ollama (local LLM)
+
+### Backend
+- Spring Boot 3.5.11, Spring Cloud 2025.0.0
+- Java 21, Maven
+- Flyway migrations
+- Micrometer + Prometheus metrics
+
+### Frontend
+- Next.js 15, React 19, TypeScript
+- Tailwind CSS, Shadcn UI
+- Playwright E2E tests
+
+### Infrastructure
+- Docker Compose (development)
+- Kubernetes + Helm (production)
+- Terraform (AWS + Oracle Cloud)
+- GitHub Actions CI/CD
+
+## Documentation
+
+- [Business Logic](documents/01-business/) — Source of truth for all business rules
+- [Architecture](documents/02-architecture/) — System design, Docker, domain management
+- [Plans & Progress](documents/03-planning/) — Implementation plans, PR tracking
+- [Quality Reports](documents/04-quality/) — Audits, gap checks
+- [Guides](documents/05-guides/) — Deployment, operations, Vietnamese guides
+- [Diagrams](documents/06-diagrams/) — 19 PlantUML diagrams with rendered PNGs
+- [Thesis References](documents/08-thesis/) — Graduation project materials
+- [Documentation Map](documents/README.md) — Complete navigation guide
+
+## Quality
+
+| Metric | KiteHub | KiteClass |
+|--------|---------|-----------|
+| Quality Score | 98/100 | 98/100 |
+| Java Tests | 177 | 98 |
+| Frontend Tests | 532 | 620 |
+| CI Workflows | 6 | 3 |
+| Business Docs | 7 | 9 |
+
+## Development
 
 ```bash
-# KiteClass development
-cd kiteclass/
-./scripts/dev-docker.sh up
+# Start KiteHub full stack (14 containers)
+cd kitehub/ && ./scripts/up.sh
 
 # Run tests
-./scripts/test-local.sh all
-
-# Check status
-./scripts/dev-status.sh
+cd kitehub/ && ./scripts/test-api-e2e.sh
+cd kiteclass/ && ./scripts/test-api-e2e.sh
 ```
 
-### Shared Scripts
-
-```bash
-# Generic test runner
-./scripts/test-local.sh <project> <service>
-
-# Generic docker wrapper
-./scripts/dev-docker.sh <compose-file> <command>
-
-# Cleanup testcontainers
-./scripts/cleanup-testcontainers.sh
-```
-
-See [scripts/README.md](scripts/README.md) for details.
-
-## 📚 Documentation
-
-- **[documents/](documents/)** - Shared technical documentation
-- **[KiteClass Docs](kiteclass/)** - KiteClass-specific guides
-- **[Scripts Guide](scripts/README.md)** - Shared utilities documentation
-
-## 🧰 Tech Stack Overview
-
-### KiteClass
-- **Backend**: Spring Boot 3.5.11, Spring Cloud 2025.0.0
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Database**: PostgreSQL 15
-- **Cache**: Redis 7
-- **Storage**: MinIO (S3-compatible)
-
-### KiteHub _(future)_
-- TBD
-
-## 🤝 Contributing
-
-Each project has its own contributing guidelines:
-- [KiteClass Contributing](kiteclass/README.md)
-- KiteHub Contributing _(future)_
-
-## 📖 More Information
-
-For detailed project documentation:
-- [KiteClass Platform](kiteclass/README.md)
-- [Implementation Plan](documents/03-planning/implementation/kiteclass-implementation-plan.md)
-- [Architecture Overview](documents/07-archived/research/architecture/system-architecture-v4.md)
-- [Documentation Map](documents/README.md) - Complete documentation navigation guide
+See [CLAUDE.md](CLAUDE.md) for development rules and methodology.
 
 ---
 
-**Last Updated**: 2026-02-27
+**Last Updated:** 2026-03-24
