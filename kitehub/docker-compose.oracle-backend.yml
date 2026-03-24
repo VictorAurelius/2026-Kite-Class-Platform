@@ -1,18 +1,18 @@
 # =============================================================================
-# KiteHub Production - Oracle Cloud Backend (VM 1)
+# Kite Platform Production - Oracle Cloud Backend (VM 1)
 # =============================================================================
 # Deploy: docker compose -f docker-compose.oracle-backend.yml up -d
 # Docs:   documents/03-planning/infrastructure/kitehub-oracle-cloud-deployment.md
 # =============================================================================
 
-name: kitehub-prod
+name: kite-prod
 
 services:
-  # --- Infrastructure ---
+  # --- Shared Infrastructure (kite- prefix) ---
 
-  kitehub-postgres:
+  kite-postgres:
     image: postgres:15-alpine
-    container_name: kitehub-postgres
+    container_name: kite-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-kitehub}
       POSTGRES_USER: ${POSTGRES_USER:-kitehub}
@@ -20,7 +20,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"  # Only localhost (not exposed to internet)
     volumes:
-      - kitehub-postgres-data:/var/lib/postgresql/data
+      - kite-postgres-data:/var/lib/postgresql/data
       - ./docker/postgres:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kitehub}"]
@@ -29,9 +29,9 @@ services:
       retries: 5
     restart: unless-stopped
 
-  kitehub-redis:
+  kite-redis:
     image: redis:7-alpine
-    container_name: kitehub-redis
+    container_name: kite-redis
     ports:
       - "127.0.0.1:6379:6379"
     healthcheck:
@@ -41,9 +41,9 @@ services:
       retries: 5
     restart: unless-stopped
 
-  kitehub-rabbitmq:
+  kite-rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: kitehub-rabbitmq
+    container_name: kite-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-kitehub}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
@@ -57,7 +57,7 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # --- Platform Services ---
+  # --- KiteHub Platform Services (kitehub- prefix) ---
 
   kitehub-subscription:
     image: kitehub-subscription:latest
@@ -65,29 +65,29 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       DATABASE_LIFECYCLE_ENABLED: "true"
-      DATABASE_MASTER_HOST: kitehub-postgres
+      DATABASE_MASTER_HOST: kite-postgres
       DATABASE_MASTER_PORT: 5432
-      DATABASE_ADMIN_URL: jdbc:postgresql://kitehub-postgres:5432/postgres
+      DATABASE_ADMIN_URL: jdbc:postgresql://kite-postgres:5432/postgres
       DATABASE_ADMIN_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_ADMIN_PASSWORD: ${POSTGRES_PASSWORD:?required}
       ENCRYPTION_MASTER_KEY: ${ENCRYPTION_MASTER_KEY:?required}
       JWT_SECRET: ${JWT_SECRET:?required}
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
     restart: unless-stopped
 
@@ -97,17 +97,17 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
       AI_PROVIDER: ${AI_PROVIDER:-ollama}
-      OLLAMA_BASE_URL: http://${OLLAMA_HOST:-kitehub-ollama}:11434
+      OLLAMA_BASE_URL: http://${OLLAMA_HOST:-kite-ollama}:11434
       OLLAMA_TEXT_MODEL: ${OLLAMA_TEXT_MODEL:-llama3.1:8b}
       OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava:13b}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-mock-key}
@@ -117,11 +117,11 @@ services:
       S3_MOCK_MODE: ${S3_MOCK_MODE:-true}
       CDN_DOMAIN: ${CDN_DOMAIN:-cdn.kiteclass.com}
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
     restart: unless-stopped
 
@@ -131,7 +131,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      SPRING_RABBITMQ_HOST: kitehub-rabbitmq
+      SPRING_RABBITMQ_HOST: kite-rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-kitehub}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:?required}
@@ -139,7 +139,7 @@ services:
       AWS_SES_FROM_EMAIL: ${SES_FROM_EMAIL:-noreply@kiteclass.com}
       EMAIL_MOCK_MODE: ${EMAIL_MOCK_MODE:-false}
     depends_on:
-      kitehub-rabbitmq:
+      kite-rabbitmq:
         condition: service_healthy
     restart: unless-stopped
 
@@ -149,27 +149,27 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-kitehub}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      SPRING_REDIS_HOST: kitehub-redis
+      SPRING_REDIS_HOST: kite-redis
       SPRING_REDIS_PORT: 6379
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
     restart: unless-stopped
 
-  kitehub-gateway:
-    image: kitehub-gateway:latest
-    container_name: kitehub-gateway
+  kite-gateway:
+    image: kite-gateway:latest
+    container_name: kite-gateway
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DATABASE_URL: jdbc:postgresql://kitehub-postgres:5432/${POSTGRES_DB:-kitehub}
+      DATABASE_URL: jdbc:postgresql://kite-postgres:5432/${POSTGRES_DB:-kitehub}
       DATABASE_USERNAME: ${POSTGRES_USER:-kitehub}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?required}
-      REDIS_HOST: kitehub-redis
+      REDIS_HOST: kite-redis
       REDIS_PORT: 6379
       SERVER_PORT: 9000
       SUBSCRIPTION_SERVICE_URL: http://kitehub-subscription:8080
@@ -180,9 +180,9 @@ services:
     ports:
       - "127.0.0.1:9000:9000"
     depends_on:
-      kitehub-postgres:
+      kite-postgres:
         condition: service_healthy
-      kitehub-redis:
+      kite-redis:
         condition: service_healthy
       kitehub-subscription:
         condition: service_started
@@ -195,5 +195,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  kitehub-postgres-data:
+  kite-postgres-data:
     driver: local

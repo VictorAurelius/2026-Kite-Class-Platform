@@ -1,5 +1,5 @@
 #!/bin/bash
-# Check KiteHub stack status with health checks and resource usage
+# Check Kite Platform stack status with health checks and resource usage
 # Usage: ./scripts/status.sh [--simple]
 
 set -e
@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo "=============================================="
-echo "  KiteHub Stack Status"
+echo "  Kite Platform Stack Status"
 echo "=============================================="
 echo ""
 
@@ -43,7 +43,7 @@ check_health() {
 }
 
 # Check all services
-check_health "kitehub-gateway     " 9000
+check_health "kite-gateway         " 9000
 check_health "kitehub-subscription" 8081
 check_health "kitehub-branding    " 8083
 check_health "kitehub-email       " 8084
@@ -59,7 +59,7 @@ if [ "$1" != "--simple" ] && [ "$1" != "-s" ]; then
     echo "=============================================="
     echo ""
 
-    # Get stats for kitehub containers only
+    # Get stats for kite platform containers only
     docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" $(docker-compose -f docker-compose.kitehub.yml ps -q 2>/dev/null) 2>/dev/null || echo "  No running containers"
 
     echo ""
@@ -94,7 +94,7 @@ echo "  Admin:         http://localhost:8085"
 echo ""
 echo "  PostgreSQL:    localhost:5433"
 echo "  Redis:         localhost:6380"
-echo "  RabbitMQ:      http://localhost:15673 (admin: kitehub/kitehub_dev_password)"
-echo "  MinIO Console: http://localhost:9191 (admin: kitehub/kitehub_dev_password)"
+echo "  RabbitMQ:      http://localhost:15673"
+echo "  MinIO Console: http://localhost:9191"
 echo "  MailHog UI:    http://localhost:8025"
 echo ""

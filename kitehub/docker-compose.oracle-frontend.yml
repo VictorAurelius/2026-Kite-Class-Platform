@@ -1,11 +1,11 @@
 # =============================================================================
-# KiteHub Production - Oracle Cloud Frontend + AI (VM 2)
+# Kite Platform Production - Oracle Cloud Frontend + AI (VM 2)
 # =============================================================================
 # Deploy: docker compose -f docker-compose.oracle-frontend.yml up -d
 # Docs:   documents/03-planning/infrastructure/kitehub-oracle-cloud-deployment.md
 # =============================================================================
 
-name: kitehub-frontend-prod
+name: kite-frontend-prod
 
 services:
   kitehub-frontend:
@@ -32,9 +32,9 @@ services:
       - "127.0.0.1:3000:3000"
     restart: unless-stopped
 
-  kitehub-ollama:
+  kite-ollama:
     image: ollama/ollama:latest
-    container_name: kitehub-ollama
+    container_name: kite-ollama
     ports:
       - "127.0.0.1:11434:11434"
     volumes:
