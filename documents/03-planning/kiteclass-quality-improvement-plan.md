@@ -223,12 +223,12 @@ Phase 4 — Finalize:
 |----|--------|--------|-------|
 | PR-KC-1 Fix @Disabled tests | ✅ DONE | #199→#202 (Wave 2) | +1 |
 | PR-KC-2 Integration tests | ✅ DONE | #199→#202 (Wave 2) | +1 |
-| PR-KC-3 E2E test script | ⬜ TODO | — | +2 |
-| PR-KC-4 Multi-tenant E2E | ⬜ TODO | — | +2 |
+| PR-KC-3 E2E test script | ✅ DONE | #210→#212 (Wave 4) | +2 |
+| PR-KC-4 Multi-tenant E2E | ✅ DONE | #210→#212 (Wave 4) | +2 |
 | PR-KC-5 Fix FE TODOs | ✅ DONE | #198→#202 (Wave 2) | +1 |
-| PR-KC-6 README + docs | ✅ DONE | Wave 4 | +2 |
+| PR-KC-6 README + docs | ✅ DONE | #208→#212 (Wave 4) | +2 |
 | PR-KC-7 Standalone Docker | ⬜ TODO | — | +2 |
 | PR-KC-8 Validation hardening | ⬜ TODO | — | +1 |
 | PR-KC-9 Onboarding UX | ⬜ TODO | — | +1 |
-| PR-KC-10 Plan tracking | ✅ DONE | Wave 4 | +1 |
-| **Total** | **5/10** | | **6/14** |
+| PR-KC-10 Plan tracking | ✅ DONE | #208→#212 (Wave 4) | +1 |
+| **Total** | **7/10** | | **10/14** |

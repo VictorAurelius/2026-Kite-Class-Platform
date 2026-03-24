@@ -144,23 +144,38 @@ cd kiteclass/kiteclass-frontend && pnpm build
 
 **KHÔNG merge nếu verdict = ❌ hoặc ⚠️ chưa resolve.**
 
-### 6a. Xác nhận user approve
+### 6a. Phân biệt merge target
 
-Hỏi user: "Verdict ✅ — merge PR #[number]?" — KHÔNG tự merge.
+```
+User nói "merge" → merge agent PRs vào WAVE BRANCH
+User nói "merge wave → main" hoặc "merge vào main" → merge wave → main
+KHÔNG BAO GIỜ tự suy diễn merge vào main
+```
 
-### 6b. Merge theo context
+### 6b. Xác nhận user approve
+
+**LUÔN hỏi trước khi merge:**
+- PR → wave: "Merge 4 PRs vào wave/X?"
+- Wave → main: "Wave check pass. Merge wave/X → main?"
+- KHÔNG tự merge bất kỳ thứ gì mà không có confirm rõ ràng.
+
+### 6c. Merge command
 
 ```bash
-# PR agent → wave branch:
+# PR agent → wave branch (user đã confirm):
 gh pr merge [number] --squash --delete-branch
 
-# Wave → main (sau wave-completion-check pass):
+# Wave → main (user đã confirm RÕ RÀNG "merge vào main"):
 gh pr merge [number] --squash --delete-branch
 git checkout main && git pull
 
-# Hotfix → main (khẩn cấp):
+# Hotfix → main (user đã confirm):
 gh pr merge [number] --squash --delete-branch
 ```
+
+### 6d. VIOLATION LOG (Wave 4, 2026-03-24)
+User nói "merge" → agent merge cả wave/4 → main mà không hỏi.
+Đúng ra: chỉ merge 4 PRs vào wave/4, rồi HỎI user trước khi wave/4 → main.
 
 ### 6c. Verify sau merge
 

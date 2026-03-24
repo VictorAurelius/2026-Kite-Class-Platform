@@ -409,17 +409,24 @@ Phase 4 — Marketing (2 ngày):
 | PR-SAAS-5 Email Sent Log | ✅ DONE | #201→#202 (Wave 2) | 2 |
 | PR-SAAS-6 SEO Foundation | ✅ DONE | #200→#202 (Wave 2) | 2 |
 | PR-SAAS-7 Email Lifecycle | ✅ DONE | #203→#206 (Wave 3) | 2 |
-| PR-SAAS-8 Template Gallery | ⬜ TODO | — | 3 |
+| PR-SAAS-8 Template Gallery | ✅ DONE | #211→#212 (Wave 4) | 3 |
 | PR-SAAS-9 AI Rate Limiting | ⬜ TODO | — | 3 |
 | PR-SAAS-10 Structured Data | ⬜ TODO | — | 4 |
 | PR-SAAS-11 Blog MDX | ⬜ TODO | — | 4 |
-| PR-SAAS-12 Public Config API | ⬜ TODO | — | 4 |
-| PR-SAAS-13 Architecture Docs | ⬜ TODO | — | 4 |
+| PR-SAAS-12 Public Config API | ✅ DONE | #209→#212 (Wave 4) | 4 |
+| PR-SAAS-13 Architecture Docs | ✅ DONE | #209→#212 (Wave 4) | 4 |
 | PR-SAAS-14 Reserved Subdomains | ✅ DONE | #195 (Wave 1) | 1 |
 | PR-SAAS-15 Configurable BASE_DOMAIN | ✅ DONE | #195 (Wave 1) | 1 |
 | PR-SAAS-16 Custom Domain UI | ✅ DONE | #205→#206 (Wave 3) | 3 |
 | PR-SAAS-17 SSL Automation | ⬜ TODO | — | 4 |
-| **Total** | **10/17** | | |
+| **Total** | **13/17** | | |
+
+### Wave 4 Notes (2026-03-24)
+- Template gallery: 5 seed templates, full backend + frontend
+- Public config API: GET /api/platform/config/public
+- Architecture docs: email-lifecycle.md, data-retention-policy.md
+- FE test fixes: TS2345 + duplicate text (getAllByText)
+- ⚠️ VIOLATION: Wave merged to main without user confirm
 
 ### Wave 2 Notes (2026-03-23)
 - Agent used `classItem.teacherId` but `Class` type has no such field → fix on wave/2
