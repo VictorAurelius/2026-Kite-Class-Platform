@@ -43,6 +43,10 @@ export const endpoints = {
     jobAssets: (id: string) => `${API_BASE}/branding/jobs/${id}/assets`,
     listAssets: (instanceId: string) => `${API_BASE}/branding/assets/${instanceId}`,
     generateContent: `${API_BASE}/branding/content/generate`,
+    // SAAS-8: Template gallery
+    templates: `${API_BASE}/branding/templates`,
+    templateById: (id: string) => `${API_BASE}/branding/templates/${id}`,
+    applyTemplate: (id: string) => `${API_BASE}/branding/templates/${id}/apply`,
   },
 
   // Email

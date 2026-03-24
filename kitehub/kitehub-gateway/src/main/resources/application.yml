@@ -61,6 +61,17 @@ spring:
                 name: instancesCircuitBreaker
                 fallbackUri: forward:/fallback/instances
 
+        # Platform APIs - Public Config (no auth required)
+        - id: platform-config
+          uri: http://kitehub-subscription:8080
+          predicates:
+            - Path=/api/platform/config/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: subscriptionCircuitBreaker
+                fallbackUri: forward:/fallback/subscription
+
         # Platform APIs - Subscription Service
         - id: platform-subscription
           uri: http://kitehub-subscription:8080
