@@ -106,15 +106,14 @@
 **Score impact:** Documentation +2 → 9/10
 **Estimate:** 1 giờ
 **Scope:**
-- [ ] Tạo `kiteclass/kiteclass-core/README.md`:
+- [x] Tạo `kiteclass/kiteclass-core/README.md`:
   - Architecture overview (multi-tenant, module structure)
   - Local development setup
   - API overview (Student, Teacher, Course, Class, Attendance, Enrollment)
   - Testing guide
-- [ ] Tạo `kiteclass/QUICK_START.md`:
-  - Standalone dev setup (nếu không qua KiteHub)
-  - Required environment variables
-  - Database setup
+- [x] Tạo `kiteclass/QUICK_START.md`:
+  - Quick start guide (runs inside KiteHub stack)
+  - API access, testing, rebuild commands
 
 ---
 
@@ -163,10 +162,10 @@
 **Score impact:** Project Management +1 → 10/10
 **Estimate:** 1 giờ
 **Scope:**
-- [ ] Update `kiteclass-implementation-plan.md` với completion status
-- [ ] Mark ✅ cho PRs đã done
-- [ ] Add PR numbers cho tracked items
-- [ ] Review và archive obsolete plan items
+- [x] Update `kiteclass-quality-improvement-plan.md` completion status
+- [x] Mark done cho KC-6, KC-10
+- [x] Add business doc `student-enrollment.md`
+- [x] Add deprecation note to old docs
 
 ---
 
@@ -227,9 +226,9 @@ Phase 4 — Finalize:
 | PR-KC-3 E2E test script | ⬜ TODO | — | +2 |
 | PR-KC-4 Multi-tenant E2E | ⬜ TODO | — | +2 |
 | PR-KC-5 Fix FE TODOs | ✅ DONE | #198→#202 (Wave 2) | +1 |
-| PR-KC-6 README + docs | ⬜ TODO | — | +2 |
+| PR-KC-6 README + docs | ✅ DONE | Wave 4 | +2 |
 | PR-KC-7 Standalone Docker | ⬜ TODO | — | +2 |
 | PR-KC-8 Validation hardening | ⬜ TODO | — | +1 |
 | PR-KC-9 Onboarding UX | ⬜ TODO | — | +1 |
-| PR-KC-10 Plan tracking | ⬜ TODO | — | +1 |
-| **Total** | **3/10** | | **3/14** |
+| PR-KC-10 Plan tracking | ✅ DONE | Wave 4 | +1 |
+| **Total** | **5/10** | | **6/14** |

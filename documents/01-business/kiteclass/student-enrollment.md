@@ -1,0 +1,93 @@
+# Student & Enrollment — Business Rules
+
+**Domain:** KiteClass Core
+**Version:** 1.0
+**Updated:** 2026-03-24
+
+---
+
+## 1. Rules
+
+### Student Rules
+
+| ID | Rule | Detail |
+|----|------|--------|
+| BR-STU-001 | Name required | Max 100 characters, not blank |
+| BR-STU-002 | Email unique per tenant | Checked within same `instance_id` |
+| BR-STU-003 | Phone unique globally | Vietnamese format, 10 digits starting with 0 |
+| BR-STU-004 | Default status ACTIVE | New students start as ACTIVE |
+| BR-STU-005 | Soft delete only | `deleted` flag, never hard delete |
+| BR-STU-006 | Multi-tenant isolation | All queries filtered by `instance_id` |
+
+**Student statuses:** PENDING, ACTIVE, INACTIVE, GRADUATED, DROPPED
+
+### Enrollment Rules
+
+| ID | Rule | Detail |
+|----|------|--------|
+| BR-ENROLL-001 | Class capacity check | Active enrollment count < class `maxStudents` |
+| BR-ENROLL-002 | No duplicate enrollment | Same student + same class = rejected (unique constraint) |
+| BR-ENROLL-003 | Auto-calculate final amount | `final_amount = tuition_amount * (1 - discount_percent / 100)` |
+| BR-ENROLL-004 | Discount range 0-100 | `discount_percent` must be between 0.00 and 100.00 |
+| BR-ENROLL-005 | Cannot enroll in ARCHIVED courses | Class's course must not be ARCHIVED |
+| BR-ENROLL-006 | Default status PENDING_PAYMENT | New enrollments require payment confirmation |
+
+**Enrollment statuses:** PENDING_PAYMENT, ACTIVE, COMPLETED, WITHDRAWN
+
+---
+
+## 2. Flow
+
+### Student Creation Flow
+1. Validate name (required)
+2. Check email uniqueness within tenant
+3. Check phone uniqueness globally
+4. Set `instance_id` for multi-tenant isolation
+5. Save with default status ACTIVE
+6. Cache invalidated on update/delete
+
+### Enrollment Flow
+1. Validate student exists and is not deleted
+2. Validate class exists and is not deleted
+3. Check duplicate enrollment (BR-ENROLL-002)
+4. Check class capacity (BR-ENROLL-001)
+5. Calculate `final_amount` via `@PrePersist` (BR-ENROLL-003)
+6. Save enrollment with status PENDING_PAYMENT
+7. Publish `EnrollmentCreatedEvent` (triggers invoice generation)
+
+### Withdrawal Flow
+1. Validate enrollment exists
+2. Check enrollment is not already WITHDRAWN
+3. Update status to WITHDRAWN
+
+---
+
+## 3. Emails
+
+| Trigger | Template | Recipient |
+|---------|----------|-----------|
+| (Planned) Enrollment confirmation | enrollment-confirmation | Student email |
+| (Planned) Payment reminder | payment-reminder | Student email |
+| (Planned) Withdrawal notice | withdrawal-notice | Student email |
+
+> Email templates are not yet implemented. Planned for future PRs.
+
+---
+
+## 4. Config
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `student.cache.name` | `students` | Redis cache name for student data |
+| `student.cache.key-generator` | `multiTenantKeyGenerator` | Tenant-aware cache key |
+| `enrollment.default-discount` | `0` | Default discount percent |
+| `enrollment.status.initial` | `PENDING_PAYMENT` | Initial enrollment status |
+
+### Database Indexes
+- `idx_students_email` — Student email lookup
+- `idx_students_phone` — Student phone lookup
+- `idx_students_status` — Filter by status
+- `idx_enrollments_student_id` — Enrollments per student
+- `idx_enrollments_class_id` — Enrollments per class
+- `idx_enrollments_status` — Filter by enrollment status
+- `uk_enrollments_student_class_instance` — Unique constraint (student + class + instance + deleted)
