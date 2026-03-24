@@ -258,3 +258,18 @@ ls documents/03-planning/*.md | wc -l
 - Nếu E2E fail lần 1 do cold start, chạy lần 2 nhưng GHI NHẬN cold start issue (-2 điểm)
 - Nếu không thể chạy test (Docker down, etc.), ghi 0 điểm cho category đó + note lý do
 - So sánh với quality plan nếu có (`kitehub-quality-100-plan.md`)
+
+### CRITICAL: CI phải hoàn thành trước khi chấm điểm
+
+**KHÔNG BAO GIỜ** kết luận CI/CD score hoặc Backend Tests score khi CI còn đang chạy (`in_progress`).
+
+**Quy trình bắt buộc:**
+1. Thu thập data → kiểm tra `gh run list` status
+2. Nếu có run `in_progress` liên quan đến target (branch/PR):
+   - **PHẢI** dùng `scripts/check-ci.sh` để đợi kết quả — KHÔNG dùng `gh run watch` hay bất kỳ lệnh CI trực tiếp nào
+   - **PHẢI** báo user: "CI đang chạy, đợi kết quả trước khi chấm điểm CI/CD"
+   - **KHÔNG ĐƯỢC** giả định pass/fail
+3. Chỉ sau khi CI completed → mới chấm điểm categories: CI/CD, Backend Tests, E2E
+4. Nếu user yêu cầu audit gấp → ghi rõ "CI/CD: PENDING (chưa có kết quả)" thay vì đoán điểm
+
+**Lý do:** Audit trước đã kết luận CI pass trong khi thực tế CI đang chạy. Điều này làm sai lệch kết quả đánh giá và có thể dẫn đến merge PR lỗi.
