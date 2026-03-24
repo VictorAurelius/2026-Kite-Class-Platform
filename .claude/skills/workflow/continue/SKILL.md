@@ -12,11 +12,14 @@ argument-hint: "[optional context]"
 Đọc các plan documents theo thứ tự ưu tiên (🔴 P0 trước):
 
 **Active Plans (check Completion Status section):**
-1. `documents/03-planning/kitehub-saas-implementation-plan.md` — 17 PRs, business logic
-2. `documents/03-planning/docs-and-skills-refactor-plan.md` — 3 PRs, cleanup
-3. `documents/03-planning/kitehub-quality-improvement-plan-v3.md` — 6 PRs, quality 91→100
-4. `documents/03-planning/kiteclass-quality-improvement-plan.md` — 16 PRs, quality 78→92
-5. `documents/03-planning/parallel-execution-strategy.md` — wave execution guide
+1. `documents/03-planning/quality-plan-v4-final-push.md` — 8 PRs, KH 96→100 + KC 93→100
+2. `documents/03-planning/parallel-execution-strategy.md` — wave execution guide
+
+**Completed Plans (reference only):**
+- `kitehub-saas-implementation-plan.md` — 17/17 ✅
+- `kiteclass-quality-improvement-plan.md` — 10/10 ✅
+- `docs-and-skills-refactor-plan.md` — 3/3 ✅
+- `kitehub-quality-improvement-plan-v3.md` — 6/6 ✅
 
 **Parallel execution:** Check parallel-execution-strategy.md cho wave hiện tại.
 Ưu tiên: 🔴 P0 > 🟠 P1 > 🟡 P2

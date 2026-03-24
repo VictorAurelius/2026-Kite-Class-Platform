@@ -68,6 +68,7 @@
 |-------------|-------|
 | `continue/SKILL.md` | /continue — resume PR ưu tiên nhất |
 | `check-pr/SKILL.md` | /check-pr — monitor CI + verify PR bằng scripts |
+| `quality-plan/SKILL.md` | /quality-plan — auto-generate PR plan từ audit gaps |
 | `check-pr/` | /check-pr skill |
 | `fix-pr/` | /fix-pr skill |
 | `start-pr/` | /start-pr skill |
