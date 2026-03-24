@@ -74,7 +74,7 @@
 1. FE: Display edit form pre-filled with current data
 2. User: Modify fields (name, email, phoneNumber, specialization, bio, qualification, experienceYears)
 3. System: Re-validate email uniqueness within tenant (BR-TCH-001)
-4. System: Update teacher record, invalidate cache
+4. System: Update teacher record, invalidate cache; existing class assignments preserved if status changes to ON_LEAVE (BR-TCH-004)
 5. FE: Show success toast
 
 **Postcondition:** Teacher updated, cache invalidated

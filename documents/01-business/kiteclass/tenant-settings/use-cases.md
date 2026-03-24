@@ -13,7 +13,7 @@
 1. FE: Request `GET /api/v1/settings/branding`
 2. System: Resolve `instanceId` from TenantContext
 3. System: Find Branding by `instanceId` (deleted=false)
-4. System: If not found, return default branding object (per BR-02): displayName="KiteClass" (BR-03), tagline (BR-04), colors #3B82F6/#8B5CF6/#10B981 (BR-05..BR-07)
+4. System: If not found, return default branding object (per BR-SET-02): displayName="KiteClass" (BR-SET-03), tagline (BR-SET-04), colors #3B82F6/#8B5CF6/#10B981 (BR-SET-05..BR-SET-07)
 5. FE: Apply branding to UI (logo, colors, name)
 
 **Postcondition:** Branding data returned. Default values used if no custom branding exists (not persisted).
@@ -33,15 +33,15 @@
 **Steps:**
 1. FE: Display branding form pre-filled with current values
 2. Admin: Modifies display name, tagline, colors, contact info, social links
-3. System: Validate color format `#RRGGBB` (per BR-08)
-4. System: Validate displayName not blank, max 200 (per BR-09), tagline max 500 (per BR-10)
-5. System: Validate contactEmail format (per BR-15), contactPhone max 20 (per BR-16)
+3. System: Validate color format `#RRGGBB` (per BR-SET-08)
+4. System: Validate displayName not blank, max 200 (per BR-SET-09), tagline max 500 (per BR-SET-10)
+5. System: Validate contactEmail format (per BR-SET-15), contactPhone max 20 (per BR-SET-16)
 6. System: Find existing branding — if not found, create new with defaults + request fields
-7. System: If found, PATCH update only provided fields (per BR-14)
+7. System: If found, PATCH update only provided fields (per BR-SET-14)
 8. System: Save and return BrandingResponse
 9. FE: Show success toast, update UI
 
-**Postcondition:** Branding record created or updated for tenant (per BR-01).
+**Postcondition:** Branding record created or updated for tenant (per BR-SET-01).
 
 **Errors:**
 | Code | Condition | Message |
@@ -60,7 +60,7 @@
 **Steps:**
 1. FE: Display upload button for logo or favicon
 2. Admin: Selects image file
-3. System: Upload file to S3 storage (per BR-11, BR-12)
+3. System: Upload file to S3 storage (per BR-SET-11, BR-SET-12)
 4. System: Find or create Branding for tenant
 5. System: Set `logo_url` or `favicon_url` with S3 URL (max 500 chars)
 6. System: Save and return BrandingResponse

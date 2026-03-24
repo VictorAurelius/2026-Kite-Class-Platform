@@ -43,7 +43,7 @@
 - **Steps (Create):**
   1. Verify teacher is course owner via `X-Teacher-Id` (BR-LMS-006)
   2. Validate `title` required, `orderNumber` unique within course (BR-LMS-004, BR-LMS-005)
-  3. Create module, return `CourseModuleResponse`
+  3. Create module under course — module belongs to exactly one course (BR-LMS-003), return `CourseModuleResponse`
 - **Steps (Update):**
   1. Verify ownership (BR-LMS-006)
   2. Partial update — only non-null fields applied (BR-LMS-011)

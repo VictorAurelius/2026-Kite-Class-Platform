@@ -177,7 +177,7 @@
 1. FE: Display installment form (2-12 terms)
 2. User: Select number of installments per BR-INV-003
 3. System: Validate min 500,000 VND per term per BR-INV-003
-4. System: Create plan with installment schedule, status = PENDING_APPROVAL
+4. System: Create plan with installment schedule, status = PENDING_APPROVAL; auto-cancelled if any installment overdue > 15 days (BR-INV-007)
 5. FE: Toast success, await approval
 
 **Postcondition:** Installment plan created pending approval

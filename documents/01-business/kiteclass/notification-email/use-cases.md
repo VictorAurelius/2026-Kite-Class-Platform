@@ -13,7 +13,7 @@
 1. FE: Display contact form (name, email, subject, message)
 2. Visitor: Fills in form and submits
 3. System: Saves ContactMessage with `instance_id` = tenant (per EM-07)
-4. System: Calls `emailService.sendContactNotification(adminEmail, name, email, subject, message)` (per EM-04)
+4. System: Calls `emailService.sendContactNotification(adminEmail, name, email, subject, message)` (per EM-04, BR-MKT-003)
 5. System: Admin email from config `contact.admin-email`, default `admin@kiteclass.com` (per EM-05)
 6. System: If email fails, logs error but returns success (per EM-06)
 7. FE: Show success toast
@@ -57,9 +57,9 @@
 **Steps:**
 1. FE: Display lead registration form
 2. Visitor: Submits name, email, phone, etc.
-3. System: Validate email uniqueness within tenant (per EM-08)
+3. System: Validate email uniqueness within tenant (per EM-08, BR-MKT-002)
 4. System: Save Lead with `instance_id` = tenant (per EM-07)
-5. System: Call `emailService.sendLeadConfirmation(email, name)` — subject: "Thank you for your interest - KiteClass"
+5. System: Call `emailService.sendLeadConfirmation(email, name)` — subject: "Thank you for your interest - KiteClass" (per BR-MKT-004)
 6. System: If email fails, logs error but returns success (per EM-06)
 7. FE: Show confirmation message
 

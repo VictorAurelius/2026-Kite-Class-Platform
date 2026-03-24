@@ -62,11 +62,11 @@
 **Precondition:** Tenant landing page is accessible
 
 **Steps:**
-1. FE: Display trial registration / interest form (email, name, phone, source, courseInterestId, message)
+1. FE: Display trial registration / interest form (email, name, phone optional max 20 chars per BR-MKT-002, source, courseInterestId optional links to course per BR-MKT-015, message)
 2. User: Fill required fields (email, name per BR-MKT-011)
 3. System: Validate email uniqueness within tenant (BR-MKT-010)
 4. System: Set lead source if provided (BR-MKT-014)
-5. System: Save lead with status NEW (BR-MKT-012)
+5. System: Save lead with status NEW (BR-MKT-012); soft delete only (BR-MKT-016); endpoint requires only X-Tenant-Id header, no auth (BR-MKT-017)
 6. FE: Show success toast "Lead created successfully"
 
 **Postcondition:** Lead created with status NEW, optionally linked to course interest
@@ -137,7 +137,7 @@
 3. User: Edit hero section (title, subtitle, image), teacher bio, branding (logo, tagline, colors)
 4. User: Edit contact info (email, phone, address) and social links (Facebook, YouTube, Instagram)
 5. System: Validate color format (BR-MKT-021) and size constraints (BR-MKT-024)
-6. System: Partial update — only non-null fields overwritten (BR-MKT-022)
+6. System: Find or create one landing page per tenant (BR-MKT-020); partial update — only non-null fields overwritten (BR-MKT-022)
 7. FE: Show success toast, preview updated landing page
 
 **Postcondition:** Landing page content updated for tenant

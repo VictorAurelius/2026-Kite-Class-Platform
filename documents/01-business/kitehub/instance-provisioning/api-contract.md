@@ -25,7 +25,7 @@
 ---
 
 ## POST /api/platform/instances/register
-**Use case:** UC-INS-02
+**Use case:** UC-INS-02, UC-INS-03
 **Auth:** None (public)
 **Request:**
 ```json
@@ -80,6 +80,22 @@
 ```
 **Response 200:** Updated InstanceResponse
 **Errors:** 404 not found
+
+---
+
+## POST /api/platform/instances/{id}/activate
+**Use case:** UC-INS-03 (email verification activation)
+**Auth:** Token from email verification link
+**Response 200:**
+```json
+{
+  "instance": { "id": "uuid", "subdomain": "string", "status": "TRIAL" },
+  "trialExpiresAt": "datetime"
+}
+```
+**Errors:** 400 invalid/expired token, 404 instance not found, 409 already activated
+
+> **Flow (UC-INS-03):** `POST /register` → email verification sent → user clicks link → `POST /{id}/activate` → trial starts, DB provisioned, welcome email sent.
 
 ---
 

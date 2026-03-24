@@ -134,7 +134,7 @@
 1. FE: Display class form (name, startDate, endDate, maxStudents, locationType, location, schedule)
 2. User: Fill fields, endDate must be after startDate (BR-CLS-005)
 3. System: Select locationType IN_PERSON or ONLINE (BR-CLS-006)
-4. System: Save class with status UPCOMING under course
+4. System: Save class with status UPCOMING under course; maxStudents enforced as capacity limit (BR-CLS-003)
 5. System: Auto-generate sessions from schedule if provided (BR-CLS-007)
 6. FE: Redirect to class detail
 
