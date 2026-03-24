@@ -7,18 +7,24 @@
 ```
 documents/01-business/          ← TẤT CẢ business logic ở đây
 ├── README.md                   ← File này (index + quy tắc)
-├── kitehub/                    ← KiteHub platform (7 docs)
-│   └── trial-lifecycle.md      ← (+ 6 planned)
-└── kiteclass/                  ← KiteClass core (9 docs)
-    ├── student-enrollment.md
-    ├── course-class.md
-    ├── attendance.md
-    ├── grade-assignment.md
-    ├── payment-invoice.md
-    ├── teacher.md
-    ├── notification-email.md
-    ├── tenant-settings.md
-    └── gamification-points.md
+├── kitehub/                    ← KiteHub platform (7 domains)
+│   ├── trial-lifecycle.md      ← (chưa migrate sang folder)
+│   ├── subscription-billing.md
+│   ├── email-lifecycle.md
+│   ├── instance-provisioning.md
+│   ├── domain-management.md
+│   ├── data-retention.md
+│   └── ai-branding.md
+└── kiteclass/                  ← KiteClass core (9 domains × 3 layers)
+    ├── student-enrollment/     ← rules.md + use-cases.md + api-contract.md
+    ├── course-class/
+    ├── teacher/
+    ├── attendance/
+    ├── grade-assignment/
+    ├── payment-invoice/
+    ├── gamification-points/
+    ├── notification-email/
+    └── tenant-settings/
 ```
 
 **KHÔNG lưu trong:**
@@ -28,55 +34,18 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 
 **Lý do:** 1 nơi duy nhất, dễ tìm, dễ review, dễ grep.
 
-### 2. Chi tiết đến đâu?
+### 2. Cấu trúc 3-Layer per domain
 
-**Nguyên tắc: 1 trang A4 per domain** (~100-150 dòng markdown)
+**Mỗi domain = 1 folder với 3 files** (xem chi tiết: `.claude/skills/reference/business-docs-3-layer.md`)
 
-MỖI document gồm 4 sections bắt buộc:
-
-```markdown
-# [Domain] Business Logic
-
-## 1. Rules (PHẢI có)
-Bảng business rules — cái này là SOURCE OF TRUTH.
-
-| ID | Rule | Value | Config Key |
-|----|------|-------|-----------|
-| TR-01 | Trial duration | 14 days | kitehub.trial.duration-days |
-| TR-02 | Max trial per owner | 1 | kitehub.trial.max-per-owner |
-
-## 2. Flow (PHẢI có)
-Mermaid diagram hoặc text flow — 1 diagram, không quá 15 bước.
-
-Register → Verify Email → Start Trial → [Day 7: midpoint email]
-→ [Day 11: warning email] → [Day 13: final warning]
-→ [Day 14: expire → suspend] → [Day 21: delete data]
-
-## 3. Emails (nếu có trigger)
-Bảng emails — template name PHẢI khớp file thực tế.
-
-| Trigger | Template | Timing |
-|---------|----------|--------|
-| Trial start | welcome.html | Ngay lập tức |
-| Trial day 11 | trial-warning.html | 8 AM daily check |
-
-## 4. Config (PHẢI có)
-Copy CHÍNH XÁC config keys — frontend/backend đọc từ đây.
-
-```yaml
-kitehub:
-  trial:
-    duration-days: 14
-    max-per-owner: 1
 ```
+{domain}/
+├── rules.md          # Layer 1: Business Rules (constraints, config keys) — ~50-80 lines
+├── use-cases.md      # Layer 2: Use Cases (actor, steps, errors, FE behavior) — ~80-120 lines
+└── api-contract.md   # Layer 3: API Contract (endpoints, request/response) — ~60-100 lines
 ```
 
-**KHÔNG viết:**
-- ❌ Scenario dài 50 dòng (ví dụ language center, art center...)
-- ❌ Scope/Out-of-scope lists
-- ❌ Architecture diagrams (đó thuộc `02-architecture/`)
-- ❌ API endpoint lists (đó thuộc Swagger)
-- ❌ Database schema (đó thuộc Flyway migrations)
+**Verification chain:** `BR-xxx → UC-xxx → endpoint → @Mapping → @Test`
 
 ### 3. Khi nào tạo/cập nhật?
 
@@ -103,26 +72,26 @@ kitehub:
 
 ### 5. Index — Documents hiện có
 
-#### KiteHub (7)
-| Document | Status | Last Verified |
-|----------|--------|---------------|
-| `kitehub/trial-lifecycle.md` | Done | 2026-03-24 |
-| `kitehub/subscription-billing.md` | Planned | — |
-| `kitehub/email-lifecycle.md` | Planned | — |
-| `kitehub/instance-provisioning.md` | Planned | — |
-| `kitehub/domain-management.md` | Planned | — |
-| `kitehub/data-retention.md` | Planned | — |
-| `kitehub/ai-branding.md` | Planned | — |
+#### KiteHub (7 domains — chưa migrate sang 3-layer folder)
+| Domain | rules | use-cases | api-contract | Last Verified |
+|--------|-------|-----------|-------------|---------------|
+| trial-lifecycle | ✅ | ❌ | ❌ | 2026-03-24 |
+| subscription-billing | ✅ | ❌ | ❌ | 2026-03-24 |
+| email-lifecycle | ✅ | ❌ | ❌ | 2026-03-24 |
+| instance-provisioning | ✅ | ❌ | ❌ | 2026-03-24 |
+| domain-management | ✅ | ❌ | ❌ | 2026-03-24 |
+| data-retention | ✅ | ❌ | ❌ | 2026-03-24 |
+| ai-branding | ✅ | ❌ | ❌ | 2026-03-24 |
 
-#### KiteClass (9)
-| Document | Status | Last Verified |
-|----------|--------|---------------|
-| `kiteclass/student-enrollment.md` | Done | 2026-03-24 |
-| `kiteclass/course-class.md` | Done | 2026-03-24 |
-| `kiteclass/attendance.md` | Done | 2026-03-24 |
-| `kiteclass/grade-assignment.md` | Done | 2026-03-24 |
-| `kiteclass/payment-invoice.md` | Done | 2026-03-24 |
-| `kiteclass/teacher.md` | Done | 2026-03-24 |
-| `kiteclass/notification-email.md` | Done | 2026-03-24 |
-| `kiteclass/tenant-settings.md` | Done | 2026-03-24 |
-| `kiteclass/gamification-points.md` | Done | 2026-03-24 |
+#### KiteClass (9 domains × 3 layers = 27 files ✅)
+| Domain | rules | use-cases | api-contract | Last Verified |
+|--------|-------|-----------|-------------|---------------|
+| student-enrollment | ✅ | ✅ | ✅ | 2026-03-24 |
+| course-class | ✅ | ✅ | ✅ | 2026-03-24 |
+| teacher | ✅ | ✅ | ✅ | 2026-03-24 |
+| attendance | ✅ | ✅ | ✅ | 2026-03-24 |
+| grade-assignment | ✅ | ✅ | ✅ | 2026-03-24 |
+| payment-invoice | ✅ | ✅ | ✅ | 2026-03-24 |
+| gamification-points | ✅ | ✅ | ✅ | 2026-03-24 |
+| notification-email | ✅ | ✅ | ✅ | 2026-03-24 |
+| tenant-settings | ✅ | ✅ | ✅ | 2026-03-24 |
