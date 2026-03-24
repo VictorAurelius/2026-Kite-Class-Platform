@@ -7,15 +7,15 @@
 ```
 documents/01-business/          ← TẤT CẢ business logic ở đây
 ├── README.md                   ← File này (index + quy tắc)
-├── kitehub/                    ← KiteHub platform (7 domains)
-│   ├── trial-lifecycle.md      ← (chưa migrate sang folder)
-│   ├── subscription-billing.md
-│   ├── email-lifecycle.md
-│   ├── instance-provisioning.md
-│   ├── domain-management.md
-│   ├── data-retention.md
-│   └── ai-branding.md
-└── kiteclass/                  ← KiteClass core (9 domains × 3 layers)
+├── kitehub/                    ← KiteHub platform (7 domains × 3 layers = 21 files)
+│   ├── trial-lifecycle/        ← rules.md + use-cases.md + api-contract.md
+│   ├── subscription-billing/
+│   ├── email-lifecycle/
+│   ├── instance-provisioning/
+│   ├── domain-management/
+│   ├── data-retention/
+│   └── ai-branding/
+└── kiteclass/                  ← KiteClass core (12 domains × 3 layers = 36 files)
     ├── student-enrollment/     ← rules.md + use-cases.md + api-contract.md
     ├── course-class/
     ├── teacher/
@@ -24,7 +24,10 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
     ├── payment-invoice/
     ├── gamification-points/
     ├── notification-email/
-    └── tenant-settings/
+    ├── tenant-settings/
+    ├── lms/
+    ├── marketing/
+    └── storage/
 ```
 
 **KHÔNG lưu trong:**
@@ -72,16 +75,16 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 
 ### 5. Index — Documents hiện có
 
-#### KiteHub (7 domains — chưa migrate sang 3-layer folder)
+#### KiteHub (7 domains × 3 layers = 21 files ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |
 |--------|-------|-----------|-------------|---------------|
-| trial-lifecycle | ✅ | ❌ | ❌ | 2026-03-24 |
-| subscription-billing | ✅ | ❌ | ❌ | 2026-03-24 |
-| email-lifecycle | ✅ | ❌ | ❌ | 2026-03-24 |
-| instance-provisioning | ✅ | ❌ | ❌ | 2026-03-24 |
-| domain-management | ✅ | ❌ | ❌ | 2026-03-24 |
-| data-retention | ✅ | ❌ | ❌ | 2026-03-24 |
-| ai-branding | ✅ | ❌ | ❌ | 2026-03-24 |
+| trial-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
+| subscription-billing | ✅ | ✅ | ✅ | 2026-03-24 |
+| email-lifecycle | ✅ | ✅ | ✅ | 2026-03-24 |
+| instance-provisioning | ✅ | ✅ | ✅ | 2026-03-24 |
+| domain-management | ✅ | ✅ | ✅ | 2026-03-24 |
+| data-retention | ✅ | ✅ | ✅ | 2026-03-24 |
+| ai-branding | ✅ | ✅ | ✅ | 2026-03-24 |
 
 #### KiteClass (12 domains × 3 layers = 36 files ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |
