@@ -619,7 +619,7 @@ resources:
 
 **Template-Based Deployment:**
 
-**Files:** `k8s/kiteclass-template/*.yaml`
+**Files:** `infrastructure/k8s/kiteclass-template/*.yaml`
 
 **Templates:**
 - `namespace.yaml` - Instance namespace (kiteclass-{{INSTANCE_ID}})

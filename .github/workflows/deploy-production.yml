@@ -59,7 +59,7 @@ jobs:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           TAG: ${{ github.event.inputs.version }}
         run: |
-          helm upgrade --install kitehub ./helm/kitehub \
+          helm upgrade --install kitehub ./infrastructure/helm/kitehub \
             --namespace ${{ env.HELM_NAMESPACE }} \
             --set global.image.registry=$REGISTRY/kitehub \
             --set global.image.tag=$TAG \

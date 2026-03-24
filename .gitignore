@@ -1,18 +1,18 @@
 # Monorepo Root .gitignore
 
-# CI/CD Logs (all projects)
-.log/*.txt
-.log/*.log
-.log/*.dump
-.log/*.dumpstream
-.log/auto/
-.log/temp/
-.log/run-*/
+# CI/CD Logs
+infrastructure/logs/*.txt
+infrastructure/logs/*.log
+infrastructure/logs/*.dump
+infrastructure/logs/*.json
+infrastructure/logs/auto/
+infrastructure/logs/temp/
+infrastructure/logs/run-*/
 */.log/
 
-# But keep scripts
-!.log/check-ci.sh
-!.log/README.md
+# But keep scripts in logs
+!infrastructure/logs/check-ci.sh
+!infrastructure/logs/README.md
 
 # Claude Code local settings (never commit)
 .claude/settings.local.json
@@ -29,12 +29,21 @@
 *.pem
 
 # Terraform
-terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.backup
-terraform/*.tfvars
-!terraform/*.tfvars.example
-terraform/.terraform.lock.hcl
+infrastructure/terraform-aws/.terraform/
+infrastructure/terraform-aws/*.tfstate
+infrastructure/terraform-aws/*.tfstate.backup
+infrastructure/terraform-aws/*.tfvars
+!infrastructure/terraform-aws/*.tfvars.example
+infrastructure/terraform-aws/.terraform.lock.hcl
+infrastructure/terraform-oracle/.terraform/
+infrastructure/terraform-oracle/*.tfstate
+infrastructure/terraform-oracle/*.tfstate.backup
+infrastructure/terraform-oracle/*.tfvars
+!infrastructure/terraform-oracle/*.tfvars.example
+infrastructure/terraform-oracle/.terraform.lock.hcl
+
+# Root node_modules (not a monorepo package)
+/node_modules/
 
 # Docker build logs (local only, different per machine)
 .docker-build-logs/
