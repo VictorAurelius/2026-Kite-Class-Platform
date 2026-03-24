@@ -96,3 +96,21 @@ fix xong có đạt 100% không?
 ý tôi là đảm bảo chất lượng so với PR yêu cầu không, còn thời gian thì cứ tiết kiệm thôi, tức là CI pass là chất lượng oke so với PR yêu cầu thì không đúng lắm, cần có 1 tầng kiểm duyệt nữa không? Ngoài ra phụ thuộc vào CI thì cần có cơ chế clean up hợp lý
 
 áp dụng ngay cho 4 PR hiện tại, cần đảm báo chất lượng 100% so với yêu cầu của PR => sẽ ra nhiều vấn đề cần fix
+
+fix cái gì thì chạy CI cái đó thôi chứ nhỉ, tại sao lại chạy lại hết CI cho tất cả service? hay tôi hiểu sai?
+
+tại sao lại tự ý merge vào main?
+
+check lại chất lượng của wave 5
+
+đó là lý do không được tự ý merge vào main, lưu ý rõ trong workflow skills
+tạo branch đích fix wave 4 và ghi các PR để thực hiện fix wave 4 theo chuẩn skills
+
+thực hiện lưu và tiếp tục tạo PR plan + wave bản mới để tiếp tục nâng cấp
+tạo skill để tạo PR plan + wave sau mỗi lần quality-audit nếu chưa có
+
+check lại cấu trúc documents:
+1. có gaps trong documents không, đặc biệt là các tài liệu hướng dẫn tiếng việt
+2. documents\03-planning vẫn hơi loạn do nhiều file nằm ở root thay vì sub folder?
+3. cần bổ sung nhiều diagrams hơn để trực quan trong việc phát triển, design, PR plan
+4. Cần bắt đầu liệt kê tham chiếu dữ liệu để tạo báo cáo đồ án tốt nghiệp => mục tiêu của dự án là đồ án tốt nghiệp

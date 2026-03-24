@@ -164,7 +164,7 @@ documents/08-thesis/
 
 | PR | Status |
 |----|--------|
-| PR-DOCS-1 Clean planning + vietnamese | ⬜ TODO |
-| PR-DOCS-2 Add diagrams | ⬜ TODO |
-| PR-DOCS-3 Thesis references | ⬜ TODO |
-| **Total** | **0/3** |
+| PR-DOCS-1 Clean planning + vietnamese | ✅ DONE (Wave 6) |
+| PR-DOCS-2 Add diagrams | ✅ DONE (Wave 6) |
+| PR-DOCS-3 Thesis references | ✅ DONE (Wave 6) |
+| **Total** | **3/3** |
