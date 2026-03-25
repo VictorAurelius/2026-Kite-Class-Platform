@@ -37,6 +37,7 @@
 | `reference/service-docs-standard.md` | Chuẩn README + QUICK-START cho mỗi service |
 | `reference/project-structure.md` | Cấu trúc folder best practice, khi nào refactor |
 | `reference/ide-setup.md` | VS Code settings, test runner, tắt MD warnings, Claude permissions |
+| `reference/diagrams.md` | PlantUML/Mermaid setup, render workflow, minimum diagrams |
 
 ## Scripts (PHẢI dùng, KHÔNG lệnh ad-hoc)
 
@@ -46,3 +47,5 @@
 | `scripts/test-local.sh --quick` | Quick check (compile/lint only) |
 | `scripts/check-ci.sh` | Sau push — đợi CI |
 | `scripts/check-ci.sh --status` | Quick CI status (audit, review) |
+| `scripts/render-diagrams.sh` | Render PlantUML/Mermaid → PNG |
+| `scripts/render-diagrams.sh --check` | Kiểm tra tools đã cài chưa |
