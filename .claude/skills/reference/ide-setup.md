@@ -25,8 +25,9 @@ File: `.claude/settings.local.json`
 
 **Cách tạo:**
 ```bash
-mkdir -p .claude
-cp .claude/starter-kit/templates/settings.local.json.template .claude/settings.local.json
+# Từ remote kit
+git clone https://github.com/VictorAurelius/claude-starter-kit.git /tmp/kit
+cp /tmp/kit/templates/settings.local.json.template .claude/settings.local.json
 ```
 
 ## 2. VS Code Settings (shared, committed)
@@ -36,7 +37,7 @@ File: `.vscode/settings.json`
 Copy template và uncomment sections phù hợp với tech stack:
 ```bash
 mkdir -p .vscode
-cp .claude/starter-kit/templates/vscode-settings.json.template .vscode/settings.json
+cp /tmp/kit/templates/vscode-settings.json.template .vscode/settings.json
 ```
 
 ## 3. Tắt Markdown Warnings
