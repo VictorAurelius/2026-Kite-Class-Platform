@@ -14,7 +14,7 @@
 ├── .claude/                    # Claude Code configuration
 │   ├── skills/                 # AI skills (core, workflow, quality, reference)
 │   ├── scripts/                # Pre-commit hooks, automation
-│   └── starter-kit/            # Portable kit (nếu là source project)
+│   └── .starter-kit-version     # Kit version tracking
 │
 ├── .github/                    # CI/CD workflows
 │   └── workflows/
