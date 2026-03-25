@@ -7,6 +7,17 @@ Quản lý theo Semantic Versioning: `MAJOR.MINOR.PATCH`
 
 ---
 
+## [1.1.0] — 2026-03-25
+
+### Added
+- `templates/settings.local.json.template` — Claude Code permissions (bypass prompt)
+- `templates/vscode-settings.json.template` — VS Code settings per language (Java, TS, Python, Go)
+- `skills/reference/project-structure.md` — Folder structure best practice + anti-patterns + refactor checklist
+- `skills/reference/ide-setup.md` — Claude permissions, VS Code config, test runners, MD warnings fix, common IDE warnings guide
+
+### Changed
+- `skills/_README-skills-index.md` — Added 2 new reference skills
+
 ## [1.0.0] — 2026-03-24
 
 ### Initial Release

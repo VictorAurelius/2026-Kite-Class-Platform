@@ -35,6 +35,8 @@
 |------|----------|
 | `reference/business-docs-3-layer.md` | Thiết kế business docs (rules + use-cases + api-contract) |
 | `reference/service-docs-standard.md` | Chuẩn README + QUICK-START cho mỗi service |
+| `reference/project-structure.md` | Cấu trúc folder best practice, khi nào refactor |
+| `reference/ide-setup.md` | VS Code settings, test runner, tắt MD warnings, Claude permissions |
 
 ## Scripts (PHẢI dùng, KHÔNG lệnh ad-hoc)
 
