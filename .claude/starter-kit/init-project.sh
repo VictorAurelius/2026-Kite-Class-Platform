@@ -67,6 +67,23 @@ else
     echo "   Skipped: README.md (already exists)"
 fi
 
+# Claude Code permissions (local only, not committed)
+if [ ! -f "$TARGET/.claude/settings.local.json" ]; then
+    cp "$SCRIPT_DIR/templates/settings.local.json.template" "$TARGET/.claude/settings.local.json"
+    echo "   Created: .claude/settings.local.json (bypass permissions)"
+else
+    echo "   Skipped: .claude/settings.local.json (already exists)"
+fi
+
+# VS Code settings
+mkdir -p "$TARGET/.vscode"
+if [ ! -f "$TARGET/.vscode/settings.json" ]; then
+    cp "$SCRIPT_DIR/templates/vscode-settings.json.template" "$TARGET/.vscode/settings.json"
+    echo "   Created: .vscode/settings.json (uncomment your stack)"
+else
+    echo "   Skipped: .vscode/settings.json (already exists)"
+fi
+
 # Copy seed memories
 echo "🧠 Copying seed memories..."
 MEMORY_DIR="$HOME/.claude/projects/$(echo "$TARGET" | tr '/' '-')/memory"

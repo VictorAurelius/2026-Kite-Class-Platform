@@ -1,0 +1,98 @@
+{
+  // ════════════════════════════════════════════════════════════
+  // VS Code Settings Template — Claude Code Starter Kit
+  //
+  // Copy to {project}/.vscode/settings.json
+  // Uncomment sections relevant to your tech stack
+  // ════════════════════════════════════════════════════════════
+
+  // ========== Markdown (PHẢI có — tắt noise) ==========
+  // Tắt markdownlint warnings cho business docs, plans, etc.
+  "markdownlint.config": {
+    "default": false
+  },
+  "[markdown]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {},
+    "cSpell.enabled": false
+  },
+  "markdown.validate.enabled": false,
+  "markdownlint.run": "onSave",
+
+  // ========== Spell Check ==========
+  // Thêm ngôn ngữ + project-specific words
+  "cSpell.language": "en,vi",
+  "cSpell.words": [
+    // Thêm tên dự án, tên service, thuật ngữ riêng
+  ],
+  "cSpell.enableFiletypes": [
+    "!markdown"
+  ],
+
+  // ========== [Java/Spring Boot] ==========
+  // Uncomment nếu dùng Java
+  //
+  // "java.compile.nullAnalysis.mode": "disabled",
+  // "java.configuration.updateBuildConfiguration": "automatic",
+  // "java.errors.incompleteClasspath.severity": "ignore",
+  // "maven.view": "hierarchical",
+  // "spring-boot.ls.problem.application-properties.PROP_UNKNOWN_PROPERTY": "WARNING",
+  //
+  // // Test runner — auto-detect và run từ IDE
+  // "java.test.defaultConfig": "",
+  // "java.test.config": [
+  //   {
+  //     "name": "Unit Tests",
+  //     "workingDirectory": "${workspaceFolder}",
+  //     "vmArgs": ["-Dspring.profiles.active=test"]
+  //   }
+  // ],
+
+  // ========== [TypeScript/Next.js/React] ==========
+  // Uncomment nếu dùng TypeScript
+  //
+  // "typescript.enablePromptUseWorkspaceTsdk": true,
+  // "typescript.preferences.includePackageJsonAutoImports": "on",
+  // "typescript.validate.enable": true,
+  // "javascript.validate.enable": true,
+  //
+  // "[typescript]": {
+  //   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  //   "editor.codeActionsOnSave": {
+  //     "source.fixAll.eslint": "explicit",
+  //     "source.organizeImports": "explicit"
+  //   }
+  // },
+  // "[typescriptreact]": {
+  //   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  //   "editor.codeActionsOnSave": {
+  //     "source.fixAll.eslint": "explicit",
+  //     "source.organizeImports": "explicit"
+  //   }
+  // },
+  //
+  // // Vitest runner
+  // "vitest.commandLine": "npx vitest",
+
+  // ========== [Python] ==========
+  // Uncomment nếu dùng Python
+  //
+  // "python.testing.pytestEnabled": true,
+  // "python.testing.pytestArgs": ["tests"],
+  // "python.testing.autoTestDiscoverOnSaveEnabled": true,
+  // "[python]": {
+  //   "editor.defaultFormatter": "ms-python.black-formatter",
+  //   "editor.codeActionsOnSave": {
+  //     "source.organizeImports": "explicit"
+  //   }
+  // },
+
+  // ========== [Go] ==========
+  // Uncomment nếu dùng Go
+  //
+  // "go.testOnSave": true,
+  // "go.coverOnSave": true,
+  // "go.lintTool": "golangci-lint",
+
+  "editor.formatOnSave": true
+}
