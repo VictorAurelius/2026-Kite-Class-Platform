@@ -15,8 +15,11 @@ Quản lý theo Semantic Versioning: `MAJOR.MINOR.PATCH`
 - `skills/reference/project-structure.md` — Folder structure best practice + anti-patterns + refactor checklist
 - `skills/reference/ide-setup.md` — Claude permissions, VS Code config, test runners, MD warnings fix, common IDE warnings guide
 
+- `skills/reference/diagrams.md` — PlantUML/Mermaid guide, tool comparison, minimum diagrams list
+- `scripts/render-diagrams.sh` — Auto-render PlantUML + Mermaid, --check mode
+
 ### Changed
-- `skills/_README-skills-index.md` — Added 2 new reference skills
+- `skills/_README-skills-index.md` — Added 3 new reference skills + 1 script
 
 ## [1.0.0] — 2026-03-24
 
