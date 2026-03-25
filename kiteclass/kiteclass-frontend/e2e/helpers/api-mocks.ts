@@ -57,7 +57,7 @@ export async function setupApiMocks(page: Page) {
           }),
         });
       }
-    } else if (method === 'PUT') {
+    } else if (method === 'PUT' || method === 'PATCH') {
       // Update student
       const postData = route.request().postDataJSON();
       await route.fulfill({
@@ -82,8 +82,8 @@ export async function setupApiMocks(page: Page) {
     }
   });
 
-  // Students API - List
-  await page.route('**/api/v1/students', async (route) => {
+  // Students API - List (regex to also match URLs with query params like ?page=0&size=20)
+  await page.route(/\/api\/v1\/students(\?.*)?$/, async (route) => {
     const method = route.request().method();
 
     if (method === 'GET') {
