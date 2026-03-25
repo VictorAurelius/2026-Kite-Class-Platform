@@ -38,6 +38,7 @@ public class TestContainersConfiguration {
         new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
 
     @Container
+    @SuppressWarnings("resource")
     private static final GenericContainer<?> redis =
         new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
             .withExposedPorts(6379);
