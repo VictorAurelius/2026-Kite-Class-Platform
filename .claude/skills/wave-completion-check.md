@@ -15,6 +15,22 @@
 
 ---
 
+## Wave Definition — Khi nào ĐƯỢC gọi là wave?
+
+**Tiêu chí bắt buộc (tất cả phải đạt):**
+1. ✅ Có plan document trước (`documents/03-planning/quality/wave-X-*.md`)
+2. ✅ Có brainstorm + task breakdown (Superpowers methodology)
+3. ✅ Nhiều PR (≥3) với scope rõ ràng
+4. ✅ Chủ đề chiến lược (ví dụ: "KC quality 82→94", "verification chain")
+5. ✅ Audit trước và sau
+
+**Nếu KHÔNG đạt → gọi là PR lẻ:**
+- Branch: `feature/description` hoặc `fix/description`
+- KHÔNG đánh số wave
+- Ví dụ: Wave 13 chỉ có 1 commit/8 files → đáng lẽ là `fix/security-a11y-polish`
+
+---
+
 ## Wave Branch Strategy
 
 **Pattern: Integration Branch** — agents merge vào wave branch, không trực tiếp main.
