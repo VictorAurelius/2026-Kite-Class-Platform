@@ -550,12 +550,11 @@ STATUS=$(extract_status "$RESP")
 assert_status "POST /api/platform/branding/ai/generate-text" 200 "$STATUS" "$BODY"
 assert_json_field "Generate text has text" "$BODY" "text"
 
-# POST generate-theme (from LogoAnalysis) → deterministic, no AI provider needed
+# POST generate-theme (from LogoAnalysis) → deterministic, uses ThemeGenerationService (no AI call)
+# No X-Instance-Id header: controller skips rate limit for internal/anonymous calls
 RESP=$(curl -s -w "\n%{http_code}" -X POST \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "X-Instance-Id: $INSTANCE_ID" \
-  -H "X-Subscription-Tier: FREE" \
   -d "{\"primaryColor\": \"#2196F3\", \"secondaryColor\": \"#FF5722\", \"accentColor\": \"#4CAF50\", \"theme\": \"MODERN\", \"typography\": \"Clean Sans-Serif\", \"targetAudience\": \"students\", \"brandPersonality\": [\"Trustworthy\"]}" \
   "$GATEWAY/api/platform/branding/ai/generate-theme")
 BODY=$(extract_body "$RESP")

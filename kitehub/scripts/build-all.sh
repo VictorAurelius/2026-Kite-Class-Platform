@@ -18,8 +18,8 @@ echo "=============================================="
 
 # Step 1: Build base image first (contains Maven dependencies)
 echo ""
-echo "[1/6] Building kite-base image..."
-docker build $CACHE_FLAG -t kite-base:latest -f kitehub-base/Dockerfile .
+echo "[1/6] Building kitehub-base image..."
+docker build $CACHE_FLAG -t kitehub-base:latest -f kitehub-base/Dockerfile .
 
 # Step 2: Build backend services (in parallel using base image)
 echo ""
