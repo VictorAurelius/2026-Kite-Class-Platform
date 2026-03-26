@@ -61,6 +61,7 @@ export default function StudentAttendancePage({ params }: PageProps) {
   const {
     data: attendanceData,
     isLoading: isLoadingAttendance,
+    error: attendanceError,
   } = useAttendanceByEnrollment(enrollmentId, {
     page,
     size: 20,
@@ -194,13 +195,30 @@ export default function StudentAttendancePage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {/* Error State */}
+      {attendanceError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">Không thể tải dữ liệu điểm danh. Vui lòng thử lại.</p>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoadingAttendance && !attendanceError && attendanceData && attendanceRecords.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-lg font-medium text-muted-foreground">Chưa có dữ liệu điểm danh</p>
+          <p className="text-sm text-muted-foreground mt-1">Học viên chưa có lịch sử điểm danh nào.</p>
+        </div>
+      )}
+
       {/* Calendar View */}
-      <EnhancedAttendanceCalendar
-        attendanceRecords={attendanceRecords}
-        onDateClick={handleDateClick}
-        showFilters={true}
-        showTooltips={true}
-      />
+      {attendanceRecords.length > 0 && (
+        <EnhancedAttendanceCalendar
+          attendanceRecords={attendanceRecords}
+          onDateClick={handleDateClick}
+          showFilters={true}
+          showTooltips={true}
+        />
+      )}
 
       {/* History Table */}
       <Card>

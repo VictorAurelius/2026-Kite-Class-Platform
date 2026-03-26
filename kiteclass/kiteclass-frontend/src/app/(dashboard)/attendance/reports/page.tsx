@@ -39,11 +39,11 @@ import type { Class } from '@/types/class';
 import { AttendanceCalendar } from '@/components/attendance';
 
 export default function AttendanceReportsPage() {
-  const { data: classes = [] } = useAllActiveClasses();
+  const { data: classes = [], error: classesError } = useAllActiveClasses();
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   // Fetch attendance data for selected class
-  const { data: attendanceData } = useAttendanceByClass(
+  const { data: attendanceData, error: attendanceError } = useAttendanceByClass(
     selectedClassId || 0,
     { page: 0, size: 1000 },
     { enabled: !!selectedClassId }
@@ -144,6 +144,13 @@ export default function AttendanceReportsPage() {
             Xuất CSV
           </Button>
         </div>
+
+        {/* Error State */}
+        {(classesError || attendanceError) && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">Không thể tải dữ liệu. Vui lòng thử lại.</p>
+          </div>
+        )}
 
         {/* Filters */}
         <Card>
@@ -343,6 +350,16 @@ export default function AttendanceReportsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {studentStats.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-12 text-center">
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <p className="text-lg font-medium text-muted-foreground">Chưa có dữ liệu</p>
+                            <p className="text-sm text-muted-foreground mt-1">Chưa có bản ghi điểm danh nào cho lớp này.</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
                     {studentStats.map((student, idx) => {
                       const rate = (student.present / student.total) * 100;
                       return (

@@ -26,12 +26,17 @@ import Link from 'next/link';
 export default function InvoiceDetailPage() {
   const params = useParams();
   const id = parseInt(params.id as string);
-  const { data: invoice, isLoading } = useInvoice(id);
+  const { data: invoice, isLoading, error } = useInvoice(id);
   const { data: payments } = useInvoicePayments(id);
   const applyLateFeesMutation = useApplyLateFees(id);
   const cancelMutation = useCancelInvoice(id);
 
   if (isLoading) return <div>Đang tải...</div>;
+  if (error) return (
+    <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+      <p className="text-sm text-destructive">Không thể tải dữ liệu. Vui lòng thử lại.</p>
+    </div>
+  );
   if (!invoice) return <div>Không tìm thấy hóa đơn</div>;
 
   return (

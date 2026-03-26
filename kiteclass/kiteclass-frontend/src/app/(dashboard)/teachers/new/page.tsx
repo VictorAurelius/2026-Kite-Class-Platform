@@ -29,6 +29,14 @@ export default function NewTeacherPage() {
           </p>
         </div>
 
+        {createMutation.isError && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">
+              Không thể tạo giáo viên. Vui lòng kiểm tra lại thông tin và thử lại.
+            </p>
+          </div>
+        )}
+
         <div className="rounded-lg border bg-card p-6">
           <TeacherForm
             onSubmit={handleSubmit}
