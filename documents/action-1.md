@@ -196,3 +196,11 @@ merge và tạo wave 13
 lưu đủ log chưa?
 
 chưa commit hết
+
+dự án hiện tại có skills, rules, docs về việc cải thiện chất lượng UI UX + code theo templates không?
+
+có các PR tôi yêu cầu cải thiện UI/UX bằng template figma rồi mà nhỉ?
+
+tạo PR để fix hết gaps này
+
+commit cả 3 file changing
