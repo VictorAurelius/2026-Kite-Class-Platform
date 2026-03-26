@@ -49,7 +49,8 @@
 **Frontend:**
 | File | Mo ta |
 |------|-------|
-| `frontend/frontend-standards.md` | TypeScript, React, Shadcn, theme, i18n, a11y |
+| `frontend/frontend-standards.md` | TypeScript, React, Shadcn, theme, i18n, a11y, page templates, spacing, responsive |
+| `frontend/ui-template-guide.md` | Code từ Figma/template, page checklist, anti-patterns, FE quality checks |
 
 **Testing:**
 | File | Mo ta |

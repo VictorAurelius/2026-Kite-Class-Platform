@@ -204,3 +204,9 @@ có các PR tôi yêu cầu cải thiện UI/UX bằng template figma rồi mà 
 tạo PR để fix hết gaps này
 
 commit cả 3 file changing
+
+tôi muốn bổ sung vào kit để các dự án có chất lượng FE tốt nhất có thể và có thể code theo 1 templates figma cụ thể hoặc lựa chọn 1 templates tốt để code thay vì render UI/UX tự do
+
+trước hết gaps về UI/UX và solution của dự án này đã đủ chưa, có đủ tiêu chuẩn để làm mẫu cho dự án khác chưa?
+
+tạo PR fix tất cả gaps và PR cập nhật kit

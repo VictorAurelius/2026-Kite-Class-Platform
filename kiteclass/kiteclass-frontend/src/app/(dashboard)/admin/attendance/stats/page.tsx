@@ -31,10 +31,10 @@ export default function AdminAttendanceStatsPage() {
   const [endDate, setEndDate] = useState(defaultRange.endDate);
 
   // Fetch all active classes
-  const { data: classes, isLoading: isLoadingClasses } = useAllActiveClasses();
+  const { data: classes, isLoading: isLoadingClasses, error: classesError } = useAllActiveClasses();
 
   // Fetch system-wide stats
-  const { data: systemStats, isLoading: isLoadingStats } =
+  const { data: systemStats, isLoading: isLoadingStats, error: statsError } =
     useSystemAttendanceStats({ startDate, endDate });
 
   // Fetch trends data
@@ -125,6 +125,13 @@ export default function AdminAttendanceStatsPage() {
         </Button>
       </div>
 
+      {/* Error State */}
+      {(classesError || statsError) && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">Không thể tải dữ liệu. Vui lòng thử lại.</p>
+        </div>
+      )}
+
       {/* Date Range Filter */}
       <Card>
         <CardHeader>
@@ -173,6 +180,11 @@ export default function AdminAttendanceStatsPage() {
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
           ))}
+        </div>
+      ) : !systemStats && !classesError && !statsError ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-lg font-medium text-muted-foreground">Chưa có dữ liệu</p>
+          <p className="text-sm text-muted-foreground mt-1">Chưa có dữ liệu thống kê điểm danh nào.</p>
         </div>
       ) : systemStats ? (
         <div className="grid gap-4 md:grid-cols-4">

@@ -26,7 +26,7 @@ import { useAllActiveClasses } from '@/hooks/use-classes';
 import type { Class } from '@/types/class';
 
 export default function AttendanceOverviewPage() {
-  const { data: activeClasses = [], isLoading } = useAllActiveClasses();
+  const { data: activeClasses = [], isLoading, error } = useAllActiveClasses();
 
   return (
     <DashboardLayout>
@@ -46,6 +46,13 @@ export default function AttendanceOverviewPage() {
             </Button>
           </Link>
         </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">Không thể tải dữ liệu. Vui lòng thử lại.</p>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">

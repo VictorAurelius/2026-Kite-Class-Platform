@@ -18,7 +18,7 @@ import { useTodayClassSessions } from '@/hooks/use-attendance';
 
 export default function TeacherDashboardPage() {
   // Fetch today's class sessions
-  const { data: sessions, isLoading } = useTodayClassSessions();
+  const { data: sessions, isLoading, error } = useTodayClassSessions();
 
   // Calculate quick stats
   const stats = useMemo(() => {
@@ -62,6 +62,13 @@ export default function TeacherDashboardPage() {
         <h1 className="text-3xl font-bold">{greeting}, Giáo viên</h1>
         <p className="text-muted-foreground">{currentDate}</p>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">Không thể tải dữ liệu. Vui lòng thử lại.</p>
+        </div>
+      )}
 
       {/* Quick Stats */}
       {isLoading ? (

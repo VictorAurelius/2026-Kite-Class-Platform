@@ -26,6 +26,14 @@ export default function NewCoursePage() {
           <h1 className="text-3xl font-bold">Thêm khóa học</h1>
           <p className="text-muted-foreground">Tạo khóa học mới cho trung tâm</p>
         </div>
+        {createMutation.isError && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <p className="text-sm text-destructive">
+              Không thể tạo khóa học. Vui lòng kiểm tra lại thông tin và thử lại.
+            </p>
+          </div>
+        )}
+
         <div className="rounded-lg border bg-card p-6">
           <CourseForm
             onSubmit={handleSubmit}
