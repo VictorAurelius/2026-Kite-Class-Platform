@@ -1,31 +1,43 @@
 #!/bin/bash
 # Rebuild and restart KiteHub service(s)
-# Usage: ./scripts/rebuild.sh <service|all> [--no-cache]
+# Usage: ./scripts/rebuild.sh <service|all> [--no-cache] [--rebuild-base]
 #
 # Examples:
-#   ./scripts/rebuild.sh gateway          # Rebuild gateway
-#   ./scripts/rebuild.sh frontend         # Rebuild frontend
-#   ./scripts/rebuild.sh all              # Rebuild all (uses build-all.sh)
-#   ./scripts/rebuild.sh gateway --no-cache
+#   ./scripts/rebuild.sh gateway              # Rebuild gateway (uses cached base)
+#   ./scripts/rebuild.sh frontend             # Rebuild frontend
+#   ./scripts/rebuild.sh all                  # Rebuild all (uses build-all.sh)
+#   ./scripts/rebuild.sh gateway --no-cache   # Full no-cache rebuild (includes base)
+#   ./scripts/rebuild.sh branding --rebuild-base  # Force base rebuild then build service
 
 set -e
 cd "$(dirname "$0")/.."
 
 if [ $# -eq 0 ]; then
-    echo "Usage: ./scripts/rebuild.sh <service|all> [--no-cache]"
+    echo "Usage: ./scripts/rebuild.sh <service|all> [--no-cache] [--rebuild-base]"
     echo ""
     echo "KiteHub:    subscription, branding, email, admin, gateway, frontend"
     echo "KiteClass:  kiteclass-core, kiteclass-frontend"
     echo "All:        all"
+    echo ""
+    echo "Flags:"
+    echo "  --no-cache      Full rebuild without Docker cache (includes base image)"
+    echo "  --rebuild-base  Rebuild kitehub-base (re-downloads Maven deps) then rebuild service"
     exit 1
 fi
 
 SERVICE=$1
 NO_CACHE=""
+REBUILD_BASE=false
 
-if [ "$2" = "--no-cache" ]; then
-    NO_CACHE="--no-cache"
-fi
+for arg in "$@"; do
+    if [ "$arg" = "--no-cache" ]; then
+        NO_CACHE="--no-cache"
+        REBUILD_BASE=true
+    fi
+    if [ "$arg" = "--rebuild-base" ]; then
+        REBUILD_BASE=true
+    fi
+done
 
 # Handle 'all' case
 if [ "$SERVICE" = "all" ]; then
@@ -46,11 +58,12 @@ echo "=============================================="
 echo "  Rebuilding $SERVICE"
 echo "=============================================="
 
-# For backend services, need to rebuild base first if --no-cache
-if [ "$NO_CACHE" = "--no-cache" ] && [ "$SERVICE" != "kitehub-frontend" ]; then
+# Rebuild base image if requested (--no-cache or --rebuild-base)
+# Use case: new Maven dependencies added to pom.xml need to be downloaded into base
+if [ "$REBUILD_BASE" = true ] && [ "$SERVICE" != "kitehub-frontend" ]; then
     echo ""
-    echo "[1/3] Rebuilding kite-base (dependencies)..."
-    docker build $NO_CACHE -t kite-base:latest -f kitehub-base/Dockerfile .
+    echo "[1/3] Rebuilding kitehub-base (Maven dependency cache)..."
+    docker build $NO_CACHE -t kitehub-base:latest -f kitehub-base/Dockerfile .
 fi
 
 echo ""

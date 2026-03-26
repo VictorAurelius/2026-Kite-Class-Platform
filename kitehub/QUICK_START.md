@@ -57,6 +57,28 @@ cd kitehub
 | Prometheus | http://localhost:9090 | - |
 | Grafana | http://localhost:3002 | admin / admin |
 
+### With AI Local Profile (Ollama)
+
+Dùng khi muốn chạy AI branding với local LLM thay vì OpenAI API key.
+
+```bash
+# Set AI_PROVIDER=ollama trong .env (hoặc export)
+AI_PROVIDER=ollama ./scripts/up.sh --profile ai-local
+```
+
+Lần đầu chạy sẽ tự pull model `llama3.1:8b` (~4GB). Sau đó AI endpoints hoạt động hoàn toàn offline.
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Ollama | http://localhost:11434 | Local LLM (llama3.1:8b text, llava:13b vision) |
+
+**Lưu ý:** Không cần `--profile ai-local` nếu dùng `OPENAI_API_KEY=sk-mock-*` — mock mode tự động trả sample response mà không gọi API nào.
+
+**Pull vision model thủ công (llava:13b ~8GB):**
+```bash
+docker exec kite-ollama ollama pull llava:13b
+```
+
 ## Common Commands
 
 ```bash

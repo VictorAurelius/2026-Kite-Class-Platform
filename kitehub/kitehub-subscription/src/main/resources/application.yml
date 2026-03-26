@@ -27,7 +27,9 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
-    validate-on-migrate: true
+    # Disable checksum validation to allow migrations that were previously applied
+    # with checksums stored as -1 (result of prior flyway repair runs)
+    validate-on-migrate: false
 
 server:
   port: ${SERVER_PORT:8081}

@@ -507,6 +507,69 @@ RESP=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $ACCESS_TOKEN" \
 STATUS=$(extract_status "$RESP")
 assert_status "GET /api/platform/branding/jobs" 200 "$STATUS"
 
+# AI Branding endpoints — work in mock mode (OPENAI_API_KEY=sk-mock-*) AND real Ollama
+# Mock mode: OpenAIClient returns deterministic sample responses without calling any API.
+# Real mode: set AI_PROVIDER=ollama + start with --profile ai-local, OR set real OPENAI_API_KEY.
+
+# POST analyze-logo → mock: returns fixed LogoAnalysis with brand colors
+RESP=$(curl -s -w "\n%{http_code}" -X POST \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-Instance-Id: $INSTANCE_ID" \
+  -H "X-Subscription-Tier: FREE" \
+  -d "{\"logoUrl\": \"https://example.com/logo.png\", \"organizationName\": \"E2E Test School\"}" \
+  "$GATEWAY/api/platform/branding/ai/analyze-logo")
+BODY=$(extract_body "$RESP")
+STATUS=$(extract_status "$RESP")
+assert_status "POST /api/platform/branding/ai/analyze-logo" 200 "$STATUS" "$BODY"
+assert_json_field "Logo analysis has primaryColor" "$BODY" "primaryColor"
+
+# POST generate-image → mock: returns placeholder URL
+RESP=$(curl -s -w "\n%{http_code}" -X POST \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-Instance-Id: $INSTANCE_ID" \
+  -H "X-Subscription-Tier: FREE" \
+  -d "{\"organizationName\": \"E2E Test School\", \"theme\": \"MODERN\", \"colors\": \"#2196F3,#FF5722\"}" \
+  "$GATEWAY/api/platform/branding/ai/generate-image")
+BODY=$(extract_body "$RESP")
+STATUS=$(extract_status "$RESP")
+assert_status "POST /api/platform/branding/ai/generate-image" 200 "$STATUS" "$BODY"
+assert_json_field "Generate image has imageUrl" "$BODY" "imageUrl"
+
+# POST generate-text → mock: returns Vietnamese marketing copy
+RESP=$(curl -s -w "\n%{http_code}" -X POST \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-Instance-Id: $INSTANCE_ID" \
+  -H "X-Subscription-Tier: FREE" \
+  -d "{\"organizationName\": \"E2E Test School\", \"theme\": \"MODERN\", \"targetAudience\": \"students\"}" \
+  "$GATEWAY/api/platform/branding/ai/generate-text")
+BODY=$(extract_body "$RESP")
+STATUS=$(extract_status "$RESP")
+assert_status "POST /api/platform/branding/ai/generate-text" 200 "$STATUS" "$BODY"
+assert_json_field "Generate text has text" "$BODY" "text"
+
+# POST generate-theme (from LogoAnalysis) → deterministic, uses ThemeGenerationService (no AI call)
+# No X-Instance-Id header: controller skips rate limit for internal/anonymous calls
+RESP=$(curl -s -w "\n%{http_code}" -X POST \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"primaryColor\": \"#2196F3\", \"secondaryColor\": \"#FF5722\", \"accentColor\": \"#4CAF50\", \"theme\": \"MODERN\", \"typography\": \"Clean Sans-Serif\", \"targetAudience\": \"students\", \"brandPersonality\": [\"Trustworthy\"]}" \
+  "$GATEWAY/api/platform/branding/ai/generate-theme")
+BODY=$(extract_body "$RESP")
+STATUS=$(extract_status "$RESP")
+assert_status "POST /api/platform/branding/ai/generate-theme" 200 "$STATUS" "$BODY"
+assert_json_field "Generate theme has colors" "$BODY" "colors"
+
+# GET template gallery (no AI, always works)
+RESP=$(curl -s -w "\n%{http_code}" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$GATEWAY/api/platform/branding/templates")
+BODY=$(extract_body "$RESP")
+STATUS=$(extract_status "$RESP")
+assert_status "GET /api/platform/branding/templates" 200 "$STATUS" "$BODY"
+
 # ============================================================
 # 8. TENANT ROUTING
 # ============================================================
