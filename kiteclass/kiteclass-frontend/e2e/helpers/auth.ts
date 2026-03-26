@@ -44,7 +44,8 @@ export async function setupAuthMocks(page: Page) {
         body: JSON.stringify({
           success: true,
           data: {
-            accessToken: 'mock-access-token',
+            // JWT with payload {"tenantId":"11111111-1111-1111-1111-111111111111"} — required for atob() in useAuth.ts
+            accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock',
             refreshToken: 'mock-refresh-token',
             user: {
               id: 1,
@@ -184,7 +185,7 @@ export async function injectAuthTokens(page: Page) {
 
   await page.evaluate(() => {
     // Set individual tokens (used by API client)
-    localStorage.setItem('accessToken', 'mock-access-token');
+    localStorage.setItem('accessToken', 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock');
     localStorage.setItem('refreshToken', 'mock-refresh-token');
     localStorage.setItem('tenantId', '11111111-1111-1111-1111-111111111111');
 
@@ -198,7 +199,7 @@ export async function injectAuthTokens(page: Page) {
           userType: 'OWNER',
           referenceId: '1',
         },
-        accessToken: 'mock-access-token',
+        accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJ0ZW5hbnRJZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSJ9.mock',
         refreshToken: 'mock-refresh-token',
         tenantId: '11111111-1111-1111-1111-111111111111',
         isAuthenticated: true,
