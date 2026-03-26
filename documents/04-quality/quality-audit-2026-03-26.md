@@ -2,8 +2,8 @@
 
 **Ngày:** 2026-03-26
 **Người đánh giá:** Claude Code
-**Version:** `98ad19e7` (fix(e2e): fix backend E2E — 36/36 pass)
-**Context:** Post PR #239 (KC Playwright E2E fix) + PR #242 (DB migrations) + PR #243 (backend E2E fix, Docker enabled)
+**Version:** `b1aef4fb` (docs: update audit 98/100)
+**Context:** Post PR #239 (Playwright E2E) + PR #242 (DB migrations) + PR #243 (backend E2E fix, CI ✅ 4/4) — Docker Desktop WSL enabled, live Docker confirmed
 
 ---
 
@@ -11,7 +11,7 @@
 
 | # | Category | Score | Max | Grade |
 |---|----------|-------|-----|-------|
-| 1 | E2E Functionality | 10 | 10 | ✅ |
+| 1 | E2E Functionality | 8 | 10 | ⚠️ |
 | 2 | Security | 9 | 10 | ✅ |
 | 3 | Backend Tests | 9 | 10 | ✅ |
 | 4 | Frontend Tests | 10 | 10 | ✅ |
@@ -21,7 +21,7 @@
 | 8 | Documentation | 10 | 10 | ✅ |
 | 9 | Code Quality | 10 | 10 | ✅ |
 | 10 | Project Management | 10 | 10 | ✅ |
-| **Total** | | **98** | **100** | **A+** |
+| **Total** | | **96** | **100** | **A+** |
 
 ### Grade: A+ — Production Excellence
 
@@ -29,131 +29,148 @@
 
 ## Evidence
 
-### E2E Functionality (10/10) ← **UP từ 8/10**
-- ✅ Backend API E2E: **36/36 pass** — `kiteclass/scripts/test-api-e2e.sh` (Docker Desktop enabled)
-  - Student CRUD: create, read list, read by ID, update, delete
-  - Teacher CRUD: create, read, update, delete, re-create
-  - Course CRUD: create, read, update, delete, re-create
-  - Class CRUD: create, read list, read by ID
-  - Attendance: stats endpoint
-  - Multi-tenant isolation: 4 isolation scenarios (tenant-a/b cannot see each other's data)
-- ✅ KC Frontend Playwright E2E: **67/68 pass** (12 spec files)
-- ✅ E2E pass ngay lần đầu (circuit breaker fix + 15s warmup wait)
+### E2E Functionality (8/10) ⚠️
 
-### CI/CD (10/10)
-```
-main branch — all runs SUCCESS:
-✅ Frontend CI
-✅ Build and Push KiteClass Docker Images
-✅ Core Service CI/CD
-(PR #243 branch — CI pending)
-```
-- Commit history: 480+ commits in 30 days, clean squash merge strategy
+| Tiêu chí | Điểm | Evidence |
+|----------|------|---------|
+| E2E API tests pass 100% | 4/4 | **36/36 pass** — 2 lần liên tiếp, 0 failed |
+| E2E pass ngay lần đầu | 2/2 | Pass ngay lần 1, không cold start |
+| Critical flows: Register→Login→Dashboard→Instance | 2/2 | Backend E2E + KC Playwright confirm |
+| AI features live (không mock) | 0/2 | `OPENAI_API_KEY=sk-mock-key` — chưa có real key |
 
-### Security (9/10)
-- ✅ JWT: `${JWT_SECRET}` — không có default value (fixed wave/13)
+- ✅ Backend API E2E: **36/36 pass** (Student/Teacher/Course/Class CRUD + Attendance + Multi-tenant isolation)
+- ✅ KC Frontend Playwright E2E: **67/68 pass**, 12 spec files
+- ✅ KH Frontend Playwright: 18 spec files
+- ❌ AI features: `OPENAI_API_KEY=sk-mock-key` trong Docker stack → AI branding không generate thật
+- **Deduction: -2** (AI mock key — không phải Docker limitation nữa, mà configuration)
+
+> **Ghi chú:** Audit v2 ghi nhầm E2E = 10/10. Đây là correction — backend E2E verified (4+2+2=8), AI features vẫn mock (0/2). Score thực là 8/10.
+
+### Security (9/10) ✅
+- ✅ JWT: `${JWT_SECRET}` — không có default value
 - ✅ INTERNAL_API_SECRET: `${INTERNAL_API_SECRET}` — không có default
 - ✅ 0 hardcoded credentials trong production Java code
 - ✅ .env.example: dùng `CHANGE_ME_` placeholders
-- ✅ Rate limiting: 100 req/min (unauthenticated), 1000 (authenticated)
-- ✅ CORS: configured qua Nginx reverse proxy
+- ✅ Rate limiting: Redis-backed, 3 req/s burst=5 (register), 100/min default
+- ✅ CORS: globalcors configured qua Gateway
 - ✅ Input validation: @Valid annotations trên tất cả DTOs
 - ✅ Email verification: activation flow cho instance registration
-- ❌ Captcha: CHƯA implement trong KC register form
-- Deduction: -1 (no captcha in registration)
+- ❌ Captcha: grep captcha/reCAPTCHA/hCaptcha → 0 kết quả trong KC frontend
+- **Deduction: -1** (no captcha in registration form)
 
-### Backend Tests (9/10)
-- ✅ CI green: Core Service CI/CD + tất cả workflows pass
-- ✅ KiteClass: 450 Java production files, 100 test files (~22% ratio)
-- ✅ KiteHub: 140 Java production files, 47 test files (~33% ratio)
-- ✅ Integration tests: 4 IT files (KC) + 3 IT files (KH)
-- ✅ 0 TODO/FIXME trong production code
-- ⚠️ Test coverage: không có Jacoco report trong CI
-- ⚠️ IT count còn thấp (4 + 3 files)
-- Deduction: -1 (coverage không đo được, limited integration tests)
+### Backend Tests (9/10) ✅
+- ✅ CI green: `Core Service CI/CD` + `KiteHub Platform CI/CD` pass (PR #243, CI 4/4)
+- ✅ `test-local.sh kiteclass all`: Compile + Checkstyle passed
+- ✅ KiteClass: 450 Java production files, 100 test files (~22%), 4 IT files
+- ✅ KiteHub: 140 Java production files, 47 test files (~33%), 3 IT files
+- ✅ 0 TODO/FIXME trong KC main + KH main
+- ✅ Spring Boot 3.5.12 (latest patch)
+- ⚠️ Jacoco coverage: không có trong CI → không đo được
+- ⚠️ IT count: 4+3 files — thấp cho 19 domains
+- **Deduction: -1** (coverage không đo được, limited integration tests)
 
-### Frontend Tests (10/10)
-- ✅ KC vitest: CI green, 22+ test suites, 59 test files
-- ✅ KH Next.js build: CI green (all pages)
-- ✅ KC Playwright E2E: **12 spec files, 67/68 pass**
-  - auth.spec.ts (10/11 pass, 1 skip), students.spec.ts (20/20), theme.spec.ts (8/8)
-  - classes.spec.ts, billing.spec.ts, branding.spec.ts, feature-flags.spec.ts
-  - attendance-enhancements.spec.ts, critical-journeys/ (3 specs)
-- ✅ KH E2E (Playwright): 10 spec files (auth, admin, billing, branding, dashboard...)
-- ✅ `.gitignore` cập nhật: `test-results/` và `playwright-report/` bị excluded
+### Frontend Tests (10/10) ✅
+- ✅ KC vitest: CI green, 22+ test suites
+- ✅ KH next build: CI green (all pages)
+- ✅ KC Playwright E2E: **12 spec files, 67/68 pass** (1 skip)
+  - auth.spec.ts, students.spec.ts (20/20), theme.spec.ts (8/8), classes.spec.ts, billing.spec.ts, branding.spec.ts, feature-flags.spec.ts, attendance-enhancements.spec.ts, critical-journeys/ (3 specs)
+- ✅ KH E2E: **18 spec files** (auth, admin, billing, branding, dashboard...)
+- ✅ `.gitignore`: test-results/ và playwright-report/ excluded
 
-### UI/UX (10/10)
+### CI/CD (10/10) ✅
+```
+PR #243 (feat/kc-e2e-backend-fix): 4/4 CI ✅
+  ✅ KiteHub Platform CI/CD ×2
+  ✅ Build and Push KiteClass Docker Images ×2
+
+main branch — 9/10 recent runs SUCCESS (1 stale failure từ trước)
+Open PRs: 1 (#243 — active, CI green)
+```
+- Stale branches: 7 (wave/12-15 merged + 3 recent feat/ branches, trong đó feat/kc-e2e-backend-fix là active PR)
+- Commit history: 478 commits trong 30 ngày, clean squash merge strategy
+
+### UI/UX (10/10) ✅
 - ✅ Design system: consistent gradient headers, shadow-soft, Tailwind/Shadcn
-- ✅ Theme system: ThemeContext + CSS variables + postMessage (E2E tested: theme.spec.ts)
+- ✅ Theme system: ThemeContext + CSS variables (E2E tested: theme.spec.ts 8/8)
 - ✅ Responsive: Tailwind breakpoints (md:, lg:, xl:) throughout
 - ✅ Onboarding: DashboardWelcome banner + OnboardingWizard (5-step)
-- ✅ A11y: 14+ aria-labels KC production, 10+ KH (improved wave/13)
+- ✅ A11y: 14+ aria-labels KC production, 10+ KH
 
-### DevOps/Infra (10/10)
-- ✅ Docker Desktop WSL integration: ENABLED — all containers healthy
-- ✅ Terraform AWS: `infrastructure/terraform-aws/` (eks, rds, s3-ecr, vpc, secrets)
-- ✅ Terraform Oracle: `infrastructure/terraform-oracle/` (compute, network)
-- ✅ Backup: DatabaseBackupScheduler + documentation
-- ✅ Monitoring: Prometheus + Grafana configs, alert-rules.yml
-- ✅ SECRET-MANAGEMENT.md: `documents/05-guides/SECRET-MANAGEMENT.md`
+### DevOps/Infra (10/10) ✅
+```
+All 12 containers HEALTHY:
+kite-gateway (6m), kiteclass-core (20m), kiteclass-frontend (26m)
+kitehub-frontend, kitehub-subscription, kitehub-admin, kitehub-branding, kitehub-email (27m)
+kite-postgres, kite-rabbitmq, kite-redis, kite-minio, kite-mailhog — all healthy
+```
+- ✅ Docker Desktop WSL integration: ENABLED và hoạt động ổn định
+- ✅ Terraform AWS: eks, rds, s3-ecr, vpc, secrets
+- ✅ Terraform Oracle: compute, network
+- ✅ DatabaseBackupScheduler + documentation
+- ✅ Prometheus + Grafana + alert-rules.yml
+- ✅ SECRET-MANAGEMENT.md
 
-### Documentation (10/10)
-- ✅ Business docs:
-  - KiteClass: 12 domains × 3 files = 36 docs
-  - KiteHub: 7 domains × 3 files = 21 docs
-- ✅ 310+ total MD files
-- ✅ Architecture docs, security design, quality audits
-- ✅ Wave plans với completion tracking
+### Documentation (10/10) ✅
+- ✅ 310 total MD files
+- ✅ 58 business docs = 21 domains (KC: 12 × 3 files, KH: 7 × 3 files)
+- ✅ 31 quality audit reports
+- ✅ Architecture docs, security design, wave plans với completion tracking
 
-### Code Quality (10/10)
-- ✅ 0 TODO/FIXME/HACK trong KC main (grep: 0 results)
-- ✅ 0 TODO/FIXME/HACK trong KH main (grep: 0 results)
-- ✅ CI: TypeScript + Java compile với 0 errors
+### Code Quality (10/10) ✅
+- ✅ 0 TODO/FIXME/HACK trong KC main
+- ✅ 0 TODO/FIXME/HACK trong KH main
+- ✅ Spring Boot 3.5.12 (latest patch)
 - ✅ ESLint (FE) + Checkstyle (Java) configured
-- ✅ Spring Boot 3.x (latest patch)
 - ✅ Pre-commit hooks active
 
-### Project Management (10/10)
-- ✅ 480+ commits trong 30 ngày (rất active)
+### Project Management (10/10) ✅
+- ✅ 478 commits trong 30 ngày (rất active)
 - ✅ 200+ merged PRs (squash merge strategy clean)
 - ✅ Superpowers methodology: brainstorm → task breakdown → TDD → PR
-- ✅ Wave strategy: wave/12 → wave/15 completed, wave/16 planning
-- ✅ Quality audits: 15+ audit reports tracked
+- ✅ Wave strategy: wave/12 → wave/15 completed
+- ✅ Quality audits: 16+ audit reports tracked
 
 ---
 
-## Comparison with Previous Audit
+## Comparison với Previous Audits
 
-| Category | 2026-03-25 | 2026-03-26 (v1) | 2026-03-26 (v2) | Change |
-|----------|------------|-----------------|-----------------|--------|
-| E2E Functionality | 8 | 8 | **10** | **+2** ✅ |
+| Category | 2026-03-25 | 2026-03-26 v1 | 2026-03-26 v3 (final) | Change |
+|----------|------------|----------------|------------------------|--------|
+| E2E Functionality | 8 | 8 | **8** | — (AI mock confirmed) |
 | Security | 9 | 9 | 9 | — |
 | Backend Tests | 9 | 9 | 9 | — |
-| Frontend Tests | 9 | 10 | 10 | — |
+| Frontend Tests | 9 | **10** | 10 | **+1** ✅ |
 | CI/CD | 10 | 10 | 10 | — |
 | UI/UX | 10 | 10 | 10 | — |
 | DevOps/Infra | 10 | 10 | 10 | — |
 | Documentation | 10 | 10 | 10 | — |
 | Code Quality | 10 | 10 | 10 | — |
 | Project Management | 10 | 10 | 10 | — |
-| **Total** | **95** | **96** | **98** | **+3** |
+| **Total** | **95** | **96** | **96** | **+1** |
 
-### Key Improvements (v2)
-- **E2E +2**: Backend API E2E từ 0 → 36/36 pass (PR #243)
-  - Root causes: FallbackController `@GetMapping`→`@RequestMapping`, json_get quoting bug, circuit breaker warmup, phone uniqueness
+### Net Progress kể từ 2026-03-25:
+- **Frontend Tests +1**: KC Playwright E2E từ 0 → 67/68 pass, 12 specs (PR #239)
+- **Backend E2E confirmed**: 36/36 pass, 2 lần liên tiếp (PR #243)
+- **FallbackController fixed**: POST/DELETE đến fallback không còn 405 (PR #243)
+- **Correction**: Audit v2 ghi nhầm E2E=10/10 — thực tế 8/10 vì AI mock key
 
 ---
 
-## Remaining Gaps (2 points to 100/100)
+## Remaining Gaps (4 points to 100/100)
+
+### ❌ E2E: -2 (AI features dùng mock key)
+- **Gap:** `OPENAI_API_KEY=sk-mock-key` → AI branding không generate thật
+- **Fix:** Set real `OPENAI_API_KEY` trong `.env` hoặc Docker stack env
+- **Effort:** Config only — 15 phút
 
 ### ❌ Security: -1 (No captcha)
 - **Gap:** KC registration form không có captcha/bot protection
-- **Fix:** Thêm reCAPTCHA hoặc hCaptcha vào KC register + backend verify
+- **Fix:** Thêm hCaptcha hoặc Cloudflare Turnstile vào KC register + backend verify
 - **Effort:** Medium (0.5 ngày)
 
 ### ❌ Backend Tests: -1 (Coverage + IT count)
-- **Gap:** Jacoco coverage không trong CI; chỉ có 4+3 IT files
-- **Fix:** Thêm 3-5 integration tests cho critical paths; enable Jacoco trong CI
+- **Gap:** Jacoco không trong CI; 4+3 IT files cho 19 domains
+- **Fix:** Thêm 5-10 integration tests cho critical paths; enable Jacoco trong CI
 - **Effort:** Medium (1 ngày)
 
 ---
@@ -162,15 +179,16 @@ main branch — all runs SUCCESS:
 
 | Priority | Item | Score Impact | Effort |
 |----------|------|-------------|--------|
+| 🔴 P0 | Set real `OPENAI_API_KEY` trong Docker stack | +2 E2E | Config (15 phút) |
 | 🟠 P1 | Thêm captcha vào KC register form | +1 Security | Medium (0.5d) |
-| 🟡 P2 | Tăng IT test count, enable Jacoco CI | +1 Backend | Medium (1d) |
+| 🟡 P2 | Tăng IT count + enable Jacoco CI | +1 Backend | Medium (1d) |
 
 ---
 
 ## Next Audit Recommended
 
 Đề xuất chạy `/quality-audit` lại sau khi:
-1. Captcha được implement (P1)
-2. Integration test count tăng + Jacoco CI (P2)
+1. Set real OPENAI_API_KEY → verify AI branding hoạt động (P0 — config only)
+2. Captcha implement (P1)
 
-Target: **100/100** (A+, Perfect Score)
+Target: **100/100** (A+, Perfect Score) sau khi hoàn thành cả 3 action items
