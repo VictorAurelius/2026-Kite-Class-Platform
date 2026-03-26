@@ -3,7 +3,6 @@ package com.kitehub.gateway.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +27,7 @@ public class FallbackController {
      *
      * @return error response
      */
-    @GetMapping("/subscription")
+    @RequestMapping("/subscription")
     public ResponseEntity<Map<String, Object>> subscriptionFallback() {
         log.warn("Circuit breaker triggered for subscription service");
         return createFallbackResponse("Subscription service is temporarily unavailable");
@@ -39,7 +38,7 @@ public class FallbackController {
      *
      * @return error response
      */
-    @GetMapping("/payment")
+    @RequestMapping("/payment")
     public ResponseEntity<Map<String, Object>> paymentFallback() {
         log.warn("Circuit breaker triggered for payment service");
         return createFallbackResponse("Payment service is temporarily unavailable");
@@ -50,7 +49,7 @@ public class FallbackController {
      *
      * @return error response
      */
-    @GetMapping("/branding")
+    @RequestMapping("/branding")
     public ResponseEntity<Map<String, Object>> brandingFallback() {
         log.warn("Circuit breaker triggered for branding service");
         return createFallbackResponse("Branding service is temporarily unavailable");
@@ -61,7 +60,7 @@ public class FallbackController {
      *
      * @return error response
      */
-    @GetMapping("/admin")
+    @RequestMapping("/admin")
     public ResponseEntity<Map<String, Object>> adminFallback() {
         log.warn("Circuit breaker triggered for admin service");
         return createFallbackResponse("Admin service is temporarily unavailable");
@@ -72,10 +71,21 @@ public class FallbackController {
      *
      * @return error response
      */
-    @GetMapping("/email")
+    @RequestMapping("/email")
     public ResponseEntity<Map<String, Object>> emailFallback() {
         log.warn("Circuit breaker triggered for email service");
         return createFallbackResponse("Email service is temporarily unavailable");
+    }
+
+    /**
+     * Fallback for auth service.
+     *
+     * @return error response
+     */
+    @RequestMapping("/auth")
+    public ResponseEntity<Map<String, Object>> authFallback() {
+        log.warn("Circuit breaker triggered for auth service");
+        return createFallbackResponse("Auth service is temporarily unavailable");
     }
 
     /**
@@ -83,7 +93,7 @@ public class FallbackController {
      *
      * @return error response
      */
-    @GetMapping("/instance")
+    @RequestMapping("/instance")
     public ResponseEntity<Map<String, Object>> instanceFallback() {
         log.warn("Circuit breaker triggered for instance service");
         return createFallbackResponse("Instance is temporarily unavailable");

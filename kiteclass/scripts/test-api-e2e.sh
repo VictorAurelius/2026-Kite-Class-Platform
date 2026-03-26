@@ -238,7 +238,12 @@ extract_status() {
 json_get() {
   local json="$1"
   local path="$2"
-  echo "$json" | python3 -c "import sys,json; d=json.load(sys.stdin); print(eval('d$path'))" 2>/dev/null
+  # Pass path via env var to avoid shell quoting issues with bracket notation
+  echo "$json" | JGET_PATH="$path" python3 -c "
+import sys, json, os
+d = json.load(sys.stdin)
+print(eval('d' + os.environ['JGET_PATH']))
+" 2>/dev/null
 }
 
 # ============================================================
@@ -291,19 +296,30 @@ INSTANCE_ID=$(json_get "$BODY" "['instance']['id']" || echo "")
 
 echo "  Tenant: $REG_SUBDOMAIN (ID: $INSTANCE_ID)"
 
-# Wait for KiteClass Core to be routable
-echo "  ... waiting for KiteClass Core routing"
-for i in 1 2 3 4 5; do
-  KC_CHECK=$(curl -sf -o /dev/null -w "%{http_code}" \
+# Wait for KiteClass Core to be routable (tenant schema setup + circuit breaker reset)
+# Strategy: pause 15s first (allow Flyway migrations to run), then poll every 5s for up to 60s.
+# Pausing avoids tripping the circuit breaker before the tenant DB is ready.
+echo "  ... waiting 15s for tenant schema setup (Flyway migrations)"
+sleep 15
+
+KC_READY=false
+for i in $(seq 1 9); do
+  KC_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
     -H "X-Instance-Subdomain: $REG_SUBDOMAIN" \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
     "$GATEWAY/api/v1/students" 2>/dev/null || echo "000")
   if [ "$KC_CHECK" = "200" ]; then
-    echo -e "  ${GREEN}✓${NC} KiteClass Core reachable"
+    echo -e "  ${GREEN}✓${NC} KiteClass Core reachable ($((15 + (i-1)*5))s)"
+    KC_READY=true
     break
   fi
-  sleep 3
+  echo "  ... still waiting (${KC_CHECK}) - $((15 + i*5))s elapsed"
+  sleep 5
 done
+
+if [ "$KC_READY" = "false" ]; then
+  echo -e "  ${RED}✗${NC} KiteClass Core not reachable after 60s - tests may fail"
+fi
 
 echo ""
 
@@ -327,7 +343,7 @@ echo -e "${YELLOW}[2/7] Student CRUD${NC}"
 RESP=$(kc_post "/api/v1/students" "{
   \"name\": \"E2E Test Student\",
   \"email\": \"student-${TIMESTAMP}@test.com\",
-  \"phone\": \"0901234567\",
+  \"phone\": \"090${TIMESTAMP: -7}\",
   \"gender\": \"MALE\",
   \"address\": \"123 Test Street\"
 }" "$REG_SUBDOMAIN" "$INSTANCE_ID" "$ACCESS_TOKEN")
@@ -355,7 +371,7 @@ assert_status "GET /api/v1/students (list)" 200 "$STATUS" "$BODY"
 RESP=$(kc_put "/api/v1/students/$STUDENT_ID" "{
   \"name\": \"Updated E2E Student\",
   \"email\": \"student-${TIMESTAMP}@test.com\",
-  \"phone\": \"0901234567\"
+  \"phone\": \"090${TIMESTAMP: -7}\"
 }" "$REG_SUBDOMAIN" "$INSTANCE_ID" "$ACCESS_TOKEN")
 BODY=$(extract_body "$RESP")
 STATUS=$(extract_status "$RESP")
@@ -377,7 +393,7 @@ echo -e "${YELLOW}[3/7] Teacher CRUD${NC}"
 RESP=$(kc_post "/api/v1/teachers" "{
   \"name\": \"E2E Test Teacher\",
   \"email\": \"teacher-${TIMESTAMP}@test.com\",
-  \"phoneNumber\": \"0912345678\",
+  \"phoneNumber\": \"0912${TIMESTAMP: -6}\",
   \"specialization\": \"Mathematics\",
   \"experienceYears\": 5
 }" "$REG_SUBDOMAIN" "$INSTANCE_ID" "$ACCESS_TOKEN")
@@ -403,7 +419,7 @@ assert_status "GET /api/v1/teachers (list)" 200 "$STATUS"
 RESP=$(kc_put "/api/v1/teachers/$TEACHER_ID" "{
   \"name\": \"Updated E2E Teacher\",
   \"email\": \"teacher-${TIMESTAMP}@test.com\",
-  \"phoneNumber\": \"0912345678\",
+  \"phoneNumber\": \"0912${TIMESTAMP: -6}\",
   \"specialization\": \"Physics\"
 }" "$REG_SUBDOMAIN" "$INSTANCE_ID" "$ACCESS_TOKEN")
 STATUS=$(extract_status "$RESP")
@@ -418,7 +434,7 @@ assert_status_one_of "DELETE /api/v1/teachers/{id}" 200 204 "$STATUS"
 RESP=$(kc_post "/api/v1/teachers" "{
   \"name\": \"Course Teacher\",
   \"email\": \"course-teacher-${TIMESTAMP}@test.com\",
-  \"phoneNumber\": \"0923456789\",
+  \"phoneNumber\": \"0923${TIMESTAMP: -6}\",
   \"specialization\": \"General\"
 }" "$REG_SUBDOMAIN" "$INSTANCE_ID" "$ACCESS_TOKEN")
 BODY=$(extract_body "$RESP")
@@ -608,7 +624,7 @@ echo "  [Multi-tenant] Creating student in tenant-a..."
 RESP=$(kc_post "/api/v1/students" "{
   \"name\": \"Student Alpha (Tenant A)\",
   \"email\": \"alpha-${TIMESTAMP_A}@tenant-a.com\",
-  \"phone\": \"0911111111\"
+  \"phone\": \"09111${TIMESTAMP_A: -5}\"
 }" "$REG_SUBDOMAIN_A" "$INSTANCE_ID_A" "$TOKEN_A")
 BODY=$(extract_body "$RESP")
 STATUS=$(extract_status "$RESP")
@@ -621,7 +637,7 @@ echo "  [Multi-tenant] Creating student in tenant-b..."
 RESP=$(kc_post "/api/v1/students" "{
   \"name\": \"Student Beta (Tenant B)\",
   \"email\": \"beta-${TIMESTAMP_B}@tenant-b.com\",
-  \"phone\": \"0922222222\"
+  \"phone\": \"09222${TIMESTAMP_B: -5}\"
 }" "$REG_SUBDOMAIN_B" "$INSTANCE_ID_B" "$TOKEN_B")
 BODY=$(extract_body "$RESP")
 STATUS=$(extract_status "$RESP")
