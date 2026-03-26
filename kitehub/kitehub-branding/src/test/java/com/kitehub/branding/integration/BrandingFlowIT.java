@@ -15,8 +15,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -64,6 +67,78 @@ class BrandingFlowIT {
             result.getResponse().getContentAsString(), ThemeConfig.class);
         assertThat(theme.getColors()).isNotNull();
         assertThat(theme.getColors().getPrimary()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Analyze logo in mock AI mode returns brand colors")
+    void analyzeLogoWithMockAI() throws Exception {
+        String requestBody = """
+            {
+                "logoUrl": "https://example.com/logo.png",
+                "organizationName": "Test School"
+            }
+            """;
+
+        MvcResult asyncResult = mockMvc.perform(post("/api/platform/branding/ai/analyze-logo")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+        mockMvc.perform(asyncDispatch(asyncResult))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.primaryColor").exists());
+    }
+
+    @Test
+    @DisplayName("Generate hero image in mock AI mode returns image URL")
+    void generateImageWithMockAI() throws Exception {
+        String requestBody = """
+            {
+                "organizationName": "Test School",
+                "theme": "MODERN",
+                "colors": "#2563EB,#1E40AF"
+            }
+            """;
+
+        MvcResult asyncResult = mockMvc.perform(post("/api/platform/branding/ai/generate-image")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+        mockMvc.perform(asyncDispatch(asyncResult))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.imageUrl").exists());
+    }
+
+    @Test
+    @DisplayName("Generate marketing text in mock AI mode returns non-empty text")
+    void generateTextWithMockAI() throws Exception {
+        String requestBody = """
+            {
+                "organizationName": "Test School",
+                "theme": "MODERN",
+                "targetAudience": "students and teachers"
+            }
+            """;
+
+        MvcResult asyncResult = mockMvc.perform(post("/api/platform/branding/ai/generate-text")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+        mockMvc.perform(asyncDispatch(asyncResult))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.text").exists());
+    }
+
+    @Test
+    @DisplayName("List branding templates returns 200")
+    void listBrandingTemplatesReturnsOk() throws Exception {
+        mockMvc.perform(get("/api/platform/branding/templates"))
+            .andExpect(status().isOk());
     }
 
     @Test
