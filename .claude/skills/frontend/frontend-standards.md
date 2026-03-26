@@ -16,6 +16,10 @@
 | i18n / messages | [5. Internationalization](#5-internationalization) |
 | Performance / accessibility | [6. Performance & A11y](#6-performance--accessibility) |
 | Code organization | [7. Code Organization](#7-code-organization) |
+| **Page templates (copy-paste)** | [8. Page Templates](#8-page-templates-copy-paste) |
+| **Toast vs Modal vs Page** | [9. UX Pattern Rules](#9-ux-pattern-rules) |
+| **Spacing conventions** | [10. Spacing & Layout Tokens](#10-spacing--layout-tokens) |
+| **Responsive breakpoints** | [11. Responsive Conventions](#11-responsive-conventions) |
 
 ---
 
@@ -412,3 +416,313 @@ import type { Student } from '@/lib/types';
 - [ ] Forms use Zod validation
 - [ ] Vietnamese user-facing messages
 - [ ] No hardcoded colors (use Tailwind tokens)
+
+---
+
+## 8. Page Templates (Copy-Paste)
+
+### 8.1 List Page (CRUD)
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DataTable } from '@/components/common/data-table';
+import { SearchInput } from '@/components/common/search-input';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { ErrorAlert } from '@/components/common/error-alert';
+import { useItems } from '@/hooks/use-items';
+import { columns } from './columns';
+
+export default function ItemListPage() {
+  const [search, setSearch] = useState('');
+  const { data, isLoading, error } = useItems({ search });
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Danh sách</h1>
+          <p className="text-muted-foreground">Quản lý danh sách items</p>
+        </div>
+        <Link href="/dashboard/items/new">
+          <Button><Plus className="mr-2 h-4 w-4" />Thêm mới</Button>
+        </Link>
+      </div>
+
+      {/* Search */}
+      <div className="flex items-center gap-4">
+        <div className="max-w-md">
+          <SearchInput placeholder="Tìm kiếm..." onSearch={setSearch} />
+        </div>
+      </div>
+
+      {/* Content */}
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner />
+        </div>
+      )}
+      {error && <ErrorAlert title="Lỗi" message="Không thể tải dữ liệu" />}
+      {data && <DataTable columns={columns} data={data.content} />}
+    </div>
+  );
+}
+```
+
+### 8.2 Detail Page
+
+```tsx
+'use client';
+
+import Link from 'next/link';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/common/status-badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { useItem, useDeleteItem } from '@/hooks/use-items';
+
+export default function ItemDetailPage({ params }: { params: { id: string } }) {
+  const { data: item, isLoading } = useItem(params.id);
+  const { mutate: deleteItem } = useDeleteItem();
+  const [showDelete, setShowDelete] = useState(false);
+
+  if (isLoading) return <div className="flex justify-center py-12"><LoadingSpinner /></div>;
+  if (!item) return <ErrorAlert title="Không tìm thấy" />;
+
+  return (
+    <div className="space-y-6">
+      {/* Header + Actions */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold">{item.name}</h1>
+          <StatusBadge status={item.status} />
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/dashboard/items/${item.id}/edit`}>
+            <Button variant="outline"><Pencil className="mr-2 h-4 w-4" />Chỉnh sửa</Button>
+          </Link>
+          <Button variant="destructive" onClick={() => setShowDelete(true)}>
+            <Trash2 className="mr-2 h-4 w-4" />Xóa
+          </Button>
+        </div>
+      </div>
+
+      {/* Info Card */}
+      <div className="rounded-lg border bg-card p-6 space-y-6">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Trường 1</p>
+            <p className="mt-1">{item.field1}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Trường 2</p>
+            <p className="mt-1">{item.field2}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete Confirm */}
+      <ConfirmDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        onConfirm={() => deleteItem(item.id)}
+        title="Xóa item"
+        description="Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        variant="destructive"
+      />
+    </div>
+  );
+}
+```
+
+### 8.3 Form Page (Create/Edit)
+
+```tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@/components/ui/button';
+import { FormInput } from '@/components/forms/form-input';
+import { FormSelect } from '@/components/forms/form-select';
+import { FormTextarea } from '@/components/forms/form-textarea';
+import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { itemSchema, type ItemFormData } from '@/lib/validations/item';
+
+export default function ItemFormPage({ initialData }: { initialData?: ItemFormData }) {
+  const isEditing = !!initialData;
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(itemSchema),
+    defaultValues: initialData,
+  });
+
+  const onSubmit = async (data: ItemFormData) => { /* mutation */ };
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">{isEditing ? 'Chỉnh sửa' : 'Tạo mới'}</h1>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* 2 columns on desktop, 1 on mobile */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FormInput label="Tên" required error={errors.name?.message} {...register('name')} />
+          <FormInput label="Email" type="email" error={errors.email?.message} {...register('email')} />
+        </div>
+
+        {/* Full width fields */}
+        <FormTextarea label="Mô tả" error={errors.description?.message} {...register('description')} />
+
+        {/* Actions */}
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={() => history.back()}>Hủy</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? <><LoadingSpinner size="sm" className="mr-2" />Đang lưu...</> : isEditing ? 'Cập nhật' : 'Tạo mới'}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+```
+
+### 8.4 Stats Dashboard
+
+```tsx
+// Stats cards row
+<div className="grid gap-4 md:grid-cols-4">
+  {stats.map((stat) => (
+    <div key={stat.label} className="rounded-lg border bg-card p-4">
+      <div className="flex items-center gap-3">
+        <stat.icon className="h-8 w-8 text-muted-foreground" />
+        <div>
+          <p className="text-sm text-muted-foreground">{stat.label}</p>
+          <p className="text-2xl font-bold">{stat.value}</p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+---
+
+## 9. UX Pattern Rules
+
+### Khi nào dùng gì?
+
+| Action | Pattern | Lý do |
+|--------|---------|-------|
+| CRUD success/error | **Toast** | Không block UI, tự biến mất |
+| Delete/destructive | **ConfirmDialog** | Cần xác nhận, không thể undo |
+| View detail inline | **Sheet/Drawer** | Không rời trang hiện tại |
+| Create/Edit full | **Page navigation** | Form phức tạp cần space |
+| Validation error | **Inline field error** | Ngay dưới field bị lỗi |
+| System error | **ErrorAlert** | Hiển thị rõ ràng, có retry |
+| Loading | **Skeleton/Spinner** | Skeleton cho layout, Spinner cho data |
+
+### Toast Rules
+
+```tsx
+// SUCCESS — dùng cho mọi CRUD success
+toast({ title: "Thành công", description: "Đã tạo học viên" });
+
+// ERROR — chỉ cho API errors
+toast({ title: "Lỗi", description: message, variant: "destructive" });
+
+// KHÔNG dùng toast cho: validation errors, navigation, loading states
+```
+
+### Confirm Dialog Rules
+
+```tsx
+// BẮT BUỘC cho: Delete, Archive, Suspend, Cancel (destructive actions)
+// KHÔNG dùng: window.confirm() — luôn dùng <ConfirmDialog />
+// Variant: "destructive" cho delete, "default" cho archive/cancel
+```
+
+---
+
+## 10. Spacing & Layout Tokens
+
+### Quy ước spacing (từ actual codebase)
+
+| Token | Dùng cho | Ví dụ |
+|-------|---------|-------|
+| `gap-2` | Tight: icon+text, button groups | `flex items-center gap-2` |
+| `gap-4` | **Default**: grid columns, form fields | `grid gap-4 md:grid-cols-2` |
+| `gap-6` | Large: major sections | `grid gap-6` |
+| `space-y-2` | Field label + input | Form field groups |
+| `space-y-4` | Component sections | Card sections |
+| `space-y-6` | **Page sections** | Main content wrapper |
+| `p-4` | Container padding | Stat cards, bordered sections |
+| `p-6` | **Card padding** | Info cards, form cards |
+| `py-12` | Vertical centering | Loading states |
+
+### Layout Rules
+
+```tsx
+// Page wrapper — LUÔN dùng space-y-6
+<div className="space-y-6">
+  {/* header */}
+  {/* filters */}
+  {/* content */}
+</div>
+
+// Card — LUÔN dùng p-6
+<div className="rounded-lg border bg-card p-6 space-y-6">
+
+// Form grid — LUÔN dùng gap-6 + md:grid-cols-2
+<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+// Stats grid — LUÔN dùng gap-4 + md:grid-cols-4
+<div className="grid gap-4 md:grid-cols-4">
+```
+
+---
+
+## 11. Responsive Conventions
+
+### Breakpoint usage (từ actual codebase)
+
+| Breakpoint | Width | Dùng cho |
+|-----------|-------|---------|
+| (none) | <768px | Mobile: 1 column, stack vertical |
+| `sm:` | 640px+ | Rarely used, flex-row |
+| `md:` | 768px+ | **Primary**: 2-3 columns, horizontal layout |
+| `lg:` | 1024px+ | 4 columns (rare, chỉ cho grids lớn) |
+
+### Common patterns
+
+```tsx
+// Grid responsive: 1 → 2 → 3 columns
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+// Stats: 1 → 4 columns
+<div className="grid gap-4 md:grid-cols-4">
+
+// Flex stack → row
+<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+// Hide on mobile
+<nav className="hidden md:flex items-center gap-6">
+
+// Form: 1 → 2 columns
+<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+```
+
+### KHÔNG làm
+
+```tsx
+// ❌ Quá nhiều breakpoints
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+
+// ✅ Đơn giản, dùng md: là chính
+<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+```
