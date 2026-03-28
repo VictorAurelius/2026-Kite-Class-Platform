@@ -9,12 +9,12 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <!--
-            Spring Boot 3.5.12 (March 2026):
+            Spring Boot 3.5.13 (March 2026):
             - Patch release: bug fixes and security patches
             - Requires Spring Cloud 2025.0.0+ (not compatible with 2024.0.x)
             - OSS support until 2027-05-31
         -->
-        <version>3.5.12</version>
+        <version>3.5.13</version>
     </parent>
 
     <groupId>com.kiteclass</groupId>
