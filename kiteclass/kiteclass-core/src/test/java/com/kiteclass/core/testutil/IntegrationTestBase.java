@@ -39,6 +39,7 @@ public abstract class IntegrationTestBase {
      * Container is shared across all tests in the same JVM.
      */
     @Container
+    @SuppressWarnings("resource") // Lifecycle managed by @Container + Testcontainers JVM shutdown hook
     protected static final PostgreSQLContainer<?> postgresContainer =
             new PostgreSQLContainer<>("postgres:15-alpine")
                     .withDatabaseName("kiteclass_test")
