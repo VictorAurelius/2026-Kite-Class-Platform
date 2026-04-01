@@ -18,14 +18,15 @@ terraform {
     }
   }
 
-  # Remote state (uncomment after creating S3 bucket)
-  # backend "s3" {
-  #   bucket         = "kitehub-terraform-state"
-  #   key            = "production/terraform.tfstate"
-  #   region         = "ap-southeast-1"
-  #   dynamodb_table = "kitehub-terraform-locks"
-  #   encrypt        = true
-  # }
+  # Remote state — run bootstrap/ first to create S3 bucket + DynamoDB table
+  # Update bucket name with output from: cd bootstrap && terraform output state_bucket_name
+  backend "s3" {
+    bucket         = "kitehub-terraform-state-<ACCOUNT_ID>"
+    key            = "production/terraform.tfstate"
+    region         = "ap-southeast-1"
+    dynamodb_table = "kitehub-terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {

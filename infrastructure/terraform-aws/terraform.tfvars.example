@@ -1,8 +1,12 @@
 # =============================================================================
 # KiteHub Terraform Variables
 # =============================================================================
-# Copy this file: cp terraform.tfvars.example terraform.tfvars
-# Then edit with your values
+# First time setup:
+#   1. cd bootstrap && terraform init && terraform apply
+#   2. Copy bucket name from bootstrap output → update backend "s3" bucket in main.tf
+#   3. cd .. && cp terraform.tfvars.example terraform.tfvars
+#   4. terraform init   (migrates state to S3)
+#   5. terraform plan
 # =============================================================================
 
 aws_region  = "ap-southeast-1"

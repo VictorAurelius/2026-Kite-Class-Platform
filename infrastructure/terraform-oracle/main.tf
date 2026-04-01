@@ -3,8 +3,8 @@
 # =============================================================================
 # Usage:
 #   cp terraform.tfvars.example terraform.tfvars
-#   # Fill in OCI credentials
-#   terraform init
+#   cp backend.hcl.example backend.hcl   # fill in OCI namespace + credentials
+#   terraform init -backend-config=backend.hcl
 #   terraform plan
 #   terraform apply
 #
@@ -27,6 +27,11 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  # Remote state via OCI Object Storage (S3-compatible API)
+  # Config supplied at init time: terraform init -backend-config=backend.hcl
+  # See backend.hcl.example for required fields
+  backend "s3" {}
 }
 
 provider "oci" {
@@ -35,6 +40,8 @@ provider "oci" {
   fingerprint      = var.fingerprint
   private_key_path = var.private_key_path
   region           = var.region
+  # For production on OCI VMs: replace above with instance principal (no key files needed)
+  # auth = "InstancePrincipal"
 }
 
 # =============================================================================

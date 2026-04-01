@@ -34,13 +34,17 @@ infrastructure/terraform-aws/*.tfstate
 infrastructure/terraform-aws/*.tfstate.backup
 infrastructure/terraform-aws/*.tfvars
 !infrastructure/terraform-aws/*.tfvars.example
-infrastructure/terraform-aws/.terraform.lock.hcl
+# .terraform.lock.hcl should be committed (pins provider versions like package-lock.json)
+infrastructure/terraform-aws/bootstrap/.terraform/
+infrastructure/terraform-aws/bootstrap/*.tfstate
+infrastructure/terraform-aws/bootstrap/*.tfstate.backup
 infrastructure/terraform-oracle/.terraform/
 infrastructure/terraform-oracle/*.tfstate
 infrastructure/terraform-oracle/*.tfstate.backup
 infrastructure/terraform-oracle/*.tfvars
 !infrastructure/terraform-oracle/*.tfvars.example
-infrastructure/terraform-oracle/.terraform.lock.hcl
+# backend.hcl contains OCI credentials — never commit
+infrastructure/terraform-oracle/backend.hcl
 
 # Root node_modules (not a monorepo package)
 /node_modules/

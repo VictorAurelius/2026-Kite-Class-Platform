@@ -1,0 +1,37 @@
+# =============================================================================
+# OCI Object Storage — Terraform Remote State Backend
+# =============================================================================
+# Copy to backend.hcl and fill in your values:
+#   cp backend.hcl.example backend.hcl
+#
+# Usage:
+#   terraform init -backend-config=backend.hcl
+#
+# How to get credentials:
+#   OCI Console → Identity → Users → your user → Customer Secret Keys → Generate
+#   The access_key = generated key ID, secret_key = generated secret (shown once)
+#
+# How to get namespace:
+#   OCI Console → Object Storage → Namespace (shown in bucket list page)
+#   OR: oci os ns get
+# =============================================================================
+
+# OCI Object Storage S3-compatible endpoint
+# Replace <namespace> with your tenancy namespace (e.g., axyz123abc)
+# Replace <region> with your OCI region (e.g., ap-singapore-1)
+endpoint = "https://<namespace>.compat.objectstorage.<region>.oraclecloud.com"
+
+bucket = "kitehub-terraform-state"
+key    = "production/terraform.tfstate"
+region = "ap-singapore-1"
+
+# OCI Customer Secret Key (from Identity → Users → Customer Secret Keys)
+# Alternatively set env vars: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+access_key = "<customer-secret-key-id>"
+secret_key = "<customer-secret-key-secret>"
+
+# Required for OCI S3-compatible API
+skip_region_validation      = true
+skip_credentials_validation = true
+skip_metadata_api_check     = true
+force_path_style            = true
