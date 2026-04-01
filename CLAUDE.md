@@ -162,6 +162,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `reference/ui-template-guide.md` - Page checklist, Figma workflow, FE anti-patterns, Gotchas
 - `testing/testing-standards.md` - Spring Boot tests, frontend tests, E2E, security
 - `devops/devops-standards.md` - Docker scripts, CI/CD, deployment, cloud
+- `devops/terraform-cloud-deploy/SKILL.md` - Terraform review + AWS/OCI deploy strategy
 
 ### Rules (conventions nội bộ)
 - `.claude/rules/skill-conventions.md` - Cách viết skill đúng chuẩn (đọc khi tạo skill mới)

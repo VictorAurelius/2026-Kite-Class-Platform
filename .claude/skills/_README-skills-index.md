@@ -60,6 +60,7 @@
 | File | Mo ta |
 |------|-------|
 | `devops/devops-standards.md` | Docker scripts, CI/CD, deployment, cloud infra, env setup |
+| `devops/terraform-cloud-deploy/SKILL.md` | Review Terraform .tf files + chiến lược deploy AWS/OCI |
 
 ### Workflow Skills
 **Thu muc:** `workflow/`
