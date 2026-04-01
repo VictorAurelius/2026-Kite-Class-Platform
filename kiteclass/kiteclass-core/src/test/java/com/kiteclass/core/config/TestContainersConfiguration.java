@@ -34,7 +34,6 @@ import org.testcontainers.utility.DockerImageName;
 public class TestContainersConfiguration {
 
     @Container
-    @SuppressWarnings("resource") // Lifecycle managed by @Container + Testcontainers JVM shutdown hook
     private static final PostgreSQLContainer<?> postgres =
         new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"));
 

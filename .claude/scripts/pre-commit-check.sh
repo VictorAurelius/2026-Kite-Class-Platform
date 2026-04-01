@@ -244,7 +244,7 @@ echo ""
 # ==============================================================================
 echo "📦 Checking pom.xml Spring Boot version..."
 
-APPROVED_SB_VERSION="3.5.11"
+APPROVED_SB_VERSION="3.5.13"
 POM_FILES_CHANGED=$(git diff --cached --name-only | grep "pom\.xml" || true)
 
 if [ -n "$POM_FILES_CHANGED" ]; then
@@ -315,12 +315,12 @@ if [ -n "$JAVA_FILES_CHANGED" ] || [ -n "$STAGED_POM_CHANGED" ]; then
 
         if [ -n "$CORE_CHANGED" ]; then
             _compile_service "kiteclass-core" \
-                "/mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml"
+                "/mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-core/pom.xml"
         fi
 
         if [ -n "$GATEWAY_CHANGED" ]; then
             _compile_service "kiteclass-gateway" \
-                "/mnt/e/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml"
+                "/mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-gateway/pom.xml"
         fi
     else
         echo -e "${YELLOW}⚠️  Java/Maven not configured — skipping compile check${NC}"
