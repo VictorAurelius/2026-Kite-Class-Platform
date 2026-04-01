@@ -233,3 +233,7 @@ vẫn còn commit chưa đồng bộ vào main và squash delete branch à?
 bạn có biết đến stater-kit ở session conversation này không?
 
 commit cả 2 file đang changing và merge
+
+check rules, skill của claude-stater-kit về định nghĩa, cách tạo 1 skill theo chuẩn để đánh giá dự án hiện tại cần update hay không?
+
+đánh giá toàn bộ phạm vi cần update của dự án hiện tại và thực hiện tạo wave hoặc PR mới để thực hiện update
