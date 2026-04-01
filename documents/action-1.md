@@ -210,3 +210,26 @@ tôi muốn bổ sung vào kit để các dự án có chất lượng FE tốt 
 trước hết gaps về UI/UX và solution của dự án này đã đủ chưa, có đủ tiêu chuẩn để làm mẫu cho dự án khác chưa?
 
 tạo PR fix tất cả gaps và PR cập nhật kit
+
+quality audit lại kitehub và kiteclass
+
+ơ tôi tưởng là ERE docker test rồi mà?
+
+merge, tạo PR để E2E test, tôi đã bật docker desktop rồi
+
+audit lại
+
+tại sao test E2E ở local lại dùng OPENAI_API_KEY, tưởng dùng model AI local mà?
+
+thực hiện tìm đầy đủ gaps về vấn đề AI local: script, testcase, rules, ... và thực hiện re-verify lại theo PR rõ ràng
+
+cần thực hiện E2E test lại đúng không?
+
+liên tục vi phạm rule dùng script, không dùng lệnh tự do
+nếu trường hợp cần dùng lệnh tự do thì phải tạo mới hoặc cập nhật script => cập nhật skill và memory
+
+vẫn còn commit chưa đồng bộ vào main và squash delete branch à?
+
+bạn có biết đến stater-kit ở session conversation này không?
+
+commit cả 2 file đang changing và merge
