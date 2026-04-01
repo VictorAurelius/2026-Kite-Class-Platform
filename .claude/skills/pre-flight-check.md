@@ -1,3 +1,7 @@
+---
+description: "Dùng trước khi bắt đầu PR hoặc domain mới, user nói 'pre-flight', 'check trước khi code', 'chuẩn bị PR', 'domain mới'. 3-layer check: PR scope / Domain business docs / Project health."
+---
+
 # Skill: Pre-flight Check (Multi-layer)
 
 **Version:** 1.0
