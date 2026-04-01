@@ -1,3 +1,7 @@
+---
+description: "Dùng khi user nói 'audit', 'quality check', 'kiểm tra chất lượng', 'điểm chất lượng', 'ready to merge?', hoặc trước khi merge wave vào main. Chấm điểm 10 categories /100 điểm."
+---
+
 # /quality-audit - Đánh giá chất lượng toàn diện
 
 **Usage:** `/quality-audit [kitehub|kiteclass|all]`

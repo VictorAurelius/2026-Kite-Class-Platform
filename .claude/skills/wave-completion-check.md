@@ -1,3 +1,7 @@
+---
+description: "Dùng khi kết thúc wave, user nói 'wave completion', 'wrap up wave', 'hoàn thành wave', 'merge wave'. Full lifecycle: pre-check → launch → merge → verify → update docs."
+---
+
 # Skill: Wave Execution & Completion Check
 
 **Version:** 2.0
