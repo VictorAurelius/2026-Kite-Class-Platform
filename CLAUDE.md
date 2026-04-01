@@ -159,8 +159,12 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 ### Technical Standards (consolidated)
 - `backend/backend-standards.md` - Code style, API, DB, enums, errors, Maven
 - `frontend/frontend-standards.md` - TypeScript, React, Shadcn, theme, i18n
+- `reference/ui-template-guide.md` - Page checklist, Figma workflow, FE anti-patterns, Gotchas
 - `testing/testing-standards.md` - Spring Boot tests, frontend tests, E2E, security
 - `devops/devops-standards.md` - Docker scripts, CI/CD, deployment, cloud
+
+### Rules (conventions nội bộ)
+- `.claude/rules/skill-conventions.md` - Cách viết skill đúng chuẩn (đọc khi tạo skill mới)
 
 ### Workflow
 - `workflow/continue/` - /continue skill

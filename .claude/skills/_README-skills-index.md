@@ -50,7 +50,6 @@
 | File | Mo ta |
 |------|-------|
 | `frontend/frontend-standards.md` | TypeScript, React, Shadcn, theme, i18n, a11y, page templates, spacing, responsive |
-| `frontend/ui-template-guide.md` | Code từ Figma/template, page checklist, anti-patterns, FE quality checks |
 
 **Testing:**
 | File | Mo ta |
@@ -85,9 +84,20 @@
 | `architecture-overview.md` | System architecture overview |
 | `business-docs-3-layer.md` | 3-layer business docs: rules, use-cases, api-contract |
 | `cross-service-data-strategy.md` | Data sharing between services |
+| `diagrams.md` | PlantUML/Mermaid setup, render workflow, verification BẮT BUỘC |
 | `email-service.md` | Email service integration |
+| `ide-setup.md` | VS Code settings, test runner, Claude permissions |
 | `plantuml-diagrams.md` | PlantUML diagram patterns |
+| `project-structure.md` | Cấu trúc folder best practice, khi nào refactor |
 | `service-docs-standard.md` | Service-level README + QUICK-START standard |
+| `ui-template-guide.md` | Code từ Figma/template, page checklist, anti-patterns, Gotchas FE |
+
+### Rules (conventions nội bộ)
+**Thu muc:** `.claude/rules/`
+
+| File | Mo ta |
+|------|-------|
+| `skill-conventions.md` | Cách viết skill đúng chuẩn (Anthropic best practices) — đọc khi viết skill mới |
 
 ---
 
