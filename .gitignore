@@ -53,6 +53,9 @@ infrastructure/terraform-oracle/backend.hcl
 .docker-build-logs/
 */.docker-build-logs/
 
+# UI screenshots (local only — never commit PNGs)
+documents/screenshots/
+
 # Temporary files
 *.tmp
 *.temp

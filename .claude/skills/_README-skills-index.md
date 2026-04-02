@@ -38,6 +38,7 @@
 | `pre-flight-check.md` | 3-layer check: PR / Domain / Project | Truoc moi PR, milestone |
 | `business-gap-check.md` | Business logic gap analysis | Kiem tra business coverage |
 | `quality-audit/SKILL.md` | Quality scoring (100 diem) | Danh gia chat luong |
+| `quality/ui-review/SKILL.md` | UI audit per-screen /128, before/after screenshots | Sau moi frontend PR |
 | `wave-completion-check.md` | Wave completion verification | Cuoi moi wave |
 
 ### Technical Standards
