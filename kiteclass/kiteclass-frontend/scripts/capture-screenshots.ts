@@ -21,7 +21,7 @@
  * Adapted from: claude-starter-kit scripts/capture-screenshots.ts (v2.2.0)
  */
 
-import { chromium, type Page } from 'playwright';
+import { chromium, type Page } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';

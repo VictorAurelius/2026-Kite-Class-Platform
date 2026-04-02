@@ -23,7 +23,7 @@
  * Port: 3001 (different from KiteClass on 3000)
  */
 
-import { chromium, type Page } from 'playwright';
+import { chromium, type Page } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
