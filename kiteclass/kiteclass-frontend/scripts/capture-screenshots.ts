@@ -35,20 +35,29 @@ const DEV_COMMAND = `npm run dev`;
 // From kiteclass/kiteclass-frontend/scripts/ → up 3 levels = project root
 const SCREENSHOTS_DIR = path.resolve(__dirname, '../../../documents/screenshots');
 
-// Public pages (no auth required)
-// For dashboard pages, configure auth state in Playwright context
+// === PUBLIC PAGES (no auth required) ===
+// Public routes render fully without backend (SSG/ISR fallback)
+// Auth routes (login, register) are 'use client' — render form without API
 const PAGES = [
+  // Public marketing pages
   { name: 'landing', path: '/' },
+  { name: 'about', path: '/about' },
+  { name: 'catalog', path: '/catalog' },
+  { name: 'contact', path: '/contact' },
+  // Auth pages (client-side, no backend needed)
   { name: 'login', path: '/login' },
   { name: 'register', path: '/register' },
+  { name: 'register-student', path: '/register/student' },
   { name: 'forgot-password', path: '/forgot-password' },
-  // Dashboard pages below — uncomment after setting up auth storageState
+  { name: 'reset-password', path: '/reset-password' },
+  // Dashboard pages — uncomment after setting up auth storageState
   // { name: 'classes', path: '/classes' },
   // { name: 'courses', path: '/courses' },
   // { name: 'students', path: '/students' },
   // { name: 'attendance', path: '/attendance' },
   // { name: 'billing', path: '/billing' },
   // { name: 'settings', path: '/settings' },
+  // { name: 'teacher-dashboard', path: '/teacher/dashboard' },
 ];
 
 // ============================================

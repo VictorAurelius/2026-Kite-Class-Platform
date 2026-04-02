@@ -77,27 +77,38 @@ Lưu report vào `documents/04-quality/ui-review-latest.md`.
 
 ## Gotchas — KiteClass-specific
 
-- **Auth pages** — `/login`, `/register`, `/forgot-password` có thể chụp không cần auth
+- **pnpm + WSL2 + NTFS = symlink broken** — `pnpm install` bị stuck, node_modules empty. Fix: `rm -rf node_modules && npm install` trên WSL2, HOẶC chạy pnpm từ Windows native terminal
+- **autoprefixer.js missing** — khi node_modules corrupt. Triệu chứng: Build Error trên tất cả pages. Fix: reinstall dependencies
+- **Next.js 15.1.6 outdated warning** — hiển thị banner đỏ góc phải trong screenshots. Không ảnh hưởng functionality nhưng ảnh hưởng visual score
+- **Auth pages** — `/login`, `/register`, `/forgot-password` là `'use client'` — chụp được mà không cần backend, nhưng cần node_modules đầy đủ
 - **Dashboard pages** — cần đăng nhập trước; xem playwright.config.ts để tham khảo auth setup
 - **Tenant theme** — KiteClass dùng `kiteclass_theme` localStorage key, KHÁC với `theme` (next-themes)
-- **Screenshot script** — chỉ capture `next-themes` dark mode (`localStorage.key = 'theme'`), không phải tenant color theme
+- **Landing page fallback** — API fail → hiển thị default text/colors. Screenshot không đại diện cho tenant thực tế
 - **Port** — Next.js chạy trên 3000, không phải 5173
 - **Score what you SEE** — không được self-score theo code; external auditor thường thấp hơn 20–35 pts
 - Screenshots gitignored — local only, không commit PNG
 
 ---
 
-## KiteClass Pages to Audit (Public — no auth)
+## KiteClass Pages to Audit
+
+### Public / Auth (không cần backend)
 
 | Page | Route | Priority |
 |------|-------|----------|
-| Landing | `/` | High |
-| Login | `/login` | High |
-| Register | `/register` | Medium |
-| Forgot Password | `/forgot-password` | Low |
+| Landing | `/` | 🔴 High |
+| Login | `/login` | 🔴 High |
+| Register | `/register` | 🟡 Medium |
+| Register Student | `/register/student` | 🟡 Medium |
+| Forgot Password | `/forgot-password` | 🟢 Low |
+| Reset Password | `/reset-password` | 🟢 Low |
+| About | `/about` | 🟡 Medium |
+| Catalog | `/catalog` | 🟡 Medium |
+| Contact | `/contact` | 🟢 Low |
 
-Dashboard pages (cần auth — setup riêng trong script nếu cần):
-`/classes`, `/courses`, `/students`, `/attendance`, `/billing`, `/settings`
+### Dashboard (cần auth — setup storageState)
+
+`/classes`, `/courses`, `/students`, `/attendance`, `/billing`, `/settings`, `/teacher/dashboard`
 
 ---
 
