@@ -154,6 +154,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `pre-flight-check.md` - 3-layer check: PR / Domain / Project
 - `business-gap-check.md` - Business logic gap analysis
 - `quality-audit/SKILL.md` - Quality scoring (100 points)
+- `quality/ui-review/SKILL.md` - UI audit per-screen /128, before/after screenshots
 - `wave-completion-check.md` - Wave completion verification
 
 ### Technical Standards (consolidated)

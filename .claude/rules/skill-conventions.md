@@ -212,3 +212,37 @@ Projects that use the kit (like Smart Quiz) have a **local copy** at `.claude/st
 - Remote repo has extra files (`docs/INSTALL.md`, `docs/GETTING-STARTED.md`, `.claude-plugin/`, `bin/install-remote.sh`) not in project copies — these are distribution files, don't delete them when syncing
 - Project copies may have project-specific customizations in `core/` skills — don't overwrite remote generic templates with project-specific content
 - Always compare file-by-file, not bulk copy
+
+---
+
+## UI Audit Workflow (cho frontend projects)
+
+Battle-tested từ 17 audit runs + 40 PRs. Dùng `skills/quality/ui-review/SKILL.md` + `scripts/capture-screenshots.ts`.
+
+### Workflow
+
+```
+BEFORE FIX:  capture --label before-pr-XXX
+FIX CODE:    PR → merge
+AFTER FIX:   capture --label after-pr-XXX (auto, không chờ user)
+             visual verify → report delta
+DEPLOY:      capture --label prod → verify prod vs local
+```
+
+### Key rules (learned from real mistakes)
+
+1. **Auto-capture sau MỌI frontend PR** — không chờ user hỏi (user phải nhắc 5+ lần)
+2. **Luôn update `latest/` folder** — user browse folder này trong IDE
+3. **Before screenshots là BẮT BUỘC** — không có before, không thể prove fix improved anything
+4. **Score what you SEE** — không self-score theo code; external auditor thường thấp hơn 20–35 pts
+5. **"Có feature" = 2/4** — feature phải work WELL + nhất quán TRÊN TẤT CẢ screens mới được 3/4
+6. **Per-screen scoring** — không average away weak screens
+7. **Fix verification step 0** — check previous issues TRƯỚC khi score version mới
+8. **Screenshots gitignored** — local only, không commit PNG
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `.claude/skills/quality/ui-review/SKILL.md` | Portable audit skill (adapt pages + scoring) |
+| `kiteclass/kiteclass-frontend/scripts/capture-screenshots.ts` | Auto dev server + labeled folders |
