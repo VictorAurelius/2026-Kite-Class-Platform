@@ -1,5 +1,5 @@
 /**
- * KiteClass UI Screenshot Capture — for UI quality audits.
+ * KiteClass UI Screenshot Capture v2 — Full Coverage Audit
  *
  * Usage:
  *   cd kiteclass/kiteclass-frontend
@@ -7,82 +7,172 @@
  *   npx tsx scripts/capture-screenshots.ts --label pr-123 → pr-123/ + latest/
  *   BASE_URL=https://... npx tsx scripts/capture-screenshots.ts --label prod
  *
- * Features:
- *   - Auto-detects dev server, starts if needed
- *   - Auto-updates latest/ when using --label
- *   - Per-page subfolders: {label}/{page}/{theme}-{viewport}.png
- *   - Captures both light + dark (next-themes)
+ * Coverage:
+ *   - 9 public/auth pages (no backend needed)
+ *   - 21 dashboard pages (mock auth injected via localStorage)
+ *   - 2 themes × 2 viewports = 4 screenshots per page
+ *   Total: ~120 screenshots + manifest.md
  *
- * Adapted from: claude-starter-kit scripts/capture-screenshots.ts (v2.1.0)
+ * Auth injection:
+ *   Injects mock Zustand state into localStorage key 'auth-storage'.
+ *   Dashboard pages render full layout; API calls return errors (no backend).
+ *   Error/loading states ARE intentional — captures real error handling UI.
+ *
+ * Adapted from: claude-starter-kit scripts/capture-screenshots.ts (v2.2.0)
  */
 
-import { chromium } from 'playwright';
+import { chromium, type Page } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { exec, ChildProcess } from 'child_process';
+import { exec, type ChildProcess } from 'child_process';
 import http from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ============================================
-// ADAPT THESE FOR YOUR PROJECT
+// PROJECT CONFIG
 // ============================================
 
 const DEFAULT_PORT = 3000;
-const DEV_COMMAND = `npm run dev`;
-// From kiteclass/kiteclass-frontend/scripts/ → up 3 levels = project root
+const DEV_COMMAND = 'npm run dev';
+// kiteclass-frontend/scripts/ → 3 levels up = project root
 const SCREENSHOTS_DIR = path.resolve(__dirname, '../../../documents/screenshots');
 
-// === PUBLIC PAGES (no auth required) ===
-// Public routes render fully without backend (SSG/ISR fallback)
-// Auth routes (login, register) are 'use client' — render form without API
-const PAGES = [
-  // Public marketing pages
-  { name: 'landing', path: '/' },
-  { name: 'about', path: '/about' },
-  { name: 'catalog', path: '/catalog' },
-  { name: 'contact', path: '/contact' },
-  // Auth pages (client-side, no backend needed)
-  { name: 'login', path: '/login' },
-  { name: 'register', path: '/register' },
-  { name: 'register-student', path: '/register/student' },
-  { name: 'forgot-password', path: '/forgot-password' },
-  { name: 'reset-password', path: '/reset-password' },
-  // Dashboard pages — uncomment after setting up auth storageState
-  // { name: 'classes', path: '/classes' },
-  // { name: 'courses', path: '/courses' },
-  // { name: 'students', path: '/students' },
-  // { name: 'attendance', path: '/attendance' },
-  // { name: 'billing', path: '/billing' },
-  // { name: 'settings', path: '/settings' },
-  // { name: 'teacher-dashboard', path: '/teacher/dashboard' },
-];
+// next-themes: key = 'theme', value = 'dark' | 'light'
+const THEME_KEY = 'theme';
+// KiteClass tenant theme key (separate from next-themes)
+const KITECLASS_THEME_KEY = 'kiteclass_theme';
+
+// Zustand persist key for auth store
+const AUTH_STORAGE_KEY = 'auth-storage';
+
+// Mock auth state — dashboard pages render layout, API calls will fail gracefully
+const MOCK_AUTH: Record<string, unknown> = {
+  state: {
+    user: {
+      id: 1,
+      email: 'audit@kiteclass.local',
+      name: 'Audit Admin',
+      userType: 'ADMIN',
+    },
+    accessToken: 'audit.mock.token',
+    refreshToken: 'audit.mock.refresh',
+    tenantId: 'audit-tenant-001',
+    isAuthenticated: true,
+  },
+  version: 0,
+};
+
+// Placeholder ID for parameterized routes — will show 404/error state (captures error UI)
+const SAMPLE_ID = 'audit-001';
 
 // ============================================
-// Configuration (usually no changes needed)
+// PAGE REGISTRY
+// ============================================
+
+interface PageConfig {
+  name: string;
+  path: string;
+  needsAuth?: boolean;   // inject MOCK_AUTH before navigate
+  waitExtra?: number;    // extra ms after load (animations, lazy content)
+  note?: string;         // shown in manifest
+}
+
+// === PUBLIC PAGES (no auth required) ===
+const PUBLIC_PAGES: PageConfig[] = [
+  { name: 'landing',           path: '/',                note: 'Marketing landing — API fallback data expected' },
+  { name: 'about',             path: '/about' },
+  { name: 'catalog',           path: '/catalog',         note: 'Shows loading spinner without backend' },
+  { name: 'catalog-detail',    path: `/catalog/${SAMPLE_ID}`, note: 'May 404 without backend' },
+  { name: 'contact',           path: '/contact' },
+];
+
+// === AUTH PAGES (client-side forms, no backend needed) ===
+const AUTH_PAGES: PageConfig[] = [
+  { name: 'login',             path: '/login' },
+  { name: 'register',          path: '/register' },
+  { name: 'register-student',  path: '/register/student' },
+  { name: 'forgot-password',   path: '/forgot-password' },
+  { name: 'reset-password',    path: '/reset-password',  note: 'Shows invalid-token error state — expected' },
+];
+
+// === DASHBOARD PAGES (mock auth injected) ===
+const DASHBOARD_PAGES: PageConfig[] = [
+  // Overview
+  { name: 'dashboard-teacher', path: '/teacher/dashboard',                needsAuth: true },
+  // Classes
+  { name: 'classes',           path: '/classes',                          needsAuth: true },
+  { name: 'class-detail',      path: `/classes/${SAMPLE_ID}`,             needsAuth: true, note: 'May show 404 — captures error UI' },
+  { name: 'class-edit',        path: `/classes/${SAMPLE_ID}/edit`,        needsAuth: true },
+  { name: 'class-attendance',  path: `/classes/${SAMPLE_ID}/attendance`,  needsAuth: true },
+  // Courses
+  { name: 'courses',           path: '/courses',                          needsAuth: true },
+  { name: 'course-new',        path: '/courses/new',                      needsAuth: true },
+  { name: 'course-detail',     path: `/courses/${SAMPLE_ID}`,             needsAuth: true },
+  { name: 'course-edit',       path: `/courses/${SAMPLE_ID}/edit`,        needsAuth: true },
+  { name: 'course-class-new',  path: `/courses/${SAMPLE_ID}/classes/new`, needsAuth: true },
+  // Students
+  { name: 'students',          path: '/students',                         needsAuth: true },
+  { name: 'student-new',       path: '/students/new',                     needsAuth: true },
+  { name: 'student-detail',    path: `/students/${SAMPLE_ID}`,            needsAuth: true },
+  { name: 'student-edit',      path: `/students/${SAMPLE_ID}/edit`,       needsAuth: true },
+  { name: 'student-attendance',path: `/students/${SAMPLE_ID}/attendance`, needsAuth: true },
+  // Teachers
+  { name: 'teachers',          path: '/teachers',                         needsAuth: true },
+  { name: 'teacher-new',       path: '/teachers/new',                     needsAuth: true },
+  { name: 'teacher-detail',    path: `/teachers/${SAMPLE_ID}`,            needsAuth: true },
+  { name: 'teacher-edit',      path: `/teachers/${SAMPLE_ID}/edit`,       needsAuth: true },
+  // Attendance
+  { name: 'attendance',        path: '/attendance',                       needsAuth: true },
+  { name: 'attendance-reports',path: '/attendance/reports',               needsAuth: true },
+  { name: 'attendance-stats',  path: '/admin/attendance/stats',           needsAuth: true },
+  // Billing
+  { name: 'billing',           path: '/billing',                          needsAuth: true },
+  { name: 'billing-detail',    path: `/billing/${SAMPLE_ID}`,             needsAuth: true },
+  { name: 'billing-pay',       path: `/billing/${SAMPLE_ID}/pay`,         needsAuth: true },
+  // Settings
+  { name: 'settings',          path: '/settings',                         needsAuth: true },
+];
+
+const ALL_PAGES: PageConfig[] = [...PUBLIC_PAGES, ...AUTH_PAGES, ...DASHBOARD_PAGES];
+
+// ============================================
+// VIEWPORTS & THEMES
 // ============================================
 
 const VIEWPORTS = [
   { name: 'desktop', width: 1440, height: 900 },
-  { name: 'mobile', width: 375, height: 812 },
-];
+  { name: 'mobile',  width: 375,  height: 812 },
+] as const;
 
 const THEMES = ['light', 'dark'] as const;
 
-// next-themes stores theme as plain string: 'dark' | 'light'
-// Key is 'theme' by default for next-themes
-const DARK_MODE_KEY = 'theme';
-const DARK_MODE_VALUE = (isDark: boolean) => isDark ? 'dark' : 'light';
+// ============================================
+// MANIFEST TRACKING
+// ============================================
+
+interface CaptureRecord {
+  page: string;
+  path: string;
+  theme: string;
+  viewport: string;
+  file: string;
+  sizeKB: number;
+  status: 'ok' | 'error';
+  error?: string;
+  note?: string;
+}
+
+const captureLog: CaptureRecord[] = [];
 
 // ============================================
-// Script logic (no changes needed below)
+// SERVER UTILITIES
 // ============================================
 
 const labelIdx = process.argv.indexOf('--label');
 const label = labelIdx >= 0 ? process.argv[labelIdx + 1] : 'latest';
-
 const BASE_URL = process.env.BASE_URL || `http://localhost:${DEFAULT_PORT}`;
 const OUT_DIR = path.join(SCREENSHOTS_DIR, label);
 
@@ -99,37 +189,203 @@ async function startDevServer(): Promise<ChildProcess | null> {
 
   const isUp = await checkServer(BASE_URL);
   if (isUp) {
-    console.log(`✓ Dev server running at ${BASE_URL}\n`);
+    console.log(`✓ Dev server at ${BASE_URL}\n`);
     return null;
   }
 
-  console.log(`⏳ Starting dev server...`);
+  console.log('⏳ Starting dev server...');
   const child = exec(DEV_COMMAND, { cwd: path.resolve(__dirname, '..') });
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     await new Promise(r => setTimeout(r, 1000));
     if (await checkServer(BASE_URL)) {
-      console.log(`✓ Dev server started\n`);
+      console.log('✓ Dev server started\n');
       return child;
     }
   }
-  console.log(`✗ Failed to start dev server`);
+  console.log('✗ Failed to start dev server');
   child.kill();
   return null;
+}
+
+// ============================================
+// AUTH INJECTION
+// ============================================
+
+async function injectAuth(page: Page): Promise<void> {
+  await page.addInitScript(([key, val]: [string, string]) => {
+    localStorage.setItem(key, val);
+  }, [AUTH_STORAGE_KEY, JSON.stringify(MOCK_AUTH)] as [string, string]);
+}
+
+// ============================================
+// THEME INJECTION
+// ============================================
+
+async function setTheme(page: Page, isDark: boolean): Promise<void> {
+  const val = isDark ? 'dark' : 'light';
+  await page.addInitScript(([themeKey, themeVal, kiteclassKey, kiteclassVal]: string[]) => {
+    localStorage.setItem(themeKey, themeVal);
+    localStorage.setItem(kiteclassKey, kiteclassVal);
+  }, [THEME_KEY, val, KITECLASS_THEME_KEY, val]);
+}
+
+// ============================================
+// MANIFEST GENERATION
+// ============================================
+
+function writeManifest(outDir: string, appName: string, totalPages: number): void {
+  const now = new Date().toISOString();
+  const okCount = captureLog.filter(r => r.status === 'ok').length;
+  const errCount = captureLog.filter(r => r.status === 'error').length;
+
+  // Group by page
+  const byPage = new Map<string, CaptureRecord[]>();
+  for (const rec of captureLog) {
+    if (!byPage.has(rec.page)) byPage.set(rec.page, []);
+    byPage.get(rec.page)!.push(rec);
+  }
+
+  const lines: string[] = [
+    `# Screenshot Manifest — ${label}`,
+    '',
+    `**App:** ${appName}  `,
+    `**Generated:** ${now}  `,
+    `**Base URL:** ${BASE_URL}  `,
+    `**Screenshots:** ${okCount} ok / ${errCount} errors / ${captureLog.length} total  `,
+    `**Auth:** Mock-injected for dashboard pages (API calls may show error states)  `,
+    '',
+    '> Auto-generated. Do NOT edit directly — re-runs overwrite this file.',
+    '> Add visual audit notes to `ui-review-latest.md` instead.',
+    '',
+    '---',
+    '',
+    '## Quick Index',
+    '',
+    '| Page | Route | Auth | Screenshots | Notes |',
+    '|------|-------|------|-------------|-------|',
+  ];
+
+  for (const [pageName, records] of byPage) {
+    const firstRec = records[0];
+    const okFiles = records.filter(r => r.status === 'ok').length;
+    const errFiles = records.filter(r => r.status === 'error').length;
+    const statusIcon = errFiles > 0 ? '⚠️' : '✓';
+    const auth = firstRec.note?.includes('Mock') || ALL_PAGES.find(p => p.name === pageName)?.needsAuth ? 'mock' : 'none';
+    const noteText = firstRec.note ?? '';
+    lines.push(
+      `| \`${pageName}\` | \`${firstRec.path}\` | ${auth} | ${statusIcon} ${okFiles}/${records.length} | ${noteText} |`
+    );
+  }
+
+  lines.push('', '---', '', '## Pages');
+
+  for (const [pageName, records] of byPage) {
+    const firstRec = records[0];
+    lines.push('', `### \`${pageName}\` → \`${firstRec.path}\``);
+    if (firstRec.note) lines.push(`> ${firstRec.note}`);
+    lines.push('');
+    lines.push('| File | Theme | Viewport | Size | Status |');
+    lines.push('|------|-------|----------|------|--------|');
+    for (const rec of records) {
+      const statusIcon = rec.status === 'ok' ? '✓' : `✗ ${rec.error ?? ''}`;
+      lines.push(
+        `| \`${pageName}/${rec.file}\` | ${rec.theme} | ${rec.viewport} | ${rec.sizeKB}KB | ${statusIcon} |`
+      );
+    }
+    lines.push('', '**Visual notes:** _(fill during audit)_');
+  }
+
+  lines.push('', '---', '', `*Generated by capture-screenshots.ts · ${now}*`);
+
+  const manifestPath = path.join(outDir, 'manifest.md');
+  fs.writeFileSync(manifestPath, lines.join('\n') + '\n', 'utf-8');
+  console.log(`\n📋 Manifest: ${manifestPath}`);
+}
+
+// ============================================
+// MAIN
+// ============================================
+
+async function capturePage(
+  page: Page,
+  p: PageConfig,
+  theme: string,
+  viewport: typeof VIEWPORTS[number],
+  outDir: string,
+  latestDir: string | null,
+  isProd: boolean
+): Promise<void> {
+  const url = `${BASE_URL}${p.path}`;
+  const filename = `${theme}-${viewport.name}.png`;
+  const pageDir = path.join(outDir, p.name);
+  fs.mkdirSync(pageDir, { recursive: true });
+
+  try {
+    const waitUntil = isProd ? 'networkidle' : 'domcontentloaded';
+    const timeout = isProd ? 30000 : 15000;
+
+    await page.goto(url, { waitUntil, timeout });
+    // Re-apply theme + auth after navigation (ensure localStorage persisted)
+    await page.evaluate(
+      ([themeKey, themeVal, kiteclassKey, kiteclassVal, authKey, authVal]: string[]) => {
+        localStorage.setItem(themeKey, themeVal);
+        localStorage.setItem(kiteclassKey, kiteclassVal);
+        if (authVal) localStorage.setItem(authKey, authVal);
+      },
+      [
+        THEME_KEY,
+        theme,
+        KITECLASS_THEME_KEY,
+        theme,
+        AUTH_STORAGE_KEY,
+        p.needsAuth ? JSON.stringify(MOCK_AUTH) : '',
+      ]
+    );
+    await page.reload({ waitUntil, timeout });
+    await page.waitForTimeout(isProd ? 1500 : (p.waitExtra ?? 800));
+
+    const screenshotPath = path.join(pageDir, filename);
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+
+    const sizeKB = Math.round(fs.statSync(screenshotPath).size / 1024);
+
+    if (latestDir) {
+      const latestPageDir = path.join(latestDir, p.name);
+      fs.mkdirSync(latestPageDir, { recursive: true });
+      await page.screenshot({ path: path.join(latestPageDir, filename), fullPage: true });
+    }
+
+    captureLog.push({
+      page: p.name, path: p.path, theme, viewport: viewport.name,
+      file: filename, sizeKB, status: 'ok', note: p.note,
+    });
+    console.log(`  ✓ ${p.name}/${filename} (${sizeKB}KB)`);
+  } catch (e) {
+    const errMsg = (e as Error).message.slice(0, 80);
+    captureLog.push({
+      page: p.name, path: p.path, theme, viewport: viewport.name,
+      file: filename, sizeKB: 0, status: 'error', error: errMsg, note: p.note,
+    });
+    console.log(`  ✗ ${p.name}/${theme}-${viewport.name}: ${errMsg}`);
+  }
 }
 
 async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  console.log(`📸 Capturing to: ${label}/`);
-  console.log(`🔗 Source: ${BASE_URL}`);
-
   const alsoLatest = label !== 'latest';
-  const LATEST_DIR = path.join(SCREENSHOTS_DIR, 'latest');
-  if (alsoLatest) {
+  const LATEST_DIR = alsoLatest ? path.join(SCREENSHOTS_DIR, 'latest') : null;
+  if (LATEST_DIR) {
     fs.mkdirSync(LATEST_DIR, { recursive: true });
-    console.log(`📸 Also updating: latest/`);
+    console.log(`📸 Capturing to: ${label}/  (also updating latest/)`);
+  } else {
+    console.log(`📸 Capturing to: latest/`);
   }
+  console.log(`🔗 Base URL: ${BASE_URL}`);
+  console.log(`📄 Pages: ${PUBLIC_PAGES.length} public + ${AUTH_PAGES.length} auth + ${DASHBOARD_PAGES.length} dashboard = ${ALL_PAGES.length} total`);
+  console.log(`📐 Matrix: ${THEMES.length} themes × ${VIEWPORTS.length} viewports = ${THEMES.length * VIEWPORTS.length} screenshots/page`);
+  console.log(`📊 Total: ~${ALL_PAGES.length * THEMES.length * VIEWPORTS.length} screenshots\n`);
 
   const devServer = await startDevServer();
   const browser = await chromium.launch();
@@ -137,44 +393,20 @@ async function main() {
 
   for (const theme of THEMES) {
     for (const viewport of VIEWPORTS) {
+      console.log(`\n▸ ${theme} / ${viewport.name} (${viewport.width}×${viewport.height})`);
+
       const context = await browser.newContext({
         viewport: { width: viewport.width, height: viewport.height },
         colorScheme: theme,
       });
       const page = await context.newPage();
 
-      await page.addInitScript(([key, val]: [string, string]) => {
-        localStorage.setItem(key, val);
-      }, [DARK_MODE_KEY, DARK_MODE_VALUE(theme === 'dark')] as [string, string]);
+      // Pre-inject theme + auth into all pages via initScript
+      await setTheme(page, theme === 'dark');
+      await injectAuth(page);
 
-      for (const p of PAGES) {
-        const url = `${BASE_URL}${p.path}`;
-        try {
-          const waitUntil = isProd ? 'networkidle' : 'domcontentloaded';
-          const timeout = isProd ? 30000 : 15000;
-
-          await page.goto(url, { waitUntil, timeout });
-          await page.evaluate(([key, val]: [string, string]) => {
-            localStorage.setItem(key, val);
-          }, [DARK_MODE_KEY, DARK_MODE_VALUE(theme === 'dark')] as [string, string]);
-          await page.reload({ waitUntil, timeout });
-          await page.waitForTimeout(isProd ? 1500 : 800);
-
-          const filename = `${theme}-${viewport.name}.png`;
-          const pageDir = path.join(OUT_DIR, p.name);
-          fs.mkdirSync(pageDir, { recursive: true });
-          await page.screenshot({ path: path.join(pageDir, filename), fullPage: true });
-
-          if (alsoLatest) {
-            const latestPageDir = path.join(LATEST_DIR, p.name);
-            fs.mkdirSync(latestPageDir, { recursive: true });
-            await page.screenshot({ path: path.join(latestPageDir, filename), fullPage: true });
-          }
-
-          console.log(`  ✓ ${p.name}/${filename}`);
-        } catch (e) {
-          console.log(`  ✗ ${p.name}/${theme}-${viewport.name}: ${(e as Error).message}`);
-        }
+      for (const p of ALL_PAGES) {
+        await capturePage(page, p, theme, viewport, OUT_DIR, LATEST_DIR, isProd);
       }
 
       await context.close();
@@ -184,8 +416,21 @@ async function main() {
   await browser.close();
   if (devServer) devServer.kill();
 
-  console.log(`\n✅ Screenshots saved to documents/screenshots/${label}/`);
-  if (alsoLatest) console.log(`✅ Also updated documents/screenshots/latest/`);
+  // Write manifests
+  writeManifest(OUT_DIR, 'KiteClass Frontend (port 3000)', ALL_PAGES.length);
+  if (LATEST_DIR) {
+    // Copy manifest to latest too
+    fs.copyFileSync(
+      path.join(OUT_DIR, 'manifest.md'),
+      path.join(LATEST_DIR, 'manifest.md')
+    );
+  }
+
+  const okCount = captureLog.filter(r => r.status === 'ok').length;
+  const errCount = captureLog.filter(r => r.status === 'error').length;
+  console.log(`\n✅ Done: ${okCount} ok, ${errCount} errors`);
+  console.log(`📁 Screenshots: documents/screenshots/${label}/`);
+  console.log(`📋 Manifest:    documents/screenshots/${label}/manifest.md`);
 }
 
 main().catch(console.error);
