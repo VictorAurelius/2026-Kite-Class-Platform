@@ -246,3 +246,15 @@ sau đó, thực hiện đánh giá action cần làm cho dự án sau khi có s
 sync claude-starter-kit version mới nhất
 
 hãy update các cập nhật của kit cho phù hợp với kiteclass và kiteclass và thực hiện tạo output tương ứng
+
+folder chứa screenshots ở đâu?
+
+mới audit 1 phần, chưa audit full screen của kitehub và kiteclass à?
+
+bạn nghĩ nên cho audit tích hợp vào E2E test tốt hơn hay tự audit bằng script như skill hiện tại?
+
+tạo PR để cập nhật skill + scripts để audit được toàn bộ 100% screen của kitehub và kiteclass, mọi dialog, component phải được screenshots để thực hiện quality audit để:
+1. lưu bằng chứng qua mỗi lần PR/wave, dễ dàng debug
+2. cần thêm file md lưu lại đặc điểm của screenshots, cũng không gitignore nhưng là quick info để tránh phải lặp lại đọc ảnh, những vẫn cần đọc ảnh nếu cần thông tin
+3. để user có thể visual output dễ dàng
+4. có thể nâng cấp UI/UX tốt hơn nữa
