@@ -77,7 +77,7 @@ Lưu report vào `documents/04-quality/ui-review-latest.md`.
 
 ## Gotchas — KiteClass-specific
 
-- **pnpm + WSL2 + NTFS = symlink broken** — `pnpm install` bị stuck, node_modules empty. Fix: `rm -rf node_modules && npm install` trên WSL2, HOẶC chạy pnpm từ Windows native terminal
+- **WSL2 + NTFS mount = node_modules broken** — pnpm: `ERR_PNPM_EACCES rename _tmp→final` (632/634). npm: truncates large packages (`require-hook` missing). **Không thể install node_modules trên `/mnt/f/` (NTFS).** Fix: chạy dev server từ Windows PowerShell, HOẶC copy source vào WSL2 native fs (`~/`) để install
 - **autoprefixer.js missing** — khi node_modules corrupt. Triệu chứng: Build Error trên tất cả pages. Fix: reinstall dependencies
 - **Next.js 15.1.6 outdated warning** — hiển thị banner đỏ góc phải trong screenshots. Không ảnh hưởng functionality nhưng ảnh hưởng visual score
 - **Auth pages** — `/login`, `/register`, `/forgot-password` là `'use client'` — chụp được mà không cần backend, nhưng cần node_modules đầy đủ

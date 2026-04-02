@@ -17,18 +17,39 @@ Error: Cannot find module 'autoprefixer/lib/autoprefixer.js'
 **Root cause:** pnpm trên WSL2 + NTFS filesystem không thể tạo symlinks → `node_modules` bị corrupt sau khi run.
 **Impact:** Dev server không start → không thể chụp screenshot thực tế.
 
-**Fix:**
-```bash
-# Option 1: Dùng npm thay pnpm trên WSL2
-cd kiteclass/kiteclass-frontend
-rm -rf node_modules
-npm install
-
-# Option 2: Chạy từ Windows Terminal (không qua WSL)
-# pnpm install hoạt động bình thường trên Windows native
+**Root cause chính xác:**
 ```
+ERR_PNPM_EACCES: EACCES permission denied, rename '..._tmp_4054' → '@mswjs/interceptors'
+ENOENT: no such file or directory, open '...msw/package.json'
+```
+pnpm dùng atomic rename (tmp → final) để đảm bảo atomicity. NTFS trên WSL2 không support rename cross-device/permission → fail ở package thứ 632/634.
 
-**Gotcha thêm vào ui-review/SKILL.md:** pnpm + WSL2 + NTFS = symlink issue → dùng npm hoặc chạy từ Windows.
+**Root cause chính xác (đã điều tra đầy đủ):**
+
+| Package manager | Error | Root cause |
+|----------------|-------|-----------|
+| pnpm | `ERR_PNPM_EACCES rename _tmp → final` (ở package 632/634) | NTFS không support atomic cross-permission rename |
+| npm | `Cannot find module '../server/require-hook'` | NTFS write truncation — nhiều file nhỏ bị mất khi ghi |
+
+**Kết luận:** NTFS filesystem qua WSL2 mount (`/mnt/f/`) không đủ ổn định cho node_modules lớn (634+ packages). Cả pnpm lẫn npm đều fail theo cách khác nhau.
+
+**Fix đúng (cần thực hiện từ Windows hoặc WSL2 native):**
+```bash
+# Option 1 — Chạy từ Windows PowerShell/CMD (RECOMMENDED)
+cd F:\nam4\doan\2026-Kite-Class-Platform\kiteclass\kiteclass-frontend
+pnpm install    # hoặc npm install
+npm run dev
+
+# Option 2 — Clone vào WSL2 native filesystem
+cp -r /mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-frontend ~/kiteclass-frontend
+cd ~/kiteclass-frontend
+pnpm install
+node_modules/.bin/next dev --port 3000
+
+# Sau đó screenshot script có thể chạy từ /mnt/f/ (chỉ connect tới localhost:3000)
+cd /mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-frontend
+npx tsx scripts/capture-screenshots.ts --label after-build-fix
+```
 
 ---
 
@@ -122,11 +143,18 @@ npm install
 
 ## Lần chạy tiếp theo
 
-Sau khi fix build error:
+**Workflow đúng cho environment WSL2 + NTFS:**
+
 ```bash
-cd kiteclass/kiteclass-frontend
-npm install                    # hoặc từ Windows: pnpm install
+# Bước 1: Start dev server từ Windows PowerShell
+cd F:\nam4\doan\2026-Kite-Class-Platform\kiteclass\kiteclass-frontend
+pnpm install   # hoặc npm install
+npm run dev    # chạy trên port 3000
+
+# Bước 2: Từ WSL2 (khi server đã up) — chạy capture
+cd /mnt/f/nam4/doan/2026-Kite-Class-Platform/kiteclass/kiteclass-frontend
 npx tsx scripts/capture-screenshots.ts --label after-build-fix
+# Script dùng tsx được cài global, không cần node_modules local
 ```
 
 Sau đó review screenshots và update score section trên.
