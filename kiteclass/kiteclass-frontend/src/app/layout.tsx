@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import { ReactQueryProvider } from '@/providers/ReactQueryProvider';
+import { NextThemesProvider } from '@/providers/NextThemesProvider';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ThemeReceiver } from '@/components/theme/ThemeReceiver';
 import { ThemePreviewPanel } from '@/components/theme/ThemePreviewPanel';
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body className={inter.className}>
+        <NextThemesProvider>
         <ThemeProvider>
           <ThemeReceiver />
           <Suspense>
@@ -33,6 +35,7 @@ export default function RootLayout({
             <Toaster />
           </ReactQueryProvider>
         </ThemeProvider>
+        </NextThemesProvider>
       </body>
     </html>
   );

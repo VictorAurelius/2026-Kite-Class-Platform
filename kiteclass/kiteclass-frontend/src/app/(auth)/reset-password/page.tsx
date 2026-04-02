@@ -26,14 +26,14 @@ const resetPasswordSchema = z
   .object({
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/[0-9]/, 'Password must contain at least one number'),
+      .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+      .regex(/[A-Z]/, 'Mật khẩu phải có ít nhất một chữ hoa')
+      .regex(/[a-z]/, 'Mật khẩu phải có ít nhất một chữ thường')
+      .regex(/[0-9]/, 'Mật khẩu phải có ít nhất một chữ số'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: 'Mật khẩu không khớp',
     path: ['confirmPassword'],
   });
 
@@ -62,20 +62,20 @@ function ResetPasswordForm() {
       <AuthLayout>
         <div className="space-y-6">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">Invalid reset link</h1>
+            <h1 className="text-3xl font-bold">Liên kết không hợp lệ</h1>
             <p className="text-muted-foreground">
-              This password reset link is invalid or has expired.
+              Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.
             </p>
           </div>
 
           <Alert variant="destructive">
             <AlertDescription>
-              Please request a new password reset link.
+              Vui lòng yêu cầu liên kết đặt lại mật khẩu mới.
             </AlertDescription>
           </Alert>
 
           <Link href="/forgot-password" className="block">
-            <Button className="w-full">Request new link</Button>
+            <Button className="w-full">Yêu cầu liên kết mới</Button>
           </Link>
         </div>
       </AuthLayout>
@@ -86,25 +86,25 @@ function ResetPasswordForm() {
     <AuthLayout>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Reset password</h1>
+          <h1 className="text-3xl font-bold">Đặt lại mật khẩu</h1>
           <p className="text-muted-foreground">
-            Enter your new password below.
+            Nhập mật khẩu mới của bạn bên dưới.
           </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <FormInput
-            label="New password"
+            label="Mật khẩu mới"
             type="password"
             placeholder="••••••••"
             error={errors.password?.message}
-            helperText="Must be at least 8 characters with uppercase, lowercase, and number"
+            helperText="Tối thiểu 8 ký tự, có chữ hoa, chữ thường và số"
             disabled={isSubmitting}
             {...register('password')}
           />
 
           <FormInput
-            label="Confirm password"
+            label="Xác nhận mật khẩu"
             type="password"
             placeholder="••••••••"
             error={errors.confirmPassword?.message}
@@ -116,16 +116,16 @@ function ResetPasswordForm() {
             {isSubmitting ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Resetting password...
+                Đang đặt lại mật khẩu...
               </>
             ) : (
-              'Reset password'
+              'Đặt lại mật khẩu'
             )}
           </Button>
         </form>
 
         <Link href="/login" className="block text-center">
-          <Button variant="link">Back to login</Button>
+          <Button variant="link">Quay lại đăng nhập</Button>
         </Link>
       </div>
     </AuthLayout>
