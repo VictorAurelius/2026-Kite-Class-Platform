@@ -237,3 +237,12 @@ commit cả 2 file đang changing và merge
 check rules, skill của claude-stater-kit về định nghĩa, cách tạo 1 skill theo chuẩn để đánh giá dự án hiện tại cần update hay không?
 
 đánh giá toàn bộ phạm vi cần update của dự án hiện tại và thực hiện tạo wave hoặc PR mới để thực hiện update
+
+tiếp nhận skill mới này theo tiêu chuẩn và update lại cho phù hợp dự án:
+.claude\skills\terraform-cloud-deploy.skill
+
+sau đó, thực hiện đánh giá action cần làm cho dự án sau khi có skill mới
+
+sync claude-starter-kit version mới nhất
+
+hãy update các cập nhật của kit cho phù hợp với kiteclass và kiteclass và thực hiện tạo output tương ứng
