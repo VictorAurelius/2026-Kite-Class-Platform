@@ -248,6 +248,7 @@ export default function StudentRegisterPage() {
               onChange={handleChange}
               disabled={isLoading}
             />
+            <p className="text-xs text-muted-foreground">Định dạng: ngày/tháng/năm</p>
           </div>
 
           <div className="space-y-2">
