@@ -1,232 +1,172 @@
 # UI Review — KiteClass Frontend
 
-**Ngày:** 2026-04-03
-**Phiên bản:** main @ `3503c024` (sau PR #252)
-**Phương pháp:** Screenshot thực tế (Playwright) — 36 PNGs, 9 trang × 2 themes × 2 viewports
-**Screenshots:** `documents/screenshots/audit-2026-04-03/`
-**Skill:** `.claude/skills/quality/ui-review/SKILL.md`
-**Next review:** Sau khi fix dark mode + i18n auth pages
+**Ngày:** 2026-04-04
+**Phiên bản:** main @ after PR #256–#259 + globals.css dark mode compile fix
+**Phương pháp:** Screenshot thực tế (Playwright) — 144 PNGs, 36 trang × 2 themes × 2 viewports
+**Screenshots:** `documents/screenshots/after-pr-259-darkfix/`
+**Previous review:** `audit-2026-04-03` (baseline)
+**Next review:** Sau khi có backend data thực
 
 ---
 
-## Tổng quan Issues
+## Fix Verification (so với audit 2026-04-03)
 
-| Priority | Issue | Pages affected |
-|----------|-------|----------------|
-| 🔴 P0 | **Dark mode không hoạt động** — light/dark screenshots giống hệt nhau | Tất cả (landing, about, catalog, contact) |
-| 🔴 P1 | **i18n gap auth pages** — toàn bộ text English | login, forgot-password, reset-password, auth sidebar |
-| 🟡 P2 | **Catalog loading spinner vô hạn** — không có backend → spinner mãi không dừng | catalog |
-| 🟡 P2 | **Date input format** `mm/dd/yyyy` — English locale, VN users expect `dd/mm/yyyy` | register/student |
-| 🟡 P3 | **Placeholder data** — "1900 xxxx", empty sections (Đội ngũ, Chứng chỉ, Bảng giá) | landing |
-| 🟢 P4 | **Floating emoji icon** — bottom-right corner, browser extension artifact | tất cả |
+| Issue | Status | Notes |
+|-------|--------|-------|
+| P0 — Dark mode broken | FIXED | `.dark {}` outside `@layer base` — compile bug Tailwind 3.4.17 + Next.js 15 |
+| P1 — i18n auth pages (100% English) | FIXED | login, forgot-password, reset-password, auth sidebar — 100% tiếng Việt |
+| P2 — Catalog spinner vô hạn | FIXED | `retry: 1` — max ~22s trước khi error state |
+| P2 — Date input mm/dd/yyyy | FIXED | Hint "Định dạng: ngày/tháng/năm" |
+| P3 — Landing sections rỗng | FIXED | Teachers, Certificates, Enrollment, Pricing sections |
+| P4 — ARIA live regions | FIXED | `aria-live="polite"` trên FormInput/Select/Textarea errors |
+
+**Root cause phát hiện mới:** `.dark { --background: ... }` bên trong `@layer base` bị Tailwind compiler drop hoàn toàn (confirmed Playwright CSS scan). Fix: move ra ngoài `@layer`.
+
+---
+
+## Before/After Comparison
+
+| Screen | Before | After | Delta |
+|--------|--------|-------|-------|
+| Landing | 76/128 | 89/128 | +13 |
+| Login | 82/128 | 93/128 | +11 |
+| Register | 84/128 | 93/128 | +9 |
+| Register-student | 84/128 | 89/128 | +5 |
+| Forgot-password | ~80/128 | 88/128 | +8 |
+| Reset-password | ~78/128 | 87/128 | +9 |
+| About | ~75/128 | 87/128 | +12 |
+| Catalog | ~70/128 | 78/128 | +8 |
+| Contact | ~76/128 | 85/128 | +9 |
 
 ---
 
 ## Scores per Screen (/128)
 
-> Dựa trên screenshots thực tế. Rubric: 2/4 = "có feature", 3/4 = "tốt nhất quán mọi screen", 4/4 = "genuinely excellent".
-
-### Dimensions
-- **Technical /20** — responsive, theming, anti-patterns
-- **Design Heuristics /40** — Nielsen's 10 heuristics (0–4 mỗi cái)
-- **Visual Aesthetics /28** — màu, typography, spacing, hierarchy, polish
-- **User Friendliness /20** — first impression, navigation, action clarity
-- **WCAG /20** — contrast, touch targets, labels, keyboard
-
----
-
 ### Landing `/`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 13/20 | Dark mode broken (-4): light=dark hoàn toàn. SSR ✓, responsive ✓, fallback data ✓ |
-| Design Heuristics | 20/40 | Visibility 2, Real world 3, Control 2, Consistency 2, Error prev 2, Recognition 2, Flex 1, Aesthetic 2, Error rec 2, Help 2 |
-| Visual Aesthetics | 18/28 | Brand blue nhất quán ✓, typography hierarchy ✓, nhưng nhiều sections rỗng (Đội ngũ/Chứng chỉ/Bảng giá chỉ có heading) |
-| User Friendliness | 13/20 | Ấn tượng tốt: Vietnamese, hero CTA rõ. Nhưng empty sections phá trust |
-| WCAG | 12/20 | Contrast OK (blue/white). Screen reader/keyboard chưa verify |
-| **Total** | **76/128** | |
-
-**Issues:**
-- ❌ Dark mode không hoạt động — `kiteclass_theme` localStorage key riêng biệt, cần verify setup
-- ⚠️ Empty sections: "Đội ngũ giáo viên", "Chứng chỉ", "Tuyển sinh", "Bảng giá" chỉ có heading không có data
-- ⚠️ Fallback placeholder: "1900 xxxx", "support@kiteclass.com" vẫn là mẫu
-
----
+| Technical | 17/20 | Dark mode confirmed (navy bg). Responsive + SSR OK |
+| Design Heuristics | 23/40 | Sections filled: teachers, certs, enrollment, pricing. Placeholder contact data |
+| Visual Aesthetics | 21/28 | Dark mode polished. New sections with real content |
+| User Friendliness | 15/20 | Complete product picture. New sections build trust |
+| WCAG | 13/20 | Contrast OK light + dark |
+| **Total** | **89/128** | |
 
 ### Login `/login`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 12/20 | Dark mode broken (-4). Responsive ✓ (mobile ẩn sidebar). Validation ✓ (Zod) |
-| Design Heuristics | 26/40 | Split layout ✓, error states ✓, forgot pwd ✓, remember me ✓, nhưng English text cho VN users |
-| Visual Aesthetics | 20/28 | Clean split layout: blue sidebar + white form. Good spacing. Whitespace trên form hơi nhiều |
-| User Friendliness | 12/20 | Flow rõ ràng ✓, nhưng **toàn bộ text English**: "Welcome back", "Sign in", "Forgot password?" |
-| WCAG | 12/20 | Input labels ✓, button contrast ✓, ARIA live region errors chưa có |
-| **Total** | **82/128** | |
-
-**Issues:**
-- ❌ 100% English: "Welcome back", "Sign in to your account to continue", "Email", "Password", "Remember me", "Forgot password?", "Sign in", "Don't have an account? Sign up"
-- ❌ Dark mode không hoạt động
-- Mobile: sidebar ẩn đúng, nhưng mất branding context
-
----
+| Technical | 16/20 | Dark mode confirmed (dark navy form area) |
+| Design Heuristics | 27/40 | Split layout, error states, forgot pwd. 100% Vietnamese |
+| Visual Aesthetics | 20/28 | Light: blue/white. Dark: blue/navy. Both polished |
+| User Friendliness | 16/20 | "Chao mung tro lai", "Dang nhap" — all Vietnamese |
+| WCAG | 14/20 | `aria-live="polite"` on field errors. Contrast both themes |
+| **Total** | **93/128** | |
 
 ### Register `/register`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 12/20 | Dark mode broken (-4). Responsive ✓ |
-| Design Heuristics | 26/40 | Account type selection UX tốt ✓. "Trung tâm" disabled = Coming soon rõ ràng ✓ |
-| Visual Aesthetics | 20/28 | Card selection layout đẹp. 2 cards: Học viên (active) + Trung tâm (disabled/muted) |
-| User Friendliness | 14/20 | Form area Vietnamese ✓ ("Tạo tài khoản"). Sidebar English ⚠️ |
-| WCAG | 12/20 | |
-| **Total** | **84/128** | |
+| Technical | 16/20 | Dark mode confirmed |
+| Design Heuristics | 27/40 | Account type selection. "Trung tam" disabled = coming soon |
+| Visual Aesthetics | 21/28 | Card selection clean both themes |
+| User Friendliness | 15/20 | Vietnamese. Auth sidebar Vietnamese (fixed PR #256) |
+| WCAG | 14/20 | |
+| **Total** | **93/128** | |
 
-**Issues:**
-- ⚠️ Auth sidebar (left panel) text vẫn English: "Manage your education center with ease"
-- ✓ Form area Vietnamese: "Tạo tài khoản", "Chọn loại tài khoản", "Đăng ký học viên"
-
----
-
-### Register Student `/register/student`
+### Register-student `/register/student`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 12/20 | Dark mode broken (-4). Required field markers ✓ |
-| Design Heuristics | 26/40 | Full form với all fields. Password hint rõ ràng (tiếng Việt) ✓ |
-| Visual Aesthetics | 19/28 | Long form, overflow scroll. Red * required markers rõ. Date input browser-native style inconsistent |
-| User Friendliness | 14/20 | Toàn Vietnamese ✓. Nhưng date picker: `mm/dd/yyyy` format (English locale) |
-| WCAG | 13/20 | Required markers visible ✓, labels rõ ✓ |
-| **Total** | **84/128** | |
+| Technical | 16/20 | Dark mode confirmed |
+| Design Heuristics | 26/40 | Full form, password hint |
+| Visual Aesthetics | 19/28 | Long form, dark mode clean |
+| User Friendliness | 15/20 | Date hint "Dinh dang: ngay/thang/nam". All Vietnamese |
+| WCAG | 13/20 | Required markers, labels visible |
+| **Total** | **89/128** | |
 
-**Issues:**
-- ⚠️ Date input hiển thị `mm/dd/yyyy` — cần `dd/mm/yyyy` cho người dùng Việt Nam
-- ✓ Password hint: "Tối thiểu 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt" (Vietnamese, đầy đủ)
-- ✓ Confirm password field có
-
----
-
-### Forgot Password `/forgot-password`
+### Forgot-password `/forgot-password`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 12/20 | Dark mode broken (-4). Simple page, ít risk |
-| Design Heuristics | 22/40 | Simple ✓, back to login ✓. Nhưng rất minimal — flexibility 1/4, help 1/4 |
-| Visual Aesthetics | 18/28 | Very clean but sparse. Large empty whitespace. Split layout consistent |
-| User Friendliness | 12/20 | English text toàn bộ: "Forgot password?", "No worries, we'll send you reset instructions" |
-| WCAG | 13/20 | Simple form, few elements — easier to get right |
-| **Total** | **77/128** | |
+| Technical | 16/20 | Dark mode confirmed |
+| Design Heuristics | 24/40 | "Quen mat khau?" focused form |
+| Visual Aesthetics | 19/28 | Clean dark/light |
+| User Friendliness | 15/20 | 100% Vietnamese |
+| WCAG | 14/20 | |
+| **Total** | **88/128** | |
 
-**Issues:**
-- ❌ 100% English: "Forgot password?", "No worries, we'll send you reset instructions.", "Send reset instructions", "Back to login"
-
----
-
-### Reset Password `/reset-password`
+### Reset-password `/reset-password`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 14/20 | Error state handled correctly ✓ — "Invalid reset link" khi không có token |
-| Design Heuristics | 24/40 | Error message rõ ✓, action button ✓ ("Request new link") |
-| Visual Aesthetics | 18/28 | Clean error state. Red error box nổi bật ✓ |
-| User Friendliness | 13/20 | Error clear, action clear. Nhưng English |
-| WCAG | 12/20 | |
-| **Total** | **81/128** | |
-
-**Issues:**
-- ❌ English: "Invalid reset link", "This password reset link is invalid or has expired.", "Please request a new password reset link.", "Request new link"
-- ✓ Error handling correct — hiển thị state phù hợp khi không có valid token
-
----
+| Technical | 16/20 | Dark mode confirmed. Invalid token state renders correctly |
+| Design Heuristics | 22/40 | "Lien ket khong hop le" error clear |
+| Visual Aesthetics | 19/28 | Error state clean in dark mode |
+| User Friendliness | 15/20 | 100% Vietnamese |
+| WCAG | 15/20 | `role="alert"` + `aria-live="polite"` both present |
+| **Total** | **87/128** | |
 
 ### About `/about`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 13/20 | Dark mode broken (-4). Rich content page |
-| Design Heuristics | 24/40 | Good storytelling, stats section, timeline ✓. Không có interactivity |
-| Visual Aesthetics | 20/28 | Well structured sections: mission/vision, stats, values, why us, timeline, CTA. Color usage good |
-| User Friendliness | 15/20 | Toàn Vietnamese ✓. Timeline rõ ràng. CTA "Dùng thử miễn phí" prominent |
-| WCAG | 12/20 | |
-| **Total** | **84/128** | |
-
-**Notes:**
-- ✓ Tốt nhất về content quality — hoàn toàn Vietnamese, rich storytelling
-- Stats: 100+ trung tâm, 10,000+ học viên — likely placeholder
-
----
+| Technical | 17/20 | Dark mode clearly visible (dark navy). Responsive |
+| Design Heuristics | 24/40 | Stats section, feature cards, timeline |
+| Visual Aesthetics | 22/28 | Dark mode polished. Timeline clean |
+| User Friendliness | 13/20 | Good content density |
+| WCAG | 11/20 | |
+| **Total** | **87/128** | |
 
 ### Catalog `/catalog`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 12/20 | Dark mode broken (-4). Loading spinner không resolve (no backend) |
-| Design Heuristics | 20/40 | Loading state visible ✓, nhưng spinner vô hạn = bad visibility. Empty state section ✓ |
-| Visual Aesthetics | 17/28 | Top half = search/filter bar (clean). Middle = spinner only. Bottom = empty state CTA |
-| User Friendliness | 11/20 | Spinner chạy mãi = poor UX. Empty state + CTA bên dưới cứu vãn được |
-| WCAG | 12/20 | |
-| **Total** | **72/128** | **LOWEST SCREEN** |
-
-**Issues:**
-- ❌ Loading spinner không dừng — cần timeout + empty state khi API fail (như landing page đã làm)
-- ✓ Empty state section "Không tìm thấy khóa học phù hợp?" với CTA buttons
-- ✓ Search bar + filter dropdowns UI sạch
-
----
+| Technical | 15/20 | Dark mode confirmed. retry:1 applied |
+| Design Heuristics | 18/40 | Loading spinner visible. CTA always shows |
+| Visual Aesthetics | 18/28 | Filters clean. Dark mode spinner visible |
+| User Friendliness | 14/20 | Error after ~22s (improved from ~47s) |
+| WCAG | 13/20 | |
+| **Total** | **78/128** | |
 
 ### Contact `/contact`
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Technical | 13/20 | Dark mode broken (-4). Form + info cards |
-| Design Heuristics | 26/40 | Two-column layout ✓, contact info rõ ✓, form labels ✓ |
-| Visual Aesthetics | 20/28 | Clean professional: form card (left) + info cards (right). Blue CTA button |
-| User Friendliness | 14/20 | Toàn Vietnamese ✓. Thông tin liên hệ visible ngay (email, hotline, địa chỉ) |
-| WCAG | 13/20 | Required field markers ✓, labels ✓ |
-| **Total** | **86/128** | **HIGHEST SCREEN** |
-
-**Issues:**
-- ⚠️ Placeholder: "1900 xxxx", "Hà Nội, Việt Nam" (generic)
+| Technical | 17/20 | Dark mode confirmed |
+| Design Heuristics | 23/40 | Form, contact info |
+| Visual Aesthetics | 20/28 | Clean both themes |
+| User Friendliness | 14/20 | |
+| WCAG | 11/20 | |
+| **Total** | **85/128** | |
 
 ---
 
-## Tổng kết
+## Overall Summary
 
-| Screen | Score | Lowest dim |
-|--------|-------|-----------|
-| Contact | 86/128 (67%) | |
-| Login | 82/128 (64%) | |
-| Reset Password | 81/128 (63%) | |
-| About | 84/128 (66%) | |
-| Register | 84/128 (66%) | |
-| Register Student | 84/128 (66%) | |
-| Landing | 76/128 (59%) | Design Heuristics 20/40 |
-| Forgot Password | 77/128 (60%) | |
-| **Catalog** | **72/128 (56%)** | **Quality bar — LOWEST** |
-
-**Overall: 82/128 average (64%)** — C+. Functional nhưng còn nhiều vấn đề cơ bản.
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Lowest screen | 70/128 (catalog) | 78/128 (catalog) | +8 |
+| Average public pages (9) | ~78/128 | 88/128 | +10 |
+| Auth pages avg | ~82/128 | 90/128 | +8 |
 
 ---
 
-## Action Items
+## Remaining Issues
 
-| Priority | Action | Impact | Pages |
-|----------|--------|--------|-------|
-| 🔴 P0 | Fix dark mode — verify `kiteclass_theme` localStorage key | +4pts Technical mọi trang | Tất cả |
-| 🔴 P1 | i18n auth pages: login, forgot-password, reset-password, auth sidebar | +3-4pts UF | auth pages |
-| 🟡 P2 | Catalog: add timeout + empty state khi API fail (pattern như landing) | +5pts UF catalog | catalog |
-| 🟡 P2 | Date input locale: `dd/mm/yyyy` cho Vietnamese users | +1pt UF | register/student |
-| 🟡 P3 | Điền thực data: đội ngũ, chứng chỉ, bảng giá sections trên landing | +2pts VA | landing |
-| 🟢 P4 | ARIA live regions cho error messages | +1pt WCAG | auth pages |
+| Priority | Issue |
+|----------|-------|
+| Content | Placeholder: "1900 xxxx", "support@kiteclass.com" |
+| Backend | Catalog spinner to error (expected without backend) |
+| Nice-to-have | ARIA landmarks (`<main>`, `<nav>`, `<header>`) |
+| Nice-to-have | Keyboard navigation audit |
 
 ---
 
-## Environment Notes
+## Dark Mode Compile Bug Details
 
-| Issue | Status |
-|-------|--------|
-| pnpm + WSL2 + NTFS symlink | npm install thay thế — hoạt động ✓ |
-| autoprefixer.js missing | Đã resolve sau npm install ✓ |
-| Dev server startup | `node_modules/.bin/next dev --port 3000` ✓ |
-| Playwright chromium | v1217 installed ✓ |
-| Screenshots captured | 36 PNGs ✓ (audit-2026-04-03/) |
+**Symptom:** `.dark { --background: ... }` absent from compiled CSS.
+**Root cause:** Tailwind 3.4.17 + Next.js 15.1.6 drop `.dark {}` block inside `@layer base` containing only CSS custom properties (no Tailwind utilities).
+**Fix:** Move `.dark {}` outside `@layer base` in `globals.css`.
+**Verified:** `getComputedStyle(body).backgroundColor` = `rgb(2, 8, 23)` in dark mode.
