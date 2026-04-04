@@ -92,6 +92,13 @@ describe('FormInput', () => {
     expect(input).toHaveAttribute('aria-invalid', 'true');
   });
 
+  it('should have aria-live on error message for screen readers', () => {
+    render(<FormInput label="Email" error="Email không hợp lệ" />);
+
+    const errorEl = screen.getByText('Email không hợp lệ');
+    expect(errorEl).toHaveAttribute('aria-live', 'polite');
+  });
+
   it('should disable input when disabled prop is true', () => {
     render(<FormInput label="Name" disabled />);
 

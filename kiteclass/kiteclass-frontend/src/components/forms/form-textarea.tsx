@@ -39,7 +39,7 @@ export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
           {...props}
         />
         {error && (
-          <p id={`${textareaId}-error`} className="text-sm text-destructive">
+          <p id={`${textareaId}-error`} className="text-sm text-destructive" aria-live="polite">
             {error}
           </p>
         )}

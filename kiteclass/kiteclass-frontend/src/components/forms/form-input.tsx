@@ -39,7 +39,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           {...props}
         />
         {error && (
-          <p id={`${inputId}-error`} className="text-sm text-destructive">
+          <p id={`${inputId}-error`} className="text-sm text-destructive" aria-live="polite">
             {error}
           </p>
         )}
