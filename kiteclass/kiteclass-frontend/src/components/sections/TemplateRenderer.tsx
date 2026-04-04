@@ -15,6 +15,10 @@ import { TestimonialsSection } from './TestimonialsSection';
 import { CTASection } from './CTASection';
 import { ContactSection } from './ContactSection';
 import { PlaceholderSection } from './PlaceholderSection';
+import { TeachersSection } from './TeachersSection';
+import { CertificatesSection } from './CertificatesSection';
+import { EnrollmentSection } from './EnrollmentSection';
+import { PricingSection } from './PricingSection';
 
 interface LandingData {
   heroTitle?: string;
@@ -66,17 +70,17 @@ function renderSection(sectionId: SectionId, data: LandingData, sectionSlots?: S
     case 'contact':
       return <ContactSection slots={sectionSlots} email={data.contactEmail} phone={data.contactPhone} address={data.address} />;
     case 'pricing':
-      return <PlaceholderSection title={SECTION_LABELS.pricing} description="Thông tin bảng giá sẽ được cập nhật sớm." />;
+      return <PricingSection slots={sectionSlots} />;
     case 'teachers':
-      return <PlaceholderSection title={SECTION_LABELS.teachers} description="Đội ngũ giáo viên giàu kinh nghiệm." />;
+      return <TeachersSection slots={sectionSlots} />;
     case 'certificates':
-      return <PlaceholderSection title={SECTION_LABELS.certificates} description="Chứng chỉ được công nhận." />;
+      return <CertificatesSection slots={sectionSlots} />;
     case 'gallery':
       return <PlaceholderSection title={SECTION_LABELS.gallery} description="Hình ảnh hoạt động." />;
     case 'news':
       return <PlaceholderSection title={SECTION_LABELS.news} description="Tin tức và sự kiện." />;
     case 'enrollment':
-      return <PlaceholderSection title={SECTION_LABELS.enrollment} description="Thông tin tuyển sinh." />;
+      return <EnrollmentSection slots={sectionSlots} />;
     case 'faq':
       return <PlaceholderSection title={SECTION_LABELS.faq} description="Câu hỏi thường gặp." />;
     case 'parents':
