@@ -68,7 +68,7 @@ export const FormSelect = forwardRef<HTMLButtonElement, FormSelectProps>(
           </SelectContent>
         </Select>
         {error && (
-          <p id={`${selectId}-error`} className="text-sm text-destructive">
+          <p id={`${selectId}-error`} className="text-sm text-destructive" aria-live="polite">
             {error}
           </p>
         )}
