@@ -39,6 +39,7 @@ export default function CoursesPage() {
         size: pageSize,
         sort: sortBy === 'newest' ? 'createdAt,desc' : sortBy === 'name' ? 'name,asc' : sortBy === 'price-low' ? 'price,asc' : 'price,desc',
       }),
+    retry: 1,
   });
 
   const totalPages = data ? Math.ceil(data.totalElements / pageSize) : 0;
