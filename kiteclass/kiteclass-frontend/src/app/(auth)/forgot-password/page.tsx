@@ -23,7 +23,7 @@ import { LoadingSpinner } from '@/components/common';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Email không hợp lệ'),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
@@ -63,16 +63,16 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">Check your email</h1>
+            <h1 className="text-3xl font-bold">Kiểm tra email của bạn</h1>
             <p className="text-muted-foreground">
-              We&apos;ve sent password reset instructions to{' '}
+              Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới{' '}
               <span className="font-medium text-foreground">{getValues('email')}</span>
             </p>
           </div>
 
           <Alert>
             <AlertDescription>
-              If you don&apos;t see the email, check your spam folder or try again.
+              Nếu không thấy email, hãy kiểm tra thư mục spam hoặc thử gửi lại.
             </AlertDescription>
           </Alert>
 
@@ -82,13 +82,13 @@ export default function ForgotPasswordPage() {
               className="w-full"
               onClick={() => setEmailSent(false)}
             >
-              Send again
+              Gửi lại
             </Button>
 
             <Link href="/login" className="block">
               <Button variant="ghost" className="w-full">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to login
+                Quay lại đăng nhập
               </Button>
             </Link>
           </div>
@@ -101,9 +101,9 @@ export default function ForgotPasswordPage() {
     <AuthLayout>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Forgot password?</h1>
+          <h1 className="text-3xl font-bold">Quên mật khẩu?</h1>
           <p className="text-muted-foreground">
-            No worries, we&apos;ll send you reset instructions.
+            Đừng lo, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu tới email của bạn.
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
           <FormInput
             label="Email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="ban@example.com"
             error={errors.email?.message}
             disabled={isLoading}
             {...register('email')}
@@ -121,10 +121,10 @@ export default function ForgotPasswordPage() {
             {isLoading ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Sending...
+                Đang gửi...
               </>
             ) : (
-              'Send reset instructions'
+              'Gửi hướng dẫn đặt lại mật khẩu'
             )}
           </Button>
         </form>
@@ -132,7 +132,7 @@ export default function ForgotPasswordPage() {
         <Link href="/login" className="block">
           <Button variant="ghost" className="w-full">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to login
+            Quay lại đăng nhập
           </Button>
         </Link>
       </div>

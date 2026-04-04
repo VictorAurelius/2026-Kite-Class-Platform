@@ -22,8 +22,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/common';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Email không hợp lệ'),
+  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -48,9 +48,9 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Welcome back</h1>
+          <h1 className="text-3xl font-bold">Chào mừng trở lại</h1>
           <p className="text-muted-foreground">
-            Sign in to your account to continue
+            Đăng nhập vào tài khoản của bạn để tiếp tục
           </p>
         </div>
 
@@ -58,14 +58,14 @@ export default function LoginPage() {
           <FormInput
             label="Email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="ban@example.com"
             error={errors.email?.message}
             disabled={isLoggingIn}
             {...register('email')}
           />
 
           <FormInput
-            label="Password"
+            label="Mật khẩu"
             type="password"
             placeholder="••••••••"
             error={errors.password?.message}
@@ -85,7 +85,7 @@ export default function LoginPage() {
                 htmlFor="remember"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Remember me
+                Ghi nhớ đăng nhập
               </label>
             </div>
 
@@ -93,7 +93,7 @@ export default function LoginPage() {
               href="/forgot-password"
               className="text-sm font-medium text-primary hover:underline"
             >
-              Forgot password?
+              Quên mật khẩu?
             </Link>
           </div>
 
@@ -101,18 +101,18 @@ export default function LoginPage() {
             {isLoggingIn ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Signing in...
+                Đang đăng nhập...
               </>
             ) : (
-              'Sign in'
+              'Đăng nhập'
             )}
           </Button>
         </form>
 
         <div className="text-center text-sm">
-          <span className="text-muted-foreground">Don&apos;t have an account? </span>
+          <span className="text-muted-foreground">Chưa có tài khoản? </span>
           <Link href="/register" className="font-medium text-primary hover:underline">
-            Sign up
+            Đăng ký
           </Link>
         </div>
       </div>

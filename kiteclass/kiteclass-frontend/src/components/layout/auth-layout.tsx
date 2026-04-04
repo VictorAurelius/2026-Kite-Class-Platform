@@ -25,23 +25,23 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             <h1 className="text-4xl font-bold">KiteClass</h1>
           </div>
           <h2 className="text-2xl font-semibold">
-            Manage your education center with ease
+            Quản lý trung tâm giáo dục dễ dàng & hiệu quả
           </h2>
           <p className="text-lg text-primary-foreground/90">
-            Student management, attendance tracking, billing, and more - all in one platform.
+            Quản lý học viên, điểm danh, học phí và nhiều hơn nữa — tất cả trong một nền tảng.
           </p>
           <ul className="space-y-3">
             <li className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-              <span>Multi-tenant SaaS platform</span>
+              <span>Nền tảng SaaS đa trung tâm</span>
             </li>
             <li className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-              <span>Real-time attendance & grading</span>
+              <span>Điểm danh & chấm điểm thời gian thực</span>
             </li>
             <li className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-              <span>Automated billing & payments</span>
+              <span>Học phí & thanh toán tự động</span>
             </li>
           </ul>
         </div>
@@ -61,7 +61,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
           {/* Footer */}
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} KiteClass Platform. All rights reserved.
+            © {new Date().getFullYear()} KiteClass Platform. Bảo lưu mọi quyền.
           </p>
         </div>
       </div>
