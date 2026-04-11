@@ -1,5 +1,7 @@
 /**
  * Dashboard layout with sidebar, header, and content area.
+ * Desktop: fixed sidebar + content with pl-64.
+ * Mobile: hidden sidebar, hamburger in header opens Sheet drawer.
  *
  * @author KiteClass Team
  * @since 1.0.0
@@ -7,7 +9,7 @@
 
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from './footer';
@@ -17,15 +19,21 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
+      {/* Desktop sidebar — hidden on mobile via sidebar.tsx */}
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden pl-64">
-        {/* Header */}
-        <Header />
+      <div className="flex flex-1 flex-col overflow-hidden pl-0 md:pl-64">
+        {/* Header — receives hamburger state */}
+        <Header
+          mobileSidebarOpen={mobileSidebarOpen}
+          onMobileSidebarToggle={() => setMobileSidebarOpen((v) => !v)}
+          onMobileSidebarClose={() => setMobileSidebarOpen(false)}
+        />
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto bg-muted/50">
