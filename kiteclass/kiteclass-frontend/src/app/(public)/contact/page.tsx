@@ -154,7 +154,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold mb-1">Email</h3>
                     <p className="text-sm text-muted-foreground">
-                      support@kiteclass.com
+                      {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@kiteclass.com'}
                     </p>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-semibold mb-1">Hotline</h3>
                     <p className="text-sm text-muted-foreground">
-                      1900 xxxx (8:00 - 18:00)
+                      {process.env.NEXT_PUBLIC_CONTACT_PHONE || '1900 xxxx'} (8:00 - 18:00)
                     </p>
                   </div>
                 </div>

@@ -178,8 +178,8 @@ export default function PublicLayout({
             <div>
               <h3 className="font-semibold mb-4">Liên hệ</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Email: support@kiteclass.com</li>
-                <li>Hotline: 1900 xxxx</li>
+                <li>Email: {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@kiteclass.com'}</li>
+                <li>Hotline: {process.env.NEXT_PUBLIC_CONTACT_PHONE || '1900 xxxx'}</li>
               </ul>
             </div>
           </div>

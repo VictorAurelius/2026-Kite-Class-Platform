@@ -49,8 +49,8 @@ const getLandingPageData = async (tenantOverride?: string) => {
       tagline: 'Nâng tầm giáo dục, tối ưu quản lý',
       primaryColor: '#3B82F6',
       secondaryColor: '#8B5CF6',
-      contactEmail: 'support@kiteclass.com',
-      contactPhone: '1900 xxxx',
+      contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'support@kiteclass.com',
+      contactPhone: process.env.NEXT_PUBLIC_CONTACT_PHONE || '1900 xxxx',
       address: 'Hà Nội, Việt Nam',
     };
   }

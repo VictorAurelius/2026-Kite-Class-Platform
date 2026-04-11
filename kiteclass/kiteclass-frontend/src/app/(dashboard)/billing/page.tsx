@@ -133,7 +133,11 @@ export default function BillingPage() {
         </Select>
       </div>
 
-      {isLoading && <div>Đang tải...</div>}
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" aria-label="Đang tải" />
+        </div>
+      )}
       {error && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/50 p-4 text-destructive">
           <AlertCircle className="h-5 w-5" />
