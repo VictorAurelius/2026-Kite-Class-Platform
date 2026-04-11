@@ -51,7 +51,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function PreferencesSettings() {
-  const { data: preferences, isLoading } = usePreferences();
+  const { data: preferences, isLoading, isError } = usePreferences();
   const updateMutation = useUpdatePreferences();
 
   const {
@@ -80,7 +80,15 @@ export function PreferencesSettings() {
   };
 
   if (isLoading) {
-    return <div>Đang tải...</div>;
+    return <div className="text-muted-foreground p-2">Đang tải cài đặt...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+        Không thể tải tùy chọn. Vui lòng thử lại.
+      </div>
+    );
   }
 
   return (

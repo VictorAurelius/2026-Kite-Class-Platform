@@ -36,7 +36,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function BrandingSettings() {
-  const { data: branding, isLoading } = useBranding();
+  const { data: branding, isLoading, isError } = useBranding();
   const updateMutation = useUpdateBranding();
   const uploadLogoMutation = useUploadLogo();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -83,7 +83,15 @@ export function BrandingSettings() {
   };
 
   if (isLoading) {
-    return <div>Đang tải...</div>;
+    return <div className="text-muted-foreground p-2">Đang tải cài đặt...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+        Không thể tải cài đặt branding. Vui lòng thử lại.
+      </div>
+    );
   }
 
   return (

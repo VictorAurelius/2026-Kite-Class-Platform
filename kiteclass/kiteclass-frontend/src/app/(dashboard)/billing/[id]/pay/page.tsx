@@ -34,7 +34,7 @@ type FormData = z.infer<typeof schema>;
 export default function CreatePaymentPage() {
   const params = useParams();
   const invoiceId = parseInt(params.id as string);
-  const { data: invoice } = useInvoice(invoiceId);
+  const { data: invoice, isLoading, isError } = useInvoice(invoiceId);
   const createPaymentMutation = useCreatePayment();
 
   const {
@@ -61,7 +61,13 @@ export default function CreatePaymentPage() {
     });
   };
 
-  if (!invoice) return <div>Đang tải...</div>;
+  if (isLoading) return <div className="text-muted-foreground p-6">Đang tải...</div>;
+  if (isError || !invoice)
+    return (
+      <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+        Không tìm thấy hóa đơn. <a href="/billing" className="underline">Quay lại danh sách</a>
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
