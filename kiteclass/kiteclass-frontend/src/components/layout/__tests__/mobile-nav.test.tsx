@@ -9,6 +9,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test/utils';
 import userEvent from '@testing-library/user-event';
 import { Header } from '../header';
+import { Sidebar } from '../sidebar';
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ logout: vi.fn(), user: null }),
@@ -65,7 +66,6 @@ describe('Header mobile navigation', () => {
 
 describe('Sidebar', () => {
   it('renders all nav items', () => {
-    const { Sidebar } = require('../sidebar');
     render(<Sidebar />);
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
