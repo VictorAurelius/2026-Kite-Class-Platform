@@ -15,8 +15,8 @@
  *
  * Auth injection:
  *   Injects mock Zustand state into localStorage key 'auth-storage'.
- *   Dashboard pages render full layout; API calls return errors (no backend).
- *   Error/loading states ARE intentional — captures real error handling UI.
+ *   Dashboard pages render full layout with mock API data (via Playwright route interception).
+ *   Pages show realistic content — forms, tables, stats with mock data.
  *
  * Adapted from: claude-starter-kit scripts/capture-screenshots.ts (v2.2.0)
  */
@@ -27,6 +27,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { exec, type ChildProcess } from 'child_process';
 import http from 'http';
+import { setupMockApi } from './mock-api-routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,8 +66,8 @@ const MOCK_AUTH: Record<string, unknown> = {
   version: 0,
 };
 
-// Placeholder ID for parameterized routes — will show 404/error state (captures error UI)
-const SAMPLE_ID = 'audit-001';
+// Numeric ID for parameterized routes — mock API returns data for these IDs
+const SAMPLE_ID = '1';
 
 // ============================================
 // PAGE REGISTRY
@@ -101,7 +102,7 @@ const AUTH_PAGES: PageConfig[] = [
 // === DASHBOARD PAGES (mock auth injected) ===
 const DASHBOARD_PAGES: PageConfig[] = [
   // Overview
-  { name: 'dashboard-teacher', path: '/teacher/dashboard',                needsAuth: true },
+  { name: 'dashboard-teacher', path: '/dashboard',                         needsAuth: true },
   // Classes
   { name: 'classes',           path: '/classes',                          needsAuth: true },
   { name: 'class-detail',      path: `/classes/${SAMPLE_ID}`,             needsAuth: true, note: 'May show 404 — captures error UI' },
@@ -400,6 +401,9 @@ async function main() {
         colorScheme: theme,
       });
       const page = await context.newPage();
+
+      // Intercept all API calls with mock data
+      await setupMockApi(page);
 
       // Pre-inject theme + auth into all pages via initScript
       await setTheme(page, theme === 'dark');
