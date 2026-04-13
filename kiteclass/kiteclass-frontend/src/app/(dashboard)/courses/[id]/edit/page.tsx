@@ -37,7 +37,7 @@ export default function EditCoursePage({
   if (error || !course) {
     return (
       <DashboardLayout>
-        <ErrorAlert title="Lỗi" message="Không tìm thấy khóa học" />
+        <ErrorAlert title="Lỗi" message="Không tìm thấy khóa học" backHref="/courses" backLabel="Quay lại danh sách khóa học" />
       </DashboardLayout>
     );
   }

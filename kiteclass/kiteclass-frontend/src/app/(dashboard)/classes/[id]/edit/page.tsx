@@ -39,7 +39,7 @@ export default function EditClassPage({
   if (error || !classData) {
     return (
       <DashboardLayout>
-        <ErrorAlert title="Lỗi" message="Không tìm thấy lớp học" />
+        <ErrorAlert title="Lỗi" message="Không tìm thấy lớp học" backHref="/classes" backLabel="Quay lại danh sách lớp học" />
       </DashboardLayout>
     );
   }

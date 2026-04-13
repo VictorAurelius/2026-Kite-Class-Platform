@@ -41,6 +41,8 @@ export default function EditStudentPage({
         <ErrorAlert
           title="Lỗi"
           message="Không tìm thấy thông tin học viên"
+          backHref="/students"
+          backLabel="Quay lại danh sách học viên"
         />
       </DashboardLayout>
     );

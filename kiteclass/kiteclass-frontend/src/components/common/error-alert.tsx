@@ -7,7 +7,8 @@
 
 'use client';
 
-import { AlertCircle, X } from 'lucide-react';
+import Link from 'next/link';
+import { AlertCircle, X, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +17,8 @@ interface ErrorAlertProps {
   message: string;
   onDismiss?: () => void;
   onRetry?: () => void;
+  backHref?: string;
+  backLabel?: string;
 }
 
 export function ErrorAlert({
@@ -23,37 +26,49 @@ export function ErrorAlert({
   message,
   onDismiss,
   onRetry,
+  backHref,
+  backLabel = 'Quay lại',
 }: ErrorAlertProps) {
   return (
-    <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
-      <AlertTitle className="flex items-center justify-between">
-        <span>{title}</span>
-        {onDismiss && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={onDismiss}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Dismiss</span>
+    <div className="space-y-4">
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle className="flex items-center justify-between">
+          <span>{title}</span>
+          {onDismiss && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={onDismiss}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Dismiss</span>
+            </Button>
+          )}
+        </AlertTitle>
+        <AlertDescription className="mt-2">
+          <p>{message}</p>
+          {onRetry && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRetry}
+              className="mt-3"
+            >
+              Try Again
+            </Button>
+          )}
+        </AlertDescription>
+      </Alert>
+      {backHref && (
+        <Link href={backHref}>
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {backLabel}
           </Button>
-        )}
-      </AlertTitle>
-      <AlertDescription className="mt-2">
-        <p>{message}</p>
-        {onRetry && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRetry}
-            className="mt-3"
-          >
-            Try Again
-          </Button>
-        )}
-      </AlertDescription>
-    </Alert>
+        </Link>
+      )}
+    </div>
   );
 }
