@@ -123,9 +123,48 @@
 
 ---
 
+## Targeted Re-audit — PR #264 (2026-04-13)
+
+**Method:** 32 screenshots (8 pages × 4 variants) — affected screens only.
+**Screenshots:** `documents/screenshots/after-pr-264/`
+
+### Fix Verification
+
+| Issue | Before | After | Status |
+|-------|--------|-------|--------|
+| S-1 settings stuck loading | "Đang tải cài đặt..." forever | Error message shown immediately | ✅ FIXED |
+| S-2 billing spinner | Spinner no timeout | DashboardLayout + error alert | ✅ FIXED |
+| S-3 billing-pay outside layout | No sidebar/header | Full dashboard chrome + icon + back button | ✅ FIXED |
+| S-4 dashboard skeleton labels | "..." text only | "--" with labels when API fails | ✅ FIXED |
+| S-4 attendance-stats skeleton | Blank rectangles | Empty state with icons + messages | ✅ FIXED |
+| S-5 students/teachers spinner | Spinner only | Error alert "Lỗi tải dữ liệu" | ✅ FIXED |
+
+### Updated Scores (affected screens only)
+
+| Screen | Before (04-13) | After PR #264 | Delta |
+|--------|----------------|---------------|-------|
+| Billing-pay | 56/128 | **76/128** | +20 |
+| Billing | 69/128 | **82/128** | +13 |
+| Settings | 62/128 | **72/128** | +10 |
+| Dashboard-teacher | 76/128 | **86/128** | +10 |
+| Students | 76/128 | **82/128** | +6 |
+| Teachers | 76/128 | **82/128** | +6 |
+| Attendance-stats | 76/128 | **80/128** | +4 |
+
+### Remaining Issues
+
+| Priority | Count | Notes |
+|----------|-------|-------|
+| 🟢 P3 | 2 | Landing nav active state, auth mobile branding |
+| 🟡 Observation | 2 | Settings + attendance-stats missing DashboardLayout (pre-existing, not in scope) |
+
+---
+
 ## Next Steps
 
-1. Wrap billing-pay + billing-detail error states in dashboard layout
-2. Add timeout/error fallback to settings loading
-3. Add labels to skeleton cards (dashboard, attendance-stats)
-4. Add empty state after spinner timeout for billing, students, teachers
+1. ~~Wrap billing-pay + billing-detail error states in dashboard layout~~ ✅ Done PR #264
+2. ~~Add timeout/error fallback to settings loading~~ ✅ Done PR #264
+3. ~~Add labels to skeleton cards (dashboard, attendance-stats)~~ ✅ Done PR #264
+4. ~~Add empty state after spinner timeout for billing, students, teachers~~ ✅ Done PR #264
+5. (P3) Add DashboardLayout to settings + attendance-stats pages
+6. (P3) Landing nav active state
