@@ -40,6 +40,7 @@
 | `quality-audit/SKILL.md` | Quality scoring (100 diem) | Danh gia chat luong |
 | `quality/ui-review/SKILL.md` | UI audit per-screen /128, before/after screenshots | Sau moi frontend PR |
 | `wave-completion-check.md` | Wave completion verification | Cuoi moi wave |
+| `workflow/repo-status/SKILL.md` | Remote repo health check (5 levels) | Bat dau conversation, check tinh trang repo |
 
 ### Technical Standards
 **Backend:**
@@ -75,6 +76,7 @@
 | `check-pr/` | /check-pr skill |
 | `fix-pr/` | /fix-pr skill |
 | `start-pr/` | /start-pr skill |
+| `repo-status/SKILL.md` | /repo-status — remote repo health check (GREEN→BLACK) |
 | `development-workflow.md` | Day-to-day development workflow |
 | `priority-pr-planning.md` | PR prioritization |
 

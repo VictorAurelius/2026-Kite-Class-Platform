@@ -156,6 +156,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `quality-audit/SKILL.md` - Quality scoring (100 points)
 - `quality/ui-review/SKILL.md` - UI audit per-screen /128, before/after screenshots
 - `wave-completion-check.md` - Wave completion verification
+- `workflow/repo-status/SKILL.md` - Remote repo health check (5 levels: GREEN→BLACK)
 
 ### Technical Standards (consolidated)
 - `backend/backend-standards.md` - Code style, API, DB, enums, errors, Maven
@@ -173,6 +174,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `workflow/check-pr/` - /check-pr skill
 - `workflow/fix-pr/` - /fix-pr skill
 - `workflow/start-pr/` - /start-pr skill
+- `workflow/repo-status/` - /repo-status skill
 
 ## Project Folder Structure
 
