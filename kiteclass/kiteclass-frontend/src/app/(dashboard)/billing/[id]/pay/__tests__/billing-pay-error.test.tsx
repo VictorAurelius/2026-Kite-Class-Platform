@@ -16,6 +16,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: '999' }),
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
+  usePathname: () => '/billing/999/pay',
 }));
 
 describe('CreatePaymentPage error state', () => {
@@ -32,7 +33,7 @@ describe('CreatePaymentPage error state', () => {
       expect(screen.getByText(/Không tìm thấy hóa đơn/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('link', { name: /Quay lại danh sách/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Quay lại danh sách hóa đơn/i })).toBeInTheDocument();
   });
 
   it('shows loading state initially', () => {
@@ -44,6 +45,6 @@ describe('CreatePaymentPage error state', () => {
     );
 
     render(<CreatePaymentPage />);
-    expect(screen.getByText(/Đang tải/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Đang tải/i)).toBeInTheDocument();
   });
 });
