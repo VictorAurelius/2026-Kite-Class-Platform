@@ -119,10 +119,16 @@ check_ci() {
         fi
     fi
 
+    # Count stale failed runs in history (all failed runs on main)
+    local failed_run_count=0
+    failed_run_count=$(gh run list --branch main --limit 30 --json conclusion \
+        --jq '[.[] | select(.conclusion=="failure")] | length' 2>/dev/null) || true
+
     echo "ci_status=$ci_status"
     echo "ci_failures=$ci_failures"
     echo "ci_days_red=$ci_days_red"
     echo "ci_last_green=$ci_last_green"
+    echo "ci_failed_history=$failed_run_count"
     echo "ci_details=$(echo -e "$ci_details" | head -10)"
 }
 
@@ -231,6 +237,7 @@ determine_level() {
     local stale_branches="$4"
     local has_unfixed_gaps="$5"
     local gap_p0="$6"
+    local ci_failed_history="${7:-0}"
 
     # BLACK: CI red >7 days
     if [ "$ci_days_red" -gt 7 ]; then
@@ -251,13 +258,13 @@ determine_level() {
         return
     fi
 
-    # YELLOW: minor gaps (P2/P3) OR 1-2 stale branches
-    if [ "$total_stale" -gt 0 ]; then
+    # YELLOW: minor gaps (P2/P3) OR 1-2 stale branches OR dirty CI history (>2 failed runs)
+    if [ "$total_stale" -gt 0 ] || [ "$ci_failed_history" -gt 2 ]; then
         echo "YELLOW"
         return
     fi
 
-    # GREEN: all clean
+    # GREEN: all clean + CI history clean (≤2 failed runs)
     echo "GREEN"
 }
 
@@ -271,6 +278,7 @@ ci_status=$(echo "$CI_DATA" | grep "^ci_status=" | cut -d= -f2)
 ci_failures=$(echo "$CI_DATA" | grep "^ci_failures=" | cut -d= -f2)
 ci_days_red=$(echo "$CI_DATA" | grep "^ci_days_red=" | cut -d= -f2)
 ci_last_green=$(echo "$CI_DATA" | grep "^ci_last_green=" | cut -d= -f2-)
+ci_failed_history=$(echo "$CI_DATA" | grep "^ci_failed_history=" | cut -d= -f2)
 ci_details=$(echo "$CI_DATA" | grep "^ci_details=" | cut -d= -f2-)
 
 open_prs=$(echo "$PR_DATA" | grep "^open_prs=" | cut -d= -f2)
@@ -288,7 +296,7 @@ ui_audit=$(echo "$AUDIT_DATA" | grep "^ui_audit=" | cut -d= -f2-)
 gap_details=$(echo "$AUDIT_DATA" | grep "^gap_details=" | cut -d= -f2-)
 
 # Determine level
-LEVEL=$(determine_level "$ci_status" "$ci_days_red" "$open_prs" "$stale_branches" "$has_unfixed_gaps" "$gap_p0")
+LEVEL=$(determine_level "$ci_status" "$ci_days_red" "$open_prs" "$stale_branches" "$has_unfixed_gaps" "$gap_p0" "$ci_failed_history")
 
 # --- Output ---
 case "$OUTPUT_MODE" in
@@ -303,7 +311,8 @@ case "$OUTPUT_MODE" in
     "status": "$ci_status",
     "failures": $ci_failures,
     "days_red": $ci_days_red,
-    "last_green": "$ci_last_green"
+    "last_green": "$ci_last_green",
+    "failed_history": $ci_failed_history
   },
   "branches": {
     "open_prs": $open_prs,
@@ -350,6 +359,12 @@ EOJSON
             fi
         else
             echo -e "  ${YELLOW}⚠️  CI:${NC} Status unknown"
+        fi
+        # CI history cleanliness
+        if [ "$ci_failed_history" -gt 2 ]; then
+            echo -e "  ${YELLOW}⚠️  CI History:${NC} $ci_failed_history failed runs (cleanup needed, run: scripts/cleanup-ci-runs.sh)"
+        elif [ "$ci_failed_history" -gt 0 ]; then
+            echo -e "  ${CYAN}ℹ️  CI History:${NC} $ci_failed_history failed run(s) in history"
         fi
         echo ""
 

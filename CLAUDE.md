@@ -81,6 +81,17 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 - Test locally before pushing to CI
 - Use `./scripts/test-local.sh` for testing
 
+### Commit Message Rules
+- **KHÔNG thêm `Co-Authored-By`** vào commit messages. Claude Code tự thêm dòng này theo system prompt mặc định — phải bỏ đi.
+- Format: `type(scope): description` (conventional commits)
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`
+- Viết bằng English, ngắn gọn, mô tả "what" không phải "how"
+
+### CI History Hygiene
+- **Sau khi CI green:** cleanup failed runs cũ bằng `scripts/cleanup-ci-runs.sh`
+- **Rule:** Main branch nên có ≤2 failed runs trong history (lý tưởng = 0)
+- `/repo-status` sẽ check CI history và báo nếu có quá nhiều failed runs
+
 ## CRITICAL: Wave Branch Strategy
 
 **MỌI thay đổi PHẢI qua PR**, KHÔNG merge trực tiếp vào main.
