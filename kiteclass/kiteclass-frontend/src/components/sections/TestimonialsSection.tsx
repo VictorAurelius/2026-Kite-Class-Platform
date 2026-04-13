@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
@@ -42,7 +43,7 @@ export function TestimonialsSection({ slots }: TestimonialsSectionProps) {
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full flex items-center justify-center bg-theme-primary/10">
                     {t.image ? (
-                      <img src={t.image} alt={t.title} className="h-10 w-10 rounded-full object-cover" />
+                      <Image src={t.image} alt={t.title} width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover" />
                     ) : (
                       <span className="font-semibold text-sm">{t.icon || t.title.split(' ').map(w => w[0]).join('')}</span>
                     )}

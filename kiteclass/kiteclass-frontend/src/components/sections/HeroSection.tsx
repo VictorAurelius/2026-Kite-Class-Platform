@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -20,7 +21,7 @@ export function HeroSection({ slots, title, subtitle, tagline }: HeroSectionProp
     <section className="py-20 bg-gradient-to-b from-theme-primary/5 to-background">
       <div className="container mx-auto px-4 text-center">
         {heroImage && (
-          <img src={heroImage} alt="" className="mx-auto mb-8 max-h-64 rounded-2xl shadow-lg" />
+          <Image src={heroImage} alt="" width={640} height={256} unoptimized className="mx-auto mb-8 max-h-64 rounded-2xl shadow-lg object-cover" />
         )}
         <h1 className="text-4xl md:text-6xl font-bold mb-6">
           {heroTitle || 'Trung tâm giáo dục'}
