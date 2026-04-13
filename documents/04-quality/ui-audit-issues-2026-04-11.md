@@ -8,18 +8,21 @@
 
 ## Tóm tắt Executive
 
-| Severity | Count | Mô tả ngắn |
-|----------|-------|------------|
-| 🔴 P0 Critical | 4 | Visible in production, breaks functionality |
-| 🟠 P1 High | 5 | Poor UX, dead-end flows |
-| 🟡 P2 Medium | 4 | Placeholder data, minor broken states |
-| 🟢 P3 Low | 3 | UI polish, nice-to-have |
+| Severity | Total | Fixed | Open | Fixed by |
+|----------|-------|-------|------|----------|
+| 🔴 P0 Critical | 4 | 4 | 0 | PR #261, #262 |
+| 🟠 P1 High | 5 | 5 | 0 | PR #263 |
+| 🟡 P2 Medium | 4 | 2 | 2 | PR #263 (partial) |
+| 🟢 P3 Low | 3 | 1 | 2 | P3-1 auto-resolved |
+
+**Updated 2026-04-13:** 12/16 issues fixed. 4 remaining (2 P2 + 2 P3, all minor).
+**Re-audit screenshots needed** to visually confirm fixes.
 
 ---
 
-## 🔴 P0 — Critical (Production Bugs)
+## 🔴 P0 — Critical (Production Bugs) — ✅ ALL FIXED
 
-### P0-1: ReactQueryDevtools hiển thị ở Production
+### P0-1: ReactQueryDevtools hiển thị ở Production — ✅ Fixed PR #261
 
 **Trang bị ảnh hưởng:** TẤT CẢ 36 trang  
 **Visible:** Badge đỏ "2 errors" ở bottom-left MỌI trang  
@@ -39,7 +42,7 @@
 
 ---
 
-### P0-2: Mobile Dashboard Layout Broken — 100% trang Dashboard
+### P0-2: Mobile Dashboard Layout Broken — ✅ Fixed PR #262
 
 **Trang bị ảnh hưởng:** Tất cả 21+ dashboard pages trên mobile  
 **Triệu chứng:** Sidebar + content render side-by-side → content area cực hẹp, text bị wordwrap từng chữ ("Lớp\nhọc", "Quản lý\ndanh\nsách...")  
@@ -61,7 +64,7 @@ Sidebar không có `hidden md:flex`, content area không có `md:pl-64` — trê
 
 ---
 
-### P0-3: `billing-pay` Page Hoàn Toàn Trắng
+### P0-3: `billing-pay` Page Hoàn Toàn Trắng — ✅ Fixed PR #261
 
 **Route:** `/billing/:id/pay`  
 **Triệu chứng:** Chỉ hiện "Đang tải..." — không render form thanh toán  
@@ -82,7 +85,7 @@ if (!invoice) return <ErrorState message="Không tìm thấy hóa đơn" />;
 
 ---
 
-### P0-4: `settings` Page Hoàn Toàn Trắng
+### P0-4: `settings` Page Hoàn Toàn Trắng — ✅ Fixed PR #261
 
 **Route:** `/settings`  
 **Triệu chứng:** Header + tabs hiển thị, content area chỉ "Đang tải..."  
@@ -99,9 +102,9 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-## 🟠 P1 — High (Dead-end UX)
+## 🟠 P1 — High (Dead-end UX) — ✅ ALL FIXED
 
-### P1-1: 5 List Pages Spinner Vô Hạn
+### P1-1: 5 List Pages Spinner Vô Hạn — ✅ Fixed PR #263
 
 **Trang:** Students, Teachers, Courses, Classes, Billing  
 **Triệu chứng:** Spinner xoay vô tận — không có timeout, không có empty state  
@@ -110,7 +113,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P1-2: Dashboard Teacher Stats Cards — Skeleton Vĩnh Viễn
+### P1-2: Dashboard Teacher Stats Cards — ✅ Fixed PR #263
 
 **Route:** `/teacher/dashboard`  
 **Triệu chứng:** 4 stat cards (tổng học viên, lớp học, etc.) là blank skeleton indefinitely  
@@ -119,7 +122,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P1-3: `billing-detail` Error State Minimal
+### P1-3: `billing-detail` Error State Minimal — ✅ Fixed PR #263
 
 **Route:** `/billing/:id`  
 **Triệu chứng:** Chỉ text thuần "Không tìm thấy hóa đơn" — không có navigation, không có back button, không có layout dashboard  
@@ -127,7 +130,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P1-4: Catalog Infinite Loading Spinner (Public Page)
+### P1-4: Catalog Infinite Loading Spinner — ✅ Fixed PR #263
 
 **Route:** `/catalog`  
 **Triệu chứng:** Spinner loading ở giữa trang — không có timeout fallback  
@@ -136,7 +139,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P1-5: Catalog Detail 404 Minimal
+### P1-5: Catalog Detail 404 Minimal — ✅ Fixed PR #263
 
 **Route:** `/catalog/:id`  
 **Triệu chứng:** Page "Không tìm thấy trang" — đúng nhưng UX kém (không breadcrumb, không suggest navigation)  
@@ -144,9 +147,9 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-## 🟡 P2 — Medium (Placeholder & Polish)
+## 🟡 P2 — Medium (Placeholder & Polish) — 2/4 Fixed
 
-### P2-1: Contact Page — Placeholder Info
+### P2-1: Contact Page — ✅ Fixed PR #263 (env vars)
 
 **Route:** `/contact`  
 **Visible data:**
@@ -158,7 +161,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P2-2: Footer — Cùng Placeholder Info
+### P2-2: Footer — ✅ Fixed PR #263 (env vars)
 
 **Trang bị ảnh hưởng:** TẤT CẢ public pages (landing, about, catalog, contact)  
 **Visible:** `Email: support@kiteclass.com` + `Hotline: 1900 xxxx`  
@@ -166,7 +169,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P2-3: Attendance Stats — Skeleton Cards Không Có Label
+### P2-3: Attendance Stats — Skeleton Cards Không Có Label — ⬜ Open
 
 **Route:** `/admin/attendance/stats`  
 **Triệu chứng:** 4 skeleton cards loading nhưng không có label text → user không biết stats là gì  
@@ -174,24 +177,24 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P2-4: `class-attendance`, `student-attendance` — Error "Lỗi" Bare Text
+### P2-4: `class-attendance`, `student-attendance` — Error "Lỗi" Bare Text — ⬜ Open
 
 **Triệu chứng:** Box đỏ nhỏ "Lỗi / Không tìm thấy lớp học" — không có context, không có navigation  
 **Fix:** Dùng consistent `ErrorState` component với back button
 
 ---
 
-## 🟢 P3 — Low (Polish)
+## 🟢 P3 — Low (Polish) — 1/3 Fixed
 
-### P3-1: Mobile — "2 errors" overlay che phủ content
+### P3-1: Mobile — "2 errors" overlay — ✅ Auto-resolved (P0-1 fix)
 
 Sau khi fix P0-1 (devtools), issue này tự resolve.
 
-### P3-2: Landing Page — Nav Active State
+### P3-2: Landing Page — Nav Active State — ⬜ Open
 
 Trên landing, không có nav item nào được highlight là active. Minor UX issue.
 
-### P3-3: Auth Pages Mobile — Left Panel Ẩn
+### P3-3: Auth Pages Mobile — Left Panel Ẩn — ⬜ Open
 
 Trên mobile auth (login, register), left panel màu xanh với KiteClass branding bị ẩn hoàn toàn. UX chấp nhận được nhưng branding bị mất. Có thể thêm logo nhỏ ở top-center thay thế.
 

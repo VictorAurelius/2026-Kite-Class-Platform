@@ -210,12 +210,17 @@ check_audit_gaps() {
         gap_details=$(echo "$active_gaps" | grep -E '🔴|🟠|🟡|P0|P1|P2' | head -10)
     fi
 
-    # Also check UI audit issues
+    # Also check UI audit issues (count open items by severity)
     local ui_audit
     ui_audit=$(ls documents/04-quality/ui-audit-issues-*.md 2>/dev/null | sort -r | head -1) || true
     local ui_audit_date=""
+    local ui_open_total=0
     if [ -n "$ui_audit" ]; then
         ui_audit_date=$(echo "$ui_audit" | grep -oP '\d{4}-\d{2}-\d{2}' | tail -1) || true
+        # Count total open items (marked with ⬜)
+        ui_open_total=$(grep -c '⬜' "$ui_audit" 2>/dev/null || true)
+        # Add UI open items to P2 count (open UI issues are medium priority)
+        gap_p2=$((gap_p2 + ui_open_total))
     fi
 
     echo "has_unfixed_gaps=$has_unfixed_gaps"
@@ -226,6 +231,7 @@ check_audit_gaps() {
     echo "latest_audit_date=$latest_audit_date"
     echo "ui_audit=$ui_audit"
     echo "ui_audit_date=$ui_audit_date"
+    echo "ui_open_total=$ui_open_total"
     echo "gap_details=$gap_details"
 }
 
@@ -293,6 +299,7 @@ gap_p2=$(echo "$AUDIT_DATA" | grep "^gap_p2=" | cut -d= -f2)
 latest_audit=$(echo "$AUDIT_DATA" | grep "^latest_audit=" | cut -d= -f2-)
 latest_audit_date=$(echo "$AUDIT_DATA" | grep "^latest_audit_date=" | cut -d= -f2-)
 ui_audit=$(echo "$AUDIT_DATA" | grep "^ui_audit=" | cut -d= -f2-)
+ui_open_total=$(echo "$AUDIT_DATA" | grep "^ui_open_total=" | cut -d= -f2)
 gap_details=$(echo "$AUDIT_DATA" | grep "^gap_details=" | cut -d= -f2-)
 
 # Determine level
@@ -416,6 +423,16 @@ EOJSON
             echo -e "  ${GREEN}✅ Audit Gaps:${NC} No P0/P1 gaps (latest: $latest_audit_date)"
             if [ "$gap_p2" -gt 0 ]; then
                 echo "     P2 (minor): $gap_p2 items"
+            fi
+        fi
+
+        # Factor 4: UI Audit
+        if [ -n "$ui_audit" ]; then
+            echo "───────────────────────────────────────────────────────────"
+            if [ "$ui_open_total" -gt 0 ]; then
+                echo -e "  ${CYAN}ℹ️  UI Audit:${NC} $ui_open_total open issue(s) ($ui_audit)"
+            else
+                echo -e "  ${GREEN}✅ UI Audit:${NC} All issues resolved"
             fi
         fi
 
