@@ -179,8 +179,18 @@ export default function AdminAttendanceStatsPage() {
       {/* System Stats Cards */}
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+          {['Tổng lớp học', 'Tổng buổi học', 'Tỷ lệ điểm danh TB', 'Tổng vắng'].map((label) => (
+            <Card key={label}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {label}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-20 animate-pulse rounded bg-muted" />
+                <div className="mt-2 h-3 w-24 animate-pulse rounded bg-muted" />
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : !systemStats && !classesError && !statsError ? (

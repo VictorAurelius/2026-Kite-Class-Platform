@@ -76,7 +76,7 @@ const getRecentActivities = async () => {
 };
 
 export default function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
   });
@@ -119,10 +119,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <div className="text-2xl font-bold">...</div>
+                <div className="h-7 w-12 animate-pulse rounded bg-muted" />
               ) : (
                 <>
-                  <div className="text-2xl font-bold">{stats?.studentsCount}</div>
+                  <div className="text-2xl font-bold">{statsError ? '--' : stats?.studentsCount}</div>
                   <Link href="/students">
                     <p className="text-xs text-muted-foreground hover:underline">
                       Xem tất cả →
@@ -140,10 +140,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <div className="text-2xl font-bold">...</div>
+                <div className="h-7 w-12 animate-pulse rounded bg-muted" />
               ) : (
                 <>
-                  <div className="text-2xl font-bold">{stats?.teachersCount}</div>
+                  <div className="text-2xl font-bold">{statsError ? '--' : stats?.teachersCount}</div>
                   <Link href="/teachers">
                     <p className="text-xs text-muted-foreground hover:underline">
                       Xem tất cả →
@@ -161,10 +161,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <div className="text-2xl font-bold">...</div>
+                <div className="h-7 w-12 animate-pulse rounded bg-muted" />
               ) : (
                 <>
-                  <div className="text-2xl font-bold">{stats?.coursesCount}</div>
+                  <div className="text-2xl font-bold">{statsError ? '--' : stats?.coursesCount}</div>
                   <Link href="/courses">
                     <p className="text-xs text-muted-foreground hover:underline">
                       Xem tất cả →
@@ -182,10 +182,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               {statsLoading ? (
-                <div className="text-2xl font-bold">...</div>
+                <div className="h-7 w-12 animate-pulse rounded bg-muted" />
               ) : (
                 <>
-                  <div className="text-2xl font-bold">{stats?.classesCount}</div>
+                  <div className="text-2xl font-bold">{statsError ? '--' : stats?.classesCount}</div>
                   <Link href="/classes">
                     <p className="text-xs text-muted-foreground hover:underline">
                       Xem tất cả →

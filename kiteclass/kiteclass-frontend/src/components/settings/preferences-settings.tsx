@@ -80,7 +80,46 @@ export function PreferencesSettings() {
   };
 
   if (isLoading) {
-    return <div className="text-muted-foreground p-2">Đang tải cài đặt...</div>;
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Ngôn ngữ & Múi giờ
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="h-10 animate-pulse rounded bg-muted" />
+            <div className="h-10 animate-pulse rounded bg-muted" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Moon className="h-5 w-5" />
+              Giao diện
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-10 animate-pulse rounded bg-muted" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Thông báo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-8 animate-pulse rounded bg-muted" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (isError) {

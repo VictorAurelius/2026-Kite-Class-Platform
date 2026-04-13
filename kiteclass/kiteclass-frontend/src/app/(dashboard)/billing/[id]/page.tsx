@@ -8,6 +8,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { DashboardLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -20,7 +21,7 @@ import {
 } from '@/hooks/use-invoices';
 import { useInvoicePayments } from '@/hooks/use-payments';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { CreditCard, XCircle, AlertTriangle } from 'lucide-react';
+import { CreditCard, XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InvoiceDetailPage() {
@@ -31,15 +32,29 @@ export default function InvoiceDetailPage() {
   const applyLateFeesMutation = useApplyLateFees(id);
   const cancelMutation = useCancelInvoice(id);
 
-  if (isLoading) return <div>Đang tải...</div>;
-  if (error) return (
-    <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-      <p className="text-sm text-destructive">Không thể tải dữ liệu. Vui lòng thử lại.</p>
-    </div>
+  if (isLoading) return (
+    <DashboardLayout>
+      <div className="flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" aria-label="Đang tải" />
+      </div>
+    </DashboardLayout>
   );
-  if (!invoice) return <div>Không tìm thấy hóa đơn</div>;
+
+  if (error || !invoice) return (
+    <DashboardLayout>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
+        <h2 className="mb-2 text-xl font-semibold">Không tìm thấy hóa đơn</h2>
+        <p className="mb-4 text-muted-foreground">Hóa đơn không tồn tại hoặc không thể tải dữ liệu.</p>
+        <Link href="/billing">
+          <Button variant="outline">Quay lại danh sách hóa đơn</Button>
+        </Link>
+      </div>
+    </DashboardLayout>
+  );
 
   return (
+    <DashboardLayout>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -213,5 +228,6 @@ export default function InvoiceDetailPage() {
         </Card>
       )}
     </div>
+    </DashboardLayout>
   );
 }

@@ -83,7 +83,28 @@ export function BrandingSettings() {
   };
 
   if (isLoading) {
-    return <div className="text-muted-foreground p-2">Đang tải cài đặt...</div>;
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Logo</CardTitle>
+            <CardDescription>Tải lên logo của tổ chức</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-20 w-20 animate-pulse rounded-lg bg-muted" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin tổ chức</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="h-10 animate-pulse rounded bg-muted" />
+            <div className="h-10 animate-pulse rounded bg-muted" />
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (isError) {
