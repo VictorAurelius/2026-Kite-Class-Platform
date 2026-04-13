@@ -188,16 +188,20 @@ check_audit_gaps() {
     gaps_section=$(sed -n '/## Remaining Gaps\|## Action Items\|## Improvement Roadmap/,/^## [^#]/p' "$audit_file" 2>/dev/null) || true
 
     if [ -n "$gaps_section" ]; then
-        gap_p0=$(echo "$gaps_section" | grep -cE '🔴|P0' || true)
-        gap_p1=$(echo "$gaps_section" | grep -cE '🟠|P1' || true)
-        gap_p2=$(echo "$gaps_section" | grep -cE '🟡|P2' || true)
+        # Exclude resolved items (strikethrough ~~ or ✅ Fixed/Done)
+        local active_gaps
+        active_gaps=$(echo "$gaps_section" | grep -v '~~' | grep -v '✅.*Fixed\|✅.*Done\|✅.*Resolved')
+
+        gap_p0=$(echo "$active_gaps" | grep -cE '🔴|P0' || true)
+        gap_p1=$(echo "$active_gaps" | grep -cE '🟠|P1' || true)
+        gap_p2=$(echo "$active_gaps" | grep -cE '🟡|P2' || true)
 
         if [ "$gap_p0" -gt 0 ] || [ "$gap_p1" -gt 0 ]; then
             has_unfixed_gaps="true"
         fi
 
-        # Extract gap summaries (first 10 lines with priority markers)
-        gap_details=$(echo "$gaps_section" | grep -E '🔴|🟠|🟡|P0|P1|P2' | head -10)
+        # Extract gap summaries (active only, first 10 lines)
+        gap_details=$(echo "$active_gaps" | grep -E '🔴|🟠|🟡|P0|P1|P2' | head -10)
     fi
 
     # Also check UI audit issues

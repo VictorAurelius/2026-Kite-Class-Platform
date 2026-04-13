@@ -168,8 +168,8 @@
 | 🟡 P2 | Tăng số lượng IT test (currently 4) | Backend Tests: 9→10 | 2 days | Open |
 | 🟡 P3 | hCaptcha + security hardening | Security: 9→10 | 4h | Open |
 
-**Updated 2026-04-13:** P0 resolved (CI green). hCaptcha + Playwright E2E downgraded P1→P2 (nice-to-have, không block production).
-**Current estimated score:** 93/100 A (CI/CD confirmed 8/10).
+**Updated 2026-04-13:** Critical gap resolved (CI green). hCaptcha + Playwright E2E downgraded to medium priority (nice-to-have, không block production).
+**Current confirmed score:** 93/100 A (CI/CD confirmed 8/10).
 
 ---
 
