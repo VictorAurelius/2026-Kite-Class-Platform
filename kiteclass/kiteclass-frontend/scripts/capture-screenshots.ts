@@ -330,6 +330,17 @@ async function capturePage(
     await page.goto(url, { waitUntil, timeout });
     await page.waitForTimeout(isProd ? 1500 : (p.waitExtra ?? 1200));
 
+    // Dismiss Next.js dev error overlay if present (dev-only, not visible in production)
+    try {
+      const dismissBtn = page.locator('nextjs-portal button[aria-label="Close"]');
+      if (await dismissBtn.isVisible({ timeout: 300 })) {
+        await dismissBtn.click();
+        await page.waitForTimeout(200);
+      }
+    } catch {
+      // Overlay not present — expected in production
+    }
+
     const screenshotPath = path.join(pageDir, filename);
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
