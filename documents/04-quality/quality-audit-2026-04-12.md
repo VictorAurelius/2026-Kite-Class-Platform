@@ -15,17 +15,15 @@
 | 2 | Security | 9 | 10 | ✅ | = |
 | 3 | Backend Tests | 9 | 10 | ✅ | = |
 | 4 | Frontend Tests | 9 | 10 | ✅ | = |
-| 5 | CI/CD | **PENDING** | 10 | ⏳ | ↑ est. +2 |
+| 5 | CI/CD | 8 | 10 | ✅ | ↑ +2 |
 | 6 | UI/UX | 10 | 10 | ✅ | = |
 | 7 | DevOps/Infra | 10 | 10 | ✅ | = |
 | 8 | Documentation | 10 | 10 | ✅ | = |
 | 9 | Code Quality | 10 | 10 | ✅ | = |
 | 10 | Project Management | 10 | 10 | ✅ | = |
-| **Total (CI confirmed)** | | **est. 93** | **100** | **A** | **+2** |
+| **Total** | | **93** | **100** | **A** | **+2** |
 
-> **⏳ CI/CD PENDING:** `api.github.com` bị block từ WSL2 — không thể verify CI cho commit `1a542b99`.
-> Kiểm tra tại: https://github.com/VictorAurelius/2026-Kite-Class-Platform/actions
-> Nếu CI pass → est. 93/100 A. Nếu CI fail → cần diagnose.
+> **✅ CI confirmed 2026-04-13:** PR #263 fixed ESLint errors, CI green on main. Score confirmed 93/100 A.
 
 ### Grade Scale
 - 95-100: A+ (Production Excellence)
@@ -101,17 +99,16 @@
 - -2: Không thể verify E2E pass do Docker không available local
 - -0: (AI features N/A cho KiteClass)
 
-**CI/CD (PENDING)**
+**CI/CD (8/10)** ✅ Confirmed 2026-04-13
 
-Cải thiện so với kỳ trước:
 | Tiêu chí | Prev | Now |
 |----------|------|-----|
 | Stale remote branches | 14 ❌ | **0** ✅ |
 | Open PRs | 0 ✅ | 0 ✅ |
-| CI green on main | ❌ (broken lockfile) | **PENDING** (test fix pushed) |
+| CI green on main | ❌ (broken lockfile) | **✅ Green** (PR #263 fixed ESLint) |
 | CI history spam | ⚠️ (4 failures) | Improving |
 
-**Estimate: 8/10** nếu CI `1a542b99` pass (stale branches = 0 → +2, CI green → +4, 0 open PRs → +2, history = -2 do previous failures).
+**8/10:** stale branches = 0 (+2), CI green (+4), 0 open PRs (+2), history -2 do previous failures.
 
 ---
 
@@ -139,7 +136,7 @@ Cải thiện so với kỳ trước:
 | Security | 9 | 9 | = |
 | Backend Tests | 9 | 9 | = |
 | Frontend Tests | 9 | 9 | = |
-| CI/CD | **6** | **est. 8** (PENDING) | **+2** |
+| CI/CD | **6** | **8** | **+2** |
 | UI/UX | 10 | 10 | = |
 | DevOps/Infra | 10 | 10 | = |
 | Documentation | 10 | 10 | = |
@@ -152,26 +149,27 @@ Cải thiện so với kỳ trước:
 ## Remaining Gaps & Improvement Roadmap
 
 ### Quick Wins (< 2 hours)
-| Priority | Item | Score Impact | Effort |
-|----------|------|-------------|--------|
-| 🔴 P0 | Verify CI green cho `1a542b99` | CI/CD: est. +2 | 0 (auto) |
-| 🟠 P1 | Add hCaptcha/Turnstile cho register form | Security: 9→10 | 4h |
-| 🟠 P1 | Playwright E2E vào CI workflow | Frontend: 9→10 | 2h |
+| Priority | Item | Score Impact | Effort | Status |
+|----------|------|-------------|--------|--------|
+| ~~🔴 P0~~ | ~~Verify CI green~~ | ~~CI/CD: +2~~ | ~~0~~ | ✅ Fixed PR #263 (2026-04-13) |
+| 🟡 P2 | Add hCaptcha/Turnstile cho register form | Security: 9→10 | 4h | Open |
+| 🟡 P2 | Playwright E2E vào CI workflow | Frontend: 9→10 | 2h | Open |
 
 ### Medium Effort (0.5-1 day)
-| Priority | Item | Score Impact | Effort |
-|----------|------|-------------|--------|
-| 🟠 P1 | Docker E2E test pipeline local | E2E: 8→10 | 1 day |
-| 🟡 P2 | ARIA landmarks (`<main>`, `<nav>`) trên auth pages | A11y | 1h |
-| 🟡 P2 | Jacoco coverage report cho kiteclass-core | Backend Tests | 2h |
+| Priority | Item | Score Impact | Effort | Status |
+|----------|------|-------------|--------|--------|
+| 🟡 P2 | Docker E2E test pipeline local | E2E: 8→10 | 1 day | Open |
+| 🟡 P2 | ARIA landmarks (`<main>`, `<nav>`) trên auth pages | A11y | 1h | Open |
+| 🟡 P2 | Jacoco coverage report cho kiteclass-core | Backend Tests | 2h | Open |
 
 ### Major Effort (2+ days)
-| Priority | Item | Score Impact | Effort |
-|----------|------|-------------|--------|
-| 🟡 P2 | Tăng số lượng IT test (currently 4) | Backend Tests: 9→10 | 2 days |
-| 🟡 P3 | hCaptcha + security hardening | Security: 9→10 | 4h |
+| Priority | Item | Score Impact | Effort | Status |
+|----------|------|-------------|--------|--------|
+| 🟡 P2 | Tăng số lượng IT test (currently 4) | Backend Tests: 9→10 | 2 days | Open |
+| 🟡 P3 | hCaptcha + security hardening | Security: 9→10 | 4h | Open |
 
-**Potential max score sau quick wins (P0+P1):** 95/100 (A+ nếu CI pass + Playwright CI + hCaptcha)
+**Updated 2026-04-13:** P0 resolved (CI green). hCaptcha + Playwright E2E downgraded P1→P2 (nice-to-have, không block production).
+**Current estimated score:** 93/100 A (CI/CD confirmed 8/10).
 
 ---
 
