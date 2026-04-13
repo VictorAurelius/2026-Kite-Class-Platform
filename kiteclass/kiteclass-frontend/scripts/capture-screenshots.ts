@@ -326,25 +326,9 @@ async function capturePage(
     const waitUntil = isProd ? 'networkidle' : 'domcontentloaded';
     const timeout = isProd ? 30000 : 15000;
 
+    // Single navigation — addInitScript already set auth + theme before page load
     await page.goto(url, { waitUntil, timeout });
-    // Re-apply theme + auth after navigation (ensure localStorage persisted)
-    await page.evaluate(
-      ([themeKey, themeVal, kiteclassKey, kiteclassVal, authKey, authVal]: string[]) => {
-        localStorage.setItem(themeKey, themeVal);
-        localStorage.setItem(kiteclassKey, kiteclassVal);
-        if (authVal) localStorage.setItem(authKey, authVal);
-      },
-      [
-        THEME_KEY,
-        theme,
-        KITECLASS_THEME_KEY,
-        theme,
-        AUTH_STORAGE_KEY,
-        p.needsAuth ? JSON.stringify(MOCK_AUTH) : '',
-      ]
-    );
-    await page.reload({ waitUntil, timeout });
-    await page.waitForTimeout(isProd ? 1500 : (p.waitExtra ?? 800));
+    await page.waitForTimeout(isProd ? 1500 : (p.waitExtra ?? 1200));
 
     const screenshotPath = path.join(pageDir, filename);
     await page.screenshot({ path: screenshotPath, fullPage: true });
