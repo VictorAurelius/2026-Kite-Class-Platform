@@ -16,6 +16,8 @@ import { GraduationCap, Building2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const kitehubUrl = process.env.NEXT_PUBLIC_KITEHUB_URL || 'https://hub.kiteclass.com';
+  const kitehubRegisterUrl = `${kitehubUrl}/register`;
 
   return (
     <AuthLayout>
@@ -48,19 +50,29 @@ export default function RegisterPage() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer opacity-60">
+          <Card
+            className="cursor-pointer hover:border-primary transition-colors"
+            onClick={() => window.open(kitehubRegisterUrl, '_blank')}
+          >
             <CardHeader>
               <div className="flex items-center space-x-2">
-                <Building2 className="h-6 w-6" />
+                <Building2 className="h-6 w-6 text-primary" />
                 <CardTitle>Trung tâm</CardTitle>
               </div>
               <CardDescription>
-                Dành cho trung tâm giáo dục (Coming soon)
+                Dành cho trung tâm giáo dục muốn sử dụng nền tảng
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled>
-                Liên hệ hỗ trợ
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(kitehubRegisterUrl, '_blank');
+                }}
+              >
+                Đăng ký trung tâm ↗
               </Button>
             </CardContent>
           </Card>
