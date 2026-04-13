@@ -28,7 +28,7 @@ describe('BrandingSettings error state', () => {
     });
   });
 
-  it('shows loading text initially', () => {
+  it('shows skeleton loading state initially', () => {
     server.use(
       http.get(`${BASE_URL}/api/v1/settings/branding`, async () => {
         await new Promise(() => {}); // never resolves
@@ -37,6 +37,7 @@ describe('BrandingSettings error state', () => {
     );
 
     render(<BrandingSettings />);
-    expect(screen.getByText(/Đang tải cài đặt/i)).toBeInTheDocument();
+    expect(screen.getByText('Logo')).toBeInTheDocument();
+    expect(screen.getByText(/Thông tin tổ chức/i)).toBeInTheDocument();
   });
 });

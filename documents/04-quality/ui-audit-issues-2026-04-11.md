@@ -12,11 +12,11 @@
 |----------|-------|-------|------|----------|
 | 🔴 P0 Critical | 4 | 4 | 0 | PR #261, #262 |
 | 🟠 P1 High | 5 | 5 | 0 | PR #263 |
-| 🟡 P2 Medium | 4 | 2 | 2 | PR #263 (partial) |
+| 🟡 P2 Medium | 4 | 4 | 0 | PR #263, #264 |
 | 🟢 P3 Low | 3 | 1 | 2 | P3-1 auto-resolved |
 
-**Updated 2026-04-13:** 12/16 issues fixed. 4 remaining (2 P2 + 2 P3, all minor).
-**Re-audit screenshots needed** to visually confirm fixes.
+**Updated 2026-04-13:** 14/16 issues fixed. 2 remaining (P3 only — nice-to-have).
+**Targeted re-audit (PR #264):** 32 screenshots verified all P2 fixes.
 
 ---
 
@@ -169,7 +169,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P2-3: Attendance Stats — Skeleton Cards Không Có Label — ⬜ Open
+### P2-3: Attendance Stats — Skeleton Cards Không Có Label — ✅ Fixed PR #264
 
 **Route:** `/admin/attendance/stats`  
 **Triệu chứng:** 4 skeleton cards loading nhưng không có label text → user không biết stats là gì  
@@ -177,7 +177,7 @@ Khi API branding fail (no backend), `isLoading` chuyển sang `isError` nhưng c
 
 ---
 
-### P2-4: `class-attendance`, `student-attendance` — Error "Lỗi" Bare Text — ⬜ Open
+### P2-4: `class-attendance`, `student-attendance` — Error "Lỗi" Bare Text — ✅ Fixed PR #264
 
 **Triệu chứng:** Box đỏ nhỏ "Lỗi / Không tìm thấy lớp học" — không có context, không có navigation  
 **Fix:** Dùng consistent `ErrorState` component với back button

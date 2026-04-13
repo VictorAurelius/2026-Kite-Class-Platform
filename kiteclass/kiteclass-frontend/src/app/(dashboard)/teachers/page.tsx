@@ -10,7 +10,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout';
 import { DataTable, SearchInput, LoadingSpinner, ErrorAlert } from '@/components/common';
@@ -78,6 +78,14 @@ export default function TeachersPage() {
             title="Lỗi tải dữ liệu"
             message="Không thể tải danh sách giáo viên. Vui lòng thử lại."
           />
+        )}
+
+        {!isLoading && !error && !data && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <GraduationCap className="mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="text-lg font-medium">Chưa có giáo viên nào</p>
+            <p className="text-sm text-muted-foreground mt-1">Thêm giáo viên mới để bắt đầu.</p>
+          </div>
         )}
 
         {data && (

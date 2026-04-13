@@ -246,3 +246,31 @@ sau đó, thực hiện đánh giá action cần làm cho dự án sau khi có s
 sync claude-starter-kit version mới nhất
 
 hãy update các cập nhật của kit cho phù hợp với kiteclass và kiteclass và thực hiện tạo output tương ứng
+
+đọc CLAUDE.md để hiểu về dự án
+đặt tên conversation này là development-phase
+
+hãy check xem có skills, rules hoặc scripts gì để check status hiện tại của repo không
+
+lần conversation trước repo đang chưa về status tốt
+cần định nghĩa thêm các level status cho repo nữa
+
+à không, ý tôi là status của remote repo cơ, ví dụ về các nhân tố làm ảnh hưởng status:
+1. báo cáo quality-audit hoặc screenshots-audit lần gần nhất yêu cầu fix 1 số gaps, hoặc có gaps nhưng chưa có PR hoặc wave fix tương ứng
+2. CI bị fail mà chưa fix
+3. có PR, branch chưa squash merge
+
+tạo PR để tạo đầy đủ skills trước sao đó mới thực hiện fix status
+
+hãy thêm vào quy trình đánh giá health repo: CI history cần clean up đúng theo rule
+ngoài ra commit vẫn đang có Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
+=> vi phạm rules commit hãy bổ sung vào claude.md
+
+Script muốn xóa 99 runs — quá aggressive.
+=> cứ xóa đúng theo rule
+
+check xem có báo cáo về screenshots-audit không?
+
+thực hiện tại UI-AUDIT cho status mới nhất
+
+cho 2 FE này chạy ở 2 cổng khác và thực hiện lại UI AUDIT

@@ -222,12 +222,16 @@ Battle-tested từ 17 audit runs + 40 PRs. Dùng `skills/quality/ui-review/SKILL
 ### Workflow
 
 ```
-BEFORE FIX:  capture --label before-pr-XXX
-FIX CODE:    PR → merge
-AFTER FIX:   capture --label after-pr-XXX (auto, không chờ user)
-             visual verify → report delta
-DEPLOY:      capture --label prod → verify prod vs local
+FULL AUDIT:     capture all → score all screens → identify issues
+FIX CODE:       PR with fixes
+TARGETED AUDIT: capture + score CHỈ screens bị ảnh hưởng → verify fixes → merge
+DEPLOY:         capture --label prod → verify prod vs local
 ```
+
+**QUAN TRỌNG:** Sau khi fix, KHÔNG chạy full audit lại. Chỉ audit lại screens/pages đã fix.
+Full re-audit chỉ khi: (1) release mới, (2) user yêu cầu, (3) thay đổi ảnh hưởng toàn bộ (theme, layout system).
+
+Tương tự cho **Quality Audit**: chỉ re-score categories bị ảnh hưởng bởi fix.
 
 ### Key rules (learned from real mistakes)
 

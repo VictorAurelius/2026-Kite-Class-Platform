@@ -9,7 +9,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle, FileText } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -84,6 +85,7 @@ export default function BillingPage() {
   ];
 
   return (
+    <DashboardLayout>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -141,10 +143,18 @@ export default function BillingPage() {
       {error && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/50 p-4 text-destructive">
           <AlertCircle className="h-5 w-5" />
-          <p>Không thể tải dữ liệu</p>
+          <p>Không thể tải dữ liệu. Vui lòng thử lại.</p>
+        </div>
+      )}
+      {!isLoading && !error && !data && (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-lg font-medium">Chưa có hóa đơn nào</p>
+          <p className="text-sm text-muted-foreground mt-1">Tạo hóa đơn mới để bắt đầu.</p>
         </div>
       )}
       {data && <DataTable columns={columns} data={data.content} />}
     </div>
+    </DashboardLayout>
   );
 }
