@@ -45,12 +45,14 @@ export default function AdminAttendanceStatsPage() {
   );
 
   // Fetch individual class stats (for breakdown table)
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- hooks-in-map is acknowledged pattern here
   const classStatsQueries = classes?.map((classItem) =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useClassAttendanceStats(classItem.id)
   ) || [];
 
   // Combine class data with stats for breakdown
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- classStatsQueries uses hooks-in-map pattern
   const classBreakdown: ClassAttendanceBreakdown[] = useMemo(() => {
     if (!classes) return [];
 

@@ -5,6 +5,7 @@
  * @since 2026-04-04
  */
 
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import type { SlotData, SlotItem } from '@/lib/template/slots';
 
@@ -50,9 +51,12 @@ export function TeachersSection({ slots }: TeachersSectionProps) {
                 <CardContent className="pt-8 pb-6">
                   <div className="h-20 w-20 rounded-full bg-theme-primary/10 flex items-center justify-center mx-auto mb-4">
                     {teacher.image ? (
-                      <img
+                      <Image
                         src={teacher.image}
                         alt={teacher.title}
+                        width={80}
+                        height={80}
+                        unoptimized
                         className="h-20 w-20 rounded-full object-cover"
                       />
                     ) : (

@@ -39,8 +39,8 @@ export default function TeacherDashboardPage() {
     };
   }, [sessions]);
 
-  // Get current time info
-  const now = new Date();
+  // Get current time info — memoized to avoid re-render on every cycle
+  const now = useMemo(() => new Date(), []);
   const greeting = useMemo(() => {
     const hour = now.getHours();
     if (hour < 12) return 'Chào buổi sáng';

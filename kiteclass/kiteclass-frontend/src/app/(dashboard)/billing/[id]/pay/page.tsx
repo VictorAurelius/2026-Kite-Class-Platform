@@ -7,6 +7,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,7 +66,7 @@ export default function CreatePaymentPage() {
   if (isError || !invoice)
     return (
       <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-        Không tìm thấy hóa đơn. <a href="/billing" className="underline">Quay lại danh sách</a>
+        Không tìm thấy hóa đơn. <Link href="/billing" className="underline">Quay lại danh sách</Link>
       </div>
     );
 
