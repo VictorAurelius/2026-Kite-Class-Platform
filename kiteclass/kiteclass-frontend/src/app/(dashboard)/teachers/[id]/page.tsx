@@ -62,7 +62,7 @@ export default function TeacherDetailPage({
   if (error || !teacher) {
     return (
       <DashboardLayout>
-        <ErrorAlert title="Lỗi" message="Không tìm thấy thông tin giáo viên" />
+        <ErrorAlert title="Lỗi" message="Không tìm thấy thông tin giáo viên" backHref="/teachers" backLabel="Quay lại danh sách giáo viên" />
       </DashboardLayout>
     );
   }

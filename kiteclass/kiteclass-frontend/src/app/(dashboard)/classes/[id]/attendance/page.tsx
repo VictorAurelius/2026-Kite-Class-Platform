@@ -147,7 +147,7 @@ export default function TakeAttendancePage({
   if (!classData) {
     return (
       <DashboardLayout>
-        <ErrorAlert message="Không tìm thấy lớp học" />
+        <ErrorAlert message="Không tìm thấy lớp học" backHref="/classes" backLabel="Quay lại danh sách lớp học" />
       </DashboardLayout>
     );
   }
