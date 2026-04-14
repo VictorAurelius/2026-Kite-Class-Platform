@@ -63,14 +63,15 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-028](GAP-028-model-versioning-migration-strategy.md) | AI model versioning & migration strategy | AI/DevOps | 🟡 P2 | 🔵 OPEN |
 | [GAP-029](GAP-029-quality-gate-calibration.md) | Quality gate calibration & feedback loop | Quality/AI | 🟡 P2 | 🔵 OPEN |
 | [GAP-030](GAP-030-disaster-recovery-ai-branding.md) | Disaster recovery for AI branding (RTO/RPO, runbooks) | DevOps/Reliability | 🟡 P2 | 🔵 OPEN |
+| [GAP-031](GAP-031-expand-wizard-inputs-beyond-logo.md) | Expand wizard inputs beyond logo (rich brand context) | UX/Product/AI | 🔴 P0 | 🔵 OPEN |
 
 ## Summary by Priority
 
-- 🔴 **P0 (8 gaps):** 005, 007, 011, 014, 015, 016, 018
+- 🔴 **P0 (9 gaps):** 005, 007, 011, 014, 015, 016, 018, 031
 - 🟠 **P1 (12 gaps):** 002, 006, 008, 009, 010, 012, 013, 017, 019, 020, 021, 023, 026
 - 🟡 **P2 (10 gaps):** 001, 003, 004, 022, 024, 025, 027, 028, 029, 030
 
-**Total: 30 gaps** — full AI Branding scope identified qua simulation end-to-end tenant journey.
+**Total: 31 gaps** — full AI Branding scope identified qua simulation end-to-end tenant journey + UX input critique.
 
 ## Developer Rules
 
