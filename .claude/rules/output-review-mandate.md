@@ -60,7 +60,8 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Code** | two-stage-code-review (Stage 1+2+2.5) | Pre-merge | Peer + CI + pattern check | ✅ DONE |
 | **UI screens** | ui-review /128 per-screen | After FE PR | Auditor | ✅ DONE |
 | **Quality audit reports** | quality-audit 10 categories /100 | Periodic | Auditor | ✅ DONE |
-| **Business docs (01-business/)** | Living Docs rule (3-layer) | Same PR as code change | PR reviewer | ✅ DONE |
+| **Business docs implementation match** (code ↔ rules.md sync) | Living Docs rule (3-layer) | Same PR as code change | PR reviewer | ✅ DONE |
+| **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ❌ **VIOLATION** (GAP-049) |
 | **PRs** | check-pr skill | Pre-merge | Reviewer | ✅ DONE |
 | **Wave plans** | Wave review checklist | Before launch | Team lead + architect | ⚠️ PARTIAL (skill exists, no formal review) |
 | **Gap reports** | Gap review template | After creation | Peer | ❌ **VIOLATION** |
