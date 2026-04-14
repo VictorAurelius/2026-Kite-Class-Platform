@@ -274,3 +274,46 @@ check xem có báo cáo về screenshots-audit không?
 thực hiện tại UI-AUDIT cho status mới nhất
 
 cho 2 FE này chạy ở 2 cổng khác và thực hiện lại UI AUDIT
+
+quy trình hiện tại là UI audit => fix => UI audit toàn bộ lại
+có vẻ như rất tốn thời gian và tài nguyên
+nên sửa quy trình sau khi fix thì thực hiện UI audit cho riêng vấn đề fix sau đó mới merge to main
+
+tương tự với quality audit
+
+commit và thực hiện audit mới luôn cho lần fix này
+
+documents\screenshots\latest\student-edit\dark-desktop.png
+=> ý tôi là luồng IT bình thường sao lại có lỗi này, cần tìm ra nguyên nhân lỗi và khắc phục chứ?
+
+thêm 1 ý nữa, screenshots cũng nên có data mock sẵn để xem tốt hơn
+
+=> rõ ràng có lỗi quality qua screenshots, vậy đã fix chưa? cần memory về case này không?
+
+sao tôi xem screenshots nào cũng có dialog thông báo lỗi errors nhỉ?
+
+documents\screenshots\after-mock-data\register\dark-desktop.png
+=> đăng ký cho trung tâm thì link đến kitehub có phải best practice
+
+thực hiện fix, nhớ phân biệt giữa env local và env production
+
+audit lại chưa? tôi chưa thấy cập nhật screenshots tương ứng?
+
+tôi thấy khi phát triển độc lập FE với BE thì FE phải có đủ bộ mock API cho BE, có nên thêm quan điểm này vào dự án hiện tại không?
+
+tôi cũng muốn env local cũng có image mock data sẵn, có tùy chọn tắt bật image đó, liệu có phải best practice?
+
+ý tôi là mock data thì đương nhiên có cả images rồi
+còn images ở câu trên là image docker ấy?
+
+thì tôi muốn cả FE và BE đều có mock data sẵn ở local mà
+
+2. BE DataSeeder — Spring Boot, seed PostgreSQL, toggle via env => có phải best practice không?
+
+Cái này nên tạo thành wave, có báo cáo log rõ ràng và cần điều tra rõ phạm vi ảnh hưởng, tránh mock sai, mock thiếu
+
+Phương châm là:
+1. làm cho phạm vi toàn bộ, không bỏ qua bất kỳ chỗ nào
+2. làm theo best practice
+
+chưa bắt đầu vội, hãy check các file changing ở root và xử lý

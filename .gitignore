@@ -9,6 +9,7 @@ infrastructure/logs/auto/
 infrastructure/logs/temp/
 infrastructure/logs/run-*/
 */.log/
+.log/
 
 # But keep scripts in logs
 !infrastructure/logs/check-ci.sh
