@@ -374,9 +374,48 @@ Khi branding update:
 
 ---
 
-## 7. Implementation Gaps (linked)
+## 7. UX Principles & Constraints (chốt với user 2026-04-14)
 
-Design này break thành 5 gaps để track:
+**Triết lý:** KiteClass là SaaS giáo dục. Target user = "best branded instance", KHÔNG phải "AI creative freedom". Dự án KHÔNG phải nền tảng AI cho user.
+
+### Closed-loop Guided Workflow
+
+1. **KHÔNG free-form prompts cho thường users** (99%)
+   - Wizard với presets (audience, tone, style)
+   - System compose prompt cố định
+   - Free prompt: chỉ ENTERPRISE opt-in, với disclaimer
+
+2. **Curated template library** (not user-generated)
+   - Brand designer tạo 30 templates khởi đầu
+   - Review theo 5 tiêu chuẩn (brand-agnostic, WCAG, responsive, text safety, consistency)
+   - +10 templates/quarter dựa trên analytics
+
+3. **Preview + approve per resource**
+   - User xem live preview trước commit
+   - Approve logo/colors/banner/hero riêng lẻ
+   - Regenerate chỉ resource không hài lòng
+
+4. **Regenerate limits per tier**
+   - FREE: 3/session, PRO: 10, PREMIUM: 30, ENTERPRISE: unlimited
+   - Visible counter — khuyến khích suy nghĩ
+
+5. **Automated quality gate sau deploy**
+   - Quality score /100 (WCAG, contrast, assets, visual regression)
+   - <70 → block deploy + auto-regenerate
+   - ≥70 → DEPLOYED
+
+### Post-Deploy Customization
+
+Sau khi live, tenant vẫn có flexibility:
+- Quick edits (color, logo, tagline) — không tốn AI quota
+- Regenerate banner/hero — tốn AI quota
+- Full rebrand — chạy lại wizard
+
+---
+
+## 8. Implementation Gaps (linked)
+
+Design này break thành 8 gaps để track:
 
 | Gap | Title | Section | Priority |
 |-----|-------|---------|:--------:|
@@ -385,16 +424,24 @@ Design này break thành 5 gaps để track:
 | [GAP-008](../04-quality/gaps/GAP-008-ai-agent-workflow.md) | AI Agent workflow (planner + executor) | §3 | 🟠 P1 |
 | [GAP-009](../04-quality/gaps/GAP-009-instance-provisioning-lifecycle.md) | Frontend instance provisioning lifecycle | §4 | 🟠 P1 |
 | [GAP-010](../04-quality/gaps/GAP-010-branding-package-api-integration.md) | Branding package API + KiteClass integration + testing | §6 | 🟠 P1 |
+| [GAP-011](../04-quality/gaps/GAP-011-template-library-curation-plan.md) | Template library curation plan + review standards | §7 | 🔴 P0 |
+| [GAP-012](../04-quality/gaps/GAP-012-frontend-instance-quality-review.md) | Automated frontend instance quality review | §7 | 🟠 P1 |
+| [GAP-013](../04-quality/gaps/GAP-013-guided-branding-wizard-ux.md) | Guided branding wizard UX (closed-loop + flexibility) | §7 | 🟠 P1 |
 
-## 8. Roadmap
+## 9. Roadmap
+
+**Phase 0 (Prerequisite — parallel):**
+- **GAP-011**: Template library curation (hire designer, 30 templates) — **hard dep for Phase 1**
 
 **Phase 1 (Foundation — 1 sprint):**
 - GAP-007: Resource classification enum + router
 - GAP-010: Composite API + KiteClass integration test
+- GAP-013: Guided wizard UX (6-step)
 
 **Phase 2 (Intelligence — 1 sprint):**
 - GAP-008: Agent workflow (analyzer + planner + executor)
-- GAP-004: Template gallery (was in previous gaps)
+- GAP-004: Template gallery (frontend-side preview + selection)
+- GAP-012: Automated instance quality review
 
 **Phase 3 (Scale — 1-2 sprints):**
 - GAP-009: Full lifecycle state machine

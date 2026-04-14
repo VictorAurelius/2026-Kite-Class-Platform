@@ -43,6 +43,9 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-008](GAP-008-ai-agent-workflow.md) | AI Agent workflow (analyzer→planner→executor) thay direct gen | AI/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-009](GAP-009-instance-provisioning-lifecycle.md) | Frontend instance provisioning lifecycle (6 states) | Backend/DevOps | 🟠 P1 | 🔵 OPEN |
 | [GAP-010](GAP-010-branding-package-api-integration.md) | Branding package API + KiteClass integration + E2E test | Backend/Frontend | 🟠 P1 | 🔵 OPEN |
+| [GAP-011](GAP-011-template-library-curation-plan.md) | Template library curation plan + review standards | Design/Product | 🔴 P0 | 🔵 OPEN |
+| [GAP-012](GAP-012-frontend-instance-quality-review.md) | Automated frontend instance quality review (post-deploy) | Quality/AI/FE | 🟠 P1 | 🔵 OPEN |
+| [GAP-013](GAP-013-guided-branding-wizard-ux.md) | Guided branding wizard UX (closed-loop with flexibility) | FE/UX/Product | 🟠 P1 | 🔵 OPEN |
 
 ## AI Branding Master Design
 

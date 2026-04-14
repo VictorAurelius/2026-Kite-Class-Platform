@@ -331,3 +331,32 @@ tìm báo cáo về vấn đề design này và trình bày tình trạng giải
 documents không có readme index hay sao? không lưu log lại các PR áp dụng cho 2 vấn đề này sao? tại sao phải grep
 
 lưu lại báo cáo về gaps để fix sau, tạo riêng folder chứa gaps để lưu trữ hàng đợi cập nhật
+
+Quay lại vấn đề design:
+1. thực sự vẫn chưa giải quyết được vấn đề hàng đợi model AI ví dụ có 100 users đồng thời sử dụng dịch vụ AI của kitehub, 100 users đó có 30% premium, 40% pro, 30% free chẳng hạn thì chưa có cơ chế hàng đợi hợp lý hoặc scale cho dịch AI => đâu là best practice
+
+2. quét toàn bộ cấu hình model AI mà dự án đang sử dụng để xác định phạm vì ảnh hưởng và so sánh với model gemma 4 mới ra mắt
+
+GAP-005: AI Queue Fair Scheduling (🔴 P0)
+
+Gap này vẫn chưa rõ ràng:
+1. phải đánh giá được độ chịu tải cho bao nhiêu user
+2. đã có pipeline data rõ ràng chưa: ví dụ đối với static resources thì không dùng AI, đối với template resources thì dùng scripts + AI ít, đối với recourse hoàn toàn phụ thuộc AI thì sao => phân loại như này đã đủ theo best practice chưa
+=> code của kitehub đã đáp ứng cho các loại resources chưa? test khi đưa resources lên frontend kiteclass chưa? đánh giá dựa kiteclass sau khi đưa resources lên thì như thế nào
+
+3. đánh giá rõ xem có nên để model AI tạo ảnh hoàn tài hay chỉ biến nó thành AI Agent workflow để điều hướng tạo ảnh theo template sẽ phù hợp hơn
+
+4. định nghĩa lại các status của frontend instance trong quá trình khởi tạo vào lắp ráp resources? mới khởi tạo là gì, đang tạo là gì, đã lên lần 1, tạo lại, ...
+
+trên đây là nhưng gợi ý của tôi để đưa ra best practice cho AI branding, bạn cần xem xét là thiết kế kỹ lại AI branding tốt hơn, vì đây là key feature của dự án
+
+Ngoài ra cần check lại gaps xem quá trình khởi tạo image của toàn dự án có đang thiếu khởi tạo AI branding không?
+
+vậy chốt lại là AI branding sẽ ở kiến trúc gì?
+
+có các vấn đề cần tiếp tục làm rõ:
+1. sẽ có phép user prompt vào AI branding? có hợp lý không?
+2. nguồn template sẽ phải tạo sẵn, liệu có plan hợp lý cho công đoạn này? skill review sẽ dựa trên tiêu chuẩn gì?
+3. Tôi có hỏi là cần có skills/ rules review frontend instance sau khi được AI branding update?
+4. Việc đưa cho user được tự do sáng tạo liệu có cần thiết, hay nên áp dụng 1 quy trình khép kín cụ thể, mục tiêu cao nhất là có được frontend instance tốt nhất chứ không phải là để user được sáng tạo trên AI branding. Dự án là SAAS cho kiteclass chứ không phải nền tảng cung cấp dịch vụ AI
+5. Nhưng quy trình khép kín cũng phải design hợp lý, cụ thể, nếu quá rập khuôn sẽ khiến user không hài lòng, cần có cơ chế như chấp nhận từng resources hay preview giao diện, hoặc đối với ý 1, được prompt vào AI agent thì sẽ là prompt cố định chứ không cho prompt tự do?
