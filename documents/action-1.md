@@ -386,4 +386,8 @@ Xem xét lại design của AI branding v2 có nên bổ sung thiết kế, phá
 
 tạo skills, rules cho vấn đề này, cần phát triển theo design pattern, review skills cũng nên đề xuất update theo design pattern
 
-Gap đang quá nhiều, liệu có nên phân loại và tối ưu lại cho việc thực hiện fix tốt hơn
+Gap đang quá nhiều, liệu có nên phân loại và tối ưu lại cho việc thực hiện fix tốt hơn không?
+
+có cần tạo mới skills tạo wave, PR từ gaps không? hay có sẵn rồi, cần update?
+
+Thêm rules vào dự án, bất kỳ output nào cũng phải có tiêu chuẩn review và được review? vậy trong dự án còn những phần nào vi phạm rule này
