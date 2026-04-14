@@ -317,3 +317,17 @@ Phương châm là:
 2. làm theo best practice
 
 chưa bắt đầu vội, hãy check các file changing ở root và xử lý
+
+Bây giờ sẽ có các vấn đề design sau cần tiếp tục giải quyết rõ ràng:
+1. tại sao khi khởi động image kitehub để test local thì chỉ khởi động thêm kiteclass-core và kiteclass-frontend để test thông luồng IT. vẫn còn các service khác của kiteclass thì sao: gateway, ...
+2. việc dùng model tự host trên server có thể gây ra vấn đề quá tải không:
++ model sẽ được gọi trực tiếp, gọi qua API, hay gọi qua 1 pipeline data, workflow chuyên nghiệp để xử lý cho người dùng
++ việc generate ảnh sẽ rất nặng, lâu, khiến người dùng phải chờ và cần đa model để phục vụ?
++ hoặc ngoài việc phụ thuộc vào model có thể thêm giải pháp template ảnh sẵn như canva để tạo ảnh nhanh hơn
+=> đâu là best pratice cho vấn đề này
+
+tìm báo cáo về vấn đề design này và trình bày tình trạng giải pháp đang áp dụng
+
+documents không có readme index hay sao? không lưu log lại các PR áp dụng cho 2 vấn đề này sao? tại sao phải grep
+
+lưu lại báo cáo về gaps để fix sau, tạo riêng folder chứa gaps để lưu trữ hàng đợi cập nhật
