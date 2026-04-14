@@ -1,0 +1,120 @@
+package com.kiteclass.core.module.instance.entity;
+
+import com.kiteclass.core.common.entity.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+
+/**
+ * Frontend instance entity — represents a provisioned KiteClass tenant frontend.
+ *
+ * <p>State transitions delegated to {@link FrontendInstanceStatus} state machine.
+ * All mutations go through {@code InstanceLifecycleService}, never set status directly
+ * from controllers.
+ *
+ * <p>Business Rules:
+ * <ul>
+ *   <li>BR-INST-001: slug unique per tenant</li>
+ *   <li>BR-INST-002: status transitions enforced by state machine (no direct sets)</li>
+ *   <li>BR-INST-003: retry count capped at MAX_RETRIES (abandon after)</li>
+ *   <li>BR-INST-004: brandingVersion increments on every successful deploy</li>
+ * </ul>
+ *
+ * @since 3.15.0 (GAP-009, ADR-004)
+ */
+@Entity
+@Table(
+        name = "frontend_instances",
+        indexes = {
+                @Index(name = "idx_frontend_instance_slug", columnList = "instance_id,slug", unique = true),
+                @Index(name = "idx_frontend_instance_status", columnList = "status"),
+                @Index(name = "idx_frontend_instance_deleted", columnList = "deleted")
+        }
+)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class FrontendInstance extends BaseEntity {
+
+    @Column(name = "tenant_id", nullable = false, length = 100)
+    private String tenantId;
+
+    @Column(name = "slug", nullable = false, length = 80)
+    private String slug;
+
+    @Column(name = "frontend_url", length = 300)
+    private String frontendUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private FrontendInstanceStatus status = FrontendInstanceStatus.NOT_STARTED;
+
+    @Column(name = "initializing_at")
+    private Instant initializingAt;
+
+    @Column(name = "generating_at")
+    private Instant generatingAt;
+
+    @Column(name = "deployed_at")
+    private Instant deployedAt;
+
+    @Column(name = "last_regenerate_at")
+    private Instant lastRegenerateAt;
+
+    @Column(name = "failed_at")
+    private Instant failedAt;
+
+    @Column(name = "retry_count", nullable = false)
+    @Builder.Default
+    private Integer retryCount = 0;
+
+    @Column(name = "failure_reason", length = 1000)
+    private String failureReason;
+
+    @Column(name = "branding_version", nullable = false)
+    @Builder.Default
+    private Integer brandingVersion = 0;
+
+    /**
+     * Transition to a new status, enforcing state machine rules.
+     *
+     * @throws IllegalStateException if transition not allowed from current status
+     */
+    public void transitionTo(FrontendInstanceStatus target) {
+        if (!status.canTransitionTo(target)) {
+            throw new IllegalStateException(
+                    "Invalid transition: " + status + " -> " + target
+                            + " (allowed from " + status + ": " + status.allowedTransitions() + ")"
+            );
+        }
+        this.status = target;
+        Instant now = Instant.now();
+        if (target == FrontendInstanceStatus.INITIALIZING) {
+            this.initializingAt = now;
+            this.failureReason = null;
+        } else if (target == FrontendInstanceStatus.GENERATING) {
+            this.generatingAt = now;
+        } else if (target == FrontendInstanceStatus.DEPLOYED) {
+            this.deployedAt = now;
+            this.brandingVersion = this.brandingVersion + 1;
+        } else if (target == FrontendInstanceStatus.REGENERATING) {
+            this.lastRegenerateAt = now;
+        } else if (target == FrontendInstanceStatus.FAILED) {
+            this.failedAt = now;
+            this.retryCount = this.retryCount + 1;
+        }
+    }
+}
