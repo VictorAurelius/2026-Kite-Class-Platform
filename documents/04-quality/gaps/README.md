@@ -49,6 +49,28 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-014](GAP-014-wave-mock-include-ai-branding.md) | Wave mock plan missing AI branding workflow | Mock Data/Wave | 🔴 P0 | 🔵 OPEN |
 | [GAP-015](GAP-015-tenant-provisioning-auto-trigger-branding.md) | Tenant provisioning thiếu auto-trigger AI branding (event-driven) | Backend/FE/Integration | 🔴 P0 | 🔵 OPEN |
 | [GAP-016](GAP-016-ai-branding-v2-living-docs-impact.md) | AI Branding v2 living docs impact scope (business/API/ERD/tests) | Docs/Governance | 🔴 P0 | 🔵 OPEN |
+| [GAP-017](GAP-017-ai-usage-billing-integration.md) | AI usage → billing integration (upsell, cost attribution) | Billing/AI | 🟠 P1 | 🔵 OPEN |
+| [GAP-018](GAP-018-content-safety-compliance.md) | Content safety & compliance (moderation, audit, GDPR) | Security/Compliance | 🔴 P0 | 🔵 OPEN |
+| [GAP-019](GAP-019-ai-observability-cost-monitoring.md) | AI observability & cost monitoring (Grafana, alerts) | DevOps/Monitoring | 🟠 P1 | 🔵 OPEN |
+| [GAP-020](GAP-020-wizard-state-persistence.md) | Wizard state persistence & error recovery | Frontend/UX | 🟠 P1 | 🔵 OPEN |
+| [GAP-021](GAP-021-branding-propagation-email-services.md) | Branding propagation to email + other services | Backend/Integration | 🟠 P1 | 🔵 OPEN |
+| [GAP-022](GAP-022-template-analytics-optimization.md) | Template analytics & A/B optimization | Analytics/Product | 🟡 P2 | 🔵 OPEN |
+| [GAP-023](GAP-023-admin-moderation-tools.md) | Admin moderation tools (review, flag, take-down) | Admin/Compliance | 🟠 P1 | 🔵 OPEN |
+| [GAP-024](GAP-024-asset-lifecycle-storage-cleanup.md) | Asset lifecycle & storage cleanup (archive, quota) | DevOps/Storage | 🟡 P2 | 🔵 OPEN |
+| [GAP-025](GAP-025-mobile-first-wizard-ux.md) | Mobile-first wizard UX (camera, swipe, offline) | Frontend/UX | 🟡 P2 | 🔵 OPEN |
+| [GAP-026](GAP-026-trial-freemium-ai-mechanics.md) | Trial/freemium AI mechanics (budget, conversion) | Product/Billing | 🟠 P1 | 🔵 OPEN |
+| [GAP-027](GAP-027-multi-brand-per-tenant.md) | Multi-brand per tenant (franchise, branches) | Product/Backend | 🟡 P2 | 🔵 OPEN |
+| [GAP-028](GAP-028-model-versioning-migration-strategy.md) | AI model versioning & migration strategy | AI/DevOps | 🟡 P2 | 🔵 OPEN |
+| [GAP-029](GAP-029-quality-gate-calibration.md) | Quality gate calibration & feedback loop | Quality/AI | 🟡 P2 | 🔵 OPEN |
+| [GAP-030](GAP-030-disaster-recovery-ai-branding.md) | Disaster recovery for AI branding (RTO/RPO, runbooks) | DevOps/Reliability | 🟡 P2 | 🔵 OPEN |
+
+## Summary by Priority
+
+- 🔴 **P0 (8 gaps):** 005, 007, 011, 014, 015, 016, 018
+- 🟠 **P1 (12 gaps):** 002, 006, 008, 009, 010, 012, 013, 017, 019, 020, 021, 023, 026
+- 🟡 **P2 (10 gaps):** 001, 003, 004, 022, 024, 025, 027, 028, 029, 030
+
+**Total: 30 gaps** — full AI Branding scope identified qua simulation end-to-end tenant journey.
 
 ## Developer Rules
 
