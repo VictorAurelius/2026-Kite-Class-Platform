@@ -180,6 +180,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 ### Rules (conventions nội bộ)
 - `.claude/rules/skill-conventions.md` - Cách viết skill đúng chuẩn (đọc khi tạo skill mới)
 - `.claude/rules/ai-branding-guidelines.md` - Rules cho AI Branding feature (MANDATORY khi làm kitehub-branding)
+- `.claude/rules/design-patterns.md` - Project-wide design pattern rules (MANDATORY — enforce qua PR review)
 
 ### Workflow
 - `workflow/continue/` - /continue skill

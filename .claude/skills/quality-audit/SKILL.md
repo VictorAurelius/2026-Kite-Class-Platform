@@ -144,11 +144,24 @@ kiteclass/scripts/monitor.sh health    # hoặc kitehub/scripts/status.sh
 
 | Tiêu chí | Điểm | Check |
 |----------|------|-------|
-| 0 TODO/FIXME/HACK trong production code | 2 | `grep -r` |
-| 0 IDE warnings (TypeScript + Java) | 2 | User reports |
-| Consistent coding style (ESLint, Checkstyle) | 2 | Pre-commit hooks |
-| No dead code / unused imports | 2 | Linter results |
-| Spring Boot latest patch version | 2 | Check pom.xml |
+| 0 TODO/FIXME/HACK trong production code | 1 | `grep -r` |
+| 0 IDE warnings (TypeScript + Java) | 1 | User reports |
+| Consistent coding style (ESLint, Checkstyle) | 1 | Pre-commit hooks |
+| No dead code / unused imports | 1 | Linter results |
+| Spring Boot latest patch version | 1 | Check pom.xml |
+| **Design patterns applied correctly** (no anti-patterns) | 3 | `.claude/rules/design-patterns.md` §3 |
+| Pattern choice documented (javadoc) | 1 | Spot check key services |
+| No God Services (>500 lines / >15 methods) | 1 | `find -size +20k *Service.java` |
+
+**Design patterns check:**
+- No God Service trong kitehub-branding, core services
+- Status transitions via State Pattern (not switch)
+- External APIs wrapped by Adapter
+- Events via Outbox (check `outbox_events` table + publisher)
+- External calls have Circuit Breaker + fallback
+- No primitive obsession (value objects for structured types)
+
+Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude/rules/design-patterns.md`
 
 #### 10. Project Management (10 điểm)
 

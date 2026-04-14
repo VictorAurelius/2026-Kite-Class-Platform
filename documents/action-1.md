@@ -385,3 +385,5 @@ skills mới có nên áp dụng cho cả các modules khác của kiteclass, ki
 Xem xét lại design của AI branding v2 có nên bổ sung thiết kế, phát triển theo design pattern để hệ thống tối ưu hơn không?
 
 tạo skills, rules cho vấn đề này, cần phát triển theo design pattern, review skills cũng nên đề xuất update theo design pattern
+
+Gap đang quá nhiều, liệu có nên phân loại và tối ưu lại cho việc thực hiện fix tốt hơn
