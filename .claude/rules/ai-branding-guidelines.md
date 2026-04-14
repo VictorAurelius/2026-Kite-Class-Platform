@@ -234,7 +234,42 @@ Chi tiết: GAP-011.
 
 ---
 
-## 10. Testing Requirements
+## 10. Design Patterns (MANDATORY)
+
+Reference: `documents/02-architecture/ai-branding-design-patterns.md`
+
+**Required patterns:**
+
+| Component | Pattern | Why |
+|-----------|---------|-----|
+| AIClient | Strategy | Swap providers |
+| InstanceStatus | State Machine | Enforce transitions |
+| Steps | Command + Composite | Composable pipeline |
+| BrandingService | Facade | Simplified API |
+| External AI APIs | Adapter + ACL | Vendor isolation |
+| Caching layer | Proxy | Transparent caching |
+| Events | Observer + Outbox | Reliable pub-sub |
+| Provisioning | Saga | Distributed txn |
+| Resilience | Circuit Breaker + Bulkhead | Fault tolerance |
+| Wizard FE | XState State Machine | Complex flow |
+
+**Anti-patterns BANNED:**
+
+- ❌ God Service (one class with 20+ methods)
+- ❌ Primitive Obsession (String everywhere instead of value objects)
+- ❌ Direct event publish (must use Outbox)
+- ❌ Status switch/if cascades (must use State Pattern)
+- ❌ Ollama/OpenAI types in domain layer (must wrap with Adapter)
+
+**Code review checklist:**
+- [ ] New AI provider added? → Strategy Pattern applied
+- [ ] Status changes? → Through State Machine, not direct set
+- [ ] New pipeline step? → Implements Step interface, composable
+- [ ] New event? → Via Outbox, not direct publish
+- [ ] External API call? → Through Adapter
+- [ ] Service >15 methods? → Refactor with Facade
+
+## 11. Testing Requirements
 
 ### 10.1 Unit tests
 - Each Step class: isolated test với mock dependencies

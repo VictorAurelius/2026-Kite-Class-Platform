@@ -377,3 +377,11 @@ hãy review https://github.com/MiniMax-AI/skills.git và đánh giá repo skills
 tạo toàn bộ
 
 cần trả lời cho tôi vấn đề: AI branding v2 đang design input đầu vào của user chỉ có upload ảnh logo thôi à? liệu có hợp lý không?
+
+Đấy, rõ ràng bạn đã mô phỏng lại mà vẫn để lọt gaps, hãy thêm skill mô phỏng để tìm gaps rõ ràng và thực hiện lại
+
+skills mới có nên áp dụng cho cả các modules khác của kiteclass, kitehub không?
+
+Xem xét lại design của AI branding v2 có nên bổ sung thiết kế, phát triển theo design pattern để hệ thống tối ưu hơn không?
+
+tạo skills, rules cho vấn đề này, cần phát triển theo design pattern, review skills cũng nên đề xuất update theo design pattern
