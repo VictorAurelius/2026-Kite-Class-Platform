@@ -1,7 +1,7 @@
 # Skill: Business Gap Check
 
-**Version:** 1.1
-**Last Updated:** 2026-03-23
+**Version:** 1.3
+**Last Updated:** 2026-04-14 (thêm §2.9 AI Branding + §KC-2.10 Design Patterns)
 **Purpose:** Phát hiện gaps trong business logic giữa code thực tế và yêu cầu SaaS chuẩn
 
 ---
@@ -232,6 +232,52 @@ grep -rn "@Disabled" kiteclass/kiteclass-core/src/test --include="*.java"
 | Payment expiry check | Search @Scheduled trong payment | Có |
 | Storage cleanup | Search StorageCleanupScheduler | Có |
 | RabbitMQ event-driven | Search RabbitConfig exchanges/queues | Defined (không chỉ placeholder) |
+
+#### 2.9 AI Branding (v2 redesign) — kitehub-branding
+
+Reference: `documents/02-architecture/ai-branding-v2-redesign.md`, `.claude/rules/ai-branding-guidelines.md`
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| ResourceCategory enum | `grep -r "enum ResourceCategory" kitehub-branding/src/main` | STATIC, TEMPLATE, FULL_AI |
+| ResourceRoutingService | Search class | Has `classify()` + `route()` methods |
+| BrandingAnalyzer | Search class | Extract BrandingContext from request |
+| BrandingPlanner | Search class | Returns ExecutionPlan (list of Steps) |
+| PlanExecutor | Search class | Executes with fallback support |
+| Step interface | Search `public interface Step` | Has `hasFallback()`, `fallback()` |
+| FrontendInstance entity | Search `@Entity class FrontendInstance` | Has status, retryCount, brandingVersion |
+| FrontendInstanceStatus enum | Search enum | NOT_STARTED/INITIALIZING/GENERATING/DEPLOYED/REGENERATING/FAILED |
+| InstanceLifecycleService | Search class | Transition methods only, validates state machine |
+| InstanceQualityReviewer | Search class | Returns QualityReport with score /100 |
+| Tenant event listener | `grep -r "tenant.created" kitehub-branding/src` | RabbitListener exists |
+| BrandingResource entity | Search `@Entity class BrandingResource` | Has category, templateId, aiJobId, metadata |
+| ImageTemplate entity | Search entity | Has category, reviewPassed flag |
+| Package API | `grep -r "/branding/.*/package" kitehub-branding/src` | Endpoint returns composite response |
+| Wizard FE component | `find kitehub-frontend -name "BrandingWizard*"` | 6-step wizard component exists |
+| Regenerate limits | Search `ai.regenerate-limit` config | Per-tier limits (3/10/30/-1) |
+| No free-form prompt | `grep "textarea.*prompt" kitehub-frontend/src` | 0 results (except Enterprise opt-in gated) |
+| Template count | Query DB `SELECT count(*) FROM image_templates WHERE active=true` | ≥30 |
+| Quality gate integration | Search lifecycle transition GENERATING→DEPLOYED | Requires QualityReport.score ≥ 70 |
+| Webhook on branding.updated | Search RabbitMQ publisher after deploy | Event published |
+
+#### KC-2.10 Design Patterns (NEW — mandatory from 2026-04-14)
+
+Reference: `.claude/rules/design-patterns.md`, `documents/02-architecture/ai-branding-design-patterns.md`
+
+| Check | Cách verify | Expected |
+|-------|-------------|----------|
+| No God Service | `find kitehub-*/src/main -name "*Service.java" -size +20k` | 0 files |
+| Strategy for AI providers | Search `AIClient` interface + implementations | Interface + ≥2 impls |
+| State Pattern for status | Search status transitions | No switch scattered; use State classes |
+| Command Pattern for pipeline | Search `Step` interface | Exists, composable |
+| Facade for orchestration | Search `*Facade.java` | BrandingFacade (or similar) exists |
+| Adapter for external APIs | Search `*Adapter.java` | OllamaAdapter, OpenAIAdapter exist |
+| Outbox for events | Search `outbox_events` table + publisher | Exists |
+| Circuit Breaker | Search `@CircuitBreaker` annotations | On external HTTP calls |
+| Bulkhead | Search `@Bulkhead` annotations | On AI service calls |
+| Saga for distributed txn | Search `*Saga.java` or similar | Provisioning uses saga |
+| No primitive obsession | Search `String color`, `String status` fields | Value objects preferred |
+| Pattern documented | Search javadoc for pattern names | "Strategy Pattern", "State Pattern" etc. |
 
 #### KC-2.8 Testing
 

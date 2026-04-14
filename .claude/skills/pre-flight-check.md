@@ -72,6 +72,18 @@ Layer 3 — Project: "Tất cả modules kết nối đúng không?"
 - [ ] Nếu có domain/URL → configurable? (KHÔNG hardcode .kiteclass.com)
 - [ ] FUTURE/TODO/placeholder → KHÔNG được merge (implement hoặc tạo tracking issue)
 
+### Design Patterns (reference `.claude/rules/design-patterns.md`)
+- [ ] Nếu có ≥2 implementations → Strategy Pattern (interface + impls)
+- [ ] Nếu có entity với finite states → State Pattern (KHÔNG switch scattered)
+- [ ] Nếu pipeline of steps → Command + Composite
+- [ ] Nếu service >15 methods → refactor với Facade Pattern
+- [ ] Nếu call external API → Adapter Pattern (domain types, not vendor types)
+- [ ] Nếu publish event + DB change → Outbox Pattern (same txn)
+- [ ] Nếu external HTTP call → Circuit Breaker + fallback required
+- [ ] Pattern choice documented trong javadoc (e.g., `// Strategy Pattern`)
+- [ ] No primitive obsession (value objects for colors, status, etc.)
+- [ ] No God Service (<500 lines per service class)
+
 ### Testing
 - [ ] Test cover business rule? (không chỉ happy path)
 - [ ] Nếu multi-tenant → test tenant isolation?

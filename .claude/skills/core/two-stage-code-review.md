@@ -32,9 +32,24 @@ Does this PR do what was asked?
 
 Is this code production-ready?
 
-- 🔴 **CRITICAL** (BLOCKING): Security vulnerabilities, data loss risks, breaking API changes, auth bypasses
-- 🟠 **MAJOR** (strong recommendation): N+1 queries, test coverage <80%, missing error handling, class >300 lines
-- 🟡 **MINOR** (optional): Vague naming, code duplication, missing JavaDoc, style inconsistencies
+- 🔴 **CRITICAL** (BLOCKING): Security vulnerabilities, data loss risks, breaking API changes, auth bypasses, banned anti-patterns (God Service, leaky abstraction)
+- 🟠 **MAJOR** (strong recommendation): N+1 queries, test coverage <80%, missing error handling, class >300 lines, missing required patterns (State Machine for status, Adapter for external API, Outbox for events)
+- 🟡 **MINOR** (optional): Vague naming, code duplication, missing JavaDoc, style inconsistencies, primitive obsession
+
+### Stage 2.5: Design Pattern Review (NEW)
+
+Reference: `.claude/rules/design-patterns.md`
+
+**Pattern checks:**
+- [ ] Service >15 methods? → Facade refactor needed
+- [ ] Status logic in if/switch? → State Pattern required
+- [ ] External API types in domain? → Adapter required
+- [ ] Direct event publish? → Outbox required
+- [ ] External HTTP call? → Circuit Breaker + fallback required
+- [ ] Pattern choice documented (javadoc)?
+- [ ] No banned anti-patterns (check rules doc §3)
+
+Use skill: `.claude/skills/design-pattern-advisor.md` để guidance.
 
 ## KiteClass Gotchas
 

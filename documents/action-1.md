@@ -274,3 +274,137 @@ check xem có báo cáo về screenshots-audit không?
 thực hiện tại UI-AUDIT cho status mới nhất
 
 cho 2 FE này chạy ở 2 cổng khác và thực hiện lại UI AUDIT
+
+quy trình hiện tại là UI audit => fix => UI audit toàn bộ lại
+có vẻ như rất tốn thời gian và tài nguyên
+nên sửa quy trình sau khi fix thì thực hiện UI audit cho riêng vấn đề fix sau đó mới merge to main
+
+tương tự với quality audit
+
+commit và thực hiện audit mới luôn cho lần fix này
+
+documents\screenshots\latest\student-edit\dark-desktop.png
+=> ý tôi là luồng IT bình thường sao lại có lỗi này, cần tìm ra nguyên nhân lỗi và khắc phục chứ?
+
+thêm 1 ý nữa, screenshots cũng nên có data mock sẵn để xem tốt hơn
+
+=> rõ ràng có lỗi quality qua screenshots, vậy đã fix chưa? cần memory về case này không?
+
+sao tôi xem screenshots nào cũng có dialog thông báo lỗi errors nhỉ?
+
+documents\screenshots\after-mock-data\register\dark-desktop.png
+=> đăng ký cho trung tâm thì link đến kitehub có phải best practice
+
+thực hiện fix, nhớ phân biệt giữa env local và env production
+
+audit lại chưa? tôi chưa thấy cập nhật screenshots tương ứng?
+
+tôi thấy khi phát triển độc lập FE với BE thì FE phải có đủ bộ mock API cho BE, có nên thêm quan điểm này vào dự án hiện tại không?
+
+tôi cũng muốn env local cũng có image mock data sẵn, có tùy chọn tắt bật image đó, liệu có phải best practice?
+
+ý tôi là mock data thì đương nhiên có cả images rồi
+còn images ở câu trên là image docker ấy?
+
+thì tôi muốn cả FE và BE đều có mock data sẵn ở local mà
+
+2. BE DataSeeder — Spring Boot, seed PostgreSQL, toggle via env => có phải best practice không?
+
+Cái này nên tạo thành wave, có báo cáo log rõ ràng và cần điều tra rõ phạm vi ảnh hưởng, tránh mock sai, mock thiếu
+
+Phương châm là:
+1. làm cho phạm vi toàn bộ, không bỏ qua bất kỳ chỗ nào
+2. làm theo best practice
+
+chưa bắt đầu vội, hãy check các file changing ở root và xử lý
+
+Bây giờ sẽ có các vấn đề design sau cần tiếp tục giải quyết rõ ràng:
+1. tại sao khi khởi động image kitehub để test local thì chỉ khởi động thêm kiteclass-core và kiteclass-frontend để test thông luồng IT. vẫn còn các service khác của kiteclass thì sao: gateway, ...
+2. việc dùng model tự host trên server có thể gây ra vấn đề quá tải không:
++ model sẽ được gọi trực tiếp, gọi qua API, hay gọi qua 1 pipeline data, workflow chuyên nghiệp để xử lý cho người dùng
++ việc generate ảnh sẽ rất nặng, lâu, khiến người dùng phải chờ và cần đa model để phục vụ?
++ hoặc ngoài việc phụ thuộc vào model có thể thêm giải pháp template ảnh sẵn như canva để tạo ảnh nhanh hơn
+=> đâu là best pratice cho vấn đề này
+
+tìm báo cáo về vấn đề design này và trình bày tình trạng giải pháp đang áp dụng
+
+documents không có readme index hay sao? không lưu log lại các PR áp dụng cho 2 vấn đề này sao? tại sao phải grep
+
+lưu lại báo cáo về gaps để fix sau, tạo riêng folder chứa gaps để lưu trữ hàng đợi cập nhật
+
+Quay lại vấn đề design:
+1. thực sự vẫn chưa giải quyết được vấn đề hàng đợi model AI ví dụ có 100 users đồng thời sử dụng dịch vụ AI của kitehub, 100 users đó có 30% premium, 40% pro, 30% free chẳng hạn thì chưa có cơ chế hàng đợi hợp lý hoặc scale cho dịch AI => đâu là best practice
+
+2. quét toàn bộ cấu hình model AI mà dự án đang sử dụng để xác định phạm vì ảnh hưởng và so sánh với model gemma 4 mới ra mắt
+
+GAP-005: AI Queue Fair Scheduling (🔴 P0)
+
+Gap này vẫn chưa rõ ràng:
+1. phải đánh giá được độ chịu tải cho bao nhiêu user
+2. đã có pipeline data rõ ràng chưa: ví dụ đối với static resources thì không dùng AI, đối với template resources thì dùng scripts + AI ít, đối với recourse hoàn toàn phụ thuộc AI thì sao => phân loại như này đã đủ theo best practice chưa
+=> code của kitehub đã đáp ứng cho các loại resources chưa? test khi đưa resources lên frontend kiteclass chưa? đánh giá dựa kiteclass sau khi đưa resources lên thì như thế nào
+
+3. đánh giá rõ xem có nên để model AI tạo ảnh hoàn tài hay chỉ biến nó thành AI Agent workflow để điều hướng tạo ảnh theo template sẽ phù hợp hơn
+
+4. định nghĩa lại các status của frontend instance trong quá trình khởi tạo vào lắp ráp resources? mới khởi tạo là gì, đang tạo là gì, đã lên lần 1, tạo lại, ...
+
+trên đây là nhưng gợi ý của tôi để đưa ra best practice cho AI branding, bạn cần xem xét là thiết kế kỹ lại AI branding tốt hơn, vì đây là key feature của dự án
+
+vậy chốt lại là AI branding sẽ ở kiến trúc gì?
+
+có các vấn đề cần tiếp tục làm rõ:
+1. sẽ có phép user prompt vào AI branding? có hợp lý không?
+2. nguồn template sẽ phải tạo sẵn, liệu có plan hợp lý cho công đoạn này? skill review sẽ dựa trên tiêu chuẩn gì?
+3. Tôi có hỏi là cần có skills/ rules review frontend instance sau khi được AI branding update?
+4. Việc đưa cho user được tự do sáng tạo liệu có cần thiết, hay nên áp dụng 1 quy trình khép kín cụ thể, mục tiêu cao nhất là có được frontend instance tốt nhất chứ không phải là để user được sáng tạo trên AI branding. Dự án là SAAS cho kiteclass chứ không phải nền tảng cung cấp dịch vụ AI
+5. Nhưng quy trình khép kín cũng phải design hợp lý, cụ thể, nếu quá rập khuôn sẽ khiến user không hài lòng, cần có cơ chế như chấp nhận từng resources hay preview giao diện, hoặc đối với ý 1, được prompt vào AI agent thì sẽ là prompt cố định chứ không cho prompt tự do?
+
+Vẫn còn gaps:
+1. các plan về mock có đang bỏ qua mock AI branding và chạy workflow mới chốt cho kiteclass frontend không?
+2. AI branding cần có chỉ dẫn cho user rõ ràng giống như rules của UI => thêm rules này vào trong việc phát triển UI, phải có chỉ dẫn rõ ràng
+3. Ngoài ra cần check lại gaps xem quá trình khởi tạo image của toàn dự án có đang thiếu khởi tạo AI branding không?
+
+1. dùng skills hoặc cập nhật skills để check xem còn gaps về AI branding nữa không?
+2. plan có đang bỏ sót việc cập nhật các phạm vị liên quan khi thiết kế lại AI branding không, ví dụ như business-logic, cần check kỹ các phạm vi ảnh hưởng
+
+còn gaps về AI branding không, thực hiện mô phỏng và suy luận lại từ đầu
+
+.claude của dự án hiện tại vẫn tiếp tục cần cập nhật
+hãy review https://github.com/MiniMax-AI/skills.git và đánh giá repo skills này, so sánh và đưa ra kế hoạch update
+
+Đặc biệt tôi chú ý đến phần tạo tài liệu nhiều định dạng như excel, words, của bộ skill MiniMax này, hiện tại dự án đang tạo các tài liệu này khá yếu
+
+tạo toàn bộ
+
+cần trả lời cho tôi vấn đề: AI branding v2 đang design input đầu vào của user chỉ có upload ảnh logo thôi à? liệu có hợp lý không?
+
+Đấy, rõ ràng bạn đã mô phỏng lại mà vẫn để lọt gaps, hãy thêm skill mô phỏng để tìm gaps rõ ràng và thực hiện lại
+
+skills mới có nên áp dụng cho cả các modules khác của kiteclass, kitehub không?
+
+Xem xét lại design của AI branding v2 có nên bổ sung thiết kế, phát triển theo design pattern để hệ thống tối ưu hơn không?
+
+tạo skills, rules cho vấn đề này, cần phát triển theo design pattern, review skills cũng nên đề xuất update theo design pattern
+
+Gap đang quá nhiều, liệu có nên phân loại và tối ưu lại cho việc thực hiện fix tốt hơn không?
+
+có cần tạo mới skills tạo wave, PR từ gaps không? hay có sẵn rồi, cần update?
+
+Thêm rules vào dự án, bất kỳ output nào cũng phải có tiêu chuẩn review và được review? vậy trong dự án còn những phần nào vi phạm rule này
+
+thế business-logic có review không?
+
+việc review business-logic có đúng nghiệp vụ không tôi cần cơ chế review đứng theo góc nhìn của end_user sử dụng. Cụ thể cần phân chia ra các đối tượng, tổ chức cụ thể sử dụng kitehub, kiteclass để review đối với từng đối tượng này có đúng và đủ nghiệp vụ, đã phát triển đủ tính năng core chưa?
+
+Rule của dự án SAAS này là nghiệp vụ phải tạo ra 1 sân chơi chung cho tất cả các đối tượng đều có thể thỏa mãn nhu cầu core của quản lý và học trực tuyến.
+
+Ví dụ các đối tượng tôi đã nghĩ đến nhưng chưa biết có đủ không:
+1. giáo viên đơn lẻ, nhiều lớp học, nhiều khóa học
+2. trung tâm giáo dục: có admin quản lý, nhiều giáo viên, nhiều khóa học, lớp học
+3. trường học: tương tự trung tâm giáo dục nhưng quy mô lớn hơn
+
+Bạn hãy review xem các đối tượng này đã đầy đủ chưa, đã phân loại đúng chưa? Và phải nhập vai đúng các đối tượng này để thực hiện review
+
+1 case mà review phải bắt được đối với tình trạng hiện tại của dự án là thiếu chức năng import file có thể là xlsx để tạo tài khoản học viên, giáo viên hàng loạt. Vì dự án chưa có tính năng này nên nếu 1 trường cấp 3 đăng ký sử dụng, ví dụ khoảng 500 học sinh phải vào tự tạo tài khoản và đăng nhập sau đó phải gửi tài khoản cho giáo viên để cấp quyền vào lớp học cho 500 tài khoản đấy thay vì có sẵn danh sách tài khoản => vỡ vụn nghiệp vụ. Đây là 1 ví dụ tiêu biểu cho việc không có review business-logic
+
+tức là mỗi loại đối tượng cần khởi tạo 1 bộ tiêu chí của họ và họ sẽ review nghiệp vụ của hệ thống xem có đúng tiêu chí chưa, đúng không?
