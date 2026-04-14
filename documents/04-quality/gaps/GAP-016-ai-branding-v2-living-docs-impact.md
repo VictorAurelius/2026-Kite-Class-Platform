@@ -1,6 +1,7 @@
 # GAP-016: AI Branding v2 — Living Documents Impact Scope
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (living docs rule — PR không pass quality check nếu không update business docs)
 **Domain:** Documentation / Governance
 **Detected:** 2026-04-14

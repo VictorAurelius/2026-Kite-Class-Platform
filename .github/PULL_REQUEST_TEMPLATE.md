@@ -131,6 +131,68 @@
 - [ ] 🟠 **APPROVE with recommendations** - Major issues noted, not blocking
 - [ ] 🔴 **BLOCK** - Critical issues must be fixed
 
+---
+
+## Stage 2.5: Design Patterns Review (per `.claude/rules/design-patterns.md`)
+
+### 🔴 Anti-patterns BANNED
+- [ ] No God Service (>500 lines / >15 methods)
+- [ ] No Primitive Obsession (value objects for structured data)
+- [ ] No scattered status switch/if — use State Pattern
+- [ ] No direct external API types in domain — use Adapter
+- [ ] No direct event publish — use Outbox pattern
+- [ ] No external HTTP without Circuit Breaker + fallback
+
+### 🟠 Required patterns applied (if applicable)
+- [ ] Multiple implementations → Strategy Pattern
+- [ ] Finite state entity → State Machine
+- [ ] Pipeline of steps → Command + Composite
+- [ ] Service orchestrating many deps → Facade
+- [ ] Heavy async task → RabbitMQ queue + worker
+- [ ] Pattern choice documented in javadoc
+
+**Use skill:** `.claude/skills/design-pattern-advisor.md`
+
+---
+
+## Living Docs Compliance (per `.claude/rules/output-review-mandate.md` + GAP-016)
+
+If PR changes business logic, verify docs updated:
+
+- [ ] `01-business/{product}/{domain}/rules.md` — business rules
+- [ ] `01-business/{product}/{domain}/use-cases.md` — UCs
+- [ ] `01-business/{product}/{domain}/api-contract.md` — endpoints
+- [ ] `03-planning/database/database-design.md` — new entities
+- [ ] `03-planning/database/database-migration-plan.md` — migrations
+- [ ] `06-diagrams/plantuml/03-erd.puml` — relationships
+- [ ] `06-diagrams/plantuml/04-architecture-full.puml` — components
+- [ ] `.claude/skills/api-design.md` — API spec
+- [ ] New user-facing feature → guide in `05-guides/`
+
+**Verification chain:** BR-xxx → UC-xxx → endpoint → @Mapping → @Test
+
+---
+
+## Gap Tracking (if PR closes gap from queue)
+
+- [ ] Gap ID referenced: GAP-XXX
+- [ ] Gap file status updated to 🟢 DONE
+- [ ] PR link added to gap file
+- [ ] ROADMAP.md sprint progress updated (if wave complete)
+
+---
+
+## Output Review (per `.claude/rules/output-review-mandate.md`)
+
+Applies if PR produces new output types:
+
+- [ ] Database migration — DBA checklist (if applicable)
+- [ ] Script added — linted (shellcheck / ruff)
+- [ ] Email template — brand + legal check
+- [ ] API contract — OpenAPI updated + contract test
+- [ ] ADR doc — tech lead reviewed
+- [ ] Logs format — structured JSON, no PII
+
 **Summary:**
 <!-- Brief summary of code quality review -->
 

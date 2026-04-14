@@ -230,7 +230,90 @@ Wave này chia làm **4 PRs** tuần tự (mỗi PR là dependency của PR sau)
 
 ---
 
-## 7. Future Wave
+## 7. AI Branding Workflow Mock (added 2026-04-14 per GAP-014)
+
+Wave plan original focused on KiteClass core. **Mở rộng scope: mock AI Branding workflow** từ kitehub-branding.
+
+### 7.1 KiteHub-Branding Endpoints cần mock (12+)
+
+| Category | Endpoint | Method | Purpose |
+|----------|----------|:------:|---------|
+| Analyze | `/api/v1/branding/analyze` | POST | BrandingContext từ inputs |
+| Plan | `/api/v1/branding/plan` | POST | ExecutionPlan (steps) |
+| Execute | `/api/v1/branding/execute` | POST | Run plan, return jobId |
+| Job Status | `/api/v1/branding/jobs/{jobId}` | GET | Poll async status |
+| Package | `/api/v1/branding/{instanceId}/package` | GET | Composite branding (theme + assets) |
+| Templates | `/api/v1/templates` | GET | Template gallery |
+| Template detail | `/api/v1/templates/{id}` | GET | Template + preview |
+| Instance status | `/api/v1/instances/{id}/status` | GET | Lifecycle state |
+| Regenerate | `/api/v1/branding/regenerate` | POST | Single resource regen |
+| Wizard draft | `/api/v1/branding/wizard/draft` | POST | Autosave |
+| Wizard resume | `/api/v1/branding/wizard/draft/latest` | GET | Resume session |
+| Quality report | `/api/v1/branding/quality-reports/{id}` | GET | Score + issues |
+
+### 7.2 Lifecycle Transitions (mocked state machine)
+
+Simulated async flow với delays:
+```
+User wizard complete → POST /branding/execute
+  ↓ (return jobId immediately)
+Mock worker:
+  Wait 2s → status: INITIALIZING
+  Wait 5s → status: GENERATING
+  Wait 3s → status: DEPLOYED (quality score 85)
+```
+
+### 7.3 Sub-PR E: FE MSW — AI Branding Workflow
+
+**Branch:** `feat/fe-mock-ai-branding-workflow`
+**Dependencies:** PR A (OpenAPI), PR B (FE mock base)
+**Scope:**
+- Mock all 12+ kitehub-branding endpoints
+- Simulated async (setTimeout cho state transitions)
+- 6 mock templates per category (branding wizard Step 5)
+- Mock quality gate: return score 85 by default
+- Mock regenerate with counter (tier limits)
+- Integration: wizard → mock backend → DEPLOYED → package API returns
+
+### 7.4 Sub-PR F: BE DataSeeder — kitehub-branding
+
+**Branch:** `feat/be-dataseeder-branding`
+**Dependencies:** PR C (KiteClass seeder foundation)
+**Scope:**
+- Seed 30 ImageTemplates with metadata (tied to GAP-011)
+- Seed 1 sample tenant với DEPLOYED instance
+- Seed 1 BrandingJob COMPLETED với QualityReport
+- Respect FK order: Tenant → FrontendInstance → BrandingResource → Template
+- `@Profile("dev")` only
+
+### 7.5 Demo Flow
+
+Local dev full flow (no backend needed):
+```
+1. Login tenant admin (mock auth)
+2. Onboarding wizard → "Tạo thương hiệu AI" link
+3. 10-step wizard (GAP-031 rich inputs)
+4. Step 5: pick template từ 6 mock options
+5. Step 6: preview + approve resources
+6. Click Deploy → lifecycle animation
+7. Redirect to tenant instance với mock branding applied
+8. Regenerate banner → new job, updated resource
+9. View quality report (score 85, sample issues)
+10. Export brand pack (if GAP-034 done)
+```
+
+### 7.6 Acceptance (extension của §3)
+
+- [ ] 12+ branding endpoints mocked
+- [ ] Lifecycle transitions simulated
+- [ ] 6 sample templates per category
+- [ ] Demo flow runs end-to-end locally
+- [ ] Screenshots captured all wizard steps
+- [ ] No real AI model calls required
+
+---
+
+## 8. Future Wave
 
 **Wave: KiteHub Mock Data** (tách riêng sau wave này)
 - Scope: 6 KiteHub services + gateway + frontend
@@ -239,7 +322,7 @@ Wave này chia làm **4 PRs** tuần tự (mỗi PR là dependency của PR sau)
 
 ---
 
-## 8. Log
+## 9. Log
 
 - **2026-04-14 T0** — Wave plan created. Investigation complete (71 FE endpoints, 36 BE entities audited).
 - **2026-04-14 T1** — User xác định phương châm: (1) toàn bộ phạm vi, (2) best practice. Plan updated với OpenAPI-first approach, full 36 entities seed, 4 PRs thay vì 3. Waiting user approve trước khi tạo wave branch.

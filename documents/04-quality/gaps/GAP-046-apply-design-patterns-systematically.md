@@ -1,6 +1,7 @@
 # GAP-046: Apply Design Patterns Systematically
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Branch:** wave/01-foundation
 **Priority:** 🟠 P1 (foundation quality — affects all implementations)
 **Domain:** Architecture / Engineering
 **Detected:** 2026-04-14 (user raised)

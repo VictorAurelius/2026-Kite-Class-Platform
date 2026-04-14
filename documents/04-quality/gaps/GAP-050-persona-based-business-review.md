@@ -1,6 +1,7 @@
 # GAP-050: Persona-Based Business Review Process
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (meta process — discovers other gaps)
 **Domain:** Product / Business
 **Detected:** 2026-04-14 (user raised with bulk import example)

@@ -1,6 +1,7 @@
 # GAP-011: Template Library Curation Plan + Review Standards
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (foundation — template-first architecture không work nếu không có templates)
 **Domain:** Design / Product / Backend
 **Detected:** 2026-04-14
