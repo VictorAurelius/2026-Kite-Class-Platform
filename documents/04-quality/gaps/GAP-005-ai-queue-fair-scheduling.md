@@ -141,20 +141,63 @@ Khi hệ thống overload hoặc user quá quota:
 - Premium tier full → queue với ETA hiển thị
 - Enterprise có dedicated workers → luôn khả dụng
 
-## Example: 100 concurrent users scenario
+## Capacity Planning (Concrete Numbers)
 
-**Với GAP-005 implemented:**
+### Hardware Baseline
 
-| Tier | Users | Concurrent limit | Total in-flight | Wait time |
-|------|-------|------------------|-----------------|-----------|
-| Free (30%) | 30 | 1 each | 30 → queue | Best-effort, fallback template |
-| Pro (40%) | 40 | 5 each | Max 200 → shared workers | ~2 min |
-| Premium (30%) | 30 | 5 each | Max 150 → shared workers with priority | ~1 min |
+| Component | Specs | Throughput |
+|-----------|-------|------------|
+| Oracle Cloud Always Free | ARM 4 cores, 24GB RAM | Text: 5-10 req/s (CPU), Image: ~2-5 min/img |
+| AWS g4dn.xlarge (GPU) | NVIDIA T4, 16GB RAM | Text: 30-50 req/s, Image: ~30s/img |
+| Template composer (CPU) | 1 CPU core | ~100 compose/s (SVG→PNG) |
 
-**Scaling:**
-- 4 shared workers × 30 req/min = 120 req/min throughput
-- Với 100 concurrent spike → burst handled trong ~2 phút
-- Nếu sustained load → HPA scale up thêm workers
+### Scenario: 100 Concurrent Users (30% premium / 40% pro / 30% free)
+
+**Assumption với template-first architecture (ref GAP-004, GAP-007):**
+- Premium: avg 2 req/session, mix 50% template + 50% AI
+- Pro: avg 1 req/session, mix 70% template + 30% AI
+- Free: avg 1 req/session, mix 90% template + 10% AI
+
+**Request volume trong 1 min peak:**
+
+| Tier | Users | Total req | Template req | AI req |
+|------|-------|-----------|--------------|--------|
+| Premium (30%) | 30 | 60 | 30 | 30 |
+| Pro (40%) | 40 | 40 | 28 | 12 |
+| Free (30%) | 30 | 30 | 27 | 3 |
+| **TOTAL** | **100** | **130** | **85** | **45** |
+
+**Capacity check:**
+- Template path: 85/min → 1.4/s → **1 CPU worker đủ** ✓
+- AI path: 45/min → 0.75/s
+  - Oracle CPU: 5-10/s → dư sức ✓
+  - GPU: 30-50/s → dư sức ✓
+
+**Kết luận: 100 concurrent users feasible trên Oracle Cloud Always Free** nếu template-first architecture implemented (GAP-004 + GAP-007).
+
+### Scaling Thresholds
+
+| Concurrent Users | Template Share | Infrastructure | Notes |
+|------------------|---------------|----------------|-------|
+| 100 | 80%+ | Oracle Cloud Free | Current plan |
+| 500 | 80%+ | Oracle + 1 GPU | Phase 2 |
+| 1000 | 80%+ | Multi-region + CDN + 2-3 GPU | Phase 3 |
+| 5000+ | 80%+ | K8s HPA + spot GPU pool | Enterprise scale |
+
+### Example Queue Behavior (100 concurrent, 30/40/30 split)
+
+**Với GAP-005 implemented + GAP-007 classification:**
+
+| Tier | Concurrent limit | Path split | Actual wait |
+|------|------------------|-----------|-------------|
+| Premium | 5/user | 50% template (<3s), 50% AI queue | Priority 8, ~30s for AI |
+| Pro | 2/user | 70% template, 30% AI queue | Priority 5, ~1min for AI |
+| Free | 1/user | 90% template, 10% AI fallback | Priority 2, template-only if queue full |
+
+**Spike handling:**
+- Template path instant (no queue)
+- AI burst 45 req → queue drains in <1 min with 4 workers
+- HPA scale up if sustained queue depth >100
 
 ## Acceptance Criteria
 

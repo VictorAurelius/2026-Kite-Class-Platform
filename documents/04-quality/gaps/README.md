@@ -37,8 +37,18 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-002](GAP-002-ai-async-pipeline.md) | Async pipeline cho heavy AI tasks (image gen) | AI/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-003](GAP-003-ai-multi-tier-image-generation.md) | Multi-tier image generation strategy | AI/Backend | 🟡 P2 | 🔵 OPEN |
 | [GAP-004](GAP-004-template-based-image-composition.md) | Template-based image composition (Canva-like) | AI/Frontend | 🟡 P2 | 🔵 OPEN |
-| [GAP-005](GAP-005-ai-queue-fair-scheduling.md) | AI queue fair scheduling (WFQ per tier) + horizontal scaling | AI/Backend/DevOps | 🔴 P0 | 🔵 OPEN |
-| [GAP-006](GAP-006-upgrade-to-gemma-4.md) | Upgrade AI models from Llama 3.1 + LLaVA → Gemma 4 E4B | AI/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-005](GAP-005-ai-queue-fair-scheduling.md) | AI queue fair scheduling + capacity plan (100 users feasible on Oracle Free) | AI/Backend/DevOps | 🔴 P0 | 🔵 OPEN |
+| [GAP-006](GAP-006-upgrade-to-gemma-4.md) | Upgrade AI models Llama 3.1 + LLaVA → Gemma 4 E4B | AI/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-007](GAP-007-resource-classification-pipeline.md) | Resource classification pipeline (static/template/full-AI) | AI/Backend | 🔴 P0 | 🔵 OPEN |
+| [GAP-008](GAP-008-ai-agent-workflow.md) | AI Agent workflow (analyzer→planner→executor) thay direct gen | AI/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-009](GAP-009-instance-provisioning-lifecycle.md) | Frontend instance provisioning lifecycle (6 states) | Backend/DevOps | 🟠 P1 | 🔵 OPEN |
+| [GAP-010](GAP-010-branding-package-api-integration.md) | Branding package API + KiteClass integration + E2E test | Backend/Frontend | 🟠 P1 | 🔵 OPEN |
+
+## AI Branding Master Design
+
+Key feature redesign doc: **[`documents/02-architecture/ai-branding-v2-redesign.md`](../../02-architecture/ai-branding-v2-redesign.md)** (supersedes old `ai-local-implementation-plan.md` §architecture)
+
+GAP-005, 007, 008, 009, 010 đều derive từ redesign doc này.
 
 ## File Naming Convention
 
