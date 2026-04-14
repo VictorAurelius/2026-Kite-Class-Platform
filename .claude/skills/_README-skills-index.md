@@ -44,6 +44,7 @@
 | `simulation-gap-finder.md` | 3-axis matrix simulation (5 personas × 8 stages × 10 categories) | Tim gaps toan dien sau design |
 | `design-pattern-advisor.md` | Recommend design patterns cho problem + detect anti-patterns | Khi design/refactor/review code |
 | `workflow/gap-to-pr-converter.md` | Convert gap file → PR/wave với template + task breakdown | Khi start implement gap từ queue |
+| `persona-based-business-review.md` | Role-play per persona (10 tenant types) → find missing features | Quarterly; before GA; user complaint |
 
 ### Technical Standards
 **Backend:**

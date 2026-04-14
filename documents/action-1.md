@@ -391,3 +391,20 @@ Gap đang quá nhiều, liệu có nên phân loại và tối ưu lại cho vi�
 có cần tạo mới skills tạo wave, PR từ gaps không? hay có sẵn rồi, cần update?
 
 Thêm rules vào dự án, bất kỳ output nào cũng phải có tiêu chuẩn review và được review? vậy trong dự án còn những phần nào vi phạm rule này
+
+thế business-logic có review không?
+
+việc review business-logic có đúng nghiệp vụ không tôi cần cơ chế review đứng theo góc nhìn của end_user sử dụng. Cụ thể cần phân chia ra các đối tượng, tổ chức cụ thể sử dụng kitehub, kiteclass để review đối với từng đối tượng này có đúng và đủ nghiệp vụ, đã phát triển đủ tính năng core chưa?
+
+Rule của dự án SAAS này là nghiệp vụ phải tạo ra 1 sân chơi chung cho tất cả các đối tượng đều có thể thỏa mãn nhu cầu core của quản lý và học trực tuyến.
+
+Ví dụ các đối tượng tôi đã nghĩ đến nhưng chưa biết có đủ không:
+1. giáo viên đơn lẻ, nhiều lớp học, nhiều khóa học
+2. trung tâm giáo dục: có admin quản lý, nhiều giáo viên, nhiều khóa học, lớp học
+3. trường học: tương tự trung tâm giáo dục nhưng quy mô lớn hơn
+
+Bạn hãy review xem các đối tượng này đã đầy đủ chưa, đã phân loại đúng chưa? Và phải nhập vai đúng các đối tượng này để thực hiện review
+
+1 case mà review phải bắt được đối với tình trạng hiện tại của dự án là thiếu chức năng import file có thể là xlsx để tạo tài khoản học viên, giáo viên hàng loạt. Vì dự án chưa có tính năng này nên nếu 1 trường cấp 3 đăng ký sử dụng, ví dụ khoảng 500 học sinh phải vào tự tạo tài khoản và đăng nhập sau đó phải gửi tài khoản cho giáo viên để cấp quyền vào lớp học cho 500 tài khoản đấy thay vì có sẵn danh sách tài khoản => vỡ vụn nghiệp vụ. Đây là 1 ví dụ tiêu biểu cho việc không có review business-logic
+
+tức là mỗi loại đối tượng cần khởi tạo 1 bộ tiêu chí của họ và họ sẽ review nghiệp vụ của hệ thống xem có đúng tiêu chí chưa, đúng không?
