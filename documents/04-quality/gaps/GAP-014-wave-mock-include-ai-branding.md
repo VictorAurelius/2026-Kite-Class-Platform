@@ -1,6 +1,7 @@
 # GAP-014: Wave Mock Plan Missing AI Branding Workflow
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (scope gap — wave plan incomplete)
 **Domain:** Backend / Frontend / Mock Data
 **Detected:** 2026-04-14
