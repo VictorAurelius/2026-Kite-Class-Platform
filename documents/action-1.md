@@ -350,8 +350,6 @@ Gap này vẫn chưa rõ ràng:
 
 trên đây là nhưng gợi ý của tôi để đưa ra best practice cho AI branding, bạn cần xem xét là thiết kế kỹ lại AI branding tốt hơn, vì đây là key feature của dự án
 
-Ngoài ra cần check lại gaps xem quá trình khởi tạo image của toàn dự án có đang thiếu khởi tạo AI branding không?
-
 vậy chốt lại là AI branding sẽ ở kiến trúc gì?
 
 có các vấn đề cần tiếp tục làm rõ:
@@ -360,3 +358,11 @@ có các vấn đề cần tiếp tục làm rõ:
 3. Tôi có hỏi là cần có skills/ rules review frontend instance sau khi được AI branding update?
 4. Việc đưa cho user được tự do sáng tạo liệu có cần thiết, hay nên áp dụng 1 quy trình khép kín cụ thể, mục tiêu cao nhất là có được frontend instance tốt nhất chứ không phải là để user được sáng tạo trên AI branding. Dự án là SAAS cho kiteclass chứ không phải nền tảng cung cấp dịch vụ AI
 5. Nhưng quy trình khép kín cũng phải design hợp lý, cụ thể, nếu quá rập khuôn sẽ khiến user không hài lòng, cần có cơ chế như chấp nhận từng resources hay preview giao diện, hoặc đối với ý 1, được prompt vào AI agent thì sẽ là prompt cố định chứ không cho prompt tự do?
+
+Vẫn còn gaps:
+1. các plan về mock có đang bỏ qua mock AI branding và chạy workflow mới chốt cho kiteclass frontend không?
+2. AI branding cần có chỉ dẫn cho user rõ ràng giống như rules của UI => thêm rules này vào trong việc phát triển UI, phải có chỉ dẫn rõ ràng
+3. Ngoài ra cần check lại gaps xem quá trình khởi tạo image của toàn dự án có đang thiếu khởi tạo AI branding không?
+
+1. dùng skills hoặc cập nhật skills để check xem còn gaps về AI branding nữa không?
+2. plan có đang bỏ sót việc cập nhật các phạm vị liên quan khi thiết kế lại AI branding không, ví dụ như business-logic, cần check kỹ các phạm vi ảnh hưởng

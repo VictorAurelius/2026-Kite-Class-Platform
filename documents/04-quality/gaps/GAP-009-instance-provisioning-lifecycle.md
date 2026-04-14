@@ -43,10 +43,23 @@ NOT_STARTED → INITIALIZING → GENERATING → DEPLOYED ⇄ REGENERATING
 
 ## Proposed Fix
 
-### Step 1: Entity + enum
+### Step 0: Rename existing enum to avoid conflict
+
+**Existing:** `kitehub-platform/.../InstanceStatus.java` — chứa SUBSCRIPTION states (PENDING/TRIAL/ACTIVE/SUSPENDED/DELETED). Tên confuse.
+
+**Rename:**
+```java
+// OLD (kitehub-platform, confusing name)
+InstanceStatus { PENDING, TRIAL, ACTIVE, SUSPENDED, DELETED }
+
+// NEW (clearer semantic)
+SubscriptionStatus { PENDING, TRIAL, ACTIVE, SUSPENDED, DELETED }
+```
+
+### Step 1: New enum cho provisioning (kitehub-branding)
 
 ```java
-public enum InstanceStatus {
+public enum FrontendInstanceStatus {
   NOT_STARTED, INITIALIZING, GENERATING, DEPLOYED, REGENERATING, FAILED
 }
 

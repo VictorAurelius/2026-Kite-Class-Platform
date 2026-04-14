@@ -46,6 +46,12 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-011](GAP-011-template-library-curation-plan.md) | Template library curation plan + review standards | Design/Product | 🔴 P0 | 🔵 OPEN |
 | [GAP-012](GAP-012-frontend-instance-quality-review.md) | Automated frontend instance quality review (post-deploy) | Quality/AI/FE | 🟠 P1 | 🔵 OPEN |
 | [GAP-013](GAP-013-guided-branding-wizard-ux.md) | Guided branding wizard UX (closed-loop with flexibility) | FE/UX/Product | 🟠 P1 | 🔵 OPEN |
+| [GAP-014](GAP-014-wave-mock-include-ai-branding.md) | Wave mock plan missing AI branding workflow | Mock Data/Wave | 🔴 P0 | 🔵 OPEN |
+| [GAP-015](GAP-015-tenant-provisioning-auto-trigger-branding.md) | Tenant provisioning thiếu auto-trigger AI branding (event-driven) | Backend/FE/Integration | 🔴 P0 | 🔵 OPEN |
+
+## Developer Rules
+
+- **[`.claude/rules/ai-branding-guidelines.md`](../../../.claude/rules/ai-branding-guidelines.md)** — MANDATORY rules cho developers làm AI branding feature
 
 ## AI Branding Master Design
 
