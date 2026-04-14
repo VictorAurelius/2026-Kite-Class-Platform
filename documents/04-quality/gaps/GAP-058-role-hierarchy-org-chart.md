@@ -1,6 +1,8 @@
 # GAP-058: Role Hierarchy + Organizational Chart
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Branch:** wave/02-data-model
+**ADR:** ADR-000
 **Priority:** 🟠 P1
 **Domain:** Backend / Security
 **Detected:** 2026-04-14 (persona review)

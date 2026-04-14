@@ -1,6 +1,8 @@
 # GAP-054: Multi-Subject per Student (K-12 Model)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Branch:** wave/02-data-model
+**ADR:** ADR-000
 **Priority:** 🔴 P0 (K-12 blocker)
 **Domain:** Backend / Data Model
 **Detected:** 2026-04-14 (persona review)
