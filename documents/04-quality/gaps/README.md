@@ -79,14 +79,15 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-044](GAP-044-synthetic-monitoring-feature-flags.md) | Synthetic monitoring + feature flags system | DevOps/Release | 🟡 P2 | 🔵 OPEN |
 | [GAP-045](GAP-045-template-marketplace.md) | Template marketplace (community contributions) | Product/Community | 🟡 P2 | 🔵 OPEN |
 | [GAP-046](GAP-046-apply-design-patterns-systematically.md) | Apply design patterns systematically (17 patterns catalog) | Architecture | 🟠 P1 | 🔵 OPEN |
+| [GAP-047](GAP-047-document-generation-skills.md) | Document generation skills + infrastructure (Excel/Word/PDF/PPT from MiniMax) | Skills/Backend | 🔴 P0 | 🔵 OPEN |
 
 ## Summary by Priority
 
-- 🔴 **P0 (11 gaps):** 005, 007, 011, 014, 015, 016, 018, 031, 041, 042
+- 🔴 **P0 (12 gaps):** 005, 007, 011, 014, 015, 016, 018, 031, 041, 042, 047
 - 🟠 **P1 (20 gaps):** 002, 006, 008, 009, 010, 012, 013, 017, 019, 020, 021, 023, 026, 032, 033, 036, 037, 038, 039, 040, 043, 046
 - 🟡 **P2 (15 gaps):** 001, 003, 004, 022, 024, 025, 027, 028, 029, 030, 034, 035, 044, 045
 
-**Total: 46 gaps** — systematic AI Branding coverage via `simulation-gap-finder` skill + design patterns catalog.
+**Total: 47 gaps** — AI Branding + document generation infrastructure (MiniMax review added).
 
 ## Simulation Methodology
 
