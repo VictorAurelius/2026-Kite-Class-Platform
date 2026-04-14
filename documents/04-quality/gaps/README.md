@@ -64,14 +64,35 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-029](GAP-029-quality-gate-calibration.md) | Quality gate calibration & feedback loop | Quality/AI | 🟡 P2 | 🔵 OPEN |
 | [GAP-030](GAP-030-disaster-recovery-ai-branding.md) | Disaster recovery for AI branding (RTO/RPO, runbooks) | DevOps/Reliability | 🟡 P2 | 🔵 OPEN |
 | [GAP-031](GAP-031-expand-wizard-inputs-beyond-logo.md) | Expand wizard inputs beyond logo (rich brand context) | UX/Product/AI | 🔴 P0 | 🔵 OPEN |
+| [GAP-032](GAP-032-branded-error-pages.md) | Branded error pages (404/500/maintenance) | Frontend/UX | 🟠 P1 | 🔵 OPEN |
+| [GAP-033](GAP-033-branding-version-history-rollback.md) | Branding version history & rollback (user-facing) | Product/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-034](GAP-034-branding-export-pack.md) | Branding export pack (ZIP + PDF style guide) | Product/Backend | 🟡 P2 | 🔵 OPEN |
+| [GAP-035](GAP-035-wizard-team-collaboration.md) | Wizard team collaboration (multi-user edit) | FE/Backend | 🟡 P2 | 🔵 OPEN |
+| [GAP-036](GAP-036-tier-upgrade-reveal-ux.md) | Tier upgrade UX (reveal, teaser, unlock) | Product/Conversion | 🟠 P1 | 🔵 OPEN |
+| [GAP-037](GAP-037-branded-auth-flows.md) | Branded auth flows (verify email, reset pwd pages) | Frontend/Integration | 🟠 P1 | 🔵 OPEN |
+| [GAP-038](GAP-038-developer-api-docs-sdk.md) | Developer API docs + SDK / client library | DevExp/Docs | 🟠 P1 | 🔵 OPEN |
+| [GAP-039](GAP-039-webhook-reliability-versioning.md) | Webhook reliability (retry, idempotency, versioning) | Integration/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-040](GAP-040-support-impersonation-tools.md) | Support impersonation & troubleshooting tools | Support/Ops | 🟠 P1 | 🔵 OPEN |
+| [GAP-041](GAP-041-security-hardening-injection.md) | Security hardening — SVG XSS, SSRF, CSRF, prompt injection | Security | 🔴 P0 | 🔵 OPEN |
+| [GAP-042](GAP-042-legal-ip-protection.md) | Legal/IP protection — trademark, DMCA, copyright | Legal/Compliance | 🔴 P0 | 🔵 OPEN |
+| [GAP-043](GAP-043-performance-cache-stampede-protection.md) | Performance — cache stampede + thundering herd | Performance/Backend | 🟠 P1 | 🔵 OPEN |
+| [GAP-044](GAP-044-synthetic-monitoring-feature-flags.md) | Synthetic monitoring + feature flags system | DevOps/Release | 🟡 P2 | 🔵 OPEN |
+| [GAP-045](GAP-045-template-marketplace.md) | Template marketplace (community contributions) | Product/Community | 🟡 P2 | 🔵 OPEN |
 
 ## Summary by Priority
 
-- 🔴 **P0 (9 gaps):** 005, 007, 011, 014, 015, 016, 018, 031
-- 🟠 **P1 (12 gaps):** 002, 006, 008, 009, 010, 012, 013, 017, 019, 020, 021, 023, 026
-- 🟡 **P2 (10 gaps):** 001, 003, 004, 022, 024, 025, 027, 028, 029, 030
+- 🔴 **P0 (11 gaps):** 005, 007, 011, 014, 015, 016, 018, 031, 041, 042
+- 🟠 **P1 (19 gaps):** 002, 006, 008, 009, 010, 012, 013, 017, 019, 020, 021, 023, 026, 032, 033, 036, 037, 038, 039, 040, 043
+- 🟡 **P2 (15 gaps):** 001, 003, 004, 022, 024, 025, 027, 028, 029, 030, 034, 035, 044, 045
 
-**Total: 31 gaps** — full AI Branding scope identified qua simulation end-to-end tenant journey + UX input critique.
+**Total: 45 gaps** — systematic AI Branding coverage via `simulation-gap-finder` skill (5 personas × 8 stages × 10 categories matrix).
+
+## Simulation Methodology
+
+Gaps found via `.claude/skills/simulation-gap-finder.md` — 3-axis matrix:
+- **Personas:** Owner, End User, Platform Admin, Developer, Support
+- **Stages:** Discovery, Signup, Config, Provisioning, Daily Use, Edge/Error, Evolution, Termination
+- **Categories:** Functional, UX, Data, Performance, Security, Compliance, Ops, Integration, Commercial, Evolution
 
 ## Developer Rules
 
