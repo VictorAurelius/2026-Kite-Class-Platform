@@ -12,7 +12,7 @@ Per-screen scoring + before/after screenshots. Covers 100% screens: public, auth
 
 ### 0. Fix Verification (BẮT BUỘC nếu có report trước)
 
-Đọc `documents/04-quality/ui-review-latest.md`, check từng issue:
+Đọc `documents/04-quality/audits/ui/ui-review-latest.md`, check từng issue:
 
 ```
 | Issue | Status | Notes |
@@ -72,7 +72,7 @@ Report LOWEST screen — đây là quality bar thực sự.
 
 ### 5. Output
 
-Lưu vào `documents/04-quality/ui-review-latest.md`. Commit `manifest.md` (không commit PNG).
+Lưu vào `documents/04-quality/audits/ui/ui-review-latest.md`. Commit `manifest.md` (không commit PNG).
 
 ---
 
@@ -129,4 +129,4 @@ Lưu vào `documents/04-quality/ui-review-latest.md`. Commit `manifest.md` (khô
 - `kiteclass/kiteclass-frontend/scripts/capture-screenshots.ts` — KiteClass capture (v2)
 - `kitehub/kitehub-frontend/scripts/capture-screenshots.ts` — KiteHub capture (v1)
 - `documents/screenshots/README.md` — giải thích cấu trúc + git policy
-- `documents/04-quality/ui-review-latest.md` — latest audit report
+- `documents/04-quality/audits/ui/ui-review-latest.md` — latest audit report

@@ -329,7 +329,7 @@ Reference: `.claude/rules/design-patterns.md`, `documents/02-architecture/ai-bra
 
 ### Bước 4: Lưu report
 
-- Save to `documents/04-quality/business-gap-check-[date]-[target].md`
+- Save to `documents/04-quality/audits/business/business-gap-check-[date]-[target].md`
 - Cross-reference với existing plans
 
 ---

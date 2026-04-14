@@ -262,7 +262,7 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude
 
 ### Bước 4: Lưu kết quả
 
-- Save report to `documents/04-quality/quality-audit-[date].md`
+- Save report to `documents/04-quality/audits/quality/quality-audit-[date].md`
 - Update `kitehub-quality-100-plan.md` nếu phát hiện gaps mới
 - So sánh với audit trước nếu có
 

@@ -7,7 +7,11 @@
       "Read",
       "Write",
       "Edit",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(sed -i 's|documents/04-quality/quality-audit-|documents/04-quality/audits/quality/quality-audit-|g' .claude/skills/business-gap-check.md .claude/skills/quality-audit/SKILL.md .claude/skills/workflow/repo-status/SKILL.md .claude/skills/workflow/repo-status/reference/level-definitions.md .claude/skills/workflow/quality-plan/SKILL.md scripts/repo-status.sh)",
+      "Bash(sed -i 's|documents/04-quality/business-gap-check-|documents/04-quality/audits/business/business-gap-check-|g' .claude/skills/business-gap-check.md .claude/skills/wave-completion-check.md .claude/skills/workflow/repo-status/SKILL.md .claude/skills/workflow/quality-plan/SKILL.md scripts/repo-status.sh)",
+      "Bash(sed -i 's|documents/04-quality/ui-audit-issues|documents/04-quality/audits/ui/ui-audit-issues|g' .claude/skills/workflow/repo-status/SKILL.md scripts/repo-status.sh)",
+      "Bash(sed -i 's|documents/04-quality/ui-review-latest|documents/04-quality/audits/ui/ui-review-latest|g' .claude/skills/quality/ui-review/SKILL.md scripts/repo-status.sh)"
     ]
   },
   "defaultMode": "bypassPermissions"
