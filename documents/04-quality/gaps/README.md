@@ -2,6 +2,8 @@
 
 Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi gap = 1 file, được fix theo priority. Không fix ngay trong session phát hiện, tránh scope creep.
 
+> **📋 Đang quá nhiều gaps?** Đọc **[ROADMAP.md](ROADMAP.md)** để xem epic grouping, dependencies, sprint plan thay vì flat list.
+
 ## Workflow
 
 1. **Phát hiện** — gap được tạo file `GAP-XXX-title.md` với status `OPEN`
