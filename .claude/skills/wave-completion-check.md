@@ -15,7 +15,15 @@ description: "Dùng khi kết thúc wave, user nói 'wave completion', 'wrap up 
 ```
 /wave-completion-check pre      # TRƯỚC khi launch agents
 /wave-completion-check [number] # SAU khi merge tất cả PRs
+/wave-completion-check --gaps GAP-X,GAP-Y  # Check gaps closed by wave
 ```
+
+**Integration với gaps queue:**
+Nếu wave sinh ra từ gaps (via `gap-to-pr-converter`), check:
+- [ ] Tất cả gaps được wave cover đã status 🟢 DONE
+- [ ] Gap files updated với PR links + close date
+- [ ] ROADMAP.md cập nhật sprint progress
+- [ ] Gaps bị block bởi wave này unblock (cascade update)
 
 ---
 

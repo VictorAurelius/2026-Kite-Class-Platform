@@ -16,6 +16,10 @@ Skill này định nghĩa cách tạo **temporary priority PR plans** để th�
 - 🔧 Technical debt cần giải quyết urgent
 - 📊 Phân tích lệch chuẩn sau manual testing
 
+**Gap-to-PR integration (2026-04-14):**
+Dùng `documents/04-quality/gaps/ROADMAP.md` làm source cho priority (epics + sprints).
+Convert gap → PR: use `.claude/skills/workflow/gap-to-pr-converter.md`.
+
 ---
 
 ## 🎯 Core Principle

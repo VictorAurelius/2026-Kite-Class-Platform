@@ -9,11 +9,36 @@ description: "Dùng khi bắt đầu implement PR medium+, user nói 'chia nhỏ
 - Planning new features (Medium+ complexity)
 - Breaking down complex PRs (10+ steps)
 - Setting expectations for time estimates
+- **Breaking down gap into PR tasks** (use with `gap-to-pr-converter.md`)
 
 ## Khi nào skip
 
 - Simple bug fixes (1-2 steps obvious)
 - Typo corrections, documentation-only updates
+
+## From Gap File to Tasks
+
+Gap files đã có structured sections → map thành tasks:
+
+| Gap Section | Task Conversion |
+|-------------|-----------------|
+| Problem | Context (không gen task) |
+| Proposed Fix steps | Each step → 1-3 tasks |
+| Acceptance Criteria | Each criterion → verification task |
+| Dependencies | Block/unblock checks |
+
+Example GAP-007 (Resource Classification):
+```
+Gap Proposed Fix step 1 "Define enums" →
+  Task 1: Write ResourceCategoryTest (RED)
+  Task 2: Create ResourceCategory enum (GREEN)
+  Task 3: Write unit tests for 4 scenarios
+Gap Proposed Fix step 2 "Entity + DB" →
+  Task 4: Write BrandingResource JPA mapping tests
+  Task 5: Implement BrandingResource entity
+  Task 6: Create Flyway V28 migration
+...
+```
 
 ## Documentation Decision
 
