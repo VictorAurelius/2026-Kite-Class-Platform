@@ -391,4 +391,24 @@ Unblocked:
 ## Log
 
 - **2026-04-14 T0** — Wave plan generated; branch created
-- **⏳ Pending** — ADR + 6 implementation Sub-PRs
+- **2026-04-14** — Sub-PR 2.1 ADRs merged (PR #271)
+- **2026-04-14** — Sub-PR 2.2 Academic Year + Semester + Holiday merged (PR #273, GAP-053 ✅)
+- **2026-04-14** — Sub-PR 2.3 K-12 Multi-Subject Data Model merged (PR #275, GAP-054 ✅)
+- **2026-04-14** — Sub-PR 2.4 Role Hierarchy + Permissions merged (PR #276, GAP-058 ✅)
+- **2026-04-14** — Sub-PR 2.5 Instance Provisioning Lifecycle merged (PR #277, GAP-009 ✅)
+- **2026-04-14** — Sub-PR 2.6 Resource Classification Pipeline merged (PR #278, GAP-007 ✅)
+- **2026-04-14** — Sub-PR 2.7 Integration + Wave Completion (this PR): gap statuses flipped 🟢 DONE; ROADMAP updated; deferred items listed below.
+
+## Deferred to later waves
+
+Wave 2 was scoped to **data model foundation**. These items, originally mentioned in gap descriptions, are intentionally carried to later waves:
+
+| Item | Origin gap | Target wave |
+|------|-----------|-------------|
+| REST controllers for InstanceLifecycle + Resource routing | GAP-009 / GAP-007 | Wave 3 AI Branding Core |
+| RabbitMQ outbox events for instance transitions | GAP-009 | Wave 3 AI Branding Core |
+| Concrete handlers (StaticResourceHandler / TemplateResourceHandler / AIResourceHandler) | GAP-007 | Wave 3 AI Branding Core |
+| Admin UI for instance lifecycle (list/retry/rebrand) | GAP-009 | Wave 8 Admin Console |
+| MinIO storage layout (static / templates / ai-generated) | GAP-007 | Wave 3 AI Branding Core |
+| Webhook `/internal/notify/instance-deployed` | GAP-009 | Wave 3 AI Branding Core |
+| Role migration from flat enum (if existing tenants had OWNER/ADMIN) | GAP-058 | Data migration wave |

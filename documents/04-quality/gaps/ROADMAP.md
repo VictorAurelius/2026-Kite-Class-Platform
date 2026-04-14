@@ -423,4 +423,28 @@ GAP-001, 003, 022, 025, 027, 028, 029, 030, 034, 035, 044, 045
 
 ---
 
-**Last Updated:** 2026-04-14
+## 12. Progress Log
+
+### Wave 2 — Data Model Foundation — 🟢 COMPLETE (2026-04-14)
+
+7 sub-PRs merged sequentially:
+
+| Sub-PR | PR | Gap | Status |
+|--------|----|-----|--------|
+| 2.1 ADRs (5 architectural decisions) | #271 | — | 🟢 |
+| 2.2 Academic Year + Semester + Holiday | #273 | GAP-053 | 🟢 |
+| 2.3 K-12 Multi-Subject Model | #275 | GAP-054 | 🟢 |
+| 2.4 Role Hierarchy + Permissions | #276 | GAP-058 | 🟢 |
+| 2.5 Instance Provisioning Lifecycle | #277 | GAP-009 | 🟢 |
+| 2.6 Resource Classification Pipeline | #278 | GAP-007 | 🟢 |
+| 2.7 Integration + Wave Completion | (this PR) | — | 🟢 |
+
+**Wave 2 Gaps closed:** GAP-053, GAP-054, GAP-058, GAP-009, GAP-007
+
+Deferred items (listed in `03-planning/wave-02-data-model.md` §Deferred): REST controllers, RabbitMQ outbox, concrete handlers, Admin UI, MinIO layout, webhooks — all targeted for Wave 3 AI Branding Core.
+
+**Next Wave:** Wave 3 AI Branding Core — unblocked.
+
+---
+
+**Last Updated:** 2026-04-14 (Wave 2 completion)

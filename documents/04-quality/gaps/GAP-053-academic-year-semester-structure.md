@@ -1,6 +1,6 @@
 # GAP-053: Academic Year + Semester Structure
 
-**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Status:** 🟢 DONE (Wave 2 Sub-PR 2.2, merged 2026-04-14)
 **Branch:** wave/02-data-model
 **ADR:** ADR-000
 **Priority:** 🔴 P0 (K-12 blocker)
