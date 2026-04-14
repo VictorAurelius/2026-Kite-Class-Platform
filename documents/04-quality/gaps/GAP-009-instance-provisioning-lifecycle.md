@@ -1,6 +1,8 @@
 # GAP-009: Frontend Instance Provisioning Lifecycle
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Branch:** wave/02-data-model
+**ADR:** ADR-000
 **Priority:** 🟠 P1
 **Domain:** Backend / DevOps
 **Detected:** 2026-04-14

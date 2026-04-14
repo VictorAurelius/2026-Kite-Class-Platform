@@ -1,6 +1,8 @@
 # GAP-007: Resource Classification Pipeline
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Branch:** wave/02-data-model
+**ADR:** ADR-000
 **Priority:** 🔴 P0 (foundation cho AI branding)
 **Domain:** AI / Backend
 **Detected:** 2026-04-14
