@@ -37,6 +37,8 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-002](GAP-002-ai-async-pipeline.md) | Async pipeline cho heavy AI tasks (image gen) | AI/Backend | 🟠 P1 | 🔵 OPEN |
 | [GAP-003](GAP-003-ai-multi-tier-image-generation.md) | Multi-tier image generation strategy | AI/Backend | 🟡 P2 | 🔵 OPEN |
 | [GAP-004](GAP-004-template-based-image-composition.md) | Template-based image composition (Canva-like) | AI/Frontend | 🟡 P2 | 🔵 OPEN |
+| [GAP-005](GAP-005-ai-queue-fair-scheduling.md) | AI queue fair scheduling (WFQ per tier) + horizontal scaling | AI/Backend/DevOps | 🔴 P0 | 🔵 OPEN |
+| [GAP-006](GAP-006-upgrade-to-gemma-4.md) | Upgrade AI models from Llama 3.1 + LLaVA → Gemma 4 E4B | AI/Backend | 🟠 P1 | 🔵 OPEN |
 
 ## File Naming Convention
 
