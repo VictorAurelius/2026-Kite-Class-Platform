@@ -48,6 +48,7 @@ Hàng đợi các design gaps / implementation gaps được phát hiện. Mỗi
 | [GAP-013](GAP-013-guided-branding-wizard-ux.md) | Guided branding wizard UX (closed-loop with flexibility) | FE/UX/Product | 🟠 P1 | 🔵 OPEN |
 | [GAP-014](GAP-014-wave-mock-include-ai-branding.md) | Wave mock plan missing AI branding workflow | Mock Data/Wave | 🔴 P0 | 🔵 OPEN |
 | [GAP-015](GAP-015-tenant-provisioning-auto-trigger-branding.md) | Tenant provisioning thiếu auto-trigger AI branding (event-driven) | Backend/FE/Integration | 🔴 P0 | 🔵 OPEN |
+| [GAP-016](GAP-016-ai-branding-v2-living-docs-impact.md) | AI Branding v2 living docs impact scope (business/API/ERD/tests) | Docs/Governance | 🔴 P0 | 🔵 OPEN |
 
 ## Developer Rules
 

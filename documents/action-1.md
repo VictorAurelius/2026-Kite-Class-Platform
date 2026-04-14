@@ -366,3 +366,8 @@ Vẫn còn gaps:
 
 1. dùng skills hoặc cập nhật skills để check xem còn gaps về AI branding nữa không?
 2. plan có đang bỏ sót việc cập nhật các phạm vị liên quan khi thiết kế lại AI branding không, ví dụ như business-logic, cần check kỹ các phạm vi ảnh hưởng
+
+.claude của dự án hiện tại vẫn tiếp tục cần cập nhật
+hãy review https://github.com/MiniMax-AI/skills.git và đánh giá repo skills này, so sánh và đưa ra kế hoạch update
+
+Đặc biệt tôi chú ý đến phần tạo tài liệu nhiều định dạng như excel, words, của bộ skill MiniMax này, hiện tại dự án đang tạo các tài liệu này khá yếu
