@@ -397,8 +397,8 @@ grep "⬜\|✅" documents/03-planning/kitehub-saas-implementation-plan.md | tail
 # Verify: PRs vừa merge đã mark ✅ + PR number
 
 # 2. Gap reports updated
-grep "⬜\|✅" documents/04-quality/business-gap-check-*-kitehub.md | grep -c "✅"
-grep "⬜\|✅" documents/04-quality/business-gap-check-*-kiteclass.md | grep -c "✅"
+grep "⬜\|✅" documents/04-quality/audits/business/business-gap-check-*-kitehub.md | grep -c "✅"
+grep "⬜\|✅" documents/04-quality/audits/business/business-gap-check-*-kiteclass.md | grep -c "✅"
 # Verify: gaps fixed trong wave đã mark ✅
 
 # 3. Parallel strategy updated

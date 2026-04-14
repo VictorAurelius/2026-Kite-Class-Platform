@@ -52,8 +52,8 @@ git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdat
 ```
 
 **Factor 3 — Audit Gaps:** Đọc latest audit report để hiểu context gaps:
-- Quality audit: `documents/04-quality/quality-audit-*.md` (mới nhất)
-- UI audit: `documents/04-quality/ui-audit-issues-*.md` (mới nhất)
+- Quality audit: `documents/04-quality/audits/quality/quality-audit-*.md` (mới nhất)
+- UI audit: `documents/04-quality/audits/ui/ui-audit-issues-*.md` (mới nhất)
 - Cross-check: gaps đã có PR fix chưa? (check merged PRs since audit date)
 
 ### Bước 3: Output Report

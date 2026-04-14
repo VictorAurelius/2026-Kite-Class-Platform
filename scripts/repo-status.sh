@@ -177,7 +177,7 @@ check_audit_gaps() {
 
     # Find latest quality audit report (sort by filename = date, not mtime)
     local audit_file
-    audit_file=$(ls documents/04-quality/quality-audit-*.md 2>/dev/null | sort -r | head -1) || true
+    audit_file=$(ls documents/04-quality/audits/quality/quality-audit-*.md 2>/dev/null | sort -r | head -1) || true
 
     if [ -z "$audit_file" ]; then
         echo "has_unfixed_gaps=unknown"
@@ -212,7 +212,7 @@ check_audit_gaps() {
 
     # Also check UI audit issues (count open items by severity)
     local ui_audit
-    ui_audit=$(ls documents/04-quality/ui-audit-issues-*.md 2>/dev/null | sort -r | head -1) || true
+    ui_audit=$(ls documents/04-quality/audits/ui/ui-audit-issues-*.md 2>/dev/null | sort -r | head -1) || true
     local ui_audit_date=""
     local ui_open_total=0
     if [ -n "$ui_audit" ]; then

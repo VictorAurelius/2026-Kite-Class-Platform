@@ -408,3 +408,8 @@ Bạn hãy review xem các đối tượng này đã đầy đủ chưa, đã ph
 1 case mà review phải bắt được đối với tình trạng hiện tại của dự án là thiếu chức năng import file có thể là xlsx để tạo tài khoản học viên, giáo viên hàng loạt. Vì dự án chưa có tính năng này nên nếu 1 trường cấp 3 đăng ký sử dụng, ví dụ khoảng 500 học sinh phải vào tự tạo tài khoản và đăng nhập sau đó phải gửi tài khoản cho giáo viên để cấp quyền vào lớp học cho 500 tài khoản đấy thay vì có sẵn danh sách tài khoản => vỡ vụn nghiệp vụ. Đây là 1 ví dụ tiêu biểu cho việc không có review business-logic
 
 tức là mỗi loại đối tượng cần khởi tạo 1 bộ tiêu chí của họ và họ sẽ review nghiệp vụ của hệ thống xem có đúng tiêu chí chưa, đúng không?
+
+dùng skills để tạo kế hoạch fix toàn bộ gaps
+refactor lại documents\04-quality
+
+cập nhật folder thì phải cập nhật địa chỉ tương ứng ở các file liên quan như skills, rules?

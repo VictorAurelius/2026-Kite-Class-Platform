@@ -22,7 +22,7 @@ Sau mỗi `/quality-audit` hoặc `/business-gap-check`, chạy skill này để
 
 ```bash
 # Tìm audit mới nhất
-ls -t documents/04-quality/quality-audit-*-$TARGET.md | head -1
+ls -t documents/04-quality/audits/quality/quality-audit-*-$TARGET.md | head -1
 ```
 
 Đọc file → extract "Remaining Gaps" section.
@@ -32,7 +32,7 @@ ls -t documents/04-quality/quality-audit-*-$TARGET.md | head -1
 ## Step 2: Đọc business gap check mới nhất (nếu có)
 
 ```bash
-ls -t documents/04-quality/business-gap-check-*-$TARGET.md | head -1
+ls -t documents/04-quality/audits/business/business-gap-check-*-$TARGET.md | head -1
 ```
 
 Đọc → extract "❌ Failed Checks".

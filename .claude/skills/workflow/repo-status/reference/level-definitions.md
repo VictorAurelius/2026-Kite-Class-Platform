@@ -128,7 +128,7 @@ CI xanh? ─── No ──→ Bao lâu? ─── >7 days ──→ BLACK
 
 ### F3: Audit Gaps
 
-**Checked by:** Parse latest `documents/04-quality/quality-audit-*.md`
+**Checked by:** Parse latest `documents/04-quality/audits/quality/quality-audit-*.md`
 
 **Metrics:**
 - P0/P1/P2 items trong "Remaining Gaps" / "Action Items" / "Improvement Roadmap"
