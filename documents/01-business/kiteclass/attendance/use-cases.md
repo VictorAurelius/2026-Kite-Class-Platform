@@ -159,3 +159,36 @@
 |------|-----------|---------|
 | 403 | Non-admin attempt | "Only admin can delete attendance records" |
 | 404 | Record not found | "Attendance record not found" |
+
+---
+
+### UC-ATT-08: Calendar View of Attendance
+
+**Actor:** Teacher / Admin / Student (own records)
+**Precondition:** Student (or class) has attendance records spanning a time range
+
+**Steps:**
+1. FE: Render `<AttendanceCalendar>` / `<EnhancedAttendanceCalendar>` — month grid with per-day status
+2. User: Pick date range (week / month / semester), optional filter by status
+3. System: `GET /attendance?studentId=X&from=...&to=...` (or class variant)
+4. System: Filter by `instance_id` per BR-ATT-009
+5. FE: Render each day as color-coded cell:
+   - Green — PRESENT
+   - Yellow — LATE
+   - Red — ABSENT
+   - Blue — EXCUSED_ABSENCE
+   - Grey — no session / weekend / holiday
+6. User: Click cell → `AttendanceDetailDialog` with session details + note + override action
+
+**Components (already exist):**
+- `kiteclass-frontend/src/components/attendance/attendance-calendar.tsx`
+- `kiteclass-frontend/src/components/attendance/enhanced-attendance-calendar.tsx`
+- `kiteclass-frontend/src/components/attendance/attendance-detail-dialog.tsx`
+
+**Postcondition:** Visual overview of attendance; drill-down available
+
+**Errors:** same as UC-ATT-05 / UC-ATT-06 (student/class not found)
+
+**Notes:**
+- Weekends + holidays respect Holiday table (Wave 2 GAP-053)
+- Calendar respects academic year boundaries from AcademicYear entity
