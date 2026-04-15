@@ -40,9 +40,10 @@ function isReadyFor(next: StepName, ctx: WizardContext): boolean {
   const inputs = ctx.inputs;
   switch (next) {
     case 'welcome':
-    case 'logo':
       return true;
+    case 'logo':
     case 'audience':
+      // welcome → logo (and logo → audience when logo is skipped) both need segment
       return !!inputs.segment;
     case 'tone':
       return inputs.audiences.length > 0;
