@@ -120,3 +120,40 @@ payment:
 # Contact Configuration
 contact:
   admin-email: ${CONTACT_ADMIN_EMAIL:admin@kiteclass.com}
+
+# AI Provider Configuration (Wave 3 Sub-PR 3.2, ADR-008)
+ai:
+  ollama:
+    base-url: ${AI_OLLAMA_BASE_URL:http://localhost:11434}
+    default-model: ${AI_OLLAMA_MODEL:gemma2}
+
+# Resilience4j — AI call protection (Circuit Breaker + Bulkhead + Retry)
+resilience4j:
+  circuitbreaker:
+    instances:
+      ai:
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+  bulkhead:
+    instances:
+      ai:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 0
+  retry:
+    instances:
+      ai:
+        maxAttempts: 3
+        waitDuration: 2s
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - com.kiteclass.core.module.ai.client.AIException
+        ignoreExceptions:
+          - com.kiteclass.core.module.ai.client.NonRetryableAIException
+
+# Outbox publisher (Wave 3 Sub-PR 3.1, ADR-007)
+outbox:
+  publisher:
+    interval-ms: 5000
