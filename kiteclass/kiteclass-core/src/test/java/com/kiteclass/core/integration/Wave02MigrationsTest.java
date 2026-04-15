@@ -49,9 +49,15 @@ class Wave02MigrationsTest {
     void setup() {
         POSTGRES.start();
 
+        // Baseline at V27 so Flyway only runs V28+. V1..V27 include migrations that
+        // depend on tables seeded outside kiteclass-core (e.g. V25 alters `branding`
+        // which is provisioned by kitehub-branding service). Production runs with
+        // baseline-on-migrate anyway; this test is scoped to Wave 2 migrations only.
         Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
                 .locations("classpath:db/migration")
+                .baselineVersion("27")
+                .baselineOnMigrate(true)
                 .load()
                 .migrate();
     }
