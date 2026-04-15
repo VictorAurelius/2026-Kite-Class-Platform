@@ -202,3 +202,9 @@ retention:
     # HMAC key for pseudonymizing PII fields on RETAIN_WITH_PSEUDO entities.
     # MUST be overridden via RETENTION_PSEUDONYMIZE_SECRET in prod (>=32 bytes).
     pseudonymize-secret: ${RETENTION_PSEUDONYMIZE_SECRET:CHANGE_ME_32_BYTE_MIN}
+
+# Automated Quality Gate (Wave 4 Sub-PR 4.5, GAP-012, ai-branding-guidelines.md §5)
+# InstanceQualityReviewer aggregates 5 checks into a 0–100 score; DEPLOY blocked
+# below pass-threshold.
+quality-gate:
+  pass-threshold: 70

@@ -4,6 +4,7 @@ import com.kiteclass.core.module.ai.dto.AnalysisResult;
 import com.kiteclass.core.module.ai.workflow.step.ExtractPaletteStep;
 import com.kiteclass.core.module.ai.workflow.step.PickTemplateStep;
 import com.kiteclass.core.module.ai.workflow.step.PublishPackageStep;
+import com.kiteclass.core.module.ai.workflow.step.QualityReviewStep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class PlannerService {
 
     private final ExtractPaletteStep extractPalette;
     private final PickTemplateStep pickTemplate;
+    private final QualityReviewStep qualityReview;
     private final PublishPackageStep publishPackage;
 
     public Plan plan(AnalysisResult analysis) {
@@ -37,7 +39,9 @@ public class PlannerService {
                 analysis.isTemplateOnly(),
                 analysis.getPalette(),
                 analysis.getMoodTags());
-        List<Step> steps = List.of(extractPalette, pickTemplate, publishPackage);
+        // Quality gate (ai-branding-guidelines.md §5) runs between pick-template and
+        // publish-package — must pass before DEPLOY.
+        List<Step> steps = List.of(extractPalette, pickTemplate, qualityReview, publishPackage);
         String description = analysis.isTemplateOnly()
                 ? "template-only plan (AI fallback path)"
                 : "standard plan (template-first with AI assist available)";
