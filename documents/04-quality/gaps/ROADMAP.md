@@ -441,10 +441,31 @@ GAP-001, 003, 022, 025, 027, 028, 029, 030, 034, 035, 044, 045
 
 **Wave 2 Gaps closed:** GAP-053, GAP-054, GAP-058, GAP-009, GAP-007
 
-Deferred items (listed in `03-planning/wave-02-data-model.md` §Deferred): REST controllers, RabbitMQ outbox, concrete handlers, Admin UI, MinIO layout, webhooks — all targeted for Wave 3 AI Branding Core.
+Deferred items from Wave 2 all landed in Wave 3: REST controllers (3.4), outbox foundation (3.1), concrete resource handlers (3.3), MinIO layout (3.3), internal webhooks (3.4).
 
-**Next Wave:** Wave 3 AI Branding Core — unblocked.
+### Wave 3 — AI Branding Core Pipeline — 🟢 COMPLETE (2026-04-14)
+
+8 sub-PRs merged sequentially:
+
+| Sub-PR | PR | Gaps addressed |
+|--------|----|----|
+| 3.1 ADRs (006-009) + Transactional Outbox foundation | #284 | — |
+| 3.2 AI Provider adapter + Resilience4j | #285 | — |
+| 3.3 Resource Handlers + MinIO storage layout | #286 | GAP-007 (completed) |
+| 3.4 REST + Package API + webhook | #287 | GAP-010 ✅ |
+| 3.5 AI Agent workflow + GAP-070 rebrand approval | #288 | GAP-008 ✅ GAP-070 ✅ |
+| 3.6 Tenant Provisioning Saga | #289 | GAP-015 ✅ |
+| 3.7 Guided Wizard UX | #290 | GAP-013 ✅ GAP-031 ✅ GAP-069 ✅ |
+| 3.8 Integration + Wave Completion | (this PR) | 🟢 all closed |
+
+**Wave 3 Gaps closed:** GAP-007 (full), GAP-008, GAP-010, GAP-013, GAP-015, GAP-031, GAP-069, GAP-070
+
+Patterns landed: Outbox, Adapter, Strategy, Decorator, Command, Composite, Saga, State Pattern (×2), Builder, Proxy, Optimistic Lock, XState-style FSM (FE reducer).
+
+Deferred to follow-up PRs / later waves (see `03-planning/wave-03-ai-branding-core.md` §Deferred): RabbitMQ consumer wiring, async generate Steps, real Ollama HTTP, REST for rebrand-approvals, Playwright E2E, SSE live progress.
+
+**Next Wave:** Wave 4 Security & Compliance (parallel-ready) or Wave 5 K-12 Critical Features.
 
 ---
 
-**Last Updated:** 2026-04-14 (Wave 2 completion)
+**Last Updated:** 2026-04-14 (Wave 3 completion)

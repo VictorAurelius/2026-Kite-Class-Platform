@@ -1,6 +1,6 @@
 # GAP-015: Tenant Provisioning thiếu auto-trigger AI Branding
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.6, merged 2026-04-14; TenantProvisioningSaga orchestrates initiate → infra stub → ready → Analyzer → Planner → PlanExecutor → DEPLOYED with compensation. RabbitMQ consumer wiring deferred to outbox-dispatcher follow-up.)
 **Priority:** 🔴 P0 (blocker UX — new tenant không có branding automated)
 **Domain:** Backend / Frontend / Integration
 **Detected:** 2026-04-14

@@ -1,6 +1,6 @@
 # GAP-008: AI Agent Workflow (planner + executor) thay cho direct generator
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.5, merged 2026-04-14; Analyzer/Planner/PlanExecutor + 3 scaffold Steps + outbox events landed. Async Generate{Logo,Banner}Step + ComposeThemeStep deferred to 3.5b follow-up.)
 **Priority:** 🟠 P1
 **Domain:** AI / Backend
 **Detected:** 2026-04-14

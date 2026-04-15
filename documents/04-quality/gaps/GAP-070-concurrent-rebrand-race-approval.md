@@ -1,6 +1,6 @@
 # GAP-070: Concurrent Rebrand Race + Approval Workflow
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.5, merged 2026-04-14; ApprovalStatus state machine + RebrandApproval entity + RebrandApprovalService with optimistic lock + two-person rule + auto-expire. REST endpoints + @Scheduled expiry job deferred to follow-up.)
 **Priority:** 🟠 P1 (data integrity + multi-admin correctness)
 **Domain:** Backend / AI Branding / Safety
 **Detected:** 2026-04-14 (simulation-gap-finder on Wave 3 scope)

@@ -1,6 +1,6 @@
 # GAP-007: Resource Classification Pipeline
 
-**Status:** 🟢 DONE (Wave 2 Sub-PR 2.6, merged 2026-04-14; classification chain + entity + routing service landed; concrete handlers/MinIO storage deferred)
+**Status:** 🟢 DONE (Wave 2 Sub-PR 2.6 + Wave 3 Sub-PR 3.3, merged 2026-04-14; classification chain + entity + routing service + handlers + MinIO layout all landed)
 **Branch:** wave/02-data-model
 **ADR:** ADR-000
 **Priority:** 🔴 P0 (foundation cho AI branding)
