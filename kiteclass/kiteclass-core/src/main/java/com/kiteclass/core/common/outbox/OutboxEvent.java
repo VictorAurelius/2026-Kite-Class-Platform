@@ -1,6 +1,8 @@
 package com.kiteclass.core.common.outbox;
 
 import com.kiteclass.core.common.entity.BaseEntity;
+import com.kiteclass.core.module.retention.Retention;
+import com.kiteclass.core.module.retention.RetentionBucket;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,6 +42,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Retention(RetentionBucket.PURGE_DELAYED)
 public class OutboxEvent extends BaseEntity {
 
     @Column(name = "aggregate_type", nullable = false, length = 100)

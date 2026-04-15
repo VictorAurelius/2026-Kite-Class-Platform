@@ -1,6 +1,8 @@
 package com.kiteclass.core.common.audit;
 
 import com.kiteclass.core.common.entity.BaseEntity;
+import com.kiteclass.core.module.retention.Retention;
+import com.kiteclass.core.module.retention.RetentionBucket;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
@@ -35,6 +37,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Retention(value = RetentionBucket.RETAIN_WITH_PSEUDO,
+        pseudonymizeFields = {"actor_user_id"})
 public class AuditLog extends BaseEntity {
 
     @Column(name = "action_type", nullable = false, length = 100)
