@@ -1,6 +1,6 @@
 # GAP-009: Frontend Instance Provisioning Lifecycle
 
-**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Status:** 🟢 DONE (Wave 2 Sub-PR 2.5, merged 2026-04-14; state machine + entity + service landed; REST + RabbitMQ outbox deferred to later wave)
 **Branch:** wave/02-data-model
 **ADR:** ADR-000
 **Priority:** 🟠 P1

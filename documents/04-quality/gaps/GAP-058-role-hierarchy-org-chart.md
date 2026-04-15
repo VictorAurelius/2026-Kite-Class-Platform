@@ -1,6 +1,6 @@
 # GAP-058: Role Hierarchy + Organizational Chart
 
-**Status:** 🟡 PLANNED (Wave 2 Sprint 1)
+**Status:** 🟢 DONE (Wave 2 Sub-PR 2.4, merged 2026-04-14)
 **Branch:** wave/02-data-model
 **ADR:** ADR-000
 **Priority:** 🟠 P1
