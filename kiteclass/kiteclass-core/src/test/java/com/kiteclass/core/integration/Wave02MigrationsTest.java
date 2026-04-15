@@ -53,13 +53,15 @@ class Wave02MigrationsTest {
         // depend on tables seeded outside kiteclass-core (e.g. V25 alters `branding`
         // which is provisioned by kitehub-branding service). Production runs with
         // baseline-on-migrate anyway; this test is scoped to Wave 2 migrations only.
-        Flyway.configure()
+        Flyway flyway = Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
                 .locations("classpath:db/migration")
                 .baselineVersion("27")
-                .baselineOnMigrate(true)
-                .load()
-                .migrate();
+                .baselineDescription("wave-2 test baseline")
+                .load();
+        // Empty schema needs explicit baseline() — baselineOnMigrate only fires on non-empty schemas.
+        flyway.baseline();
+        flyway.migrate();
     }
 
     @AfterAll
