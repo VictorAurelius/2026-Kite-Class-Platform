@@ -413,3 +413,9 @@ dùng skills để tạo kế hoạch fix toàn bộ gaps
 refactor lại documents\04-quality
 
 cập nhật folder thì phải cập nhật địa chỉ tương ứng ở các file liên quan như skills, rules?
+
+tôi tưởng check CI có scripts mà
+
+còn 2 gaps nữa:
+1. điểm danh đang design thế nào, có cần làm mode kiểu calender không?
+2. Kitehub phải có trang quản lý instance như AWS đúng không? hãy phát triển theo best practice
