@@ -10,6 +10,9 @@ import com.kiteclass.core.module.ai.workflow.StepContext;
 import com.kiteclass.core.module.ai.workflow.step.ExtractPaletteStep;
 import com.kiteclass.core.module.ai.workflow.step.PickTemplateStep;
 import com.kiteclass.core.module.ai.workflow.step.PublishPackageStep;
+import com.kiteclass.core.module.ai.workflow.step.QualityReviewStep;
+import com.kiteclass.core.module.quality.entity.QualityReport;
+import com.kiteclass.core.module.quality.service.InstanceQualityReviewer;
 import com.kiteclass.core.module.branding.service.CachingBrandingPackageProxy;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
@@ -48,8 +51,14 @@ class Wave03IntegrationTest {
         AnalyzerService analyzer = new AnalyzerService(new MockAIClient());
         ExtractPaletteStep extractPalette = new ExtractPaletteStep();
         PickTemplateStep pickTemplate = new PickTemplateStep();
+        InstanceQualityReviewer reviewer = mock(InstanceQualityReviewer.class);
+        when(reviewer.review(anyLong())).thenReturn(
+                QualityReport.builder().targetInstanceId(42L).brandingVersion(1)
+                        .score(90).passed(true).build());
+        QualityReviewStep qualityReview = new QualityReviewStep(reviewer);
         PublishPackageStep publishPackage = new PublishPackageStep(lifecycle, cache);
-        PlannerService planner = new PlannerService(extractPalette, pickTemplate, publishPackage);
+        PlannerService planner = new PlannerService(
+                extractPalette, pickTemplate, qualityReview, publishPackage);
         PlanExecutor executor = new PlanExecutor(outbox);
 
         FrontendInstance instance = FrontendInstance.builder()
@@ -67,9 +76,9 @@ class Wave03IntegrationTest {
                 com.kiteclass.core.module.ai.dto.AnalysisRequest.builder()
                         .audience("K-12").tone("friendly").build());
 
-        // 2) Planner
+        // 2) Planner — Wave 4 inserted QualityReviewStep between pick and publish
         Plan plan = planner.plan(analysis);
-        assertThat(plan.size()).isEqualTo(3);
+        assertThat(plan.size()).isEqualTo(4);
 
         // 3) Executor drains the plan
         StepContext ctx = new StepContext(instance.getId(), instance.getTenantId());
@@ -85,6 +94,6 @@ class Wave03IntegrationTest {
         verify(outbox).enqueue(eq("ai.plan.completed"), anyString(), anyString(), anyString());
 
         assertThat(ctx.getExecutedSteps()).containsExactly(
-                "extract-palette", "pick-template", "publish-package");
+                "extract-palette", "pick-template", "quality-review", "publish-package");
     }
 }
