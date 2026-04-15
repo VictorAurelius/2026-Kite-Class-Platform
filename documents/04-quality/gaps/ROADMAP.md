@@ -464,8 +464,30 @@ Patterns landed: Outbox, Adapter, Strategy, Decorator, Command, Composite, Saga,
 
 Deferred to follow-up PRs / later waves (see `03-planning/wave-03-ai-branding-core.md` §Deferred): RabbitMQ consumer wiring, async generate Steps, real Ollama HTTP, REST for rebrand-approvals, Playwright E2E, SSE live progress.
 
-**Next Wave:** Wave 4 Security & Compliance (parallel-ready) or Wave 5 K-12 Critical Features.
+### Wave 4 — Security & Compliance — 🟢 COMPLETE (2026-04-14, parallel-agent)
+
+**First wave at this repo using parallel-agent execution** (worktree-isolated). 6 sub-PRs:
+
+| Sub-PR | PR | Mode | Gaps addressed |
+|--------|----|------|----------------|
+| 4.0 Foundation + ADRs 010-013 | #294 | serialized (lead) | — |
+| 4.1 Content Moderation | #297 | parallel agent #1 | GAP-018 ✅ |
+| 4.2 Security Hardening (SVG/SSRF/CSRF) | #296 | parallel agent #2 | GAP-041 ✅ |
+| 4.3 Legal/IP (DMCA + trademark) | #295 | parallel agent #3 | GAP-042 ✅ |
+| 4.4 GDPR Deletion + retention | #298 | parallel agent #4 | GAP-073 ✅ |
+| 4.5 Quality Gate | #299 | serialized (depends on 4.1) | GAP-012 ✅ |
+| 4.6 Integration + Wave Completion | (this PR) | serialized | 🟢 all closed |
+
+**Wave 4 Gaps closed:** GAP-012, GAP-018, GAP-041, GAP-042, GAP-073
+
+Wall-clock vs serial: 4 middle sub-PRs took ~20min agent work + ~90min human sequencing vs estimated ~5 days serial. 3 application.yml conflicts during sequencing (resolved each time). 1 CI failure (CSRF test-profile secret) — trivially fixed.
+
+Patterns landed: AuditLog, State Pattern (×3 new — Moderation, DMCA, Deletion), Strategy (Quality checks ×5), Adapter (CSRF), Saga (DMCA workflow), Decorator/Sanitizer (SVG XSS), Validator (URL allowlist).
+
+Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML NSFW classifier, USPTO API, MinIO streaming export, scheduled expiry job, real contrast/screenshot/URL-ping checks, KiteHub admin UI hookups (slated for Wave 8).
+
+**Next Wave:** Wave 5 K-12 Critical Features (unblocked from Wave 2) OR Wave 6 Ops Readiness OR quality-audit refresh.
 
 ---
 
-**Last Updated:** 2026-04-14 (Wave 3 completion)
+**Last Updated:** 2026-04-14 (Wave 4 completion via parallel-agent strategy)

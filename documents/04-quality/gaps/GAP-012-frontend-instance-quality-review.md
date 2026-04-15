@@ -1,6 +1,6 @@
 # GAP-012: Automated Frontend Instance Quality Review (post-branding)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4 Sub-PR 4.5, merged 2026-04-14; InstanceQualityReviewer + 5 Strategy-pattern checks + QualityReviewStep in PlannerService. Scaffolded checks (contrast/vrg/url-ping) slated for follow-up when theme JSON + screenshot service + HTTP client land.)
 **Priority:** 🟠 P1
 **Domain:** Quality / AI / Frontend
 **Detected:** 2026-04-14

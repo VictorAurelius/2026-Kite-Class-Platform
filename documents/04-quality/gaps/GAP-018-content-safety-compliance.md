@@ -1,6 +1,6 @@
 # GAP-018: Content Safety & Compliance for AI Branding
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4 Sub-PR 4.1, merged 2026-04-14; ModerationStatus state machine + ContentModerationService 3-stage pipeline + AuditLog integration. Real ML classifier + admin review queue deferred.)
 **Priority:** 🔴 P0 (legal/compliance risk)
 **Domain:** Security / Compliance / AI
 **Detected:** 2026-04-14 (simulation)

@@ -1,6 +1,6 @@
 # GAP-041: Security Hardening — Injection Attacks (SVG XSS, SSRF, CSRF)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4 Sub-PR 4.2, merged 2026-04-14; JsoupSvgSanitizer + DefaultUrlAllowlistValidator (DNS-rebind guard) + DoubleSubmitCsrfTokenProvider (fail-loud on weak secret). 38 XSS/SSRF/CSRF scenarios covered.)
 **Priority:** 🔴 P0 (security critical)
 **Domain:** Security
 **Detected:** 2026-04-14 (simulation: cross-cutting × C5)
