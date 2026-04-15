@@ -84,13 +84,16 @@ class Wave02DataModelIntegrationTest {
         instance.transitionTo(FrontendInstanceStatus.GENERATING);
 
         // 5) Resource classifier chain (Sub-PR 2.6) — used during GENERATING state
-        ResourceRoutingService routing = new ResourceRoutingService(List.of(
-                new StaticAssetClassifier(),
-                new CustomAIRequestClassifier(),
-                new TemplateMatchClassifier(),
-                new AIFallbackClassifier(),
-                new DefaultTemplateClassifier()
-        ));
+        ResourceRoutingService routing = new ResourceRoutingService(
+                List.of(
+                        new StaticAssetClassifier(),
+                        new CustomAIRequestClassifier(),
+                        new TemplateMatchClassifier(),
+                        new AIFallbackClassifier(),
+                        new DefaultTemplateClassifier()
+                ),
+                List.of(),
+                null);
         ResourceCategory cat = routing.classify(
                 ResourceRequest.builder().type(ResourceType.BANNER).customRequested(false).build(),
                 ClassificationContext.builder()
