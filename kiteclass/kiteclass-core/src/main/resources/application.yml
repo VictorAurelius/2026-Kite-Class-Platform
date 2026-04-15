@@ -175,6 +175,14 @@ security:
     secret: ${SECURITY_CSRF_SECRET:dev-only-csrf-secret-do-not-use-in-production-0123456789}
     ttl-hours: 4
 
+# Content moderation (Wave 4 Sub-PR 4.1, GAP-018, ADR-010)
+moderation:
+  stage1:
+    enabled: true
+    nsfw-threshold: 0.7
+  stage2:
+    auto-fallback-to-template: true
+
 # Legal / IP Protection (Wave 4 Sub-PR 4.3, ADR-012)
 legal:
   trademark:
