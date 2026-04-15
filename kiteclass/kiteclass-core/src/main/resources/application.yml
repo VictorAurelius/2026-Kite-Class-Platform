@@ -157,3 +157,12 @@ resilience4j:
 outbox:
   publisher:
     interval-ms: 5000
+
+# Content moderation (Wave 4 Sub-PR 4.1, GAP-018, ADR-010)
+moderation:
+  stage1:
+    enabled: true
+    nsfw-threshold: 0.7
+  stage2:
+    auto-fallback-to-template: true
+
