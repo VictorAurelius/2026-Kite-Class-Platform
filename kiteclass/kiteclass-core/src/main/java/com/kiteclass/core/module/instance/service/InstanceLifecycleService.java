@@ -1,5 +1,6 @@
 package com.kiteclass.core.module.instance.service;
 
+import com.kiteclass.core.common.outbox.OutboxEventWriter;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.repository.FrontendInstanceRepository;
@@ -30,7 +31,10 @@ public class InstanceLifecycleService {
      */
     public static final int MAX_RETRIES = 3;
 
+    private static final String AGGREGATE_TYPE = "FrontendInstance";
+
     private final FrontendInstanceRepository repository;
+    private final OutboxEventWriter outbox;
 
     /**
      * Create a new instance and begin provisioning.
@@ -50,6 +54,7 @@ public class InstanceLifecycleService {
                 .build();
         instance.transitionTo(FrontendInstanceStatus.INITIALIZING);
         FrontendInstance saved = repository.save(instance);
+        emit("instance.initializing", saved);
         log.info("Initiated instance tenant={} slug={} id={}", tenantId, slug, saved.getId());
         return saved;
     }
@@ -62,8 +67,10 @@ public class InstanceLifecycleService {
     public FrontendInstance markInfrastructureReady(Long instanceId) {
         FrontendInstance instance = load(instanceId);
         instance.transitionTo(FrontendInstanceStatus.GENERATING);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.generating", saved);
         log.info("Instance id={} infrastructure ready; generating", instanceId);
-        return repository.save(instance);
+        return saved;
     }
 
     /**
@@ -77,9 +84,11 @@ public class InstanceLifecycleService {
         if (frontendUrl != null) {
             instance.setFrontendUrl(frontendUrl);
         }
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.deployed", saved);
         log.info("Instance id={} deployed url={} version={}",
-                instanceId, instance.getFrontendUrl(), instance.getBrandingVersion());
-        return repository.save(instance);
+                instanceId, saved.getFrontendUrl(), saved.getBrandingVersion());
+        return saved;
     }
 
     /**
@@ -90,8 +99,10 @@ public class InstanceLifecycleService {
     public FrontendInstance rebrand(Long instanceId) {
         FrontendInstance instance = load(instanceId);
         instance.transitionTo(FrontendInstanceStatus.REGENERATING);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.regenerating", saved);
         log.info("Instance id={} rebrand triggered", instanceId);
-        return repository.save(instance);
+        return saved;
     }
 
     /**
@@ -103,9 +114,11 @@ public class InstanceLifecycleService {
         FrontendInstance instance = load(instanceId);
         instance.transitionTo(FrontendInstanceStatus.FAILED);
         instance.setFailureReason(reason);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.failed", saved);
         log.warn("Instance id={} failed (retry={}): {}",
-                instanceId, instance.getRetryCount(), reason);
-        return repository.save(instance);
+                instanceId, saved.getRetryCount(), reason);
+        return saved;
     }
 
     /**
@@ -121,8 +134,28 @@ public class InstanceLifecycleService {
             );
         }
         instance.transitionTo(FrontendInstanceStatus.INITIALIZING);
-        log.info("Instance id={} retry attempt {}", instanceId, instance.getRetryCount());
-        return repository.save(instance);
+        FrontendInstance saved = repository.save(instance);
+        emit("instance.initializing", saved);
+        log.info("Instance id={} retry attempt {}", instanceId, saved.getRetryCount());
+        return saved;
+    }
+
+    private void emit(String eventType, FrontendInstance instance) {
+        String payload = String.format(
+                "{\"instanceId\":%d,\"tenantId\":\"%s\",\"slug\":\"%s\",\"status\":\"%s\","
+                        + "\"brandingVersion\":%d,\"retryCount\":%d}",
+                instance.getId(),
+                escape(instance.getTenantId()),
+                escape(instance.getSlug()),
+                instance.getStatus().name(),
+                instance.getBrandingVersion(),
+                instance.getRetryCount()
+        );
+        outbox.enqueue(eventType, AGGREGATE_TYPE, String.valueOf(instance.getId()), payload);
+    }
+
+    private static String escape(String value) {
+        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private FrontendInstance load(Long instanceId) {
