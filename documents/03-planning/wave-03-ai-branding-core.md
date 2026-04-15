@@ -8,7 +8,7 @@
 
 ---
 
-## Gaps Included (5 original + 4 Wave 2 deferred)
+## Gaps Included (5 original + 2 simulation + 5 Wave 2 deferred)
 
 ### From master plan
 
@@ -19,6 +19,23 @@
 | [GAP-031](../04-quality/gaps/GAP-031-expand-wizard-inputs-beyond-logo.md) | Expand wizard inputs beyond logo | 🔴 P0 | M | DTO + Builder |
 | [GAP-010](../04-quality/gaps/GAP-010-branding-package-api-integration.md) | Branding package API + KiteClass integration | 🟠 P1 | M | Builder + Proxy (caching) |
 | [GAP-015](../04-quality/gaps/GAP-015-tenant-provisioning-auto-trigger-branding.md) | Tenant provisioning auto-trigger | 🔴 P0 | M | Event-driven + Saga |
+
+### Added from simulation-gap-finder (2026-04-14)
+
+| Gap | Title | Priority | Effort | Design Pattern | Slots into |
+|-----|-------|:--------:|:------:|----------------|:----------:|
+| [GAP-069](../04-quality/gaps/GAP-069-industry-specific-branding-presets.md) | Industry-specific branding presets (K-12 / center / univ VN) | 🟠 P1 | S | Strategy (preset) | Sub-PR 3.7 |
+| [GAP-070](../04-quality/gaps/GAP-070-concurrent-rebrand-race-approval.md) | Concurrent rebrand race + approval workflow | 🟠 P1 | S | Optimistic Lock + Saga + State | Sub-PR 3.5 |
+
+### Not in Wave 3 scope (from simulation, target later waves)
+
+| Gap | Target wave | Why not here |
+|-----|:-----------:|--------------|
+| [GAP-071](../04-quality/gaps/GAP-071-branding-migration-on-tier-change.md) | Wave 7 | Tier migration policy = UX concern post-core |
+| [GAP-072](../04-quality/gaps/GAP-072-scheduled-rebrand-academic-year-refresh.md) | Wave 8 | Scheduler + admin feature post-MVP |
+| [GAP-073](../04-quality/gaps/GAP-073-gdpr-deletion-ai-assets.md) | Wave 4 Security | Legal/compliance parallel workstream |
+| [GAP-074](../04-quality/gaps/GAP-074-ai-alt-text-accessibility.md) | Wave 5 / 7 | a11y polish, add pipeline step later |
+| [GAP-075](../04-quality/gaps/GAP-075-developer-sandbox-tenant.md) | Wave 9 DX | Post-GA DX enhancement |
 
 ### Deferred from Wave 2
 
@@ -178,7 +195,13 @@
 
 **Design patterns:** Command (Step), Composite (Plan of Steps), Saga, Adapter (via 3.2), Observer + Outbox (via 3.1).
 
-**Effort:** 10 days
+**Additional scope from simulation (GAP-070):**
+- `RebrandApproval` entity + workflow integration
+- Optimistic lock (`@Version` + If-Match header) on rebrand trigger
+- Tier-gated: Enterprise requires approval, others skip
+- `ConcurrentRebrandException` on stale version
+
+**Effort:** 11 days (10 base + 1 for GAP-070)
 
 ---
 
@@ -230,7 +253,13 @@
 
 **Design patterns:** XState FSM, Composite (per-step component), Observer (SSE), Strategy (tier-gated inputs).
 
-**Effort:** 8 days
+**Additional scope from simulation (GAP-069):**
+- Segment picker in Step 1 wizard (K-12 / center / univ / corp / other)
+- `BrandingPreset` entity + 5 seeded presets
+- Filter template gallery by preset segment
+- PlannerService prompt injection
+
+**Effort:** 9 days (8 base + 1 for GAP-069)
 
 ---
 
@@ -264,11 +293,11 @@
 | 3.2 AI Adapter + Resilience | 5d | code |
 | 3.3 Resource Handlers + MinIO | 5d | code |
 | 3.4 REST + Package API + Webhook | 4d | code |
-| 3.5 AI Agent Workflow | 10d | code (XL) |
+| 3.5 AI Agent Workflow (+ GAP-070 approval) | 11d | code (XL) |
 | 3.6 Auto-Trigger Saga | 5d | code |
-| 3.7 Wizard UX (FE) | 8d | code |
+| 3.7 Wizard UX (FE) (+ GAP-069 presets) | 9d | code |
 | 3.8 Integration | 3d | test+docs |
-| **Total** | **44d** | — |
+| **Total** | **46d** | — |
 
 Parallel feasibility (3.2 + 3.3 + 3.7 independent after 3.1):
 - Solo: 44 days serial
@@ -390,4 +419,5 @@ Before starting Sub-PR 3.1:
 ## Log
 
 - **2026-04-14 T0** — Wave 3 plan generated post-Wave 2 completion; 95/100 baseline
+- **2026-04-14 T1** — simulation-gap-finder run; added GAP-069 + GAP-070 to in-scope, deferred GAP-071..075 to later waves; total 44d → 46d
 - **⏳ Pending** — 8 Sub-PRs (see breakdown above)
