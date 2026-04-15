@@ -39,6 +39,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Wave02MigrationsTest {
 
+    // Lifecycle managed by @BeforeAll/@AfterAll below; lint can't see that pattern.
+    @SuppressWarnings("resource")
     private static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>(DockerImageName.parse("postgres:15-alpine"))
                     .withDatabaseName("wave02_migrations")

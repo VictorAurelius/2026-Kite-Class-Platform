@@ -25,6 +25,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <aws-sdk.version>2.29.30</aws-sdk.version>
         <tika.version>3.2.2</tika.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
         <!-- Override Jackson version to fix GHSA-72hv-8253-57qq (DoS vulnerability) -->
         <jackson.version>2.21.1</jackson.version>
     </properties>
@@ -121,6 +122,22 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- Resilience (Circuit Breaker + Bulkhead + Retry) per ADR-008 -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+            <version>${resilience4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-micrometer</artifactId>
+            <version>${resilience4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
         <!-- Testing -->
