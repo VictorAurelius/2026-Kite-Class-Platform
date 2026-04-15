@@ -1,6 +1,6 @@
 # GAP-073: GDPR / Data Deletion Policy for AI-Generated + AI-Trained Assets
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4 Sub-PR 4.4, merged 2026-04-14; DeletionStatus state machine + 7-day grace workflow + RetentionClassifier (4 buckets) + DataExportService ZIP + @Retention annotation applied to 3 demo entities. MinIO streaming export, @Scheduled expiry, pseudonymization executor deferred.)
 **Priority:** 🟠 P1 (legal exposure)
 **Domain:** Compliance / AI Branding / Legal
 **Detected:** 2026-04-14 (simulation-gap-finder on Wave 3 scope)

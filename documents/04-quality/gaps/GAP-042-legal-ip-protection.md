@@ -1,6 +1,6 @@
 # GAP-042: Legal / IP Protection (Trademark, DMCA, Copyright)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4 Sub-PR 4.3, merged 2026-04-14; DmcaStatus state machine + DmcaService workflow + TrademarkCheckService scaffold + PublicDmcaController + legal/dmca page. Asset revert + counter-notice email deferred.)
 **Priority:** 🔴 P0 (legal exposure)
 **Domain:** Legal / Compliance
 **Detected:** 2026-04-14 (simulation: cross-cutting × C6)

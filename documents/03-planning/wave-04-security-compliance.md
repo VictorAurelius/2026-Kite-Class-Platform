@@ -251,4 +251,49 @@ Lead agent monitors, merges PRs sequentially as CI confirms green.
 ## Log
 
 - **2026-04-14 T0** — Wave 4 plan generated post-Wave 3 completion; parallel-agent strategy selected (first use at this repo)
-- **⏳ Pending** — Sub-PR 4.0 Foundation, then spawn 4 parallel agents, then 4.5 + 4.6
+- **2026-04-14** — Sub-PR 4.0 Foundation merged (PR #294): 4 ADRs + AuditLog + security SPI
+- **2026-04-14** — 4 agents spawned in parallel (worktree-isolated) for 4.1/4.2/4.3/4.4
+- **2026-04-14** — Sub-PR 4.3 merged (PR #295): DMCA + trademark (GAP-042 ✅)
+- **2026-04-14** — Sub-PR 4.4 merged (PR #298): GDPR deletion + retention classifier (GAP-073 ✅)
+- **2026-04-14** — Sub-PR 4.1 merged (PR #297): content moderation state machine (GAP-018 ✅)
+- **2026-04-14** — Sub-PR 4.2 merged (PR #296): injection defenses + CSRF provider (GAP-041 ✅); CSRF test-profile secret fix-up required
+- **2026-04-14** — Sub-PR 4.5 merged (PR #299): automated Quality Gate + 5 Strategy checks (GAP-012 ✅)
+- **2026-04-14** — Sub-PR 4.6 Integration + Wave Completion (this PR): 5 gaps flipped 🟢 DONE, Wave04IntegrationTest smoke, ROADMAP updated
+
+## Parallel-agent retrospective
+
+**First use** of parallel worktree strategy at this repo. Wall-clock gain vs serial: real.
+
+| Metric | Serial est. | Parallel actual |
+|--------|-------------|-----------------|
+| 4 middle sub-PRs (4.1-4.4) | ~5 days | ~20 min agent work + ~90 min human sequencing |
+| Merge conflict events on main | 0 | 3 (application.yml — resolved via rebase each time) |
+| CI failures attributable to agent error | 0 | 1 (CSRF test-profile secret not applied — trivial fix) |
+
+**Lessons learned:**
+
+- ✅ Pre-assigned migration versions (V36–V39) prevented DB-schema collisions — worked perfectly.
+- ✅ Shared interfaces in foundation PR (Sub-PR 4.0) let 4.2 concrete impl come from agent without circular waits.
+- ⚠️ `application.yml` was the main conflict point — 4 agents all added a distinct top-level key, but git merges treat co-located blocks as conflicts. Next wave: lead-agent owns `application.yml` and cherry-picks agent diffs.
+- ⚠️ Agents occasionally wrote into the main repo working copy by mistake (all three — 4.1, 4.3, 4.4 — flagged this in their reports). They cleaned up, but risk is real. Next wave: stricter worktree-path prompts.
+- ⚠️ Sub-PR 4.2 `DoubleSubmitCsrfTokenProvider` fail-loud guard broke @SpringBootTest suite until a test-scoped secret was added. Lesson: fail-loud guards need test-profile escape hatch.
+
+## Deferred to follow-up waves
+
+All 5 Wave 4 gaps closed at scaffold depth — carry-over items tracked:
+
+| Item | Origin | Target |
+|------|--------|--------|
+| Real ML NSFW classifier | GAP-018 | Wave 4 follow-up (commercial API eval) |
+| Admin review queue UI | GAP-018 | Wave 8 Admin Console (GAP-068) |
+| USPTO API integration for trademark matching | GAP-042 | Dedicated legal wave |
+| Asset revert wiring on DMCA EXECUTED | GAP-042 | Wave 4 follow-up |
+| Counter-notice email dispatch | GAP-042 | Wave 7 UX / notifications |
+| MinIO streaming export + signed URL | GAP-073 | Wave 6 Ops |
+| @Scheduled expiry job wiring | GAP-073 | Post-Wave 4 |
+| Pseudonymization executor | GAP-073 | Wave 4 follow-up |
+| KiteHub FE DangerZone hookup | GAP-073 | Wave 8 Admin Console |
+| Real contrast calc + screenshot diff + URL pings | GAP-012 | Wave 6 Ops (needs support services) |
+| DMCA admin REST surface | GAP-042 | Wave 8 Admin Console |
+
+Wave 4 exit criteria met at scaffolding level — all 5 P0/P1 compliance concerns have active state-machine + audit trail + 3-layer docs.
