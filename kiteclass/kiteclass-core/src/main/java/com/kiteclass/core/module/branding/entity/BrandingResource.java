@@ -1,6 +1,8 @@
 package com.kiteclass.core.module.branding.entity;
 
 import com.kiteclass.core.common.entity.BaseEntity;
+import com.kiteclass.core.module.retention.Retention;
+import com.kiteclass.core.module.retention.RetentionBucket;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -43,6 +45,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Retention(RetentionBucket.PURGE_ON_REQUEST)
 public class BrandingResource extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
