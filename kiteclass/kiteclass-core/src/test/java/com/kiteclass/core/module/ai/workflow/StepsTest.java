@@ -12,7 +12,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -31,8 +30,8 @@ class StepsTest {
 
         step.execute(context);
 
-        assertThat((List<String>) context.get(ExtractPaletteStep.KEY_PALETTE))
-                .containsExactly("#AA0000", "#00AA00", "#0000AA");
+        List<String> palette = context.get(ExtractPaletteStep.KEY_PALETTE);
+        assertThat(palette).containsExactly("#AA0000", "#00AA00", "#0000AA");
     }
 
     @Test
