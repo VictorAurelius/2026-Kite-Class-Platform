@@ -18,3 +18,9 @@ spring:
 internal:
   api:
     secret: test-internal-secret-for-all-tests
+
+# CSRF secret for tests (≥32 chars to satisfy DoubleSubmitCsrfTokenProvider
+# fail-loud guard; not a production value).
+security:
+  csrf:
+    secret: test-csrf-secret-at-least-32-chars-long-for-tests-only

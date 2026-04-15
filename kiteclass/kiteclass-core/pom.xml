@@ -176,6 +176,13 @@
             <version>${tika.version}</version>
         </dependency>
 
+        <!-- JSoup for SVG sanitization (Wave 4 Sub-PR 4.2, ADR-011) -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.18.1</version>
+        </dependency>
+
         <!-- Testcontainers MinIO -->
         <dependency>
             <groupId>org.testcontainers</groupId>
