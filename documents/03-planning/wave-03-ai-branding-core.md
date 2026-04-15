@@ -420,4 +420,33 @@ Before starting Sub-PR 3.1:
 
 - **2026-04-14 T0** — Wave 3 plan generated post-Wave 2 completion; 95/100 baseline
 - **2026-04-14 T1** — simulation-gap-finder run; added GAP-069 + GAP-070 to in-scope, deferred GAP-071..075 to later waves; total 44d → 46d
-- **⏳ Pending** — 8 Sub-PRs (see breakdown above)
+- **2026-04-14** — Sub-PR 3.1 ADRs + Transactional Outbox foundation merged (PR #284)
+- **2026-04-14** — Sub-PR 3.2 AI Provider adapter + Resilience4j merged (PR #285)
+- **2026-04-14** — Sub-PR 3.3 Resource Handlers + MinIO layout merged (PR #286; GAP-007 fully closed)
+- **2026-04-14** — Sub-PR 3.4 REST + Package API + webhook merged (PR #287; GAP-010 ✅)
+- **2026-04-14** — Sub-PR 3.5 AI Agent workflow + GAP-070 rebrand approval merged (PR #288; GAP-008 ✅ GAP-070 ✅)
+- **2026-04-14** — Sub-PR 3.6 Tenant Provisioning Saga merged (PR #289; GAP-015 ✅)
+- **2026-04-14** — Sub-PR 3.7 Guided wizard UX merged (PR #290; GAP-013 ✅ GAP-031 ✅ GAP-069 ✅)
+- **2026-04-14** — Sub-PR 3.8 Integration + Wave 3 Completion (this PR): gap statuses flipped 🟢; ROADMAP updated; Wave 3 closed
+
+## Deferred to follow-up Sub-PRs / later waves
+
+Wave 3 scope was the **core pipeline**. These items are intentionally carried forward:
+
+| Item | Origin | Target |
+|------|--------|--------|
+| `RabbitMQEventDispatcher` implementation + profile wiring | Sub-PR 3.1 | Post-Wave 3 infra PR |
+| Outbox retention pruner (`@Scheduled`, daily) | ADR-007 | Wave 6 Ops |
+| `OllamaAIClient` real HTTP impl | Sub-PR 3.2 | Wave 3 follow-up (3.2b) |
+| OpenAI / Bedrock AI providers | ADR-008 | Enterprise feature wave |
+| Async `GenerateLogoStep` / `GenerateBannerStep` with RabbitMQ queue | Sub-PR 3.5 | Wave 3 follow-up (3.5b) |
+| `ComposeThemeStep` template-engine integration | Sub-PR 3.5 | Wave 3 follow-up |
+| REST endpoints for `/rebrand-approvals` | GAP-070 | Wave 3 follow-up |
+| `@Scheduled` job calling `expireDueApprovals` every 15 min | GAP-070 | Post-Wave 3 |
+| Spring `@EventListener` / RabbitMQ consumer for `tenant.created` | Sub-PR 3.6 | Post-Wave 3 |
+| Playwright E2E for wizard flow | Sub-PR 3.7 | Wave 5/7 UX polish |
+| SSE live progress stream during generation | Sub-PR 3.7 | Wave 5/7 UX polish |
+| GAP-011 template library curation (30 initial templates) | Wave 3 plan | External (designer) |
+| GAP-012 automated quality gate integration | Wave 3 plan | Wave 4 Security |
+
+All 8 primary gaps closed; core pipeline end-to-end exercised by `Wave03IntegrationTest`.

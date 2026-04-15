@@ -1,6 +1,6 @@
 # GAP-013: Guided Branding Wizard UX (closed-loop with flexibility)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.7, merged 2026-04-14; FSM reducer + 6 steps + tier-gated inputs + segment picker + regenerate counter. Playwright E2E + SSE live-progress deferred to Wave 5/7 polish.)
 **Priority:** 🟠 P1
 **Domain:** Frontend / UX / Product
 **Detected:** 2026-04-14

@@ -1,6 +1,6 @@
 # GAP-069: Industry-Specific Branding Presets (VN School Types)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.7, merged 2026-04-14; SegmentPicker in Welcome step with 5 VN segments. BrandingPreset entity + backend template tagging deferred to follow-up when template library GAP-011 lands.)
 **Priority:** 🟠 P1 (persona blocker for K-12 + center + university segments)
 **Domain:** AI Branding / Product / UX
 **Detected:** 2026-04-14 (simulation-gap-finder run on Wave 3 scope)

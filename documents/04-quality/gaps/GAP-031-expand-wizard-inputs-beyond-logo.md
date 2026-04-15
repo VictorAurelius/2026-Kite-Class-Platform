@@ -1,6 +1,6 @@
 # GAP-031: Expand Wizard Inputs Beyond Logo (Rich Brand Context)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.7, merged 2026-04-14; tier-gated fields — FREE=4, PRO=6, PREMIUM=9, ENTERPRISE=16 — exposed via VISIBLE_FIELDS_BY_TIER and rendered in ToneStep advanced section.)
 **Priority:** 🔴 P0 (AI output quality blocker)
 **Domain:** UX / Product / AI
 **Detected:** 2026-04-14 (user raised)

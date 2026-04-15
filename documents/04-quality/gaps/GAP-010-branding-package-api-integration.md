@@ -1,6 +1,6 @@
 # GAP-010: Branding Package API + KiteClass Integration Testing
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 3 Sub-PR 3.4, merged 2026-04-14; composite GET /package + ETag/304 + Redis @Cacheable proxy + webhook cache-evict. FE consumer integration in Sub-PR 3.7 wizard.)
 **Priority:** 🟠 P1
 **Domain:** Backend / Frontend / Integration
 **Detected:** 2026-04-14
