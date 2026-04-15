@@ -1,11 +1,13 @@
 package com.kiteclass.core.module.instance;
 
+import com.kiteclass.core.common.outbox.OutboxEventWriter;
 import com.kiteclass.core.module.instance.entity.FrontendInstance;
 import com.kiteclass.core.module.instance.entity.FrontendInstanceStatus;
 import com.kiteclass.core.module.instance.repository.FrontendInstanceRepository;
 import com.kiteclass.core.module.instance.service.InstanceLifecycleService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,6 +17,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -22,6 +27,9 @@ class InstanceLifecycleServiceTest {
 
     @Mock
     private FrontendInstanceRepository repository;
+
+    @Mock
+    private OutboxEventWriter outbox;
 
     @InjectMocks
     private InstanceLifecycleService service;
@@ -183,5 +191,62 @@ class InstanceLifecycleServiceTest {
         FrontendInstance result = service.markBrandingCompleted(17L, null);
 
         assertThat(result.getFrontendUrl()).isEqualTo("https://existing.kiteclass.com");
+    }
+
+    @Test
+    void initiate_emits_initializing_event_to_outbox() {
+        when(repository.existsBySlugAndDeletedFalse("acme")).thenReturn(false);
+        when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> {
+            FrontendInstance saved = inv.getArgument(0);
+            saved.setId(100L);
+            return saved;
+        });
+
+        service.initiate("t-1", "acme");
+
+        verify(outbox).enqueue(eq("instance.initializing"), eq("FrontendInstance"),
+                eq("100"), anyString());
+    }
+
+    @Test
+    void markBrandingCompleted_emits_deployed_event_with_escaped_payload() {
+        FrontendInstance i = FrontendInstance.builder()
+                .tenantId("t-\"quoted\"").slug("ac\\me")
+                .status(FrontendInstanceStatus.NOT_STARTED)
+                .retryCount(0).brandingVersion(0).build();
+        i.transitionTo(FrontendInstanceStatus.INITIALIZING);
+        i.transitionTo(FrontendInstanceStatus.GENERATING);
+        i.setId(9L);
+        when(repository.findById(9L)).thenReturn(Optional.of(i));
+        when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.markBrandingCompleted(9L, "https://acme.kiteclass.com");
+
+        ArgumentCaptor<String> payloadCaptor = ArgumentCaptor.forClass(String.class);
+        verify(outbox).enqueue(eq("instance.deployed"), eq("FrontendInstance"),
+                eq("9"), payloadCaptor.capture());
+        String payload = payloadCaptor.getValue();
+        assertThat(payload).contains("\"status\":\"DEPLOYED\"");
+        assertThat(payload).contains("\"brandingVersion\":1");
+        assertThat(payload).contains("t-\\\"quoted\\\"");
+        assertThat(payload).contains("ac\\\\me");
+    }
+
+    @Test
+    void markFailed_emits_failed_event_with_reason_ready_payload() {
+        FrontendInstance i = FrontendInstance.builder()
+                .tenantId("t-1").slug("acme")
+                .status(FrontendInstanceStatus.NOT_STARTED)
+                .retryCount(0).brandingVersion(0).build();
+        i.transitionTo(FrontendInstanceStatus.INITIALIZING);
+        i.transitionTo(FrontendInstanceStatus.GENERATING);
+        i.setId(11L);
+        when(repository.findById(11L)).thenReturn(Optional.of(i));
+        when(repository.save(any(FrontendInstance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.markFailed(11L, "AI timeout");
+
+        verify(outbox).enqueue(eq("instance.failed"), eq("FrontendInstance"),
+                eq("11"), anyString());
     }
 }
