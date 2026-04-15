@@ -157,3 +157,20 @@ resilience4j:
 outbox:
   publisher:
     interval-ms: 5000
+
+# Security hardening (Wave 4 Sub-PR 4.2, ADR-011)
+security:
+  svg:
+    enabled: true
+  url:
+    allowlist:
+      # Comma-separated domain patterns (use *.example.com for subdomain wildcard).
+      default: ""
+      # Comma-separated regex patterns matching full URLs for null-tenant public calls.
+      public-api-patterns: "^https://api\\.(ollama|openai|anthropic)\\.com/.*"
+  csrf:
+    # Default dev secret (32+ chars). MUST be overridden via SECURITY_CSRF_SECRET in prod.
+    # The special values "insecure-default" and "PLEASE_OVERRIDE_IN_PROD_32_BYTE_MIN" are
+    # rejected at startup by DoubleSubmitCsrfTokenProvider (fail-loud).
+    secret: ${SECURITY_CSRF_SECRET:dev-only-csrf-secret-do-not-use-in-production-0123456789}
+    ttl-hours: 4
