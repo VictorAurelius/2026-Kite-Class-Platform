@@ -1,3 +1,9 @@
+---
+name: design-pattern-advisor
+description: "Dùng khi user nói 'pattern advisor', 'design pattern', 'anti-pattern check', 'refactor suggestion'. Giúp chọn + apply design patterns đúng, detect anti-patterns."
+user-invocable: true
+---
+
 # Skill: Design Pattern Advisor
 
 **Version:** 1.0

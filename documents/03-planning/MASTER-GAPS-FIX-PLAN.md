@@ -481,8 +481,8 @@ After Wave 10 GA, continue với:
 - `documents/02-architecture/ai-branding-v2-redesign.md` — AI branding master
 - `documents/00-brd/personas-catalog.md` — target personas
 - `.claude/skills/workflow/gap-to-pr-converter.md` — convert to PR
-- `.claude/skills/wave-completion-check.md` — wrap up wave
-- `.claude/skills/persona-based-business-review.md` — review coverage
+- `.claude/skills/workflow/wave-completion-check.md` — wrap up wave
+- `.claude/skills/quality/persona-based-business-review.md` — review coverage
 
 ---
 

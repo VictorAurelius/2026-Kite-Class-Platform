@@ -85,7 +85,7 @@ PR phải update related docs:
 
 ## Proposed: Update business-gap-check skill
 
-Thêm section **2.9 AI Branding Coverage** vào `.claude/skills/business-gap-check.md`:
+Thêm section **2.9 AI Branding Coverage** vào `.claude/skills/quality/business-gap-check.md`:
 
 ```markdown
 #### 2.9 AI Branding (v2 redesign)

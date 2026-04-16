@@ -6,7 +6,7 @@
 **Domain:** Product / Business
 **Detected:** 2026-04-14 (user raised with bulk import example)
 **Related:**
-- `.claude/skills/persona-based-business-review.md`
+- `.claude/skills/quality/persona-based-business-review.md`
 - `documents/00-brd/personas-catalog.md`
 - GAP-049 (business correctness)
 

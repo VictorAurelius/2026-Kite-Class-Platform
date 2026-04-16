@@ -162,8 +162,10 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `core/systematic-debugging.md` - 4-phase debugging
 
 ### Check & Audit
-- `pre-flight-check.md` - 3-layer check: PR / Domain / Project
-- `business-gap-check.md` - Business logic gap analysis
+- `quality/pre-flight-check.md` - 3-layer check: PR / Domain / Project
+- `quality/business-gap-check.md` - Business logic gap analysis
+- `quality/persona-based-business-review.md` - Role-play 10 tenant types → find gaps
+- `quality/simulation-gap-finder.md` - 3-axis matrix simulation → find gaps
 - `quality-audit/SKILL.md` - Quality scoring (100 points)
 - `quality/ui-review/SKILL.md` - UI audit per-screen /128, before/after screenshots
 - `quality/business-logic-audit/SKILL.md` - Code ↔ rules.md verification /100
@@ -171,7 +173,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `quality/performance-audit/SKILL.md` - Performance baseline /100 (DB, API, bundle, cache)
 - `quality/api-contract-audit/SKILL.md` - API endpoints ↔ docs sync /100
 - `quality/ops-readiness-audit/SKILL.md` - Production ops readiness /100 (monitoring, deploy)
-- `wave-completion-check.md` - Wave completion verification (Level 7: audit suite gate)
+- `workflow/wave-completion-check.md` - Wave completion verification (Level 7: audit suite gate)
 - `workflow/repo-status/SKILL.md` - Remote repo health check (5 levels: GREEN→BLACK)
 
 ### Technical Standards (consolidated)

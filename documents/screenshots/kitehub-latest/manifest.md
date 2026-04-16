@@ -1,8 +1,8 @@
 # Screenshot Manifest — latest (KiteHub)
 
-**App:** KiteHub Frontend (port 3001)  
-**Generated:** 2026-04-16T06:19:43.985Z  
-**Base URL:** http://localhost:3001  
+**App:** KiteHub Frontend (port 4701)  
+**Generated:** 2026-04-16T06:42:33.695Z  
+**Base URL:** http://localhost:4701  
 **Screenshots:** 96 ok / 0 errors / 96 total  
 **Auth:** Mock-injected (OWNER for customer pages, ADMIN for admin pages)  
 
@@ -50,7 +50,7 @@
 |------|-------|----------|------|--------|
 | `landing/light-desktop.png` | light | desktop | 1193KB | ✓ |
 | `landing/light-mobile.png` | light | mobile | 537KB | ✓ |
-| `landing/dark-desktop.png` | dark | desktop | 1194KB | ✓ |
+| `landing/dark-desktop.png` | dark | desktop | 1195KB | ✓ |
 | `landing/dark-mobile.png` | dark | mobile | 538KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
@@ -163,10 +163,10 @@
 
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
-| `settings/light-desktop.png` | light | desktop | 31KB | ✓ |
+| `settings/light-desktop.png` | light | desktop | 35KB | ✓ |
 | `settings/light-mobile.png` | light | mobile | 16KB | ✓ |
 | `settings/dark-desktop.png` | dark | desktop | 31KB | ✓ |
-| `settings/dark-mobile.png` | dark | mobile | 16KB | ✓ |
+| `settings/dark-mobile.png` | dark | mobile | 20KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
 
@@ -174,7 +174,7 @@
 
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
-| `billing/light-desktop.png` | light | desktop | 31KB | ✓ |
+| `billing/light-desktop.png` | light | desktop | 35KB | ✓ |
 | `billing/light-mobile.png` | light | mobile | 16KB | ✓ |
 | `billing/dark-desktop.png` | dark | desktop | 32KB | ✓ |
 | `billing/dark-mobile.png` | dark | mobile | 17KB | ✓ |
@@ -209,9 +209,9 @@
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
 | `billing-payment/light-desktop.png` | light | desktop | 31KB | ✓ |
-| `billing-payment/light-mobile.png` | light | mobile | 16KB | ✓ |
+| `billing-payment/light-mobile.png` | light | mobile | 22KB | ✓ |
 | `billing-payment/dark-desktop.png` | dark | desktop | 32KB | ✓ |
-| `billing-payment/dark-mobile.png` | dark | mobile | 16KB | ✓ |
+| `billing-payment/dark-mobile.png` | dark | mobile | 17KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
 
@@ -220,7 +220,7 @@
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
 | `branding/light-desktop.png` | light | desktop | 31KB | ✓ |
-| `branding/light-mobile.png` | light | mobile | 16KB | ✓ |
+| `branding/light-mobile.png` | light | mobile | 105KB | ✓ |
 | `branding/dark-desktop.png` | dark | desktop | 32KB | ✓ |
 | `branding/dark-mobile.png` | dark | mobile | 16KB | ✓ |
 
@@ -230,10 +230,10 @@
 
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
-| `branding-assets/light-desktop.png` | light | desktop | 31KB | ✓ |
-| `branding-assets/light-mobile.png` | light | mobile | 16KB | ✓ |
+| `branding-assets/light-desktop.png` | light | desktop | 118KB | ✓ |
+| `branding-assets/light-mobile.png` | light | mobile | 58KB | ✓ |
 | `branding-assets/dark-desktop.png` | dark | desktop | 32KB | ✓ |
-| `branding-assets/dark-mobile.png` | dark | mobile | 17KB | ✓ |
+| `branding-assets/dark-mobile.png` | dark | mobile | 58KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
 
@@ -242,8 +242,8 @@
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
 | `branding-templates/light-desktop.png` | light | desktop | 93KB | ✓ |
-| `branding-templates/light-mobile.png` | light | mobile | 52KB | ✓ |
-| `branding-templates/dark-desktop.png` | dark | desktop | 96KB | ✓ |
+| `branding-templates/light-mobile.png` | light | mobile | 49KB | ✓ |
+| `branding-templates/dark-desktop.png` | dark | desktop | 93KB | ✓ |
 | `branding-templates/dark-mobile.png` | dark | mobile | 49KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
@@ -254,8 +254,8 @@
 |------|-------|----------|------|--------|
 | `branding-wizard/light-desktop.png` | light | desktop | 31KB | ✓ |
 | `branding-wizard/light-mobile.png` | light | mobile | 16KB | ✓ |
-| `branding-wizard/dark-desktop.png` | dark | desktop | 32KB | ✓ |
-| `branding-wizard/dark-mobile.png` | dark | mobile | 16KB | ✓ |
+| `branding-wizard/dark-desktop.png` | dark | desktop | 41KB | ✓ |
+| `branding-wizard/dark-mobile.png` | dark | mobile | 25KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
 
@@ -286,8 +286,8 @@
 
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
-| `admin-instance-detail/light-desktop.png` | light | desktop | 32KB | ✓ |
-| `admin-instance-detail/light-mobile.png` | light | mobile | 28KB | ✓ |
+| `admin-instance-detail/light-desktop.png` | light | desktop | 36KB | ✓ |
+| `admin-instance-detail/light-mobile.png` | light | mobile | 32KB | ✓ |
 | `admin-instance-detail/dark-desktop.png` | dark | desktop | 32KB | ✓ |
 | `admin-instance-detail/dark-mobile.png` | dark | mobile | 28KB | ✓ |
 
@@ -297,10 +297,10 @@
 
 | File | Theme | Viewport | Size | Status |
 |------|-------|----------|------|--------|
-| `admin-payments/light-desktop.png` | light | desktop | 103KB | ✓ |
+| `admin-payments/light-desktop.png` | light | desktop | 105KB | ✓ |
 | `admin-payments/light-mobile.png` | light | mobile | 105KB | ✓ |
-| `admin-payments/dark-desktop.png` | dark | desktop | 102KB | ✓ |
-| `admin-payments/dark-mobile.png` | dark | mobile | 104KB | ✓ |
+| `admin-payments/dark-desktop.png` | dark | desktop | 104KB | ✓ |
+| `admin-payments/dark-mobile.png` | dark | mobile | 105KB | ✓ |
 
 **Visual notes:** _(fill during audit)_
 
@@ -317,4 +317,4 @@
 
 ---
 
-*Generated by capture-screenshots.ts · 2026-04-16T06:19:43.985Z*
+*Generated by capture-screenshots.ts · 2026-04-16T06:42:33.695Z*

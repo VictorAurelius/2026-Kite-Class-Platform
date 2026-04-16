@@ -1,7 +1,7 @@
 # Simulation Gap Finder Report — Wave 3 AI Branding Core
 
 **Date:** 2026-04-14
-**Method:** `.claude/skills/simulation-gap-finder.md` — 3-axis matrix (5 personas × 8 stages × 10 categories)
+**Method:** `.claude/skills/quality/simulation-gap-finder.md` — 3-axis matrix (5 personas × 8 stages × 10 categories)
 **Feature scope:** Wave 3 AI Branding Core Pipeline
 **Existing gap baseline:** 68 gaps (after Wave 2 completion + GAP-065/066/067/068 merged)
 

@@ -1,3 +1,9 @@
+---
+name: simulation-gap-finder
+description: "Dùng khi user nói 'simulate gaps', 'persona simulation', 'tìm gaps bằng simulation', 'stress test design'. Tìm gaps bằng cách mô phỏng nhiều persona × stage × category."
+user-invocable: true
+---
+
 # Skill: Simulation Gap Finder
 
 **Version:** 1.0

@@ -1,15 +1,15 @@
 # Skills Index — Khi nao dung skill nao?
 
-**Refactored:** 2026-03-23 | Tu 49 files → 20 files
+**Updated:** 2026-04-16 | Reorganized root skills into subfolders
 
 ---
 
 ## Quy trinh phat trien (theo thu tu)
 
-1. `/pre-flight-check domain` — TRUOC khi bat dau module moi
+1. `quality/pre-flight-check.md` — TRUOC khi bat dau module moi
 2. `core/brainstorming-methodology.md` — Brainstorm cho moi PR
 3. `core/task-breakdown-guide.md` — Chia tasks
-4. `/pre-flight-check pr` — Check truoc khi code
+4. `quality/pre-flight-check.md pr` — Check truoc khi code
 5. `core/tdd-enforcement.md` — Viet test truoc
 6. `backend/` hoac `frontend/` — Standards khi code
 7. `core/two-stage-code-review.md` — Self-review truoc PR
@@ -30,131 +30,84 @@
 | `two-stage-code-review.md` | Self-review checklist | Truoc khi tao PR |
 | `systematic-debugging.md` | 4-phase debugging | Khi gap loi kho hieu |
 
-### Check & Audit Skills
-**Vi tri:** Root `skills/`
-
-| File | Mo ta | Dung khi |
-|------|-------|----------|
-| `pre-flight-check.md` | 3-layer check: PR / Domain / Project | Truoc moi PR, milestone |
-| `business-gap-check.md` | Business logic gap analysis | Kiem tra business coverage |
-| `quality-audit/SKILL.md` | Quality scoring (100 diem) | Danh gia chat luong |
-| `quality/ui-review/SKILL.md` | UI audit per-screen /128, before/after screenshots | Sau moi frontend PR |
-| `wave-completion-check.md` | Wave completion verification | Cuoi moi wave |
-| `workflow/repo-status/SKILL.md` | Remote repo health check (5 levels) | Bat dau conversation, check tinh trang repo |
-| `simulation-gap-finder.md` | 3-axis matrix simulation (5 personas × 8 stages × 10 categories) | Tim gaps toan dien sau design |
-| `design-pattern-advisor.md` | Recommend design patterns cho problem + detect anti-patterns | Khi design/refactor/review code |
-| `workflow/gap-to-pr-converter.md` | Convert gap file → PR/wave với template + task breakdown | Khi start implement gap từ queue |
-| `persona-based-business-review.md` | Role-play per persona (10 tenant types) → find missing features | Quarterly; before GA; user complaint |
-
-### Production Audit Suite (NEW)
+### Quality & Audit Skills
 **Thu muc:** `quality/`
 
 | File | Mo ta | Dung khi |
 |------|-------|----------|
-| `quality/business-logic-audit/SKILL.md` | Verify code ↔ rules.md mapping /100 | Truoc GA release, sau wave thay doi business logic |
-| `quality/security-audit/SKILL.md` | Deep security assessment /100 (deps, secrets, OWASP, auth, infra) | Truoc production deploy, quarterly |
-| `quality/performance-audit/SKILL.md` | Performance baseline /100 (DB, API, bundle, cache, resources) | Truoc production deploy, sau thay doi lon |
-| `quality/api-contract-audit/SKILL.md` | API ↔ api-contract.md sync /100 | Sau thay doi endpoints, truoc release |
-| `quality/ops-readiness-audit/SKILL.md` | Production ops readiness /100 (monitoring, logging, backup, alerting, deploy) | Truoc GA deploy |
+| `quality/pre-flight-check.md` | 3-layer check: PR / Domain / Project | Truoc moi PR, milestone |
+| `quality/business-gap-check.md` | Business logic gap analysis | Kiem tra business coverage |
+| `quality/persona-based-business-review.md` | Role-play 10 tenant types → find gaps | Quarterly; before GA |
+| `quality/simulation-gap-finder.md` | 3-axis matrix (personas × stages × categories) | Tim gaps toan dien sau design |
+| `quality-audit/SKILL.md` | Master quality scoring /100 (10 categories) | Danh gia chat luong |
+| `quality/ui-review/SKILL.md` | UI audit per-screen /128 | Sau moi frontend PR |
+| `quality/business-logic-audit/SKILL.md` | Code ↔ rules.md mapping /100 | Truoc GA, sau wave |
+| `quality/security-audit/SKILL.md` | Deep security /100 (deps, OWASP, auth) | Truoc production deploy |
+| `quality/performance-audit/SKILL.md` | Performance baseline /100 (DB, API, bundle) | Truoc production deploy |
+| `quality/api-contract-audit/SKILL.md` | API ↔ docs sync /100 | Sau thay doi endpoints |
+| `quality/ops-readiness-audit/SKILL.md` | Production ops readiness /100 | Truoc GA deploy |
 
 ### Technical Standards
-**Backend:**
+
 | File | Mo ta |
 |------|-------|
 | `backend/backend-standards.md` | Code style, API design, DB, enums, errors, Maven |
-
-**Frontend:**
-| File | Mo ta |
-|------|-------|
-| `frontend/frontend-standards.md` | TypeScript, React, Shadcn, theme, i18n, a11y, page templates, spacing, responsive |
-
-**Testing:**
-| File | Mo ta |
-|------|-------|
-| `testing/testing-standards.md` | Spring Boot tests, frontend tests, E2E, performance, security |
-
-**DevOps:**
-| File | Mo ta |
-|------|-------|
-| `devops/devops-standards.md` | Docker scripts, CI/CD, deployment, cloud infra, env setup |
-| `devops/terraform-cloud-deploy/SKILL.md` | Review Terraform .tf files + chiến lược deploy AWS/OCI |
+| `frontend/frontend-standards.md` | TypeScript, React, Shadcn, theme, i18n, a11y |
+| `testing/testing-standards.md` | Spring Boot tests, frontend tests, E2E, security |
+| `devops/devops-standards.md` | Docker scripts, CI/CD, deployment, cloud |
+| `devops/terraform-cloud-deploy/SKILL.md` | Terraform review + AWS/OCI deploy strategy |
 
 ### Workflow Skills
 **Thu muc:** `workflow/`
 
 | File/Folder | Mo ta |
 |-------------|-------|
-| `continue/SKILL.md` | /continue — resume PR ưu tiên nhất |
-| `check-pr/SKILL.md` | /check-pr — monitor CI + verify PR bằng scripts |
-| `quality-plan/SKILL.md` | /quality-plan — auto-generate PR plan từ audit gaps |
-| `docs-freshness/SKILL.md` | Nhắc update living docs sau mỗi PR/wave (auto, không invoke trực tiếp) |
-| `check-pr/` | /check-pr skill |
-| `fix-pr/` | /fix-pr skill |
-| `start-pr/` | /start-pr skill |
-| `repo-status/SKILL.md` | /repo-status — remote repo health check (GREEN→BLACK) |
-| `development-workflow.md` | Day-to-day development workflow |
-| `priority-pr-planning.md` | PR prioritization |
+| `workflow/continue/SKILL.md` | /continue — resume PR uu tien nhat |
+| `workflow/check-pr/SKILL.md` | /check-pr — monitor CI + verify PR |
+| `workflow/fix-pr/SKILL.md` | /fix-pr — fix PR issues |
+| `workflow/start-pr/SKILL.md` | /start-pr — start new PR |
+| `workflow/quality-plan/SKILL.md` | /quality-plan — generate PR plan tu audit gaps |
+| `workflow/repo-status/SKILL.md` | /repo-status — remote health (GREEN→BLACK) |
+| `workflow/wave-completion-check.md` | Wave completion gate (Level 7: audit suite) |
+| `workflow/gap-to-pr-converter.md` | Convert gap → PR/wave voi template |
+| `workflow/docs-freshness/SKILL.md` | Nhac update living docs (auto) |
+| `workflow/development-workflow.md` | Day-to-day workflow |
+| `workflow/priority-pr-planning.md` | PR prioritization |
 
 ### Reference (doc khi can)
 **Thu muc:** `reference/`
 
 | File | Mo ta |
 |------|-------|
-| `architecture-overview.md` | System architecture overview |
-| `business-docs-3-layer.md` | 3-layer business docs: rules, use-cases, api-contract |
-| `cross-service-data-strategy.md` | Data sharing between services |
-| `diagrams.md` | PlantUML/Mermaid setup, render workflow, verification BẮT BUỘC |
-| `email-service.md` | Email service integration |
-| `ide-setup.md` | VS Code settings, test runner, Claude permissions |
-| `plantuml-diagrams.md` | PlantUML diagram patterns |
-| `project-structure.md` | Cấu trúc folder best practice, khi nào refactor |
-| `service-docs-standard.md` | Service-level README + QUICK-START standard |
-| `ui-template-guide.md` | Code từ Figma/template, page checklist, anti-patterns, Gotchas FE |
+| `reference/architecture-overview.md` | System architecture overview |
+| `reference/business-docs-3-layer.md` | 3-layer business docs |
+| `reference/cross-service-data-strategy.md` | Data sharing between services |
+| `reference/design-pattern-advisor.md` | Choose + apply design patterns |
+| `reference/diagrams.md` | PlantUML/Mermaid setup |
+| `reference/email-service.md` | Email service integration |
+| `reference/ide-setup.md` | VS Code settings |
+| `reference/plantuml-diagrams.md` | PlantUML diagram patterns |
+| `reference/project-structure.md` | Folder structure best practice |
+| `reference/service-docs-standard.md` | Service README/QUICK-START |
+| `reference/ui-template-guide.md` | Figma→code, page checklist |
 
-### Rules (conventions nội bộ)
+### Rules (conventions noi bo)
 **Thu muc:** `.claude/rules/`
 
 | File | Mo ta |
 |------|-------|
-| `skill-conventions.md` | Cách viết skill đúng chuẩn (Anthropic best practices) — đọc khi viết skill mới |
+| `skill-conventions.md` | Cach viet skill dung chuan |
+| `design-patterns.md` | Mandatory design patterns + anti-patterns |
+| `ai-branding-guidelines.md` | AI Branding feature rules |
+| `output-review-mandate.md` | Master rule: moi output phai co review |
 
 ---
 
 ## Kiem tra chat luong
 
 ```bash
-# Score ky thuat /100
-/quality-audit [target]
-
-# Score nghiep vu %
-/business-gap-check [target]
-
-# Milestone check
-/pre-flight-check project
+/quality-audit [target]        # Score ky thuat /100
+/business-gap-check [target]   # Business coverage gaps
+/pre-flight-check project      # Milestone check
+/ui-review                     # UI per-screen /128
 ```
-
-## Khi gap van de
-
-```bash
-# 4-phase debugging
-# Xem: core/systematic-debugging.md
-
-# CI/CD issues, Docker
-# Xem: devops/devops-standards.md
-
-# IDE warnings, test failures
-# Xem: testing/testing-standards.md (section 7)
-```
-
----
-
-## Stats
-
-| Metric | Truoc | Sau |
-|--------|-------|-----|
-| Tong so files | 49 | ~20 |
-| Testing files | 9 | 1 |
-| Backend files | 8 | 1 |
-| Frontend files | 3 | 1 |
-| DevOps files | 9 | 1 |
-| Obsolete files removed | - | 11 |

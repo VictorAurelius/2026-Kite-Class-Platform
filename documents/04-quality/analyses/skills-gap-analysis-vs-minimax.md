@@ -56,14 +56,14 @@
 
 ### 3.2 Check/Audit Skills ✅ (mạnh, vừa cải thiện)
 
-- `pre-flight-check.md`
-- `business-gap-check.md` (v1.3 với AI Branding + Design Patterns)
+- `quality/pre-flight-check.md`
+- `quality/business-gap-check.md` (v1.3 với AI Branding + Design Patterns)
 - `quality-audit/SKILL.md`
 - `quality/ui-review/SKILL.md`
-- `wave-completion-check.md`
+- `workflow/wave-completion-check.md`
 - `workflow/repo-status/SKILL.md`
-- `simulation-gap-finder.md` (mới)
-- `design-pattern-advisor.md` (mới)
+- `quality/simulation-gap-finder.md` (mới)
+- `reference/design-pattern-advisor.md` (mới)
 
 ### 3.3 Technical Standards ✅ (đủ)
 
@@ -242,7 +242,7 @@ Update existing skills để include document generation:
 
 - `two-stage-code-review.md`: check nếu PR có generate docs → verify template review
 - `quality-audit/SKILL.md`: thêm category "Document Generation Quality"
-- `pre-flight-check.md`: check templates exist trước khi implement feature
+- `quality/pre-flight-check.md`: check templates exist trước khi implement feature
 
 ---
 
