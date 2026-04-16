@@ -58,7 +58,7 @@ export default function DmcaPage() {
         every submission under DMCA §512 procedures.
       </p>
 
-      <section className="mt-8 space-y-3 rounded-md border bg-muted/30 p-4 text-sm">
+      <section className="mt-8 space-y-3 rounded-md border bg-muted/30 dark:bg-muted/50 p-4 text-sm">
         <h2 className="font-semibold">Before you submit</h2>
         <ul className="list-disc space-y-1 pl-5">
           <li>Only rights holders or their authorized agents should submit notices.</li>
@@ -88,7 +88,7 @@ export default function DmcaPage() {
             type="text"
             required
             maxLength={255}
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
 
@@ -102,7 +102,7 @@ export default function DmcaPage() {
             type="email"
             required
             maxLength={255}
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
 
@@ -117,7 +117,7 @@ export default function DmcaPage() {
             required
             maxLength={2000}
             placeholder="https://tenant.kiteclass.vn/..."
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
 
@@ -132,9 +132,10 @@ export default function DmcaPage() {
             id="copyrightedWorkDescription"
             name="copyrightedWorkDescription"
             required
+            minLength={10}
             maxLength={4000}
             rows={5}
-            className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
 
@@ -148,13 +149,13 @@ export default function DmcaPage() {
       </form>
 
       {result?.ok && (
-        <div className="mt-6 rounded-md border border-green-200 bg-green-50 p-4 text-sm">
+        <div className="mt-6 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-200">
           Notice received. Reference case id: <strong>#{result.id}</strong>. Our team
           will contact you at the email provided if we need more information.
         </div>
       )}
       {result && !result.ok && (
-        <div className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm">
+        <div className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/30 dark:text-red-200">
           Submission failed: {result.message}
         </div>
       )}

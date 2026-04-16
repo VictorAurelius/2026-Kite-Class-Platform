@@ -31,7 +31,7 @@ export function Sidebar({ variant = 'customer' }: { variant?: 'customer' | 'admi
   const navItems = variant === 'admin' ? adminNav : customerNav;
 
   return (
-    <aside className="w-64 border-r bg-muted/30 min-h-screen p-4">
+    <aside className="w-64 border-r bg-muted/30 dark:bg-muted/50 min-h-screen p-4">
       <div className="mb-8">
         <Link href="/" className="block">
           <KiteLogo size="sm" />

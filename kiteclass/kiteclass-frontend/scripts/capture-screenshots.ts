@@ -135,6 +135,8 @@ const DASHBOARD_PAGES: PageConfig[] = [
   { name: 'billing-pay',       path: `/billing/${SAMPLE_ID}/pay`,         needsAuth: true },
   // Settings
   { name: 'settings',          path: '/settings',                         needsAuth: true },
+  // Branding (Wave 3 Sub-PR 3.7)
+  { name: 'branding-wizard',   path: '/branding/wizard',                  needsAuth: true, note: 'AI branding wizard scaffold' },
 ];
 
 const ALL_PAGES: PageConfig[] = [...PUBLIC_PAGES, ...AUTH_PAGES, ...DASHBOARD_PAGES];
