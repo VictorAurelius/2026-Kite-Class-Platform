@@ -416,6 +416,34 @@ cập nhật folder thì phải cập nhật địa chỉ tương ứng ở các
 
 tôi tưởng check CI có scripts mà
 
-còn 2 gaps nữa:
+còn gaps nữa:
 1. điểm danh đang design thế nào, có cần làm mode kiểu calender không?
-2. Kitehub phải có trang quản lý instance như AWS đúng không? hãy phát triển theo best practice
+2. Việc xuất báo cáo ở kitehub và kiteclass đã có design chưa?
+3. Kitehub phải có trang quản lý instance như AWS đúng không? hãy phát triển theo best practice như cần kiểm soát trạng thái của instance, kiểm soát log, khả năng fix bug... còn rất nhiều cái nữa
+4. AI branding thì kitehub cũng có trang quản lý đúng không?
+
+dùng skill để mô phỏng lại xem còn gaps nữa không? cần tạo lại plan của wave 3 không
+
+tìm hiểu về cộng cụ 9router
+
+bổ sung fix lỗi này vào plan của Sub_PR 3.7 và thực hiện option 1
+
+giúp tôi install node_modules cho kitehub-frontend
+
+tôi thấy vẫn hơi chậm, các plan của wave có áp dụng agent để đẩy nhanh công số không?
+
+Option B — Wave 4 Security & Compliance (parallel-ready từ Wave 3 plan; closes GAP-018, 041, 042, 012, 073)
+
+đánh giá status này
+
+trong lần fix gaps lần này tôi chỉ mới thấy quality audit, không thấy sử dụng UI audit, liệu có phải là thiếu sót?
+
+lưu memory về lần chạy này để lần sau audit tốt hơn
+
+quality audit có bao gồm check mapping code với business-logic không? tôi hiểu dự án đang chỉ có 2 audit là quality audit và ui adit, như vậy có hợp lý không, có cần update gì để tối ưu hơn không? ví dụ trên production thì sao nữa?
+
+không monitor được bằng scripts à? vi phạm rule không?
+
+tạo PR để fix
+
+sao vẫn còn nhiều file changing, xử lý hết trong PR này

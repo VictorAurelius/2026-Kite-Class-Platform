@@ -17,6 +17,7 @@ infrastructure/logs/run-*/
 
 # Claude Code local settings (never commit)
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 
 # Environment files (contain secrets - never commit)
 .env
