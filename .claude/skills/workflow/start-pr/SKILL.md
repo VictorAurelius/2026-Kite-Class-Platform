@@ -147,7 +147,27 @@ Thực hiện breakdown theo `.claude/skills/task-breakdown-guide.md`:
 4. Self-review before commit
 ```
 
-**Bước 4: TDD Reminder**
+**Bước 4: Required Audits (auto-detect từ scope)**
+
+Dựa trên files sẽ thay đổi, liệt kê audits cần chạy TRƯỚC merge:
+
+```markdown
+## Required Audits
+
+| Files Changed | Required Audit | Command |
+|--------------|----------------|---------|
+| *-frontend/** | UI Review /128 | `/ui-review` |
+| rules.md, application.yml | Business Logic /100 | `/business-logic-audit` |
+| *Controller.java, *Dto.java | API Contract /100 | `/api-contract-audit` |
+| pom.xml, package.json | Security /100 | `/security-audit` |
+| infrastructure/**, Dockerfile | Ops Readiness /100 | `/ops-readiness-audit` |
+
+**Applicable for this PR:** [list based on scope from brainstorm]
+```
+
+Hook `.claude/hooks/audit-gate.py` sẽ nhắc lại khi merge nếu audit bị miss.
+
+**Bước 5: TDD Reminder**
 
 ```markdown
 ## TDD Workflow Reminder

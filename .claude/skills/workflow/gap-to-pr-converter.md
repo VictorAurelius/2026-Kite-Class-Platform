@@ -115,6 +115,20 @@ docs(quality): template library curation (GAP-011)
 - [ ] Design pattern documented in javadoc
 - [ ] Manual verification per AC
 
+## Required Audits (auto-detect from scope)
+
+{Based on files this PR will change — check mapping table below}
+
+| If PR changes... | Run audit | Command |
+|-----------------|-----------|---------|
+| `*-frontend/**` | UI Review /128 | `/ui-review` |
+| `rules.md`, `application.yml` | Business Logic /100 | `/business-logic-audit` |
+| `*Controller.java`, `*Dto.java` | API Contract /100 | `/api-contract-audit` |
+| `pom.xml`, `package.json` | Security /100 | `/security-audit` |
+| `infrastructure/**`, `Dockerfile` | Ops Readiness /100 | `/ops-readiness-audit` |
+
+Hook `audit-gate.py` enforces at merge time. Run proactively to avoid surprises.
+
 ## Dependencies / Blockers
 
 {list any external dependencies}

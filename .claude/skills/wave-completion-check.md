@@ -417,6 +417,39 @@ grep "✅\|⬜" documents/03-planning/docs-and-skills-refactor-plan.md
 
 ---
 
+## Level 7: Audit Suite Verification (BẮT BUỘC trước merge wave → main)
+
+Tất cả 7 audits phải có report gần đây (≤7 ngày) trước khi wave merge vào main.
+
+```bash
+# Check audit report freshness
+echo "=== Audit Reports ==="
+for dir in quality ui business security performance api ops; do
+  latest=$(ls -t documents/04-quality/audits/$dir/*.md 2>/dev/null | head -1)
+  if [ -n "$latest" ]; then
+    age_days=$(( ($(date +%s) - $(stat -c %Y "$latest" 2>/dev/null || stat -f %m "$latest" 2>/dev/null || echo 0)) / 86400 ))
+    echo "  $dir: $latest (${age_days}d ago)"
+  else
+    echo "  $dir: ❌ NO REPORT"
+  fi
+done
+```
+
+| Audit | Skill | Required? |
+|-------|-------|:---------:|
+| Quality Audit /100 | `/quality-audit` | ✅ REQUIRED |
+| UI Review /128 | `/ui-review` | ✅ REQUIRED (nếu wave có FE changes) |
+| Business Logic /100 | `/business-logic-audit` | ✅ REQUIRED (nếu wave thay đổi business rules) |
+| Security /100 | `/security-audit` | ✅ REQUIRED (nếu wave thay đổi deps/auth/security) |
+| Performance /100 | `/performance-audit` | ⚠️ RECOMMENDED (trước production) |
+| API Contract /100 | `/api-contract-audit` | ✅ REQUIRED (nếu wave thay đổi endpoints) |
+| Ops Readiness /100 | `/ops-readiness-audit` | ⚠️ RECOMMENDED (trước production deploy) |
+
+**Rule:** Nếu wave thay đổi files matching audit pattern → audit report PHẢI tồn tại.
+Hook `.claude/hooks/audit-gate.py` tự động detect và nhắc.
+
+---
+
 ## Rules
 
 - PHẢI chạy SAU mỗi wave, TRƯỚC khi bắt đầu wave tiếp
@@ -424,6 +457,7 @@ grep "✅\|⬜" documents/03-planning/docs-and-skills-refactor-plan.md
 - Level 2-3 có fail → fix trước khi Wave tiếp
 - Level 4-5 là informational — track trends
 - **Level 6 (doc sync) là BẮT BUỘC** — commit updates trước Wave tiếp
+- **Level 7 (audit suite) là BẮT BUỘC** — all relevant audits must have recent reports
 - Lưu report: `documents/04-quality/wave-[X]-completion-check.md`
 
 ---
