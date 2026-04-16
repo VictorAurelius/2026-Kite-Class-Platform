@@ -1,6 +1,6 @@
 # GAP-091: Welcome + Subscription-Created Email Missing Idempotency Guard
 
-**Status:** 🔵 OPEN
+**Status:** 🟠 IN_PROGRESS
 **Priority:** 🟠 P1
 **Domain:** KiteHub / Email / Business Logic
 **Found:** 2026-04-16 (SaaS business logic audit)

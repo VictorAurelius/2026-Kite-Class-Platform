@@ -236,6 +236,12 @@ public class InstanceService {
             throw new IllegalArgumentException("Email already registered: " + request.getOwnerEmail());
         }
 
+        // Validate trial limit: each email can only register trial once (TR-07)
+        if (instanceRepository.existsByContactEmailAndTrialStartedAtIsNotNull(request.getOwnerEmail())) {
+            throw new IllegalArgumentException(
+                    "Mỗi tài khoản chỉ được dùng thử 1 lần. Vui lòng nâng cấp gói để tạo thêm.");
+        }
+
         // Generate owner ID
         UUID ownerId = UUID.randomUUID();
 
