@@ -177,7 +177,7 @@ const captureLog: CaptureRecord[] = [];
 const labelIdx = process.argv.indexOf('--label');
 const label = labelIdx >= 0 ? process.argv[labelIdx + 1] : 'latest';
 const BASE_URL = process.env.BASE_URL || `http://localhost:${DEFAULT_PORT}`;
-const OUT_DIR = path.join(SCREENSHOTS_DIR, label);
+const OUT_DIR = path.join(SCREENSHOTS_DIR, label.startsWith('kiteclass') ? label : `kiteclass-${label}`);
 
 function checkServer(url: string): Promise<boolean> {
   return new Promise((resolve) => {
@@ -381,12 +381,12 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const alsoLatest = label !== 'latest';
-  const LATEST_DIR = alsoLatest ? path.join(SCREENSHOTS_DIR, 'latest') : null;
+  const LATEST_DIR = alsoLatest ? path.join(SCREENSHOTS_DIR, 'kiteclass-latest') : null;
   if (LATEST_DIR) {
     fs.mkdirSync(LATEST_DIR, { recursive: true });
-    console.log(`📸 Capturing to: ${label}/  (also updating latest/)`);
+    console.log(`📸 Capturing to: kiteclass-${label}/  (also updating kiteclass-latest/)`);
   } else {
-    console.log(`📸 Capturing to: latest/`);
+    console.log(`📸 Capturing to: kiteclass-latest/`);
   }
   console.log(`🔗 Base URL: ${BASE_URL}`);
   console.log(`📄 Pages: ${PUBLIC_PAGES.length} public + ${AUTH_PAGES.length} auth + ${DASHBOARD_PAGES.length} dashboard = ${ALL_PAGES.length} total`);

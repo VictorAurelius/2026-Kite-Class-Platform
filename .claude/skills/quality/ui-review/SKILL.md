@@ -33,7 +33,7 @@ cd kitehub/kitehub-frontend    && npx tsx scripts/capture-screenshots.ts --label
 ```
 
 Output per app:
-- `documents/screenshots/{label}/` — KiteClass (30 pages × 4 = ~120 PNGs)
+- `documents/screenshots/kiteclass-{label}/` — KiteClass (30 pages × 4 = ~120 PNGs)
 - `documents/screenshots/kitehub-{label}/` — KiteHub (19 pages × 4 = ~76 PNGs)
 - `manifest.md` trong mỗi folder — auto-generated, **committed to git**
 

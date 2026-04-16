@@ -6,19 +6,18 @@ Lưu screenshots UI audit của KiteClass và KiteHub frontends.
 
 ```
 documents/screenshots/
-├── README.md              ← file này
-├── latest/                ← gitignored (regenerated mỗi lần capture)
-│   ├── manifest.md        ← gitignored (chỉ local)
-│   └── {page}/
-│       ├── light-desktop.png
-│       ├── light-mobile.png
-│       ├── dark-desktop.png
-│       └── dark-mobile.png
-├── {label}/               ← committed (manifest.md only, *.png gitignored)
-│   ├── manifest.md        ← ✅ COMMITTED — index + quick reference
-│   └── {page}/*.png       ← ❌ gitignored (local only)
-└── kitehub-{label}/       ← KiteHub captures (same pattern)
-    ├── manifest.md        ← ✅ COMMITTED
+├── README.md                ← file này
+├── kiteclass-latest/        ← KiteClass captures (regenerated mỗi lần)
+│   ├── manifest.md          ← ✅ COMMITTED — index + quick reference
+│   └── {page}/*.png         ← ❌ gitignored (local only)
+├── kiteclass-{label}/       ← KiteClass labeled captures
+│   ├── manifest.md          ← ✅ COMMITTED
+│   └── {page}/*.png         ← ❌ gitignored
+├── kitehub-latest/          ← KiteHub captures (regenerated mỗi lần)
+│   ├── manifest.md          ← ✅ COMMITTED
+│   └── {page}/*.png         ← ❌ gitignored
+└── kitehub-{label}/         ← KiteHub labeled captures
+    ├── manifest.md          ← ✅ COMMITTED
     └── ...
 ```
 
@@ -27,8 +26,9 @@ documents/screenshots/
 | File | Status | Lý do |
 |------|--------|-------|
 | `*.png` | ❌ gitignored | Binary, lớn, local-only |
-| `latest/**` | ❌ gitignored | Regenerated mỗi lần |
-| `{label}/manifest.md` | ✅ committed | Text, nhỏ, audit history |
+| `kiteclass-latest/**/*.png` | ❌ gitignored | Regenerated mỗi lần |
+| `kitehub-latest/**/*.png` | ❌ gitignored | Regenerated mỗi lần |
+| `*/manifest.md` | ✅ committed | Text, nhỏ, audit history |
 
 ## Chạy Capture
 
