@@ -292,3 +292,18 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude
 4. Nếu user yêu cầu audit gấp → ghi rõ "CI/CD: PENDING (chưa có kết quả)" thay vì đoán điểm
 
 **Lý do:** Audit trước đã kết luận CI pass trong khi thực tế CI đang chạy. Điều này làm sai lệch kết quả đánh giá và có thể dẫn đến merge PR lỗi.
+
+### Specialized Audits (for deeper analysis)
+
+Quality-audit cho cái nhìn tổng quan /100. Để đánh giá sâu hơn từng domain, dùng:
+
+| Audit | Skill | Khi nào |
+|-------|-------|---------|
+| Business Logic | `/business-logic-audit` | Code ↔ rules.md sync |
+| Security | `/security-audit` | Deep security assessment |
+| Performance | `/performance-audit` | Bottleneck + baseline |
+| API Contract | `/api-contract-audit` | Endpoint ↔ docs sync |
+| Ops Readiness | `/ops-readiness-audit` | Production deploy readiness |
+| UI/UX | `/ui-review` | Per-screen visual /128 |
+
+Thêm section "Specialized Audit Scores" vào report nếu có kết quả từ audit chuyên sâu.

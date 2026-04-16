@@ -46,6 +46,17 @@
 | `workflow/gap-to-pr-converter.md` | Convert gap file → PR/wave với template + task breakdown | Khi start implement gap từ queue |
 | `persona-based-business-review.md` | Role-play per persona (10 tenant types) → find missing features | Quarterly; before GA; user complaint |
 
+### Production Audit Suite (NEW)
+**Thu muc:** `quality/`
+
+| File | Mo ta | Dung khi |
+|------|-------|----------|
+| `quality/business-logic-audit/SKILL.md` | Verify code ↔ rules.md mapping /100 | Truoc GA release, sau wave thay doi business logic |
+| `quality/security-audit/SKILL.md` | Deep security assessment /100 (deps, secrets, OWASP, auth, infra) | Truoc production deploy, quarterly |
+| `quality/performance-audit/SKILL.md` | Performance baseline /100 (DB, API, bundle, cache, resources) | Truoc production deploy, sau thay doi lon |
+| `quality/api-contract-audit/SKILL.md` | API ↔ api-contract.md sync /100 | Sau thay doi endpoints, truoc release |
+| `quality/ops-readiness-audit/SKILL.md` | Production ops readiness /100 (monitoring, logging, backup, alerting, deploy) | Truoc GA deploy |
+
 ### Technical Standards
 **Backend:**
 | File | Mo ta |
