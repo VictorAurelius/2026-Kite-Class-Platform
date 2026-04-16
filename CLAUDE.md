@@ -166,7 +166,12 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `business-gap-check.md` - Business logic gap analysis
 - `quality-audit/SKILL.md` - Quality scoring (100 points)
 - `quality/ui-review/SKILL.md` - UI audit per-screen /128, before/after screenshots
-- `wave-completion-check.md` - Wave completion verification
+- `quality/business-logic-audit/SKILL.md` - Code ↔ rules.md verification /100
+- `quality/security-audit/SKILL.md` - Deep security assessment /100 (OWASP, deps, secrets)
+- `quality/performance-audit/SKILL.md` - Performance baseline /100 (DB, API, bundle, cache)
+- `quality/api-contract-audit/SKILL.md` - API endpoints ↔ docs sync /100
+- `quality/ops-readiness-audit/SKILL.md` - Production ops readiness /100 (monitoring, deploy)
+- `wave-completion-check.md` - Wave completion verification (Level 7: audit suite gate)
 - `workflow/repo-status/SKILL.md` - Remote repo health check (5 levels: GREEN→BLACK)
 
 ### Technical Standards (consolidated)
