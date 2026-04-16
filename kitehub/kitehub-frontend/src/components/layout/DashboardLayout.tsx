@@ -23,9 +23,11 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar variant="customer" />
+      <div className="hidden md:block">
+        <Sidebar variant="customer" />
+      </div>
       <div className="flex-1 flex flex-col">
-        <header className="border-b h-16 flex items-center justify-between px-6">
+        <header className="border-b bg-background/95 backdrop-blur h-16 flex items-center justify-between px-6">
           <h2 className="text-sm font-medium text-muted-foreground">Quản lý trung tâm</h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{user?.email}</span>

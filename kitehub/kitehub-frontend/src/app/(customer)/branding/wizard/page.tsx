@@ -10,6 +10,7 @@ import { AnalyzeStep } from '@/components/branding/AnalyzeStep';
 import { GenerateStep } from '@/components/branding/GenerateStep';
 import { ReviewStep } from '@/components/branding/ReviewStep';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,9 +19,10 @@ import type { LogoAnalysis } from '@/types/branding';
 export default function BrandingWizardPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const { data: instances } = useOwnerInstances(user?.id);
+  const { data: instances, isError: instancesError } = useOwnerInstances(user?.id);
   const instanceId = instances?.[0]?.id;
 
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [step, setStep] = useState(1);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<LogoAnalysis | null>(null);
@@ -29,6 +31,15 @@ export default function BrandingWizardPage() {
   const analyzeMutation = useAnalyzeLogo();
   const createJobMutation = useCreateBrandingJob();
   const { data: job } = useBrandingJob(jobId ?? undefined);
+
+  // Timeout for initial loading state
+  useEffect(() => {
+    if (!instanceId && !instancesError) {
+      const timer = setTimeout(() => setLoadingTimedOut(true), 10000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [instanceId, instancesError]);
 
   // Auto-redirect when job completes
   useEffect(() => {
@@ -70,6 +81,23 @@ export default function BrandingWizardPage() {
     router.push('/branding?success=true');
   };
 
+  if (instancesError || loadingTimedOut) {
+    return (
+      <EmptyState
+        icon={<Sparkles className="w-12 h-12" />}
+        title="Không thể tải thông tin"
+        description={
+          instancesError
+            ? 'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
+            : 'Kết nối mất quá lâu. Vui lòng kiểm tra kết nối mạng và thử lại.'
+        }
+        action={
+          <Button onClick={() => window.location.reload()}>Thử lại</Button>
+        }
+      />
+    );
+  }
+
   if (!instanceId) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -81,7 +109,7 @@ export default function BrandingWizardPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Page Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 border p-6">
+      <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 dark:from-purple-500/20 dark:via-primary/10 dark:to-accent/20 border p-6">
         <div className="flex items-center gap-4 mb-3">
           <Button
             variant="ghost"
@@ -93,7 +121,7 @@ export default function BrandingWizardPage() {
           </Button>
         </div>
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-purple-500/10 p-3 text-purple-600">
+          <div className="rounded-xl bg-purple-500/10 dark:bg-purple-500/20 p-3 text-purple-600 dark:text-purple-400">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>

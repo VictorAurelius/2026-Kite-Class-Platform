@@ -100,6 +100,7 @@ const PUBLIC_PAGES: PageConfig[] = [
   { name: 'pricing',          path: '/pricing' },
   { name: 'blog',             path: '/blog',               note: 'May show empty without backend' },
   { name: 'blog-detail',      path: `/blog/${SAMPLE_ID}`,  note: 'May 404 without backend' },
+  { name: 'legal-dmca',       path: '/legal/dmca',         note: 'DMCA intake form (Wave 4 Sub-PR 4.3)' },
 ];
 
 // === AUTH PAGES (client-side, no backend needed) ===
