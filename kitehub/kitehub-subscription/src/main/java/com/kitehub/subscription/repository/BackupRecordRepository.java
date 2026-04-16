@@ -47,6 +47,14 @@ public interface BackupRecordRepository extends JpaRepository<BackupRecord, UUID
     boolean existsByInstanceIdAndStatus(UUID instanceId, BackupStatus status);
 
     /**
+     * Find all backup records for an instance (used during purge cleanup).
+     *
+     * @param instanceId instance UUID
+     * @return list of backup records
+     */
+    List<BackupRecord> findByInstanceId(UUID instanceId);
+
+    /**
      * Count total backups for an instance (for retention policy).
      *
      * @param instanceId instance UUID

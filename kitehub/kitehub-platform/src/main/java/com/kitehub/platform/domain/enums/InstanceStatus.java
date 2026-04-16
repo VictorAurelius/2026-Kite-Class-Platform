@@ -30,5 +30,10 @@ public enum InstanceStatus {
     /**
      * Soft deleted.
      */
-    DELETED
+    DELETED,
+
+    /**
+     * Permanently deleted, all data removed.
+     */
+    PURGED
 }

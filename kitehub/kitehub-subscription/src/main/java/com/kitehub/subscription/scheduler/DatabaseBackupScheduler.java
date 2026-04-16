@@ -4,8 +4,11 @@ import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.subscription.domain.BackupRecord;
 import com.kitehub.subscription.domain.BackupStatus;
+import com.kitehub.subscription.dto.PurgeResult;
+import com.kitehub.subscription.dto.PurgeStatus;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.DatabaseBackupService;
+import com.kitehub.subscription.service.InstancePurgeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -30,6 +32,7 @@ public class DatabaseBackupScheduler {
 
     private final InstanceRepository instanceRepository;
     private final DatabaseBackupService databaseBackupService;
+    private final InstancePurgeService instancePurgeService;
 
     @Value("${backup.retention-count:7}")
     private int retentionCount;
@@ -81,32 +84,45 @@ public class DatabaseBackupScheduler {
     }
 
     /**
-     * Weekly cleanup of deleted instances.
-     * Removes instances deleted more than 30 days ago.
+     * Weekly purge of deleted instances.
+     * Permanently removes instances deleted more than 30 days ago,
+     * including dropping their databases, deleting backups from S3,
+     * and publishing cross-service cleanup events.
+     * <p>
+     * Safety: instances without a COMPLETED backup are SKIPPED.
      * Runs at 3:00 AM every Sunday.
      */
     @Scheduled(cron = "0 0 3 * * SUN")
     public void cleanupDeletedInstances() {
-        log.info("Starting weekly cleanup of deleted instances");
+        Instant start = Instant.now();
+        log.info("Starting weekly purge of deleted instances");
 
-        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        List<Instance> deletedInstances = instanceRepository
-            .findByStatusAndDeletedFalseAndUpdatedAtBefore(InstanceStatus.DELETED, thirtyDaysAgo);
+        List<Instance> eligibleInstances = instancePurgeService.findPurgeEligible();
+        log.info("Found {} instances eligible for purge", eligibleInstances.size());
 
-        int cleanedCount = 0;
-        for (Instance instance : deletedInstances) {
+        int purgedCount = 0;
+        int skippedCount = 0;
+        int failedCount = 0;
+
+        for (Instance instance : eligibleInstances) {
             try {
-                instance.softDelete();
-                instanceRepository.save(instance);
-                cleanedCount++;
-                log.info("Cleaned up deleted instance: {} (subdomain: {})",
-                    instance.getId(), instance.getSubdomain());
+                PurgeResult result = instancePurgeService.purgeInstance(instance.getId());
+                if (result.getStatus() == PurgeStatus.SUCCESS) {
+                    purgedCount++;
+                } else if (result.getStatus() == PurgeStatus.SKIPPED_NO_BACKUP) {
+                    skippedCount++;
+                } else {
+                    failedCount++;
+                }
             } catch (Exception e) {
-                log.error("Failed to clean up instance: {}", instance.getId(), e);
+                log.error("Failed to purge instance: {}", instance.getId(), e);
+                failedCount++;
             }
         }
 
-        log.info("Weekly cleanup job completed. Cleaned: {} instances", cleanedCount);
+        Duration elapsed = Duration.between(start, Instant.now());
+        log.info("Weekly purge job completed in {}s. Purged: {}, Skipped (no backup): {}, Failed: {}",
+            elapsed.getSeconds(), purgedCount, skippedCount, failedCount);
     }
 
     /**

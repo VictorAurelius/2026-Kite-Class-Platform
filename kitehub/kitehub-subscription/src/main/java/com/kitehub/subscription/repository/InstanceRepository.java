@@ -117,6 +117,18 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
     List<Instance> findByStatusAndDeletedFalseAndUpdatedAtBefore(
         InstanceStatus status, LocalDateTime before);
 
+    /**
+     * Find instances by status updated before a given timestamp (regardless of deleted flag).
+     * Used for purge eligibility: status=DELETED, updated more than 30 days ago.
+     *
+     * @param status instance status
+     * @param before timestamp threshold
+     * @return list of matching instances
+     */
+    @Query("SELECT i FROM Instance i WHERE i.status = :status AND i.updatedAt < :before")
+    List<Instance> findByStatusAndUpdatedAtBefore(
+        @Param("status") InstanceStatus status, @Param("before") LocalDateTime before);
+
     // =========================================================
     // SAAS-16: Custom domain methods
     // =========================================================

@@ -38,6 +38,13 @@ public interface EmailSentLogRepository extends JpaRepository<EmailSentLog, UUID
         UUID instanceId, String emailType, String recipient,
         LocalDateTime start, LocalDateTime end);
 
+    /**
+     * Delete all email sent logs for an instance (used during purge).
+     *
+     * @param instanceId instance UUID
+     */
+    void deleteByInstanceId(UUID instanceId);
+
     // ==================== ADMIN MONITORING QUERIES ====================
 
     /**

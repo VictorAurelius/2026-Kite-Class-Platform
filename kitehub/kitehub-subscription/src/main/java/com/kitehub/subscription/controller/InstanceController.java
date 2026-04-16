@@ -2,12 +2,15 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.PurgeResult;
 import com.kitehub.subscription.dto.RegisterInstanceRequest;
 import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.dto.TrialStatusResponse;
 import com.kitehub.subscription.dto.UpdateInstanceRequest;
+import com.kitehub.subscription.service.InstancePurgeService;
 import com.kitehub.subscription.service.InstanceService;
 import com.kitehub.subscription.service.TrialService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,7 @@ public class InstanceController {
 
     private final InstanceService instanceService;
     private final TrialService trialService;
+    private final InstancePurgeService instancePurgeService;
 
     /**
      * Create a new trial instance.
@@ -168,5 +172,20 @@ public class InstanceController {
     ) {
         trialService.extendTrial(id, days);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Permanently purge a deleted instance (admin only).
+     * Removes database, backups, email logs, and publishes cross-service cleanup event.
+     * Instance must be in DELETED status. Requires at least one COMPLETED backup.
+     *
+     * @param id instance UUID
+     * @return purge result with details
+     */
+    @DeleteMapping("/{id}/purge")
+    @Operation(summary = "Permanently purge a deleted instance (admin only)")
+    public ResponseEntity<PurgeResult> purgeInstance(@PathVariable UUID id) {
+        PurgeResult result = instancePurgeService.adminPurge(id);
+        return ResponseEntity.ok(result);
     }
 }
