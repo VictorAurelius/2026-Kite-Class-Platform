@@ -40,19 +40,83 @@ Output per app:
 **Dashboard auth:** Script tự inject mock Zustand state vào localStorage — không cần backend.
 Dashboard pages render đầy đủ layout; API calls fail gracefully (shows loading/error UI).
 
-### 2. Đọc manifest.md trước khi xem ảnh
+### 2. Manifest Triage (TRƯỚC KHI xem ảnh)
 
-```bash
-# manifest.md là index — đọc trước để biết có gì, page nào fail
-documents/screenshots/{label}/manifest.md
-documents/screenshots/kitehub-{label}/manifest.md
+Đọc `manifest.md` để phân loại pages TRƯỚC, tránh xem ảnh không cần thiết:
+
+```
+Size < 20KB  → SKIP (loading spinner / empty shell) → auto-score 24/128
+Size 20-50KB → SPOT-CHECK (xem 1 ảnh light-desktop xác nhận)
+Size > 50KB  → FULL REVIEW (xem + score đầy đủ)
 ```
 
-manifest.md có: page list, HTTP status, file sizes, error pages — không cần đọc lại ảnh cho thông tin cơ bản.
+Ghi danh sách pages cần xem TRƯỚC khi mở bất kỳ ảnh nào.
 
-### 3. Score per screen (/128)
+### 3. Context-Efficient Scoring
 
-Đọc screenshots để chấm. 5 dimensions, mỗi screen độc lập:
+**CRITICAL: UI audit tiêu tốn rất nhiều tokens. Tuân thủ 4 rules sau để tránh compaction:**
+
+#### Rule 1: Smart Sampling — chỉ xem 1 variant per page
+
+Chỉ xem `light-desktop` cho mỗi page. Xem thêm variants CHỈ KHI:
+- File size bất thường (light vs dark chênh >50%)
+- Page có dark-mode-specific logic cần verify
+- Previous audit flagged responsive issue → xem mobile
+
+#### Rule 2: Group Scoring — score đại diện, apply cho nhóm
+
+Pages cùng layout pattern → score 1 đại diện, copy ±5 cho pages khác:
+
+| Group | Representative | Apply to |
+|-------|---------------|----------|
+| Public marketing | landing | pricing, about |
+| Auth forms | login | register, forgot-password, reset-password |
+| Dashboard tables | classes | students, teachers, courses, attendance |
+| Dashboard forms | student-new | teacher-new, course-new, class-edit |
+| Dashboard detail | class-detail | student-detail, teacher-detail, course-detail |
+| Admin tables | admin-instances | admin-payments |
+
+Chỉ individually score pages có layout ĐẶC BIỆT (dashboard home, branding-wizard, catalog).
+
+#### Rule 3: Subagent Delegation cho full audit
+
+Full audit (>20 pages) PHẢI dùng subagents để tránh context overflow:
+
+```
+Parent: đọc manifests → phân nhóm → spawn agents → aggregate scores
+
+Agent 1: KiteHub public + auth (7 pages, ~10 ảnh)
+Agent 2: KiteHub customer + admin (17 pages, ~8 ảnh review + 9 auto-score)
+Agent 3: KiteClass public + auth (10 pages, ~10 ảnh)
+Agent 4: KiteClass dashboard (21 pages, ~5 ảnh review + 16 auto-score)
+```
+
+Mỗi agent: xem ảnh → score → trả JSON summary (KHÔNG trả chi tiết per-dimension).
+
+Agent return format:
+```json
+{
+  "scores": [{"page": "landing", "total": 92, "notes": "gradient hero, good responsive"}],
+  "issues": [{"id": "H-1", "severity": "P1", "page": "dashboard", "issue": "sidebar overlap"}],
+  "autoScored": [{"page": "settings", "total": 24, "reason": "loading spinner only"}]
+}
+```
+
+#### Rule 4: Targeted Audit — chỉ audit changed pages
+
+Sau baseline, KHÔNG full re-audit. Chỉ audit screens bị ảnh hưởng bởi PR:
+
+```bash
+# Xác định changed files
+git diff main --name-only | grep -E '\.(tsx|css|scss)$'
+
+# Map file → screen (từ page registry)
+# Chỉ capture + score affected screens
+```
+
+### 4. Score Dimensions (/128)
+
+5 dimensions, mỗi screen độc lập:
 
 - **Technical /20** — responsive, dark mode, theming, anti-patterns
 - **Design Heuristics /40** — Nielsen's 10 heuristics (0–4 mỗi cái)
@@ -62,7 +126,7 @@ manifest.md có: page list, HTTP status, file sizes, error pages — không cầ
 
 Report LOWEST screen — đây là quality bar thực sự.
 
-### 4. Before/After comparison
+### 5. Before/After comparison
 
 ```
 | Screen | Before | After | Delta | Notes |
@@ -70,7 +134,7 @@ Report LOWEST screen — đây là quality bar thực sự.
 | login  | 82/128 | 95/128 | +13 | i18n fixed |
 ```
 
-### 5. Output
+### 6. Output
 
 Lưu vào `documents/04-quality/audits/ui/ui-review-latest.md`. Commit `manifest.md` (không commit PNG).
 
@@ -99,6 +163,8 @@ Lưu vào `documents/04-quality/audits/ui/ui-review-latest.md`. Commit `manifest
 - **Parameterized routes** (`[id]`) — dùng `audit-001` placeholder → có thể 404. Captures error handling UI
 - **`manifest.md` committed, `*.png` gitignored** — commit manifest sau mỗi audit run
 - **Score what you SEE** — external auditor thường thấp hơn 20–35 pts so với self-score
+- **Compaction kills scoring** — nếu context bị compact giữa audit, scores drift vì mất visual memory. Dùng subagents để tránh
+- **KiteClass `waitUntil`** — capture script dùng `domcontentloaded` → CSS có thể chưa load. Nếu ảnh trông unstyled, đây là capture bug, không phải code bug
 
 ---
 

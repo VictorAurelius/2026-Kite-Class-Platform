@@ -44,12 +44,28 @@ scripts/verify-business-docs.sh
 # Grep for config keys in application.yml
 ```
 
+## Context Management
+
+Audit này có thể tốn 30-50K tokens nếu không kiểm soát. Tuân thủ:
+
+1. **Output limiting** — LUÔN pipe grep results qua `| head -N`:
+   - BR-xxx grep: `| head -30` (chỉ cần biết có/không, không cần xem hết)
+   - Config key grep: `| head -20`
+   - Test file count: dùng `wc -l` thay vì list full
+2. **Per-domain staging** — Nếu >5 domains, score 2 domains đầy đủ rồi apply pattern cho còn lại. Chỉ individually score domains có cấu trúc ĐẶC BIỆT.
+3. **Subagent delegation** — Nếu >8 domains hoặc codebase >500 Java files:
+   - Agent 1: KiteClass domains
+   - Agent 2: KiteHub domains
+   - Parent: aggregate scores
+4. **Skip known-good** — Domains không thay đổi từ audit trước → carry forward score, chỉ verify version match
+
 ## Gotchas
 
 - Config keys are in `application.yml` AND `application-test.yml` — check both
 - Some BR-xxx implemented in gateway (rate-limit rules) not core — search all modules
 - Wave 4 added 6 new domains — don't miss `security-foundation/`, `content-moderation/`, etc.
 - Category 5 (Stakeholder) always requires human review — Claude flags, human decides
+- Grep output cho large codebase có thể 1000+ lines — LUÔN giới hạn
 
 ## Skill Contents
 

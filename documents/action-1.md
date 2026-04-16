@@ -447,3 +447,23 @@ không monitor được bằng scripts à? vi phạm rule không?
 tạo PR để fix
 
 sao vẫn còn nhiều file changing, xử lý hết trong PR này
+
+tôi muốn tạo đầy đủ cho production
+
+các skills audit đã có thời điểm cần chạy rõ ràng nhưng không có gì đảm bảo chúng được chạy đúng thời điểm, có thể miss cao
+
+vậy mỗi khi có PR mới hoặc wave mới thì skill tạo log plan có nhắc đến audit không?
+
+check lại xem còn gaps nào không?
+
+clean up screenshots ở local
+
+status của 2 folder này không đảm bảo đúng không? cần ui audit lại đúng không?
+
+chạy luôn chứ?
+
+scoring UI audit bị quá context cần tôi compact nhiều lần mới audit được, nên tối ưu lại skill để tranh compact không? việc compact có ảnh hưởng đến scoring không?
+
+update, các skill audit khác có cần update không?
+
+tạo PR để xử lý tất cả file đang changing
