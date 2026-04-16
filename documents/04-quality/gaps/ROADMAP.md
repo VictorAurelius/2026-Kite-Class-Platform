@@ -503,12 +503,12 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | Gap | Title | Priority | Effort | Dependency |
 |-----|-------|:--------:|:------:|:----------:|
 | GAP-092 | Re-trial prevention (TR-07 not in code) | 🔴 P0 | S | — |
-| GAP-093 | Database backup only logs (not functional) | 🔴 P0 | L | — |
-| GAP-091 | Email idempotency guard (2/13 types) | 🟠 P1 | S | — |
-| GAP-094 | Hard delete not implemented | 🟠 P1 | M | GAP-093 |
-| GAP-095 | Email failure retry mechanism | 🟠 P1 | M | GAP-097 |
-| GAP-096 | Email admin controls + monitoring dashboard | 🔴 P0 | L | GAP-097 |
-| GAP-097 | Email queue via RabbitMQ (replace direct HTTP) | 🔴 P0 | M | — |
+| GAP-093 | Database backup only logs (not functional) | 🟢 DONE | L | — |
+| GAP-091 | Email idempotency guard (2/13 types) | 🟢 DONE | S | — |
+| GAP-094 | Hard delete not implemented | 🟢 DONE | M | GAP-093 |
+| GAP-095 | Email failure retry mechanism | 🟢 DONE | M | GAP-097 |
+| GAP-096 | Email admin controls + monitoring dashboard | 🟢 DONE | L | GAP-097 |
+| GAP-097 | Email queue via RabbitMQ (replace direct HTTP) | 🟢 DONE | M | — |
 
 **Dependencies:**
 - GAP-093 → GAP-094 (backup trước, hard delete sau)

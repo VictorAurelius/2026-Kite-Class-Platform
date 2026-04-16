@@ -26,12 +26,19 @@
 3. Integration test: full lifecycle trial→expire→backup→retain→purge
 4. Wave completion check
 
+## Status
+
+All 3 sub-PRs implemented and cherry-picked into wave branch (2026-04-16):
+- GAP-093: `7627834c` — BackupRecord entity, DatabaseBackupService (pg_dump + S3), BackupStorageService, S3Config, V16 migration
+- GAP-096: `0b7b79dc` — AdminEmailController, EmailAdminService, EmailConfigProperties, 4 DTOs, toggle system
+- GAP-094: `1210fbdc` — InstancePurgeService, PurgeQueueConfig (fanout), PURGED status, V17 migration, scheduler update
+
 ## Acceptance Criteria
 
-- [ ] pg_dump runs and uploads to MinIO/S3
-- [ ] Backup integrity verified (checksum)
-- [ ] Admin can view email history per instance
-- [ ] Admin can toggle email types
-- [ ] Hard purge removes DB + files + messaging resources
-- [ ] PURGED status added to InstanceStatus
-- [ ] All 3 gaps marked DONE
+- [x] pg_dump runs and uploads to MinIO/S3
+- [x] Backup integrity verified (checksum SHA-256)
+- [x] Admin can view email history per instance
+- [x] Admin can toggle email types
+- [x] Hard purge removes DB + files + messaging resources
+- [x] PURGED status added to InstanceStatus
+- [x] All 3 gaps marked DONE
