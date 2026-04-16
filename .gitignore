@@ -58,7 +58,6 @@ infrastructure/terraform-oracle/backend.hcl
 # UI screenshots — PNGs are local only (large binary), but manifest.md IS committed
 # manifest.md = auto-generated index per capture run, useful for audit history
 documents/screenshots/**/*.png
-documents/screenshots/latest/
 
 # Temporary files
 *.tmp

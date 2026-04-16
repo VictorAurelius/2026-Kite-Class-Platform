@@ -67,10 +67,10 @@ echo "============================================"
 echo "  ✅ All captures complete"
 echo ""
 if [[ -n "$LABEL" ]]; then
-  echo "  📁 KiteClass: documents/screenshots/$LABEL/"
+  echo "  📁 KiteClass: documents/screenshots/kiteclass-$LABEL/"
   echo "  📁 KiteHub:   documents/screenshots/kitehub-$LABEL/"
 else
-  echo "  📁 KiteClass: documents/screenshots/latest/"
+  echo "  📁 KiteClass: documents/screenshots/kiteclass-latest/"
   echo "  📁 KiteHub:   documents/screenshots/kitehub-latest/"
 fi
 echo "  📋 Manifests: manifest.md in each folder"
