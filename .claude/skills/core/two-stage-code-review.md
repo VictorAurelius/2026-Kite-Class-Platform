@@ -49,7 +49,7 @@ Reference: `.claude/rules/design-patterns.md`
 - [ ] Pattern choice documented (javadoc)?
 - [ ] No banned anti-patterns (check rules doc §3)
 
-Use skill: `.claude/skills/design-pattern-advisor.md` để guidance.
+Use skill: `.claude/skills/reference/design-pattern-advisor.md` để guidance.
 
 ## KiteClass Gotchas
 

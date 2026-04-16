@@ -123,7 +123,7 @@ Reference: `documents/00-brd/personas-catalog.md`
 
 ## Simulation Methodology
 
-Gaps found via `.claude/skills/simulation-gap-finder.md` — 3-axis matrix:
+Gaps found via `.claude/skills/quality/simulation-gap-finder.md` — 3-axis matrix:
 - **Personas:** Owner, End User, Platform Admin, Developer, Support
 - **Stages:** Discovery, Signup, Config, Provisioning, Daily Use, Edge/Error, Evolution, Termination
 - **Categories:** Functional, UX, Data, Performance, Security, Compliance, Ops, Integration, Commercial, Evolution

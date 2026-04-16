@@ -100,7 +100,7 @@ documents/04-quality/
 - `business-gap-check-2026-03-23-kiteclass.md`
 - `business-gap-check-2026-03-23-kitehub.md`
 
-**Skill:** `.claude/skills/business-gap-check.md` (v1.3 — adds AI Branding + Design Patterns)
+**Skill:** `.claude/skills/quality/business-gap-check.md` (v1.3 — adds AI Branding + Design Patterns)
 
 ### audits/ui/ (UI Reviews)
 
@@ -117,7 +117,7 @@ documents/04-quality/
 - Wave 11 completion + 12 phase A + 13 review
 - KiteClass Wave 10 progress + KiteHub Wave 11 progress
 
-**Skill:** `.claude/skills/wave-completion-check.md`
+**Skill:** `.claude/skills/workflow/wave-completion-check.md`
 
 ### analyses/ (Cross-Cutting Analyses)
 

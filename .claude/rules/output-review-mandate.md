@@ -281,7 +281,7 @@ Cases khi review có thể lighter:
 - Skill: `two-stage-code-review.md`
 - Skill: `ui-review/SKILL.md`
 - Skill: `quality-audit/SKILL.md`
-- Skill: `business-gap-check.md`
+- Skill: `quality/business-gap-check.md`
 - Rules: `skill-conventions.md`, `design-patterns.md`, `ai-branding-guidelines.md`
 
 ---

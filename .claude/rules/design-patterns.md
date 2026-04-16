@@ -3,7 +3,7 @@
 Project-wide rules for applying design patterns. **Mandatory** khi develop new feature, refactor, review PR.
 
 Reference catalog: `documents/02-architecture/ai-branding-design-patterns.md` (AI Branding-specific)
-Skill helper: `.claude/skills/design-pattern-advisor.md`
+Skill helper: `.claude/skills/reference/design-pattern-advisor.md`
 
 ---
 

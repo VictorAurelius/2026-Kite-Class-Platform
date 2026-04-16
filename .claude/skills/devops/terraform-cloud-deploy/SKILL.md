@@ -14,19 +14,19 @@ Skill 2 mode. Đọc request → chọn mode:
 
 | User muốn | Mode | Reference cần đọc |
 |-----------|------|-------------------|
-| Review .tf, tìm lỗi, best practices | **Terraform Review** | `references/terraform-review.md` |
-| Chiến lược deploy lên AWS | **AWS Deploy** | `references/aws-deploy.md` |
-| Chiến lược deploy lên Oracle Cloud | **OCI Deploy** | `references/oracle-cloud-deploy.md` |
+| Review .tf, tìm lỗi, best practices | **Terraform Review** | `reference/terraform-review.md` |
+| Chiến lược deploy lên AWS | **AWS Deploy** | `reference/aws-deploy.md` |
+| Chiến lược deploy lên Oracle Cloud | **OCI Deploy** | `reference/oracle-cloud-deploy.md` |
 | Review + plan deploy | **Full** | Cả 3 files |
 
 ---
 
 ## Mode 1 — Terraform Review
 
-1. Đọc `references/terraform-review.md` → score rubric 5 chiều
+1. Đọc `reference/terraform-review.md` → score rubric 5 chiều
 2. Inventory tất cả resources
 3. Top Issues — 3–5 vấn đề nghiêm trọng nhất với code fix
-4. Output format: xem `references/output-templates.md`
+4. Output format: xem `reference/output-templates.md`
 
 **Input:** file upload `.tf`, paste nội dung, hoặc mô tả cấu trúc.
 
@@ -43,7 +43,7 @@ Thu thập thông tin (nếu thiếu) — tối đa 3 câu gộp 1 lần:
 ```
 
 Output gồm: architecture diagram, module structure, cost estimate, deploy phases, pre-launch checklist.
-Format: xem `references/output-templates.md`.
+Format: xem `reference/output-templates.md`.
 
 ---
 
@@ -61,10 +61,10 @@ Format: xem `references/output-templates.md`.
 
 ## Skill Contents
 
-- `references/terraform-review.md` — Scoring rubric (100 pts), Common Issues, Security Checklist
-- `references/aws-deploy.md` — VPC/EKS/RDS modules, deploy phases, cost estimation, pre-launch checklist
-- `references/oracle-cloud-deploy.md` — VCN, ATP, OKE, IAM policies, OCI vs AWS mapping
-- `references/output-templates.md` — Report templates copy-paste
+- `reference/terraform-review.md` — Scoring rubric (100 pts), Common Issues, Security Checklist
+- `reference/aws-deploy.md` — VPC/EKS/RDS modules, deploy phases, cost estimation, pre-launch checklist
+- `reference/oracle-cloud-deploy.md` — VCN, ATP, OKE, IAM policies, OCI vs AWS mapping
+- `reference/output-templates.md` — Report templates copy-paste
 
 ---
 
