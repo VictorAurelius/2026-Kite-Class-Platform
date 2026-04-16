@@ -23,6 +23,20 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 60000
+          multiplier: 3.0
+          max-interval: 540000
+
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -70,6 +84,8 @@ kitehub:
   email-service:
     url: ${EMAIL_SERVICE_URL:http://kitehub-email:8080}
     enabled: ${EMAIL_SERVICE_ENABLED:true}
+  email:
+    use-queue: ${EMAIL_USE_QUEUE:true}
   domain:
     verification:
       timeout-hours: 48
