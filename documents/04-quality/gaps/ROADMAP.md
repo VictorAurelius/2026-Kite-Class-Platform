@@ -10,7 +10,7 @@
 
 ## 1. Epic Taxonomy
 
-95 gaps được group thành **14 epics**:
+97 gaps được group thành **14 epics**:
 
 | Epic | Theme | Gaps | Priority |
 |------|-------|------|:--------:|
@@ -24,7 +24,7 @@
 | [E8](#epic-8-admin--support) | Admin & Support | 4 | 🟡 INTERNAL |
 | [E9](#epic-9-developer-experience) | Developer Experience | 2 | 🟡 FUTURE |
 | [E10](#epic-10-cross-cutting--architecture) | Cross-cutting & Architecture | 4 | 🟡 CLEANUP |
-| [E11](#epic-11-saas-lifecycle-hardening) | SaaS Lifecycle Hardening | 5 | 🔴 BLOCK GA |
+| [E11](#epic-11-saas-lifecycle-hardening) | SaaS Lifecycle Hardening | 7 | 🔴 BLOCK GA |
 | [E12](#epic-12-process--devops-maturity) | Process & DevOps Maturity | 10 | 🟠 PRODUCTION |
 | [E13](#epic-13-frontend-quality) | Frontend Quality | 5 | 🟠 GROWTH |
 | [E14](#epic-14-quality-governance) | Quality Governance | 3 | 🟡 INTERNAL |
@@ -506,10 +506,14 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-093 | Database backup only logs (not functional) | 🔴 P0 | L | — |
 | GAP-091 | Email idempotency guard (2/13 types) | 🟠 P1 | S | — |
 | GAP-094 | Hard delete not implemented | 🟠 P1 | M | GAP-093 |
-| GAP-095 | Email failure retry mechanism | 🟠 P1 | M | — |
+| GAP-095 | Email failure retry mechanism | 🟠 P1 | M | GAP-097 |
+| GAP-096 | Email admin controls + monitoring dashboard | 🔴 P0 | L | GAP-097 |
+| GAP-097 | Email queue via RabbitMQ (replace direct HTTP) | 🔴 P0 | M | — |
 
-**Dependencies:** GAP-093 → GAP-094 (backup trước, hard delete sau).
-**Critical:** MUST complete before GA. Without GAP-093, data loss possible.
+**Dependencies:**
+- GAP-093 → GAP-094 (backup trước, hard delete sau)
+- GAP-097 → GAP-095, GAP-096 (queue infrastructure trước, retry + admin sau)
+**Critical:** MUST complete before GA. Without GAP-093, data loss. Without GAP-097, emails unreliable.
 
 ---
 
