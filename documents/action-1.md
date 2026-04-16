@@ -467,3 +467,44 @@ scoring UI audit bị quá context cần tôi compact nhiều lần mới audit 
 update, các skill audit khác có cần update không?
 
 tạo PR để xử lý tất cả file đang changing
+
+có cần chạy lại ui audit theo skills mới để ra đúng score không?
+
+merge, tạo PR để fix, sau đó re-audit đúng kế hoạch
+
+cấu hình lại các port không chạy trên các cổng thường được sử dụng, chuyển sang các cổng 99% sẽ không bị chiếm
+
+thư mục documents\screenshots chỉ cần có 2 sub folder kitehub-latest và kiteclass-latest
+
+sau lần update skills audit này, tôi lo lắng về chất lượng các skills còn lại, hãy check:
+1. liệu có còn thiếu sót, outdated cần update không
+2. đã được phân loại để dễ tham chiếu chưa, vẫn còn nhiều skills ở root
+3. còn nhiều gaps của dự án mà skills chưa cover không, ví dụ có skills về tạo scripts sao cho có monitor, cover đủ lỗi, ngoại lệ, ...
+4. skills có conflict không
+
+không cần re-capture lần cuối đổi tên đúng folder là được
+
+fix toàn bộ sau đó quay lại ui audit để đưa ra kết quả cuối
+
+tại sao mấy branch gần nhất lại không merge squash
+
+đưa bug thành gap + memory để fix cùng các gap khác cho đồng bộ
+
+nên có rules, các issue của audit phải đưa thành gaps và memory hợp lý để tránh duplicate và fix 1 với thứ tự hợp lý đúng không?
+
+mô phỏng xem còn gaps gì ở skills và quy trình không?
+
+Hãy check lại có báo cáo và solution hiện tại của mấy vấn đề này, thực hiện đánh giá xem có gaps cần update không? cần thiết kế thêm batch để cover không? từ những gaps xem nghiệp vụ có gaps không?
+
+Mục tiêu cao nhất là vững nghiệp vụ (business-logic) cho nền tảng SAAS này
+
+3. nghiệp vụ của kitehub đã thật sự ổn chưa, vẫn còn nhiều gaps dù điểm đã cáo, ví dụ dễ thấy:
+3.1. thiết kế các thời điểm cần gửi email cho người dùng đã có chưa: khi user đăng ký mở instance, khi user sử dụng gần hết trial cần cảnh báo, khi user nâng lên gói payment thành công, khi user gần hết hạn gói payment và nhiều trường hợp khác.
+Việc gửi mail này cần thực hiện bằng công nghệ gì? batch? đã có template gửi mail chưa?
+3.2. Quy trình để chuyển giao data từ trial lên payment đã rõ ràng chưa? có down time hay không?
+3.3. mỗi tài khoản chỉ được trial 1 lần duy nhất, không thể nhiều lần trial, khi gần hết trial, cần gửi mail cảnh báo trước 1, 2 ngày
+vậy khi hết trial cần có cơ chế backup data lại để chuyển giao, và cảnh báo khách hàng bằng email là chỉ lưu trữ trong bao nhiêu ngày? hết thời gian thì sẽ clean up, và clean up như thế nào?
+3.4. các con số như số ngày được trial, số ngày được backup data sẽ được hiển thị lên frontend và trong email, vậy chúng không nên cố định, cần có cơ chế lưu, và thay đổi dễ dàng
+
+Vậy cần chốt lại best practice để đảm bảo nghiệp vụ của kitehub chuẩn SAAS
+
