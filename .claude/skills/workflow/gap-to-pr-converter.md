@@ -1,5 +1,7 @@
 ---
-description: "Dùng khi user nói 'convert gap X thành PR', 'start PR cho gap Y', 'gap này thành wave', 'từ gap tạo PR'. Input: gap ID (GAP-XXX). Output: branch name + PR template + task breakdown + dependency check."
+name: gap-to-pr
+description: "Dùng khi user nói 'convert gap X thành PR', 'start PR cho gap Y', 'gap này thành wave', 'từ gap tạo PR', 'fix gaps'. Input: gap ID (GAP-XXX). Output: branch name + PR template + task breakdown + dependency check."
+user-invocable: true
 ---
 
 # Skill: Gap → PR/Wave Converter
@@ -167,7 +169,7 @@ Add log entry:
 - {date} — Converted to PR/wave. Branch: feat/kite-{name}. Sprint: {N}.
 ```
 
-### Step 6: Wave Mode — Grouping
+### Step 6: Wave Mode — Grouping + Parallel Agent Execution
 
 Nếu convert nhiều gaps thành wave:
 
@@ -198,6 +200,40 @@ Wave plan template:
 ## Acceptance
 {union of all gaps' AC}
 ```
+
+### Step 7: Parallel Agent Execution (Wave mode)
+
+Khi wave có nhiều independent gaps → dùng subagents parallel:
+
+```
+Parent agent:
+1. Tạo wave branch
+2. Validate dependencies
+3. Spawn subagents (isolation: worktree) cho independent gaps
+4. Sequential merge cho dependent gaps
+5. Integration test
+6. Wave completion check
+
+Per-gap agent (worktree isolated):
+1. Read gap file → understand scope
+2. TDD: write tests first
+3. Implement fix
+4. Self-review
+5. Return: files changed + test results
+```
+
+**Rules cho parallel execution:**
+- Gaps với dependency → sequential (agent A xong → agent B bắt đầu)
+- Gaps independent → parallel (worktree isolation)
+- Max 3 agents parallel (tránh resource contention)
+- Mỗi agent commit riêng → parent cherry-pick vào wave branch
+
+### Step 8: Post-Fix — Update Gap + ROADMAP (per audit-to-gap-pipeline rule)
+
+**BẮT BUỘC** sau khi fix:
+1. Update gap file: status `🟢 DONE`, thêm PR number
+2. Update ROADMAP.md: mark gap completed trong epic table
+3. Run relevant audits (auto-detect từ changed files)
 
 ---
 
