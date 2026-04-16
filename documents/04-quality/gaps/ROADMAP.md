@@ -1,6 +1,6 @@
 # Gaps Roadmap — Epic-Based Organization
 
-**Mục tiêu:** Biến 47 gaps thành actionable roadmap với epics + dependencies + sprints.
+**Mục tiêu:** Biến 95 gaps thành actionable roadmap với epics + dependencies + sprints.
 
 > **Khi nào đọc file này thay vì README.md?**
 > - README: flat index, tra cứu 1 gap
@@ -10,7 +10,7 @@
 
 ## 1. Epic Taxonomy
 
-47 gaps được group thành **10 epics**:
+95 gaps được group thành **14 epics**:
 
 | Epic | Theme | Gaps | Priority |
 |------|-------|------|:--------:|
@@ -24,6 +24,10 @@
 | [E8](#epic-8-admin--support) | Admin & Support | 4 | 🟡 INTERNAL |
 | [E9](#epic-9-developer-experience) | Developer Experience | 2 | 🟡 FUTURE |
 | [E10](#epic-10-cross-cutting--architecture) | Cross-cutting & Architecture | 4 | 🟡 CLEANUP |
+| [E11](#epic-11-saas-lifecycle-hardening) | SaaS Lifecycle Hardening | 5 | 🔴 BLOCK GA |
+| [E12](#epic-12-process--devops-maturity) | Process & DevOps Maturity | 10 | 🟠 PRODUCTION |
+| [E13](#epic-13-frontend-quality) | Frontend Quality | 5 | 🟠 GROWTH |
+| [E14](#epic-14-quality-governance) | Quality Governance | 3 | 🟡 INTERNAL |
 
 ---
 
@@ -490,4 +494,90 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 ---
 
-**Last Updated:** 2026-04-14 (Wave 4 completion via parallel-agent strategy)
+## NEW EPICS (added 2026-04-16)
+
+### Epic 11: SaaS Lifecycle Hardening
+**Goal:** Business logic cho subscription/trial/retention THẬT SỰ hoạt động đúng.
+**Why:** Deep audit phát hiện rules có nhưng code thiếu enforcement.
+
+| Gap | Title | Priority | Effort | Dependency |
+|-----|-------|:--------:|:------:|:----------:|
+| GAP-092 | Re-trial prevention (TR-07 not in code) | 🔴 P0 | S | — |
+| GAP-093 | Database backup only logs (not functional) | 🔴 P0 | L | — |
+| GAP-091 | Email idempotency guard (2/13 types) | 🟠 P1 | S | — |
+| GAP-094 | Hard delete not implemented | 🟠 P1 | M | GAP-093 |
+| GAP-095 | Email failure retry mechanism | 🟠 P1 | M | — |
+
+**Dependencies:** GAP-093 → GAP-094 (backup trước, hard delete sau).
+**Critical:** MUST complete before GA. Without GAP-093, data loss possible.
+
+---
+
+### Epic 12: Process & DevOps Maturity
+**Goal:** Process gaps cho production readiness — scripts, migrations, CI, deploy, incidents.
+
+| Gap | Title | Priority | Effort | When |
+|-----|-------|:--------:|:------:|:----:|
+| GAP-081 | Script review checklist | 🔴 P0 | S | Now |
+| GAP-082 | Migration review checklist | 🔴 P0 | S | Now |
+| GAP-086 | Incident response runbook | 🔴 P0 | M | Before prod |
+| GAP-087 | Deploy go/no-go checklist | 🔴 P0 | M | Before prod |
+| GAP-088 | Rollback procedure per service | 🔴 P0 | L | Before prod |
+| GAP-083 | Gap triage process | 🟠 P1 | S | Now |
+| GAP-084 | CI failure triage | 🟠 P1 | M | Now |
+| GAP-085 | Cross-app consistency check | 🟠 P1 | M | Now |
+| GAP-089 | Post-deploy smoke test | 🟠 P1 | M | Before prod |
+| GAP-090 | API contract tests | 🟠 P1 | L | Before prod |
+
+**Dependencies:** None — can start immediately.
+**Split:** 081-085 (fix now), 086-090 (before production).
+
+---
+
+### Epic 13: Frontend Quality
+**Goal:** Fix UI issues từ UI audit.
+
+| Gap | Title | Priority | Effort |
+|-----|-------|:--------:|:------:|
+| GAP-076 | KiteHub capture mock auth | 🔴 P0 | M |
+| GAP-077 | KiteClass dev error overlay | 🟠 P1 | S |
+| GAP-078 | KiteHub dark mode not switching | 🟠 P1 | M |
+| GAP-079 | KiteClass i18n gaps | 🟠 P1 | M |
+| GAP-080 | KiteHub dashboard loading/error UX | 🟡 P2 | M |
+
+**Dependencies:** GAP-076 → re-capture → re-audit (unblocks accurate scoring).
+
+---
+
+### Epic 14: Quality Governance
+**Goal:** Meta-process — review standards cho outputs mà chưa có review process.
+
+| Gap | Title | Priority | Effort |
+|-----|-------|:--------:|:------:|
+| GAP-048 | Output review standards coverage | 🟠 P1 | M |
+| GAP-049 | Business logic correctness (stakeholder review) | 🟠 P1 | M |
+| GAP-050 | Persona-based business review process | 🟡 P2 | S |
+
+**Dependencies:** None. Can parallelize.
+
+---
+
+## Updated Priority Tiers (95 gaps)
+
+| Tier | Description | Count |
+|------|-------------|-------|
+| 🟥 **Block GA** | Security, core pipeline, lifecycle, SaaS hardening | 24 gaps |
+| 🟨 **Block GROWTH** | UX, conversion, ops, FE quality | 28 gaps |
+| 🟦 **Block SCALE** | Multi-brand, marketplace, advanced | 12 gaps |
+| ⬜ **Process/Internal** | Skills, governance, DevOps maturity | 16 gaps |
+| ✅ **CLOSED** | Completed in Waves 2-4 | 15 gaps |
+
+### 🟥 Block GA (24) — including new
+
+Original: GAP-005, 007 ✅, 008 ✅, 009 ✅, 010 ✅, 011, 012 ✅, 013 ✅, 014, 015 ✅, 016, 018 ✅, 031 ✅, 041 ✅, 042 ✅, 046, 047
+
+New: **GAP-092** (re-trial), **GAP-093** (backup), **GAP-081** (script review), **GAP-082** (migration review), **GAP-086** (incident), **GAP-087** (deploy gate), **GAP-088** (rollback)
+
+---
+
+**Last Updated:** 2026-04-16 (added Epics 11-14, 48 new gaps from UI/process/SaaS audits)

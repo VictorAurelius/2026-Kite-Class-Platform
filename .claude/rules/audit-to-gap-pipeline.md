@@ -80,7 +80,18 @@ Sau khi tạo gaps, save memories cho:
 - Fix steps (sẽ có trong PR)
 - Scores (đã có trong audit report)
 
-### Step 5: Fix Priority & Ordering
+### Step 5: Update ROADMAP (BẮT BUỘC)
+
+Sau khi tạo gap files, PHẢI update `documents/04-quality/gaps/ROADMAP.md`:
+
+1. **Assign epic** — gap thuộc epic nào? Tạo epic mới nếu cần.
+2. **Assign sprint** — gap nên fix trong sprint nào? Dựa trên priority + dependencies.
+3. **Update counts** — tổng số gaps trong epic heading.
+4. **Update dependency graph** — nếu gap mới block hoặc bị block bởi gap khác.
+
+**KHÔNG được tạo gap mà không update ROADMAP.** Gap không có trong ROADMAP = gap bị quên.
+
+### Step 6: Fix Priority & Ordering
 
 Fix gaps theo thứ tự:
 
