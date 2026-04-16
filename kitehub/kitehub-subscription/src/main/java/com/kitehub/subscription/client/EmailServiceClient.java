@@ -449,6 +449,10 @@ public class EmailServiceClient {
      */
     public void sendWelcomeEmail(UUID instanceId, String to, String organizationName,
                                  int trialDays, String expiryDate) {
+        if (alreadySentToday(instanceId, "welcome", to)) {
+            log.debug("Welcome email already sent today to {}, skipping", to);
+            return;
+        }
         log.info("Sending welcome email to {}", to);
 
         try {
@@ -482,6 +486,10 @@ public class EmailServiceClient {
      */
     public void sendSubscriptionCreatedEmail(UUID instanceId, String to, String organizationName,
                                              String tier, String billingCycle) {
+        if (alreadySentToday(instanceId, "subscription-created", to)) {
+            log.debug("Subscription-created email already sent today to {}, skipping", to);
+            return;
+        }
         log.info("Sending subscription created email to {}", to);
 
         try {

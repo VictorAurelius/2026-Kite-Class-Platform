@@ -98,6 +98,15 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
     boolean existsByOwnerIdAndTrialStartedAtIsNotNull(UUID ownerId);
 
     /**
+     * Check if contact email has ever started a trial (regardless of deletion status).
+     * Used by registerInstance() which doesn't have ownerId yet.
+     *
+     * @param contactEmail email to check
+     * @return true if email has any instance with trial started
+     */
+    boolean existsByContactEmailAndTrialStartedAtIsNotNull(String contactEmail);
+
+    /**
      * Find suspended instances that were updated before a given timestamp.
      * Useful for finding instances that have been suspended longer than the retention period.
      *
