@@ -1,8 +1,11 @@
 package com.kitehub.subscription.client;
 
 import com.kitehub.platform.domain.entity.EmailSentLog;
+import com.kitehub.subscription.config.EmailQueueConfig;
+import com.kitehub.subscription.dto.EmailEvent;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -15,8 +18,13 @@ import java.util.UUID;
 
 /**
  * Client for KiteHub Email Service.
- * Sends emails via internal email service API.
- * Includes idempotency check to prevent duplicate emails per day.
+ * <p>
+ * Supports two modes controlled by kitehub.email.use-queue:
+ * - Queue mode (default, true): publishes EmailEvent to RabbitMQ for async delivery with retry
+ * - Direct mode (false): sends via synchronous HTTP POST (for dev/testing without RabbitMQ)
+ * <p>
+ * Includes idempotency check (alreadySentToday) to prevent duplicate emails per day.
+ * The dedup check runs BEFORE publishing/sending regardless of mode.
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -27,14 +35,20 @@ public class EmailServiceClient {
 
     private final RestTemplate restTemplate;
     private final EmailSentLogRepository emailSentLogRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${email.service.url:http://localhost:8083}")
     private String emailServiceUrl;
 
+    @Value("${kitehub.email.use-queue:true}")
+    private boolean useQueue;
+
     public EmailServiceClient(RestTemplate restTemplate,
-                              EmailSentLogRepository emailSentLogRepository) {
+                              EmailSentLogRepository emailSentLogRepository,
+                              RabbitTemplate rabbitTemplate) {
         this.restTemplate = restTemplate;
         this.emailSentLogRepository = emailSentLogRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     /**
@@ -78,8 +92,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "trial-warning", to);
+            dispatchEmail(instanceId, "trial-warning", request);
         } catch (Exception e) {
             log.error("Failed to send trial expiration warning email to {}", to, e);
         }
@@ -121,8 +134,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "trial-expired", to);
+            dispatchEmail(instanceId, "trial-expired", request);
         } catch (Exception e) {
             log.error("Failed to send trial expired email to {}", to, e);
         }
@@ -176,8 +188,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "renewal-reminder", to);
+            dispatchEmail(instanceId, "renewal-reminder", request);
         } catch (Exception e) {
             log.error("Failed to send renewal reminder email to {}", to, e);
         }
@@ -219,8 +230,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "suspension-notification", to);
+            dispatchEmail(instanceId, "suspension-notification", request);
         } catch (Exception e) {
             log.error("Failed to send suspension notification email to {}", to, e);
         }
@@ -256,8 +266,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "retention-warning", to);
+            dispatchEmail(instanceId, "retention-warning", request);
         } catch (Exception e) {
             log.error("Failed to send retention warning email to {}", to, e);
         }
@@ -292,8 +301,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "trial-midpoint", to);
+            dispatchEmail(instanceId, "trial-midpoint", request);
         } catch (Exception e) {
             log.error("Failed to send trial midpoint email to {}", to, e);
         }
@@ -327,8 +335,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "onboarding-tips", to);
+            dispatchEmail(instanceId, "onboarding-tips", request);
         } catch (Exception e) {
             log.error("Failed to send onboarding tips email to {}", to, e);
         }
@@ -362,8 +369,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "subscription-expired", to);
+            dispatchEmail(instanceId, "subscription-expired", request);
         } catch (Exception e) {
             log.error("Failed to send subscription expired email to {}", to, e);
         }
@@ -397,8 +403,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "retention-final-warning", to);
+            dispatchEmail(instanceId, "retention-final-warning", request);
         } catch (Exception e) {
             log.error("Failed to send data retention final warning email to {}", to, e);
         }
@@ -431,8 +436,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "data-deleted", to);
+            dispatchEmail(instanceId, "data-deleted", request);
         } catch (Exception e) {
             log.error("Failed to send data deleted notification email to {}", to, e);
         }
@@ -468,8 +472,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "welcome", to);
+            dispatchEmail(instanceId, "welcome", request);
         } catch (Exception e) {
             log.error("Failed to send welcome email to {}", to, e);
         }
@@ -505,8 +508,7 @@ public class EmailServiceClient {
                 ))
                 .build();
 
-            sendEmailRequest(request);
-            recordEmailSent(instanceId, "subscription-created", to);
+            dispatchEmail(instanceId, "subscription-created", request);
         } catch (Exception e) {
             log.error("Failed to send subscription created email to {}", to, e);
         }
@@ -528,27 +530,53 @@ public class EmailServiceClient {
     }
 
     /**
-     * Record that an email was sent.
+     * Dispatch email via queue or direct HTTP based on configuration.
+     * Records email intent in sent log after dispatching.
      *
      * @param instanceId Instance ID (nullable)
-     * @param emailType Email type
-     * @param recipient Recipient email
+     * @param emailType Email type for tracking
+     * @param request Email request details
      */
-    private void recordEmailSent(UUID instanceId, String emailType, String recipient) {
-        emailSentLogRepository.save(EmailSentLog.builder()
-            .instanceId(instanceId)
-            .emailType(emailType)
-            .recipient(recipient)
-            .sentAt(LocalDateTime.now())
-            .build());
+    private void dispatchEmail(UUID instanceId, String emailType, EmailRequest request) {
+        if (useQueue) {
+            publishToQueue(instanceId, emailType, request);
+        } else {
+            sendEmailRequestDirect(request);
+        }
+        recordEmailSent(instanceId, emailType, request.getTo());
     }
 
     /**
-     * Send email request to email service.
+     * Publish email event to RabbitMQ queue for async processing.
+     *
+     * @param instanceId Instance ID
+     * @param emailType Email type
+     * @param request Email request
+     */
+    private void publishToQueue(UUID instanceId, String emailType, EmailRequest request) {
+        EmailEvent event = EmailEvent.builder()
+                .instanceId(instanceId)
+                .to(request.getTo())
+                .subject(request.getSubject())
+                .templateName(request.getTemplateName())
+                .variables(request.getVariables())
+                .emailType(emailType)
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                EmailQueueConfig.EMAIL_EXCHANGE,
+                EmailQueueConfig.EMAIL_ROUTING_KEY,
+                event
+        );
+        log.debug("Email event published to queue: type={}, to={}", emailType, request.getTo());
+    }
+
+    /**
+     * Send email request directly via HTTP (fallback for dev/testing without RabbitMQ).
      *
      * @param request Email request
      */
-    private void sendEmailRequest(EmailRequest request) {
+    private void sendEmailRequestDirect(EmailRequest request) {
         String url = emailServiceUrl + "/api/platform/emails/send";
 
         try {
@@ -567,6 +595,22 @@ public class EmailServiceClient {
             log.error("Failed to call email service at {}: {}", url, e.getMessage());
             throw e;
         }
+    }
+
+    /**
+     * Record that an email was sent (or queued).
+     *
+     * @param instanceId Instance ID (nullable)
+     * @param emailType Email type
+     * @param recipient Recipient email
+     */
+    private void recordEmailSent(UUID instanceId, String emailType, String recipient) {
+        emailSentLogRepository.save(EmailSentLog.builder()
+            .instanceId(instanceId)
+            .emailType(emailType)
+            .recipient(recipient)
+            .sentAt(LocalDateTime.now())
+            .build());
     }
 
     /**

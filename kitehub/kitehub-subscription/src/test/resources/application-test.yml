@@ -19,6 +19,16 @@ spring:
   flyway:
     enabled: false
 
+  # Disable RabbitMQ auto-configuration in tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+# Disable email queue in integration tests (no RabbitMQ available)
+kitehub:
+  email:
+    use-queue: false
+
 # JWT configuration for tests
 jwt:
   secret: "test-jwt-secret-key-for-integration-tests-must-be-at-least-32-chars-long"

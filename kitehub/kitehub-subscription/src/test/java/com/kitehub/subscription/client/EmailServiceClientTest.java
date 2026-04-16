@@ -1,5 +1,7 @@
 package com.kitehub.subscription.client;
 
+import com.kitehub.subscription.config.EmailQueueConfig;
+import com.kitehub.subscription.dto.EmailEvent;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,8 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.kitehub.platform.domain.entity.EmailSentLog;
@@ -27,7 +31,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for EmailServiceClient idempotency.
+ * Unit tests for EmailServiceClient.
+ * Tests both queue mode and direct HTTP mode, plus idempotency.
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -42,14 +47,135 @@ class EmailServiceClientTest {
     @Mock
     private EmailSentLogRepository emailSentLogRepository;
 
+    @Mock
+    private RabbitTemplate rabbitTemplate;
+
     private EmailServiceClient emailServiceClient;
 
     private UUID instanceId;
 
     @BeforeEach
     void setUp() {
-        emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository);
+        emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository, rabbitTemplate);
         instanceId = UUID.randomUUID();
+    }
+
+    @Nested
+    @DisplayName("Queue Mode (default)")
+    class QueueMode {
+
+        @BeforeEach
+        void setUpQueueMode() {
+            ReflectionTestUtils.setField(emailServiceClient, "useQueue", true);
+        }
+
+        @Test
+        @DisplayName("Should publish to RabbitMQ queue instead of HTTP")
+        void shouldPublishToQueueInsteadOfHttp() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("trial-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendTrialExpirationWarning(
+                instanceId, "test@example.com", "Test Org", 3);
+
+            // Should publish to RabbitMQ
+            ArgumentCaptor<EmailEvent> eventCaptor = ArgumentCaptor.forClass(EmailEvent.class);
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                eventCaptor.capture());
+
+            EmailEvent event = eventCaptor.getValue();
+            assertThat(event.getInstanceId()).isEqualTo(instanceId);
+            assertThat(event.getTo()).isEqualTo("test@example.com");
+            assertThat(event.getEmailType()).isEqualTo("trial-warning");
+            assertThat(event.getTemplateName()).isEqualTo("trial-expiration-warning");
+            assertThat(event.getSubject()).contains("trial expires in 3 days");
+            assertThat(event.getVariables()).containsEntry("organizationName", "Test Org");
+
+            // Should NOT call HTTP
+            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+
+            // Should still record in sent log
+            verify(emailSentLogRepository).save(any(EmailSentLog.class));
+        }
+
+        @Test
+        @DisplayName("Should publish welcome email to queue")
+        void shouldPublishWelcomeEmailToQueue() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("welcome"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendWelcomeEmail(
+                instanceId, "test@example.com", "Test Org", 14, "2026-04-30");
+
+            ArgumentCaptor<EmailEvent> eventCaptor = ArgumentCaptor.forClass(EmailEvent.class);
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                eventCaptor.capture());
+
+            EmailEvent event = eventCaptor.getValue();
+            assertThat(event.getEmailType()).isEqualTo("welcome");
+            assertThat(event.getTemplateName()).isEqualTo("welcome");
+        }
+
+        @Test
+        @DisplayName("Should publish subscription created email to queue")
+        void shouldPublishSubscriptionCreatedEmailToQueue() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("subscription-created"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendSubscriptionCreatedEmail(
+                instanceId, "test@example.com", "Test Org", "PREMIUM", "MONTHLY");
+
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                any(EmailEvent.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Direct HTTP Mode (use-queue=false)")
+    class DirectMode {
+
+        @BeforeEach
+        void setUpDirectMode() {
+            ReflectionTestUtils.setField(emailServiceClient, "useQueue", false);
+        }
+
+        @Test
+        @DisplayName("Should send via HTTP when queue disabled")
+        void shouldSendViaHttpWhenQueueDisabled() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("trial-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
+            mockResponse.setSuccess(true);
+            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
+                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+
+            emailServiceClient.sendTrialExpirationWarning(
+                instanceId, "test@example.com", "Test Org", 3);
+
+            // Should call HTTP
+            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+
+            // Should NOT publish to RabbitMQ
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+
+            // Should still record in sent log
+            verify(emailSentLogRepository).save(any(EmailSentLog.class));
+        }
     }
 
     @Nested
@@ -67,40 +193,11 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialExpirationWarning(
                 instanceId, "test@example.com", "Test Org", 3);
 
-            // Should not call RestTemplate
+            // Should not call RestTemplate or RabbitTemplate
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
             // Should not save new log
             verify(emailSentLogRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Should send and log when email not yet sent today")
-        void shouldSendAndLogWhenNotYetSentToday() {
-            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
-                eq(instanceId), eq("trial-warning"), eq("test@example.com"),
-                any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(false);
-
-            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
-            mockResponse.setSuccess(true);
-            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
-            emailServiceClient.sendTrialExpirationWarning(
-                instanceId, "test@example.com", "Test Org", 3);
-
-            // Should call RestTemplate
-            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
-
-            // Should save log
-            ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
-            verify(emailSentLogRepository).save(captor.capture());
-
-            EmailSentLog saved = captor.getValue();
-            assertThat(saved.getInstanceId()).isEqualTo(instanceId);
-            assertThat(saved.getEmailType()).isEqualTo("trial-warning");
-            assertThat(saved.getRecipient()).isEqualTo("test@example.com");
-            assertThat(saved.getSentAt()).isNotNull();
         }
 
         @Test
@@ -115,6 +212,7 @@ class EmailServiceClientTest {
                 instanceId, "admin@org.com", "My Org", 5);
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
@@ -129,6 +227,7 @@ class EmailServiceClientTest {
                 instanceId, "admin@org.com", "My Org");
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
@@ -142,6 +241,7 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialExpired(instanceId, "test@example.com", "Test Org");
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
@@ -156,6 +256,7 @@ class EmailServiceClientTest {
                 instanceId, "test@example.com", "Test Org");
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
@@ -170,6 +271,7 @@ class EmailServiceClientTest {
                 instanceId, "test@example.com", "Test Org", 7, "BASIC", 500000);
 
             verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
     }
 
@@ -210,6 +312,11 @@ class EmailServiceClientTest {
     @DisplayName("Backward Compatibility")
     class BackwardCompatibility {
 
+        @BeforeEach
+        void setUpQueueMode() {
+            ReflectionTestUtils.setField(emailServiceClient, "useQueue", true);
+        }
+
         @Test
         @DisplayName("Should support sending without instanceId (null)")
         void shouldSupportSendingWithoutInstanceId() {
@@ -218,22 +325,29 @@ class EmailServiceClientTest {
                 any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(false);
 
-            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
-            mockResponse.setSuccess(true);
-            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
             // Use the overload without instanceId
             emailServiceClient.sendTrialExpirationWarning(
                 "test@example.com", "Test Org", 3);
 
-            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+            // Should publish to queue (default mode)
+            ArgumentCaptor<EmailEvent> eventCaptor = ArgumentCaptor.forClass(EmailEvent.class);
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                eventCaptor.capture());
+
+            assertThat(eventCaptor.getValue().getInstanceId()).isNull();
         }
     }
 
     @Nested
     @DisplayName("New Email Methods - SAAS-7")
     class NewEmailMethods {
+
+        @BeforeEach
+        void setUpQueueMode() {
+            ReflectionTestUtils.setField(emailServiceClient, "useQueue", true);
+        }
 
         @Test
         @DisplayName("Should check idempotency for trial midpoint email")
@@ -246,26 +360,24 @@ class EmailServiceClientTest {
             emailServiceClient.sendTrialMidpointEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
-        @DisplayName("Should send trial midpoint email when not sent today")
-        void shouldSendTrialMidpointEmailWhenNotSentToday() {
+        @DisplayName("Should publish trial midpoint email to queue when not sent today")
+        void shouldPublishTrialMidpointEmailWhenNotSentToday() {
             when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
                 eq(instanceId), eq("trial-midpoint"), eq("test@example.com"),
                 any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(false);
 
-            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
-            mockResponse.setSuccess(true);
-            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
             emailServiceClient.sendTrialMidpointEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                any(EmailEvent.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -283,26 +395,24 @@ class EmailServiceClientTest {
             emailServiceClient.sendOnboardingTipsEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
-        @DisplayName("Should send onboarding tips email when not sent today")
-        void shouldSendOnboardingTipsEmailWhenNotSentToday() {
+        @DisplayName("Should publish onboarding tips email to queue when not sent today")
+        void shouldPublishOnboardingTipsEmailWhenNotSentToday() {
             when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
                 eq(instanceId), eq("onboarding-tips"), eq("test@example.com"),
                 any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(false);
 
-            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
-            mockResponse.setSuccess(true);
-            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
             emailServiceClient.sendOnboardingTipsEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                any(EmailEvent.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -320,26 +430,24 @@ class EmailServiceClientTest {
             emailServiceClient.sendSubscriptionExpiredEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
-        @DisplayName("Should send subscription expired email when not sent today")
-        void shouldSendSubscriptionExpiredEmailWhenNotSentToday() {
+        @DisplayName("Should publish subscription expired email to queue when not sent today")
+        void shouldPublishSubscriptionExpiredEmailWhenNotSentToday() {
             when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
                 eq(instanceId), eq("subscription-expired"), eq("test@example.com"),
                 any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(false);
 
-            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
-            mockResponse.setSuccess(true);
-            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
             emailServiceClient.sendSubscriptionExpiredEmail(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                any(EmailEvent.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
@@ -357,26 +465,24 @@ class EmailServiceClientTest {
             emailServiceClient.sendDataRetentionFinalWarning(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate, never()).postForEntity(anyString(), any(), any());
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
 
         @Test
-        @DisplayName("Should send data retention final warning email when not sent today")
-        void shouldSendDataRetentionFinalWarningWhenNotSentToday() {
+        @DisplayName("Should publish data retention final warning to queue when not sent today")
+        void shouldPublishDataRetentionFinalWarningWhenNotSentToday() {
             when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
                 eq(instanceId), eq("retention-final-warning"), eq("test@example.com"),
                 any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(false);
 
-            EmailServiceClient.EmailResponse mockResponse = new EmailServiceClient.EmailResponse();
-            mockResponse.setSuccess(true);
-            when(restTemplate.postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
             emailServiceClient.sendDataRetentionFinalWarning(
                 instanceId, "test@example.com", "test");
 
-            verify(restTemplate).postForEntity(anyString(), any(), eq(EmailServiceClient.EmailResponse.class));
+            verify(rabbitTemplate).convertAndSend(
+                eq(EmailQueueConfig.EMAIL_EXCHANGE),
+                eq(EmailQueueConfig.EMAIL_ROUTING_KEY),
+                any(EmailEvent.class));
 
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
