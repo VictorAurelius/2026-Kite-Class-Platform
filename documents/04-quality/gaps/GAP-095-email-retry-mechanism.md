@@ -1,6 +1,7 @@
 # GAP-095: Email Failure Retry Mechanism Missing
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (covered by GAP-097 — RabbitMQ retry 3x + DLQ)
+**PR:** #312
 **Priority:** 🟠 P1
 **Domain:** KiteHub / Email / Reliability
 **Found:** 2026-04-16 (SaaS business logic audit)

@@ -1,6 +1,7 @@
 # GAP-097: Email Queue via RabbitMQ (Replace Direct HTTP)
 
-**Status:** 🟠 IN_PROGRESS
+**Status:** 🟢 DONE
+**PR:** #312
 **Priority:** 🔴 P0 (trước production)
 **Domain:** KiteHub / Email / Architecture
 **Found:** 2026-04-16 (SaaS business logic deep audit)
