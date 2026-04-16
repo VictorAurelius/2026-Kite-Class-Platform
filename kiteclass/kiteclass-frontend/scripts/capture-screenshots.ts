@@ -230,6 +230,14 @@ async function setTheme(page: Page, isDark: boolean): Promise<void> {
   await page.addInitScript(([themeKey, themeVal, kiteclassKey, kiteclassVal]: string[]) => {
     localStorage.setItem(themeKey, themeVal);
     localStorage.setItem(kiteclassKey, kiteclassVal);
+    // Apply dark class immediately to prevent FOUC — next-themes reads this on hydration
+    if (themeVal === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
   }, [THEME_KEY, val, KITECLASS_THEME_KEY, val]);
 }
 
@@ -325,8 +333,8 @@ async function capturePage(
   fs.mkdirSync(pageDir, { recursive: true });
 
   try {
-    const waitUntil = isProd ? 'networkidle' : 'domcontentloaded';
-    const timeout = isProd ? 30000 : 15000;
+    const waitUntil = 'networkidle' as const;
+    const timeout = isProd ? 30000 : 20000;
 
     // Single navigation — addInitScript already set auth + theme before page load
     await page.goto(url, { waitUntil, timeout });
