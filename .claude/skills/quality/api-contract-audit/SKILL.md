@@ -48,6 +48,21 @@ Save to `documents/04-quality/audits/api/api-contract-audit-[date].md`
 
 Format: 2-column table per domain — Code endpoints | Doc endpoints — highlight mismatches.
 
+## Context Management
+
+Token budget ~30-45K. KiteHub 6 microservices có thể tạo output rất lớn. Kiểm soát:
+
+1. **Grep output limiting** — LUÔN `| head -30` per service. Tổng controller grep cho 6 services nếu không limit = 200+ lines.
+2. **Per-service delegation** — Nếu >4 microservices:
+   - Agent 1: KiteClass core (1 service)
+   - Agent 2: KiteHub services (6 services)
+   - Mỗi agent: extract endpoints → compare với api-contract.md → trả mismatch list
+3. **Diff-based audit** — Sau baseline, chỉ check endpoints trong files changed since last audit:
+   ```bash
+   git diff main --name-only | grep -E 'Controller\.java|api-contract\.md'
+   ```
+4. **Mismatch-first output** — KHÔNG list tất cả endpoints khớp. Chỉ output mismatches + summary count.
+
 ## Gotchas
 
 - Gateway routes (`/api/v1/**`) proxy to core — check gateway config for actual public paths
@@ -55,6 +70,7 @@ Format: 2-column table per domain — Code endpoints | Doc endpoints — highlig
 - Public endpoints (no auth): `/public/**` — documented differently from authenticated ones
 - Websocket/SSE endpoints may not follow REST pattern — document separately
 - Wave 4 added `PublicDmcaController` — verify it's in legal-ip-protection api-contract.md
+- Controller grep output cho 6 services rất lớn — LUÔN limit per service
 
 ## Skill Contents
 

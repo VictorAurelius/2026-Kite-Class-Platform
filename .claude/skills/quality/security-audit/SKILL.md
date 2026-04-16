@@ -40,6 +40,15 @@ Scoring details: `reference/scoring-guide.md`
 
 Save to `documents/04-quality/audits/security/security-audit-[date].md`
 
+## Context Management
+
+Token budget ~25-40K. Kiểm soát bằng:
+
+1. **npm audit output** — `npm audit --json 2>/dev/null | head -50`. KHÔNG đọc full JSON (có thể 10K+ lines). Chỉ cần summary + critical/high count.
+2. **Secret scan** — LUÔN `| grep -v node_modules | grep -v test | head -30`. Không scan toàn bộ repo.
+3. **Staged execution** — Phase 1: automated scans (categories 1-2). Phase 2: manual code review (categories 3-5). Nếu context low sau phase 1, delegate phase 2 cho subagent.
+4. **Config files** — Đọc CHỈ security-related sections của `application.yml`, không đọc toàn bộ file. Dùng `grep -A5 'security\|jwt\|cors\|csrf'`.
+
 ## Gotchas
 
 - Wave 4 added SVG sanitizer, URL allowlist, CSRF provider — verify they're ACTIVE not just coded
@@ -47,6 +56,7 @@ Save to `documents/04-quality/audits/security/security-audit-[date].md`
 - Gateway CORS config is the real enforcement point — not individual service configs
 - JSoup 1.18.1 was added for SVG sanitization — check for CVEs on that version
 - Rate limiting config is in gateway `application.yml`, not core
+- npm audit JSON output có thể rất lớn — LUÔN limit output
 
 ## Skill Contents
 

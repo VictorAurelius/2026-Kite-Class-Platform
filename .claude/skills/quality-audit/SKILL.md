@@ -268,6 +268,50 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude
 
 ---
 
+## Context Management (CRITICAL)
+
+Quality-audit là skill tốn context nhất (60-100K+ tokens). **Compaction giữa audit = scores sai.** Tuân thủ:
+
+### Staged Execution — 3 Phases
+
+**Phase 1: Automated metrics** (run in parent, ~15K tokens)
+- Git stats, CI status, Docker status, code counts
+- Test execution (via scripts — output có thể lớn, LUÔN `| tail -30`)
+- KHÔNG đọc source files trong phase này
+
+**Phase 2: Parallel deep-dive** (delegate to subagents, ~20K each)
+- Agent 1: Categories 1-3 (E2E, Security, Backend Tests) — chạy tests + scan
+- Agent 2: Categories 4-6 (Frontend Tests, CI/CD, UI/UX) — build + check design
+- Agent 3: Categories 7-10 (DevOps, Docs, Code Quality, PM) — config + doc review
+- Mỗi agent trả JSON summary: `{category, score, evidence: [1-line each], issues: []}`
+
+**Phase 3: Aggregate** (parent, ~5K tokens)
+- Collect subagent results → compile report → compare with previous audit
+
+### Output Limiting Rules
+
+| Command | Limit |
+|---------|-------|
+| `mvnw test` | `\| tail -30` (chỉ summary) |
+| `vitest run` | `\| tail -20` |
+| `npm run build` | `\| tail -25` (route table only) |
+| `gh run list` | `--limit 10` |
+| `git log` | `--oneline -20` |
+| `grep -r` | `\| head -20` per pattern |
+| `find ... \| wc -l` | OK (single number) |
+
+### Subagent Return Format
+
+```json
+{
+  "categories": [
+    {"id": 1, "name": "E2E Functionality", "score": 8, "max": 10, "evidence": ["E2E pass 12/12", "cold start OK"], "issues": []}
+  ]
+}
+```
+
+Parent KHÔNG cần re-verify — trust subagent evidence. Chỉ sanity-check nếu score bất thường (0 hoặc 10).
+
 ## Rules
 
 - LUÔN chạy tests thật (không đoán)
@@ -276,6 +320,7 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude
 - Nếu E2E fail lần 1 do cold start, chạy lần 2 nhưng GHI NHẬN cold start issue (-2 điểm)
 - Nếu không thể chạy test (Docker down, etc.), ghi 0 điểm cho category đó + note lý do
 - So sánh với quality plan nếu có (`kitehub-quality-100-plan.md`)
+- **KHÔNG chạy tất cả trong 1 context** — PHẢI dùng staged execution + subagents
 
 ### CRITICAL: CI phải hoàn thành trước khi chấm điểm
 

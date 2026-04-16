@@ -47,6 +47,15 @@ Scoring details: `reference/scoring-guide.md`
 
 Save to `documents/04-quality/audits/ops/ops-readiness-audit-[date].md`
 
+## Context Management
+
+Token budget ~25-35K. Kiểm soát:
+
+1. **Grep infrastructure files** — `| head -20` per grep. Infrastructure files nhiều nhưng config sections lặp lại.
+2. **Helm values** — Chỉ đọc security-relevant keys (`resources`, `probes`, `securityContext`), không đọc full values.yaml.
+3. **Terraform** — Chỉ check state backend config + resource count, không đọc full .tf files.
+4. **Doc existence check** — Dùng `ls` thay vì `cat` cho backup/DR docs. Chỉ đọc nội dung nếu cần verify chi tiết.
+
 ## Gotchas
 
 - Spring Boot Actuator may be enabled but endpoints not exposed — check `management.endpoints.web.exposure`
