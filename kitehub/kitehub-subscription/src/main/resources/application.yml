@@ -86,6 +86,19 @@ kitehub:
     enabled: ${EMAIL_SERVICE_ENABLED:true}
   email:
     use-queue: ${EMAIL_USE_QUEUE:true}
+    type-toggles:
+      trial-warning: ${EMAIL_TOGGLE_TRIAL_WARNING:true}
+      trial-expired: ${EMAIL_TOGGLE_TRIAL_EXPIRED:true}
+      trial-midpoint: ${EMAIL_TOGGLE_TRIAL_MIDPOINT:true}
+      renewal-reminder: ${EMAIL_TOGGLE_RENEWAL:true}
+      suspension-notification: ${EMAIL_TOGGLE_SUSPENSION:true}
+      retention-warning: ${EMAIL_TOGGLE_RETENTION_WARNING:true}
+      retention-final-warning: ${EMAIL_TOGGLE_RETENTION_FINAL:true}
+      data-deleted: ${EMAIL_TOGGLE_DATA_DELETED:true}
+      welcome: ${EMAIL_TOGGLE_WELCOME:true}
+      onboarding-tips: ${EMAIL_TOGGLE_ONBOARDING:true}
+      subscription-expired: ${EMAIL_TOGGLE_SUB_EXPIRED:true}
+      subscription-created: ${EMAIL_TOGGLE_SUB_CREATED:true}
   domain:
     verification:
       timeout-hours: 48
@@ -135,3 +148,18 @@ payment:
     account-number: ${VIETQR_ACCOUNT_NUMBER:}
     account-name: ${VIETQR_ACCOUNT_NAME:}
     template: ${VIETQR_TEMPLATE:compact}
+
+# S3/MinIO storage for backups
+storage:
+  s3:
+    access-key: ${S3_ACCESS_KEY:minioadmin}
+    secret-key: ${S3_SECRET_KEY:minioadmin}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BACKUP_BUCKET:kite-backups}
+    endpoint: ${S3_ENDPOINT:http://localhost:9000}
+    mock-mode: ${S3_MOCK_MODE:true}
+
+# Backup configuration
+backup:
+  retention-count: ${BACKUP_RETENTION_COUNT:7}
+  pg-dump-path: ${PG_DUMP_PATH:pg_dump}

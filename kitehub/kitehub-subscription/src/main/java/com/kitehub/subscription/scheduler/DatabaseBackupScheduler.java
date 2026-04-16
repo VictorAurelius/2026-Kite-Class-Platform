@@ -2,13 +2,21 @@ package com.kitehub.subscription.scheduler;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.subscription.domain.BackupRecord;
+import com.kitehub.subscription.domain.BackupStatus;
+import com.kitehub.subscription.dto.PurgeResult;
+import com.kitehub.subscription.dto.PurgeStatus;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.DatabaseBackupService;
+import com.kitehub.subscription.service.InstancePurgeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -23,6 +31,11 @@ import java.util.List;
 public class DatabaseBackupScheduler {
 
     private final InstanceRepository instanceRepository;
+    private final DatabaseBackupService databaseBackupService;
+    private final InstancePurgeService instancePurgeService;
+
+    @Value("${backup.retention-count:7}")
+    private int retentionCount;
 
     /**
      * Daily backup all active instance databases.
@@ -30,6 +43,7 @@ public class DatabaseBackupScheduler {
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void backupAllDatabases() {
+        Instant start = Instant.now();
         log.info("Starting daily database backup job");
 
         List<Instance> activeInstances = instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.ACTIVE);
@@ -37,61 +51,78 @@ public class DatabaseBackupScheduler {
 
         int successCount = 0;
         int failureCount = 0;
+        long totalSizeBytes = 0;
 
         for (Instance instance : activeInstances) {
             try {
-                backupInstanceDatabase(instance);
-                successCount++;
+                String dbName = extractDatabaseName(instance.getDatabaseUrl());
+                BackupRecord record = databaseBackupService.backupInstance(instance.getId(), dbName);
+
+                if (record.getStatus() == BackupStatus.COMPLETED) {
+                    successCount++;
+                    if (record.getFileSizeBytes() != null) {
+                        totalSizeBytes += record.getFileSizeBytes();
+                    }
+                } else {
+                    failureCount++;
+                }
+
+                // Cleanup old backups after successful backup
+                if (record.getStatus() == BackupStatus.COMPLETED) {
+                    databaseBackupService.cleanupOldBackups(instance.getId(), retentionCount);
+                }
             } catch (Exception e) {
                 log.error("Failed to backup database for instance: {}", instance.getId(), e);
                 failureCount++;
             }
         }
 
-        log.info("Daily backup job completed. Success: {}, Failed: {}", successCount, failureCount);
+        Duration elapsed = Duration.between(start, Instant.now());
+        log.info("Daily backup job completed in {}s. Success: {}, Failed: {}, Total size: {} MB",
+            elapsed.getSeconds(), successCount, failureCount,
+            String.format("%.2f", totalSizeBytes / (1024.0 * 1024.0)));
     }
 
     /**
-     * Weekly cleanup of deleted instances.
-     * Removes instances deleted more than 30 days ago.
+     * Weekly purge of deleted instances.
+     * Permanently removes instances deleted more than 30 days ago,
+     * including dropping their databases, deleting backups from S3,
+     * and publishing cross-service cleanup events.
+     * <p>
+     * Safety: instances without a COMPLETED backup are SKIPPED.
      * Runs at 3:00 AM every Sunday.
      */
     @Scheduled(cron = "0 0 3 * * SUN")
     public void cleanupDeletedInstances() {
-        log.info("Starting weekly cleanup of deleted instances");
+        Instant start = Instant.now();
+        log.info("Starting weekly purge of deleted instances");
 
-        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        List<Instance> deletedInstances = instanceRepository
-            .findByStatusAndDeletedFalseAndUpdatedAtBefore(InstanceStatus.DELETED, thirtyDaysAgo);
+        List<Instance> eligibleInstances = instancePurgeService.findPurgeEligible();
+        log.info("Found {} instances eligible for purge", eligibleInstances.size());
 
-        int cleanedCount = 0;
-        for (Instance instance : deletedInstances) {
+        int purgedCount = 0;
+        int skippedCount = 0;
+        int failedCount = 0;
+
+        for (Instance instance : eligibleInstances) {
             try {
-                instance.softDelete();
-                instanceRepository.save(instance);
-                cleanedCount++;
-                log.info("Cleaned up deleted instance: {} (subdomain: {})",
-                    instance.getId(), instance.getSubdomain());
+                PurgeResult result = instancePurgeService.purgeInstance(instance.getId());
+                if (result.getStatus() == PurgeStatus.SUCCESS) {
+                    purgedCount++;
+                } else if (result.getStatus() == PurgeStatus.SKIPPED_NO_BACKUP) {
+                    skippedCount++;
+                } else {
+                    failedCount++;
+                }
             } catch (Exception e) {
-                log.error("Failed to clean up instance: {}", instance.getId(), e);
+                log.error("Failed to purge instance: {}", instance.getId(), e);
+                failedCount++;
             }
         }
 
-        log.info("Weekly cleanup job completed. Cleaned: {} instances", cleanedCount);
-    }
-
-    /**
-     * Backup single instance database.
-     * Currently logs backup metadata only. Actual S3 upload via pg_dump
-     * is deferred until cloud storage infrastructure is provisioned.
-     *
-     * @param instance Instance to backup
-     */
-    void backupInstanceDatabase(Instance instance) {
-        String dbName = extractDatabaseName(instance.getDatabaseUrl());
-        String backupPath = generateBackupPath(instance.getId(), dbName);
-
-        log.info("Backup recorded for database {} -> {}", dbName, backupPath);
+        Duration elapsed = Duration.between(start, Instant.now());
+        log.info("Weekly purge job completed in {}s. Purged: {}, Skipped (no backup): {}, Failed: {}",
+            elapsed.getSeconds(), purgedCount, skippedCount, failedCount);
     }
 
     /**
@@ -101,20 +132,17 @@ public class DatabaseBackupScheduler {
      * @return Database name
      */
     String extractDatabaseName(String databaseUrl) {
-        String[] parts = databaseUrl.split("/");
+        if (databaseUrl == null || databaseUrl.isEmpty()) {
+            throw new IllegalArgumentException("Database URL is null or empty");
+        }
+        // Handle JDBC URL like jdbc:postgresql://host:port/dbname or just host/dbname
+        String cleanUrl = databaseUrl;
+        // Remove query params if present
+        int queryIdx = cleanUrl.indexOf('?');
+        if (queryIdx >= 0) {
+            cleanUrl = cleanUrl.substring(0, queryIdx);
+        }
+        String[] parts = cleanUrl.split("/");
         return parts[parts.length - 1];
-    }
-
-    /**
-     * Generate S3 backup path.
-     *
-     * @param instanceId Instance UUID
-     * @param dbName Database name
-     * @return S3 path
-     */
-    String generateBackupPath(java.util.UUID instanceId, String dbName) {
-        String date = LocalDateTime.now().toString().split("T")[0]; // YYYY-MM-DD
-        return String.format("s3://kiteclass-backups/%s/%s-%s.sql.gz",
-            instanceId, date, dbName);
     }
 }

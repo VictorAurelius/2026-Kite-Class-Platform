@@ -93,6 +93,12 @@ Agent 4: KiteClass dashboard (21 pages, ~5 ảnh review + 16 auto-score)
 
 Mỗi agent: xem ảnh → score → trả JSON summary (KHÔNG trả chi tiết per-dimension).
 
+**CRITICAL: Image context limit**
+- Max 6 screenshots Read per session (3 pages × 2 variants). Đọc thêm → "exceeds dimension limit" error
+- Dùng manifest.md file sizes + page names để score phần còn lại (>10KB = real content, <5KB = blank/error)
+- Nếu cần xem thêm → `/compact` trước để clear old images
+- KHÔNG read cả 4 variants (light/dark × desktop/mobile) cho mỗi page — pick 2
+
 Agent return format:
 ```json
 {
