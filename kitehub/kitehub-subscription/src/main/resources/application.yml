@@ -86,6 +86,19 @@ kitehub:
     enabled: ${EMAIL_SERVICE_ENABLED:true}
   email:
     use-queue: ${EMAIL_USE_QUEUE:true}
+    type-toggles:
+      trial-warning: ${EMAIL_TOGGLE_TRIAL_WARNING:true}
+      trial-expired: ${EMAIL_TOGGLE_TRIAL_EXPIRED:true}
+      trial-midpoint: ${EMAIL_TOGGLE_TRIAL_MIDPOINT:true}
+      renewal-reminder: ${EMAIL_TOGGLE_RENEWAL:true}
+      suspension-notification: ${EMAIL_TOGGLE_SUSPENSION:true}
+      retention-warning: ${EMAIL_TOGGLE_RETENTION_WARNING:true}
+      retention-final-warning: ${EMAIL_TOGGLE_RETENTION_FINAL:true}
+      data-deleted: ${EMAIL_TOGGLE_DATA_DELETED:true}
+      welcome: ${EMAIL_TOGGLE_WELCOME:true}
+      onboarding-tips: ${EMAIL_TOGGLE_ONBOARDING:true}
+      subscription-expired: ${EMAIL_TOGGLE_SUB_EXPIRED:true}
+      subscription-created: ${EMAIL_TOGGLE_SUB_CREATED:true}
   domain:
     verification:
       timeout-hours: 48

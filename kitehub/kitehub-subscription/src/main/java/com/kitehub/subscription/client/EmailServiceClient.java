@@ -1,6 +1,7 @@
 package com.kitehub.subscription.client;
 
 import com.kitehub.platform.domain.entity.EmailSentLog;
+import com.kitehub.subscription.config.EmailConfigProperties;
 import com.kitehub.subscription.config.EmailQueueConfig;
 import com.kitehub.subscription.dto.EmailEvent;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
@@ -36,6 +37,7 @@ public class EmailServiceClient {
     private final RestTemplate restTemplate;
     private final EmailSentLogRepository emailSentLogRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final EmailConfigProperties emailConfigProperties;
 
     @Value("${email.service.url:http://localhost:8083}")
     private String emailServiceUrl;
@@ -45,10 +47,12 @@ public class EmailServiceClient {
 
     public EmailServiceClient(RestTemplate restTemplate,
                               EmailSentLogRepository emailSentLogRepository,
-                              RabbitTemplate rabbitTemplate) {
+                              RabbitTemplate rabbitTemplate,
+                              EmailConfigProperties emailConfigProperties) {
         this.restTemplate = restTemplate;
         this.emailSentLogRepository = emailSentLogRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.emailConfigProperties = emailConfigProperties;
     }
 
     /**
@@ -530,7 +534,19 @@ public class EmailServiceClient {
     }
 
     /**
+     * Check if a specific email type is enabled via admin toggles.
+     * Types not present in the toggles map default to enabled (true).
+     *
+     * @param emailType email type to check
+     * @return true if enabled, false if disabled by admin
+     */
+    private boolean isEmailTypeEnabled(String emailType) {
+        return emailConfigProperties.getTypeToggles().getOrDefault(emailType, true);
+    }
+
+    /**
      * Dispatch email via queue or direct HTTP based on configuration.
+     * Checks email type toggle before dispatching; skips if disabled by admin.
      * Records email intent in sent log after dispatching.
      *
      * @param instanceId Instance ID (nullable)
@@ -538,6 +554,12 @@ public class EmailServiceClient {
      * @param request Email request details
      */
     private void dispatchEmail(UUID instanceId, String emailType, EmailRequest request) {
+        if (!isEmailTypeEnabled(emailType)) {
+            log.warn("Email type '{}' is disabled by admin config, skipping send to {}",
+                emailType, request.getTo());
+            return;
+        }
+
         if (useQueue) {
             publishToQueue(instanceId, emailType, request);
         } else {
