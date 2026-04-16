@@ -151,7 +151,7 @@
 - [ ] Heavy async task → RabbitMQ queue + worker
 - [ ] Pattern choice documented in javadoc
 
-**Use skill:** `.claude/skills/design-pattern-advisor.md`
+**Use skill:** `.claude/skills/reference/design-pattern-advisor.md`
 
 ---
 

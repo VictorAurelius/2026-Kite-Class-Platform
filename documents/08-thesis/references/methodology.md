@@ -47,7 +47,7 @@ The project uses a parallel wave execution strategy to maximize throughput:
 ### Wave Principles
 - Each wave delivers a complete, testable increment
 - PRs within a wave can be executed in parallel
-- Wave completion is verified with a completion check (`wave-completion-check.md`)
+- Wave completion is verified with a completion check (`workflow/wave-completion-check.md`)
 - No wave starts until the previous wave passes its completion check
 
 ## Agile Practices

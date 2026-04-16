@@ -1,3 +1,9 @@
+---
+name: business-gap-check
+description: "Dùng khi user nói 'gap check', 'kiểm tra gaps', 'business logic gaps', 'missing features'. Phát hiện gaps giữa code thực tế và yêu cầu SaaS chuẩn."
+user-invocable: true
+---
+
 # Skill: Business Gap Check
 
 **Version:** 1.3

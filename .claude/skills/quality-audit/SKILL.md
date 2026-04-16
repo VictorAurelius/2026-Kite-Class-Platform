@@ -1,5 +1,7 @@
 ---
+name: quality-audit
 description: "Dùng khi user nói 'audit', 'quality check', 'kiểm tra chất lượng', 'điểm chất lượng', 'ready to merge?', hoặc trước khi merge wave vào main. Chấm điểm 10 categories /100 điểm."
+user-invocable: true
 ---
 
 # /quality-audit - Đánh giá chất lượng toàn diện

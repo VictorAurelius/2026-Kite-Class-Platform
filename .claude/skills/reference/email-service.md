@@ -330,7 +330,7 @@ spring:
 
 email:
   from: ${EMAIL_FROM:KiteClass <noreply@kiteclass.com>}
-  base-url: ${APP_BASE_URL:http://localhost:3000}
+  base-url: ${APP_BASE_URL:http://localhost:4700}
   reset-token-expiration: ${EMAIL_RESET_TOKEN_EXPIRATION:3600000}
 ```
 

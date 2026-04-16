@@ -275,10 +275,10 @@ After generating:
 | `core/task-breakdown-guide.md` | Source for task list generation |
 | `core/tdd-enforcement.md` | Tasks structured as RED-GREEN-REFACTOR |
 | `core/two-stage-code-review.md` | Referenced in PR template |
-| `pre-flight-check.md` | Run after generating before coding |
-| `design-pattern-advisor.md` | Called during pattern identification |
+| `quality/pre-flight-check.md` | Run after generating before coding |
+| `reference/design-pattern-advisor.md` | Called during pattern identification |
 | `workflow/start-pr/` | Handles actual branch + PR creation |
-| `wave-completion-check.md` | Use after wave implementation complete |
+| `workflow/wave-completion-check.md` | Use after wave implementation complete |
 
 ---
 
