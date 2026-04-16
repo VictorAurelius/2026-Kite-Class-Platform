@@ -2,12 +2,18 @@ package com.kitehub.subscription.scheduler;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.subscription.domain.BackupRecord;
+import com.kitehub.subscription.domain.BackupStatus;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.DatabaseBackupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +29,10 @@ import java.util.List;
 public class DatabaseBackupScheduler {
 
     private final InstanceRepository instanceRepository;
+    private final DatabaseBackupService databaseBackupService;
+
+    @Value("${backup.retention-count:7}")
+    private int retentionCount;
 
     /**
      * Daily backup all active instance databases.
@@ -30,6 +40,7 @@ public class DatabaseBackupScheduler {
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void backupAllDatabases() {
+        Instant start = Instant.now();
         log.info("Starting daily database backup job");
 
         List<Instance> activeInstances = instanceRepository.findByStatusAndDeletedFalse(InstanceStatus.ACTIVE);
@@ -37,18 +48,36 @@ public class DatabaseBackupScheduler {
 
         int successCount = 0;
         int failureCount = 0;
+        long totalSizeBytes = 0;
 
         for (Instance instance : activeInstances) {
             try {
-                backupInstanceDatabase(instance);
-                successCount++;
+                String dbName = extractDatabaseName(instance.getDatabaseUrl());
+                BackupRecord record = databaseBackupService.backupInstance(instance.getId(), dbName);
+
+                if (record.getStatus() == BackupStatus.COMPLETED) {
+                    successCount++;
+                    if (record.getFileSizeBytes() != null) {
+                        totalSizeBytes += record.getFileSizeBytes();
+                    }
+                } else {
+                    failureCount++;
+                }
+
+                // Cleanup old backups after successful backup
+                if (record.getStatus() == BackupStatus.COMPLETED) {
+                    databaseBackupService.cleanupOldBackups(instance.getId(), retentionCount);
+                }
             } catch (Exception e) {
                 log.error("Failed to backup database for instance: {}", instance.getId(), e);
                 failureCount++;
             }
         }
 
-        log.info("Daily backup job completed. Success: {}, Failed: {}", successCount, failureCount);
+        Duration elapsed = Duration.between(start, Instant.now());
+        log.info("Daily backup job completed in {}s. Success: {}, Failed: {}, Total size: {} MB",
+            elapsed.getSeconds(), successCount, failureCount,
+            String.format("%.2f", totalSizeBytes / (1024.0 * 1024.0)));
     }
 
     /**
@@ -81,40 +110,23 @@ public class DatabaseBackupScheduler {
     }
 
     /**
-     * Backup single instance database.
-     * Currently logs backup metadata only. Actual S3 upload via pg_dump
-     * is deferred until cloud storage infrastructure is provisioned.
-     *
-     * @param instance Instance to backup
-     */
-    void backupInstanceDatabase(Instance instance) {
-        String dbName = extractDatabaseName(instance.getDatabaseUrl());
-        String backupPath = generateBackupPath(instance.getId(), dbName);
-
-        log.info("Backup recorded for database {} -> {}", dbName, backupPath);
-    }
-
-    /**
      * Extract database name from JDBC URL.
      *
      * @param databaseUrl JDBC URL
      * @return Database name
      */
     String extractDatabaseName(String databaseUrl) {
-        String[] parts = databaseUrl.split("/");
+        if (databaseUrl == null || databaseUrl.isEmpty()) {
+            throw new IllegalArgumentException("Database URL is null or empty");
+        }
+        // Handle JDBC URL like jdbc:postgresql://host:port/dbname or just host/dbname
+        String cleanUrl = databaseUrl;
+        // Remove query params if present
+        int queryIdx = cleanUrl.indexOf('?');
+        if (queryIdx >= 0) {
+            cleanUrl = cleanUrl.substring(0, queryIdx);
+        }
+        String[] parts = cleanUrl.split("/");
         return parts[parts.length - 1];
-    }
-
-    /**
-     * Generate S3 backup path.
-     *
-     * @param instanceId Instance UUID
-     * @param dbName Database name
-     * @return S3 path
-     */
-    String generateBackupPath(java.util.UUID instanceId, String dbName) {
-        String date = LocalDateTime.now().toString().split("T")[0]; // YYYY-MM-DD
-        return String.format("s3://kiteclass-backups/%s/%s-%s.sql.gz",
-            instanceId, date, dbName);
     }
 }
