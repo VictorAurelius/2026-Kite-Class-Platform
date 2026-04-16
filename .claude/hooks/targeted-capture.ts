@@ -1,6 +1,6 @@
 /**
  * Targeted capture — only specific pages for audit.
- * Usage: npx tsx .claude/hooks/targeted-capture.ts --app kitehub --port 3001 --pages legal-dmca=/legal/dmca,branding-wizard=/branding/wizard --label wave3-4-missed
+ * Usage: npx tsx .claude/hooks/targeted-capture.ts --app kitehub --port 4701 --pages legal-dmca=/legal/dmca,branding-wizard=/branding/wizard --label wave3-4-missed
  */
 import { chromium } from '@playwright/test';
 import path from 'path';
@@ -15,7 +15,7 @@ function arg(name: string): string {
 }
 
 const app = arg('app') || 'kitehub';
-const port = parseInt(arg('port') || '3001', 10);
+const port = parseInt(arg('port') || '4701', 10);
 const label = arg('label') || 'targeted';
 const pagesParsed = (arg('pages') || '').split(',').map(p => {
   const [name, route] = p.split('=');

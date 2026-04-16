@@ -117,9 +117,9 @@ fi
 # ── Mode: Interactive UI ──────────────────────────────────────────────────────
 if [ "$MODE" = "ui" ]; then
   echo -e "${CYAN}Starting Playwright UI (interactive mode)...${NC}"
-  echo -e "  ${YELLOW}Note: Server sẽ tự start tại http://localhost:3001${NC}"
+  echo -e "  ${YELLOW}Note: Server sẽ tự start tại http://localhost:4701${NC}"
   echo ""
-  PLAYWRIGHT_BASE_URL="http://localhost:3001" \
+  PLAYWRIGHT_BASE_URL="http://localhost:4701" \
     pnpm exec playwright test --ui
   exit 0
 fi
@@ -163,7 +163,7 @@ fi
 
 # ── Start server + run tests ──────────────────────────────────────────────────
 echo -e "${YELLOW}[2/3] Starting dev server + running E2E tests...${NC}"
-echo -e "  Server: http://localhost:3001 (auto-start via start-server-and-test)"
+echo -e "  Server: http://localhost:4701 (auto-start via start-server-and-test)"
 echo ""
 
 START_TIME=$(date +%s)
@@ -174,25 +174,25 @@ if [ ${#PLAYWRIGHT_ARGS[@]} -eq 0 ]; then
   # Standard run: use the predefined CI script
   EXIT_CODE=0
   NEXT_TELEMETRY_DISABLED=1 \
-  PLAYWRIGHT_BASE_URL="http://localhost:3001" \
+  PLAYWRIGHT_BASE_URL="http://localhost:4701" \
     pnpm test:e2e:ci || EXIT_CODE=$?
 else
   # Custom run: start server in background, run playwright with custom args
   echo -e "  ${YELLOW}Starting Next.js dev server in background...${NC}"
 
   # Check if server already running
-  if curl -sf http://localhost:3001 &>/dev/null; then
-    echo -e "  ${GREEN}✓${NC} Server already running at :3001"
+  if curl -sf http://localhost:4701 &>/dev/null; then
+    echo -e "  ${GREEN}✓${NC} Server already running at :4701"
     SERVER_PID=""
   else
-    NEXT_TELEMETRY_DISABLED=1 pnpm dev --port 3001 &>/tmp/kitehub-fe-server.log &
+    NEXT_TELEMETRY_DISABLED=1 pnpm dev --port 4701 &>/tmp/kitehub-fe-server.log &
     SERVER_PID=$!
 
     # Wait for server ready (max 60s)
     echo -n "  Waiting for server"
     WAITED=0
     while [ $WAITED -lt 60 ]; do
-      if curl -sf http://localhost:3001 &>/dev/null; then
+      if curl -sf http://localhost:4701 &>/dev/null; then
         echo -e " ${GREEN}✓${NC} (${WAITED}s)"
         break
       fi
@@ -211,7 +211,7 @@ else
 
   # Run playwright with custom args
   EXIT_CODE=0
-  PLAYWRIGHT_BASE_URL="http://localhost:3001" \
+  PLAYWRIGHT_BASE_URL="http://localhost:4701" \
     pnpm exec playwright test "${PLAYWRIGHT_ARGS[@]}" || EXIT_CODE=$?
 
   # Kill dev server if we started it

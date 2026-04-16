@@ -33,7 +33,7 @@ documents/screenshots/
 ## Chạy Capture
 
 ```bash
-# Cả hai apps (KiteClass port 3000 + KiteHub port 3001)
+# Cả hai apps (KiteClass port 4700 + KiteHub port 4701)
 ./scripts/capture-ui-all.sh --label pr-XXX
 
 # Chỉ KiteClass
@@ -60,7 +60,7 @@ Nếu dev server chưa chạy và bạn đang ở WSL2 mount NTFS (`/mnt/f/`):
    cd F:\nam4\doan\2026-Kite-Class-Platform\kitehub\kitehub-frontend
    npm run dev
    ```
-2. Sau đó chạy capture từ WSL2 (kết nối tới localhost:3000/3001)
+2. Sau đó chạy capture từ WSL2 (kết nối tới localhost:4700/4701)
 
 ## manifest.md Format
 
@@ -69,7 +69,7 @@ Mỗi folder capture có 1 `manifest.md` auto-generated:
 ```markdown
 # Screenshot Manifest — pr-XXX
 
-**App:** KiteClass Frontend (port 3000)
+**App:** KiteClass Frontend (port 4700)
 **Generated:** 2026-04-03T10:30:00Z
 **Screenshots:** 118 ok / 2 errors / 120 total
 

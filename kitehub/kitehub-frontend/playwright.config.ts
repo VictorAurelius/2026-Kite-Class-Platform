@@ -31,7 +31,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3001',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4701',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -70,7 +70,7 @@ export default defineConfig({
   // Run local dev server before starting the tests (optional)
   // webServer: {
   //   command: 'pnpm dev',
-  //   url: 'http://localhost:3001',
+  //   url: 'http://localhost:4701',
   //   reuseExistingServer: !process.env.CI,
   // },
 });

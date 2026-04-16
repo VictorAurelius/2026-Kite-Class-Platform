@@ -155,7 +155,7 @@ const myTheme = { /* ThemeConfig */ };
 sendThemeToChild(
   myTheme,
   iframeElement.contentWindow,
-  'http://localhost:3000'
+  'http://localhost:4700'
 );
 ```
 
@@ -287,7 +287,7 @@ The theme receiver validates message origins against a whitelist:
 
 ```typescript
 const ALLOWED_ORIGINS = [
-  'http://localhost:3001',           // KiteHub local
+  'http://localhost:4701',           // KiteHub local
   'https://kitehub.kiteclass.com',   // KiteHub production
   // ... other trusted origins
 ];

@@ -39,7 +39,7 @@ pnpm dev
 
 ```bash
 # Development
-pnpm dev          # Start dev server at http://localhost:3000
+pnpm dev          # Start dev server at http://localhost:4700
 
 # Build
 pnpm build        # Build for production

@@ -149,9 +149,9 @@ k6 run k6/scripts/student-api-load-test.js \
     "collect": {
       "numberOfRuns": 3,
       "url": [
-        "http://localhost:3000",
-        "http://localhost:3000/dashboard",
-        "http://localhost:3000/students"
+        "http://localhost:4700",
+        "http://localhost:4700/dashboard",
+        "http://localhost:4700/students"
       ]
     },
     "assert": {
@@ -313,7 +313,7 @@ k6 run k6/scripts/student-api-load-test.js \
 npm run lighthouse
 
 # Run specific URL
-lighthouse http://localhost:3000 \
+lighthouse http://localhost:4700 \
   --output=html \
   --output-path=./lighthouse-report.html
 ```

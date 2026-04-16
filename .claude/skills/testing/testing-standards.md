@@ -347,7 +347,7 @@ Unit/Component Tests (60%)  <- Fast, isolated
 export default defineConfig({
   testDir: './tests/e2e',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:4700',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },

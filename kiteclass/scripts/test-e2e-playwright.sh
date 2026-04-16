@@ -132,7 +132,7 @@ fi
 # ── Mode: Interactive UI ──────────────────────────────────────────────────────
 if [ "$MODE" = "ui" ]; then
   echo -e "${CYAN}Starting Playwright UI (interactive mode)...${NC}"
-  echo -e "  ${YELLOW}Note: Dev server sẽ tự start tại http://localhost:3000${NC}"
+  echo -e "  ${YELLOW}Note: Dev server sẽ tự start tại http://localhost:4700${NC}"
   echo ""
   pnpm exec playwright test --ui
   exit 0

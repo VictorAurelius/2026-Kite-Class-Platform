@@ -684,7 +684,7 @@ public class StudentController {
 ### Development
 ```
 localhost:
-├── Frontend        → :3000
+├── Frontend        → :4700
 ├── Gateway         → :8080
 ├── Core Service    → :8081
 ├── PostgreSQL      → :5432

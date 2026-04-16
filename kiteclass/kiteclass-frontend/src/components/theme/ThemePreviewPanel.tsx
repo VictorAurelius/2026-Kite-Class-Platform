@@ -5,7 +5,7 @@
  * Shows floating panel to test theme colors live.
  * Only renders when ?preview=theme query param is present.
  *
- * Usage: http://localhost:3000?preview=theme
+ * Usage: http://localhost:4700?preview=theme
  *
  * @since PR-THEME-3 fix
  */

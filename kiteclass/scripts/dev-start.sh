@@ -181,12 +181,12 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # 7. Start Frontend
-echo -e "\n${BLUE}🎨 Khởi động Frontend (port 3000)...${NC}"
+echo -e "\n${BLUE}🎨 Khởi động Frontend (port 4700)...${NC}"
 pnpm dev > "$LOGS_DIR/frontend.log" 2>&1 &
 FRONTEND_PID=$!
 echo "$FRONTEND_PID" >> "$PIDS_FILE"
 echo -e "${GREEN}Frontend PID: $FRONTEND_PID${NC}"
-wait_for_http "http://localhost:3000" "Frontend"
+wait_for_http "http://localhost:4700" "Frontend"
 
 # 8. Tạo dữ liệu mẫu (optional)
 echo -e "\n${BLUE}📊 Tạo dữ liệu mẫu...${NC}"
@@ -202,7 +202,7 @@ echo -e "${GREEN}✅ Tất cả services đã khởi động!${NC}"
 echo -e "${GREEN}================================${NC}\n"
 
 echo -e "${BLUE}📍 URLs:${NC}"
-echo -e "  Frontend:  ${GREEN}http://localhost:3000${NC}"
+echo -e "  Frontend:  ${GREEN}http://localhost:4700${NC}"
 echo -e "  Gateway:   ${GREEN}http://localhost:8080${NC}"
 echo -e "  Core:      ${GREEN}http://localhost:8081${NC}"
 echo -e "  PostgreSQL: ${GREEN}localhost:5432${NC} (user: kiteclass, pass: kiteclass123)"

@@ -65,7 +65,7 @@ kitehub-frontend/
 ```bash
 cd kitehub/kitehub-frontend
 npm install
-npm run dev        # Start dev server (http://localhost:3001)
+npm run dev        # Start dev server (http://localhost:4701)
 npm run build      # Production build
 npm run lint       # Run ESLint
 npm run test       # Run unit tests

@@ -91,7 +91,7 @@ cd kiteclass/kiteclass-frontend
 pnpm install --frozen-lockfile
 
 # Run dev server
-pnpm dev  # http://localhost:3000
+pnpm dev  # http://localhost:4700
 
 # Type check
 node_modules/.bin/tsc --noEmit

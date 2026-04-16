@@ -20,7 +20,7 @@
  *   - Admin pages: ADMIN role user (injected per-page)
  *   API calls return errors (no backend) — captures error handling UI.
  *
- * Port: 3001 (different from KiteClass on 3000)
+ * Port: 4701 (different from KiteClass on 4700)
  */
 
 import { chromium, type Page } from '@playwright/test';
@@ -37,7 +37,7 @@ const __dirname = path.dirname(__filename);
 // PROJECT CONFIG
 // ============================================
 
-const DEFAULT_PORT = 3001;
+const DEFAULT_PORT = 4701;
 const DEV_COMMAND = 'npm run dev';
 // kitehub-frontend/scripts/ → 3 levels up = project root
 const SCREENSHOTS_DIR = path.resolve(__dirname, '../../../documents/screenshots');
@@ -191,7 +191,7 @@ async function startDevServer(): Promise<ChildProcess | null> {
     return null;
   }
 
-  console.log('⏳ Starting dev server (port 3001)...');
+  console.log('⏳ Starting dev server (port 4701)...');
   const child = exec(DEV_COMMAND, { cwd: path.resolve(__dirname, '..') });
 
   for (let i = 0; i < 30; i++) {
