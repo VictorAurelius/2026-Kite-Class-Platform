@@ -297,22 +297,30 @@ async function capturePage(
   fs.mkdirSync(pageDir, { recursive: true });
 
   try {
-    const waitUntil = isProd ? 'networkidle' : 'domcontentloaded';
-    const timeout = isProd ? 30000 : 15000;
+    const waitUntil = 'networkidle' as const;
+    const timeout = isProd ? 30000 : 20000;
 
     await page.goto(url, { waitUntil, timeout });
 
-    // Re-apply theme + auth after navigation
+    // Re-apply theme + auth after navigation, then reload for hydration
     const mockAuth = p.authRole === 'admin' ? MOCK_AUTH_ADMIN : (p.authRole === 'owner' ? MOCK_AUTH_OWNER : null);
     await page.evaluate(
       ([themeKey, themeVal, authKey, authVal]: string[]) => {
         localStorage.setItem(themeKey, themeVal);
         if (authVal) localStorage.setItem(authKey, authVal);
+        // Apply dark class directly
+        if (themeVal === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.style.colorScheme = 'light';
+        }
       },
       [THEME_KEY, theme, AUTH_STORAGE_KEY, mockAuth ? JSON.stringify(mockAuth) : '']
     );
-    await page.reload({ waitUntil, timeout });
-    await page.waitForTimeout(isProd ? 1500 : 800);
+    await page.reload({ waitUntil: 'networkidle', timeout });
+    await page.waitForTimeout(isProd ? 1500 : 1000);
 
     const screenshotPath = path.join(pageDir, filename);
     await page.screenshot({ path: screenshotPath, fullPage: true });
@@ -360,9 +368,17 @@ async function main() {
       });
       const page = await context.newPage();
 
-      // Pre-inject theme into all pages
+      // Pre-inject theme into all pages + apply dark class immediately
       await page.addInitScript(([key, val]: [string, string]) => {
         localStorage.setItem(key, val);
+        // Apply dark class before hydration to prevent FOUC
+        if (val === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.style.colorScheme = 'light';
+        }
       }, [THEME_KEY, theme] as [string, string]);
 
       for (const p of ALL_PAGES) {
