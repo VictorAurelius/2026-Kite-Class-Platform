@@ -48,7 +48,7 @@ echo "============================================"
 echo ""
 
 if [[ "$APP" == "all" || "$APP" == "kiteclass" ]]; then
-  echo "▶ Capturing KiteClass (port 3000)..."
+  echo "▶ Capturing KiteClass (port 4700)..."
   echo ""
   cd "$PROJECT_ROOT/kiteclass/kiteclass-frontend"
   npx tsx scripts/capture-screenshots.ts $LABEL_ARGS
@@ -56,7 +56,7 @@ if [[ "$APP" == "all" || "$APP" == "kiteclass" ]]; then
 fi
 
 if [[ "$APP" == "all" || "$APP" == "kitehub" ]]; then
-  echo "▶ Capturing KiteHub (port 3001)..."
+  echo "▶ Capturing KiteHub (port 4701)..."
   echo ""
   cd "$PROJECT_ROOT/kitehub/kitehub-frontend"
   npx tsx scripts/capture-screenshots.ts $LABEL_ARGS

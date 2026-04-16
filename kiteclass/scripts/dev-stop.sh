@@ -44,8 +44,8 @@ docker stop kiteclass-postgres kiteclass-redis 2>/dev/null || true
 echo -e "${GREEN}✅ Đã dừng PostgreSQL và Redis${NC}"
 
 # Kill any remaining Java processes on ports 8080, 8081
-echo -e "\n${YELLOW}🔍 Kiểm tra ports 8080, 8081, 3000...${NC}"
-for port in 8080 8081 3000; do
+echo -e "\n${YELLOW}🔍 Kiểm tra ports 8080, 8081, 4700...${NC}"
+for port in 8080 8081 4700; do
     pid=$(lsof -ti:$port 2>/dev/null || true)
     if [ -n "$pid" ]; then
         kill -9 "$pid" 2>/dev/null || true

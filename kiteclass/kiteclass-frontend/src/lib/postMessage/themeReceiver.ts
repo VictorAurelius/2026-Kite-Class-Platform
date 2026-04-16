@@ -21,8 +21,8 @@ import { isThemeMessage } from '@/lib/theme/types';
  */
 export const ALLOWED_ORIGINS = [
   // Local development
-  'http://localhost:3001', // KiteHub local
-  'http://localhost:3000', // KiteClass local (for testing)
+  'http://localhost:4701', // KiteHub local
+  'http://localhost:4700', // KiteClass local (for testing)
 
   // Production
   'https://kitehub.kiteclass.com', // KiteHub production
@@ -110,7 +110,7 @@ export function initThemeReceiver(onThemeUpdate: ThemeUpdateCallback): () => voi
  * ```typescript
  * // From KiteHub parent window
  * const iframe = document.querySelector('iframe');
- * sendThemeToChild(myTheme, iframe.contentWindow, 'http://localhost:3000');
+ * sendThemeToChild(myTheme, iframe.contentWindow, 'http://localhost:4700');
  * ```
  */
 export function sendThemeToChild(

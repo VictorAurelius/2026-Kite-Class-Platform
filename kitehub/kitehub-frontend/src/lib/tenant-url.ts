@@ -1,7 +1,7 @@
 /**
  * Build tenant URL based on environment.
  *
- * Local:      http://localhost:3000?tenant={subdomain}
+ * Local:      http://localhost:4700?tenant={subdomain}
  * Production: https://{subdomain}.kiteclass.com
  *
  * Configured via NEXT_PUBLIC_KITECLASS_URL_PATTERN env var.

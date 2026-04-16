@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "next dev --port 4701",
     "build": "next build",
-    "start": "next start --port 3001",
+    "start": "next start --port 4701",
     "lint": "next lint",
     "format": "prettier --write .",
     "test": "vitest",
@@ -14,7 +14,7 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:ci": "start-server-and-test 'next dev --port 3001' http://localhost:3001 'playwright test'",
+    "test:e2e:ci": "start-server-and-test 'next dev --port 4701' http://localhost:4701 'playwright test'",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

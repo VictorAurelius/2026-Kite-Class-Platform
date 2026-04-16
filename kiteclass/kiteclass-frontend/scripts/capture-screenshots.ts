@@ -36,7 +36,7 @@ const __dirname = path.dirname(__filename);
 // PROJECT CONFIG
 // ============================================
 
-const DEFAULT_PORT = 3000;
+const DEFAULT_PORT = 4700;
 const DEV_COMMAND = 'npm run dev';
 // kiteclass-frontend/scripts/ → 3 levels up = project root
 const SCREENSHOTS_DIR = path.resolve(__dirname, '../../../documents/screenshots');
@@ -426,7 +426,7 @@ async function main() {
   if (devServer) devServer.kill();
 
   // Write manifests
-  writeManifest(OUT_DIR, 'KiteClass Frontend (port 3000)', ALL_PAGES.length);
+  writeManifest(OUT_DIR, 'KiteClass Frontend (port 4700)', ALL_PAGES.length);
   if (LATEST_DIR) {
     // Copy manifest to latest too
     fs.copyFileSync(

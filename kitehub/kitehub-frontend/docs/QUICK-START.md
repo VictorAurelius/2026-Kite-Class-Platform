@@ -17,14 +17,14 @@ pnpm install
 ```bash
 # Development (hot reload)
 pnpm dev
-# Open http://localhost:3001
+# Open http://localhost:4701
 
 # Via Docker
 cd kitehub/
 ./scripts/up.sh kitehub-frontend
 ```
 
-**Port:** 3001
+**Port:** 4701
 
 ## Build
 
@@ -64,7 +64,7 @@ src/
 Copy `.env.example` to `.env.local`:
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:9000
-NEXT_PUBLIC_KITECLASS_URL_PATTERN=http://localhost:3000?tenant={subdomain}
+NEXT_PUBLIC_KITECLASS_URL_PATTERN=http://localhost:4700?tenant={subdomain}
 ```
 
 ## Documentation

@@ -1,6 +1,6 @@
 ---
 name: ui-review
-description: "Dùng khi user nói 'review UI', 'check design', 'audit screenshots', 'UI trông thế nào', hoặc sau mỗi PR có thay đổi frontend. Auto-chạy sau mỗi frontend PR. Capture before/after screenshots, score per-screen trên thang /128. Covers KiteClass (port 3000) + KiteHub (port 3001) — tất cả public, auth, và dashboard pages."
+description: "Dùng khi user nói 'review UI', 'check design', 'audit screenshots', 'UI trông thế nào', hoặc sau mỗi PR có thay đổi frontend. Auto-chạy sau mỗi frontend PR. Capture before/after screenshots, score per-screen trên thang /128. Covers KiteClass (port 4700) + KiteHub (port 4701) — tất cả public, auth, và dashboard pages."
 user-invocable: true
 ---
 
@@ -155,7 +155,7 @@ Lưu vào `documents/04-quality/audits/ui/ui-review-latest.md`. Commit `manifest
 ## Gotchas
 
 - **WSL2 + NTFS = node_modules broken** — pnpm: `ERR_PNPM_EACCES rename _tmp→final`. npm: write truncation. Fix: start dev servers từ Windows PowerShell trước
-- **Two localhost ports** — KiteClass: 3000, KiteHub: 3001. Đừng nhầm
+- **Two localhost ports** — KiteClass: 4700, KiteHub: 4701. Đừng nhầm
 - **Dashboard auth injection** — mock token không valid → API 401 → pages show loading/error. Đây là intentional: captures error UI
 - **`kiteclass_theme`** — KiteClass dùng key riêng (KHÁC `theme` của next-themes). Script inject cả hai
 - **Dark mode** — nếu light/dark screenshots trông giống nhau: dark mode không hoạt động (cần investigate)
@@ -170,7 +170,7 @@ Lưu vào `documents/04-quality/audits/ui/ui-review-latest.md`. Commit `manifest
 
 ## Full Page Registry
 
-### KiteClass (port 3000) — 30 pages
+### KiteClass (port 4700) — 30 pages
 
 | Group | Pages |
 |-------|-------|
@@ -178,7 +178,7 @@ Lưu vào `documents/04-quality/audits/ui/ui-review-latest.md`. Commit `manifest
 | Auth (5) | login, register, register-student, forgot-password, reset-password |
 | Dashboard (21) | classes, class-detail, class-edit, class-attendance, courses, course-new, course-detail, course-edit, course-class-new, students, student-new, student-detail, student-edit, student-attendance, teachers, teacher-new, teacher-detail, teacher-edit, attendance, attendance-reports, attendance-stats, billing, billing-detail, billing-pay, settings, teacher-dashboard |
 
-### KiteHub (port 3001) — 19 pages
+### KiteHub (port 4701) — 19 pages
 
 | Group | Pages |
 |-------|-------|

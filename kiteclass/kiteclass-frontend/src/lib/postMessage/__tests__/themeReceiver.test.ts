@@ -70,7 +70,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: validMessage,
-        origin: 'http://localhost:3001', // KiteHub origin
+        origin: 'http://localhost:4701', // KiteHub origin
       });
 
       window.dispatchEvent(event);
@@ -88,7 +88,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: wrongTypeMessage,
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       window.dispatchEvent(event);
@@ -108,7 +108,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: invalidMessage,
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       window.dispatchEvent(event);
@@ -134,7 +134,7 @@ describe('Theme Receiver', () => {
       expect(mockCallback).not.toHaveBeenCalled();
     });
 
-    it('should accept messages from localhost:3001 (KiteHub)', () => {
+    it('should accept messages from localhost:4701 (KiteHub)', () => {
       cleanup = initThemeReceiver(mockCallback);
 
       const validMessage: ThemeMessage = {
@@ -144,7 +144,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: validMessage,
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       window.dispatchEvent(event);
@@ -188,7 +188,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: validMessage,
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       window.dispatchEvent(event);
@@ -201,7 +201,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: 'not an object',
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       // Should not throw
@@ -214,7 +214,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: null,
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       expect(() => window.dispatchEvent(event)).not.toThrow();
@@ -224,8 +224,8 @@ describe('Theme Receiver', () => {
 
   describe('ALLOWED_ORIGINS', () => {
     it('should include localhost origins', () => {
-      expect(ALLOWED_ORIGINS).toContain('http://localhost:3001');
-      expect(ALLOWED_ORIGINS).toContain('http://localhost:3000');
+      expect(ALLOWED_ORIGINS).toContain('http://localhost:4701');
+      expect(ALLOWED_ORIGINS).toContain('http://localhost:4700');
     });
 
     it('should include production origins', () => {
@@ -249,7 +249,7 @@ describe('Theme Receiver', () => {
 
       const event = new MessageEvent('message', {
         data: validMessage,
-        origin: 'http://localhost:3001',
+        origin: 'http://localhost:4701',
       });
 
       window.dispatchEvent(event);

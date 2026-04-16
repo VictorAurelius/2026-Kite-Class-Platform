@@ -39,7 +39,7 @@ check_docker() {
 }
 
 echo -e "${BLUE}🌐 Web Services:${NC}"
-check_service "http://localhost:3000" "Frontend (3000)    "
+check_service "http://localhost:4700" "Frontend (4700)    "
 check_service "http://localhost:8080/actuator/health" "Gateway (8080)    "
 check_service "http://localhost:8081/actuator/health" "Core (8081)       "
 
