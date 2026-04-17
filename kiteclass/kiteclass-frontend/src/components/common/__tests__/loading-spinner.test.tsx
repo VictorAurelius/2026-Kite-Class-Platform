@@ -47,7 +47,7 @@ describe('LoadingSpinner', () => {
 describe('LoadingOverlay', () => {
   it('should render overlay with default text', () => {
     render(<LoadingOverlay />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Đang tải...')).toBeInTheDocument();
   });
 
   it('should render overlay with custom text', () => {

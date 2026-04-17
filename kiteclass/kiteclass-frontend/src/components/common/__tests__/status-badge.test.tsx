@@ -10,9 +10,9 @@ import { render, screen } from '@/test/utils';
 import { StatusBadge } from '../status-badge';
 
 describe('StatusBadge', () => {
-  it('should render status text with underscores replaced by spaces', () => {
+  it('should render Vietnamese label for known status', () => {
     render(<StatusBadge status="IN_PROGRESS" />);
-    expect(screen.getByText('IN PROGRESS')).toBeInTheDocument();
+    expect(screen.getByText('Đang diễn ra')).toBeInTheDocument();
   });
 
   it('should auto-detect success variant for active/published/completed statuses', () => {

@@ -48,14 +48,14 @@ describe('ErrorAlert', () => {
   it('should not show dismiss button when onDismiss is not provided', () => {
     render(<ErrorAlert message="Error message" />);
 
-    expect(screen.queryByRole('button', { name: /dismiss/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /bỏ qua/i })).not.toBeInTheDocument();
   });
 
   it('should show retry button when onRetry is provided', () => {
     const onRetry = vi.fn();
     render(<ErrorAlert message="Error message" onRetry={onRetry} />);
 
-    const retryButton = screen.getByRole('button', { name: /try again/i });
+    const retryButton = screen.getByRole('button', { name: /thử lại/i });
     expect(retryButton).toBeInTheDocument();
   });
 
@@ -64,7 +64,7 @@ describe('ErrorAlert', () => {
     const onRetry = vi.fn();
     render(<ErrorAlert message="Error message" onRetry={onRetry} />);
 
-    const retryButton = screen.getByRole('button', { name: /try again/i });
+    const retryButton = screen.getByRole('button', { name: /thử lại/i });
     await user.click(retryButton);
 
     expect(onRetry).toHaveBeenCalledTimes(1);
@@ -73,6 +73,6 @@ describe('ErrorAlert', () => {
   it('should not show retry button when onRetry is not provided', () => {
     render(<ErrorAlert message="Error message" />);
 
-    expect(screen.queryByRole('button', { name: /try again/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /thử lại/i })).not.toBeInTheDocument();
   });
 });
