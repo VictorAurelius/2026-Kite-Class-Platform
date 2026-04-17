@@ -71,6 +71,36 @@ class DatabaseBackupServiceTest {
     class BackupInstance {
 
         @Test
+        @DisplayName("should reject invalid database name (SQL injection prevention)")
+        void shouldRejectInvalidDatabaseName() {
+            assertThatThrownBy(() -> databaseBackupService.backupInstance(instanceId, "db; DROP TABLE users"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid database name");
+        }
+
+        @Test
+        @DisplayName("should reject null database name")
+        void shouldRejectNullDatabaseName() {
+            assertThatThrownBy(() -> databaseBackupService.backupInstance(instanceId, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @DisplayName("should accept valid database name")
+        void shouldAcceptValidDatabaseName() {
+            // Valid name like kiteclass_abc12345
+            // Will fail at pg_dump (not available in test) but passes validation
+            when(backupRecordRepository.save(any())).thenAnswer(inv -> {
+                BackupRecord r = inv.getArgument(0);
+                r.setId(UUID.randomUUID());
+                return r;
+            });
+            BackupRecord result = databaseBackupService.backupInstance(instanceId, "kiteclass_abc12345");
+            assertThat(result).isNotNull();
+            // Will be FAILED because pg_dump not available, but validation passed
+        }
+
+        @Test
         @DisplayName("should create IN_PROGRESS record before starting backup")
         void shouldCreateInProgressRecord() {
             // backupInstance calls executePgDump which requires pg_dump binary.

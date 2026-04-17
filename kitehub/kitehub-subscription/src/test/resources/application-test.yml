@@ -26,6 +26,8 @@ spring:
 
 # Disable email queue in integration tests (no RabbitMQ available)
 kitehub:
+  admin:
+    api-key: ""  # Empty = dev mode (no auth required in tests)
   email:
     use-queue: false
 

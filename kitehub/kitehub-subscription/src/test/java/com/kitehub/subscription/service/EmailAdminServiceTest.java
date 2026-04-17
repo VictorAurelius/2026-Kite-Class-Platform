@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -240,6 +241,27 @@ class EmailAdminServiceTest {
     @Nested
     @DisplayName("triggerEmail")
     class TriggerEmail {
+
+        @BeforeEach
+        void setUpIdempotency() {
+            // Default: no email sent today (idempotency check passes)
+            // lenient() because some tests override this stub
+            lenient().when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                any(), anyString(), anyString(), any(), any())).thenReturn(false);
+        }
+
+        @Test
+        @DisplayName("should reject if same email already sent today (idempotency)")
+        void shouldRejectDuplicateEmail() {
+            when(instanceRepository.findById(instanceId))
+                .thenReturn(Optional.of(testInstance));
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                any(), eq("trial-warning"), anyString(), any(), any())).thenReturn(true);
+
+            assertThatThrownBy(() -> emailAdminService.triggerEmail(instanceId, "trial-warning"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already sent today");
+        }
 
         @Test
         @DisplayName("should dispatch trial-warning via EmailServiceClient")

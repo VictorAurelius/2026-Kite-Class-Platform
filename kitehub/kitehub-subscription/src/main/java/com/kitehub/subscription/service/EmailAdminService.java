@@ -159,7 +159,16 @@ public class EmailAdminService {
         Instance instance = instanceRepository.findById(instanceId)
             .orElseThrow(() -> new EntityNotFoundException("Instance not found: " + instanceId));
 
+        // Idempotency: check if same email already sent today for this instance
         String recipient = instance.getContactEmail();
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        boolean alreadySent = emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                instanceId, emailType, recipient, startOfDay, endOfDay);
+        if (alreadySent) {
+            throw new IllegalStateException(
+                    "Email type '" + emailType + "' already sent today for instance " + instanceId);
+        }
         String orgName = instance.getOrganizationName();
 
         switch (emailType) {
