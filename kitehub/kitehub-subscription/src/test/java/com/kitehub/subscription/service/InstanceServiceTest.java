@@ -6,10 +6,13 @@ import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.dto.CreateInstanceRequest;
 import com.kitehub.subscription.dto.DatabaseCredentials;
 import com.kitehub.subscription.dto.InstanceResponse;
+import com.kitehub.subscription.dto.RegisterInstanceRequest;
+import com.kitehub.subscription.dto.RegisterInstanceResponse;
 import com.kitehub.subscription.config.TrialConfig;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,6 +26,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.lenient;
 
@@ -41,6 +45,12 @@ class InstanceServiceTest {
 
     @Mock
     private DatabaseProvisioningService databaseProvisioningService;
+
+    @Mock
+    private com.kitehub.subscription.config.MultiTenantDataSourceConfig dataSourceConfig;
+
+    @Mock
+    private TokenService tokenService;
 
     @Mock
     private TrialConfig trialConfig;
@@ -217,5 +227,86 @@ class InstanceServiceTest {
 
         // Then
         assertThat(response.getTrialDaysLeft()).isGreaterThanOrEqualTo(6).isLessThanOrEqualTo(8); // Allow 1 day tolerance for timing
+    }
+
+    @Nested
+    @DisplayName("registerInstance — re-trial prevention (TR-07)")
+    class RegisterInstanceReTrial {
+
+        private RegisterInstanceRequest validRegisterRequest;
+
+        @BeforeEach
+        void setUpRegisterRequest() {
+            validRegisterRequest = RegisterInstanceRequest.builder()
+                .subdomain("new-school")
+                .organizationName("New School")
+                .ownerEmail("owner@example.com")
+                .ownerPassword("password123")
+                .build();
+        }
+
+        @Test
+        @DisplayName("should reject re-trial when email already used trial")
+        void registerInstance_shouldRejectReTrial() {
+            // Given: email already used trial
+            when(instanceRepository.existsBySubdomainAndDeletedFalse("new-school"))
+                .thenReturn(false);
+            when(instanceRepository.existsByContactEmailAndDeletedFalse("owner@example.com"))
+                .thenReturn(false);
+            when(instanceRepository.existsByContactEmailAndTrialStartedAtIsNotNull("owner@example.com"))
+                .thenReturn(true);
+
+            // When & Then
+            assertThatThrownBy(() -> instanceService.registerInstance(validRegisterRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("chỉ được dùng thử 1 lần");
+
+            verify(instanceRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should allow first trial registration")
+        void registerInstance_shouldAllowFirstTrial() {
+            // Given: email never used trial
+            when(instanceRepository.existsBySubdomainAndDeletedFalse("new-school"))
+                .thenReturn(false);
+            when(instanceRepository.existsByContactEmailAndDeletedFalse("owner@example.com"))
+                .thenReturn(false);
+            when(instanceRepository.existsByContactEmailAndTrialStartedAtIsNotNull("owner@example.com"))
+                .thenReturn(false);
+
+            Instance savedInstance = new Instance();
+            savedInstance.setId(UUID.randomUUID());
+            savedInstance.setSubdomain("new-school");
+            savedInstance.setOrganizationName("New School");
+            savedInstance.setOwnerId(UUID.randomUUID());
+            savedInstance.setContactEmail("owner@example.com");
+            savedInstance.setTier(PricingTier.FREE);
+            savedInstance.setStatus(InstanceStatus.TRIAL);
+            savedInstance.setTrialStartedAt(LocalDateTime.now());
+            savedInstance.setTrialExpiresAt(LocalDateTime.now().plusDays(14));
+            savedInstance.setDatabaseUrl("pending");
+            savedInstance.setDatabaseUsername("pending");
+            savedInstance.setDatabasePassword("pending");
+            savedInstance.setCreatedAt(LocalDateTime.now());
+            savedInstance.setUpdatedAt(LocalDateTime.now());
+
+            when(instanceRepository.save(any(Instance.class))).thenReturn(savedInstance);
+            when(tokenService.generateAccessToken(any(UUID.class), anyString(), anyString()))
+                .thenReturn("mock-access-token");
+            when(tokenService.generateRefreshToken(any(UUID.class)))
+                .thenReturn("mock-refresh-token");
+
+            // When
+            RegisterInstanceResponse response = instanceService.registerInstance(validRegisterRequest);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.getAccessToken()).isEqualTo("mock-access-token");
+            assertThat(response.getRefreshToken()).isEqualTo("mock-refresh-token");
+            assertThat(response.getInstance().getSubdomain()).isEqualTo("new-school");
+
+            verify(instanceRepository).save(any(Instance.class));
+        }
     }
 }

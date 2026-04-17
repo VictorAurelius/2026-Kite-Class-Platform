@@ -1,5 +1,6 @@
 package com.kitehub.subscription.client;
 
+import com.kitehub.subscription.config.EmailConfigProperties;
 import com.kitehub.subscription.config.EmailQueueConfig;
 import com.kitehub.subscription.dto.EmailEvent;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
@@ -20,12 +21,14 @@ import org.springframework.web.client.RestTemplate;
 import com.kitehub.platform.domain.entity.EmailSentLog;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,14 +53,18 @@ class EmailServiceClientTest {
     @Mock
     private RabbitTemplate rabbitTemplate;
 
+    @Mock
+    private EmailConfigProperties emailConfigProperties;
+
     private EmailServiceClient emailServiceClient;
 
     private UUID instanceId;
 
     @BeforeEach
     void setUp() {
-        emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository, rabbitTemplate);
+        emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository, rabbitTemplate, emailConfigProperties);
         instanceId = UUID.randomUUID();
+        lenient().when(emailConfigProperties.getTypeToggles()).thenReturn(new HashMap<>());
     }
 
     @Nested

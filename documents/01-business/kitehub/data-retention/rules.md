@@ -1,6 +1,6 @@
 # Data Retention — Business Rules
 
-**Last verified:** 2026-03-24
+**Last verified:** 2026-04-16
 **Config prefix:** `kitehub.data-retention`
 
 ## Rules
@@ -21,6 +21,12 @@
 | RET-12 | Retention start | Instance updatedAt (when suspended) | ChronoUnit.DAYS.between() |
 | RET-13 | Default fallback tier | FREE (7 ngày) | getRetentionDays() default |
 | RET-14 | TRIAL/FREE xử lý như nhau | Cùng map tới trial config | getRetentionDays() switch |
+| RET-15 | Hard purge safety gate | Ít nhất 1 backup COMPLETED trước khi purge | `backupRecordRepository.existsByInstanceIdAndStatus()` |
+| RET-16 | PURGED = permanently deleted | Tất cả tài nguyên (DB, S3, email logs, branding) bị xóa vĩnh viễn | `InstancePurgeService.executePurge()` |
+| RET-17 | Automatic purge schedule | Weekly (Sunday 3:00 AM), instances DELETED > 30 ngày | `0 0 3 * * SUN` |
+| RET-18 | Purge publishes RabbitMQ event | Fanout exchange cho cross-service cleanup | `instance.purge.exchange` |
+| RET-19 | Backup retention count | Số lượng backups giữ lại mỗi instance | `backup.retention-count` (default: 7) |
+| RET-20 | S3 mock mode | Tắt S3 thật cho môi trường dev | `storage.s3.mock-mode` (default: true) |
 
 ## Warning Schedule Examples
 
@@ -38,6 +44,19 @@
 - Ngày 29: Final warning
 - Ngày 30: Data deleted
 
+## Purge Lifecycle
+
+**Sau khi DELETED:**
+- Ngày 0: Instance status = DELETED (soft delete)
+- Ngày 30+: Eligible cho hard purge (weekly scheduler kiểm tra)
+- Purge: status → PURGED (permanent, không thể recover)
+
+**Purge xóa:**
+- PostgreSQL database (drop)
+- S3 backup files (delete objects, mark records DELETED)
+- Email sent logs (delete)
+- Branding assets (via RabbitMQ event tới kitehub-branding)
+
 ## Config
 
 ```yaml
@@ -49,4 +68,11 @@ kitehub:
     premium: 60
     enterprise: 90
     warning-count: 2
+
+backup:
+  retention-count: 7    # Số lượng backups giữ lại mỗi instance
+
+storage:
+  s3:
+    mock-mode: true     # Tắt S3 thật cho dev (set false cho production)
 ```

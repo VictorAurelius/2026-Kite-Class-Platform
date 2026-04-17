@@ -58,6 +58,20 @@ database:
     # Disable actual database lifecycle in tests
     enabled: false
 
+# S3/MinIO storage configuration — mock mode for tests
+storage:
+  s3:
+    mock-mode: true
+    bucket: kite-test-backups
+    region: ap-southeast-1
+    access-key: test-access-key
+    secret-key: test-secret-key
+
+# Backup configuration
+backup:
+  retention-count: 3
+  pg-dump-path: pg_dump
+
 # Logging
 logging:
   level:
