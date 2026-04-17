@@ -218,8 +218,9 @@ Per-gap agent (worktree isolated):
 1. Read gap file → understand scope
 2. TDD: write tests first
 3. Implement fix
-4. Self-review
-5. Return: files changed + test results
+4. Check: no unused imports/fields/vars, no deprecated APIs
+5. Self-review
+6. Return: files changed + test results
 ```
 
 **Rules cho parallel execution:**

@@ -1,6 +1,6 @@
 # GAP-088: Rollback Procedure Per Service
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (trước production)
 **Domain:** Operations / DevOps
 **Found:** 2026-04-16 (skills gap simulation)

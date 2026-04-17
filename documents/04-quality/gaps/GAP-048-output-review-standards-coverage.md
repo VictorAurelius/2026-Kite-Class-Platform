@@ -1,6 +1,6 @@
 # GAP-048: Output Review Standards Coverage (Governance)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (governance — affects all outputs)
 **Domain:** Governance / Quality / Process
 **Detected:** 2026-04-14
