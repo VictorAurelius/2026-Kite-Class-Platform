@@ -30,7 +30,7 @@ export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
   // Loading state
   if (isLoading) {
     return (
-      <div role="status" aria-label="Loading feature availability">
+      <div role="status" aria-label="Đang tải tính năng">
         <Skeleton className="h-20 w-full" />
       </div>
     );
@@ -40,9 +40,9 @@ export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Failed to load feature configuration</AlertTitle>
+        <AlertTitle>Không thể tải cấu hình tính năng</AlertTitle>
         <AlertDescription>
-          Unable to verify feature availability. Please try again later.
+          Không thể xác minh tính năng. Vui lòng thử lại sau.
         </AlertDescription>
       </Alert>
     );
@@ -63,14 +63,14 @@ export function FeatureGate({ feature, children, fallback }: FeatureGateProps) {
   return (
     <Alert>
       <Lock className="h-4 w-4" />
-      <AlertTitle>Feature Not Available</AlertTitle>
+      <AlertTitle>Tính năng chưa khả dụng</AlertTitle>
       <AlertDescription className="mt-2">
         <p className="mb-4">
-          The <strong>{feature}</strong> feature is not available on your current plan
-          {requiredTier && ` (requires ${requiredTier} tier or higher)`}.
+          Tính năng <strong>{feature}</strong> không khả dụng trong gói hiện tại
+          {requiredTier && ` (yêu cầu gói ${requiredTier} trở lên)`}.
         </p>
         <Button onClick={() => (window.location.href = '/pricing')}>
-          Upgrade to {requiredTier || 'Premium'}
+          Nâng cấp lên {requiredTier || 'Premium'}
         </Button>
       </AlertDescription>
     </Alert>

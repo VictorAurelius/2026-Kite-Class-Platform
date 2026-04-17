@@ -6,9 +6,9 @@ const LABELS: Record<StepName, string> = {
   welcome: 'Bắt đầu',
   logo: 'Logo',
   audience: 'Đối tượng',
-  tone: 'Tone',
-  template: 'Template',
-  preview: 'Preview',
+  tone: 'Phong cách',
+  template: 'Mẫu',
+  preview: 'Xem trước',
 };
 
 export function WizardProgress({ current }: { current: StepName }) {

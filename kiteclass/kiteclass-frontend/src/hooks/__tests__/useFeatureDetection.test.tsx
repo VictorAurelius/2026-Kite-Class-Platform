@@ -173,11 +173,11 @@ describe('useFeatureDetection', () => {
 
       expect(() => {
         result.current.requireFeature(FeatureName.AI_BRANDING);
-      }).toThrow('Feature "AI_BRANDING" is not available');
+      }).toThrow('không khả dụng trong gói hiện tại');
 
       expect(() => {
         result.current.requireFeature(FeatureName.CUSTOM_DOMAIN);
-      }).toThrow('Please upgrade to access this feature');
+      }).toThrow('Vui lòng nâng cấp để sử dụng tính năng này');
     });
   });
 

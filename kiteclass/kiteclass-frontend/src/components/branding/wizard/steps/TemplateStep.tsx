@@ -62,7 +62,7 @@ export function TemplateStep({ context, send }: Props) {
         </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Template">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Mẫu">
         {filtered.map((t) => (
           <button
             key={t.id}
@@ -83,7 +83,7 @@ export function TemplateStep({ context, send }: Props) {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
-              aria-label={`Preview ${t.label}`}
+              aria-label={`Xem trước ${t.label}`}
             />
             <div className="p-3">
               <div className="font-medium">{t.label}</div>

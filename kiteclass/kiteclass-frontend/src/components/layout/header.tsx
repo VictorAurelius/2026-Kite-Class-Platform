@@ -59,7 +59,7 @@ export function Header({
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search students, courses, teachers..."
+            placeholder="Tìm kiếm học viên, khóa học, giáo viên..."
             className="max-w-md border-none bg-muted/50 focus-visible:ring-0"
           />
         </div>
@@ -74,14 +74,14 @@ export function Header({
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
-                <span className="sr-only">Notifications</span>
+                <span className="sr-only">Thông báo</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="p-4 text-center text-sm text-muted-foreground">
-                No new notifications
+                Không có thông báo mới
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -98,7 +98,7 @@ export function Header({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Center Owner</p>
+                  <p className="text-sm font-medium leading-none">Chủ trung tâm</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     owner@example.com
                   </p>
@@ -107,16 +107,16 @@ export function Header({
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
-                Profile
+                Hồ sơ
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
-                Settings
+                Cài đặt
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => logout()} className="text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
-                Logout
+                Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -126,7 +126,7 @@ export function Header({
       {/* Mobile sidebar Sheet */}
       <Sheet open={mobileSidebarOpen} onOpenChange={(open) => !open && onMobileSidebarClose?.()}>
         <SheetContent side="left" className="w-64 p-0">
-          <SheetTitle className="sr-only">Navigation menu</SheetTitle>
+          <SheetTitle className="sr-only">Menu điều hướng</SheetTitle>
           <SidebarNav onNavigate={onMobileSidebarClose} />
         </SheetContent>
       </Sheet>

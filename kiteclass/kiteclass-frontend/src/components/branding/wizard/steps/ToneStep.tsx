@@ -35,7 +35,7 @@ export function ToneStep({ context, send }: Props) {
         </p>
       </header>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Tone">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Phong cách">
         {TONES.map((t) => (
           <button
             key={t.id}

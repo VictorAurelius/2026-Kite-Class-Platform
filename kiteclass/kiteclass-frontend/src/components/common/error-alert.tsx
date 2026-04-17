@@ -22,7 +22,7 @@ interface ErrorAlertProps {
 }
 
 export function ErrorAlert({
-  title = 'Error',
+  title = 'Lỗi',
   message,
   onDismiss,
   onRetry,
@@ -43,7 +43,7 @@ export function ErrorAlert({
               onClick={onDismiss}
             >
               <X className="h-4 w-4" />
-              <span className="sr-only">Dismiss</span>
+              <span className="sr-only">Bỏ qua</span>
             </Button>
           )}
         </AlertTitle>
@@ -56,7 +56,7 @@ export function ErrorAlert({
               onClick={onRetry}
               className="mt-3"
             >
-              Try Again
+              Thử lại
             </Button>
           )}
         </AlertDescription>

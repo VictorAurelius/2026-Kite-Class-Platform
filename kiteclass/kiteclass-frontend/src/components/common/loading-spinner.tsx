@@ -35,7 +35,7 @@ export function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerP
 export function LoadingOverlay({ text }: { text?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <LoadingSpinner size="lg" text={text || 'Loading...'} />
+      <LoadingSpinner size="lg" text={text || 'Đang tải...'} />
     </div>
   );
 }

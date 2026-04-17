@@ -21,6 +21,9 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
             gcTime: 5 * 60 * 1000, // 5 minutes (renamed from cacheTime)
             retry: 1,
             refetchOnWindowFocus: false,
+            // Prevent unhandled promise rejections from showing in
+            // Next.js dev error overlay when backend is not running (GAP-077)
+            throwOnError: false,
           },
           mutations: {
             retry: 0,

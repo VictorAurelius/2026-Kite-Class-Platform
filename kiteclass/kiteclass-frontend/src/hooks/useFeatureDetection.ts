@@ -29,8 +29,8 @@ export function useFeatureDetection() {
   const requireFeature = (feature: FeatureName): void => {
     if (!hasFeature(feature)) {
       throw new Error(
-        `Feature "${feature}" is not available on your current plan. ` +
-        `Please upgrade to access this feature.`
+        `Tính năng "${feature}" không khả dụng trong gói hiện tại. ` +
+        `Vui lòng nâng cấp để sử dụng tính năng này.`
       );
     }
   };

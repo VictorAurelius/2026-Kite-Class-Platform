@@ -20,7 +20,7 @@ interface SearchInputProps {
 }
 
 export function SearchInput({
-  placeholder = 'Search...',
+  placeholder = 'Tìm kiếm...',
   onSearch,
   debounceMs = 300,
   defaultValue = '',
@@ -57,7 +57,7 @@ export function SearchInput({
           className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Clear search</span>
+          <span className="sr-only">Xóa tìm kiếm</span>
         </Button>
       )}
     </div>
