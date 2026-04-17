@@ -24,7 +24,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <span
       className={cn(
         'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-        statusStyles[status] ?? 'bg-gray-100 text-gray-800',
+        statusStyles[status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
         className
       )}
     >

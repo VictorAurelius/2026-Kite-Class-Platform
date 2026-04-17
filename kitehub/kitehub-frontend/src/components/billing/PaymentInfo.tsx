@@ -67,7 +67,7 @@ export function PaymentInfo({ payment }: PaymentInfoProps) {
                 className="ml-2"
               >
                 {copiedField === item.field ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
@@ -86,7 +86,7 @@ export function PaymentInfo({ payment }: PaymentInfoProps) {
               onClick={() => copyToClipboard(payment.id.substring(0, 8).toUpperCase(), 'description')}
             >
               {copiedField === 'description' ? (
-                <Check className="h-4 w-4 text-green-600" />
+                <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
               ) : (
                 <Copy className="h-4 w-4" />
               )}

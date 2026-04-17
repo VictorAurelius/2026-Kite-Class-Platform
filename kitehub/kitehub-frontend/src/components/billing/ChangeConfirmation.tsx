@@ -80,7 +80,7 @@ export function ChangeConfirmation({
               </p>
             </div>
 
-            <ArrowRight className={`h-8 w-8 ${isUpgrading ? 'text-green-600' : 'text-orange-600'}`} />
+            <ArrowRight className={`h-8 w-8 ${isUpgrading ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`} />
 
             <div className="text-center">
               <p className="text-sm text-muted-foreground mb-1">Gói mới</p>

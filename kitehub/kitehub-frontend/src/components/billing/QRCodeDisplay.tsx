@@ -51,7 +51,7 @@ export function QRCodeDisplay({ qrCodeUrl, expiresAt }: QRCodeDisplayProps) {
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-4">
         {/* QR Code Image */}
-        <div className="relative w-64 h-64 bg-white p-4 rounded-lg border">
+        <div className="relative w-64 h-64 bg-white dark:bg-white p-4 rounded-lg border">
           <Image
             src={qrCodeUrl}
             alt="VietQR Payment Code"

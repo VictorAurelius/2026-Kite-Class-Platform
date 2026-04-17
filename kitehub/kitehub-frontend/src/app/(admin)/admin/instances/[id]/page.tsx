@@ -41,10 +41,10 @@ const statusConfig: Record<InstanceStatus, { label: string; variant: 'default' |
 };
 
 const tierConfig: Record<SubscriptionTier, { label: string; color: string }> = {
-  FREE: { label: 'Free', color: 'text-gray-500' },
-  BASIC: { label: 'Basic', color: 'text-blue-500' },
-  PREMIUM: { label: 'Premium', color: 'text-purple-500' },
-  ENTERPRISE: { label: 'Enterprise', color: 'text-amber-500' },
+  FREE: { label: 'Free', color: 'text-gray-500 dark:text-gray-400' },
+  BASIC: { label: 'Basic', color: 'text-blue-500 dark:text-blue-400' },
+  PREMIUM: { label: 'Premium', color: 'text-purple-500 dark:text-purple-400' },
+  ENTERPRISE: { label: 'Enterprise', color: 'text-amber-500 dark:text-amber-400' },
 };
 
 export default function AdminInstanceDetailPage() {

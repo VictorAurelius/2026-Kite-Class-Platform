@@ -56,7 +56,7 @@ export function PlanComparison({ currentTier }: PlanComparisonProps) {
           >
             <span
               className={cn(
-                'inline-block h-4 w-4 rounded-full bg-white transition-transform',
+                'inline-block h-4 w-4 rounded-full bg-white dark:bg-foreground transition-transform',
                 annual ? 'translate-x-6' : 'translate-x-1'
               )}
             />
@@ -127,7 +127,7 @@ export function PlanComparison({ currentTier }: PlanComparisonProps) {
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <div className="rounded-full bg-green-100 dark:bg-green-950/50 p-0.5 mt-0.5 flex-shrink-0">
-                        <Check className="h-3 w-3 text-green-600" />
+                        <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
                       </div>
                       <span className="text-sm">{feature}</span>
                     </li>

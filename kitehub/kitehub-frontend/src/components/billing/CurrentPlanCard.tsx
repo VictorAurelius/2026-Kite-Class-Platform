@@ -21,10 +21,10 @@ const tierColors: Record<string, string> = {
 };
 
 const tierIconColors: Record<string, string> = {
-  FREE: 'bg-gray-100 dark:bg-gray-800 text-gray-600',
-  BASIC: 'bg-blue-100 dark:bg-blue-950/50 text-blue-600',
-  PREMIUM: 'bg-purple-100 dark:bg-purple-950/50 text-purple-600',
-  ENTERPRISE: 'bg-amber-100 dark:bg-amber-950/50 text-amber-600',
+  FREE: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+  BASIC: 'bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400',
+  PREMIUM: 'bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400',
+  ENTERPRISE: 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400',
 };
 
 export function CurrentPlanCard({ subscription }: CurrentPlanCardProps) {

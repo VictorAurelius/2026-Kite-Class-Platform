@@ -16,28 +16,28 @@ export function PaymentStatusCard({ status, createdAt }: PaymentStatusCardProps)
       title: 'Đang chờ thanh toán',
       description: 'Vui lòng quét mã QR hoặc chuyển khoản theo thông tin bên dưới. Trang sẽ tự động cập nhật khi thanh toán thành công.',
       variant: 'default' as const,
-      color: 'text-blue-600',
+      color: 'text-blue-600 dark:text-blue-400',
     },
     COMPLETED: {
       icon: CheckCircle,
       title: 'Thanh toán thành công',
       description: 'Gói đăng ký của bạn đã được nâng cấp. Cảm ơn bạn đã sử dụng dịch vụ!',
       variant: 'default' as const,
-      color: 'text-green-600',
+      color: 'text-green-600 dark:text-green-400',
     },
     FAILED: {
       icon: XCircle,
       title: 'Thanh toán thất bại',
       description: 'Giao dịch không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp diễn.',
       variant: 'destructive' as const,
-      color: 'text-red-600',
+      color: 'text-red-600 dark:text-red-400',
     },
     EXPIRED: {
       icon: AlertTriangle,
       title: 'Mã QR đã hết hạn',
       description: 'Mã QR thanh toán đã hết hạn. Vui lòng quay lại trang thanh toán và tạo mã mới.',
       variant: 'destructive' as const,
-      color: 'text-orange-600',
+      color: 'text-orange-600 dark:text-orange-400',
     },
   };
 
