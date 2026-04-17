@@ -40,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 1.0.0
  */
 @WebMvcTest(AdminEmailController.class)
-@MockitoBean(JpaMetamodelMappingContext.class)
 @DisplayName("AdminEmail API Contract Tests")
 class AdminEmailApiContractTest {
 
@@ -52,6 +51,9 @@ class AdminEmailApiContractTest {
 
     @MockitoBean
     private EmailAdminService emailAdminService;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @MockitoBean
     private com.kitehub.subscription.config.AdminApiKeyInterceptor adminApiKeyInterceptor;
