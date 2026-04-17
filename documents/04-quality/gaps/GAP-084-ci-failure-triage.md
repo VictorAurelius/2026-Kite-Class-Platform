@@ -1,6 +1,6 @@
 # GAP-084: CI Failure Triage Skill
 
-**Status:** 🔵 OPEN
+**Status:** ✅ DONE
 **Priority:** 🟠 P1
 **Domain:** DevOps / CI-CD
 **Found:** 2026-04-16 (skills gap simulation)

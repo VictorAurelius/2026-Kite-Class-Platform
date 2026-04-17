@@ -1,6 +1,6 @@
 # GAP-085: Cross-App Consistency Check
 
-**Status:** 🔵 OPEN
+**Status:** ✅ DONE
 **Priority:** 🟠 P1
 **Domain:** Architecture / Quality
 **Found:** 2026-04-16 (skills gap simulation)
