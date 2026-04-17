@@ -230,7 +230,7 @@ class EmailAdminServiceTest {
 
             Map<String, Boolean> newToggles = Map.of("trial-warning", false, "welcome", true);
 
-            EmailConfigResponse result = emailAdminService.updateEmailConfig(newToggles);
+            emailAdminService.updateEmailConfig(newToggles);
 
             // Verify toggles were updated
             assertThat(existingToggles).containsEntry("trial-warning", false);

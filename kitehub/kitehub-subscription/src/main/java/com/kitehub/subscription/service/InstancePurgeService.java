@@ -39,7 +39,6 @@ public class InstancePurgeService {
 
     private final InstanceRepository instanceRepository;
     private final DatabaseProvisioningService databaseProvisioningService;
-    private final DatabaseBackupService databaseBackupService;
     private final BackupStorageService backupStorageService;
     private final BackupRecordRepository backupRecordRepository;
     private final EmailSentLogRepository emailSentLogRepository;
