@@ -234,11 +234,17 @@ npm install -g @anthropic-ai/claude-code
 claude --version
 ```
 
-### 3.2 Migrate Claude Code memory files
+### 3.2 Migrate Claude Code memory + conversation history
 
-**Memory location mapping:**
+**Location mapping:**
 - Old (Windows): `C:\Users\NguyenVanKiet\.claude\projects\D--person-2026-Kite-Class-Platform\`
 - New (WSL): `~/.claude/projects/-home-nguyenvankiet-projects-2026-Kite-Class-Platform/`
+
+**What to copy:**
+- `memory/` directory — learned feedback, preferences, project context
+- `*.jsonl` files — full conversation history (each session = 1 UUID.jsonl)
+- `*/` session state dirs (same UUID as .jsonl) — tool call state, plans
+- `plans/` from user home — plan files referenced from conversations
 
 ```bash
 # Find new project slug (WSL auto-creates on first `claude` in the dir)
@@ -247,15 +253,44 @@ claude --help > /dev/null  # trigger project registration
 ls ~/.claude/projects/ | grep 2026-Kite-Class
 # Note the directory name, e.g., "-home-nguyenvankiet-projects-2026-Kite-Class-Platform"
 
-# Copy memory from Windows
 NEW_SLUG="-home-nguyenvankiet-projects-2026-Kite-Class-Platform"
-cp -r /mnt/c/Users/NguyenVanKiet/.claude/projects/D--person-2026-Kite-Class-Platform/memory \
-      ~/.claude/projects/$NEW_SLUG/
+OLD_DIR="/mnt/c/Users/NguyenVanKiet/.claude/projects/D--person-2026-Kite-Class-Platform"
+NEW_DIR="$HOME/.claude/projects/$NEW_SLUG"
+
+# A. Memory files (learned preferences — no path issues)
+cp -r "$OLD_DIR/memory" "$NEW_DIR/"
+
+# B. Conversation JSONL files (history)
+cp "$OLD_DIR"/*.jsonl "$NEW_DIR/" 2>/dev/null
+
+# C. Session state directories (match each .jsonl by UUID)
+for session_dir in "$OLD_DIR"/*/; do
+  [[ "$(basename "$session_dir")" == "memory" ]] && continue
+  cp -r "$session_dir" "$NEW_DIR/"
+done
+
+# D. Plan files (live in user home, outside project dir)
+mkdir -p ~/.claude/plans
+cp /mnt/c/Users/NguyenVanKiet/.claude/plans/*.md ~/.claude/plans/ 2>/dev/null
 
 # Verify
-ls ~/.claude/projects/$NEW_SLUG/memory/
-# Expected: MEMORY.md + all feedback_*.md and reference_*.md files
+ls "$NEW_DIR/memory/" | head -5    # MEMORY.md + feedback_*.md
+ls "$NEW_DIR"/*.jsonl | wc -l       # session count (should be ≥1)
+ls ~/.claude/plans/ | head -5       # plan .md files
 ```
+
+**⚠️ Caveats for conversation history:**
+
+| What works | What doesn't |
+|-----------|--------------|
+| `claude --continue` shows old sessions | Re-running a tool call from old history that references `D:\...` — old absolute path doesn't exist in WSL |
+| `claude --resume <session-id>` loads full context | Tools attempting to `Read` a path logged in the old session → fail gracefully, new tool call uses WSL path |
+| Memory preserved | Session file mtimes reset on copy (cosmetic only) |
+| Plan files referenced in history still accessible | Plans with hardcoded `C:\Users\...` paths need re-pointing |
+
+**Session ID collision:** Claude Code uses UUID per session. Copying preserves UUIDs — safe. No collision with new WSL sessions (those get new UUIDs on creation).
+
+**File size note:** Long-running sessions can be 50-100+ MB per `.jsonl`. Copy is fast but first load after copy may take 5-10s while Claude Code indexes.
 
 ### 3.3 Fix `.claude/settings.local.json`
 
