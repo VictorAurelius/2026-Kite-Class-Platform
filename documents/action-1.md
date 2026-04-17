@@ -565,3 +565,5 @@ tổng kết và check status repo
 tiếp tục fix gaps
 
 merge chưa commit file json log của PR kìa
+
+đánh giá vấn đề này

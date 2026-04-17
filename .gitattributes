@@ -1,4 +1,59 @@
-# Force LF line endings for shell scripts and mvnw
-*.sh text eol=lf
-mvnw text eol=lf
-mvnw.cmd text eol=crlf
+# Default: auto-detect text files, normalize to LF in repo
+* text=auto eol=lf
+
+# Shell scripts, Python, YAML, and most configs MUST be LF
+# Running these with CRLF breaks: bash (syntax error), Python (invisible bugs),
+# YAML (docker-compose, k8s manifests, Spring configs)
+*.sh        text eol=lf
+*.py        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+
+# Code files — LF everywhere (matches CI/prod Linux environment)
+*.java      text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+*.json      text eol=lf
+*.sql       text eol=lf
+*.css       text eol=lf
+*.scss      text eol=lf
+*.html      text eol=lf
+
+# Docs
+*.md        text eol=lf
+*.txt       text eol=lf
+
+# Build tooling
+Dockerfile  text eol=lf
+.dockerignore text eol=lf
+.gitignore  text eol=lf
+.editorconfig text eol=lf
+
+# Maven wrapper — special case
+mvnw        text eol=lf
+mvnw.cmd    text eol=crlf
+
+# Windows batch files keep CRLF
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binary files — no EOL conversion
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.zip       binary
+*.jar       binary
+*.war       binary
+*.xlsx      binary
+*.docx      binary
+*.pptx      binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.otf       binary
