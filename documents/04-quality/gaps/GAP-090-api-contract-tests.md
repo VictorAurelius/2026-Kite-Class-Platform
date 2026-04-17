@@ -1,6 +1,6 @@
 # GAP-090: API Contract Tests (Consumer-Driven)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1 (trước production)
 **Domain:** Testing / API
 **Found:** 2026-04-16 (skills gap simulation)
@@ -26,7 +26,7 @@ Developer changes DTO field name → docs updated → nhưng consuming frontend 
 
 ## Acceptance Criteria
 
-- [ ] Contract test framework chosen and integrated
-- [ ] ≥5 critical endpoints have contract tests
-- [ ] CI runs contract tests on API-related PRs
-- [ ] Breaking change detected before merge
+- [x] Contract test framework chosen and integrated (WebMvcTest + jsonPath schema assertions)
+- [x] ≥5 critical endpoints have contract tests (Instance CRUD + AdminEmail stats/config/trigger)
+- [x] CI runs contract tests on API-related PRs (standard `mvn test` picks up *ContractTest)
+- [x] Breaking change detected before merge (field rename/removal fails schema assertions)
