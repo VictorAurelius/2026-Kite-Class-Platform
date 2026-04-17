@@ -16,7 +16,7 @@ export function PreviewStep({ context, send, onSubmit }: Props) {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-2xl font-semibold">Review & deploy</h2>
+        <h2 className="text-2xl font-semibold">Xem lại & triển khai</h2>
         <p className="mt-2 text-muted-foreground">
           Xác nhận thông tin. Sau khi deploy, branding sẽ được generate trong 2–5 phút.
           Bạn có thể regenerate từng asset riêng lẻ.
@@ -25,28 +25,28 @@ export function PreviewStep({ context, send, onSubmit }: Props) {
 
       <section className="rounded-xl border p-4" aria-label="Tóm tắt wizard inputs">
         <dl className="grid gap-3 text-sm md:grid-cols-2">
-          <Entry label="Segment" value={inputs.segment} />
-          <Entry label="Audience" value={inputs.audiences.join(', ') || '—'} />
-          <Entry label="Tone" value={inputs.tone} />
-          <Entry label="Template" value={inputs.templateId} />
-          {inputs.colorHint && <Entry label="Color hint" value={inputs.colorHint} />}
+          <Entry label="Phân khúc" value={inputs.segment} />
+          <Entry label="Đối tượng" value={inputs.audiences.join(', ') || '—'} />
+          <Entry label="Phong cách" value={inputs.tone} />
+          <Entry label="Mẫu" value={inputs.templateId} />
+          {inputs.colorHint && <Entry label="Gợi ý màu" value={inputs.colorHint} />}
           {inputs.typographyHint && (
-            <Entry label="Typography" value={inputs.typographyHint} />
+            <Entry label="Font chữ" value={inputs.typographyHint} />
           )}
           {inputs.contentDensity && (
-            <Entry label="Content density" value={inputs.contentDensity} />
+            <Entry label="Mật độ nội dung" value={inputs.contentDensity} />
           )}
           {inputs.customPrompt && (
-            <Entry label="Custom prompt" value={inputs.customPrompt} />
+            <Entry label="Tùy chỉnh" value={inputs.customPrompt} />
           )}
         </dl>
       </section>
 
-      <section aria-label="Live preview" className="space-y-2">
-        <div className="text-sm font-medium">Live preview</div>
+      <section aria-label="Xem trước trực tiếp" className="space-y-2">
+        <div className="text-sm font-medium">Xem trước trực tiếp</div>
         <div className="aspect-video w-full overflow-hidden rounded-xl border bg-muted">
           <iframe
-            title="Branding preview"
+            title="Xem trước thương hiệu"
             className="h-full w-full"
             src={`about:blank`}
           />
@@ -69,14 +69,14 @@ export function PreviewStep({ context, send, onSubmit }: Props) {
             onClick={() => send({ type: 'REGENERATE' })}
             className="rounded-md border px-4 py-2 text-sm disabled:opacity-40"
           >
-            🔄 Regenerate
+            🔄 Tạo lại
           </button>
           <button
             type="button"
             onClick={onSubmit}
             className="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground"
           >
-            Deploy
+            Triển khai
           </button>
         </div>
       </div>

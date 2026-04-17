@@ -57,16 +57,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <Link
         href="/blog"
-        className="mb-8 inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+        className="mb-8 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         &larr; Quay lai blog
       </Link>
 
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           {post.title}
         </h1>
-        <div className="mt-4 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
+        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
           <span>{post.author}</span>
           <span aria-hidden="true">&middot;</span>
           <time dateTime={post.date}>{formatDate(post.date)}</time>
@@ -76,7 +76,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
               >
                 {tag}
               </span>
@@ -90,10 +90,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
 
-      <div className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
+      <div className="mt-12 border-t border-border pt-8">
         <Link
           href="/blog"
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          className="text-primary hover:text-primary/80"
         >
           &larr; Xem tat ca bai viet
         </Link>

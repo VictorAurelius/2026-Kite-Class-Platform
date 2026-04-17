@@ -66,7 +66,7 @@ export function TierSelector({ currentTier, selectedTier, onSelect }: TierSelect
                 <div className="space-y-1.5">
                   {plan.features.slice(0, 3).map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
                     </div>
                   ))}
@@ -75,8 +75,8 @@ export function TierSelector({ currentTier, selectedTier, onSelect }: TierSelect
                 {/* Change Indicator */}
                 {changeType && !isCurrent && (
                   <div className="flex items-center gap-2 pt-2 border-t">
-                    <ArrowRight className={`h-4 w-4 ${changeType === 'upgrade' ? 'text-green-600' : 'text-orange-600'}`} />
-                    <span className={`text-sm font-medium ${changeType === 'upgrade' ? 'text-green-600' : 'text-orange-600'}`}>
+                    <ArrowRight className={`h-4 w-4 ${changeType === 'upgrade' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`} />
+                    <span className={`text-sm font-medium ${changeType === 'upgrade' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
                       {changeType === 'upgrade' ? 'Nâng cấp' : 'Hạ gói'}
                     </span>
                   </div>

@@ -10,14 +10,14 @@ import { SearchInput } from '../search-input';
 describe('SearchInput', () => {
   it('should render search input', () => {
     render(<SearchInput onSearch={vi.fn()} />);
-    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/tìm kiếm/i)).toBeInTheDocument();
   });
 
   it('should call onSearch when typing and debounced', async () => {
     const onSearch = vi.fn();
     render(<SearchInput onSearch={onSearch} />);
 
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByPlaceholderText(/tìm kiếm/i);
 
     // Simulate typing (will trigger debounced search)
     await userEvent.type(input, 'test query');
@@ -32,7 +32,7 @@ describe('SearchInput', () => {
     const onSearch = vi.fn();
     render(<SearchInput onSearch={onSearch} />);
 
-    const input = screen.getByPlaceholderText(/search/i) as HTMLInputElement;
+    const input = screen.getByPlaceholderText(/tìm kiếm/i) as HTMLInputElement;
     await userEvent.type(input, 'test');
 
     // Wait for clear button to appear

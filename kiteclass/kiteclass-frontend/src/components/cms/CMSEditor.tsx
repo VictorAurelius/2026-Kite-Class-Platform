@@ -125,7 +125,7 @@ export function CMSEditor({ tenantId: _tenantId, initialData = {}, onSave }: CMS
                         <Textarea
                           id={fieldName}
                           {...register(fieldName)}
-                          placeholder="Enter items, one per line"
+                          placeholder="Nhập các mục, mỗi dòng một mục"
                           rows={6}
                         />
                       )}

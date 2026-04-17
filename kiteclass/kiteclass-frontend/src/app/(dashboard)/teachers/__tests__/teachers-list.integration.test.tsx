@@ -150,9 +150,9 @@ describe.skip('TeachersListPage Integration', () => {
 
     await waitForLoadingToFinish();
 
-    // DataTable should show "No results found." message
+    // DataTable should show empty state message
     await waitFor(() => {
-      expect(screen.getByText('No results found.')).toBeInTheDocument();
+      expect(screen.getByText('Không tìm thấy kết quả.')).toBeInTheDocument();
     });
   });
 

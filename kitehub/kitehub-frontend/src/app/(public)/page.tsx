@@ -357,8 +357,8 @@ function HeroMockup() {
         className="absolute -right-4 top-20 rounded-xl border bg-card p-3 shadow-soft-lg"
       >
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-            <CheckCircle className="h-4 w-4 text-green-600" />
+          <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
           </div>
           <div>
             <p className="text-xs font-medium">Điểm danh thành công</p>
@@ -374,8 +374,8 @@ function HeroMockup() {
         className="absolute -left-4 bottom-24 rounded-xl border bg-card p-3 shadow-soft-lg"
       >
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-purple-600" />
+          <div className="h-8 w-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
             <p className="text-xs font-medium">AI đã tạo website</p>

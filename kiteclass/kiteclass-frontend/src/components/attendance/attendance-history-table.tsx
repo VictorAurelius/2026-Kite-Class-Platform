@@ -69,7 +69,7 @@ export function AttendanceHistoryTable({
 
       {/* Pagination */}
       {totalPages > 1 && onPageChange && (
-        <div className="flex items-center justify-between">
+        <div data-testid="attendance-pagination" className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Hiển thị {page * size + 1} - {page * size + data.length}{' '}
             trong tổng số {totalElements} bản ghi

@@ -35,7 +35,7 @@ describe('FeatureGate', () => {
       );
 
       expect(screen.getByRole('status')).toBeInTheDocument();
-      expect(screen.getByLabelText('Loading feature availability')).toBeInTheDocument();
+      expect(screen.getByLabelText('Đang tải tính năng')).toBeInTheDocument();
       expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
     });
   });
@@ -57,9 +57,9 @@ describe('FeatureGate', () => {
         </FeatureGate>
       );
 
-      expect(screen.getByText('Failed to load feature configuration')).toBeInTheDocument();
+      expect(screen.getByText('Không thể tải cấu hình tính năng')).toBeInTheDocument();
       expect(
-        screen.getByText('Unable to verify feature availability. Please try again later.')
+        screen.getByText('Không thể xác minh tính năng. Vui lòng thử lại sau.')
       ).toBeInTheDocument();
       expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
     });
@@ -100,7 +100,7 @@ describe('FeatureGate', () => {
       );
 
       expect(screen.getByText('Protected Content')).toBeInTheDocument();
-      expect(screen.queryByText('Feature Not Available')).not.toBeInTheDocument();
+      expect(screen.queryByText('Tính năng chưa khả dụng')).not.toBeInTheDocument();
     });
   });
 
@@ -138,12 +138,12 @@ describe('FeatureGate', () => {
         </FeatureGate>
       );
 
-      expect(screen.getByText('Feature Not Available')).toBeInTheDocument();
+      expect(screen.getByText('Tính năng chưa khả dụng')).toBeInTheDocument();
       expect(
-        screen.getByText(/is not available on your current plan/i)
+        screen.getByText(/không khả dụng trong gói hiện tại/i)
       ).toBeInTheDocument();
-      expect(screen.getByText(/requires PREMIUM tier or higher/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /upgrade to premium/i })).toBeInTheDocument();
+      expect(screen.getByText(/yêu cầu gói PREMIUM trở lên/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /nâng cấp lên premium/i })).toBeInTheDocument();
       expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
     });
 
@@ -184,7 +184,7 @@ describe('FeatureGate', () => {
       );
 
       expect(screen.getByText('Custom Fallback Content')).toBeInTheDocument();
-      expect(screen.queryByText('Feature Not Available')).not.toBeInTheDocument();
+      expect(screen.queryByText('Tính năng chưa khả dụng')).not.toBeInTheDocument();
       expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
     });
 
@@ -221,7 +221,7 @@ describe('FeatureGate', () => {
         </FeatureGate>
       );
 
-      expect(screen.getByRole('button', { name: /upgrade to premium/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /nâng cấp lên premium/i })).toBeInTheDocument();
     });
   });
 });

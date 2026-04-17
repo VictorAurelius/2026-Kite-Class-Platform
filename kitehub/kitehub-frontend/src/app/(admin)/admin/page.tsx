@@ -74,9 +74,9 @@ export default function AdminDashboardPage() {
 
   const statCards = [
     { label: 'Tổng Instance', value: stats.totalInstances, icon: Building2, color: 'from-primary to-primary/70', bg: 'bg-primary/10 text-primary' },
-    { label: 'Đang hoạt động', value: stats.activeInstances, icon: CheckCircle, color: 'from-green-500 to-green-600', bg: 'bg-green-50 text-green-600 dark:bg-green-950/30' },
-    { label: 'Đang dùng thử', value: stats.trialInstances, icon: Clock, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 text-blue-600 dark:bg-blue-950/30' },
-    { label: 'Tạm ngưng', value: stats.suspendedInstances, icon: XCircle, color: 'from-red-500 to-red-600', bg: 'bg-red-50 text-red-600 dark:bg-red-950/30' },
+    { label: 'Đang hoạt động', value: stats.activeInstances, icon: CheckCircle, color: 'from-green-500 to-green-600', bg: 'bg-green-50 dark:bg-green-950/30 text-green-600' },
+    { label: 'Đang dùng thử', value: stats.trialInstances, icon: Clock, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30 text-blue-600' },
+    { label: 'Tạm ngưng', value: stats.suspendedInstances, icon: XCircle, color: 'from-red-500 to-red-600', bg: 'bg-red-50 dark:bg-red-950/30 text-red-600' },
   ];
 
   return (
@@ -115,7 +115,7 @@ export default function AdminDashboardPage() {
             {[
               { label: 'Tổng doanh thu', value: formatVND(stats.totalRevenue), color: '' },
               { label: 'Doanh thu tháng này', value: formatVND(stats.monthlyRevenue), color: '' },
-              { label: 'Thanh toán chờ xác nhận', value: String(stats.pendingPayments), color: 'text-orange-600' },
+              { label: 'Thanh toán chờ xác nhận', value: String(stats.pendingPayments), color: 'text-orange-600 dark:text-orange-400' },
             ].map((r) => (
               <div key={r.label} className="flex justify-between items-center py-1">
                 <span className="text-sm text-muted-foreground">{r.label}</span>
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center py-1">
               <span className="text-sm text-muted-foreground">Instance mới trong tháng</span>
-              <span className="text-lg font-semibold text-green-600">{stats.newInstancesThisMonth}</span>
+              <span className="text-lg font-semibold text-green-600 dark:text-green-400">{stats.newInstancesThisMonth}</span>
             </div>
 
             <div className="pt-2 space-y-2">

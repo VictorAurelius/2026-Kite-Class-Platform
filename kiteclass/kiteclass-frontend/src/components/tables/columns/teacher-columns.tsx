@@ -72,19 +72,19 @@ export const getTeacherColumns = (
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <Link href={`/teachers/${row.original.id}`}>
-          <Button variant="ghost" size="icon" aria-label="View teacher">
+          <Button variant="ghost" size="icon" aria-label="Xem giáo viên">
             <Eye className="h-4 w-4" />
           </Button>
         </Link>
         <Link href={`/teachers/${row.original.id}/edit`}>
-          <Button variant="ghost" size="icon" aria-label="Edit teacher">
+          <Button variant="ghost" size="icon" aria-label="Sửa giáo viên">
             <Pencil className="h-4 w-4" />
           </Button>
         </Link>
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Delete teacher"
+          aria-label="Xóa giáo viên"
           onClick={() => onDelete(row.original.id)}
         >
           <Trash2 className="h-4 w-4 text-destructive" />

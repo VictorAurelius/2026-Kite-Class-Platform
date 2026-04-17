@@ -65,12 +65,35 @@ const getVariantFromStatus = (status: string): StatusVariant => {
   return 'default';
 };
 
+// Vietnamese labels for common status values
+const statusTranslations: Record<string, string> = {
+  ACTIVE: 'Hoạt động',
+  INACTIVE: 'Không hoạt động',
+  PENDING: 'Đang chờ',
+  COMPLETED: 'Hoàn thành',
+  CANCELLED: 'Đã hủy',
+  DRAFT: 'Nháp',
+  PUBLISHED: 'Đã xuất bản',
+  ARCHIVED: 'Đã lưu trữ',
+  PAID: 'Đã thanh toán',
+  OVERDUE: 'Quá hạn',
+  SUSPENDED: 'Đình chỉ',
+  GRADUATED: 'Đã tốt nghiệp',
+  ON_LEAVE: 'Nghỉ phép',
+  SCHEDULED: 'Đã lên lịch',
+  IN_PROGRESS: 'Đang diễn ra',
+  FAILED: 'Thất bại',
+  TERMINATED: 'Đã chấm dứt',
+  SUCCESS: 'Thành công',
+};
+
 export function StatusBadge({ status, variant, className }: StatusBadgeProps) {
   const badgeVariant = variant || getVariantFromStatus(status);
+  const label = statusTranslations[status] || status.replace(/_/g, ' ');
 
   return (
     <Badge className={cn(variantStyles[badgeVariant], className)}>
-      {status.replace(/_/g, ' ')}
+      {label}
     </Badge>
   );
 }

@@ -47,7 +47,7 @@ describe('DataTable', () => {
   it('should render empty state when no data', () => {
     render(<DataTable columns={mockColumns} data={[]} />);
 
-    expect(screen.getByText(/no results/i)).toBeInTheDocument();
+    expect(screen.getByText(/không tìm thấy kết quả/i)).toBeInTheDocument();
   });
 
   it('should render column headers', () => {
@@ -72,7 +72,7 @@ describe('DataTable', () => {
     );
 
     // Should show pagination controls
-    const nextButton = screen.getByRole('button', { name: /next/i });
+    const nextButton = screen.getByRole('button', { name: /sau/i });
     expect(nextButton).toBeInTheDocument();
 
     await user.click(nextButton);
@@ -93,7 +93,7 @@ describe('DataTable', () => {
       />
     );
 
-    const prevButton = screen.getByRole('button', { name: /previous/i });
+    const prevButton = screen.getByRole('button', { name: /trước/i });
     expect(prevButton).toBeDisabled();
   });
 
@@ -107,7 +107,7 @@ describe('DataTable', () => {
       />
     );
 
-    const nextButton = screen.getByRole('button', { name: /next/i });
+    const nextButton = screen.getByRole('button', { name: /sau/i });
     expect(nextButton).toBeDisabled();
   });
 

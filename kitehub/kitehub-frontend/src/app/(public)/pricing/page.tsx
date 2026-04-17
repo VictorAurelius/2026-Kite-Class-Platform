@@ -106,14 +106,14 @@ export default function PricingPage() {
           >
             <span
               className={cn(
-                'inline-block h-4 w-4 rounded-full bg-white transition-transform',
+                'inline-block h-4 w-4 rounded-full bg-white dark:bg-foreground transition-transform',
                 annual ? 'translate-x-6' : 'translate-x-1'
               )}
             />
           </button>
           <span className={cn('text-sm', annual && 'font-semibold')}>
             Hàng năm
-            <span className="ml-1 rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-700">
+            <span className="ml-1 rounded bg-green-100 dark:bg-green-950/50 px-1.5 py-0.5 text-xs text-green-700 dark:text-green-400">
               -10%
             </span>
           </span>

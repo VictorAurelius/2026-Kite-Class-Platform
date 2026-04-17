@@ -42,37 +42,63 @@ interface Invoice {
   status: string;
 }
 
-// API calls for dashboard stats
-const getDashboardStats = async () => {
-  const [students, teachers, courses, classes] = await Promise.all([
-    apiClient.get('/api/v1/students', { params: { page: 0, size: 1 } }),
-    apiClient.get('/api/v1/teachers', { params: { page: 0, size: 1 } }),
-    apiClient.get('/api/v1/courses', { params: { page: 0, size: 1 } }),
-    apiClient.get('/api/v1/classes', { params: { page: 0, size: 1 } }),
-  ]);
+// Vietnamese labels for invoice statuses
+const invoiceStatusLabels: Record<string, string> = {
+  DRAFT: 'Nháp',
+  PENDING: 'Chờ thanh toán',
+  PAID: 'Đã thanh toán',
+  OVERDUE: 'Quá hạn',
+  CANCELLED: 'Đã hủy',
+};
 
-  return {
-    studentsCount: students.data.data.totalElements || 0,
-    teachersCount: teachers.data.data.totalElements || 0,
-    coursesCount: courses.data.data.totalElements || 0,
-    classesCount: classes.data.data.totalElements || 0,
-  };
+// API calls for dashboard stats — wrapped in try-catch to prevent
+// unhandled rejections that trigger Next.js dev error overlay (GAP-077)
+const getDashboardStats = async () => {
+  try {
+    const [students, teachers, courses, classes] = await Promise.all([
+      apiClient.get('/api/v1/students', { params: { page: 0, size: 1 } }),
+      apiClient.get('/api/v1/teachers', { params: { page: 0, size: 1 } }),
+      apiClient.get('/api/v1/courses', { params: { page: 0, size: 1 } }),
+      apiClient.get('/api/v1/classes', { params: { page: 0, size: 1 } }),
+    ]);
+
+    return {
+      studentsCount: students.data.data.totalElements || 0,
+      teachersCount: teachers.data.data.totalElements || 0,
+      coursesCount: courses.data.data.totalElements || 0,
+      classesCount: classes.data.data.totalElements || 0,
+    };
+  } catch {
+    return {
+      studentsCount: 0,
+      teachersCount: 0,
+      coursesCount: 0,
+      classesCount: 0,
+    };
+  }
 };
 
 const getRecentActivities = async () => {
-  const [students, invoices] = await Promise.all([
-    apiClient.get('/api/v1/students', {
-      params: { page: 0, size: 5, sort: 'createdAt,desc' },
-    }),
-    apiClient.get('/api/v1/invoices', {
-      params: { page: 0, size: 5, sort: 'createdAt,desc' },
-    }).catch(() => ({ data: { data: { content: [] } } })),
-  ]);
+  try {
+    const [students, invoices] = await Promise.all([
+      apiClient.get('/api/v1/students', {
+        params: { page: 0, size: 5, sort: 'createdAt,desc' },
+      }).catch(() => ({ data: { data: { content: [] } } })),
+      apiClient.get('/api/v1/invoices', {
+        params: { page: 0, size: 5, sort: 'createdAt,desc' },
+      }).catch(() => ({ data: { data: { content: [] } } })),
+    ]);
 
-  return {
-    recentStudents: students.data.data.content || [],
-    recentInvoices: invoices.data.data.content || [],
-  };
+    return {
+      recentStudents: students.data.data.content || [],
+      recentInvoices: invoices.data.data.content || [],
+    };
+  } catch {
+    return {
+      recentStudents: [],
+      recentInvoices: [],
+    };
+  }
 };
 
 export default function DashboardPage() {
@@ -276,7 +302,7 @@ export default function DashboardPage() {
                           invoice.status === 'PAID' ? 'success' : 'default'
                         }
                       >
-                        {invoice.status}
+                        {invoiceStatusLabels[invoice.status] || invoice.status}
                       </Badge>
                     </Link>
                   ))}
