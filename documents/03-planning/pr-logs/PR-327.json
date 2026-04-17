@@ -1,0 +1,30 @@
+{
+  "pr": 327,
+  "title": "fix(hooks): auto-stage PR log files after creation",
+  "branch": "fix/auto-stage-pr-logs",
+  "created_at": null,
+  "merged_at": "2026-04-17T04:49:19Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-17T11:49:24.652276",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 1,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2"
+}

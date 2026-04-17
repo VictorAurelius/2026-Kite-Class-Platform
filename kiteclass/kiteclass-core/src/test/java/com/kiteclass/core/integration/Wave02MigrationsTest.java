@@ -22,17 +22,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Standalone Flyway migration test — the default {@code test} profile disables Flyway
  * and uses {@code hibernate.ddl-auto: create-drop}, so @SpringBootTest-based ITs do not
  * actually exercise our SQL migrations. This test spins up a dedicated Postgres via
- * Testcontainers and runs Flyway directly to prove migrations V28..V32 apply cleanly
- * and their CHECK constraints are enforced.
+ * Testcontainers and runs Flyway directly to prove the full migration chain V1..V40
+ * applies cleanly on a fresh (empty) database.
  *
  * <p>Covers:
  * <ul>
+ *   <li>V1..V27: Core schema, students, teachers, courses, etc.</li>
  *   <li>V28: academic_years, semesters, holidays</li>
  *   <li>V29: homeroom_classes, subject_sections, curricula, subject_grades</li>
  *   <li>V30: permissions, roles, role_permissions, user_roles (+ level CHECK 1..10)</li>
  *   <li>V31: frontend_instances (+ status CHECK)</li>
  *   <li>V32: branding_resources (+ category FK CHECKs)</li>
+ *   <li>V40: branding table (GAP-065 fresh-deploy fix)</li>
  * </ul>
+ *
+ * <p>GAP-065 fix: previously baselined at V27 because V25 ALTER'd a table created
+ * by kitehub-branding. Now V25 is conditional and V40 creates branding IF NOT EXISTS,
+ * so the full chain runs from V1 on empty Postgres.
  *
  * @since Wave 2 Sub-PR follow-up (quality-audit 2026-04-14)
  */
@@ -51,18 +57,13 @@ class Wave02MigrationsTest {
     void setup() {
         POSTGRES.start();
 
-        // Baseline at V27 so Flyway only runs V28+. V1..V27 include migrations that
-        // depend on tables seeded outside kiteclass-core (e.g. V25 alters `branding`
-        // which is provisioned by kitehub-branding service). Production runs with
-        // baseline-on-migrate anyway; this test is scoped to Wave 2 migrations only.
+        // GAP-065 fix: V25 is now conditional (skips if branding table missing) and
+        // V40 creates branding IF NOT EXISTS, so the full chain V1..V40 runs cleanly
+        // on a fresh empty Postgres. No more baseline workaround needed.
         Flyway flyway = Flyway.configure()
                 .dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
                 .locations("classpath:db/migration")
-                .baselineVersion("27")
-                .baselineDescription("wave-2 test baseline")
                 .load();
-        // Empty schema needs explicit baseline() — baselineOnMigrate only fires on non-empty schemas.
-        flyway.baseline();
         flyway.migrate();
     }
 
@@ -142,17 +143,24 @@ class Wave02MigrationsTest {
     }
 
     @Test
-    @DisplayName("Flyway recorded V28..V32 as successful")
-    void flyway_schema_history_shows_all_wave2_applied() throws SQLException {
+    @DisplayName("Flyway recorded all V1..V40 as successful (full chain, no baseline)")
+    void flyway_schema_history_shows_all_migrations_applied() throws SQLException {
         try (Connection conn = dataSource();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(
                      "SELECT COUNT(*) FROM flyway_schema_history "
-                             + "WHERE version IN ('28','29','30','31','32') AND success = true"
+                             + "WHERE success = true AND type = 'SQL'"
              )) {
             assertThat(rs.next()).isTrue();
-            assertThat(rs.getInt(1)).isEqualTo(5);
+            // V1..V39 + V40 = 40 migrations total
+            assertThat(rs.getInt(1)).isEqualTo(40);
         }
+    }
+
+    @Test
+    @DisplayName("V40 creates branding table for fresh deploy (GAP-065)")
+    void v40_branding_table_exists() throws SQLException {
+        assertTableExists("branding");
     }
 
     // ——— helpers ————————————————————————————————————————————————
