@@ -62,8 +62,15 @@ public class DatabaseBackupService {
      * @param databaseName name of the database to backup
      * @return the completed BackupRecord
      */
+    private static final java.util.regex.Pattern DB_NAME_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9_]{1,63}$");
+
     @Transactional
     public BackupRecord backupInstance(UUID instanceId, String databaseName) {
+        if (databaseName == null || !DB_NAME_PATTERN.matcher(databaseName).matches()) {
+            throw new IllegalArgumentException(
+                    "Invalid database name: must be 1-63 alphanumeric/underscore characters, got: " + databaseName);
+        }
         String timestamp = LocalDateTime.now().format(DATE_FORMAT);
         String s3Key = String.format("backups/%s/%s-%s.dump", instanceId, databaseName, timestamp);
 

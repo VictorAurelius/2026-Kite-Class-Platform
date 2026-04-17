@@ -241,6 +241,26 @@ class EmailAdminServiceTest {
     @DisplayName("triggerEmail")
     class TriggerEmail {
 
+        @BeforeEach
+        void setUpIdempotency() {
+            // Default: no email sent today (idempotency check passes)
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                any(), anyString(), anyString(), any(), any())).thenReturn(false);
+        }
+
+        @Test
+        @DisplayName("should reject if same email already sent today (idempotency)")
+        void shouldRejectDuplicateEmail() {
+            when(instanceRepository.findById(instanceId))
+                .thenReturn(Optional.of(testInstance));
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                any(), eq("trial-warning"), anyString(), any(), any())).thenReturn(true);
+
+            assertThatThrownBy(() -> emailAdminService.triggerEmail(instanceId, "trial-warning"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already sent today");
+        }
+
         @Test
         @DisplayName("should dispatch trial-warning via EmailServiceClient")
         void shouldDispatchTrialWarning() {
