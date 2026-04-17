@@ -183,6 +183,20 @@
             <version>1.18.1</version>
         </dependency>
 
+        <!-- Apache POI for xlsx parsing + generation (GAP-051 Wave 1, bulk import students) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
+        <!-- OpenCSV — CSV parsing (GAP-051, reserved for CSV bulk import variant) -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+        </dependency>
+
         <!-- Testcontainers MinIO -->
         <dependency>
             <groupId>org.testcontainers</groupId>

@@ -1,10 +1,33 @@
 # GAP-051: Bulk Import Users via xlsx/CSV
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 1 MVP — 2026-04-17)
 **Priority:** 🔴 P0 (school persona blocker)
 **Domain:** Backend / Frontend / Product
 **Detected:** 2026-04-14 (user-raised example)
 **Persona blocked:** P5 K-12 School, P3 Medium Center, P4 Chain
+
+## Wave 1 MVP — Implementation Notes (2026-04-17)
+
+Shipped on `wave/1-bulk-import`:
+
+- `kiteclass-core/src/main/java/com/kiteclass/core/module/student/bulkimport/` — new
+  package with entity, repository, dto, service, and controller layers.
+- `POST /api/v1/students/bulk-import/preview` — dry-run, no DB writes.
+- `POST /api/v1/students/bulk-import/commit` — parse + validate + create;
+  returns `jobId` + `Location` header; persists `BulkImportJob` audit row.
+- `POST /api/v1/students/bulk-import/jobs/{id}/errors` — stream xlsx error
+  report (stateless MVP: caller re-uploads original file).
+- Flyway `V41__create_student_bulk_import_job.sql` adds the jobs table.
+- Spring multipart limit raised to 5 MB; hard row cap = 10 000.
+- Per-chunk transactions via `BulkImportChunkExecutor` (REQUIRES_NEW,
+  500-row chunks) so one invalid chunk cannot roll back others.
+- Deps added: Apache POI 5.2.5 (`poi-ooxml`), OpenCSV 5.9.
+- Tests: `XlsxParserTest` (5), `RowValidatorTest` (13),
+  `StudentBulkImportServiceTest` (7), `StudentBulkImportIT` (2, Testcontainers).
+
+MVP **does not** include: auto-assign to classes, welcome emails, undo
+within 24 h, teacher/parent/staff variants, >100-row async progress —
+these remain open for a follow-up wave and are tracked below.
 
 ## Problem
 
@@ -143,3 +166,6 @@ After fix:
 ## Log
 
 - 2026-04-14 — User raised as canonical example of missing business logic review
+- 2026-04-17 — Wave 1 MVP shipped on `wave/1-bulk-import`:
+  xlsx parse + validate + batch-create + audit job row + error-report xlsx.
+  Async/email/class-assign deferred to follow-up wave.
