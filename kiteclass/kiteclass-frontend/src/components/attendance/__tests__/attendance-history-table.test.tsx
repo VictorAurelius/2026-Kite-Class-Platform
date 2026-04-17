@@ -148,8 +148,8 @@ describe('AttendanceHistoryTable', () => {
     it('shows pagination controls when totalPages > 1', () => {
       render(<AttendanceHistoryTable {...paginatedProps} />);
 
-      expect(screen.getByText('Trước')).toBeInTheDocument();
-      expect(screen.getByText('Tiếp')).toBeInTheDocument();
+      expect(screen.getAllByText('Trước')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Tiếp')[0]).toBeInTheDocument();
     });
 
     it('shows current page info', () => {
@@ -162,7 +162,7 @@ describe('AttendanceHistoryTable', () => {
       const onPageChange = vi.fn();
       render(<AttendanceHistoryTable {...paginatedProps} onPageChange={onPageChange} />);
 
-      const nextButton = screen.getByText('Tiếp');
+      const nextButton = screen.getAllByText('Tiếp')[0];
       fireEvent.click(nextButton);
 
       expect(onPageChange).toHaveBeenCalledWith(1);
@@ -178,7 +178,7 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      const prevButton = screen.getByText('Trước');
+      const prevButton = screen.getAllByText('Trước')[0];
       fireEvent.click(prevButton);
 
       expect(onPageChange).toHaveBeenCalledWith(1);
@@ -187,7 +187,7 @@ describe('AttendanceHistoryTable', () => {
     it('disables previous button on first page', () => {
       render(<AttendanceHistoryTable {...paginatedProps} page={0} />);
 
-      const prevButton = screen.getByText('Trước');
+      const prevButton = screen.getAllByText('Trước')[0];
       expect(prevButton).toBeDisabled();
     });
 
@@ -200,7 +200,7 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      const nextButton = screen.getByText('Tiếp');
+      const nextButton = screen.getAllByText('Tiếp')[0];
       expect(nextButton).toBeDisabled();
     });
 
