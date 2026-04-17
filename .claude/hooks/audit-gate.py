@@ -69,14 +69,21 @@ LOG_DIR = PROJECT_ROOT / "documents" / "03-planning" / "pr-logs"
 # ── Event Detection ──────────────────────────────────────────────
 
 def detect_pr_merge(cmd: str) -> str | None:
-    """Detect: gh pr merge <number>"""
-    match = re.search(r"gh\s+pr\s+merge\s+(\d+)", cmd)
+    """Detect: gh pr merge <number> — only if it's the primary command, not a substring."""
+    # Skip if command is echo, python, cat, or piped test (avoids false positives)
+    stripped = cmd.strip()
+    if any(stripped.startswith(p) for p in ("echo ", "python ", "cat ", "printf ", "#")):
+        return None
+    match = re.match(r"^\s*gh\s+pr\s+merge\s+(\d+)", stripped)
     return match.group(1) if match else None
 
 
 def detect_pr_create(cmd: str, output: str) -> str | None:
     """Detect: gh pr create → parse PR number from output URL."""
-    if not re.search(r"gh\s+pr\s+create", cmd):
+    stripped = cmd.strip()
+    if any(stripped.startswith(p) for p in ("echo ", "python ", "cat ", "printf ", "#")):
+        return None
+    if not re.match(r"^\s*gh\s+pr\s+create", stripped):
         return None
     match = re.search(r"/pull/(\d+)", output or "")
     return match.group(1) if match else None
@@ -205,18 +212,29 @@ def compute_score(checklist: dict) -> str:
 
 def on_pr_create(pr: str, output: str) -> dict | None:
     """Handle PR creation — initialize log file."""
-    info = get_pr_info(pr)
-    log = read_pr_log(pr)
-    log["title"] = info.get("title", "")
-    log["branch"] = info.get("headRefName", "")
-    log["created_at"] = info.get("createdAt") or datetime.now().isoformat()
-    log = add_event(log, "PR_CREATED", {"number": int(pr)})
-    write_pr_log(pr, log)
+    try:
+        info = get_pr_info(pr)
+        log = read_pr_log(pr)
+        log["title"] = info.get("title", "")
+        log["branch"] = info.get("headRefName", "")
+        log["created_at"] = info.get("createdAt") or datetime.now().isoformat()
+        log = add_event(log, "PR_CREATED", {"number": int(pr)})
+        write_pr_log(pr, log)
+    except Exception:
+        pass  # Non-critical — don't crash hook on log failure
     return None  # No message needed on create
 
 
 def on_pr_merge(pr: str) -> dict | None:
     """Handle PR merge — collect compliance data, log, warn/block."""
+    try:
+        return _on_pr_merge_impl(pr)
+    except Exception as e:
+        # Non-critical — don't crash hook, but warn
+        return {"systemMessage": f"PR #{pr} — audit-gate error: {e}"}
+
+
+def _on_pr_merge_impl(pr: str) -> dict | None:
     files = get_pr_files(pr)
     info = get_pr_info(pr)
     ci_status = get_ci_status(pr)
