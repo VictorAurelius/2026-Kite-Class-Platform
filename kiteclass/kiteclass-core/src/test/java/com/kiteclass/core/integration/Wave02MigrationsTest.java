@@ -152,10 +152,18 @@ class Wave02MigrationsTest {
                              + "WHERE success = true AND type = 'SQL'"
              )) {
             assertThat(rs.next()).isTrue();
-            // At least V1..V41 applied. Exact count grows as migrations are added —
+            // At least V1..V42 applied. Exact count grows as migrations are added —
             // avoid hardcoded count to reduce false-positive breakage on new migrations.
-            assertThat(rs.getInt(1)).isGreaterThanOrEqualTo(41);
+            assertThat(rs.getInt(1)).isGreaterThanOrEqualTo(42);
         }
+    }
+
+    @Test
+    @DisplayName("V42 creates parent portal tables (GAP-052a Wave 2)")
+    void v42_parent_portal_tables_present() throws SQLException {
+        assertTableExists("parents");
+        assertTableExists("parent_student_links");
+        assertTableExists("parent_invitations");
     }
 
     @Test

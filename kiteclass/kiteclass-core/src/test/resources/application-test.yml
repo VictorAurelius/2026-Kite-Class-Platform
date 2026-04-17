@@ -20,3 +20,13 @@ spring:
 internal:
   api:
     secret: test-internal-secret-for-unit-tests-only
+
+# Parent portal — enabled for tests so service-level tests don't trip on the
+# feature flag. The sweep interval is huge to keep the scheduler dormant
+# during unit runs.
+kiteclass:
+  parent-portal:
+    enabled: true
+    invitation-ttl-hours: 24
+    redeem-base-url: http://localhost:3000/parent-invite/
+    expire-sweep-ms: 86400000

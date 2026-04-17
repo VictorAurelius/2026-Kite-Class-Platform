@@ -1,0 +1,51 @@
+package com.kiteclass.core.module.parent.repository;
+
+import com.kiteclass.core.module.parent.entity.ParentStudentLink;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * Data-access for {@link ParentStudentLink}.
+ *
+ * <p>Queries are written with explicit JPQL joins so that tests using
+ * Hibernate's auto-ddl schema see identical SQL to production (no surprises
+ * from derived-query snake_case conversion).
+ *
+ * @since 2.14.0
+ */
+@Repository
+public interface ParentStudentLinkRepository extends JpaRepository<ParentStudentLink, Long> {
+
+    /**
+     * Lists all non-deleted links owned by a parent, eagerly fetching the
+     * linked student to avoid N+1 loading when rendering the dashboard.
+     */
+    @Query("""
+            SELECT l FROM ParentStudentLink l
+            JOIN FETCH l.student s
+            WHERE l.parent.id = :parentId
+              AND l.deleted = false
+              AND s.deleted = false
+            """)
+    List<ParentStudentLink> findByParentIdWithStudent(@Param("parentId") Long parentId);
+
+    /**
+     * Returns the list of linked student ids for a given parent. Used to
+     * populate the {@code linked_student_ids} JWT claim at login.
+     */
+    @Query("""
+            SELECT l.student.id FROM ParentStudentLink l
+            WHERE l.parent.id = :parentId AND l.deleted = false
+            """)
+    List<Long> findStudentIdsByParentId(@Param("parentId") Long parentId);
+
+    /**
+     * @return {@code true} iff there is a non-deleted link between the given
+     * parent and student. Used for authorization checks on child-scoped reads.
+     */
+    boolean existsByParentIdAndStudentIdAndDeletedFalse(Long parentId, Long studentId);
+}

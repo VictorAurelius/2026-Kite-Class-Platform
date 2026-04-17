@@ -44,6 +44,7 @@ public interface StudentMapper {
      */
     @Mapping(target = "avatarUrl", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "parentLinks", ignore = true)
     Student toEntity(CreateStudentRequest request);
 
     /**
@@ -65,6 +66,7 @@ public interface StudentMapper {
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "avatarUrl", ignore = true)
+    @Mapping(target = "parentLinks", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(@MappingTarget Student student, UpdateStudentRequest request);
 }
