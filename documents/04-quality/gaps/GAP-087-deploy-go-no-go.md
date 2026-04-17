@@ -1,6 +1,6 @@
 # GAP-087: Deploy Go/No-Go Decision Checklist
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (trước production)
 **Domain:** Operations / Release Management
 **Found:** 2026-04-16 (skills gap simulation)

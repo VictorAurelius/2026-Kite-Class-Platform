@@ -1,6 +1,6 @@
 # GAP-086: Incident Response Runbook
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (trước production)
 **Domain:** Operations / SRE
 **Found:** 2026-04-16 (skills gap simulation)
