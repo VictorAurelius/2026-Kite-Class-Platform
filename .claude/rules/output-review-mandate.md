@@ -73,9 +73,9 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **AI-generated assets** | Quality gate /100 + content safety | Auto + manual | Automated + admin | ⚠️ PLANNED (GAP-012, 018) |
 | **Contracts (Word)** | Legal review | Before use | Lawyer | ❌ **VIOLATION** |
 | **Generated PDFs/Excel** | QA checklist + visual regression | Before delivery | QA | ⚠️ PLANNED (GAP-047) |
-| **Database migrations** | Migration review checklist | Pre-merge | DBA + peer | ❌ **VIOLATION** (relied on code review only) |
-| **Scripts (bash/Python)** | Script review checklist | Pre-merge | Peer | ❌ **VIOLATION** |
-| **API contracts** | Contract tests + schema validation | Pre-merge + runtime | Consumer/producer | ❌ **VIOLATION** |
+| **Database migrations** | migration-review-checklist skill | Pre-merge | DBA + peer | ✅ DONE |
+| **Scripts (bash/Python)** | script-review-checklist skill | Pre-merge | Peer | ✅ DONE |
+| **API contracts** | api-contract-audit skill + schema validation | Pre-merge + runtime | Consumer/producer | ⚠️ PARTIAL (audit skill exists, no consumer-driven contract tests yet) |
 | **Screenshots** | Manual + automated audit | Capture time | Auditor | ⚠️ PARTIAL (ui-review skill) |
 | **Logs format** | Log standard doc | Audit period | SRE | ❌ **VIOLATION** |
 | **Marketing copy** | Brand + legal | Before publish | Marketing + legal | ❌ **VIOLATION** |
@@ -98,12 +98,9 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | 1 | **Gap reports** | Ironic — gap queue has no gap review process! |
 | 2 | **Rules docs** | Meta governance without meta review |
 | 3 | **Architecture docs** | No ADR process → decisions made unilaterally |
-| 4 | **Database migrations** | Risk of data loss without dedicated review |
-| 5 | **Scripts** (bash/Python in project) | Security risk, no review |
-| 6 | **API contracts** | No contract test → breaking changes silent |
-| 7 | **Email templates** | Customer-facing, no brand/legal check |
-| 8 | **Marketing copy / legal docs** | Compliance risk |
-| 9 | **Logs format** | Debug difficulty nếu format drift |
+| 4 | **Email templates** | Customer-facing, no brand/legal check |
+| 5 | **Marketing copy / legal docs** | Compliance risk |
+| 6 | **Logs format** | Debug difficulty nếu format drift |
 
 ### ⚠️ PARTIAL (exists but informal)
 
@@ -111,6 +108,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 - Skills self-review
 - Screenshots scoring
 - Templates (planned in GAP-011)
+- API contracts (audit skill exists, no consumer-driven contract tests)
 
 ### ⚠️ PLANNED (tracked in gaps)
 
@@ -288,4 +286,5 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- 2026-04-16 — Resolved 2 violations: Scripts (script-review-checklist skill), DB migrations (migration-review-checklist skill). API contracts moved to PARTIAL (audit skill exists). Remaining: 6 critical violations.
 - 2026-04-14 — Rule established; 9 critical violations identified; remediation via GAP-048

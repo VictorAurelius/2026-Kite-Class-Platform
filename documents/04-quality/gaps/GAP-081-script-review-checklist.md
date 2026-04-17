@@ -1,6 +1,6 @@
 # GAP-081: Script Review Checklist & Skill
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** DevOps / Quality Gate
 **Found:** 2026-04-16 (skills gap simulation)

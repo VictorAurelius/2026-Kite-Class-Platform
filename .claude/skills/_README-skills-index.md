@@ -46,6 +46,8 @@
 | `quality/performance-audit/SKILL.md` | Performance baseline /100 (DB, API, bundle) | Truoc production deploy |
 | `quality/api-contract-audit/SKILL.md` | API ↔ docs sync /100 | Sau thay doi endpoints |
 | `quality/ops-readiness-audit/SKILL.md` | Production ops readiness /100 | Truoc GA deploy |
+| `quality/script-review-checklist.md` | Script review checklist (bash/python) | PR co .sh/.py files |
+| `quality/migration-review-checklist.md` | Flyway migration DBA checklist | PR co V*.sql files |
 
 ### Technical Standards
 
