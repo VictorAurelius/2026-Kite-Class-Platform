@@ -559,3 +559,9 @@ còn nhiều file changing, hãy xử lý hết trong PR này
   - P1: Add idempotency check cho POST /trigger email
 
 Fix IDE warnings trước, quy trình đang thiếu phần check này không?
+
+tổng kết và check status repo
+
+tiếp tục fix gaps
+
+merge chưa commit file json log của PR kìa

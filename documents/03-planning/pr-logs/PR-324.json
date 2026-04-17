@@ -1,0 +1,23 @@
+{
+  "pr": 324,
+  "title": "chore: commit PR-323 log",
+  "branch": "chore/pr-log-323",
+  "state": "MERGED",
+  "checks": {
+    "ci": "skip",
+    "tests": "skip",
+    "ide_warnings": "skip",
+    "business_docs": "skip",
+    "audits": "skip",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "no CI data",
+    "tests": "no code files",
+    "ide_warnings": "no java files",
+    "business_docs": "no business logic changes",
+    "audits": "no audits required",
+    "wave_completion": "not a wave"
+  },
+  "score": "0/0"
+}
