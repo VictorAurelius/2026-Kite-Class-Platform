@@ -1,0 +1,30 @@
+{
+  "pr": 323,
+  "title": "docs(ops+governance): 6 P0 gaps + IDE warnings compliance check",
+  "branch": "fix/p0-ops-governance-gaps",
+  "created_at": null,
+  "merged_at": "2026-04-17T04:17:26Z",
+  "checklist": {
+    "tests_written": false,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-17T11:17:31.190249",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 16,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/2"
+}
