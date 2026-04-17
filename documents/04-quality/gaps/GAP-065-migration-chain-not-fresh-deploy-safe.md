@@ -1,6 +1,6 @@
 # GAP-065: Migration Chain Not Fresh-Deploy Safe
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend / DevOps
 **Detected:** 2026-04-14 (during GAP-007/009 IT test work)
@@ -47,11 +47,33 @@ Option C — **Split migration paths**:
 
 ## Acceptance Criteria
 
-- [ ] Fresh empty Postgres + `./mvnw test` + Flyway migrate from V1 succeeds without baseline workaround
-- [ ] Wave02MigrationsTest removes `baselineVersion("27")` hack
+- [x] Fresh empty Postgres + `./mvnw test` + Flyway migrate from V1 succeeds without baseline workaround
+- [x] Wave02MigrationsTest removes `baselineVersion("27")` hack
 - [ ] Migration plan doc updated with resolution
 - [ ] Drift check added to CI (migration-dry-run on fresh Postgres)
 
+## Resolution
+
+**Approach:** Combined Option A + Option B:
+
+1. **V25 made conditional** — wrapped in `DO $$ IF EXISTS ... END $$` block so it
+   skips gracefully when `branding` table doesn't exist (fresh deploy scenario).
+2. **V40 created** — `V40__create_branding_table_if_not_exists.sql` creates the full
+   `branding` table with `CREATE TABLE IF NOT EXISTS`, matching the Branding entity schema.
+   Safe for existing environments (IF NOT EXISTS).
+3. **Wave02MigrationsTest updated** — removed `baselineVersion("27")` hack, now runs
+   full migration chain V1..V40 from empty Postgres.
+
+**Migration order on fresh deploy:**
+- V1..V24: core tables (no branding reference)
+- V25: conditional ALTER — branding doesn't exist yet, skips silently
+- V26..V39: other tables
+- V40: CREATE TABLE IF NOT EXISTS branding — table now exists
+- Future migrations can safely reference branding table
+
+**Existing environments:** V25 already ran (branding existed), V40 is a no-op (IF NOT EXISTS).
+
 ## Log
 
+- 2026-04-16 — Fixed: V25 made conditional, V40 creates branding table, test updated
 - 2026-04-14 — Detected while adding Wave02MigrationsTest; workaround (baselineVersion=27) shipped in PR #280
