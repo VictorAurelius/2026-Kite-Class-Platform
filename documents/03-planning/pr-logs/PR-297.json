@@ -1,0 +1,21 @@
+{
+  "pr": 297,
+  "title": "feat(wave-04): Sub-PR 4.1 Content Moderation (GAP-018)",
+  "branch": "wave/04-security-compliance/content-safety",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "pass",
+    "audits": "pass",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "3 tests / 8 java (37%)",
+    "business_docs": "3 business doc(s) updated",
+    "audits": "1 audit(s) current",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "4/5"
+}

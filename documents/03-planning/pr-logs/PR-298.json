@@ -1,0 +1,21 @@
+{
+  "pr": 298,
+  "title": "wave(04): Sub-PR 4.4 GDPR deletion policy + retention classifier",
+  "branch": "wave/04-security-compliance/gdpr-deletion",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "pass",
+    "audits": "fail",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "5 tests / 17 java (29%)",
+    "business_docs": "3 business doc(s) updated",
+    "audits": "missing: api-contract",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "3/5"
+}

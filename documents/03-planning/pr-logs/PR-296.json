@@ -1,0 +1,21 @@
+{
+  "pr": 296,
+  "title": "feat(wave-04): Sub-PR 4.2 security hardening (SVG/SSRF/CSRF)",
+  "branch": "wave/04-security-compliance/hardening",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "pass",
+    "audits": "pass",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "3 tests / 7 java (42%)",
+    "business_docs": "3 business doc(s) updated",
+    "audits": "2 audit(s) current",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "4/5"
+}

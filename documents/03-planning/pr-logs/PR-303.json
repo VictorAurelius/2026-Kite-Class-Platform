@@ -1,0 +1,21 @@
+{
+  "pr": 303,
+  "title": "feat(skills): production audit suite — 5 new specialized audits",
+  "branch": "feature/production-audit-suite",
+  "state": "MERGED",
+  "checks": {
+    "ci": "skip",
+    "tests": "pass",
+    "business_docs": "skip",
+    "audits": "skip",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "no CI data",
+    "tests": "2 script(s) syntax OK",
+    "business_docs": "no business logic changes",
+    "audits": "no audits required",
+    "wave_completion": "not a wave"
+  },
+  "score": "1/1"
+}

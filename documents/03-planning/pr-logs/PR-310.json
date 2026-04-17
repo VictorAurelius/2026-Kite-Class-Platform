@@ -1,0 +1,21 @@
+{
+  "pr": 310,
+  "title": "docs(gaps): SaaS business logic deep audit — 5 gaps (GAP-091→095)",
+  "branch": "feature/saas-business-gaps",
+  "state": "MERGED",
+  "checks": {
+    "ci": "skip",
+    "tests": "skip",
+    "business_docs": "skip",
+    "audits": "skip",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "no CI data",
+    "tests": "no code files",
+    "business_docs": "no business logic changes",
+    "audits": "no audits required",
+    "wave_completion": "not a wave"
+  },
+  "score": "0/0"
+}

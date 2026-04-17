@@ -1,0 +1,21 @@
+{
+  "pr": 307,
+  "title": "chore: rename screenshots latest/ → kiteclass-latest/",
+  "branch": "feature/screenshot-folder-rename",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "skip",
+    "audits": "skip",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "1 script(s) syntax OK",
+    "business_docs": "no business logic changes",
+    "audits": "no audits required",
+    "wave_completion": "not a wave"
+  },
+  "score": "2/2"
+}

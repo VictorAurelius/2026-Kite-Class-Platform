@@ -1,0 +1,21 @@
+{
+  "pr": 311,
+  "title": "fix(subscription): re-trial prevention + email idempotency (GAP-091, 092)",
+  "branch": "feature/saas-lifecycle-fixes",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "fail",
+    "business_docs": "fail",
+    "audits": "skip",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "3 java, 0 test files",
+    "business_docs": "1 code changes, 0 business docs",
+    "audits": "no audits required",
+    "wave_completion": "not a wave"
+  },
+  "score": "1/3"
+}

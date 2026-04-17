@@ -1,0 +1,21 @@
+{
+  "pr": 295,
+  "title": "feat(wave-04): Sub-PR 4.3 Legal/IP protection (DMCA + trademark) (GAP-042)",
+  "branch": "wave/04-security-compliance/legal-ip",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "pass",
+    "audits": "fail",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "4 tests / 15 java (26%)",
+    "business_docs": "3 business doc(s) updated",
+    "audits": "missing: api-contract",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "3/5"
+}
