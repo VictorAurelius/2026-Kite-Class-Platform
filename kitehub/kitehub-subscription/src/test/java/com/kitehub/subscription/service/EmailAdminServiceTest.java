@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -244,7 +245,8 @@ class EmailAdminServiceTest {
         @BeforeEach
         void setUpIdempotency() {
             // Default: no email sent today (idempotency check passes)
-            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+            // lenient() because some tests override this stub
+            lenient().when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
                 any(), anyString(), anyString(), any(), any())).thenReturn(false);
         }
 
