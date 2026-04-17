@@ -68,6 +68,7 @@
 | `workflow/start-pr/SKILL.md` | /start-pr — start new PR |
 | `workflow/quality-plan/SKILL.md` | /quality-plan — generate PR plan tu audit gaps |
 | `workflow/repo-status/SKILL.md` | /repo-status — remote health (GREEN→BLACK) |
+| `workflow/pr-health.md` | /pr-health — PR compliance scanner (CI, tests, docs, audits) |
 | `workflow/wave-completion-check.md` | Wave completion gate (Level 7: audit suite) |
 | `workflow/gap-to-pr-converter.md` | Convert gap → PR/wave voi template |
 | `workflow/docs-freshness/SKILL.md` | Nhac update living docs (auto) |

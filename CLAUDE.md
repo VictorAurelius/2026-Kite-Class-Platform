@@ -175,6 +175,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `quality/ops-readiness-audit/SKILL.md` - Production ops readiness /100 (monitoring, deploy)
 - `workflow/wave-completion-check.md` - Wave completion verification (Level 7: audit suite gate)
 - `workflow/repo-status/SKILL.md` - Remote repo health check (5 levels: GREEN→BLACK)
+- `workflow/pr-health.md` - PR compliance scanner (CI, tests, docs, audits per PR)
 
 ### Technical Standards (consolidated)
 - `backend/backend-standards.md` - Code style, API, DB, enums, errors, Maven
