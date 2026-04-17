@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @since 1.0.0
  */
 @SpringBootApplication
-@EntityScan(basePackages = "com.kitehub.platform.domain.entity")
+@EntityScan(basePackages = {"com.kitehub.platform.domain.entity", "com.kitehub.subscription.domain"})
 @EnableJpaAuditing
 @EnableScheduling
 public class KitehubSubscriptionApplication {
