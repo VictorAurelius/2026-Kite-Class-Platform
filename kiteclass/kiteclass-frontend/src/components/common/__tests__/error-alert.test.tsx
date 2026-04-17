@@ -18,7 +18,7 @@ describe('ErrorAlert', () => {
 
   it('should render default title when not provided', () => {
     render(<ErrorAlert message="Error message" />);
-    expect(screen.getByText('Error')).toBeInTheDocument();
+    expect(screen.getByText('Lỗi')).toBeInTheDocument();
   });
 
   it('should render custom title when provided', () => {
@@ -30,7 +30,7 @@ describe('ErrorAlert', () => {
     const onDismiss = vi.fn();
     render(<ErrorAlert message="Error message" onDismiss={onDismiss} />);
 
-    const dismissButton = screen.getByRole('button', { name: /dismiss/i });
+    const dismissButton = screen.getByRole('button', { name: /bỏ qua/i });
     expect(dismissButton).toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe('ErrorAlert', () => {
     const onDismiss = vi.fn();
     render(<ErrorAlert message="Error message" onDismiss={onDismiss} />);
 
-    const dismissButton = screen.getByRole('button', { name: /dismiss/i });
+    const dismissButton = screen.getByRole('button', { name: /bỏ qua/i });
     await user.click(dismissButton);
 
     expect(onDismiss).toHaveBeenCalledTimes(1);

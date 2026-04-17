@@ -5,7 +5,7 @@
  * @since 3.8.1 (PR 3.8.1)
  */
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { AttendanceHistoryTable } from '../attendance-history-table';
 import { mockAttendanceRecords } from '@/__tests__/fixtures/attendance';
@@ -148,8 +148,9 @@ describe('AttendanceHistoryTable', () => {
     it('shows pagination controls when totalPages > 1', () => {
       render(<AttendanceHistoryTable {...paginatedProps} />);
 
-      expect(screen.getAllByText('Trước')[0]).toBeInTheDocument();
-      expect(screen.getAllByText('Tiếp')[0]).toBeInTheDocument();
+      const pagination = screen.getByTestId('attendance-pagination');
+      expect(within(pagination).getByText('Trước')).toBeInTheDocument();
+      expect(within(pagination).getByText('Tiếp')).toBeInTheDocument();
     });
 
     it('shows current page info', () => {
@@ -162,7 +163,8 @@ describe('AttendanceHistoryTable', () => {
       const onPageChange = vi.fn();
       render(<AttendanceHistoryTable {...paginatedProps} onPageChange={onPageChange} />);
 
-      const nextButton = screen.getAllByText('Tiếp')[0];
+      const pagination = screen.getByTestId('attendance-pagination');
+      const nextButton = within(pagination).getByText('Tiếp');
       fireEvent.click(nextButton);
 
       expect(onPageChange).toHaveBeenCalledWith(1);
@@ -178,7 +180,8 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      const prevButton = screen.getAllByText('Trước')[0];
+      const pagination = screen.getByTestId('attendance-pagination');
+      const prevButton = within(pagination).getByText('Trước');
       fireEvent.click(prevButton);
 
       expect(onPageChange).toHaveBeenCalledWith(1);
@@ -187,7 +190,8 @@ describe('AttendanceHistoryTable', () => {
     it('disables previous button on first page', () => {
       render(<AttendanceHistoryTable {...paginatedProps} page={0} />);
 
-      const prevButton = screen.getAllByText('Trước')[0];
+      const pagination = screen.getByTestId('attendance-pagination');
+      const prevButton = within(pagination).getByText('Trước');
       expect(prevButton).toBeDisabled();
     });
 
@@ -200,7 +204,8 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      const nextButton = screen.getAllByText('Tiếp')[0];
+      const pagination = screen.getByTestId('attendance-pagination');
+      const nextButton = within(pagination).getByText('Tiếp');
       expect(nextButton).toBeDisabled();
     });
 
@@ -241,8 +246,8 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      expect(screen.queryByText('Trước')).not.toBeInTheDocument();
-      expect(screen.queryByText('Tiếp')).not.toBeInTheDocument();
+      // Attendance-specific pagination not rendered (data-table may still have its own)
+      expect(screen.queryByTestId('attendance-pagination')).not.toBeInTheDocument();
     });
 
     it('does not show pagination when onPageChange is not provided', () => {
@@ -256,7 +261,7 @@ describe('AttendanceHistoryTable', () => {
         />
       );
 
-      expect(screen.queryByText('Trước')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('attendance-pagination')).not.toBeInTheDocument();
     });
   });
 
