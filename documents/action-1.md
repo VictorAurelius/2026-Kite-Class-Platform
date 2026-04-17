@@ -25,7 +25,7 @@ Bây giờ sẽ có các vấn đề design sau cần tiếp tục giải quyế
 + model sẽ được gọi trực tiếp, gọi qua API, hay gọi qua 1 pipeline data, workflow chuyên nghiệp để xử lý cho người dùng
 + việc generate ảnh sẽ rất nặng, lâu, khiến người dùng phải chờ và cần đa model để phục vụ?
 + hoặc ngoài việc phụ thuộc vào model có thể thêm giải pháp template ảnh sẵn như canva để tạo ảnh nhanh hơn
-=> đâu là best pratice cho vấn đề này
+=> đâu là best practice cho vấn đề này
 
 3. nghiệp vụ của kitehub đã thật sự ổn chưa, vẫn còn nhiều gaps dù điểm đã cáo, ví dụ dễ thấy:
 3.1. thiết kế các thời điểm cần gửi email cho người dùng đã có chưa: khi user đăng ký mở instance, khi user sử dụng gần hết trial cần cảnh báo, khi user nâng lên gói payment thành công, khi user gần hết hạn gói payment và nhiều trường hợp khác.
@@ -73,7 +73,7 @@ vậy việc gây ra nhiều PR cần hoàn thành này là do đâu, cần làm
 tốt, hãy thực hiện, nhưng tôi nghĩ cần có nhiều lớp check từ cấp độ PR đến domain, đến dự án
 
 vậy thực sự business logic cần:
-1. lưu ở đâu: tôi đã từng thực hiện tạo và lưu cho kiteclass và thực hiện lưu ở floder đó luôn nhưng có vẽ không được cập nhật, không được tham chiếu và không hiệu quả: kiteclass\kiteclass-core\docs\module-business-logic.md, kiteclass\kiteclass-core\docs\modules\course-module-business-logic.md
+1. lưu ở đâu: tôi đã từng thực hiện tạo và lưu cho kiteclass và thực hiện lưu ở folder đó luôn nhưng có vẽ không được cập nhật, không được tham chiếu và không hiệu quả: kiteclass\kiteclass-core\docs\module-business-logic.md, kiteclass\kiteclass-core\docs\modules\course-module-business-logic.md
 2. chi tiết đến mức độ nào: cần chi tiết như thế nào để design backend, frontend được tốt, dễ review, không dài dòng, thừa thãi
 3. thời điểm tạo và cập nhật như thế nào? làm sao để luôn ghi nhớ cần tham chiếu và cập nhật dễ dàng
 4. các skills cũng cần cập nhật
@@ -324,7 +324,7 @@ Bây giờ sẽ có các vấn đề design sau cần tiếp tục giải quyế
 + model sẽ được gọi trực tiếp, gọi qua API, hay gọi qua 1 pipeline data, workflow chuyên nghiệp để xử lý cho người dùng
 + việc generate ảnh sẽ rất nặng, lâu, khiến người dùng phải chờ và cần đa model để phục vụ?
 + hoặc ngoài việc phụ thuộc vào model có thể thêm giải pháp template ảnh sẵn như canva để tạo ảnh nhanh hơn
-=> đâu là best pratice cho vấn đề này
+=> đâu là best practice cho vấn đề này
 
 tìm báo cáo về vấn đề design này và trình bày tình trạng giải pháp đang áp dụng
 
@@ -508,3 +508,52 @@ vậy khi hết trial cần có cơ chế backup data lại để chuyển giao,
 
 Vậy cần chốt lại best practice để đảm bảo nghiệp vụ của kitehub chuẩn SAAS
 
+không cập nhật roadmap của gaps à? có rules chưa?
+Email notifications được trigger bằng gì? admin quản lý như thế nào? tôi đã hỏi có cần thiết kế batch cover không?
+
+merge và đề xuất action tiếp theo
+
+có skills tạo PR/wave có tối ưu agent để fix gaps rồi mà nhỉ?
+
+dùng skill tạo wave để fix tiếp GAP-093 (backup) và các gaps cùng wave
+
+tại sao tôi không thấy các audit được gọi sau 2 wave, cũng không check CI? liệu đã cả self-test theo rule chưa? check lại xem wave đúng workflow chưa?
+
+giới thiệu về folder này: documents\05-guides
+tại sao lại không dùng batch mà dùng jobs + rabbit MQ, hãy tạo guides giải nghĩa QA này
+
+● An image in the conversation exceeds the dimension limit for many-image requests (2000px). Run /compact to remove old  
+  images from context, or start a new session.
+
+=> lại gặp lỗi này, tối ưu skill để fix
+
+thực hiện fix toàn bộ gaps mà không dừng lại hỏi về action tiếp theo, cứ làm action ưu tiên nhé, vì tôi sẽ phải rời đi 1,2 tiếng
+
+lưu lại memory và check các PR trước nữa xem còn những PR nào vi phạm
+
+để tránh tình trạng miss workflow thì nên có cơ chế gì để khắc phục, và cơ chế gì để thu thập data xem PR có miss gì không dễ dàng hơn
+
+tạo plan rõ ràng để fix
+
+hệ thống có biên bản, lưu log PR không? từ khi tạo mới đến khi hoàn thành PR
+
+PR lifecycle log system có đang thiếu self-test và IDE-warnings không?
+
+Main CI đang chạy. Muốn tôi chờ CI green rồi chạy wave-completion-check luôn không?
+=> hoàn thiện nốt
+
+action tiếp theo là gì?
+
+Còn 1 điểm chưa handle — compliance check script chỉ kiểm tra Java/TS, không check bash/python scripts
+  (output-review-mandate §Scripts). Đây là known limitation, sẽ là improvement riêng vì scope lớn hơn (cần shellcheck/ruff
+  integration).
+=> còn cái này thì sao?
+
+thực hiện Danh sách action theo ưu tiên
+
+còn nhiều file changing, hãy xử lý hết trong PR này
+
+  Next priorities (từ audit findings):
+  - P0: Fix admin endpoint auth (security audit finding)
+  - P1: Add regex validation cho pg_dump databaseName
+  - P1: Add idempotency check cho POST /trigger email
