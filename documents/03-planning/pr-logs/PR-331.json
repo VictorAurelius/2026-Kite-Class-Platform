@@ -1,0 +1,30 @@
+{
+  "pr": 331,
+  "title": "docs(planning): wave roadmap for 5 remaining P0 gaps + P1 clusters",
+  "branch": "docs/wave-roadmap-p0",
+  "created_at": null,
+  "merged_at": "2026-04-17T08:55:51Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-17T15:55:56.148665",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 2,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}
