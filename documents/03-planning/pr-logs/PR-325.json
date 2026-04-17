@@ -1,0 +1,30 @@
+{
+  "pr": 325,
+  "title": "feat: fix capture mock auth + 3 workflow skills (GAP-076,083,084,085)",
+  "branch": "fix/p1-skills-and-tooling",
+  "created_at": null,
+  "merged_at": "2026-04-17T04:43:12Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-17T11:43:18.240946",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "",
+        "files_changed": 11,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}
