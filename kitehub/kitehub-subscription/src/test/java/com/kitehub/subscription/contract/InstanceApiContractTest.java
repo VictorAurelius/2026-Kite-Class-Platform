@@ -14,7 +14,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 1.0.0
  */
 @WebMvcTest(InstanceController.class)
+@MockitoBean(JpaMetamodelMappingContext.class)
 @DisplayName("Instance API Contract Tests")
 class InstanceApiContractTest {
 
@@ -62,6 +67,9 @@ class InstanceApiContractTest {
 
     @MockitoBean
     private InstancePurgeService instancePurgeService;
+
+    @MockitoBean
+    private com.kitehub.subscription.config.AdminApiKeyInterceptor adminApiKeyInterceptor;
 
     private static final UUID INSTANCE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
     private static final UUID OWNER_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
