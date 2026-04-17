@@ -143,7 +143,7 @@ class Wave02MigrationsTest {
     }
 
     @Test
-    @DisplayName("Flyway recorded all V1..V40 as successful (full chain, no baseline)")
+    @DisplayName("Flyway recorded all migrations as successful (full chain, no baseline)")
     void flyway_schema_history_shows_all_migrations_applied() throws SQLException {
         try (Connection conn = dataSource();
              Statement st = conn.createStatement();
@@ -152,8 +152,9 @@ class Wave02MigrationsTest {
                              + "WHERE success = true AND type = 'SQL'"
              )) {
             assertThat(rs.next()).isTrue();
-            // V1..V39 + V40 = 40 migrations total
-            assertThat(rs.getInt(1)).isEqualTo(40);
+            // At least V1..V41 applied. Exact count grows as migrations are added —
+            // avoid hardcoded count to reduce false-positive breakage on new migrations.
+            assertThat(rs.getInt(1)).isGreaterThanOrEqualTo(41);
         }
     }
 
