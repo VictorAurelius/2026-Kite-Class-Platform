@@ -1,10 +1,27 @@
 # GAP-052: Parent Portal + Accounts
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 IN_PROGRESS (Wave 2 ships identity + invitation; Wave 5 completes it)
 **Priority:** 🔴 P0 (K-12 persona blocker)
 **Domain:** Product / Frontend / Backend
 **Detected:** 2026-04-14 (persona review)
 **Persona blocked:** P5 K-12 School, P9 International School
+
+## Delivery Split
+
+- **Wave 2 (GAP-052a — this PR):** identity + invitation + skeleton page.
+  - Parent / ParentStudentLink / ParentInvitation entities + V42 migration
+  - `ParentInvitationService` (invite, redeem, expire sweeper) and `ParentService`
+    (self + linked children) with tenant isolation
+  - Endpoints: `POST /api/v1/parent-invitations`, `POST /api/v1/parent-invitations/redeem/{token}`,
+    `GET /api/v1/parent/me`, `GET /api/v1/parent/me/children`, and internal
+    `GET /internal/parents/{id}` for gateway JWT enrichment
+  - Feature flag `kiteclass.parent-portal.enabled` (default false) gates the
+    surface until Wave 5 lands
+  - Frontend skeletons: `(dashboard)/parent` and `(auth)/parent-invite/[token]`
+  - Unit tests for both services + V42 assertion in `Wave02MigrationsTest`
+- **Wave 5 (GAP-052b — follow-up):** dashboard widgets (attendance, grades,
+  invoices), messaging, SMS/Zalo notifications, fee payment, push
+  notifications, parent self-registration, bulk import.
 
 ## Problem
 

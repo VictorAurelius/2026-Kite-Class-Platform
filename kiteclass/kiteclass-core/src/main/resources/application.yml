@@ -215,3 +215,14 @@ retention:
 # below pass-threshold.
 quality-gate:
   pass-threshold: 70
+
+# Parent portal (Wave 2, GAP-052a) — identity + invitation.
+# Feature flag stays false by default until Wave 5 lands the full dashboard
+# widgets and the PDPL wording on parent data is finalised.
+kiteclass:
+  parent-portal:
+    enabled: ${PARENT_PORTAL_ENABLED:false}
+    invitation-ttl-hours: 24
+    redeem-base-url: ${PARENT_PORTAL_REDEEM_BASE_URL:https://app.kiteclass.vn/parent-invite/}
+    # Hourly sweep (ms) — override for tests via @TestPropertySource.
+    expire-sweep-ms: 3600000

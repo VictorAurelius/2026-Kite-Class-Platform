@@ -3,6 +3,7 @@ package com.kiteclass.core.module.student.entity;
 import com.kiteclass.core.common.constant.Gender;
 import com.kiteclass.core.common.constant.StudentStatus;
 import com.kiteclass.core.common.entity.BaseEntity;
+import com.kiteclass.core.module.parent.entity.ParentStudentLink;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Student entity representing a student in the system.
@@ -110,14 +113,14 @@ public class Student extends BaseEntity {
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
-    // Relationships will be added when implementing other modules
-    // @OneToMany(mappedBy = "student")
-    // private List<Enrollment> enrollments;
-    //
-    // @OneToMany(mappedBy = "student")
-    // private List<Attendance> attendances;
-    //
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "parent_id")
-    // private Parent parent;
+    // Parent/guardian relationship (Wave 2 — GAP-052a).
+    // Many parents per student and many students per parent — managed via
+    // ParentStudentLink rows so that per-edge metadata (PRIMARY/SECONDARY) is
+    // available. Kept LAZY; services must fetch explicitly when needed.
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<ParentStudentLink> parentLinks = new HashSet<>();
+
+    // Enrollment/attendance relationships will be added when those modules
+    // introduce owning back-references (they currently use FK columns only).
 }
