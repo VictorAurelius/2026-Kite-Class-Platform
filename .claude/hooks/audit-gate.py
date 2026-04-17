@@ -242,6 +242,7 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     # Analyze files
     java_files = [f for f in files if f.endswith(".java") and "/test/" not in f]
     test_files = [f for f in files if "Test.java" in f or "IT.java" in f]
+    script_files = [f for f in files if f.endswith((".sh", ".py"))]
     code_changes = any(f.endswith(("Controller.java", "Service.java")) for f in files)
     doc_changes = any("01-business/" in f for f in files)
     is_wave = any(f.startswith("wave/") for f in [info.get("headRefName", "")])
@@ -263,11 +264,12 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     log["branch"] = info.get("headRefName", log.get("branch", ""))
     log["merged_at"] = info.get("mergedAt") or datetime.now().isoformat()
 
-    has_tests = len(test_files) > 0 or len(java_files) == 0
+    has_code = len(java_files) > 0 or len(script_files) > 0
+    has_tests = len(test_files) > 0 or (not java_files and not script_files)
     docs_ok = not code_changes or doc_changes
 
     log["checklist"]["ci_green_before_merge"] = ci_status == "success"
-    log["checklist"]["tests_written"] = has_tests if java_files else None
+    log["checklist"]["tests_written"] = has_tests if has_code else None
     log["checklist"]["business_docs_updated"] = docs_ok if code_changes else None
     log["checklist"]["audits_required"] = required_audits
     log["checklist"]["audits_run"] = [a for a in required_audits if has_recent_audit(a)]
@@ -292,6 +294,8 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         violations.append(f"CI status: {ci_status}")
     if java_files and not test_files:
         violations.append(f"{len(java_files)} java files, 0 test files")
+    if script_files and not java_files and not test_files:
+        violations.append(f"{len(script_files)} script(s) — verify syntax + review per output-review-mandate")
     if code_changes and not doc_changes:
         violations.append("Business logic changed but no 01-business/ docs updated")
     if missing_audits:

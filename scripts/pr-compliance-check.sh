@@ -82,24 +82,52 @@ check_tests() {
   files=$(get_pr_files "$pr")
   [[ -z "$files" ]] && echo "skip:no files" && return
 
-  local java_count test_count
+  local java_count test_count script_count
   java_count=$(echo "$files" | grep -c '\.java$' 2>/dev/null || true)
   java_count=${java_count:-0}; java_count=$(echo "$java_count" | tr -d '[:space:]')
   test_count=$(echo "$files" | grep -cE '(Test|IT)\.java$' 2>/dev/null || true)
   test_count=${test_count:-0}; test_count=$(echo "$test_count" | tr -d '[:space:]')
+  script_count=$(echo "$files" | grep -cE '\.(sh|py)$' 2>/dev/null || true)
+  script_count=${script_count:-0}; script_count=$(echo "$script_count" | tr -d '[:space:]')
 
-  # No java files = docs/scripts PR, skip test check
-  [[ "$java_count" -eq 0 ]] && echo "skip:no java files" && return
+  # No code files at all = pure docs/config PR
+  local total_code=$((java_count + script_count))
+  [[ "$total_code" -eq 0 ]] && echo "skip:no code files" && return
 
+  # Scripts check (bash/python) — separate from Java test check
+  if [[ "$java_count" -eq 0 && "$script_count" -gt 0 ]]; then
+    # Scripts-only PR — check syntax validity as proxy for "tested"
+    local script_issues=0
+    for f in $(echo "$files" | grep -E '\.(sh|py)$'); do
+      local full_path="${REPO_ROOT}/${f}"
+      [[ ! -f "$full_path" ]] && continue
+      if [[ "$f" == *.sh ]]; then
+        bash -n "$full_path" 2>/dev/null || script_issues=$((script_issues + 1))
+      elif [[ "$f" == *.py ]]; then
+        python -m py_compile "$full_path" 2>/dev/null || script_issues=$((script_issues + 1))
+      fi
+    done
+    if [[ "$script_issues" -gt 0 ]]; then
+      echo "fail:${script_count} scripts, ${script_issues} syntax errors"
+    else
+      echo "pass:${script_count} script(s) syntax OK"
+    fi
+    return
+  fi
+
+  # Java tests check
   # Subtract test files from java count to get production-only
   local prod_count=$((java_count - test_count))
   [[ "$prod_count" -le 0 ]] && echo "pass:all test files" && return
 
+  local detail=""
+  [[ "$script_count" -gt 0 ]] && detail=" + ${script_count} scripts"
+
   if [[ "$test_count" -gt 0 ]]; then
     local ratio=$((test_count * 100 / java_count))
-    echo "pass:${test_count} tests / ${java_count} java (${ratio}%)"
+    echo "pass:${test_count} tests / ${java_count} java (${ratio}%)${detail}"
   else
-    echo "fail:${java_count} java, 0 test files"
+    echo "fail:${java_count} java, 0 test files${detail}"
   fi
 }
 
