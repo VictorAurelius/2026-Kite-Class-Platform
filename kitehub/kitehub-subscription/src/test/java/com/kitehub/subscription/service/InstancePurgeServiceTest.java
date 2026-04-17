@@ -52,9 +52,6 @@ class InstancePurgeServiceTest {
     private DatabaseProvisioningService databaseProvisioningService;
 
     @Mock
-    private DatabaseBackupService databaseBackupService;
-
-    @Mock
     private BackupStorageService backupStorageService;
 
     @Mock

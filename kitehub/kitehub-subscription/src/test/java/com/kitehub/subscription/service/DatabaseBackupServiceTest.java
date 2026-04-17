@@ -14,9 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,10 +23,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -119,7 +114,7 @@ class DatabaseBackupServiceTest {
             when(backupRecordRepository.save(any(BackupRecord.class)))
                 .thenReturn(savedRecord);
 
-            BackupRecord result = databaseBackupService.backupInstance(instanceId, "test_db");
+            databaseBackupService.backupInstance(instanceId, "test_db");
 
             // First save = IN_PROGRESS, second save = FAILED (pg_dump not available)
             ArgumentCaptor<BackupRecord> captor = ArgumentCaptor.forClass(BackupRecord.class);
@@ -147,7 +142,7 @@ class DatabaseBackupServiceTest {
             when(backupRecordRepository.save(any(BackupRecord.class)))
                 .thenReturn(savedRecord);
 
-            BackupRecord result = databaseBackupService.backupInstance(instanceId, "test_db");
+            databaseBackupService.backupInstance(instanceId, "test_db");
 
             // Second save should have FAILED status
             ArgumentCaptor<BackupRecord> captor = ArgumentCaptor.forClass(BackupRecord.class);
