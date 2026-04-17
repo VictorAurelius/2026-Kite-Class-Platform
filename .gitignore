@@ -59,6 +59,10 @@ infrastructure/terraform-oracle/backend.hcl
 # manifest.md = auto-generated index per capture run, useful for audit history
 documents/screenshots/**/*.png
 
+# Python cache
+__pycache__/
+*.pyc
+
 # Temporary files
 *.tmp
 *.temp
