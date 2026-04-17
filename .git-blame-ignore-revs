@@ -1,0 +1,9 @@
+# Commits to ignore when running `git blame`.
+# Usage:
+#   git config --local blame.ignoreRevsFile .git-blame-ignore-revs
+# Or per-command:
+#   git blame --ignore-revs-file .git-blame-ignore-revs <file>
+
+# 2026-04-17: one-time LF renormalization across 1777 files (PR #333)
+# No content changes — only CRLF→LF normalization driven by expanded .gitattributes.
+a6d5075da4ba199a8d8fcd60c382a2a439b2640a
