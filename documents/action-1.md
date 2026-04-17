@@ -557,3 +557,5 @@ còn nhiều file changing, hãy xử lý hết trong PR này
   - P0: Fix admin endpoint auth (security audit finding)
   - P1: Add regex validation cho pg_dump databaseName
   - P1: Add idempotency check cho POST /trigger email
+
+Fix IDE warnings trước, quy trình đang thiếu phần check này không?
