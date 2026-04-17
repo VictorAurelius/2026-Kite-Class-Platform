@@ -1,0 +1,34 @@
+{
+  "pr": 329,
+  "title": "fix(frontend): error overlay + i18n Vietnamese + dark mode (GAP-077,078,079)",
+  "branch": "fix/frontend-p1-gaps",
+  "created_at": null,
+  "merged_at": "2026-04-17T08:26:50Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [
+      "ui-review"
+    ],
+    "audits_run": [
+      "ui-review"
+    ],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-17T15:26:58.266490",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "",
+        "files_changed": 45,
+        "java_files": 0,
+        "test_files": 0,
+        "business_docs": true,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "1/2"
+}
