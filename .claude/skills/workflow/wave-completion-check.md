@@ -157,6 +157,8 @@ SHARED FILES: InstanceService.java → merge Agent 1 TRƯỚC Agent 2
 - [ ] application.yml AND application-test.yml có config mới
 - [ ] @SpringBootTest tests load config? (check application.yml in test/resources/)
 - [ ] Mock setup dùng lenient() nếu không phải mọi test cần mock
+- [ ] No unused imports, fields, or local variables (IDE warnings clean)
+- [ ] No deprecated APIs (@MockBean → @MockitoBean, etc.)
 - [ ] List shared files với agents khác: [...]
 ```
 
