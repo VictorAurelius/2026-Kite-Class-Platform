@@ -15,10 +15,15 @@
  *   Total: ~152 screenshots + manifest.md
  *
  * Auth injection:
- *   Injects mock Zustand state into localStorage key 'kitehub-auth'.
- *   - Customer pages: OWNER role user
- *   - Admin pages: ADMIN role user (injected per-page)
- *   API calls return errors (no backend) — captures error handling UI.
+ *   Pre-injects mock Zustand state into localStorage via addInitScript
+ *   BEFORE page hydration (no redirect flash).
+ *   - Customer pages: OWNER role context
+ *   - Admin pages: ADMIN role context
+ *
+ * Mock API (GAP-076 fix):
+ *   Intercepts all /api/* requests via Playwright route() and returns
+ *   realistic mock data (instances, subscriptions, payments, branding, admin).
+ *   Dashboard pages render fully without backend.
  *
  * Port: 4701 (different from KiteClass on 4700)
  */
@@ -29,6 +34,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { exec, type ChildProcess } from 'child_process';
 import http from 'http';
+import { setupMockApi } from './mock-api-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -300,26 +306,9 @@ async function capturePage(
     const waitUntil = 'networkidle' as const;
     const timeout = isProd ? 30000 : 20000;
 
+    // Auth + theme are pre-injected via addInitScript at context creation,
+    // and mock API routes intercept backend calls — just navigate directly.
     await page.goto(url, { waitUntil, timeout });
-
-    // Re-apply theme + auth after navigation, then reload for hydration
-    const mockAuth = p.authRole === 'admin' ? MOCK_AUTH_ADMIN : (p.authRole === 'owner' ? MOCK_AUTH_OWNER : null);
-    await page.evaluate(
-      ([themeKey, themeVal, authKey, authVal]: string[]) => {
-        localStorage.setItem(themeKey, themeVal);
-        if (authVal) localStorage.setItem(authKey, authVal);
-        // Apply dark class directly
-        if (themeVal === 'dark') {
-          document.documentElement.classList.add('dark');
-          document.documentElement.style.colorScheme = 'dark';
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.style.colorScheme = 'light';
-        }
-      },
-      [THEME_KEY, theme, AUTH_STORAGE_KEY, mockAuth ? JSON.stringify(mockAuth) : '']
-    );
-    await page.reload({ waitUntil: 'networkidle', timeout });
     await page.waitForTimeout(isProd ? 1500 : 1000);
 
     const screenshotPath = path.join(pageDir, filename);
@@ -358,34 +347,58 @@ async function main() {
   const browser = await chromium.launch();
   const isProd = !BASE_URL.includes('localhost');
 
+  // Group pages by auth role to create separate contexts with correct auth injection
+  const PAGE_GROUPS: { label: string; pages: PageConfig[]; authState: Record<string, unknown> | null }[] = [
+    { label: 'public+auth', pages: [...PUBLIC_PAGES, ...AUTH_PAGES], authState: null },
+    { label: 'customer', pages: CUSTOMER_PAGES, authState: MOCK_AUTH_OWNER },
+    { label: 'admin', pages: ADMIN_PAGES, authState: MOCK_AUTH_ADMIN },
+  ];
+
   for (const theme of THEMES) {
     for (const viewport of VIEWPORTS) {
-      console.log(`\n▸ ${theme} / ${viewport.name}`);
+      for (const group of PAGE_GROUPS) {
+        console.log(`\n▸ ${theme} / ${viewport.name} / ${group.label}`);
 
-      const context = await browser.newContext({
-        viewport: { width: viewport.width, height: viewport.height },
-        colorScheme: theme,
-      });
-      const page = await context.newPage();
+        const context = await browser.newContext({
+          viewport: { width: viewport.width, height: viewport.height },
+          colorScheme: theme,
+        });
 
-      // Pre-inject theme into all pages + apply dark class immediately
-      await page.addInitScript(([key, val]: [string, string]) => {
-        localStorage.setItem(key, val);
-        // Apply dark class before hydration to prevent FOUC
-        if (val === 'dark') {
-          document.documentElement.classList.add('dark');
-          document.documentElement.style.colorScheme = 'dark';
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.style.colorScheme = 'light';
+        // Pre-inject theme + auth via addInitScript (runs BEFORE page JS)
+        const initArgs = {
+          themeKey: THEME_KEY,
+          themeVal: theme,
+          authKey: AUTH_STORAGE_KEY,
+          authVal: group.authState ? JSON.stringify(group.authState) : '',
+        };
+
+        await context.addInitScript((args: typeof initArgs) => {
+          // Inject theme
+          localStorage.setItem(args.themeKey, args.themeVal);
+          if (args.themeVal === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+          // Inject auth state for Zustand persist rehydration
+          if (args.authVal) {
+            localStorage.setItem(args.authKey, args.authVal);
+          }
+        }, initArgs);
+
+        const page = await context.newPage();
+
+        // Set up mock API routes to intercept backend calls
+        await setupMockApi(page);
+
+        for (const p of group.pages) {
+          await capturePage(page, p, theme, viewport, OUT_DIR, isProd);
         }
-      }, [THEME_KEY, theme] as [string, string]);
 
-      for (const p of ALL_PAGES) {
-        await capturePage(page, p, theme, viewport, OUT_DIR, isProd);
+        await context.close();
       }
-
-      await context.close();
     }
   }
 

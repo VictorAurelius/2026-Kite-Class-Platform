@@ -48,6 +48,7 @@
 | `quality/ops-readiness-audit/SKILL.md` | Production ops readiness /100 | Truoc GA deploy |
 | `quality/script-review-checklist.md` | Script review checklist (bash/python) | PR co .sh/.py files |
 | `quality/migration-review-checklist.md` | Flyway migration DBA checklist | PR co V*.sql files |
+| `quality/cross-app-consistency.md` | Cross-app KiteHub↔KiteClass check | PR touch shared infra |
 
 ### Technical Standards
 
@@ -71,6 +72,8 @@
 | `workflow/quality-plan/SKILL.md` | /quality-plan — generate PR plan tu audit gaps |
 | `workflow/repo-status/SKILL.md` | /repo-status — remote health (GREEN→BLACK) |
 | `workflow/pr-health.md` | /pr-health — PR compliance scanner (CI, tests, docs, audits) |
+| `workflow/gap-triage.md` | /gap-triage — triage gaps, xep uu tien, assign sprint |
+| `workflow/ci-failure-triage.md` | /ci-failure-triage — CI fail classification + fix guide |
 | `workflow/wave-completion-check.md` | Wave completion gate (Level 7: audit suite) |
 | `workflow/gap-to-pr-converter.md` | Convert gap → PR/wave voi template |
 | `workflow/docs-freshness/SKILL.md` | Nhac update living docs (auto) |

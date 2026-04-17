@@ -1,6 +1,6 @@
 # GAP-076: KiteHub Capture Script Mock Auth Not Working
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** DevOps / Screenshot Capture
 **Found:** 2026-04-16 (UI audit)
@@ -27,11 +27,27 @@ KiteHub capture script chỉ inject auth state vào localStorage. Không có moc
 
 ## Acceptance Criteria
 
-- [ ] Dashboard page renders với mock stats + instance list
-- [ ] Admin page renders với mock admin dashboard
-- [ ] Billing-history shows mock transactions
-- [ ] Branding-templates shows mock template cards
-- [ ] All 24 pages capture ≥50KB (không có blank/error shells)
+- [x] Dashboard page renders với mock stats + instance list
+- [x] Admin page renders với mock admin dashboard
+- [x] Billing-history shows mock transactions
+- [x] Branding-templates shows mock template cards
+- [x] All 24 pages capture ≥50KB (không có blank/error shells)
+
+## Resolution
+
+Fixed in `fix/p1-skills-and-tooling` branch:
+
+1. **Created `kitehub-frontend/scripts/mock-api-routes.ts`** — Playwright route interceptor
+   for all KiteHub API endpoints (instances, subscriptions, payments, branding, admin, auth).
+   Returns realistic Vietnamese mock data matching the TypeScript types.
+
+2. **Updated `capture-screenshots.ts`** — Auth is now pre-injected via `context.addInitScript()`
+   BEFORE page hydration (eliminating redirect flash). Pages are grouped by auth role
+   (public, customer/OWNER, admin/ADMIN) with separate browser contexts.
+   Mock API routes are set up on each page via `setupMockApi(page)`.
+
+3. **Updated `capture-targeted.ts`** — Same improvements: addInitScript auth injection,
+   mock API routes, auto-detection of auth role from route path.
 
 ## Related
 
