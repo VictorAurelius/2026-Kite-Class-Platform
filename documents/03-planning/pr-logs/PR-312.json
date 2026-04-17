@@ -1,0 +1,21 @@
+{
+  "pr": 312,
+  "title": "wave(email): RabbitMQ queue + gap-to-pr skill update (GAP-097)",
+  "branch": "wave/email-resilience",
+  "state": "MERGED",
+  "checks": {
+    "ci": "skip",
+    "tests": "pass",
+    "business_docs": "fail",
+    "audits": "pass",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "no CI data",
+    "tests": "2 tests / 6 java (33%)",
+    "business_docs": "1 code changes, 0 business docs",
+    "audits": "2 audit(s) current",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "2/4"
+}

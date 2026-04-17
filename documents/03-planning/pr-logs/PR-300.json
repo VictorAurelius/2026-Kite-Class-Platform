@@ -1,0 +1,21 @@
+{
+  "pr": 300,
+  "title": "wave(04): Sub-PR 4.6 Wave 4 Integration + Completion",
+  "branch": "wave/04-security-compliance/integration",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "skip",
+    "audits": "skip",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "all test files",
+    "business_docs": "no business logic changes",
+    "audits": "no audits required",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "2/3"
+}

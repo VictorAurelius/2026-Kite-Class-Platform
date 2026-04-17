@@ -1,0 +1,21 @@
+{
+  "pr": 302,
+  "title": "fix(kitehub-fe): dark mode + error boundary for DMCA & wizard pages",
+  "branch": "feature/fix-ui-audit-dark-mode-wizard",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "skip",
+    "audits": "pass",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "1 script(s) syntax OK",
+    "business_docs": "no business logic changes",
+    "audits": "1 audit(s) current",
+    "wave_completion": "not a wave"
+  },
+  "score": "3/3"
+}

@@ -1,0 +1,21 @@
+{
+  "pr": 299,
+  "title": "wave(04): Sub-PR 4.5 Automated Quality Gate (GAP-012)",
+  "branch": "wave/04-security-compliance/quality-gate",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "pass",
+    "audits": "pass",
+    "wave_completion": "fail"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "3 tests / 14 java (21%)",
+    "business_docs": "3 business doc(s) updated",
+    "audits": "1 audit(s) current",
+    "wave_completion": "no wave completion report"
+  },
+  "score": "4/5"
+}

@@ -1,0 +1,21 @@
+{
+  "pr": 306,
+  "title": "chore: migrate dev ports to 4700/4701",
+  "branch": "feature/port-migration-4700",
+  "state": "MERGED",
+  "checks": {
+    "ci": "pass",
+    "tests": "pass",
+    "business_docs": "skip",
+    "audits": "pass",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "CI green",
+    "tests": "6 script(s) syntax OK",
+    "business_docs": "no business logic changes",
+    "audits": "2 audit(s) current",
+    "wave_completion": "not a wave"
+  },
+  "score": "3/3"
+}

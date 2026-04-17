@@ -1,0 +1,21 @@
+{
+  "pr": 313,
+  "title": "docs(gaps): mark 4 SaaS gaps DONE",
+  "branch": "chore/gap-status-update",
+  "state": "MERGED",
+  "checks": {
+    "ci": "skip",
+    "tests": "skip",
+    "business_docs": "skip",
+    "audits": "skip",
+    "wave_completion": "skip"
+  },
+  "details": {
+    "ci": "no CI data",
+    "tests": "no code files",
+    "business_docs": "no business logic changes",
+    "audits": "no audits required",
+    "wave_completion": "not a wave"
+  },
+  "score": "0/0"
+}
