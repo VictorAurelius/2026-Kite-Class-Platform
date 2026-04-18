@@ -70,7 +70,7 @@ Tạo `documents/02-architecture/deployment-strategy.md` tổng hợp:
 
 ### Part 2: ADR-002 AWS Agent Plugins Evaluation
 
-`documents/02-architecture/adr/ADR-002-aws-agent-plugins-evaluation.md` theo MADR template:
+`documents/02-architecture/adr/ADR-015-aws-agent-plugins-evaluation.md` theo existing Nygard template (`adr/_TEMPLATE.md`):
 
 - **Context:** AWS Agent Plugins released 2026; Claude Code dùng mạnh trong dự án
 - **Decision Drivers:** productivity, cost, cloud-agnostic commitment, thesis defense, least-privilege
@@ -100,10 +100,11 @@ Tạo `documents/02-architecture/deployment-strategy.md` tổng hợp:
 - [ ] Section "Future: migration paths" (Oracle → AWS, hoặc ngược lại)
 
 ### Part 2
-- [ ] ADR-002 written theo template (từ GAP-102)
+- [ ] ADR-015 written theo existing Nygard template (`adr/_TEMPLATE.md`)
 - [ ] 4 options đánh giá với pros/cons
 - [ ] Decision outcome + revisit trigger clear
 - [ ] Related link tới AWS Agent Plugins repo
+- [ ] Index `adr/README.md` updated
 
 ## Dependencies
 
