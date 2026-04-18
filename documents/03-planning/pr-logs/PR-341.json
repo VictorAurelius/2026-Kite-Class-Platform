@@ -1,0 +1,35 @@
+{
+  "pr": 341,
+  "title": "wave(3): AI async pipeline + fair queue Phase 1 (GAP-002, GAP-005a)",
+  "branch": "wave/3-ai-async-fair-queue",
+  "created_at": "2026-04-18T04:58:52Z",
+  "merged_at": "2026-04-18T05:01:26Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": true,
+    "business_docs_updated": false,
+    "audits_required": [
+      "business-logic-audit",
+      "api-contract-audit",
+      "security-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:25.107747",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "success",
+        "files_changed": 24,
+        "java_files": 11,
+        "test_files": 8,
+        "script_files": 0,
+        "business_docs": false,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "2/5"
+}

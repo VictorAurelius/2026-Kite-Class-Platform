@@ -1,0 +1,31 @@
+{
+  "pr": 355,
+  "title": "feat(k12-schedule): GAP-099 Phase 1 \u2014 ClassScheduleSlot entity foundation",
+  "branch": "feature/gap-099-phase1-class-schedule-slot",
+  "created_at": "2026-04-18T15:56:37Z",
+  "merged_at": "2026-04-18T16:03:39Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": true,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:44.210225",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "success",
+        "files_changed": 5,
+        "java_files": 2,
+        "test_files": 1,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "2/2"
+}

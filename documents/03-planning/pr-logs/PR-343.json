@@ -1,0 +1,36 @@
+{
+  "pr": 343,
+  "title": "wave(4): branding propagation cluster (GAP-021,032,033p,037)",
+  "branch": "wave/4-branding-propagation",
+  "created_at": "2026-04-18T08:33:15Z",
+  "merged_at": "2026-04-18T08:53:56Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": true,
+    "business_docs_updated": false,
+    "audits_required": [
+      "ui-review",
+      "business-logic-audit",
+      "api-contract-audit",
+      "security-audit"
+    ],
+    "audits_run": [],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:28.265559",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "success",
+        "files_changed": 51,
+        "java_files": 24,
+        "test_files": 6,
+        "script_files": 0,
+        "business_docs": false,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "2/5"
+}
