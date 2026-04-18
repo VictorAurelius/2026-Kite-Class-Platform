@@ -53,7 +53,7 @@ Multi-platform educational technology suite — SaaS management + multi-tenant e
 
 ### Backend
 - Spring Boot 3.5.11, Spring Cloud 2025.0.0
-- Java 21, Maven
+- Java 17 (LTS), Maven
 - Flyway migrations
 - Micrometer + Prometheus metrics
 
@@ -75,7 +75,10 @@ Multi-platform educational technology suite — SaaS management + multi-tenant e
 - [Plans & Progress](documents/03-planning/) — Implementation plans, PR tracking
 - [Quality Reports](documents/04-quality/) — Audits, gap checks
 - [Guides](documents/05-guides/) — Deployment, operations, Vietnamese guides
-- [Diagrams](documents/06-diagrams/) — 19 PlantUML diagrams with rendered PNGs
+- [Diagrams](documents/06-diagrams/) — 25 PlantUML diagrams with rendered PNGs
+- [Architectural Decisions](documents/02-architecture/adr/) — 15 ADRs (Michael Nygard format)
+- [Deployment Strategy](documents/02-architecture/deployment-strategy.md) — 5 philosophy principles + environment matrix
+- [Governance Rules](.claude/rules/) — `docs-folder-structure.md`, `planning-docs-structure.md`, `audit-to-gap-pipeline.md`, etc.
 - [Thesis References](documents/08-thesis/) — Graduation project materials
 - [Documentation Map](documents/README.md) — Complete navigation guide
 
@@ -104,4 +107,4 @@ See [CLAUDE.md](CLAUDE.md) for development rules and methodology.
 
 ---
 
-**Last Updated:** 2026-03-24
+**Last Updated:** 2026-04-18
