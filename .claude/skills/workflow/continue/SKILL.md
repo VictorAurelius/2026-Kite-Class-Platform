@@ -13,7 +13,7 @@ argument-hint: "[optional context]"
 
 **Active Plans (check Completion Status section):**
 1. `documents/03-planning/quality-plan-v4-final-push.md` — 8 PRs, KH 96→100 + KC 93→100
-2. `documents/03-planning/parallel-execution-strategy.md` — wave execution guide
+2. `documents/03-planning/roadmap/parallel-execution-strategy.md` — wave execution guide
 
 **Completed Plans (reference only):**
 - `kitehub-saas-implementation-plan.md` — 17/17 ✅

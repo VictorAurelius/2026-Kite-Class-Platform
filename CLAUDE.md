@@ -192,6 +192,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `.claude/rules/output-review-mandate.md` - 🔴 MASTER RULE: mọi output phải có review standard + process (governance)
 - `.claude/rules/audit-to-gap-pipeline.md` - Audit issues → Gap files → Memory → Fix PR (tránh duplicate, đúng thứ tự)
 - `.claude/rules/mcp-first-with-fallback.md` - MCP-first tool selection (GitHub MCP, Postgres MCP) với CLI fallback
+- `.claude/rules/planning-docs-structure.md` - Layout + frontmatter rules cho `documents/03-planning/`
 
 ### Workflow
 - `workflow/continue/` - /continue skill

@@ -304,7 +304,7 @@ find kitehub -name "*Test.java" -o -name "*IT.java" | wc -l
 ```bash
 # 1. Plans updated
 echo "=== SaaS Plan status ==="
-grep "✅\|⬜\|🔄" documents/03-planning/kitehub-saas-implementation-plan.md | tail -20
+grep "✅\|⬜\|🔄" documents/03-planning/roadmap/kitehub-saas-implementation-plan.md | tail -20
 # Verify: completed PRs marked ✅
 
 # 2. Business docs reflect changes
@@ -395,7 +395,7 @@ Wave 1 cho thấy: **nếu không enforce, plans/reports sẽ outdated ngay sau 
 
 ```bash
 # 1. SaaS plan completion status
-grep "⬜\|✅" documents/03-planning/kitehub-saas-implementation-plan.md | tail -20
+grep "⬜\|✅" documents/03-planning/roadmap/kitehub-saas-implementation-plan.md | tail -20
 # Verify: PRs vừa merge đã mark ✅ + PR number
 
 # 2. Gap reports updated
@@ -404,7 +404,7 @@ grep "⬜\|✅" documents/04-quality/audits/business/business-gap-check-*-kitecl
 # Verify: gaps fixed trong wave đã mark ✅
 
 # 3. Parallel strategy updated
-grep "Wave.*COMPLETED\|Wave.*TODO" documents/03-planning/parallel-execution-strategy.md
+grep "Wave.*COMPLETED\|Wave.*TODO" documents/03-planning/roadmap/parallel-execution-strategy.md
 # Verify: current wave marked COMPLETED
 
 # 4. Refactor plan updated (nếu có refactor PR)
