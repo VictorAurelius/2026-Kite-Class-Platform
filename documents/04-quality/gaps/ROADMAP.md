@@ -10,7 +10,7 @@
 
 ## 1. Epic Taxonomy
 
-97 gaps được group thành **14 epics**:
+100 gaps được group thành **14 epics**:
 
 | Epic | Theme | Gaps | Priority |
 |------|-------|------|:--------:|
@@ -27,7 +27,7 @@
 | [E11](#epic-11-saas-lifecycle-hardening) | SaaS Lifecycle Hardening | 7 | 🔴 BLOCK GA |
 | [E12](#epic-12-process--devops-maturity) | Process & DevOps Maturity | 10 | 🟠 PRODUCTION |
 | [E13](#epic-13-frontend-quality) | Frontend Quality | 5 | 🟠 GROWTH |
-| [E14](#epic-14-quality-governance) | Quality Governance | 3 | 🟡 INTERNAL |
+| [E14](#epic-14-quality-governance) | Quality Governance | 6 | 🟡 INTERNAL |
 
 ---
 
@@ -561,8 +561,12 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-048 | Output review standards coverage | 🟠 P1 | M |
 | GAP-049 | Business logic correctness (stakeholder review) | 🟠 P1 | M |
 | GAP-050 | Persona-based business review process | 🟡 P2 | S |
+| GAP-101 | Docs folder README standardization (4 folders) | 🟢 P3 | S |
+| GAP-102 | 05-guides completion + ADR kickoff | 🟡 P2 | M |
+| GAP-103 | Deploy philosophy consolidation + AWS Agent Plugins ADR | 🟢 P3 | M |
 
-**Dependencies:** None. Can parallelize.
+**Dependencies:** GAP-101 → GAP-102 (needs 05-guides README) → GAP-103 (needs ADR template + 02-architecture README).
+**Split:** GAP-101 standalone PR. GAP-102 split Part 1 (guides) + Part 2 (ADR kickoff). GAP-103 after 101+102.
 
 ---
 
@@ -592,8 +596,18 @@ New: **GAP-092** (re-trial), **GAP-093** (backup), **GAP-081** (script review), 
 - **GAP-099** (P2) — Structured class schedule (replace free-form text) — `SubjectSection.java:24`
 - **GAP-100** (P3) — Lunar calendar for VN holidays — `VnHolidayProvider.java`
 
+### New gaps 2026-04-18 (docs folder governance audit)
+
+- **GAP-101** (P3) — Docs folder README standardization (4 folders: 00-brd, 02-architecture, 05-guides, 07-archived)
+- **GAP-102** (P2) — 05-guides completion (6 operational guides) + ADR kickoff (template + ADR-001 jobs+RabbitMQ)
+- **GAP-103** (P3) — Deploy philosophy consolidation + ADR-002 AWS Agent Plugins evaluation
+
 ### Planning docs added 2026-04-18
 
 - `documents/03-planning/plans/plan-ui-ux-design-system-integration.md` — 3-PR plan to adopt ui-ux-pro-max reasoning rules + upgrade ui-review skill to /148 scoring
+
+### Rules added 2026-04-18
+
+- `.claude/rules/docs-folder-structure.md` — generic rule extending `planning-docs-structure.md` pattern to all `documents/` folders (GAP-101)
 
 **Prior:** 2026-04-16 (added Epics 11-14, 48 new gaps from UI/process/SaaS audits)

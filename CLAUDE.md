@@ -193,6 +193,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `.claude/rules/audit-to-gap-pipeline.md` - Audit issues → Gap files → Memory → Fix PR (tránh duplicate, đúng thứ tự)
 - `.claude/rules/mcp-first-with-fallback.md` - MCP-first tool selection (GitHub MCP, Postgres MCP) với CLI fallback
 - `.claude/rules/planning-docs-structure.md` - Layout + frontmatter rules cho `documents/03-planning/`
+- `.claude/rules/docs-folder-structure.md` - Generic README/structure rule cho toàn bộ `documents/` (extends planning rule)
 
 ### Workflow
 - `workflow/continue/` - /continue skill

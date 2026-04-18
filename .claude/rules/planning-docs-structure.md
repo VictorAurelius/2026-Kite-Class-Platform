@@ -10,6 +10,8 @@
 
 `documents/03-planning/` is the **active planning area** — where wave plans, implementation strategies, and PR lifecycle logs live. It is NOT an archive (use `documents/07-archived/` for completed/obsolete plans).
 
+**Relationship to generic rule:** This rule is the **specialized version** cho 03-planning. Rule chung cho toàn bộ `documents/` ở `.claude/rules/docs-folder-structure.md`. Specialization here takes precedence where they overlap (frontmatter required, wave/plan taxonomy, archival timing).
+
 ---
 
 ## 2. Directory Layout
