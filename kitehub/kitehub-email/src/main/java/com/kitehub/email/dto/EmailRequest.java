@@ -49,4 +49,20 @@ public class EmailRequest {
      * Plain HTML body (if not using template).
      */
     private String htmlBody;
+
+    /**
+     * Tenant instance ID (optional). When provided, branding is fetched from
+     * kiteclass-core and injected into the Thymeleaf context as {@code branding}.
+     *
+     * @since Wave 4 (GAP-021)
+     */
+    private Long instanceId;
+
+    /**
+     * Tenant identifier header value (optional). Forwarded to the branding
+     * service as {@code X-Tenant-Id} for multi-tenant isolation.
+     *
+     * @since Wave 4 (GAP-021)
+     */
+    private String tenantId;
 }

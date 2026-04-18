@@ -1,9 +1,23 @@
 # GAP-032: Branded Error Pages (404/500/Maintenance)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4)
 **Priority:** 🟠 P1
 **Domain:** Frontend / UX
 **Detected:** 2026-04-14 (simulation: End User × Daily Usage × C2 UX)
+**Resolved:** 2026-04-18 (Wave 4 — branding propagation cluster)
+
+## Wave 4 resolution
+
+- New `kitehub-gateway` `BrandingClient` (reactive `WebClient`, Caffeine 5-min
+  TTL) fetches minimal branding for the resolved tenant.
+- `FallbackController` refactored — every fallback now returns branded HTML
+  (status 503) with the tenant's logo + primary color; falls back to defaults
+  when the branding fetch fails or the tenant header is absent.
+- Templates: `503-service-unavailable.html`, `404-not-found.html`,
+  `500-server-error.html` in `classpath:/templates/errors/` using simple
+  `{{token}}` substitution (keeps the gateway image small, avoids reactive
+  template-engine friction).
+- `FallbackControllerTest` asserts branded + default paths.
 
 ## Problem
 

@@ -579,3 +579,7 @@ Sẵn sàng khi user có input. => wave 3 cần tôi cung cấp input gì?
 wave vừa rồi có dùng mcp server để tối ưu không?
 
 Cần 1 PR riêng để update toàn bộ rule, skills tham chiếu đến mcp server, nếu không có mcp server thì cần phương án dự phòng là cách bình thường
+
+vẫn ko dùng mcp server à
+
+fix nhưng warnings này

@@ -1,8 +1,10 @@
 package com.kitehub.email.service;
 
+import com.kitehub.email.client.BrandingClient;
 import com.kitehub.email.config.SESConfig;
 import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
+import com.kitehub.email.dto.TenantBranding;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.Body;
 import software.amazon.awssdk.services.ses.model.Content;
@@ -36,20 +41,26 @@ public class SESEmailService {
     private final SesClient sesClient;
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final BrandingClient brandingClient;
 
     @Value("${email.provider:mock}")
     private String emailProvider;
+
+    @Value("${kitehub.email.branding-enabled:true}")
+    private boolean brandingEnabled;
 
     public SESEmailService(
             SESConfig.SESProperties sesProperties,
             @Autowired(required = false) SesClient sesClient,
             @Autowired(required = false) JavaMailSender mailSender,
-            TemplateEngine templateEngine
+            TemplateEngine templateEngine,
+            @Autowired(required = false) BrandingClient brandingClient
     ) {
         this.sesProperties = sesProperties;
         this.sesClient = sesClient;
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
+        this.brandingClient = brandingClient;
     }
 
     /**
@@ -61,11 +72,35 @@ public class SESEmailService {
     public EmailResponse sendTemplatedEmail(EmailRequest request) {
         log.info("Sending templated email to: {}, template: {}", request.getTo(), request.getTemplateName());
 
+        // Merge variables with tenant branding (GAP-021 Wave 4)
+        Map<String, Object> variables = enrichWithBranding(request);
+
         // Render template with Thymeleaf
-        String htmlBody = renderTemplate(request.getTemplateName(), request.getVariables());
+        String htmlBody = renderTemplate(request.getTemplateName(), variables);
 
         // Send email
         return sendEmail(request.getTo(), request.getSubject(), htmlBody);
+    }
+
+    /**
+     * Merge request variables with tenant branding. Always injects {@code branding}
+     * (either real or default) so templates can safely reference {@code branding.*}.
+     */
+    private Map<String, Object> enrichWithBranding(EmailRequest request) {
+        Map<String, Object> variables = request.getVariables() != null
+                ? new HashMap<>(request.getVariables())
+                : new HashMap<>();
+
+        TenantBranding branding;
+        if (brandingEnabled && brandingClient != null
+                && (request.getInstanceId() != null || request.getTenantId() != null)) {
+            branding = brandingClient.fetchBranding(request.getInstanceId(), request.getTenantId());
+        } else {
+            branding = TenantBranding.defaultBranding();
+        }
+
+        variables.putIfAbsent("branding", branding);
+        return variables;
     }
 
     /**

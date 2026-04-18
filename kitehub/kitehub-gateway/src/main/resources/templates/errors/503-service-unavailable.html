@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Dịch vụ tạm ngưng — {{displayName}}</title>
+    <style>
+        :root {
+            --brand-primary: {{primaryColor}};
+            --brand-secondary: {{secondaryColor}};
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+            color: #1f2937;
+        }
+        .card {
+            background: #ffffff;
+            padding: 48px 40px;
+            border-radius: 16px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+            text-align: center;
+        }
+        .logo { max-height: 56px; margin-bottom: 16px; }
+        h1 {
+            font-size: 28px;
+            margin: 0 0 8px;
+            color: var(--brand-primary);
+        }
+        p { color: #4b5563; line-height: 1.6; }
+        .status-code {
+            display: inline-block;
+            font-size: 72px;
+            font-weight: 700;
+            color: var(--brand-primary);
+            opacity: 0.15;
+            margin-top: -24px;
+            margin-bottom: -16px;
+        }
+        .cta {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 12px 28px;
+            background: var(--brand-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .meta { margin-top: 24px; font-size: 12px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="status-code">503</div>
+    {{logoBlock}}
+    <h1>{{title}}</h1>
+    <p>{{message}}</p>
+    <p>{{service}} hiện không khả dụng. Vui lòng thử lại sau vài phút.</p>
+    <a href="/" class="cta">Về trang chủ</a>
+    <div class="meta">{{displayName}} · {{timestamp}}</div>
+</div>
+</body>
+</html>

@@ -90,9 +90,9 @@
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
 | GAP-010 | Branding package API + KiteClass integration | 🟠 P1 | M |
-| GAP-021 | Branding propagation to email + services | 🟠 P1 | M |
-| GAP-037 | Branded auth flows (verify, reset pwd) | 🟠 P1 | S |
-| GAP-032 | Branded error pages (404/500) | 🟠 P1 | S |
+| GAP-021 | Branding propagation to email + services | 🟢 DONE (Wave 4) | M |
+| GAP-037 | Branded auth flows (verify, reset pwd) | 🟢 DONE (Wave 4) | S |
+| GAP-032 | Branded error pages (404/500) | 🟢 DONE (Wave 4) | S |
 | GAP-039 | Webhook reliability (retry, idempotency) | 🟠 P1 | M |
 
 **Dependencies:** Epic 2 (branding data), Epic 1 (infrastructure).
@@ -138,7 +138,7 @@
 | GAP-017 | AI usage → billing integration | 🟠 P1 | M |
 | GAP-026 | Trial/freemium AI mechanics | 🟠 P1 | M |
 | GAP-036 | Tier upgrade UX (reveal, teaser) | 🟠 P1 | M |
-| GAP-033 | Branding version history & rollback (user) | 🟠 P1 | M |
+| GAP-033 | Branding version history & rollback (user) | 🟡 IN_PROGRESS (Wave 4 partial — manual rollback done; auto + A/B deferred) | M |
 | GAP-034 | Branding export pack (ZIP + PDF) | 🟡 P2 | M |
 | GAP-025 | Mobile-first wizard UX | 🟡 P2 | M |
 

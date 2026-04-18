@@ -1,9 +1,28 @@
 # GAP-037: Branded Authentication Flows (Email verify, Reset Password)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4)
 **Priority:** 🟠 P1
 **Domain:** Frontend / Integration
 **Detected:** 2026-04-14 (simulation: End User × Onboarding × C2 UX)
+**Resolved:** 2026-04-18 (Wave 4 — branding propagation cluster)
+
+## Wave 4 resolution
+
+- `PublicBrandingController` (`GET /api/v1/branding/public?tenantId=...`)
+  exposes a minimal branding payload safe for anonymous callers (display name,
+  logo URL, primary/secondary/accent colors, tagline). No auth required —
+  slug or UUID both accepted.
+- `kiteclass-frontend`:
+  - `lib/api/public-branding.ts` — new public-branding client + defaults.
+  - `hooks/use-public-branding.ts` — React Query hook, 5-min staleTime.
+  - `providers/BrandingProvider.tsx` — wraps auth pages, injects CSS vars
+    (`--brand-primary`, Shadcn `--primary` HSL triple) onto `<html>`.
+  - `app/(auth)/layout.tsx` wraps children with `BrandingProvider`.
+  - `components/layout/auth-layout.tsx` reads `useTenantBranding()` and
+    shows tenant logo + display name on both desktop hero panel and
+    mobile top bar. Degrades to KiteClass defaults when tenant unknown.
+- Email templates (`welcome`, `email-verification`, `trial-expiration-warning`)
+  now branded via GAP-021.
 
 ## Problem
 
