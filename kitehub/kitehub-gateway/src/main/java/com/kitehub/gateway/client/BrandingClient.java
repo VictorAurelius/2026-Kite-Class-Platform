@@ -57,7 +57,7 @@ public class BrandingClient {
                 .block(Duration.ofSeconds(timeoutSeconds + 1L));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     private Mono<GatewayBranding> fetchReactive(String tenantId) {
         return webClient.get()
                 .uri("/api/v1/branding/public?tenantId={tenantId}", tenantId)
@@ -67,7 +67,6 @@ public class BrandingClient {
                 .map(body -> mapToBranding((Map<String, Object>) body));
     }
 
-    @SuppressWarnings("unchecked")
     private GatewayBranding mapToBranding(Map<String, Object> pkg) {
         if (pkg == null) {
             return GatewayBranding.defaults();

@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -41,15 +42,23 @@ class DistributedRateLimiterTest {
     @BeforeEach
     void setUp() {
         when(redisTemplate.opsForValue()).thenReturn(valueOps);
-        limiter = new DistributedRateLimiter(redisTemplate);
+        limiter = new DistributedRateLimiter(providerOf(redisTemplate));
         instanceId = UUID.randomUUID();
+    }
+
+    /** Minimal ObjectProvider stub — covers only the getIfAvailable() path the SUT calls. */
+    private static <T> ObjectProvider<T> providerOf(T bean) {
+        @SuppressWarnings("unchecked")
+        ObjectProvider<T> provider = org.mockito.Mockito.mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(bean);
+        return provider;
     }
 
     // --- Availability ---------------------------------------------------------
 
     @Test
     void isAvailable_withoutRedis_returnsFalse() {
-        DistributedRateLimiter offline = new DistributedRateLimiter(null);
+        DistributedRateLimiter offline = new DistributedRateLimiter(providerOf(null));
         assertThat(offline.isAvailable()).isFalse();
         assertThat(offline.incrementDailyUsage(instanceId)).isEqualTo(-1L);
         assertThat(offline.getDailyUsage(instanceId)).isEqualTo(-1L);

@@ -97,7 +97,6 @@ public class BrandingClient {
         log.info("Evicted cached branding for instance={}", instanceId);
     }
 
-    @SuppressWarnings("unchecked")
     private TenantBranding mapToBranding(Map<String, Object> pkg) {
         if (pkg == null) {
             return TenantBranding.defaultBranding();

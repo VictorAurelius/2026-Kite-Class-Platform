@@ -1,7 +1,7 @@
 package com.kitehub.branding.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -44,13 +44,13 @@ public class DistributedRateLimiter {
     private final StringRedisTemplate redisTemplate;
 
     /**
-     * @param redisTemplate Redis template — may be {@code null} when Redis
-     *                      autoconfiguration is not available (tests).
+     * @param redisTemplateProvider optional Redis template — Spring's {@link ObjectProvider}
+     *                              returns {@code null} from {@code getIfAvailable()} when
+     *                              Redis autoconfiguration is disabled (e.g. unit tests).
      */
-    @Autowired(required = false)
-    public DistributedRateLimiter(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
-        if (redisTemplate == null) {
+    public DistributedRateLimiter(ObjectProvider<StringRedisTemplate> redisTemplateProvider) {
+        this.redisTemplate = redisTemplateProvider.getIfAvailable();
+        if (this.redisTemplate == null) {
             log.warn("DistributedRateLimiter started WITHOUT Redis — callers must use DB fallback");
         }
     }
