@@ -1,0 +1,31 @@
+{
+  "pr": 350,
+  "title": "docs(adr): GAP-102 Part 2 \u2014 ADR-014 async jobs queue + backfill index (re-target)",
+  "branch": "docs/gap-102-adr-kickoff",
+  "created_at": "2026-04-18T15:06:17Z",
+  "merged_at": "2026-04-18T15:06:25Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:36.095467",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 5,
+        "java_files": 0,
+        "test_files": 0,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}

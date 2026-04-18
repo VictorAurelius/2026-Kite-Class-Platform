@@ -1,0 +1,31 @@
+{
+  "pr": 345,
+  "title": "docs(planning): restructure 03-planning + new planning-docs-structure rule",
+  "branch": "docs/restructure-03-planning",
+  "created_at": "2026-04-18T09:14:01Z",
+  "merged_at": "2026-04-18T09:14:21Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:31.776836",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 22,
+        "java_files": 0,
+        "test_files": 0,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}

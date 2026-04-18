@@ -1,0 +1,31 @@
+{
+  "pr": 351,
+  "title": "docs(deploy): GAP-103 \u2014 deployment-strategy + ADR-015 AWS Agent Plugins",
+  "branch": "docs/gap-103-deploy-strategy-adr-015",
+  "created_at": "2026-04-18T15:12:16Z",
+  "merged_at": "2026-04-18T15:12:26Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:37.350822",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 0,
+        "test_files": 0,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}

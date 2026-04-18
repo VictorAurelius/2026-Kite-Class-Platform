@@ -1,0 +1,31 @@
+{
+  "pr": 349,
+  "title": "docs(readmes): GAP-101 \u2014 README cho 4 folders thi\u1ebfu (re-target)",
+  "branch": "docs/gap-101-folder-readmes",
+  "created_at": "2026-04-18T15:05:28Z",
+  "merged_at": "2026-04-18T15:05:35Z",
+  "checklist": {
+    "tests_written": null,
+    "ci_green_before_merge": false,
+    "business_docs_updated": null,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-18T16:44:34.779928",
+      "type": "PR_MERGED_BACKFILLED",
+      "data": {
+        "ci_status": "unknown",
+        "files_changed": 6,
+        "java_files": 0,
+        "test_files": 0,
+        "script_files": 0,
+        "business_docs": null,
+        "note": "Reconstructed via backfill-pr-logs.py \u2014 audits_run not verified"
+      }
+    }
+  ],
+  "compliance_score": "0/1"
+}
