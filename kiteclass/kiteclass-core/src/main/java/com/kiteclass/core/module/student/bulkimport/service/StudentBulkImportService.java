@@ -14,7 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -75,6 +78,7 @@ public class StudentBulkImportService {
                 errorList.addAll(result.errors());
             }
         }
+        errorList.addAll(detectInFileDuplicates(rows));
 
         int failedRows = countFailedRows(errorList);
         int success = rows.size() - failedRows;
@@ -104,11 +108,26 @@ public class StudentBulkImportService {
 
         BulkImportJob job = chunkExecutor.createJob(file.getOriginalFilename(), tenantId, rows.size());
         List<RowError> allErrors = new ArrayList<>();
-        int successCount = 0;
 
+        // In-file duplicate detection runs BEFORE DB commit so we can flag
+        // duplicate rows as errors instead of hitting a UNIQUE constraint at
+        // insert time (which would produce a 500 response).
+        List<RowError> duplicateErrors = detectInFileDuplicates(rows);
+        allErrors.addAll(duplicateErrors);
+
+        java.util.Set<Integer> skipRowNumbers = new java.util.HashSet<>();
+        for (RowError e : duplicateErrors) {
+            skipRowNumbers.add(e.rowNumber());
+        }
+
+        int successCount = 0;
         for (int from = 0; from < rows.size(); from += CHUNK_SIZE) {
             int to = Math.min(from + CHUNK_SIZE, rows.size());
-            List<BulkImportRow> chunk = rows.subList(from, to);
+            List<BulkImportRow> chunk = new ArrayList<>(rows.subList(from, to));
+            chunk.removeIf(r -> skipRowNumbers.contains(r.rowNumber()));
+            if (chunk.isEmpty()) {
+                continue;
+            }
             BulkImportChunkExecutor.ChunkResult r = chunkExecutor.processChunk(chunk, tenantId);
             successCount += r.successCount();
             allErrors.addAll(r.errors());
@@ -149,6 +168,7 @@ public class StudentBulkImportService {
                 errors.addAll(result.errors());
             }
         }
+        errors.addAll(detectInFileDuplicates(rows));
         return errorReportGenerator.generate(rows, errors);
     }
 
@@ -187,5 +207,39 @@ public class StudentBulkImportService {
             return List.copyOf(errors);
         }
         return List.copyOf(errors.subList(0, BulkImportResult.MAX_RETURNED_ERRORS));
+    }
+
+    /**
+     * Detects emails or phones that appear more than once in the same uploaded
+     * file. The FIRST occurrence is considered valid; subsequent rows with the
+     * same email/phone are flagged as errors. Runs entirely in-memory — avoids
+     * hitting the DB UNIQUE constraint at insert time (which would bubble up
+     * as a 500 instead of a graceful row-level error).
+     *
+     * <p>Case-insensitive for email; exact match for phone.
+     */
+    private static List<RowError> detectInFileDuplicates(List<BulkImportRow> rows) {
+        List<RowError> errors = new ArrayList<>();
+        Map<String, Integer> firstEmailRow = new HashMap<>();
+        Map<String, Integer> firstPhoneRow = new HashMap<>();
+        for (BulkImportRow row : rows) {
+            String email = row.email() == null ? null : row.email().trim().toLowerCase(Locale.ROOT);
+            if (email != null && !email.isEmpty()) {
+                Integer prev = firstEmailRow.putIfAbsent(email, row.rowNumber());
+                if (prev != null) {
+                    errors.add(new RowError(row.rowNumber(), "email",
+                            "Email trùng với dòng " + prev + " trong cùng file"));
+                }
+            }
+            String phone = row.phone() == null ? null : row.phone().trim();
+            if (phone != null && !phone.isEmpty()) {
+                Integer prev = firstPhoneRow.putIfAbsent(phone, row.rowNumber());
+                if (prev != null) {
+                    errors.add(new RowError(row.rowNumber(), "phone",
+                            "Số điện thoại trùng với dòng " + prev + " trong cùng file"));
+                }
+            }
+        }
+        return errors;
     }
 }

@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.student.bulkimport.service;
 
 import com.kiteclass.core.common.exception.BusinessException;
-import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.module.student.bulkimport.dto.BulkImportResult;
 import com.kiteclass.core.module.student.bulkimport.entity.BulkImportJob;
 import com.kiteclass.core.module.student.bulkimport.entity.BulkImportStatus;
@@ -121,7 +120,7 @@ class StudentBulkImportServiceTest {
     }
 
     @Test
-    @DisplayName("commit() reports duplicate-email errors without aborting chunk")
+    @DisplayName("commit() reports in-file duplicate-email as row error (no DB call for dup row)")
     void commitRecordsDuplicateEmailErrors() throws IOException {
         MockMultipartFile file = file(new String[][]{
                 {"name", "email", "phone"},
@@ -139,9 +138,9 @@ class StudentBulkImportServiceTest {
         when(jobRepository.findByIdAndInstanceIdAndDeletedFalse(eq(7L), any()))
                 .thenAnswer(inv -> java.util.Optional.of(BulkImportJob.builder().build()));
 
+        // Only called once — the duplicate row is filtered BEFORE reaching studentService
         when(studentService.createStudent(any(CreateStudentRequest.class), eq(tenantId)))
-                .thenReturn(stubResponse())
-                .thenThrow(new DuplicateResourceException("STUDENT_EMAIL_EXISTS", (Object) "alice@test.com"));
+                .thenReturn(stubResponse());
 
         BulkImportResult result = service.commit(file, tenantId);
 
@@ -149,6 +148,8 @@ class StudentBulkImportServiceTest {
         assertThat(result.errorCount()).isEqualTo(1);
         assertThat(result.errors()).hasSize(1);
         assertThat(result.errors().get(0).field()).isEqualTo("email");
+        assertThat(result.errors().get(0).message()).contains("trùng");
+        verify(studentService, times(1)).createStudent(any(), eq(tenantId));
     }
 
     @Test
