@@ -9,9 +9,16 @@
  * @since 1.0.0
  */
 
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { BrandingProvider } from '@/providers/BrandingProvider';
 
+// Next.js 15: useSearchParams() inside BrandingProvider requires a Suspense
+// boundary for static prerendering of auth pages. Default placeholder is null
+// because BrandingProvider applies a safe default palette synchronously.
 export default function AuthPagesLayout({ children }: { children: ReactNode }) {
-  return <BrandingProvider>{children}</BrandingProvider>;
+  return (
+    <Suspense fallback={null}>
+      <BrandingProvider>{children}</BrandingProvider>
+    </Suspense>
+  );
 }
