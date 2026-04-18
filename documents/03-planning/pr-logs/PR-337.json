@@ -1,0 +1,38 @@
+{
+  "pr": 337,
+  "title": "wave(2): parent portal identity + invitation MVP (GAP-052a)",
+  "branch": "wave/2-parent-portal-identity",
+  "created_at": null,
+  "merged_at": "2026-04-17T12:00:36Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [
+      "ui-review",
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "audits_run": [
+      "ui-review",
+      "business-logic-audit",
+      "api-contract-audit"
+    ],
+    "wave_completion_check": false
+  },
+  "events": [
+    {
+      "time": "2026-04-17T19:00:42.776022",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "",
+        "files_changed": 47,
+        "java_files": 38,
+        "test_files": 3,
+        "business_docs": false,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "2/5"
+}
