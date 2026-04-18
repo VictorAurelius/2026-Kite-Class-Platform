@@ -1,9 +1,10 @@
 # GAP-002: Async pipeline cho heavy AI tasks
 
-**Status:** 🔵 OPEN
+**Status:** ✅ DONE (Wave 3, 2026-04-18)
 **Priority:** 🟠 P1
 **Domain:** AI / Backend
 **Detected:** 2026-04-14
+**Resolved:** 2026-04-18 (Wave 3 — AI async + fair queue Phase 1)
 **Related Docs:**
 - `documents/03-planning/implementation/ai-local-implementation-plan.md`
 - `documents/01-business/kitehub/ai-branding/rules.md`
@@ -66,6 +67,24 @@ FE nhận notification qua:
 - [ ] Rate limit vẫn hoạt động (tier-based)
 - [ ] Job history stored trong DB để audit
 
+## Resolution (Wave 3 — 2026-04-18)
+
+**Shipped:**
+- `ContentGenerationService` refactored — public API now returns `Mono<LandingPageContent>`. All 7 `.block()` calls removed; parallel AI generation via `Mono.zip`.
+- `ContentGenerationController` returns `Mono<ResponseEntity<...>>` — Spring MVC async dispatch, no servlet thread blocking.
+- `AIQueueDispatcher` + 3 tier queues (`ai.request.enterprise|pro|free` + DLQs) replace single-queue FIFO.
+- `AIJobPayload` DTO carries `enqueuedAt` for wait-time metrics.
+- Feature flag `ai.queue.fair-queue-enabled` (default `true`) — disable to revert to legacy `branding-jobs` queue.
+
+**Verification:**
+- `grep -rn ".block()" kitehub/kitehub-branding/src/main/` → 0 production hits (only javadoc reference remains).
+- `mvn test -pl kitehub-branding` → 138 tests pass.
+
+**Deferred (scope bounded to Wave 3):**
+- Full Grafana dashboards → Wave 6 (AI Billing + Observability).
+- Horizontal scaling / HPA / GPU pool → Wave 3 Phase 2 (follow-up).
+
 ## Log
 
 - 2026-04-14 — Phát hiện khi review AI design; blocker cho image generation UX
+- 2026-04-18 — Resolved in Wave 3 Phase 1 (commit `feat(branding): AI async + fair queue Phase 1`)

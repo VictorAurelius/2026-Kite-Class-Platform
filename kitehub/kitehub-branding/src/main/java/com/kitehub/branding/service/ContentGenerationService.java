@@ -9,12 +9,19 @@ import com.kitehub.branding.dto.LogoAnalysis;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Service for generating landing page content using AI.
+ *
+ * <p>Fully reactive: public API returns {@link Mono} — no {@code .block()} calls
+ * in the production path (GAP-002 async pipeline).</p>
+ *
+ * <p>Callers are expected to compose reactively; controllers adapt the returned
+ * {@link Mono} to async Servlet / WebFlux responses.</p>
  *
  * @since 1.0
  */
@@ -29,12 +36,15 @@ public class ContentGenerationService {
     /**
      * Generate complete landing page content based on logo analysis.
      *
+     * <p>Reactive pipeline — each field is generated via a separate AI call and
+     * combined via {@link Mono#zip}. No blocking calls in production code.</p>
+     *
      * @param logoAnalysis Logo analysis data
      * @param orgName Organization name
      * @param language Content language (vi for Vietnamese)
-     * @return Generated landing page content
+     * @return Mono emitting the generated landing page content
      */
-    public LandingPageContent generateLandingPageContent(
+    public Mono<LandingPageContent> generateLandingPageContent(
             LogoAnalysis logoAnalysis,
             String orgName,
             String language
@@ -45,22 +55,32 @@ public class ContentGenerationService {
         String targetAudience = logoAnalysis.getTargetAudience();
         String brandPersonality = String.join(", ", logoAnalysis.getBrandPersonality());
 
-        return LandingPageContent.builder()
-                .heroTitle(generateHeroTitle(orgName, theme, language))
-                .heroSubtitle(generateHeroSubtitle(orgName, theme, targetAudience, language))
-                .tagline(generateTagline(orgName, brandPersonality, language))
-                .aboutUs(generateAboutUs(orgName, theme, language))
-                .mission(generateMission(orgName, targetAudience, language))
-                .vision(generateVision(orgName, theme, language))
-                .features(generateFeatures(orgName, theme, language))
-                .ctaText(generateCtaText(language))
-                .build();
+        Mono<String> heroTitle = generateHeroTitle(orgName, theme, language);
+        Mono<String> heroSubtitle = generateHeroSubtitle(orgName, theme, targetAudience, language);
+        Mono<String> tagline = generateTagline(orgName, brandPersonality, language);
+        Mono<String> aboutUs = generateAboutUs(orgName, theme, language);
+        Mono<String> mission = generateMission(orgName, targetAudience, language);
+        Mono<String> vision = generateVision(orgName, theme, language);
+        Mono<List<Feature>> features = generateFeatures(orgName, theme, language);
+
+        // Zip strings first (max 8 args per Mono.zip), then combine with features + CTA.
+        return Mono.zip(heroTitle, heroSubtitle, tagline, aboutUs, mission, vision, features)
+                .map(tuple -> LandingPageContent.builder()
+                        .heroTitle(tuple.getT1())
+                        .heroSubtitle(tuple.getT2())
+                        .tagline(tuple.getT3())
+                        .aboutUs(tuple.getT4())
+                        .mission(tuple.getT5())
+                        .vision(tuple.getT6())
+                        .features(tuple.getT7())
+                        .ctaText(generateCtaText(language))
+                        .build());
     }
 
     /**
      * Generate hero title (max 60 chars).
      */
-    private String generateHeroTitle(String orgName, String theme, String language) {
+    private Mono<String> generateHeroTitle(String orgName, String theme, String language) {
         String prompt = String.format(
                 "Create a catchy %s hero title for '%s', " +
                 "an education center with %s style. " +
@@ -70,14 +90,14 @@ public class ContentGenerationService {
                 theme
         );
 
-        String title = aiClient.generateText(prompt).block();
-        return truncate(title.trim().replace("\"", ""), 60);
+        return aiClient.generateText(prompt)
+                .map(title -> truncate(title.trim().replace("\"", ""), 60));
     }
 
     /**
      * Generate hero subtitle (max 150 chars).
      */
-    private String generateHeroSubtitle(String orgName, String theme, String targetAudience, String language) {
+    private Mono<String> generateHeroSubtitle(String orgName, String theme, String targetAudience, String language) {
         String prompt = String.format(
                 "Write a compelling %s subtitle for '%s', " +
                 "education center targeting %s. " +
@@ -89,14 +109,14 @@ public class ContentGenerationService {
                 theme
         );
 
-        String subtitle = aiClient.generateText(prompt).block();
-        return truncate(subtitle.trim().replace("\"", ""), 150);
+        return aiClient.generateText(prompt)
+                .map(subtitle -> truncate(subtitle.trim().replace("\"", ""), 150));
     }
 
     /**
      * Generate tagline (max 30 chars).
      */
-    private String generateTagline(String orgName, String brandPersonality, String language) {
+    private Mono<String> generateTagline(String orgName, String brandPersonality, String language) {
         String prompt = String.format(
                 "Create a memorable %s tagline for '%s', " +
                 "with personality: %s. " +
@@ -106,14 +126,14 @@ public class ContentGenerationService {
                 brandPersonality
         );
 
-        String tagline = aiClient.generateText(prompt).block();
-        return truncate(tagline.trim().replace("\"", ""), 30);
+        return aiClient.generateText(prompt)
+                .map(tagline -> truncate(tagline.trim().replace("\"", ""), 30));
     }
 
     /**
      * Generate About Us section (3 paragraphs).
      */
-    private String generateAboutUs(String orgName, String theme, String language) {
+    private Mono<String> generateAboutUs(String orgName, String theme, String language) {
         String prompt = String.format(
                 "Write a %s 'About Us' section for '%s', " +
                 "an education center with %s style. " +
@@ -124,13 +144,13 @@ public class ContentGenerationService {
                 theme
         );
 
-        return aiClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt).map(String::trim);
     }
 
     /**
      * Generate mission statement (1-2 sentences).
      */
-    private String generateMission(String orgName, String targetAudience, String language) {
+    private Mono<String> generateMission(String orgName, String targetAudience, String language) {
         String prompt = String.format(
                 "Write a %s mission statement for '%s', " +
                 "an education center serving %s. " +
@@ -140,13 +160,13 @@ public class ContentGenerationService {
                 targetAudience
         );
 
-        return aiClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt).map(String::trim);
     }
 
     /**
      * Generate vision statement (1-2 sentences).
      */
-    private String generateVision(String orgName, String theme, String language) {
+    private Mono<String> generateVision(String orgName, String theme, String language) {
         String prompt = String.format(
                 "Write a %s vision statement for '%s', " +
                 "an education center with %s style. " +
@@ -156,15 +176,17 @@ public class ContentGenerationService {
                 theme
         );
 
-        return aiClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt).map(String::trim);
     }
 
     /**
      * Generate feature highlights (3-5 features).
+     *
+     * <p>Parses JSON response from AI; falls back to localized mock list on any
+     * error so the landing page still renders.</p>
      */
-    private List<Feature> generateFeatures(String orgName, String theme, String language) {
-        try {
-            String prompt = String.format(
+    private Mono<List<Feature>> generateFeatures(String orgName, String theme, String language) {
+        String prompt = String.format(
                 "List 4 key features of '%s', an education center with %s style. " +
                 "For each feature, provide: " +
                 "1. Title (max 30 chars in %s) " +
@@ -176,28 +198,36 @@ public class ContentGenerationService {
                 theme,
                 language.equals("vi") ? "Vietnamese" : "English",
                 language.equals("vi") ? "Vietnamese" : "English"
-            );
+        );
 
-            String response = aiClient.generateText(prompt).block().trim();
+        return aiClient.generateText(prompt)
+                .map(response -> parseFeaturesJson(response, orgName))
+                .onErrorResume(err -> {
+                    log.error("Failed to generate features via AI: {}", err.getMessage());
+                    log.warn("Using fallback mock features for {}", language);
+                    return Mono.just(getMockFeatures(language));
+                });
+    }
 
-            log.debug("Raw features response: {}", response);
+    /**
+     * Parse features JSON, falling back to mocks on parse failure.
+     */
+    private List<Feature> parseFeaturesJson(String response, String orgName) {
+        try {
+            String trimmed = response.trim();
+            log.debug("Raw features response: {}", trimmed);
 
-            // Extract and parse JSON
-            String jsonContent = extractJson(response);
+            String jsonContent = extractJson(trimmed);
             List<Feature> features = objectMapper.readValue(
-                jsonContent,
-                new TypeReference<List<Feature>>() {}
+                    jsonContent,
+                    new TypeReference<List<Feature>>() {}
             );
 
             log.info("Successfully generated {} features for {}", features.size(), orgName);
             return features;
-
         } catch (Exception e) {
-            log.error("Failed to generate features via OpenAI: {}", e.getMessage());
-            log.warn("Using fallback mock features for {}", language);
-
-            // Fallback to mock features for development/testing
-            return getMockFeatures(language);
+            // Re-throw so the outer onErrorResume returns mock features.
+            throw new IllegalStateException("Failed to parse features JSON", e);
         }
     }
 

@@ -1,9 +1,10 @@
 # GAP-005: AI queue fair scheduling + horizontal scaling
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 IN_PROGRESS (Phase 1 done 2026-04-18; Phase 2 open)
 **Priority:** 🔴 P0 (production blocker ở scale)
 **Domain:** AI / Backend / DevOps
 **Detected:** 2026-04-14
+**Phase 1 resolved:** 2026-04-18 (Wave 3 MVP — GAP-005a)
 **Related Docs:**
 - `documents/03-planning/implementation/ai-local-implementation-plan.md`
 - `documents/01-business/kitehub/ai-branding/rules.md`
@@ -222,6 +223,31 @@ Khi hệ thống overload hoặc user quá quota:
 - [AWS Queue Priority Pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/patterns/implement-priority-based-task-scheduling.html)
 - OpenAI's approach: dedicated capacity for enterprise, shared pool for others
 
+## Phase 1 Resolution (Wave 3 — 2026-04-18, GAP-005a)
+
+**Shipped (single-instance fair queueing):**
+- **Priority topology:** 3 tier queues + 3 DLQs — `ai.request.{enterprise,pro,free}` behind `ai.request.exchange` (direct). Feature-flagged via `ai.queue.fair-queue-enabled` (default on).
+- **`AIJobPriority`** enum — weights 3:2:1; `fromTier()` maps PricingTier → priority with FREE as safe default for unknown/null tiers.
+- **`AIQueueDispatcher`** — publishes to correct tier queue; falls back to legacy `branding-jobs` when flag off. Metrics: `ai.queue.dispatched{tier,mode}`, `ai.queue.dispatch.failed{tier}`.
+- **`DistributedRateLimiter`** (Redis) — atomic `INCR` for daily counter (24h TTL) + soft concurrency semaphore. Graceful fallback when Redis unavailable (returns -1, caller uses DB).
+- **`AIRateLimitService`** — Redis-first; falls back to existing JPA `AIUsageLogRepository` on failure.
+- **`AIJobConsumer`** — 3 `@RabbitListener` methods (one per tier queue); acquires/releases Redis semaphore in finally; NACKs on cap reached. Backpressure: free-tier jobs degrade to template fallback when `enterpriseBacklog > ai.queue.backpressure.enterprise-backlog-threshold` (default 50).
+- **`BacklogInspector`** — live gauge `ai.queue.depth{tier}` via `AmqpAdmin`.
+- **Metrics instrumented:** `ai.queue.dispatched`, `ai.queue.depth`, `ai.job.wait.time`, `ai.job.duration`, `ai.job.outcome{tier,outcome=success|failure|concurrency_limited|degraded}`.
+- **Resilience4j** circuit breaker config (`ai-provider`) scaffolded in application.yml — applied in follow-up when real AI calls route through consumer.
+- **SLA config defaults** (user-confirmed): Free P95=180s/concurrent=1, Pro P95=60s/concurrent=3, Enterprise P95=30s/concurrent=10, weighted RR 3:2:1, backpressure threshold 50.
+
+**Tests:**
+- `AIJobPriorityTest` (6), `AIQueueDispatcherTest` (6), `DistributedRateLimiterTest` (13), `AIJobConsumerTest` (5), `AIRateLimitServiceTest` (14 DB fallback path), `AIRateLimitServiceRedisTest` (5 Redis-first path).
+- `mvn test -pl kitehub-branding` → 138 tests pass, 0 failures.
+
+**Phase 2 (still open — deferred):**
+- Horizontal scaling: Ollama replicas + HAProxy/nginx LB + K8s HPA on queue depth.
+- Full Grafana dashboards + SLA violation alerting (Wave 6).
+- `@CircuitBreaker` annotations on real AI client calls (wired when consumer dispatches actual jobs).
+- Load test: 100 concurrent users (30/40/30 split) → proven in dev with scripted harness.
+
 ## Log
 
 - 2026-04-14 — Phát hiện qua scenario 100 concurrent users; P0 blocker cho production launch
+- 2026-04-18 — Phase 1 shipped (Wave 3 — GAP-005a). Horizontal scaling + full observability deferred to Phase 2.

@@ -10,6 +10,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -23,11 +25,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for AIRateLimitService.
+ * Tests for {@link AIRateLimitService} — DB fallback path.
+ *
+ * <p>{@link DistributedRateLimiter} is mocked to simulate Redis being
+ * unavailable ({@code incrementDailyUsage} / {@code getDailyUsage} return -1),
+ * which forces the service onto the JPA fallback path. Dedicated Redis tests
+ * live in {@link AIRateLimitServiceRedisTest}.</p>
  *
  * @since 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AIRateLimitServiceTest {
 
     @Mock
@@ -35,6 +43,9 @@ class AIRateLimitServiceTest {
 
     @Mock
     private AIUsageLogRepository usageLogRepository;
+
+    @Mock
+    private DistributedRateLimiter distributedRateLimiter;
 
     @InjectMocks
     private AIRateLimitService rateLimitService;
@@ -44,6 +55,8 @@ class AIRateLimitServiceTest {
     @BeforeEach
     void setUp() {
         instanceId = UUID.randomUUID();
+        // Default: Redis unavailable — every test falls back to DB.
+        when(distributedRateLimiter.getDailyUsage(any(UUID.class))).thenReturn(-1L);
     }
 
     @Test
@@ -123,8 +136,22 @@ class AIRateLimitServiceTest {
     }
 
     @Test
-    void recordUsage_existingEntry_incrementsCount() {
-        // Given
+    void recordUsage_redisSucceeds_doesNotTouchDb() {
+        // Given — Redis happy path (returns new count)
+        when(distributedRateLimiter.incrementDailyUsage(instanceId)).thenReturn(4L);
+
+        // When
+        rateLimitService.recordUsage(instanceId);
+
+        // Then — no DB calls
+        verify(usageLogRepository, never()).incrementRequestCount(any(), any());
+        verify(usageLogRepository, never()).save(any());
+    }
+
+    @Test
+    void recordUsage_redisDown_existingDbEntry_incrementsCount() {
+        // Given — Redis signals failure with -1
+        when(distributedRateLimiter.incrementDailyUsage(instanceId)).thenReturn(-1L);
         when(usageLogRepository.incrementRequestCount(eq(instanceId), any(LocalDate.class)))
                 .thenReturn(1);
 
@@ -137,8 +164,9 @@ class AIRateLimitServiceTest {
     }
 
     @Test
-    void recordUsage_noExistingEntry_createsNewLog() {
+    void recordUsage_redisDown_noExistingEntry_createsNewLog() {
         // Given
+        when(distributedRateLimiter.incrementDailyUsage(instanceId)).thenReturn(-1L);
         when(usageLogRepository.incrementRequestCount(eq(instanceId), any(LocalDate.class)))
                 .thenReturn(0);
 

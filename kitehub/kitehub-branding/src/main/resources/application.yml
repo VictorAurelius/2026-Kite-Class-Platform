@@ -17,6 +17,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  # Redis — backs distributed AI rate limiter + concurrency semaphore (GAP-005a).
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000
+
   # RabbitMQ Configuration
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
@@ -49,6 +56,39 @@ ai:
     text-model: ${OLLAMA_TEXT_MODEL:llama3.1:8b}
     vision-model: ${OLLAMA_VISION_MODEL:llava:13b}
     timeout-seconds: ${OLLAMA_TIMEOUT:120}
+
+  # Fair-queue scheduler (GAP-005a Wave 3 Phase 1)
+  queue:
+    # Feature flag — disable to revert to the legacy single queue (backward compat).
+    fair-queue-enabled: ${AI_FAIR_QUEUE_ENABLED:true}
+    # Weighted round-robin weights (Enterprise:Pro:Free = 3:2:1).
+    tier-weights:
+      enterprise: 3
+      pro: 2
+      free: 1
+    # Max in-flight jobs per tenant per tier (Redis semaphore cap).
+    concurrency:
+      free: 1
+      pro: 3
+      enterprise: 10
+    # SLA targets (p95 wait in seconds).
+    sla:
+      free-p95-seconds: 180
+      pro-p95-seconds: 60
+      enterprise-p95-seconds: 30
+    # Backpressure — free tier degrades when enterprise backlog exceeds threshold.
+    backpressure:
+      enterprise-backlog-threshold: 50
+
+# Resilience4j circuit breaker around AI providers (GAP-005a).
+resilience4j:
+  circuitbreaker:
+    instances:
+      ai-provider:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
 
 # OpenAI Configuration (used when ai.provider=openai)
 openai:

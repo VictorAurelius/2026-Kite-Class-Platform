@@ -1,4 +1,10 @@
 spring:
+  # Disable auto-configurations that require external services in test context.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
   datasource:
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
     driver-class-name: org.h2.Driver
@@ -23,6 +29,9 @@ spring:
 # AI configuration for tests
 ai:
   provider: mock
+  # Disable fair-queue topology + listeners in tests — no RabbitMQ available.
+  queue:
+    fair-queue-enabled: false
 
 openai:
   api:
