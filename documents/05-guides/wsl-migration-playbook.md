@@ -12,7 +12,7 @@
 
 ## Why migrate
 
-See `documents/03-planning/wave-roadmap-p0.md` rationale. Short version:
+See `documents/03-planning/roadmap/wave-roadmap-p0.md` rationale. Short version:
 - Docker I/O 2-3x faster (NTFS→ext4 mount overhead eliminated)
 - Native inotify file watcher (Spring DevTools, Next.js Fast Refresh)
 - Bash scripts run native (no Git Bash / MSYS_NO_PATHCONV workarounds)

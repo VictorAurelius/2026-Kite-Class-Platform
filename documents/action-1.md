@@ -592,3 +592,5 @@ Vậy nên tạo PR mới để cải thiện skills + đánh giá/ review/ audi
 => tạo
 
 Plan concrete => tạo plan log
+
+tái cấu trúc documents/03-planning đúng theo rules, chưa có rules thì tạo

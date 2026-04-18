@@ -594,6 +594,6 @@ New: **GAP-092** (re-trial), **GAP-093** (backup), **GAP-081** (script review), 
 
 ### Planning docs added 2026-04-18
 
-- `documents/03-planning/plan-ui-ux-design-system-integration.md` — 3-PR plan to adopt ui-ux-pro-max reasoning rules + upgrade ui-review skill to /148 scoring
+- `documents/03-planning/plans/plan-ui-ux-design-system-integration.md` — 3-PR plan to adopt ui-ux-pro-max reasoning rules + upgrade ui-review skill to /148 scoring
 
 **Prior:** 2026-04-16 (added Epics 11-14, 48 new gaps from UI/process/SaaS audits)
