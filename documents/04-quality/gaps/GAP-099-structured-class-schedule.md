@@ -1,6 +1,6 @@
 # GAP-099: Structured Class Schedule (replaces free-form text)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 1 foundation shipped PR #355; Phase 2-3 still open)
 **Priority:** 🟡 P2
 **Domain:** KiteClass Core / Academic Year
 **Found:** 2026-04-18 (TODO audit post Wave 4)
@@ -31,10 +31,12 @@ private String scheduleText; // Free-form: "Mon 8-9:30, Wed 14-15:30"
 
 ## Proposed Fix
 
-**Phase 1: Data model**
-1. New entity `ClassScheduleSlot` (classId, dayOfWeek, startTime, endTime, recurrenceRule, validFrom, validUntil)
-2. Flyway migration: `class_schedule_slots` table with composite index
-3. Migration script converts existing free-form text (best-effort parsing + manual review list)
+**Phase 1: Data model** — DONE PR #355
+1. ✅ New entity `ClassScheduleSlot` (subjectSectionId, dayOfWeek, startTime, endTime, effectiveFrom, effectiveUntil, recurrenceNote)
+2. ✅ Flyway migration V44: `class_schedule_slots` table with 3 indexes + CHECK constraints
+3. ⏸ Migration script converting free-form text — **deferred to Phase 2** (risky best-effort parsing, needs manual review workflow)
+4. ✅ Repository với 3 common lookup methods
+5. ✅ 6 unit tests (isActiveOn + getDurationMinutes)
 
 **Phase 2: API + logic**
 1. CRUD endpoints for slots
