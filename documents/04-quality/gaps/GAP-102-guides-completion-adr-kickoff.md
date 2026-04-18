@@ -1,6 +1,6 @@
 # GAP-102: 05-guides Completion + ADR Kickoff
 
-**Status:** 🟡 PARTIAL (Part 2 done, Part 1 open)
+**Status:** 🟡 PARTIAL (Part 2 + Part 1 P2 batch done; Part 1 P1 batch open)
 **Priority:** 🟡 P2
 **Domain:** Documentation — Operations & Architecture Decision Records
 **Found:** 2026-04-18 (session Q&A về 05-guides purpose)
@@ -68,9 +68,9 @@ Hiểu lầm thường gặp: developers tạo file "why-rabbitmq.md" ở `05-gu
 ## Acceptance Criteria
 
 ### Part 1 (05-guides)
-- [ ] 3 P1 guides (monitoring, backup, security) tạo và reviewed
-- [ ] 3 P2 guides (local dev, CI/CD, tenant onboarding) tạo
-- [ ] `05-guides/README.md` (từ GAP-101) list đầy đủ guides
+- [ ] 3 P1 guides (monitoring, backup, security) tạo và reviewed — blocked by Wave 6 + legal input
+- [x] 3 P2 guides (local dev, CI/CD, tenant onboarding) tạo — PR #352
+- [x] `05-guides/README.md` list đầy đủ guides shipped (philosophy section updated)
 
 ### Part 2 (ADR) — DONE PR #348
 - [x] ADR index backfilled (5 → 14 ADRs listed)
