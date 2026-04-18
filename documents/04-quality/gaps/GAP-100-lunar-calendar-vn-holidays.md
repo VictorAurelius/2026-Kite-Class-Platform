@@ -1,6 +1,6 @@
 # GAP-100: Lunar Calendar for Vietnamese Holidays
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-04-18, PR #353)
 **Priority:** 🟢 P3
 **Domain:** KiteClass Core / Academic Year
 **Found:** 2026-04-18 (TODO audit post Wave 4)
@@ -47,10 +47,12 @@ Option B for MVP (P3 priority, 1-day work). Revisit Option A when Vietnamese com
 
 ## Acceptance Criteria
 
-- [ ] 10-year CSV (2025-2035) committed
-- [ ] Service reads CSV, falls back to approximate dates if year out of range
-- [ ] Unit tests with 3+ known years
-- [ ] VnHolidayProvider warning log removed
+- [x] 11-year CSV (2025-2035) committed at `src/main/resources/data/vn-lunar-holidays.csv`
+- [x] Service reads CSV via `@PostConstruct`, falls back to approximate dates if year out of range (Feb 1 / Apr 15 / Sep 20)
+- [x] Unit tests: 10 tests covering 3+ known years (2026, 2027) + out-of-range fallback (2050) + Trung Thu inclusion
+- [x] TODO comments removed from VnHolidayProvider.java
+- [x] Added Tết Trung Thu (15/8 lunar) as national holiday (was missing)
+- [x] Fixed Giỗ tổ Hùng Vương (was hardcoded solar Apr 18 → now lunar-computed)
 
 ## Dependencies
 

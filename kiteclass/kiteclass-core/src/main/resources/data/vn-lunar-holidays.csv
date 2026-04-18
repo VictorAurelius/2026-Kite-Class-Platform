@@ -1,0 +1,20 @@
+# VN Lunar Holiday Solar Dates (GAP-100)
+# Window: 2025-2035 (11 years). Maintainer adds new row each year.
+# Columns:
+#   year           — Gregorian year
+#   tet_start      — 1st day of Tet Nguyen Dan (1/1 lunar), solar date YYYY-MM-DD
+#   giotoonggia    — Gio to Hung Vuong (10/3 lunar), solar date YYYY-MM-DD
+#   trung_thu      — Tet Trung Thu (15/8 lunar), solar date YYYY-MM-DD
+# Source: Vietnamese lunar→solar conversion tables. Verify against MoET announcements before K-12 MoET audit.
+year,tet_start,giotoonggia,trung_thu
+2025,2025-01-29,2025-04-07,2025-10-06
+2026,2026-02-17,2026-04-26,2026-09-25
+2027,2027-02-06,2027-04-16,2027-09-15
+2028,2028-01-26,2028-04-04,2028-10-03
+2029,2029-02-13,2029-04-23,2029-09-22
+2030,2030-02-03,2030-04-12,2030-09-12
+2031,2031-01-23,2031-04-01,2031-10-01
+2032,2032-02-11,2032-04-20,2032-09-19
+2033,2033-01-31,2033-04-09,2033-09-08
+2034,2034-02-19,2034-04-28,2034-09-27
+2035,2035-02-08,2035-04-17,2035-09-16
