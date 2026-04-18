@@ -93,12 +93,14 @@ Sau khi tạo gap files, PHẢI update `documents/04-quality/gaps/ROADMAP.md`:
 
 ### Step 6: Fix Priority & Ordering
 
-Fix gaps theo thứ tự:
+**Meta-boost first:** trước khi áp dụng thứ tự dưới, apply `meta-gap-priority.md` — gaps về skills/rules/workflow luôn đi trước feature gaps cùng P-level. Xem `.claude/rules/meta-gap-priority.md` §3 cho priority matrix đầy đủ.
+
+Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ```
-1. P0 blockers (chặn audit/deploy/CI)
+1. P0 blockers (chặn audit/deploy/CI) — meta gaps trước feature gaps
 2. P0 → P1 có dependency chain (fix A trước mới fix B được)
-3. P1 independent (fix song song)
+3. P1 independent (fix song song) — meta gaps trước feature gaps
 4. P2 batch (gom nhiều P2 vào 1 PR)
 5. P3 opportunistic (fix khi đụng file liên quan)
 ```
