@@ -6,13 +6,15 @@ user-invocable: true
 
 # /ci-failure-triage — CI Failure Triage
 
+**Tool preference:** GitHub MCP (`list_workflow_runs`, `get_workflow_run_logs`) if connected, else `gh` CLI fallback. See `.claude/rules/mcp-first-with-fallback.md`.
+
 ## Process
 
-1. **Get failed run:**
+1. **Get failed run** — GitHub MCP `list_workflow_runs` (status=failure) OR:
    ```bash
    gh run list --branch $(git branch --show-current) --status failure --limit 1 --json databaseId,workflowName --jq '.[0]'
    ```
-2. **Get failed log:**
+2. **Get failed log** — GitHub MCP `get_workflow_run_logs` OR:
    ```bash
    gh run view <id> --log-failed 2>/dev/null | tail -50
    ```

@@ -19,10 +19,11 @@ argument-hint: "[PR-number|branch-name]"
 
 ## Rules
 
-1. **LUÔN dùng scripts** — không chạy `gh run list` trực tiếp nếu có script
-2. **E2E verify ở local** — Docker phải up, chạy `./scripts/test-api-e2e.sh`
-3. **CI monitor bằng script** — `bash scripts/check-ci.sh [branch]`
-4. **Cleanup bằng script** — `bash scripts/cleanup-ci-runs.sh`
+1. **MCP-first** — dùng GitHub MCP nếu connected (`claude mcp list`), `gh` CLI làm fallback. Chi tiết: `.claude/rules/mcp-first-with-fallback.md`
+2. **LUÔN dùng scripts** — không chạy `gh run list` trực tiếp nếu có script
+3. **E2E verify ở local** — Docker phải up, chạy `./scripts/test-api-e2e.sh`
+4. **CI monitor bằng script hoặc MCP** — GitHub MCP `list_workflow_runs` hoặc `bash scripts/check-ci.sh [branch]`
+5. **Cleanup bằng script** — `bash scripts/cleanup-ci-runs.sh`
 
 ---
 

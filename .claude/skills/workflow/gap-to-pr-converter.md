@@ -10,6 +10,8 @@ user-invocable: true
 **Created:** 2026-04-14
 **Purpose:** Transform a gap file (`GAP-XXX.md`) into actionable PR/wave với proper structure.
 
+**Tool preference:** GitHub MCP for PR creation if connected; `gh pr create` fallback. See `.claude/rules/mcp-first-with-fallback.md`.
+
 ---
 
 ## Usage
