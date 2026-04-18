@@ -429,34 +429,51 @@ git branch -D test/wsl-migration-verification
 
 **Do this AFTER Phase 4 passes.**
 
-### 5.1 GitHub MCP (user scope)
+### 5.1 GitHub MCP (user scope) — use OFFICIAL Docker image
+
+> **⚠️ Heads-up (2026-04-18):** The npm package
+> `@modelcontextprotocol/server-github` is **DEPRECATED**. GitHub now
+> publishes the official server at `ghcr.io/github/github-mcp-server`.
 
 ```bash
-# Create personal access token at github.com/settings/tokens
-# Scopes needed: repo, workflow, read:org
+# Pull official image
+docker pull ghcr.io/github/github-mcp-server
+
+# Uses your gh CLI auth token — no separate PAT needed
+GITHUB_MCP_TOKEN=$(gh auth token)
 
 claude mcp add github -s user \
-  --env GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_TOKEN \
-  -- npx -y @modelcontextprotocol/server-github
+  --env "GITHUB_PERSONAL_ACCESS_TOKEN=$GITHUB_MCP_TOKEN" \
+  -- docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server
 
 # Verify
 claude mcp list
-# Should show: github (user scope)
+# Should show: github (user scope) — ✓ Connected
 ```
+
+**Token scopes needed:** `repo`, `workflow`, `read:org` (default `gh auth login` covers these).
 
 ### 5.2 PostgreSQL MCP (project scope, dev DB only)
 
+**Defer until Docker stack is up + you're starting a wave that needs DB
+introspection (Wave 3 AI queue, Wave 8 doc gen).**
+
 ```bash
-# Ensure Docker stack running: ./scripts/up.sh first
-# Get dev DB connection string from kitehub/docker-compose.kitehub.yml
+# Prerequisites: kitehub stack running
+cd ~/projects/2026-Kite-Class-Platform/kitehub && ./scripts/up.sh
+
+# POSTGRES_PASSWORD comes from your local .env (set via ./scripts/setup.sh)
+source kitehub/.env 2>/dev/null || export POSTGRES_PASSWORD=<your-dev-password>
 
 claude mcp add postgres -s project \
   -- npx -y @modelcontextprotocol/server-postgres \
-  "postgresql://postgres:changeme@localhost:5433/kitehub_dev"
+  "postgresql://kitehub:$POSTGRES_PASSWORD@localhost:5433/kitehub"
 
 # Verify
 claude mcp list
 ```
+
+**⚠️ Never point this at production.** Dev DB only, readonly ideal.
 
 ### 5.3 (Optional) Playwright MCP
 
