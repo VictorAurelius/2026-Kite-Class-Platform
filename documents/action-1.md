@@ -567,3 +567,15 @@ tiếp tục fix gaps
 merge chưa commit file json log của PR kìa
 
 đánh giá vấn đề này
+
+được rồi đang ở trong wsl, đã hoàn thành migrate, hãy:
+1. install node_modules cho 2 FE
+2. migrate và commit json của PR 338
+3. gỡ và xóa dữ liệu claude ở ngoài window, xóa sạch sẽ
+4. check lại playbook về việc cài đặt MCP server
+
+Sẵn sàng khi user có input. => wave 3 cần tôi cung cấp input gì?
+
+wave vừa rồi có dùng mcp server để tối ưu không?
+
+Cần 1 PR riêng để update toàn bộ rule, skills tham chiếu đến mcp server, nếu không có mcp server thì cần phương án dự phòng là cách bình thường

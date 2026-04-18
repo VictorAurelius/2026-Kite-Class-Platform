@@ -10,6 +10,8 @@ disable-model-invocation: true
 - `/start-pr` - Check PR hiện tại (verify artifacts, quality)
 - `/start-pr PR-5.9 feature-description` - Bắt đầu PR mới
 
+**Tool preference:** GitHub MCP if connected (`claude mcp list`), else `gh` CLI. See `.claude/rules/mcp-first-with-fallback.md`.
+
 ---
 
 ## Instructions
