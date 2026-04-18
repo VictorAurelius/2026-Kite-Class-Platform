@@ -2,6 +2,8 @@
 
 **Mục đích**: Tổng quan tất cả PRs, tracking progress, và links đến chi tiết từng service.
 
+> ⚠️ **Index split:** Delivery since 2026-04-14 is **gap-driven + wave-driven**, not X.Y service numbering. See [Post-V4.1 Delivery Phase](#-post-v41-delivery-phase-2026-04-14-onwards) section below for current PRs. Legacy X.Y sections below remain accurate for the **V4.1 Core Platform phase (ended 2026-03-10)**.
+
 **Cấu trúc thư mục:**
 ```
 documents/03-planning/
@@ -17,6 +19,70 @@ documents/03-planning/
     ├── 03-frontend-prs.md
     └── 04-kitehub-prs.md
 ```
+
+**Gap roadmap (primary source of truth for remaining work):** `documents/04-quality/gaps/ROADMAP.md`
+
+---
+
+## 🚀 Post-V4.1 Delivery Phase (2026-04-14 onwards)
+
+**Approach change:** After V4.1 Core Platform completion (2026-03-10), KiteHub multi-tenant lifecycle + AI Branding work moved to **gap-driven delivery** (GAP-XXX) organized into **waves**. Progress primarily tracked in `documents/04-quality/gaps/ROADMAP.md`. This index mirrors the wave + PR structure for traceability.
+
+### Waves Shipped
+
+| Wave | Main PR(s) | Gaps Closed | Date | Status |
+|------|-----------|-------------|------|:------:|
+| Wave 2 — Data model foundation (7 sub-PRs) | #271-277 | GAP-009, 053, 054, 058, 007 (partial) | 2026-04-14 | ✅ |
+| Wave 3 — AI Branding core pipeline (8 sub-PRs) | #284-290 | GAP-007, 008, 010, 013, 015, 031, 069, 070 | 2026-04-14 | ✅ |
+| Wave 4 — Security & compliance (6 sub-PRs, parallel-agent) | #294-299 | GAP-012, 018, 041, 042, 073 | 2026-04-14 | ✅ |
+| Wave 1 (post-cleanup) — Bulk import MVP | #332 | GAP-051 | 2026-04-17 | ✅ |
+| Wave 2b — Parent portal identity + invitation MVP | #337 | GAP-052a | 2026-04-17 | ✅ |
+| Wave 3b — AI async pipeline + fair queue Phase 1 | #341 | GAP-002, GAP-005a | 2026-04-18 | ✅ |
+| Wave 4b — Branding propagation cluster | #343 | GAP-021, 032, 033p, 037 | 2026-04-18 | ✅ |
+
+### Recent Feature PRs (standalone, not part of a wave)
+
+| PR | Gap | Title | Date |
+|----|-----|-------|------|
+| #338 | — | fix(bulk-import): detect in-file duplicates | 2026-04-18 |
+| #353 | GAP-100 | Lunar calendar CSV for VN holidays | 2026-04-18 |
+| #354 | GAP-098 | Notification preferences persistence API | 2026-04-18 |
+| #355 | GAP-099 | ClassScheduleSlot entity foundation (Phase 1) | 2026-04-18 |
+
+### Governance / Rules / Skills PRs (meta)
+
+Per `.claude/rules/meta-gap-priority.md`, these PRs have priority over feature PRs because they affect output quality of all future work.
+
+| PR | Scope | Date |
+|----|-------|------|
+| #327 | fix(hooks): auto-stage PR log files after creation | 2026-04-17 |
+| #340 | docs(guides): GitHub MCP playbook | 2026-04-18 |
+| #342 | docs(rules): mcp-first-with-fallback | 2026-04-18 |
+| #345 | docs(planning): 03-planning restructure + planning-docs-structure rule | 2026-04-18 |
+| #346 | docs(gaps): GAP-101/102/103 docs folder governance | 2026-04-18 |
+| #349 | docs(readmes): GAP-101 — README cho 4 folders thiếu | 2026-04-18 |
+| #350 | docs(adr): GAP-102 Part 2 — ADR-014 async jobs queue | 2026-04-18 |
+| #351 | docs(deploy): GAP-103 — deployment-strategy + ADR-015 | 2026-04-18 |
+| #352 | docs(guides): GAP-102 Part 1 P2 — 3 operational guides | 2026-04-18 |
+| #356 | docs(readme): refresh tech stack + docs navigation | 2026-04-18 |
+| #357 | docs(roadmap): refresh gap statuses (48/103 DONE) | 2026-04-18 |
+| #358 | docs(rules): meta-gap-priority MASTER RULE | 2026-04-18 |
+| #359 | chore(pr-logs): backfill 18 missing PR logs + script | 2026-04-18 |
+
+### Remaining GA Blockers (6)
+
+Ordered per `meta-gap-priority.md` (meta-gaps first within P0):
+
+| # | Gap | Type | Title |
+|:-:|-----|:----:|-------|
+| 1 | **GAP-047** | 🔴 Meta (skills) | Document generation skills (Excel/Word/PDF/PPT) |
+| 2 | **GAP-046** | 🔴 Meta (rules) | Design patterns applied systematically |
+| 3 | **GAP-016** | 🔴 Meta (docs) | Living docs impact scope |
+| 4 | GAP-011 | Feature | Template library curation |
+| 5 | GAP-014 | Feature | Wave mock plan include AI branding |
+| 6 | GAP-005 | Feature | AI queue fair scheduling (Phase 2) |
+
+**Full gap roadmap:** `documents/04-quality/gaps/ROADMAP.md` (48/103 CLOSED, Waves 1-4 shipped, Epics 5/11/12 fully closed).
 
 ---
 
@@ -52,29 +118,31 @@ documents/03-planning/
 
 ---
 
-## 📊 Overall Progress
+## 📊 V4.1 Core Platform Progress (frozen 2026-03-10)
+
+> **Scope:** X.Y-numbered PRs from the V4.1 Bundled Core Platform phase. Post-V4.1 delivery (2026-04-14+) is tracked in the **Post-V4.1 Delivery Phase** section above. KiteHub counts below reflect the March 2026 planning — actual KiteHub work since has been gap-driven (Waves 2-4), not X.Y-numbered.
 
 | Service | Completed | Total | Progress | Status |
 |---------|-----------|-------|----------|--------|
 | **Gateway** | 10 | 10 | **100%** | 🎉 **COMPLETE** ⭐ |
 | **Core** | 17 | 17 | **100%** | 🎉 **COMPLETE** ⭐ |
 | **Frontend** | 14 | 14 | **100%** | 🎉 **COMPLETE** ⭐ |
-| **KiteHub Backend** | 11 | 15 | **73.3%** | 📧 **Email Service Ready** |
-| **KiteHub Frontend** | 0 | 10 | **0%** | 📋 **Planned** |
-| **Total** | 52 | 66 | **78.8%** | 🎉 **Core complete, KiteHub FE planned** |
+| **KiteHub Backend** | 11 | 15 | **73.3%** | 📧 V4.1 plan — now tracked via gaps |
+| **KiteHub Frontend** | 0 | 10 | **0%** | 📋 V4.1 plan — deferred |
+| **Total (V4.1 scope)** | 52 | 66 | **78.8%** | 🎉 Core complete; KiteHub moved to gap-driven delivery |
 
-**Major Update (March 2026)**: 🎉 **CORE PLATFORM 100% COMPLETE!**
+**Major Update (March 2026)**: 🎉 **V4.1 CORE PLATFORM 100% COMPLETE!**
 - **Gateway**: 10/10 PRs (100%) - Authentication, user management, rate limiting ✅
 - **Core Service**: 17/17 PRs (100%) - All business modules complete ✅
 - **Frontend**: 14/14 PRs (100%) - Admin + guest pages complete ✅
-- **KiteHub**: NEW platform service with 15 PRs planned (AI Branding, Multi-tenant SaaS)
+- **KiteHub**: NEW platform service (15 PRs planned in V4.1) — implementation continues via Waves 2-4 (gap-driven)
 - **Landing Pages**: 100% complete with seed data (8 courses + LMS modules)
 
 **Previous Milestones**:
 - 11 PRs completed in one week (Core: +7, Frontend: +4)
 - V4.1 Bundled Model implemented (LMS + Marketing merged into Core)
 
-**Last Updated**: 2026-03-10
+**V4.1 Phase Last Updated**: 2026-03-10. **Post-V4.1 refresh:** 2026-04-18 (see top section).
 
 ---
 
@@ -376,14 +444,17 @@ Changes:
 
 ---
 
-**Document Version**: 3.1 🎉 **CORE PLATFORM COMPLETE**
+**Document Version**: 4.0 — Post-V4.1 section added, gap-driven delivery acknowledged
 **Created**: 2026-02-26
-**Last Updated**: 2026-03-10
-**Major Milestones**:
+**Last Updated**: 2026-04-18 (post-V4.1 refresh — waves 1-4 + meta-governance PRs indexed)
+
+**V4.1 Phase Milestones**:
 - 🎉 2026-03-09: **CORE PLATFORM 100% COMPLETE!** (Gateway 10/10, Core 17/17, Frontend 14/14)
 - 🚀 2026-03-09: KiteHub Platform added (15 PRs), Landing Pages 100% complete
 - 🔥 2026-03-06: 11 PRs merged in one day (biggest merge day)
-- Overall progress: 51% → 62% → **73%** (41/56 PRs)
-- Gateway: **100%** ✅
-- Core Service: 42% → **100%** (+58%)
-- Frontend: 41% → **100%** (+59%)
+
+**Post-V4.1 Phase Milestones (2026-04-14+)**:
+- 🎯 2026-04-14: Wave 2 (data model), Wave 3 (AI branding core), Wave 4 (security/compliance) shipped — 22 sub-PRs, 18 gaps closed
+- 🎯 2026-04-17: Wave 1 bulk import (#332), Wave 2b parent portal (#337), IDE warnings audit (#323)
+- 🎯 2026-04-18: Wave 3b async + Phase 1 AI queue (#341), Wave 4b branding propagation (#343), docs governance burst (GAP-101/102/103), meta-gap-priority MASTER RULE (#358)
+- 📊 Overall: 48/103 gaps CLOSED (47%); 6 GA blockers remaining (GAP-047 → 046 → 016 → 011 → 014 → 005)
