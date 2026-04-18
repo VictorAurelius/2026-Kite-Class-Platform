@@ -1,6 +1,6 @@
 # GAP-103: Deploy Philosophy Consolidation + AWS Agent Plugins ADR
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-04-18, PR #351)
 **Priority:** 🟢 P3
 **Domain:** Architecture — Deployment strategy + AI tooling evaluation
 **Found:** 2026-04-18 (session Q&A về deploy philosophy + AWS Agent Plugins)
@@ -93,18 +93,18 @@ Tạo `documents/02-architecture/deployment-strategy.md` tổng hợp:
 
 ## Acceptance Criteria
 
-### Part 1
-- [ ] `02-architecture/deployment-strategy.md` tạo với 5 nguyên tắc + matrix
-- [ ] Link từ `02-architecture/README.md` (GAP-101)
-- [ ] Cross-reference 6 deploy docs hiện có
-- [ ] Section "Future: migration paths" (Oracle → AWS, hoặc ngược lại)
+### Part 1 — DONE
+- [x] `02-architecture/deployment-strategy.md` tạo với 5 nguyên tắc + matrix
+- [x] Link từ `02-architecture/README.md` (Key Documents + Directory Map)
+- [x] Cross-reference 6 deploy docs hiện có (Section 6)
+- [x] Section "Future: migration paths" (Oracle → AWS + AWS → Oracle contingency)
 
-### Part 2
-- [ ] ADR-015 written theo existing Nygard template (`adr/_TEMPLATE.md`)
-- [ ] 4 options đánh giá với pros/cons
-- [ ] Decision outcome + revisit trigger clear
-- [ ] Related link tới AWS Agent Plugins repo
-- [ ] Index `adr/README.md` updated
+### Part 2 — DONE
+- [x] ADR-015 written theo existing Nygard template (`adr/_TEMPLATE.md`)
+- [x] 4 options đánh giá với pros/cons (Full adopt | Selective | Reject | Defer)
+- [x] Decision outcome = Defer Q3 2026 + 5 revisit triggers clear
+- [x] Related link tới AWS Agent Plugins repo
+- [x] Index `adr/README.md` updated (14 → 15 ADRs)
 
 ## Dependencies
 
