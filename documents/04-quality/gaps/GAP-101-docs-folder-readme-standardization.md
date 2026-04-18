@@ -1,6 +1,6 @@
 # GAP-101: Docs Folder README Standardization
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-04-18, PR #347)
 **Priority:** 🟢 P3
 **Domain:** Documentation governance
 **Found:** 2026-04-18 (post PR #345 planning docs restructure)
@@ -54,11 +54,11 @@ Tạo `.claude/rules/docs-folder-structure.md` — generic version của `planni
 
 ## Acceptance Criteria
 
-- [ ] README.md tạo cho `00-brd`, `02-architecture`, `05-guides`, `07-archived`
-- [ ] Mỗi README có: purpose + directory map + file placement + archive policy
-- [ ] `.claude/rules/docs-folder-structure.md` (generic) được tạo, reference từ `planning-docs-structure.md`
-- [ ] CLAUDE.md cập nhật link tới rule mới (nếu cần)
-- [ ] 1 PR, batch tất cả READMEs
+- [x] README.md tạo cho `00-brd`, `02-architecture`, `05-guides`, `07-archived`
+- [x] Mỗi README có: purpose + directory map + file placement + archive policy
+- [x] `.claude/rules/docs-folder-structure.md` (generic) được tạo, reference từ `planning-docs-structure.md`
+- [x] CLAUDE.md cập nhật link tới rule mới
+- [x] 2 stacked PRs: #346 (rule + gap files) → #347 (4 READMEs)
 
 ## Dependencies
 
