@@ -66,5 +66,6 @@
   "cSpell.enableFiletypes": [
     "!markdown"
   ],
-  "postman.settings.dotenv-detection-notification-visibility": false
+  "postman.settings.dotenv-detection-notification-visibility": false,
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Declipse.jdt.core.compiler.problem.unusedObjectAllocation=warning -Declipse.jdt.core.compiler.problem.potentialResourceLeak=warning"
 }

@@ -1,0 +1,30 @@
+{
+  "pr": 338,
+  "title": "fix(bulk-import): detect in-file duplicates before DB (StudentBulkImportIT)",
+  "branch": "fix/bulk-import-it",
+  "created_at": null,
+  "merged_at": "2026-04-18T03:29:01Z",
+  "checklist": {
+    "tests_written": true,
+    "ci_green_before_merge": false,
+    "business_docs_updated": false,
+    "audits_required": [],
+    "audits_run": [],
+    "wave_completion_check": null
+  },
+  "events": [
+    {
+      "time": "2026-04-18T10:29:07.392892",
+      "type": "PR_MERGED",
+      "data": {
+        "ci_status": "",
+        "files_changed": 3,
+        "java_files": 1,
+        "test_files": 1,
+        "business_docs": false,
+        "missing_audits": []
+      }
+    }
+  ],
+  "compliance_score": "1/3"
+}
