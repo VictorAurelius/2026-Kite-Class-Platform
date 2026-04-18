@@ -1,6 +1,6 @@
 # GAP-102: 05-guides Completion + ADR Kickoff
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Part 2 done, Part 1 open)
 **Priority:** 🟡 P2
 **Domain:** Documentation — Operations & Architecture Decision Records
 **Found:** 2026-04-18 (session Q&A về 05-guides purpose)
@@ -27,9 +27,11 @@ Thiếu 6 guides operational quan trọng:
 5. **Security incident playbook** — breach response, PDPL violation, credentials rotation
 6. **Tenant onboarding operational checklist** — new school provisioning end-to-end
 
-**Part 2 — `documents/02-architecture/adr/` rỗng, thiếu ADR template + ADR-001:**
+**Part 2 — `documents/02-architecture/adr/` index stale + thiếu ADR cho async jobs decision:**
 
-Folder `adr/` đã tồn tại nhưng không có file nào. Rule `output-review-mandate.md` §5.3 bắt buộc ADR template cho architectural decisions, hiện chưa tồn tại.
+[Correction 2026-04-18] Folder `adr/` KHÔNG rỗng — đã có 13 ADRs (001-013) shipped 2026-04-14 + `_TEMPLATE.md` (Michael Nygard format). Vấn đề thực tế:
+- `adr/README.md` index stale — chỉ list 5/13 ADRs
+- Chưa có ADR cho "async jobs + RabbitMQ vs Spring Batch" decision (implicit từ Wave 1, explicit từ Wave 3)
 
 User Q&A ví dụ: "tại sao không dùng batch mà dùng jobs + RabbitMQ?" — đây là **architectural decision rationale**, đúng chỗ là ADR chứ không phải guide.
 
@@ -55,18 +57,13 @@ Hiểu lầm thường gặp: developers tạo file "why-rabbitmq.md" ở `05-gu
 - `cicd-release-procedure.md`
 - `tenant-onboarding-checklist.md`
 
-### Part 2: ADR kickoff (1 PR)
+### Part 2: ADR index backfill + ADR-014 (DONE — PR #348)
 
-**File tạo:**
-1. `documents/02-architecture/adr/README.md` — ADR process + template + index
-2. `documents/02-architecture/adr/TEMPLATE.md` — MADR-style template (Context, Decision Drivers, Considered Options, Decision Outcome, Consequences)
-3. `documents/02-architecture/adr/ADR-001-async-jobs-over-batch.md` — first ADR explaining jobs+RabbitMQ vs batch choice:
-   - Context: AI generation takes 2-5 min, email delivery ≥1000 tenants
-   - Options: sync, Spring Batch, RabbitMQ + consumer, cron jobs
-   - Decision: RabbitMQ + consumer + priority queues
-   - Consequences: better UX (non-blocking), complex ops (DLQ, retry, backpressure), infra dep
+**Files updated/created:**
+1. `documents/02-architecture/adr/README.md` — backfill index từ 5 → 14 ADRs (all 13 existing + ADR-014)
+2. `documents/02-architecture/adr/ADR-014-async-jobs-queue-over-batch.md` — retroactive ADR capturing RabbitMQ-over-Batch decision theo existing Nygard `_TEMPLATE.md` format
 
-**ADR naming:** `ADR-NNN-{kebab-case-title}.md`, chronological increment.
+**ADR naming:** `ADR-NNN-{kebab-case-title}.md`, chronological increment (next = ADR-015 cho GAP-103).
 
 ## Acceptance Criteria
 
@@ -75,11 +72,11 @@ Hiểu lầm thường gặp: developers tạo file "why-rabbitmq.md" ở `05-gu
 - [ ] 3 P2 guides (local dev, CI/CD, tenant onboarding) tạo
 - [ ] `05-guides/README.md` (từ GAP-101) list đầy đủ guides
 
-### Part 2 (ADR)
-- [ ] ADR template + README published
-- [ ] ADR-001 (jobs+RabbitMQ vs batch) written + reviewed
-- [ ] Rule `output-review-mandate.md` §5.3 mark resolved
-- [ ] CLAUDE.md link tới ADR folder
+### Part 2 (ADR) — DONE PR #348
+- [x] ADR index backfilled (5 → 14 ADRs listed)
+- [x] ADR-014 (async jobs queue vs batch framework) written theo existing Nygard template
+- [x] `02-architecture/README.md` statement corrected (folder đã có 13 ADRs, không phải rỗng)
+- [x] `_TEMPLATE.md` existing used — không cần template mới
 
 ## Dependencies
 
