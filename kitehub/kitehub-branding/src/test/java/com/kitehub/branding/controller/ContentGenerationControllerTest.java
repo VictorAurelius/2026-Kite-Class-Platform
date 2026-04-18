@@ -8,9 +8,11 @@ import com.kitehub.branding.service.ContentGenerationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,13 +21,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Tests for ContentGenerationController.
+ *
+ * <p>Controller is now reactive ({@code Mono<ResponseEntity<...>>}) so we use
+ * {@code asyncDispatch} to complete the async request before asserting.</p>
  *
  * @since 1.0
  */
@@ -53,11 +60,11 @@ class ContentGenerationControllerTest {
                 .brandPersonality(Arrays.asList("Friendly"))
                 .build();
 
-        ContentGenerationController.ContentGenerationRequest request =
+        ContentGenerationController.ContentGenerationRequest requestBody =
                 new ContentGenerationController.ContentGenerationRequest();
-        request.setLogoAnalysis(logoAnalysis);
-        request.setOrgName("Kite English Center");
-        request.setLanguage("vi");
+        requestBody.setLogoAnalysis(logoAnalysis);
+        requestBody.setOrgName("Kite English Center");
+        requestBody.setLanguage("vi");
 
         LandingPageContent mockContent = LandingPageContent.builder()
                 .heroTitle("Trung Tâm Tiếng Anh Hàng Đầu")
@@ -80,12 +87,17 @@ class ContentGenerationControllerTest {
                 any(LogoAnalysis.class),
                 anyString(),
                 anyString()
-        )).thenReturn(mockContent);
+        )).thenReturn(Mono.just(mockContent));
 
-        // When & Then
-        mockMvc.perform(post("/api/platform/branding/content/generate")
+        // When: start async request, then dispatch
+        MvcResult asyncResult = mockMvc.perform(post("/api/platform/branding/content/generate")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Then
+        mockMvc.perform(asyncDispatch(asyncResult))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.heroTitle").value("Trung Tâm Tiếng Anh Hàng Đầu"))
                 .andExpect(jsonPath("$.heroSubtitle").value("Phương pháp học hiện đại"))
@@ -110,10 +122,10 @@ class ContentGenerationControllerTest {
                 .brandPersonality(Arrays.asList("Friendly"))
                 .build();
 
-        ContentGenerationController.ContentGenerationRequest request =
+        ContentGenerationController.ContentGenerationRequest requestBody =
                 new ContentGenerationController.ContentGenerationRequest();
-        request.setLogoAnalysis(logoAnalysis);
-        request.setOrgName("Kite English Center");
+        requestBody.setLogoAnalysis(logoAnalysis);
+        requestBody.setOrgName("Kite English Center");
         // No language set
 
         LandingPageContent mockContent = LandingPageContent.builder()
@@ -131,12 +143,15 @@ class ContentGenerationControllerTest {
                 any(LogoAnalysis.class),
                 anyString(),
                 eq("vi")  // Should default to "vi"
-        )).thenReturn(mockContent);
+        )).thenReturn(Mono.just(mockContent));
 
-        // When & Then
-        mockMvc.perform(post("/api/platform/branding/content/generate")
+        MvcResult asyncResult = mockMvc.perform(post("/api/platform/branding/content/generate")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(asyncResult))
                 .andExpect(status().isOk());
     }
 

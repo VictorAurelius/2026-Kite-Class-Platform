@@ -14,6 +14,19 @@ import java.util.UUID;
 /**
  * Service for checking and recording AI usage against tier-based rate limits.
  *
+ * <p>Wave 3 (GAP-005a): primary counter lives in <b>Redis</b> for horizontal
+ * scaling (atomic {@code INCR} + 24h TTL). JPA {@link AIUsageLogRepository}
+ * is kept as a resilience fallback when Redis is unavailable, and as the
+ * long-term audit trail.</p>
+ *
+ * <h3>Flow</h3>
+ * <pre>
+ *   recordUsage()   → Redis INCR   (fast path)
+ *                   → if Redis down, JPA increment (fallback)
+ *   getCurrentUsage → Redis GET    (fast path)
+ *                   → if Redis down, JPA SELECT
+ * </pre>
+ *
  * @since 1.0.0
  */
 @Slf4j
@@ -23,6 +36,7 @@ public class AIRateLimitService {
 
     private final AIRateLimitConfig rateLimitConfig;
     private final AIUsageLogRepository usageLogRepository;
+    private final DistributedRateLimiter distributedRateLimiter;
 
     /**
      * Check if the given instance has exceeded its daily AI request limit.
@@ -52,12 +66,32 @@ public class AIRateLimitService {
 
     /**
      * Record an AI request for the given instance.
-     * Creates a new usage log entry if none exists for today, otherwise increments the count.
+     *
+     * <p>Fast path: atomic {@code INCR} on Redis. Fallback: JPA increment
+     * (original behaviour) — ensures we never lose accounting when Redis is
+     * temporarily unavailable.</p>
      *
      * @param instanceId the instance UUID
      */
     @Transactional
     public void recordUsage(UUID instanceId) {
+        // Try Redis first — atomic INCR + TTL.
+        long redisCount = distributedRateLimiter.incrementDailyUsage(instanceId);
+        if (redisCount >= 0) {
+            log.debug("Recorded AI usage for instance {} via Redis (count={})",
+                    instanceId, redisCount);
+            return;
+        }
+
+        // Fallback to DB — Redis unavailable or errored.
+        log.debug("Redis unavailable — falling back to DB counter for {}", instanceId);
+        recordUsageViaDb(instanceId);
+    }
+
+    /**
+     * JPA-backed fallback counter — creates or increments the per-day row.
+     */
+    private void recordUsageViaDb(UUID instanceId) {
         LocalDate today = LocalDate.now();
         int updated = usageLogRepository.incrementRequestCount(instanceId, today);
 
@@ -66,7 +100,7 @@ public class AIRateLimitService {
             usageLogRepository.save(newLog);
             log.debug("Created new AI usage log for instance {} on {}", instanceId, today);
         } else {
-            log.debug("Incremented AI usage for instance {} on {}", instanceId, today);
+            log.debug("Incremented AI usage (DB) for instance {} on {}", instanceId, today);
         }
     }
 
@@ -77,6 +111,11 @@ public class AIRateLimitService {
      * @return current request count for today
      */
     public int getCurrentUsage(UUID instanceId) {
+        long redisCount = distributedRateLimiter.getDailyUsage(instanceId);
+        if (redisCount >= 0) {
+            return (int) redisCount;
+        }
+        // Fallback — DB.
         return usageLogRepository.findByInstanceIdAndUsageDate(instanceId, LocalDate.now())
                 .map(AIUsageLog::getRequestCount)
                 .orElse(0);

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 /**
  * REST controller for landing page content generation.
@@ -35,18 +36,19 @@ public class ContentGenerationController {
      * @return Generated landing page content
      */
     @PostMapping("/generate")
-    public ResponseEntity<LandingPageContent> generateContent(
+    public Mono<ResponseEntity<LandingPageContent>> generateContent(
             @RequestBody ContentGenerationRequest request
     ) {
         log.info("Generating content for: {}", request.getOrgName());
 
-        LandingPageContent content = contentGenerationService.generateLandingPageContent(
-                request.getLogoAnalysis(),
-                request.getOrgName(),
-                request.getLanguage() != null ? request.getLanguage() : "vi"
-        );
-
-        return ResponseEntity.ok(content);
+        // Fully reactive — Spring MVC supports Mono return type (async dispatch),
+        // so we never block the servlet thread waiting for the AI provider.
+        return contentGenerationService.generateLandingPageContent(
+                        request.getLogoAnalysis(),
+                        request.getOrgName(),
+                        request.getLanguage() != null ? request.getLanguage() : "vi"
+                )
+                .map(ResponseEntity::ok);
     }
 
     /**
