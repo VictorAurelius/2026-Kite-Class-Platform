@@ -583,3 +583,12 @@ Cần 1 PR riêng để update toàn bộ rule, skills tham chiếu đến mcp s
 vẫn ko dùng mcp server à
 
 fix nhưng warnings này
+
+1. các TODO đã bỏ qua đã có PR hoặc wave cover chưa?
+2. tôi muốn chắt lọc toàn bộ điểm mạnh, điểm hay của repo này để cải thiện UI UX của dự án đúng theo chuẩn của mọi người vì repo này có rất nhiều star, được mọi người đánh giá cao, còn review UI UX của dự án đang mang tính chủ quan
+Vậy nên tạo PR mới để cải thiện skills + đánh giá/ review/ audit lại status UI UX để tạo PR/wave để cải thiện đúng không?
+
+3 TODOs uncovered/partial. Nên tạo gaps hoặc mark as known limitation. Không blocker urgency cao.
+=> tạo
+
+Plan concrete => tạo plan log
