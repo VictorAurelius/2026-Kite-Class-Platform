@@ -1,6 +1,11 @@
 /**
  * Authentication layout for login/register pages.
  *
+ * Wave 4 (GAP-037): pulls tenant branding via {@link useTenantBranding}
+ * so the logo, display name, and primary color match the tenant the user
+ * is signing in to. Falls back cleanly to the default KiteClass palette
+ * when no tenant context is present (e.g. direct marketing landing).
+ *
  * @author KiteClass Team
  * @since 1.0.0
  */
@@ -9,20 +14,34 @@
 
 import type { ReactNode } from 'react';
 import { GraduationCap } from 'lucide-react';
+import { useTenantBranding } from '@/providers/BrandingProvider';
 
 interface AuthLayoutProps {
   children: ReactNode;
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
+  const { branding } = useTenantBranding();
+  const displayName = branding.displayName || 'KiteClass';
+  const logoUrl = branding.logoUrl;
+
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Branding */}
       <div className="hidden w-1/2 bg-primary lg:flex lg:flex-col lg:justify-center lg:px-12">
         <div className="mx-auto max-w-md space-y-6 text-primary-foreground">
           <div className="flex items-center gap-3">
-            <GraduationCap className="h-12 w-12" />
-            <h1 className="text-4xl font-bold">KiteClass</h1>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={displayName}
+                className="h-12 w-12 rounded bg-white/10 object-contain p-1"
+              />
+            ) : (
+              <GraduationCap className="h-12 w-12" />
+            )}
+            <h1 className="text-4xl font-bold">{displayName}</h1>
           </div>
           <h2 className="text-2xl font-semibold">
             Quản lý trung tâm giáo dục dễ dàng & hiệu quả
@@ -37,11 +56,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             </li>
             <li className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-              <span>Điểm danh & chấm điểm thời gian thực</span>
+              <span>Điểm danh &amp; chấm điểm thời gian thực</span>
             </li>
             <li className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-              <span>Học phí & thanh toán tự động</span>
+              <span>Học phí &amp; thanh toán tự động</span>
             </li>
           </ul>
         </div>
@@ -52,8 +71,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="mx-auto w-full max-w-md space-y-6">
           {/* Logo for mobile */}
           <div className="flex items-center justify-center gap-2 lg:hidden">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">KiteClass</span>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={displayName} className="h-8 w-8 object-contain" />
+            ) : (
+              <GraduationCap className="h-8 w-8 text-primary" />
+            )}
+            <span className="text-2xl font-bold">{displayName}</span>
           </div>
 
           {/* Form Content */}
@@ -61,7 +85,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
           {/* Footer */}
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} KiteClass Platform. Bảo lưu mọi quyền.
+            © {new Date().getFullYear()} {displayName}. Bảo lưu mọi quyền.
           </p>
         </div>
       </div>

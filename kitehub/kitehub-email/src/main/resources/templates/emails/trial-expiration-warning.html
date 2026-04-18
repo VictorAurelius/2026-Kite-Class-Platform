@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Trial Sắp Hết Hạn</title>
-    <style>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#3B82F6'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#1E40AF'}]];
+        }
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -14,11 +18,18 @@
             background-color: #F9FAFB;
         }
         .header {
-            background: #3B82F6;
+            background: var(--brand-primary);
             color: white;
             padding: 30px;
             text-align: center;
             border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 60px;
+            margin-bottom: 12px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .content {
             background: #ffffff;
@@ -34,7 +45,7 @@
         .button {
             display: inline-block;
             padding: 12px 24px;
-            background: #3B82F6;
+            background: var(--brand-primary);
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -50,26 +61,36 @@
 </head>
 <body>
     <div class="header">
-        <h1>KiteHub</h1>
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <h1 th:text="${branding?.displayName ?: 'KiteHub'}">KiteHub</h1>
     </div>
 
     <div class="content">
         <p>Xin chào,</p>
 
         <div class="warning">
-            <p>Trial của <strong th:text="${organizationName}">Organization</strong> sẽ hết hạn trong <strong th:text="${daysRemaining}">3</strong> ngày.</p>
+            <p>
+                Trial của <strong th:text="${organizationName}">Organization</strong>
+                sẽ hết hạn trong <strong th:text="${daysRemaining}">3</strong> ngày.
+            </p>
         </div>
 
         <p>Nâng cấp trước khi hết hạn để không bị gián đoạn.</p>
 
         <a th:href="${upgradeUrl}" class="button">Nâng cấp ngay</a>
 
-        <p style="margin-top: 30px;"><strong>Đội ngũ KiteHub</strong></p>
+        <p style="margin-top: 30px;">
+            <strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteHub'}|">Đội ngũ KiteHub</strong>
+        </p>
     </div>
 
     <div class="footer">
-        <p>&copy; 2026 KiteHub. All rights reserved.</p>
-        <p>Nếu bạn không muốn nhận email này, vui lòng liên hệ support.</p>
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteHub'}. All rights reserved.|">© 2026 KiteHub.</p>
+        <p>
+            Nếu bạn cần hỗ trợ, liên hệ
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kiteclass.com'}|"
+               th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>.
+        </p>
     </div>
 </body>
 </html>

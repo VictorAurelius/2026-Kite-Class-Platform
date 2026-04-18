@@ -39,6 +39,19 @@ aws:
     access-key: ${AWS_ACCESS_KEY_ID:}
     secret-key: ${AWS_SECRET_ACCESS_KEY:}
 
+# KiteHub email service — tenant branding propagation (GAP-021 Wave 4)
+kitehub:
+  email:
+    # Feature flag — set false to keep legacy hardcoded colors in templates
+    branding-enabled: ${KITEHUB_EMAIL_BRANDING_ENABLED:true}
+    branding:
+      # Upstream URL for kiteclass-core branding package API
+      core-base-url: ${KITEHUB_EMAIL_BRANDING_CORE_URL:http://kiteclass-core:8080}
+      # Timeout for branding lookups before falling back to defaults
+      timeout-seconds: ${KITEHUB_EMAIL_BRANDING_TIMEOUT_SECONDS:3}
+      # Bind the branding.updated RabbitMQ listener. Disable in tests without broker.
+      rabbit-enabled: ${KITEHUB_EMAIL_BRANDING_RABBIT_ENABLED:true}
+
 # Actuator & Monitoring
 management:
   endpoints:

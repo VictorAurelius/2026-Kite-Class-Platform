@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,7 +39,6 @@ class BrandingServiceTest {
     @Mock
     private BrandingMapper brandingMapper;
 
-    @InjectMocks
     private BrandingServiceImpl brandingService;
 
     private UUID testInstanceId;
@@ -49,6 +47,9 @@ class BrandingServiceTest {
     void setUp() {
         testInstanceId = UUID.randomUUID();
         TenantContext.setCurrentTenant(testInstanceId);
+        // Pass nulls for branding event publisher and version service —
+        // they're optional and unrelated to the behavior under test.
+        brandingService = new BrandingServiceImpl(brandingRepository, brandingMapper, null, null);
     }
 
     @AfterEach

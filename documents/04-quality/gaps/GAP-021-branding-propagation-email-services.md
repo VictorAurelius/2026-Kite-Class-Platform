@@ -1,9 +1,29 @@
 # GAP-021: Branding Propagation to Email & Other Services
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 4 MVP)
 **Priority:** 🟠 P1
 **Domain:** Backend / Integration
 **Detected:** 2026-04-14 (simulation)
+**Resolved:** 2026-04-18 (Wave 4 — branding propagation cluster)
+
+## Wave 4 resolution (MVP)
+
+- `kitehub-email` gains a `BrandingClient` (`WebClient` + Caffeine 5-min TTL cache)
+  that fetches the tenant branding package; `SESEmailService` injects a
+  `branding` variable into every Thymeleaf context.
+- `EmailRequest` now accepts `instanceId` + `tenantId`. Feature-flagged via
+  `kitehub.email.branding-enabled=true`; fails-closed to legacy defaults.
+- `welcome.html`, `email-verification.html`, and `trial-expiration-warning.html`
+  now use `var(--brand-primary)` / `var(--brand-secondary)` + `branding.logoUrl`.
+  Remaining 8 templates to be migrated in a follow-up PR.
+- `kiteclass-core` publishes `branding.updated` (topic exchange
+  `branding.events`) from `BrandingServiceImpl.updateBranding()` via the
+  existing Outbox + a best-effort direct RabbitTemplate publish.
+- `kitehub-email` binds queue `email.branding.updated` and evicts the local
+  cache on every event.
+
+Tests: `BrandingClientTest` (4), `SESEmailServiceTest` (5 incl. branding
+injection + fallback), `BrandingVersionServiceTest` — all green.
 
 ## Problem
 

@@ -2,8 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Chào Mừng Đến Với KiteClass</title>
-    <style>
+    <title th:text="|Chào mừng đến với ${branding?.displayName ?: 'KiteClass'}|">Chào mừng</title>
+    <style th:inline="text">
+        :root {
+            --brand-primary: [[${branding?.primaryColor ?: '#667eea'}]];
+            --brand-secondary: [[${branding?.secondaryColor ?: '#764ba2'}]];
+            --brand-accent: [[${branding?.accentColor ?: '#10B981'}]];
+        }
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
@@ -13,11 +18,18 @@
             padding: 20px;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
             color: white;
             padding: 30px;
             text-align: center;
             border-radius: 8px 8px 0 0;
+        }
+        .header img.logo {
+            max-height: 60px;
+            margin-bottom: 12px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .content {
             background: #f9f9f9;
@@ -27,7 +39,7 @@
         .button {
             display: inline-block;
             padding: 12px 30px;
-            background: #667eea;
+            background: var(--brand-primary);
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -43,13 +55,14 @@
 </head>
 <body>
     <div class="header">
-        <h1>Chào Mừng Đến Với KiteClass! 🚀</h1>
+        <img class="logo" th:if="${branding?.logoUrl}" th:src="${branding.logoUrl}" alt="Logo"/>
+        <h1 th:text="|Chào Mừng Đến Với ${branding?.displayName ?: 'KiteClass'}! 🚀|">Chào Mừng</h1>
     </div>
 
     <div class="content">
         <p>Xin chào <strong th:text="${organizationName}">Organization</strong>,</p>
 
-        <p>Cảm ơn bạn đã đăng ký sử dụng KiteClass Platform!</p>
+        <p th:text="|Cảm ơn bạn đã đăng ký sử dụng ${branding?.displayName ?: 'KiteClass'}!|">Cảm ơn bạn đã đăng ký.</p>
 
         <p>Tài khoản của bạn đã được tạo thành công và bạn có thể bắt đầu sử dụng ngay.</p>
 
@@ -63,15 +76,19 @@
         <p>Bạn có thể truy cập hệ thống tại:</p>
         <a th:href="${loginUrl}" class="button">Đăng Nhập Ngay</a>
 
-        <p style="margin-top: 30px;">Nếu bạn cần hỗ trợ, vui lòng liên hệ chúng tôi qua email support@kiteclass.com</p>
+        <p style="margin-top: 30px;">
+            Nếu bạn cần hỗ trợ, vui lòng liên hệ chúng tôi qua email
+            <a th:href="|mailto:${branding?.contactEmail ?: 'support@kiteclass.com'}|"
+               th:text="${branding?.contactEmail ?: 'support@kiteclass.com'}">support@kiteclass.com</a>
+        </p>
 
         <p>Chúc bạn có trải nghiệm tuyệt vời!</p>
 
-        <p><strong>Đội ngũ KiteClass</strong></p>
+        <p><strong th:text="|Đội ngũ ${branding?.displayName ?: 'KiteClass'}|">Đội ngũ KiteClass</strong></p>
     </div>
 
     <div class="footer">
-        <p>© 2026 KiteClass Platform. All rights reserved.</p>
+        <p th:text="|© 2026 ${branding?.displayName ?: 'KiteClass'}. All rights reserved.|">© 2026 KiteClass.</p>
         <p>Email này được gửi tự động, vui lòng không trả lời.</p>
     </div>
 </body>

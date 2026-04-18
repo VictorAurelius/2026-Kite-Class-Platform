@@ -1,9 +1,30 @@
 # GAP-033: Branding Version History & Rollback (User-facing)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 IN_PROGRESS (Wave 4 partial — manual rollback shipped)
 **Priority:** 🟠 P1
 **Domain:** Product / Backend
 **Detected:** 2026-04-14 (simulation: Owner × Daily Usage × C3 Data)
+**Partially resolved:** 2026-04-18 (Wave 4 — branding propagation cluster)
+
+## Wave 4 partial resolution (MVP)
+
+Shipped:
+- V43 migration `branding_versions` table (JSONB snapshot, partial unique index
+  guarantees exactly one active version per instance).
+- `BrandingVersion` entity + `BrandingVersionRepository` + `BrandingVersionService`
+  (snapshot / listVersions / rollback).
+- `BrandingServiceImpl.updateBranding()` auto-snapshots on every write.
+- `BrandingVersionController` exposes:
+  - `GET  /api/v1/branding/{instanceId}/versions` (paginated, newest-first)
+  - `POST /api/v1/branding/{instanceId}/versions/{versionNumber}/rollback`
+- Unit tests cover snapshot deactivation, rollback restore, and missing-version
+  error handling.
+
+Deferred to a later wave (not MVP):
+- Automated rollback triggers (quality-gate driven)
+- A/B branding tests
+- Diff viewer / visual regression UI
+- Version cleanup task (prune > 20 per instance).
 
 ## Problem
 

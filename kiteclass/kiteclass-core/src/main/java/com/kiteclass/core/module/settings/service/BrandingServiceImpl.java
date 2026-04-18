@@ -1,18 +1,22 @@
 package com.kiteclass.core.module.settings.service;
 
 import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.module.branding.events.BrandingEventPublisher;
+import com.kiteclass.core.module.branding.events.BrandingUpdatedEvent;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.entity.Branding;
 import com.kiteclass.core.module.settings.mapper.BrandingMapper;
 import com.kiteclass.core.module.settings.repository.BrandingRepository;
+import com.kiteclass.core.module.settings.versioning.BrandingVersionService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -22,12 +26,24 @@ import java.util.UUID;
  */
 @Service
 @Validated
-@RequiredArgsConstructor
 @Slf4j
 public class BrandingServiceImpl implements BrandingService {
 
     private final BrandingRepository brandingRepository;
     private final BrandingMapper brandingMapper;
+    private final BrandingEventPublisher brandingEventPublisher;
+    private final BrandingVersionService brandingVersionService;
+
+    public BrandingServiceImpl(
+            BrandingRepository brandingRepository,
+            BrandingMapper brandingMapper,
+            @Autowired(required = false) BrandingEventPublisher brandingEventPublisher,
+            @Autowired(required = false) BrandingVersionService brandingVersionService) {
+        this.brandingRepository = brandingRepository;
+        this.brandingMapper = brandingMapper;
+        this.brandingEventPublisher = brandingEventPublisher;
+        this.brandingVersionService = brandingVersionService;
+    }
 
     /**
      * {@inheritDoc}
@@ -66,6 +82,20 @@ public class BrandingServiceImpl implements BrandingService {
         brandingMapper.updateFromRequest(request, branding);
 
         branding = brandingRepository.save(branding);
+
+        // Wave 4 (GAP-033p): snapshot the new state into version history.
+        if (brandingVersionService != null) {
+            brandingVersionService.snapshot(branding, /*rollbackOf*/ null);
+        }
+
+        // Wave 4 (GAP-021): publish branding.updated so downstream caches evict.
+        if (brandingEventPublisher != null) {
+            brandingEventPublisher.publishUpdated(new BrandingUpdatedEvent(
+                    branding.getId(),
+                    instanceId.toString(),
+                    branding.getVersion() == null ? 0 : branding.getVersion().intValue(),
+                    Instant.now()));
+        }
 
         log.info("Updated branding for instance {}", instanceId);
 
