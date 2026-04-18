@@ -12,20 +12,22 @@
 
 **Progress:** 48/103 gaps CLOSED (47%). Waves 1-4 shipped.
 
-**GA Blockers remaining: 6**
+**GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
 
-| Gap | Title | Status | Effort |
-|-----|-------|:------:|:------:|
-| GAP-005 | AI queue fair scheduling (Phase 2) | 🟡 IN_PROGRESS | M |
-| GAP-011 | Template library curation (30 templates) | 🟡 PLANNED | L |
-| GAP-014 | Wave mock plan include AI branding | 🟡 PLANNED | M |
-| GAP-016 | Living docs impact scope | 🟡 PLANNED | S |
-| GAP-046 | Design patterns applied systematically | 🟡 PLANNED | M |
-| GAP-047 | Document generation skills (Excel/Word/PDF/PPT) | 🔵 OPEN | XL |
+| # | Gap | Title | Type | Status | Effort |
+|:-:|-----|-------|:----:|:------:|:------:|
+| 1 | **GAP-047** | Document generation skills (Excel/Word/PDF/PPT) — adopt from MiniMax | 🔴 Meta (skills) | 🔵 OPEN | XL |
+| 2 | **GAP-046** | Design patterns applied systematically | 🔴 Meta (rules) | 🟡 PLANNED | M |
+| 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
+| 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
+| 5 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
+| 6 | GAP-005 | AI queue fair scheduling (Phase 2) | Feature | 🟡 IN_PROGRESS | M |
+
+> **Priority rule:** Meta-gaps (skills/rules/workflow) go first at each P-level — 1 broken skill/rule affects every future PR, so force multiplier first. Ref `.claude/rules/meta-gap-priority.md`.
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 5 (either K-12 Critical Features, or GAP-047 document generation, or GAP-011 template curation — depends on GA launch strategy).
+**Next recommended wave:** Wave 5 **GAP-047** document generation (highest priority meta gap) — splits into Sub-PR 5.1 PDF+Excel (P0), 5.2 Word (P1), 5.3 PPT (P2). Alternative if unblocked by dependencies: GAP-046 design-pattern audit + rules enforcement.
 
 ---
 

@@ -190,6 +190,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `.claude/rules/ai-branding-guidelines.md` - Rules cho AI Branding feature (MANDATORY khi làm kitehub-branding)
 - `.claude/rules/design-patterns.md` - Project-wide design pattern rules (MANDATORY — enforce qua PR review)
 - `.claude/rules/output-review-mandate.md` - 🔴 MASTER RULE: mọi output phải có review standard + process (governance)
+- `.claude/rules/meta-gap-priority.md` - 🔴 MASTER RULE: gaps về skills/rules/workflow ưu tiên cao nhất (fix force multiplier trước feature)
 - `.claude/rules/audit-to-gap-pipeline.md` - Audit issues → Gap files → Memory → Fix PR (tránh duplicate, đúng thứ tự)
 - `.claude/rules/mcp-first-with-fallback.md` - MCP-first tool selection (GitHub MCP, Postgres MCP) với CLI fallback
 - `.claude/rules/planning-docs-structure.md` - Layout + frontmatter rules cho `documents/03-planning/`
