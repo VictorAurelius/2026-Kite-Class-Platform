@@ -561,9 +561,9 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-048 | Output review standards coverage | 🟠 P1 | M |
 | GAP-049 | Business logic correctness (stakeholder review) | 🟠 P1 | M |
 | GAP-050 | Persona-based business review process | 🟡 P2 | S |
-| GAP-101 ✅ | Docs folder README standardization (4 folders) — DONE PR #347 | 🟢 P3 | S |
-| GAP-102 | 05-guides completion + ADR kickoff | 🟡 P2 | M |
-| GAP-103 | Deploy philosophy consolidation + AWS Agent Plugins ADR | 🟢 P3 | M |
+| GAP-101 ✅ | Docs folder README standardization (4 folders) — DONE PR #349 | 🟢 P3 | S |
+| GAP-102 🟡 | 05-guides completion + ADR kickoff — PARTIAL (Part 2 DONE PR #350) | 🟡 P2 | M |
+| GAP-103 ✅ | Deploy philosophy consolidation + AWS Agent Plugins ADR — DONE PR #351 | 🟢 P3 | M |
 
 **Dependencies:** GAP-101 → GAP-102 (needs 05-guides README) → GAP-103 (needs ADR template + 02-architecture README).
 **Split:** GAP-101 standalone PR. GAP-102 split Part 1 (guides) + Part 2 (ADR kickoff). GAP-103 after 101+102.

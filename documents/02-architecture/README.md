@@ -24,6 +24,7 @@ Technical architecture documentation — system design, component interactions, 
 | [`data-retention-policy.md`](data-retention-policy.md) | Data retention + deletion architecture | 1 |
 | [`ssl-automation.md`](ssl-automation.md) | SSL cert automation (Let's Encrypt wildcard) | 1 |
 | [`living-docs-audit-2026-04.md`](living-docs-audit-2026-04.md) | Living docs audit snapshot (Apr 2026) | 1 |
+| [`deployment-strategy.md`](deployment-strategy.md) | Deployment philosophy single-source (5 principles + env matrix) | 1 |
 
 ---
 
@@ -53,6 +54,7 @@ Technical architecture documentation — system design, component interactions, 
 
 - **AI Branding (key feature):** [`ai-branding-v2-redesign.md`](ai-branding-v2-redesign.md) → [`ai-branding-design-patterns.md`](ai-branding-design-patterns.md)
 - **Service topology:** [`docker-platform-architecture.md`](docker-platform-architecture.md)
+- **Deployment philosophy:** [`deployment-strategy.md`](deployment-strategy.md)
 - **Domain/DNS:** [`domain-management.md`](domain-management.md)
 
 ---
@@ -61,9 +63,7 @@ Technical architecture documentation — system design, component interactions, 
 
 `adr/` chứa 14 ADRs (Michael Nygard format). Index: [`adr/README.md`](adr/README.md). Template: [`adr/_TEMPLATE.md`](adr/_TEMPLATE.md).
 
-**Status:** ADRs 001-013 shipped 2026-04-14 (initial architecture sweep). ADR-014 (Async Jobs Queue over Batch) shipped 2026-04-18 retroactively capturing Wave 1/3 decisions (GAP-102 kickoff).
-
-**Planned:** ADR-015 — AWS Agent Plugins evaluation (GAP-103).
+**Status:** ADRs 001-013 shipped 2026-04-14 (initial architecture sweep). ADR-014 (Async Jobs Queue over Batch) + ADR-015 (AWS Agent Plugins defer) shipped 2026-04-18 (GAP-102, GAP-103).
 
 Mọi architectural decision với ≥2 options considered PHẢI có ADR mới.
 

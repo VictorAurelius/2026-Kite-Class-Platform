@@ -37,6 +37,7 @@ Use `_TEMPLATE.md`. Follow Michael Nygard's format (Context → Decision → Con
 | [012](ADR-012-dmca-trademark-workflow.md) | DMCA / Trademark Workflow | ACCEPTED | 2026-04-14 |
 | [013](ADR-013-data-retention-classification.md) | Data Retention Classification (GDPR + VN Compliance) | ACCEPTED | 2026-04-14 |
 | [014](ADR-014-async-jobs-queue-over-batch.md) | Async Jobs Queue (RabbitMQ) over Batch Framework | ACCEPTED | 2026-04-18 |
+| [015](ADR-015-aws-agent-plugins-evaluation.md) | AWS Agent Plugins Evaluation — Defer Adoption | ACCEPTED | 2026-04-18 |
 
 ## Naming
 
@@ -52,5 +53,6 @@ Never edit accepted ADRs — create new ADR that supersedes.
 
 ## Log
 
+- **2026-04-18:** Added ADR-015 (AWS Agent Plugins defer, GAP-103).
 - **2026-04-18:** Index backfilled (was showing only 5/13). Added ADR-014 capturing RabbitMQ-over-Batch decision retroactively (GAP-102 ADR kickoff).
 - **2026-04-14:** ADRs 001-013 created (initial architecture documentation sweep).
