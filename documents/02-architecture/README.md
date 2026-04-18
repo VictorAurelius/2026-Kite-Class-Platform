@@ -57,14 +57,15 @@ Technical architecture documentation — system design, component interactions, 
 
 ---
 
-## ADR Process (planned — GAP-102)
+## ADR Process
 
-`adr/` folder tồn tại nhưng chưa có content. GAP-102 kick off:
-- ADR template (MADR format: Context, Decision Drivers, Options, Decision, Consequences)
-- ADR-001 — Async jobs + RabbitMQ vs Spring Batch
-- ADR-002 — AWS Agent Plugins evaluation (GAP-103)
+`adr/` chứa 14 ADRs (Michael Nygard format). Index: [`adr/README.md`](adr/README.md). Template: [`adr/_TEMPLATE.md`](adr/_TEMPLATE.md).
 
-Sau kickoff, mọi architectural decision với ≥2 options considered PHẢI có ADR.
+**Status:** ADRs 001-013 shipped 2026-04-14 (initial architecture sweep). ADR-014 (Async Jobs Queue over Batch) shipped 2026-04-18 retroactively capturing Wave 1/3 decisions (GAP-102 kickoff).
+
+**Planned:** ADR-015 — AWS Agent Plugins evaluation (GAP-103).
+
+Mọi architectural decision với ≥2 options considered PHẢI có ADR mới.
 
 ---
 
