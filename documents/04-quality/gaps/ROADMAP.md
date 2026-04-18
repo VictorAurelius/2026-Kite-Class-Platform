@@ -1,10 +1,31 @@
 # Gaps Roadmap — Epic-Based Organization
 
-**Mục tiêu:** Biến 95 gaps thành actionable roadmap với epics + dependencies + sprints.
+**Mục tiêu:** Biến 103 gaps thành actionable roadmap với epics + dependencies + sprints.
 
 > **Khi nào đọc file này thay vì README.md?**
 > - README: flat index, tra cứu 1 gap
 > - ROADMAP: execution planning, sprint planning, dependency check
+
+---
+
+## 🎯 Current Status Snapshot (2026-04-18)
+
+**Progress:** 48/103 gaps CLOSED (47%). Waves 1-4 shipped.
+
+**GA Blockers remaining: 6**
+
+| Gap | Title | Status | Effort |
+|-----|-------|:------:|:------:|
+| GAP-005 | AI queue fair scheduling (Phase 2) | 🟡 IN_PROGRESS | M |
+| GAP-011 | Template library curation (30 templates) | 🟡 PLANNED | L |
+| GAP-014 | Wave mock plan include AI branding | 🟡 PLANNED | M |
+| GAP-016 | Living docs impact scope | 🟡 PLANNED | S |
+| GAP-046 | Design patterns applied systematically | 🟡 PLANNED | M |
+| GAP-047 | Document generation skills (Excel/Word/PDF/PPT) | 🔵 OPEN | XL |
+
+**Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
+
+**Next recommended wave:** Wave 5 (either K-12 Critical Features, or GAP-047 document generation, or GAP-011 template curation — depends on GA launch strategy).
 
 ---
 
@@ -41,7 +62,7 @@
 |-----|-------|:--------:|:------:|
 | GAP-011 | Template library curation plan + review standards | 🔴 P0 | L |
 | GAP-014 | Wave mock plan include AI branding | 🔴 P0 | M |
-| GAP-015 | Tenant provisioning auto-trigger (event-driven) | 🔴 P0 | M |
+| GAP-015 ✅ | Tenant provisioning auto-trigger (event-driven) — DONE Wave 3 | 🟢 DONE | M |
 | GAP-016 | Living docs impact scope | 🔴 P0 | S |
 | GAP-046 | Design patterns applied systematically | 🟠 P1 | M |
 
@@ -56,11 +77,11 @@
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-007 | Resource classification pipeline (static/template/AI) | 🔴 P0 | L |
-| GAP-008 | AI Agent workflow (analyzer/planner/executor) | 🟠 P1 | XL |
-| GAP-009 | Instance provisioning lifecycle (6 states) | 🟠 P1 | L |
-| GAP-013 | Guided branding wizard UX | 🟠 P1 | L |
-| GAP-031 | Expand wizard inputs beyond logo | 🔴 P0 | M |
+| GAP-007 ✅ | Resource classification pipeline — DONE Wave 2+3 | 🟢 DONE | L |
+| GAP-008 ✅ | AI Agent workflow (analyzer/planner/executor) — DONE Wave 3 | 🟢 DONE | XL |
+| GAP-009 ✅ | Instance provisioning lifecycle (6 states) — DONE Wave 2 | 🟢 DONE | L |
+| GAP-013 ✅ | Guided branding wizard UX — DONE Wave 3 | 🟢 DONE | L |
+| GAP-031 ✅ | Expand wizard inputs beyond logo — DONE Wave 3 | 🟢 DONE | M |
 | GAP-004 | Template-based image composition (Canva-like) | 🟡 P2 | L |
 
 **Dependencies:** Epic 1 (GAP-011 templates must exist).
@@ -73,8 +94,8 @@
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-005 | AI queue fair scheduling + capacity plan | 🔴 P0 | L |
-| GAP-002 | Async pipeline for heavy AI tasks | 🟠 P1 | M |
+| GAP-005 🟡 | AI queue fair scheduling — Phase 1 DONE 2026-04-18, Phase 2 open | 🟡 IN_PROGRESS | L |
+| GAP-002 ✅ | Async pipeline for heavy AI tasks — DONE Wave 3 (2026-04-18) | 🟢 DONE | M |
 | GAP-006 | Upgrade AI models to Gemma 4 | 🟠 P1 | S |
 | GAP-003 | Multi-tier image generation | 🟡 P2 | M |
 | GAP-028 | AI model versioning & migration | 🟡 P2 | M |
@@ -89,10 +110,10 @@
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-010 | Branding package API + KiteClass integration | 🟠 P1 | M |
-| GAP-021 | Branding propagation to email + services | 🟢 DONE (Wave 4) | M |
-| GAP-037 | Branded auth flows (verify, reset pwd) | 🟢 DONE (Wave 4) | S |
-| GAP-032 | Branded error pages (404/500) | 🟢 DONE (Wave 4) | S |
+| GAP-010 ✅ | Branding package API + KiteClass integration — DONE Wave 3 | 🟢 DONE | M |
+| GAP-021 ✅ | Branding propagation to email + services — DONE Wave 4 | 🟢 DONE | M |
+| GAP-037 ✅ | Branded auth flows (verify, reset pwd) — DONE Wave 4 | 🟢 DONE | S |
+| GAP-032 ✅ | Branded error pages (404/500) — DONE Wave 4 | 🟢 DONE | S |
 | GAP-039 | Webhook reliability (retry, idempotency) | 🟠 P1 | M |
 
 **Dependencies:** Epic 2 (branding data), Epic 1 (infrastructure).
@@ -104,13 +125,13 @@
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-018 | Content safety & compliance (moderation, audit, GDPR) | 🔴 P0 | L |
-| GAP-041 | Security hardening (SVG XSS, SSRF, CSRF, injection) | 🔴 P0 | M |
-| GAP-042 | Legal/IP protection (trademark, DMCA, copyright) | 🔴 P0 | M |
-| GAP-012 | Automated instance quality review | 🟠 P1 | M |
+| GAP-018 ✅ | Content safety & compliance — DONE Wave 4 (MVP) | 🟢 DONE | L |
+| GAP-041 ✅ | Security hardening (SVG XSS, SSRF, CSRF) — DONE Wave 4 | 🟢 DONE | M |
+| GAP-042 ✅ | Legal/IP protection (DMCA workflow) — DONE Wave 4 | 🟢 DONE | M |
+| GAP-012 ✅ | Automated instance quality review — DONE Wave 4 | 🟢 DONE | M |
 
 **Dependencies:** Can parallelize với Epic 2.
-**Critical:** MUST complete before GA launch.
+**Status:** 🟢 All 4 gaps closed in Wave 4 (2026-04-14).
 
 ---
 
@@ -360,25 +381,18 @@ Some gaps có overlap, có thể merge:
 
 ## 8. Priority Tier Simplification
 
-Thay vì P0/P1/P2 flat, dùng **phase-based**:
+> **Superseded by refreshed tier table lower in file ("Updated Priority Tiers (103 gaps, refreshed 2026-04-18)").**
+> Original Sprint 0-6 planning preserved here for historical context.
 
-| Tier | Description | Count |
-|------|-------------|-------|
-| 🟥 **Block GA** (must fix before launch) | Security, core pipeline, lifecycle | 17 gaps |
-| 🟨 **Block GROWTH** (needed after GA within 3 months) | UX, conversion, ops | 18 gaps |
-| 🟦 **Block SCALE** (needed after 10k users) | Multi-brand, marketplace, advanced | 12 gaps |
+Original mapping (Wave 1 planning, pre-execution):
 
-### 🟥 Block GA (17)
+| Tier | Count (original plan) |
+|------|-----------------------|
+| 🟥 Block GA | 17 gaps |
+| 🟨 Block GROWTH | 18 gaps |
+| 🟦 Block SCALE | 12 gaps |
 
-GAP-005, 007, 008, 009, 010, 011, 012, 013, 014, 015, 016, 018, 031, 041, 042, 046, 047
-
-### 🟨 Block GROWTH (18)
-
-GAP-002, 006, 017, 019, 020, 021, 023, 026, 032, 033, 036, 037, 038, 039, 040, 043, 004, 024
-
-### 🟦 Block SCALE (12)
-
-GAP-001, 003, 022, 025, 027, 028, 029, 030, 034, 035, 044, 045
+See refreshed counts + remaining-open list in §"Updated Priority Tiers" below.
 
 ---
 
@@ -522,19 +536,18 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 | Gap | Title | Priority | Effort | When |
 |-----|-------|:--------:|:------:|:----:|
-| GAP-081 | Script review checklist | 🔴 P0 | S | Now |
-| GAP-082 | Migration review checklist | 🔴 P0 | S | Now |
-| GAP-086 | Incident response runbook | 🔴 P0 | M | Before prod |
-| GAP-087 | Deploy go/no-go checklist | 🔴 P0 | M | Before prod |
-| GAP-088 | Rollback procedure per service | 🔴 P0 | L | Before prod |
-| GAP-083 | Gap triage process | 🟠 P1 | S | Now |
-| GAP-084 | CI failure triage | 🟠 P1 | M | Now |
-| GAP-085 | Cross-app consistency check | 🟠 P1 | M | Now |
-| GAP-089 | Post-deploy smoke test | 🟠 P1 | M | Before prod |
-| GAP-090 | API contract tests | 🟠 P1 | L | Before prod |
+| GAP-081 ✅ | Script review checklist — DONE | 🟢 DONE | S | — |
+| GAP-082 ✅ | Migration review checklist — DONE | 🟢 DONE | S | — |
+| GAP-086 ✅ | Incident response runbook — DONE | 🟢 DONE | M | — |
+| GAP-087 ✅ | Deploy go/no-go checklist — DONE | 🟢 DONE | M | — |
+| GAP-088 ✅ | Rollback procedure per service — DONE | 🟢 DONE | L | — |
+| GAP-083 ✅ | Gap triage process — DONE | 🟢 DONE | S | — |
+| GAP-084 ✅ | CI failure triage — DONE | 🟢 DONE | M | — |
+| GAP-085 ✅ | Cross-app consistency check — DONE | 🟢 DONE | M | — |
+| GAP-089 ✅ | Post-deploy smoke test — DONE | 🟢 DONE | M | — |
+| GAP-090 ✅ | API contract tests — DONE | 🟢 DONE | L | — |
 
-**Dependencies:** None — can start immediately.
-**Split:** 081-085 (fix now), 086-090 (before production).
+**Status:** 🟢 Epic 12 fully closed (10/10 gaps DONE). Production-readiness governance in place.
 
 ---
 
@@ -543,13 +556,13 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-076 | KiteHub capture mock auth | 🔴 P0 | M |
-| GAP-077 | KiteClass dev error overlay | 🟠 P1 | S |
-| GAP-078 | KiteHub dark mode not switching | 🟠 P1 | M |
-| GAP-079 | KiteClass i18n gaps | 🟠 P1 | M |
+| GAP-076 ✅ | KiteHub capture mock auth — DONE | 🟢 DONE | M |
+| GAP-077 ✅ | KiteClass dev error overlay — DONE | 🟢 DONE | S |
+| GAP-078 ✅ | KiteHub dark mode not switching — DONE | 🟢 DONE | M |
+| GAP-079 ✅ | KiteClass i18n gaps — DONE | 🟢 DONE | M |
 | GAP-080 | KiteHub dashboard loading/error UX | 🟡 P2 | M |
 
-**Dependencies:** GAP-076 → re-capture → re-audit (unblocks accurate scoring).
+**Status:** 4/5 DONE. Only P2 GAP-080 open.
 
 ---
 
@@ -558,9 +571,9 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-048 | Output review standards coverage | 🟠 P1 | M |
+| GAP-048 ✅ | Output review standards coverage — DONE | 🟢 DONE | M |
 | GAP-049 | Business logic correctness (stakeholder review) | 🟠 P1 | M |
-| GAP-050 | Persona-based business review process | 🟡 P2 | S |
+| GAP-050 | Persona-based business review process | 🟡 PLANNED | S |
 | GAP-101 ✅ | Docs folder README standardization (4 folders) — DONE PR #349 | 🟢 P3 | S |
 | GAP-102 🟡 | 05-guides completion + ADR kickoff — PARTIAL (Part 2 DONE #350, Part 1 P2 DONE #352, Part 1 P1 open) | 🟡 P2 | M |
 | GAP-103 ✅ | Deploy philosophy consolidation + AWS Agent Plugins ADR — DONE PR #351 | 🟢 P3 | M |
@@ -570,25 +583,45 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 ---
 
-## Updated Priority Tiers (95 gaps)
+## Updated Priority Tiers (103 gaps, refreshed 2026-04-18)
 
 | Tier | Description | Count |
 |------|-------------|-------|
-| 🟥 **Block GA** | Security, core pipeline, lifecycle, SaaS hardening | 24 gaps |
-| 🟨 **Block GROWTH** | UX, conversion, ops, FE quality | 28 gaps |
-| 🟦 **Block SCALE** | Multi-brand, marketplace, advanced | 12 gaps |
-| ⬜ **Process/Internal** | Skills, governance, DevOps maturity | 16 gaps |
-| ✅ **CLOSED** | Completed in Waves 2-4 | 15 gaps |
+| 🟥 **Block GA** (remaining open) | Core pipeline foundation + doc gen | **6 gaps** |
+| 🟨 **Block GROWTH** (open) | UX, conversion, ops, webhooks | ~20 gaps |
+| 🟦 **Block SCALE** (open) | Multi-brand, marketplace, advanced | ~12 gaps |
+| ⬜ **Process/Internal** (open) | Advanced governance, persona review | ~4 gaps |
+| ✅ **CLOSED** | Completed in Waves 1-4 + post-wave cleanup | **48 gaps** |
 
-### 🟥 Block GA (24) — including new
+### 🟥 Block GA — Only 6 remain open (refresh 2026-04-18)
 
-Original: GAP-005, 007 ✅, 008 ✅, 009 ✅, 010 ✅, 011, 012 ✅, 013 ✅, 014, 015 ✅, 016, 018 ✅, 031 ✅, 041 ✅, 042 ✅, 046, 047
+| Gap | Title | Status | Effort |
+|-----|-------|:------:|:------:|
+| GAP-005 | AI queue fair scheduling | 🟡 Phase 2 open | M remaining |
+| GAP-011 | Template library curation (30 templates) | 🟡 PLANNED Sprint 0 | L |
+| GAP-014 | Wave mock plan include AI branding | 🟡 PLANNED Sprint 0 | M |
+| GAP-016 | Living docs impact scope (3-layer sweep) | 🟡 PLANNED Sprint 0 | S |
+| GAP-046 | Design patterns applied systematically | 🟡 PLANNED Sprint 0 | M |
+| GAP-047 | Document generation skills (Excel/Word/PDF/PPT) | 🔵 OPEN | XL |
 
-New: **GAP-092** (re-trial), **GAP-093** (backup), **GAP-081** (script review), **GAP-082** (migration review), **GAP-086** (incident), **GAP-087** (deploy gate), **GAP-088** (rollback)
+**Previously listed GA blockers now CLOSED:** GAP-007, 008, 009, 010, 012, 013, 015, 018, 031, 041, 042, 081, 082, 086, 087, 088, 092, 093.
 
 ---
 
-**Last Updated:** 2026-04-18 (Session 2: Waves 1-4 shipped; added GAP-098-100 from TODO audit)
+**Last Updated:** 2026-04-18 (Session 3: status refresh — 48/103 DONE; 6 GA blockers remain; Epics 5/11/12 fully closed; Epic 13 4/5 closed)
+
+### Session 3 refresh 2026-04-18 — ROADMAP status audit
+
+Discrepancies fixed:
+- GAP-081, 082, 083, 084, 085, 086, 087, 088, 089, 090 — were listed as P0 Block GA / P1 pending, actually all DONE → Epic 12 fully closed
+- GAP-076, 077, 078, 079 — were listed P0/P1, actually DONE → Epic 13 reduced to 1 open (P2)
+- GAP-048 — Epic 14 governance, actually DONE
+- GAP-007, 008, 009, 010, 012, 013, 015, 018, 031, 041, 042 — core AI branding + security gaps DONE Wave 2-4, epic tables updated inline
+- GAP-002 — async pipeline DONE Wave 3 (2026-04-18)
+- GAP-015 — tenant provisioning auto-trigger DONE Wave 3 (was in Epic 1 as open)
+- Priority Tier counts: 95 → 103 total, Block GA 24 → 6 actual open, CLOSED 15 → 48
+
+Triggered by: status check found 6+ "Block GA" gaps already merged but ROADMAP not refreshed since 2026-04-14 wave log entries.
 
 ### New gaps 2026-04-18 (TODO audit post Wave 4)
 
