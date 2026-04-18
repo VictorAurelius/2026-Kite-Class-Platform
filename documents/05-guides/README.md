@@ -18,6 +18,9 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 | [`incident-response-runbook.md`](incident-response-runbook.md) | SEV1-SEV3 triage procedure (GAP-086) | 1 |
 | [`rollback-procedure.md`](rollback-procedure.md) | Per-service rollback steps (GAP-088) | 1 |
 | [`wsl-migration-playbook.md`](wsl-migration-playbook.md) | WSL2 dev env setup (added 2026-04-18) | 1 |
+| [`local-dev-setup-non-wsl.md`](local-dev-setup-non-wsl.md) | Mac/Linux native dev setup (GAP-102, 2026-04-18) | 1 |
+| [`cicd-release-procedure.md`](cicd-release-procedure.md) | PR merge → prod deploy procedure (GAP-102, 2026-04-18) | 1 |
+| [`tenant-onboarding-checklist.md`](tenant-onboarding-checklist.md) | End-to-end school onboarding (3-day target) (GAP-102, 2026-04-18) | 1 |
 | [`operations/`](operations/) | Operations runbooks (deploy procedures) | `runbooks/*.md` |
 | [`vietnamese/`](vietnamese/) | Vietnamese-language guides (Oracle Cloud deploy) | 1+ |
 
@@ -59,11 +62,14 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 
 ### 🟠 Developer experience
 - ✅ WSL migration playbook
-- ❌ Local dev setup non-WSL (Mac/Linux native) (GAP-102)
+- ✅ Local dev setup non-WSL (Mac/Linux native)
 
 ### 🟡 Tenant lifecycle
-- ❌ Tenant onboarding checklist (GAP-102)
+- ✅ Tenant onboarding checklist (3-day target)
 - ❌ Tenant offboarding / data export (future)
+
+### 🟢 Release management
+- ✅ CI/CD release procedure
 
 Completion tracked trong [GAP-102](../04-quality/gaps/GAP-102-guides-completion-adr-kickoff.md).
 
