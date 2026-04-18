@@ -1,0 +1,94 @@
+# 05-guides — Operational Guides & Runbooks
+
+**Rules:** [`.claude/rules/docs-folder-structure.md`](../../.claude/rules/docs-folder-structure.md)
+
+Operator-facing documentation — "how to run, deploy, recover, and troubleshoot the system." Khác [`02-architecture/`](../02-architecture/) (design + rationale) và [`03-planning/`](../03-planning/) (roadmap). Mọi doc trong đây viết cho người **đang vận hành** production hoặc dev environment, không phải designer.
+
+**Audience:** SRE, DevOps, On-call engineers, New developers setting up local env, Incident responders.
+
+---
+
+## Directory Map
+
+| Path | Purpose | Typical files |
+|------|---------|---------------|
+| `README.md` | This index | 1 |
+| [`SECRET-MANAGEMENT.md`](SECRET-MANAGEMENT.md) | K8s Sealed Secrets + Vault setup | 1 |
+| [`deploy-go-nogo-checklist.md`](deploy-go-nogo-checklist.md) | Pre-deploy gate checklist (GAP-087) | 1 |
+| [`incident-response-runbook.md`](incident-response-runbook.md) | SEV1-SEV3 triage procedure (GAP-086) | 1 |
+| [`rollback-procedure.md`](rollback-procedure.md) | Per-service rollback steps (GAP-088) | 1 |
+| [`wsl-migration-playbook.md`](wsl-migration-playbook.md) | WSL2 dev env setup (added 2026-04-18) | 1 |
+| [`operations/`](operations/) | Operations runbooks (deploy procedures) | `runbooks/*.md` |
+| [`vietnamese/`](vietnamese/) | Vietnamese-language guides (Oracle Cloud deploy) | 1+ |
+
+---
+
+## File Placement Rules
+
+- ✅ **Belongs here:**
+  - Runbooks (step-by-step operational procedures)
+  - Playbooks (decision trees for scenarios: dev setup, incident, rollback)
+  - Checklists (go/no-go, pre-flight, post-deploy)
+  - Troubleshooting guides (common errors + fixes)
+  - Tenant onboarding operational steps
+
+- ❌ **Does NOT belong here:**
+  - Architecture rationale ("why RabbitMQ over batch") → [`02-architecture/adr/`](../02-architecture/adr/)
+  - System design docs → [`02-architecture/`](../02-architecture/)
+  - Feature planning / waves → [`03-planning/`](../03-planning/)
+  - Gap reports / audits → [`04-quality/`](../04-quality/)
+  - Business rules per domain → [`01-business/`](../01-business/)
+
+- Naming: `kebab-case.md`, runbooks nên prefix context: `incident-*`, `deploy-*`, `rollback-*`
+
+---
+
+## Current Guides Philosophy
+
+Đủ bộ guides cho production readiness cần cover 3 nhóm:
+
+### 🔴 Production operations (must-have trước GA)
+- ✅ Incident response runbook
+- ✅ Rollback procedure
+- ✅ Deploy go/no-go checklist
+- ✅ Secret management
+- ❌ Monitoring + alerting runbook (Wave 6 dependency — GAP-102)
+- ❌ Database backup/restore SOP (GAP-093 + GAP-102)
+- ❌ Security incident playbook (GAP-102)
+- ❌ CI/CD release procedure (GAP-102)
+
+### 🟠 Developer experience
+- ✅ WSL migration playbook
+- ❌ Local dev setup non-WSL (Mac/Linux native) (GAP-102)
+
+### 🟡 Tenant lifecycle
+- ❌ Tenant onboarding checklist (GAP-102)
+- ❌ Tenant offboarding / data export (future)
+
+Completion tracked trong [GAP-102](../04-quality/gaps/GAP-102-guides-completion-adr-kickoff.md).
+
+---
+
+## Subdirectories
+
+- **`operations/runbooks/`** — Granular runbook content (deployment procedures). Kept separate for volume-based organization.
+- **`vietnamese/`** — Vietnamese-language versions cho guides mà target audience yêu cầu tiếng Việt (vd. client-facing Oracle Cloud deploy guide). Không phải mọi guide cần bản VN.
+
+---
+
+## Archive Policy
+
+Move to `documents/07-archived/guides-YYYY/` khi:
+- Procedure obsoleted (vd. rollback strategy changed fundamentally)
+- Technology retired (vd. if we drop Oracle Cloud, archive VN Oracle guide)
+- Guide replaced by auto-generated runbook
+
+Keep version history — runbooks are "living docs", update in-place với changelog section at bottom.
+
+---
+
+## Related
+
+- **Gaps:** [GAP-086](../04-quality/gaps/GAP-086-incident-response-runbook.md), [GAP-087](../04-quality/gaps/GAP-087-deploy-go-no-go.md), [GAP-088](../04-quality/gaps/GAP-088-rollback-procedure.md), [GAP-102](../04-quality/gaps/GAP-102-guides-completion-adr-kickoff.md)
+- **Wave 6** — Monitoring + Observability drives new monitoring runbook
+- **Wave 9** — Compliance MVP drives security incident playbook with legal sign-off
