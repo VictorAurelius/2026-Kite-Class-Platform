@@ -584,4 +584,16 @@ New: **GAP-092** (re-trial), **GAP-093** (backup), **GAP-081** (script review), 
 
 ---
 
-**Last Updated:** 2026-04-16 (added Epics 11-14, 48 new gaps from UI/process/SaaS audits)
+**Last Updated:** 2026-04-18 (Session 2: Waves 1-4 shipped; added GAP-098-100 from TODO audit)
+
+### New gaps 2026-04-18 (TODO audit post Wave 4)
+
+- **GAP-098** (P2) — Notification settings API not implemented — `InstanceTab.tsx:57`
+- **GAP-099** (P2) — Structured class schedule (replace free-form text) — `SubjectSection.java:24`
+- **GAP-100** (P3) — Lunar calendar for VN holidays — `VnHolidayProvider.java`
+
+### Planning docs added 2026-04-18
+
+- `documents/03-planning/plan-ui-ux-design-system-integration.md` — 3-PR plan to adopt ui-ux-pro-max reasoning rules + upgrade ui-review skill to /148 scoring
+
+**Prior:** 2026-04-16 (added Epics 11-14, 48 new gaps from UI/process/SaaS audits)
