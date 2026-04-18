@@ -39,4 +39,8 @@ public class InstanceResponse {
     private Boolean isOnTrial;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Notification preferences (GAP-098)
+    private Boolean emailNotifications;
+    private Boolean trialReminders;
 }

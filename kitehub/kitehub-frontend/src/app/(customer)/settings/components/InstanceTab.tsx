@@ -23,11 +23,12 @@ export function InstanceTab({ instance }: InstanceTabProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Notification preferences
+  // Notification preferences (GAP-098)
   const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    trialReminders: true,
+    emailNotifications: instance?.emailNotifications ?? true,
+    trialReminders: instance?.trialReminders ?? true,
   });
+  const [notifError, setNotifError] = useState<string | null>(null);
 
   const isPremium = instance?.tier === 'PREMIUM';
   const subdomain = instance?.subdomain || 'your-subdomain';
@@ -52,9 +53,18 @@ export function InstanceTab({ instance }: InstanceTabProps) {
     }
   };
 
-  const handleNotificationChange = (key: keyof typeof notifications) => {
-    setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
-    // TODO: Implement notification settings API call
+  const handleNotificationChange = async (key: keyof typeof notifications) => {
+    if (!instance?.id) return;
+    const previous = notifications;
+    const next = { ...previous, [key]: !previous[key] };
+    setNotifications(next);
+    setNotifError(null);
+    try {
+      await apiClient.patch(endpoints.instances.update(instance.id), { [key]: next[key] });
+    } catch {
+      setNotifications(previous);
+      setNotifError('Không thể lưu cài đặt thông báo. Vui lòng thử lại.');
+    }
   };
 
   return (

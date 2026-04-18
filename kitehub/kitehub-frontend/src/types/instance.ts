@@ -32,6 +32,9 @@ export interface Instance {
   // Custom domain settings
   customDomain?: string | null;
   customDomainVerified?: boolean;
+  // Notification preferences (GAP-098)
+  emailNotifications?: boolean;
+  trialReminders?: boolean;
 }
 
 export type SubscriptionTier = 'FREE' | 'BASIC' | 'PREMIUM' | 'ENTERPRISE';

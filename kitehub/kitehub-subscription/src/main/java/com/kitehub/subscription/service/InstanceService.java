@@ -388,6 +388,14 @@ public class InstanceService {
             instance.setCustomDomain(request.getCustomDomain());
         }
 
+        // GAP-098: notification preferences
+        if (request.getEmailNotifications() != null) {
+            instance.setEmailNotifications(request.getEmailNotifications());
+        }
+        if (request.getTrialReminders() != null) {
+            instance.setTrialReminders(request.getTrialReminders());
+        }
+
         Instance updated = instanceRepository.save(instance);
 
         log.info("Updated instance: {}", id);
@@ -481,6 +489,8 @@ public class InstanceService {
             .isOnTrial(instance.isOnTrial())
             .createdAt(instance.getCreatedAt())
             .updatedAt(instance.getUpdatedAt())
+            .emailNotifications(instance.isEmailNotifications())
+            .trialReminders(instance.isTrialReminders())
             .build();
     }
 }
