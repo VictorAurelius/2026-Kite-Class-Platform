@@ -229,6 +229,82 @@ class InstanceServiceTest {
         assertThat(response.getTrialDaysLeft()).isGreaterThanOrEqualTo(6).isLessThanOrEqualTo(8); // Allow 1 day tolerance for timing
     }
 
+    @Test
+    @DisplayName("updateInstance should persist notification preferences (GAP-098)")
+    void updateInstance_persistsNotificationPreferences() {
+        // Given
+        UUID id = UUID.randomUUID();
+        Instance instance = new Instance();
+        instance.setId(id);
+        instance.setSubdomain("test");
+        instance.setOrganizationName("Test");
+        instance.setOwnerId(UUID.randomUUID());
+        instance.setTier(PricingTier.BASIC);
+        instance.setStatus(InstanceStatus.ACTIVE);
+        instance.setDatabaseUrl("test");
+        instance.setDatabaseUsername("test");
+        instance.setDatabasePassword("test");
+        instance.setEmailNotifications(true);
+        instance.setTrialReminders(true);
+        instance.setDeleted(false);
+
+        com.kitehub.subscription.dto.UpdateInstanceRequest request =
+            com.kitehub.subscription.dto.UpdateInstanceRequest.builder()
+                .emailNotifications(false)
+                .trialReminders(false)
+                .build();
+
+        when(instanceRepository.findById(id)).thenReturn(java.util.Optional.of(instance));
+        when(instanceRepository.save(any(Instance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        InstanceResponse response = instanceService.updateInstance(id, request);
+
+        // Then
+        assertThat(response.getEmailNotifications()).isFalse();
+        assertThat(response.getTrialReminders()).isFalse();
+
+        ArgumentCaptor<Instance> captor = ArgumentCaptor.forClass(Instance.class);
+        verify(instanceRepository).save(captor.capture());
+        assertThat(captor.getValue().isEmailNotifications()).isFalse();
+        assertThat(captor.getValue().isTrialReminders()).isFalse();
+    }
+
+    @Test
+    @DisplayName("updateInstance should not change preferences when fields are null (GAP-098)")
+    void updateInstance_nullFieldsPreserveExistingPreferences() {
+        // Given
+        UUID id = UUID.randomUUID();
+        Instance instance = new Instance();
+        instance.setId(id);
+        instance.setSubdomain("test2");
+        instance.setOrganizationName("Test2");
+        instance.setOwnerId(UUID.randomUUID());
+        instance.setTier(PricingTier.BASIC);
+        instance.setStatus(InstanceStatus.ACTIVE);
+        instance.setDatabaseUrl("test");
+        instance.setDatabaseUsername("test");
+        instance.setDatabasePassword("test");
+        instance.setEmailNotifications(false); // already opted out
+        instance.setTrialReminders(true);
+        instance.setDeleted(false);
+
+        com.kitehub.subscription.dto.UpdateInstanceRequest request =
+            com.kitehub.subscription.dto.UpdateInstanceRequest.builder()
+                .organizationName("Only Rename")
+                .build();
+
+        when(instanceRepository.findById(id)).thenReturn(java.util.Optional.of(instance));
+        when(instanceRepository.save(any(Instance.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        InstanceResponse response = instanceService.updateInstance(id, request);
+
+        // Then — preferences unchanged
+        assertThat(response.getEmailNotifications()).isFalse();
+        assertThat(response.getTrialReminders()).isTrue();
+    }
+
     @Nested
     @DisplayName("registerInstance — re-trial prevention (TR-07)")
     class RegisterInstanceReTrial {

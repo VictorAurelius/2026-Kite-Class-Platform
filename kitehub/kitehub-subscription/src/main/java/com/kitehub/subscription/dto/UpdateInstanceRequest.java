@@ -26,4 +26,14 @@ public class UpdateInstanceRequest {
 
     @Size(max = 255, message = "Custom domain must not exceed 255 characters")
     private String customDomain;
+
+    /**
+     * Notification preference toggle (GAP-098). Null means no change.
+     */
+    private Boolean emailNotifications;
+
+    /**
+     * Trial reminder preference toggle (GAP-098). Null means no change.
+     */
+    private Boolean trialReminders;
 }

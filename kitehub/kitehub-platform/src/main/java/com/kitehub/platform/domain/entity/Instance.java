@@ -168,6 +168,24 @@ public class Instance extends BaseEntity {
     private LocalDateTime subscriptionExpiresAt;
 
     /**
+     * User preference: receive email notifications về instance activity.
+     * Default true (preserves current behavior for existing users).
+     *
+     * @since GAP-098
+     */
+    @Column(name = "email_notifications", nullable = false)
+    private boolean emailNotifications = true;
+
+    /**
+     * User preference: receive trial expiration reminder emails.
+     * Default true.
+     *
+     * @since GAP-098
+     */
+    @Column(name = "trial_reminders", nullable = false)
+    private boolean trialReminders = true;
+
+    /**
      * Check if this instance is on trial.
      *
      * @return true if status is TRIAL and not expired, false otherwise
