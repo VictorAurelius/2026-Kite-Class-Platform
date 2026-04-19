@@ -239,6 +239,35 @@ def on_pr_merge(pr: str) -> dict | None:
         return {"systemMessage": f"PR #{pr} — audit-gate error: {e}"}
 
 
+def is_docs_only(files: list[str]) -> bool:
+    """Docs-only PR: all changed files are docs/skills/rules/READMEs. No audit required."""
+    if not files:
+        return False
+    DOC_PREFIXES = ("documents/", ".claude/rules/", ".claude/skills/", "docs/")
+    DOC_SUFFIXES = (".md",)
+    DOC_BASENAMES = ("README.md", "CHANGELOG.md", "CLAUDE.md")
+    for f in files:
+        base = f.rsplit("/", 1)[-1]
+        if base in DOC_BASENAMES:
+            continue
+        if f.endswith(DOC_SUFFIXES):
+            continue
+        if any(f.startswith(p) for p in DOC_PREFIXES):
+            continue
+        # Anything else = not docs-only
+        return False
+    return True
+
+
+def has_audit_override(pr: str, info: dict) -> tuple[bool, str]:
+    """Check if PR body or merge commit has AUDIT_OVERRIDE: marker. Returns (overridden, reason)."""
+    body = gh_run(["pr", "view", pr, "--json", "body", "--jq", ".body"]) or ""
+    match = re.search(r"AUDIT_OVERRIDE:\s*(.+?)(?:\n|$)", body)
+    if match:
+        return True, match.group(1).strip()
+    return False, ""
+
+
 def _on_pr_merge_impl(pr: str) -> dict | None:
     files = get_pr_files(pr)
     info = get_pr_info(pr)
@@ -251,6 +280,7 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     code_changes = any(f.endswith(("Controller.java", "Service.java")) for f in files)
     doc_changes = any("01-business/" in f for f in files)
     is_wave = any(f.startswith("wave/") for f in [info.get("headRefName", "")])
+    docs_only = is_docs_only(files)
 
     # Required audits
     required_audits = []
@@ -295,7 +325,7 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
 
     # Build response
     violations = []
-    if ci_status != "success":
+    if ci_status != "success" and not docs_only:
         violations.append(f"CI status: {ci_status}")
     if java_files and not test_files:
         violations.append(f"{len(java_files)} java files, 0 test files")
@@ -303,22 +333,44 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         violations.append(f"{len(script_files)} script(s) — verify syntax + review per output-review-mandate")
     if code_changes and not doc_changes:
         violations.append("Business logic changed but no 01-business/ docs updated")
-    if missing_audits:
+    if missing_audits and not docs_only:
         violations.append(f"Missing audits: {', '.join(a['audit'] for a in missing_audits)}")
     if is_wave:
-        violations.append("Wave merge — run /wave-completion-check")
+        violations.append("Wave merge — run /wave-completion-check + audit suite within 3 days (post-wave-audit-mandate.md)")
 
     if not violations:
         return {"systemMessage": f"PR #{pr} merged — compliance {log['compliance_score']}. Log: pr-logs/PR-{pr}.json"}
 
+    # Check AUDIT_OVERRIDE
+    overridden, override_reason = (False, "")
+    if missing_audits and not docs_only:
+        overridden, override_reason = has_audit_override(pr, info)
+
     lines = [f"PR #{pr} merged — {len(violations)} violation(s) detected:"]
     for v in violations:
         lines.append(f"  - {v}")
+    if docs_only:
+        lines.append("  (docs-only PR — audit/CI checks skipped)")
+    if overridden:
+        lines.append(f"  ⚠️  AUDIT_OVERRIDE present: {override_reason}")
     lines.append(f"\nCompliance: {log['compliance_score']}. Log: documents/03-planning/pr-logs/PR-{pr}.json")
     lines.append("Run: ./scripts/pr-compliance-check.sh " + pr)
 
-    # BLOCK only if CI is RED (hardest gate)
-    if ci_status == "failure":
+    # BLOCK conditions (per post-wave-audit-mandate.md §3):
+    # 1. CI RED (hardest gate) — except docs-only
+    # 2. Missing audits on non-docs-only PR — unless AUDIT_OVERRIDE present
+    should_block = False
+    block_reasons = []
+    if ci_status == "failure" and not docs_only:
+        should_block = True
+        block_reasons.append("CI failure")
+    if missing_audits and not docs_only and not overridden:
+        should_block = True
+        block_reasons.append(f"missing audits: {', '.join(a['audit'] for a in missing_audits)}")
+
+    if should_block:
+        lines.append(f"\n🛑 BLOCKED: {'; '.join(block_reasons)}")
+        lines.append("Run required audits, then retry. Or add 'AUDIT_OVERRIDE: <reason> <gap-link>' to PR body to bypass.")
         return {
             "decision": "block",
             "reason": "\n".join(lines),
