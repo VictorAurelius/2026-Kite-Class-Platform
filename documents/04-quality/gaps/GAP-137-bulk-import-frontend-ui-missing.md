@@ -1,0 +1,75 @@
+# GAP-137: Bulk Import Frontend UI Missing (Wave 1 Backend Inaccessible)
+
+**Status:** 🔵 OPEN
+**Priority:** 🔴 P0
+**Domain:** Frontend / Feature Completeness
+**Found:** 2026-04-19 (UI audit catch-up — ui-review-2026-04-19.md §Top Findings #2)
+**Affects:** `kiteclass-frontend` → `(dashboard)/students/page.tsx` — Wave 1 GAP-051 feature user-inaccessible
+
+## Problem
+
+Wave 1 (#332) shipped a **backend-only** bulk import for students:
+- `POST /api/v1/students/bulk-import/preview`
+- `POST /api/v1/students/bulk-import/commit`
+- `POST /api/v1/students/bulk-import/jobs/{id}/errors`
+- `BulkImportJob` audit entity + Flyway V41 migration
+- Apache POI xlsx parsing, per-chunk transactions, row-level error reporting
+
+**But** `kiteclass/kiteclass-frontend/src/app/(dashboard)/students/page.tsx` (verified 2026-04-19) offers only:
+- Search input
+- Table pagination
+- Single "Thêm học viên" button → `/students/new` (one-at-a-time form)
+
+No upload button, no dropzone, no template download, no progress indicator, no error report UI. The feature built to "unblock the #1 K-12 school onboarding bottleneck" (quoted from PR #332 description) is currently inaccessible to end users.
+
+**Evidence:**
+```
+$ grep -l "bulk\|import" kiteclass/kiteclass-frontend/src/app/(dashboard)/students/
+(no matches in page.tsx)
+
+$ find kiteclass/kiteclass-frontend/src -name "*bulk*"
+(empty)
+```
+
+## Root Cause
+
+Wave 1 plan scoped backend-only MVP. No follow-up PR added the frontend. Hook didn't block because no business-doc rule enforced frontend-for-every-endpoint.
+
+## Proposed Fix
+
+Add a bulk-import UI block on students list page:
+
+1. **Entry point:** "Nhập hàng loạt" button next to "Thêm học viên" on `/students`.
+2. **Upload dialog/drawer:**
+   - File input (accept `.xlsx`)
+   - Template download link (generate sample xlsx with required columns)
+   - "Xem trước" button → calls `/bulk-import/preview`
+   - Preview table shows first N rows + per-row validation status
+   - "Xác nhận nhập" button → calls `/bulk-import/commit`
+3. **Post-commit state:**
+   - Show jobId + success count + error count
+   - If errors > 0 → "Tải báo cáo lỗi (xlsx)" button → calls `/jobs/{id}/errors`
+4. **Accessibility:** Vietnamese labels, keyboard support, progress state while uploading.
+
+Suggested component path: `kiteclass-frontend/src/components/students/BulkImportDialog.tsx`.
+
+## Acceptance Criteria
+
+- [ ] "Nhập hàng loạt" button visible on `/students` for admin users
+- [ ] Dialog opens with file picker + template download
+- [ ] Preview shows parsed rows + validation results before commit
+- [ ] Commit triggers `/bulk-import/commit`, shows job result
+- [ ] Error report download works (`/jobs/{id}/errors`)
+- [ ] E2E test: upload sample xlsx → see success toast + refreshed student list
+- [ ] Vietnamese copy + error messages throughout
+
+## Related
+
+- Audit: `documents/04-quality/audits/ui/ui-review-2026-04-19.md` §Top Findings #2, §New Issues U-2
+- Backend PR: #332 (Wave 1 — GAP-051 bulk-import students xlsx MVP)
+- Business rule gap: GAP-109 (bulk-import rules.md undocumented) — documentation, not UI
+- Documentation follow-up: may need to create `documents/01-business/bulk-import/use-cases.md` for UI interaction flow
+
+## Log
+
+- 2026-04-19 — Identified during Audit 4. Wave 1 merged without FE surface; gap 3 waves later.
