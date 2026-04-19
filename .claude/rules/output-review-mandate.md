@@ -60,6 +60,8 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Code** | two-stage-code-review (Stage 1+2+2.5) | Pre-merge | Peer + CI + pattern check | ✅ DONE |
 | **UI screens** | ui-review /128 per-screen | After FE PR | Auditor | ✅ DONE |
 | **Quality audit reports** | quality-audit 10 categories /100 | Periodic | Auditor | ✅ DONE |
+| **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ BASELINE (2026-04-19, 49/100 — PR #365) |
+| **Performance baseline** | performance-audit skill /100 | Post-wave + quarterly | Auditor | ⚠️ BASELINE (2026-04-19, 58/100 — PR #364) |
 | **Business docs implementation match** (code ↔ rules.md sync) | Living Docs rule (3-layer) | Same PR as code change | PR reviewer | ✅ DONE |
 | **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ❌ **VIOLATION** (GAP-049) |
 | **PRs** | check-pr skill | Pre-merge | Reviewer | ✅ DONE |
@@ -286,5 +288,6 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- 2026-04-19 — Audit catch-up Part A (3/5) shipped: resolved 2 first-ever VIOLATIONS via baseline capture — ops-readiness 49/100 (PR #365, 15 gaps, GAP-111 → GAP-125) and performance 58/100 (PR #364, 10 gaps, GAP-126 → GAP-135). Business-logic refresh after 27-day drift caught 7 gaps (PR #366, 65/100, GAP-104 → GAP-110). Status in §3 matrix: ops-readiness + performance now BASELINE — subsequent audits measure delta against this. Remaining Part A: ui-review /128 refresh (8d stale) + quality-audit /100 refresh.
 - 2026-04-16 — Resolved 2 violations: Scripts (script-review-checklist skill), DB migrations (migration-review-checklist skill). API contracts moved to PARTIAL (audit skill exists). Remaining: 6 critical violations.
 - 2026-04-14 — Rule established; 9 critical violations identified; remediation via GAP-048

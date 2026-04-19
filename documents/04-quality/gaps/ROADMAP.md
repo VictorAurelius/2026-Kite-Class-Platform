@@ -8,9 +8,9 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-04-18)
+## 🎯 Current Status Snapshot (2026-04-19)
 
-**Progress:** 48/103 gaps CLOSED (47%). Waves 1-4 shipped.
+**Progress:** 48/135 gaps CLOSED (36%). Waves 1-4 shipped. **Audit catch-up Part A (3/5)** shipped 2026-04-19 — added 32 gaps from first-ever ops/perf baselines + business-logic refresh.
 
 **GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
 
@@ -646,3 +646,34 @@ Triggered by: status check found 6+ "Block GA" gaps already merged but ROADMAP n
 - `.claude/rules/docs-folder-structure.md` — generic rule extending `planning-docs-structure.md` pattern to all `documents/` folders (GAP-101)
 
 **Prior:** 2026-04-16 (added Epics 11-14, 48 new gaps from UI/process/SaaS audits)
+
+### Audit Catch-up 2026-04-19 — 3 baselines shipped (Part A 3/5) — 🟢 COMPLETE
+
+Parallel-agent execution (3 worktree-isolated agents, ~10-11 min wall-clock each, zero conflicts). Conflict-control applied per `feedback_parallel_agent_strategy.md`: pre-assigned GAP ranges, parent-owned shared files (ROADMAP + output-review-mandate + MEMORY consolidated in this PR), parent-sequenced merges (3 clean FF merges).
+
+| Audit | PR | Score | Grade | Gaps (range) |
+|-------|:--:|:-----:|:-----:|--------------|
+| business-logic /100 (refresh, 27d stale) | #366 | 65/100 | D | GAP-104 → GAP-110 (7) |
+| ops-readiness /100 (first-ever baseline) | #365 | 49/100 | F | GAP-111 → GAP-125 (15) |
+| performance /100 (first-ever baseline) | #364 | 58/100 | F | GAP-126 → GAP-135 (10) |
+
+**32 new gaps created (GAP-104 → GAP-135).**
+
+Top P0 findings (meta-gaps listed first per `meta-gap-priority.md`):
+- **GAP-104** (P0 meta) — Wave 3 fair-queue Phase 1 shipped 8+ config keys, 0 BR-QUEUE-* rules. Living Docs contract broken.
+- **GAP-105** (P0 meta) — `parent-portal` domain missing 3-layer docs despite `ParentPortalProperties.java:16` referencing `BR-PARENT-003` (ghost rule ID).
+- **GAP-111** (P0) — Monitoring stack (Prometheus/Grafana) only in dev docker-compose; production Helm/k8s deploys blind.
+- **GAP-120** (P0) — Alertmanager has 7 alert rules but 0 receiver configured — alerts would fire silent.
+- **GAP-117** (P0) — Backup restore never tested (GAP-093 shipped pg_dump but no restore drill/runbook).
+- **GAP-126** (P0) — Admin dashboard calls `findAll() × 2` on Instance + Subscription tables no-cache, 6 stream aggregations per request.
+- **GAP-127** (P0) — Frontend 0 code-splitting across 64 pages; framer-motion (~130KB) + recharts (~180KB) in initial bundle (~400-550KB First Load JS).
+- **GAP-129** (P0) — `BrandingPackage` accepts `instanceId` param but ignores it, returns cross-tenant findAll — perf + multi-tenancy bug.
+
+Status changes applied in this consolidation PR (`.claude/rules/output-review-mandate.md` §3):
+- business-logic: stale (27d) → CURRENT (2026-04-19)
+- ops-readiness: VIOLATION (never audited) → BASELINE_CAPTURED (2026-04-19, 49/100)
+- performance: PLANNED → BASELINE_CAPTURED (2026-04-19, 58/100)
+
+**Remaining Part A audits (per plan `documents/03-planning/plans/plan-audit-catchup-2026-04-19.md`):**
+- Audit 4: ui-review /128 (8d stale)
+- Audit 5: quality-audit /100 refresh (depends on Audits 1-4 findings)
