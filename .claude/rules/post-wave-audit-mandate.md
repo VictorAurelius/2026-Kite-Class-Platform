@@ -141,4 +141,5 @@ Track per quarter:
 
 ## 10. Log
 
+- **2026-04-19 (later same day):** Part A catch-up 5/5 COMPLETE — business-logic 65/100 (PR #366), ops-readiness 49/100 first-ever (PR #365), performance 58/100 first-ever (PR #364), ui-review KC 81 / KH 59 out of 128 (PR #368), quality-audit refresh 77/100 C+ (PR #369, honest baseline vs 95 self-audit). 39 new gaps GAP-104 → GAP-142. §5 baselines for ops + performance now captured — hook enforcement fully active for future PRs touching those patterns.
 - **2026-04-19:** Rule created after user flagged audit drift — Wave 1-4b merged without fresh audits, business audit 27 days stale, ops + performance audits never run. Coupled with `audit-gate.py` hardening (warn → block) and first-run baseline audits (catch-up).

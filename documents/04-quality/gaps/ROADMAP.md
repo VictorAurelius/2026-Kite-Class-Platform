@@ -10,7 +10,7 @@
 
 ## 🎯 Current Status Snapshot (2026-04-19)
 
-**Progress:** 48/135 gaps CLOSED (36%). Waves 1-4 shipped. **Audit catch-up Part A (3/5)** shipped 2026-04-19 — added 32 gaps from first-ever ops/perf baselines + business-logic refresh.
+**Progress:** 48/142 gaps CLOSED (34%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. Calibrated quality score: **77/100 C+** (honest baseline vs prior 95/100 self-audit).
 
 **GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
 
@@ -677,3 +677,27 @@ Status changes applied in this consolidation PR (`.claude/rules/output-review-ma
 **Remaining Part A audits (per plan `documents/03-planning/plans/plan-audit-catchup-2026-04-19.md`):**
 - Audit 4: ui-review /128 (8d stale)
 - Audit 5: quality-audit /100 refresh (depends on Audits 1-4 findings)
+
+### Audit Catch-up Part A — 5/5 COMPLETE (2026-04-19) — 🟢 COMPLETE
+
+Continuation of 3/5 entry above. Audits 4+5 shipped in same session:
+
+| Audit | PR | Score | Gaps |
+|-------|:--:|:-----:|------|
+| ui-review /128 (refresh, 8d stale) | #368 | KC 81/128, KH 59/128 (+1 each) | GAP-136 → GAP-142 (7) |
+| quality-audit /100 (refresh, final) | #369 | **77/100 C+** (Δ −18 vs 95/100) | — (no new gaps per plan §3.5) |
+
+**Total Part A gaps: 39** (GAP-104 → GAP-142). Running total 48/142 closed (34%).
+
+**Calibration insight (Audit 5 report):** −18 delta is NOT a regression in 5 days. The 95/100 on 2026-04-14 was optimistic self-audit without specialist data (ops, perf were never audited). The 77/100 today is the FIRST HONEST BASELINE with ground-truth evidence from 4 specialist audits. Future deltas measure genuine improvement against 77, not inflated 95.
+
+**Top 5 next-wave priorities (meta-boost per `meta-gap-priority.md`):**
+1. **GAP-104** Wave 3 BR-QUEUE rules (Meta P0, 4-6h) — Living Docs contract broken
+2. **GAP-105** parent-portal 3-layer docs (Meta P0, 4-6h) — ghost rule reference
+3. **GAP-136** KiteHub custom error pages (Feature P0, 2-3h) — 5+ routes return English 404
+4. **GAP-111 + GAP-120** monitoring + alertmanager prod Helm (Feature P0, 1-2d) — ops visibility
+5. **GAP-128/129/133/131 batch** perf quick wins (Feature P0/P1, 1d)
+
+Expected recovery per Audit 5: 77 → 85 (B+) end Week 2, → 90 (A) end Week 4.
+
+**Governance turnaround COMPLETE:** hook (PR #362) enforces freshness; 5 audits now FRESH; baselines captured for 2 never-audited categories (ops, perf). Part B (fix waves) tracked via top-5 priorities above.
