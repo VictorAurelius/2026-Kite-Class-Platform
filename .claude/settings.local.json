@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash",
       "WebFetch",
@@ -7,15 +8,39 @@
       "Read",
       "Write",
       "Edit",
-      "Skill(update-config)",
-      "Bash(sed -i 's|documents/04-quality/quality-audit-|documents/04-quality/audits/quality/quality-audit-|g' .claude/skills/business-gap-check.md .claude/skills/quality-audit/SKILL.md .claude/skills/workflow/repo-status/SKILL.md .claude/skills/workflow/repo-status/reference/level-definitions.md .claude/skills/workflow/quality-plan/SKILL.md scripts/repo-status.sh)",
-      "Bash(sed -i 's|documents/04-quality/business-gap-check-|documents/04-quality/audits/business/business-gap-check-|g' .claude/skills/business-gap-check.md .claude/skills/wave-completion-check.md .claude/skills/workflow/repo-status/SKILL.md .claude/skills/workflow/quality-plan/SKILL.md scripts/repo-status.sh)",
-      "Bash(sed -i 's|documents/04-quality/ui-audit-issues|documents/04-quality/audits/ui/ui-audit-issues|g' .claude/skills/workflow/repo-status/SKILL.md scripts/repo-status.sh)",
-      "Bash(sed -i 's|documents/04-quality/ui-review-latest|documents/04-quality/audits/ui/ui-review-latest|g' .claude/skills/quality/ui-review/SKILL.md scripts/repo-status.sh)",
-      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:3002/)",
-      "Bash(curl -s --max-time 3 -o /dev/null -w '%{http_code}' http://localhost:4701/)",
-      "Bash(grep -qE '^\\(200|307\\)$')",
-      "Bash(curl -s --max-time 3 -o /dev/null -w '%{http_code}' http://localhost:3002/)"
+      "Glob",
+      "Grep",
+      "Skill",
+      "Agent",
+      "Task",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskList",
+      "mcp__github__create_pull_request",
+      "mcp__github__pull_request_read",
+      "mcp__github__merge_pull_request",
+      "mcp__github__list_pull_requests",
+      "mcp__github__get_pull_request",
+      "mcp__github__list_workflow_runs",
+      "mcp__github__get_workflow_run_logs",
+      "mcp__github__issue_read",
+      "mcp__github__issue_write",
+      "mcp__github__search_issues",
+      "mcp__github__search_pull_requests",
+      "mcp__github__search_code",
+      "mcp__github__list_branches",
+      "mcp__github__list_commits",
+      "mcp__github__get_commit",
+      "mcp__github__update_pull_request",
+      "mcp__github__update_pull_request_branch",
+      "mcp__github__add_issue_comment",
+      "mcp__github__add_comment_to_pending_review",
+      "mcp__github__pull_request_review_write",
+      "mcp__github__push_files",
+      "mcp__github__create_or_update_file",
+      "mcp__github__delete_file",
+      "mcp__github__create_branch",
+      "mcp__github__get_me"
     ]
   },
   "hooks": {
@@ -30,6 +55,5 @@
         ]
       }
     ]
-  },
-  "defaultMode": "bypassPermissions"
+  }
 }

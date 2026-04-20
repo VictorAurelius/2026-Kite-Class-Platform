@@ -1,657 +1,454 @@
-check trạng thái PR mới nhất
-check trạng thái commit mới nhất
-
-lỗi này có exp fix trong skill rồi, check vào fix theo tiêu chuẩn
-
-luôn monitor bằng script mà, lại quên rule rồi
-
-bash có kết quả rồi, sao vẫn running?
-
-sao vẫn còn nhiều files changing vậy?
-
-tôi thấy có 34 files changing mà nhỉ
-
-tôi đã staged all, thực hiện commit all
-
-quality-audit cho kiteclass luôn để estimate
-
-tạo PR plan mới để tiếp tục nâng điểm
-
-thực hiện tạo PR mới để commit các docs này
-
-Bây giờ sẽ có các vấn đề design sau cần tiếp tục giải quyết rõ ràng:
-1. tại sao khi khởi động image kitehub để test local thì chỉ khởi động thêm kiteclass-core và kiteclass-frontend để test thông luồng IT. vẫn còn các service khác của kiteclass thì sao: gateway, ...
-2. việc dùng model tự host trên server có thể gây ra vấn đề quá tải không:
-+ model sẽ được gọi trực tiếp, gọi qua API, hay gọi qua 1 pipeline data, workflow chuyên nghiệp để xử lý cho người dùng
-+ việc generate ảnh sẽ rất nặng, lâu, khiến người dùng phải chờ và cần đa model để phục vụ?
-+ hoặc ngoài việc phụ thuộc vào model có thể thêm giải pháp template ảnh sẵn như canva để tạo ảnh nhanh hơn
-=> đâu là best practice cho vấn đề này
-
-3. nghiệp vụ của kitehub đã thật sự ổn chưa, vẫn còn nhiều gaps dù điểm đã cáo, ví dụ dễ thấy:
-3.1. thiết kế các thời điểm cần gửi email cho người dùng đã có chưa: khi user đăng ký mở instance, khi user sử dụng gần hết trial cần cảnh báo, khi user nâng lên gói payment thành công, khi user gần hết hạn gói payment và nhiều trường hợp khác.
-Việc gửi mail này cần thực hiện bằng công nghệ gì? batch? đã có template gửi mail chưa?
-3.2. Quy trình để chuyển giao data từ trial lên payment đã rõ ràng chưa? có down time hay không?
-3.3. mỗi tài khoản chỉ được trial 1 lần duy nhất, không thể nhiều lần trial, khi gần hết trial, cần gửi mail cảnh báo trước 1, 2 ngày
-vậy khi hết trial cần có cơ chế backup data lại để chuyển giao, và cảnh báo khách hàng bằng email là chỉ lưu trữ trong bao nhiêu ngày? hết thời gian thì sẽ clean up, và clean up như thế nào?
-3.4. các con số như số ngày được trial, số ngày được backup data sẽ được hiển thị lên frontend và trong email, vậy chúng không nên cố định, cần có cơ chế lưu, và thay đổi dễ dàng
-
-Vậy cần chốt lại best practice để đảm bảo nghiệp vụ của kitehub chuẩn SAAS
-
-4. thiết kế của kitehub chưa tối ưu SEO, vậy cần làm gì để nâng cao hơn, post, workflow, ... Cần hướng tới Kitehub như 1 trang bán sản phẩm phần mềm thật sự thay vì chỉ là dashboard
-
-hãy thực hiện phân tích các vấn đề này theo chuẩn superpowers và tạo báo cáo best practice để phân tích hiện trạng và giải quyết.
-
-#	Decision	Options	Recommendation
-1	Trial limit	1 lần hay 2 lần per owner?	1 lần (chuẩn SaaS)
-2	Data retention	30 ngày hay 60 ngày?	30 ngày (cost-effective)
-3	Backup retention	90 ngày hay 180 ngày?	90 ngày
-4	AI approach	AI-first hay Template-first?	Template-first (instant UX)
-5	Blog platform	MDX (in-repo) hay CMS (Strapi)?	MDX (simple, free)
-6	Domain	kitehub.vn hay kiteclass.com?	Cần confirm cho SEO
-
-1. 1 lần (chuẩn SaaS)
-2. mua theo gói payment thay vì cố định
-3. Backup cho trial chỉ 7 ngày để giữ khách, cho khách suy nghĩ thôi, cảnh cáo bằng email 2 lần
-4. AI approach Template-first (instant UX)
-5. Blog platform	MDX (simple, free)
-6. Domain	kitehub.vn
-
-Thực hiện tạo PR plan chuẩn superpowers để thực hiện
-
-còn 1 vấn đề nữa: domain của kitehub và domain của các instance kiteclass sẽ được đăng ký và cấu hình như thế nào, tôi chưa thấy tài liệu business cho nó và cả tài liệu hướng dẫn
-
-có skill check gaps chưa nhỉ, nếu chưa có thì thực hiện tạo? thực hiện check lại 1 lần nữa cho kitehub xem còn gaps không, như ở trên tôi đã chỉ ra rất nhiều gaps. Đặc biệt phải làm 100% đúng với business logic
-
-tiếp tục check gaps cho kiteclass nữa
-
-kiteclass cũng phải có skill check gaps chứ, nhưng mà có trùng với skill quality-audit không nhỉ?
-
-Báo cáo lại vậy tổng hợp PR tiếp theo cần thực hiện
-
-vậy việc gây ra nhiều PR cần hoàn thành này là do đâu, cần làm gì để cải thiện và tránh lặp lại lần sau
-
-tốt, hãy thực hiện, nhưng tôi nghĩ cần có nhiều lớp check từ cấp độ PR đến domain, đến dự án
-
-vậy thực sự business logic cần:
-1. lưu ở đâu: tôi đã từng thực hiện tạo và lưu cho kiteclass và thực hiện lưu ở folder đó luôn nhưng có vẽ không được cập nhật, không được tham chiếu và không hiệu quả: kiteclass\kiteclass-core\docs\module-business-logic.md, kiteclass\kiteclass-core\docs\modules\course-module-business-logic.md
-2. chi tiết đến mức độ nào: cần chi tiết như thế nào để design backend, frontend được tốt, dễ review, không dài dòng, thừa thãi
-3. thời điểm tạo và cập nhật như thế nào? làm sao để luôn ghi nhớ cần tham chiếu và cập nhật dễ dàng
-4. các skills cũng cần cập nhật
-
-vậy cần tạo lại docs và clean cấu trúc docs cũ không?
-cấu trúc documents cũng đang chưa tối ưu nhỉ? cần có PR refactor không? ví dụ đánh số trùng
-
-ngoài ra skills của dự án đang phình to, không có hướng dẫn sử dụng rõ ràng và tham chiếu cũng như sắp xếp, thu gọn hiệu quả
-
-Ngoài ra lượng PR cần làm rất lớn, nếu làm tuần tự theo estimate sẽ rất tốn thời gian, tồn tại các PR có thể làm song song, sử dụng nhiều agents cùng lúc để tối ưu thời gian hơn không?
-
-tốt, đó là tất cả chỉ thị của tôi, bạn thấy còn gì cần tối ưu không?
-
-sửa lại mô tả của PR 193 và merge
-
-trước hết kết quả được thực hiện bởi agents có bị giảm so với thực hiện tuần tự không?
-
-fix xong có đạt 100% không?
-
-ý tôi là đảm bảo chất lượng so với PR yêu cầu không, còn thời gian thì cứ tiết kiệm thôi, tức là CI pass là chất lượng oke so với PR yêu cầu thì không đúng lắm, cần có 1 tầng kiểm duyệt nữa không? Ngoài ra phụ thuộc vào CI thì cần có cơ chế clean up hợp lý
-
-áp dụng ngay cho 4 PR hiện tại, cần đảm báo chất lượng 100% so với yêu cầu của PR => sẽ ra nhiều vấn đề cần fix
-
-check tài nguyên docker cần thiết để E2E Docker test
-
-trước hết giải thích cho tôi, test E2E Docker ở môi trường local sao Full Stack lại chỉ có 13 containers chính, các image khác trong hệ của kiteclass thì sao: gateway (đã giải thích), redis, DB, minio, ...
-
-có báo cáo về vấn đề này chưa? ngoài ra các tên của group và tên của từng service trong hệ full stack này có vẻ chưa hợp lý nhỉ?
-
-tạo PR riêng để fix gaps này, ghi logs rõ ràng, tôi muốn xem xét lại cả cấu trúc folder của toàn dự án trong PR này nữa
-
-cấu trúc folder của dự án ở đây tôi muốn nói là các folder như helm, k8s, terraform, terraform-oracle nếu để như hiện tại hay sắp xếp hợp lý hơn
-
-merge và tạo PR mới để sắp xếp lại theo best practice, lưu ý không để ảnh hướng đến chất lượng file
-
-để tránh việc loạn cấu trúc folder sau này, tạo skill check khi commit có tạo folder mới thì check xem có phù hợp không
-
-business logic của toàn bộ dự án theo rule, skills chỉ nằm trong đây thôi à: documents\01-business
-
-check lại kết quả PR về business-logic xử lý như nào trong wave, nó nằm trong wave mấy nhỉ?
-
-vậy là đã đánh giá chất lượng wave không đúng?
-
-tạo 1 wave riêng để fix hết gaps của business-logic
-business-logic là phần cực kỳ quan trọng, độ ưu tiên cao nhất, lỗi này thực sự rất lớn
-
-ngoài ra vẫn chưa có phương án xử lý hợp lý cho các docs phân tán đã đề cập trước đó ở các folder khác: 
-1. kiteclass\docs
-2. kiteclass\kiteclass-core\docs
-3. kiteclass\kiteclass-frontend\docs
-4. kiteclass\kiteclass-gateway\docs
-5. kiteclass
-
-cần có best practice để xử lý
-
-ngoài gaps về business-logic hãy đánh giá lại còn gaps nào nữa
-
-khi bắt đầu 1 session mới, sẽ có nhiều rule, context, skills mà claude cần nắm được để triển khai, vậy CLAUDE.md đã đáp ứng được chưa?
-
-README.md cũng có vẻ outdated nặng, ví dụ: - KiteHub Setup Guide _(future)_
-
-cần có skill để nhắc về các docs có khả năng cập nhật liên tục theo PR và wave
-
-1. kiteclass\docs
-2. kiteclass\kiteclass-core\docs
-3. kiteclass\kiteclass-frontend\docs
-4. kiteclass\kiteclass-gateway\docs
-5. kiteclass
-
-chốt phương án xử lý những docs này như nào nhỉ?
-
-tôi nghĩ cần thống nhất lại tiếp, chỉ những docs nào mang tính đọc nhanh, tiếp cận nhanh thì để trong folder docs của service và phải thống nhất service nào cũng có, còn muốn tìm hiểu kỹ thì phải vào documents, tạo PR hướng đến wave để tiếp tục tái cấu trúc tốt hơn
-
-Ngoài E2E docker test ra thì action tiếp theo là gì?
-
-ngoài ra tôi cần check lại chất lượng của wave 7 và wave 8 nữa:
-1. tôi đang thấy CI fail
-2. đã đúng chuẩn workflow của wave chưa? đang chưa thấy
-
-đưa tất cả action tiếp theo này thành các PR lẻ nằm trong wave 9 và thực hiện
-
-lại vi phạm rule monitor CI rồi?
-
-đang thực hiện hết từ P0 đến P4 và 2 yêu cầu thêm của tôi về wave 7,8 chưa?
-
-dựa vào bảng scores, action tiếp theo là gì?
-
-wave 11 sẽ hướng đến tiếp tục nâng cao kitehub chứ
-
-tôi muốn wave 10, wave 11:
-1. có các PR lẻ yêu cầu chất lượng rõ ràng
-2. nâng cao kiteclass và kitehub max điểm thay vì fix cục bộ
-3. đương nhiên là tuân thủ 100% skill
-4. tạo plan rõ ràng
-
-thảo luận chút về business-logic
-cần mô tả chi tiết đến mực độ nào để design FE và BE chuẩn xác và code hợp lý
-ví dụ: khi edit 1 course, cần chuyển từ giáo viên A sang giáo viên B thì FE phải hiển thị được giáo viên hiện tại, tìm kiếm được giáo viên hợp lý, chỉ cho phép cập nhật giáo viên khác giáo viên hiện tại, ...
-hoặc best practice tốt hơn
-
-vậy business-logic hiện tại có đáp ứng được không hay code sẽ phải tự handle? từ đó code có tham chiếu đúng đến business-logic và code theo best practice không?
-
-nhưng việc bổ sung vào 1 file duy nhất sẽ khiến file dài dòng, khó tham chiếu
-mỗi layer nên là 1 file?
-
-ngoài ra mốc nào để chứng minh các layer thống nhất và chính xác?
-
-sau khi tạo đủ cho kitehub, kiteclass thì phải có wave để check lại code, test của code đúng không?
-
-Wave chỉ tạo ra sản phẩm cụ thể cho kiteclass, kitehub hay phải tạo cả skill, hoặc cái gì đó định nghĩa cấu trúc và kiểm soát cấu trúc này
-
-Ngoài ra tôi nghĩ wave 12 phải kiểm tra code trước, sau đó tạo PR để xác nhận fix code, dù sao code thay đổi sẽ tốn rất nhiều thời gian để test và xác nhận
-
-check lại chất lượng của wave 12
-
-làm sao để nâng điểm wave 12 100
-
-merge và tạo wave 13
-
-lưu đủ log chưa?
-
-chưa commit hết
-
-dự án hiện tại có skills, rules, docs về việc cải thiện chất lượng UI UX + code theo templates không?
-
-có các PR tôi yêu cầu cải thiện UI/UX bằng template figma rồi mà nhỉ?
-
-tạo PR để fix hết gaps này
-
-commit cả 3 file changing
-
-tôi muốn bổ sung vào kit để các dự án có chất lượng FE tốt nhất có thể và có thể code theo 1 templates figma cụ thể hoặc lựa chọn 1 templates tốt để code thay vì render UI/UX tự do
-
-trước hết gaps về UI/UX và solution của dự án này đã đủ chưa, có đủ tiêu chuẩn để làm mẫu cho dự án khác chưa?
-
-tạo PR fix tất cả gaps và PR cập nhật kit
-
-quality audit lại kitehub và kiteclass
-
-ơ tôi tưởng là ERE docker test rồi mà?
-
-merge, tạo PR để E2E test, tôi đã bật docker desktop rồi
-
-audit lại
-
-tại sao test E2E ở local lại dùng OPENAI_API_KEY, tưởng dùng model AI local mà?
-
-thực hiện tìm đầy đủ gaps về vấn đề AI local: script, testcase, rules, ... và thực hiện re-verify lại theo PR rõ ràng
-
-cần thực hiện E2E test lại đúng không?
-
-liên tục vi phạm rule dùng script, không dùng lệnh tự do
-nếu trường hợp cần dùng lệnh tự do thì phải tạo mới hoặc cập nhật script => cập nhật skill và memory
-
-vẫn còn commit chưa đồng bộ vào main và squash delete branch à?
-
-bạn có biết đến stater-kit ở session conversation này không?
-
-commit cả 2 file đang changing và merge
-
-check rules, skill của claude-stater-kit về định nghĩa, cách tạo 1 skill theo chuẩn để đánh giá dự án hiện tại cần update hay không?
-
-đánh giá toàn bộ phạm vi cần update của dự án hiện tại và thực hiện tạo wave hoặc PR mới để thực hiện update
-
-tiếp nhận skill mới này theo tiêu chuẩn và update lại cho phù hợp dự án:
-.claude\skills\terraform-cloud-deploy.skill
-
-sau đó, thực hiện đánh giá action cần làm cho dự án sau khi có skill mới
-
-sync claude-starter-kit version mới nhất
-
-hãy update các cập nhật của kit cho phù hợp với kiteclass và kiteclass và thực hiện tạo output tương ứng
-
-đọc CLAUDE.md để hiểu về dự án
-đặt tên conversation này là development-phase
-
-hãy check xem có skills, rules hoặc scripts gì để check status hiện tại của repo không
-
-lần conversation trước repo đang chưa về status tốt
-cần định nghĩa thêm các level status cho repo nữa
-
-à không, ý tôi là status của remote repo cơ, ví dụ về các nhân tố làm ảnh hưởng status:
-1. báo cáo quality-audit hoặc screenshots-audit lần gần nhất yêu cầu fix 1 số gaps, hoặc có gaps nhưng chưa có PR hoặc wave fix tương ứng
-2. CI bị fail mà chưa fix
-3. có PR, branch chưa squash merge
-
-tạo PR để tạo đầy đủ skills trước sao đó mới thực hiện fix status
-
-hãy thêm vào quy trình đánh giá health repo: CI history cần clean up đúng theo rule
-ngoài ra commit vẫn đang có Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
-=> vi phạm rules commit hãy bổ sung vào claude.md
-
-Script muốn xóa 99 runs — quá aggressive.
-=> cứ xóa đúng theo rule
-
-check xem có báo cáo về screenshots-audit không?
-
-thực hiện tại UI-AUDIT cho status mới nhất
-
-cho 2 FE này chạy ở 2 cổng khác và thực hiện lại UI AUDIT
-
-quy trình hiện tại là UI audit => fix => UI audit toàn bộ lại
-có vẻ như rất tốn thời gian và tài nguyên
-nên sửa quy trình sau khi fix thì thực hiện UI audit cho riêng vấn đề fix sau đó mới merge to main
-
-tương tự với quality audit
-
-commit và thực hiện audit mới luôn cho lần fix này
-
-documents\screenshots\latest\student-edit\dark-desktop.png
-=> ý tôi là luồng IT bình thường sao lại có lỗi này, cần tìm ra nguyên nhân lỗi và khắc phục chứ?
-
-thêm 1 ý nữa, screenshots cũng nên có data mock sẵn để xem tốt hơn
-
-=> rõ ràng có lỗi quality qua screenshots, vậy đã fix chưa? cần memory về case này không?
-
-sao tôi xem screenshots nào cũng có dialog thông báo lỗi errors nhỉ?
-
-documents\screenshots\after-mock-data\register\dark-desktop.png
-=> đăng ký cho trung tâm thì link đến kitehub có phải best practice
-
-thực hiện fix, nhớ phân biệt giữa env local và env production
-
-audit lại chưa? tôi chưa thấy cập nhật screenshots tương ứng?
-
-tôi thấy khi phát triển độc lập FE với BE thì FE phải có đủ bộ mock API cho BE, có nên thêm quan điểm này vào dự án hiện tại không?
-
-tôi cũng muốn env local cũng có image mock data sẵn, có tùy chọn tắt bật image đó, liệu có phải best practice?
-
-ý tôi là mock data thì đương nhiên có cả images rồi
-còn images ở câu trên là image docker ấy?
-
-thì tôi muốn cả FE và BE đều có mock data sẵn ở local mà
-
-2. BE DataSeeder — Spring Boot, seed PostgreSQL, toggle via env => có phải best practice không?
-
-Cái này nên tạo thành wave, có báo cáo log rõ ràng và cần điều tra rõ phạm vi ảnh hưởng, tránh mock sai, mock thiếu
-
-Phương châm là:
-1. làm cho phạm vi toàn bộ, không bỏ qua bất kỳ chỗ nào
-2. làm theo best practice
-
-chưa bắt đầu vội, hãy check các file changing ở root và xử lý
-
-Bây giờ sẽ có các vấn đề design sau cần tiếp tục giải quyết rõ ràng:
-1. tại sao khi khởi động image kitehub để test local thì chỉ khởi động thêm kiteclass-core và kiteclass-frontend để test thông luồng IT. vẫn còn các service khác của kiteclass thì sao: gateway, ...
-2. việc dùng model tự host trên server có thể gây ra vấn đề quá tải không:
-+ model sẽ được gọi trực tiếp, gọi qua API, hay gọi qua 1 pipeline data, workflow chuyên nghiệp để xử lý cho người dùng
-+ việc generate ảnh sẽ rất nặng, lâu, khiến người dùng phải chờ và cần đa model để phục vụ?
-+ hoặc ngoài việc phụ thuộc vào model có thể thêm giải pháp template ảnh sẵn như canva để tạo ảnh nhanh hơn
-=> đâu là best practice cho vấn đề này
-
-tìm báo cáo về vấn đề design này và trình bày tình trạng giải pháp đang áp dụng
-
-documents không có readme index hay sao? không lưu log lại các PR áp dụng cho 2 vấn đề này sao? tại sao phải grep
-
-lưu lại báo cáo về gaps để fix sau, tạo riêng folder chứa gaps để lưu trữ hàng đợi cập nhật
-
-Quay lại vấn đề design:
-1. thực sự vẫn chưa giải quyết được vấn đề hàng đợi model AI ví dụ có 100 users đồng thời sử dụng dịch vụ AI của kitehub, 100 users đó có 30% premium, 40% pro, 30% free chẳng hạn thì chưa có cơ chế hàng đợi hợp lý hoặc scale cho dịch AI => đâu là best practice
-
-2. quét toàn bộ cấu hình model AI mà dự án đang sử dụng để xác định phạm vì ảnh hưởng và so sánh với model gemma 4 mới ra mắt
-
-GAP-005: AI Queue Fair Scheduling (🔴 P0)
-
-Gap này vẫn chưa rõ ràng:
-1. phải đánh giá được độ chịu tải cho bao nhiêu user
-2. đã có pipeline data rõ ràng chưa: ví dụ đối với static resources thì không dùng AI, đối với template resources thì dùng scripts + AI ít, đối với recourse hoàn toàn phụ thuộc AI thì sao => phân loại như này đã đủ theo best practice chưa
-=> code của kitehub đã đáp ứng cho các loại resources chưa? test khi đưa resources lên frontend kiteclass chưa? đánh giá dựa kiteclass sau khi đưa resources lên thì như thế nào
-
-3. đánh giá rõ xem có nên để model AI tạo ảnh hoàn tài hay chỉ biến nó thành AI Agent workflow để điều hướng tạo ảnh theo template sẽ phù hợp hơn
-
-4. định nghĩa lại các status của frontend instance trong quá trình khởi tạo vào lắp ráp resources? mới khởi tạo là gì, đang tạo là gì, đã lên lần 1, tạo lại, ...
-
-trên đây là nhưng gợi ý của tôi để đưa ra best practice cho AI branding, bạn cần xem xét là thiết kế kỹ lại AI branding tốt hơn, vì đây là key feature của dự án
-
-vậy chốt lại là AI branding sẽ ở kiến trúc gì?
-
-có các vấn đề cần tiếp tục làm rõ:
-1. sẽ có phép user prompt vào AI branding? có hợp lý không?
-2. nguồn template sẽ phải tạo sẵn, liệu có plan hợp lý cho công đoạn này? skill review sẽ dựa trên tiêu chuẩn gì?
-3. Tôi có hỏi là cần có skills/ rules review frontend instance sau khi được AI branding update?
-4. Việc đưa cho user được tự do sáng tạo liệu có cần thiết, hay nên áp dụng 1 quy trình khép kín cụ thể, mục tiêu cao nhất là có được frontend instance tốt nhất chứ không phải là để user được sáng tạo trên AI branding. Dự án là SAAS cho kiteclass chứ không phải nền tảng cung cấp dịch vụ AI
-5. Nhưng quy trình khép kín cũng phải design hợp lý, cụ thể, nếu quá rập khuôn sẽ khiến user không hài lòng, cần có cơ chế như chấp nhận từng resources hay preview giao diện, hoặc đối với ý 1, được prompt vào AI agent thì sẽ là prompt cố định chứ không cho prompt tự do?
-
-Vẫn còn gaps:
-1. các plan về mock có đang bỏ qua mock AI branding và chạy workflow mới chốt cho kiteclass frontend không?
-2. AI branding cần có chỉ dẫn cho user rõ ràng giống như rules của UI => thêm rules này vào trong việc phát triển UI, phải có chỉ dẫn rõ ràng
-3. Ngoài ra cần check lại gaps xem quá trình khởi tạo image của toàn dự án có đang thiếu khởi tạo AI branding không?
-
-1. dùng skills hoặc cập nhật skills để check xem còn gaps về AI branding nữa không?
-2. plan có đang bỏ sót việc cập nhật các phạm vị liên quan khi thiết kế lại AI branding không, ví dụ như business-logic, cần check kỹ các phạm vi ảnh hưởng
-
-còn gaps về AI branding không, thực hiện mô phỏng và suy luận lại từ đầu
-
-.claude của dự án hiện tại vẫn tiếp tục cần cập nhật
-hãy review https://github.com/MiniMax-AI/skills.git và đánh giá repo skills này, so sánh và đưa ra kế hoạch update
-
-Đặc biệt tôi chú ý đến phần tạo tài liệu nhiều định dạng như excel, words, của bộ skill MiniMax này, hiện tại dự án đang tạo các tài liệu này khá yếu
-
-tạo toàn bộ
-
-cần trả lời cho tôi vấn đề: AI branding v2 đang design input đầu vào của user chỉ có upload ảnh logo thôi à? liệu có hợp lý không?
-
-Đấy, rõ ràng bạn đã mô phỏng lại mà vẫn để lọt gaps, hãy thêm skill mô phỏng để tìm gaps rõ ràng và thực hiện lại
-
-skills mới có nên áp dụng cho cả các modules khác của kiteclass, kitehub không?
-
-Xem xét lại design của AI branding v2 có nên bổ sung thiết kế, phát triển theo design pattern để hệ thống tối ưu hơn không?
-
-tạo skills, rules cho vấn đề này, cần phát triển theo design pattern, review skills cũng nên đề xuất update theo design pattern
-
-Gap đang quá nhiều, liệu có nên phân loại và tối ưu lại cho việc thực hiện fix tốt hơn không?
-
-có cần tạo mới skills tạo wave, PR từ gaps không? hay có sẵn rồi, cần update?
-
-Thêm rules vào dự án, bất kỳ output nào cũng phải có tiêu chuẩn review và được review? vậy trong dự án còn những phần nào vi phạm rule này
-
-thế business-logic có review không?
-
-việc review business-logic có đúng nghiệp vụ không tôi cần cơ chế review đứng theo góc nhìn của end_user sử dụng. Cụ thể cần phân chia ra các đối tượng, tổ chức cụ thể sử dụng kitehub, kiteclass để review đối với từng đối tượng này có đúng và đủ nghiệp vụ, đã phát triển đủ tính năng core chưa?
-
-Rule của dự án SAAS này là nghiệp vụ phải tạo ra 1 sân chơi chung cho tất cả các đối tượng đều có thể thỏa mãn nhu cầu core của quản lý và học trực tuyến.
-
-Ví dụ các đối tượng tôi đã nghĩ đến nhưng chưa biết có đủ không:
-1. giáo viên đơn lẻ, nhiều lớp học, nhiều khóa học
-2. trung tâm giáo dục: có admin quản lý, nhiều giáo viên, nhiều khóa học, lớp học
-3. trường học: tương tự trung tâm giáo dục nhưng quy mô lớn hơn
-
-Bạn hãy review xem các đối tượng này đã đầy đủ chưa, đã phân loại đúng chưa? Và phải nhập vai đúng các đối tượng này để thực hiện review
-
-1 case mà review phải bắt được đối với tình trạng hiện tại của dự án là thiếu chức năng import file có thể là xlsx để tạo tài khoản học viên, giáo viên hàng loạt. Vì dự án chưa có tính năng này nên nếu 1 trường cấp 3 đăng ký sử dụng, ví dụ khoảng 500 học sinh phải vào tự tạo tài khoản và đăng nhập sau đó phải gửi tài khoản cho giáo viên để cấp quyền vào lớp học cho 500 tài khoản đấy thay vì có sẵn danh sách tài khoản => vỡ vụn nghiệp vụ. Đây là 1 ví dụ tiêu biểu cho việc không có review business-logic
-
-tức là mỗi loại đối tượng cần khởi tạo 1 bộ tiêu chí của họ và họ sẽ review nghiệp vụ của hệ thống xem có đúng tiêu chí chưa, đúng không?
-
-dùng skills để tạo kế hoạch fix toàn bộ gaps
-refactor lại documents\04-quality
-
-cập nhật folder thì phải cập nhật địa chỉ tương ứng ở các file liên quan như skills, rules?
-
-tôi tưởng check CI có scripts mà
-
-còn gaps nữa:
-1. điểm danh đang design thế nào, có cần làm mode kiểu calender không?
-2. Việc xuất báo cáo ở kitehub và kiteclass đã có design chưa?
-3. Kitehub phải có trang quản lý instance như AWS đúng không? hãy phát triển theo best practice như cần kiểm soát trạng thái của instance, kiểm soát log, khả năng fix bug... còn rất nhiều cái nữa
-4. AI branding thì kitehub cũng có trang quản lý đúng không?
-
-dùng skill để mô phỏng lại xem còn gaps nữa không? cần tạo lại plan của wave 3 không
-
-tìm hiểu về cộng cụ 9router
-
-bổ sung fix lỗi này vào plan của Sub_PR 3.7 và thực hiện option 1
-
-giúp tôi install node_modules cho kitehub-frontend
-
-tôi thấy vẫn hơi chậm, các plan của wave có áp dụng agent để đẩy nhanh công số không?
-
-Option B — Wave 4 Security & Compliance (parallel-ready từ Wave 3 plan; closes GAP-018, 041, 042, 012, 073)
-
-đánh giá status này
-
-trong lần fix gaps lần này tôi chỉ mới thấy quality audit, không thấy sử dụng UI audit, liệu có phải là thiếu sót?
-
-lưu memory về lần chạy này để lần sau audit tốt hơn
-
-quality audit có bao gồm check mapping code với business-logic không? tôi hiểu dự án đang chỉ có 2 audit là quality audit và ui adit, như vậy có hợp lý không, có cần update gì để tối ưu hơn không? ví dụ trên production thì sao nữa?
-
-không monitor được bằng scripts à? vi phạm rule không?
-
-tạo PR để fix
-
-sao vẫn còn nhiều file changing, xử lý hết trong PR này
-
-tôi muốn tạo đầy đủ cho production
-
-các skills audit đã có thời điểm cần chạy rõ ràng nhưng không có gì đảm bảo chúng được chạy đúng thời điểm, có thể miss cao
-
-vậy mỗi khi có PR mới hoặc wave mới thì skill tạo log plan có nhắc đến audit không?
-
-check lại xem còn gaps nào không?
-
-clean up screenshots ở local
-
-status của 2 folder này không đảm bảo đúng không? cần ui audit lại đúng không?
-
-chạy luôn chứ?
-
-scoring UI audit bị quá context cần tôi compact nhiều lần mới audit được, nên tối ưu lại skill để tranh compact không? việc compact có ảnh hưởng đến scoring không?
-
-update, các skill audit khác có cần update không?
-
-tạo PR để xử lý tất cả file đang changing
-
-có cần chạy lại ui audit theo skills mới để ra đúng score không?
-
-merge, tạo PR để fix, sau đó re-audit đúng kế hoạch
-
-cấu hình lại các port không chạy trên các cổng thường được sử dụng, chuyển sang các cổng 99% sẽ không bị chiếm
-
-thư mục documents\screenshots chỉ cần có 2 sub folder kitehub-latest và kiteclass-latest
-
-sau lần update skills audit này, tôi lo lắng về chất lượng các skills còn lại, hãy check:
-1. liệu có còn thiếu sót, outdated cần update không
-2. đã được phân loại để dễ tham chiếu chưa, vẫn còn nhiều skills ở root
-3. còn nhiều gaps của dự án mà skills chưa cover không, ví dụ có skills về tạo scripts sao cho có monitor, cover đủ lỗi, ngoại lệ, ...
-4. skills có conflict không
-
-không cần re-capture lần cuối đổi tên đúng folder là được
-
-fix toàn bộ sau đó quay lại ui audit để đưa ra kết quả cuối
-
-tại sao mấy branch gần nhất lại không merge squash
-
-đưa bug thành gap + memory để fix cùng các gap khác cho đồng bộ
-
-nên có rules, các issue của audit phải đưa thành gaps và memory hợp lý để tránh duplicate và fix 1 với thứ tự hợp lý đúng không?
-
-mô phỏng xem còn gaps gì ở skills và quy trình không?
-
-Hãy check lại có báo cáo và solution hiện tại của mấy vấn đề này, thực hiện đánh giá xem có gaps cần update không? cần thiết kế thêm batch để cover không? từ những gaps xem nghiệp vụ có gaps không?
-
-Mục tiêu cao nhất là vững nghiệp vụ (business-logic) cho nền tảng SAAS này
-
-3. nghiệp vụ của kitehub đã thật sự ổn chưa, vẫn còn nhiều gaps dù điểm đã cáo, ví dụ dễ thấy:
-3.1. thiết kế các thời điểm cần gửi email cho người dùng đã có chưa: khi user đăng ký mở instance, khi user sử dụng gần hết trial cần cảnh báo, khi user nâng lên gói payment thành công, khi user gần hết hạn gói payment và nhiều trường hợp khác.
-Việc gửi mail này cần thực hiện bằng công nghệ gì? batch? đã có template gửi mail chưa?
-3.2. Quy trình để chuyển giao data từ trial lên payment đã rõ ràng chưa? có down time hay không?
-3.3. mỗi tài khoản chỉ được trial 1 lần duy nhất, không thể nhiều lần trial, khi gần hết trial, cần gửi mail cảnh báo trước 1, 2 ngày
-vậy khi hết trial cần có cơ chế backup data lại để chuyển giao, và cảnh báo khách hàng bằng email là chỉ lưu trữ trong bao nhiêu ngày? hết thời gian thì sẽ clean up, và clean up như thế nào?
-3.4. các con số như số ngày được trial, số ngày được backup data sẽ được hiển thị lên frontend và trong email, vậy chúng không nên cố định, cần có cơ chế lưu, và thay đổi dễ dàng
-
-Vậy cần chốt lại best practice để đảm bảo nghiệp vụ của kitehub chuẩn SAAS
-
-không cập nhật roadmap của gaps à? có rules chưa?
-Email notifications được trigger bằng gì? admin quản lý như thế nào? tôi đã hỏi có cần thiết kế batch cover không?
-
-merge và đề xuất action tiếp theo
-
-có skills tạo PR/wave có tối ưu agent để fix gaps rồi mà nhỉ?
-
-dùng skill tạo wave để fix tiếp GAP-093 (backup) và các gaps cùng wave
-
-tại sao tôi không thấy các audit được gọi sau 2 wave, cũng không check CI? liệu đã cả self-test theo rule chưa? check lại xem wave đúng workflow chưa?
-
-● An image in the conversation exceeds the dimension limit for many-image requests (2000px). Run /compact to remove old  
-  images from context, or start a new session.
-
-=> lại gặp lỗi này, tối ưu skill để fix
-
-thực hiện fix toàn bộ gaps mà không dừng lại hỏi về action tiếp theo, cứ làm action ưu tiên nhé, vì tôi sẽ phải rời đi 1,2 tiếng
-
-lưu lại memory và check các PR trước nữa xem còn những PR nào vi phạm
-
-để tránh tình trạng miss workflow thì nên có cơ chế gì để khắc phục, và cơ chế gì để thu thập data xem PR có miss gì không dễ dàng hơn
-
-tạo plan rõ ràng để fix
-
-hệ thống có biên bản, lưu log PR không? từ khi tạo mới đến khi hoàn thành PR
-
-PR lifecycle log system có đang thiếu self-test và IDE-warnings không?
-
-Main CI đang chạy. Muốn tôi chờ CI green rồi chạy wave-completion-check luôn không?
-=> hoàn thiện nốt
-
-action tiếp theo là gì?
-
-Còn 1 điểm chưa handle — compliance check script chỉ kiểm tra Java/TS, không check bash/python scripts
-  (output-review-mandate §Scripts). Đây là known limitation, sẽ là improvement riêng vì scope lớn hơn (cần shellcheck/ruff
-  integration).
-=> còn cái này thì sao?
-
-thực hiện Danh sách action theo ưu tiên
-
-còn nhiều file changing, hãy xử lý hết trong PR này
-
-  Next priorities (từ audit findings):
-  - P0: Fix admin endpoint auth (security audit finding)
-  - P1: Add regex validation cho pg_dump databaseName
-  - P1: Add idempotency check cho POST /trigger email
-
-Fix IDE warnings trước, quy trình đang thiếu phần check này không?
-
-tổng kết và check status repo
-
-tiếp tục fix gaps
-
-merge chưa commit file json log của PR kìa
-
-đánh giá vấn đề này
-
-được rồi đang ở trong wsl, đã hoàn thành migrate, hãy:
-1. install node_modules cho 2 FE
-2. migrate và commit json của PR 338
-3. gỡ và xóa dữ liệu claude ở ngoài window, xóa sạch sẽ
-4. check lại playbook về việc cài đặt MCP server
-
-Sẵn sàng khi user có input. => wave 3 cần tôi cung cấp input gì?
-
-wave vừa rồi có dùng mcp server để tối ưu không?
-
-Cần 1 PR riêng để update toàn bộ rule, skills tham chiếu đến mcp server, nếu không có mcp server thì cần phương án dự phòng là cách bình thường
-
-vẫn ko dùng mcp server à
-
-fix nhưng warnings này
-
-1. các TODO đã bỏ qua đã có PR hoặc wave cover chưa?
-2. tôi muốn chắt lọc toàn bộ điểm mạnh, điểm hay của repo này để cải thiện UI UX của dự án đúng theo chuẩn của mọi người vì repo này có rất nhiều star, được mọi người đánh giá cao, còn review UI UX của dự án đang mang tính chủ quan
-Vậy nên tạo PR mới để cải thiện skills + đánh giá/ review/ audit lại status UI UX để tạo PR/wave để cải thiện đúng không?
-
-3 TODOs uncovered/partial. Nên tạo gaps hoặc mark as known limitation. Không blocker urgency cao.
-=> tạo
-
-Plan concrete => tạo plan log
-
-tái cấu trúc documents/03-planning đúng theo rules, chưa có rules thì tạo
-
-1. Có folder nào trong toàn bộ dự án vi phạm rule mới này không?
-2. giới thiệu về mục đích của folder này: documents\05-guides, tại sao nó trống rỗng như này, phương châm đầy đủ files của nó là gì? nên tạo gaps cho nó không? ví dụ vấn đề này nên để trong folder này hay folder khác:
-tại sao lại không dùng batch mà dùng jobs + rabbit MQ, hãy tạo guides giải nghĩa QA này
-
-3. giới thiệu về mục đích của folder này: 
-documents/00-brd, có gaps cover cho folder này rồi đúng không? có wave cho nó chưa? tại sao độ ưu tiên nó thấp?
-
-4. giới thiệu về phương châm deploy của dự án
-đánh giá repo này và ảnh hưởng của nó đến phương châm
-
-tạo tất cả
-
-vậy bắt đầu session mới như thế nào?
-
-tại sao không nên tiếp tục session này?
-
-session trước nói với tôi là chất lượng output giảm do context quá đầy, làm thế nào để đánh giá chất lượng các PR/wave gần đây và xem có phải rework hay không?
-
-còn gaps về update skills theo minimax mà chưa fix không?
-
-đặt rules là luôn ưu tiên GAP của skills, rules, workflow phải được update ưu tiên cao nhất vì ảnh hưởng đến chất lượng output và thực hiện tiếp tục theo kế hoạch
-
-tại sao tôi thấy các wave và PR gần đây không được audit lại, rules của dự án là output nào cũng phải có review tương ứng
-
-Tạo báo cáo tiếng việt guide giải thích câu hỏi, thông tin kiến thức liên quan và default câu trả lời best practice
-
-Prompt ở session mới để thực hiện option Y là gì?
-
-tạo thành 1 file prompt hoàn chỉnh cho tất cả audit và lệnh tham chiếu file này là đủ
-
-tạo skill start 1 session mới như thế nào cho hợp lý, có dùng nhiều session cùng lúc được không nhỉ, hay chỉ nhiều agent cùng lúc được thôi
-
-cần có 1 cái gì đó kiểm soát các session để tránh conflict chứ?
-
-cập nhật lại roadmap chưa?
-
-sao run lâu thế
-
-chạy mvn test không dùng mcp server được à
-
-còn chờ gì nữa?
-
-sao điểm thấp như thế, do còn nhiều gap hay add thiếu gap? kế hoạch nâng điểm là gì? fix gap cũ trước hay nâng điểm trước
-
-bạn có thể tự mở 1 session mới để swpan agent trên session đó không?
-
-plan này sẽ fix hết gaps chứ, có xung đột với wave 5, 6 đã có plan không?
-
-Part C + wave 5, 6 là fix hết gaps chưa?
-
-tại sao có 1 PR chưa được merge? có ảnh hưởng đến planning không?
-
-trong gaps còn gaps liên quan đến update skills, rules, workflow không?
-
-tạo báo cáo chỉ rõ đã có gaps cover và PR/wave để update skills như thế nào khi tham khảo các repo này:
-1. https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-2. https://github.com/awslabs/agent-plugins
-
-kiểm tra xem repo cho đề cập đến start-kit không, kế hoạch để update cho starter-kit sau rất nhiều PR/WAVE của dự án là gì?
-
-commit action-1.md và update readme của dự án
-
-cơ chế issue của github là để làm gì? nên sử dụng nó hay cơ chế GAP hiện tại tốt hơn?
+---
+title: Action Log — User Instructions Backlog
+purpose: Consolidated, thematic index of all user instructions accumulated across sessions. Used to audit coverage (what's been addressed vs what remains) and feed next-session prompts.
+source: Raw user messages from prior sessions (chronological dump)
+maintained_by: Claude (updated each major session)
+last_reorganized: 2026-04-20
+legend:
+  - ✅ RESOLVED — gap closed or PR merged covering the ask
+  - 🟡 IN-PROGRESS — gap filed, work underway
+  - 🟠 OPEN — gap filed, no work yet
+  - 🔵 NEW — candidate gap, not yet filed
+  - 💬 QUESTION — diagnostic/exploratory question (no gap needed)
+  - 📋 DECIDED — user made a decision captured below
+---
+
+# Action Log — Thematic Index
+
+**Scope:** Re-organized from 702-line chronological dump into 14 scientific themes + decision log + appendix. Each item annotated with status + gap/PR reference where applicable.
+
+**How to read:** Start with §0 Decisions Log for fixed user choices, then scan §1–§14 for theme-specific asks. Open items without a gap = candidates for §15 New Gap Candidates.
+
+---
+
+## Table of Contents
+
+- [§0. Decisions Log (fixed user choices)](#0-decisions-log)
+- [§1. PR / CI / Git Workflow Hygiene](#1-pr--ci--git-workflow-hygiene)
+- [§2. Audit Coverage & Cadence](#2-audit-coverage--cadence)
+- [§3. Business Logic — Structure, Review, Persona, BRD](#3-business-logic--structure-review-persona-brd)
+- [§4. AI Branding — Architecture & Key-Feature Design](#4-ai-branding--architecture--key-feature-design)
+- [§5. SaaS Lifecycle — Trial / Payment / Backup / Email](#5-saas-lifecycle--trial--payment--backup--email)
+- [§6. SEO, Marketing Site, Domain Strategy](#6-seo-marketing-site-domain-strategy)
+- [§7. Multi-Instance Stack Composition (FullStack test)](#7-multi-instance-stack-composition)
+- [§8. Documentation Architecture & Living Docs](#8-documentation-architecture--living-docs)
+- [§9. Skills / Rules / Starter-Kit Meta-Governance](#9-skills--rules--starter-kit-meta-governance)
+- [§10. Dev Environment — Mock Data, Docker, AI Local](#10-dev-environment--mock-data-docker-ai-local)
+- [§11. UI / UX — Template-Driven Frontend](#11-ui--ux--template-driven-frontend)
+- [§12. Session Management & Parallel Agents](#12-session-management--parallel-agents)
+- [§13. Deploy & Infrastructure — helm / k8s / terraform](#13-deploy--infrastructure)
+- [§14. KiteClass & KiteHub Feature Gaps (non-AI)](#14-kiteclass--kitehub-feature-gaps)
+- [§15. New Gap Candidates (from this reorganization)](#15-new-gap-candidates)
+- [Appendix A. Raw → Reorganized Line Mapping](#appendix-a-raw--reorganized-line-mapping)
+
+---
+
+## §0. Decisions Log
+
+User-confirmed choices — treat as final unless user reverses.
+
+| # | Decision | Choice | Context |
+|:-:|----------|--------|---------|
+| D1 | Trial limit per owner | 1 lần (chuẩn SaaS) | §5 trial mechanics |
+| D2 | Data retention after trial | Mua theo gói payment thay vì cố định | §5 config-driven |
+| D3 | Backup retention for trial | **7 ngày** (giữ khách + 2 email warnings) | §5 trial → conversion |
+| D4 | AI generation approach | **Template-first** (instant UX) | §4 AI branding |
+| D5 | Blog platform for KiteHub marketing | **MDX** (in-repo, simple, free) | §6 SEO |
+| D6 | Primary domain | **kitehub.vn** | §6 domain strategy |
+| D7 | Free-form user prompt for AI branding | ❌ Banned (except Enterprise opt-in) | §4 AI branding |
+| D8 | Docs layout for modules | Service `docs/` = quick-access only; deep docs → `documents/` | §8 docs architecture |
+| D9 | Folder structure meta | Helm/k8s/terraform moved to `infrastructure/` | §13 done |
+| D10 | Priority tier for gaps | Meta → Business-Logic → Feature (at each P-level) | `meta-gap-priority.md` §3 |
+| D11 | KiteHub positioning | Not dashboard — real software-selling site with SEO | §6 marketing |
+| D12 | Business-logic granularity | 3-layer (rules/use-cases/api-contract) per domain | §3 mandated |
+
+---
+
+## §1. PR / CI / Git Workflow Hygiene
+
+| # | Ask (abridged) | Status | Reference |
+|:-:|---------------|:------:|-----------|
+| 1.1 | Monitor CI bằng script, không gh pr checks raw | ✅ | `scripts/check-ci.sh`, memory `reference_ci_script.md` |
+| 1.2 | CI history clean-up (≤2 failed runs) | ✅ | `scripts/cleanup-ci-runs.sh`, memory `feedback_ci_history_hygiene.md` |
+| 1.3 | Không Co-Authored-By trong commit | ✅ | CLAUDE.md §Commit, memory `feedback_no_coauthored_by.md` |
+| 1.4 | `git pull --ff-only` bắt buộc | ✅ | memory `feedback_git_pull_ff_only.md` |
+| 1.5 | Stacked PR `--delete-branch` trap (child auto-close) | ✅ | memory `feedback_stacked_pr_delete_branch.md` |
+| 1.6 | Mọi thay đổi qua PR (kể cả docs-only) | ✅ | CLAUDE.md §Git Workflow, memory `feedback_always_pr_even_docs.md` |
+| 1.7 | Commit PR-{N}.json log sau merge | ✅ | memory `feedback_pr_log_commit.md` |
+| 1.8 | PR staged all vs từng file (khuyến khích explicit) | ✅ | CLAUDE.md §Git Safety Protocol |
+| 1.9 | Squash-merge bắt buộc cho wave/feature branches | ✅ | CLAUDE.md §Wave Branch Strategy |
+| 1.10 | MCP-first with CLI fallback (GitHub MCP, PG MCP) | ✅ | `.claude/rules/mcp-first-with-fallback.md` |
+
+---
+
+## §2. Audit Coverage & Cadence
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 2.1 | UI audit /128 per-screen | ✅ | `skills/quality/ui-review/SKILL.md` |
+| 2.2 | Targeted audit (không full re-audit sau fix) | ✅ | memory `feedback_targeted_audit.md` |
+| 2.3 | Quality audit /100 (10 categories) | ✅ | `skills/quality-audit/` |
+| 2.4 | Business-logic ↔ code audit (mapping check) | ✅ | `skills/quality/business-logic-audit/` |
+| 2.5 | Security audit /100 | ✅ | `skills/quality/security-audit/` |
+| 2.6 | Performance audit /100 | ✅ | `skills/quality/performance-audit/` baseline 58/100 → 64/100 |
+| 2.7 | Ops readiness audit /100 | ✅ | `skills/quality/ops-readiness-audit/` baseline 49/100 |
+| 2.8 | API contract audit /100 | ✅ | `skills/quality/api-contract-audit/` |
+| 2.9 | Audit skill grep scope (multi-module safety) | ✅ | GAP-149 closed, 5 skills hardened |
+| 2.10 | Audit cadence enforcement (hook block non-compliant) | ✅ | `.claude/rules/post-wave-audit-mandate.md` + `audit-gate.py` |
+| 2.11 | Audit compact avoidance (token optimization) | ✅ | per-skill token budgets tuned |
+| 2.12 | Self-audit vs specialist calibration (delta 15-20pt) | ✅ | memory `feedback_audit_calibration.md` |
+| 2.13 | Screenshots cần mock data (không errors states) | ✅ | memory `feedback_screenshot_mock_data.md`, MSW wired |
+| 2.14 | Subagent audit parallel (4 agents) | ✅ | memory `feedback_subagent_audit.md` |
+| 2.15 | UI audit pre-flight (Node 20, ports, playwright) | ✅ | memory `feedback_ui_audit_setup.md` |
+
+---
+
+## §3. Business Logic — Structure, Review, Persona, BRD
+
+### 3.1 3-Layer structure (rules / use-cases / api-contract)
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 3.1.1 | Where to store business logic (single source of truth) | ✅ DECIDED D12 | `documents/01-business/{project}/{domain}/` |
+| 3.1.2 | Detail level for FE/BE design (edit course → swap teacher UX) | ✅ | Layer 2 (use-cases.md) pattern |
+| 3.1.3 | Create/update timing | ✅ | CLAUDE.md §Business Logic 3-Layer — "same PR as code change" |
+| 3.1.4 | Each layer = separate file (not one giant file) | ✅ | Rule enforced by 3-file structure |
+| 3.1.5 | Verification chain: BR-xxx → UC-xxx → endpoint → @Mapping → @Test | ✅ | Pre-flight check skill |
+| 3.1.6 | Scattered docs (kiteclass-core/docs, kiteclass-frontend/docs, …) | ✅ DECIDED D8 | GAP-101 / docs-folder-structure rule |
+
+### 3.2 Business-logic correctness (end-user perspective review)
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 3.2.1 | Review "thing right vs right thing" | 🟡 | GAP-049 (correctness), GAP-050 (persona) |
+| 3.2.2 | Persona-based role-play review | 🟡 | `skills/quality/persona-based-business-review.md` |
+| 3.2.3 | Example case: xlsx import missing for 500-student school | ✅ | GAP-051 (bulk import xlsx), GAP-137 (FE UI), GAP-109 (rules undocumented) |
+| 3.2.4 | Per-persona acceptance criteria template | 🟡 | GAP-151 (template + 4 Tier-1 AC docs skeleton) |
+| 3.2.5 | Execute persona review round 1 | 🟠 | GAP-152 (blocked by 151 + 153) |
+| 3.2.6 | Secondary personas (Student/Parent/Teacher/Admin) | 🟡 | GAP-153 (matrix 9 personas × 4 tenant contexts) |
+| 3.2.7 | BRD for student subject | 🟠 | GAP-153 includes Student persona AC doc |
+
+### 3.3 BRD scope expansion
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 3.3.1 | BRD folder completeness (objectives, compliance, pricing, NFR, GTM) | 🟡 | GAP-150 (Phase 1: 5 strategic skeletons) |
+| 3.3.2 | Simulation-based BRD gap finder | ✅ | `audits/business/brd-simulation-gap-finder-2026-04-20.md` (100+ cells) |
+| 3.3.3 | Umbrella for 22 additional missing BRD docs | 🟡 | GAP-154 (umbrella) |
+| 3.3.4 | Phase 1 P0 legal skeletons (TOS/AUP/Privacy/Refund/Retention/Billing/Child) | 🟠 | GAP-180..186 filed, Wave 8 assigned |
+
+---
+
+## §4. AI Branding — Architecture & Key-Feature Design
+
+### 4.1 Core architecture
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 4.1.1 | Resource classification STATIC/TEMPLATE/FULL_AI | ✅ | GAP-007 done Wave 2+3 |
+| 4.1.2 | Analyzer → Planner → Executor pipeline | ✅ | GAP-008 done Wave 3 |
+| 4.1.3 | Instance lifecycle state machine (6 states) | ✅ | GAP-009 done Wave 2 |
+| 4.1.4 | Template-first (Canva-style) before AI | ✅ DECIDED D4 | GAP-004 (P2 future) |
+| 4.1.5 | Queue for AI (heavy async via RabbitMQ) | 🟡 | GAP-005 (fair scheduling Phase 2), GAP-104 (rules undocumented) |
+| 4.1.6 | Multi-model (image gen fallback) | 🟠 | GAP-003 |
+| 4.1.7 | Design pattern systematic application | 🟡 | GAP-046 (P1 meta) |
+
+### 4.2 User-facing rules
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 4.2.1 | Free-form prompt (❌ except Enterprise) | ✅ DECIDED D7 | `.claude/rules/ai-branding-guidelines.md` §2 |
+| 4.2.2 | 6+ template previews mandatory | ✅ | ai-branding-guidelines §2.2 |
+| 4.2.3 | Wizard + per-resource approve | ✅ | GAP-013 done Wave 3 |
+| 4.2.4 | Regenerate counter per tier | ✅ | ai-branding-guidelines §4.3 |
+| 4.2.5 | Quality gate /100 before DEPLOY | 🟠 | GAP-012 planned |
+
+### 4.3 Still-open concerns
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 4.3.1 | Capacity/throughput sizing (how many users before overload) | 🟠 | GAP-005 Phase 2 addresses |
+| 4.3.2 | Template library curation (30 templates) | 🟠 | GAP-011 (P0 feature) |
+| 4.3.3 | Wave mock include AI branding | 🟠 | GAP-014 (P0 feature) |
+| 4.3.4 | Admin console for branding | 🟠 | GAP-068 |
+| 4.3.5 | Scheduled rebrand (academic year refresh) | 🟠 | GAP-072 |
+
+---
+
+## §5. SaaS Lifecycle — Trial / Payment / Backup / Email
+
+### 5.1 Trial mechanics
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 5.1.1 | 1 trial per owner (no re-trial) | ✅ DECIDED D1 | GAP-092 done |
+| 5.1.2 | 7-day backup after trial ends (2 email warnings) | ✅ DECIDED D3 | GAP-184 (retention policy skeleton) |
+| 5.1.3 | Config-driven (not hardcoded trial days / backup days) | 🟡 | GAP-108 (payment/invoice config hardcoded), GAP-184 retention config keys |
+| 5.1.4 | Trial → paid handoff (no downtime) | 🟠 | needs audit — see §15.C |
+
+### 5.2 Backup / Restore
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 5.2.1 | Backup not functional | ✅ | GAP-093 done |
+| 5.2.2 | Hard delete not implemented | ✅ | GAP-094 done |
+| 5.2.3 | Restore drill test | 🟠 | GAP-117 |
+| 5.2.4 | MinIO backup strategy | 🟠 | GAP-118 |
+
+### 5.3 Email notifications
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 5.3.1 | Trigger points (register / near-trial-end / upgrade / near-expiry / ...) | ✅ | GAP-095/096/097 done |
+| 5.3.2 | Batch vs real-time tech choice | ✅ | GAP-097 (RabbitMQ queue) |
+| 5.3.3 | Template existence + brand propagation | ✅ | GAP-021 done Wave 4 |
+| 5.3.4 | Idempotency guard | ✅ | GAP-091 done |
+| 5.3.5 | Admin controls + monitoring dashboard | ✅ | GAP-096 done |
+| 5.3.6 | Notification settings API | 🟠 | GAP-098 (P2) |
+| 5.3.7 | Email template review standard | 🟠 | GAP-173 |
+| 5.3.8 | SMS/Zalo channels | 🟠 | GAP-063 |
+
+---
+
+## §6. SEO, Marketing Site, Domain Strategy
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 6.1 | KiteHub SEO optimization (positioning as product, not dashboard) | 🔵 NEW | §15.A candidate |
+| 6.2 | Blog platform MDX in-repo | ✅ DECIDED D5 | §15.A candidate (implementation gap) |
+| 6.3 | Domain kitehub.vn (primary) | ✅ DECIDED D6 | §15.B candidate |
+| 6.4 | Instance kiteclass domain config (subdomain vs custom) | 🔵 NEW | §15.B candidate |
+| 6.5 | Marketing copy + legal review | 🟠 | GAP-174 |
+
+---
+
+## §7. Multi-Instance Stack Composition
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 7.1 | Why only kiteclass-core + kiteclass-frontend run in local IT test (not gateway, redis, db, minio)? | ✅ | Shared infrastructure (`kite-` prefix) reused — documented in CLAUDE.md §Docker Naming |
+| 7.2 | Fullstack naming unclear (group + service) | ✅ | Naming convention enforced (`kite-` / `kitehub-` / `kiteclass-`) |
+| 7.3 | Canonical compose file | ✅ | `kitehub/docker-compose.kitehub.yml` |
+
+---
+
+## §8. Documentation Architecture & Living Docs
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 8.1 | README.md outdated (e.g. "KiteHub Setup Guide _(future)_") | ✅ | README refreshed 2026-04-19 |
+| 8.2 | Scattered docs at kiteclass/docs, kiteclass-core/docs, … | ✅ DECIDED D8 | GAP-101 restructure |
+| 8.3 | Living docs rule (README/CLAUDE.md/business/skills-index) | ✅ | CLAUDE.md §Living Documents |
+| 8.4 | documents/ folder README (generic rule) | ✅ | GAP-101 + docs-folder-structure.md |
+| 8.5 | documents/05-guides is empty — purpose + roadmap | 🟠 | GAP-102 (guides kickoff) |
+| 8.6 | documents/00-brd low priority — has gap coverage? | 🟡 | GAP-150/154 + GAP-180..186 |
+| 8.7 | Duplicate numbering (e.g. 2 folders with same prefix) | ✅ | Restructure PR merged |
+| 8.8 | Output-review-mandate coverage (every output has review standard) | 🟡 | GAP-048 umbrella, 170-175 sub-gaps |
+| 8.9 | ADR for architecture / rules | 🟠 | GAP-171 (rules ADR), GAP-172 (architecture ADR) |
+| 8.10 | Logs format standard | 🟠 | GAP-175 |
+
+---
+
+## §9. Skills / Rules / Starter-Kit Meta-Governance
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 9.1 | Skills phình to, không có index rõ ràng | ✅ | `.claude/skills/_README-skills-index.md` |
+| 9.2 | Classify skills by category | ✅ | Index organized by 9 categories |
+| 9.3 | Check skill conflicts | ✅ | Skill conventions rule |
+| 9.4 | MiniMax skills review (document generation Excel/Word/PDF/PPT) | 🟠 | GAP-047 (P0 meta) |
+| 9.5 | UI UX Pro Max skill integration | 🟠 | GAP-176 |
+| 9.6 | Starter-kit remote sync strategy | ✅ | `.claude/rules/skill-conventions.md` §Remote Repo Sync |
+| 9.7 | Starter-kit bulk update after many PRs | 🔵 NEW | §15.F candidate |
+| 9.8 | Terraform cloud deploy skill adoption | ✅ | `skills/devops/terraform-cloud-deploy/` |
+| 9.9 | Gap triage meta-rule (meta > business > feature) | ✅ | `.claude/rules/meta-gap-priority.md` (2026-04-20 tiers) |
+| 9.10 | Output-review-mandate master rule | ✅ | `.claude/rules/output-review-mandate.md` |
+| 9.11 | Audit-to-gap pipeline rule | ✅ | `.claude/rules/audit-to-gap-pipeline.md` |
+| 9.12 | Session-start skill (new conversation prep) | 🔵 NEW | §15.D candidate |
+| 9.13 | Script compliance check (shellcheck/ruff for bash/python) | 🔵 NEW | §15.E candidate |
+| 9.14 | IDE warnings check before commit | ✅ | memory `feedback_ide_warnings_check.md` |
+| 9.15 | PR lifecycle log self-test + IDE-warnings fields | ✅ | `audit-gate.py` hook updated |
+
+---
+
+## §10. Dev Environment — Mock Data, Docker, AI Local
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 10.1 | FE mock API (MSW) for decoupled dev | ✅ | Mock data wave shipped |
+| 10.2 | BE DataSeeder (Spring Boot, toggle via env) | ✅ | GAP-014 (include AI branding mock) |
+| 10.3 | Local Docker image mock data toggle | ✅ | Data seeder env flag |
+| 10.4 | AI local (Ollama) vs OPENAI_API_KEY in E2E | ✅ | E2E fixed to use local-first |
+| 10.5 | Docker resource limits | 🟠 | GAP-130 |
+| 10.6 | E2E Docker test resources | ✅ | Docker compose documented |
+
+---
+
+## §11. UI / UX — Template-Driven Frontend
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 11.1 | Figma-template-based FE dev (vs free-form) | 🟠 | GAP-176 (ui-ux-pro-max-skill integration) |
+| 11.2 | FE quality standards kit (sharable across projects) | ✅ | Starter-kit maintained |
+| 11.3 | Register flow: center registration → kitehub link (local vs prod) | ✅ | fixed per-env config |
+| 11.4 | Dark mode KiteHub not switching | ✅ | GAP-078 done |
+| 11.5 | i18n gaps KiteClass | 🟡 | GAP-079 / 140 / 141 / 142 |
+| 11.6 | Dashboard loading UX | 🟠 | GAP-080 |
+| 11.7 | Landing hero duplicated text | ✅ | GAP-138 done |
+| 11.8 | Parent dashboard MVP | 🟠 | GAP-139 |
+
+---
+
+## §12. Session Management & Parallel Agents
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 12.1 | Parallel-agent worktree isolation | ✅ | memory `feedback_parallel_agent_strategy.md` |
+| 12.2 | Agent quality vs sequential (no regression?) | ✅ | Wave 4 retro verified |
+| 12.3 | Multi-session concurrent — conflict prevention | 🔵 NEW | §15.D candidate (session-lock mechanism) |
+| 12.4 | Session-start skill to load context | 🔵 NEW | §15.D candidate |
+| 12.5 | Wave QA mandatory (no skip under time pressure) | ✅ | memory `feedback_wave_qa_mandatory.md` |
+| 12.6 | Context-full regression (output quality degrades) | ✅ | memory + compact protocol |
+
+---
+
+## §13. Deploy & Infrastructure
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 13.1 | Helm / k8s / terraform folder layout | ✅ DECIDED D9 | moved to `infrastructure/` |
+| 13.2 | Deploy philosophy ADR | 🟠 | GAP-103 |
+| 13.3 | Monitoring stack in prod (Grafana / Loki / Alerts) | 🟠 | GAP-111..125, 143..145 |
+| 13.4 | HPA / PDB / NetworkPolicy hardening | 🟠 | GAP-123 / 124 |
+| 13.5 | Canary deployment | 🟠 | GAP-125 |
+| 13.6 | Distributed tracing | 🟠 | GAP-112 |
+
+---
+
+## §14. KiteClass & KiteHub Feature Gaps
+
+### 14.1 KiteClass (education platform)
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 14.1.1 | Bulk xlsx import users | 🟡 | GAP-051 / 109 / 137 |
+| 14.1.2 | Parent portal | 🟠 | GAP-052 / 105 / 139 |
+| 14.1.3 | Academic year / semester structure | 🟠 | GAP-053 |
+| 14.1.4 | Multi-subject per student | 🟠 | GAP-054 |
+| 14.1.5 | Official VN report card | 🟠 | GAP-055 |
+| 14.1.6 | Homeroom teacher (GVCN) | 🟠 | GAP-056 |
+| 14.1.7 | Payroll + commission | 🟠 | GAP-057 / 062 |
+| 14.1.8 | Role hierarchy + org chart | 🟠 | GAP-058 |
+| 14.1.9 | Student conduct tracking | 🟠 | GAP-059 |
+| 14.1.10 | Period-based attendance | 🟠 | GAP-060 (calendar-mode variant not explicit — see §15.H) |
+| 14.1.11 | Promotion/retention logic | 🟠 | GAP-061 |
+| 14.1.12 | SCORM/xAPI compliance | 🟠 | GAP-064 |
+| 14.1.13 | Structured class schedule | 🟠 | GAP-099 |
+| 14.1.14 | Migration fresh-deploy safety | 🟠 | GAP-065 |
+
+### 14.2 KiteHub (SaaS control plane)
+
+| # | Ask | Status | Reference |
+|:-:|-----|:------:|-----------|
+| 14.2.1 | Unified reports dashboard | 🟠 | GAP-066 |
+| 14.2.2 | Instance control plane (AWS-console-like) | 🟠 | GAP-067 |
+| 14.2.3 | Admin branding console | 🟠 | GAP-068 |
+| 14.2.4 | Industry-specific branding presets | 🟠 | GAP-069 |
+| 14.2.5 | Concurrent rebrand race / approval | 🟠 | GAP-070 |
+| 14.2.6 | Branding migration on tier change | 🟠 | GAP-071 |
+| 14.2.7 | GDPR deletion of AI assets | 🟠 | GAP-073 |
+| 14.2.8 | Developer sandbox tenant | 🟠 | GAP-075 |
+| 14.2.9 | Admin dashboard unbounded findAll | ✅ | GAP-126 done |
+
+---
+
+## §15. New Gap Candidates
+
+These are themes from action-1 with no existing gap coverage. Propose filing in next session.
+
+### §15.A — KiteHub SEO + Marketing Site (NEW)
+- **Scope:** SEO meta tags, blog MDX setup, sitemap, landing CTAs, structured data
+- **Why:** User decision D11 — "KiteHub là trang bán sản phẩm thật sự, không phải dashboard"
+- **Priority:** 🟠 P1 Business-Logic (positioning-critical but not GA-blocker)
+- **Proposed ID:** GAP-190
+- **Blocks:** GTM doc in GAP-150 (Phase 1 BRD skeleton)
+
+### §15.B — Domain Registration & Instance DNS Strategy (NEW)
+- **Scope:** kitehub.vn registration, DNS config, per-instance subdomain policy (e.g. `schoolA.kiteclass.com`), custom-domain support
+- **Why:** User ask (line 61): "domain của kitehub và các instance kiteclass sẽ được đăng ký và cấu hình như thế nào"
+- **Priority:** 🟠 P1 Business-Logic (tenant-onboarding blocker)
+- **Proposed ID:** GAP-191
+
+### §15.C — Trial → Paid Migration Zero-Downtime Design (NEW)
+- **Scope:** Data handoff procedure, state machine, downtime SLA, rollback
+- **Why:** User ask (line 33): "Quy trình để chuyển giao data từ trial lên payment đã rõ ràng chưa? có down time hay không?"
+- **Priority:** 🔴 P0 Business-Logic (conversion-critical, SaaS standard)
+- **Proposed ID:** GAP-192
+- **Related:** GAP-092 (re-trial prevention done), GAP-093 (backup done), GAP-108 (config hardcoded)
+
+### §15.D — Session Orchestration & Start-Session Skill (NEW META)
+- **Scope:** (1) Skill to prepare fresh session (load CLAUDE.md, ROADMAP, active wave, open PRs), (2) multi-session conflict detection / lock file
+- **Why:** User ask (line 607–627): "bắt đầu session mới như thế nào", "nhiều session cùng lúc được không", "cần kiểm soát session tránh conflict"
+- **Priority:** 🟠 P1 Meta (quality-of-work enabler)
+- **Proposed ID:** GAP-193
+
+### §15.E — Bash / Python Script Compliance (shellcheck / ruff) (NEW META)
+- **Scope:** CI integration of shellcheck for `scripts/*.sh`, ruff for `scripts/*.py`, + skill update in `script-review-checklist.md`
+- **Why:** Explicitly flagged by user as "known limitation, improvement riêng" (line 544–546). `output-review-mandate.md` §5.5 lists it.
+- **Priority:** 🟠 P1 Meta
+- **Proposed ID:** GAP-194
+
+### §15.F — Starter-Kit Bulk Retro-Sync (NEW META)
+- **Scope:** After 100+ PRs in this project, distill learnings back into remote starter-kit (`github.com/VictorAurelius/claude-starter-kit`): new rules, skills, gotchas
+- **Why:** User ask (line 653): "kế hoạch để update cho starter-kit sau rất nhiều PR/WAVE của dự án là gì?"
+- **Priority:** 🟡 P2 Meta (has sync rule, missing retro-sync routine)
+- **Proposed ID:** GAP-195
+
+### §15.G — 9router Tool Evaluation (NEW)
+- **Scope:** Evaluate `9router` tool (user mentioned line 427). Determine applicability to kitehub API gateway, document decision as ADR.
+- **Why:** User asked for investigation; unclear if already closed or still open.
+- **Priority:** 🟡 P2 Meta (investigation → ADR)
+- **Proposed ID:** GAP-196
+
+### §15.H — Attendance Calendar-Mode UI Variant (NEW)
+- **Scope:** Calendar-view (month/week grid) for attendance, on top of period-based backend (GAP-060)
+- **Why:** User ask (line 421): "điểm danh đang design thế nào, có cần làm mode kiểu calender không?"
+- **Priority:** 🟡 P2 Feature (UX enhancement — backend logic exists via GAP-060)
+- **Proposed ID:** GAP-197
+
+### §15.I — FE ↔ BE Decoupled Mock Contract (NEW)
+- **Scope:** Strengthen MSW mocks as formal contract tests; verify FE mock responses match BE actual responses via consumer-driven contract tests (Pact or similar). Mentioned at `output-review-mandate.md` as partial.
+- **Why:** User ask (line 302): "FE phải có đủ bộ mock API cho BE", + api-contract partial status
+- **Priority:** 🟡 P2 Meta (hardens contract audit)
+- **Proposed ID:** GAP-198
+
+### §15.J — Rework Audit Against Context-Degraded PRs (NEW)
+- **Scope:** Systematically re-audit PRs merged during high-context-pressure sessions (detected by turn count + token usage) to catch quality regressions. PRs from Wave 6-8 era suspected.
+- **Why:** User ask (line 611): "chất lượng output giảm do context quá đầy, làm thế nào để đánh giá PR/wave gần đây và xem có phải rework hay không?"
+- **Priority:** 🟠 P1 Meta (quality assurance retroactive)
+- **Proposed ID:** GAP-199
+
+---
+
+## Appendix A. Raw → Reorganized Line Mapping
+
+**Deduplicated:** §3.1–§3.4 trial-email block repeated at raw lines 30–36, 321–327, 501–510 → consolidated into §5.1–§5.3.
+
+**Dropped (pure session noise, preserved in git history):** lines 1–20 (CI monitoring micro-prompts), lines 230–250 (starter-kit interactive Q&A already captured in rule files).
+
+**Preserved original chronological raw dump:** moved to `documents/07-archived/action-log-raw-2026-04-20.md` (if needed for forensic review; otherwise `git log documents/action-1.md` shows prior revisions).
+
+---
+
+## Appendix B. Update Protocol
+
+1. **When user issues new instructions in a session:** append to relevant theme section.
+2. **End of each wave:** re-classify items (RESOLVED → move to "closed" subsection).
+3. **Pre-compact checkpoint:** ensure all open items have gap reference or §15 candidate row.
+4. **Before GA:** all 🔵 NEW items must be either filed (→ 🟠 OPEN) or declined with rationale in decisions log.
+
+---
+
+## Log
+
+- **2026-04-20:** Reorganized from 702-line chronological dump into 14 thematic sections + decision log + 10 new gap candidates (§15.A–§15.J). Dedupe removed 3 repeat blocks. No original user instruction lost — preserved via `git log` + this structured index.
