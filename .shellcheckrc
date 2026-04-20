@@ -1,0 +1,27 @@
+# Project-wide ShellCheck configuration
+# Docs: https://www.shellcheck.net/wiki/
+# Applies to: scripts/, kitehub/scripts/, kiteclass/scripts/
+# Closes GAP-081 (checklist) + GAP-194 (CI enforcement)
+
+# Default shell dialect (most scripts are bash; override with shebang per file)
+shell=bash
+
+# Where to look for sourced files (source /path/to/lib.sh)
+source-path=scripts
+source-path=kitehub/scripts
+source-path=kiteclass/scripts
+source-path=SCRIPTDIR
+
+# ── Disabled checks (with justification) ────────────────────────────────
+
+# SC1091 — "Not following: file not found" during CI. We allow because
+# scripts often source siblings that aren't on source-path in CI runner.
+disable=SC1091
+
+# SC2034 — "X appears unused". Our scripts use color vars conditionally
+# (only in TTY branches) and have a few forward-declared log paths. Noise
+# in CI; keep local review via `shellcheck` invocation without -S.
+# NOT globally disabled — see per-script # shellcheck disable=SC2034 comments.
+
+# ── External variables shellcheck may not see ───────────────────────────
+# Use per-file `# shellcheck source=/path` directives for sourced libs.

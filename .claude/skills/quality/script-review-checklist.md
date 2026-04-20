@@ -11,7 +11,7 @@ Dùng khi PR thêm/sửa `.sh` hoặc `.py` files trong `scripts/`, `kitehub/scr
 ## Bash Scripts
 
 - [ ] `set -euo pipefail` ở đầu file
-- [ ] shellcheck passes (no warnings)
+- [ ] shellcheck passes — **CI enforces `-S error`** via `.github/workflows/script-quality.yml` (GAP-194). Warnings reported non-blocking but should be fixed before merge.
 - [ ] No `eval`, no `curl | bash`, no `rm -rf /` without guard
 - [ ] No hardcoded secrets (passwords, tokens, API keys)
 - [ ] Input sanitized — quote all `"$variables"`, validate args
@@ -25,7 +25,7 @@ Dùng khi PR thêm/sửa `.sh` hoặc `.py` files trong `scripts/`, `kitehub/scr
 
 ## Python Scripts
 
-- [ ] ruff passes (no warnings)
+- [ ] ruff passes — **CI enforces `ruff check`** via `.github/workflows/script-quality.yml` (GAP-194). Config in `ruff.toml` (root). Format diffs reported non-blocking.
 - [ ] No `eval()`, no `subprocess.shell=True` with user input
 - [ ] No hardcoded secrets
 - [ ] Type hints on public functions

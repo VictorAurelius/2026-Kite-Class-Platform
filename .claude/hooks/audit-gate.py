@@ -7,14 +7,13 @@ checks CI status and test coverage, warns/blocks on violations.
 
 Log files: documents/03-planning/pr-logs/PR-{number}.json
 """
+import contextlib
 import json
-import os
 import re
 import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-
 
 # ── Audit Rules (file pattern → required audit) ─────────────────
 
@@ -177,11 +176,10 @@ def write_pr_log(pr: str, log: dict) -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_file = LOG_DIR / f"PR-{pr}.json"
     log_file.write_text(json.dumps(log, indent=2, default=str), encoding="utf-8")
-    # Auto-stage so file gets included in next commit (avoids forgetting to commit)
-    try:
+    # Auto-stage so file gets included in next commit (avoids forgetting to commit).
+    # Non-critical — worst case, file stays untracked.
+    with contextlib.suppress(Exception):
         subprocess.run(["git", "add", str(log_file)], capture_output=True, timeout=5, cwd=PROJECT_ROOT)
-    except Exception:
-        pass  # Non-critical — worst case, file stays untracked
 
 
 def add_event(log: dict, event_type: str, data: dict) -> dict:

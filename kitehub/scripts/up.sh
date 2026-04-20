@@ -35,7 +35,7 @@ if [ ${#SERVICES[@]} -eq 0 ]; then
     fi
     $CMD up -d
 else
-    echo "Starting: ${SERVICES[@]}"
+    echo "Starting: ${SERVICES[*]}"
     if [ -n "$PROFILE" ]; then
         echo "Profile: $PROFILE"
     fi
