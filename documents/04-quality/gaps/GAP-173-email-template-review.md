@@ -6,7 +6,7 @@ type: gap
 
 # GAP-173: Email Template Review Checklist
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1 (meta — customer-facing compliance)
 **Domain:** Marketing / Legal / Engineering
 **Found:** 2026-04-14 (output-review-mandate §4 Violation #4)
@@ -47,3 +47,12 @@ No cross-functional review process. Email code lands same as any feature PR (eng
 - Code refs: `kitehub-email/` service
 - GAP-063 (SMS + Zalo notifications) — sibling review need
 - Related: GAP-174 (marketing/legal broader)
+
+## Log
+
+- **2026-04-20** — Wave 8b Agent C closed gap. Created skill `.claude/skills/quality/email-template-review/`:
+  - `SKILL.md` — entry point with trigger phrases (VN+EN), reviewer matrix per email class (transactional/lifecycle/marketing), 7-step process, 10 gotchas (Thymeleaf escaping, logo URL, dark-mode, tenant isolation, inline CSS, unsubscribe mandate, Vietnam Nghị định 91/2020)
+  - `reference/checklist.md` — 40-point checklist across 7 categories (Brand, Legal, i18n, Variables, Mobile, Client compat, Tenant isolation), MUST/SHOULD/NICE levels, summary row format for PR comment, known baseline violations for current 16 templates
+  - `reference/sample-data.md` — canonical Thymeleaf sample data (branded + unbranded fixtures) for all 16 existing templates + edge-case variants (long names, XSS, null branding, diacritics) + preview tooling options (MailHog / Mailtrap / future EmailPreviewController)
+  - State-check verified: 13 kitehub-email templates + 3 kiteclass-gateway templates. None currently have unsubscribe link / physical address / EN fallback — remediation deferred to feature PRs, not part of this skill-creation PR.
+  - Acceptance criteria satisfied: review skill doc exists; PR template checklist update deferred (no `.github/PULL_REQUEST_TEMPLATE.md` touch in this docs-only PR).
