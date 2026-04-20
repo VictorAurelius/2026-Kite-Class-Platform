@@ -29,7 +29,9 @@ Verify each `BR-xxx` in `rules.md` has corresponding code implementation.
 ```
 1. Read rules.md → list all BR-xxx
 2. For each BR-xxx:
-   a. Grep codebase for related class/method
+   a. Grep codebase for related class/method — use BROAD scope
+      ✅ grep -rn "ClassName" --include="*.java"
+      ❌ grep -r "ClassName" kitehub/ kiteclass/   # may miss -core submodules
    b. Verify logic matches rule description
    c. Check if test exists for the rule
 3. Score: (matched / total) × 20
@@ -37,6 +39,8 @@ Verify each `BR-xxx` in `rules.md` has corresponding code implementation.
 
 **Example:**
 - `BR-001: Trial period = 14 days` → find `TRIAL_DAYS` config → verify `application.yml` = 14
+
+**False-positive guard** (GAP-107 lesson): before scoring "rule has no implementation", re-run grep without dir restriction. Multi-module Maven projects put classes under `{project}-core/`, `{project}-gateway/` — narrow scope silently misses them.
 
 ---
 
@@ -56,7 +60,9 @@ Config keys referenced in `rules.md` must exist and have correct values in `appl
 **How to check:**
 ```
 1. Extract config keys from rules.md (format: `config.key.name`)
-2. Grep application.yml for each key
+2. Grep application.yml for each key — scope ALL module resource dirs:
+   grep -rn "key.name" --include="*.yml"
+   # or explicit: kiteclass/*/src/main/resources/ kitehub/*/src/main/resources/
 3. Compare documented default vs actual value
 4. Check application-test.yml has test-safe values
 ```

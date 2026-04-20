@@ -44,6 +44,31 @@ scripts/verify-business-docs.sh
 # Grep for config keys in application.yml
 ```
 
+## Grep Scope — CRITICAL
+
+**NEVER** scope greps to only `kitehub/ kiteclass/` — these are multi-module Maven projects, and classes/config may live in submodules (`kiteclass-core/`, `kitehub-branding/`, etc.). Narrow scope = silent false-positive ("class doesn't exist" when it does). GAP-107 false positive root cause.
+
+**Safe patterns** (use one):
+
+```bash
+# Option 1 (broad, preferred) — project root, filter by extension
+grep -rnE "ClassName|BR-ID" --include="*.java"
+grep -rn "config.key.name" --include="*.yml"
+
+# Option 2 (explicit submodules) — glob all module src dirs
+grep -rn "ClassName" kiteclass/*/src/ kitehub/*/src/ --include="*.java"
+grep -rn "config.key" kiteclass/*/src/main/resources/ kitehub/*/src/main/resources/ --include="*.yml"
+```
+
+**Sanity check before filing "X doesn't exist" gap:**
+
+```bash
+# If narrow grep returns 0 hits, re-run with broad scope before claiming absence
+grep -rn "SuspectedMissingClass" --include="*.java" | head -5
+```
+
+Ref: `.claude/rules/audit-to-gap-pipeline.md`, memory `feedback_audit_grep_scope.md`, GAP-149.
+
 ## Context Management
 
 Audit này có thể tốn 30-50K tokens nếu không kiểm soát. Tuân thủ:
@@ -66,6 +91,7 @@ Audit này có thể tốn 30-50K tokens nếu không kiểm soát. Tuân thủ:
 - Wave 4 added 6 new domains — don't miss `security-foundation/`, `content-moderation/`, etc.
 - Category 5 (Stakeholder) always requires human review — Claude flags, human decides
 - Grep output cho large codebase có thể 1000+ lines — LUÔN giới hạn
+- **Multi-module scope trap** — `grep -r "X" kitehub/ kiteclass/` may silently miss `kiteclass/kiteclass-core/` hits (GAP-107 false-positive). Follow "Grep Scope" section above.
 
 ## Skill Contents
 
