@@ -1,10 +1,11 @@
 # GAP-111: Monitoring Stack Không Deploy Production
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (foundation — 2026-04-20)
 **Priority:** 🔴 P0
 **Domain:** DevOps / Monitoring
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
 **Affects:** All services trong production — monitoring blind spot
+**Resolution:** Foundation merged via PR — `kube-prometheus-stack` subchart + ServiceMonitors + PrometheusRule wiring 7 alerts. Grafana dashboards deferred to GAP-143; Loki/Tempo to GAP-145.
 
 ## Problem
 
@@ -56,3 +57,4 @@ Monitoring stack được thiết kế cho local dev (docker-compose) mà không
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- 2026-04-20 — Foundation shipped: `infrastructure/helm/kitehub/Chart.yaml` declares `kube-prometheus-stack@58.7.2` dependency (opt-in via `monitoring.enabled=true`); `templates/servicemonitor.yaml` scrapes 5 backend services; `templates/prometheusrule.yaml` mirrors all 7 alert rules from dev. `helm lint` + `helm template` pass. Follow-up gaps: GAP-143 (Grafana dashboards), GAP-144 (Alertmanager production receivers), GAP-145 (Loki + Tempo).

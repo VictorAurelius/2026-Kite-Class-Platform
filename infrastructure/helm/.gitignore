@@ -1,0 +1,3 @@
+# Helm subchart binaries — pulled by `helm dependency update`.
+# Chart.lock IS committed (pins version), tarballs are not.
+**/charts/*.tgz

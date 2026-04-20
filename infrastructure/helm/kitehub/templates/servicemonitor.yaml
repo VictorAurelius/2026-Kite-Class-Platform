@@ -1,0 +1,24 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.serviceMonitor.enabled }}
+{{- range $svc := .Values.monitoring.serviceMonitor.services }}
+---
+# ServiceMonitor for {{ $svc.name }}
+# Scrapes Spring Boot Actuator /actuator/prometheus endpoint.
+# Requires kube-prometheus-stack CRDs (installed via monitoring.enabled=true).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $svc.name }}
+  labels:
+    app: {{ $svc.name }}
+    release: {{ $.Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $svc.name }}
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: {{ $.Values.monitoring.serviceMonitor.interval | default "30s" }}
+      scrapeTimeout: {{ $.Values.monitoring.serviceMonitor.scrapeTimeout | default "10s" }}
+{{- end }}
+{{- end }}
