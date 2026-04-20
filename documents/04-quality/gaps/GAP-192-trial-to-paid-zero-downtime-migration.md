@@ -1,11 +1,29 @@
 # GAP-192: Trial → Paid Zero-Downtime Migration Design
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 3 design docs drafted 2026-04-20; implementation pending Wave 9 Agent 9-A)
 **Priority:** 🔴 P0 (business-logic tier — conversion-critical, SaaS standard)
 **Domain:** Backend / SaaS Lifecycle / KiteHub
 **Found:** 2026-04-20 (action-1 §5.1 + §15.C)
-**Wave:** Wave 9 (Business-Logic-P0, front of tier)
+**Wave:** Wave 9 (Business-Logic-P0, front of tier) — Agent 9-A
 **Affects:** All trial tenants converting to paid (SaaS conversion funnel), KiteHub subscription service, KiteClass instance lifecycle
+
+## Current State (verified 2026-04-20)
+
+Per `.claude/rules/audit-to-gap-pipeline.md` Step 2.5 — code state before filing:
+
+| Piece | File / Path | Status |
+|-------|-------------|--------|
+| `InstanceStatus` enum | `kitehub-platform/domain/enums/InstanceStatus.java` | ✅ 6 states (PENDING, TRIAL, ACTIVE, SUSPENDED, DELETED, PURGED) — no MIGRATING sub-state |
+| `TrialService.convertTrialToSubscription()` | `kitehub-subscription/service/TrialService.java:175` | ✅ exists as simple flip TRIAL→ACTIVE — no state machine, no outbox, no rollback |
+| `trial-lifecycle/` 3-layer docs | `documents/01-business/kitehub/trial-lifecycle/` | ✅ exists (TR-01..TR-07); UC-TR-03 mentions "zero downtime" but no formal design |
+| `subscription-billing/` 3-layer docs | `documents/01-business/kitehub/subscription-billing/` | ✅ exists |
+| `trial-to-paid-migration/` 3-layer docs | `documents/01-business/kitehub/trial-to-paid-migration/` | ✅ **drafted in this gap's Phase 3** (rules.md + use-cases.md + api-contract.md) |
+| `BRD trial-to-paid-conversion.md` | `documents/00-brd/` | ✅ **drafted in this gap's Phase 3** |
+| Migration phase column | — | ❌ not implemented — needs `migration_phase` column + Flyway migration |
+| Outbox events | — | ❌ outbox pattern used elsewhere but not wired for migration events |
+| Rollback service | — | ❌ no rollback path exists — payment reversal handling absent |
+
+**Conclusion:** Simple flip exists; full zero-downtime design (state machine + outbox + rollback + SLA) is NEW work. Scope confirmed BL-P0. Phase 3 (design docs) DONE; Phase 4 (implementation) queued for Wave 9 Agent 9-A.
 
 ## Problem
 
@@ -80,3 +98,4 @@ TRIAL_ENDING ─grace_expired─► ARCHIVED
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.C as first Business-Logic-P0 entry under new tier rule.
+- 2026-04-20 — **Phase 3 design drafted.** 3-layer docs published at `documents/01-business/kitehub/trial-to-paid-migration/` (rules.md 14 rules T2P-01..T2P-14, use-cases.md UC-T2P-01..06, api-contract.md 5 endpoints + 7 outbox events). BRD at `documents/00-brd/trial-to-paid-conversion.md`. State machine formalized: `MigrationPhase` sub-state (NONE → INITIATED → PAYMENT_PENDING → PAYMENT_CAPTURED → MIGRATING → COMPLETED, with REVERSED + MIGRATION_FAILED branches). Strategy: flip-in-place (default), shadow-provision flag-gated for future cross-tier. Status → 🟡 PARTIAL pending Wave 9 Agent 9-A implementation.
