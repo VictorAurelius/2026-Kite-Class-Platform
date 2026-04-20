@@ -1,6 +1,6 @@
 # GAP-193: Session Orchestration & Start-Session Skill
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Phase 1 — skill + lock convention) / 🟡 PARTIAL (Phase 2 — hook enforcement deferred)
 **Priority:** 🟠 P1 (meta tier — quality-of-work enabler)
 **Domain:** Meta / Skills / Workflow
 **Found:** 2026-04-20 (action-1 §12 + §15.D)
@@ -44,12 +44,20 @@ Meta-P1 because every session pays the cost of missing context. Related rules:
 
 ## Acceptance Criteria
 
-- [ ] `start-session` skill in `.claude/skills/workflow/start-session/` with SKILL.md ≤100 lines
-- [ ] Session lock convention documented + example lock file
-- [ ] Overlap-detection routine spec'd (even if manual for MVP)
-- [ ] Context-degradation heuristic documented
-- [ ] Skill registered in `.claude/skills/_README-skills-index.md`
-- [ ] Example run documented in skill data dir
+### Phase 1 (DONE)
+- [x] `start-session` skill in `.claude/skills/workflow/start-session/` with SKILL.md ≤100 lines
+- [x] Session lock convention documented (`.claude/session-locks/README.md` + reference/context-template.md §Lock File Schema)
+- [x] Overlap-detection routine spec'd (reference/context-template.md §3 Overlap Detection)
+- [x] Context-degradation heuristic documented (SKILL.md §Context-degradation heuristic)
+- [x] Skill registered in `.claude/skills/_README-skills-index.md`
+- [x] Example runs documented (reference/context-template.md §4 Example Output Scenarios)
+- [x] `scripts/collect-state.sh` smoke-tested in feat/wave-8b-E branch
+
+### Phase 2 (DEFERRED — follow-up PR)
+- [ ] Hook enforcement blocking commits on locked branch from different session
+- [ ] Session-lock archival on session-end for retro analysis
+- [ ] Turn-count telemetry recorded in `PR-{N}.json` via audit-gate.py
+- [ ] `/end-session` skill for explicit lock release
 
 ## Out of Scope
 
@@ -68,3 +76,4 @@ Meta-P1 because every session pays the cost of missing context. Related rules:
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.D.
+- 2026-04-20 — Phase 1 CLOSED via Wave 8b Agent E. Delivered: `.claude/skills/workflow/start-session/{SKILL.md, reference/context-template.md, scripts/collect-state.sh}` + `.claude/session-locks/README.md` + skills index entry + `.gitignore` rule for lock files. Smoke test passed. Phase 2 (hook enforcement, telemetry) deferred to follow-up PR.

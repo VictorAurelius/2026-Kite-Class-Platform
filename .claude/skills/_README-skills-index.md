@@ -50,6 +50,7 @@
 | `quality/migration-review-checklist.md` | Flyway migration DBA checklist | PR co V*.sql files |
 | `quality/gap-review/SKILL.md` | Peer-review checklist cho gap files | PR touch documents/04-quality/gaps/GAP-*.md |
 | `quality/rule-review/SKILL.md` | ADR-like review cho rules docs | PR touch .claude/rules/*.md |
+| `quality/rework-audit/SKILL.md` | Retroactive audit cho context-degraded PRs (GAP-199) | Sau wave, hoac khi nghi quality drift |
 | `quality/cross-app-consistency.md` | Cross-app KiteHub↔KiteClass check | PR touch shared infra |
 
 ### Technical Standards
@@ -67,6 +68,7 @@
 
 | File/Folder | Mo ta |
 |-------------|-------|
+| `workflow/start-session/SKILL.md` | /start-session — load context + session-lock check (GAP-193) |
 | `workflow/continue/SKILL.md` | /continue — resume PR uu tien nhat |
 | `workflow/check-pr/SKILL.md` | /check-pr — monitor CI + verify PR |
 | `workflow/fix-pr/SKILL.md` | /fix-pr — fix PR issues |
