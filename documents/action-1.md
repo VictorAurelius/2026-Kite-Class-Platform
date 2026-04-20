@@ -61,6 +61,8 @@ User-confirmed choices — treat as final unless user reverses.
 | D10 | Priority tier for gaps | Meta → Business-Logic → Feature (at each P-level) | `meta-gap-priority.md` §3 |
 | D11 | KiteHub positioning | Not dashboard — real software-selling site with SEO | §6 marketing |
 | D12 | Business-logic granularity | 3-layer (rules/use-cases/api-contract) per domain | §3 mandated |
+| D13 | Drop GAP-196 (9router ADR) | Not effective for project scope | 2026-04-20 post Phase 1 dedupe review |
+| D14 | Gap filing must state-check first | Before filing, grep codebase — GAP-190 SEO found sitemap/robots/OG/JsonLd already shipped; GAP-197 calendar found shipped in PR 3.8.1; both scope-revised to 🟡 PARTIAL | 2026-04-20 post Phase 1 user feedback |
 
 ---
 

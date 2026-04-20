@@ -20,10 +20,11 @@ No design exists for the data-handoff + lifecycle transition when a trial tenant
 
 ## Context
 
-Discovered in action-1 reorganization (§5.1 Trial mechanics). Related closed gaps:
+Discovered in action-1 reorganization (§5.1 Trial mechanics). Related gaps:
 - GAP-092 re-trial prevention — DONE
 - GAP-093 trial backup — DONE
 - GAP-108 trial config hardcoded — OPEN (blocks clean config for this gap)
+- **GAP-026 Trial/Freemium AI Mechanics** — OPEN, P1, partial overlap: GAP-026 asks "Trial → paid conversion: preserve branding?" (AI-budget + branding-preserve layer). This gap (GAP-192) owns the **data-handoff + lifecycle state-machine + downtime SLA** layer. Both must align: GAP-026 answers *what AI assets / budget follows the tenant*; GAP-192 answers *how the instance migrates without downtime*.
 
 New P0 because: (1) conversion funnel is the core SaaS revenue path, (2) any downtime at upgrade = user mistrust at the worst moment, (3) no design = ad-hoc implementation later with migration risk.
 
