@@ -9,3 +9,5 @@ GAP-190 │ KiteHub SEO + marketing site
 => gaps phải dựa trên tình trạng của hệ thống hiện tại, đã check status thực sự của gaps này chưa
 
 lưu memory và update skills để tránh sai lầm khi tạo gaps, tăng effort
+
+mô phỏng để check gaps trong workflow tương tự và fix luôn

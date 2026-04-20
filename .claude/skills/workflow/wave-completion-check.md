@@ -200,6 +200,20 @@ Merge tất cả vào main → CÓ THỂ:
 
 ## Checklist (chạy trên main sau merge)
 
+### Level 0: State-Check Gaps Claimed DONE (BẮT BUỘC, chạy đầu tiên)
+
+Before declaring a wave complete, verify every gap the wave claims closed actually has the code:
+
+```bash
+# For each gap in wave → confirm status flipped to 🟢 DONE AND the code exists
+grep -l "🟢 DONE" documents/04-quality/gaps/GAP-*.md | head -20
+# Then grep the Proposed Fix paths of each gap — code must be present
+```
+
+Pass criteria: every `🟢 DONE` gap in the wave has observable implementation at the paths its `Proposed Fix` section referenced. A gap marked DONE without code = false close; roll back status, re-open.
+
+Reference: `.claude/rules/audit-to-gap-pipeline.md` Step 2.5. Skipping = wave "complete" illusion (cf. GAP-107 false-positive pattern).
+
 ### Level 1: CI Green trên main
 
 ```bash

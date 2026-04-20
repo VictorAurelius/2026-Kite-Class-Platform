@@ -22,10 +22,19 @@ Gap files đã có structured sections → map thành tasks:
 
 | Gap Section | Task Conversion |
 |-------------|-----------------|
+| **Current State (verified)** | **State-check task — re-verify before breakdown (see below)** |
 | Problem | Context (không gen task) |
 | Proposed Fix steps | Each step → 1-3 tasks |
 | Acceptance Criteria | Each criterion → verification task |
 | Dependencies | Block/unblock checks |
+
+### State-Check First (BẮT BUỘC)
+
+Before generating any task:
+1. If gap has `## Current State (verified YYYY-MM-DD)` → grep same paths, compare. If divergent, the gap is stale — update it before task breakdown.
+2. If gap lacks Current State section (old-format) → do a one-shot state-check per `.claude/rules/audit-to-gap-pipeline.md` Step 2.5. Drop any task that would duplicate existing code. Narrow task list to the delta.
+
+Skipping = tasks enumerate work already done → wasted agent-time.
 
 Example GAP-007 (Resource Classification):
 ```

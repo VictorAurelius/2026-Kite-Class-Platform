@@ -58,6 +58,12 @@ Layer 3 — Project: "Tất cả modules kết nối đúng không?"
 ```markdown
 ## PR Pre-flight: [PR name]
 
+### State-Check (BẮT BUỘC — reference `.claude/rules/audit-to-gap-pipeline.md` Step 2.5)
+- [ ] Grep'd the paths this PR will touch (FE routes/components, BE services/controllers, migrations, infra, docs)
+- [ ] Verified the PR is NOT duplicating existing implementation
+- [ ] If partial existing implementation found → PR scope narrowed to delta
+- [ ] If gap file has `## Current State (verified YYYY-MM-DD)` → re-verified it still matches codebase
+
 ### Business Logic
 - [ ] Business rules lấy từ config? (KHÔNG hardcode số ngày, số lượng, tỷ lệ)
 - [ ] Nếu tạo email trigger → template file ĐÃ TỒN TẠI hoặc tạo trong cùng PR?

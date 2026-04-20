@@ -57,6 +57,19 @@ Before starting work:
 
 **Block:** nếu dependency chưa xong → stop, fix dependencies first.
 
+### Step 2.5: State-Check — Is Gap Scope Still Accurate? (BẮT BUỘC)
+
+Between the time the gap was filed and now, code may have moved. Re-verify before building the PR:
+
+- If gap has `## Current State (verified YYYY-MM-DD)` section → grep same paths again; if state diverged, update the gap file first, then resume.
+- If gap has NO Current State section (old-format gap) → perform a one-shot state-check per `.claude/rules/audit-to-gap-pipeline.md` Step 2.5. Options:
+  - Fully implemented → close the gap as DONE in same PR; do NOT build redundant work.
+  - Partial → shrink PR scope to the delta; update gap to 🟡 PARTIAL.
+  - Still missing → proceed.
+- Record the state-check in PR body under "State-Check" header with file paths + line counts inspected.
+
+Skipping this step = risk of shipping duplicate work (cf. GAP-190/197 rewrite incident 2026-04-20).
+
 ### Step 3: Generate PR/Wave Structure
 
 #### For PR mode:
