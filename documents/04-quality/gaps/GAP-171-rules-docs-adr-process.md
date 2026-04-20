@@ -6,7 +6,7 @@ type: gap
 
 # GAP-171: Rules Docs ADR-Like Review Process
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-04-20, Wave 8b-A)
 **Priority:** 🔴 P0 (meta — governance)
 **Domain:** Process / Governance / `.claude/rules/`
 **Found:** 2026-04-14 (output-review-mandate §4 Violation #2)
@@ -46,3 +46,11 @@ Meta governance without meta review — ironic. Rules are project's DNA but trea
 - Parent violation: output-review-mandate §4 #2
 - Similar: GAP-172 (architecture ADR) — parallel governance
 - Applies to: skill-conventions.md, meta-gap-priority.md, post-wave-audit-mandate.md, etc.
+
+## Log
+
+- **2026-04-20** — Closed via Wave 8b-A (`feat/wave-8b-A-gap-170-171-review-governance`). Shipped:
+  - `.claude/rules/rule-change-process.md` — the process rule itself (self-referential bootstrap at v1.0); frontmatter template, semver rules, reviewer matrix (1/2/3 per PATCH/MINOR/MAJOR), §Enforcement mandatory clause, §Log append-only format
+  - `.claude/skills/quality/rule-review/SKILL.md` — reviewer skill + 10-check list + gotchas
+  - Skills index updated to list the new skill
+  - AC coverage: §1 (changelog format merged INTO each rule's §Log rather than separate template — simpler), §2 (frontmatter requirement shipped; backfill policy = on-next-edit rather than mass-migration, per §3 backfill policy), §3 (CODEOWNERS enforcement referenced but deferred — new follow-up gap GAP-203 reserved for CODEOWNERS configuration + existing PR template already carries the checkbox), §4 (skill exists), §5 (this PR itself IS the first rule change following process — §Log entry below demonstrates it).
