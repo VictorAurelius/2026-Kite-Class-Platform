@@ -1,0 +1,96 @@
+# GAP-183: Refund + Dispute Resolution Policy
+
+**Status:** 🔵 OPEN
+**Priority:** 🔴 P0 (business-logic tier — **VN Consumer Protection Law mandate**)
+**Domain:** Legal / BRD / Commercial
+**Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1)
+**Wave:** Wave 8 Business Governance
+**Affects:** Payment processor onboarding, chargeback defense, customer churn handling, enterprise contracts
+
+## Problem
+
+No refund or dispute resolution policy. Blocks:
+- **VN Consumer Protection Law 2023** (Law No. 19/2023/QH15) compliance — Article 14 requires clear refund terms
+- Payment processor chargeback defense (without written policy, chargebacks auto-win for customer)
+- Enterprise contract negotiations (procurement requires refund terms)
+- Support team decisions (currently ad-hoc)
+
+## Scope
+
+Create `documents/00-brd/refund-dispute-resolution-policy.md`:
+
+1. **Refund Eligibility Matrix**
+   | Tier | Trial refund | Mid-cycle refund | Feature failure refund | Goodwill refund |
+   |------|:-----------:|:---------------:|:---------------------:|:--------------:|
+   | Free | N/A | N/A | N/A | N/A |
+   | Pro | Pro-rated | Case-by-case | Full | Support discretion |
+   | Premium | Pro-rated | Pro-rated | Full | Up to 100% |
+   | Enterprise | Per contract | Per contract | Per contract | Per contract |
+2. **Refund Process**
+   - Request channel (email, in-app)
+   - Information required
+   - Response SLA (5 business days per VN law)
+   - Refund method + timing (same payment method, 7-14 days)
+3. **Non-Refundable Items**
+   - Used services (classes held, certificates issued)
+   - AI generation already delivered
+   - Custom branding already approved
+4. **Service Credits** (alternative to refund)
+   - Eligibility
+   - Calculation (linked to GAP-189 customer SLA)
+   - Validity period
+5. **Dispute Resolution Process**
+   - Informal: support escalation (L1 → L2 → Support lead)
+   - Formal: written complaint, 30-day response
+   - Mediation (commercial mediation center)
+   - Arbitration (VIAC — Vietnam International Arbitration Centre) for commercial contracts
+   - Court (TAND HCMC or tenant's jurisdiction per contract)
+6. **Consumer vs Commercial Customers**
+   - Consumer (solo teacher, small center owner) — stronger protections per Consumer Law
+   - Commercial (incorporated schools, chains) — contract-based
+7. **Chargeback Handling** — response procedure, evidence collection
+8. **Force Majeure** — how service interruptions handled (Force Majeure events vs provider fault)
+
+## Acceptance Criteria
+
+### Phase 1 (skeleton)
+
+- [ ] `documents/00-brd/refund-dispute-resolution-policy.md` skeleton with 8 sections
+- [ ] Refund eligibility matrix (tier × scenario)
+- [ ] Process flow diagram description (request → review → decision → execution)
+- [ ] Dispute escalation ladder
+- [ ] Cross-references to GAP-185 (billing terms), GAP-189 (SLA credits), TOS GAP-180
+- [ ] README link updated
+
+### Phase 2 (content — legal counsel)
+
+- [ ] Legal counsel review (VN Consumer Protection Law expertise)
+- [ ] Support team SOP derived
+- [ ] Payment processor alignment (VNPay/MoMo chargeback SLA)
+- [ ] Contract templates for enterprise updated
+- [ ] Status: `skeleton` → `approved`
+
+## Out of Scope
+
+- **Refund workflow implementation** — separate feature gap
+- **Chargeback response automation** — operational tooling
+- **Contract template redesign** — legal deliverable
+
+## Dependencies
+
+- GAP-154 umbrella
+- GAP-180 TOS (dispute resolution clause references this)
+- GAP-185 Billing Terms (refund calculation basis)
+- GAP-189 Customer SLA (service credit eligibility)
+- GAP-108 (payment/invoice config — hardcoded values need externalization first)
+- Legal counsel + payment processor coordination
+
+## Related
+
+- Report: `brd-simulation-gap-finder-2026-04-20.md` §1.1 item K
+- VN Law: **Law No. 19/2023/QH15** (Consumer Protection), Commercial Law 2005
+- Rule: `.claude/rules/meta-gap-priority.md` §3
+
+## Log
+
+- 2026-04-20 — Created as GAP-154 Phase 1 sub-gap. VN Consumer Protection Law 2023 mandate.

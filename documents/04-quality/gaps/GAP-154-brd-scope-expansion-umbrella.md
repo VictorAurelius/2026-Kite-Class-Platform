@@ -70,12 +70,19 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 - [x] This umbrella gap created
 - [x] ROADMAP updated
 
-### Phase 1 (next session — out of scope for this PR)
+### Phase 1 (this session 2026-04-20 — FILED)
 
-- [ ] 7 P0 sub-gaps filed (GAP-180..186)
-- [ ] Each sub-gap follows `audit-to-gap-pipeline.md` §3 template
-- [ ] Sub-gaps assigned to Wave 8 meta execution (business-logic tier per `meta-gap-priority.md` §3)
-- [ ] Legal counsel engagement scheduled for drafts (TOS, Privacy, Refund, Child Protection)
+- [x] 7 P0 sub-gaps filed (GAP-180..186) — 2026-04-20
+  - GAP-180 Terms of Service
+  - GAP-181 Acceptable Use Policy
+  - GAP-182 Privacy Policy (VN PDPL)
+  - GAP-183 Refund + Dispute Resolution (VN Consumer Protection)
+  - GAP-184 Data Retention + Deletion (VN PDPL Art 6)
+  - GAP-185 Billing Terms + VAT/TCT (Circular 78/2021)
+  - GAP-186 Child Protection (K-12 minors, Law on Children)
+- [x] Each sub-gap follows `audit-to-gap-pipeline.md` §3 template
+- [x] Sub-gaps assigned to Wave 8 Business Governance (master plan updated)
+- [ ] Legal counsel engagement scheduled for drafts (operational — Phase 2)
 
 ### Phase 2/3/4 (future sessions)
 
@@ -109,4 +116,5 @@ User's framing: *"BRD là điểm khởi đầu quan trọng nhất của dự �
 
 ## Log
 
+- 2026-04-20 (later session) — Phase 1 FILED. 7 P0 sub-gap files created (GAP-180..186). Wave 8 master plan updated to include these gaps. Phase 2 P1 sub-gaps (GAP-187..193) still reserved for future session.
 - 2026-04-20 — Umbrella created. Simulation surfaced 22 missing BRD docs. Phase 0 artifacts shipped in this PR. Phase 1 P0 sub-gaps (GAP-180..186) reserved for next session.
