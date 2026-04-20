@@ -1,8 +1,88 @@
 # Skills Gap Analysis: KiteClass vs MiniMax-AI/skills
 
-**Ngày:** 2026-04-14
+**Ngày tạo:** 2026-04-14
+**Refresh:** 2026-04-20 (xem §0 Refresh delta)
 **Reviewed repo:** https://github.com/MiniMax-AI/skills
 **Mục tiêu:** So sánh, identify gaps, đưa ra update plan
+
+---
+
+## 0. Refresh delta (2026-04-20)
+
+### 0.1 MiniMax repo state check
+
+| Metric | 2026-04-14 (original analysis) | 2026-04-20 (refresh) | Delta |
+|--------|-------------------------------|----------------------|-------|
+| Stars | ~1000s (not tracked) | **10,921** | massive community adoption |
+| Total skills | 17 | **17** | unchanged |
+| Document gen skills | 4 (xlsx/docx/pdf/pptx) | **4** (same) | unchanged |
+| Last meaningful commit | — | 2026-04-18 (license + attribution) | no new skills added |
+| minimax-xlsx SKILL.md size | — | 8,398 B | stable |
+| minimax-docx SKILL.md size | — | 16,901 B | stable |
+| minimax-pdf SKILL.md size | — | 17,158 B | stable |
+| pptx-generator SKILL.md size | — | 7,930 B | stable |
+
+**Conclusion:** MiniMax repo is STABLE since 2026-04-14 analysis. Only license/attribution commits in past 6 days. Content authoritative, no new doc gen skills released, no breaking changes.
+
+**Evidence via GitHub MCP/CLI:**
+```bash
+gh api repos/MiniMax-AI/skills/commits --jq '.[0:5]'
+# → 60aaae5 2026-04-18 Add Apache 2.0 license file
+# → 4020787 2026-04-18 Add attribution for react-native-dev, flutter-dev, frontend-dev
+# → 2fa87f7 2026-04-18 Add attribution to taste-skill
+# → d961bd0 2026-04-13 Merge PR #75 music-skills-v2 (NON-doc-gen)
+# → 62870be 2026-04-13 fix: clean up skill description
+```
+
+### 0.2 KiteClass/Kite Platform state (still zero doc gen output)
+
+| Aspect | 2026-04-14 | 2026-04-20 | Change |
+|--------|:----------:|:----------:|--------|
+| `.claude/skills/document-generation/` folder | ❌ | ❌ | NONE (Wave 5 not executed) |
+| Apache POI dependency | ✅ (bulk import only) | ✅ (bulk import only) | same — input parsing, NOT output |
+| POI usage in code | `XlsxParser.java` + `ErrorReportGenerator.java` | same 2 files | unchanged |
+| iText / docx4j / Aspose | ❌ | ❌ | unchanged |
+| GAP-047 status | 🔵 OPEN (P0) | 🔵 OPEN (P0) | unchanged — CHƯA FIX |
+| Wave 5 plan | existed as draft | **✅ MERGED PR #361** (2026-04-20) | plan shipped, **execution PENDING** |
+| Sub-PR 5.0/5.1/5.2/5.3 shipped | 0 | 0 | **NONE** |
+
+**Confirm user concern:** "dự án đang tạo các tài liệu này khá yếu" — CHÍNH XÁC. POI có nhưng chỉ dùng cho bulk import INPUT parsing, không có output generation (invoice PDF, transcript, certificate, attendance report, contract, style guide).
+
+### 0.3 Delta to this analysis content
+
+**None — original analysis §§1-10 still 100% current.** 6 days no material change from MiniMax or project doc-gen state.
+
+### 0.4 Action matrix (refreshed priority)
+
+| Action | Status | Next trigger |
+|--------|:------:|--------------|
+| Adopt MiniMax doc skills (Wave 5) | 📋 Plan merged PR #361 but NOT executed | Execute Wave 5 Sub-PR 5.0 — user sign-off 6 open questions trong `wave-05-decision-guide.md` |
+| GAP-047 closure | 🔵 OPEN P0 | Complete via Wave 5 execution |
+| Master plan §1 Wave 5 line item | ✅ | Already noted as 🟢 Plan merged, execution ready |
+| Prompt for new session exec | ✅ | Available in `prompt-meta-gaps-first-2026-04-20.md` → `wave-5-exec` option |
+
+### 0.5 Recommendation
+
+**No re-analysis needed.** Execute Wave 5. The plan (`wave-05-document-generation.md`) + decision guide (`wave-05-decision-guide.md`) cover all adoption decisions per original §§4-9 của analysis này.
+
+**Critical path (from meta-gap-priority):**
+- Wave 5 GAP-047 is the largest meta-skill gap that UNBLOCKS multiple feature waves:
+  - Wave 10 AI Branding Completeness (GAP-034 brand style guide PDF needs pdf skill)
+  - Wave 11 K-12 Features (GAP-055 report card needs xlsx/pdf skills)
+  - Wave 13 KiteHub Admin (analytics exports need xlsx)
+
+**Dependencies mà Wave 5 execution unblocks (delta leverage):**
+
+| Downstream gap | Waiting on doc gen skill |
+|----------------|--------------------------|
+| GAP-034 Brand export ZIP+PDF | minimax-pdf |
+| GAP-055 Official report card VN | minimax-xlsx + minimax-pdf |
+| GAP-062 Payroll bank batch | minimax-xlsx |
+| GAP-066 KiteHub unified reports | minimax-xlsx |
+| Hypothetical: Teacher contracts | minimax-docx |
+| Hypothetical: Marketing pitch decks | pptx-generator |
+
+**6 downstream gaps unblock once Wave 5 done** — confirms master plan sequencing: Wave 5 as one of the first feature-enabling meta waves.
 
 ---
 
