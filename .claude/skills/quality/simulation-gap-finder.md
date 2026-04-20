@@ -120,7 +120,8 @@ user-invocable: true
 - [ ] Termination stage considered (not just happy path)
 - [ ] Compliance/legal review (not just technical)
 - [ ] Operations/monitoring (not just features)
-- [ ] Each new gap cross-checked against existing gaps (no duplicates)
+- [ ] Each new gap cross-checked against existing gaps (no duplicates) — `audit-to-gap-pipeline.md` Step 2
+- [ ] **Each new gap cross-checked against current codebase** — `audit-to-gap-pipeline.md` Step 2.5: grep actual code/infra/docs paths before filing. If partial implementation exists → file as 🟡 PARTIAL with `## Current State` table; if full → do NOT file.
 
 ---
 

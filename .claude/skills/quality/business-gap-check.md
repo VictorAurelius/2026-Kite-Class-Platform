@@ -294,6 +294,17 @@ Reference: `.claude/rules/design-patterns.md`, `documents/02-architecture/ai-bra
 | Tenant isolation test | Search test prove 2 tenants isolated | Có |
 | CI green | gh run list | All pass |
 
+### Bước 2C: State-Check trước khi file gap (BẮT BUỘC)
+
+Trước khi output report + tạo gap file cho mỗi issue found:
+
+1. Grep actual code paths gap sẽ touch (FE src, BE src, infra, docs)
+2. Nếu implementation đã tồn tại (toàn phần) → KHÔNG tạo gap, note vào report "already shipped — no gap filed"
+3. Nếu partial → tạo gap với status 🟡 PARTIAL + section `## Current State (verified YYYY-MM-DD)` liệt kê file + LOC
+4. Nếu nothing → tạo gap 🔵 OPEN bình thường
+
+Reference: `.claude/rules/audit-to-gap-pipeline.md` Step 2.5. Vi phạm = gap phải rewrite sau (xem incident GAP-190/197 2026-04-20).
+
 ### Bước 3: Output Gap Report
 
 ```markdown
