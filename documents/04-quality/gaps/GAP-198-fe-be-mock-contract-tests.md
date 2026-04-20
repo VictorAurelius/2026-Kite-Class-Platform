@@ -1,6 +1,6 @@
 # GAP-198: FE ↔ BE Decoupled Mock Contract Tests
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 1 — ADR + pilot plan DONE 2026-04-20; Phase 2 — implementation pending)
 **Priority:** 🟡 P2 (meta tier — hardens contract audit)
 **Domain:** Meta / Testing / Frontend / Backend
 **Found:** 2026-04-20 (action-1 §10 + §15.I)
@@ -44,13 +44,20 @@ Complements GAP-090 (producer-side DONE) with consumer-side guarantee. Pact, Spr
 
 ## Acceptance Criteria
 
-### Phase 1 — Pilot
-- [ ] ADR with tool decision
-- [ ] 3 pilot endpoints with contract tests (login, class list, attendance submit)
-- [ ] CI fails on contract violation
-- [ ] api-contract-audit skill reads contract report
+### Phase 1 — ADR + Pilot Plan (DONE 2026-04-20)
+- [x] ADR with tool decision → `documents/02-architecture/adr/ADR-016-fe-be-contract-strategy.md` (decision: OpenAPI schema diff via `oasdiff`; Pact deferred to Phase 2 evaluation)
+- [x] 3 pilot endpoints identified + pilot plan → `documents/04-quality/contract-tests-pilot-plan.md` (login, class list, attendance submit)
+- [x] CI integration design documented (workflow steps, failure modes, report location)
+- [x] api-contract-audit skill hook designed (subcategory 5 of /100)
 
-### Phase 2 — Expansion
+### Phase 2 — Implementation (deferred)
+- [ ] MSW fixture extraction script (`kiteclass-frontend/src/mocks/__contracts__/extract.ts`)
+- [ ] CI workflow `contract-check.yml`
+- [ ] `oasdiff` integration + synthetic-OpenAPI merger
+- [ ] api-contract-audit skill SKILL.md update to read `.ci/contract-diff-report.md`
+- [ ] 3 pilot endpoints green in CI for ≥2 sprints
+
+### Phase 3 — Full Coverage (deferred)
 - [ ] All kiteclass-frontend routes covered
 - [ ] All kitehub-frontend routes covered
 - [ ] `output-review-mandate.md` status updated to ✅ DONE
@@ -66,3 +73,4 @@ Complements GAP-090 (producer-side DONE) with consumer-side guarantee. Pact, Spr
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.I.
+- 2026-04-20 — Phase 1 closed (Wave 8b-F): ADR-016 accepted (OpenAPI schema-diff via `oasdiff` for Phase 1; Pact deferred to Phase 2 re-evaluation). Pilot plan scopes 3 endpoints (login, class list, attendance submit) with CI workflow design + api-contract-audit skill integration hook. Producer-side already DONE via GAP-090 `InstanceApiContractTest`. Files: `documents/02-architecture/adr/ADR-016-fe-be-contract-strategy.md`, `documents/04-quality/contract-tests-pilot-plan.md`.
