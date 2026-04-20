@@ -15,7 +15,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 │   ├── domain-management/
 │   ├── data-retention/
 │   └── ai-branding/
-└── kiteclass/                  ← KiteClass core (12 domains × 3 layers = 36 files)
+└── kiteclass/                  ← KiteClass core (13 domains × 3 layers = 39 files)
     ├── student-enrollment/     ← rules.md + use-cases.md + api-contract.md
     ├── course-class/
     ├── teacher/
@@ -27,7 +27,8 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
     ├── tenant-settings/
     ├── lms/
     ├── marketing/
-    └── storage/
+    ├── storage/
+    └── parent-portal/          ← Wave 2 MVP (GAP-052a + GAP-105)
 ```
 
 **KHÔNG lưu trong:**
@@ -86,7 +87,7 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | data-retention | ✅ | ✅ | ✅ | 2026-03-24 |
 | ai-branding | ✅ | ✅ | ✅ | 2026-03-24 |
 
-#### KiteClass (12 domains × 3 layers = 36 files ✅)
+#### KiteClass (13 domains × 3 layers = 39 files ✅)
 | Domain | rules | use-cases | api-contract | Last Verified |
 |--------|-------|-----------|-------------|---------------|
 | student-enrollment | ✅ | ✅ | ✅ | 2026-03-24 |
@@ -101,3 +102,4 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | lms | ✅ | ✅ | ✅ | 2026-03-24 |
 | marketing | ✅ | ✅ | ✅ | 2026-03-24 |
 | storage | ✅ | ✅ | ✅ | 2026-03-24 |
+| parent-portal | ✅ | ✅ | ✅ | 2026-04-19 |
