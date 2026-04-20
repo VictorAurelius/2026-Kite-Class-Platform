@@ -66,12 +66,12 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ❌ **VIOLATION** (GAP-049) |
 | **PRs** | check-pr skill | Pre-merge | Reviewer | ✅ DONE |
 | **Wave plans** | Wave review checklist | Before launch | Team lead + architect | ⚠️ PARTIAL (skill exists, no formal review) |
-| **Gap reports** | Gap review template | After creation | Peer | ❌ **VIOLATION** |
-| **Architecture docs** | ADR process | When written | Tech lead + team | ❌ **VIOLATION** |
+| **Gap reports** | Gap review template | After creation | Peer | ✅ DONE (2026-04-20, GAP-170 — `.claude/skills/quality/gap-review/` + `_REVIEW-TEMPLATE.md`) |
+| **Architecture docs** | ADR process | When written | Tech lead + team | ✅ DONE (2026-04-20, GAP-172 — `documents/02-architecture/adr/README.md` + `_TEMPLATE.md`) |
 | **Skills (meta)** | skill-conventions.md rules | Pre-merge | Lead | ⚠️ PARTIAL (rules exist, enforcement ad-hoc) |
-| **Rules docs (meta)** | ADR-like | Pre-merge | Lead + team | ❌ **VIOLATION** |
+| **Rules docs (meta)** | ADR-like | Pre-merge | Lead + team | ✅ DONE (2026-04-20, GAP-171 — `.claude/rules/rule-change-process.md` + `.claude/skills/quality/rule-review/`) |
 | **Templates (UI/image)** | GAP-011 5 criteria | Before publish | Designer + lead | ⚠️ PLANNED (GAP-011) |
-| **Email templates** | Brand + legal check | Before send | Marketing + legal | ❌ **VIOLATION** |
+| **Email templates** | Brand + legal check | Before send | Marketing + legal | ✅ DONE (2026-04-20, GAP-173 — `.claude/skills/quality/email-template-review/`) |
 | **AI-generated assets** | Quality gate /100 + content safety | Auto + manual | Automated + admin | ⚠️ PLANNED (GAP-012, 018) |
 | **Contracts (Word)** | Legal review | Before use | Lawyer | ❌ **VIOLATION** |
 | **Generated PDFs/Excel** | QA checklist + visual regression | Before delivery | QA | ⚠️ PLANNED (GAP-047) |
@@ -79,9 +79,9 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Scripts (bash/Python)** | script-review-checklist skill | Pre-merge | Peer | ✅ DONE |
 | **API contracts** | api-contract-audit skill + schema validation | Pre-merge + runtime | Consumer/producer | ⚠️ PARTIAL (audit skill exists, no consumer-driven contract tests yet) |
 | **Screenshots** | Manual + automated audit | Capture time | Auditor | ⚠️ PARTIAL (ui-review skill) |
-| **Logs format** | Log standard doc | Audit period | SRE | ❌ **VIOLATION** |
-| **Marketing copy** | Brand + legal | Before publish | Marketing + legal | ❌ **VIOLATION** |
-| **Legal docs sent to tenants** | Full legal review | Before issue | Lawyer | ❌ **VIOLATION** |
+| **Logs format** | Log standard doc | Audit period | SRE | ✅ DONE (2026-04-20, GAP-175 — `.claude/rules/logs-format-standard.md`; implementation tracked GAP-114/115/116 Wave 7) |
+| **Marketing copy** | Brand + legal | Before publish | Marketing + legal | ✅ DONE (2026-04-20, GAP-174 — `.claude/skills/quality/marketing-legal-review/`) |
+| **Legal docs sent to tenants** | Full legal review | Before issue | Lawyer | ✅ DONE (2026-04-20, GAP-174 — shared `marketing-legal-review` skill covers TOS/Privacy/DPA) |
 
 **Legend:**
 - ✅ DONE — standard exists, process runs
@@ -93,16 +93,18 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 
 ## 4. Current Violations Summary
 
-### 🔴 CRITICAL violations (need immediate rule)
+### 🔴 CRITICAL violations (ALL RESOLVED 2026-04-20 — Wave 8b)
 
-| # | Output | Why critical |
-|---|--------|-------------|
-| 1 | **Gap reports** | Ironic — gap queue has no gap review process! |
-| 2 | **Rules docs** | Meta governance without meta review |
-| 3 | **Architecture docs** | No ADR process → decisions made unilaterally |
-| 4 | **Email templates** | Customer-facing, no brand/legal check |
-| 5 | **Marketing copy / legal docs** | Compliance risk |
-| 6 | **Logs format** | Debug difficulty nếu format drift |
+| # | Output | Status | Closed by |
+|---|--------|--------|-----------|
+| 1 | Gap reports | ✅ DONE | GAP-170 (PR #402) |
+| 2 | Rules docs | ✅ DONE | GAP-171 (PR #402) |
+| 3 | Architecture docs | ✅ DONE | GAP-172 (PR #401) |
+| 4 | Email templates | ✅ DONE | GAP-173 (PR #403) |
+| 5 | Marketing copy / legal docs | ✅ DONE | GAP-174 (PR #403) |
+| 6 | Logs format | ✅ DONE | GAP-175 (PR #405; implementation Wave 7) |
+
+**Wave 8b outcome:** VIOLATION count 6 → 0 across original §4 critical list. Six meta-P1 additions (GAP-193/194/195/198/199/201) also shipped Phase 1 in same wave.
 
 ### ⚠️ PARTIAL (exists but informal)
 
@@ -288,6 +290,7 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- **2026-04-20 — Wave 8b shipped: 6 CRITICAL §4 VIOLATIONS closed** in one wave. 6 parallel worktree-isolated agents (8b-A..F) merged PRs #401/402/403/404/405/406. Closed: GAP-170 gap reports (review template + checklist + skill), GAP-171 rules docs (rule-change-process + rule-review skill), GAP-172 architecture ADRs (README + MADR template), GAP-173 email templates (review skill + 40-point checklist), GAP-174 marketing + legal (VN PDPL/Advertising/Consumer Protection-primary compliance checklist), GAP-175 logs format (structured JSON rule with PII scrubbing). Also shipped Phase 1 of 6 meta-P1/P2 from action-1: GAP-193 (start-session skill), GAP-194 (shellcheck+ruff CI — blocking; 35 warnings non-blocking), GAP-195 (starter-kit diff tooling + retro-sync runbook), GAP-198 (FE↔BE contract ADR-016 oasdiff strategy), GAP-199 (rework-audit skill), GAP-201 (tenant off-boarding runbook + 3-layer docs). §4 VIOLATIONS: 6 → **0**. 12 gap files updated with status + log entries; matrix rows moved from ❌ to ✅ DONE.
 - 2026-04-19 — Audit catch-up Part A (3/5) shipped: resolved 2 first-ever VIOLATIONS via baseline capture — ops-readiness 49/100 (PR #365, 15 gaps, GAP-111 → GAP-125) and performance 58/100 (PR #364, 10 gaps, GAP-126 → GAP-135). Business-logic refresh after 27-day drift caught 7 gaps (PR #366, 65/100, GAP-104 → GAP-110). Status in §3 matrix: ops-readiness + performance now BASELINE — subsequent audits measure delta against this. Remaining Part A: ui-review /128 refresh (8d stale) + quality-audit /100 refresh.
 - 2026-04-16 — Resolved 2 violations: Scripts (script-review-checklist skill), DB migrations (migration-review-checklist skill). API contracts moved to PARTIAL (audit skill exists). Remaining: 6 critical violations.
 - 2026-04-14 — Rule established; 9 critical violations identified; remediation via GAP-048
