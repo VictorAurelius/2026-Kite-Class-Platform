@@ -1,6 +1,6 @@
 # GAP-201: Tenant Off-boarding Runbook
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 1 — design DONE 2026-04-20; Phase 2 — implementation pending)
 **Priority:** 🟠 P1 (meta tier — churn-journey coverage)
 **Domain:** Meta / Operations / Compliance / SaaS
 **Found:** 2026-04-20 (simulation-action-1 Part C — All × Churn × Meta)
@@ -49,12 +49,23 @@ Existing partial coverage — these gaps own their fragments; this gap stitches 
 
 ## Acceptance Criteria
 
-- [ ] Runbook doc with 6 sections: user-flow, staff-flow, grace-periods, export-bundle-spec, right-to-be-forgotten-api, metrics
-- [ ] State machine updated with cancel + purge transitions
-- [ ] Export-bundle contract: format, scope, SLA, delivery, expiry
-- [ ] Right-to-be-forgotten endpoint designed (POST /tenants/{id}/purge with auth + confirmation)
-- [ ] Legal review hook referenced (GAP-174)
-- [ ] 3-layer docs under `documents/01-business/kitehub/off-boarding/`
+### Phase 1 — Design (DONE 2026-04-20)
+- [x] Runbook doc with 6 sections: user-flow, staff-flow, grace-periods, export-bundle-spec, right-to-be-forgotten-api, metrics → `documents/05-guides/tenant-off-boarding-runbook.md`
+- [x] State machine drafted (`PAID_ACTIVE → CANCEL_REQUESTED → CANCEL_GRACE_ACTIVE → CANCEL_GRACE_READONLY → ARCHIVED → PURGED`; RTBF fast-track variant)
+- [x] Export-bundle contract: format, scope, SLA, delivery, expiry (api-contract.md §Export Bundle Specification)
+- [x] Right-to-be-forgotten endpoint designed (`POST /off-boarding/rtbf` + `/rtbf/confirm` with 6-digit token, 15m TTL)
+- [x] Legal review hook referenced (GAP-174 — in Related)
+- [x] 3-layer docs under `documents/01-business/kitehub/off-boarding/` (rules.md, use-cases.md, api-contract.md)
+
+### Phase 2 — Implementation (deferred)
+- [ ] `OffBoardingController` + `OffBoardingService` + `PurgeScheduler` wired in kitehub-subscription
+- [ ] MinIO streaming export (GAP-073 deferred item)
+- [ ] `@Scheduled` grace-period expiry job (GAP-073 deferred item)
+- [ ] Pseudonymization executor (GAP-073 deferred item)
+- [ ] Migration: `offboarding_request` table + `off_boarding_phase` column
+- [ ] Contract tests `OffBoardingApiContractTest.java`
+- [ ] Email templates (cancel, bundle-ready, undo, RTBF, archive, purge)
+- [ ] Subdomain 180d quarantine in DomainRegistryService
 
 ## Related
 
@@ -69,3 +80,4 @@ Existing partial coverage — these gaps own their fragments; this gap stitches 
 ## Log
 
 - 2026-04-20 — Created from simulation Part C.
+- 2026-04-20 — Phase 1 closed (Wave 8b-F): 3-layer business docs + runbook landed. State machine, export bundle spec, RTBF endpoint, retention conflict matrix (OFF-08 tax 7y pseudonymization), metrics funnel all drafted. Phase 2 (implementation) scoped as follow-up; consumes GAP-073 deferred items (MinIO streaming export, `@Scheduled` expiry, pseudonymization executor). Files: `documents/05-guides/tenant-off-boarding-runbook.md`, `documents/01-business/kitehub/off-boarding/{rules,use-cases,api-contract}.md`.

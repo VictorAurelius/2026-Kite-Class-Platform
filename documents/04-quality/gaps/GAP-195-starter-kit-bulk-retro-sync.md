@@ -1,6 +1,6 @@
 # GAP-195: Starter-Kit Bulk Retro-Sync
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Phase 1 — tooling + runbook DONE 2026-04-20; Phase 2 — first sync pending)
 **Priority:** 🟡 P2 (meta tier — multiplier for future projects)
 **Domain:** Meta / Skills / Starter-Kit
 **Found:** 2026-04-20 (action-1 §9 + §15.F)
@@ -40,8 +40,11 @@ Low urgency (P2) but high value — locking in learnings protects them for the n
 
 ## Acceptance Criteria
 
-- [ ] Diff script produces triaged output
-- [ ] Retro-sync runbook drafted
+### Phase 1 — Tooling (DONE 2026-04-20)
+- [x] Diff script produces triaged output → `scripts/starter-kit-diff.sh`
+- [x] Retro-sync runbook drafted → `documents/05-guides/starter-kit-retro-sync.md`
+
+### Phase 2 — First sync (deferred)
 - [ ] First retro-sync PR opened on remote starter-kit
 - [ ] CHANGELOG.md on remote reflects imports
 - [ ] VERSION bumped correctly (both local and remote in sync)
@@ -61,3 +64,4 @@ Low urgency (P2) but high value — locking in learnings protects them for the n
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.F.
+- 2026-04-20 — Phase 1 closed (Wave 8b-F): diff script + runbook shipped. Script classifies diff into 4 buckets (NEW local / NEW remote / MODIFIED / PROJECT-SPECIFIC); runbook documents triage 4-question checklist + semver bump rules + bulk-PR process. First retro-sync execution deferred to Phase 2. Files: `scripts/starter-kit-diff.sh`, `documents/05-guides/starter-kit-retro-sync.md`.
