@@ -30,6 +30,17 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: public
+        # GAP-133 — JDBC batching for bulk inserts/updates (e.g. GAP-051 student
+        # bulk import). Without these properties Hibernate's default batch_size=0
+        # disables batching entirely, so every persist() emits its own INSERT.
+        # 50 is the canonical sweet spot for PostgreSQL; order_inserts/_updates
+        # group same-table operations so prepared statements are reused.
+        # batch_versioned_data must be true because BaseEntity uses @Version.
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
         # Enable Spring-managed JPA entity listeners (for EntityPersistenceListener)
         resource:
           bean:

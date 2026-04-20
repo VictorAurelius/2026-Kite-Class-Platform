@@ -1,6 +1,6 @@
 # GAP-128: InstallmentPlan lookup does full-table scan with nested N+1
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -58,3 +58,4 @@ Alternative (if circular navigation undesired): add `@Query("select p from Insta
 ## Log
 
 - 2026-04-19 — Gap created from performance baseline audit
+- 2026-04-20 — Fixed in feature/partb-perf-batch: new `InstallmentRepository` + `recordInstallmentPayment` now does `installmentRepository.findById()` → `installment.getPlan()` (PK lookup, ~2 queries vs. O(plans × installments) before). Regression guard test asserts `installmentPlanRepository.findAll()` is NEVER invoked. `installments.plan_id` index `idx_installments_plan` already present in V12 — no new migration needed.

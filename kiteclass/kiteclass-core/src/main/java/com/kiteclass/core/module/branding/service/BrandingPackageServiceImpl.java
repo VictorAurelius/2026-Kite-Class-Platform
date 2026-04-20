@@ -32,9 +32,11 @@ public class BrandingPackageServiceImpl implements BrandingPackageService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "FrontendInstance not found: id=" + instanceId));
 
+        // GAP-129: tenant-scoped lookup using composite index (instance_id, deleted)
+        // — replaces a cross-tenant findAll() that loaded ALL branding resources of
+        // ALL tenants AND returned them in this tenant's package (multi-tenancy bug).
         List<BrandingPackage.AssetEntry> assets = resourceRepository
-                .findAll().stream()
-                .filter(r -> !Boolean.TRUE.equals(r.getDeleted()))
+                .findByInstanceIdAndDeletedFalse(instance.getInstanceId()).stream()
                 .map(this::toAsset)
                 .toList();
 

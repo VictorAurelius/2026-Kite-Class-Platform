@@ -11,6 +11,7 @@ import com.kiteclass.core.module.invoice.entity.InstallmentPlan;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.mapper.InvoiceMapper;
 import com.kiteclass.core.module.invoice.repository.InstallmentPlanRepository;
+import com.kiteclass.core.module.invoice.repository.InstallmentRepository;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ import java.time.LocalDate;
 public class InstallmentPlanServiceImpl implements InstallmentPlanService {
 
     private final InstallmentPlanRepository installmentPlanRepository;
+    private final InstallmentRepository installmentRepository;
     private final InvoiceRepository invoiceRepository;
     private final InvoiceMapper invoiceMapper;
 
@@ -143,17 +145,13 @@ public class InstallmentPlanServiceImpl implements InstallmentPlanService {
     public InstallmentPlanResponse recordInstallmentPayment(Long installmentId, BigDecimal amount) {
         log.info("Recording payment for installment {}: amount={}", installmentId, amount);
 
-        // Find installment (need to fetch plan first)
-        InstallmentPlan plan = installmentPlanRepository.findAll().stream()
-                .filter(p -> p.getInstallments().stream()
-                        .anyMatch(i -> i.getId().equals(installmentId)))
-                .findFirst()
+        // GAP-128: indexed PK lookup, then navigate to plan via @ManyToOne FK
+        // (installments.plan_id is indexed by V12 idx_installments_plan).
+        // Replaces a O(plans × installments) findAll-stream-filter scan.
+        Installment installment = installmentRepository.findById(installmentId)
                 .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_NOT_FOUND", (Object) installmentId));
 
-        Installment installment = plan.getInstallments().stream()
-                .filter(i -> i.getId().equals(installmentId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("INSTALLMENT_NOT_FOUND", (Object) installmentId));
+        InstallmentPlan plan = installment.getPlan();
 
         // Record payment
         installment.recordPayment(amount);

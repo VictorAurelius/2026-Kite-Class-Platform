@@ -187,6 +187,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        # GAP-133 — JDBC batching. The gateway uses JPA only for rate-limit
+        # bookkeeping, but batching is cheap and consistent with sibling services.
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
 
   # Redis configuration for rate limiting
   data:
