@@ -1,10 +1,26 @@
 # GAP-107: AI-Provider Rules.md References Non-Existent Classes (ResilientAIClient / MockAIClient / ai-live profile)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (FALSE POSITIVE — retract 2026-04-20)
 **Priority:** 🟠 P1
 **Domain:** KiteClass / AI Branding / Business Docs
 **Found:** 2026-04-19 (business-logic audit)
+**Retracted:** 2026-04-20 (business-logic re-audit PR #379 — classes verified present)
 **Affects:** kitehub-branding, reviewer trust trong rules.md, onboarding new devs
+
+## Resolution (2026-04-20)
+
+Baseline audit (2026-04-19) grep scope was `kitehub/` + `kiteclass/` as a single search, but the actual classes live in `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/client/`. Re-audit verified 3 classes exist:
+
+- `ResilientAIClient.java` — `kiteclass/kiteclass-core/.../module/ai/client/`
+- `MockAIClient.java` — same folder
+- `OllamaAIClient.java` — same folder
+- Tests: `ResilientAIClientTest.java` + `MockAIClientTest.java` + `Wave03IntegrationTest.java`
+
+`@Profile("ai-live")` wiring on `OllamaAIClient` + default `MockAIClient` confirmed match rules.md description. **The gap's premise was wrong** — no drift actually exists between rules and code.
+
+**Action:** retract GAP-107 as false positive. Rules.md in kiteclass/ai-provider/ accurate.
+
+**Lesson learned for audit skill:** grep scope should include `kiteclass/kiteclass-core/` explicitly, not just `kitehub/` + `kiteclass/` top-level (which excludes the `-core` submodule's sources).
 
 ## Problem
 
