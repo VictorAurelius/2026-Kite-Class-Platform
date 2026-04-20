@@ -8,9 +8,9 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-04-19)
+## 🎯 Current Status Snapshot (2026-04-20)
 
-**Progress:** 48/142 gaps CLOSED (34%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. Calibrated quality score: **77/100 C+** (honest baseline vs prior 95/100 self-audit).
+**Progress:** 57/147 gaps CLOSED (39%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. Calibrated quality score: **77/100 C+** (baseline; recovery to ~85 B+ expected end Week 2).
 
 **GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
 
@@ -701,3 +701,33 @@ Continuation of 3/5 entry above. Audits 4+5 shipped in same session:
 Expected recovery per Audit 5: 77 → 85 (B+) end Week 2, → 90 (A) end Week 4.
 
 **Governance turnaround COMPLETE:** hook (PR #362) enforces freshness; 5 audits now FRESH; baselines captured for 2 never-audited categories (ops, perf). Part B (fix waves) tracked via top-5 priorities above.
+
+### Audit Catch-up Part B — 5/5 top priorities SHIPPED (2026-04-20) — 🟢 COMPLETE
+
+Parallel-agent execution continued from Part A. 5 worktree-isolated agents fixed the Audit 5 top-5 priorities simultaneously. Wall-clock: Agent A 6 min, C 7 min, B 8 min, D 15 min, E 69 min (Maven + testcontainers). Zero merge conflicts — disjoint file sets.
+
+| PR | Gap(s) closed | Agent | Highlights |
+|:--:|---------------|:-----:|------------|
+| #371 | GAP-104 (Meta P0) | A | 18 BR-QUEUE rules + 4 UC-AGENT-08..11 + metrics catalogue |
+| #373 | GAP-105 (Meta P0) | B | parent-portal 3-layer: 30 BR-PARENT + 6 UC-PARENT + 5 endpoints; BR-PARENT-003 verified |
+| #372 | GAP-136 (P0) | C | 3 error pages (not-found/error/global-error) + 13/13 tests green, dark-mode + Vietnamese |
+| #374 | GAP-111 + GAP-120 (P0, foundation) | D | Prometheus + Alertmanager Helm deps + ServiceMonitors; 3 follow-up gaps (GAP-143/144/145) |
+| #375 | GAP-128 + GAP-129 + GAP-131 + GAP-133 (P0/P1) | E | Installment scan fix, BrandingPackage tenant isolation, 6/9 HTTP timeouts, Hibernate batch=50; 5 new test files, ~1430 tests green |
+
+**Gaps closed in Part B: 9** (GAP-104, 105, 111, 120, 128, 129, 131, 133, 136) → progress 48/142 → 57/147 (39%).
+
+**New follow-up gaps created: 5**
+- GAP-143 Grafana Dashboards Helm (P1, from D)
+- GAP-144 Alertmanager Production Receivers (P0, from D)
+- GAP-145 Loki Tracing Stack (P2, from D)
+- GAP-146 HTTP timeouts remainder — payment/email/captcha (P2, from E)
+- GAP-147 KiteHub Admin OpenAPI bean conflict — pre-existing (P2, discovered by E)
+
+**Top-3 residual GA risks** (to review next wave):
+- GAP-144 Alertmanager receivers (needed before prod deploy — alerts still silent)
+- GAP-127 FE code-splitting (64 pages, ~400-550KB First Load JS) — not in Part B scope
+- GAP-126 Admin dashboard findAll cache — not in Part B scope
+
+**Superpowers adherence:** All 5 agents followed brainstorm + task-breakdown + (TDD where code) + implementation + self-review. Agent C and E delivered tests alongside code (TDD). Agents D and E self-caught writing to main worktree by mistake (hard rule 3 from `feedback_parallel_agent_strategy.md`) — no contamination landed on main.
+
+**Conflict-control effectiveness:** 4/5 agents zero-collision auto-FF merge. Agent E merged with local leftover from worktree-root confusion (cosmetic, discarded before pull). No PR-level conflicts.
