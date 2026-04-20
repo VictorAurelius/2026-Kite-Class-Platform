@@ -168,6 +168,88 @@ Per re-audit breakdown, weakest categories:
 | Post Sprint 3 | ~85 B+ | 76 | 80 | 65 |
 | Post Sprint 4 | **~88 A−** | **82** | **80** | **65** |
 
+## 4b. Wave Sequencing & Coordination
+
+Part C does NOT run in isolation. Below is the coordination matrix with in-flight / planned waves so we know when to parallelize vs sequence.
+
+### 4b.1 Coordination Matrix
+
+| Wave | Status | Scope | File overlap with Part C | Recommended sequencing |
+|------|:------:|-------|:------------------------:|------------------------|
+| **Wave 5** (PR #361 OPEN) | draft plan | GAP-047 document generation skills (PDF/Excel/Word/PPT) — `.claude/skills/` + backend generation code in new modules | ~0% (disjoint modules) | ✅ **Parallel-safe** — run concurrently with any Part C sprint |
+| **Wave 6 UI sprint** (planned, no plan doc yet) | not started | KiteHub UI 59→80, KiteClass 81→90; KH screens @ 33/128; residual GAP-076/079 PARTIAL | ⚠️ **HIGH** with Sprint 2 — both touch Next.js pages in kitehub-frontend + kiteclass-frontend | See §4b.2 options |
+| **Wave 5-alt K-12 features** (if chosen over GAP-047) | not started | Multi-subject rollout, semester/attendance features | Low — backend kiteclass-core mostly disjoint from Part C | ✅ Parallel-safe |
+| **6 Part A GA blockers** (GAP-047/046/016/011/014/005) | separate waves | Meta skills/rules (047, 046, 016), template library (011), wave mock (014), AI queue Phase 2 (005) | ~0% | ✅ Parallel-safe, own waves |
+| **PR #377 deprecation fix** | MERGED 2026-04-20 | RestTemplateBuilder API modernization | — | Already landed |
+| **GAP-147 openApiConfig bean conflict** | cleanup PR any time | kitehub-admin test fix | None with Part C | Can pick up any time |
+
+### 4b.2 Wave 6 UI vs Part C Sprint 2 conflict resolution
+
+GAP-127 (FE code-splitting) refactors ~64 Next.js pages to dynamic imports. Wave 6 UI refactors styles/content in many of the same pages. Concurrent = merge-conflict-fest.
+
+**Option A (recommended): Sequential**
+- Part C Sprint 2 **completes + merges** → Wave 6 starts with post-split baseline
+- Benefit: Wave 6 gets clean bundle size baseline for screenshot comparison; UI audit scores measured against lean pages
+- Cost: +2-3 days to Wave 6 start
+
+**Option B: Scope-split (parallel-safe)**
+- Part C Sprint 2 Agent: structural changes only (code-splitting, lazy loading, bundle config)
+- Wave 6 UI Agents: NO structural changes — only Tailwind classes, copy text, Shadcn component swaps, image optim
+- Benefit: no idle days
+- Cost: strict scope discipline needed; review stricter to prevent Wave 6 agent touching page structure
+
+**Option C: Freeze Wave 6 during Sprint 2**
+- Wave 6 pauses for 2-3 days while Sprint 2 is in flight
+- Resume Wave 6 immediately after Sprint 2 merge
+- Best if Wave 6 just beginning and has no sub-PRs in flight
+
+Choose Option A if Wave 6 hasn't started. Option B if Wave 6 already has 1+ sub-PR merged. Option C if Wave 6 has open sub-PRs.
+
+### 4b.3 Merge freeze windows
+
+| Part C Sprint | File areas in flight | Freeze request to other waves |
+|---------------|----------------------|-------------------------------|
+| Sprint 0 meta | `.claude/skills/quality/business-logic-audit/` | None — scope narrow |
+| Sprint 1 | `application.yml` (5 services), JPA repos, HTTP clients | Discourage config/yml edits in other waves for 1-2d |
+| Sprint 2 | `kitehub-frontend/src/app/`, `kiteclass-frontend/src/app/`, Next.js config, admin Controller cache | **Hard freeze** on FE page structural changes in other waves for 2-3d |
+| Sprint 3 | `infrastructure/helm/`, Alertmanager configs, runbooks | Freeze infra/helm changes for 3-4d |
+| Sprint 4 | `documents/01-business/`, payment config externalize | None — docs-heavy |
+
+Publish freeze windows in team channel when each sprint kicks off.
+
+### 4b.4 Re-audit cadence across waves
+
+Re-audits are expensive (5-8 min/agent × agent count). Avoid duplication:
+
+- Part C Sprint 1 → re-audit **performance** only (biz unchanged)
+- Part C Sprint 2 → re-audit **performance + UI** (both affected); **skip biz**
+- Part C Sprint 3 → re-audit **ops-readiness** only
+- Part C Sprint 4 → re-audit **business-logic** only
+- After Part C fully merged → **quality-audit /100 refresh** (rolls up all category deltas)
+- Wave 5 GAP-047 merge → re-audit **business-logic** (new skill rules may create rules.md) + docs category
+- Wave 6 UI merge → re-audit **UI /128** per-screen
+
+Each re-audit produces its own PR + optional consolidation — parent sequences.
+
+### 4b.5 Dependencies graph
+
+```
+Part A audits (DONE) ──┬──> Part B fixes (DONE) ──┬──> Re-audit (DONE 2026-04-20)
+                       │                          │
+                       │                          └──> Part C Sprint 0 ──┬──> Sprint 1 ──> Sprint 2 ──┬──> Sprint 4 ──> quality-audit refresh
+                       │                                                  │            ↓              │
+                       │                                                  │      (GAP-127 unblocks    │
+                       │                                                  │       clean FE baseline)  │
+                       │                                                  │            ↓              │
+                       │                                                  │         Wave 6 UI ────────┘
+                       │                                                  └──> Sprint 3 (ops, parallel with 1/2/4)
+                       │
+                       └──> Wave 5 GAP-047 (PR #361) — parallel-safe throughout
+                       └──> 6 Part A GA blockers — separate waves, parallel-safe
+```
+
+---
+
 ## 5. Parallel Agent Strategy Recap
 
 Applying learnings from Part A + Part B + Re-audit:
