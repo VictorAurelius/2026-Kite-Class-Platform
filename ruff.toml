@@ -1,0 +1,46 @@
+# Ruff configuration for Python files in the repo.
+# Applies to: .claude/hooks/*.py, scripts/*.py (and any future *.py additions)
+# Closes: GAP-194 (CI enforcement for ruff alongside shellcheck)
+# Docs: https://docs.astral.sh/ruff/configuration/
+
+# Minimum Python version (matches what CI uses for hooks + scripts).
+target-version = "py311"
+
+# Line length — readable output, matches black default.
+line-length = 100
+
+# Paths to include / exclude.
+extend-exclude = [
+    ".claude/worktrees",
+    ".claude/starter-kit",
+    "documents",
+    "node_modules",
+    "target",
+    "venv",
+    ".venv",
+]
+
+[lint]
+# Rule selection — start conservative, expand once baseline stable.
+#   E, W  → pycodestyle (style)
+#   F     → pyflakes (undefined names, unused imports)
+#   I     → isort (import ordering)
+#   B     → flake8-bugbear (likely bugs)
+#   UP    → pyupgrade (modernize syntax)
+#   SIM   → flake8-simplify (loops, comprehensions)
+select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+
+# Noise we accept in this repo.
+ignore = [
+    "E501",   # line-too-long — we use line-length for formatting, not a hard rule
+    "SIM108", # ternary vs if — readability call, leave to author
+    "B008",   # function call in default arg — common in factories, low risk here
+]
+
+[lint.per-file-ignores]
+# Hooks may use top-level script patterns without __main__ guards.
+".claude/hooks/*.py" = ["E402"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

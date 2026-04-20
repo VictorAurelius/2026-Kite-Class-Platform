@@ -1,6 +1,6 @@
 # GAP-194: Bash / Python Script Compliance (shellcheck / ruff in CI)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (CI gate + configs in place; pre-commit hook deferred — no husky present in repo)
 **Priority:** 🟠 P1 (meta tier — enforcement of existing standard)
 **Domain:** Meta / DevOps / CI
 **Found:** 2026-04-20 (action-1 §9 + §15.E; flagged by user as "improvement riêng")
@@ -55,3 +55,11 @@ This is enforcement of an already-agreed standard, not a new policy. Low-risk, h
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.E.
+- **2026-04-20 (Wave 8b-D):** CI enforcement shipped:
+  - `.github/workflows/script-quality.yml` — shellcheck `-S error` blocking + `-S warning` non-blocking; ruff `check` blocking + `format --check` non-blocking. Triggers only on changed `**/*.sh` / `**/*.py` / config files.
+  - `.shellcheckrc` (repo root) — shell=bash, source-path set for scripts dirs, SC1091 disabled (CI can't follow sourced siblings) with justification.
+  - `ruff.toml` (repo root) — target py311, line 100, rules E/W/F/I/B/UP/SIM, exclude worktrees/starter-kit/documents/target.
+  - Baseline fixes: `kitehub/scripts/up.sh` SC2145 (`${SERVICES[@]}` in echo string → `${SERVICES[*]}`); `.claude/hooks/audit-gate.py` F401 (unused `os` import), SIM105 (try/except/pass → `contextlib.suppress`), I001 (import ordering).
+  - Baseline counts: shellcheck `-S error` across 50+ `.sh` files = **0 issues** (36 warnings informational, follow-up cleanup welcome); ruff across 2 `.py` files = **0 issues**.
+  - Skill `quality/script-review-checklist.md` updated to reference CI gate.
+  - Status **PARTIAL** (not DONE): pre-commit hook in acceptance criteria deferred — no `.husky/` exists in repo and project uses Maven/pnpm not npm. Follow-up: introduce husky or `lefthook` as separate gap if desired; CI gate already enforces pre-merge.
