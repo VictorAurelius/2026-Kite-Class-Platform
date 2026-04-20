@@ -95,10 +95,20 @@ For each persona, document:
 - Nice-to-have: N (future)
 ```
 
+### Step 3.5: State-Check Before Creating Gap Files (BẮT BUỘC)
+
+Persona role-play is speculative — it generates candidates based on "what a persona would want", not "what's missing from code". Before Step 4, grep the actual code/infra/docs paths each candidate gap would touch:
+
+- **Fully shipped** → do NOT file; note in persona report as "coverage confirmed"
+- **Partial** → file as 🟡 PARTIAL with mandatory `## Current State (verified YYYY-MM-DD)` table
+- **Nothing** → file as 🔵 OPEN normally
+
+Reference: `.claude/rules/audit-to-gap-pipeline.md` Step 2.5. Skipping this step produces rewrite debt (xem incident GAP-190/197 2026-04-20).
+
 ### Step 4: Create Gap Files
 
-For each critical gap found:
-- Create `GAP-XXX-feature-name.md`
+For each critical gap found (that passed Step 3.5 state-check):
+- Create `GAP-XXX-feature-name.md` using `documents/04-quality/gaps/_TEMPLATE.md`
 - Reference persona that needs it
 - Priority based on how many personas blocked
 

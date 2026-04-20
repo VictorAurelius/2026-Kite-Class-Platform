@@ -35,6 +35,43 @@ grep -rl "dark.mode\|404\|i18n\|mock" documents/04-quality/gaps/ | head -10
 - **Related but different scope** → tạo gap mới, ghi "Related: GAP-XXX" 
 - **Completely new** → tạo gap mới
 
+### Step 2.5: State-Check Against Current Codebase (BẮT BUỘC trước tạo gap)
+
+Step 2 only guards against **duplicate GAP files**. It does NOT detect when a gap proposes work already shipped as code. A gap filed against already-existing implementation wastes reviewer time and gets rewritten later (see 2026-04-20 GAP-190 / GAP-197 incident).
+
+**Run code-state check before Step 3** — grep the actual paths the gap would touch:
+
+```bash
+# Frontend gap → check app routes + components
+find {service}/src/app -type d -name "{topic}*"
+grep -rl "{keyword}" {service}/src --include="*.tsx" --include="*.ts"
+
+# Backend gap → check controllers + services + migrations
+grep -rl "{keyword}" {service}/src/main/java --include="*.java"
+ls {service}/src/main/resources/db/migration/ | grep -i "{topic}"
+
+# Infra/CI gap → check workflows + scripts + hooks
+ls -la .husky/ .github/workflows/
+grep -l "{tool}" .github/workflows/*.yml
+
+# Docs/runbook gap → check existing docs
+find documents/05-guides documents/01-business -iname "*{topic}*"
+```
+
+Expected outcomes + how to proceed:
+
+| Code state | Gap status to file | AC framing |
+|-----------|-------------------|-----------|
+| Nothing exists | 🔵 OPEN | Build-from-scratch |
+| Partial implementation | 🟡 PARTIAL | Must include `## Current State (verified YYYY-MM-DD)` table listing what exists + what's missing; AC narrows to the delta |
+| Fully implemented | SKIP filing — the gap is already DONE | Close the underlying concern by updating docs / existing gap, not by filing a new one |
+
+**If filing 🟡 PARTIAL**, the gap file MUST contain:
+- A `## Current State (verified YYYY-MM-DD)` section with file paths + line counts (or symbol names) as evidence
+- A Log entry: "Scope revised after state-check. Found: ..."
+
+**Anti-pattern detected 2026-04-20:** GAP-190 (SEO) and GAP-197 (attendance calendar) were filed without state-check; both had substantial implementations already (sitemap/robots/OG/JsonLd/blog MDX; enhanced-attendance-calendar 315 LOC PR 3.8.1). Both required follow-up rewrite PRs. Rule added to prevent recurrence.
+
 ### Step 3: Gap File Creation
 
 Format chuẩn cho gap từ audit:
@@ -150,3 +187,4 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 ## 6. Log
 
 - 2026-04-16 — Rule created after UI audit session produced 5 gaps; user requested formalization
+- 2026-04-20 — Added **Step 2.5 State-Check Against Current Codebase** after GAP-190 (SEO) + GAP-197 (attendance calendar) were filed without code-state verification; both required follow-up rewrite (PR #396). User feedback: "gaps phải dựa trên tình trạng của hệ thống hiện tại". Step 2.5 is BẮT BUỘC alongside Step 2 — dedupe alone is insufficient.
