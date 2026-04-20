@@ -34,21 +34,40 @@ Non-meta (= feature) gaps touch product surface: code behavior, UI, business log
 
 ## 3. Priority Matrix
 
-Apply this ordering when building sprint/wave plans:
+Apply this ordering when building sprint/wave plans. **Three tiers** at each P-level (2026-04-20 update — added Business-Logic tier):
 
 | Level | Category | Order |
 |-------|----------|:-----:|
 | 🟥 Meta-P0 | Skills/rules/workflow broken or missing, blocking quality | **1st** |
-| 🟥 Feature-P0 | Product GA blocker | 2nd |
-| 🟧 Meta-P1 | Skills/rules gap that risks drift soon | 3rd |
-| 🟧 Feature-P1 | Product growth blocker | 4th |
-| 🟨 Meta-P2 | Skills/rules nice-to-have | 5th |
-| 🟨 Feature-P2 | Feature nice-to-have | 6th |
+| 🟥 Business-Logic-P0 | BRD docs, persona review, correctness, compliance (wrong business = wrong product) | **2nd** |
+| 🟥 Feature-P0 | Product GA blocker | 3rd |
+| 🟧 Meta-P1 | Skills/rules gap that risks drift soon | 4th |
+| 🟧 Business-Logic-P1 | Business correctness, pricing, persona-specific gaps | 5th |
+| 🟧 Feature-P1 | Product growth blocker | 6th |
+| 🟨 Meta-P2 | Skills/rules nice-to-have | 7th |
+| 🟨 Business-Logic-P2 | Business nice-to-have (GTM, NFR enrichment) | 8th |
+| 🟨 Feature-P2 | Feature nice-to-have | 9th |
+
+### What counts as Business-Logic tier
+
+Gaps that touch:
+- **BRD documents** (`documents/00-brd/*.md`) — personas, objectives, compliance, pricing, NFR, GTM
+- **Per-domain rules.md** (`documents/01-business/*/rules.md`) — business values + constraints
+- **Persona review** — role-play, acceptance criteria per persona, review reports
+- **Business correctness** — "thing right vs right thing" (GAP-049), market validation, legal compliance
+- **Acceptance criteria** — formal AC per persona/journey
+
+**Why 2nd after Meta:** Meta gaps fix the machine that builds product; Business-Logic gaps fix WHAT product we're building. Wrong business = wrong product even if skill/rule infrastructure is perfect. Feature gaps are execution of correct business logic — correctness must lead execution.
 
 **Tie-breakers within Meta-P0:**
 1. **Blast radius** — how many PRs/sessions are affected? (higher = first)
 2. **Regression severity** — silent failure vs loud? (silent = first — it rots in background)
 3. **Unblocks other gaps?** — e.g. a review skill unblocks 5 audit gaps → first
+
+**Tie-breakers within Business-Logic-P0:**
+1. **Persona coverage impact** — how many Tier 1 personas blocked? (more = first)
+2. **Compliance/legal risk** — legal mandate > market optimization
+3. **BRD → Rules.md blast** — if BRD doc missing blocks multiple per-domain rules.md, fix BRD first
 
 ---
 
@@ -138,4 +157,5 @@ Never override silently — always log the override reason in gap/PR description
 
 ## 9. Log
 
+- **2026-04-20:** Added Business-Logic tier between Meta and Feature (§3 Priority Matrix). Triggered by user observation that BRD docs + persona review gaps (GAP-049/050) were treated as regular P0 features, despite "wrong business = wrong product even if code is perfect". Business-logic correctness must lead feature execution. New ordering: Meta → Business-Logic → Feature at each P-level. Created alongside GAP-150 (BRD completion), GAP-151 (persona AC template), GAP-152 (persona review round 1).
 - **2026-04-18:** Rule created after user observation that skills/rules/workflow gaps were being deprioritized behind feature gaps, despite affecting output quality of all future PRs. Triggered by discussion of GAP-047 (document generation skills) being listed at same P0 level as feature gaps.

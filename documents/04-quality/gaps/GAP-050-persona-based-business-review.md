@@ -2,13 +2,17 @@
 
 **Status:** 🟡 PLANNED (Wave 1 Sprint 0)
 **Branch:** wave/01-foundation
-**Priority:** 🔴 P0 (meta process — discovers other gaps)
+**Priority:** 🔴 P0 (business-logic tier per `meta-gap-priority.md` §3)
 **Domain:** Product / Business
 **Detected:** 2026-04-14 (user raised with bulk import example)
+**Scope clarification (2026-04-20):** This gap = **PROCESS framework** (catalog, skill, cadence). AC template + per-persona AC → **GAP-151**. Execute reviews + produce reports → **GAP-152**.
 **Related:**
 - `.claude/skills/quality/persona-based-business-review.md`
 - `documents/00-brd/personas-catalog.md`
-- GAP-049 (business correctness)
+- `.claude/rules/meta-gap-priority.md` §3 — business-logic tier
+- GAP-049 (business correctness — process scope)
+- GAP-151 (persona AC template — framework scope)
+- GAP-152 (persona review execution — execution scope)
 
 ## Problem
 
@@ -76,13 +80,20 @@ K-12 School persona is **most under-served** — biggest market, biggest misses.
 
 ## Acceptance Criteria
 
-- [ ] Persona catalog published (✓ done)
-- [ ] Skill published (✓ done)
-- [ ] Initial gaps filed (GAP-051..064)
-- [ ] Quarterly review meeting on calendar
-- [ ] pre-flight-check project integrates persona review
-- [ ] quality-audit adds persona coverage category
-- [ ] First complete role-play report (documents/00-brd/persona-reviews/)
+### Scope: PROCESS FRAMEWORK (this gap)
+
+- [x] Persona catalog published (✓ done 2026-04-14)
+- [x] Skill published (✓ done 2026-04-14)
+- [x] Initial gaps filed (GAP-051..064 — done 2026-04-14)
+- [ ] Quarterly review cadence documented (rule or skill note — not calendar event)
+- [ ] pre-flight-check project integrates persona review step
+- [ ] quality-audit /100 adds persona coverage category (referencing GAP-152 output)
+
+### Delegated to sibling gaps (scope split 2026-04-20)
+
+- ~~AC template + per-persona AC docs~~ → **GAP-151**
+- ~~First complete role-play report~~ → **GAP-152** (ships 4 Tier 1 reports)
+- ~~Persona-specific FAIL handling~~ → **GAP-152** (new gaps filed per finding)
 
 ## Dependencies
 
@@ -92,4 +103,5 @@ K-12 School persona is **most under-served** — biggest market, biggest misses.
 
 ## Log
 
+- 2026-04-20 — Scope split: this gap = PROCESS framework. AC template + per-persona AC → GAP-151. Review execution + reports → GAP-152. 3 original AC items marked done (catalog, skill, initial gaps). Remaining AC narrowed to framework integration points.
 - 2026-04-14 — User raised: review phải theo persona. Initial scan found 14+ critical gaps.
