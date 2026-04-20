@@ -10,7 +10,7 @@
 
 ## 🎯 Current Status Snapshot (2026-04-20)
 
-**Progress:** 58/148 gaps CLOSED (39%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated impact 2026-04-20:** business-logic 65→**72** (+7, D→C), performance 58→**64** (+6, F→D). GAP-107 retracted as false positive (classes exist in kiteclass-core). GAP-148 new (P2 dead CB config). Quality audit baseline 77/100 stands pending next refresh.
+**Progress:** 58/154 gaps CLOSED (38%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. Quality audit baseline 77/100 pending next refresh.
 
 **GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
 

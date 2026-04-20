@@ -13,7 +13,9 @@ supersedes: none
 - Open breakdown: P0=13, P1=33, P2=40
 - Current quality-audit: 77/100 C+ (refreshable)
 
-**Goal:** close 86 open gaps across 11 waves (2 in-flight + 9 proposed new) in ~2-3 months wall-clock with heavy parallel-agent execution. Estimated 4-5 months if serial.
+**Goal:** close 92 open gaps (86 original + 6 output-review-mandate violations now tracked) across 12 waves (2 in-flight + 10 proposed new) in ~2-3 months wall-clock with heavy parallel-agent execution. Estimated 4-5 months if serial.
+
+**2026-04-20 update:** 6 output-review-mandate §4 VIOLATIONS converted to gap files GAP-170 → GAP-175. New Wave 8b added to sequence.
 
 ---
 
@@ -26,6 +28,7 @@ supersedes: none
 | 3 | **Wave 6** — UI Polish | 8 | 1 P0, 2 P1, 5 P2 | 1-2 wk | 🔵 New (this master plan) |
 | 4 | **Wave 7** — Ops Maturation | 12 | 3 P0, 5 P1, 6 P2 | 2-3 wk | 🔵 New |
 | 5 | **Wave 8** — Business Governance | 6 | 2 P0, 1 P1, 3 P2 | 1-2 wk | 🔵 New (meta-heavy) |
+| 5b | **Wave 8b** — Output Review Governance | 6 | 3 P0, 2 P1, 1 P2 | 1 wk | 🔵 New (GAP-170–175 meta) |
 | 6 | **Wave 9** — GA Blockers Meta | 4 | 3 P0, 1 P0 in-progress | 1-2 wk | 🔵 New (Part A residual) |
 | 7 | **Wave 10** — AI Branding Completeness | 15 | 7 P1, 8 P2 | 3-4 wk | 🔵 New (largest) |
 | 8 | **Wave 11** — K-12 Features | 10 | 5 P1, 5 P2 | 2-3 wk | 🔵 New |
@@ -88,6 +91,29 @@ Note: GAP-119 (DR runbook) done in Part C Sprint 3. GAP-143 (Grafana), GAP-144 (
 **Dependencies:** Depends on Part C Sprint 4 completion (biz debt cleanup — GAP-108/109/110).
 
 **Gate:** business-logic audit refresh ≥85 + new persona-review skill shippable.
+
+---
+
+### Wave 8b — Output Review Governance (~1 wk)
+
+**Goal:** Close 6 output-review-mandate §4 VIOLATIONS as dedicated meta wave. Force-multiplier for all future output quality.
+
+**Gaps (6, all meta):**
+- P0: GAP-170 (gap reports review template), GAP-171 (rules docs ADR-like), GAP-172 (architecture ADR process)
+- P1: GAP-173 (email template review), GAP-174 (marketing + legal review)
+- P2: GAP-175 (logs format standard)
+
+**Parallel strategy:** 3-4 agents, disjoint file sets:
+- Agent 8b-A: GAP-170 + GAP-171 (meta-governance skills — gap review + rule ADR)
+- Agent 8b-B: GAP-172 (architecture ADR folder + 5 retrospective ADRs)
+- Agent 8b-C: GAP-173 + GAP-174 (email + marketing/legal review skills)
+- Agent 8b-D: GAP-175 (logging standard rule doc)
+
+**Dependencies:**
+- Coordinates with Wave 7 Ops (GAP-175 standards drive GAP-114/115/116 implementation)
+- Precedes Wave 10 AI branding (email template review needed for branding emails)
+
+**Gate:** output-review-mandate §4 VIOLATIONS count: 6 → 0.
 
 ---
 
