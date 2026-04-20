@@ -519,9 +519,6 @@ dùng skill tạo wave để fix tiếp GAP-093 (backup) và các gaps cùng wav
 
 tại sao tôi không thấy các audit được gọi sau 2 wave, cũng không check CI? liệu đã cả self-test theo rule chưa? check lại xem wave đúng workflow chưa?
 
-giới thiệu về folder này: documents\05-guides
-tại sao lại không dùng batch mà dùng jobs + rabbit MQ, hãy tạo guides giải nghĩa QA này
-
 ● An image in the conversation exceeds the dimension limit for many-image requests (2000px). Run /compact to remove old  
   images from context, or start a new session.
 
@@ -594,3 +591,67 @@ Vậy nên tạo PR mới để cải thiện skills + đánh giá/ review/ audi
 Plan concrete => tạo plan log
 
 tái cấu trúc documents/03-planning đúng theo rules, chưa có rules thì tạo
+
+1. Có folder nào trong toàn bộ dự án vi phạm rule mới này không?
+2. giới thiệu về mục đích của folder này: documents\05-guides, tại sao nó trống rỗng như này, phương châm đầy đủ files của nó là gì? nên tạo gaps cho nó không? ví dụ vấn đề này nên để trong folder này hay folder khác:
+tại sao lại không dùng batch mà dùng jobs + rabbit MQ, hãy tạo guides giải nghĩa QA này
+
+3. giới thiệu về mục đích của folder này: 
+documents/00-brd, có gaps cover cho folder này rồi đúng không? có wave cho nó chưa? tại sao độ ưu tiên nó thấp?
+
+4. giới thiệu về phương châm deploy của dự án
+đánh giá repo này và ảnh hưởng của nó đến phương châm
+
+tạo tất cả
+
+vậy bắt đầu session mới như thế nào?
+
+tại sao không nên tiếp tục session này?
+
+session trước nói với tôi là chất lượng output giảm do context quá đầy, làm thế nào để đánh giá chất lượng các PR/wave gần đây và xem có phải rework hay không?
+
+còn gaps về update skills theo minimax mà chưa fix không?
+
+đặt rules là luôn ưu tiên GAP của skills, rules, workflow phải được update ưu tiên cao nhất vì ảnh hưởng đến chất lượng output và thực hiện tiếp tục theo kế hoạch
+
+tại sao tôi thấy các wave và PR gần đây không được audit lại, rules của dự án là output nào cũng phải có review tương ứng
+
+Tạo báo cáo tiếng việt guide giải thích câu hỏi, thông tin kiến thức liên quan và default câu trả lời best practice
+
+Prompt ở session mới để thực hiện option Y là gì?
+
+tạo thành 1 file prompt hoàn chỉnh cho tất cả audit và lệnh tham chiếu file này là đủ
+
+tạo skill start 1 session mới như thế nào cho hợp lý, có dùng nhiều session cùng lúc được không nhỉ, hay chỉ nhiều agent cùng lúc được thôi
+
+cần có 1 cái gì đó kiểm soát các session để tránh conflict chứ?
+
+cập nhật lại roadmap chưa?
+
+sao run lâu thế
+
+chạy mvn test không dùng mcp server được à
+
+còn chờ gì nữa?
+
+sao điểm thấp như thế, do còn nhiều gap hay add thiếu gap? kế hoạch nâng điểm là gì? fix gap cũ trước hay nâng điểm trước
+
+bạn có thể tự mở 1 session mới để swpan agent trên session đó không?
+
+plan này sẽ fix hết gaps chứ, có xung đột với wave 5, 6 đã có plan không?
+
+Part C + wave 5, 6 là fix hết gaps chưa?
+
+tại sao có 1 PR chưa được merge? có ảnh hưởng đến planning không?
+
+trong gaps còn gaps liên quan đến update skills, rules, workflow không?
+
+tạo báo cáo chỉ rõ đã có gaps cover và PR/wave để update skills như thế nào khi tham khảo các repo này:
+1. https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+2. https://github.com/awslabs/agent-plugins
+
+kiểm tra xem repo cho đề cập đến start-kit không, kế hoạch để update cho starter-kit sau rất nhiều PR/WAVE của dự án là gì?
+
+commit action-1.md và update readme của dự án
+
+cơ chế issue của github là để làm gì? nên sử dụng nó hay cơ chế GAP hiện tại tốt hơn?
