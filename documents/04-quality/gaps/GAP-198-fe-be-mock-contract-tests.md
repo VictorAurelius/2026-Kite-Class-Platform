@@ -16,9 +16,20 @@ MSW mocks in the frontend currently simulate BE responses, but there is no **con
 - `output-review-mandate.md` currently marks API contracts as ⚠️ PARTIAL because of this gap
 - User ask (action-1 line 302): "FE phải có đủ bộ mock API cho BE"
 
+## Current State (verified 2026-04-20)
+
+Producer-side contract tests **already shipped** (GAP-090 DONE):
+- `kitehub/kitehub-subscription/src/test/java/com/kitehub/subscription/contract/InstanceApiContractTest.java` (284 LOC, MockMvc + JSON fixtures)
+- Covers: CreateInstance, DeleteInstance, GetInstanceById, GetInstancesByOwner, GetInstanceBySubdomain, ListInstances
+
+Missing — consumer side:
+- No MSW handler export aligned to these fixtures
+- No CI step verifies FE mocks ≡ BE fixtures
+- api-contract-audit skill score does not yet read contract-test outputs
+
 ## Context
 
-Complements GAP-090 (producer-side) with consumer-side guarantee. Pact or Spring Cloud Contract candidate. Not a GA-blocker but protects against silent regressions.
+Complements GAP-090 (producer-side DONE) with consumer-side guarantee. Pact, Spring Cloud Contract, or lightweight OpenAPI-schema-diff candidate. Not a GA-blocker but protects against silent FE-mock / BE-response divergence.
 
 ## Proposed Fix
 

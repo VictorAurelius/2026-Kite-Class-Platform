@@ -10,7 +10,7 @@
 
 ## 🎯 Current Status Snapshot (2026-04-20)
 
-**Progress:** 59/179 gaps CLOSED (33%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. **12 new gaps filed 2026-04-20 (GAP-190..201)** from action-1 reorganization + system simulation — 1 BL-P0 (GAP-192 trial→paid), 3 BL-P1 (GAP-190/191/200), 4 Meta-P1 (GAP-193/194/199/201), 3 Meta-P2 (GAP-195/196/198), 1 Feature-P2 (GAP-197). Quality audit baseline 77/100 pending next refresh (due 2026-04-26).
+**Progress:** 59/178 gaps CLOSED (33%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. **12 new gaps filed 2026-04-20 (GAP-190..201)** from action-1 + simulation; **GAP-196 dropped same-day** (user decision — 9router ADR not effective); **GAP-190 + GAP-197 scope-revised** to 🟡 PARTIAL after state-check found existing infrastructure (sitemap/robots/OG/JsonLd/blog MDX + enhanced-attendance-calendar PR 3.8.1). Net: 11 active new gaps — 1 BL-P0 (GAP-192), 3 BL-P1 (GAP-190/191/200), 4 Meta-P1 (GAP-193/194/199/201), 2 Meta-P2 (GAP-195/198), 1 Feature-P2 (GAP-197). Quality audit baseline 77/100 pending next refresh (due 2026-04-26).
 
 **Priority order (updated 2026-04-20):** Meta-P0 → **Business-Logic-P0** → Feature-P0 → Meta-P1 → Business-Logic-P1 → Feature-P1 → ... Reference `.claude/rules/meta-gap-priority.md` §3 for tier definitions + tie-breakers.
 
@@ -594,20 +594,21 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-184 | **Data Retention + Deletion Policy** — VN PDPL Art 6 mandatory — Wave 8 | 🔴 P0 biz-logic | M |
 | GAP-185 | **Billing Terms + VAT/TCT compliance** — Circular 78/2021 mandatory — Wave 8 | 🔴 P0 biz-logic | L |
 | GAP-186 | **Child Protection Policy** (K-12 P5 blocker) — Law on Children 2016 — Wave 8 | 🔴 P0 biz-logic | L |
-| GAP-190 | KiteHub SEO + Marketing Site (landing + blog + sitemap) — Wave 9/10 | 🟠 P1 biz-logic | L |
+| GAP-190 🟡 | KiteHub SEO — infra shipped (sitemap/robots/OG/JsonLd/blog); gap narrowed to pricing SSR, canonical schemas, GA4, content plan, Lighthouse CI — Wave 9/10 | 🟠 P1 biz-logic | M |
 | GAP-191 | Domain Registration + DNS Strategy (kitehub.vn + per-instance + custom CNAME) — Wave 9/10 | 🟠 P1 biz-logic | M |
-| GAP-192 | **Trial → Paid Zero-Downtime Migration** (state machine + outbox + rollback) — Wave 9 | 🔴 P0 biz-logic | L |
+| GAP-192 | **Trial → Paid Zero-Downtime Migration** (state machine + outbox + rollback; layers under GAP-026) — Wave 9 | 🔴 P0 biz-logic | L |
 | GAP-193 | Session Orchestration + /start-session skill + multi-session lock — Wave 8b | 🟠 P1 meta | M |
-| GAP-194 | Bash/Python Script Compliance (shellcheck + ruff in CI) — Wave 8b | 🟠 P1 meta | S |
+| GAP-194 | Bash/Python Script Compliance (shellcheck + ruff in CI; no .husky exists yet) — Wave 8b | 🟠 P1 meta | S |
 | GAP-195 | Starter-Kit Bulk Retro-Sync (export learnings to remote kit) — Wave 8b | 🟡 P2 meta | M |
-| GAP-196 | 9router Tool Evaluation → ADR — Wave 8b | 🟡 P2 meta | S |
-| GAP-197 | Attendance Calendar-Mode UI (month/week grid) — Wave 11 | 🟡 P2 feature | M |
-| GAP-198 | FE↔BE Decoupled Mock Contract Tests (Pact or OpenAPI diff) — Wave 8b | 🟡 P2 meta | M |
+| GAP-197 🟡 | Attendance Calendar — component shipped (PR 3.8.1); gap narrowed to parent/student variants + a11y + week view + UI review + E2E — Wave 11 | 🟡 P2 feature | S |
+| GAP-198 | FE↔BE Decoupled Consumer-Side Contract (producer-side DONE via GAP-090/InstanceApiContractTest) — Wave 8b | 🟡 P2 meta | M |
 | GAP-199 | Rework Audit for Context-Degraded PRs (Wave 6-8 era) — Wave 8b | 🟠 P1 meta | M |
 | GAP-200 | School MIS/SMS Integration (VNEDU + SMAS + Base.vn) — Wave 9/10 | 🟠 P1 biz-logic | XL |
-| GAP-201 | Tenant Off-boarding Runbook (cancel UX + export bundle + purge) — Wave 8b | 🟠 P1 meta | M |
+| GAP-201 | Tenant Off-boarding Runbook (cancel UX + export bundle + purge; consumes GAP-073 deferred) — Wave 8b | 🟠 P1 meta | M |
 
-**Dependencies:** GAP-101 → GAP-102 (needs 05-guides README) → GAP-103 (needs ADR template + 02-architecture README). GAP-151 blocks GAP-152. GAP-153 blocks GAP-152 P5 review (Student/Parent AC critical). GAP-150 Phase 2 (content fill) blocked on stakeholder engagement. GAP-190/191 block GTM (GAP-150 Phase 2). GAP-192 depends on GAP-108 (trial config hardcoded). GAP-199 consumes GAP-193 detection heuristic.
+**Dropped:** GAP-196 (9router ADR) — user decision 2026-04-20, not effective for project scope.
+
+**Dependencies:** GAP-101 → GAP-102 (needs 05-guides README) → GAP-103 (needs ADR template + 02-architecture README). GAP-151 blocks GAP-152. GAP-153 blocks GAP-152 P5 review (Student/Parent AC critical). GAP-150 Phase 2 (content fill) blocked on stakeholder engagement. GAP-190/191 block GTM (GAP-150 Phase 2). GAP-192 depends on GAP-108 (trial config hardcoded); aligns with GAP-026 AI-budget layer. GAP-197 parent-variant blocked by GAP-052. GAP-199 consumes GAP-193 detection heuristic. GAP-201 consumes GAP-073 deferred items.
 **Split:** GAP-101 standalone PR. GAP-102 split Part 1 (guides) + Part 2 (ADR kickoff). GAP-103 after 101+102.
 
 **Part C Sprint 0 (meta-skills calibration):** GAP-149 closed. 5 audit skills (business-logic, performance, ops-readiness, security, api-contract) now document safe grep scope patterns. Retroactive check confirmed GAP-106/108/110 are valid (not false positives).
@@ -641,7 +642,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 ---
 
-**Last Updated:** 2026-04-20 (action-1 reorganization + system simulation: 12 new gap skeletons filed GAP-190..201 covering BL-P0 trial→paid, BL-P1 SEO/DNS/MIS, Meta-P1 session-orchestration/script-CI/rework-audit/off-boarding, Meta-P2 starter-kit-sync/9router/contract-tests, Feature-P2 attendance-calendar; total epic 14 entries 6 → 18 after new gaps; Wave 9 "Audit-Followup Cluster" pending in master plan Phase 2; 59/179 DONE.)
+**Last Updated:** 2026-04-20 (post state-check dedupe PR: GAP-196 dropped per user; GAP-190 + GAP-197 revised to 🟡 PARTIAL after discovering existing SEO infra + PR-3.8.1 attendance calendar; cross-references strengthened on GAP-192↔GAP-026, GAP-198↔GAP-090, GAP-201↔GAP-073; 59/178 DONE.)
 
 ### Session 3 refresh 2026-04-18 — ROADMAP status audit
 

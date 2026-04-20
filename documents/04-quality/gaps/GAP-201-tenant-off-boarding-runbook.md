@@ -26,6 +26,13 @@ Missing end-to-end off-boarding runbook:
 
 Discovered via 3-axis matrix simulation (All × Churn × Meta, simulation-action-1 Part C). Also flagged as partial gap in (All × Post-churn × Compliance).
 
+Existing partial coverage — these gaps own their fragments; this gap stitches them into an end-to-end runbook + fills missing pieces:
+- **GAP-073 GDPR deletion AI assets** — 🟢 DONE, but deferred: MinIO streaming export, @Scheduled expiry job, pseudonymization executor. GAP-201 can consume these as sub-tasks.
+- **GAP-024 asset lifecycle + storage cleanup** — 🟡 OPEN, tangential (MinIO tiering, orphan cleanup) but relevant to "final backup + purge" step.
+- **GAP-184 data retention + deletion policy** — retention rule only, no UX/runbook.
+- **GAP-185 billing terms VAT/TCT** — invoice retention (10y tax law) conflicts with purge; runbook must resolve.
+- **GAP-034 branding export pack** — branding-only export; GAP-201 wraps with broader data bundle.
+
 ## Proposed Fix
 
 1. **Runbook doc** — `documents/05-guides/tenant-off-boarding-runbook.md`
