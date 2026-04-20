@@ -27,7 +27,7 @@ supersedes: none
 | 2 | **Part C** — Score Recovery | 14 | 5 P0, 6 P1, 3 P2 | 8-11 days | 🟢 Plan merged PR #381, execution ready |
 | 3 | **Wave 6** — UI Polish + UI/UX Pro Max Integration | 9 | 1 P0, 3 P1, 5 P2 | 1-2 wk | 🔵 New (incl. GAP-176) |
 | 4 | **Wave 7** — Ops Maturation | 12 | 3 P0, 5 P1, 6 P2 | 2-3 wk | 🔵 New |
-| 5 | **Wave 8** — Business Governance | 6 | 2 P0, 1 P1, 3 P2 | 1-2 wk | 🔵 New (meta-heavy) |
+| 5 | **Wave 8** — Business Governance | 18 | 13 P0, 2 P1, 3 P2 | 2-3 wk | 🔵 Expanded 2026-04-20 (+ GAP-150..154 + 180..186) |
 | 5b | **Wave 8b** — Output Review Governance | 6 | 3 P0, 2 P1, 1 P2 | 1 wk | 🔵 New (GAP-170–175 meta) |
 | 6 | **Wave 9** — GA Blockers Meta | 4 | 3 P0, 1 P0 in-progress | 1-2 wk | 🔵 New (Part A residual) |
 | 7 | **Wave 10** — AI Branding Completeness | 15 | 7 P1, 8 P2 | 3-4 wk | 🔵 New (largest) |
@@ -82,20 +82,39 @@ Note: GAP-119 (DR runbook) done in Part C Sprint 3. GAP-143 (Grafana), GAP-144 (
 
 ---
 
-### Wave 8 — Business Governance (~1-2 wk)
+### Wave 8 — Business Governance (~2-3 wk, expanded 2026-04-20)
 
-**Goal:** Close output-review-mandate violations + business correctness gaps.
+**Goal:** Close output-review-mandate violations + business correctness gaps + **BRD Phase 1 P0 docs** (7 new sub-gaps from GAP-154 simulation).
 
-**Gaps (6):**
-- P0: GAP-049 (business logic CORRECTNESS review — BRD/legal/compliance), GAP-050 (persona-based business review — role-play 10 tenant types)
+**Gaps (18 — expanded from 6 after GAP-150/151/152/153/154 + GAP-180..186 added):**
+
+*Process + framework (6 original):*
+- P0: GAP-049 (business logic CORRECTNESS review — PROCESS scope after split), GAP-050 (persona-based business review — FRAMEWORK scope after split)
 - P1: GAP-046 (design patterns systematic application — ref `ai-branding-design-patterns.md`)
 - P2: GAP-001 (kiteclass-gateway keep/delete decision — ADR), GAP-102 (05-guides completion + ADR kickoff), GAP-110 (Ollama model inter-service alignment)
 
-**Parallel strategy:** 3 agents. GAP-049 + GAP-050 are persona/process skills — could combine into 1 skill deliverable.
+*Persona + BRD structural (5 new 2026-04-20):*
+- P0: GAP-151 (persona AC template + 4 Tier 1 AC docs), GAP-152 (execute persona review round 1), GAP-153 (secondary persona AC — Student/Parent/Teacher/Admin × tenant contexts), GAP-154 (BRD scope expansion umbrella)
+- P1: GAP-150 (BRD 5 strategic skeletons: business-objectives, compliance-scope, pricing-model, nfr-catalog, go-to-market)
 
-**Dependencies:** Depends on Part C Sprint 4 completion (biz debt cleanup — GAP-108/109/110).
+*BRD Phase 1 P0 legal docs (7 new 2026-04-20 — GAP-154 Phase 1):*
+- P0: GAP-180 (Terms of Service), GAP-181 (Acceptable Use Policy), GAP-182 (Privacy Policy — VN PDPL mandatory), GAP-183 (Refund + Dispute Resolution — VN Consumer Protection Law mandatory), GAP-184 (Data Retention + Deletion — VN PDPL Art 6 mandatory), GAP-185 (Billing Terms + VAT/TCT — Circular 78/2021 mandatory), GAP-186 (Child Protection Policy — K-12 blocker, Law on Children)
 
-**Gate:** business-logic audit refresh ≥85 + new persona-review skill shippable.
+**Parallel strategy:** Expanded to **5-6 agents** given 18 gaps:
+- Agent A: GAP-049 + GAP-050 (process framework)
+- Agent B: GAP-151 + GAP-153 (persona AC — sequential dependency)
+- Agent C: GAP-152 (persona review execution) — blocks on B
+- Agent D: GAP-150 + GAP-180/182 (BRD strategic + TOS + Privacy — shared legal review)
+- Agent E: GAP-181 + GAP-183 + GAP-184 (AUP + Refund + Retention — policy cluster)
+- Agent F: GAP-185 + GAP-186 (Billing + Child Protection — finance + K-12 cluster)
+
+*P2 gaps (001, 046, 102, 110) can piggyback any agent with capacity.*
+
+**Dependencies:** Depends on Part C Sprint 4 completion (biz debt cleanup — GAP-108/109/110). **Phase 2 content fill for GAP-180..186 requires legal counsel engagement** — can proceed with skeletons first.
+
+**Gate:** business-logic audit refresh ≥85 + persona-review skill shippable + 7 BRD legal docs skeletons exist + Phase 2 content roadmap documented.
+
+**Note on sizing:** Wave 8 scope expanded ~3x from original (6 → 18 gaps). If effort becomes unmanageable, split into Wave 8a (process + persona, 11 gaps) and Wave 8c (BRD legal docs, 7 gaps). Initial execution plan: single wave, 2-3 weeks with 5-6 parallel agents.
 
 ---
 
