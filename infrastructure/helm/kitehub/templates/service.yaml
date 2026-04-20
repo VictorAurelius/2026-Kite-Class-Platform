@@ -8,7 +8,9 @@ spec:
   selector:
     app: kitehub-{{ $name }}
   ports:
-    - port: {{ $svc.port }}
+    - name: http
+      port: {{ $svc.port }}
       targetPort: {{ $svc.port }}
+      protocol: TCP
   type: ClusterIP
 {{- end }}

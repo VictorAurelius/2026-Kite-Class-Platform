@@ -33,6 +33,9 @@ global:
     provider: openai  # AWS uses OpenAI API (Oracle uses Ollama)
     # openaiApiKey set via secret
 
+  aws:
+    region: ap-southeast-1  # Used by email service (SES) — required by deployment.yaml
+
 # --- Services ---
 
 gateway:
@@ -104,3 +107,138 @@ ingress:
       paths: ["/"]
     - host: api.kiteclass.com
       paths: ["/"]
+
+# --- Monitoring (GAP-111 + GAP-120 foundation) ---
+#
+# Foundation only. Opt-in (enabled=false by default) to avoid breaking existing
+# clusters. When enabled, deploys Prometheus + Alertmanager via kube-prometheus-stack
+# subchart. Grafana / dashboards / production alert routing tracked in:
+#   - GAP-143 (Grafana dashboards in Helm)
+#   - GAP-144 (Alertmanager production receivers + secret wiring)
+#   - GAP-145 (Loki log aggregation + tracing)
+#
+# Activation:
+#   1. helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   2. helm dependency update infrastructure/helm/kitehub/
+#   3. helm install ... --set monitoring.enabled=true
+monitoring:
+  enabled: false
+
+  # ServiceMonitor objects scrape Spring Boot /actuator/prometheus on each service.
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    # Ports below MUST match service.port values for each Spring Boot app.
+    # Frontend (port 3001) excluded — no Prometheus endpoint exposed.
+    services:
+      - name: kitehub-gateway
+        port: 9000
+      - name: kitehub-subscription
+        port: 8080
+      - name: kitehub-branding
+        port: 8080
+      - name: kitehub-admin
+        port: 8080
+      - name: kitehub-email
+        port: 8080
+
+  # PrometheusRule wires the 7 alert rules from kitehub/docker/prometheus/alert-rules.yml
+  # into the Prometheus Operator. Rule definitions intentionally mirror dev config
+  # so the same expressions fire in both environments.
+  prometheusRule:
+    enabled: true
+
+  # Subchart values forwarded to kube-prometheus-stack. These are STUBS — production
+  # tuning (storage class, retention, scaling) tracked in GAP-144.
+  kube-prometheus-stack:
+    fullnameOverride: kitehub-monitoring
+
+    # Defer Grafana to GAP-143 — keeps initial install lightweight.
+    grafana:
+      enabled: false
+
+    # Defer cluster-level kube-state-metrics + node-exporter until needed.
+    # Most kitehub alerts target service-level metrics, not cluster.
+    kubeStateMetrics:
+      enabled: false
+    nodeExporter:
+      enabled: false
+    prometheusOperator:
+      enabled: true
+
+    prometheus:
+      prometheusSpec:
+        retention: 15d
+        # Pick up PrometheusRule + ServiceMonitor objects without label selector.
+        # Tighten in production via release-specific labels (GAP-144).
+        ruleSelectorNilUsesHelmValues: false
+        serviceMonitorSelectorNilUsesHelmValues: false
+        # Storage stub. Override in prod values file with actual storageClassName.
+        storageSpec: {}
+        resources:
+          requests: { cpu: 200m, memory: 512Mi }
+          limits:   { cpu: 1000m, memory: 2Gi }
+
+    alertmanager:
+      enabled: true
+      alertmanagerSpec:
+        retention: 120h
+        resources:
+          requests: { cpu: 50m, memory: 128Mi }
+          limits:   { cpu: 200m, memory: 256Mi }
+
+      # Receiver STUBS. Production secrets (Slack webhook URL, PagerDuty service key,
+      # SMTP password) are NOT defined here — wire via external-secrets / sealed-secrets
+      # in GAP-144. The placeholder values below let Alertmanager start without crashing
+      # but will silently drop notifications until real values are injected.
+      config:
+        global:
+          resolve_timeout: 5m
+          # smtp_* values are placeholders — override in prod values file.
+          smtp_from: "alerts@kiteclass.com"
+          smtp_smarthost: "smtp.placeholder.invalid:587"
+          smtp_require_tls: true
+
+        route:
+          group_by: ["alertname", "severity", "job"]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          receiver: "default-webhook"
+          routes:
+            - matchers:
+                - severity = "critical"
+              receiver: "critical-webhook"
+              continue: true
+            - matchers:
+                - severity = "warning"
+              receiver: "warning-email"
+
+        receivers:
+          # Default catch-all — replace url with real Slack/Teams webhook in GAP-144.
+          - name: "default-webhook"
+            webhook_configs:
+              - url: "http://alertmanager-webhook-placeholder.invalid/default"
+                send_resolved: true
+
+          # Critical pager — replace url with PagerDuty Events API URL in GAP-144.
+          - name: "critical-webhook"
+            webhook_configs:
+              - url: "http://alertmanager-webhook-placeholder.invalid/critical"
+                send_resolved: true
+
+          # Warning email — overridden via prod values file once SMTP creds available.
+          - name: "warning-email"
+            email_configs:
+              - to: "ops@kiteclass.com"
+                send_resolved: true
+
+        # Inhibition: suppress dependent alerts when ServiceDown is firing for
+        # the same job (avoids alert storm).
+        inhibit_rules:
+          - source_matchers:
+              - alertname = "ServiceDown"
+            target_matchers:
+              - severity =~ "warning|critical"
+            equal: ["job"]

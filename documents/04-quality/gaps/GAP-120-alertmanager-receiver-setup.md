@@ -1,10 +1,11 @@
 # GAP-120: Alertmanager + Receiver Setup (Slack/PagerDuty)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (foundation — 2026-04-20)
 **Priority:** 🔴 P0
 **Domain:** DevOps / Alerting
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
 **Affects:** On-call response time; alert rules trống vô ích nếu không có receiver
+**Resolution:** Foundation merged via PR — Alertmanager deployed via `kube-prometheus-stack`; receiver stubs (default-webhook, critical-webhook, warning-email) + inhibition rule wired in `values.yaml`. Production secret values (Slack webhook, PagerDuty key, SMTP password) deferred to GAP-144 for org-level secret strategy.
 
 ## Problem
 
@@ -75,3 +76,4 @@ Alert rules được design first, integration để lại sau. Alertmanager cha
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- 2026-04-20 — Foundation shipped: Alertmanager enabled in `monitoring.kube-prometheus-stack.alertmanager`; 3 receiver stubs (default webhook, critical webhook, warning email) + inhibition rule (ServiceDown suppresses dependent alerts on same job) committed to `values.yaml`. Placeholder URLs use `*.invalid` so Alertmanager starts cleanly but silently drops notifications until GAP-144 wires real secrets.
