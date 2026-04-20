@@ -5,6 +5,7 @@
 **Domain:** Business / BRD / Governance
 **Found:** 2026-04-20 (user flagged `documents/00-brd/` incomplete; no gap covering BRD content creation)
 **Affects:** All per-domain rules.md (01-business/*), pricing decisions, compliance posture, GTM readiness
+**Scope note (2026-04-20):** This gap covers **5 strategic BRD docs** (objectives/compliance/pricing/NFR/GTM). Simulation gap-finder 2026-04-20 found **22 additional BRD docs** needed (TOS, Privacy, AUP, Refund, Data Retention, Child Protection, etc.) — tracked by umbrella **GAP-154**. Total BRD scope: 27 docs, this gap = 5 of them (Phase 1 strategic).
 
 ## Problem
 
@@ -104,6 +105,9 @@ Track as follow-up gaps (GAP-155, 156, etc.) after first stakeholder session. OU
 - GAP-050 — persona-based review (consumes BRD for validation criteria)
 - GAP-151 — persona acceptance criteria template (sibling — same wave)
 - GAP-152 — execute persona review round 1 (consumes this gap's output)
+- GAP-153 — secondary persona AC (sibling — extends 151 scope to users within tenant)
+- **GAP-154 — BRD scope expansion umbrella** (extends this gap's scope with 22 additional docs discovered via simulation 2026-04-20)
+- Report: `documents/04-quality/audits/business/brd-simulation-gap-finder-2026-04-20.md` — simulation output
 - Rule: `.claude/rules/meta-gap-priority.md` §3 — business-logic tier justification
 - Rule: `.claude/rules/docs-folder-structure.md` — README + placement discipline
 - Master plan Wave 8 (Business Governance) — consumes BRD skeleton for audit
