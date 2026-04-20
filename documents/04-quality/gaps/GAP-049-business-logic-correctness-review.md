@@ -1,12 +1,17 @@
 # GAP-049: Business Logic Correctness Review (not just implementation)
 
 **Status:** 🔵 OPEN
-**Priority:** 🔴 P0 (product risk — right thing vs thing right)
+**Priority:** 🔴 P0 (business-logic tier — process scope per `meta-gap-priority.md`)
 **Domain:** Product / Business / Governance
 **Detected:** 2026-04-14 (user raised)
+**Scope clarification (2026-04-20):** This gap tracks **REVIEW PROCESS** (governance, cadence, stakeholder sign-off). Content creation (5 BRD docs) tracked by **GAP-150**. Persona review execution tracked by **GAP-152**. Persona AC framework tracked by **GAP-151**.
 **Related:**
 - `.claude/rules/output-review-mandate.md` (master)
+- `.claude/rules/meta-gap-priority.md` §3 — business-logic tier
 - GAP-048 (general output review violations)
+- GAP-150 (BRD docs content creation — content scope)
+- GAP-151 (persona AC template — framework scope)
+- GAP-152 (persona review execution — execution scope)
 
 ## Problem
 
@@ -164,16 +169,25 @@ International (if scale):
 
 ## Acceptance Criteria
 
-- [ ] `.claude/rules/business-logic-review.md` created
-- [ ] `documents/00-brd/` folder + MASTER-BRD
-- [ ] Compliance checklist với VN law reviewed by lawyer
-- [ ] All existing rules in `01-business/` updated với metadata (source, sign-offs)
-- [ ] Quarterly review meeting scheduled + recurring
-- [ ] A/B testing framework for key rules
+### Scope: REVIEW PROCESS (this gap)
+
+- [ ] `.claude/rules/business-logic-review.md` created — review process doc
+- [ ] `documents/00-brd/` folder exists (✅ done 2026-04-14, PR #349 via GAP-101)
+- [ ] All existing rules in `01-business/` updated với metadata (source, sign-offs) — can be bulk PR after stakeholder session
+- [ ] Quarterly review cadence documented (rule or ADR) — meeting schedule is operational, not deliverable
 - [ ] business-gap-check v1.4 includes correctness checks
-- [ ] Pricing strategy document written
-- [ ] Trial strategy document written
-- [ ] Legal counsel engaged for compliance review
+- [ ] Legal counsel engagement process defined (who initiates, what scope)
+
+### Delegated to sibling gaps (scope split 2026-04-20)
+
+- ~~`documents/00-brd/` BRD docs content~~ → **GAP-150** (business-objectives, compliance-scope, pricing-model, nfr-catalog, go-to-market skeletons)
+- ~~Pricing strategy document written~~ → **GAP-150** Phase 2
+- ~~Trial strategy document written~~ → deferred (covered by pricing-model.md in GAP-150)
+- ~~Compliance checklist reviewed by lawyer~~ → **GAP-150** `compliance-scope.md` + stakeholder engagement (operational)
+- ~~A/B testing framework~~ → deferred to post-GA (not blocking)
+- Persona review process framework → **GAP-050**
+- Persona AC template + per-persona AC → **GAP-151**
+- Persona review execution → **GAP-152**
 
 ## Risks of NOT fixing
 
@@ -214,4 +228,5 @@ International (if scale):
 
 ## Log
 
+- 2026-04-20 — Scope split for clarity: this gap = REVIEW PROCESS only. Content creation → GAP-150. Persona AC → GAP-151. Persona review execution → GAP-152. AC section rewritten to reflect split. Execution Plan Phase 1 BRD folder deliverable marked done (GAP-101); content creation moved to GAP-150.
 - 2026-04-14 — User raised: "business logic có review không?" — revealed correctness review missing (only implementation reviewed)
