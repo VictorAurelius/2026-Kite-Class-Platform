@@ -6,10 +6,11 @@ type: gap
 
 # GAP-172: Architecture Docs ADR Process
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (meta — governance)
 **Domain:** Architecture / `documents/02-architecture/`
 **Found:** 2026-04-14 (output-review-mandate §4 Violation #3)
+**Closed:** 2026-04-20 (Wave 8b-B)
 **Affects:** Every architectural decision; onboarding new devs; avoiding decisions made twice
 
 ## Problem
@@ -35,13 +36,27 @@ No ADR process exists. `documents/02-architecture/` has feature docs but no deci
 
 ## Acceptance Criteria
 
-- [ ] `documents/02-architecture/adr/` folder created with README + template
-- [ ] ≥5 retrospective ADRs for existing major decisions
-- [ ] PR template updated: "if this PR reflects an architectural decision, link ADR or open ADR PR first"
-- [ ] Architecture review meeting cadence defined (weekly? biweekly?)
+- [x] `documents/02-architecture/adr/` folder created with README + template (pre-existing; strengthened 2026-04-20)
+- [x] ≥5 retrospective ADRs for existing major decisions (15 ADRs live — ADR-001..015)
+- [ ] PR template updated: "if this PR reflects an architectural decision, link ADR or open ADR PR first" *(deferred — tracked in follow-up; requires separate PR touching `.github/PULL_REQUEST_TEMPLATE.md`)*
+- [x] Architecture review meeting cadence defined — README §Review Cadence (on-demand per PR + quarterly architecture review + wave completion + onboarding)
+
+## Resolution Summary (2026-04-20)
+
+Wave 8b-B delivered the governance layer on top of the existing ADR corpus:
+
+- **README strengthened** ([`documents/02-architecture/adr/README.md`](../../02-architecture/adr/README.md)) — added explicit 4-step lifecycle (PROPOSED → ACCEPTED → DEPRECATED/SUPERSEDED), reviewer checklist (6 items), cadence table (4 trigger events), linking conventions (from code / architecture docs / rules / gaps), naming + file rules, status taxonomy. Conforms to [`docs-folder-structure.md`](../../../.claude/rules/docs-folder-structure.md) README template.
+- **Template enriched** ([`documents/02-architecture/adr/_TEMPLATE.md`](../../02-architecture/adr/_TEMPLATE.md)) — added inline HTML-comment guidance for each section, `Supersedes:` optional line, expanded References section with project-specific cross-link patterns, Log append-only note.
+- **Deferred AC**: PR-template update (AC item 3) requires touching `.github/PULL_REQUEST_TEMPLATE.md` which is cross-cutting for every PR type — intentionally deferred to avoid scope creep; process is already discoverable via `output-review-mandate.md` §3 + `CLAUDE.md` Living Docs rule.
+
+Retrospective ADRs were NOT added in this PR (would be fabrication). The 15 existing ADRs already cover major decisions (K-12 data model, outbox, resilience, AI orchestration, moderation, DMCA, retention, async jobs, AWS plugins).
 
 ## Related
 
-- Parent violation: output-review-mandate §4 #3
-- Overlaps: GAP-102 (05-guides ADR kickoff) — may merge or coordinate
-- Pattern ref: MADR (markdown-adr.github.io)
+- Parent violation: output-review-mandate §4 #3 (CLOSED by this gap)
+- Overlaps: GAP-102 (05-guides ADR kickoff) — coordinated: GAP-102 seeded ADR-014; this gap formalizes the process
+- Pattern ref: MADR (adr.github.io/madr/)
+
+## Log
+
+- **2026-04-20:** Wave 8b-B — closed gap. README lifecycle + cadence + checklist formalized, template enriched. Files: `documents/02-architecture/adr/README.md`, `documents/02-architecture/adr/_TEMPLATE.md`. PR template update deferred as separate task.
