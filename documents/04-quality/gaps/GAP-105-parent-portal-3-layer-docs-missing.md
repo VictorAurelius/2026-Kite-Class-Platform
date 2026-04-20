@@ -1,9 +1,10 @@
 # GAP-105: Parent-Portal Domain Missing 3-Layer Business Docs
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (meta — 3-layer structure contract broken)
 **Domain:** KiteClass / Parent Portal / Business Docs
 **Found:** 2026-04-19 (business-logic audit)
+**Resolved:** 2026-04-19 (PR pending — see Resolution section)
 **Affects:** kiteclass-core `parent/` module, Wave 5 parent dashboard readiness, audit traceability
 
 ## Problem
@@ -77,3 +78,18 @@ Tạo `documents/01-business/kiteclass/parent-portal/` với 3 files:
 - Original gap: GAP-052 (still IN_PROGRESS per ROADMAP — Wave 2 ship identity, Wave 5 complete)
 - CLAUDE.md §Business Logic Documents — 3-Layer Structure (contract)
 - Rules: `.claude/rules/meta-gap-priority.md` (meta-boost), `.claude/rules/audit-to-gap-pipeline.md`
+
+## Resolution
+
+**2026-04-19** — Branch: `feature/partb-gap105-parent-portal-docs` (PR pending push)
+
+Created `documents/01-business/kiteclass/parent-portal/` với 3 files:
+- `rules.md` — 9 BR-PARENT + 4 BR-PARENT-LINK + 10 BR-PARENT-INV + 3 BR-PARENT-PWD + 4 BR-PARENT-AUTH + config keys + DB schema (extracted from `ParentPortalProperties`, `ParentInvitationServiceImpl`, entities, enums, `application.yml:222-228`)
+- `use-cases.md` — 6 UCs (UC-PARENT-01 → UC-PARENT-06) covering invite, redeem, /me, /me/children, sweep, internal lookup
+- `api-contract.md` — 5 endpoints (4 public + 1 internal) với request/response schemas + 10 error codes
+
+**BR-PARENT-003 verified:** rule giờ explicit nói "Token TTL mặc định 24h, configurable qua `kiteclass.parent-portal.invitation-ttl-hours`"; matches javadoc reference ở `ParentPortalProperties.java:15`.
+
+Index `documents/01-business/README.md` updated: KiteClass count 12 → 13 domains (39 files).
+
+**Out-of-scope (per task brief):** không modify ROADMAP, không implement features mới, không touch code behavior.
