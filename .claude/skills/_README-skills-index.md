@@ -48,6 +48,8 @@
 | `quality/ops-readiness-audit/SKILL.md` | Production ops readiness /100 | Truoc GA deploy |
 | `quality/script-review-checklist.md` | Script review checklist (bash/python) | PR co .sh/.py files |
 | `quality/migration-review-checklist.md` | Flyway migration DBA checklist | PR co V*.sql files |
+| `quality/gap-review/SKILL.md` | Peer-review checklist cho gap files | PR touch documents/04-quality/gaps/GAP-*.md |
+| `quality/rule-review/SKILL.md` | ADR-like review cho rules docs | PR touch .claude/rules/*.md |
 | `quality/cross-app-consistency.md` | Cross-app KiteHub↔KiteClass check | PR touch shared infra |
 
 ### Technical Standards

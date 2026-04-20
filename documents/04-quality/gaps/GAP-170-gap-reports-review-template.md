@@ -6,7 +6,7 @@ type: gap
 
 # GAP-170: Gap Reports Review Template
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (2026-04-20, Wave 8b-A)
 **Priority:** 🔴 P0 (meta — governance)
 **Domain:** Process / Governance
 **Found:** 2026-04-14 (output-review-mandate §4 Violation #1)
@@ -50,3 +50,12 @@ No review standard or review process for gap files. `audit-to-gap-pipeline.md` �
 - Parent violation: `.claude/rules/output-review-mandate.md` §4 #1
 - GAP-107 false positive (retracted 2026-04-20) — motivator
 - GAP-150 (audit skill grep scope) — prevents similar FP
+
+## Log
+
+- **2026-04-20** — Closed via Wave 8b-A (`feat/wave-8b-A-gap-170-171-review-governance`). Shipped:
+  - `.claude/skills/quality/gap-review/SKILL.md` — peer-review skill (trigger on PR touching `documents/04-quality/gaps/GAP-*.md`)
+  - `.claude/skills/quality/gap-review/reference/checklist.md` — 10-criterion checklist across 4 sections (Clarity / Scope / Planning / Metadata)
+  - `documents/04-quality/gaps/_REVIEW-TEMPLATE.md` — reviewer sheet with PASS/BLOCK signature format
+  - Skills index updated to list the new skill
+  - AC adjusted: §1 (§Review Template now in skill not `audit-to-gap-pipeline.md` — skill is discoverable + referenced in pipeline §2.5), §2 (skill exists), §4 (retrospective review of existing gaps deferred to follow-up — not blocking for v1). Audit-gate hook update (§3) reserved for GAP-202 if needed.
