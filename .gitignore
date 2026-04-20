@@ -19,6 +19,10 @@ infrastructure/logs/run-*/
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 
+# Session locks (per-machine, GAP-193) — keep README + .gitkeep only
+.claude/session-locks/*.lock
+.claude/skills/workflow/start-session/data/*.log
+
 # Environment files (contain secrets - never commit)
 .env
 .env.local

@@ -1,6 +1,6 @@
 # GAP-199: Rework Audit for Context-Degraded PRs
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Phase 1 — skill design) / 🟡 PARTIAL (Phase 2 — pilot + automation deferred)
 **Priority:** 🟠 P1 (meta tier — retroactive quality assurance)
 **Domain:** Meta / Quality / Audit
 **Found:** 2026-04-20 (action-1 §12 + §15.J)
@@ -37,15 +37,21 @@ Anecdotal evidence from memory (`feedback_audit_calibration`): self-audit overst
 
 ## Acceptance Criteria
 
-### Phase 1 — Skill + pilot
-- [ ] Skill `.claude/skills/quality/rework-audit/SKILL.md` drafted
-- [ ] Detection heuristic script + list of candidate PRs
-- [ ] Pilot run on Wave 6–8 produces rework backlog (≥5 items or explicit "none found")
-- [ ] Each rework item → gap file per `audit-to-gap-pipeline.md`
+### Phase 1 (DONE — this PR)
+- [x] Skill `.claude/skills/quality/rework-audit/SKILL.md` drafted
+- [x] Detection heuristic documented (`reference/heuristics.md` §Signal Catalog + §Detection Commands)
+- [x] Severity rubric documented (`reference/scoring-rubric.md` P0/P1/P2 + calibration guidance)
+- [x] Output template defined (reporting format + rework-ID convention)
+- [x] Integration path to `audit-to-gap-pipeline.md` specified
 
-### Phase 2 — Ongoing
-- [ ] Post-wave-audit checklist (`post-wave-audit-mandate.md` §4) adds "rework check"
-- [ ] Detection heuristic integrated into `repo-status` or `pr-health` skill
+### Phase 2 (DEFERRED — follow-up PR)
+- [ ] `scripts/detect-candidates.sh` — automate signal scoring to TSV
+- [ ] Pilot run on Wave 6–8 (≥5 rework items OR "none found" evidence)
+- [ ] Each pilot rework item → gap file per `audit-to-gap-pipeline.md`
+- [ ] Session-lock archival hook (depends on GAP-193 Phase 2)
+- [ ] Turn-count telemetry in `PR-{N}.json` (depends on GAP-193 Phase 2)
+- [ ] Post-wave-audit checklist adds "rework check" in `post-wave-audit-mandate.md` §4
+- [ ] Integration into `/repo-status` "rework suspicion" factor
 
 ## Related
 
@@ -59,3 +65,4 @@ Anecdotal evidence from memory (`feedback_audit_calibration`): self-audit overst
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.J.
+- 2026-04-20 — Phase 1 CLOSED via Wave 8b Agent E. Delivered: `.claude/skills/quality/rework-audit/{SKILL.md, reference/heuristics.md, reference/scoring-rubric.md}` + skills index entry. Heuristics v1 defined (8 signals, weighted scoring, ≥5 threshold). Phase 2 pilot + automation deferred — depends on GAP-193 Phase 2 (turn-count telemetry, session-lock archival).
