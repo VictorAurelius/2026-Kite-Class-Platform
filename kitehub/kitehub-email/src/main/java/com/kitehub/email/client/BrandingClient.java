@@ -2,14 +2,17 @@ package com.kitehub.email.client;
 
 import com.kitehub.email.config.BrandingCacheConfig;
 import com.kitehub.email.dto.TenantBranding;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
 import java.util.List;
@@ -42,9 +45,15 @@ public class BrandingClient {
             @Value("${kitehub.email.branding-enabled:true}") boolean brandingEnabled) {
         this.timeoutSeconds = timeoutSeconds;
         this.brandingEnabled = brandingEnabled;
+        // GAP-131: explicit Netty connect timeout — without this, the JVM default
+        // is infinite, allowing a hung core upstream to leak Tomcat workers.
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+                .responseTimeout(Duration.ofSeconds(timeoutSeconds + 1L));
         this.webClient = WebClient.builder()
                 .baseUrl(coreBaseUrl)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
         log.info("BrandingClient initialized: coreBaseUrl={}, timeout={}s, enabled={}",
                 coreBaseUrl, timeoutSeconds, brandingEnabled);

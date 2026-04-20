@@ -5,15 +5,20 @@ import com.kiteclass.gateway.service.dto.CreateStudentInternalRequest;
 import com.kiteclass.gateway.service.dto.ParentProfileResponse;
 import com.kiteclass.gateway.service.dto.StudentProfileResponse;
 import com.kiteclass.gateway.service.dto.TeacherProfileResponse;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+
+import java.time.Duration;
 
 /**
  * Reactive client for Core Service internal APIs using WebClient.
@@ -60,6 +65,19 @@ public class CoreServiceClient {
     private final String internalApiSecret;
 
     /**
+     * Connect timeout for the Reactor Netty HTTP client (TCP handshake).
+     * GAP-131 — without this the JVM default is infinite, allowing a slow Core
+     * upstream to block worker threads indefinitely.
+     */
+    static final int CONNECT_TIMEOUT_MS = 5_000;
+
+    /**
+     * Response timeout (server's first byte after request sent). 30 s bounds
+     * worst-case latency on internal Gateway → Core hops (GAP-131).
+     */
+    static final Duration RESPONSE_TIMEOUT = Duration.ofSeconds(30);
+
+    /**
      * Constructs CoreServiceClient with WebClient configured for Core service.
      *
      * @param baseUrl Core service base URL from application properties
@@ -68,8 +86,14 @@ public class CoreServiceClient {
     public CoreServiceClient(
             @Value("${core.service.url:http://localhost:8081}") String baseUrl,
             @Value("${internal.api.secret:changeme-in-production}") String internalApiSecret) {
+        // GAP-131: Netty HTTP client with explicit connect + response timeouts.
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MS)
+                .responseTimeout(RESPONSE_TIMEOUT);
+
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
         this.internalApiSecret = internalApiSecret;
     }

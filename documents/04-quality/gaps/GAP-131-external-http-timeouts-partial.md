@@ -1,6 +1,6 @@
 # GAP-131: 9 external HTTP client sites missing connect/read timeouts
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend / Performance / Resilience
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -61,3 +61,10 @@ The other 9 (approximately) rely on JVM defaults — which for `RestTemplate` wi
 ## Log
 
 - 2026-04-19 — Gap created from performance baseline audit
+- 2026-04-20 — Partial fix in feature/partb-perf-batch covering 6 of the 9 unbounded sites:
+  - `kitehub-subscription/RestTemplateConfig` — connect 5 s + read 30 s (via `RestTemplateBuilder`). Covers `EmailServiceClient`, `CaptchaService`, `VietQRService`, `EmailConsumer`, and the now-refactored `EmailSenderService` (which previously used a bypass `new RestTemplate()` field — replaced with injected bean).
+  - `kiteclass-gateway/CoreServiceClient` — Netty `HttpClient` with `CONNECT_TIMEOUT_MILLIS=5000` + `responseTimeout(30s)`.
+  - `kitehub-gateway/BrandingClient` — Netty connect 5 s + `responseTimeout(timeoutSeconds+1)`.
+  - `kitehub-email/BrandingClient` — Netty connect 5 s + `responseTimeout(timeoutSeconds+1)`.
+  - `kitehub-branding/OllamaClient` — Netty connect 5 s + `responseTimeout(timeoutSeconds+5)`.
+  Tests: `RestTemplateConfigTest` (3 cases, reflection on `JdkClientHttpRequestFactory`) + `CoreServiceClientTimeoutTest` (connector is `ReactorClientHttpConnector`). Remaining ACs (CI lint rule via ArchUnit, Resilience4j on payment/email/captcha, WireMock integration test) deferred — separate follow-up gap recommended if not actioned in next perf sprint.

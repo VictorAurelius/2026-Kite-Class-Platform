@@ -1,5 +1,6 @@
 package com.kitehub.subscription.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,16 @@ import java.util.Map;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailSenderService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    /**
+     * Injected RestTemplate (configured with explicit connect/read timeouts via
+     * {@link com.kitehub.subscription.config.RestTemplateConfig} — GAP-131 fix).
+     * The previous {@code new RestTemplate()} field initializer bypassed the
+     * bean and used JVM default infinite timeouts.
+     */
+    private final RestTemplate restTemplate;
 
     @Value("${kitehub.email-service.url:http://kitehub-email:8080}")
     private String emailServiceUrl;

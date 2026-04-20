@@ -12,6 +12,7 @@ import com.kiteclass.core.module.invoice.entity.InstallmentPlan;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.mapper.InvoiceMapper;
 import com.kiteclass.core.module.invoice.repository.InstallmentPlanRepository;
+import com.kiteclass.core.module.invoice.repository.InstallmentRepository;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -56,6 +57,9 @@ class InstallmentPlanServiceTest {
 
     @Mock
     private InstallmentPlanRepository installmentPlanRepository;
+
+    @Mock
+    private InstallmentRepository installmentRepository;
 
     @Mock
     private InvoiceRepository invoiceRepository;
@@ -393,6 +397,134 @@ class InstallmentPlanServiceTest {
                     .isInstanceOf(EntityNotFoundException.class);
 
             verify(installmentPlanRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("recordInstallmentPayment (GAP-128 — indexed lookup, no full scan)")
+    class RecordInstallmentPayment {
+
+        private static final Long INSTALLMENT_ID = 500L;
+
+        private InstallmentPlan buildActivePlan() {
+            InstallmentPlan plan = InstallmentPlan.builder()
+                    .invoiceId(INVOICE_ID)
+                    .numberOfInstallments(2)
+                    .status(InstallmentPlanStatus.ACTIVE)
+                    .build();
+            plan.setId(PLAN_ID);
+            plan.setInstanceId(INSTANCE_ID);
+
+            Installment first = Installment.builder()
+                    .installmentNumber(1)
+                    .amount(new BigDecimal("500000.00"))
+                    .dueDate(LocalDate.now())
+                    .status(InstallmentStatus.PENDING)
+                    .build();
+            first.setId(INSTALLMENT_ID);
+            first.setPlan(plan);
+            plan.getInstallments().add(first);
+
+            Installment second = Installment.builder()
+                    .installmentNumber(2)
+                    .amount(new BigDecimal("500000.00"))
+                    .dueDate(LocalDate.now().plusMonths(1))
+                    .status(InstallmentStatus.PENDING)
+                    .build();
+            second.setId(INSTALLMENT_ID + 1);
+            second.setPlan(plan);
+            plan.getInstallments().add(second);
+
+            return plan;
+        }
+
+        @Test
+        @DisplayName("should look up installment via indexed findById, NOT full-table scan")
+        void recordInstallmentPayment_usesIndexedLookup_noFullScan() {
+            // Given
+            InstallmentPlan plan = buildActivePlan();
+            Installment target = plan.getInstallments().get(0);
+
+            when(installmentRepository.findById(INSTALLMENT_ID))
+                    .thenReturn(Optional.of(target));
+            when(installmentPlanRepository.save(any(InstallmentPlan.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(invoiceMapper.toPlanResponse(any(InstallmentPlan.class)))
+                    .thenReturn(createMockResponse());
+
+            // When
+            installmentPlanService.recordInstallmentPayment(INSTALLMENT_ID, new BigDecimal("250000.00"));
+
+            // Then — installment fetched by id (indexed PK lookup)
+            verify(installmentRepository).findById(INSTALLMENT_ID);
+            // Then — full-table scan path MUST NOT be used (regression guard for GAP-128)
+            verify(installmentPlanRepository, never()).findAll();
+        }
+
+        @Test
+        @DisplayName("should record partial payment without completing plan")
+        void recordInstallmentPayment_partialPayment_planRemainsActive() {
+            // Given
+            InstallmentPlan plan = buildActivePlan();
+            Installment target = plan.getInstallments().get(0);
+
+            when(installmentRepository.findById(INSTALLMENT_ID))
+                    .thenReturn(Optional.of(target));
+            when(installmentPlanRepository.save(any(InstallmentPlan.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(invoiceMapper.toPlanResponse(any(InstallmentPlan.class)))
+                    .thenReturn(createMockResponse());
+
+            // When — partial payment (less than total)
+            installmentPlanService.recordInstallmentPayment(INSTALLMENT_ID, new BigDecimal("250000.00"));
+
+            // Then
+            verify(installmentPlanRepository).save(planCaptor.capture());
+            InstallmentPlan saved = planCaptor.getValue();
+            assertThat(saved.getStatus()).isEqualTo(InstallmentPlanStatus.ACTIVE);
+        }
+
+        @Test
+        @DisplayName("should mark plan COMPLETED when all installments fully paid")
+        void recordInstallmentPayment_allPaid_planCompleted() {
+            // Given — second installment already paid; pay first to fully complete
+            InstallmentPlan plan = buildActivePlan();
+            Installment first = plan.getInstallments().get(0);
+            Installment second = plan.getInstallments().get(1);
+            second.setPaidAmount(new BigDecimal("500000.00"));
+            second.setStatus(InstallmentStatus.PAID);
+
+            when(installmentRepository.findById(INSTALLMENT_ID))
+                    .thenReturn(Optional.of(first));
+            when(installmentPlanRepository.save(any(InstallmentPlan.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(invoiceMapper.toPlanResponse(any(InstallmentPlan.class)))
+                    .thenReturn(createMockResponse());
+
+            // When
+            installmentPlanService.recordInstallmentPayment(INSTALLMENT_ID, new BigDecimal("500000.00"));
+
+            // Then
+            verify(installmentPlanRepository).save(planCaptor.capture());
+            InstallmentPlan saved = planCaptor.getValue();
+            assertThat(saved.getStatus()).isEqualTo(InstallmentPlanStatus.COMPLETED);
+        }
+
+        @Test
+        @DisplayName("should throw EntityNotFoundException when installment not found")
+        void recordInstallmentPayment_notFound_throwsException() {
+            // Given
+            when(installmentRepository.findById(INSTALLMENT_ID))
+                    .thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> installmentPlanService
+                    .recordInstallmentPayment(INSTALLMENT_ID, new BigDecimal("100.00")))
+                    .isInstanceOf(EntityNotFoundException.class);
+
+            verify(installmentPlanRepository, never()).save(any());
+            // Regression guard: no full scan attempted
+            verify(installmentPlanRepository, never()).findAll();
         }
     }
 

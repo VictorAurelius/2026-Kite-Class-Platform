@@ -1,6 +1,6 @@
 # GAP-133: Hibernate `jdbc.batch_size` not configured — bulk inserts 1 INSERT per row
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🟠 P1
 **Domain:** Backend / Database / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -62,3 +62,4 @@ GAP-051 shipped Wave 1 bulk import. Memory was added: `feedback_pr_log_commit.md
 ## Log
 
 - 2026-04-19 — Gap created from performance baseline audit
+- 2026-04-20 — Fixed in feature/partb-perf-batch: added `spring.jpa.properties.hibernate.jdbc.batch_size: 50`, `batch_versioned_data: true`, `order_inserts: true`, `order_updates: true` to ALL 5 JPA-using services (`kiteclass-core`, `kitehub-subscription`, `kitehub-admin`, `kitehub-branding`, `kitehub-gateway`). `batch_versioned_data=true` is mandatory here because `BaseEntity` uses `@Version`. New `HibernateBatchConfigTest` reads production `application.yml` directly (bypassing the test override) and asserts all 4 properties — so a future regression fails at unit-test time. Query-count test for bulk import deferred (requires Docker + Testcontainers; existing kiteclass-core test base `IntegrationTestBase` is gated on `ENABLE_INTEGRATION_TESTS=true`).

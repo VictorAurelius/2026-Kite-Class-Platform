@@ -3,11 +3,14 @@ package com.kitehub.branding.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.branding.dto.LogoAnalysis;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
 import java.util.List;
@@ -44,12 +47,19 @@ public class OllamaClient implements AIClient {
         this.visionModel = visionModel;
         this.timeoutSeconds = timeoutSeconds;
         this.objectMapper = objectMapper;
+        // GAP-131: explicit Netty connect timeout — without this, the JVM default
+        // is infinite. Per-request `.timeout(timeoutSeconds)` already bounds the
+        // overall call, but the connect handshake itself was unbounded.
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+                .responseTimeout(Duration.ofSeconds(timeoutSeconds + 5L));
         this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .codecs(configurer -> configurer
                         .defaultCodecs()
                         .maxInMemorySize(10 * 1024 * 1024))
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
         log.info("OllamaClient initialized: baseUrl={}, textModel={}, visionModel={}",
                 baseUrl, textModel, visionModel);

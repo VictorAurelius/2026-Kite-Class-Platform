@@ -1,6 +1,6 @@
 # GAP-129: BrandingPackage service loads ALL branding resources of ALL tenants
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / Performance / Multi-tenancy
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -67,3 +67,4 @@ This endpoint is HOT — the branding package is fetched by every FE page load o
 ## Log
 
 - 2026-04-19 — Gap created from performance baseline audit
+- 2026-04-20 — Fixed in feature/partb-perf-batch: added `findByInstanceIdAndDeletedFalse(UUID)` to `BrandingResourceRepository`, `BrandingPackageServiceImpl.getByInstanceId` now calls this (UUID derived from `instance.getInstanceId()` — the tenant identifier inherited from `BaseEntity`, not the FrontendInstance PK). New V45 migration `V45__add_branding_resources_instance_deleted_index.sql` + JPA `@Index` adds composite `(instance_id, deleted)` index. Regression test `BrandingPackageServiceImplTest.getByInstanceId_usesTenantScopedQuery_notFindAll` asserts `findAll()` is NEVER called and `verifyNoMoreInteractions` enforces ONLY tenant A's UUID is queried.

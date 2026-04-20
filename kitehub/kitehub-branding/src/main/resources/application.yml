@@ -16,6 +16,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        # GAP-133 — JDBC batching for bulk insert paths (template seed loads,
+        # branding job result rows, AI usage logs). batch_versioned_data=true
+        # required because BaseEntity uses @Version.
+        jdbc:
+          batch_size: 50
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
 
   # Redis — backs distributed AI rate limiter + concurrency semaphore (GAP-005a).
   data:

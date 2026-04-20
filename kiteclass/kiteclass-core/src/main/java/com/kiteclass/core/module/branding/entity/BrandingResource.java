@@ -37,7 +37,12 @@ import java.util.UUID;
         indexes = {
                 @Index(name = "idx_branding_resource_type", columnList = "instance_id,type"),
                 @Index(name = "idx_branding_resource_category", columnList = "category"),
-                @Index(name = "idx_branding_resource_deleted", columnList = "deleted")
+                @Index(name = "idx_branding_resource_deleted", columnList = "deleted"),
+                // GAP-129 — composite index backing tenant-scoped lookup
+                // (instance_id, deleted). Mirror of V45 migration so tests using
+                // ddl-auto=create-drop also create this index.
+                @Index(name = "idx_branding_resources_instance_deleted",
+                        columnList = "instance_id,deleted")
         }
 )
 @Getter

@@ -14,8 +14,14 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        # GAP-133 — JDBC batching for bulk operations (admin imports, bulk
+        # tenant updates). batch_versioned_data=true required for @Version.
         jdbc:
           time_zone: UTC
+          batch_size: 50
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
 
 server:
   port: ${SERVER_PORT:8083}

@@ -1,14 +1,17 @@
 package com.kitehub.gateway.client;
 
 import com.kitehub.gateway.config.GatewayBrandingCacheConfig;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
 import java.util.List;
@@ -35,9 +38,16 @@ public class BrandingClient {
             @Value("${kitehub.gateway.branding.core-base-url:http://kiteclass-core:8080}") String coreBaseUrl,
             @Value("${kitehub.gateway.branding.timeout-seconds:2}") int timeoutSeconds) {
         this.timeoutSeconds = timeoutSeconds;
+        // GAP-131: explicit Netty connect timeout — without this, the JVM default
+        // is infinite and a slow Core upstream can pile pending connections on
+        // the event loop until the gateway falls over.
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+                .responseTimeout(Duration.ofSeconds(timeoutSeconds + 1L));
         this.webClient = WebClient.builder()
                 .baseUrl(coreBaseUrl)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }
 
