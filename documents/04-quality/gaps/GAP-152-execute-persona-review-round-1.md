@@ -5,7 +5,7 @@
 **Domain:** Business / Persona / Review
 **Found:** 2026-04-20 (user raised: "phải nhập vai đúng các đối tượng này để thực hiện review")
 **Affects:** GA readiness, backlog prioritization, feature roadmap calibration
-**Blocked by:** GAP-151 (requires AC docs first)
+**Blocked by:** GAP-151 (tenant AC) + GAP-153 (secondary persona AC for Student/Parent in P5 review)
 
 ## Problem
 
@@ -123,7 +123,8 @@ If performance critical → split into sub-gaps GAP-152a/b/c/d after first perso
 
 ## Dependencies
 
-- **Blocked by GAP-151** — AC template + per-persona AC docs must exist first
+- **Blocked by GAP-151** — tenant AC (P1/P2/P3/P5) template + docs must exist first
+- **Blocked by GAP-153** — secondary persona AC (Student-in-P5, Parent-in-P5 critical) must exist for P5 review to be meaningful
 - `persona-based-business-review.md` skill (already exists)
 - Access to current system (can be local dev stack — screenshots OK as evidence)
 

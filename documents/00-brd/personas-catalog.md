@@ -153,19 +153,21 @@ Review sau khi dự án mature, decide support hay không.
 
 ## Secondary Personas (Users within Tenant)
 
+**AC framework:** Each secondary persona × tenant context combination needs its own acceptance criteria doc. See **GAP-153** for Phase 1 scope (8 P0 cells: Student × P2/P3/P5, Parent × P5, Teacher-employee × P3/P5, Admin × P3/P5). Files live in `persona-criteria/secondary/<role>-in-P<N>.md`.
+
 ### Within any tenant, users include:
 
-| Role | Persona | Key Actions |
-|------|---------|-------------|
-| **Owner/Director** | Decision maker | Strategic config, billing, top-level reports |
-| **Admin** | Operations manager | User management, class setup, financial ops |
-| **Teacher** | Educator | Gradebook, attendance, class management, communication |
-| **Student** | Learner | View schedule, submit work, pay fees, view grades |
-| **Parent** | Guardian (K-12) | View child's progress, pay fees, communicate with teacher |
-| **Accountant** | Finance | Invoicing, payment collection, financial reports |
-| **Receptionist** | Front-desk | Enrollment, inquiries, scheduling |
-| **IT Staff** | Technical | Integration, data import/export, troubleshooting |
-| **Parent Rep** | Parent committee | Organize events, coordinate với school |
+| Role | Persona | Key Actions | AC doc |
+|------|---------|-------------|--------|
+| **Owner/Director** | Decision maker | Strategic config, billing, top-level reports | = tenant persona (P1/P2) |
+| **Admin** | Operations manager | User management, class setup, financial ops | GAP-153: admin-in-P3.md, admin-in-P5.md |
+| **Teacher** | Educator | Gradebook, attendance, class management, communication | GAP-153: teacher-employee-in-P3.md, teacher-employee-in-P5.md |
+| **Student** | Learner | View schedule, submit work, pay fees, view grades | GAP-153: student-in-P2/P3/P5.md |
+| **Parent** | Guardian (K-12) | View child's progress, pay fees, communicate with teacher | GAP-153: parent-in-P5.md (P0); P2/P3 deferred P1 |
+| **Accountant** | Finance | Invoicing, payment collection, financial reports | GAP-153 P1 cells (deferred to GAP-155) |
+| **Receptionist** | Front-desk | Enrollment, inquiries, scheduling | GAP-153 P2 cells (deferred to GAP-156) |
+| **IT Staff** | Technical | Integration, data import/export, troubleshooting | GAP-153 P2 cells (deferred to GAP-156) |
+| **Parent Rep** | Parent committee | Organize events, coordinate với school | GAP-153 P2 cells (deferred to GAP-156) |
 
 ---
 
@@ -241,4 +243,5 @@ Vietnamese-specific considerations:
 
 ## Log
 
+- 2026-04-20 — Secondary Personas table updated with AC doc pointers. GAP-153 added for secondary persona AC coverage (Student × P2/P3/P5, Parent × P5, Teacher-employee × P3/P5, Admin × P3/P5). Triggered by user question "BRD đã có cho đối tượng học sinh không?" revealing scope gap.
 - 2026-04-14 — Initial catalog created. Review triggered by user raising bulk import as critical gap for K-12 schools.
