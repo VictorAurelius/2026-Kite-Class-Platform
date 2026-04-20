@@ -10,7 +10,7 @@
 
 ## 🎯 Current Status Snapshot (2026-04-20)
 
-**Progress:** 59/158 gaps CLOSED (37%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. Quality audit baseline 77/100 pending next refresh.
+**Progress:** 59/159 gaps CLOSED (37%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. Quality audit baseline 77/100 pending next refresh.
 
 **Priority order (updated 2026-04-20):** Meta-P0 → **Business-Logic-P0** → Feature-P0 → Meta-P1 → Business-Logic-P1 → Feature-P1 → ... Reference `.claude/rules/meta-gap-priority.md` §3 for tier definitions + tie-breakers.
 
@@ -585,8 +585,9 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-150 | BRD docs completion (5 skeleton files: business-objectives, compliance-scope, pricing-model, nfr-catalog, go-to-market) | 🟠 P1 biz-logic | M |
 | GAP-151 | Persona-specific acceptance criteria template + 4 Tier 1 AC docs (P1/P2/P3/P5) | 🔴 P0 biz-logic | M |
 | GAP-152 | Execute persona review round 1 — role-play 4 Tier 1 personas + reports | 🔴 P0 biz-logic | L |
+| GAP-153 | Secondary persona AC (Student/Parent/Teacher/Admin × tenant contexts — 8 P0 cells) | 🔴 P0 biz-logic | M |
 
-**Dependencies:** GAP-101 → GAP-102 (needs 05-guides README) → GAP-103 (needs ADR template + 02-architecture README). GAP-151 blocks GAP-152. GAP-150 Phase 2 (content fill) blocked on stakeholder engagement.
+**Dependencies:** GAP-101 → GAP-102 (needs 05-guides README) → GAP-103 (needs ADR template + 02-architecture README). GAP-151 blocks GAP-152. GAP-153 blocks GAP-152 P5 review (Student/Parent AC critical). GAP-150 Phase 2 (content fill) blocked on stakeholder engagement.
 **Split:** GAP-101 standalone PR. GAP-102 split Part 1 (guides) + Part 2 (ADR kickoff). GAP-103 after 101+102.
 
 **Part C Sprint 0 (meta-skills calibration):** GAP-149 closed. 5 audit skills (business-logic, performance, ops-readiness, security, api-contract) now document safe grep scope patterns. Retroactive check confirmed GAP-106/108/110 are valid (not false positives).
@@ -620,7 +621,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 ---
 
-**Last Updated:** 2026-04-20 (Part C Sprint 0 + BRD meta governance wave: GAP-149 CLOSED; GAP-150/151/152 OPEN business-logic tier; meta-gap-priority.md §3 extended; 59/158 DONE; 6 GA blockers + 3 biz-logic gaps in backlog)
+**Last Updated:** 2026-04-20 (Part C Sprint 0 + BRD meta governance wave: GAP-149 CLOSED; GAP-150/151/152/153 OPEN business-logic tier; meta-gap-priority.md §3 extended; 59/159 DONE; 6 GA blockers + 4 biz-logic gaps in backlog. GAP-153 added for secondary personas — Student/Parent AC critical for P5 K-12 review.)
 
 ### Session 3 refresh 2026-04-18 — ROADMAP status audit
 

@@ -128,7 +128,8 @@ Update `.claude/skills/quality/persona-based-business-review.md` to reference te
 ## Out of Scope
 
 - **Execute the reviews** (GAP-152 — sibling gap handles execution with these criteria)
-- **Tier 2/3 persona AC** — defer until Tier 1 reviews complete and stable
+- **Tier 2/3 tenant persona AC** — defer until Tier 1 reviews complete and stable
+- **Secondary persona AC** (Student/Parent/Teacher/Admin/others × tenant contexts) → **GAP-153** (sibling, extends this gap's template to user-within-tenant journeys)
 - **Automated AC testing** (future — could become E2E test suite)
 
 ## Dependencies
@@ -140,7 +141,8 @@ Update `.claude/skills/quality/persona-based-business-review.md` to reference te
 
 - GAP-050 — persona-based review process (parent — this gap provides the missing AC framework)
 - GAP-051..064 — feature gaps derived from initial persona scan (AC docs reference these)
-- GAP-152 — execute persona review round 1 (consumes this gap's output)
+- GAP-152 — execute persona review round 1 (consumes this gap's output + GAP-153's output)
+- GAP-153 — secondary persona AC (sibling — extends scope to Student/Parent/Teacher/Admin × tenant contexts)
 - Rule: `.claude/rules/meta-gap-priority.md` — business-logic tier
 
 ## Log
