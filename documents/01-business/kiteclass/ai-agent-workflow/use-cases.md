@@ -56,5 +56,51 @@
 - **Side effects:** InstanceLifecycleService.markBrandingCompleted + CachingBrandingPackageProxy.evict
 - **No fallback:** if this fails, saga aborts (can't deploy without lifecycle transition)
 
+### UC-AGENT-08: Fair Dispatch — Tier-aware AI job enqueue (Wave 3 Phase 1)
+- **Actor:** Branding controller / TenantProvisioningSaga gọi `AIQueueDispatcher.dispatch(priority, payload)`
+- **Precondition:** `ai.queue.fair-queue-enabled=true` (BR-QUEUE-001), `payload.instanceId` set
+- **Steps:**
+  1. Caller resolve subscription tier → `AIJobPriority.fromTier(tier)` (BR-QUEUE-013 — null/unknown → FREE)
+  2. Dispatcher set `payload.enqueuedAt = Instant.now()` (cần cho metric `ai.job.wait.time`)
+  3. Dispatcher publish via direct exchange `ai.request.exchange` với routing key `ai.request.{tier}` (BR-QUEUE-014)
+  4. Increment counter `ai.queue.dispatched{tier, mode=fair}`
+- **Postcondition:** Job nằm trong queue tương ứng (`ai.request.enterprise/pro/free`); consumer pick theo weight (BR-QUEUE-002..004)
+- **Errors:** broker unreachable → counter `ai.queue.dispatch.failed{tier}` + rethrow RuntimeException
+- **Backward compat:** nếu `fair-queue-enabled=false`, dispatcher publish về legacy `branding-jobs` queue (tag `mode=legacy`)
+
+### UC-AGENT-09: Concurrency Cap Reached → NACK + Redeliver
+- **Actor:** `AIJobConsumer` (one of 3 tier listeners)
+- **Trigger:** `DistributedRateLimiter.tryAcquireConcurrencySlot(instanceId, cap)` returns false (instance đã có ≥`cap` jobs in-flight)
+- **Steps:**
+  1. Consumer compute cap theo tier (BR-QUEUE-005..007: free=1, pro=3, enterprise=10)
+  2. Acquire slot fail → log INFO + counter `ai.job.outcome{tier, outcome=concurrency_limited}`
+  3. Throw `ConcurrencyLimitedException` → Rabbit NACK + redeliver theo `spring.rabbitmq.listener.simple.retry` (3 attempts, 1s → 2s → 4s) (BR-QUEUE-012)
+- **Postcondition:** Job KHÔNG bị drop; sẽ retry tới khi slot available hoặc DLQ sau max-attempts
+- **Why:** giới hạn cost AI provider per tenant + tránh 1 instance Enterprise tiêu hết Bulkhead
+
+### UC-AGENT-10: Backpressure — Free Tier Degrade to Template Fallback
+- **Actor:** `AIJobConsumer.consumeFree`
+- **Trigger:** `BacklogInspector.enterpriseBacklog() > 50` (BR-QUEUE-011) AND incoming job tier = FREE
+- **Steps:**
+  1. Consumer detect backlog vượt threshold
+  2. Log WARN "Free tier degraded to template fallback"
+  3. Counter `ai.job.outcome{tier=free, outcome=degraded}`
+  4. Skip AI processing (return) — caller's controller layer đã trả template response cho user TRƯỚC khi enqueue (degraded path = drop AI work, không user-visible failure)
+- **Postcondition:** Free job marked degraded; Enterprise queue được ưu tiên flush
+- **Recovery:** khi `enterpriseBacklog() ≤ 50`, free jobs xử lý normal trở lại (no manual intervention)
+- **FE Behavior:** none — degraded happens silently after FE đã nhận template fallback
+
+### UC-AGENT-11: Circuit Breaker Opens Around AI Provider
+- **Actor:** `ResilientAIClient` (wraps Ollama/OpenAI)
+- **Trigger:** Last 20 calls (BR-QUEUE-017) có failure rate ≥ 50% (BR-QUEUE-015), tối thiểu 10 calls (BR-QUEUE-018)
+- **Steps:**
+  1. Resilience4j circuit breaker `ai-provider` transition CLOSED → OPEN
+  2. 30s wait duration (BR-QUEUE-016) — mọi call ngay lập tức fail-fast
+  3. Analyzer nhận exception → fallback returns `AnalysisResult.templateOnly()` (UC-AGENT-04)
+  4. Sau 30s: HALF_OPEN, thử 1 call → CLOSED nếu pass, OPEN nếu fail
+- **Postcondition:** Branding pipeline tiếp tục qua template path; user không thấy 5xx errors
+- **Metrics:** `resilience4j.circuitbreaker.calls`, `.state` (Micrometer auto-published)
+
 ## Log
+- 2026-04-19 — GAP-104: thêm UC-AGENT-08 (fair dispatch), UC-AGENT-09 (concurrency cap NACK), UC-AGENT-10 (backpressure degrade), UC-AGENT-11 (circuit breaker open). Source: `AIQueueDispatcher`, `AIJobConsumer`, `BacklogInspector`, `application.yml:83-91`.
 - 2026-04-14 — Initial UCs

@@ -1,9 +1,10 @@
 # GAP-104: Wave 3 Fair-Queue Phase 1 — Business Rules Undocumented
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0 (meta — Living Docs contract broken)
 **Domain:** KiteHub / AI Branding / Business Docs
 **Found:** 2026-04-19 (business-logic audit)
+**Fixed:** 2026-04-19 — Part B audit catch-up (PR pending merge)
 **Affects:** kitehub-branding service, future AI feature PRs, audit traceability
 
 ## Problem
@@ -55,11 +56,20 @@ Tạo hoặc update rules + use-cases cho fair-queue:
 Choose based on coupling: nếu queue logic sẽ expand (Phase 2 = GAP-005 still open), Option B; nếu stable, Option A.
 
 ## Acceptance Criteria
-- [ ] Mỗi config key trong `kitehub-branding/application.yml:60-82` có BR-*-xxx đối ứng trong rules.md
-- [ ] Mỗi BR-QUEUE-* có code reference pointer tới dispatcher/consumer class
-- [ ] Use-case cho "AI job dispatch fair across tiers" thêm vào `use-cases.md`
-- [ ] Pre-commit hook (`scripts/verify-business-docs.sh`) pass cho ai-queue domain nếu Option B
-- [ ] Post-fix, `grep -c "BR-QUEUE\|fair-queue" documents/01-business/` ≥ 8
+- [x] Mỗi config key trong `kitehub-branding/application.yml:60-82` có BR-*-xxx đối ứng trong rules.md (BR-QUEUE-001..014 cho `ai.queue.*`, BR-QUEUE-015..018 cho `resilience4j.circuitbreaker.ai-provider.*`)
+- [x] Mỗi BR-QUEUE-* có code reference pointer tới dispatcher/consumer class (`AIQueueProperties`, `AIQueueConfig`, `AIQueueDispatcher`, `AIJobConsumer`, `AIJobPriority`, `BacklogInspector`, `DistributedRateLimiter`, `ResilientAIClient`)
+- [x] Use-case cho "AI job dispatch fair across tiers" thêm vào `use-cases.md` (UC-AGENT-08 fair dispatch, UC-AGENT-09 concurrency NACK, UC-AGENT-10 backpressure degrade, UC-AGENT-11 circuit breaker open)
+- [x] Option A chosen — extended `kiteclass/ai-agent-workflow/rules.md` thay vì tạo domain mới (Phase 2 fair-queue mới deferred per GAP-005, không cần dedicated domain ngay)
+- [x] Post-fix: rules.md có 18 BR-QUEUE-* entries; cross-reference từ `kitehub/ai-branding/rules.md` (AIB-14)
+
+## Resolution
+- Fix scope: docs-only (no code changes)
+- Files changed:
+  - `documents/01-business/kiteclass/ai-agent-workflow/rules.md` — added BR-QUEUE-001..018, metrics catalogue, config keys table
+  - `documents/01-business/kiteclass/ai-agent-workflow/use-cases.md` — added UC-AGENT-08..11
+  - `documents/01-business/kitehub/ai-branding/rules.md` — added AIB-14 cross-reference + config prefix update
+- Decision: Option A (single rules.md extension) over Option B (new `kitehub/ai-queue/` domain) — fair-queue chỉ active trong 1 service hiện tại; Phase 2 (GAP-005) sẽ revisit nếu queue logic expand cross-service.
+- Living Docs contract restored cho Wave 3 Phase 1.
 
 ## Related
 - Audit report: `documents/04-quality/audits/business/business-logic-audit-2026-04-19.md`

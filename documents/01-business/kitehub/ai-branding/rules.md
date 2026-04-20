@@ -1,7 +1,7 @@
 # AI Branding — Business Rules
 
-**Last verified:** 2026-03-24
-**Config prefix:** `ai.rate-limit`, `ai.provider`
+**Last verified:** 2026-04-19
+**Config prefix:** `ai.rate-limit`, `ai.provider`, `ai.queue` (fair-queue scheduler — see [`kiteclass/ai-agent-workflow/rules.md`](../../kiteclass/ai-agent-workflow/rules.md) §Fair-queue scheduler for BR-QUEUE-001..018)
 
 ## Rules
 
@@ -20,6 +20,7 @@
 | AIB-11 | Template categories | education, business, general | category filter |
 | AIB-12 | Template apply | Trả về themeConfig JSON | applyTemplate() |
 | AIB-13 | Template active filter | Chỉ hiện active=true | findByActiveTrueOrderByNameAsc() |
+| AIB-14 | Fair-queue dispatch | AI jobs tier-aware enqueue (Wave 3 Phase 1, GAP-005a) | xem BR-QUEUE-001..018 trong [`kiteclass/ai-agent-workflow/rules.md`](../../kiteclass/ai-agent-workflow/rules.md) — `AIQueueDispatcher` / `AIJobConsumer` / `AIQueueConfig` |
 
 ## Config
 
