@@ -594,17 +594,17 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-184 | **Data Retention + Deletion Policy** — VN PDPL Art 6 mandatory — Wave 8 | 🔴 P0 biz-logic | M |
 | GAP-185 | **Billing Terms + VAT/TCT compliance** — Circular 78/2021 mandatory — Wave 8 | 🔴 P0 biz-logic | L |
 | GAP-186 | **Child Protection Policy** (K-12 P5 blocker) — Law on Children 2016 — Wave 8 | 🔴 P0 biz-logic | L |
-| GAP-190 🟡 | KiteHub SEO — infra shipped (sitemap/robots/OG/JsonLd/blog); gap narrowed to pricing SSR, canonical schemas, GA4, content plan, Lighthouse CI — Wave 9/10 | 🟠 P1 biz-logic | M |
-| GAP-191 | Domain Registration + DNS Strategy (kitehub.vn + per-instance + custom CNAME) — Wave 9/10 | 🟠 P1 biz-logic | M |
-| GAP-192 | **Trial → Paid Zero-Downtime Migration** (state machine + outbox + rollback; layers under GAP-026) — Wave 9 | 🔴 P0 biz-logic | L |
-| GAP-193 | Session Orchestration + /start-session skill + multi-session lock — Wave 8b | 🟠 P1 meta | M |
-| GAP-194 | Bash/Python Script Compliance (shellcheck + ruff in CI; no .husky exists yet) — Wave 8b | 🟠 P1 meta | S |
-| GAP-195 | Starter-Kit Bulk Retro-Sync (export learnings to remote kit) — Wave 8b | 🟡 P2 meta | M |
-| GAP-197 🟡 | Attendance Calendar — component shipped (PR 3.8.1); gap narrowed to parent/student variants + a11y + week view + UI review + E2E — Wave 11 | 🟡 P2 feature | S |
-| GAP-198 | FE↔BE Decoupled Consumer-Side Contract (producer-side DONE via GAP-090/InstanceApiContractTest) — Wave 8b | 🟡 P2 meta | M |
-| GAP-199 | Rework Audit for Context-Degraded PRs (Wave 6-8 era) — Wave 8b | 🟠 P1 meta | M |
-| GAP-200 | School MIS/SMS Integration (VNEDU + SMAS + Base.vn) — Wave 9/10 | 🟠 P1 biz-logic | XL |
-| GAP-201 | Tenant Off-boarding Runbook (cancel UX + export bundle + purge; consumes GAP-073 deferred) — Wave 8b | 🟠 P1 meta | M |
+| GAP-190 🟡 | KiteHub SEO — infra shipped (sitemap/robots/OG/JsonLd/blog); gap narrowed to pricing SSR, canonical schemas, GA4, content plan, Lighthouse CI — **Wave 9** | 🟠 P1 biz-logic | M |
+| GAP-191 | Domain Registration + DNS Strategy (kitehub.vn + per-instance + custom CNAME) — **Wave 9** | 🟠 P1 biz-logic | M |
+| GAP-192 | **Trial → Paid Zero-Downtime Migration** (state machine + outbox + rollback; layers under GAP-026) — **Wave 9 (Agent 9-A, first priority)** | 🔴 P0 biz-logic | L |
+| GAP-193 | Session Orchestration + /start-session skill + multi-session lock — **Wave 8b (Agent 8b-E)** | 🟠 P1 meta | M |
+| GAP-194 | Bash/Python Script Compliance (shellcheck + ruff in CI; no .husky exists yet) — **Wave 8b (Agent 8b-D)** | 🟠 P1 meta | S |
+| GAP-195 | Starter-Kit Bulk Retro-Sync (export learnings to remote kit) — **Wave 8b (Agent 8b-F)** | 🟡 P2 meta | M |
+| GAP-197 🟡 | Attendance Calendar — component shipped (PR 3.8.1); gap narrowed to parent/student variants + a11y + week view + UI review + E2E — **Wave 11** (parent variant blocked by GAP-052 Wave 10) | 🟡 P2 feature | S |
+| GAP-198 | FE↔BE Decoupled Consumer-Side Contract (producer-side DONE via GAP-090/InstanceApiContractTest) — **Wave 8b (Agent 8b-F)** | 🟡 P2 meta | M |
+| GAP-199 | Rework Audit for Context-Degraded PRs (Wave 6-8 era) — **Wave 8b (Agent 8b-E)** | 🟠 P1 meta | M |
+| GAP-200 | School MIS/SMS Integration (VNEDU + SMAS + Base.vn) — **Wave 9 (Agent 9-C)** | 🟠 P1 biz-logic | XL |
+| GAP-201 | Tenant Off-boarding Runbook (cancel UX + export bundle + purge; consumes GAP-073 deferred) — **Wave 8b (Agent 8b-F)** | 🟠 P1 meta | M |
 
 **Dropped:** GAP-196 (9router ADR) — user decision 2026-04-20, not effective for project scope.
 
@@ -642,7 +642,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 ---
 
-**Last Updated:** 2026-04-20 (post state-check dedupe PR: GAP-196 dropped per user; GAP-190 + GAP-197 revised to 🟡 PARTIAL after discovering existing SEO infra + PR-3.8.1 attendance calendar; cross-references strengthened on GAP-192↔GAP-026, GAP-198↔GAP-090, GAP-201↔GAP-073; 59/178 DONE.)
+**Last Updated:** 2026-04-20 (Phase 2 master plan rebalance: **NEW Wave 9** "Audit-Followup Cluster + BL-P0" created containing GAP-192 BL-P0 + 3 BL-P1 (190/191/200) + 9 previously-unscheduled Part A/B residuals (GAP-106/109/148 biz-cleanup, GAP-043/132/134/135 performance, GAP-146 resilience, GAP-147 hotfix); existing Wave 9 renamed to **Wave 9b "GA Blockers Meta"**; Wave 8b expanded 6→12 meta gaps (+GAP-193/194/195/198/199/201); Wave 10 +GAP-052; Wave 11 +GAP-033 +GAP-197. Tier ordering per `meta-gap-priority.md` §3: BL-P0 now before Feature-P0. Quality-audit refresh due 2026-04-26.)
 
 ### Session 3 refresh 2026-04-18 — ROADMAP status audit
 
