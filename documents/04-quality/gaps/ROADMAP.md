@@ -10,7 +10,7 @@
 
 ## 🎯 Current Status Snapshot (2026-04-20)
 
-**Progress:** 57/147 gaps CLOSED (39%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. Calibrated quality score: **77/100 C+** (baseline; recovery to ~85 B+ expected end Week 2).
+**Progress:** 58/148 gaps CLOSED (39%). Waves 1-4 shipped. **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated impact 2026-04-20:** business-logic 65→**72** (+7, D→C), performance 58→**64** (+6, F→D). GAP-107 retracted as false positive (classes exist in kiteclass-core). GAP-148 new (P2 dead CB config). Quality audit baseline 77/100 stands pending next refresh.
 
 **GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
 
@@ -731,3 +731,34 @@ Parallel-agent execution continued from Part A. 5 worktree-isolated agents fixed
 **Superpowers adherence:** All 5 agents followed brainstorm + task-breakdown + (TDD where code) + implementation + self-review. Agent C and E delivered tests alongside code (TDD). Agents D and E self-caught writing to main worktree by mistake (hard rule 3 from `feedback_parallel_agent_strategy.md`) — no contamination landed on main.
 
 **Conflict-control effectiveness:** 4/5 agents zero-collision auto-FF merge. Agent E merged with local leftover from worktree-root confusion (cosmetic, discarded before pull). No PR-level conflicts.
+
+### Re-audit 2026-04-20 — Part B impact validation — 🟢 COMPLETE
+
+Ran 2 parallel re-audit agents after Part B merge to measure delta. First attempt crashed silently (both agents stopped ~21 min post-spawn, coincident with `mcp__ide__*` disconnect — unrelated infra issue). Respawn succeeded cleanly.
+
+| Category | Baseline 2026-04-19 | Refresh 2026-04-20 | Δ | PR |
+|----------|:-------------------:|:------------------:|:-:|:--:|
+| business-logic /100 | 65 D | **72 C** | +7 | #379 |
+| performance /100 | 58 F | **64 D** | +6 | #378 |
+
+**Business-logic findings (PR #379):**
+- 2 CLOSED: GAP-104 (Wave 3 BR-QUEUE verified), GAP-105 (parent-portal 3-layer verified)
+- 1 FALSE POSITIVE retracted: **GAP-107** — baseline grep scope missed `kiteclass/kiteclass-core/`; `ResilientAIClient` + `MockAIClient` + `OllamaAIClient` all exist with correct `@Profile("ai-live")` wiring
+- 1 NEW: **GAP-148** (P2) — `BR-QUEUE-015..018` circuit breaker config exists in kitehub-branding but 0 `@CircuitBreaker` annotation (dead config)
+- 7 unchanged (GAP-106/108/109/110 + 3 minor)
+
+**Performance findings (PR #378):**
+- 3 CLOSED: GAP-128 (installment PK lookup), GAP-129 (BrandingPackage tenant + V45 index + regression test), GAP-133 (Hibernate batch=50 × 5 services)
+- 1 PARTIAL: GAP-131 (6/9 sites; remainder → GAP-146)
+- 6 UNCHANGED: GAP-126, 127, 130, 132, 134, 135 (not in Part B scope)
+- 0 new gaps, 0 regressions
+- Category deltas: DB +3, API +2, Cache 0, FE 0, Resource +1
+
+**Lessons learned added to skill roadmap (future work):**
+- Business-logic-audit skill needs explicit broader grep scope (not just `kitehub/` + `kiteclass/` top-level) — risked false-positive like GAP-107
+- Re-audit pattern works: shows calibrated delta + flags regressions; took ~5-8 min per agent
+
+**Cumulative progress after re-audit:**
+- Progress 57/147 → 58/148 (GAP-107 closed, GAP-148 added)
+- Quality-audit 77/100 unchanged (not refreshed this round)
+- Next recovery milestone: 77 → ~80 B- after next sprint closing GAP-148 + GAP-146 + GAP-132 (1-2 days)
