@@ -71,6 +71,7 @@ Token budget ~30-45K. KiteHub 6 microservices có thể tạo output rất lớn
 - Websocket/SSE endpoints may not follow REST pattern — document separately
 - Wave 4 added `PublicDmcaController` — verify it's in legal-ip-protection api-contract.md
 - Controller grep output cho 6 services rất lớn — LUÔN limit per service
+- **Multi-module scope** — `kiteclass/kiteclass-core/src/main/` + `kitehub/*/src/main/` cover known controllers. Nếu thêm service mới (e.g. kiteclass-analytics), update grep paths OR switch to broad `--include="*.java"` from root. Ref: GAP-149.
 
 ## Skill Contents
 

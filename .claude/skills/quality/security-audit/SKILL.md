@@ -17,11 +17,13 @@ Score /100. Goes deeper than quality-audit's 10-point security category. Covers 
 cd kitehub/kitehub-frontend && npm audit --json 2>/dev/null | head -50
 cd kiteclass/kiteclass-frontend && npm audit --json 2>/dev/null | head -50
 
-# Secret patterns (grep is OK for scanning — not executing)
-grep -rn "password\s*=\|secret\s*=\|api_key\|Bearer " --include="*.java" --include="*.ts" --include="*.yml" kiteclass/ kitehub/ | grep -v node_modules | grep -v test | grep -v ".example"
+# Secret patterns (broad scope — grep OK for scanning, not executing)
+grep -rn "password\s*=\|secret\s*=\|api_key\|Bearer " --include="*.java" --include="*.ts" --include="*.yml" \
+  | grep -v node_modules | grep -v test | grep -v target | grep -v ".example" | head -30
 
-# Hardcoded IPs/URLs
-grep -rn "localhost\|127\.0\.0\.1\|0\.0\.0\.0" --include="*.java" --include="*.yml" kiteclass/kiteclass-core/src/main/ | head -20
+# Hardcoded IPs/URLs (all module src dirs)
+grep -rn "localhost\|127\.0\.0\.1\|0\.0\.0\.0" --include="*.java" --include="*.yml" \
+  kiteclass/*/src/main/ kitehub/*/src/main/ | head -20
 ```
 
 ### 2. Score 5 Categories
@@ -57,6 +59,7 @@ Token budget ~25-40K. Kiểm soát bằng:
 - JSoup 1.18.1 was added for SVG sanitization — check for CVEs on that version
 - Rate limiting config is in gateway `application.yml`, not core
 - npm audit JSON output có thể rất lớn — LUÔN limit output
+- **Multi-module scope** — narrow grep `kiteclass/ kitehub/` may miss submodule source files; prefer broad `--include="*.ext"` from root OR explicit `kiteclass/*/src/main/` glob. Ref: GAP-149.
 
 ## Skill Contents
 

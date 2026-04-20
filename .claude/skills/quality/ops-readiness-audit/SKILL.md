@@ -13,13 +13,13 @@ Score /100. Verify the platform is ready for production operations: monitoring, 
 ### 1. Check Infrastructure Config
 
 ```bash
-# Monitoring endpoints
+# Monitoring endpoints (broad scope — catches all submodules + infrastructure)
 grep -rn "actuator\|prometheus\|metrics\|health" --include="*.yml" --include="*.yaml" \
-  kiteclass/ kitehub/ infrastructure/ | grep -v node_modules | head -30
+  | grep -v node_modules | grep -v target | head -30
 
-# Logging config
+# Logging config (broad scope)
 grep -rn "logging\.\|logback\|log4j\|winston\|pino" --include="*.yml" --include="*.xml" --include="*.ts" \
-  kiteclass/ kitehub/ | grep -v node_modules | head -20
+  | grep -v node_modules | grep -v target | head -20
 
 # Backup/DR docs
 ls documents/05-guides/*backup* documents/05-guides/*disaster* documents/05-guides/*recovery* 2>/dev/null
@@ -64,6 +64,7 @@ Token budget ~25-35K. Kiểm soát:
 - MinIO: backup strategy different from PostgreSQL — object storage vs relational
 - KiteHub has 6 microservices — each needs independent health check
 - Terraform state: must be remote (S3/OCI bucket), not local
+- **Multi-module scope** — narrow grep `kiteclass/ kitehub/` may miss submodule config files; prefer broad `--include="*.yml"` from root. Ref: GAP-149, memory `feedback_audit_grep_scope.md`.
 
 ## Skill Contents
 

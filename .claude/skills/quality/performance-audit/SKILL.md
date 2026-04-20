@@ -21,11 +21,11 @@ grep -rn "@Query" --include="*.java" kiteclass/kiteclass-core/src/main/ | head -
 cd kitehub/kitehub-frontend && npm run build 2>&1 | tail -30
 cd kiteclass/kiteclass-frontend && npm run build 2>&1 | tail -30
 
-# Redis caching
-grep -rn "RedisTemplate\|@Cacheable\|cache" --include="*.java" kiteclass/ kitehub/ | grep -v test | head -20
+# Redis caching (broad scope — catches all submodules)
+grep -rn "RedisTemplate\|@Cacheable\|cache" --include="*.java" | grep -v test | grep -v target | head -20
 
-# Resource config
-grep -rn "pool-size\|max-connections\|timeout\|thread" --include="*.yml" kiteclass/ kitehub/ | head -20
+# Resource config (broad scope)
+grep -rn "pool-size\|max-connections\|timeout\|thread" --include="*.yml" | grep -v target | head -20
 ```
 
 ### 2. Score 5 Categories
@@ -60,6 +60,8 @@ Token budget ~15-25K (nhỏ nhất trong audit suite). Chú ý:
 - KiteClass has Resilience4j bulkhead — check thread pool sizes match
 - Docker `deploy.resources.limits` may not be set in dev compose — check k8s/Helm for prod
 - Build output có thể rất dài — chỉ lấy summary table cuối cùng
+- **Multi-module scope** — `kiteclass/ kitehub/` as grep dirs may miss submodules. Use broad `--include="*.java"` from root OR explicit `kiteclass/*/src/` `kitehub/*/src/` glob. Ref: GAP-149, memory `feedback_audit_grep_scope.md`.
+- Always `grep -v target` to exclude compiled `target/classes/` duplicates
 
 ## Skill Contents
 
