@@ -31,7 +31,7 @@
         <!-- GAP-203: pinned to fix transitive CVEs surfaced via GitHub code-scanning 2026-04-21 -->
         <tomcat.version>10.1.54</tomcat.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
-        <commons-compress.version>1.26.0</commons-compress.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
     </properties>
 
     <dependencyManagement>
