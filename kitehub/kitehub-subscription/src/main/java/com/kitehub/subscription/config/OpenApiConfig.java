@@ -8,9 +8,16 @@ import org.springframework.context.annotation.Configuration;
 /**
  * OpenAPI documentation configuration for Subscription Service.
  *
+ * <p>Explicit bean name ({@code "subscriptionOpenApiConfig"}) prevents a
+ * {@link org.springframework.context.annotation.ConflictingBeanDefinitionException}
+ * when a composite app (e.g. {@code kitehub-admin}) scans
+ * {@code com.kitehub.subscription} and {@code com.kitehub.admin} together —
+ * both previously resolved to the default bean name {@code "openApiConfig"}
+ * (GAP-147).
+ *
  * @since 1.1.0
  */
-@Configuration
+@Configuration("subscriptionOpenApiConfig")
 @OpenAPIDefinition(
     info = @Info(
         title = "KiteHub Subscription Service API",
