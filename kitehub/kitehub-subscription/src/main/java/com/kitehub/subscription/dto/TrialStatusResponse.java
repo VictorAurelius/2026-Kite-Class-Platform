@@ -1,6 +1,7 @@
 package com.kitehub.subscription.dto;
 
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.MigrationPhase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -65,4 +66,25 @@ public class TrialStatusResponse {
      * Warning level: NONE, MEDIUM (2-3 days), HIGH (1 day), EXPIRED.
      */
     private String warningLevel;
+
+    /**
+     * Trial-to-paid migration phase (GAP-192).
+     * NONE when no migration in flight.
+     */
+    private MigrationPhase migrationPhase;
+
+    /**
+     * Timestamp current migration transitioned to INITIATED; null if never migrated.
+     */
+    private LocalDateTime migrationStartedAt;
+
+    /**
+     * Timestamp migration reached COMPLETED (status flip); null until success.
+     */
+    private LocalDateTime migrationCompletedAt;
+
+    /**
+     * Human-readable failure reason when migrationPhase = MIGRATION_FAILED or REVERSED.
+     */
+    private String migrationFailureReason;
 }

@@ -1,6 +1,7 @@
 package com.kitehub.platform.domain.entity;
 
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.MigrationPhase;
 import com.kitehub.platform.domain.enums.PricingTier;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -184,6 +185,47 @@ public class Instance extends BaseEntity {
      */
     @Column(name = "trial_reminders", nullable = false)
     private boolean trialReminders = true;
+
+    /**
+     * In-flight trial-to-paid migration phase. NONE when no migration is running.
+     *
+     * <p>See rules.md §3 (trial-to-paid-migration) for the state machine. While
+     * {@code migrationPhase != NONE && != COMPLETED} the migration is in flight;
+     * user reads stay available (zero-downtime SLA T2P-02).</p>
+     *
+     * @since GAP-192
+     */
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "migration_phase", length = 32, nullable = false)
+    private MigrationPhase migrationPhase = MigrationPhase.NONE;
+
+    /**
+     * Timestamp when current migration transitioned to INITIATED.
+     * Null when no migration ever started or when last migration fully reset to NONE.
+     *
+     * @since GAP-192
+     */
+    @Column(name = "migration_started_at")
+    private LocalDateTime migrationStartedAt;
+
+    /**
+     * Timestamp when migration reached COMPLETED (status flip from TRIAL to ACTIVE).
+     * Used as the anchor for the 24h reversal window (T2P-04).
+     *
+     * @since GAP-192
+     */
+    @Column(name = "migration_completed_at")
+    private LocalDateTime migrationCompletedAt;
+
+    /**
+     * Free-form reason for the most recent MIGRATION_FAILED or REVERSED transition.
+     *
+     * @since GAP-192
+     */
+    @Size(max = 500)
+    @Column(name = "migration_failure_reason", length = 500)
+    private String migrationFailureReason;
 
     /**
      * Check if this instance is on trial.
