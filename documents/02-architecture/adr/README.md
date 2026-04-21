@@ -114,8 +114,10 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [013](ADR-013-data-retention-classification.md) | Data Retention Classification (GDPR + VN Compliance) | ACCEPTED | 2026-04-14 |
 | [014](ADR-014-async-jobs-queue-over-batch.md) | Async Jobs Queue (RabbitMQ) over Batch Framework | ACCEPTED | 2026-04-18 |
 | [015](ADR-015-aws-agent-plugins-evaluation.md) | AWS Agent Plugins Evaluation — Defer Adoption | ACCEPTED | 2026-04-18 |
+| [016](ADR-016-fe-be-contract-strategy.md) | Frontend ↔ Backend Contract Strategy | ACCEPTED | 2026-04-19 |
+| [017](ADR-017-mis-sync-strategy.md) | School MIS Sync Strategy (One-Shot vs Live) | PROPOSED | 2026-04-21 |
 
-Next free ID: **ADR-016**.
+Next free ID: **ADR-018**.
 
 ---
 
@@ -177,6 +179,7 @@ Non-ADR files in this folder (hypothetical drafts, notes) follow the parent fold
 
 ## Log
 
+- **2026-04-21:** Added ADR-017 PROPOSED (School MIS sync strategy — GAP-200 Phase 1). Backfilled ADR-016 index entry (pre-existing drift).
 - **2026-04-20:** Governance upgrade (GAP-172) — README expanded with explicit 4-step lifecycle (PROPOSED → ACCEPTED → DEPRECATED/SUPERSEDED), reviewer checklist, cadence table, linking conventions. Template enriched. Closes `output-review-mandate.md` §4 #3 Architecture Docs violation.
 - **2026-04-18:** Added ADR-015 (AWS Agent Plugins defer, GAP-103).
 - **2026-04-18:** Index backfilled (was showing only 5/13). Added ADR-014 capturing RabbitMQ-over-Batch decision retroactively (GAP-102 ADR kickoff).
