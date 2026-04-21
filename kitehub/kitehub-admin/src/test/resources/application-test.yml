@@ -16,12 +16,20 @@ spring:
   sql:
     init:
       mode: never
+  # Disable RabbitMQ auto-configuration in tests (admin pulls subscription's
+  # event publishing + consumers transitively, same as the subscription test
+  # profile — without this, ApplicationContext fails to load when no broker
+  # is present).
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 
 jwt:
   secret: abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ01
 
 encryption:
   master-key: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+  algorithm: AES-256-GCM
 
 database:
   lifecycle:
@@ -30,7 +38,32 @@ database:
 captcha:
   enabled: false
 
+# Webhook secret (subscription module requires on context load)
+webhook:
+  payment:
+    secret: "test-webhook-secret-for-admin-context-load"
+
+# S3/MinIO — mock mode for tests (admin transitively picks up
+# subscription.config.S3Config which blows up without a region; mock-mode
+# disables the real S3Client bean via @ConditionalOnProperty). GAP-147.
+storage:
+  s3:
+    mock-mode: true
+    bucket: kite-test-backups
+    region: ap-southeast-1
+    access-key: test-access-key
+    secret-key: test-secret-key
+
+# Backup configuration (subscription module requires on context load)
+backup:
+  retention-count: 3
+  pg-dump-path: pg_dump
+
 kitehub:
+  admin:
+    api-key: ""  # Empty = dev mode (no auth required in tests)
+  email:
+    use-queue: false
   email-verification:
     enabled: false
   email-service:

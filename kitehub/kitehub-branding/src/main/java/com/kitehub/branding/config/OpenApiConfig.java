@@ -8,9 +8,13 @@ import org.springframework.context.annotation.Configuration;
 /**
  * OpenAPI documentation configuration for Branding Service.
  *
+ * <p>Explicit bean name ({@code "brandingOpenApiConfig"}) — see GAP-147 for
+ * why every {@code OpenApiConfig} in the KiteHub multi-module build declares
+ * an explicit name instead of relying on the default {@code "openApiConfig"}.
+ *
  * @since 1.1.0
  */
-@Configuration
+@Configuration("brandingOpenApiConfig")
 @OpenAPIDefinition(
     info = @Info(
         title = "KiteHub Branding Service API",
