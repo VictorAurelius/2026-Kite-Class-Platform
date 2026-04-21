@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 /**
  * Configuration for trial-to-paid migration behavior.
  *
@@ -32,4 +34,16 @@ public class TrialToPaidConfig {
 
     /** Rule T2P-03 — p95 SLA surfaced to FE for poll hint. */
     private int backendP95Seconds = 5;
+
+    /** Rule T2P-09 — max retry attempts on MIGRATING failure. */
+    private int retryAttempts = 3;
+
+    /** Rule T2P-09 — retry backoff schedule (seconds). Size ≥ {@code retryAttempts - 1}. */
+    private List<Integer> retryBackoffSeconds = List.of(1, 3, 9);
+
+    /** Phase 4b-i — scheduler fixed-delay between MIGRATING pickups. */
+    private long schedulerFixedDelayMs = 5_000L;
+
+    /** Phase 4b-i — shared HMAC secret for the migration webhook. */
+    private String webhookSecret = "";
 }

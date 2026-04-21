@@ -8,6 +8,7 @@ import com.kitehub.subscription.dto.RollbackResponse;
 import com.kitehub.subscription.dto.UpgradeRequest;
 import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.exception.MigrationException;
+import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
 import com.kitehub.subscription.outbox.MigrationEventType;
 import com.kitehub.subscription.outbox.MigrationOutboxEvent;
 import com.kitehub.subscription.outbox.MigrationOutboxRepository;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -59,6 +62,7 @@ public class TrialToPaidService {
     private final MigrationOutboxRepository outboxRepository;
     private final TrialToPaidConfig config;
     private final TrialService trialService;
+    private final MigrationIdempotencyKeyService idempotencyService;
 
     /**
      * UC-T2P-01 step 2-5: user clicks upgrade → validate → INITIATED → PAYMENT_PENDING.
@@ -71,6 +75,18 @@ public class TrialToPaidService {
     @Transactional
     public UpgradeResponse initiateUpgrade(UUID instanceId, UpgradeRequest request) {
         log.info("Initiating upgrade for instance {} to tier {}", instanceId, request.getTier());
+
+        // GAP-192 Phase 4b-i — idempotency-key short-circuit. Duplicate retries from the
+        // same client within 10 minutes get the original 202 envelope back (see
+        // api-contract.md: "duplicate request within 10 minutes returns original 202").
+        if (idempotencyService != null && request.getIdempotencyKey() != null
+            && !request.getIdempotencyKey().isBlank()) {
+            Optional<UpgradeResponse> cached =
+                idempotencyService.findExisting(request.getIdempotencyKey(), instanceId);
+            if (cached.isPresent()) {
+                return cached.get();
+            }
+        }
 
         Instance instance = loadInstance(instanceId);
 
@@ -92,13 +108,20 @@ public class TrialToPaidService {
         transitionPhase(instance, MigrationPhase.PAYMENT_PENDING, now);
         instanceRepository.save(instance);
 
-        return UpgradeResponse.builder()
+        UpgradeResponse response = UpgradeResponse.builder()
             .instanceId(instance.getId())
             .migrationPhase(instance.getMigrationPhase())
             .startedAt(now)
             .estimatedCompletionSeconds(config.getBackendP95Seconds())
             .pollUrl(String.format(POLL_URL_TEMPLATE, instance.getId()))
             .build();
+
+        // Persist idempotency row inside the same txn so duplicate client retries see it.
+        if (idempotencyService != null) {
+            idempotencyService.persist(request.getIdempotencyKey(), response);
+        }
+
+        return response;
     }
 
     /**
@@ -241,6 +264,184 @@ public class TrialToPaidService {
             .newStatus(instance.getStatus())
             .trialExpiresAt(instance.getTrialExpiresAt())
             .build();
+    }
+
+    /**
+     * UC-T2P-05 — admin force-convert. Bypasses gateway capture: runs
+     * INITIATED → PAYMENT_PENDING → PAYMENT_CAPTURED all inside one transaction,
+     * tagged {@code manual=true} on the capture event so downstream reconciliation
+     * knows the payment happened out-of-band. The {@code MigrationScheduler} picks
+     * up the resulting PAYMENT_CAPTURED instance on the next tick.
+     *
+     * @param instanceId  target instance
+     * @param invoiceRef  accounting ref — persisted on the capture event
+     * @param auditReason free-form note from ops
+     * @return the initial 202 envelope (same shape as {@link #initiateUpgrade})
+     */
+    @Transactional
+    public UpgradeResponse forceConvert(UUID instanceId, UpgradeRequest request,
+                                        String invoiceRef, String auditReason) {
+        log.info("Admin force-convert for instance {} tier={} invoice={}",
+            instanceId, request.getTier(), invoiceRef);
+
+        UpgradeResponse response = initiateUpgrade(instanceId, request);
+
+        // Immediately short-circuit PAYMENT_PENDING → PAYMENT_CAPTURED with a manual tag.
+        Instance instance = loadInstance(instanceId);
+        transitionPhase(instance, MigrationPhase.PAYMENT_CAPTURED, LocalDateTime.now());
+        emitEvent(instance, MigrationEventType.PAYMENT_CAPTURED,
+            MigrationEventType.TOPIC_MIGRATION,
+            String.format("{\"instanceId\":\"%s\",\"manual\":true,\"invoiceRef\":\"%s\",\"reason\":\"%s\"}",
+                instance.getId(), escape(invoiceRef), escape(auditReason)));
+        instanceRepository.save(instance);
+
+        return response.toBuilder()
+            .migrationPhase(MigrationPhase.PAYMENT_CAPTURED)
+            .build();
+    }
+
+    /**
+     * Retry-wrapped migration (T2P-09): up to {@code maxAttempts} attempts with the
+     * backoff schedule from {@link TrialToPaidConfig#getRetryBackoffSeconds()}. On
+     * exhaustion the instance is marked {@link MigrationPhase#MIGRATION_FAILED} (already
+     * done inside {@link #executeMigration}) and a {@link MigrationException} is thrown
+     * to the caller — the scheduler logs + moves on.
+     *
+     * <p>Backoff is a simple in-thread sleep — acceptable for the MVP worker (single
+     * instance, low concurrency). A transactional retry library (Resilience4j / Spring
+     * Retry) can be dropped in later without changing the surface.</p>
+     */
+    public void executeMigrationWithRetry(UUID instanceId) {
+        int maxAttempts = Math.max(1, config.getRetryAttempts());
+        List<Integer> backoff = config.getRetryBackoffSeconds();
+
+        // Validate precondition once up front so illegal-phase callers don't enter
+        // the retry loop at all (INVALID_PHASE_TRANSITION is not transient).
+        Instance preview = loadInstance(instanceId);
+        if (preview.getMigrationPhase() != MigrationPhase.PAYMENT_CAPTURED) {
+            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
+                "Cannot execute migration from phase " + preview.getMigrationPhase());
+        }
+
+        RuntimeException lastError = null;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                boolean isFinalAttempt = (attempt == maxAttempts);
+                executeMigrationInternal(instanceId, isFinalAttempt);
+                log.info("Migration for {} succeeded on attempt {}", instanceId, attempt);
+                return;
+            } catch (RuntimeException ex) {
+                lastError = ex;
+                if (attempt < maxAttempts) {
+                    long delaySeconds = backoff != null && attempt - 1 < backoff.size()
+                        ? backoff.get(attempt - 1) : 1L;
+                    log.warn("Migration attempt {}/{} for {} failed — retrying in {}s: {}",
+                        attempt, maxAttempts, instanceId, delaySeconds, ex.getMessage());
+                    sleepSeconds(delaySeconds);
+                    // Reset phase so the next attempt can run the state-machine path again.
+                    resetToPaymentCapturedForRetry(instanceId);
+                }
+            }
+        }
+        // Retry exhausted — mark terminal and rethrow.
+        log.error("Migration exhausted {} attempts for instance {}", maxAttempts, instanceId);
+        markMigrationFailed(instanceId, lastError == null ? "unknown" : lastError.getMessage());
+        if (lastError instanceof MigrationException me) {
+            throw me;
+        }
+        throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
+            "Retry exhausted: " + (lastError == null ? "unknown" : lastError.getMessage()),
+            lastError);
+    }
+
+    /**
+     * Core migration work. Equivalent to the public {@link #executeMigration(UUID)} but
+     * only marks {@code MIGRATION_FAILED} on the final attempt so the retry wrapper
+     * can reset the phase between attempts.
+     */
+    @Transactional
+    protected void executeMigrationInternal(UUID instanceId, boolean terminalOnFailure) {
+        log.info("Executing migration for instance {}", instanceId);
+        Instance instance = loadInstance(instanceId);
+        if (instance.getMigrationPhase() != MigrationPhase.PAYMENT_CAPTURED) {
+            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
+                "Cannot execute migration from phase " + instance.getMigrationPhase());
+        }
+        transitionPhase(instance, MigrationPhase.MIGRATING, LocalDateTime.now());
+        instanceRepository.save(instance);
+        try {
+            trialService.convertTrialToSubscription(instanceId);
+            Instance refreshed = loadInstance(instanceId);
+            LocalDateTime completedAt = LocalDateTime.now();
+            transitionPhase(refreshed, MigrationPhase.COMPLETED, completedAt);
+            refreshed.setMigrationCompletedAt(completedAt);
+            emitEvent(refreshed, MigrationEventType.INSTANCE_MIGRATED,
+                MigrationEventType.TOPIC_MIGRATION,
+                String.format("{\"instanceId\":\"%s\",\"fromStatus\":\"TRIAL\",\"toStatus\":\"ACTIVE\",\"completedAt\":\"%s\"}",
+                    refreshed.getId(), completedAt));
+            emitEvent(refreshed, MigrationEventType.BRANDING_REFRESH_REQUIRED,
+                MigrationEventType.TOPIC_BRANDING,
+                String.format("{\"instanceId\":\"%s\",\"tier\":\"%s\"}",
+                    refreshed.getId(), refreshed.getTier()));
+            instanceRepository.save(refreshed);
+            log.info("Migration COMPLETED for instance {}", instanceId);
+        } catch (Exception ex) {
+            log.error("Migration attempt failed for instance {}", instanceId, ex);
+            if (terminalOnFailure) {
+                markMigrationFailed(instanceId, ex.getMessage());
+            }
+            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
+                "Migration failed: " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Reset an instance back to {@code PAYMENT_CAPTURED} after a failed attempt so the
+     * retry wrapper can run the state machine again. Called only between retry attempts.
+     */
+    @Transactional
+    protected void resetToPaymentCapturedForRetry(UUID instanceId) {
+        Instance instance = loadInstance(instanceId);
+        if (instance.getMigrationPhase() == MigrationPhase.PAYMENT_CAPTURED) {
+            return;
+        }
+        // Force-reset — bypass normal state-machine guard because we're inside the
+        // retry control loop and the previous attempt was definitionally transient.
+        instance.setMigrationPhase(MigrationPhase.PAYMENT_CAPTURED);
+        instance.setMigrationFailureReason(null);
+        instanceRepository.save(instance);
+    }
+
+    /**
+     * Scheduler hook — returns all instances currently in {@code PAYMENT_CAPTURED}
+     * waiting for the async worker to pick them up.
+     */
+    @Transactional(readOnly = true)
+    public List<Instance> findInstancesReadyForMigration() {
+        return instanceRepository.findByMigrationPhase(MigrationPhase.PAYMENT_CAPTURED);
+    }
+
+    /**
+     * Webhook entry for payment reversal (UC-T2P-02, webhook variant). Mirrors
+     * {@link #rollback(UUID, String)} but is idempotent for duplicate gateway
+     * deliveries — if the phase is already REVERSED, no-op.
+     */
+    @Transactional
+    public Optional<RollbackResponse> handlePaymentReversed(UUID instanceId, String reason) {
+        Instance instance = loadInstance(instanceId);
+        if (instance.getMigrationPhase() == MigrationPhase.REVERSED) {
+            log.info("Instance {} already REVERSED — ignoring duplicate webhook", instanceId);
+            return Optional.empty();
+        }
+        return Optional.of(rollback(instanceId, reason));
+    }
+
+    private static void sleepSeconds(long seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     // --- helpers ---------------------------------------------------------

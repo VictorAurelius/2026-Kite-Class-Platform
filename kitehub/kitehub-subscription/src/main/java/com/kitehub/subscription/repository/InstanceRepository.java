@@ -2,6 +2,7 @@ package com.kitehub.subscription.repository;
 
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
+import com.kitehub.platform.domain.enums.MigrationPhase;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -148,4 +149,17 @@ public interface InstanceRepository extends JpaRepository<Instance, UUID> {
      * @return Optional containing instance if found
      */
     Optional<Instance> findByCustomDomainAndDeletedFalse(String customDomain);
+
+    // =========================================================
+    // GAP-192 Phase 4b-i: async migration worker support
+    // =========================================================
+
+    /**
+     * Find all instances currently stuck in the given {@link MigrationPhase}.
+     * Used by {@code MigrationScheduler} to drain PAYMENT_CAPTURED into MIGRATING.
+     *
+     * @param phase migration phase to filter on
+     * @return list of matching instances (may be empty)
+     */
+    List<Instance> findByMigrationPhase(MigrationPhase phase);
 }

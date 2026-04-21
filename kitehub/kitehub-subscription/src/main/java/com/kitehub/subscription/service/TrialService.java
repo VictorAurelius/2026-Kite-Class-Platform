@@ -169,12 +169,23 @@ public class TrialService {
     }
 
     /**
-     * Convert trial to paid subscription.
-     * Updates instance status to ACTIVE.
+     * Convert trial to paid subscription — simple TRIAL → ACTIVE flip.
+     *
+     * <p><b>Internal use only:</b> this method is the terminal step inside
+     * {@link TrialToPaidService#executeMigration} and does not run the full
+     * migration state-machine (INITIATED → PAYMENT_PENDING → ... → COMPLETED)
+     * on its own. External callers must go through
+     * {@link TrialToPaidService#initiateUpgrade} so that outbox events,
+     * idempotency, retry, and the migration-phase column are all handled
+     * correctly (GAP-192 Phase 4a + 4b-i).</p>
      *
      * @param instanceId UUID of the instance
      * @throws IllegalArgumentException if instance not found or not on trial
+     * @deprecated Prefer {@link TrialToPaidService#initiateUpgrade} for new call
+     *     sites. Retained because the migration orchestrator delegates the final
+     *     status flip here.
      */
+    @Deprecated(since = "1.0.0 (GAP-192 Phase 4b-i)")
     @Transactional
     public void convertTrialToSubscription(UUID instanceId) {
         log.info("Converting trial to subscription for instance: {}", instanceId);
