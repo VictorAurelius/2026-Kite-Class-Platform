@@ -34,7 +34,7 @@
         <tomcat.version>10.1.54</tomcat.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-compress.version>1.26.0</commons-compress.version>
-        <poi.version>5.4.0</poi.version>
+        <poi.version>5.5.1</poi.version>
     </properties>
 
     <modules>
