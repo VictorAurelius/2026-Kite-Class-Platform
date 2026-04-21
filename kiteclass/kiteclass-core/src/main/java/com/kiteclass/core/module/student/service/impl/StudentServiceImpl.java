@@ -91,6 +91,8 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     @Transactional(readOnly = true)
+    // GAP-043 (Wave 9.5-D) — sync=true prevents cache stampede on popular student lookups
+    // (teacher dashboard, parent portal). 10 concurrent misses → 1 DB round-trip.
     @Cacheable(value = "students", keyGenerator = "multiTenantKeyGenerator")
     public StudentResponse getStudentById(Long id) {
         log.debug("Fetching student with ID: {}", id);

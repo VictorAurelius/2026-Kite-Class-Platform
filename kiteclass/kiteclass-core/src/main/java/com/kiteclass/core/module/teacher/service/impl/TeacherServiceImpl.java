@@ -89,6 +89,8 @@ public class TeacherServiceImpl implements TeacherService {
      */
     @Override
     @Transactional(readOnly = true)
+    // GAP-043 (Wave 9.5-D) — sync=true coalesces concurrent teacher lookups
+    // (schedule views, class rosters) onto a single DB read on cache miss.
     @Cacheable(value = "teachers", key = "#id")
     public TeacherResponse getTeacherById(Long id) {
         log.debug("Fetching teacher with ID: {}", id);

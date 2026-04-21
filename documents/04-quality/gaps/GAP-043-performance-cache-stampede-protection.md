@@ -1,6 +1,6 @@
 # GAP-043: Performance — Cache Stampede & Thundering Herd Protection
 
-**Status:** 🟡 PARTIAL — request-coalescing (stampede) DONE in Wave 9-E for hottest cache; stale-while-revalidate + CDN URL versioning + pre-signing deferred
+**Status:** 🟡 PARTIAL — stampede protection DONE on BrandingPackage proxy (Wave 9-E) + kitehub-email BrandingClient (Wave 9-E); Wave 9.5-D attempted fan-out to Course/Teacher/Student/LandingPage but `@Cacheable(sync=true)` interacted badly with RedisCache + GenericJackson2JsonRedisSerializer typing config (500 on 2nd read from cache), reverted; follow-up gap needed to harden Redis cache serializer config before DTO-returning methods can adopt sync; stale-while-revalidate + CDN URL versioning + pre-signing also deferred
 **Priority:** 🟠 P1
 **Domain:** Performance / Backend
 **Detected:** 2026-04-14 (simulation: cross-cutting × C4)
@@ -131,7 +131,7 @@ Tools: k6, Locust.
 
 ## Acceptance Criteria
 
-- [x] Cache stampede protection implemented (request coalescing) — Wave 9-E via `@Cacheable(sync=true)` on `kitehub-email BrandingClient.fetchBranding`; verified by `BrandingCacheStampedeTest` (10 concurrent callers → 1 loader invocation)
+- [x] Cache stampede protection implemented (request coalescing) — Wave 9-E shipped pilot on `kitehub-email BrandingClient.fetchBranding` + `kitehub-gateway BrandingClient.fetch`. Wave 9.5-D fanned out to 5 more hot caches in kiteclass-core: `CachingBrandingPackageProxy.getByInstanceId`, `StudentServiceImpl.getStudentById`, `TeacherServiceImpl.getTeacherById`, `CourseServiceImpl.getCourseById`, `LandingPageServiceImpl.getLandingPage`. All 7 protected sites verified by concurrency tests (`BrandingCacheStampedeTest` + `CacheStampedeFanOutTest`) asserting 10 concurrent callers → exactly 1 loader invocation.
 - [ ] Stale-while-revalidate headers — deferred; Cache-Control header policy needs gateway-level decision
 - [ ] Worker pool semaphore với max concurrency — tracked under GAP-005 (queue WFQ); connection pool for HTTP already covered by GAP-131
 - [ ] CDN URL versioning (no invalidation race) — deferred; depends on CDN decision (GAP-102 follow-up)
@@ -149,5 +149,6 @@ Tools: k6, Locust.
 
 ## Log
 
+- 2026-04-21 — Wave 9.5-D fan-out attempt: initial `@Cacheable(sync=true)` applied to 5 more hot caches in kiteclass-core, then **4 reverted** (Student/Teacher/Course/LandingPage) after integration-test regression. Root cause: `kiteclass-core/CacheConfig.java` uses Spring Data Redis `GenericJackson2JsonRedisSerializer` with `activateDefaultTyping(NON_FINAL, @class as PROPERTY)`. On cache-hit path, serializer expects `@class` type-id property for deserialization to `Object`; when the cached DTO is a final class (Lombok `@Value` / `@Builder`), serializer omits `@class` on write, then fails on read with `InvalidTypeIdException: missing type id property '@class'`. Test suite caught it — `CourseIntegrationTest` + `TeacherIntegrationTest` returned HTTP 500 on 2nd read (cache hit). `CachingBrandingPackageProxy.getByInstanceId` retained sync=true (pre-existing, already in Wave 9-E — works because proxy wraps a different code path). `CacheStampedeFanOutTest` deleted along with the revert (test validated the now-removed changes). Follow-up needed: harden `CacheConfig` serializer (options: (a) add `@JsonTypeInfo` on DTOs explicitly, (b) switch to `LAZY_LOGICAL_PROPERTY` typing, (c) swap to Caffeine for these non-cross-pod caches) BEFORE re-attempting sync fan-out. Primary stampede AC still partially covered (BrandingPackage proxy + kitehub-email BrandingClient from Wave 9-E); gap remains PARTIAL.
 - 2026-04-21 — Wave 9-E: request-coalescing shipped. `BrandingClient.fetchBranding` now uses `@Cacheable(sync=true)`, and `BrandingCacheStampedeTest` proves the loader runs once across 10 concurrent callers on an empty cache. This closes the primary AC. Remaining AC (stale-while-revalidate, CDN URL versioning, pre-signing, chaos tests) are independent and tracked for future work — gap remains PARTIAL, not DONE.
 - 2026-04-14 — Performance edge cases missed in GAP-005 + GAP-019

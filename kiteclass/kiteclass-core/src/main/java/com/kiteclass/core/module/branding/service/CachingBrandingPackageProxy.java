@@ -35,7 +35,12 @@ public class CachingBrandingPackageProxy implements BrandingPackageService {
     private final BrandingPackageService delegate;
 
     @Override
-    @Cacheable(value = CACHE_NAME, key = "#instanceId")
+    // GAP-043 (Wave 9.5-D) — sync=true coalesces concurrent misses for the same key
+    // onto a single delegate call. Without this, a cache-expiry storm on a popular
+    // tenant can fan out N concurrent reads into N upstream DB/redis loads (stampede).
+    // Spring's cache abstraction delegates to Cache#get(key, Callable) under the hood
+    // when sync is enabled, which holds a per-key lock until the loader completes.
+    @Cacheable(value = CACHE_NAME, key = "#instanceId", sync = true)
     public BrandingPackage getByInstanceId(Long instanceId) {
         log.debug("[branding-package] cache miss — loading instanceId={}", instanceId);
         return delegate.getByInstanceId(instanceId);
