@@ -3,6 +3,7 @@ package com.kiteclass.core.module.student.repository;
 import com.kiteclass.core.module.student.entity.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,6 +37,23 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
      * @return Optional containing the student if found and not deleted
      */
     Optional<Student> findByIdAndDeletedFalse(Long id);
+
+    /**
+     * Finds a student by ID with {@code parentLinks} prefetched (GAP-134 anti-N+1).
+     *
+     * <p>Use when the caller iterates {@code student.getParentLinks()} in the same
+     * transaction — for example, parent-dashboard assembly and child-profile reads
+     * that show "who the guardians are". Without this method Hibernate fires one
+     * extra SELECT the first time the collection is touched; multiplied across a
+     * list of students that becomes classic N+1.
+     *
+     * @param id the student ID
+     * @return Optional containing student with parentLinks prefetched
+     * @since 3.17.0 (GAP-134 expansion — Wave 9.5)
+     */
+    @EntityGraph(attributePaths = {"parentLinks"})
+    @Query("SELECT s FROM Student s WHERE s.id = :id AND s.deleted = false")
+    Optional<Student> findByIdWithParentLinks(@Param("id") Long id);
 
     /**
      * Finds a student by email (excluding deleted).
