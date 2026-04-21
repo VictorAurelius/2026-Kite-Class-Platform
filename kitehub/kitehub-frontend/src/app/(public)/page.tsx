@@ -26,6 +26,7 @@ import { useState } from 'react';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { SectionTitle } from '@/components/ui/section-title';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { organizationSchema, websiteSchema } from '@/components/seo/schemas';
 
 // ============================================================
 // DATA
@@ -418,30 +419,20 @@ export default function HomePage() {
   const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
   return (
     <div className="overflow-hidden">
+      <JsonLd data={organizationSchema()} />
+      <JsonLd data={websiteSchema()} />
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
         'name': 'KiteHub',
         'applicationCategory': 'BusinessApplication',
         'operatingSystem': 'Web',
-        'description': 'Nền tảng quản lý trung tâm giáo dục',
+        'description': 'Nền tảng SaaS quản lý trung tâm giáo dục: website, tuyển sinh, học phí, AI Branding.',
         'url': 'https://kitehub.vn',
         'offers': {
           '@type': 'AggregateOffer',
           'lowPrice': '0',
           'priceCurrency': 'VND',
-        },
-      }} />
-      <JsonLd data={{
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        'name': 'KiteHub',
-        'url': 'https://kitehub.vn',
-        'logo': 'https://kitehub.vn/logo.png',
-        'contactPoint': {
-          '@type': 'ContactPoint',
-          'contactType': 'customer service',
-          'email': 'support@kiteclass.com',
         },
       }} />
       {/* ========== HERO ========== */}

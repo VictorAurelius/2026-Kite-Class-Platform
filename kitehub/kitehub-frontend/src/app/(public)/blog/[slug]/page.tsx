@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllBlogSlugs, getBlogPost } from '@/lib/blog';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { blogPostingSchema, breadcrumbListSchema } from '@/components/seo/schemas';
 
 import type { Metadata } from 'next';
 
@@ -24,6 +26,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   return {
     title: `${post.title} - KiteHub Blog`,
     description: post.description,
+    alternates: {
+      canonical: `https://kitehub.vn/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
@@ -55,6 +60,23 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+      <JsonLd
+        data={blogPostingSchema({
+          slug,
+          title: post.title,
+          description: post.description,
+          author: post.author,
+          datePublished: post.date,
+          tags: post.tags,
+        })}
+      />
+      <JsonLd
+        data={breadcrumbListSchema([
+          { name: 'Trang chủ', path: '/' },
+          { name: 'Blog', path: '/blog' },
+          { name: post.title, path: `/blog/${slug}` },
+        ])}
+      />
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"

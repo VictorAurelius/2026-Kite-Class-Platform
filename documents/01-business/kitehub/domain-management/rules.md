@@ -1,9 +1,11 @@
 # Domain Management — Business Rules
 
-**Last verified:** 2026-03-24
+**Last verified:** 2026-04-21
 **Config prefix:** `kitehub.domain.verification`
+**Architecture:** [ADR-018 Domain Registrar / DNS / TLD](../../../02-architecture/adr/ADR-018-domain-registrar-dns.md)
+**Runbook:** [DNS Operations](../../../05-guides/dns-operations.md)
 
-## Rules
+## Custom-Domain Rules
 
 | ID | Rule | Value | Config Key |
 |----|------|-------|-----------|
@@ -17,6 +19,9 @@
 | DOM-08 | DNS record instruction | TXT: @ {token} hoặc _kitehub-verify.{domain} | buildResponse() |
 | DOM-09 | Mock mode behavior | DNS not resolvable → PENDING (không FAILED) | verifyCustomDomain() |
 | DOM-10 | Production mode | DNS not found → stays PENDING_VERIFY | verifyCustomDomain() |
+| DOM-11 | SSL issuance (new) | Cloudflare Custom Hostnames issues Let's Encrypt cert post-verify | `kitehub.domain.ssl.provider=cloudflare` |
+| DOM-12 | Max custom domains per instance | 1 active (DOM-05 enforces) | DomainService |
+| DOM-13 | Tenant-initiated removal | Tenant có thể gỡ custom domain — fallback về subdomain (DOM-07) | DomainService.removeCustomDomain() |
 
 ## Domain Status States
 
@@ -26,6 +31,78 @@ NONE → PENDING_VERIFY → VERIFIED
            FAILED (timeout - chưa implement trong scheduler)
 ```
 
+## Custom-Domain Verification Flow (state machine spec — implementation deferred)
+
+```
+         ┌──────────────┐
+         │     NONE     │
+         └──────┬───────┘
+                │ initiateCustomDomain(domain)
+                │ - validate TLD not in banned list
+                │ - check uniqueness (DOM-05)
+                │ - create verification token
+                ▼
+       ┌─────────────────┐
+       │ PENDING_VERIFY  │ ◄─── check-dns polling (Cloudflare resolver)
+       └─────┬──────┬────┘      every 5 min, first 1h
+             │      │           every 30 min, hours 1–48
+   DNS TXT   │      │ 48h timeout
+   matches   │      ▼
+             │    ┌──────────┐
+             │    │  FAILED  │ (tenant re-initiates)
+             │    └─────┬────┘
+             │          │ initiateCustomDomain (retry)
+             │          ▼
+             │   PENDING_VERIFY (loops back)
+             ▼
+       ┌──────────────┐
+       │   VERIFIED   │
+       │              │ trigger: Cloudflare Custom Hostname creation
+       │              │ → SSL cert issued via Let's Encrypt (~15 min)
+       └──────┬───────┘
+              │ tenant removes OR billing downgrade
+              ▼
+          NONE (subdomain fallback DOM-07)
+```
+
+**Implementation notes (Wave 10+):**
+- Verification polling via scheduled Spring `@Scheduled` job; DNS lookup via Cloudflare 1.1.1.1 resolver API (avoid caching quirks)
+- Cloudflare API call happens once on VERIFIED transition; idempotent by design
+- SSL cert renewal is Cloudflare's responsibility — we only track hostname status via their webhook
+
+## Subdomain Policy (kiteclass.com)
+
+### Reserved prefixes (cannot be assigned as tenant slug)
+
+The following first-level labels are **reserved** on `*.kiteclass.com` and MUST reject tenant slug requests:
+
+| Category | Reserved labels |
+|----------|----------------|
+| Platform ops | `api`, `app`, `www`, `admin`, `auth`, `gateway`, `cdn` |
+| Content / marketing | `blog`, `docs`, `help`, `support`, `status`, `press`, `about` |
+| Infrastructure | `mail`, `smtp`, `ns`, `mx`, `ftp`, `webmail`, `autoconfig`, `autodiscover` |
+| Environment | `dev`, `staging`, `test`, `qa`, `preview`, `beta`, `alpha`, `demo` |
+| Internal product | `hub`, `class`, `core`, `branding`, `billing`, `subscription` |
+| Legal / security | `legal`, `security`, `abuse`, `dmca`, `privacy` |
+| Brand protection | `kite`, `kitehub`, `kiteclass`, `kite-hub`, `kite-class` |
+
+**Rule:** reserved list synced into backend config `kitehub.domain.reserved-slugs` — must be queryable without code deploy.
+
+### Slug generation rules
+
+| # | Rule |
+|---|------|
+| SLG-01 | Lowercase ASCII only (`a–z`, `0–9`, `-`) |
+| SLG-02 | Length: 3–32 characters |
+| SLG-03 | Must start with a letter (`a–z`) |
+| SLG-04 | No consecutive hyphens (`--`) |
+| SLG-05 | No trailing hyphen |
+| SLG-06 | Regex: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$` |
+| SLG-07 | Not in reserved list (case-insensitive match) |
+| SLG-08 | Not homoglyph of reserved (e.g., `adm1n` — normalize zero/one swaps before compare) |
+| SLG-09 | Uniqueness scoped globally per TLD (no two tenants share a slug on `.kiteclass.com`) |
+| SLG-10 | Immutable once provisioned — tenants wanting different slug use custom-domain flow |
+
 ## Config
 
 ```yaml
@@ -34,4 +111,19 @@ kitehub:
     verification:
       timeout-hours: 48
       mock-mode: ${DOMAIN_VERIFICATION_MOCK:true}
+      poll-cloudflare-resolver: ${DOMAIN_VERIFY_USE_CLOUDFLARE:false}
+    ssl:
+      provider: cloudflare                  # per ADR-018 §4
+      custom-hostname-plan: business        # Cloudflare plan for SaaS custom hostnames
+    reserved-slugs:
+      source: classpath:reserved-slugs.txt  # sync to frontend via public JSON for form validation
+      case-insensitive: true
 ```
+
+## Related
+
+- ADR: [ADR-018 — Domain Registrar / DNS / TLD](../../../02-architecture/adr/ADR-018-domain-registrar-dns.md) (this rules.md is its operational enforcement)
+- Runbook: [`documents/05-guides/dns-operations.md`](../../../05-guides/dns-operations.md)
+- Gap: GAP-191 (closed by this update + ADR-018)
+- Use-cases: `use-cases.md` (same folder)
+- API contract: `api-contract.md` (same folder)

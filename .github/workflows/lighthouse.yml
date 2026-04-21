@@ -1,0 +1,100 @@
+name: Lighthouse CI (kitehub-frontend)
+
+# Advisory Lighthouse CI gate for the KiteHub public marketing site.
+# Initial threshold: SEO >= 90 (required), Performance + Accessibility + Best Practices
+# logged but not blocking. Tighten over time per GAP-190 acceptance criteria.
+
+on:
+  pull_request:
+    paths:
+      - 'kitehub/kitehub-frontend/**'
+      - '.github/workflows/lighthouse.yml'
+  workflow_dispatch:
+
+# Mark advisory while the audit stack settles. Flip to `required` in repo
+# branch-protection settings once scores are consistently above threshold.
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lhci:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: kitehub/kitehub-frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: kitehub/kitehub-frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          # Use production build; GA stays off in CI (no NEXT_PUBLIC_GA_ID).
+          NODE_ENV: production
+        run: pnpm build
+
+      - name: Install Lighthouse CI
+        run: pnpm add -D @lhci/cli@0.14.x
+
+      - name: Write LHCI config
+        run: |
+          cat > lighthouserc.json <<'EOF'
+          {
+            "ci": {
+              "collect": {
+                "startServerCommand": "pnpm start",
+                "url": [
+                  "http://localhost:4701/",
+                  "http://localhost:4701/pricing",
+                  "http://localhost:4701/blog"
+                ],
+                "numberOfRuns": 1
+              },
+              "assert": {
+                "preset": "lighthouse:no-pwa",
+                "assertions": {
+                  "categories:seo": ["error", {"minScore": 0.9}],
+                  "categories:accessibility": ["warn", {"minScore": 0.85}],
+                  "categories:best-practices": ["warn", {"minScore": 0.85}],
+                  "categories:performance": ["warn", {"minScore": 0.5}]
+                }
+              },
+              "upload": {"target": "temporary-public-storage"}
+            }
+          }
+          EOF
+
+      - name: Run Lighthouse CI
+        run: npx lhci autorun --config=./lighthouserc.json
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        continue-on-error: true  # advisory mode — flip to false after 2 clean weeks per GAP-190
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: kitehub/kitehub-frontend/.lighthouseci/
+          retention-days: 14
