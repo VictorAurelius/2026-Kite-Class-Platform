@@ -25,14 +25,25 @@
 
 ## Config keys
 
-| Key | Default | Purpose |
-|-----|---------|---------|
-| `branding.routing.template-first` | true | Enforce template-first philosophy |
-| `branding.routing.max-ai-ratio` | 0.20 | Metric alert threshold for FULL_AI share |
+| Key | Default | Purpose | Code reference |
+|-----|---------|---------|----------------|
+| `branding.routing.template-first` | true | Enforce template-first philosophy (BR-RES-005). Set false only for debug/load tests. | `BrandingRoutingProperties.templateFirst`, `ResourceRoutingService#logRoutingConfig` |
+| `branding.routing.max-ai-ratio` | 0.20 | Alert threshold for the `branding.routing.ai_ratio` gauge (FULL_AI share). Prometheus alert fires when exceeded. | `BrandingRoutingProperties.maxAiRatio`, `branding.routing.classified` counter emitted by `ResourceRoutingService#recordClassification` |
+
+Env-var overrides: `BRANDING_TEMPLATE_FIRST`, `BRANDING_MAX_AI_RATIO`.
+
+## Metrics
+
+| Metric | Type | Tags | Source |
+|--------|------|------|--------|
+| `branding.routing.classified` | Counter | `category` (static / template / full_ai) | `ResourceRoutingService#recordClassification` — one increment per classify() invocation |
+
+Grafana computes `branding.routing.ai_ratio = classified{category=full_ai} / sum(classified)` and alerts when it exceeds `branding.routing.max-ai-ratio`.
 
 ## Supported ResourceTypes
 
 `LOGO, FAVICON, BANNER, HERO, COURSE_THUMBNAIL, SOCIAL_COVER, EMAIL_HEADER`
 
 ## Log
+- 2026-04-21 — GAP-106: externalized `branding.routing.*` keys. Added `BrandingRoutingProperties` (kiteclass-core/module/branding/config), wired `ResourceRoutingService` to emit `branding.routing.classified` counter per classify(), added keys to `kiteclass-core/src/main/resources/application.yml`. Startup log warns when `template-first=false`.
 - 2026-04-14 — Initial rules (GAP-007, ADR-005)

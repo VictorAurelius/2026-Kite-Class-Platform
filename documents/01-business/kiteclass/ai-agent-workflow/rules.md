@@ -51,10 +51,10 @@ Tier-aware AI job queueing trên RabbitMQ — đảm bảo Enterprise jobs khôn
 | BR-QUEUE-012 | Concurrency cap exceeded → NACK + redeliver (KHÔNG drop job) | exception → Rabbit retry | (managed by listener retry config) | `AIJobConsumer.ConcurrencyLimitedException`, `spring.rabbitmq.listener.simple.retry` |
 | BR-QUEUE-013 | Tier resolution — unknown / null tier maps tới FREE (fail-safe) | default FREE | n/a (code-level) | `AIJobPriority.fromTier`, `AIQueueDispatcher#dispatch` (null-safe) |
 | BR-QUEUE-014 | RabbitMQ topology — 3 primary queues + 3 DLQs trên direct exchange `ai.request.exchange` | `ai.request.{enterprise,pro,free}` + `.dlq` | n/a (code constants) | `AIQueueConfig.QUEUE_*`, `AIQueueConfig.DLQ_*`, `AIQueueConfig.AI_EXCHANGE` |
-| BR-QUEUE-015 | Circuit breaker around AI provider — failure rate threshold | 50% | `resilience4j.circuitbreaker.instances.ai-provider.failureRateThreshold` | `ResilientAIClient` (BR-AGENT-001) |
-| BR-QUEUE-016 | Circuit breaker — wait duration trong open state | 30s | `resilience4j.circuitbreaker.instances.ai-provider.waitDurationInOpenState` | `ResilientAIClient` |
-| BR-QUEUE-017 | Circuit breaker — sliding window size cho failure rate calc | 20 calls | `resilience4j.circuitbreaker.instances.ai-provider.slidingWindowSize` | `ResilientAIClient` |
-| BR-QUEUE-018 | Circuit breaker — minimum calls trước khi đánh giá failure rate | 10 calls | `resilience4j.circuitbreaker.instances.ai-provider.minimumNumberOfCalls` | `ResilientAIClient` |
+| BR-QUEUE-015 | Circuit breaker around AI provider — failure rate threshold | 50% | `resilience4j.circuitbreaker.instances.ai-provider.failureRateThreshold` | `kitehub-branding/client/ResilientAIClient` (GAP-148, Wave 9-D — wraps `analyzeLogo`/`generateImage`/`generateText`); separate `ResilientAIClient` in `kiteclass-core` uses CB name `ai` (BR-AGENT-001) |
+| BR-QUEUE-016 | Circuit breaker — wait duration trong open state | 30s | `resilience4j.circuitbreaker.instances.ai-provider.waitDurationInOpenState` | `kitehub-branding/client/ResilientAIClient` |
+| BR-QUEUE-017 | Circuit breaker — sliding window size cho failure rate calc | 20 calls | `resilience4j.circuitbreaker.instances.ai-provider.slidingWindowSize` | `kitehub-branding/client/ResilientAIClient` |
+| BR-QUEUE-018 | Circuit breaker — minimum calls trước khi đánh giá failure rate | 10 calls | `resilience4j.circuitbreaker.instances.ai-provider.minimumNumberOfCalls` | `kitehub-branding/client/ResilientAIClient` |
 
 **Service scope:** rules above hiện chỉ áp dụng cho `kitehub-branding` (PR #341, Wave 3 Phase 1). Khi mở rộng fair-queue cho service khác (KiteClass core AI agents), copy config keys nguyên xi và reference các BR-QUEUE-* tương ứng.
 
@@ -98,5 +98,6 @@ Các metric Micrometer publish bởi `AIQueueDispatcher` + `AIJobConsumer` — d
 | (Resilience4j Bulkhead/Retry inherits from `ai-provider` config defaults) | — | CB/Bulkhead/Retry for AI calls |
 
 ## Log
+- 2026-04-21 — GAP-148 (Wave 9-D): BR-QUEUE-015..018 now backed by `kitehub-branding/src/main/java/com/kitehub/branding/client/ResilientAIClient.java` (decorator, `@Primary`, `@CircuitBreaker(name="ai-provider")` on `analyzeLogo`/`generateImage`/`generateText`, fallbacks return template-safe domain defaults). Previously config was dead (loaded but unreferenced). `AIProviderConfig.aiClient()` demoted from `@Primary` → named `aiClient`, injected into the wrapper via `@Qualifier`.
 - 2026-04-19 — GAP-104: backfill BR-QUEUE-001..018 cho Wave 3 Phase 1 fair-queue (8 ai.queue config keys + 4 resilience4j keys), thêm UC-AGENT-08..10 và metrics catalogue. Source: `kitehub-branding/application.yml:60-91` + `AIQueueProperties` / `AIQueueConfig` / `AIJobPriority` / `AIJobConsumer` / `AIQueueDispatcher` / `BacklogInspector`.
 - 2026-04-14 — Initial rules (Wave 3 Sub-PR 3.5, ADR-006)

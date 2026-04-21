@@ -1,6 +1,6 @@
 # GAP-109: Student Bulk-Import Rules Undocumented
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 9-D, 2026-04-21)
 **Priority:** 🟠 P1
 **Domain:** KiteClass / Student Enrollment / Business Docs
 **Found:** 2026-04-19 (business-logic audit)
@@ -71,3 +71,11 @@ Thêm use-case UC-BULK-01 vào `use-cases.md`. Config key `student.bulk-import.m
 - Original feature: GAP-051 (Wave 1 bulk import)
 - Related PRs: #332 (bulk import MVP), #338 (in-file duplicate fix)
 - Pattern echoes: GAP-104 (fair-queue undocumented), GAP-105 (parent-portal no 3-layer)
+
+## Log
+- 2026-04-21 (Wave 9-D) — Closed. Created new 3-layer domain folder `documents/01-business/kiteclass/bulk-import/` with:
+  - `rules.md` — 30+ BR-BI-* rules covering file/parsing/per-row-validation/duplicate-detection/atomicity/tenant isolation/reporting + code references per rule
+  - `use-cases.md` — UC-BI-01..05 (preview, commit, error download, oversize reject, row-limit reject)
+  - `api-contract.md` — full contract for `POST /preview`, `POST /commit`, `POST /jobs/{id}/errors` including xlsx schema, error codes, examples
+  
+  Docs capture shipped Wave 1 behavior (no code change). Placed under its own domain rather than extending `student-enrollment/rules.md` — cleaner separation, matches 3-layer contract per CLAUDE.md.
