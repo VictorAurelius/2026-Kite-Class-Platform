@@ -54,6 +54,7 @@ class CaptchaServiceTimeoutTest {
 
     @Test
     @DisplayName("On read timeout, fails OPEN (returns true) — does not block signup")
+    @SuppressWarnings("unchecked")  // Mockito matcher for RestTemplate.exchange(..., Class<T>)
     void failsOpenOnReadTimeout() {
         when(restTemplate.exchange(
                 anyString(),
@@ -73,6 +74,7 @@ class CaptchaServiceTimeoutTest {
 
     @Test
     @DisplayName("On connect timeout, fails OPEN (returns true)")
+    @SuppressWarnings("unchecked")  // Mockito matcher for RestTemplate.exchange(..., Class<T>)
     void failsOpenOnConnectTimeout() {
         when(restTemplate.exchange(
                 anyString(),

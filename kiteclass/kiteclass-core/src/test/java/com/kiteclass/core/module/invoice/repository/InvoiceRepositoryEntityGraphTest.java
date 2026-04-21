@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.invoice.repository;
 
 import com.kiteclass.core.module.invoice.entity.Invoice;
-import com.kiteclass.core.module.invoice.entity.InvoiceItem;
 import com.kiteclass.core.testutil.IntegrationTestBase;
 import com.kiteclass.core.testutil.InvoiceTestDataBuilder;
 import jakarta.persistence.EntityManager;
@@ -91,10 +90,8 @@ class InvoiceRepositoryEntityGraphTest extends IntegrationTestBase {
 
         Optional<Invoice> loaded = invoiceRepository.findByIdAndDeletedFalse(saved.getId());
         assertThat(loaded).isPresent();
-        // Trigger collection init
-        for (InvoiceItem ignored : loaded.get().getItems()) {
-            // no-op — just force init
-        }
+        // Force lazy-collection init (size() triggers fetch without unused-var warning)
+        loaded.get().getItems().size();
 
         long selectCount = stats.getPrepareStatementCount();
         assertThat(selectCount)

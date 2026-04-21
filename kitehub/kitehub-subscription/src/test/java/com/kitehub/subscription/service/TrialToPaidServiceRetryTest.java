@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TrialToPaidService — retry + forceConvert + handlePaymentReversed")
+@SuppressWarnings("deprecation")  // tests delegation to legacy TrialService.convertTrialToSubscription during Phase 4b-i transition
 class TrialToPaidServiceRetryTest {
 
     @Mock

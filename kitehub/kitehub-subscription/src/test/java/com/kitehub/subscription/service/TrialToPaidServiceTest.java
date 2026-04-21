@@ -39,6 +39,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TrialToPaidService")
+@SuppressWarnings("deprecation")  // tests delegation to legacy TrialService.convertTrialToSubscription during Phase 4b-i transition
 class TrialToPaidServiceTest {
 
     @Mock
