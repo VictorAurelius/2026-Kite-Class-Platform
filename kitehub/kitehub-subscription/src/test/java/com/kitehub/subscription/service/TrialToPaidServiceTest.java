@@ -9,6 +9,7 @@ import com.kitehub.subscription.dto.RollbackResponse;
 import com.kitehub.subscription.dto.UpgradeRequest;
 import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.exception.MigrationException;
+import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
 import com.kitehub.subscription.outbox.MigrationEventType;
 import com.kitehub.subscription.outbox.MigrationOutboxEvent;
 import com.kitehub.subscription.outbox.MigrationOutboxRepository;
@@ -49,6 +50,9 @@ class TrialToPaidServiceTest {
     @Mock
     private TrialService trialService;
 
+    @Mock
+    private MigrationIdempotencyKeyService idempotencyService;
+
     private TrialToPaidConfig config;
 
     @InjectMocks
@@ -61,7 +65,7 @@ class TrialToPaidServiceTest {
     void setUp() {
         config = new TrialToPaidConfig();
         // Inject the config manually because @InjectMocks cannot resolve non-mock.
-        service = new TrialToPaidService(instanceRepository, outboxRepository, config, trialService);
+        service = new TrialToPaidService(instanceRepository, outboxRepository, config, trialService, idempotencyService);
 
         instanceId = UUID.randomUUID();
         instance = new Instance();

@@ -19,7 +19,7 @@ import java.util.UUID;
  * @since 1.0.0 (GAP-192)
  */
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpgradeResponse {

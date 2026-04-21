@@ -62,9 +62,14 @@ All endpoints assume Bearer JWT (Owner or Admin role) unless noted. Error envelo
 
 ---
 
-## POST /api/platform/webhooks/payment
+## POST /api/platform/webhooks/trial-migration
 **Use case:** UC-T2P-02 (reversal), UC-T2P-01 step 6 (capture)
-**Auth:** HMAC signature (gateway shared secret)
+**Auth:** HMAC-SHA256 signature (gateway shared secret) sent via header `X-Signature: <hex>`; signed body = raw request bytes
+**Note:** the path `/webhooks/payment` is already owned by the VietQR
+`PaymentWebhookController` (pre-GAP-192); the migration-specific webhook therefore lives
+at `/webhooks/trial-migration`. Both use HMAC-SHA256 but different body-signing schemes
+(VietQR uses key=value& ordering; trial-migration uses raw body per modern gateway
+convention — Stripe/Adyen style).
 **Request (capture):**
 ```json
 {

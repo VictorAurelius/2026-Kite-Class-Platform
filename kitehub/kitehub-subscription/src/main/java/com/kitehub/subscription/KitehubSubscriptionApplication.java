@@ -16,7 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan(basePackages = {
     "com.kitehub.platform.domain.entity",
     "com.kitehub.subscription.domain",
-    "com.kitehub.subscription.outbox"
+    "com.kitehub.subscription.outbox",
+    "com.kitehub.subscription.idempotency"
 })
 @EnableJpaAuditing
 @EnableScheduling

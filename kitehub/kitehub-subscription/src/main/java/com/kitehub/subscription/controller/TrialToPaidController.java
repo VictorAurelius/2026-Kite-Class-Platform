@@ -1,7 +1,5 @@
 package com.kitehub.subscription.controller;
 
-import com.kitehub.subscription.dto.RollbackRequest;
-import com.kitehub.subscription.dto.RollbackResponse;
 import com.kitehub.subscription.dto.UpgradeRequest;
 import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.service.TrialToPaidService;
@@ -20,7 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 /**
- * REST endpoints for trial-to-paid migration (GAP-192).
+ * REST endpoints for user-initiated trial-to-paid migration (GAP-192).
+ *
+ * <p>Admin-only operations (force-convert, rollback) live in
+ * {@link com.kitehub.subscription.controller.admin.AdminMigrationController} so
+ * the {@code AdminApiKeyInterceptor} guard (under {@code /api/platform/admin/**})
+ * applies correctly.</p>
  *
  * <p>See {@code documents/01-business/kitehub/trial-to-paid-migration/api-contract.md}.</p>
  *
@@ -48,18 +51,5 @@ public class TrialToPaidController {
         @Valid @RequestBody UpgradeRequest request) {
         UpgradeResponse response = trialToPaidService.initiateUpgrade(id, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
-    }
-
-    /**
-     * POST /api/platform/admin/instances/{id}/rollback-migration — admin rollback (UC-T2P-02).
-     */
-    @Operation(summary = "Admin: rollback a completed migration within the 24h window",
-        description = "Moves ACTIVE back to TRIAL and restores the original trial expiry.")
-    @PostMapping("/admin/instances/{id}/rollback-migration")
-    public ResponseEntity<RollbackResponse> rollback(
-        @PathVariable UUID id,
-        @Valid @RequestBody RollbackRequest request) {
-        RollbackResponse response = trialToPaidService.rollback(id, request.getReason());
-        return ResponseEntity.ok(response);
     }
 }
