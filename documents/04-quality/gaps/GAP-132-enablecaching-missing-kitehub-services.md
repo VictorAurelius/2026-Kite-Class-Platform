@@ -1,6 +1,6 @@
 # GAP-132: @EnableCaching missing in kitehub-subscription / kitehub-admin / kitehub-platform
 
-**Status:** 🟡 PARTIAL — subscription + admin DONE via Caffeine (Wave 9-E); platform is a shared-entity module (no Spring Boot app, no `@EnableCaching` needed); Redis belt-and-braces still open
+**Status:** 🟢 DONE — all kitehub Spring Boot services now have `@EnableCaching` + Caffeine. Wave 9-E shipped subscription + admin; Wave 9.5-B fan-out shipped branding. Redis belt-and-braces remains a follow-up (tracked under cross-pod coherence roadmap, not this gap).
 **Priority:** 🟠 P1
 **Domain:** Backend / Caching / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -49,11 +49,15 @@ GAP-126 (admin dashboard findAll) proposes caching `DashboardStats`; this gap is
 
 - [x] `@EnableCaching` present in kitehub-subscription (Wave 9-E — `CacheConfig.java`)
 - [x] `@EnableCaching` present in kitehub-admin (Wave 9-E — `CacheConfig.java`)
-- [ ] kitehub-platform — **N/A after state-check**: shared-entity module with no `@SpringBootApplication`. Classes imported by subscription/admin inherit their cache managers.
-- [x] Caffeine-backed `CacheManager` Bean with per-cache TTL in each service (pattern aligned with existing kitehub-email / kitehub-gateway caches)
-- [x] `spring.cache.type: caffeine` in each `application.yml` (prevents silent ConcurrentMapCacheManager fallback)
-- [x] Integration test verifies a sentinel cache is hit only once under concurrent calls — covered by `kitehub-email/src/test/.../BrandingCacheStampedeTest` (GAP-043 coupling); per-service smoke tests added (`CacheConfigTest` in each module).
-- [ ] Redis belt-and-braces — deferred. Current Caffeine is per-JVM; cross-pod coherence still needs Redis migration when subscription/admin scale horizontally. Tracked as follow-up under this gap.
+- [x] `@EnableCaching` present in kitehub-branding (Wave 9.5-B — `CacheConfig.java`, caches `brandingTemplates` + `brandingRateLimit`)
+- [x] `@EnableCaching` present in kitehub-email (Wave 4 — `BrandingCacheConfig.java`, verified state-check 2026-04-21)
+- [x] `@EnableCaching` present in kitehub-gateway (Wave 4 — `GatewayBrandingCacheConfig.java`, verified state-check 2026-04-21)
+- [x] kitehub-platform — **N/A**: shared-entity module with no `@SpringBootApplication`. Classes imported by subscription/admin/branding inherit their cache managers.
+- [x] kitehub-base — **N/A**: shared library module, no `@SpringBootApplication`.
+- [x] Caffeine-backed `CacheManager` Bean with per-cache TTL in each service (pattern aligned across subscription, admin, branding, email, gateway)
+- [x] `spring.cache.type: caffeine` in each applicable `application.yml` (prevents silent ConcurrentMapCacheManager fallback)
+- [x] Integration test verifies a sentinel cache is hit only once under concurrent calls — covered by `kitehub-email/src/test/.../BrandingCacheStampedeTest` (GAP-043 coupling); per-service smoke tests added (`CacheConfigTest` in subscription, admin, branding).
+- [ ] Redis belt-and-braces — deferred. Current Caffeine is per-JVM; cross-pod coherence still needs Redis migration when services scale horizontally. Tracked as follow-up — OUT OF SCOPE for GAP-132 (was only about enabling caching infrastructure).
 - [ ] backend-standards.md updated with caching convention — deferred to follow-up doc PR (meta)
 
 ## Related
@@ -64,5 +68,6 @@ GAP-126 (admin dashboard findAll) proposes caching `DashboardStats`; this gap is
 
 ## Log
 
+- 2026-04-21 — Wave 9.5-B fan-out: kitehub-branding received `CacheConfig.java` + `@EnableCaching` + `spring.cache.type: caffeine` + `CacheConfigTest` (3 tests green). State-check (grep `@EnableCaching` + `@SpringBootApplication` across kitehub/) confirmed only branding was missing; gateway (Wave 4 GAP-032) and email (Wave 4 GAP-021) already had it. kitehub-base + kitehub-platform remain N/A (shared non-boot modules). Full branding test suite 149/149 green. Gap promoted 🟡 PARTIAL → 🟢 DONE; Redis belt-and-braces carved out as separate follow-up (not scope of GAP-132).
 - 2026-04-21 — Wave 9-E shipped Caffeine CacheConfig + `@EnableCaching` for kitehub-subscription and kitehub-admin. Per-service smoke tests pass (3 + 3). `spring.cache.type: caffeine` added to both application.yml. Platform module reclassified N/A (not a runnable Spring Boot app). Remaining AC: Redis migration for cross-pod coherence; backend-standards.md update — both deferred to follow-up.
 - 2026-04-19 — Gap created from performance baseline audit

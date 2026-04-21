@@ -72,6 +72,18 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Spring Cache abstraction (GAP-132 fan-out — Wave 9.5-B) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- Caffeine cache backend (in-memory, pattern shared with kitehub-email / kitehub-admin) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- Resilience4j for circuit breaker / bulkhead around AI providers -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>

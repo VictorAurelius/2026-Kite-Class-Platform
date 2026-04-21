@@ -32,6 +32,12 @@ spring:
       port: ${REDIS_PORT:6379}
       timeout: 2000
 
+  # GAP-132 (Wave 9.5-B fan-out) — pin cache abstraction to Caffeine (in-memory, fast).
+  # Prevents silent fallback to ConcurrentMapCacheManager if CacheConfig Bean wiring is
+  # ever skipped. Template gallery + rate-limit reads benefit from short-lived caching.
+  cache:
+    type: caffeine
+
   # RabbitMQ Configuration
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
@@ -46,6 +52,13 @@ spring:
           initial-interval: 1000
           multiplier: 2.0
           max-interval: 10000
+
+kitehub:
+  branding:
+    cache:
+      # GAP-132 (Wave 9.5-B) — seed TTLs for branding Caffeine caches.
+      template-ttl-seconds: ${BRANDING_TEMPLATE_CACHE_TTL_SECONDS:300}
+      rate-limit-ttl-seconds: ${BRANDING_RATE_LIMIT_CACHE_TTL_SECONDS:900}
 
 server:
   port: 8083
