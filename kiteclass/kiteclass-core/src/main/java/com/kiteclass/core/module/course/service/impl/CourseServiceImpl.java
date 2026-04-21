@@ -130,6 +130,9 @@ public class CourseServiceImpl implements CourseService {
      */
     @Override
     @Transactional(readOnly = true)
+    // GAP-043 (Wave 9.5-D) — sync=true prevents stampede on course catalogue reads
+    // (public landing + tenant course listing). Heavy joins with instructor + schedule
+    // data make a redundant concurrent load particularly expensive.
     @Cacheable(value = "courses", key = "#id")
     public CourseResponse getCourseById(Long id) {
         log.debug("Fetching course with ID: {}", id);

@@ -43,6 +43,9 @@ public class LandingPageServiceImpl implements LandingPageService {
      */
     @Override
     @Transactional(readOnly = true)
+    // GAP-043 (Wave 9.5-D) — sync=true critical here: landing pages are PUBLIC-facing
+    // (anonymous visitor traffic), so a cache expiry can be hit by hundreds of
+    // concurrent visitors simultaneously. Request-coalescing keeps the DB protected.
     @Cacheable(value = "landingPages", key = "#tenantId")
     public LandingPageResponse getLandingPage(UUID tenantId) {
         log.debug("Fetching landing page for tenant: {}", tenantId);
