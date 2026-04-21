@@ -16,7 +16,7 @@
     <description>API Gateway with routing, rate limiting, circuit breaker</description>
 
     <properties>
-        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
     </properties>
 
     <dependencyManagement>
