@@ -28,7 +28,29 @@
         <resilience4j.version>2.2.0</resilience4j.version>
         <!-- Override Jackson version to fix GHSA-72hv-8253-57qq (DoS vulnerability) -->
         <jackson.version>2.21.1</jackson.version>
+        <!-- GAP-203: pinned to fix transitive CVEs surfaced via GitHub code-scanning 2026-04-21 -->
+        <!-- Spring Boot 3.5.13 ships Tomcat 10.1.53; override resolves CVE-2026-34483/34487/34500 -->
+        <tomcat.version>10.1.54</tomcat.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <commons-compress.version>1.26.0</commons-compress.version>
+        <poi.version>5.4.0</poi.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- GAP-203: CVE overrides for transitive deps -->
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -184,10 +206,11 @@
         </dependency>
 
         <!-- Apache POI for xlsx parsing + generation (GAP-051 Wave 1, bulk import students) -->
+        <!-- GAP-203: bumped 5.2.5 → 5.4.0 to fix CVE-2025-31672 (zip entry duplicate name) -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
+            <version>${poi.version}</version>
         </dependency>
 
         <!-- OpenCSV — CSV parsing (GAP-051, reserved for CSV bulk import variant) -->

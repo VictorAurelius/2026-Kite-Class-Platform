@@ -28,6 +28,10 @@
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.version>1.18.36</lombok.version>
+        <!-- GAP-203: pinned to fix transitive CVEs surfaced via GitHub code-scanning 2026-04-21 -->
+        <tomcat.version>10.1.54</tomcat.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <commons-compress.version>1.26.0</commons-compress.version>
     </properties>
 
     <dependencyManagement>
@@ -38,6 +42,17 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- GAP-203: CVE overrides for transitive deps -->
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
