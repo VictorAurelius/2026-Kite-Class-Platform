@@ -8,10 +8,11 @@ set -euo pipefail
 #   ./scripts/repo-status.sh --json       # JSON output (for skill consumption)
 #   ./scripts/repo-status.sh --level      # Just print level: GREEN/YELLOW/ORANGE/RED/BLACK
 #
-# Checks 3 factors:
+# Checks 4 factors:
 #   1. CI status on main (green/failing, how long)
 #   2. Open PRs + stale remote branches
 #   3. Latest audit gaps without fix PRs
+#   4. GitHub Security — Dependabot + code-scanning + secret-scanning alerts
 #
 # Exit codes:
 #   0 = GREEN or YELLOW
@@ -235,6 +236,85 @@ check_audit_gaps() {
     echo "gap_details=$gap_details"
 }
 
+# --- Factor 4: GitHub Security ---
+# Probes Dependabot, code-scanning, secret-scanning via gh api.
+# Graceful-degrades when any API is disabled or unavailable.
+check_security() {
+    local repo
+    repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null) || {
+        echo "sec_status=unknown"
+        echo "sec_error=gh_unavailable"
+        return
+    }
+
+    # Helper: run gh api, capture stdout + exit code separately.
+    # Sets globals: _GH_BODY (stdout), _GH_EXIT (exit code).
+    _gh_api() {
+        _GH_BODY=$(gh api "$1" 2>/dev/null) || _GH_EXIT=$?
+        _GH_EXIT=${_GH_EXIT:-0}
+    }
+
+    # Helper: determine if API is disabled/unavailable.
+    # Returns 0 (disabled) if exit != 0 OR response is not a JSON array.
+    _is_disabled() {
+        local exit_code="$1" body="$2"
+        [ "$exit_code" -ne 0 ] && return 0
+        echo "$body" | jq -e 'type=="array"' >/dev/null 2>&1 || return 0
+        return 1
+    }
+
+    # --- Dependabot ---
+    local dependabot_status="enabled"
+    local sec_critical=0 sec_high=0 sec_medium=0 sec_low=0
+    _GH_EXIT=0
+    _gh_api "repos/$repo/dependabot/alerts?state=open&per_page=100"
+    if _is_disabled "$_GH_EXIT" "$_GH_BODY"; then
+        dependabot_status="disabled"
+    else
+        sec_critical=$(echo "$_GH_BODY" | jq '[.[] | select(.security_advisory.severity=="critical")] | length' 2>/dev/null || echo 0)
+        sec_high=$(echo "$_GH_BODY" | jq '[.[] | select(.security_advisory.severity=="high")] | length' 2>/dev/null || echo 0)
+        sec_medium=$(echo "$_GH_BODY" | jq '[.[] | select(.security_advisory.severity=="medium")] | length' 2>/dev/null || echo 0)
+        sec_low=$(echo "$_GH_BODY" | jq '[.[] | select(.security_advisory.severity=="low")] | length' 2>/dev/null || echo 0)
+    fi
+
+    # --- Code scanning ---
+    local code_scan_status="enabled"
+    local code_scan_errors=0 code_scan_warnings=0 code_scan_notes=0
+    _GH_EXIT=0
+    _gh_api "repos/$repo/code-scanning/alerts?state=open&per_page=100"
+    if _is_disabled "$_GH_EXIT" "$_GH_BODY"; then
+        code_scan_status="disabled"
+    else
+        code_scan_errors=$(echo "$_GH_BODY" | jq '[.[] | select(.rule.severity=="error")] | length' 2>/dev/null || echo 0)
+        code_scan_warnings=$(echo "$_GH_BODY" | jq '[.[] | select(.rule.severity=="warning")] | length' 2>/dev/null || echo 0)
+        code_scan_notes=$(echo "$_GH_BODY" | jq '[.[] | select(.rule.severity=="note")] | length' 2>/dev/null || echo 0)
+    fi
+
+    # --- Secret scanning ---
+    local secret_scan_status="enabled"
+    local secret_scan_count=0
+    _GH_EXIT=0
+    _gh_api "repos/$repo/secret-scanning/alerts?state=open"
+    if _is_disabled "$_GH_EXIT" "$_GH_BODY"; then
+        secret_scan_status="disabled"
+    else
+        secret_scan_count=$(echo "$_GH_BODY" | jq 'length' 2>/dev/null || echo 0)
+    fi
+
+    echo "sec_status=ok"
+    echo "dependabot_status=$dependabot_status"
+    echo "sec_critical=$sec_critical"
+    echo "sec_high=$sec_high"
+    echo "sec_medium=$sec_medium"
+    echo "sec_low=$sec_low"
+    echo "code_scan_status=$code_scan_status"
+    echo "code_scan_errors=$code_scan_errors"
+    echo "code_scan_warnings=$code_scan_warnings"
+    echo "code_scan_notes=$code_scan_notes"
+    echo "secret_scan_status=$secret_scan_status"
+    echo "secret_scan_count=$secret_scan_count"
+}
+
 # --- Determine Level ---
 determine_level() {
     local ci_status="$1"
@@ -244,33 +324,45 @@ determine_level() {
     local has_unfixed_gaps="$5"
     local gap_p0="$6"
     local ci_failed_history="${7:-0}"
+    # Security inputs
+    local dependabot_status="${8:-enabled}"
+    local sec_critical="${9:-0}"
+    local sec_high="${10:-0}"
+    local code_scan_errors="${11:-0}"
+    local code_scan_warnings="${12:-0}"
+    local secret_scan_count="${13:-0}"
 
-    # BLACK: CI red >7 days
-    if [ "$ci_days_red" -gt 7 ]; then
+    # Aggregate HIGH-severity counts across Dependabot + code-scanning
+    local hi_total=$((sec_high + code_scan_errors))
+    local crit_total=$((sec_critical))
+
+    # BLACK: CI red >7 days OR any CRITICAL CVE OR secret exposed
+    if [ "$ci_days_red" -gt 7 ] || [ "$crit_total" -gt 0 ] || [ "$secret_scan_count" -gt 0 ]; then
         echo "BLACK"
         return
     fi
 
-    # RED: CI failing on main OR P0 gaps unfixed
-    if [ "$ci_status" = "failing" ] || [ "$gap_p0" -gt 0 ]; then
+    # RED: CI failing on main OR P0 gaps unfixed OR any HIGH CVE / code-scanning error
+    if [ "$ci_status" = "failing" ] || [ "$gap_p0" -gt 0 ] || [ "$hi_total" -gt 0 ]; then
         echo "RED"
         return
     fi
 
-    # ORANGE: P1 gaps unfixed OR >2 stale branches/open PRs
+    # ORANGE: P1 gaps unfixed OR >2 stale branches/open PRs OR Dependabot disabled OR many warnings
     local total_stale=$((open_prs + stale_branches))
-    if [ "$has_unfixed_gaps" = "true" ] || [ "$total_stale" -gt 2 ]; then
+    if [ "$has_unfixed_gaps" = "true" ] || [ "$total_stale" -gt 2 ] \
+       || [ "$dependabot_status" = "disabled" ] || [ "$code_scan_warnings" -ge 3 ]; then
         echo "ORANGE"
         return
     fi
 
-    # YELLOW: minor gaps (P2/P3) OR 1-2 stale branches OR dirty CI history (>2 failed runs)
-    if [ "$total_stale" -gt 0 ] || [ "$ci_failed_history" -gt 2 ]; then
+    # YELLOW: minor gaps (P2/P3) OR 1-2 stale branches OR dirty CI history OR any code-scanning warnings
+    if [ "$total_stale" -gt 0 ] || [ "$ci_failed_history" -gt 2 ] || [ "$code_scan_warnings" -gt 0 ]; then
         echo "YELLOW"
         return
     fi
 
-    # GREEN: all clean + CI history clean (≤2 failed runs)
+    # GREEN: all clean
     echo "GREEN"
 }
 
@@ -278,6 +370,7 @@ determine_level() {
 CI_DATA=$(check_ci)
 PR_DATA=$(check_pr_branches)
 AUDIT_DATA=$(check_audit_gaps)
+SEC_DATA=$(check_security)
 
 # Parse values
 ci_status=$(echo "$CI_DATA" | grep "^ci_status=" | cut -d= -f2)
@@ -302,8 +395,34 @@ ui_audit=$(echo "$AUDIT_DATA" | grep "^ui_audit=" | cut -d= -f2-)
 ui_open_total=$(echo "$AUDIT_DATA" | grep "^ui_open_total=" | cut -d= -f2)
 gap_details=$(echo "$AUDIT_DATA" | grep "^gap_details=" | cut -d= -f2-)
 
+sec_status=$(echo "$SEC_DATA" | grep "^sec_status=" | cut -d= -f2)
+dependabot_status=$(echo "$SEC_DATA" | grep "^dependabot_status=" | cut -d= -f2)
+sec_critical=$(echo "$SEC_DATA" | grep "^sec_critical=" | cut -d= -f2)
+sec_high=$(echo "$SEC_DATA" | grep "^sec_high=" | cut -d= -f2)
+sec_medium=$(echo "$SEC_DATA" | grep "^sec_medium=" | cut -d= -f2)
+sec_low=$(echo "$SEC_DATA" | grep "^sec_low=" | cut -d= -f2)
+code_scan_status=$(echo "$SEC_DATA" | grep "^code_scan_status=" | cut -d= -f2)
+code_scan_errors=$(echo "$SEC_DATA" | grep "^code_scan_errors=" | cut -d= -f2)
+code_scan_warnings=$(echo "$SEC_DATA" | grep "^code_scan_warnings=" | cut -d= -f2)
+code_scan_notes=$(echo "$SEC_DATA" | grep "^code_scan_notes=" | cut -d= -f2)
+secret_scan_status=$(echo "$SEC_DATA" | grep "^secret_scan_status=" | cut -d= -f2)
+secret_scan_count=$(echo "$SEC_DATA" | grep "^secret_scan_count=" | cut -d= -f2)
+
+# Defaults when gh unavailable
+dependabot_status="${dependabot_status:-unknown}"
+sec_critical="${sec_critical:-0}"
+sec_high="${sec_high:-0}"
+sec_medium="${sec_medium:-0}"
+sec_low="${sec_low:-0}"
+code_scan_status="${code_scan_status:-unknown}"
+code_scan_errors="${code_scan_errors:-0}"
+code_scan_warnings="${code_scan_warnings:-0}"
+code_scan_notes="${code_scan_notes:-0}"
+secret_scan_status="${secret_scan_status:-unknown}"
+secret_scan_count="${secret_scan_count:-0}"
+
 # Determine level
-LEVEL=$(determine_level "$ci_status" "$ci_days_red" "$open_prs" "$stale_branches" "$has_unfixed_gaps" "$gap_p0" "$ci_failed_history")
+LEVEL=$(determine_level "$ci_status" "$ci_days_red" "$open_prs" "$stale_branches" "$has_unfixed_gaps" "$gap_p0" "$ci_failed_history" "$dependabot_status" "$sec_critical" "$sec_high" "$code_scan_errors" "$code_scan_warnings" "$secret_scan_count")
 
 # --- Output ---
 case "$OUTPUT_MODE" in
@@ -332,6 +451,19 @@ case "$OUTPUT_MODE" in
     "p2": $gap_p2,
     "latest_audit": "$latest_audit",
     "latest_audit_date": "$latest_audit_date"
+  },
+  "security": {
+    "dependabot_status": "$dependabot_status",
+    "critical": $sec_critical,
+    "high": $sec_high,
+    "medium": $sec_medium,
+    "low": $sec_low,
+    "code_scan_status": "$code_scan_status",
+    "code_scan_errors": $code_scan_errors,
+    "code_scan_warnings": $code_scan_warnings,
+    "code_scan_notes": $code_scan_notes,
+    "secret_scan_status": "$secret_scan_status",
+    "secret_scan_alerts": $secret_scan_count
   }
 }
 EOJSON
@@ -426,7 +558,28 @@ EOJSON
             fi
         fi
 
-        # Factor 4: UI Audit
+        # Factor 4: GitHub Security
+        echo ""
+        echo "───────────────────────────────────────────────────────────"
+        sec_total_high=$((sec_high + code_scan_errors))
+        if [ "$sec_status" = "unknown" ]; then
+            echo -e "  ${YELLOW}⚠️  Security:${NC} gh unavailable — cannot query alerts"
+        elif [ "$sec_critical" -gt 0 ] || [ "$secret_scan_count" -gt 0 ]; then
+            echo -e "  ${RED}🔴 Security:${NC} CRITICAL — $sec_critical critical CVE, $secret_scan_count secret alert(s)"
+        elif [ "$sec_total_high" -gt 0 ]; then
+            echo -e "  ${RED}❌ Security:${NC} $sec_total_high HIGH-severity alert(s) (Dependabot: $sec_high, CodeQL: $code_scan_errors)"
+            [ "$dependabot_status" = "disabled" ] && echo -e "     ${YELLOW}⚠️  Dependabot also DISABLED — auto-tracking missing${NC}"
+            echo "     Run: gh api repos/\$(gh repo view --json nameWithOwner --jq .nameWithOwner)/code-scanning/alerts?state=open"
+        elif [ "$dependabot_status" = "disabled" ]; then
+            echo -e "  ${YELLOW}⚠️  Security:${NC} Dependabot DISABLED — enable at repo Settings → Code security and analysis"
+            [ "$code_scan_warnings" -gt 0 ] && echo "     CodeQL warnings: $code_scan_warnings"
+        elif [ "$code_scan_warnings" -gt 0 ] || [ "$sec_medium" -gt 0 ]; then
+            echo -e "  ${YELLOW}⚠️  Security:${NC} $code_scan_warnings CodeQL warning(s), $sec_medium medium Dependabot alert(s)"
+        else
+            echo -e "  ${GREEN}✅ Security:${NC} 0 CVE, 0 secrets, Dependabot $dependabot_status"
+        fi
+
+        # Factor 5: UI Audit
         if [ -n "$ui_audit" ]; then
             echo "───────────────────────────────────────────────────────────"
             if [ "$ui_open_total" -gt 0 ]; then

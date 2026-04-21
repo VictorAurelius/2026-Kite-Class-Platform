@@ -8,7 +8,13 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-04-20)
+## 🎯 Current Status Snapshot (2026-04-21)
+
+**2026-04-21 update:** During post-Wave-9.5 `/repo-status` session, user flagged skill missing GitHub Security checks. `gh api` probe surfaced **3 HIGH CVEs** + 4 medium on main (Dependabot silently disabled). Filed **GAP-202** (meta — skill blindspot, Meta-P1) + **GAP-203** (security — CVE fixes, BL-P0). Both re-open previously-closed Epic 5 (Security) + Epic 12 (Process). Priority: GAP-202 first per meta-gap rule, GAP-203 second (skill fix enables continuous detection; CVE fix closes current exposure).
+
+---
+
+## 🎯 Previous Status Snapshot (2026-04-20)
 
 **Progress:** 73/178 gaps CLOSED (41%). Waves 1-4 + **Wave 8b SHIPPED** 2026-04-20 (6 parallel agents, PRs #401-#406) + **Wave 9 SHIPPED** 2026-04-21 (6 parallel agents, PRs #408-#413) + **Wave 9.5 SHIPPED** 2026-04-21 (4 parallel agents, PRs #415-#418: GAP-192 Phase 4b-i backend completeness with 45 new tests, GAP-132 fan-out → DONE, GAP-134 expand → DONE; GAP-043 fan-out attempted but 4/5 reverted due to Redis+Jackson typing regression — only BrandingPackage proxy retains sync=true). **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. **12 new gaps filed 2026-04-20 (GAP-190..201)** from action-1 + simulation; **GAP-196 dropped same-day** (user decision — 9router ADR not effective); **GAP-190 + GAP-197 scope-revised** to 🟡 PARTIAL after state-check found existing infrastructure (sitemap/robots/OG/JsonLd/blog MDX + enhanced-attendance-calendar PR 3.8.1). Net: 11 active new gaps — 1 BL-P0 (GAP-192), 3 BL-P1 (GAP-190/191/200), 4 Meta-P1 (GAP-193/194/199/201), 2 Meta-P2 (GAP-195/198), 1 Feature-P2 (GAP-197). Quality audit baseline 77/100 pending next refresh (due 2026-04-26).
 
@@ -133,9 +139,10 @@
 | GAP-041 ✅ | Security hardening (SVG XSS, SSRF, CSRF) — DONE Wave 4 | 🟢 DONE | M |
 | GAP-042 ✅ | Legal/IP protection (DMCA workflow) — DONE Wave 4 | 🟢 DONE | M |
 | GAP-012 ✅ | Automated instance quality review — DONE Wave 4 | 🟢 DONE | M |
+| **GAP-203** | Fix 7 open CVEs in transitive Maven deps (3 HIGH) + enable Dependabot | 🔴 P0 | M |
 
-**Dependencies:** Can parallelize với Epic 2.
-**Status:** 🟢 All 4 gaps closed in Wave 4 (2026-04-14).
+**Dependencies:** Can parallelize với Epic 2. GAP-203 pairs with GAP-202 (detection skill fix).
+**Status:** 🟠 Re-opened 2026-04-21 — GAP-203 filed for 3 HIGH CVEs (commons-beanutils + 2× tomcat-embed-core) surfaced via `gh api` during `/repo-status` session. Dependabot was silently disabled.
 
 ---
 
@@ -550,8 +557,9 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-085 ✅ | Cross-app consistency check — DONE | 🟢 DONE | M | — |
 | GAP-089 ✅ | Post-deploy smoke test — DONE | 🟢 DONE | M | — |
 | GAP-090 ✅ | API contract tests — DONE | 🟢 DONE | L | — |
+| **GAP-202** | `/repo-status` skill blind to GitHub Security (Dependabot, code-scanning, secret-scanning) | 🟠 P1 Meta | S | Wave 10 Sprint 0 |
 
-**Status:** 🟢 Epic 12 fully closed (10/10 gaps DONE). Production-readiness governance in place.
+**Status:** 🟠 Re-opened 2026-04-21 — GAP-202 filed after `/repo-status` reported GREEN while 3 HIGH CVEs were live on main. Meta-P1 per `meta-gap-priority.md` §3 (skill blindspot = force multiplier). 10/11 gaps DONE; 1 OPEN.
 
 ---
 

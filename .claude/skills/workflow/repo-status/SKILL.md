@@ -1,6 +1,6 @@
 ---
 name: repo-status
-description: "Dùng khi user nói 'status', 'repo status', 'tình trạng repo', 'health check', 'repo có ổn không', hoặc khi bắt đầu conversation mới cần đánh giá nhanh trạng thái remote repo. Checks: CI, PRs/branches, audit gaps → output level GREEN/YELLOW/ORANGE/RED/BLACK."
+description: "Dùng khi user nói 'status', 'repo status', 'tình trạng repo', 'health check', 'repo có ổn không', 'security', 'CVE', 'vuln', hoặc khi bắt đầu conversation mới cần đánh giá nhanh trạng thái remote repo. Checks: CI, PRs/branches, audit gaps, GitHub Security (Dependabot + code-scanning + secret-scanning) → output level GREEN/YELLOW/ORANGE/RED/BLACK."
 user-invocable: true
 argument-hint: "[--quick]"
 ---
@@ -9,7 +9,7 @@ argument-hint: "[--quick]"
 
 **Usage:** `/repo-status` hoặc `/repo-status --quick`
 
-Đánh giá nhanh sức khỏe remote repo qua **3 nhân tố**, output **status level**.
+Đánh giá nhanh sức khỏe remote repo qua **4 nhân tố**, output **status level**.
 
 ---
 
@@ -56,6 +56,22 @@ git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdat
 - UI audit: `documents/04-quality/audits/ui/ui-audit-issues-*.md` (mới nhất)
 - Cross-check: gaps đã có PR fix chưa? (check merged PRs since audit date)
 
+**Factor 4 — GitHub Security:** 3 endpoints via `gh api`:
+```bash
+REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+gh api "repos/$REPO/dependabot/alerts?state=open"       # → 403 if disabled
+gh api "repos/$REPO/code-scanning/alerts?state=open"    # → [] if no scanner
+gh api "repos/$REPO/secret-scanning/alerts?state=open"  # → public/enterprise only
+```
+
+Severity mapping:
+- Dependabot `critical` → BLACK level; `high` → RED; `medium` → YELLOW
+- Code scanning `error` → HIGH (counts as CVE); `warning` → MEDIUM; `note` → LOW
+- Any secret-scanning alert → BLACK (credential exposure)
+- Dependabot **disabled** (HTTP 403) → minimum ORANGE (silent-drift risk)
+
+Nếu skill hoặc script phát hiện Dependabot disabled, **prompt user to enable** ở repo Settings → Code security and analysis.
+
 ### Bước 3: Output Report
 
 ```markdown
@@ -79,6 +95,11 @@ git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdat
 - Unfixed P0: [N]
 - Unfixed P1: [N]
 - Unfixed P2: [N]
+
+### Factor 4: GitHub Security
+- Dependabot: enabled/disabled — [critical/high/medium/low counts]
+- Code scanning: [N errors / N warnings / N notes] — top finding: [rule.id + file]
+- Secret scanning: [N open alerts] (BLACK if >0)
 
 ### Recommended Actions
 1. [Highest priority action]
@@ -106,11 +127,11 @@ Xem chi tiết: `reference/level-definitions.md`
 
 | Level | Label | Trigger |
 |-------|-------|---------|
-| **GREEN** | Healthy | CI xanh + 0 open PRs/stale branches + 0 P0/P1 gaps |
-| **YELLOW** | Minor Issues | CI xanh + minor gaps (P2/P3) HOẶC 1-2 stale branches |
-| **ORANGE** | Needs Attention | CI xanh + P1 gaps, HOẶC >2 stale items |
-| **RED** | Degraded | CI đỏ trên main HOẶC P0 gaps chưa fix |
-| **BLACK** | Broken | CI đỏ >7 ngày |
+| **GREEN** | Healthy | CI xanh + 0 open PRs/stale branches + 0 P0/P1 gaps + **0 CVE + Dependabot enabled** |
+| **YELLOW** | Minor Issues | CI xanh + minor gaps (P2/P3) HOẶC 1-2 stale branches HOẶC code-scan warnings |
+| **ORANGE** | Needs Attention | CI xanh + P1 gaps, HOẶC >2 stale items, HOẶC **Dependabot disabled**, HOẶC ≥3 warnings |
+| **RED** | Degraded | CI đỏ trên main HOẶC P0 gaps chưa fix HOẶC **≥1 HIGH CVE** |
+| **BLACK** | Broken | CI đỏ >7 ngày HOẶC **CRITICAL CVE** HOẶC **secret scanning alert** |
 
 ---
 
@@ -129,3 +150,6 @@ Xem chi tiết: `reference/level-definitions.md`
 - Audit gaps section parse bằng grep P0/P1/P2 markers — nếu report format thay đổi, script cần update
 - Stale branches = unmerged into main, có thể là WIP hợp lệ — kiểm tra commit date trước khi recommend delete
 - Windows (Git Bash): `date -d` có thể không work — script có fallback cho macOS nhưng chưa có cho Git Bash on Windows
+- **Security factor (F4):** `gh api` to security endpoints returns 403 if Dependabot disabled. Script dùng jq type-check (`type=="array"`) để phân biệt disabled object vs empty-but-enabled array. **KHÔNG** grep response body — CVE descriptions có thể chứa từ "disabled" gây false positive (bài học từ GAP-202 first-cut implementation)
+- Secret scanning endpoint chỉ available cho repo public hoặc GitHub Enterprise — trả 404 cho private repos → treat as "disabled" status
+- Code-scanning alerts chỉ populate khi có CodeQL/Trivy/SARIF upload workflow — repo không có scanner = empty `[]`, không phải disabled
