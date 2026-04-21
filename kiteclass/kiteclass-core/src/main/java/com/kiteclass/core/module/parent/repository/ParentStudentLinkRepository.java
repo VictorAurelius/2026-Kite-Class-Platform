@@ -48,4 +48,23 @@ public interface ParentStudentLinkRepository extends JpaRepository<ParentStudent
      * parent and student. Used for authorization checks on child-scoped reads.
      */
     boolean existsByParentIdAndStudentIdAndDeletedFalse(Long parentId, Long studentId);
+
+    /**
+     * Lists all non-deleted links attached to a student with the joined
+     * {@link com.kiteclass.core.module.parent.entity.Parent} prefetched (GAP-134
+     * anti-N+1). Symmetric sibling to {@link #findByParentIdWithStudent(Long)};
+     * used by child-profile views that render "who are this student's guardians".
+     *
+     * @param studentId the student ID
+     * @return list of links with parent prefetched
+     * @since 3.17.0 (GAP-134 expansion — Wave 9.5)
+     */
+    @Query("""
+            SELECT l FROM ParentStudentLink l
+            JOIN FETCH l.parent p
+            WHERE l.student.id = :studentId
+              AND l.deleted = false
+              AND p.deleted = false
+            """)
+    List<ParentStudentLink> findByStudentIdWithParent(@Param("studentId") Long studentId);
 }

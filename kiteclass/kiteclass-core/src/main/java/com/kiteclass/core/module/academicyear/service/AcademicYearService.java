@@ -116,9 +116,15 @@ public class AcademicYearService {
 
     /**
      * Check if given date falls on a holiday within current year.
+     *
+     * <p>GAP-134: uses {@link AcademicYearRepository#findFirstByStatusWithHolidays}
+     * so that the year + its holidays arrive in a single SELECT — the plain
+     * {@code getCurrent()} variant triggers an extra query the first time the
+     * lazy {@code holidays} collection is touched, which is every call.
      */
     public boolean isHoliday(LocalDate date) {
-        return getCurrent()
+        return academicYearRepository
+                .findFirstByStatusWithHolidays(AcademicYearStatus.CURRENT)
                 .map(year -> year.getHolidays().stream()
                         .anyMatch(h -> h.contains(date)))
                 .orElse(false);

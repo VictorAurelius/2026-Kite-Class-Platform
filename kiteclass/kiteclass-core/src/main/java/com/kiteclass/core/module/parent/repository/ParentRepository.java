@@ -1,7 +1,10 @@
 package com.kiteclass.core.module.parent.repository;
 
 import com.kiteclass.core.module.parent.entity.Parent;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -40,4 +43,21 @@ public interface ParentRepository extends JpaRepository<Parent, Long> {
      * duplicate invites and by the redemption flow to prevent double-creates.
      */
     boolean existsByEmailAndInstanceIdAndDeletedFalse(String email, UUID instanceId);
+
+    /**
+     * Finds a parent by ID with {@code studentLinks} prefetched (GAP-134 anti-N+1).
+     *
+     * <p>Use when rendering the parent dashboard or audit trails that enumerate
+     * the children attached to a parent. Pair with
+     * {@link com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository#findByParentIdWithStudent(Long)}
+     * when the joined {@code student} record is also needed — that method eagerly
+     * fetches the far side of the many-to-many bridge.
+     *
+     * @param id the parent ID
+     * @return Optional containing parent with studentLinks prefetched
+     * @since 3.17.0 (GAP-134 expansion — Wave 9.5)
+     */
+    @EntityGraph(attributePaths = {"studentLinks"})
+    @Query("SELECT p FROM Parent p WHERE p.id = :id AND p.deleted = false")
+    Optional<Parent> findByIdWithStudentLinks(@Param("id") Long id);
 }

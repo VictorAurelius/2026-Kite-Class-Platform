@@ -170,7 +170,9 @@ class AcademicYearServiceTest {
         validYear.setStatus(AcademicYearStatus.CURRENT);
         validYear.getHolidays().add(tet);
 
-        when(academicYearRepository.findFirstByStatusAndDeletedFalse(AcademicYearStatus.CURRENT))
+        // GAP-134 (Wave 9.5): isHoliday routes via findFirstByStatusWithHolidays
+        // to avoid N+1 on the lazy holidays collection.
+        when(academicYearRepository.findFirstByStatusWithHolidays(AcademicYearStatus.CURRENT))
                 .thenReturn(Optional.of(validYear));
 
         assertThat(service.isHoliday(LocalDate.of(2027, 2, 8))).isTrue();
@@ -179,7 +181,7 @@ class AcademicYearServiceTest {
 
     @Test
     void isHoliday_returns_false_when_no_current_year() {
-        when(academicYearRepository.findFirstByStatusAndDeletedFalse(AcademicYearStatus.CURRENT))
+        when(academicYearRepository.findFirstByStatusWithHolidays(AcademicYearStatus.CURRENT))
                 .thenReturn(Optional.empty());
 
         assertThat(service.isHoliday(LocalDate.of(2027, 1, 1))).isFalse();
