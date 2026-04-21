@@ -74,6 +74,10 @@ public class TrialService {
             .daysLeft(instance.getTrialDaysLeft())
             .needsWarning(shouldSendWarning(instance))
             .warningLevel(getWarningLevel(instance))
+            .migrationPhase(instance.getMigrationPhase())
+            .migrationStartedAt(instance.getMigrationStartedAt())
+            .migrationCompletedAt(instance.getMigrationCompletedAt())
+            .migrationFailureReason(instance.getMigrationFailureReason())
             .build();
     }
 

@@ -84,6 +84,32 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handle trial-to-paid migration exceptions (GAP-192).
+     * Maps {@link MigrationException.Code} to the HTTP status per api-contract.md.
+     *
+     * @param ex Migration exception
+     * @param request Web request
+     * @return Problem detail with stable error code
+     */
+    @ExceptionHandler(MigrationException.class)
+    public ProblemDetail handleMigrationException(
+        MigrationException ex,
+        WebRequest request
+    ) {
+        HttpStatus status = switch (ex.getCode()) {
+            case MIGRATION_IN_FLIGHT, INVALID_PHASE_TRANSITION -> HttpStatus.CONFLICT;
+            case REVERSAL_WINDOW_EXPIRED, RESCUE_WINDOW_EXPIRED -> HttpStatus.GONE;
+            case MIGRATION_FAILED_LOCKED -> HttpStatus.LOCKED;
+            case PAYMENT_DECLINED -> HttpStatus.PAYMENT_REQUIRED;
+        };
+        log.warn("Migration error [{}]: {}", ex.getCode(), ex.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+        problemDetail.setTitle("Migration Error");
+        problemDetail.setProperty("errorCode", ex.getCode().name());
+        return problemDetail;
+    }
+
+    /**
      * Handle all other exceptions.
      *
      * @param ex Exception
