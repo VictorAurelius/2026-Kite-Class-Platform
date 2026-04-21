@@ -91,16 +91,21 @@
 - **FE Behavior:** none — degraded happens silently after FE đã nhận template fallback
 
 ### UC-AGENT-11: Circuit Breaker Opens Around AI Provider
-- **Actor:** `ResilientAIClient` (wraps Ollama/OpenAI)
+- **Actor:** `kitehub-branding/client/ResilientAIClient` (Decorator wrapping the configured Ollama/OpenAI delegate via `@Qualifier("aiClient")`)
 - **Trigger:** Last 20 calls (BR-QUEUE-017) có failure rate ≥ 50% (BR-QUEUE-015), tối thiểu 10 calls (BR-QUEUE-018)
 - **Steps:**
   1. Resilience4j circuit breaker `ai-provider` transition CLOSED → OPEN
   2. 30s wait duration (BR-QUEUE-016) — mọi call ngay lập tức fail-fast
-  3. Analyzer nhận exception → fallback returns `AnalysisResult.templateOnly()` (UC-AGENT-04)
+  3. `ResilientAIClient` fallback methods kick in:
+     - `analyzeLogo` → template-safe `LogoAnalysis` (primaryColor #2563EB, theme MODERN, `rawAnalysis` tagged "Fallback")
+     - `generateImage` → `https://placehold.co/{size}/2563EB/white?text=Template`
+     - `generateText` → default Vietnamese copy
   4. Sau 30s: HALF_OPEN, thử 1 call → CLOSED nếu pass, OPEN nếu fail
 - **Postcondition:** Branding pipeline tiếp tục qua template path; user không thấy 5xx errors
 - **Metrics:** `resilience4j.circuitbreaker.calls`, `.state` (Micrometer auto-published)
+- **Scope:** `kitehub-branding` wraps via `ai-provider` CB (GAP-148); `kiteclass-core/ResilientAIClient` uses the separate `ai` CB (BR-AGENT-001) — same thresholds, different instance key, different service.
 
 ## Log
+- 2026-04-21 — GAP-148 (Wave 9-D): UC-AGENT-11 Actor updated to reference `kitehub-branding/client/ResilientAIClient` (previously only kiteclass-core's wrapper existed — kitehub-branding config was dead).
 - 2026-04-19 — GAP-104: thêm UC-AGENT-08 (fair dispatch), UC-AGENT-09 (concurrency cap NACK), UC-AGENT-10 (backpressure degrade), UC-AGENT-11 (circuit breaker open). Source: `AIQueueDispatcher`, `AIJobConsumer`, `BacklogInspector`, `application.yml:83-91`.
 - 2026-04-14 — Initial UCs

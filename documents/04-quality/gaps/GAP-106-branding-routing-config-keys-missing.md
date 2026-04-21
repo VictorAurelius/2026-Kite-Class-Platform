@@ -1,10 +1,10 @@
 # GAP-106: Branding Routing Config Keys Documented but Missing from application.yml
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 9-D, 2026-04-21)
 **Priority:** 🟠 P1
 **Domain:** KiteClass / AI Branding / Config Management
 **Found:** 2026-04-19 (business-logic audit)
-**Affects:** kitehub-branding service, resource-classification feature, metric alerts
+**Affects:** kiteclass-core branding module (where `ResourceRoutingService` actually lives — gap prompt said kitehub-branding), metric alerts
 
 ## Problem
 
@@ -68,3 +68,7 @@ Cập nhật `rules.md` Code Location column để reference BrandingRoutingProp
 - Audit report: `documents/04-quality/audits/business/business-logic-audit-2026-04-19.md`
 - Original rule source: ADR-005, GAP-007 (Resource Classification)
 - Related gaps: GAP-107 (AI provider ghost rules — similar pattern of rules referencing non-existent entities)
+
+## Log
+- 2026-04-21 (Wave 9-D) — Closed. Added `BrandingRoutingProperties` (`kiteclass-core/module/branding/config`), wired `ResourceRoutingService` to emit `branding.routing.classified` Micrometer counter tagged by category, added `branding.routing.*` keys to `kiteclass-core/src/main/resources/application.yml` with env-var overrides (`BRANDING_TEMPLATE_FIRST`, `BRANDING_MAX_AI_RATIO`). Startup log warns when `template-first=false`. Tests: `BrandingRoutingPropertiesTest` (3), extended `ResourceRoutingServiceTest` with counter-emission assertion (1). Rules.md updated with code refs + metrics table.
+  - NOTE: gap prompt said kitehub-branding; actual location is kiteclass-core (ResourceRoutingService lives there). Scope corrected, same acceptance met.

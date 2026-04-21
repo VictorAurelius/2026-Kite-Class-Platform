@@ -1,6 +1,6 @@
 # GAP-148: BR-QUEUE-015..018 — Circuit breaker config dead in kitehub-branding (no Java wiring)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Wave 9-D, 2026-04-21 — chose Option A)
 **Priority:** 🟡 P2
 **Domain:** Backend (kitehub-branding / AI infra)
 **Found:** 2026-04-20 (business-logic audit refresh — [`business-logic-audit-2026-04-20.md`](../audits/business/business-logic-audit-2026-04-20.md) §New Violations)
@@ -113,4 +113,14 @@ Part of horizontal scaling work. Mark BR-QUEUE-015..018 as "⏳ Phase 2" trong r
 
 ## Log
 
+- 2026-04-21 (Wave 9-D) — Closed via **Option A**. New `kitehub-branding/src/main/java/com/kitehub/branding/client/ResilientAIClient.java`:
+  - `@Primary @Component("resilientAIClient")` implements `AIClient`
+  - `@CircuitBreaker(name="ai-provider", fallbackMethod=...)` on `analyzeLogo` / `generateImage` / `generateText`
+  - Delegate injected via `@Qualifier("aiClient")` — `AIProviderConfig.aiClient()` demoted from `@Primary` and renamed (`@Bean(name="aiClient")`) to avoid self-cycle
+  - Fallbacks return template-safe defaults (template-first philosophy per `ai-branding-guidelines.md` §1) — `LogoAnalysis` defaults, placehold.co URL, Vietnamese default copy
+  - `CB_NAME` constant = `"ai-provider"` matches `application.yml:95`
+  
+  Tests: 8 new in `ResilientAIClientTest` (delegate happy path × 3, provider name, fallbacks × 3, CB name constant). Existing `AIProviderConfigTest` still passes — direct method invocation unchanged.
+  
+  Rules.md + use-cases.md updated: BR-QUEUE-015..018 code reference now points to `kitehub-branding/client/ResilientAIClient` (authoritative) with note that `kiteclass-core` still has its own wrapper under CB name `ai`. UC-AGENT-11 Actor updated.
 - 2026-04-20 — Gap created after business-logic refresh found BR-QUEUE-015..018 partial drift (config exists, Java wiring missing trong kitehub-branding scope).

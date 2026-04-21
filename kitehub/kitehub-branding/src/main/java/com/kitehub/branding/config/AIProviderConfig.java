@@ -9,11 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 /**
  * AI provider configuration.
  * Selects between OpenAI (cloud) and Ollama (local) based on ai.provider property.
+ *
+ * <p>GAP-148 / Wave 9-D: the bean is named {@code aiClient} and NO longer
+ * {@code @Primary}. The primary {@link AIClient} bean is now
+ * {@link com.kitehub.branding.client.ResilientAIClient} which wraps this
+ * provider with Resilience4j circuit-breaker protection (BR-QUEUE-015..018).
+ * The resilient wrapper injects this bean via {@code @Qualifier("aiClient")}.
  *
  * @author KiteHub Team
  * @since 1.0.0
@@ -37,14 +42,16 @@ public class AIProviderConfig {
     }
 
     /**
-     * Create the primary AIClient bean based on configured provider.
+     * Create the underlying AIClient bean based on configured provider.
+     * Wrapped by {@code ResilientAIClient} (the actual {@code @Primary} bean) —
+     * callers should NOT inject this directly; use {@link AIClient} and Spring
+     * will supply the resilient wrapper.
      *
      * @param openAIClient OpenAI client (always available as fallback)
      * @param objectMapper Jackson ObjectMapper
      * @return Selected AIClient implementation
      */
-    @Bean
-    @Primary
+    @Bean(name = "aiClient")
     public AIClient aiClient(OpenAIClient openAIClient, ObjectMapper objectMapper) {
         if ("ollama".equalsIgnoreCase(provider)) {
             log.info("AI Provider: Ollama (local) at {}", ollama.getBaseUrl());

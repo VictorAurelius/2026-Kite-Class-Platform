@@ -8,6 +8,7 @@ import com.kiteclass.core.module.branding.classifier.ResourceClassifier;
 import com.kiteclass.core.module.branding.classifier.ResourceRequest;
 import com.kiteclass.core.module.branding.classifier.StaticAssetClassifier;
 import com.kiteclass.core.module.branding.classifier.TemplateMatchClassifier;
+import com.kiteclass.core.module.branding.config.BrandingRoutingProperties;
 import com.kiteclass.core.module.branding.entity.BrandingResource;
 import com.kiteclass.core.module.branding.entity.ResourceCategory;
 import com.kiteclass.core.module.branding.entity.ResourceType;
@@ -15,6 +16,8 @@ import com.kiteclass.core.module.branding.handler.FallbackHandler;
 import com.kiteclass.core.module.branding.handler.HandlerResult;
 import com.kiteclass.core.module.branding.handler.ResourceHandler;
 import com.kiteclass.core.module.branding.service.ResourceRoutingService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -216,5 +219,34 @@ class ResourceRoutingServiceTest {
                 null))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Duplicate ResourceHandler");
+    }
+
+    // ---- GAP-106 metric wiring -----------------------------------------------
+
+    @Test
+    void classify_emits_classified_counter_tagged_by_category() {
+        MeterRegistry registry = new SimpleMeterRegistry();
+        BrandingRoutingProperties props = new BrandingRoutingProperties();
+        ResourceRoutingService metered = new ResourceRoutingService(
+                List.of(new DefaultTemplateClassifier(),
+                        new StaticAssetClassifier(),
+                        new TemplateMatchClassifier(),
+                        new CustomAIRequestClassifier(),
+                        new AIFallbackClassifier()),
+                java.util.List.of(),
+                null,
+                props,
+                registry);
+
+        metered.classify(request(true), ctx(true, false, false));   // STATIC
+        metered.classify(request(false), ctx(false, true, false));  // TEMPLATE
+        metered.classify(request(false), ctx(false, false, true));  // FULL_AI
+
+        assertThat(registry.get("branding.routing.classified")
+                .tag("category", "static").counter().count()).isEqualTo(1.0);
+        assertThat(registry.get("branding.routing.classified")
+                .tag("category", "template").counter().count()).isEqualTo(1.0);
+        assertThat(registry.get("branding.routing.classified")
+                .tag("category", "full_ai").counter().count()).isEqualTo(1.0);
     }
 }

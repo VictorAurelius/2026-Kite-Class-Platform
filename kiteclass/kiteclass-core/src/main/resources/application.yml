@@ -145,6 +145,17 @@ ai:
     base-url: ${AI_OLLAMA_BASE_URL:http://localhost:11434}
     default-model: ${AI_OLLAMA_MODEL:gemma2}
 
+# Branding resource routing (GAP-106 — externalize BR-RES-005 threshold)
+# See documents/01-business/kiteclass/resource-classification/rules.md
+branding:
+  routing:
+    # BR-RES-005: template-first routing toggle. Set to false ONLY for debug /
+    # load-test scenarios. Production MUST leave this true.
+    template-first: ${BRANDING_TEMPLATE_FIRST:true}
+    # Metric alert threshold for the branding.routing.ai_ratio gauge.
+    # 0.20 = 20% FULL_AI share max; Grafana alerts when exceeded.
+    max-ai-ratio: ${BRANDING_MAX_AI_RATIO:0.20}
+
 # Resilience4j — AI call protection (Circuit Breaker + Bulkhead + Retry)
 resilience4j:
   circuitbreaker:
