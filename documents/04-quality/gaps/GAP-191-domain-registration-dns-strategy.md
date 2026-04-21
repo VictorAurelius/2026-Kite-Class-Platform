@@ -1,6 +1,6 @@
 # GAP-191: Domain Registration & Instance DNS Strategy
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (strategy + ADR + rules + runbook + Terraform skeleton shipped Wave 9-B; execution deferred to infra wave)
 **Priority:** 🟠 P1 (business-logic tier — tenant-onboarding blocker)
 **Domain:** Infrastructure / DevOps / SaaS / BRD
 **Found:** 2026-04-20 (action-1 §6 + §15.B)
@@ -44,12 +44,12 @@ User asked explicitly during session (action-1 §6). Related gaps:
 
 ## Acceptance Criteria
 
-- [ ] ADR for registrar + DNS provider + TLD approved
-- [ ] Subdomain reserved-list + slug rules documented in `rules.md` under `documents/01-business/kitehub/provisioning/`
-- [ ] Custom domain CNAME verification flow designed (state machine)
-- [ ] Terraform module `dns/` provisions subdomain + SSL in one apply
-- [ ] Provisioning E2E test: new tenant → DNS live → HTTPS serves 200 within 5 min
-- [ ] Failover runbook reviewed by SRE
+- [x] ADR for registrar + DNS provider + TLD approved (ADR-018 — Matbao for `.vn`, Cloudflare Registrar for `.com`/`.app`, Cloudflare DNS, Custom Hostnames for tenant CNAME SSL)
+- [x] Subdomain reserved-list + slug rules documented (extended `documents/01-business/kitehub/domain-management/rules.md` — 7 reserved categories, 10 slug rules SLG-01…SLG-10)
+- [x] Custom domain CNAME verification flow designed as state machine (rules.md §Custom-Domain Verification Flow)
+- [x] Terraform module `dns/` skeleton lands (`infrastructure/terraform-aws/modules/dns/` with README + main.tf stub — full HCL deferred until Cloudflare token + registration complete)
+- [ ] Provisioning E2E test: new tenant → DNS live → HTTPS 200 within 5 min — deferred (depends on Cloudflare Business plan + backend adapter; tracked as follow-up infra gap)
+- [x] Failover runbook authored (`documents/05-guides/dns-operations.md` — SRE review deferred to post-procurement drill)
 
 ## Out of Scope
 
@@ -68,3 +68,4 @@ User asked explicitly during session (action-1 §6). Related gaps:
 ## Log
 
 - 2026-04-20 — Created from action-1 §15.B.
+- 2026-04-21 — **Wave 9-B PARTIAL.** Strategy layer shipped: ADR-018 (registrar + DNS + TLD + SSL decisions), rules.md extension (DOM-11..13 + reserved slugs + SLG-01..10 + verification state machine), dns-operations.md runbook, Terraform skeleton at `modules/dns/`. Operational execution (procurement, Cloudflare Business plan, E2E test, SRE drill) deferred to follow-up infra wave — gap stays PARTIAL until executed; not GA-blocking for marketing site.

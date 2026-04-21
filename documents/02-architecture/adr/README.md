@@ -116,8 +116,9 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [015](ADR-015-aws-agent-plugins-evaluation.md) | AWS Agent Plugins Evaluation — Defer Adoption | ACCEPTED | 2026-04-18 |
 | [016](ADR-016-fe-be-contract-strategy.md) | Frontend ↔ Backend Contract Strategy | ACCEPTED | 2026-04-19 |
 | [017](ADR-017-mis-sync-strategy.md) | School MIS Sync Strategy (One-Shot vs Live) | PROPOSED | 2026-04-21 |
+| [018](ADR-018-domain-registrar-dns.md) | Domain Registrar, DNS Provider, and TLD Policy | ACCEPTED (draft) | 2026-04-21 |
 
-Next free ID: **ADR-018**.
+Next free ID: **ADR-019**.
 
 ---
 
