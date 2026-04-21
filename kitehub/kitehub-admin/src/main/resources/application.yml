@@ -23,6 +23,18 @@ spring:
         order_inserts: true
         order_updates: true
 
+  # GAP-132 — pin cache abstraction to Caffeine (in-memory, fast). Prevents silent
+  # fallback to ConcurrentMapCacheManager if CacheConfig Bean wiring is ever skipped.
+  cache:
+    type: caffeine
+
+kitehub:
+  admin:
+    cache:
+      # GAP-132 — seed TTL for admin caches (Caffeine)
+      dashboard-ttl-seconds: ${ADMIN_DASHBOARD_CACHE_TTL_SECONDS:300}
+      revenue-ttl-seconds: ${ADMIN_REVENUE_CACHE_TTL_SECONDS:3600}
+
 server:
   port: ${SERVER_PORT:8083}
 

@@ -85,6 +85,18 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
+        <!-- Spring Cache (GAP-132 — @EnableCaching + @Cacheable support) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- Caffeine cache backend (in-memory, shared with kitehub-email / kitehub-gateway pattern) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- AWS S3 SDK (for backup storage) -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

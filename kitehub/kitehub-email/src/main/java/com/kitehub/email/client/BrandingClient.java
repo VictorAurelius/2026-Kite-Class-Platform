@@ -67,8 +67,13 @@ public class BrandingClient {
      * @param tenantId tenant header value for multi-tenant isolation (may be null)
      * @return branding payload, never null — defaults on any failure
      */
+    // GAP-043 — sync=true coalesces concurrent misses for the same key onto a single
+    // loader call. Without this, a cache-expiry storm on a popular tenant can fan out
+    // N concurrent requests into N upstream calls (stampede). Spring's cache abstraction
+    // delegates this to the Caffeine CacheLoader under the hood when sync is enabled.
     @Cacheable(value = BrandingCacheConfig.TENANT_BRANDING_CACHE,
             key = "#instanceId != null ? #instanceId : 'anon'",
+            sync = true,
             unless = "#result == null")
     @SuppressWarnings("unchecked")
     public TenantBranding fetchBranding(Long instanceId, String tenantId) {

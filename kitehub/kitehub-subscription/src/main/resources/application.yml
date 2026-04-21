@@ -53,6 +53,11 @@ spring:
     # with checksums stored as -1 (result of prior flyway repair runs)
     validate-on-migrate: false
 
+  # GAP-132 — pin cache abstraction to Caffeine (in-memory, fast). Avoids a silent
+  # fallback to ConcurrentMapCacheManager if CacheConfig Bean wiring is ever skipped.
+  cache:
+    type: caffeine
+
 server:
   port: ${SERVER_PORT:8081}
 
@@ -81,6 +86,9 @@ kitehub:
   subscription:
     grace-period-days: 3
     warning-days: 7,3,1
+    cache:
+      # GAP-132 — seed TTL for subscription + instance summary caches (Caffeine)
+      ttl-seconds: ${SUBSCRIPTION_CACHE_TTL_SECONDS:300}
   data-retention:
     trial: 7
     free: 7

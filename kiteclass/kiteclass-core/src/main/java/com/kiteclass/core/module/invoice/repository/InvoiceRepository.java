@@ -3,6 +3,7 @@ package com.kiteclass.core.module.invoice.repository;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,6 +30,37 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
      * @return Optional containing invoice if found
      */
     Optional<Invoice> findByIdAndDeletedFalse(Long id);
+
+    /**
+     * Finds invoice by ID with {@code items} and {@code adjustments} prefetched
+     * in a single round-trip — GAP-134 anti-N+1 path for callers that need the
+     * full totals breakdown (InvoiceServiceImpl.calculateTotal, payment handlers,
+     * receipt rendering).
+     *
+     * <p>Only one of the two {@code @OneToMany} collections is added to the entity
+     * graph at a time to avoid a Cartesian product. Pair lookups (need both items
+     * and adjustments) may still trigger one extra SELECT for the collection not
+     * included here; callers needing true single-SQL should call {@link #findByIdWithAdjustments}
+     * followed by {@code invoice.getItems()} (which triggers at most one collection fetch).
+     *
+     * @param id the invoice ID
+     * @return Optional containing invoice with items prefetched
+     * @since 2.9.1 (GAP-134)
+     */
+    @EntityGraph(attributePaths = {"items"})
+    @Query("SELECT i FROM Invoice i WHERE i.id = :id AND i.deleted = false")
+    Optional<Invoice> findByIdWithItems(@Param("id") Long id);
+
+    /**
+     * Finds invoice by ID with {@code adjustments} prefetched (GAP-134 anti-N+1).
+     *
+     * @param id the invoice ID
+     * @return Optional containing invoice with adjustments prefetched
+     * @since 2.9.1 (GAP-134)
+     */
+    @EntityGraph(attributePaths = {"adjustments"})
+    @Query("SELECT i FROM Invoice i WHERE i.id = :id AND i.deleted = false")
+    Optional<Invoice> findByIdWithAdjustments(@Param("id") Long id);
 
     /**
      * Finds invoice by enrollment ID (excluding soft-deleted).

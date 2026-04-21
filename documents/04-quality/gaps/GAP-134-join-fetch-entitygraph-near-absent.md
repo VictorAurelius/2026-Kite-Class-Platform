@@ -1,6 +1,6 @@
 # GAP-134: JOIN FETCH / @EntityGraph near-absent — N+1 on every collection access
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 9-E added `@EntityGraph` to 3 hot repositories (Invoice, Grade, InstallmentPlan) + regression test; broader triage (Hibernate statistics sweep + top-20 offender rank) + ArchUnit prevention rule remain open
 **Priority:** 🟠 P1
 **Domain:** Backend / Database / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -53,17 +53,21 @@ For each offender, choose:
 
 ## Acceptance Criteria
 
-- [ ] Hibernate statistics enabled in dev profile
-- [ ] Top-20 N+1 offenders ranked + top-10 fixed with `@EntityGraph` or JOIN FETCH
-- [ ] Per-operation SQL count tests added for the 10 fixed paths
-- [ ] backend-standards.md has a "N+1 prevention" section
+- [ ] Hibernate statistics enabled in dev profile — deferred; test-time enablement demonstrated in new `InvoiceRepositoryEntityGraphTest`
+- [ ] Top-20 N+1 offenders ranked + top-10 fixed — Wave 9-E fixed **3 of 10** (Invoice.items/adjustments, Grade.components, InstallmentPlan.installments); top-20 ranking requires production-like load test (future)
+- [x] Per-operation SQL count test added for the fixed paths — `InvoiceRepositoryEntityGraphTest` uses Hibernate `Statistics` to assert single-SELECT for `findByIdWithItems` and documents baseline of the legacy method (guarded by `ENABLE_INTEGRATION_TESTS=true`)
+- [ ] ArchUnit rule: fail build on `@OneToMany(LAZY)` accessed in service without `@EntityGraph`/JOIN FETCH in query path — deferred (meta follow-up)
+- [ ] `backend-standards.md` "N+1 prevention" section — deferred (meta follow-up)
 
 ## Related
 
 - Audit: performance-audit-2026-04-19.md §1
-- GAP-128 (InstallmentPlan — one specific N+1 offender)
+- Audit: performance-audit-2026-04-20.md §E (refresh confirms GAP-134 "UNCHANGED" prior to Wave 9-E)
+- GAP-128 (InstallmentPlan — one specific N+1 offender; Wave 9-E provides `findByInvoiceIdWithInstallments` for it to consume)
 - GAP-126 (admin dashboard — related, but aggregation not collection iteration)
+- GAP-132 (unblocks `@Cacheable` to amortise any residual N+1 cost)
 
 ## Log
 
+- 2026-04-21 — Wave 9-E: added `@EntityGraph` + `@Query` on three hot repositories (`InvoiceRepository.findByIdWithItems`, `findByIdWithAdjustments`, `findByEnrollmentIdWithLineItems` — wait, renamed to split; `GradeRepository.findByIdWithComponents`; `InstallmentPlanRepository.findByIdWithInstallments`, `findByInvoiceIdWithInstallments`). Callers can opt-in to the prefetch path when they need the collection, avoiding behaviour change for existing `findByIdAndDeletedFalse` paths. Regression test uses `Statistics#getPrepareStatementCount` to prove single-SELECT + documents the legacy N+1 as the baseline we defend against. Remaining AC (broader rank, ArchUnit rule, backend-standards section) deferred as meta follow-ups.
 - 2026-04-19 — Gap created from performance baseline audit
