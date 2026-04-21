@@ -33,6 +33,7 @@ import static org.mockito.Mockito.lenient;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TrialService Unit Tests")
+@SuppressWarnings("deprecation")  // tests legacy TrialService.convertTrialToSubscription intentionally — Phase 4c migrates callers
 class TrialServiceTest {
 
     @Mock

@@ -162,6 +162,7 @@ public class TrialToPaidService {
      * @param instanceId target instance
      */
     @Transactional
+    @SuppressWarnings("deprecation")  // intentional delegation to TrialService legacy flip during Phase 4b-i transition
     public void executeMigration(UUID instanceId) {
         log.info("Executing migration for instance {}", instanceId);
 
@@ -360,6 +361,7 @@ public class TrialToPaidService {
      * can reset the phase between attempts.
      */
     @Transactional
+    @SuppressWarnings("deprecation")  // intentional delegation to TrialService legacy flip during Phase 4b-i transition
     protected void executeMigrationInternal(UUID instanceId, boolean terminalOnFailure) {
         log.info("Executing migration for instance {}", instanceId);
         Instance instance = loadInstance(instanceId);
