@@ -1,6 +1,6 @@
 # GAP-043: Performance — Cache Stampede & Thundering Herd Protection
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — request-coalescing (stampede) DONE in Wave 9-E for hottest cache; stale-while-revalidate + CDN URL versioning + pre-signing deferred
 **Priority:** 🟠 P1
 **Domain:** Performance / Backend
 **Detected:** 2026-04-14 (simulation: cross-cutting × C4)
@@ -131,21 +131,23 @@ Tools: k6, Locust.
 
 ## Acceptance Criteria
 
-- [ ] Cache stampede protection implemented (request coalescing)
-- [ ] Stale-while-revalidate headers
-- [ ] Worker pool semaphore với max concurrency
-- [ ] CDN URL versioning (no invalidation race)
-- [ ] Preview optimistic rendering
-- [ ] Asset URL pre-signing
-- [ ] Connection pools configured
-- [ ] Load test baseline documented
-- [ ] Chaos testing: force cache flush → verify no stampede
+- [x] Cache stampede protection implemented (request coalescing) — Wave 9-E via `@Cacheable(sync=true)` on `kitehub-email BrandingClient.fetchBranding`; verified by `BrandingCacheStampedeTest` (10 concurrent callers → 1 loader invocation)
+- [ ] Stale-while-revalidate headers — deferred; Cache-Control header policy needs gateway-level decision
+- [ ] Worker pool semaphore với max concurrency — tracked under GAP-005 (queue WFQ); connection pool for HTTP already covered by GAP-131
+- [ ] CDN URL versioning (no invalidation race) — deferred; depends on CDN decision (GAP-102 follow-up)
+- [ ] Preview optimistic rendering — FE concern, deferred
+- [ ] Asset URL pre-signing — deferred; MinIO pre-signed URL already supports it, need codification
+- [x] Connection pools configured — HikariCP already configured per service; HTTP via `RestTemplateConfig` (GAP-131)
+- [ ] Load test baseline documented — deferred; SLO document drafted in this PR (`documents/05-guides/api-performance-slo.md` via GAP-135)
+- [ ] Chaos testing: force cache flush → verify no stampede — deferred to ops-readiness follow-up
 
 ## Dependencies
 
 - GAP-005 (queue infrastructure)
 - GAP-019 (monitoring) — detect issues
+- GAP-132 (enables `@Cacheable` to actually work in kitehub-subscription/admin)
 
 ## Log
 
+- 2026-04-21 — Wave 9-E: request-coalescing shipped. `BrandingClient.fetchBranding` now uses `@Cacheable(sync=true)`, and `BrandingCacheStampedeTest` proves the loader runs once across 10 concurrent callers on an empty cache. This closes the primary AC. Remaining AC (stale-while-revalidate, CDN URL versioning, pre-signing, chaos tests) are independent and tracked for future work — gap remains PARTIAL, not DONE.
 - 2026-04-14 — Performance edge cases missed in GAP-005 + GAP-019

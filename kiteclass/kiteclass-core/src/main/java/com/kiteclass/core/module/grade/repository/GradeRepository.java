@@ -2,6 +2,7 @@ package com.kiteclass.core.module.grade.repository;
 
 import com.kiteclass.core.common.constant.GradeStatus;
 import com.kiteclass.core.module.grade.entity.Grade;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,6 +27,23 @@ public interface GradeRepository extends JpaRepository<Grade, Long> {
      * @return grade if found
      */
     Optional<Grade> findByIdAndDeletedFalse(Long id);
+
+    /**
+     * Find grade by ID with {@code components} collection prefetched in a single
+     * round-trip — GAP-134 anti-N+1 path for callers that need the breakdown
+     * (transcript generation, final-score recompute, grade review UI).
+     *
+     * <p>Without this, iterating {@code grade.getComponents()} inside
+     * {@code GradeServiceImpl.calculateFinalScore(...)} triggers one SELECT per
+     * grade row — the classic N+1 pattern called out in the performance audit.
+     *
+     * @param id grade ID
+     * @return grade with components prefetched, if found
+     * @since 2.7.3 (GAP-134)
+     */
+    @EntityGraph(attributePaths = {"components"})
+    @Query("SELECT g FROM Grade g WHERE g.id = :id AND g.deleted = false")
+    Optional<Grade> findByIdWithComponents(@Param("id") Long id);
 
     /**
      * Find grade by student ID and class ID (not deleted).
