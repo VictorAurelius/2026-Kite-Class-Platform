@@ -1,0 +1,136 @@
+# Dependabot configuration — GAP-203
+#
+# Tracks: Maven (4 pom.xml groups) + npm (2 frontend workspaces) + GitHub Actions
+# Reference: .claude/rules/mcp-first-with-fallback.md, GAP-202 (detection skill)
+#
+# Schedule: weekly grouped PRs — minimizes noise while keeping deps fresh.
+# Open PR limit: 5 per ecosystem (Renovate-style rollups preferred over spam).
+version: 2
+
+updates:
+  # --- Maven: KiteHub parent (multi-module) ---
+  - package-ecosystem: maven
+    directory: "/kitehub"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - kitehub
+    groups:
+      spring-ecosystem:
+        patterns:
+          - "org.springframework*"
+          - "org.springdoc*"
+      testing:
+        patterns:
+          - "org.testcontainers*"
+          - "org.mockito*"
+          - "org.junit*"
+          - "org.assertj*"
+
+  # --- Maven: KiteClass Core ---
+  - package-ecosystem: maven
+    directory: "/kiteclass/kiteclass-core"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - kiteclass
+    groups:
+      spring-ecosystem:
+        patterns:
+          - "org.springframework*"
+          - "org.springdoc*"
+      testing:
+        patterns:
+          - "org.testcontainers*"
+          - "org.mockito*"
+          - "org.junit*"
+
+  # --- Maven: KiteClass Gateway ---
+  - package-ecosystem: maven
+    directory: "/kiteclass/kiteclass-gateway"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - kiteclass
+
+  # --- npm: KiteHub Frontend ---
+  - package-ecosystem: npm
+    directory: "/kitehub/kitehub-frontend"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - frontend
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@tanstack/*"
+          - "next*"
+      dev-tooling:
+        dependency-type: development
+        patterns:
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "@types/*"
+
+  # --- npm: KiteClass Frontend ---
+  - package-ecosystem: npm
+    directory: "/kiteclass/kiteclass-frontend"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - frontend
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@tanstack/*"
+          - "next*"
+      dev-tooling:
+        dependency-type: development
+        patterns:
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "@types/*"
+
+  # --- GitHub Actions ---
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - ci

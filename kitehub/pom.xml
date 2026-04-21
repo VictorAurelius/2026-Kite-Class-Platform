@@ -29,6 +29,12 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <springdoc.version>2.8.6</springdoc.version>
+        <!-- GAP-203: pinned to fix CVEs surfaced via GitHub code-scanning 2026-04-21 -->
+        <!-- Spring Boot 3.5.13 ships Tomcat 10.1.53; override resolves CVE-2026-34483/34487/34500 -->
+        <tomcat.version>10.1.54</tomcat.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <commons-compress.version>1.26.0</commons-compress.version>
+        <poi.version>5.4.0</poi.version>
     </properties>
 
     <modules>
@@ -83,6 +89,24 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
                 <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- GAP-203: CVE overrides for transitive deps -->
+            <!-- Tomcat version pinned via <tomcat.version> property (Spring Boot parent respects it) -->
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
