@@ -1,136 +1,83 @@
-# Dependabot configuration — GAP-203
+# Dependabot configuration — security-only mode
 #
-# Tracks: Maven (4 pom.xml groups) + npm (2 frontend workspaces) + GitHub Actions
-# Reference: .claude/rules/mcp-first-with-fallback.md, GAP-202 (detection skill)
+# Scope: CVE detection + auto-PR for security advisories only.
+# Version updates are DISABLED (see case study below).
 #
-# Schedule: weekly grouped PRs — minimizes noise while keeping deps fresh.
-# Open PR limit: 5 per ecosystem (Renovate-style rollups preferred over spam).
+# Rationale: first-run enable with version updates opened 28 PRs in 3 minutes
+# (see documents/04-quality/analyses/2026-04-21-dependabot-first-run-incident.md).
+# Team does not yet have capacity for weekly dep review. Re-enable version
+# updates only after filing a gap + adjusting config with catch-all groups.
+#
+# Related:
+# - GAP-202 (/repo-status skill security checks)
+# - GAP-203 (pom.xml CVE fixes — original reason to enable Dependabot)
+# - .claude/rules/output-review-mandate.md (health-check standards)
 version: 2
 
 updates:
-  # --- Maven: KiteHub parent (multi-module) ---
+  # Security-only mode: version-update PRs suppressed via limit: 0.
+  # Dependabot alerts (security advisories) still flow — they are independent
+  # of version-update PRs and enabled via repo Settings → Code security.
+  #
+  # Each ecosystem below declares coverage so Dependabot scans it on schedule,
+  # but produces no PRs for non-security updates.
+
   - package-ecosystem: maven
     directory: "/kitehub"
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Asia/Ho_Chi_Minh
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0  # version updates disabled; security PRs unaffected
     labels:
       - dependencies
+      - security
       - kitehub
-    groups:
-      spring-ecosystem:
-        patterns:
-          - "org.springframework*"
-          - "org.springdoc*"
-      testing:
-        patterns:
-          - "org.testcontainers*"
-          - "org.mockito*"
-          - "org.junit*"
-          - "org.assertj*"
 
-  # --- Maven: KiteClass Core ---
   - package-ecosystem: maven
     directory: "/kiteclass/kiteclass-core"
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Asia/Ho_Chi_Minh
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - dependencies
+      - security
       - kiteclass
-    groups:
-      spring-ecosystem:
-        patterns:
-          - "org.springframework*"
-          - "org.springdoc*"
-      testing:
-        patterns:
-          - "org.testcontainers*"
-          - "org.mockito*"
-          - "org.junit*"
 
-  # --- Maven: KiteClass Gateway ---
   - package-ecosystem: maven
     directory: "/kiteclass/kiteclass-gateway"
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Asia/Ho_Chi_Minh
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - dependencies
+      - security
       - kiteclass
 
-  # --- npm: KiteHub Frontend ---
   - package-ecosystem: npm
     directory: "/kitehub/kitehub-frontend"
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Asia/Ho_Chi_Minh
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - dependencies
+      - security
       - frontend
-    groups:
-      react-ecosystem:
-        patterns:
-          - "react"
-          - "react-*"
-          - "@tanstack/*"
-          - "next*"
-      dev-tooling:
-        dependency-type: development
-        patterns:
-          - "eslint*"
-          - "prettier*"
-          - "typescript"
-          - "@types/*"
 
-  # --- npm: KiteClass Frontend ---
   - package-ecosystem: npm
     directory: "/kiteclass/kiteclass-frontend"
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Asia/Ho_Chi_Minh
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     labels:
       - dependencies
+      - security
       - frontend
-    groups:
-      react-ecosystem:
-        patterns:
-          - "react"
-          - "react-*"
-          - "@tanstack/*"
-          - "next*"
-      dev-tooling:
-        dependency-type: development
-        patterns:
-          - "eslint*"
-          - "prettier*"
-          - "typescript"
-          - "@types/*"
 
-  # --- GitHub Actions ---
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Asia/Ho_Chi_Minh
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     labels:
       - dependencies
+      - security
       - ci
