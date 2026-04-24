@@ -8,9 +8,11 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-04-21)
+## 🎯 Current Status Snapshot (2026-04-23)
 
-**2026-04-21 update:** During post-Wave-9.5 `/repo-status` session, user flagged skill missing GitHub Security checks. `gh api` probe surfaced **3 HIGH CVEs** + 4 medium on main (Dependabot silently disabled). Filed **GAP-202** (meta — skill blindspot, Meta-P1) + **GAP-203** (security — CVE fixes, BL-P0). Both re-open previously-closed Epic 5 (Security) + Epic 12 (Process). Priority: GAP-202 first per meta-gap rule, GAP-203 second (skill fix enables continuous detection; CVE fix closes current exposure).
+**2026-04-23 update:** Continuation of 2026-04-21 security session. Enabled Dependabot via `gh api PUT .../vulnerability-alerts` after GAP-202 skill exposed it was disabled. **Surfaced 89 npm alerts** (8 CRITICAL + 32 HIGH + 45 medium + 4 low). Initial triage incorrectly flagged 8 CRITICAL as false-positive (shallow jq query on only first vulnerable range); corrected analysis shows **all 8 CRITICAL are real** on `next@15.1.6` (GHSA-9qr9 fix 15.1.9, GHSA-f82v fix 15.2.3). Bump attempts (15.1.11, 15.3.9, 15.5.15) all broke `/pricing` + `/blog/[slug]` prerender via `Array.toJSON` regression in next 15.1.7+. Filed **GAP-204** P0 with Stage A (docs) + Stage B (RSC compat investigation) + Stage C (bump + close CRITICAL) + Stage D (triage remaining HIGH) + Stage E (re-enable auto-security-fixes). `/repo-status` reports **BLACK** — skill working correctly.
+
+**2026-04-21 update:** During post-Wave-9.5 `/repo-status` session, user flagged skill missing GitHub Security checks. `gh api` probe surfaced **3 HIGH CVEs** + 4 medium on main (Dependabot silently disabled). Filed **GAP-202** (meta — skill blindspot, Meta-P1) + **GAP-203** (security — CVE fixes, BL-P0). Both re-open previously-closed Epic 5 (Security) + Epic 12 (Process). Priority: GAP-202 first per meta-gap rule, GAP-203 second (skill fix enables continuous detection; CVE fix closes current exposure). PRs #423/#424/#453/#454 shipped 2026-04-21. CVEs auto-closed by Trivy post-merge. Case study: `documents/04-quality/analyses/2026-04-21-dependabot-first-run-incident.md`.
 
 ---
 
@@ -140,9 +142,10 @@
 | GAP-042 ✅ | Legal/IP protection (DMCA workflow) — DONE Wave 4 | 🟢 DONE | M |
 | GAP-012 ✅ | Automated instance quality review — DONE Wave 4 | 🟢 DONE | M |
 | **GAP-203** | Fix 7 open CVEs in transitive Maven deps (3 HIGH) + enable Dependabot | 🔴 P0 | M |
+| **GAP-204** | 89 npm alerts — 8 CRITICAL (next.js) blocked by RSC compat, 32 HIGH + 45 medium triage | 🔴 P0 | XL (Stage A-E) |
 
-**Dependencies:** Can parallelize với Epic 2. GAP-203 pairs with GAP-202 (detection skill fix).
-**Status:** 🟠 Re-opened 2026-04-21 — GAP-203 filed for 3 HIGH CVEs (commons-beanutils + 2× tomcat-embed-core) surfaced via `gh api` during `/repo-status` session. Dependabot was silently disabled.
+**Dependencies:** Can parallelize với Epic 2. GAP-203 pairs with GAP-202 (detection skill fix). GAP-204 depends on GAP-202 (detection exposed scope) + compatibility work on JsonLd RSC serialization.
+**Status:** 🔴 Re-opened 2026-04-23 — GAP-204 P0 with CRITICAL live on main; GAP-203 shipped 2026-04-21 (PR #424). Epic 5 stays RED until GAP-204 Stage C closes 8 CRITICAL next.js CVEs.
 
 ---
 
