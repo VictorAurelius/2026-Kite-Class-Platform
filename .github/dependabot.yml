@@ -1,46 +1,40 @@
-# Dependabot configuration — security-only mode
+# Dependabot configuration
 #
-# Scope: CVE detection + auto-PR for security advisories only.
-# Version updates are DISABLED (see case study below).
+# Mode: security-only for most ecosystems + **pilot** of version updates for
+# one ecosystem (maven / kiteclass-core). Pilot validates grouping before the
+# rollout expands to the other 5 ecosystems.
 #
-# Rationale: first-run enable with version updates opened 28 PRs in 3 minutes
-# (see documents/04-quality/analyses/2026-04-21-dependabot-first-run-incident.md).
-# Team does not yet have capacity for weekly dep review. Re-enable version
-# updates only after filing a gap + adjusting config with catch-all groups.
+# Rationale: first enable on 2026-04-21 opened 28 version-update PRs in
+# 3 minutes (see documents/04-quality/analyses/2026-04-21-dependabot-first-run-incident.md).
+# A pilot with tight groups + `version-update:semver-major` ignored lets us
+# confirm the cadence + reviewer load before flipping the other ecosystems.
+#
+# Re-enable the rest when:
+#   - Pilot week passes with <=5 PRs AND no broken builds
+#   - Groups have been tuned based on observed bundling
 #
 # Related:
 # - GAP-202 (/repo-status skill security checks)
 # - GAP-203 (pom.xml CVE fixes — original reason to enable Dependabot)
 # - .claude/rules/output-review-mandate.md (health-check standards)
+# - Memory: feedback_dependabot_first_run.md (3-stage enable: detection →
+#   security-only → version-updates)
 version: 2
 
 updates:
-  # Security-only mode: version-update PRs suppressed via limit: 0.
-  # Dependabot alerts (security advisories) still flow — they are independent
-  # of version-update PRs and enabled via repo Settings → Code security.
-  #
-  # Each ecosystem below declares coverage so Dependabot scans it on schedule,
-  # but produces no PRs for non-security updates.
-
+  # ---------------------------------------------------------------------------
+  # Suppressed ecosystems (security-only mode — version PRs blocked by limit:0)
+  # Dependabot alerts (security advisories) still produce PRs independently.
+  # ---------------------------------------------------------------------------
   - package-ecosystem: maven
     directory: "/kitehub"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 0  # version updates disabled; security PRs unaffected
-    labels:
-      - dependencies
-      - security
-      - kitehub
-
-  - package-ecosystem: maven
-    directory: "/kiteclass/kiteclass-core"
     schedule:
       interval: weekly
     open-pull-requests-limit: 0
     labels:
       - dependencies
       - security
-      - kiteclass
+      - kitehub
 
   - package-ecosystem: maven
     directory: "/kiteclass/kiteclass-gateway"
@@ -81,3 +75,56 @@ updates:
       - dependencies
       - security
       - ci
+
+  # ---------------------------------------------------------------------------
+  # PILOT: version updates enabled for kiteclass-core ONLY.
+  # Groups bundle related deps to keep PR count manageable; major updates are
+  # ignored so breaking changes stay on a manual review path.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: maven
+    directory: "/kiteclass/kiteclass-core"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - kiteclass
+      - dependabot-pilot
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot*"
+          - "org.springframework:*"
+          - "org.springframework.security:*"
+      apache-commons:
+        patterns:
+          - "commons-*"
+          - "org.apache.commons:*"
+      aws-sdk:
+        patterns:
+          - "software.amazon.awssdk:*"
+      document-generation:
+        patterns:
+          - "com.openhtmltopdf:*"
+          - "org.apache.poi:*"
+          - "ognl:*"
+      testing:
+        patterns:
+          - "org.testcontainers:*"
+          - "org.junit.jupiter:*"
+          - "org.assertj:*"
+          - "org.mockito*"
+          - "io.github.resilience4j:*"
+          - "org.springframework.security:spring-security-test"
+    ignore:
+      # Keep major bumps on a manual review path — breaking changes demand a
+      # dedicated PR, not an auto-merge candidate.
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
