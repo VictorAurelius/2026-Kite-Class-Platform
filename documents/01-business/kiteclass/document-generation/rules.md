@@ -44,7 +44,18 @@
 | BR-DOC-XLSX-007 | Header row frozen via `createFreezePane(1, 3)` so student column + header stay visible while scrolling. |
 | BR-DOC-XLSX-008 | Filename pattern: `attendance-{weekStart}.xlsx` (e.g. `attendance-2026-04-20.xlsx`). |
 
-- DOCX rules → Sub-PR 5.3 (teacher contract placeholder, XSD validation)
+### Word rules (Sub-PR 5.3)
+
+| ID | Rule |
+|----|------|
+| BR-DOC-DOCX-001 | **Create pipeline only** in Wave 5. Edit-Fill + Reformat pipelines deferred to later waves. Implementations must reject unknown pipelines with clear error. |
+| BR-DOC-DOCX-002 | Supported templates whitelisted in `DocxGenerator`; unknown `templateId` → `IllegalArgumentException`. Wave 5 whitelist: `teacher-contract` only. |
+| BR-DOC-DOCX-003 | Required keys fail-fast with `IllegalArgumentException` naming the missing key (teacher-contract: `teacherName`, `teacherIdNumber`, `tenantName`, `tenantAddress`, `startDate`, `endDate`). |
+| BR-DOC-DOCX-004 | Vietnamese typography defaults: Times New Roman, 12 pt body, 14 pt bold title, A4 portrait, 2.54 cm margins (1440 twips). |
+| BR-DOC-DOCX-005 | Legal wording for contracts is a **placeholder** until a dedicated legal-review wave ships. Rendered output must call this out explicitly ("[sẽ được pháp lý duyệt ở wave sau]"). |
+| BR-DOC-DOCX-006 | Salary / monetary values formatted with `vi-VN` locale (`#.##0` grouping). |
+| BR-DOC-DOCX-007 | Validation: unit tests must re-open the generated .docx via POI `XWPFDocument` and assert paragraph count ≥ minimum + expected text content round-trips. |
+| BR-DOC-DOCX-008 | Filename pattern: `teacher-contract-<slug>-<startDate>.docx` (slug = teacher name lower-cased with spaces → hyphens, VN locale preserved). |
 
 ### Delivery (Sub-PR 5.5)
 
@@ -62,6 +73,7 @@
 
 ## Log
 
+- 2026-04-24 — DOCX rules filled (Sub-PR 5.3). 8 rules BR-DOC-DOCX-001..008 covering Create-only pipeline, template whitelist, required keys, VN typography, legal-placeholder disclosure, filename.
 - 2026-04-24 — XLSX rules filled (Sub-PR 5.2). 8 rules BR-DOC-XLSX-001..008 covering formula-first, color convention, VN labels, percent format, freeze pane, filename. Word section untouched (Sub-PR 5.3).
 - 2026-04-24 — PDF rules filled (Sub-PR 5.1). 7 rules BR-DOC-PDF-001..007 covering template whitelist, diacritic contract, VND formatting, layout, filename, entity handling, sync timing budget. Font config key finalised (`DejaVuSans`). Excel + Word sections untouched (Sub-PRs 5.2/5.3).
 - 2026-04-24 — Stub rules file created (Sub-PR 5.0 foundation / GAP-047). Per-format rules to be filled by Sub-PRs 5.1–5.3; delivery rules by 5.5.
