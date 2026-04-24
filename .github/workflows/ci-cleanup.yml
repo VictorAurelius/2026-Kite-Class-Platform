@@ -1,16 +1,16 @@
-# CI History Cleanup — GAP-205 Stage C
+# CI History Cleanup — GAP-205 (tightened 2026-04-24 per solo-dev policy)
 #
-# Weekly scheduled cleanup of old CI runs per CLAUDE.md §CI History Hygiene
-# retention policy. Runs Monday 04:00 Asia/Ho_Chi_Minh (= Sunday 21:00 UTC).
+# Weekly scheduled cleanup of old CI runs per CLAUDE.md §CI History Hygiene.
+# Runs Monday 04:00 Asia/Ho_Chi_Minh (= Sunday 21:00 UTC).
 #
-# Retention rules applied (newest-first precedence):
-#   - Keep all runs <7 days old
-#   - Delete failed runs 7-30 days old
-#   - Delete ALL runs >30 days old
-#   - Delete "Dependabot Updates" failures at any age (pnpm transitive limitation)
-#   - Hard cap: 1000 total runs; if exceeded, oldest deleted first
+# Retention rules (precedence top → bottom):
+#   1. Always preserve 2 newest failed runs on `main` (debug reference)
+#   2. Preserve 50 newest runs overall (by createdAt)
+#   3. Always delete "Dependabot Updates" failures (pnpm transitive limitation)
+#   4. Always delete failed runs on feature branches >1 day old
+#   5. Delete everything else not in the preserve set
 #
-# Also supports on-demand trigger via workflow_dispatch for emergency cleanup.
+# Also supports on-demand trigger via workflow_dispatch with dry_run preview.
 
 name: CI History Cleanup
 
@@ -24,6 +24,10 @@ on:
         description: 'Dry-run (log what would be deleted, do not delete)'
         type: boolean
         default: false
+      keep_newest:
+        description: 'Override: number of newest runs to preserve (default 50)'
+        type: string
+        default: '50'
 
 permissions:
   actions: write
@@ -37,44 +41,62 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compute cutoff dates
-        id: cutoff
-        run: |
-          echo "thirty_days=$(date -d '30 days ago' -Iseconds)" >> "$GITHUB_OUTPUT"
-          echo "seven_days=$(date -d '7 days ago' -Iseconds)" >> "$GITHUB_OUTPUT"
-
-      - name: List candidate runs
-        id: list
+      - name: Compute preserve + delete sets
+        id: plan
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          THIRTY: ${{ steps.cutoff.outputs.thirty_days }}
-          SEVEN: ${{ steps.cutoff.outputs.seven_days }}
+          KEEP_N: ${{ github.event.inputs.keep_newest || '50' }}
         run: |
-          # Tier 1: All runs >30 days old
-          TIER1=$(gh run list --limit 1000 --json databaseId,createdAt \
-            --jq ".[] | select(.createdAt < \"$THIRTY\") | .databaseId")
-          echo "Tier 1 (>30d): $(echo "$TIER1" | grep -c '.' 2>/dev/null || echo 0) runs"
+          set -euo pipefail
+          ONE_DAY_AGO=$(date -u -d '1 day ago' -Iseconds)
 
-          # Tier 2: Failed runs 7-30 days old
-          TIER2=$(gh run list --limit 1000 --json databaseId,createdAt,conclusion \
-            --jq ".[] | select(.conclusion==\"failure\" and .createdAt < \"$SEVEN\" and .createdAt >= \"$THIRTY\") | .databaseId")
-          echo "Tier 2 (failed 7-30d): $(echo "$TIER2" | grep -c '.' 2>/dev/null || echo 0) runs"
+          # Dump all runs once for consistent filtering
+          gh run list --limit 1000 \
+            --json databaseId,createdAt,conclusion,name,headBranch \
+            > /tmp/all-runs.json
 
-          # Tier 3: "Dependabot Updates" failures at any age (pnpm transitive limit, not actionable)
-          TIER3=$(gh run list --limit 1000 --json databaseId,conclusion,name \
-            --jq '.[] | select(.conclusion=="failure" and .name=="Dependabot Updates") | .databaseId')
-          echo "Tier 3 (Dependabot Updates failures): $(echo "$TIER3" | grep -c '.' 2>/dev/null || echo 0) runs"
+          TOTAL=$(jq 'length' /tmp/all-runs.json)
+          echo "Total runs: $TOTAL"
 
-          # Merge + deduplicate
-          ALL_IDS=$(echo -e "$TIER1\n$TIER2\n$TIER3" | sort -u | grep -v '^$' | grep -E '^[0-9]+$')
-          echo "Total unique runs to delete: $(echo "$ALL_IDS" | grep -c '.' 2>/dev/null || echo 0)"
+          # Preserve set 1: 2 newest failed runs on main
+          PRESERVE_FAILED_MAIN=$(jq -r '
+            [.[] | select(.conclusion=="failure" and .headBranch=="main")]
+            | sort_by(.createdAt) | reverse | .[0:2] | .[].databaseId
+          ' /tmp/all-runs.json | sort -u)
 
-          # Save to file for next step
-          echo "$ALL_IDS" > /tmp/delete-ids.txt
-          echo "count=$(echo "$ALL_IDS" | grep -c '.' 2>/dev/null || echo 0)" >> "$GITHUB_OUTPUT"
+          # Preserve set 2: KEEP_N newest runs overall
+          PRESERVE_NEWEST=$(jq -r --argjson n "$KEEP_N" '
+            sort_by(.createdAt) | reverse | .[0:$n] | .[].databaseId
+          ' /tmp/all-runs.json | sort -u)
+
+          # Union of preserve sets
+          printf '%s\n%s\n' "$PRESERVE_FAILED_MAIN" "$PRESERVE_NEWEST" \
+            | grep -v '^$' | sort -u > /tmp/preserve.txt
+          PRESERVE_COUNT=$(wc -l < /tmp/preserve.txt | tr -d ' ')
+          echo "Preserve: $PRESERVE_COUNT runs (newest $KEEP_N + failed-main top 2)"
+
+          # Forced-delete set (always): Dependabot Updates failures + feature-branch failures >1d old
+          jq -r --arg cutoff "$ONE_DAY_AGO" '
+            .[] | select(
+              (.conclusion=="failure" and .name=="Dependabot Updates")
+              or (.conclusion=="failure" and .headBranch != "main" and .createdAt < $cutoff)
+            ) | .databaseId
+          ' /tmp/all-runs.json | sort -u > /tmp/force-delete.txt
+
+          # Candidates: all runs NOT in preserve set
+          jq -r '.[].databaseId' /tmp/all-runs.json | sort -u > /tmp/all-ids.txt
+          comm -23 /tmp/all-ids.txt /tmp/preserve.txt > /tmp/delete-candidates.txt
+
+          # Final delete = candidates ∪ force-delete (force-delete overrides preserve for Dependabot etc.)
+          cat /tmp/delete-candidates.txt /tmp/force-delete.txt | sort -u > /tmp/delete-ids.txt
+
+          DELETE_COUNT=$(wc -l < /tmp/delete-ids.txt | tr -d ' ')
+          echo "Scheduled for deletion: $DELETE_COUNT runs"
+          echo "delete_count=$DELETE_COUNT" >> "$GITHUB_OUTPUT"
+          echo "total_before=$TOTAL" >> "$GITHUB_OUTPUT"
 
       - name: Delete runs
-        if: steps.list.outputs.count != '0'
+        if: steps.plan.outputs.delete_count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -97,31 +119,27 @@ jobs:
             fi
           done < /tmp/delete-ids.txt
 
-          echo "✅ Deleted $DELETED runs"
+          echo "✅ Deleted $DELETED runs (started with ${{ steps.plan.outputs.total_before }})"
           [ "$FAILED" -gt 0 ] && echo "⚠️ $FAILED deletions failed (rate limit or already-deleted)"
           echo "Remaining runs: $(gh run list --limit 1000 --json databaseId --jq 'length')"
 
-      - name: Hard cap enforcement (>1000 runs)
+      - name: Hard-cap safety net (>100 total)
+        if: github.event.inputs.dry_run != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: |
           TOTAL=$(gh run list --limit 1000 --json databaseId --jq 'length')
-          if [ "$TOTAL" -ge 1000 ]; then
-            EXCESS=$((TOTAL - 900))
-            echo "⚠️ Total runs ($TOTAL) exceeds 1000. Pruning oldest $EXCESS to reach soft cap 900..."
-            OLDEST=$(gh run list --limit 1000 --json databaseId,createdAt \
-              --jq 'sort_by(.createdAt) | .[0:'"$EXCESS"'] | .[].databaseId')
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "🏃 DRY RUN — would delete $EXCESS oldest runs"
-            else
-              echo "$OLDEST" | while IFS= read -r id; do
-                [ -z "$id" ] && continue
-                gh api --method DELETE "repos/$REPO/actions/runs/$id" 2>/dev/null
-              done
-              echo "✅ Hard-cap enforced"
-            fi
+          if [ "$TOTAL" -gt 100 ]; then
+            EXCESS=$((TOTAL - 50))
+            echo "⚠️ Total ($TOTAL) exceeds hard cap 100. Pruning oldest $EXCESS to reach soft cap 50..."
+            gh run list --limit 1000 --json databaseId,createdAt \
+              --jq "sort_by(.createdAt) | .[0:$EXCESS] | .[].databaseId" \
+              | while IFS= read -r id; do
+                  [ -z "$id" ] && continue
+                  gh api --method DELETE "repos/$REPO/actions/runs/$id" 2>/dev/null || true
+                done
+            echo "✅ Hard-cap enforced. Remaining: $(gh run list --limit 1000 --json databaseId --jq 'length')"
           else
-            echo "✅ Total runs ($TOTAL) within soft cap (900)"
+            echo "✅ Total runs ($TOTAL) within hard cap 100"
           fi

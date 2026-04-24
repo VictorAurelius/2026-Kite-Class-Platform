@@ -104,33 +104,41 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 
 Edit the `on: push: branches: [main]` block in each workflow to restore.
 
-### CI History Hygiene (updated 2026-04-24 per GAP-205)
+### CI History Hygiene (tightened 2026-04-24 — solo-dev mode, target ~50 runs)
+
+Solo-dev mode: CI history kept minimal. Old debug value for most runs is near-zero; recent 50 covers >95% of real triage scenarios.
 
 Retention caps (enforced by scheduled cleanup + `/repo-status` check):
 
 | Run type | Keep policy |
 |----------|-------------|
-| Failed runs on `main` | ≤2 in history (ideal = 0) |
-| Failed runs on feature branches | Delete after 7 days |
-| Success runs (any branch) | Keep last 30 days OR last 50 per branch (whichever more) |
-| All runs total | Soft cap 500; hard cap 1000, beyond that oldest deleted |
+| Total runs | **Soft cap 50; hard cap 100** — beyond that, oldest non-preserved deleted |
+| Failed runs on `main` | ≤2 preserved (even if older than 50-window, for debug reference) |
+| Failed runs on feature branches | Delete after 1 day |
 | "Dependabot Updates" failures | **Always deletable** — known pnpm transitive limitation, not actionable (see memory `feedback_dependabot_pnpm_transitive.md`) |
+| Success runs | Delete when pushed beyond 50-run window (FIFO by `createdAt`) |
 
-**Manual cleanup:** `scripts/cleanup-ci-runs.sh` (preserves most recent run per branch)
+**Manual cleanup:** trigger `.github/workflows/ci-cleanup.yml` via `gh workflow run ci-cleanup.yml` (supports `--field dry_run=true` for preview).
 
-**Bulk cleanup (one-shot):**
+**Bulk cleanup (one-shot, if automation unavailable):**
 ```bash
-THIRTY_DAYS_AGO=$(date -d "30 days ago" -Iseconds)
-SEVEN_DAYS_AGO=$(date -d "7 days ago" -Iseconds)
 REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
-gh run list --limit 1000 --json databaseId,createdAt,conclusion \
-  --jq ".[] | select(.createdAt < \"$THIRTY_DAYS_AGO\" or (.conclusion==\"failure\" and .createdAt < \"$SEVEN_DAYS_AGO\")) | .databaseId" \
+# Preserve 2 newest failed-main runs
+KEEP_FAILED_MAIN=$(gh run list --limit 1000 --branch main --json databaseId,conclusion \
+  --jq '[.[] | select(.conclusion=="failure")] | sort_by(.createdAt) | reverse | .[0:2] | .[].databaseId' | sort -u)
+# Keep 50 newest overall
+KEEP_NEWEST=$(gh run list --limit 1000 --json databaseId,createdAt \
+  --jq 'sort_by(.createdAt) | reverse | .[0:50] | .[].databaseId' | sort -u)
+KEEP=$(echo -e "$KEEP_FAILED_MAIN\n$KEEP_NEWEST" | sort -u)
+# Delete everything else
+gh run list --limit 1000 --json databaseId --jq '.[].databaseId' \
+  | sort -u | comm -23 - <(echo "$KEEP") \
   | xargs -I {} gh api --method DELETE "repos/$REPO/actions/runs/{}"
 ```
 
-**Automation:** scheduled `.github/workflows/ci-cleanup.yml` (GAP-205 Stage C, pending).
+**Automation:** weekly scheduled `.github/workflows/ci-cleanup.yml` (GAP-205 Stage C, enforces the 50-run cap).
 
-**Enforcement:** `/repo-status` skill flags when failed runs > 2 on main or total runs > 500.
+**Enforcement:** `/repo-status` skill flags when failed runs > 2 on main. Total-run cap enforced by weekly `ci-cleanup` workflow (not repo-status).
 
 ## CRITICAL: Wave Branch Strategy
 
