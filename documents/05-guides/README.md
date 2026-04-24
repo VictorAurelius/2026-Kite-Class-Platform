@@ -22,6 +22,7 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 | [`cicd-release-procedure.md`](cicd-release-procedure.md) | PR merge → prod deploy procedure (GAP-102, 2026-04-18) | 1 |
 | [`tenant-onboarding-checklist.md`](tenant-onboarding-checklist.md) | End-to-end school onboarding (3-day target) (GAP-102, 2026-04-18) | 1 |
 | [`api-performance-slo.md`](api-performance-slo.md) | API latency p95 SLO tiers + tagging rubric (GAP-135, 2026-04-21) | 1 |
+| [`dependabot-guide.md`](dependabot-guide.md) | Dependabot config + workflow + troubleshooting (audience: Devs + Claude; 2026-04-24) | 1 |
 | [`operations/`](operations/) | Operations runbooks (deploy procedures) | `runbooks/*.md` |
 | [`vietnamese/`](vietnamese/) | Vietnamese-language guides (Oracle Cloud deploy) | 1+ |
 
