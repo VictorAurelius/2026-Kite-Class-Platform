@@ -1,10 +1,12 @@
 ---
 title: Wave 5 Decision Guide — 6 câu hỏi mở + best-practice defaults
-status: draft
+status: approved
 created: 2026-04-19
-updated: 2026-04-19
+updated: 2026-04-24
 waves: [5]
 gaps: [GAP-047]
+approved_by: nguyenvankiet
+approved_at: 2026-04-24
 ---
 
 # Wave 5 — Decision Guide (tiếng Việt)
@@ -403,30 +405,33 @@ Wave 5 plan có 5.3 Word P1 + 5.4 PPT P2. Hỏi: cả 2 làm trong Wave 5 hay de
 - 5 sub-PR (bỏ 5.4): 5.0 foundation → 5.1 PDF → 5.2 Excel → 5.3 Word → 5.5 integration → 5.6 completion
 - Wall-clock ước tính: ~12h với 3 parallel agents (vs ~14h với 4 parallel)
 
-### New follow-up gaps (nếu defaults approve)
-- **GAP-104** Launch template library expansion (certificates, transcripts, financial reports, receipts) — P0 for launch
-- **GAP-105** Extract kiteclass-document-gen module — P2, trigger khi kitehub consume
-- **GAP-106** Queue-backed document generation — P2, trigger khi bulk use case xuất hiện
-- **GAP-107** FE preview cho Excel/Word/PPT — P2, trigger khi user request
-- **GAP-108** PPT marketing/training templates (Wave 6) — P2
+### New follow-up gaps (gap numbers renumbered 2026-04-24 — original 104-108 already consumed by Part A audit)
+- **GAP-208** Launch template library expansion (certificates, transcripts, financial reports, receipts) — P0 for launch (Wave 7)
+- **GAP-209** Extract `kiteclass-document-gen` Maven module — P2, trigger khi kitehub consume
+- **GAP-210** Queue-backed document generation — P2, trigger khi bulk/large use case xuất hiện
+- **GAP-211** FE preview cho Excel/Word — P2, trigger khi user request
+- **GAP-212** PPT marketing/training templates (Wave 6) — P2 (deferred from Wave 5)
+
+Gap files will be created during Wave 5 Sub-PR 5.6 (wave completion) per `audit-to-gap-pipeline.md`.
 
 ---
 
-## Approval checklist
+## Approval checklist — ✅ APPROVED 2026-04-24
 
-Trước khi Sub-PR 5.0 start, reviewer tick:
-- [ ] Câu 1: OpenHTMLtoPDF approved
-- [ ] Câu 2: Inline trong core approved
-- [ ] Câu 3: 4 stubs cho Wave 5, tạo GAP-104 cho Wave 7
-- [ ] Câu 4: PDF preview only approved
-- [ ] Câu 5: Sync-first approved
-- [ ] Câu 6: Defer PPT sang Wave 6 approved
-- [ ] ADR-016 (trong Sub-PR 5.0) sẽ document 6 quyết định này
+Reviewer (user nguyenvankiet) approved all 6 defaults:
+- [x] Câu 1: OpenHTMLtoPDF + PDFBox approved
+- [x] Câu 2: Inline trong `kiteclass-core` approved
+- [x] Câu 3: 4 stubs cho Wave 5, file GAP-208 cho Wave 7 launch expansion
+- [x] Câu 4: PDF preview inline; Excel/Word download-only approved
+- [x] Câu 5: Sync-first approved; queue deferred to GAP-210
+- [x] Câu 6: Defer PPT → Wave 6 (GAP-212) approved
+- [x] **ADR-019** (renumbered from 016 — conflict with fe-be-contract-strategy) will document these 6 decisions in Sub-PR 5.0
 
-Nếu reviewer muốn khác bất kỳ câu nào → note vào §Log của `wave-05-document-generation.md` với rationale + impact.
+Wave 5 scope is LOCKED. Change = new user decision + log entry in `wave-05-document-generation.md` §11.
 
 ---
 
 ## Log
 
+- **2026-04-24 (APPROVED):** User nguyenvankiet approved all 6 defaults in single sign-off. Wave 5 scope LOCKED. ADR number bumped 016 → 019 (conflict with existing ADR-016 fe-be-contract-strategy). Follow-up gap IDs renumbered 104-108 → 208-212 (original range already consumed by Part A audit 2026-04-19). Next step: Wave 5 Sub-PR 5.0 foundation + ADR-019 starts in follow-up session.
 - **2026-04-19:** Guide drafted sau khi user request best-practice defaults cho 6 open questions. Dựa trên: CLAUDE.md rules (YAGNI, brainstorm), existing dependencies (Thymeleaf, RabbitMQ, MinIO), SaaS giáo dục use case patterns.

@@ -1,10 +1,12 @@
 ---
 title: Wave 5 — Document Generation Skills (GAP-047)
-status: draft
+status: approved
 created: 2026-04-18
-updated: 2026-04-18
+updated: 2026-04-24
 waves: [5]
 gaps: [GAP-047, GAP-034, GAP-017]
+approved_by: nguyenvankiet
+approved_at: 2026-04-24
 ---
 
 # Wave 5: Document Generation Skills (GAP-047)
@@ -34,14 +36,14 @@ gaps: [GAP-047, GAP-034, GAP-017]
 
 ### 2.1 Skill files (`.claude/skills/document-generation/`)
 
-Adopted and adapted from MiniMax-AI/skills:
+Adopted and adapted from MiniMax-AI/skills. **After 2026-04-24 approval: 3 formats in Wave 5; PPT deferred to Wave 6.**
 
-| Format | Skill file | Tech (Java backend) | Tech (FE if needed) |
-|--------|-----------|---------------------|---------------------|
-| PDF | `pdf/SKILL.md` | iText 7 **or** Apache PDFBox | — |
-| Excel | `excel/SKILL.md` | Apache POI (XSSF) | SheetJS (fallback) |
-| Word | `word/SKILL.md` | Apache POI (XWPF) | — |
-| PowerPoint | `pptx/SKILL.md` | Apache POI (XSLF) | PptxGenJS (alt) |
+| Format | Skill file | Tech (Java backend) | Wave |
+|--------|-----------|---------------------|:----:|
+| PDF | `pdf/SKILL.md` | **OpenHTMLtoPDF + PDFBox** (Apache 2.0 / LGPL 3) | 5 |
+| Excel | `excel/SKILL.md` | Apache POI (XSSF) | 5 |
+| Word | `word/SKILL.md` | Apache POI (XWPF) | 5 |
+| ~~PowerPoint~~ | ~~`pptx/SKILL.md`~~ | Apache POI (XSLF) | **Deferred to Wave 6** |
 
 ### 2.2 Per-skill content (≤100 lines per SKILL.md, project-specific gotchas)
 
@@ -55,19 +57,19 @@ Each skill MUST include:
 
 ### 2.3 Backend scaffolding
 
-`kiteclass-core/src/main/java/com/kiteclass/core/document/`:
+`kiteclass-core/src/main/java/com/kiteclass/core/document/` (inline in `kiteclass-core`, no new Maven module per 2026-04-24 Q2 decision):
 - `DocumentGenerationService` — Facade (per `design-patterns.md` §3 Facade pattern)
-- `Generator` interface + 4 Strategy implementations (PdfGenerator, XlsxGenerator, DocxGenerator, PptxGenerator)
+- `Generator` interface + 3 Strategy implementations (PdfGenerator, XlsxGenerator, DocxGenerator)
 - `DocumentRequest` value object (format, template-id, data map, branding-id)
 - `DocumentResponse` value object (bytes, mime-type, filename)
 
 ### 2.4 Template library (stub)
 
-`kiteclass-core/src/main/resources/templates/`:
-- 1 PDF template (invoice — Vietnamese tax invoice format)
+`kiteclass-core/src/main/resources/templates/` (3 stubs; PPT deferred):
+- 1 PDF template (invoice — Vietnamese tax invoice format, Thymeleaf HTML)
 - 1 Excel template (attendance report — weekly)
 - 1 Word template (teacher contract — placeholder)
-- 1 PPT template (marketing pitch — placeholder)
+- ~~1 PPT template (marketing pitch)~~ — **Wave 6**
 
 Per-template review checklist per `output-review-mandate.md` §3.
 
@@ -105,27 +107,29 @@ Explicitly **deferred** to later waves:
 
 ## 4. Sub-PR Breakdown
 
-### Sub-PR 5.0: Foundation + ADR-016
+### Sub-PR 5.0: Foundation + ADR-019
 
 **Branch:** `wave/05-document-generation/foundation`
 **Mode:** serialized (lead)
 **Depends on:** —
 
 **Scope:**
-- ADR-016 Document generation architecture decision
-  - Option A: Pure backend (Java-only, Apache POI + iText)
+- **ADR-019** Document generation architecture decision (next free ADR number; original plan said ADR-016 but that slot is taken by fe-be-contract-strategy)
+  - Option A: Pure backend (Java-only, OpenHTMLtoPDF + POI) ✅ **Decision per 2026-04-24 Q1**
   - Option B: Hybrid (backend for server docs, FE for interactive preview)
   - Option C: Separate microservice
-  - Decision: **A** (simplest, single library stack, reuse existing Maven module)
-- Maven module: `kiteclass-document-gen` (optional — if extracted) OR new package in kiteclass-core
-- Dependency versions pinned (iText 7.2.x, POI 5.2.x)
+- Inline in `kiteclass-core` (no new Maven module per Q2 decision)
+- Dependency versions pinned:
+  - OpenHTMLtoPDF 1.0.x + PDFBox 3.0.x (PDF)
+  - Apache POI 5.2.x (Excel XSSF + Word XWPF)
+  - Thymeleaf — reuse version from `kiteclass-gateway` for consistency
 - `Generator` interface + shared value objects (`DocumentRequest`, `DocumentResponse`)
 - `DocumentGenerationService` facade (empty implementation, throws UnsupportedOperation for each format)
 - Test scaffolding: `document-samples/` folder + base `DocumentGenerationTestBase`
 - 3-layer docs stub: `document-generation/` in `01-business/`
 
 **Effort:** ~3h
-**Deliverable:** PR foundation merged, unblocks 5.1-5.4 parallel work.
+**Deliverable:** PR foundation merged, unblocks 5.1-5.3 parallel work.
 
 ---
 
@@ -189,32 +193,23 @@ Explicitly **deferred** to later waves:
 
 ---
 
-### Sub-PR 5.4: PPT Skill + Marketing Pitch (P2)
+### Sub-PR 5.4: ~~PPT Skill + Marketing Pitch~~ — **DEFERRED to Wave 6** (2026-04-24 Q6 decision)
 
-**Branch:** `wave/05-document-generation/pptx`
-**Depends on:** 5.0
-
-**Scope:**
-- `.claude/skills/document-generation/pptx/SKILL.md` (adopt pptx-generator)
-- `reference/pptx-5-page-types.md` (Cover/TOC/Section/Content/Summary)
-- `PptxGenerator` (Strategy impl)
-- Marketing pitch template (5 slides)
-- Branding applied (tenant logo on cover, primary color accents)
-- Tests + sample
-
-**Effort:** ~6h
+Rationale: PPT is NICE-HAVE — Canva/Google Slides are viable alternatives. Deferring tightens Wave 5 scope from 4 → 3 parallel agents (~12h vs ~14h wall-clock) and reduces coordination risk. Wave 6 plan will scope: PPT generator + marketing pitch template + training slides template + optional FE preview enhancements for Excel/Word.
 
 ---
 
 ### Sub-PR 5.5: Branding Integration + Quality Audit
 
 **Branch:** `wave/05-document-generation/integration`
-**Depends on:** 5.1-5.4 all merged
+**Depends on:** 5.1-5.3 all merged
 
 **Scope:**
-- Unified branding pipeline — all 4 generators fetch from GAP-010 package API
+- Unified branding pipeline — all 3 generators fetch from GAP-010 package API
 - Cache branding package per-request (per-tenant, short TTL)
-- Cross-format consistency test — same tenant gets same colors/logo in PDF + Excel + Word + PPT
+- Cross-format consistency test — same tenant gets same colors/logo in PDF + Excel + Word
+- PDF `/preview` endpoint returns `Content-Disposition: inline`; `/download` returns `attachment` (Q4 decision)
+- Excel + Word: download-only endpoints
 - Quality audit: generated docs pass WCAG contrast, Vietnamese diacritics render, VND formatting correct
 - Update `quality-audit/SKILL.md` with new category "Document Generation Quality"
 - Update `two-stage-code-review.md` — check if PR generates docs, verify template review
@@ -250,11 +245,11 @@ Explicitly **deferred** to later waves:
 | 5.1 PDF | Parallel agent #1 | Independent format |
 | 5.2 Excel | Parallel agent #2 | Independent format |
 | 5.3 Word | Parallel agent #3 | Independent format |
-| 5.4 PPT | Parallel agent #4 | Independent format |
-| 5.5 Branding integration | Serialized (lead) | Depends on all formats |
+| ~~5.4 PPT~~ | — | Deferred to Wave 6 |
+| 5.5 Branding integration | Serialized (lead) | Depends on all 3 formats |
 | 5.6 Wave completion | Serialized (lead) | Final sign-off |
 
-Total wall-clock estimate: ~14h with parallelism vs ~34h serial (–59%).
+Total wall-clock estimate: ~12h with parallelism vs ~28h serial (–57%).
 
 ### 5.2 Superpowers per sub-PR (mandatory per CLAUDE.md)
 
@@ -300,14 +295,13 @@ Each sub-PR must pass:
 
 | Risk | Severity | Mitigation |
 |------|:--------:|-----------|
-| Library bloat (iText + POI in Core) | 🟡 | Extract to `kiteclass-document-gen` Maven module if Core JAR exceeds 1GB |
-| Vietnamese font rendering bugs | 🔴 | Test diacritics + Đ,đ in every format before sub-PR merge |
+| Library bloat (PDFBox + POI in Core, ~18MB) | 🟢 | Accept; extract to module only when kitehub consumes (follow-up GAP-209) |
+| Vietnamese font rendering bugs | 🔴 | Test diacritics + Đ,đ in every format before sub-PR merge; preload `NotoSans` or `DejaVuSans` TTF into PDFBox font resolver |
 | Template drift (legal wording) | 🟡 | Defer legal templates to dedicated legal-review wave; Wave 5 uses placeholders |
-| PDF generation slow for large invoices | 🟢 | Sync first; async via GAP-002 queue as follow-up |
+| PDF generation slow for large invoices | 🟢 | Sync first per Q5; async via GAP-002 queue as follow-up GAP-210 |
 | Branding API latency on every generate | 🟡 | Short TTL cache per-tenant in generator Facade |
-| iText 7 license (AGPL — commercial use) | 🔴 | **Verify** before 5.1: AGPL may require commercial license OR switch to Apache PDFBox (Apache 2.0) |
-
-**Action item:** iText license check BEFORE 5.1 starts. If commercial license not acceptable, swap library choice in Sub-PR 5.0 ADR.
+| ~~iText 7 license (AGPL)~~ | ✅ | **Resolved by Q1 decision** — OpenHTMLtoPDF (LGPL 3/MIT) + PDFBox (Apache 2.0) has no copyleft network clause |
+| Thymeleaf CSS subset limits | 🟡 | Test invoice template CSS before 5.1; fallback to PDFBox manual layout if complex styling breaks |
 
 ---
 
@@ -315,51 +309,65 @@ Each sub-PR must pass:
 
 Wave 5 DONE when:
 
-- [ ] 4 SKILL.md files exist, each <100 lines, with Vietnamese gotchas
-- [ ] 4 Generator implementations pass tests with branding applied
-- [ ] 1 template per format committed + reviewed
+- [ ] 3 SKILL.md files exist, each <100 lines, with Vietnamese gotchas
+- [ ] 3 Generator implementations pass tests with branding applied
+- [ ] 1 template per format committed + reviewed (invoice PDF, attendance Excel, teacher contract Word)
 - [ ] Sample gallery in `documents/04-quality/samples/` with 1 golden output per format
-- [ ] `DocumentGenerationService` facade exposes 4 methods (generateInvoice, generateAttendanceReport, generateTeacherContract, generateMarketingPitch)
+- [ ] `DocumentGenerationService` facade exposes 3 methods (generateInvoice, generateAttendanceReport, generateTeacherContract)
 - [ ] Cross-format branding consistency test passes
-- [ ] ADR-016 ACCEPTED
+- [ ] PDF `/preview` endpoint returns inline + `/download` endpoint returns attachment
+- [ ] **ADR-019** ACCEPTED (originally ADR-016 — renumbered after conflict)
 - [ ] GAP-047 marked DONE in ROADMAP
 - [ ] MiniMax analysis doc marked ADOPTED
 - [ ] No new P0 gaps introduced
 - [ ] Quality audit score ≥90/100 on Wave 5 changes
+- [ ] 4 follow-up gaps FILED (GAP-208 template expansion, GAP-209 module extract trigger, GAP-210 async queue, GAP-211 Excel/Word preview) — see decision guide §follow-up-gaps
 
 ---
 
-## 9. Open Questions (for user sign-off before 5.0 starts)
+## 9. Open Questions — ✅ ALL RESOLVED 2026-04-24
 
-1. **iText vs PDFBox** — preference? AGPL acceptability?
-2. **Maven module split** — extract `kiteclass-document-gen` now, or keep in kiteclass-core?
-3. **Scope of templates** — 4 stubs OK, or need more at launch? (legal/policy templates usually require lawyer review)
-4. **FE integration** — preview in browser before download, or direct download only?
-5. **Sync vs async** — start sync (simpler), migrate to queue later? Or queue-first?
-6. **Sub-PR 5.3 and 5.4 priority** — user wants Word + PPT now, or defer to Wave 6?
+All 6 defaults from `wave-05-decision-guide.md` approved by user nguyenvankiet on 2026-04-24. See decision guide for full rationale per question.
 
-Recommend answers at section bottom once user reviews.
+| # | Question | Resolution |
+|:-:|----------|------------|
+| 1 | iText vs PDFBox? | **OpenHTMLtoPDF + PDFBox** (Apache 2.0 / LGPL 3) |
+| 2 | Maven module split? | **Inline in `kiteclass-core`** — YAGNI, extract when kitehub consumes |
+| 3 | 4 template stubs enough for launch? | **Sufficient for Wave 5 acceptance; NOT for launch** — file GAP-208 for Wave 7 template library expansion |
+| 4 | FE preview? | **PDF preview in-browser (inline); Excel/Word download-only** |
+| 5 | Sync vs queue? | **Sync in Wave 5** — queue when bulk/large use case emerges |
+| 6 | Sub-PR 5.3 + 5.4 priority? | **Keep 5.3 Word in Wave 5; defer 5.4 PPT to Wave 6** |
+
+Wave 5 scope is now **LOCKED**. Any change requires explicit user decision + log entry.
 
 ---
 
-## 10. Estimated Timeline
+## 10. Estimated Timeline (revised 2026-04-24 after PPT defer)
 
-| Milestone | Target date (if started 2026-04-19) |
-|-----------|-------------------------------------|
-| Sub-PR 5.0 foundation | 2026-04-19 |
-| Sub-PRs 5.1-5.4 parallel | 2026-04-20 — 2026-04-22 |
-| Sub-PR 5.5 integration | 2026-04-23 |
-| Sub-PR 5.6 completion | 2026-04-24 |
-| Wave 5 MERGED | 2026-04-24 |
+| Milestone | Target (if started 2026-04-25) |
+|-----------|--------------------------------|
+| Sub-PR 5.0 foundation + ADR-019 | 2026-04-25 |
+| Sub-PRs 5.1 PDF, 5.2 Excel, 5.3 Word (parallel) | 2026-04-26 — 2026-04-28 |
+| Sub-PR 5.5 branding integration | 2026-04-29 |
+| Sub-PR 5.6 wave completion | 2026-04-30 |
+| Wave 5 MERGED | 2026-04-30 |
 
-~1 week wall-clock with parallel execution.
+~5-6 days wall-clock with 3 parallel agents (vs ~7 days serial).
 
 ---
 
 ## 11. Log
 
+- **2026-04-24 (APPROVED):** All 6 defaults from `wave-05-decision-guide.md` approved by user. Wave status PLANNING → APPROVED. Key scope changes captured in this file:
+  - Q1: PDF library = OpenHTMLtoPDF + PDFBox (not iText — AGPL conflict with closed-source SaaS)
+  - Q2: Inline in kiteclass-core (no new Maven module)
+  - Q3: 4 template stubs cover Wave 5 acceptance; launch needs GAP-208 Wave 7 expansion
+  - Q4: PDF preview inline; Excel/Word download-only
+  - Q5: Sync endpoints only; queue deferred (GAP-210)
+  - Q6: PPT dropped from Wave 5 (→ Wave 6); scope 4 → 3 formats; 6 sub-PRs → 5
+  - ADR number: 016 → **019** (016 already taken by fe-be-contract-strategy)
+  - Timeline shifted: start 2026-04-25, MERGED ~2026-04-30 (5-6 days with 3 parallel agents)
 - **2026-04-18:** Wave plan drafted after PR #358 (meta-gap-priority rule) elevated GAP-047 to position #1 in Block GA. Source material: `documents/04-quality/analyses/skills-gap-analysis-vs-minimax.md` (2026-04-14).
-- Status: 🟡 **PLANNING** — awaiting user sign-off on Section 9 open questions before Sub-PR 5.0 starts.
 
 ---
 

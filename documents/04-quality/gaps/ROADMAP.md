@@ -786,7 +786,7 @@ Triggered by: status check found 6+ "Block GA" gaps already merged but ROADMAP n
 ### Planning docs added 2026-04-18
 
 - `documents/03-planning/plans/plan-ui-ux-design-system-integration.md` — 3-PR plan to adopt ui-ux-pro-max reasoning rules + upgrade ui-review skill to /148 scoring
-- `documents/03-planning/waves/wave-05-document-generation.md` — Wave 5 plan for GAP-047 (document generation skills adoption from MiniMax). **Status: 🟡 PLANNING** — awaiting user sign-off on 6 open questions (Section 9) before Sub-PR 5.0 starts.
+- `documents/03-planning/waves/wave-05-document-generation.md` — Wave 5 plan for GAP-047 (document generation skills adoption from MiniMax). **Status: 🟢 APPROVED 2026-04-24** — 6 defaults signed off; scope 3 formats (PDF via OpenHTMLtoPDF+PDFBox, Excel via POI, Word via POI), inline in kiteclass-core, sync-only, PDF preview + all download, PPT deferred to Wave 6. ADR-019 will document decisions. Next: Sub-PR 5.0 foundation in follow-up session.
 
 ### Rules added 2026-04-18
 
