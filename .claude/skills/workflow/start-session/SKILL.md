@@ -48,18 +48,32 @@ Chi tiết: `reference/context-template.md` §Session Locks.
 
 ### Step 4 — Output summary block
 
-Format theo `reference/context-template.md`. Ví dụ:
+Format theo `reference/context-template.md`. Data sources (from `collect-state.sh`):
+
+| Field | Source (per GAP-206 fix 2026-04-24) |
+|-------|--------------------------------------|
+| Wave | `ROADMAP.md` "Next recommended wave" line |
+| Blocker gaps | `ROADMAP.md` "GA Blockers remaining" table |
+| Repo level | `scripts/repo-status.sh --json` → `.level` (4 factors) |
+| CVE / stale branches | Same `--json` → `.security`, `.branches` |
+| Recent merges | `git log main --since='3 days ago' --oneline` (last 5) |
+| Branch state | `git diff --name-only`; `documents/action-2.md` alone = "scratchpad only" |
+
+Ví dụ output:
 
 ```
-## Session Context (2026-04-20 14:32)
-**Wave:** 8b (meta cluster, 6 parallel agents in flight)
-**Branch:** main (clean) / agent worktrees: 6
-**Open PRs:** 3 (PR #394 merged, PR #395-397 pending review)
-**CI:** main green, 1 PR red (#396 — flaky E2E)
-**Blocker gaps:** GAP-193 (this skill), GAP-199 (rework audit), GAP-185 (BRD persona AC)
-**Context health:** fresh session (turn 1, cache warm)
-**Recommended next:** continue Wave 8b agent work OR /continue for top priority
+## Session Context (2026-04-24 04:45)
+**Wave:** Wave 5 — GAP-047 document generation (per ROADMAP §Next recommended)
+**Branch:** main (clean, scratchpad: action-2.md) / worktrees: 0
+**Repo level:** GREEN (CI green, 0 CVE, 0 stale, 0 P0 audit)
+**Open PRs:** 0
+**Blocker gaps (top 6):** GAP-047, GAP-046, GAP-016, GAP-011, GAP-014, GAP-005
+**Recent merges (3d):** #467 solo-dev CI, #466 Dependabot guide, #465 CI retention, #464 size limit, #461 axios bump
+**Context health:** fresh session
+**Recommended next:** start Wave 5 sub-PR 5.1 (PDF+Excel doc generation)
 ```
+
+**DO NOT** infer wave from `ls -t` mtime or blockers from alphabetical grep. Those were the pre-GAP-206 bugs. Always parse ROADMAP.md.
 
 ### Step 5 — Handoff to next skill
 
