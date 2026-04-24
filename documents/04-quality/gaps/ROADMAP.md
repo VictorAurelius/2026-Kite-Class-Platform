@@ -8,7 +8,9 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-04-23)
+## 🎯 Current Status Snapshot (2026-04-24)
+
+**2026-04-24 update:** ROADMAP coverage refresh — prior state had 141/186 gaps referenced (24% missing). This refresh brings coverage to 100% by adding Epic 15 (Vietnam K-12 Education, 14 gaps), appending 9 observability/ops gaps to Epic 6, 5 frontend P2 gaps to Epic 13, and 8 meta/CI gaps to Epic 14. Accurate counts now: **81/186 gaps DONE (44%)**, 84 OPEN, 14 PARTIAL/PLANNED, 7 IN_PROGRESS. Also: CI history policy tightened via PR #471 (soft cap 500→50, hard cap 1000→100, feature-branch failure age 7d→1d) and executed cleanup went 538→52 runs. Session skill fixes GAP-206 (wave+blockers accuracy, PR #468) + GAP-207 (Vietnamese output per CLAUDE.md, PR #470) CLOSED. GAP-205 CI retention automation CLOSED. No new gap files created this session — all changes were ROADMAP hygiene + policy tightening.
 
 **2026-04-23 update:** Continuation of 2026-04-21 security session. Enabled Dependabot via `gh api PUT .../vulnerability-alerts` after GAP-202 skill exposed it was disabled. **Surfaced 89 npm alerts** (8 CRITICAL + 32 HIGH + 45 medium + 4 low). Initial triage incorrectly flagged 8 CRITICAL as false-positive (shallow jq query on only first vulnerable range); corrected analysis shows **all 8 CRITICAL are real** on `next@15.1.6` (GHSA-9qr9 fix 15.1.9, GHSA-f82v fix 15.2.3). Bump attempts (15.1.11, 15.3.9, 15.5.15) all broke `/pricing` + `/blog/[slug]` prerender via `Array.toJSON` regression in next 15.1.7+. Filed **GAP-204** P0 with Stage A (docs) + Stage B (RSC compat investigation) + Stage C (bump + close CRITICAL) + Stage D (triage remaining HIGH) + Stage E (re-enable auto-security-fixes). `/repo-status` reports **BLACK** — skill working correctly.
 
@@ -18,7 +20,7 @@
 
 ## 🎯 Previous Status Snapshot (2026-04-20)
 
-**Progress:** 73/178 gaps CLOSED (41%). Waves 1-4 + **Wave 8b SHIPPED** 2026-04-20 (6 parallel agents, PRs #401-#406) + **Wave 9 SHIPPED** 2026-04-21 (6 parallel agents, PRs #408-#413) + **Wave 9.5 SHIPPED** 2026-04-21 (4 parallel agents, PRs #415-#418: GAP-192 Phase 4b-i backend completeness with 45 new tests, GAP-132 fan-out → DONE, GAP-134 expand → DONE; GAP-043 fan-out attempted but 4/5 reverted due to Redis+Jackson typing regression — only BrandingPackage proxy retains sync=true). **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. **12 new gaps filed 2026-04-20 (GAP-190..201)** from action-1 + simulation; **GAP-196 dropped same-day** (user decision — 9router ADR not effective); **GAP-190 + GAP-197 scope-revised** to 🟡 PARTIAL after state-check found existing infrastructure (sitemap/robots/OG/JsonLd/blog MDX + enhanced-attendance-calendar PR 3.8.1). Net: 11 active new gaps — 1 BL-P0 (GAP-192), 3 BL-P1 (GAP-190/191/200), 4 Meta-P1 (GAP-193/194/199/201), 2 Meta-P2 (GAP-195/198), 1 Feature-P2 (GAP-197). Quality audit baseline 77/100 pending next refresh (due 2026-04-26).
+**Progress:** 81/186 gaps CLOSED (44%) — recount 2026-04-24 after coverage sync; prior "73/178" was stale. Waves 1-4 + **Wave 8b SHIPPED** 2026-04-20 (6 parallel agents, PRs #401-#406) + **Wave 9 SHIPPED** 2026-04-21 (6 parallel agents, PRs #408-#413) + **Wave 9.5 SHIPPED** 2026-04-21 (4 parallel agents, PRs #415-#418: GAP-192 Phase 4b-i backend completeness with 45 new tests, GAP-132 fan-out → DONE, GAP-134 expand → DONE; GAP-043 fan-out attempted but 4/5 reverted due to Redis+Jackson typing regression — only BrandingPackage proxy retains sync=true). **Audit catch-up Part A — 5/5 COMPLETE** 2026-04-19. **Part B top-5 priorities — 5/5 SHIPPED** 2026-04-20 (PRs #371–#375) closing 9 gaps. **Re-audit validated 2026-04-20:** business-logic 65→**72** (+7), performance 58→**64** (+6). **Master plan merged PR #382** covers 92 open gaps across 12 waves (~2-3 months). **6 meta gaps tracked** (GAP-170–175) from output-review-mandate §4 VIOLATIONS → Wave 8b. **Part C Sprint 0 CLOSED** 2026-04-20 — GAP-149 (audit grep scope fix) closed, 5 audit skills hardened against multi-module false positives. **Business-logic tier added to priority matrix** 2026-04-20 (`meta-gap-priority.md` §3) — 3 new gaps GAP-150/151/152 track BRD completion + persona AC + persona review execution. **12 new gaps filed 2026-04-20 (GAP-190..201)** from action-1 + simulation; **GAP-196 dropped same-day** (user decision — 9router ADR not effective); **GAP-190 + GAP-197 scope-revised** to 🟡 PARTIAL after state-check found existing infrastructure (sitemap/robots/OG/JsonLd/blog MDX + enhanced-attendance-calendar PR 3.8.1). Net: 11 active new gaps — 1 BL-P0 (GAP-192), 3 BL-P1 (GAP-190/191/200), 4 Meta-P1 (GAP-193/194/199/201), 2 Meta-P2 (GAP-195/198), 1 Feature-P2 (GAP-197). Quality audit baseline 77/100 pending next refresh (due 2026-04-26).
 
 **Priority order (updated 2026-04-20):** Meta-P0 → **Business-Logic-P0** → Feature-P0 → Meta-P1 → Business-Logic-P1 → Feature-P1 → ... Reference `.claude/rules/meta-gap-priority.md` §3 for tier definitions + tie-breakers.
 
@@ -43,7 +45,7 @@
 
 ## 1. Epic Taxonomy
 
-100 gaps được group thành **14 epics**:
+186 gaps được group thành **15 epics** (updated 2026-04-24):
 
 | Epic | Theme | Gaps | Priority |
 |------|-------|------|:--------:|
@@ -51,16 +53,17 @@
 | [E2](#epic-2-core-ai-branding-pipeline) | Core AI Branding Pipeline | 6 | 🔴 CORE |
 | [E3](#epic-3-ai-infrastructure) | AI Infrastructure (model + queue) | 5 | 🟠 SCALE |
 | [E4](#epic-4-integration--delivery) | Integration & Delivery | 5 | 🟠 DEPLOY |
-| [E5](#epic-5-security--compliance) | Security & Compliance | 4 | 🔴 NON-NEG |
-| [E6](#epic-6-operations--scale) | Operations & Scale | 5 | 🟠 PRODUCTION |
-| [E7](#epic-7-ux--conversion) | UX & Conversion | 7 | 🟠 GROWTH |
-| [E8](#epic-8-admin--support) | Admin & Support | 4 | 🟡 INTERNAL |
-| [E9](#epic-9-developer-experience) | Developer Experience | 2 | 🟡 FUTURE |
-| [E10](#epic-10-cross-cutting--architecture) | Cross-cutting & Architecture | 4 | 🟡 CLEANUP |
+| [E5](#epic-5-security--compliance) | Security & Compliance | 6 | 🔴 NON-NEG |
+| [E6](#epic-6-operations--scale) | Operations & Scale | 17 | 🟠 PRODUCTION |
+| [E7](#epic-7-ux--conversion) | UX & Conversion | 9 | 🟠 GROWTH |
+| [E8](#epic-8-admin--support) | Admin & Support | 7 | 🟡 INTERNAL |
+| [E9](#epic-9-developer-experience) | Developer Experience | 3 | 🟡 FUTURE |
+| [E10](#epic-10-cross-cutting--architecture) | Cross-cutting & Architecture | 5 | 🟡 CLEANUP |
 | [E11](#epic-11-saas-lifecycle-hardening) | SaaS Lifecycle Hardening | 7 | 🔴 BLOCK GA |
-| [E12](#epic-12-process--devops-maturity) | Process & DevOps Maturity | 10 | 🟠 PRODUCTION |
-| [E13](#epic-13-frontend-quality) | Frontend Quality | 5 | 🟠 GROWTH |
-| [E14](#epic-14-quality-governance) | Quality Governance | 6 | 🟡 INTERNAL |
+| [E12](#epic-12-process--devops-maturity) | Process & DevOps Maturity | 11 | 🟠 PRODUCTION |
+| [E13](#epic-13-frontend-quality) | Frontend Quality | 10 | 🟠 GROWTH |
+| [E14](#epic-14-quality-governance) | Quality Governance | 35 | 🟡 INTERNAL |
+| [E15](#epic-15-vietnam-k-12-education-features) | Vietnam K-12 Education Features | 14 | 🟠 DOMAIN |
 
 ---
 
@@ -626,17 +629,115 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 **BRD + persona governance wave (2026-04-20):** GAP-150/151/152 bundled with `meta-gap-priority.md` §3 update adding Business-Logic tier. GAP-049 + GAP-050 AC scope-split for clarity (process vs content vs framework vs execution).
 
+**Coverage sync 2026-04-24:** Added 8 previously-missing meta gaps to this epic:
+
+| Gap | Title | Status | Epic rationale |
+|-----|-------|:------:|----------------|
+| GAP-170 | Gap review template + skill | 🟢 DONE (Wave 8b-A) | governance |
+| GAP-171 | Rules docs ADR-like review process | 🟢 DONE (Wave 8b-A) | governance |
+| GAP-172 | Architecture ADR process | 🟢 DONE (Wave 8b-B) | governance |
+| GAP-173 | Email template review checklist | 🟢 DONE (Wave 8b-C) | governance |
+| GAP-174 | Marketing + legal docs review | 🟢 DONE (Wave 8b-C) | governance |
+| GAP-175 | Logs format standard (spec only; impl Wave 7) | 🟢 DONE (Wave 8b-D) | governance spec |
+| GAP-176 | UI/UX Pro Max skill integration | 🔵 OPEN | skill upgrade |
+| GAP-205 | CI history retention policy + automation (50-run cap) | 🟢 DONE (2026-04-24 PR #471) | CI governance |
+| GAP-206 | `/start-session` skill accuracy fix | 🟢 DONE (2026-04-24 PR #468) | skill fix |
+| GAP-207 | `/start-session` VN language per CLAUDE.md | 🟢 DONE (2026-04-24 PR #470) | skill fix |
+
 ---
 
-## Updated Priority Tiers (103 gaps, refreshed 2026-04-18)
+### Epic 15: Vietnam K-12 Education Features
+
+**Goal:** Vietnamese K-12 school operational features — attendance models, reports, payroll, integrations specific to VN education context. Most gaps filed 2026-04-15..17 from deep K-12 domain analysis.
+
+**Why domain-specific epic:** These touch Vietnamese education law (Thông tư 22, Luật Giáo dục), local vendors (VNEDU, VietQR, Zalo, Viettel SMS), and cultural patterns (Hạnh kiểm, GVCN, lên lớp/ở lại lớp). Distinct from generic K-12 or SaaS patterns.
+
+| Gap | Title | Priority | Status | Effort |
+|-----|-------|:--------:|:------:|:------:|
+| GAP-051 | Bulk Import Users via xlsx/CSV | 🟠 P1 | 🟢 DONE Wave 1 MVP | M |
+| GAP-055 | Official Report Card (Bảng điểm VN format, Thông tư 22) | 🔴 P0 biz-logic | 🔵 OPEN | L |
+| GAP-056 | Homeroom Teacher (GVCN) concept | 🟠 P1 | 🔵 OPEN | M |
+| GAP-057 | Teacher Payroll + Commission Calculation | 🟠 P1 | 🔵 OPEN | L |
+| GAP-059 | Student Conduct / Hạnh kiểm tracking | 🟠 P1 | 🔵 OPEN | M |
+| GAP-060 | Period-based Attendance (nhiều tiết/ngày) | 🟠 P1 | 🔵 OPEN | M |
+| GAP-061 | Promotion / Retention Logic (Lên lớp / Ở lại lớp) | 🟠 P1 | 🔵 OPEN | M |
+| GAP-062 | Payroll Bank Integration (Batch Transfer) | 🟡 P2 | 🔵 OPEN | L |
+| GAP-063 | SMS + Zalo Notification Integration | 🟠 P1 | 🔵 OPEN | M |
+| GAP-064 | SCORM / xAPI Compliance (Corporate Training variant) | 🟡 P2 | 🔵 OPEN | L |
+| GAP-066 | KiteHub Unified Reports / Analytics Dashboard | 🟡 P2 | 🔵 OPEN | L |
+| GAP-067 | KiteHub Instance Control Plane (AWS-/Vercel-style ops console) | 🟡 P2 | 🔵 OPEN | XL |
+| GAP-068 | KiteHub Admin AI-Branding Console | 🟡 P2 | 🔵 OPEN | L |
+| GAP-109 | Student bulk-import rules undocumented | 🟠 P1 | 🟢 DONE Wave 9-D | S |
+
+**Dependencies:**
+- GAP-055 depends on Wave 2 academic year/semester model (DONE via GAP-053)
+- GAP-060 depends on period-based scheduling (partial via GAP-099)
+- GAP-061 depends on GAP-055 (report card gates promotion)
+- GAP-063 pairs with GAP-200 (school MIS integration, broader scope)
+- GAP-066/067/068 depend on KiteHub subscription + instance ops stability (Wave 9 shipped)
+
+**Status:** 2/14 DONE. Remaining 12 OPEN are split across 3 domains: reporting/grades (055, 061, 066), teacher ops (056, 057), attendance/conduct (059, 060), integrations (062, 063, 064), admin (067, 068).
+
+**Suggested wave assignment:**
+- Wave 10 candidate: GAP-055 (P0) + GAP-056/060/061 cluster (VN K-12 core)
+- Wave 11 candidate: GAP-057/059 + GAP-063 (teacher + comms)
+- Wave 12+: GAP-062/064/066/067/068 (P2 tier)
+
+---
+
+### Coverage additions to existing epics (2026-04-24 sync)
+
+**Epic 6 (Operations & Scale) += 12 gaps** (observability + ops hardening, Part A audit follow-ups):
+
+| Gap | Title | Priority | Notes |
+|-----|-------|:--------:|-------|
+| GAP-112 | Distributed tracing missing | 🟠 P1 | Wave 7 observability |
+| GAP-113 | Frontend error tracking missing | 🟠 P1 | Sentry/Rollbar |
+| GAP-114 | Structured JSON logging + MDC propagation | 🟠 P1 | Wave 7 (standard shipped via GAP-175) |
+| GAP-115 | Log aggregation pipeline (ELK/Loki) | 🟠 P1 | Wave 7 |
+| GAP-116 | PII scrubbing in logs | 🔴 P0 | VN PDPL Art 6 |
+| GAP-118 | MinIO backup + replication strategy | 🔴 P0 | DR foundation |
+| GAP-119 | Platform-wide DR runbook + RTO/RPO | 🔴 P0 | Ops readiness |
+| GAP-121 | Per-alert runbooks library | 🟠 P1 | Consumes GAP-120 |
+| GAP-122 | Missing platform-critical alerts | 🟠 P1 | Extends GAP-120 |
+| GAP-123 | HPA for KiteHub services | 🟠 P1 | Scale readiness |
+| GAP-124 | PodDisruptionBudget + NetworkPolicy hardening | 🟠 P1 | k8s hardening |
+| GAP-130 | Docker compose zero resource limits (host OOM risk) | 🟡 P2 | Dev/staging only |
+
+**Epic 13 (Frontend Quality) += 5 gaps** (2026-04-20 ui-review P2 findings):
+
+| Gap | Title | Priority |
+|-----|-------|:--------:|
+| GAP-137 | Bulk import frontend UI missing (Wave 1 backend inaccessible) | 🟠 P1 |
+| GAP-138 | KiteClass landing hero — duplicated "Chuyên nghiệp" copy | 🟡 P2 |
+| GAP-139 | Parent dashboard MVP is placeholder-only | 🟠 P1 |
+| GAP-140 | `form-select` default placeholder hardcoded English | 🟡 P2 |
+| GAP-141 | Register-student date input locale-forced dd/mm/yyyy | 🟡 P2 |
+
+**Epic 7 (UX & Conversion) += 3 gaps:**
+- GAP-071 — Branding migration on tier upgrade/downgrade (🟡 P2, OPEN)
+- GAP-072 — Scheduled rebrand + academic-year-tied branding refresh (🟡 P2, OPEN)
+- GAP-074 — AI-generated alt-text for accessibility (a11y) (🟠 P1, OPEN)
+
+**Epic 9 (Developer Experience) += 1 gap:**
+- GAP-075 — Developer sandbox tenant environment (🟡 P2, OPEN)
+
+**Epic 10 (Cross-cutting) += 1 gap:**
+- GAP-065 — Migration chain not fresh-deploy safe (🟢 DONE, meta/ops fix)
+
+---
+
+## Updated Priority Tiers (186 gaps, refreshed 2026-04-24)
 
 | Tier | Description | Count |
 |------|-------------|-------|
-| 🟥 **Block GA** (remaining open) | Core pipeline foundation + doc gen | **6 gaps** |
-| 🟨 **Block GROWTH** (open) | UX, conversion, ops, webhooks | ~20 gaps |
-| 🟦 **Block SCALE** (open) | Multi-brand, marketplace, advanced | ~12 gaps |
-| ⬜ **Process/Internal** (open) | Advanced governance, persona review | ~4 gaps |
-| ✅ **CLOSED** | Completed in Waves 1-4 + post-wave cleanup | **48 gaps** |
+| 🟥 **Block GA** (remaining open) | Core pipeline foundation + doc gen + K-12 core + observability P0 | ~12 gaps |
+| 🟨 **Block GROWTH** (open) | UX, conversion, ops, webhooks, VN integrations | ~30 gaps |
+| 🟦 **Block SCALE** (open) | Multi-brand, marketplace, advanced, admin consoles | ~18 gaps |
+| ⬜ **Process/Internal** (open) | Advanced governance, persona review, skills | ~14 gaps |
+| 🟡 **PARTIAL/PLANNED** | Scope-verified, waiting on wave assignment | 14 gaps |
+| 🟠 **IN_PROGRESS** | Active wave or session work | 7 gaps |
+| ✅ **CLOSED** | Completed Waves 1-9.5 + Part A/B/C audits + 2026-04-24 session | **81 gaps (44%)** |
 
 ### 🟥 Block GA — Only 6 remain open (refresh 2026-04-18)
 
@@ -653,7 +754,9 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 
 ---
 
-**Last Updated:** 2026-04-21 (**Wave 9.5 SHIPPED** via 4 parallel agents — PRs #415-#418. Pushed 2 PARTIALs → DONE (GAP-132 caching fan-out, GAP-134 @EntityGraph expand 3→9 repos). GAP-192 Phase 4b-i backend completeness shipped (45 new tests, 330 total in kitehub-subscription: webhook HMAC + scheduler + idempotency + retry + admin ops); stays 🟡 PARTIAL until FE integration Phase 4c. GAP-043 fan-out attempted 5 caches but 4/5 reverted after Redis+Jackson typing regression caught in integration tests; BrandingPackage proxy retained sync=true. Follow-up gap: harden CacheConfig serializer before re-attempt. Quality-audit refresh due 2026-04-26.)
+**Last Updated:** 2026-04-24 (**ROADMAP coverage refresh** — sync 45 previously-missing gaps into Epics 6/7/9/10/13/14 + new Epic 15 Vietnam K-12 Education. Accurate counts: 81/186 DONE (44%), 84 OPEN, 14 PARTIAL/PLANNED, 7 IN_PROGRESS. Also: CI history policy tightened PR #471 — soft cap 500→50, hard cap 1000→100; cleanup executed 538→52 runs. GAP-205/206/207 CLOSED. Recommended next action: Wave 5 GAP-047 document generation (Meta-P0, unblocks invoice/certificate/transcript features) OR Wave 10 GAP-055 report-card VN format (BL-P0, unblocks GAP-061 promotion logic). Quality-audit refresh due 2026-04-26.)
+
+**Prior:** 2026-04-21 (**Wave 9.5 SHIPPED** via 4 parallel agents — PRs #415-#418. Pushed 2 PARTIALs → DONE (GAP-132 caching fan-out, GAP-134 @EntityGraph expand 3→9 repos). GAP-192 Phase 4b-i backend completeness shipped (45 new tests, 330 total in kitehub-subscription: webhook HMAC + scheduler + idempotency + retry + admin ops); stays 🟡 PARTIAL until FE integration Phase 4c. GAP-043 fan-out attempted 5 caches but 4/5 reverted after Redis+Jackson typing regression caught in integration tests; BrandingPackage proxy retained sync=true. Follow-up gap: harden CacheConfig serializer before re-attempt.)
 
 ### Session 3 refresh 2026-04-18 — ROADMAP status audit
 
