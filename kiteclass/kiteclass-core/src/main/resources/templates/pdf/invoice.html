@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>Hóa đơn GTGT</title>
+<style>
+  @page { size: A4; margin: 2cm; }
+  body { font-family: "DejaVuSans", sans-serif; font-size: 11pt; color: #111; }
+  h1 { text-align: center; font-size: 18pt; margin-bottom: 4pt; }
+  .subtitle { text-align: center; font-size: 10pt; color: #555; margin-top: 0; margin-bottom: 16pt; }
+  .meta { width: 100%; margin-bottom: 12pt; }
+  .meta td { padding: 2pt 0; }
+  .meta .label { width: 35%; font-weight: 700; }
+  table.items { width: 100%; border-collapse: collapse; margin-top: 8pt; }
+  table.items th, table.items td { border: 1px solid #999; padding: 6pt; text-align: left; }
+  table.items th { background: #f0f0f0; }
+  table.items td.num { text-align: right; }
+  .totals { width: 40%; margin-left: auto; margin-top: 12pt; }
+  .totals td { padding: 4pt 8pt; }
+  .totals td.label { text-align: right; }
+  .totals td.amount { text-align: right; font-variant-numeric: tabular-nums; }
+  .totals tr.grand td { font-weight: 700; border-top: 2px solid #000; padding-top: 6pt; }
+  .footer { margin-top: 24pt; font-size: 9pt; color: #555; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h1>
+  <p class="subtitle">Ký hiệu mẫu: 01GTKT0/001 · Ngày phát hành: <span th:text="${issueDate}">2026-04-24</span></p>
+
+  <table class="meta">
+    <tr><td class="label">Số hóa đơn</td><td th:text="${invoiceNumber}">INV-0001</td></tr>
+    <tr><td class="label">Tên người mua</td><td th:text="${buyerName}">Nguyễn Văn Đức</td></tr>
+    <tr><td class="label">Mã số thuế</td><td th:text="${buyerTaxCode}">0123456789</td></tr>
+    <tr><td class="label">Địa chỉ</td><td th:text="${buyerAddress}">Địa chỉ mẫu</td></tr>
+  </table>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th style="width: 50%">Mô tả</th>
+        <th style="width: 10%">Số lượng</th>
+        <th style="width: 20%">Đơn giá</th>
+        <th style="width: 20%">Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="item : ${itemsView}">
+        <td th:text="${item.description}">Mô tả mặt hàng</td>
+        <td class="num" th:text="${item.qty}">1</td>
+        <td class="num" th:text="${item.unitPriceFormatted}">0</td>
+        <td class="num" th:text="${item.lineTotalFormatted}">0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td class="label">Cộng tiền hàng</td><td class="amount" th:text="${subtotalFormatted}">0</td></tr>
+    <tr><td class="label">Thuế GTGT (<span th:text="${vatPercent}">0%</span>)</td><td class="amount" th:text="${vatAmountFormatted}">0</td></tr>
+    <tr class="grand"><td class="label">Tổng cộng thanh toán</td><td class="amount" th:text="${totalFormatted}">0</td></tr>
+  </table>
+
+  <p class="footer">Sinh bởi KiteClass · Wave 5 Sub-PR 5.1 · GAP-047</p>
+</body>
+</html>

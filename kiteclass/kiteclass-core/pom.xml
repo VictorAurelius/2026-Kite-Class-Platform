@@ -233,6 +233,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+        <!-- OGNL: required by Thymeleaf's Standard dialect when used WITHOUT Spring integration
+             (direct TemplateEngine in InvoiceRenderer). Spring-native rendering uses SpEL via
+             thymeleaf-spring6 and does not need this. -->
+        <dependency>
+            <groupId>ognl</groupId>
+            <artifactId>ognl</artifactId>
+            <version>3.4.4</version>
+        </dependency>
 
         <!-- OpenCSV — CSV parsing (GAP-051, reserved for CSV bulk import variant) -->
         <dependency>
