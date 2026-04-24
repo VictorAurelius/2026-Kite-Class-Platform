@@ -34,6 +34,15 @@ on:
         required: false
         default: 'latest'
 
+# Added 2026-04-24: batch-merge sessions (e.g. 7 Wave 5 + Dependabot merges
+# within 3 min) used to fire 7 full build-and-push runs — wasteful and only
+# the newest ECR image matters. Grouping by ref means a fresh push on main
+# cancels any in-progress run on main; PR/tag runs are grouped independently
+# so they don't starve each other.
+concurrency:
+  group: docker-build-push-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY_CORE: kiteclass/core
