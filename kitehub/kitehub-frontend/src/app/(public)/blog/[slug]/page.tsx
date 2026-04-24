@@ -61,21 +61,25 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
       <JsonLd
-        data={blogPostingSchema({
-          slug,
-          title: post.title,
-          description: post.description,
-          author: post.author,
-          datePublished: post.date,
-          tags: post.tags,
-        })}
+        json={JSON.stringify(
+          blogPostingSchema({
+            slug,
+            title: post.title,
+            description: post.description,
+            author: post.author,
+            datePublished: post.date,
+            tags: post.tags,
+          })
+        )}
       />
       <JsonLd
-        data={breadcrumbListSchema([
-          { name: 'Trang chủ', path: '/' },
-          { name: 'Blog', path: '/blog' },
-          { name: post.title, path: `/blog/${slug}` },
-        ])}
+        json={JSON.stringify(
+          breadcrumbListSchema([
+            { name: 'Trang chủ', path: '/' },
+            { name: 'Blog', path: '/blog' },
+            { name: post.title, path: `/blog/${slug}` },
+          ])
+        )}
       />
       <Link
         href="/blog"
