@@ -1,7 +1,7 @@
 # GAP-204: npm security backlog — 89 Dependabot alerts (8 CRITICAL blocked by next.js RSC compat)
 
-**Status:** 🔴 OPEN — P0 blocker (8 CRITICAL CVEs live on main, bump blocked by JsonLd compat break)
-**Priority:** 🔴 P0 (Security — real CRITICAL exposure, not false-positive as initially thought)
+**Status:** 🟡 PARTIAL — all CRITICAL + HIGH closed; 6 medium (axios + follow-redirects) pending auto-PR from Dependabot Stage E
+**Priority:** 🟡 P2 (Security — no CRITICAL/HIGH exposure remains; medium alerts non-urgent, automated flow handles)
 **Domain:** Frontend / Security
 **Detected:** 2026-04-23 (after GAP-202 skill exposed Dependabot alerts that were disabled)
 **Related PRs:** #455 (closed — 15.5.15 bump broke /pricing)
@@ -203,3 +203,11 @@ Per-package with `security_vulnerability.first_patched_version` as canonical fix
 - **2026-04-23** — Initial write-up. 89 alerts surfaced after enabling Dependabot via `gh api`. Initial triage mistakenly identified 8 CRITICAL as false-positive by querying only first range per advisory.
 - **2026-04-23 (same session)** — Triage corrected. All 8 CRITICAL are REAL (GHSA-9qr9 fix 15.1.9, GHSA-f82v fix 15.2.3). Tested bumps 15.1.11, 15.3.9, 15.5.15 — all break `/pricing` + `/blog/[slug]` prerender with `Array.toJSON` error introduced in next 15.1.7. Stage B investigation required before fix can land. Automated security fixes DISABLED (prevent flood during triage). Alert 77 temporarily dismissed during test, then re-opened; no other dismissals executed.
 - **2026-04-23** — Decision: do NOT dismiss CRITICAL (they're real exposures). Status stays 🔴 OPEN P0 until Stage B + C complete.
+- **2026-04-24 Stage B+C** (PR #457 + #458): Root cause of `/pricing` + `/blog/[slug]` prerender break identified — **PRICING_FAQS was exported from `'use client'` module, array crossed RSC boundary when imported by server page**. Fix (two-part): (a) extract data to non-client module `pricing/faqs.ts`, (b) harden JsonLd to accept pre-stringified `json: string` prop. Bumped next 15.1.6 → 15.3.9 (first clean version). Removed stale `kiteclass-frontend/package-lock.json`. Result: 8 CRITICAL + 14 HIGH closed (89 → 55 alerts, BLACK → RED).
+- **2026-04-24 Stage D** (PR #459 + #460): Bumped next 15.3.9 → 15.5.15 (build works thanks to Stage B fix), vite 8.0.0 → 8.0.10 (added as direct devDep after pnpm.overrides alone failed due to workspace peer resolution), `@vitejs/plugin-react` 5→6, vitest 4.0.18 → 4.1.5, picomatch override 4.0.3 → 4.0.4. Also added pnpm.overrides for flatted/minimatch/rollup. Dismissed 2 stale lodash advisories (HIGH #92 + medium #91) as `inaccurate` — advisory fix version 4.18.0 does not exist on npm (4.17.23 is latest stable). Result: 55 → 6 alerts (RED → YELLOW). All HIGH + CRITICAL closed.
+- **2026-04-24 Stage E**: `gh api PUT repos/$REPO/automated-security-fixes` re-enabled. Remaining 6 medium (axios 4 + follow-redirects 2, transitive via axios) will be handled by Dependabot auto-PRs. axios bump 1.7.9 → 1.15.0+ will close both packages. Stage E active.
+- **2026-04-24 Gotchas captured**:
+  - Dependabot alert query: **always** use `security_vulnerability.vulnerable_version_range` (Dependabot-computed applicability), NOT `.vulnerabilities[0]` (first range only misses multi-line advisories). Caused initial false-positive triage this session.
+  - Next.js 15.1.7+ regression: patches `Array.prototype.toJSON` in RSC runtime. Server-component import of array from `'use client'` module → `TypeError: a.map is not a function` at prerender. Fix pattern: keep data in non-client modules.
+  - pnpm workspace override gotcha: `pnpm.overrides` can be silently ignored when parent's peer range permits older version. Solution: add override target as explicit direct dep (`pnpm add -D vite@latest`).
+  - Lodash advisory 4.18.0 is stale/inaccurate: no such version exists (latest 4.17.23). Safe to dismiss as `inaccurate`.
