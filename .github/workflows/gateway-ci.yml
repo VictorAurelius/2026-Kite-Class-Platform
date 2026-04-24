@@ -1,9 +1,10 @@
 name: Gateway Service CI/CD
 
 on:
+  # Solo-dev mode (2026-04-24): removed push:main (post-merge redundant with PR CI).
+  # Kept push: develop/feature/**/review/** for direct push without PR (rare use case).
   push:
     branches:
-      - main
       - develop
       - 'feature/**'
       - 'review/**'

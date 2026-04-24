@@ -87,6 +87,23 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 - Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`
 - Viết bằng English, ngắn gọn, mô tả "what" không phải "how"
 
+### CI Trigger Policy — Solo-dev Mode (2026-04-24)
+
+**Current mode:** solo dev. Post-merge `push: main` triggers removed from 6 test workflows to save resources:
+- `core-ci.yml`, `frontend-ci.yml`, `gateway-ci.yml`, `kitehub-ci.yml`, `kitehub-frontend-ci.yml`, `script-quality.yml`
+
+**Rationale:** PR CI already validates the merge candidate — re-running same tests on main post-merge is redundant for solo dev. Saves 4-6 workflow runs per merge × ~5 merges/day = ~25 runs/day wasted.
+
+**Kept `push: main`:**
+- `docker-build-push.yml` — pushes Docker images to ECR (actual deploy side-effect, not redundant)
+
+**Re-enable `push: main` on test workflows when:**
+- Team grows beyond solo (need main-protection re-verification)
+- Adding main-branch-only cron jobs (e.g., nightly perf tests)
+- Branch protection rules require up-to-date status checks on main
+
+Edit the `on: push: branches: [main]` block in each workflow to restore.
+
 ### CI History Hygiene (updated 2026-04-24 per GAP-205)
 
 Retention caps (enforced by scheduled cleanup + `/repo-status` check):
