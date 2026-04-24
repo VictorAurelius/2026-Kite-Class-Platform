@@ -9,12 +9,12 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <!--
-            Spring Boot 3.5.13 (March 2026):
+            Spring Boot 3.5.14 (March 2026):
             - Patch release: bug fixes and security patches
             - Requires Spring Cloud 2025.0.0+ (not compatible with 2024.0.x)
             - OSS support until 2027-05-31
         -->
-        <version>3.5.13</version>
+        <version>3.5.14</version>
     </parent>
 
     <groupId>com.kiteclass</groupId>
@@ -25,7 +25,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.version>1.18.36</lombok.version>
         <!-- GAP-203: pinned to fix transitive CVEs surfaced via GitHub code-scanning 2026-04-21 -->
