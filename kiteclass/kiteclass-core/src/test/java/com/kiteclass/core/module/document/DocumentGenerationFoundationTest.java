@@ -144,6 +144,74 @@ class DocumentGenerationFoundationTest {
         assertThat(resp.bytes()).isEqualTo(payload);
     }
 
+    @Test
+    void documentFormat_extensions_match_spec() {
+        assertThat(DocumentFormat.PDF.extension()).isEqualTo("pdf");
+        assertThat(DocumentFormat.XLSX.extension()).isEqualTo("xlsx");
+        assertThat(DocumentFormat.DOCX.extension()).isEqualTo("docx");
+    }
+
+    @Test
+    void documentResponse_rejects_null_mime_type_in_compact_constructor() {
+        assertThatThrownBy(() -> new DocumentResponse(new byte[]{1}, null, "x.pdf"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("mimeType");
+    }
+
+    @Test
+    void documentResponse_rejects_blank_mime_type_in_compact_constructor() {
+        assertThatThrownBy(() -> new DocumentResponse(new byte[]{1}, "  ", "x.pdf"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("mimeType");
+    }
+
+    @Test
+    void documentResponse_rejects_blank_filename_in_compact_constructor() {
+        assertThatThrownBy(() -> new DocumentResponse(new byte[]{1}, "application/pdf", ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("filename");
+    }
+
+    @Test
+    void documentResponse_of_rejects_null_format() {
+        assertThatThrownBy(() -> DocumentResponse.of(new byte[]{1}, null, "x.pdf"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("format");
+    }
+
+    @Test
+    void documentResponse_equality_is_content_based_for_bytes() {
+        DocumentResponse a = DocumentResponse.of(new byte[]{1, 2, 3}, DocumentFormat.PDF, "x.pdf");
+        DocumentResponse b = DocumentResponse.of(new byte[]{1, 2, 3}, DocumentFormat.PDF, "x.pdf");
+        DocumentResponse c = DocumentResponse.of(new byte[]{9}, DocumentFormat.PDF, "x.pdf");
+
+        assertThat(a).isEqualTo(b).hasSameHashCodeAs(b);
+        assertThat(a).isNotEqualTo(c);
+        assertThat(a).isNotEqualTo(null);
+        assertThat(a).isNotEqualTo("not-a-response");
+        assertThat(a).isEqualTo(a);
+    }
+
+    @Test
+    void documentResponse_toString_hides_raw_bytes() {
+        DocumentResponse r = DocumentResponse.of(new byte[]{1, 2, 3}, DocumentFormat.PDF, "x.pdf");
+
+        assertThat(r).hasToString("DocumentResponse[bytes=3 byte(s), mimeType=application/pdf, filename=x.pdf]");
+    }
+
+    @Test
+    void documentRequest_equality_and_hashcode_contract() {
+        DocumentRequest a = sampleRequest(DocumentFormat.PDF);
+        DocumentRequest b = sampleRequest(DocumentFormat.PDF);
+        DocumentRequest diffFormat = sampleRequest(DocumentFormat.XLSX);
+
+        assertThat(a).isEqualTo(b).hasSameHashCodeAs(b);
+        assertThat(a).isNotEqualTo(diffFormat);
+        assertThat(a).isNotEqualTo(null);
+        assertThat(a).isNotEqualTo("not-a-request");
+        assertThat(a).isEqualTo(a);
+    }
+
     private static DocumentRequest sampleRequest(DocumentFormat format) {
         return DocumentRequest.builder()
                 .format(format)
