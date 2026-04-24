@@ -132,31 +132,31 @@ EOF
 fi
 
 if [ "$MODE" = "--quick" ]; then
-  echo "Level: $RS_LEVEL · Branch: $BRANCH ($BRANCH_STATE) · PRs: $OPEN_PRS · CVE H/C: $RS_CVE_HIGH/$RS_CVE_CRIT · Wave: ${CURRENT_WAVE:-unknown}"
+  echo "Mức: $RS_LEVEL · Nhánh: $BRANCH ($BRANCH_STATE) · PRs: $OPEN_PRS · CVE H/C: $RS_CVE_HIGH/$RS_CVE_CRIT · Wave: ${CURRENT_WAVE:-chưa rõ}"
   exit 0
 fi
 
-# Full output
+# Full output — tiếng Việt per CLAUDE.md §CRITICAL Communication Language (GAP-207)
 cat <<EOF
-# Session State @ $TS
+# Trạng thái session @ $TS
 
-Branch:          $BRANCH ($BRANCH_STATE)
-Repo level:      $RS_LEVEL
-  · CI main:     $RS_CI
-  · CVE:         $RS_CVE_CRIT critical, $RS_CVE_HIGH high
-  · Stale brs:   $RS_STALE_BRANCHES
-  · Audit P0:    $RS_AUDIT_P0
-Open PRs:        $OPEN_PRS  ${TOP_PRS:+— $TOP_PRS}
-Current wave:    ${CURRENT_WAVE:-<none — check ROADMAP.md manually>}
-Blocker gaps:    ${BLOCKERS:-<none>}
-Active locks:    $ACTIVE_LOCKS  [$LOCK_LIST]
+Nhánh:             $BRANCH ($BRANCH_STATE)
+Mức repo:          $RS_LEVEL
+  · CI main:       $RS_CI
+  · CVE:           $RS_CVE_CRIT critical, $RS_CVE_HIGH high
+  · Branches cũ:   $RS_STALE_BRANCHES
+  · Audit P0:      $RS_AUDIT_P0
+PRs đang mở:       $OPEN_PRS  ${TOP_PRS:+— $TOP_PRS}
+Wave hiện tại:     ${CURRENT_WAVE:-<chưa rõ — check ROADMAP.md thủ công>}
+Gaps blocker:      ${BLOCKERS:-<none>}
+Session locks:     $ACTIVE_LOCKS  [$LOCK_LIST]
 
-Recent merges (last 3 days):
+Merges gần đây (3 ngày):
 $(echo "${RECENT_MERGES:-<none>}" | tr '§' '\n' | sed 's/^/  · /')
 
-Notes:
-  · Wave + blockers parsed from documents/04-quality/gaps/ROADMAP.md
-  · Repo level via scripts/repo-status.sh --json (4 factors)
-  · Lock dir: $LOCK_DIR (auto-purged >4h stale)
-  · For gh-dependent fields, ensure 'gh auth status' is OK
+Ghi chú:
+  · Wave + blockers parse từ documents/04-quality/gaps/ROADMAP.md
+  · Mức repo qua scripts/repo-status.sh --json (4 yếu tố)
+  · Lock dir: $LOCK_DIR (auto-purge sau 4h stale)
+  · Các field cần gh — đảm bảo 'gh auth status' OK
 EOF
