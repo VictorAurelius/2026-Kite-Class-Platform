@@ -21,10 +21,10 @@
     <properties>
         <java.version>17</java.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <springdoc.version>2.8.4</springdoc.version>
-        <jjwt.version>0.12.6</jjwt.version>
+        <springdoc.version>2.8.17</springdoc.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <aws-sdk.version>2.42.40</aws-sdk.version>
-        <tika.version>3.2.2</tika.version>
+        <tika.version>3.3.0</tika.version>
         <resilience4j.version>2.4.0</resilience4j.version>
         <!-- Override Jackson version to fix GHSA-72hv-8253-57qq (DoS vulnerability) -->
         <jackson.version>2.21.1</jackson.version>
@@ -204,7 +204,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.18.1</version>
+            <version>1.22.2</version>
         </dependency>
 
         <!-- Apache POI for xlsx parsing + generation (GAP-051 Wave 1, bulk import students) -->
@@ -246,7 +246,7 @@
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.9</version>
+            <version>5.12.0</version>
         </dependency>
 
         <!-- Testcontainers MinIO -->
@@ -336,7 +336,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <version>0.8.14</version>
                 <executions>
                     <execution>
                         <goals>
