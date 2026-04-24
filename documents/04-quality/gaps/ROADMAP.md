@@ -10,7 +10,9 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
-**2026-04-24 update:** ROADMAP coverage refresh — prior state had 141/186 gaps referenced (24% missing). This refresh brings coverage to 100% by adding Epic 15 (Vietnam K-12 Education, 14 gaps), appending 9 observability/ops gaps to Epic 6, 5 frontend P2 gaps to Epic 13, and 8 meta/CI gaps to Epic 14. Accurate counts now: **81/186 gaps DONE (44%)**, 84 OPEN, 14 PARTIAL/PLANNED, 7 IN_PROGRESS. Also: CI history policy tightened via PR #471 (soft cap 500→50, hard cap 1000→100, feature-branch failure age 7d→1d) and executed cleanup went 538→52 runs. Session skill fixes GAP-206 (wave+blockers accuracy, PR #468) + GAP-207 (Vietnamese output per CLAUDE.md, PR #470) CLOSED. GAP-205 CI retention automation CLOSED. No new gap files created this session — all changes were ROADMAP hygiene + policy tightening.
+**2026-04-24 update:** ROADMAP coverage refresh — prior state had 141/186 gaps referenced (24% missing). This refresh brings coverage to 100% by adding Epic 15 (Vietnam K-12 Education, 14 gaps), appending 9 observability/ops gaps to Epic 6, 5 frontend P2 gaps to Epic 13, and 8 meta/CI gaps to Epic 14. Accurate counts now: **81/186 gaps DONE (44%)**, 84 OPEN, 14 PARTIAL/PLANNED, 7 IN_PROGRESS. Also: CI history policy tightened via PR #471 (soft cap 500→50, hard cap 1000→100, feature-branch failure age 7d→1d) and executed cleanup went 538→52 runs. Session skill fixes GAP-206 (wave+blockers accuracy, PR #468) + GAP-207 (Vietnamese output per CLAUDE.md, PR #470) CLOSED. GAP-205 CI retention automation CLOSED.
+
+**2026-04-24 (later, Wave 5 kickoff):** PR #474 Sub-PR 5.0 opened; Core Service CI surfaced pre-existing flaky test `DefaultUrlAllowlistValidatorTest.allowsTenantListedHost` — `api.partner.com` resolving to `::1` on WSL2 + CI runners triggers validator's DNS-rebind guard. Confirmed on `main` with no Sub-PR 5.0 changes. **Filed GAP-212 (P1)** — test-only fix using RFC-2606 `.invalid` domain; blocks PR #474 merge and every future Core CI run. Counts: **82 OPEN → 83 OPEN** (+GAP-212).
 
 **2026-04-23 update:** Continuation of 2026-04-21 security session. Enabled Dependabot via `gh api PUT .../vulnerability-alerts` after GAP-202 skill exposed it was disabled. **Surfaced 89 npm alerts** (8 CRITICAL + 32 HIGH + 45 medium + 4 low). Initial triage incorrectly flagged 8 CRITICAL as false-positive (shallow jq query on only first vulnerable range); corrected analysis shows **all 8 CRITICAL are real** on `next@15.1.6` (GHSA-9qr9 fix 15.1.9, GHSA-f82v fix 15.2.3). Bump attempts (15.1.11, 15.3.9, 15.5.15) all broke `/pricing` + `/blog/[slug]` prerender via `Array.toJSON` regression in next 15.1.7+. Filed **GAP-204** P0 with Stage A (docs) + Stage B (RSC compat investigation) + Stage C (bump + close CRITICAL) + Stage D (triage remaining HIGH) + Stage E (re-enable auto-security-fixes). `/repo-status` reports **BLACK** — skill working correctly.
 
@@ -643,6 +645,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-205 | CI history retention policy + automation (50-run cap) | 🟢 DONE (2026-04-24 PR #471) | CI governance |
 | GAP-206 | `/start-session` skill accuracy fix | 🟢 DONE (2026-04-24 PR #468) | skill fix |
 | GAP-207 | `/start-session` VN language per CLAUDE.md | 🟢 DONE (2026-04-24 PR #470) | skill fix |
+| GAP-212 | Fix `DefaultUrlAllowlistValidatorTest` flaky DNS of `api.partner.com` → loopback (blocks every Core CI run; pre-existing surfaced by PR #474) | 🔵 OPEN 🟠 P1 | test-only fix (RFC-2606 `.invalid`) |
 
 ---
 
