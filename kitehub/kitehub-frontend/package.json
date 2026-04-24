@@ -88,7 +88,6 @@
   },
   "pnpm": {
     "overrides": {
-      "vite": "^8.0.5",
       "picomatch": "^4.0.3",
       "flatted": "^3.4.2",
       "minimatch": "^10.2.4",
