@@ -59,21 +59,23 @@ Format theo `reference/context-template.md`. Data sources (from `collect-state.s
 | Recent merges | `git log main --since='3 days ago' --oneline` (last 5) |
 | Branch state | `git diff --name-only`; `documents/action-2.md` alone = "scratchpad only" |
 
-Ví dụ output:
+Ví dụ output (tiếng Việt per CLAUDE.md §CRITICAL — GAP-207):
 
 ```
-## Session Context (2026-04-24 04:45)
-**Wave:** Wave 5 — GAP-047 document generation (per ROADMAP §Next recommended)
-**Branch:** main (clean, scratchpad: action-2.md) / worktrees: 0
-**Repo level:** GREEN (CI green, 0 CVE, 0 stale, 0 P0 audit)
-**Open PRs:** 0
-**Blocker gaps (top 6):** GAP-047, GAP-046, GAP-016, GAP-011, GAP-014, GAP-005
-**Recent merges (3d):** #467 solo-dev CI, #466 Dependabot guide, #465 CI retention, #464 size limit, #461 axios bump
-**Context health:** fresh session
-**Recommended next:** start Wave 5 sub-PR 5.1 (PDF+Excel doc generation)
+## Ngữ cảnh session (2026-04-24 04:45)
+**Wave:** Wave 5 — GAP-047 document generation (theo ROADMAP §Next recommended wave)
+**Nhánh:** main (clean, scratchpad: action-2.md) / worktrees: 0
+**Mức repo:** GREEN (CI green, 0 CVE, 0 branches cũ, 0 audit P0)
+**PRs đang mở:** 0
+**Gaps blocker (top 6):** GAP-047, GAP-046, GAP-016, GAP-011, GAP-014, GAP-005
+**Merges gần đây (3 ngày):** #468 start-session accuracy, #467 solo-dev CI, #466 Dependabot guide, #465 CI retention, #464 size limit
+**Sức khỏe context:** fresh session
+**Đề xuất tiếp theo:** bắt đầu Wave 5 sub-PR 5.1 (PDF+Excel doc generation)
 ```
 
-**DO NOT** infer wave from `ls -t` mtime or blockers from alphabetical grep. Those were the pre-GAP-206 bugs. Always parse ROADMAP.md.
+**KHÔNG** infer wave từ `ls -t` mtime hoặc blockers alphabetical grep (bugs cũ pre-GAP-206). Luôn parse `ROADMAP.md`.
+
+**KHÔNG** output bằng English — vi phạm CLAUDE.md §CRITICAL. Field labels + prose phải tiếng Việt. Giữ English cho: technical terms (CI, CVE, PR, gap, wave, branch — đã là loanwords trong context project), file paths, command output, code.
 
 ### Step 5 — Handoff to next skill
 
@@ -108,6 +110,14 @@ Lock lifecycle:
 - Removed on explicit `/end-session` OR stale after 4h (any new session cleans stale locks)
 
 **MVP:** lock read + warn only, no enforcement hook. Phase 2 (post-pilot): add pre-commit hook to block commits on locked branch from different session.
+
+## Rules
+
+- **TUYỆT ĐỐI giao tiếp bằng tiếng Việt** per `CLAUDE.md` §CRITICAL Communication Language. Field labels, prose, recommendations trong output — tất cả tiếng Việt. Chỉ giữ English cho: technical terms (CI, CVE, PR, gap, wave, branch, main, merge — đã là loanwords trong project context), file paths, command output, code.
+- LUÔN chạy `collect-state.sh` trước — không tự suy diễn status
+- Nếu script fail (gh unauthed, hook missing) → báo rõ, không đoán
+- Wave + blockers LUÔN parse từ `ROADMAP.md`, không dùng `ls -t` mtime hoặc alphabetical grep (pre-GAP-206 bugs)
+- Output format tuân `reference/context-template.md` (có ví dụ VN trong Step 4)
 
 ## Gotchas
 
