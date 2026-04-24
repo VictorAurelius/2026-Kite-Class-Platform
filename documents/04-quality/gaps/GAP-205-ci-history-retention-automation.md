@@ -1,6 +1,6 @@
 # GAP-205: CI history retention policy + automation (769 runs → capped)
 
-**Status:** 🟠 IN_PROGRESS — policy drafted + one-shot cleanup ran, automation PR pending
+**Status:** 🟢 DONE — Stages A-D complete 2026-04-24 (policy + one-shot + workflow automation + skill filter)
 **Priority:** 🟡 P2 (Meta-P2 per `meta-gap-priority.md` — workflow hygiene, not critical path)
 **Domain:** Workflow / DevOps (CI governance)
 **Detected:** 2026-04-24 (user observation during GAP-204 session: "30+ trang CI tồn tại")
