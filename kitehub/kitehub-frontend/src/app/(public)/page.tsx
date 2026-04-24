@@ -419,22 +419,24 @@ export default function HomePage() {
   const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
   return (
     <div className="overflow-hidden">
-      <JsonLd data={organizationSchema()} />
-      <JsonLd data={websiteSchema()} />
-      <JsonLd data={{
-        '@context': 'https://schema.org',
-        '@type': 'SoftwareApplication',
-        'name': 'KiteHub',
-        'applicationCategory': 'BusinessApplication',
-        'operatingSystem': 'Web',
-        'description': 'Nền tảng SaaS quản lý trung tâm giáo dục: website, tuyển sinh, học phí, AI Branding.',
-        'url': 'https://kitehub.vn',
-        'offers': {
-          '@type': 'AggregateOffer',
-          'lowPrice': '0',
-          'priceCurrency': 'VND',
-        },
-      }} />
+      <JsonLd json={JSON.stringify(organizationSchema())} />
+      <JsonLd json={JSON.stringify(websiteSchema())} />
+      <JsonLd
+        json={JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          'name': 'KiteHub',
+          'applicationCategory': 'BusinessApplication',
+          'operatingSystem': 'Web',
+          'description': 'Nền tảng SaaS quản lý trung tâm giáo dục: website, tuyển sinh, học phí, AI Branding.',
+          'url': 'https://kitehub.vn',
+          'offers': {
+            '@type': 'AggregateOffer',
+            'lowPrice': '0',
+            'priceCurrency': 'VND',
+          },
+        })}
+      />
       {/* ========== HERO ========== */}
       <section className="relative py-20 sm:py-28 lg:py-32">
         {/* Animated gradient background */}

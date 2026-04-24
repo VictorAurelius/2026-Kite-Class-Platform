@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { faqPageSchema } from '@/components/seo/schemas';
-import { PRICING_FAQS, PricingContent } from './PricingContent';
+import { PRICING_FAQS } from './faqs';
+import { PricingContent } from './PricingContent';
 
 export const metadata: Metadata = {
   title: 'Bảng giá',
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <>
-      <JsonLd data={faqPageSchema(PRICING_FAQS)} />
+      <JsonLd json={JSON.stringify(faqPageSchema(PRICING_FAQS))} />
       <PricingContent />
     </>
   );
