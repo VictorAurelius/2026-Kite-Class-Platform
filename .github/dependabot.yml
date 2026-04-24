@@ -53,6 +53,10 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+      # GAP-213: Spring Cloud 2025.1.x removed `spring-cloud-starter-gateway`
+      # (renamed to `spring-cloud-starter-gateway-server-webflux`). Staying on
+      # 2025.0.x until the rename migration ships as a dedicated PR.
+      - dependency-name: "org.springframework.cloud:spring-cloud-dependencies"
 
   - package-ecosystem: maven
     directory: "/kiteclass/kiteclass-core"
@@ -99,6 +103,10 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+      # GAP-213: same as /kitehub — Spring Cloud 2025.1.x removed the old
+      # `spring-cloud-starter-gateway` artifact. Pin BOM to 2025.0.x until
+      # migration PR lands.
+      - dependency-name: "org.springframework.cloud:spring-cloud-dependencies"
 
   # ==========================================================================
   # NPM — 2 frontends
