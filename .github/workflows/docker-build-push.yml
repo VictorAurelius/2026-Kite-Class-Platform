@@ -11,13 +11,21 @@ on:
       - 'kiteclass/**'
       - 'frontend/**'
       - '.github/workflows/docker-build-push.yml'
+  # Narrowed 2026-04-24: previously triggered on every PR touching kiteclass/**
+  # (i.e. ~all code PRs). Docker build is ~4-5 min wall-clock and on PRs only
+  # verifies Dockerfile parses — it never pushes (push-to-ecr gates on main).
+  # Normal code PRs now skip this workflow; only PRs that actually touch the
+  # Docker layer still run it as a safety net.
   pull_request:
     branches:
       - main
     paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.*'
+      - '**/.dockerignore'
+      - '**/docker-compose*.yml'
+      - '**/docker-compose*.yaml'
       - 'docker/**'
-      - 'kiteclass/**'
-      - 'frontend/**'
       - '.github/workflows/docker-build-push.yml'
   workflow_dispatch:
     inputs:
