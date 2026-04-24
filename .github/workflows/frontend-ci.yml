@@ -1,12 +1,7 @@
 name: Frontend CI
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'kiteclass/kiteclass-frontend/**'
-      - '.github/workflows/frontend-ci.yml'
+  # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
   pull_request:
     branches:
       - main

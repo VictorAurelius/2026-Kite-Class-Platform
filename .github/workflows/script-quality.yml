@@ -7,15 +7,7 @@ name: Script Quality (ShellCheck + Ruff)
 # Baseline (2026-04-20): shellcheck -S error = 0 issues, ruff check = 0 issues.
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '**/*.sh'
-      - '**/*.py'
-      - '.shellcheckrc'
-      - 'ruff.toml'
-      - '.github/workflows/script-quality.yml'
+  # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
   pull_request:
     branches:
       - main

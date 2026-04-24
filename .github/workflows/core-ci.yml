@@ -1,12 +1,9 @@
 name: Core Service CI/CD
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'kiteclass/kiteclass-core/**'
-      - '.github/workflows/core-ci.yml'
+  # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save
+  # resources. PR CI below is sufficient since PR branch = merge candidate.
+  # Re-enable push:main when team grows or branch-protection requires it.
   pull_request:
     branches:
       - main
