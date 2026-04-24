@@ -31,7 +31,19 @@
 | BR-DOC-PDF-006 | HTML templates use Thymeleaf with `vi-VN` locale; avoid HTML entities outside XHTML core (`&middot;`, `&nbsp;` break OpenHTMLtoPDF's strict SAX parser — use Unicode chars). |
 | BR-DOC-PDF-007 | PDF rendering is synchronous; p95 budget <2s for 1-page invoice. Async queue (GAP-210) once bulk or large documents appear. |
 
-- XLSX rules → Sub-PR 5.2 (formula-first, attendance P/A/L/E conventions)
+### Excel rules (Sub-PR 5.2)
+
+| ID | Rule |
+|----|------|
+| BR-DOC-XLSX-001 | **Formula-first:** any derivable value (counts, sums, percentages) MUST be a cell formula, not a pre-computed literal. Users editing a P/A/L/E cell must see totals recalculate. |
+| BR-DOC-XLSX-002 | Supported templates whitelisted in `XlsxGenerator`; unknown `templateId` → `IllegalArgumentException`. Wave 5 whitelist: `attendance` only. |
+| BR-DOC-XLSX-003 | Color convention: **blue** inputs, **black** formulas, **green** cross-reference/ratio cells. |
+| BR-DOC-XLSX-004 | VN weekday labels `Thứ 2` through `Thứ 7` hardcoded in header (POI does not localise). |
+| BR-DOC-XLSX-005 | Attendance rate column uses `IFERROR(...)` to guard zero-denominator (student with no recorded days). |
+| BR-DOC-XLSX-006 | Percent cells use Excel number format `0.00%` (2 decimal places); never pre-format as string. |
+| BR-DOC-XLSX-007 | Header row frozen via `createFreezePane(1, 3)` so student column + header stay visible while scrolling. |
+| BR-DOC-XLSX-008 | Filename pattern: `attendance-{weekStart}.xlsx` (e.g. `attendance-2026-04-20.xlsx`). |
+
 - DOCX rules → Sub-PR 5.3 (teacher contract placeholder, XSD validation)
 
 ### Delivery (Sub-PR 5.5)
@@ -50,5 +62,6 @@
 
 ## Log
 
+- 2026-04-24 — XLSX rules filled (Sub-PR 5.2). 8 rules BR-DOC-XLSX-001..008 covering formula-first, color convention, VN labels, percent format, freeze pane, filename. Word section untouched (Sub-PR 5.3).
 - 2026-04-24 — PDF rules filled (Sub-PR 5.1). 7 rules BR-DOC-PDF-001..007 covering template whitelist, diacritic contract, VND formatting, layout, filename, entity handling, sync timing budget. Font config key finalised (`DejaVuSans`). Excel + Word sections untouched (Sub-PRs 5.2/5.3).
 - 2026-04-24 — Stub rules file created (Sub-PR 5.0 foundation / GAP-047). Per-format rules to be filled by Sub-PRs 5.1–5.3; delivery rules by 5.5.

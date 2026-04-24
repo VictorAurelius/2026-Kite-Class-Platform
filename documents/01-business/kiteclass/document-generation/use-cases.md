@@ -49,9 +49,32 @@
 - Extracted text (via PDFBox `PDFTextStripper`) contains invoice number, buyer name, formatted VND total (e.g. `2.700.000`), and all line-item descriptions.
 - Diacritic characters (Đ, ễ, ă) round-trip through the text layer.
 
-## UC-DOC-ATT-001: Generate Weekly Attendance Report XLSX (Sub-PR 5.2 — upcoming)
+## UC-DOC-ATT-001: Generate Weekly Attendance Report XLSX (Sub-PR 5.2)
 
-Placeholder — filled by Sub-PR 5.2 (Excel + attendance template).
+**Actor:** Class teacher (via kiteclass-core attendance module) or tenant admin triggering a weekly export. Automated: scheduled job at end of each school week.
+
+**Goal:** Produce a weekly per-class attendance workbook with formula-driven totals + percentages that remain correct when an educator manually corrects a P/A/L/E cell after delivery.
+
+**Steps:**
+1. Caller assembles data: `weekStart` (ISO date), `className`, list of `students [{id, name}]`, `attendance` map keyed by student id → map of `Thứ 2..Thứ 7` → `P`/`A`/`L`/`E`.
+2. Caller builds `DocumentRequest(format=XLSX, templateId="attendance", tenantId=..., data=map)`.
+3. Facade routes to `XlsxGenerator`.
+4. `XlsxGenerator#generate` validates request, delegates to `AttendanceReportBuilder`.
+5. Builder constructs `XSSFWorkbook` with title row, header row, per-student rows (input cells + COUNTIF/IFERROR formulas), summary row (`Tổng cộng` with SUM + column COUNTIFs), column widths, freeze pane.
+6. Returns `DocumentResponse(bytes, xlsx MIME, "attendance-{weekStart}.xlsx")`.
+
+**Errors:**
+- `IllegalArgumentException` — null request, format mismatch, blank templateId, unknown templateId.
+- `IllegalStateException` — POI I/O failure writing workbook to byte stream.
+
+**FE behavior (Wave 5 Sub-PR 5.5):**
+- `GET /api/v1/documents/attendance/{classId}/download?week={weekStart}` → `Content-Disposition: attachment; filename="attendance-<week>.xlsx"`.
+- No inline preview — browsers do not reliably render xlsx.
+
+**Acceptance:**
+- `xlsx` magic number `PK` at byte offset 0.
+- Re-read with POI confirms: title row contains class name + weekStart; header row contains "Học sinh", VN weekdays, "Có mặt/Vắng/Tỷ lệ"; student rows contain VN names round-trip; total + absent + percent cells are `CellType.FORMULA` (not literal values); summary row `Tổng cộng` uses SUM/COUNTIF.
+- Empty student list yields a workbook with header + summary rows only (no crash).
 
 ## UC-DOC-CON-001: Generate Teacher Contract Draft DOCX (Sub-PR 5.3 — upcoming)
 
@@ -59,5 +82,6 @@ Placeholder — filled by Sub-PR 5.3 (Word + contract placeholder).
 
 ## Log
 
+- 2026-04-24 — UC-DOC-ATT-001 (attendance XLSX) filled (Sub-PR 5.2). 6-step happy path + error + FE behaviour + acceptance.
 - 2026-04-24 — UC-DOC-INV-001 (invoice PDF) filled (Sub-PR 5.1). 7-step happy path + error + FE behaviour + acceptance. Excel + Word placeholders untouched.
 - 2026-04-24 — Stub use-cases file with UC-DOC-000 (foundation contract) + 3 placeholders for 5.1/5.2/5.3.
