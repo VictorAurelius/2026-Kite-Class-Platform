@@ -1,0 +1,5 @@
+# Golden output gallery for Wave 5 document generation tests (GAP-047).
+# Sub-PRs 5.1–5.3 commit their sample outputs here:
+#   - invoice-sample.pdf       (Sub-PR 5.1)
+#   - attendance-sample.xlsx   (Sub-PR 5.2)
+#   - teacher-contract-sample.docx (Sub-PR 5.3)

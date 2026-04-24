@@ -34,6 +34,8 @@
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-compress.version>1.26.0</commons-compress.version>
         <poi.version>5.4.0</poi.version>
+        <!-- Wave 5 ADR-019: document generation stack. openhtmltopdf-pdfbox 1.0.x pulls Apache PDFBox 2.0.x transitively. -->
+        <openhtmltopdf.version>1.0.10</openhtmltopdf.version>
     </properties>
 
     <dependencyManagement>
@@ -207,10 +209,29 @@
 
         <!-- Apache POI for xlsx parsing + generation (GAP-051 Wave 1, bulk import students) -->
         <!-- GAP-203: bumped 5.2.5 → 5.4.0 to fix CVE-2025-31672 (zip entry duplicate name) -->
+        <!-- Wave 5 GAP-047: POI also hosts XWPF (Word) for DocxGenerator in Sub-PR 5.3 -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>${poi.version}</version>
+        </dependency>
+
+        <!-- Wave 5 (ADR-019 / GAP-047): Document generation stack -->
+        <!-- OpenHTMLtoPDF: HTML → PDF rendering. Pulls Apache PDFBox 2.0.x transitively (LGPL 3 / MIT). -->
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-core</artifactId>
+            <version>${openhtmltopdf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>${openhtmltopdf.version}</version>
+        </dependency>
+        <!-- Thymeleaf for templating HTML inputs to PDF (version from Spring Boot BOM) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- OpenCSV — CSV parsing (GAP-051, reserved for CSV bulk import variant) -->

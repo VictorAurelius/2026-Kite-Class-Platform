@@ -117,8 +117,9 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [016](ADR-016-fe-be-contract-strategy.md) | Frontend ↔ Backend Contract Strategy | ACCEPTED | 2026-04-19 |
 | [017](ADR-017-mis-sync-strategy.md) | School MIS Sync Strategy (One-Shot vs Live) | PROPOSED | 2026-04-21 |
 | [018](ADR-018-domain-registrar-dns.md) | Domain Registrar, DNS Provider, and TLD Policy | ACCEPTED (draft) | 2026-04-21 |
+| [019](ADR-019-document-generation-architecture.md) | Document Generation Architecture (Wave 5 / GAP-047) | PROPOSED | 2026-04-24 |
 
-Next free ID: **ADR-019**.
+Next free ID: **ADR-020**.
 
 ---
 
@@ -180,6 +181,7 @@ Non-ADR files in this folder (hypothetical drafts, notes) follow the parent fold
 
 ## Log
 
+- **2026-04-24:** Added ADR-019 PROPOSED (Document Generation Architecture — Wave 5 Sub-PR 5.0 / GAP-047). Records pure-backend, inline-in-core, OpenHTMLtoPDF+PDFBox+POI decision; alternatives iText/hybrid/microservice/headless-browser rejected.
 - **2026-04-21:** Added ADR-017 PROPOSED (School MIS sync strategy — GAP-200 Phase 1). Backfilled ADR-016 index entry (pre-existing drift).
 - **2026-04-20:** Governance upgrade (GAP-172) — README expanded with explicit 4-step lifecycle (PROPOSED → ACCEPTED → DEPRECATED/SUPERSEDED), reviewer checklist, cadence table, linking conventions. Template enriched. Closes `output-review-mandate.md` §4 #3 Architecture Docs violation.
 - **2026-04-18:** Added ADR-015 (AWS Agent Plugins defer, GAP-103).
