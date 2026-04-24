@@ -87,10 +87,33 @@ Tham khảo: `.claude/skills/devops/devops-standards.md` (section Docker Scripts
 - Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`
 - Viết bằng English, ngắn gọn, mô tả "what" không phải "how"
 
-### CI History Hygiene
-- **Sau khi CI green:** cleanup failed runs cũ bằng `scripts/cleanup-ci-runs.sh`
-- **Rule:** Main branch nên có ≤2 failed runs trong history (lý tưởng = 0)
-- `/repo-status` sẽ check CI history và báo nếu có quá nhiều failed runs
+### CI History Hygiene (updated 2026-04-24 per GAP-205)
+
+Retention caps (enforced by scheduled cleanup + `/repo-status` check):
+
+| Run type | Keep policy |
+|----------|-------------|
+| Failed runs on `main` | ≤2 in history (ideal = 0) |
+| Failed runs on feature branches | Delete after 7 days |
+| Success runs (any branch) | Keep last 30 days OR last 50 per branch (whichever more) |
+| All runs total | Soft cap 500; hard cap 1000, beyond that oldest deleted |
+| "Dependabot Updates" failures | **Always deletable** — known pnpm transitive limitation, not actionable (see memory `feedback_dependabot_pnpm_transitive.md`) |
+
+**Manual cleanup:** `scripts/cleanup-ci-runs.sh` (preserves most recent run per branch)
+
+**Bulk cleanup (one-shot):**
+```bash
+THIRTY_DAYS_AGO=$(date -d "30 days ago" -Iseconds)
+SEVEN_DAYS_AGO=$(date -d "7 days ago" -Iseconds)
+REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+gh run list --limit 1000 --json databaseId,createdAt,conclusion \
+  --jq ".[] | select(.createdAt < \"$THIRTY_DAYS_AGO\" or (.conclusion==\"failure\" and .createdAt < \"$SEVEN_DAYS_AGO\")) | .databaseId" \
+  | xargs -I {} gh api --method DELETE "repos/$REPO/actions/runs/{}"
+```
+
+**Automation:** scheduled `.github/workflows/ci-cleanup.yml` (GAP-205 Stage C, pending).
+
+**Enforcement:** `/repo-status` skill flags when failed runs > 2 on main or total runs > 500.
 
 ## CRITICAL: Wave Branch Strategy
 
