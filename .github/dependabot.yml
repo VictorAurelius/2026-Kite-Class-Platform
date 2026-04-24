@@ -1,22 +1,29 @@
-# Dependabot configuration — all ecosystems on version-update mode.
+# Dependabot configuration — ONE PR PER SERVICE per week.
+#
+# Each ecosystem bundles ALL minor+patch version updates into a single group
+# PR. Max 6 PRs total per Monday run (1 per ecosystem × 6).
 #
 # History:
-# - 2026-04-21: first enable flooded 28 PRs in 3 min (see
-#   documents/04-quality/analyses/2026-04-21-dependabot-first-run-incident.md)
-#   → reverted to security-only.
-# - 2026-04-24 (morning): pilot enabled for kiteclass-core with grouping +
-#   semver-major ignore. Monday-equivalent run produced exactly 5 grouped PRs
-#   (spring-boot, apache-commons, aws-sdk, document-generation, testing),
-#   all merged green within an hour. Pilot acceptance criteria met.
-# - 2026-04-24 (afternoon): expansion to ALL 6 ecosystems. Each ecosystem
-#   inherits the pilot pattern (grouped + semver-major ignore + weekly).
+# - 2026-04-21: first enable flooded 28 PRs in 3 min — reverted to security-only.
+# - 2026-04-24 (pilot): kiteclass-core maven with 5 groups — produced 5 PRs,
+#   merged green.
+# - 2026-04-24 (expand): all 6 ecosystems with 4-5 groups each — produced
+#   28 PRs because many deps fell outside the named groups (lombok, springdoc,
+#   jacoco, tika, aws-sdk for kitehub, etc.) and got individual PRs.
+# - 2026-04-24 (simplify): **this config** — collapse each ecosystem to a
+#   single `all-deps` group matching `*`. One PR per service, max 6 total.
+#
+# Trade-off of 1-PR-per-service: atomic blast radius. If one dep in the bundle
+# breaks CI, the whole PR blocks. Solo-dev mode accepts this cost for the
+# noise reduction.
+#
+# Escape hatch: if a specific dep needs isolation, add a named group BEFORE
+# `all-deps` — Dependabot matches the first group that fits.
 #
 # Related:
-# - GAP-202 (/repo-status skill security checks)
-# - GAP-203 (pom.xml CVE fixes — original Dependabot driver)
+# - Plan: documents/03-planning/plans/plan-dependabot-rollout-2026-04.md
 # - Memory: feedback_dependabot_first_run.md (3-stage enable policy)
 # - Memory: feedback_nextjs_rsc_array_regression.md (why `next` is pinned)
-# - Memory: feedback_dependabot_pnpm_transitive.md (pnpm transitive caveat)
 version: 2
 
 updates:
@@ -31,7 +38,7 @@ updates:
       day: monday
       time: "02:00"
       timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
     labels:
       - dependencies
       - kitehub
@@ -39,23 +46,9 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      spring-boot:
-        patterns:
-          - "org.springframework.boot*"
-          - "org.springframework:*"
-          - "org.springframework.security:*"
-      apache-commons:
-        patterns:
-          - "commons-*"
-          - "org.apache.commons:*"
-      testing:
-        patterns:
-          - "org.testcontainers:*"
-          - "org.junit.jupiter:*"
-          - "org.assertj:*"
-          - "org.mockito*"
-          - "io.github.resilience4j:*"
-          - "org.springframework.security:spring-security-test"
+      all-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -68,7 +61,7 @@ updates:
       day: monday
       time: "02:00"
       timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
     labels:
       - dependencies
       - kiteclass
@@ -76,31 +69,9 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      spring-boot:
-        patterns:
-          - "org.springframework.boot*"
-          - "org.springframework:*"
-          - "org.springframework.security:*"
-      apache-commons:
-        patterns:
-          - "commons-*"
-          - "org.apache.commons:*"
-      aws-sdk:
-        patterns:
-          - "software.amazon.awssdk:*"
-      document-generation:
-        patterns:
-          - "com.openhtmltopdf:*"
-          - "org.apache.poi:*"
-          - "ognl:*"
-      testing:
-        patterns:
-          - "org.testcontainers:*"
-          - "org.junit.jupiter:*"
-          - "org.assertj:*"
-          - "org.mockito*"
-          - "io.github.resilience4j:*"
-          - "org.springframework.security:spring-security-test"
+      all-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -113,7 +84,7 @@ updates:
       day: monday
       time: "02:00"
       timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 1
     labels:
       - dependencies
       - kiteclass
@@ -121,17 +92,9 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      spring-boot:
-        patterns:
-          - "org.springframework.boot*"
-          - "org.springframework:*"
-          - "org.springframework.security:*"
-          - "org.springframework.cloud:*"
-      testing:
-        patterns:
-          - "org.junit.jupiter:*"
-          - "org.assertj:*"
-          - "org.mockito*"
+      all-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -148,7 +111,7 @@ updates:
       day: monday
       time: "02:00"
       timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 8
+    open-pull-requests-limit: 1
     labels:
       - dependencies
       - frontend
@@ -157,46 +120,15 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      next-ecosystem:
-        patterns:
-          - "next-*"
-          - "@next/*"
-          - "@vercel/*"
-      react-ecosystem:
-        patterns:
-          - "react"
-          - "react-*"
-          - "@react-*"
-          - "@types/react*"
-      testing:
-        patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "@playwright/*"
-          - "@testing-library/*"
-          - "jsdom"
-          - "msw"
-      dev-tooling:
-        patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@eslint/*"
-          - "prettier"
-          - "prettier-*"
-          - "typescript"
-          - "@types/*"
-          - "tailwindcss"
-          - "tailwindcss-*"
-          - "@tailwindcss/*"
-          - "autoprefixer"
-          - "postcss"
-          - "postcss-*"
+      all-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
-      # Next.js pinned at 15.1.x — 15.1.7+ breaks JsonLd prerender due to
-      # Array.prototype.toJSON regression. See memory
+      # Next.js pinned at 15.1.x — 15.1.7+ breaks JsonLd prerender
+      # (Array.prototype.toJSON regression). See memory
       # `feedback_nextjs_rsc_array_regression.md` + GAP-204.
       - dependency-name: "next"
 
@@ -207,7 +139,7 @@ updates:
       day: monday
       time: "02:00"
       timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 8
+    open-pull-requests-limit: 1
     labels:
       - dependencies
       - frontend
@@ -216,40 +148,9 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      next-ecosystem:
-        patterns:
-          - "next-*"
-          - "@next/*"
-          - "@vercel/*"
-      react-ecosystem:
-        patterns:
-          - "react"
-          - "react-*"
-          - "@react-*"
-          - "@types/react*"
-      testing:
-        patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "@playwright/*"
-          - "@testing-library/*"
-          - "jsdom"
-          - "msw"
-      dev-tooling:
-        patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@eslint/*"
-          - "prettier"
-          - "prettier-*"
-          - "typescript"
-          - "@types/*"
-          - "tailwindcss"
-          - "tailwindcss-*"
-          - "@tailwindcss/*"
-          - "autoprefixer"
-          - "postcss"
-          - "postcss-*"
+      all-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -267,7 +168,7 @@ updates:
       day: monday
       time: "02:00"
       timezone: "Asia/Ho_Chi_Minh"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 1
     labels:
       - dependencies
       - ci
@@ -275,9 +176,9 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      actions:
-        patterns:
-          - "*"
+      all-deps:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
       - dependency-name: "*"
         update-types:
