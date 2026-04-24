@@ -65,15 +65,15 @@ class DefaultUrlAllowlistValidatorTest {
     @Test
     void allowsTenantListedHost() {
         MockEnvironment env = new MockEnvironment();
-        env.setProperty("security.url.allowlist.t1", "api.partner.com");
+        env.setProperty("security.url.allowlist.t1", "api.partner.invalid");
         DefaultUrlAllowlistValidator v = validator("", "", env);
-        assertThat(v.isAllowed("https://api.partner.com/webhook", "t1")).isTrue();
+        assertThat(v.isAllowed("https://api.partner.invalid/webhook", "t1")).isTrue();
     }
 
     @Test
     void rejectsTenantUnlistedHost() {
         MockEnvironment env = new MockEnvironment();
-        env.setProperty("security.url.allowlist.t1", "api.partner.com");
+        env.setProperty("security.url.allowlist.t1", "api.partner.invalid");
         DefaultUrlAllowlistValidator v = validator("", "", env);
         assertThat(v.isAllowed("https://unknown.example.com/", "t1")).isFalse();
     }
