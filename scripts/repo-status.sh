@@ -75,6 +75,13 @@ check_ci() {
     local seen_workflows=""
 
     while IFS=$'\t' read -r name conclusion created; do
+        # GAP-205 Stage D: skip "Dependabot Updates" failures from CI health count.
+        # These are pnpm transitive limitation failures (known upstream issue,
+        # not actionable). See memory feedback_dependabot_pnpm_transitive.md.
+        if [ "$name" = "Dependabot Updates" ] && [ "$conclusion" = "failure" ]; then
+            continue
+        fi
+
         # Skip if we've already seen this workflow
         if echo "$seen_workflows" | grep -qF "$name"; then
             continue
@@ -121,9 +128,11 @@ check_ci() {
     fi
 
     # Count stale failed runs in history (all failed runs on main)
+    # GAP-205 Stage D: exclude "Dependabot Updates" failures (pnpm transitive
+    # limitation, not actionable). See ci-cleanup.yml auto-prunes these.
     local failed_run_count=0
-    failed_run_count=$(gh run list --branch main --limit 30 --json conclusion \
-        --jq '[.[] | select(.conclusion=="failure")] | length' 2>/dev/null) || true
+    failed_run_count=$(gh run list --branch main --limit 30 --json conclusion,name \
+        --jq '[.[] | select(.conclusion=="failure" and .name!="Dependabot Updates")] | length' 2>/dev/null) || true
 
     echo "ci_status=$ci_status"
     echo "ci_failures=$ci_failures"
