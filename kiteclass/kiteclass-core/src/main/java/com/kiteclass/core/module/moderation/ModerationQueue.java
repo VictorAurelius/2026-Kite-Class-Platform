@@ -70,6 +70,7 @@ public class ModerationQueue extends BaseEntity {
 
     /** Keywords that triggered a block, serialized as JSON array. */
     @Column(name = "flagged_keywords", columnDefinition = "jsonb")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)  // GAP-220
     private String flaggedKeywords;
 
     @Column(name = "reason", length = 500)

@@ -14,6 +14,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -55,6 +57,7 @@ public class OutboxEvent extends BaseEntity {
     private String eventType;
 
     @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)  // GAP-220: bind String → JSON (jsonb), not VARCHAR.
     private String payload;
 
     @Enumerated(EnumType.STRING)

@@ -78,6 +78,7 @@ public class BrandingResource extends BaseEntity {
     private UUID aiJobId;
 
     @Column(name = "metadata", columnDefinition = "jsonb")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)  // GAP-220
     private String metadata;
 
     /**

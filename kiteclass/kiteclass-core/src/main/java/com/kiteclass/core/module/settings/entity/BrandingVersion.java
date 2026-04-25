@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Snapshot of a {@link Branding} row at a point in time.
@@ -49,7 +51,20 @@ public class BrandingVersion extends BaseEntity {
     @Column(name = "version_number", nullable = false)
     private Integer versionNumber;
 
+    /**
+     * Branding snapshot as JSON.
+     *
+     * <p>GAP-220 fix: column type is Postgres {@code jsonb} (per
+     * {@code columnDefinition = "jsonb"} + Flyway migration); without
+     * {@link JdbcTypeCode @JdbcTypeCode(SqlTypes.JSON)} Hibernate binds the {@link String} as
+     * {@code VARCHAR}, which Postgres rejects with
+     * {@code "column \"snapshot_json\" is of type jsonb but expression is of type character varying"}.
+     * The annotation switches the JDBC binding to JSON so Postgres accepts the cast natively.
+     *
+     * <p>Hibernate 6.2+ recognises {@code SqlTypes.JSON}; Spring Boot 3.5.14 ships Hibernate 6.6.x.
+     */
     @Column(name = "snapshot_json", nullable = false, columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String snapshotJson;
 
     /** Non-null when this row was created via rollback — points to the restored version. */

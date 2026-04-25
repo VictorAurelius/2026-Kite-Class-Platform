@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * Append-only audit row — one per security-sensitive action.
@@ -57,6 +59,7 @@ public class AuditLog extends BaseEntity {
     private String actorRole;
 
     @Column(name = "payload", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)  // GAP-220: bind String → JSON (jsonb), not VARCHAR.
     private String payload;
 
     @Column(name = "reason", length = 500)
