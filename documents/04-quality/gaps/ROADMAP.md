@@ -14,6 +14,8 @@
 
 **2026-04-24 (later, Wave 5 kickoff):** PR #474 Sub-PR 5.0 opened; Core Service CI surfaced pre-existing flaky test `DefaultUrlAllowlistValidatorTest.allowsTenantListedHost` — `api.partner.com` resolving to `::1` on WSL2 + CI runners triggers validator's DNS-rebind guard. Confirmed on `main` with no Sub-PR 5.0 changes. **Filed GAP-212 (P1)** — test-only fix using RFC-2606 `.invalid` domain; blocks PR #474 merge and every future Core CI run. Counts: **82 OPEN → 83 OPEN** (+GAP-212).
 
+**2026-04-24 (Wave 5 generator trio SHIPPED):** Sub-PRs 5.0 (#474 foundation + ADR-019), 5.1 (#476 PDF + invoice), 5.2 (#477 Excel + attendance), 5.3 (#478 Word + teacher contract) all merged to main same day. **GAP-047 status 🔵 OPEN → 🟡 PARTIAL.** PowerPoint deferred to Wave 6 per scope-lock (PR #473 Q6). Remaining before GAP-047 closes 🟢 DONE: Sub-PR 5.5 branding integration + HTTP endpoints, Sub-PR 5.6 wave completion. Counts: **84 OPEN → 84 OPEN, 14 → 15 PARTIAL** (GAP-047 reclassified). Recommend continuing Wave 5 (Sub-PR 5.5 next) before pivoting to GAP-046 or Wave 10.
+
 **2026-04-24 (afternoon, Dependabot full-expansion):** PR #515 landed 1-PR-per-service Dependabot config (after PR #486 full-groups expansion produced 28 PRs, all closed). Fresh run created 4 all-deps group PRs; 2 failed with Spring Cloud BOM resolution error on Boot bumps (kiteclass-gateway #517, kitehub #518 which touches kitehub-gateway pom). **Filed GAP-213 (P1)** — pom BOM fix needed before Dependabot can ship Spring-touching PRs for these 2 services. Boot 3.5.13 → 3.5.14 for 7 kitehub poms + 1 gateway pom blocked until GAP-213 closed. Counts: **83 OPEN → 84 OPEN** (+GAP-213).
 
 **2026-04-23 update:** Continuation of 2026-04-21 security session. Enabled Dependabot via `gh api PUT .../vulnerability-alerts` after GAP-202 skill exposed it was disabled. **Surfaced 89 npm alerts** (8 CRITICAL + 32 HIGH + 45 medium + 4 low). Initial triage incorrectly flagged 8 CRITICAL as false-positive (shallow jq query on only first vulnerable range); corrected analysis shows **all 8 CRITICAL are real** on `next@15.1.6` (GHSA-9qr9 fix 15.1.9, GHSA-f82v fix 15.2.3). Bump attempts (15.1.11, 15.3.9, 15.5.15) all broke `/pricing` + `/blog/[slug]` prerender via `Array.toJSON` regression in next 15.1.7+. Filed **GAP-204** P0 with Stage A (docs) + Stage B (RSC compat investigation) + Stage C (bump + close CRITICAL) + Stage D (triage remaining HIGH) + Stage E (re-enable auto-security-fixes). `/repo-status` reports **BLACK** — skill working correctly.
@@ -32,7 +34,7 @@
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
-| 1 | **GAP-047** | Document generation skills (Excel/Word/PDF/PPT) — adopt from MiniMax | 🔴 Meta (skills) | 🔵 OPEN | XL |
+| 1 | **GAP-047** | Document generation skills — PDF + Excel + Word **SHIPPED 2026-04-24** (#476/#477/#478 + foundation #474). Sub-PR 5.5 branding integration + 5.6 completion still pending; PowerPoint deferred to Wave 6. | 🔴 Meta (skills) | 🟡 PARTIAL | M (remaining) |
 | 2 | **GAP-046** | Design patterns applied systematically | 🔴 Meta (rules) | 🟡 PLANNED | M |
 | 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
 | 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
@@ -43,7 +45,7 @@
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 5 **GAP-047** document generation (highest priority meta gap) — splits into Sub-PR 5.1 PDF+Excel (P0), 5.2 Word (P1), 5.3 PPT (P2). Alternative if unblocked by dependencies: GAP-046 design-pattern audit + rules enforcement.
+**Next recommended wave:** Sub-PR 5.5 (branding integration + HTTP `/preview`+`/download` endpoints) → Sub-PR 5.6 (wave completion) to fully close GAP-047 → next P0 meta gap **GAP-046** (design-pattern audit + rules enforcement). Wave 6 candidates: PowerPoint (defer-payback) or Ops Readiness audit. Alternative parallel track: Wave 10 GAP-055 (report-card VN format) for BL-P0 progress.
 
 ---
 
@@ -220,7 +222,7 @@
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-047 | Document generation skills (Excel/Word/PDF/PPT) | 🔴 P0 | XL |
+| GAP-047 🟡 | Document generation — PDF+Excel+Word SHIPPED 2026-04-24 (#474/#476/#477/#478); PPT deferred Wave 6; Sub-PR 5.5 + 5.6 pending | 🔴 P0 | M (remaining) |
 | GAP-001 | kiteclass-gateway decision | 🟡 P2 | S |
 | GAP-027 | Multi-brand per tenant (franchise) | 🟡 P2 | XL |
 | GAP-035 | Wizard team collaboration | 🟡 P2 | L |
@@ -754,13 +756,13 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-014 | Wave mock plan include AI branding | 🟡 PLANNED Sprint 0 | M |
 | GAP-016 | Living docs impact scope (3-layer sweep) | 🟡 PLANNED Sprint 0 | S |
 | GAP-046 | Design patterns applied systematically | 🟡 PLANNED Sprint 0 | M |
-| GAP-047 | Document generation skills (Excel/Word/PDF/PPT) | 🔵 OPEN | XL |
+| GAP-047 | Document generation — 3/4 formats SHIPPED 2026-04-24; remaining: branding integration + completion + PPT (Wave 6) | 🟡 PARTIAL | M (remaining) |
 
 **Previously listed GA blockers now CLOSED:** GAP-007, 008, 009, 010, 012, 013, 015, 018, 031, 041, 042, 081, 082, 086, 087, 088, 092, 093.
 
 ---
 
-**Last Updated:** 2026-04-24 (**ROADMAP coverage refresh** — sync 45 previously-missing gaps into Epics 6/7/9/10/13/14 + new Epic 15 Vietnam K-12 Education. Accurate counts: 81/186 DONE (44%), 84 OPEN, 14 PARTIAL/PLANNED, 7 IN_PROGRESS. Also: CI history policy tightened PR #471 — soft cap 500→50, hard cap 1000→100; cleanup executed 538→52 runs. GAP-205/206/207 CLOSED. Recommended next action: Wave 5 GAP-047 document generation (Meta-P0, unblocks invoice/certificate/transcript features) OR Wave 10 GAP-055 report-card VN format (BL-P0, unblocks GAP-061 promotion logic). Quality-audit refresh due 2026-04-26.)
+**Last Updated:** 2026-04-24 (**Wave 5 generator trio merged** — #474 foundation + #476 PDF + #477 Excel + #478 Word. **GAP-047 → 🟡 PARTIAL.** PPT deferred to Wave 6. Counts: 81/186 DONE (44%), 84 OPEN, 15 PARTIAL/PLANNED (+GAP-047), 7 IN_PROGRESS. Also today: 8 Dependabot bumps merged including Boot 3.5.13→3.5.14 across kitehub + kiteclass-gateway via #523 (GAP-213 fix); spring-cloud BOM pinned to 2025.0.x until starter-rename migration. **Recommended next action:** Sub-PR 5.5 (branding integration via ADR-009 + HTTP `/preview`+`/download`) → 5.6 wave completion → close GAP-047 🟢. After that: GAP-046 design-pattern audit (next Meta-P0) or Wave 10 GAP-055 report-card VN. Quality-audit refresh due 2026-04-26.)
 
 **Prior:** 2026-04-21 (**Wave 9.5 SHIPPED** via 4 parallel agents — PRs #415-#418. Pushed 2 PARTIALs → DONE (GAP-132 caching fan-out, GAP-134 @EntityGraph expand 3→9 repos). GAP-192 Phase 4b-i backend completeness shipped (45 new tests, 330 total in kitehub-subscription: webhook HMAC + scheduler + idempotency + retry + admin ops); stays 🟡 PARTIAL until FE integration Phase 4c. GAP-043 fan-out attempted 5 caches but 4/5 reverted after Redis+Jackson typing regression caught in integration tests; BrandingPackage proxy retained sync=true. Follow-up gap: harden CacheConfig serializer before re-attempt.)
 
@@ -792,7 +794,7 @@ Triggered by: status check found 6+ "Block GA" gaps already merged but ROADMAP n
 ### Planning docs added 2026-04-18
 
 - `documents/03-planning/plans/plan-ui-ux-design-system-integration.md` — 3-PR plan to adopt ui-ux-pro-max reasoning rules + upgrade ui-review skill to /148 scoring
-- `documents/03-planning/waves/wave-05-document-generation.md` — Wave 5 plan for GAP-047 (document generation skills adoption from MiniMax). **Status: 🟢 APPROVED 2026-04-24** — 6 defaults signed off; scope 3 formats (PDF via OpenHTMLtoPDF+PDFBox, Excel via POI, Word via POI), inline in kiteclass-core, sync-only, PDF preview + all download, PPT deferred to Wave 6. ADR-019 will document decisions. Next: Sub-PR 5.0 foundation in follow-up session.
+- `documents/03-planning/waves/wave-05-document-generation.md` — Wave 5 plan for GAP-047. **Status: 🟢 APPROVED 2026-04-24 → IN PROGRESS (4/6 sub-PRs SHIPPED)** — Sub-PR 5.0 foundation + ADR-019 (#474), 5.1 PDF + invoice (#476), 5.2 Excel + attendance (#477), 5.3 Word + teacher contract (#478) all merged 2026-04-24. Remaining: Sub-PR 5.5 (branding integration) + 5.6 (wave completion). ADR-019 PROPOSED → ACCEPTED on Sub-PR 5.6 merge.
 
 ### Rules added 2026-04-18
 
