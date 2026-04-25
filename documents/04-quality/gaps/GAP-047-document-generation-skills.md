@@ -13,7 +13,7 @@
 - (this PR) Sub-PR 5.5 branding integration + HTTP endpoints — `DocumentBrandingAssembler`, `DocumentGenerationController` (POST `{format}/preview` + `{format}/download` with RFC-5987 filenames), branded renderers (XLSX header fill, DOCX title color, PDF branded header), cross-format integration test, OGNL pin fix (3.3.4)
 
 **Remaining work (does NOT close this gap until done):**
-- Sub-PR 5.6: wave completion (sample gallery under `documents/04-quality/samples/`, ROADMAP closure, ADR-019 → ACCEPTED, MiniMax analysis doc → ADOPTED)
+- Sub-PR 5.6: wave completion (sample gallery under `documents/04-quality/samples/`, ROADMAP closure, ADR-019 → ACCEPTED, MiniMax analysis doc → ADOPTED, **full post-wave audit suite per [GAP-214](GAP-214-wave5-post-wave-audit-suite.md)** — API contract / security / performance / ops / quality refresh)
 - Wave 6: PowerPoint format (deferred per Q6 scope-lock — Canva/Slides viable alternative)
 
 **Related Docs:**

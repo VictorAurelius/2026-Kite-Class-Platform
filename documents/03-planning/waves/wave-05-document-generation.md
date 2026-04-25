@@ -229,9 +229,16 @@ Rationale: PPT is NICE-HAVE — Canva/Google Slides are viable alternatives. Def
 - ROADMAP.md update: GAP-047 → DONE, move next meta-gap to position 1
 - MiniMax analysis doc marked as ADOPTED
 - Wave 5 completion report in `documents/03-planning/waves/wave-05-document-generation.md` §Log
-- ADR-016 marked as ACCEPTED
+- ADR-019 marked as ACCEPTED (was originally ADR-016 in plan; renumbered to 019)
+- **Full post-wave audit suite per `post-wave-audit-mandate.md` §4 Day 0–3 cadence — closes GAP-214:**
+  - API Contract /100 refresh (covers Sub-PRs 5.0–5.5 public-surface drift)
+  - Security /100 refresh (covers `pom.xml` cumulative bumps + new auth-protected endpoints)
+  - Performance /100 refresh (measure PDF/XLSX/DOCX p95 vs BR-DOC-PDF-007 budget)
+  - Ops Readiness /100 refresh (new endpoints + branding cache reads)
+  - Quality /100 refresh (mandatory post-wave per §2.3)
+  - Findings → new gaps via `audit-to-gap-pipeline.md` Step 1–5
 
-**Effort:** ~3h
+**Effort:** ~3h core completion + ~3-4h audit suite = ~6-7h total
 
 ---
 

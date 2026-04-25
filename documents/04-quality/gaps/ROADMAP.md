@@ -651,6 +651,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-207 | `/start-session` VN language per CLAUDE.md | 🟢 DONE (2026-04-24 PR #470) | skill fix |
 | GAP-212 | Fix `DefaultUrlAllowlistValidatorTest` flaky DNS of `api.partner.com` → loopback (blocks every Core CI run; pre-existing surfaced by PR #474) | 🔵 OPEN 🟠 P1 | test-only fix (RFC-2606 `.invalid`) |
 | GAP-213 | Spring Cloud BOM resolution fails on Dependabot all-deps PRs that bump Boot parent (kiteclass-gateway + kitehub-gateway poms) — blocks weekly Spring-touching Dependabot PRs | 🔵 OPEN 🟠 P1 | pom BOM fix (likely explicit `spring-cloud.version` bump alongside Boot, or root-pom BOM import) |
+| GAP-214 | Wave 5 post-wave audit suite refresh — API contract + security + performance + ops + quality stale during Wave 5 sprint; closed by Sub-PR 5.6 wave completion. Used as `AUDIT_OVERRIDE` link for Sub-PR 5.5 PR #529. | 🔵 OPEN 🟠 P1 | governance / audit refresh |
 
 ---
 
