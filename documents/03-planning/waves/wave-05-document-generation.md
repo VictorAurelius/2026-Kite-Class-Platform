@@ -1,6 +1,6 @@
 ---
 title: Wave 5 — Document Generation Skills (GAP-047)
-status: approved
+status: in-progress  # 4/6 sub-PRs SHIPPED 2026-04-24 (5.0/5.1/5.2/5.3); 5.5 + 5.6 pending
 created: 2026-04-18
 updated: 2026-04-24
 waves: [5]
@@ -107,7 +107,7 @@ Explicitly **deferred** to later waves:
 
 ## 4. Sub-PR Breakdown
 
-### Sub-PR 5.0: Foundation + ADR-019
+### Sub-PR 5.0: Foundation + ADR-019 — ✅ SHIPPED 2026-04-24 (PR #474)
 
 **Branch:** `wave/05-document-generation/foundation`
 **Mode:** serialized (lead)
@@ -133,7 +133,7 @@ Explicitly **deferred** to later waves:
 
 ---
 
-### Sub-PR 5.1: PDF Skill + Invoice Generator (P0)
+### Sub-PR 5.1: PDF Skill + Invoice Generator (P0) — ✅ SHIPPED 2026-04-24 (PR #476)
 
 **Branch:** `wave/05-document-generation/pdf`
 **Depends on:** 5.0
@@ -156,7 +156,7 @@ Explicitly **deferred** to later waves:
 
 ---
 
-### Sub-PR 5.2: Excel Skill + Attendance Report (P0)
+### Sub-PR 5.2: Excel Skill + Attendance Report (P0) — ✅ SHIPPED 2026-04-24 (PR #477)
 
 **Branch:** `wave/05-document-generation/excel`
 **Depends on:** 5.0 (can run parallel with 5.1)
@@ -176,7 +176,7 @@ Explicitly **deferred** to later waves:
 
 ---
 
-### Sub-PR 5.3: Word Skill + Teacher Contract (P1)
+### Sub-PR 5.3: Word Skill + Teacher Contract (P1) — ✅ SHIPPED 2026-04-24 (PR #478)
 
 **Branch:** `wave/05-document-generation/word`
 **Depends on:** 5.0
@@ -358,6 +358,13 @@ Wave 5 scope is now **LOCKED**. Any change requires explicit user decision + log
 
 ## 11. Log
 
+- **2026-04-24 (4/6 SUB-PRs SHIPPED, same day as approval):** Generator trio + foundation merged to main:
+  - PR #474 — Sub-PR 5.0 foundation + ADR-019 (Generator interface, DocumentRequest/Response value objects, DocumentGenerationService facade stub, openhtmltopdf 1.0.10 + spring-boot-starter-thymeleaf maven deps, 3-layer business docs stub, 12 unit tests). Required follow-up #475 (GAP-212 — DefaultUrlAllowlistValidatorTest flaky DNS) before #474 CI cleared. SonarCloud Quality Gate fix added DocumentResponse equals/hashCode/toString override (S6218 records-with-array-component).
+  - PR #476 — Sub-PR 5.1 PDF + Vietnamese tax invoice template via OpenHTMLtoPDF + Thymeleaf, DejaVuSans TTFs preloaded for Đ/đ/ễ/ă diacritics. ognl 3.4.4 added (Thymeleaf Standard dialect needs OGNL outside Spring integration). 9 unit tests + invoice-sample.pdf golden output.
+  - PR #477 — Sub-PR 5.2 Excel + weekly attendance report via Apache POI XSSF. Formula-first (BR-DOC-XLSX-001), color convention (blue inputs / black formulas / green cross-ref), VN weekday labels hardcoded, frozen header pane, IFERROR for div-by-zero. 11 unit tests + attendance-sample.xlsx.
+  - PR #478 — Sub-PR 5.3 Word + teacher contract via Apache POI XWPF. A4 + 2.54cm margins, Times New Roman 12pt body / 14pt bold title, VN government header, salary VND formatting, legal placeholder (per scope-lock §3 deferred legal-review wave). 12 unit tests + teacher-contract-sample.docx.
+  - Salvage required: 3 parallel worktree agents launched but hit sandbox Write/Bash denial. PDF + Excel files partially salvaged from worktrees; Word implemented greenfield from main session. All 4 sub-PRs landed within ~2 hours total.
+  - GAP-047 status updated 🔵 OPEN → 🟡 PARTIAL. Wave plan status `approved` → `in-progress`. Remaining: Sub-PR 5.5 (branding integration + HTTP `/preview`+`/download` endpoints) → Sub-PR 5.6 (wave completion, ADR-019 → ACCEPTED, sample gallery, ROADMAP closure).
 - **2026-04-24 (APPROVED):** All 6 defaults from `wave-05-decision-guide.md` approved by user. Wave status PLANNING → APPROVED. Key scope changes captured in this file:
   - Q1: PDF library = OpenHTMLtoPDF + PDFBox (not iText — AGPL conflict with closed-source SaaS)
   - Q2: Inline in kiteclass-core (no new Maven module)

@@ -1,11 +1,25 @@
 # GAP-047: Document Generation Skills + Infrastructure
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — 3 of 4 formats SHIPPED 2026-04-24 (PDF #476, Excel #477, Word #478 + foundation #474). PowerPoint deferred to Wave 6 per scope-lock decision (PR #473). Sub-PR 5.5 branding integration + 5.6 wave completion still pending.
 **Priority:** 🔴 P0 (tenant-facing feature parity)
 **Domain:** Skills / Backend / Product
 **Detected:** 2026-04-14 (MiniMax-AI/skills review)
+**Wave 5 PRs (merged 2026-04-24):**
+- #473 plan(wave-05) approve 6 defaults + scope lock
+- #474 Sub-PR 5.0 foundation + ADR-019 (Generator interface, DocumentRequest/Response, facade stub)
+- #476 Sub-PR 5.1 PDF + Vietnamese tax invoice (OpenHTMLtoPDF + Thymeleaf, DejaVuSans diacritics)
+- #477 Sub-PR 5.2 Excel + weekly attendance report (Apache POI XSSF, formula-first)
+- #478 Sub-PR 5.3 Word + teacher contract (Apache POI XWPF, A4 + 2.54cm margins)
+
+**Remaining work (does NOT close this gap until done):**
+- Sub-PR 5.5: branding-package integration via ADR-009 + HTTP `/preview` (PDF) + `/download` endpoints
+- Sub-PR 5.6: wave completion (cross-format integration test, sample gallery)
+- Wave 6: PowerPoint format (deferred per Q6 scope-lock — Canva/Slides viable alternative)
+
 **Related Docs:**
 - `documents/04-quality/skills-gap-analysis-vs-minimax.md` (full analysis)
+- `documents/03-planning/waves/wave-05-document-generation.md` (wave plan, status APPROVED → in progress)
+- `documents/02-architecture/adr/ADR-019-document-generation-architecture.md`
 
 ## Problem
 
@@ -148,4 +162,5 @@ Sprint 5: Branding integration + quality
 
 ## Log
 
+- 2026-04-24 — Status 🔵 OPEN → 🟡 PARTIAL. Wave 5 generator trio shipped (PDF #476, Excel #477, Word #478) on top of foundation (#474, ADR-019). PowerPoint deferred to Wave 6 per scope-lock (PR #473 Q6). Remaining before 🟢 DONE: Sub-PR 5.5 branding integration + 5.6 wave completion.
 - 2026-04-14 — Gap identified via MiniMax skills repo review
