@@ -1,8 +1,8 @@
 ---
 title: Wave 5 — Document Generation Skills (GAP-047)
-status: in-progress  # 4/6 sub-PRs SHIPPED 2026-04-24 (5.0/5.1/5.2/5.3); 5.5 + 5.6 pending
+status: in-progress  # 5/6 sub-PRs SHIPPED (5.0/5.1/5.2/5.3 on 2026-04-24, 5.5 on 2026-04-25); 5.6 wave-completion pending
 created: 2026-04-18
-updated: 2026-04-24
+updated: 2026-04-25
 waves: [5]
 gaps: [GAP-047, GAP-034, GAP-017]
 approved_by: nguyenvankiet
@@ -358,6 +358,15 @@ Wave 5 scope is now **LOCKED**. Any change requires explicit user decision + log
 
 ## 11. Log
 
+- **2026-04-25 (Sub-PR 5.5 SHIPPED):** Branding integration + HTTP `/preview` (PDF only, inline) + `/download` (PDF/XLSX/DOCX, attachment) endpoints landed.
+  - **Plumbing layer:** `DocumentBrandingAssembler` (pure helper, 7 unit tests) extracts `branding.*` keys from a `BrandingResponse` and merges into `DocumentRequest.data()` with caller-provided keys winning. `HexColorUtil` (9 unit tests) parses CSS hex into POI-friendly RGB bytes / RRGGBB string.
+  - **Renderer wiring:** all three generators now apply branding to a format-appropriate locus — `AttendanceReportBuilder` paints the header row fill from `branding.primaryColor` (white text for contrast), `TeacherContractBuilder` colours the `HỢP ĐỒNG GIẢNG DẠY` title run, `InvoiceRenderer` + `invoice.html` add a conditional branded header block (logo + displayName + primary-coloured accent bar) and tint the `<h1>` title. Each falls back gracefully when branding keys are absent (BR-DOC-016).
+  - **HTTP layer:** `DocumentGenerationController` (`@RestController` at `/api/v1/documents`) — POST `{format}/preview` rejects non-PDF formats with 400; POST `{format}/download` works for all three. Reads tenant via `TenantContext.getCurrentTenant()`, fetches branding via `BrandingService.getBranding()`, dispatches through the existing `DocumentGenerationService` facade. RFC-5987 UTF-8 filenames preserve VN diacritics. Auth: `@PreAuthorize hasAnyRole(ADMIN, OWNER, TEACHER)`. 9 `@WebMvcTest` cases cover preview/download dispositions, format gating, branding capture via ArgumentCaptor.
+  - **Cross-format consistency:** new `DocumentBrandingIntegrationTest` (3 tests, pure JUnit, no Spring boot) wires the real generator trio + assembler with a fixed `BrandingResponse`, verifies primary colour shows up in each format's appropriate locus.
+  - **Bug found + fixed mid-stream:** OGNL was bumped to 3.4.x by Dependabot pilots #483/#516, but Thymeleaf 3.1.x calls a 4-arg `OgnlContext(MemberAccess, ClassResolver, TypeConverter, Map)` constructor that the 3.4 line dropped. PdfGeneratorTest threw `NoSuchMethodError`. Re-pinned to **`ognl:3.3.4`** (the version Thymeleaf parent declares) with a fat comment + memory entry `feedback_thymeleaf_ognl_pin.md` so future Dependabot bumps are rejected. Saved as project memory.
+  - **3-layer business docs updated:** `rules.md` BR-DOC-010..016, `use-cases.md` UC-DOC-PREVIEW-001 / UC-DOC-DOWNLOAD-001 / UC-DOC-BRANDING-001, `api-contract.md` HTTP section filled with full request/response/error matrix.
+  - **Skill updates:** `quality-audit/SKILL.md` Code Quality category now includes Document Generation criteria (diacritics, VND format, branding fallback, OGNL pin sentinel). `two-stage-code-review.md` adds Stage 2.6 trigger for doc-gen PRs (sample golden output, 3-layer docs, branding key safety).
+  - Wave 5 success criteria progress: `[✅]` 3 SKILL.md, `[✅]` 3 Generator implementations, `[✅]` 1 template per format, `[✅]` cross-format branding consistency test, `[✅]` PDF /preview + /download, `[✅]` no new P0 gaps. Remaining for Sub-PR 5.6: sample gallery in `documents/04-quality/samples/`, ADR-019 → ACCEPTED, ROADMAP closure, wave-completion report, optional follow-up gap for OGNL upgrade path.
 - **2026-04-24 (4/6 SUB-PRs SHIPPED, same day as approval):** Generator trio + foundation merged to main:
   - PR #474 — Sub-PR 5.0 foundation + ADR-019 (Generator interface, DocumentRequest/Response value objects, DocumentGenerationService facade stub, openhtmltopdf 1.0.10 + spring-boot-starter-thymeleaf maven deps, 3-layer business docs stub, 12 unit tests). Required follow-up #475 (GAP-212 — DefaultUrlAllowlistValidatorTest flaky DNS) before #474 CI cleared. SonarCloud Quality Gate fix added DocumentResponse equals/hashCode/toString override (S6218 records-with-array-component).
   - PR #476 — Sub-PR 5.1 PDF + Vietnamese tax invoice template via OpenHTMLtoPDF + Thymeleaf, DejaVuSans TTFs preloaded for Đ/đ/ễ/ă diacritics. ognl 3.4.4 added (Thymeleaf Standard dialect needs OGNL outside Spring integration). 9 unit tests + invoice-sample.pdf golden output.

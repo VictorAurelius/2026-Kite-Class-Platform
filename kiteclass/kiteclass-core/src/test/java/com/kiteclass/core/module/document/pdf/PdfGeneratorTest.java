@@ -155,6 +155,31 @@ class PdfGeneratorTest extends DocumentGenerationTestBase {
     }
 
     @Test
+    void branding_displayName_renders_in_header_when_provided() throws Exception {
+        java.util.HashMap<String, Object> data = new java.util.HashMap<>(sampleInvoiceData());
+        data.put("branding.primaryColor", "#2563EB");
+        data.put("branding.logoUrl", "https://cdn.example.com/logo.png");
+        data.put("branding.displayName", "Trung tâm Kite");
+
+        DocumentResponse resp = generator.generate(
+                sampleRequest(DocumentFormat.PDF, "invoice", data));
+        String text = extractText(resp.bytes());
+
+        assertThat(text).contains("Trung tâm Kite");
+    }
+
+    @Test
+    void branding_absent_does_not_emit_header_block_or_break_render() throws Exception {
+        DocumentResponse resp = generator.generate(
+                sampleRequest(DocumentFormat.PDF, "invoice", sampleInvoiceData()));
+        String text = extractText(resp.bytes());
+
+        // Original title still present, no leftover placeholder text from the branded header.
+        assertThat(text).contains("HÓA ĐƠN GIÁ TRỊ GIA TĂNG");
+        assertThat(text).doesNotContain("Tenant Name");
+    }
+
+    @Test
     void filename_incorporates_invoice_number_when_available() {
         DocumentResponse resp = generator.generate(
                 sampleRequest(DocumentFormat.PDF, "invoice", sampleInvoiceData()));

@@ -3,6 +3,7 @@ package com.kiteclass.core.module.document.xlsx;
 import com.kiteclass.core.module.document.DocumentFormat;
 import com.kiteclass.core.module.document.DocumentRequest;
 import com.kiteclass.core.module.document.DocumentResponse;
+import com.kiteclass.core.module.document.branding.HexColorUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,12 +11,14 @@ import java.util.List;
 import java.util.Map;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -45,10 +48,12 @@ final class AttendanceReportBuilder {
         List<Map<String, Object>> students = asStudentList(data.get("students"));
         Map<String, Map<String, String>> attendance = asAttendanceMap(data.get("attendance"));
 
+        byte[] primaryRgb = HexColorUtil.toRgbBytes(asString(data.get("branding.primaryColor"), null));
+
         try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             XSSFSheet sheet = wb.createSheet("Điểm danh");
 
-            Styles styles = new Styles(wb);
+            Styles styles = new Styles(wb, primaryRgb);
 
             writeTitle(sheet, styles, className, weekStart);
             writeHeaderRow(sheet, styles);
@@ -221,7 +226,13 @@ final class AttendanceReportBuilder {
         final CellStyle formula;
         final CellStyle percent;
 
-        Styles(XSSFWorkbook wb) {
+        /**
+         * @param wb          target workbook; XSSFColor requires the workbook's indexed color map.
+         * @param primaryRgb  optional 3-byte RGB — when non-null the header row fills with the
+         *                    tenant primary colour (Sub-PR 5.5 branding integration) and header
+         *                    text switches to white for contrast. Null ⇒ legacy grey fallback.
+         */
+        Styles(XSSFWorkbook wb, byte[] primaryRgb) {
             Font bold = wb.createFont();
             bold.setBold(true);
             bold.setFontHeightInPoints((short) 12);
@@ -230,13 +241,19 @@ final class AttendanceReportBuilder {
             title.setFont(bold);
             title.setAlignment(HorizontalAlignment.CENTER);
 
-            header = wb.createCellStyle();
+            XSSFCellStyle headerStyle = wb.createCellStyle();
             Font headerFont = wb.createFont();
             headerFont.setBold(true);
-            header.setFont(headerFont);
-            header.setAlignment(HorizontalAlignment.CENTER);
-            header.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-            header.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            if (primaryRgb != null) {
+                headerStyle.setFillForegroundColor(new XSSFColor(primaryRgb, null));
+                headerFont.setColor(IndexedColors.WHITE.getIndex());
+            } else {
+                headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            }
+            headerStyle.setFont(headerFont);
+            header = headerStyle;
 
             input = wb.createCellStyle();
             Font inputFont = wb.createFont();

@@ -21,10 +21,20 @@
   .totals td.amount { text-align: right; font-variant-numeric: tabular-nums; }
   .totals tr.grand td { font-weight: 700; border-top: 2px solid #000; padding-top: 6pt; }
   .footer { margin-top: 24pt; font-size: 9pt; color: #555; text-align: center; }
+  .brand-header { padding-bottom: 8pt; margin-bottom: 12pt; }
+  .brand-header img { max-height: 40pt; vertical-align: middle; }
+  .brand-header .brand-name { font-size: 14pt; font-weight: 700; vertical-align: middle; margin-left: 8pt; }
 </style>
 </head>
 <body>
-  <h1>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h1>
+  <div th:if="${brand != null and brand.displayName != null}"
+       class="brand-header"
+       th:style="|border-bottom: 3pt solid ${brand.primaryColor != null ? brand.primaryColor : '#000000'};|">
+    <img th:if="${brand.logoUrl != null and !#strings.isEmpty(brand.logoUrl)}"
+         th:src="${brand.logoUrl}" alt="" />
+    <span class="brand-name" th:text="${brand.displayName}">Tenant Name</span>
+  </div>
+  <h1 th:style="${brand != null and brand.primaryColor != null} ? |color: ${brand.primaryColor};| : ''">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h1>
   <p class="subtitle">Ký hiệu mẫu: 01GTKT0/001 · Ngày phát hành: <span th:text="${issueDate}">2026-04-24</span></p>
 
   <table class="meta">

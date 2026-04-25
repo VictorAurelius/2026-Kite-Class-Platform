@@ -8,11 +8,14 @@ import com.kiteclass.core.module.document.DocumentGenerationTestBase;
 import com.kiteclass.core.module.document.DocumentRequest;
 import com.kiteclass.core.module.document.DocumentResponse;
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.Test;
 
@@ -153,6 +156,27 @@ class XlsxGeneratorTest extends DocumentGenerationTestBase {
         assertThatThrownBy(() -> generator.generate(req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("format");
+    }
+
+    @Test
+    void branding_primary_color_paints_header_row_fill() throws Exception {
+        Map<String, Object> data = new HashMap<>(sampleAttendanceData());
+        data.put("branding.primaryColor", "#2563EB");
+
+        DocumentResponse resp = generator.generate(
+                sampleRequest(DocumentFormat.XLSX, "attendance", data));
+
+        try (XSSFWorkbook wb = new XSSFWorkbook(new ByteArrayInputStream(resp.bytes()))) {
+            Sheet sheet = wb.getSheetAt(0);
+            XSSFCell headerCell = (XSSFCell) sheet.getRow(2).getCell(0);
+            XSSFColor fill = headerCell.getCellStyle().getFillForegroundColorColor();
+            assertThat(fill).isNotNull();
+            byte[] rgb = fill.getRGB();
+            assertThat(rgb).isNotNull();
+            assertThat(rgb[0] & 0xFF).isEqualTo(0x25);
+            assertThat(rgb[1] & 0xFF).isEqualTo(0x63);
+            assertThat(rgb[2] & 0xFF).isEqualTo(0xEB);
+        }
     }
 
     @Test

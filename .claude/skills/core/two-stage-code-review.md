@@ -51,6 +51,19 @@ Reference: `.claude/rules/design-patterns.md`
 
 Use skill: `.claude/skills/reference/design-pattern-advisor.md` để guidance.
 
+### Stage 2.6: Document Generation Review (Wave 5+)
+
+Trigger: PR touches `kiteclass-core/src/main/java/com/kiteclass/core/module/document/**` OR `kiteclass-core/src/main/resources/templates/**` OR `documents/01-business/kiteclass/document-generation/**`.
+
+**Doc-gen checks:**
+- [ ] Sample golden output committed under `kiteclass-core/src/test/resources/document-samples/` for any new template/format (per Wave 5 plan §2.6 + per `output-review-mandate.md` §3 templates row)
+- [ ] 3-layer business docs updated in same PR — `rules.md` BR-DOC-* IDs, `use-cases.md` UC-DOC-* IDs, `api-contract.md` HTTP/data-map schema (Living Docs rule, CLAUDE.md)
+- [ ] Branding-key reads use the documented keys (`branding.primaryColor`, `branding.logoUrl`, `branding.displayName`, ...) and fall back gracefully to defaults when absent (per BR-DOC-016)
+- [ ] OGNL pin (`ognl:3.3.4`) untouched if PR modifies `kiteclass-core/pom.xml` and Thymeleaf is in scope — see memory `feedback_thymeleaf_ognl_pin.md` and `PdfGeneratorTest` is the canary
+- [ ] Tests cover the diacritic + branding paths — extend `XlsxGeneratorTest` / `DocxGeneratorTest` / `PdfGeneratorTest` and refresh `DocumentBrandingIntegrationTest` if a new format ships
+
+If a new template lands without a sample golden output OR without 3-layer doc updates → BLOCK per `output-review-mandate.md` §6.
+
 ## KiteClass Gotchas
 
 - **KHÔNG kết luận CI pass khi `in_progress`** — chạy `scripts/check-ci.sh --status` trước, đợi completed

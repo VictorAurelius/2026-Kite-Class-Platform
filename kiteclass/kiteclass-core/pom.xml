@@ -235,11 +235,19 @@
         </dependency>
         <!-- OGNL: required by Thymeleaf's Standard dialect when used WITHOUT Spring integration
              (direct TemplateEngine in InvoiceRenderer). Spring-native rendering uses SpEL via
-             thymeleaf-spring6 and does not need this. -->
+             thymeleaf-spring6 and does not need this.
+
+             PINNED at 3.3.4 — the version Thymeleaf 3.1.x parent pom declares. The 3.4.x line
+             dropped the OgnlContext(MemberAccess, ClassResolver, TypeConverter, Map) constructor
+             that Thymeleaf 3.1.5 calls reflectively from OGNLVariableExpressionEvaluator (Map →
+             OgnlContext signature change). Result: NoSuchMethodError on every Thymeleaf evaluation.
+             Earlier Wave 5 PRs declared 3.4.4 by mistake; tests passed only because Thymeleaf was
+             a different version then. Hold at 3.3.4 until Thymeleaf upstream catches up;
+             do NOT let Dependabot bump this without running PdfGeneratorTest first. -->
         <dependency>
             <groupId>ognl</groupId>
             <artifactId>ognl</artifactId>
-            <version>3.4.11</version>
+            <version>3.3.4</version>
         </dependency>
 
         <!-- OpenCSV — CSV parsing (GAP-051, reserved for CSV bulk import variant) -->
