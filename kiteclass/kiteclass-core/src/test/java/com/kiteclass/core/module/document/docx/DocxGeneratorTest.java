@@ -158,6 +158,21 @@ class DocxGeneratorTest extends DocumentGenerationTestBase {
     }
 
     @Test
+    void contract_render_under_soft_cap_for_regression_canary() {
+        // GAP-216 — soft-cap regression canary; DOCX is faster than PDF.
+        DocumentRequest req = sampleRequest(DocumentFormat.DOCX, "teacher-contract", sampleContractData());
+
+        long startNs = System.nanoTime();
+        DocumentResponse resp = generator.generate(req);
+        long elapsedMs = (System.nanoTime() - startNs) / 1_000_000;
+
+        assertThat(resp.bytes()).isNotEmpty();
+        assertThat(elapsedMs)
+                .as("DOCX render took %d ms — should stay under 2000 ms soft cap", elapsedMs)
+                .isLessThan(2000);
+    }
+
+    @Test
     void missing_required_key_throws() {
         Map<String, Object> incomplete = new HashMap<>(sampleContractData());
         incomplete.remove("teacherName");

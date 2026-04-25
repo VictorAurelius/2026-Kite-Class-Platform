@@ -84,4 +84,54 @@ spec:
           annotations:
             summary: "RabbitMQ queue backlog on {{ "{{ $labels.queue }}" }}"
             description: "Queue {{ "{{ $labels.queue }}" }} has {{ "{{ $value }}" }} messages ready (threshold: 1000)"
+
+    # GAP-217 — Wave 5 document-generation endpoints (Sub-PR 5.5).
+    # Routing depends on Alertmanager deployment (GAP-120). Until that ships, these rules
+    # fire silently; on-call still escalates via the generic alerts above.
+    # Per-endpoint signals are needed because /api/v1/documents/* has different latency
+    # SLOs than other endpoints (BR-DOC-PDF-007 budget: 2s p95 for invoice render).
+    - name: kiteclass-document-generation-alerts
+      rules:
+        - alert: DocumentGenerationHighP95
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(http_server_requests_seconds_bucket{uri=~"/api/v1/documents/.*"}[5m]))
+            ) > 2
+          for: 5m
+          labels:
+            severity: warning
+            service: kiteclass-core
+          annotations:
+            summary: "Document generation p95 latency exceeds BR-DOC-PDF-007 budget"
+            description: "POST /api/v1/documents/* p95 is above 2 seconds for 5 minutes (current value: {{ "{{ $value | humanizeDuration }}" }}). Likely cause: branding cache miss storm OR PDF font load regression."
+            runbook_url: "documents/05-guides/runbooks/pdf-generation-font-not-found.md"
+
+        - alert: DocumentGenerationHighErrorRate
+          expr: |
+            (
+              sum (rate(http_server_requests_seconds_count{uri=~"/api/v1/documents/.*",status=~"5.."}[5m]))
+              /
+              sum (rate(http_server_requests_seconds_count{uri=~"/api/v1/documents/.*"}[5m]))
+            ) > 0.01
+          for: 5m
+          labels:
+            severity: critical
+            service: kiteclass-core
+          annotations:
+            summary: "5xx rate on /api/v1/documents/* exceeds 1%"
+            description: "Document generation endpoints returning {{ "{{ $value | humanizePercentage }}" }} server errors over 5 minutes. Common cause: missing DejaVuSans TTF in deployed image."
+            runbook_url: "documents/05-guides/runbooks/pdf-generation-font-not-found.md"
+
+        - alert: DocumentBrandingCacheMissStorm
+          # Depends on Spring Cache Micrometer metrics (GAP-219 P1 sub-bullet 4).
+          # Until those metrics are wired, this rule will not have data — it is filed
+          # here to capture the alert intent alongside its peers.
+          expr: rate(spring_cache_misses_total{cache="branding-by-tenant"}[5m]) > 10
+          for: 5m
+          labels:
+            severity: warning
+            service: kiteclass-core
+          annotations:
+            summary: "branding-by-tenant cache miss rate elevated"
+            description: "Cache miss rate above 10/s for 5 minutes — possible eviction storm or post-deploy cold start. Each miss hits PostgreSQL via BrandingService.getBranding()."
 {{- end }}

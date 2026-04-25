@@ -1,7 +1,7 @@
 # ADR-019: Document Generation Architecture
 
-**Status:** PROPOSED
-**Date:** 2026-04-24
+**Status:** ACCEPTED (2026-04-25, Sub-PR 5.6b — Wave 5 closure)
+**Date:** 2026-04-24 (proposed) → 2026-04-25 (accepted)
 **Deciders:** @nguyenvankiet (founder / tech lead)
 **Reviewers:** — (solo-dev mode; self-review per `rule-change-process.md` §12 emergency / `output-review-mandate.md` §8 exception)
 **Related Gap(s):** GAP-047
@@ -178,6 +178,70 @@ Every generator receives branding via the cached Branding Package facade (ADR-00
 
 ---
 
+## Outcomes (filled at acceptance, 2026-04-25)
+
+Recorded at the end of Wave 5 to capture what shipped vs what the proposal promised. Future architects reading this ADR see what really happened.
+
+### Stack actually shipped
+
+| Concern | Decided in Decision | Shipped in Wave 5 | Notes |
+|---------|---------------------|-------------------|-------|
+| PDF rendering | OpenHTMLtoPDF 1.0.10 | ✅ openhtmltopdf-pdfbox 1.0.10 | as planned |
+| PDF low-level | PDFBox 2.0.x (transitive) | ✅ PDFBox 2.0.x | upgrade to 3.x deferred (openhtmltopdf 1.1+ still alpha) |
+| HTML templating | Thymeleaf | ✅ Thymeleaf 3.1.5.RELEASE (Spring Boot BOM) | required pinning **OGNL 3.3.4** (3.4.x dropped a constructor Thymeleaf calls reflectively — see memory `feedback_thymeleaf_ognl_pin.md`, Sub-PR 5.5 fix) |
+| Excel | Apache POI 5.4.0 | ✅ POI **5.5.1** (Dependabot bumped during wave) | minor bump, no API surface change |
+| Word | Apache POI 5.4.0 | ✅ POI **5.5.1** (same as Excel) | shares the POI version with Excel |
+| Fonts | NotoSans / DejaVuSans preloaded | ✅ DejaVuSans (regular + bold) bundled in JAR + image-build assertion | Sub-PR 5.6b GAP-218 added the assertion + runbook |
+
+### Architecture as built
+
+- ✅ Inline in `kiteclass-core` per Decision §1 (no Maven module, no microservice)
+- ✅ Facade `DocumentGenerationService` + Strategy `Generator` interface as designed
+- ✅ Three Strategies implemented: `PdfGenerator`, `XlsxGenerator`, `DocxGenerator`
+- ✅ Value objects `DocumentRequest` / `DocumentResponse` / `DocumentFormat` — no leaky abstraction
+- ✅ Branding injection via `DocumentBrandingAssembler` (Sub-PR 5.5) — pulls from `BrandingService.getBranding()` (Settings module's Branding entity), NOT from `BrandingPackageService` as the proposal originally hinted; reason: settings.Branding is the source of truth for tenant theme, BrandingPackage is a Wave 3 published-snapshot artefact for FE delivery and lacks theme fields
+- ✅ Synchronous endpoints `POST /api/v1/documents/{format}/{preview|download}` (Sub-PR 5.5) with `@PreAuthorize hasAnyRole(ADMIN,OWNER,TEACHER)`
+- ✅ PDF preview inline + download attachment per Decision §5; XLSX/DOCX download-only
+- ✅ Filenames RFC-5987 UTF-8 encoded for Vietnamese diacritics
+
+### Success criteria — measured
+
+| Criterion | Target | Result |
+|-----------|--------|--------|
+| p95 PDF generation | <2s for 1-page invoice | ⚠️ **Soft-cap regression canary in place** (PdfGeneratorTest asserts <4s on first render including font load + Thymeleaf parse) — true p95 SLO requires JMH suite, deferred to follow-up gap. Tracked in GAP-216 (status DONE for soft-cap; full JMH = follow-up) |
+| Zero cross-tenant branding leaks | integration test pass | ✅ `DocumentBrandingIntegrationTest` (3 tests) verifies same branding flows into all 3 formats |
+| Test coverage on each Generator | ≥80% | ✅ each Generator has dedicated test class (`PdfGeneratorTest` 12 cases, `XlsxGeneratorTest` 13 cases, `DocxGeneratorTest` 14 cases) |
+| 3-layer docs up to date | each PR | ✅ `documents/01-business/kiteclass/document-generation/{rules,use-cases,api-contract}.md` synced with code (API contract audit 2026-04-25 scored 95/100) |
+
+### Wave 5 audit suite results (2026-04-25, Sub-PR 5.6a)
+
+| Audit | Score | Implication for ADR |
+|-------|------:|---------------------|
+| API Contract /100 | 95 (A) | Contract is precise; minor docs polish in GAP-219 umbrella |
+| Security /100 | 85 (B) | Net +9 vs baseline (CVE closures + OGNL fix); 3 P2 defense-in-depth gaps in GAP-219 |
+| Performance /100 | 63 (D) | Surfaced 2 P0s — `BrandingService.getBranding()` uncached (GAP-215) + missing p95 benchmark (GAP-216); both fixed in Sub-PR 5.6b |
+| Ops Readiness /100 | 52 (F) | Surfaced 2 P0s — alert rules missing (GAP-217 partial: rules filed, routing depends on GAP-120 Alertmanager) + font-missing runbook (GAP-218); both addressed in Sub-PR 5.6b |
+| Quality refresh /100 | 78 (C+) | +1 vs prior baseline; calibrated honestly per `feedback_audit_calibration.md` |
+
+### Outstanding follow-ups (Wave 6 / 7+)
+
+- **GAP-208** — template library expansion (currently 1 template per format; ~20 more for launch)
+- **GAP-209** — Maven module extraction trigger (when kitehub-* services start consuming generation)
+- **GAP-210** — async queue (RabbitMQ `doc.generate.{format}`) for bulk / >10s operations
+- **GAP-211** — Excel/Word in-browser preview (FE-side parsing) if user demand justifies the surface area
+- **GAP-219** — umbrella for 5 P1 + 8 P2/P3 audit follow-ups (auth-IT, async/timeout, TemplateEngine singleton, Spring Cache Micrometer metrics, ControllerAdvice + RFC 9457, etc.)
+- PowerPoint format — deferred to **Wave 6** per Q6 scope-lock (Canva/Slides viable alternative for marketing pitch / training slides)
+- OGNL upgrade path — track Thymeleaf 3.2.x release for OGNL 3.4.x compatibility window
+
+### Lessons learned
+
+- **Dependabot ABI traps:** OGNL 3.4.x bumped without testing PdfGeneratorTest broke production. Fix: pin with fat comment + memory entry (`feedback_thymeleaf_ognl_pin.md`). Apply this pattern to any framework-internal dependency Dependabot might bump silently.
+- **Audit cadence drift:** Wave 5's 5 sub-PRs in 2 days outpaced the 7-day audit-freshness window. `post-wave-audit-mandate.md` §3 caught the drift; AUDIT_OVERRIDE pattern + tracking gap (GAP-214) cleared the path. Consider tightening freshness to 5 days for active waves in a future rule revision.
+- **State-check before filing gaps:** `audit-to-gap-pipeline.md` Step 2.5 (state-check against current code) prevented duplicate gaps when audit findings overlapped with existing skills/docs.
+
+---
+
 ## Log
 
+- **2026-04-25 — ACCEPTED (Sub-PR 5.6b)** — Outcomes filled. All Wave 5 success criteria met or tracked as follow-up gaps. Stack matches Decision §2 exactly except for OGNL pin discovery (3.4.x → 3.3.4) and POI minor bump (5.4.0 → 5.5.1); both documented above.
 - 2026-04-24 — Initial proposal (Sub-PR 5.0). PROPOSED.
