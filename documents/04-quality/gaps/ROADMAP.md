@@ -30,22 +30,21 @@
 
 **Priority order (updated 2026-04-20):** Meta-P0 → **Business-Logic-P0** → Feature-P0 → Meta-P1 → Business-Logic-P1 → Feature-P1 → ... Reference `.claude/rules/meta-gap-priority.md` §3 for tier definitions + tie-breakers.
 
-**GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0)**
+**GA Blockers remaining: 5 — ordered per `meta-gap-priority.md` (meta before feature within P0). GAP-047 closed 2026-04-25 (Wave 5 DONE — #532).**
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
-| 1 | **GAP-047** | Document generation skills — PDF + Excel + Word **SHIPPED 2026-04-24** (#476/#477/#478 + foundation #474). Sub-PR 5.5 branding integration + 5.6 completion still pending; PowerPoint deferred to Wave 6. | 🔴 Meta (skills) | 🟡 PARTIAL | M (remaining) |
-| 2 | **GAP-046** | Design patterns applied systematically | 🔴 Meta (rules) | 🟡 PLANNED | M |
-| 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
-| 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
-| 5 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
-| 6 | GAP-005 | AI queue fair scheduling (Phase 2) | Feature | 🟡 IN_PROGRESS | M |
+| 1 | **GAP-046** | Design patterns applied systematically | 🔴 Meta (rules) | 🟡 PLANNED | M |
+| 2 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
+| 3 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
+| 4 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
+| 5 | GAP-005 | AI queue fair scheduling (Phase 2) | Feature | 🟡 IN_PROGRESS | M |
 
 > **Priority rule:** Meta-gaps (skills/rules/workflow) go first at each P-level — 1 broken skill/rule affects every future PR, so force multiplier first. Ref `.claude/rules/meta-gap-priority.md`.
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Sub-PR 5.5 (branding integration + HTTP `/preview`+`/download` endpoints) → Sub-PR 5.6 (wave completion) to fully close GAP-047 → next P0 meta gap **GAP-046** (design-pattern audit + rules enforcement). Wave 6 candidates: PowerPoint (defer-payback) or Ops Readiness audit. Alternative parallel track: Wave 10 GAP-055 (report-card VN format) for BL-P0 progress.
+**Next recommended wave:** Wave 5 fully closed 2026-04-25 (#532 Sub-PR 5.6b). Next P0 meta gap **GAP-046** (design-pattern audit + rules enforcement). Wave 6 candidates: PowerPoint (defer-payback) or Ops Readiness audit. Alternative parallel track: Wave 10 GAP-055 (report-card VN format) for BL-P0 progress.
 
 ---
 

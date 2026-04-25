@@ -1,6 +1,6 @@
 # GAP-047: Document Generation Skills + Infrastructure
 
-**Status:** 🟡 PARTIAL — 3 of 4 formats SHIPPED 2026-04-24 (PDF #476, Excel #477, Word #478 + foundation #474). Branding integration + HTTP endpoints SHIPPED 2026-04-25 (Sub-PR 5.5). PowerPoint deferred to Wave 6 per scope-lock decision (PR #473). Sub-PR 5.6 wave completion still pending.
+**Status:** 🟢 DONE — Wave 5 closed 2026-04-25. PDF (#476), Excel (#477), Word (#478) shipped on foundation #474; branding integration + HTTP endpoints shipped Sub-PR 5.5 (#529); audit suite refresh shipped Sub-PR 5.6a (#530); wave closure + 4 P0 audit fixes shipped Sub-PR 5.6b (#532). PowerPoint deferred to Wave 6 per Q6 scope-lock (Canva/Slides viable alternative).
 **Priority:** 🔴 P0 (tenant-facing feature parity)
 **Domain:** Skills / Backend / Product
 **Detected:** 2026-04-14 (MiniMax-AI/skills review)
@@ -12,9 +12,12 @@
 - #478 Sub-PR 5.3 Word + teacher contract (Apache POI XWPF, A4 + 2.54cm margins)
 - (this PR) Sub-PR 5.5 branding integration + HTTP endpoints — `DocumentBrandingAssembler`, `DocumentGenerationController` (POST `{format}/preview` + `{format}/download` with RFC-5987 filenames), branded renderers (XLSX header fill, DOCX title color, PDF branded header), cross-format integration test, OGNL pin fix (3.3.4)
 
-**Remaining work (does NOT close this gap until done):**
-- Sub-PR 5.6: wave completion (sample gallery under `documents/04-quality/samples/`, ROADMAP closure, ADR-019 → ACCEPTED, MiniMax analysis doc → ADOPTED, **full post-wave audit suite per [GAP-214](GAP-214-wave5-post-wave-audit-suite.md)** — API contract / security / performance / ops / quality refresh)
+**Follow-ups (filed as separate gaps, do NOT block this closure):**
 - Wave 6: PowerPoint format (deferred per Q6 scope-lock — Canva/Slides viable alternative)
+- [GAP-208](GAP-208-template-library-expansion.md) — template library expansion (~20 templates per format for launch)
+- [GAP-210](GAP-210-document-generation-async-queue.md) — async queue (Wave 5 sync-only)
+- [GAP-217](GAP-217-document-endpoints-alert-rules.md) 🟡 PARTIAL — Alertmanager routing depends on GAP-120
+- [GAP-219](GAP-219-wave5-audit-followups.md) — umbrella for 5 P1 + 8 P2/P3 audit follow-ups
 
 **Related Docs:**
 - `documents/04-quality/skills-gap-analysis-vs-minimax.md` (full analysis)
@@ -162,6 +165,8 @@ Sprint 5: Branding integration + quality
 
 ## Log
 
-- 2026-04-25 — Sub-PR 5.5 SHIPPED (branding integration + HTTP endpoints). Status remains 🟡 PARTIAL until Sub-PR 5.6 wave completion. New artifacts: `DocumentBrandingAssembler` + `HexColorUtil` + `DocumentGenerationController` (POST `/api/v1/documents/{format}/preview|download`), branded renderers across all 3 formats, cross-format integration test, OGNL re-pinned to 3.3.4 (Thymeleaf compatibility). 3-layer business docs and quality-audit / two-stage-code-review skills updated to match.
+- 2026-04-25 — **Status 🟡 PARTIAL → 🟢 DONE.** Sub-PR 5.6b SHIPPED (#532): closes 4 P0 audit gaps (GAP-215 branding cache, GAP-216 doc-gen p95 soft-cap, GAP-217 alert rules PARTIAL, GAP-218 PDF font runbook), sample gallery at `documents/04-quality/samples/wave-05/`, ADR-019 PROPOSED → ACCEPTED, MiniMax analysis ADOPTED. Wave 5 ledger: #474 (5.0 foundation) + #476 (5.1 PDF) + #477 (5.2 Excel) + #478 (5.3 Word) + #529 (5.5 branding+HTTP) + #530 (5.6a audit suite) + #532 (5.6b closure). PowerPoint deferred to Wave 6. Audit deltas — Quality 78/100 (+1), API contract 95/100 (A), Security 85/100 (+9), Performance 63/100 (+5 vs baseline), Ops Readiness 52/100 (+3 vs baseline).
+- 2026-04-25 — Sub-PR 5.6a SHIPPED (#530): post-wave audit suite refresh per GAP-214 — 5 audits ran in parallel (API contract, security, performance, ops readiness, quality). 4 P0 + 5 P1 + 8 P2/P3 gaps filed (GAP-215..219). Output-review-mandate §3 matrix: Ops + Performance flipped from ⚠️ BASELINE to ✅ REFRESHED.
+- 2026-04-25 — Sub-PR 5.5 SHIPPED (#529): branding integration + HTTP endpoints. New artifacts: `DocumentBrandingAssembler` + `HexColorUtil` + `DocumentGenerationController` (POST `/api/v1/documents/{format}/preview|download`), branded renderers across all 3 formats, cross-format integration test, OGNL re-pinned to 3.3.4 (Thymeleaf compatibility). 3-layer business docs and quality-audit / two-stage-code-review skills updated to match.
 - 2026-04-24 — Status 🔵 OPEN → 🟡 PARTIAL. Wave 5 generator trio shipped (PDF #476, Excel #477, Word #478) on top of foundation (#474, ADR-019). PowerPoint deferred to Wave 6 per scope-lock (PR #473 Q6). Remaining before 🟢 DONE: Sub-PR 5.5 branding integration + 5.6 wave completion.
 - 2026-04-14 — Gap identified via MiniMax skills repo review
