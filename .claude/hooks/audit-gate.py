@@ -266,6 +266,43 @@ def has_audit_override(pr: str, info: dict) -> tuple[bool, str]:
     return False, ""
 
 
+def check_gap_doc_drift(pr: str, info: dict, files: list[str]) -> list[str]:
+    """Detect PRs that reference GAP-XXX in title/body without touching the gap file.
+
+    Returns list of "GAP-XXX (no log entry referencing this PR)" warnings.
+    Governance check per memory `feedback_post_merge_doc_sync.md` and
+    scripts/gap-drift-check.sh — Wave 5 (2026-04-24) shipped 4 sub-PRs
+    closing partial GAP-047 progress without updating the gap file or
+    ROADMAP, requiring a follow-up sync PR (#527).
+    """
+    title = info.get("title", "")
+    body = info.get("body", "") or ""
+    combined = f"{title} {body}"
+    gap_ids = sorted(set(re.findall(r"GAP-\d{3}", combined)))
+    if not gap_ids:
+        return []
+    repo_root = Path(__file__).resolve().parents[2]
+    gaps_dir = repo_root / "documents" / "04-quality" / "gaps"
+    warnings = []
+    for gap_id in gap_ids:
+        # Check 1: did the PR touch the gap file at all?
+        touched = any(f.startswith("documents/04-quality/gaps/") and gap_id in f for f in files)
+        # Check 2: even if touched, does the gap Log reference this PR? (catches
+        # touch-without-log mistakes — e.g. status bump but no log entry).
+        gap_files = list(gaps_dir.glob(f"{gap_id}-*.md"))
+        log_has_pr = False
+        if gap_files:
+            content = gap_files[0].read_text(encoding="utf-8", errors="replace")
+            # Crude but effective: search for "#<pr>" in the file.
+            if re.search(rf"#{pr}\b", content):
+                log_has_pr = True
+        if not touched and not log_has_pr:
+            warnings.append(f"{gap_id} (PR refs gap but doesn't update gap file Log)")
+        elif touched and not log_has_pr:
+            warnings.append(f"{gap_id} (gap file touched but Log doesn't mention #{pr})")
+    return warnings
+
+
 def _on_pr_merge_impl(pr: str) -> dict | None:
     files = get_pr_files(pr)
     info = get_pr_info(pr)
@@ -333,6 +370,12 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         violations.append("Business logic changed but no 01-business/ docs updated")
     if missing_audits and not docs_only:
         violations.append(f"Missing audits: {', '.join(a['audit'] for a in missing_audits)}")
+    gap_drift = check_gap_doc_drift(pr, info, files)
+    if gap_drift:
+        violations.append(
+            "Gap doc drift — " + "; ".join(gap_drift)
+            + " (per memory feedback_post_merge_doc_sync.md — file a docs-only sync PR)"
+        )
     if is_wave:
         violations.append("Wave merge — run /wave-completion-check + audit suite within 3 days (post-wave-audit-mandate.md)")
 
