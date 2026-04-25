@@ -13,12 +13,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,14 +50,16 @@ class BrandingCacheIntegrationTest {
     private CacheManager cacheManager;
 
     /**
-     * BrandingVersionService is mocked so the {@code updateBranding} path doesn't trigger
-     * a JSONB snapshot insert, which exposes a pre-existing Wave 4 bug
-     * (column {@code branding_versions.snapshot_json} is {@code jsonb} but JDBC sends
-     * {@code String} as {@code varchar}). The cache eviction behaviour we're verifying here is
-     * orthogonal to version snapshots; isolating prevents this test from depending on a fix
-     * to that separate gap. Filed as follow-up for tracking.
+     * BrandingVersionService is mocked so the {@code updateBranding} path doesn't trigger a
+     * JSONB snapshot insert. The original reason for this isolation was GAP-220 (now FIXED via
+     * {@code @JdbcTypeCode(SqlTypes.JSON)} on {@code BrandingVersion.snapshotJson}); the mock
+     * is kept as defensive isolation so this cache test never depends on the snapshot pipeline
+     * staying healthy.
+     *
+     * <p>Uses {@link MockitoBean} (Spring Framework 6.2 / Spring Boot 3.4+) instead of the
+     * deprecated {@code @MockBean} from {@code spring-boot-test} — same semantics, new package.
      */
-    @MockBean
+    @MockitoBean
     private BrandingVersionService brandingVersionService;
 
     private UUID tenant1;
