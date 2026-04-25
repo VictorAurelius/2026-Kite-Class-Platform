@@ -56,6 +56,7 @@ public class QualityReport extends BaseEntity {
     private Boolean passed;
 
     @Column(name = "issues", columnDefinition = "jsonb")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)  // GAP-220
     private String issues;
 
     @Column(name = "contrast_score")
