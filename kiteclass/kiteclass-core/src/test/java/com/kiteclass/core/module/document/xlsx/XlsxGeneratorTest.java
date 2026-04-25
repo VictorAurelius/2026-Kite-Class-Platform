@@ -180,6 +180,22 @@ class XlsxGeneratorTest extends DocumentGenerationTestBase {
     }
 
     @Test
+    void attendance_render_under_soft_cap_for_regression_canary() {
+        // GAP-216 — soft-cap regression canary; XLSX is faster than PDF (no font load,
+        // no template parse). 2s ceiling.
+        DocumentRequest req = sampleRequest(DocumentFormat.XLSX, "attendance", sampleAttendanceData());
+
+        long startNs = System.nanoTime();
+        DocumentResponse resp = generator.generate(req);
+        long elapsedMs = (System.nanoTime() - startNs) / 1_000_000;
+
+        assertThat(resp.bytes()).isNotEmpty();
+        assertThat(elapsedMs)
+                .as("XLSX render took %d ms — should stay under 2000 ms soft cap", elapsedMs)
+                .isLessThan(2000);
+    }
+
+    @Test
     void empty_student_list_yields_workbook_with_only_header_and_summary() throws Exception {
         Map<String, Object> data = Map.of(
                 "weekStart", "2026-04-20",

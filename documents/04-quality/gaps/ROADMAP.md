@@ -222,7 +222,7 @@
 
 | Gap | Title | Priority | Effort |
 |-----|-------|:--------:|:------:|
-| GAP-047 🟡 | Document generation — PDF+Excel+Word SHIPPED 2026-04-24 (#474/#476/#477/#478); PPT deferred Wave 6; Sub-PR 5.5 + 5.6 pending | 🔴 P0 | M (remaining) |
+| GAP-047 🟢 | Document generation — Wave 5 DONE 2026-04-25 (#474/#476/#477/#478/#529/#530 + 5.6b). PPT deferred Wave 6. | 🔴 P0 | DONE |
 | GAP-001 | kiteclass-gateway decision | 🟡 P2 | S |
 | GAP-027 | Multi-brand per tenant (franchise) | 🟡 P2 | XL |
 | GAP-035 | Wizard team collaboration | 🟡 P2 | L |
@@ -652,10 +652,10 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-212 | Fix `DefaultUrlAllowlistValidatorTest` flaky DNS of `api.partner.com` → loopback (blocks every Core CI run; pre-existing surfaced by PR #474) | 🔵 OPEN 🟠 P1 | test-only fix (RFC-2606 `.invalid`) |
 | GAP-213 | Spring Cloud BOM resolution fails on Dependabot all-deps PRs that bump Boot parent (kiteclass-gateway + kitehub-gateway poms) — blocks weekly Spring-touching Dependabot PRs | 🔵 OPEN 🟠 P1 | pom BOM fix (likely explicit `spring-cloud.version` bump alongside Boot, or root-pom BOM import) |
 | GAP-214 | Wave 5 post-wave audit suite refresh — API contract + security + performance + ops + quality stale during Wave 5 sprint; closed by Sub-PR 5.6 wave completion. Used as `AUDIT_OVERRIDE` link for Sub-PR 5.5 PR #529. | 🟢 DONE (5.6a 2026-04-25) — 5 audits committed: api 95/100, sec 85/100, perf 63/100, ops 52/100, quality 78/100 | governance / audit refresh |
-| GAP-215 | `BrandingService.getBranding()` not `@Cacheable` — DB hit per document render (Wave 5 perf audit P0-1). Blocks Sub-PR 5.6b. | 🔵 OPEN 🔴 P0 | backend / cache wiring |
-| GAP-216 | PDF/XLSX/DOCX p95 micro-benchmark + soft-cap regression assertion (Wave 5 perf audit P0-2). Blocks Sub-PR 5.6b. | 🔵 OPEN 🔴 P0 | testing / perf canary |
-| GAP-217 | Alert rules for `/api/v1/documents/*` (p95, error rate, cache miss storm) — Wave 5 ops audit P0. Blocked-by GAP-120 Alertmanager for routing. | 🔵 OPEN 🔴 P0 | ops / alerting |
-| GAP-218 | PDF font-missing runbook + image-build validation step (Wave 5 ops audit P0). Blocks Sub-PR 5.6b. | 🔵 OPEN 🔴 P0 | ops / runbook + CI |
+| GAP-215 | `BrandingService.getBranding()` not `@Cacheable` — DB hit per document render (Wave 5 perf audit P0-1). | 🟢 DONE (Sub-PR 5.6b 2026-04-25) — `@Cacheable("branding-by-tenant", sync=true)` + `@CacheEvict` on mutators + `BrandingCacheIntegrationTest` (5 cases) | backend / cache wiring |
+| GAP-216 | PDF/XLSX/DOCX p95 micro-benchmark + soft-cap regression assertion (Wave 5 perf audit P0-2). | 🟢 DONE (Sub-PR 5.6b 2026-04-25) — soft-cap timing assertions in 3 generator tests (PDF <4s, XLSX/DOCX <2s); full JMH suite is a Wave 7 follow-up | testing / perf canary |
+| GAP-217 | Alert rules for `/api/v1/documents/*` (p95, error rate, cache miss storm) — Wave 5 ops audit P0. | 🟡 PARTIAL (Sub-PR 5.6b 2026-04-25 filed 3 rules in helm + docker prometheus configs); routing deferred — blocked-by GAP-120 Alertmanager | ops / alerting |
+| GAP-218 | PDF font-missing runbook + image-build validation step (Wave 5 ops audit P0). | 🟢 DONE (Sub-PR 5.6b 2026-04-25) — Dockerfile font-presence assertion + `documents/05-guides/runbooks/pdf-generation-font-not-found.md` | ops / runbook + CI |
 | GAP-219 | Wave 5 audit follow-ups umbrella — 5 P1 + 8 P2/P3 sub-bullets across api/sec/perf/ops categories. Tracking-only; sub-bullets split into individual gaps when scheduled. | 🔵 OPEN 🟠 P1 | umbrella / maintenance |
 
 ---
@@ -762,13 +762,13 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-014 | Wave mock plan include AI branding | 🟡 PLANNED Sprint 0 | M |
 | GAP-016 | Living docs impact scope (3-layer sweep) | 🟡 PLANNED Sprint 0 | S |
 | GAP-046 | Design patterns applied systematically | 🟡 PLANNED Sprint 0 | M |
-| GAP-047 | Document generation — 3/4 formats SHIPPED 2026-04-24; remaining: branding integration + completion + PPT (Wave 6) | 🟡 PARTIAL | M (remaining) |
+| GAP-047 | Document generation — Wave 5 DONE 2026-04-25; PPT deferred Wave 6 | 🟢 DONE | — |
 
 **Previously listed GA blockers now CLOSED:** GAP-007, 008, 009, 010, 012, 013, 015, 018, 031, 041, 042, 081, 082, 086, 087, 088, 092, 093.
 
 ---
 
-**Last Updated:** 2026-04-24 (**Wave 5 generator trio merged** — #474 foundation + #476 PDF + #477 Excel + #478 Word. **GAP-047 → 🟡 PARTIAL.** PPT deferred to Wave 6. Counts: 81/186 DONE (44%), 84 OPEN, 15 PARTIAL/PLANNED (+GAP-047), 7 IN_PROGRESS. Also today: 8 Dependabot bumps merged including Boot 3.5.13→3.5.14 across kitehub + kiteclass-gateway via #523 (GAP-213 fix); spring-cloud BOM pinned to 2025.0.x until starter-rename migration. **Recommended next action:** Sub-PR 5.5 (branding integration via ADR-009 + HTTP `/preview`+`/download`) → 5.6 wave completion → close GAP-047 🟢. After that: GAP-046 design-pattern audit (next Meta-P0) or Wave 10 GAP-055 report-card VN. Quality-audit refresh due 2026-04-26.)
+**Last Updated:** 2026-04-25 (**Wave 5 DONE** — Sub-PR 5.6b shipped wave closure + 4 P0 audit fixes from 5.6a. **GAP-047 → 🟢 DONE.** Wave 5 ledger: #474 5.0 + #476 5.1 PDF + #477 5.2 Excel + #478 5.3 Word + #529 5.5 branding + HTTP + #530 5.6a audit suite + 5.6b closure. Audit suite scores: api 95 / sec 85 / perf 63 / ops 52 / quality 78. P0 closures: GAP-215 cache, GAP-216 soft-cap canary, GAP-218 font runbook + Dockerfile assertion. GAP-217 PARTIAL (rules filed, routing deferred to GAP-120 Alertmanager). PPT deferred to Wave 6 per scope-lock. **Recommended next action:** **GAP-046 design-pattern audit** (next Meta-P0). Or Wave 10 GAP-055 report-card VN if business priority shifts. RTK pilot scaffolded (#531) — opt-in single-day measurement before any team-wide rollout.)
 
 **Prior:** 2026-04-21 (**Wave 9.5 SHIPPED** via 4 parallel agents — PRs #415-#418. Pushed 2 PARTIALs → DONE (GAP-132 caching fan-out, GAP-134 @EntityGraph expand 3→9 repos). GAP-192 Phase 4b-i backend completeness shipped (45 new tests, 330 total in kitehub-subscription: webhook HMAC + scheduler + idempotency + retry + admin ops); stays 🟡 PARTIAL until FE integration Phase 4c. GAP-043 fan-out attempted 5 caches but 4/5 reverted after Redis+Jackson typing regression caught in integration tests; BrandingPackage proxy retained sync=true. Follow-up gap: harden CacheConfig serializer before re-attempt.)
 

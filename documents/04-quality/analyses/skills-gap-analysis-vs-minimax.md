@@ -1,9 +1,12 @@
 # Skills Gap Analysis: KiteClass vs MiniMax-AI/skills
 
+**Status:** ✅ **ADOPTED — 2026-04-25** (closed by Wave 5, see Sub-PR 5.6b)
 **Ngày tạo:** 2026-04-14
 **Refresh:** 2026-04-20 (xem §0 Refresh delta)
 **Reviewed repo:** https://github.com/MiniMax-AI/skills
 **Mục tiêu:** So sánh, identify gaps, đưa ra update plan
+
+**Adoption summary:** PDF + Excel + Word skill patterns from MiniMax adapted into Wave 5 (`.claude/skills/document-generation/{pdf,excel,word}/SKILL.md`) with VN-specific adaptations (DejaVuSans diacritics, VND formatting, Thymeleaf tax-invoice template, Apache POI XSSF formula-first, Apache POI XWPF teacher-contract Vietnamese typography). PowerPoint deferred to Wave 6 per scope-lock decision. See `documents/03-planning/waves/wave-05-document-generation.md` and ADR-019 for shipping details.
 
 ---
 

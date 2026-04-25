@@ -12,6 +12,8 @@ import com.kiteclass.core.module.settings.versioning.BrandingVersionService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -47,9 +49,25 @@ public class BrandingServiceImpl implements BrandingService {
 
     /**
      * {@inheritDoc}
+     *
+     * <p>Cached per tenant in {@code branding-by-tenant} (default 1h TTL via {@link
+     * com.kiteclass.core.common.config.CacheConfig}; eviction on
+     * {@link #updateBranding(UpdateBrandingRequest)} / {@link #uploadLogo(String)} /
+     * {@link #uploadFavicon(String)}). Closes <strong>GAP-215</strong> — Wave 5 audit found this
+     * was uncached, hitting PostgreSQL on every document render
+     * (see {@code documents/04-quality/audits/performance/performance-audit-2026-04-25-wave5.md}
+     * finding P0-1).
+     *
+     * <p>{@code sync = true} coalesces concurrent cache misses for the same tenant — same
+     * stampede-protection pattern as {@link
+     * com.kiteclass.core.module.branding.service.CachingBrandingPackageProxy} (GAP-043).
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = "branding-by-tenant",
+            key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant()",
+            sync = true)
     public BrandingResponse getBranding() {
         UUID instanceId = TenantContext.getCurrentTenant();
 
@@ -64,6 +82,9 @@ public class BrandingServiceImpl implements BrandingService {
      */
     @Override
     @Transactional
+    @CacheEvict(
+            value = "branding-by-tenant",
+            key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant()")
     public BrandingResponse updateBranding(@Valid UpdateBrandingRequest request) {
         UUID instanceId = TenantContext.getCurrentTenant();
 
@@ -107,6 +128,9 @@ public class BrandingServiceImpl implements BrandingService {
      */
     @Override
     @Transactional
+    @CacheEvict(
+            value = "branding-by-tenant",
+            key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant()")
     public BrandingResponse uploadLogo(String fileUrl) {
         UUID instanceId = TenantContext.getCurrentTenant();
 
@@ -126,6 +150,9 @@ public class BrandingServiceImpl implements BrandingService {
      */
     @Override
     @Transactional
+    @CacheEvict(
+            value = "branding-by-tenant",
+            key = "T(com.kiteclass.core.common.context.TenantContext).getCurrentTenant()")
     public BrandingResponse uploadFavicon(String fileUrl) {
         UUID instanceId = TenantContext.getCurrentTenant();
 
