@@ -165,6 +165,14 @@ kiteclass/scripts/monitor.sh health    # hoặc kitehub/scripts/status.sh
 
 Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude/rules/design-patterns.md`
 
+**Document Generation Quality check (Wave 5+ — when `kiteclass-core/module/document/**` changes):**
+- Vietnamese diacritics (Đ, ễ, ă, ô, ơ, ư) round-trip through every format — verified by `PdfGeneratorTest.vietnamese_diacritics_round_trip_through_pdf_text_layer` + `DocxGeneratorTest.vietnamese_diacritics_preserved_in_contract_text` + sample-emitter outputs
+- VND currency formatted with `vi-VN` locale (`.` thousand separator, no decimals) — `BR-DOC-PDF-003`, `BR-DOC-DOCX-006`
+- Branding-aware outputs: PDF branded header, XLSX header-row fill, DOCX title run all derive from `branding.primaryColor` / `branding.logoUrl` / `branding.displayName` injected by `DocumentBrandingAssembler` (Sub-PR 5.5). Renderers MUST fall back gracefully when keys are absent (`BR-DOC-016`)
+- WCAG contrast: when `branding.primaryColor` paints a fill (XLSX header), foreground text switches to white. PDF + DOCX use color on text and rely on tenant choosing readable colors — flag dark backgrounds for review.
+- Filename in `Content-Disposition` uses RFC-5987 UTF-8 encoding so VN diacritics in filenames survive (`BR-DOC-014`)
+- Cross-format consistency proven by `DocumentBrandingIntegrationTest` — when adding a 4th format (PPT/Wave 6), extend that test before merging.
+
 #### 10. Project Management (10 điểm)
 
 | Tiêu chí | Điểm | Check |
@@ -352,5 +360,6 @@ Quality-audit cho cái nhìn tổng quan /100. Để đánh giá sâu hơn từn
 | API Contract | `/api-contract-audit` | Endpoint ↔ docs sync |
 | Ops Readiness | `/ops-readiness-audit` | Production deploy readiness |
 | UI/UX | `/ui-review` | Per-screen visual /128 |
+| Document Generation | (sample inspection — no dedicated skill yet) | Open `documents/04-quality/samples/*` after Wave 5 Sub-PR 5.6; spot-check VN diacritics, VND format, branding application across PDF/XLSX/DOCX outputs. |
 
 Thêm section "Specialized Audit Scores" vào report nếu có kết quả từ audit chuyên sâu.

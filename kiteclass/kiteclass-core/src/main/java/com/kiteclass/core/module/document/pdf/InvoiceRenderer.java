@@ -73,6 +73,19 @@ final class InvoiceRenderer {
         Context ctx = new Context(VI_VN);
         Map<String, Object> model = new HashMap<>(data);
 
+        // Sub-PR 5.5 branding integration: lift the dotted "branding.*" keys produced by
+        // DocumentBrandingAssembler into a nested "brand" map so the Thymeleaf template can
+        // address them naturally as ${brand.primaryColor} / ${brand.logoUrl} / ${brand.displayName}.
+        Map<String, Object> brand = new HashMap<>();
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (entry.getKey().startsWith("branding.")) {
+                brand.put(entry.getKey().substring("branding.".length()), entry.getValue());
+            }
+        }
+        if (!brand.isEmpty()) {
+            model.put("brand", brand);
+        }
+
         // Pre-format monetary values as strings so the Thymeleaf template doesn't need locale logic.
         model.put("subtotalFormatted", formatVnd(data.get("subtotal")));
         model.put("vatAmountFormatted", formatVnd(data.get("vatAmount")));

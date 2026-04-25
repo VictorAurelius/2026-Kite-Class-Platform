@@ -142,6 +142,22 @@ class DocxGeneratorTest extends DocumentGenerationTestBase {
     }
 
     @Test
+    void branding_primary_color_applied_to_contract_title() throws Exception {
+        Map<String, Object> data = new HashMap<>(sampleContractData());
+        data.put("branding.primaryColor", "#2563EB");
+
+        DocumentResponse resp = generator.generate(
+                sampleRequest(DocumentFormat.DOCX, "teacher-contract", data));
+
+        try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(resp.bytes()))) {
+            // Third heading = "HỢP ĐỒNG GIẢNG DẠY" per TeacherContractBuilder.build().
+            org.apache.poi.xwpf.usermodel.XWPFParagraph title = doc.getParagraphs().get(2);
+            assertThat(title.getText()).contains("HỢP ĐỒNG GIẢNG DẠY");
+            assertThat(title.getRuns().get(0).getColor()).isEqualToIgnoringCase("2563EB");
+        }
+    }
+
+    @Test
     void missing_required_key_throws() {
         Map<String, Object> incomplete = new HashMap<>(sampleContractData());
         incomplete.remove("teacherName");

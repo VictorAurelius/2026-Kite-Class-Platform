@@ -2,7 +2,7 @@
 
 **Domain:** document-generation
 **Source:** GAP-047, Wave 5 (all sub-PRs), ADR-019
-**Status:** Sub-PR 5.0 stub — rules below are placeholders; sub-PRs 5.1–5.3 fill per format.
+**Status:** Sub-PR 5.5 SHIPPED — branding integration + HTTP delivery rules now live. Sub-PR 5.6 wave-completion still pending.
 
 ## Rules
 
@@ -63,16 +63,22 @@
 |----|------|
 | BR-DOC-010 | PDF: `/preview` endpoint returns `Content-Disposition: inline`; `/download` returns `attachment` |
 | BR-DOC-011 | XLSX + DOCX: download-only endpoints (`attachment`); no inline preview |
+| BR-DOC-012 | Branding lookup is server-side: controller calls `BrandingService.getBranding()` (TenantContext UUID) and `DocumentBrandingAssembler.enrich()` injects `branding.primaryColor`, `branding.secondaryColor`, `branding.accentColor`, `branding.logoUrl`, `branding.displayName` into `DocumentRequest.data()` BEFORE dispatch. Clients MUST NOT supply these keys themselves. |
+| BR-DOC-013 | HTTP endpoints require `hasAnyRole('ADMIN','OWNER','TEACHER')`; STUDENT access is a follow-up gap (different threat model — own-document scoping needed). |
+| BR-DOC-014 | `Content-Disposition` filenames are encoded RFC-5987 UTF-8 (`filename*=UTF-8''...`) so Vietnamese diacritics in filenames survive cross-browser. ASCII-fallback `filename=` is omitted; modern browsers honour the `*` form. |
+| BR-DOC-015 | Caller-supplied keys in `DocumentRequest.data()` win over assembler-provided branding keys, by design — the assembler `LinkedHashMap.putAll(request.data())` runs AFTER the branding injection. Tests + preview-with-overrides flows depend on this. |
+| BR-DOC-016 | Renderers ALL fall back to neutral defaults when branding keys are absent: PDF emits no header block, XLSX uses `GREY_25_PERCENT` fill, DOCX uses default-black title. Passing a malformed hex (`HexColorUtil.toRgbBytes` returns null) is treated as "absent" — never an error. |
 
 ## Config keys
 
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `document.generation.pdf.font.family` | `DejaVuSans` (added in 5.1) | Vietnamese-safe font registered into OpenHTMLtoPDF font resolver; loaded from `resources/fonts/` |
-| `document.generation.cache.branding.ttl-seconds` | `60` (to be added in 5.5) | Per-tenant branding package cache |
+| `document.generation.cache.branding.ttl-seconds` | inherited from `branding-package` cache (Spring Cache + Redis, 1h TTL) | Per-tenant branding read; branding lookups go through `BrandingService` which reads from `TenantContext`-scoped `Branding` entity. Wave 3's `CachingBrandingPackageProxy` covers the published-package path; settings-level reads use the existing Redis cache config. No new TTL knob needed in 5.5. |
 
 ## Log
 
+- 2026-04-25 — Sub-PR 5.5 SHIPPED. Added BR-DOC-012..016 covering branding-injection pipeline, auth role matrix, RFC-5987 filename encoding, caller-override precedence, and graceful fallbacks. Status header bumped to "Sub-PR 5.5 SHIPPED". Branding cache config-key entry collapsed to point at the existing Wave 3 cache (no new knob).
 - 2026-04-24 — DOCX rules filled (Sub-PR 5.3). 8 rules BR-DOC-DOCX-001..008 covering Create-only pipeline, template whitelist, required keys, VN typography, legal-placeholder disclosure, filename.
 - 2026-04-24 — XLSX rules filled (Sub-PR 5.2). 8 rules BR-DOC-XLSX-001..008 covering formula-first, color convention, VN labels, percent format, freeze pane, filename. Word section untouched (Sub-PR 5.3).
 - 2026-04-24 — PDF rules filled (Sub-PR 5.1). 7 rules BR-DOC-PDF-001..007 covering template whitelist, diacritic contract, VND formatting, layout, filename, entity handling, sync timing budget. Font config key finalised (`DejaVuSans`). Excel + Word sections untouched (Sub-PRs 5.2/5.3).

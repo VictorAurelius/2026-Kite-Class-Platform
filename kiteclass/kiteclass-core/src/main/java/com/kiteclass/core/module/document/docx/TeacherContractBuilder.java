@@ -3,6 +3,7 @@ package com.kiteclass.core.module.document.docx;
 import com.kiteclass.core.module.document.DocumentFormat;
 import com.kiteclass.core.module.document.DocumentRequest;
 import com.kiteclass.core.module.document.DocumentResponse;
+import com.kiteclass.core.module.document.branding.HexColorUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -53,13 +54,14 @@ final class TeacherContractBuilder {
         String endDate = required(data, "endDate");
         BigDecimal salary = asBigDecimal(data.get("salaryVnd"));
         String subjects = asString(data.get("subjects"), "—");
+        String titleColorHex = HexColorUtil.stripHash(asString(data.get("branding.primaryColor"), null));
 
         try (XWPFDocument doc = new XWPFDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             applyA4Page(doc);
 
-            addHeading(doc, "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", false, 12);
-            addHeading(doc, "Độc lập - Tự do - Hạnh phúc", true, 12);
-            addHeading(doc, "HỢP ĐỒNG GIẢNG DẠY", true, TITLE_FONT_PT);
+            addHeading(doc, "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", false, 12, null);
+            addHeading(doc, "Độc lập - Tự do - Hạnh phúc", true, 12, null);
+            addHeading(doc, "HỢP ĐỒNG GIẢNG DẠY", true, TITLE_FONT_PT, titleColorHex);
 
             addBody(doc, "Căn cứ nhu cầu và thỏa thuận giữa các bên, hợp đồng giảng dạy này được ký kết "
                     + "giữa:");
@@ -101,13 +103,17 @@ final class TeacherContractBuilder {
         margin.setLeft(java.math.BigInteger.valueOf(MARGIN_TWIPS));
     }
 
-    private static void addHeading(XWPFDocument doc, String text, boolean bold, int sizePt) {
+    private static void addHeading(XWPFDocument doc, String text, boolean bold, int sizePt,
+                                   String colorHexNoHash) {
         XWPFParagraph p = doc.createParagraph();
         p.setAlignment(ParagraphAlignment.CENTER);
         XWPFRun run = p.createRun();
         run.setFontFamily(FONT);
         run.setFontSize(sizePt);
         run.setBold(bold);
+        if (colorHexNoHash != null) {
+            run.setColor(colorHexNoHash);
+        }
         run.setText(text);
     }
 
