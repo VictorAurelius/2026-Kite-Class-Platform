@@ -218,27 +218,65 @@ Rationale: PPT is NICE-HAVE — Canva/Google Slides are viable alternatives. Def
 
 ---
 
-### Sub-PR 5.6: Integration + Wave Completion
+### Sub-PR 5.6: Wave Completion — split into 5.6a + 5.6b
 
-**Branch:** `wave/05-document-generation/completion`
-**Depends on:** 5.0-5.5 all merged
+**Rationale for split** (decided 2026-04-25 during Sub-PR 5.5 self-review):
+audit findings drive completion confidence, not the other way around. Running
+audits *first* lets us file gaps for any P0/P1 surfaces and decide fix-now vs
+fix-later before stamping Wave 5 as DONE. Single-PR alternative was rejected
+because a stuck audit-suite PR would block all wave-closure paperwork.
+
+#### Sub-PR 5.6a — Audit suite refresh (closes GAP-214)
+
+**Branch:** `wave/05-document-generation/audit-suite`
+**Depends on:** Sub-PR 5.5 merged
+**Mode:** parallel — 4 Explore agents (one per audit, plus Quality refresh
+serialized in parent because it touches the most files), aggregate in parent.
 
 **Scope:**
-- Cross-generator integration tests
-- Sample gallery in `documents/04-quality/samples/` — one golden output per format
-- ROADMAP.md update: GAP-047 → DONE, move next meta-gap to position 1
-- MiniMax analysis doc marked as ADOPTED
-- Wave 5 completion report in `documents/03-planning/waves/wave-05-document-generation.md` §Log
-- ADR-019 marked as ACCEPTED (was originally ADR-016 in plan; renumbered to 019)
-- **Full post-wave audit suite per `post-wave-audit-mandate.md` §4 Day 0–3 cadence — closes GAP-214:**
-  - API Contract /100 refresh (covers Sub-PRs 5.0–5.5 public-surface drift)
-  - Security /100 refresh (covers `pom.xml` cumulative bumps + new auth-protected endpoints)
-  - Performance /100 refresh (measure PDF/XLSX/DOCX p95 vs BR-DOC-PDF-007 budget)
-  - Ops Readiness /100 refresh (new endpoints + branding cache reads)
-  - Quality /100 refresh (mandatory post-wave per §2.3)
-  - Findings → new gaps via `audit-to-gap-pipeline.md` Step 1–5
+- API Contract /100 — covers Sub-PRs 5.0–5.5 public-surface drift (Generator
+  interface, DocumentRequest/Response, DocumentGenerationController endpoints,
+  springdoc OpenAPI annotations).
+- Security /100 — covers `pom.xml` cumulative bumps (jjwt, springdoc, tika,
+  jsoup, opencsv, jacoco, AWS SDK, commons-compress, poi, ognl) + new
+  auth-protected endpoints + tenant resolution path through `BrandingService`.
+- Performance /100 — measure PDF/XLSX/DOCX p95 vs BR-DOC-PDF-007 budget
+  (`<2s 1-page invoice`); decide whether GAP-210 async queue is still optional.
+- Ops Readiness /100 — new HTTP surface, branding cache reads, observability
+  hooks, error-response format conformance, rate-limit posture.
+- Quality /100 refresh — full 10-category rerun per
+  `post-wave-audit-mandate.md` §2.3.
+- Findings → new gaps via `audit-to-gap-pipeline.md` Step 1–5 (state-check at
+  Step 2.5 mandatory).
+- ROADMAP.md: GAP-214 status 🔵 → 🟢 (audit reports committed = closed).
 
-**Effort:** ~3h core completion + ~3-4h audit suite = ~6-7h total
+**Effort:** ~3-4h with 4-way parallelism, ~6-8h serial.
+**Deliverable:** 5 audit reports under `documents/04-quality/audits/{api,security,performance,ops,quality}/` + N gap files for findings.
+**Blocker policy:** any audit-found P0 → file gap + fix in *separate* PR before
+Sub-PR 5.6b ships. P1/P2 → file + queue, do not block 5.6b.
+
+#### Sub-PR 5.6b — Wave 5 closure
+
+**Branch:** `wave/05-document-generation/completion`
+**Depends on:** Sub-PR 5.6a merged AND any audit-found P0 fixes merged.
+
+**Scope:**
+- Sample gallery in `documents/04-quality/samples/wave-05/` — copy golden
+  outputs from `kiteclass-core/src/test/resources/document-samples/` + index
+  README explaining what each demonstrates (formula-first XLSX, branded PDF
+  header, VN diacritics round-trip in DOCX).
+- ADR-019: status PROPOSED → ACCEPTED, fill "Outcomes" section with the actual
+  shipped stack (OpenHTMLtoPDF + PDFBox + Thymeleaf + POI XSSF/XWPF + ognl 3.3.4
+  pin).
+- `documents/04-quality/analyses/skills-gap-analysis-vs-minimax.md`: stamp
+  "ADOPTED 2026-04-XX, see Wave 5".
+- Wave 5 plan §11 Log: completion entry referencing all 6 sub-PRs.
+- ROADMAP.md: GAP-047 status 🟡 → 🟢, recommended-next-action bumped to next
+  Meta-P0 (likely GAP-046 design-pattern audit).
+- Cross-generator integration test reaffirmed (already shipped in 5.5 as
+  `DocumentBrandingIntegrationTest`).
+
+**Effort:** ~2h baseline; +X if 5.6a P0 fixes pile up.
 
 ---
 
@@ -254,7 +292,8 @@ Rationale: PPT is NICE-HAVE — Canva/Google Slides are viable alternatives. Def
 | 5.3 Word | Parallel agent #3 | Independent format |
 | ~~5.4 PPT~~ | — | Deferred to Wave 6 |
 | 5.5 Branding integration | Serialized (lead) | Depends on all 3 formats |
-| 5.6 Wave completion | Serialized (lead) | Final sign-off |
+| 5.6a Audit suite | 4 parallel Explore agents | One per audit category; Quality refresh in parent |
+| 5.6b Wave closure | Serialized (lead) | Final sign-off; depends on 5.6a P0 fixes if any |
 
 Total wall-clock estimate: ~12h with parallelism vs ~28h serial (–57%).
 
@@ -326,9 +365,12 @@ Wave 5 DONE when:
 - [ ] **ADR-019** ACCEPTED (originally ADR-016 — renumbered after conflict)
 - [ ] GAP-047 marked DONE in ROADMAP
 - [ ] MiniMax analysis doc marked ADOPTED
-- [ ] No new P0 gaps introduced
-- [ ] Quality audit score ≥90/100 on Wave 5 changes
+- [ ] No new P0 gaps introduced (re-verified by 5.6a audit suite)
+- [ ] Quality audit score ≥90/100 on Wave 5 changes (measured by 5.6a Quality refresh)
 - [ ] 4 follow-up gaps FILED (GAP-208 template expansion, GAP-209 module extract trigger, GAP-210 async queue, GAP-211 Excel/Word preview) — see decision guide §follow-up-gaps
+- [ ] **5 audit reports committed under `documents/04-quality/audits/{api,security,performance,ops,quality}/`** — closes GAP-214
+- [ ] **Sample gallery committed at `documents/04-quality/samples/wave-05/`** with golden outputs for all 3 formats
+- [ ] Any P0 gap surfaced by 5.6a audits is fixed before 5.6b ships
 
 ---
 
@@ -349,17 +391,23 @@ Wave 5 scope is now **LOCKED**. Any change requires explicit user decision + log
 
 ---
 
-## 10. Estimated Timeline (revised 2026-04-24 after PPT defer)
+## 10. Estimated Timeline (revised 2026-04-25 after 5.6 split)
 
-| Milestone | Target (if started 2026-04-25) |
-|-----------|--------------------------------|
-| Sub-PR 5.0 foundation + ADR-019 | 2026-04-25 |
-| Sub-PRs 5.1 PDF, 5.2 Excel, 5.3 Word (parallel) | 2026-04-26 — 2026-04-28 |
-| Sub-PR 5.5 branding integration | 2026-04-29 |
-| Sub-PR 5.6 wave completion | 2026-04-30 |
-| Wave 5 MERGED | 2026-04-30 |
+| Milestone | Actual / Target |
+|-----------|----------------|
+| Sub-PR 5.0 foundation + ADR-019 (PR #474) | ✅ 2026-04-24 |
+| Sub-PR 5.1 PDF (PR #476) | ✅ 2026-04-24 |
+| Sub-PR 5.2 Excel (PR #477) | ✅ 2026-04-24 |
+| Sub-PR 5.3 Word (PR #478) | ✅ 2026-04-24 |
+| Sub-PR 5.5 branding integration (PR #529) | 🟡 2026-04-25 awaiting CI |
+| Sub-PR 5.6a audit suite (4 parallel audits + Quality refresh) | 🔵 2026-04-25 → 26 |
+| Sub-PR 5.6b wave closure (after any 5.6a P0 fixes) | 🔵 2026-04-26 → 27 |
+| Wave 5 MERGED | 🔵 ~2026-04-27 |
 
-~5-6 days wall-clock with 3 parallel agents (vs ~7 days serial).
+Audit-suite parallelism keeps 5.6a inside one working day; 5.6b is paperwork-only
+unless P0 gaps surface. Total Wave 5 wall-clock: ~3-4 days vs original 5-6 day
+estimate (faster than planned because Sub-PRs 5.1/5.2/5.3/5.5 all landed same-day
+once worktree-agent lessons stuck).
 
 ---
 

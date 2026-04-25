@@ -1,6 +1,6 @@
 # GAP-214: Wave 5 post-wave audit suite refresh
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE (Sub-PR 5.6a, 2026-04-25 — 5 audit reports committed)
 **Priority:** 🟠 P1 — governance compliance gate for Wave 5 closure
 **Domain:** Quality / Audit governance
 **Found:** 2026-04-25 (during Sub-PR 5.5 self-review of audit freshness)
@@ -68,4 +68,5 @@ Sub-PR 5.5 (PR #529) merges with `AUDIT_OVERRIDE: <reason> documents/04-quality/
 
 ## Log
 
+- **2026-04-25 (CLOSED via Sub-PR 5.6a):** All 5 audits ran in parallel via Explore agents + parent compilation. Reports committed under `documents/04-quality/audits/{api,security,performance,ops,quality}/`. Findings: 4 P0 (filed as GAP-215/216/217/218, all blocking Sub-PR 5.6b per wave plan §4), 5 P1 + 8 P2/P3 (filed as umbrella GAP-219). Scores: api 95, security 85, performance 63, ops 52, quality 78. Wave 5 stays code-complete + audited; ops debt explicit (alerting + structured logs + Prometheus prod deploy carry from baseline). Status 🔵 → 🟢 DONE.
 - **2026-04-25:** Gap created during Sub-PR 5.5 self-review. API Contract + Security audits 8 days stale; Performance/Ops/Quality 6 days. Filed to give Sub-PR 5.5 PR #529 a valid AUDIT_OVERRIDE link per `post-wave-audit-mandate.md` §3, and to commit Sub-PR 5.6 to running the full suite.
