@@ -63,14 +63,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: kiteclass/${{ matrix.service }}
           tags: |
@@ -82,7 +82,7 @@ jobs:
             type=raw,value=test
 
       - name: Build Docker image (no push)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: kiteclass/kiteclass-${{ matrix.service }}
           file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
@@ -118,13 +118,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
@@ -135,7 +135,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ steps.login-ecr.outputs.registry }}/kiteclass/${{ matrix.service }}
@@ -148,7 +148,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push to ECR
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: kiteclass/kiteclass-${{ matrix.service }}
           file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
