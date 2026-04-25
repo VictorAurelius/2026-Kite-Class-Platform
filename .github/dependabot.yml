@@ -184,10 +184,16 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
+      # GitHub-actions ecosystem ALLOWS major bumps (unlike Maven/npm) because:
+      #   1) actions/* are first-party GitHub repos with extensive backwards-compat
+      #      testing — major bumps tend to be runtime updates (Node 20 → Node 24)
+      #      not breaking API changes.
+      #   2) Surface area is small (~5–10 actions); a single failed bump is easy
+      #      to revert.
+      #   3) GitHub Actions runners DEPRECATE old Node versions on a hard schedule
+      #      (e.g., Node 20 → 24 by 2026-09-16). Without major bumps, our workflows
+      #      will trigger CI annotation warnings until manual intervention.
+      # See: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
       all-deps:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
+        update-types: ["minor", "patch", "major"]
