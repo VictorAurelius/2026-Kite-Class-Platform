@@ -657,6 +657,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-217 | Alert rules for `/api/v1/documents/*` (p95, error rate, cache miss storm) — Wave 5 ops audit P0. | 🟡 PARTIAL (Sub-PR 5.6b 2026-04-25 filed 3 rules in helm + docker prometheus configs); routing deferred — blocked-by GAP-120 Alertmanager | ops / alerting |
 | GAP-218 | PDF font-missing runbook + image-build validation step (Wave 5 ops audit P0). | 🟢 DONE (Sub-PR 5.6b 2026-04-25) — Dockerfile font-presence assertion + `documents/05-guides/runbooks/pdf-generation-font-not-found.md` | ops / runbook + CI |
 | GAP-219 | Wave 5 audit follow-ups umbrella — 5 P1 + 8 P2/P3 sub-bullets across api/sec/perf/ops categories. Tracking-only; sub-bullets split into individual gaps when scheduled. | 🔵 OPEN 🟠 P1 | umbrella / maintenance |
+| GAP-220 | `BrandingVersionService.snapshot` JSONB column type mismatch — `branding_versions.snapshot_json` column is jsonb but JDBC sends varchar. Wave 4 latent bug surfaced by Sub-PR 5.6b `BrandingCacheIntegrationTest`. Production tenants updating branding will 500. Workaround: `@MockBean` skips path in test; real fix requires `@JdbcTypeCode(SqlTypes.JSON)` on entity. | 🔵 OPEN 🟠 P1 | backend / persistence |
 
 ---
 
