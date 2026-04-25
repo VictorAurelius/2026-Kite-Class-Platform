@@ -651,7 +651,12 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-207 | `/start-session` VN language per CLAUDE.md | 🟢 DONE (2026-04-24 PR #470) | skill fix |
 | GAP-212 | Fix `DefaultUrlAllowlistValidatorTest` flaky DNS of `api.partner.com` → loopback (blocks every Core CI run; pre-existing surfaced by PR #474) | 🔵 OPEN 🟠 P1 | test-only fix (RFC-2606 `.invalid`) |
 | GAP-213 | Spring Cloud BOM resolution fails on Dependabot all-deps PRs that bump Boot parent (kiteclass-gateway + kitehub-gateway poms) — blocks weekly Spring-touching Dependabot PRs | 🔵 OPEN 🟠 P1 | pom BOM fix (likely explicit `spring-cloud.version` bump alongside Boot, or root-pom BOM import) |
-| GAP-214 | Wave 5 post-wave audit suite refresh — API contract + security + performance + ops + quality stale during Wave 5 sprint; closed by Sub-PR 5.6 wave completion. Used as `AUDIT_OVERRIDE` link for Sub-PR 5.5 PR #529. | 🔵 OPEN 🟠 P1 | governance / audit refresh |
+| GAP-214 | Wave 5 post-wave audit suite refresh — API contract + security + performance + ops + quality stale during Wave 5 sprint; closed by Sub-PR 5.6 wave completion. Used as `AUDIT_OVERRIDE` link for Sub-PR 5.5 PR #529. | 🟢 DONE (5.6a 2026-04-25) — 5 audits committed: api 95/100, sec 85/100, perf 63/100, ops 52/100, quality 78/100 | governance / audit refresh |
+| GAP-215 | `BrandingService.getBranding()` not `@Cacheable` — DB hit per document render (Wave 5 perf audit P0-1). Blocks Sub-PR 5.6b. | 🔵 OPEN 🔴 P0 | backend / cache wiring |
+| GAP-216 | PDF/XLSX/DOCX p95 micro-benchmark + soft-cap regression assertion (Wave 5 perf audit P0-2). Blocks Sub-PR 5.6b. | 🔵 OPEN 🔴 P0 | testing / perf canary |
+| GAP-217 | Alert rules for `/api/v1/documents/*` (p95, error rate, cache miss storm) — Wave 5 ops audit P0. Blocked-by GAP-120 Alertmanager for routing. | 🔵 OPEN 🔴 P0 | ops / alerting |
+| GAP-218 | PDF font-missing runbook + image-build validation step (Wave 5 ops audit P0). Blocks Sub-PR 5.6b. | 🔵 OPEN 🔴 P0 | ops / runbook + CI |
+| GAP-219 | Wave 5 audit follow-ups umbrella — 5 P1 + 8 P2/P3 sub-bullets across api/sec/perf/ops categories. Tracking-only; sub-bullets split into individual gaps when scheduled. | 🔵 OPEN 🟠 P1 | umbrella / maintenance |
 
 ---
 
