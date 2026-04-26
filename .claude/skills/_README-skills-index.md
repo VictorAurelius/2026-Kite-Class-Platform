@@ -82,6 +82,7 @@
 | `workflow/wave-completion-check.md` | Wave completion gate (Level 7: audit suite) |
 | `workflow/gap-to-pr-converter.md` | Convert gap → PR/wave voi template |
 | `workflow/docs-freshness/SKILL.md` | Nhac update living docs (auto) |
+| `workflow/session-docs-check/SKILL.md` | /session-docs-check — Living Docs completeness gate (12-rule matrix; pre-commit/PR/merge gate per CLAUDE.md §Living Documents + audit-to-gap-pipeline.md Step 5; có script bash --strict cho CI hooks) |
 | `workflow/development-workflow.md` | Day-to-day workflow |
 | `workflow/priority-pr-planning.md` | PR prioritization |
 

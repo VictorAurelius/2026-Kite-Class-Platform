@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash",
       "WebFetch",
@@ -40,8 +39,13 @@
       "mcp__github__create_or_update_file",
       "mcp__github__delete_file",
       "mcp__github__create_branch",
-      "mcp__github__get_me"
-    ]
+      "mcp__github__get_me",
+      "Bash(git checkout *)",
+      "Bash(mkdir -p .claude/skills/quality/ai-branding-quality-gate)",
+      "Bash(mkdir -p documents/04-quality/audits/ai-branding)",
+      "Bash(rtk ls *)"
+    ],
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PostToolUse": [
