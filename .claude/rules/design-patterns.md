@@ -1,9 +1,18 @@
 # Design Patterns — Project Rules
 
+**Priority:** 🟠 MANDATORY
+**Version:** 1.1.0
+**Created:** 2026-04-14
+**Last-Reviewed:** 2026-04-26
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; backfill of frontmatter happens this same edit per §3 backfill-on-next-edit policy)
+**Applies to:** All `*.java` and `*.tsx`/`*.ts` source under `kiteclass/**`, `kitehub/**`, plus PR review / refactor decisions
+
 Project-wide rules for applying design patterns. **Mandatory** khi develop new feature, refactor, review PR.
 
 Reference catalog: `documents/02-architecture/ai-branding-design-patterns.md` (AI Branding-specific)
 Skill helper: `.claude/skills/reference/design-pattern-advisor.md`
+Audit skill: `.claude/skills/quality/design-pattern-audit/SKILL.md` (enforces §3 anti-pattern list)
+Rule-change governance: `.claude/rules/rule-change-process.md`
 
 ---
 
@@ -132,6 +141,42 @@ PR sẽ bị reject nếu có:
   }
   // Separate worker publishes from outbox
 ```
+
+#### 3.5.1 Outbox Bypass Policy
+
+> **Default: every cross-service event MUST flow through `OutboxEventWriter` (or domain-specific outbox like `MigrationOutboxRepository`). Direct `rabbitTemplate.convertAndSend(...)` is BANNED unless one of the documented exceptions below applies. Silent bypass is the anti-pattern.**
+
+Three — and only three — documented exceptions are permitted. Any direct publish MUST cite which exception applies inline as a code comment so reviewers + audit skill can recognize it.
+
+**Exception A — Fast-path with outbox backup**
+
+When latency-sensitive consumers (cache eviction, UI push) need sub-second propagation AND an outbox row already covers the same event for reliability. Both writes must occur in the same `@Transactional` block; outbox-first, direct-publish-second; direct publish must be wrapped in try/catch so its failure never propagates.
+
+```java
+// EXAMPLE — see kiteclass-core .../branding/events/BrandingEventPublisher
+outbox.enqueue(routingKey, aggregateType, aggregateId, payload); // reliability net
+
+if (rabbitTemplate != null) {
+    try {
+        // Best-effort fast-path for cache eviction; outbox is the reliability net.
+        rabbitTemplate.convertAndSend(exchange, routingKey, event);
+    } catch (Exception ex) {
+        log.warn("Direct publish failed — outbox will retry: {}", ex.getMessage());
+    }
+}
+```
+
+Required marker comment: must include the literal phrase `outbox is the reliability net` OR `fast-path` so the audit detector skips it.
+
+**Exception B — Bean wiring / Config code**
+
+Code in `*Config.java`, `*Configuration.java`, or javadoc/comment example-only references is exempt — these don't execute at request time.
+
+**Exception C — Test fixtures**
+
+Code in `src/test/**` paths is exempt; tests deliberately exercise broker-direct paths to validate consumers.
+
+**Anti-pattern (BANNED):** any other direct-publish site without one of these markers. The `quality/design-pattern-audit` skill (Cat 5) flags every site; reviewers verify each flagged site is either eliminated, migrated to outbox, or documented under A/B/C.
 
 ### 3.6 Missing Resilience on External Calls
 ```
@@ -266,4 +311,5 @@ Team goal: majority Level 2, architects Level 3.
 
 ## 9. Log
 
-- 2026-04-14 — Rules created based on AI Branding v2 design patterns catalog
+- **2026-04-26** (v1.1.0): MINOR — added §3.5.1 Outbox Bypass Policy (Exceptions A/B/C + anti-pattern envelope). Backfilled mandatory frontmatter (Version, Created, Last-Reviewed, Reviewer-Approver, Applies-to) per `rule-change-process.md` §3 backfill-on-next-edit policy. Closes part of GAP-222 Phase 1 (Sub-PR 6.4). Reviewer: @nguyenvankiet (solo-dev self-approve per §5 matrix for MINOR — paired with detector calibration in same PR + post-wave audit in Sub-PR 6.5). Motivation: design-pattern audit baseline 2026-04-26 (Sub-PR 6.1) found 5 services bypassing Outbox without policy → couldn't tell which were intentional. §3.5.1 turns "silent bypass" into "documented exception or violation" so future audits + reviewers can decide objectively.
+- 2026-04-14 (v1.0.0): Rules created based on AI Branding v2 design patterns catalog

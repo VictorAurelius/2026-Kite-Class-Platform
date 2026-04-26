@@ -44,7 +44,7 @@
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 6 in flight — Sub-PRs 6.0a/6.0b/6.1 merged, **6.2 staged** (TrialToPaidService 546→385 LOC Facade refactor). Remaining: 6.3 InstanceService refactor, 6.4 GAP-222 Outbox bypass migration (optional), 6.5 wave closure + post-wave audit suite refresh.
+**Next recommended wave:** Wave 6 in flight — 6.0a/b/1/2 merged, **6.4 staged** (GAP-222 Phase 1 policy + Phase 3 detector calibration + 3 sub-gap split + `design-patterns.md` v1.0.0→v1.1.0). 6.3 SKIPPED (InstanceService 496 LOC < 500 §3.1 threshold; preventive refactor rejected per YAGNI). Remaining: **6.5 wave closure + post-wave audit suite refresh** (re-run design-pattern-audit, target ≥ 78/100 B threshold; resolve OllamaClient adapter naming via ADR).
 
 ---
 
@@ -226,7 +226,10 @@
 | GAP-027 | Multi-brand per tenant (franchise) | 🟡 P2 | XL |
 | GAP-035 | Wizard team collaboration | 🟡 P2 | L |
 | GAP-221 | GitNexus pilot — code-intelligence MCP for multi-module audits | 🟡 P2 Meta | M (1-day pilot) |
-| GAP-222 | Outbox bypass policy + migrate 5 direct-publish services | 🟠 P1 | M (policy ≤30min + 5×1-2h migration) |
+| GAP-222 | Outbox bypass policy + migrate 5 direct-publish services | 🟡 PARTIAL | Policy + detector ✅ Sub-PR 6.4; migration → 222a/b/c |
+| GAP-222a | Extract Outbox infra to shared lib (kitehub-* unblocker) | 🟠 P1 | S-M (~2-3h) — blocks 222c |
+| GAP-222b | Migrate ParentInvitationServiceImpl to OutboxEventWriter (kiteclass-core internal, NOT blocked) | 🟠 P1 | S-M (~1-2h) |
+| GAP-222c | Migrate 4 kitehub direct-publish sites (BrandingJobService + AIQueueDispatcher + InstancePurgeService + EmailServiceClient) | 🟠 P1 | L (~4-6h) — BLOCKED on 222a |
 
 **Dependencies:** Mixed — document gen crosses all, multi-brand ties to all. GAP-221 is opt-in pilot (mirror RTK PR #531 pattern) — if ADOPT, becomes audit-skill force-multiplier; if REJECT, contained rollback.
 

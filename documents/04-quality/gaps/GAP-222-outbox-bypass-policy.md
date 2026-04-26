@@ -1,6 +1,6 @@
 # GAP-222: Outbox Bypass Policy + Migrate 5 Direct-Publish Services
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 (policy) + Phase 3 (detector calibration) shipped Sub-PR 6.4; Phase 2 migration broken into GAP-222a (shared lib), GAP-222b (ParentInvitation), GAP-222c (4 kitehub services)
 **Priority:** 🟠 P1 (reliability — events at-most-once instead of at-least-once for 5 services)
 **Domain:** Backend / Architecture
 **Found:** 2026-04-26 (`design-pattern-audit` baseline run, Sub-PR 6.1)
@@ -80,4 +80,5 @@ Update `quality/design-pattern-audit/reference/anti-pattern-detectors.md` Cat 5 
 
 ## Log
 
+- 2026-04-26 — **Sub-PR 6.4** shipped Phase 1 + Phase 3 (no migration code). `design-patterns.md` v1.0.0 → **v1.1.0**: added §3.5.1 Outbox Bypass Policy (Exception A fast-path + B bean-wiring + C test fixtures + anti-pattern envelope) + frontmatter backfill per `rule-change-process.md` §3. Detector reference doc updated for all 4 calibration items from baseline audit (Cat 2 HTTP-status filter, Cat 3 boundary-DTO note, Cat 4 `/client/` accept, Cat 5 javadoc + fast-path-marker skip). Phase 2 migration scope-checked + split into 3 sub-gaps: **GAP-222a** (extract Outbox to shared lib — blocker for 222c), **GAP-222b** (ParentInvitationServiceImpl — kiteclass-core internal, not blocked), **GAP-222c** (4 kitehub services — blocked on 222a). All 3 sub-gaps include Current State tables per `audit-to-gap-pipeline.md` Step 2.5. Status: 🔵 OPEN → 🟡 PARTIAL.
 - 2026-04-26 — Gap created from `design-pattern-audit` baseline run (Sub-PR 6.1). 5 real hotspots out of 7 raw grep hits; 2 false-positives identified (RabbitConfig javadoc comment + BrandingEventPublisher documented fast-path). Score Cat 5 = 10/20.
