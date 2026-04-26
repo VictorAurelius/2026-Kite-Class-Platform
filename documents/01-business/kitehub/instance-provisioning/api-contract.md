@@ -104,3 +104,40 @@
 **Auth:** Bearer token (Admin)
 **Response 204:** No content
 **Errors:** 404 not found
+
+---
+
+# Drift fix (verified 2026-04-26 — GAP-229 Phase 3)
+
+Verified `kitehub-subscription` `InstanceController` against this contract. 3 endpoints exist trong code nhưng thiếu trong doc; 1 endpoint trong doc đã move sang `AuthController`. Append corrections:
+
+## GET /api/platform/instances/{id}/trial-status
+**Auth:** Bearer token
+**Response 200:** `TrialStatusResponse` — current trial state, days remaining, expiration
+**Use case:** UC-INS-07 (FE poll trial expiry banner)
+**Code:** `InstanceController.getTrialStatus()`
+
+## POST /api/platform/instances/{id}/extend-trial?days={n}
+**Auth:** Bearer token (Admin)
+**Request params:** `days` — number of days to extend (integer)
+**Response 204:** No content
+**Use case:** UC-INS-08 (admin grants trial extension for tenant)
+**Code:** `InstanceController.extendTrial()`
+
+## DELETE /api/platform/instances/{id}/purge
+**Auth:** Bearer token (Admin)
+**Response 200:** `PurgeResult { instanceId, subdomain, status: SUCCESS|SKIPPED_NO_BACKUP|FAILED, databaseDropped, backupFilesDeleted, emailLogsDeleted, brandingCleanupPublished, purgedAt, errorMessage }`
+**Use case:** UC-INS-09 (hard purge after retention — destructive, requires backup verification)
+**Preconditions:**
+- Instance status MUST be `DELETED` (else FAILED)
+- At least 1 `COMPLETED` backup MUST exist (else SKIPPED_NO_BACKUP — safety per `InstancePurgeService` line 128)
+**Code:** `InstanceController.purgeInstance()` → `InstancePurgeService.adminPurge()`
+**Side effects (per GAP-222c Exception A):** Outbox row written tới `subscription_outbox` (event_type `instance.purge.requested`) + best-effort fast-path RabbitMQ `instance.purge.exchange` fanout. Consumers: `kitehub-branding` cleanup, `kiteclass-core` cleanup.
+
+## POST /api/platform/auth/verify-email?token={t}  *(moved — was POST /{id}/activate)*
+**Auth:** Token from email verification link (query param)
+**Response 200:** `LoginResponse` (instance + user + tokens)
+**Use case:** UC-INS-03 step 3-4 (email-verification activation)
+**Code:** `AuthController.verifyEmail()` (was previously documented as `POST /api/platform/instances/{id}/activate`; controller relocated cho consolidated auth domain).
+
+> **Note for UC-INS-03 update:** The flow remains the same (register → email verification sent → user clicks link → activate). Only the endpoint path changed from `/instances/{id}/activate` to `/auth/verify-email?token=...`. The activation logic still lives in `AuthService.verifyEmail()` which calls `InstanceLifecycleService` internally to start the trial.
