@@ -1,12 +1,25 @@
-## GAP-222c: Migrate kitehub Direct-Publish Sites (4 services) to Outbox
+## GAP-222c: Migrate Remaining kitehub-subscription Direct-Publish Sites to Outbox (re-scoped 2026-04-26)
 
-**Status:** 🔵 OPEN — **BLOCKED by GAP-222a** (needs shared outbox lib)
-**Priority:** 🟠 P1 (reliability — 4 services affecting AI generation, email, tenant purge)
-**Domain:** Backend (kitehub-branding + kitehub-subscription)
+**Status:** 🔵 OPEN — UNBLOCKED by GAP-222a (per-module pattern established) + GAP-230 (Exception D ruled out for these 2 cases)
+**Priority:** 🟠 P1 (reliability — 2 services affecting email + tenant purge)
+**Domain:** Backend (kitehub-subscription)
 **Found:** 2026-04-26 (Sub-PR 6.4 scope check)
+**Re-scoped:** 2026-04-26 (after GAP-222a Phase 2 + GAP-230 triage)
 **Parent gap:** GAP-222
-**Predecessor:** GAP-222a (extract Outbox to shared lib)
-**Effort:** L (4-6h — 4 services × ~1h migration + integration tests)
+**Effort:** M (2-3h — 2 services × Exception A migration + tests; consider extract-pure-dispatcher for EmailServiceClient)
+
+## Re-scope rationale (2026-04-26)
+
+Original scope was "4 services" assuming GAP-222a would extract a cross-product shared lib. ADR-021 + GAP-222a Phase 2 + GAP-230 changed the picture:
+
+| Original site | Resolved by | Status |
+|---------------|-------------|:------:|
+| `BrandingJobService` | GAP-222a Phase 2 (Exception A via `BrandingEventEmitter`) | ✅ DONE |
+| `AIQueueDispatcher` | GAP-230 (Exception D + marker) | ✅ DONE |
+| `EmailServiceClient` (kitehub-subscription) | This gap (needs Exception A migration; consider extract-pure-dispatcher) | 🔵 OPEN |
+| `InstancePurgeService` (kitehub-subscription) | This gap (needs Exception A migration) | 🔵 OPEN |
+
+Approach for the 2 remaining: copy the per-module outbox pattern into `kitehub-subscription` (it already has `MigrationOutbox` for the migration domain — add `EmailOutbox` + `PurgeOutbox` OR generalize MigrationOutbox into a per-module generic outbox). Decision deferred to this gap's scoping pass.
 
 ## Current State (verified 2026-04-26)
 
