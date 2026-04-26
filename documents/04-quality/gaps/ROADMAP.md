@@ -117,7 +117,7 @@
 |-----|-------|:--------:|:------:|
 | GAP-005 🟡 | AI queue fair scheduling — Phase 1 DONE 2026-04-18, Phase 2 open | 🟡 IN_PROGRESS | L |
 | GAP-002 ✅ | Async pipeline for heavy AI tasks — DONE Wave 3 (2026-04-18) | 🟢 DONE | M |
-| GAP-006 | Upgrade AI models to Gemma 4 | 🟠 P1 | S |
+| GAP-006 | Upgrade AI models — primary **Gemma 4 9B** (revised 2026-04-26 after candidate research vs Qwen 3.6/MixSura) + VN A/B test | 🟠 P1 | S-M (added pre-migration A/B step) |
 | GAP-003 | Multi-tier image generation | 🟡 P2 | M |
 | GAP-028 | AI model versioning & migration | 🟡 P2 | M |
 
