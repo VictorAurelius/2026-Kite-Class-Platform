@@ -1,6 +1,6 @@
 # GAP-014: Wave Mock Plan Missing AI Branding Workflow
 
-**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Status:** 🟡 PARTIAL — planning portion v2-aligned 2026-04-26 (wave plan §7 rewritten); implementation portion (MSW handlers + DataSeeder + demo) split to **GAP-235**
 **Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (scope gap — wave plan incomplete)
 **Domain:** Backend / Frontend / Mock Data
@@ -116,4 +116,5 @@ Mock endpoint `GET /api/v1/branding/{id}/package` trong kiteclass-frontend mock:
 
 ## Log
 
+- **2026-04-26 (planning portion DONE):** GAP-014 status PLANNED → 🟡 PARTIAL. Wave plan `documents/03-planning/waves/wave-mock-data-local-dev.md` §7 rewritten end-to-end against shipped v2 controllers in `kiteclass-core`. Replaced 12 aspirational endpoints (analyze/plan/execute/jobs/wizard-draft/templates/quality-reports/regenerate) with 10 real v2 endpoints from `InstanceController` (8) + `BrandingPackageController` (1) + `PublicBrandingController` (1) + `InternalWebhookController` (1). Internal services (Analyzer/Planner/Executor/QualityReviewer/ContentModeration/Saga) explicitly called out as non-REST. Module-location note added (kiteclass-core NOT kitehub-branding) per GAP-016/GAP-234 architecture doc drift. Added §7.7 Out-of-scope with 6 deferred items linked to existing gaps (GAP-005/006/011/012/020/070). Sub-PR E + F rewritten to target `kiteclass-core`. Implementation portion (actual MSW handlers + DataSeeder + demo flow capture) split to **GAP-235** since wave-eligible (≥3 disjoint sub-tasks: MSW E, DataSeeder F, OpenAPI export from kiteclass-core, screenshots) and proper effort = M-L not S.
 - 2026-04-14 — Phát hiện wave plan scope thiếu AI branding (user raised)
