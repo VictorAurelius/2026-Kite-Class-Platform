@@ -5,6 +5,7 @@ import com.kitehub.admin.dto.DashboardStats;
 import com.kitehub.admin.dto.InstanceSummary;
 import com.kitehub.admin.dto.RejectPaymentRequest;
 import com.kitehub.admin.dto.RevenueReport;
+import com.kitehub.admin.event.SubscriptionDataChangedEvent;
 import com.kitehub.admin.service.AnalyticsService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.kitehub.platform.domain.entity.Instance;
@@ -18,6 +19,11 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Admin portal REST APIs.
@@ -50,6 +55,18 @@ public class AdminController {
     private final InstanceRepository instanceRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentService paymentService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    /**
+     * Default page size for list endpoints (GAP-126).
+     */
+    static final int DEFAULT_PAGE_SIZE = 20;
+
+    /**
+     * Hard cap for page size on list endpoints (GAP-126) — prevents callers
+     * requesting size=10000 and re-creating the unbounded scan we just fixed.
+     */
+    static final int MAX_PAGE_SIZE = 100;
 
     /**
      * Get dashboard statistics.
@@ -64,19 +81,24 @@ public class AdminController {
     }
 
     /**
-     * Get all instances with summary information.
+     * Get instances with summary information (paginated, GAP-126).
      *
-     * @return list of instance summaries
+     * <p>Defaults to {@value #DEFAULT_PAGE_SIZE} per page; caller-supplied
+     * {@code size} is clamped to {@value #MAX_PAGE_SIZE}. Replaces the prior
+     * unbounded {@code findAll()} that would scan the full Instance table on
+     * every admin page load.</p>
+     *
+     * @param pageable pagination + sort (default size 20, max 100)
+     * @return page of instance summaries
      */
     @GetMapping("/instances")
-    public ResponseEntity<List<InstanceSummary>> getAllInstances() {
-        log.info("Admin requested all instances");
+    public ResponseEntity<Page<InstanceSummary>> getAllInstances(
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        Pageable safe = clampPageable(pageable);
+        log.info("Admin requested instances page={} size={}", safe.getPageNumber(), safe.getPageSize());
 
-        List<Instance> instances = instanceRepository.findAll();
-
-        List<InstanceSummary> summaries = instances.stream()
-                .map(this::convertToSummary)
-                .collect(Collectors.toList());
+        Page<Instance> page = instanceRepository.findAll(safe);
+        Page<InstanceSummary> summaries = page.map(this::convertToSummary);
 
         return ResponseEntity.ok(summaries);
     }
@@ -113,6 +135,10 @@ public class AdminController {
         instance.setStatus(InstanceStatus.SUSPENDED);
         instance = instanceRepository.save(instance);
 
+        // GAP-126 — invalidate dashboard cache after status change
+        eventPublisher.publishEvent(
+                new SubscriptionDataChangedEvent(this, "instance.suspended", id));
+
         return ResponseEntity.ok(convertToSummary(instance));
     }
 
@@ -131,6 +157,10 @@ public class AdminController {
 
         instance.setStatus(InstanceStatus.ACTIVE);
         instance = instanceRepository.save(instance);
+
+        // GAP-126 — invalidate dashboard cache after status change
+        eventPublisher.publishEvent(
+                new SubscriptionDataChangedEvent(this, "instance.activated", id));
 
         return ResponseEntity.ok(convertToSummary(instance));
     }
@@ -163,16 +193,21 @@ public class AdminController {
     }
 
     /**
-     * Get all subscriptions.
+     * Get subscriptions (paginated, GAP-126).
      *
-     * @return list of subscriptions
+     * <p>Defaults to {@value #DEFAULT_PAGE_SIZE} per page; caller-supplied
+     * {@code size} is clamped to {@value #MAX_PAGE_SIZE}.</p>
+     *
+     * @param pageable pagination + sort (default size 20, max 100)
+     * @return page of subscriptions
      */
     @GetMapping("/subscriptions")
-    public ResponseEntity<List<Subscription>> getAllSubscriptions() {
-        log.info("Admin requested all subscriptions");
+    public ResponseEntity<Page<Subscription>> getAllSubscriptions(
+            @PageableDefault(size = DEFAULT_PAGE_SIZE) Pageable pageable) {
+        Pageable safe = clampPageable(pageable);
+        log.info("Admin requested subscriptions page={} size={}", safe.getPageNumber(), safe.getPageSize());
 
-        List<Subscription> subscriptions = subscriptionRepository.findAll();
-        return ResponseEntity.ok(subscriptions);
+        return ResponseEntity.ok(subscriptionRepository.findAll(safe));
     }
 
     // ==================== PAYMENT ADMIN APIs ====================
@@ -203,6 +238,11 @@ public class AdminController {
     ) {
         log.info("Admin confirming payment: {} with transactionId: {}", id, request.getTransactionId());
         PaymentResponse payment = paymentService.confirmPayment(id, request.getTransactionId());
+
+        // GAP-126 — payment confirmation drives subscription state; refresh dashboard
+        eventPublisher.publishEvent(
+                new SubscriptionDataChangedEvent(this, "payment.confirmed", id));
+
         return ResponseEntity.ok(payment);
     }
 
@@ -220,10 +260,31 @@ public class AdminController {
     ) {
         log.info("Admin rejecting payment: {} with reason: {}", id, request.getReason());
         PaymentResponse payment = paymentService.rejectPayment(id, request.getReason());
+
+        // GAP-126 — rejected payment may flip subscription state
+        eventPublisher.publishEvent(
+                new SubscriptionDataChangedEvent(this, "payment.rejected", id));
+
         return ResponseEntity.ok(payment);
     }
 
     // ==================== HELPER METHODS ====================
+
+    /**
+     * Enforce {@value #MAX_PAGE_SIZE} ceiling on caller-supplied page size
+     * (GAP-126). Spring 3.4 added {@code spring.data.web.pageable.max-page-size}
+     * but applying it via a helper keeps behavior consistent across servlet
+     * versions and is unit-testable without a full {@code @WebMvcTest} context.
+     */
+    static Pageable clampPageable(Pageable pageable) {
+        if (pageable == null) {
+            return PageRequest.of(0, DEFAULT_PAGE_SIZE);
+        }
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            return PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
+        }
+        return pageable;
+    }
 
     /**
      * Convert Instance entity to InstanceSummary DTO.

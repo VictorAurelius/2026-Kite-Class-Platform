@@ -137,15 +137,25 @@ class AdminControllerTest {
 
     @Test
     void testGetAllInstances() throws Exception {
-        // When & Then
+        // GAP-126 — endpoint now returns Page<InstanceSummary> ({content, totalElements, ...})
         mockMvc.perform(get("/api/platform/admin/instances"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].organizationName").value("Test Org 1"))
-                .andExpect(jsonPath("$[0].subdomain").value("testorg1"))
-                .andExpect(jsonPath("$[0].status").value("ACTIVE"))
-                .andExpect(jsonPath("$[1].organizationName").value("Test Org 2"))
-                .andExpect(jsonPath("$[1].status").value("TRIAL"));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.size").value(20))  // default page size
+                .andExpect(jsonPath("$.content[0].organizationName").value("Test Org 1"))
+                .andExpect(jsonPath("$.content[0].subdomain").value("testorg1"))
+                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.content[1].organizationName").value("Test Org 2"))
+                .andExpect(jsonPath("$.content[1].status").value("TRIAL"));
+    }
+
+    @Test
+    void testGetAllInstances_clampsPageSizeToMax100() throws Exception {
+        // GAP-126 — caller-supplied size > 100 must be clamped to 100
+        mockMvc.perform(get("/api/platform/admin/instances").param("size", "5000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size").value(100));
     }
 
     @Test
@@ -193,12 +203,13 @@ class AdminControllerTest {
 
     @Test
     void testGetAllSubscriptions() throws Exception {
-        // When & Then
+        // GAP-126 — Page<Subscription> response shape
         mockMvc.perform(get("/api/platform/admin/subscriptions"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
-                .andExpect(jsonPath("$[0].tier").value("BASIC"))
-                .andExpect(jsonPath("$[0].priceVnd").value(500000))
-                .andExpect(jsonPath("$[0].status").value("ACTIVE"));
+                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.content[0].tier").value("BASIC"))
+                .andExpect(jsonPath("$.content[0].priceVnd").value(500000))
+                .andExpect(jsonPath("$.content[0].status").value("ACTIVE"));
     }
 }

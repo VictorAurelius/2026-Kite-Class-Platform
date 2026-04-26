@@ -1,5 +1,6 @@
 package com.kitehub.admin.service;
 
+import com.kitehub.admin.config.CacheConfig;
 import com.kitehub.admin.dto.DashboardStats;
 import com.kitehub.admin.dto.RevenueReport;
 import com.kitehub.platform.domain.entity.Instance;
@@ -10,6 +11,7 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,8 +40,17 @@ public class AnalyticsService {
     /**
      * Get dashboard statistics.
      *
+     * <p>Cached in {@link CacheConfig#ADMIN_DASHBOARD_CACHE} (Caffeine, 5-min TTL by
+     * default — see {@code kitehub.admin.cache.dashboard-ttl-seconds}). Closes
+     * <strong>GAP-126</strong>: previously every admin page load triggered two
+     * unbounded {@code findAll()} scans plus six in-memory aggregations.
+     * Invalidation: {@link com.kitehub.admin.event.AdminCacheInvalidationListener}
+     * listens for {@link com.kitehub.admin.event.SubscriptionDataChangedEvent} and
+     * evicts on instance/subscription mutations.</p>
+     *
      * @return dashboard stats
      */
+    @Cacheable(value = CacheConfig.ADMIN_DASHBOARD_CACHE, key = "'stats'")
     public DashboardStats getDashboardStats() {
         log.info("Calculating dashboard statistics");
 
@@ -110,6 +121,8 @@ public class AnalyticsService {
      * @param endDate   end date
      * @return revenue report
      */
+    @Cacheable(value = CacheConfig.ADMIN_REVENUE_REPORT_CACHE,
+            key = "T(java.util.Objects).hash(#period, #startDate, #endDate)")
     public RevenueReport getRevenueReport(String period, LocalDate startDate, LocalDate endDate) {
         log.info("Generating revenue report for period: {}, {} to {}", period, startDate, endDate);
 

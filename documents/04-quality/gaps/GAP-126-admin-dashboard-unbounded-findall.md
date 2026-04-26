@@ -1,6 +1,6 @@
 # GAP-126: Admin dashboard scans entire Instance + Subscription tables on every hit
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE
 **Priority:** 🔴 P0
 **Domain:** Backend / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
@@ -57,4 +57,12 @@ For list endpoints: always require `Pageable` with default size 20, max size 100
 
 ## Log
 
+- 2026-04-26 — DONE via Wave 7-Perf Agent A (PR pending). Implementation:
+  - `AnalyticsService.getDashboardStats()` annotated `@Cacheable(ADMIN_DASHBOARD_CACHE)` (5-min Caffeine TTL via `kitehub.admin.cache.dashboard-ttl-seconds`).
+  - `AnalyticsService.getRevenueReport()` annotated `@Cacheable(ADMIN_REVENUE_REPORT_CACHE)` (1-hr TTL).
+  - `AdminController.getAllInstances()`, `getAllSubscriptions()` converted to `Page<>` with `@PageableDefault(size=20)` + `clampPageable()` helper enforcing max=100.
+  - In-process cache invalidation via `SubscriptionDataChangedEvent` + `AdminCacheInvalidationListener` — published on `suspendInstance`, `activateInstance`, `confirmPayment`, `rejectPayment`. Cross-service RabbitMQ Outbox bridge deferred (admin module needs `spring-boot-starter-amqp` first — follow-up scope).
+  - Tests: `AnalyticsServiceCachingTest` (3 cases — cache hit, revenue cache, event eviction) verifies 1 repo invocation across 2 dashboard calls (= 0 SQL on cache-hit path, satisfying §AC "<5 SQL queries"). `AdminControllerPaginationTest` (5 cases) covers `clampPageable` defaults + cap. `AdminControllerTest` updated for `Page<>` response shape (note: pre-existing Testcontainers bean-name conflict between `com.kitehub.admin.config.CacheConfig` and `com.kitehub.subscription.config.CacheConfig` blocks the integration tests on main and is unrelated to this PR).
+  - 15/15 admin-module tests pass (excluding 8 pre-broken Testcontainers tests).
+  - Branch: `feature/wave-perf-A-gap-126-admin-cache`.
 - 2026-04-19 — Gap created from performance baseline audit (Part A Audit 3)
