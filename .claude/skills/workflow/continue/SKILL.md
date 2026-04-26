@@ -91,6 +91,7 @@ Context bổ sung từ user: $ARGUMENTS
 - Rebuild Docker nếu cần: `cd kitehub && ./scripts/rebuild.sh <service>`
 - API E2E: `./scripts/test-api-e2e.sh`
 - Unit tests: `JAVA_HOME=/home/vkiet/jdk/jdk-21 ./mvnw clean test -pl <module> -am`
+- **Living docs gate**: `./.claude/skills/workflow/session-docs-check/scripts/check-docs.sh` — bắt status flip thiếu, ROADMAP entry thiếu, skill index chưa update, rule edit thiếu Version+Log
 - PHẢI tất cả pass
 
 ### 3.6 Push & PR

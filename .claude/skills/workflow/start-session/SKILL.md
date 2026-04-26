@@ -115,6 +115,7 @@ Reference: `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_before_se
 User decides:
 - **Wave plan** (nếu Step 4.5 báo YES) — ưu tiên cao nhất; dùng `quality-plan` HOẶC viết wave plan ngắn (5-10 dòng) rồi single-message multi-Agent dispatch
 - `/continue` — execute top priority from plan (single sub-task scope)
+- `/session-docs-check` — Living Docs completeness gate (chạy trước commit/PR/merge để bắt status flip thiếu, ROADMAP entry thiếu, skill index chưa update)
 - `/repo-status` — deeper health check
 - `/gap-triage` — review gap backlog
 - `/pr-health 290-300` — audit recent merges
