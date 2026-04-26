@@ -24,6 +24,13 @@ services:
       retries: 5
     networks:
       - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_MEM_LIMIT:-2g}
+          cpus: '${POSTGRES_CPU_LIMIT:-2.0}'
+        reservations:
+          memory: ${POSTGRES_MEM_RESERVE:-512m}
 
   kite-redis:
     image: redis:7-alpine
@@ -37,6 +44,13 @@ services:
       retries: 5
     networks:
       - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: ${REDIS_MEM_LIMIT:-512m}
+          cpus: '${REDIS_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${REDIS_MEM_RESERVE:-128m}
 
   kite-rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -54,6 +68,13 @@ services:
       retries: 5
     networks:
       - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: ${RABBITMQ_MEM_LIMIT:-1g}
+          cpus: '${RABBITMQ_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${RABBITMQ_MEM_RESERVE:-256m}
 
   kite-minio:
     image: minio/minio:latest
@@ -74,6 +95,13 @@ services:
       retries: 5
     networks:
       - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: ${MINIO_MEM_LIMIT:-512m}
+          cpus: '${MINIO_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${MINIO_MEM_RESERVE:-128m}
 
   kite-mailhog:
     image: mailhog/mailhog:latest
@@ -83,6 +111,13 @@ services:
       - "8025:8025"   # Web UI
     networks:
       - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 64m
 
   kite-minio-setup:
     image: minio/mc:latest
@@ -100,6 +135,13 @@ services:
       "
     networks:
       - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 32m
 
   # ============================================================================
   # MONITORING SERVICES (shared: kite- prefix)
@@ -118,6 +160,13 @@ services:
     restart: unless-stopped
     profiles:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+        reservations:
+          memory: 128m
 
   kite-grafana:
     image: grafana/grafana:10.4.0
@@ -139,6 +188,13 @@ services:
     restart: unless-stopped
     profiles:
       - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+        reservations:
+          memory: 128m
 
   # ============================================================================
   # AI SERVICES (shared: kite- prefix)
@@ -161,6 +217,13 @@ services:
       - kite-network
     profiles:
       - ai-local
+    deploy:
+      resources:
+        limits:
+          memory: ${OLLAMA_MEM_LIMIT:-8g}
+          cpus: '${OLLAMA_CPU_LIMIT:-4.0}'
+        reservations:
+          memory: ${OLLAMA_MEM_RESERVE:-2g}
 
   kite-ollama-setup:
     image: ollama/ollama:latest
@@ -181,6 +244,13 @@ services:
       - kite-network
     profiles:
       - ai-local
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.5'
+        reservations:
+          memory: 64m
 
   # ============================================================================
   # BASE IMAGE - Build first, used by all backend services (shared: kite- prefix)
@@ -195,6 +265,13 @@ services:
     command: ["echo", "Base image built successfully"]
     profiles:
       - build-only
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 32m
 
   # ============================================================================
   # KITEHUB PLATFORM SERVICES (kitehub- prefix)
@@ -244,6 +321,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${SUBSCRIPTION_MEM_LIMIT:-1g}
+          cpus: '${SUBSCRIPTION_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${SUBSCRIPTION_MEM_RESERVE:-256m}
 
   kitehub-branding:
     build:
@@ -295,6 +379,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${BRANDING_MEM_LIMIT:-2g}
+          cpus: '${BRANDING_CPU_LIMIT:-2.0}'
+        reservations:
+          memory: ${BRANDING_MEM_RESERVE:-512m}
 
   kitehub-email:
     build:
@@ -329,6 +420,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${EMAIL_MEM_LIMIT:-1g}
+          cpus: '${EMAIL_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${EMAIL_MEM_RESERVE:-256m}
 
   kitehub-admin:
     build:
@@ -363,6 +461,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${ADMIN_MEM_LIMIT:-1g}
+          cpus: '${ADMIN_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${ADMIN_MEM_RESERVE:-256m}
 
   kite-gateway:
     build:
@@ -409,6 +514,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${GATEWAY_MEM_LIMIT:-512m}
+          cpus: '${GATEWAY_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${GATEWAY_MEM_RESERVE:-128m}
 
   # ============================================================================
   # KITECLASS CORE SERVICE (kiteclass- prefix)
@@ -456,6 +568,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${KITECLASS_CORE_MEM_LIMIT:-1g}
+          cpus: '${KITECLASS_CORE_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${KITECLASS_CORE_MEM_RESERVE:-256m}
 
   # ============================================================================
   # FRONTEND SERVICES
@@ -481,6 +600,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${KITEHUB_FRONTEND_MEM_LIMIT:-512m}
+          cpus: '${KITEHUB_FRONTEND_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${KITEHUB_FRONTEND_MEM_RESERVE:-128m}
 
   # ============================================================================
   # KITECLASS FRONTEND (Student/Teacher UI)
@@ -504,6 +630,13 @@ services:
     networks:
       - kite-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${KITECLASS_FRONTEND_MEM_LIMIT:-512m}
+          cpus: '${KITECLASS_FRONTEND_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${KITECLASS_FRONTEND_MEM_RESERVE:-128m}
 
 volumes:
   kite-postgres-data:
