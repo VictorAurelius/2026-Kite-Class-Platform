@@ -34,7 +34,8 @@
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
-| 1 | **GAP-046** | Design patterns applied systematically | 🔴 Meta (rules) | 🟡 PLANNED | M |
+| ~~1~~ | ~~GAP-046~~ ✅ | Design patterns applied systematically — **CLOSED Wave 6** 2026-04-26 (audit 82/100 Grade B) | 🔴 Meta (rules) | 🟢 DONE | — |
+| **1** | **GAP-222a** | Extract Outbox infra to shared lib (unblocks GAP-222c) | 🟠 Meta (infra) | 🔵 OPEN | S-M |
 | 2 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
 | 3 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
 | 4 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
@@ -44,7 +45,7 @@
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 6 in flight — 6.0a/b/1/2 merged, **6.4 staged** (GAP-222 Phase 1 policy + Phase 3 detector calibration + 3 sub-gap split + `design-patterns.md` v1.0.0→v1.1.0). 6.3 SKIPPED (InstanceService 496 LOC < 500 §3.1 threshold; preventive refactor rejected per YAGNI). Remaining: **6.5 wave closure + post-wave audit suite refresh** (re-run design-pattern-audit, target ≥ 78/100 B threshold; resolve OllamaClient adapter naming via ADR).
+**Next recommended wave:** Wave 6 **CLOSED 2026-04-26** — design-pattern audit shipped + scored **70 → 82 (Grade C → B)**, GAP-046 → 🟢 DONE, ADR-020 ACCEPTED (`/client/` = adapter convention). Wave 7 candidates: **(A) GAP-222a + 222b** (extract Outbox shared lib + migrate ParentInvitationServiceImpl, both independent — Meta-P1 next in queue per `meta-gap-priority.md`); **(B) PowerPoint format** (deferred from Wave 5, Feature-P0 last remaining doc-gen format); **(C) Wave 10 GAP-055** (report-card VN format, BL-P0). Recommend (A) — Meta-priority + unblocks GAP-222c migration of 4 kitehub bypass sites.
 
 ---
 

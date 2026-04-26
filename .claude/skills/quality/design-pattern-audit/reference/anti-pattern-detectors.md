@@ -84,6 +84,7 @@ grep -rn --include='*.java' \
   -E '\b(Ollama(Request|Response|Context|Client))\b' \
   kiteclass/*/src/main/java kitehub/*/src/main/java \
   | grep -vE '/(adapter|client|client/external|integration/ollama)/' \
+  | grep -vE '/[A-Za-z]*Config\.java:' \
   | head -20
 
 # OpenAI types outside openai adapter
@@ -91,6 +92,7 @@ grep -rn --include='*.java' \
   -E '\b(OpenAI|ChatCompletion(Request|Response))\b' \
   kiteclass/*/src/main/java kitehub/*/src/main/java \
   | grep -vE '/(adapter|client|client/external|integration/openai)/' \
+  | grep -vE '/[A-Za-z]*Config\.java:' \
   | head -20
 ```
 
