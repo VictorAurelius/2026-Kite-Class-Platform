@@ -6,7 +6,9 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@/test/test-utils';
-import HomePage from '../page';
+// GAP-127 — page.tsx now wraps LandingClient via next/dynamic. Tests target
+// the underlying client component directly to avoid the async dynamic boundary.
+import HomePage from '../LandingClient';
 
 describe('HomePage', () => {
   describe('Hero Section', () => {

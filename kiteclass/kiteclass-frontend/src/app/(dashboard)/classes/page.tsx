@@ -13,7 +13,8 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout';
-import { DataTable, SearchInput, LoadingSpinner, ErrorAlert } from '@/components/common';
+import { SearchInput, LoadingSpinner, ErrorAlert } from '@/components/common';
+import { DataTable } from '@/components/common/dynamic-data-table';
 import { Button } from '@/components/ui/button';
 import {
   Select,

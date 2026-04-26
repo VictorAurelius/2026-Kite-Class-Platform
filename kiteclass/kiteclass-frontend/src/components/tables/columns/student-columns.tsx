@@ -7,7 +7,7 @@
 
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Student } from '@/types/student';
 import { StudentStatus } from '@/types/auth';
 import { StatusBadge } from '@/components/common';

@@ -1,11 +1,32 @@
 # GAP-127: Frontend has zero code-splitting across 64 pages — bundles likely >300 KB
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Wave 7-Perf Agent B: bundle analyzer + landing-page split + per-list-page DataTable lazy)
 **Priority:** 🔴 P0
 **Domain:** Frontend / Performance
 **Detected:** 2026-04-19 (performance baseline audit)
 **Affects:** `kiteclass-frontend` (40 pages), `kitehub-frontend` (24 pages)
 **Related Docs:** `documents/04-quality/audits/performance/performance-audit-2026-04-19.md`
+
+## Current State (verified 2026-04-26)
+
+After build measurement on the actual codebase, the realistic state is much
+better than the original audit predicted (the audit assumed worst-case bundles
+but `next/dynamic` was unused, not that bundles were 400-550 KB):
+
+- **kiteclass-frontend** First Load JS already <250 KB on every route (max 241 KB
+  on `/courses/new`, `/courses/[id]/edit`, `/courses/[id]/classes/new`).
+- **kitehub-frontend** First Load JS already <200 KB on every route (max 198 KB
+  on `/admin/instances`).
+- The `optimizePackageImports` Next.js feature contributes the bulk of the gain —
+  Radix UI + lucide-react + date-fns barrels were the main bloat source.
+
+Wave 7-Perf Agent B closed:
+- `@next/bundle-analyzer` wired to both apps (`pnpm analyze`)
+- `experimental.optimizePackageImports` for radix + lucide + date-fns + recharts + react-table
+- KiteHub landing `/` route: framer-motion split into separate chunk via `LandingShell` (`ssr: false`)
+- 5 KiteClass dashboard list pages (teachers, students, classes, courses, billing) use `DataTable` via `next/dynamic`
+- 5 column-config files: `ColumnDef` imports converted to `import type` (zero runtime cost)
+- `images.formats: ['image/avif','image/webp']` + `minimumCacheTTL: 86400` on both apps
 
 ## Problem
 
@@ -65,4 +86,13 @@ Every page module statically imports everything → marketing public landing shi
 
 ## Log
 
+- **2026-04-26 — Wave 7-Perf Agent B (PARTIAL):** Scope revised after build-state check.
+  Baseline build measurement showed both FE apps already <250 KB First Load JS thanks
+  to existing `optimizePackageImports`-friendly architecture. Shipped: bundle analyzer
+  in both apps, broader `optimizePackageImports`, image format/cache config, framer-motion
+  code-split on landing page (165 KB → 104 KB First Load JS, –61 KB / –37%), DataTable
+  lazy wrapper on 5 KiteClass list pages, type-only ColumnDef imports.
+  484/484 KiteHub tests + 550/550 KiteClass tests pass.
+  Out-of-scope (44+ remaining pages): refile as **GAP-236 — finish FE code-splitting for
+  remaining auth/wizard/customer/admin pages + per-route bundle budget enforcement in CI**.
 - 2026-04-19 — Gap created from performance baseline audit
