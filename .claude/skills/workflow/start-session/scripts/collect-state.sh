@@ -107,6 +107,21 @@ if command -v git >/dev/null 2>&1; then
     | grep -E '#[0-9]+\)?$' | head -5 | tr '\n' '§' || echo '')"
 fi
 
+# MCP servers — per .claude/rules/mcp-first-with-fallback.md prefer MCP if connected.
+# Surface status here so session start sees it (avoid the 2026-04-26 anti-pattern of
+# defaulting to gh CLI all session because MCP availability was never checked).
+MCP_TOTAL=0
+MCP_CONNECTED=0
+MCP_FAILED=""
+if command -v claude >/dev/null 2>&1; then
+  MCP_RAW="$(claude mcp list 2>/dev/null || true)"
+  # Lines look like: "name: docker run ... - ✓ Connected" or "✗ Failed to connect" or "✗ Needs authentication"
+  MCP_TOTAL="$(echo "$MCP_RAW" | grep -cE '^[a-zA-Z0-9_-]+:.*-\s*[✓✗]' || echo 0)"
+  MCP_CONNECTED="$(echo "$MCP_RAW" | grep -cE '✓\s*Connected' || echo 0)"
+  MCP_FAILED="$(echo "$MCP_RAW" | grep -E '✗' \
+    | sed -E 's/^([a-zA-Z0-9_-]+):.*$/\1/' | tr '\n' ',' | sed 's/,$//' || echo '')"
+fi
+
 if [ "$MODE" = "--json" ]; then
   cat <<EOF
 {
@@ -125,14 +140,17 @@ if [ "$MODE" = "--json" ]; then
   "active_locks": $ACTIVE_LOCKS,
   "lock_files": "$LOCK_LIST",
   "blocker_gaps": "$BLOCKERS",
-  "recent_merges": "$RECENT_MERGES"
+  "recent_merges": "$RECENT_MERGES",
+  "mcp_total": $MCP_TOTAL,
+  "mcp_connected": $MCP_CONNECTED,
+  "mcp_failed": "$MCP_FAILED"
 }
 EOF
   exit 0
 fi
 
 if [ "$MODE" = "--quick" ]; then
-  echo "Mức: $RS_LEVEL · Nhánh: $BRANCH ($BRANCH_STATE) · PRs: $OPEN_PRS · CVE H/C: $RS_CVE_HIGH/$RS_CVE_CRIT · Wave: ${CURRENT_WAVE:-chưa rõ}"
+  echo "Mức: $RS_LEVEL · Nhánh: $BRANCH ($BRANCH_STATE) · PRs: $OPEN_PRS · CVE H/C: $RS_CVE_HIGH/$RS_CVE_CRIT · MCP: $MCP_CONNECTED/$MCP_TOTAL · Wave: ${CURRENT_WAVE:-chưa rõ}"
   exit 0
 fi
 
@@ -147,6 +165,7 @@ Mức repo:          $RS_LEVEL
   · Branches cũ:   $RS_STALE_BRANCHES
   · Audit P0:      $RS_AUDIT_P0
 PRs đang mở:       $OPEN_PRS  ${TOP_PRS:+— $TOP_PRS}
+MCP servers:       $MCP_CONNECTED/$MCP_TOTAL connected${MCP_FAILED:+ (FAILED: $MCP_FAILED — see hint below)}
 Wave hiện tại:     ${CURRENT_WAVE:-<chưa rõ — check ROADMAP.md thủ công>}
 Gaps blocker:      ${BLOCKERS:-<none>}
 Session locks:     $ACTIVE_LOCKS  [$LOCK_LIST]
@@ -159,4 +178,6 @@ Ghi chú:
   · Mức repo qua scripts/repo-status.sh --json (4 yếu tố)
   · Lock dir: $LOCK_DIR (auto-purge sau 4h stale)
   · Các field cần gh — đảm bảo 'gh auth status' OK
+  · MCP failed → 'docker ps' + 'docker pull ghcr.io/github/github-mcp-server' + 'claude mcp list' để reconnect.
+    Per .claude/rules/mcp-first-with-fallback.md §3: nếu MCP unavailable thì fallback CLI; nhưng phải biết để swap khi fix xong.
 EOF

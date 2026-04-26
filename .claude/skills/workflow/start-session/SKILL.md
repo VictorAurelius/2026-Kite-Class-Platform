@@ -50,14 +50,15 @@ Chi tiết: `reference/context-template.md` §Session Locks.
 
 Format theo `reference/context-template.md`. Data sources (from `collect-state.sh`):
 
-| Field | Source (per GAP-206 fix 2026-04-24) |
-|-------|--------------------------------------|
-| Wave | `ROADMAP.md` "Next recommended wave" line |
-| Blocker gaps | `ROADMAP.md` "GA Blockers remaining" table |
+| Field | Source |
+|-------|--------|
+| Wave | `ROADMAP.md` "Next recommended wave" line (per GAP-206 fix 2026-04-24) |
+| Blocker gaps | `ROADMAP.md` "GA Blockers remaining" table (per GAP-206) |
 | Repo level | `scripts/repo-status.sh --json` → `.level` (4 factors) |
 | CVE / stale branches | Same `--json` → `.security`, `.branches` |
 | Recent merges | `git log main --since='3 days ago' --oneline` (last 5) |
 | Branch state | `git diff --name-only`; `documents/action-2.md` alone = "scratchpad only" |
+| **MCP servers** | `claude mcp list` → connected/total + failed names. Added 2026-04-26 after Wave 6 anti-pattern: session defaulted `gh` CLI all wave because MCP availability never checked. Per `.claude/rules/mcp-first-with-fallback.md` §3 must verify at session start. |
 
 Ví dụ output (tiếng Việt per CLAUDE.md §CRITICAL — GAP-207):
 
@@ -118,6 +119,7 @@ Lock lifecycle:
 - Nếu script fail (gh unauthed, hook missing) → báo rõ, không đoán
 - Wave + blockers LUÔN parse từ `ROADMAP.md`, không dùng `ls -t` mtime hoặc alphabetical grep (pre-GAP-206 bugs)
 - Output format tuân `reference/context-template.md` (có ví dụ VN trong Step 4)
+- **MCP status PHẢI nêu trong summary** — nếu line "MCP servers" báo failed servers hoặc 0/N, suggest user fix trước critical work (GitHub MCP cần cho merge/PR ops); per `.claude/rules/mcp-first-with-fallback.md` §3 default sang CLI fallback nhưng phải biết để swap khi fix xong. Anti-pattern bắt nguồn 2026-04-26 (Wave 6 session default `gh` CLI suốt 4 sub-PR vì không check MCP đầu session).
 
 ## Gotchas
 
@@ -126,6 +128,7 @@ Lock lifecycle:
 - Stale locks (>4h) auto-purged — nhưng crash mid-session có thể leave orphan; `--no-lock` hoặc manual `rm` clear
 - Hostname trên WSL = `wsl-name`; multiple Claude Code windows cùng host vẫn tạo unique lock (timestamp differs)
 - KHÔNG rely solely trên lock để prevent conflict — lock là hint, git branch isolation (worktree) mới là enforcement thật
+- **MCP transient connect failure**: `claude mcp list` có thể báo `✗ Failed` rồi retry trong cùng session báo `✓ Connected` — lý do thường là Docker daemon vừa khởi động hoặc image đang pull. Khi gặp failed: `docker ps` (verify daemon) → `docker pull ghcr.io/github/github-mcp-server` → `claude mcp list` lại. Nếu vẫn failed, báo user, fallback CLI per `mcp-first-with-fallback.md` §3.
 
 ## Skill contents
 
