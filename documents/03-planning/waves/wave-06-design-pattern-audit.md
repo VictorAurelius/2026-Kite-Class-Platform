@@ -1,10 +1,10 @@
 ---
 title: Wave 6 — Design Pattern Audit + Hotspot Refactor
-status: draft
+status: active
 created: 2026-04-25
-updated: 2026-04-25
+updated: 2026-04-26
 waves: [6]
-gaps: [GAP-046]
+gaps: [GAP-046, GAP-222, GAP-222a, GAP-222b, GAP-222c]
 ---
 
 # Wave 6 — Design Pattern Audit + Hotspot Refactor
@@ -56,17 +56,33 @@ Rationale:
 
 ## 2. Task Breakdown (per `core/task-breakdown-guide.md`)
 
-### 2.1 Sub-PR ledger
+### 2.1 Sub-PR ledger (revised 2026-04-26)
 
-| # | Sub-PR | Scope | Effort | TDD strategy |
-|---|--------|-------|:------:|--------------|
-| 1 | **6.0a** (this PR) | Wave plan + brainstorm + breakdown | S (30 min) | N/A — planning artifact |
-| 2 | 6.0b | Skill scaffolding (SKILL.md + 2 reference docs + skills index update) | S-M (1-2h) | Dry-run on known hotspot (TrialToPaidService = should FLAG; small clean POJO = should PASS) |
-| 3 | 6.1 | Baseline audit run → report + 1-3 hotspot gap files | S (30-60 min) | Audit output reviewed against hand-verified TrialToPaidService LOC |
-| 4 | 6.2 | Refactor hotspot #1 — TrialToPaidService Facade extract | M (2-4h) | Classical Java TDD per `tdd-enforcement.md` — write tests for extracted services FIRST |
-| 5 | 6.3 | Refactor hotspot #2 — InstanceService (496 LOC at threshold) | M (2-4h) | Same TDD pattern |
-| 6 | 6.4 *(optional)* | Status-switch → State Pattern for 1 critical entity (instance lifecycle) | M-L (3-5h) | TDD per state transition |
-| 7 | 6.5 | Wave closure: GAP-046 → 🟢 DONE if all AC checked, ROADMAP updates, post-wave audit suite refresh per `post-wave-audit-mandate.md` | S (30-60 min) | Verify hotspot count delta; re-run skill, check rules.md adherence |
+| # | Sub-PR | Scope | Status | Effort | Outcome |
+|---|--------|-------|:------:|:------:|---------|
+| 1 | **6.0a** | Wave plan + brainstorm + breakdown | ✅ DONE | S | #542 |
+| 2 | **6.0b** | Skill scaffolding (SKILL.md + 2 reference docs + skills index update) | ✅ DONE | S-M | #543 |
+| 3 | **6.1** | Baseline audit run → report + 1-3 hotspot gap files | ✅ DONE | S | #544, score **70/100 Grade C**, GAP-222 filed |
+| 4 | **6.2** | Refactor hotspot #1 — TrialToPaidService Facade extract | ✅ DONE | M | #545, **546 → 385 LOC**, 18 isolated tests added |
+| 5 | ~~6.3~~ | ~~Refactor hotspot #2 — InstanceService (496 LOC)~~ | ❌ **SKIPPED** | — | State-check 2026-04-26: 496 LOC < 500 threshold — NOT a §3.1 violation. YAGNI + Wave 6 plan §3 risk #4 → preventive refactor on non-violating service rejected. Service stays in monitor list for future audits. |
+| 6 | **6.4** | GAP-222 Phase 1 Outbox Bypass Policy + Phase 3 detector calibration + 3 sub-gap split (222a/b/c) + frontmatter backfill `design-patterns.md` v1.0.0 → v1.1.0 | 🟡 IN FLIGHT | S-M (~2h) | Phase 2 migration deferred to GAP-222b (independent) + GAP-222c (blocked on 222a) |
+| 7 | **6.5** | Wave closure | ⏳ NEXT | S-M (~1.5h) | See checklist §2.4 |
+
+### 2.2 Sub-PR 6.5 closure checklist
+
+- [ ] Re-run `quality/design-pattern-audit/SKILL.md` — expect ≥ 78/100 (B threshold) per audit baseline §Comparison
+  - Expected gains: Cat 1 +5 (TrialToPaidService 546→385), Cat 5 +6 (BrandingEventPublisher now matches §3.5.1 marker → no longer flagged once detector calibration ships)
+  - Expected drops: Cat 2/3/4 unchanged (no code change, just detector calibration improves precision)
+- [ ] Run post-wave audit suite per `post-wave-audit-mandate.md` §2.1 (changes touch `*.java` in kitehub-subscription):
+  - Quality refresh /100
+  - Performance audit /100 (if request-handler/DB-query path touched — TrialToPaidService extraction is pure refactor, no perf delta expected)
+- [ ] Resolve OllamaClient calibration question (audit baseline Cat 4 deferred decision):
+  - Option 1: rename `kitehub-branding/.../client/` → `adapter/` (align with `design-patterns.md` Mandatory Patterns terminology)
+  - Option 2: accept `/client/` as adapter convention (no code change; detector calibration in Sub-PR 6.4 already accommodates)
+  - Recommend Option 2 + ADR documenting "client = adapter convention in this project"
+- [ ] Update GAP-046 → 🟢 DONE if AC re-verified
+- [ ] Update ROADMAP next-wave pointer
+- [ ] Capture wave retrospective (1-2 paragraphs) in this plan or a closing log entry
 
 ### 2.2 Sub-PR 6.0b detailed task list (5-element per `task-breakdown-guide.md`)
 
