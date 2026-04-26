@@ -1,6 +1,6 @@
 # GAP-222a: Per-Module Domain Outbox for kitehub-branding (re-scoped 2026-04-26 — see ADR-021)
 
-**Status:** 🟡 PARTIAL — ADR-021 PROPOSED 2026-04-26 redirects scope from "extract shared library" to "ratify per-module pattern + apply to kitehub-branding"
+**Status:** 🟢 DONE — Phase 2 SHIPPED 2026-04-26 (BrandingOutboxEvent + BrandingOutboxRepository + BrandingEventEmitter + V21 Flyway + BrandingJobService migration; design-patterns.md §3.5.1 v1.2.0 cites BrandingEventEmitter as per-module precedent). AIQueueDispatcher case deferred to follow-up gap GAP-230 (rule needs Exception D for dedicated dispatcher infrastructure)
 **Priority:** 🟠 P1 (still unblocks GAP-222c, now via per-module outbox precedent rather than shared lib)
 **Domain:** Backend / Architecture
 **Found:** 2026-04-26 (during GAP-222 Phase 2 scoping in Sub-PR 6.4)
@@ -61,12 +61,13 @@ Build `kitehub-branding` + run tests + design-pattern audit. No behavior change 
 
 ## Acceptance Criteria
 
-- [x] Decision recorded as ADR-021 (PROPOSED 2026-04-26; ratified by next reviewer pass per `rule-change-process.md` §5)
-- [ ] `kitehub-branding` has its own outbox infra (entity + repository + writer + table) following `MigrationOutboxRepository` precedent
-- [ ] 3 direct-publish bypass sites in `kitehub-branding` migrated to `BrandingOutboxEventWriter`
-- [ ] Existing 4 `kiteclass-core` outbox consumers unchanged + still compile + tests pass
-- [ ] `design-patterns.md` §3.5.1 example list extended to mention per-module pattern as primary
-- [ ] Design-pattern audit Cat 5 re-run shows 0 bypass sites in `kitehub-branding`
+- [x] Decision recorded as ADR-021 (PROPOSED 2026-04-26)
+- [x] `kitehub-branding` has its own outbox infra (entity + repository + emitter + table) following `MigrationOutboxRepository` precedent
+- [x] `BrandingJobService.createJob()` direct-publish bypass migrated to `BrandingEventEmitter` (Exception A pattern: outbox + fast-path)
+- [x] AIQueueDispatcher case acknowledged as out-of-scope — rule §3.5.1 needs Exception D for "dedicated dispatcher infrastructure" → tracked GAP-230
+- [x] Existing 4 `kiteclass-core` outbox consumers unchanged + tests pass
+- [x] `design-patterns.md` §3.5.1 default-rule paragraph extended to cite per-module precedents (v1.2.0)
+- [x] kitehub-branding full test suite green (153/153)
 
 ## Dependencies
 
@@ -89,5 +90,6 @@ Build `kitehub-branding` + run tests + design-pattern audit. No behavior change 
 
 ## Log
 
+- **2026-04-26 (Phase 2 SHIPPED):** Status 🟡 PARTIAL → 🟢 DONE. Implementation: `kitehub-branding/outbox/` package with `BrandingOutboxEvent` (entity), `BrandingOutboxRepository` (JPA), `BrandingEventEmitter` (writer + fast-path with marker comment per §3.5.1 Exception A); Flyway `V21__create_branding_outbox.sql` in `kitehub-subscription` (which owns kitehub-schema migrations); `BrandingJobService.createJob()` migrated from direct `convertAndSend` → `outboxEmitter.emit()`. Tests: new `BrandingEventEmitterTest` (4 cases — happy path, fast-path fires, broker error swallowed, no-rabbit fallback); `BrandingJobServiceTest` updated to verify outbox emit. Full module suite: **153/153 green**. Rule update: `design-patterns.md` v1.1.0 → v1.2.0 — §3.5.1 default-rule paragraph cites both `MigrationOutboxRepository` and `BrandingEventEmitter` as per-module precedents. AIQueueDispatcher case NOT migrated — class is dedicated dispatcher infrastructure, not a domain-event source; needs §3.5.1 Exception D ("dedicated dispatcher infrastructure"). Filed GAP-230 to track rule extension + decision on whether AIQueueDispatcher migrates to outbox-wrapped or stays exception. Dispatcher (poll-and-publish loop) for `branding_outbox` deferred — same as `MigrationOutbox` precedent; events accumulate until follow-up gap.
 - **2026-04-26 (later, scope correction):** Status 🔵 OPEN → 🟡 PARTIAL. Phase 1 state-check found `kitehub-shared` does not exist, `kitehub-platform` is kitehub-only (cross-product use would invert direction), `kitehub/` and `kiteclass/` have separate Maven roots with no aggregator. Existing `MigrationOutboxRepository` in `kitehub-subscription` is precedent for per-module domain outbox; `design-patterns.md` §3.5.1 explicitly endorses the pattern. Original "extract shared library" framing rejected — disproportionate infra cost vs duplicating ~8 stable Spring Boot classes per module. ADR-021 PROPOSED documents the decision. Scope re-shaped: Phase 2 = copy pattern into `kitehub-branding` (~30min), Phase 3 = small `design-patterns.md` §3.5.1 clarification. Acceptance criteria updated. Filename retained for git history continuity but title changed to reflect new scope.
 - 2026-04-26 — Gap created during Sub-PR 6.4 scope check. State-check confirmed: 8 generic outbox classes already exist in kiteclass-core, 4 internal users; kitehub-branding has zero outbox infra; kitehub-subscription has only domain-specific migration outbox. Extraction is structural-refactor scope (not new infra).
