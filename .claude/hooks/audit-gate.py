@@ -48,6 +48,22 @@ AUDIT_RULES = [
         "command": "/ops-readiness-audit",
         "label": "Ops Readiness audit (/100)",
     },
+    {
+        # AI Branding behavior verification — model swap, prompt change, provider rewrite,
+        # §5 Quality Reviewer logic, ContentModerationService logic.
+        # Patterns target Java implementation files; frontend templates use ui-review skill.
+        # See `.claude/rules/ai-branding-guidelines.md` §11.4 + GAP-223 Sub-PR 223.1.
+        "patterns": [
+            "kitehub-branding/src/main/java/",
+            "AIClient.java", "OllamaClient.java", "OpenAIClient.java",
+            "AIProviderConfig.java", "AIProvider.java",
+            "BrandingPlanner.java", "BrandingExecutor.java", "BrandingAnalyzer.java",
+            "InstanceQualityReviewer.java", "ContentModerationService.java",
+        ],
+        "audit": "ai-branding-quality-gate",
+        "command": "/ai-branding-quality-gate",
+        "label": "AI Branding Quality Gate (/100)",
+    },
 ]
 
 AUDIT_FRESHNESS_DAYS = 7
@@ -59,6 +75,7 @@ AUDIT_DIRS = {
     "security-audit": "documents/04-quality/audits/security",
     "ops-readiness-audit": "documents/04-quality/audits/ops",
     "performance-audit": "documents/04-quality/audits/performance",
+    "ai-branding-quality-gate": "documents/04-quality/audits/ai-branding",
 }
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
