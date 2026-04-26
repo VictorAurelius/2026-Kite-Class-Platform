@@ -128,4 +128,5 @@ public class GenerateImageAIStep implements Step {
 
 ## Log
 
+- **2026-04-26** — **Governance closure tracked: [GAP-225](GAP-225-scaffolded-as-done-governance-closure-umbrella.md)** (Scaffolded-as-DONE Governance Closure Umbrella). Scaffold debt: "Async Generate{Logo,Banner}Step + ComposeThemeStep deferred to 3.5b follow-up". Status preserved 🟢 DONE for audit trail; cross-gap audit identified this gap as part of Cluster C1 (AI Agent + Async Pipeline) — needs dedicated `quality/ai-agent-review/` skill + audit-gate rule + matrix row when scheduled. No code change this PR — docs truth-up only.
 - 2026-04-14 — Created from AI Branding redesign §3

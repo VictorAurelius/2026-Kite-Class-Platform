@@ -1,7 +1,9 @@
 # Output Review Mandate
 
-**Version:** 1.0
+**Version:** 1.0.1
 **Created:** 2026-04-14
+**Last-Reviewed:** 2026-04-26
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — PATCH self-approve per `rule-change-process.md` §5; backfill of frontmatter happens this same edit per §3 backfill-on-next-edit policy)
 **Priority:** 🔴 CRITICAL — project-wide governance rule
 
 ---
@@ -72,7 +74,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Rules docs (meta)** | ADR-like | Pre-merge | Lead + team | ✅ DONE (2026-04-20, GAP-171 — `.claude/rules/rule-change-process.md` + `.claude/skills/quality/rule-review/`) |
 | **Templates (UI/image)** | GAP-011 5 criteria | Before publish | Designer + lead | ⚠️ PLANNED (GAP-011) |
 | **Email templates** | Brand + legal check | Before send | Marketing + legal | ✅ DONE (2026-04-20, GAP-173 — `.claude/skills/quality/email-template-review/`) |
-| **AI-generated assets** | Quality gate /100 + content safety | Auto + manual | Automated + admin | ⚠️ PLANNED (GAP-012, 018) |
+| **AI-generated assets** | Quality gate /100 + content safety | Auto + manual | Automated + admin | ⚠️ PARTIAL — scaffolded only (GAP-012 5 Strategy-pattern checks, GAP-018 3-stage moderation pipeline + state machine all DONE Wave 4); real WCAG/visual-regression/ML classifier deferred; cluster fix tracked GAP-225 (umbrella) + GAP-223 Sub-PR 223.1 (AI Branding skill + audit-gate rule) |
 | **Contracts (Word)** | Legal review | Before use | Lawyer | ❌ **VIOLATION** |
 | **Generated PDFs/Excel** | QA checklist + visual regression | Before delivery | QA | ⚠️ PLANNED (GAP-047) |
 | **Database migrations** | migration-review-checklist skill | Pre-merge | DBA + peer | ✅ DONE |
@@ -290,6 +292,7 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- **2026-04-26 (v1.0.1):** PATCH — sync §3 matrix line 75 "AI-generated assets" row from "⚠️ PLANNED (GAP-012, 018)" → "⚠️ PARTIAL — scaffolded only" with explicit deferred items + cluster-fix references (GAP-225 umbrella + GAP-223 Sub-PR 223.1). Also backfilled frontmatter Version + Last-Reviewed + Reviewer-Approver per `rule-change-process.md` §3 backfill-on-next-edit policy. Reviewer: @nguyenvankiet (solo-dev self-approve per §5 matrix for PATCH — factual correctness fix, no constraint loosening). Motivation: cross-gap audit (GAP-225) found GAP-012 + GAP-018 both shipped Wave 4 with scaffold-only Status DONE despite explicit deferred items; matrix row claiming "PLANNED" was 12 days stale.
 - **2026-04-20 — Wave 8b shipped: 6 CRITICAL §4 VIOLATIONS closed** in one wave. 6 parallel worktree-isolated agents (8b-A..F) merged PRs #401/402/403/404/405/406. Closed: GAP-170 gap reports (review template + checklist + skill), GAP-171 rules docs (rule-change-process + rule-review skill), GAP-172 architecture ADRs (README + MADR template), GAP-173 email templates (review skill + 40-point checklist), GAP-174 marketing + legal (VN PDPL/Advertising/Consumer Protection-primary compliance checklist), GAP-175 logs format (structured JSON rule with PII scrubbing). Also shipped Phase 1 of 6 meta-P1/P2 from action-1: GAP-193 (start-session skill), GAP-194 (shellcheck+ruff CI — blocking; 35 warnings non-blocking), GAP-195 (starter-kit diff tooling + retro-sync runbook), GAP-198 (FE↔BE contract ADR-016 oasdiff strategy), GAP-199 (rework-audit skill), GAP-201 (tenant off-boarding runbook + 3-layer docs). §4 VIOLATIONS: 6 → **0**. 12 gap files updated with status + log entries; matrix rows moved from ❌ to ✅ DONE.
 - **2026-04-25 — Wave 5 post-wave audit suite refresh shipped (Sub-PR 5.6a #530, closes GAP-214):** all 5 audits ran in parallel (4 Explore agents + parent quality refresh). Scores: API contract 95/100 (A), Security 85/100 (B, +9 vs 2026-04-17), Performance 63/100 (D, +5 vs baseline), Ops Readiness 52/100 (F, +3 vs baseline), Quality refresh 78/100 (C+, +1 honest baseline). 4 P0 + 5 P1 + 8 P2/P3 gaps filed (GAP-215..219). §3 matrix rows for Ops + Performance flipped from ⚠️ BASELINE to ✅ REFRESHED. Sub-PR 5.6b (#X) shipped P0 fixes (GAP-215 cache, GAP-216 soft-cap canary, GAP-218 font runbook + Dockerfile assertion) + Wave 5 closure (sample gallery, ADR-019 ACCEPTED, MiniMax ADOPTED). GAP-217 PARTIAL — alert rules filed in helm + docker prometheus configs, routing depends on GAP-120 Alertmanager.
 - 2026-04-19 — Audit catch-up Part A (3/5) shipped: resolved 2 first-ever VIOLATIONS via baseline capture — ops-readiness 49/100 (PR #365, 15 gaps, GAP-111 → GAP-125) and performance 58/100 (PR #364, 10 gaps, GAP-126 → GAP-135). Business-logic refresh after 27-day drift caught 7 gaps (PR #366, 65/100, GAP-104 → GAP-110). Status in §3 matrix: ops-readiness + performance now BASELINE — subsequent audits measure delta against this. Remaining Part A: ui-review /128 refresh (8d stale) + quality-audit /100 refresh.
