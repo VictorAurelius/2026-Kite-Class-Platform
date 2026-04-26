@@ -226,6 +226,7 @@
 | GAP-027 | Multi-brand per tenant (franchise) | 🟡 P2 | XL |
 | GAP-035 | Wizard team collaboration | 🟡 P2 | L |
 | GAP-221 | GitNexus pilot — code-intelligence MCP for multi-module audits | 🟡 P2 Meta | M (1-day pilot) |
+| GAP-222 | Outbox bypass policy + migrate 5 direct-publish services | 🟠 P1 | M (policy ≤30min + 5×1-2h migration) |
 
 **Dependencies:** Mixed — document gen crosses all, multi-brand ties to all. GAP-221 is opt-in pilot (mirror RTK PR #531 pattern) — if ADOPT, becomes audit-skill force-multiplier; if REJECT, contained rollback.
 
