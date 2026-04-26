@@ -60,3 +60,50 @@
   3. System: nếu lifecycle enabled → DROP DATABASE, DROP USER
 - **Errors:**
   - 404: instance not found
+
+---
+
+## v2 Use Cases (drift fix — GAP-229 Phase 3)
+
+### UC-INS-07: Xem Trial Status (FE polling)
+- **Actor:** Owner (FE banner / dashboard)
+- **Steps:**
+  1. FE: GET /api/platform/instances/{id}/trial-status
+  2. System: trả về `TrialStatusResponse { trialActive, expiresAt, daysRemaining, status }`
+- **FE Behavior:** Hiển thị banner cảnh báo khi `daysRemaining ≤ 3` (per INS-03)
+
+### UC-INS-08: Admin Extend Trial
+- **Actor:** Admin
+- **Precondition:** Tenant đã yêu cầu hỗ trợ kéo dài; instance đang ở TRIAL
+- **Steps:**
+  1. Admin: POST /api/platform/instances/{id}/extend-trial?days=N
+  2. System: gia hạn `trialExpiresAt` thêm N ngày
+  3. Audit log: ghi nhận extension + admin user + reason (nếu có)
+- **Postcondition:** Trial expiration đẩy lùi N ngày
+- **Errors:** 404 instance not found, 400 invalid days
+
+### UC-INS-09: Hard Purge (Admin, Destructive)
+- **Actor:** Admin
+- **Precondition:** Instance ở status `DELETED` (UC-INS-06 đã chạy); ít nhất 1 backup `COMPLETED` tồn tại
+- **Steps:**
+  1. Admin: DELETE /api/platform/instances/{id}/purge
+  2. System (`InstancePurgeService.adminPurge`):
+     - Verify backup tồn tại — không có → trả `SKIPPED_NO_BACKUP` + log warning + dừng (KHÔNG destructive)
+     - Drop PostgreSQL database
+     - Delete S3 backup files
+     - Mark `BackupRecord` status DELETED
+     - Delete `EmailSentLog` rows cho instance
+     - Outbox-first publish event `instance.purge.requested` tới `subscription_outbox` (per GAP-222c Exception A) + best-effort fanout RabbitMQ → consumers (kitehub-branding, kiteclass-core) cleanup tài nguyên cross-service
+     - Set instance status `PURGED`
+  3. System trả `PurgeResult` với chi tiết từng bước
+- **Postcondition:** Tất cả tài nguyên của instance bị xóa vĩnh viễn; cross-service cleanup events đã enqueued
+- **Errors:**
+  - 404: instance not found
+  - Trả `FAILED` nếu instance không ở DELETED status
+  - Trả `SKIPPED_NO_BACKUP` nếu chưa có verified backup (safety check)
+- **Lưu ý ops:** Hard purge KHÔNG reversible — backup verification là safety guard cuối cùng
+
+### UC-INS-03 update: Email Verification path
+- **Endpoint thay đổi:** Trước doc ghi `POST /api/platform/instances/{id}/activate`; thực tế đã move sang `POST /api/platform/auth/verify-email?token=...` (AuthController consolidated auth domain).
+- **Logic:** `AuthController.verifyEmail()` → `AuthService.verifyEmail(token)` → bên trong gọi tới instance lifecycle để start trial + provision DB.
+- **Action:** Không có thay đổi behavior; chỉ là path correction.

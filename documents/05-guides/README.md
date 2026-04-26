@@ -23,6 +23,9 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 | [`tenant-onboarding-checklist.md`](tenant-onboarding-checklist.md) | End-to-end school onboarding (3-day target) (GAP-102, 2026-04-18) | 1 |
 | [`api-performance-slo.md`](api-performance-slo.md) | API latency p95 SLO tiers + tagging rubric (GAP-135, 2026-04-21) | 1 |
 | [`dependabot-guide.md`](dependabot-guide.md) | Dependabot config + workflow + troubleshooting (audience: Devs + Claude; 2026-04-24) | 1 |
+| [`branding-integration.md`](branding-integration.md) | FE consumption of `/api/v1/branding/{public,/{id}/package}` — CSS-vars, ETag flow, BrandingProvider (audience: FE engineers; GAP-229 Phase 2.1, 2026-04-26) | 1 |
+| [`ai-branding-wizard-flow.md`](ai-branding-wizard-flow.md) | 6-step wizard + saga handoff + tier behavior + support runbook (audience: onboarding + support + PMs; GAP-229 Phase 2.2, 2026-04-26) | 1 |
+| [`template-contribution-guide.md`](template-contribution-guide.md) | How designers add SVG templates — 5 review criteria, file structure, commit checklist (audience: designers; GAP-229 Phase 2.3 + GAP-011, 2026-04-26) | 1 |
 | [`operations/`](operations/) | Operations runbooks (deploy procedures) | `runbooks/*.md` |
 | [`vietnamese/`](vietnamese/) | Vietnamese-language guides (Oracle Cloud deploy) | 1+ |
 

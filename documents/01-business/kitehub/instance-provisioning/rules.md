@@ -1,6 +1,6 @@
 # Instance Provisioning — Business Rules
 
-**Last verified:** 2026-03-24
+**Last verified:** 2026-04-26 (drift fix GAP-229 Phase 3 — added UC-INS-07/08/09 + path correction for activate)
 **Config prefix:** `kitehub.trial`, `database`, `encryption`
 
 ## Rules
