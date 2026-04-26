@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-26 (GAP-016 final closure — Wave 7 Meta-P0):** GAP-016 status 🟡 PARTIAL → 🟢 DONE. Final actions: (1) §2.9 business-gap-check audit ran with fixed grep scope (kiteclass-core + kitehub-branding) — 16/20 ✅, 2 ❌ tracked existing gaps (GAP-005 regenerate counter, GAP-011 ImageTemplate library), 1 ⚠️ Saga alternative pattern, 1 ⏭️ DB-dependent. (2) Skill `business-gap-check.md` §2.9 updated: grep scope `kitehub-branding` → `kiteclass-core` + class renames `BrandingAnalyzer→AnalyzerService`/`BrandingPlanner→PlannerService` + module-location note. (3) GAP-016 Findings table flipped — 7 items closed by GAP-229 (PRs #561/#562); 6 stale items split out as **GAP-234** (architecture doc + 4 PUML diagrams + database-design.md + docker-platform-architecture.md drift, P2 deferred). Per memory `feedback_audit_grep_scope.md`: skill grep scope correction is the kind of force-multiplier fix that prevents future false-positives like GAP-107. Counts: **87 OPEN → 87 OPEN** (-GAP-016 +GAP-234 net 0). Wave 7 Meta-P0 queue narrowed: GAP-005 + GAP-011 + GAP-014 remain.
+
 **2026-04-26 (Wave session-followups — 3 parallel agents):** Closed loose ends từ session 5-PR. (1) **Skill bug fix:** `session-docs-check/scripts/check-docs.sh` Rule 8 logic — chỉ flag truly-new folders qua `git ls-tree -r --name-only $BASE_REF -- $dir` check, không flag pre-existing folders nhận file mới (3 audit dirs WARN false-positive). Retest cumulative session: 4 PASS / 0 WARN / 0 FAIL (was 5/3/0). (2) **GAP-229 closed:** Status 🟡 PARTIAL → 🟢 DONE. All 6 AC ticked. Phase 2/3 closure log entry references PRs #561/#562 + cite specific files (3 user guides + 3 instance-provisioning docs + 05-guides README index). Counts: **88 OPEN → 87 OPEN** (-GAP-229). (3) **3 audit gaps filed — GAP-231 (payment-invoice), GAP-232 (attendance), GAP-233 (student-enrollment):** API contract drift cluster from post-wave-7 audit. **Audit calibration finding** (per `feedback_audit_calibration.md`): audit Agent C over-stated severity — claimed "13 domains zero-doc" with "0 documented" cells; verification shows all 3 worst domains (payment-invoice, attendance, student-enrollment) **have existing api-contract.md files** with substantial content. Real drift is depth (auth blocks, error matrices, DTO schemas, UC linkage, side-effect cross-refs) NOT greenfield. GAP-231 also re-counted endpoints: audit said 23, real = 32 across 5 controllers. Gaps re-framed as "drift completion" — keeping P0 priority but scope reduced from "write from scratch" to "fill in gaps". Counts: **87 OPEN → 90 OPEN** (+GAP-231/232/233). **Wave validation:** 3 parallel agents returned in ~3 min wall-clock vs estimated ~30 min serial — pattern from `feedback_wave_plan_before_serial_prs.md` working as designed. Parent owned ROADMAP per `feedback_parallel_agent_strategy.md` rule #2 → zero merge conflicts despite 3 agents.
 
 **2026-04-26 (GAP-229 Phase 1 SHIPPED — AI Branding business docs v2 sync):** 3 docs in `documents/01-business/kitehub/ai-branding/` synced from real `kiteclass-core` Waves 2-4 implementation. `rules.md` +24 v2 rules across 6 areas (BR-RES/LIFE/QUALITY/APRV/WIZARD/MOD/PKG) each with code reference + config key. `use-cases.md` +6 UCs (UC-AIB-07..12) sourced from real Controllers + Services. `api-contract.md` +12 v2 endpoints (8 lifecycle + 2 branding package + 1 internal webhook + 4 TBD approval) with schemas from real `InstanceController` + `BrandingPackageController` + `PublicBrandingController` + `InternalWebhookController`. Per memory `feedback_search_all_modules_before_missing_claim.md`: documented REAL impl not aspiration; gated features (tier counter, ENTERPRISE Advanced Mode) noted as scaffold/TBD where code lacks. Phase 2 (3 user guides) + Phase 3 (instance-provisioning verify) deferred to separate sessions. GAP-229 status 🔵 OPEN → 🟡 PARTIAL. No counts change (still PARTIAL).
@@ -112,7 +114,7 @@
 | GAP-011 | Template library curation plan + review standards | 🔴 P0 | L |
 | GAP-014 | Wave mock plan include AI branding | 🔴 P0 | M |
 | GAP-015 ✅ | Tenant provisioning auto-trigger (event-driven) — DONE Wave 3 | 🟢 DONE | M |
-| GAP-016 | Living docs impact scope | 🔴 P0 | S |
+| GAP-016 ✅ | Living docs impact scope — DONE Wave 7 (2026-04-26, §2.9 audit 16/20 + skill scope fix; GAP-234 split out for diagram drift) | 🟢 DONE | S |
 | GAP-046 ✅ | Design patterns applied systematically — DONE Wave 6 (2026-04-26, audit 82/100 Grade B + ADR-020) | 🟢 DONE | M |
 
 **Dependencies:** None — starts immediately.
@@ -800,7 +802,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-005 | AI queue fair scheduling | 🟡 Phase 2 open | M remaining |
 | GAP-011 | Template library curation (30 templates) | 🟡 PLANNED Sprint 0 | L |
 | GAP-014 | Wave mock plan include AI branding | 🟡 PLANNED Sprint 0 | M |
-| GAP-016 | Living docs impact scope (3-layer sweep) | 🟡 PLANNED Sprint 0 | S |
+| GAP-016 ✅ | Living docs impact scope — DONE Wave 7 (2026-04-26) | 🟢 DONE | — |
 | GAP-046 | Design patterns applied systematically | 🟡 PLANNED Sprint 0 | M |
 | GAP-047 | Document generation — Wave 5 DONE 2026-04-25; PPT deferred Wave 6 | 🟢 DONE | — |
 
