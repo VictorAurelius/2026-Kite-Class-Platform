@@ -180,4 +180,8 @@ Ghi chú:
   · Các field cần gh — đảm bảo 'gh auth status' OK
   · MCP failed → 'docker ps' + 'docker pull ghcr.io/github/github-mcp-server' + 'claude mcp list' để reconnect.
     Per .claude/rules/mcp-first-with-fallback.md §3: nếu MCP unavailable thì fallback CLI; nhưng phải biết để swap khi fix xong.
+  · ⚠️ Wave-eligibility: trước khi /continue, Claude PHẢI check action sắp tới có ≥3 sub-tasks disjoint không.
+    Nếu YES → tạo wave plan + spawn 4-5 parallel agents thay vì serial PRs.
+    Refs: feedback_wave_plan_before_serial_prs.md + feedback_parallel_agent_strategy.md
+    Anti-pattern 2026-04-26: GAP-229 chạy 3 phases serial (~90min) thay vì parallel (~30min).
 EOF

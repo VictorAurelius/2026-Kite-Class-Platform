@@ -7,6 +7,32 @@ argument-hint: "[optional context]"
 
 # /continue - Thực hiện Action Ưu Tiên Nhất
 
+## Step 0: Wave-eligibility pre-flight (BẮT BUỘC, thêm 2026-04-26)
+
+**Trước khi pick task đầu tiên**, hỏi 3 câu:
+
+1. Action ưu tiên có break thành ≥3 sub-tasks không?
+2. Mỗi sub-task touch disjoint files (không share `application.yml`, không share migration version, không share service class)?
+3. Mỗi sub-task self-contained TDD/build cycle (không wait sub-task khác)?
+
+**3/3 YES → wave-eligible → DỪNG `/continue`, chuyển sang wave plan + parallel agents.**
+
+Sau đó:
+- Tạo wave plan ngắn (5-10 dòng) HOẶC chạy `/quality-plan` skill nếu sau audit
+- Pre-assign mỗi agent: file paths + GAP number range + migration version slot
+- Single message dispatch ≤5 Agents song song với `isolation: worktree`
+
+Reference:
+- Memory `feedback_wave_plan_before_serial_prs.md` (case study GAP-229 2026-04-26: 90min serial vs ~30min parallel)
+- Memory `feedback_parallel_agent_strategy.md` (9 hard rules validated 3x)
+- Skill `.claude/skills/workflow/quality-plan/SKILL.md` (post-audit auto-plan)
+- Skill `.claude/skills/workflow/priority-pr-planning.md` (manual priority plan)
+- Doc `documents/03-planning/roadmap/parallel-execution-strategy.md`
+
+**Nếu 1+ trả lời NO → tiếp tục serial qua Step 1 dưới.**
+
+---
+
 ## Step 1: Xác định Priority Action
 
 Đọc các plan documents theo thứ tự ưu tiên (🔴 P0 trước):

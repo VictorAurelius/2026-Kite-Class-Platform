@@ -78,10 +78,43 @@ Ví dụ output (tiếng Việt per CLAUDE.md §CRITICAL — GAP-207):
 
 **KHÔNG** output bằng English — vi phạm CLAUDE.md §CRITICAL. Field labels + prose phải tiếng Việt. Giữ English cho: technical terms (CI, CVE, PR, gap, wave, branch — đã là loanwords trong context project), file paths, command output, code.
 
+### Step 4.5 — Parallel-eligibility hint (BẮT BUỘC sau khi xác định "Đề xuất tiếp theo")
+
+**Mỗi khi đề xuất next action**, scan xem nó có wave-eligible không. Nếu yes → nhắc user dùng wave + parallel agents thay vì serial PRs.
+
+**Heuristic — gap/feature là wave-eligible khi:**
+
+1. Có ≥3 sub-tasks được phân chia rõ (Phase 1/2/3, Sub-PR a/b/c, Layer 1/2/3...)
+2. Files mỗi sub-task touch là disjoint (không share `application.yml`, không share migration version, không share service class)
+3. Mỗi sub-task self-contained TDD/build cycle (không cần wait sub-task khác xong)
+
+**Heuristic — KHÔNG wave-eligible khi:**
+
+- Chỉ 1-2 sub-tasks
+- Sub-tasks share migration version slot (V_n và V_n+1 collide nếu chạy parallel)
+- Sub-tasks share `application.yml` (rebases sẽ phải sequential)
+- Foundation chưa ship (cần PR-0 ship interfaces/shared lib trước, sau đó parallel)
+
+**Nếu wave-eligible → output line:**
+
+```
+**Wave-eligible:** YES — 5 sub-tasks disjoint files. Đề xuất: tạo wave plan + spawn 4-5 agents parallel (`isolation:worktree`, max 5).
+Reference: `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_before_serial_prs.md` + skill `quality-plan` / `priority-pr-planning` / `gap-to-pr-converter`.
+```
+
+**Nếu KHÔNG wave-eligible → output line:**
+
+```
+**Wave-eligible:** NO — {lý do, e.g. "shared application.yml", "1 sub-task only"}. Tiếp tục serial PR là OK.
+```
+
+**Anti-pattern (phát hiện 2026-04-26 GAP-229):** Pick gap có "Phase 1 / Phase 2 / Phase 3" rồi nhảy thẳng Phase 1 trên branch riêng, ship serial PRs liên tiếp. ~90min serial vs ~30min nếu parallel. Memory `feedback_wave_plan_before_serial_prs.md` chứa case study + checklist 3-câu.
+
 ### Step 5 — Handoff to next skill
 
 User decides:
-- `/continue` — execute top priority from plan
+- **Wave plan** (nếu Step 4.5 báo YES) — ưu tiên cao nhất; dùng `quality-plan` HOẶC viết wave plan ngắn (5-10 dòng) rồi single-message multi-Agent dispatch
+- `/continue` — execute top priority from plan (single sub-task scope)
 - `/repo-status` — deeper health check
 - `/gap-triage` — review gap backlog
 - `/pr-health 290-300` — audit recent merges
@@ -120,6 +153,7 @@ Lock lifecycle:
 - Wave + blockers LUÔN parse từ `ROADMAP.md`, không dùng `ls -t` mtime hoặc alphabetical grep (pre-GAP-206 bugs)
 - Output format tuân `reference/context-template.md` (có ví dụ VN trong Step 4)
 - **MCP status PHẢI nêu trong summary** — nếu line "MCP servers" báo failed servers hoặc 0/N, suggest user fix trước critical work (GitHub MCP cần cho merge/PR ops); per `.claude/rules/mcp-first-with-fallback.md` §3 default sang CLI fallback nhưng phải biết để swap khi fix xong. Anti-pattern bắt nguồn 2026-04-26 (Wave 6 session default `gh` CLI suốt 4 sub-PR vì không check MCP đầu session).
+- **Step 4.5 BẮT BUỘC** — luôn output line "Wave-eligible: YES/NO" sau "Đề xuất tiếp theo". Anti-pattern bắt nguồn 2026-04-26 (GAP-229 3 phases serial = ~90min vs ~30min nếu parallel). Per memory `feedback_wave_plan_before_serial_prs.md` + `feedback_parallel_agent_strategy.md`.
 
 ## Gotchas
 
