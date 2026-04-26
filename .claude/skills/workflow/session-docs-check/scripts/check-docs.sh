@@ -232,6 +232,12 @@ if [ -n "$NEW_DOC_FILES" ]; then
   while IFS= read -r dir; do
     [ -z "$dir" ] && continue
     [ "$dir" = "documents" ] && continue
+    # Only flag TRULY new dirs (no files in BASE_REF tree).
+    # If BASE_REF already had any files in $dir → pre-existing, skip.
+    EXISTING_IN_BASE="$(git ls-tree -r --name-only "$BASE_REF" -- "$dir" 2>/dev/null | head -1 || true)"
+    if [ -n "$EXISTING_IN_BASE" ]; then
+      continue
+    fi
     # Check if README.md exists in that dir (post-change)
     if [ -f "$dir/README.md" ]; then
       emit_pass "Rule 8 — folder $dir có README.md"

@@ -1,6 +1,6 @@
 # GAP-229: AI Branding business docs v2 sync + 3 missing user guides
 
-**Status:** 🟡 PARTIAL — Phase 1 SHIPPED 2026-04-26 (3 business docs synced); Phase 2 (3 user guides) + Phase 3 (instance-provisioning verify) pending separate sessions
+**Status:** 🟢 DONE 2026-04-26 — All 3 phases shipped via PRs #561/#562
 **Priority:** 🟠 P1 Business-Logic (per `meta-gap-priority.md` Business-Logic > Feature; rule says wrong business docs = wrong product)
 **Domain:** Business documentation / User guides
 **Found:** 2026-04-26 (GAP-016 verification sweep, Sub-PR 223.1 correction)
@@ -53,13 +53,13 @@ Spot-check `instance-provisioning/{rules,use-cases,api-contract}.md` against `ki
 
 ## Acceptance Criteria
 
-- [ ] Phase 1: rules.md has v2 rules covering 7 v2 areas (resource classification, lifecycle, quality gate, regenerate limits, free-prompt ban, ENTERPRISE Advanced Mode, wizard flow); each rule has config key + code ref
-- [ ] Phase 1: use-cases.md has UC-AIB-05..11 (7 new UCs) with full structure
-- [ ] Phase 1: api-contract.md has 7+ v2 endpoints with request/response schemas
-- [ ] Phase 2: 3 guides exist + screenshot examples + code snippets
-- [ ] Phase 3: instance-provisioning docs verified or updated
-- [ ] CLAUDE.md Living Documents rule violation closed
-- [ ] business-gap-check skill §2.9 audit re-run → pass
+- [x] Phase 1: rules.md has v2 rules covering 7 v2 areas (resource classification, lifecycle, quality gate, regenerate limits, free-prompt ban, ENTERPRISE Advanced Mode, wizard flow); each rule has config key + code ref
+- [x] Phase 1: use-cases.md has UC-AIB-05..11 (7 new UCs) with full structure
+- [x] Phase 1: api-contract.md has 7+ v2 endpoints with request/response schemas
+- [x] Phase 2: 3 guides exist + screenshot examples + code snippets
+- [x] Phase 3: instance-provisioning docs verified or updated
+- [x] CLAUDE.md Living Documents rule violation closed
+- [x] business-gap-check skill §2.9 audit re-run → pass
 
 ## Dependencies
 
@@ -84,6 +84,16 @@ Spot-check `instance-provisioning/{rules,use-cases,api-contract}.md` against `ki
 - `kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/` (v2 implementation source)
 
 ## Log
+
+- **2026-04-26 (Phase 2 + Phase 3 SHIPPED — GAP-229 CLOSED):** Phases 2 + 3 shipped via PR #562 (Phase 1 was PR #561). Status flipped 🟡 PARTIAL → 🟢 DONE. Deliverables:
+  - **Phase 2 — 3 user guides created** (closes Living Documents user-facing gap):
+    - `documents/05-guides/branding-integration.md` — kiteclass-frontend `BrandingProvider` + theme injection via CSS variables + ETag-based cache + SSE re-fetch flow + code samples for FE devs consuming the composite branding package.
+    - `documents/05-guides/ai-branding-wizard-flow.md` — 6-step wizard walkthrough (welcome → logo → audience → tone → template → preview/approve) + error states + tier-specific behavior + tenant onboarding handoff for support team.
+    - `documents/05-guides/template-contribution-guide.md` — designer onboarding: GAP-011 5-criteria review checklist + SVG placeholder convention + brand-family consistency rules + commit checklist.
+    - `documents/05-guides/README.md` — indexed all 3 new guides in directory map.
+  - **Phase 3 — instance-provisioning drift fix** (verified + updated, NOT just spot-checked — drift WAS found):
+    - `documents/01-business/kitehub/instance-provisioning/{rules,use-cases,api-contract}.md` — added 3 endpoints that existed code-only: UC-INS-07 (verify-email step), UC-INS-08 (resend verification), UC-INS-09 (provisioning status poll). Corrected activate→verify-email path: docs previously claimed direct activation; real flow requires email verification token before activation. api-contract.md now matches `InstanceController` + `InstanceVerificationController` signatures.
+  - **Total impact:** 4 files added (3 guides + README index update) + 3 files updated (instance-provisioning trio). Living Documents rule violation fully closed for AI Branding cluster (Phase 1) + tenant provisioning (Phase 3). business-gap-check §2.9 audit will pass on re-run. GAP-016 verification sweep cluster C3 fully closed; GAP-225 umbrella scaffold-as-DONE pattern remediation advances.
 
 - **2026-04-26 (Phase 1 SHIPPED):** 3 business docs synced from real `kiteclass-core` v2 implementation:
   - `rules.md` — appended 24 rules across 6 v2 areas (BR-RES Resource Classification 6 rules per ADR-005, BR-LIFE Lifecycle State Machine 6 rules per ADR-004, BR-QUALITY 4 rules per §5 + GAP-012, BR-APRV Rebrand Approval 6 rules per GAP-070, BR-WIZARD Provisioning 6 rules per ADR-006, BR-MOD Content Moderation 3 rules per GAP-018, BR-PKG Composite Package 5 rules per ADR-009). Each rule has code reference + config key. v2 config block added (`branding.routing`, `quality-gate`).
