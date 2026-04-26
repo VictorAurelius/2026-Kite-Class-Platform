@@ -1,6 +1,6 @@
 # GAP-229: AI Branding business docs v2 sync + 3 missing user guides
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 SHIPPED 2026-04-26 (3 business docs synced); Phase 2 (3 user guides) + Phase 3 (instance-provisioning verify) pending separate sessions
 **Priority:** 🟠 P1 Business-Logic (per `meta-gap-priority.md` Business-Logic > Feature; rule says wrong business docs = wrong product)
 **Domain:** Business documentation / User guides
 **Found:** 2026-04-26 (GAP-016 verification sweep, Sub-PR 223.1 correction)
@@ -84,5 +84,14 @@ Spot-check `instance-provisioning/{rules,use-cases,api-contract}.md` against `ki
 - `kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/` (v2 implementation source)
 
 ## Log
+
+- **2026-04-26 (Phase 1 SHIPPED):** 3 business docs synced from real `kiteclass-core` v2 implementation:
+  - `rules.md` — appended 24 rules across 6 v2 areas (BR-RES Resource Classification 6 rules per ADR-005, BR-LIFE Lifecycle State Machine 6 rules per ADR-004, BR-QUALITY 4 rules per §5 + GAP-012, BR-APRV Rebrand Approval 6 rules per GAP-070, BR-WIZARD Provisioning 6 rules per ADR-006, BR-MOD Content Moderation 3 rules per GAP-018, BR-PKG Composite Package 5 rules per ADR-009). Each rule has code reference + config key. v2 config block added (`branding.routing`, `quality-gate`).
+  - `use-cases.md` — added UC-AIB-07 Tenant Provisioning Saga, UC-AIB-08 Quality Gate Review, UC-AIB-09 Rebrand Request, UC-AIB-10 Enterprise Approval, UC-AIB-11 Branding Package Fetch, UC-AIB-12 Public Branding Lookup. All sourced from real Controllers + Services in `kiteclass-core`.
+  - `api-contract.md` — added 12 v2 endpoints: 8 lifecycle (`/api/v1/instances/...`) + 2 branding package (`/api/v1/branding/{id}/package` ETag + `/api/v1/branding/public`) + 1 internal webhook + 4 approval endpoints noted as TBD (RebrandApprovalService exists, controller pending). Schema derived from real `InstanceController`, `BrandingPackageController`, `PublicBrandingController`, `InternalWebhookController`, `InstanceResponse` record.
+
+  Per memory `feedback_search_all_modules_before_missing_claim.md` + `feedback_gap_state_check_required.md`: documented REAL implementation, not aspiration. Where `ai-branding-guidelines.md` specifies behavior NOT yet in code (e.g. tier-based regenerate counter, ENTERPRISE Advanced Mode toggle), docs note it as gated/scaffold per source-of-truth.
+
+  Phase 2 (3 user guides: branding-integration.md, ai-branding-wizard-flow.md, template-contribution-guide.md, ~3h) + Phase 3 (instance-provisioning docs verify, ~30min) deferred to separate session.
 
 - **2026-04-26** — Filed during GAP-016 verification sweep + Sub-PR 223.1 correction. Captures business-docs side of cluster C3 governance closure that Sub-PR 223.1 didn't cover (it was code-side governance only). Phased plan: Phase 1 ~2h business docs, Phase 2 ~3h guides, Phase 3 ~30min verify. Total ~5-6h spread across multiple sessions.
