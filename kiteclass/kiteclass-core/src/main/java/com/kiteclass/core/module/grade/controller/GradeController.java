@@ -9,6 +9,7 @@ import com.kiteclass.core.module.grade.dto.response.GradeResponse;
 import com.kiteclass.core.module.grade.dto.response.GradingSummaryResponse;
 import com.kiteclass.core.module.grade.dto.response.TranscriptResponse;
 import com.kiteclass.core.module.grade.service.GradeService;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/grades")
 @RequiredArgsConstructor
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "grade"})
 public class GradeController {
 
     private final GradeService gradeService;

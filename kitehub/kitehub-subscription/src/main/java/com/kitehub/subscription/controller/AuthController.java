@@ -2,6 +2,7 @@ package com.kitehub.subscription.controller;
 
 import com.kitehub.subscription.dto.*;
 import com.kitehub.subscription.service.AuthService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +14,17 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for authentication endpoints.
  * Handles user registration and login.
  *
+ * <p>SLO Tier C (writes: register, login, token refresh).
+ * See {@code documents/05-guides/api-performance-slo.md} for tier rubric.
+ *
  * @since 1.0.0
  */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "User registration, login, and token management")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "auth"})
 public class AuthController {
 
     private final AuthService authService;

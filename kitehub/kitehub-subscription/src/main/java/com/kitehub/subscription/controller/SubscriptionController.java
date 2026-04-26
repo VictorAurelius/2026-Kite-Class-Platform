@@ -5,6 +5,7 @@ import com.kitehub.subscription.dto.SubscriptionResponse;
 import com.kitehub.subscription.dto.TierChangeRequest;
 import com.kitehub.subscription.service.SubscriptionRenewalService;
 import com.kitehub.subscription.service.SubscriptionService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,9 @@ import java.util.UUID;
 /**
  * REST controller for subscription management.
  *
+ * <p>SLO Tier B (lifecycle reads + writes; class-level tag uses Tier B as
+ * the dominant pattern). See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
@@ -25,6 +29,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/subscriptions")
 @RequiredArgsConstructor
 @Tag(name = "Subscriptions", description = "Subscription lifecycle, tier changes, and renewal management")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "subscription"})
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;

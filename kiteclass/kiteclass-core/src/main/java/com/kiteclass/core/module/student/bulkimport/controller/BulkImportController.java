@@ -3,6 +3,7 @@ package com.kiteclass.core.module.student.bulkimport.controller;
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.student.bulkimport.dto.BulkImportResult;
 import com.kiteclass.core.module.student.bulkimport.service.StudentBulkImportService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,8 @@ import java.util.UUID;
 @RequestMapping("/api/v1/students/bulk-import")
 @RequiredArgsConstructor
 @Tag(name = "Student Bulk Import", description = "Bulk import students via xlsx (GAP-051)")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-d", "controller", "bulk-import"})
 public class BulkImportController {
 
     private final StudentBulkImportService service;

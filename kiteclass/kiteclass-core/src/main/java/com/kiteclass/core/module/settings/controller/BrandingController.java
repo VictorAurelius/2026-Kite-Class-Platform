@@ -4,6 +4,7 @@ import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.module.settings.dto.request.UpdateBrandingRequest;
 import com.kiteclass.core.module.settings.dto.response.BrandingResponse;
 import com.kiteclass.core.module.settings.service.BrandingService;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/settings/branding")
 @RequiredArgsConstructor
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-a", "controller", "branding-settings"})
 public class BrandingController {
 
     private final BrandingService brandingService;

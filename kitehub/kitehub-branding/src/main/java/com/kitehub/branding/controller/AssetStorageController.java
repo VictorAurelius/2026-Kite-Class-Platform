@@ -6,6 +6,7 @@ import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.dto.BrandingAsset;
 import com.kitehub.branding.service.BrandingJobService;
 import com.kitehub.branding.service.S3StorageService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,9 @@ import java.util.UUID;
 /**
  * REST controller for asset storage operations.
  *
+ * <p>SLO Tier D (uploads can be multi-MB; class-level Tier D budget covers
+ * worst-case logo upload). See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
@@ -39,6 +43,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/branding/assets")
 @RequiredArgsConstructor
 @Tag(name = "Asset Storage", description = "Upload, retrieve, and delete branding assets (S3)")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-d", "controller", "asset-storage"})
 public class AssetStorageController {
 
     private final S3StorageService s3StorageService;

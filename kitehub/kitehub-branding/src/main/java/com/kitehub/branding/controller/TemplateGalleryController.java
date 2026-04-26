@@ -2,6 +2,7 @@ package com.kitehub.branding.controller;
 
 import com.kitehub.branding.domain.entity.BrandingTemplate;
 import com.kitehub.branding.service.TemplateGalleryService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,9 @@ import java.util.UUID;
  * <p>
  * Provides instant branding without AI generation (< 1s response time).
  *
+ * <p>SLO Tier B (template list/detail reads, no AI in the path).
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @since 1.0
  */
 @Slf4j
@@ -31,6 +35,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/branding/templates")
 @RequiredArgsConstructor
 @Tag(name = "Template Gallery", description = "Pre-built branding templates for instant branding")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "template-gallery"})
 public class TemplateGalleryController {
 
     private final TemplateGalleryService templateService;

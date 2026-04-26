@@ -3,6 +3,7 @@ package com.kitehub.email.controller;
 import com.kitehub.email.dto.EmailRequest;
 import com.kitehub.email.dto.EmailResponse;
 import com.kitehub.email.service.SESEmailService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Email service REST controller.
  *
+ * <p>SLO Tier C (write — sync SES dispatch wraps async delivery).
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @since 1.0
  */
 @Slf4j
@@ -23,6 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/platform/emails")
 @RequiredArgsConstructor
 @Tag(name = "Email", description = "Internal email sending API (SMTP/SES)")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "email"})
 public class EmailController {
 
     private final SESEmailService sesEmailService;

@@ -149,6 +149,17 @@ monitoring:
   prometheusRule:
     enabled: true
 
+  # GAP-135 — API latency dashboard ConfigMap.
+  # When dashboards.enabled=true the chart packages dashboards/api-latency.json
+  # as a ConfigMap labelled `grafana_dashboard=1` so Grafana sidecar auto-imports it.
+  # Requires kube-prometheus-stack with grafana.sidecar.dashboards.enabled=true
+  # (deferred to GAP-143 — chart is currently grafana.enabled=false).
+  dashboards:
+    enabled: false
+    label:
+      key: grafana_dashboard
+      value: "1"
+
   # Subchart values forwarded to kube-prometheus-stack. These are STUBS — production
   # tuning (storage class, retention, scaling) tracked in GAP-144.
   kube-prometheus-stack:

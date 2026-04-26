@@ -3,6 +3,7 @@ package com.kitehub.subscription.controller;
 import com.kitehub.subscription.dto.DomainSetupRequest;
 import com.kitehub.subscription.dto.DomainVerifyResponse;
 import com.kitehub.subscription.service.DomainService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,6 +25,9 @@ import java.util.UUID;
  *   DELETE /api/instances/{id}/domain          - remove custom domain
  *   GET    /api/instances/{id}/domain          - get domain status
  *
+ * <p>SLO Tier C (writes dominate; verify involves async DNS lookup).
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
@@ -31,6 +35,8 @@ import java.util.UUID;
 @RequestMapping("/api/instances/{id}/domain")
 @RequiredArgsConstructor
 @Tag(name = "Custom Domain", description = "Custom domain setup and DNS verification (Premium/Enterprise only)")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "domain"})
 public class DomainController {
 
     private final DomainService domainService;
