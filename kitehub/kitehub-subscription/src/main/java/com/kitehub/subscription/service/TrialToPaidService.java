@@ -10,10 +10,11 @@ import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.exception.MigrationException;
 import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
 import com.kitehub.subscription.outbox.MigrationEventType;
-import com.kitehub.subscription.outbox.MigrationOutboxEvent;
 import com.kitehub.subscription.outbox.MigrationOutboxRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
-import lombok.RequiredArgsConstructor;
+import com.kitehub.subscription.service.migration.MigrationEventEmitter;
+import com.kitehub.subscription.service.migration.MigrationRetryRunner;
+import com.kitehub.subscription.service.migration.MigrationStateMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,16 +54,33 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class TrialToPaidService {
 
     private static final String POLL_URL_TEMPLATE = "/api/platform/instances/%s/trial-status";
 
     private final InstanceRepository instanceRepository;
-    private final MigrationOutboxRepository outboxRepository;
     private final TrialToPaidConfig config;
     private final TrialService trialService;
     private final MigrationIdempotencyKeyService idempotencyService;
+    private final MigrationStateMachine stateMachine;
+    private final MigrationEventEmitter eventEmitter;
+    private final MigrationRetryRunner retryRunner;
+
+    public TrialToPaidService(InstanceRepository instanceRepository,
+                              MigrationOutboxRepository outboxRepository,
+                              TrialToPaidConfig config,
+                              TrialService trialService,
+                              MigrationIdempotencyKeyService idempotencyService) {
+        this.instanceRepository = instanceRepository;
+        this.config = config;
+        this.trialService = trialService;
+        this.idempotencyService = idempotencyService;
+        this.stateMachine = new MigrationStateMachine(config);
+        this.eventEmitter = new MigrationEventEmitter(outboxRepository);
+        this.retryRunner = new MigrationRetryRunner(
+            instanceRepository, trialService, config, stateMachine, eventEmitter,
+            this::markMigrationFailed);
+    }
 
     /**
      * UC-T2P-01 step 2-5: user clicks upgrade → validate → INITIATED → PAYMENT_PENDING.
@@ -90,22 +108,22 @@ public class TrialToPaidService {
 
         Instance instance = loadInstance(instanceId);
 
-        assertCanStartMigration(instance);
-        assertWithinRescueWindowOrStillTrial(instance);
+        stateMachine.assertCanStartMigration(instance);
+        stateMachine.assertWithinRescueWindowOrStillTrial(instance);
 
         LocalDateTime now = LocalDateTime.now();
-        transitionPhase(instance, MigrationPhase.INITIATED, now);
+        stateMachine.transitionPhase(instance, MigrationPhase.INITIATED, now);
         instance.setMigrationStartedAt(now);
         instance.setMigrationFailureReason(null);
 
-        emitEvent(instance, MigrationEventType.TRIAL_UPGRADE_INITIATED,
+        eventEmitter.emit(instance, MigrationEventType.TRIAL_UPGRADE_INITIATED,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"tier\":\"%s\",\"timestamp\":\"%s\"}",
                 instance.getId(), request.getTier(), now));
 
         // Move to PAYMENT_PENDING immediately — gateway submission is non-blocking from
         // the tenant's perspective. Real gateway integration = Phase 4b.
-        transitionPhase(instance, MigrationPhase.PAYMENT_PENDING, now);
+        stateMachine.transitionPhase(instance, MigrationPhase.PAYMENT_PENDING, now);
         instanceRepository.save(instance);
 
         UpgradeResponse response = UpgradeResponse.builder()
@@ -143,9 +161,9 @@ public class TrialToPaidService {
             return;
         }
 
-        transitionPhase(instance, MigrationPhase.PAYMENT_CAPTURED, LocalDateTime.now());
+        stateMachine.transitionPhase(instance, MigrationPhase.PAYMENT_CAPTURED, LocalDateTime.now());
 
-        emitEvent(instance, MigrationEventType.PAYMENT_CAPTURED,
+        eventEmitter.emit(instance, MigrationEventType.PAYMENT_CAPTURED,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"txnId\":\"%s\"}",
                 instance.getId(), txnId == null ? "" : txnId));
@@ -174,7 +192,7 @@ public class TrialToPaidService {
                 "Cannot execute migration from phase " + instance.getMigrationPhase());
         }
 
-        transitionPhase(instance, MigrationPhase.MIGRATING, LocalDateTime.now());
+        stateMachine.transitionPhase(instance, MigrationPhase.MIGRATING, LocalDateTime.now());
         instanceRepository.save(instance);
 
         try {
@@ -184,15 +202,15 @@ public class TrialToPaidService {
             // Re-load to observe the post-flip state.
             Instance refreshed = loadInstance(instanceId);
             LocalDateTime completedAt = LocalDateTime.now();
-            transitionPhase(refreshed, MigrationPhase.COMPLETED, completedAt);
+            stateMachine.transitionPhase(refreshed, MigrationPhase.COMPLETED, completedAt);
             refreshed.setMigrationCompletedAt(completedAt);
 
-            emitEvent(refreshed, MigrationEventType.INSTANCE_MIGRATED,
+            eventEmitter.emit(refreshed, MigrationEventType.INSTANCE_MIGRATED,
                 MigrationEventType.TOPIC_MIGRATION,
                 String.format("{\"instanceId\":\"%s\",\"fromStatus\":\"TRIAL\",\"toStatus\":\"ACTIVE\",\"completedAt\":\"%s\"}",
                     refreshed.getId(), completedAt));
 
-            emitEvent(refreshed, MigrationEventType.BRANDING_REFRESH_REQUIRED,
+            eventEmitter.emit(refreshed, MigrationEventType.BRANDING_REFRESH_REQUIRED,
                 MigrationEventType.TOPIC_BRANDING,
                 String.format("{\"instanceId\":\"%s\",\"tier\":\"%s\"}",
                     refreshed.getId(), refreshed.getTier()));
@@ -227,31 +245,31 @@ public class TrialToPaidService {
                 "Cannot rollback instance in status " + instance.getStatus());
         }
 
-        if (!isWithinReversalWindow(instance)) {
+        if (!stateMachine.isWithinReversalWindow(instance)) {
             throw new MigrationException(MigrationException.Code.REVERSAL_WINDOW_EXPIRED,
                 "Rollback requested beyond " + config.getReversalWindowHours() + "h window");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
-        transitionPhase(instance, MigrationPhase.REVERSED, now);
+        stateMachine.transitionPhase(instance, MigrationPhase.REVERSED, now);
 
         // Restore status + trial expiry. Preserve the original trialExpiresAt.
         instance.setStatus(InstanceStatus.TRIAL);
         instance.setSubscriptionExpiresAt(null);
         instance.setMigrationFailureReason(reason);
 
-        emitEvent(instance, MigrationEventType.PAYMENT_REVERSED,
+        eventEmitter.emit(instance, MigrationEventType.PAYMENT_REVERSED,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"reason\":\"%s\",\"reversedAt\":\"%s\"}",
-                instance.getId(), escape(reason), now));
+                instance.getId(), MigrationEventEmitter.escape(reason), now));
 
-        emitEvent(instance, MigrationEventType.MIGRATION_ROLLED_BACK,
+        eventEmitter.emit(instance, MigrationEventType.MIGRATION_ROLLED_BACK,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"fromStatus\":\"ACTIVE\",\"toStatus\":\"TRIAL\",\"rolledBackAt\":\"%s\"}",
                 instance.getId(), now));
 
-        emitEvent(instance, MigrationEventType.BRANDING_REFRESH_REQUIRED,
+        eventEmitter.emit(instance, MigrationEventType.BRANDING_REFRESH_REQUIRED,
             MigrationEventType.TOPIC_BRANDING,
             String.format("{\"instanceId\":\"%s\",\"tier\":\"%s\"}",
                 instance.getId(), instance.getTier()));
@@ -289,11 +307,11 @@ public class TrialToPaidService {
 
         // Immediately short-circuit PAYMENT_PENDING → PAYMENT_CAPTURED with a manual tag.
         Instance instance = loadInstance(instanceId);
-        transitionPhase(instance, MigrationPhase.PAYMENT_CAPTURED, LocalDateTime.now());
-        emitEvent(instance, MigrationEventType.PAYMENT_CAPTURED,
+        stateMachine.transitionPhase(instance, MigrationPhase.PAYMENT_CAPTURED, LocalDateTime.now());
+        eventEmitter.emit(instance, MigrationEventType.PAYMENT_CAPTURED,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"manual\":true,\"invoiceRef\":\"%s\",\"reason\":\"%s\"}",
-                instance.getId(), escape(invoiceRef), escape(auditReason)));
+                instance.getId(), MigrationEventEmitter.escape(invoiceRef), MigrationEventEmitter.escape(auditReason)));
         instanceRepository.save(instance);
 
         return response.toBuilder()
@@ -313,105 +331,7 @@ public class TrialToPaidService {
      * Retry) can be dropped in later without changing the surface.</p>
      */
     public void executeMigrationWithRetry(UUID instanceId) {
-        int maxAttempts = Math.max(1, config.getRetryAttempts());
-        List<Integer> backoff = config.getRetryBackoffSeconds();
-
-        // Validate precondition once up front so illegal-phase callers don't enter
-        // the retry loop at all (INVALID_PHASE_TRANSITION is not transient).
-        Instance preview = loadInstance(instanceId);
-        if (preview.getMigrationPhase() != MigrationPhase.PAYMENT_CAPTURED) {
-            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
-                "Cannot execute migration from phase " + preview.getMigrationPhase());
-        }
-
-        RuntimeException lastError = null;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-                boolean isFinalAttempt = (attempt == maxAttempts);
-                executeMigrationInternal(instanceId, isFinalAttempt);
-                log.info("Migration for {} succeeded on attempt {}", instanceId, attempt);
-                return;
-            } catch (RuntimeException ex) {
-                lastError = ex;
-                if (attempt < maxAttempts) {
-                    long delaySeconds = backoff != null && attempt - 1 < backoff.size()
-                        ? backoff.get(attempt - 1) : 1L;
-                    log.warn("Migration attempt {}/{} for {} failed — retrying in {}s: {}",
-                        attempt, maxAttempts, instanceId, delaySeconds, ex.getMessage());
-                    sleepSeconds(delaySeconds);
-                    // Reset phase so the next attempt can run the state-machine path again.
-                    resetToPaymentCapturedForRetry(instanceId);
-                }
-            }
-        }
-        // Retry exhausted — mark terminal and rethrow.
-        log.error("Migration exhausted {} attempts for instance {}", maxAttempts, instanceId);
-        markMigrationFailed(instanceId, lastError == null ? "unknown" : lastError.getMessage());
-        if (lastError instanceof MigrationException me) {
-            throw me;
-        }
-        throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
-            "Retry exhausted: " + (lastError == null ? "unknown" : lastError.getMessage()),
-            lastError);
-    }
-
-    /**
-     * Core migration work. Equivalent to the public {@link #executeMigration(UUID)} but
-     * only marks {@code MIGRATION_FAILED} on the final attempt so the retry wrapper
-     * can reset the phase between attempts.
-     */
-    @Transactional
-    @SuppressWarnings("deprecation")  // intentional delegation to TrialService legacy flip during Phase 4b-i transition
-    protected void executeMigrationInternal(UUID instanceId, boolean terminalOnFailure) {
-        log.info("Executing migration for instance {}", instanceId);
-        Instance instance = loadInstance(instanceId);
-        if (instance.getMigrationPhase() != MigrationPhase.PAYMENT_CAPTURED) {
-            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
-                "Cannot execute migration from phase " + instance.getMigrationPhase());
-        }
-        transitionPhase(instance, MigrationPhase.MIGRATING, LocalDateTime.now());
-        instanceRepository.save(instance);
-        try {
-            trialService.convertTrialToSubscription(instanceId);
-            Instance refreshed = loadInstance(instanceId);
-            LocalDateTime completedAt = LocalDateTime.now();
-            transitionPhase(refreshed, MigrationPhase.COMPLETED, completedAt);
-            refreshed.setMigrationCompletedAt(completedAt);
-            emitEvent(refreshed, MigrationEventType.INSTANCE_MIGRATED,
-                MigrationEventType.TOPIC_MIGRATION,
-                String.format("{\"instanceId\":\"%s\",\"fromStatus\":\"TRIAL\",\"toStatus\":\"ACTIVE\",\"completedAt\":\"%s\"}",
-                    refreshed.getId(), completedAt));
-            emitEvent(refreshed, MigrationEventType.BRANDING_REFRESH_REQUIRED,
-                MigrationEventType.TOPIC_BRANDING,
-                String.format("{\"instanceId\":\"%s\",\"tier\":\"%s\"}",
-                    refreshed.getId(), refreshed.getTier()));
-            instanceRepository.save(refreshed);
-            log.info("Migration COMPLETED for instance {}", instanceId);
-        } catch (Exception ex) {
-            log.error("Migration attempt failed for instance {}", instanceId, ex);
-            if (terminalOnFailure) {
-                markMigrationFailed(instanceId, ex.getMessage());
-            }
-            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
-                "Migration failed: " + ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Reset an instance back to {@code PAYMENT_CAPTURED} after a failed attempt so the
-     * retry wrapper can run the state machine again. Called only between retry attempts.
-     */
-    @Transactional
-    protected void resetToPaymentCapturedForRetry(UUID instanceId) {
-        Instance instance = loadInstance(instanceId);
-        if (instance.getMigrationPhase() == MigrationPhase.PAYMENT_CAPTURED) {
-            return;
-        }
-        // Force-reset — bypass normal state-machine guard because we're inside the
-        // retry control loop and the previous attempt was definitionally transient.
-        instance.setMigrationPhase(MigrationPhase.PAYMENT_CAPTURED);
-        instance.setMigrationFailureReason(null);
-        instanceRepository.save(instance);
+        retryRunner.executeMigrationWithRetry(instanceId);
     }
 
     /**
@@ -438,73 +358,11 @@ public class TrialToPaidService {
         return Optional.of(rollback(instanceId, reason));
     }
 
-    private static void sleepSeconds(long seconds) {
-        try {
-            Thread.sleep(seconds * 1000L);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
     // --- helpers ---------------------------------------------------------
 
     private Instance loadInstance(UUID instanceId) {
         return instanceRepository.findById(instanceId)
             .orElseThrow(() -> new IllegalArgumentException("Instance not found: " + instanceId));
-    }
-
-    private void assertCanStartMigration(Instance instance) {
-        if (instance.getMigrationPhase() == MigrationPhase.MIGRATION_FAILED) {
-            throw new MigrationException(MigrationException.Code.MIGRATION_FAILED_LOCKED,
-                "Instance is in MIGRATION_FAILED; manual ops action required");
-        }
-        if (instance.getMigrationPhase() != MigrationPhase.NONE
-            && instance.getMigrationPhase() != MigrationPhase.COMPLETED
-            && instance.getMigrationPhase() != MigrationPhase.REVERSED) {
-            throw new MigrationException(MigrationException.Code.MIGRATION_IN_FLIGHT,
-                "Another migration already in flight: " + instance.getMigrationPhase());
-        }
-    }
-
-    private void assertWithinRescueWindowOrStillTrial(Instance instance) {
-        if (instance.getStatus() != InstanceStatus.TRIAL) {
-            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
-                "Instance is not on TRIAL (status=" + instance.getStatus() + ")");
-        }
-        if (instance.getTrialExpiresAt() != null
-            && LocalDateTime.now().isAfter(
-                instance.getTrialExpiresAt().plusHours(config.getRescueWindowHours()))) {
-            throw new MigrationException(MigrationException.Code.RESCUE_WINDOW_EXPIRED,
-                "Trial expired beyond rescue window of " + config.getRescueWindowHours() + "h");
-        }
-    }
-
-    /**
-     * Enforce state-machine transitions from {@link MigrationPhase#canTransitionTo}.
-     * Callers must always use this helper — never set {@code migrationPhase} directly.
-     */
-    private void transitionPhase(Instance instance, MigrationPhase target, LocalDateTime ts) {
-        MigrationPhase current = instance.getMigrationPhase();
-        if (current == null) {
-            current = MigrationPhase.NONE;
-        }
-        if (!current.canTransitionTo(target)) {
-            throw new MigrationException(MigrationException.Code.INVALID_PHASE_TRANSITION,
-                "Illegal transition " + current + " → " + target);
-        }
-        instance.setMigrationPhase(target);
-        if (target == MigrationPhase.INITIATED) {
-            instance.setMigrationStartedAt(ts);
-        }
-    }
-
-    private boolean isWithinReversalWindow(Instance instance) {
-        if (instance.getMigrationCompletedAt() == null) {
-            return false;
-        }
-        LocalDateTime deadline = instance.getMigrationCompletedAt()
-            .plusHours(config.getReversalWindowHours());
-        return LocalDateTime.now().isBefore(deadline);
     }
 
     private void markMigrationFailed(UUID instanceId, String reason) {
@@ -516,31 +374,12 @@ public class TrialToPaidService {
             instance.setStatus(InstanceStatus.TRIAL);
         }
 
-        emitEvent(instance, MigrationEventType.MIGRATION_FAILED,
+        eventEmitter.emit(instance, MigrationEventType.MIGRATION_FAILED,
             MigrationEventType.TOPIC_MIGRATION_DLQ,
             String.format("{\"instanceId\":\"%s\",\"failureReason\":\"%s\",\"attempts\":1}",
-                instance.getId(), escape(reason)));
+                instance.getId(), MigrationEventEmitter.escape(reason)));
 
         instanceRepository.save(instance);
     }
 
-    private void emitEvent(Instance instance, String eventType, String topic, String payload) {
-        MigrationOutboxEvent event = MigrationOutboxEvent.builder()
-            .id(UUID.randomUUID())
-            .instanceId(instance.getId())
-            .eventType(eventType)
-            .topic(topic)
-            .payload(payload)
-            .createdAt(LocalDateTime.now())
-            .build();
-        outboxRepository.save(event);
-        log.debug("Outbox event queued: {} for instance {}", eventType, instance.getId());
-    }
-
-    private static String escape(String s) {
-        if (s == null) {
-            return "";
-        }
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
 }

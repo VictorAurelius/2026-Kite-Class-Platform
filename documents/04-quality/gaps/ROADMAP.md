@@ -44,7 +44,7 @@
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 5 fully closed 2026-04-25 (#532 Sub-PR 5.6b). Next P0 meta gap **GAP-046** (design-pattern audit + rules enforcement). Wave 6 candidates: PowerPoint (defer-payback) or Ops Readiness audit. Alternative parallel track: Wave 10 GAP-055 (report-card VN format) for BL-P0 progress.
+**Next recommended wave:** Wave 6 in flight — Sub-PRs 6.0a/6.0b/6.1 merged, **6.2 staged** (TrialToPaidService 546→385 LOC Facade refactor). Remaining: 6.3 InstanceService refactor, 6.4 GAP-222 Outbox bypass migration (optional), 6.5 wave closure + post-wave audit suite refresh.
 
 ---
 
