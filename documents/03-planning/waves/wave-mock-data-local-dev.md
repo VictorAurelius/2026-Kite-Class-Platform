@@ -230,86 +230,133 @@ Wave này chia làm **4 PRs** tuần tự (mỗi PR là dependency của PR sau)
 
 ---
 
-## 7. AI Branding Workflow Mock (added 2026-04-14 per GAP-014)
+## 7. AI Branding Workflow Mock (per GAP-014, **v2-aligned 2026-04-26**)
 
-Wave plan original focused on KiteClass core. **Mở rộng scope: mock AI Branding workflow** từ kitehub-branding.
+> **Module-location note (verified 2026-04-26):** AI Branding v2 implementation shipped to **`kiteclass/kiteclass-core/`** — NOT `kitehub-branding/` as the original architecture doc specified. Class renames: `BrandingAnalyzer → AnalyzerService`, `BrandingPlanner → PlannerService`, `BrandingExecutor → PlanExecutor` (internal services, NOT REST endpoints). See GAP-016 + GAP-234 for architecture doc drift.
 
-### 7.1 KiteHub-Branding Endpoints cần mock (12+)
+### 7.1 v2 AI Branding Endpoints — ACTUAL controllers in kiteclass-core (10 endpoints, verified 2026-04-26)
 
-| Category | Endpoint | Method | Purpose |
-|----------|----------|:------:|---------|
-| Analyze | `/api/v1/branding/analyze` | POST | BrandingContext từ inputs |
-| Plan | `/api/v1/branding/plan` | POST | ExecutionPlan (steps) |
-| Execute | `/api/v1/branding/execute` | POST | Run plan, return jobId |
-| Job Status | `/api/v1/branding/jobs/{jobId}` | GET | Poll async status |
-| Package | `/api/v1/branding/{instanceId}/package` | GET | Composite branding (theme + assets) |
-| Templates | `/api/v1/templates` | GET | Template gallery |
-| Template detail | `/api/v1/templates/{id}` | GET | Template + preview |
-| Instance status | `/api/v1/instances/{id}/status` | GET | Lifecycle state |
-| Regenerate | `/api/v1/branding/regenerate` | POST | Single resource regen |
-| Wizard draft | `/api/v1/branding/wizard/draft` | POST | Autosave |
-| Wizard resume | `/api/v1/branding/wizard/draft/latest` | GET | Resume session |
-| Quality report | `/api/v1/branding/quality-reports/{id}` | GET | Score + issues |
+Inventoried directly from real source controllers — `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/`:
 
-### 7.2 Lifecycle Transitions (mocked state machine)
+| Category | Endpoint | Method | Controller | Purpose |
+|----------|----------|:------:|------------|---------|
+| Instance create | `/api/v1/instances` | POST | `InstanceController` | Create FrontendInstance (status=NOT_STARTED) |
+| Instance get | `/api/v1/instances/{id}` | GET | `InstanceController` | Single instance + lifecycle status |
+| Instance list | `/api/v1/instances` | GET | `InstanceController` | List instances |
+| Lifecycle: init done | `/api/v1/instances/{id}/infrastructure-ready` | POST | `InstanceController` | NOT_STARTED → INITIALIZING → GENERATING |
+| Lifecycle: branding done | `/api/v1/instances/{id}/branding-completed` | POST | `InstanceController` | GENERATING/REGENERATING → DEPLOYED (score gate ≥70) |
+| Lifecycle: rebrand | `/api/v1/instances/{id}/rebrand` | POST | `InstanceController` | DEPLOYED → REGENERATING |
+| Lifecycle: fail | `/api/v1/instances/{id}/failed` | POST | `InstanceController` | Any → FAILED |
+| Lifecycle: retry | `/api/v1/instances/{id}/retry` | POST | `InstanceController` | FAILED → INITIALIZING |
+| Branding package | `/api/v1/branding/{instanceId}/package` | GET | `BrandingPackageController` | Composite theme + assets (cached, ETag) |
+| Branding public | `/api/v1/branding/public` | GET | `PublicBrandingController` | Public-facing branding fetch |
+| Internal webhook | `/internal/notify/instance-deployed` | POST | `InternalWebhookController` | Cross-service notify on deploy |
 
-Simulated async flow với delays:
+**Internal services (NOT REST — invoked from Saga / Step pipeline):**
+- `AnalyzerService.analyze()` — produces `AnalysisResult` from BrandingContext
+- `PlannerService.generatePlan()` — produces `BrandingPlan`
+- `PlanExecutor.execute()` — runs Steps with fallback
+- `InstanceQualityReviewer.review()` — runs 5 quality checks → score `/100`
+- `ContentModerationService.moderate()` — 3-stage pipeline → ModerationStatus
+- `TenantProvisioningSaga` — orchestrates tenant.created → instance create → branding generate
+
+These are NOT mocked at HTTP layer (no controller). FE doesn't call them directly. Mock at the lifecycle endpoint level (POST infrastructure-ready / branding-completed) which simulates the saga effect.
+
+**Endpoints NOT in v2 backend (FE-only / TBD):**
+- Wizard draft autosave (`/api/v1/branding/wizard/draft`) — FE state machine handles this client-side via `wizard-machine.ts`; no BE endpoint
+- Templates gallery (`/api/v1/templates`) — Sprint 0 GAP-011 deliverable, no controller yet
+- Quality reports (`/api/v1/branding/quality-reports/{id}`) — TBD GAP-012 follow-up; currently surfaced via instance status payload
+- Approval per resource — TBD via `/api/v1/branding/rebrand-approvals` (GAP-070 placeholder)
+
+### 7.2 Lifecycle Transitions (mocked state machine, v2-aligned)
+
+Real flow per `FrontendInstanceStatus` (6 states):
+
 ```
-User wizard complete → POST /branding/execute
-  ↓ (return jobId immediately)
-Mock worker:
-  Wait 2s → status: INITIALIZING
-  Wait 5s → status: GENERATING
-  Wait 3s → status: DEPLOYED (quality score 85)
+NOT_STARTED → INITIALIZING → GENERATING → DEPLOYED ⇄ REGENERATING
+                  ↓              ↓          ↑
+                FAILED ←────── FAILED ──────┘ (retry)
 ```
 
-### 7.3 Sub-PR E: FE MSW — AI Branding Workflow
+Mock simulation (FE MSW):
 
-**Branch:** `feat/fe-mock-ai-branding-workflow`
-**Dependencies:** PR A (OpenAPI), PR B (FE mock base)
+```
+1. POST /api/v1/instances              → status=NOT_STARTED, return id
+2. POST /api/v1/instances/{id}/infrastructure-ready
+                                       → wait 1s → status=INITIALIZING → 2s → status=GENERATING
+3. POST /api/v1/instances/{id}/branding-completed (with mock QualityReport.score=85)
+                                       → wait 2s → status=DEPLOYED (gate passes if score ≥ 70)
+4. GET /api/v1/branding/{id}/package   → returns mock theme + 6 asset URLs
+5. POST /api/v1/instances/{id}/rebrand → status=REGENERATING; loop step 3 again
+6. POST /api/v1/instances/{id}/failed  → terminal FAILED state
+7. POST /api/v1/instances/{id}/retry   → FAILED → INITIALIZING (loop step 2)
+```
+
+### 7.3 Sub-PR E: FE MSW — v2 AI Branding Lifecycle (~10 mocks)
+
+**Branch:** `feat/fe-mock-ai-branding-v2`
+**Dependencies:** PR A (OpenAPI v2 export from kiteclass-core), PR B (FE mock base)
 **Scope:**
-- Mock all 12+ kitehub-branding endpoints
-- Simulated async (setTimeout cho state transitions)
-- 6 mock templates per category (branding wizard Step 5)
-- Mock quality gate: return score 85 by default
-- Mock regenerate with counter (tier limits)
-- Integration: wizard → mock backend → DEPLOYED → package API returns
+- Mock 10 v2 endpoints listed in §7.1 (all from real controllers)
+- In-memory state machine: each mock instance keeps current `status`, transitions persisted in mock DB
+- Simulated delays per §7.2 (1-2s)
+- Mock quality score: 85 (deterministic) → DEPLOYED passes; scenario toggle for <70 → FAILED
+- Mock branding package returns theme JSON + 6 placeholder asset URLs
+- FE wizard (`BrandingWizard.tsx`) uses mocks end-to-end, no real BE
 
-### 7.4 Sub-PR F: BE DataSeeder — kitehub-branding
+### 7.4 Sub-PR F: BE DataSeeder — kiteclass-core branding tables
 
-**Branch:** `feat/be-dataseeder-branding`
+**Branch:** `feat/be-dataseeder-branding-v2`
 **Dependencies:** PR C (KiteClass seeder foundation)
 **Scope:**
-- Seed 30 ImageTemplates with metadata (tied to GAP-011)
-- Seed 1 sample tenant với DEPLOYED instance
-- Seed 1 BrandingJob COMPLETED với QualityReport
-- Respect FK order: Tenant → FrontendInstance → BrandingResource → Template
-- `@Profile("dev")` only
+- Seed 1 sample `FrontendInstance` (status=DEPLOYED, brandingVersion=1)
+- Seed 1 sample `BrandingResource` per category (STATIC/TEMPLATE/FULL_AI = 3 rows)
+- Seed 1 sample `QualityReport` with score=85 + 5 mock issues
+- Seed 1 sample `OutboxEvent` (`branding.updated`) — not yet dispatched
+- Skip `branding_templates` seed until GAP-011 lands template entity (currently no `ImageTemplate` table)
+- Respect FK order: Instance → BrandingResource → QualityReport → OutboxEvent
+- `@Profile("dev")` only — guarded by `DATABASE_LIFECYCLE_ENABLED=true` per `instance-provisioning/rules.md` INS-14
 
-### 7.5 Demo Flow
+### 7.5 Demo Flow (v2-aligned)
 
-Local dev full flow (no backend needed):
+Local dev full flow (no AI model needed):
+
 ```
-1. Login tenant admin (mock auth)
+1. Login tenant admin (mock auth via existing handlers.ts)
 2. Onboarding wizard → "Tạo thương hiệu AI" link
-3. 10-step wizard (GAP-031 rich inputs)
-4. Step 5: pick template từ 6 mock options
-5. Step 6: preview + approve resources
-6. Click Deploy → lifecycle animation
-7. Redirect to tenant instance với mock branding applied
-8. Regenerate banner → new job, updated resource
-9. View quality report (score 85, sample issues)
-10. Export brand pack (if GAP-034 done)
+3. BrandingWizard.tsx 6-step flow (real component, mock backend)
+4. Step 4: pick audience/tone (constrained presets per ai-branding-guidelines.md §2.1)
+5. Step 5: pick template từ 6 mock options (templates seeded via GAP-011 stub data)
+6. Step 6: preview + approve per-resource
+7. Click Deploy → POST /api/v1/instances/{id}/infrastructure-ready
+   → Lifecycle animation: INITIALIZING → GENERATING (2s) → DEPLOYED
+8. Redirect to tenant instance với mock branding applied (theme CSS vars)
+9. Click Regenerate banner → POST /api/v1/instances/{id}/rebrand
+   → Lifecycle: REGENERATING → DEPLOYED (loop)
+10. View QualityReport panel: score=85, 5 sample issues (mock)
 ```
 
 ### 7.6 Acceptance (extension của §3)
 
-- [ ] 12+ branding endpoints mocked
-- [ ] Lifecycle transitions simulated
-- [ ] 6 sample templates per category
-- [ ] Demo flow runs end-to-end locally
-- [ ] Screenshots captured all wizard steps
-- [ ] No real AI model calls required
+- [ ] 10 v2 endpoints mocked (per real §7.1 inventory) — NOT 12 aspirational paths
+- [ ] Lifecycle 6-state transitions simulated với realistic delays
+- [ ] DataSeeder seeds 1 sample DEPLOYED instance + 3 BrandingResources + 1 QualityReport
+- [ ] Demo flow runs end-to-end locally without `OllamaClient` invocation (verify via log assertion: 0 Ollama calls)
+- [ ] Screenshots captured all wizard steps + lifecycle states
+- [ ] No real AI model calls required (`MockAIClient` profile active)
+- [ ] DataSeeder respects FK order: instance → resource → report
+- [ ] OpenAPI spec exported from kiteclass-core covers v2 endpoints
+
+### 7.7 Out-of-scope (track separately)
+
+| Item | Why deferred | Tracking |
+|------|--------------|----------|
+| `ImageTemplate` entity + 30 template seeds | Sprint 0 designer work | GAP-011 |
+| Regenerate counter UI + tier limits enforcement | Per-tier rate limit logic | GAP-005 Phase 2 |
+| Real wizard draft persistence (server-side) | Currently FE-only via wizard-machine.ts | GAP-020 |
+| `quality-reports/{id}` REST endpoint | Currently surfaced via instance status payload only | GAP-012 follow-up |
+| Approval per resource REST | TBD endpoints | GAP-070 placeholder |
+| MixSura / Gemma 4 9B real model swap | Infra-blocked | GAP-006 |
 
 ---
 
@@ -324,5 +371,6 @@ Local dev full flow (no backend needed):
 
 ## 9. Log
 
-- **2026-04-14 T0** — Wave plan created. Investigation complete (71 FE endpoints, 36 BE entities audited).
+- **2026-04-26 (GAP-014 v2 alignment):** §7 rewritten end-to-end against shipped v2 controllers verified live in `kiteclass-core`. Replaced 12 aspirational endpoints with 10 real ones from `InstanceController` (8) + `BrandingPackageController` (1) + `PublicBrandingController` (1) + `InternalWebhookController` (1). Removed wizard/templates/quality-reports endpoints (don't exist in BE — see §7.7 deferred list). Internal services (Analyzer/Planner/Executor/QualityReviewer/ContentModeration/TenantProvisioningSaga) called out as non-REST. Sub-PR E + F rewritten to target `kiteclass-core` (NOT `kitehub-branding`) per architecture doc drift. Added §7.7 Out-of-scope with 6 deferred items linked to existing gaps. GAP-014 status PARTIAL (planning v2-aligned DONE) — implementation portion split to GAP-235.
 - **2026-04-14 T1** — User xác định phương châm: (1) toàn bộ phạm vi, (2) best practice. Plan updated với OpenAPI-first approach, full 36 entities seed, 4 PRs thay vì 3. Waiting user approve trước khi tạo wave branch.
+- **2026-04-14 T0** — Wave plan created. Investigation complete (71 FE endpoints, 36 BE entities audited).
