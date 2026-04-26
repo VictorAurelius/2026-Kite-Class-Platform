@@ -1,7 +1,7 @@
 # Design Patterns — Project Rules
 
 **Priority:** 🟠 MANDATORY
-**Version:** 1.2.0
+**Version:** 1.3.0
 **Created:** 2026-04-14
 **Last-Reviewed:** 2026-04-26
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5)
@@ -178,7 +178,31 @@ Code in `*Config.java`, `*Configuration.java`, or javadoc/comment example-only r
 
 Code in `src/test/**` paths is exempt; tests deliberately exercise broker-direct paths to validate consumers.
 
-**Anti-pattern (BANNED):** any other direct-publish site without one of these markers. The `quality/design-pattern-audit` skill (Cat 5) flags every site; reviewers verify each flagged site is either eliminated, migrated to outbox, or documented under A/B/C.
+**Exception D — Dedicated dispatcher infrastructure**
+
+A class whose single purpose is to publish events to RabbitMQ on behalf of callers (e.g. `AIQueueDispatcher` routes by tier, `EmailServiceClient` ships email events) is exempt when ALL four criteria hold:
+
+1. **Naming:** class name is suffixed `Dispatcher`, `Publisher`, `Client`, or equivalent infrastructure naming
+2. **Caller contract:** callers MUST have already persisted their domain change before invoking it (verified at code review, NOT enforced by runtime)
+3. **No business logic:** the dispatcher contains routing, serialization, metric emission, send — nothing else. Any conditional that depends on domain state means it's a service, not a dispatcher → use Exception A instead
+4. **Marker:** class-level javadoc includes the literal phrase `dedicated dispatcher infrastructure`
+
+```java
+// EXAMPLE — kitehub-branding/.../queue/AIQueueDispatcher.java
+/**
+ * Routes AI jobs to the correct tier queue based on priority.
+ *
+ * <p>This is dedicated dispatcher infrastructure (per design-patterns.md §3.5.1
+ * Exception D) — its single purpose is the broker handoff. Callers persist
+ * their {@code BrandingJob} row in their own transaction before invoking.</p>
+ */
+@Component
+public class AIQueueDispatcher { ... }
+```
+
+Rationale: wrapping a dispatcher in outbox creates wrap-the-wrapper and adds latency to the operation the dispatcher exists to make fast. Reliability moves to callers, which write domain row + outbox row before invoking the dispatcher.
+
+**Anti-pattern (BANNED):** any other direct-publish site without one of these markers. The `quality/design-pattern-audit` skill (Cat 5) flags every site; reviewers verify each flagged site is either eliminated, migrated to outbox, or documented under A/B/C/D.
 
 ### 3.6 Missing Resilience on External Calls
 ```
@@ -313,6 +337,7 @@ Team goal: majority Level 2, architects Level 3.
 
 ## 9. Log
 
+- **2026-04-26** (v1.3.0): MINOR — added §3.5.1 Exception D (Dedicated dispatcher infrastructure) with 4-criterion test (naming + caller contract + no business logic + marker phrase) + AIQueueDispatcher example. Updated anti-pattern wording from A/B/C → A/B/C/D. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with AIQueueDispatcher javadoc marker application + GAP-230 closure in same PR). Closes GAP-230. Motivation: GAP-222a Phase 2 found `AIQueueDispatcher` did not fit Exception A (no co-located domain transaction; class IS the dispatcher). Wrapping a dispatcher in outbox adds latency to the operation the dispatcher exists to make fast. Exception D legitimizes "dedicated dispatcher infrastructure" pattern under strict 4-criterion test that prevents abuse as escape hatch.
 - **2026-04-26** (v1.2.0): MINOR — extended §3.5.1 default-rule paragraph to cite per-module domain outbox precedents (`MigrationOutboxRepository`, `BrandingEventEmitter`) alongside `OutboxEventWriter`, and added one-paragraph guidance pointing to ADR-021 for module-by-module choice. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with ADR-021 acceptance + GAP-222a Phase 2 implementation in same wave). Closes part of GAP-222a Phase 3 (rule clarification AC). Motivation: original §3.5.1 mentioned MigrationOutboxRepository only as a parenthetical example; ADR-021 elevates per-module pattern to primary path for cross-product modules — rule must reflect.
 - **2026-04-26** (v1.1.0): MINOR — added §3.5.1 Outbox Bypass Policy (Exceptions A/B/C + anti-pattern envelope). Backfilled mandatory frontmatter (Version, Created, Last-Reviewed, Reviewer-Approver, Applies-to) per `rule-change-process.md` §3 backfill-on-next-edit policy. Closes part of GAP-222 Phase 1 (Sub-PR 6.4). Reviewer: @nguyenvankiet (solo-dev self-approve per §5 matrix for MINOR — paired with detector calibration in same PR + post-wave audit in Sub-PR 6.5). Motivation: design-pattern audit baseline 2026-04-26 (Sub-PR 6.1) found 5 services bypassing Outbox without policy → couldn't tell which were intentional. §3.5.1 turns "silent bypass" into "documented exception or violation" so future audits + reviewers can decide objectively.
 - 2026-04-14 (v1.0.0): Rules created based on AI Branding v2 design patterns catalog

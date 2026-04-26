@@ -1,6 +1,6 @@
 # GAP-230: design-patterns.md §3.5.1 — add Exception D for dedicated dispatcher infrastructure (AIQueueDispatcher)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE — Exception D rule landed (`design-patterns.md` v1.3.0); AIQueueDispatcher marker applied; EmailServiceClient + InstancePurgeService triaged out (both fail criterion 3 — see Triage table)
 **Priority:** 🟠 P1 Meta (rule clarification — blocks closing one design-pattern audit Cat 5 finding)
 **Domain:** Rules / Governance
 **Found:** 2026-04-26 (during GAP-222a Phase 2 scoping)
@@ -64,10 +64,26 @@ Add **Exception D — Dedicated dispatcher infrastructure** to `design-patterns.
 
 ## Acceptance Criteria
 
-- [ ] `design-patterns.md` §3.5.1 v1.2.0 → v1.3.0 with new Exception D documented
-- [ ] `AIQueueDispatcher` javadoc updated with marker phrase
-- [ ] Next design-pattern audit explicitly checks each Exception D claim against the 4-criterion test
-- [ ] Decision logged in this gap whether `EmailServiceClient` and `InstancePurgeService` (other audit Cat 5 hits in `kitehub-subscription`) qualify under D or need separate handling
+- [x] `design-patterns.md` §3.5.1 v1.2.0 → v1.3.0 with new Exception D documented
+- [x] `AIQueueDispatcher` javadoc updated with marker phrase
+- [ ] Next design-pattern audit explicitly checks each Exception D claim against the 4-criterion test (deferred — happens at next audit run, not part of this gap)
+- [x] Decision logged in this gap for `EmailServiceClient` + `InstancePurgeService` — see Triage table below
+
+## Triage decision (audit Cat 5 hits)
+
+Applied 4-criterion test of Exception D to all 5 audit hits:
+
+| File | Naming (1) | Caller persists first (2) | No business logic (3) | Verdict |
+|------|:----------:|:------------------------:|:---------------------:|---------|
+| `AIQueueDispatcher` | ✅ `Dispatcher` | ✅ `BrandingJobService.createJob` writes job row before invoke | ✅ pure routing + metrics + send | **✅ Exception D — marker applied this PR** |
+| `EmailServiceClient` | ✅ `Client` | ✅ callers pass formed event | ❌ has `useQueue` config toggle, writes email_sent_log row, hybrid HTTP/queue dispatch | **❌ FAIL crit 3 — needs refactor (extract pure dispatcher) OR Exception A migration** |
+| `InstancePurgeService` | ❌ `Service` | n/a | ❌ multi-repo orchestration (instance + backup + email log) + domain logic | **❌ FAIL crit 1 + 3 — needs Exception A migration (write outbox row + best-effort publish)** |
+| `BrandingJobService` (already migrated) | n/a | n/a | n/a | ✅ Closed by GAP-222a Phase 2 (Exception A) |
+| `BrandingEventPublisher` (already documented) | n/a | n/a | n/a | ✅ Already Exception A with marker |
+
+**Net audit-cat-5 status after this PR:**
+- 5 raw hits → 1 documented under Exception A (BrandingEventPublisher), 1 documented under Exception A (BrandingJobService via GAP-222a), 1 documented under Exception D (AIQueueDispatcher this PR), 2 unresolved (EmailServiceClient + InstancePurgeService)
+- Unresolved 2 → tracked under **GAP-222c** (existing) which is being kept open and re-scoped. Effort: M (mostly Exception A migration pattern repetition + consider extract-pure-dispatcher refactor for EmailServiceClient)
 
 ## Dependencies
 
@@ -90,4 +106,5 @@ Add **Exception D — Dedicated dispatcher infrastructure** to `design-patterns.
 
 ## Log
 
+- **2026-04-26 (later — SHIPPED):** Status 🔵 OPEN → 🟢 DONE. `design-patterns.md` v1.2.0 → v1.3.0 with Exception D + 4-criterion test + AIQueueDispatcher example. Marker applied to `AIQueueDispatcher` class-level javadoc. Triage table populated: only `AIQueueDispatcher` qualifies under D; `EmailServiceClient` (hybrid HTTP/queue + email log) and `InstancePurgeService` (multi-repo orchestrator) both fail criterion 3 (no business logic) — both need Exception A migration tracked under existing GAP-222c. Net audit Cat 5 status: 3/5 documented (1 D, 2 A), 2/5 still need migration via GAP-222c.
 - 2026-04-26 — Filed during GAP-222a Phase 2 implementation. Phase 2 closed `BrandingJobService` under Exception A; `AIQueueDispatcher` did not fit any of A/B/C, so a 4th exception is needed. EmailServiceClient + InstancePurgeService in `kitehub-subscription` may also qualify — to be triaged when this rule lands.

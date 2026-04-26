@@ -15,6 +15,12 @@ import java.time.Instant;
 /**
  * Publishes AI jobs to the correct tier queue based on priority (GAP-005a).
  *
+ * <p>This is dedicated dispatcher infrastructure (per design-patterns.md §3.5.1
+ * Exception D) — its single purpose is the broker handoff. Callers MUST persist
+ * their {@code BrandingJob} row in their own transaction before invoking
+ * {@link #dispatch}. The class contains no business logic — only routing,
+ * metrics, and send.</p>
+ *
  * <p>When {@code ai.queue.fair-queue-enabled=true} (default), routes to the
  * 3-tier priority topology (see {@link AIQueueConfig}). When disabled, all
  * jobs fall back to the legacy {@link RabbitMQConfig#BRANDING_QUEUE} to keep
