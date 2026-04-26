@@ -194,4 +194,5 @@ public void autoProvisionSkippedTenants() {
 
 ## Log
 
+- **2026-04-26** — **Governance closure tracked: [GAP-225](GAP-225-scaffolded-as-done-governance-closure-umbrella.md)** (Scaffolded-as-DONE Governance Closure Umbrella). Scaffold debt: "RabbitMQ consumer wiring deferred to outbox-dispatcher follow-up". Status preserved 🟢 DONE for audit trail; cross-gap audit identified this gap as part of Cluster C2 (Instance Lifecycle + Saga, paired with GAP-009) — needs dedicated `quality/saga-pattern-review/` skill + audit-gate rule cho `*Saga.java` + matrix row when scheduled. No code change this PR — docs truth-up only.
 - 2026-04-14 — Phát hiện tenant provisioning KHÔNG auto-trigger branding; OnboardingWizard chỉ có link manual; không có event listener

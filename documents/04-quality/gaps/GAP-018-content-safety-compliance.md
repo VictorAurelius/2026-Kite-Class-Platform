@@ -111,4 +111,5 @@ public void deleteTenantAIData(String tenantId) {
 
 ## Log
 
+- **2026-04-26** — **Governance closure tracked: [GAP-225](GAP-225-scaffolded-as-done-governance-closure-umbrella.md)** (Scaffolded-as-DONE Governance Closure Umbrella) + [GAP-223](GAP-223-ai-branding-migration-verification-governance.md) Sub-PR 223.1 scope. Scaffold debt: "Real ML classifier + admin review queue deferred". Status preserved 🟢 DONE for audit trail; this gap is part of Cluster C3 (AI Branding Quality Gates, paired with GAP-012) — covered by GAP-223 Option C plan (skill `quality/ai-branding-quality-gate/` + audit-gate rule + matrix line 75 sync). `output-review-mandate.md` line 75 synced this PR from "PLANNED" → "PARTIAL" reflecting actual scaffold state. No code change this PR — docs truth-up only.
 - 2026-04-14 — P0 legal risk identified qua simulation

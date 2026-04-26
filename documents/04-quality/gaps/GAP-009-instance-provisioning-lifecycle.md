@@ -185,4 +185,5 @@ GET /api/v1/instances/{id}/status/stream
 
 ## Log
 
+- **2026-04-26** — **Governance closure tracked: [GAP-225](GAP-225-scaffolded-as-done-governance-closure-umbrella.md)** (Scaffolded-as-DONE Governance Closure Umbrella). Scaffold debt: "REST + RabbitMQ outbox deferred to later wave". Status preserved 🟢 DONE for audit trail; cross-gap audit identified this gap as part of Cluster C2 (Instance Lifecycle + Saga, paired with GAP-015) — needs dedicated `quality/saga-pattern-review/` skill + audit-gate rule cho `*Saga.java` + matrix row when scheduled. No code change this PR — docs truth-up only.
 - 2026-04-14 — Created from AI Branding redesign §4
