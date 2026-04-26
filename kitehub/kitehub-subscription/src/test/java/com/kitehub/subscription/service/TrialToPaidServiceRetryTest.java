@@ -9,8 +9,9 @@ import com.kitehub.subscription.dto.UpgradeRequest;
 import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.exception.MigrationException;
 import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
-import com.kitehub.subscription.outbox.MigrationOutboxRepository;
+import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +47,7 @@ class TrialToPaidServiceRetryTest {
     @Mock
     private InstanceRepository instanceRepository;
     @Mock
-    private MigrationOutboxRepository outboxRepository;
+    private SubscriptionOutboxRepository outboxRepository;
     @Mock
     private TrialService trialService;
     @Mock
@@ -64,8 +65,9 @@ class TrialToPaidServiceRetryTest {
         // Shrink backoff so tests don't sleep real seconds.
         config.setRetryAttempts(3);
         config.setRetryBackoffSeconds(List.of(0, 0, 0));
+        SubscriptionEventEmitter eventEmitter = new SubscriptionEventEmitter(outboxRepository);
         service = new TrialToPaidService(
-            instanceRepository, outboxRepository, config, trialService, idempotencyService);
+            instanceRepository, eventEmitter, config, trialService, idempotencyService);
 
         instanceId = UUID.randomUUID();
         instance = new Instance();

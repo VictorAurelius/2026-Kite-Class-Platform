@@ -17,7 +17,8 @@ import java.util.UUID;
  * then direct {@link RabbitTemplate#convertAndSend} (fast-path); broker errors
  * are swallowed so the outbox row stays the source of truth for eventual delivery.</p>
  *
- * <p>Mirrors the {@code MigrationEventEmitter} precedent in kitehub-subscription
+ * <p>Mirrors the {@code SubscriptionEventEmitter} precedent in kitehub-subscription
+ * (originally {@code MigrationEventEmitter}, generalized in GAP-222c)
  * + the {@code BrandingEventPublisher} fast-path pattern in kiteclass-core.
  * Dispatcher (poll-and-publish loop) is deferred — events accumulate in the
  * {@code branding_outbox} table until the dispatcher gap lands.</p>

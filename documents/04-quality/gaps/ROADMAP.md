@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-26 (GAP-222c SHIPPED — Option B generalize migration_outbox → subscription_outbox):** Final outbox-cluster migration. V22 Flyway: rename `migration_outbox` → `subscription_outbox`, drop FK + drop NOT NULL on `instance_id`. Renamed `MigrationOutboxEvent`/`Repository`/`MigrationEventEmitter` → `Subscription*` (emitter now `@Component`); added `emit(UUID, ...)` overload for nullable instance_id (email pre-provisioning case). `InstancePurgeService` (line 188) + `EmailServiceClient.publishToQueue` (line 588) migrated to §3.5.1 Exception A: outbox.emit first + try/catch best-effort `rabbitTemplate.convertAndSend` with marker comment "outbox is the reliability net". `EmailServiceClient` class-level `@Transactional` to ensure outbox + EmailSentLog save share txn (private dispatchEmail couldn't be self-call proxied). `ObjectMapper` injected (Spring Boot's auto-configured one with JSR-310). `TrialToPaidService` constructor refactored to take emitter bean. 6 new tests (3 InstancePurgeService Exception A + 3 EmailServiceClient Exception A) — **355/355 kitehub-subscription tests green**. GAP-222c status 🔵 OPEN → 🟢 DONE. Counts: **89 OPEN → 88 OPEN** (-GAP-222c).
+
 **2026-04-26 (GAP-222b SHIPPED — ParentInvitationServiceImpl outbox migration):** kiteclass-core internal migration applied as §3.5.1 Exception A (matches BrandingEventPublisher precedent in same module): outbox.enqueue first + existing fast-path try/catch with marker comment. Constructor expanded with OutboxEventWriter + ObjectMapper; test ObjectMapper uses findAndRegisterModules() for JavaTimeModule (matches Spring Boot default — initial omission caused Instant serialization failure in test, fixed). 13/13 ParentInvitationServiceTest + **1117/1117 full kiteclass-core suite green**. GAP-222b status 🔵 OPEN → 🟢 DONE. Counts: **90 OPEN → 89 OPEN** (-GAP-222b).
 
 **2026-04-26 (GAP-230 SHIPPED — Exception D rule + AIQueueDispatcher marker):** Rule extension landed `design-patterns.md` v1.2.0 → v1.3.0: §3.5.1 Exception D (dedicated dispatcher infrastructure) with 4-criterion test (naming + caller-persists-first + no-business-logic + marker phrase) + AIQueueDispatcher example. Marker applied to `AIQueueDispatcher` class-level javadoc. Triage of 5 audit Cat 5 hits: 1 D (AIQueueDispatcher), 2 A (BrandingEventPublisher already documented + BrandingJobService closed by GAP-222a Phase 2), 2 still need Exception A migration (EmailServiceClient + InstancePurgeService) — re-scoped under existing **GAP-222c** which was UNBLOCKED + reduced from L (4 services) → M (2 services). GAP-230 status 🔵 OPEN → 🟢 DONE same day. Counts: **90 OPEN → 90 OPEN** (-GAP-230 net 0; GAP-222c stays open with revised scope).
@@ -46,12 +48,12 @@
 
 > **Recently closed (do NOT count as blockers):** GAP-046 Wave 6 2026-04-26 (audit 82/100 + ADR-020); GAP-047 Wave 5 2026-04-25 (#532 doc-gen trio).
 
-**GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0).**
+**GA Blockers remaining: 5 — ordered per `meta-gap-priority.md` (meta before feature within P0).**
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
 | 1 | **GAP-223** | AI Branding migration verification governance — Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100); Sub-PR 223.2 = GAP-006 unblock remaining | 🔴 P0 Meta (governance) | 🟡 PARTIAL | Sub-PR 223.2 = GAP-006 (Feature-P1) |
-| 2 | **GAP-222a** | Extract Outbox infra to shared lib (unblocks GAP-222c) | 🟠 Meta (infra) | 🔵 OPEN | S-M |
+| 2 | ~~GAP-222a~~ | ~~Extract Outbox infra to shared lib~~ — superseded by ADR-021 per-module pattern; closed via GAP-222a Phase 2 + GAP-222b + GAP-222c (all DONE 2026-04-26) | 🟠 Meta (infra) | ✅ DONE | — |
 | 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
 | 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
 | 5 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
@@ -64,7 +66,7 @@
 **Next recommended wave:** Wave 6 **CLOSED 2026-04-26**. Wave 7 priority queue (per `meta-gap-priority.md` Meta > Feature):
 
 1. **GAP-223** (Meta-P0 PARTIAL) — AI Branding migration verification governance. Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100 — PRs #553/#554). Sub-PR 223.2 = GAP-006 unblock.
-2. **GAP-222a + GAP-222b + GAP-230 SHIPPED 2026-04-26** ✅ → next: **GAP-222c** (Meta-P1, M effort — re-scoped to 2 sites: EmailServiceClient + InstancePurgeService Exception A migration in kitehub-subscription)
+2. **GAP-222a + GAP-222b + GAP-222c + GAP-230 SHIPPED 2026-04-26** ✅ → Outbox migration cluster fully closed (kitehub-branding domain outbox + parent-invitation outbox + subscription_outbox generalized + Exception D dispatcher policy)
 3. **GAP-229** (BL-P1) — AI Branding v2 business docs sync (rules/use-cases/api-contract) + 3 user guides; tracks GAP-016 PARTIAL remainder
 4. **GAP-006** (Feature-P1, unblocked 2026-04-26 by Sub-PR 223.1) — Gemma 4 9B migration with VN A/B test
 5. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format

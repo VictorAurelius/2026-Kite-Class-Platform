@@ -11,6 +11,7 @@ import com.kitehub.subscription.dto.PurgeStatus;
 import com.kitehub.subscription.repository.BackupRecordRepository;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class InstancePurgeService {
     private final BackupRecordRepository backupRecordRepository;
     private final EmailSentLogRepository emailSentLogRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final SubscriptionEventEmitter eventEmitter;
 
     private static final int PURGE_RETENTION_DAYS = 30;
 
@@ -178,25 +180,36 @@ public class InstancePurgeService {
                 log.error("Failed to delete email logs for instance {}: {}", instanceId, e.getMessage());
             }
 
-            // 5. Publish RabbitMQ event for cross-service cleanup (branding assets, etc.)
+            // 5. Outbox + best-effort fast-path publish (per design-patterns.md §3.5.1
+            //    Exception A — outbox is the reliability net, direct send is latency optimization).
+            //    The outbox row guarantees the cleanup event reaches consumers even if the broker is
+            //    down right now; the direct convertAndSend below is a fast-path for current-online consumers.
+            LocalDateTime purgedAt = LocalDateTime.now();
+            PurgeEvent event = PurgeEvent.builder()
+                .instanceId(instanceId)
+                .subdomain(subdomain)
+                .purgedAt(purgedAt)
+                .build();
+            String payload = String.format(
+                "{\"instanceId\":\"%s\",\"subdomain\":\"%s\",\"purgedAt\":\"%s\"}",
+                instanceId, SubscriptionEventEmitter.escape(subdomain), purgedAt);
+            eventEmitter.emit(instanceId, PurgeQueueConfig.EVENT_TYPE_PURGE_REQUESTED,
+                PurgeQueueConfig.PURGE_ROUTING_KEY, payload);
+
             try {
-                PurgeEvent event = PurgeEvent.builder()
-                    .instanceId(instanceId)
-                    .subdomain(subdomain)
-                    .purgedAt(LocalDateTime.now())
-                    .build();
+                // Best-effort fast-path — outbox is the reliability net.
                 rabbitTemplate.convertAndSend(PurgeQueueConfig.PURGE_EXCHANGE, "", event);
                 brandingCleanupPublished = true;
                 log.info("Published purge event for instance {}", instanceId);
             } catch (Exception e) {
-                log.error("Failed to publish purge event for instance {}: {}", instanceId, e.getMessage());
+                log.warn("Direct purge publish failed for instance {} — outbox will retry: {}",
+                    instanceId, e.getMessage());
             }
 
             // 6. Set instance status to PURGED
             instance.setStatus(InstanceStatus.PURGED);
             instanceRepository.save(instance);
 
-            LocalDateTime purgedAt = LocalDateTime.now();
             log.info("Purge completed for instance {} (subdomain: {}). DB dropped: {}, backups deleted: {}, event published: {}",
                 instanceId, subdomain, databaseDropped, backupFilesDeleted, brandingCleanupPublished);
 

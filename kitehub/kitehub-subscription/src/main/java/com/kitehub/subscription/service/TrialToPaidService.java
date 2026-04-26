@@ -10,10 +10,9 @@ import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.exception.MigrationException;
 import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
 import com.kitehub.subscription.outbox.MigrationEventType;
-import com.kitehub.subscription.outbox.MigrationOutboxRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
-import com.kitehub.subscription.service.migration.MigrationEventEmitter;
 import com.kitehub.subscription.service.migration.MigrationRetryRunner;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import com.kitehub.subscription.service.migration.MigrationStateMachine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -63,11 +62,11 @@ public class TrialToPaidService {
     private final TrialService trialService;
     private final MigrationIdempotencyKeyService idempotencyService;
     private final MigrationStateMachine stateMachine;
-    private final MigrationEventEmitter eventEmitter;
+    private final SubscriptionEventEmitter eventEmitter;
     private final MigrationRetryRunner retryRunner;
 
     public TrialToPaidService(InstanceRepository instanceRepository,
-                              MigrationOutboxRepository outboxRepository,
+                              SubscriptionEventEmitter eventEmitter,
                               TrialToPaidConfig config,
                               TrialService trialService,
                               MigrationIdempotencyKeyService idempotencyService) {
@@ -76,7 +75,7 @@ public class TrialToPaidService {
         this.trialService = trialService;
         this.idempotencyService = idempotencyService;
         this.stateMachine = new MigrationStateMachine(config);
-        this.eventEmitter = new MigrationEventEmitter(outboxRepository);
+        this.eventEmitter = eventEmitter;
         this.retryRunner = new MigrationRetryRunner(
             instanceRepository, trialService, config, stateMachine, eventEmitter,
             this::markMigrationFailed);
@@ -262,7 +261,7 @@ public class TrialToPaidService {
         eventEmitter.emit(instance, MigrationEventType.PAYMENT_REVERSED,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"reason\":\"%s\",\"reversedAt\":\"%s\"}",
-                instance.getId(), MigrationEventEmitter.escape(reason), now));
+                instance.getId(), SubscriptionEventEmitter.escape(reason), now));
 
         eventEmitter.emit(instance, MigrationEventType.MIGRATION_ROLLED_BACK,
             MigrationEventType.TOPIC_MIGRATION,
@@ -311,7 +310,7 @@ public class TrialToPaidService {
         eventEmitter.emit(instance, MigrationEventType.PAYMENT_CAPTURED,
             MigrationEventType.TOPIC_MIGRATION,
             String.format("{\"instanceId\":\"%s\",\"manual\":true,\"invoiceRef\":\"%s\",\"reason\":\"%s\"}",
-                instance.getId(), MigrationEventEmitter.escape(invoiceRef), MigrationEventEmitter.escape(auditReason)));
+                instance.getId(), SubscriptionEventEmitter.escape(invoiceRef), SubscriptionEventEmitter.escape(auditReason)));
         instanceRepository.save(instance);
 
         return response.toBuilder()
@@ -377,7 +376,7 @@ public class TrialToPaidService {
         eventEmitter.emit(instance, MigrationEventType.MIGRATION_FAILED,
             MigrationEventType.TOPIC_MIGRATION_DLQ,
             String.format("{\"instanceId\":\"%s\",\"failureReason\":\"%s\",\"attempts\":1}",
-                instance.getId(), MigrationEventEmitter.escape(reason)));
+                instance.getId(), SubscriptionEventEmitter.escape(reason)));
 
         instanceRepository.save(instance);
     }

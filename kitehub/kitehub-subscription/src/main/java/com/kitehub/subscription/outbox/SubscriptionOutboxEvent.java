@@ -18,18 +18,23 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Outbox record for trial-to-paid migration domain events.
+ * Outbox record for kitehub-subscription cross-service events.
  *
- * <p>Written in the same JPA transaction as the {@code Instance} mutation so that
- * the event cannot be lost if the broker is down. A separate dispatcher (deferred
- * to Phase 4b, tracked via follow-up gap) publishes records where
- * {@code dispatched_at IS NULL} to RabbitMQ.</p>
+ * <p>Originally introduced as {@code MigrationOutboxEvent} (GAP-192) for the
+ * trial-to-paid flow; generalized in GAP-222c to cover purge + email events
+ * after ADR-021 elected the per-MODULE domain outbox pattern. Written in the
+ * same JPA transaction as the originating mutation so the event cannot be
+ * lost if the broker is down.</p>
  *
- * <p>See {@code rules.md §5} for the full schema of each event type and the
- * consumer list per topic.</p>
+ * <p>{@code instance_id} is nullable because some email flows (admin
+ * notifications, sign-up confirmations sent before instance provisioning)
+ * have no instance binding. Migration + purge events always populate it.</p>
+ *
+ * <p>Per {@code design-patterns.md §3.5.1 Exception A}, callers write this
+ * row + best-effort fast-path publish in the same transactional block.</p>
  *
  * @author KiteHub Team
- * @since 1.0.0 (GAP-192)
+ * @since 1.0.0 (GAP-192) — generalized in GAP-222c
  */
 @Getter
 @Setter
@@ -37,17 +42,16 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "migration_outbox", indexes = {
-    @Index(name = "idx_migration_outbox_instance", columnList = "instance_id")
+@Table(name = "subscription_outbox", indexes = {
+    @Index(name = "idx_subscription_outbox_instance", columnList = "instance_id")
 })
-public class MigrationOutboxEvent {
+public class SubscriptionOutboxEvent {
 
     @Id
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @NotNull
-    @Column(name = "instance_id", nullable = false)
+    @Column(name = "instance_id")
     private UUID instanceId;
 
     @NotBlank

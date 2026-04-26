@@ -31,14 +31,14 @@ public class MigrationRetryRunner {
     private final TrialService trialService;
     private final TrialToPaidConfig config;
     private final MigrationStateMachine stateMachine;
-    private final MigrationEventEmitter eventEmitter;
+    private final SubscriptionEventEmitter eventEmitter;
     private final BiConsumer<UUID, String> onTerminalFailure;
 
     public MigrationRetryRunner(InstanceRepository instanceRepository,
                                 TrialService trialService,
                                 TrialToPaidConfig config,
                                 MigrationStateMachine stateMachine,
-                                MigrationEventEmitter eventEmitter,
+                                SubscriptionEventEmitter eventEmitter,
                                 BiConsumer<UUID, String> onTerminalFailure) {
         this.instanceRepository = instanceRepository;
         this.trialService = trialService;

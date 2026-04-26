@@ -1,6 +1,6 @@
 ## GAP-222c: Migrate Remaining kitehub-subscription Direct-Publish Sites to Outbox (re-scoped 2026-04-26)
 
-**Status:** 🔵 OPEN — UNBLOCKED by GAP-222a (per-module pattern established) + GAP-230 (Exception D ruled out for these 2 cases)
+**Status:** 🟢 DONE 2026-04-26 — Option B chosen (generalize migration_outbox → subscription_outbox); both sites migrated to Exception A; 355 tests pass
 **Priority:** 🟠 P1 (reliability — 2 services affecting email + tenant purge)
 **Domain:** Backend (kitehub-subscription)
 **Found:** 2026-04-26 (Sub-PR 6.4 scope check)
@@ -101,4 +101,13 @@ Re-run `design-pattern-audit` skill — Cat 5 should drop to 0-1 real bypass (on
 
 ## Log
 
+- **2026-04-26 (DONE):** Option B (generalize) shipped in single PR. Changes:
+  - V22 Flyway: `migration_outbox` → `subscription_outbox`, drop FK `fk_migration_outbox_instance`, drop NOT NULL on `instance_id`, rename indexes
+  - Renamed `MigrationOutboxEvent` → `SubscriptionOutboxEvent`, `MigrationOutboxRepository` → `SubscriptionOutboxRepository`, `MigrationEventEmitter` → `SubscriptionEventEmitter` (now `@Component` for direct injection)
+  - `SubscriptionEventEmitter` adds `emit(UUID instanceId, ...)` overload for nullable instance_id case (email pre-provisioning flows)
+  - `InstancePurgeService` migrated to Exception A: `eventEmitter.emit(...)` then try/catch best-effort `rabbitTemplate.convertAndSend` with marker comment "outbox is the reliability net"
+  - `EmailServiceClient` migrated to Exception A: class-level `@Transactional` (so internal self-call to `dispatchEmail` runs inside outer txn), `ObjectMapper` injected for payload serialization (per `feedback_objectmapper_test_jsr310.md` — Spring Boot's auto-configured ObjectMapper has JSR-310 module)
+  - `TrialToPaidService` constructor refactored to inject `SubscriptionEventEmitter` bean directly (was `new`-ing it from `SubscriptionOutboxRepository`)
+  - 3 new tests on InstancePurgeService Exception A (outbox row written, broker-down doesn't fail purge), 3 new tests on EmailServiceClient Exception A (outbox row, null instanceId case, broker-down swallowed). 355/355 tests pass.
+  - Documentation: `BrandingEventEmitter` javadoc updated to reference renamed precedent.
 - 2026-04-26 — Gap created during Sub-PR 6.4 scope check. State-check confirmed: 4 services, 5 bypass sites total (AIQueueDispatcher has 2), all in kitehub modules. Blocked on 222a until shared outbox infra reachable.
