@@ -239,32 +239,34 @@ grep -rn "@Disabled" kiteclass/kiteclass-core/src/test --include="*.java"
 | Storage cleanup | Search StorageCleanupScheduler | Có |
 | RabbitMQ event-driven | Search RabbitConfig exchanges/queues | Defined (không chỉ placeholder) |
 
-#### 2.9 AI Branding (v2 redesign) — kitehub-branding
+#### 2.9 AI Branding (v2 redesign) — kiteclass-core
 
-Reference: `documents/02-architecture/ai-branding-v2-redesign.md`, `.claude/rules/ai-branding-guidelines.md`
+Reference: `documents/02-architecture/ai-branding-v2-redesign.md`, `.claude/rules/ai-branding-guidelines.md`, `documents/04-quality/gaps/GAP-016-ai-branding-v2-living-docs-impact.md`
+
+> **Module location note (verified 2026-04-26):** v2 implementation shipped to `kiteclass/kiteclass-core/` (NOT `kitehub/kitehub-branding/` as architecture doc specified). `kitehub-branding/` retains v1 only. Class renames: `BrandingAnalyzer → AnalyzerService`, `BrandingPlanner → PlannerService`, `BrandingExecutor → PlanExecutor`. Architecture doc drift tracked separately (see GAP-016 Findings + follow-up).
 
 | Check | Cách verify | Expected |
 |-------|-------------|----------|
-| ResourceCategory enum | `grep -r "enum ResourceCategory" kitehub-branding/src/main` | STATIC, TEMPLATE, FULL_AI |
-| ResourceRoutingService | Search class | Has `classify()` + `route()` methods |
-| BrandingAnalyzer | Search class | Extract BrandingContext from request |
-| BrandingPlanner | Search class | Returns ExecutionPlan (list of Steps) |
+| ResourceCategory enum | `grep -rln "enum ResourceCategory" kiteclass/kiteclass-core/src/main kitehub/kitehub-branding/src/main` | STATIC, TEMPLATE, FULL_AI |
+| ResourceRoutingService | Search class across both modules | Has `classify()` + `route()` methods |
+| AnalyzerService (v2 name) | Search class | Extract BrandingContext from request |
+| PlannerService (v2 name) | Search class | Returns ExecutionPlan (list of Steps) |
 | PlanExecutor | Search class | Executes with fallback support |
-| Step interface | Search `public interface Step` | Has `hasFallback()`, `fallback()` |
+| Step interface | `grep -rln "interface Step" kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/workflow` | Has `hasFallback()`, `fallback()` |
 | FrontendInstance entity | Search `@Entity class FrontendInstance` | Has status, retryCount, brandingVersion |
 | FrontendInstanceStatus enum | Search enum | NOT_STARTED/INITIALIZING/GENERATING/DEPLOYED/REGENERATING/FAILED |
 | InstanceLifecycleService | Search class | Transition methods only, validates state machine |
 | InstanceQualityReviewer | Search class | Returns QualityReport with score /100 |
-| Tenant event listener | `grep -r "tenant.created" kitehub-branding/src` | RabbitListener exists |
+| Tenant provisioning saga | `grep -rln "class TenantProvisioningSaga" kiteclass/kiteclass-core/src/main` | Saga exists (alternative to direct @RabbitListener pattern) |
 | BrandingResource entity | Search `@Entity class BrandingResource` | Has category, templateId, aiJobId, metadata |
-| ImageTemplate entity | Search entity | Has category, reviewPassed flag |
-| Package API | `grep -r "/branding/.*/package" kitehub-branding/src` | Endpoint returns composite response |
-| Wizard FE component | `find kitehub-frontend -name "BrandingWizard*"` | 6-step wizard component exists |
-| Regenerate limits | Search `ai.regenerate-limit` config | Per-tier limits (3/10/30/-1) |
-| No free-form prompt | `grep "textarea.*prompt" kitehub-frontend/src` | 0 results (except Enterprise opt-in gated) |
-| Template count | Query DB `SELECT count(*) FROM image_templates WHERE active=true` | ≥30 |
-| Quality gate integration | Search lifecycle transition GENERATING→DEPLOYED | Requires QualityReport.score ≥ 70 |
-| Webhook on branding.updated | Search RabbitMQ publisher after deploy | Event published |
+| Image template / library | Search entity OR migration `image_templates`/`branding_templates` | Sprint 0 deliverable per GAP-011 — currently no entity (templates lazy via `ImageTemplate*`/migration); track as scaffold |
+| Package API | `grep -rln "BrandingPackageController" kiteclass/kiteclass-core/src/main` | Endpoint returns composite response |
+| Wizard FE component | `find kiteclass/kiteclass-frontend/src kitehub/kitehub-frontend/src -iname "*Wizard*"` | `BrandingWizard.tsx` + `wizard-machine.ts` exist |
+| Regenerate limits config | `grep -rn "regenerate" kiteclass/kiteclass-core/src/main/resources/application.yml` | Per-tier limits (3/10/30/-1) — pending per `ai-branding-guidelines.md` §4.3; track GAP-005 |
+| No free-form prompt | `grep -rln "textarea.*prompt\|placeholder.*Describe.*banner" kiteclass/kiteclass-frontend/src kitehub/kitehub-frontend/src` | 0 results (except Enterprise opt-in gated) |
+| Template count | Query DB `SELECT count(*) FROM branding_templates WHERE active=true` (or equivalent migration) | ≥30 (Sprint 0 baseline per GAP-011) |
+| Quality gate integration | Search `score < PASS_THRESHOLD\|score.*70` in `InstanceLifecycleService` + `InstanceQualityReviewer` | Gate confirmed at score < 70 |
+| Webhook on branding.updated | `grep -rln "BrandingUpdatedEvent\|BrandingEventPublisher" kiteclass/kiteclass-core/src/main` | Event published via outbox |
 
 #### KC-2.10 Design Patterns (NEW — mandatory from 2026-04-14)
 
