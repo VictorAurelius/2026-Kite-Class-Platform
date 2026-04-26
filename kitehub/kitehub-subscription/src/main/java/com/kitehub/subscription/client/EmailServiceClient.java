@@ -1,15 +1,19 @@
 package com.kitehub.subscription.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.platform.domain.entity.EmailSentLog;
 import com.kitehub.subscription.config.EmailConfigProperties;
 import com.kitehub.subscription.config.EmailQueueConfig;
 import com.kitehub.subscription.dto.EmailEvent;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -32,12 +36,18 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
+@Transactional
 public class EmailServiceClient {
+
+    /** Outbox event-type label for queued email events. Stable contract with consumer + dispatcher. */
+    public static final String EVENT_TYPE_EMAIL_QUEUED = "email.queued";
 
     private final RestTemplate restTemplate;
     private final EmailSentLogRepository emailSentLogRepository;
     private final RabbitTemplate rabbitTemplate;
     private final EmailConfigProperties emailConfigProperties;
+    private final SubscriptionEventEmitter eventEmitter;
+    private final ObjectMapper objectMapper;
 
     @Value("${email.service.url:http://localhost:8083}")
     private String emailServiceUrl;
@@ -48,11 +58,15 @@ public class EmailServiceClient {
     public EmailServiceClient(RestTemplate restTemplate,
                               EmailSentLogRepository emailSentLogRepository,
                               RabbitTemplate rabbitTemplate,
-                              EmailConfigProperties emailConfigProperties) {
+                              EmailConfigProperties emailConfigProperties,
+                              SubscriptionEventEmitter eventEmitter,
+                              ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.emailSentLogRepository = emailSentLogRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.emailConfigProperties = emailConfigProperties;
+        this.eventEmitter = eventEmitter;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -569,9 +583,12 @@ public class EmailServiceClient {
     }
 
     /**
-     * Publish email event to RabbitMQ queue for async processing.
+     * Outbox-first publish per design-patterns.md §3.5.1 Exception A:
+     * write the event to {@code subscription_outbox} (reliability net), then attempt
+     * a best-effort fast-path {@code rabbitTemplate.convertAndSend} so currently-online
+     * consumers receive the email without waiting for the dispatcher poll.
      *
-     * @param instanceId Instance ID
+     * @param instanceId Instance ID (nullable for system-level / pre-provisioning emails)
      * @param emailType Email type
      * @param request Email request
      */
@@ -585,12 +602,30 @@ public class EmailServiceClient {
                 .emailType(emailType)
                 .build();
 
-        rabbitTemplate.convertAndSend(
-                EmailQueueConfig.EMAIL_EXCHANGE,
-                EmailQueueConfig.EMAIL_ROUTING_KEY,
-                event
-        );
-        log.debug("Email event published to queue: type={}, to={}", emailType, request.getTo());
+        String payload;
+        try {
+            payload = objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException ex) {
+            // Drop the outbox row rather than ship a malformed payload — caller logs+continues.
+            // This is a programmer error (Map<String,Object> with non-serializable value), not a runtime fault.
+            throw new IllegalStateException("Failed to serialize EmailEvent for outbox", ex);
+        }
+
+        eventEmitter.emit(instanceId, EVENT_TYPE_EMAIL_QUEUED,
+            EmailQueueConfig.EMAIL_ROUTING_KEY, payload);
+
+        try {
+            // Best-effort fast-path — outbox is the reliability net.
+            rabbitTemplate.convertAndSend(
+                    EmailQueueConfig.EMAIL_EXCHANGE,
+                    EmailQueueConfig.EMAIL_ROUTING_KEY,
+                    event
+            );
+            log.debug("Email event published to queue: type={}, to={}", emailType, request.getTo());
+        } catch (Exception ex) {
+            log.warn("Direct email publish failed (type={}, to={}) — outbox will retry: {}",
+                emailType, request.getTo(), ex.getMessage());
+        }
     }
 
     /**

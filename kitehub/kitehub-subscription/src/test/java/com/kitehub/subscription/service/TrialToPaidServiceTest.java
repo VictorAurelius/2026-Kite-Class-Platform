@@ -11,8 +11,9 @@ import com.kitehub.subscription.dto.UpgradeResponse;
 import com.kitehub.subscription.exception.MigrationException;
 import com.kitehub.subscription.idempotency.MigrationIdempotencyKeyService;
 import com.kitehub.subscription.outbox.MigrationEventType;
-import com.kitehub.subscription.outbox.MigrationOutboxEvent;
-import com.kitehub.subscription.outbox.MigrationOutboxRepository;
+import com.kitehub.subscription.outbox.SubscriptionOutboxEvent;
+import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import com.kitehub.subscription.repository.InstanceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +47,7 @@ class TrialToPaidServiceTest {
     private InstanceRepository instanceRepository;
 
     @Mock
-    private MigrationOutboxRepository outboxRepository;
+    private SubscriptionOutboxRepository outboxRepository;
 
     @Mock
     private TrialService trialService;
@@ -55,6 +56,7 @@ class TrialToPaidServiceTest {
     private MigrationIdempotencyKeyService idempotencyService;
 
     private TrialToPaidConfig config;
+    private SubscriptionEventEmitter eventEmitter;
 
     @InjectMocks
     private TrialToPaidService service;
@@ -65,8 +67,9 @@ class TrialToPaidServiceTest {
     @BeforeEach
     void setUp() {
         config = new TrialToPaidConfig();
+        eventEmitter = new SubscriptionEventEmitter(outboxRepository);
         // Inject the config manually because @InjectMocks cannot resolve non-mock.
-        service = new TrialToPaidService(instanceRepository, outboxRepository, config, trialService, idempotencyService);
+        service = new TrialToPaidService(instanceRepository, eventEmitter, config, trialService, idempotencyService);
 
         instanceId = UUID.randomUUID();
         instance = new Instance();
@@ -107,10 +110,10 @@ class TrialToPaidServiceTest {
             assertThat(resp.getPollUrl()).contains(instanceId.toString());
             assertThat(instance.getMigrationStartedAt()).isNotNull();
             // INITIATED event emitted
-            ArgumentCaptor<MigrationOutboxEvent> cap = ArgumentCaptor.forClass(MigrationOutboxEvent.class);
+            ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository, atLeastOnce()).save(cap.capture());
             assertThat(cap.getAllValues())
-                .extracting(MigrationOutboxEvent::getEventType)
+                .extracting(SubscriptionOutboxEvent::getEventType)
                 .contains(MigrationEventType.TRIAL_UPGRADE_INITIATED);
         }
 
@@ -191,7 +194,7 @@ class TrialToPaidServiceTest {
             service.handlePaymentCaptured(instanceId, "txn_1234");
 
             assertThat(instance.getMigrationPhase()).isEqualTo(MigrationPhase.PAYMENT_CAPTURED);
-            ArgumentCaptor<MigrationOutboxEvent> cap = ArgumentCaptor.forClass(MigrationOutboxEvent.class);
+            ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository).save(cap.capture());
             assertThat(cap.getValue().getEventType())
                 .isEqualTo(MigrationEventType.PAYMENT_CAPTURED);
@@ -246,10 +249,10 @@ class TrialToPaidServiceTest {
             assertThat(instance.getStatus()).isEqualTo(InstanceStatus.ACTIVE);
             assertThat(instance.getMigrationCompletedAt()).isNotNull();
 
-            ArgumentCaptor<MigrationOutboxEvent> cap = ArgumentCaptor.forClass(MigrationOutboxEvent.class);
+            ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository, atLeast(2)).save(cap.capture());
             List<String> emitted = cap.getAllValues().stream()
-                .map(MigrationOutboxEvent::getEventType)
+                .map(SubscriptionOutboxEvent::getEventType)
                 .toList();
             assertThat(emitted).contains(
                 MigrationEventType.INSTANCE_MIGRATED,
@@ -272,10 +275,10 @@ class TrialToPaidServiceTest {
             assertThat(instance.getMigrationFailureReason()).contains("DB down");
 
             // DLQ event emitted
-            ArgumentCaptor<MigrationOutboxEvent> cap = ArgumentCaptor.forClass(MigrationOutboxEvent.class);
+            ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository, atLeastOnce()).save(cap.capture());
             assertThat(cap.getAllValues())
-                .extracting(MigrationOutboxEvent::getEventType)
+                .extracting(SubscriptionOutboxEvent::getEventType)
                 .contains(MigrationEventType.MIGRATION_FAILED);
         }
 
@@ -312,10 +315,10 @@ class TrialToPaidServiceTest {
             assertThat(resp.getNewStatus()).isEqualTo(InstanceStatus.TRIAL);
             assertThat(resp.getTrialExpiresAt()).isEqualTo(instance.getTrialExpiresAt());
 
-            ArgumentCaptor<MigrationOutboxEvent> cap = ArgumentCaptor.forClass(MigrationOutboxEvent.class);
+            ArgumentCaptor<SubscriptionOutboxEvent> cap = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
             verify(outboxRepository, times(3)).save(cap.capture());
             assertThat(cap.getAllValues())
-                .extracting(MigrationOutboxEvent::getEventType)
+                .extracting(SubscriptionOutboxEvent::getEventType)
                 .containsExactlyInAnyOrder(
                     MigrationEventType.PAYMENT_REVERSED,
                     MigrationEventType.MIGRATION_ROLLED_BACK,

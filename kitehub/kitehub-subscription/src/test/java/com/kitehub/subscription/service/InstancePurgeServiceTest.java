@@ -3,22 +3,27 @@ package com.kitehub.subscription.service;
 import com.kitehub.platform.domain.entity.Instance;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.subscription.config.PurgeQueueConfig;
 import com.kitehub.subscription.domain.BackupRecord;
 import com.kitehub.subscription.domain.BackupStatus;
 import com.kitehub.subscription.dto.PurgeResult;
 import com.kitehub.subscription.dto.PurgeStatus;
+import com.kitehub.subscription.outbox.SubscriptionOutboxEvent;
+import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import com.kitehub.subscription.repository.BackupRecordRepository;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Collections;
@@ -31,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,7 +69,11 @@ class InstancePurgeServiceTest {
     @Mock
     private RabbitTemplate rabbitTemplate;
 
-    @InjectMocks
+    @Mock
+    private SubscriptionOutboxRepository outboxRepository;
+
+    private SubscriptionEventEmitter eventEmitter;
+
     private InstancePurgeService instancePurgeService;
 
     private Instance deletedInstance;
@@ -71,6 +81,10 @@ class InstancePurgeServiceTest {
 
     @BeforeEach
     void setUp() {
+        eventEmitter = new SubscriptionEventEmitter(outboxRepository);
+        instancePurgeService = new InstancePurgeService(
+            instanceRepository, databaseProvisioningService, backupStorageService,
+            backupRecordRepository, emailSentLogRepository, rabbitTemplate, eventEmitter);
         instanceId = UUID.randomUUID();
         deletedInstance = new Instance();
         deletedInstance.setId(instanceId);
@@ -254,6 +268,52 @@ class InstancePurgeServiceTest {
 
             assertThatThrownBy(() -> instancePurgeService.adminPurge(unknownId))
                 .isInstanceOf(EntityNotFoundException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Exception A — outbox + best-effort fast-path (GAP-222c)")
+    class OutboxFastPath {
+
+        @Test
+        @DisplayName("writes outbox row with PURGE_REQUESTED event before fast-path publish")
+        void writesOutboxRowOnPurge() {
+            when(instanceRepository.findById(instanceId))
+                .thenReturn(Optional.of(deletedInstance));
+            when(backupRecordRepository.existsByInstanceIdAndStatus(instanceId, BackupStatus.COMPLETED))
+                .thenReturn(true);
+            when(backupRecordRepository.findByInstanceId(instanceId))
+                .thenReturn(Collections.emptyList());
+
+            instancePurgeService.purgeInstance(instanceId);
+
+            ArgumentCaptor<SubscriptionOutboxEvent> captor = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
+            verify(outboxRepository).save(captor.capture());
+            SubscriptionOutboxEvent saved = captor.getValue();
+            assertThat(saved.getInstanceId()).isEqualTo(instanceId);
+            assertThat(saved.getEventType()).isEqualTo(PurgeQueueConfig.EVENT_TYPE_PURGE_REQUESTED);
+            assertThat(saved.getTopic()).isEqualTo(PurgeQueueConfig.PURGE_ROUTING_KEY);
+            assertThat(saved.getPayload()).contains(instanceId.toString()).contains("deleted-school");
+        }
+
+        @Test
+        @DisplayName("returns SUCCESS even when direct publish throws — outbox row still written")
+        void brokerDownDoesNotFailPurge() {
+            when(instanceRepository.findById(instanceId))
+                .thenReturn(Optional.of(deletedInstance));
+            when(backupRecordRepository.existsByInstanceIdAndStatus(instanceId, BackupStatus.COMPLETED))
+                .thenReturn(true);
+            when(backupRecordRepository.findByInstanceId(instanceId))
+                .thenReturn(Collections.emptyList());
+            doThrow(new AmqpException("broker offline"))
+                .when(rabbitTemplate).convertAndSend(anyString(), eq(""), any(Object.class));
+
+            PurgeResult result = instancePurgeService.purgeInstance(instanceId);
+
+            assertThat(result.getStatus()).isEqualTo(PurgeStatus.SUCCESS);
+            assertThat(result.isBrandingCleanupPublished()).isFalse();
+            // Outbox row must still be written so the dispatcher can retry later.
+            verify(outboxRepository).save(any(SubscriptionOutboxEvent.class));
         }
     }
 }

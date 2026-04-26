@@ -1,9 +1,13 @@
 package com.kitehub.subscription.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kitehub.subscription.config.EmailConfigProperties;
 import com.kitehub.subscription.config.EmailQueueConfig;
 import com.kitehub.subscription.dto.EmailEvent;
+import com.kitehub.subscription.outbox.SubscriptionOutboxEvent;
+import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import com.kitehub.subscription.repository.EmailSentLogRepository;
+import com.kitehub.subscription.service.migration.SubscriptionEventEmitter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -56,13 +62,26 @@ class EmailServiceClientTest {
     @Mock
     private EmailConfigProperties emailConfigProperties;
 
+    @Mock
+    private SubscriptionOutboxRepository outboxRepository;
+
+    private SubscriptionEventEmitter eventEmitter;
+    private ObjectMapper objectMapper;
+
     private EmailServiceClient emailServiceClient;
 
     private UUID instanceId;
 
     @BeforeEach
     void setUp() {
-        emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository, rabbitTemplate, emailConfigProperties);
+        eventEmitter = new SubscriptionEventEmitter(outboxRepository);
+        // Spring Boot's auto-configured ObjectMapper has JSR-310 module registered;
+        // findAndRegisterModules() picks the same set up for unit tests
+        // (per memory: bare new ObjectMapper() drops Java 8 time types).
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        emailServiceClient = new EmailServiceClient(restTemplate, emailSentLogRepository,
+            rabbitTemplate, emailConfigProperties, eventEmitter, objectMapper);
         instanceId = UUID.randomUUID();
         lenient().when(emailConfigProperties.getTypeToggles()).thenReturn(new HashMap<>());
     }
@@ -494,6 +513,72 @@ class EmailServiceClientTest {
             ArgumentCaptor<EmailSentLog> captor = ArgumentCaptor.forClass(EmailSentLog.class);
             verify(emailSentLogRepository).save(captor.capture());
             assertThat(captor.getValue().getEmailType()).isEqualTo("retention-final-warning");
+        }
+    }
+
+    @Nested
+    @DisplayName("Exception A — outbox + best-effort fast-path (GAP-222c)")
+    class OutboxFastPath {
+
+        @BeforeEach
+        void setUpQueueMode() {
+            ReflectionTestUtils.setField(emailServiceClient, "useQueue", true);
+        }
+
+        @Test
+        @DisplayName("writes outbox row before fast-path publish on queue mode")
+        void writesOutboxRowOnQueuePublish() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), eq("trial-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            emailServiceClient.sendTrialExpirationWarning(
+                instanceId, "test@example.com", "Test Org", 3);
+
+            ArgumentCaptor<SubscriptionOutboxEvent> captor = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
+            verify(outboxRepository).save(captor.capture());
+            SubscriptionOutboxEvent saved = captor.getValue();
+            assertThat(saved.getInstanceId()).isEqualTo(instanceId);
+            assertThat(saved.getEventType()).isEqualTo(EmailServiceClient.EVENT_TYPE_EMAIL_QUEUED);
+            assertThat(saved.getTopic()).isEqualTo(EmailQueueConfig.EMAIL_ROUTING_KEY);
+            assertThat(saved.getPayload())
+                .contains("test@example.com")
+                .contains("trial-warning");
+        }
+
+        @Test
+        @DisplayName("writes outbox row with null instanceId for system-level emails")
+        void writesOutboxRowForOrphanEmail() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq((UUID) null), eq("trial-warning"), eq("test@example.com"),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+
+            // 2-arg overload passes null instanceId
+            emailServiceClient.sendTrialExpirationWarning("test@example.com", "Test Org", 3);
+
+            ArgumentCaptor<SubscriptionOutboxEvent> captor = ArgumentCaptor.forClass(SubscriptionOutboxEvent.class);
+            verify(outboxRepository).save(captor.capture());
+            assertThat(captor.getValue().getInstanceId()).isNull();
+        }
+
+        @Test
+        @DisplayName("swallows broker failure on direct publish — outbox row still written")
+        void brokerDownDoesNotPropagate() {
+            when(emailSentLogRepository.existsByInstanceIdAndEmailTypeAndRecipientAndSentAtBetween(
+                eq(instanceId), anyString(), anyString(),
+                any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(false);
+            doThrow(new AmqpException("broker offline"))
+                .when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(EmailEvent.class));
+
+            // Caller's outer try/catch in sendTrialExpirationWarning swallows generic
+            // exceptions — but the outbox row must be written first regardless.
+            emailServiceClient.sendTrialExpirationWarning(
+                instanceId, "test@example.com", "Test Org", 3);
+
+            verify(outboxRepository).save(any(SubscriptionOutboxEvent.class));
         }
     }
 }

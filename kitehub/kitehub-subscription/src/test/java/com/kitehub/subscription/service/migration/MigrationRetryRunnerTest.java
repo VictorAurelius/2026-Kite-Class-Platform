@@ -6,7 +6,7 @@ import com.kitehub.platform.domain.enums.MigrationPhase;
 import com.kitehub.platform.domain.enums.PricingTier;
 import com.kitehub.subscription.config.TrialToPaidConfig;
 import com.kitehub.subscription.exception.MigrationException;
-import com.kitehub.subscription.outbox.MigrationOutboxRepository;
+import com.kitehub.subscription.outbox.SubscriptionOutboxRepository;
 import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.service.TrialService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,11 +46,11 @@ class MigrationRetryRunnerTest {
     @Mock
     private TrialService trialService;
     @Mock
-    private MigrationOutboxRepository outboxRepository;
+    private SubscriptionOutboxRepository outboxRepository;
 
     private TrialToPaidConfig config;
     private MigrationStateMachine stateMachine;
-    private MigrationEventEmitter eventEmitter;
+    private SubscriptionEventEmitter eventEmitter;
     private AtomicReference<UUID> failedInstance;
     private AtomicReference<String> failedReason;
     private MigrationRetryRunner runner;
@@ -64,7 +64,7 @@ class MigrationRetryRunnerTest {
         config.setRetryAttempts(2);
         config.setRetryBackoffSeconds(List.of(0, 0));
         stateMachine = new MigrationStateMachine(config);
-        eventEmitter = new MigrationEventEmitter(outboxRepository);
+        eventEmitter = new SubscriptionEventEmitter(outboxRepository);
         failedInstance = new AtomicReference<>();
         failedReason = new AtomicReference<>();
         runner = new MigrationRetryRunner(instanceRepository, trialService, config,

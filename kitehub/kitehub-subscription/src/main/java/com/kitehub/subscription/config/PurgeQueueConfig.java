@@ -20,6 +20,9 @@ public class PurgeQueueConfig {
     public static final String PURGE_QUEUE_SUBSCRIPTION = "instance.purge.subscription";
     public static final String PURGE_ROUTING_KEY = "instance.purge";
 
+    /** Outbox event-type label for instance purge. Stable contract for outbox dispatcher + consumers. */
+    public static final String EVENT_TYPE_PURGE_REQUESTED = "instance.purge.requested";
+
     /**
      * Fanout exchange for purge events — multiple consumers can bind.
      */
