@@ -1,5 +1,12 @@
 # AI Branding — Developer Guidelines
 
+**Priority:** 🟠 MANDATORY
+**Version:** 1.1.0
+**Created:** 2026-04-14
+**Last-Reviewed:** 2026-04-26
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; backfill of frontmatter happens this same edit per §3 backfill-on-next-edit policy)
+**Applies to:** Every PR touching `kitehub-branding/**` (Java + frontend) or AI provider config
+
 How to implement AI Branding features correctly. **Key feature của dự án** — phải tuân thủ nghiêm.
 
 Reference: `documents/02-architecture/ai-branding-v2-redesign.md`
@@ -283,6 +290,62 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md`
 - Playwright: new tenant signup → complete wizard → see DEPLOYED dashboard
 - Visual regression: before/after branding update
 
+### 11.4 Migration test checklist (MANDATORY for AI behavior changes)
+
+**Khi nào áp dụng:** PR thay đổi AI behavior — model swap (Llama → Gemma, llama3.1 → llama3.2), prompt template rewrite, AI provider swap (Ollama → Bedrock), §5 Quality Reviewer logic, ContentModerationService logic. Auto-trigger qua `audit-gate.py` AUDIT_RULES rule `ai-branding-quality-gate`.
+
+**Process:** chạy `/ai-branding-quality-gate` skill — manual checklist 5 sections × 20 điểm = /100. Score <70 = block migration. Output report: `documents/04-quality/audits/ai-branding/YYYY-MM-DD-<change>.md`.
+
+#### 11.4.1 Output behavior consistency
+- Generate **5 sample outputs minimum** per change (3 audience × 2 tones)
+- Score each /4 against: cultural fit (VN tone), length, brand-safety, schema match
+- 5/5 sample outputs ≥3/4 = pass
+- A/B vs baseline (1 baseline output, 1 new output, blind compare): new ≥ baseline = pass
+
+#### 11.4.2 Tool-calling / Schema integration
+- `PlannerService.generatePlan()` returns valid `BrandingPlan` JSON (snapshotTest)
+- `AnalyzerService.analyze()` returns `AnalysisResult` complete fields
+- `PlanExecutor` executes returned plan without unhandled exceptions
+- Step interface contracts unchanged (else migration script provided)
+- Outbox events fire correctly with new payload schema
+
+#### 11.4.3 §5 Quality Gate compatibility
+- `InstanceQualityReviewer.review()` scaffold checks callable
+- Mock 5/5 PASS scenario → score 100 → `markDeployed()` fires
+- Mock <70 scenario → `markFailed()` fires + reason captured
+- `ContentModerationService` 3-stage pipeline returns `ModerationStatus`
+- Failure → AuditLog entry created
+
+#### 11.4.4 Resilience & fallback
+- CircuitBreaker fallback → `templateFallback` activates → STATIC/TEMPLATE path returns cached/default theme
+- Bulkhead isolation: concurrent 4-worker test (Oracle 24GB constraint) → no thread starvation
+- Retry policy unchanged or migration test added
+- Timeout >2 min triggers timeout + queues for retry
+- Tier rate-limit FREE 3 / PRO 10 / PREMIUM 30 still enforced
+
+#### 11.4.5 Tier-specific governance
+- FREE tier template-first routing intact (≥80% requests STATIC/TEMPLATE)
+- PRO tier regenerate counter visible + decremented
+- PREMIUM tier additional template variants accessible
+- ENTERPRISE Advanced Mode toggle + free-prompt opt-in still gated by `ai.enterprise.advancedModeEnabled` flag
+- Free-form prompt BANNED for FREE/PRO/PREMIUM (per §2.1)
+
+#### Acceptance criteria for migration PR
+
+- [ ] `/ai-branding-quality-gate` skill ran trên migration PR
+- [ ] Report saved to `documents/04-quality/audits/ai-branding/YYYY-MM-DD-<change>.md`
+- [ ] Score ≥70 (else block migration; fix issues, re-run gate)
+- [ ] 5 sample outputs documented in §11.4.1
+- [ ] Delta vs baseline (62/100 baseline 2026-04-26) reported
+- [ ] If <85, file follow-up gaps for sub-issues <16/20
+
+**Real automation** (WCAG measurement, visual regression diff, ML classifier scoring) requires infra not yet landed:
+- Real WCAG contrast measurement → GAP-226 (Wave 8+)
+- Real visual regression diff → GAP-227 (Wave 8+)
+- Real ML classifier scoring → GAP-228 (Wave 8+)
+
+Until those land, manual checklist mode is the source of truth per skill `quality/ai-branding-quality-gate/SKILL.md`.
+
 ---
 
 ## Quick Checklist for PR Reviewer
@@ -300,7 +363,11 @@ Khi review PR liên quan AI branding, check:
 - [ ] Không bypass `InstanceLifecycleService`
 - [ ] Tests: unit + integration + E2E
 - [ ] Template (nếu thêm mới): pass 5 review criteria
+- [ ] **Migration PR (model swap, prompt change, provider rewrite, §5 logic):** `/ai-branding-quality-gate` skill ran + report committed + score ≥70 (per §11.4)
 
 ---
 
-**Last Updated:** 2026-04-14 (sau redesign v2)
+## Log
+
+- **2026-04-26** (v1.1.0): MINOR — added §11.4 Migration test checklist subsection (5 sub-sections × 20 points; mandatory `/ai-branding-quality-gate` skill run; baseline 62/100 captured 2026-04-26). Backfilled mandatory frontmatter (Version, Created, Last-Reviewed, Reviewer-Approver, Applies-to) per `rule-change-process.md` §3 backfill-on-next-edit policy. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with skill creation + audit-gate rule + baseline audit in same Sub-PR 223.1). Closes part of GAP-223 Sub-PR 223.1 (Option C). Motivation: AI behavior changes (model upgrade, prompt rewrite) shipped Wave 4 với scaffold-only verification; GAP-006 Gemma 4 9B migration cannot ship without migration checklist (§11.4) + skill + audit-gate trigger. Real WCAG/vrg/ML automation deferred to GAP-226/227/228.
+- **2026-04-14** (v1.0.0): Rule established sau AI Branding redesign v2.
