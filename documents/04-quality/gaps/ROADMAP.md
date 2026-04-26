@@ -30,12 +30,13 @@
 
 **Priority order (updated 2026-04-20):** Meta-P0 → **Business-Logic-P0** → Feature-P0 → Meta-P1 → Business-Logic-P1 → Feature-P1 → ... Reference `.claude/rules/meta-gap-priority.md` §3 for tier definitions + tie-breakers.
 
-**GA Blockers remaining: 5 — ordered per `meta-gap-priority.md` (meta before feature within P0). GAP-047 closed 2026-04-25 (Wave 5 DONE — #532).**
+> **Recently closed (do NOT count as blockers):** GAP-046 Wave 6 2026-04-26 (audit 82/100 + ADR-020); GAP-047 Wave 5 2026-04-25 (#532 doc-gen trio).
+
+**GA Blockers remaining: 6 — ordered per `meta-gap-priority.md` (meta before feature within P0).**
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
-| ~~1~~ | ~~GAP-046~~ ✅ | Design patterns applied systematically — **CLOSED Wave 6** 2026-04-26 (audit 82/100 Grade B) | 🔴 Meta (rules) | 🟢 DONE | — |
-| **1** | **GAP-223** | AI Branding migration verification governance — **BLOCKS GAP-006** (audit-gate trigger + dedicated quality-gate skill + matrix sync) | 🔴 P0 Meta (governance) | 🔵 OPEN | M-L Option A (~6h) / S-M Option C (~2h) |
+| 1 | **GAP-223** | AI Branding migration verification governance — **BLOCKS GAP-006** (audit-gate trigger + dedicated quality-gate skill + matrix sync) | 🔴 P0 Meta (governance) | 🔵 OPEN | M-L Option A (~6h) / S-M Option C (~2h) |
 | 2 | **GAP-222a** | Extract Outbox infra to shared lib (unblocks GAP-222c) | 🟠 Meta (infra) | 🔵 OPEN | S-M |
 | 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
 | 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
@@ -92,7 +93,7 @@
 | GAP-014 | Wave mock plan include AI branding | 🔴 P0 | M |
 | GAP-015 ✅ | Tenant provisioning auto-trigger (event-driven) — DONE Wave 3 | 🟢 DONE | M |
 | GAP-016 | Living docs impact scope | 🔴 P0 | S |
-| GAP-046 | Design patterns applied systematically | 🟠 P1 | M |
+| GAP-046 ✅ | Design patterns applied systematically — DONE Wave 6 (2026-04-26, audit 82/100 Grade B + ADR-020) | 🟢 DONE | M |
 
 **Dependencies:** None — starts immediately.
 
@@ -670,6 +671,7 @@ Deferred (see `03-planning/wave-04-security-compliance.md` §Deferred): real ML 
 | GAP-218 | PDF font-missing runbook + image-build validation step (Wave 5 ops audit P0). | 🟢 DONE (Sub-PR 5.6b 2026-04-25) — Dockerfile font-presence assertion + `documents/05-guides/runbooks/pdf-generation-font-not-found.md` | ops / runbook + CI |
 | GAP-219 | Wave 5 audit follow-ups umbrella — 5 P1 + 8 P2/P3 sub-bullets across api/sec/perf/ops categories. Tracking-only; sub-bullets split into individual gaps when scheduled. | 🔵 OPEN 🟠 P1 | umbrella / maintenance |
 | GAP-220 | `BrandingVersionService.snapshot` JSONB column type mismatch — `branding_versions.snapshot_json` column is jsonb but JDBC sends varchar. Wave 4 latent bug surfaced by Sub-PR 5.6b `BrandingCacheIntegrationTest`. Production tenants updating branding will 500. Workaround: `@MockBean` skips path in test; real fix requires `@JdbcTypeCode(SqlTypes.JSON)` on entity. | 🔵 OPEN 🟠 P1 | backend / persistence |
+| GAP-224 | `collect-state.sh` blocker regex — sub-IDs (GAP-222a) collapse, prose cross-refs (BLOCKS GAP-006) pollute output, `sort -u` breaks priority order. Cosmetic accuracy fix; affects every `/start-session`. | 🔵 OPEN 🟡 P3 | skill fix (single-file) |
 
 ---
 
