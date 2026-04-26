@@ -14,11 +14,14 @@ Target: single fenced markdown block, ≤15 dòng. Skip field nào empty.
 **Nhánh:** {current git branch} ({clean|dirty|ahead-of-origin})
 **PRs đang mở:** {count} ({top 3 #ids với 1-word status})
 **CI:** main {green|red|unknown} — {N} failure gần đây
+**MCP servers:** {connected}/{total}{ — FAILED: {list}}
 **Gaps blocker:** {top 3 P0/P1 gap IDs + 1-từ topic}
 **Sức khỏe context:** {fresh|warm|degraded} (lượt ~{N}, lần compact gần nhất {time})
 **Session locks đang active:** {N} ({list nếu conflict với intended work})
 **Đề xuất tiếp theo:** {1-line action — /continue | /gap-triage | etc.}
 ```
+
+> **MCP row** (added 2026-04-26 sau Wave 6 anti-pattern): nếu báo failed servers hoặc 0/N connected → suggest user fix trước critical work. GitHub MCP thiếu → mọi PR/merge/check ops fallback `gh` CLI per `.claude/rules/mcp-first-with-fallback.md` §3 (vẫn work nhưng tốn parsing layer + bỏ qua structured output advantage). Khi có failed → nêu rõ tên server thay vì im lặng fallback.
 
 ### Vocabulary status
 
@@ -28,6 +31,7 @@ Target: single fenced markdown block, ≤15 dòng. Skip field nào empty.
 | CI | `green` / `red` / `pending` / `unknown` |
 | sức khỏe context | `fresh` (<20 lượt) / `warm` (20-40) / `degraded` (>40 hoặc >2h kể từ compact) |
 | PR status | `review` / `draft` / `ci-fail` / `approved` / `conflicts` |
+| MCP servers | `N/M` connected (vd `1/1` clean, `0/1 — FAILED: github` cần fix) |
 
 ## 2. Lock File Schema
 
@@ -75,6 +79,7 @@ Khi `/start-session` chạy, scan existing locks:
 **Nhánh:** main (clean, up-to-date)
 **PRs đang mở:** 0
 **CI:** main green
+**MCP servers:** 1/1 connected (github ✓)
 **Gaps blocker:** GAP-193 (session skill), GAP-199 (rework audit), GAP-185 (persona AC)
 **Sức khỏe context:** fresh (lượt 1)
 **Đề xuất tiếp theo:** /continue hoặc pick Wave 8b agent task
@@ -100,8 +105,9 @@ Khi `/start-session` chạy, scan existing locks:
 **Nhánh:** feat/wave-8b-X (dirty, uncommitted)
 **PRs đang mở:** 2
 **CI:** main green
+**MCP servers:** 0/1 — FAILED: github (Docker daemon down?)
 **Sức khỏe context:** DEGRADED (lượt ~55, last compact 3h trước, quality drift likely)
-**Đề xuất tiếp theo:** Commit WIP, /clear, re-run /start-session TRƯỚC critical merge
+**Đề xuất tiếp theo:** Fix MCP (`docker ps` rồi `claude mcp list`) + commit WIP + /clear + re-run /start-session TRƯỚC critical merge
 ```
 
 ## 5. Minimal Output Mode (`--quick`)
