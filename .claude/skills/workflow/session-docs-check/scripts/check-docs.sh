@@ -85,24 +85,14 @@ emit_pass()  { PASSED=$((PASSED+1)); PASSED_LINES="${PASSED_LINES}[OK]    $1"$'\
 emit_warn()  { WARNED=$((WARNED+1)); WARNED_LINES="${WARNED_LINES}[WARN]  $1"$'\n'; }
 emit_fail()  { FAILED=$((FAILED+1)); FAILED_LINES="${FAILED_LINES}[FAIL]  $1"$'\n'; }
 
+## ============================================================
+# Rule 3 — New gap file → ROADMAP entry
+# ============================================================
 # Helper: file in changed-set?
 file_changed() {
   echo "$CHANGED_FILES" | grep -qxF "$1"
 }
 
-# Helper: any file matching glob in changed-set?
-any_match() {
-  local pattern="$1"
-  echo "$CHANGED_FILES" | grep -E "$pattern" >/dev/null 2>&1
-}
-
-# ============================================================
-# Rule 3 — New gap file → ROADMAP entry
-# ============================================================
-NEW_GAPS="$(echo "$CHANGED_FILES" | grep -E '^documents/04-quality/gaps/GAP-[0-9]+-.+\.md$' \
-  | xargs -I{} sh -c 'git diff "'"$BASE_REF"'" -- {} | head -1 | grep -q "^+++" && [ "$(git log "'"$BASE_REF"'.." --diff-filter=A -- {} 2>/dev/null | wc -l)" -gt 0 ] && echo {}' 2>/dev/null || true)"
-
-# Simpler: gap file in `git diff --name-status` with status A
 NEW_GAPS="$(git diff "$BASE_REF" --name-status 2>/dev/null \
   | awk '$1 ~ /^A/ && $2 ~ /^documents\/04-quality\/gaps\/GAP-[0-9]+-.+\.md$/ {print $2}' \
   || true)"
