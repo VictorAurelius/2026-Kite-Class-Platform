@@ -35,17 +35,24 @@
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
 | ~~1~~ | ~~GAP-046~~ ✅ | Design patterns applied systematically — **CLOSED Wave 6** 2026-04-26 (audit 82/100 Grade B) | 🔴 Meta (rules) | 🟢 DONE | — |
-| **1** | **GAP-222a** | Extract Outbox infra to shared lib (unblocks GAP-222c) | 🟠 Meta (infra) | 🔵 OPEN | S-M |
-| 2 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
-| 3 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
-| 4 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
-| 5 | GAP-005 | AI queue fair scheduling (Phase 2) | Feature | 🟡 IN_PROGRESS | M |
+| **1** | **GAP-223** | AI Branding migration verification governance — **BLOCKS GAP-006** (audit-gate trigger + dedicated quality-gate skill + matrix sync) | 🔴 P0 Meta (governance) | 🔵 OPEN | M-L Option A (~6h) / S-M Option C (~2h) |
+| 2 | **GAP-222a** | Extract Outbox infra to shared lib (unblocks GAP-222c) | 🟠 Meta (infra) | 🔵 OPEN | S-M |
+| 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
+| 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
+| 5 | GAP-014 | Wave mock plan include AI branding | Feature | 🟡 PLANNED | M |
+| 6 | GAP-005 | AI queue fair scheduling (Phase 2) | Feature | 🟡 IN_PROGRESS | M |
 
 > **Priority rule:** Meta-gaps (skills/rules/workflow) go first at each P-level — 1 broken skill/rule affects every future PR, so force multiplier first. Ref `.claude/rules/meta-gap-priority.md`.
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 6 **CLOSED 2026-04-26** — design-pattern audit shipped + scored **70 → 82 (Grade C → B)**, GAP-046 → 🟢 DONE, ADR-020 ACCEPTED (`/client/` = adapter convention). Wave 7 candidates: **(A) GAP-222a + 222b** (extract Outbox shared lib + migrate ParentInvitationServiceImpl, both independent — Meta-P1 next in queue per `meta-gap-priority.md`); **(B) PowerPoint format** (deferred from Wave 5, Feature-P0 last remaining doc-gen format); **(C) Wave 10 GAP-055** (report-card VN format, BL-P0). Recommend (A) — Meta-priority + unblocks GAP-222c migration of 4 kitehub bypass sites.
+**Next recommended wave:** Wave 6 **CLOSED 2026-04-26**. Wave 7 priority queue (per `meta-gap-priority.md` Meta > Feature):
+
+1. **GAP-223** (NEW Meta-P0 2026-04-26) — AI Branding migration verification governance. **BLOCKS GAP-006**. 3 options analyzed: A (strict 6h) / B (accept-risk) / C (hybrid 2h+next-sprint). Decision needed at Wave 7 kickoff.
+2. **GAP-222a + 222b** (Meta-P1) — Extract Outbox shared lib + migrate ParentInvitationServiceImpl
+3. **GAP-006** (Feature-P1, BLOCKED by GAP-223) — Gemma 4 9B migration with VN A/B test (PR #549 docs already updated)
+4. **PowerPoint format** (Feature-P0, deferred Wave 5) — last remaining doc-gen format
+5. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format
 
 ---
 
