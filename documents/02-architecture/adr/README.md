@@ -117,9 +117,11 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [016](ADR-016-fe-be-contract-strategy.md) | Frontend ↔ Backend Contract Strategy | ACCEPTED | 2026-04-19 |
 | [017](ADR-017-mis-sync-strategy.md) | School MIS Sync Strategy (One-Shot vs Live) | PROPOSED | 2026-04-21 |
 | [018](ADR-018-domain-registrar-dns.md) | Domain Registrar, DNS Provider, and TLD Policy | ACCEPTED (draft) | 2026-04-21 |
-| [019](ADR-019-document-generation-architecture.md) | Document Generation Architecture (Wave 5 / GAP-047) | PROPOSED | 2026-04-24 |
+| [019](ADR-019-document-generation-architecture.md) | Document Generation Architecture (Wave 5 / GAP-047) | ACCEPTED | 2026-04-25 |
+| [020](ADR-020-vendor-client-package-naming.md) | Vendor Client Package Naming Convention | ACCEPTED | 2026-04-26 |
+| [021](ADR-021-per-module-outbox-vs-shared-lib.md) | Per-Module Domain Outbox over Cross-Product Shared Library | PROPOSED | 2026-04-26 |
 
-Next free ID: **ADR-020**.
+Next free ID: **ADR-022**.
 
 ---
 
