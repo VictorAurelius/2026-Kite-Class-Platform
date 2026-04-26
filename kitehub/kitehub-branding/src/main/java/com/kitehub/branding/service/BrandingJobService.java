@@ -4,10 +4,10 @@ import com.kitehub.branding.config.RabbitMQConfig;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.dto.BrandingJobMessage;
+import com.kitehub.branding.outbox.BrandingEventEmitter;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +28,7 @@ import java.util.UUID;
 public class BrandingJobService {
 
     private final BrandingJobRepository jobRepository;
-    private final RabbitTemplate rabbitTemplate;
+    private final BrandingEventEmitter outboxEmitter;
 
     /**
      * Create and queue a new branding job.
@@ -57,7 +57,6 @@ public class BrandingJobService {
 
         job = jobRepository.save(job);
 
-        // Publish to RabbitMQ
         BrandingJobMessage message = new BrandingJobMessage(
                 job.getId(),
                 instanceId,
@@ -66,7 +65,11 @@ public class BrandingJobService {
                 logoUrl
         );
 
-        rabbitTemplate.convertAndSend(
+        // Per design-patterns.md §3.5.1: outbox-row first (reliability net),
+        // then best-effort fast-path publish handled inside the emitter.
+        outboxEmitter.emit(
+                job.getId(),
+                "branding.job.queued",
                 RabbitMQConfig.BRANDING_EXCHANGE,
                 RabbitMQConfig.BRANDING_ROUTING_KEY,
                 message

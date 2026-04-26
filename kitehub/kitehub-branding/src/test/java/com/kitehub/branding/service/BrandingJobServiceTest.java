@@ -4,6 +4,7 @@ import com.kitehub.branding.config.RabbitMQConfig;
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.domain.enums.JobStatus;
 import com.kitehub.branding.dto.BrandingJobMessage;
+import com.kitehub.branding.outbox.BrandingEventEmitter;
 import com.kitehub.branding.repository.BrandingJobRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +34,7 @@ class BrandingJobServiceTest {
     private BrandingJobRepository jobRepository;
 
     @Mock
-    private RabbitTemplate rabbitTemplate;
+    private BrandingEventEmitter outboxEmitter;
 
     @InjectMocks
     private BrandingJobService jobService;
@@ -74,9 +74,11 @@ class BrandingJobServiceTest {
         assertThat(result.getStatus()).isEqualTo(JobStatus.QUEUED);
         assertThat(result.getProgress()).isEqualTo(0);
 
-        // Verify RabbitMQ message sent
+        // Verify outbox emitter called with correct routing + payload
         ArgumentCaptor<BrandingJobMessage> messageCaptor = ArgumentCaptor.forClass(BrandingJobMessage.class);
-        verify(rabbitTemplate).convertAndSend(
+        verify(outboxEmitter).emit(
+                eq(savedJob.getId()),
+                eq("branding.job.queued"),
                 eq(RabbitMQConfig.BRANDING_EXCHANGE),
                 eq(RabbitMQConfig.BRANDING_ROUTING_KEY),
                 messageCaptor.capture()

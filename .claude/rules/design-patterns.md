@@ -1,10 +1,10 @@
 # Design Patterns — Project Rules
 
 **Priority:** 🟠 MANDATORY
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Created:** 2026-04-14
 **Last-Reviewed:** 2026-04-26
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; backfill of frontmatter happens this same edit per §3 backfill-on-next-edit policy)
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5)
 **Applies to:** All `*.java` and `*.tsx`/`*.ts` source under `kiteclass/**`, `kitehub/**`, plus PR review / refactor decisions
 
 Project-wide rules for applying design patterns. **Mandatory** khi develop new feature, refactor, review PR.
@@ -144,7 +144,9 @@ PR sẽ bị reject nếu có:
 
 #### 3.5.1 Outbox Bypass Policy
 
-> **Default: every cross-service event MUST flow through `OutboxEventWriter` (or domain-specific outbox like `MigrationOutboxRepository`). Direct `rabbitTemplate.convertAndSend(...)` is BANNED unless one of the documented exceptions below applies. Silent bypass is the anti-pattern.**
+> **Default: every cross-service event MUST flow through `OutboxEventWriter` (or a per-module domain outbox — see precedents `MigrationOutboxRepository` in kitehub-subscription, `BrandingEventEmitter` in kitehub-branding). Direct `rabbitTemplate.convertAndSend(...)` is BANNED unless one of the documented exceptions below applies. Silent bypass is the anti-pattern.**
+
+Per ADR-021, kitehub-* modules use per-module domain outbox (entity + repository + emitter) instead of a cross-product shared library. Choose the precedent that matches your module: `kiteclass-core` consumers use the generic `OutboxEventWriter`; `kitehub-*` consumers copy the per-module pattern.
 
 Three — and only three — documented exceptions are permitted. Any direct publish MUST cite which exception applies inline as a code comment so reviewers + audit skill can recognize it.
 
@@ -311,5 +313,6 @@ Team goal: majority Level 2, architects Level 3.
 
 ## 9. Log
 
+- **2026-04-26** (v1.2.0): MINOR — extended §3.5.1 default-rule paragraph to cite per-module domain outbox precedents (`MigrationOutboxRepository`, `BrandingEventEmitter`) alongside `OutboxEventWriter`, and added one-paragraph guidance pointing to ADR-021 for module-by-module choice. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with ADR-021 acceptance + GAP-222a Phase 2 implementation in same wave). Closes part of GAP-222a Phase 3 (rule clarification AC). Motivation: original §3.5.1 mentioned MigrationOutboxRepository only as a parenthetical example; ADR-021 elevates per-module pattern to primary path for cross-product modules — rule must reflect.
 - **2026-04-26** (v1.1.0): MINOR — added §3.5.1 Outbox Bypass Policy (Exceptions A/B/C + anti-pattern envelope). Backfilled mandatory frontmatter (Version, Created, Last-Reviewed, Reviewer-Approver, Applies-to) per `rule-change-process.md` §3 backfill-on-next-edit policy. Closes part of GAP-222 Phase 1 (Sub-PR 6.4). Reviewer: @nguyenvankiet (solo-dev self-approve per §5 matrix for MINOR — paired with detector calibration in same PR + post-wave audit in Sub-PR 6.5). Motivation: design-pattern audit baseline 2026-04-26 (Sub-PR 6.1) found 5 services bypassing Outbox without policy → couldn't tell which were intentional. §3.5.1 turns "silent bypass" into "documented exception or violation" so future audits + reviewers can decide objectively.
 - 2026-04-14 (v1.0.0): Rules created based on AI Branding v2 design patterns catalog
