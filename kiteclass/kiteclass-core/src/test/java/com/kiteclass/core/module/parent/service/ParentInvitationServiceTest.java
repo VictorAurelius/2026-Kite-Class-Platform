@@ -5,7 +5,9 @@ import com.kiteclass.core.common.constant.ParentRelationship;
 import com.kiteclass.core.common.constant.ParentStatus;
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.outbox.OutboxEventWriter;
 import com.kiteclass.core.module.parent.config.ParentPortalProperties;
 import com.kiteclass.core.module.parent.dto.ParentInvitationResponse;
 import com.kiteclass.core.module.parent.dto.RedeemInvitationRequest;
@@ -70,6 +72,10 @@ class ParentInvitationServiceTest {
     @Mock private ParentStudentLinkRepository linkRepository;
     @Mock private StudentRepository studentRepository;
     @Mock private RabbitTemplate rabbitTemplate;
+    @Mock private OutboxEventWriter outbox;
+
+    // Match Spring Boot default — registers JavaTimeModule so Instant serializes
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     private ParentInvitationServiceImpl service;
 
@@ -88,6 +94,8 @@ class ParentInvitationServiceTest {
                 linkRepository,
                 studentRepository,
                 rabbitTemplate,
+                outbox,
+                objectMapper,
                 props
         );
 
@@ -136,6 +144,9 @@ class ParentInvitationServiceTest {
             assertThat(saved.getExpiresAt()).isBefore(Instant.now().plus(25, ChronoUnit.HOURS));
 
             verify(rabbitTemplate).convertAndSend(eq("email.exchange"), eq("email.send"), any(Object.class));
+            // Per design-patterns.md §3.5.1 Exception A: outbox row is the reliability net.
+            verify(outbox).enqueue(eq("email.send"), eq("ParentInvitation"),
+                    eq(saved.getId().toString()), anyString());
         }
 
         @Test
@@ -196,7 +207,7 @@ class ParentInvitationServiceTest {
                     false, 24, "http://t/");
             ParentInvitationServiceImpl disabled = new ParentInvitationServiceImpl(
                     parentRepository, invitationRepository, linkRepository,
-                    studentRepository, rabbitTemplate, off);
+                    studentRepository, rabbitTemplate, outbox, objectMapper, off);
 
             assertThatThrownBy(() -> disabled.invite(TENANT, STUDENT_ID, PARENT_EMAIL, INVITER_ID))
                     .isInstanceOf(BusinessException.class)

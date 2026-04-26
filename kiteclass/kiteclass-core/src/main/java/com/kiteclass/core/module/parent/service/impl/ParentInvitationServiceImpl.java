@@ -1,5 +1,7 @@
 package com.kiteclass.core.module.parent.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.ParentInvitationStatus;
 import com.kiteclass.core.common.constant.ParentLinkType;
 import com.kiteclass.core.common.constant.ParentRelationship;
@@ -7,6 +9,7 @@ import com.kiteclass.core.common.constant.ParentStatus;
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.common.exception.DuplicateResourceException;
 import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.common.outbox.OutboxEventWriter;
 import com.kiteclass.core.module.parent.config.ParentPortalProperties;
 import com.kiteclass.core.module.parent.dto.ParentInvitationResponse;
 import com.kiteclass.core.module.parent.dto.RedeemInvitationRequest;
@@ -65,6 +68,8 @@ public class ParentInvitationServiceImpl implements ParentInvitationService {
     private final ParentStudentLinkRepository linkRepository;
     private final StudentRepository studentRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final OutboxEventWriter outbox;
+    private final ObjectMapper objectMapper;
     private final ParentPortalProperties properties;
 
     public ParentInvitationServiceImpl(
@@ -73,12 +78,16 @@ public class ParentInvitationServiceImpl implements ParentInvitationService {
             ParentStudentLinkRepository linkRepository,
             StudentRepository studentRepository,
             RabbitTemplate rabbitTemplate,
+            OutboxEventWriter outbox,
+            ObjectMapper objectMapper,
             ParentPortalProperties properties) {
         this.parentRepository = parentRepository;
         this.invitationRepository = invitationRepository;
         this.linkRepository = linkRepository;
         this.studentRepository = studentRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.outbox = outbox;
+        this.objectMapper = objectMapper;
         this.properties = properties;
     }
 
@@ -280,12 +289,23 @@ public class ParentInvitationServiceImpl implements ParentInvitationService {
                 Instant.now()
         );
 
+        // Per design-patterns.md §3.5.1 Exception A: outbox-row first (reliability net),
+        // then best-effort fast-path RabbitMQ publish.
         try {
+            String payload = objectMapper.writeValueAsString(event);
+            outbox.enqueue(EMAIL_ROUTING_KEY, "ParentInvitation",
+                    invitation.getId().toString(), payload);
+        } catch (JsonProcessingException ex) {
+            log.error("Failed to serialize parent invitation event for {}: {}",
+                    invitation.getEmail(), ex.getMessage());
+            // Continue to direct publish — partial degradation beats losing the email entirely
+        }
+
+        try {
+            // Best-effort fast-path; outbox is the reliability net.
             rabbitTemplate.convertAndSend(EMAIL_EXCHANGE, EMAIL_ROUTING_KEY, event);
         } catch (Exception e) {
-            // Email broker downtime must not fail the invitation row write —
-            // the admin can resend from the UI.
-            log.warn("Failed to publish parent invitation email for {}: {}",
+            log.warn("Direct publish of parent invitation email for {} failed — outbox will retry: {}",
                     invitation.getEmail(), e.getMessage());
         }
     }
