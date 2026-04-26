@@ -1,6 +1,6 @@
 # GAP-016: AI Branding v2 — Living Documents Impact Scope
 
-**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Status:** 🟡 PARTIAL (verified 2026-04-26 sweep — code mostly DONE in kiteclass-core, business docs + 3 guides outstanding tracked GAP-229)
 **Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (living docs rule — PR không pass quality check nếu không update business docs)
 **Domain:** Documentation / Governance
@@ -122,6 +122,47 @@ Thêm section **2.9 AI Branding Coverage** vào `.claude/skills/quality/business
 - Informs/governs: GAP-007..015 implementation
 - Required for quality check: CLAUDE.md Living Docs rule
 
+## Findings (verified sweep 2026-04-26)
+
+Cross-checked impact matrix items vs actual repo state. Key finding: **v2 implementation EXISTS but landed in `kiteclass-core` module, NOT `kitehub-branding` as architected.** The kitehub-branding module retains v1 only.
+
+### ✅ DONE (code shipped, location ≠ architecture doc)
+
+| Matrix item | Real location |
+|-------------|---------------|
+| ResourceCategory enum (GAP-007) | `kiteclass-core/module/branding/entity/ResourceCategory.java` |
+| BrandingAnalyzer (GAP-008) | renamed to `AnalyzerService.java` in `kiteclass-core/module/ai/workflow/` |
+| BrandingPlanner (GAP-008) | renamed to `PlannerService.java` |
+| BrandingExecutor (GAP-008) | `PlanExecutor.java` |
+| Step interface (GAP-008) | `kiteclass-core/module/ai/workflow/Step.java` |
+| FrontendInstanceStatus enum (GAP-009) | `kiteclass-core/module/instance/entity/FrontendInstanceStatus.java` |
+| InstanceLifecycleService (GAP-009) | `kiteclass-core/module/instance/service/InstanceLifecycleService.java` |
+| InstanceQualityReviewer (GAP-012) | `kiteclass-core/module/quality/service/InstanceQualityReviewer.java` |
+| 5 *QualityCheck Strategy classes (GAP-012) | `kiteclass-core/module/quality/check/{Contrast,CssVars,AssetUrls,VisualRegression,LogoPlacement}QualityCheck.java` |
+| TenantProvisioningSaga (GAP-015) | `kiteclass-core/module/provisioning/TenantProvisioningSaga.java` |
+| ContentModerationService (GAP-018) | `kiteclass-core/module/moderation/ContentModerationService.java` |
+| business-gap-check skill §2.9 AI Branding | `.claude/skills/quality/business-gap-check.md:242` |
+
+### ❌ MISSING (need follow-up — tracked GAP-229)
+
+| Matrix item | Status |
+|-------------|--------|
+| `01-business/kitehub/ai-branding/rules.md` v2 content | Still v1 (AIB-01..11 rate limit only); needs resource classification + workflow + lifecycle + quality gate + wizard rules |
+| `01-business/kitehub/ai-branding/use-cases.md` v2 UCs | Only UC-AIB-01..04 (v1); needs UC-AIB-07 Wizard, UC-AIB-08 Approve per resource, UC-AIB-09 Regenerate, UC-AIB-10 Quality review, UC-AIB-11 Auto-provisioning |
+| `01-business/kitehub/ai-branding/api-contract.md` v2 endpoints | Still v1 (analyze-logo, generate-image, generate-text, generate-theme, templates); missing `/package`, `/analyze`, `/plan`, `/execute`, `/wizard/session`, `/jobs/{id}`, `/instances/{id}/status` |
+| `instance-provisioning/{rules,use-cases}.md` v2 content | Need verification; likely outdated |
+| `documents/05-guides/branding-integration.md` | DOES NOT EXIST |
+| `documents/05-guides/ai-branding-wizard-flow.md` | DOES NOT EXIST |
+| `documents/05-guides/template-contribution-guide.md` | DOES NOT EXIST |
+| `02-architecture/docker-platform-architecture.md` queue topology + worker pool | Need verification |
+| `03-planning/database/database-design.md` 4 entities | Need verification |
+| `06-diagrams/plantuml/{03-erd,04-architecture-full}.puml` | Need verification |
+
+### ⚠️ ARCHITECTURE DOC DRIFT
+
+Original `documents/02-architecture/ai-branding-v2-redesign.md` specified `kitehub-branding/` as module location but implementation went to `kiteclass-core`. Architecture doc → reality sync needed (low priority — code is what runs, doc can be updated when next architecture review happens).
+
 ## Log
 
+- **2026-04-26 (verification sweep, Sub-PR 223.1 correction):** GAP-016 status PLANNED → 🟡 PARTIAL. Cross-checked entire impact matrix against real repo. Verified v2 code DONE in kiteclass-core (12+ classes confirmed via Java search). business-gap-check skill §2.9 ALREADY landed (line 242). Filed GAP-229 for outstanding business docs sync (rules/use-cases/api-contract v2 content) + 3 missing user guides. Findings table added. Architecture doc → kiteclass-core path drift noted (deferred).
 - 2026-04-14 — Phát hiện impact scope thiếu trong redesign plan (user raised)
