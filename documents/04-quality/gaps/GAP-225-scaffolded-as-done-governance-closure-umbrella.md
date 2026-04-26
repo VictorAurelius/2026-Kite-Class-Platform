@@ -33,16 +33,16 @@ Khi audit GAP-223 (AI Branding governance), Explore agent quét toàn bộ gap f
 1. Gap file mention scaffolded/deferred/PARTIAL/follow-up ✅
 2. Status DONE + deferred items chưa close ✅
 3. `output-review-mandate.md` matrix entry mismatched (line 75 nói "PLANNED" cho GAP-012/018 đã DONE) ⚠️ partial
-4. `audit-gate.py` AUDIT_RULES không có rule cho `kitehub-branding/` domain ❌
+4. `audit-gate.py` AUDIT_RULES không có rule cho `kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/` domain ❌
 5. Không có dedicated skill `quality/{domain}/SKILL.md` (chỉ có generic skills) ❌
 
 ## Cluster Analysis (3 batch fix groups)
 
 | Cluster | Gaps | Domain | Cần thêm |
 |---------|------|--------|----------|
-| **C1: AI Agent + Async Pipeline** | GAP-008 | AI / orchestration | Skill `quality/ai-agent-review/` + audit-gate rule cho `kitehub-branding/**Service.java` + matrix row "AI agent workflows" |
-| **C2: Instance Lifecycle + Saga** | GAP-009, GAP-015 | Backend / state machine / event sourcing | Skill `quality/saga-pattern-review/` + audit-gate rule cho `*Saga.java` + matrix row "Event-sourced sagas" |
-| **C3: AI Branding Quality Gates** | GAP-012, GAP-018 (+ GAP-223) | Quality / AI output validation | Already in GAP-223 Sub-PR 223.1 scope (Option C) — skill `quality/ai-branding-quality-gate/` + audit-gate rule + matrix row 75 update |
+| **C1: AI Agent + Async Pipeline** | GAP-008 | AI / orchestration | Skill `quality/ai-agent-review/` + audit-gate rule cho `kiteclass-core/module/ai/workflow/*Service.java` + matrix row "AI agent workflows" |
+| **C2: Instance Lifecycle + Saga** | GAP-009, GAP-015 | Backend / state machine / event sourcing | Skill `quality/saga-pattern-review/` + audit-gate rule cho `*Saga.java` (e.g. `TenantProvisioningSaga.java` in `kiteclass-core/module/provisioning/`) + matrix row "Event-sourced sagas" |
+| **C3: AI Branding Quality Gates** | GAP-012, GAP-018 (+ GAP-223) | Quality / AI output validation | DONE Sub-PR 223.1 — skill `quality/ai-branding-quality-gate/` + audit-gate rule targeting `kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/` + matrix row 75 update |
 
 → **C3 ride trong GAP-223 Sub-PR 223.1.** C1 + C2 là findings mới chưa có gap riêng.
 
@@ -110,4 +110,5 @@ Phase 2-4 candidate (chờ user schedule):
 
 ## Log
 
+- **2026-04-26 (correction post Sub-PR 223.1)** — Updated cluster cells with REAL kiteclass-core paths after GAP-016 verification sweep. Original cluster description used architecture-doc paths (`kitehub-branding/`) but v2 implementation actually landed in `kiteclass-core/module/`. Fix shipped in Sub-PR 223.1-correction PR alongside audit-gate.py + skill SKILL.md path corrections.
 - **2026-04-26** — Gap created via cross-gap audit triggered by GAP-223 (AI Branding governance fix) Wave 7 kickoff. User question: "tất cả gaps đã closed và còn open có mắc lỗi tương tự hay không". Explore agent quét 220+ gap files + matrix + audit-gate.py + skill catalog → found 5 strong candidates (4/5 governance signals each) sharing scaffold-as-DONE pattern. User decision: docs-only truth-up, no Wave 7 commitment — captures debt for future scheduling. Phase 2-4 implementation deferred until capacity available.

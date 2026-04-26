@@ -1,6 +1,6 @@
 ---
 name: ai-branding-quality-gate
-description: "Dùng khi PR thay đổi AI Branding behavior — model swap (Ollama → Bedrock, Llama → Gemma), prompt template change, AIClient/AIProvider/Step interface, ContentModerationService, InstanceQualityReviewer logic. Auto-trigger qua audit-gate khi files match `kitehub-branding/src/main/java/**/{AIClient,OllamaClient,OpenAIClient,AIProvider,BrandingPlanner,BrandingExecutor,InstanceQualityReviewer,ContentModeration}*.java`. Manual checklist mode (5 sections × scoring) + delta-vs-baseline rubric. Output: `documents/04-quality/audits/ai-branding/YYYY-MM-DD-<change>.md`."
+description: "Dùng khi PR thay đổi AI Branding behavior — model swap (Ollama → Bedrock, Llama → Gemma), prompt template change, AIClient/Step interface, ContentModerationService, InstanceQualityReviewer logic, 5 *QualityCheck classes. Auto-trigger qua audit-gate khi files match `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/{ai,branding,instance,quality,moderation,provisioning}/**/*.java`. Manual checklist mode (5 sections × scoring) + delta-vs-baseline rubric. Output: `documents/04-quality/audits/ai-branding/YYYY-MM-DD-<change>.md`."
 user-invocable: true
 ---
 
@@ -53,20 +53,21 @@ For model swap / prompt change / provider swap:
 
 For provider swap or model upgrade with tool-calling change:
 
-- [ ] **PlannerService.generatePlan()** still produces valid `BrandingPlan` JSON (snapshotTest)
-- [ ] **AnalyzerService.analyze()** returns `AnalysisResult` with all required fields populated
-- [ ] **PlanExecutor** can execute returned plan without unhandled exceptions
-- [ ] **Step interface** contracts unchanged (or migration script provided)
-- [ ] **Outbox events** fire correctly with new payload schema (verify against `BrandingEventPublisher` test)
+- [ ] **PlannerService.generatePlan()** still produces valid `Plan` JSON (snapshotTest) — `kiteclass-core/module/ai/workflow/PlannerService.java`
+- [ ] **AnalyzerService.analyze()** returns `AnalysisResult` with all required fields populated — `kiteclass-core/module/ai/workflow/AnalyzerService.java`
+- [ ] **PlanExecutor** can execute returned plan without unhandled exceptions — `kiteclass-core/module/ai/workflow/PlanExecutor.java`
+- [ ] **Step interface** contracts unchanged (or migration script provided) — `kiteclass-core/module/ai/workflow/Step.java`
+- [ ] **Outbox events** fire correctly with new payload schema — `kiteclass-core/module/branding/events/BrandingEventPublisher.java`
 
 #### §3. §5 Quality Gate compatibility (/20)
 
 For §5 Quality Reviewer / ContentModerationService logic change:
 
-- [ ] **InstanceQualityReviewer.review()** scaffold checks still callable (contrast/CSS/asset/vrg/logo)
-- [ ] **Mock 5/5 PASS** scenario → score 100/100 → `markDeployed()` fires
-- [ ] **Mock <70/100** scenario → `markFailed()` fires + reason captured
-- [ ] **ContentModerationService** 3-stage pipeline returns `ModerationStatus` correctly
+- [ ] **InstanceQualityReviewer.review()** scaffold checks callable — `kiteclass-core/module/quality/service/InstanceQualityReviewer.java`
+- [ ] **5 *QualityCheck Strategy classes** present + callable: `ContrastQualityCheck`, `CssVarsQualityCheck`, `AssetUrlsQualityCheck`, `VisualRegressionQualityCheck`, `LogoPlacementQualityCheck` (`kiteclass-core/module/quality/check/`)
+- [ ] **Mock 5/5 PASS** scenario → score 100/100 → `markDeployed()` fires (via `InstanceLifecycleService`)
+- [ ] **Mock <70/100** scenario → `markFailed()` fires + reason captured in `QualityReport` entity
+- [ ] **ContentModerationService** 3-stage pipeline returns `ModerationStatus` correctly — `kiteclass-core/module/moderation/ContentModerationService.java`
 - [ ] **Failure → AuditLog** entry created (verify via integration test)
 
 #### §4. Resilience & fallback (/20)
@@ -145,9 +146,14 @@ Save to `documents/04-quality/audits/ai-branding/YYYY-MM-DD-<change-name>.md`:
 
 ## When NOT to use this skill
 
-- **PR docs-only** (no Java changes in `kitehub-branding/`) — audit-gate auto-skips per `is_docs_only()` rule
-- **PR touches `kitehub-branding/src/test/`** only — test changes don't trigger behavior regression risk
-- **PR touches `kitehub-branding/` frontend templates** (HTML/CSS) — use `ui-review` skill instead
+- **PR docs-only** (no Java changes in `kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/`) — audit-gate auto-skips per `is_docs_only()` rule
+- **PR touches `kiteclass-core/src/test/`** only — test changes don't trigger behavior regression risk
+- **PR touches `kitehub-branding/`** (legacy v1 module — rate limit, jobs, templates) — use generic audits per existing AUDIT_RULES; v2 redesign landed in kiteclass-core, not here
+- **PR touches `kiteclass-frontend/` AI Branding pages** (HTML/CSS/TSX) — use `ui-review` skill instead
+
+## Module location note (verified 2026-04-26 GAP-016 sweep)
+
+V2 AI Branding implementation landed in `kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/`, NOT in `kitehub/kitehub-branding/` as originally architected in `documents/02-architecture/ai-branding-v2-redesign.md`. The kitehub-branding module retains v1 only (rate limit + jobs + template gallery + AIBrandingService). This skill targets actual implementation location; architecture doc may need follow-up sync.
 
 ## Related
 

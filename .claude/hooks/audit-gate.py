@@ -51,14 +51,29 @@ AUDIT_RULES = [
     {
         # AI Branding behavior verification — model swap, prompt change, provider rewrite,
         # §5 Quality Reviewer logic, ContentModerationService logic.
-        # Patterns target Java implementation files; frontend templates use ui-review skill.
+        # Patterns target real kiteclass-core implementation paths (verified 2026-04-26 GAP-016).
+        # NOT kitehub-branding/ — that module shipped v1 only; v2 redesign landed in kiteclass-core.
+        # Frontend templates use ui-review skill (separate).
         # See `.claude/rules/ai-branding-guidelines.md` §11.4 + GAP-223 Sub-PR 223.1.
         "patterns": [
-            "kitehub-branding/src/main/java/",
-            "AIClient.java", "OllamaClient.java", "OpenAIClient.java",
-            "AIProviderConfig.java", "AIProvider.java",
-            "BrandingPlanner.java", "BrandingExecutor.java", "BrandingAnalyzer.java",
+            # Module path — catches any v2 AI Branding Java change
+            "kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/",
+            "kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/branding/",
+            "kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/instance/",
+            "kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/quality/",
+            "kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/moderation/",
+            "kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/provisioning/",
+            # Specific real class names (real names — not architecture-doc names)
+            "AIClient.java", "OllamaAIClient.java", "ResilientAIClient.java", "MockAIClient.java",
+            "AnalyzerService.java", "PlannerService.java", "PlanExecutor.java",
             "InstanceQualityReviewer.java", "ContentModerationService.java",
+            "TenantProvisioningSaga.java", "InstanceLifecycleService.java",
+            # 5 quality checks (§5 Quality Gate Strategy pattern)
+            "ContrastQualityCheck.java", "CssVarsQualityCheck.java",
+            "AssetUrlsQualityCheck.java", "VisualRegressionQualityCheck.java",
+            "LogoPlacementQualityCheck.java",
+            # Resource handlers (Chain of Responsibility for STATIC/TEMPLATE/AI routing)
+            "AIResourceHandler.java", "StaticResourceHandler.java",
         ],
         "audit": "ai-branding-quality-gate",
         "command": "/ai-branding-quality-gate",
