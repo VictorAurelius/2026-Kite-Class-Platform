@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-26 (Wave 7 queue staleness fix — docs-only):** State-check trước khi pick Wave 7 next-action phát hiện priority queue line 4 stale — `PowerPoint format (Feature-P0)` đã DONE từ Wave 5 (GAP-047 closed Sub-PR 5.6b #532, 2026-04-25; PowerPoint deferred per Q6 scope-lock với Canva/Slides alternative justification). Removed stale entry; added GAP-229 (BL-P1 docs sync) per matrix-strict ordering; updated GAP-006 status BLOCKED → unblocked (Sub-PR 223.1 shipped 2026-04-26 #553/#554 means GAP-006 = Sub-PR 223.2 actionable). Pattern: lặp lại memory `feedback_gap_state_check_required.md` — ROADMAP cần state-check trước khi consume queue. No gap counts change (cleanup only).
+
 **2026-04-26 (Sub-PR 223.1 CORRECTION — module path fix):** GAP-016 verification sweep phát hiện audit-gate.py rule patterns + skill SKILL.md + baseline audit references trong PR #553 đều dùng `kitehub-branding/` paths với class names từ architecture doc (BrandingPlanner/BrandingAnalyzer/BrandingExecutor) — KHÔNG match implementation thực tế. V2 code đã ship Waves 2-4 nhưng landed trong **`kiteclass/kiteclass-core/`** (NOT `kitehub-branding/`) với real names: `AnalyzerService`/`PlannerService`/`PlanExecutor`. Correction PR fixes: (1) audit-gate.py patterns + class names corrected, (2) skill SKILL.md updated, (3) baseline audit references updated (score 62/100 stays — calibration đúng), (4) GAP-225 cluster cells corrected, (5) GAP-016 status PLANNED → 🟡 PARTIAL với Findings table verified-real. Filed GAP-229 (P1 biz-logic) cho business docs v2 sync + 3 missing user guides — Living Documents rule violation từ Waves 2-4. Counts: **89 OPEN → 90 OPEN** (+GAP-229).
 
 **2026-04-26 (Sub-PR 223.1 SHIPPED, Wave 7 governance scaffold landed):** GAP-223 Option C executed — single PR delivered: (1) skill `quality/ai-branding-quality-gate/` (manual checklist 5 sections × 20 = /100), (2) baseline audit `2026-04-26-baseline.md` 62/100 ⚠️ BASELINE, (3) `audit-gate.py` AUDIT_RULES + AUDIT_DIRS extended cho `kitehub-branding/` Java patterns, (4) `ai-branding-guidelines.md` v1.1.0 với §11.4 Migration test checklist + frontmatter backfill, (5) `output-review-mandate.md` v1.0.2 matrix line 75 re-sync, (6) 3 follow-up gaps GAP-226/227/228 cho real WCAG/vrg/ML (Wave 8+ scope). GAP-223 status 🔵 OPEN → 🟡 PARTIAL (Sub-PR 223.2 = GAP-006 Gemma 4 9B migration unblocked, queued separate session). Counts: **86 OPEN → 89 OPEN** (+GAP-226/227/228).
@@ -55,10 +57,10 @@
 
 **Next recommended wave:** Wave 6 **CLOSED 2026-04-26**. Wave 7 priority queue (per `meta-gap-priority.md` Meta > Feature):
 
-1. **GAP-223** (NEW Meta-P0 2026-04-26) — AI Branding migration verification governance. **BLOCKS GAP-006**. 3 options analyzed: A (strict 6h) / B (accept-risk) / C (hybrid 2h+next-sprint). Decision needed at Wave 7 kickoff.
+1. **GAP-223** (Meta-P0 PARTIAL) — AI Branding migration verification governance. Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100 — PRs #553/#554). Sub-PR 223.2 = GAP-006 unblock.
 2. **GAP-222a + 222b** (Meta-P1) — Extract Outbox shared lib + migrate ParentInvitationServiceImpl
-3. **GAP-006** (Feature-P1, BLOCKED by GAP-223) — Gemma 4 9B migration with VN A/B test (PR #549 docs already updated)
-4. **PowerPoint format** (Feature-P0, deferred Wave 5) — last remaining doc-gen format
+3. **GAP-229** (BL-P1) — AI Branding v2 business docs sync (rules/use-cases/api-contract) + 3 user guides; tracks GAP-016 PARTIAL remainder
+4. **GAP-006** (Feature-P1, unblocked 2026-04-26 by Sub-PR 223.1) — Gemma 4 9B migration with VN A/B test
 5. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format
 
 ---
