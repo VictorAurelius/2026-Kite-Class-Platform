@@ -52,14 +52,17 @@ public class CacheConfig {
     }
 
     /**
-     * Backs subscription-side caches when this module runs as a standalone Spring context.
+     * Backs subscription-side caches.
      *
-     * <p>Marked {@link ConditionalOnMissingBean} on {@link CacheManager} so that consumer
-     * modules (e.g. {@code kitehub-admin} which depends on {@code kitehub-subscription})
-     * can supply their own {@code CacheManager} without triggering a
-     * {@code BeanDefinitionOverrideException} on context startup. Closes GAP-238.</p>
+     * <p>Explicit bean name {@code subscriptionCacheManager} prevents
+     * {@code BeanDefinitionOverrideException} when consumer modules (e.g.
+     * {@code kitehub-admin}) define their own {@code @Primary CacheManager}.
+     * {@code @ConditionalOnMissingBean} alone is insufficient because Spring's
+     * @Configuration ordering across modules is non-deterministic — explicit unique
+     * naming + @Primary on the consumer's bean is the reliable pattern. Closes GAP-238 +
+     * GAP-240 follow-up (full SpringBootTest verification).</p>
      */
-    @Bean
+    @Bean(name = "subscriptionCacheManager")
     @ConditionalOnMissingBean(CacheManager.class)
     public CacheManager cacheManager() {
         CaffeineCacheManager manager = new CaffeineCacheManager();
