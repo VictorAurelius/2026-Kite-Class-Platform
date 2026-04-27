@@ -10,9 +10,11 @@ import com.kitehub.subscription.repository.InstanceRepository;
 import com.kitehub.subscription.repository.SubscriptionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -64,7 +66,26 @@ class AdminControllerTest {
         registry.add("captcha.enabled", () -> "false");
         registry.add("kitehub.email-verification.enabled", () -> "false");
         registry.add("kitehub.email-service.enabled", () -> "false");
+        // GAP-243: subscription module's S3Config requires region + (when not mock-mode)
+        // a real S3 endpoint. mock-mode=true gates the real S3Client bean off via
+        // @ConditionalOnProperty so subscription's BackupStorageService dependency chain
+        // can resolve.
+        registry.add("storage.s3.mock-mode", () -> "true");
+        registry.add("storage.s3.region", () -> "ap-southeast-1");
+        registry.add("storage.s3.bucket", () -> "kite-test-backups");
+        registry.add("storage.s3.access-key", () -> "test-access-key");
+        registry.add("storage.s3.secret-key", () -> "test-secret-key");
+        // GAP-243: subscription module requires webhook.payment.secret + backup config
+        // on context load.
+        registry.add("webhook.payment.secret", () -> "test-webhook-secret-for-admin-context-load");
+        registry.add("backup.retention-count", () -> "3");
+        registry.add("backup.pg-dump-path", () -> "pg_dump");
     }
+
+    // GAP-243: EmailServiceClient autowires RabbitTemplate. RabbitMQ broker not present in
+    // test environment; @MockBean provides a Mockito proxy so context load succeeds.
+    @MockBean
+    private RabbitTemplate rabbitTemplate;
 
     @Autowired
     private MockMvc mockMvc;
