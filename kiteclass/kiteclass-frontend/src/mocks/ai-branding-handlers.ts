@@ -54,7 +54,7 @@ function packageFor(instance: MockFrontendInstance): MockBrandingPackage {
   };
 }
 
-function requireInstance(idParam: string | readonly string[] | undefined): MockFrontendInstance | { error: HttpResponse } {
+function requireInstance(idParam: string | readonly string[] | undefined): MockFrontendInstance | { error: HttpResponse<import('msw').DefaultBodyType> } {
   const id = Number(idParam);
   if (!Number.isFinite(id)) {
     return { error: HttpResponse.json({ success: false, code: 'INVALID_ID', message: `Invalid id: ${idParam}` }, { status: 400 }) };
@@ -69,7 +69,7 @@ function requireInstance(idParam: string | readonly string[] | undefined): MockF
 function transitionOr422(
   instance: MockFrontendInstance,
   target: Parameters<typeof applyTransitionEffects>[1],
-): HttpResponse | null {
+): HttpResponse<import('msw').DefaultBodyType> | null {
   if (!canTransition(instance.status, target)) {
     return HttpResponse.json(
       {
