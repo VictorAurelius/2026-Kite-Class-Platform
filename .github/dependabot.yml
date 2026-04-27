@@ -80,6 +80,12 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+      # ognl pinned to 3.3.x for Thymeleaf 3.1.x compatibility. Bumping to 3.4.x
+      # breaks PdfGenerator with NoSuchMethodError on OgnlContext constructor
+      # (different signature). Closed PR #572 reproduced this. Memory:
+      # feedback_thymeleaf_ognl_pin.md.
+      - dependency-name: "ognl:ognl"
+        versions: [">=3.4.0"]
 
   - package-ecosystem: maven
     directory: "/kiteclass/kiteclass-gateway"
