@@ -140,10 +140,20 @@ else
 fi
 wait_for_port 6379 "Redis"
 
+# Defaults for required env vars so the stack boots out-of-the-box on a fresh
+# clone. Production sets these via real secrets management; here they're
+# loud-default values that are safe because dev never accepts external traffic.
+export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-dev}"
+export INTERNAL_API_SECRET="${INTERNAL_API_SECRET:-dev-internal-secret-not-for-prod-32chars}"
+SPRING_PROFILE_FOR_RUN="$SPRING_PROFILES_ACTIVE"
+
 # 4. Start Core Service
-echo -e "\n${BLUE}⚙️  Khởi động Core Service (port 8081)...${NC}"
+# Activate the dev profile so application-dev.yml (BrandingDataSeeder, ddl-auto
+# create-drop, Flyway disabled) takes effect — see GAP-235 Sub-PR F notes.
+echo -e "\n${BLUE}⚙️  Khởi động Core Service (port 8081, profile=$SPRING_PROFILE_FOR_RUN)...${NC}"
 cd "$PROJECT_ROOT/kiteclass-core"
-./mvnw spring-boot:run > "$LOGS_DIR/core.log" 2>&1 &
+./mvnw spring-boot:run -Dspring-boot.run.profiles="$SPRING_PROFILE_FOR_RUN" \
+    > "$LOGS_DIR/core.log" 2>&1 &
 CORE_PID=$!
 echo "$CORE_PID" >> "$PIDS_FILE"
 echo -e "${GREEN}Core PID: $CORE_PID${NC}"
