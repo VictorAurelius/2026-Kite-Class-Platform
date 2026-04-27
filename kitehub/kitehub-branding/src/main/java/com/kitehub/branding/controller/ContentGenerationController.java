@@ -3,6 +3,7 @@ package com.kitehub.branding.controller;
 import com.kitehub.branding.dto.LandingPageContent;
 import com.kitehub.branding.dto.LogoAnalysis;
 import com.kitehub.branding.service.ContentGenerationService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,9 @@ import reactor.core.publisher.Mono;
 /**
  * REST controller for landing page content generation.
  *
+ * <p>SLO Tier C (synchronous content generation; AI calls bounded by service
+ * timeout). See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @since 1.0
  */
 @Slf4j
@@ -25,6 +29,8 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/platform/branding/content")
 @RequiredArgsConstructor
 @Tag(name = "Content Generation", description = "AI-generated landing page content")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "content-generation"})
 public class ContentGenerationController {
 
     private final ContentGenerationService contentGenerationService;

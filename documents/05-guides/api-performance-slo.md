@@ -1,9 +1,9 @@
 # API Performance — Service Level Objectives (SLOs)
 
-**Status:** 🟡 BASELINE (v0.1, 2026-04-21 — first-run document per GAP-135)
+**Status:** 🟢 ACTIVE (v0.2, 2026-04-26 — instrumentation + alerts + dashboard landed Wave perf-D)
 **Priority:** 🟠 MANDATORY (see §7 Enforcement)
 **Owner:** Platform / SRE
-**Closes:** GAP-135 (draft deliverable; Prometheus alerts + @Timed tag wiring remain AC follow-ups)
+**Closes:** GAP-135 (rubric + tagging on 16 controllers + 5 Prom alerts + Grafana dashboard; remaining controllers under follow-up gap)
 **Applies to:** All HTTP endpoints across KiteHub (6 services + gateway) and KiteClass (core + gateway)
 
 ---
@@ -106,19 +106,103 @@ These stay authoritative for async AI generation.
 
 ---
 
-## 5. Tagging Convention (implementation — follow-up work)
+## 5. Tagging Convention (implementation)
 
-Each controller method will receive a `@Timed` annotation with `slo` tag so
-Prometheus + Grafana can aggregate by tier:
+Each controller class receives a class-level `@Timed` annotation with `slo` tag
+so Prometheus + Grafana can aggregate by tier. Class-level (not method-level) is
+the default because:
+
+- It applies to every endpoint on the class with one annotation.
+- The metric name `http.server.requests` is the same one Spring Boot Actuator
+  auto-records, so the `slo` tag joins the existing per-URI dimensions
+  (`uri`, `method`, `status`) — Prometheus rules slice by `slo` while the
+  built-in `uri` label keeps per-endpoint detail.
+- Method-level overrides remain valid when one endpoint diverges from the
+  class default (e.g., a Tier B controller exposing one Tier D batch route).
 
 ```java
-@Timed(value = "http.api", extraTags = {"slo", "tier-a", "endpoint", "students-by-id"})
-@GetMapping("/students/{id}")
-public StudentDTO getStudent(@PathVariable Long id) { ... }
+@RestController
+@RequestMapping("/api/v1/students")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "student"})
+public class StudentController { ... }
+
+// Method-level override for a single Tier D batch route on a Tier B controller:
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-d", "controller", "student", "endpoint", "bulk-export"})
+@GetMapping("/export.xlsx")
+public ResponseEntity<Resource> exportAll() { ... }
 ```
 
-**This tagging is scheduled under GAP-135 AC — the writeup in this file unblocks
-the Grafana dashboard + alert-rule PR that follows.**
+Required infra per service:
+
+1. `spring-boot-starter-aop` on the classpath (already in `kiteclass-core`;
+   added Wave perf-D for `kitehub-subscription`, `kitehub-branding`,
+   `kitehub-email`).
+2. A `MetricsConfig` bean exposing `TimedAspect` so `@Timed` is honoured
+   (`com.{kitehub.subscription,kitehub.branding,kitehub.email,kiteclass.core.common}.config.MetricsConfig`).
+3. The same bean registers a `MeterFilter` that turns on
+   `percentilesHistogram(true)` for `http.server.requests`, so Prometheus
+   `histogram_quantile()` returns real percentiles instead of NaN.
+
+### 5.1 Coverage status (as of Wave perf-D 2026-04-26)
+
+| Service | Controllers tagged | Notes |
+|---------|-------------------:|-------|
+| `kitehub-subscription` | 5/10 | Auth, Instance, Payment, Subscription, Domain — rest as follow-up |
+| `kitehub-branding` | 5/5 | All controllers covered |
+| `kitehub-email` | 1/1 | All controllers covered |
+| `kiteclass-core` | 5/13 | Student, Enrollment, Grade, BulkImport, BrandingSettings — rest as follow-up |
+| `kitehub-admin` | 0/n | Owned by Agent A in Wave perf-D — separate cluster fix |
+| `kitehub-gateway` | 0/n | Reverse-proxy; instrument when proxied-pass timing surfaces gap |
+
+Out-of-scope controllers will be picked up by the follow-up gap referenced in
+GAP-135 §Log.
+
+---
+
+## 5b. SLO → Alert Mapping
+
+Each tier maps to a single PrometheusRule alert in
+`infrastructure/helm/kitehub/templates/prometheusrule.yaml` (`api-latency-slo-alerts`
+group). The rule uses `histogram_quantile()` over the
+`http_server_requests_seconds_bucket` series filtered by the `slo` label.
+
+| Tier | Alert name | p95 budget | `for:` window | Severity | Action on fire |
+|------|------------|-----------:|---------------|----------|----------------|
+| A | `ApiLatencyP95HighTierA` | 200 ms | 10 m | warning | Investigate cache miss / N+1 / downstream timeout |
+| A | `ApiLatencyP99CriticalTierA` | 400 ms (p99) | 5 m | critical | Page on-call — interactive UX broken |
+| B | `ApiLatencyP95HighTierB` | 500 ms | 10 m | warning | Profile list query, check pagination cost |
+| C | `ApiLatencyP95HighTierC` | 800 ms | 10 m | warning | Verify outbox / event publish on hot path |
+| D | `ApiLatencyP95HighTierD` | 5 s | 10 m | warning | Confirm batch is async; check worker count |
+| E | _Inherits queue SLAs_ | per-tier (180 s / 60 s / 30 s) | n/a | n/a | See `kitehub-branding/application.yml` queue.sla |
+| F | _Covered by `HighResponseTime`_ | 50 ms | 5 m | warning | Health probe slowness — check restart loop risk |
+
+### How to tune
+
+1. **Tighten an SLO:** decrease the threshold in the alert `expr` (e.g.,
+   Tier A from `> 0.2` to `> 0.15`). Always relax first; never tighten without
+   migration plan (see §8 anti-patterns).
+2. **Lengthen the `for:` window:** flapping endpoints fire often but recover —
+   raise from `10m` to `15m` rather than relax the budget.
+3. **Add a per-route override:** if one endpoint in a Tier B controller is
+   chronically near budget, add a separate rule with
+   `{uri="/api/v1/students/search"}` filter so the noisy endpoint has its own
+   SLO + history without dragging the whole tier.
+4. **Disable a tier alert:** comment out the rule and file a gap explaining
+   why. Never silently delete — auditors compare alert presence to baseline.
+
+### Dashboard
+
+`infrastructure/helm/kitehub/dashboards/api-latency.json` — auto-loaded into
+Grafana as a ConfigMap when `monitoring.dashboards.enabled=true` (gated by
+GAP-143 Grafana enablement). Panels:
+
+1. p50 / p95 / p99 per route — joined `histogram_quantile()` queries
+2. Request rate per route — `rate(...count[5m])`
+3. 5xx error rate per route — error count / total count
+4. Per-tier p95 stat tiles (A / B / C / D) — quick-glance SLO budget vs current
+   value with thresholds matching the alert rules.
 
 ---
 
@@ -175,4 +259,20 @@ the Grafana dashboard + alert-rule PR that follows.**
 
 ## 9. Log
 
+- **2026-04-26 (v0.2 — Wave perf-D Agent D):** AC follow-ups landed.
+  - `@Timed` class-level annotations on 16 controllers across 4 services
+    (kitehub-subscription, kitehub-branding, kitehub-email, kiteclass-core).
+  - `MetricsConfig` bean per service registers `TimedAspect` + `MeterFilter`
+    that forces percentile-histogram emission on `http.server.requests`.
+  - `spring-boot-starter-aop` added to 3 service POMs that lacked it.
+  - 5 new Prometheus alerts (Tier A / B / C / D p95 + Tier A p99 critical) in
+    `infrastructure/helm/kitehub/templates/prometheusrule.yaml`.
+  - Grafana dashboard `infrastructure/helm/kitehub/dashboards/api-latency.json`
+    (8 panels: latency p50/p95/p99 per route, request rate, error rate,
+    per-tier SLO stat tiles).
+  - ConfigMap template + `monitoring.dashboards.enabled` toggle in `values.yaml`.
+  - §5 expanded with class-level annotation pattern + coverage table.
+  - §5b new section: SLO → Alert mapping + how to tune.
+  - Out-of-scope controllers (kitehub-admin under Agent A; remaining
+    controllers in subscription / kiteclass-core) tracked under follow-up gap.
 - **2026-04-21 (v0.1):** Document created as Wave 9-E deliverable closing GAP-135 (draft portion). Draws tier definitions from the gap's Proposed Fix and the performance audit baseline. `@Timed` wiring + Grafana dashboard + Prometheus alert rules remain Acceptance Criteria follow-ups on GAP-135 — those PRs will reference this document as the rubric.

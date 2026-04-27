@@ -6,6 +6,7 @@ import com.kiteclass.core.module.enrollment.dto.CreateEnrollmentRequest;
 import com.kiteclass.core.module.enrollment.dto.EnrollmentResponse;
 import com.kiteclass.core.module.enrollment.dto.UpdateEnrollmentStatusRequest;
 import com.kiteclass.core.module.enrollment.service.EnrollmentService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +46,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/enrollments")
 @RequiredArgsConstructor
 @Tag(name = "Enrollments", description = "Enrollment management APIs")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "enrollment"})
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;

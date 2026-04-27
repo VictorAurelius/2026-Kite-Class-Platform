@@ -2,6 +2,7 @@ package com.kitehub.branding.controller;
 
 import com.kitehub.branding.domain.entity.BrandingJob;
 import com.kitehub.branding.service.BrandingJobService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,9 @@ import java.util.UUID;
  * - GET /api/v1/branding/jobs - List all jobs for instance
  * - DELETE /api/v1/branding/jobs/{id} - Cancel job
  *
+ * <p>SLO Tier B (job CRUD; AI execution is async per Tier E queue SLOs).
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @since 1.0
  */
 @Slf4j
@@ -28,6 +32,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/branding/jobs")
 @RequiredArgsConstructor
 @Tag(name = "Branding Jobs", description = "Branding job lifecycle management")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "branding-job"})
 public class BrandingJobController {
 
     private final BrandingJobService jobService;

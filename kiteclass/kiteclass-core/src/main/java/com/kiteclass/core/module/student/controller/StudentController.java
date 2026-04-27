@@ -6,6 +6,7 @@ import com.kiteclass.core.module.student.dto.CreateStudentRequest;
 import com.kiteclass.core.module.student.dto.StudentResponse;
 import com.kiteclass.core.module.student.dto.UpdateStudentRequest;
 import com.kiteclass.core.module.student.service.StudentService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +39,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/students")
 @RequiredArgsConstructor
 @Tag(name = "Student", description = "Student management APIs")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "student"})
 public class StudentController {
 
     private final StudentService studentService;

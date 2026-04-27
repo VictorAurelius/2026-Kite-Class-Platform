@@ -10,6 +10,7 @@ import com.kitehub.subscription.dto.UpdateInstanceRequest;
 import com.kitehub.subscription.service.InstancePurgeService;
 import com.kitehub.subscription.service.InstanceService;
 import com.kitehub.subscription.service.TrialService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,6 +25,10 @@ import java.util.UUID;
 /**
  * REST controller for instance management.
  *
+ * <p>SLO Tier B (mixed list/detail reads + writes; class-level tag uses Tier B
+ * as the dominant read pattern). Per-method tag overrides are acceptable.
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
@@ -31,6 +36,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/instances")
 @RequiredArgsConstructor
 @Tag(name = "Instances", description = "Instance provisioning, trial management, and CRUD operations")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-b", "controller", "instance"})
 public class InstanceController {
 
     private final InstanceService instanceService;

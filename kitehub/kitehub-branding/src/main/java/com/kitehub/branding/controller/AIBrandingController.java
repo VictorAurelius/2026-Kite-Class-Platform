@@ -5,6 +5,7 @@ import com.kitehub.branding.dto.ThemeConfig;
 import com.kitehub.branding.service.AIBrandingService;
 import com.kitehub.branding.service.AIRateLimitService;
 import com.kitehub.branding.service.ThemeGenerationService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,11 @@ import java.util.UUID;
  * REST controller for AI branding operations.
  * Includes per-tier rate limiting based on instance subscription.
  *
+ * <p>SLO Tier E (HTTP entry point returns jobId immediately; actual generation
+ * is queue-bound, governed by branding queue SLAs in {@code application.yml}).
+ * The Tier E HTTP step itself is bounded by Tier C budget (write).
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
@@ -37,6 +43,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/branding/ai")
 @RequiredArgsConstructor
 @Tag(name = "AI Branding", description = "AI-powered logo analysis, image generation, and theme creation")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "ai-branding"})
 public class AIBrandingController {
 
     private final AIBrandingService aiBrandingService;

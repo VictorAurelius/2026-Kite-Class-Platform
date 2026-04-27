@@ -4,6 +4,7 @@ import com.kitehub.platform.domain.enums.PaymentStatus;
 import com.kitehub.subscription.dto.CreatePaymentRequest;
 import com.kitehub.subscription.dto.PaymentResponse;
 import com.kitehub.subscription.service.PaymentService;
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,9 @@ import java.util.UUID;
 /**
  * REST controller for payment operations.
  *
+ * <p>SLO Tier C (writes have side effects: payment record + outbox event).
+ * See {@code documents/05-guides/api-performance-slo.md}.
+ *
  * @author KiteHub Team
  * @since 1.0.0
  */
@@ -31,6 +35,8 @@ import java.util.UUID;
 @RequestMapping("/api/platform/payments")
 @RequiredArgsConstructor
 @Tag(name = "Payments", description = "Payment creation, QR code generation, and payment history")
+@Timed(value = "http.server.requests", percentiles = {0.5, 0.95, 0.99},
+       extraTags = {"slo", "tier-c", "controller", "payment"})
 public class PaymentController {
 
     private final PaymentService paymentService;

@@ -134,4 +134,77 @@ spec:
           annotations:
             summary: "branding-by-tenant cache miss rate elevated"
             description: "Cache miss rate above 10/s for 5 minutes — possible eviction storm or post-deploy cold start. Each miss hits PostgreSQL via BrandingService.getBranding()."
+
+    # GAP-135 — per-SLO-tier API latency rules (Wave perf-D Agent D, 2026-04-26).
+    # Tier budgets sourced from documents/05-guides/api-performance-slo.md §2.
+    # The `slo` label is supplied by class-level @Timed extraTags on
+    # selected controllers (see GAP-135 follow-up gap for the rest).
+    # Endpoints without the `slo` label fall back to the generic
+    # HighResponseTime alert above.
+    - name: api-latency-slo-alerts
+      rules:
+        - alert: ApiLatencyP95HighTierA
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le, slo, uri) (rate(http_server_requests_seconds_bucket{slo="tier-a"}[5m]))
+            ) > 0.2
+          for: 10m
+          labels:
+            severity: warning
+            slo: tier-a
+          annotations:
+            summary: "Tier A endpoint p95 above 200 ms budget"
+            description: "{{ "{{ $labels.uri }}" }} (slo=tier-a) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 200 ms interactive-read budget. See documents/05-guides/api-performance-slo.md."
+
+        - alert: ApiLatencyP95HighTierB
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le, slo, uri) (rate(http_server_requests_seconds_bucket{slo="tier-b"}[5m]))
+            ) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+            slo: tier-b
+          annotations:
+            summary: "Tier B endpoint p95 above 500 ms budget"
+            description: "{{ "{{ $labels.uri }}" }} (slo=tier-b) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 500 ms list-page budget."
+
+        - alert: ApiLatencyP95HighTierC
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le, slo, uri) (rate(http_server_requests_seconds_bucket{slo="tier-c"}[5m]))
+            ) > 0.8
+          for: 10m
+          labels:
+            severity: warning
+            slo: tier-c
+          annotations:
+            summary: "Tier C endpoint p95 above 800 ms budget"
+            description: "{{ "{{ $labels.uri }}" }} (slo=tier-c) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 800 ms write budget."
+
+        - alert: ApiLatencyP95HighTierD
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le, slo, uri) (rate(http_server_requests_seconds_bucket{slo="tier-d"}[5m]))
+            ) > 5
+          for: 10m
+          labels:
+            severity: warning
+            slo: tier-d
+          annotations:
+            summary: "Tier D endpoint p95 above 5 s budget"
+            description: "{{ "{{ $labels.uri }}" }} (slo=tier-d) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 5 s batch budget."
+
+        - alert: ApiLatencyP99CriticalTierA
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le, slo, uri) (rate(http_server_requests_seconds_bucket{slo="tier-a"}[5m]))
+            ) > 0.4
+          for: 5m
+          labels:
+            severity: critical
+            slo: tier-a
+          annotations:
+            summary: "Tier A endpoint p99 critically high"
+            description: "{{ "{{ $labels.uri }}" }} (slo=tier-a) p99 is {{ "{{ $value | humanizeDuration }}" }} — Tier A p99 budget is 400 ms. Likely cache miss storm or downstream timeout."
 {{- end }}
