@@ -7,10 +7,12 @@
 
 import { http, HttpResponse } from 'msw';
 
+import { aiBrandingHandlers } from './ai-branding-handlers';
+
 // Mock base URL
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-export const handlers = [
+const kiteClassCoreHandlers = [
   // ==================== Auth API ====================
   http.post(`${BASE_URL}/api/v1/auth/login`, async ({ request }) => {
     const body = await request.json() as { email: string; password: string };
@@ -499,3 +501,5 @@ export const handlers = [
     });
   }),
 ];
+
+export const handlers = [...kiteClassCoreHandlers, ...aiBrandingHandlers];
