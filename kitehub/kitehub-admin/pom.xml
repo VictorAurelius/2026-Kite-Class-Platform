@@ -70,6 +70,14 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
+        <!-- Spring AMQP — cross-service cache invalidation listener (GAP-237).
+             Bridges kitehub.events.exchange (instance.* / subscription.*) to the
+             in-process AdminCacheInvalidationListener (GAP-126). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- Caffeine cache backend (in-memory, pattern shared with kitehub-email) -->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

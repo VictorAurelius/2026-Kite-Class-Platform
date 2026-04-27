@@ -28,12 +28,39 @@ spring:
   cache:
     type: caffeine
 
+  # GAP-237 — cross-service cache invalidation. Admin subscribes to
+  # kitehub.events.exchange (TopicExchange) for instance.* / subscription.*
+  # routing keys; payload arrives as JSON, gets republished as in-process
+  # SubscriptionDataChangedEvent so existing AdminCacheInvalidationListener
+  # (GAP-126) evicts admin-dashboard + revenue-report caches.
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 60000
+          multiplier: 3.0
+          max-interval: 540000
+
 kitehub:
   admin:
     cache:
       # GAP-132 — seed TTL for admin caches (Caffeine)
       dashboard-ttl-seconds: ${ADMIN_DASHBOARD_CACHE_TTL_SECONDS:300}
       revenue-ttl-seconds: ${ADMIN_REVENUE_CACHE_TTL_SECONDS:3600}
+    cross-service-cache-invalidation:
+      # GAP-237 — toggle the AMQP listener. Defaults OFF until the
+      # kitehub-subscription Outbox dispatcher (deferred per
+      # project_outbox_per_module_pattern.md) is wired up — flip to true via
+      # env var when the producer side starts publishing to
+      # kitehub.events.exchange. Tests run with RabbitAutoConfiguration
+      # excluded so the flag has no effect there.
+      enabled: ${ADMIN_CROSS_SERVICE_CACHE_INVALIDATION_ENABLED:false}
 
 server:
   port: ${SERVER_PORT:8083}
