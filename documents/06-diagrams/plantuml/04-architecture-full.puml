@@ -8,7 +8,7 @@ skinparam linetype ortho
 skinparam defaultFontSize 12
 skinparam ArrowColor #555555
 
-title KITECLASS PLATFORM V4.1 - KIẾN TRÚC HỆ THỐNG (BUNDLED MODEL)
+title KITECLASS PLATFORM V4.1 + AI Branding v2 - KIẾN TRÚC HỆ THỐNG (BUNDLED MODEL)\nUpdated: 2026-04-26 (GAP-234)
 
 ' ==================== ACTORS ====================
 actor "Guest / Phụ huynh" as GUEST #90CAF9
@@ -65,9 +65,37 @@ package "Core Service\n[Spring Boot 3.5 | Port 8081]\n~900MB RAM" as CORE #FFF3E
         component "Storage Quota\n(Per Tenant)" as C_QUOTA
     }
 
-    database "Core DB\n[PostgreSQL]\n(Multi-tenant: instance_id)" as CORE_DB #F57C00
+    package "AI Branding v2 Module\n(Waves 2-4 NEW)" as CORE_AI #FFE082 {
+        component "AnalyzerService\n(logo + palette + tone)" as C_AI_ANALYZER
+        component "PlannerService\n(BrandingPlan)" as C_AI_PLANNER
+        component "PlanExecutor + Steps\n(Extract/PickTemplate/\nQualityReview/Publish)" as C_AI_EXECUTOR
+        component "Resource Handlers\n(Static / Template / AI / Fallback)\nResourceCategory chain" as C_AI_HANDLER
+        component "InstanceQualityReviewer\n(5 checks /100)" as C_AI_QUALITY
+        component "ContentModerationService\n(keyword + ML scaffold +\nhuman queue)" as C_AI_MOD
+        component "TenantProvisioningSaga\n(FrontendInstance state machine)" as C_AI_SAGA
+        component "AIClient (Strategy)\n-> kite-ollama (llava + llama3.1)\nGemma 4 9B planned (GAP-006)" as C_AI_CLIENT
+    }
+
+    database "Core DB\n[PostgreSQL]\n(Multi-tenant: instance_id)\nincl. V31-V45 AI Branding tables" as CORE_DB #F57C00
     queue "Message Queue\n[RabbitMQ]" as CORE_MQ #FF7043
     storage "Cache\n[Redis]" as CORE_CACHE #EF5350
+}
+
+' ==================== KITEHUB AI QUEUE INFRASTRUCTURE ====================
+package "KiteHub Branding Service\n[kitehub-branding | Port 8083]" as KH_BRAND #FFE0B2 {
+    component "AIQueueDispatcher\n(routes by tier)" as KH_DISPATCH
+    component "AIQueueProperties\n(weights ENT:PRO:FREE = 3:2:1)" as KH_QPROP
+    component "Tier worker pool\n(@RabbitListener consumers)" as KH_WORKERS
+    component "BacklogInspector\n(metrics + degradation)" as KH_BACKLOG
+    queue "ai.request.enterprise\n+ DLQ" as KH_Q_ENT #FFAB91
+    queue "ai.request.pro\n+ DLQ" as KH_Q_PRO #FFCCBC
+    queue "ai.request.free\n+ DLQ" as KH_Q_FREE #FFE0B2
+}
+
+' ==================== LOCAL AI ====================
+package "Local AI Inference\n[kite-ollama | Port 11434]\n(profile: ai-local)" as OLLAMA #B2DFDB {
+    component "Ollama runtime\nllama3.1 + llava" as OLLAMA_RT
+    component "Model store\n(Gemma 4 9B planned)" as OLLAMA_MODELS
 }
 
 ' ==================== OBJECT STORAGE ====================
@@ -114,6 +142,34 @@ CORE_STORAGE --> S3 : "Presigned\nURLs"
 C_BILLING --> EXT_QR : "QR Payment"
 CORE_ADMIN --> CORE_MQ : "Events"
 CORE_ADMIN --> CORE_CACHE
+
+' ==================== AI BRANDING v2 WIRING ====================
+C_AI_SAGA --> C_AI_ANALYZER : "1. analyze"
+C_AI_ANALYZER --> C_AI_PLANNER : "2. plan"
+C_AI_PLANNER --> C_AI_EXECUTOR : "3. execute"
+C_AI_EXECUTOR --> C_AI_HANDLER : "per-resource\nclassify + route"
+C_AI_HANDLER --> S3 : "store assets\n(MinIO)"
+C_AI_EXECUTOR --> C_AI_QUALITY : "QualityReviewStep"
+C_AI_QUALITY --> C_AI_MOD : "if pass score>=70\n-> moderate"
+C_AI_MOD --> C_AI_SAGA : "decision -> DEPLOYED\nor FAILED"
+C_AI_SAGA --> CORE_DB : "FrontendInstance,\nbranding_resources,\nquality_reports,\noutbox_events"
+C_AI_SAGA --> CORE_MQ : "outbox publisher\n-> instance.deployed"
+
+' AI provider call (local Ollama, no cloud)
+C_AI_ANALYZER --> C_AI_CLIENT
+C_AI_HANDLER --> C_AI_CLIENT
+C_AI_CLIENT --> OLLAMA_RT : "HTTP\n(template-first;\nFULL_AI only when\ntier allows)"
+
+' Async heavy AI jobs go via KiteHub queue infra
+C_AI_HANDLER ..> KH_DISPATCH : "FULL_AI: enqueue\nAIJobPayload"
+KH_DISPATCH --> KH_Q_ENT
+KH_DISPATCH --> KH_Q_PRO
+KH_DISPATCH --> KH_Q_FREE
+KH_Q_ENT --> KH_WORKERS
+KH_Q_PRO --> KH_WORKERS
+KH_Q_FREE --> KH_WORKERS
+KH_WORKERS --> OLLAMA_RT : "infer"
+KH_BACKLOG ..> KH_QPROP : "monitors\nbackpressure"
 
 ' ==================== ADDONS -> CORE ====================
 SVC_PARENT ..> CORE : "Read API"

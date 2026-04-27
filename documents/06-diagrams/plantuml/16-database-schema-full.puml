@@ -9,7 +9,7 @@ skinparam classBackgroundColor #FFFDE7
 skinparam classBorderColor #888888
 skinparam ArrowColor #555555
 
-title KITE PLATFORM - FULL DATABASE SCHEMA\nKiteHub Platform DB + KiteClass Tenant DB | 2026-03-24
+title KITE PLATFORM - FULL DATABASE SCHEMA\nKiteHub Platform DB + KiteClass Tenant DB + AI Branding v2 (V31-V45)\nUpdated: 2026-04-26 (GAP-234)
 
 ' ==================== KITEHUB PLATFORM DB ====================
 package "KiteHub Platform DB (kitehub)" as KHDB #E8EAF6 {
@@ -94,7 +94,27 @@ package "KiteHub Platform DB (kitehub)" as KHDB #E8EAF6 {
         deleted : BOOLEAN
     }
 
-    class branding_jobs {
+    note right of instances
+      **AI Branding v2 deviation (2026-04-26 / GAP-234)**
+
+      Original v1 spec placed branding_jobs +
+      branding_templates in the KiteHub platform DB.
+
+      Wave 2-4 implementation moved AI Branding
+      tables into the KiteClass tenant DB
+      (V31-V45 migrations) so branding lifecycle
+      is co-located with the tenant data it themes.
+
+      kitehub-branding service still owns the
+      RabbitMQ queue topology + worker pool +
+      AIQueueDispatcher (cross-tenant fair scheduler).
+
+      branding_jobs / branding_templates kept here
+      as legacy (HISTORICAL) — current tables
+      live in KiteClass schema below.
+    end note
+
+    class branding_jobs <<HISTORICAL>> {
         **id** : UUID <<PK>>
         --
         instance_id : UUID <<FK instances>>
@@ -116,9 +136,11 @@ package "KiteHub Platform DB (kitehub)" as KHDB #E8EAF6 {
         queued_at / started_at / completed_at : TIMESTAMP
         created_at / updated_at : TIMESTAMP
         deleted : BOOLEAN
+        --
+        **superseded by V31-V45 in KiteClass**
     }
 
-    class branding_templates {
+    class branding_templates <<HISTORICAL>> {
         **id** : UUID <<PK>>
         --
         name : VARCHAR(100) <<UNIQUE>>
@@ -129,6 +151,8 @@ package "KiteHub Platform DB (kitehub)" as KHDB #E8EAF6 {
         is_active : BOOLEAN
         --
         created_at / updated_at : TIMESTAMP
+        --
+        **superseded by branding_resources.template_id\nin KiteClass schema (V32)**
     }
 
     class ai_usage_log {
@@ -306,6 +330,166 @@ package "KiteClass Tenant DB (kiteclass_{id})" as KCDB #E8F5E9 {
         category : VARCHAR
         tenant_id : UUID
     }
+
+    ' ===== AI Branding v2 (V31-V45 — kiteclass-core) =====
+    class frontend_instances <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        tenant_id : VARCHAR(100)
+        slug : VARCHAR(80)
+        frontend_url : VARCHAR(300)
+        --
+        status : ENUM(NOT_STARTED, INITIALIZING,
+          GENERATING, DEPLOYED,
+          REGENERATING, FAILED)
+        initializing_at / generating_at : TIMESTAMP
+        deployed_at / failed_at : TIMESTAMP
+        last_regenerate_at : TIMESTAMP
+        retry_count : INT
+        failure_reason : VARCHAR(1000)
+        branding_version : INT
+        --
+        deleted : BOOLEAN
+    }
+
+    class branding_resources <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        type : ENUM(LOGO, FAVICON, BANNER, HERO,
+          COURSE_THUMBNAIL, SOCIAL_COVER,
+          EMAIL_HEADER)
+        category : ENUM(STATIC, TEMPLATE, FULL_AI)
+        storage_url : VARCHAR(500)
+        template_id : BIGINT <<FK>>
+        ai_job_id : UUID
+        metadata : JSONB
+        --
+        deleted : BOOLEAN
+    }
+
+    class branding <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        logo_url / favicon_url : VARCHAR(500)
+        display_name : VARCHAR(200)
+        tagline : VARCHAR(500)
+        primary_color / secondary_color
+          / accent_color : VARCHAR(7)
+        theme_config_json : TEXT
+        contact_email / phone / address
+        facebook_url / zalo_url / website_url
+    }
+
+    class branding_versions <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        version_number : INT
+        snapshot_json : JSONB
+        rollback_of : BIGINT <<FK self>>
+        active : BOOLEAN
+    }
+
+    class quality_reports <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        target_instance_id : BIGINT <<FK>>
+        branding_version : INT
+        score : INT
+        passed : BOOLEAN
+        contrast_score : INT
+        css_vars_score : INT
+        asset_urls_score : INT
+        visual_regression_score : INT
+        logo_placement_score : INT
+        issues : JSONB
+    }
+
+    class moderation_queue <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        target_type / target_id : VARCHAR
+        status : ENUM(PENDING, APPROVED,
+          REJECTED, ESCALATED)
+        flagged_keywords : JSONB
+        reason : VARCHAR(500)
+        assigned_reviewer_id : BIGINT
+        decided_at : TIMESTAMP
+    }
+
+    class rebrand_approvals <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        target_instance_id : BIGINT <<FK>>
+        status : ENUM(PENDING, APPROVED,
+          REJECTED, EXPIRED)
+        initiator_user_id : BIGINT
+        approver_user_id : BIGINT
+        requested_at / approved_at : TIMESTAMP
+        rejected_at / expires_at : TIMESTAMP
+    }
+
+    class outbox_events <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        aggregate_type / aggregate_id : VARCHAR
+        event_type : VARCHAR(100)
+        payload : JSONB
+        status : ENUM(PENDING, PUBLISHED, FAILED)
+        retry_count : INT
+        last_error : TEXT
+        published_at : TIMESTAMP
+        next_attempt_at : TIMESTAMP
+    }
+
+    class audit_log <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        action_type : VARCHAR(100)
+        aggregate_type / aggregate_id : VARCHAR
+        actor_user_id : BIGINT
+        actor_role : VARCHAR(50)
+        payload : JSONB
+        reason : VARCHAR(500)
+    }
+
+    class dmca_takedown_requests <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        reporter_email : VARCHAR(255)
+        reporter_name : VARCHAR(255)
+        alleged_infringing_url : VARCHAR(2000)
+        copyrighted_work_description : VARCHAR(4000)
+        status : ENUM(PENDING, APPROVED,
+          REJECTED, CONTESTED, EXECUTED)
+        counter_notice_email : VARCHAR(255)
+        reviewer_user_id : BIGINT
+        reviewed_at / executed_at : TIMESTAMP
+    }
+
+    class deletion_requests <<v2>> {
+        **id** : BIGSERIAL <<PK>>
+        --
+        instance_id : UUID
+        user_id : BIGINT
+        tenant_id : UUID
+        status : ENUM(REQUESTED, IN_GRACE,
+          PROCESSING, COMPLETED, CANCELLED)
+        requested_at : TIMESTAMP
+        grace_starts_at / grace_ends_at : TIMESTAMP
+        processing_started_at : TIMESTAMP
+        completed_at / cancelled_at : TIMESTAMP
+        data_export_url : VARCHAR(1024)
+    }
 }
 
 ' ==================== KITECLASS RELATIONSHIPS ====================
@@ -321,18 +505,35 @@ kc_classes ||--o{ kc_assignments : "has"
 kc_students ||--o{ kc_invoices : "billed"
 kc_invoices ||--o{ kc_payments : "paid by"
 
+' ==================== AI BRANDING v2 RELATIONSHIPS ====================
+frontend_instances ||--o{ branding_resources : "owns"
+frontend_instances ||--o{ quality_reports : "scored by"
+frontend_instances ||--o{ rebrand_approvals : "rebrand of"
+frontend_instances ||--o{ branding_versions : "snapshots"
+branding_versions  ||--o{ branding_versions : "rollback_of"
+moderation_queue   }o--o{ branding_resources : "moderates"
+audit_log          }o--o{ frontend_instances : "trail of"
+outbox_events      }o--o{ frontend_instances : "publishes events"
+dmca_takedown_requests }o--o{ branding_resources : "alleges"
+deletion_requests  }o--|| frontend_instances : "purges"
+
 ' ==================== PROVISIONING LINK ====================
 instances ..> KCDB : "provisions\n(CREATE DB + Flyway V1-V18)"
 
 ' ==================== LEGEND ====================
 legend right
 |= DB |= Migrations |= Tables |
-| kitehub | V1-V14 | 8 tables |
-| kiteclass_{id} | V1-V18 | 12+ tables |
+| kitehub | V1-V14 | 8 tables (incl. legacy branding_jobs / branding_templates) |
+| kiteclass_{id} | V1-V45 | 25+ tables (incl. AI Branding v2 V31-V45) |
 |= Isolation |
 | Each tenant: own PostgreSQL DB |
 | Flyway migrations per tenant |
 | tenant_id column for safety |
+|= AI Branding v2 (per GAP-234) |
+| Workflow code lives in kiteclass-core (Wave 2-4) |
+| Tables co-located with tenant data |
+| Queue topology stays in kitehub-branding |
+| Provider: local Ollama (llama3.1+llava); Gemma 4 9B planned |
 endlegend
 
 @enduml

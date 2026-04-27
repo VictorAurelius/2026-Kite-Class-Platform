@@ -3,88 +3,135 @@
 skinparam backgroundColor #FFFFFF
 skinparam defaultFontSize 11
 
-title KITEHUB - AI BRANDING PIPELINE\n2026-03-24
+title KITE PLATFORM - AI BRANDING PIPELINE v2\n(Agent Workflow: Analyzer -> Planner -> Executor -> QualityReviewer)\nUpdated: 2026-04-26 (GAP-234)
 
 start
 
-:Customer uploads logo &
-selects brand personality;
+:Tenant onboarding (KiteHub)
+publishes TenantCreated event
+to RabbitMQ ""tenant.created"";
 
-:Create BrandingJob
-status=QUEUED;
+:""TenantProvisioningSaga""
+(kiteclass-core / module/provisioning)
+creates ""FrontendInstance""
+status = INITIALIZING;
 
-:Return jobId
-HTTP 202 Accepted;
+:Persist outbox event
+""instance.initializing""
+(transactional);
+
+#E8EAF6:Analyzer step
+""AnalyzerService.analyze(req, tenant)""
+- Read uploaded logo (if any) via local Ollama (llava)
+- Extract palette + dominant tone
+- Detect language (vi/en) + audience hint
+Returns ""AnalysisResult"";
+
+#C5CAE9:Planner step
+""PlannerService.generatePlan(analysis)""
+- Selects ordered ""Step"" list
+- Per resource: classify ResourceCategory
+  - STATIC (uploaded asset)  -> StaticResourceHandler
+  - TEMPLATE (SVG + brand params) -> TemplateResourceHandler
+  - FULL_AI (custom hero) -> AIResourceHandler
+Returns ""BrandingPlan"";
+
+note right
+  Decision logic per
+  ai-branding-guidelines.md §1
+  template-first; FULL_AI only when
+  no matching template + tier allows.
+end note
+
+#B3E5FC:Executor loop
+""PlanExecutor.execute(plan, ctx)""
+status -> GENERATING
+For each Step:
+- ExtractPaletteStep
+- PickTemplateStep
+- (AI step only if FULL_AI selected)
+- PublishPackageStep
+- QualityReviewStep
+On Step error: try ""fallback()""
+(template fallback);
 
 fork
-  :Customer polls
-  GET /api/branding/jobs
-  every 3 seconds;
+  :STATIC / TEMPLATE path
+  Compose SVG + brand params
+  Latency ~1-3s
+  Cost ~$0;
 fork again
-
-  :Pick job from queue
-  status=PROCESSING;
-
-  #E8EAF6:Step 1: Logo Analysis
-  Send to GPT-4 Vision
-  progress=20%;
-
-  #C5CAE9:Step 2: Profile Images
-  Generate 3 variants via DALL-E 3
-  Upload to S3
-  progress=40%;
-
-  #B3E5FC:Step 3: Hero Banners
-  Generate 3 banners 1920x600
-  via DALL-E 3
-  progress=60%;
-
-  #C8E6C9:Step 4: Brand Logos
-  Generate light + dark SVG
-  progress=75%;
-
-  #FFF9C4:Step 5: Social Banners
-  Facebook cover 820x312
-  YouTube banner 2560x1440
-  progress=85%;
-
-  #FFE0B2:Step 6: OG Image
-  Generate 1200x630
-  progress=90%;
-
-  #F8BBD0:Step 7: Marketing Copy
-  GPT-4 generates tagline,
-  description, about text
-  progress=95%;
-
-  #E8F5E9:Step 8: Finalize
-  Compile asset URLs
-  status=COMPLETED 100%
-  Publish branding.completed event;
-
+  :FULL_AI path (rare, gated by tier)
+  Enqueue AIJobPayload to RabbitMQ
+  ""ai.request.{tier}"" queue
+  (enterprise:pro:free, weighted 3:2:1)
+  via ""AIQueueDispatcher"" (kitehub-branding)
+  Worker calls Ollama llama3.1 / llava
+  (Gemma 4 9B planned per GAP-006)
+  Latency 10s-5min, async;
 end fork
 
-:Display branding preview;
+#FFF9C4:Quality Reviewer
+""InstanceQualityReviewer.review(instanceId)""
+runs 5 checks (kiteclass-core / module/quality):
+1. ContrastQualityCheck (WCAG >= 4.5:1)
+2. CssVarsQualityCheck (no defaults remaining)
+3. AssetUrlsQualityCheck (no 404s)
+4. VisualRegressionQualityCheck (<= 20% diff)
+5. LogoPlacementQualityCheck (size + crop)
+Persists ""QualityReport"" (V39);
 
-if (Customer approves?) then (yes)
-  :Apply branding to instance;
-  :CDN serves assets;
-else (no)
-  :Regenerate - max 3 retries;
+if (score >= 70?) then (yes)
+  #C8E6C9:""ContentModerationService""
+  3-stage pipeline:
+  keyword filter -> ML scaffold -> human review (queue)
+  Status -> APPROVED;
+
+  :""TenantProvisioningSaga""
+  transitions FrontendInstance
+  status -> DEPLOYED
+  Publishes outbox event
+  ""instance.deployed""
+  Snapshot to ""branding_versions"" (V43);
+
+  :KiteClass FE fetches
+  GET /api/v1/branding/{instanceId}/package
+  Theme + assets + ETag
+  Cached, SSE invalidation;
+
+  stop
+else (no, score < 70)
+  #FFCDD2:Mark FAILED
+  Persist failure reason
+  Auto retry (max retryCount)
+  or surface to admin;
+  stop
 endif
 
-stop
-
 legend right
-|= Step |= AI Service |= Output |
-| 1. Logo Analysis | GPT-4 Vision | JSON |
-| 2. Profile Images | DALL-E 3 | 3 variants |
-| 3. Hero Banners | DALL-E 3 | 3x 1920x600 |
-| 4. Brand Logos | DALL-E 3 | light + dark SVG |
-| 5. Social Banners | DALL-E 3 | FB + YT |
-| 6. OG Image | DALL-E 3 | 1200x630 |
-| 7. Marketing Copy | GPT-4 | Tagline, desc, about |
-|= Total |= ~30 seconds |= ~$0.19 per job |
+|= Layer |= Component |= Module |
+| Provisioning | TenantProvisioningSaga | kiteclass-core/provisioning |
+| Workflow | AnalyzerService | kiteclass-core/ai/workflow |
+| Workflow | PlannerService | kiteclass-core/ai/workflow |
+| Workflow | PlanExecutor + Steps | kiteclass-core/ai/workflow |
+| Routing | StaticResourceHandler | kiteclass-core/branding/handler |
+| Routing | TemplateResourceHandler | kiteclass-core/branding/handler |
+| Routing | AIResourceHandler | kiteclass-core/branding/handler |
+| Routing | FallbackHandler | kiteclass-core/branding/handler |
+| Queue | AIQueueDispatcher | kitehub-branding/queue |
+| Queue | ai.request.{enterprise,pro,free} | RabbitMQ (KiteHub) |
+| Quality | InstanceQualityReviewer | kiteclass-core/quality |
+| Moderation | ContentModerationService | kiteclass-core/moderation |
+| AI runtime | Ollama llama3.1 + llava (current) | kite-ollama (local) |
+| AI runtime | Gemma 4 9B (planned, GAP-006) | kite-ollama (future) |
 endlegend
+
+note bottom
+  v2 design supersedes the original 2026-03-24 cloud-AI pipeline.
+  Per ai-branding-guidelines.md §9: AI calls go to LOCAL Ollama unless
+  tenant explicitly consents. AI-generated images stored in MinIO.
+  Workflow lives in kiteclass-core (per Wave 2-4 implementation),
+  not kitehub-branding (which now owns only queue dispatch + worker pool).
+end note
 
 @enduml

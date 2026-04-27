@@ -9,7 +9,7 @@ skinparam classBackgroundColor #FFFDE7
 skinparam classBorderColor #888888
 skinparam ArrowColor #555555
 
-title KITECLASS INSTANCE DB - ENTITY RELATIONSHIP DIAGRAM (V4.1)\nUpdated: 2026-03-07
+title KITECLASS INSTANCE DB - ENTITY RELATIONSHIP DIAGRAM (V4.1 + AI Branding v2)\nUpdated: 2026-04-26 (GAP-234)
 
 ' ==================== GATEWAY DB ====================
 package "GATEWAY DATABASE" as GWDB #E3F2FD {
@@ -320,6 +320,136 @@ package "CORE DATABASE (Multi-tenant: instance_id)" as COREDB #FFF3E0 {
             instance_id
         }
     }
+
+    ' --- AI BRANDING v2 (Waves 2-4) ---
+    package "AI Branding v2 Module (V31-V45)" as BRANDING_V2_MOD #FFE082 {
+        class frontend_instances {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            tenant_id
+            slug
+            frontend_url
+            status (NOT_STARTED/INITIALIZING/
+              GENERATING/DEPLOYED/
+              REGENERATING/FAILED)
+            initializing_at / generating_at
+            deployed_at / failed_at
+            last_regenerate_at
+            retry_count / failure_reason
+            branding_version
+        }
+        class branding_resources {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            type (LOGO/FAVICON/BANNER/HERO/
+              COURSE_THUMBNAIL/SOCIAL_COVER/
+              EMAIL_HEADER)
+            category (STATIC/TEMPLATE/FULL_AI)
+            storage_url
+            template_id <<FK>>
+            ai_job_id <<UUID>>
+            metadata (JSONB)
+        }
+        class branding {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            logo_url / favicon_url
+            display_name
+            tagline
+            primary_color / secondary_color
+            accent_color
+            theme_config_json
+            contact_email / phone / address
+            facebook_url / zalo_url / website_url
+        }
+        class branding_versions {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            version_number
+            snapshot_json (JSONB)
+            rollback_of <<FK self>>
+            active
+        }
+        class quality_reports {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            target_instance_id <<FK>>
+            branding_version
+            score / passed
+            contrast_score
+            css_vars_score
+            asset_urls_score
+            visual_regression_score
+            logo_placement_score
+            issues (JSONB)
+        }
+        class moderation_queue {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            target_type / target_id
+            status (PENDING/APPROVED/
+              REJECTED/ESCALATED)
+            flagged_keywords (JSONB)
+            reason
+            assigned_reviewer_id
+            decided_at
+        }
+        class rebrand_approvals {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            target_instance_id <<FK>>
+            status (PENDING/APPROVED/
+              REJECTED/EXPIRED)
+            initiator_user_id
+            approver_user_id
+            requested_at / approved_at
+            rejected_at / expires_at
+        }
+        class outbox_events {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            aggregate_type / aggregate_id
+            event_type
+            payload (JSONB)
+            status (PENDING/PUBLISHED/FAILED)
+            retry_count / last_error
+            published_at / next_attempt_at
+        }
+        class audit_log {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            action_type
+            aggregate_type / aggregate_id
+            actor_user_id / actor_role
+            payload (JSONB)
+            reason
+        }
+        class dmca_takedown_requests {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            reporter_email / reporter_name
+            alleged_infringing_url
+            copyrighted_work_description
+            status (PENDING/APPROVED/
+              REJECTED/CONTESTED/EXECUTED)
+            counter_notice_email
+            reviewer_user_id
+            reviewed_at / executed_at
+        }
+        class deletion_requests {
+            id (BIGSERIAL)
+            instance_id <<UUID>>
+            user_id / tenant_id
+            status (REQUESTED/IN_GRACE/
+              PROCESSING/COMPLETED/
+              CANCELLED)
+            requested_at
+            grace_starts_at / grace_ends_at
+            processing_started_at
+            completed_at / cancelled_at
+            data_export_url
+        }
+    }
 }
 
 ' ==================== GATEWAY RELATIONSHIPS ====================
@@ -375,5 +505,17 @@ courses ||--o{ course_highlights : "highlighted in"
 
 ' Storage
 uploaded_files }o--|| storage_quotas : "counted in (instance)"
+
+' AI Branding v2 relationships (per-instance)
+frontend_instances ||--o{ branding_resources : "owns assets"
+frontend_instances ||--o{ quality_reports : "scored by"
+frontend_instances ||--o{ rebrand_approvals : "rebrand of"
+frontend_instances ||--o{ branding_versions : "has snapshots"
+branding_versions  ||--o{ branding_versions : "rollback_of"
+moderation_queue   }o--o{ branding_resources : "moderates (target)"
+audit_log          }o--o{ frontend_instances : "trail of"
+outbox_events      }o--o{ frontend_instances : "publishes events"
+dmca_takedown_requests }o--o{ branding_resources : "alleges"
+deletion_requests  }o--|| frontend_instances : "purges"
 
 @enduml
