@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @since Wave 9 (GAP-132)
  */
-@Configuration
+@Configuration("adminCacheConfig")
 @EnableCaching
 public class CacheConfig {
 
@@ -44,6 +44,15 @@ public class CacheConfig {
         this.revenueTtlSeconds = revenueTtlSeconds;
     }
 
+    /**
+     * Primary {@link CacheManager} for {@code kitehub-admin}. Includes admin caches plus
+     * caches transitively required by {@code kitehub-subscription} dependencies that this
+     * module pulls in (e.g. {@code subscriptionByInstance}, {@code instanceSummary}).
+     *
+     * <p>Closes GAP-238: subscription's {@code CacheConfig} bean is gated by
+     * {@link org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean},
+     * so this admin bean wins when both modules are on the classpath.</p>
+     */
     @Bean
     public CacheManager cacheManager() {
         // Use max TTL for the Caffeine builder; per-cache finer-grained TTL differentiation
@@ -53,7 +62,12 @@ public class CacheConfig {
         long maxTtl = Math.max(dashboardTtlSeconds, revenueTtlSeconds);
 
         CaffeineCacheManager manager = new CaffeineCacheManager();
-        manager.setCacheNames(List.of(ADMIN_DASHBOARD_CACHE, ADMIN_REVENUE_REPORT_CACHE));
+        manager.setCacheNames(List.of(
+                ADMIN_DASHBOARD_CACHE,
+                ADMIN_REVENUE_REPORT_CACHE,
+                // Transitively required by kitehub-subscription components in this context.
+                "subscriptionByInstance",
+                "instanceSummary"));
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(maxTtl, TimeUnit.SECONDS)
                 .maximumSize(5_000));

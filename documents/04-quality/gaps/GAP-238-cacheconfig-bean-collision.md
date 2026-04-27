@@ -1,6 +1,6 @@
 # GAP-238: `cacheConfig` bean-name collision admin↔subscription
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-27 (bean collision resolved via @ConditionalOnMissingBean on subscription's CacheManager + admin's manager declares transitive cache names)
 **Priority:** 🟠 P1 (potential CI flake; latent risk for full SpringBootTest contexts)
 **Domain:** Backend / Spring Configuration
 **Detected:** 2026-04-26 (Wave 7-Perf Agent A return finding — pre-existing on main)
@@ -52,4 +52,5 @@ Option A recommended; cheaper.
 
 ## Log
 
+- **2026-04-27** — Status 🔵 OPEN → 🟢 DONE. Fix shipped in same-day follow-up PR: (1) added `@ConditionalOnMissingBean(CacheManager.class)` to subscription's `cacheManager()` bean — gates registration when admin context (which already provides one) is loaded; (2) renamed both `@Configuration` classes to `adminCacheConfig` / `subscriptionCacheConfig` (defensive); (3) admin's `CacheManager` now declares transitive cache names `subscriptionByInstance` + `instanceSummary` so `@Cacheable` annotations from subscription module work in admin context; (4) updated `CacheConfigTest` assertion to match new 4-name list. Verification: `BeanDefinitionOverrideException` no longer in admin context startup; admin unit tests 15/15 pass; subscription full suite 355/355 pass. **Out-of-scope follow-up surfaced**: `AdminControllerTest` + `KiteHubAdminApplicationTest` (8 tests) still fail with separate pre-existing issue — `SubscriptionOutboxRepository` not on admin's `@EnableJpaRepositories` scan path. Filed as GAP-240 (admin JPA repository scan completeness). CI didn't catch this before because `kitehub-ci.yml` doesn't include admin module test job — also gap (filed GAP-241 admin CI coverage).
 - **2026-04-26** — Filed during Wave 7-Perf consolidation. Agent A flagged as pre-existing (out-of-bounds for them). P1 because latent CI failure mode triggered by future cross-module test additions.
