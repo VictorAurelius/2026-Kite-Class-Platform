@@ -81,3 +81,7 @@ target/
 *.jar
 *.war
 *.ear
+
+# kiteclass/shared/ — CI-generated OpenAPI export (regenerated per PR)
+kiteclass/shared/openapi.json
+kiteclass/shared/openapi.json.tmp
