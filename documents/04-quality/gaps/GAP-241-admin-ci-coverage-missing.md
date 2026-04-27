@@ -1,6 +1,6 @@
 # GAP-241: kitehub-ci.yml does not test kitehub-admin module
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-04-27 — admin/email/gateway CI jobs added; admin excludes AdminControllerTest pending GAP-242 fix
 **Priority:** 🟠 P1 (CI blind spot — admin module tests fail locally but CI is green; latent regression hazard)
 **Domain:** DevOps / CI/CD
 **Detected:** 2026-04-27 (GAP-238 fix investigation)
@@ -76,4 +76,5 @@ strategy:
 
 ## Log
 
+- **2026-04-27 (PARTIAL same day):** Status 🔵 OPEN → 🟡 PARTIAL. Added 3 CI jobs to `kitehub-ci.yml`: `test-admin`, `test-email`, `test-gateway`. Each runs `./mvnw clean test -pl kitehub-<service> -am` with test artifact upload + JUnit report. `code-quality` job's `needs:` extended to include all 5 module test jobs. **Admin job excludes `AdminControllerTest`** (`-Dtest='!AdminControllerTest'`) until GAP-242 (Flyway V11 SQL incompatibility) closes — comment in YAML calls this out for re-enable. Verification: email 20/20 + gateway 10/10 + admin 16/16 (excluding AdminControllerTest's 7 pending GAP-242). Once GAP-242 closes, remove `-Dtest='!AdminControllerTest'` from this CI job to flip Status PARTIAL → DONE.
 - **2026-04-27** — Filed during GAP-238 fix investigation. Pre-existing CI blind spot dating back to original kitehub-ci.yml authorship. P1 because gates future regressions.
