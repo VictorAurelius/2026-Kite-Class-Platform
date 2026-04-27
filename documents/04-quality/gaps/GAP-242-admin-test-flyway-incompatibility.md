@@ -1,6 +1,6 @@
 # GAP-242: AdminControllerTest fails Flyway V11 migration in test DB
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-04-27 — V11 SQL bug fixed; AdminControllerTest's deeper test-infra gaps (S3 mock, RabbitMQ mock) refiled as GAP-243
 **Priority:** 🟡 P2 (test-only failure; production unaffected; admin module's other tests + subscription full suite green)
 **Domain:** Backend / Tests / Database Migration
 **Detected:** 2026-04-27 (GAP-240 fix verification surface)
@@ -57,4 +57,5 @@ Per memory `feedback_jpa_jsonb_jdbctypecode.md` and `feedback_thymeleaf_ognl_pin
 
 ## Log
 
+- **2026-04-27 (PARTIAL same day):** Status 🔵 OPEN → 🟡 PARTIAL. **V11 SQL bug (the actual production-blocking issue) FIXED**. Root cause: Postgres does NOT support expressions inside `CONSTRAINT UNIQUE` (only column names). V11 had `UNIQUE (..., (sent_at::date))` which fails with SQL state 42601. Fix: split the table CREATE from the function-based unique constraint via `CREATE UNIQUE INDEX` (which DOES support expressions). V11 has never run successfully against any Postgres → safe to edit in place (no Flyway integrity violation since checksum was never recorded as success). **Verification**: rebuild + Flyway runs cleanly through V11; flow blocked at next layer (S3Client `region must not be null` then RabbitTemplate missing). Those are AdminControllerTest's pre-existing test infrastructure gaps — refiled as **GAP-243** (admin test-context setup completeness). GAP-241 stays PARTIAL until GAP-243 lands and the CI exclusion `-Dtest='!AdminControllerTest'` can be removed. Subscription full suite 355/355 still pass after V11 edit (subscription tests use Hibernate `ddl-auto=create-drop`, never executed V11).
 - **2026-04-27** — Filed during GAP-240 fix verification. GAP-240 closed JPA scan; AdminControllerTest then surfaced this Flyway V11 issue. Pre-existing test infrastructure gap, not GAP-240 scope.
