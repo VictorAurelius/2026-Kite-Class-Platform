@@ -1,6 +1,6 @@
 # GAP-240: kitehub-admin JPA repository scan misses subscription module repositories
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-27 — admin's @EnableJpaRepositories + @EntityScan now include subscription's repository/outbox/idempotency/domain packages; KiteHubAdminApplicationTest.contextLoads passes
 **Priority:** 🟠 P1 (test-time failure; production unaffected because admin runs separately, but tests block development)
 **Domain:** Backend / Spring Configuration / Tests
 **Detected:** 2026-04-27 (GAP-238 fix verification)
@@ -63,4 +63,5 @@ Verify by running `mvnw -pl kitehub-admin test` — all `@SpringBootTest` should
 
 ## Log
 
+- **2026-04-27 (DONE same day):** Status 🔵 OPEN → 🟢 DONE. Fix landed in same PR as GAP-238 strengthening. (1) `@EnableJpaRepositories` extended to scan `com.kitehub.subscription.outbox` + `com.kitehub.subscription.idempotency`. (2) `@EntityScan` extended to scan `com.kitehub.subscription.domain` + `.outbox` + `.idempotency` (mirrors subscription's own application class scan list). (3) GAP-238 fix had to be hardened — `@ConditionalOnMissingBean` alone was insufficient for user-code @Configuration ordering across modules. Replaced with explicit `@Bean(name="adminCacheManager")` + `@Primary` on admin's bean and `@Bean(name="subscriptionCacheManager")` on subscription's. Both beans coexist with distinct names; admin's @Primary wins for @Cacheable resolution. Verification: `KiteHubAdminApplicationTest.contextLoads` ✅ passes (was failing before); subscription full suite still 355/355. **Surfaced next-layer issue**: 7 `AdminControllerTest` tests still fail with Flyway V11 SQL incompatibility in test DB — filed GAP-242 (P2, separate test infrastructure concern, NOT JPA scan or bean collision related).
 - **2026-04-27** — Filed during GAP-238 fix verification. Pre-existing on main; surfaced because GAP-238 fix moved the failure from BeanDefinitionOverrideException to next layer (JPA scan).

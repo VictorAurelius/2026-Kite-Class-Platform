@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,15 +46,20 @@ public class CacheConfig {
     }
 
     /**
-     * Primary {@link CacheManager} for {@code kitehub-admin}. Includes admin caches plus
-     * caches transitively required by {@code kitehub-subscription} dependencies that this
-     * module pulls in (e.g. {@code subscriptionByInstance}, {@code instanceSummary}).
+     * {@link Primary} {@link CacheManager} for {@code kitehub-admin}. Includes admin
+     * caches plus caches transitively required by {@code kitehub-subscription}
+     * dependencies that this module pulls in (e.g. {@code subscriptionByInstance},
+     * {@code instanceSummary}).
      *
-     * <p>Closes GAP-238: subscription's {@code CacheConfig} bean is gated by
-     * {@link org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean},
-     * so this admin bean wins when both modules are on the classpath.</p>
+     * <p>Closes GAP-238 + GAP-240 follow-up: subscription's
+     * {@code subscriptionCacheManager} bean coexists with this {@code adminCacheManager}
+     * — distinct names prevent {@link
+     * org.springframework.beans.factory.support.BeanDefinitionOverrideException}.
+     * {@code @Primary} ensures Spring's {@code @Cacheable} resolution defaults to this
+     * one when admin context loads both modules.</p>
      */
-    @Bean
+    @Primary
+    @Bean(name = "adminCacheManager")
     public CacheManager cacheManager() {
         // Use max TTL for the Caffeine builder; per-cache finer-grained TTL differentiation
         // would require a dedicated CaffeineCacheManager subclass. For baseline GAP-132 we

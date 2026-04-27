@@ -16,10 +16,21 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription"
 })
 @EnableJpaRepositories(basePackages = {
-        "com.kitehub.subscription.repository"
+        // GAP-240: include all subscription repository packages — admin context
+        // autowires repositories transitively via SubscriptionService → PaymentService →
+        // SubscriptionEventEmitter (outbox) → MigrationIdempotencyKeyService.
+        "com.kitehub.subscription.repository",
+        "com.kitehub.subscription.outbox",
+        "com.kitehub.subscription.idempotency"
 })
 @EntityScan(basePackages = {
-        "com.kitehub.platform.domain.entity"
+        // GAP-240: include all subscription entity packages — must mirror subscription's
+        // own KitehubSubscriptionApplication scan list because admin pulls subscription
+        // beans into its context for cross-service queries.
+        "com.kitehub.platform.domain.entity",
+        "com.kitehub.subscription.domain",
+        "com.kitehub.subscription.outbox",
+        "com.kitehub.subscription.idempotency"
 })
 public class KiteHubAdminApplication {
 
