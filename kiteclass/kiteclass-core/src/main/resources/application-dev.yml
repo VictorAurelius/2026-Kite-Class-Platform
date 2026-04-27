@@ -1,0 +1,17 @@
+# Dev profile — local development with seed data.
+#
+# Activates BrandingDataSeeder (@Profile("dev")) which idempotently inserts
+# 1 DEPLOYED FrontendInstance + 3 BrandingResources + 1 QualityReport + 1 outbox
+# event so the FE wizard demo can run end-to-end without invoking real AI clients.
+#
+# Run with: --spring.profiles.active=dev
+#
+# Tracking: GAP-235 Sub-PR F (kiteclass/shared/README.md).
+
+spring:
+  jpa:
+    show-sql: false  # toggle to true for local SQL inspection
+
+logging:
+  level:
+    com.kiteclass.core.dev.seeder: INFO
