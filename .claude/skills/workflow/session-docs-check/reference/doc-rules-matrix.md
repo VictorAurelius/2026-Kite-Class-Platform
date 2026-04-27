@@ -168,6 +168,33 @@
 
 ---
 
+## Rule 13 — Gap status flip to DONE → completeness check (per `gap-done-discipline.md`)
+
+**Trigger:** diff contains a line `+**Status:** ... 🟢 DONE` on a `documents/04-quality/gaps/GAP-*.md` file (i.e. the PR is the closing PR of that gap).
+
+**Required co-change checks (all six must hold to PASS):**
+1. **AC clean:** post-edit file has zero `- [ ]` (unchecked) bullets in the `## Acceptance Criteria` section. Any unchecked AC → FAIL.
+2. **No banned phrase in NEW Log entry:** the diff for the gap file (lines starting with `+`) under the `## Log` section must NOT contain (case-insensitive): `deferred`, `defer to`, `out of scope`, `manual run`, `manual capture`, `infra block`, `local can\'t`, `WSL2 too slow`, `chưa boot`, `partially`, `partial`, `to be captured`, `to be done`. The §Out-of-scope section is excluded from this scan (allowed to use these words as headings).
+3. **Banned phrase escape:** if (2) fails BUT the same diff also adds a reference to a follow-up gap (`GAP-NNN` where NNN ≠ this gap's number) AND an explicit phrase like "follow-up:", "tracked in", "pending GAP-", that phrase IS allowed → downgrade FAIL to WARN.
+4. **Override trailer:** if commit log between `BASE_REF..HEAD` contains `GAP_DONE_OVERRIDE: GAP-NNN — <reason>`, the corresponding gap's check downgrades FAIL → WARN. Override trailer must include both gap ID and reason text.
+5. **Wave-eligible gap closure:** if the gap text mentioned wave-eligibility (`wave-eligible per` or `≥3 sub-PRs disjoint`), the closing Log entry must include PR numbers for all sub-PRs (`#NNN`) — count ≥ 3. Missing → WARN with note that wave-eligible gap closures should reference all sub-PRs.
+6. **Schema/infra/CI gap verification:** if gap title or domain contains `Infra`, `CI`, `Schema`, `migration`, `dev-stack`, the Log entry must include explicit verification text (`fresh DB`, `tested on`, `green CI run #`, etc.). Missing → WARN.
+
+**Skill output examples:**
+- `[OK] Rule 13 — gap GAP-XXX → DONE: all AC checked, Log clean, verification artifact present`
+- `[FAIL] Rule 13 — gap GAP-XXX → DONE BUT 2 AC unchecked + Log mentions "deferred to manual" with no follow-up gap. Fix: flip to PARTIAL or file follow-up gap`
+- `[WARN] Rule 13 — gap GAP-XXX → DONE with banned phrase but follow-up GAP-YYY referenced — accepted`
+- `[WARN] Rule 13 — gap GAP-XXX → DONE override trailer present (reason: ...). Logged for quarterly audit`
+
+**False-positive handling:**
+- gap's `## Out-of-scope` section is parsed and excluded from banned-phrase scan
+- gap that was DONE in a prior commit (not THIS PR's flip) → skip — only NEW DONE flips trigger Rule 13
+- gap with no `## Acceptance Criteria` section → skip criterion 1 (legacy gaps); WARN that AC section should be added going forward
+
+**References:** `.claude/rules/gap-done-discipline.md` (the rule this enforces).
+
+---
+
 ## Edge cases applying to all rules
 
 ### Multi-domain change

@@ -268,6 +268,126 @@ if [ -n "$NEW_MIGRATIONS" ]; then
 fi
 
 # ============================================================
+# Rule 13 — Gap status flip to DONE → completeness check
+# (per .claude/rules/gap-done-discipline.md + matrix Rule 13)
+# ============================================================
+# Detect gap files whose diff ADDS a `**Status:** ... 🟢 DONE` line.
+DONE_FLIPS="$(git diff "$BASE_REF" --name-only 2>/dev/null \
+  | grep -E '^documents/04-quality/gaps/GAP-[0-9]+-.+\.md$' \
+  | while IFS= read -r gf; do
+      [ -z "$gf" ] && continue
+      if git diff "$BASE_REF" -- "$gf" 2>/dev/null \
+          | grep -qE '^\+\*\*Status:\*\*.*🟢 DONE'; then
+        echo "$gf"
+      fi
+    done || true)"
+
+# Override-trailer collection — commit log between BASE_REF..HEAD.
+# Format: `GAP_DONE_OVERRIDE: GAP-NNN — <reason>`
+OVERRIDE_TRAILERS="$(git log "$BASE_REF..HEAD" --pretty=%B 2>/dev/null \
+  | grep -E '^GAP_DONE_OVERRIDE: GAP-[0-9]+ — .+' || true)"
+
+if [ -n "$DONE_FLIPS" ]; then
+  while IFS= read -r gap_file; do
+    [ -z "$gap_file" ] && continue
+    GAP_NUM="$(basename "$gap_file" | grep -oE 'GAP-[0-9]+' | head -1)"
+
+    # Check override trailer first — if present, every Rule-13 issue downgrades.
+    HAS_OVERRIDE=0
+    if [ -n "$OVERRIDE_TRAILERS" ] \
+        && echo "$OVERRIDE_TRAILERS" | grep -qE "GAP_DONE_OVERRIDE: $GAP_NUM "; then
+      HAS_OVERRIDE=1
+    fi
+
+    issue_emit() {
+      # $1 = severity-when-no-override (fail|warn), $2 = message
+      if [ "$HAS_OVERRIDE" = "1" ]; then
+        emit_warn "Rule 13 — $GAP_NUM (override trailer present): $2"
+      elif [ "$1" = "fail" ]; then
+        emit_fail "Rule 13 — $GAP_NUM: $2"
+      else
+        emit_warn "Rule 13 — $GAP_NUM: $2"
+      fi
+    }
+
+    # ───── 13.1 — Acceptance Criteria fully checked ─────────────────────
+    # Extract the "## Acceptance Criteria" section (until next heading).
+    AC_SECTION="$(awk '
+      /^##[[:space:]]+Acceptance[[:space:]]+Criteria/ {flag=1; next}
+      flag && /^##[[:space:]]/ {flag=0}
+      flag {print}
+    ' "$gap_file" 2>/dev/null || true)"
+
+    if [ -z "$AC_SECTION" ]; then
+      emit_warn "Rule 13 — $GAP_NUM DONE without ## Acceptance Criteria section. Legacy gaps OK; new gaps should add one"
+    else
+      UNCHECKED="$(echo "$AC_SECTION" | grep -cE '^- \[ \]' || true)"
+      if [ "$UNCHECKED" -gt 0 ] 2>/dev/null; then
+        issue_emit fail "DONE flip but $UNCHECKED unchecked AC item(s) remain. Fix: flip to PARTIAL or check items"
+      else
+        emit_pass "Rule 13.1 — $GAP_NUM AC fully checked"
+      fi
+    fi
+
+    # ───── 13.2 — Banned phrases in NEW Log entry, excluding §Out-of-scope ─
+    # Get only lines added in the diff that fall under a `## Log` line context.
+    # Strategy: take diff hunks containing "## Log" or after; concatenate added
+    # lines until any heading boundary; scan for banned phrases.
+    LOG_DIFF_LINES="$(git diff "$BASE_REF" -- "$gap_file" 2>/dev/null \
+      | awk '
+          /^@@/ {hunk=1}
+          hunk {print}
+        ' \
+      | awk '
+          /^\+## Log/ || /^ ## Log/ {logsec=1; next}
+          /^\+##[[:space:]]/ || /^ ##[[:space:]]/ {logsec=0}
+          /^\+## Out-of-scope/ || /^ ## Out-of-scope/ {oos=1; next}
+          /^\+##[[:space:]]/ || /^ ##[[:space:]]/ {oos=0}
+          logsec && !oos && /^\+/ {print}
+        ' || true)"
+
+    BANNED_RE='(deferred|defer to|out of scope|manual run|manual capture|infra block|local can.t|WSL2 too slow|chưa boot|partially|to be captured|to be done)'
+    BANNED_HITS="$(echo "$LOG_DIFF_LINES" | grep -iE "$BANNED_RE" || true)"
+
+    if [ -n "$BANNED_HITS" ]; then
+      # Check follow-up: same diff mentions a different GAP-NNN
+      OWN_NUM="${GAP_NUM#GAP-}"
+      FOLLOWUP_REF="$(git diff "$BASE_REF" -- "$gap_file" 2>/dev/null \
+        | grep -oE 'GAP-[0-9]+' \
+        | grep -vE "^GAP-${OWN_NUM}\$" | head -1 || true)"
+      FOLLOWUP_PHRASE="$(echo "$LOG_DIFF_LINES" \
+        | grep -iE 'follow-up|tracked in|pending GAP-|tracked separately' || true)"
+
+      if [ -n "$FOLLOWUP_REF" ] && [ -n "$FOLLOWUP_PHRASE" ]; then
+        emit_warn "Rule 13.2 — $GAP_NUM Log uses banned phrase but references follow-up $FOLLOWUP_REF — accepted (warn for visibility)"
+      else
+        issue_emit fail "DONE Log entry contains deferred-language without a follow-up gap reference. Fix: flip to PARTIAL or file follow-up gap"
+      fi
+    else
+      emit_pass "Rule 13.2 — $GAP_NUM Log clean (no deferred-language banned phrases)"
+    fi
+
+    # ───── 13.3 — Wave-eligible gap closure references all sub-PRs ─────
+    if grep -qiE 'wave-eligible|≥3 sub-pr|disjoint sub-tasks' "$gap_file" 2>/dev/null; then
+      PR_REFS="$(echo "$LOG_DIFF_LINES" | grep -oE '#[0-9]+' | sort -u | wc -l || true)"
+      if [ "$PR_REFS" -lt 3 ] 2>/dev/null; then
+        emit_warn "Rule 13.3 — $GAP_NUM is wave-eligible but DONE Log references only $PR_REFS PR(s) (expected ≥3 sub-PRs)"
+      else
+        emit_pass "Rule 13.3 — $GAP_NUM wave-eligible closure references $PR_REFS sub-PRs"
+      fi
+    fi
+
+    # ───── 13.4 — Override trailer logging (audit trail) ──────────────
+    if [ "$HAS_OVERRIDE" = "1" ]; then
+      OVERRIDE_REASON="$(echo "$OVERRIDE_TRAILERS" \
+        | grep -E "GAP_DONE_OVERRIDE: $GAP_NUM " | head -1 || true)"
+      emit_warn "Rule 13.4 — $GAP_NUM closed with override: $OVERRIDE_REASON. Logged for quarterly audit"
+    fi
+
+  done <<< "$DONE_FLIPS"
+fi
+
+# ============================================================
 # Output
 # ============================================================
 echo "## Session Docs Check ($TS) — branch $BRANCH (vs $BASE_REF)"
