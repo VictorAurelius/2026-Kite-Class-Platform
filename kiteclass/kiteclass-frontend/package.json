@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "analyze": "ANALYZE=true next build",
+    "check:budget": "node scripts/check-bundle-budget.mjs",
+    "test:budget": "node --test scripts/check-bundle-budget.test.mjs",
     "format": "prettier --write .",
     "test": "vitest",
     "test:watch": "vitest --watch",

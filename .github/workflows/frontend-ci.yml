@@ -67,6 +67,12 @@ jobs:
       - name: Build application
         run: pnpm build
 
+      - name: Run bundle budget unit tests
+        run: pnpm test:budget
+
+      - name: Check bundle budget (First Load JS per route)
+        run: pnpm check:budget
+
       - name: Upload build artifacts
         if: success()
         uses: actions/upload-artifact@v7

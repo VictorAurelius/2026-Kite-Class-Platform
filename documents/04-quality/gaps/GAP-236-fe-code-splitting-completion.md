@@ -1,10 +1,10 @@
 # GAP-236: FE code-splitting completion + CI bundle budget
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Sub-PR A (CI bundle budget guardrail) shipped 2026-04-26; Sub-PRs B (page conversions) + C (analyzer baseline HTML) still OPEN
 **Priority:** 🟡 P2 (perf already <250KB on covered routes; remaining 44+ pages = lower priority but still worth converting)
 **Domain:** Frontend / Performance / DevOps
 **Detected:** 2026-04-26 (Wave 7-Perf Agent B return finding)
-**Related:** Parent GAP-127 (PARTIAL); audit `documents/04-quality/audits/performance/performance-audit-2026-04-19.md`
+**Related:** Parent GAP-127 (PARTIAL); audit `documents/04-quality/audits/performance/performance-audit-2026-04-19.md`; guide `documents/05-guides/frontend-bundle-budget.md`
 
 ## Current State (verified 2026-04-26)
 
@@ -47,10 +47,10 @@ Priority order (per heaviest deps):
 
 ## Acceptance Criteria
 
-- [ ] CI fails if any route First Load JS > 250KB (default), with override env var documented
+- [x] CI fails if any route First Load JS > 250KB (default), with override env var documented (✅ shipped 2026-04-26 — Sub-PR A; default 250 KB, env `BUNDLE_BUDGET_KB`, per-route `bundle-budget.json`)
 - [ ] ≥30 of remaining 44+ pages converted using `next/dynamic` for heavy children components
 - [ ] Bundle analyzer baseline HTML reports committed (kc + kh)
-- [ ] No regression on routes already covered by GAP-127
+- [x] No regression on routes already covered by GAP-127 (✅ verified 2026-04-26 — all 52 KC + 38 KH routes within 250 KB baseline)
 
 ## Out-of-scope
 
@@ -65,4 +65,5 @@ Priority order (per heaviest deps):
 
 ## Log
 
+- **2026-04-26** — Sub-PR A shipped (Wave P2 Cleanup Agent B). CI bundle budget guardrail added to both FE workflows: `scripts/check-bundle-budget.mjs` reads `.next/(app-)build-manifest.json` after `pnpm build`, gzips each chunk per route, fails CI on any route exceeding 250 KB First Load JS. Override via env `BUNDLE_BUDGET_KB` or per-route `bundle-budget.json`. 13 unit tests via `node --test`. Baseline captured: KiteClass top 5 routes = 236.09 / 235.80 / 235.51 / 234.80 / 234.21 KB; KiteHub top 5 = 194.15 / 173.66 / 170.37 / 169.65 / 169.00 KB. All routes within budget. Guide: `documents/05-guides/frontend-bundle-budget.md`. Status flipped 🔵 OPEN → 🟡 PARTIAL — Sub-PRs B (44+ page conversions) + C (analyzer baseline HTML reports) still open.
 - **2026-04-26** — Filed during Wave 7-Perf consolidation. Agent B's return reported audit prediction was worst-case; baseline already healthier than expected. Real win was foundation (bundle analyzer + optimizePackageImports config) — page-level conversions are incremental polish, not blocker.
