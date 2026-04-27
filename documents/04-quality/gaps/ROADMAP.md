@@ -10,6 +10,22 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-27 (Wave P2-Cleanup SHIPPED — 3 parallel agents, ~12 min wall-clock):** Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md` (wave plan via PR first — landed in #581). 3 worktree-isolated agents disjoint files, 0 conflicts:
+
+| Agent | Gap | PR | Result |
+|:-----:|-----|:--:|--------|
+| A | GAP-234 architecture/diagram drift | #582 | 🟢 DONE — 8 files updated; 11 v2 entities added to ERD; 4 PUMLs synced (PNG/SVG regen deferred — needs plantuml binary) |
+| B | GAP-236 FE bundle budget CI | #583 | 🟡 PARTIAL — CI guardrail shipped (250KB threshold + override mechanics); 13 unit tests; baseline KC <236KB / KH <194KB; 44+ page conversions still deferred |
+| C | GAP-237 admin AMQP cache invalidation | #584 | 🟢 DONE — TopicExchange + 2 listener queues; 6 new tests; admin 29/29; subscription 355/355 (no regression); feature-flagged off until subscription-side dispatcher lands (informational ADR-021 follow-up) |
+
+**Wave validation:**
+- Zero merge conflicts (disjoint files honored ✅)
+- Zero rule violations from agents
+- ~93% wall-clock reduction (~12 min parallel vs estimated 4-6h serial)
+- Wave plan PR-first per `feedback_wave_plan_through_pr.md` — no rule violation this time
+
+Counts: **89 OPEN → 87 OPEN** (-GAP-234 -GAP-237 closed; GAP-236 stays PARTIAL but advanced).
+
 **2026-04-27 (GAP-243 SHIPPED — flips GAP-241 + GAP-242 to DONE):** GAP-243 status 🔵 OPEN → 🟢 DONE same day. Option A (least invasive): extend AdminControllerTest's `@DynamicPropertySource` with S3 mock properties + `@MockBean RabbitTemplate` for Mockito proxy. Verification: AdminControllerTest **7/7 ✅**, admin full suite **23/23 ✅**, subscription **355/355 ✅** (no regression). `kitehub-ci.yml` admin job exclusion removed — full admin suite now runs in CI. Cascade closure: **GAP-241 PARTIAL → DONE** (CI exclusion gone), **GAP-242 PARTIAL → DONE** (downstream test path now green). Counts: **92 OPEN → 89 OPEN** (-GAP-241/242/243 closed). Wave 7 admin module cleanup chain fully resolved (GAP-238 → 240 → 241 → 242 → 243, 5 gaps closed in same session).
 
 **2026-04-27 (GAP-242 PARTIAL — V11 Postgres SQL fixed):** GAP-242 status 🔵 OPEN → 🟡 PARTIAL. Root production bug resolved: V11 had `UNIQUE (..., (sent_at::date))` constraint with expression — Postgres rejects (SQL state 42601, only column names allowed in UNIQUE CONSTRAINT). Split into table CREATE + separate `CREATE UNIQUE INDEX` (which DOES support expressions). V11 had never run successfully against any Postgres → safe in-place edit. Subscription tests use Hibernate `ddl-auto=create-drop` (Flyway disabled) so 355/355 still pass. AdminControllerTest's deeper test-infra gaps (S3 mock, RabbitMQ mock for full @SpringBootTest) refiled as **GAP-243** (P2). Counts: **91 OPEN → 92 OPEN** (+GAP-243 filed; GAP-242 stays PARTIAL). GAP-241 also stays PARTIAL pending GAP-243.
