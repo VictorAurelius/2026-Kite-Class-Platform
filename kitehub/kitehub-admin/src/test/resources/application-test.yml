@@ -62,6 +62,11 @@ backup:
 kitehub:
   admin:
     api-key: ""  # Empty = dev mode (no auth required in tests)
+    cross-service-cache-invalidation:
+      # GAP-237 — disable the AMQP topology in tests (RabbitAutoConfiguration is
+      # already excluded above; this flag also suppresses RabbitListenerConfig
+      # so no Connection/Queue/Binding beans are created).
+      enabled: false
   email:
     use-queue: false
   email-verification:

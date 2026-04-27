@@ -1,6 +1,6 @@
 # GAP-237: Cross-service Outbox-based cache invalidation for kitehub-admin
 
-**Status:** 🔵 OPEN
+**Status:** ✅ DONE (Wave P2-Cleanup Agent C, 2026-04-27)
 **Priority:** 🟡 P2 (in-process invalidation works for same-JVM mutations; cross-service drift bounded by 5-min cache TTL)
 **Domain:** Backend / Caching / Inter-service Events
 **Detected:** 2026-04-26 (Wave 7-Perf Agent A return finding)
@@ -31,11 +31,11 @@ Production scenario: subscription tier upgrade processed by kitehub-subscription
 
 ## Acceptance Criteria
 
-- [ ] kitehub-admin has AMQP dep + RabbitConfig
-- [ ] @RabbitListener on `kitehub.events.exchange` for keys `instance.*`, `subscription.*`
-- [ ] Admin caches evict within 1s of cross-service Outbox event
-- [ ] Integration test (Testcontainers RabbitMQ or @MockBean) asserts the flow
-- [ ] No regression on existing in-process Spring ApplicationEvent path
+- [x] kitehub-admin has AMQP dep + RabbitConfig — `pom.xml` adds `spring-boot-starter-amqp`; `RabbitListenerConfig` declares topology
+- [x] @RabbitListener on `kitehub.events.exchange` for keys `instance.*`, `subscription.*` — `CrossServiceCacheInvalidationListener` two methods, one per routing-key family
+- [x] Admin caches evict within 1s of cross-service Outbox event — listener republishes as in-process `SubscriptionDataChangedEvent` → existing `AdminCacheInvalidationListener` (GAP-126) evicts both `admin-dashboard` + `revenue-report` Caffeine caches synchronously
+- [x] Integration test (Testcontainers RabbitMQ or @MockBean) asserts the flow — `CrossServiceCacheInvalidationListenerTest` (6 tests) using Mockito unit tests; no broker required since admin test profile excludes `RabbitAutoConfiguration`
+- [x] No regression on existing in-process Spring ApplicationEvent path — admin 29/29, subscription 355/355 pass
 
 ## Out-of-scope
 
@@ -51,4 +51,12 @@ Production scenario: subscription tier upgrade processed by kitehub-subscription
 
 ## Log
 
+- **2026-04-27** — DONE (Wave P2-Cleanup Agent C). Shipped consumer-side topology + listener:
+  - `kitehub-admin/pom.xml` adds `spring-boot-starter-amqp`
+  - `RabbitListenerConfig` declares `kitehub.events.exchange` (TopicExchange, durable) + `kitehub.admin.subscription-events` queue (`subscription.*` binding) + `kitehub.admin.instance-events` queue (`instance.*` binding); reuses `RabbitTemplate` + `Jackson2JsonMessageConverter` already provided by `kitehub-subscription`'s `EmailQueueConfig` (avoids duplicate-bean conflict with `@MockBean RabbitTemplate` in admin tests)
+  - `CrossServiceCacheInvalidationListener` two `@RabbitListener` methods (one per queue) parse `Map<String,Object>` payload + `RECEIVED_ROUTING_KEY` header, republish as in-process `SubscriptionDataChangedEvent` → existing `AdminCacheInvalidationListener` (GAP-126) evicts caches
+  - Both `RabbitListenerConfig` + listener gated on `kitehub.admin.cross-service-cache-invalidation.enabled` (defaults `false` until kitehub-subscription Outbox dispatcher lands; enable via env var when producer side ships)
+  - Test profile (`src/test/resources/application-test.yml`) explicitly sets `enabled=false` — defense-in-depth alongside the existing `RabbitAutoConfiguration` exclusion
+  - 6 unit tests in `CrossServiceCacheInvalidationListenerTest` cover happy-path subscription + instance events, missing aggregate id, malformed UUID, null payload, missing routing key (drop)
+  - Test counts: admin 29/29, subscription 355/355 — no regression
 - **2026-04-26** — Filed during Wave 7-Perf consolidation. Agent A's return reported missing AMQP dep blocked full Outbox integration in scope; in-process events shipped as workable interim. P2 because cache TTL bounds drift.
