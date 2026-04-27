@@ -1,6 +1,6 @@
 # GAP-235: AI Branding Mock Data Implementation (MSW + DataSeeder)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL (Sub-PR E1 in flight 2026-04-27)
 **Priority:** 🟠 P1 (mock data unblocks FE dev without backend; not GA-blocking but accelerates Wave 8+ FE work)
 **Domain:** Frontend (MSW) / Backend (DataSeeder) / Mock Data
 **Detected:** 2026-04-26 (split from GAP-014 implementation portion)
@@ -19,7 +19,9 @@
 | `DataSeeder.java` (kiteclass-core) | find returns 0 results | ❌ Not implemented |
 | `application-dev.yml` (kiteclass-core) | not present | ❌ Not implemented |
 | `MockAIClient.java` | `kiteclass-core/.../ai/client/MockAIClient.java` (1.7K) | ✅ Wave 4 Strategy pattern adapter |
-| OpenAPI spec export | grep `springdoc-openapi` in kiteclass-core/pom.xml | ❌ Need verify; currently no `/v3/api-docs` confirmed |
+| OpenAPI spec export | grep `springdoc-openapi` in kiteclass-core/pom.xml | ✅ **Re-verified 2026-04-27**: dependency v2.8.17 present, `springdoc.api-docs.path: /api-docs` configured, `swagger-ui.path: /swagger-ui.html` enabled in `application.yml`. Spec available at `/api-docs` (not `/v3/api-docs` — custom path). |
+| Controller count | `find kiteclass-core -name '*Controller.java' \| wc -l` | ⚠️ **34 controllers** (plan §4 said 21 — outdated since Wave 4) |
+| `shared/` folder | `ls kiteclass/shared 2>/dev/null` | ❌ Not present — needs creation for fixtures + openapi.json export |
 
 **Grep commands run:**
 ```bash
@@ -38,13 +40,14 @@ This is wave-eligible per `feedback_wave_plan_before_serial_prs.md` — ≥3 dis
 
 ## Proposed Fix — wave-eligible (4 sub-PRs)
 
-### Sub-PR E1: OpenAPI export from kiteclass-core
-**Branch:** `feat/kiteclass-core-openapi-export`
-**Scope:**
-- Add `springdoc-openapi-starter-webmvc-ui` dependency
-- Expose `/v3/api-docs` endpoint
-- CI step: dump spec to `kiteclass/shared/openapi-v2.json`
-- Verify all 11 v2 controllers (InstanceController + 3 branding controllers) appear with schemas
+### Sub-PR E1: OpenAPI export from kiteclass-core (in flight 2026-04-27 — `feat/gap-235-pr-a-openapi-fixtures`)
+**Branch:** `feat/gap-235-pr-a-openapi-fixtures`
+**Scope (revised after state-check 2026-04-27):**
+- ~~Add `springdoc-openapi-starter-webmvc-ui` dependency~~ ✅ already present (v2.8.17)
+- ~~Expose `/v3/api-docs` endpoint~~ ✅ already at `/api-docs` (custom path)
+- **Create `kiteclass/shared/` folder** with fixtures starter (mock-data.json, Vietnamese realistic — top-tier entities only; full 36-entity richness deferred to PR C/seeder)
+- **Add CI step** to dump spec to `kiteclass/shared/openapi.json` on push (uses `springdoc-openapi-maven-plugin` or curl-after-app-start in workflow)
+- **Verify** all 34 controllers serialize to spec (smoke test in CI: `jq '.paths | keys | length' shared/openapi.json` ≥ 60)
 
 ### Sub-PR E2: FE MSW handlers — v2 AI Branding (10 endpoints)
 **Branch:** `feat/fe-mock-ai-branding-v2`
@@ -110,3 +113,4 @@ This is wave-eligible per `feedback_wave_plan_before_serial_prs.md` — ≥3 dis
 ## Log
 
 - **2026-04-26** — Filed during GAP-014 planning portion closure. State-check confirmed 0 v2 mock handlers + 0 DataSeeder + 0 dev profile config. Wave-eligible (4 sub-PRs disjoint files). P1 not P0 because doesn't block GA — just accelerates FE dev. Defer execution until next FE-focused wave.
+- **2026-04-27** — State-check round 2 (per `audit-to-gap-pipeline.md` Step 2.5) before starting Sub-PR E1: discovered springdoc-openapi v2.8.17 already in `kiteclass-core/pom.xml` + `application.yml` configured (path `/api-docs`, swagger-ui enabled). Plan §4 was outdated. Sub-PR E1 scope revised down — focus shifts to (1) create `kiteclass/shared/` with starter fixtures + (2) wire CI export. Status flipped 🔵 OPEN → 🟡 PARTIAL on branch creation. Per memory `feedback_gap_state_check_required.md` — checking before re-doing already-shipped scaffolding.

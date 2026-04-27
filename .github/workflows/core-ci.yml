@@ -59,6 +59,15 @@ jobs:
         working-directory: kiteclass/kiteclass-core
         run: ./mvnw jacoco:report
 
+      - name: Upload OpenAPI Spec Artifact
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: kiteclass-core-openapi-spec
+          path: kiteclass/kiteclass-core/target/openapi-export/openapi.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
