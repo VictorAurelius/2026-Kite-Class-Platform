@@ -28,6 +28,13 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${POSTGRES_MEM_LIMIT:-2g}
+          cpus: '${POSTGRES_CPU_LIMIT:-2.0}'
+        reservations:
+          memory: ${POSTGRES_MEM_RESERVE:-512m}
 
   kite-redis:
     image: redis:7-alpine
@@ -40,6 +47,13 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${REDIS_MEM_LIMIT:-512m}
+          cpus: '${REDIS_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${REDIS_MEM_RESERVE:-128m}
 
   kite-rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -56,6 +70,13 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${RABBITMQ_MEM_LIMIT:-1g}
+          cpus: '${RABBITMQ_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${RABBITMQ_MEM_RESERVE:-256m}
 
   # --- KiteHub Platform Services (kitehub- prefix) ---
 
@@ -90,6 +111,13 @@ services:
       kite-rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${SUBSCRIPTION_MEM_LIMIT:-1g}
+          cpus: '${SUBSCRIPTION_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${SUBSCRIPTION_MEM_RESERVE:-256m}
 
   kitehub-branding:
     image: kitehub-branding:latest
@@ -124,6 +152,13 @@ services:
       kite-rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${BRANDING_MEM_LIMIT:-2g}
+          cpus: '${BRANDING_CPU_LIMIT:-2.0}'
+        reservations:
+          memory: ${BRANDING_MEM_RESERVE:-512m}
 
   kitehub-email:
     image: kitehub-email:latest
@@ -142,6 +177,13 @@ services:
       kite-rabbitmq:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${EMAIL_MEM_LIMIT:-1g}
+          cpus: '${EMAIL_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${EMAIL_MEM_RESERVE:-256m}
 
   kitehub-admin:
     image: kitehub-admin:latest
@@ -160,6 +202,13 @@ services:
       kite-redis:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${ADMIN_MEM_LIMIT:-1g}
+          cpus: '${ADMIN_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${ADMIN_MEM_RESERVE:-256m}
 
   kite-gateway:
     image: kite-gateway:latest
@@ -193,6 +242,13 @@ services:
       kitehub-admin:
         condition: service_started
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${GATEWAY_MEM_LIMIT:-512m}
+          cpus: '${GATEWAY_CPU_LIMIT:-1.0}'
+        reservations:
+          memory: ${GATEWAY_MEM_RESERVE:-128m}
 
 volumes:
   kite-postgres-data:

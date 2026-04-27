@@ -19,6 +19,13 @@ services:
     ports:
       - "127.0.0.1:3001:3001"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${KITEHUB_FRONTEND_MEM_LIMIT:-512m}
+          cpus: '${KITEHUB_FRONTEND_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${KITEHUB_FRONTEND_MEM_RESERVE:-128m}
 
   kiteclass-frontend:
     image: kiteclass-frontend:latest
@@ -31,6 +38,13 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${KITECLASS_FRONTEND_MEM_LIMIT:-512m}
+          cpus: '${KITECLASS_FRONTEND_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${KITECLASS_FRONTEND_MEM_RESERVE:-128m}
 
   kite-ollama:
     image: ollama/ollama:latest
@@ -46,6 +60,13 @@ services:
       retries: 10
       start_period: 10s
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${OLLAMA_MEM_LIMIT:-8g}
+          cpus: '${OLLAMA_CPU_LIMIT:-4.0}'
+        reservations:
+          memory: ${OLLAMA_MEM_RESERVE:-2g}
 
   nginx:
     image: nginx:alpine
@@ -61,6 +82,13 @@ services:
       - kitehub-frontend
       - kiteclass-frontend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: ${NGINX_MEM_LIMIT:-256m}
+          cpus: '${NGINX_CPU_LIMIT:-0.5}'
+        reservations:
+          memory: ${NGINX_MEM_RESERVE:-64m}
 
 volumes:
   ollama-models:
