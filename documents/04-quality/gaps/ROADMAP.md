@@ -10,6 +10,29 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-27 (Wave 7-Perf SHIPPED — 4 parallel agents, ~16 min wall-clock vs 9-17h serial estimate):** 4 parallel `isolation: worktree` agents closed/advanced 4 perf gaps in disjoint scope. Per `feedback_parallel_agent_strategy.md` rule #5 (sequence merges) + rule #6 (manual worktree cleanup): 4 PRs merged, 4 worktrees force-removed, 4 local + 4 remote branches deleted.
+
+| Agent | Gap | PR | Result |
+|:-----:|-----|:--:|--------|
+| A | GAP-126 admin dashboard cache | #569 | 🟢 DONE — @Cacheable + Pageable + in-process Spring event invalidation; 15/15 tests |
+| B | GAP-127 FE code-splitting | #570 | 🟡 PARTIAL — bundle analyzer + 10 pages/app + optimizePackageImports; baseline <250KB; 1034/1034 tests |
+| C | GAP-130 docker resource limits | #568 | 🟢 DONE — 4 compose files, 114 limit declarations; runbook in 05-guides |
+| D | GAP-135 SLO instrumentation | #571 | 🟡 PARTIAL — 16/29 controllers @Timed; 5 Prom rules + 8 Grafana panels |
+
+**4 follow-up gaps filed (Agent return findings):**
+- **GAP-236** P2 — FE code-splitting completion (44+ pages) + CI bundle budget guardrail
+- **GAP-237** P2 — Cross-service Outbox cache invalidation (kitehub-admin AMQP integration)
+- **GAP-238** P1 — `cacheConfig` bean collision admin↔subscription (pre-existing, latent CI flake hazard)
+- **GAP-239** P2 — API SLO coverage completion (13 + admin controllers) + PR template SLO declaration
+
+**Wave validation:**
+- Zero merge conflicts (disjoint files honored ✅)
+- Zero rule violations from agents (worktree path discipline maintained ✅)
+- Pre-existing CI bug surfaced (GAP-238) — would have remained latent without Wave 7-Perf
+- Memory `feedback_wave_plan_through_pr.md` filed earlier same session for parent direct-push violation
+
+Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 filed; GAP-127/135 stay PARTIAL but progressed). Wave 7 Meta+Feature P0 queue narrowed: GAP-005 + GAP-011 still infra/designer-blocked.
+
 **2026-04-26 (GAP-014 planning portion v2-aligned — Wave 7 Meta-P0):** GAP-014 status PLANNED → 🟡 PARTIAL. Wave plan `wave-mock-data-local-dev.md` §7 rewritten end-to-end against shipped v2 controllers in `kiteclass-core` (NOT kitehub-branding per architecture doc drift). Replaced 12 aspirational endpoints with 10 real ones (InstanceController 8 + BrandingPackageController 1 + PublicBrandingController 1 + InternalWebhookController 1). Internal services (Analyzer/Planner/Executor/QualityReviewer/ContentModeration/Saga) called out as non-REST. Added §7.7 Out-of-scope với 6 deferred items (GAP-005/006/011/012/020/070). Implementation portion (MSW handlers + DataSeeder + demo) split to **GAP-235** (P1, wave-eligible 4 sub-PRs). Counts: **87 OPEN → 88 OPEN** (+GAP-235; GAP-014 stays PARTIAL). Wave 7 Meta-P0 queue narrowed: GAP-005 + GAP-011 remain (GAP-014 moved to PARTIAL).
 
 **2026-04-26 (GAP-016 final closure — Wave 7 Meta-P0):** GAP-016 status 🟡 PARTIAL → 🟢 DONE. Final actions: (1) §2.9 business-gap-check audit ran with fixed grep scope (kiteclass-core + kitehub-branding) — 16/20 ✅, 2 ❌ tracked existing gaps (GAP-005 regenerate counter, GAP-011 ImageTemplate library), 1 ⚠️ Saga alternative pattern, 1 ⏭️ DB-dependent. (2) Skill `business-gap-check.md` §2.9 updated: grep scope `kitehub-branding` → `kiteclass-core` + class renames `BrandingAnalyzer→AnalyzerService`/`BrandingPlanner→PlannerService` + module-location note. (3) GAP-016 Findings table flipped — 7 items closed by GAP-229 (PRs #561/#562); 6 stale items split out as **GAP-234** (architecture doc + 4 PUML diagrams + database-design.md + docker-platform-architecture.md drift, P2 deferred). Per memory `feedback_audit_grep_scope.md`: skill grep scope correction is the kind of force-multiplier fix that prevents future false-positives like GAP-107. Counts: **87 OPEN → 87 OPEN** (-GAP-016 +GAP-234 net 0). Wave 7 Meta-P0 queue narrowed: GAP-005 + GAP-011 + GAP-014 remain.
