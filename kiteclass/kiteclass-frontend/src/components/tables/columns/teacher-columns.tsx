@@ -7,7 +7,7 @@
 
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { Teacher } from '@/types/teacher';

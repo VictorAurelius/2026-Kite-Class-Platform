@@ -23,7 +23,7 @@ import {
 import { InvoiceStatusBadge } from '@/components/billing/invoice-status-badge';
 import { useInvoices } from '@/hooks/use-invoices';
 import { InvoiceStatus } from '@/types/invoice';
-import { DataTable } from '@/components/common/data-table';
+import { DataTable } from '@/components/common/dynamic-data-table';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Invoice } from '@/types/invoice';
