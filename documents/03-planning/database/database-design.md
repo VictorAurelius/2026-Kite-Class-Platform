@@ -3148,5 +3148,217 @@ WHERE c.code = 'MATH10' AND u.email = 'admin@test.com';
 
 ---
 
+## 7. AI Branding v2 Schema (V31-V45) — added 2026-04-26 (GAP-234)
+
+After Waves 2-4 shipped AI Branding v2 to `kiteclass-core/`, the following tables were added to the **KiteClass tenant DB** (not the KiteHub platform DB as originally planned in `ai-branding-v2-redesign.md` — see §0 of that doc for the deviation note). All tables carry `instance_id UUID NOT NULL` for multi-tenant isolation.
+
+### 7.1 Lifecycle + provisioning
+
+#### `frontend_instances` (V31)
+
+Tracks per-tenant frontend instance provisioning state machine.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | tenant scope |
+| tenant_id | VARCHAR(100) NOT NULL | |
+| slug | VARCHAR(80) NOT NULL | unique per `(instance_id, deleted=FALSE)` |
+| frontend_url | VARCHAR(300) | populated on DEPLOYED |
+| status | VARCHAR(20) NOT NULL | check constraint: NOT_STARTED / INITIALIZING / GENERATING / DEPLOYED / REGENERATING / FAILED |
+| initializing_at, generating_at, deployed_at, last_regenerate_at, failed_at | TIMESTAMP | per-state timestamps |
+| retry_count | INT NOT NULL DEFAULT 0 | |
+| failure_reason | VARCHAR(1000) | |
+| branding_version | INT NOT NULL DEFAULT 0 | bumps on rebrand |
+| created_at, updated_at, created_by, updated_by, version, deleted | common audit cols | |
+
+State transitions enforced by `TenantProvisioningSaga` only.
+
+#### `rebrand_approvals` (V34)
+
+Approval workflow for rebrand operations on existing DEPLOYED instances.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id, target_instance_id | UUID, BIGINT FK | scope + target |
+| status | VARCHAR(16) | PENDING / APPROVED / REJECTED / EXPIRED |
+| initiator_user_id, approver_user_id | BIGINT | |
+| reason, rejection_reason | VARCHAR(500) | |
+| requested_at, approved_at, rejected_at, expires_at | TIMESTAMP | |
+
+### 7.2 Resource pipeline
+
+#### `branding_resources` (V32)
+
+Per-resource artifact tracker classified by `ResourceCategory` (STATIC / TEMPLATE / FULL_AI).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| type | VARCHAR(30) | LOGO / FAVICON / BANNER / HERO / COURSE_THUMBNAIL / SOCIAL_COVER / EMAIL_HEADER |
+| category | VARCHAR(20) | STATIC / TEMPLATE / FULL_AI |
+| storage_url | VARCHAR(500) | MinIO/S3 URL |
+| template_id | BIGINT | required when category=TEMPLATE |
+| ai_job_id | UUID | required when category=FULL_AI |
+| metadata | JSONB | brand colors used, template params |
+
+V45 adds composite index on `(instance_id, deleted)` for fast non-deleted lookups.
+
+#### `branding` (V40)
+
+Active branding snapshot (1 row per instance) — applied to KiteClass FE via `/api/v1/branding/{instanceId}/package`.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| logo_url, favicon_url | VARCHAR(500) | |
+| display_name | VARCHAR(200) NOT NULL | |
+| tagline | VARCHAR(500) | |
+| primary_color, secondary_color, accent_color | VARCHAR(7) | hex with `#` prefix |
+| theme_config_json | TEXT | additional CSS vars |
+| contact_email, contact_phone, address | VARCHAR | |
+| facebook_url, zalo_url, website_url | VARCHAR(500) | |
+
+#### `branding_versions` (V43)
+
+Snapshot history for rebrand rollback.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| version_number | INT NOT NULL | monotonic per instance |
+| snapshot_json | JSONB NOT NULL | full theme+assets snapshot |
+| rollback_of | BIGINT FK self | non-null if this version is a rollback |
+| active | BOOLEAN | currently applied |
+
+### 7.3 Quality + moderation
+
+#### `quality_reports` (V39)
+
+Output of `InstanceQualityReviewer.review()` — 5 sub-scores, total /100.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| target_instance_id | BIGINT | FK frontend_instances |
+| branding_version | INT NOT NULL | which version was reviewed |
+| score, passed | INT, BOOLEAN | total /100; passed = score >= 70 |
+| contrast_score, css_vars_score, asset_urls_score, visual_regression_score, logo_placement_score | INT | per-check sub-scores (each /20) |
+| issues | JSONB | per-check findings list |
+
+#### `moderation_queue` (V36)
+
+3-stage content moderation pipeline state.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| target_type, target_id | VARCHAR(100) | polymorphic ref (e.g. `BrandingResource:42`) |
+| status | VARCHAR(32) | PENDING / APPROVED / REJECTED / ESCALATED |
+| flagged_keywords | JSONB | keyword stage hits |
+| reason | VARCHAR(500) | |
+| assigned_reviewer_id | BIGINT | human stage assignment |
+| decided_at | TIMESTAMP | |
+
+#### `dmca_takedown_requests` (V37)
+
+Inbound DMCA-style takedown tracking (used for VN-equivalent IP complaints too).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| reporter_email, reporter_name | VARCHAR(255) | |
+| alleged_infringing_url | VARCHAR(2000) | |
+| copyrighted_work_description | VARCHAR(4000) | |
+| status | VARCHAR(16) | PENDING / APPROVED / REJECTED / CONTESTED / EXECUTED |
+| counter_notice_email | VARCHAR(255) | |
+| reviewer_user_id | BIGINT | |
+| reviewed_at, executed_at, contested_at | TIMESTAMP | |
+| rejection_reason | VARCHAR(500) | |
+
+### 7.4 Cross-cutting
+
+#### `outbox_events` (V33)
+
+Transactional outbox for reliable event publishing per `design-patterns.md` §3.5.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| aggregate_type, aggregate_id | VARCHAR(100) | source aggregate |
+| event_type | VARCHAR(100) | e.g. `instance.deployed` |
+| payload | JSONB NOT NULL | event body |
+| status | VARCHAR(16) | PENDING / PUBLISHED / FAILED |
+| retry_count | INT | |
+| last_error | TEXT | |
+| created_at, published_at, next_attempt_at, updated_at | TIMESTAMP | |
+
+#### `audit_log` (V35)
+
+Action audit trail for admin / sensitive operations.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | |
+| action_type | VARCHAR(100) | e.g. `branding.rebrand.approved` |
+| aggregate_type, aggregate_id | VARCHAR(100) | |
+| actor_user_id, actor_role | BIGINT, VARCHAR(50) | who performed |
+| payload | JSONB | full action context |
+| reason | VARCHAR(500) | optional human reason |
+
+#### `deletion_requests` (V38)
+
+Right-to-be-forgotten / GDPR-style deletion workflow with grace window.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id, tenant_id | UUID NOT NULL | |
+| user_id | BIGINT NOT NULL | requester |
+| status | VARCHAR(16) | REQUESTED / IN_GRACE / PROCESSING / COMPLETED / CANCELLED |
+| requested_at | TIMESTAMP NOT NULL | |
+| grace_starts_at, grace_ends_at | TIMESTAMP | grace period for reversal |
+| processing_started_at, completed_at, cancelled_at | TIMESTAMP | |
+| cancellation_reason | VARCHAR(500) | |
+| data_export_url | VARCHAR(1024) | export bundle for user |
+
+### 7.5 Other Wave 2-4 additions (non-AI)
+
+- `student_bulk_import_jobs` (V41) — async student CSV import worker state.
+- `parents` + `parent_student_links` (V42) — parent portal linking.
+- `class_schedule_slots` (V44) — recurring schedule slots referencing `subject_sections`.
+
+### 7.6 ER overview (AI Branding v2 cluster)
+
+```
+frontend_instances ──┬── 1:N ──→ branding_resources
+                     ├── 1:N ──→ quality_reports
+                     ├── 1:N ──→ rebrand_approvals (target)
+                     ├── 1:N ──→ branding_versions
+                     ├── 1:N ──→ outbox_events
+                     ├── 1:N ──→ audit_log entries
+                     └── 1:1 ──→ branding (active snapshot)
+
+branding_versions ── self-FK rollback_of
+
+moderation_queue   ── polymorphic ──→ BrandingResource | Branding | other
+dmca_takedown_requests ── alleged URL → branding_resources (informational)
+deletion_requests  ── 1:1 → frontend_instances (purge target)
+```
+
+**Diagrams:** `documents/06-diagrams/plantuml/03-erd.puml` (KiteClass ERD with v2 package), `04-architecture-full.puml` (v2 module boxes + queue topology), `14-ai-branding-pipeline.puml` (v2 Analyzer → Planner → Executor → Reviewer flow), `16-database-schema-full.puml` (full v2 tables in KiteClass DB with HISTORICAL annotations on legacy KiteHub tables).
+
+---
+
 *Tài liệu được tạo bởi: Claude Assistant*
 *Ngày: 23/12/2025*
+*Last sync: 2026-04-26 (GAP-234 — added §7 AI Branding v2 schema)*

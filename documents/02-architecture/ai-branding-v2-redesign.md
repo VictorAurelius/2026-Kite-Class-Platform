@@ -1,9 +1,42 @@
 # AI Branding v2 — Redesign Document
 
-**Trạng thái:** 🟡 DRAFT — pending user review
-**Ngày:** 2026-04-14
+**Trạng thái:** 🟢 SHIPPED (Waves 2-4) — design adopted with module-location deviation noted in §0
+**Ngày:** 2026-04-14 (initial), 2026-04-26 (GAP-234 sync)
 **Supersedes:** `documents/03-planning/implementation/ai-local-implementation-plan.md` (phần architecture)
-**Current state:** 4/10 production readiness (xem §1)
+**Current state:** 4/10 baseline (2026-04-14) → ~7/10 after Waves 2-4 ship; quality-audit baseline 62/100 captured 2026-04-26 per `ai-branding-guidelines.md` §11.4.
+
+---
+
+## 0. Implementation Reality Note (added 2026-04-26 / GAP-234)
+
+This document was written 2026-04-14 assuming AI Branding workflow code would land in `kitehub-branding/`. Implementation diverged in Waves 2-4:
+
+| Layer | Original spec | Shipped location |
+|-------|--------------|------------------|
+| Workflow engine (Analyzer/Planner/Executor + Steps) | `kitehub-branding/` | **`kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/ai/workflow/`** |
+| Resource handlers (Static/Template/AI/Fallback) | `kitehub-branding/` | **`kiteclass-core/module/branding/handler/`** |
+| `FrontendInstance` entity + lifecycle | `kitehub-branding/` | **`kiteclass-core/module/instance/`** |
+| `InstanceQualityReviewer` + 5 quality checks | `kitehub-branding/` | **`kiteclass-core/module/quality/`** |
+| `ContentModerationService` | `kitehub-branding/` | **`kiteclass-core/module/moderation/`** |
+| `TenantProvisioningSaga` | `kitehub-branding/` | **`kiteclass-core/module/provisioning/`** |
+| RabbitMQ queue topology + worker pool + AIQueueDispatcher | `kitehub-branding/` | `kitehub-branding/queue/` (unchanged) |
+| Tier queues `ai.request.{enterprise,pro,free}` + DLQs | `kitehub-branding/` | `kitehub-branding/config/AIQueueConfig` (unchanged) |
+
+**Class renames** (sections §3.3 below show original names):
+
+| §3.3 spec | Shipped class |
+|-----------|---------------|
+| `BrandingAnalyzer` | `AnalyzerService` |
+| `BrandingPlanner` | `PlannerService` |
+| `BrandingExecutor` | `PlanExecutor` |
+
+**Why the deviation:** branding lives next to tenant data it themes — co-location simplifies multi-tenant isolation, transactional outbox writes (V33), and avoids cross-service joins between `kitehub-*` and `kiteclass_shared`. `kitehub-branding` retains queue dispatch + worker pool because tier scheduling is a cross-tenant concern owned by the SaaS layer.
+
+DB migrations actually shipped to KiteClass: V31 `frontend_instances`, V32 `branding_resources`, V33 `outbox_events`, V34 `rebrand_approvals`, V35 `audit_log`, V36 `moderation_queue`, V37 `dmca_takedown_requests`, V38 `deletion_requests`, V39 `quality_reports`, V40 `branding`, V43 `branding_versions`, V45 index on `branding_resources(instance_id, deleted)`.
+
+Architecture/diagram drift between this doc and shipped code surfaced in GAP-234 (2026-04-26) and was fixed by syncing diagrams + appending this §0. Class examples in §3.3 still show the original names; treat them as design intent, with the shipped class names canonical.
+
+---
 
 AI Branding là **key feature** của KiteHub. Tài liệu này redesign architecture theo best practice, cover 4 vấn đề chính user đã chỉ ra:
 
@@ -150,8 +183,13 @@ AI Agent (Planner):
 
 ### 3.3 Implementation pattern: **State Machine + Plan Executor**
 
+> **Shipped class names** (per §0 deviation 2026-04-26):
+> `BrandingAnalyzer` → **`AnalyzerService`**, `BrandingPlanner` → **`PlannerService`**, `BrandingExecutor` → **`PlanExecutor`** (this name kept).
+> Location: `kiteclass-core/module/ai/workflow/`.
+
 ```java
 // Step 1: Analyzer extracts structured context
+// SHIPPED: com.kiteclass.core.module.ai.workflow.AnalyzerService
 @Service
 public class BrandingAnalyzer {
   public BrandingContext analyze(ResourceRequest req, TenantId tid);
@@ -159,6 +197,7 @@ public class BrandingAnalyzer {
 }
 
 // Step 2: Planner creates execution plan
+// SHIPPED: com.kiteclass.core.module.ai.workflow.PlannerService
 @Service
 public class BrandingPlanner {
   public ExecutionPlan plan(BrandingContext ctx, ResourceRequest req);
@@ -166,6 +205,7 @@ public class BrandingPlanner {
 }
 
 // Step 3: Executor runs plan
+// SHIPPED: com.kiteclass.core.module.ai.workflow.PlanExecutor
 @Service
 public class PlanExecutor {
   public BrandingResource execute(ExecutionPlan plan);
@@ -456,4 +496,5 @@ Design này break thành 8 gaps để track:
 
 ## 9. Log
 
+- **2026-04-26 (GAP-234)** — Sync pass after Waves 2-4 shipped. Added §0 "Implementation Reality Note" documenting module-location deviation (workflow lives in `kiteclass-core` not `kitehub-branding`) + class renames (`BrandingAnalyzer`→`AnalyzerService`, `BrandingPlanner`→`PlannerService`, `BrandingExecutor`→`PlanExecutor`). Annotated §3.3 inline. Status flipped from 🟡 DRAFT → 🟢 SHIPPED. No design content rewritten — original v1 design still intact for historical reference. Drift root cause: original spec assumed kitehub-branding ownership; Wave 2 chose kiteclass-core for tenant-data co-location + transactional outbox. Reason was not formally captured at the time; would have benefitted from an ADR (now retroactively documented here).
 - 2026-04-14 — v2 redesign initiated. Based on codebase scan (4/10 readiness) + 4 user-raised design issues. Waiting user review.
