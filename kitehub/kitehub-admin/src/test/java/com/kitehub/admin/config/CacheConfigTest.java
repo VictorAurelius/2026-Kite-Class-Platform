@@ -21,10 +21,15 @@ class CacheConfigTest {
         CacheManager manager = new CacheConfig(300, 3600).cacheManager();
 
         assertThat(manager).isInstanceOf(CaffeineCacheManager.class);
+        // GAP-238: admin's CacheManager is the primary in mixed admin+subscription contexts,
+        // so it declares subscription's cache names too (transitively required by
+        // kitehub-subscription components autowired into admin).
         assertThat(manager.getCacheNames())
                 .containsExactlyInAnyOrder(
                         CacheConfig.ADMIN_DASHBOARD_CACHE,
-                        CacheConfig.ADMIN_REVENUE_REPORT_CACHE);
+                        CacheConfig.ADMIN_REVENUE_REPORT_CACHE,
+                        "subscriptionByInstance",
+                        "instanceSummary");
     }
 
     @Test

@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-27 (GAP-238 SHIPPED + 2 follow-ups filed):** GAP-238 status 🔵 OPEN → 🟢 DONE same day filed. Fix: `@ConditionalOnMissingBean(CacheManager.class)` on subscription's bean + admin's manager declares transitive cache names + `@Configuration` rename for defensive uniqueness. Verification: admin unit tests 15/15 pass, subscription full suite 355/355 pass, BeanDefinitionOverrideException no longer in admin context startup. **Surfaced 2 deeper pre-existing issues** (not GAP-238 scope, filed as follow-ups): **GAP-240 P1** — admin JPA repository scan misses `SubscriptionOutboxRepository` (8 admin @SpringBootTest still fail context load); **GAP-241 P1** — `kitehub-ci.yml` doesn't test admin/email/gateway modules at all (CI blind spot — that's why GAP-238 + GAP-240 shipped to main invisibly). Counts: **90 OPEN → 91 OPEN** (-GAP-238 closed; +GAP-240 +GAP-241 filed).
+
 **2026-04-27 (Wave 7-Perf SHIPPED — 4 parallel agents, ~16 min wall-clock vs 9-17h serial estimate):** 4 parallel `isolation: worktree` agents closed/advanced 4 perf gaps in disjoint scope. Per `feedback_parallel_agent_strategy.md` rule #5 (sequence merges) + rule #6 (manual worktree cleanup): 4 PRs merged, 4 worktrees force-removed, 4 local + 4 remote branches deleted.
 
 | Agent | Gap | PR | Result |

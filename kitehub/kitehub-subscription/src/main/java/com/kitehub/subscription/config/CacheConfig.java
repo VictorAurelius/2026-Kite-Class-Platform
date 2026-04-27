@@ -2,6 +2,7 @@ package com.kitehub.subscription.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @since Wave 9 (GAP-132)
  */
-@Configuration
+@Configuration("subscriptionCacheConfig")
 @EnableCaching
 public class CacheConfig {
 
@@ -50,7 +51,16 @@ public class CacheConfig {
         this.ttlSeconds = ttlSeconds;
     }
 
+    /**
+     * Backs subscription-side caches when this module runs as a standalone Spring context.
+     *
+     * <p>Marked {@link ConditionalOnMissingBean} on {@link CacheManager} so that consumer
+     * modules (e.g. {@code kitehub-admin} which depends on {@code kitehub-subscription})
+     * can supply their own {@code CacheManager} without triggering a
+     * {@code BeanDefinitionOverrideException} on context startup. Closes GAP-238.</p>
+     */
     @Bean
+    @ConditionalOnMissingBean(CacheManager.class)
     public CacheManager cacheManager() {
         CaffeineCacheManager manager = new CaffeineCacheManager();
         manager.setCacheNames(List.of(SUBSCRIPTION_BY_INSTANCE_CACHE, INSTANCE_SUMMARY_CACHE));
