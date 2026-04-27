@@ -1,6 +1,6 @@
 # GAP-241: kitehub-ci.yml does not test kitehub-admin module
 
-**Status:** 🟡 PARTIAL 2026-04-27 — admin/email/gateway CI jobs added; admin excludes AdminControllerTest pending GAP-242 fix
+**Status:** 🟢 DONE 2026-04-27 — admin/email/gateway CI jobs added; AdminControllerTest exclusion removed after GAP-242 + GAP-243 closed; full kitehub-admin suite (23 tests) runs in CI
 **Priority:** 🟠 P1 (CI blind spot — admin module tests fail locally but CI is green; latent regression hazard)
 **Domain:** DevOps / CI/CD
 **Detected:** 2026-04-27 (GAP-238 fix investigation)

@@ -1,6 +1,6 @@
 # GAP-243: AdminControllerTest needs S3 mock + RabbitMQ mock for full @SpringBootTest
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-27 — @DynamicPropertySource extended with S3 mock-mode + region; @MockBean RabbitTemplate added; AdminControllerTest 7/7 + admin full suite 23/23 pass
 **Priority:** 🟡 P2 (test-only failure; production unaffected; admin module's other tests + subscription full suite green)
 **Domain:** Backend / Tests / Test Infrastructure
 **Detected:** 2026-04-27 (GAP-242 fix verification surface)
@@ -70,4 +70,5 @@ Identify whether AdminControllerTest actually needs the full dependency chain (I
 
 ## Log
 
+- **2026-04-27 (DONE same day):** Status 🔵 OPEN → 🟢 DONE. **Option A** (extend @DynamicPropertySource) shipped — minimal invasive. Added S3 mock properties (`storage.s3.mock-mode=true`, `region`, `bucket`, `access-key`, `secret-key`) + webhook + backup config. Added `@MockBean RabbitTemplate` field — Mockito proxy resolves EmailServiceClient autowire without real broker. Verification: AdminControllerTest 7/7 ✅, admin full suite 23/23 ✅, subscription 355/355 ✅ (no regression). `kitehub-ci.yml` admin job updated — removed `-Dtest=` exclusion, now runs full admin suite. **GAP-241 + GAP-242 also flip to DONE** (their PARTIAL status was waiting on this gap). Note: `@MockBean` deprecated since Spring Boot 3.4.0 — minor warning, replace with `@MockitoBean` in future cleanup PR.
 - **2026-04-27** — Filed during GAP-242 fix verification. V11 SQL bug closed; AdminControllerTest then surfaces S3 + RabbitMQ test-infra gaps. P2 because production unaffected — these are test-only setup deficiencies in `AdminControllerTest` that mask real test coverage.

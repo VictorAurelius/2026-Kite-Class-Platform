@@ -160,19 +160,12 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
-      # GAP-241: kitehub-admin module is now CI-tested (was missing). Explicit test list
-      # because:
-      # 1. AdminControllerTest is currently broken — blocked by GAP-242 (Flyway V11 SQL
-      #    incompatibility with admin test DB).
-      # 2. surefire's negation pattern `-Dtest='!AdminControllerTest'` would also pull
-      #    integration tests (*IT) into the run that normally only run via failsafe.
-      # Once GAP-242 closes, replace the explicit list with `-Dtest='*Test'` (or remove
-      # -Dtest entirely) and flip GAP-241 status to DONE.
-      # failIfNoSpecifiedTests=false lets transitively-built modules (platform,
-      # subscription) pass even though their tests don't match the named admin tests.
+      # GAP-241/242/243 closed 2026-04-27: AdminControllerTest now passes (V11 SQL fixed,
+      # S3 mock + RabbitTemplate @MockBean wired in @DynamicPropertySource). Run full
+      # admin suite (23 tests) without exclusions.
       - name: Build and Test Admin Service
         working-directory: kitehub
-        run: ./mvnw clean test -pl kitehub-admin -am -Dtest='AdminControllerPaginationTest,CacheConfigTest,AnalyticsServiceCachingTest,AnalyticsServiceTest,KiteHubAdminApplicationTest' -Dsurefire.failIfNoSpecifiedTests=false
+        run: ./mvnw clean test -pl kitehub-admin -am
 
       - name: Upload Test Results
         if: always()

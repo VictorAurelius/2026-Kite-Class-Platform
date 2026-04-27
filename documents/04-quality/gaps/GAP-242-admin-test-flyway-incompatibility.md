@@ -1,6 +1,6 @@
 # GAP-242: AdminControllerTest fails Flyway V11 migration in test DB
 
-**Status:** 🟡 PARTIAL 2026-04-27 — V11 SQL bug fixed; AdminControllerTest's deeper test-infra gaps (S3 mock, RabbitMQ mock) refiled as GAP-243
+**Status:** 🟢 DONE 2026-04-27 — V11 SQL bug fixed (PR #579); GAP-243 closed remaining test-infra gaps; AdminControllerTest 7/7 pass; full admin suite 23/23 pass
 **Priority:** 🟡 P2 (test-only failure; production unaffected; admin module's other tests + subscription full suite green)
 **Domain:** Backend / Tests / Database Migration
 **Detected:** 2026-04-27 (GAP-240 fix verification surface)
