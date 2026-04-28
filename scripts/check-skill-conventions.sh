@@ -139,13 +139,6 @@ should_skip() {
 # Process to remove an exemption: fix the underlying skill, then delete the
 # entry. Goal: empty list by Wave 9.
 GRANDFATHERED_EXEMPTIONS='
-.claude/skills/core/systematic-debugging.md:gotchas
-.claude/skills/core/task-breakdown-guide.md:gotchas
-.claude/skills/core/tdd-enforcement.md:gotchas
-.claude/skills/core/two-stage-code-review.md:gotchas
-.claude/skills/document-generation/excel/SKILL.md:gotchas
-.claude/skills/document-generation/pdf/SKILL.md:gotchas
-.claude/skills/document-generation/word/SKILL.md:gotchas
 .claude/skills/quality-audit/SKILL.md:gotchas
 .claude/skills/quality/business-gap-check.md:gotchas
 .claude/skills/quality/persona-based-business-review.md:gotchas

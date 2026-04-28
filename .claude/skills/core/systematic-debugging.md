@@ -24,7 +24,7 @@ description: "Dùng khi gặp lỗi khó hiểu, user nói 'debug', 'investigate
 3. **Root Cause** (30-45 min) — 5 Whys technique, distinguish symptom vs cause
 4. **Defensive Fix** (1-2 hrs) — Fix root cause, add regression test, update docs
 
-## KiteClass Gotchas
+## Gotchas
 
 - **`findById()` bypasses Hibernate filter** — dùng custom query `findByIdAndDeletedFalse()` thay thế; JPA findById() dùng EntityManager.find() không qua interceptors
 - **Redis cache stale sau rebuild** — clear Redis (`docker exec kiteclass-redis redis-cli FLUSHALL`) khi restart sau code change

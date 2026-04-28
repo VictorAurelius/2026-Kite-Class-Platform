@@ -25,7 +25,7 @@ description: "Dùng trước khi viết code, user nói 'implement', 'viết fea
 2. **🟢 GREEN** — Write MINIMAL code to pass test. No premature optimization, no extra features.
 3. **♻️ REFACTOR** — Clean up (remove duplication, improve naming). All tests PHẢI still pass.
 
-## KiteClass Gotchas
+## Gotchas
 
 - **MockMvc async** — Reactive endpoints (`Mono<ResponseEntity>`) cần pattern đặc biệt:
   ```java

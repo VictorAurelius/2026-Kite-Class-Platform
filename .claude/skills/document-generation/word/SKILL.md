@@ -34,7 +34,7 @@ Stay in **Create** pipeline. File a follow-up gap before touching Edit-Fill / Re
    - Salary formatted with `vi-VN` thousand separator (`15.000.000`).
 4. Returns `DocumentResponse(bytes, docx MIME, "teacher-contract-<slug>-<startDate>.docx")`.
 
-## Vietnamese-specific gotchas
+## Gotchas
 
 - **Font:** Times New Roman is the de-facto default for VN legal documents. `Arial` / `Calibri` look foreign in official contracts.
 - **Page setup:** A4 portrait (11906 × 16838 twips), 2.54 cm margins (1440 twips). These are the norms on Vietnamese official letterhead; deviating raises eyebrows.
