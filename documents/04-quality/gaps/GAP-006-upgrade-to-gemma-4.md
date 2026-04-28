@@ -1,9 +1,10 @@
 # GAP-006: Upgrade AI models to Gemma 4
 
-**Status:** 🔵 OPEN
+**Status:** 🔵 OPEN — ⏸ **DEFERRED 2026-04-28** until local Ollama + Docker stack ready (see Log entry 2026-04-28)
 **Priority:** 🟠 P1 (cost + quality improvement)
 **Domain:** AI / Backend
 **Detected:** 2026-04-14
+**Blocked-on:** Local Ollama daemon + full kitehub Docker stack running (WSL2 CPU-only too slow for Gemma 4 9B A/B test per `feedback_gap006_infra_blocker.md`). GAP-244 dev-profile schema fix landed 2026-04-28 ✅; Ollama + stack remain.
 **Related Docs:**
 - `documents/03-planning/implementation/ai-local-implementation-plan.md`
 
@@ -192,5 +193,6 @@ Re-evaluate khi: (a) Ollama add mmproj support, (b) RAM tier upgrade 48GB+, (c) 
 
 ## Log
 
+- **2026-04-28 (DEFERRED)** — Pickup attempted at session start, Docker stack down + Ollama not reachable on `localhost:11434`. Per `feedback_gap006_infra_blocker.md` 4-6h estimate breaks at pre-flight on WSL2 CPU-only — Gemma 4 9B A/B test against MixSura is the long-pole AC and infeasible without GPU acceleration / running daemon. GAP-244 dev-profile schema mismatch (`created_by`/`updated_by` BIGINT alignment) shipped today via V46 migration ✅, removing one blocker; Ollama + stack remain. Status stays 🔵 OPEN with explicit Blocked-on header. Resume conditions: (1) Ollama daemon running with `gemma4:9b` + `nqduc/mixsura:mixsura-q6_K` pulled, (2) `./kitehub/scripts/up.sh` green, (3) sufficient compute for 9B inference latency target. Next-recommended-wave queue updated to skip AI Branding cluster (GAP-006 + GAP-223 Sub-PR 223.2) until conditions met.
 - **2026-04-26** — Re-evaluation after user concern about gap freshness (12 days since creation). Researched landscape: Qwen 3.6-27B (released 2026-04-22), Gemma 4 9B variant (released 2026-04-02 alongside E4B), MixSura VN-specialized. **Recommendation changed**: E4B → **9B** (lower RAM 6GB vs 8GB + built-in tool-calling matches AI Branding agent orchestration requirement; audio support of E4B not needed). **Added Vietnamese A/B test against MixSura** as pre-migration AC. **Qwen 3.6-27B documented as future watch** — currently blocked on Ollama mmproj support + RAM marginal on Oracle 24GB + use-case mismatch (coding-focused). Comparison matrix expanded from 3-column to 6-column.
 - 2026-04-14 — Phát hiện Gemma 4 ra mắt 2026-04-02; scan config + đề xuất migrate (initial recommendation: Gemma 4 E4B)

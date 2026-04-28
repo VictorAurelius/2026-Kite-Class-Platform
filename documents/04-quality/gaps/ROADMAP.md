@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (AI Branding cluster ⏸ DEFERRED — pending local Ollama + Docker stack):** Pickup attempt on top-of-queue items (GAP-223 Sub-PR 223.2 + GAP-006 Gemma 4 9B migration) blocked at session-start pre-flight: `localhost:11434` not reachable + Docker stack down. Per `feedback_gap006_infra_blocker.md`, WSL2 CPU-only is too slow for 9B A/B test against MixSura (long-pole AC). GAP-244 dev-profile schema mismatch shipped today via V46 ✅ — one prior blocker cleared, but Ollama + stack still needed. GAP-006 + GAP-223 marked DEFERRED with Blocked-on header + Log entry; ROADMAP "Next recommended wave" queue rotated to skip the cluster. Stale GAP-229 entry removed from queue (was already DONE 2026-04-26 PR #561+#562). New top eligible: GAP-055 (BL-P0, VN report-card format, single-PR, no AI dep) and skill-conventions cleanup wave (Meta-P3, wave-eligible). Counts: unchanged (no gaps closed/filed by this entry — annotation only).
+
 **2026-04-28 (GAP-255 SHIPPED + Wave Meta-Gov 1 follow-up complete — 7/8 wave gaps DONE):** PR #612 closes GAP-255 (README freshness CI). New `scripts/check-readme-freshness.sh` (~225 LOC, shellcheck-clean) + 5 self-test fixtures (3 dynamic-date generated runtime + 2 committed: `exempt.md` + `no-date.md`) + new CI job `readme-freshness` in `script-quality.yml`. Baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs. `output-review-mandate.md` v1.1.1 → v1.1.2 (PATCH) — added §3 matrix row "README freshness"; flipped "Skills (meta)" row PARTIAL → DONE post-#610 sync. **2 bugs caught during dev (validates self-test value):** (1) regex `^\*\*Last[ -]?Updated\*\*` failed on project's `**Last Updated:**` colon-inside-bold convention → relaxed to non-anchored `Last[ -]?Updated`; (2) YAML step name with colon-space (`5 fixtures: 3 dynamic`) parsed as mapping → workflow ran with 0 jobs registered → caught by `python3 -c "import yaml; yaml.safe_load(...)"` validation. Wave Meta-Gov 1 final: **7 DONE** (GAP-249/250/251/252/253/254/255), **1 GATED** (GAP-256 read-first rule — eligible to file after GAP-255 active ≥7d per `incident-to-rule-pipeline.md` premature-rule guard; timer started 2026-04-28). Counts: 92 OPEN → 91 OPEN (-GAP-255 closed; GAP-256 still OPEN as planned). 5 stale worktrees from prior waves (GAP-236 + gap-done-discipline) cleaned post-merge per `feedback_parallel_agent_strategy.md` rule #6.
 
 **2026-04-28 (Wave Meta-Gov 1 SHIPPED — 4 PRs merged in sequence, 6/8 gaps DONE):** Foundation PR #607 (8 gap files + wave plan + ROADMAP + Phase 0 root README pixel-art redesign + kiteclass/kitehub README staleness fix) → Move 1 PR #608 (Agent A: 8-rule frontmatter backfill + `scripts/check-rule-frontmatter.sh` + CI job; bonus catch — detector found `output-review-mandate.md` missing `Applies-to` field, fixed inline with PATCH bump 1.1.0→1.1.1) → Move 2 PR #609 (Agent B: `scripts/check-skill-conventions.sh` 456 LOC + 21-skill grandfathered-exemption list + 3 self-test fixtures + 6 audit eval fixtures + skills index refresh + 5-tier severity rubric on `two-stage-code-review.md`) → Sub-PR C #610 (`skill-conventions` CI job wired, GAP-251 PARTIAL→DONE). All gap closures pass `gap-done-discipline.md` §2 (no banned phrases in DONE-flip Log entries). 6 DONE: GAP-249/250/251/252/253/254. 2 OPEN follow-ups: GAP-255 (README freshness CI), GAP-256 (read-first rule, conditional on GAP-255 active ≥7d). Wave wall-clock ~90 min. Counts: 98 OPEN → 92 OPEN (-6 closed; GAP-255/256 already counted as filed in 90→98 entry below).
@@ -159,7 +161,7 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 
 | # | Gap | Title | Type | Status | Effort |
 |:-:|-----|-------|:----:|:------:|:------:|
-| 1 | **GAP-223** | AI Branding migration verification governance — Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100); Sub-PR 223.2 = GAP-006 unblock remaining | 🔴 P0 Meta (governance) | 🟡 PARTIAL | Sub-PR 223.2 = GAP-006 (Feature-P1) |
+| 1 | **GAP-223** | AI Branding migration verification governance — Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100); Sub-PR 223.2 = GAP-006 ⏸ DEFERRED 2026-04-28 (Ollama + Docker stack required) | 🔴 P0 Meta (governance) | 🟡 PARTIAL | Sub-PR 223.2 ⏸ DEFERRED |
 | 2 | ~~GAP-222a~~ | ~~Extract Outbox infra to shared lib~~ — superseded by ADR-021 per-module pattern; closed via GAP-222a Phase 2 + GAP-222b + GAP-222c (all DONE 2026-04-26) | 🟠 Meta (infra) | ✅ DONE | — |
 | 3 | **GAP-016** | Living docs impact scope (3-layer sweep) | 🔴 Meta (docs contract) | 🟡 PLANNED | S |
 | 4 | GAP-011 | Template library curation (30 templates) | Feature | 🟡 PLANNED | L |
@@ -172,12 +174,14 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 
 **Next recommended wave:** Wave Meta-Gov 1 **CLOSED 2026-04-28** (7/8 gaps DONE; GAP-256 GATED). Next priority queue (per `meta-gap-priority.md` Meta > Feature):
 
+> ⏸ **AI Branding cluster DEFERRED 2026-04-28** — GAP-223 Sub-PR 223.2 + GAP-006 are blocked on local Ollama daemon + Docker stack (WSL2 CPU-only infeasible for Gemma 4 9B A/B test per `feedback_gap006_infra_blocker.md`). Will resume when: (1) Ollama running with `gemma4:9b` + `nqduc/mixsura:mixsura-q6_K`, (2) `./kitehub/scripts/up.sh` green, (3) sufficient compute for 9B inference. See GAP-006 + GAP-223 Log entries 2026-04-28.
+
 1. **GAP-256** (Meta-P2 GATED until ~2026-05-05) — README read-first rule. GAP-255 freshness CI active 2026-04-28; eligible after ≥7d active per `incident-to-rule-pipeline.md` premature-rule guard
-2. **GAP-223 Sub-PR 223.2** (Meta-P0 PARTIAL prerequisite) — AI Branding migration Phase 2; required before GAP-006
-3. **GAP-006** (Feature-P1, unblocked by Sub-PR 223.1) — Gemma 4 9B migration with VN A/B test. **Pre-flight blocker** per `feedback_gap006_infra_blocker.md`: verify Ollama running + Docker stack up before pickup; WSL2 CPU-only too slow for 9B
-4. **GAP-229** (BL-P1) — AI Branding v2 business docs sync (rules/use-cases/api-contract) + 3 user guides; tracks GAP-016 PARTIAL remainder
-5. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format
-6. **Skill-conventions cleanup wave** (Meta-P3 backlog) — 21 grandfathered skills currently in `GRANDFATHERED_EXEMPTIONS` (per `scripts/check-skill-conventions.sh`); target empty list by Wave 9
+2. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format. **Top eligible item** — single-PR scope, no AI infra dependency
+3. **Skill-conventions cleanup wave** (Meta-P3 backlog) — 21 grandfathered skills currently in `GRANDFATHERED_EXEMPTIONS` (per `scripts/check-skill-conventions.sh`); target empty list by Wave 9. **Wave-eligible** (≥3 disjoint sub-tasks per `feedback_wave_plan_before_serial_prs.md`)
+4. ~~**GAP-229** (BL-P1)~~ — ✅ DONE 2026-04-26 (PR #561 + #562 closed all 3 phases). Removed from queue 2026-04-28 (was stale).
+5. **GAP-223 Sub-PR 223.2** ⏸ DEFERRED — see banner above
+6. **GAP-006** ⏸ DEFERRED — see banner above
 
 **Earlier reference (Wave 7 + Wave 6 priorities now subsumed by above):**
 - GAP-222a/b/c + GAP-230 SHIPPED 2026-04-26 ✅ (Outbox migration cluster fully closed)
