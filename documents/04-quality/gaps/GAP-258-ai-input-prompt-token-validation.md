@@ -1,6 +1,6 @@
 # GAP-258: AI Input Prompt Token Validation
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28
 **Priority:** 🟠 P1
 **Domain:** Security / AI / Cost
 **Found:** 2026-04-28 (article-driven check vs `kitehub-branding` AI client state)
@@ -33,12 +33,12 @@ Article cited 2026-04-28: "Cost Attack" — DDoS the cost surface with valid-loo
 
 ## Acceptance Criteria
 
-- [ ] `ai.input.max-tokens` config key with tier-aware overrides
-- [ ] Rejection path returns 400 with structured error before any provider call
-- [ ] Counter `ai_input_token_rejection_total` emitted (visible at `/actuator/prometheus`)
-- [ ] Integration test asserts FREE-tier 2001-token prompt → 400
-- [ ] `documents/01-business/kiteclass/ai-agent-workflow/rules.md` updated with BR-INPUT-CAP-XXX entry
-- [ ] Update `ai-branding-guidelines.md` §2 "User Prompt Constraints" with §2.5 input-cap note
+- [x] `ai.input.max-tokens` config key with tier-aware overrides — `AIInputCapConfig` (`@ConfigurationProperties(prefix = "ai.input")`) with `free|basic|premium|enterprise-max-tokens`; env-overridable via `AI_INPUT_*_MAX_TOKENS`
+- [x] Rejection path returns 400 with structured error before any provider call — `AIInputCapService#checkInputSize` invoked in all 4 endpoints AFTER rate-limit check, BEFORE `recordUsage`
+- [x] Counter `ai.input.token.rejection{tier}` emitted (visible at `/actuator/prometheus` via Micrometer; Prom adopts `_total` suffix per convention)
+- [x] Integration test asserts FREE-tier oversize prompt → 400 — `BrandingControllerInputCapIT` 3 tests (oversize reject / within-cap allow / FREE-vs-PREMIUM differential)
+- [x] `documents/01-business/kiteclass/ai-agent-workflow/rules.md` updated with BR-INPUT-CAP-001..007 entries + counter row in metrics table + 4 config keys
+- [x] `.claude/rules/ai-branding-guidelines.md` §2.5 added — MANDATORY rule with rationale + tier table + counter contract
 
 ## Out-of-scope (track separately)
 
@@ -59,4 +59,5 @@ Article cited 2026-04-28: "Cost Attack" — DDoS the cost surface with valid-loo
 
 ## Log
 
+- 2026-04-28 — SHIPPED. Single-PR implementation: `PromptTokenEstimator` util (chars/4 heuristic) + `AIInputCapConfig` (tier-aware caps) + `AIInputCapService` (guard with Micrometer counter) + 4 endpoint wiring in `AIBrandingController` + 13 unit tests + 3 integration tests + business rules `BR-INPUT-CAP-001..007` + metrics catalog row + ai-branding-guidelines.md §2.5 v1.1.0→1.2.0. Verification: 166/166 kitehub-branding tests green. UX impact analysis: ~25-40× headroom over typical wizard usage (50-100 tokens per request); only edge case is data URI logos (correct rejection — should pre-upload to S3). Real BPE tokenizer (tiktoken-java) deferred per §Out-of-scope.
 - 2026-04-28 — Discovered via article state-check (CLAUDE-Cmd `/start-session` flow). State-check confirmed `OpenAIClient` line 78/148 only caps output tokens. No existing gap covers input-cap (GAP-017/019 cover post-fact cost tracking, not enforcement).
