@@ -1,5 +1,7 @@
 # WSL Migration Playbook
 
+> **Setting up on a brand-new machine?** This playbook is for **migrating** an existing Windows install (preserves Claude Code memory + conversation history). For a clean-room from-scratch setup, use [`wsl2-fresh-setup.md`](wsl2-fresh-setup.md) instead — it has up-to-date container counts, RTK install, GAP-244 dev-profile workaround, ognl pin, and the current `setup.sh` flow.
+
 **Purpose:** Move this project from Windows `D:\person\2026-Kite-Class-Platform\` to WSL `~/projects/2026-Kite-Class-Platform/` safely.
 
 **Target audience:** Solo dev (primary) + team members with similar Windows setup.
@@ -640,5 +642,6 @@ git reset --hard
 
 ## Log
 
+- **2026-04-28:** Cross-linked to new `wsl2-fresh-setup.md` (clean-room reproducer, comprehensive vs migration-specific). This playbook keeps focus on **migration** concerns (memory copy, settings.local.json path fix, archive Windows copy); fresh-machine dev should use the sister doc.
 - **2026-04-17:** Playbook created pre-migration. Scheduled for execution between Wave 2 and Wave 3.
 - **YYYY-MM-DD:** (update after actual migration)

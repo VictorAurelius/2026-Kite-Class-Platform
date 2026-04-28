@@ -17,7 +17,8 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 | [`deploy-go-nogo-checklist.md`](deploy-go-nogo-checklist.md) | Pre-deploy gate checklist (GAP-087) | 1 |
 | [`incident-response-runbook.md`](incident-response-runbook.md) | SEV1-SEV3 triage procedure (GAP-086) | 1 |
 | [`rollback-procedure.md`](rollback-procedure.md) | Per-service rollback steps (GAP-088) | 1 |
-| [`wsl-migration-playbook.md`](wsl-migration-playbook.md) | WSL2 dev env setup (added 2026-04-18) | 1 |
+| [`wsl2-fresh-setup.md`](wsl2-fresh-setup.md) | Clean-room reproducer for Windows + WSL2 dev env (added 2026-04-28) — start here for new machines | 1 |
+| [`wsl-migration-playbook.md`](wsl-migration-playbook.md) | WSL2 migration playbook for existing Windows installs (preserves Claude Code memory; added 2026-04-18) | 1 |
 | [`local-dev-setup-non-wsl.md`](local-dev-setup-non-wsl.md) | Mac/Linux native dev setup (GAP-102, 2026-04-18) | 1 |
 | [`cicd-release-procedure.md`](cicd-release-procedure.md) | PR merge → prod deploy procedure (GAP-102, 2026-04-18) | 1 |
 | [`tenant-onboarding-checklist.md`](tenant-onboarding-checklist.md) | End-to-end school onboarding (3-day target) (GAP-102, 2026-04-18) | 1 |
