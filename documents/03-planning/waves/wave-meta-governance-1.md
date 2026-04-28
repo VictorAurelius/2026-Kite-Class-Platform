@@ -1,6 +1,6 @@
 ---
 title: Wave Meta-Governance 1 — close 8 ecosystem-audit meta gaps (Phase 0 README cleanup + 2 parallel agents)
-status: active
+status: complete
 created: 2026-04-28
 updated: 2026-04-28
 waves: [meta-gov-1]
@@ -9,7 +9,7 @@ gaps: [GAP-249, GAP-250, GAP-251, GAP-252, GAP-253, GAP-254, GAP-255, GAP-256]
 
 # Wave Meta-Governance 1
 
-**Status:** 🟡 ACTIVE 2026-04-28 — 6 meta-governance gaps from ecosystem audit; 2 parallel `isolation: worktree` agents (Move 1 + Move 2); Sub-PR C deferred for skill-conv CI wire-up.
+**Status:** 🟢 DONE 2026-04-28 — 4 PRs merged in sequence (#607 foundation → #608 Move 1 → #609 Move 2 → #610 Sub-PR C). 6/8 wave gaps DONE (GAP-249/250/251/252/253/254); 2 follow-up gaps OPEN (GAP-255 README freshness CI, GAP-256 read-first rule conditional on GAP-255). Total wall-clock ~90 min. Per `gap-done-discipline.md` §2 — Status flip clean (no banned phrases in any closing Log entry).
 
 ## 1. Goal
 
@@ -156,3 +156,10 @@ Done separately to avoid YAML merge conflict between Agent A (which touches scri
 - Cascading severity rubric to 13 audit skills (file as GAP-255 follow-up)
 - Retro-fitting eval fixtures to 11 other audit skills (separate follow-up)
 - Auto-regenerating skills index via cron (manual + CI WARN sufficient)
+
+## 10. Closure log
+
+- **2026-04-28 (DONE):** All 4 PRs merged. PR #607 (foundation: 8 gap files + wave plan + ROADMAP + 3 READMEs redesigned with pixel-art KITE logo) → PR #608 (Move 1 Agent A: 8-rule frontmatter backfill + `scripts/check-rule-frontmatter.sh` + new `rule-frontmatter` CI job; bonus catch: detector flagged `output-review-mandate.md` missing `Applies-to` field, fixed in same PR with PATCH bump 1.1.0→1.1.1) → PR #609 (Move 2 Agent B: `scripts/check-skill-conventions.sh` 456 LOC + 21-skill grandfathered-exemption list + 3 self-test fixtures + 6 audit eval fixtures + skills index refresh + 5-tier severity rubric on `two-stage-code-review.md`) → PR #610 (Sub-PR C: `skill-conventions` CI job wired, GAP-251 PARTIAL→DONE).
+- **Honest deviations:** Agent B reported 21 grandfathered skills exempted from skill-conventions check (cleanup deferred, target empty list by Wave 9). Agent A bonus catch indicates GAP-249 audit list was incomplete — reinforces value of CI gate (G-3.3 force-multiplier worked first run).
+- **Counts:** 90 OPEN → 92 OPEN (wave closed 6 + filed 2 follow-ups; net +2 — that's correct for a wave that surfaces follow-up work).
+- **Next:** GAP-255 (README freshness CI) shippable any time as small standalone PR. GAP-256 (read-first rule) gated on GAP-255 active ≥7d per `incident-to-rule-pipeline.md` premature-rule guard.
