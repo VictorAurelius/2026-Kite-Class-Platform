@@ -1,6 +1,6 @@
 # GAP-118: MinIO Backup + Replication Strategy
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — PR #634 (Wave DR/Backup Agent B); per `gap-done-discipline.md` §2.6 framing (Terraform code validated + lifecycle policy configured; runtime live-AWS replication verification at first apply, no AWS credentials in PR scope)
 **Priority:** 🟠 P1
 **Domain:** DevOps / Data Safety
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -69,4 +69,5 @@ MinIO được treat như ephemeral cache thay vì persistent asset store. Khôn
 
 ## Log
 
+- **2026-04-28 (PR #634 — Wave DR/Backup Agent B):** SHIPPED. Files: `infrastructure/terraform-aws/s3-ecr.tf` (+224/−5 — replica provider + cross-region replication ap-southeast-1→us-east-1 + lifecycle Glacier 30d/expire 365d + Object Lock opt-in), `infrastructure/terraform-aws/variables.tf` (+19 — `s3_replica_region`, `s3_object_lock_enabled`, `s3_object_lock_retention_days`), `infrastructure/terraform-oracle/compute.tf` (+48 — versioning + auto_tiering + lifecycle on `kitehub_assets`; cross-region NOT implemented — Always Free tier single-region, cross-cloud sync to S3 documented as recommended), `infrastructure/terraform-oracle/main.tf` (+2/−1 cross-ref), `kitehub/docker-compose.kitehub.yml` (+44/−2 — `mc version enable` + opt-in `kite-minio-backup` sidecar gated by `--profile backup`). CI all 13 jobs SUCCESS. `terraform validate` PASS both modules; `docker compose config -q` PASS. Cost impact: ~$1.20-$1.30/mo at current ~50GB; ~$25/mo at 1TB projected. Status → 🟢 DONE per §2.6 (live-AWS test deferred to first apply).
 - 2026-04-19 — Discovered in ops-readiness baseline audit

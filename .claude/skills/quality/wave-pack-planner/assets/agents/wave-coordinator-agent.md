@@ -96,6 +96,7 @@ Manual sequence (each `gh pr merge --delete-branch` would fail with worktree ref
 - **YAML validation** (per `feedback_yaml_validate_before_push.md`): if foundation PR or any agent touches `.github/workflows/*.yml`, validate locally before push.
 - **Banned-phrase check** is the most-missed step. Build a habit: open gap file BEFORE flipping Status, scan Log entry text against `gap-done-discipline.md` §2 banned list.
 - **`data/wave-history.jsonl` append** is easy to forget — it's the only persistent record of wave wall-clock for tuning future waves.
+- **Worktree absolute-path contamination** (per `feedback_worktree_absolute_path_contamination.md`, Wave DR/Backup 2026-04-28): when writing agent prompts (Step 5 spawn), use RELATIVE paths (`documents/04-quality/gaps/GAP-XXX.md`) NOT absolute (`/home/.../documents/...`). Otherwise agents bypass their worktree cwd, Write lands in MAIN repo, commits land on WRONG branch. **Post-spawn verification (mandatory):** check each PR's commit list for cross-gap contamination: `for pr in $PR_LIST; do gh pr view $pr --json commits --jq '.commits[] | {sha: .oid[:8], msg: .messageHeadline}'; done`. If any PR has commits from another gap → recovery plan: merge clean PRs first, locally rebase contaminated PR onto new main (git auto-skips duplicate commits), force-push, then merge.
 
 ## When NOT to use this runbook
 

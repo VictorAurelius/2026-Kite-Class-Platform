@@ -1,6 +1,6 @@
 # GAP-117: Backup Restore Drill Automation
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1+2 SHIPPED 2026-04-28 (PR #632); Phase 3 (quarterly DR exercise + measured-RTO baseline) tracked as **GAP-257** follow-up per `gap-done-discipline.md` §3 PARTIAL exit-ramp (requires real S3 backups accumulated post-GAP-093 deploy + staging-env coordination + AWS OIDC role)
 **Priority:** 🔴 P0
 **Domain:** DevOps / Data Safety
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -62,4 +62,5 @@ Implementation focus (backup) xong thì deprioritize verification. Restore quy t
 
 ## Log
 
+- **2026-04-28 (PR #632 — Wave DR/Backup Agent A):** Phase 1 + Phase 2 SHIPPED. Files: `documents/05-guides/restore-procedure.md` (~280 lines, 3 scenarios — RDS PITR / pg_dump→fresh / MinIO assets stub forward-ref to GAP-118), `scripts/verify-restore.sh` (~370 lines, shellcheck-clean, `--self-test` mode 7/7 PASS), `.github/workflows/restore-drill.yml` (~165 lines, monthly cron `0 3 1 * *` + workflow_dispatch, gated by `vars.BACKUP_DRILL_ENABLED` so first run doesn't fail on missing creds). CI all 5 jobs SUCCESS. Status → 🟡 PARTIAL per `gap-done-discipline.md` §3 — Phase 3 (quarterly DR exercise + measured RTO/RPO baseline) deferred + filed as GAP-257 follow-up.
 - 2026-04-19 — Discovered in ops-readiness baseline audit
