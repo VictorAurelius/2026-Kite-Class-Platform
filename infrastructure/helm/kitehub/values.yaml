@@ -149,25 +149,93 @@ monitoring:
   prometheusRule:
     enabled: true
 
-  # GAP-135 — API latency dashboard ConfigMap.
-  # When dashboards.enabled=true the chart packages dashboards/api-latency.json
-  # as a ConfigMap labelled `grafana_dashboard=1` so Grafana sidecar auto-imports it.
-  # Requires kube-prometheus-stack with grafana.sidecar.dashboards.enabled=true
-  # (deferred to GAP-143 — chart is currently grafana.enabled=false).
+  # GAP-135 + GAP-143 — Grafana dashboard ConfigMaps.
+  # When dashboards.enabled=true the chart packages baseline dashboards
+  # (api-latency, jvm-heap-gc, http-traffic, infra-pools) as ConfigMaps
+  # labelled `grafana_dashboard=1` so Grafana sidecar auto-imports them.
+  # Requires monitoring.grafana.enabled=true (sets the sidecar via subchart).
   dashboards:
     enabled: false
     label:
       key: grafana_dashboard
       value: "1"
 
+  # GAP-143 — Grafana visualization layer.
+  # Opt-in flag — when true, enables kube-prometheus-stack.grafana subchart
+  # (sets grafana.enabled=true below) AND auto-loads baseline dashboards
+  # via sidecar discovery. Default off so foundation install (monitoring.enabled
+  # alone) stays lean — operators flip this when ready to expose dashboards.
+  #
+  # Activation:
+  #   helm install ... \
+  #     --set monitoring.enabled=true \
+  #     --set monitoring.grafana.enabled=true \
+  #     --set monitoring.dashboards.enabled=true
+  #
+  # Admin password is read from a pre-existing Secret named `grafana-admin-password`
+  # (key: admin-password). Provision via external-secrets / sealed-secrets — do
+  # NOT embed credentials in this values file. If the Secret is missing, Grafana
+  # falls back to the chart-default random password (recoverable via
+  # `kubectl get secret kitehub-monitoring-grafana -o jsonpath='{.data.admin-password}' | base64 -d`).
+  grafana:
+    enabled: false
+    # Ingress is opt-in — disabled by default because OIDC auth wiring is
+    # cluster-specific (see GAP-143 follow-up for OIDC SSO). When enabled
+    # without OIDC, Grafana uses basic auth (admin / Secret password). For
+    # production, prefer port-forward / cluster-internal access until OIDC
+    # SSO lands.
+    ingress:
+      enabled: false
+      className: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        # Override certificate-arn in prod values file:
+        alb.ingress.kubernetes.io/certificate-arn: ""
+      host: "grafana.kiteclass.com"
+      path: "/"
+
   # Subchart values forwarded to kube-prometheus-stack. These are STUBS — production
   # tuning (storage class, retention, scaling) tracked in GAP-144.
   kube-prometheus-stack:
     fullnameOverride: kitehub-monitoring
 
-    # Defer Grafana to GAP-143 — keeps initial install lightweight.
+    # GAP-143 — Grafana subchart.
+    # Default off so foundation install (monitoring.enabled alone) stays lean.
+    # Activate together with top-level flag:
+    #   --set monitoring.grafana.enabled=true \
+    #   --set monitoring.kube-prometheus-stack.grafana.enabled=true
+    # (Helm subchart values can't be cross-referenced from parent, so both flags
+    # must be set explicitly.)
     grafana:
       enabled: false
+      # Admin password pulled from pre-existing Secret. Override the secret name
+      # in prod values file if your secret is named differently.
+      admin:
+        existingSecret: "grafana-admin-password"
+        userKey: admin-user
+        passwordKey: admin-password
+      # Sidecar auto-discovers dashboard ConfigMaps labelled grafana_dashboard=1.
+      sidecar:
+        dashboards:
+          enabled: true
+          label: grafana_dashboard
+          labelValue: "1"
+          # Search across all namespaces so monitoring stack picks up dashboards
+          # provisioned anywhere in the cluster (default: own namespace).
+          searchNamespace: ALL
+          # Restart Grafana when dashboards added/removed (avoids stale UI cache).
+          provider:
+            allowUiUpdates: true
+        datasources:
+          enabled: true
+      # Default Prometheus datasource is auto-injected by kube-prometheus-stack
+      # — no manual config needed. Verify after install:
+      #   kubectl exec -n monitoring kitehub-monitoring-grafana-0 -- \
+      #     curl -s http://localhost:3000/api/datasources
+      resources:
+        requests: { cpu: 100m, memory: 128Mi }
+        limits:   { cpu: 500m, memory: 512Mi }
 
     # Defer cluster-level kube-state-metrics + node-exporter until needed.
     # Most kitehub alerts target service-level metrics, not cluster.
