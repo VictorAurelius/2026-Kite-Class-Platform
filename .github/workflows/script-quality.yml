@@ -1,4 +1,4 @@
-name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness)
+name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness + Alert Runbook URL)
 
 # Closes GAP-194 — CI enforcement of script standard defined in
 # `.claude/skills/quality/script-review/SKILL.md` + `output-review-mandate.md` §5.5.
@@ -8,6 +8,8 @@ name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions +
 # `.claude/rules/skill-conventions.md` (paired with Move 2 script + fixtures).
 # Closes GAP-255 — CI enforcement of README freshness (Last-Updated date check
 # 30d WARN / 90d FAIL) per `output-review-mandate.md` §3 row "README freshness".
+# Closes GAP-122 Slice A — CI enforcement that every Prometheus alert has a
+# non-empty `runbook_url` annotation (paired with Slice B alerts + Slice C runbooks).
 #
 # Triggered by any change to *.sh, *.py, `.claude/rules/**.md`,
 # `.claude/skills/**.md`, or `**/README.md` in scope paths. Non-scope changes skip.
@@ -35,6 +37,10 @@ on:
       - '**/_README*.md'
       - 'scripts/check-readme-freshness.sh'
       - 'scripts/fixtures/readme-freshness/**'
+      - '**/alert-rules.yml'
+      - '**/prometheusrule.yaml'
+      - 'scripts/check-alert-runbook-url.py'
+      - 'scripts/fixtures/alert-runbook-url/**'
 
 permissions:
   contents: read
@@ -268,3 +274,36 @@ jobs:
           # Workflow paths filter already restricts this job to PRs touching
           # README.md or the validator script — no need to re-filter changed files.
           bash scripts/check-readme-freshness.sh
+
+  alert-runbook-url:
+    name: Alert runbook_url (Prometheus alert annotations)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Run self-test (4 fixtures — 2 PASS / 2 FAIL incl. Helm-templated)
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures
+          # (good-with-runbook, good-helm-template → PASS;
+          #  bad-missing-runbook, bad-empty-runbook → FAIL).
+          # Fails fast if regex/scan logic regresses.
+          python3 scripts/check-alert-runbook-url.py --self-test
+
+      - name: Validate alert runbook_url annotations (blocking on FAIL)
+        run: |
+          # Default mode scans:
+          #   - kitehub/docker/prometheus/alert-rules.yml
+          #   - kiteclass/docker/prometheus/alert-rules.yml
+          #   - infrastructure/helm/kitehub/templates/prometheusrule.yaml
+          # Workflow paths filter already restricts this job to PRs touching
+          # alert YAML files or the validator — no need to re-filter changed files.
+          python3 scripts/check-alert-runbook-url.py
