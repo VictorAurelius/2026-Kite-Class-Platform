@@ -1,16 +1,18 @@
 ---
 title: Wave GAP-236 — FE code-splitting completion (4 parallel agents)
-status: planned
+status: complete
 created: 2026-04-28
 updated: 2026-04-28
 gaps: [GAP-236]
 parent_audit: documents/04-quality/audits/performance/performance-audit-2026-04-19.md
 parent_gap: GAP-127
+shipped_prs: [600, 601, 602, 603]
+total_pages_converted: 33
 ---
 
 # Wave GAP-236 — FE code-splitting completion
 
-**Status:** 🔵 PLANNED
+**Status:** ✅ COMPLETE 2026-04-28 — 4 agents shipped 33 pages across PRs #600/601/602/603. AC ≥30 met. KC max 217 KB / KH max 200 KB First Load JS, all within 250 KB CI budget.
 **Trigger:** GAP-236 Sub-PR B — 44+ pages still using static imports for heavy children. Sub-PR A (CI bundle budget) shipped Wave P2-Cleanup; Sub-PR C (analyzer HTML baseline) deferred.
 **Strategy:** 4 parallel `isolation: worktree` agents; lead consolidates ROADMAP + GAP-236 status post-merge.
 
