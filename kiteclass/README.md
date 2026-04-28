@@ -60,11 +60,12 @@ kiteclass-platform/
 - **[DOCKER-BUILD-GUIDE.md](DOCKER-BUILD-GUIDE.md)** - Docker build and versioning
 - **[TESTING-GUIDE.md](TESTING-GUIDE.md)** - Testing strategies
 - **[CURRENT-WORK.md](CURRENT-WORK.md)** - Current work tracking
-- **[documents/](documents/)** - Full technical documentation
-  - [Architecture](documents/07-archived/research/architecture/system-architecture-v4.md)
-  - [Database Design](documents/03-planning/database/database-design.md)
-  - [Implementation Plan](documents/03-planning/implementation/kiteclass-implementation-plan.md)
-  - [PR Index](documents/03-planning/prs/00-master-pr-index.md)
+- **[../documents/](../documents/)** - Full technical documentation
+  - [Architecture](../documents/02-architecture/) — current source of truth (15 ADRs)
+  - [Database Design](../documents/03-planning/database/database-design.md)
+  - [Implementation Plan](../documents/03-planning/implementation/kiteclass-implementation-plan.md)
+  - [PR Index](../documents/03-planning/prs/00-master-pr-index.md)
+  - [Quality Reports](../documents/04-quality/) — calibrated audit scores + gap roadmap
 
 ## 🗂️ File Organization
 
@@ -85,9 +86,9 @@ kiteclass-platform/
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Spring Boot 3.5.11, Spring Cloud 2025.0.0
+- **Backend**: Spring Boot 3.5.14, Spring Cloud 2025.0.0
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **Database**: PostgreSQL 15
+- **Database**: PostgreSQL 16
 - **Cache**: Redis 7
 - **Storage**: MinIO (S3-compatible)
 - **Container**: Docker, Docker Compose
@@ -125,11 +126,11 @@ kiteclass-platform/
 ## 📖 More Info
 
 - **Project Documentation**: [../documents/README.md](../documents/README.md) - Complete documentation map
-- **Architecture**: [../documents/07-archived/research/architecture/system-architecture-v4.md](../documents/07-archived/research/architecture/system-architecture-v4.md)
+- **Architecture**: [../documents/02-architecture/](../documents/02-architecture/) — current ADRs + system design (v4 archived)
 - **Implementation Plan**: [../documents/03-planning/implementation/kiteclass-implementation-plan.md](../documents/03-planning/implementation/kiteclass-implementation-plan.md)
 - **Scripts Guide**: [scripts/README.md](scripts/README.md)
 - **Workflow Improvements**: See documentation map for dev-rebuild.sh, cleanup-testcontainers.sh
 
 ---
 
-**Last Updated**: 2026-02-27
+**Last Updated**: 2026-04-28

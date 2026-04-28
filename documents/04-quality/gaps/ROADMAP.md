@@ -10,6 +10,20 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (Wave Meta-Gov 1 FILED — 8 gaps from ecosystem audit + README sweep):** Per ecosystem audit + external research findings (top skill repos: anthropics/skills, obra/superpowers, trailofbits/skills, awesome-skills/code-review-skill, ComposioHQ/agent-orchestrator + tirth8205/code-review-graph for README style). 8 meta-governance gaps filed:
+- **GAP-249** P1 Meta — Bulk frontmatter backfill on 8 non-compliant rules
+- **GAP-250** P1 Meta — CI gate enforcing rule frontmatter (+ self-test)
+- **GAP-251** P1 Meta — `scripts/check-skill-conventions.sh` lint for 27 SKILL.md
+- **GAP-252** P2 Meta — Refresh `_README-skills-index.md` (12-day drift) + drift detector
+- **GAP-253** P2 Meta — Eval fixtures pilot (business-logic-audit + security-audit; Anthropic 2026 mandate)
+- **GAP-254** P2 Meta — Severity rubric (5-tier Blocker→Praise) on `two-stage-code-review`
+- **GAP-255** P2 Meta — README freshness CI (`scripts/check-readme-freshness.sh` + workflow job, fixture-tested)
+- **GAP-256** P2 Meta — Rule "read README before grep" (AI navigation) — conditional on GAP-255 active ≥7d
+
+Plan: `documents/03-planning/waves/wave-meta-governance-1.md`. **Phase 0** (foundation PR inline): redesign root README with pixel-art KITE logo + Variant B frame + badges; light/moderate fix `kiteclass/README.md` + `kitehub/README.md` (Spring Boot 3.5.11→3.5.14, `Last Updated` refresh, service status table). **Move 1** (Agent A): GAP-249/250 — rule frontmatter discipline. **Move 2** (Agent B): GAP-251/252/253/254 — skills convention + index + eval fixtures + severity rubric. 2 parallel `isolation: worktree` agents per `feedback_parallel_agent_strategy.md`; wave plan PR-first per `feedback_wave_plan_through_pr.md`. Sub-PR C deferred for skill-conv CI wire-up.
+
+Counts: **90 OPEN → 98 OPEN** (+GAP-249/250/251/252/253/254/255/256 filed).
+
 **2026-04-28 (Triage — 4 follow-up gaps filed post-Wave GAP-236 + IDE warning incident):** Per `audit-to-gap-pipeline.md` Step 2.5 state-check:
 - **GAP-245** P1 Meta — CI does not enforce IDE warnings (deprecation/unused/raw types). Process gap surfaced after PR #605 closed 8 shipped warnings; memory rule alone is insufficient enforcement layer per `feedback_incident_to_rule_pipeline.md` 5-stage pipeline.
 - **GAP-246** P3 — delete unused `kiteclass-frontend/src/components/ui/calendar.tsx` (dead post-Wave 7-Perf attendance migration; Agent B finding). 1-line PR.

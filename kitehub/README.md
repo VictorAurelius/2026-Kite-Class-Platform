@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Purpose:** Multi-tenant SaaS platform management (subscriptions, payments, AI branding, email notifications)
-**Architecture:** Microservices on Spring Boot 3.5.11
+**Architecture:** Microservices on Spring Boot 3.5.14
 
 ---
 
@@ -167,12 +167,13 @@ docker-compose -f docker-compose.kitehub.yml down
 | RabbitMQ | 5673 | Message queue (AMQP) | ✅ Ready |
 | RabbitMQ Mgmt | 15673 | Admin UI | ✅ Ready |
 | **Platform Services** |
-| Subscription | 8081 | Trial, plan management | 🚧 PR 4.1 |
-| Payment | 8082 | VietQR payment processing | 🚧 PR 4.5 |
-| Branding | 8083 | AI logo/content generation | 🚧 PR 4.8 |
-| Email | 8084 | AWS SES email sending | 🚧 PR 4.11 |
-| Admin | 8085 | Admin portal API | 🚧 PR 4.12 |
-| Gateway | 9000 | API Gateway | 🚧 PR 4.13 |
+| Subscription | 8081 | Trial, plan management, lifecycle state machine | ✅ Live |
+| Payment | 8082 | VietQR payment processing | 🚧 Consolidated into subscription |
+| Branding | 8083 | AI logo/content generation (Ollama, template-first) | ✅ Live |
+| Email | 8084 | Email notifications (templates, queue consumer) | ✅ Live |
+| Admin | 8085 | Admin portal API + analytics | ✅ Live |
+| Platform | 808x | Cross-cutting platform features | ✅ Live |
+| Gateway | 9000 | API Gateway (auth, routing, rate limiting) | ✅ Live |
 
 **Port Strategy:**
 - KiteHub uses ports 5433, 6380, 5673, 8081-8085, 9000
@@ -382,5 +383,5 @@ lsof -i :5673  # RabbitMQ
 
 ---
 
-**Last Updated:** 2026-03-09
-**Status:** Infrastructure ready, services pending implementation
+**Last Updated:** 2026-04-28
+**Status:** Infrastructure live, all 6 platform services + gateway shipped (Wave 4–7 milestones)
