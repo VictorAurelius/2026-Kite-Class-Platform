@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (Wave Meta-Gov 1 SHIPPED — 4 PRs merged in sequence, 6/8 gaps DONE):** Foundation PR #607 (8 gap files + wave plan + ROADMAP + Phase 0 root README pixel-art redesign + kiteclass/kitehub README staleness fix) → Move 1 PR #608 (Agent A: 8-rule frontmatter backfill + `scripts/check-rule-frontmatter.sh` + CI job; bonus catch — detector found `output-review-mandate.md` missing `Applies-to` field, fixed inline with PATCH bump 1.1.0→1.1.1) → Move 2 PR #609 (Agent B: `scripts/check-skill-conventions.sh` 456 LOC + 21-skill grandfathered-exemption list + 3 self-test fixtures + 6 audit eval fixtures + skills index refresh + 5-tier severity rubric on `two-stage-code-review.md`) → Sub-PR C #610 (`skill-conventions` CI job wired, GAP-251 PARTIAL→DONE). All gap closures pass `gap-done-discipline.md` §2 (no banned phrases in DONE-flip Log entries). 6 DONE: GAP-249/250/251/252/253/254. 2 OPEN follow-ups: GAP-255 (README freshness CI), GAP-256 (read-first rule, conditional on GAP-255 active ≥7d). Wave wall-clock ~90 min. Counts: 98 OPEN → 92 OPEN (-6 closed; GAP-255/256 already counted as filed in 90→98 entry below).
+
 **2026-04-28 (Wave Meta-Gov 1 FILED — 8 gaps from ecosystem audit + README sweep):** Per ecosystem audit + external research findings (top skill repos: anthropics/skills, obra/superpowers, trailofbits/skills, awesome-skills/code-review-skill, ComposioHQ/agent-orchestrator + tirth8205/code-review-graph for README style). 8 meta-governance gaps filed:
 - **GAP-249** P1 Meta — Bulk frontmatter backfill on 8 non-compliant rules
 - **GAP-250** P1 Meta — CI gate enforcing rule frontmatter (+ self-test)
