@@ -109,3 +109,14 @@ Sau khi PR tạo xong, update plan document: đánh dấu ✅, thêm PR number.
 - LUÔN chạy tests sau code changes
 - KHÔNG merge không có approval
 - KHÔNG bỏ qua brainstorm/TDD
+
+---
+
+## Gotchas
+
+- **Step 0 wave-eligibility is BLOCKING, not advisory** — if 3/3 questions YES, you MUST stop `/continue` and switch to wave plan + parallel agents; ignoring this cost 90min serial vs ~30min parallel in GAP-229 incident (memory `feedback_wave_plan_before_serial_prs.md`)
+- **Wave plan PHẢI qua PR, không push trực tiếp main** — even when "agents need plan ngay", route the wave plan through a normal PR — pushing directly to main violates CLAUDE.md (incident 2026-04-26 wave-7-perf, memory `feedback_wave_plan_through_pr.md`)
+- **Step 3.5 living-docs gate is the latest enforcement** — `scripts/check-docs.sh` Rule 13 catches premature `🟢 DONE` flips with deferred work; failure here is a HARD block per `gap-done-discipline.md`, not a warn
+- **`@Scheduled profiles=...` requires `-Dspring-boot.run.profiles=dev`** — env vars alone don't activate Spring profiles for the dev runner; `dev-start.sh` must pass the JVM property (memory `feedback_dev_profile_schema_workaround.md`, GAP-244)
+- **MCP check at session start is mandatory** — read `claude mcp list` early; `start-session` collector emits "MCP servers: N/M" — skipping this defaults you to CLI for the whole session and burns ~5min on polling loops (memory `feedback_mcp_check_at_session_start.md`)
+- **Don't pick GAP-006 / AI Branding inference work without verifying Ollama + Docker stack up first** — WSL2 CPU-only is too slow for 9B A/B test; pre-flight gate is non-negotiable (memory `feedback_gap006_infra_blocker.md`)

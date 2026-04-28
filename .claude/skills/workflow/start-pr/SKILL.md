@@ -196,3 +196,13 @@ Hook `.claude/hooks/audit-gate.py` sẽ nhắc lại khi merge nếu audit bị 
 - `.claude/skills/task-breakdown-guide.md` - Detailed breakdown guide
 - `.claude/skills/tdd-enforcement.md` - TDD patterns
 - `.claude/skills/two-stage-code-review.md` - Self-review checklist
+
+---
+
+## Gotchas
+
+- **Mode 1 TDD detection is heuristic, not authoritative** — git log timestamps lie when commits are squashed/amended; if Mode 1 reports "⚠️ Không rõ" treat it as ❌ until tests are confirmed via filename pattern (`*Test.java`, `*.test.tsx`)
+- **Mode 2 Bước 4 audit list is SCOPE-DEPENDENT, not exhaustive** — `audit-gate.py` AUDIT_RULES catalog is the source of truth; PR touching `pnpm-lock.yaml` triggers Security audit even if you didn't edit `package.json` directly (per `post-wave-audit-mandate.md` §2.1 file-pattern matrix)
+- **Mode 2 brainstorm output goes to console, NOT file** — per Bước 2/3 the brainstorm + breakdown render to stdout for the user to paste into PR description; storing them in `documents/03-planning/` is wrong unless plan is wave-scope (per `planning-docs-structure.md` §3.2)
+- **Brainstorm "out of scope" section must list deferred work** — per `gap-done-discipline.md` §3 PARTIAL exit ramp; deferred items announced here become follow-up gaps later, so write them concretely (file paths, AC bullets), not vaguely ("polish later")
+- **Required-audits list runs BEFORE merge, not after PR creation** — `audit-gate.py` blocks at merge time per `post-wave-audit-mandate.md` §3, so Bước 4 list must drive an actual `/audit-*` run during the PR cycle, not just sit in PR description as documentation

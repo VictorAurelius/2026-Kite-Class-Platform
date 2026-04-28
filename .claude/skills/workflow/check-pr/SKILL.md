@@ -215,3 +215,13 @@ Wave:    /check-pr wave/X               ← Sau merge tất cả PRs vào wave
 Main:    /check-pr main                 ← Sau merge wave → main
 Full:    /wave-completion-check [X]     ← 6-level check
 ```
+
+---
+
+## Gotchas
+
+- **`gh pr checks --json state` returns null** — use `scripts/check-ci.sh` or `--json status` instead; raw `state` field breaks polling loops silently (memory `feedback_monitor_gh_pr_checks_no_state_field.md`)
+- **Step 2 script picks up STALE failures** — `scripts/check-ci.sh` shows ALL runs on the branch including ancient ones; cross-check timestamps before declaring "CI red" (per Step 2 note in body)
+- **Stacked PR `--delete-branch` trap** — merging a stacked PR with `--delete-branch` auto-closes child PRs and they cannot be reopened (memory `feedback_stacked_pr_delete_branch.md`); for stacks merge parent without `--delete-branch` first, then re-target child
+- **"merge" never auto-promotes wave → main** — Step 6 is explicit but easy to skip: user saying "merge" means agent PRs → wave branch ONLY; wave → main requires separate explicit confirmation (Wave 4 violation 2026-03-24 logged in §6d)
+- **Local skip ≠ block** — if Docker down or `JAVA_HOME` unset, mark E2E/unit `⏭️ skipped` and rely on CI; verdict can still be ✅ Ready (per Step 4 note); do NOT downgrade to ❌ just because local couldn't run
