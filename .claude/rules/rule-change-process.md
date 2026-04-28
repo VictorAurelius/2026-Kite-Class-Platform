@@ -1,10 +1,10 @@
 # Rule Change Process — ADR-Like Governance for `.claude/rules/**`
 
 **Priority:** 🔴 CRITICAL — meta-governance for project DNA
-**Version:** 1.0
+**Version:** 1.1.0
 **Created:** 2026-04-20
-**Last-Reviewed:** 2026-04-20
-**Reviewer-Approver:** @nguyenvankiet (author self-approved — self-referential bootstrap)
+**Last-Reviewed:** 2026-04-27
+**Reviewer-Approver:** @nguyenvankiet (author self-approved — self-referential bootstrap; v1.1.0 MINOR self-approve per §5 — adds §6.5 Enforcement Parity Mandate paired with `incident-to-rule-pipeline.md` + `gap-done-discipline.md` in same PR, no constraint loosening)
 **Supersedes:** ad-hoc rule edits (no prior formal process)
 **Applies to:** Every `.md` file under `.claude/rules/` and every rule-like top-level file the team decides is meta-governance (CLAUDE.md §rules, `.claude/skills/_README-skills-index.md` conventions)
 
@@ -104,6 +104,50 @@ Rules without enforcement = advisory fiction and WILL be rejected. If enforcemen
 
 ---
 
+## 6.5. Enforcement Parity Mandate (added v1.1.0 — paired with `incident-to-rule-pipeline.md`)
+
+> **A new rule and its detection mechanism MUST land in the same PR. No "rule today, detection later" patterns.**
+
+§6 says rules need enforcement; §6.5 says enforcement must be **wired** in the same PR, not just **described**. The distinction matters: a rule that says "PR template should have a checkbox" without that checkbox actually being added to `.github/PULL_REQUEST_TEMPLATE.md` is half-shipped — the rule lands, the enforcement doesn't, drift starts immediately.
+
+### What "wired in the same PR" means by enforcement type
+
+| Enforcement type | Concrete artifact required in same PR |
+|-----------------|---------------------------------------|
+| Pre-commit hook | New file under `.husky/` OR modification of existing one, executable bit set |
+| Pre-merge CI check | New job in `.github/workflows/*.yml` OR new step in existing job |
+| PR template item | New checkbox in `.github/PULL_REQUEST_TEMPLATE.md` |
+| Audit skill | New rule in `.claude/skills/quality/<skill>/reference/*.md` AND detection logic in the skill's script |
+| `audit-gate.py` rule | New AUDIT_RULES entry in `.claude/hooks/audit-gate.py` |
+| `session-docs-check` rule | New rule in `reference/doc-rules-matrix.md` AND detection branch in `scripts/check-docs.sh` |
+| Reviewer-checklist | New row in the rule's §Enforcement table referencing concrete review checklist items |
+
+### Self-test mandate
+
+The PR description (or commit message body) MUST quote a self-test demonstrating the new detection fires on at least one synthetic positive case. For pure-doc rules, the self-test can be a worked example showing the rule applied; for detection rules, the self-test runs the script against a fixture and shows expected output.
+
+Per `incident-to-rule-pipeline.md` §2 Stage 4 — same requirement, this rule formalizes it for non-incident rule additions too.
+
+### Tracking-gap exception
+
+If enforcement is genuinely impossible in the same PR (e.g. requires infra not yet in place — see GAP-244 dev-stack class of issue), the rule MAY ship with `🟡 PARTIAL` enforcement IF the same PR includes:
+
+1. A tracking gap file with concrete acceptance criteria for the missing enforcement
+2. The rule's `Enforcement` section explicitly says "Enforcement deferred to GAP-XXX, ETA <timeframe>"
+3. A reviewer-checklist line covering the rule manually until enforcement lands
+
+Tracking gaps stay open in `ROADMAP.md` and are revisited each wave.
+
+### Examples — same PR enforcement parity in action
+
+| Rule | Enforcement landed | Same PR? |
+|------|-------------------|----------|
+| `gap-done-discipline.md` (v1.0, this PR) | Rule 13 in matrix + detection in `check-docs.sh` + self-test on 3 fixtures | ✅ |
+| `incident-to-rule-pipeline.md` (v1.0, this PR) | §5 PR-template checkbox + Rule 14 deferred via tracking-gap exception | ✅ |
+| `rule-change-process.md` (this version, v1.1.0) | §5 review matrix already exists; §6.5 self-applies via reviewer-checklist | ✅ |
+
+---
+
 ## 7. Changelog Format (per-rule `## Log` section)
 
 Every rule has a `## N. Log` section at the bottom. Entries are **newest-first**:
@@ -184,4 +228,5 @@ Never skipped: enforcement section, log entry, version bump.
 
 ## 13. Log
 
+- **2026-04-27** (v1.1.0): MINOR — added §6.5 Enforcement Parity Mandate (rule + detection same PR; self-test mandate; tracking-gap exception). Paired in same PR with new sister-rule `incident-to-rule-pipeline.md` (governs how misses become rules) and `gap-done-discipline.md` (the first concrete application — rule + Rule 13 detector + 3-fixture self-test all shipped together). Triggered by user feedback "có quy trình khi thêm 1 skill, 1 rules vào dự án chưa, mà vẫn miss kiểu này" surfacing that prior process governed rule edits but not enforcement parity at addition time. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5; new constraint on rule authors but does not loosen any existing constraint).
 - **2026-04-20** (v1.0.0): Rule created (GAP-171). Closes `output-review-mandate.md` §4 VIOLATION #2 ("Rules docs — meta governance without meta review"). Self-referential bootstrap: author self-approved v1.0 as there was no prior process; subsequent versions require §5 matrix reviewers. Paired with `.claude/skills/quality/rule-review/SKILL.md` and the gap-review skill (GAP-170 / Wave 8b-A).
