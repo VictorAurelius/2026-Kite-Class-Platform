@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "*"
+      "*",
+      "Bash(mkdir -p .claude/skills/quality/skill-conventions-check/data/fixtures)",
+      "Bash(rtk ls *)"
     ],
     "defaultMode": "bypassPermissions"
   },
