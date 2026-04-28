@@ -172,6 +172,27 @@ class Wave02MigrationsTest {
         assertTableExists("branding");
     }
 
+    @Test
+    @DisplayName("V46 aligns created_by / updated_by to BIGINT across all V28..V44 tables (GAP-244)")
+    void v46_audit_columns_aligned_to_bigint() throws SQLException {
+        // BaseEntity declares Long createdBy / updatedBy; without V46, V28..V44
+        // migrations leave VARCHAR columns that fail Hibernate `ddl-auto: validate`.
+        // After V46 every audit column on these 19 tables MUST be BIGINT.
+        // role_permissions intentionally excluded — pure junction table, no audit columns.
+        String[] tables = {
+                "academic_years", "semesters", "holidays",
+                "homeroom_classes", "subject_sections", "curricula", "subject_grades",
+                "permissions", "roles", "user_roles",
+                "frontend_instances", "branding_resources", "outbox_events",
+                "rebrand_approvals", "audit_log", "moderation_queue",
+                "dmca_takedown_requests", "quality_reports", "class_schedule_slots"
+        };
+        for (String table : tables) {
+            assertColumnType(table, "created_by", "bigint");
+            assertColumnType(table, "updated_by", "bigint");
+        }
+    }
+
     // ——— helpers ————————————————————————————————————————————————
 
     private Connection dataSource() throws SQLException {
@@ -205,6 +226,24 @@ class Wave02MigrationsTest {
             assertTableExists(table);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void assertColumnType(String table, String column, String expectedType) throws SQLException {
+        try (Connection conn = dataSource();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(
+                     "SELECT data_type FROM information_schema.columns "
+                             + "WHERE table_schema = 'public' "
+                             + "AND table_name = '" + table + "' "
+                             + "AND column_name = '" + column + "'"
+             )) {
+            assertThat(rs.next())
+                    .as("column %s.%s should exist", table, column)
+                    .isTrue();
+            assertThat(rs.getString(1))
+                    .as("column %s.%s data_type", table, column)
+                    .isEqualTo(expectedType);
         }
     }
 }
