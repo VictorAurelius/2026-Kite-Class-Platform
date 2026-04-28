@@ -1,0 +1,19 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.dashboards.enabled }}
+---
+# GAP-143 — Infrastructure pools (HikariCP + RabbitMQ) Grafana dashboard ConfigMap.
+# Loaded by the Grafana sidecar discovery (kube-prometheus-stack) via the
+# `grafana_dashboard` label. Body sourced from
+# infrastructure/helm/kitehub/dashboards/infra-pools.json so the same JSON
+# is reusable outside Helm (e.g., uploaded directly to Grafana Cloud).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kitehub-dashboard-infra-pools
+  labels:
+    app: kitehub
+    release: {{ .Release.Name }}
+    {{ .Values.monitoring.dashboards.label.key }}: {{ .Values.monitoring.dashboards.label.value | quote }}
+data:
+  infra-pools.json: |-
+{{ .Files.Get "dashboards/infra-pools.json" | indent 4 }}
+{{- end }}
