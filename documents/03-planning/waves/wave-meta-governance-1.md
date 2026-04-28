@@ -9,7 +9,7 @@ gaps: [GAP-249, GAP-250, GAP-251, GAP-252, GAP-253, GAP-254, GAP-255, GAP-256]
 
 # Wave Meta-Governance 1
 
-**Status:** 🟢 DONE 2026-04-28 — 4 PRs merged in sequence (#607 foundation → #608 Move 1 → #609 Move 2 → #610 Sub-PR C). 6/8 wave gaps DONE (GAP-249/250/251/252/253/254); 2 follow-up gaps OPEN (GAP-255 README freshness CI, GAP-256 read-first rule conditional on GAP-255). Total wall-clock ~90 min. Per `gap-done-discipline.md` §2 — Status flip clean (no banned phrases in any closing Log entry).
+**Status:** 🟢 DONE 2026-04-28 — 6 PRs merged in sequence (#607 foundation → #608 Move 1 → #609 Move 2 → #610 Sub-PR C → #611 retro → #612 GAP-255). **7/8 wave gaps DONE** (GAP-249/250/251/252/253/254/255); 1 gap **gated** (GAP-256 — eligible after GAP-255 active ≥7d per `incident-to-rule-pipeline.md` premature-rule guard, timer 2026-04-28). Total wall-clock ~2-3h. Per `gap-done-discipline.md` §2 — Status flip clean across all closing PRs (no banned phrases in any Log entry).
 
 ## 1. Goal
 
@@ -159,6 +159,8 @@ Done separately to avoid YAML merge conflict between Agent A (which touches scri
 
 ## 10. Closure log
 
+- **2026-04-28 (Follow-up GAP-255 SHIPPED #612):** README freshness CI added — `scripts/check-readme-freshness.sh` (~225 LOC, shellcheck-clean) + 5 self-test fixtures + new `readme-freshness` job in `script-quality.yml`. Baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs. `output-review-mandate.md` bumped v1.1.1 → v1.1.2 with new §3 matrix row "README freshness" + Skills (meta) row PARTIAL → DONE flip. **2 bugs caught + fixed during dev** (regex `^\*\*Last...\*\*` rejecting project convention; YAML colon-space breaking workflow parse). 5 stale worktrees from prior waves cleaned post-merge.
+- **2026-04-28 (Retro #611):** Wave plan status `active` → `complete` + ROADMAP closure log entry. Per `feedback_post_merge_doc_sync.md` — final sub-PR should bump status; if missed, ROADMAP/wave-plan drift creates phantom "active" waves.
 - **2026-04-28 (DONE):** All 4 PRs merged. PR #607 (foundation: 8 gap files + wave plan + ROADMAP + 3 READMEs redesigned with pixel-art KITE logo) → PR #608 (Move 1 Agent A: 8-rule frontmatter backfill + `scripts/check-rule-frontmatter.sh` + new `rule-frontmatter` CI job; bonus catch: detector flagged `output-review-mandate.md` missing `Applies-to` field, fixed in same PR with PATCH bump 1.1.0→1.1.1) → PR #609 (Move 2 Agent B: `scripts/check-skill-conventions.sh` 456 LOC + 21-skill grandfathered-exemption list + 3 self-test fixtures + 6 audit eval fixtures + skills index refresh + 5-tier severity rubric on `two-stage-code-review.md`) → PR #610 (Sub-PR C: `skill-conventions` CI job wired, GAP-251 PARTIAL→DONE).
 - **Honest deviations:** Agent B reported 21 grandfathered skills exempted from skill-conventions check (cleanup deferred, target empty list by Wave 9). Agent A bonus catch indicates GAP-249 audit list was incomplete — reinforces value of CI gate (G-3.3 force-multiplier worked first run).
 - **Counts:** 90 OPEN → 92 OPEN (wave closed 6 + filed 2 follow-ups; net +2 — that's correct for a wave that surfaces follow-up work).
