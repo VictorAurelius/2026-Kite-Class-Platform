@@ -121,8 +121,9 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [020](ADR-020-vendor-client-package-naming.md) | Vendor Client Package Naming Convention | ACCEPTED | 2026-04-26 |
 | [021](ADR-021-per-module-outbox-vs-shared-lib.md) | Per-Module Domain Outbox over Cross-Product Shared Library | PROPOSED | 2026-04-26 |
 | [022](ADR-022-alertmanager-secret-strategy.md) | Alertmanager Secret Strategy — External Secrets Operator + AWS Secrets Manager | ACCEPTED | 2026-04-28 |
+| [023](ADR-023-gateway-key-resolver-strategy.md) | Gateway Rate-Limit Key Resolver Strategy — IP / Tenant / API Key | ACCEPTED | 2026-04-28 |
 
-Next free ID: **ADR-023**.
+Next free ID: **ADR-024**.
 
 ---
 
@@ -184,6 +185,7 @@ Non-ADR files in this folder (hypothetical drafts, notes) follow the parent fold
 
 ## Log
 
+- **2026-04-28:** Added ADR-023 ACCEPTED (Gateway Rate-Limit Key Resolver Strategy — IP / Tenant / API Key). Closes GAP-259 PARTIAL (tenant + apiKey resolvers + branding route wiring + metrics filter + tier-multiplier config keys data-only). GAP-260 follow-up tracks tier-multiplier enforcement + remaining route coverage. Alternatives JWT-only / TenantResolver-first / Envoy-Kong rejected.
 - **2026-04-28:** Added ADR-022 ACCEPTED (Alertmanager Secret Strategy — ESO + AWS Secrets Manager). Closes Wave Observability GAP-144 secret-strategy AC. Formalizes pre-existing `terraform-aws/secrets.tf` ESO intent (line 48-56). Alternatives sealed-secrets / raw values / Vault rejected.
 - **2026-04-24:** Added ADR-019 PROPOSED (Document Generation Architecture — Wave 5 Sub-PR 5.0 / GAP-047). Records pure-backend, inline-in-core, OpenHTMLtoPDF+PDFBox+POI decision; alternatives iText/hybrid/microservice/headless-browser rejected.
 - **2026-04-21:** Added ADR-017 PROPOSED (School MIS sync strategy — GAP-200 Phase 1). Backfilled ADR-016 index entry (pre-existing drift).
