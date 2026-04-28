@@ -22,6 +22,25 @@ Operational playbooks for every Prometheus alert rule shipped in this project. W
 | `rabbitmq-queue-backlog.md` | Queue ready messages >1000 for 10 min | `RabbitMQQueueBacklog` (warning) |
 | `deployment-procedures.md` | Pre-existing — deploy + rollback procedures | — |
 
+### Platform-critical alerts (added 2026-04-28 via GAP-122)
+
+| Path | Purpose | Source alert rule |
+|------|---------|-------------------|
+| `multi-tenant-data-leak.md` | Cross-tenant query observed (P0 security) | `MultiTenantDataLeak` (critical) |
+| `cert-expiry-imminent.md` | TLS cert <14d (warning) / <3d (critical) to expiry | `CertExpiryImminent` (critical) |
+| `backup-job-failure.md` | Postgres backup not refreshed in 26h | `BackupJobFailure` (critical) |
+| `flyway-migration-failure.md` | Service migration failed at boot | `FlywayMigrationFailure` (critical) |
+| `ai-provider-high-failure-rate.md` | AI inference >10% failure over 5m | `AIProviderHighFailureRate` (warning) |
+| `email-queue-dlq-growing.md` | `emails.send.dlq` >10 messages over 10m | `EmailQueueDLQGrowing` (warning) |
+| `subscription-webhook-failure.md` | Payment webhook 5xx rate >5% over 5m | `SubscriptionWebhookFailure` (warning) |
+| `tenant-provisioning-failure.md` | Provisioning Saga failure >5% over 5m | `TenantProvisioningFailure` (warning) |
+| `branding-quality-gate-fail-rate.md` | Quality gate <70 score on >20% over 15m | `BrandingQualityGateFailRate` (warning) |
+| `jwt-auth-failure-spike.md` | Auth rejection >3x baseline over 5m | `JWTAuthFailureSpike` (warning) |
+| `redis-eviction-rate.md` | Redis eviction >1000 keys/min sustained | `RedisEvictionRate` (warning) |
+| `rate-limit-breach-spike.md` | 429s >10x baseline OR single-tenant >50% share | `RateLimitBreachSpike` (warning) |
+
+See [`../alerting-standards.md`](../alerting-standards.md) for the project-wide alert authoring standard (severity classification, required annotations, metric-pending pattern, CI enforcement).
+
 > Document-generation specific runbook (`pdf-generation-font-not-found.md`) lives in [`documents/05-guides/runbooks/`](../../runbooks/) (pre-existing, retained for path stability — `runbook_url` annotations on `DocumentGenerationHigh*` alerts already point there).
 
 ---

@@ -92,3 +92,162 @@ groups:
           summary: "RabbitMQ queue backlog on {{ $labels.queue }}"
           description: "Queue {{ $labels.queue }} has {{ $value }} messages ready (threshold: 1000)"
           runbook_url: "/documents/05-guides/operations/runbooks/rabbitmq-queue-backlog.md"
+
+  # GAP-122 — 12 platform-critical alerts (Wave 2026-04-28).
+  # 4 critical (page on-call) + 8 warning (Slack). Group is appended NEW; do not edit existing
+  # kitehub-service-alerts above. Routing depends on Alertmanager (GAP-144) — until that ships,
+  # rules fire silently against /metrics scrape; on-call still escalates via the generic alerts.
+  # Several rules depend on metrics not yet wired (METRIC PENDING below) — those rules will
+  # not produce data until the corresponding emitter / exporter lands. Filed alongside their
+  # peers to keep the alert intent visible. See wave plan
+  # documents/03-planning/waves/wave-2026-04-28-gap-122-platform-alerts.md for full mapping.
+  - name: kitehub-platform-alerts
+    rules:
+      # ── Critical (4) ──────────────────────────────────────────────────────────────────
+
+      # METRIC PENDING — depends on `tenant_isolation_violations_total` custom counter,
+      # to be emitted from `BaseEntity` tenant-filter when a cross-tenant access is detected.
+      # Until that counter is wired, this rule has no data. Filed here so on-call discovery is
+      # not delayed once the emitter lands.
+      - alert: MultiTenantDataLeak
+        expr: increase(tenant_isolation_violations_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tenant isolation violation detected"
+          description: "{{ $value }} cross-tenant access attempt(s) in the last 5 minutes on {{ $labels.job }}. Data leak risk — investigate the offending request path immediately."
+          runbook_url: "/documents/05-guides/operations/runbooks/multi-tenant-data-leak.md"
+
+      # METRIC PENDING — requires `blackbox_exporter` deployment scraping public hostnames.
+      # `probe_ssl_earliest_cert_expiry` is published by blackbox_exporter when the http_2xx
+      # module is configured for the tenant domain probes.
+      - alert: CertExpiryImminent
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TLS cert for {{ $labels.instance }} expires in <14 days"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}. Renew before expiry — every tenant fronted by this cert will fail TLS handshakes once it lapses."
+          runbook_url: "/documents/05-guides/operations/runbooks/cert-expiry-imminent.md"
+
+      # METRIC PENDING — depends on `kite_backup_last_success_timestamp_seconds` pushgateway
+      # gauge from the backup cron (see GAP-117 backup runbook + GAP-118 versioning workflow).
+      # Threshold 90000s = 25h (1h grace beyond the 24h scheduled cadence).
+      - alert: BackupJobFailure
+        expr: time() - kite_backup_last_success_timestamp_seconds > 90000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backup job has not succeeded in >25h"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago — daily cadence is broken. Recovery RPO at risk."
+          runbook_url: "/documents/05-guides/operations/runbooks/backup-job-failure.md"
+
+      # METRIC PARTIAL — Spring Boot Actuator publishes `flyway_migrations` gauge tagged by
+      # state via `FlywayInitializer`. The `state="failed"` series only appears once a
+      # migration has failed at boot; absence of the series is healthy.
+      - alert: FlywayMigrationFailure
+        expr: flyway_migrations{state="failed"} > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Flyway migration failed on {{ $labels.job }}"
+          description: "{{ $value }} failed migration(s) reported on {{ $labels.instance }}. Service likely refusing to start clean — investigate Flyway history table + last migration script."
+          runbook_url: "/documents/05-guides/operations/runbooks/flyway-migration-failure.md"
+
+      # ── Warning (8) ───────────────────────────────────────────────────────────────────
+
+      # METRIC PENDING — depends on `ai_provider_requests_total` custom counter with
+      # `outcome={success,failure}` label. Emit from `OllamaClient` / AI Adapter layer per
+      # ai-branding-guidelines.md §3 (Adapter pattern wraps vendor-specific failures).
+      - alert: AIProviderHighFailureRate
+        expr: rate(ai_provider_requests_total{outcome="failure"}[5m]) / clamp_min(rate(ai_provider_requests_total[5m]), 1) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI provider failure rate >10% on {{ $labels.job }}"
+          description: "AI provider failure rate is {{ $value | humanizePercentage }} over the last 5 minutes. Likely cause: Ollama down, model OOM, or upstream API throttling. Branding/AI features will degrade — circuit breaker should already be falling back to template path."
+          runbook_url: "/documents/05-guides/operations/runbooks/ai-provider-high-failure-rate.md"
+
+      # Depends on `rabbitmq_exporter` being deployed (same dependency as the existing
+      # RabbitMQQueueBacklog alert above). Queue name pattern matches `*.dlq`, `*-dlq`,
+      # `*.dead`, `*-dead` — current convention across kitehub services.
+      - alert: EmailQueueDLQGrowing
+        expr: rabbitmq_queue_messages_ready{queue=~".*[\\.\\-](dlq|dead)"} > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DLQ {{ $labels.queue }} has >10 messages"
+          description: "Queue {{ $labels.queue }} accumulated {{ $value }} messages — consumer is rejecting or messages exhausted retry budget. Inspect for poison-pill payload or downstream outage."
+          runbook_url: "/documents/05-guides/operations/runbooks/email-queue-dlq-growing.md"
+
+      - alert: SubscriptionWebhookFailure
+        expr: (sum(rate(http_server_requests_seconds_count{uri=~"/api/v1/webhooks/.*",status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{uri=~"/api/v1/webhooks/.*"}[5m])), 1)) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Webhook 5xx rate >5%"
+          description: "Subscription/billing webhook endpoints returning {{ $value | humanizePercentage }} server errors over 5 minutes. External providers (payment, email) may retry → eventual delivery — but persistent failure can break renewal/billing flows."
+          runbook_url: "/documents/05-guides/operations/runbooks/subscription-webhook-failure.md"
+
+      - alert: TenantProvisioningFailure
+        expr: (sum(rate(http_server_requests_seconds_count{uri=~"/api/v1/admin/provisioning.*",status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{uri=~"/api/v1/admin/provisioning.*"}[5m])), 1)) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tenant provisioning 5xx rate >5%"
+          description: "/api/v1/admin/provisioning/* endpoints returning {{ $value | humanizePercentage }} server errors over 5 minutes. New tenant signups failing — revenue impact. Likely Saga step failure or downstream branding/AI timeout."
+          runbook_url: "/documents/05-guides/operations/runbooks/tenant-provisioning-failure.md"
+
+      # METRIC PENDING — depends on `branding_quality_gate_total{result}` custom counter
+      # emitted from `InstanceQualityReviewer` per ai-branding-guidelines.md §5 (5 checks,
+      # score <70 → markFailed). Until that counter is wired, this rule has no data.
+      - alert: BrandingQualityGateFailRate
+        expr: rate(branding_quality_gate_total{result="failed"}[10m]) / clamp_min(rate(branding_quality_gate_total[10m]), 1) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Branding quality gate fail rate >20%"
+          description: "{{ $value | humanizePercentage }} of branding quality gates failing over the last 10 minutes — likely AI provider regression, prompt template change, or template asset drift. New tenants will be marked FAILED rather than DEPLOYED."
+          runbook_url: "/documents/05-guides/operations/runbooks/branding-quality-gate-fail-rate.md"
+
+      - alert: JwtAuthFailureSpike
+        expr: sum(rate(http_server_requests_seconds_count{status="401"}[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JWT/auth 401 rate >10 req/s"
+          description: "401 response rate is {{ $value }} req/s over 5 minutes — possible credential-stuffing attack, expired keys, or JWT signing config drift. Cross-check ip distribution + tenantId distribution before action."
+          runbook_url: "/documents/05-guides/operations/runbooks/jwt-auth-failure-spike.md"
+
+      # METRIC PENDING — requires `redis_exporter` deployment scraping the shared Redis instance
+      # (kite-redis). `redis_evicted_keys_total` is published when maxmemory + LRU/LFU policy
+      # is configured.
+      - alert: RedisEvictionRate
+        expr: rate(redis_evicted_keys_total[1m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis eviction rate >1k keys/s on {{ $labels.instance }}"
+          description: "Redis evicting {{ $value }} keys/s — cache hit-rate will collapse, downstream services hit Postgres directly. Likely cause: maxmemory undersized OR cache miss storm OR runaway producer."
+          runbook_url: "/documents/05-guides/operations/runbooks/redis-eviction-rate.md"
+
+      - alert: RateLimitBreachSpike
+        expr: sum(rate(http_server_requests_seconds_count{status="429"}[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate-limit 429 rate >5 req/s"
+          description: "429 response rate is {{ $value }} req/s over 5 minutes — either a single tenant abusing API OR rate-limit thresholds too tight for legitimate traffic. Cross-check by tenantId before throttling tweaks."
+          runbook_url: "/documents/05-guides/operations/runbooks/rate-limit-breach-spike.md"

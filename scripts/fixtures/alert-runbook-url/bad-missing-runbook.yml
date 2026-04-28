@@ -1,0 +1,11 @@
+groups:
+  - name: fixture-alerts-missing
+    rules:
+      - alert: ExampleMissingRunbookAlert
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Example summary"
+          description: "Example description without runbook"

@@ -98,3 +98,4 @@ groups:
         annotations:
           summary: "branding-by-tenant cache miss rate elevated"
           description: "Cache miss rate above 10/s for 5 minutes — possible eviction storm or post-deploy cold start. Each miss hits PostgreSQL via BrandingService.getBranding()."
+          runbook_url: "/documents/05-guides/operations/runbooks/branding-cache-miss-storm.md"
