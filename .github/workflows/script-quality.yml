@@ -1,4 +1,4 @@
-name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions)
+name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions + README Freshness)
 
 # Closes GAP-194 — CI enforcement of script standard defined in
 # `.claude/skills/quality/script-review/SKILL.md` + `output-review-mandate.md` §5.5.
@@ -6,11 +6,13 @@ name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions)
 # `.claude/rules/rule-change-process.md` §3 (paired with GAP-249 backfill).
 # Closes GAP-251 — CI enforcement of skill convention spec defined in
 # `.claude/rules/skill-conventions.md` (paired with Move 2 script + fixtures).
+# Closes GAP-255 — CI enforcement of README freshness (Last-Updated date check
+# 30d WARN / 90d FAIL) per `output-review-mandate.md` §3 row "README freshness".
 #
-# Triggered by any change to *.sh, *.py, `.claude/rules/**.md`, or
-# `.claude/skills/**.md` in scope paths. Non-scope changes skip.
+# Triggered by any change to *.sh, *.py, `.claude/rules/**.md`,
+# `.claude/skills/**.md`, or `**/README.md` in scope paths. Non-scope changes skip.
 # Baseline (2026-04-20): shellcheck -S error = 0 issues, ruff check = 0 issues.
-# Baseline (2026-04-28): rule-frontmatter = 14/14 rules compliant; skill-conventions = 44 PASS / 38 WARN / 0 FAIL.
+# Baseline (2026-04-28): rule-frontmatter = 14/14 rules compliant; skill-conventions = 44 PASS / 38 WARN / 0 FAIL; readme-freshness = 4 PASS / 42 WARN / 0 FAIL.
 
 on:
   # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
@@ -29,6 +31,10 @@ on:
       - '.claude/skills/**.md'
       - 'scripts/check-skill-conventions.sh'
       - '.claude/skills/quality/skill-conventions-check/data/fixtures/**'
+      - '**/README.md'
+      - '**/_README*.md'
+      - 'scripts/check-readme-freshness.sh'
+      - 'scripts/fixtures/readme-freshness/**'
 
 permissions:
   contents: read
@@ -239,3 +245,26 @@ jobs:
       - name: No skill files changed
         if: steps.changed.outputs.files == ''
         run: echo "No skill files changed — skipping."
+
+  readme-freshness:
+    name: README freshness (`**/README.md`)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: "Run self-test (5 fixtures — 3 dynamic + 2 committed)"
+        run: |
+          # Self-test asserts script behavior on synthetic fixtures.
+          # Fails fast if regex/date logic regresses.
+          bash scripts/check-readme-freshness.sh --self-test
+
+      - name: Validate README freshness (blocking on FAIL >90d, WARN-only at 31-90d)
+        run: |
+          # Default mode: silent PASS ≤30d, WARN 31-90d, FAIL >90d.
+          # Workflow paths filter already restricts this job to PRs touching
+          # README.md or the validator script — no need to re-filter changed files.
+          bash scripts/check-readme-freshness.sh

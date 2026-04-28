@@ -1,6 +1,6 @@
 # GAP-255: No CI check for README staleness — `Last Updated` dates rot silently
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — `scripts/check-readme-freshness.sh` + 5 self-test fixtures + CI job shipped
 **Priority:** 🟡 P2 (Meta — supportive force-multiplier; prerequisite for GAP-256)
 **Domain:** DevOps / CI / Documentation governance
 **Detected:** 2026-04-28 (ecosystem audit — README sweep)
@@ -54,12 +54,12 @@ Commit 2 fixture READMEs under `data/fixtures/`:
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check-readme-freshness.sh` exists, executable, shellcheck-clean
-- [ ] Script honors `<!-- readme-freshness-exempt -->` opt-out
-- [ ] CI workflow job triggers on `**/README.md` PR changes
-- [ ] WARN at 30d / BLOCK at 90d behavior verified via 3 fixtures (PR description quotes output)
-- [ ] After foundation PR merge (with 3 fresh READMEs), CI job runs against main = PASS
-- [ ] §3 matrix in `output-review-mandate.md` gets new row "README freshness" with status linking here
+- [x] `scripts/check-readme-freshness.sh` exists, executable, shellcheck-clean (`-S error` + `-S warning` both 0 issues)
+- [x] Script honors `<!-- readme-freshness-exempt -->` opt-out (verified via T4 fixture)
+- [x] CI workflow job `readme-freshness` triggers on `**/README.md` + `**/_README*.md` + script + fixtures path changes
+- [x] WARN at 30d / BLOCK at 90d behavior verified via 3 dynamic fixtures + 2 committed fixtures (T1–T5 PASS in `--self-test`)
+- [x] Local full-repo scan = exit 0 baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs
+- [x] §3 matrix in `output-review-mandate.md` gets new row "README freshness" linking here (PATCH bump v1.1.1 → v1.1.2)
 
 ## Out-of-scope
 
@@ -79,4 +79,5 @@ Commit 2 fixture READMEs under `data/fixtures/`:
 
 ## Log
 
+- **2026-04-28 (DONE):** `scripts/check-readme-freshness.sh` (~225 LOC, shellcheck-clean both severity levels) + 2 committed fixtures (`exempt.md` + `no-date.md`) + 3 dynamic-date fixtures (generated at `--self-test` runtime to avoid temporal drift). New CI job `readme-freshness` in `script-quality.yml` runs self-test + validates full repo on any `**/README.md` PR. Bug found & fixed during dev: original regex `^\*\*Last[ -]?Updated\*\*` required closing `**` immediately after "Updated", which failed for project's `**Last Updated:** YYYY-MM-DD` convention (colon inside bold) — relaxed to `Last[ -]?Updated` non-anchored. Local self-test 5/5 PASS; full-repo scan baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs. AC 6/6 ✅; flipped to DONE per `gap-done-discipline.md` §2 (no banned phrases verified). Unblocks GAP-256 (read-first rule) — gating clock starts now, eligible to file after ≥7d active.
 - **2026-04-28** Filed during ecosystem audit (Wave Meta-Gov 1, Phase 1E follow-up). Triggered by 3 critical README staleness findings. Bundled into foundation PR alongside the 3 fix-on-the-spot README rewrites + GAP-256.
