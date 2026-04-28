@@ -126,13 +126,58 @@ services:
       kite-minio:
         condition: service_healthy
     restart: on-failure
+    # GAP-118 §Development (MinIO) AC: enable bucket versioning to recover
+    # AI-generated assets / template SVGs from accidental delete or overwrite.
+    # `mc version enable` is idempotent — safe to re-run.
     entrypoint: >
       /bin/sh -c "
       mc alias set kite http://kite-minio:9000 ${MINIO_ROOT_USER:-kitehub} ${MINIO_ROOT_PASSWORD:?required};
       mc mb kite/kitehub-assets --ignore-existing;
       mc anonymous set public kite/kitehub-assets;
-      echo 'MinIO bucket kitehub-assets created successfully';
+      mc version enable kite/kitehub-assets;
+      echo 'MinIO bucket kitehub-assets created with versioning enabled';
       "
+    networks:
+      - kite-network
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 32m
+
+  # ---------------------------------------------------------------------------
+  # GAP-118 §Development (MinIO) — optional backup mirror sidecar
+  # ---------------------------------------------------------------------------
+  # Continuously mirrors kitehub-assets bucket -> external host volume so a
+  # corrupted MinIO data volume can be restored from local backup. Disabled by
+  # default (opt-in via `--profile backup`). Restore path documented in
+  # documents/05-guides/restore-procedure.md (GAP-117).
+  #
+  # Enable: `docker compose --profile backup up -d kite-minio-backup`
+  # Backup location: ./minio-backup/ (host-bind volume); rotate / archive externally.
+  #
+  # Trade-offs: continuous mirror = ~2x local storage, near-zero RPO for dev
+  # accidents. Production uses S3 cross-region replication (terraform-aws/s3-ecr.tf)
+  # — this sidecar is dev/local-only.
+  # ---------------------------------------------------------------------------
+  kite-minio-backup:
+    image: minio/mc:latest
+    container_name: kite-minio-backup
+    profiles: ["backup"]
+    depends_on:
+      kite-minio-setup:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set kite http://kite-minio:9000 ${MINIO_ROOT_USER:-kitehub} ${MINIO_ROOT_PASSWORD:?required};
+      echo 'Starting continuous mirror kite/kitehub-assets -> /backup';
+      exec mc mirror --watch --overwrite --remove kite/kitehub-assets /backup/kitehub-assets;
+      "
+    volumes:
+      - ./minio-backup:/backup
     networks:
       - kite-network
     deploy:
