@@ -170,13 +170,19 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 
 **Epics fully closed:** Epic 5 (Security/Compliance), Epic 11 (SaaS Lifecycle Hardening), Epic 12 (Process/DevOps Maturity), Epic 13 (Frontend Quality — 4/5).
 
-**Next recommended wave:** Wave 6 **CLOSED 2026-04-26**. Wave 7 priority queue (per `meta-gap-priority.md` Meta > Feature):
+**Next recommended wave:** Wave Meta-Gov 1 **CLOSED 2026-04-28** (7/8 gaps DONE; GAP-256 GATED). Next priority queue (per `meta-gap-priority.md` Meta > Feature):
 
-1. **GAP-223** (Meta-P0 PARTIAL) — AI Branding migration verification governance. Sub-PR 223.1 SHIPPED 2026-04-26 (skill + audit-gate rule + §11.4 + baseline 62/100 — PRs #553/#554). Sub-PR 223.2 = GAP-006 unblock.
-2. **GAP-222a + GAP-222b + GAP-222c + GAP-230 SHIPPED 2026-04-26** ✅ → Outbox migration cluster fully closed (kitehub-branding domain outbox + parent-invitation outbox + subscription_outbox generalized + Exception D dispatcher policy)
-3. **GAP-229** (BL-P1) — AI Branding v2 business docs sync (rules/use-cases/api-contract) + 3 user guides; tracks GAP-016 PARTIAL remainder
-4. **GAP-006** (Feature-P1, unblocked 2026-04-26 by Sub-PR 223.1) — Gemma 4 9B migration with VN A/B test
+1. **GAP-256** (Meta-P2 GATED until ~2026-05-05) — README read-first rule. GAP-255 freshness CI active 2026-04-28; eligible after ≥7d active per `incident-to-rule-pipeline.md` premature-rule guard
+2. **GAP-223 Sub-PR 223.2** (Meta-P0 PARTIAL prerequisite) — AI Branding migration Phase 2; required before GAP-006
+3. **GAP-006** (Feature-P1, unblocked by Sub-PR 223.1) — Gemma 4 9B migration with VN A/B test. **Pre-flight blocker** per `feedback_gap006_infra_blocker.md`: verify Ollama running + Docker stack up before pickup; WSL2 CPU-only too slow for 9B
+4. **GAP-229** (BL-P1) — AI Branding v2 business docs sync (rules/use-cases/api-contract) + 3 user guides; tracks GAP-016 PARTIAL remainder
 5. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format
+6. **Skill-conventions cleanup wave** (Meta-P3 backlog) — 21 grandfathered skills currently in `GRANDFATHERED_EXEMPTIONS` (per `scripts/check-skill-conventions.sh`); target empty list by Wave 9
+
+**Earlier reference (Wave 7 + Wave 6 priorities now subsumed by above):**
+- GAP-222a/b/c + GAP-230 SHIPPED 2026-04-26 ✅ (Outbox migration cluster fully closed)
+- Wave 7-Perf SHIPPED 2026-04-27 (4 parallel agents — GAP-126/127/130/135)
+- Wave 6 design pattern audit CLOSED 2026-04-26
 
 ---
 
