@@ -66,6 +66,12 @@ on drift between disk and this index.
 | `quality/simulation-gap-finder.md` | Dùng khi 'simulate gaps', 'persona simulation' — 3-axis matrix simulation |
 | `quality/cross-app-consistency.md` | Dùng khi 'cross-app', 'KiteHub vs KiteClass', 'shared infra' — verify shared conventions |
 
+### Wave orchestration (multi-gap parallel execution)
+
+| File | Description (trigger phrases) |
+|------|-------------------------------|
+| `quality/wave-pack-planner/SKILL.md` | Dùng khi 'plan wave', 'cluster gaps', 'wave-pack', 'next wave' — group ≥3 disjoint gaps thành wave-pack rồi spawn 3-5 parallel agents (codify Wave Obs 2026-04-28 5x speedup) |
+
 ### Review checklists (per PR file types)
 
 | File | Description (trigger phrases) |
