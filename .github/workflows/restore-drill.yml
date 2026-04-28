@@ -1,0 +1,181 @@
+name: Restore Drill (Monthly Backup Restore Verification)
+
+# Closes GAP-117 Phase 2 (CI side). Spec lives in
+# `documents/05-guides/restore-procedure.md` §4 + §7 (drill cadence).
+#
+# Cadence: 1st of every month at 03:00 UTC + manual workflow_dispatch.
+#
+# Behavior:
+#   1. shellcheck + self-test of scripts/verify-restore.sh (always, even if
+#      backup-drill body is gated off — keeps the script honest).
+#   2. If vars.BACKUP_DRILL_ENABLED == 'true': spin up Postgres, fetch latest
+#      backup from S3, restore, run verify-restore.sh in real-DB mode.
+#   3. If gate off: skip the real drill body but report status (so the
+#      workflow doesn't fail on first runs before S3 backups exist or
+#      AWS creds are wired).
+#
+# Gate flip: enable in repo Settings → Variables → BACKUP_DRILL_ENABLED=true
+# once GAP-093 backups are confirmed in S3 + restore-drill IAM role exists.
+#
+# Required repo secrets (when enabled):
+#   - AWS_RESTORE_DRILL_ROLE_ARN (OIDC role with s3:GetObject on backup bucket)
+#   - BACKUP_S3_BUCKET           (e.g. kite-backups-prod)
+#
+# Required repo vars (when enabled):
+#   - BACKUP_DRILL_ENABLED  ('true' to run real drill; default unset = skip)
+
+on:
+  schedule:
+    # 03:00 UTC on the 1st of every month
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+    inputs:
+      force_real_drill:
+        description: 'Force real drill body even if BACKUP_DRILL_ENABLED unset'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  # OIDC for AWS role assumption (only used when real drill body runs)
+  id-token: write
+
+jobs:
+  verify-script:
+    name: ShellCheck + self-test verify-restore.sh
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck jq
+          shellcheck --version
+
+      - name: ShellCheck (error severity, blocking)
+        run: shellcheck -S error scripts/verify-restore.sh
+
+      - name: ShellCheck (warning severity, non-blocking — reports only)
+        continue-on-error: true
+        run: shellcheck -S warning scripts/verify-restore.sh || true
+
+      - name: Self-test (synthetic fixture, no DB)
+        run: bash scripts/verify-restore.sh --self-test
+
+  restore-drill:
+    name: Real restore drill (Postgres + verify)
+    runs-on: ubuntu-latest
+    needs: verify-script
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: kitehub
+          POSTGRES_PASSWORD: drill_password_ephemeral
+          POSTGRES_DB: kitehub
+        ports:
+          - 5499:5432
+        # Health check ensures the service is ready before steps run
+        options: >-
+          --health-cmd "pg_isready -U kitehub -d kitehub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Decide if real drill should run
+        id: gate
+        run: |
+          ENABLED='${{ vars.BACKUP_DRILL_ENABLED }}'
+          FORCE='${{ inputs.force_real_drill }}'
+          if [ "$ENABLED" = "true" ] || [ "$FORCE" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Real drill body will run."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Real drill gated off (BACKUP_DRILL_ENABLED!=true and force=false). Skipping body."
+            echo "Set repo var BACKUP_DRILL_ENABLED=true once S3 backups + AWS role are wired."
+          fi
+
+      - name: Install postgres-client + jq + aws CLI
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client jq
+          aws --version
+
+      - name: Configure AWS credentials (OIDC)
+        if: steps.gate.outputs.run == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_RESTORE_DRILL_ROLE_ARN }}
+          aws-region: ap-southeast-1
+
+      - name: Fetch latest backup + metadata from S3
+        if: steps.gate.outputs.run == 'true'
+        env:
+          BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+        run: |
+          set -euo pipefail
+          LATEST_DUMP=$(aws s3 ls "s3://${BUCKET}/postgres/" --recursive \
+            | sort | grep '\.sql\.gz$' | tail -n 1 | awk '{print $4}')
+          if [ -z "$LATEST_DUMP" ]; then
+            echo "::error::No backup files found at s3://${BUCKET}/postgres/"
+            exit 1
+          fi
+          echo "Latest backup: $LATEST_DUMP"
+          aws s3 cp "s3://${BUCKET}/${LATEST_DUMP}" ./backup.sql.gz
+          # Companion metadata file (same prefix, .metadata.json suffix)
+          META_KEY="${LATEST_DUMP%.sql.gz}.metadata.json"
+          aws s3 cp "s3://${BUCKET}/${META_KEY}" ./backup.metadata.json
+          ls -lh backup.sql.gz backup.metadata.json
+
+      - name: Restore backup into ephemeral Postgres
+        if: steps.gate.outputs.run == 'true'
+        env:
+          PGPASSWORD: drill_password_ephemeral
+        run: |
+          set -euo pipefail
+          gunzip -c backup.sql.gz | \
+            psql -h localhost -p 5499 -U kitehub -d kitehub \
+              --set ON_ERROR_STOP=on -v VERBOSITY=terse \
+              > restore.log 2>&1
+          echo "Restore exit: $?"
+          tail -20 restore.log
+
+      - name: Run verify-restore.sh against restored DB
+        if: steps.gate.outputs.run == 'true'
+        env:
+          PGPASSWORD: drill_password_ephemeral
+        run: |
+          bash scripts/verify-restore.sh \
+            --target-host=localhost:5499 \
+            --source-host=skip \
+            --db=kitehub \
+            --user=kitehub \
+            --metadata=./backup.metadata.json
+
+      - name: Upload drill artifacts (logs + metadata)
+        if: steps.gate.outputs.run == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-drill-${{ github.run_id }}
+          path: |
+            restore.log
+            backup.metadata.json
+          retention-days: 90
+
+      - name: Drill skipped notice
+        if: steps.gate.outputs.run != 'true'
+        run: |
+          echo "::notice::Restore drill body skipped — BACKUP_DRILL_ENABLED!=true."
+          echo "verify-restore.sh self-test still ran (verify-script job above)."
+          echo "Enable real drill: Settings → Variables → BACKUP_DRILL_ENABLED=true"
