@@ -1,6 +1,11 @@
 /**
  * Tests for Contact page — form renders and contact info displayed.
  *
+ * The form body is loaded via `next/dynamic`, so the form-field test
+ * uses async queries (`findByLabelText`) to wait for the lazy chunk
+ * to resolve. Static info (email, hotline) lives in the page wrapper
+ * and is still queryable synchronously.
+ *
  * @since 2026-04-11
  */
 
@@ -19,10 +24,10 @@ vi.mock('@/lib/api/public', () => ({
 }));
 
 describe('ContactPage', () => {
-  it('renders contact form with required fields', () => {
+  it('renders contact form with required fields', async () => {
     render(<ContactPage />);
     expect(screen.getByRole('heading', { name: /Liên hệ/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Họ và tên/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/Họ và tên/i)).toBeInTheDocument();
   });
 
   it('displays email contact info', () => {

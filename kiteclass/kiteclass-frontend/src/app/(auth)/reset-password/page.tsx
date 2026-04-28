@@ -1,5 +1,10 @@
 /**
- * Reset password page.
+ * Reset password page — thin shell that lazy-loads the form body.
+ *
+ * Suspense boundary stays here because `useSearchParams()` (used by
+ * the lazy form) requires one for static export safety.
+ *
+ * GAP-236 Sub-PR B Agent A — code-splitting for `/reset-password`.
  *
  * @author KiteClass Team
  * @since 1.0.0
@@ -10,140 +15,41 @@
 export const dynamic = 'force-dynamic';
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import nextDynamic from 'next/dynamic';
 import { AuthLayout } from '@/components/layout';
-import { FormInput } from '@/components/forms';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/common';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const resetPasswordSchema = z
-  .object({
-    password: z
-      .string()
-      .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
-      .regex(/[A-Z]/, 'Mật khẩu phải có ít nhất một chữ hoa')
-      .regex(/[a-z]/, 'Mật khẩu phải có ít nhất một chữ thường')
-      .regex(/[0-9]/, 'Mật khẩu phải có ít nhất một chữ số'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Mật khẩu không khớp',
-    path: ['confirmPassword'],
-  });
-
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-
-function ResetPasswordForm() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  const { resetPassword } = useAuth();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
-  });
-
-  const onSubmit = async (data: ResetPasswordFormData) => {
-    if (!token) return;
-    await resetPassword({ token, newPassword: data.password });
-  };
-
-  if (!token) {
-    return (
-      <AuthLayout>
-        <div className="space-y-6">
-          <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">Liên kết không hợp lệ</h1>
-            <p className="text-muted-foreground">
-              Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.
-            </p>
-          </div>
-
-          <Alert variant="destructive">
-            <AlertDescription>
-              Vui lòng yêu cầu liên kết đặt lại mật khẩu mới.
-            </AlertDescription>
-          </Alert>
-
-          <Link href="/forgot-password" className="block">
-            <Button className="w-full">Yêu cầu liên kết mới</Button>
-          </Link>
-        </div>
-      </AuthLayout>
-    );
-  }
-
-  return (
-    <AuthLayout>
+const ResetPasswordForm = nextDynamic(
+  () =>
+    import('@/components/auth/reset-password-form').then((m) => ({
+      default: m.ResetPasswordForm,
+    })),
+  {
+    ssr: false,
+    loading: () => (
       <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Đặt lại mật khẩu</h1>
-          <p className="text-muted-foreground">
-            Nhập mật khẩu mới của bạn bên dưới.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            label="Mật khẩu mới"
-            type="password"
-            placeholder="••••••••"
-            error={errors.password?.message}
-            helperText="Tối thiểu 8 ký tự, có chữ hoa, chữ thường và số"
-            disabled={isSubmitting}
-            {...register('password')}
-          />
-
-          <FormInput
-            label="Xác nhận mật khẩu"
-            type="password"
-            placeholder="••••••••"
-            error={errors.confirmPassword?.message}
-            disabled={isSubmitting}
-            {...register('confirmPassword')}
-          />
-
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Đang đặt lại mật khẩu...
-              </>
-            ) : (
-              'Đặt lại mật khẩu'
-            )}
-          </Button>
-        </form>
-
-        <Link href="/login" className="block text-center">
-          <Button variant="link">Quay lại đăng nhập</Button>
-        </Link>
+        <Skeleton className="h-9 w-3/4 mx-auto" />
+        <Skeleton className="h-5 w-2/3 mx-auto" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
       </div>
-    </AuthLayout>
-  );
-}
+    ),
+  },
+);
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense
-      fallback={
-        <AuthLayout>
+    <AuthLayout>
+      <Suspense
+        fallback={
           <div className="flex items-center justify-center">
             <LoadingSpinner />
           </div>
-        </AuthLayout>
-      }
-    >
-      <ResetPasswordForm />
-    </Suspense>
+        }
+      >
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthLayout>
   );
 }

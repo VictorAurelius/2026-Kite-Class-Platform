@@ -1,6 +1,10 @@
 /**
  * Tests for student registration page — date format hint.
  *
+ * The form body is loaded via `next/dynamic`, so the test uses
+ * async queries (`findByLabelText` / `findByText`) to wait for the
+ * lazy chunk to resolve before asserting.
+ *
  * @since 2026-04-04
  */
 
@@ -9,15 +13,15 @@ import { render, screen } from '@/test/utils';
 import StudentRegisterPage from '../page';
 
 describe('StudentRegisterPage', () => {
-  it('renders date of birth field with VN format hint', () => {
+  it('renders date of birth field with VN format hint', async () => {
     render(<StudentRegisterPage />);
 
-    const dateInput = screen.getByLabelText(/ngày sinh/i);
+    const dateInput = await screen.findByLabelText(/ngày sinh/i);
     expect(dateInput).toBeInTheDocument();
 
     // Format hint must be visible to guide VN users
     expect(
-      screen.getByText(/ngày\/tháng\/năm/i)
+      await screen.findByText(/ngày\/tháng\/năm/i)
     ).toBeInTheDocument();
   });
 });
