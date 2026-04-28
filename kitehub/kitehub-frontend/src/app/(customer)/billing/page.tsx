@@ -1,11 +1,22 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useActiveSubscription } from '@/hooks/use-subscriptions';
 import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
-import { PlanComparison } from '@/components/billing/PlanComparison';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
+// GAP-236 Sub-PR B — PlanComparison renders the full pricing matrix (4 tiers
+// × many features). Defer it so the header + CurrentPlanCard render first.
+const PlanComparison = dynamic(
+  () => import('@/components/billing/PlanComparison').then((m) => ({ default: m.PlanComparison })),
+  { ssr: false, loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <LoadingSpinner />
+    </div>
+  ) }
+);
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useRouter } from 'next/navigation';

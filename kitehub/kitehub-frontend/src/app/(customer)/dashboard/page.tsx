@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { StatusBadge } from '@/components/common/StatusBadge';
@@ -16,7 +17,15 @@ import {
   ExternalLink, HelpCircle,
 } from 'lucide-react';
 import { getTenantUrl, getTenantDisplayUrl } from '@/lib/tenant-url';
-import { OnboardingWizard, useOnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+import { useOnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+
+// GAP-236 Sub-PR B — lazy-load the onboarding wizard. It's conditional
+// (`shouldShow`), so we only ship its bundle when first-run users hit the
+// dashboard. Hook that drives `shouldShow` stays static (small).
+const OnboardingWizard = dynamic(
+  () => import('@/components/onboarding/OnboardingWizard').then((m) => ({ default: m.OnboardingWizard })),
+  { ssr: false }
+);
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -37,11 +46,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Onboarding Wizard */}
-      {firstInstance && (
+      {/* Onboarding Wizard — lazy-loaded; render only when actually visible
+          so the chunk does not download for returning users. */}
+      {firstInstance && shouldShow && !isLoading && (
         <OnboardingWizard
           instance={firstInstance}
-          open={shouldShow && !isLoading}
+          open={true}
           onClose={hideWizard}
         />
       )}

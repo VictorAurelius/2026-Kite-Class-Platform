@@ -1,20 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useAssets } from '@/hooks/use-branding';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import {
   ArrowLeft,
-  Download,
-  ExternalLink,
   Search,
   Filter,
   Grid3x3,
@@ -22,6 +20,18 @@ import {
   Images,
 } from 'lucide-react';
 import type { BrandingAsset } from '@/types/branding';
+
+// GAP-236 Sub-PR B — lazy-load the AssetCard grid; the page header + filter
+// chrome paint instantly while the per-card bundle (icons, hover overlay)
+// streams in once `useAssets` returns and the grid is actually rendered.
+const AssetsGrid = dynamic(() => import('./AssetsGrid'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <LoadingSpinner />
+    </div>
+  ),
+});
 
 const ASSET_TYPE_LABELS: Record<string, string> = {
   PROFILE: 'Profile',
@@ -143,17 +153,9 @@ export default function BrandingAssetsPage() {
             </div>
           </Card>
 
-          {/* Assets Grid */}
+          {/* Assets Grid (lazy) */}
           {filteredAssets.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAssets.map((asset) => (
-                <AssetCard
-                  key={asset.id}
-                  asset={asset}
-                  onDownload={() => handleDownload(asset)}
-                />
-              ))}
-            </div>
+            <AssetsGrid assets={filteredAssets} onDownload={handleDownload} />
           ) : (
             <EmptyState
               icon={<Filter className="w-12 h-12" />}
@@ -176,59 +178,5 @@ export default function BrandingAssetsPage() {
         />
       )}
     </div>
-  );
-}
-
-interface AssetCardProps {
-  asset: BrandingAsset;
-  onDownload: () => void;
-}
-
-function AssetCard({ asset, onDownload }: AssetCardProps) {
-  return (
-    <Card className="overflow-hidden group shadow-soft hover:shadow-lg transition-shadow">
-      {/* Image Preview */}
-      <div className="aspect-video bg-muted flex items-center justify-center relative">
-        <img
-          src={asset.url}
-          alt={ASSET_TYPE_LABELS[asset.type]}
-          className="w-full h-full object-cover"
-        />
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={onDownload}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Tải về
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            asChild
-          >
-            <a href={asset.url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Xem
-            </a>
-          </Button>
-        </div>
-      </div>
-
-      {/* Card Content */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <Badge variant="secondary">{ASSET_TYPE_LABELS[asset.type]}</Badge>
-          <span className="text-xs text-muted-foreground">
-            {new Date(asset.createdAt).toLocaleDateString('vi-VN')}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground truncate">
-          ID: {asset.id}
-        </p>
-      </div>
-    </Card>
   );
 }

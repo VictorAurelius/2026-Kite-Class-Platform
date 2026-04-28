@@ -1,12 +1,19 @@
 'use client';
 
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useParams } from 'next/navigation';
 import { usePayment } from '@/hooks/use-payments';
-import { QRCodeDisplay } from '@/components/billing/QRCodeDisplay';
 import { PaymentInfo } from '@/components/billing/PaymentInfo';
 import { PaymentStatusCard } from '@/components/billing/PaymentStatusCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
+// GAP-236 Sub-PR B — QRCodeDisplay only renders when payment.status ===
+// 'PENDING'. Lazy-load it so completed/failed/expired flows skip the chunk.
+const QRCodeDisplay = dynamic(
+  () => import('@/components/billing/QRCodeDisplay').then((m) => ({ default: m.QRCodeDisplay })),
+  { ssr: false }
+);
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CreditCard } from 'lucide-react';

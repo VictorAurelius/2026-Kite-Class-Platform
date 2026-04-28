@@ -1,16 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useTemplates, useApplyTemplate } from '@/hooks/use-templates';
-import type { BrandingTemplate, ThemeConfig } from '@/types/branding';
-import { Card, CardContent } from '@/components/ui/card';
+import type { BrandingTemplate } from '@/types/branding';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { Palette, Check, LayoutGrid } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
+
+// GAP-236 Sub-PR B — lazy-load the templates grid. The grid only renders
+// after `useTemplates` resolves, so we delay its bundle until the network
+// fetch returns. Initial paint = page header + filter chips only.
+const TemplatesGrid = dynamic(() => import('./TemplatesGrid'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <LoadingSpinner />
+    </div>
+  ),
+});
 
 const CATEGORY_LABELS: Record<string, string> = {
   all: 'Tất cả',
@@ -84,109 +95,13 @@ export default function TemplateGalleryPage() {
         <div className="flex items-center justify-center py-12">
           <LoadingSpinner />
         </div>
-      ) : templates && templates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onApply={handleApply}
-              isApplying={applyMutation.isPending}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <LayoutGrid className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Không có template nào trong danh mục này</p>
-        </div>
-      )}
+      ) : templates ? (
+        <TemplatesGrid
+          templates={templates}
+          onApply={handleApply}
+          isApplying={applyMutation.isPending}
+        />
+      ) : null}
     </div>
-  );
-}
-
-interface TemplateCardProps {
-  template: BrandingTemplate;
-  onApply: (template: BrandingTemplate) => void;
-  isApplying: boolean;
-}
-
-function TemplateCard({ template, onApply, isApplying }: TemplateCardProps) {
-  let themeConfig: ThemeConfig | null = null;
-  try {
-    themeConfig = JSON.parse(template.themeConfig) as ThemeConfig;
-  } catch {
-    // Invalid JSON, skip color preview
-  }
-
-  return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Color Preview */}
-      {themeConfig && (
-        <div className="h-24 flex">
-          <div
-            className="flex-1"
-            style={{ backgroundColor: themeConfig.colors.primary }}
-          />
-          <div
-            className="flex-1"
-            style={{ backgroundColor: themeConfig.colors.secondary }}
-          />
-          <div
-            className="flex-1"
-            style={{ backgroundColor: themeConfig.colors.accent }}
-          />
-        </div>
-      )}
-
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">{template.name}</h3>
-          <Badge variant="secondary">
-            {CATEGORY_LABELS[template.category] || template.category}
-          </Badge>
-        </div>
-
-        {themeConfig && (
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              <span>Style: {themeConfig.style}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-medium">Font:</span>
-              <span>{themeConfig.fonts.heading}</span>
-            </div>
-            {/* Color swatches */}
-            <div className="flex gap-1">
-              {Object.entries(themeConfig.colors).map(([name, color]) => (
-                <div
-                  key={name}
-                  className="w-6 h-6 rounded-full border border-border"
-                  style={{ backgroundColor: color }}
-                  title={`${name}: ${color}`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        <Button
-          className="w-full"
-          onClick={() => onApply(template)}
-          disabled={isApplying}
-          aria-label={`Áp dụng template ${template.name}`}
-        >
-          {isApplying ? (
-            <LoadingSpinner />
-          ) : (
-            <>
-              <Check className="w-4 h-4 mr-2" />
-              Áp dụng Template
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
   );
 }

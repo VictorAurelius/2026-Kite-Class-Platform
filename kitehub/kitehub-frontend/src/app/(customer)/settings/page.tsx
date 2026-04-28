@@ -1,15 +1,37 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AccountTab } from './components/AccountTab';
-import { InstanceTab } from './components/InstanceTab';
-import { DangerZone } from './components/DangerZone';
-import { CustomDomainTab } from './components/CustomDomainTab';
 import { User, Settings, AlertTriangle, Globe } from 'lucide-react';
+
+// GAP-236 Sub-PR B — only one tab is active at a time. Lazy-load each tab's
+// component (4 tabs × ~200-340 LOC = ~1030 LOC of forms + dialogs ship on
+// demand instead of all up-front).
+const tabLoading = () => (
+  <div className="flex items-center justify-center py-8">
+    <LoadingSpinner />
+  </div>
+);
+const AccountTab = dynamic(
+  () => import('./components/AccountTab').then((m) => ({ default: m.AccountTab })),
+  { ssr: false, loading: tabLoading }
+);
+const InstanceTab = dynamic(
+  () => import('./components/InstanceTab').then((m) => ({ default: m.InstanceTab })),
+  { ssr: false, loading: tabLoading }
+);
+const CustomDomainTab = dynamic(
+  () => import('./components/CustomDomainTab').then((m) => ({ default: m.CustomDomainTab })),
+  { ssr: false, loading: tabLoading }
+);
+const DangerZone = dynamic(
+  () => import('./components/DangerZone').then((m) => ({ default: m.DangerZone })),
+  { ssr: false, loading: tabLoading }
+);
 
 export default function SettingsPage() {
   const user = useAuthStore((state) => state.user);

@@ -1,20 +1,38 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useBrandingJob, useAnalyzeLogo, useCreateBrandingJob } from '@/hooks/use-branding';
-import { UploadStep } from '@/components/branding/UploadStep';
-import { AnalyzeStep } from '@/components/branding/AnalyzeStep';
-import { GenerateStep } from '@/components/branding/GenerateStep';
-import { ReviewStep } from '@/components/branding/ReviewStep';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import type { LogoAnalysis } from '@/types/branding';
+
+// GAP-236 Sub-PR B — lazy-load wizard step components. Only the active step
+// renders at a time, so we ship its chunk on demand instead of bundling
+// upload + analyze + generate + review all up-front.
+const stepLoading = () => <LoadingSpinner className="my-12" />;
+const UploadStep = dynamic(
+  () => import('@/components/branding/UploadStep').then((m) => ({ default: m.UploadStep })),
+  { ssr: false, loading: stepLoading }
+);
+const AnalyzeStep = dynamic(
+  () => import('@/components/branding/AnalyzeStep').then((m) => ({ default: m.AnalyzeStep })),
+  { ssr: false, loading: stepLoading }
+);
+const GenerateStep = dynamic(
+  () => import('@/components/branding/GenerateStep').then((m) => ({ default: m.GenerateStep })),
+  { ssr: false, loading: stepLoading }
+);
+const ReviewStep = dynamic(
+  () => import('@/components/branding/ReviewStep').then((m) => ({ default: m.ReviewStep })),
+  { ssr: false, loading: stepLoading }
+);
 
 export default function BrandingWizardPage() {
   const router = useRouter();

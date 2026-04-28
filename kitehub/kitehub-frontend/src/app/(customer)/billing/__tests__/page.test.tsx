@@ -109,7 +109,7 @@ describe('BillingPage', () => {
     expect(screen.getByText('Không thể tải thông tin thanh toán. Vui lòng thử lại.')).toBeInTheDocument();
   });
 
-  it('renders trial user view (no subscription)', () => {
+  it('renders trial user view (no subscription)', async () => {
     (useOwnerInstances as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockInstances,
       isLoading: false,
@@ -126,10 +126,11 @@ describe('BillingPage', () => {
 
     expect(screen.getByText('Chưa có gói đăng ký')).toBeInTheDocument();
     expect(screen.getByText('Bạn đang trong giai đoạn dùng thử. Chọn gói phù hợp với nhu cầu của bạn.')).toBeInTheDocument();
-    expect(screen.getByTestId('plan-comparison')).toHaveTextContent('All plans available');
+    // PlanComparison loaded via `next/dynamic` — wait for it to mount.
+    expect(await screen.findByTestId('plan-comparison')).toHaveTextContent('All plans available');
   });
 
-  it('renders active subscription view', () => {
+  it('renders active subscription view', async () => {
     (useOwnerInstances as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockInstances,
       isLoading: false,
@@ -147,7 +148,8 @@ describe('BillingPage', () => {
     expect(screen.getByText('Thanh toán & Đăng ký')).toBeInTheDocument();
     expect(screen.getByText('Quản lý gói đăng ký và lịch sử thanh toán của bạn')).toBeInTheDocument();
     expect(screen.getByTestId('current-plan-card')).toBeInTheDocument();
-    expect(screen.getByTestId('plan-comparison')).toBeInTheDocument();
+    // PlanComparison loaded via `next/dynamic` — wait for it.
+    expect(await screen.findByTestId('plan-comparison')).toBeInTheDocument();
   });
 
   it('renders action buttons for subscribed users', () => {
