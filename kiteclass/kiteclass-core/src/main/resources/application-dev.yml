@@ -6,23 +6,12 @@
 #
 # Run with: --spring.profiles.active=dev
 #
-# Why ddl-auto: create-drop + flyway disabled here:
-#   The Flyway migrations carry a latent type mismatch (created_by/updated_by are
-#   VARCHAR(100) in V*.sql but Long in BaseEntity), so the default
-#   ddl-auto=validate against a Flyway-built schema fails on boot. Test profile
-#   solves this the same way (see src/test/resources/application*.yml). The dev
-#   profile is local-only, so Hibernate-generated schema is acceptable; production
-#   keeps Flyway as the source of truth.
-#
-# Tracking: GAP-235 (Sub-PR F shipped the seeder; this override unlocks the
-#   matching dev runtime). Schema mismatch tracked separately if reopened.
+# Schema: GAP-244 (V46__align_audit_columns_to_bigint.sql) closed the
+# created_by/updated_by VARCHAR↔Long mismatch, so dev now follows the same
+# Flyway + ddl-auto: validate path as production. No local override needed.
 
 spring:
-  flyway:
-    enabled: false
   jpa:
-    hibernate:
-      ddl-auto: create-drop
     show-sql: false  # toggle to true for local SQL inspection
 
 logging:

@@ -148,8 +148,9 @@ export INTERNAL_API_SECRET="${INTERNAL_API_SECRET:-dev-internal-secret-not-for-p
 SPRING_PROFILE_FOR_RUN="$SPRING_PROFILES_ACTIVE"
 
 # 4. Start Core Service
-# Activate the dev profile so application-dev.yml (BrandingDataSeeder, ddl-auto
-# create-drop, Flyway disabled) takes effect — see GAP-235 Sub-PR F notes.
+# Activate the dev profile so application-dev.yml (BrandingDataSeeder + dev-only
+# logging) takes effect — see GAP-235 Sub-PR F notes. Schema runs through Flyway
+# + ddl-auto: validate same as prod (GAP-244 V46 closed the audit-column drift).
 echo -e "\n${BLUE}⚙️  Khởi động Core Service (port 8081, profile=$SPRING_PROFILE_FOR_RUN)...${NC}"
 cd "$PROJECT_ROOT/kiteclass-core"
 ./mvnw spring-boot:run -Dspring-boot.run.profiles="$SPRING_PROFILE_FOR_RUN" \
