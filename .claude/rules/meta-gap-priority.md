@@ -1,7 +1,10 @@
 # Meta-Gap Priority Rule
 
 **Priority:** 🔴 CRITICAL — governance for gap ordering
+**Version:** 1.0.0
 **Created:** 2026-04-18
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Applies to:** All gap triage, sprint planning, wave planning
 
 ---
@@ -157,5 +160,6 @@ Never override silently — always log the override reason in gap/PR description
 
 ## 9. Log
 
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-20:** Added Business-Logic tier between Meta and Feature (§3 Priority Matrix). Triggered by user observation that BRD docs + persona review gaps (GAP-049/050) were treated as regular P0 features, despite "wrong business = wrong product even if code is perfect". Business-logic correctness must lead feature execution. New ordering: Meta → Business-Logic → Feature at each P-level. Created alongside GAP-150 (BRD completion), GAP-151 (persona AC template), GAP-152 (persona review round 1).
 - **2026-04-18:** Rule created after user observation that skills/rules/workflow gaps were being deprioritized behind feature gaps, despite affecting output quality of all future PRs. Triggered by discussion of GAP-047 (document generation skills) being listed at same P0 level as feature gaps.

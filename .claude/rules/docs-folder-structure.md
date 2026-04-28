@@ -1,7 +1,10 @@
 # Docs Folder Structure — Generic Rule for `documents/`
 
 **Priority:** 🟠 MANDATORY — governance for all top-level folders trong `documents/`
+**Version:** 1.0.0
 **Created:** 2026-04-18
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Applies to:** Every top-level folder under `documents/` (00-brd, 01-business, 02-architecture, 03-planning, 04-quality, 05-guides, 06-diagrams, 07-archived, 08-thesis, và future folders)
 
 ---
@@ -131,4 +134,5 @@ Folders không có rule chuyên biệt chỉ cần README theo template §3.
 
 ## 9. Log
 
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-18:** Rule created (GAP-101) after planning docs restructure. Generalizes pattern từ 03-planning sang toàn documents/.

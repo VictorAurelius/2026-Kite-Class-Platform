@@ -1,7 +1,10 @@
 # Planning Docs Structure — `documents/03-planning/`
 
 **Priority:** 🟠 MANDATORY — governance for all planning artifacts
+**Version:** 1.0.0
 **Created:** 2026-04-18
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Applies to:** Every file under `documents/03-planning/`
 
 ---
@@ -162,4 +165,5 @@ Existing files without frontmatter: backfill on next edit, no mass migration req
 
 ## 9. Log
 
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-18:** Rule created during restructure of `documents/03-planning/`. 15 root-level `.md` files consolidated into `waves/`, `plans/`, `roadmap/` subdirs.

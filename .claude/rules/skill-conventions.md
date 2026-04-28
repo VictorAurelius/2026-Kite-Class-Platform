@@ -1,5 +1,12 @@
 # Skill Conventions — Based on Anthropic Internal Best Practices
 
+**Priority:** 🟠 MANDATORY — governance for `.claude/skills/**`
+**Version:** 1.0.0
+**Created:** 2026-04-01
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
+**Applies to:** Every skill file under `.claude/skills/**` (SKILL.md, references, scripts, fixtures) and the starter-kit copies under `.claude/starter-kit/`
+
 How to write Agent Skills that maximize quality and minimize token waste.
 
 ## Core Principle
@@ -250,3 +257,9 @@ Tương tự cho **Quality Audit**: chỉ re-score categories bị ảnh hưởn
 |------|---------|
 | `.claude/skills/quality/ui-review/SKILL.md` | Portable audit skill (adapt pages + scoring) |
 | `kiteclass/kiteclass-frontend/scripts/capture-screenshots.ts` | Auto dev server + labeled folders |
+
+---
+
+## Log
+
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Priority + Version + Created + Last-Reviewed + Reviewer-Approver + Applies-to fields, plus this Log section (rule originally lacked one). No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5. Created date 2026-04-01 derived from git history (first commit of file).
