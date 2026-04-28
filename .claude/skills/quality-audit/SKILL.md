@@ -363,3 +363,13 @@ Quality-audit cho cái nhìn tổng quan /100. Để đánh giá sâu hơn từn
 | Document Generation | (sample inspection — no dedicated skill yet) | Open `documents/04-quality/samples/*` after Wave 5 Sub-PR 5.6; spot-check VN diacritics, VND format, branding application across PDF/XLSX/DOCX outputs. |
 
 Thêm section "Specialized Audit Scores" vào report nếu có kết quả từ audit chuyên sâu.
+
+---
+
+## Gotchas
+
+- **Self-audit overstates 15-20 pts vs specialist** — per memory `feedback_audit_calibration.md`, do not trust standalone score; always compute delta vs prior baseline, not absolute number
+- **Audit grep scope must include -core submodules** — search `kiteclass-core/` + sub-modules explicitly; missing them produces false-positive issue counts (GAP-107 incident — see `feedback_audit_grep_scope.md`)
+- **Targeted re-audit only after fix** — full re-audit only on release / major refactor; per `feedback_targeted_audit.md` re-score only categories affected by the fix
+- **First-run baseline is NOT a regression** — when scoring a never-audited category (e.g., ops-readiness, performance pre-2026-04-19), low score is honest baseline, not drift
+- **Always use `scripts/check-ci.sh --status`** (read mode) for audit data; `gh pr checks` field `state` returns null and breaks polling — see `feedback_monitor_gh_pr_checks_no_state_field.md`

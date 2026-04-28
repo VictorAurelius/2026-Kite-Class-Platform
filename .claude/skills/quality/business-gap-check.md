@@ -362,3 +362,13 @@ Reference: `.claude/rules/audit-to-gap-pipeline.md` Step 2.5. Vi phạm = gap ph
 - Nếu constant hardcoded thay vì config → FAIL
 - Nếu logic chưa implement (placeholder/FUTURE) → FAIL
 - Cross-check: email template tồn tại ↔ code trigger ↔ scheduler call
+
+---
+
+## Gotchas
+
+- **State-check before filing a gap** — per `audit-to-gap-pipeline.md` Step 2.5, grep actual paths the gap would touch; partial implementations exist (GAP-190/197 incident — `feedback_gap_state_check_required.md`)
+- **`grep` scope must include `-core` submodules** — `kiteclass/kiteclass-core/module/{ai,branding,instance,quality,moderation,provisioning}/` is where v2 lives, not `kitehub-branding/` (architecture doc drift — `feedback_search_all_modules_before_missing_claim.md`)
+- **Hardcoded numbers are not always business gaps** — many constants are `serialVersionUID`, port numbers, byte-size limits; filter via `grep -v "serialVersionUID\|logger\|LOG"` before flagging
+- **Email-template-without-call ≠ unused** — some templates fire from cron jobs (`@Scheduled`) or message consumers; verify both code paths before claiming dead template
+- **Status transition gaps mask state machine errors** — `setStatus()` calls outside the canonical state machine class are usually the bug, not "missing transitions"; cross-reference with `design-patterns.md` §3.3

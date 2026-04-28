@@ -1,6 +1,6 @@
 ---
 name: continue
-description: Xác định action ưu tiên nhất từ project plans và thực hiện theo Superpowers methodology
+description: "Dùng khi user runs `/continue` hoặc nói 'tiếp tục', 'pick next task', 'làm tiếp', 'next priority'. Reads plan documents in priority order (P0 first), applies wave-eligibility pre-flight (Step 0 — ≥3 disjoint sub-tasks → wave + parallel agents), then executes via Superpowers methodology."
 user-invocable: true
 argument-hint: "[optional context]"
 ---
