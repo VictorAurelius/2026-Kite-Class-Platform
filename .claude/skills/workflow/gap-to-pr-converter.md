@@ -351,3 +351,13 @@ After generating:
 - This SKILL.md — converter methodology
 - Related: `.claude/skills/workflow/start-pr/` — actual PR creation
 - Data source: `documents/04-quality/gaps/GAP-*.md` + `ROADMAP.md`
+
+---
+
+## Gotchas
+
+- **Step 2.5 state-check is non-negotiable** — gaps filed weeks ago routinely have partial code already; per `.claude/rules/audit-to-gap-pipeline.md` Step 2.5, grep `kiteclass-core/` + `kitehub-*/` paths in the gap's Proposed Fix BEFORE generating the branch, or you ship duplicate work (GAP-190/197 rewrite incident, memory `feedback_gap_state_check_required.md`)
+- **Wave mode with ≥3 disjoint sub-tasks beats serial PRs** — for a wave-eligible gap, spawn parallel worktree agents from `wave/X` branch instead of producing one PR per sub-task; serial PRs cost ~3× wall-clock (see `feedback_wave_plan_before_serial_prs.md`, GAP-229 incident 2026-04-26)
+- **Wave plan doc itself must go through PR** — generated `documents/03-planning/waves/wave-X-*.md` is NOT exempt from CLAUDE.md "everything via PR" rule; do NOT push wave plan directly to main even if "agents need plan ready now" (memory `feedback_wave_plan_through_pr.md`, 2026-04-26 violation)
+- **DONE flip in Step 8 must satisfy gap-done-discipline** — `.claude/rules/gap-done-discipline.md` §2 blocks Status `🟢 DONE` if any AC checkbox is unchecked OR Log entry contains banned phrases (`deferred`, `manual run`, `partial`, etc.); if a sub-task is genuinely deferred, flip to `🟡 PARTIAL` and file follow-up gap (incident GAP-235 Sub-PR G silent-deferral)
+- **Branch naming `feat/kite-{...}` collides across services** — both kiteclass-core and kitehub-branding can produce `feat/kite-classification`; prefix with service when scope is single-service (`feat/kc-classification`, `feat/kh-branding-routing`) to keep `git branch -r` legible

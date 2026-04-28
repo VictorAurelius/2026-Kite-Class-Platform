@@ -36,3 +36,13 @@ user-invocable: false
 - `/wave-completion-check` Level 5 goi docs-freshness check
 - `/quality-audit` Category 8 dung docs-freshness criteria
 - Pre-commit hook warning khi business logic thay doi
+
+---
+
+## Gotchas
+
+- **Skill flags candidates, does NOT enforce** — output is an advisory list of docs that *might* need update; final decision still belongs to the PR author/reviewer. Pair with `audit-to-gap-pipeline.md` Step 2.5 state-check if you need the harder "code-doc divergence" check
+- **Project root `README.md` is living, but service-level READMEs are NOT in this list** — only the 6 docs in §Living Docs are tracked; Wave Meta-Gov 1 introduced `scripts/check-readme-freshness.sh` (CI job `readme-freshness`, GAP-255) for the broader 46-README freshness window — they are complementary, not duplicates
+- **Business doc drift detection is grep-based, not semantic** — this skill checks "did business code change without business doc change?" via path overlap; it cannot detect that the *content* drifted (e.g. config value changed but doc still cites old value). Use `quality/business-logic-audit/SKILL.md` for value-level verification
+- **Pre-commit hook coverage is partial** — the hook in `.husky/` only fires on staged files; if a PR re-bases or rewrites history, drift between branches won't trigger a warning. Re-run check on the PR base SHA, not just HEAD
+- **`documents/01-business/*/rules.md` 3-layer rule trumps this list** — when a domain folder has the 3-file structure (rules.md / use-cases.md / api-contract.md), all three are living together; do not flag only `rules.md` as drift while leaving the matching `api-contract.md` stale (CLAUDE.md §Business Logic Documents)
