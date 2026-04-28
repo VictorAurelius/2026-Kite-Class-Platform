@@ -10,6 +10,14 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (Triage — 4 follow-up gaps filed post-Wave GAP-236 + IDE warning incident):** Per `audit-to-gap-pipeline.md` Step 2.5 state-check:
+- **GAP-245** P1 Meta — CI does not enforce IDE warnings (deprecation/unused/raw types). Process gap surfaced after PR #605 closed 8 shipped warnings; memory rule alone is insufficient enforcement layer per `feedback_incident_to_rule_pipeline.md` 5-stage pipeline.
+- **GAP-246** P3 — delete unused `kiteclass-frontend/src/components/ui/calendar.tsx` (dead post-Wave 7-Perf attendance migration; Agent B finding). 1-line PR.
+- **GAP-247** P2 — HCaptcha `next/dynamic` wrapper with forwardRef + useImperativeHandle for KH `/register` (~80 KB potential First Load JS win; Agent D revert documented).
+- **GAP-248** P2 — KC `(auth)/layout.tsx` provider chunk hoist refactor (131 KB common chunk Agent A flagged); investigate-then-decide via `bundle-analyzer-baseline-kc.html` trace.
+
+Counts: **86 OPEN → 90 OPEN** (+GAP-245/246/247/248 filed; all post-wave triage).
+
 **2026-04-28 (Wave GAP-236 SHIPPED — 4 parallel agents, ~18 min wall-clock):** Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md` (wave plan PR-first landed in #599). 4 worktree-isolated agents on disjoint FE buckets, 0 file conflicts (only additive Log conflicts on GAP-236 file resolved by parent rebase):
 
 | Agent | Bucket | PR | Pages |
