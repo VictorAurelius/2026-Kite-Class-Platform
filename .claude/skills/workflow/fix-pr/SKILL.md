@@ -370,3 +370,13 @@ Sau khi fix, chạy lại `/check-pr $ARGUMENTS` để verify:
 | PR Merged, missing tests | Follow-up PR with tests |
 | PR Merged, missing docs | Add to docs folder |
 | Multiple PRs affected | Create dependency graph, fix in order |
+
+---
+
+## Gotchas
+
+- **Case A `gh pr checkout` strips local commits** — if working tree has uncommitted changes the checkout fails; `git stash` first OR use Case B (follow-up PR) instead — never `--force` over local work
+- **Case B follow-up PR must NOT amend a closed gap to DONE** — if original PR closed GAP-XYZ as PARTIAL with deferred items, follow-up PR adds the missing pieces and only THEN flips Status (per `gap-done-discipline.md` §2 — banned phrases like "deferred to follow-up" + DONE in same diff trigger Rule 13 BLOCK)
+- **Retroactive brainstorm is NOT a free pass** — adding a `## Retroactive Brainstorm` section after-the-fact does not satisfy `output-review-mandate.md` §3 review standard; if the original PR shipped without methodology artifacts, the gap is in the process not the doc — surface that in commit message
+- **Docs-only fix PRs still need audit-gate awareness** — even pure-docs follow-ups can trigger `audit-gate.py` AUDIT_RULES if file patterns match (`pom.xml`, `Controller.java`); per `post-wave-audit-mandate.md` §3 docs-only exception kicks in only when ALL paths are `.md`/`.claude/`/`documents/`
+- **Co-Authored-By auto-trailer must be stripped** — Claude Code adds the line by default; commit messages in fix PRs follow project convention (memory `feedback_no_coauthored_by.md`) — verify before push

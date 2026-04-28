@@ -118,3 +118,14 @@ Skill này PHẢI được gợi ý chạy sau:
 3. `/wave-completion-check` phát hiện issues mới
 
 **KHÔNG tự chạy** — luôn hỏi user: "Score {X}/100, {N} gaps. Tạo plan mới?"
+
+---
+
+## Gotchas
+
+- **Step 3 must apply meta-gap priority boost FIRST** — gaps touching skills/rules/workflow get priority above feature gaps at same P-level (per `meta-gap-priority.md` §3 matrix); plan generated without this boost will defer force-multipliers behind features
+- **Step 3 must run state-check per gap** — before adding a gap to PR plan, grep actual paths it touches; partial implementations exist (GAP-190/197 incident) and will require gap rewrite — `audit-to-gap-pipeline.md` Step 2.5 is non-negotiable
+- **Wave Strategy max 4-5 agents, NOT N gaps = N agents** — `parallel-execution-strategy.md` caps single-message dispatch ≤5; planner must batch when gap count exceeds ceiling (memory `feedback_parallel_agent_strategy.md` 9 hard rules)
+- **Docker-required PRs cannot share an agent with local-only PRs** — Docker contention serializes them; always isolate to dedicated agent per Step 4 rule, even at cost of agent count
+- **Score-impact estimates are notoriously optimistic** — self-audit overstates 15-20 pts vs specialist (memory `feedback_audit_calibration.md`); when planning "+X to reach 100", treat estimates as upper bound not target
+- **Step 6 update of `/continue` references is easy to forget** — without it, `continue` skill won't surface the new plan and next session reverts to old wave; verify the plan path appears in `continue/SKILL.md` Active Plans list before closing the session
