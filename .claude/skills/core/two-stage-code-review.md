@@ -96,3 +96,34 @@ If a new template lands without a sample golden output OR without 3-layer doc up
 - [ ] 🟡 MINOR issues noted (naming, duplication, JavaDoc, style)
 
 **Decision:** APPROVE / APPROVE with recommendations / BLOCK
+
+## Severity Rubric (5-tier)
+
+Per `documents/04-quality/gaps/GAP-254-severity-rubric-two-stage-code-review.md`,
+review findings carry a 5-tier severity label. The Praise tier is the novel
+addition — explicit positive recognition reduces the deficit-bias that
+accumulates in long PRs (per 2026 reviewer-fatigue research). External refs:
+[awesome-skills/code-review-skill](https://github.com/awesome-skills/code-review-skill)
++ [sennaBruno/claude-skills/quality-gate](https://github.com/sennaBruno/claude-skills).
+
+| Tier | Definition | Example in this codebase |
+|------|-----------|-------------------------|
+| 🛑 **Blocker** | MUST fix before merge — correctness / security / data loss / contract breach | "Outbox bypassed without §3.5.1 exception A/B/C/D marker" — `design-patterns.md` violation |
+| 🔴 **Critical** | SHOULD fix this PR or file follow-up gap — quality regression with downstream cost | "@Cacheable on @Service without invalidation path" — silent stale-data risk |
+| 🟡 **Warning** | SHOULD fix opportunistically — anti-pattern, missing test, perf concern | "Missing unit test for new public method" |
+| ℹ️ **Info** | Informational, no action required — context for future readers | "Variable name could be clearer (consider `studentRoster` over `s`)" |
+| 🌟 **Praise** | Explicit recognition of good work — novel pattern, useful test, well-documented decision | "Novel use of XState machine for complex wizard flow — easier to reason about than nested conditionals" |
+
+**When to use each tier — rule of thumb:**
+
+- **🛑 Blocker / 🔴 Critical** map to existing Stage 2 BLOCKING / strong-recommendation buckets. Use these tiers when the finding falls in those buckets and you want a sharper label.
+- **🟡 Warning / ℹ️ Info** map to existing Stage 2 MINOR + nice-to-have. Same idea, sharper label.
+- **🌟 Praise** is additive — at least one Praise tier per non-trivial PR. If you can articulate a praise tier and you don't, you're being deficit-biased. Praise specific, concrete things (a clever test, a clear comment, a tasteful pattern application). Avoid generic "great job".
+
+The rubric is **additive**, not replacement — Stage 2 GRADED 🔴/🟠/🟡 buckets above remain primary; the 5-tier rubric provides finer-grained severity labels reviewers may attach to individual findings.
+
+For audit skills emitting /100, mapping to severity tiers is **optional this version** — a 13-skill cascade is too big for one PR. Tracked as a follow-up under GAP-255 / GAP-256 family if user wants to lift across audits.
+
+## Log
+
+- **2026-04-28** Added `## Severity Rubric` section (5-tier: 🛑 Blocker / 🔴 Critical / 🟡 Warning / ℹ️ Info / 🌟 Praise). Inspired by external community standard (awesome-skills/code-review-skill, sennaBruno/claude-skills/quality-gate); Praise tier is the novel addition. Closes GAP-254. Wave Meta-Gov 1, Move 2, Agent B PR. ≤80 lines added per AC.

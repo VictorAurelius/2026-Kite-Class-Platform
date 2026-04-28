@@ -1,6 +1,6 @@
 # GAP-254: Add 5-tier severity rubric (Blocker → Praise) to `two-stage-code-review`
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — `## Severity Rubric` section + `## Log` shipped in `core/two-stage-code-review.md`
 **Priority:** 🟡 P2 (Meta — review-quality lift; reduces deficit-bias per 2026 community standard)
 **Domain:** Governance / Skills / Code Review
 **Detected:** 2026-04-28 (ecosystem audit + external research)
@@ -56,11 +56,11 @@ Audit skills emitting /100 (business-logic, security, performance, ops-readiness
 
 ## Acceptance Criteria
 
-- [ ] `core/two-stage-code-review.md` has `## Severity Rubric` section with 5 tiers + examples + when-to-use
-- [ ] ≤80 lines added (target compact)
-- [ ] Cross-links to `awesome-skills/code-review-skill` and `sennaBruno/claude-skills/quality-gate` present
-- [ ] `## Log` section appended at file bottom with 2026-04-28 entry citing GAP-254
-- [ ] No constraint on existing review process — rubric is additive, not replacement
+- [x] `core/two-stage-code-review.md` has `## Severity Rubric` section with 5 tiers (🛑 Blocker / 🔴 Critical / 🟡 Warning / ℹ️ Info / 🌟 Praise) + per-tier examples + when-to-use guidance
+- [x] ≤80 lines added — actual: 31 lines added (98 → 129 LOC)
+- [x] Cross-links to `awesome-skills/code-review-skill` and `sennaBruno/claude-skills/quality-gate` present
+- [x] `## Log` section appended at file bottom with 2026-04-28 entry citing GAP-254
+- [x] No constraint on existing review process — rubric explicitly described as "additive, not replacement" in the new section
 
 ## Out-of-scope
 
@@ -79,4 +79,5 @@ Audit skills emitting /100 (business-logic, security, performance, ops-readiness
 
 ## Log
 
+- **2026-04-28** Wave Meta-Gov 1 Move 2 Agent B PR shipped. `## Severity Rubric` section appended to `core/two-stage-code-review.md` (31 LOC added, well under 80-line cap). 5 tiers — 🛑 Blocker / 🔴 Critical / 🟡 Warning / ℹ️ Info / 🌟 Praise — each with project-specific example. Praise tier is the novel addition (e.g., "Novel use of XState machine for complex wizard flow"). Section explicitly notes additive-not-replacement to keep existing 🔴/🟠/🟡 GRADED buckets primary. Cascade to 13 audit skills emitting /100 explicitly listed under gap §Out-of-scope (separate follow-up gap if user wants global lift).
 - **2026-04-28** Filed during ecosystem audit + external research. Praise tier is the novel addition; rest are codification of community standard.

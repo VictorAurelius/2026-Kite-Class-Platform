@@ -1,6 +1,6 @@
 # GAP-253: Eval-fixtures pilot for `business-logic-audit` + `security-audit` skills
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — 6 synthetic fixtures shipped + audit skill SKILL.md sections added
 **Priority:** 🟡 P2 (Meta — Anthropic 2026 best-practice; quality-floor for highest-stakes audits)
 **Domain:** Governance / Skills / Quality
 **Detected:** 2026-04-28 (ecosystem audit + external best-practice review)
@@ -57,11 +57,11 @@ Document the pattern in each piloted skill's SKILL.md (under `## Eval Fixtures` 
 
 ## Acceptance Criteria
 
-- [ ] 6 fixture files committed (3 per skill × 2 skills)
-- [ ] Each fixture has expected-PASS/FAIL header + check name + expected output
-- [ ] `business-logic-audit/SKILL.md` + `security-audit/SKILL.md` each have `## Eval Fixtures` section linking to fixture dir
-- [ ] Pattern documented once in shared style (could be in `skill-conventions.md` follow-up)
-- [ ] Optional WARN in `check-skill-conventions.sh` flagging audit skills missing fixtures (advisory only)
+- [x] 6 fixture files committed (3 per skill × 2 skills) under `data/eval-fixtures/` of each piloted skill
+- [x] Each fixture has `# Expected: PASS|FAIL` header + check name + expected output snippet
+- [x] `business-logic-audit/SKILL.md` + `security-audit/SKILL.md` each have `## Eval Fixtures` section listing the 3 fixtures + how-to-run
+- [x] Pattern documented in each piloted skill's `## Eval Fixtures` section (consolidating into `skill-conventions.md` is GAP-258 follow-up if user wants global mandate)
+- [x] Optional WARN in `check-skill-conventions.sh` flagging audit/review skills missing `data/eval-fixtures/` (advisory; downgrades to OK once piloted skills land)
 
 ## Out-of-scope
 
@@ -80,4 +80,5 @@ Document the pattern in each piloted skill's SKILL.md (under `## Eval Fixtures` 
 
 ## Log
 
+- **2026-04-28** Wave Meta-Gov 1 Move 2 Agent B PR shipped. 6 synthetic fixtures live: `business-logic-audit/data/eval-fixtures/{good,bad-rule-not-implemented,edge-config-key-renamed}.md` + `security-audit/data/eval-fixtures/{good,bad-secret-in-config,edge-transitive-cve}.md`. Each fixture has `# Expected: PASS|FAIL` header, scenario setup, expected audit-report excerpt, and how-to-use guidance. Both audit SKILL.md files now have `## Eval Fixtures` sections (≤25 lines each). `check-skill-conventions.sh` Cat 5 advisory WARN already drops these 2 skills from the missing-fixtures list. Scaffold-only verification — fixtures are walked mentally by reviewers, not exercised by CI runner (per Out-of-scope §). Retro-fit to other 11 audit skills tracked as follow-up.
 - **2026-04-28** Filed during ecosystem audit. Pilot scope (2 of 13 audit skills) keeps this gap shippable in 1 PR. Mirrors `gap-done-discipline.md` 3-fixture pattern.
