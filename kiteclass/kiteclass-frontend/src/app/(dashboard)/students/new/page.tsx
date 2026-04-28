@@ -10,7 +10,7 @@
 export const dynamic = 'force-dynamic';
 
 import { DashboardLayout } from '@/components/layout';
-import { StudentForm } from '@/components/forms/student-form';
+import { StudentForm } from '@/components/forms/dynamic-student-form';
 import { useCreateStudent } from '@/hooks/use-students';
 import type { CreateStudentRequest, UpdateStudentRequest } from '@/types/student';
 

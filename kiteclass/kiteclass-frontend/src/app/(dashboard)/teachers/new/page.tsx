@@ -8,7 +8,7 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout';
-import { TeacherForm } from '@/components/forms/teacher-form';
+import { TeacherForm } from '@/components/forms/dynamic-teacher-form';
 import { useCreateTeacher } from '@/hooks/use-teachers';
 import type { CreateTeacherRequest, UpdateTeacherRequest } from '@/types/teacher';
 
