@@ -1,11 +1,15 @@
 ---
 title: Next-session handoff — Option B single-gap focus after Cluster 4 oversized verdict
-status: active
+status: superseded
 created: 2026-04-28
 updated: 2026-04-28
 gaps: [GAP-122, GAP-067, GAP-066, GAP-068]
 recommended_pick: GAP-122
 fallback_picks: [GAP-067-phase-1-stub]
+executed_pick: GAP-122
+executed_pr: 638
+superseded_at: 2026-04-28
+superseded_by: documents/03-planning/waves/wave-2026-04-28-gap-122-platform-alerts.md
 ---
 
 # Next-session handoff — Single-gap focus
@@ -122,4 +126,5 @@ These 3 sub-gaps **would be** wave-pack-eligible (~9h serial → ~3h parallel vi
 
 ## Log
 
+- **2026-04-28 (executed → superseded)** — GAP-122 picked + shipped via PR #638. Internal slicing: single-gap ≠ single-thread (3 disjoint slices → 3 parallel worktree agents) per `feedback_wave_plan_before_serial_prs.md`. Wall-clock: ~2.5h end-to-end (manifest commit + 3 agents ~11 min parallel + cherry-pick + incidental coverage + sister gaps + closure). Plan content stays for historical reference; supersession noted in frontmatter.
 - 2026-04-28 evening — Created during session-handoff after Cluster 4 KH admin flagged as oversized per cluster-pattern.md. User chose Option B (single-gap focus) as alternative. This plan pre-decides next session's pick to minimize re-evaluation cost.
