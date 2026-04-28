@@ -112,8 +112,8 @@ on drift between disk and this index.
 | `workflow/gap-triage.md` | Dùng khi 'triage gaps', 'gap nào ưu tiên', 'sprint assignment' — phân loại + assign |
 | `workflow/gap-to-pr-converter.md` | Dùng khi 'convert gap → PR', 'fix gaps' — gap ID → branch name + template |
 | `workflow/ci-failure-triage.md` | Dùng khi 'CI fail', 'tests broken' — systematic triage: identify → classify → fix |
-| `workflow/development-workflow.md` | Comprehensive development workflow (legacy, large doc — being decomposed) |
-| `workflow/priority-pr-planning.md` | PR prioritization standards (legacy, large doc) |
+| `workflow/development-workflow/SKILL.md` | Use when user says 'development workflow', 'PR workflow', 'branching strategy', 'how to ship'. End-to-end workflow planning → release. (Folder skill — Wave 9 split from 1221-line monolith) |
+| `workflow/priority-pr-planning/SKILL.md` | Use when user says 'priority PR plan', 'urgent PR queue', 'plan PRs by priority'. Standards for temporary priority PR plans. (Folder skill — Wave 9 split from 800-line monolith) |
 
 ---
 
