@@ -1,6 +1,6 @@
 # GAP-249: Rule files missing mandatory frontmatter (Version / Last-Reviewed / Reviewer-Approver)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — All 8 rules backfilled + verified by GAP-250 detector (PR pending)
 **Priority:** 🟠 P1 (Meta — force-multiplier per `meta-gap-priority.md`)
 **Domain:** Governance / Rules
 **Detected:** 2026-04-28 (ecosystem audit)
@@ -42,10 +42,10 @@ Pair with **GAP-250** (CI gate) — backfill alone doesn't prevent regression.
 
 ## Acceptance Criteria
 
-- [ ] All 8 rules above have Version + Last-Reviewed + Reviewer-Approver + Applies-to fields
-- [ ] Each rule has a 2026-04-28 PATCH log entry citing GAP-249
-- [ ] No content changes — only frontmatter (verify via `git diff` should show only header + log additions)
-- [ ] `scripts/check-rule-frontmatter.sh` (from GAP-250) returns exit-0 on all 14 rules
+- [x] All 8 rules above have Version + Last-Reviewed + Reviewer-Approver + Applies-to fields
+- [x] Each rule has a 2026-04-28 PATCH log entry citing GAP-249
+- [x] No content changes — only frontmatter (verify via `git diff` should show only header + log additions)
+- [x] `scripts/check-rule-frontmatter.sh` (from GAP-250) returns exit-0 on all 14 rules
 
 ## Out-of-scope
 
@@ -62,4 +62,5 @@ Pair with **GAP-250** (CI gate) — backfill alone doesn't prevent regression.
 
 ## Log
 
+- **2026-04-28** ✅ Closed by Wave Meta-Gov 1 Agent A (`feature/wave-meta-gov-1-A-rule-frontmatter`). All 8 rules backfilled with Version 1.0.0 + Last-Reviewed 2026-04-28 + Reviewer-Approver + Applies-to. `output-review-mandate.md` also picked up missing `Applies to` field (PATCH bump 1.1.0 → 1.1.1) — caught by paired GAP-250 detector during self-test, fixed in same PR. `scripts/check-rule-frontmatter.sh --all` returns exit-0 on all 14 rules. Diff is purely additive frontmatter + log entries; verified via `git diff --stat .claude/rules/`.
 - **2026-04-28** Filed during ecosystem audit (Wave Meta-Gov 1). Force-multiplier P1 per `meta-gap-priority.md` §3 (Meta > Feature). Paired with GAP-250.

@@ -1,10 +1,11 @@
 # Output Review Mandate
 
-**Version:** 1.1.0
-**Created:** 2026-04-14
-**Last-Reviewed:** 2026-04-26
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — PATCH self-approve per `rule-change-process.md` §5)
 **Priority:** 🔴 CRITICAL — project-wide governance rule
+**Version:** 1.1.1
+**Created:** 2026-04-14
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — PATCH self-approve per `rule-change-process.md` §5)
+**Applies to:** Every artifact (code, docs, gaps, audits, AI assets, contracts, generated reports, scripts, templates, logs) the project produces, plus every review process listed in §3 matrix
 
 ---
 
@@ -294,6 +295,7 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- **2026-04-28** (v1.1.1): PATCH — added missing `**Applies to:**` frontmatter field flagged by `scripts/check-rule-frontmatter.sh` (GAP-250 self-test). No content change; promotes Priority field to first line per project convention. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter sync, no constraint loosening).
 - **2026-04-27** (v1.1.0): MINOR — added §3 matrix rows: "Gap closure (Status flip → DONE)" (closes GAP-235 silent-deferral incident; enforced by `gap-done-discipline.md` + `session-docs-check` Rule 13) and "Coverage gaps in rules/skills (incidents)" (closes the meta-process gap user surfaced; enforced by `incident-to-rule-pipeline.md` paired with `rule-change-process.md` §6.5). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5; no constraint loosening — only adds coverage rows for previously-uncovered output types). Motivation: user "có quy trình khi thêm 1 skill, 1 rules vào dự án chưa, mà vẫn miss kiểu này" — matrix had no row for gap closure or for coverage-gap discovery, so silent misses had no review standard.
 - **2026-04-26 (v1.0.2, later):** PATCH — re-sync §3 matrix line 75 post-Sub-PR 223.1 shipping. Row now states governance scaffold DONE (skill + audit-gate rule + §11.4 + baseline 62/100); real WCAG/vrg/ML tracked GAP-226/227/228 Wave 8+. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve). Motivation: prior v1.0.1 row referenced GAP-223 Sub-PR 223.1 as future scope; now landed.
 - **2026-04-26 (v1.0.1):** PATCH — sync §3 matrix line 75 "AI-generated assets" row from "⚠️ PLANNED (GAP-012, 018)" → "⚠️ PARTIAL — scaffolded only" with explicit deferred items + cluster-fix references (GAP-225 umbrella + GAP-223 Sub-PR 223.1). Also backfilled frontmatter Version + Last-Reviewed + Reviewer-Approver per `rule-change-process.md` §3 backfill-on-next-edit policy. Reviewer: @nguyenvankiet (solo-dev self-approve per §5 matrix for PATCH — factual correctness fix, no constraint loosening). Motivation: cross-gap audit (GAP-225) found GAP-012 + GAP-018 both shipped Wave 4 with scaffold-only Status DONE despite explicit deferred items; matrix row claiming "PLANNED" was 12 days stale.

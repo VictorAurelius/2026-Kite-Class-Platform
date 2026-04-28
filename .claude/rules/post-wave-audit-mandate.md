@@ -1,7 +1,10 @@
 # Post-Wave Audit Mandate
 
 **Priority:** 🔴 MANDATORY — governance for wave/feature delivery
+**Version:** 1.0.0
 **Created:** 2026-04-19
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Supersedes:** Strengthens `output-review-mandate.md` for waves specifically
 **Applies to:** Every wave merge + every feature cluster PR that closes ≥1 gap
 
@@ -141,5 +144,6 @@ Track per quarter:
 
 ## 10. Log
 
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-19 (later same day):** Part A catch-up 5/5 COMPLETE — business-logic 65/100 (PR #366), ops-readiness 49/100 first-ever (PR #365), performance 58/100 first-ever (PR #364), ui-review KC 81 / KH 59 out of 128 (PR #368), quality-audit refresh 77/100 C+ (PR #369, honest baseline vs 95 self-audit). 39 new gaps GAP-104 → GAP-142. §5 baselines for ops + performance now captured — hook enforcement fully active for future PRs touching those patterns.
 - **2026-04-19:** Rule created after user flagged audit drift — Wave 1-4b merged without fresh audits, business audit 27 days stale, ops + performance audits never run. Coupled with `audit-gate.py` hardening (warn → block) and first-run baseline audits (catch-up).

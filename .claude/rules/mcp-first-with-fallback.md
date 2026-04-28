@@ -1,7 +1,10 @@
 # MCP-First with CLI Fallback — Tool Selection Rule
 
 **Priority:** 🟠 MANDATORY — applies to all workflow skills
+**Version:** 1.0.0
 **Created:** 2026-04-18
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Applies to:** GitHub ops, filesystem ops, database introspection, any repeatable external system interaction
 
 ---
@@ -144,4 +147,5 @@ until gh run list --branch <branch> --limit 1 --json conclusion \
 
 ## 8. Log
 
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-18:** Rule created after Wave 3 observation — GitHub MCP was connected but unused. Session defaulted to `gh` CLI habit, wasting ~5 min on polling loops and ~100 tokens per CI check. All workflow skills updated to MCP-first pattern.

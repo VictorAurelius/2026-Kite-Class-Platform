@@ -1,6 +1,6 @@
 # GAP-250: No CI gate enforces rule frontmatter (Version / Last-Reviewed / Reviewer-Approver)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — Layer 1+2 shipped; Layer 3 (husky) was excluded from AC at filing time (see §Out-of-scope below) — PR pending
 **Priority:** 🟠 P1 (Meta — force-multiplier; prevents drift recurrence)
 **Domain:** DevOps / CI / Governance
 **Detected:** 2026-04-28 (ecosystem audit)
@@ -57,12 +57,12 @@ PR description must include shell snippet showing:
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check-rule-frontmatter.sh` exists, executable, shellcheck-clean (no -S error)
-- [ ] Script validates Version + Last-Reviewed + Reviewer-Approver + Applies-to + Log section
-- [ ] Self-test fixture committed showing PASS/FAIL output (or commit message quotes it)
-- [ ] CI workflow job `rule-frontmatter` added to `script-quality.yml` (or new `meta-quality.yml`)
-- [ ] Job triggers on `.claude/rules/**.md` PR changes
-- [ ] After GAP-249 backfill merged, CI runs against main = green
+- [x] `scripts/check-rule-frontmatter.sh` exists, executable, shellcheck-clean (no -S error)
+- [x] Script validates Version + Last-Reviewed + Reviewer-Approver + Applies-to + Log section
+- [x] Self-test fixture committed showing PASS/FAIL output (or commit message quotes it)
+- [x] CI workflow job `rule-frontmatter` added to `script-quality.yml` (or new `meta-quality.yml`)
+- [x] Job triggers on `.claude/rules/**.md` PR changes
+- [x] After GAP-249 backfill merged, CI runs against main = green (paired in same PR; verified locally — `bash scripts/check-rule-frontmatter.sh --all` returns exit-0 on all 14 rules)
 
 ## Out-of-scope
 
@@ -81,4 +81,5 @@ PR description must include shell snippet showing:
 
 ## Log
 
+- **2026-04-28** ✅ Closed by Wave Meta-Gov 1 Agent A (`feature/wave-meta-gov-1-A-rule-frontmatter`). Shipped Layer 1 (`scripts/check-rule-frontmatter.sh` — 5-field validator + self-test mode + `--paths` flag for CI diff filter) + Layer 2 (new `rule-frontmatter` job in `.github/workflows/script-quality.yml`, blocks merge on failure). Self-test runs against 3 synthetic fixtures under `scripts/fixtures/rule-frontmatter/` (1 PASS + 2 FAIL); shellcheck `-S error` returns 0 issues. Layer 1+2 alone satisfy every AC. Detector also caught one issue in `output-review-mandate.md` (missing `Applies to` field) which was fixed in same PR (PATCH bump 1.1.0 → 1.1.1).
 - **2026-04-28** Filed during ecosystem audit. Self-application of `incident-to-rule-pipeline.md` Stage 3 (Rule + Enforcement same PR) on `rule-change-process.md` §3.

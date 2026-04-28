@@ -1,8 +1,11 @@
 # Audit → Gap → Fix Pipeline
 
-**Version:** 1.0
-**Created:** 2026-04-16
 **Priority:** 🟠 MANDATORY — audit findings governance
+**Version:** 1.0.0
+**Created:** 2026-04-16
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
+**Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100) and the gap files / fix PRs they produce
 
 ---
 
@@ -186,5 +189,6 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
-- 2026-04-16 — Rule created after UI audit session produced 5 gaps; user requested formalization
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Last-Reviewed + Reviewer-Approver + Applies-to fields; reformatted existing Version `1.0` → `1.0.0` (semver three-part canonical). No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - 2026-04-20 — Added **Step 2.5 State-Check Against Current Codebase** after GAP-190 (SEO) + GAP-197 (attendance calendar) were filed without code-state verification; both required follow-up rewrite (PR #396). User feedback: "gaps phải dựa trên tình trạng của hệ thống hiện tại". Step 2.5 is BẮT BUỘC alongside Step 2 — dedupe alone is insufficient.
+- 2026-04-16 — Rule created after UI audit session produced 5 gaps; user requested formalization

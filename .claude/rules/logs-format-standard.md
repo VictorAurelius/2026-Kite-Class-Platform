@@ -1,7 +1,10 @@
 # Logs Format Standard
 
 **Priority:** 🟡 MANDATORY — observability governance (this rule = spec)
+**Version:** 1.0.0
 **Created:** 2026-04-20
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Closes:** GAP-175 (standard), drives GAP-114 (implementation) + GAP-116 (PII scrubbing)
 **Applies to:** All services (KiteHub 6 services + gateway, KiteClass core + gateway, shared libs), all Python/Node scripts that ship logs
 
@@ -240,4 +243,5 @@ Reviewers during Wave 7+ PRs MUST verify:
 
 ## 12. Log
 
+- **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Version + Last-Reviewed + Reviewer-Approver fields. No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - **2026-04-20:** Rule created as Wave 8b-D deliverable closing GAP-175. Spec only — logback XML + PII scrubber + aggregator land in Wave 7 via GAP-114/115/116.

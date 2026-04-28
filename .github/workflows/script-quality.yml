@@ -1,10 +1,14 @@
-name: Script Quality (ShellCheck + Ruff)
+name: Script Quality (ShellCheck + Ruff + Rule Frontmatter)
 
 # Closes GAP-194 — CI enforcement of script standard defined in
 # `.claude/skills/quality/script-review/SKILL.md` + `output-review-mandate.md` §5.5.
+# Closes GAP-250 — CI enforcement of rule frontmatter spec defined in
+# `.claude/rules/rule-change-process.md` §3 (paired with GAP-249 backfill).
 #
-# Triggered by any change to *.sh or *.py in scope paths. Non-scope changes skip.
+# Triggered by any change to *.sh, *.py, or `.claude/rules/**.md` in scope paths.
+# Non-scope changes skip.
 # Baseline (2026-04-20): shellcheck -S error = 0 issues, ruff check = 0 issues.
+# Baseline (2026-04-28): rule-frontmatter = 14/14 rules compliant.
 
 on:
   # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
@@ -17,6 +21,9 @@ on:
       - '.shellcheckrc'
       - 'ruff.toml'
       - '.github/workflows/script-quality.yml'
+      - '.claude/rules/**.md'
+      - 'scripts/check-rule-frontmatter.sh'
+      - 'scripts/fixtures/rule-frontmatter/**'
 
 permissions:
   contents: read
@@ -134,3 +141,52 @@ jobs:
       - name: No Python files changed
         if: steps.changed.outputs.files == ''
         run: echo "No *.py files changed — skipping."
+
+  rule-frontmatter:
+    name: Rule frontmatter (`.claude/rules/*.md`)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed rule files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ "$BASE" = "$HEAD" ]; then
+            FILES=$(find .claude/rules -maxdepth 1 -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          else
+            FILES=$(git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- '.claude/rules/*.md' | tr '\n' ' ')
+          fi
+          # Also pick up changes to the validator script or its fixtures —
+          # any of those should re-run the full directory scan.
+          if git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- 'scripts/check-rule-frontmatter.sh' 'scripts/fixtures/rule-frontmatter' 2>/dev/null | grep -q .; then
+            FILES=$(find .claude/rules -maxdepth 1 -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "Changed rule files: $FILES"
+
+      - name: Run self-test (fixtures)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Running self-test against synthetic fixtures..."
+          bash scripts/check-rule-frontmatter.sh --self-test
+
+      - name: Validate changed rule files (blocking)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Validating frontmatter for changed rule files..."
+          bash scripts/check-rule-frontmatter.sh --all --paths "${{ steps.changed.outputs.files }}"
+
+      - name: No rule files changed
+        if: steps.changed.outputs.files == ''
+        run: echo "No rule files changed — skipping."
