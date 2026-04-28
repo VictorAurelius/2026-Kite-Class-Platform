@@ -1,17 +1,24 @@
 'use client';
 
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useAssets } from '@/hooks/use-branding';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Sparkles, Image as ImageIcon, Grid3x3, ArrowRight, Palette, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
+
+// GAP-236 Sub-PR B — lazy-load the recent-assets preview grid. The page
+// status cards always render with stat counts; the asset thumbnails section
+// is below-the-fold and only present when `hasAssets`.
+const RecentAssetsGrid = dynamic(() => import('./RecentAssetsGrid'), {
+  ssr: false,
+});
 
 export default function BrandingDashboardPage() {
   const router = useRouter();
@@ -110,11 +117,7 @@ export default function BrandingDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentAssets.map((asset) => (
-                <AssetPreviewCard key={asset.id} asset={asset} />
-              ))}
-            </div>
+            <RecentAssetsGrid assets={recentAssets} />
           </CardContent>
         </Card>
       ) : (
@@ -154,41 +157,3 @@ function StatCard({ label, value, icon }: StatCardProps) {
   );
 }
 
-interface AssetPreviewCardProps {
-  asset: {
-    id: string;
-    type: string;
-    url: string;
-    createdAt: string;
-  };
-}
-
-const ASSET_TYPE_LABELS: Record<string, string> = {
-  PROFILE: 'Profile',
-  HERO: 'Hero',
-  LOGO: 'Logo',
-  BANNER: 'Banner',
-  OG_IMAGE: 'OG Image',
-};
-
-function AssetPreviewCard({ asset }: AssetPreviewCardProps) {
-  return (
-    <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-      <div className="aspect-video bg-muted">
-        <img
-          src={asset.url}
-          alt={ASSET_TYPE_LABELS[asset.type]}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary">{ASSET_TYPE_LABELS[asset.type]}</Badge>
-          <span className="text-xs text-muted-foreground">
-            {new Date(asset.createdAt).toLocaleDateString('vi-VN')}
-          </span>
-        </div>
-      </div>
-    </Card>
-  );
-}

@@ -1,15 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
 import { useActiveSubscription, useUpgradeSubscription, useDowngradeSubscription } from '@/hooks/use-subscriptions';
 import { useCreatePayment } from '@/hooks/use-payments';
 import { StepIndicator } from '@/components/billing/StepIndicator';
-import { TierSelector } from '@/components/billing/TierSelector';
-import { ChangeConfirmation } from '@/components/billing/ChangeConfirmation';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+
+// GAP-236 Sub-PR B — only one wizard step is rendered at a time, so each
+// loads on demand. StepIndicator stays static (small, always visible).
+const stepLoading = () => (
+  <div className="flex items-center justify-center py-12">
+    <LoadingSpinner />
+  </div>
+);
+const TierSelector = dynamic(
+  () => import('@/components/billing/TierSelector').then((m) => ({ default: m.TierSelector })),
+  { ssr: false, loading: stepLoading }
+);
+const ChangeConfirmation = dynamic(
+  () => import('@/components/billing/ChangeConfirmation').then((m) => ({ default: m.ChangeConfirmation })),
+  { ssr: false, loading: stepLoading }
+);
 import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowUpCircle } from 'lucide-react';

@@ -99,11 +99,12 @@ describe('TemplateGalleryPage', () => {
     expect(screen.getAllByText('Tổng hợp').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders template cards', () => {
+  it('renders template cards', async () => {
     render(<TemplateGalleryPage />);
 
-    expect(screen.getByText('Modern Education')).toBeInTheDocument();
-    expect(screen.getByText('Professional Training')).toBeInTheDocument();
+    // Cards live in a `next/dynamic` chunk → use async find.
+    expect(await screen.findByText('Modern Education')).toBeInTheDocument();
+    expect(await screen.findByText('Professional Training')).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
@@ -118,7 +119,7 @@ describe('TemplateGalleryPage', () => {
     expect(screen.queryByText('Modern Education')).not.toBeInTheDocument();
   });
 
-  it('shows empty state when no templates', () => {
+  it('shows empty state when no templates', async () => {
     (useTemplates as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       data: [],
       isLoading: false,
@@ -126,14 +127,16 @@ describe('TemplateGalleryPage', () => {
 
     render(<TemplateGalleryPage />);
 
-    expect(screen.getByText('Không có template nào trong danh mục này')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Không có template nào trong danh mục này')
+    ).toBeInTheDocument();
   });
 
-  it('displays template style and font info', () => {
+  it('displays template style and font info', async () => {
     render(<TemplateGalleryPage />);
 
-    expect(screen.getByText('Style: modern')).toBeInTheDocument();
-    expect(screen.getByText('Inter')).toBeInTheDocument();
+    expect(await screen.findByText('Style: modern')).toBeInTheDocument();
+    expect(await screen.findByText('Inter')).toBeInTheDocument();
   });
 
   it('calls apply template on button click', async () => {
@@ -142,7 +145,7 @@ describe('TemplateGalleryPage', () => {
 
     render(<TemplateGalleryPage />);
 
-    const applyButtons = screen.getAllByText('Áp dụng Template');
+    const applyButtons = await screen.findAllByText('Áp dụng Template');
     await user.click(applyButtons[0]!);
 
     await waitFor(() => {

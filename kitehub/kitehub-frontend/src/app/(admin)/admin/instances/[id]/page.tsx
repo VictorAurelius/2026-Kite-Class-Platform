@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useParams, useRouter } from 'next/navigation';
 import { useAdminInstance, useSuspendInstance, useActivateInstance, useExtendTrial } from '@/hooks/use-admin';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -8,30 +9,17 @@ import { ErrorAlert } from '@/components/common/ErrorAlert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Pause, Play, Calendar, Loader2, Building, Mail, Phone, Database, Users, GraduationCap, BookOpen } from 'lucide-react';
+import { ArrowLeft, Pause, Play, Calendar, Building, Mail, Phone, Database, Users, GraduationCap, BookOpen } from 'lucide-react';
 import type { InstanceStatus, SubscriptionTier } from '@/types/instance';
 import { toast } from 'sonner';
 import { getTenantDisplayUrl } from '@/lib/tenant-url';
+
+// GAP-236 Sub-PR B — lazy-load action dialogs (radix Dialog + AlertDialog
+// trees ship in their own chunk; only loaded when admin opens an action).
+const InstanceActionDialogs = dynamic(() => import('./InstanceActionDialogs'), {
+  ssr: false,
+});
 
 const statusConfig: Record<InstanceStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   TRIAL: { label: 'Dùng thử', variant: 'secondary' },
@@ -356,97 +344,27 @@ export default function AdminInstanceDetailPage() {
         </Card>
       </div>
 
-      {/* Suspend Dialog */}
-      <AlertDialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tạm ngưng instance?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc muốn tạm ngưng instance{' '}
-              <strong>{instance.organizationName}</strong>? Khách hàng sẽ không
-              thể truy cập instance này cho đến khi được kích hoạt lại.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleSuspend}
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={suspendMutation.isPending}
-            >
-              {suspendMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Tạm ngưng
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Activate Dialog */}
-      <AlertDialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Kích hoạt instance?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có chắc muốn kích hoạt lại instance{' '}
-              <strong>{instance.organizationName}</strong>?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleActivate}
-              disabled={activateMutation.isPending}
-            >
-              {activateMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Kích hoạt
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Extend Trial Dialog */}
-      <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Gia hạn Trial</DialogTitle>
-            <DialogDescription>
-              Gia hạn thời gian dùng thử cho instance{' '}
-              <strong>{instance.organizationName}</strong>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="days">Số ngày gia hạn</Label>
-              <Input
-                id="days"
-                type="number"
-                min="1"
-                max="90"
-                value={extendDays}
-                onChange={(e) => setExtendDays(e.target.value)}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Trial hiện tại kết thúc: {formatDate(instance.trialEndDate)}
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowExtendDialog(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleExtendTrial} disabled={extendMutation.isPending}>
-              {extendMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Gia hạn
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Action dialogs lazy-loaded only when an action button is clicked. */}
+      {(showSuspendDialog || showActivateDialog || showExtendDialog) && (
+        <InstanceActionDialogs
+          organizationName={instance.organizationName}
+          trialEndDateLabel={formatDate(instance.trialEndDate)}
+          showSuspendDialog={showSuspendDialog}
+          showActivateDialog={showActivateDialog}
+          showExtendDialog={showExtendDialog}
+          onSuspendOpenChange={setShowSuspendDialog}
+          onActivateOpenChange={setShowActivateDialog}
+          onExtendOpenChange={setShowExtendDialog}
+          onSuspendConfirm={handleSuspend}
+          onActivateConfirm={handleActivate}
+          onExtendConfirm={handleExtendTrial}
+          suspendPending={suspendMutation.isPending}
+          activatePending={activateMutation.isPending}
+          extendPending={extendMutation.isPending}
+          extendDays={extendDays}
+          onExtendDaysChange={setExtendDays}
+        />
+      )}
     </div>
   );
 }
