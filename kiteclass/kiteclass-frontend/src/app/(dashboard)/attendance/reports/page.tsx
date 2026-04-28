@@ -36,7 +36,7 @@ import { useAllActiveClasses } from '@/hooks/use-classes';
 import { useAttendanceByClass } from '@/hooks/use-attendance';
 import { AttendanceStatusLabels } from '@/types/attendance';
 import type { Class } from '@/types/class';
-import { AttendanceCalendar } from '@/components/attendance';
+import { DynamicAttendanceCalendar } from '@/components/attendance';
 
 export default function AttendanceReportsPage() {
   const { data: classes = [], error: classesError } = useAllActiveClasses();
@@ -323,8 +323,8 @@ export default function AttendanceReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Calendar View */}
-            <AttendanceCalendar
+            {/* Calendar View — lazy-loaded; only shipped when a class is selected */}
+            <DynamicAttendanceCalendar
               attendanceRecords={attendanceData?.content || []}
               onDateClick={(_date) => {
                 // Date click detail view will be added with the attendance detail modal feature
