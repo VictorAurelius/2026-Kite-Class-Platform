@@ -138,10 +138,7 @@ should_skip() {
 #
 # Process to remove an exemption: fix the underlying skill, then delete the
 # entry. Goal: empty list by Wave 9.
-GRANDFATHERED_EXEMPTIONS='
-.claude/skills/workflow/development-workflow.md:frontmatter,trigger,gotchas
-.claude/skills/workflow/priority-pr-planning.md:frontmatter,trigger,gotchas
-'
+GRANDFATHERED_EXEMPTIONS=''
 
 # Returns 0 (true) if the file is exempt from a specific check.
 # Args: $1 = file path, $2 = check name (frontmatter|trigger|gotchas)
