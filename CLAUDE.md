@@ -221,6 +221,7 @@ Index đầy đủ: `.claude/skills/_README-skills-index.md`
 - `quality/performance-audit/SKILL.md` - Performance baseline /100 (DB, API, bundle, cache)
 - `quality/api-contract-audit/SKILL.md` - API endpoints ↔ docs sync /100
 - `quality/ops-readiness-audit/SKILL.md` - Production ops readiness /100 (monitoring, deploy)
+- `quality/wave-pack-planner/SKILL.md` - Cluster ≥3 disjoint gaps thành wave-pack + spawn 3-5 parallel agents (codify Wave Obs 5x speedup)
 - `workflow/wave-completion-check.md` - Wave completion verification (Level 7: audit suite gate)
 - `workflow/repo-status/SKILL.md` - Remote repo health check (5 levels: GREEN→BLACK)
 - `workflow/pr-health.md` - PR compliance scanner (CI, tests, docs, audits per PR)
