@@ -13,15 +13,22 @@
 ## Quick Start (1 dòng — copy nguyên dòng)
 
 ```bash
-claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode acceptEdits
+claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions
 ```
 
 → QR code + URL hiện ra. Mobile scan/mở → done.
 
 **Defaults sử dụng trong project này:**
-- `--permission-mode acceptEdits` — auto Read/Edit/Write **không hỏi**. Bash vẫn prompt 1 lần per pattern (an toàn cho destructive commands).
-- KHÔNG set `--capacity` → unlimited concurrent sessions (mặc định Claude Code remote-control). Bỏ giới hạn 5-session cũ vì wave-pack cluster có khi spawn 6-8 agents song song.
+- `--permission-mode bypassPermissions` — full auto **không hỏi gì cả** (Read/Edit/Write **và** Bash). Solo-dev workflow đã được audit-gate hook + `gap-done-discipline.md` + CI gate bảo vệ → không cần per-tool prompt làm chậm mobile flow.
+- KHÔNG set `--capacity` → unlimited concurrent sessions. Bỏ giới hạn 5-session cũ vì wave-pack cluster có khi spawn 6-8 agents song song.
 - `--spawn worktree` — mỗi mobile session = worktree branch riêng (tránh contamination per `feedback_worktree_absolute_path_contamination.md`).
+
+> ⚠️ **Cẩn trọng `bypassPermissions`:** mode này cho phép Claude chạy mọi Bash command (kể cả `rm -rf`, `git push --force`, `gh pr merge`) **không hỏi**. An toàn vì:
+> 1. `audit-gate.py` hook block destructive patterns trước khi execute
+> 2. Branch protection (khi enable) chặn force-push to main
+> 3. Wave plan + commit history reversible
+>
+> Nếu chạy task không quen / repo lạ → fallback `acceptEdits` hoặc `default` (xem §Variants).
 
 ---
 
@@ -30,7 +37,7 @@ claude remote-control --name "Kite Class Platform" --spawn worktree --permission
 **Cách 1 — Single line (an toàn nhất, copy nguyên dòng):**
 
 ```bash
-claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode acceptEdits
+claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions
 ```
 
 **Cách 2 — Multi-line (chỉ paste từ raw markdown, KHÔNG paste từ formatted):**
@@ -39,12 +46,12 @@ claude remote-control --name "Kite Class Platform" --spawn worktree --permission
 claude remote-control \
   --name "Kite Class Platform" \
   --spawn worktree \
-  --permission-mode acceptEdits
+  --permission-mode bypassPermissions
 ```
 
 ⚠️ **Cảnh báo về backslash continuation:** Khi copy từ HTML/formatted output sang terminal, ký tự sau `\` đôi khi bị space ẩn → terminal hiểu sai. Nếu lỗi `Unknown argument`, dùng Cách 1 (1 dòng).
 
-> **Project policy:** mặc định **luôn dùng `acceptEdits`** (không hỏi mỗi edit) và **không giới hạn capacity** (bỏ `--capacity` flag → unlimited). Override chỉ khi cần — xem §Variants bên dưới.
+> **Project policy:** mặc định **`bypassPermissions`** (full auto, không hỏi gì) + **unlimited capacity** (bỏ `--capacity`). Override sang `acceptEdits` / `default` chỉ khi review code lạ — xem §Variants bên dưới.
 
 ---
 
@@ -57,26 +64,32 @@ claude remote-control \
 | `--spawn same-dir` | Mọi session share repo dir (default — đơn giản, 1 task tại 1 lúc) |
 | `--spawn session` | Session ephemeral (Q&A nhanh, không commit) |
 | `--capacity N` | Max concurrent sessions. **Không set → unlimited (project default)**. Set N nếu cần cap để bảo vệ máy yếu. |
-| `--permission-mode default` | Prompt từng tool — phải approve trên mobile (chậm, không nên dùng cho project này) |
-| `--permission-mode acceptEdits` | **Project default** — auto Read/Edit/Write **không hỏi**, vẫn prompt Bash |
+| `--permission-mode default` | Prompt từng tool — phải approve trên mobile (chậm, fallback khi review code lạ) |
+| `--permission-mode acceptEdits` | Auto Read/Edit/Write, vẫn prompt Bash — fallback khi không tin tưởng full bypass |
 | `--permission-mode auto` | Auto allow tools đã từng approve (kế thừa từ session trước) |
-| `--permission-mode bypassPermissions` | Full auto kể cả Bash (DANGER — chỉ khi đi xa + task không destructive) |
+| `--permission-mode bypassPermissions` | **Project default** — full auto kể cả Bash. An toàn nhờ audit-gate hook chặn destructive patterns |
 | `--permission-mode plan` | Plan mode — không execute |
 
 ---
 
 ## Variants — Copy theo nhu cầu
 
-### Project default (auto edit, unlimited capacity):
+### Project default (full auto, unlimited capacity):
 
 ```bash
-claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode acceptEdits
+claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions
 ```
 
 ### Cần capacity cap (máy yếu hoặc tránh resource exhaustion):
 
 ```bash
-claude remote-control --name "Kite Class Platform" --spawn worktree --capacity 5 --permission-mode acceptEdits
+claude remote-control --name "Kite Class Platform" --spawn worktree --capacity 5 --permission-mode bypassPermissions
+```
+
+### Auto edit only (vẫn prompt Bash — khi không tin tưởng full bypass):
+
+```bash
+claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode acceptEdits
 ```
 
 ### Strict (prompt mọi tool — chỉ khi review code lạ):
@@ -85,16 +98,10 @@ claude remote-control --name "Kite Class Platform" --spawn worktree --capacity 5
 claude remote-control --name "Kite Class Platform" --permission-mode default
 ```
 
-### Full auto kể cả Bash (CẨN TRỌNG — chỉ task không destructive):
-
-```bash
-claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions
-```
-
 ### Verbose debug (khi troubleshoot):
 
 ```bash
-claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode acceptEdits --verbose --debug-file /tmp/claude-rc.log
+claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions --verbose --debug-file /tmp/claude-rc.log
 ```
 
 ---
@@ -289,4 +296,5 @@ Hoặc đóng app — session vẫn chạy ngầm trên WSL2 cho lần sau resum
 
 ## Log
 
+- **2026-04-28 (later):** Default upgraded từ `acceptEdits` → `bypassPermissions` (full auto kể cả Bash). Audit-gate hook + commit-history reversibility là safety net. Solo-dev workflow, không có team review per-tool, prompt Bash mỗi command làm chậm mobile flow + tốn battery. `acceptEdits` giữ là fallback variant cho repo lạ.
 - **2026-04-28:** Project default đổi sang `--permission-mode acceptEdits` (auto edit không hỏi) + bỏ `--capacity 5` (unlimited concurrent sessions). Bổ sung §Stop Notification — wire `Stop` hook qua `~/.claude/settings.json` invoke `${CLAUDE_PROJECT_DIR}/.claude/hooks/notify-stop.sh` (committed) → desktop notification (WSLg/libnotify) + terminal bell + Windows toast (powershell.exe interop). Reason: 5-session cap không match wave-pack cluster có khi 6-8 agents song song; mỗi edit prompt làm chậm mobile flow.
