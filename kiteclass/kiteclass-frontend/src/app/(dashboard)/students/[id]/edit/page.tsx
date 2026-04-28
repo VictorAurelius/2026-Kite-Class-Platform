@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 import { use } from 'react';
 import { DashboardLayout } from '@/components/layout';
-import { StudentForm } from '@/components/forms/student-form';
+import { StudentForm } from '@/components/forms/dynamic-student-form';
 import { LoadingSpinner, ErrorAlert } from '@/components/common';
 import { useStudent, useUpdateStudent } from '@/hooks/use-students';
 

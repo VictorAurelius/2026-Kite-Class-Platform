@@ -21,9 +21,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AttendanceStatsOverview } from '@/components/attendance/attendance-stats-overview';
-import { EnhancedAttendanceCalendar } from '@/components/attendance/enhanced-attendance-calendar';
+import { EnhancedAttendanceCalendar } from '@/components/student/dynamic-attendance-calendar';
 import { AttendanceHistoryTable } from '@/components/attendance/attendance-history-table';
-import { AttendanceDetailDialog } from '@/components/attendance/attendance-detail-dialog';
+import { AttendanceDetailDialog } from '@/components/student/dynamic-attendance-detail-dialog';
 import { useStudent } from '@/hooks/use-students';
 import {
   useStudentAttendanceStats,

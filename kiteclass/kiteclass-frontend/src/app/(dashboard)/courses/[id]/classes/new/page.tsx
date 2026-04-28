@@ -9,7 +9,7 @@
 
 import { use } from 'react';
 import { DashboardLayout } from '@/components/layout';
-import { ClassForm } from '@/components/forms/class-form';
+import { ClassForm } from '@/components/forms/dynamic-class-form';
 import { LoadingSpinner, ErrorAlert } from '@/components/common';
 import { useCreateClass } from '@/hooks/use-classes';
 import { useCourse } from '@/hooks/use-courses';

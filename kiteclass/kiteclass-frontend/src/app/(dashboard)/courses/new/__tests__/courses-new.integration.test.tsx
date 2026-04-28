@@ -20,6 +20,15 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/courses/new'),
 }));
 
+// GAP-236: page imports `dynamic-course-form` which uses `next/dynamic` with
+// `ssr: false`. Re-export the real form for synchronous test assertions.
+vi.mock('@/components/forms/dynamic-course-form', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/forms/course-form')
+  >('@/components/forms/course-form');
+  return { CourseForm: actual.CourseForm };
+});
+
 describe('NewCoursePage Integration', () => {
   const mockPush = vi.fn();
   const mockRouter = {

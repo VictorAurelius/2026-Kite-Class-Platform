@@ -8,7 +8,7 @@
 'use client';
 
 import { DashboardLayout } from '@/components/layout';
-import { CourseForm } from '@/components/forms/course-form';
+import { CourseForm } from '@/components/forms/dynamic-course-form';
 import { useCreateCourse } from '@/hooks/use-courses';
 import type { CreateCourseRequest, UpdateCourseRequest } from '@/types/course';
 

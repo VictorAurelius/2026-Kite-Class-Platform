@@ -33,10 +33,10 @@ import {
   type AttendanceRecord,
 } from '@/types/attendance';
 import {
-  AttendanceFormList,
   AttendanceStatsCards,
   type StudentAttendanceRow,
 } from '@/components/attendance';
+import { AttendanceFormList } from '@/components/class/dynamic-attendance-form-list';
 import { toast } from '@/hooks/use-toast';
 
 export default function TakeAttendancePage({

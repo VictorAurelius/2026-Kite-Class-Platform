@@ -30,6 +30,17 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/students/new'),
 }));
 
+// GAP-236: page imports `dynamic-student-form` which uses `next/dynamic` with
+// `ssr: false`. In jsdom this resolves async on a microtask — too late for
+// synchronous `getByLabelText` assertions. Re-export the real form so the
+// integration test can keep its existing assertions.
+vi.mock('@/components/forms/dynamic-student-form', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/forms/student-form')
+  >('@/components/forms/student-form');
+  return { StudentForm: actual.StudentForm };
+});
+
 describe('NewStudentPage Integration', () => {
   const mockPush = vi.fn();
   const mockRouter = {
