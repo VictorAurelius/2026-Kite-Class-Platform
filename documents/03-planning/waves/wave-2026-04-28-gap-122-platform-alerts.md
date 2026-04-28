@@ -1,11 +1,13 @@
 ---
 title: Wave GAP-122 — 12 platform-critical alerts (single-gap parallel build)
-status: active
+status: complete
 created: 2026-04-28
 updated: 2026-04-28
 gaps: [GAP-122]
 slices: 3
 parallel_agents: 3
+shipped_pr: 638
+shipped_at: 2026-04-28
 ---
 
 # GAP-122 — Single-gap parallel wave
@@ -113,4 +115,5 @@ If any slice fails, parent can drop that slice's commits and ship reduced PR (e.
 
 ## Log
 
+- **2026-04-28 (closure)** — SHIPPED via PR #638 (`eb0629bf`). All 3 slices cherry-picked clean (5bb39edb / b20f6561 / 3ac9b6c2). Coordinator added 6 incidental coverage backfills (5 SLO + 2 cache-miss runbook) + new `branding-cache-miss-storm.md` (78 LOC) to keep CI gate green. Verification: 3 alert files / 54 alerts / 0 failures. Sister gaps GAP-258 + GAP-259 filed concurrently from article state-check (not part of this wave but bundled in same PR for context).
 - 2026-04-28 — Wave plan created. 3 slices, 3 parallel agents. Manifest frozen.
