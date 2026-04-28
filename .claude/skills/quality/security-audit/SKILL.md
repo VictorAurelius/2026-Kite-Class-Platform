@@ -64,3 +64,24 @@ Token budget ~25-40K. Kiểm soát bằng:
 ## Skill Contents
 
 - `reference/scoring-guide.md` — Detailed rubric per category
+- `data/eval-fixtures/` — 3 synthetic scenarios for self-test (GAP-253)
+
+## Eval Fixtures
+
+3 synthetic fixtures live under `data/eval-fixtures/` to keep this skill
+honest when its body is edited (per Anthropic 2026 eval-first guidance —
+GAP-253 pilot). Each fixture has a `# Expected: PASS|FAIL` header.
+
+- `good.md` — clean baseline; npm-audit empty, no hardcoded secrets, all
+  endpoints `@PreAuthorize`-guarded; expected output `100/100 Grade A`.
+- `bad-secret-in-config.md` — `application.yml` contains `sk-proj-…`
+  literal + `password: admin123`; Cat 2 must report `-12+` and flag
+  Severity 🛑 BLOCKER.
+- `edge-transitive-cve.md` — npm-audit / mvn report a CVE already pinned by
+  Spring Boot BOM or `pnpm.overrides`; Cat 1 must emit verify-vs-waive
+  guidance instead of auto-failing.
+
+**Run:** walk through the audit process steps mentally against the synthetic
+content; each fixture's `Expected audit-report excerpt` section is the
+regression contract. When extending this skill, re-walk all 3 fixtures and
+confirm the expected outputs still hold.

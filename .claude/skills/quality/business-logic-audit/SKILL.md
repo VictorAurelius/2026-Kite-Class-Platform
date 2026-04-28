@@ -96,3 +96,24 @@ Audit này có thể tốn 30-50K tokens nếu không kiểm soát. Tuân thủ:
 ## Skill Contents
 
 - `reference/scoring-guide.md` — Detailed rubric per category with examples
+- `data/eval-fixtures/` — 3 synthetic scenarios for self-test (GAP-253)
+
+## Eval Fixtures
+
+3 synthetic fixtures live under `data/eval-fixtures/` to keep this skill
+honest when its body is edited (per Anthropic 2026 eval-first guidance —
+GAP-253 pilot). Each fixture has a `# Expected: PASS|FAIL` header and a
+`Which check fires` annotation.
+
+- `good.md` — synthetic `attendance` domain where every BR-* maps to code +
+  config aligns; expected output `100/100 Grade A`.
+- `bad-rule-not-implemented.md` — `BR-ATT-005` declared in rules.md but no
+  `@PreAuthorize` / service guard exists; Category 1 must report `-4`.
+- `edge-config-key-renamed.md` — config key `late-threshold-minutes`
+  renamed to `late-grace-minutes` in code, rules.md not updated; Category 2
+  must catch the silent drift.
+
+**Run:** open the fixture and walk through the audit process steps mentally
+against the synthetic content; the `Expected audit-report excerpt` section
+in each fixture is the regression contract. When extending this skill,
+re-walk all 3 fixtures and confirm the expected outputs still hold.

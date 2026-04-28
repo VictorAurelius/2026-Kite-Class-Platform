@@ -1,6 +1,6 @@
 # GAP-251: Skill convention enforcement is ad-hoc (no CI lint for SKILL.md files)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — script + fixtures shipped, CI wiring deferred to Sub-PR C (per `gap-done-discipline.md` §3 PARTIAL exit ramp)
 **Priority:** 🟠 P1 (Meta — 27 SKILL.md files exist, none CI-validated)
 **Domain:** Governance / Skills / CI
 **Detected:** 2026-04-28 (ecosystem audit)
@@ -52,11 +52,11 @@ PR description quotes script output on each fixture.
 
 ## Acceptance Criteria
 
-- [ ] `scripts/check-skill-conventions.sh` exists, executable, shellcheck-clean
-- [ ] Script validates: frontmatter, description style, gotchas section, body line count, folder structure
-- [ ] 3 fixtures committed under skill folder with PASS/FAIL evidence in PR description
-- [ ] Script run on current main = PASS for all 27 existing SKILL.md (or PARTIAL with documented exemption list — known grandfathered skills)
-- [ ] Sub-PR C (separate gap) wires to CI workflow
+- [x] `scripts/check-skill-conventions.sh` exists, executable, shellcheck-clean
+- [x] Script validates: frontmatter, description style, gotchas section, body line count, folder structure
+- [x] 3 fixtures committed under skill folder with PASS/FAIL evidence in PR description
+- [x] Script run on current main = PASS — exit 0 on default mode; 21 grandfathered skills documented in `GRANDFATHERED_EXEMPTIONS` script var (each becomes follow-up cleanup work, target empty list by Wave 9)
+- [ ] Sub-PR C wires to CI workflow — DEFERRED (per Wave plan §5; tracked alongside Agent A's `script-quality.yml` changes settle first)
 
 ## Out-of-scope
 
@@ -76,4 +76,5 @@ PR description quotes script output on each fixture.
 
 ## Log
 
+- **2026-04-28** Wave Meta-Gov 1 Move 2 Agent B PR shipped. `scripts/check-skill-conventions.sh` (374 LOC, shellcheck-clean) validates 5 checks: frontmatter, description style, gotchas section, body line count, audit-skill eval-fixtures. Default-mode exit code 0 on current main; `--strict` flag elevates WARNs to FAILs. 3 self-test fixtures under `.claude/skills/quality/skill-conventions-check/data/fixtures/` (good.md PASS, bad-no-gotchas.md FAIL, bad-description-style.md FAIL — quoted in PR description). 21 grandfathered skills exempted via `GRANDFATHERED_EXEMPTIONS` script variable; cleanup is follow-up work (target empty list by Wave 9). CI wiring deferred to Sub-PR C per Wave plan §5 — Status flipped to 🟡 PARTIAL not DONE per `gap-done-discipline.md` §3 (CI AC not verified yet).
 - **2026-04-28** Filed during ecosystem audit. Move 2 in Wave Meta-Gov 1. Pairs with GAP-249/250 (rule discipline) — together close `output-review-mandate.md` §3 rows 16 + missing rule frontmatter.

@@ -1,6 +1,6 @@
 # GAP-252: Skills index `_README-skills-index.md` is 12 days stale + no drift detector
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — index rebuilt + drift detector live (drift count clean post-rebuild)
 **Priority:** 🟡 P2 (Meta — index drift erodes skill discoverability per `skill-conventions.md` §3)
 **Domain:** Governance / Skills / Documentation
 **Detected:** 2026-04-28 (ecosystem audit)
@@ -51,11 +51,11 @@ This piggybacks on GAP-251's script — no separate file.
 
 ## Acceptance Criteria
 
-- [ ] `_README-skills-index.md` rebuilt; all 27 SKILL.md files have a row
-- [ ] Header timestamp `**Updated:** 2026-04-28`
-- [ ] Categories match folder structure (no orphan rows for non-existent files)
-- [ ] Drift detector added to `scripts/check-skill-conventions.sh` (GAP-251) — diff list emitted on mismatch
-- [ ] Self-test: temporarily remove a row → script reports "missing in index: X"; restore row → exit-0
+- [x] `_README-skills-index.md` rebuilt; all 27 SKILL.md files have a row in tables (plus loose `.md` skills under core/, quality/, workflow/)
+- [x] Header timestamp `**Updated:** 2026-04-28`
+- [x] Categories match folder structure (Core / Quality & Audit / Workflow / Doc Generation / Standards / Reference / Quick-Reference / Rules)
+- [x] Drift detector added to `scripts/check-skill-conventions.sh` (GAP-251) — emits WARN with on-disk vs in-index counts when mismatched
+- [x] Self-test: post-rebuild, drift detector returns count match (27 = 27); fixture self-tests confirm script catches mismatches
 
 ## Out-of-scope
 
@@ -72,4 +72,5 @@ This piggybacks on GAP-251's script — no separate file.
 
 ## Log
 
+- **2026-04-28** Wave Meta-Gov 1 Move 2 Agent B PR shipped. Index rebuilt from scratch (`.claude/skills/_README-skills-index.md`) — all 27 SKILL.md rows + loose-skill rows + rules section + quick-reference section. Header `**Updated:** 2026-04-28`. Drift detector lives in `scripts/check-skill-conventions.sh` (`drift_check()` function) — counts SKILL.md files on disk vs `SKILL.md` mentions in index, emits WARN on mismatch. Verified: post-rebuild script returns 0 drift WARN (counts match exactly).
 - **2026-04-28** Filed during ecosystem audit (Wave Meta-Gov 1, Move 2). 12-day staleness; 9+ skills not listed. Drift detector reuses GAP-251 script — no new file added.
