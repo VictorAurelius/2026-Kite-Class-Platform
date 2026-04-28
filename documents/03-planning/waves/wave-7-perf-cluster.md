@@ -1,18 +1,25 @@
 ---
 title: Wave 7-Perf — Performance Audit Follow-ups (4 parallel agents)
-status: in_progress
+status: complete
 created: 2026-04-26
-updated: 2026-04-26
+updated: 2026-04-28
 gaps: [GAP-126, GAP-127, GAP-130, GAP-135]
 parent_audit: documents/04-quality/audits/performance/performance-audit-2026-04-19.md
 parent_session: 20260426-164325
+consolidation_pr: 575
 ---
 
 # Wave 7-Perf — Performance Audit Follow-ups
 
-**Status:** 🟠 IN_PROGRESS
+**Status:** ✅ COMPLETE (closed 2026-04-26 via consolidation PR #575)
+**Outcomes:**
+- GAP-126 Admin dashboard cache → 🟢 DONE (PR #569)
+- GAP-127 FE code-splitting → 🟡 PARTIAL (PR #570 — bundle analyzer + ≤10 pages each app; remaining 44+ pages tracked as follow-up)
+- GAP-130 Docker resource limits → ✅ DONE
+- GAP-135 SLO instrumentation → 🟡 PARTIAL (PR #571 — `@Timed` on 16 controllers + Prom rules + Grafana; residual controllers tracked as follow-up)
+
 **Trigger:** Performance baseline audit 2026-04-19 (58/100 F → 64 D after Part B). 4 P0/P1 gaps remain open after Wave 9.5 caching/EntityGraph fixes (GAP-131/132/134/146 closed).
-**Strategy:** 4 parallel `isolation: worktree` agents; lead owns ROADMAP consolidation.
+**Strategy (executed):** 4 parallel `isolation: worktree` agents; lead owns ROADMAP consolidation.
 
 ---
 
