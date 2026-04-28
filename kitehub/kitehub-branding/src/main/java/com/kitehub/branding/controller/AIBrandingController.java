@@ -3,6 +3,7 @@ package com.kitehub.branding.controller;
 import com.kitehub.branding.dto.LogoAnalysis;
 import com.kitehub.branding.dto.ThemeConfig;
 import com.kitehub.branding.service.AIBrandingService;
+import com.kitehub.branding.service.AIInputCapService;
 import com.kitehub.branding.service.AIRateLimitService;
 import com.kitehub.branding.service.ThemeGenerationService;
 import io.micrometer.core.annotation.Timed;
@@ -50,6 +51,7 @@ public class AIBrandingController {
     private final AIBrandingService aiBrandingService;
     private final ThemeGenerationService themeGenerationService;
     private final AIRateLimitService aiRateLimitService;
+    private final AIInputCapService aiInputCapService;
 
     /**
      * Analyze logo and extract brand identity.
@@ -68,6 +70,12 @@ public class AIBrandingController {
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
+        }
+
+        ResponseEntity<Object> inputCapResponse = aiInputCapService.checkInputSize(
+                tier, request.getLogoUrl(), request.getOrganizationName());
+        if (inputCapResponse != null) {
+            return Mono.just(inputCapResponse);
         }
 
         recordUsageIfPresent(instanceId);
@@ -93,6 +101,12 @@ public class AIBrandingController {
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return Mono.just(rateLimitResponse);
+        }
+
+        ResponseEntity<Object> inputCapResponse = aiInputCapService.checkInputSize(
+                tier, request.getOrganizationName(), request.getTheme(), request.getColors());
+        if (inputCapResponse != null) {
+            return Mono.just(inputCapResponse);
         }
 
         recordUsageIfPresent(instanceId);
@@ -124,6 +138,12 @@ public class AIBrandingController {
             return Mono.just(rateLimitResponse);
         }
 
+        ResponseEntity<Object> inputCapResponse = aiInputCapService.checkInputSize(
+                tier, request.getOrganizationName(), request.getTheme(), request.getTargetAudience());
+        if (inputCapResponse != null) {
+            return Mono.just(inputCapResponse);
+        }
+
         recordUsageIfPresent(instanceId);
 
         return aiBrandingService.generateMarketingCopy(
@@ -152,6 +172,14 @@ public class AIBrandingController {
         ResponseEntity<Object> rateLimitResponse = checkRateLimit(instanceId, tier);
         if (rateLimitResponse != null) {
             return rateLimitResponse;
+        }
+
+        ResponseEntity<Object> inputCapResponse = aiInputCapService.checkInputSize(
+                tier,
+                analysis.getPrimaryColor(), analysis.getSecondaryColor(), analysis.getAccentColor(),
+                analysis.getTheme(), analysis.getTypography(), analysis.getTargetAudience());
+        if (inputCapResponse != null) {
+            return inputCapResponse;
         }
 
         recordUsageIfPresent(instanceId);
