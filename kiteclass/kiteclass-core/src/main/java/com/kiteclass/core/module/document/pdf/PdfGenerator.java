@@ -18,10 +18,9 @@ import org.springframework.stereotype.Component;
  * Additional templates (certificate, transcript, report) arrive in later waves per
  * {@code documents/03-planning/waves/wave-05-document-generation.md} §8 roadmap.
  *
- * <p>TODO (Sub-PR 5.5): wire Branding Package API (ADR-009) through the request data map so
- * tenant primary color and logo URL drive the invoice header. For now, renderer reads optional
- * {@code branding.primaryColor} / {@code branding.logoUrl} keys from {@code request.data()} and
- * falls back to neutral defaults.
+ * <p>Branding (ADR-009) is wired via {@code DocumentBrandingAssembler}: dotted {@code branding.*}
+ * keys on {@code request.data()} are lifted to a nested {@code brand} map by {@code InvoiceRenderer}
+ * so the Thymeleaf template can address them as {@code ${brand.primaryColor}} / {@code ${brand.logoUrl}}.
  */
 @Component
 public class PdfGenerator implements Generator {

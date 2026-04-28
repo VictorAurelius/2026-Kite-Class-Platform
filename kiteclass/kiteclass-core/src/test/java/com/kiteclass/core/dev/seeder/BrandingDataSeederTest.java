@@ -17,7 +17,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -92,7 +91,7 @@ class BrandingDataSeederTest {
         assertThat(instance.getDeployedAt()).isNotNull();
         assertThat(instance.getSlug()).isEqualTo(BrandingDataSeeder.DEV_TENANT_SLUG);
 
-        ArgumentCaptor<List<BrandingResource>> resourceCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<BrandingResource>> resourceCaptor = ArgumentCaptor.captor();
         verify(resourceRepo).saveAll(resourceCaptor.capture());
         List<BrandingResource> resources = resourceCaptor.getValue();
         assertThat(resources).hasSize(3);
@@ -138,7 +137,7 @@ class BrandingDataSeederTest {
         // If validateInvariants() throws, seed() propagates and the test fails.
         seeder.seed();
 
-        ArgumentCaptor<List<BrandingResource>> resourceCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<BrandingResource>> resourceCaptor = ArgumentCaptor.captor();
         verify(resourceRepo).saveAll(resourceCaptor.capture());
         for (BrandingResource r : resourceCaptor.getValue()) {
             r.validateInvariants(); // re-assert, no throw

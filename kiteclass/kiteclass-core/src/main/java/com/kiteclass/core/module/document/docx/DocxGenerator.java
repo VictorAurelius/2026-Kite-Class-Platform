@@ -20,9 +20,10 @@ import org.springframework.stereotype.Component;
  * <p>The generator implements the **Create** pipeline only (of Create / Edit-Fill / Reformat per
  * MiniMax minimax-docx taxonomy — see {@code .claude/skills/document-generation/word/SKILL.md}).
  *
- * <p>TODO (Sub-PR 5.5): wire Branding Package API (ADR-009) so tenant primary colour drives the
- * title paragraph and a tenant logo appears in the header. For now, renderer reads optional
- * {@code branding.primaryColor} from {@code request.data()} and falls back to neutral black.
+ * <p>Branding (ADR-009) is wired via {@code DocumentBrandingAssembler}: the controller layer
+ * lifts the tenant's branding package into dotted {@code branding.*} keys on {@code request.data()}.
+ * {@code TeacherContractBuilder} reads {@code branding.primaryColor} for the title paragraph and
+ * falls back to neutral black if absent.
  */
 @Component
 public class DocxGenerator implements Generator {
