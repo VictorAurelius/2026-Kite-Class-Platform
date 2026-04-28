@@ -70,6 +70,7 @@ After commits, report back:
 - **Folder README sync:** if you create a new subdir under `documents/`, update that folder's README per `docs-folder-structure.md` §3 — coordinator catches but better in agent PR.
 - **Vietnamese vs English:** match surrounding doc's language. New docs default Vietnamese prose per CLAUDE.md.
 - **Banned phrases in commit body:** if your work is partial, say so honestly in PR body — but do NOT pre-write the gap-DONE flip Log entry (coordinator owns that per `gap-done-discipline.md`).
+- **Worktree absolute-path bug** (per `feedback_worktree_absolute_path_contamination.md`, Wave DR/Backup 2026-04-28): if coordinator's prompt cites absolute paths (`/home/.../documents/04-quality/...`), agent may bypass worktree cwd → Write lands in MAIN repo, commits land on WRONG branch. **Mitigation:** verify cwd before every Write/Edit: `pwd | grep -q "\.claude/worktrees/agent-" || { echo "NOT IN WORKTREE — abort"; exit 1; }`. Use RELATIVE paths in your own commands. Verify branch before commit: `git branch --show-current | grep -E "^(worktree-agent-|feat/wave-)"`.
 
 ## When NOT to use this template
 

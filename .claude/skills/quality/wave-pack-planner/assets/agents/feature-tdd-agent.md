@@ -95,6 +95,7 @@ After commits, report back:
 ## Gotchas
 
 - **Worktree drift:** if you `cd` to main repo by mistake, your changes will collide with peer agents. Use `pwd` checks. Per `feedback_parallel_agent_strategy.md` rule #3.
+- **Worktree absolute-path bug** (per `feedback_worktree_absolute_path_contamination.md`, Wave DR/Backup 2026-04-28): if coordinator's prompt cites absolute paths (`/home/.../scripts/foo.sh`), agent may bypass worktree cwd → Write lands in MAIN repo, commits land on WRONG branch. Concrete case: Wave DR/Backup Agent B's GAP-118 commit landed on Agent C's branch → coordinator forced to rebase + force-push. **Mitigation:** verify cwd before every Write/Edit: `pwd | grep -q "\.claude/worktrees/agent-" || { echo "NOT IN WORKTREE — abort"; exit 1; }`. Use RELATIVE paths in your own commands (`scripts/foo.sh` not `/home/.../scripts/foo.sh`). Verify branch before commit: `git branch --show-current | grep -E "^(worktree-agent-|feat/wave-)"`.
 - **Shared config files:** if {ALLOWED_PATHS} mentions `application.yml` or `values.yaml`, edit ONLY your assigned section — do NOT reformat whole file (causes SOFT merge conflicts; coordinator pays cost).
 - **Migration version race:** auto-picking next free V_n ALWAYS collides with peer agents. Use only reserved slot.
 - **Outbox bypass:** if you add `rabbitTemplate.convertAndSend(...)`, you MUST cite Exception A/B/C/D from `design-patterns.md` §3.5.1 in code comment. Otherwise audit blocks PR.

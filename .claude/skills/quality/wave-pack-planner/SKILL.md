@@ -101,6 +101,7 @@ Sau khi agents xong → coordinator merge sequential (A → B → C), resolve SO
 ## Gotchas
 
 - **Worktree cross-contamination** (Wave Obs Phase 2b): 2 agents sửa cùng 1 file (vd. `adr/README.md`) trong worktrees riêng → cuối khi merge git stash dance complex. Mitigation: file-overlap analysis (Step 2) phải catch — nếu HARD conflict, re-bucket
+- **Worktree absolute-path bug** (Wave DR/Backup 2026-04-28): nếu prompt cite absolute paths (`/home/.../scripts/foo.sh`), agent có thể `cd` ra khỏi worktree vào main checkout → Write/commits land SAI branch. Wave DR/Backup case: Agent B's commit landed trên Agent C's branch → coordinator phải rebase + force-push để recover. Mitigation: prompt template (`assets/agents/*-agent.md`) bắt buộc dùng RELATIVE paths + agent verify `pwd | grep worktrees` trước Write/commit. Memory: `feedback_worktree_absolute_path_contamination.md`
 - **`values.yaml` shared section** (Wave Obs Agent B + C): cùng file nhưng different YAML sections → git auto-merge thường OK. Nhưng nếu 1 agent reformats whole file → conflict. Mitigation: agent prompt instruct "chỉ touch section X, đừng reformat file"
 - **Stale wave plan trong `waves/`**: collect-state.sh dùng mtime fallback → có thể chỉ vào wave đã ship. Mitigation: ROADMAP §"Active wave queue" là source of truth, không phải mtime
 - **Sequential merge timing**: nếu Agent A's PR fail CI, đừng skip merge A để merge B trước — sẽ break dependency chain. Mitigation: wave plan ghi rõ merge order + rollback path

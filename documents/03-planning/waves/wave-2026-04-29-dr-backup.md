@@ -1,6 +1,6 @@
 ---
 title: Wave DR/Backup — restore drill + MinIO/S3 backup + platform DR runbook
-status: active
+status: complete
 created: 2026-04-28
 updated: 2026-04-28
 gaps: [GAP-117, GAP-118, GAP-119]
@@ -90,39 +90,44 @@ Per `feedback_parallel_agent_strategy.md`:
 - Closure (ROADMAP + cleanup + retrospective fill): ~10 min
 - **Total wave: ~65-75 min** (matches Wave Obs benchmark)
 
-## Lessons-learned (Wave DR/Backup, to be filled after merge)
+## Lessons-learned (Wave DR/Backup, completed 2026-04-28)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold?
-- [ ] Cross-contamination details if any:
+- [x] Did `isolation: "worktree"` hold? **PARTIAL** — worktree was created OK, but absolute-path bug allowed agents to bypass cwd
+- [x] Cross-contamination details: Agent B's first commit (`27f96c1e` GAP-118) landed on Agent C's branch (`feat/wave-dr-backup-gap-119-dr-runbook`). Recovery: Agent B cherry-picked into own worktree branch (PR #634 clean). Agent C's PR #633 still contained contamination — coordinator rebased onto main after #634 merged; git auto-skipped duplicate. All 3 agents reported same root cause: prompt's absolute paths bypassed worktree cwd.
 
 ### File-overlap accuracy (analyze-overlap.sh v1.0 calibration)
-- [ ] Predicted SOFT: ops-readiness-audit-2026-04-19.md citation; actual:
-- [ ] Predicted HARD: 0 (after coordinator review of script's directory-level false positive); actual:
-- [ ] Unpredicted conflicts:
-- [ ] Improvement notes for analyze-overlap.sh v1.1:
+- [x] Predicted SOFT: ops-readiness-audit-2026-04-19.md citation. **Actual:** confirmed SOFT — all 3 PRs cited but no edits, no resolution needed.
+- [x] Predicted HARD after coordinator pruned script's directory-level false positive: 0. **Actual:** 0 — but contamination created a different "conflict" type (commits on wrong branch) that overlap-script can't predict.
+- [x] Unpredicted conflicts: PR #633 contamination = ~15 min coordinator recovery; not a file conflict but a branch-state conflict.
+- [x] Improvement notes for analyze-overlap.sh v1.1: (1) filter §Related-section paths; (2) treat dir-only mentions as informational not HARD; (3) consider adding optional post-spawn `gh pr view` check to detect cross-gap commits in same PR.
 
 ### Wall-clock
-- [ ] Estimated: 65-75 min; actual:; variance source:
+- [x] Estimated: 65-75 min. **Actual:** ~75 min (foundation 15 + spawn 10 + recovery 15 + sequential merge 10 + closure 25). Variance source: contamination recovery added ~15 min — would have been ~60 min without bug. Future waves with relative-path templates should hit 60 min target consistently.
 
 ### Agent prompt quality (first real-world test of `assets/agents/*` templates)
-- [ ] Clarification rounds: A=, B=, C=
-- [ ] Template updates needed: which template, what change
-- [ ] Did `feature-tdd-agent.md` cover Terraform/CI workflow case adequately?
-- [ ] Did `docs-only-agent.md` cover RTO/RPO matrix synthesis case adequately?
+- [x] Clarification rounds: A=0, B=0, C=0 — all 3 returned with complete deliverables on first turn.
+- [x] Template updates needed: ALL 3 (`docs-only-agent.md`, `feature-tdd-agent.md`, `wave-coordinator-agent.md`) — added worktree-cwd guard rule + RELATIVE path mandate to §Gotchas.
+- [x] `feature-tdd-agent.md` covered Terraform/CI workflow case **adequately** — Agent A produced shellcheck-clean script + YAML-validated workflow + 7/7 self-test PASS; Agent B produced terraform-validate-PASS + cost estimate + cross-cloud parity notes.
+- [x] `docs-only-agent.md` covered RTO/RPO matrix synthesis **adequately** — Agent C produced 579-line DR plan + 167-line matrix + cross-link map + Vietnamese PDPL regulator template.
 
 ### Token cost
-- [ ] Total tokens:; per gap:
+- [x] Total tokens (3 agents): A=144781 + B=143780 + C=132629 = 421190 tokens. Per gap: ~140K avg. (Plus coordinator recovery + closure work.)
 
 ### Cleanup
-- [ ] Worktrees removed
-- [ ] Local branches deleted
-- [ ] Remote branches deleted
+- [x] Worktrees removed (force after agent processes died)
+- [x] Local branches deleted
+- [x] Remote branches deleted (4 total)
+- [x] Stale stashes: none
 
 ### Novel patterns
-- [ ] New memory entry filed?
-- [ ] Rule update proposed?
+- [x] New memory entry filed: `feedback_worktree_absolute_path_contamination.md` — universal bug across 3 agents, captured with mitigation script
+- [x] Rule update proposed: agent templates updated with worktree-cwd guard. Skill SKILL.md §Gotchas extended. No new `.claude/rules/*.md` needed (memory entry sufficient — pattern is template-level fix, not project-wide invariant).
 
 ## Log
 
 - 2026-04-28 — Wave plan created. Bundles also: ROADMAP §"Day 2 framework deliverable" → SHIPPED (PR #630 closed it 2026-04-28); `data/wave-history.jsonl` entry for Wave Meta-Day-2 (1 wave-of-1 single-PR self-validated). After foundation PR merges, 3 agents spawn from main.
+- 2026-04-28 — Foundation PR #631 merged (`b983f09a`). 3 agents spawned in single message.
+- 2026-04-28 — Agent A (PR #632), Agent B (PR #634), Agent C (PR #633) all returned ~7-10 min wall-clock. Worktree contamination detected: Agent B's commit on Agent C's branch.
+- 2026-04-28 — Sequential merge: PR #634 (B clean) → rebase PR #633 onto main (auto-skip duplicate) → merge #633 → merge #632 (A). All 3 PRs squash-merged into main.
+- 2026-04-28 — Wave SHIPPED. Lessons-learned section filled. Worktree absolute-path bug captured as memory + 3 template fixes + SKILL.md gotcha. Status → `complete`.
