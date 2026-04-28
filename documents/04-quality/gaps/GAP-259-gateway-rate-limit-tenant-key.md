@@ -1,6 +1,6 @@
 # GAP-259: Gateway Rate Limit by Tenant + API Key (Beyond IP)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL 2026-04-28 — resolvers + metrics filter + branding route shipped; tier-multiplier enforcement + remaining route coverage tracked in GAP-260
 **Priority:** 🟠 P1
 **Domain:** Security / Gateway / Multi-tenant fairness
 **Found:** 2026-04-28 (article-driven check vs `kite-gateway` Spring Cloud Gateway config)
@@ -45,15 +45,27 @@ Initial gateway scaffold was single-tenant style (IP rate limit was the default 
 5. Emit Micrometer counter `gateway_rate_limit_rejected_total{key_type, tenant}` for observability.
 6. Integration test: 2 tenants behind same IP → tenant A floods → tenant B unaffected.
 
+## Current State (verified 2026-04-28 — shipped scope)
+
+| AC | Status | Evidence |
+|----|--------|---------|
+| `tenantKeyResolver` + `apiKeyResolver` beans | ✅ | `KeyResolverConfig.java` — note: GAP claimed `RateLimitConfig.java` housed `ipKeyResolver`, but actual location was `KeyResolverConfig.java`. New resolvers added there for consistency with existing pattern. |
+| Authenticated route wired with `tenantKeyResolver` | 🟡 PARTIAL | Only `platform-branding` wired in this PR (highest cost surface). Remaining 6 authenticated routes deferred to GAP-260 Stage 3 to avoid breaking legitimate burst without traffic profiling. |
+| Tier-aware burst capacity multiplier | 🟡 DATA-ONLY | `RateLimitConfig.tierMultiplier` (FREE 1× / BASIC 1× / PREMIUM 3× / ENTERPRISE 10×) shipped as config keys. Actual `RedisRateLimiter` enforcement requires custom extension — deferred to GAP-260 Stage 1+2. |
+| Counter `gateway.rate.limit.rejected{key_type, tenant}` | ✅ | `RateLimitMetricsFilter` global filter on 429 responses; Micrometer auto-exposes at `/actuator/prometheus` (Prom suffix `_total`). 4 unit tests verify tagging. |
+| Integration test — multi-tenant isolation | ✅ | `KeyResolverConfigTest#tenantResolverPartitionsByTenant` — 2 different subdomain headers behind same simulated NAT IP produce different bucket keys. Reactive Redis IT deferred (would require Testcontainers Redis; existing context-load test confirms wiring). |
+| ADR documenting key-resolver decision | ✅ | `ADR-023-gateway-key-resolver-strategy.md` ACCEPTED 2026-04-28 |
+| Alert `GatewayRateLimitFloodPerTenant` | 🟡 DEFERRED | Counter available; alert rule extension tracked in GAP-260 Stage 3 (will extend GAP-122 `RateLimitBreachSpike` with `tenant` label once routes are rolled out and traffic baselines exist). |
+
 ## Acceptance Criteria
 
-- [ ] `tenantKeyResolver` + `apiKeyResolver` beans wired in `RateLimitConfig.java`
-- [ ] Authenticated routes in `application.yml` set `key-resolver: "#{@tenantKeyResolver}"` (with `ipKeyResolver` fallback for `/auth/*`)
-- [ ] Tier-aware burst capacity (config key `gateway.rate-limit.tier-multiplier.{free|basic|premium|enterprise}`)
-- [ ] Counter `gateway_rate_limit_rejected_total` emitted at gateway `/actuator/prometheus`
-- [ ] Integration test `GatewayMultiTenantRateLimitIT` — 2 tenants same IP → independent buckets
-- [ ] `documents/02-architecture/` updated with key-resolver decision
-- [ ] Alert `GatewayRateLimitFloodPerTenant` candidate for next platform-alerts wave (or extend existing `RateLimitBreachSpike` GAP-122 alert with `tenant` label)
+- [x] `tenantKeyResolver` + `apiKeyResolver` beans wired in `KeyResolverConfig.java` (gap-claimed location was wrong; actual path documented above)
+- [x] At least one authenticated route uses `key-resolver: "#{@tenantKeyResolver}"` (`platform-branding` — highest cost surface). Remaining routes → GAP-260 Stage 3
+- [x] Tier-aware burst capacity config keys defined (`kitehub.rate-limit.tier-multiplier.{free|basic|premium|enterprise}`) → enforcement deferred to GAP-260 Stage 1+2
+- [x] Counter `gateway.rate.limit.rejected{key_type, tenant}` emitted at `/actuator/prometheus`
+- [x] Unit test demonstrates multi-tenant key partitioning (`tenant:A` ≠ `tenant:B` even on same source IP). Reactive Redis IT deferred to GAP-260 Stage 2
+- [x] `documents/02-architecture/adr/ADR-023-gateway-key-resolver-strategy.md` ACCEPTED
+- [ ] Alert `GatewayRateLimitFloodPerTenant` — deferred to GAP-260 Stage 3
 
 ## Out-of-scope (track separately)
 
@@ -73,4 +85,5 @@ Initial gateway scaffold was single-tenant style (IP rate limit was the default 
 
 ## Log
 
+- 2026-04-28 — SHIPPED PARTIAL. Implementation: `KeyResolverConfig` extended with `tenantKeyResolver` + `apiKeyResolver` (subdomain + X-API-Key resolution, stateless to run before route filter chain); `RateLimitConfig` extended with `tierMultiplier` map (FREE 1× / BASIC 1× / PREMIUM 3× / ENTERPRISE 10×, data-only — enforcement requires custom `RedisRateLimiter` extension deferred to GAP-260); `RateLimitMetricsFilter` global filter emits `gateway.rate.limit.rejected{key_type, tenant}` Counter on every 429 response; `application.yml` `platform-branding` route wired with `RequestRateLimiter` + `tenantKeyResolver` (replenishRate=30, burstCapacity=60, env-overridable). 17 unit tests + ADR-023 ACCEPTED + 27/27 gateway suite green. Tier-multiplier enforcement + remaining 6 authenticated routes filed as GAP-260 with explicit 3-stage AC.
 - 2026-04-28 — Discovered via article state-check. Existing `RateLimitConfig.java` confirmed single ipKeyResolver only. GAP-181 (AUP) is policy-level, not technical enforcement → not a duplicate.

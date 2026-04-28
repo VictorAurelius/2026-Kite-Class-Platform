@@ -95,11 +95,20 @@ spring:
                 fallbackUri: forward:/fallback/payment
 
         # Platform APIs - Branding Service
+        # GAP-259 — tenant-keyed rate limit on the AI cost surface so that one tenant
+        # behind a NAT cannot starve co-tenants. Burst tuned for wizard usage; per-tier
+        # multiplier deferred to GAP-260 (custom RedisRateLimiter required).
         - id: platform-branding
           uri: http://kitehub-branding:8080
           predicates:
             - Path=/api/platform/branding/**
           filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${BRANDING_RATE_REPLENISH:30}
+                redis-rate-limiter.burstCapacity: ${BRANDING_RATE_BURST:60}
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@tenantKeyResolver}"
             - name: CircuitBreaker
               args:
                 name: brandingCircuitBreaker
@@ -217,6 +226,13 @@ kitehub:
       BASIC: 500
       PREMIUM: 2000
       ENTERPRISE: 10000
+    # GAP-259 — tier-aware burst multiplier. Data-only in this release; consumed by the
+    # tier-aware RedisRateLimiter scheduled in GAP-260 follow-up.
+    tier-multiplier:
+      FREE: 1.0
+      BASIC: 1.0
+      PREMIUM: 3.0
+      ENTERPRISE: 10.0
 
 # Circuit breaker configuration
 resilience4j:
