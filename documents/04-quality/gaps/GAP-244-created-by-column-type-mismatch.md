@@ -1,6 +1,6 @@
 # GAP-244: `created_by` / `updated_by` column type mismatch (V29+ migrations VARCHAR vs entity Long)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-28 — Path A shipped: `V46__align_audit_columns_to_bigint.sql` ALTERs `created_by` / `updated_by` from VARCHAR to BIGINT across 19 V28..V44 tables (junction `role_permissions` excluded). Idempotent DO block keyed on `information_schema.columns.data_type`. New test `Wave02MigrationsTest.v46_audit_columns_aligned_to_bigint` asserts every audit column resolves to `bigint` post-migration. Full kiteclass-core suite 1123/1123 ✅. Dev profile `ddl-auto: create-drop` workaround can now be reverted as opportunistic follow-up (not strictly required — V46 makes Flyway+validate path viable).
 **Priority:** 🟠 P1 (blocks `ddl-auto: validate` + Flyway path on a fresh dev DB; latent in production where pre-V29 tables happen to use BIGINT)
 **Domain:** Backend (kiteclass-core schema)
 **Detected:** 2026-04-27 during GAP-235 Sub-PR G live-screenshot attempt
@@ -93,4 +93,5 @@ Productionsafe? **No.** Dev convenience only.
 
 ## Log
 
+- **2026-04-28** — Path A shipped. Entity-layer audit confirmed all 23 V29+ entities extend BaseEntity (Long); domain code never reads `createdBy` / `updatedBy` numerically; `AuditorAware<Long>` returns `Optional<Long>`. So column ALTER is the only required change. `V46__align_audit_columns_to_bigint.sql` uses an idempotent DO block scanning `information_schema.columns` for VARCHAR/text audit columns on the 19 affected tables and ALTERs each with `USING NULLIF(col,'')::BIGINT`. `Wave02MigrationsTest` extended with column-type assertion (proves alignment post-migration). 1123/1123 kiteclass-core tests green.
 - **2026-04-27** — Filed during GAP-235 Sub-PR G live-screenshot attempt. `dev-start.sh` boot of Core failed with `Schema-validation: wrong column type encountered in column [created_by] in table [academic_years]; found [varchar], but expecting [bigint]`. Workaround applied to dev profile via `ddl-auto: create-drop`; root-cause repair tracked here. Path A (BIGINT canonical) recommended pending entity-layer audit.
