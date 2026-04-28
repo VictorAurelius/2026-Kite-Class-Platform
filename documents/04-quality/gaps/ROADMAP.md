@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (Wave Observability SHIPPED — 3-agent parallel cluster pack, 4 PRs merged ~75 min wall-clock):** First agent-first wave-pack methodology demonstration COMPLETE per Option C hybrid strategy. PRs: foundation #624 → Agent A #626 (GAP-121 runbooks DONE) → Agent B #625 (GAP-143 Grafana DONE) → Agent C #627 (GAP-144 Alertmanager **PARTIAL** per `gap-done-discipline.md` §3 — 4/6 ACs done, 2 deferred to live-cluster mock-fire verification with `amtool` runbook recipe documented). Total wave delta: 25 files, +2251 LOC, −74 LOC. Cluster status: GAP-121 + GAP-143 → 🟢 DONE; GAP-144 → 🟡 PARTIAL (mock-fire ACs blocked on EKS+ESO+AWS SM secrets provisioning, tracked in §Current State table per gap-done-discipline). Counts: 102 OPEN → 100 OPEN (−GAP-121 −GAP-143; GAP-144 stays as 🟡 PARTIAL not removed from OPEN). **Cadence improvement:** 3 gaps closed in ~75 min vs traditional ~6h serial = ~5x speedup. Worktree-confusion artifact (Agent B + C cross-contamination of `adr/README.md`) recovered via stash dance — captured for Day 2 wave-pack-planner skill lessons-learned. Worktrees + 6 local branches cleaned post-merge per `feedback_parallel_agent_strategy.md` rule #6. **Day 2 framework deliverable** (next session): `quality/wave-pack-planner/SKILL.md` codifies cluster-then-spawn pattern + 5 specialized agent prompt templates (docs-only, test-only, p3-cleanup, feature-tdd, wave-coordinator). **Next wave candidates** documented below: GAP-122 (alerts) + Cluster 2 DR/Backup (GAP-117/118/119) + Cluster 3 KiteHub admin (GAP-066/067/068).
+
 **2026-04-28 (Wave Observability KICKED OFF — first agent-first cluster pack):** Strategy shift discussed end-of-session — current cadence ~2-3 gap/day = 50-80 days to clear 125 OPEN+PARTIAL queue, too slow. Decision: Option C hybrid — execute first wave-pack today demonstrating cluster pattern, codify framework tomorrow. Wave plan: `documents/03-planning/waves/wave-2026-04-29-observability.md`. Cluster pack 1 = Observability (3 disjoint gaps): GAP-121 (per-alert runbooks, P1) + GAP-143 (Grafana dashboards in Helm, P1) + GAP-144 (Alertmanager production receivers, P0). 3 parallel worktree-isolated agents target ~60-80 min wave wall-clock. GAP-122 (12 new alerts) deferred to next wave to avoid `alert-rules.yml` race with Agent A's runbook_url backfill. GAP-114/115 (logging migration) parked separate track per `logs-format-standard.md` migration phases (multi-service rollout, not 1-PR scope). Lessons-learned from this wave feed into Day 2 framework PR (`quality/wave-pack-planner/SKILL.md`).
 
 **2026-04-28 (Skill-conventions cleanup wave SHIPPED — 21 → 2 grandfathered, 5 PRs merged):** Skill-conventions cleanup wave (queue item #3 from earlier today) closed via 5 sequential + parallel PRs. **Phase 1 #616** (sync, 7 prefixed-heading renames: `## KiteClass Gotchas` / `## Vietnamese-specific gotchas` → `## Gotchas` for 4 core/* + 3 doc-gen/*). **Phase 2a #617** (sync, 4 quality skills full Gotchas + 5 workflow SKILL.md description trigger-keyword rewrites). **Phase 2b #618** (Agent A worktree-isolated, 5 workflow SKILL.md Gotchas appended). **Phase 2b #619** (Agent B worktree-isolated, 3 workflow loose .md Gotchas appended). **Phase 2c #620** (sync finalizer, removed 8 workflow entries from `GRANDFATHERED_EXEMPTIONS`). Net delta: PASS 44 → 44 (unchanged — files already passed silently after Gotchas added), WARN 38 → 14 (−24 cumulative across all phases), FAIL 0 throughout. Wave wall-clock ~50 min (incl. 2 parallel agents ~10 min). Worktrees cleaned post-merge per `feedback_parallel_agent_strategy.md` rule #6. **2 deferred to Wave 9** (`workflow/development-workflow.md` 1221 lines + `workflow/priority-pr-planning.md` 800 lines) — body exceeds 500-line Check 4 limit, frontmatter add would expose new FAIL until split or moved to `reference/`. Tracked under GAP-251 follow-up. Remaining 14 WARN: 12 audit/review eval-fixtures (separate GAP-253 best-practice concern), 2 grandfathered (the deferred large files). **Counts unchanged** — no gap files added/closed; this was an existing GAP-251 follow-up done as cleanup, not a new gap.
@@ -180,13 +182,33 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 
 > ⏸ **AI Branding cluster DEFERRED 2026-04-28** — GAP-223 Sub-PR 223.2 + GAP-006 are blocked on local Ollama daemon + Docker stack (WSL2 CPU-only infeasible for Gemma 4 9B A/B test per `feedback_gap006_infra_blocker.md`). Will resume when: (1) Ollama running with `gemma4:9b` + `nqduc/mixsura:mixsura-q6_K`, (2) `./kitehub/scripts/up.sh` green, (3) sufficient compute for 9B inference. See GAP-006 + GAP-223 Log entries 2026-04-28.
 
-1. **GAP-256** (Meta-P2 GATED until ~2026-05-05) — README read-first rule. GAP-255 freshness CI active 2026-04-28; eligible after ≥7d active per `incident-to-rule-pipeline.md` premature-rule guard
-2. **GAP-055** (BL-P0, Wave 10 candidate) — report-card VN format. **Top eligible item** — single-PR scope, no AI infra dependency
-3. ~~**Skill-conventions cleanup wave**~~ — ✅ DONE 2026-04-28 (PRs #616, #617, #618, #619, #620). 21 → 2 grandfathered. 2 deferred large files (development-workflow.md 1221 LOC, priority-pr-planning.md 800 LOC) tracked in `scripts/check-skill-conventions.sh` GRANDFATHERED_EXEMPTIONS for **Wave 9** (need split / move to `reference/` before frontmatter can be safely added)
-4. **Wave 9 — large-skill restructure** (Meta-P3 follow-up to skill-conventions cleanup): split `workflow/development-workflow.md` + `workflow/priority-pr-planning.md` OR relocate both to `.claude/skills/reference/` so they can carry frontmatter without tripping Check 4 body-length FAIL
-5. ~~**GAP-229** (BL-P1)~~ — ✅ DONE 2026-04-26 (PR #561 + #562 closed all 3 phases). Removed from queue 2026-04-28 (was stale).
-6. **GAP-223 Sub-PR 223.2** ⏸ DEFERRED — see banner above
-7. **GAP-006** ⏸ DEFERRED — see banner above
+**STRATEGY SHIFT 2026-04-28**: Linear queue replaced by **wave-pack clusters** (5-8 related gaps per wave, 3-5 parallel agents). Demo wave (Observability) shipped 3 gaps in ~75 min — projected 5x cadence improvement. Below: cluster pipeline.
+
+### Active wave queue (clustered)
+
+| # | Wave / Cluster | Gaps | Priority | Status |
+|:-:|----------------|------|:--------:|:------:|
+| 1 | ~~Observability — Wave 1~~ | GAP-121 (P1) + GAP-143 (P1) + GAP-144 (P0 PARTIAL) | mixed | ✅ SHIPPED 2026-04-28 |
+| 2 | **Observability — Wave 2** (next) | GAP-122 (12 new platform alerts, P1) + GAP-144 mock-fire backfill (when live cluster ready) | P1 | 🔵 NEXT |
+| 3 | **DR/Backup cluster** | GAP-117 (P0 restore drill) + GAP-118 (P1 MinIO backup) + GAP-119 (P1 DR runbook) | P0+P1 | 🔵 OPEN |
+| 4 | **KiteHub admin cluster** | GAP-066 + GAP-067 + GAP-068 (P1, all KH services) | P1 | 🔵 OPEN |
+| 5 | **Business correctness cluster** | GAP-049 (P0) + GAP-050 (P0) + GAP-150 (P1) | P0+P1 | 🔵 OPEN |
+| 6 | **Parent/import cluster** | GAP-052 (P0 PARTIAL) + GAP-063 (P1) + GAP-137 (P0) + GAP-139 (P1) | P0+P1 | 🔵 OPEN |
+| 7 | **K-12 features wave** | GAP-055 (P1, Phase 1 Tasks 3-10) + GAP-056 (P1) + GAP-057 (P1) | P1 | 🟡 IN_PROGRESS (GAP-055 Tasks 0-2 DONE) |
+| 8 | **Logging migration** (separate track) | GAP-114 (P0) + GAP-115 (P1) | P0+P1 | 🔵 OPEN — multi-PR scope per `logs-format-standard.md` migration phases |
+
+### Single-track items (not clustered)
+
+- **GAP-256** (Meta-P2 GATED until ~2026-05-05) — README read-first rule
+- **Wave 9 — large-skill restructure** (Meta-P3) — split `workflow/development-workflow.md` + `workflow/priority-pr-planning.md`
+- **GAP-223 Sub-PR 223.2** ⏸ DEFERRED — see AI Branding banner
+- **GAP-006** ⏸ DEFERRED — see AI Branding banner
+
+### Day 2 framework deliverable (next session)
+
+- `quality/wave-pack-planner/SKILL.md` — codify cluster-then-spawn pattern, file-overlap analysis algorithm, agent spawning template
+- Specialized agent prompts: `docs-only-agent`, `test-only-agent`, `p3-cleanup-agent`, `feature-tdd-agent`, `wave-coordinator`
+- Background fleet `/loop` setup: doc-sync (daily), P3 sweeper (weekly), audit cadence (per `post-wave-audit-mandate.md` §4)
 
 **Earlier reference (Wave 7 + Wave 6 priorities now subsumed by above):**
 - GAP-222a/b/c + GAP-230 SHIPPED 2026-04-26 ✅ (Outbox migration cluster fully closed)
