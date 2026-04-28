@@ -141,6 +141,7 @@ spec:
           annotations:
             summary: "branding-by-tenant cache miss rate elevated"
             description: "Cache miss rate above 10/s for 5 minutes — possible eviction storm or post-deploy cold start. Each miss hits PostgreSQL via BrandingService.getBranding()."
+            runbook_url: "/documents/05-guides/operations/runbooks/branding-cache-miss-storm.md"
 
     # GAP-135 — per-SLO-tier API latency rules (Wave perf-D Agent D, 2026-04-26).
     # Tier budgets sourced from documents/05-guides/api-performance-slo.md §2.
@@ -162,6 +163,7 @@ spec:
           annotations:
             summary: "Tier A endpoint p95 above 200 ms budget"
             description: "{{ "{{ $labels.uri }}" }} (slo=tier-a) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 200 ms interactive-read budget. See documents/05-guides/api-performance-slo.md."
+            runbook_url: "/documents/05-guides/api-performance-slo.md"
 
         - alert: ApiLatencyP95HighTierB
           expr: |
@@ -175,6 +177,7 @@ spec:
           annotations:
             summary: "Tier B endpoint p95 above 500 ms budget"
             description: "{{ "{{ $labels.uri }}" }} (slo=tier-b) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 500 ms list-page budget."
+            runbook_url: "/documents/05-guides/api-performance-slo.md"
 
         - alert: ApiLatencyP95HighTierC
           expr: |
@@ -188,6 +191,7 @@ spec:
           annotations:
             summary: "Tier C endpoint p95 above 800 ms budget"
             description: "{{ "{{ $labels.uri }}" }} (slo=tier-c) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 800 ms write budget."
+            runbook_url: "/documents/05-guides/api-performance-slo.md"
 
         - alert: ApiLatencyP95HighTierD
           expr: |
@@ -201,6 +205,7 @@ spec:
           annotations:
             summary: "Tier D endpoint p95 above 5 s budget"
             description: "{{ "{{ $labels.uri }}" }} (slo=tier-d) p95 is {{ "{{ $value | humanizeDuration }}" }} for the last 10 minutes — exceeds 5 s batch budget."
+            runbook_url: "/documents/05-guides/api-performance-slo.md"
 
         - alert: ApiLatencyP99CriticalTierA
           expr: |
@@ -214,6 +219,7 @@ spec:
           annotations:
             summary: "Tier A endpoint p99 critically high"
             description: "{{ "{{ $labels.uri }}" }} (slo=tier-a) p99 is {{ "{{ $value | humanizeDuration }}" }} — Tier A p99 budget is 400 ms. Likely cache miss storm or downstream timeout."
+            runbook_url: "/documents/05-guides/api-performance-slo.md"
 
     # GAP-122 — 12 platform-critical alerts (Wave 2026-04-28).
     # 4 critical (page on-call) + 8 warning (Slack). Group is appended NEW; do not edit existing
