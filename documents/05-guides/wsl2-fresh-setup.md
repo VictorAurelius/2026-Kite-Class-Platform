@@ -30,28 +30,191 @@ On the Windows machine, in PowerShell as **Administrator**:
 # 1. Verify WSL2 is available
 wsl --status
 
-# 2. Install or upgrade Ubuntu (24.04 LTS recommended)
+# 2. Set WSL2 as default
+wsl --set-default-version 2
+```
+
+### Option A — Quick install (default distro, default location)
+
+Dùng khi chỉ cần 1 instance duy nhất, lưu mặc định ở `%LocalAppData%\Packages\...`.
+
+```powershell
+# Install Ubuntu 24.04 LTS
 wsl --install -d Ubuntu
 
-# 3. Set WSL2 as default
-wsl --set-default-version 2
-
-# 4. (One-time) Increase WSL memory cap if your machine has ≥16 GB RAM.
-#    Create %UserProfile%\.wslconfig with:
-#      [wsl2]
-#      memory=10GB
-#      processors=6
-#      swap=4GB
-#    Then: wsl --shutdown   (next launch picks up the config)
+# → Tự động tạo user + password khi lần đầu launch
 ```
+
+### Option B — Custom instance (recommended cho dự án)
+
+Dùng khi muốn: đặt tên riêng, chọn ổ đĩa lưu, chạy nhiều instance song song, hoặc dễ backup/migrate.
+
+#### B1. Tải rootfs image
+
+```powershell
+# Cách 1: Tải rootfs từ cloud images (Ubuntu 24.04 — recommended)
+# Vào: https://cloud-images.ubuntu.com/wsl/noble/current/
+# Tải file: ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz
+# Hoặc dùng curl:
+curl -L -o "$env:USERPROFILE\Downloads\ubuntu-24.04-rootfs.tar.gz" `
+  "https://cloud-images.ubuntu.com/wsl/noble/current/ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz"
+
+# Cách 2: Export từ distro có sẵn (nếu đã có Ubuntu cài sẵn)
+wsl --export Ubuntu "$env:USERPROFILE\Downloads\ubuntu-backup.tar"
+```
+
+#### B2. Tạo custom instance
+
+```powershell
+# Chọn tên + thư mục lưu (ví dụ: ổ F:\, tên "kite-dev")
+$NAME = "kite-dev"
+$INSTALL_DIR = "F:\WSL\$NAME"
+$ROOTFS = "$env:USERPROFILE\Downloads\ubuntu-24.04-rootfs.tar.gz"
+
+# Tạo thư mục đích
+New-Item -ItemType Directory -Force -Path $INSTALL_DIR
+
+# Import — tạo instance mới từ rootfs
+wsl --import $NAME $INSTALL_DIR $ROOTFS --version 2
+
+# Verify
+wsl -l -v
+#   NAME        STATE    VERSION
+#   kite-dev    Stopped  2
+```
+
+#### B3. Tạo user (không dùng root)
+
+`wsl --import` mặc định login root. Phải tạo user thường:
+
+```powershell
+# Vào instance với quyền root
+wsl -d kite-dev
+
+# === Bên trong WSL (đang là root) ===
+```
+
+```bash
+# Tạo user mới
+NEW_USER="kitedev"
+adduser $NEW_USER
+# → Nhập password khi được hỏi
+
+# Thêm vào sudo group
+usermod -aG sudo $NEW_USER
+
+# Đặt user mặc định khi launch (thay vì root)
+cat > /etc/wsl.conf <<EOF
+[user]
+default=$NEW_USER
+
+[boot]
+systemd=true
+
+[interop]
+appendWindowsPath=false
+EOF
+
+exit
+```
+
+```powershell
+# Restart instance để áp dụng wsl.conf
+wsl --terminate kite-dev
+wsl -d kite-dev whoami
+# → kitedev (không phải root)
+```
+
+#### B4. Đặt làm default (optional)
+
+```powershell
+# Nếu muốn `wsl` (không -d) tự vào instance này
+wsl --set-default kite-dev
+```
+
+#### B5. Quản lý nhiều instances
+
+```powershell
+# Liệt kê tất cả instances
+wsl -l -v
+
+# Vào instance cụ thể
+wsl -d kite-dev
+
+# Vào với user cụ thể (override default)
+wsl -d kite-dev -u root
+
+# Stop 1 instance
+wsl --terminate kite-dev
+
+# Stop tất cả WSL
+wsl --shutdown
+
+# Xóa instance (CẢNH BÁO: xóa toàn bộ filesystem!)
+wsl --unregister kite-dev
+
+# Backup instance (export → tar)
+wsl --export kite-dev "F:\Backup\kite-dev-backup.tar"
+
+# Restore / clone instance từ backup
+wsl --import kite-dev-v2 "F:\WSL\kite-dev-v2" "F:\Backup\kite-dev-backup.tar" --version 2
+```
+
+#### B6. Di chuyển instance sang ổ khác
+
+```powershell
+# Export → Unregister → Import lại ở vị trí mới
+$NAME = "kite-dev"
+$BACKUP = "$env:USERPROFILE\Downloads\$NAME-migrate.tar"
+$NEW_DIR = "D:\WSL\$NAME"
+
+wsl --export $NAME $BACKUP
+wsl --unregister $NAME
+New-Item -ItemType Directory -Force -Path $NEW_DIR
+wsl --import $NAME $NEW_DIR $BACKUP --version 2
+
+# Verify — user default vẫn giữ nguyên (lưu trong /etc/wsl.conf)
+wsl -d $NAME whoami
+```
+
+### WSL memory + performance tuning
+
+```powershell
+# (One-time) Increase WSL memory cap if your machine has ≥16 GB RAM.
+# Create %UserProfile%\.wslconfig with:
+
+notepad "$env:USERPROFILE\.wslconfig"
+```
+
+Nội dung `.wslconfig`:
+
+```ini
+[wsl2]
+memory=10GB
+processors=6
+swap=4GB
+localhostForwarding=true
+# nestedVirtualization=true    # Bật nếu cần Docker-in-Docker hoặc KVM
+
+[experimental]
+autoMemoryReclaim=gradual      # Tự thu hồi RAM không dùng (Win 11 22H2+)
+sparseVhd=true                 # Tự shrink disk khi xóa file (Win 11 22H2+)
+```
+
+```powershell
+# Áp dụng — restart tất cả WSL instances
+wsl --shutdown
+```
+
+### Docker Desktop setup
 
 Install **Docker Desktop** for Windows (https://www.docker.com/products/docker-desktop/). After install:
 
 1. Settings → General → enable **Use the WSL 2 based engine**
-2. Settings → Resources → **WSL Integration** → enable for your Ubuntu distro
+2. Settings → Resources → **WSL Integration** → enable for your distro (Ubuntu hoặc `kite-dev`)
 3. Apply & Restart
 
-Verify in WSL Ubuntu terminal (`wsl` from PowerShell):
+Verify in WSL terminal (`wsl` or `wsl -d kite-dev`):
 ```bash
 docker --version          # Docker version 27.x+
 docker compose version    # v2.x
@@ -438,6 +601,9 @@ gh workflow run ci-cleanup.yml --field dry_run=true   # preview
 | `gh pr merge` succeeds despite failing CI | Solo-dev mode — branch protection not enforcing required checks | Use `scripts/check-ci.sh <branch>` to gate manually before merge |
 | Worktree branches stuck after parallel agents | Harness locks worktrees | Wait — they auto-clean when the parent agent exits. Manual: `git worktree remove .claude/worktrees/<name> -f -f` |
 | RTK `gain` says "command not found" | Wrong `rtk` package — name collision with Rust Type Kit | Reinstall via the Rust Token Killer source, verify `which rtk` shows project's binary |
+| Custom WSL instance login as root | `wsl --import` defaults to root user | Add `/etc/wsl.conf` with `[user] default=<username>` then `wsl --terminate <name>` |
+| Custom WSL disk grows but never shrinks | VHDX doesn't auto-compact by default | Add `sparseVhd=true` under `[experimental]` in `.wslconfig` (Win 11 22H2+) |
+| `appendWindowsPath=false` breaks `code .` | VS Code CLI needs Windows PATH | Run `export PATH="$PATH:/mnt/c/Users/<you>/AppData/Local/Programs/Microsoft VS Code/bin"` hoặc bỏ `appendWindowsPath` setting |
 
 ---
 
@@ -455,4 +621,5 @@ gh workflow run ci-cleanup.yml --field dry_run=true   # preview
 
 ## Log
 
+- **2026-04-28 (update):** Added Phase 0 Option B — custom WSL instance creation (`wsl --import`): rootfs download, custom name + install directory, user creation + `/etc/wsl.conf`, multi-instance management (list/stop/backup/clone/move), disk migration. Added `.wslconfig` experimental settings (`autoMemoryReclaim`, `sparseVhd`). 3 new gotchas (root default, VHDX growth, `appendWindowsPath`).
 - **2026-04-28:** Doc created. Pulled together as a clean-room reproducer separate from `wsl-migration-playbook.md` (which assumes existing Windows D:\\... installation). Adds: setup.sh step before up.sh, RTK install, Java 17 explicit, all 5 .env templates, Playwright `--with-deps`, Postgres MCP recipe, dev-profile note for kiteclass-core, ognl 3.3.4 pin, RFC-2606 test-hostname gotcha, current container count (~20), CI-without-branch-protection gotcha, worktree cleanup gotcha. Cross-link added to `wsl-migration-playbook.md`.
