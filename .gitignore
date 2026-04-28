@@ -23,6 +23,9 @@ infrastructure/logs/run-*/
 .claude/session-locks/*.lock
 .claude/skills/workflow/start-session/data/*.log
 
+# Worktree clones spawned by parallel agents (transient per-machine state)
+.claude/worktrees/
+
 # Environment files (contain secrets - never commit)
 .env
 .env.local
