@@ -1,14 +1,16 @@
-name: Script Quality (ShellCheck + Ruff + Rule Frontmatter)
+name: Script Quality (ShellCheck + Ruff + Rule Frontmatter + Skill Conventions)
 
 # Closes GAP-194 — CI enforcement of script standard defined in
 # `.claude/skills/quality/script-review/SKILL.md` + `output-review-mandate.md` §5.5.
 # Closes GAP-250 — CI enforcement of rule frontmatter spec defined in
 # `.claude/rules/rule-change-process.md` §3 (paired with GAP-249 backfill).
+# Closes GAP-251 — CI enforcement of skill convention spec defined in
+# `.claude/rules/skill-conventions.md` (paired with Move 2 script + fixtures).
 #
-# Triggered by any change to *.sh, *.py, or `.claude/rules/**.md` in scope paths.
-# Non-scope changes skip.
+# Triggered by any change to *.sh, *.py, `.claude/rules/**.md`, or
+# `.claude/skills/**.md` in scope paths. Non-scope changes skip.
 # Baseline (2026-04-20): shellcheck -S error = 0 issues, ruff check = 0 issues.
-# Baseline (2026-04-28): rule-frontmatter = 14/14 rules compliant.
+# Baseline (2026-04-28): rule-frontmatter = 14/14 rules compliant; skill-conventions = 44 PASS / 38 WARN / 0 FAIL.
 
 on:
   # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
@@ -24,6 +26,9 @@ on:
       - '.claude/rules/**.md'
       - 'scripts/check-rule-frontmatter.sh'
       - 'scripts/fixtures/rule-frontmatter/**'
+      - '.claude/skills/**.md'
+      - 'scripts/check-skill-conventions.sh'
+      - '.claude/skills/quality/skill-conventions-check/data/fixtures/**'
 
 permissions:
   contents: read
@@ -190,3 +195,47 @@ jobs:
       - name: No rule files changed
         if: steps.changed.outputs.files == ''
         run: echo "No rule files changed — skipping."
+
+  skill-conventions:
+    name: Skill conventions (`.claude/skills/**/SKILL.md`)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed skill files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ "$BASE" = "$HEAD" ]; then
+            FILES=$(find .claude/skills -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          else
+            FILES=$(git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- '.claude/skills/**' | tr '\n' ' ')
+          fi
+          # Also re-scan whole skills tree on validator script or fixture changes
+          if git diff --name-only --diff-filter=AMR "$BASE" "$HEAD" -- 'scripts/check-skill-conventions.sh' '.claude/skills/quality/skill-conventions-check/data/fixtures' 2>/dev/null | grep -q .; then
+            FILES=$(find .claude/skills -name '*.md' -type f 2>/dev/null | tr '\n' ' ')
+          fi
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "Changed skill files: $FILES"
+
+      - name: Validate skill conventions (blocking on FAIL, WARN-only allowed)
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Running skill-conventions full-repo check..."
+          # Script exits 0 on PASS+WARN-only (grandfathered exemptions); exits 1 on any FAIL.
+          # See .claude/rules/skill-conventions.md + GAP-251 for spec.
+          bash scripts/check-skill-conventions.sh
+
+      - name: No skill files changed
+        if: steps.changed.outputs.files == ''
+        run: echo "No skill files changed — skipping."
