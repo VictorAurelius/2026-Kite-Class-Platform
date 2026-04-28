@@ -64,7 +64,7 @@ Trigger: PR touches `kiteclass-core/src/main/java/com/kiteclass/core/module/docu
 
 If a new template lands without a sample golden output OR without 3-layer doc updates → BLOCK per `output-review-mandate.md` §6.
 
-## KiteClass Gotchas
+## Gotchas
 
 - **KHÔNG kết luận CI pass khi `in_progress`** — chạy `scripts/check-ci.sh --status` trước, đợi completed
 - **Multi-tenant CRITICAL** — mọi service query thiếu tenant filter = CRITICAL issue, BLOCK ngay

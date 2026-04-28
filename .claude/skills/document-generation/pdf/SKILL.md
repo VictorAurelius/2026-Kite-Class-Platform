@@ -33,7 +33,7 @@ Stay in **Create** route. If you need Edit-Fill or Reformat, file a gap first.
    - Feeds HTML to **OpenHTMLtoPDF** (`PdfRendererBuilder#useFastMode`) with preloaded DejaVuSans + DejaVuSans-Bold so Đ/đ/ễ/ă render correctly.
 4. Output `DocumentResponse(bytes, "application/pdf", "invoice-<number>.pdf")`.
 
-## Vietnamese-specific gotchas
+## Gotchas
 
 - **Fonts:** DejaVuSans TTFs live in `kiteclass-core/src/main/resources/fonts/`. PDFBox's built-in Helvetica drops Đ and most diacritics. Always register a TTF via `builder.useFont(InputStream supplier, "family")`.
 - **VND format:** group separator is `.` (not `,`) — e.g. `2.500.000`. Use `Locale.forLanguageTag("vi-VN")` + `DecimalFormatSymbols.setGroupingSeparator('.')`.

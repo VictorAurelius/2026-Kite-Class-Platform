@@ -35,7 +35,7 @@ Prefer `SUMIF` / `COUNTIF` / `SUM` / `IFERROR` formulas over pre-computed values
    - Freeze pane at row 3
 4. Returns `DocumentResponse(bytes, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, "attendance-{weekStart}.xlsx")`.
 
-## Vietnamese-specific gotchas
+## Gotchas
 
 - **VN weekday labels:** `Thứ 2` through `Thứ 7` (Monday–Saturday). Do NOT localise with `Locale.of("vi")` — hardcode these in the header row; POI renders label text literally, not via `DateFormatSymbols`.
 - **Student name column width:** composite names (`Nguyễn Phạm Hồng Ánh Tuấn`) need ~40+ chars; set column width ≥ 8000 units (≈ 24 Excel chars).

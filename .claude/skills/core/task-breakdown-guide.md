@@ -68,7 +68,7 @@ Gap Proposed Fix step 2 "Entity + DB" →
 4. **Verification step** — cách test/verify task done
 5. **Time estimate** — 2-5 phút (max 10 phút)
 
-## KiteClass Gotchas
+## Gotchas
 
 - **Flyway migrations** — mỗi migration = 1 task riêng, KHÔNG gộp với entity changes trong cùng task
 - **Business docs là task đầu tiên** nếu domain mới — chạy `pre-flight-check domain` trước khi breakdown
