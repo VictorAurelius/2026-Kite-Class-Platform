@@ -96,3 +96,22 @@ variable "domain_name" {
   type        = string
   default     = "kiteclass.com"
 }
+
+# --- S3 Backup / Replication (GAP-118) ---
+variable "s3_replica_region" {
+  description = "AWS region for S3 cross-region replica bucket (DR target)"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "s3_object_lock_enabled" {
+  description = "Enable S3 Object Lock (compliance mode) on assets bucket. Requires bucket created with object_lock_enabled=true OR an AWS support request to enable on existing bucket."
+  type        = bool
+  default     = false
+}
+
+variable "s3_object_lock_retention_days" {
+  description = "Default retention days for objects under Object Lock COMPLIANCE mode"
+  type        = number
+  default     = 365
+}

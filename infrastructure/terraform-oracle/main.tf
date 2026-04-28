@@ -12,10 +12,11 @@
 #   - VCN + Subnet + Security List
 #   - 2 ARM VMs (A1.Flex) for backend + frontend/AI
 #   - Reserved public IPs
-#   - Object Storage bucket
+#   - Object Storage bucket (versioning + lifecycle — see compute.tf, GAP-118)
 #
 # Cost: $0/month (Always Free tier)
 # Docs: documents/03-planning/infrastructure/kitehub-oracle-cloud-deployment.md
+# DR/Backup: documents/05-guides/disaster-recovery-plan.md (GAP-119)
 # =============================================================================
 
 terraform {
