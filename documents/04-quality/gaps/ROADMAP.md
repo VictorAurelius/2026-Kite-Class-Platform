@@ -10,6 +10,28 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (Wave GAP-236 SHIPPED — 4 parallel agents, ~18 min wall-clock):** Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md` (wave plan PR-first landed in #599). 4 worktree-isolated agents on disjoint FE buckets, 0 file conflicts (only additive Log conflicts on GAP-236 file resolved by parent rebase):
+
+| Agent | Bucket | PR | Pages |
+|:-----:|--------|:--:|:-----:|
+| A | KC `(auth)` + `(public)` | #601 | 7 (top 3 auth routes −119 KB First Load JS) |
+| B | KC `(dashboard)/{admin,attendance,billing}` | #600 | 5 (incl. `/attendance/reports` 417-LOC) |
+| C | KC `(dashboard)/{classes,courses,students,teachers}` | #602 | 11 (largest bucket — form/attendance lazy) |
+| D | KH all groups + Sub-PR C analyzer baselines | #603 | 10 (incl. `/admin/instances/[id]` 452-LOC) |
+
+**Wave validation:**
+- Total **33 pages converted** (≥30 AC threshold ✅)
+- Per-app post-wave max First Load JS: KC 217 KB / KH 200 KB (well under 250 KB CI ceiling)
+- All 90 routes (52 KC + 38 KH) within bundle budget
+- 565 KC tests + 484 KH tests pass; 0 regression
+- Sub-PR C: analyzer baseline HTMLs committed (KC 749 KB + KH 876 KB raw, both <5 MB so no compression)
+- 3 follow-up findings surfaced for triage (unused `ui/calendar.tsx`, HCaptcha ref-forwarding gap, `(auth)/layout.tsx` chunk hoist)
+- ~18 min wall-clock for 4 agents (vs estimated 1-2h serial)
+
+GAP-127 PARTIAL → 🟢 effectively closed via GAP-236 closure. GAP-236 status: 🟡 PARTIAL → 🟢 DONE. Counts: **87 OPEN → 86 OPEN** (-GAP-236 closed).
+
+**2026-04-28 (GAP-244 SHIPPED + dev profile cleanup):** Path A migration `V46__align_audit_columns_to_bigint.sql` ALTERs `created_by` / `updated_by` from VARCHAR to BIGINT across 19 V28..V44 tables, matching `BaseEntity` (Long). Idempotent DO block keyed on `information_schema.columns.data_type`; Wave02MigrationsTest extended with column-type assertion. PR #597 + PR #598 (revert `application-dev.yml` Flyway+create-drop workaround now Flyway+validate path is viable). 1123/1123 kiteclass-core tests green. Counts: **88 OPEN → 87 OPEN** (-GAP-244 closed).
+
 **2026-04-27 (GAP-235 wave SHIPPED — 4 sub-PRs serial in single session, ~3h):** AI Branding mock-data wave fully closed. Sub-PR E1 #588 (OpenAPI export pipeline + `kiteclass/shared/` fixtures starter, fixed MockMvc-vs-springdoc + test-resources application.yml override bugs in test), Sub-PR F #589 (BE `BrandingDataSeeder` `@Profile("dev")` idempotent, 4 unit tests), Sub-PR E2 #590 (FE MSW v2 handlers — 11 endpoints, lifecycle state machine, ETag/304, 15 vitest tests), Sub-PR G #591 (`local-dev-mock-data.md` guide + `smoke-ai-branding-dev.sh` shellcheck-clean + `ai-branding-demo.spec.ts` Playwright spec gated by `AI_BRANDING_DEMO_RUN=1`). Live screenshot capture deferred — surfaced **GAP-244** (V29+ migrations declare `created_by VARCHAR(100)` while `BaseEntity.createdBy` is `Long`, sibling case to `feedback_jpa_jsonb_jdbctypecode.md`); **PR #592 ships dev-profile workaround** (application-dev.yml ddl-auto override + dev-start.sh dev-profile activation + `INTERNAL_API_SECRET` default) so Core boots in ~7s on fresh DB; root canonicalization tracked in GAP-244. Counts: **89 OPEN → 90 OPEN** (-GAP-235 closed; +GAP-244 filed). GAP-235 had 4 sub-PRs all merged in this session (E1/E2/F/G), GAP-244 is followup work.
 
 **2026-04-27 (Wave P2-Cleanup SHIPPED — 3 parallel agents, ~12 min wall-clock):** Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md` (wave plan via PR first — landed in #581). 3 worktree-isolated agents disjoint files, 0 conflicts:
