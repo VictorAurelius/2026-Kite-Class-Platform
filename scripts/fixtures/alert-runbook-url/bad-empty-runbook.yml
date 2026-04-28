@@ -1,0 +1,12 @@
+groups:
+  - name: fixture-alerts-empty
+    rules:
+      - alert: ExampleEmptyRunbookAlert
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Example summary"
+          description: "Example description"
+          runbook_url: ""

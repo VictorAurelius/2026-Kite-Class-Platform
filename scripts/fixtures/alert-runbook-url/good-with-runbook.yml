@@ -1,0 +1,12 @@
+groups:
+  - name: fixture-alerts-good
+    rules:
+      - alert: ExampleGoodAlert
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Example summary"
+          description: "Example description"
+          runbook_url: "/documents/05-guides/operations/runbooks/service-down.md"

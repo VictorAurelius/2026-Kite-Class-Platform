@@ -1,0 +1,20 @@
+{{- if .Values.monitoring.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: fixture-helm-alerts
+spec:
+  groups:
+    - name: fixture-helm-alerts
+      rules:
+        - alert: HelmTemplatedAlert
+          expr: up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Helm-templated alert {{ "{{ $labels.job }}" }}"
+            description: "{{ "{{ $labels.job }}" }} is down"
+            runbook_url: "/documents/05-guides/operations/runbooks/service-down.md"
+{{- end }}
