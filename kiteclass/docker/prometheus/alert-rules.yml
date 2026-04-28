@@ -9,6 +9,7 @@ groups:
         annotations:
           summary: "Service {{ $labels.instance }} is down"
           description: "{{ $labels.job }} has been down for more than 1 minute."
+          runbook_url: "/documents/05-guides/operations/runbooks/service-down.md"
 
       - alert: HighErrorRate
         expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) / rate(http_server_requests_seconds_count[5m]) > 0.05
@@ -18,6 +19,7 @@ groups:
         annotations:
           summary: "High error rate on {{ $labels.instance }}"
           description: "5xx error rate is above 5% for more than 5 minutes (current: {{ $value | humanizePercentage }})."
+          runbook_url: "/documents/05-guides/operations/runbooks/high-error-rate.md"
 
       - alert: HighResponseTime
         expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 2
@@ -27,6 +29,7 @@ groups:
         annotations:
           summary: "High response time on {{ $labels.instance }}"
           description: "95th percentile response time is above 2 seconds for more than 5 minutes (current: {{ $value }}s)."
+          runbook_url: "/documents/05-guides/operations/runbooks/high-response-time.md"
 
       - alert: HighMemoryUsage
         expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
@@ -36,6 +39,7 @@ groups:
         annotations:
           summary: "High heap memory usage on {{ $labels.instance }}"
           description: "JVM heap usage is above 85% for more than 5 minutes (current: {{ $value | humanizePercentage }})."
+          runbook_url: "/documents/05-guides/operations/runbooks/high-memory-usage.md"
 
       - alert: DatabasePoolExhausted
         expr: hikaricp_connections_active / hikaricp_connections_max > 0.9
@@ -45,6 +49,7 @@ groups:
         annotations:
           summary: "Database connection pool near exhaustion on {{ $labels.instance }}"
           description: "HikariCP active connections are above 90% of max for more than 2 minutes (current: {{ $value | humanizePercentage }})."
+          runbook_url: "/documents/05-guides/operations/runbooks/database-pool-exhausted.md"
 
   # GAP-217 — Wave 5 document-generation endpoints (Sub-PR 5.5).
   # Mirrors infrastructure/helm/kitehub/templates/prometheusrule.yaml second group.

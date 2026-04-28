@@ -22,6 +22,7 @@ spec:
           annotations:
             summary: "Service {{ "{{ $labels.job }}" }} is down"
             description: "{{ "{{ $labels.job }}" }} (instance {{ "{{ $labels.instance }}" }}) has been unreachable for more than 1 minute."
+            runbook_url: "/documents/05-guides/operations/runbooks/service-down.md"
 
         - alert: HighErrorRate
           expr: |
@@ -36,6 +37,7 @@ spec:
           annotations:
             summary: "High 5xx error rate on {{ "{{ $labels.job }}" }}"
             description: "{{ "{{ $labels.job }}" }} has more than 5% server error responses over the last 5 minutes (current value: {{ "{{ $value | humanizePercentage }}" }})."
+            runbook_url: "/documents/05-guides/operations/runbooks/high-error-rate.md"
 
         - alert: HighResponseTime
           expr: |
@@ -48,6 +50,7 @@ spec:
           annotations:
             summary: "High p99 response time on {{ "{{ $labels.job }}" }}"
             description: "{{ "{{ $labels.job }}" }} p99 response time is above 2 seconds for the last 5 minutes (current value: {{ "{{ $value | humanizeDuration }}" }})."
+            runbook_url: "/documents/05-guides/operations/runbooks/high-response-time.md"
 
         - alert: HighMemoryUsage
           expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
@@ -57,6 +60,7 @@ spec:
           annotations:
             summary: "High JVM heap usage on {{ "{{ $labels.job }}" }}"
             description: "JVM heap usage is {{ "{{ $value | humanizePercentage }}" }} on {{ "{{ $labels.instance }}" }}"
+            runbook_url: "/documents/05-guides/operations/runbooks/high-memory-usage.md"
 
         - alert: DatabasePoolExhausted
           expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
@@ -66,6 +70,7 @@ spec:
           annotations:
             summary: "DB connection pool near exhaustion on {{ "{{ $labels.job }}" }}"
             description: "Active connections are {{ "{{ $value | humanizePercentage }}" }} of max on {{ "{{ $labels.instance }}" }}"
+            runbook_url: "/documents/05-guides/operations/runbooks/database-pool-exhausted.md"
 
         - alert: HighDiskUsage
           expr: (node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes > 0.85
@@ -75,6 +80,7 @@ spec:
           annotations:
             summary: "High disk usage on {{ "{{ $labels.instance }}" }}"
             description: "Disk usage is {{ "{{ $value | humanizePercentage }}" }} on {{ "{{ $labels.instance }}" }} ({{ "{{ $labels.mountpoint }}" }})"
+            runbook_url: "/documents/05-guides/operations/runbooks/high-disk-usage.md"
 
         - alert: RabbitMQQueueBacklog
           expr: rabbitmq_queue_messages_ready > 1000
@@ -84,6 +90,7 @@ spec:
           annotations:
             summary: "RabbitMQ queue backlog on {{ "{{ $labels.queue }}" }}"
             description: "Queue {{ "{{ $labels.queue }}" }} has {{ "{{ $value }}" }} messages ready (threshold: 1000)"
+            runbook_url: "/documents/05-guides/operations/runbooks/rabbitmq-queue-backlog.md"
 
     # GAP-217 — Wave 5 document-generation endpoints (Sub-PR 5.5).
     # Routing depends on Alertmanager deployment (GAP-120). Until that ships, these rules
