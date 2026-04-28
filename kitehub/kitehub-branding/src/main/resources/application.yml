@@ -72,6 +72,14 @@ ai:
     basic-per-day: 10
     premium-per-day: 50
     enterprise-per-day: -1
+  # GAP-258 — Per-tier input prompt size cap (estimated tokens, char/4 heuristic).
+  # Defends against cost-attack: small request count, very large prompts.
+  # Set to -1 for unlimited.
+  input:
+    free-max-tokens: ${AI_INPUT_FREE_MAX_TOKENS:2000}
+    basic-max-tokens: ${AI_INPUT_BASIC_MAX_TOKENS:4000}
+    premium-max-tokens: ${AI_INPUT_PREMIUM_MAX_TOKENS:8000}
+    enterprise-max-tokens: ${AI_INPUT_ENTERPRISE_MAX_TOKENS:16000}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://kite-ollama:11434}
     text-model: ${OLLAMA_TEXT_MODEL:llama3.1:8b}

@@ -1,10 +1,10 @@
 # AI Branding — Developer Guidelines
 
 **Priority:** 🟠 MANDATORY
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Created:** 2026-04-14
-**Last-Reviewed:** 2026-04-26
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; backfill of frontmatter happens this same edit per §3 backfill-on-next-edit policy)
+**Last-Reviewed:** 2026-04-28
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new §2.5 input cap rule paired with `AIInputCapService` + tests + business rules.md BR-INPUT-CAP-001..007 in same PR per §6.5 Enforcement Parity Mandate)
 **Applies to:** Every PR touching `kitehub-branding/**` (Java + frontend) or AI provider config
 
 How to implement AI Branding features correctly. **Key feature của dự án** — phải tuân thủ nghiêm.
@@ -77,6 +77,30 @@ Cho phép free prompt CHỈ khi:
 - Explicit opt-in qua settings toggle
 - Show disclaimer về unpredictable output
 - Fallback template nếu AI fail quality gate
+
+### 2.5 Input prompt token cap (GAP-258, MANDATORY)
+
+Mọi callsite vào AI provider PHẢI đi qua `AIInputCapService#checkInputSize(tier, userInputs...)` TRƯỚC khi gọi `AIBrandingService` / `OpenAIClient` / `OllamaClient`.
+
+**Tier defaults** (estimated tokens — chars/4 heuristic, configurable via `ai.input.*` keys; `-1` = unlimited):
+
+| Tier | Cap |
+|------|-----|
+| FREE / TRIAL | 2000 |
+| BASIC | 4000 |
+| PREMIUM | 8000 |
+| ENTERPRISE | 16000 (or `-1` for unlimited) |
+
+**Rules:**
+- ❌ KHÔNG bypass — kể cả Enterprise Advanced Mode (§2.4) phải qua cap (cap có thể đặt `-1` thay vì bỏ check)
+- ❌ KHÔNG record usage trước khi check cap → reject path không tốn quota request-count
+- ✅ Reject response: HTTP 400 + `{error: "AI_INPUT_TOO_LONG", estimatedTokens, maxTokens, tier}`
+- ✅ Counter `ai.input.token.rejection{tier}` phải emit mỗi rejection (pattern alert tương tự `RateLimitBreachSpike`)
+- ✅ Unknown tier → fallback FREE cap (fail-safe)
+
+**Why:** rate-limit theo request count alone không bound được cost. 1 request × 100k tokens cost gấp 50× của 1 request × 2k tokens, nhưng cùng tốn 1 slot. Cap tại entry-point chặn cost-attack DDoS nhắm vào surface AI.
+
+**Reference:** `BR-INPUT-CAP-001..007` trong `documents/01-business/kiteclass/ai-agent-workflow/rules.md`. Real BPE tokenizer (tiktoken-java) tracked separately — heuristic chars/4 đủ cho v1 vì over-estimate Vietnamese (fail-safe theo cost).
 
 ---
 
@@ -369,5 +393,6 @@ Khi review PR liên quan AI branding, check:
 
 ## Log
 
+- **2026-04-28** (v1.2.0): MINOR — added §2.5 Input prompt token cap (GAP-258). Tier-aware caps (FREE 2000 / BASIC 4000 / PREMIUM 8000 / ENTERPRISE 16000 tokens; configurable via `ai.input.*`; `-1` = unlimited). Defends against cost-attack DDoS where small request count carries oversized prompts. Paired same-PR with `AIInputCapService` + `PromptTokenEstimator` + tier-aware `AIInputCapConfig` + Micrometer counter `ai.input.token.rejection{tier}` + 13 unit tests + 3 IT + business rules `BR-INPUT-CAP-001..007` per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — new constraint, no constraint loosening). Motivation: 2026-04-28 article state-check ("Những lỗi 'chết người' khi build AI backend (Phần 2) — Không rate limit") surfaced that `OpenAIClient` capped output tokens only; per-day request-count cap alone does not bound input cost.
 - **2026-04-26** (v1.1.0): MINOR — added §11.4 Migration test checklist subsection (5 sub-sections × 20 points; mandatory `/ai-branding-quality-gate` skill run; baseline 62/100 captured 2026-04-26). Backfilled mandatory frontmatter (Version, Created, Last-Reviewed, Reviewer-Approver, Applies-to) per `rule-change-process.md` §3 backfill-on-next-edit policy. Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — paired with skill creation + audit-gate rule + baseline audit in same Sub-PR 223.1). Closes part of GAP-223 Sub-PR 223.1 (Option C). Motivation: AI behavior changes (model upgrade, prompt rewrite) shipped Wave 4 với scaffold-only verification; GAP-006 Gemma 4 9B migration cannot ship without migration checklist (§11.4) + skill + audit-gate trigger. Real WCAG/vrg/ML automation deferred to GAP-226/227/228.
 - **2026-04-14** (v1.0.0): Rule established sau AI Branding redesign v2.

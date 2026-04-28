@@ -55,6 +55,13 @@ Tier-aware AI job queueing trên RabbitMQ — đảm bảo Enterprise jobs khôn
 | BR-QUEUE-016 | Circuit breaker — wait duration trong open state | 30s | `resilience4j.circuitbreaker.instances.ai-provider.waitDurationInOpenState` | `kitehub-branding/client/ResilientAIClient` |
 | BR-QUEUE-017 | Circuit breaker — sliding window size cho failure rate calc | 20 calls | `resilience4j.circuitbreaker.instances.ai-provider.slidingWindowSize` | `kitehub-branding/client/ResilientAIClient` |
 | BR-QUEUE-018 | Circuit breaker — minimum calls trước khi đánh giá failure rate | 10 calls | `resilience4j.circuitbreaker.instances.ai-provider.minimumNumberOfCalls` | `kitehub-branding/client/ResilientAIClient` |
+| BR-INPUT-CAP-001 | Input prompt token cap — FREE / TRIAL tier (chars/4 heuristic) | 2000 tokens | `ai.input.free-max-tokens` (env: `AI_INPUT_FREE_MAX_TOKENS`) | `AIInputCapConfig.freeMaxTokens`, `AIInputCapService#checkInputSize`, `AIBrandingController` (4 endpoints) |
+| BR-INPUT-CAP-002 | Input prompt token cap — BASIC tier | 4000 tokens | `ai.input.basic-max-tokens` (env: `AI_INPUT_BASIC_MAX_TOKENS`) | `AIInputCapConfig.basicMaxTokens` |
+| BR-INPUT-CAP-003 | Input prompt token cap — PREMIUM tier | 8000 tokens | `ai.input.premium-max-tokens` (env: `AI_INPUT_PREMIUM_MAX_TOKENS`) | `AIInputCapConfig.premiumMaxTokens` |
+| BR-INPUT-CAP-004 | Input prompt token cap — ENTERPRISE tier (-1 = unlimited) | 16000 tokens | `ai.input.enterprise-max-tokens` (env: `AI_INPUT_ENTERPRISE_MAX_TOKENS`) | `AIInputCapConfig.enterpriseMaxTokens` |
+| BR-INPUT-CAP-005 | Reject path — return HTTP 400 `AI_INPUT_TOO_LONG` with `{estimatedTokens, maxTokens, tier}` body BEFORE provider call (no token consumption, no `recordUsage`) | 400 status code | n/a (code-level) | `AIInputCapService#checkInputSize` |
+| BR-INPUT-CAP-006 | Token estimator heuristic — `(length + 3) / 4` (cl100k_base average; over-estimates Vietnamese, fail-safe for cost) | chars/4 | n/a (code-level) | `PromptTokenEstimator.estimate` |
+| BR-INPUT-CAP-007 | Unknown tier defaults to FREE cap (fail-safe) | FREE cap | n/a (code-level) | `AIInputCapConfig.getMaxTokensForTier` switch default |
 
 **Service scope:** rules above hiện chỉ áp dụng cho `kitehub-branding` (PR #341, Wave 3 Phase 1). Khi mở rộng fair-queue cho service khác (KiteClass core AI agents), copy config keys nguyên xi và reference các BR-QUEUE-* tương ứng.
 
@@ -81,6 +88,7 @@ Các metric Micrometer publish bởi `AIQueueDispatcher` + `AIJobConsumer` — d
 | `ai.job.outcome` | Counter | `tier`, `outcome` (success / failure / degraded / concurrency_limited) | `AIJobConsumer#handle` |
 | `ai.job.wait.time` | Timer | `tier` | `AIJobConsumer#handle` (enqueue → process start) |
 | `ai.job.duration` | Timer | `tier` | `AIJobConsumer#handle` (process latency) |
+| `ai.input.token.rejection` | Counter | `tier` | `AIInputCapService#checkInputSize` (BR-INPUT-CAP-005) |
 
 ## Config keys
 
@@ -96,8 +104,13 @@ Các metric Micrometer publish bởi `AIQueueDispatcher` + `AIJobConsumer` — d
 | `resilience4j.circuitbreaker.instances.ai-provider.slidingWindowSize` | 20 | BR-QUEUE-017 CB window |
 | `resilience4j.circuitbreaker.instances.ai-provider.minimumNumberOfCalls` | 10 | BR-QUEUE-018 CB warmup |
 | (Resilience4j Bulkhead/Retry inherits from `ai-provider` config defaults) | — | CB/Bulkhead/Retry for AI calls |
+| `ai.input.free-max-tokens` | 2000 | BR-INPUT-CAP-001 input cap FREE |
+| `ai.input.basic-max-tokens` | 4000 | BR-INPUT-CAP-002 input cap BASIC |
+| `ai.input.premium-max-tokens` | 8000 | BR-INPUT-CAP-003 input cap PREMIUM |
+| `ai.input.enterprise-max-tokens` | 16000 | BR-INPUT-CAP-004 input cap ENTERPRISE (-1 unlimited) |
 
 ## Log
+- 2026-04-28 — GAP-258: BR-INPUT-CAP-001..007 added — tier-aware input prompt token cap defends against cost-attack (small request count, very large prompts). Reject path returns HTTP 400 BEFORE provider call so no usage is recorded against per-day request quota. Counter `ai.input.token.rejection{tier}` emitted for Prometheus alerting. Heuristic estimator (chars/4) cited in BR-INPUT-CAP-006 — real BPE tokenizer (tiktoken-java) deferred per gap §Out-of-scope.
 - 2026-04-21 — GAP-148 (Wave 9-D): BR-QUEUE-015..018 now backed by `kitehub-branding/src/main/java/com/kitehub/branding/client/ResilientAIClient.java` (decorator, `@Primary`, `@CircuitBreaker(name="ai-provider")` on `analyzeLogo`/`generateImage`/`generateText`, fallbacks return template-safe domain defaults). Previously config was dead (loaded but unreferenced). `AIProviderConfig.aiClient()` demoted from `@Primary` → named `aiClient`, injected into the wrapper via `@Qualifier`.
 - 2026-04-19 — GAP-104: backfill BR-QUEUE-001..018 cho Wave 3 Phase 1 fair-queue (8 ai.queue config keys + 4 resilience4j keys), thêm UC-AGENT-08..10 và metrics catalogue. Source: `kitehub-branding/application.yml:60-91` + `AIQueueProperties` / `AIQueueConfig` / `AIJobPriority` / `AIJobConsumer` / `AIQueueDispatcher` / `BacklogInspector`.
 - 2026-04-14 — Initial rules (Wave 3 Sub-PR 3.5, ADR-006)
