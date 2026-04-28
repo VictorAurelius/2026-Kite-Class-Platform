@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python D:/person/2026-Kite-Class-Platform/.claude/hooks/audit-gate.py"
+            "command": "python F:/nam4/doan/2026-Kite-Class-Platform/.claude/hooks/audit-gate.py"
           }
         ]
       }
