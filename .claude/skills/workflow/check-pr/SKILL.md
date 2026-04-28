@@ -1,6 +1,6 @@
 ---
 name: check-pr
-description: Monitor CI và verify chất lượng PR — dùng scripts, không chạy lệnh trực tiếp
+description: "Dùng khi user runs `/check-pr` hoặc nói 'check PR', 'verify CI', 'kiểm tra PR', 'ready to merge?'. Monitor CI via scripts (`scripts/check-ci.sh`), run local E2E + unit tests if Docker / JAVA_HOME available, output verdict (✅ ready / ❌ fix needed / ⚠️ conditional)."
 user-invocable: true
 argument-hint: "[PR-number|branch-name]"
 ---

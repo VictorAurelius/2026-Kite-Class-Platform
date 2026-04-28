@@ -139,19 +139,15 @@ should_skip() {
 # Process to remove an exemption: fix the underlying skill, then delete the
 # entry. Goal: empty list by Wave 9.
 GRANDFATHERED_EXEMPTIONS='
-.claude/skills/quality-audit/SKILL.md:gotchas
-.claude/skills/quality/business-gap-check.md:gotchas
-.claude/skills/quality/persona-based-business-review.md:gotchas
-.claude/skills/quality/simulation-gap-finder.md:gotchas
-.claude/skills/workflow/check-pr/SKILL.md:trigger,gotchas
-.claude/skills/workflow/continue/SKILL.md:trigger,gotchas
+.claude/skills/workflow/check-pr/SKILL.md:gotchas
+.claude/skills/workflow/continue/SKILL.md:gotchas
 .claude/skills/workflow/development-workflow.md:frontmatter,trigger,gotchas
 .claude/skills/workflow/docs-freshness/SKILL.md:gotchas
-.claude/skills/workflow/fix-pr/SKILL.md:trigger,gotchas
+.claude/skills/workflow/fix-pr/SKILL.md:gotchas
 .claude/skills/workflow/gap-to-pr-converter.md:gotchas
 .claude/skills/workflow/priority-pr-planning.md:frontmatter,trigger,gotchas
-.claude/skills/workflow/quality-plan/SKILL.md:trigger,gotchas
-.claude/skills/workflow/start-pr/SKILL.md:trigger,gotchas
+.claude/skills/workflow/quality-plan/SKILL.md:gotchas
+.claude/skills/workflow/start-pr/SKILL.md:gotchas
 .claude/skills/workflow/wave-completion-check.md:gotchas
 '
 

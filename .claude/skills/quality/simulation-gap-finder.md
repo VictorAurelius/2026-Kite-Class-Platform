@@ -264,3 +264,13 @@ Run skill qua feature AI Branding:
 - `reference/persona-profiles.md` — detailed persona descriptions (TODO)
 - `reference/category-checklists.md` — deep-dive checklists per C1-C10 (TODO)
 - `data/last-run.md` — previous simulation outputs (auto-generated)
+
+---
+
+## Gotchas
+
+- **3-axis matrix has 5×8×10 = 400 cells** — running every cell exhaustively is impractical; sample diagonally (Persona A × Stage 2 × Category 3, then Persona B × Stage 5 × Category 7, ...) for first pass, then deep-dive only on cells that produced findings
+- **Edge/Error stage (#6) catches more than Daily Usage (#5)** — most teams over-simulate happy path; force at least 2 cells per persona on stage 6 (broker down, payment timeout, rate-limit hit, partial state)
+- **Termination stage (#8) is ALWAYS under-simulated** — tenant offboarding, GDPR deletion, account closure, billing failure-then-cancel. If the simulation finds zero gaps in stage 8, it didn't actually simulate stage 8
+- **Concern category overlaps cause double-counting** — "Security" + "Compliance" + "Data" often flag the same gap from 3 angles; dedupe via `audit-to-gap-pipeline.md` Step 2 before filing
+- **Don't simulate features not yet in BRD** — speculative features generate noise gaps that distract from real ones; cross-check `documents/00-brd/` first

@@ -1,6 +1,6 @@
 ---
 name: fix-pr
-description: Fix quality issues identified by /check-pr for a specific PR
+description: "Dùng khi user runs `/fix-pr <PR-number>` sau khi `/check-pr` flagged issues. Determines fix strategy (Case A: PR open → amend on branch; Case B: merged → follow-up PR), then addresses brainstorm/test/doc/methodology gaps."
 disable-model-invocation: true
 ---
 

@@ -239,3 +239,13 @@ Gaps that affect multiple personas:
 - Reference: `documents/00-brd/personas-catalog.md` (canonical list)
 - Reference: `documents/00-brd/persona-reviews/` (output reports)
 - Integration: create gap files via `gap-to-pr-converter` after review
+
+---
+
+## Gotchas
+
+- **Realistic scale matters** — K-12 School persona = 500 students × 30 teachers × 10 staff, not 10×2×1. Small numbers hide bottlenecks (bulk import, attendance grid rendering, report card batch). Use the canonical scales in `documents/00-brd/personas-catalog.md`
+- **Don't review against all 10 personas in one sitting** — context fatigue → shallow walkthrough → missed gaps. Tier 1 personas first (Solo Teacher, Tutoring Center, K-12 School), defer Tier 2 to next session
+- **Secondary personas often reveal more gaps than primary** — Admin/Director walks through onboarding once; Teacher does daily attendance → finds keyboard shortcut gaps, mobile gaps, search gaps that primary misses
+- **Compliance gaps ≠ feature gaps** — VN K-12 needs MOE bảng điểm format (GAP-055), legal-required parent contact for minors, hạnh kiểm grade — these block GA, not "nice-to-have" missing features
+- **Output → file gaps via `audit-to-gap-pipeline.md`** — do NOT fix issues mid-review; persona walkthrough produces a list, then convert to gaps in a separate step. Fixing inline corrupts the persona's perspective

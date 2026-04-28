@@ -1,6 +1,6 @@
 ---
 name: quality-plan
-description: Auto-generate PR plan + wave strategy sau mỗi quality audit
+description: "Dùng khi user runs `/quality-plan [scope]` sau `/quality-audit` hoặc `/business-gap-check`. Reads latest audit report, extracts remaining gaps, groups them into PR plan with priority + estimates + wave grouping if dependencies overlap."
 user-invocable: true
 argument-hint: "[kitehub|kiteclass|all]"
 ---

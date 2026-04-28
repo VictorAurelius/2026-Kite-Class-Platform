@@ -1,6 +1,6 @@
 ---
 name: start-pr
-description: Start a new PR with Superpowers methodology or check current PR quality
+description: "Dùng khi user runs `/start-pr` (check current PR artifacts) hoặc `/start-pr PR-X.Y feature-name` (start new PR). Verifies Superpowers artifacts (brainstorm, task breakdown, TDD compliance, tests, docs) and either reports status or kicks off new feature with the methodology scaffolding."
 disable-model-invocation: true
 ---
 
