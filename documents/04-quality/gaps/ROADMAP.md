@@ -10,6 +10,8 @@
 
 ## 🎯 Current Status Snapshot (2026-04-24)
 
+**2026-04-28 (Wave Meta-Day-2 SHIPPED + Wave DR/Backup KICKED OFF — wave-pack-planner skill operational):** PR #630 (`bf24ce21`) closes "Day 2 framework deliverable" line item with `quality/wave-pack-planner/SKILL.md` + 6 reference docs + 5 agent prompt templates + `scripts/analyze-overlap.sh` + `data/wave-history.jsonl`. Skill self-validated by being built with own methodology — 3 parallel `general-purpose` agents (refs / templates / script+data) on disjoint buckets in single message → ~6 min wall-clock vs ~1h serial estimate (~10x meta speedup). User caught serial-vs-parallel anti-pattern mid-stream → switched mid-flight = real-world validation of `start-session` Step 4.5 wave-eligibility hint. Compliance: PASS 45 / WARN 14 / FAIL 0. Cleanup: 5 stale remote branches deleted (incl. 4 Wave Obs leftovers). **Wave DR/Backup KICKED OFF** as first real-world consumer of the new skill: Cluster Pack 2 = GAP-117 (P0 restore drill) + GAP-118 (P1 MinIO/S3 backup) + GAP-119 (P1 platform DR runbook). Wave plan: `documents/03-planning/waves/wave-2026-04-29-dr-backup.md`. Coordinator-reviewed overlap matrix: 0 HARD, 1 SOFT (audit-doc citation). Bucket: A=GAP-117 (`feature-tdd-agent`), B=GAP-118 (`feature-tdd-agent`), C=GAP-119 (`docs-only-agent`). Wall-clock target ~65-75 min. Counts unchanged by this entry (wave kickoff only). **Day 2 framework deliverable line below = SHIPPED.**
+
 **2026-04-28 (Wave Observability SHIPPED — 3-agent parallel cluster pack, 4 PRs merged ~75 min wall-clock):** First agent-first wave-pack methodology demonstration COMPLETE per Option C hybrid strategy. PRs: foundation #624 → Agent A #626 (GAP-121 runbooks DONE) → Agent B #625 (GAP-143 Grafana DONE) → Agent C #627 (GAP-144 Alertmanager **PARTIAL** per `gap-done-discipline.md` §3 — 4/6 ACs done, 2 deferred to live-cluster mock-fire verification with `amtool` runbook recipe documented). Total wave delta: 25 files, +2251 LOC, −74 LOC. Cluster status: GAP-121 + GAP-143 → 🟢 DONE; GAP-144 → 🟡 PARTIAL (mock-fire ACs blocked on EKS+ESO+AWS SM secrets provisioning, tracked in §Current State table per gap-done-discipline). Counts: 102 OPEN → 100 OPEN (−GAP-121 −GAP-143; GAP-144 stays as 🟡 PARTIAL not removed from OPEN). **Cadence improvement:** 3 gaps closed in ~75 min vs traditional ~6h serial = ~5x speedup. Worktree-confusion artifact (Agent B + C cross-contamination of `adr/README.md`) recovered via stash dance — captured for Day 2 wave-pack-planner skill lessons-learned. Worktrees + 6 local branches cleaned post-merge per `feedback_parallel_agent_strategy.md` rule #6. **Day 2 framework deliverable** (next session): `quality/wave-pack-planner/SKILL.md` codifies cluster-then-spawn pattern + 5 specialized agent prompt templates (docs-only, test-only, p3-cleanup, feature-tdd, wave-coordinator). **Next wave candidates** documented below: GAP-122 (alerts) + Cluster 2 DR/Backup (GAP-117/118/119) + Cluster 3 KiteHub admin (GAP-066/067/068).
 
 **2026-04-28 (Wave Observability KICKED OFF — first agent-first cluster pack):** Strategy shift discussed end-of-session — current cadence ~2-3 gap/day = 50-80 days to clear 125 OPEN+PARTIAL queue, too slow. Decision: Option C hybrid — execute first wave-pack today demonstrating cluster pattern, codify framework tomorrow. Wave plan: `documents/03-planning/waves/wave-2026-04-29-observability.md`. Cluster pack 1 = Observability (3 disjoint gaps): GAP-121 (per-alert runbooks, P1) + GAP-143 (Grafana dashboards in Helm, P1) + GAP-144 (Alertmanager production receivers, P0). 3 parallel worktree-isolated agents target ~60-80 min wave wall-clock. GAP-122 (12 new alerts) deferred to next wave to avoid `alert-rules.yml` race with Agent A's runbook_url backfill. GAP-114/115 (logging migration) parked separate track per `logs-format-standard.md` migration phases (multi-service rollout, not 1-PR scope). Lessons-learned from this wave feed into Day 2 framework PR (`quality/wave-pack-planner/SKILL.md`).
@@ -190,7 +192,7 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 |:-:|----------------|------|:--------:|:------:|
 | 1 | ~~Observability — Wave 1~~ | GAP-121 (P1) + GAP-143 (P1) + GAP-144 (P0 PARTIAL) | mixed | ✅ SHIPPED 2026-04-28 |
 | 2 | **Observability — Wave 2** (next) | GAP-122 (12 new platform alerts, P1) + GAP-144 mock-fire backfill (when live cluster ready) | P1 | 🔵 NEXT |
-| 3 | **DR/Backup cluster** | GAP-117 (P0 restore drill) + GAP-118 (P1 MinIO backup) + GAP-119 (P1 DR runbook) | P0+P1 | 🔵 OPEN |
+| 3 | **DR/Backup cluster** | GAP-117 (P0 restore drill) + GAP-118 (P1 MinIO backup) + GAP-119 (P1 DR runbook) | P0+P1 | 🟡 IN_PROGRESS (foundation PR active, plan: `wave-2026-04-29-dr-backup.md`) |
 | 4 | **KiteHub admin cluster** | GAP-066 + GAP-067 + GAP-068 (P1, all KH services) | P1 | 🔵 OPEN |
 | 5 | **Business correctness cluster** | GAP-049 (P0) + GAP-050 (P0) + GAP-150 (P1) | P0+P1 | 🔵 OPEN |
 | 6 | **Parent/import cluster** | GAP-052 (P0 PARTIAL) + GAP-063 (P1) + GAP-137 (P0) + GAP-139 (P1) | P0+P1 | 🔵 OPEN |
@@ -204,11 +206,15 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 - **GAP-223 Sub-PR 223.2** ⏸ DEFERRED — see AI Branding banner
 - **GAP-006** ⏸ DEFERRED — see AI Branding banner
 
-### Day 2 framework deliverable (next session)
+### Day 2 framework deliverable — ✅ SHIPPED 2026-04-28 (PR #630)
 
-- `quality/wave-pack-planner/SKILL.md` — codify cluster-then-spawn pattern, file-overlap analysis algorithm, agent spawning template
-- Specialized agent prompts: `docs-only-agent`, `test-only-agent`, `p3-cleanup-agent`, `feature-tdd-agent`, `wave-coordinator`
-- Background fleet `/loop` setup: doc-sync (daily), P3 sweeper (weekly), audit cadence (per `post-wave-audit-mandate.md` §4)
+- ✅ `quality/wave-pack-planner/SKILL.md` (133 lines) — cluster-then-spawn pattern, 5-step process, gotchas from Wave Obs
+- ✅ 6 reference docs (`cluster-pattern`, `file-overlap-algorithm`, `agent-spawning-template`, `retrospective-checklist`, `wave-plan-template`, `background-loop-fleet`)
+- ✅ 5 agent prompt templates (`docs-only`, `test-only`, `p3-cleanup`, `feature-tdd`, `wave-coordinator`) under `assets/agents/`
+- ✅ `scripts/analyze-overlap.sh` (367 LOC, shellcheck-clean) — file overlap matrix + HARD/SOFT/None classification + exit-code gate
+- ✅ `data/wave-history.jsonl` (seeded with Wave Obs entry; Wave Meta-Day-2 + Wave DR/Backup entries appended in foundation PRs)
+- ✅ Background `/loop` fleet documented (doc-only per user Q1=A; auto-config deferred to user decision)
+- 🟡 First real-world validation in progress: Wave DR/Backup (Cluster 3 above) consumes the skill end-to-end
 
 **Earlier reference (Wave 7 + Wave 6 priorities now subsumed by above):**
 - GAP-222a/b/c + GAP-230 SHIPPED 2026-04-26 ✅ (Outbox migration cluster fully closed)
