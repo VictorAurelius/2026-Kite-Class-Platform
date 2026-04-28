@@ -44,10 +44,10 @@ public class ReportCardServiceImpl implements ReportCardService {
     @Transactional(readOnly = true)
     public ReportCardData generateReportCard(Long studentId, Long semesterId) {
         Student student = studentRepository.findByIdAndDeletedFalse(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("REPORT_CARD_STUDENT_NOT_FOUND", studentId));
+                .orElseThrow(() -> new EntityNotFoundException("REPORT_CARD_STUDENT_NOT_FOUND", (Object) studentId));
 
         Semester semester = semesterRepository.findByIdWithAcademicYear(semesterId)
-                .orElseThrow(() -> new EntityNotFoundException("REPORT_CARD_SEMESTER_NOT_FOUND", semesterId));
+                .orElseThrow(() -> new EntityNotFoundException("REPORT_CARD_SEMESTER_NOT_FOUND", (Object) semesterId));
 
         List<SubjectGrade> grades = subjectGradeRepository
                 .findByStudentIdAndSemesterIdAndDeletedFalse(studentId, semesterId);
