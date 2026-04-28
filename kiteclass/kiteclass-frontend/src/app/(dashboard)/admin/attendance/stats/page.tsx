@@ -13,8 +13,10 @@ import { Download, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { AttendanceTrendsChart } from '@/components/attendance/attendance-trends-chart';
-import { ClassStatsTable } from '@/components/attendance/class-stats-table';
+import {
+  DynamicAttendanceTrendsChart,
+  DynamicClassStatsTable,
+} from '@/components/attendance';
 import {
   useSystemAttendanceStats,
   useAttendanceTrends,
@@ -254,15 +256,15 @@ export default function AdminAttendanceStatsPage() {
         </div>
       ) : null}
 
-      {/* Trends Chart */}
-      <AttendanceTrendsChart
+      {/* Trends Chart — lazy-loaded; below the fold on initial paint */}
+      <DynamicAttendanceTrendsChart
         data={trends || []}
         height={300}
         showGrid={true}
       />
 
-      {/* Class Breakdown Table */}
-      <ClassStatsTable
+      {/* Class Breakdown Table — lazy-loaded; chart + table both render on hydrate */}
+      <DynamicClassStatsTable
         data={classBreakdown}
         isLoading={isLoadingClasses}
         sortBy="attendanceRate"
