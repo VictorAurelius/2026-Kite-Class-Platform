@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kite Design System — Round 2 UI Kits</title>
+  <!--
+    Persona: All — landing entry for human reviewers
+    Flow ref: dossier/05-business-flows.md (overview only)
+    Score self-estimate: N/A (foundation index)
+    Contrast: body 14.8:1 (slate-900 on slate-50) AAA ✓ · muted 4.7:1 AA ✓
+  -->
+  <link rel="stylesheet" href="_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    };
+  </script>
+  <style>
+    body { font-family: var(--font-sans); }
+    .card-hover { transition: all 200ms ease-out; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft-lg); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900">
+  <!-- Header -->
+  <header class="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="_shared/assets/kite-mark.svg" alt="Kite" class="h-8 w-8" />
+        <div>
+          <div class="text-xs uppercase tracking-wider text-slate-500">Kite Design System</div>
+          <div class="font-semibold">Round 2 — UI Kits Preview</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-slate-600">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Foundation merged · Wave 1 pending
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="max-w-6xl mx-auto px-6 pt-12 pb-8">
+    <h1 class="text-3xl font-bold tracking-tight">Round 2 UI Kits</h1>
+    <p class="text-slate-600 mt-2 max-w-2xl">
+      Triển khai theo dossier
+      <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">documents/02-architecture/design-system/dossier/</code>
+      (PR #667). Wave 1 ship 3 deliverables: kiteclass-pro v2 + kiteclass-parent + 5 components.
+    </p>
+    <p class="text-slate-500 text-sm mt-3">
+      Quality target: avg ≥105/128 per kit, no screen <95/128. Per
+      <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">.claude/rules/output-review-mandate.md</code>
+      §3 row "HTML/JSX prototypes" (v1.2.0).
+    </p>
+  </section>
+
+  <!-- Kit grid -->
+  <main class="max-w-6xl mx-auto px-6 pb-20">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <!-- Kit 1 -->
+      <a href="kiteclass-pro-v2/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">kiteclass-pro v2</h2>
+        <p class="text-sm text-slate-600 mt-1">Direction B — Owner dashboard với ⌘K palette, sparklines, drag-drop, dark mode polish.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs">
+          <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">P2 Center Owner</span>
+          <span class="text-slate-400">5 base screens · ~20 files</span>
+        </div>
+      </a>
+
+      <!-- Kit 2 -->
+      <a href="kiteclass-parent/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">kiteclass-parent</h2>
+        <p class="text-sm text-slate-600 mt-1">Direction D pivot — mobile-first 320–414px, PWA-grade, Zalo OA primary.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs">
+          <span class="px-2 py-0.5 bg-pink-50 text-pink-700 rounded">Pa. Parent</span>
+          <span class="text-slate-400">5 routes · ~25 files</span>
+        </div>
+      </a>
+
+      <!-- Kit 3 -->
+      <a href="components/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">5 Components</h2>
+        <p class="text-sm text-slate-600 mt-1">G2 Attendance Roster · G5 Payment · G6 Invoice · G7 Parent invite · G12 Bulk actions.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs">
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">Components</span>
+          <span class="text-slate-400">5 demos · ~25 files</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Status placeholder -->
+    <div class="mt-12 rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
+      <div class="text-slate-400 text-sm">
+        <strong class="text-slate-700">Foundation merged. Wave 1 agents pending spawn.</strong><br />
+        Each kit folder will be filled by a worktree-isolated agent. Browse Round 1 baseline at <code class="bg-slate-100 px-1 rounded">kiteclass-pro-v2/_v1-baseline/</code>.
+      </div>
+    </div>
+
+    <!-- Server info -->
+    <div class="mt-8 rounded-xl bg-slate-100 p-4 text-xs text-slate-600 font-mono">
+      Preview server: <span class="text-emerald-700">http://127.0.0.1:9999</span> · See <a href="_shared/server-runbook.md" class="text-blue-600 underline">server-runbook</a> for setup. Stop with <code>pkill -f "http.server 9999"</code>
+    </div>
+  </main>
+</body>
+</html>
