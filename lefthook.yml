@@ -19,3 +19,10 @@ pre-commit:
     ruff:
       glob: "*.py"
       run: ruff check {staged_files}
+    # GAP-265 — UI kits landing parity (Tier 3 enforcement, Wave Review Process Improvement).
+    # Runs Tier 1 script when any file under ui_kits/ is staged. Catches the
+    # 2026-04-29 incident pattern (kit folder added without landing card update)
+    # before push instead of waiting for CI.
+    ui-kits-parity:
+      glob: "documents/02-architecture/design-system/ui_kits/**/*"
+      run: bash documents/02-architecture/design-system/ui_kits/_shared/scripts/check-ui-kits-landing.sh
