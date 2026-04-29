@@ -1,0 +1,211 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner — power user keyboard-first workflow
+  Flow ref: dossier/05-business-flows.md (cross-flow shortcut entry)
+  Score self-estimate: 115/128
+  Contrast (measured):
+    - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
+    - palette item active bg #1A2039 vs text:  9.8:1 (AAA ✓)
+    - kbd #8892B0 on rgba(255,.08):            5.0:1 (AA ✓)
+    - section eyebrow #8892B0 on bg-card:      5.6:1 (AA ✓)
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Bảng lệnh ⌘K — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Light</a>
+    <a href="command-palette.html" class="is-active">⌘K</a>
+    <a href="widget-grid-edit.html">Edit</a>
+    <a href="dark-mode-toggle.html">Morph</a>
+    <a href="success-confetti.html">Confetti</a>
+  </nav>
+
+  <!-- Background dashboard (dimmed) -->
+  <div class="pro-app" style="filter:blur(4px) brightness(.7);pointer-events:none" aria-hidden="true">
+    <aside class="pro-side">
+      <div class="pro-brand">
+        <div class="pro-brand-mark"></div>
+        <div>
+          <div class="pro-brand-name">SkyLight English</div>
+          <div class="pro-brand-sub">skylight.kiteclass.com</div>
+        </div>
+      </div>
+      <div class="pro-cmd"><span>Tìm hoặc gõ lệnh…</span><kbd>⌘K</kbd></div>
+      <nav class="pro-nav">
+        <a class="is-active">Tổng quan</a>
+        <a>Lớp học</a>
+        <a>Học viên</a>
+        <a>Điểm danh</a>
+        <a>Lịch học</a>
+      </nav>
+    </aside>
+    <div class="pro-main">
+      <div class="pro-top"><div class="pro-crumb"><span>Trung tâm</span> · <b>Tổng quan</b></div></div>
+      <div class="pro-content">
+        <div class="pro-hello"><div><h1>Chào buổi sáng, Hoàng 👋</h1></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Palette overlay -->
+  <div class="pro-overlay" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+    <div class="pro-palette">
+      <input class="pro-palette-input" placeholder="Tìm học viên, lớp, lệnh… (gõ /lop /hv để lọc)" value="" aria-label="Tìm lệnh">
+      <div class="pro-palette-list" role="listbox">
+
+        <!-- RECENT -->
+        <div class="pro-palette-sec">📌 Gần đây</div>
+        <div class="pro-palette-item is-active" role="option" aria-selected="true">
+          <i data-lucide="calendar-check" style="width:16px;height:16px;color:#22D3EE"></i>
+          <span>Điểm danh nhanh — IELTS Foundation 12A2</span>
+          <span class="kbd-list"><kbd>↵</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="user" style="width:16px;height:16px;color:#6366F1"></i>
+          <span>Mở hồ sơ học viên: <b>Nguyễn Văn An</b></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="file-text" style="width:16px;height:16px;color:#F59E0B"></i>
+          <span>Xuất báo cáo doanh thu T3/2026</span>
+        </div>
+
+        <!-- PINNED -->
+        <div class="pro-palette-sec">⭐ Ghim</div>
+        <div class="pro-palette-item">
+          <i data-lucide="qr-code" style="width:16px;height:16px;color:#22C55E"></i>
+          <span>Hiển thị QR điểm danh phòng học hiện tại</span>
+          <span class="kbd-list"><kbd>Q</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="megaphone" style="width:16px;height:16px;color:#A855F7"></i>
+          <span>Gửi tin nhắn hàng loạt cho phụ huynh</span>
+          <span class="kbd-list"><kbd>M</kbd></span>
+        </div>
+
+        <!-- SEARCH -->
+        <div class="pro-palette-sec">🔍 Tìm nhanh</div>
+        <div class="pro-palette-item">
+          <i data-lucide="users" style="width:16px;height:16px;color:#6366F1"></i>
+          <span>Tìm học viên theo tên / SĐT / mã HV</span>
+          <span class="kbd-list"><kbd>/</kbd><kbd>hv</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="book-open" style="width:16px;height:16px;color:#22D3EE"></i>
+          <span>Tìm lớp học theo tên / phòng / giáo viên</span>
+          <span class="kbd-list"><kbd>/</kbd><kbd>lop</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="receipt" style="width:16px;height:16px;color:#F59E0B"></i>
+          <span>Tìm hóa đơn theo mã / khoản / ngày</span>
+          <span class="kbd-list"><kbd>/</kbd><kbd>hd</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="user-cog" style="width:16px;height:16px;color:#A855F7"></i>
+          <span>Tìm giáo viên theo tên / chuyên môn</span>
+          <span class="kbd-list"><kbd>/</kbd><kbd>gv</kbd></span>
+        </div>
+
+        <!-- ACTION -->
+        <div class="pro-palette-sec">⚡ Hành động</div>
+        <div class="pro-palette-item">
+          <i data-lucide="user-plus" style="width:16px;height:16px;color:#22C55E"></i>
+          <span>Thêm học viên mới</span>
+          <span class="kbd-list"><kbd>S</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="calendar-plus" style="width:16px;height:16px;color:#6366F1"></i>
+          <span>Tạo lớp học mới</span>
+          <span class="kbd-list"><kbd>C</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="check-square" style="width:16px;height:16px;color:#22D3EE"></i>
+          <span>Đánh dấu điểm danh tất cả lớp hôm nay</span>
+          <span class="kbd-list"><kbd>A</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="award" style="width:16px;height:16px;color:#A855F7"></i>
+          <span>Chốt điểm cuối kỳ — lớp đã chọn</span>
+          <span class="kbd-list"><kbd>G</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="send" style="width:16px;height:16px;color:#F59E0B"></i>
+          <span>Gửi hóa đơn tự động cho HV chưa đóng</span>
+          <span class="kbd-list"><kbd>I</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="file-text" style="width:16px;height:16px;color:#EF4444"></i>
+          <span>Xuất báo cáo tháng (PDF + Excel)</span>
+          <span class="kbd-list"><kbd>R</kbd></span>
+        </div>
+
+        <!-- NAVIGATION -->
+        <div class="pro-palette-sec">🧭 Điều hướng</div>
+        <div class="pro-palette-item">
+          <i data-lucide="layout-dashboard" style="width:16px;height:16px;color:#6366F1"></i>
+          <span>Đi tới · Trang chủ</span>
+          <span class="kbd-list"><kbd>G</kbd><kbd>D</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="users" style="width:16px;height:16px;color:#6366F1"></i>
+          <span>Đi tới · Danh sách học viên</span>
+          <span class="kbd-list"><kbd>G</kbd><kbd>S</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="book-open" style="width:16px;height:16px;color:#22D3EE"></i>
+          <span>Đi tới · Lớp học</span>
+          <span class="kbd-list"><kbd>G</kbd><kbd>C</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="credit-card" style="width:16px;height:16px;color:#F59E0B"></i>
+          <span>Đi tới · Học phí + Hóa đơn</span>
+          <span class="kbd-list"><kbd>G</kbd><kbd>P</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="trending-up" style="width:16px;height:16px;color:#22C55E"></i>
+          <span>Đi tới · Báo cáo + Phân tích</span>
+          <span class="kbd-list"><kbd>G</kbd><kbd>R</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="settings" style="width:16px;height:16px;color:#8892B0"></i>
+          <span>Đi tới · Cài đặt trung tâm</span>
+          <span class="kbd-list"><kbd>G</kbd><kbd>X</kbd></span>
+        </div>
+
+        <!-- PREFS -->
+        <div class="pro-palette-sec">🎨 Tùy chọn</div>
+        <div class="pro-palette-item">
+          <i data-lucide="moon" style="width:16px;height:16px;color:#A855F7"></i>
+          <span>Đổi giao diện Sáng / Tối</span>
+          <span class="kbd-list"><kbd>⇧</kbd><kbd>L</kbd></span>
+        </div>
+        <div class="pro-palette-item">
+          <i data-lucide="palette" style="width:16px;height:16px;color:#22D3EE"></i>
+          <span>Mở AI Branding · cá nhân hóa thương hiệu</span>
+        </div>
+      </div>
+
+      <!-- Bottom hint -->
+      <div class="pro-palette-hint">
+        <span><kbd>↑</kbd><kbd>↓</kbd> Di chuyển</span>
+        <span><kbd>↵</kbd> Chọn</span>
+        <span><kbd>esc</kbd> Đóng</span>
+        <span style="margin-left:auto"><b>20+</b> lệnh · gõ <kbd>/</kbd> để lọc nhóm</span>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

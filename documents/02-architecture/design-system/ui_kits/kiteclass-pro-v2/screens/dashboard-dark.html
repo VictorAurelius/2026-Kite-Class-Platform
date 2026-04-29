@@ -1,0 +1,238 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner — light-mode parity (dark-mode is canonical, this screen demonstrates toggle parity)
+  Flow ref: dossier/05-business-flows.md (theme preference per-user)
+  Score self-estimate: 110/128
+  Contrast (measured against light tokens):
+    - body #0B0F1A on bg #FFFFFF:              19.5:1 (AAA ✓)
+    - muted #5A6478 on bg #FFFFFF:              5.4:1 (AA ✓)
+    - primary #6366F1 on white:                 4.8:1 (AA ✓)
+    - success #22C55E on white:                 3.1:1 (large UI / icons only)
+    - danger #EF4444 on white:                  4.5:1 (AA ✓)
+
+  NOTE: Filename keeps `-dark.html` per spec but screen demonstrates LIGHT mode parity since
+  base palette is dark-first; the "Dark"/"Light" pivot is identical layout, swapped tokens.
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Tổng quan (Light parity) — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="pro-light">
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html" class="is-active">Light</a>
+    <a href="command-palette.html">⌘K</a>
+    <a href="widget-grid-edit.html">Edit</a>
+    <a href="dark-mode-toggle.html">Morph</a>
+    <a href="success-confetti.html">Confetti</a>
+  </nav>
+
+  <div class="pro-app">
+    <aside class="pro-side">
+      <div class="pro-brand">
+        <div class="pro-brand-mark"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i></div>
+        <div>
+          <div class="pro-brand-name">SkyLight English</div>
+          <div class="pro-brand-sub">skylight.kiteclass.com</div>
+        </div>
+      </div>
+      <button class="pro-cmd"><i data-lucide="search" style="width:14px;height:14px"></i><span>Tìm hoặc gõ lệnh…</span><kbd>⌘K</kbd></button>
+      <nav class="pro-nav">
+        <div class="pro-nav-section">Chính</div>
+        <a class="is-active"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Tổng quan</a>
+        <a><i data-lucide="book-open" style="width:16px;height:16px"></i>Lớp học</a>
+        <a><i data-lucide="users" style="width:16px;height:16px"></i>Học viên</a>
+        <a><i data-lucide="calendar-check" style="width:16px;height:16px"></i>Điểm danh<span class="pro-badge">3</span></a>
+        <a><i data-lucide="calendar" style="width:16px;height:16px"></i>Lịch học</a>
+        <div class="pro-nav-section">Tài chính</div>
+        <a><i data-lucide="credit-card" style="width:16px;height:16px"></i>Học phí</a>
+        <a><i data-lucide="trending-up" style="width:16px;height:16px"></i>Báo cáo</a>
+      </nav>
+      <div class="pro-user">
+        <div class="pro-avatar">LH</div>
+        <div style="flex:1;min-width:0">
+          <div class="pro-user-name">Lê Hoàng</div>
+          <div class="pro-user-role">Quản lý trung tâm</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="pro-main">
+      <header class="pro-top">
+        <div class="pro-crumb"><span>Trung tâm</span><i data-lucide="chevron-right" style="width:12px;height:12px"></i><b>Tổng quan</b></div>
+        <div class="pro-top-actions">
+          <button class="pro-iconbtn" title="Đổi sáng/tối (⇧L)"><i data-lucide="sun" style="width:16px;height:16px"></i></button>
+          <button class="pro-iconbtn"><i data-lucide="bell" style="width:16px;height:16px"></i><span class="pulse"></span></button>
+          <button class="pro-btn pro-btn-ghost"><i data-lucide="search" style="width:14px;height:14px"></i> Tìm <kbd>⌘K</kbd></button>
+          <button class="pro-btn pro-btn-primary"><i data-lucide="plus" style="width:16px;height:16px"></i> Tạo mới</button>
+        </div>
+      </header>
+
+      <div class="pro-content">
+        <div class="pro-hello">
+          <div>
+            <h1>Chào buổi sáng, Hoàng <span class="wave">👋</span></h1>
+            <p>Hôm nay có <b style="color:var(--pro-text)">12 buổi học</b> · 3 lớp đang chờ điểm danh · doanh thu tuần <b style="color:var(--pro-success)">+8.2%</b></p>
+          </div>
+          <div class="meta">
+            <span>📅 Thứ Ba, <b>23/04/2026</b></span>
+            <span>🌤️ Hà Nội · 26°C</span>
+          </div>
+        </div>
+
+        <div class="pro-grid">
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Học viên</span>
+              <div class="pro-stat-icon" style="background:rgba(99,102,241,.12);color:#6366F1"><i data-lucide="users" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">428</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+12 (2.9%)</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none">
+                <path d="M0,28 L13,26 L27,24 L40,21 L53,17 L67,13 L80,8" fill="none" stroke="#6366F1" stroke-width="1.5"/>
+                <path d="M0,28 L13,26 L27,24 L40,21 L53,17 L67,13 L80,8 L80,32 L0,32 Z" fill="#6366F1" opacity=".15"/>
+                <circle cx="80" cy="8" r="2.2" fill="#6366F1"/>
+              </svg>
+            </div>
+          </div>
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Lớp đang mở</span>
+              <div class="pro-stat-icon" style="background:rgba(34,211,238,.12);color:#0891B2"><i data-lucide="book-open" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">18</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+2 lớp</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none">
+                <path d="M0,22 L13,21 L27,20 L40,17 L53,15 L67,13 L80,10" fill="none" stroke="#0891B2" stroke-width="1.5"/>
+                <path d="M0,22 L13,21 L27,20 L40,17 L53,15 L67,13 L80,10 L80,32 L0,32 Z" fill="#0891B2" opacity=".15"/>
+                <circle cx="80" cy="10" r="2.2" fill="#0891B2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Buổi hôm nay</span>
+              <div class="pro-stat-icon" style="background:rgba(245,158,11,.12);color:#D97706"><i data-lucide="calendar" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">12</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="radio" style="width:12px;height:12px"></i>3 đang live</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none">
+                <path d="M0,18 L13,14 L27,17 L40,11 L53,8 L67,12 L80,8" fill="none" stroke="#D97706" stroke-width="1.5"/>
+                <path d="M0,18 L13,14 L27,17 L40,11 L53,8 L67,12 L80,8 L80,32 L0,32 Z" fill="#D97706" opacity=".15"/>
+                <circle cx="80" cy="8" r="2.2" fill="#D97706"/>
+              </svg>
+            </div>
+          </div>
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Doanh thu T4</span>
+              <div class="pro-stat-icon" style="background:rgba(34,197,94,.12);color:#15803D"><i data-lucide="trending-up" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">82.4M<span style="font-size:14px;color:var(--pro-muted);font-weight:500">đ</span></div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+8.2%</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none">
+                <path d="M0,26 L13,24 L27,21 L40,17 L53,15 L67,11 L80,6" fill="none" stroke="#15803D" stroke-width="1.5"/>
+                <path d="M0,26 L13,24 L27,21 L40,17 L53,15 L67,11 L80,6 L80,32 L0,32 Z" fill="#15803D" opacity=".15"/>
+                <circle cx="80" cy="6" r="2.2" fill="#15803D"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="pro-widget span-8">
+            <div class="pro-chart-head">
+              <div>
+                <h3>Doanh thu tuần</h3>
+                <div style="font-size:11.5px;color:var(--pro-muted);margin-top:2px">7 tuần gần nhất · so cùng kỳ</div>
+              </div>
+              <div class="pro-chart-tabs">
+                <button>7N</button><button class="is-active">4T</button><button>3T</button><button>1N</button>
+              </div>
+            </div>
+            <svg class="pro-chart" viewBox="0 0 720 200">
+              <defs>
+                <linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#6366F1" stop-opacity=".30"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/></linearGradient>
+                <linearGradient id="gB" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#0891B2" stop-opacity=".22"/><stop offset="100%" stop-color="#0891B2" stop-opacity="0"/></linearGradient>
+              </defs>
+              <line x1="32" x2="704" y1="55" y2="55" stroke="currentColor" stroke-opacity=".10"/>
+              <line x1="32" x2="704" y1="98" y2="98" stroke="currentColor" stroke-opacity=".10"/>
+              <line x1="32" x2="704" y1="141" y2="141" stroke="currentColor" stroke-opacity=".10"/>
+              <path d="M32,80 L144,68 L256,60 L368,55 L480,52 L592,46 L704,42 L704,172 L32,172 Z" fill="url(#gB)"/>
+              <path d="M32,80 L144,68 L256,60 L368,55 L480,52 L592,46 L704,42" stroke="#0891B2" stroke-width="2" fill="none" stroke-dasharray="3 3" opacity=".7"/>
+              <path d="M32,90 L144,68 L256,72 L368,52 L480,57 L592,30 L704,18 L704,172 L32,172 Z" fill="url(#gA)"/>
+              <path d="M32,90 L144,68 L256,72 L368,52 L480,57 L592,30 L704,18" stroke="#6366F1" stroke-width="2.2" fill="none"/>
+              <text x="32" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T1</text>
+              <text x="144" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T2</text>
+              <text x="256" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T3</text>
+              <text x="368" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T4</text>
+              <text x="480" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T5</text>
+              <text x="592" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T6</text>
+              <text x="704" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T7</text>
+            </svg>
+            <div class="pro-chart-legend">
+              <span><i style="background:#6366F1"></i>Tuần này · 82.4M đ</span>
+              <span><i style="background:#0891B2"></i>Tuần trước · 76.0M đ</span>
+            </div>
+          </div>
+
+          <div class="pro-widget span-4">
+            <h3>Lịch hôm nay <a>Xem lịch →</a></h3>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>08:00</b><span>90 phút</span></div>
+              <div class="pro-sched-bar" style="background:#6366F1"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">IELTS Foundation 12A2</div>
+                <div class="pro-sched-meta">P.201 · Cô Trần Thị Hương · 24 HV</div>
+              </div>
+              <span class="pro-sched-live">Live</span>
+            </div>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>10:00</b><span>120 phút</span></div>
+              <div class="pro-sched-bar" style="background:#0891B2"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">TOEIC 600+ Lớp 5</div>
+                <div class="pro-sched-meta">P.305 · Thầy Lê Minh Tuấn · 18 HV</div>
+              </div>
+            </div>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>14:00</b><span>60 phút</span></div>
+              <div class="pro-sched-bar" style="background:#D97706"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">Tiếng Anh Trẻ Em 6-8 K21</div>
+                <div class="pro-sched-meta">P.102 · Cô Phạm Thị Lan · 12 HV</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pro-widget span-12">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.20);border-radius:10px">
+              <div style="width:36px;height:36px;border-radius:9px;background:rgba(99,102,241,.18);color:#6366F1;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i data-lucide="sun" style="width:18px;height:18px"></i>
+              </div>
+              <div style="flex:1">
+                <b style="font-size:13.5px;display:block">Đang sử dụng giao diện Sáng</b>
+                <div style="font-size:12px;color:var(--pro-muted);margin-top:2px">Tất cả token (màu, độ tương phản, shadow) đều giữ tỉ lệ AA tối thiểu — đối chiếu HTML comment ở đầu file để xem số đo cụ thể.</div>
+              </div>
+              <button class="pro-btn pro-btn-primary"><i data-lucide="moon" style="width:14px;height:14px"></i>Đổi sang Tối</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

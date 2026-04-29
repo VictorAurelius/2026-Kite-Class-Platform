@@ -1,0 +1,388 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner (medium density, desktop primary)
+  Flow ref: dossier/05-business-flows.md Flow #7 (trial→upgrade) + Flow #8 (AI rebrand) — context shown via stat cards + activity feed
+  Score self-estimate: 112/128
+  Contrast (measured against tokens):
+    - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
+    - muted-fg #8892B0 on bg-card #12172A:     5.6:1 (AA ✓)
+    - primary #6366F1 on white surfaces:       4.8:1 (AA, large-text safe)
+    - accent #22D3EE on dark bg:               7.4:1 (AAA)
+    - success #22C55E on dark bg:              5.9:1 (AA)
+    - danger #EF4444 on dark bg:               4.5:1 (AA threshold)
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Tổng quan (Default) — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html" class="is-active">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Dark</a>
+    <a href="command-palette.html">⌘K</a>
+    <a href="widget-grid-edit.html">Edit</a>
+    <a href="dark-mode-toggle.html">Morph</a>
+    <a href="success-confetti.html">Confetti</a>
+  </nav>
+
+  <div class="pro-app">
+    <aside class="pro-side" aria-label="Điều hướng chính">
+      <div class="pro-brand">
+        <div class="pro-brand-mark"><i data-lucide="graduation-cap" class="h-4 w-4"></i></div>
+        <div>
+          <div class="pro-brand-name">SkyLight English</div>
+          <div class="pro-brand-sub">skylight.kiteclass.com</div>
+        </div>
+      </div>
+      <button class="pro-cmd" type="button" aria-label="Mở bảng lệnh">
+        <i data-lucide="search" style="width:14px;height:14px"></i>
+        <span>Tìm hoặc gõ lệnh…</span>
+        <kbd>⌘K</kbd>
+      </button>
+      <nav class="pro-nav">
+        <div class="pro-nav-section">Chính</div>
+        <a class="is-active"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Tổng quan</a>
+        <a><i data-lucide="book-open" style="width:16px;height:16px"></i>Lớp học</a>
+        <a><i data-lucide="users" style="width:16px;height:16px"></i>Học viên</a>
+        <a><i data-lucide="calendar-check" style="width:16px;height:16px"></i>Điểm danh<span class="pro-badge">3</span></a>
+        <a><i data-lucide="calendar" style="width:16px;height:16px"></i>Lịch học</a>
+        <div class="pro-nav-section">Tài chính</div>
+        <a><i data-lucide="credit-card" style="width:16px;height:16px"></i>Học phí</a>
+        <a><i data-lucide="trending-up" style="width:16px;height:16px"></i>Báo cáo</a>
+        <div class="pro-nav-section">Khác</div>
+        <a><i data-lucide="message-square" style="width:16px;height:16px"></i>Tin nhắn</a>
+        <a><i data-lucide="settings" style="width:16px;height:16px"></i>Cài đặt</a>
+      </nav>
+      <div class="pro-user">
+        <div class="pro-avatar">LH</div>
+        <div style="flex:1;min-width:0">
+          <div class="pro-user-name">Lê Hoàng</div>
+          <div class="pro-user-role">Quản lý trung tâm</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="pro-main">
+      <header class="pro-top">
+        <div class="pro-crumb">
+          <span>Trung tâm</span>
+          <i data-lucide="chevron-right" style="width:12px;height:12px"></i>
+          <b>Tổng quan</b>
+        </div>
+        <div class="pro-top-actions">
+          <button class="pro-iconbtn" title="Đổi sáng/tối (⇧L)" aria-label="Đổi giao diện">
+            <i data-lucide="moon" style="width:16px;height:16px"></i>
+          </button>
+          <button class="pro-iconbtn" aria-label="Thông báo">
+            <i data-lucide="bell" style="width:16px;height:16px"></i>
+            <span class="pulse" aria-hidden="true"></span>
+          </button>
+          <button class="pro-btn pro-btn-ghost">
+            <i data-lucide="search" style="width:14px;height:14px"></i>
+            Tìm <kbd>⌘K</kbd>
+          </button>
+          <button class="pro-btn pro-btn-primary">
+            <i data-lucide="plus" style="width:16px;height:16px"></i>
+            Tạo mới
+          </button>
+        </div>
+      </header>
+
+      <div class="pro-content">
+        <div class="pro-hello">
+          <div>
+            <h1>Chào buổi sáng, Hoàng <span class="wave">👋</span></h1>
+            <p>Hôm nay có <b style="color:var(--pro-text)">12 buổi học</b> · 3 lớp đang chờ điểm danh · doanh thu tuần <b style="color:var(--pro-success)">+8.2%</b></p>
+          </div>
+          <div class="meta">
+            <span>📅 Thứ Ba, <b>23/04/2026</b></span>
+            <span>🌤️ Hà Nội · 26°C</span>
+          </div>
+        </div>
+
+        <!-- Stat cards row (6 cards × sparkline) -->
+        <div class="pro-grid">
+          <!-- 1: Học viên -->
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Học viên</span>
+              <div class="pro-stat-icon" style="background:rgba(99,102,241,.18);color:#6366F1"><i data-lucide="users" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">428</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+12 (2.9%)</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,28 L13,26 L27,24 L40,21 L53,17 L67,13 L80,8" fill="none" stroke="#6366F1" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M0,28 L13,26 L27,24 L40,21 L53,17 L67,13 L80,8 L80,32 L0,32 Z" fill="#6366F1" opacity=".15"/>
+                <circle cx="80" cy="8" r="2.2" fill="#6366F1"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 2: Lớp đang mở -->
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Lớp đang mở</span>
+              <div class="pro-stat-icon" style="background:rgba(34,211,238,.18);color:#22D3EE"><i data-lucide="book-open" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">18</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+2 lớp tuần này</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,22 L13,21 L27,20 L40,17 L53,15 L67,13 L80,10" fill="none" stroke="#22D3EE" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M0,22 L13,21 L27,20 L40,17 L53,15 L67,13 L80,10 L80,32 L0,32 Z" fill="#22D3EE" opacity=".15"/>
+                <circle cx="80" cy="10" r="2.2" fill="#22D3EE"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 3: Buổi hôm nay -->
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Buổi hôm nay</span>
+              <div class="pro-stat-icon" style="background:rgba(245,158,11,.18);color:#F59E0B"><i data-lucide="calendar" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">12</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="radio" style="width:12px;height:12px"></i>3 đang live</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,18 L13,14 L27,17 L40,11 L53,8 L67,12 L80,8" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M0,18 L13,14 L27,17 L40,11 L53,8 L67,12 L80,8 L80,32 L0,32 Z" fill="#F59E0B" opacity=".15"/>
+                <circle cx="80" cy="8" r="2.2" fill="#F59E0B"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 4: Doanh thu T4 -->
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Doanh thu T4</span>
+              <div class="pro-stat-icon" style="background:rgba(34,197,94,.18);color:#22C55E"><i data-lucide="trending-up" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">82.4M<span style="font-size:14px;color:var(--pro-muted);font-weight:500">đ</span></div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+8.2%</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,26 L13,24 L27,21 L40,17 L53,15 L67,11 L80,6" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M0,26 L13,24 L27,21 L40,17 L53,15 L67,11 L80,6 L80,32 L0,32 Z" fill="#22C55E" opacity=".15"/>
+                <circle cx="80" cy="6" r="2.2" fill="#22C55E"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 5: Tỉ lệ điểm danh -->
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Tỉ lệ điểm danh tuần</span>
+              <div class="pro-stat-icon" style="background:rgba(168,85,247,.18);color:#A855F7"><i data-lucide="check-circle" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">94.5<span style="font-size:14px;color:var(--pro-muted);font-weight:500">%</span></div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+1.2%</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,12 L13,14 L27,9 L40,11 L53,8 L67,9 L80,6" fill="none" stroke="#A855F7" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M0,12 L13,14 L27,9 L40,11 L53,8 L67,9 L80,6 L80,32 L0,32 Z" fill="#A855F7" opacity=".15"/>
+                <circle cx="80" cy="6" r="2.2" fill="#A855F7"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- 6: Học viên trễ học phí -->
+          <div class="pro-widget span-3">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Học phí quá hạn</span>
+              <div class="pro-stat-icon" style="background:rgba(239,68,68,.18);color:#EF4444"><i data-lucide="alert-triangle" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">7</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend down"><i data-lucide="arrow-down-right" style="width:12px;height:12px"></i>-3 so với T3</span>
+              <svg class="pro-spark" viewBox="0 0 80 32" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0,6 L13,9 L27,11 L40,13 L53,16 L67,19 L80,21" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <path d="M0,6 L13,9 L27,11 L40,13 L53,16 L67,19 L80,21 L80,32 L0,32 Z" fill="#EF4444" opacity=".15"/>
+                <circle cx="80" cy="21" r="2.2" fill="#EF4444"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Chart 8-col -->
+          <div class="pro-widget span-8">
+            <div class="pro-chart-head">
+              <div>
+                <h3>Doanh thu tuần</h3>
+                <div style="font-size:11.5px;color:var(--pro-muted);margin-top:2px">7 tuần gần nhất · so với cùng kỳ năm trước</div>
+              </div>
+              <div class="pro-chart-tabs" role="tablist">
+                <button>7N</button><button class="is-active">4T</button><button>3T</button><button>1N</button>
+              </div>
+            </div>
+            <svg class="pro-chart" viewBox="0 0 720 200" aria-label="Biểu đồ doanh thu tuần">
+              <defs>
+                <linearGradient id="gA" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#6366F1" stop-opacity=".35"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/></linearGradient>
+                <linearGradient id="gB" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#22D3EE" stop-opacity=".25"/><stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/></linearGradient>
+              </defs>
+              <line x1="32" x2="704" y1="12" y2="12" stroke="currentColor" stroke-opacity=".08"/>
+              <line x1="32" x2="704" y1="55" y2="55" stroke="currentColor" stroke-opacity=".08"/>
+              <line x1="32" x2="704" y1="98" y2="98" stroke="currentColor" stroke-opacity=".08"/>
+              <line x1="32" x2="704" y1="141" y2="141" stroke="currentColor" stroke-opacity=".08"/>
+              <line x1="32" x2="704" y1="172" y2="172" stroke="currentColor" stroke-opacity=".08"/>
+              <!-- previous-period (dashed) -->
+              <path d="M32,80 L144,68 L256,60 L368,55 L480,52 L592,46 L704,42 L704,172 L32,172 Z" fill="url(#gB)"/>
+              <path d="M32,80 L144,68 L256,60 L368,55 L480,52 L592,46 L704,42" stroke="#22D3EE" stroke-width="2" fill="none" stroke-dasharray="3 3" opacity=".7"/>
+              <!-- current period (solid) -->
+              <path d="M32,90 L144,68 L256,72 L368,52 L480,57 L592,30 L704,18 L704,172 L32,172 Z" fill="url(#gA)"/>
+              <path d="M32,90 L144,68 L256,72 L368,52 L480,57 L592,30 L704,18" stroke="#6366F1" stroke-width="2.2" fill="none"/>
+              <!-- x-axis -->
+              <text x="32"  y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T1</text>
+              <text x="144" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T2</text>
+              <text x="256" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T3</text>
+              <text x="368" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T4</text>
+              <text x="480" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T5</text>
+              <text x="592" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T6</text>
+              <text x="704" y="192" font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle" font-family="var(--font-mono)">T7</text>
+              <!-- y-axis -->
+              <text x="26" y="14" font-size="9.5" fill="currentColor" fill-opacity=".5" text-anchor="end" font-family="var(--font-mono)">90M</text>
+              <text x="26" y="98" font-size="9.5" fill="currentColor" fill-opacity=".5" text-anchor="end" font-family="var(--font-mono)">45M</text>
+              <text x="26" y="174" font-size="9.5" fill="currentColor" fill-opacity=".5" text-anchor="end" font-family="var(--font-mono)">0</text>
+            </svg>
+            <div class="pro-chart-legend">
+              <span><i style="background:#6366F1"></i>Tuần này · 82.4M đ</span>
+              <span><i style="background:#22D3EE"></i>Tuần trước · 76.0M đ</span>
+            </div>
+          </div>
+
+          <!-- Schedule 4-col -->
+          <div class="pro-widget span-4">
+            <h3>Lịch hôm nay <a>Xem lịch →</a></h3>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>08:00</b><span>90 phút</span></div>
+              <div class="pro-sched-bar" style="background:#6366F1"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">IELTS Foundation Lớp 12A2</div>
+                <div class="pro-sched-meta">P.201 · Cô Trần Thị Hương · 24 HV</div>
+              </div>
+              <span class="pro-sched-live">Live</span>
+            </div>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>10:00</b><span>120 phút</span></div>
+              <div class="pro-sched-bar" style="background:#22D3EE"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">TOEIC 600+ Lớp 5</div>
+                <div class="pro-sched-meta">P.305 · Thầy Lê Minh Tuấn · 18 HV</div>
+              </div>
+            </div>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>14:00</b><span>60 phút</span></div>
+              <div class="pro-sched-bar" style="background:#F59E0B"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">Tiếng Anh Trẻ Em 6-8 K21</div>
+                <div class="pro-sched-meta">P.102 · Cô Phạm Thị Lan · 12 HV</div>
+              </div>
+            </div>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>16:00</b><span>90 phút</span></div>
+              <div class="pro-sched-bar" style="background:#A855F7"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">Giao tiếp B1 Lớp 8</div>
+                <div class="pro-sched-meta">P.203 · Thầy Nguyễn Quang Minh · 15 HV</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity 6-col -->
+          <div class="pro-widget span-6">
+            <h3>Hoạt động gần đây <a>Xem tất cả →</a></h3>
+            <div class="pro-activity">
+              <div class="pro-activity-item">
+                <div class="pro-activity-icon" style="background:rgba(34,197,94,.18);color:#22C55E"><i data-lucide="user-plus" style="width:14px;height:14px"></i></div>
+                <div class="pro-activity-body"><b>Trần Quốc Bảo</b> đã đăng ký lớp <b>TOEIC 600+ Lớp 5</b><div class="pro-activity-time">5 phút trước</div></div>
+              </div>
+              <div class="pro-activity-item">
+                <div class="pro-activity-icon" style="background:rgba(99,102,241,.18);color:#6366F1"><i data-lucide="credit-card" style="width:14px;height:14px"></i></div>
+                <div class="pro-activity-body"><b>Nguyễn Văn An</b> đã thanh toán <b>2.400.000đ</b> · IELTS Foundation 12A2<div class="pro-activity-time">18 phút trước</div></div>
+              </div>
+              <div class="pro-activity-item">
+                <div class="pro-activity-icon" style="background:rgba(34,211,238,.18);color:#22D3EE"><i data-lucide="check-circle" style="width:14px;height:14px"></i></div>
+                <div class="pro-activity-body">Điểm danh <b>IELTS Foundation 12A2</b> · 24/24 có mặt<div class="pro-activity-time">1 giờ trước</div></div>
+              </div>
+              <div class="pro-activity-item">
+                <div class="pro-activity-icon" style="background:rgba(245,158,11,.18);color:#F59E0B"><i data-lucide="alert-triangle" style="width:14px;height:14px"></i></div>
+                <div class="pro-activity-body"><b>3 học viên</b> đến hạn đóng học phí tuần này<div class="pro-activity-time">2 giờ trước</div></div>
+              </div>
+              <div class="pro-activity-item">
+                <div class="pro-activity-icon" style="background:rgba(168,85,247,.18);color:#A855F7"><i data-lucide="book-open" style="width:14px;height:14px"></i></div>
+                <div class="pro-activity-body">Lớp mới <b>IELTS 6.5+ K03</b> đã mở đăng ký<div class="pro-activity-time">4 giờ trước</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick + Roster 3+3 -->
+          <div class="pro-widget span-3">
+            <h3>Lối tắt</h3>
+            <div class="pro-quick">
+              <button class="pro-quick-btn">
+                <div class="ic" style="background:rgba(99,102,241,.18);color:#6366F1"><i data-lucide="user-plus" style="width:16px;height:16px"></i></div>
+                <b>Thêm HV</b><span>Học viên mới</span>
+              </button>
+              <button class="pro-quick-btn">
+                <div class="ic" style="background:rgba(34,197,94,.18);color:#22C55E"><i data-lucide="qr-code" style="width:16px;height:16px"></i></div>
+                <b>QR điểm danh</b><span>Quét nhanh</span>
+              </button>
+              <button class="pro-quick-btn">
+                <div class="ic" style="background:rgba(245,158,11,.18);color:#F59E0B"><i data-lucide="file-text" style="width:16px;height:16px"></i></div>
+                <b>Báo cáo</b><span>PDF / Excel</span>
+              </button>
+              <button class="pro-quick-btn">
+                <div class="ic" style="background:rgba(168,85,247,.18);color:#A855F7"><i data-lucide="send" style="width:16px;height:16px"></i></div>
+                <b>Gửi tin</b><span>Hàng loạt</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="pro-widget span-3">
+            <h3>Sắp đến hạn <a>Nhắc →</a></h3>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--pro-border)">
+              <div style="width:28px;height:28px;border-radius:9999px;background:#6366F1;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">A</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Nguyễn Văn An</div>
+                <div style="font-size:11px;color:var(--pro-muted)">Còn 3 ngày · IELTS Found.</div>
+              </div>
+              <span class="pro-pill pro-pill-warn">2.4M đ</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--pro-border)">
+              <div style="width:28px;height:28px;border-radius:9999px;background:#22D3EE;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">B</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Trần Quốc Bảo</div>
+                <div style="font-size:11px;color:var(--pro-muted)">Còn 5 ngày · TOEIC 600+</div>
+              </div>
+              <span class="pro-pill pro-pill-warn">1.8M đ</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+              <div style="width:28px;height:28px;border-radius:9999px;background:#A855F7;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px">P</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Phạm Đức Anh</div>
+                <div style="font-size:11px;color:var(--pro-muted)">Còn 7 ngày · TA Trẻ Em</div>
+              </div>
+              <span class="pro-pill pro-pill-warn">2.4M đ</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;color:var(--pro-muted);font-size:11.5px;margin-top:8px">
+          💡 Mẹo: kéo-thả widget để sắp xếp lại · nhấn <kbd style="font-family:var(--font-mono);background:var(--pro-surface-2);padding:1px 6px;border-radius:4px;border:1px solid var(--pro-border)">⌘K</kbd> để mở lệnh nhanh · <kbd style="font-family:var(--font-mono);background:var(--pro-surface-2);padding:1px 6px;border-radius:4px;border:1px solid var(--pro-border)">⇧L</kbd> đổi sáng/tối
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

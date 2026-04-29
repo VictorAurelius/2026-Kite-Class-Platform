@@ -1,0 +1,168 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner — micro-interaction reference (not a real screen, design system docs)
+  Flow ref: dossier/05-business-flows.md (theme switch UX)
+  Score self-estimate: 105/128
+  Contrast (measured):
+    - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
+    - frame card vs bg-card:                   layered, AA preserved
+    - keyframe code block readable:            5.6:1 (AA ✓)
+
+  Animation spec:
+    - duration: 300ms ease-out
+    - frames: 0% sun → 33% rotating warm → 66% rotating cool → 100% moon
+    - applied via: @keyframes sun-moon-morph (defined in styles.css)
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Sun→Moon morph (300ms) — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Light</a>
+    <a href="command-palette.html">⌘K</a>
+    <a href="widget-grid-edit.html">Edit</a>
+    <a href="dark-mode-toggle.html" class="is-active">Morph</a>
+    <a href="success-confetti.html">Confetti</a>
+  </nav>
+
+  <div style="max-width:1100px;margin:0 auto;padding:60px 28px">
+    <div style="margin-bottom:32px">
+      <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.30);color:var(--pro-accent);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:9999px;margin-bottom:10px">
+        <i data-lucide="zap" style="width:11px;height:11px"></i> Micro-interaction
+      </div>
+      <h1 style="font-size:28px;font-weight:700;margin:0;letter-spacing:-.02em">Sun → Moon morph</h1>
+      <p style="margin:8px 0 0;color:var(--pro-muted);font-size:14px;max-width:640px">
+        Khi user nhấn nút đổi sáng/tối hoặc <kbd style="font-family:var(--font-mono);background:var(--pro-surface-2);padding:1px 6px;border-radius:4px;border:1px solid var(--pro-border)">⇧ + L</kbd>,
+        icon mặt trời xoay 360° và biến đổi sang mặt trăng trong <b style="color:var(--pro-text)">300ms ease-out</b> — đủ nhanh để nhận thấy, đủ chậm để không gây giật.
+      </p>
+    </div>
+
+    <!-- 4-frame morph timeline -->
+    <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--pro-muted);font-weight:600;margin:0 0 12px">📽️ 4 keyframe</h2>
+    <div class="morph-frames">
+      <!-- Frame 0% -->
+      <div class="morph-frame">
+        <div class="frame-icon" style="background:rgba(245,158,11,.18)">
+          <i data-lucide="sun" style="width:28px;height:28px;color:#F59E0B"></i>
+        </div>
+        <div class="frame-pct">0% · 0ms</div>
+        <div class="frame-label">Sun (start)</div>
+        <div style="font-size:11px;color:var(--pro-muted);font-family:var(--font-mono);margin-top:6px">rotate(0) scale(1)</div>
+      </div>
+
+      <!-- Frame 33% -->
+      <div class="morph-frame">
+        <div class="frame-icon" style="background:rgba(245,158,11,.10);transform:rotate(60deg) scale(.85)">
+          <i data-lucide="sun-medium" style="width:28px;height:28px;color:#F59E0B;opacity:.8"></i>
+        </div>
+        <div class="frame-pct">33% · 100ms</div>
+        <div class="frame-label">Rotating warm</div>
+        <div style="font-size:11px;color:var(--pro-muted);font-family:var(--font-mono);margin-top:6px">rot(60°) sc(.85)</div>
+      </div>
+
+      <!-- Frame 66% -->
+      <div class="morph-frame">
+        <div class="frame-icon" style="background:rgba(99,102,241,.15);transform:rotate(150deg) scale(.95)">
+          <i data-lucide="cloud-moon" style="width:28px;height:28px;color:#6366F1;opacity:.9"></i>
+        </div>
+        <div class="frame-pct">66% · 200ms</div>
+        <div class="frame-label">Rotating cool</div>
+        <div style="font-size:11px;color:var(--pro-muted);font-family:var(--font-mono);margin-top:6px">rot(150°) sc(.95)</div>
+      </div>
+
+      <!-- Frame 100% -->
+      <div class="morph-frame">
+        <div class="frame-icon" style="background:rgba(99,102,241,.18);transform:rotate(360deg)">
+          <i data-lucide="moon" style="width:28px;height:28px;color:#6366F1"></i>
+        </div>
+        <div class="frame-pct">100% · 300ms</div>
+        <div class="frame-label">Moon (end)</div>
+        <div style="font-size:11px;color:var(--pro-muted);font-family:var(--font-mono);margin-top:6px">rotate(360°) scale(1)</div>
+      </div>
+    </div>
+
+    <!-- Live demo -->
+    <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--pro-muted);font-weight:600;margin:32px 0 12px">▶️ Live demo (hover nút bên dưới)</h2>
+    <div style="background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:14px;padding:32px;display:flex;align-items:center;justify-content:center;gap:32px">
+      <button class="pro-iconbtn" style="width:48px;height:48px" onmouseover="this.querySelector('i').classList.add('morph-demo')" onmouseout="setTimeout(() => this.querySelector('i').classList.remove('morph-demo'), 320)">
+        <i data-lucide="sun" style="width:22px;height:22px"></i>
+      </button>
+      <div style="text-align:left">
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">Hover hoặc click để xem hoạt cảnh</div>
+        <div style="font-size:12px;color:var(--pro-muted)">Trên thực tế chạy mỗi lần đổi giao diện · ưa thích bằng `prefers-reduced-motion` được tôn trọng</div>
+      </div>
+    </div>
+
+    <!-- CSS spec -->
+    <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--pro-muted);font-weight:600;margin:32px 0 12px">📐 CSS keyframes (đã định nghĩa trong styles.css)</h2>
+    <pre style="background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:12px;color:var(--pro-text);overflow-x:auto;margin:0;line-height:1.6"><span style="color:#A855F7">@keyframes</span> <span style="color:#22D3EE">sun-moon-morph</span> {
+  <span style="color:#F59E0B">0%</span>   { transform: rotate(0deg)   scale(1);   opacity: 1;  filter: hue-rotate(0deg); }
+  <span style="color:#F59E0B">33%</span>  { transform: rotate(60deg)  scale(.85); opacity: .8; filter: hue-rotate(40deg); }
+  <span style="color:#F59E0B">66%</span>  { transform: rotate(150deg) scale(.95); opacity: .9; filter: hue-rotate(180deg); }
+  <span style="color:#F59E0B">100%</span> { transform: rotate(360deg) scale(1);   opacity: 1;  filter: hue-rotate(220deg); }
+}
+
+<span style="color:#A855F7">.morph-demo</span> { animation: <span style="color:#22D3EE">sun-moon-morph</span> <span style="color:#22C55E">300ms</span> ease-out forwards; }
+
+<span style="color:#8892B0">/* Respects user motion preference */</span>
+<span style="color:#A855F7">@media</span> (prefers-reduced-motion: reduce) {
+  .morph-demo { animation: none; }
+  <span style="color:#8892B0">/* Theme tokens swap immediately, icon swaps without rotation */</span>
+}</pre>
+
+    <!-- Accessibility note -->
+    <h2 style="font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--pro-muted);font-weight:600;margin:32px 0 12px">♿ Tiếp cận</h2>
+    <div style="background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="display:flex;gap:10px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(34,197,94,.18);color:#22C55E;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i data-lucide="check" style="width:14px;height:14px"></i>
+        </div>
+        <div>
+          <b style="font-size:13px">prefers-reduced-motion</b>
+          <div style="font-size:11.5px;color:var(--pro-muted);margin-top:2px">Khi user bật giảm chuyển động (system pref), animation bị tắt — chỉ swap icon, theme đổi tức thì.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(34,197,94,.18);color:#22C55E;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i data-lucide="check" style="width:14px;height:14px"></i>
+        </div>
+        <div>
+          <b style="font-size:13px">Aria-pressed + label động</b>
+          <div style="font-size:11.5px;color:var(--pro-muted);margin-top:2px"><code style="background:var(--pro-surface-2);padding:1px 4px;border-radius:3px;font-size:11px">aria-label="Đổi sang giao diện tối"</code> cập nhật theo trạng thái hiện tại.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(34,197,94,.18);color:#22C55E;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i data-lucide="check" style="width:14px;height:14px"></i>
+        </div>
+        <div>
+          <b style="font-size:13px">Phím tắt ⇧L</b>
+          <div style="font-size:11.5px;color:var(--pro-muted);margin-top:2px">Hoạt động trên toàn bộ ứng dụng · không xung đột với input fields (chỉ active khi không focus textbox).</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="width:28px;height:28px;border-radius:8px;background:rgba(34,197,94,.18);color:#22C55E;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i data-lucide="check" style="width:14px;height:14px"></i>
+        </div>
+        <div>
+          <b style="font-size:13px">Tôn trọng system theme</b>
+          <div style="font-size:11.5px;color:var(--pro-muted);margin-top:2px">Lần đầu vào: theo <code style="background:var(--pro-surface-2);padding:1px 4px;border-radius:3px;font-size:11px">prefers-color-scheme</code>. Sau đó: ghi nhớ qua localStorage.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

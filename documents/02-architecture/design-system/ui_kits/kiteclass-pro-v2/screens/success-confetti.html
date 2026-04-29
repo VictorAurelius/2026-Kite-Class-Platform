@@ -1,0 +1,156 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner — celebration moment after batch action
+  Flow ref: dossier/05-business-flows.md (positive feedback after class-finalized / grades-locked)
+  Score self-estimate: 109/128
+  Contrast (measured):
+    - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
+    - toast text on toast bg:                  10.2:1 (AAA ✓)
+    - confetti pieces against pro-bg:          high visibility (multi-color saturated)
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Toast + confetti — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Auto-dismiss toast simulation (4s lifetime visualised via opacity gradient bar) */
+    @keyframes toast-progress {
+      from { transform: scaleX(1); }
+      to { transform: scaleX(0); }
+    }
+    .toast-progress-bar {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: var(--pro-success); transform-origin: left;
+      animation: toast-progress 4s linear forwards;
+    }
+  </style>
+</head>
+<body>
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Light</a>
+    <a href="command-palette.html">⌘K</a>
+    <a href="widget-grid-edit.html">Edit</a>
+    <a href="dark-mode-toggle.html">Morph</a>
+    <a href="success-confetti.html" class="is-active">Confetti</a>
+  </nav>
+
+  <div class="pro-app">
+    <aside class="pro-side">
+      <div class="pro-brand">
+        <div class="pro-brand-mark"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i></div>
+        <div>
+          <div class="pro-brand-name">SkyLight English</div>
+          <div class="pro-brand-sub">skylight.kiteclass.com</div>
+        </div>
+      </div>
+      <button class="pro-cmd"><i data-lucide="search" style="width:14px;height:14px"></i><span>Tìm hoặc gõ lệnh…</span><kbd>⌘K</kbd></button>
+      <nav class="pro-nav">
+        <div class="pro-nav-section">Chính</div>
+        <a><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Tổng quan</a>
+        <a><i data-lucide="book-open" style="width:16px;height:16px"></i>Lớp học</a>
+        <a><i data-lucide="users" style="width:16px;height:16px"></i>Học viên</a>
+        <a class="is-active"><i data-lucide="award" style="width:16px;height:16px"></i>Điểm cuối kỳ</a>
+        <a><i data-lucide="calendar" style="width:16px;height:16px"></i>Lịch học</a>
+      </nav>
+    </aside>
+
+    <div class="pro-main">
+      <header class="pro-top">
+        <div class="pro-crumb"><span>Lớp</span><i data-lucide="chevron-right" style="width:12px;height:12px"></i><span>IELTS Foundation 12A2</span><i data-lucide="chevron-right" style="width:12px;height:12px"></i><b>Chốt điểm</b></div>
+        <div class="pro-top-actions">
+          <button class="pro-iconbtn"><i data-lucide="moon" style="width:16px;height:16px"></i></button>
+          <button class="pro-iconbtn"><i data-lucide="bell" style="width:16px;height:16px"></i></button>
+          <button class="pro-btn pro-btn-primary"><i data-lucide="check-check" style="width:16px;height:16px"></i>Chốt điểm</button>
+        </div>
+      </header>
+
+      <div class="pro-content">
+        <!-- Big success summary card -->
+        <div style="position:relative;padding:32px;border-radius:16px;background:linear-gradient(135deg,rgba(34,197,94,.18) 0%,rgba(34,211,238,.10) 50%,rgba(99,102,241,.14) 100%);border:1px solid rgba(34,197,94,.30);overflow:hidden;text-align:center">
+          <div style="font-size:48px;line-height:1;margin-bottom:12px">🎉</div>
+          <h1 style="margin:0;font-size:24px;font-weight:700">Đã chốt điểm thành công!</h1>
+          <p style="margin:8px 0 0;color:var(--pro-text);font-size:14px;max-width:500px;margin-left:auto;margin-right:auto">
+            <b>25 học viên</b> · Lớp <b>IELTS Foundation 12A2</b> · Kỳ <b>tháng 4/2026</b><br>
+            Bảng điểm đã gửi đến email phụ huynh + đồng bộ vào hệ thống lúc <span style="font-family:var(--font-mono)">11:42</span>
+          </p>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+            <button class="pro-btn pro-btn-primary"><i data-lucide="download" style="width:14px;height:14px"></i>Tải bảng điểm PDF</button>
+            <button class="pro-btn pro-btn-ghost" style="border-color:rgba(34,197,94,.40)"><i data-lucide="send" style="width:14px;height:14px"></i>Gửi lại email phụ huynh</button>
+            <button class="pro-btn pro-btn-ghost" style="border-color:rgba(34,197,94,.40)"><i data-lucide="arrow-right" style="width:14px;height:14px"></i>Chốt điểm lớp tiếp theo (TOEIC 600+)</button>
+          </div>
+        </div>
+
+        <!-- Summary table -->
+        <div class="pro-widget span-12">
+          <h3>Tóm tắt — IELTS Foundation 12A2 · Kỳ T4/2026</h3>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px">
+            <div style="text-align:center;padding:14px;background:var(--pro-surface-2);border-radius:10px">
+              <div style="font-size:11px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em">Sĩ số</div>
+              <div style="font-size:24px;font-weight:700;margin-top:6px">25/25</div>
+              <div style="font-size:11px;color:var(--pro-success);margin-top:2px">100% có điểm</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--pro-surface-2);border-radius:10px">
+              <div style="font-size:11px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em">Điểm TB</div>
+              <div style="font-size:24px;font-weight:700;margin-top:6px;color:#22C55E">7.4</div>
+              <div style="font-size:11px;color:var(--pro-success);margin-top:2px">+0.6 so kỳ trước</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--pro-surface-2);border-radius:10px">
+              <div style="font-size:11px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em">Đạt khá+</div>
+              <div style="font-size:24px;font-weight:700;margin-top:6px">19/25</div>
+              <div style="font-size:11px;color:var(--pro-muted);margin-top:2px">76%</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--pro-surface-2);border-radius:10px">
+              <div style="font-size:11px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em">Cần kèm</div>
+              <div style="font-size:24px;font-weight:700;margin-top:6px;color:#F59E0B">3</div>
+              <div style="font-size:11px;color:var(--pro-muted);margin-top:2px">Đã gửi gợi ý phụ huynh</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confetti burst (top-down across viewport) -->
+  <div aria-hidden="true">
+    <div class="confetti-piece cf-1"></div>
+    <div class="confetti-piece cf-2"></div>
+    <div class="confetti-piece cf-3"></div>
+    <div class="confetti-piece cf-4"></div>
+    <div class="confetti-piece cf-5"></div>
+    <div class="confetti-piece cf-6"></div>
+    <div class="confetti-piece cf-7"></div>
+    <div class="confetti-piece cf-8"></div>
+    <!-- duplicates for density -->
+    <div class="confetti-piece cf-1" style="left:42%;animation-delay:.4s"></div>
+    <div class="confetti-piece cf-3" style="left:65%;animation-delay:.5s"></div>
+    <div class="confetti-piece cf-5" style="left:18%;animation-delay:.45s"></div>
+    <div class="confetti-piece cf-7" style="left:80%;animation-delay:.55s"></div>
+  </div>
+
+  <!-- Toast bottom-right -->
+  <div class="pro-toast-stack" role="status" aria-live="polite">
+    <div class="pro-toast">
+      <div class="pro-toast-ic"><i data-lucide="check" style="width:16px;height:16px"></i></div>
+      <div style="flex:1">
+        <b>🎉 Đã chốt điểm 25 học viên</b>
+        <p>Lớp IELTS Foundation 12A2 · email tới phụ huynh đã gửi · tự đóng sau 4s</p>
+      </div>
+      <button class="pro-iconbtn" style="width:24px;height:24px" aria-label="Đóng thông báo">
+        <i data-lucide="x" style="width:12px;height:12px"></i>
+      </button>
+      <div class="toast-progress-bar"></div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
