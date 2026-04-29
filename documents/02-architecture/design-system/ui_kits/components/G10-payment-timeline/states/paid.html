@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G10 Payment Timeline — PAID (full payment confirmed)
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Success badge on success/10: 4.8:1 (AA OK)
+  - Receipt CTA primary: 4.6:1 (AA OK)
+  - Mono transaction ID: 11.2:1 (AAA OK)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 — Paid</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <h1 class="text-base md:text-lg font-semibold">Học phí tháng 10/2026</h1>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-6 space-y-5">
+    <!-- Success hero -->
+    <section class="rounded-2xl border border-success/30 bg-gradient-to-br from-success/5 via-card to-card p-6 shadow-soft">
+      <div class="flex items-start gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-success/10 inline-flex items-center justify-center shrink-0 text-success text-2xl" aria-hidden="true">
+          &#10003;
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-lg md:text-xl font-bold">Đã thanh toán đầy đủ</h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Cảm ơn bạn đã thanh toán. Biên lai đã được gửi tới email của bạn.
+          </p>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-success/10 px-3 py-1.5 text-sm font-semibold text-success" role="status">
+          <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+          Đã thanh toán
+        </span>
+      </div>
+    </section>
+
+    <!-- Invoice + receipt -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Hóa đơn</p>
+          <p class="mt-1 text-xl md:text-2xl font-bold font-mono">KC-2026-10-0042</p>
+          <p class="text-sm text-muted-foreground mt-1">
+            Học sinh: <strong class="text-foreground">Nguyễn Văn An</strong> · Lớp 10A2
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Tổng đã trả</p>
+          <p class="text-2xl md:text-3xl font-bold font-mono mt-1 text-success">1.500.000<span class="text-lg text-muted-foreground">đ</span></p>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-5 border-t grid sm:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-muted-foreground text-xs">Phương thức</p>
+          <p class="font-semibold mt-0.5">VNPay (qua app ngân hàng)</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground text-xs">Mã giao dịch</p>
+          <p class="font-mono text-xs mt-0.5 truncate">VNP-20261014-A3F9C1D4E5B7</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground text-xs">Thời điểm thanh toán</p>
+          <p class="font-semibold mt-0.5">14/10/2026 19:42</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground text-xs">Người thanh toán</p>
+          <p class="font-semibold mt-0.5">Phụ huynh Nguyễn Thị B</p>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-5 border-t flex flex-wrap gap-3">
+        <button class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          <span aria-hidden="true">&#11015;</span>
+          Tải biên lai PDF
+        </button>
+        <button class="inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <span aria-hidden="true">&#9993;</span>
+          Gửi lại biên lai qua email
+        </button>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-base font-semibold mb-4">Lịch sử trạng thái</h2>
+      <ol class="space-y-4" aria-label="Timeline trạng thái thanh toán">
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-success/10 text-success inline-flex items-center justify-center" aria-hidden="true">&#10003;</span>
+            <span class="w-px flex-1 bg-success/40 mt-1"></span>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm">Đã phát hành hóa đơn</p>
+              <time class="text-xs text-muted-foreground font-mono">01/10/2026 09:15</time>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Bởi: Hệ thống tự động</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-success/10 text-success inline-flex items-center justify-center" aria-hidden="true">&#10003;</span>
+            <span class="w-px flex-1 bg-success/40 mt-1"></span>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm">VNPay xác nhận giao dịch</p>
+              <time class="text-xs text-muted-foreground font-mono">14/10/2026 19:42</time>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Webhook nhận được · IPN verified</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-success text-success-foreground inline-flex items-center justify-center" aria-current="step">&#10003;</span>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm text-success">Đã thanh toán đầy đủ</p>
+              <time class="text-xs text-muted-foreground font-mono">14/10/2026 19:42</time>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Biên lai #BL-2026-10-0042 đã tạo + gửi email</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

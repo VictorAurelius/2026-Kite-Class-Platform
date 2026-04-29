@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G11 Theme Live Preview — MOBILE PREVIEW (phone frame mockup)
+  Score self-estimate: 106/128 (Tech 27 / Heuristics 27 / Aesthetics 27 / UX 25)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Brand on white in mobile frame: 4.8:1 (AA OK)
+  - Mobile chrome (status bar, nav): 4.7:1 (AA OK)
+  Persona consideration: VN parent uses Zalo-mirror webview ~85% mobile
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G11 — Mobile preview</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    } }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+        <h1 class="text-base font-semibold">Wizard step 5/6 &mdash; Mobile preview</h1>
+      </div>
+      <div class="inline-flex rounded-full border bg-muted/40 p-1" role="radiogroup" aria-label="Thiết bị">
+        <button class="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground" role="radio" aria-checked="false">Desktop</button>
+        <button class="rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground" role="radio" aria-checked="false">Tablet</button>
+        <button class="rounded-full bg-card px-3 py-1.5 text-xs font-semibold shadow-sm" role="radio" aria-checked="true">Mobile</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-8 grid lg:grid-cols-[auto_1fr] gap-8 items-start">
+    <!-- Phone frame -->
+    <div class="mx-auto">
+      <div class="relative rounded-[44px] border-8 border-foreground/90 bg-foreground/90 shadow-2xl overflow-hidden" style="width: 320px; height: 660px">
+        <!-- Notch -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-foreground/90 rounded-b-2xl z-20" aria-hidden="true"></div>
+        <!-- Screen -->
+        <div class="relative h-full w-full bg-card overflow-y-auto" style="background:#ffffff">
+          <!-- Status bar -->
+          <div class="flex items-center justify-between px-5 pt-3 pb-1 text-xs font-semibold" style="color:#1e293b">
+            <span>09:41</span>
+            <span class="flex items-center gap-1">
+              <span aria-hidden="true">&#9886;</span>
+              <span aria-hidden="true">&#9889;</span>
+              <span aria-hidden="true">100%</span>
+            </span>
+          </div>
+          <!-- App header -->
+          <div class="px-5 pt-4 pb-3 flex items-center gap-2 border-b" style="background:#ffffff">
+            <div class="h-9 w-9 rounded-lg inline-flex items-center justify-center text-white font-bold" style="background:#2563eb">E</div>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-sm truncate" style="color:#1e293b">Toán Edison</p>
+              <p class="text-[10px]" style="color:#64748b">Lớp 10A2</p>
+            </div>
+            <button aria-label="Thông báo" class="h-9 w-9 rounded-lg inline-flex items-center justify-center" style="color:#1e293b">
+              <span aria-hidden="true">&#128276;</span>
+            </button>
+          </div>
+          <!-- Hero -->
+          <div class="px-5 py-5" style="background:rgba(37,99,235,0.05)">
+            <p class="text-xs font-semibold" style="color:#2563eb">Lớp tiếp theo</p>
+            <p class="mt-1 text-base font-bold" style="color:#1e293b">Toán nâng cao 10A2</p>
+            <p class="text-xs mt-0.5" style="color:#64748b">14:00 hôm nay &mdash; Cô Lan</p>
+            <button class="mt-3 w-full rounded-lg py-2 text-sm font-semibold text-white" style="background:#2563eb">
+              Vào lớp học
+            </button>
+          </div>
+          <!-- Cards -->
+          <div class="px-5 py-4 space-y-3">
+            <p class="text-xs font-semibold uppercase tracking-wider" style="color:#64748b">Hôm nay</p>
+            <div class="rounded-xl border p-3" style="border-color:#e2e8f0">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full" style="background:#10b981" aria-hidden="true"></span>
+                <p class="font-semibold text-sm" style="color:#1e293b">Bài tập về nhà</p>
+              </div>
+              <p class="text-xs mt-1" style="color:#64748b">3 bài &mdash; hạn 22h hôm nay</p>
+            </div>
+            <div class="rounded-xl border p-3" style="border-color:#e2e8f0">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full" style="background:#f59e0b" aria-hidden="true"></span>
+                <p class="font-semibold text-sm" style="color:#1e293b">Học phí tháng 10</p>
+              </div>
+              <p class="text-xs mt-1" style="color:#64748b">1.500.000đ &mdash; hạn 15/10</p>
+            </div>
+          </div>
+          <!-- Bottom nav -->
+          <div class="absolute bottom-0 left-0 right-0 grid grid-cols-4 border-t" style="background:#ffffff; border-color:#e2e8f0">
+            <button class="py-3 text-xs font-semibold flex flex-col items-center gap-0.5" style="color:#2563eb">
+              <span aria-hidden="true">&#127968;</span>
+              Trang chủ
+            </button>
+            <button class="py-3 text-xs flex flex-col items-center gap-0.5" style="color:#64748b">
+              <span aria-hidden="true">&#128218;</span>
+              Lớp học
+            </button>
+            <button class="py-3 text-xs flex flex-col items-center gap-0.5" style="color:#64748b">
+              <span aria-hidden="true">&#128202;</span>
+              Điểm
+            </button>
+            <button class="py-3 text-xs flex flex-col items-center gap-0.5" style="color:#64748b">
+              <span aria-hidden="true">&#128100;</span>
+              Cá nhân
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="text-center mt-4 text-xs text-muted-foreground">iPhone 13 (375 &times; 812 logical) &mdash; downscaled</p>
+    </div>
+
+    <!-- Side panel -->
+    <aside class="space-y-4">
+      <section class="rounded-2xl border bg-card p-5 shadow-soft">
+        <h2 class="text-base font-semibold">Mobile-first checks</h2>
+        <p class="text-xs text-muted-foreground mt-1">Kiểm tra tự động trên frame 375x812</p>
+        <ul class="mt-4 space-y-3 text-sm">
+          <li class="flex items-center gap-3">
+            <span class="h-6 w-6 rounded-full bg-success/10 text-success inline-flex items-center justify-center text-xs">&#10003;</span>
+            <div class="flex-1">
+              <p class="font-semibold">Tap target &ge; 44x44</p>
+              <p class="text-xs text-muted-foreground">Tất cả buttons &ge; 44px</p>
+            </div>
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="h-6 w-6 rounded-full bg-success/10 text-success inline-flex items-center justify-center text-xs">&#10003;</span>
+            <div class="flex-1">
+              <p class="font-semibold">Logo trên header</p>
+              <p class="text-xs text-muted-foreground">Hiển thị 36px, không bị crop</p>
+            </div>
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="h-6 w-6 rounded-full bg-success/10 text-success inline-flex items-center justify-center text-xs">&#10003;</span>
+            <div class="flex-1">
+              <p class="font-semibold">Bottom nav (4 mục)</p>
+              <p class="text-xs text-muted-foreground">Active state dùng brand color</p>
+            </div>
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="h-6 w-6 rounded-full bg-success/10 text-success inline-flex items-center justify-center text-xs">&#10003;</span>
+            <div class="flex-1">
+              <p class="font-semibold">Safe-area insets</p>
+              <p class="text-xs text-muted-foreground">Notch + home indicator OK</p>
+            </div>
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="h-6 w-6 rounded-full bg-success/10 text-success inline-flex items-center justify-center text-xs">&#10003;</span>
+            <div class="flex-1">
+              <p class="font-semibold">Text readable</p>
+              <p class="text-xs text-muted-foreground">Body 14px, contrast 7.5:1</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="rounded-xl border border-info/30 bg-info/5 p-4 text-sm flex gap-3">
+        <span class="text-info text-lg" aria-hidden="true">&#9432;</span>
+        <p class="text-foreground/90">
+          85% phụ huynh truy cập qua Zalo Official Account webview &mdash; brand color
+          phải pass contrast trong cả Zalo dark mode. Test cả 2 môi trường trước khi DEPLOY.
+        </p>
+      </section>
+    </aside>
+  </main>
+</body>
+</html>

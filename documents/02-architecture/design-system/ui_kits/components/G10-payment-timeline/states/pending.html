@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G10 Payment Timeline — PENDING (awaits payment, due-date countdown)
+  Score self-estimate: 107/128 (Tech 28 / Heuristics 27 / Aesthetics 26 / UX 26)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Warning chip on warning/10: 5.2:1 (AA OK)
+  - VND total 4xl on white: 17.9:1 (AAA OK)
+  - Pay-now CTA primary: 4.6:1 (AA OK)
+  VN currency format: 1.500.000đ (dot thousand separator + đ suffix)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 — Pending</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <h1 class="text-base md:text-lg font-semibold">Học phí tháng 10/2026</h1>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-6 space-y-5">
+    <!-- Invoice header -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Hóa đơn</p>
+          <p class="mt-1 text-xl md:text-2xl font-bold font-mono">KC-2026-10-0042</p>
+          <p class="text-sm text-muted-foreground mt-1">
+            Học sinh: <strong class="text-foreground">Nguyễn Văn An</strong> · Lớp 10A2
+          </p>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 text-sm font-semibold text-[hsl(var(--warning))]" role="status">
+          <span class="h-1.5 w-1.5 rounded-full bg-warning animate-pulse"></span>
+          Chờ thanh toán
+        </span>
+      </div>
+
+      <div class="mt-4 grid sm:grid-cols-3 gap-4 text-sm">
+        <div>
+          <p class="text-muted-foreground text-xs">Ngày phát hành</p>
+          <p class="font-semibold mt-0.5">01/10/2026</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground text-xs">Hạn thanh toán</p>
+          <p class="font-semibold mt-0.5">15/10/2026</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground text-xs">Còn lại</p>
+          <p class="font-semibold text-warning mt-0.5">5 ngày</p>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-5 border-t flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Số tiền cần trả</p>
+          <p class="text-3xl md:text-4xl font-bold font-mono mt-1">1.500.000<span class="text-xl text-muted-foreground">đ</span></p>
+        </div>
+        <button class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          Thanh toán ngay
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-base font-semibold mb-4">Lịch sử trạng thái</h2>
+      <ol class="space-y-4 relative" aria-label="Timeline trạng thái thanh toán">
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-success/10 text-success inline-flex items-center justify-center" aria-hidden="true">&#10003;</span>
+            <span class="w-px flex-1 bg-border mt-1"></span>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm">Đã phát hành hóa đơn</p>
+              <time class="text-xs text-muted-foreground font-mono">01/10/2026 09:15</time>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Bởi: Hệ thống tự động · Email đã gửi tới <code class="font-mono text-xs">phụ huynh@email.com</code></p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-warning/10 text-warning inline-flex items-center justify-center" aria-current="step">
+              <span class="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
+            </span>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm text-warning">Đang chờ thanh toán</p>
+              <span class="text-xs font-semibold rounded-full bg-warning/10 text-[hsl(var(--warning))] px-2 py-0.5">Hiện tại</span>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">
+              Đã gửi nhắc nhở qua Zalo OA (1 lần). Sẽ gửi tiếp nếu còn 3 ngày.
+            </p>
+          </div>
+        </li>
+        <li class="flex gap-4 opacity-50">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-muted text-muted-foreground inline-flex items-center justify-center text-xs">3</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm text-muted-foreground">Đã thanh toán</p>
+            <p class="text-sm text-muted-foreground mt-0.5">(Chưa diễn ra)</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Reminder schedule -->
+    <section class="rounded-xl border border-info/30 bg-info/5 p-4 text-sm flex gap-3">
+      <span class="text-info text-lg" aria-hidden="true">&#9432;</span>
+      <p class="text-foreground/90">
+        Lịch nhắc nhở tự động: còn <strong>3 ngày</strong> (Zalo OA + email),
+        còn <strong>1 ngày</strong> (Zalo OA), <strong>quá hạn</strong> (cộng phí trễ + báo admin).
+      </p>
+    </section>
+  </main>
+</body>
+</html>

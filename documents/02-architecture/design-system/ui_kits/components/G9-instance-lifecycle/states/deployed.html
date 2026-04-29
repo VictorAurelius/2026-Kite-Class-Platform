@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Component: G9 Instance Lifecycle — DEPLOYED (live, healthy)
+  Score self-estimate: 112/128 (Tech 28 / Heuristics 28 / Aesthetics 28 / UX 28)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Success badge on success/10: 4.8:1 (AA OK)
+  - Live URL link primary: 4.6:1 (AA OK)
+  - Health metrics text: 4.7:1 (AA OK)
+  Polishing: live URL with copy + visit CTA, health pill, regenerate secondary CTA
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G9 — DEPLOYED</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-base md:text-lg font-semibold truncate">Trung tâm Toán Edison</h1>
+        <p class="text-xs text-muted-foreground">Instance #INST-2026-0429-002</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success" role="status">
+        <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+        Đã triển khai
+      </span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-8 space-y-6">
+    <!-- Lifecycle timeline (all complete) -->
+    <section class="rounded-2xl border bg-card p-5 shadow-soft" aria-label="Tiến độ tạo instance">
+      <ol class="flex items-center justify-between gap-2 text-xs font-semibold">
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-foreground">Bắt đầu</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-success"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-foreground">Khởi tạo</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-success"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-foreground">Tạo nội dung</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-success"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-success">Hoàn tất</span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Hero success -->
+    <section class="rounded-2xl border border-success/30 bg-gradient-to-br from-success/5 via-card to-card p-8 shadow-soft">
+      <div class="flex items-start gap-5">
+        <div class="h-14 w-14 rounded-2xl bg-success/10 inline-flex items-center justify-center shrink-0 text-3xl" aria-hidden="true">
+          &#127881;
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-xl md:text-2xl font-bold">Trang web của bạn đã sẵn sàng!</h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Triển khai hoàn tất lúc <strong class="text-foreground">14:23 ngày 29/04/2026</strong>. Học viên có thể đăng ký và đăng nhập ngay bây giờ.
+          </p>
+        </div>
+      </div>
+
+      <!-- Live URL -->
+      <div class="mt-6 rounded-xl border bg-card p-4 flex flex-wrap items-center gap-3">
+        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">URL trang web</span>
+        <code class="font-mono text-base font-semibold text-primary flex-1 min-w-0 truncate">https://edison.kiteclass.vn</code>
+        <button class="inline-flex items-center gap-1.5 rounded-lg border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Sao chép URL">
+          <span aria-hidden="true">&#128203;</span>
+          Sao chép
+        </button>
+        <a href="#" class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          Truy cập trang web
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Health metrics -->
+    <section class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="rounded-xl border bg-card p-4">
+        <div class="flex items-center gap-2 text-xs text-muted-foreground">
+          <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+          Sức khỏe
+        </div>
+        <p class="text-lg font-bold mt-1.5 text-success">Tốt</p>
+        <p class="text-xs text-muted-foreground">Uptime 99.98%</p>
+      </div>
+      <div class="rounded-xl border bg-card p-4">
+        <div class="text-xs text-muted-foreground">Chất lượng</div>
+        <p class="text-lg font-bold mt-1.5 font-mono">87/100</p>
+        <p class="text-xs text-success">&ge; 70 (đạt cổng kiểm tra)</p>
+      </div>
+      <div class="rounded-xl border bg-card p-4">
+        <div class="text-xs text-muted-foreground">WCAG</div>
+        <p class="text-lg font-bold mt-1.5">AA &#10003;</p>
+        <p class="text-xs text-muted-foreground">Contrast 4.7:1</p>
+      </div>
+      <div class="rounded-xl border bg-card p-4">
+        <div class="text-xs text-muted-foreground">Tốc độ tải</div>
+        <p class="text-lg font-bold mt-1.5 font-mono">1.2s</p>
+        <p class="text-xs text-muted-foreground">P75 mobile</p>
+      </div>
+    </section>
+
+    <!-- Resources approved -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h3 class="text-base font-semibold mb-4">Tài nguyên đã triển khai</h3>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div class="rounded-xl border bg-muted/40 p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-lg bg-success/10 text-success inline-flex items-center justify-center">&#10003;</div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Logo</p>
+            <p class="text-xs text-muted-foreground">SVG · 8 KB</p>
+          </div>
+        </div>
+        <div class="rounded-xl border bg-muted/40 p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-lg bg-success/10 text-success inline-flex items-center justify-center">&#10003;</div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Bảng màu (4 màu)</p>
+            <p class="text-xs text-muted-foreground">CSS variables</p>
+          </div>
+        </div>
+        <div class="rounded-xl border bg-muted/40 p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-lg bg-success/10 text-success inline-flex items-center justify-center">&#10003;</div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Banner trang chủ</p>
+            <p class="text-xs text-muted-foreground">1920x600 WebP · 142 KB</p>
+          </div>
+        </div>
+        <div class="rounded-xl border bg-muted/40 p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-lg bg-success/10 text-success inline-flex items-center justify-center">&#10003;</div>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Hero section</p>
+            <p class="text-xs text-muted-foreground">SVG composition · 24 KB</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm text-muted-foreground">Muốn thử bộ nhận diện khác?</p>
+      <button class="inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <span aria-hidden="true">&#10227;</span>
+        Tạo lại nội dung
+      </button>
+    </div>
+  </main>
+</body>
+</html>

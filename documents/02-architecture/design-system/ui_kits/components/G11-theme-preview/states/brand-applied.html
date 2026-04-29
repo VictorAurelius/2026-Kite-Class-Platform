@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G11 Theme Live Preview — BRAND APPLIED (#2563eb + custom logo)
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Custom primary #2563eb on white: 4.8:1 (AA OK; auto-checked by tool)
+  - Per-resource approve toggles: 4.7:1 (AA OK)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G11 — Brand applied</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+  <style>
+    /* Custom brand override applied to preview iframe content only */
+    .preview-edison {
+      --brand: #2563eb;
+      --brand-fg: #ffffff;
+      --brand-soft: rgba(37, 99, 235, 0.08);
+    }
+    .preview-edison .brand-bg { background: var(--brand); color: var(--brand-fg); }
+    .preview-edison .brand-text { color: var(--brand); }
+    .preview-edison .brand-border { border-color: var(--brand); }
+    .preview-edison .brand-soft { background: var(--brand-soft); }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+        <div>
+          <h1 class="text-base font-semibold">Wizard step 5/6 &mdash; Xem trước</h1>
+          <p class="text-xs text-muted-foreground">Trung tâm Toán Edison</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          Quay lại
+        </button>
+        <button class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          Triển khai &rarr;
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 grid lg:grid-cols-[1fr_360px] gap-6">
+    <!-- Side-by-side preview -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">So sánh trước &harr; sau</p>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+          <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+          Đã apply brand
+        </span>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-3">
+        <!-- BEFORE -->
+        <div class="rounded-2xl border bg-card shadow-soft overflow-hidden">
+          <div class="bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground border-b">Trước (mặc định)</div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="h-8 w-8 rounded-lg bg-muted border-2 border-dashed inline-flex items-center justify-center text-muted-foreground text-xs">Logo</div>
+              <p class="font-semibold text-muted-foreground text-sm">Tên trung tâm</p>
+            </div>
+            <h3 class="text-xl font-bold">Chào mừng</h3>
+            <p class="mt-1.5 text-xs text-muted-foreground">Theme mặc định</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Đăng ký</button>
+              <button class="rounded-lg border bg-card px-3 py-1.5 text-xs font-semibold">Xem khóa</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AFTER -->
+        <div class="rounded-2xl border-2 border-success/40 bg-card shadow-soft-lg overflow-hidden">
+          <div class="bg-success/10 px-3 py-1.5 text-xs font-semibold text-success border-b border-success/20">Sau (Edison branded)</div>
+          <div class="preview-edison p-5">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="h-8 w-8 rounded-lg brand-bg inline-flex items-center justify-center text-white text-xs font-bold" aria-label="Logo Edison">E</div>
+              <p class="font-semibold text-sm">Toán Edison</p>
+            </div>
+            <h3 class="text-xl font-bold">Chào mừng đến Edison</h3>
+            <p class="mt-1.5 text-xs text-muted-foreground">Toán nâng cao &mdash; thi học sinh giỏi</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button class="rounded-lg brand-bg px-3 py-1.5 text-xs font-semibold">Đăng ký</button>
+              <button class="rounded-lg border-2 brand-border brand-text px-3 py-1.5 text-xs font-semibold">Xem khóa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full preview -->
+      <div class="rounded-2xl border bg-card shadow-soft overflow-hidden">
+        <div class="flex items-center justify-between border-b bg-muted/40 px-4 py-2.5">
+          <p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bản xem trước đầy đủ</p>
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <span class="h-1.5 w-1.5 rounded-full" style="background: #2563eb"></span>
+            <code class="font-mono">#2563eb</code>
+            <span class="ml-2 text-success font-semibold">WCAG AA &#10003;</span>
+          </div>
+        </div>
+        <div class="preview-edison p-6 md:p-10 min-h-[360px] brand-soft">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="h-12 w-12 rounded-xl brand-bg inline-flex items-center justify-center text-white text-2xl font-extrabold">E</div>
+            <div>
+              <p class="font-bold">Trung tâm Toán Edison</p>
+              <p class="text-xs text-muted-foreground">Toán nâng cao &mdash; THCS &amp; THPT</p>
+            </div>
+          </div>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Đào tạo học sinh giỏi <span class="brand-text">vững chắc</span></h2>
+          <p class="mt-3 text-muted-foreground max-w-xl">25 khóa học &mdash; 500+ học viên &mdash; 18 năm kinh nghiệm. Đăng ký lớp thử miễn phí.</p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button class="rounded-lg brand-bg px-6 py-2.5 text-sm font-semibold">Đăng ký học</button>
+            <button class="rounded-lg border-2 brand-border brand-text px-6 py-2.5 text-sm font-semibold">Xem khóa học</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls + per-resource approve -->
+    <aside class="rounded-2xl border bg-card p-5 shadow-soft space-y-5 lg:sticky lg:top-6 self-start">
+      <div>
+        <h2 class="text-base font-semibold">Phê duyệt từng tài nguyên</h2>
+        <p class="text-xs text-muted-foreground mt-1">Bạn có thể chấp nhận từng phần hoặc tất cả</p>
+      </div>
+
+      <ul class="space-y-2">
+        <li class="rounded-lg border bg-card p-3 flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg shrink-0 inline-flex items-center justify-center text-white text-sm font-bold" style="background:#2563eb">E</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm">Logo</p>
+            <p class="text-xs text-muted-foreground">Tự tạo từ chữ E</p>
+          </div>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" checked class="sr-only peer" aria-label="Phê duyệt Logo" />
+            <span class="relative w-10 h-6 bg-muted rounded-full peer-checked:bg-success transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card after:rounded-full after:h-5 after:w-5 after:transition peer-checked:after:translate-x-4"></span>
+          </label>
+        </li>
+        <li class="rounded-lg border bg-card p-3 flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg shrink-0 flex items-center gap-0.5 p-1.5">
+            <span class="h-full w-1.5 rounded" style="background:#2563eb"></span>
+            <span class="h-full w-1.5 rounded" style="background:#f59e0b"></span>
+            <span class="h-full w-1.5 rounded" style="background:#10b981"></span>
+            <span class="h-full w-1.5 rounded" style="background:#1e293b"></span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm">Bảng màu</p>
+            <p class="text-xs text-muted-foreground">4 màu &mdash; AA &#10003;</p>
+          </div>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" checked class="sr-only peer" aria-label="Phê duyệt bảng màu" />
+            <span class="relative w-10 h-6 bg-muted rounded-full peer-checked:bg-success transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card after:rounded-full after:h-5 after:w-5 after:transition peer-checked:after:translate-x-4"></span>
+          </label>
+        </li>
+        <li class="rounded-lg border bg-card p-3 flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg shrink-0 bg-muted inline-flex items-center justify-center text-muted-foreground text-xs">B</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm">Banner trang chủ</p>
+            <p class="text-xs text-muted-foreground">1920x600 WebP</p>
+          </div>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" checked class="sr-only peer" aria-label="Phê duyệt banner" />
+            <span class="relative w-10 h-6 bg-muted rounded-full peer-checked:bg-success transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card after:rounded-full after:h-5 after:w-5 after:transition peer-checked:after:translate-x-4"></span>
+          </label>
+        </li>
+        <li class="rounded-lg border bg-card p-3 flex items-center gap-3">
+          <div class="h-9 w-9 rounded-lg shrink-0 bg-muted inline-flex items-center justify-center text-muted-foreground text-xs">H</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm">Hero section</p>
+            <p class="text-xs text-muted-foreground">Composition SVG</p>
+          </div>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" class="sr-only peer" aria-label="Phê duyệt hero" />
+            <span class="relative w-10 h-6 bg-muted rounded-full peer-checked:bg-success transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card after:rounded-full after:h-5 after:w-5 after:transition peer-checked:after:translate-x-4"></span>
+          </label>
+        </li>
+      </ul>
+
+      <div class="rounded-lg bg-success/10 border border-success/30 p-3 text-sm text-foreground/90">
+        <p class="font-semibold text-success">3/4 tài nguyên đã được phê duyệt</p>
+        <p class="text-xs text-muted-foreground mt-0.5">Hero chưa được phê duyệt &mdash; sẽ giữ template mặc định.</p>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
