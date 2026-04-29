@@ -1,8 +1,8 @@
 ---
 title: Wave Observability — runbooks + Grafana + Alertmanager receivers
-status: active
+status: complete
 created: 2026-04-28
-updated: 2026-04-28
+updated: 2026-04-29
 gaps: [GAP-121, GAP-143, GAP-144]
 deferred_to_next_wave: [GAP-122]
 deferred_separate_track: [GAP-114, GAP-115]

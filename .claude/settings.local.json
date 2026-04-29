@@ -3,7 +3,12 @@
     "allow": [
       "*",
       "Bash(mkdir -p .claude/skills/quality/skill-conventions-check/data/fixtures)",
-      "Bash(rtk ls *)"
+      "Bash(rtk ls *)",
+      "Bash(mkdir -p .claude/session-locks/archived/2026-04-29)",
+      "Bash(cat)",
+      "Bash(cat /tmp/lock-summary.txt)",
+      "Bash(mv .claude/session-locks/session-20260429-022520-NguyenVanKiet.lock .claude/session-locks/archived/2026-04-29/)",
+      "Bash(rm /tmp/lock-summary.txt)"
     ],
     "defaultMode": "bypassPermissions"
   },
