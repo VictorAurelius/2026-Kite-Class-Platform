@@ -59,6 +59,27 @@ KiteHub provisions a new KiteClass instance whenever a school subscribes. Each i
 
 The platform follows an **audit → gap → fix** pipeline. Every audit issue becomes a gap file; every fix is its own PR; every wave merges only after audit refresh. The result: scores are calibrated, not self-estimated. See [Quality](#-quality) below.
 
+## ▸ Design System Preview
+
+**6 production-quality UI kits** for KiteHub + KiteClass — 76 screens · avg score **110.5 / 128** · **+51 % lift** vs Round 1 baseline (~73 / 128).
+
+[![Design System Hero](documents/02-architecture/design-system/screenshots/hero-landing.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/)
+
+**[🚀 Live demo →](https://victoraurelius.github.io/2026-Kite-Class-Platform/)** _(after Pages enabled — see workflow `.github/workflows/deploy-design-system.yml`)_
+
+| Kit | Persona | Score / 128 | Preview |
+|---|---|:-:|---|
+| **kiteclass-pro v2** | P2 Center Owner (KC) | 108.4 | [![](documents/02-architecture/design-system/screenshots/kiteclass-pro-v2-dashboard.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/kiteclass-pro-v2/) |
+| **kiteclass-parent** | Parent (mobile-first PWA) | **114** ⭐ | [![](documents/02-architecture/design-system/screenshots/kiteclass-parent-home.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/kiteclass-parent/) |
+| **kiteclass-teacher** | Teacher (GVCN + subject) | 108.0 | [![](documents/02-architecture/design-system/screenshots/kiteclass-teacher-attendance.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/kiteclass-teacher/) |
+| **kitehub-pro v2** | P2 Center Owner (KH SaaS) | 107.8 | [![](documents/02-architecture/design-system/screenshots/kitehub-pro-v2-dashboard.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/kitehub-pro-v2/) |
+| **ai-branding-wizard v2** | P2 + P3 Admin (rebrand) | **115.6** ⭐⭐ | [![](documents/02-architecture/design-system/screenshots/ai-branding-wizard-step6.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/ai-branding-wizard-v2/) |
+| **5 Components** | Cross-cutting (G2/G5/G6/G7/G12) | 106.7 | [![](documents/02-architecture/design-system/screenshots/components-G5-payment.png)](https://victoraurelius.github.io/2026-Kite-Class-Platform/components/) |
+
+**Stack:** HTML / CSS / JS prototypes per [`dossier/09-tech-constraints.md`](documents/02-architecture/design-system/dossier/09-tech-constraints.md) (Next.js 15 / React 19 / Tailwind 3.4 / shadcn/ui / Radix UI / lucide-react). Production port to actual Next.js apps tracked under GAP-264..267.
+
+**Dossier:** [12-file context dossier](documents/02-architecture/design-system/dossier/) for handing context to design AI tools (Claude Design / Figma / etc.) — personas, VN UX musts, screen inventory, business flows, quality bar, acceptance criteria, prompt library.
+
 ## ▸ Repository Structure
 
 ```
