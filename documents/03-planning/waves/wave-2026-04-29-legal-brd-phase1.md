@@ -1,12 +1,16 @@
 ---
 title: Wave Legal-BRD Phase 1 — 4 skeleton policy docs (TOS / AUP / Privacy / Retention)
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
+shipped: 2026-04-29
 gaps: [GAP-180, GAP-181, GAP-182, GAP-184]
 deferred_to_next_wave: [GAP-183, GAP-185, GAP-186]
 deferred_separate_track: []
 umbrella: GAP-154
+prs: [687, 689, 688, 691, 690]
+total_loc: 1326
+wall_clock_min: 35
 ---
 
 # Wave Legal-BRD Phase 1 — Cluster Pack 13 (5th business-correctness slice)
@@ -203,22 +207,39 @@ All 4 agents MUST:
 - Worktree verify: `pwd | grep -q "\.claude/worktrees/" && git branch --show-current | grep -q "^feat/wave-legal-brd-"` trước Write/Edit
 - RELATIVE paths only trong commands (per `feedback_worktree_absolute_path_contamination.md`)
 
-## Lessons-learned (filled AFTER wave merges)
-
-(Filled per `reference/retrospective-checklist.md`)
+## Lessons-learned (Wave Legal-BRD Phase 1, completed 2026-04-29)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold?
+- [x] `isolation: "worktree"` held — 4 separate checkouts at `.claude/worktrees/agent-{aab9bbc0|acc3af30|afa795ee|ad409d25}/`
+- [x] No cross-agent file collisions (4 disjoint NEW files)
+- [⚠️] **Worktree-contamination on Agent C** (caught pre-commit) — Write tool initially landed `privacy-policy.md` at main worktree path (`/home/.../2026-Kite-Class-Platform/documents/...`) instead of agent worktree (`.claude/worktrees/agent-afa795ee/...`). Agent verified on first read grep, copied to correct path, removed stray, committed cleanly. Per `feedback_worktree_absolute_path_contamination.md` documented hazard — pattern surfaces despite prompt mandate. Mitigation candidate: hook to detect Write to absolute path outside `pwd` at the tool level.
 
 ### File overlap accuracy
-- [ ] Did predicted overlap match actual?
+- [x] Predicted: 0 HARD, 1 SOFT (read-only `meta-gap-priority.md` citation). Actual: 0 HARD, 0 SOFT (citations did not edit). False-positive HARD on `05-guides/` from script reading "Out of Scope" sections — confirmed false-positive (no agent touched `05-guides/`).
 
 ### Wall-clock variance
-- [ ] Estimate ~75-100 min vs actual?
+- **Estimated:** 75-100 min total (foundation 20 + parallel 30-40 + merge 15 + closure 15)
+- **Actual:** ~35 min total (foundation 15 + parallel 5.7 wall + sequential merge 5 + closure 10)
+- **Variance source:** agents finished much faster than 25-35 min estimate (avg 5.0 min). Skeleton-only docs work scales with agent prompt clarity not section count — deterministic, not multi-step decision tree. Re-calibration: docs-only-skeleton ~5 min/agent + sequential merge ~3 min/PR + closure ~10 min.
 
 ### Pattern reuse
-- [ ] Skeleton-only Phase-1 cluster pattern recurring enough để codify thành agent template variant?
-- [ ] 4-doc cluster size optimal vs 3 hoặc 5?
+- [x] **Skeleton-only Phase-1 cluster pattern is recurring** — 2nd instance after Wave Business Correctness 2026-04-29 (5 BRD skeleton via 3-agent pattern). 3rd recurrence triggers codification as agent template variant `docs-only-skeleton-agent.md`. Track: GAP-186 + GAP-189 + future BRD skeletons.
+- [x] **4-doc cluster size optimal** — `feedback_parallel_agent_strategy.md` rule #9 max-cap 4 background agents. 5+ would over-budget single-message Agent calls. 3-doc would under-utilize parallelism. 4 = sweet-spot validated.
 
 ### Agent template effectiveness
-- [ ] `docs-only-agent.md` template held without adjustment cho legal-doc skeleton?
+- [x] `docs-only-agent.md` template held without adjustment — all 4 agents 0-clarification-round (15th-18th consecutive). Frontmatter style choice (markdown-header mimicking `personas-catalog.md`) consistent across 4 files.
+
+### CI behavior
+- [x] CI did NOT trigger for pure `documents/00-brd/*.md` agent PRs (workflow path filters don't match). Foundation PR #687 had 6 checks (touched ROADMAP + wave plan path) but agent PRs had 0 checks rendered. `mergeStateStatus=CLEAN` sufficient — do not block waiting for non-existent CI.
+
+### Local-state hazards (4-agent waves)
+- [⚠️] **Local main glitch during PR #691 merge:** `gh pr merge --squash --delete-branch` post-merge checkout failed with "fatal: 'main' is already used by worktree" because 4 agent worktrees still on detached HEADs of merged branches. Recovery via `git fetch && git reset --hard origin/main`. **New rule for 4+-agent waves:** prune worktrees BEFORE final merge of last PR, OR accept local stale state until cleanup task. Document in `retrospective-checklist.md` as recurring pattern.
+
+### Phase 2 TODO marker pattern
+- [x] `<!-- Phase 2: ... — informed gut Q3 2026, GAP-154 -->` inline marker works as both placeholder + retrospect anchor. Aligns with `business-logic-review.md` §2.1 "informed gut" Source category + quarterly re-review obligation. Reusable for future Phase-1 skeleton waves.
+
+### Token cost
+- Foundation: ~33K tokens (wave plan + README + ROADMAP)
+- Agents combined: ~793K tokens (4 agents avg ~198K each)
+- Closure: ~25K tokens
+- **Total: ~850K** (vs Wave UI Kits R2 1.05M, Wave Review Process Improvement 850K) — comparable scale despite 4x agents.

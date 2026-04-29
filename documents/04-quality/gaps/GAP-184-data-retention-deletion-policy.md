@@ -1,6 +1,6 @@
 # GAP-184: Data Retention + Deletion Policy
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1, PR #690). Phase 2 (legal counsel + tax advisor sign-off on retention values + config externalization replacing GAP-108 hardcoding + deletion engineering SOP in 05-guides/ + tenant offboarding runbook + first quarterly audit) blocked-on stakeholder engagement → tracked GAP-154 umbrella + GAP-108 (config externalization) per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
 **Priority:** 🔴 P0 (business-logic tier — **VN PDPL Article 6 mandate**)
 **Domain:** Legal / BRD / Data Protection / Ops
 **Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1)
@@ -97,4 +97,5 @@ Create `documents/00-brd/data-retention-deletion-policy.md`:
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1, PR #690 squash-merged commit `80762ce3`). 195-line markdown file `documents/00-brd/data-retention-deletion-policy.md` với 9 sections (8 mandated + Phase 2 mở rộng). **Retention matrix với 9 data categories** + Phase 2 review column marking "informed gut Q3 2026" placeholders per `business-logic-review.md` §2 pattern (User accounts / Educational records / Financial records / Audit logs / Marketing consent / AI generation outputs / Support tickets / Parent comm logs / Student sensitive). 14 TODO/informed-gut markers (9 matrix rows + 5 inline placeholders). Frontmatter cites Decree 13/2023 Art 6 + Art 11 + MOET Education Law 2019 + VN Tax Law 2019 + ND 123/2020 + Cybersecurity Law 2018 + ND 53/2022 + Consumer Protection 2023 + GDPR Art 5(1)(e). Cross-links: GAP-182 sibling (privacy-policy.md), GAP-186/117/108/093 planned. Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator per `gap-done-discipline.md` §3 (Phase 1 AC items 1-6 fully met; Phase 2 AC items 7-12 tracked under GAP-154 umbrella + GAP-108 config externalization).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap. VN PDPL Art 6 mandate.
