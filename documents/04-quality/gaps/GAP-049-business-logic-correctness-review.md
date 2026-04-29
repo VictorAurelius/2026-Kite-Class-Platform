@@ -1,6 +1,6 @@
 # GAP-049: Business Logic Correctness Review (not just implementation)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 shipped 2026-04-29 (rule file + matrix-row flip); Phase 2 audit + sign-offs tracked in GAP-156
 **Priority:** 🔴 P0 (business-logic tier — process scope per `meta-gap-priority.md`)
 **Domain:** Product / Business / Governance
 **Detected:** 2026-04-14 (user raised)
@@ -171,12 +171,20 @@ International (if scale):
 
 ### Scope: REVIEW PROCESS (this gap)
 
-- [ ] `.claude/rules/business-logic-review.md` created — review process doc
-- [ ] `documents/00-brd/` folder exists (✅ done 2026-04-14, PR #349 via GAP-101)
-- [ ] All existing rules in `01-business/` updated với metadata (source, sign-offs) — can be bulk PR after stakeholder session
-- [ ] Quarterly review cadence documented (rule or ADR) — meeting schedule is operational, not deliverable
-- [ ] business-gap-check v1.4 includes correctness checks
-- [ ] Legal counsel engagement process defined (who initiates, what scope)
+**Phase 1 (shipped 2026-04-29 — Wave Business Correctness Agent B, this PR):**
+- [x] `.claude/rules/business-logic-review.md` created — review process doc (5 attributes: Source, Rationale, Reviewer, Compliance check, Review cadence; §6 enforcement section with PR template + warn-mode `audit-gate.py` detector + reviewer-checklist line)
+- [x] `documents/00-brd/` folder exists (✅ done 2026-04-14, PR #349 via GAP-101)
+- [x] Quarterly review cadence documented in `business-logic-review.md` §5.2 (quarterly batch audit cadence + event-driven re-review triggers)
+- [x] `output-review-mandate.md` §3 matrix row flipped ❌ VIOLATION → ⚠️ PARTIAL (Version bumped 1.1.2 → 1.1.3; will reach ✅ DONE upon GAP-156 closure)
+
+**Phase 2 (deferred to GAP-156 — audit execution + stakeholder sign-offs):**
+- [ ] All existing 45 rules.md files in `01-business/` audited against `business-logic-review.md` §2 5-attribute standard → **GAP-156 Sub-task A**
+- [ ] Highest-stakes rules (compliance + pricing + trial mechanics) backfilled to 5/5 attributes → **GAP-156 Sub-task B**
+- [ ] `documents/00-brd/compliance-checklist.md` created covering 7 VN laws → **GAP-156 Sub-task C**
+- [ ] Minimum 5 representative rules receive external review notes (PO + legal scout + data + MoET + Consumer Protection) → **GAP-156 Sub-task D**
+- [ ] `audit-gate.py` block-mode detector upgrade → **GAP-156 Sub-task E**
+- [ ] business-gap-check v1.4 includes correctness checks → covered by GAP-156 Sub-task A baseline + Sub-task E detector
+- [ ] Legal counsel engagement process defined (who initiates, what scope) → operational, deferred until team grows; solo-dev exemption clause in `business-logic-review.md` §2.3 covers interim
 
 ### Delegated to sibling gaps (scope split 2026-04-20)
 
@@ -228,5 +236,6 @@ International (if scale):
 
 ## Log
 
+- **2026-04-29** — Phase 1 shipped (Wave Business Correctness Agent B, PR TBD). Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp. Deliverables this PR: (1) `.claude/rules/business-logic-review.md` v1.0.0 with 10 sections + frontmatter compliant per `rule-change-process.md` §3 + enforcement parity per §6.5 (warn-mode `audit-gate.py` detector + PR template checkbox + reviewer-checklist line); (2) `output-review-mandate.md` §3 matrix row flipped ❌ VIOLATION → ⚠️ PARTIAL (v1.1.2 → 1.1.3); (3) GAP-156 filed as Phase 2 follow-up covering audit execution + stakeholder sign-offs + compliance-checklist build + block-mode detector upgrade. NOT flipped to 🟢 DONE because: audit-execution sub-tasks (Phase 2) require Phase 1 rule to land first AND need separate wave + stakeholder engagement cycle. Per `gap-done-discipline.md` §2 banned-phrases check: deferred items have a follow-up gap (GAP-156) referenced inline, satisfying override mechanism. Reviewer: @nguyenvankiet (acting Product Owner, solo-dev, 2026-04-29) — formal external sign-off queued as part of GAP-156 Sub-task D.
 - 2026-04-20 — Scope split for clarity: this gap = REVIEW PROCESS only. Content creation → GAP-150. Persona AC → GAP-151. Persona review execution → GAP-152. AC section rewritten to reflect split. Execution Plan Phase 1 BRD folder deliverable marked done (GAP-101); content creation moved to GAP-150.
 - 2026-04-14 — User raised: "business logic có review không?" — revealed correctness review missing (only implementation reviewed)

@@ -1,9 +1,9 @@
 # Output Review Mandate
 
 **Priority:** 🔴 CRITICAL — project-wide governance rule
-**Version:** 1.1.2
+**Version:** 1.1.3
 **Created:** 2026-04-14
-**Last-Reviewed:** 2026-04-28
+**Last-Reviewed:** 2026-04-29
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — PATCH self-approve per `rule-change-process.md` §5)
 **Applies to:** Every artifact (code, docs, gaps, audits, AI assets, contracts, generated reports, scripts, templates, logs) the project produces, plus every review process listed in §3 matrix
 
@@ -66,7 +66,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Ops readiness** | ops-readiness-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-04-25, 52/100 — Sub-PR 5.6a #530; baseline 2026-04-19 was 49/100) |
 | **Performance baseline** | performance-audit skill /100 | Post-wave + quarterly | Auditor | ✅ REFRESHED (2026-04-25, 63/100 — Sub-PR 5.6a #530; baseline 2026-04-19 was 58/100) |
 | **Business docs implementation match** (code ↔ rules.md sync) | Living Docs rule (3-layer) | Same PR as code change | PR reviewer | ✅ DONE |
-| **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ❌ **VIOLATION** (GAP-049) |
+| **Business logic CORRECTNESS** (giá trị rule đúng thị trường + law) | BRD + stakeholder sign-off + compliance | Before launch + quarterly | Product + Business + Legal | ⚠️ PARTIAL — rule shipped 2026-04-29 (`.claude/rules/business-logic-review.md` Phase 1 of GAP-049, Wave Business Correctness Agent B); audit + stakeholder sign-offs → GAP-156 |
 | **PRs** | check-pr skill | Pre-merge | Reviewer | ✅ DONE |
 | **Wave plans** | Wave review checklist | Before launch | Team lead + architect | ⚠️ PARTIAL (skill exists, no formal review) |
 | **Gap reports** | Gap review template | After creation | Peer | ✅ DONE (2026-04-20, GAP-170 — `.claude/skills/quality/gap-review/` + `_REVIEW-TEMPLATE.md`) |
@@ -296,6 +296,7 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- **2026-04-29** (v1.1.3): PATCH — flipped §3 matrix row "Business logic CORRECTNESS" from ❌ VIOLATION (GAP-049) → ⚠️ PARTIAL — rule shipped 2026-04-29 (`.claude/rules/business-logic-review.md`); audit + stakeholder sign-offs → GAP-156. Phase 1 of GAP-049 scope split (Wave Business Correctness Agent B) — review standard shipped, audit-execution + sign-off sub-tasks tracked in GAP-156 follow-up. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — matrix-row state sync, no constraint loosening; new business-logic-review rule itself is MAJOR-scope but self-contained per its own §10 Log entry). §4 VIOLATION list narrows further (this was the last unaddressed CRITICAL row).
 - **2026-04-28** (v1.1.2): PATCH — added §3 matrix row "README freshness" (CI script + workflow job + 5 self-test fixtures, baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs); flipped "Skills (meta)" row from ⚠️ PARTIAL to ✅ DONE post-Wave Meta-Gov 1 Sub-PR C (#610). Closes GAP-255 row addition + GAP-251 status sync. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — factual coverage update, no constraint loosening).
 - **2026-04-28** (v1.1.1): PATCH — added missing `**Applies to:**` frontmatter field flagged by `scripts/check-rule-frontmatter.sh` (GAP-250 self-test). No content change; promotes Priority field to first line per project convention. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter sync, no constraint loosening).
 - **2026-04-27** (v1.1.0): MINOR — added §3 matrix rows: "Gap closure (Status flip → DONE)" (closes GAP-235 silent-deferral incident; enforced by `gap-done-discipline.md` + `session-docs-check` Rule 13) and "Coverage gaps in rules/skills (incidents)" (closes the meta-process gap user surfaced; enforced by `incident-to-rule-pipeline.md` paired with `rule-change-process.md` §6.5). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per `rule-change-process.md` §5; no constraint loosening — only adds coverage rows for previously-uncovered output types). Motivation: user "có quy trình khi thêm 1 skill, 1 rules vào dự án chưa, mà vẫn miss kiểu này" — matrix had no row for gap closure or for coverage-gap discovery, so silent misses had no review standard.
