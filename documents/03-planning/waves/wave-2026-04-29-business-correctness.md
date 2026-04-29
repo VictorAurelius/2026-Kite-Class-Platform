@@ -1,6 +1,6 @@
 ---
 title: Wave Business Correctness — Cluster 5 Phase-1 slicing
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
 gaps: [GAP-049, GAP-050, GAP-150]
@@ -92,36 +92,47 @@ Per `feedback_parallel_agent_strategy.md`:
 - Closure (ROADMAP + GAP-156 file + cleanup + retrospective): ~15 min
 - **Total wave: ~60-70 min** (matches Wave Obs / Wave DR-Backup ~75 min benchmark)
 
-## Lessons-learned (filled AFTER wave merges)
+## Lessons-learned (Wave Business Correctness, completed 2026-04-29)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold?
-- [ ] Contamination details if any:
+- [x] `isolation: "worktree"` held — no cross-contamination across 3 agents
+- [x] All 3 agents verified `pwd | grep worktrees/agent-` before Write/Edit per memory `feedback_worktree_absolute_path_contamination.md` mitigation
+- [x] No absolute-path bug recurrence (Wave DR/Backup contamination pattern not repeated)
 
 ### File-overlap accuracy
-- [ ] Predicted SOFT: `meta-gap-priority.md` (citation only); actual:
-- [ ] Predicted HARD: 0 after re-bucket; actual:
-- [ ] Unpredicted conflicts:
+- [x] Predicted SOFT: `meta-gap-priority.md` (citation only) — **actual: 0 conflict** (read-only as predicted)
+- [x] Predicted HARD: 0 after re-bucket (`compliance-checklist.md` moved to GAP-156) — **actual: 0**
+- [x] Unpredicted conflicts: **README freshness CI gate fail** — 2 README files crossed 90d threshold the same day Wave 2-4 PRs ran. Surfaced as incidental-coverage failure on all 3 wave PRs simultaneously. Resolved via hotfix PR #654 (per memory `feedback_ci_gate_ship_incidental_coverage.md` fix-in-same-PR option). Not a worktree/agent issue — repo-wide pre-existing condition.
 
 ### Wall-clock
-- [ ] Estimated: 60-70 min; actual: ; variance source:
+- [x] Estimated: 60-70 min
+- [x] Actual: **~75 min** (foundation PR ~10 + 3 parallel agents ~8 + hotfix PR detour ~10 + sequential merge ~5 + closure ~15 + cleanup ~5)
+- [x] Variance source: README freshness incidental coverage added ~10 min unplanned hotfix (#654). Without it, wave would have been ~65 min.
 
 ### Agent prompt quality
-- [ ] Clarification rounds: A=, B=, C=
-- [ ] Template updates needed:
+- [x] Clarification rounds: A=0, B=0, C=0 — **all 3 agents shipped first-pass without clarification**
+- [x] Template updates needed: none — `docs-only-agent.md` template held perfectly for all 3 work types
 
 ### Token cost
-- [ ] Total tokens: ; per gap:
+- [x] Per agent: A=209k, B=200k, C=214k → total ~623k across 3 agents (parallel) + ~200k coordinator
+- [x] Wave total: ~820k tokens (foundation + agents + closure + hotfix + Meta-Gov 2 prep)
 
 ### Cleanup
-- [ ] Worktrees removed
-- [ ] Local branches deleted
-- [ ] Remote branches deleted
+- [x] Worktrees removed (3 — required `-f -f` due to claude agent locks)
+- [x] Local branches deleted (3 feat + 3 worktree-agent — 1 `worktree-agent-a4fa3a4f` not found, harmless)
+- [x] Remote branches deleted (3 feat branches via `gh pr merge` did not auto-delete; coordinator deleted manually post-merge)
+- [x] Hotfix branch deleted (`fix/readme-freshness-90d-bump`)
 
 ### Novel patterns
-- [ ] New memory entry filed?
-- [ ] Rule update proposed?
+- [x] New memory entry filed: NO (no novel pattern — incidental coverage path already documented in `feedback_ci_gate_ship_incidental_coverage.md`)
+- [x] Rule update proposed: NO
+
+### Validation
+- 4th wave-pack execution validates methodology consistency (~75 min wall-clock, parallel speedup ~5x vs serial estimate)
+- 0 HARD conflicts predicted, 0 actual — file-overlap script reliability confirmed
+- Coordinator-only ROADMAP rule held (no agent edited ROADMAP, no merge race)
 
 ## Log
 
+- 2026-04-29 (later) — Wave SHIPPED. 3 PRs merged sequence #651 (Agent A, GAP-150 → 🟢 DONE) → #652 (Agent B, GAP-049 → 🟡 PARTIAL + GAP-156 filed) → #653 (Agent C, GAP-050 → 🟡 PARTIAL). Wall-clock ~75 min. README freshness incidental-coverage hotfix #654 detoured ~10 min. All 3 agents 0-clarification-round. Counts: GAP-150 closed, GAP-049 + GAP-050 stay PARTIAL with concrete Phase-2 follow-ups (GAP-156 filed; GAP-152 already tracked). Closure PR adds GAP-155 (BRD content fill, Phase 2 of GAP-150) + appends `data/wave-history.jsonl`.
 - 2026-04-29 — Wave plan created. Cluster 5 sliced into Phase-1 slices to fit wave-pack-planner ~75 min target. Foundation PR will land this doc + ROADMAP §"Active wave queue" Cluster 5 row IN_PROGRESS. After merge, 3 worktree-isolated agents spawn from main.
