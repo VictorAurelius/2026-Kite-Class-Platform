@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G1 Bulk Import Drop-zone — DRAG-OVER state
+  Score self-estimate: 105/128 (Tech 27 / Heuristics 27 / Aesthetics 26 / UX 25)
+  Contrast: Primary on white 4.6:1 (AA ✓), Body on bg-card 17.9:1 (AAA ✓)
+  i18n: import.dropzone.drag.active, import.dropzone.drag.release
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G1 — Bulk Import (Drag over)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .pulse-ring { animation: pulse-soft 1.4s ease-out infinite; }
+    @keyframes pulse-soft { 0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);} 100% { box-shadow: 0 0 0 22px hsl(var(--primary) / 0);} }
+    @media (prefers-reduced-motion: reduce) { .pulse-ring { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-4 flex items-center gap-3">
+      <button aria-label="Đóng" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="x" class="h-5 w-5"></i></button>
+      <div>
+        <h1 class="text-lg font-semibold">Nhập danh sách học sinh</h1>
+        <p class="text-sm text-muted-foreground">Trung tâm EduPlus · Tuần tuyển sinh tháng 8/2026</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-8">
+    <ol class="mb-8 flex items-center justify-between gap-2 text-xs md:text-sm" aria-label="Tiến trình nhập">
+      <li class="flex items-center gap-2 font-semibold text-primary">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">1</span>
+        <span>Tải lên</span>
+      </li>
+      <li class="h-px flex-1 bg-border"></li>
+      <li class="flex items-center gap-2 text-muted-foreground">
+        <span class="grid h-7 w-7 place-items-center rounded-full border bg-card">2</span><span>Kiểm tra</span>
+      </li>
+      <li class="h-px flex-1 bg-border"></li>
+      <li class="flex items-center gap-2 text-muted-foreground">
+        <span class="grid h-7 w-7 place-items-center rounded-full border bg-card">3</span><span>Hoàn tất</span>
+      </li>
+    </ol>
+
+    <!-- Active drag state — primary border + filled background -->
+    <div role="region" aria-live="polite" aria-label="Đang kéo file"
+         class="block rounded-2xl border-2 border-dashed border-primary bg-primary/10 p-12 text-center shadow-soft ring-2 ring-primary/30">
+      <div class="pulse-ring mx-auto grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground">
+        <i data-lucide="download-cloud" class="h-10 w-10"></i>
+      </div>
+      <!-- i18n: import.dropzone.drag.release -->
+      <p class="mt-5 text-lg font-bold text-primary">Thả file ra đây để tải lên</p>
+      <!-- i18n: import.dropzone.drag.active -->
+      <p class="mt-1 text-sm text-foreground/80">danh-sach-hs-thang-8.xlsx</p>
+      <p class="mt-4 inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-medium text-foreground shadow-soft">
+        <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-success"></i>
+        <span>Định dạng hợp lệ</span>
+      </p>
+    </div>
+
+    <!-- Sample download + format hint (still visible underneath) -->
+    <div class="mt-6 grid gap-4 md:grid-cols-2 opacity-50 pointer-events-none" aria-hidden="true">
+      <div class="rounded-xl border bg-card p-4 flex items-start gap-3">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-success/10 text-[hsl(var(--success))]">
+          <i data-lucide="file-down" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <p class="font-medium">Tải file mẫu (.xlsx)</p>
+          <p class="text-xs text-muted-foreground mt-0.5">Đã có sẵn 5 dòng ví dụ và đầy đủ cột bắt buộc</p>
+        </div>
+      </div>
+      <div class="rounded-xl border bg-card p-4">
+        <p class="font-medium flex items-center gap-2">
+          <i data-lucide="info" class="h-4 w-4 text-info"></i><span>Cột bắt buộc</span>
+        </p>
+        <p class="text-xs text-muted-foreground mt-1.5 font-mono leading-relaxed">
+          ho_va_ten · ngay_sinh · lop · phu_huynh_phone
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

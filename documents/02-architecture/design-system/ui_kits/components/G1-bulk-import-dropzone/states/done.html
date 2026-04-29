@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G1 Bulk Import Drop-zone — DONE state (full success, all 500 rows imported)
+  Score self-estimate: 111/128 (Tech 28 / Heuristics 28 / Aesthetics 28 / UX 27)
+  Contrast: All ≥4.5:1 — success on white 4.5:1, primary on white 4.6:1
+  i18n: import.done.title, import.done.summary, import.done.next.viewList, import.done.next.assignClass, import.done.next.invoiceParents
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G1 — Bulk Import (Hoàn tất)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)', 'soft-lg': 'var(--shadow-soft-lg)' },
+    }}};
+  </script>
+  <style>
+    .check-pop { animation: pop .4s cubic-bezier(.18,1.25,.6,1); }
+    @keyframes pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .check-pop { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-4 flex items-center gap-3">
+      <button aria-label="Đóng" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="x" class="h-5 w-5"></i></button>
+      <div>
+        <h1 class="text-lg font-semibold">Nhập danh sách học sinh</h1>
+        <p class="text-sm text-muted-foreground">Trung tâm EduPlus · Tuần tuyển sinh tháng 8/2026</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-8">
+    <ol class="mb-8 flex items-center justify-between gap-2 text-xs md:text-sm">
+      <li class="flex items-center gap-2 text-success">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground"><i data-lucide="check" class="h-4 w-4"></i></span><span>Tải lên</span>
+      </li>
+      <li class="h-px flex-1 bg-success"></li>
+      <li class="flex items-center gap-2 text-success">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground"><i data-lucide="check" class="h-4 w-4"></i></span><span>Kiểm tra</span>
+      </li>
+      <li class="h-px flex-1 bg-success"></li>
+      <li class="flex items-center gap-2 font-semibold text-success">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground"><i data-lucide="check" class="h-4 w-4"></i></span><span>Hoàn tất</span>
+      </li>
+    </ol>
+
+    <!-- Hero success card -->
+    <section class="rounded-2xl border bg-card p-8 text-center shadow-soft-lg">
+      <div class="check-pop mx-auto grid h-20 w-20 place-items-center rounded-full bg-success/10 text-[hsl(var(--success))]">
+        <i data-lucide="check-circle-2" class="h-12 w-12"></i>
+      </div>
+      <!-- i18n: import.done.title -->
+      <h2 class="mt-4 text-2xl font-bold">Đã nhập 500 học sinh thành công</h2>
+      <!-- i18n: import.done.summary -->
+      <p class="mt-2 text-muted-foreground">Hoàn tất lúc 14:38, ngày 04/08/2026 · Mất 18 giây · Bởi Cô Nguyễn Thị Lan</p>
+
+      <!-- Stats grid -->
+      <div class="mt-8 grid grid-cols-3 gap-3">
+        <div class="rounded-xl border bg-muted/30 p-4">
+          <p class="text-2xl font-bold tabular-nums">500</p>
+          <p class="text-xs text-muted-foreground mt-1">Học sinh mới</p>
+        </div>
+        <div class="rounded-xl border bg-muted/30 p-4">
+          <p class="text-2xl font-bold tabular-nums">12</p>
+          <p class="text-xs text-muted-foreground mt-1">Lớp được phân bổ</p>
+        </div>
+        <div class="rounded-xl border bg-muted/30 p-4">
+          <p class="text-2xl font-bold tabular-nums">478</p>
+          <p class="text-xs text-muted-foreground mt-1">SĐT phụ huynh duy nhất</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Next steps -->
+    <section class="mt-8">
+      <h3 class="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Bước tiếp theo</h3>
+      <div class="grid gap-3">
+        <a href="#" class="rounded-xl border bg-card p-4 hover:bg-muted/50 flex items-center gap-3 group">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+            <i data-lucide="users" class="h-5 w-5"></i>
+          </div>
+          <div class="flex-1">
+            <!-- i18n: import.done.next.viewList -->
+            <p class="font-medium">Xem danh sách 500 học sinh</p>
+            <p class="text-xs text-muted-foreground">Lọc theo lớp, ngày sinh, hoặc SĐT phụ huynh</p>
+          </div>
+          <i data-lucide="chevron-right" class="h-5 w-5 text-muted-foreground group-hover:text-primary"></i>
+        </a>
+        <a href="#" class="rounded-xl border bg-card p-4 hover:bg-muted/50 flex items-center gap-3 group">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-info/10 text-info">
+            <i data-lucide="user-cog" class="h-5 w-5"></i>
+          </div>
+          <div class="flex-1">
+            <!-- i18n: import.done.next.assignClass -->
+            <p class="font-medium">Phân công giáo viên chủ nhiệm</p>
+            <p class="text-xs text-muted-foreground">12 lớp đang chờ phân công GVCN</p>
+          </div>
+          <i data-lucide="chevron-right" class="h-5 w-5 text-muted-foreground group-hover:text-primary"></i>
+        </a>
+        <a href="#" class="rounded-xl border bg-card p-4 hover:bg-muted/50 flex items-center gap-3 group">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent">
+            <i data-lucide="receipt" class="h-5 w-5"></i>
+          </div>
+          <div class="flex-1">
+            <!-- i18n: import.done.next.invoiceParents -->
+            <p class="font-medium">Gửi hóa đơn học phí cho phụ huynh</p>
+            <p class="text-xs text-muted-foreground">Tự động tạo và gửi qua Zalo OA + Email</p>
+          </div>
+          <i data-lucide="chevron-right" class="h-5 w-5 text-muted-foreground group-hover:text-primary"></i>
+        </a>
+      </div>
+    </section>
+
+    <div class="mt-8 flex justify-end">
+      <button class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90">
+        Đóng
+      </button>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G3 Gradebook Entry Grid — SAVED state (green checkmark + last-saved timestamp)
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast: All ≥4.5:1 — success on green-100 4.5:1, body 17.9:1
+  i18n: gradebook.saved.title, gradebook.saved.timestamp, gradebook.saved.history
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G3 — Gradebook (Đã lưu)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .sticky-col { position: sticky; left: 0; background: hsl(var(--card)); z-index: 5; box-shadow: 2px 0 8px -4px rgba(0,0,0,.06); }
+    .grade-cell { font-variant-numeric: tabular-nums; }
+    .toast-in { animation: slide .35s cubic-bezier(.18,1.25,.6,1); }
+    @keyframes slide { 0% { transform: translateY(8px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .toast-in { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+        <div>
+          <p class="text-xs text-muted-foreground">Sổ điểm · Học kỳ I · 2026-2027</p>
+          <h1 class="text-lg font-semibold">Lớp 10A2 — Toán nâng cao</h1>
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-2 text-sm text-success">
+        <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+        <!-- i18n: gradebook.saved.timestamp -->
+        <span>Đã lưu lúc <strong>14:47</strong> bởi <strong>Cô Nguyễn Thị Lan</strong></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-4">
+    <!-- Saved banner -->
+    <div class="toast-in mb-3 rounded-lg border-l-4 border-success bg-success/5 px-4 py-3 text-sm flex items-center justify-between gap-4" role="status" aria-live="polite">
+      <div class="flex items-center gap-3">
+        <i data-lucide="check-circle-2" class="h-5 w-5 text-success shrink-0"></i>
+        <p>
+          <!-- i18n: gradebook.saved.title -->
+          <strong>Đã lưu thành công 28 điểm Cuối kỳ.</strong>
+          Phụ huynh sẽ nhận thông báo qua Zalo OA trong 5 phút tới.
+        </p>
+      </div>
+      <button class="text-sm font-medium text-success hover:underline inline-flex items-center gap-1">
+        <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+        <span>Hoàn tác</span>
+      </button>
+    </div>
+
+    <!-- Grid (read-friendly with checkmarks) -->
+    <div class="rounded-xl border bg-card shadow-soft overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-muted/40 text-left">
+            <th class="sticky-col px-4 py-3 font-semibold w-64">Học sinh</th>
+            <th class="px-3 py-3 font-semibold text-center">KT 15'</th>
+            <th class="px-3 py-3 font-semibold text-center">KT 1 tiết</th>
+            <th class="px-3 py-3 font-semibold text-center">Giữa kỳ</th>
+            <th class="px-3 py-3 font-semibold text-center">Cuối kỳ <span class="ml-1 text-success" aria-label="Vừa lưu">●</span></th>
+            <th class="px-3 py-3 font-semibold text-center bg-primary/5 border-l">TBM</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <!-- History panel -->
+    <section class="mt-6 rounded-xl border bg-card p-4">
+      <h3 class="font-semibold flex items-center gap-2">
+        <i data-lucide="history" class="h-4 w-4 text-muted-foreground"></i>
+        <!-- i18n: gradebook.saved.history -->
+        <span>Lịch sử thay đổi gần đây</span>
+      </h3>
+      <ol class="mt-3 space-y-2 text-sm" role="list">
+        <li class="flex items-start gap-3 py-1.5">
+          <span class="grid h-7 w-7 place-items-center rounded-full bg-success/10 text-[hsl(var(--success))] shrink-0">
+            <i data-lucide="save" class="h-3.5 w-3.5"></i>
+          </span>
+          <div class="flex-1">
+            <p><strong>Cô Nguyễn Thị Lan</strong> đã lưu 28 điểm Cuối kỳ</p>
+            <p class="text-xs text-muted-foreground">Hôm nay, 14:47 · 3 phút trước</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3 py-1.5">
+          <span class="grid h-7 w-7 place-items-center rounded-full bg-info/10 text-[hsl(var(--info))] shrink-0">
+            <i data-lucide="clipboard-paste" class="h-3.5 w-3.5"></i>
+          </span>
+          <div class="flex-1">
+            <p><strong>Cô Nguyễn Thị Lan</strong> dán 30 điểm từ Excel</p>
+            <p class="text-xs text-muted-foreground">Hôm nay, 14:42</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3 py-1.5">
+          <span class="grid h-7 w-7 place-items-center rounded-full bg-muted text-muted-foreground shrink-0">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+          </span>
+          <div class="flex-1">
+            <p>Tạo cột <strong>Cuối kỳ</strong> (Hệ số 3)</p>
+            <p class="text-xs text-muted-foreground">Hôm qua, 16:20</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const data = [
+      { code: 'HS-10A2-001', name: 'Bùi Anh Khoa',     g: [8.5, 7.5, 8.0, 8.5], tbm: 8.3, justSaved: true },
+      { code: 'HS-10A2-002', name: 'Đặng Thị Bích',    g: [9.0, 8.5, 9.0, 9.5], tbm: 9.0, justSaved: true },
+      { code: 'HS-10A2-003', name: 'Đỗ Hoàng Long',    g: [6.5, 6.0, 7.5, 6.5], tbm: 6.7, justSaved: true },
+      { code: 'HS-10A2-004', name: 'Hoàng Minh Trí',   g: [8.0, 8.5, 8.0, 8.0], tbm: 8.1, justSaved: true },
+      { code: 'HS-10A2-017', name: 'Trần Khánh Linh',  g: [9.5, 9.0, 9.5, 9.5], tbm: 9.5, justSaved: true },
+    ];
+    const tbmColor = v => v >= 9 ? 'text-success' : v >= 6.5 ? 'text-foreground' : v >= 5 ? 'text-warning' : 'text-destructive';
+    document.getElementById('rows').innerHTML = data.map(s => `
+      <tr class="border-b last:border-0">
+        <td class="sticky-col px-4 py-3"><div><p>${s.name}</p><p class="text-xs text-muted-foreground font-mono">${s.code}</p></div></td>
+        <td class="grade-cell px-3 py-3 text-center">${s.g[0].toFixed(1)}</td>
+        <td class="grade-cell px-3 py-3 text-center">${s.g[1].toFixed(1)}</td>
+        <td class="grade-cell px-3 py-3 text-center">${s.g[2].toFixed(1)}</td>
+        <td class="grade-cell px-3 py-3 text-center ${s.justSaved ? 'bg-success/5' : ''}">
+          <span class="inline-flex items-center gap-1">${s.g[3].toFixed(1)}${s.justSaved ? '<i data-lucide="check" class="h-3.5 w-3.5 text-success"></i>' : ''}</span>
+        </td>
+        <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l font-semibold ${tbmColor(s.tbm)}">${s.tbm.toFixed(1)}</td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  </script>
+</body>
+</html>

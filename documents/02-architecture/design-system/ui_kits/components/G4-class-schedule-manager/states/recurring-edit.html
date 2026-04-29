@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G4 Class Schedule Manager — RECURRING-EDIT state (weekly Mon/Wed/Fri 14:00-15:30)
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast: All ≥4.5:1 — toggle pills primary 4.6:1, holiday warn 5.2:1
+  i18n: schedule.recur.title, schedule.recur.days, schedule.recur.until, schedule.recur.preview
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G4 — Schedule Manager (Lặp lại hằng tuần)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)', 'soft-lg': 'var(--shadow-soft-lg)' },
+    }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Đóng" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="x" class="h-5 w-5"></i></button>
+      <div>
+        <p class="text-xs text-muted-foreground">Lớp 6A1</p>
+        <!-- i18n: schedule.recur.title -->
+        <h1 class="text-lg font-semibold">Tạo lịch lặp lại hằng tuần</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+    <form class="rounded-2xl border bg-card p-6 shadow-soft space-y-6">
+      <!-- Subject + teacher -->
+      <div class="grid gap-3 md:grid-cols-2">
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" for="sub">Môn học</label>
+          <input id="sub" value="Toán nâng cao" class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" for="teacher">Giáo viên</label>
+          <select id="teacher" class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+            <option>Cô Nguyễn Thị Lan</option>
+            <option>Thầy Lê Quang Huy</option>
+            <option>Cô Trần Thị Hạnh</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Day toggle (Vietnamese week start = Monday) -->
+      <div>
+        <p class="text-sm font-semibold mb-2">
+          <!-- i18n: schedule.recur.days -->
+          Lặp lại vào các ngày
+        </p>
+        <div role="group" aria-label="Ngày trong tuần" class="flex flex-wrap gap-2">
+          <button type="button" aria-pressed="true" class="rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold min-w-[44px]">T2</button>
+          <button type="button" aria-pressed="false" class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted min-w-[44px]">T3</button>
+          <button type="button" aria-pressed="true" class="rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold min-w-[44px]">T4</button>
+          <button type="button" aria-pressed="false" class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted min-w-[44px]">T5</button>
+          <button type="button" aria-pressed="true" class="rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-semibold min-w-[44px]">T6</button>
+          <button type="button" aria-pressed="false" class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted text-info min-w-[44px]">T7</button>
+          <button type="button" aria-pressed="false" class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted text-info min-w-[44px]">CN</button>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">Tuần lễ Việt Nam bắt đầu Thứ Hai. Cuối tuần (T7, CN) hiển thị màu xanh.</p>
+      </div>
+
+      <!-- Time -->
+      <div class="grid gap-3 md:grid-cols-2">
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" for="from">Từ giờ</label>
+          <input id="from" type="time" value="14:00" class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" for="to">Đến giờ</label>
+          <input id="to" type="time" value="15:30" class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" />
+        </div>
+      </div>
+
+      <!-- Date range -->
+      <div class="grid gap-3 md:grid-cols-2">
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" for="start">Bắt đầu từ</label>
+          <input id="start" type="date" value="2026-04-07" class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" for="until">
+            <!-- i18n: schedule.recur.until -->
+            Kết thúc vào
+          </label>
+          <input id="until" type="date" value="2027-05-30" class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" />
+        </div>
+      </div>
+
+      <!-- Holiday alert -->
+      <div class="rounded-lg border-l-4 border-warning bg-warning/5 p-3 text-sm flex items-start gap-3">
+        <i data-lucide="calendar-x" class="h-4 w-4 text-warning shrink-0 mt-0.5"></i>
+        <div>
+          <p class="font-medium">Tự động bỏ qua ngày lễ Việt Nam</p>
+          <p class="text-muted-foreground mt-0.5">Tết (12-19/02), Giỗ tổ Hùng Vương (29/04), 30/4 - 01/05, Quốc khánh (02/09)</p>
+        </div>
+      </div>
+    </form>
+
+    <!-- Live preview -->
+    <aside class="rounded-2xl border bg-card p-5 shadow-soft h-fit">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide">
+        <!-- i18n: schedule.recur.preview -->
+        Xem trước
+      </p>
+      <div class="mt-2">
+        <p class="font-bold text-lg">Toán nâng cao</p>
+        <p class="text-sm text-muted-foreground">Cô Nguyễn Thị Lan · 90 phút/buổi</p>
+      </div>
+      <div class="mt-4 rounded-lg bg-muted/40 p-3 text-sm">
+        <p class="font-medium">Thứ 2 / Thứ 4 / Thứ 6</p>
+        <p class="text-muted-foreground">14:00 – 15:30</p>
+        <p class="mt-2 pt-2 border-t border-border text-xs">Từ <strong>07/04/2026</strong> đến <strong>30/05/2027</strong></p>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-2 text-center text-sm">
+        <div class="rounded-lg border bg-background p-2">
+          <p class="text-2xl font-bold tabular-nums">168</p>
+          <p class="text-xs text-muted-foreground">Buổi học</p>
+        </div>
+        <div class="rounded-lg border bg-background p-2">
+          <p class="text-2xl font-bold tabular-nums text-warning">6</p>
+          <p class="text-xs text-muted-foreground">Bỏ qua (lễ)</p>
+        </div>
+      </div>
+
+      <div class="mt-5 grid gap-2">
+        <button class="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="check" class="h-4 w-4"></i><span>Tạo 168 buổi</span>
+        </button>
+        <button class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted">Hủy</button>
+      </div>
+    </aside>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

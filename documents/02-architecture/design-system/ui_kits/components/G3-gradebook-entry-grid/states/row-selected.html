@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G3 Gradebook Entry Grid — ROW-SELECTED state
+  Score self-estimate: 109/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 26)
+  Contrast: All ≥4.5:1 — primary highlight bg 4.6:1, sticky col on muted/30 14.8:1
+  i18n: gradebook.col.kt15, gradebook.col.kt1tiet, gradebook.col.giuaky, gradebook.col.cuoiky, gradebook.col.tbm
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G3 — Gradebook (Chọn dòng)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .sticky-col { position: sticky; left: 0; background: hsl(var(--card)); z-index: 5; box-shadow: 2px 0 8px -4px rgba(0,0,0,.06); }
+    .row-selected .sticky-col, .row-selected td { background: hsl(var(--primary) / 0.08) !important; }
+    tr:hover td { background: hsl(var(--muted) / 0.5); }
+    tr:hover .sticky-col { background: hsl(var(--muted)); }
+    .grade-cell { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+        <div class="min-w-0">
+          <p class="text-xs text-muted-foreground">Sổ điểm · Học kỳ I · 2026-2027</p>
+          <h1 class="text-lg font-semibold truncate">Lớp 10A2 — Toán nâng cao · 35 học sinh</h1>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted inline-flex items-center gap-2">
+          <i data-lucide="plus" class="h-4 w-4"></i><span>Cột điểm</span>
+        </button>
+        <button class="rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted inline-flex items-center gap-2">
+          <i data-lucide="download" class="h-4 w-4"></i><span>Xuất Excel</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-4">
+    <!-- Toolbar -->
+    <div class="mb-3 flex items-center justify-between text-sm">
+      <p class="text-muted-foreground">Đã chọn <strong class="text-foreground">Trần Khánh Linh (HS-10A2-017)</strong> — dùng phím ↑↓ để di chuyển dòng, Enter để chỉnh sửa.</p>
+      <p class="text-muted-foreground">Đã lưu lúc <strong class="text-foreground">14:25</strong></p>
+    </div>
+
+    <!-- Grid -->
+    <div class="rounded-xl border bg-card shadow-soft overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-muted/40 text-left">
+            <th class="sticky-col px-4 py-3 font-semibold w-64">Học sinh</th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">KT 15'</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 1</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">KT 15' #2</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 1</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">KT 1 tiết</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 2</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">Giữa kỳ</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 2</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">Cuối kỳ</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 3</span></th>
+            <th class="px-3 py-3 font-semibold text-center bg-primary/5 border-l"><span class="block">TBM</span><span class="block text-[10px] font-normal text-muted-foreground">Tự tính</span></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <!-- Distribution footer -->
+    <div class="mt-4 grid gap-3 grid-cols-2 md:grid-cols-5 text-sm">
+      <div class="rounded-lg border bg-card p-3"><p class="text-xs text-muted-foreground">Xuất sắc (≥9)</p><p class="text-lg font-bold text-success tabular-nums">5</p></div>
+      <div class="rounded-lg border bg-card p-3"><p class="text-xs text-muted-foreground">Giỏi (8-8.9)</p><p class="text-lg font-bold tabular-nums">12</p></div>
+      <div class="rounded-lg border bg-card p-3"><p class="text-xs text-muted-foreground">Khá (6.5-7.9)</p><p class="text-lg font-bold tabular-nums">11</p></div>
+      <div class="rounded-lg border bg-card p-3"><p class="text-xs text-muted-foreground">TB (5-6.4)</p><p class="text-lg font-bold tabular-nums">5</p></div>
+      <div class="rounded-lg border bg-card p-3"><p class="text-xs text-muted-foreground">Yếu (&lt;5)</p><p class="text-lg font-bold text-destructive tabular-nums">2</p></div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const data = [
+      { code: 'HS-10A2-001', name: 'Bùi Anh Khoa',     g: [8.5, 9.0, 7.5, 8.0, 8.5], tbm: 8.3 },
+      { code: 'HS-10A2-002', name: 'Đặng Thị Bích',    g: [9.0, 8.5, 8.5, 9.0, 9.5], tbm: 9.0 },
+      { code: 'HS-10A2-003', name: 'Đỗ Hoàng Long',    g: [6.5, 7.0, 6.0, 7.5, 6.5], tbm: 6.7 },
+      { code: 'HS-10A2-004', name: 'Hoàng Minh Trí',   g: [8.0, 7.5, 8.5, 8.0, 8.0], tbm: 8.0 },
+      { code: 'HS-10A2-017', name: 'Trần Khánh Linh',  g: [9.5, 10, 9.0, 9.5, 9.5],   tbm: 9.5, selected: true },
+      { code: 'HS-10A2-018', name: 'Trần Quang Huy',   g: [7.0, 6.5, 7.5, 7.0, 7.5], tbm: 7.2 },
+      { code: 'HS-10A2-019', name: 'Trần Thị Hương',   g: [8.5, 9.0, 8.0, 8.5, 9.0], tbm: 8.6 },
+      { code: 'HS-10A2-020', name: 'Trần Văn Tài',     g: [4.5, 5.0, 4.0, 4.5, 5.0], tbm: 4.7 },
+    ];
+    const tbmColor = v => v >= 9 ? 'text-success' : v >= 6.5 ? 'text-foreground' : v >= 5 ? 'text-warning' : 'text-destructive';
+    const fmt = v => v == null ? '—' : Number.isInteger(v) ? v.toFixed(1) : v.toFixed(1);
+    document.getElementById('rows').innerHTML = data.map(s => `
+      <tr class="${s.selected ? 'row-selected' : ''} border-b last:border-b-0">
+        <td class="sticky-col px-4 py-3 ${s.selected ? 'font-semibold' : ''}">
+          <div class="flex items-center gap-2">
+            ${s.selected ? '<i data-lucide="chevron-right" class="h-4 w-4 text-primary"></i>' : '<span class="w-4"></span>'}
+            <div>
+              <p class="truncate">${s.name}</p>
+              <p class="text-xs text-muted-foreground font-mono">${s.code}</p>
+            </div>
+          </div>
+        </td>
+        ${s.g.map(v => `<td class="grade-cell px-3 py-3 text-center">${fmt(v)}</td>`).join('')}
+        <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l font-semibold ${tbmColor(s.tbm)}">${fmt(s.tbm)}</td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  </script>
+</body>
+</html>

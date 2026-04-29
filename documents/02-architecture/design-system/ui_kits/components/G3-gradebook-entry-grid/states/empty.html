@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G3 Gradebook Entry Grid — EMPTY state
+  Used by: KC /classes/[id]/grades · Subject teacher entering Toán midterm grades
+  Persona: Teacher (subject)
+  Score self-estimate: 102/128 (Tech 26 / Heuristics 26 / Aesthetics 25 / UX 25)
+  Contrast: All ≥4.5:1 — empty illustration text 14.8:1, primary CTA 4.6:1
+  i18n: gradebook.title, gradebook.empty.title, gradebook.empty.cta, gradebook.empty.hint
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G3 — Gradebook (Trống)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+        <div>
+          <p class="text-xs text-muted-foreground">Sổ điểm · Học kỳ I · 2026-2027</p>
+          <!-- i18n: gradebook.title -->
+          <h1 class="text-lg font-semibold">Lớp 10A2 — Toán nâng cao</h1>
+        </div>
+      </div>
+      <nav class="hidden md:flex items-center gap-1 text-sm rounded-lg border bg-card overflow-hidden">
+        <button class="px-3 py-1.5 hover:bg-muted">Điểm danh</button>
+        <button class="px-3 py-1.5 bg-primary/10 text-primary font-medium border-l">Sổ điểm</button>
+        <button class="px-3 py-1.5 hover:bg-muted border-l">Lịch học</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-12">
+    <div class="rounded-2xl border-2 border-dashed bg-card/60 p-10 md:p-16 text-center">
+      <div class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-primary/10 text-primary">
+        <i data-lucide="clipboard-list" class="h-10 w-10"></i>
+      </div>
+      <!-- i18n: gradebook.empty.title -->
+      <h2 class="mt-6 text-xl font-bold">Chưa có cột điểm nào cho lớp này</h2>
+      <!-- i18n: gradebook.empty.hint -->
+      <p class="mt-2 text-muted-foreground max-w-md mx-auto">Tạo cột điểm để bắt đầu nhập. Ví dụ: <strong>Kiểm tra 15 phút</strong>, <strong>Kiểm tra 1 tiết</strong>, <strong>Cuối kỳ</strong>.</p>
+
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <button class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+          <i data-lucide="plus" class="h-4 w-4"></i>
+          <!-- i18n: gradebook.empty.cta -->
+          <span>Thêm cột điểm</span>
+        </button>
+        <button class="rounded-lg border bg-card px-4 py-2.5 text-sm font-medium hover:bg-muted inline-flex items-center gap-2">
+          <i data-lucide="copy" class="h-4 w-4"></i>
+          <span>Sao chép từ học kỳ trước</span>
+        </button>
+      </div>
+
+      <!-- Quick add presets -->
+      <div class="mt-10 max-w-2xl mx-auto">
+        <p class="text-xs text-muted-foreground uppercase tracking-wide mb-3">Mẫu nhanh theo Quy chế MoET</p>
+        <div class="grid gap-2 grid-cols-2 md:grid-cols-3">
+          <button class="rounded-lg border bg-card p-3 text-left hover:border-primary">
+            <p class="font-medium text-sm">Hệ số 1 — KT 15 phút</p>
+            <p class="text-xs text-muted-foreground mt-0.5">Tối đa 4 cột</p>
+          </button>
+          <button class="rounded-lg border bg-card p-3 text-left hover:border-primary">
+            <p class="font-medium text-sm">Hệ số 2 — KT 1 tiết</p>
+            <p class="text-xs text-muted-foreground mt-0.5">Tối đa 3 cột</p>
+          </button>
+          <button class="rounded-lg border bg-card p-3 text-left hover:border-primary">
+            <p class="font-medium text-sm">Hệ số 3 — Cuối kỳ</p>
+            <p class="text-xs text-muted-foreground mt-0.5">1 cột duy nhất</p>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

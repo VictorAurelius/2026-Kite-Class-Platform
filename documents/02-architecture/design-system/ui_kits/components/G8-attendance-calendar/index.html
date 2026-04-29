@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G8 — Attendance Calendar (Teacher Month-View)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground p-6 md:p-10">
+  <div class="mx-auto max-w-4xl">
+    <a href="../" class="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">← Quay lại tất cả components</a>
+    <h1 class="mt-4 text-3xl font-bold">G8 — Attendance Calendar (Teacher Month-View)</h1>
+    <p class="mt-2 text-muted-foreground">Homeroom teacher xem Lớp 6A1 October attendance. Heatmap green/amber/red. Click ngày → popover all students. Vietnamese week starts Monday.</p>
+    <p class="mt-1 text-sm text-muted-foreground">Persona: Teacher (homeroom) · Used: KC <code>/attendance</code> · KC <code>/classes/[id]/attendance</code></p>
+
+    <h2 class="mt-10 text-lg font-semibold">4 trạng thái</h2>
+    <div class="mt-4 grid gap-3">
+      <a href="states/month-load.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">1 — Month load</p>
+        <p class="text-sm text-muted-foreground mt-1">Full October month grid với heatmap, side stats panel (93% tổng, 587 có mặt), legend.</p>
+      </a>
+      <a href="states/day-detail.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">2 — Day detail</p>
+        <p class="text-sm text-muted-foreground mt-1">Click ngày 09/10 — popover side panel với 35 student statuses, stat chips, mở danh sách đầy đủ.</p>
+      </a>
+      <a href="states/streak-highlight.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">3 — Streak highlight</p>
+        <p class="text-sm text-muted-foreground mt-1">Trần Khánh Linh 30-day perfect attendance. Trophy + accent gradient + Zalo OA "gửi lời khen" CTA.</p>
+      </a>
+      <a href="states/partial-month.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">4 — Partial month</p>
+        <p class="text-sm text-muted-foreground mt-1">Đầu tháng (10/10), 4 buổi đã nhập + 6 buổi sắp tới (striped pattern). Next-session card.</p>
+      </a>
+    </div>
+
+    <p class="mt-8 text-sm text-muted-foreground">Score self-estimate: avg 107.8/128 — 4 states (105–110).</p>
+  </div>
+</body>
+</html>

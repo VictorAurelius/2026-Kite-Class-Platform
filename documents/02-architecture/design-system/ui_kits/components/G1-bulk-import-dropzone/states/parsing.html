@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G1 Bulk Import Drop-zone — PARSING state
+  Score self-estimate: 107/128 (Tech 28 / Heuristics 27 / Aesthetics 26 / UX 26)
+  Contrast: Body fg 17.9:1 AAA · Primary on white 4.6:1 AA · Progress bar primary 4.6:1 AA
+  i18n: import.parsing.title, import.parsing.progress, import.parsing.cancel, import.parsing.eta
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G1 — Bulk Import (Đang xử lý)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .progress-fill { width: 62%; transition: width .4s ease-out; }
+    .stripes { background-image: linear-gradient(45deg, hsl(var(--primary-foreground) / 0.18) 25%, transparent 25%, transparent 50%, hsl(var(--primary-foreground) / 0.18) 50%, hsl(var(--primary-foreground) / 0.18) 75%, transparent 75%); background-size: 1.2rem 1.2rem; animation: slide 1.2s linear infinite; }
+    @keyframes slide { from { background-position: 0 0; } to { background-position: 1.2rem 0; } }
+    @media (prefers-reduced-motion: reduce) { .stripes { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-4 flex items-center gap-3">
+      <button aria-label="Đóng" class="rounded-lg p-2 hover:bg-muted opacity-50" disabled><i data-lucide="x" class="h-5 w-5"></i></button>
+      <div>
+        <h1 class="text-lg font-semibold">Nhập danh sách học sinh</h1>
+        <p class="text-sm text-muted-foreground">Trung tâm EduPlus · Tuần tuyển sinh tháng 8/2026</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-8">
+    <ol class="mb-8 flex items-center justify-between gap-2 text-xs md:text-sm">
+      <li class="flex items-center gap-2 text-success">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground">
+          <i data-lucide="check" class="h-4 w-4"></i>
+        </span>
+        <span>Tải lên</span>
+      </li>
+      <li class="h-px flex-1 bg-success"></li>
+      <li class="flex items-center gap-2 font-semibold text-primary">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">2</span>
+        <span>Kiểm tra</span>
+      </li>
+      <li class="h-px flex-1 bg-border"></li>
+      <li class="flex items-center gap-2 text-muted-foreground">
+        <span class="grid h-7 w-7 place-items-center rounded-full border bg-card">3</span><span>Hoàn tất</span>
+      </li>
+    </ol>
+
+    <!-- File card -->
+    <div class="rounded-2xl border bg-card p-6 shadow-soft">
+      <div class="flex items-center gap-4">
+        <div class="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-success/10 text-[hsl(var(--success))]">
+          <i data-lucide="file-spreadsheet" class="h-6 w-6"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="font-medium truncate">danh-sach-hs-thang-8.xlsx</p>
+          <p class="text-xs text-muted-foreground">2,4 MB · 500 dòng · Tải xong 14:32</p>
+        </div>
+        <button class="rounded-lg border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted">
+          <!-- i18n: import.parsing.cancel -->
+          Hủy
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between text-sm mb-2">
+          <!-- i18n: import.parsing.title -->
+          <p class="font-medium">Đang kiểm tra dữ liệu...</p>
+          <p class="font-mono tabular-nums text-muted-foreground"><strong class="text-foreground">310</strong> / 500</p>
+        </div>
+        <div class="h-3 w-full overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" aria-label="Tiến độ kiểm tra dữ liệu">
+          <div class="progress-fill stripes h-full bg-primary"></div>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">
+          <!-- i18n: import.parsing.eta -->
+          Còn khoảng <strong>12 giây</strong> · Đang kiểm tra trùng SĐT phụ huynh
+        </p>
+      </div>
+
+      <!-- Step list -->
+      <ul class="mt-6 space-y-2 text-sm" aria-label="Các bước xử lý">
+        <li class="flex items-center gap-2 text-success">
+          <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+          <span>Kiểm tra định dạng file</span>
+        </li>
+        <li class="flex items-center gap-2 text-success">
+          <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+          <span>Kiểm tra cột bắt buộc</span>
+        </li>
+        <li class="flex items-center gap-2 text-primary">
+          <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden="true"></span>
+          <span class="font-medium">Kiểm tra trùng học sinh (theo SĐT phụ huynh)</span>
+        </li>
+        <li class="flex items-center gap-2 text-muted-foreground">
+          <i data-lucide="circle" class="h-4 w-4"></i>
+          <span>Kiểm tra ngày sinh và lớp</span>
+        </li>
+      </ul>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-muted-foreground">
+      Bạn có thể đóng tab — chúng tôi sẽ gửi Zalo thông báo khi xong.
+    </p>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
