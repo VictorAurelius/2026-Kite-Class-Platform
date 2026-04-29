@@ -46,14 +46,16 @@ jobs:
         working-directory: kiteclass/kiteclass-core
         run: chmod +x mvnw
 
-      - name: Build Core Service
+      - name: Build Core Service (strict-warnings profile — GAP-245 Phase 1)
         working-directory: kiteclass/kiteclass-core
-        run: ./mvnw clean compile -DskipTests
+        run: ./mvnw clean compile -DskipTests -P strict-warnings
 
-      - name: Run All Tests (Testcontainers)
+      - name: Run All Tests (Testcontainers, strict-warnings profile)
         working-directory: kiteclass/kiteclass-core
-        run: ./mvnw test
+        run: ./mvnw test -P strict-warnings
         # Testcontainers will automatically start PostgreSQL + Redis in Docker
+        # strict-warnings: surfaces deprecation/unchecked/rawtypes/cast/overrides
+        # in compile output. Phase 1 = show only; Phase 2 (GAP-261) flips to -Werror.
 
       - name: Generate Test Coverage Report
         working-directory: kiteclass/kiteclass-core

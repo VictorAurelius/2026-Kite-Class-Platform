@@ -42,9 +42,11 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
-      - name: Build Platform Module
+      - name: Build Platform Module (strict-warnings profile — GAP-245 Phase 1)
         working-directory: kitehub
-        run: ./mvnw clean install -pl kitehub-platform -am -DskipTests
+        run: ./mvnw clean install -pl kitehub-platform -am -DskipTests -P strict-warnings
+        # strict-warnings surfaces deprecation/unchecked/rawtypes/cast/overrides.
+        # Phase 1 = show only; Phase 2 (GAP-261) flips to -Werror after burndown.
 
   test-subscription:
     name: Test KiteHub Subscription Service
@@ -72,9 +74,9 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
-      - name: Build and Test Subscription Service
+      - name: Build and Test Subscription Service (strict-warnings — GAP-245)
         working-directory: kitehub
-        run: ./mvnw clean test -pl kitehub-subscription -am
+        run: ./mvnw clean test -pl kitehub-subscription -am -P strict-warnings
 
       - name: Upload Test Results
         if: always()
@@ -116,9 +118,9 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
-      - name: Build and Test Branding Service
+      - name: Build and Test Branding Service (strict-warnings — GAP-245)
         working-directory: kitehub
-        run: ./mvnw clean test -pl kitehub-branding -am
+        run: ./mvnw clean test -pl kitehub-branding -am -P strict-warnings
 
       - name: Upload Test Results
         if: always()
@@ -163,9 +165,9 @@ jobs:
       # GAP-241/242/243 closed 2026-04-27: AdminControllerTest now passes (V11 SQL fixed,
       # S3 mock + RabbitTemplate @MockBean wired in @DynamicPropertySource). Run full
       # admin suite (23 tests) without exclusions.
-      - name: Build and Test Admin Service
+      - name: Build and Test Admin Service (strict-warnings — GAP-245)
         working-directory: kitehub
-        run: ./mvnw clean test -pl kitehub-admin -am
+        run: ./mvnw clean test -pl kitehub-admin -am -P strict-warnings
 
       - name: Upload Test Results
         if: always()
@@ -207,9 +209,9 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
-      - name: Build and Test Email Service
+      - name: Build and Test Email Service (strict-warnings — GAP-245)
         working-directory: kitehub
-        run: ./mvnw clean test -pl kitehub-email -am
+        run: ./mvnw clean test -pl kitehub-email -am -P strict-warnings
 
       - name: Upload Test Results
         if: always()
@@ -251,9 +253,9 @@ jobs:
         working-directory: kitehub
         run: chmod +x mvnw
 
-      - name: Build and Test Gateway
+      - name: Build and Test Gateway (strict-warnings — GAP-245)
         working-directory: kitehub
-        run: ./mvnw clean test -pl kitehub-gateway -am
+        run: ./mvnw clean test -pl kitehub-gateway -am -P strict-warnings
 
       - name: Upload Test Results
         if: always()

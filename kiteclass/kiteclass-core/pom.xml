@@ -384,4 +384,43 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+      GAP-245 Phase 1 — strict-warnings profile.
+
+      Activated in CI (`mvn -P strict-warnings ...`). Default build already shows
+      -Xlint:deprecation + -Xlint:unchecked; this profile adds raw-types, cast,
+      and overrides checks on top.
+
+      Phase 1 (this PR): warnings are SHOWN but build still passes (no -Werror).
+      Phase 2 (GAP-261-werror-flipday): inventory + triage existing warnings,
+      then flip CI profile to add `-Werror`.
+
+      Note: kiteclass has no parent POM — each module declares its own profile.
+    -->
+    <profiles>
+        <profile>
+            <id>strict-warnings</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <showWarnings>true</showWarnings>
+                            <showDeprecation>true</showDeprecation>
+                            <compilerArgs>
+                                <arg>-Amapstruct.defaultComponentModel=spring</arg>
+                                <arg>-Xlint:deprecation</arg>
+                                <arg>-Xlint:unchecked</arg>
+                                <arg>-Xlint:rawtypes</arg>
+                                <arg>-Xlint:cast</arg>
+                                <arg>-Xlint:overrides</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

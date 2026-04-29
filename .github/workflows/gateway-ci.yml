@@ -53,10 +53,12 @@ jobs:
         working-directory: kiteclass/kiteclass-gateway
         run: chmod +x mvnw
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage (strict-warnings profile — GAP-245 Phase 1)
         working-directory: kiteclass/kiteclass-gateway
         run: |
-          ./mvnw clean test
+          ./mvnw clean test -P strict-warnings
+        # strict-warnings surfaces deprecation/unchecked/rawtypes/cast/overrides.
+        # Phase 1 = show only; Phase 2 (GAP-261) flips to -Werror after burndown.
 
 
       - name: Generate coverage report
@@ -194,10 +196,10 @@ jobs:
           ./mvnw checkstyle:check
         continue-on-error: true
 
-      - name: Check for compilation warnings
+      - name: Check for compilation warnings (strict-warnings profile — GAP-245)
         working-directory: kiteclass/kiteclass-gateway
         run: |
-          ./mvnw clean compile
+          ./mvnw clean compile -P strict-warnings
 
       - name: Analyze dependencies
         working-directory: kiteclass/kiteclass-gateway
