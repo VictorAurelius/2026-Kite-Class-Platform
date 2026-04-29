@@ -1,0 +1,5 @@
+2026-04-29T09:44:37Z | link-checker.sh | exit=0 | files=138 hrefs_seen=620 broken=0
+2026-04-29T09:44:41Z | landing-parity.sh | exit=0 | kits=6 violations=0
+2026-04-29T09:44:48Z | state-coverage.sh | exit=0 | kits=6 fails=0 warns=4
+2026-04-29T09:44:58Z | landing-parity.sh | exit=1 | kits=6 violations=1
+2026-04-29T09:44:58Z | landing-parity.sh | exit=0 | kits=6 violations=0

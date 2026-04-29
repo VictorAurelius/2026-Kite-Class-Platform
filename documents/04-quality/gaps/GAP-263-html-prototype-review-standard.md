@@ -73,4 +73,5 @@ The matrix-row edit + version bump land in this wave's foundation PR (`wave/roun
 
 ## Log
 
+- **2026-04-29 (Phase 2 SHIPPED via GAP-264 — Agent A):** Tier 2 `quality/ui-review-prototype` skill delivered. 3 callable scripts (`link-checker.sh`, `landing-parity.sh`, `state-coverage.sh`) + 3 reference docs + SKILL.md. Self-test on current `ui_kits/` (6 kits) all green; incident reproduction (remove card from index.html → landing-parity exit 1) verified. See GAP-264 Log for full self-test outcomes. Phase 3 (hook/CI/lefthook enforcement) still pending GAP-265 by Agent B in same wave.
 - **2026-04-29:** Gap filed during Wave UI Kits Round 2 foundation PR. Phase 1 (matrix-row + version bump) lands same PR. Phases 2 + 3 deferred (will file GAP-264 + GAP-265 when respective phases start). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — this gap stays 🟡 PARTIAL after Phase 1 ships, transitions to 🟢 DONE only when Phase 2 + Phase 3 land.
