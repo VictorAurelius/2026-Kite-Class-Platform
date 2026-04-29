@@ -24,6 +24,9 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 | [`acceptable-use-policy.md`](acceptable-use-policy.md) | AUP — prohibited content/conduct + enforcement (skeleton) | 1 |
 | [`privacy-policy.md`](privacy-policy.md) | Privacy Policy — VN PDPL Decree 13/2023 + GDPR (skeleton) | 1 |
 | [`data-retention-deletion-policy.md`](data-retention-deletion-policy.md) | Retention matrix + deletion process — VN PDPL Art 6 (skeleton) | 1 |
+| [`refund-dispute-resolution-policy.md`](refund-dispute-resolution-policy.md) | Refund eligibility + dispute resolution — VN Consumer Protection Law 2023 (skeleton) | 1 |
+| [`billing-terms.md`](billing-terms.md) | Payment terms + VAT/TCT e-invoice compliance — Circular 78/2021/TT-BTC (skeleton) | 1 |
+| [`child-protection-policy.md`](child-protection-policy.md) | K-12 minor protection + parental consent + safeguarding — Law on Children 2016 + PDPL Art 16 (skeleton) | 1 |
 
 ---
 
@@ -61,10 +64,13 @@ Phase 1 ship 5 BRD skeleton files (frame + section structure + TODO markers). Co
 | [`acceptable-use-policy.md`](acceptable-use-policy.md) | Legal + Trust & Safety | skeleton | [GAP-181](../04-quality/gaps/GAP-181-acceptable-use-policy.md) (Phase 1) → GAP-154 |
 | [`privacy-policy.md`](privacy-policy.md) | Legal + DPO | skeleton | [GAP-182](../04-quality/gaps/GAP-182-privacy-policy.md) (Phase 1, **VN PDPL Decree 13/2023 mandate**) → GAP-154 |
 | [`data-retention-deletion-policy.md`](data-retention-deletion-policy.md) | Legal + Engineering Lead | skeleton | [GAP-184](../04-quality/gaps/GAP-184-data-retention-deletion-policy.md) (Phase 1, **VN PDPL Art 6 mandate**) → GAP-154 |
+| [`refund-dispute-resolution-policy.md`](refund-dispute-resolution-policy.md) | Legal + Finance + Support Lead | skeleton | [GAP-183](../04-quality/gaps/GAP-183-refund-dispute-resolution-policy.md) (Phase 1, Wave Legal-BRD 1.5 2026-04-29, **VN Consumer Protection Law 2023 mandate**) → GAP-154 |
+| [`billing-terms.md`](billing-terms.md) | Legal + Finance + Tax advisor | skeleton | [GAP-185](../04-quality/gaps/GAP-185-billing-terms-vat-tct-compliance.md) (Phase 1, **TCT e-invoice mandate Circular 78/2021/TT-BTC**) → GAP-154 → GAP-108 |
+| [`child-protection-policy.md`](child-protection-policy.md) | Legal + Trust&Safety + DPO | skeleton | [GAP-186](../04-quality/gaps/GAP-186-child-protection-policy.md) (Phase 1, **Law on Children 2016 + PDPL Art 16 mandate**) → GAP-154 |
 
-Thứ tự ưu tiên khi fill content (Phase 2): compliance → pricing → business-objectives → NFR → GTM → privacy-policy → data-retention → TOS → AUP.
+Thứ tự ưu tiên khi fill content (Phase 2): compliance → pricing → business-objectives → NFR → GTM → privacy-policy → data-retention → child-protection → TOS → AUP → billing-terms → refund-dispute.
 
-**BRD scope expansion:** Simulation gap-finder 2026-04-20 found 22 additional BRD docs needed (TOS, Privacy, AUP, Refund, Data Retention, Child Protection…) — tracked by umbrella GAP-154. Wave Legal-BRD Phase 1 (2026-04-29) ships 4 skeleton files (TOS / AUP / Privacy / Retention); GAP-183/185/186 deferred next wave.
+**BRD scope expansion:** Simulation gap-finder 2026-04-20 found 22 additional BRD docs needed — tracked by umbrella GAP-154. **Wave Legal-BRD Phase 1 + 1.5 (2026-04-29) ships 7/7 P0 BL legal mandate skeletons:** TOS / AUP / Privacy / Retention (Phase 1) + Refund-Dispute / Billing-VAT / Child-Protection (Phase 1.5). GAP-154 umbrella Phase 1 milestone complete.
 
 **Why skeleton-first:** Engineering MVP runs without formal BRD (placeholder rules); skeleton unblocks per-domain `rules.md` traceability without blocking on stakeholder availability. Real content driver: legal engagement (Wave 0 stakeholder sync) + paying customer #1.
 
