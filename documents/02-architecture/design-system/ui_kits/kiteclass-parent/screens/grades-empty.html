@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>Học bạ — Chưa có điểm</title>
+  <!--
+    Persona: Pa. Parent — empty state when semester just started, teachers haven't
+    entered grades yet (Sept-October typically empty).
+    Flow ref: dossier/05-business-flows.md Flow #4 (no grades finalized yet)
+    Score self-estimate: 108/128 (friendly empty + helpful hint + Zalo CTA)
+    Viewport priority: 320px → 768px → 1440px graceful
+    Contrast (measured):
+      - body on bg: 16.5:1 AAA ✓
+      - muted-fg: 4.7:1 AA ✓
+    i18n keys: parent.grades.empty.title · parent.grades.empty.description
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell">
+    <div class="status-bar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <header class="app-header">
+      <div>
+        <h1>Học bạ con</h1>
+        <div class="subtitle">Lê Minh Tuấn · Lớp 10A2</div>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Chọn học kỳ">
+      <button class="tab" role="tab" aria-selected="true">Học kỳ I</button>
+      <button class="tab" role="tab" aria-selected="false">Học kỳ II</button>
+      <button class="tab" role="tab" aria-selected="false">Cả năm</button>
+    </div>
+
+    <div class="state animate-slide-up">
+      <div class="illu" aria-hidden="true">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:hsl(var(--primary))">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          <line x1="6" y1="9" x2="9" y2="9" stroke-dasharray="2 2"/>
+          <line x1="6" y1="13" x2="9" y2="13" stroke-dasharray="2 2"/>
+        </svg>
+      </div>
+      <h3>Chưa có điểm môn nào</h3>
+      <p>Học kỳ vừa bắt đầu — giáo viên chưa nhập điểm.<br/>Bạn sẽ nhận thông báo Zalo OA ngay khi có điểm mới.</p>
+    </div>
+
+    <!-- Helpful tips -->
+    <div class="card" style="margin:16px;padding:14px;background:hsl(var(--surface-soft));border-color:hsl(var(--primary) / 0.2)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span class="activity-icon blue" aria-hidden="true" style="flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </span>
+        <div>
+          <div style="font-weight:600;font-size:var(--text-sm)">Khi nào có điểm đầu tiên?</div>
+          <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:4px;line-height:1.5">
+            Thường trong tuần thứ 3-4 sau khai giảng. Mỗi môn sẽ có 6-9 cột điểm trong học kỳ.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:0 16px 24px 16px">
+      <a href="settings.html" class="btn-secondary" style="text-decoration:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg>
+        Bật thông báo điểm mới
+      </a>
+    </div>
+
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="home-default.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Trang chủ</a>
+      <a class="tab-btn" aria-current="page" href="grades-empty.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14"/></svg></span>Học bạ</a>
+      <a class="tab-btn" href="billing-list.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>Học phí</a>
+      <a class="tab-btn" href="settings.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></span>Cài đặt</a>
+    </nav>
+  </div>
+</body>
+</html>

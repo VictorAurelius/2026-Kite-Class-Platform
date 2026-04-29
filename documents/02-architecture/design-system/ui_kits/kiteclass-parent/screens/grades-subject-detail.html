@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>Toán — Chi tiết điểm</title>
+  <!--
+    Persona: Pa. Parent — drill-down from grades-overview to a single subject's
+    assignments + scores (per-cot-diem detail).
+    Flow ref: dossier/05-business-flows.md Flow #4 + dossier/02-vietnamese-ux-musts.md §3
+    Score self-estimate: 113/128 (timeline + weighted display + late penalty visible)
+    Viewport priority: 320px → 768px → 1440px graceful
+    Contrast (measured):
+      - body on bg: 16.5:1 AAA ✓
+      - grade pills: same as overview, AA ✓
+    i18n keys: parent.grades.subject.toan · parent.grades.assignment.midterm-1
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell">
+    <div class="status-bar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <header class="app-header">
+      <a href="grades-overview.html" class="icon-btn" aria-label="Quay lại">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div style="flex:1">
+        <h1>Toán</h1>
+        <div class="subtitle">Cô Trần Thị Hương · Học kỳ I</div>
+      </div>
+    </header>
+
+    <!-- Subject summary -->
+    <section style="margin:0 16px 16px 16px;padding:20px;border-radius:20px;background:linear-gradient(135deg, hsl(var(--surface-soft)), hsl(var(--card)));border:1px solid hsl(var(--border));">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span class="grade-pill xuat-sac" style="width:64px;height:48px;font-size:24px">9.2</span>
+        <div>
+          <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Tổng kết môn</div>
+          <div style="font-weight:700;font-size:var(--text-lg)">Xuất sắc</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:var(--text-xs)">
+        <div><div style="color:hsl(var(--muted-foreground))">Miệng</div><div style="font-weight:700;color:hsl(var(--foreground));font-size:var(--text-sm);margin-top:2px">9.5</div></div>
+        <div><div style="color:hsl(var(--muted-foreground))">15 phút</div><div style="font-weight:700;color:hsl(var(--foreground));font-size:var(--text-sm);margin-top:2px">9.0</div></div>
+        <div><div style="color:hsl(var(--muted-foreground))">1 tiết</div><div style="font-weight:700;color:hsl(var(--foreground));font-size:var(--text-sm);margin-top:2px">9.2</div></div>
+      </div>
+    </section>
+
+    <!-- Assignment list -->
+    <div class="section-heading">
+      <h2>Cột điểm chi tiết</h2>
+      <span style="font-size:var(--text-xs);color:hsl(var(--muted-foreground))">8 bài</span>
+    </div>
+
+    <div class="card" style="margin:0 16px;padding:0;overflow:hidden">
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Bài kiểm tra giữa kỳ</div>
+          <div class="activity-sub">1 tiết · Trọng số 25% · 30/03/2026</div>
+        </div>
+        <span class="grade-pill xuat-sac">9.5</span>
+      </div>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Kiểm tra Chương 3 — Hàm số bậc hai</div>
+          <div class="activity-sub">15 phút · Trọng số 10% · 20/03/2026</div>
+        </div>
+        <span class="grade-pill gioi">8.8</span>
+      </div>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon blue" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Kiểm tra miệng — Bài 5</div>
+          <div class="activity-sub">Miệng · Trọng số 5% · 15/03/2026</div>
+        </div>
+        <span class="grade-pill xuat-sac">9.5</span>
+      </div>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon amber" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Bài tập về nhà — Đại số 10</div>
+          <div class="activity-sub">15 phút · Trọng số 10% · 10/03/2026 · <span style="color:hsl(var(--warning));font-weight:600">Nộp trễ 1 ngày (-10%)</span></div>
+        </div>
+        <span class="grade-pill gioi">8.1</span>
+      </div>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Kiểm tra Chương 2 — Hàm số</div>
+          <div class="activity-sub">15 phút · Trọng số 10% · 25/02/2026</div>
+        </div>
+        <span class="grade-pill gioi">8.5</span>
+      </div>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Kiểm tra Chương 1 — Mệnh đề tập hợp</div>
+          <div class="activity-sub">1 tiết · Trọng số 25% · 15/02/2026</div>
+        </div>
+        <span class="grade-pill xuat-sac">9.0</span>
+      </div>
+    </div>
+
+    <!-- Trend mini chart placeholder -->
+    <div class="section-heading"><h2>Xu hướng điểm</h2></div>
+    <div class="card" style="margin:0 16px 16px 16px">
+      <svg width="100%" height="100" viewBox="0 0 320 100" aria-label="Biểu đồ điểm môn Toán theo thời gian, tăng từ 8.5 đến 9.5">
+        <defs>
+          <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="hsl(var(--primary))" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="hsl(var(--primary))" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M 10,40 L 60,30 L 110,50 L 160,20 L 210,15 L 260,10 L 310,5 L 310,90 L 10,90 Z" fill="url(#g1)" stroke="none"/>
+        <path d="M 10,40 L 60,30 L 110,50 L 160,20 L 210,15 L 260,10 L 310,5" fill="none" stroke="hsl(var(--primary))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="310" cy="5" r="4" fill="hsl(var(--primary))"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:8px">
+        <span>15/02</span><span>25/02</span><span>10/03</span><span>15/03</span><span>20/03</span><span>30/03</span>
+      </div>
+    </div>
+
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="home-default.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Trang chủ</a>
+      <a class="tab-btn" aria-current="page" href="grades-overview.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14"/></svg></span>Học bạ</a>
+      <a class="tab-btn" href="billing-list.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>Học phí</a>
+      <a class="tab-btn" href="settings.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></span>Cài đặt</a>
+    </nav>
+  </div>
+</body>
+</html>

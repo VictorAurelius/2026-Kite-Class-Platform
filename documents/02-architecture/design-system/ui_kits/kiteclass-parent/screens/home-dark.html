@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi-VN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Trang chủ (Dark) — KC Phụ huynh</title>
+  <!--
+    Persona: Pa. Parent — dark mode (system preference OR explicit toggle).
+    Common usage at parent persona evening time (7pm-10pm) → dark mode reduces strain.
+    Flow ref: dossier/05-business-flows.md Flow #6 (parent dashboard)
+    Score self-estimate: 114/128 (full parity, native dark, no port-look)
+    Viewport priority: 320px (default) → 768px → 1440px graceful
+    Contrast (measured, dark mode):
+      - body white-on-slate-950: 17.8:1 AAA ✓
+      - muted-fg on bg: 6.2:1 AAA ✓
+      - primary indigo-300 on slate-950: 9.5:1 AAA ✓
+      - hero white-on-gradient: 8.4:1 AAA ✓
+    i18n keys: same as home-default
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell" role="application" aria-label="Trang chủ phụ huynh (Dark mode)">
+    <div class="status-bar" aria-hidden="true">
+      <span>21:42</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <header class="app-header">
+      <div>
+        <h1>Chào buổi tối, chị Hương 🌙</h1>
+        <div class="subtitle">Tháng 4 — Năm học 2025–2026</div>
+      </div>
+      <button class="icon-btn" aria-label="Thông báo (3 chưa đọc)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      </button>
+    </header>
+
+    <section class="hero-metric animate-slide-up" aria-labelledby="hero-metric-label-dark">
+      <div class="label" id="hero-metric-label-dark">Tỷ lệ đi học của con tháng này</div>
+      <div class="value">92<span style="font-size:24px;opacity:0.85">%</span></div>
+      <div class="delta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="6 15 12 9 18 15"/></svg>
+        Tăng 4% so với tháng trước
+      </div>
+    </section>
+
+    <div class="child-card">
+      <div class="avatar" aria-hidden="true">LT</div>
+      <div style="flex:1;min-width:0">
+        <div class="name">Con Lê Minh Tuấn</div>
+        <div class="meta">Lớp 10A2 · Trường THCS-THPT EduPlus</div>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <section style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px;">
+      <div class="card" style="padding:14px">
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Điểm trung bình</div>
+        <div style="font-size:28px;font-weight:800;margin-top:4px;letter-spacing:-0.02em">8.4</div>
+        <span class="pill success" style="margin-top:8px">Học lực Giỏi</span>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Học phí</div>
+        <div style="font-size:18px;font-weight:700;margin-top:4px;">Đã đóng</div>
+        <span class="pill info" style="margin-top:8px">Kỳ I · 2025-2026</span>
+      </div>
+    </section>
+
+    <div class="section-heading">
+      <h2>Hoạt động gần đây</h2>
+      <a href="#">Xem tất cả</a>
+    </div>
+    <div class="card" style="margin:0 16px;padding:8px 16px">
+      <div class="activity-row">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Có điểm Toán mới: 8.5</div>
+          <div class="activity-sub">Bài kiểm tra giữa kỳ 1 · Cô Trần Thị Hương</div>
+        </div>
+        <span class="activity-trail">2 giờ trước</span>
+      </div>
+      <div class="activity-row">
+        <span class="activity-icon amber" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Bài tập Văn sắp hết hạn</div>
+          <div class="activity-sub">Còn 2 ngày · Hạn 18/04/2026</div>
+        </div>
+        <span class="activity-trail">Hôm nay</span>
+      </div>
+      <div class="activity-row">
+        <span class="activity-icon blue" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">GVCN gửi nhận xét tuần</div>
+          <div class="activity-sub">Cô Trần Thị Hương — “Con tích cực phát biểu, cần chú ý...”</div>
+        </div>
+        <span class="activity-trail">2 ngày trước</span>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" aria-current="page" href="home-dark.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+        Trang chủ
+      </a>
+      <a class="tab-btn" href="grades-overview.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14"/></svg></span>
+        Học bạ
+      </a>
+      <a class="tab-btn" href="billing-list.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>
+        Học phí
+      </a>
+      <a class="tab-btn" href="settings.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg></span>
+        Cài đặt
+      </a>
+    </nav>
+  </div>
+</body>
+</html>

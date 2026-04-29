@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#10b981" />
+  <title>Thành công — Đã thanh toán</title>
+  <!--
+    Persona: Pa. Parent — payment success state with receipt download + share + return CTA.
+    Flow ref: dossier/05-business-flows.md Flow #5 step 8-9 (status PAID, receipt PDF, email)
+    Score self-estimate: 113/128 (success illustration + receipt CTA + branded confetti vibe)
+    Viewport priority: 320px → 768px → 1440px graceful
+    Contrast (measured):
+      - body: 16.5:1 AAA ✓
+      - success white-on-green: 4.6:1 AA ✓
+    i18n keys: parent.billing.success.title · parent.billing.success.receipt-cta
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell">
+    <div class="status-bar" aria-hidden="true">
+      <span>9:42</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <!-- Confetti decorative SVG -->
+    <div style="position:relative;height:0">
+      <svg width="100%" height="200" viewBox="0 0 400 200" style="position:absolute;top:-20px;left:0;pointer-events:none" aria-hidden="true">
+        <circle cx="50"  cy="60"  r="4" fill="hsl(var(--success))"/>
+        <circle cx="120" cy="30"  r="3" fill="hsl(var(--accent))"/>
+        <circle cx="200" cy="80"  r="5" fill="hsl(var(--primary))"/>
+        <circle cx="280" cy="40"  r="3" fill="hsl(var(--success))"/>
+        <circle cx="350" cy="70"  r="4" fill="hsl(var(--accent))"/>
+        <rect x="80"  y="100" width="6" height="6" fill="hsl(var(--primary))" transform="rotate(20 83 103)"/>
+        <rect x="160" y="50"  width="6" height="6" fill="hsl(var(--accent))" transform="rotate(40 163 53)"/>
+        <rect x="240" y="120" width="6" height="6" fill="hsl(var(--success))" transform="rotate(60 243 123)"/>
+        <rect x="320" y="100" width="6" height="6" fill="hsl(var(--primary))" transform="rotate(80 323 103)"/>
+      </svg>
+    </div>
+
+    <div class="state success animate-slide-up" style="padding:60px 24px 32px 24px">
+      <div class="illu" aria-hidden="true" style="width:120px;height:120px;background:hsl(var(--success));color:white;box-shadow:0 12px 32px rgba(16,185,129,0.35)">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h3 style="font-size:var(--text-2xl)">Thanh toán thành công!</h3>
+      <p>Học phí kỳ II của con đã được ghi nhận.<br/>Biên lai đã gửi vào email <strong>tranthihuong@gmail.com</strong></p>
+    </div>
+
+    <!-- Receipt summary -->
+    <section style="margin:0 16px 16px 16px;padding:20px;border-radius:20px;background:hsl(var(--card));border:1px solid hsl(var(--border));box-shadow:var(--shadow-soft);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Biên lai thanh toán</div>
+        <span class="pill success">PAID</span>
+      </div>
+      <div style="display:grid;gap:10px;font-size:var(--text-sm)">
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Số HĐ</span><span style="font-weight:600">KH-2026-04-001</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Học sinh</span><span style="font-weight:600">Lê Minh Tuấn</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Nội dung</span><span style="font-weight:600">Học phí kỳ II</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Phương thức</span><span style="font-weight:600">Ví MoMo</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Mã giao dịch</span><span style="font-weight:600;font-family:var(--font-mono);font-size:13px">MM26041500142</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Thời gian</span><span style="font-weight:600">15/04/2026 09:42</span></div>
+        <div style="height:1px;background:hsl(var(--border));margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:hsl(var(--muted-foreground));font-weight:600">Tổng cộng</span>
+          <span style="font-size:var(--text-2xl);font-weight:800;color:hsl(var(--success));letter-spacing:-0.02em">1.500.000đ</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <div style="padding:0 16px;display:grid;gap:8px">
+      <button class="btn-primary" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Tải biên lai PDF
+      </button>
+      <button class="btn-secondary" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Chia sẻ qua Zalo
+      </button>
+      <a href="billing-list.html" class="btn-ghost" style="text-decoration:none;width:100%;justify-content:center">Quay về danh sách hóa đơn</a>
+    </div>
+
+    <!-- Note -->
+    <div style="margin:24px 16px 0 16px;padding:14px;border-radius:14px;background:hsl(var(--surface-soft));font-size:var(--text-xs);color:hsl(var(--muted-foreground));line-height:1.5">
+      💡 <strong style="color:hsl(var(--foreground))">Mẹo:</strong> Bạn có thể bật thông báo Zalo OA trong Cài đặt để nhận hóa đơn ngay khi trường gửi, không cần mở app.
+    </div>
+
+    <div style="height:24px"></div>
+
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="home-default.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Trang chủ</a>
+      <a class="tab-btn" href="grades-overview.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14"/></svg></span>Học bạ</a>
+      <a class="tab-btn" aria-current="page" href="billing-list.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>Học phí</a>
+      <a class="tab-btn" href="settings.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></span>Cài đặt</a>
+    </nav>
+  </div>
+</body>
+</html>

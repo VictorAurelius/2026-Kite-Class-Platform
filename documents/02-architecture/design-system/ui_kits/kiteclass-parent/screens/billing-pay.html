@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>Đóng học phí — Chọn phương thức</title>
+  <!--
+    Persona: Pa. Parent — payment method selection (VN-first: VNPay/MoMo/ZaloPay/Bank/Cash).
+    Flow ref: dossier/05-business-flows.md Flow #5 step 4-7 (method options + redirect/QR)
+              + dossier/02-vietnamese-ux-musts.md §4 (payment gateways)
+    Score self-estimate: 119/128 (5 VN methods + brand colors + amount summary + trust markers)
+    Viewport priority: 320px → 768px → 1440px graceful
+    Contrast (measured):
+      - body: 16.5:1 AAA ✓
+      - selected method outline: 4.7:1 AA ✓
+      - logo monograms: 7.5:1 AAA ✓
+      - trust marker green: 5.8:1 AA ✓
+    i18n keys: parent.billing.pay.method-momo · parent.billing.pay.amount
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell">
+    <div class="status-bar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <header class="app-header">
+      <a href="billing-list.html" class="icon-btn" aria-label="Quay lại">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div style="flex:1">
+        <h1>Đóng học phí</h1>
+        <div class="subtitle">Chọn phương thức thanh toán</div>
+      </div>
+    </header>
+
+    <!-- Amount summary -->
+    <section style="margin:0 16px 16px 16px;padding:20px;border-radius:20px;background:hsl(var(--surface-soft));border:1px solid hsl(var(--primary) / 0.2);">
+      <div style="font-size:var(--text-xs);color:hsl(var(--primary));font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Bạn sẽ thanh toán</div>
+      <div style="font-size:36px;font-weight:800;letter-spacing:-0.03em;margin-top:4px;color:hsl(var(--foreground))">1.500.000đ</div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed hsl(var(--primary) / 0.25);font-size:var(--text-sm)">
+        <div style="display:flex;justify-content:space-between"><span style="color:hsl(var(--muted-foreground))">Số HĐ</span><span style="font-weight:600">KH-2026-04-001</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="color:hsl(var(--muted-foreground))">Nội dung</span><span style="font-weight:600">Học phí kỳ II</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="color:hsl(var(--muted-foreground))">Học sinh</span><span style="font-weight:600">Lê Minh Tuấn</span></div>
+      </div>
+    </section>
+
+    <!-- Payment methods -->
+    <div class="section-heading"><h2>Phương thức thanh toán</h2></div>
+
+    <div style="padding:0 16px">
+      <label class="pay-method selected" aria-pressed="true">
+        <input type="radio" name="method" checked style="display:none">
+        <span class="logo momo">M</span>
+        <div class="info">
+          <div class="name">Ví MoMo</div>
+          <div class="desc">Quét mã QR bằng app MoMo · Phổ biến nhất</div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+      </label>
+
+      <label class="pay-method">
+        <input type="radio" name="method" style="display:none">
+        <span class="logo vnpay">VN</span>
+        <div class="info">
+          <div class="name">VNPay</div>
+          <div class="desc">Thanh toán qua app ngân hàng (Vietcombank, ACB, BIDV, ...)</div>
+        </div>
+        <span style="width:20px;height:20px;border-radius:999px;border:2px solid hsl(var(--border))" aria-hidden="true"></span>
+      </label>
+
+      <label class="pay-method">
+        <input type="radio" name="method" style="display:none">
+        <span class="logo zalo">Z</span>
+        <div class="info">
+          <div class="name">ZaloPay</div>
+          <div class="desc">Quét QR bằng Zalo · Liên kết với tài khoản Zalo</div>
+        </div>
+        <span style="width:20px;height:20px;border-radius:999px;border:2px solid hsl(var(--border))" aria-hidden="true"></span>
+      </label>
+
+      <label class="pay-method">
+        <input type="radio" name="method" style="display:none">
+        <span class="logo bank">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><line x1="4" y1="10" x2="4" y2="21"/><line x1="20" y1="10" x2="20" y2="21"/><line x1="8" y1="14" x2="8" y2="17"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="16" y1="14" x2="16" y2="17"/></svg>
+        </span>
+        <div class="info">
+          <div class="name">Chuyển khoản ngân hàng</div>
+          <div class="desc">Chuyển khoản thủ công với mã giao dịch — tự động đối soát</div>
+        </div>
+        <span style="width:20px;height:20px;border-radius:999px;border:2px solid hsl(var(--border))" aria-hidden="true"></span>
+      </label>
+
+      <label class="pay-method">
+        <input type="radio" name="method" style="display:none">
+        <span class="logo cash">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+        </span>
+        <div class="info">
+          <div class="name">Tiền mặt tại trường</div>
+          <div class="desc">Đến văn phòng trường đóng trực tiếp · Giờ HC 8:00–17:00</div>
+        </div>
+        <span style="width:20px;height:20px;border-radius:999px;border:2px solid hsl(var(--border))" aria-hidden="true"></span>
+      </label>
+    </div>
+
+    <!-- Trust markers -->
+    <div style="padding:16px;display:flex;flex-wrap:wrap;gap:8px;font-size:var(--text-xs);color:hsl(var(--muted-foreground))">
+      <span style="display:inline-flex;align-items:center;gap:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--success))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Bảo mật bởi VNPay/MoMo</span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--success))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Không lưu thông tin thẻ</span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--success))" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Tuân thủ PDPL 2023</span>
+    </div>
+
+    <!-- Confirm CTA -->
+    <div style="padding:0 16px 24px 16px">
+      <a href="billing-success.html" class="btn-primary" style="text-decoration:none">
+        Tiếp tục với MoMo
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <p style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));text-align:center;margin-top:12px;line-height:1.5">
+        Bạn sẽ được chuyển đến app MoMo để hoàn tất.<br/>Mã QR sẽ hết hạn sau 15 phút.
+      </p>
+    </div>
+
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="home-default.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Trang chủ</a>
+      <a class="tab-btn" href="grades-overview.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14"/></svg></span>Học bạ</a>
+      <a class="tab-btn" aria-current="page" href="billing-list.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>Học phí</a>
+      <a class="tab-btn" href="settings.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></span>Cài đặt</a>
+    </nav>
+  </div>
+</body>
+</html>

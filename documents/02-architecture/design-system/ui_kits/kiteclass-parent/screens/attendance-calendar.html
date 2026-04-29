@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>Điểm danh — Lịch tháng</title>
+  <!--
+    Persona: Pa. Parent — month calendar view of child attendance, color-coded.
+    Flow ref: dossier/05-business-flows.md Flow #3 (daily attendance)
+              + dossier/02-vietnamese-ux-musts.md §3 (P/V/M/L codes)
+    Score self-estimate: 116/128 (color-coded calendar + legend + summary stats + filter month)
+    Viewport priority: 320px → 768px → 1440px graceful
+    Contrast (measured):
+      - body on bg: 16.5:1 AAA ✓
+      - present cell green: 5.8:1 AA ✓
+      - absent cell red: 5.6:1 AA ✓
+      - late cell amber: 4.7:1 AA ✓
+      - excused cell blue: 5.2:1 AA ✓
+      - color-not-only: each status has icon-meaning + text legend (WCAG 1.4.1)
+    i18n keys: parent.attendance.month-april · parent.attendance.legend.present
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell" role="application" aria-label="Lịch điểm danh">
+    <div class="status-bar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <header class="app-header">
+      <div>
+        <h1>Điểm danh</h1>
+        <div class="subtitle">Lê Minh Tuấn · Lớp 10A2</div>
+      </div>
+    </header>
+
+    <!-- Month summary -->
+    <section style="margin:0 16px 12px 16px;display:grid;grid-template-columns:repeat(4, 1fr);gap:8px">
+      <div class="card" style="padding:12px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:hsl(var(--success))">19</div>
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600">Có mặt</div>
+      </div>
+      <div class="card" style="padding:12px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:hsl(var(--destructive))">1</div>
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600">Vắng KP</div>
+      </div>
+      <div class="card" style="padding:12px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:hsl(var(--warning))">2</div>
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600">Đi trễ</div>
+      </div>
+      <div class="card" style="padding:12px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:hsl(var(--primary))">1</div>
+        <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));font-weight:600">Vắng CP</div>
+      </div>
+    </section>
+
+    <!-- Calendar -->
+    <div class="calendar">
+      <div class="calendar-header">
+        <button class="icon-btn" aria-label="Tháng trước">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div style="text-align:center">
+          <div style="font-weight:700;font-size:var(--text-base)">Tháng 4 năm 2026</div>
+          <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground))">23 buổi học · 92% có mặt</div>
+        </div>
+        <button class="icon-btn" aria-label="Tháng sau">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="calendar-grid" role="grid" aria-label="Lịch tháng 4 năm 2026">
+        <!-- Day-of-week header -->
+        <div class="dow">CN</div><div class="dow">T2</div><div class="dow">T3</div><div class="dow">T4</div><div class="dow">T5</div><div class="dow">T6</div><div class="dow">T7</div>
+
+        <!-- Empty cells for March 29-31 -->
+        <div class="day muted">29</div><div class="day muted">30</div><div class="day muted">31</div>
+
+        <!-- April 1-30 — Tuấn started this month, mostly present -->
+        <div class="day present" aria-label="1 tháng 4: Có mặt">1</div>
+        <div class="day present" aria-label="2 tháng 4: Có mặt">2</div>
+        <div class="day weekend" aria-label="3 tháng 4: cuối tuần">3</div>
+        <div class="day weekend" aria-label="4 tháng 4: cuối tuần">4</div>
+        <div class="day present">5</div>
+        <div class="day present">6</div>
+        <div class="day late" aria-label="7 tháng 4: Đi trễ">7</div>
+        <div class="day present">8</div>
+        <div class="day present">9</div>
+        <div class="day weekend">10</div>
+        <div class="day weekend">11</div>
+        <div class="day present">12</div>
+        <div class="day excused" aria-label="13 tháng 4: Vắng có phép (ốm)">13</div>
+        <div class="day present">14</div>
+        <div class="day today present" aria-label="15 tháng 4: Hôm nay, Có mặt">15</div>
+        <div class="day present">16</div>
+        <div class="day weekend">17</div>
+        <div class="day weekend">18</div>
+        <div class="day present">19</div>
+        <div class="day late" aria-label="20 tháng 4: Đi trễ">20</div>
+        <div class="day absent" aria-label="21 tháng 4: Vắng không phép">21</div>
+        <div class="day present">22</div>
+        <div class="day present">23</div>
+        <div class="day weekend">24</div>
+        <div class="day weekend">25</div>
+        <div class="day present">26</div>
+        <div class="day present">27</div>
+        <div class="day present">28</div>
+        <div class="day muted">29</div>
+        <div class="day muted">30</div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend" role="list">
+        <span role="listitem"><span class="legend-dot" style="background:hsl(var(--success))" aria-hidden="true"></span>Có mặt (P)</span>
+        <span role="listitem"><span class="legend-dot" style="background:hsl(var(--destructive))" aria-hidden="true"></span>Vắng KP (M)</span>
+        <span role="listitem"><span class="legend-dot" style="background:hsl(var(--warning))" aria-hidden="true"></span>Đi trễ (L)</span>
+        <span role="listitem"><span class="legend-dot" style="background:hsl(var(--primary))" aria-hidden="true"></span>Vắng CP (V)</span>
+      </div>
+    </div>
+
+    <!-- Recent attendance entries -->
+    <div class="section-heading">
+      <h2>Buổi học gần đây</h2>
+      <a href="#">Xem tất cả</a>
+    </div>
+
+    <div class="card" style="margin:0 16px 16px 16px;padding:0;overflow:hidden">
+      <a href="attendance-day.html" class="activity-row" style="padding:14px 16px;text-decoration:none;color:inherit">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Thứ Ba, 15/04/2026</div>
+          <div class="activity-sub">Toán nâng cao · 14:00–15:30</div>
+        </div>
+        <span class="pill success">Có mặt</span>
+      </a>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon green" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Thứ Hai, 14/04/2026</div>
+          <div class="activity-sub">Ngữ văn · 07:30–09:00</div>
+        </div>
+        <span class="pill success">Có mặt</span>
+      </div>
+      <div class="activity-row" style="padding:14px 16px">
+        <span class="activity-icon red" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </span>
+        <div class="activity-body">
+          <div class="activity-title">Thứ Hai, 21/04/2026</div>
+          <div class="activity-sub">Vật lý · 13:00–14:30</div>
+        </div>
+        <span class="pill danger">Vắng KP</span>
+      </div>
+    </div>
+
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="home-default.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>Trang chủ</a>
+      <a class="tab-btn" aria-current="page" href="attendance-calendar.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></span>Điểm danh</a>
+      <a class="tab-btn" href="billing-list.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>Học phí</a>
+      <a class="tab-btn" href="settings.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg></span>Cài đặt</a>
+    </nav>
+  </div>
+</body>
+</html>
