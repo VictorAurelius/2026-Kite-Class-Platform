@@ -21,6 +21,7 @@ infrastructure/logs/run-*/
 
 # Session locks (per-machine, GAP-193) — keep README + .gitkeep only
 .claude/session-locks/*.lock
+.claude/session-locks/archived/
 .claude/skills/workflow/start-session/data/*.log
 
 # Worktree clones spawned by parallel agents (transient per-machine state)
