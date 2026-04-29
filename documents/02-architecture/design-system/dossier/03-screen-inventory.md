@@ -76,51 +76,63 @@
 
 ---
 
-## KiteHub — 24 routes (avg 59/128)
+## KiteHub — 24 routes (avg 59/128) — re-enumerated 2026-04-29 (Wave UI Coverage Audit Agent B)
+
+**Kit-coverage legend:** ✅ explicit (kit screen depicts route directly) · ⚠️ implicit (kit covers parent flow / state subset) · ❌ missing (no kit screen).
+
+**`(admin) nuance:** existing KH `(admin)` group is **KH platform ops viewpoint** (KiteHub internal admin managing tenants, payments, revenue across the SaaS), DIFFERENT from `kitehub-admin/` HTML kit which targets **P5 K-12 School Principal persona** (institutional tenant admin). The `kitehub-admin` kit is therefore NOT coverage for `(admin)/admin/**` production pages — those are uncovered by any kit (informs GAP-278).
 
 ### `(public)` — 5 routes — avg ~92/128
 
-| Path | LOC | Priority | Score | Mock | Persona | BR ref | Round 2 priority |
-|------|-----|:--------:|:-----:|:----:|---------|--------|:----------------:|
-| `/` | 28 | P0 | 95 | ✅ | Prospects | marketing | — keep (study pattern) |
-| `/pricing` | 16 | P0 | **98** 🟢 | ✅ | Prospects | pricing | — best in repo |
-| `/blog` | 12 | P2 | 88 | ✅ | All | content | low |
-| `/blog/[slug]` | 14 | P1 | 78 | ✅ | All | blog-detail | medium — needs custom 404 |
-| `/legal/dmca` | 8 | P3 | 88 | ✅ | All | — | low |
+| Path | LOC | Priority | Score | Mock | Persona | BR ref | Kit-coverage | Round 2 priority |
+|------|-----|:--------:|:-----:|:----:|---------|--------|:------------:|:----------------:|
+| `/` | 28 | P0 | 95 | ✅ | Prospects | marketing | ❌ missing (kitehub-story v2 deferred per Decision 3) | — keep (study pattern) |
+| `/pricing` | 16 | P0 | **98** 🟢 | ✅ | Prospects | pricing | ❌ missing (no marketing kit) | — best in repo |
+| `/blog` | 12 | P2 | 88 | ✅ | All | content | ❌ missing | low |
+| `/blog/[slug]` | 14 | P1 | 78 | ✅ | All | blog-detail | ❌ missing | medium — needs custom 404 |
+| `/legal/dmca` | 8 | P3 | 88 | ✅ | All | — | ❌ missing | low |
+
+→ **5/5 ❌ missing** — informs **GAP-275 (KH public marketing + blog kit)**.
 
 ### `(auth)` — 3 routes — avg ~88/128
 
-| Path | LOC | Priority | Score | Mock | Persona | BR ref | Round 2 priority |
-|------|-----|:--------:|:-----:|:----:|---------|--------|:----------------:|
-| `/login` | 32 | P0 | 88 | ✅ | P2/P3 | — | medium — missing forgot-password link (H-5) |
-| `/register` | 28 | P0 | 88 | ✅ | Prospects | UC-SIGNUP | low |
-| `/verify-email` | 24 | P1 | 88 | ✅ | Prospects | email-verify | low |
+| Path | LOC | Priority | Score | Mock | Persona | BR ref | Kit-coverage | Round 2 priority |
+|------|-----|:--------:|:-----:|:----:|---------|--------|:------------:|:----------------:|
+| `/login` | 32 | P0 | 88 | ✅ | P2/P3 | — | ❌ missing | medium — missing forgot-password link (H-5) |
+| `/register` | 28 | P0 | 88 | ✅ | Prospects | UC-SIGNUP | ❌ missing | low |
+| `/verify-email` | 24 | P1 | 88 | ✅ | Prospects | email-verify | ❌ missing | low |
+
+→ **3/3 ❌ missing** — informs **GAP-276 (Auth flows kit)**.
 
 ### `(customer)` — 11 routes — avg ~64/128
 
-| Path | LOC | Priority | Score | Mock | Persona | BR ref | Round 2 priority |
-|------|-----|:--------:|:-----:|:----:|---------|--------|:----------------:|
-| `/dashboard` | 88 | P0 | 80 | 🟡 | P2 Center Owner | UC-CUST-DASH | **HIGH — Direction B candidate** |
-| `/settings` | 48 | P1 | 62 🟠 | ✅ | P2/P3 | tenant-config | medium (boosted +23 from baseline 39) |
-| `/billing` | 20 | P1 | 39 🔴 | 🔴 | P2/P3 | billing-overview | **HIGH** |
-| `/billing/history` | 18 | P2 | 50 🟠 | 🔴 | P2/P3 | payment-history | medium |
-| `/billing/upgrade` | 16 | P0 | 39 🔴 | 🔴 | P2 | UC-UPGRADE | **HIGH — paywall conversion screen** |
-| `/billing/payment/[id]` | 14 | P0 | **33** 🔴 | 🔴 | P2 | payment-detail | **CRITICAL — lowest score** |
-| `/branding` | 14 | P0 | **33** 🔴 | 🔴 | P2/P3 | branding-hub | **CRITICAL — Direction C** |
-| `/branding/templates` | 22 | P0 | 56 🟠 | 🟡 | P2/P3 | template-pick | **HIGH — Direction C step 5** |
-| `/branding/assets` | 26 | P1 | 68 🟠 | 🟡 | P2/P3 | asset-mgmt | medium |
-| `/branding/wizard` | 18 | P0 | 33 🔴 | 🔴 | P2/P3 | UC-BRAND-WIZ | **CRITICAL — Direction C heart** |
-| `/instances/[id]` | 24 | P0 | 33 🔴 | 🔴 | P2/P3 | instance-detail | **CRITICAL — lifecycle UI** |
+| Path | LOC | Priority | Score | Mock | Persona | BR ref | Kit-coverage | Round 2 priority |
+|------|-----|:--------:|:-----:|:----:|---------|--------|:------------:|:----------------:|
+| `/dashboard` | 88 | P0 | 80 | 🟡 | P2 Center Owner | UC-CUST-DASH | ✅ explicit (`kitehub-pro-v2/screens/dashboard-{default,dark,empty,error,loading,success}.html`) | **HIGH — Direction B candidate** |
+| `/settings` | 48 | P1 | 62 🟠 | ✅ | P2/P3 | tenant-config | ❌ missing (no settings screen in kitehub-pro-v2) | medium (boosted +23 from baseline 39) |
+| `/billing` | 20 | P1 | 39 🔴 | 🔴 | P2/P3 | billing-overview | ✅ explicit (`kitehub-pro-v2/screens/billing-{default,dark,empty,loading}.html`) | **HIGH** |
+| `/billing/history` | 18 | P2 | 50 🟠 | 🔴 | P2/P3 | payment-history | ❌ missing (no history screen in kit) | medium |
+| `/billing/upgrade` | 16 | P0 | 39 🔴 | 🔴 | P2 | UC-UPGRADE | ⚠️ implicit (`(public)/pricing` shows tiers but not upgrade-flow specific) | **HIGH — paywall conversion screen** |
+| `/billing/payment/[id]` | 14 | P0 | **33** 🔴 | 🔴 | P2 | payment-detail | ✅ explicit (`kitehub-pro-v2/screens/billing-payment.html`) | **CRITICAL — lowest score** |
+| `/branding` | 14 | P0 | **33** 🔴 | 🔴 | P2/P3 | branding-hub | ✅ explicit (`kitehub-pro-v2/screens/branding-hub-{default,dark,loading,quota-empty}.html`) | **CRITICAL — Direction C** |
+| `/branding/templates` | 22 | P0 | 56 🟠 | 🟡 | P2/P3 | template-pick | ✅ explicit (`ai-branding-wizard-v2/screens/step5-template-{grid,fullscreen,with-custom-prompt}.html`) | **HIGH — Direction C step 5** |
+| `/branding/assets` | 26 | P1 | 68 🟠 | 🟡 | P2/P3 | asset-mgmt | ⚠️ implicit (assets surfaced inside branding hub kit; standalone assets manager not depicted) | medium |
+| `/branding/wizard` | 18 | P0 | 33 🔴 | 🔴 | P2/P3 | UC-BRAND-WIZ | ✅ explicit (`ai-branding-wizard-v2/` — 28 screens × 6 wizard steps + states) | **CRITICAL — Direction C heart** |
+| `/instances/[id]` | 24 | P0 | 33 🔴 | 🔴 | P2/P3 | instance-detail | ✅ explicit (`kitehub-pro-v2/screens/instance-{NOT_STARTED,GENERATING,REGENERATING,DEPLOYED,FAILED}.html`) | **CRITICAL — lifecycle UI** |
 
-### `(admin)` — 5 routes — avg ~52/128
+→ **6 ✅ + 2 ⚠️ + 3 ❌** — `/settings`, `/billing/history` are uncovered (customer-side); `/billing/upgrade` is implicit at best.
 
-| Path | LOC | Priority | Score | Mock | Persona | BR ref | Round 2 priority |
-|------|-----|:--------:|:-----:|:----:|---------|--------|:----------------:|
-| `/admin` | 16 | P1 | 43 🔴 | 🔴 | Internal admin | admin-dash | medium |
-| `/admin/instances` | 18 | P0 | 51 🟠 | 🔴 | Internal admin | tenant-list | **HIGH — internal ops critical** |
-| `/admin/instances/[id]` | 20 | P0 | 45 🔴 | 🔴 | Internal admin | tenant-detail | **HIGH** |
-| `/admin/payments` | 16 | P1 | 52 🟠 | 🔴 | Internal admin | admin-pay | medium |
-| `/admin/revenue` | 14 | P2 | 68 🟠 | 🟡 | Internal admin | admin-rev | low |
+### `(admin)` — 5 routes — avg ~52/128 — KH platform ops viewpoint
+
+| Path | LOC | Priority | Score | Mock | Persona | BR ref | Kit-coverage | Round 2 priority |
+|------|-----|:--------:|:-----:|:----:|---------|--------|:------------:|:----------------:|
+| `/admin` | 16 | P1 | 43 🔴 | 🔴 | KH platform ops admin (NOT P5) | admin-dash | ❌ missing (kitehub-admin kit targets P5 K-12 Principal — different persona) | medium |
+| `/admin/instances` | 18 | P0 | 51 🟠 | 🔴 | KH platform ops admin | tenant-list | ❌ missing | **HIGH — internal ops critical** |
+| `/admin/instances/[id]` | 20 | P0 | 45 🔴 | 🔴 | KH platform ops admin | tenant-detail | ❌ missing | **HIGH** |
+| `/admin/payments` | 16 | P1 | 52 🟠 | 🔴 | KH platform ops admin | admin-pay | ❌ missing | medium |
+| `/admin/revenue` | 14 | P2 | 68 🟠 | 🟡 | KH platform ops admin | admin-rev | ❌ missing | low |
+
+→ **5/5 ❌ missing** — informs **GAP-278 (Platform admin KH ops kit)**. This is the largest uncovered cluster on the KH side because it's a viewpoint mismatch with `kitehub-admin/` kit (which serves P5 K-12 Principal, a tenant-side persona, not the KH platform's internal ops staff).
 
 ---
 
