@@ -16,8 +16,15 @@
 | **G6** | [Invoice Detail](./G6-invoice-detail/) | 6 states + spec | KC `/billing/[id]`, KH `/billing/payment/[id]` |
 | **G7** | [Parent Invite](./G7-parent-invite/) | 6 states + spec | KC `/parent-invite/[token]`, admin invite modal |
 | **G12** | [Bulk Actions Bar](./G12-bulk-actions-bar/) | 6 states + spec | KC `/students`, KC `/teachers`, KH `/admin/instances`, KH `/admin/payments` |
+| **G1** (R3) | [Bulk Import Drop-zone](./G1-bulk-import-dropzone/) | 5 states | KH admin enrollment week, GAP-137 fix |
+| **G3** (R3) | [Gradebook Entry Grid](./G3-gradebook-entry-grid/) | 6 states | KC teacher subject grade entry, VN 10-pt scale |
+| **G4** (R3) | [Class Schedule Manager](./G4-class-schedule-manager/) | 5 states | KH admin academic calendar, recurring rules |
+| **G8** (R3) | [Attendance Calendar](./G8-attendance-calendar/) | 4 states | KC teacher month-view, 30-day streak |
+| **G9** (R3) | [Instance Lifecycle Status](./G9-instance-lifecycle/) | 6 states | KH `/instances/[id]` (replaces R1 33/128) |
+| **G10** (R3) | [Payment Status Timeline](./G10-payment-timeline/) | 5 states | KC parent payment history, VN currency format |
+| **G11** (R3) | [Theme Live Preview](./G11-theme-preview/) | 5 states | AI Branding wizard step 5, WCAG warning + auto-fix |
 
-**Total:** 5 components · 29 HTML state files + 5 spec.md files · 0 hardcoded hex outside `_shared/colors_and_type.css`
+**Total:** 12 components · 65 HTML state files + 5 spec.md files · 0 hardcoded hex outside `_shared/colors_and_type.css` (R2: 5 components 29 states + R3: 7 components 36 states)
 
 ---
 
