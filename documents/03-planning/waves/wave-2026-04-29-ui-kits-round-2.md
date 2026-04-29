@@ -274,3 +274,18 @@ Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md`:
   - 0 worktree contamination (RELATIVE paths rule held).
   - 0 file conflicts (file overlap matrix predicted clean disjoint).
 - **2026-04-29 (closure):** This commit (chore/wave-r2-ui-kits-closure) — fills Lessons-learned + ROADMAP wave-closure entry + `data/wave-history.jsonl` append. Wave status: `active` → `complete`. Track 2 (production port to Next.js) deferred per `gap-done-discipline.md` §3 — files GAP-264..267 only after user accepts Round 2 quality.
+- **2026-04-29 (Wave 1.5/1.6/1.7 add-ons + starter-kit Phase 2b SHIPPED):** Same-day extension after user flagged scope gap. 4 parallel background agents (max-cap per `feedback_parallel_agent_strategy.md` rule #9):
+  - **Wave 1.5 PR #673** kitehub-pro v2 — 32 files, +5,301 LOC, **avg 107.8/128**, 24 screens. KH SaaS dashboard for P2 Center Owner persona. Direction B style applied to KH side. Restored Round 1 `kitehub/` recreation as `_v1-baseline/` (was discarded earlier as "production code authoritative" — wrong call captured in `feedback_wave_scope_completeness_check.md` memory).
+  - **Wave 1.6 PR #674** kiteclass-teacher — 28 files, +3,630 LOC, **avg 108.0/128**, 24 screens. Teacher persona Tier 2 KC user (homeroom GVCN + subject teacher). G2 attendance roster + G3 gradebook + G4 schedule + G8 calendar UI inline (component specs deferred Wave 2).
+  - **Wave 1.7 PR #675** ai-branding-wizard-v2 — 32 files, +4,611 LOC, **avg 115.6/128 (HIGHEST kit)**, 28 screens. Direction C 6-step wizard refactor (NOT free-form playground). ENTERPRISE Advanced Mode separate path + quality gate /100 widget + per-resource approve toggle + regenerate counter tier-aware. Compliance with `ai-branding-guidelines.md` §2.1/§2.2/§2.4/§2.5/§4.1/§4.2/§4.3/§5/§6 fully enumerated.
+  - **Starter-kit Phase 2b** — cross-repo PR `claude-starter-kit#10` MERGED on remote (9 generic rules upstream, VERSION 2.2.0 → 2.3.0); project-side Log PR #676 MERGED. GAP-262 closes Phase 2b PR 1 ACs except local mirror sync (created in this closure commit per Q4=A decision).
+  - **Review report PR #677** — formal evidence-of-process artifact closing `output-review-mandate.md` §1 mandate gap (review evidence preserved). User correctly flagged that ad-hoc spot-check audit ≠ formal review process.
+
+  **Wave aggregate after add-ons:** 7 deliverables × 76 screens × **avg 110.5/128 (+51% vs Round 1 ~73/128)**. 4 agents 0-clarif (8th-11th consecutive). 0 worktree contamination. 0 file conflicts. Wall-clock ~150 min (foundation + parallel + sequential merges + cleanup). Token cost ~2.05M total this session.
+
+  **Novel patterns captured:**
+  - Scope-gap recovery via single-agent add-on waves (cheaper than full re-do)
+  - First parallel cross-repo work — starter-kit agent in `/tmp/kit-pr1` (legitimate absolute path) while 3 other agents in worktrees with RELATIVE paths
+  - Sandbox blocked `cp` between worktree and `/tmp` — Read+Write workaround documented for future cross-repo prompts
+  - Upstream layout drift (`rules/` vs `.claude/rules/`) — agent adapted at runtime; document in cross-repo prompt template
+  - Pre-existing files in 2 of 4 agent worktrees — harness/Phase-0 artifact, no quality impact, captured for investigation

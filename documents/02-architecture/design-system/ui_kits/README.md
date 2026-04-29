@@ -8,15 +8,18 @@ Design prototypes for human review. Generated using `documents/02-architecture/d
 
 ## Status
 
-| Kit | Wave | Status | Avg score /128 (target ≥105) |
-|-----|:----:|:------:|:----------------------------:|
-| Foundation (this PR) | 1 | 🟡 IN PROGRESS | — |
-| `kiteclass-pro-v2/` | 1 | ⏳ pending agent A | — |
-| `kiteclass-parent/` | 1 | ⏳ pending agent B | — |
-| `components/` (G2/G5/G6/G7/G12) | 1 | ⏳ pending agent C | — |
-| `kiteclass-teacher/` | 2 | 🔵 future | — |
-| `ai-branding-wizard-v2/` | 2 | 🔵 future | — |
-| `kitehub-story-v2/` (Direction A polish) | 3 | 🔵 future | — |
+| Kit | Wave | Status | Avg score /128 (target ≥105) | Lift vs Round 1 baseline |
+|-----|:----:|:------:|:----------------------------:|:------------------------:|
+| Foundation | 1 | ✅ DONE — PR #668 | — | — |
+| `kiteclass-pro-v2/` | 1 | ✅ DONE — PR #669 | **108.4** | +35 vs ~73 |
+| `kiteclass-parent/` | 1 | ✅ DONE — PR #670 | **114** ⭐ | +41 vs ~73 |
+| `components/` (G2/G5/G6/G7/G12) | 1 | ✅ DONE — PR #671 | **106.7** | +34 vs ~73 |
+| `kitehub-pro-v2/` (Wave 1.5 add-on) | 1.5 | ✅ DONE — PR #673 | **107.8** | +35 vs ~73 |
+| `kiteclass-teacher/` (Wave 1.6 add-on) | 1.6 | ✅ DONE — PR #674 | **108.0** | +35 vs ~73 |
+| `ai-branding-wizard-v2/` (Wave 1.7 add-on) | 1.7 | ✅ DONE — PR #675 | **115.6** ⭐⭐ | +43 vs ~73 |
+| `kitehub-story-v2/` (Direction A polish) | 3 | 🔵 future | — | — |
+
+**Wave aggregate:** 7 deliverables × 76 screens × avg **110.5/128** vs Round 1 baseline ~73/128 = **+51% lift**. Review evidence: `documents/04-quality/audits/ui-review/2026-04-29-wave-1-add-ons-review.md`.
 
 ## Folder structure
 
