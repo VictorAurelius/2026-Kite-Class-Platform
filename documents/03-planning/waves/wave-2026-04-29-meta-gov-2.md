@@ -1,6 +1,6 @@
 ---
 title: Wave Meta-Gov 2 — Maven warning gate + scaffold-as-DONE truth-up + status sync
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
 gaps: [GAP-245, GAP-225, GAP-224]
@@ -81,33 +81,46 @@ Per `feedback_parallel_agent_strategy.md`:
 - Closure (ROADMAP + cleanup + retrospective): ~15 min
 - **Total wave: ~65-75 min** (matches prior 4 waves benchmark)
 
-## Lessons-learned (filled AFTER wave merges)
+## Lessons-learned (Wave Meta-Gov 2, completed 2026-04-29)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold?
-- [ ] Contamination details if any:
+- [x] `isolation: "worktree"` held — no cross-contamination across 3 agents
+- [x] All 3 agents verified `pwd | grep worktrees/agent-` before Write/Edit
+- [x] No absolute-path bug recurrence
 
 ### File-overlap accuracy
-- [ ] Predicted SOFT: `meta-gap-priority.md` (citation only); actual:
-- [ ] Predicted HARD: 0; actual:
-- [ ] Unpredicted conflicts:
+- [x] Predicted SOFT: `meta-gap-priority.md` citation only — **actual: 0 conflict**
+- [x] Predicted HARD: 0 — **actual: 0**
+- [x] Unpredicted: **GAP-258 numbering collision** — wave plan said file new gap as "GAP-258" but 258/259/260 already taken (filed earlier in 2026-04-28); Agent A correctly used **GAP-261** instead and reported in handoff. No real conflict, just doc drift between plan-time and execution-time. Coordinator updates wave plan + ROADMAP to reflect GAP-261.
 
 ### Wall-clock
-- [ ] Estimated: 65-75 min; actual: ; variance source:
+- [x] Estimated: 65-75 min
+- [x] Actual: **~50 min** (foundation PR ~5 [bundled with prior wave closure] + 3 parallel agents ~6 + sequential merge ~5 [B+C parallel + A's Java tests ~5 min wait] + closure ~10 + cleanup ~3)
+- [x] Variance source: **faster than estimate** because foundation PR was bundled with prior wave closure (saved ~10 min) + Agent A's Java tests cleared cleanly without re-runs.
 
 ### Agent prompt quality
-- [ ] Clarification rounds: A=, B=, C=
+- [x] Clarification rounds: A=0, B=0, C=0 — **all 3 agents shipped first-pass**
+- [x] Template held perfectly across 2nd consecutive wave (post Wave Business Correctness)
 
 ### Token cost
-- [ ] Total tokens: ; per gap:
+- [x] Per agent: A=221k, B=197k, C=212k → total ~630k across 3 agents (parallel)
+- [x] Wave total: ~700-800k (foundation already in prior wave closure)
 
 ### Cleanup
-- [ ] Worktrees + local + remote branches cleaned
+- [x] 3 worktrees removed (required `-f -f` due to claude agent locks)
+- [x] 3 local branches deleted
+- [x] 3 remote branches deleted
 
 ### Novel patterns
-- [ ] New memory entry filed?
-- [ ] Rule update proposed?
+- [x] **GAP numbering collision risk surfaced** — when wave plan pre-allocates a gap ID for a follow-up to be filed by an agent, plan must verify ID is free OR instruct agent to "use next-free GAP ID and report back". Wave plan had "GAP-258" hardcoded but 258 already taken. Agent A handled gracefully (used GAP-261). Memory or rule update: add to `wave-pack-planner` SKILL.md gotchas — "follow-up gap IDs in wave plan are advisory only; agent verifies free ID at file-time".
+- [x] **Foundation-bundling pattern validated** — closing Wave N + foundation Wave N+1 in same PR saves 1 PR overhead. Prior precedent (Wave Meta-Day-2 + Wave DR/Backup 2026-04-28). Now Wave Meta-Gov 2 reused the pattern. Could be promoted to skill default for back-to-back waves.
+
+### Validation
+- 5th wave-pack execution validates methodology consistency (~50 min wall-clock with bundled foundation, ~5x speedup vs serial estimate)
+- 0 HARD/SOFT actual conflicts confirms file-overlap script reliability for 5th run
+- Coordinator-only ROADMAP rule held
 
 ## Log
 
+- 2026-04-29 (later) — Wave SHIPPED. 3 PRs merged sequence #656 (Agent B, GAP-225 → 🟢 DONE) → #657 (Agent C, GAP-224 → 🟢 DONE + GAP-202/206/207 status sync) → #658 (Agent A, GAP-245 → 🟡 PARTIAL + GAP-261 filed). Wall-clock ~50 min. All 3 agents 0-clarification-round. Counts: GAP-224 + GAP-225 closed; GAP-245 PARTIAL with GAP-261 follow-up; 3 stale-status syncs (GAP-202/206/207) truth-up'd to 🟢 DONE.
 - 2026-04-29 — Wave plan created in same closure PR as Wave Business Correctness. Cluster 6 = 3 disjoint Meta-P1+P3 items. Foundation PR also closes Wave Business Correctness (#651/#652/#653 already merged) + adds Cluster 6 row to §"Active wave queue" IN_PROGRESS + appends `wave-history.jsonl` for Wave Business Correctness. After this PR merges, 3 worktree-isolated agents spawn from main per `wave-pack-planner` SKILL.md Step 5.
