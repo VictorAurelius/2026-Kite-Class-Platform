@@ -89,3 +89,6 @@ target/
 # kiteclass/shared/ — CI-generated OpenAPI export (regenerated per PR)
 kiteclass/shared/openapi.json
 kiteclass/shared/openapi.json.tmp
+
+# Skill runtime data (append-only logs, regenerated per skill run)
+.claude/skills/quality/ui-review-prototype/data/runs.log
