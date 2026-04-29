@@ -1,0 +1,92 @@
+<!--
+  Persona: Teacher (subject) — DARK MODE
+  Flow: Flow #4 default state in dark
+  Score self-estimate: 110/128
+  Contrast (dark): foreground 16.8:1, grade-chip xuất sắc 4.6:1, primary 4.5:1
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sổ điểm dark — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32">
+  <h1 class="h1 mb-1">Sổ điểm — Lớp 10A2 - Toán nâng cao</h1>
+  <p class="muted body-sm mb-4">Học kỳ II 2025-2026 · 25 học sinh</p>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-border bg-muted/40 text-left">
+          <tr>
+            <th class="px-3 py-2 sticky-col w-12">STT</th>
+            <th class="px-3 py-2 sticky-col" style="left: 48px;">Họ và tên</th>
+            <th class="px-3 py-2 text-center">Bài 1</th>
+            <th class="px-3 py-2 text-center">Bài 2</th>
+            <th class="px-3 py-2 text-center">Giữa kỳ</th>
+            <th class="px-3 py-2 text-center">Cuối kỳ</th>
+            <th class="px-3 py-2 text-center bg-primary/5">Tổng kết</th>
+            <th class="px-3 py-2 text-center">Xếp loại</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">1</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Bùi Thị Anh</td>
+            <td class="text-center"><input class="grade-cell" value="9.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="9.25" /></td>
+            <td class="text-center"><input class="grade-cell" value="9.5" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">9.16</td>
+            <td class="text-center"><span class="grade-chip grade-xuatsac">Xuất sắc</span></td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">2</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Đặng Văn Bảo</td>
+            <td class="text-center"><input class="grade-cell" value="7.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="7.75" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.5" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">8.06</td>
+            <td class="text-center"><span class="grade-chip grade-gioi">Giỏi</span></td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">3</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Hoàng Thị Cẩm</td>
+            <td class="text-center"><input class="grade-cell" value="6.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="7.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="7.25" /></td>
+            <td class="text-center"><input class="grade-cell" value="7.0" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">7.06</td>
+            <td class="text-center"><span class="grade-chip grade-kha">Khá</span></td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">7</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Trần Quang Huy</td>
+            <td class="text-center"><input class="grade-cell" value="4.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="4.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="4.75" /></td>
+            <td class="text-center"><input class="grade-cell" value="4.0" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">4.31</td>
+            <td class="text-center"><span class="grade-chip grade-yeu">Yếu</span></td>
+          </tr>
+          <tr class="bg-muted/30"><td colspan="8" class="px-3 py-3 text-center muted text-xs italic">… 21 học sinh khác</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="save-bar">
+  <div class="text-sm muted">25 học sinh · TB 7.65</div>
+  <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i>Lưu</button>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

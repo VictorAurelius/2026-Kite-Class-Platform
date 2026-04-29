@@ -1,0 +1,74 @@
+<!--
+  Persona: Teacher — DARK MODE
+  Flow: Schedule week view in dark
+  Score self-estimate: 108/128
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lịch dạy dark — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <h1 class="h1 mb-1">Lịch dạy tuần này</h1>
+  <p class="muted body-sm mb-4">Tuần 33 — 14/04 → 20/04/2026 · 18 tiết / tuần</p>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+      <div class="grid grid-cols-8 min-w-[900px] text-sm">
+        <div class="schedule-cell bg-muted/40 font-medium text-center muted">Giờ</div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T2</div><div class="text-xs muted">14/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T3</div><div class="text-xs muted">15/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T4</div><div class="text-xs muted">16/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T5</div><div class="text-xs muted">17/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T6</div><div class="text-xs muted">18/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T7</div><div class="text-xs muted">19/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>CN</div><div class="text-xs muted">20/04</div></div>
+
+        <div class="schedule-cell text-xs muted text-center font-mono">7:00</div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">A201</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">11B1 - Văn</div><div class="muted text-xs">B105</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">A201</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+
+        <div class="schedule-cell text-xs muted text-center font-mono">14:00</div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">A201 · 90'</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">A201</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot" style="background: hsl(var(--warning) / 0.1); border-left-color: hsl(var(--warning))"><div class="font-semibold">SH 10A2</div><div class="muted text-xs">GVCN</div></div></div>
+        <div class="schedule-cell"></div>
+
+        <div class="schedule-cell text-xs muted text-center font-mono">16:00</div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">11B1 - Văn</div><div class="muted text-xs">B105</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

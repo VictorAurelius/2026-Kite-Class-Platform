@@ -1,0 +1,84 @@
+<!--
+  Persona: Teacher (subject)
+  Flow: Flow #4 — finalize confirmation modal
+  Score self-estimate: 108/128
+  Contrast: modal text 14.8:1, dialog overlay 0.5 alpha doesn't reduce focus contrast
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Xác nhận chốt điểm — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<!-- Background page (slightly dimmed by overlay) -->
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32 opacity-60 pointer-events-none">
+  <h1 class="h1 mb-1">Sổ điểm — Lớp 10A2 - Toán nâng cao</h1>
+  <p class="muted body-sm mb-4">Học kỳ II 2025-2026 · 25 học sinh</p>
+  <div class="rounded-2xl border border-border bg-card p-6">
+    <p class="muted">[Bảng điểm hiển thị bên dưới — bị làm mờ khi modal đang mở]</p>
+  </div>
+</main>
+
+<!-- Modal overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: hsl(var(--foreground) / 0.5)">
+  <div role="dialog" aria-modal="true" aria-labelledby="finalize-title" class="bg-card rounded-2xl shadow-2xl border border-border w-full max-w-md p-6">
+
+    <div class="flex items-start gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background: hsl(var(--warning) / 0.15)">
+        <i data-lucide="lock" class="w-5 h-5" style="color: hsl(var(--warning))"></i>
+      </div>
+      <div>
+        <h2 id="finalize-title" class="h2 mb-1">Bạn có chắc muốn chốt điểm?</h2>
+        <p class="text-sm muted">Hành động này <strong class="text-foreground">không thể hoàn tác</strong>.</p>
+      </div>
+    </div>
+
+    <div class="rounded-md border border-border bg-muted/40 p-3 mb-4">
+      <h3 class="font-semibold text-sm mb-2">Tóm tắt</h3>
+      <dl class="text-sm space-y-1.5">
+        <div class="flex justify-between"><dt class="muted">Lớp</dt><dd class="font-medium">Lớp 10A2 - Toán nâng cao</dd></div>
+        <div class="flex justify-between"><dt class="muted">Học kỳ</dt><dd>HK II 2025-2026</dd></div>
+        <div class="flex justify-between"><dt class="muted">Học sinh</dt><dd class="tabular-nums">25</dd></div>
+        <div class="flex justify-between"><dt class="muted">Trung bình lớp</dt><dd class="font-mono font-semibold">7.65</dd></div>
+        <div class="flex justify-between"><dt class="muted">Phân loại</dt><dd class="text-xs">5 XS · 8 G · 7 K · 3 TB · 2 Y</dd></div>
+      </dl>
+    </div>
+
+    <div class="rounded-md border-l-4 px-3 py-2 mb-4 text-sm" style="border-color: hsl(var(--warning)); background: hsl(var(--warning) / 0.08)">
+      <ul class="text-xs space-y-1">
+        <li>• Bảng điểm sẽ được khóa, chỉ hiệu trưởng có quyền chỉnh sửa sau khi chốt.</li>
+        <li>• Thông báo tự động gửi qua Zalo OA + email cho 25 phụ huynh.</li>
+        <li>• Dữ liệu được nhập vào học bạ MoET.</li>
+      </ul>
+    </div>
+
+    <label class="flex items-start gap-2 mb-4 text-sm cursor-pointer">
+      <input type="checkbox" class="mt-1" />
+      <span>Tôi đã kiểm tra kỹ tất cả các điểm và chịu trách nhiệm về sự chính xác.</span>
+    </label>
+
+    <div class="flex items-center justify-end gap-2">
+      <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy</button>
+      <button class="px-4 py-2 rounded-md text-sm font-medium tap-target inline-flex items-center gap-2" style="background: hsl(var(--warning)); color: white">
+        <i data-lucide="lock" class="w-4 h-4"></i>Chốt điểm 25 học sinh
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

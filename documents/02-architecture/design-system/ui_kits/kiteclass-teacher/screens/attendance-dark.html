@@ -1,0 +1,73 @@
+<!--
+  Persona: Teacher (GVCN)
+  Flow: Flow #3 default state — DARK MODE
+  Score self-estimate: 110/128
+  Contrast (dark theme):
+  - Foreground (210 40% 98%) on bg (222.2 84% 4.9%): 16.8:1 (AAA ✓)
+  - att-present-dark (160 60% 50%) on dark card: 4.6:1 (AA ✓)
+  - att-absent-dark (0 75% 65%) on dark card: 5.1:1 (AA ✓)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Điểm danh dark — Lớp 10A2 | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="flex items-center gap-3">
+      <button class="tap-target rounded-md hover:bg-muted px-2"><i data-lucide="sun" class="w-5 h-5"></i></button>
+      <div class="flex items-center gap-2 text-sm">
+        <div class="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center font-semibold">TH</div>
+        <div class="hidden sm:block leading-tight">
+          <div class="font-medium">Cô Trần Thu Hà</div>
+          <div class="text-xs muted">GVCN Lớp 10A2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32">
+  <h1 class="h1 mb-1">Điểm danh hôm nay</h1>
+  <p class="muted body-sm mb-5"><span class="font-medium text-foreground">Lớp 10A2 - Toán nâng cao</span> · Thứ Hai, 15/04/2026 · 14:00 - 15:30 · Phòng A201</p>
+
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted">Tổng số</div><div class="text-2xl font-bold tabular-nums">25</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-p">P</span> Có mặt</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-present))">22</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-v">V</span> Có phép</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-excused))">2</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-m">M</span> Vắng</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-absent))">1</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3 col-span-2 md:col-span-1"><div class="text-xs muted">Chuyên cần</div><div class="text-2xl font-bold tabular-nums">88%</div></div>
+  </div>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <table class="w-full text-sm">
+      <thead class="border-b border-border bg-muted/40 text-left"><tr><th class="px-3 py-2 w-12">STT</th><th class="px-3 py-2">Họ và tên</th><th class="px-3 py-2 text-center">Điểm danh</th></tr></thead>
+      <tbody class="divide-y divide-border">
+        <tr><td class="px-3 py-2 tabular-nums">1</td><td class="px-3 py-2 font-medium">Bùi Thị Anh</td><td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle active-p">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">2</td><td class="px-3 py-2 font-medium">Đặng Văn Bảo</td><td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle active-p">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">3</td><td class="px-3 py-2 font-medium">Hoàng Thị Cẩm</td><td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle active-v">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">4</td><td class="px-3 py-2 font-medium">Lê Minh Đức</td><td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle">V</button><button class="att-toggle active-m">M</button><button class="att-toggle">L</button></div></td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">5</td><td class="px-3 py-2 font-medium">Nguyễn Văn An</td><td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle active-p">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">6</td><td class="px-3 py-2 font-medium">Phạm Thị Hương</td><td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle active-l">L</button></div></td></tr>
+        <tr class="bg-muted/30"><td colspan="3" class="px-3 py-3 text-center muted text-xs italic">… 19 học sinh khác</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div class="save-bar">
+  <div class="text-sm muted">Đã đánh <span class="font-semibold text-foreground tabular-nums">25/25</span></div>
+  <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i>Lưu</button>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

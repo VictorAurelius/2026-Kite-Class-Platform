@@ -1,0 +1,64 @@
+<!--
+  Persona: Teacher
+  Flow: Flow #3 — empty state (class created, no students enrolled yet)
+  Score self-estimate: 102/128
+  Contrast: Body 14.8:1, muted 4.7:1, primary 4.5:1 (AA)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lớp chưa có học sinh — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà · GVCN 11B1</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <nav class="text-sm muted mb-2"><a href="#" class="hover:text-foreground">Lớp dạy</a> / <span class="text-foreground">Lớp 11B1 - Văn</span> / Điểm danh</nav>
+  <h1 class="h1 mb-1">Lớp 11B1 - Văn</h1>
+  <p class="muted body-sm mb-6">Học kỳ II 2025-2026 · 0 học sinh đăng ký</p>
+
+  <div class="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center">
+    <div class="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+      <i data-lucide="users" class="w-10 h-10 text-primary"></i>
+    </div>
+    <h2 class="h2 mb-2">Chưa có học sinh trong lớp</h2>
+    <p class="muted max-w-md mx-auto mb-6">
+      Lớp này vừa được tạo. Hãy thêm học sinh vào danh sách trước khi điểm danh. Bạn có thể thêm thủ công hoặc nhập từ file Excel.
+    </p>
+    <div class="flex items-center justify-center gap-3 flex-wrap">
+      <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> Thêm học sinh
+      </button>
+      <button class="px-4 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">
+        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Nhập từ Excel
+      </button>
+      <button class="px-4 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">
+        <i data-lucide="link-2" class="w-4 h-4"></i> Tạo link mời
+      </button>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-border max-w-md mx-auto text-left">
+      <h3 class="font-semibold text-sm mb-2">Mẹo cho GVCN mới:</h3>
+      <ul class="text-sm muted space-y-1.5">
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 mt-0.5 flex-shrink-0" style="color: hsl(var(--att-present))"></i>Lớp tối đa 45 học sinh (theo quy định)</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 mt-0.5 flex-shrink-0" style="color: hsl(var(--att-present))"></i>Mã học sinh tự động tạo theo định dạng 11B1-001</li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 mt-0.5 flex-shrink-0" style="color: hsl(var(--att-present))"></i>Phụ huynh được tự động tạo tài khoản truy cập</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

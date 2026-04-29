@@ -1,0 +1,121 @@
+<!--
+  Persona: Teacher (homeroom)
+  Flow: Drill-into-class report — month heatmap (G8 inline) + per-student bar chart
+  Score self-estimate: 110/128
+  Contrast: heatmap cells ≥4.5:1, bar chart axis labels 4.7:1
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Báo cáo chi tiết — Lớp 10A2 | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà · GVCN 10A2</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <nav class="text-sm muted mb-2"><a href="reports-overview-default.html" class="hover:text-foreground">Báo cáo</a> / <span class="text-foreground">Lớp 10A2 - Toán NC</span></nav>
+
+  <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
+    <div>
+      <h1 class="h1 mb-1">Lớp 10A2 - Toán nâng cao</h1>
+      <p class="muted body-sm">Tháng 04/2026 · 25 học sinh · GVCN: Cô Trần Thu Hà</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="px-3 py-2 rounded-md border border-border bg-card text-sm tap-target">
+        <option>Tháng 4/2026</option>
+        <option>Tháng 3/2026</option>
+        <option>Tháng 2/2026</option>
+      </select>
+      <button class="px-3 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2"><i data-lucide="printer" class="w-4 h-4"></i>In báo cáo</button>
+    </div>
+  </div>
+
+  <!-- Month heatmap (G8 inline pattern) -->
+  <div class="rounded-2xl border border-border bg-card p-4 mb-5 shadow-soft">
+    <h2 class="font-semibold mb-3 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-primary"></i> Lịch chuyên cần tháng 4/2026</h2>
+    <div class="grid grid-cols-7 gap-1.5 text-xs muted text-center mb-1">
+      <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+    </div>
+    <div class="grid grid-cols-7 gap-1.5">
+      <div class="heatmap-cell hm-none">31</div>
+      <div class="heatmap-cell hm-100">1</div>
+      <div class="heatmap-cell hm-100">2</div>
+      <div class="heatmap-cell hm-90">3</div>
+      <div class="heatmap-cell hm-100">4</div>
+      <div class="heatmap-cell hm-none">5</div>
+      <div class="heatmap-cell hm-none">6</div>
+
+      <div class="heatmap-cell hm-100">7</div>
+      <div class="heatmap-cell hm-75">8</div>
+      <div class="heatmap-cell hm-90">9</div>
+      <div class="heatmap-cell hm-100">10</div>
+      <div class="heatmap-cell hm-90">11</div>
+      <div class="heatmap-cell hm-none">12</div>
+      <div class="heatmap-cell hm-none">13</div>
+
+      <div class="heatmap-cell hm-100" style="outline: 2px solid hsl(var(--primary))">14</div>
+      <div class="heatmap-cell hm-90">15</div>
+      <div class="heatmap-cell hm-50">16</div>
+      <div class="heatmap-cell hm-low">17</div>
+      <div class="heatmap-cell hm-90">18</div>
+      <div class="heatmap-cell hm-none">19</div>
+      <div class="heatmap-cell hm-none">20</div>
+
+      <div class="heatmap-cell hm-none muted">21</div>
+      <div class="heatmap-cell hm-none muted">22</div>
+      <div class="heatmap-cell hm-none muted">23</div>
+      <div class="heatmap-cell hm-none muted">24</div>
+      <div class="heatmap-cell hm-none muted">25</div>
+      <div class="heatmap-cell hm-none">26</div>
+      <div class="heatmap-cell hm-none">27</div>
+
+      <div class="heatmap-cell hm-none muted">28</div>
+      <div class="heatmap-cell hm-none muted">29</div>
+      <div class="heatmap-cell hm-none muted">30</div>
+      <div class="heatmap-cell hm-none muted">1</div>
+      <div class="heatmap-cell hm-none muted">2</div>
+      <div class="heatmap-cell hm-none">3</div>
+      <div class="heatmap-cell hm-none">4</div>
+    </div>
+    <div class="mt-3 flex items-center gap-3 text-xs muted flex-wrap">
+      <span>Mức chuyên cần:</span>
+      <span class="inline-flex items-center gap-1"><span class="heatmap-cell hm-100" style="width: 14px; height: 14px; font-size: 0"></span>100%</span>
+      <span class="inline-flex items-center gap-1"><span class="heatmap-cell hm-90" style="width: 14px; height: 14px; font-size: 0"></span>≥90%</span>
+      <span class="inline-flex items-center gap-1"><span class="heatmap-cell hm-75" style="width: 14px; height: 14px; font-size: 0"></span>≥75%</span>
+      <span class="inline-flex items-center gap-1"><span class="heatmap-cell hm-50" style="width: 14px; height: 14px; font-size: 0"></span>50-75%</span>
+      <span class="inline-flex items-center gap-1"><span class="heatmap-cell hm-low" style="width: 14px; height: 14px; font-size: 0"></span>&lt;50%</span>
+      <span class="inline-flex items-center gap-1"><span class="heatmap-cell hm-none" style="width: 14px; height: 14px; font-size: 0"></span>Nghỉ / chưa có dữ liệu</span>
+    </div>
+  </div>
+
+  <!-- Per-student bar chart -->
+  <div class="rounded-2xl border border-border bg-card p-4 mb-5 shadow-soft">
+    <h2 class="font-semibold mb-3 flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4 text-primary"></i> Tỷ lệ chuyên cần từng học sinh</h2>
+    <div class="space-y-1.5">
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate">Bùi Thị Anh</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 100%; background: hsl(var(--att-present))"></div></div><div class="w-12 text-right tabular-nums font-medium">100%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate">Đặng Văn Bảo</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 95%; background: hsl(var(--att-present))"></div></div><div class="w-12 text-right tabular-nums font-medium">95%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate">Hoàng Thị Cẩm</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 88%; background: hsl(var(--att-present))"></div></div><div class="w-12 text-right tabular-nums font-medium">88%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate" style="color: hsl(var(--destructive))">Lê Minh Đức</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 72%; background: hsl(var(--att-late))"></div></div><div class="w-12 text-right tabular-nums font-medium" style="color: hsl(var(--att-late))">72%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate">Nguyễn Văn An</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 98%; background: hsl(var(--att-present))"></div></div><div class="w-12 text-right tabular-nums font-medium">98%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate">Phạm Thị Hương</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 84%; background: hsl(var(--att-present))"></div></div><div class="w-12 text-right tabular-nums font-medium">84%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate" style="color: hsl(var(--destructive))">Trần Quang Huy</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 65%; background: hsl(var(--att-absent))"></div></div><div class="w-12 text-right tabular-nums font-medium" style="color: hsl(var(--att-absent))">65%</div></div>
+      <div class="flex items-center gap-2 text-sm"><div class="w-32 truncate">Vũ Thị Mai</div><div class="flex-1 h-5 rounded bg-muted overflow-hidden"><div class="h-full" style="width: 92%; background: hsl(var(--att-present))"></div></div><div class="w-12 text-right tabular-nums font-medium">92%</div></div>
+      <div class="text-center text-xs muted italic mt-2">… 17 học sinh khác</div>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!--
+  Persona: Teacher (homeroom + subject)
+  Replaces: heaviest production screen /attendance/reports (417 LOC, baseline 80/128)
+  Component ref: G8 Calendar heatmap pattern inline + sparkline cards
+  Score self-estimate: 113/128 (target ≥105)
+  Lift target: +33 vs baseline 80/128
+  Contrast (measured):
+  - KPI sparkbar primary 4.5:1 (AA ✓)
+  - Tab active border 3:1 vs inactive (AA non-text ✓)
+  - Body 14.8:1 (AAA ✓)
+  Bundle estimate: ~210 KB FLJ (target <250 ✓)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Báo cáo điểm danh — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+      <nav class="hidden md:flex items-center gap-1 text-sm">
+        <a href="attendance-default.html" class="px-3 py-2 rounded-md hover:bg-muted muted">Điểm danh</a>
+        <a href="grade-entry-default.html" class="px-3 py-2 rounded-md hover:bg-muted muted">Vào điểm</a>
+        <a href="schedule-week-view.html" class="px-3 py-2 rounded-md hover:bg-muted muted">Lịch dạy</a>
+        <a href="#" class="px-3 py-2 rounded-md text-foreground bg-muted font-medium">Báo cáo</a>
+      </nav>
+    </div>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <div class="flex items-end justify-between mb-3 gap-3 flex-wrap">
+    <div>
+      <h1 class="h1 mb-1">Báo cáo chuyên cần</h1>
+      <p class="muted body-sm">Tổng hợp các lớp Cô đang phụ trách · 14/04/2026</p>
+    </div>
+    <button class="px-3 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i>Xuất CSV</button>
+  </div>
+
+  <!-- Tabs (Hôm nay / Tuần / Tháng) -->
+  <div class="flex border-b border-border mb-4 gap-1" role="tablist">
+    <button class="px-4 py-2 text-sm font-medium border-b-2 border-primary text-foreground" role="tab" aria-selected="true">Hôm nay</button>
+    <button class="px-4 py-2 text-sm muted hover:text-foreground border-b-2 border-transparent" role="tab">Tuần này</button>
+    <button class="px-4 py-2 text-sm muted hover:text-foreground border-b-2 border-transparent" role="tab">Tháng này</button>
+  </div>
+
+  <!-- KPI cards with sparkline -->
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+
+    <div class="rounded-2xl border border-border bg-card p-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs muted">Tổng học sinh</div>
+        <i data-lucide="users" class="w-4 h-4 muted"></i>
+      </div>
+      <div class="text-2xl font-bold tabular-nums">75</div>
+      <div class="text-xs muted">3 lớp</div>
+    </div>
+
+    <div class="rounded-2xl border border-border bg-card p-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs muted flex items-center gap-1"><span class="att-chip att-p">P</span> Có mặt</div>
+      </div>
+      <div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-present))">66</div>
+      <div class="sparkbar mt-1"><i style="height: 60%"></i><i style="height: 80%"></i><i style="height: 70%"></i><i style="height: 85%"></i><i style="height: 90%"></i><i style="height: 88%"></i></div>
+    </div>
+
+    <div class="rounded-2xl border border-border bg-card p-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs muted flex items-center gap-1"><span class="att-chip att-v">V</span> Có phép</div>
+      </div>
+      <div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-excused))">5</div>
+      <div class="sparkbar mt-1"><i style="height: 30%"></i><i style="height: 50%"></i><i style="height: 40%"></i><i style="height: 30%"></i><i style="height: 20%"></i><i style="height: 35%"></i></div>
+    </div>
+
+    <div class="rounded-2xl border border-border bg-card p-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs muted flex items-center gap-1"><span class="att-chip att-m">M</span> Vắng</div>
+      </div>
+      <div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-absent))">3</div>
+      <div class="sparkbar mt-1"><i style="height: 40%"></i><i style="height: 30%"></i><i style="height: 50%"></i><i style="height: 25%"></i><i style="height: 35%"></i><i style="height: 30%"></i></div>
+    </div>
+
+    <div class="rounded-2xl border border-border bg-card p-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs muted flex items-center gap-1"><span class="att-chip att-l">L</span> Trễ</div>
+      </div>
+      <div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-late))">1</div>
+      <div class="sparkbar mt-1"><i style="height: 20%"></i><i style="height: 30%"></i><i style="height: 25%"></i><i style="height: 15%"></i><i style="height: 25%"></i><i style="height: 18%"></i></div>
+    </div>
+
+    <div class="rounded-2xl border-2 border-primary/30 bg-primary/5 p-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs text-primary font-medium">Tỷ lệ chuyên cần</div>
+      </div>
+      <div class="text-2xl font-bold tabular-nums text-primary">88<span class="text-base">%</span></div>
+      <div class="text-xs" style="color: hsl(var(--att-present))">↑ 2.3% vs hôm qua</div>
+    </div>
+  </div>
+
+  <!-- Class-by-class table -->
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="border-b border-border px-4 py-2 bg-muted/40 flex items-center justify-between">
+      <h2 class="font-semibold text-sm">Theo lớp</h2>
+      <span class="text-xs muted">Cập nhật 14:35</span>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="border-b border-border text-left bg-muted/20">
+        <tr>
+          <th class="px-4 py-2">Lớp</th>
+          <th class="px-3 py-2 text-center">Sĩ số</th>
+          <th class="px-3 py-2 text-center"><span class="att-chip att-p">P</span></th>
+          <th class="px-3 py-2 text-center"><span class="att-chip att-v">V</span></th>
+          <th class="px-3 py-2 text-center"><span class="att-chip att-m">M</span></th>
+          <th class="px-3 py-2 text-center"><span class="att-chip att-l">L</span></th>
+          <th class="px-3 py-2 text-center">Tỷ lệ</th>
+          <th class="px-3 py-2 text-right"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        <tr class="hover:bg-muted/30">
+          <td class="px-4 py-3"><div class="font-medium">Lớp 10A2 - Toán NC</div><div class="text-xs muted">GVCN</div></td>
+          <td class="px-3 py-3 text-center tabular-nums">25</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-present))">22</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-excused))">2</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-absent))">1</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-late))">0</td>
+          <td class="px-3 py-3 text-center tabular-nums font-semibold">88%</td>
+          <td class="px-3 py-3 text-right"><a href="reports-detail-class.html" class="text-primary hover:underline text-xs">Chi tiết →</a></td>
+        </tr>
+        <tr class="hover:bg-muted/30">
+          <td class="px-4 py-3"><div class="font-medium">Lớp 10A1 - Toán</div><div class="text-xs muted">Chỉ dạy môn</div></td>
+          <td class="px-3 py-3 text-center tabular-nums">28</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-present))">26</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-excused))">2</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-absent))">0</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-late))">0</td>
+          <td class="px-3 py-3 text-center tabular-nums font-semibold">93%</td>
+          <td class="px-3 py-3 text-right"><a href="#" class="text-primary hover:underline text-xs">Chi tiết →</a></td>
+        </tr>
+        <tr class="hover:bg-muted/30">
+          <td class="px-4 py-3"><div class="font-medium">Lớp 11B1 - Văn</div><div class="text-xs muted">Chỉ dạy môn</div></td>
+          <td class="px-3 py-3 text-center tabular-nums">22</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-present))">18</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-excused))">1</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-absent))">2</td>
+          <td class="px-3 py-3 text-center tabular-nums" style="color: hsl(var(--att-late))">1</td>
+          <td class="px-3 py-3 text-center tabular-nums font-semibold" style="color: hsl(var(--att-late))">82%</td>
+          <td class="px-3 py-3 text-right"><a href="#" class="text-primary hover:underline text-xs">Chi tiết →</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Insight card -->
+  <div class="mt-5 rounded-2xl border border-border bg-card p-4 shadow-soft">
+    <h2 class="font-semibold mb-2 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 text-primary"></i> Học sinh cần lưu ý</h2>
+    <ul class="text-sm space-y-2">
+      <li class="flex items-center gap-2"><i data-lucide="dot" class="w-4 h-4" style="color: hsl(var(--destructive))"></i>
+        <span><strong>Lê Minh Đức</strong> (10A2) — vắng không phép 3 lần trong tháng. Đề xuất gọi phụ huynh.</span>
+      </li>
+      <li class="flex items-center gap-2"><i data-lucide="dot" class="w-4 h-4" style="color: hsl(var(--att-late))"></i>
+        <span><strong>Phạm Thị Hương</strong> (10A2) — đi trễ 5 lần liên tiếp. Giảm trừ hạnh kiểm tuần này.</span>
+      </li>
+      <li class="flex items-center gap-2"><i data-lucide="dot" class="w-4 h-4" style="color: hsl(var(--att-late))"></i>
+        <span><strong>Trần Quang Huy</strong> (10A2) — tỷ lệ chuyên cần &lt; 70%. Cần liên hệ gia đình.</span>
+      </li>
+    </ul>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

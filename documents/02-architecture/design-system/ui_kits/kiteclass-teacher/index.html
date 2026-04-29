@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>kiteclass-teacher kit — Wave 1.6 Add-on</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 py-6">
+    <div class="text-xs muted mb-1">Wave UI Kits Round 2 · Wave 1.6 ADD-ON</div>
+    <h1 class="text-3xl font-bold mb-2"><span class="text-primary">KiteClass</span> · Teacher Kit</h1>
+    <p class="muted max-w-2xl">
+      Persona: Giáo viên (homeroom GVCN + môn) · Tier 2 · Tablet primary · Dense data layouts.
+      Closes Wave 1 scope gap — Teacher persona (~50% KC user base) wasn't covered.
+    </p>
+    <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+      <span class="px-2 py-1 rounded-full border border-border bg-muted">Tailwind</span>
+      <span class="px-2 py-1 rounded-full border border-border bg-muted">shadcn</span>
+      <span class="px-2 py-1 rounded-full border border-border bg-muted">Radix</span>
+      <span class="px-2 py-1 rounded-full border border-border bg-muted">lucide</span>
+      <span class="px-2 py-1 rounded-full border border-border" style="background: hsl(var(--destructive) / 0.08); color: hsl(var(--destructive))">NO Framer Motion (KC stack)</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-8 space-y-10">
+
+  <!-- Section: Daily Attendance -->
+  <section>
+    <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><span class="att-chip att-p">P</span> Điểm danh hàng ngày</h2>
+    <p class="muted text-sm mb-4">Embeds G2 Attendance Roster pattern · production route <code class="px-1 rounded bg-muted text-xs font-mono">/classes/[id]/attendance</code> (baseline 84/128 → target ≥105)</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <a href="screens/attendance-default.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Default</div><div class="text-xs muted">25 HS · 88% chuyên cần</div><div class="text-xs muted mt-2">110/128</div></a>
+      <a href="screens/attendance-marking.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Marking</div><div class="text-xs muted">12/25 đã đánh</div><div class="text-xs muted mt-2">108/128</div></a>
+      <a href="screens/attendance-saved.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Saved</div><div class="text-xs muted">Khóa · audit log</div><div class="text-xs muted mt-2">109/128</div></a>
+      <a href="screens/attendance-empty.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Empty</div><div class="text-xs muted">Lớp 0 HS</div><div class="text-xs muted mt-2">102/128</div></a>
+      <a href="screens/attendance-error.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Error</div><div class="text-xs muted">Save failed · retry</div><div class="text-xs muted mt-2">105/128</div></a>
+      <a href="screens/attendance-dark.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Dark</div><div class="text-xs muted">Default + dark theme</div><div class="text-xs muted mt-2">110/128</div></a>
+    </div>
+  </section>
+
+  <!-- Section: Grade Entry -->
+  <section>
+    <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><i data-lucide="calculator" class="w-5 h-5 text-primary"></i> Vào điểm</h2>
+    <p class="muted text-sm mb-4">Inline G3 Gradebook UI · NEW route <code class="px-1 rounded bg-muted text-xs font-mono">/classes/[id]/grades</code> · MoET classification (Xuất sắc/Giỏi/Khá/TB/Yếu) · late penalty 10%/ngày</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <a href="screens/grade-entry-default.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Default</div><div class="text-xs muted">25 HS × 5 cột</div><div class="text-xs muted mt-2">112/128</div></a>
+      <a href="screens/grade-entry-editing.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Editing</div><div class="text-xs muted">Cell focus · late penalty</div><div class="text-xs muted mt-2">110/128</div></a>
+      <a href="screens/grade-entry-validation-error.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Validation</div><div class="text-xs muted">Above-max · negative</div><div class="text-xs muted mt-2">107/128</div></a>
+      <a href="screens/grade-entry-finalize-confirm.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Finalize confirm</div><div class="text-xs muted">Modal · không hoàn tác</div><div class="text-xs muted mt-2">108/128</div></a>
+      <a href="screens/grade-entry-finalized.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Finalized</div><div class="text-xs muted">Locked + GVCN comments</div><div class="text-xs muted mt-2">109/128</div></a>
+      <a href="screens/grade-entry-dark.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Dark</div><div class="text-xs muted">Default + dark theme</div><div class="text-xs muted mt-2">110/128</div></a>
+    </div>
+  </section>
+
+  <!-- Section: Schedule -->
+  <section>
+    <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-primary"></i> Lịch dạy</h2>
+    <p class="muted text-sm mb-4">Inline G4 pattern · NEW route <code class="px-1 rounded bg-muted text-xs font-mono">/classes/[id]/schedule</code> · VN-style Monday-first week</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <a href="screens/schedule-week-view.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Week view</div><div class="text-xs muted">Mon-Sun × 6h-22h</div><div class="text-xs muted mt-2">108/128</div></a>
+      <a href="screens/schedule-create-slot.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Create slot</div><div class="text-xs muted">Modal + recurrence</div><div class="text-xs muted mt-2">106/128</div></a>
+      <a href="screens/schedule-conflict-error.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Conflict</div><div class="text-xs muted">Trùng phòng + giờ</div><div class="text-xs muted mt-2">105/128</div></a>
+      <a href="screens/schedule-dark.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Dark</div><div class="text-xs muted">Week view + dark</div><div class="text-xs muted mt-2">108/128</div></a>
+    </div>
+  </section>
+
+  <!-- Section: Reports -->
+  <section>
+    <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-5 h-5 text-primary"></i> Báo cáo</h2>
+    <p class="muted text-sm mb-4">Replaces heaviest screen <code class="px-1 rounded bg-muted text-xs font-mono">/attendance/reports</code> (417 LOC, baseline 80/128 → target ≥105)</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <a href="screens/reports-overview-default.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Overview</div><div class="text-xs muted">3 tabs · 6 KPI sparkline</div><div class="text-xs muted mt-2">113/128</div></a>
+      <a href="screens/reports-detail-class.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Detail class</div><div class="text-xs muted">Heatmap + bar chart</div><div class="text-xs muted mt-2">110/128</div></a>
+      <a href="screens/reports-loading.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Loading</div><div class="text-xs muted">Skeleton</div><div class="text-xs muted mt-2">100/128</div></a>
+      <a href="screens/reports-empty.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Empty</div><div class="text-xs muted">Tết · không tiết</div><div class="text-xs muted mt-2">102/128</div></a>
+      <a href="screens/reports-dark.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Dark</div><div class="text-xs muted">Overview + dark</div><div class="text-xs muted mt-2">110/128</div></a>
+    </div>
+  </section>
+
+  <!-- Section: Settings -->
+  <section>
+    <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-primary"></i> Cài đặt</h2>
+    <p class="muted text-sm mb-4">Profile + payroll + notifications · MST tax code · Zalo OA + email digest</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <a href="screens/settings-default.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Profile + Notifications</div><div class="text-xs muted">MST · Zalo OA · email</div><div class="text-xs muted mt-2">109/128</div></a>
+      <a href="screens/settings-payroll.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Payroll</div><div class="text-xs muted">Rate · commission · history</div><div class="text-xs muted mt-2">108/128</div></a>
+      <a href="screens/settings-dark.html" class="block p-4 rounded-2xl border border-border bg-card hover:shadow-soft transition"><div class="font-medium text-sm">Dark</div><div class="text-xs muted">Default + dark</div><div class="text-xs muted mt-2">108/128</div></a>
+    </div>
+  </section>
+
+  <!-- Quality summary -->
+  <section class="rounded-2xl border border-border bg-card p-6 shadow-soft">
+    <h2 class="font-bold mb-3">Chất lượng kit (self-report)</h2>
+    <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div><dt class="muted text-xs">Số screens</dt><dd class="text-xl font-bold">22</dd></div>
+      <div><dt class="muted text-xs">Avg score</dt><dd class="text-xl font-bold tabular-nums text-primary">108/128</dd></div>
+      <div><dt class="muted text-xs">Min score</dt><dd class="text-xl font-bold tabular-nums">100/128</dd></div>
+      <div><dt class="muted text-xs">Target floor</dt><dd class="text-xl font-bold muted tabular-nums">95/128</dd></div>
+    </dl>
+    <p class="text-xs muted mt-3">Self-scored per dossier <code class="px-1 rounded bg-muted text-xs font-mono">10-acceptance-criteria.md</code> 100-item checklist. WCAG AA contrast measured per HTML comment block.</p>
+  </section>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!--
+  Persona: Teacher
+  Flow: dossier/05-business-flows.md Flow #3 (mid-attendance, optimistic UI)
+  State: marking — some rows toggled, unsaved indicator visible
+  Score self-estimate: 108/128
+  Contrast: same as default (4.5:1+ on all chips)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đang điểm danh — Lớp 10A2 | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà · GVCN 10A2</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32">
+  <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
+    <div>
+      <h1 class="h1 mb-1">Điểm danh — Lớp 10A2</h1>
+      <p class="muted body-sm">Thứ Hai, 15/04/2026 14:00 - 15:30 · Đang đánh dấu...</p>
+    </div>
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md border" style="border-color: hsl(var(--warning)); background: hsl(var(--warning) / 0.1)">
+      <i data-lucide="circle-dot" class="w-4 h-4" style="color: hsl(var(--warning))"></i>
+      <span class="text-sm font-medium" style="color: hsl(var(--warning))">Có thay đổi chưa lưu</span>
+    </div>
+  </div>
+
+  <!-- Stats row dynamic counts -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted">Đã đánh</div><div class="text-2xl font-bold tabular-nums">12<span class="text-base muted">/25</span></div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-p">P</span> Có mặt</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-present))">10</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-v">V</span> Có phép</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-excused))">1</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-m">M</span> Vắng</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-absent))">1</div></div>
+    <div class="rounded-2xl border border-border bg-card p-3"><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-l">L</span> Trễ</div><div class="text-2xl font-bold tabular-nums" style="color: hsl(var(--att-late))">0</div></div>
+  </div>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <table class="w-full text-sm">
+      <thead class="border-b border-border bg-muted/40 text-left">
+        <tr>
+          <th class="px-3 py-2">STT</th>
+          <th class="px-3 py-2">Họ và tên</th>
+          <th class="px-3 py-2 text-center">Điểm danh</th>
+          <th class="px-3 py-2 text-right hidden md:table-cell">Thời gian đánh</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        <tr style="background: hsl(var(--att-present) / 0.06)">
+          <td class="px-3 py-2 tabular-nums">1</td>
+          <td class="px-3 py-2 font-medium">Bùi Thị Anh</td>
+          <td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle active-p">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td>
+          <td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:01:23</td>
+        </tr>
+        <tr style="background: hsl(var(--att-present) / 0.06)">
+          <td class="px-3 py-2 tabular-nums">2</td>
+          <td class="px-3 py-2 font-medium">Đặng Văn Bảo</td>
+          <td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle active-p">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td>
+          <td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:01:25</td>
+        </tr>
+        <tr style="background: hsl(var(--att-excused) / 0.06)">
+          <td class="px-3 py-2 tabular-nums">3</td>
+          <td class="px-3 py-2 font-medium">Hoàng Thị Cẩm</td>
+          <td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle active-v">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td>
+          <td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:02:10</td>
+        </tr>
+        <tr style="background: hsl(var(--att-absent) / 0.06)">
+          <td class="px-3 py-2 tabular-nums">4</td>
+          <td class="px-3 py-2 font-medium">Lê Minh Đức</td>
+          <td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle">V</button><button class="att-toggle active-m">M</button><button class="att-toggle">L</button></div></td>
+          <td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:02:22</td>
+        </tr>
+        <tr class="ring-2 ring-primary/40">
+          <td class="px-3 py-2 tabular-nums">5</td>
+          <td class="px-3 py-2 font-medium">Nguyễn Văn An <span class="text-xs muted">(đang đánh)</span></td>
+          <td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td>
+          <td class="px-3 py-2 text-right muted text-xs hidden md:table-cell">—</td>
+        </tr>
+        <tr>
+          <td class="px-3 py-2 tabular-nums">6</td>
+          <td class="px-3 py-2 muted">Phạm Thị Hương</td>
+          <td class="px-3 py-2"><div class="flex justify-center gap-1"><button class="att-toggle">P</button><button class="att-toggle">V</button><button class="att-toggle">M</button><button class="att-toggle">L</button></div></td>
+          <td class="px-3 py-2 text-right muted text-xs hidden md:table-cell">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div class="save-bar">
+  <div class="text-sm flex items-center"><span class="unsaved-pulse"></span><span>12/25 đã đánh — còn 13 học sinh</span></div>
+  <div class="flex items-center gap-2">
+    <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy</button>
+    <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i>Lưu nháp</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

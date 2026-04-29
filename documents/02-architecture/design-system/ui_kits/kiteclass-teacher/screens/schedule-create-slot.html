@@ -1,0 +1,128 @@
+<!--
+  Persona: Teacher (homeroom + subject)
+  Flow: schedule creation — drag-create slot modal with recurrence picker
+  Score self-estimate: 106/128
+  Contrast: form labels 4.7:1, primary submit 4.5:1
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tạo tiết dạy — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 opacity-50 pointer-events-none">
+  <h1 class="h1 mb-4">Lịch dạy tuần này</h1>
+  <div class="rounded-2xl border border-border bg-card p-6"><p class="muted">[Lịch tuần phía sau modal]</p></div>
+</main>
+
+<!-- Modal: Create slot -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: hsl(var(--foreground) / 0.5)">
+  <div role="dialog" aria-modal="true" aria-labelledby="create-slot-title" class="bg-card rounded-2xl shadow-2xl border border-border w-full max-w-lg p-6">
+
+    <h2 id="create-slot-title" class="h2 mb-4 flex items-center gap-2">
+      <i data-lucide="calendar-plus" class="w-5 h-5 text-primary"></i> Tạo tiết dạy mới
+    </h2>
+
+    <form class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Lớp / Môn</label>
+        <select class="w-full px-3 py-2 rounded-md border border-border bg-card tap-target text-sm">
+          <option>Lớp 10A2 - Toán nâng cao</option>
+          <option>Lớp 10A1 - Toán</option>
+          <option>Lớp 11B1 - Văn</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">Thứ</label>
+          <select class="w-full px-3 py-2 rounded-md border border-border bg-card tap-target text-sm">
+            <option>Thứ Hai</option>
+            <option>Thứ Ba</option>
+            <option selected>Thứ Tư</option>
+            <option>Thứ Năm</option>
+            <option>Thứ Sáu</option>
+            <option>Thứ Bảy</option>
+            <option>Chủ Nhật</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Phòng</label>
+          <select class="w-full px-3 py-2 rounded-md border border-border bg-card tap-target text-sm">
+            <option>A201 (45 chỗ)</option>
+            <option>A105</option>
+            <option>B105</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium mb-1">Giờ bắt đầu</label>
+          <input type="time" class="w-full px-3 py-2 rounded-md border border-border bg-card tap-target text-sm font-mono" value="14:00" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Giờ kết thúc</label>
+          <input type="time" class="w-full px-3 py-2 rounded-md border border-border bg-card tap-target text-sm font-mono" value="15:30" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-2">Lặp lại</label>
+        <div class="grid grid-cols-2 gap-2 text-sm">
+          <label class="flex items-center gap-2 px-3 py-2 rounded-md border border-border tap-target cursor-pointer hover:bg-muted">
+            <input type="radio" name="rec" value="none" />
+            <span>Không lặp (1 lần)</span>
+          </label>
+          <label class="flex items-center gap-2 px-3 py-2 rounded-md border-2 border-primary tap-target cursor-pointer" style="background: hsl(var(--primary) / 0.06)">
+            <input type="radio" name="rec" value="weekly" checked />
+            <span>Hàng tuần</span>
+          </label>
+          <label class="flex items-center gap-2 px-3 py-2 rounded-md border border-border tap-target cursor-pointer hover:bg-muted">
+            <input type="radio" name="rec" value="biweekly" />
+            <span>2 tuần/lần</span>
+          </label>
+          <label class="flex items-center gap-2 px-3 py-2 rounded-md border border-border tap-target cursor-pointer hover:bg-muted">
+            <input type="radio" name="rec" value="monthly" />
+            <span>Hàng tháng</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Kết thúc lặp</label>
+        <input type="date" class="w-full px-3 py-2 rounded-md border border-border bg-card tap-target text-sm" value="2026-05-30" />
+        <p class="text-xs muted mt-1">Hệ thống sẽ tạo 6 tiết liên tiếp đến 30/05/2026 (kết thúc HK II).</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium mb-1">Ghi chú (tùy chọn)</label>
+        <textarea class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm" rows="2" placeholder="Vd: Chương 5 - Hàm số bậc 2"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-border">
+        <button type="button" class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy</button>
+        <button type="submit" class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2">
+          <i data-lucide="check" class="w-4 h-4"></i>Tạo 6 tiết
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>
