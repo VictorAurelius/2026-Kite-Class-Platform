@@ -1,12 +1,12 @@
 ---
 title: Wave UI Coverage Audit — 100% production frontend coverage with evidence
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
 waves: [ui-coverage-audit]
 gaps: []
 predecessor: wave-2026-04-29-ui-kits-round-3.md
-spawns_followups: [GAP-274, GAP-275, GAP-276, GAP-277, GAP-278, GAP-279]
+spawns_followups: [GAP-274, GAP-275, GAP-276, GAP-277, GAP-278, GAP-279, GAP-280]
 ---
 
 # Wave UI Coverage Audit — 100% production frontend coverage with evidence
@@ -208,12 +208,62 @@ Each agent reports back: file count enumerated per category + gap count claims (
 
 ---
 
-## 9. Lessons-learned (filled post-wave SHIP)
+## 9. Lessons-learned (post-wave SHIP)
 
-_(filled post-wave)_
+### Worktree isolation
+✅ Both agents `isolation: worktree` + RELATIVE paths. **0 contamination.** Agents reported `pwd` verification.
+
+### File-overlap accuracy
+Predicted 1 SOFT (`03-screen-inventory.md` two sections). **Actual: 0 conflicts** at merge — agents edited disjoint sections cleanly. Sequential merge A→B was clean fast-forward.
+
+### Wall-clock
+Estimated 85 min. **Actual ~75 min:**
+- Foundation PR: ~15 min (on target)
+- 2 parallel agents: ~7 min wall (longest = Agent A 6.8 min) — significantly faster than 40 min estimate
+- Coordinator synthesis (audit report + 7 GAPs + ROADMAP + lessons): ~50 min (slightly over 30 estimate due to comprehensive audit synthesis)
+
+**Variance:** -12% under estimate. Agents extremely fast on enumeration tasks (grep/find heavy, no creative writing).
+
+### Agent prompt quality
+✅ Both agents 0-clarification rounds. Streak now **28 consecutive** (was 26 after Wave UI Kits R3). Enumeration prompts cleaner than build prompts — explicit Task A.1/A.2/A.3 structure + concrete grep commands + format templates.
+
+### Quality gate accuracy
+| Bucket | Catalogued | Actual count |
+|--------|:----------:|:------------:|
+| KC pages | 40 | 40 ✅ matches `find` |
+| KH pages | 24 | 24 ✅ matches `find` |
+| KC modals | 5 distinct (7 files) | matches grep |
+| KH modals | 9 sites (5 files) | matches grep |
+| KC components | 81 catalogued | matches `ls` traversal |
+| KH components | 27 audited (21 shadcn excluded) | matches |
+| Error/layout | 15 cross-app | matches `find` |
+
+### Token cost
+Total ~750K tokens this wave: foundation ~80K + agents 322K cumulative (158K KH + 164K KC) + coordinator synthesis ~350K (audit report + 7 GAPs + lessons-learned).
+
+### Cleanup
+2 agent worktrees pruned post-merge. 2 agent branches `--delete-branch` clean. Closure PR cleaning up local refs.
+
+### Novel patterns
+1. **First audit-only wave with `agent-background-spawn-default.md` v1.0.0 rule applied** — 2 agents background, parent stayed responsive throughout. Validates rule design.
+2. **First evidence-preserved gap-filing pattern** — GAPs cite audit report as source-of-truth, not just "user request". Closes `output-review-mandate.md` Section 1 audit-evidence mandate for FE coverage scope.
+3. **Onboarding wizard finding** — Agent A surfaced GAP-280 candidate not in coordinator initial plan. Demonstrates agent enumeration > coordinator quick-audit on edge cases.
+4. **Agent A flagged tech-debt** — 5 items (cancel-class anti-pattern Card→Dialog, KC missing global-error.tsx, etc.) not in coverage scope but valuable side-finding. Captured in audit §3.2 + dossier `15-error-layout-inventory.md` §"Best-practice gaps".
+5. **3-state coverage marker** (✅ explicit / ⚠️ implicit / ❌ missing) proved more useful than binary covered/uncovered — captures "kit covers persona but not exact 1:1 screen" nuance.
+
+### Memory entry filed?
+None warranted. Existing memories (`feedback_parallel_agent_strategy.md` 11 rules, `agent-background-spawn-default.md` rule) covered this wave's patterns.
+
+### Rule update proposed?
+None. `output-review-mandate.md` §3 row "Quality audit reports" already covers this audit type. `agent-background-spawn-default.md` v1.0.0 just shipped (PR #705) — this wave validates it works as designed.
 
 ---
 
 ## 10. Log
 
-- **2026-04-29 (kickoff):** Wave plan created on branch `wave/ui-coverage-audit`. Triggered by user-flagged miss after Track 2 gap filing (GAP-266..273): "UI của tất cả screen/model/dialog/common đã cover hết chưa?" Coordinator quick-audit estimated ~60-70% coverage, missing public marketing + auth flows + error pages + modals + non-G1..G12 components. Per `output-review-mandate.md` Section 1 evidence-preserved mandate, audit-with-evidence wave needed before filing follow-up GAPs. After this PR merges: 2 parallel background agents (KC, KH) enumerate + coordinator synthesizes audit + files GAP-274..279.
+- **2026-04-29 (kickoff):** Wave plan created. Triggered by user-flagged miss after Track 2 gap filing (GAP-266..273): "UI của tất cả screen/model/dialog/common đã cover hết chưa?" Foundation PR #707 squash-merged.
+- **2026-04-29 (Wave SHIPPED):** 2 parallel background agents:
+  - **PR #709** Agent A KC FE — 40 pages + 5 distinct modals + 81 components catalogued. Updated `dossier/03-screen-inventory.md` KC section + new `12-modal-dialog-inventory-kc.md` + new `14-common-components-inventory-kc.md`. Wall-clock 6.8 min. Bonus: surfaced GAP-280 (onboarding wizard) candidate + 5 tech-debt items.
+  - **PR #708** Agent B KH FE — 24 pages + 9 modal sites + 27 components catalogued. Same 3-doc structure. Wall-clock 5.1 min. Critical clarification: `(admin)/` group is KH platform-ops, DISTINCT from `kitehub-admin/` K-12 Principal kit (drives GAP-278).
+  - Sequential merge: A → B clean (0 conflicts on `03-screen-inventory.md` SOFT predicted).
+- **2026-04-29 (closure):** This commit — coordinator synthesis. Created `dossier/15-error-layout-inventory.md` (15 cross-app error/layout files) + `documents/04-quality/audits/ui-review/2026-04-29-frontend-ui-coverage-audit.md` (synthesis report, 201 artifacts, ✅19%/⚠️37%/❌32% breakdown) + filed 7 follow-up GAPs (GAP-274..280) referencing audit as evidence + ROADMAP Cluster 14 expanded (8 → 15 gaps) + Cluster 15 flipped 🟡 ACTIVE → ✅ SHIPPED + lessons-learned + wave-history.jsonl 13th data point. Total Track 2 estimate revised 10-15 → 15-20 weeks. Wave status: `active` → `complete`.
