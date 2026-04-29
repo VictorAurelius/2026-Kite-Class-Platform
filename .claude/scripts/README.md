@@ -214,6 +214,6 @@ For large commits, the script may be slow. Options:
 
 ---
 
-**Last Updated:** 2026-01-28
+**Last Updated:** 2026-04-29
 **Author:** KiteClass Team
 **Related:** skills-compliance-checklist.md
