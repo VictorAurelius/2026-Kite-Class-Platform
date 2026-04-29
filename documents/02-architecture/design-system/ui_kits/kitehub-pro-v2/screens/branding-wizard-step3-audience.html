@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — wizard step 3 (audience picker)
+  Per ai-branding-guidelines.md §2.1 — constrained presets, NO free-form prompt
+  Score self-estimate: 108/128
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Bước 3: Đối tượng — Wizard</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="branding-wizard-step1-welcome.html">Step 1</a>
+    <a href="branding-wizard-step3-audience.html" data-active="true">Step 3</a>
+    <a href="branding-wizard-step5-template.html">Step 5</a>
+    <a href="branding-wizard-step6-preview-approve.html">Step 6</a>
+  </nav>
+  <div class="shell" style="grid-template-columns: 1fr;">
+    <main class="shell__main stack-6" style="max-width: 1080px; margin: 0 auto;">
+      <header class="page-header">
+        <h1 class="page-header__title">Đối tượng học viên chính của trung tâm là ai?</h1>
+      </header>
+
+      <div class="lifecycle-track">
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Welcome</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Logo</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--active">3. Đối tượng</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">4. Tone</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">5. Template</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">6. Preview</span>
+      </div>
+
+      <p class="body muted-strong">
+        Chọn 1 đối tượng phù hợp nhất. AI sẽ dùng thông tin này để gợi ý template,
+        màu sắc, và tone giao tiếp phù hợp với phụ huynh + học viên.
+      </p>
+
+      <!-- Audience cards (4 options, radiogroup) -->
+      <div role="radiogroup" aria-label="Đối tượng học viên" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <article class="card-base stack-3 hover-lift" style="padding: 1.5rem; cursor: pointer;" role="radio" aria-checked="false" tabindex="0">
+          <div class="flex items-start justify-between">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #fcd34d, #f59e0b); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="baby" class="w-8 h-8" style="color: white;"></i>
+            </div>
+            <div class="w-5 h-5 rounded-full" style="border: 2px solid hsl(var(--border));"></div>
+          </div>
+          <div>
+            <h3 class="font-semibold">Trường mầm non</h3>
+            <p class="text-sm muted-strong">Từ 3-6 tuổi · giao tiếp chủ yếu với phụ huynh · cần tone vui tươi, hình ảnh sinh động</p>
+          </div>
+          <div class="flex flex-wrap gap-1">
+            <span class="tag" style="background: #fef3c7; color: #92400e;">Vui tươi</span>
+            <span class="tag" style="background: #fef3c7; color: #92400e;">Phụ huynh-first</span>
+          </div>
+        </article>
+
+        <article class="card-base stack-3 hover-lift" style="padding: 1.5rem; cursor: pointer; border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10);" role="radio" aria-checked="true" tabindex="0">
+          <div class="flex items-start justify-between">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="languages" class="w-8 h-8" style="color: white;"></i>
+            </div>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background: hsl(var(--primary)); border: 2px solid hsl(var(--primary));">
+              <i data-lucide="check" class="w-3 h-3" style="color: white;"></i>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold">Trung tâm tiếng Anh</h3>
+            <p class="text-sm muted-strong">IELTS · TOEIC · giao tiếp · từ tiểu học đến người đi làm · cần tone chuyên nghiệp + thân thiện</p>
+          </div>
+          <div class="flex flex-wrap gap-1">
+            <span class="tag tag--info">Quốc tế</span>
+            <span class="tag tag--info">Hiện đại</span>
+          </div>
+        </article>
+
+        <article class="card-base stack-3 hover-lift" style="padding: 1.5rem; cursor: pointer;" role="radio" aria-checked="false" tabindex="0">
+          <div class="flex items-start justify-between">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #16a34a, #65a30d); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="school" class="w-8 h-8" style="color: white;"></i>
+            </div>
+            <div class="w-5 h-5 rounded-full" style="border: 2px solid hsl(var(--border));"></div>
+          </div>
+          <div>
+            <h3 class="font-semibold">THCS · THPT</h3>
+            <p class="text-sm muted-strong">Lớp 6-12 · trường tư thục hoặc trung tâm bồi dưỡng văn hóa · cần đáp ứng chuẩn MoET</p>
+          </div>
+          <div class="flex flex-wrap gap-1">
+            <span class="tag" style="background: #dcfce7; color: #166534;">Học thuật</span>
+            <span class="tag" style="background: #dcfce7; color: #166534;">MoET-ready</span>
+          </div>
+        </article>
+
+        <article class="card-base stack-3 hover-lift" style="padding: 1.5rem; cursor: pointer;" role="radio" aria-checked="false" tabindex="0">
+          <div class="flex items-start justify-between">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #7c3aed, #ec4899); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="trophy" class="w-8 h-8" style="color: white;"></i>
+            </div>
+            <div class="w-5 h-5 rounded-full" style="border: 2px solid hsl(var(--border));"></div>
+          </div>
+          <div>
+            <h3 class="font-semibold">Lớp luyện thi</h3>
+            <p class="text-sm muted-strong">THPTQG · ĐGNL · VSAT · cần tone chuyên nghiệp, kết quả-driven, badge điểm cao</p>
+          </div>
+          <div class="flex flex-wrap gap-1">
+            <span class="tag" style="background: #f3e8ff; color: #6b21a8;">Hiệu quả</span>
+            <span class="tag" style="background: #f3e8ff; color: #6b21a8;">Chuyên nghiệp</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="card-base text-sm" style="padding: 1rem;">
+        <div class="flex items-start gap-2">
+          <i data-lucide="info" class="w-5 h-5 mt-0.5" style="color: hsl(var(--info));"></i>
+          <div>
+            <strong>Bạn chọn được 1 đối tượng chính</strong> — nếu trung tâm bạn phục vụ đa đối tượng,
+            chọn đối tượng <em>chiếm phần lớn doanh thu</em>. Bạn vẫn có thể tinh chỉnh sau bằng các template
+            khác hoặc nâng cấp ENTERPRISE để mở chế độ Advanced.
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <a href="branding-wizard-step1-welcome.html" class="btn btn--ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i>Quay lại</a>
+        <a href="branding-wizard-step5-template.html" class="gradient-button">
+          Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

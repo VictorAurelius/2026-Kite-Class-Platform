@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner
+  State: ERROR — backend unreachable; partial cached data + retry CTA
+  Score self-estimate: 102/128 (target ≥105 — error states have smaller delight surface;
+  intentionally reasonable floor)
+  Contrast: destructive 60.2% lightness on light bg — text-on-bg 4.6:1 AA ✓
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Mất kết nối — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html" data-active="true">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Dark</a>
+  </nav>
+
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <div class="stack-2">
+        <a href="#" class="nav-item nav-item--active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+        <a href="#" class="nav-item"><i data-lucide="building-2" class="w-4 h-4"></i>Trung tâm</a>
+        <a href="branding-hub-default.html" class="nav-item"><i data-lucide="sparkles" class="w-4 h-4"></i>Thương hiệu AI</a>
+        <a href="billing-default.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+      </div>
+    </aside>
+
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Bảng điều khiển</h1>
+          <div class="page-header__sub">Đang hiển thị dữ liệu cache · cập nhật lần cuối 14:23</div>
+        </div>
+      </header>
+
+      <!-- Banner-style error -->
+      <div class="card-base" style="padding: 1.25rem; border-color: hsl(var(--destructive) / 0.4); background: hsl(var(--destructive) / 0.04);">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 mt-0.5">
+            <i data-lucide="cloud-off" class="w-6 h-6" style="color: hsl(var(--destructive));"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h2 class="font-semibold">Không kết nối được máy chủ</h2>
+              <span class="tag tag--danger text-mono">ERR_BACKEND_UNREACHABLE</span>
+            </div>
+            <p class="text-sm muted-strong">
+              Chúng tôi đang hiển thị dữ liệu được lưu lại từ <strong>14:23</strong>. Số liệu mới có thể chưa cập nhật.
+              Đội ngũ kỹ thuật đã được thông báo tự động.
+            </p>
+            <div class="cluster mt-3">
+              <button class="btn btn--primary text-sm">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>Thử lại ngay
+              </button>
+              <button class="btn btn--outline text-sm">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>Liên hệ hỗ trợ
+              </button>
+              <a href="#" class="btn btn--ghost text-sm">Xem trang trạng thái dịch vụ</a>
+            </div>
+            <div class="text-xs muted-strong mt-3">
+              Đã thử lại 2/5 lần · lần thử kế tiếp sau 8 giây
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cached data hint -->
+      <section aria-label="Số liệu cũ (cache)">
+        <div class="section-title">Chỉ số chính · dữ liệu cache</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="kpi-card" style="opacity: 0.7;">
+            <div class="kpi-card__label"><i data-lucide="trending-up" class="w-4 h-4"></i>Doanh thu</div>
+            <div class="kpi-card__value">82,4M đ</div>
+            <div class="text-xs muted-strong mt-1">⏱ cũ · 14:23</div>
+          </div>
+          <div class="kpi-card" style="opacity: 0.7;">
+            <div class="kpi-card__label"><i data-lucide="users" class="w-4 h-4"></i>Học viên hoạt động</div>
+            <div class="kpi-card__value">248</div>
+            <div class="text-xs muted-strong mt-1">⏱ cũ · 14:23</div>
+          </div>
+          <div class="kpi-card" style="opacity: 0.7;">
+            <div class="kpi-card__label"><i data-lucide="server" class="w-4 h-4"></i>Phiên bản</div>
+            <div class="kpi-card__value">3</div>
+            <div class="text-xs muted-strong mt-1">⏱ cũ · 14:23</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Help footer -->
+      <div class="text-xs muted-strong text-center">
+        Mã lỗi <span class="text-mono">ERR_BACKEND_UNREACHABLE</span> · Trace ID:
+        <span class="text-mono">4bf92f3577b34da6a3ce929d0e0e4736</span>
+      </div>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

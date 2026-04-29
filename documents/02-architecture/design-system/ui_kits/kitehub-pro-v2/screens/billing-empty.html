@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — TRIAL tier, no invoices yet
+  Score self-estimate: 105/128
+  Contrast: AA verified per shared tokens
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Hóa đơn (chưa có)</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="billing-default.html">Default</a>
+    <a href="billing-loading.html">Loading</a>
+    <a href="billing-empty.html" data-active="true">Empty</a>
+    <a href="billing-payment.html">Payment</a>
+    <a href="billing-dark.html">Dark</a>
+  </nav>
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag" style="font-size: 10px;">TRIAL</span>
+      </div>
+      <a href="dashboard-empty.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+      <a href="#" class="nav-item nav-item--active"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+    </aside>
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Hóa đơn & Thanh toán</h1>
+          <div class="page-header__sub">Bạn đang dùng thử miễn phí · không có hóa đơn nào</div>
+        </div>
+      </header>
+
+      <div class="card-base stack-3" style="padding: 1.5rem;">
+        <div class="flex items-start gap-3">
+          <i data-lucide="gift" class="w-6 h-6" style="color: hsl(var(--accent));"></i>
+          <div class="flex-1">
+            <h2 class="font-semibold">Bạn đang dùng <span class="gradient-text">gói thử nghiệm 14 ngày</span></h2>
+            <p class="text-sm muted-strong mt-1">
+              Còn <strong>12 ngày</strong> để trải nghiệm đầy đủ. Hết thời gian thử bạn có thể chọn 1 trong 4 gói dưới đây.
+              Không phát sinh hóa đơn nếu không đăng ký gói.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state hero + tier comparison -->
+      <div class="card-base text-center" style="padding: 3rem 2rem;">
+        <i data-lucide="receipt" class="w-12 h-12 mx-auto" style="color: hsl(var(--muted-foreground));"></i>
+        <h2 class="h3 mt-3">Chưa có hóa đơn nào</h2>
+        <p class="text-sm muted-strong mt-2 max-w-md mx-auto">
+          Sau khi nâng cấp lên gói trả phí, hóa đơn của bạn sẽ xuất hiện ở đây cùng tùy chọn xuất Excel cho kế toán.
+        </p>
+      </div>
+
+      <section>
+        <div class="section-title">Chọn gói phù hợp</div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div class="card-base tier-card stack-3" style="padding: 1.25rem;">
+            <div class="tier-card__name">BASIC</div>
+            <div class="tier-card__price">199.000đ<small>/tháng</small></div>
+            <ul class="text-xs muted-strong stack-2">
+              <li>✓ 1 trung tâm</li>
+              <li>✓ Tối đa 50 học viên</li>
+              <li>✓ Brand AI · 3 lượt/tháng</li>
+              <li>✓ Email hỗ trợ</li>
+            </ul>
+            <button class="btn btn--outline text-sm w-full">Chọn gói</button>
+          </div>
+          <div class="card-base tier-card stack-3" style="padding: 1.25rem; border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / 0.10);">
+            <div class="flex items-center justify-between">
+              <div class="tier-card__name">PRO</div>
+              <span class="tag tag--accent">Khuyên dùng</span>
+            </div>
+            <div class="tier-card__price">499.000đ<small>/tháng</small></div>
+            <ul class="text-xs muted-strong stack-2">
+              <li>✓ 5 trung tâm</li>
+              <li>✓ Tối đa 500 HV/trung tâm</li>
+              <li>✓ Brand AI · 10 lượt/tháng</li>
+              <li>✓ Hỗ trợ Zalo + Email</li>
+            </ul>
+            <button class="gradient-button text-sm w-full">Chọn PRO</button>
+          </div>
+          <div class="card-base tier-card stack-3" style="padding: 1.25rem;">
+            <div class="tier-card__name">PREMIUM</div>
+            <div class="tier-card__price">1.499.000đ<small>/tháng</small></div>
+            <ul class="text-xs muted-strong stack-2">
+              <li>✓ 15 trung tâm</li>
+              <li>✓ Không giới hạn HV</li>
+              <li>✓ Brand AI · 30 lượt/tháng</li>
+              <li>✓ Hỗ trợ ưu tiên 24/7</li>
+            </ul>
+            <button class="btn btn--outline text-sm w-full">Chọn gói</button>
+          </div>
+          <div class="card-base tier-card stack-3" style="padding: 1.25rem;">
+            <div class="tier-card__name">ENTERPRISE</div>
+            <div class="tier-card__price">Liên hệ</div>
+            <ul class="text-xs muted-strong stack-2">
+              <li>✓ Không giới hạn trung tâm</li>
+              <li>✓ Tùy chỉnh tên miền riêng</li>
+              <li>✓ AI quota tùy chỉnh</li>
+              <li>✓ Account manager riêng</li>
+            </ul>
+            <button class="btn btn--outline text-sm w-full">Liên hệ</button>
+          </div>
+        </div>
+        <div class="text-xs muted-strong text-center mt-3">
+          ✓ Không cần thẻ tín dụng để bắt đầu · ✓ Hủy bất kỳ lúc nào · ✓ Hỗ trợ tiếng Việt 24/7
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

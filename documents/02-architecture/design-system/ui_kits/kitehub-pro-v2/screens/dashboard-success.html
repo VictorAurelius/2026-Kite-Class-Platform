@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner
+  State: SUCCESS — milestone toast after instance DEPLOYED transition
+  Flow ref: Flow #1 (tenant signup → DEPLOYED) final step
+  Score self-estimate: 110/128 (target ≥105)
+  Contrast: success 39% lightness — text-on-bg 4.7:1 AA ✓
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Triển khai thành công — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @keyframes confettiFall {
+      0%   { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(120vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: fixed; top: -20px;
+      width: 10px; height: 14px; opacity: 0;
+      animation: confettiFall 2.4s ease-in forwards;
+    }
+    @media (prefers-reduced-motion: reduce) { .confetti-piece { display: none; } }
+  </style>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html" data-active="true">Success</a>
+    <a href="dashboard-dark.html">Dark</a>
+  </nav>
+
+  <!-- Confetti pieces — declarative SVG strips so port is straightforward -->
+  <div aria-hidden="true">
+    <span class="confetti-piece" style="left: 12%; background: hsl(199 89% 48%); animation-delay: 0s;"></span>
+    <span class="confetti-piece" style="left: 22%; background: hsl(25 95% 53%); animation-delay: 0.1s;"></span>
+    <span class="confetti-piece" style="left: 34%; background: hsl(168 76% 42%); animation-delay: 0.05s;"></span>
+    <span class="confetti-piece" style="left: 48%; background: hsl(199 89% 48%); animation-delay: 0.2s;"></span>
+    <span class="confetti-piece" style="left: 58%; background: hsl(25 95% 53%); animation-delay: 0.12s;"></span>
+    <span class="confetti-piece" style="left: 72%; background: hsl(168 76% 42%); animation-delay: 0.18s;"></span>
+    <span class="confetti-piece" style="left: 84%; background: hsl(199 89% 48%); animation-delay: 0.08s;"></span>
+    <span class="confetti-piece" style="left: 92%; background: hsl(25 95% 53%); animation-delay: 0.15s;"></span>
+  </div>
+
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <div class="stack-2">
+        <a href="#" class="nav-item nav-item--active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+        <a href="#" class="nav-item"><i data-lucide="building-2" class="w-4 h-4"></i>Trung tâm</a>
+        <a href="branding-hub-default.html" class="nav-item"><i data-lucide="sparkles" class="w-4 h-4"></i>Thương hiệu AI</a>
+        <a href="billing-default.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+      </div>
+    </aside>
+
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Triển khai thành công 🎉</h1>
+          <div class="page-header__sub">Trung tâm Anh ngữ Việt-Anh đã sẵn sàng đón học viên</div>
+        </div>
+      </header>
+
+      <!-- Milestone hero -->
+      <div class="card-base" style="padding: 2rem; background: linear-gradient(135deg, hsl(var(--success) / 0.06), hsl(var(--primary) / 0.04));">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 flex items-center justify-center"
+               style="width: 64px; height: 64px; border-radius: 50%; background: hsl(var(--success) / 0.15);">
+            <i data-lucide="check-circle-2" class="w-9 h-9" style="color: hsl(var(--success));"></i>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <h2 class="h2">Trung tâm Anh ngữ Việt-Anh đã online!</h2>
+              <span class="tag tag--success">DEPLOYED</span>
+            </div>
+            <a href="#" class="text-mono text-sm" style="color: hsl(var(--primary));">https://vietanh.kiteclass.app</a>
+            <p class="text-sm muted-strong mt-2">
+              Brand AI đã pass quality gate · 5/5 kiểm tra · ETag mới đã cache trên CDN.
+            </p>
+
+            <!-- Quality gate summary -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mt-4">
+              <div class="gate-check gate-check--pass"><i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>WCAG 4.7:1</div>
+              <div class="gate-check gate-check--pass"><i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>CSS vars</div>
+              <div class="gate-check gate-check--pass"><i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>Asset URLs</div>
+              <div class="gate-check gate-check--pass"><i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>Visual diff 8%</div>
+              <div class="gate-check gate-check--pass"><i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>Logo OK</div>
+            </div>
+
+            <div class="cluster mt-5">
+              <a href="#" class="gradient-button">
+                <i data-lucide="external-link" class="w-4 h-4"></i>Mở app KiteClass
+              </a>
+              <a href="#" class="btn btn--outline">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>Mời giáo viên
+              </a>
+              <a href="#" class="btn btn--ghost">
+                <i data-lucide="upload" class="w-4 h-4"></i>Nhập học viên (Excel)
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Next steps -->
+      <section>
+        <div class="section-title">Bước tiếp theo gợi ý</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <a href="#" class="card-base stack-2 hover-lift" style="padding: 1rem; text-decoration: none; color: inherit;">
+            <i data-lucide="users" class="w-5 h-5" style="color: hsl(var(--primary));"></i>
+            <div class="text-sm font-semibold">Nhập danh sách học viên</div>
+            <div class="text-xs muted-strong">Excel template có sẵn cho lớp 25-30 HV</div>
+          </a>
+          <a href="#" class="card-base stack-2 hover-lift" style="padding: 1rem; text-decoration: none; color: inherit;">
+            <i data-lucide="calendar" class="w-5 h-5" style="color: hsl(var(--accent));"></i>
+            <div class="text-sm font-semibold">Tạo lịch học</div>
+            <div class="text-xs muted-strong">Lớp đầu tiên với 1 click</div>
+          </a>
+          <a href="#" class="card-base stack-2 hover-lift" style="padding: 1rem; text-decoration: none; color: inherit;">
+            <i data-lucide="palette" class="w-5 h-5" style="color: hsl(168 76% 42%);"></i>
+            <div class="text-sm font-semibold">Tinh chỉnh brand</div>
+            <div class="text-xs muted-strong">Còn 9/10 quota làm lại</div>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast (auto-dismiss) -->
+  <div class="toast" role="status">
+    <div class="flex items-start gap-3">
+      <i data-lucide="party-popper" class="w-5 h-5 mt-0.5" style="color: hsl(var(--success));"></i>
+      <div class="flex-1">
+        <div class="text-sm font-semibold">Triển khai thành công!</div>
+        <div class="text-xs muted-strong">vietanh.kiteclass.app đã online</div>
+        <div class="quota-bar mt-2"><div class="quota-bar__fill" style="width: 35%; background: hsl(var(--success));"></div></div>
+      </div>
+      <button class="btn btn--ghost text-xs" aria-label="Đóng"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

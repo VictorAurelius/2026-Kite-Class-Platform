@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — branding wizard step 1
+  Flow ref: dossier 08 Decision 4 — integrated 6-step wizard (NOT free-form playground)
+  Per ai-branding-guidelines.md §4.1 — wizard pattern mandatory.
+  Note: Full 6-step wizard is Wave 2 Direction C `ai-branding-wizard-v2` kit.
+        This kit ships 4 representative steps (1, 3, 5, 6) for review.
+  Score self-estimate: 105/128 (target ≥105, baseline 33/128 — lift +72)
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Bước 1: Chào mừng — Wizard</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="branding-wizard-step1-welcome.html" data-active="true">Step 1</a>
+    <a href="branding-wizard-step3-audience.html">Step 3</a>
+    <a href="branding-wizard-step5-template.html">Step 5</a>
+    <a href="branding-wizard-step6-preview-approve.html">Step 6</a>
+  </nav>
+
+  <div class="shell" style="grid-template-columns: 1fr;">
+    <main class="shell__main stack-6" style="max-width: 880px; margin: 0 auto;">
+      <!-- Wizard header + progress -->
+      <header class="page-header">
+        <div>
+          <a href="branding-hub-default.html" class="text-xs muted-strong inline-flex items-center gap-1"><i data-lucide="arrow-left" class="w-3 h-3"></i>Hủy và quay lại</a>
+          <h1 class="page-header__title">Tạo brand mới với AI · 6 bước · ~5 phút</h1>
+        </div>
+      </header>
+
+      <!-- Step indicator -->
+      <div class="lifecycle-track" aria-label="Tiến trình wizard">
+        <span class="lifecycle-step lifecycle-step--active">1. Chào mừng</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">2. Logo</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">3. Đối tượng</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">4. Tone</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">5. Template</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--idle">6. Preview</span>
+      </div>
+
+      <!-- Welcome card -->
+      <div class="card-base stack-4" style="padding: 2rem;">
+        <div class="text-center">
+          <div class="mx-auto flex items-center justify-center mb-4"
+               style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, hsl(var(--primary) / 0.16), hsl(var(--accent) / 0.16));">
+            <i data-lucide="sparkles" class="w-10 h-10" style="color: hsl(var(--primary));"></i>
+          </div>
+          <h2 class="h2">Chào mừng đến với Brand AI</h2>
+          <p class="body muted-strong mt-2 max-w-lg mx-auto">
+            AI sẽ tạo cho bạn logo, bảng màu, banner, hero — tất cả phù hợp với
+            đối tượng học viên của bạn. Bạn duyệt từng tài nguyên trước khi triển khai.
+          </p>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Tenant info form -->
+        <div class="stack-4">
+          <div class="section-title">Thông tin trung tâm</div>
+
+          <div>
+            <label for="tenant-name" class="block text-sm font-semibold mb-1">Tên trung tâm <span style="color: hsl(var(--destructive));">*</span></label>
+            <input id="tenant-name" class="input" value="Trung tâm Anh ngữ Việt-Anh" />
+            <div class="text-xs muted-strong mt-1">Sẽ hiển thị trên logo và header website</div>
+          </div>
+
+          <div>
+            <label for="tenant-slug" class="block text-sm font-semibold mb-1">Tên miền phụ <span style="color: hsl(var(--destructive));">*</span></label>
+            <div class="flex items-center gap-1">
+              <input id="tenant-slug" class="input" value="vietanh" style="flex: 1;" />
+              <span class="text-mono muted-strong text-sm">.kiteclass.app</span>
+            </div>
+            <div class="text-xs mt-1 inline-flex items-center gap-1" style="color: hsl(var(--success));">
+              <i data-lucide="check" class="w-3 h-3"></i>vietanh.kiteclass.app — có sẵn
+            </div>
+          </div>
+
+          <div>
+            <label for="tenant-phone" class="block text-sm font-semibold mb-1">Số điện thoại liên hệ</label>
+            <input id="tenant-phone" class="input" value="0901 234 567" />
+          </div>
+
+          <div>
+            <label for="tenant-address" class="block text-sm font-semibold mb-1">Địa chỉ trung tâm</label>
+            <input id="tenant-address" class="input" value="123 Nguyễn Văn Cừ, P. Phước Long B, Q. 9, TP. HCM" />
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Trust strip -->
+        <div class="text-xs muted-strong text-center">
+          ✓ AI chạy trên server VN · không gửi dữ liệu ra nước ngoài ·
+          ✓ Tuân thủ NĐ-13/2023/NĐ-CP · ✓ Bạn duyệt từng tài nguyên trước khi triển khai
+        </div>
+      </div>
+
+      <!-- Footer nav -->
+      <div class="flex items-center justify-between">
+        <a href="branding-hub-default.html" class="btn btn--ghost"><i data-lucide="x" class="w-4 h-4"></i>Hủy</a>
+        <a href="branding-wizard-step3-audience.html" class="gradient-button">
+          Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

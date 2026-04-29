@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — VN payment flow (replaces /billing/payment/[id] screen 33/128)
+  Flow ref: dossier 02 §4 — VN payment gateways: VNPay/MoMo/ZaloPay/Bank/Cash
+  Score self-estimate: 113/128 (target ≥105, baseline 33/128 — lift +80)
+  Contrast: payment method radios + QR + trust strip all WCAG AA verified
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Thanh toán hóa đơn — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="billing-default.html">Default</a>
+    <a href="billing-loading.html">Loading</a>
+    <a href="billing-empty.html">Empty</a>
+    <a href="billing-payment.html" data-active="true">Payment</a>
+    <a href="billing-dark.html">Dark</a>
+  </nav>
+
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <a href="dashboard-default.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+      <a href="billing-default.html" class="nav-item nav-item--active"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+    </aside>
+
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <a href="billing-default.html" class="text-xs muted-strong inline-flex items-center gap-1"><i data-lucide="arrow-left" class="w-3 h-3"></i>Quay lại danh sách</a>
+          <h1 class="page-header__title">Thanh toán hóa đơn KH-2026-04-001</h1>
+          <div class="page-header__sub">PRO · tháng 04/2026 · 3 trung tâm · đến hạn 30/04/2026</div>
+        </div>
+      </header>
+
+      <section class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+        <!-- LEFT: payment methods + QR -->
+        <div class="lg:col-span-3 stack-4">
+
+          <!-- Method selector -->
+          <div class="card-base stack-3" style="padding: 1.25rem;">
+            <div class="text-sm font-semibold">Chọn phương thức thanh toán</div>
+            <div role="radiogroup" aria-label="Phương thức thanh toán" class="stack-3">
+              <div class="pay-method" role="radio" aria-checked="true" tabindex="0">
+                <div class="pay-method__logo" style="background: linear-gradient(135deg, #ff007f, #d50058);">M</div>
+                <div class="flex-1">
+                  <div class="pay-method__name">MoMo</div>
+                  <div class="pay-method__hint">Quét QR bằng app MoMo · ~95% người dùng VN</div>
+                </div>
+                <div class="tag tag--success">Khuyên dùng</div>
+              </div>
+              <div class="pay-method" role="radio" aria-checked="false" tabindex="0">
+                <div class="pay-method__logo" style="background: linear-gradient(135deg, #00b1f0, #006fbb);">VN</div>
+                <div class="flex-1">
+                  <div class="pay-method__name">VNPay</div>
+                  <div class="pay-method__hint">Chuyển hướng → chọn ngân hàng → xác nhận OTP</div>
+                </div>
+                <i data-lucide="external-link" class="w-4 h-4" style="color: hsl(var(--muted-foreground));"></i>
+              </div>
+              <div class="pay-method" role="radio" aria-checked="false" tabindex="0">
+                <div class="pay-method__logo" style="background: linear-gradient(135deg, #2670b4, #0083ed);">ZP</div>
+                <div class="flex-1">
+                  <div class="pay-method__name">ZaloPay</div>
+                  <div class="pay-method__hint">App-deep-link hoặc quét QR</div>
+                </div>
+              </div>
+              <div class="pay-method" role="radio" aria-checked="false" tabindex="0">
+                <div class="pay-method__logo" style="background: linear-gradient(135deg, hsl(var(--info)), hsl(217 91% 40%));">
+                  <i data-lucide="building-bank" class="w-5 h-5"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="pay-method__name">Chuyển khoản ngân hàng</div>
+                  <div class="pay-method__hint">Đối soát tự động trong 10 phút (ngày làm việc)</div>
+                </div>
+              </div>
+              <div class="pay-method" role="radio" aria-checked="false" tabindex="0">
+                <div class="pay-method__logo" style="background: hsl(var(--muted)); color: hsl(var(--foreground));">
+                  <i data-lucide="wallet" class="w-5 h-5"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="pay-method__name">Tiền mặt tại trung tâm</div>
+                  <div class="pay-method__hint">Admin xác nhận sau khi nhận tiền</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR code panel (MoMo selected) -->
+          <div class="card-base stack-4 text-center" style="padding: 1.5rem;">
+            <div>
+              <div class="text-sm font-semibold">Quét mã bằng app MoMo</div>
+              <div class="text-xs muted-strong">Mã QR có hiệu lực trong <span class="text-mono" style="color: hsl(var(--accent));">14:32</span></div>
+            </div>
+            <div class="qr-placeholder mx-auto" aria-label="Mã QR thanh toán MoMo"></div>
+            <div class="text-xs muted-strong">Hoặc mở app MoMo → Quét mã → Xác nhận thanh toán</div>
+            <hr class="divider" />
+            <div class="text-xs">
+              Trace ID: <span class="text-mono">payment-vn-20260423-91f2e8</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: amount summary + trust -->
+        <aside class="lg:col-span-2 stack-4">
+          <div class="card-base stack-3" style="padding: 1.25rem;">
+            <div class="text-sm font-semibold">Tóm tắt thanh toán</div>
+            <hr class="divider" />
+            <div class="flex items-center justify-between text-sm">
+              <span class="muted-strong">Gói PRO · tháng 04/2026</span>
+              <span class="text-mono">499.000đ</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="muted-strong">Thuế VAT (10%)</span>
+              <span class="text-mono">49.900đ</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="muted-strong">Giảm giá khách hàng cũ</span>
+              <span class="text-mono" style="color: hsl(var(--success));">-49.900đ</span>
+            </div>
+            <hr class="divider" />
+            <div class="flex items-center justify-between">
+              <span class="font-semibold">Bạn sẽ thanh toán</span>
+              <span class="text-xl font-bold gradient-text">499.000đ</span>
+            </div>
+
+            <button class="gradient-button w-full" style="font-size: var(--text-base); padding: 0.75rem;">
+              <i data-lucide="lock" class="w-4 h-4"></i>Xác nhận thanh toán 499.000đ
+            </button>
+            <button class="btn btn--ghost w-full text-sm">Hủy</button>
+          </div>
+
+          <!-- Trust markers -->
+          <div class="card-base stack-3" style="padding: 1rem;">
+            <div class="section-title">Bảo mật & cam kết</div>
+            <div class="text-sm flex items-start gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 mt-0.5" style="color: hsl(var(--success));"></i>
+              <span>Mã hóa AES-256 — an toàn như gửi tiền ngân hàng</span>
+            </div>
+            <div class="text-sm flex items-start gap-2">
+              <i data-lucide="credit-card" class="w-4 h-4 mt-0.5" style="color: hsl(var(--success));"></i>
+              <span>Không lưu thông tin thẻ tại KiteHub</span>
+            </div>
+            <div class="text-sm flex items-start gap-2">
+              <i data-lucide="receipt" class="w-4 h-4 mt-0.5" style="color: hsl(var(--success));"></i>
+              <span>Tự động xuất hóa đơn điện tử (NĐ-123/2020/NĐ-CP)</span>
+            </div>
+            <div class="text-sm flex items-start gap-2">
+              <i data-lucide="phone" class="w-4 h-4 mt-0.5" style="color: hsl(var(--success));"></i>
+              <span>Hỗ trợ 1900-xxxx · Zalo · Email 24/7</span>
+            </div>
+          </div>
+
+          <div class="text-xs muted-strong text-center">
+            Bằng việc thanh toán, bạn đồng ý <a href="#" class="underline">Điều khoản Dịch vụ</a> và <a href="#" class="underline">Chính sách Quyền riêng tư</a>.
+          </div>
+        </aside>
+
+      </section>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

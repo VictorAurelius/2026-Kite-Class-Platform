@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — branding hub overview
+  Flow ref: Flow #8 (AI rebrand) entry point
+  Score self-estimate: 110/128 (target ≥105, baseline 33/128 — lift +77)
+  Direction C constraint: NO free-form prompt (per ai-branding-guidelines.md §2.1).
+  Contrast: AA verified per shared tokens.
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Thương hiệu AI — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="branding-hub-default.html" data-active="true">Default</a>
+    <a href="branding-hub-loading.html">Loading</a>
+    <a href="branding-hub-quota-empty.html">Quota empty</a>
+    <a href="branding-hub-dark.html">Dark</a>
+  </nav>
+
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <a href="dashboard-default.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+      <a href="#" class="nav-item nav-item--active"><i data-lucide="sparkles" class="w-4 h-4"></i>Thương hiệu AI</a>
+      <a href="instance-DEPLOYED.html" class="nav-item"><i data-lucide="server" class="w-4 h-4"></i>Phiên bản</a>
+      <a href="billing-default.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+    </aside>
+
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Thương hiệu AI</h1>
+          <div class="page-header__sub">Tạo brand cho trung tâm bằng AI · template-first · không cần prompt</div>
+        </div>
+        <div class="cluster">
+          <select class="input" style="width: 220px;">
+            <option>Trung tâm Toán Master</option>
+            <option>Trường THCS-THPT EduPlus</option>
+            <option>Trung tâm Anh ngữ Việt-Anh</option>
+          </select>
+          <a href="branding-wizard-step1-welcome.html" class="gradient-button">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>Tạo lại brand
+          </a>
+        </div>
+      </header>
+
+      <!-- Quota counter widget -->
+      <div class="card-base" style="padding: 1.25rem;">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <div class="text-xs muted-strong">Quota làm lại brand · gói PRO</div>
+            <div class="text-xl font-bold mt-1">7 / 10 lượt còn lại trong tháng này</div>
+          </div>
+          <div class="flex-1 max-w-md">
+            <div class="quota-bar"><div class="quota-bar__fill" style="width: 70%;"></div></div>
+            <div class="text-xs muted-strong mt-1">Reset 28/04/2026 · nâng cấp PREMIUM để có 30 lượt</div>
+          </div>
+          <a href="billing-empty.html" class="btn btn--outline text-sm"><i data-lucide="trending-up" class="w-4 h-4"></i>Nâng cấp PREMIUM</a>
+        </div>
+      </div>
+
+      <!-- Current brand summary -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="section-title">Logo hiện tại</div>
+          <div style="height: 100px; border-radius: var(--radius-md); background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 28px; color: white;">
+            TM
+          </div>
+          <div class="text-sm font-semibold">Trung tâm Toán Master</div>
+        </div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="section-title">Bảng màu</div>
+          <div class="flex gap-2">
+            <div title="Primary #2563eb" style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #2563eb;"></div>
+            <div title="Accent #f59e0b" style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #f59e0b;"></div>
+            <div title="Secondary #06b6d4" style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #06b6d4;"></div>
+            <div title="Background" style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #f8fafc; border: 1px solid hsl(var(--border));"></div>
+          </div>
+          <div class="text-xs muted-strong">4 màu chính · WCAG AA pass · contrast 4.7:1</div>
+        </div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="section-title">Font hệ thống</div>
+          <div class="text-2xl font-bold">Inter</div>
+          <div class="text-xs muted-strong">Heading + body · hỗ trợ tiếng Việt đầy đủ</div>
+        </div>
+      </section>
+
+      <!-- Template gallery (6 cards) -->
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="h3">6 template AI gợi ý</h2>
+          <span class="text-xs muted-strong">Phù hợp với <strong>Trung tâm tiếng Anh</strong> · giọng <strong>Thân thiện</strong></span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <article class="tpl-card">
+            <div class="tpl-card__visual" style="background: linear-gradient(135deg, #2563eb, #06b6d4);">Sky · Wave</div>
+            <div class="tpl-card__meta">
+              <div class="tpl-card__title">Bầu trời xanh</div>
+              <div class="tpl-card__hint">Chuyên nghiệp · Trung tâm Anh ngữ</div>
+            </div>
+          </article>
+          <article class="tpl-card">
+            <div class="tpl-card__visual" style="background: linear-gradient(135deg, #ea580c, #f59e0b);">Warm · Glow</div>
+            <div class="tpl-card__meta">
+              <div class="tpl-card__title">Ấm áp Vàng</div>
+              <div class="tpl-card__hint">Thân thiện · Mầm non · Tiểu học</div>
+            </div>
+          </article>
+          <article class="tpl-card">
+            <div class="tpl-card__visual" style="background: linear-gradient(135deg, #16a34a, #65a30d);">Fresh · Leaf</div>
+            <div class="tpl-card__meta">
+              <div class="tpl-card__title">Tươi mát</div>
+              <div class="tpl-card__hint">Năng động · Trung tâm Toán</div>
+            </div>
+          </article>
+          <article class="tpl-card">
+            <div class="tpl-card__visual" style="background: linear-gradient(135deg, #7c3aed, #ec4899);">Modern · Pop</div>
+            <div class="tpl-card__meta">
+              <div class="tpl-card__title">Hiện đại</div>
+              <div class="tpl-card__hint">Sang trọng · Luyện thi THPTQG</div>
+            </div>
+          </article>
+          <article class="tpl-card">
+            <div class="tpl-card__visual" style="background: linear-gradient(135deg, #0f172a, #475569);">Minimal · Slate</div>
+            <div class="tpl-card__meta">
+              <div class="tpl-card__title">Tối giản</div>
+              <div class="tpl-card__hint">Chuyên nghiệp · Cao cấp</div>
+            </div>
+          </article>
+          <article class="tpl-card">
+            <div class="tpl-card__visual" style="background: linear-gradient(135deg, #be185d, #f59e0b);">Joyful · Sun</div>
+            <div class="tpl-card__meta">
+              <div class="tpl-card__title">Vui tươi</div>
+              <div class="tpl-card__hint">Thân thiện · IELTS · TOEIC</div>
+            </div>
+          </article>
+        </div>
+        <div class="text-xs muted-strong text-center mt-3">
+          ✓ Template-first routing · ~80% request không cần AI compute · phản hồi trong &lt;1 giây
+        </div>
+      </section>
+
+      <!-- Recent regenerations history -->
+      <section>
+        <h2 class="h3 mb-3">Lịch sử làm lại brand · 3 lần gần nhất</h2>
+        <div class="card-base" style="padding: 0; overflow: hidden;">
+          <table class="w-full text-sm">
+            <thead style="background: hsl(var(--muted) / 0.5);">
+              <tr style="text-align: left;">
+                <th class="p-3 text-xs muted-strong" style="text-transform: uppercase;">Thời gian</th>
+                <th class="p-3 text-xs muted-strong">Template</th>
+                <th class="p-3 text-xs muted-strong">Thay đổi</th>
+                <th class="p-3 text-xs muted-strong">Quality gate</th>
+                <th class="p-3 text-xs muted-strong text-right">Kết quả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-t" style="border-color: hsl(var(--border));">
+                <td class="p-3">22/04/2026 14:32</td>
+                <td class="p-3">Bầu trời xanh</td>
+                <td class="p-3">Logo + bảng màu</td>
+                <td class="p-3"><span class="tag tag--success">5/5 pass · 92/100</span></td>
+                <td class="p-3 text-right"><span class="tag tag--success">DEPLOYED</span></td>
+              </tr>
+              <tr class="border-t" style="border-color: hsl(var(--border));">
+                <td class="p-3">15/04/2026 09:15</td>
+                <td class="p-3">Tươi mát</td>
+                <td class="p-3">Banner + hero</td>
+                <td class="p-3"><span class="tag tag--success">5/5 pass · 88/100</span></td>
+                <td class="p-3 text-right"><span class="tag" style="background: hsl(var(--muted));">SUPERSEDED</span></td>
+              </tr>
+              <tr class="border-t" style="border-color: hsl(var(--border));">
+                <td class="p-3">02/04/2026 18:44</td>
+                <td class="p-3">Ấm áp Vàng</td>
+                <td class="p-3">Toàn bộ resource</td>
+                <td class="p-3"><span class="tag tag--warning">4/5 · 78/100</span></td>
+                <td class="p-3 text-right"><span class="tag" style="background: hsl(var(--muted));">SUPERSEDED</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
