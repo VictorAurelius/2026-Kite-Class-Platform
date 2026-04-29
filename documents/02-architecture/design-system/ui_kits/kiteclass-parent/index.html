@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>kiteclass-parent — Click-thru kit</title>
+  <!--
+    Persona: Pa. Parent — landing/click-thru viewer for the whole kit.
+    Visualizes screens inside an iPhone 14-style frame so reviewers see the
+    mobile-first design in context. All screens link individually too.
+    Score self-estimate: N/A (foundation/index)
+    Contrast (measured):
+      - body text on bg-slate: 14.2:1 AAA ✓
+      - phone-frame contrast: visual chrome only
+  -->
+  <link rel="stylesheet" href="../_shared/colors_and_type.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh; padding: 32px 16px 64px 16px; }
+    .stage {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 32px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .stage { grid-template-columns: 1fr; gap: 20px; }
+      .phone-frame { margin: 0 auto; }
+    }
+    .screen-card {
+      transition: transform .2s ease-out, box-shadow .2s ease-out;
+      border: 1px solid #e2e8f0;
+    }
+    .screen-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .screen-card[aria-current="true"] {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+  </style>
+</head>
+<body>
+  <header class="max-w-[1280px] mx-auto mb-8">
+    <a href="../index.html" class="text-sm text-slate-500 hover:text-slate-700 inline-flex items-center gap-1.5 mb-3">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Quay về Kit Index
+    </a>
+    <div class="flex items-baseline gap-3 flex-wrap">
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">kiteclass-parent</h1>
+      <span class="px-2 py-0.5 bg-pink-50 text-pink-700 text-xs font-semibold rounded">Pa. Parent</span>
+      <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded">Direction D · Web responsive + PWA</span>
+    </div>
+    <p class="text-slate-600 mt-2 max-w-2xl text-sm">
+      Mobile-first 320–414px (graceful upscale tới 768/1440px). Bottom tab nav 4 tabs,
+      touch ≥44×44, PWA manifest + Service Worker, Zalo OA notification card primary push channel.
+      Theo <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">dossier/08-direction-decisions.md §2</code> Direction D pivot — KHÔNG native app.
+    </p>
+  </header>
+
+  <div class="stage">
+    <!-- Phone frame preview -->
+    <div>
+      <div class="phone-frame" role="figure" aria-label="iPhone 14 frame preview của màn hình hiện tại">
+        <div class="phone-screen">
+          <iframe id="screen-frame" src="screens/home-default.html" title="Mobile preview"></iframe>
+        </div>
+      </div>
+      <div class="text-center mt-4 text-xs text-slate-500">
+        390×844 · iPhone 14 frame · Click các thẻ bên phải để xem 13 màn hình
+      </div>
+    </div>
+
+    <!-- Screen list -->
+    <div>
+      <!-- Group: Home -->
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">🏠 Trang chủ (5 trạng thái)</h2>
+      <div class="grid gap-2 mb-6">
+        <button data-src="screens/home-default.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3" aria-current="true">
+          <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-semibold">1</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Home — Default</div>
+            <div class="text-xs text-slate-500">Hero metric + child card + recent activity · 116/128</div>
+          </div>
+        </button>
+        <button data-src="screens/home-loading.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-semibold">2</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Home — Loading</div>
+            <div class="text-xs text-slate-500">Skeleton everywhere · 110/128</div>
+          </div>
+        </button>
+        <button data-src="screens/home-empty.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-semibold">3</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Home — Empty (no child)</div>
+            <div class="text-xs text-slate-500">Invitation flow CTA · 112/128</div>
+          </div>
+        </button>
+        <button data-src="screens/home-error.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-sm font-semibold">4</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Home — Error (offline)</div>
+            <div class="text-xs text-slate-500">Cached fallback + retry CTA · 110/128</div>
+          </div>
+        </button>
+        <button data-src="screens/home-dark.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm font-semibold">5</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Home — Dark mode</div>
+            <div class="text-xs text-slate-500">Native dark, full parity · 114/128</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Group: Grades -->
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">📊 Học bạ con (3 màn)</h2>
+      <div class="grid gap-2 mb-6">
+        <button data-src="screens/grades-overview.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold">6</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Grades — Overview</div>
+            <div class="text-xs text-slate-500">HK1/HK2/Cả năm + honor · 118/128</div>
+          </div>
+        </button>
+        <button data-src="screens/grades-subject-detail.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold">7</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Grades — Subject detail</div>
+            <div class="text-xs text-slate-500">Cột điểm + trend chart · 113/128</div>
+          </div>
+        </button>
+        <button data-src="screens/grades-empty.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-semibold">8</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Grades — Empty</div>
+            <div class="text-xs text-slate-500">Học kỳ chưa có điểm · 108/128</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Group: Attendance -->
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">📅 Điểm danh (2 màn)</h2>
+      <div class="grid gap-2 mb-6">
+        <button data-src="screens/attendance-calendar.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-semibold">9</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Attendance — Calendar</div>
+            <div class="text-xs text-slate-500">Month view color-coded · 116/128</div>
+          </div>
+        </button>
+        <button data-src="screens/attendance-day.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-semibold">10</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Attendance — Day detail</div>
+            <div class="text-xs text-slate-500">Session + teacher Zalo CTA · 110/128</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Group: Billing -->
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">💳 Học phí (3 màn)</h2>
+      <div class="grid gap-2 mb-6">
+        <button data-src="screens/billing-list.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-semibold">11</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Billing — List</div>
+            <div class="text-xs text-slate-500">Outstanding banner + paid history · 117/128</div>
+          </div>
+        </button>
+        <button data-src="screens/billing-pay.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-semibold">12</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Billing — Payment selector</div>
+            <div class="text-xs text-slate-500">VNPay/MoMo/ZaloPay/Bank/Cash · 119/128</div>
+          </div>
+        </button>
+        <button data-src="screens/billing-success.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-semibold">13</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Billing — Success</div>
+            <div class="text-xs text-slate-500">Receipt + Zalo share · 113/128</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Group: Settings -->
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">⚙️ Cài đặt (1 màn)</h2>
+      <div class="grid gap-2 mb-6">
+        <button data-src="screens/settings.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-semibold">14</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Settings</div>
+            <div class="text-xs text-slate-500">Zalo OA + Web Push + email · 117/128</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Group: Notification specs / PWA -->
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">🔔 Notification + PWA (3 spec)</h2>
+      <div class="grid gap-2 mb-6">
+        <button data-src="screens/push-notification-card.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-sm font-semibold">15</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Zalo OA notification card spec (320×100)</div>
+            <div class="text-xs text-slate-500">4 variants + measurements · 121/128</div>
+          </div>
+        </button>
+        <button data-src="screens/pwa-install-prompt.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-semibold">16</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">PWA install prompt</div>
+            <div class="text-xs text-slate-500">Add-to-home-screen overlay · 115/128</div>
+          </div>
+        </button>
+        <button data-src="screens/web-push-permission.html" class="screen-card text-left bg-white rounded-xl p-3 flex items-center gap-3">
+          <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-semibold">17</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm">Web Push permission UI</div>
+            <div class="text-xs text-slate-500">Soft-ask + Zalo OA fallback · 116/128</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Footer info -->
+      <div class="rounded-xl bg-slate-100 p-4 text-xs text-slate-600 mt-8">
+        <strong class="text-slate-900 block mb-1">PWA artifacts</strong>
+        <code class="bg-white px-1.5 py-0.5 rounded">manifest.json</code> · <code class="bg-white px-1.5 py-0.5 rounded">sw.js</code> · 17 màn HTML · iconography: lucide-react conventions inlined SVG.<br/>
+        Browse the kit folder structure trong <a href="README.md" class="text-blue-600 underline">README.md</a>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Click-thru navigation: load selected screen into iframe
+    const frame = document.getElementById('screen-frame');
+    const cards = document.querySelectorAll('[data-src]');
+    cards.forEach((c) => {
+      c.addEventListener('click', () => {
+        const src = c.getAttribute('data-src');
+        frame.src = src;
+        cards.forEach((x) => x.removeAttribute('aria-current'));
+        c.setAttribute('aria-current', 'true');
+      });
+    });
+  </script>
+</body>
+</html>

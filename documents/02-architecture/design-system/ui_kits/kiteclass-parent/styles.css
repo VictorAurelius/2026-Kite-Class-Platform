@@ -1,0 +1,867 @@
+/* =============================================================
+   kiteclass-parent — Mobile-first PWA-grade kit styles
+   Persona: Pa. Parent (mobile-first 320–414px, evening usage,
+   low-medium tech literacy, Zalo OA preferred over native push).
+   Direction D pivot per dossier/08-direction-decisions.md §2:
+   web responsive + PWA-grade, NOT native app.
+   ============================================================= */
+
+@import url("../_shared/colors_and_type.css");
+
+/* ============================================================
+   THEME — KiteClass tenant overlay
+   ============================================================ */
+:root,
+.theme-kiteclass-parent {
+  /* Override KiteClass theme to a softer warm-blue for evening reading */
+  --primary: 217 91% 60%;            /* indigo-blue, warmer than dashboard */
+  --primary-foreground: 0 0% 100%;
+  --accent: 25 95% 53%;              /* keep kite-orange for CTAs */
+  --accent-foreground: 0 0% 100%;
+  --ring: 217 91% 60%;
+  --radius: 1rem;                    /* rounder, friendly for parent persona */
+
+  /* Hero gradient (kite-sky → indigo) */
+  --hero-grad-start: 199 89% 48%;
+  --hero-grad-end:   217 91% 60%;
+
+  /* Brand-coloured backgrounds for cards */
+  --surface-soft: 217 91% 97%;       /* near-white indigo wash */
+  --surface-success: 160 84% 96%;
+  --surface-warning: 38 92% 96%;
+  --surface-danger: 0 84% 97%;
+}
+
+/* ============================================================
+   BASE — mobile-first reset
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* iOS Safari safe-area + Dynamic Island padding */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* All interactive targets ≥44×44 (WCAG 2.5.5 / Apple HIG) */
+button, a, [role="button"], input, label[for] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+}
+
+img { max-width: 100%; display: block; }
+
+/* ============================================================
+   PHONE FRAME — for index.html click-thru viewer
+   320 / 414 / 768 / 1440 graceful upscale
+   ============================================================ */
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  border-radius: 48px;
+  background: #111827;
+  padding: 14px 12px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.25),
+    0 0 0 2px rgba(255,255,255,0.08) inset;
+  position: relative;
+}
+
+.phone-frame::before {
+  /* Dynamic Island */
+  content: "";
+  position: absolute;
+  top: 24px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 34px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 30;
+}
+
+.phone-screen {
+  width: 100%; height: 100%;
+  background: hsl(var(--background));
+  border-radius: 38px;
+  overflow: hidden;
+  position: relative;
+}
+
+.phone-screen iframe {
+  width: 100%; height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* ============================================================
+   APP SHELL — used by every screen HTML
+   ============================================================ */
+.app-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: hsl(var(--background));
+  position: relative;
+  padding-bottom: 96px; /* room for bottom-tab nav */
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    margin: 24px auto;
+    border-radius: 28px;
+    box-shadow: var(--shadow-soft-lg);
+    overflow: hidden;
+  }
+}
+
+/* ============================================================
+   STATUS BAR — fake iOS bar for screen mocks
+   ============================================================ */
+.status-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  background: transparent;
+}
+
+.status-bar .icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================================
+   HEADER — page heading on each screen
+   ============================================================ */
+.app-header {
+  padding: 12px 20px 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-header h1 {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.app-header .subtitle {
+  font-size: var(--text-sm);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+.app-header .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+/* Pull-to-refresh hint (visual only — JS hint, not full impl) */
+.ptr-hint {
+  display: none;
+  text-align: center;
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+  padding: 8px;
+}
+.app-shell[data-pulling="true"] .ptr-hint { display: block; }
+
+/* ============================================================
+   HERO METRIC — primary card on home screen
+   ============================================================ */
+.hero-metric {
+  margin: 12px 16px 16px 16px;
+  padding: 24px;
+  border-radius: 24px;
+  color: white;
+  background: linear-gradient(135deg,
+    hsl(var(--hero-grad-start)) 0%,
+    hsl(var(--hero-grad-end)) 100%);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-metric::before {
+  /* decorative kite glow */
+  content: "";
+  position: absolute;
+  right: -40px; top: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-metric .label {
+  font-size: var(--text-sm);
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.hero-metric .value {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-top: 6px;
+}
+
+.hero-metric .delta {
+  font-size: var(--text-sm);
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.18);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ============================================================
+   CARD — generic content card
+   ============================================================ */
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.card + .card { margin-top: 12px; }
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px 20px;
+}
+.section-heading h2 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin: 0;
+}
+.section-heading a {
+  font-size: var(--text-sm);
+  color: hsl(var(--primary));
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Child card on home */
+.child-card {
+  margin: 0 16px;
+  padding: 18px;
+  border-radius: 20px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.child-card .avatar {
+  width: 56px; height: 56px;
+  border-radius: 999px;
+  background: hsl(var(--surface-soft));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: hsl(var(--primary));
+  flex-shrink: 0;
+}
+.child-card .name {
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+.child-card .meta {
+  font-size: var(--text-sm);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+/* ============================================================
+   ACTIVITY ROW — used in recent activity / payments / grades
+   ============================================================ */
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.activity-row:last-child { border-bottom: 0; }
+
+.activity-icon {
+  flex-shrink: 0;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.activity-icon.green { background: hsl(var(--surface-success)); color: hsl(var(--success)); }
+.activity-icon.amber { background: hsl(var(--surface-warning)); color: hsl(var(--warning)); }
+.activity-icon.blue  { background: hsl(var(--surface-soft));    color: hsl(var(--primary)); }
+.activity-icon.red   { background: hsl(var(--surface-danger));  color: hsl(var(--destructive)); }
+
+.activity-body { flex: 1; min-width: 0; }
+.activity-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.activity-sub {
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+.activity-trail {
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+}
+
+/* ============================================================
+   BOTTOM TAB NAV — 4 tabs, fixed
+   ============================================================ */
+.bottom-tabs {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border-top: 1px solid hsl(var(--border));
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  /* keep within app-shell card on desktop preview */
+  .bottom-tabs {
+    position: absolute;
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+  }
+}
+
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  border-radius: 14px;
+  padding: 6px 4px;
+}
+.tab-btn[aria-current="page"] {
+  color: hsl(var(--primary));
+  background: hsl(var(--surface-soft));
+}
+.tab-btn .tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+  font-size: var(--text-base);
+  letter-spacing: -0.01em;
+  transition: transform .15s ease-out, box-shadow .15s ease-out, opacity .15s;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft-lg); }
+.btn-primary:active { transform: translateY(0); opacity: 0.92; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  color: hsl(var(--foreground));
+  font-weight: 500;
+  font-size: var(--text-sm);
+}
+
+/* ============================================================
+   PILL / CHIP / BADGE
+   ============================================================ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.pill.success { background: hsl(var(--surface-success)); color: hsl(var(--success)); }
+.pill.warning { background: hsl(var(--surface-warning)); color: hsl(var(--warning)); }
+.pill.danger  { background: hsl(var(--surface-danger));  color: hsl(var(--destructive)); }
+.pill.info    { background: hsl(var(--surface-soft));    color: hsl(var(--primary)); }
+.pill.neutral { background: hsl(var(--muted));           color: hsl(var(--muted-foreground)); }
+
+/* Grade pill — bolder, used in grade overview */
+.grade-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  height: 36px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
+}
+.grade-pill.xuat-sac { background: hsl(160 84% 92%); color: hsl(160 84% 25%); }
+.grade-pill.gioi     { background: hsl(217 91% 92%); color: hsl(217 91% 35%); }
+.grade-pill.kha      { background: hsl(38 92% 92%);  color: hsl(38 92% 30%); }
+.grade-pill.tb       { background: hsl(0 0% 92%);    color: hsl(0 0% 35%); }
+.grade-pill.yeu      { background: hsl(0 84% 95%);   color: hsl(0 84% 35%); }
+
+/* ============================================================
+   LOADING — skeleton
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--border)) 40%,
+    hsl(var(--muted)) 80%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+/* ============================================================
+   ATTENDANCE CALENDAR
+   ============================================================ */
+.calendar {
+  margin: 12px 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.calendar-grid .dow {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+  font-weight: 600;
+  padding: 6px 0;
+}
+.day {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.day.muted    { color: hsl(var(--muted-foreground)); opacity: 0.4; }
+.day.present  { background: hsl(var(--surface-success)); color: hsl(var(--success)); font-weight: 700; }
+.day.absent   { background: hsl(var(--surface-danger));  color: hsl(var(--destructive)); font-weight: 700; }
+.day.late     { background: hsl(var(--surface-warning)); color: hsl(var(--warning)); font-weight: 700; }
+.day.excused  { background: hsl(var(--surface-soft));    color: hsl(var(--primary)); font-weight: 700; }
+.day.today    { outline: 2px solid hsl(var(--primary)); }
+.day.weekend  { color: hsl(var(--muted-foreground)); }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+}
+.legend-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   ZALO OA NOTIFICATION CARD (320×100)
+   ============================================================ */
+.zalo-oa-card {
+  width: 320px;
+  height: 100px;
+  background: hsl(var(--card));
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  padding: 12px;
+  align-items: center;
+  margin: 16px auto;
+}
+
+.zalo-oa-card .tenant-mark {
+  position: relative;
+  width: 40px; height: 40px;
+}
+.zalo-oa-card .tenant-mark .logo {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+.zalo-oa-card .tenant-mark .zalo-flag {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  width: 18px; height: 18px;
+  border-radius: 999px;
+  background: hsl(199 89% 48%);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid hsl(var(--card));
+}
+.zalo-oa-card .body { min-width: 0; overflow: hidden; }
+.zalo-oa-card .head {
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.zalo-oa-card .msg {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.zalo-oa-card .cta {
+  background: hsl(var(--primary));
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.zalo-oa-card .ts {
+  position: absolute;
+  bottom: 6px; right: 12px;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+
+/* ============================================================
+   PAYMENT METHOD SELECTOR
+   ============================================================ */
+.pay-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 2px solid hsl(var(--border));
+  background: hsl(var(--card));
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.pay-method[aria-pressed="true"], .pay-method.selected {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--surface-soft));
+}
+.pay-method .logo {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  font-size: 12px;
+}
+.pay-method .logo.momo  { background: linear-gradient(135deg, #d82d8b, #a02168); }
+.pay-method .logo.vnpay { background: linear-gradient(135deg, #0066b1, #003e6b); }
+.pay-method .logo.zalo  { background: linear-gradient(135deg, #006af5, #0048b0); }
+.pay-method .logo.bank  { background: linear-gradient(135deg, #475569, #1e293b); }
+.pay-method .logo.cash  { background: linear-gradient(135deg, #15803d, #166534); }
+
+.pay-method .info { flex: 1; min-width: 0; }
+.pay-method .name { font-weight: 600; font-size: var(--text-sm); }
+.pay-method .desc { font-size: var(--text-xs); color: hsl(var(--muted-foreground)); margin-top: 2px; }
+
+/* ============================================================
+   TOGGLE / SETTINGS ROW
+   ============================================================ */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+.settings-row:first-child { border-top-left-radius: 16px; border-top-right-radius: 16px; }
+.settings-row:last-child  { border-bottom: 0; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+
+.settings-row .label { flex: 1; min-width: 0; }
+.settings-row .title { font-weight: 600; font-size: var(--text-sm); }
+.settings-row .hint  { font-size: var(--text-xs); color: hsl(var(--muted-foreground)); margin-top: 2px; }
+
+.toggle {
+  width: 44px; height: 26px;
+  background: hsl(var(--muted));
+  border-radius: 999px;
+  position: relative;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  background: white;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform .2s ease-out;
+}
+.toggle.on { background: hsl(var(--primary)); }
+.toggle.on::after { transform: translateX(18px); }
+
+/* ============================================================
+   EMPTY / ERROR / SUCCESS — illustration containers
+   ============================================================ */
+.state {
+  text-align: center;
+  padding: 48px 24px;
+}
+.state .illu {
+  width: 120px; height: 120px;
+  margin: 0 auto 16px auto;
+  border-radius: 999px;
+  background: hsl(var(--surface-soft));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.state.success .illu { background: hsl(var(--surface-success)); }
+.state.error   .illu { background: hsl(var(--surface-danger)); }
+.state h3 { font-size: var(--text-lg); font-weight: 700; margin: 0 0 6px 0; }
+.state p  { font-size: var(--text-sm); color: hsl(var(--muted-foreground)); margin: 0 0 20px 0; }
+
+/* ============================================================
+   PWA PROMPT — bottom sheet
+   ============================================================ */
+.bottom-sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: hsl(var(--card));
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom)) 20px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.16);
+  z-index: 60;
+}
+.bottom-sheet .handle {
+  width: 36px; height: 4px;
+  background: hsl(var(--border));
+  border-radius: 999px;
+  margin: -12px auto 16px auto;
+}
+.scrim {
+  position: absolute; inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 55;
+}
+
+/* ============================================================
+   WEB PUSH PERMISSION MODAL — browser-style
+   ============================================================ */
+.browser-modal {
+  position: absolute;
+  top: 80px; left: 16px; right: 16px;
+  background: white;
+  border-radius: 14px;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.18),
+    0 0 0 1px rgba(0,0,0,0.04);
+  padding: 16px;
+  z-index: 65;
+}
+.browser-modal .origin {
+  font-size: var(--text-xs);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.browser-modal .ask {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 12px;
+}
+.browser-modal .actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ============================================================
+   GRADE TABS
+   ============================================================ */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 8px 16px 16px 16px;
+  padding: 4px;
+  background: hsl(var(--muted));
+  border-radius: 12px;
+}
+.tab {
+  text-align: center;
+  padding: 10px 8px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: 9px;
+  color: hsl(var(--muted-foreground));
+}
+.tab[aria-selected="true"] {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: var(--shadow-soft);
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+.dark {
+  --primary: 217 91% 70%;
+  --primary-foreground: 222 47% 11%;
+  --hero-grad-start: 199 89% 58%;
+  --hero-grad-end:   217 91% 65%;
+  --surface-soft: 217 32% 14%;
+  --surface-success: 160 60% 14%;
+  --surface-warning: 38 60% 14%;
+  --surface-danger: 0 60% 16%;
+}
+
+.dark .grade-pill.xuat-sac { background: hsl(160 60% 14%); color: hsl(160 84% 70%); }
+.dark .grade-pill.gioi     { background: hsl(217 60% 14%); color: hsl(217 91% 75%); }
+.dark .grade-pill.kha      { background: hsl(38 60% 14%);  color: hsl(38 92% 70%); }
+.dark .grade-pill.tb       { background: hsl(220 14% 18%); color: hsl(220 14% 75%); }
+.dark .grade-pill.yeu      { background: hsl(0 60% 16%);   color: hsl(0 84% 70%); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slideUp .35s ease-out forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

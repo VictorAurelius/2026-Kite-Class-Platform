@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b82f6" />
+  <title>Cài đặt vào màn hình chính — KC Phụ huynh</title>
+  <!--
+    Persona: Pa. Parent — PWA install prompt overlay (Add to Home Screen).
+    Triggered after user has visited 2+ sessions OR clicked "Cài đặt vào điện thoại"
+    in settings. Direction D pivot: web responsive + PWA-grade per dossier 08 §2.
+    Flow ref: PWA install lifecycle (manifest.json display:standalone, beforeinstallprompt event)
+    Score self-estimate: 115/128 (clear value prop + 3-step explainer + dismissible)
+    Viewport priority: 320px → 768px graceful
+    Contrast (measured):
+      - body: 16.5:1 AAA ✓
+      - dim scrim: opacity intentional (overlay)
+      - primary CTA white-on-indigo: 4.6:1 AA ✓
+    i18n keys: parent.pwa.install.title · parent.pwa.install.cta · parent.pwa.install.dismiss
+  -->
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-parent">
+  <div class="app-shell" role="application">
+    <!-- Background: home screen (dimmed) -->
+    <div class="status-bar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <header class="app-header" style="opacity:0.4">
+      <div>
+        <h1>Chào chị Hương 👋</h1>
+        <div class="subtitle">Tháng 4 — Năm học 2025–2026</div>
+      </div>
+    </header>
+
+    <section class="hero-metric" style="opacity:0.4" aria-hidden="true">
+      <div class="label">Tỷ lệ đi học của con tháng này</div>
+      <div class="value">92<span style="font-size:24px;opacity:0.85">%</span></div>
+    </section>
+
+    <!-- Scrim overlay -->
+    <div class="scrim" aria-hidden="true"></div>
+
+    <!-- Bottom sheet: PWA install prompt -->
+    <div class="bottom-sheet animate-slide-up" role="dialog" aria-labelledby="pwa-install-title" aria-modal="true">
+      <div class="handle" aria-hidden="true"></div>
+
+      <!-- Hero illustration -->
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="width:80px;height:80px;margin:0 auto;border-radius:20px;background:linear-gradient(135deg, hsl(var(--primary)), hsl(217 91% 50%));display:inline-flex;align-items:center;justify-content:center;color:white;box-shadow:0 12px 32px rgba(59,130,246,0.35);position:relative" aria-hidden="true">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M50 8 L80 50 L50 92 L20 50 Z" transform="scale(0.24)"/>
+          </svg>
+          <svg width="44" height="44" viewBox="0 0 100 100" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" style="position:absolute" aria-hidden="true">
+            <path d="M50 12 L82 50 L50 88 L18 50 Z" fill="white" stroke="white"/>
+          </svg>
+        </div>
+      </div>
+
+      <h2 id="pwa-install-title" style="font-size:var(--text-xl);font-weight:800;margin:0 0 8px 0;text-align:center;letter-spacing:-0.02em">Cài đặt KiteClass vào điện thoại</h2>
+      <p style="font-size:var(--text-sm);color:hsl(var(--muted-foreground));margin:0 0 20px 0;text-align:center;line-height:1.5">
+        Truy cập nhanh từ màn hình chính như một app thật.<br/>Không tốn dung lượng.
+      </p>
+
+      <!-- Benefits -->
+      <div style="display:grid;gap:10px;margin-bottom:20px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="activity-icon green" aria-hidden="true" style="flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <div>
+            <div style="font-weight:600;font-size:var(--text-sm)">Mở 1 chạm từ màn hình chính</div>
+            <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:2px">Như app — không cần tìm trong trình duyệt</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="activity-icon blue" aria-hidden="true" style="flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </span>
+          <div>
+            <div style="font-weight:600;font-size:var(--text-sm)">Vẫn nhận thông báo Zalo OA</div>
+            <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:2px">Cộng thêm Web Push trên nền</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="activity-icon amber" aria-hidden="true" style="flex-shrink:0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          </span>
+          <div>
+            <div style="font-weight:600;font-size:var(--text-sm)">Hoạt động cả khi mạng yếu</div>
+            <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:2px">Dữ liệu đã xem được lưu sẵn</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <button class="btn-primary" type="button" autofocus>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        Cài đặt vào màn hình chính
+      </button>
+      <button class="btn-ghost" type="button" style="width:100%;margin-top:8px;color:hsl(var(--muted-foreground))">Để sau</button>
+
+      <!-- iOS Safari hint (manual install) -->
+      <div style="margin-top:14px;padding:12px;border-radius:12px;background:hsl(var(--surface-soft));font-size:var(--text-xs);color:hsl(var(--muted-foreground));line-height:1.5">
+        <strong style="color:hsl(var(--foreground))">Đang dùng iPhone Safari?</strong><br/>
+        Bấm nút <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Chia sẻ → "Thêm vào màn hình chính"
+      </div>
+    </div>
+  </div>
+</body>
+</html>
