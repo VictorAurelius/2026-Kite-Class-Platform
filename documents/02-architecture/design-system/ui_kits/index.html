@@ -35,8 +35,8 @@
         </div>
       </div>
       <div class="flex items-center gap-2 text-sm text-slate-600">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-          <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Foundation merged · Wave 1 pending
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Wave 1 + 1.5/1.6/1.7 SHIPPED · 6 kits · avg 110.5/128
         </span>
       </div>
     </div>
@@ -48,12 +48,13 @@
     <p class="text-slate-600 mt-2 max-w-2xl">
       Triển khai theo dossier
       <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">documents/02-architecture/design-system/dossier/</code>
-      (PR #667). Wave 1 ship 3 deliverables: kiteclass-pro v2 + kiteclass-parent + 5 components.
+      (PR #667). <strong>6 kits SHIPPED:</strong> Wave 1 (kiteclass-pro v2 + kiteclass-parent + 5 components) + Wave 1.5/1.6/1.7 add-ons (kitehub-pro v2 + kiteclass-teacher + ai-branding-wizard-v2).
     </p>
     <p class="text-slate-500 text-sm mt-3">
-      Quality target: avg ≥105/128 per kit, no screen <95/128. Per
+      Quality result: avg <strong>110.5/128 across 76 screens</strong> (target ≥105 ✓, +51% lift vs Round 1 baseline ~73). Per
       <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">.claude/rules/output-review-mandate.md</code>
-      §3 row "HTML/JSX prototypes" (v1.2.0).
+      §3 row "HTML/JSX prototypes" (v1.2.0). Review evidence:
+      <code class="bg-slate-100 px-1.5 py-0.5 rounded text-xs">documents/04-quality/audits/ui-review/2026-04-29-wave-1-add-ons-review.md</code>
     </p>
   </section>
 
@@ -61,52 +62,103 @@
   <main class="max-w-6xl mx-auto px-6 pb-20">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-      <!-- Kit 1 -->
+      <!-- Kit 1 — Wave 1 -->
       <a href="kiteclass-pro-v2/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
         <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         </div>
         <h2 class="font-semibold text-lg">kiteclass-pro v2</h2>
-        <p class="text-sm text-slate-600 mt-1">Direction B — Owner dashboard với ⌘K palette, sparklines, drag-drop, dark mode polish.</p>
-        <div class="mt-4 flex items-center gap-2 text-xs">
-          <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">P2 Center Owner</span>
-          <span class="text-slate-400">5 base screens · ~20 files</span>
+        <p class="text-sm text-slate-600 mt-1">Direction B — KC owner dashboard với ⌘K palette, sparklines, drag-drop, dark mode polish.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">P2 Center Owner (KC)</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">108.4/128</span>
+          <span class="text-slate-400">10 screens · Wave 1</span>
         </div>
       </a>
 
-      <!-- Kit 2 -->
+      <!-- Kit 2 — Wave 1 -->
       <a href="kiteclass-parent/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
         <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 text-white mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <h2 class="font-semibold text-lg">kiteclass-parent</h2>
-        <p class="text-sm text-slate-600 mt-1">Direction D pivot — mobile-first 320–414px, PWA-grade, Zalo OA primary.</p>
-        <div class="mt-4 flex items-center gap-2 text-xs">
+        <p class="text-sm text-slate-600 mt-1">Direction D pivot — mobile-first 320–414px, PWA-grade, Zalo OA primary push.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
           <span class="px-2 py-0.5 bg-pink-50 text-pink-700 rounded">Pa. Parent</span>
-          <span class="text-slate-400">5 routes · ~25 files</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">114/128 ⭐</span>
+          <span class="text-slate-400">17 screens · Wave 1</span>
         </div>
       </a>
 
-      <!-- Kit 3 -->
+      <!-- Kit 3 — Wave 1 -->
       <a href="components/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
         <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/></svg>
         </div>
         <h2 class="font-semibold text-lg">5 Components</h2>
         <p class="text-sm text-slate-600 mt-1">G2 Attendance Roster · G5 Payment · G6 Invoice · G7 Parent invite · G12 Bulk actions.</p>
-        <div class="mt-4 flex items-center gap-2 text-xs">
-          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">Components</span>
-          <span class="text-slate-400">5 demos · ~25 files</span>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">Cross-cutting</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">106.7/128</span>
+          <span class="text-slate-400">29 demos · Wave 1</span>
+        </div>
+      </a>
+
+      <!-- Kit 4 — Wave 1.5 add-on -->
+      <a href="kitehub-pro-v2/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-sky-500 to-orange-500 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">kitehub-pro v2</h2>
+        <p class="text-sm text-slate-600 mt-1">KH SaaS control plane — billing + branding hub + instance lifecycle + customer dashboard.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded">P2 Center Owner (KH)</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">107.8/128</span>
+          <span class="text-slate-400">24 screens · Wave 1.5</span>
+        </div>
+      </a>
+
+      <!-- Kit 5 — Wave 1.6 add-on -->
+      <a href="kiteclass-teacher/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">kiteclass-teacher</h2>
+        <p class="text-sm text-slate-600 mt-1">GVCN + subject teacher — daily attendance · grade entry · schedule · reports · settings.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-violet-50 text-violet-700 rounded">Teacher (Tier 2 KC)</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">108.0/128</span>
+          <span class="text-slate-400">24 screens · Wave 1.6</span>
+        </div>
+      </a>
+
+      <!-- Kit 6 — Wave 1.7 add-on -->
+      <a href="ai-branding-wizard-v2/" class="card-hover bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-white mb-4">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/></svg>
+        </div>
+        <h2 class="font-semibold text-lg">ai-branding-wizard v2</h2>
+        <p class="text-sm text-slate-600 mt-1">Direction C — 6-step wizard refactor + ENTERPRISE Advanced Mode + quality gate /100 widget + per-resource approve.</p>
+        <div class="mt-4 flex items-center gap-2 text-xs flex-wrap">
+          <span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded">P2 + P3 Admin</span>
+          <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">115.6/128 ⭐⭐</span>
+          <span class="text-slate-400">28 screens · Wave 1.7</span>
         </div>
       </a>
 
     </div>
 
-    <!-- Status placeholder -->
-    <div class="mt-12 rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
-      <div class="text-slate-400 text-sm">
-        <strong class="text-slate-700">Foundation merged. Wave 1 agents pending spawn.</strong><br />
-        Each kit folder will be filled by a worktree-isolated agent. Browse Round 1 baseline at <code class="bg-slate-100 px-1 rounded">kiteclass-pro-v2/_v1-baseline/</code>.
+    <!-- Status -->
+    <div class="mt-12 rounded-2xl bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-200 p-8">
+      <div class="flex items-start gap-4">
+        <div class="inline-flex p-2.5 rounded-xl bg-emerald-500 text-white shrink-0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <strong class="text-slate-900">All 6 kits SHIPPED · Wave 1 + Wave 1.5/1.6/1.7 add-ons MERGED 2026-04-29</strong><br />
+          <span class="text-slate-700 text-sm">76 screens · Wave aggregate avg 110.5/128 · +51% lift vs Round 1 baseline ~73/128 · 0 worktree contamination · 0 file conflicts · 11 consecutive 0-clarification-round waves</span><br />
+          <span class="text-slate-500 text-xs mt-2 inline-block">Round 1 baseline reference preserved at <code class="bg-white px-1 rounded">kiteclass-pro-v2/_v1-baseline/</code> + archived kits in <code class="bg-white px-1 rounded">documents/07-archived/design-round-1-2026-04-29/</code>. Track 2 production port to Next.js code deferred (GAP-264..267 will file after user accepts kits).</span>
+        </div>
       </div>
     </div>
 
