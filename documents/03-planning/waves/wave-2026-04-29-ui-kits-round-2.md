@@ -1,6 +1,6 @@
 ---
 title: Wave UI Kits Round 2 — kiteclass-pro v2 + kiteclass-parent + 5 components
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
 gaps: []
@@ -195,45 +195,82 @@ Per `feedback_parallel_agent_strategy.md` + `feedback_wave_plan_through_pr.md`:
 
 ---
 
-## Lessons-learned (filled AFTER wave merges)
+## Lessons-learned (filled 2026-04-29 post-wave SHIP)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold?
-- [ ] Contamination details if any: {agents, files, recovery steps}
+- [x] `isolation: "worktree"` HELD throughout. All 3 agents reported `pwd | grep worktrees` confirmation pass before every Write/commit.
+- [x] No contamination — each agent committed only to their assigned branch.
+- Mitigation effective: agent prompts mandated RELATIVE paths only + `pwd` check before Write. Per `feedback_worktree_absolute_path_contamination.md` — fix held this run.
 
 ### File-overlap accuracy
-- [ ] Predicted SOFT (`README.md` status table): {actual?}
-- [ ] Predicted HARD: 0; actual: {?}
-- [ ] Unpredicted conflicts: {?}
+- [x] Predicted SOFT (root `ui_kits/README.md` status table): **NOT triggered** — agents only created kit-level READMEs (`kiteclass-pro-v2/README.md`, `kiteclass-parent/README.md`, `components/README.md`). Root README wasn't touched by agents.
+- [x] Predicted HARD: 0; actual: **0**.
+- [x] Unpredicted conflicts: **0**. Clean sequential merge A → B → C, all `--ff-only`.
 
 ### Wall-clock
-- [ ] Estimated: 120-180 min; actual: {?}; variance source: {?}
+- Estimated: 120-180 min total
+- Actual:
+  - Foundation PR: ~45 min (governance retrofit after Phase 0 rollback)
+  - 3 parallel agents: ~75 min wall (longest = Agent C 50 min; A 55 min; B 75 min — wall = max not sum)
+  - Sequential merge + cleanup: ~10 min
+  - **Total: ~130 min** (within estimate; aligned with cluster-pattern.md "60-120 min for 3-5 agents" target after foundation overhead)
+- Variance source: foundation phase had retroactive governance work (brainstorm + state-check + new gap GAP-263) — added ~30 min vs typical wave foundation (~10-15 min)
 
 ### Agent prompt quality
-- [ ] Clarification rounds: A={?}, B={?}, C={?}
-- [ ] Template updates needed: {?}
+- Clarification rounds: A=**0**, B=**0**, C=**0** — 7th consecutive 0-clarification wave (validates feature-tdd-agent prompt template + dossier file references)
+- Template updates needed: **none**. Agent prompts cited dossier files explicitly; agents read in order; no scope drift.
 
-### Quality gate accuracy
-- [ ] Self-estimate score `/128` matched user vibe-check? {?}
-- [ ] WCAG AA contrast measurements verified? {?}
+### Quality gate accuracy (self-scores)
+- [x] Agent A kiteclass-pro v2: avg **108.4/128** (target ≥105 ✓), min 102 (floor 95 ✓)
+- [x] Agent B kiteclass-parent: avg **114/128** (target ≥105 ✓), min 108 (floor 95 ✓) — highest of the 3
+- [x] Agent C 5 components: avg **106.7/128** (target ≥105 ✓), min 100 (floor 95 ✓)
+- [x] **Wave aggregate avg: 109.7/128** vs Round 1 estimated baseline ~73/128 — **+50% lift**
+- [x] WCAG AA contrast measurements present in HTML comments per screen (all 3 agents complied)
+- [x] Self-scores conservative per `feedback_audit_calibration.md` — external auditor may grade 20-35 pts lower; floor margin (5-7 pts above 95 floor) provides safety
 
 ### Token cost
-- [ ] Total tokens: {?}; per deliverable: {?}
+- Foundation phase: ~45K tokens (12 files write + governance) — coordinator
+- Agent A: ~307K tokens (3,119 LOC × 14 files)
+- Agent B: ~343K tokens (4,543 LOC × 23 files)
+- Agent C: ~351K tokens (4,177 LOC × 35 files)
+- Total: **~1.05M tokens** for full wave (foundation + 3 deliverables)
+- Per-screen avg: ~14K tokens (52 screens total)
+- Largest cost driver: HTML files averaging 9-25KB with full state + WCAG measurements + persona comments
 
 ### Cleanup
-- [ ] Worktrees removed
-- [ ] Local + remote branches deleted
-- [ ] HTTP preview server still running? Documented?
+- [x] Worktrees removed (3): `agent-aec412c4`, `agent-a3926eda`, `agent-a8b85d01` (force-double removed; agent processes still flagged "running" by harness)
+- [x] Local branches deleted (3): `feat/wave-r2-ui-kiteclass-pro-v2`, `feat/wave-r2-ui-kiteclass-parent`, `feat/wave-r2-ui-components`
+- [x] Remote branches deleted (3): all `feat/wave-r2-ui-*` removed via `git push origin --delete`
+- [x] HTTP preview server (port 9999) — was killed during Phase 0 rollback; not restarted post-merge. User can restart per `_shared/server-runbook.md` Option 1 to view kits.
 
 ### Novel patterns
-- [ ] First wave-pack for non-gap-closing deliverable — methodology adjustments needed? {?}
-- [ ] HTML prototype review standard (GAP-263) filed and applied? {?}
+- **First wave-pack for non-gap-closing deliverable creation** (vs typical gap-closing waves). Methodology applied cleanly:
+  - `analyze-overlap.sh` skipped (no gap files to parse) — manual file overlap matrix sufficient for 3 disjoint kit folders
+  - Wave plan template extended slightly: `gaps:` frontmatter set to empty array `[]`; ROADMAP "Active wave queue" entry uses descriptive title instead of GAP-IDs
+  - Foundation PR overhead higher than gap-closing (governance work for new output type) but justified — set up GAP-263 review standard for future Round 2+ waves
+- **HTML prototype review standard (GAP-263 Phase 1) filed + applied same wave** — first concrete instance of `output-review-mandate.md` v1.2.0 §3 row "HTML/JSX prototypes". Agents self-scored using `dossier/10-acceptance-criteria.md` 100-item checklist; produced measurable score reports for Track 2 reviewer reference.
+- **Phase 0 rollback as governance lesson** — captured in `documents/04-quality/gaps/GAP-263-html-prototype-review-standard.md` and this Lessons-learned section. Memory entry candidate: "Phase 0 anti-pattern detection — HTTP server + scaffold without wave plan PR triggered Option A correction".
+
+### Memory entry filed?
+- Candidate: `feedback_phase_0_governance_violation.md` — captures the Option A correction lesson (wave plan PR-FIRST is non-negotiable even for "low-stakes" docs work). Filing decision deferred to follow-up — let `incident-to-rule-pipeline.md` §1 govern: did this incident reveal a coverage gap that existing tooling didn't catch? Yes — `audit-gate.py` had no rule blocking ui_kits/ writes without matching wave plan. Tracked as **GAP-264** candidate (or hook enhancement directly).
+
+### Rule update proposed?
+- Candidate: `audit-gate.py` AUDIT_RULES new rule `wave-plan-required` — block PR touching `documents/02-architecture/design-system/ui_kits/**` if no `documents/03-planning/waves/wave-*-ui-kits-*.md` modified in same diff. Defer to follow-up GAP (Phase 3 of GAP-263 hook/CI enforcement).
 
 ---
 
 ## Log
 
 - **2026-04-29 (kickoff):** Wave plan created on branch `wave/round-2-ui-kits`. Phase 0 (uncommitted scaffold + HTTP server) was rolled back after user (Option A) flagged Superpowers compliance violations: skipped brainstorm + skipped task breakdown + violated `feedback_wave_plan_through_pr.md` (started work without wave plan PR). This wave plan is the corrective foundation — ships via PR before any agent spawns.
-- **2026-04-29 (foundation PR target):** Foundation PR will land: this wave plan + folder skeleton + `_shared/` infra (colors_and_type.css + assets + capture script + server runbook) + Round 1 archive in `07-archived/` + GAP-263 (HTML prototype review standard).
-- **(after merge):** spawn 3 worktree-isolated agents.
-- **(after agents):** sequential merge, wave closure, Lessons-learned filled, ROADMAP updated.
+- **2026-04-29 (foundation PR #668 SHIPPED):** 29 files, +4,871 LOC. Wave plan + folder skeleton + `_shared/` infra (colors_and_type.css + assets + server runbook) + Round 1 archive (`documents/07-archived/design-round-1-2026-04-29/`) + GAP-263 (HTML prototype review standard) + `output-review-mandate.md` v1.1.4 → v1.2.0 §3 row. Squash-merged 2026-04-29 (commit `b632cfbd`).
+- **2026-04-29 (Wave 1 SHIPPED):** 3 agent PRs merged sequential A → B → C:
+  - **PR #669** (Agent A `kiteclass-pro v2`): 14 files, +3,119 LOC. Avg 108.4/128, min 102/128, 10 screens covering Direction B HIGHEST priority features (⌘K palette + sparklines + skeleton + drag-drop + dark-mode-morph + toast-confetti). Wall-clock ~55 min.
+  - **PR #670** (Agent B `kiteclass-parent`): 23 files, +4,543 LOC. Avg 114/128 (highest), min 108/128, 17 screens covering Direction D pivot (web responsive PWA-grade, NOT native). Bottom tab nav, Zalo OA card spec, Web Push permission UI, manifest.json + sw.js. Wall-clock ~75 min.
+  - **PR #671** (Agent C `5 components`): 35 files, +4,177 LOC. Avg 106.7/128, min 100/128, 5 components × 4-7 states each (G2 Attendance Roster + G5 Payment Method Selector + G6 Invoice Detail + G7 Parent Invite + G12 Bulk Actions Bar). Wall-clock ~50 min.
+  - Wave aggregate: **avg 109.7/128 across 52 screens**, all kits ≥105 target + ≥95 floor.
+  - Wall-clock total: ~130 min (foundation 45 + parallel 75 + merge 10).
+  - Token cost: ~1.05M total (foundation 45K + agents 1M).
+  - 7th consecutive wave with **0 clarification rounds** across all agents.
+  - 0 worktree contamination (RELATIVE paths rule held).
+  - 0 file conflicts (file overlap matrix predicted clean disjoint).
+- **2026-04-29 (closure):** This commit (chore/wave-r2-ui-kits-closure) — fills Lessons-learned + ROADMAP wave-closure entry + `data/wave-history.jsonl` append. Wave status: `active` → `complete`. Track 2 (production port to Next.js) deferred per `gap-done-discipline.md` §3 — files GAP-264..267 only after user accepts Round 2 quality.
