@@ -114,6 +114,111 @@ Then rotate `### Active wave queue (clustered)` table:
 - Strikethrough shipped wave (`~~Theme — Wave N~~`), mark `✅ SHIPPED YYYY-MM-DD`
 - Promote next cluster to `**bold (next)**`
 
+## 4+-agent local-state hazards (added 2026-04-29 from Wave 13 lessons)
+
+When wave-pack uses 4 or more parallel worktree-isolated agents (Wave Legal-BRD Phase 1 was first to observe these), three local-state hazards surface that don't appear in 3-agent waves. The cluster of merged branches + still-active worktrees + invisible coordinator `cd` interactions creates failure modes that need explicit recovery procedures.
+
+Apply this checklist when reviewing wave closure for any wave with N>=4 agents.
+
+### Hazard 1 — Worktree-held branches block `gh pr merge --delete-branch`
+
+**Symptom:** running `gh pr merge <N> --squash --delete-branch` for the *last* PR in a 4-agent wave succeeds upstream, but the post-merge `git checkout main` step fails locally with:
+
+```
+fatal: 'main' is already used by worktree at /home/.../worktrees/agent-XXXX
+```
+
+**Why:** the 4 agent worktrees are still on detached HEADs of their (now-merged) feature branches. `gh pr merge` post-merge tries to switch the *main* repo's working copy to `main`, but main is "claimed" by a worktree somewhere on the filesystem.
+
+**Recovery (inside main repo, NOT inside a worktree):**
+
+```bash
+git fetch origin main
+git reset --hard origin/main
+```
+
+This forces main repo to track `origin/main` regardless of worktree claims.
+
+**Mitigation:**
+- **Option A (preferred):** prune worktrees BEFORE merging the final PR of a 4+-agent wave:
+  ```bash
+  git worktree list                     # inspect
+  git worktree remove --force <path>    # for each agent worktree
+  git worktree prune
+  ```
+- **Option B (acceptable):** accept local stale state until the dedicated cleanup task; coordinator runs Recovery sequence above as task #N in queue
+- **Option C (avoid):** trying to checkout main from inside a worktree — re-triggers the same error
+
+**Worked example:** Wave Legal-BRD Phase 1 (2026-04-29) — `gh pr merge 691` (the 4th agent's PR) post-merge checkout failed because all 4 agent worktrees still held HEAD refs of merged branches. Recovery via `git fetch origin main && git reset --hard origin/main` from main repo path took ~30 seconds.
+
+### Hazard 2 — Coordinator-side `cd` contamination
+
+**Symptom:** coordinator-issued `git checkout -b <branch>` for the closure / cleanup PR creates the branch INSIDE one of the agent worktrees instead of the main repo. Subsequent commits on that branch land referenced from the wrong worktree, and post-merge inspection shows commits on a branch with the right name but wrong workspace lineage.
+
+**Why:** at some earlier point in the session, a `cd <agent-worktree>` ran (often invisibly — embedded in a tool call's `cwd` or a chained command). Subsequent shell commands inherit that cwd until something explicitly changes it. The coordinator's mental model says "I'm in main repo" but the shell's `pwd` says otherwise.
+
+**Recovery:**
+
+```bash
+# 1. Get back to main repo explicitly (use absolute path or known-good relative)
+cd /home/.../2026-Kite-Class-Platform   # main repo path, NOT a worktree path
+pwd | grep -v worktrees/                 # MUST be empty match (i.e. NOT in worktree)
+
+# 2. The mis-created branch name is now held by the worktree — pick a different name
+git checkout -b <new-branch-name>        # NOT the original contaminated name
+```
+
+If the contaminated branch already has commits you want to keep, cherry-pick from it:
+
+```bash
+git log <contaminated-branch> --oneline | head -5    # find commits to rescue
+git cherry-pick <SHA1> <SHA2>                         # apply onto new branch
+```
+
+**Mitigation:**
+- **Verify before every branch op:** `pwd | grep -v worktrees/` (must NOT match `worktrees/`)
+- **Use explicit `git -C`:** `git -C /home/.../2026-Kite-Class-Platform checkout -b <branch>` makes the working dir explicit and bypasses cwd entirely
+- **Audit trail:** record `pwd` output in coordinator notes before / after each major branch operation in 4+-agent waves
+
+**Worked example:** Wave Legal-BRD Phase 1 (2026-04-29) — coordinator's closure-branch creation landed inside Agent C's worktree because an earlier `cd` (during the privacy-skeleton contamination recovery — different incident, see also `feedback_worktree_absolute_path_contamination.md`) was never reverted. Recovery via explicit `cd <main-repo-path>` + new branch name took ~5 minutes including git log archeology.
+
+### Hazard 3 — `git reset --hard origin/main` recovery NUKES uncommitted dirty files
+
+**Symptom:** while applying Hazard 1's recovery (`git reset --hard origin/main`), pre-existing dirty modifications in the main repo working tree (NOT from this session — could be from prior sessions, IDE auto-fixes, manual edits not yet staged) get silently wiped. Reflog only tracks committed history; uncommitted changes are unrecoverable post-reset.
+
+**Why:** `git reset --hard` is by design destructive to working-tree state. Reflog (`git reflog`) tracks `HEAD` movements, NOT working-tree contents. `git fsck --lost-found` finds blobs only if they were ever staged; truly uncommitted files leave no trace.
+
+**Mitigation (run BEFORE the `git reset --hard`):**
+
+```bash
+# Capture EVERYTHING — committed dirty + untracked + ignored-but-tracked
+git stash push --include-untracked --message "pre-reset-recovery $(date -Iseconds)"
+
+# Now safe to reset
+git fetch origin main
+git reset --hard origin/main
+
+# Restore captured state
+git stash pop                            # if no conflicts
+# OR if conflicts: git stash apply + manual conflict resolution
+```
+
+If `git stash pop` fails with conflicts, the stash is preserved (`git stash list` shows it) — restore manually file-by-file via `git checkout stash@{0} -- <path>`.
+
+**Worked example:** No incident in Wave 13 itself (coordinator's main repo was clean), but the hazard is real for any solo-dev session that has been running >1 day with accumulated unsaved IDE state. Documented preemptively because Reflog-cannot-help users typically discover this only AFTER losing work.
+
+### Cross-references
+
+- Sister memory: `feedback_worktree_absolute_path_contamination.md` (in `/home/nguyenvankiet/.claude/projects/-home-nguyenvankiet-projects-2026-Kite-Class-Platform/memory/`) — covers Wave DR/Backup 2026-04-28 (Agent B commit landed on Agent C's branch via absolute-path bypass) AND Wave Legal-BRD Phase 1 2026-04-29 (Agent C Write tool landed at main worktree path, caught pre-commit by `pwd` grep). Hazards 1-3 above are the same family of failures viewed from coordinator side; the memory is from agent side.
+- Wave 13 worked examples: see `data/wave-history.jsonl` `wave-2026-04-29-legal-brd-phase1` entry (`worktree_contamination: true, worktree_contamination_caught_pre_commit: true`)
+- Mitigation rule: `feedback_parallel_agent_strategy.md` rule #6 (cleanup hygiene) + rule #10 (stash-dance) — both pre-date 4-agent threshold; Hazards 1-3 extend them for 4+-agent specifics
+
+### When to escalate from this section to a rule
+
+If Hazards 1-3 recur in >=2 waves AFTER mitigation is documented, escalate per §"When to escalate" matrix below. Likely escalation: new rule `.claude/rules/parallel-agent-discipline.md` formalizing pre-final-merge worktree pruning + explicit `git -C <main>` for branch ops in 4+-agent waves.
+
+---
+
 ## When to escalate
 
 If patterns repeat across waves:
@@ -149,3 +254,7 @@ Memory dir: `/home/nguyenvankiet/.claude/projects/-home-nguyenvankiet-projects-2
 - [cluster-pattern.md](cluster-pattern.md) — heuristic recalibration
 - Memory `feedback_parallel_agent_strategy.md` — 10 hard rules
 - Rule `.claude/rules/rule-change-process.md` — escalation pathway
+
+## Log
+
+- 2026-04-29 — Added §4+-agent local-state hazards section (3 hazards from Wave 13 retro). Reviewer: Agent D (Wave Legal-BRD Phase 1.5 meta track).
