@@ -1,6 +1,6 @@
 # GAP-183: Refund + Dispute Resolution Policy
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1.5, PR #694). Phase 2 (legal counsel content + payment processor alignment + contract templates + support team SOP) blocked-on stakeholder engagement → tracked GAP-154 umbrella per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
 **Priority:** 🔴 P0 (business-logic tier — **VN Consumer Protection Law mandate**)
 **Domain:** Legal / BRD / Commercial
 **Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1)
@@ -93,4 +93,5 @@ Create `documents/00-brd/refund-dispute-resolution-policy.md`:
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1.5, PR #694 squash-merged commit `a491f517`). 384-line markdown file `documents/00-brd/refund-dispute-resolution-policy.md` với 11 sections (8 mandated + 3 governance). 4 tables (refund eligibility matrix 4×4 + dispute escalation ladder L1-L7 + service credits SLA breach tier + Phase 2 ownership matrix). 12 markdown cross-links: 5 sibling skeletons (TOS/AUP/Privacy/Retention/Billing) + 3 ai-branding-guidelines.md refs + GAP-189/108 planned. Frontmatter cites Law No. 19/2023/QH15 + Commercial Law 2005 + VIAC arbitration rules. Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator per `gap-done-discipline.md` §3 (Phase 1 AC items 1-6 fully met; Phase 2 AC items 7-11 tracked under GAP-154 umbrella).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap. VN Consumer Protection Law 2023 mandate.

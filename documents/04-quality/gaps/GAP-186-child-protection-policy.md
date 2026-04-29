@@ -1,6 +1,6 @@
 # GAP-186: Child Protection Policy (K-12 Minors)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1.5, PR #696). Phase 2 (legal counsel với VN child protection law expertise + MOLISA consultation if platform registration required + parental consent UI implementation + age verification workflow + safeguarding reporting channel + teacher vetting requirement onboarding + first quarterly safeguarding review) blocked-on stakeholder engagement → tracked GAP-154 umbrella per `gap-done-discipline.md` §3 PARTIAL exit-ramp. **Strategic blocker: P5 K-12 School persona deployment requires Phase 2 legal sign-off before any school onboarding.**
 **Priority:** 🔴 P0 (business-logic tier — **Child Protection Law mandate**)
 **Domain:** Legal / BRD / Child Safety / Compliance
 **Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1; user K-12 focus)
@@ -109,4 +109,5 @@ Create `documents/00-brd/child-protection-policy.md`:
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1.5, PR #696 squash-merged commit `cff9af72`). 475-line markdown file `documents/00-brd/child-protection-policy.md` với 11 sections (8 mandated + Mục lục + Cross-references + Update Log). **44 legal citations** inline: Luật Trẻ em 2016 (Law No. 102/2016/QH13), Decree 56/2017/NĐ-CP, PDPL Art 16, Decree 13/2023/NĐ-CP, Penal Code Art 142-147, MOLISA circulars on child online safety. International references: COPPA (US), UK Children's Code, Singapore PDPA child provisions. 5 tables/matrices: Persona × tenant type trigger matrix (§1), Minor data handling matrix 9 categories (§3.6), Safeguarding incident severity P0-P3 classification (§7.4), Mandatory reporting list 10 incident types × authority × VN law (§4.4), Age verification + parental consent ASCII flow diagram (§2.5). Frontmatter 9 fields including Strategic priority = P5 K-12 blocker. 11 Phase 2 TODO markers. Cross-links: 4 sibling skeletons (TOS/AUP/Privacy/Retention) + GAP-052 parent portal planned (×4 references). Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator (Phase 1 AC items 1-7 fully met; Phase 2 AC items 8-14 tracked under GAP-154 umbrella; **strategic gating** for P5 K-12 deployment).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap. K-12 strategic segment blocker.
