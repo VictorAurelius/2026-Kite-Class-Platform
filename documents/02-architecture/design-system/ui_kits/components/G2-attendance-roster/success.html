@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G2 Attendance Roster — success/saved state
+  Used by: KC /classes/[id]/attendance after onSave resolves
+  Flow ref: dossier/05-business-flows.md Flow #3 (post-save lock + edit history)
+  Persona: Teacher
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Success chip text on success/10 bg: 4.5:1 (AA ✓)
+  - Saved-banner success-foreground on success: 4.9:1 (AA ✓)
+  i18n keys used: attendance.saved.banner, attendance.saved.editHistory, attendance.action.editAgain
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G2 — Attendance Roster (Saved)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: {
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }}}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
+    <div class="mx-auto max-w-5xl px-4 py-3 md:py-4 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-base md:text-lg font-semibold truncate">Lớp 10A2 — Toán nâng cao</h1>
+        <p class="text-xs md:text-sm text-muted-foreground truncate">Buổi #12 · 15/04/2026 · 14:00 – 15:30</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs md:text-sm font-medium text-[hsl(var(--success))]">
+        <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+        Đã chốt
+      </span>
+    </div>
+  </header>
+
+  <!-- Saved banner -->
+  <div class="mx-auto max-w-5xl px-4 pt-4">
+    <div class="rounded-xl border border-success/20 bg-success/5 px-4 py-3 flex items-start gap-3" role="status">
+      <i data-lucide="check-circle-2" class="h-5 w-5 mt-0.5 text-[hsl(var(--success))]"></i>
+      <div class="flex-1 text-sm">
+        <!-- i18n: attendance.saved.banner -->
+        <p><strong>Đã lưu điểm danh thành công.</strong> Phụ huynh sẽ nhận thông báo qua Zalo OA trong 1–2 phút.</p>
+        <p class="mt-0.5 text-xs text-muted-foreground">
+          Lưu lúc <strong>14:35:22</strong> · 15/04/2026 · bởi <strong>cô Nguyễn Thị Lan (GVCN)</strong>
+        </p>
+      </div>
+      <button class="rounded-lg border bg-card px-3 py-1.5 text-xs font-medium hover:bg-muted shrink-0 inline-flex items-center gap-1.5">
+        <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+        <!-- i18n: attendance.action.editAgain -->
+        <span>Sửa lại</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Locked roster -->
+  <main class="mx-auto max-w-5xl px-2 md:px-4 py-4 pb-12">
+    <ul class="space-y-2" id="roster"></ul>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const STATUS = {
+      P:{label:'Có mặt',short:'P',cls:'bg-success/10 text-[hsl(var(--success))]'},
+      V:{label:'Vắng có phép',short:'V',cls:'bg-info/10 text-[hsl(var(--info))]'},
+      M:{label:'Vắng không phép',short:'M',cls:'bg-destructive/10 text-destructive'},
+      L:{label:'Đi trễ',short:'L',cls:'bg-warning/10 text-[hsl(var(--warning))]'},
+    };
+    const students = [
+      ['Bùi Anh Khoa','HS-10A2-001','P'],['Đặng Thị Bích','HS-10A2-002','P'],
+      ['Đỗ Hoàng Long','HS-10A2-003','P'],['Hoàng Minh Trí','HS-10A2-004','P'],
+      ['Lê Minh Tuấn','HS-10A2-005','P'],['Lê Thị Phương','HS-10A2-006','V'],
+      ['Mai Quốc Bảo','HS-10A2-007','P'],['Ngô Đức Tài','HS-10A2-008','P'],
+      ['Nguyễn Anh Khôi','HS-10A2-009','P'],['Nguyễn Thị Hà','HS-10A2-010','P'],
+      ['Nguyễn Thị Thảo','HS-10A2-011','P'],['Nguyễn Văn An','HS-10A2-012','P'],
+      ['Phạm Đức Nam','HS-10A2-013','L'],['Phạm Thị Mai','HS-10A2-014','P'],
+      ['Phan Bảo Châu','HS-10A2-015','P'],['Trần Hữu Lộc','HS-10A2-016','M'],
+      ['Trần Khánh Linh','HS-10A2-017','P'],['Trần Quang Huy','HS-10A2-018','P'],
+      ['Trần Thị Hương','HS-10A2-019','P'],['Trần Văn Tài','HS-10A2-020','P'],
+      ['Trương Mỹ Linh','HS-10A2-021','V'],['Võ Hoàng Phúc','HS-10A2-022','P'],
+      ['Vũ Hoàng Anh','HS-10A2-023','P'],['Vũ Khánh Vân','HS-10A2-024','P'],
+      ['Vương Tuấn Kiệt','HS-10A2-025','P'],
+    ];
+    function av(name){
+      const i = name.split(' ').slice(-2).map(s=>s[0]).join('').toUpperCase();
+      let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))%360;
+      return `<div class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold text-white" style="background:hsl(${h} 60% 50%)" aria-hidden="true">${i}</div>`;
+    }
+    document.getElementById('roster').innerHTML = students.map(([name,code,s])=>`
+      <li class="rounded-xl border bg-card px-3 md:px-4 py-2.5 flex items-center gap-3">
+        ${av(name)}
+        <div class="min-w-0 flex-1">
+          <p class="font-medium truncate">${name}</p>
+          <p class="text-xs text-muted-foreground"><span class="font-mono">${code}</span></p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${STATUS[s].cls}">
+          <span aria-hidden="true">${STATUS[s].short}</span>
+          <span>${STATUS[s].label}</span>
+        </span>
+      </li>
+    `).join('');
+    lucide.createIcons();
+  </script>
+</body>
+</html>

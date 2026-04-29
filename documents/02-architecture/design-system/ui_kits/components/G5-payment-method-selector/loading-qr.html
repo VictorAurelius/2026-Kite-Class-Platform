@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G5 Payment Method Selector — loading-qr state
+  Used by: After user confirms MoMo/ZaloPay, before QR returns
+  Flow ref: dossier/05-business-flows.md Flow #5
+  Persona: Student / Parent
+  Score self-estimate: 100/128
+  Contrast (measured): muted skeleton on bg-card — decorative; CTA disabled state still has 4.7:1 contrast for label.
+  i18n keys used: payment.loadingQR.title, payment.loadingQR.body, a11y.loading
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G5 — Payment (Loading QR)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <div>
+        <p class="text-xs text-muted-foreground">Hóa đơn <span class="font-mono">KH-2026-04-001</span></p>
+        <h1 class="text-base md:text-lg font-semibold">Đang tạo mã QR MoMo…</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-12" role="status" aria-busy="true" aria-live="polite">
+    <div class="rounded-2xl border bg-card p-8 md:p-12 shadow-soft text-center">
+      <div class="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full bg-pink-100">
+        <i data-lucide="loader" class="h-10 w-10 text-pink-600 spin" aria-hidden="true"></i>
+      </div>
+      <!-- i18n: payment.loadingQR.title -->
+      <h2 class="text-xl font-semibold mb-2">Đang tạo mã QR thanh toán</h2>
+      <!-- i18n: payment.loadingQR.body -->
+      <p class="text-muted-foreground max-w-md mx-auto">
+        Vui lòng đợi vài giây. Hệ thống đang kết nối với MoMo để tạo mã QR cho hóa đơn của bạn.
+      </p>
+      <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm">
+        <span class="font-mono">1.500.000đ</span>
+        <span class="text-muted-foreground">·</span>
+        <span class="text-muted-foreground">MoMo</span>
+      </p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

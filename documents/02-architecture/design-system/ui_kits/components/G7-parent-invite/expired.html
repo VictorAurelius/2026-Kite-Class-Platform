@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G7 Parent Invite — expired state
+  Used by: KC /parent-invite/[token] when token expired (>24h)
+  Flow ref: dossier/05-business-flows.md Flow #6 (failure: PARENT_INVITATION_EXPIRED 400)
+  Persona: Pa. Parent
+  Score self-estimate: 102/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Warning text on warning/10: 5.2:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  i18n keys used: invite.expired.title, invite.expired.body, invite.expired.cta.requestNew,
+                  invite.expired.cta.contactCenter
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G7 — Parent Invite (Expired)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-warning/5 to-muted/30 text-foreground font-sans">
+  <main class="mx-auto max-w-md px-4 py-12">
+    <div class="rounded-2xl border bg-card p-6 md:p-8 shadow-soft text-center" role="alert">
+      <div class="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full bg-warning/10">
+        <i data-lucide="timer-off" class="h-12 w-12 text-[hsl(var(--warning))]" stroke-width="1.5"></i>
+      </div>
+
+      <!-- i18n: invite.expired.title -->
+      <h1 class="text-xl md:text-2xl font-semibold">Lời mời đã hết hạn</h1>
+      <!-- i18n: invite.expired.body -->
+      <p class="mt-2 text-muted-foreground text-sm max-w-sm mx-auto">
+        Lời mời chỉ có hiệu lực trong vòng <strong>24 giờ</strong> kể từ khi gửi.
+        Bạn vui lòng liên hệ trung tâm để yêu cầu lời mời mới.
+      </p>
+
+      <div class="mt-5 rounded-lg bg-muted/40 p-3 text-left text-sm space-y-1.5">
+        <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Thông tin lời mời</p>
+        <p>Học sinh: <strong>Lê Minh Tuấn</strong> · Lớp 10A2</p>
+        <p>Trung tâm: <strong>Trung tâm Toán Master</strong></p>
+        <p class="text-xs text-muted-foreground">Gửi lúc 14:00 · 12/04/2026 — hết hạn 14:00 · 13/04/2026</p>
+      </div>
+
+      <div class="mt-6 space-y-2">
+        <button class="w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="message-circle" class="h-4 w-4"></i>
+          <!-- i18n: invite.expired.cta.contactCenter -->
+          <span>Liên hệ trung tâm qua Zalo</span>
+        </button>
+        <button class="w-full rounded-xl border bg-card px-5 py-3 text-sm font-medium hover:bg-muted inline-flex items-center justify-center gap-2">
+          <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+          <!-- i18n: invite.expired.cta.requestNew -->
+          <span>Yêu cầu lời mời mới</span>
+        </button>
+      </div>
+
+      <p class="mt-5 text-xs text-muted-foreground">
+        Hotline trung tâm: <a href="tel:02838125678" class="underline">028 3812 5678</a> · 8:00 – 20:00 hàng ngày
+      </p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

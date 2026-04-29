@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G12 Bulk Actions Bar — action-running state (progress bar)
+  Used by: Async batch op, e.g. archive 5 students, takes 2-5s
+  Persona: Admin
+  Score self-estimate: 105/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Progress bar primary on muted: 4.6:1 (AA ✓)
+  - Counter text foreground on bg: 17.9:1 (AAA ✓)
+  i18n keys used: bulk.running.title, bulk.running.elapsed, bulk.running.cta.cancel
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G12 — Bulk Actions Bar (Running)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
+    @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+    .progress-shimmer { background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary)/0.5) 100%); background-size: 200% 100%; animation: shimmer 1.5s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { .spin { animation: none; } .progress-shimmer { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans pb-32">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3"><h1 class="text-lg font-semibold">Học sinh</h1></div>
+  </header>
+  <main class="mx-auto max-w-7xl px-4 py-6">
+    <div class="rounded-xl border bg-card shadow-soft p-6 opacity-50 pointer-events-none">
+      <p class="text-muted-foreground">Bảng dữ liệu (vô hiệu hóa khi đang xử lý)…</p>
+    </div>
+  </main>
+
+  <!-- Sticky bar in running state -->
+  <div class="fixed bottom-4 inset-x-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 z-40 max-w-3xl mx-auto"
+       role="region" aria-label="Tiến trình xử lý" aria-live="polite">
+    <div class="rounded-2xl border bg-card/95 backdrop-blur shadow-soft-lg p-4">
+      <div class="flex items-center gap-3 mb-2">
+        <i data-lucide="loader" class="h-5 w-5 text-primary spin" aria-hidden="true"></i>
+        <div class="flex-1 min-w-0">
+          <!-- i18n: bulk.running.title -->
+          <p class="font-semibold text-sm">Đang xóa học sinh… <span class="font-mono tabular-nums text-primary">3/5</span></p>
+          <!-- i18n: bulk.running.elapsed -->
+          <p class="text-xs text-muted-foreground">Đã chạy 2 giây · ước tính còn lại 1 giây</p>
+        </div>
+        <button class="rounded-lg border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted shrink-0">
+          <!-- i18n: bulk.running.cta.cancel -->
+          Hủy
+        </button>
+      </div>
+      <!-- Progress bar -->
+      <div class="h-2 w-full rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow="3" aria-valuemin="0" aria-valuemax="5" aria-label="3 trên 5 mục">
+        <div class="h-full progress-shimmer" style="width: 60%;"></div>
+      </div>
+      <!-- Item-level status -->
+      <ul class="mt-3 space-y-1 text-xs">
+        <li class="inline-flex items-center gap-1.5 text-[hsl(var(--success))]"><i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i><span>Đã xóa: Bùi Anh Khoa</span></li>
+        <li class="inline-flex items-center gap-1.5 text-[hsl(var(--success))]"><i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i><span>Đã xóa: Đặng Thị Bích</span></li>
+        <li class="inline-flex items-center gap-1.5 text-[hsl(var(--success))]"><i data-lucide="check-circle-2" class="h-3.5 w-3.5"></i><span>Đã xóa: Hoàng Minh Trí</span></li>
+        <li class="inline-flex items-center gap-1.5 text-primary"><i data-lucide="loader" class="h-3.5 w-3.5 spin"></i><span>Đang xử lý: Lê Thị Phương…</span></li>
+        <li class="inline-flex items-center gap-1.5 text-muted-foreground"><i data-lucide="circle" class="h-3.5 w-3.5"></i><span>Chờ: Nguyễn Văn An</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

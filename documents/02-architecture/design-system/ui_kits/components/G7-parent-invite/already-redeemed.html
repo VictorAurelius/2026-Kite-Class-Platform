@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G7 Parent Invite — already-redeemed state
+  Used by: KC /parent-invite/[token] when email matches existing parent account
+  Flow ref: dossier/05-business-flows.md Flow #6 (Email already registered → merge link)
+  Persona: Pa. Parent (already a user)
+  Score self-estimate: 105/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Info pill on info/10: 4.7:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  i18n keys used: invite.alreadyRedeemed.title, invite.alreadyRedeemed.body,
+                  invite.alreadyRedeemed.cta.signIn, invite.alreadyRedeemed.cta.linkChild
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G7 — Parent Invite (Already Redeemed)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-info/5 to-muted/30 text-foreground font-sans">
+  <main class="mx-auto max-w-md px-4 py-12">
+    <div class="rounded-2xl border bg-card p-6 md:p-8 shadow-soft text-center">
+      <div class="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full bg-info/10">
+        <i data-lucide="user-check" class="h-12 w-12 text-[hsl(var(--info))]" stroke-width="1.5"></i>
+      </div>
+
+      <!-- i18n: invite.alreadyRedeemed.title -->
+      <h1 class="text-xl md:text-2xl font-semibold">Bạn đã có tài khoản</h1>
+      <!-- i18n: invite.alreadyRedeemed.body -->
+      <p class="mt-2 text-muted-foreground text-sm max-w-sm mx-auto">
+        Email <strong class="text-foreground">phuhuynh.le.tuan@gmail.com</strong> đã được đăng ký trên KiteClass.
+        Đăng nhập để liên kết thêm con của bạn.
+      </p>
+
+      <div class="mt-5 rounded-lg border bg-muted/40 p-4 text-left text-sm">
+        <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Liên kết mới sẽ thêm</p>
+        <div class="flex items-center gap-3">
+          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary font-semibold">LM</div>
+          <div>
+            <p class="font-medium">Lê Minh Tuấn</p>
+            <p class="text-xs text-muted-foreground">Lớp 10A2 · Trung tâm Toán Master</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 space-y-2">
+        <button class="w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="h-4 w-4"></i>
+          <!-- i18n: invite.alreadyRedeemed.cta.signIn -->
+          <span>Đăng nhập & liên kết con</span>
+        </button>
+        <p class="text-xs text-muted-foreground">
+          <!-- i18n: invite.alreadyRedeemed.cta.linkChild -->
+          Sau khi đăng nhập, hệ thống sẽ tự động liên kết Lê Minh Tuấn vào tài khoản của bạn.
+        </p>
+      </div>
+
+      <p class="mt-5 text-xs text-muted-foreground">
+        Quên mật khẩu? <a href="#" class="underline text-primary">Đặt lại mật khẩu</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

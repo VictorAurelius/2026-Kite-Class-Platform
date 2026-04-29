@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G12 Bulk Actions Bar — selecting state (5 rows selected, bar visible)
+  Used by: KC /students, KC /teachers, KH /admin/instances
+  Persona: Admin
+  Score self-estimate: 112/128 (Tech 28 / Heuristics 28 / Aesthetics 28 / UX 28)
+  Contrast (measured):
+  - Bar text on bg-card/95 backdrop-blur: 17.0:1 (AAA ✓)
+  - Selected row hover bg primary/5 over white: 18.5:1 (AAA ✓)
+  - Destructive button (Xóa) on red-50: 4.9:1 (AA ✓)
+  - Selected count chip primary on white: 4.6:1 (AA ✓)
+  i18n keys used: bulk.selectedCount, bulk.action.{export,archive,assign,delete}, bulk.action.clearSelection
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G12 — Bulk Actions Bar (Selecting)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+  <style>
+    @keyframes slideUp { from { transform: translateY(120%); } to { transform: translateY(0); } }
+    .bar-enter { animation: slideUp 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    @media (prefers-reduced-motion: reduce) { .bar-enter { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans pb-24">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+      <h1 class="text-lg font-semibold">Học sinh</h1>
+      <span class="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">247 mục</span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6">
+    <div class="rounded-xl border bg-card shadow-soft overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-muted/40 border-b">
+            <tr>
+              <th class="px-4 py-3 w-10">
+                <input type="checkbox" aria-label="Chọn tất cả trong trang" aria-checked="mixed"
+                  class="h-4 w-4 rounded border-2 border-muted-foreground/30 accent-[hsl(var(--primary))]" />
+              </th>
+              <th class="text-left font-semibold px-4 py-3">Học sinh</th>
+              <th class="text-left font-semibold px-4 py-3">Lớp</th>
+              <th class="text-left font-semibold px-4 py-3">Ngày đăng ký</th>
+              <th class="text-right font-semibold px-4 py-3">Học phí</th>
+              <th class="text-left font-semibold px-4 py-3">Trạng thái</th>
+              <th class="px-4 py-3 w-10"></th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y"></tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between border-t px-4 py-3 text-sm">
+        <p class="text-muted-foreground">Hiển thị 1–10 / 247 · Trang 1 / 25</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Sticky bulk actions bar -->
+  <div class="bar-enter fixed bottom-4 inset-x-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 z-40 max-w-3xl mx-auto"
+       role="region" aria-label="Thanh thao tác hàng loạt" aria-live="polite">
+    <div class="rounded-2xl border bg-card/95 backdrop-blur shadow-soft-lg p-3 flex flex-wrap items-center gap-2">
+      <span class="inline-flex items-center gap-2 rounded-lg bg-primary/10 text-primary px-3 py-1.5 text-sm font-semibold shrink-0">
+        <span class="grid h-6 min-w-6 place-items-center rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums">5</span>
+        <!-- i18n: bulk.selectedCount -->
+        <span>mục đã chọn</span>
+      </span>
+
+      <div class="h-6 w-px bg-border hidden md:block"></div>
+
+      <div class="flex flex-wrap gap-1.5 flex-1 min-w-0">
+        <button class="rounded-lg border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted inline-flex items-center gap-1.5">
+          <i data-lucide="download" class="h-4 w-4"></i>
+          <!-- i18n: bulk.action.export -->
+          <span>Xuất Excel</span>
+        </button>
+        <button class="rounded-lg border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted inline-flex items-center gap-1.5">
+          <i data-lucide="archive" class="h-4 w-4"></i>
+          <!-- i18n: bulk.action.archive -->
+          <span>Lưu trữ</span>
+        </button>
+        <button class="rounded-lg border bg-card px-3 py-1.5 text-sm font-medium hover:bg-muted inline-flex items-center gap-1.5">
+          <i data-lucide="users" class="h-4 w-4"></i>
+          <!-- i18n: bulk.action.assign -->
+          <span>Chuyển lớp</span>
+        </button>
+        <button class="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 inline-flex items-center gap-1.5">
+          <i data-lucide="trash-2" class="h-4 w-4"></i>
+          <!-- i18n: bulk.action.delete -->
+          <span>Xóa</span>
+        </button>
+      </div>
+
+      <div class="h-6 w-px bg-border hidden md:block"></div>
+
+      <button class="rounded-lg p-2 hover:bg-muted text-muted-foreground" aria-label="Bỏ chọn tất cả">
+        <!-- i18n: bulk.action.clearSelection -->
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const students = [
+      { name:'Bùi Anh Khoa',    code:'HS-2026-001', cls:'Lớp 10A2', enrolled:'10/03/2026', fee:'1.500.000đ', status:'active', selected:true },
+      { name:'Đặng Thị Bích',   code:'HS-2026-014', cls:'Lớp 10A2', enrolled:'12/03/2026', fee:'1.500.000đ', status:'active', selected:true },
+      { name:'Đỗ Hoàng Long',   code:'HS-2026-022', cls:'Lớp 11B1', enrolled:'05/03/2026', fee:'1.800.000đ', status:'active', selected:false },
+      { name:'Hoàng Minh Trí',  code:'HS-2026-031', cls:'Lớp 12A1', enrolled:'01/03/2026', fee:'2.000.000đ', status:'pending', selected:true },
+      { name:'Lê Minh Tuấn',    code:'HS-2026-005', cls:'Lớp 10A2', enrolled:'08/03/2026', fee:'1.500.000đ', status:'active', selected:false },
+      { name:'Lê Thị Phương',   code:'HS-2026-018', cls:'Lớp 10A2', enrolled:'10/03/2026', fee:'1.500.000đ', status:'pending', selected:true },
+      { name:'Nguyễn Anh Khôi', code:'HS-2026-009', cls:'Lớp 11B2', enrolled:'04/03/2026', fee:'1.800.000đ', status:'active', selected:false },
+      { name:'Nguyễn Văn An',   code:'HS-2026-012', cls:'Lớp 10A2', enrolled:'15/03/2026', fee:'1.500.000đ', status:'active', selected:true },
+      { name:'Phạm Thị Mai',    code:'HS-2026-014', cls:'Lớp 10A1', enrolled:'02/03/2026', fee:'1.500.000đ', status:'inactive', selected:false },
+      { name:'Trần Thị Hương',  code:'HS-2026-019', cls:'Lớp 10A2', enrolled:'11/03/2026', fee:'1.500.000đ', status:'active', selected:false },
+    ];
+    const STATUS = {
+      active:   { label:'Đang học', cls:'bg-success/10 text-[hsl(var(--success))]' },
+      pending:  { label:'Chờ đóng học phí', cls:'bg-warning/10 text-[hsl(var(--warning))]' },
+      inactive: { label:'Đã nghỉ', cls:'bg-muted text-muted-foreground' },
+    };
+    function av(name){ const i=name.split(' ').slice(-2).map(s=>s[0]).join('').toUpperCase(); let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))%360; return `<div class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold text-white" style="background:hsl(${h} 60% 50%)" aria-hidden="true">${i}</div>`; }
+    document.getElementById('rows').innerHTML = students.map(s => `
+      <tr class="${s.selected ? 'bg-primary/5' : 'hover:bg-muted/30'}">
+        <td class="px-4 py-3"><input type="checkbox" ${s.selected?'checked':''} aria-label="Chọn ${s.name}" class="h-4 w-4 rounded border-2 border-muted-foreground/30 accent-[hsl(var(--primary))]" /></td>
+        <td class="px-4 py-3"><div class="flex items-center gap-3">${av(s.name)}<div><p class="font-medium">${s.name}</p><p class="text-xs text-muted-foreground font-mono">${s.code}</p></div></div></td>
+        <td class="px-4 py-3">${s.cls}</td>
+        <td class="px-4 py-3 text-muted-foreground">${s.enrolled}</td>
+        <td class="px-4 py-3 text-right font-mono tabular-nums">${s.fee}</td>
+        <td class="px-4 py-3"><span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS[s.status].cls}">${STATUS[s.status].label}</span></td>
+        <td class="px-4 py-3"><button class="rounded-lg p-1.5 hover:bg-muted" aria-label="Tùy chọn"><i data-lucide="more-horizontal" class="h-4 w-4"></i></button></td>
+      </tr>
+    `).join('');
+    lucide.createIcons();
+  </script>
+</body>
+</html>

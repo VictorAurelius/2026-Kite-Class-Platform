@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G6 Invoice Detail — loading state
+  Used by: KC /billing/[id], KH /billing/payment/[id]
+  Persona: All
+  Score self-estimate: 100/128
+  Contrast: skeleton blocks decorative
+  i18n keys used: a11y.loading
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G6 — Invoice (Loading)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+    .skel { background: hsl(var(--muted)); animation: pulse 1.6s ease-in-out infinite; border-radius: 6px; }
+    @media (prefers-reduced-motion: reduce) { .skel { animation: none; opacity: .6; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <div class="skel h-9 w-9 rounded-lg"></div>
+      <div class="skel h-5 w-40"></div>
+    </div>
+  </header>
+  <main class="mx-auto max-w-4xl px-4 py-6 space-y-5" role="status" aria-busy="true" aria-live="polite">
+    <span class="sr-only">Đang tải hóa đơn…</span>
+    <section class="rounded-2xl border bg-card p-6 space-y-4">
+      <div class="flex justify-between items-start">
+        <div class="space-y-2 w-1/2">
+          <div class="skel h-3 w-20"></div>
+          <div class="skel h-7 w-48"></div>
+          <div class="skel h-3 w-64 mt-2"></div>
+        </div>
+        <div class="skel h-8 w-32 rounded-full"></div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4 mt-4">
+        <div class="skel h-24 rounded-lg"></div>
+        <div class="skel h-24 rounded-lg"></div>
+      </div>
+    </section>
+    <section class="rounded-2xl border bg-card overflow-hidden">
+      <div class="px-6 py-4 border-b"><div class="skel h-4 w-40"></div></div>
+      <div class="p-6 space-y-3">
+        <div class="skel h-12 w-full"></div>
+        <div class="skel h-12 w-full"></div>
+        <div class="skel h-12 w-full"></div>
+      </div>
+      <div class="border-t bg-muted/30 px-6 py-4 space-y-2">
+        <div class="skel h-3 w-32 ml-auto"></div>
+        <div class="skel h-5 w-40 ml-auto"></div>
+      </div>
+    </section>
+    <div class="flex gap-2">
+      <div class="skel h-12 flex-1 rounded-xl"></div>
+      <div class="skel h-12 w-28 rounded-xl"></div>
+      <div class="skel h-12 w-32 rounded-xl"></div>
+    </div>
+  </main>
+</body>
+</html>
