@@ -1,6 +1,6 @@
 # GAP-206: `/start-session` skill reports wrong wave + blockers + missing recent context
 
-**Status:** 🟠 IN_PROGRESS (fix in same session)
+**Status:** 🟢 DONE 2026-04-24
 **Priority:** 🟠 P1 (Meta — skill blindspot per `.claude/rules/meta-gap-priority.md` §3)
 **Domain:** Workflow / Meta (skill `/start-session`)
 **Detected:** 2026-04-24 during user /start-session run after Dependabot security session close
@@ -146,12 +146,12 @@ fi
 
 ## Acceptance Criteria
 
-- [ ] `collect-state.sh` parses ROADMAP.md for wave + blockers (not mtime/alphabetical)
-- [ ] Output includes "Recent merges" section with last 5 merged PRs
-- [ ] Output includes `/repo-status` level + security summary
-- [ ] `documents/action-2.md` alone = "clean (scratchpad only)", not generic "dirty"
-- [ ] `SKILL.md` output template updated to reflect new fields
-- [ ] Test: re-run `/start-session` post-fix — correct wave (GAP-047) + correct top blockers (GAP-047/-046/-016/-011/-014/-005) + recent PR context
+- [x] `collect-state.sh` parses ROADMAP.md for wave + blockers (not mtime/alphabetical)
+- [x] Output includes "Recent merges" section with last 5 merged PRs
+- [x] Output includes `/repo-status` level + security summary
+- [x] `documents/action-2.md` alone = "clean (scratchpad only)", not generic "dirty"
+- [x] `SKILL.md` output template updated to reflect new fields
+- [x] Test: re-run `/start-session` post-fix — correct wave (GAP-047) + correct top blockers (GAP-047/-046/-016/-011/-014/-005) + recent PR context
 
 ## Related
 
@@ -163,3 +163,4 @@ fi
 ## Log
 
 - **2026-04-24** — Gap filed after user ran `/start-session` post-Dependabot-session-close and received misleading output. Asked "không hợp lý lắm nhỉ?" — triggered triage. 4 bugs identified: wave mtime, blockers alphabetical, no recent context, no `/repo-status` integration. Fix in same session.
+- **2026-04-29 (status sync)** — Truth-up: PR #468 merged 2026-04-24 closing this gap (collect-state.sh now parses ROADMAP, surfaces recent merges, integrates repo-status, scratchpad-aware; SKILL.md template updated). Status header drifted from reality. Per memory feedback_post_merge_doc_sync.md, gap closure doc-sync should happen in same PR as the closing merge — backfilled here under Wave Meta-Gov 2 Agent C housekeeping. All 6 ACs verified shipped via live script run.
