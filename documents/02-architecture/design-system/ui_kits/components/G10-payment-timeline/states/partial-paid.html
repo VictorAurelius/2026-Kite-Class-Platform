@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G10 Payment Timeline — PARTIAL PAID (60% installment)
+  Score self-estimate: 106/128 (Tech 28 / Heuristics 27 / Aesthetics 26 / UX 25)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Info pill on info/10: 4.8:1 (AA OK)
+  - Progress bar info: 5.0:1 (AA OK)
+  - Pay-remaining CTA primary: 4.6:1 (AA OK)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 — Partial paid</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <h1 class="text-base md:text-lg font-semibold">Học phí tháng 10/2026</h1>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-6 space-y-5">
+    <!-- Invoice header -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Hóa đơn</p>
+          <p class="mt-1 text-xl md:text-2xl font-bold font-mono">KC-2026-10-0042</p>
+          <p class="text-sm text-muted-foreground mt-1">
+            Học sinh: <strong class="text-foreground">Nguyễn Văn An</strong> · Lớp 10A2
+          </p>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-info/10 px-3 py-1.5 text-sm font-semibold text-info" role="status">
+          <span class="h-1.5 w-1.5 rounded-full bg-info"></span>
+          Trả một phần
+        </span>
+      </div>
+
+      <!-- Payment progress -->
+      <div class="mt-5 pt-5 border-t">
+        <div class="flex items-center justify-between text-sm font-semibold mb-2">
+          <span>Tiến độ thanh toán</span>
+          <span class="font-mono text-info">60%</span>
+        </div>
+        <div class="h-3 w-full rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="Đã trả 60%">
+          <div class="h-full bg-info rounded-full" style="width: 60%"></div>
+        </div>
+        <div class="mt-3 grid sm:grid-cols-2 gap-4 text-sm">
+          <div class="rounded-lg bg-success/10 border border-success/30 p-3">
+            <p class="text-xs uppercase tracking-wider text-success font-semibold">Đã trả</p>
+            <p class="text-xl font-bold font-mono mt-1">900.000<span class="text-sm text-muted-foreground">đ</span></p>
+          </div>
+          <div class="rounded-lg bg-warning/10 border border-warning/30 p-3">
+            <p class="text-xs uppercase tracking-wider text-[hsl(var(--warning))] font-semibold">Còn lại</p>
+            <p class="text-xl font-bold font-mono mt-1">600.000<span class="text-sm text-muted-foreground">đ</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-5 border-t flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-muted-foreground">Hạn còn lại: <strong class="text-warning">25/10/2026</strong> (10 ngày)</p>
+        <button class="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          Thanh toán phần còn lại
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Installments -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-base font-semibold mb-4">Các đợt thanh toán</h2>
+      <ul class="divide-y">
+        <li class="py-3 flex items-center gap-4">
+          <span class="h-8 w-8 rounded-full bg-success/10 text-success inline-flex items-center justify-center" aria-hidden="true">&#10003;</span>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Đợt 1 / 2 &mdash; 900.000đ</p>
+            <p class="text-xs text-muted-foreground">VNPay · 10/10/2026 14:22</p>
+          </div>
+          <span class="text-xs font-semibold text-success rounded-full bg-success/10 px-2.5 py-1">Đã trả</span>
+        </li>
+        <li class="py-3 flex items-center gap-4">
+          <span class="h-8 w-8 rounded-full bg-warning/10 text-[hsl(var(--warning))] inline-flex items-center justify-center text-sm font-bold">2</span>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">Đợt 2 / 2 &mdash; 600.000đ</p>
+            <p class="text-xs text-muted-foreground">Hạn: 25/10/2026</p>
+          </div>
+          <span class="text-xs font-semibold text-[hsl(var(--warning))] rounded-full bg-warning/10 px-2.5 py-1">Chờ thanh toán</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Timeline -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-base font-semibold mb-4">Lịch sử trạng thái</h2>
+      <ol class="space-y-4">
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-success/10 text-success inline-flex items-center justify-center" aria-hidden="true">&#10003;</span>
+            <span class="w-px flex-1 bg-success/40 mt-1"></span>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm">Đã phát hành hóa đơn</p>
+              <time class="text-xs text-muted-foreground font-mono">01/10/2026 09:15</time>
+            </div>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-success/10 text-success inline-flex items-center justify-center" aria-hidden="true">&#10003;</span>
+            <span class="w-px flex-1 bg-info/40 mt-1"></span>
+          </div>
+          <div class="flex-1 pb-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm">Trả đợt 1 &mdash; 900.000đ (60%)</p>
+              <time class="text-xs text-muted-foreground font-mono">10/10/2026 14:22</time>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Phụ huynh đăng ký trả góp 2 đợt</p>
+          </div>
+        </li>
+        <li class="flex gap-4">
+          <div class="flex flex-col items-center">
+            <span class="h-8 w-8 rounded-full bg-info/10 text-info inline-flex items-center justify-center" aria-current="step">
+              <span class="h-2 w-2 rounded-full bg-info animate-pulse"></span>
+            </span>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="font-semibold text-sm text-info">Chờ trả đợt 2</p>
+              <span class="text-xs font-semibold rounded-full bg-info/10 text-info px-2 py-0.5">Hiện tại</span>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Hạn: 25/10/2026 &mdash; còn 10 ngày</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

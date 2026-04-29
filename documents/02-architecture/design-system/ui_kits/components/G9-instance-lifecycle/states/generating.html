@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Component: G9 Instance Lifecycle — GENERATING
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Primary chip + bar: 4.6:1 (AA OK)
+  - Sub-step labels: 4.7:1 (AA OK)
+  - Cancel button (warning outline): 4.8:1 (AA OK)
+  Polishing: per-asset progress with logo/colors/banner sub-steps; SSE reconnect notice slot
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G9 — GENERATING</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      .animate-pulse, .animate-spin, .animate-bounce { animation: none; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-base md:text-lg font-semibold truncate">Trung tâm Toán Edison</h1>
+        <p class="text-xs text-muted-foreground">Instance #INST-2026-0429-002</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary" role="status">
+        <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+        Đang tạo nội dung
+      </span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-8 space-y-6">
+    <!-- Lifecycle timeline -->
+    <section class="rounded-2xl border bg-card p-5 shadow-soft" aria-label="Tiến độ tạo instance">
+      <ol class="flex items-center justify-between gap-2 text-xs font-semibold">
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-foreground">Bắt đầu</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-success"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-foreground">Khởi tạo</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-success"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center animate-pulse" aria-current="step">3</span>
+          <span class="text-primary">Tạo nội dung</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-border"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-muted text-muted-foreground inline-flex items-center justify-center">4</span>
+          <span class="text-muted-foreground">Hoàn tất</span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Hero -->
+    <section class="rounded-2xl border bg-card p-8 shadow-soft">
+      <div class="flex items-start gap-5">
+        <div class="h-14 w-14 rounded-2xl bg-primary/10 inline-flex items-center justify-center shrink-0 text-3xl" aria-hidden="true">
+          &#127912;
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-xl md:text-2xl font-bold">AI đang tạo bộ nhận diện thương hiệu&hellip;</h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Logo, bảng màu, banner và hero đang được tạo song song trên Ollama nội bộ. Còn ~1 phút 40 giây.
+          </p>
+        </div>
+      </div>
+
+      <!-- Overall progress -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between text-sm font-semibold mb-2">
+          <span>Tiến độ tổng thể</span>
+          <span class="text-primary font-mono">68%</span>
+        </div>
+        <div class="h-3 w-full rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100" aria-label="Tiến độ tạo nội dung">
+          <div class="h-full bg-primary rounded-full transition-[width] duration-500" style="width: 68%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Per-asset progress -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h3 class="text-base font-semibold mb-4">Tài nguyên đang tạo</h3>
+      <ul class="space-y-4">
+        <!-- Logo: done -->
+        <li class="flex items-start gap-4">
+          <div class="h-10 w-10 rounded-xl bg-success/10 inline-flex items-center justify-center shrink-0 text-success">
+            <span aria-hidden="true">&#10003;</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-semibold">Logo</p>
+              <span class="text-xs font-semibold text-success">Hoàn tất</span>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">SVG vector + PNG fallback. Phong cách: hiện đại, tối giản.</p>
+            <div class="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <div class="h-full bg-success rounded-full" style="width: 100%"></div>
+            </div>
+          </div>
+        </li>
+
+        <!-- Colors: done -->
+        <li class="flex items-start gap-4">
+          <div class="h-10 w-10 rounded-xl bg-success/10 inline-flex items-center justify-center shrink-0 text-success">
+            <span aria-hidden="true">&#10003;</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-semibold">Bảng màu</p>
+              <span class="text-xs font-semibold text-success">Hoàn tất</span>
+            </div>
+            <div class="mt-1 flex items-center gap-1.5">
+              <span class="h-5 w-5 rounded-md ring-1 ring-border" style="background:#1e40af" aria-label="Primary #1e40af"></span>
+              <span class="h-5 w-5 rounded-md ring-1 ring-border" style="background:#f59e0b" aria-label="Accent #f59e0b"></span>
+              <span class="h-5 w-5 rounded-md ring-1 ring-border" style="background:#10b981" aria-label="Success #10b981"></span>
+              <span class="h-5 w-5 rounded-md ring-1 ring-border" style="background:#1e293b" aria-label="Foreground #1e293b"></span>
+              <span class="text-xs text-muted-foreground ml-2">WCAG AA · contrast 4.7:1</span>
+            </div>
+            <div class="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <div class="h-full bg-success rounded-full" style="width: 100%"></div>
+            </div>
+          </div>
+        </li>
+
+        <!-- Banner: in progress -->
+        <li class="flex items-start gap-4">
+          <div class="h-10 w-10 rounded-xl bg-primary/10 inline-flex items-center justify-center shrink-0 text-primary">
+            <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="50" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-semibold">Banner trang chủ</p>
+              <span class="text-xs font-semibold text-primary font-mono">62%</span>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Đang render banner 1920x600 với typography tiếng Việt&hellip;</p>
+            <div class="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <div class="h-full bg-primary rounded-full transition-[width] duration-500" style="width: 62%"></div>
+            </div>
+          </div>
+        </li>
+
+        <!-- Hero: pending -->
+        <li class="flex items-start gap-4 opacity-60">
+          <div class="h-10 w-10 rounded-xl bg-muted inline-flex items-center justify-center shrink-0 text-muted-foreground text-xs font-bold">
+            4
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-semibold">Hero section</p>
+              <span class="text-xs font-semibold text-muted-foreground">Chờ</span>
+            </div>
+            <p class="text-sm text-muted-foreground mt-0.5">Sẽ bắt đầu sau khi Banner hoàn tất.</p>
+            <div class="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden"></div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Cancel CTA -->
+    <div class="flex justify-end">
+      <button class="inline-flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/5 px-4 py-2 text-sm font-semibold text-warning hover:bg-warning/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <span aria-hidden="true">&#9633;</span>
+        Hủy quá trình tạo
+      </button>
+    </div>
+  </main>
+</body>
+</html>

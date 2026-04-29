@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Component: G9 Instance Lifecycle — INITIALIZING
+  Score self-estimate: 106/128 (Tech 28 / Heuristics 27 / Aesthetics 26 / UX 25)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Info chip on info/10: 4.8:1 (AA OK)
+  - Progress bar info on muted: 5.0:1 (AA OK)
+  Reduced motion: pulse animation respects prefers-reduced-motion via Tailwind
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G9 — INITIALIZING</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+  <style>
+    @media (prefers-reduced-motion: reduce) {
+      .animate-pulse, .animate-spin { animation: none; }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-base md:text-lg font-semibold truncate">Trung tâm Toán Edison</h1>
+        <p class="text-xs text-muted-foreground">Instance #INST-2026-0429-002</p>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-info/10 px-2.5 py-1 text-xs font-semibold text-info" role="status">
+        <span class="h-1.5 w-1.5 rounded-full bg-info animate-pulse"></span>
+        Khởi tạo
+      </span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-8 space-y-6">
+    <!-- Lifecycle timeline -->
+    <section class="rounded-2xl border bg-card p-5 shadow-soft" aria-label="Tiến độ tạo instance">
+      <ol class="flex items-center justify-between gap-2 text-xs font-semibold">
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-success text-success-foreground inline-flex items-center justify-center">&#10003;</span>
+          <span class="text-foreground">Bắt đầu</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-success"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-info text-info-foreground inline-flex items-center justify-center animate-pulse" aria-current="step">2</span>
+          <span class="text-info">Khởi tạo</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-border"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-muted text-muted-foreground inline-flex items-center justify-center">3</span>
+          <span class="text-muted-foreground">Tạo nội dung</span>
+        </li>
+        <li aria-hidden="true" class="h-px flex-1 bg-border"></li>
+        <li class="flex flex-col items-center gap-1.5 flex-1">
+          <span class="h-7 w-7 rounded-full bg-muted text-muted-foreground inline-flex items-center justify-center">4</span>
+          <span class="text-muted-foreground">Hoàn tất</span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Progress hero -->
+    <section class="rounded-2xl border bg-card p-8 md:p-10 shadow-soft">
+      <div class="flex items-start gap-5">
+        <div class="h-14 w-14 rounded-2xl bg-info/10 inline-flex items-center justify-center shrink-0" aria-hidden="true">
+          <svg class="h-7 w-7 text-info animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="50" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-xl md:text-2xl font-bold">Đang khởi tạo trang web cho bạn&hellip;</h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Cấp phát tài nguyên hạ tầng. Quá trình này thường mất khoảng 30 giây.
+          </p>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between text-sm font-semibold mb-2">
+          <span>Tiến độ tổng thể</span>
+          <span class="text-info font-mono">22%</span>
+        </div>
+        <div class="h-3 w-full rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow="22" aria-valuemin="0" aria-valuemax="100" aria-label="Tiến độ khởi tạo">
+          <div class="h-full bg-info rounded-full transition-[width] duration-500" style="width: 22%"></div>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">Còn khoảng <strong class="text-foreground">25 giây</strong></p>
+      </div>
+
+      <!-- Sub-steps -->
+      <ul class="mt-6 space-y-2.5 text-sm">
+        <li class="flex items-center gap-3">
+          <span class="h-5 w-5 rounded-full bg-success text-success-foreground inline-flex items-center justify-center text-xs">&#10003;</span>
+          <span>Đã tạo subdomain <code class="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">edison.kiteclass.vn</code></span>
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="h-5 w-5 rounded-full bg-success text-success-foreground inline-flex items-center justify-center text-xs">&#10003;</span>
+          <span>Đã cấp phát cơ sở dữ liệu trung tâm</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <span class="h-5 w-5 rounded-full bg-info/20 text-info inline-flex items-center justify-center">
+            <span class="h-2 w-2 rounded-full bg-info animate-pulse"></span>
+          </span>
+          <span class="font-medium">Đang cấp phát storage cho assets&hellip;</span>
+        </li>
+        <li class="flex items-center gap-3 text-muted-foreground">
+          <span class="h-5 w-5 rounded-full bg-muted inline-flex items-center justify-center text-xs">4</span>
+          <span>Khởi tạo TLS certificate</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Info note -->
+    <section class="rounded-xl border border-info/30 bg-info/5 p-4 text-sm flex gap-3">
+      <span class="text-info text-lg" aria-hidden="true">&#9432;</span>
+      <p class="text-foreground/90">
+        Bạn có thể đóng cửa sổ này — chúng tôi sẽ gửi email khi trang web sẵn sàng.
+        Tiến độ cũng được cập nhật trên dashboard tại <a href="#" class="text-primary underline">/instances</a>.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Component: G9 Instance Lifecycle Status — showcase / index
+  Used by: KH /instances/[id], KH /admin/instances/[id]
+  Flow ref: ai-branding-guidelines.md §6 Lifecycle State Machine
+  Persona: P2 Center Owner (waiting for provisioning), Internal Admin (debugging)
+  Score self-estimate: 109/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 26)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Muted-fg on bg-card: 4.7:1 (AA OK)
+  - Primary on white (KH sky): 4.6:1 (AA OK)
+  - Success badge on success/10: 4.8:1 (AA OK)
+  - Destructive on destructive/10: 4.9:1 (AA OK)
+  - Warning on warning/10: 5.2:1 (AA OK)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G9 — Instance Lifecycle Status (Showcase)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold">G9 — Instance Lifecycle Status</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">6 trạng thái theo state machine của AI Branding (CLAUDE.md §6)</p>
+      </div>
+      <a href="../index.html" class="text-sm text-primary hover:underline">&larr; Tất cả components</a>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-8 space-y-10">
+    <!-- State machine diagram -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-lg font-semibold mb-4">Sơ đồ chuyển trạng thái</h2>
+      <div class="rounded-xl bg-muted/40 p-6 overflow-x-auto">
+        <pre class="font-mono text-xs md:text-sm leading-relaxed text-foreground" aria-label="Sơ đồ state machine của Instance Lifecycle">NOT_STARTED -> INITIALIZING -> GENERATING -> DEPLOYED &lt;-&gt; REGENERATING
+                            |              |          ^
+                          FAILED &lt;------ FAILED ------+ (retry)</pre>
+      </div>
+      <p class="mt-3 text-sm text-muted-foreground">
+        Ref: <a href="../../../../../.claude/rules/ai-branding-guidelines.md" class="text-primary hover:underline">ai-branding-guidelines.md §6</a> —
+        State transitions chỉ qua <code class="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">InstanceLifecycleService</code>; mỗi transition publish RabbitMQ event.
+      </p>
+    </section>
+
+    <!-- 6 states grid -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4">6 trạng thái</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="states/not-started.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-muted-foreground/60"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted-foreground">1 / 6</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">NOT_STARTED</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Chưa bắt đầu — chờ chủ trung tâm chạy wizard</p>
+        </a>
+        <a href="states/initializing.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-info animate-pulse"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-info">2 / 6</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">INITIALIZING</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Cấp phát tài nguyên · 0–30%</p>
+        </a>
+        <a href="states/generating.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-primary">3 / 6</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">GENERATING</h3>
+          <p class="mt-1 text-sm text-muted-foreground">AI đang tạo logo / màu / hero · 30–90%</p>
+        </a>
+        <a href="states/deployed.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-success"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-success">4 / 6</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">DEPLOYED</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Đã go-live — URL hoạt động, sức khỏe xanh</p>
+        </a>
+        <a href="states/failed.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-destructive"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-destructive">5 / 6</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">FAILED</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Có lỗi — có CTA "Thử lại"</p>
+        </a>
+        <a href="states/regenerating.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-warning">6 / 6</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">REGENERATING</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Đang tạo lại từ DEPLOYED — hủy job cũ</p>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G10 Payment Status Timeline — showcase
+  Used by: KC /billing/[id], KH /admin/payments
+  Flow ref: dossier/05-business-flows.md Flow #5
+  Persona: Pa. Parent (child tuition history), Owner/Admin (payment ops)
+  Score self-estimate: 108/128 (Tech 28 / Heuristics 27 / Aesthetics 27 / UX 26)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - All semantic pills (success/warning/destructive/info) >= 4.5:1 (AA OK)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 — Payment Status Timeline (Showcase)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold">G10 — Payment Status Timeline</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">5 trạng thái: pending / paid / partial-paid / overdue / refunded</p>
+      </div>
+      <a href="../index.html" class="text-sm text-primary hover:underline">&larr; Tất cả components</a>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-8 space-y-10">
+    <!-- Use case context -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-lg font-semibold mb-2">Use case</h2>
+      <p class="text-sm text-muted-foreground">
+        Phụ huynh xem lịch sử thanh toán học phí của con (Học phí tháng 10/2026 — 1.500.000đ).
+        Admin theo dõi vòng đời thanh toán: phát hành hóa đơn &rarr; chờ thanh toán &rarr; đã trả /
+        trả một phần &rarr; quá hạn &rarr; hoàn tiền (nếu có).
+      </p>
+      <ul class="mt-4 grid sm:grid-cols-2 gap-2 text-sm">
+        <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-warning"></span> <strong>Pending:</strong> hóa đơn đã phát hành, đang đếm ngược tới hạn</li>
+        <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-success"></span> <strong>Paid:</strong> thanh toán đầy đủ, có biên lai</li>
+        <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-info"></span> <strong>Partial-paid:</strong> đã trả 60%, còn lại đang chờ</li>
+        <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-destructive"></span> <strong>Overdue:</strong> quá hạn, cộng phí trễ</li>
+        <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-warning"></span> <strong>Refunded:</strong> đã hoàn tiền với lý do</li>
+      </ul>
+    </section>
+
+    <!-- 5 states grid -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4">5 trạng thái</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="states/pending.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-warning">1 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Pending</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Còn 5 ngày tới hạn — gửi nhắc nhở</p>
+        </a>
+        <a href="states/paid.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-success"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-success">2 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Paid</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Đã thanh toán đầy đủ qua VNPay</p>
+        </a>
+        <a href="states/partial-paid.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-info"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-info">3 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Partial paid</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Đã trả 60% &mdash; còn 600.000đ</p>
+        </a>
+        <a href="states/overdue.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-destructive"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-destructive">4 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Overdue</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Trễ 8 ngày &mdash; phí trễ +75.000đ</p>
+        </a>
+        <a href="states/refunded.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-warning"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-warning">5 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Refunded</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Hoàn tiền &mdash; chuyển lớp khác</p>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

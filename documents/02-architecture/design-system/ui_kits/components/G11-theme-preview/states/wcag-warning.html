@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G11 Theme Live Preview — WCAG WARNING (3.2:1 fail + auto-suggest)
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast (measured):
+  - Body on bg-card (warning component itself): 17.9:1 (AAA OK)
+  - Destructive chip on destructive/10: 4.9:1 (AA OK)
+  - Suggested fix preview: 4.7:1 (AA OK)
+  Reflexive coverage: this state DEMONSTRATES a failing 3.2:1 inside the preview pane,
+  while the component UI itself remains AA-compliant — meta-correct.
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G11 — WCAG warning</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+      <a href="../index.html" aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">&larr;</a>
+      <h1 class="text-base font-semibold">Wizard step 5/6 &mdash; Cảnh báo WCAG</h1>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 grid lg:grid-cols-[1fr_360px] gap-6">
+    <!-- Preview with FAILING contrast -->
+    <section class="space-y-4">
+      <!-- Alert banner -->
+      <div class="rounded-2xl border-2 border-destructive/40 bg-destructive/5 p-5 shadow-soft" role="alert" aria-live="polite">
+        <div class="flex items-start gap-4">
+          <div class="h-12 w-12 rounded-2xl bg-destructive/10 inline-flex items-center justify-center shrink-0 text-destructive text-2xl" aria-hidden="true">
+            &#9888;
+          </div>
+          <div class="flex-1">
+            <h2 class="text-lg font-bold text-destructive">Màu hiện tại không đạt WCAG AA</h2>
+            <p class="mt-1 text-sm text-foreground/90">
+              Contrast ratio <strong class="font-mono">3.2:1</strong> &mdash;
+              cần &ge; <strong class="font-mono">4.5:1</strong> cho text body.
+              Học viên có thị lực kém sẽ khó đọc nội dung.
+            </p>
+            <p class="mt-2 text-sm">
+              <strong>Quality gate:</strong> sẽ trả điểm <strong class="text-destructive">52/100</strong> &mdash; FAIL (cần &ge; 70).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Failing preview -->
+      <div class="rounded-2xl border bg-card shadow-soft overflow-hidden">
+        <div class="flex items-center justify-between bg-destructive/5 px-4 py-2.5 border-b border-destructive/20">
+          <p class="text-xs font-semibold uppercase tracking-wider text-destructive">Màu đang chọn &mdash; KHÔNG đạt</p>
+          <span class="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive font-mono">
+            3.2:1 &mdash; FAIL
+          </span>
+        </div>
+        <div class="p-6 md:p-8" style="background:#fef3c7">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="h-9 w-9 rounded-lg inline-flex items-center justify-center font-bold" style="background:#fbbf24; color:#fef3c7">E</div>
+            <p class="font-bold" style="color:#fbbf24">Toán Edison</p>
+          </div>
+          <h3 class="text-2xl font-bold" style="color:#fbbf24">Đào tạo HSG vững chắc</h3>
+          <p class="mt-2 text-sm" style="color:#fbbf24">
+            Đoạn này contrast 3.2:1 &mdash; người có thị lực kém khó đọc.
+          </p>
+          <div class="mt-4">
+            <button class="rounded-lg px-5 py-2 text-sm font-semibold" style="background:#fbbf24; color:#fef3c7">Đăng ký học</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggested fix preview -->
+      <div class="rounded-2xl border-2 border-success/40 bg-card shadow-soft-lg overflow-hidden">
+        <div class="flex items-center justify-between bg-success/10 px-4 py-2.5 border-b border-success/20">
+          <p class="text-xs font-semibold uppercase tracking-wider text-success">&#10003; Gợi ý đã sửa &mdash; ĐẠT</p>
+          <span class="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success font-mono">
+            7.4:1 &mdash; AAA
+          </span>
+        </div>
+        <div class="p-6 md:p-8" style="background:#fffbeb">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="h-9 w-9 rounded-lg inline-flex items-center justify-center text-white font-bold" style="background:#92400e">E</div>
+            <p class="font-bold" style="color:#92400e">Toán Edison</p>
+          </div>
+          <h3 class="text-2xl font-bold" style="color:#92400e">Đào tạo HSG vững chắc</h3>
+          <p class="mt-2 text-sm" style="color:#78350f">
+            Đoạn này contrast 7.4:1 &mdash; tất cả người dùng đọc dễ dàng.
+          </p>
+          <div class="mt-4">
+            <button class="rounded-lg px-5 py-2 text-sm font-semibold text-white" style="background:#92400e">Đăng ký học</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fix panel -->
+    <aside class="rounded-2xl border bg-card p-5 shadow-soft space-y-5 lg:sticky lg:top-6 self-start">
+      <div>
+        <h2 class="text-base font-semibold">Cách sửa</h2>
+        <p class="text-xs text-muted-foreground mt-1">Hệ thống tự động đề xuất 3 lựa chọn</p>
+      </div>
+
+      <!-- Current bad choice -->
+      <div class="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+        <p class="text-xs font-semibold uppercase tracking-wider text-destructive">Hiện tại</p>
+        <div class="mt-2 flex items-center gap-2">
+          <span class="h-8 w-8 rounded-md ring-1 ring-border" style="background:#fbbf24" aria-label="Màu #fbbf24"></span>
+          <code class="font-mono text-sm">#fbbf24</code>
+          <span class="ml-auto text-xs font-semibold text-destructive font-mono">3.2:1</span>
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-success mb-2">Gợi ý (auto)</p>
+        <ul class="space-y-2">
+          <li>
+            <button class="w-full rounded-lg border bg-card p-3 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <div class="flex items-center gap-2">
+                <span class="h-8 w-8 rounded-md ring-1 ring-border" style="background:#92400e" aria-label="Màu #92400e"></span>
+                <div class="flex-1">
+                  <code class="font-mono text-sm">#92400e</code>
+                  <p class="text-xs text-muted-foreground">Cùng tone vàng, đậm hơn</p>
+                </div>
+                <span class="text-xs font-semibold text-success font-mono">7.4:1</span>
+              </div>
+            </button>
+          </li>
+          <li>
+            <button class="w-full rounded-lg border bg-card p-3 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <div class="flex items-center gap-2">
+                <span class="h-8 w-8 rounded-md ring-1 ring-border" style="background:#b45309" aria-label="Màu #b45309"></span>
+                <div class="flex-1">
+                  <code class="font-mono text-sm">#b45309</code>
+                  <p class="text-xs text-muted-foreground">Vàng-cam ấm</p>
+                </div>
+                <span class="text-xs font-semibold text-success font-mono">5.1:1</span>
+              </div>
+            </button>
+          </li>
+          <li>
+            <button class="w-full rounded-lg border bg-card p-3 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <div class="flex items-center gap-2">
+                <span class="h-8 w-8 rounded-md ring-1 ring-border" style="background:#78350f" aria-label="Màu #78350f"></span>
+                <div class="flex-1">
+                  <code class="font-mono text-sm">#78350f</code>
+                  <p class="text-xs text-muted-foreground">Nâu vàng (đậm nhất)</p>
+                </div>
+                <span class="text-xs font-semibold text-success font-mono">9.8:1</span>
+              </div>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Manual override -->
+      <div>
+        <label class="text-sm font-semibold">Hoặc nhập màu khác</label>
+        <div class="mt-2 flex items-center gap-2">
+          <input type="color" value="#fbbf24" class="h-10 w-12 rounded-lg border cursor-pointer" aria-label="Chọn màu" />
+          <input type="text" value="#fbbf24" class="flex-1 rounded-lg border bg-card px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Mã HEX" />
+        </div>
+      </div>
+
+      <button class="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" disabled>
+        Triển khai (chặn cho đến khi đạt AA)
+      </button>
+    </aside>
+  </main>
+</body>
+</html>

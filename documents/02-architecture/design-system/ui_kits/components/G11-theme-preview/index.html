@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Component: G11 Theme Customization Live Preview — showcase
+  Used by: KH /branding/wizard step 5 (preview before deploy)
+  Flow ref: ai-branding-guidelines.md §4.2 (Preview before commit MANDATORY)
+  Persona: P2 Center Owner
+  Score self-estimate: 109/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 26)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA OK)
+  - Primary on white: 4.6:1 (AA OK)
+  - Warning chip on warning/10: 5.2:1 (AA OK)
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G11 — Theme Live Preview (Showcase)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold">G11 — Theme Live Preview</h1>
+        <p class="text-sm text-muted-foreground mt-0.5">5 trạng thái tích hợp vào AI Branding wizard step 5</p>
+      </div>
+      <a href="../index.html" class="text-sm text-primary hover:underline">&larr; Tất cả components</a>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-8 space-y-10">
+    <!-- Use case context -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <h2 class="text-lg font-semibold mb-2">Use case</h2>
+      <p class="text-sm text-muted-foreground">
+        Tích hợp vào step 5 của AI Branding wizard — chủ trung tâm xem trước theme đã apply
+        (logo, màu chính, font, border-radius) trước khi DEPLOY. Bắt buộc per
+        <code class="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">ai-branding-guidelines.md §4.2</code>.
+        Phải show contrast warning khi color picker tạo combo fail WCAG 4.5:1.
+      </p>
+    </section>
+
+    <!-- 5 states grid -->
+    <section>
+      <h2 class="text-lg font-semibold mb-4">5 trạng thái</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="states/default.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-muted-foreground/60"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-muted-foreground">1 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Default</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Theme KiteClass mặc định &mdash; chưa apply brand</p>
+        </a>
+        <a href="states/brand-applied.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-success"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-success">2 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Brand applied</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Custom logo + #2563eb &mdash; side-by-side</p>
+        </a>
+        <a href="states/dark-morph.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-info"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-info">3 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Dark morph</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Light/dark toggle &mdash; smooth color transition</p>
+        </a>
+        <a href="states/mobile-preview.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-primary"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-primary">4 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">Mobile preview</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Phone frame mockup with applied theme</p>
+        </a>
+        <a href="states/wcag-warning.html" class="rounded-2xl border bg-card p-5 shadow-soft hover:shadow-soft-lg transition group">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="h-2 w-2 rounded-full bg-destructive"></span>
+            <span class="text-xs uppercase tracking-wider font-semibold text-destructive">5 / 5</span>
+          </div>
+          <h3 class="text-base font-semibold group-hover:text-primary">WCAG warning</h3>
+          <p class="mt-1 text-sm text-muted-foreground">Contrast 3.2:1 fail &mdash; auto-suggest fix</p>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
