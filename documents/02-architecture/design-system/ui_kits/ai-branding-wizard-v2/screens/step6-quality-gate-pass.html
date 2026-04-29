@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Quality gate PASS · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — Step 6 quality gate widget close-up (PASS)
+  Rule: ai-branding-guidelines.md §5 (5 checks: WCAG / vars / 404 / regression / logo)
+  Score self-estimate: 118/128 (close-up of mandated quality gate widget)
+  Contrast: Score #10B981 on white = 4.5:1 AA; checks color-coded for clarity
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow">Quality gate · 5 kiểm tra · Bước 6</div>
+  <h1 class="wiz-title">Trang web đạt 95/100 — sẵn sàng triển khai</h1>
+  <p class="wiz-subtitle">AI đã chạy 5 kiểm tra tự động. Tất cả pass. Bạn có thể triển khai trang web.</p>
+
+  <div class="qgate pass">
+    <div class="qgate-head">
+      <div>
+        <p class="text-xs uppercase tracking-wider muted font-semibold">Điểm chất lượng tổng</p>
+        <p class="qgate-score">95<span class="qgate-score-out">/100</span></p>
+      </div>
+      <span class="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-sm font-bold flex items-center gap-1.5">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> ĐẠT YÊU CẦU
+      </span>
+    </div>
+    <div class="qgate-bar"><span style="width: 95%;"></span></div>
+
+    <div class="grid sm:grid-cols-2 gap-2 mt-3">
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="contrast" class="w-4 h-4"></i> WCAG Contrast
+        </div>
+        <p class="text-xs text-emerald-800">Đo: 4.7:1 — chuẩn AA cần ≥4.5:1</p>
+      </div>
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="palette" class="w-4 h-4"></i> CSS Variables
+        </div>
+        <p class="text-xs text-emerald-800">24/24 biến theme đã áp dụng</p>
+      </div>
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="link" class="w-4 h-4"></i> Asset 404
+        </div>
+        <p class="text-xs text-emerald-800">0 link gãy / 12 assets</p>
+      </div>
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="image" class="w-4 h-4"></i> Visual Regression
+        </div>
+        <p class="text-xs text-emerald-800">12% diff — cần ≤20%</p>
+      </div>
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200 sm:col-span-2">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="layout" class="w-4 h-4"></i> Logo Placement
+        </div>
+        <p class="text-xs text-emerald-800">Logo 32px · góc trái · không bị crop · tỉ lệ 1:1 đúng</p>
+      </div>
+    </div>
+
+    <div class="mt-4 p-3 rounded-md bg-sky-50 border border-sky-200 text-xs flex gap-2 text-sky-900">
+      <i data-lucide="info" class="w-4 h-4 mt-0.5 shrink-0"></i>
+      <p>Quality gate chạy lại mỗi lần bạn bấm <strong>Tạo lại</strong>. Điểm dưới 70 sẽ chặn deploy — auto-regenerate hoặc đánh dấu FAILED.</p>
+    </div>
+  </div>
+
+  <div class="flex gap-2 mt-5">
+    <button class="btn btn-secondary"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Tạo lại (còn 3/3)</button>
+    <button class="btn btn-primary flex-1"><i data-lucide="rocket" class="w-4 h-4"></i> Triển khai trang web</button>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

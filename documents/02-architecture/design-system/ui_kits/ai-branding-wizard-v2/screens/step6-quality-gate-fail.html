@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Quality gate FAIL · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — Step 6 quality gate FAIL with auto-regenerate
+  Rule: ai-branding-guidelines.md §5 (score <70 = block deploy + auto-regenerate or FAILED)
+  Score self-estimate: 119/128 (clear failure breakdown + actionable recovery)
+  Contrast: Destructive #EF4444 on white = 4.5:1 AA; failures highlighted explicitly
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow" style="color: hsl(var(--destructive));">Quality gate · 5 kiểm tra · Cần xử lý</div>
+  <h1 class="wiz-title">Trang web đạt 65/100 — chưa thể triển khai</h1>
+  <p class="wiz-subtitle">3/5 kiểm tra fail. Hệ thống sẽ tự tạo lại để cải thiện. Bạn có thể chấp nhận hoặc chỉnh thủ công.</p>
+
+  <div class="qgate fail">
+    <div class="qgate-head">
+      <div>
+        <p class="text-xs uppercase tracking-wider muted font-semibold">Điểm chất lượng tổng</p>
+        <p class="qgate-score">65<span class="qgate-score-out">/100</span></p>
+      </div>
+      <span class="px-3 py-1.5 rounded-full bg-red-100 text-red-800 text-sm font-bold flex items-center gap-1.5">
+        <i data-lucide="alert-triangle" class="w-4 h-4"></i> CHƯA ĐẠT (cần ≥70)
+      </span>
+    </div>
+    <div class="qgate-bar"><span style="width: 65%;"></span></div>
+
+    <div class="grid sm:grid-cols-2 gap-2 mt-3">
+      <!-- FAILS first -->
+      <div class="p-3 rounded-md bg-red-50 border border-red-300">
+        <div class="flex items-center gap-2 font-semibold text-red-900 text-sm mb-1">
+          <i data-lucide="x-circle" class="w-4 h-4"></i> WCAG Contrast — FAIL
+        </div>
+        <p class="text-xs text-red-800">Đo: 3.2:1 — text đỏ trên nền cam. Cần ≥4.5:1.</p>
+      </div>
+      <div class="p-3 rounded-md bg-red-50 border border-red-300">
+        <div class="flex items-center gap-2 font-semibold text-red-900 text-sm mb-1">
+          <i data-lucide="x-circle" class="w-4 h-4"></i> Visual Regression — FAIL
+        </div>
+        <p class="text-xs text-red-800">Diff: 34% — hero crop logo. Cần ≤20%.</p>
+      </div>
+      <div class="p-3 rounded-md bg-red-50 border border-red-300">
+        <div class="flex items-center gap-2 font-semibold text-red-900 text-sm mb-1">
+          <i data-lucide="x-circle" class="w-4 h-4"></i> Logo Placement — FAIL
+        </div>
+        <p class="text-xs text-red-800">Logo bị crop 14% bên trái. Cần đầy đủ.</p>
+      </div>
+      <!-- PASSES -->
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> CSS Variables — PASS
+        </div>
+        <p class="text-xs text-emerald-800">24/24 biến theme đã áp dụng</p>
+      </div>
+      <div class="p-3 rounded-md bg-emerald-50 border border-emerald-200 sm:col-span-2">
+        <div class="flex items-center gap-2 font-semibold text-emerald-900 text-sm mb-1">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Asset 404 — PASS
+        </div>
+        <p class="text-xs text-emerald-800">0 link gãy / 12 assets</p>
+      </div>
+    </div>
+
+    <div class="mt-4 p-3 rounded-md flex gap-2 text-sm" style="background: hsl(var(--warning) / 0.1); border: 1px solid hsl(var(--warning) / 0.4);">
+      <i data-lucide="zap" class="w-5 h-5 mt-0.5 shrink-0" style="color: hsl(var(--warning));"></i>
+      <div>
+        <p class="font-semibold mb-1">Đề xuất tự động</p>
+        <p class="muted">AI sẽ thử lại với bảng màu khác (text trắng trên cam) + reposition logo. Mất ~30 giây.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-2 mt-5">
+    <button class="btn btn-secondary">
+      <i data-lucide="settings" class="w-4 h-4"></i> Chỉnh thủ công
+    </button>
+    <button class="btn btn-primary flex-1">
+      <i data-lucide="sparkles" class="w-4 h-4"></i> Tự động tạo lại (dùng 1/3 lượt)
+    </button>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

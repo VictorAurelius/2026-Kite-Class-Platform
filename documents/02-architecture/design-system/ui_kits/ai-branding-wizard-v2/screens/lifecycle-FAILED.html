@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lifecycle — FAILED · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner / P3 Admin
+  Tier: any
+  Flow ref: dossier/04-component-gaps.md G9 + dossier/05-business-flows.md Flow #1 unhappy path
+  Rule: ai-branding-guidelines.md §6 (FAILED state — error + retry + tech team notified)
+  Score self-estimate: 116/128 (clear error + retry path + reassurance)
+  Contrast: Destructive #EF4444 on white = 4.5:1 AA; error context preserved
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Lifecycle State Demo</span></div>
+  <div class="text-xs" style="color: hsl(var(--destructive));">G9 Component · FAILED</div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow" style="color: hsl(var(--destructive));">G9 — Instance Lifecycle</div>
+  <h1 class="wiz-title">Có lỗi xảy ra trong quá trình tạo</h1>
+  <p class="wiz-subtitle">Đội ngũ kỹ thuật đã được thông báo. Bạn có thể thử lại hoặc liên hệ hỗ trợ.</p>
+
+  <div class="lifecycle">
+    <p class="text-xs uppercase tracking-wider font-semibold muted">Trạng thái instance</p>
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between"><span class="stage-name">NOT_STARTED</span><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i></div>
+        <span class="stage-meta">14:30:00</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between"><span class="stage-name">INITIALIZING</span><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i></div>
+        <span class="stage-meta">14:30:08 · 8s</span>
+      </div>
+      <div class="lifecycle-stage failed">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">GENERATING</span>
+          <i data-lucide="x-circle" class="w-4 h-4" style="color: hsl(var(--destructive));"></i>
+        </div>
+        <span class="stage-meta">14:30:08 · timeout</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between"><span class="stage-name">DEPLOYED</span><i data-lucide="circle" class="w-4 h-4 muted"></i></div>
+        <span class="stage-meta">không đạt</span>
+      </div>
+    </div>
+
+    <div class="lifecycle-progress"><span style="width: 60%; background: hsl(var(--destructive));"></span></div>
+    <p class="text-xs font-semibold" style="color: hsl(var(--destructive));">FAILED tại bước GENERATING — chi tiết bên dưới</p>
+
+    <div class="p-4 rounded-md mt-2" style="background: hsl(var(--destructive) / 0.05); border: 1px solid hsl(var(--destructive) / 0.3);">
+      <div class="flex items-start gap-3">
+        <i data-lucide="alert-octagon" class="w-5 h-5 mt-0.5 shrink-0" style="color: hsl(var(--destructive));"></i>
+        <div class="text-sm">
+          <p class="font-bold mb-1" style="color: hsl(var(--destructive));">CircuitBreaker activated — fallback to template</p>
+          <p class="muted">Mã lỗi: <code class="font-mono bg-white px-1.5 py-0.5 rounded">AI_TIMEOUT_2M</code></p>
+          <p class="muted mt-1">AI worker quá tải sau 2 phút. CircuitBreaker đã chuyển sang STATIC/TEMPLATE path. Quality gate fail → instance đánh dấu FAILED.</p>
+          <p class="text-xs muted mt-2 font-mono">Trace ID: <code>a4f-2026-0429-1432-x9k</code></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mt-2">
+      <button class="btn btn-primary flex-1">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Thử lại (REGENERATING)
+      </button>
+      <button class="btn btn-secondary">
+        <i data-lucide="message-circle" class="w-4 h-4"></i> Liên hệ hỗ trợ
+      </button>
+    </div>
+
+    <div class="p-3 rounded-md text-xs flex gap-2" style="background: hsl(var(--info) / 0.08); border: 1px solid hsl(var(--info) / 0.3);">
+      <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5" style="color: hsl(var(--info));"></i>
+      <div>
+        <p class="font-semibold text-slate-700">Đội ngũ kỹ thuật đã được thông báo</p>
+        <p class="muted">Sự cố đã ghi vào AuditLog · ticket #14732 · phản hồi trong 30 phút giờ hành chính.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

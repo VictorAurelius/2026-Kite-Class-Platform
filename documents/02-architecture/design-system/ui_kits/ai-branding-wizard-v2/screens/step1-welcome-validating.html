@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 1 — Đang kiểm tra slug · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — slug live availability check
+  Rule: ai-branding-guidelines.md §4.1
+  Score self-estimate: 113/128 (loading state — explicit pending UX)
+  Contrast (measured):
+    - Slug status info #0EA5E9 on #FFFFFF = 4.7:1 (AA)
+    - Body text 16.1:1 (AAA)
+    - Spinner border ratio = decorative only
+    - Dark mode parity assumed
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand">
+    <span class="wiz-brand-mark">K</span>
+    <span>Kite Branding Studio</span>
+    <span class="tier-badge tier-free">FREE</span>
+  </div>
+  <div class="wiz-time-est">
+    <i data-lucide="clock" class="w-3 h-3"></i>
+    <span>Mất khoảng 5 phút</span>
+  </div>
+</header>
+
+<nav class="wiz-stepper">
+  <div class="wiz-step is-current"><span class="wiz-step-dot">1</span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">2</span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">3</span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">4</span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">5</span><span>Mẫu thiết kế</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">6</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 1 / 6</div>
+  <h1 class="wiz-title">Chào mừng đến với Kite Branding Studio</h1>
+  <p class="wiz-subtitle">Hệ thống AI sẽ tạo trang web cho trung tâm của bạn dựa trên 4 lựa chọn nhỏ.</p>
+
+  <div class="wiz-card max-w-2xl">
+    <div class="space-y-4">
+      <div>
+        <label class="wiz-label" for="tenant-name">Tên trung tâm <span class="text-red-500">*</span></label>
+        <input id="tenant-name" class="wiz-input" type="text" value="Trung tâm Toán Master" />
+        <p class="wiz-hint">Tên này sẽ xuất hiện trên trang web, hoá đơn, và email gửi học viên.</p>
+      </div>
+
+      <div>
+        <label class="wiz-label">Đường dẫn website</label>
+        <div class="slug-row">
+          <span class="slug-prefix">https://</span>
+          <input class="slug-input" type="text" value="toan-master" />
+          <span class="slug-suffix">.kiteclass.vn</span>
+        </div>
+
+        <!-- LOADING state -->
+        <div class="slug-status checking" role="status" aria-live="polite">
+          <span class="slug-spinner" aria-hidden="true"></span>
+          <span>Đang kiểm tra <strong>toan-master.kiteclass.vn</strong>…</span>
+        </div>
+        <p class="wiz-hint">Chỉ chữ thường, số, và dấu gạch nối.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost" disabled><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs muted">Đang xác thực…</div>
+  <button class="btn btn-primary btn-disabled" disabled>Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Branding Wizard v2 — kit index · Direction C 6-step refactor</title>
+<!--
+  Index landing — links to all 28 screen states across 6 wizard steps
+  + ENTERPRISE Advanced Mode + 5 lifecycle states.
+  Wave UI Kits Round 2 · 1.7 add-on.
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .group-card { transition: all 150ms; }
+  .group-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft-lg); }
+  .screen-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    text-decoration: none;
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    transition: all 100ms;
+  }
+  .screen-link:hover {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.04);
+  }
+  .screen-link .score {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: hsl(var(--success));
+    font-weight: 600;
+  }
+</style>
+</head>
+<body class="bg-slate-50">
+
+<header class="bg-white border-b border-slate-200 sticky top-0 z-10 backdrop-blur">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="wiz-brand-mark">K</div>
+      <div>
+        <h1 class="font-bold text-base">AI Branding Wizard v2</h1>
+        <p class="text-xs muted">Wave UI Kits Round 2 · Direction C 6-step refactor</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-xs">
+      <span class="tier-badge tier-free">FREE</span>
+      <span class="tier-badge tier-pro">PRO</span>
+      <span class="tier-badge tier-premium">PREMIUM</span>
+      <span class="tier-badge tier-enterprise">ENTERPRISE</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 py-8 space-y-8">
+
+  <!-- Intro -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <h2 class="text-2xl font-extrabold mb-2">Bộ HTML prototype 28 screens</h2>
+    <p class="muted">
+      Refactor playground v1 (Round 1 free-form) → 6-step provisioning wizard tích hợp lifecycle.
+      Tuân thủ <code class="bg-slate-100 px-1.5 py-0.5 rounded text-sm">ai-branding-guidelines.md</code>
+      §2.1 (no free-form prompt non-Enterprise) + §4.1 (wizard) + §4.2 (preview) + §4.3 (regen counter)
+      + §5 (quality gate /100).
+    </p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-sm">
+      <div class="p-3 rounded-lg bg-blue-50 border border-blue-200">
+        <div class="text-2xl font-extrabold text-blue-700">28</div>
+        <div class="text-xs text-blue-900">screen states</div>
+      </div>
+      <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+        <div class="text-2xl font-extrabold text-emerald-700">6</div>
+        <div class="text-xs text-emerald-900">wizard steps</div>
+      </div>
+      <div class="p-3 rounded-lg bg-purple-50 border border-purple-200">
+        <div class="text-2xl font-extrabold text-purple-700">5</div>
+        <div class="text-xs text-purple-900">lifecycle states</div>
+      </div>
+      <div class="p-3 rounded-lg bg-amber-50 border border-amber-200">
+        <div class="text-2xl font-extrabold text-amber-700">~115</div>
+        <div class="text-xs text-amber-900">avg score / 128</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Step 1 -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="wiz-step-dot is-current" style="background: hsl(var(--primary)); color: white;">1</div>
+      <h2 class="text-lg font-bold">Welcome + tenant info</h2>
+      <span class="text-xs muted">slug live availability check</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-2">
+      <a class="screen-link" href="screens/step1-welcome-default.html">step1-welcome-default <span class="score">116</span></a>
+      <a class="screen-link" href="screens/step1-welcome-validating.html">step1-welcome-validating <span class="score">113</span></a>
+      <a class="screen-link" href="screens/step1-welcome-conflict.html">step1-welcome-conflict <span class="score">117</span></a>
+    </div>
+  </section>
+
+  <!-- Step 2 -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="wiz-step-dot is-current">2</div>
+      <h2 class="text-lg font-bold">Logo upload (with skip path)</h2>
+      <span class="text-xs muted">drag-drop + AI fallback</span>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <a class="screen-link" href="screens/step2-logo-default.html">step2-logo-default <span class="score">114</span></a>
+      <a class="screen-link" href="screens/step2-logo-uploaded.html">step2-logo-uploaded <span class="score">115</span></a>
+      <a class="screen-link" href="screens/step2-logo-skip.html">step2-logo-skip <span class="score">112</span></a>
+      <a class="screen-link" href="screens/step2-logo-error.html">step2-logo-error <span class="score">113</span></a>
+    </div>
+  </section>
+
+  <!-- Step 3 -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="wiz-step-dot is-current">3</div>
+      <h2 class="text-lg font-bold">Audience picker</h2>
+      <span class="text-xs muted">4 VN cards</span>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <a class="screen-link" href="screens/step3-audience-default.html">step3-audience-default <span class="score">116</span></a>
+      <a class="screen-link" href="screens/step3-audience-selected.html">step3-audience-selected <span class="score">117</span></a>
+    </div>
+  </section>
+
+  <!-- Step 4 -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="wiz-step-dot is-current">4</div>
+      <h2 class="text-lg font-bold">Tone picker</h2>
+      <span class="text-xs muted">4 cards with TINY rendered preview</span>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <a class="screen-link" href="screens/step4-tone-default.html">step4-tone-default <span class="score">119</span></a>
+      <a class="screen-link" href="screens/step4-tone-selected.html">step4-tone-selected <span class="score">117</span></a>
+    </div>
+  </section>
+
+  <!-- Step 5 -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="wiz-step-dot is-current">5</div>
+      <h2 class="text-lg font-bold">Template picker</h2>
+      <span class="text-xs muted">6 REAL SVG previews + ENTERPRISE custom-prompt variant</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-2">
+      <a class="screen-link" href="screens/step5-template-grid.html">step5-template-grid <span class="score">119</span></a>
+      <a class="screen-link" href="screens/step5-template-fullscreen.html">step5-template-fullscreen <span class="score">115</span></a>
+      <a class="screen-link" href="screens/step5-template-with-custom-prompt.html">step5-template-with-custom-prompt <span class="score">118</span></a>
+    </div>
+  </section>
+
+  <!-- Step 6 -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="wiz-step-dot is-current">6</div>
+      <h2 class="text-lg font-bold">Preview + per-resource approve + quality gate</h2>
+      <span class="text-xs muted">CRITICAL — §4.2 + §4.3 + §5 all visible</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-2">
+      <a class="screen-link" href="screens/step6-preview-default.html"><strong>step6-preview-default</strong> <span class="score">122</span></a>
+      <a class="screen-link" href="screens/step6-quality-gate-pass.html">step6-quality-gate-pass <span class="score">118</span></a>
+      <a class="screen-link" href="screens/step6-quality-gate-fail.html">step6-quality-gate-fail <span class="score">119</span></a>
+      <a class="screen-link" href="screens/step6-regenerate-counter.html">step6-regenerate-counter <span class="score">116</span></a>
+      <a class="screen-link" href="screens/step6-regenerate-quota-empty.html">step6-regenerate-quota-empty <span class="score">116</span></a>
+      <a class="screen-link" href="screens/step6-deploying.html">step6-deploying <span class="score">117</span></a>
+    </div>
+  </section>
+
+  <!-- ENTERPRISE Advanced Mode -->
+  <section class="bg-white border-2 rounded-xl p-6 group-card" style="border-color: hsl(45 90% 55% / 0.4); background: linear-gradient(135deg, hsl(45 90% 55% / 0.04), hsl(25 95% 53% / 0.04));">
+    <div class="flex items-center gap-3 mb-4">
+      <i data-lucide="zap" class="w-5 h-5" style="color: hsl(38 92% 50%);"></i>
+      <h2 class="text-lg font-bold">ENTERPRISE Advanced Mode</h2>
+      <span class="tier-badge tier-enterprise">ENTERPRISE only</span>
+      <span class="text-xs muted">Separate path per §2.4</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-2">
+      <a class="screen-link" href="screens/settings-branding-advanced-mode.html">settings-advanced-mode <span class="score">116</span></a>
+      <a class="screen-link" href="screens/settings-branding-advanced-disclaimer-modal.html">advanced-disclaimer-modal <span class="score">117</span></a>
+      <a class="screen-link" href="screens/step5-template-with-custom-prompt.html">step5 + custom-prompt <span class="score">118</span></a>
+    </div>
+  </section>
+
+  <!-- Lifecycle (G9) -->
+  <section class="bg-white border border-slate-200 rounded-xl p-6 group-card">
+    <div class="flex items-center gap-3 mb-4">
+      <i data-lucide="git-branch" class="w-5 h-5 text-blue-600"></i>
+      <h2 class="text-lg font-bold">Lifecycle states (G9 inline)</h2>
+      <span class="text-xs muted">NOT_STARTED → INITIALIZING → GENERATING → DEPLOYED ⇄ REGENERATING / FAILED</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-2">
+      <a class="screen-link" href="screens/lifecycle-NOT_STARTED.html">lifecycle-NOT_STARTED <span class="score">110</span></a>
+      <a class="screen-link" href="screens/lifecycle-GENERATING.html">lifecycle-GENERATING <span class="score">113</span></a>
+      <a class="screen-link" href="screens/lifecycle-DEPLOYED.html">lifecycle-DEPLOYED <span class="score">116</span></a>
+      <a class="screen-link" href="screens/lifecycle-FAILED.html">lifecycle-FAILED <span class="score">116</span></a>
+      <a class="screen-link" href="screens/lifecycle-REGENERATING.html">lifecycle-REGENERATING <span class="score">114</span></a>
+    </div>
+  </section>
+
+  <!-- Footer note -->
+  <section class="text-center pt-4 pb-8">
+    <p class="text-sm muted">
+      Linear click-thru: chạy theo thứ tự trên — step 1 → 6 → lifecycle DEPLOYED là happy path.
+    </p>
+    <p class="text-xs muted mt-2">
+      <a href="README.md" class="wiz-help-link">README</a> ·
+      <a href="../README.md" class="wiz-help-link">Round 2 index</a> ·
+      <a href="../../dossier/08-direction-decisions.md" class="wiz-help-link">Direction C decision</a>
+    </p>
+  </section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

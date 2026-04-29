@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 2 — AI sẽ tạo logo · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup (no logo on hand)
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — skip-logo path → AI generates from name
+  Rule: ai-branding-guidelines.md §1 (FULL_AI category — async via queue) + §4.1
+  Score self-estimate: 112/128
+  Contrast: Orange accent on muted bg = 4.5:1 (AA); body 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+  <div class="wiz-time-est"><i data-lucide="clock" class="w-3 h-3"></i><span>Còn ~4 phút</span></div>
+</header>
+
+<nav class="wiz-stepper">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">2</span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">3</span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">4</span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">5</span><span>Mẫu thiết kế</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">6</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 2 / 6</div>
+  <h1 class="wiz-title">AI sẽ tạo logo cho bạn</h1>
+  <p class="wiz-subtitle">Không cần logo vẫn được. AI sẽ tạo logo dựa trên tên trung tâm và phong cách bạn chọn ở các bước sau.</p>
+
+  <div class="logo-fork">
+    <div class="logo-fork-card" tabindex="0">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="upload-cloud" class="w-5 h-5 muted"></i>
+        <h3 class="font-bold">Tôi có logo</h3>
+      </div>
+      <p class="text-sm muted">Upload file SVG, PNG, hoặc JPG.</p>
+    </div>
+    <div class="logo-fork-card is-selected" tabindex="0">
+      <div class="flex items-center gap-2 mb-1">
+        <i data-lucide="sparkles" class="w-5 h-5 text-orange-500"></i>
+        <h3 class="font-bold">Để AI tạo logo</h3>
+      </div>
+      <p class="text-sm muted">AI sẽ tạo logo dựa trên tên trung tâm.</p>
+    </div>
+  </div>
+
+  <div class="wiz-card mt-6 max-w-2xl">
+    <div class="flex items-start gap-4">
+      <div class="logo-preview-img" style="background: linear-gradient(135deg, hsl(25 95% 53%), hsl(45 90% 55%));">
+        <i data-lucide="sparkles" class="w-8 h-8"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-xs uppercase tracking-wider muted font-semibold mb-1">AI sẽ tạo</p>
+        <h3 class="font-bold text-lg">Logo dựa trên "Trung tâm Toán Master"</h3>
+        <p class="text-sm muted mt-1">AI sẽ thử 3 hướng: monogram (TM), biểu tượng (toán học), và word-mark. Bạn sẽ chọn ở Bước 6.</p>
+      </div>
+    </div>
+
+    <div class="mt-5 p-4 rounded-lg bg-orange-50 border border-orange-200 flex gap-3">
+      <i data-lucide="zap" class="w-5 h-5 text-orange-600 mt-0.5 shrink-0"></i>
+      <div class="text-sm text-orange-900">
+        <p class="font-semibold mb-1">Phân loại: FULL_AI resource</p>
+        <p>Việc tạo logo bằng AI mất 1-3 phút. Hệ thống xử lý nền — bạn cứ tiếp tục các bước, kết quả sẽ hiện ở Bước 6.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs muted">Bước 2 / 6 · AI sẽ tạo logo</div>
+  <button class="btn btn-primary">Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

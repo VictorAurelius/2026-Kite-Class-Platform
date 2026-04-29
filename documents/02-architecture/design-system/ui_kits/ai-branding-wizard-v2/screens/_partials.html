@@ -1,0 +1,60 @@
+<!--
+  _partials.html — reusable HTML chunks for the wizard kit.
+  NOT a renderable screen — referenced by other screen files for consistency.
+  Copy fragments below into each screen file (wizard chrome + stepper).
+-->
+
+<!-- ===== Topbar (paste at top of <body>) ===== -->
+<header class="wiz-topbar">
+  <div class="wiz-brand">
+    <span class="wiz-brand-mark">K</span>
+    <span>Kite Branding Studio</span>
+    <span class="tier-badge tier-free">FREE</span>
+  </div>
+  <div class="wiz-time-est">
+    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+    <span>Mất khoảng 5 phút</span>
+  </div>
+</header>
+
+<!-- ===== Stepper (6 steps; toggle is-current/is-done classes) ===== -->
+<nav class="wiz-stepper" aria-label="Tiến trình tạo thương hiệu">
+  <div class="wiz-step is-current">
+    <span class="wiz-step-dot">1</span>
+    <span>Chào mừng</span>
+  </div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step">
+    <span class="wiz-step-dot">2</span>
+    <span>Logo</span>
+  </div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step">
+    <span class="wiz-step-dot">3</span>
+    <span>Đối tượng</span>
+  </div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step">
+    <span class="wiz-step-dot">4</span>
+    <span>Phong cách</span>
+  </div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step">
+    <span class="wiz-step-dot">5</span>
+    <span>Mẫu thiết kế</span>
+  </div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step">
+    <span class="wiz-step-dot">6</span>
+    <span>Xem trước &amp; phê duyệt</span>
+  </div>
+</nav>
+
+<!-- ===== Footer CTA (paste at end of <body>) ===== -->
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs text-muted-foreground">Bước 1/6</div>
+  <button class="btn btn-primary">Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+</content>
+</invoke>

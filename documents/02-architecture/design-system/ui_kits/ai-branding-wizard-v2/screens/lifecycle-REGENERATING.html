@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lifecycle — REGENERATING · AI Branding Wizard v2</title>
+<!--
+  Persona: P3 Medium Center Admin (rebrand existing tenant)
+  Tier: PRO (regen counter shows 4/10 used)
+  Flow ref: dossier/05-business-flows.md Flow #8 (rebrand) — REGENERATING from DEPLOYED
+  Rule: ai-branding-guidelines.md §6 (DEPLOYED ⇄ REGENERATING transition) + §4.3
+  Score self-estimate: 114/128 (mid-flight regen — preserves existing while building new)
+  Contrast: Active stage 4.6:1 AA; existing assets indicator clear
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Lifecycle State Demo</span><span class="tier-badge tier-pro">PRO</span></div>
+  <div class="text-xs muted">G9 Component · REGENERATING</div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow">G9 — Instance Lifecycle · Rebrand</div>
+  <h1 class="wiz-title">REGENERATING — đang tạo lại assets</h1>
+  <p class="wiz-subtitle">Trang cũ vẫn LIVE cho học viên trong khi assets mới đang được build. Sẽ swap atomically khi xong.</p>
+
+  <div class="lifecycle">
+    <p class="text-xs uppercase tracking-wider font-semibold muted">Trạng thái instance</p>
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">DEPLOYED (cũ)</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+        </div>
+        <span class="stage-meta">vẫn LIVE</span>
+      </div>
+      <div class="lifecycle-stage active">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">REGENERATING</span>
+          <i data-lucide="loader-2" class="w-4 h-4 animate-spin" style="color: hsl(var(--primary));"></i>
+        </div>
+        <span class="stage-meta">02:14 · 38%</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">QUALITY GATE</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">SWAP &rarr; LIVE</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+    </div>
+
+    <div class="lifecycle-progress"><span style="width: 38%;"></span></div>
+    <p class="text-xs muted">38% — đang generate logo + bảng màu mới…</p>
+
+    <!-- Counter visible -->
+    <div class="regen-bar mt-1">
+      <div class="regen-info">
+        <span class="regen-tier flex items-center gap-1">
+          <span class="tier-badge tier-pro">PRO</span>
+          <span>Regen counter</span>
+        </span>
+        <span class="regen-quota">6/10 lượt còn</span>
+      </div>
+      <div class="regen-dots">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span class="spent"></span><span class="spent"></span><span class="spent"></span><span class="spent"></span>
+      </div>
+    </div>
+
+    <div class="p-3 rounded-md flex gap-2 text-sm" style="background: hsl(var(--info) / 0.08); border: 1px solid hsl(var(--info) / 0.3);">
+      <i data-lucide="shield" class="w-5 h-5 shrink-0 mt-0.5" style="color: hsl(var(--info));"></i>
+      <div>
+        <p class="font-semibold text-slate-800">Zero downtime</p>
+        <p class="muted">Học viên vẫn truy cập được trang cũ. Assets mới chỉ active sau khi pass quality gate ≥70.</p>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary text-sm">
+      <i data-lucide="x" class="w-4 h-4"></i> Hủy regenerate (giữ phiên bản cũ)
+    </button>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>
