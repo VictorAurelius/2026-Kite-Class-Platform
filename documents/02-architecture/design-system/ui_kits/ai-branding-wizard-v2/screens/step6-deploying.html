@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Đang triển khai · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup (final approve → deploy)
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — Step 6 deploy in progress
+  Rule: ai-branding-guidelines.md §6 (lifecycle state machine — INITIALIZING → GENERATING → DEPLOYED)
+  Score self-estimate: 117/128 (G9 lifecycle inline + SSE-driven progress mock)
+  Contrast: Stage labels 16.1:1 AAA; progress shimmer decorative
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+  <div class="wiz-time-est"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i><span>Đang triển khai…</span></div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow">Đang xử lý · không cần đóng tab</div>
+  <h1 class="wiz-title">Đang triển khai trang web…</h1>
+  <p class="wiz-subtitle">Ước tính ~45 giây. Hệ thống đang đẩy theme + assets lên CDN, cấu hình DNS, và khởi tạo database. Tab này sẽ tự cập nhật.</p>
+
+  <div class="lifecycle">
+    <p class="text-xs uppercase tracking-wider font-semibold muted">Trạng thái instance</p>
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">NOT_STARTED</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+        </div>
+        <span class="stage-meta">14:32:00</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">INITIALIZING</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+        </div>
+        <span class="stage-meta">14:32:08 · 8s</span>
+      </div>
+      <div class="lifecycle-stage active">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">GENERATING</span>
+          <i data-lucide="loader-2" class="w-4 h-4 animate-spin" style="color: hsl(var(--primary));"></i>
+        </div>
+        <span class="stage-meta">14:32:08 · đang…</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">DEPLOYED</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+    </div>
+
+    <div class="lifecycle-progress mt-2"><span style="width: 62%;"></span></div>
+    <p class="text-xs muted">62% — đang upload assets lên CDN MinIO…</p>
+
+    <div class="text-xs space-y-1 mt-2 font-mono p-3 rounded-md bg-slate-50 border border-slate-200" role="log" aria-live="polite">
+      <div class="text-emerald-600">✓ 14:32:08 — Theme.json compiled (24 vars)</div>
+      <div class="text-emerald-600">✓ 14:32:14 — Logo SVG uploaded</div>
+      <div class="text-emerald-600">✓ 14:32:21 — Banner T2 rendered</div>
+      <div class="text-emerald-600">✓ 14:32:28 — Hero section generated</div>
+      <div class="text-blue-600">⟳ 14:32:35 — Pushing to CDN (3/12 assets)…</div>
+    </div>
+  </div>
+
+  <div class="mt-4 p-4 rounded-lg flex items-start gap-3 text-sm" style="background: hsl(var(--info) / 0.08); border: 1px solid hsl(var(--info) / 0.3);">
+    <i data-lucide="info" class="w-5 h-5 mt-0.5 shrink-0" style="color: hsl(var(--info));"></i>
+    <div>
+      <p class="font-semibold">Hệ thống đang chạy quality gate cuối</p>
+      <p class="muted">Sau khi DEPLOYED, một lần kiểm tra cuối sẽ chạy. Nếu fail, instance sẽ về FAILED — bạn sẽ được thông báo qua email.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

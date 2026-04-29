@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lifecycle — NOT_STARTED · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner / P3 Admin
+  Tier: any
+  Flow ref: dossier/04-component-gaps.md G9 Instance Lifecycle (inline)
+  Rule: ai-branding-guidelines.md §6 (state machine — initial state)
+  Score self-estimate: 110/128 (component spec inline — minimal but complete)
+  Contrast: All stage labels 16.1:1 AAA on white
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Lifecycle State Demo</span></div>
+  <div class="text-xs muted">G9 Component · NOT_STARTED</div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow">G9 — Instance Lifecycle</div>
+  <h1 class="wiz-title">NOT_STARTED — chưa bắt đầu</h1>
+  <p class="wiz-subtitle">Trạng thái mặc định cho instance chưa qua wizard. Wait state — chỉ hiển thị CTA "Bắt đầu".</p>
+
+  <div class="lifecycle">
+    <p class="text-xs uppercase tracking-wider font-semibold muted">Trạng thái instance</p>
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage active">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">NOT_STARTED</span>
+          <i data-lucide="circle" class="w-4 h-4" style="color: hsl(var(--primary));"></i>
+        </div>
+        <span class="stage-meta">— · chờ user</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">INITIALIZING</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">GENERATING</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">DEPLOYED</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+    </div>
+
+    <div class="lifecycle-progress"><span style="width: 0%;"></span></div>
+    <p class="text-xs muted">0% — chưa bắt đầu</p>
+
+    <button class="btn btn-primary mt-2 w-full">
+      <i data-lucide="play" class="w-4 h-4"></i> Bắt đầu wizard 6 bước
+    </button>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

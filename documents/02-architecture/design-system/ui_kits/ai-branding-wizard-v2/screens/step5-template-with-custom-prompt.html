@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 5 — Template + Custom Prompt · ENTERPRISE Advanced Mode</title>
+<!--
+  Persona: P3 Medium Center Admin (rebrand)
+  Tier: ENTERPRISE only — Advanced Mode đã bật
+  Flow ref: dossier/05-business-flows.md Flow #8 — rebrand with custom prompt
+  Rule: ai-branding-guidelines.md §2.4 (Advanced Mode opt-in) + §2.5 (input cap)
+  Score self-estimate: 118/128 (only ENTERPRISE — char counter visible, banner reminder, fallback note)
+  Contrast:
+    - Char counter mono on muted = 4.7:1 AA
+    - Warning banner gradient decorative
+    - Foreground 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand">
+    <span class="wiz-brand-mark">K</span>
+    <span>Kite Branding Studio</span>
+    <span class="tier-badge tier-enterprise">ENTERPRISE</span>
+    <span class="px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1" style="background: hsl(var(--warning) / 0.2); color: hsl(38 92% 30%);">
+      <i data-lucide="zap" class="w-3 h-3"></i> Advanced Mode
+    </span>
+  </div>
+  <div class="wiz-time-est"><i data-lucide="clock" class="w-3 h-3"></i><span>Còn ~1 phút</span></div>
+</header>
+
+<nav class="wiz-stepper">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">5</span><span>Mẫu thiết kế + Prompt</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">6</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+
+  <div class="advanced-banner">
+    <i data-lucide="zap" class="w-5 h-5 shrink-0" style="color: hsl(var(--warning));"></i>
+    <div>
+      <strong>Advanced Mode đang bật</strong> — bạn có thể nhập custom-prompt 200 ký tự bên dưới. Tắt trong
+      <a href="#" class="wiz-help-link">Settings &rarr; Branding</a>.
+    </div>
+  </div>
+
+  <div class="wiz-eyebrow">Bước 5 / 6 · ENTERPRISE</div>
+  <h1 class="wiz-title">Chọn mẫu hoặc tự định hướng</h1>
+  <p class="wiz-subtitle">Chọn 1 trong 6 mẫu, HOẶC nhập prompt riêng để AI tạo banner theo ý bạn.</p>
+
+  <!-- Custom prompt input -->
+  <div class="wiz-card mb-6 max-w-3xl" style="border-color: hsl(var(--warning) / 0.4);">
+    <div class="flex items-center gap-2 mb-2">
+      <h3 class="font-bold">Custom prompt (tuỳ chọn)</h3>
+      <span class="px-2 py-0.5 text-xs font-bold rounded" style="background: hsl(var(--warning) / 0.15); color: hsl(38 92% 30%);">ADVANCED</span>
+    </div>
+    <textarea
+      class="wiz-input font-mono text-sm"
+      rows="3"
+      maxlength="200"
+      placeholder="VD: Giọng văn ấm áp như trường mầm non, nhưng dùng bảng màu navy + cam của trung tâm luyện thi. Banner thể hiện cha mẹ + con cùng học."
+    >Giọng văn ấm áp, gần gũi nhưng giữ tone chuyên nghiệp. Banner phải thể hiện học sinh đỗ chuyên cười tươi, không nghiêm như mặc định.</textarea>
+    <div class="flex items-center justify-between mt-2">
+      <p class="text-xs muted">Tối đa 200 ký tự · 3-stage moderation pipeline sẽ chạy</p>
+      <span class="char-counter">142 / 200</span>
+    </div>
+
+    <div class="mt-3 p-2 rounded-md text-xs flex gap-2" style="background: hsl(var(--info) / 0.08); border: 1px solid hsl(var(--info) / 0.3); color: hsl(var(--info));">
+      <i data-lucide="shield-check" class="w-4 h-4 shrink-0 mt-0.5"></i>
+      <div class="text-slate-700">
+        Estimated tokens: <code class="font-mono">~36</code> · Cap ENTERPRISE: <code class="font-mono">16.000</code> · An toàn.
+      </div>
+    </div>
+  </div>
+
+  <!-- Same 6 templates (compact) -->
+  <h3 class="font-bold mb-3">Hoặc chọn 1 trong 6 mẫu</h3>
+  <div class="tpl-grid">
+    <article class="tpl-card"><div class="tpl-thumb"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#0F1E3D"/><text x="160" y="100" fill="white" font-size="16" font-weight="800" text-anchor="middle">Navy Focus</text></svg></div><div class="tpl-meta"><div class="tpl-name">Navy Focus</div><div class="tpl-tag">T1</div></div></article>
+    <article class="tpl-card is-selected"><div class="tpl-thumb"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#1E40AF"/><text x="160" y="100" fill="white" font-size="16" font-weight="800" text-anchor="middle">Score Board</text></svg></div><div class="tpl-meta"><div class="flex items-center justify-between"><div class="tpl-name">Score Board</div><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i></div><div class="tpl-tag">T2 · Đã chọn + custom prompt</div></div></article>
+    <article class="tpl-card"><div class="tpl-thumb"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#F8FAFC"/><text x="160" y="100" fill="#0F172A" font-size="16" font-weight="800" text-anchor="middle">Coach Card</text></svg></div><div class="tpl-meta"><div class="tpl-name">Coach Card</div><div class="tpl-tag">T3</div></div></article>
+    <article class="tpl-card"><div class="tpl-thumb"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#0F1E3D"/><text x="160" y="100" fill="#F59E0B" font-size="16" font-weight="800" text-anchor="middle">Result Stripes</text></svg></div><div class="tpl-meta"><div class="tpl-name">Result Stripes</div><div class="tpl-tag">T4</div></div></article>
+    <article class="tpl-card"><div class="tpl-thumb"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#FFFFFF"/><text x="160" y="100" fill="#0F172A" font-size="16" font-weight="800" text-anchor="middle">Schedule Grid</text></svg></div><div class="tpl-meta"><div class="tpl-name">Schedule Grid</div><div class="tpl-tag">T5</div></div></article>
+    <article class="tpl-card"><div class="tpl-thumb"><svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#0F1E3D"/><text x="160" y="100" fill="white" font-size="16" font-weight="800" text-anchor="middle">Roadmap V.</text></svg></div><div class="tpl-meta"><div class="tpl-name">Roadmap Vertical</div><div class="tpl-tag">T6</div></div></article>
+  </div>
+
+  <div class="mt-5 p-3 rounded-md text-sm flex gap-2 max-w-3xl" style="background: hsl(var(--warning) / 0.08); border: 1px solid hsl(var(--warning) / 0.3);">
+    <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5" style="color: hsl(var(--warning));"></i>
+    <div>
+      <p class="font-semibold mb-0.5">Fallback an toàn</p>
+      <p class="muted">Nếu custom prompt + template fail quality gate (score &lt;70), AI sẽ tự fallback về template gốc (T2) — không deploy bản fail.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs muted">T2 + custom prompt · 142/200 chars</div>
+  <button class="btn btn-primary">Xem trước &rarr; <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

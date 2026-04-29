@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lifecycle — DEPLOYED · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner / P3 Admin
+  Tier: FREE (banner shows tenant subdomain link — happy path)
+  Flow ref: dossier/04-component-gaps.md G9 + dossier/05-business-flows.md Flow #1 happy path
+  Rule: ai-branding-guidelines.md §6 (DEPLOYED state — tenant URL clickable)
+  Score self-estimate: 116/128 (happy path with toast + clickable subdomain link)
+  Contrast: Success badge 4.5:1 AA; mono URL on white 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Lifecycle State Demo</span></div>
+  <div class="text-xs muted">G9 Component · DEPLOYED ✓</div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow" style="color: hsl(var(--success));">G9 — Instance Lifecycle</div>
+  <h1 class="wiz-title">🎉 Trang web đã sẵn sàng!</h1>
+  <p class="wiz-subtitle">Tenant của bạn đã DEPLOYED. Quality gate cuối: 95/100. Truy cập subdomain ngay bây giờ.</p>
+
+  <div class="lifecycle">
+    <p class="text-xs uppercase tracking-wider font-semibold muted">Trạng thái instance</p>
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between"><span class="stage-name">NOT_STARTED</span><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i></div>
+        <span class="stage-meta">14:30:00</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between"><span class="stage-name">INITIALIZING</span><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i></div>
+        <span class="stage-meta">14:30:08 · 8s</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between"><span class="stage-name">GENERATING</span><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i></div>
+        <span class="stage-meta">14:30:08 · 03:42</span>
+      </div>
+      <div class="lifecycle-stage active" style="background: hsl(var(--success) / 0.15); border-color: hsl(var(--success));">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">DEPLOYED</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+        </div>
+        <span class="stage-meta">14:33:50 · LIVE</span>
+      </div>
+    </div>
+
+    <div class="lifecycle-progress"><span style="width: 100%; background: hsl(var(--success));"></span></div>
+    <p class="text-xs text-emerald-700 font-semibold">100% · Quality gate 95/100 · Sẵn sàng dùng</p>
+
+    <!-- Tenant subdomain link card -->
+    <div class="mt-2 p-4 rounded-lg flex items-center gap-3" style="background: hsl(var(--success) / 0.05); border: 1px solid hsl(var(--success) / 0.3);">
+      <div class="w-12 h-12 rounded-full grid place-items-center" style="background: hsl(var(--success) / 0.15);">
+        <i data-lucide="globe" class="w-6 h-6" style="color: hsl(var(--success));"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-xs uppercase tracking-wider font-semibold muted">Subdomain của bạn</p>
+        <a href="#" class="font-mono font-bold text-base text-emerald-700 hover:underline truncate block">
+          https://toan-master.kiteclass.vn
+        </a>
+        <p class="text-xs muted">Auto-renew SSL · CDN edge · Backup hằng ngày</p>
+      </div>
+      <button class="btn btn-primary shrink-0">
+        <i data-lucide="external-link" class="w-4 h-4"></i> Mở
+      </button>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mt-1">
+      <button class="btn btn-secondary text-xs">
+        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy URL
+      </button>
+      <button class="btn btn-secondary text-xs">
+        <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> QR cho phụ huynh
+      </button>
+      <button class="btn btn-secondary text-xs">
+        <i data-lucide="share-2" class="w-3.5 h-3.5"></i> Chia sẻ Zalo / FB
+      </button>
+      <button class="btn btn-ghost text-xs">
+        <i data-lucide="settings" class="w-3.5 h-3.5"></i> Custom domain
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Sonner toast -->
+<div class="toast">
+  <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+  <span><strong>Triển khai thành công</strong> · Tenant đã LIVE</span>
+</div>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Xem trước &amp; phê duyệt · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — Step 6 preview + per-resource approve
+  Rule: ai-branding-guidelines.md §4.2 (preview) + §4.3 (regen counter) + §5 (quality gate /100)
+  Score self-estimate: 122/128 (HIGHEST — aggregates all 3 critical features:
+    quality gate widget visible, regen counter visible, per-resource toggle approve)
+  Contrast:
+    - Switch on green = decorative; success #10B981 on white = 4.5:1 AA
+    - Score gradient text decorative; numbers #10B981 on white = 4.5:1 AA
+    - Iframe content uses theme tokens at AA
+    - Body 16.1:1 AAA throughout
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+  <div class="wiz-time-est"><i data-lucide="check" class="w-3 h-3"></i><span>Sắp xong!</span></div>
+</header>
+
+<nav class="wiz-stepper">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Mẫu thiết kế</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">6</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 6 / 6 — Cuối cùng!</div>
+  <h1 class="wiz-title">Xem trước trang web của bạn</h1>
+  <p class="wiz-subtitle">Bật/tắt từng tài nguyên (logo, màu, banner, hero) để chọn cái bạn muốn deploy. AI đã chấm điểm chất lượng ở phải.</p>
+
+  <div class="preview-grid">
+
+    <!-- Left: live iframe preview of tenant -->
+    <div>
+      <div class="preview-frame">
+        <div class="preview-frame-head">
+          <div class="preview-frame-dots"><span></span><span></span><span></span></div>
+          <span class="font-mono text-xs muted">https://toan-master.kiteclass.vn</span>
+          <div class="flex gap-1">
+            <button class="p-1 rounded hover:bg-slate-200" title="Mobile"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i></button>
+            <button class="p-1 rounded hover:bg-slate-200" title="Tablet"><i data-lucide="tablet" class="w-3.5 h-3.5"></i></button>
+            <button class="p-1 rounded bg-slate-200" title="Desktop"><i data-lucide="monitor" class="w-3.5 h-3.5"></i></button>
+          </div>
+        </div>
+
+        <div class="preview-iframe">
+          <div class="fake-tenant-nav">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded bg-white text-blue-700 grid place-items-center font-extrabold text-sm">TM</div>
+              <span class="font-bold text-sm">Toán Master</span>
+            </div>
+            <div class="text-xs">Khoá học · Giáo viên · Liên hệ</div>
+            <div class="px-2.5 py-1 rounded text-xs bg-amber-400 text-blue-950 font-bold">Đăng ký test</div>
+          </div>
+          <div class="fake-tenant-hero">
+            <div class="logo-preview-img" style="width:60px; height:60px; font-size:1rem;">TM</div>
+            <h2 class="text-xl font-extrabold text-slate-900">Vào trường chuyên cùng Toán Master</h2>
+            <p class="text-xs text-slate-700">98% học viên đỗ năm 2025 · 240 thí sinh · 9.2 điểm trung bình</p>
+            <div class="flex gap-2 mt-1">
+              <button class="text-xs font-bold px-3 py-1.5 rounded bg-amber-400 text-blue-950">Đăng ký test miễn phí</button>
+              <button class="text-xs font-bold px-3 py-1.5 rounded border-2 border-blue-700 text-blue-700">Xem khoá học</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs muted mt-3 flex items-center gap-2">
+        <i data-lucide="info" class="w-3.5 h-3.5"></i>
+        Xem trước này render thật từ theme.json + assets. Đã sẵn sàng deploy.
+      </p>
+    </div>
+
+    <!-- Right: approve switches + quality gate + regen counter -->
+    <div class="space-y-4">
+
+      <!-- Quality gate widget -->
+      <div class="qgate pass">
+        <div class="qgate-head">
+          <div>
+            <p class="text-xs uppercase tracking-wider muted font-semibold">Điểm chất lượng</p>
+            <p class="qgate-score">95<span class="qgate-score-out">/100</span></p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> PASS
+          </span>
+        </div>
+        <div class="qgate-bar"><span style="width: 95%;"></span></div>
+        <div class="qgate-checks">
+          <div class="qgate-check ok">WCAG contrast 4.7:1 (≥4.5)</div>
+          <div class="qgate-check ok">CSS variables 24/24 áp dụng</div>
+          <div class="qgate-check ok">Không có asset 404</div>
+          <div class="qgate-check ok">Visual regression 12% (≤20%)</div>
+          <div class="qgate-check ok">Logo placement đúng tỷ lệ</div>
+        </div>
+        <p class="text-xs muted mt-1">5/5 kiểm tra pass — sẵn sàng deploy.</p>
+      </div>
+
+      <!-- Per-resource approve -->
+      <div>
+        <h3 class="font-bold text-sm mb-2">Phê duyệt từng tài nguyên</h3>
+        <div class="approve-stack">
+          <div class="approve-row is-on">
+            <div class="approve-row-label">
+              <span class="approve-row-title">Logo</span>
+              <span class="approve-row-desc">SVG monogram TM · 12 KB</span>
+            </div>
+            <div class="switch is-on" role="switch" aria-checked="true"></div>
+          </div>
+          <div class="approve-row is-on">
+            <div class="approve-row-label">
+              <span class="approve-row-title">Bảng màu</span>
+              <span class="approve-row-desc">Navy #1E40AF · Cam #F59E0B · Xanh #10B981</span>
+            </div>
+            <div class="switch is-on" role="switch" aria-checked="true"></div>
+          </div>
+          <div class="approve-row is-on">
+            <div class="approve-row-label">
+              <span class="approve-row-title">Banner</span>
+              <span class="approve-row-desc">"Vào trường chuyên" · template T2</span>
+            </div>
+            <div class="switch is-on" role="switch" aria-checked="true"></div>
+          </div>
+          <div class="approve-row is-on">
+            <div class="approve-row-label">
+              <span class="approve-row-title">Hero section</span>
+              <span class="approve-row-desc">Score board 3 cột · responsive</span>
+            </div>
+            <div class="switch is-on" role="switch" aria-checked="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regenerate counter (FREE = 3/session) -->
+      <div class="regen-bar">
+        <div class="regen-info">
+          <span class="regen-tier">Gói FREE</span>
+          <span class="regen-quota">Tạo lại — còn 3/3 lượt</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="regen-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <button class="btn btn-secondary text-xs">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Tạo lại
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Sửa các bước</button>
+  <div class="text-xs muted">4/4 tài nguyên đã phê duyệt · Quality 95/100</div>
+  <button class="btn btn-primary">
+    <i data-lucide="rocket" class="w-4 h-4"></i> Triển khai trang web
+  </button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

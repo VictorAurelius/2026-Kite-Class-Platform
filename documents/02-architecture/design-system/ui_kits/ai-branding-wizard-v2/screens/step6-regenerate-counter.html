@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Tạo lại còn 2/3 · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE (3/session — counter visible per §4.3)
+  Flow ref: dossier/05-business-flows.md Flow #1 — regen counter active state
+  Rule: ai-branding-guidelines.md §4.3 (FREE 3/session, PRO 10, PREMIUM 30, ENT unlimited)
+  Score self-estimate: 116/128 (counter visible — direct §4.3 mandate compliance)
+  Contrast: Tier badges color-coded; counter text 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow">Hạn mức tạo lại</div>
+  <h1 class="wiz-title">Còn 2/3 lượt tạo lại</h1>
+  <p class="wiz-subtitle">Mỗi lần bấm "Tạo lại" sẽ trừ 1 lượt. Hết quota cần nâng cấp gói. Quota reset đầu mỗi phiên onboarding.</p>
+
+  <div class="space-y-4">
+
+    <!-- FREE counter (current) -->
+    <div class="regen-bar">
+      <div class="regen-info">
+        <span class="regen-tier flex items-center gap-1">
+          <span class="tier-badge tier-free">FREE</span>
+          <span>Gói hiện tại</span>
+        </span>
+        <span class="regen-quota">2/3 lượt còn</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="regen-dots">
+          <span></span>
+          <span></span>
+          <span class="spent" title="Đã dùng"></span>
+        </div>
+        <button class="btn btn-secondary text-xs">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Tạo lại lần 2
+        </button>
+      </div>
+    </div>
+
+    <!-- Comparison row -->
+    <div class="wiz-card">
+      <h3 class="font-bold text-sm mb-3">Hạn mức theo gói</h3>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center justify-between p-2 rounded">
+          <div class="flex items-center gap-2">
+            <span class="tier-badge tier-free">FREE</span>
+            <span>Gói miễn phí</span>
+          </div>
+          <span class="font-mono">3 lượt / phiên</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded bg-blue-50">
+          <div class="flex items-center gap-2">
+            <span class="tier-badge tier-pro">PRO</span>
+            <span>249.000đ / tháng</span>
+          </div>
+          <span class="font-mono font-semibold">10 lượt / phiên</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded bg-purple-50">
+          <div class="flex items-center gap-2">
+            <span class="tier-badge tier-premium">PREMIUM</span>
+            <span>499.000đ / tháng</span>
+          </div>
+          <span class="font-mono font-semibold">30 lượt / phiên</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded" style="background: linear-gradient(90deg, hsl(45 90% 55% / 0.1), hsl(25 95% 53% / 0.1));">
+          <div class="flex items-center gap-2">
+            <span class="tier-badge tier-enterprise">ENTERPRISE</span>
+            <span>Liên hệ</span>
+          </div>
+          <span class="font-mono font-semibold">Không giới hạn</span>
+        </div>
+      </div>
+      <button class="btn btn-primary w-full mt-3">
+        <i data-lucide="trending-up" class="w-4 h-4"></i> Nâng cấp lên PRO — 249k/tháng
+      </button>
+    </div>
+
+    <p class="text-xs muted flex items-start gap-2">
+      <i data-lucide="info" class="w-3.5 h-3.5 mt-0.5 shrink-0"></i>
+      <span>Mỗi lượt tạo lại tốn ~5MB ảnh + 30 giây compute. Quota giúp hệ thống ổn định cho mọi tenant.</span>
+    </p>
+
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

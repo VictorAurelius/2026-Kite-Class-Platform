@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 6 — Hết quota · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE (quota empty — upsell modal to PRO)
+  Flow ref: dossier/05-business-flows.md Flow #1 — quota empty + upgrade path
+  Rule: ai-branding-guidelines.md §4.3 ("Nếu hết quota → disabled button + upgrade CTA")
+  Score self-estimate: 116/128 (graceful upsell — disabled state + CTA visible)
+  Contrast: Disabled button 0.55 opacity (informational); CTA AA on white
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+</header>
+
+<section class="wiz-main" style="max-width: 480px; padding-top: 1rem;">
+
+  <!-- regen bar disabled -->
+  <div class="regen-bar is-empty mb-4" aria-disabled="true">
+    <div class="regen-info">
+      <span class="regen-tier flex items-center gap-1">
+        <span class="tier-badge tier-free">FREE</span>
+      </span>
+      <span class="regen-quota">Đã hết 3/3 lượt</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="regen-dots">
+        <span class="spent"></span>
+        <span class="spent"></span>
+        <span class="spent"></span>
+      </div>
+      <button class="btn btn-disabled" disabled>
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Tạo lại
+      </button>
+    </div>
+  </div>
+
+</section>
+
+<!-- Upsell modal -->
+<div class="modal-backdrop">
+  <div class="modal">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-12 h-12 rounded-full bg-orange-100 grid place-items-center">
+        <i data-lucide="trending-up" class="w-6 h-6 text-orange-600"></i>
+      </div>
+      <div>
+        <h3>Đã hết quota tạo lại</h3>
+        <p class="text-xs muted">Gói FREE hỗ trợ 3 lượt / phiên onboarding</p>
+      </div>
+    </div>
+
+    <p class="text-sm muted mb-4">Bạn đã thử 3 lần — đây là cơ hội để nâng cấp lên gói <strong class="text-foreground">PRO</strong> để tiếp tục tinh chỉnh.</p>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="tier-badge tier-pro">PRO</span>
+        <span class="text-2xl font-extrabold">249<span class="text-sm muted">.000đ/tháng</span></span>
+      </div>
+      <ul class="text-sm space-y-1 text-blue-900">
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> 10 lượt tạo lại / phiên</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> Truy cập 30+ template thay vì 6</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> Hỗ trợ qua chat 24/7</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> Hủy bất kỳ lúc nào</li>
+      </ul>
+    </div>
+
+    <div class="flex gap-2">
+      <button class="btn btn-secondary flex-1">
+        <i data-lucide="rocket" class="w-4 h-4"></i> Tiếp tục với kết quả hiện tại
+      </button>
+      <button class="btn btn-primary flex-1">
+        <i data-lucide="trending-up" class="w-4 h-4"></i> Nâng cấp PRO
+      </button>
+    </div>
+
+    <p class="text-xs muted text-center mt-3">
+      Hoặc <a href="#" class="wiz-help-link">liên hệ tư vấn</a> trước khi quyết định
+    </p>
+  </div>
+</div>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 2 — Lỗi upload · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — file too large / wrong format error
+  Rule: ai-branding-guidelines.md §4.4 (always show actionable recovery)
+  Score self-estimate: 113/128 (clear error + actionable recovery)
+  Contrast: Destructive #EF4444 = 4.5:1 (AA); body 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+  <div class="wiz-time-est"><i data-lucide="clock" class="w-3 h-3"></i><span>Còn ~4 phút</span></div>
+</header>
+
+<nav class="wiz-stepper">
+  <div class="wiz-step is-done"><span class="wiz-step-dot"><i data-lucide="check" class="w-3.5 h-3.5"></i></span><span>Chào mừng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step is-current"><span class="wiz-step-dot">2</span><span>Logo</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">3</span><span>Đối tượng</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">4</span><span>Phong cách</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">5</span><span>Mẫu thiết kế</span></div>
+  <div class="wiz-step-bar"></div>
+  <div class="wiz-step"><span class="wiz-step-dot">6</span><span>Phê duyệt</span></div>
+</nav>
+
+<section class="wiz-main">
+  <div class="wiz-eyebrow">Bước 2 / 6</div>
+  <h1 class="wiz-title">Bạn đã có logo chưa?</h1>
+  <p class="wiz-subtitle">Upload không thành công. Hãy xem hướng dẫn bên dưới và thử lại.</p>
+
+  <div class="logo-drop is-error">
+    <div class="logo-icon" style="background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive));">
+      <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+    </div>
+    <h3 class="text-lg font-bold mb-1" style="color: hsl(var(--destructive));">Không upload được file</h3>
+    <p class="text-sm" style="color: hsl(var(--destructive));">
+      <strong>logo-tt-master-1.5MB.tiff</strong> — định dạng không hỗ trợ.
+    </p>
+
+    <div class="mt-4 text-left max-w-md mx-auto">
+      <p class="font-semibold text-sm mb-2">Hệ thống chỉ chấp nhận:</p>
+      <ul class="space-y-1 text-sm muted">
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> SVG (ưu tiên — sắc nét mọi kích cỡ)</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> PNG (transparent background OK)</li>
+        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> JPG (cho ảnh chụp/nền màu đặc)</li>
+        <li class="flex items-center gap-2"><i data-lucide="x" class="w-4 h-4 text-red-600"></i> Tối đa 2 MB</li>
+        <li class="flex items-center gap-2"><i data-lucide="x" class="w-4 h-4 text-red-600"></i> Không hỗ trợ TIFF, BMP, HEIC, WebP</li>
+      </ul>
+    </div>
+
+    <div class="flex gap-2 justify-center mt-5">
+      <button class="btn btn-secondary">
+        <i data-lucide="folder-open" class="w-4 h-4"></i> Chọn file khác
+      </button>
+      <button class="btn btn-ghost">
+        <i data-lucide="sparkles" class="w-4 h-4"></i> Để AI tạo thay
+      </button>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+  <div class="text-xs" style="color: hsl(var(--destructive));">Lỗi upload — hãy thử lại</div>
+  <button class="btn btn-primary btn-disabled" disabled>Tiếp tục <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lifecycle — GENERATING · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner / P3 Admin
+  Tier: any
+  Flow ref: dossier/04-component-gaps.md G9 inline + dossier/05-business-flows.md Flow #1
+  Rule: ai-branding-guidelines.md §6 (state) + §3.3 (heavy tasks async via queue → SSE)
+  Score self-estimate: 113/128 (SSE-driven mock progress, multi-event log)
+  Contrast: Stage active ring 4.6:1 AA; log mono text 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Lifecycle State Demo</span></div>
+  <div class="text-xs muted">G9 Component · GENERATING (SSE)</div>
+</header>
+
+<section class="wiz-main" style="max-width: 720px;">
+  <div class="wiz-eyebrow">G9 — Instance Lifecycle</div>
+  <h1 class="wiz-title">GENERATING — AI đang tạo assets</h1>
+  <p class="wiz-subtitle">Trạng thái busy — AI đang xử lý queue ai.generate.{tier}. SSE push progress events real-time.</p>
+
+  <div class="lifecycle">
+    <p class="text-xs uppercase tracking-wider font-semibold muted">Trạng thái instance</p>
+    <div class="lifecycle-stages">
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">NOT_STARTED</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+        </div>
+        <span class="stage-meta">14:30:00</span>
+      </div>
+      <div class="lifecycle-stage done">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">INITIALIZING</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+        </div>
+        <span class="stage-meta">14:30:08 · 8s</span>
+      </div>
+      <div class="lifecycle-stage active">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">GENERATING</span>
+          <i data-lucide="loader-2" class="w-4 h-4 animate-spin" style="color: hsl(var(--primary));"></i>
+        </div>
+        <span class="stage-meta">14:30:08 · 02:14</span>
+      </div>
+      <div class="lifecycle-stage">
+        <div class="flex items-center justify-between">
+          <span class="stage-name">DEPLOYED</span>
+          <i data-lucide="circle" class="w-4 h-4 muted"></i>
+        </div>
+        <span class="stage-meta">đợi…</span>
+      </div>
+    </div>
+
+    <div class="lifecycle-progress"><span style="width: 47%;"></span></div>
+    <p class="text-xs muted">47% — đang generate banner T2 với AI…</p>
+
+    <div class="text-xs space-y-1 mt-2 font-mono p-3 rounded-md bg-slate-50 border border-slate-200" role="log" aria-live="polite">
+      <div class="text-emerald-600">✓ 14:30:08 — Job queued (ai.generate.free)</div>
+      <div class="text-emerald-600">✓ 14:30:14 — Worker picked up job</div>
+      <div class="text-emerald-600">✓ 14:30:21 — Theme.json compiled</div>
+      <div class="text-emerald-600">✓ 14:30:35 — Logo monogram (3 variants)</div>
+      <div class="text-emerald-600">✓ 14:30:48 — Color palette extracted</div>
+      <div class="text-blue-600">⟳ 14:31:02 — Banner T2 rendering (gpu queue 2/8)</div>
+      <div class="muted">⏱ 14:31:22 — ETA hero section ~30s</div>
+    </div>
+
+    <div class="flex gap-2 mt-1">
+      <button class="btn btn-secondary text-xs flex-1" disabled>
+        <i data-lucide="x" class="w-3.5 h-3.5"></i> Hủy
+      </button>
+      <button class="btn btn-ghost text-xs">
+        <i data-lucide="bell" class="w-3.5 h-3.5"></i> Thông báo qua email khi xong
+      </button>
+    </div>
+  </div>
+</section>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

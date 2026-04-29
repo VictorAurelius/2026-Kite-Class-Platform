@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bước 5 — Xem mẫu T2 toàn màn hình · AI Branding Wizard v2</title>
+<!--
+  Persona: P2 Center Owner first-time setup
+  Tier: FREE
+  Flow ref: dossier/05-business-flows.md Flow #1 — fullscreen template preview before commit
+  Rule: ai-branding-guidelines.md §4.2 (preview before commit)
+  Score self-estimate: 115/128
+  Contrast: Iframe content uses theme tokens; fullscreen overlay backdrop = decorative
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Branding Studio</span><span class="tier-badge tier-free">FREE</span></div>
+  <div class="text-xs muted">Xem trước mẫu</div>
+</header>
+
+<section class="wiz-main" style="padding-top: 1rem;">
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="text-xl font-bold">Score Board · Mã T2</h1>
+      <p class="text-sm muted">Lớp luyện thi · Phong cách Chuyên nghiệp · Tin cậy</p>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-secondary">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại lưới
+      </button>
+      <button class="btn btn-primary">
+        <i data-lucide="check" class="w-4 h-4"></i> Chọn mẫu này
+      </button>
+    </div>
+  </div>
+
+  <div class="preview-frame">
+    <div class="preview-frame-head">
+      <div class="preview-frame-dots"><span></span><span></span><span></span></div>
+      <span class="font-mono text-xs muted">https://toan-master.kiteclass.vn</span>
+      <div class="flex gap-1">
+        <button class="p-1 rounded hover:bg-slate-200" title="Mobile"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i></button>
+        <button class="p-1 rounded hover:bg-slate-200" title="Tablet"><i data-lucide="tablet" class="w-3.5 h-3.5"></i></button>
+        <button class="p-1 rounded bg-slate-200" title="Desktop"><i data-lucide="monitor" class="w-3.5 h-3.5"></i></button>
+      </div>
+    </div>
+
+    <div class="preview-iframe" style="aspect-ratio: 16/9;">
+      <!-- Tenant view mock — NOT real iframe; rendered SVG for offline preview -->
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%;">
+        <rect width="1280" height="720" fill="#FFFFFF"/>
+        <!-- Top nav -->
+        <rect x="0" y="0" width="1280" height="72" fill="#1E40AF"/>
+        <text x="40" y="46" fill="white" font-size="22" font-weight="800">Toán Master</text>
+        <text x="500" y="46" fill="#CBD5E1" font-size="14">Khoá học</text>
+        <text x="600" y="46" fill="#CBD5E1" font-size="14">Giáo viên</text>
+        <text x="720" y="46" fill="#CBD5E1" font-size="14">Lịch khai giảng</text>
+        <text x="880" y="46" fill="#CBD5E1" font-size="14">Liên hệ</text>
+        <rect x="1100" y="22" width="140" height="32" rx="4" fill="white"/>
+        <text x="1170" y="44" fill="#1E40AF" font-size="13" font-weight="700" text-anchor="middle">Đăng ký test</text>
+
+        <!-- Hero -->
+        <text x="40" y="180" fill="#0F172A" font-size="48" font-weight="800">Vào trường chuyên</text>
+        <text x="40" y="225" fill="#0F172A" font-size="48" font-weight="800">cùng Toán Master</text>
+        <text x="40" y="270" fill="#475569" font-size="18">Khoá luyện thi vào lớp 10 chuyên · 240 học viên đã đỗ năm 2025</text>
+        <rect x="40" y="296" width="180" height="48" rx="4" fill="#F59E0B"/>
+        <text x="130" y="326" fill="#0F1E3D" font-size="15" font-weight="700" text-anchor="middle">Đăng ký test miễn phí</text>
+        <rect x="240" y="296" width="160" height="48" rx="4" fill="white" stroke="#1E40AF" stroke-width="2"/>
+        <text x="320" y="326" fill="#1E40AF" font-size="15" font-weight="700" text-anchor="middle">Xem khoá học</text>
+
+        <!-- Score board section -->
+        <text x="40" y="420" fill="#0F172A" font-size="28" font-weight="800">Bảng điểm 2025</text>
+        <rect x="40" y="440" width="1200" height="240" rx="8" fill="#F1F5F9"/>
+        <rect x="80" y="480" width="320" height="160" rx="6" fill="white"/>
+        <text x="240" y="540" fill="#1E40AF" font-size="48" font-weight="800" text-anchor="middle">98%</text>
+        <text x="240" y="570" fill="#475569" font-size="14" text-anchor="middle">đỗ trường chuyên</text>
+        <rect x="440" y="480" width="320" height="160" rx="6" fill="white"/>
+        <text x="600" y="540" fill="#10B981" font-size="48" font-weight="800" text-anchor="middle">9.2</text>
+        <text x="600" y="570" fill="#475569" font-size="14" text-anchor="middle">điểm trung bình</text>
+        <rect x="800" y="480" width="320" height="160" rx="6" fill="white"/>
+        <text x="960" y="540" fill="#F59E0B" font-size="48" font-weight="800" text-anchor="middle">240</text>
+        <text x="960" y="570" fill="#475569" font-size="14" text-anchor="middle">học viên đỗ</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="mt-5 grid md:grid-cols-3 gap-3 text-sm">
+    <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0"></i>
+      <div>WCAG AA pass · contrast 4.7:1+</div>
+    </div>
+    <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0"></i>
+      <div>Responsive 320px → 3840px</div>
+    </div>
+    <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+      <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0"></i>
+      <div>Tiêu đề VN tối đa 50 ký tự — không tràn</div>
+    </div>
+  </div>
+</section>
+
+<footer class="wiz-foot">
+  <button class="btn btn-ghost"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại lưới</button>
+  <div class="text-xs muted">Score Board · T2</div>
+  <button class="btn btn-primary">Chọn mẫu này &rarr; <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+</footer>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>

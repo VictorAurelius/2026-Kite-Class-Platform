@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Xác nhận bật Advanced Mode · ENTERPRISE</title>
+<!--
+  Persona: P3 Medium Center Admin (rebrand) — about to enable Advanced Mode
+  Tier: ENTERPRISE
+  Flow ref: dossier/05-business-flows.md Flow #8 — Advanced Mode confirmation gate
+  Rule: ai-branding-guidelines.md §2.4 (explicit opt-in + disclaimer about unpredictable output)
+  Score self-estimate: 117/128 (modal forces explicit consent — strong governance UX)
+  Contrast: Warning amber gradient decorative; modal text 16.1:1 AAA
+-->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+<main class="wiz-shell">
+
+<header class="wiz-topbar">
+  <div class="wiz-brand"><span class="wiz-brand-mark">K</span><span>Kite Hub</span><span class="tier-badge tier-enterprise">ENTERPRISE</span></div>
+  <div class="text-xs muted">Settings &rarr; Branding &rarr; Advanced</div>
+</header>
+
+<section class="wiz-main" style="filter: blur(2px); pointer-events: none;">
+  <h1 class="wiz-title">Advanced Mode</h1>
+  <p class="wiz-subtitle">…</p>
+</section>
+
+<div class="modal-backdrop">
+  <div class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+    <div class="flex items-start gap-3 mb-3">
+      <div class="w-12 h-12 rounded-full grid place-items-center shrink-0" style="background: hsl(var(--warning) / 0.15);">
+        <i data-lucide="alert-triangle" class="w-6 h-6" style="color: hsl(var(--warning));"></i>
+      </div>
+      <div>
+        <h3 id="modal-title">Xác nhận bật Advanced Mode</h3>
+        <p class="text-xs muted">Tính năng dành cho ENTERPRISE — đọc kỹ trước khi bật</p>
+      </div>
+    </div>
+
+    <div class="space-y-3 text-sm">
+      <p class="muted">
+        Advanced Mode mở khoá <strong>free-form prompt 200 ký tự</strong> ở Bước 5 wizard.
+        AI có thể tạo output không khớp brand guideline thông thường.
+      </p>
+
+      <div class="p-3 rounded-md text-xs" style="background: hsl(var(--warning) / 0.08); border: 1px solid hsl(var(--warning) / 0.3);">
+        <p class="font-semibold mb-1.5" style="color: hsl(var(--warning));">Khi BẬT, bạn chấp nhận:</p>
+        <ul class="space-y-1 muted">
+          <li class="flex items-start gap-2">
+            <i data-lucide="dot" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <span>Output AI có thể không match brand guideline mặc định</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <i data-lucide="dot" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <span>Quality gate vẫn chạy — score &lt;70 sẽ fallback về template gốc</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <i data-lucide="dot" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <span>Mỗi prompt qua 3-stage moderation pipeline (PII / brand-safety / hate-speech)</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <i data-lucide="dot" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <span>Audit log lưu 90 ngày — đội kỹ thuật + legal có thể xem</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <i data-lucide="dot" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <span>Cap 16.000 tokens per request (cấu hình lại trong Settings)</span>
+          </li>
+        </ul>
+      </div>
+
+      <label class="flex items-start gap-2 cursor-pointer">
+        <input type="checkbox" class="mt-1 w-4 h-4 rounded border-slate-300" checked />
+        <span class="text-sm">
+          Tôi hiểu các rủi ro trên và đồng ý chịu trách nhiệm với output từ Advanced Mode
+        </span>
+      </label>
+    </div>
+
+    <div class="flex gap-2 mt-5">
+      <button class="btn btn-secondary flex-1">Huỷ — giữ wizard</button>
+      <button class="btn btn-primary flex-1">
+        <i data-lucide="zap" class="w-4 h-4"></i> Bật Advanced Mode
+      </button>
+    </div>
+
+    <p class="text-xs muted text-center mt-3">
+      Tài liệu chi tiết: <a href="#" class="wiz-help-link">ai-branding-guidelines.md §2.4</a>
+    </p>
+  </div>
+</div>
+
+</main>
+<script>lucide.createIcons();</script>
+</body>
+</html>
+</content>
+</invoke>
