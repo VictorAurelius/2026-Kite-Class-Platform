@@ -1,6 +1,6 @@
 # GAP-182: Privacy Policy — VN PDPL 2023 + GDPR Compliance
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1, PR #691). Phase 2 (legal counsel với VN PDPL expertise + DPO designation + MPS A05 consultation if sensitive-data registration required + EN translation + cookie consent banner UI) blocked-on stakeholder engagement → tracked GAP-154 umbrella per `gap-done-discipline.md` §3 PARTIAL exit-ramp. **Critical path: Decree 13/2023/NĐ-CP effective 2026-07-01** — Phase 2 must complete before live tenant signup of any commercial customer.
 **Priority:** 🔴 P0 (business-logic tier — **legal mandate**)
 **Domain:** Legal / BRD / Data Protection
 **Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1)
@@ -97,4 +97,5 @@ Create `documents/00-brd/privacy-policy.md` with mandatory sections per VN PDPL 
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1, PR #691 squash-merged commit `4a271cf3`). 319-line markdown file `documents/00-brd/privacy-policy.md` với 22 sections (16 mandated PDPL sections + Tóm tắt + Data Category Matrix + Data Subject Rights Table + Cross-References + Phase 2 TODO Tracker + Log). **61 PDPL article citations** inline (Decree 13/2023 Art 3/9/10/11/12/13/14/15/16/17/20/23/25/27/28). 4 tables: Section 6 (Purpose × Legal Basis), Section 9 (Retention placeholder), Section 10 (Rights inline), Bottom (Data Category Matrix + Data Subject Rights table). Frontmatter 8 fields including Languages (Vietnamese canonical, EN Phase 2). Cross-links: 7 markdown links — GAP-184 (×2 sibling), GAP-186/190 (planned), compliance-scope.md (×2), personas-catalog.md. Phase 2 TODO markers at company entity, DPO email, retention values cross-link GAP-184, breach contact, MPS registration status. **Worktree-contamination incident** during Agent C execution: Write tool initially landed file at main worktree path (not agent worktree); caught immediately on first verification grep, copied to correct path, removed stray, committed cleanly. No upstream contamination. Per `feedback_worktree_absolute_path_contamination.md` documented hazard. Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator per `gap-done-discipline.md` §3 (Phase 1 AC items 1-7 fully met; Phase 2 AC items 8-15 tracked under GAP-154 umbrella; PDPL effective date 2026-07-01 = Phase 2 hard deadline).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap. VN PDPL mandatory.

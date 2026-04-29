@@ -1,6 +1,6 @@
 # GAP-180: Terms of Service (TOS) — Customer Legal Contract
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1, PR #689). Phase 2 (legal counsel content + sign-off + click-wrap UI implementation) blocked-on stakeholder engagement → tracked GAP-154 umbrella per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
 **Priority:** 🔴 P0 (business-logic tier — GA blocker, legal)
 **Domain:** Legal / BRD / Compliance
 **Found:** 2026-04-20 (BRD simulation gap-finder — GAP-154 Phase 1)
@@ -75,4 +75,5 @@ Create `documents/00-brd/terms-of-service.md` with sections:
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1, PR #689 squash-merged commit `25ef4730`). 401-line markdown file `documents/00-brd/terms-of-service.md` với 15 mandated sections + Glossary + Cross-references + Phase 2 closure checklist. Markdown-header frontmatter (8 fields: Trạng thái 🔵 SKELETON / Owner Legal+PM/CEO / Reviewer / Last-Updated 2026-04-29 / Tracking GAP-180→GAP-154 / Legal basis VN Civil Code 2015 + Luật Giao dịch điện tử 2023 + Luật Bảo vệ Quyền lợi Người tiêu dùng 2023 / Acceptance mechanism click-wrap / Jurisdiction TAND VN). Cross-links: 11 markdown links — 3 same-wave siblings (GAP-181/182/184), 3 existing 00-brd refs, 2 rules refs, 3 deferred-sibling references (GAP-183/185/189 written as planned-no-hyperlink). Phase 2 TODO markers inline với `<!-- Phase 2: legal counsel to fill — informed gut value, GAP-154 -->` comments. Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator per `gap-done-discipline.md` §3 (Phase 2 not in scope this wave; AC items 1-7 of Phase 1 fully met, AC items 8-12 of Phase 2 explicitly tracked under GAP-154 umbrella).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap per BRD simulation findings.

@@ -1,6 +1,6 @@
 # GAP-181: Acceptable Use Policy (AUP)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1, PR #688). Phase 2 (legal counsel + T&S team review + MOET alignment + moderation playbook in 05-guides/) blocked-on stakeholder engagement → tracked GAP-154 umbrella per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
 **Priority:** 🔴 P0 (business-logic tier — GA blocker)
 **Domain:** Legal / BRD / Compliance / Moderation
 **Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1)
@@ -88,4 +88,5 @@ Create `documents/00-brd/acceptable-use-policy.md` with sections:
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1, PR #688 squash-merged commit `f00fd6af`). 411-line markdown file `documents/00-brd/acceptable-use-policy.md` với 11 sections (8 mandated + 3 governance: Cross-Refs / Phase 2 TODO / Document Governance). 5 tables present (Prohibited content matrix 11×6, Strike/suspension tier 6×6, Appeal flow 5×4 + ASCII diagram, SLA per severity bonus, Authorities cooperation bonus 6×N). Frontmatter 7 fields. Cross-links: 8 markdown links — GAP-018/186/042/154 (cross-cuts), GAP-180/182/184 (sibling Phase 1 skeletons), wave plan. Phase 2 TODO markers inline at strike count, suspension durations (24h/7d/30d/permanent baseline shipped), SLA hours, appeal window (15d baseline), mailbox provisioning, transparency report cadence. Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator per `gap-done-discipline.md` §3 (Phase 1 AC items 1-7 fully met; Phase 2 AC items 8-11 tracked under GAP-154 umbrella).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap.
