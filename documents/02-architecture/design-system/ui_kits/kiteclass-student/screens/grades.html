@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#14b8a6" />
+  <title>Điểm số — KC Học sinh</title>
+  <!--
+    Persona: S. Student — grades overview (per-subject breakdown + trend)
+    Score: T29/H30/A30/U29 = 118/128
+    WCAG: Body 16.5:1 AAA · Grade pills color+number (no color-only) · Focus 2px · 44px touch
+    i18n: student.grades.overview · student.grades.semester · student.grades.honor
+  -->
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-student">
+  <div class="app-shell" role="application" aria-label="Điểm số">
+    <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="icons"></span></div>
+
+    <header class="app-header">
+      <div>
+        <h1>Điểm số</h1>
+        <div class="subtitle">Học kỳ II · Năm học 2025–2026</div>
+      </div>
+      <button class="icon-btn" aria-label="Tải học bạ PDF">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+    </header>
+
+    <!-- Hero metric — GPA -->
+    <section class="hero-metric animate-slide-up" aria-labelledby="gpa-label">
+      <div class="label" id="gpa-label">Điểm trung bình học kỳ này</div>
+      <div class="value">8.4 <span style="font-size:18px;opacity:0.85;font-weight:600">/10</span></div>
+      <div class="delta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="6 15 12 9 18 15"/></svg>
+        Tăng 0.3 so với HK I · Học lực Giỏi
+      </div>
+    </section>
+
+    <!-- Stats grid -->
+    <div class="stats-grid">
+      <div class="stats-card">
+        <div class="label">Hạnh kiểm</div>
+        <div class="value" style="font-size:22px">Tốt</div>
+      </div>
+      <div class="stats-card">
+        <div class="label">Hạng lớp</div>
+        <div class="value" style="font-size:22px">5/38</div>
+      </div>
+    </div>
+
+    <!-- Semester tabs -->
+    <div class="tabs" role="tablist" aria-label="Chọn học kỳ">
+      <button class="tab" role="tab" aria-selected="false">Học kỳ I</button>
+      <button class="tab" role="tab" aria-selected="true">Học kỳ II</button>
+      <button class="tab" role="tab" aria-selected="false">Cả năm</button>
+    </div>
+
+    <!-- Subject list -->
+    <div class="section-heading"><h2>Điểm theo môn</h2><span style="font-size:var(--text-sm);color:hsl(var(--muted-foreground))">8 môn</span></div>
+
+    <a class="task-row" href="grade-detail.html" aria-label="Toán nâng cao 9.2 Xuất sắc">
+      <span class="icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;font-weight:700" aria-hidden="true">T</span>
+      <div class="body">
+        <div class="title">Toán nâng cao</div>
+        <div class="sub">15 cột điểm · Cô Trần Thị Hương</div>
+      </div>
+      <span class="grade-pill xuat-sac">9.2</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-weight:700" aria-hidden="true">E</span>
+      <div class="body">
+        <div class="title">Tiếng Anh 10</div>
+        <div class="sub">12 cột điểm · Cô Phạm Thuỳ Linh</div>
+      </div>
+      <span class="grade-pill xuat-sac">9.0</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#ec4899,#be185d);color:#fff;font-weight:700" aria-hidden="true">V</span>
+      <div class="body">
+        <div class="title">Ngữ Văn 10</div>
+        <div class="sub">10 cột điểm · Thầy Lê Minh Tuấn</div>
+      </div>
+      <span class="grade-pill gioi">8.5</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-weight:700" aria-hidden="true">L</span>
+      <div class="body">
+        <div class="title">Vật Lý 10</div>
+        <div class="sub">9 cột điểm · Thầy Nguyễn Văn Quang</div>
+      </div>
+      <span class="grade-pill gioi">8.2</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#f59e0b,#b45309);color:#fff;font-weight:700" aria-hidden="true">H</span>
+      <div class="body">
+        <div class="title">Hoá Học 10</div>
+        <div class="sub">9 cột điểm · Cô Vũ Thị Mai</div>
+      </div>
+      <span class="grade-pill gioi">8.0</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#10b981,#047857);color:#fff;font-weight:700" aria-hidden="true">B</span>
+      <div class="body">
+        <div class="title">Sinh Học 10</div>
+        <div class="sub">7 cột điểm · Thầy Đặng Hữu Phước</div>
+      </div>
+      <span class="grade-pill kha">7.8</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#f97316,#c2410c);color:#fff;font-weight:700" aria-hidden="true">S</span>
+      <div class="body">
+        <div class="title">Lịch Sử 10</div>
+        <div class="sub">6 cột điểm · Cô Bùi Hồng Nhung</div>
+      </div>
+      <span class="grade-pill kha">7.5</span>
+    </a>
+    <a class="task-row" href="grade-detail.html">
+      <span class="icon" style="background:linear-gradient(135deg,#06b6d4,#0e7490);color:#fff;font-weight:700" aria-hidden="true">G</span>
+      <div class="body">
+        <div class="title">Địa Lý 10</div>
+        <div class="sub">6 cột điểm · Thầy Trần Quốc Bảo</div>
+      </div>
+      <span class="grade-pill kha">7.2</span>
+    </a>
+
+    <!-- GVCN comment -->
+    <div class="section-heading"><h2>Nhận xét của GVCN</h2></div>
+    <div class="card" style="margin: 0 16px;">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span class="avatar" aria-hidden="true" style="width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,#ec4899,#be185d);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">TH</span>
+        <div>
+          <div style="font-weight:600;font-size:var(--text-sm)">Cô Trần Thị Hương</div>
+          <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-bottom:8px">GVCN · Cập nhật 03/04/2026</div>
+          <p style="margin:0;font-size:var(--text-sm);line-height:1.55">“An tích cực phát biểu trong giờ Toán, có khả năng tư duy logic tốt. Cần luyện thêm môn Lịch sử và Địa lý để vào nhóm Xuất sắc cuối năm.”</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <!-- Bottom tabs -->
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="today.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Hôm nay</a>
+      <a class="tab-btn" href="my-classes.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Lớp học</a>
+      <a class="tab-btn" aria-current="page" href="grades.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 6-6"/></svg></span>Điểm</a>
+      <a class="tab-btn" href="notifications.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>Thông báo</a>
+      <a class="tab-btn" href="profile.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Cá nhân</a>
+    </nav>
+  </div>
+</body>
+</html>
