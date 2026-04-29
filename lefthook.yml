@@ -1,0 +1,21 @@
+# Lefthook config — local pre-commit gate for script quality
+#
+# Closes GAP-194 Phase 2 (pre-commit hook AC). Mirrors what
+# `.github/workflows/script-quality.yml` enforces in CI so violations
+# fail fast on the developer's machine before push.
+#
+# Activate (one-time): `lefthook install`
+# Bypass (emergency only): `git commit --no-verify`
+#
+# See `documents/05-guides/local-dev-pre-commit.md` for setup, fallback
+# instructions, and rationale.
+
+pre-commit:
+  parallel: true
+  commands:
+    shellcheck:
+      glob: "*.sh"
+      run: shellcheck -S warning {staged_files}
+    ruff:
+      glob: "*.py"
+      run: ruff check {staged_files}
