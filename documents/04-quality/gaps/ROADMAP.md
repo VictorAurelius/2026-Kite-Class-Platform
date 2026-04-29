@@ -216,15 +216,15 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 | # | Wave / Cluster | Gaps | Priority | Status |
 |:-:|----------------|------|:--------:|:------:|
 | 1 | ~~Observability — Wave 1~~ | GAP-121 (P1) + GAP-143 (P1) + GAP-144 (P0 PARTIAL) | mixed | ✅ SHIPPED 2026-04-28 |
-| 2 | **Observability — Wave 2** (next) | GAP-122 (12 new platform alerts, P1) + GAP-144 mock-fire backfill (when live cluster ready) | P1 | 🔵 NEXT |
+| 2 | ~~Observability — Wave 2~~ | GAP-122 (DONE 2026-04-28 single-gap parallel wave) + GAP-144 mock-fire backfill (deferred, infra-blocked) | P1 | ✅ SHIPPED 2026-04-28 (GAP-122 only); GAP-144 mock-fire still infra-blocked |
 | 3 | ~~DR/Backup cluster~~ | GAP-117 (🟡 PARTIAL, Phase 3 → GAP-257) + GAP-118 (🟢 DONE) + GAP-119 (🟢 DONE) | P0+P1 | ✅ SHIPPED 2026-04-28 |
 | 4 | **KiteHub admin cluster** | GAP-066 + GAP-067 + GAP-068 (P1, all KH services) | P1 | 🟡 SLICED 2026-04-28 — oversized per `cluster-pattern.md`; if revived, decompose into Phase-1 sub-gaps (~3h each) → wave-pack the 3 sub-gaps. See `documents/03-planning/plans/pr-next-session-single-gap-handoff.md` §"Cluster 4 deferred work" |
 | 5 | ~~Business correctness cluster — Wave Phase 1~~ | GAP-049 (P0 PARTIAL — Phase 2 → GAP-156) + GAP-050 (P0 PARTIAL — exec in GAP-152) + GAP-150 (P1 DONE — Phase 2 → GAP-155) | P0+P1 | ✅ SHIPPED 2026-04-29 — `documents/03-planning/waves/wave-2026-04-29-business-correctness.md` |
 | 6 | ~~Meta-Gov 2 cluster~~ | GAP-245 (P1 PARTIAL — Phase 2 → GAP-261) + GAP-225 (P1 DONE) + GAP-224 (P3 DONE) + GAP-202/206/207 status sync DONE | P1+P3 | ✅ SHIPPED 2026-04-29 — `documents/03-planning/waves/wave-2026-04-29-meta-gov-2.md` |
 | 7 | ~~Meta Phase-2 Cleanup cluster~~ | GAP-193 P2 (DONE) + GAP-194 P2 (DONE) + GAP-195 P2a (PARTIAL — Phase 2b → GAP-262) | P1+P2 | ✅ SHIPPED 2026-04-29 — `documents/03-planning/waves/wave-2026-04-29-meta-phase2-cleanup.md` (~30 min wall-clock, 6th wave-pack) |
-| 6 | **Parent/import cluster** | GAP-052 (P0 PARTIAL) + GAP-063 (P1) + GAP-137 (P0) + GAP-139 (P1) | P0+P1 | 🔵 OPEN |
-| 7 | **K-12 features wave** | GAP-055 (P1, Phase 1 Tasks 3-10) + GAP-056 (P1) + GAP-057 (P1) | P1 | 🟡 IN_PROGRESS (GAP-055 Tasks 0-2 DONE) |
-| 8 | **Logging migration** (separate track) | GAP-114 (P0) + GAP-115 (P1) | P0+P1 | 🔵 OPEN — multi-PR scope per `logs-format-standard.md` migration phases |
+| 8 | **Parent/import cluster** | GAP-052 (P0 PARTIAL) + GAP-063 (P1) + GAP-137 (P0) + GAP-139 (P1) | P0+P1 | 🔵 OPEN |
+| 9 | **K-12 features wave** | GAP-055 (P1, Phase 1 Tasks 3-10) + GAP-056 (P1) + GAP-057 (P1) | P1 | 🟡 IN_PROGRESS (GAP-055 Tasks 0-2 DONE) |
+| 10 | **Logging migration** (separate track) | GAP-114 (P0) + GAP-115 (P1) | P0+P1 | 🔵 OPEN — multi-PR scope per `logs-format-standard.md` migration phases |
 
 ### Single-track items (not clustered)
 
