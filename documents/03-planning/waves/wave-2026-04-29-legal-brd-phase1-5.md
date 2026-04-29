@@ -1,13 +1,18 @@
 ---
 title: Wave Legal-BRD Phase 1.5 — 3 sister policy docs (Refund / Billing-VAT / Child Protection) + meta codify skeleton-agent template
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
+shipped: 2026-04-29
 gaps: [GAP-183, GAP-185, GAP-186]
 deferred_to_next_wave: []
 deferred_separate_track: []
 umbrella: GAP-154
 sister_wave: wave-2026-04-29-legal-brd-phase1
+prs: [693, 694, 695, 696, 697]
+total_loc: 1617
+wall_clock_min: 30
+milestone: "7/7 BRD legal mandate skeletons DONE — Phase 1 of GAP-154 umbrella complete"
 ---
 
 # Wave Legal-BRD Phase 1.5 — Cluster Pack 14 (10th wave-pack, 2nd legal-BRD slice)
@@ -179,28 +184,43 @@ All 4 agents MUST:
 - Worktree verify: `pwd | grep -q "\.claude/worktrees/"` AND `git branch --show-current | grep -q "^feat/wave-legal-brd-1-5"` trước Write/Edit
 - RELATIVE paths only trong commands
 
-## Lessons-learned (filled AFTER wave merges)
-
-(Filled per `reference/retrospective-checklist.md`)
+## Lessons-learned (Wave Legal-BRD Phase 1.5, completed 2026-04-29)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold for all 4 (BRD + meta)?
+- [x] `isolation: "worktree"` held for all 4 (3 BRD + 1 meta) — 4 separate checkouts at `.claude/worktrees/agent-{ac8e099d|ac444568|aee56389|aa37e07a}/`
+- [x] No cross-agent file collisions (4 disjoint NEW/modified files)
+- [x] **0 contamination incidents** — all 4 agents reported "worktree-relative paths only / no absolute path contamination"
 
 ### File overlap accuracy
-- [ ] Did predicted overlap (0 HARD, 2 SOFT) match actual?
+- [x] Predicted: 0 HARD, 2 SOFT (read-only `meta-gap-priority.md` + `business-logic-review.md` citations). Actual: 0 HARD, 0 SOFT (citations did not edit). 100% accurate.
 
 ### Wall-clock variance
-- [ ] Estimate ~40-45 min vs actual?
+- **Estimated:** 40-45 min total (foundation 12 + parallel 6-8 + merge 12 + closure 10)
+- **Actual:** ~30 min total (foundation 12 + parallel 5.9 wall + sequential merge 3 + closure 10)
+- **Calibration confirmed:** docs-only-skeleton ~5 min/agent (Wave 13 estimate validated). Meta agent slightly longer (7.5 min) due to skill-asset scaffolding (192 LOC NEW + 109 LOC modify) — still under budget.
+- Sequential merge much faster than Wave 13 because **worktree pre-pruning eliminated post-merge checkout glitches** (Wave 13 lesson applied).
 
 ### Pattern reuse
-- [ ] Sister-wave reuse pattern (same-day cluster sibling) successful?
-- [ ] Meta-codify in same wave as 2nd recurrence — early codify pay off?
+- [x] **Sister-wave same-day pattern works** — Wave 13 + Wave 14 same theme, ~75 min total wall-clock for 7 BRD skeletons. Same-day kickoff after Wave 13 closure preserved context (foundation PR + 00-brd README + ROADMAP entry pattern reused verbatim).
+- [x] **Early codify at 2nd recurrence paid off** — Agent D's `docs-only-skeleton-agent.md` template captures pattern PROACTIVELY (avoids 3rd-time re-derivation in next BRD/policy wave). Validates wave-pack-planner SKILL §"Pattern reuse" exit criterion.
 
 ### Agent template effectiveness
-- [ ] `docs-only-agent.md` held for Wave 14 BRD agents?
-- [ ] Meta agent template (general-purpose for skill scaffold) effective?
+- [x] `docs-only-agent.md` held for 3 Wave 14 BRD agents — 0-clarification-round across all 3 (19th-21st consecutive).
+- [x] Meta agent (general-purpose subagent for skill scaffold) effective — produced 192 LOC template + 109 LOC retrospective extension in 7.5 min, no clarification needed. Validates "general-purpose can do meta work" data point.
 
-### 4+-agent hazards (Wave 13 lessons applied)
-- [ ] Did coordinator prune worktrees before final merge?
-- [ ] Any coordinator cd contamination?
-- [ ] Local main glitch recurrence?
+### 4+-agent hazards — Wave 13 lessons APPLIED SUCCESSFULLY
+- [x] **Coordinator pruned worktrees BEFORE final merge** — eliminated "main is already used by worktree" glitch from Wave 13. 4/4 PRs merged cleanly with `--delete-branch` working as expected.
+- [x] **0 coordinator cd contamination** — explicit `cd /home/.../2026-Kite-Class-Platform` before branch ops; `pwd` verification held.
+- [x] **0 local main glitch recurrence** — `git pull --ff-only` succeeded directly, no `reset --hard` needed.
+- [⚠️] **One bash loop side effect:** during worktree prune loop, after removing worktrees the loop's cwd became invalid (`fatal: Unable to read current working directory`) because harness was inside one of the removed paths. Recovery: explicit `cd <main-repo>` before next command. **New mitigation candidate:** worktree prune loop should `cd <main-repo>` first as defensive boilerplate.
+
+### Token cost
+- Foundation: ~25K tokens (wave plan + README + ROADMAP)
+- Agents combined: ~917K tokens (4 agents avg ~229K each — meta agent largest at ~250K due to skill-asset scaffolding)
+- Closure: ~25K tokens
+- **Total: ~967K** (vs Wave 13 850K — slightly higher due to meta agent codification scope)
+
+### Milestone achieved
+- **7/7 BRD legal mandate skeletons DONE** — TOS/AUP/Privacy/Retention/Refund/Billing/Child-Protection
+- **Phase 1 of GAP-154 umbrella COMPLETE** — Phase 2 legal counsel content remains
+- **`docs-only-skeleton-agent.md` template codified** — future skeleton waves can use directly

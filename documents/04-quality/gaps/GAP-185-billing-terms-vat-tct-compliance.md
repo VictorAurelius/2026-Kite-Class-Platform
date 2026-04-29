@@ -1,6 +1,6 @@
 # GAP-185: Billing Terms + VAT/TCT Invoice Compliance
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 skeleton SHIPPED 2026-04-29 (Wave Legal-BRD Phase 1.5, PR #695). Phase 2 (legal + Tax advisor review + TCT-registered e-invoice provider selection VNPT/Viettel/Misa + MST collection UI + late fee config externalization GAP-108 + finance team SOP + first production VAT invoice verification) blocked-on stakeholder engagement → tracked GAP-154 umbrella + GAP-108 per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
 **Priority:** 🔴 P0 (business-logic tier — **VN Tax Law mandate**)
 **Domain:** Legal / BRD / Commercial / Tax
 **Found:** 2026-04-20 (BRD simulation — GAP-154 Phase 1)
@@ -108,4 +108,5 @@ Create `documents/00-brd/billing-terms.md`:
 
 ## Log
 
+- **2026-04-29** — Phase 1 skeleton SHIPPED (Wave Legal-BRD Phase 1.5, PR #695 squash-merged commit `1c2264c0`). 457-line markdown file `documents/00-brd/billing-terms.md` với 14 sections (9 mandated + 5 governance: Currency Conversion / Tax Calc Examples / Phase 2 Deliverables / Out-of-scope / Log). 6 tables: Payment Method Matrix (tier × VNPay/MoMo/ZaloPay/Bank/Card/PO × processor fees), Late Fee Calculation Examples (5 rows linked GAP-108 config keys `late-fee.rate`, `late-fee.grace-days`, `late-fee.max-cap-pct`, `late-fee.compounding`), Tax Calculation Examples (3 sub-tables: VAT-exclusive B2B + VAT-inclusive B2C + foreign export 0%), Due-date matrix, Service suspension threshold matrix, Phase 2 deliverables matrix. **14+ tax citations**: Circular 78/2021/TT-BTC (×4), Decree 123/2020/NĐ-CP (×8), VAT Law 2008, Luật Quản lý Thuế 2019, Commercial Law 2005, Consumer Protection Law 2023, Luật Thuế GTGT Art 5/Art 8. Frontmatter 7 fields. Cross-links: 5 sibling skeletons + GAP-108 planned (text reference). Status flipped 🔵 OPEN → 🟡 PARTIAL by coordinator (Phase 1 AC items 1-7 fully met; Phase 2 AC items 8-14 tracked under GAP-154 + GAP-108).
 - 2026-04-20 — Created as GAP-154 Phase 1 sub-gap. TCT e-invoice mandate.
