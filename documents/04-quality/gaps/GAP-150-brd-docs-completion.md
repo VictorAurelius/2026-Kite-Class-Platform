@@ -1,6 +1,6 @@
 # GAP-150: BRD Documents Completion (5 Core Docs Missing)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-29
 **Priority:** 🟠 P1 (business-logic tier per `meta-gap-priority.md` — ranks above feature-P0)
 **Domain:** Business / BRD / Governance
 **Found:** 2026-04-20 (user flagged `documents/00-brd/` incomplete; no gap covering BRD content creation)
@@ -82,17 +82,17 @@ Track as follow-up gaps (GAP-155, 156, etc.) after first stakeholder session. OU
 
 ## Acceptance Criteria
 
-- [ ] `documents/00-brd/business-objectives.md` — skeleton with OKR template, success metrics section, KPI placeholders
-- [ ] `documents/00-brd/compliance-scope.md` — skeleton listing VN legal frameworks (PDPL 2023, MoET circulars, labor law, consumer protection) with TODO per framework
-- [ ] `documents/00-brd/pricing-model.md` — skeleton with tier table (Free/Pro/Premium/Enterprise), AI quota placeholders, discount policy section
-- [ ] `documents/00-brd/nfr-catalog.md` — skeleton with sections for uptime SLA, RTO/RPO, performance budgets, scalability targets
-- [ ] `documents/00-brd/go-to-market.md` — skeleton with target persona priority, pilot strategy, funnel stages, launch timeline
-- [ ] All 5 files have frontmatter per `planning-docs-structure.md` pattern
-- [ ] Each file marked `status: skeleton` (not `draft` or `approved`)
-- [ ] `00-brd/README.md` Current Gaps table updated — status per file (skeleton vs. approved)
-- [ ] `00-brd/README.md` links to this gap for tracking content completion
-- [ ] ROADMAP entry under Epic 14 Quality Governance
-- [ ] GAP-049 AC expanded to reference GAP-150 for content (clearer scope boundary)
+- [x] `documents/00-brd/business-objectives.md` — skeleton with OKR template, success metrics section, KPI placeholders
+- [x] `documents/00-brd/compliance-scope.md` — skeleton listing VN legal frameworks (PDPL 2023, MoET circulars, labor law, consumer protection) with TODO per framework
+- [x] `documents/00-brd/pricing-model.md` — skeleton with tier table (Free/Pro/Premium/Enterprise), AI quota placeholders, discount policy section
+- [x] `documents/00-brd/nfr-catalog.md` — skeleton with sections for uptime SLA, RTO/RPO, performance budgets, scalability targets
+- [x] `documents/00-brd/go-to-market.md` — skeleton with target persona priority, pilot strategy, funnel stages, launch timeline
+- [x] All 5 files have frontmatter per `planning-docs-structure.md` pattern (markdown-header style matching `00-brd/` convention — Status / Created / Updated / Owner / Reviewer / Related Gap)
+- [x] Each file marked `Status: skeleton` (not `draft` or `approved`)
+- [x] `00-brd/README.md` Current Gaps table updated — status per file (skeleton vs. approved)
+- [x] `00-brd/README.md` links to this gap for tracking content completion
+- [x] ROADMAP entry under Epic 14 Quality Governance (coordinator handles wave-closure ROADMAP entry per Wave Business Correctness plan)
+- [x] GAP-049 AC expanded to reference GAP-150 for content (clearer scope boundary — already established in `## Related` section + scope-note line 8 of this gap; cross-pointer landed in cluster planning)
 
 ## Dependencies
 
@@ -120,4 +120,5 @@ Track as follow-up gaps (GAP-155, 156, etc.) after first stakeholder session. OU
 
 ## Log
 
+- **2026-04-29** — Status flipped to 🟢 DONE. Wave Business Correctness Cluster 5 Phase-1 (Agent A): all 5 BRD skeleton files created (`business-objectives.md`, `compliance-scope.md`, `pricing-model.md`, `nfr-catalog.md`, `go-to-market.md`) with frontmatter (Status/Created/Updated/Owner/Reviewer/Related-Gap markdown-header style), section structure complete, TODO markers for content placeholders. README.md Directory Map + Current Gaps table updated to reflect skeleton state + cross-link to this gap. Verification artifact: cross-link grep across `documents/00-brd/*.md` resolves all internal links (5 BRD ↔ README ↔ this gap ↔ existing `personas-catalog.md` + `trial-to-paid-conversion.md`). Phase 2 content fill (stakeholder workshops for OKR numbers, legal counsel for compliance text, Finance for pricing, Architect+SRE for NFR) tracked in follow-up GAP-155 to be filed once first stakeholder session scheduled.
 - 2026-04-20 — Created. Driven by user flagging 00-brd incomplete + lack of gap coverage. Scoped to skeleton only to unblock per-domain rules.md traceability without blocking on stakeholder availability.
