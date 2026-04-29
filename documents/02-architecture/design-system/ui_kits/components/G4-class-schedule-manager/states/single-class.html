@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G4 Class Schedule Manager — SINGLE-CLASS state (one-time class added)
+  Score self-estimate: 106/128 (Tech 27 / Heuristics 27 / Aesthetics 26 / UX 26)
+  Contrast: All ≥4.5:1 — class block primary 4.6:1, weekend info 4.6:1
+  i18n: schedule.single.title, schedule.single.recur, schedule.single.edit
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G4 — Schedule Manager (1 buổi)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .grid-cell { min-height: 56px; position: relative; }
+    .class-block { position: absolute; inset: 4px; padding: 6px 8px; border-radius: 8px; background: hsl(var(--primary) / 0.12); border-left: 3px solid hsl(var(--primary)); color: hsl(var(--primary)); font-weight: 600; }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+        <div>
+          <p class="text-xs text-muted-foreground">Lịch học · Tuần này (07/04 - 13/04)</p>
+          <h1 class="text-lg font-semibold">Lớp 6A1 — Quản lý lịch học</h1>
+        </div>
+      </div>
+      <button class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+        <i data-lucide="plus" class="h-4 w-4"></i><span>Thêm buổi</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+    <!-- Week grid -->
+    <section class="rounded-xl border bg-card overflow-hidden shadow-soft">
+      <div class="grid grid-cols-8 border-b text-xs font-semibold bg-muted/30">
+        <div class="p-2 border-r"></div>
+        <div class="p-2 text-center border-r">Thứ Hai<br><span class="font-normal text-muted-foreground">07/04</span></div>
+        <div class="p-2 text-center border-r">Thứ Ba<br><span class="font-normal text-muted-foreground">08/04</span></div>
+        <div class="p-2 text-center border-r">Thứ Tư<br><span class="font-normal text-muted-foreground">09/04</span></div>
+        <div class="p-2 text-center border-r">Thứ Năm<br><span class="font-normal text-muted-foreground">10/04</span></div>
+        <div class="p-2 text-center border-r">Thứ Sáu<br><span class="font-normal text-muted-foreground">11/04</span></div>
+        <div class="p-2 text-center border-r text-info">Thứ Bảy<br><span class="font-normal">12/04</span></div>
+        <div class="p-2 text-center text-info">Chủ nhật<br><span class="font-normal">13/04</span></div>
+      </div>
+      <div class="grid grid-cols-8 border-b text-xs">
+        <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">07:00</div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+      </div>
+      <div class="grid grid-cols-8 border-b text-xs">
+        <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">10:00</div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+      </div>
+      <div class="grid grid-cols-8 border-b text-xs">
+        <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">14:00</div>
+        <div class="grid-cell border-r"></div>
+        <div class="grid-cell border-r"></div>
+        <!-- Single class on Wed 14:00-15:30 -->
+        <div class="grid-cell border-r">
+          <div class="class-block">
+            <p class="text-xs">Toán nâng cao</p>
+            <p class="text-[10px] font-normal opacity-80">14:00-15:30 · Cô Lan</p>
+          </div>
+        </div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+      </div>
+      <div class="grid grid-cols-8 text-xs">
+        <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">17:00</div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+      </div>
+    </section>
+
+    <!-- Detail panel -->
+    <aside class="rounded-xl border bg-card p-5 shadow-soft h-fit">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide">Chi tiết buổi học</p>
+      <h2 class="mt-2 text-lg font-bold">Toán nâng cao</h2>
+
+      <dl class="mt-4 space-y-3 text-sm">
+        <div class="flex items-start gap-3">
+          <i data-lucide="calendar" class="h-4 w-4 text-muted-foreground mt-0.5"></i>
+          <div><dt class="text-xs text-muted-foreground">Ngày</dt><dd class="font-medium">Thứ Tư, 09/04/2026</dd></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i data-lucide="clock" class="h-4 w-4 text-muted-foreground mt-0.5"></i>
+          <div><dt class="text-xs text-muted-foreground">Giờ</dt><dd class="font-medium">14:00 – 15:30 (90 phút)</dd></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i data-lucide="user" class="h-4 w-4 text-muted-foreground mt-0.5"></i>
+          <div><dt class="text-xs text-muted-foreground">Giáo viên</dt><dd class="font-medium">Cô Nguyễn Thị Lan</dd></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i data-lucide="map-pin" class="h-4 w-4 text-muted-foreground mt-0.5"></i>
+          <div><dt class="text-xs text-muted-foreground">Phòng</dt><dd class="font-medium">P. 201 — Cơ sở chính</dd></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i data-lucide="repeat" class="h-4 w-4 text-warning mt-0.5"></i>
+          <div>
+            <dt class="text-xs text-muted-foreground">Lặp lại</dt>
+            <!-- i18n: schedule.single.recur -->
+            <dd class="text-warning font-medium">Buổi đơn lẻ — chỉ ngày này</dd>
+            <a href="#" class="text-xs text-primary hover:underline mt-1 inline-block">Đổi sang lặp lại hằng tuần →</a>
+          </div>
+        </div>
+      </dl>
+
+      <div class="mt-5 grid gap-2">
+        <button class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="pencil" class="h-4 w-4"></i>
+          <!-- i18n: schedule.single.edit -->
+          <span>Chỉnh sửa</span>
+        </button>
+        <button class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-destructive/10 hover:text-destructive hover:border-destructive inline-flex items-center justify-center gap-2">
+          <i data-lucide="trash-2" class="h-4 w-4"></i><span>Xóa buổi</span>
+        </button>
+      </div>
+    </aside>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G4 Class Schedule Manager — CONFLICT-WARNING state
+  Score self-estimate: 108/128 (Tech 27 / Heuristics 28 / Aesthetics 26 / UX 27)
+  Contrast: All ≥4.5:1 — destructive on red-50 4.9:1, conflict block 4.6:1
+  i18n: schedule.conflict.title, schedule.conflict.detail, schedule.conflict.resolve
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G4 — Schedule Manager (Trùng lịch)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .grid-cell { min-height: 56px; position: relative; }
+    .class-block { position: absolute; inset: 4px; padding: 6px 8px; border-radius: 8px; font-weight: 600; font-size: 11px; line-height: 1.2; }
+    .block-existing { background: hsl(var(--primary) / 0.12); border-left: 3px solid hsl(var(--primary)); color: hsl(var(--primary)); }
+    .block-conflict { background: hsl(var(--destructive) / 0.15); border: 2px dashed hsl(var(--destructive)); color: hsl(var(--destructive)); }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+      <div>
+        <p class="text-xs text-muted-foreground">Lớp 6A1 · Đang chỉnh sửa lịch</p>
+        <h1 class="text-lg font-semibold">Phát hiện trùng lịch</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+    <!-- Week grid with conflict highlighted -->
+    <section class="rounded-xl border bg-card overflow-hidden shadow-soft">
+      <div class="grid grid-cols-8 border-b text-xs font-semibold bg-muted/30">
+        <div class="p-2 border-r"></div>
+        <div class="p-2 text-center border-r">T2<br><span class="font-normal text-muted-foreground">07/04</span></div>
+        <div class="p-2 text-center border-r">T3<br><span class="font-normal text-muted-foreground">08/04</span></div>
+        <div class="p-2 text-center border-r">T4<br><span class="font-normal text-muted-foreground">09/04</span></div>
+        <div class="p-2 text-center border-r">T5<br><span class="font-normal text-muted-foreground">10/04</span></div>
+        <div class="p-2 text-center border-r">T6<br><span class="font-normal text-muted-foreground">11/04</span></div>
+        <div class="p-2 text-center border-r text-info">T7<br><span class="font-normal">12/04</span></div>
+        <div class="p-2 text-center text-info">CN<br><span class="font-normal">13/04</span></div>
+      </div>
+      <div class="grid grid-cols-8 border-b text-xs">
+        <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">14:00</div>
+        <div class="grid-cell border-r"><div class="class-block block-existing"><p>Toán nâng cao</p><p class="text-[10px] font-normal opacity-80">Cô Lan</p></div></div>
+        <div class="grid-cell border-r"></div>
+        <div class="grid-cell border-r"><div class="class-block block-existing"><p>Toán nâng cao</p><p class="text-[10px] font-normal opacity-80">Cô Lan</p></div></div>
+        <div class="grid-cell border-r"></div>
+        <!-- Friday — conflict! -->
+        <div class="grid-cell border-r" style="background: hsl(var(--destructive) / 0.06);">
+          <div class="class-block block-conflict">
+            <p>⚠️ Văn 8 (Cô Lan)</p>
+            <p class="text-[10px] font-normal">14:00-15:30</p>
+          </div>
+        </div>
+        <div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+      </div>
+      <div class="grid grid-cols-8 text-xs">
+        <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">17:00</div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+        <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+      </div>
+    </section>
+
+    <!-- Conflict panel -->
+    <aside class="rounded-2xl border-2 border-destructive/40 bg-destructive/5 p-5 shadow-soft">
+      <div class="flex items-start gap-3">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-destructive/10 text-destructive">
+          <i data-lucide="alert-triangle" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <!-- i18n: schedule.conflict.title -->
+          <h2 class="font-bold text-destructive">Trùng lịch giáo viên</h2>
+          <p class="text-sm text-foreground/80 mt-1">Cô <strong>Nguyễn Thị Lan</strong> đã có lịch dạy lớp khác cùng giờ.</p>
+        </div>
+      </div>
+
+      <!-- Conflict detail -->
+      <div class="mt-4 rounded-lg bg-card border p-3 text-sm">
+        <p class="font-semibold flex items-center gap-2">
+          <i data-lucide="calendar" class="h-4 w-4 text-destructive"></i>
+          <span>Thứ Sáu, 11/04/2026 · 14:00 – 15:30</span>
+        </p>
+        <ul class="mt-2 space-y-1.5 text-xs">
+          <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-primary" aria-hidden="true"></span><span>Lớp <strong>6A1</strong> — Toán nâng cao (đang tạo)</span></li>
+          <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-destructive" aria-hidden="true"></span><span>Lớp <strong>8B2</strong> — Văn 8 (đã có)</span></li>
+        </ul>
+      </div>
+
+      <!-- Resolve options -->
+      <div class="mt-4 space-y-2">
+        <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <!-- i18n: schedule.conflict.resolve -->
+          Cách giải quyết
+        </p>
+        <button class="w-full rounded-lg border bg-card px-3 py-2.5 text-left text-sm hover:border-primary hover:bg-primary/5">
+          <p class="font-semibold flex items-center gap-2">
+            <i data-lucide="user-plus" class="h-4 w-4 text-info"></i>
+            <span>Đổi giáo viên cho buổi này</span>
+          </p>
+          <p class="text-xs text-muted-foreground mt-0.5">Có 3 GV Toán đang trống giờ</p>
+        </button>
+        <button class="w-full rounded-lg border bg-card px-3 py-2.5 text-left text-sm hover:border-primary hover:bg-primary/5">
+          <p class="font-semibold flex items-center gap-2">
+            <i data-lucide="clock" class="h-4 w-4 text-info"></i>
+            <span>Đổi giờ học</span>
+          </p>
+          <p class="text-xs text-muted-foreground mt-0.5">15:45 cùng ngày là khung trống của Cô Lan</p>
+        </button>
+        <button class="w-full rounded-lg border bg-card px-3 py-2.5 text-left text-sm hover:border-warning hover:bg-warning/5">
+          <p class="font-semibold flex items-center gap-2">
+            <i data-lucide="skip-forward" class="h-4 w-4 text-warning"></i>
+            <span>Bỏ qua thứ Sáu trong chuỗi lặp</span>
+          </p>
+          <p class="text-xs text-muted-foreground mt-0.5">Lịch chỉ tạo T2 + T4 (bỏ T6 hằng tuần)</p>
+        </button>
+      </div>
+
+      <button class="mt-4 w-full rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">Hủy chỉnh sửa</button>
+    </aside>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

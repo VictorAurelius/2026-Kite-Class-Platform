@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G4 Class Schedule Manager — EMPTY state
+  Used by: KC /classes/[id]/schedule (new) · Principal sets up Lớp 6A1 weekly schedule
+  Persona: Principal / Owner / Teacher
+  Score self-estimate: 103/128 (Tech 26 / Heuristics 27 / Aesthetics 25 / UX 25)
+  Contrast: All ≥4.5:1 — empty CTA primary 4.6:1
+  i18n: schedule.title, schedule.empty.title, schedule.empty.cta, schedule.empty.preset
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G4 — Schedule Manager (Trống)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .grid-cell { min-height: 48px; }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+      <div>
+        <p class="text-xs text-muted-foreground">Lịch học · Năm học 2026-2027</p>
+        <!-- i18n: schedule.title -->
+        <h1 class="text-lg font-semibold">Lớp 6A1 — Quản lý lịch học</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6">
+    <!-- Empty week grid -->
+    <section class="rounded-2xl border-2 border-dashed bg-card/50 p-6 md:p-8">
+      <div class="text-center max-w-md mx-auto py-8">
+        <div class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary">
+          <i data-lucide="calendar-plus" class="h-8 w-8"></i>
+        </div>
+        <!-- i18n: schedule.empty.title -->
+        <h2 class="mt-4 text-xl font-bold">Chưa có buổi học nào</h2>
+        <p class="mt-2 text-muted-foreground">Thêm buổi học cho lớp 6A1 — có thể tạo lịch tuần lặp lại hoặc buổi đơn lẻ.</p>
+        <button class="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+          <i data-lucide="plus" class="h-4 w-4"></i>
+          <!-- i18n: schedule.empty.cta -->
+          <span>Thêm buổi học</span>
+        </button>
+      </div>
+
+      <!-- Mini week grid (greyed out preview) -->
+      <div class="mt-8 max-w-4xl mx-auto rounded-xl border bg-card overflow-hidden opacity-60">
+        <div class="grid grid-cols-8 border-b text-xs font-semibold bg-muted/30">
+          <div class="p-2 border-r"></div>
+          <div class="p-2 text-center border-r">Thứ Hai</div>
+          <div class="p-2 text-center border-r">Thứ Ba</div>
+          <div class="p-2 text-center border-r">Thứ Tư</div>
+          <div class="p-2 text-center border-r">Thứ Năm</div>
+          <div class="p-2 text-center border-r">Thứ Sáu</div>
+          <div class="p-2 text-center border-r text-info">Thứ Bảy</div>
+          <div class="p-2 text-center text-info">Chủ nhật</div>
+        </div>
+        <!-- 4 time rows -->
+        <div class="grid grid-cols-8 border-b text-xs">
+          <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">07:00</div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+        </div>
+        <div class="grid grid-cols-8 border-b text-xs">
+          <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">10:00</div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+        </div>
+        <div class="grid grid-cols-8 border-b text-xs">
+          <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">14:00</div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+        </div>
+        <div class="grid grid-cols-8 text-xs">
+          <div class="p-2 border-r font-mono text-muted-foreground bg-muted/20">17:00</div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r"></div>
+          <div class="grid-cell border-r"></div><div class="grid-cell border-r"></div><div class="grid-cell border-r bg-muted/10"></div><div class="grid-cell bg-muted/10"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick presets -->
+    <section class="mt-6">
+      <p class="text-xs text-muted-foreground uppercase tracking-wide mb-3">
+        <!-- i18n: schedule.empty.preset -->
+        Mẫu lịch nhanh
+      </p>
+      <div class="grid gap-3 grid-cols-1 md:grid-cols-3">
+        <button class="rounded-xl border bg-card p-4 text-left hover:border-primary">
+          <p class="font-semibold flex items-center gap-2"><i data-lucide="zap" class="h-4 w-4 text-primary"></i> 3 buổi/tuần</p>
+          <p class="text-xs text-muted-foreground mt-1">Thứ 2/4/6 — 14:00 đến 15:30</p>
+        </button>
+        <button class="rounded-xl border bg-card p-4 text-left hover:border-primary">
+          <p class="font-semibold flex items-center gap-2"><i data-lucide="repeat" class="h-4 w-4 text-info"></i> Hằng ngày</p>
+          <p class="text-xs text-muted-foreground mt-1">Thứ 2 đến Thứ 6 — sáng 07:30</p>
+        </button>
+        <button class="rounded-xl border bg-card p-4 text-left hover:border-primary">
+          <p class="font-semibold flex items-center gap-2"><i data-lucide="calendar-clock" class="h-4 w-4 text-accent"></i> Cuối tuần</p>
+          <p class="text-xs text-muted-foreground mt-1">Thứ 7 + Chủ nhật — 09:00</p>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

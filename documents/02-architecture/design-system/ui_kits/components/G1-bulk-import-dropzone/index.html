@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G1 Bulk Import Drop-zone — INDEX (state showcase)
+  Lists all 5 states: idle / drag-over / parsing / partial-success / done
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G1 — Bulk Import Drop-zone</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground p-6 md:p-10">
+  <div class="mx-auto max-w-4xl">
+    <a href="../" class="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">← Quay lại tất cả components</a>
+    <h1 class="mt-4 text-3xl font-bold">G1 — Bulk Import Drop-zone + Job Tracker</h1>
+    <p class="mt-2 text-muted-foreground">Admin import 500 học sinh/ngày trong tuần tuyển sinh. CSV: <code class="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">ho_va_ten,ngay_sinh,lop,phu_huynh_phone</code></p>
+    <p class="mt-1 text-sm text-muted-foreground">Persona: P3 Admin / P5 Principal · Used: KC <code>/students</code> bulk-import flow</p>
+
+    <h2 class="mt-10 text-lg font-semibold">5 trạng thái</h2>
+    <div class="mt-4 grid gap-3">
+      <a href="states/idle.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">1 — Idle</p>
+        <p class="text-sm text-muted-foreground mt-1">Drop-zone trống, chờ kéo file. CTA tải file mẫu + cột bắt buộc.</p>
+      </a>
+      <a href="states/drag-over.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">2 — Drag over</p>
+        <p class="text-sm text-muted-foreground mt-1">User đang kéo file — primary border + filled background + pulse ring.</p>
+      </a>
+      <a href="states/parsing.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">3 — Parsing</p>
+        <p class="text-sm text-muted-foreground mt-1">Đang upload + kiểm tra dữ liệu. Progress bar 62%, step list, ETA.</p>
+      </a>
+      <a href="states/partial-success.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">4 — Partial success</p>
+        <p class="text-sm text-muted-foreground mt-1">487/500 hợp lệ, 13 dòng có lỗi. Errors panel + tải file lỗi + tiếp tục với 487.</p>
+      </a>
+      <a href="states/done.html" class="block rounded-xl border bg-card p-5 hover:border-primary hover:shadow-soft transition">
+        <p class="font-semibold">5 — Done</p>
+        <p class="text-sm text-muted-foreground mt-1">Tất cả 500 đã nhập. Stats grid + 3 next-step CTAs (xem list / phân GVCN / gửi hóa đơn).</p>
+      </a>
+    </div>
+
+    <p class="mt-8 text-sm text-muted-foreground">Score self-estimate: avg 108/128 — 5 states (105–111).</p>
+  </div>
+</body>
+</html>

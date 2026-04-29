@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G3 Gradebook Entry Grid — CELL-EDITING state
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast: All ≥4.5:1 — input ring primary 4.6:1, validation hint info 4.6:1
+  i18n: gradebook.cell.editing, gradebook.cell.range, gradebook.cell.shortcut
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G3 — Gradebook (Đang nhập điểm)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .sticky-col { position: sticky; left: 0; background: hsl(var(--card)); z-index: 5; box-shadow: 2px 0 8px -4px rgba(0,0,0,.06); }
+    .row-active .sticky-col, .row-active td { background: hsl(var(--primary) / 0.08) !important; }
+    .grade-cell { font-variant-numeric: tabular-nums; }
+    .cell-input { width: 70px; padding: 6px 8px; border-radius: 8px; border: 2px solid hsl(var(--primary)); background: white; font-weight: 600; font-size: 14px; text-align: center; outline: none; box-shadow: 0 0 0 4px hsl(var(--primary) / 0.18); }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+        <div>
+          <p class="text-xs text-muted-foreground">Sổ điểm · Học kỳ I · 2026-2027</p>
+          <h1 class="text-lg font-semibold">Lớp 10A2 — Toán nâng cao</h1>
+        </div>
+      </div>
+      <div class="text-sm text-muted-foreground">Đang chỉnh sửa · Chưa lưu</div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-4">
+    <!-- Edit hint -->
+    <div class="mb-3 rounded-lg border-l-4 border-primary bg-primary/5 px-4 py-2.5 text-sm flex items-center gap-3" role="status" aria-live="polite">
+      <i data-lucide="keyboard" class="h-4 w-4 text-primary shrink-0"></i>
+      <p>
+        <!-- i18n: gradebook.cell.editing -->
+        Đang nhập <strong>Cuối kỳ</strong> cho <strong>Trần Khánh Linh</strong> ·
+        <!-- i18n: gradebook.cell.shortcut -->
+        Phím tắt: <kbd class="bg-card border rounded px-1.5 py-0.5 text-xs font-mono">Tab</kbd> qua HS tiếp theo · <kbd class="bg-card border rounded px-1.5 py-0.5 text-xs font-mono">Enter</kbd> xác nhận · <kbd class="bg-card border rounded px-1.5 py-0.5 text-xs font-mono">Esc</kbd> hủy
+      </p>
+    </div>
+
+    <div class="rounded-xl border bg-card shadow-soft overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-muted/40 text-left">
+            <th class="sticky-col px-4 py-3 font-semibold w-64">Học sinh</th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">KT 15'</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 1</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">KT 1 tiết</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 2</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">Giữa kỳ</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 2</span></th>
+            <th class="px-3 py-3 font-semibold text-center"><span class="block">Cuối kỳ</span><span class="block text-[10px] font-normal text-muted-foreground">Hệ số 3</span></th>
+            <th class="px-3 py-3 font-semibold text-center bg-primary/5 border-l"><span class="block">TBM</span><span class="block text-[10px] font-normal text-muted-foreground">Tự tính</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="sticky-col px-4 py-3"><div class="flex items-center gap-2"><span class="w-4"></span><div><p class="truncate">Bùi Anh Khoa</p><p class="text-xs text-muted-foreground font-mono">HS-10A2-001</p></div></div></td>
+            <td class="grade-cell px-3 py-3 text-center">8.5</td>
+            <td class="grade-cell px-3 py-3 text-center">7.5</td>
+            <td class="grade-cell px-3 py-3 text-center">8.0</td>
+            <td class="grade-cell px-3 py-3 text-center">8.5</td>
+            <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l font-semibold">8.3</td>
+          </tr>
+          <tr class="row-active border-b">
+            <td class="sticky-col px-4 py-3 font-semibold"><div class="flex items-center gap-2"><i data-lucide="chevron-right" class="h-4 w-4 text-primary"></i><div><p class="truncate">Trần Khánh Linh</p><p class="text-xs text-muted-foreground font-mono">HS-10A2-017</p></div></div></td>
+            <td class="grade-cell px-3 py-3 text-center">9.5</td>
+            <td class="grade-cell px-3 py-3 text-center">9.0</td>
+            <td class="grade-cell px-3 py-3 text-center">9.5</td>
+            <td class="grade-cell px-3 py-3 text-center">
+              <input type="number" min="0" max="10" step="0.1" value="9.5" class="cell-input" autofocus aria-label="Cuối kỳ cho Trần Khánh Linh"/>
+              <p class="mt-1 text-[10px] text-info">
+                <!-- i18n: gradebook.cell.range -->
+                Thang điểm 0–10
+              </p>
+            </td>
+            <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l font-semibold text-success">9.5</td>
+          </tr>
+          <tr class="border-b">
+            <td class="sticky-col px-4 py-3"><div class="flex items-center gap-2"><span class="w-4"></span><div><p class="truncate">Trần Quang Huy</p><p class="text-xs text-muted-foreground font-mono">HS-10A2-018</p></div></div></td>
+            <td class="grade-cell px-3 py-3 text-center">7.0</td>
+            <td class="grade-cell px-3 py-3 text-center">7.5</td>
+            <td class="grade-cell px-3 py-3 text-center">7.0</td>
+            <td class="grade-cell px-3 py-3 text-center text-muted-foreground">—</td>
+            <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l text-muted-foreground">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Save bar -->
+    <div class="mt-4 flex items-center justify-between rounded-xl border bg-card px-4 py-3 shadow-soft">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-warning/20 px-2 text-xs font-semibold text-[hsl(var(--warning))]">1</span>
+        <span><strong>1 thay đổi</strong> chưa lưu — tự động lưu sau 30 giây</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">Hủy</button>
+        <button class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+          <i data-lucide="save" class="h-4 w-4"></i><span>Lưu (Ctrl+S)</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

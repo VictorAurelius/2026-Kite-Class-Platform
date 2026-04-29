@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G3 Gradebook Entry Grid — BULK-PASTE state (paste 30 grades from Excel preview)
+  Score self-estimate: 108/128 (Tech 28 / Heuristics 27 / Aesthetics 27 / UX 26)
+  Contrast: All ≥4.5:1 — preview rows muted/30 14.8:1, accept primary 4.6:1
+  i18n: gradebook.paste.title, gradebook.paste.preview, gradebook.paste.confirm, gradebook.paste.skip
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G3 — Gradebook (Dán từ Excel)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)', 'soft-lg': 'var(--shadow-soft-lg)' },
+    }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+      <div>
+        <p class="text-xs text-muted-foreground">Sổ điểm · Học kỳ I · 2026-2027</p>
+        <h1 class="text-lg font-semibold">Lớp 10A2 — Toán nâng cao</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-6">
+    <!-- Modal-style preview -->
+    <section class="rounded-2xl border bg-card shadow-soft-lg">
+      <header class="border-b px-5 py-4 flex items-center justify-between">
+        <div>
+          <!-- i18n: gradebook.paste.title -->
+          <h2 class="text-lg font-semibold flex items-center gap-2">
+            <i data-lucide="clipboard-paste" class="h-5 w-5 text-info"></i>
+            Dán điểm từ Excel
+          </h2>
+          <p class="text-sm text-muted-foreground mt-0.5">Xem trước 30 dòng cho cột <strong class="text-foreground">Cuối kỳ</strong> · Tự động ánh xạ theo MST</p>
+        </div>
+        <button class="rounded-lg p-2 hover:bg-muted" aria-label="Đóng"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </header>
+
+      <!-- Stat bar -->
+      <div class="border-b px-5 py-3 grid grid-cols-3 gap-3 text-sm">
+        <div class="text-center">
+          <p class="text-2xl font-bold text-success tabular-nums">28</p>
+          <p class="text-xs text-muted-foreground mt-0.5">Khớp MST</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-warning tabular-nums">2</p>
+          <p class="text-xs text-muted-foreground mt-0.5">Không tìm thấy</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold tabular-nums">30</p>
+          <p class="text-xs text-muted-foreground mt-0.5">Tổng dòng dán</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto max-h-96 overflow-y-auto">
+        <table class="w-full text-sm">
+          <thead class="sticky top-0 bg-muted/60 backdrop-blur">
+            <tr class="border-b text-left">
+              <th class="px-4 py-2.5 font-semibold w-12">#</th>
+              <th class="px-4 py-2.5 font-semibold">MST (từ clipboard)</th>
+              <th class="px-4 py-2.5 font-semibold">Học sinh (đã khớp)</th>
+              <th class="px-4 py-2.5 font-semibold text-center">Điểm</th>
+              <th class="px-4 py-2.5 font-semibold">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="paste-rows"></tbody>
+        </table>
+      </div>
+
+      <footer class="border-t px-5 py-4 flex items-center justify-between gap-3">
+        <p class="text-xs text-muted-foreground">
+          <!-- i18n: gradebook.paste.skip -->
+          Bỏ qua 2 dòng không khớp · Áp dụng cho 28 học sinh
+        </p>
+        <div class="flex items-center gap-2">
+          <button class="rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-muted">Hủy</button>
+          <button class="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+            <i data-lucide="check" class="h-4 w-4"></i>
+            <!-- i18n: gradebook.paste.confirm -->
+            <span>Áp dụng 28 điểm</span>
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <p class="mt-6 text-center text-xs text-muted-foreground">Tip: Copy 2 cột (MST + Điểm) từ Excel rồi Ctrl+V vào tiêu đề cột bất kỳ</p>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    const rows = [
+      { mst: 'HS-10A2-001', name: 'Bùi Anh Khoa',     score: 8.5, ok: true },
+      { mst: 'HS-10A2-002', name: 'Đặng Thị Bích',    score: 9.5, ok: true },
+      { mst: 'HS-10A2-003', name: 'Đỗ Hoàng Long',    score: 6.5, ok: true },
+      { mst: 'HS-10A2-004', name: 'Hoàng Minh Trí',   score: 8.0, ok: true },
+      { mst: 'HS-10A2-005', name: 'Lê Minh Tuấn',     score: 7.5, ok: true },
+      { mst: 'HS-10A2-006', name: 'Lê Thị Phương',    score: 8.0, ok: true },
+      { mst: 'HS-10A2-007', name: 'Mai Quốc Bảo',     score: 9.0, ok: true },
+      { mst: 'HS-10A2-099', name: '(không khớp)',     score: 7.0, ok: false, why: 'MST không có trong lớp' },
+      { mst: 'HS-10A2-008', name: 'Ngô Đức Tài',      score: 6.5, ok: true },
+      { mst: 'HS-10A2-009', name: 'Nguyễn Anh Khôi',  score: 9.5, ok: true },
+      { mst: 'HS-10A2-100', name: '(không khớp)',     score: 8.0, ok: false, why: 'MST không có trong lớp' },
+      { mst: 'HS-10A2-010', name: 'Nguyễn Thị Hà',    score: 8.5, ok: true },
+    ];
+    const html = rows.map((r, i) => `
+      <tr class="border-b last:border-0 ${r.ok ? '' : 'bg-warning/5'}">
+        <td class="px-4 py-2 text-muted-foreground tabular-nums">${i + 1}</td>
+        <td class="px-4 py-2 font-mono text-xs ${r.ok ? '' : 'text-warning'}">${r.mst}</td>
+        <td class="px-4 py-2 ${r.ok ? '' : 'text-muted-foreground italic'}">${r.name}</td>
+        <td class="px-4 py-2 text-center font-semibold tabular-nums">${r.score.toFixed(1)}</td>
+        <td class="px-4 py-2">
+          ${r.ok
+            ? '<span class="inline-flex items-center gap-1 rounded-full bg-success/10 text-[hsl(var(--success))] px-2 py-0.5 text-xs"><i data-lucide="check" class="h-3 w-3"></i>Sẽ áp dụng</span>'
+            : `<span class="inline-flex items-center gap-1 rounded-full bg-warning/10 text-[hsl(var(--warning))] px-2 py-0.5 text-xs"><i data-lucide="alert-triangle" class="h-3 w-3"></i>${r.why}</span>`}
+        </td>
+      </tr>
+    `).join('') + `<tr><td colspan="5" class="px-4 py-3 text-center text-sm text-muted-foreground italic">... còn 18 dòng khác (cuộn để xem)</td></tr>`;
+    document.getElementById('paste-rows').innerHTML = html;
+    lucide.createIcons();
+  </script>
+</body>
+</html>

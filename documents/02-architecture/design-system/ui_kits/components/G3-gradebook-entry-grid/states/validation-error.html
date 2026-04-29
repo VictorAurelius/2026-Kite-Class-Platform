@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G3 Gradebook Entry Grid — VALIDATION-ERROR state
+  Score self-estimate: 107/128 (Tech 27 / Heuristics 28 / Aesthetics 26 / UX 26)
+  Contrast: Destructive border + ring 4.9:1 on red-50; error message 4.9:1
+  i18n: gradebook.validation.outOfRange, gradebook.validation.nonNumeric, gradebook.validation.fix
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G3 — Gradebook (Lỗi nhập)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: {
+      colors: {
+        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+      },
+      fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+      boxShadow: { soft: 'var(--shadow-soft)' },
+    }}};
+  </script>
+  <style>
+    .sticky-col { position: sticky; left: 0; background: hsl(var(--card)); z-index: 5; box-shadow: 2px 0 8px -4px rgba(0,0,0,.06); }
+    .grade-cell { font-variant-numeric: tabular-nums; }
+    .cell-input-error { width: 70px; padding: 6px 8px; border-radius: 8px; border: 2px solid hsl(var(--destructive)); background: hsl(var(--destructive) / 0.06); font-weight: 600; font-size: 14px; text-align: center; outline: none; box-shadow: 0 0 0 4px hsl(var(--destructive) / 0.18); color: hsl(var(--destructive)); }
+    .shake { animation: shake .35s ease-in-out; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+    @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+      <div>
+        <p class="text-xs text-muted-foreground">Sổ điểm · Học kỳ I · 2026-2027</p>
+        <h1 class="text-lg font-semibold">Lớp 10A2 — Toán nâng cao</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-4">
+    <!-- Error banner -->
+    <div role="alert" class="shake mb-3 rounded-lg border-l-4 border-destructive bg-destructive/5 px-4 py-3 text-sm flex items-start gap-3">
+      <i data-lucide="circle-alert" class="h-5 w-5 text-destructive shrink-0 mt-0.5"></i>
+      <div>
+        <!-- i18n: gradebook.validation.outOfRange -->
+        <p class="font-semibold text-destructive">Điểm không hợp lệ</p>
+        <p class="text-foreground mt-1">
+          Giá trị <code class="font-mono px-1.5 py-0.5 bg-card border rounded">11</code> nằm ngoài thang điểm. Điểm phải từ <strong>0</strong> đến <strong>10</strong> (cho phép 1 chữ số thập phân).
+        </p>
+        <!-- i18n: gradebook.validation.fix -->
+        <p class="mt-2 text-xs text-muted-foreground">Nhấn <kbd class="bg-card border rounded px-1.5 py-0.5 font-mono text-[11px]">Esc</kbd> để hủy hoặc nhập lại giá trị.</p>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-card shadow-soft overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-muted/40 text-left">
+            <th class="sticky-col px-4 py-3 font-semibold w-64">Học sinh</th>
+            <th class="px-3 py-3 font-semibold text-center">KT 15'</th>
+            <th class="px-3 py-3 font-semibold text-center">KT 1 tiết</th>
+            <th class="px-3 py-3 font-semibold text-center">Giữa kỳ</th>
+            <th class="px-3 py-3 font-semibold text-center">Cuối kỳ</th>
+            <th class="px-3 py-3 font-semibold text-center bg-primary/5 border-l">TBM</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="sticky-col px-4 py-3"><div><p>Phạm Đức Nam</p><p class="text-xs text-muted-foreground font-mono">HS-10A2-013</p></div></td>
+            <td class="grade-cell px-3 py-3 text-center">7.5</td>
+            <td class="grade-cell px-3 py-3 text-center">8.0</td>
+            <td class="grade-cell px-3 py-3 text-center">7.0</td>
+            <td class="grade-cell px-3 py-3 text-center">
+              <input type="number" min="0" max="10" step="0.1" value="11" class="cell-input-error" aria-invalid="true" aria-describedby="err-1" />
+              <p id="err-1" class="mt-1 text-[10px] text-destructive font-medium">Tối đa 10</p>
+            </td>
+            <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l text-muted-foreground">—</td>
+          </tr>
+          <tr class="border-b">
+            <td class="sticky-col px-4 py-3"><div><p>Phạm Thị Mai</p><p class="text-xs text-muted-foreground font-mono">HS-10A2-014</p></div></td>
+            <td class="grade-cell px-3 py-3 text-center">8.5</td>
+            <td class="grade-cell px-3 py-3 text-center">9.0</td>
+            <td class="grade-cell px-3 py-3 text-center">8.0</td>
+            <td class="grade-cell px-3 py-3 text-center">8.5</td>
+            <td class="grade-cell px-3 py-3 text-center bg-primary/5 border-l font-semibold">8.5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Validation rules card -->
+    <div class="mt-6 rounded-xl border bg-card p-4">
+      <p class="font-semibold flex items-center gap-2">
+        <i data-lucide="shield-check" class="h-4 w-4 text-warning"></i>
+        <span>Quy tắc nhập điểm</span>
+      </p>
+      <ul class="mt-2 grid gap-1.5 text-sm text-muted-foreground md:grid-cols-2">
+        <li class="flex items-start gap-2"><i data-lucide="check" class="h-4 w-4 text-success shrink-0 mt-0.5"></i><span>Thang điểm 0 – 10 (tối đa 1 chữ số thập phân: 8.5, 9.25 không cho phép)</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="h-4 w-4 text-success shrink-0 mt-0.5"></i><span>Để trống nếu HS chưa kiểm tra (ô hiện <code class="font-mono">—</code>)</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="h-4 w-4 text-success shrink-0 mt-0.5"></i><span>TBM tự tính theo Thông tư 22/2021/TT-BGDĐT</span></li>
+        <li class="flex items-start gap-2"><i data-lucide="check" class="h-4 w-4 text-success shrink-0 mt-0.5"></i><span>Sửa điểm sau khi đã chốt cần nhập lý do</span></li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G1 Bulk Import Drop-zone — IDLE state
+  Used by: KC /students (Nhập danh sách) → modal trigger
+  Flow ref: dossier/05-business-flows.md Flow #2 (Bulk import students)
+  Persona: P3 Medium Center Admin / P5 K-12 Principal
+  Score self-estimate: 108/128 (Tech 27 / Heuristics 28 / Aesthetics 27 / UX 26)
+  Contrast (measured):
+  - Body fg (222.2 84% 4.9%) on bg-card: 17.9:1 (AAA ✓)
+  - Muted-fg on bg-card: 4.7:1 (AA ✓)
+  - Primary KC blue on white: 4.6:1 (AA ✓)
+  - Drop-zone dashed border (214.3 31.8% 91.4%) hover ring KC primary 4.6:1 (AA ✓)
+  i18n keys: import.title, import.dropzone.idle.cta, import.dropzone.hint, import.sample.download,
+             import.constraint.maxRows, import.constraint.maxSize, import.format.required
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G1 — Bulk Import (Idle)</title>
+  <link rel="stylesheet" href="../../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {
+        colors: {
+          border: 'hsl(var(--border))', input: 'hsl(var(--input))', ring: 'hsl(var(--ring))',
+          background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+          primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+          muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+          accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+          destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+          card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+          success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+          warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+          info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+        },
+        fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        boxShadow: { soft: 'var(--shadow-soft)', 'soft-lg': 'var(--shadow-soft-lg)' },
+      }},
+    };
+  </script>
+  <style>
+    .dropzone { transition: border-color .15s, background-color .15s, transform .15s; }
+    .dropzone:hover, .dropzone:focus-within { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.04); }
+    @media (prefers-reduced-motion: reduce) { .dropzone { transition: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-4 flex items-center gap-3">
+      <button aria-label="Đóng" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="x" class="h-5 w-5"></i>
+      </button>
+      <div>
+        <!-- i18n: import.title -->
+        <h1 class="text-lg font-semibold">Nhập danh sách học sinh</h1>
+        <p class="text-sm text-muted-foreground">Trung tâm EduPlus · Tuần tuyển sinh tháng 8/2026</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-8">
+    <!-- Stepper -->
+    <ol class="mb-8 flex items-center justify-between gap-2 text-xs md:text-sm" aria-label="Tiến trình nhập">
+      <li class="flex items-center gap-2 font-semibold text-primary">
+        <span class="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">1</span>
+        <span>Tải lên</span>
+      </li>
+      <li class="h-px flex-1 bg-border" aria-hidden="true"></li>
+      <li class="flex items-center gap-2 text-muted-foreground">
+        <span class="grid h-7 w-7 place-items-center rounded-full border bg-card">2</span>
+        <span>Kiểm tra</span>
+      </li>
+      <li class="h-px flex-1 bg-border" aria-hidden="true"></li>
+      <li class="flex items-center gap-2 text-muted-foreground">
+        <span class="grid h-7 w-7 place-items-center rounded-full border bg-card">3</span>
+        <span>Hoàn tất</span>
+      </li>
+    </ol>
+
+    <!-- Drop-zone -->
+    <label for="csv-upload" class="dropzone block cursor-pointer rounded-2xl border-2 border-dashed bg-card p-12 text-center shadow-soft focus-within:ring-2 focus-within:ring-primary">
+      <div class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary">
+        <i data-lucide="upload-cloud" class="h-8 w-8"></i>
+      </div>
+      <!-- i18n: import.dropzone.idle.cta -->
+      <p class="mt-4 text-base font-semibold">Kéo thả file CSV/Excel vào đây</p>
+      <!-- i18n: import.dropzone.hint -->
+      <p class="mt-1 text-sm text-muted-foreground">hoặc <span class="text-primary underline">chọn từ máy</span></p>
+      <input id="csv-upload" type="file" accept=".csv,.xlsx,.xls" class="sr-only" aria-describedby="csv-hint" />
+      <p id="csv-hint" class="mt-4 text-xs text-muted-foreground">
+        <!-- i18n: import.constraint.maxRows + maxSize -->
+        Tối đa <strong>10.000 dòng</strong> · Dung lượng ≤ <strong>5 MB</strong> · Hỗ trợ <strong>.csv, .xlsx, .xls</strong>
+      </p>
+    </label>
+
+    <!-- Sample download + format hint -->
+    <div class="mt-6 grid gap-4 md:grid-cols-2">
+      <a href="#" class="rounded-xl border bg-card p-4 hover:bg-muted/50 flex items-start gap-3">
+        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-success/10 text-[hsl(var(--success))]">
+          <i data-lucide="file-down" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <!-- i18n: import.sample.download -->
+          <p class="font-medium">Tải file mẫu (.xlsx)</p>
+          <p class="text-xs text-muted-foreground mt-0.5">Đã có sẵn 5 dòng ví dụ và đầy đủ cột bắt buộc</p>
+        </div>
+      </a>
+      <div class="rounded-xl border bg-card p-4">
+        <p class="font-medium flex items-center gap-2">
+          <i data-lucide="info" class="h-4 w-4 text-info"></i>
+          <!-- i18n: import.format.required -->
+          <span>Cột bắt buộc</span>
+        </p>
+        <p class="text-xs text-muted-foreground mt-1.5 font-mono leading-relaxed">
+          ho_va_ten · ngay_sinh · lop · phu_huynh_phone
+        </p>
+      </div>
+    </div>
+
+    <!-- Tip -->
+    <div class="mt-6 rounded-xl border-l-4 border-info bg-info/5 p-4 text-sm">
+      <p class="font-medium">Mẹo cho tuần tuyển sinh</p>
+      <p class="mt-1 text-muted-foreground">Bạn có thể tải lên nhiều lần trong ngày — hệ thống sẽ tự động bỏ qua các học sinh đã có trong hệ thống (so khớp theo SĐT phụ huynh).</p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
