@@ -372,4 +372,5 @@ See documents/05-guides/starter-kit-retro-sync.md for the triage + PR runbook.
 
 ## Log
 
+- **2026-04-29 (Phase 2b PR 1 OPENED):** Top-N 9 rules shipped to upstream PR https://github.com/VictorAurelius/claude-starter-kit/pull/10. Q1-Q5 user decisions: B/A/C/A/staged-MINORs (see GAP-262 Log). Light scrubbing applied per §3.3 to 3 rules (output-review-mandate, skill-conventions, meta-gap-priority).
 - **2026-04-29:** Triage report created as Phase 2a deliverable for GAP-195 (Wave Meta Phase-2 Cleanup, Cluster 7 Agent C). Diff script ran clean (exit 0); 110 NEW (local) candidates / 48 PROJECT-SPECIFIC / 0 MODIFIED / 0 NEW (remote). Top 9 rules selected for first upstream PR; skills batches deferred. Phase 2b tracked in GAP-262. Files modified by this work: this report (NEW), GAP-262 (NEW), runbook (Log entry append), GAP-195 (Log entry append + AC annotations).
