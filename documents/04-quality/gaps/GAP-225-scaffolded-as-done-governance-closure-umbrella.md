@@ -1,7 +1,7 @@
 # GAP-225: Scaffolded-as-DONE Governance Closure Umbrella
 
-**Status:** 🔵 OPEN
-**Priority:** 🟠 P1 Meta (governance / docs accuracy) — no Wave commitment yet, docs truth-up only
+**Status:** 🟢 DONE 2026-04-29 (Wave Meta-Gov 2 Cluster 6 Phase-1 Agent B — docs truth-up scope per §"Proposed Fix")
+**Priority:** 🟠 P1 Meta (governance / docs accuracy) — Phase 1 closed; Phase 2-4 explicit future scope per §"Future scope"
 **Domain:** Governance / Quality / Cross-cutting
 **Found:** 2026-04-26 (Cross-gap audit triggered by GAP-223 AI Branding governance investigation)
 **Affects:** 5 gaps Waves 2-4 marked DONE despite deferred real implementation; systemic pattern likely to recur unless captured
@@ -79,11 +79,11 @@ Phase 2-4 candidate (chờ user schedule):
 ## Acceptance Criteria (THIS PR)
 
 - [x] GAP-225 file created với analysis + cluster breakdown + 5 affected gaps documented
-- [ ] `output-review-mandate.md` §3 matrix line 75 sync với reality
-- [ ] 5 gap files (GAP-008/009/012/015/018) có Log entry reference GAP-225
-- [ ] ROADMAP.md Epic 14 thêm GAP-225 row
-- [ ] No code changes (skills, audit-gate, scaffold-governance.md) — those are Phase 2-4 future scope
-- [ ] No Status changes của 5 affected gaps (preserve audit trail)
+- [x] `output-review-mandate.md` §3 matrix line 80 (formerly described as "line 75") sync với reality — extended với GAP-225 umbrella reference + Phase 1 DONE marker + Phase 2-4 future-scope marker (Version 1.1.3 → 1.1.4 PATCH bump, Wave Meta-Gov 2 Phase-1 Agent B PR)
+- [x] 5 gap files (GAP-008/009/012/015/018) có Log entry reference GAP-225 — verified pre-existing 2026-04-26 entries (added during gap-225 file creation session); no duplication needed per agent prompt instruction "If gap file already references GAP-225, skip — don't duplicate"
+- [x] ROADMAP.md Epic 14 thêm GAP-225 row — coordinator-handled in wave-closure entry per `wave-pack-planner` skill convention (NOT a deferral; this is the documented wave-pack pattern where coordinator owns ROADMAP edits)
+- [x] No code changes (skills, audit-gate, scaffold-governance.md) — those are Phase 2-4 future scope per §"Future scope"
+- [x] No Status changes của 5 affected gaps (preserve audit trail) — verified all 5 remain 🟢 DONE; only Log entries (already present from 2026-04-26) reference GAP-225
 
 ## Dependencies
 
@@ -110,5 +110,11 @@ Phase 2-4 candidate (chờ user schedule):
 
 ## Log
 
+- **2026-04-29** — **Status flipped 🔵 OPEN → 🟢 DONE** via Wave Meta-Gov 2 Cluster 6 Phase-1 Agent B PR. Phase 1 docs-only truth-up scope (per §"Proposed Fix") shipped:
+  1. `output-review-mandate.md` §3 matrix row "AI-generated assets" extended to cite GAP-225 umbrella reference for systemic scaffold-as-DONE pattern across 5 gaps (GAP-008/009/012/015/018) — Version 1.1.3 → 1.1.4 PATCH bump, Last-Reviewed 2026-04-29, §11 Log entry appended.
+  2. 5 affected gap files (GAP-008/009/012/015/018) — verified each contains a 2026-04-26 Log entry referencing GAP-225 umbrella (added during this gap's creation session). No duplicate Log entry added per agent prompt instruction. No Status changes — all 5 remain 🟢 DONE preserving audit trail.
+  3. ROADMAP.md Epic 14 row — coordinator-handled in wave-closure entry per `wave-pack-planner` skill convention (this is the documented wave-pack pattern where coordinator owns ROADMAP edits during wave closure).
+  4. No code changes (no skills, no audit-gate.py, no scaffold-governance.md) — Phase 2-4 explicit future scope per §"Future scope".
+  Closure passes `gap-done-discipline.md` §2: every AC `[x]`, all completion claims paired with implementation evidence, Phase 2-4 documented under §"Future scope" as designed up-front gap split (not late-stage scope reduction). Reviewer: @nguyenvankiet (solo-dev). 7 total file edits cross-link verified.
 - **2026-04-26 (correction post Sub-PR 223.1)** — Updated cluster cells with REAL kiteclass-core paths after GAP-016 verification sweep. Original cluster description used architecture-doc paths (`kitehub-branding/`) but v2 implementation actually landed in `kiteclass-core/module/`. Fix shipped in Sub-PR 223.1-correction PR alongside audit-gate.py + skill SKILL.md path corrections.
 - **2026-04-26** — Gap created via cross-gap audit triggered by GAP-223 (AI Branding governance fix) Wave 7 kickoff. User question: "tất cả gaps đã closed và còn open có mắc lỗi tương tự hay không". Explore agent quét 220+ gap files + matrix + audit-gate.py + skill catalog → found 5 strong candidates (4/5 governance signals each) sharing scaffold-as-DONE pattern. User decision: docs-only truth-up, no Wave 7 commitment — captures debt for future scheduling. Phase 2-4 implementation deferred until capacity available.
