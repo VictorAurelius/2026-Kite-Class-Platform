@@ -1,6 +1,6 @@
 ---
 title: Wave Meta Phase-2 Cleanup — session-lock hook + lefthook pre-commit + starter-kit triage
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
 gaps: [GAP-193, GAP-194, GAP-195]
@@ -94,31 +94,44 @@ Per `feedback_parallel_agent_strategy.md`:
 - Closure (ROADMAP + cleanup + retrospective): ~15 min
 - **Total wave: ~85-105 min** (longer than prior waves due to Agent A's code scope — first non-docs wave-pack)
 
-## Lessons-learned (filled AFTER wave merges)
+## Lessons-learned (Wave Meta Phase-2 Cleanup, completed 2026-04-29)
 
 ### Worktree isolation
-- [ ] Did `isolation: "worktree"` hold?
+- [x] `isolation: "worktree"` held — no cross-contamination
+- [x] All 3 agents verified `pwd | grep worktrees/agent-` before Write/Edit
 
 ### File-overlap accuracy
-- [ ] Predicted 0 HARD, 2 SOFT (both citations); actual:
+- [x] Predicted 0 HARD, 2 SOFT (both rule citations); actual: 0 HARD, 0 SOFT actual conflict (citations were read-only as predicted)
+- [x] No unpredicted conflicts
 
 ### Wall-clock
-- [ ] Estimated: 85-105 min; actual: ; variance source:
+- [x] Estimated: 85-105 min; actual: **~30 min** (foundation ~5 + 3 parallel agents max ~10 + sequential merge ~5 + closure ~10)
+- [x] Variance source: agents finished much faster than estimate. Agent A's hook code was scoped tighter than feared (~10 min vs ~60-90 estimated). Lefthook + triage came in ~5-7 min each.
 
-### Agent prompt quality (mixed code/config/docs)
-- [ ] Clarification rounds: A=, B=, C=
-- [ ] First non-docs wave — does feature-tdd-agent template hold for hook code?
+### Agent prompt quality (first mixed code/config/docs wave)
+- [x] Clarification rounds: A=0, B=0, C=0 — **6th consecutive 0-clarification wave**
+- [x] feature-tdd-agent template held perfectly for hook code (Agent A)
+- [x] docs-only-agent template held for both Agent B (config) and Agent C (audit report)
 
 ### Token cost
-- [ ] Total tokens: ; per gap:
+- [x] Per agent: A=237k, B=201k, C=223k → total ~661k across 3 agents (parallel)
 
 ### Cleanup
-- [ ] Worktrees + branches cleaned
+- [x] 3 worktrees removed (force-required due to agent locks)
+- [x] 3 local branches deleted
+- [x] 3 remote branches deleted
 
 ### Novel patterns
-- [ ] New memory entry filed?
-- [ ] Rule update proposed?
+- [x] **Phase-2-of-Phase-1-shipped pattern validated** — when Phase 1 already shipped, Phase 2 is concrete + well-scoped, leading to faster agents. Future waves should prefer Phase-2 cleanup clusters over fresh-feature clusters when both are eligible.
+- [x] **Cross-repo work splits cleanly into in-repo + out-of-repo** (GAP-195 P2 → 2a in-repo triage + 2b cross-repo PR). Pattern: in-repo half goes in wave; cross-repo deferred to single-track human-led work.
+- [x] **GAP numbering pattern held** — Agent C verified GAP-262 next-free before filing (per Wave Meta-Gov 2 lesson about numbering collision).
+
+### Validation
+- 6th wave-pack execution validates methodology consistency
+- First mixed code/config/docs wave succeeds without prompt-template adjustment
+- Wall-clock variance: 30 min vs 85-105 estimate = waves can be MUCH faster than estimated when scope is tight
 
 ## Log
 
+- 2026-04-29 (later) — Wave SHIPPED in ~30 min wall-clock. 3 PRs merged sequence #663 (Agent A, GAP-193 → 🟢 DONE: session-lock guard + telemetry + /end-session skill, smoke test 4/4 pass) → #661 (Agent B, GAP-194 → 🟢 DONE: lefthook pre-commit + local-dev guide) → #662 (Agent C, GAP-195 P2a: triage report 110 candidates → 9 priority for upstream + GAP-262 filed; GAP-195 stays PARTIAL until Phase 2b lands). All 3 agents 0-clarification-round. **6th consecutive 0-clarification wave**.
 - 2026-04-29 — Wave plan created. 3rd wave today (after Wave Business Correctness + Wave Meta-Gov 2). First wave with non-docs work (Agent A hook code, Agent B lefthook config, Agent C audit triage). Validates wave-pack-planner methodology on mixed work types. GAP-195 P2 sliced to 2a (triage report) + 2b (cross-repo upstream PR deferred).
