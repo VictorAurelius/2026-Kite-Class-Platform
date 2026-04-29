@@ -1,6 +1,6 @@
 # GAP-263: HTML/JSX Prototype Review Standard
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE — all 3 phases SHIPPED + verified in production by coordinator post-merge 2026-04-29 (Tier 1 script + Tier 2 skill 3 scripts + Tier 3 hook/CI/lefthook all PASS on current state)
 **Priority:** 🟡 P2 Meta
 **Domain:** Meta Governance / Output Review
 **Found:** 2026-04-29 (Wave UI Kits Round 2 kickoff — Plan B from Claude Design block)
@@ -73,6 +73,7 @@ The matrix-row edit + version bump land in this wave's foundation PR (`wave/roun
 
 ## Log
 
+- **2026-04-29 (UMBRELLA STATUS DONE — coordinator post-merge verification):** All 3 phases verified working on current `ui_kits/` state by coordinator post-merge of Tier 2 PR #682 + Tier 3 PR #681 + Option D PR #683. Phase 1 (rule + Tier 1 script) PASS — `output-review-mandate.md` v1.3.0 §3 row enforced; `check-ui-kits-landing.sh` exit 0. Phase 2 (skill + 3 scripts) PASS — `ui-review-prototype/scripts/link-checker.sh` (138 files, 620 hrefs, 0 broken), `landing-parity.sh` (6 kits, 0 violations), `state-coverage.sh` (6 kits, minimum coverage met). Phase 3 (enforcement) PASS — `audit-gate.py` rule + CI workflow + lefthook all in production. Status 🔵 OPEN → 🟢 DONE per `gap-done-discipline.md` §2 (all AC verified). Per `gap-done-discipline.md` §3 PARTIAL exit-ramp not used — full DONE achieved.
 - **2026-04-29 (Phase 2 SHIPPED via GAP-264 — Agent A):** Tier 2 `quality/ui-review-prototype` skill delivered. 3 callable scripts (`link-checker.sh`, `landing-parity.sh`, `state-coverage.sh`) + 3 reference docs + SKILL.md. Self-test on current `ui_kits/` (6 kits) all green; incident reproduction (remove card from index.html → landing-parity exit 1) verified. See GAP-264 Log for full self-test outcomes. Phase 3 (hook/CI/lefthook enforcement) still pending GAP-265 by Agent B in same wave.
 - **2026-04-29 (Phase 3 SHIPPED):** GAP-265 enforcement layer DONE — `audit-gate.py` `UI_KITS_INTEGRATION_RULE` + `check_ui_kits_integration` function (block on missing "Integration smoke test:" PR-body line; downgrade to warn on `INTEGRATION_OK_NO_LANDING_CHANGE:` trailer; exclude `_v1-baseline/`), `.github/workflows/ui-kits-integration.yml` (Tier 1 mandatory + Tier 2 conditional), `lefthook.yml` `ui-kits-parity` pre-commit command. 4 self-tests PASS (positive PR body / negative missing line / override trailer / synthetic landing-card removal exits 1). All 3 phases of GAP-263 now shipped: Phase 1 v1.2.0+v1.3.0 rule, Phase 2 GAP-264 skill, Phase 3 GAP-265 enforcement. GAP-263 itself stays 🔵 OPEN as umbrella; status flip umbrella → 🟢 DONE deferred to coordinator after wave closure verifies all 3 working in production.
 - **2026-04-29:** Gap filed during Wave UI Kits Round 2 foundation PR. Phase 1 (matrix-row + version bump) lands same PR. Phases 2 + 3 deferred (will file GAP-264 + GAP-265 when respective phases start). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — this gap stays 🟡 PARTIAL after Phase 1 ships, transitions to 🟢 DONE only when Phase 2 + Phase 3 land.

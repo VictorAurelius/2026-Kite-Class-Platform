@@ -1,6 +1,6 @@
 ---
 title: Wave Review Process Improvement — close landing-page parity gap discovered post Wave UI Kits Round 2
-status: active
+status: complete
 created: 2026-04-29
 updated: 2026-04-29
 gaps: [GAP-263, GAP-264, GAP-265]
@@ -152,5 +152,44 @@ Per `feedback_parallel_agent_strategy.md`:
 ## Log
 
 - **2026-04-29 (kickoff):** Wave plan created. Triggered by user-flagged miss in PR #678 closure (landing `index.html` not synced with 6 kits) → fix shipped PR #679. User: "Để miss bug này rõ ràng 3 PR chưa được Review + test đầy đủ, cần co phương án bổ sung, hoàn thiện quy trình". `incident-to-rule-pipeline.md` 5-stage applied: Detect ✓ Classify ✓ Rule+Enforce 🟡 (this wave) Self-test 🟡 (each tier includes) Retro Log 🟡 (closure).
-- **(after foundation merge):** spawn 2 parallel agents (Tier 2 + Tier 3).
-- **(after agents):** sequential merge, wave closure, Lessons-learned filled.
+- **2026-04-29 (Foundation PR #680 MERGED):** Tier 1 shipped — landing parity script self-test PASS, output-review-mandate v1.3.0, review template, memory ext, GAP-264/265 placeholders. ~25 min wall-clock.
+- **2026-04-29 (Tier 2 PR #682 MERGED):** ui-review-prototype skill DONE. 11 files, +1,095 LOC. 3 callable scripts + 3 reference docs + SKILL.md. Self-test on 6 kits PASS (138 files / 620 hrefs / 0 broken; landing-parity 0 violations; state-coverage minimum met). Incident reproduction PASS (removed card → exit 1). GAP-264 🟢 DONE.
+- **2026-04-29 (Tier 3 PR #681 MERGED, after rebase):** hook+CI+lefthook DONE. 5 files, +191 LOC. 4 self-tests PASS. SOFT conflict on GAP-263 Log resolved via Python script + rebase + force-push-with-lease. GAP-265 🟢 DONE. Pre-existing files anomaly noted (Phase-0 artifact pattern continues; hypothesis: harness reuses rolled-back workspaces).
+- **2026-04-29 (Bonus Option D PR #683 MERGED):** GitHub Pages workflow + 7 hero screenshots (2.5 MB) + README showcase section. Live URL `https://victoraurelius.github.io/2026-Kite-Class-Platform/` pending 1-time user enable Settings → Pages → Source = "GitHub Actions". 9 files, +60 LOC.
+- **2026-04-29 (CLOSURE):** All 4 PRs merged (sequential #682 → #681 → #683 after #680 foundation). Coordinator post-merge verification ran all 3 phase scripts → all PASS on current state. **GAP-263 🔵 OPEN → 🟢 DONE** (umbrella verified). Wave plan `status: active → complete`. ROADMAP queue row #12 SHIPPED. wave-history.jsonl entry 10 appended. Wall-clock ~110 min total. Token cost ~850K. 12th-14th consecutive 0-clarif waves. Worktrees + branches cleaned post-merge.
+
+## Lessons-learned (filled CLOSURE 2026-04-29)
+
+### Worktree isolation
+- ✅ All 3 agents (Tier 2 + Tier 3 + Option D) `pwd | grep worktrees` PASS throughout.
+- ⚠️ **Pre-existing files pattern continues** (3 of 3 agents this wave; 5 of 7 across last 2 waves). Hypothesis: harness reuses workspaces from rolled-back Phase 0 attempts. Investigate post-wave: should worktree harness force-clean OR warn agents about pre-existing untracked files?
+
+### File-overlap accuracy
+- Predicted: 0 HARD, 3 SOFT (all GAP-263/264/265 Log appends)
+- Actual: 0 HARD, **1 SOFT** materialized (GAP-263 between Tier 2 + Tier 3 — both appended Log entries)
+- 2 SOFT predicted but didn't materialize because Tier 2 + Tier 3 used distinct GAP files (264 vs 265) for their primary status flips
+- Resolution: Python script extracts both blocks, rebases, force-push-with-lease. ~5 min cost.
+
+### Wall-clock
+- Estimated: 90-105 min
+- Actual: ~110 min
+- Variance: +5-20 min from SOFT conflict resolution (predicted overhead)
+
+### Self-test results (PER `incident-to-rule-pipeline.md` Stage 4 mandate)
+- ✅ Tier 1: `check-ui-kits-landing.sh` exit 0 on 6 kits
+- ✅ Tier 2: 3 scripts PASS on current state + incident reproduction (removed card → landing-parity exit 1) PASS
+- ✅ Tier 3: 4 self-tests PASS (positive PR body / negative / override trailer / synthetic landing-card removal)
+
+### Did the new tooling catch the original miss?
+- ✅ YES. Tier 2 `landing-parity.sh` correctly fires exit 1 with "Missing landing cards: components/" diagnostic when card removed from `index.html`. 2026-04-29 incident now caught automatically by tooling.
+
+### Bonus deliverable (Option D)
+- 3rd parallel agent (Pages deploy + screenshots + README) shipped in same wave — within 5-agent cap per `feedback_parallel_agent_strategy.md` rule #9
+- Cross-repo workflow file naming disjoint (`deploy-design-system.yml` vs `ui-kits-integration.yml`) — no conflict
+- Visitor-friendly outcome: GitHub repo browse now shows hero image + 6 kit thumbnails + live demo link. Achieves user's "khách vào repo sẽ thấy dự án đẹp" goal.
+
+### Memory entries filed
+- `feedback_post_merge_doc_sync.md` extended with landing-page parity lesson + 3-tier pattern (rule + script + enforcement) — already in foundation PR #680.
+
+### Rule update proposed?
+- None. Existing rules sufficient (`output-review-mandate.md` v1.3.0 + `incident-to-rule-pipeline.md` 5-stage + `gap-done-discipline.md` umbrella DONE pattern).
