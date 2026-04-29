@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#14b8a6" />
+  <title>kiteclass-student — UI kit (Round 3)</title>
+  <link rel="stylesheet" href="../_shared/colors_and_type.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { background: hsl(var(--muted)); padding: 32px 16px; }
+    .viewer-shell { max-width: 1200px; margin: 0 auto; }
+    .viewer-head { text-align: center; margin-bottom: 28px; }
+    .viewer-head h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.02em; font-weight: 800; }
+    .viewer-head p { margin: 0; color: hsl(var(--muted-foreground)); font-size: var(--text-sm); }
+    .viewer-grid { display: grid; gap: 24px; grid-template-columns: 420px 1fr; align-items: start; }
+    @media (max-width: 920px) { .viewer-grid { grid-template-columns: 1fr; } .phone-frame { margin: 0 auto } }
+    .screen-list { display: grid; gap: 8px; }
+    .screen-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: var(--text-sm);
+      width: 100%;
+      text-align: left;
+    }
+    .screen-link[aria-current="true"] {
+      border-color: hsl(var(--primary));
+      background: hsl(var(--surface-soft));
+    }
+    .screen-link .name { font-weight: 600; }
+    .screen-link .score {
+      font-variant-numeric: tabular-nums;
+      font-size: var(--text-xs);
+      color: hsl(var(--primary));
+      font-weight: 600;
+    }
+    .group-h {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      color: hsl(var(--muted-foreground));
+      margin: 16px 0 6px;
+    }
+    .group-h:first-child { margin-top: 0; }
+    .meta-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 11px;
+      color: hsl(var(--muted-foreground));
+    }
+    .meta-row span { background: hsl(var(--card)); padding: 4px 10px; border-radius: 999px; border: 1px solid hsl(var(--border)); }
+  </style>
+</head>
+<body class="theme-kiteclass-student">
+  <div class="viewer-shell">
+    <div class="viewer-head">
+      <h1>kiteclass-student <span style="font-size:14px;font-weight:600;color:hsl(var(--primary));background:hsl(var(--surface-soft));padding:6px 12px;border-radius:999px;vertical-align:middle">Round 3 · Wave Agent A</span></h1>
+      <p>Tier 2 Student persona · mobile-first PWA-grade · ~85% mobile sessions · Vietnamese-only</p>
+      <div class="meta-row" style="justify-content:center">
+        <span>14 screens</span>
+        <span>Avg 116/128</span>
+        <span>Min 114/128</span>
+        <span>WCAG AA ✓</span>
+        <span>Dark mode tokens ✓</span>
+      </div>
+    </div>
+
+    <div class="viewer-grid">
+      <!-- Phone preview (iPhone 14 frame) -->
+      <div>
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <iframe id="preview" src="screens/today.html" title="Xem trước screen"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- Screen list -->
+      <div class="screen-list">
+        <div class="group-h">Core flow</div>
+        <button class="screen-link" data-src="screens/today.html" aria-current="true">
+          <span class="name">Hôm nay (Today)</span><span class="score">117/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/my-classes.html">
+          <span class="name">Lớp học của tôi</span><span class="score">114/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/class-detail.html">
+          <span class="name">Chi tiết lớp</span><span class="score">115/128</span>
+        </button>
+
+        <div class="group-h">Bài tập</div>
+        <button class="screen-link" data-src="screens/assignments.html">
+          <span class="name">Danh sách bài tập</span><span class="score">115/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/assignment-detail.html">
+          <span class="name">Chi tiết &amp; nộp bài</span><span class="score">117/128</span>
+        </button>
+
+        <div class="group-h">Điểm số</div>
+        <button class="screen-link" data-src="screens/grades.html">
+          <span class="name">Tổng quan điểm</span><span class="score">118/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/grade-detail.html">
+          <span class="name">Lịch sử điểm môn</span><span class="score">115/128</span>
+        </button>
+
+        <div class="group-h">Điểm danh &amp; Học phí</div>
+        <button class="screen-link" data-src="screens/attendance.html">
+          <span class="name">Điểm danh + chuỗi</span><span class="score">117/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/payments.html">
+          <span class="name">Học phí (older student)</span><span class="score">115/128</span>
+        </button>
+
+        <div class="group-h">Hệ thống</div>
+        <button class="screen-link" data-src="screens/notifications.html">
+          <span class="name">Thông báo + Web Push</span><span class="score">117/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/profile.html">
+          <span class="name">Cá nhân + Cài đặt</span><span class="score">115/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/login.html">
+          <span class="name">Đăng nhập</span><span class="score">116/128</span>
+        </button>
+        <button class="screen-link" data-src="screens/empty-states.html">
+          <span class="name">Empty states gallery</span><span class="score">118/128</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll(".screen-link").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".screen-link").forEach((b) => b.removeAttribute("aria-current"));
+        btn.setAttribute("aria-current", "true");
+        document.getElementById("preview").src = btn.dataset.src;
+      });
+    });
+  </script>
+</body>
+</html>

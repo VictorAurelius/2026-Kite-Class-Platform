@@ -1,0 +1,82 @@
+{
+  "name": "KiteClass Học sinh",
+  "short_name": "KC Học sinh",
+  "description": "Theo dõi lớp học, bài tập, điểm số và điểm danh của bạn. Dành cho học sinh K-12 và học viên trung tâm.",
+  "lang": "vi-VN",
+  "dir": "ltr",
+  "start_url": "/student?source=pwa",
+  "scope": "/student",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#14b8a6",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "../_shared/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../_shared/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../_shared/assets/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "../_shared/assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "../_shared/assets/screenshot-today.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Hôm nay — Lớp tiếp theo + bài tập + lịch học"
+    },
+    {
+      "src": "../_shared/assets/screenshot-grades.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Điểm số — Tổng quan các môn theo học kỳ"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hôm nay",
+      "short_name": "Hôm nay",
+      "description": "Lịch học và bài tập hôm nay",
+      "url": "/student/today",
+      "icons": [{ "src": "../_shared/assets/shortcut-today.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Bài tập",
+      "short_name": "Bài tập",
+      "description": "Bài tập đang chờ nộp",
+      "url": "/student/assignments",
+      "icons": [{ "src": "../_shared/assets/shortcut-assignments.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Điểm số",
+      "short_name": "Điểm",
+      "description": "Xem điểm các môn",
+      "url": "/student/grades",
+      "icons": [{ "src": "../_shared/assets/shortcut-grades.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "id": "vn.kiteclass.student"
+}

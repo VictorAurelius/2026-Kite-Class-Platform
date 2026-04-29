@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#14b8a6" />
+  <title>Học phí — KC Học sinh</title>
+  <!--
+    Persona: S. Student (older student persona — vocational / university tutoring contexts)
+    Note: K-12 students typically have parents pay; this screen serves vocational + 16-22 cohort
+    Score: T28/H30/A29/U28 = 115/128
+    WCAG: Body 16.5:1 AAA · Currency có "đ" suffix · Status pills color+text · Focus 2px · 44px touch
+    i18n: student.payments.balance · student.payments.history · student.payments.method
+  -->
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-student">
+  <div class="app-shell" role="application" aria-label="Học phí">
+    <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="icons"></span></div>
+
+    <header class="app-header">
+      <div>
+        <h1>Học phí</h1>
+        <div class="subtitle">Khoá luyện thi THPT Quốc gia 2026</div>
+      </div>
+      <button class="icon-btn" aria-label="Tải hoá đơn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </button>
+    </header>
+
+    <!-- Balance hero -->
+    <section class="hero-metric animate-slide-up" aria-labelledby="bal-label">
+      <div class="label" id="bal-label">Học phí cần đóng</div>
+      <div class="value">2.400.000<span style="font-size:24px;opacity:0.85">đ</span></div>
+      <div class="delta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Hạn 25/04/2026 · Còn 10 ngày
+      </div>
+    </section>
+
+    <!-- Pay button -->
+    <div class="btn-row">
+      <button class="btn-primary" type="button" aria-label="Đóng học phí 2 triệu 400 nghìn đồng">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Đóng học phí ngay
+      </button>
+    </div>
+
+    <!-- Trust markers -->
+    <div style="margin: -8px 16px 16px;display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:hsl(var(--muted-foreground))">
+      <span class="pill neutral" style="font-size:11px">🔒 Bảo mật bởi VNPay/MoMo</span>
+      <span class="pill neutral" style="font-size:11px">✓ Tuân thủ PDPL 13/2023</span>
+    </div>
+
+    <!-- History -->
+    <div class="section-heading"><h2>Lịch sử thanh toán</h2></div>
+
+    <a class="task-row" href="payments.html">
+      <span class="icon green" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <div class="body">
+        <div class="title">Học phí Tháng 3</div>
+        <div class="sub">VNPay · Mã GD: VNP202603151022</div>
+      </div>
+      <div class="trail" style="text-align:right">
+        <div style="font-weight:700;color:hsl(var(--foreground))">2.400.000đ</div>
+        <div style="margin-top:2px"><span class="pill success">Đã đóng</span></div>
+      </div>
+    </a>
+    <a class="task-row" href="payments.html">
+      <span class="icon green" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <div class="body">
+        <div class="title">Học phí Tháng 2</div>
+        <div class="sub">MoMo · Mã GD: MOMO202602181403</div>
+      </div>
+      <div class="trail" style="text-align:right">
+        <div style="font-weight:700;color:hsl(var(--foreground))">2.400.000đ</div>
+        <div style="margin-top:2px"><span class="pill success">Đã đóng</span></div>
+      </div>
+    </a>
+    <a class="task-row" href="payments.html">
+      <span class="icon green" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <div class="body">
+        <div class="title">Học phí Tháng 1</div>
+        <div class="sub">Chuyển khoản · Vietcombank ****6789</div>
+      </div>
+      <div class="trail" style="text-align:right">
+        <div style="font-weight:700;color:hsl(var(--foreground))">2.400.000đ</div>
+        <div style="margin-top:2px"><span class="pill success">Đã đóng</span></div>
+      </div>
+    </a>
+
+    <!-- Quick payment methods -->
+    <div class="section-heading"><h2>Phương thức nhanh</h2></div>
+    <div style="margin: 0 16px;">
+      <div class="pay-method selected">
+        <span class="logo momo" aria-hidden="true">M</span>
+        <div class="info">
+          <div class="name">MoMo</div>
+          <div class="desc">Đã liên kết · 0901 234 567</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="color:hsl(var(--primary))"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="pay-method">
+        <span class="logo vnpay" aria-hidden="true">VP</span>
+        <div class="info">
+          <div class="name">VNPay</div>
+          <div class="desc">Quét QR hoặc ATM/Visa</div>
+        </div>
+      </div>
+      <div class="pay-method">
+        <span class="logo zalo" aria-hidden="true">ZP</span>
+        <div class="info">
+          <div class="name">ZaloPay</div>
+          <div class="desc">Mở app ZaloPay</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <!-- Bottom tabs -->
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="today.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Hôm nay</a>
+      <a class="tab-btn" href="my-classes.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Lớp học</a>
+      <a class="tab-btn" href="grades.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 6-6"/></svg></span>Điểm</a>
+      <a class="tab-btn" href="notifications.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>Thông báo</a>
+      <a class="tab-btn" href="profile.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Cá nhân</a>
+    </nav>
+  </div>
+</body>
+</html>

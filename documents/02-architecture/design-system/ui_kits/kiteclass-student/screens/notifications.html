@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#14b8a6" />
+  <title>Thông báo — KC Học sinh</title>
+  <!--
+    Persona: S. Student — notifications inbox + Web Push permission soft-ask
+    Score: T29/H30/A29/U29 = 117/128
+    WCAG: Body 16.5:1 AAA · Unread dot color+text · Modal trap focus · 44px touch · Focus 2px
+    i18n: student.notifications.list · student.notifications.permission · student.notifications.empty
+    PWA: Web Push permission soft-ask pattern (browser modal at top, can dismiss without locking)
+  -->
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-student">
+  <div class="app-shell" role="application" aria-label="Thông báo">
+    <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="icons"></span></div>
+
+    <header class="app-header">
+      <div>
+        <h1>Thông báo</h1>
+        <div class="subtitle">5 chưa đọc · 23 tổng cộng</div>
+      </div>
+      <button class="icon-btn" aria-label="Đánh dấu tất cả đã đọc">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/><polyline points="14 14 9 19"/></svg>
+      </button>
+    </header>
+
+    <!-- Web Push permission soft-ask -->
+    <div class="card" style="margin: 12px 16px; background: hsl(var(--surface-soft)); border-color: hsl(var(--primary) / 0.2);" role="region" aria-labelledby="push-ask">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="flex-shrink:0;width:40px;height:40px;border-radius:999px;background:hsl(var(--primary));color:#fff;display:flex;align-items:center;justify-content:center" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </span>
+        <div style="flex:1">
+          <div id="push-ask" style="font-weight:700;font-size:var(--text-sm)">Bật thông báo trên trình duyệt?</div>
+          <div style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:4px;line-height:1.5">Nhận điểm mới, bài tập sắp hết hạn ngay khi có. Bạn có thể tắt bất kỳ lúc nào trong Cài đặt.</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn-primary" type="button" style="height:38px;width:auto;padding:0 16px;font-size:var(--text-sm)">Bật</button>
+            <button class="btn-ghost" type="button" style="height:38px;font-size:var(--text-sm)">Để sau</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification list -->
+    <div class="notif-row unread">
+      <span class="ic green" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <div class="body">
+        <div class="head"><span class="unread-dot" aria-hidden="true"></span>Có điểm Toán mới: 9.5 🎉</div>
+        <div class="msg">Bài kiểm tra giữa kỳ II — Cô Trần Thị Hương · Hệ số 2</div>
+        <div class="ts">2 giờ trước</div>
+      </div>
+    </div>
+    <div class="notif-row unread">
+      <span class="ic red" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </span>
+      <div class="body">
+        <div class="head"><span class="unread-dot" aria-hidden="true"></span>Bài tập Toán hết hạn hôm nay</div>
+        <div class="msg">Bài tập chương 4 — còn 6 giờ. Hãy nộp trước 23:59 nhé!</div>
+        <div class="ts">3 giờ trước</div>
+      </div>
+    </div>
+    <div class="notif-row unread">
+      <span class="ic blue" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </span>
+      <div class="body">
+        <div class="head"><span class="unread-dot" aria-hidden="true"></span>Cô Hương gửi nhận xét tuần</div>
+        <div class="msg">“An tích cực phát biểu, cần chú ý môn Lịch sử và Địa lý...”</div>
+        <div class="ts">Hôm qua · 16:42</div>
+      </div>
+    </div>
+    <div class="notif-row unread">
+      <span class="ic amber" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </span>
+      <div class="body">
+        <div class="head"><span class="unread-dot" aria-hidden="true"></span>Học phí tháng 4 sắp đến hạn</div>
+        <div class="msg">2.400.000đ · Hạn 25/04/2026 (còn 10 ngày)</div>
+        <div class="ts">Hôm qua · 09:00</div>
+      </div>
+    </div>
+    <div class="notif-row unread">
+      <span class="ic blue" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </span>
+      <div class="body">
+        <div class="head"><span class="unread-dot" aria-hidden="true"></span>Kết nối với Zalo OA của trường</div>
+        <div class="msg">Nhận thông báo qua Zalo (kênh chính cho phụ huynh)</div>
+        <div class="ts">2 ngày trước</div>
+      </div>
+    </div>
+
+    <!-- Read items -->
+    <div class="notif-row">
+      <span class="ic green" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <div class="body">
+        <div class="head">Đi học đầy đủ tuần qua 🎯</div>
+        <div class="msg">5/5 buổi · Tiếp tục giữ chuỗi nhé!</div>
+        <div class="ts">3 ngày trước</div>
+      </div>
+    </div>
+    <div class="notif-row">
+      <span class="ic blue" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </span>
+      <div class="body">
+        <div class="head">Huy hiệu mới: Chuỗi 7 ngày</div>
+        <div class="msg">Chúc mừng An đã đi học đủ 7 ngày liên tiếp</div>
+        <div class="ts">5 ngày trước</div>
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+
+    <!-- Bottom tabs -->
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" href="today.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Hôm nay</a>
+      <a class="tab-btn" href="my-classes.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Lớp học</a>
+      <a class="tab-btn" href="grades.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 6-6"/></svg></span>Điểm</a>
+      <a class="tab-btn" aria-current="page" href="notifications.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>Thông báo</a>
+      <a class="tab-btn" href="profile.html"><span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Cá nhân</a>
+    </nav>
+  </div>
+</body>
+</html>

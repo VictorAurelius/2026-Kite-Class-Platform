@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#14b8a6" />
+  <title>Hôm nay — KC Học sinh</title>
+  <!--
+    Persona: S. Student (mobile-first 320-414px ~85% sessions, age 6-22, K-12 + vocational)
+    Flow ref: dossier/05-business-flows.md Flow #5 (student views today's classes + tasks)
+    Score: T30/H29/A30/U28 = 117/128 (Tech 30/32 · Heuristics 29/32 · Aesthetics 30/32 · UX 28/32)
+    Viewport priority: 320px (default) → 768px (graceful upscale max-w 480) → 1440px (centered, shadow card)
+    WCAG: Body contrast 16.5:1 AAA · Muted-fg 4.7:1 AA · Primary on white 4.6:1 AA · Hero white-on-gradient 7.2:1 AAA · All buttons keyboard-reachable · Focus 2px visible
+    i18n keys (sample): student.today.greeting · student.today.next-class · student.today.pending-tasks
+  -->
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body class="theme-kiteclass-student">
+  <div class="app-shell" role="application" aria-label="Trang hôm nay">
+    <!-- Status bar (faux) -->
+    <div class="status-bar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor" aria-hidden="true"><path d="M1 7h2v4H1zm4-2h2v6H5zm4-2h2v8H9zm4-3h2v11h-2z"/></svg>
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M1 4.5C1 2.5 2.5 1 4.5 1h9C15.5 1 17 2.5 17 4.5v3C17 9.5 15.5 11 13.5 11h-9C2.5 11 1 9.5 1 7.5z"/></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="0.5" y="1" width="18" height="10" rx="2" fill="none" stroke="currentColor"/><rect x="2" y="2.5" width="14" height="7" rx="1"/><rect x="19" y="4" width="2" height="4"/></svg>
+      </span>
+    </div>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div>
+        <h1>Chào An 👋</h1>
+        <div class="subtitle">Thứ Hai · 15/04/2026</div>
+      </div>
+      <a class="icon-btn" href="notifications.html" aria-label="Thông báo, 5 chưa đọc">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span class="badge-dot" aria-hidden="true"></span>
+      </a>
+    </header>
+
+    <!-- Hero — attendance streak -->
+    <section class="hero-metric animate-slide-up" aria-labelledby="hero-label">
+      <div class="label" id="hero-label">Chuỗi đi học liên tiếp 🎯</div>
+      <div class="value">12 <span style="font-size:18px;opacity:0.9;font-weight:600">ngày</span></div>
+      <div class="delta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="6 15 12 9 18 15"/></svg>
+        Thêm 3 ngày nữa để nhận huy hiệu vàng
+      </div>
+    </section>
+
+    <!-- Next class card -->
+    <div class="next-class-card" role="region" aria-labelledby="next-class-label">
+      <span class="countdown" aria-live="polite">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Còn 25 phút nữa
+      </span>
+      <div class="name" id="next-class-label">Toán nâng cao — Lớp 10A2</div>
+      <div class="meta">
+        <div class="row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>10:00 – 11:30 · Phòng 305</span>
+        </div>
+        <div class="row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Cô Trần Thị Hương</span>
+        </div>
+        <div class="row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>Chương 4 — Hàm số bậc hai</span>
+        </div>
+      </div>
+      <div class="btn-row" style="margin: 14px 0 0 0">
+        <a class="btn-primary" href="class-detail.html">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          Mở chi tiết lớp
+        </a>
+      </div>
+    </div>
+
+    <!-- Today's schedule -->
+    <div class="section-heading">
+      <h2>Lịch học hôm nay</h2>
+      <a href="my-classes.html">Xem tất cả</a>
+    </div>
+    <a class="class-row" href="class-detail.html">
+      <span class="swatch toan" aria-hidden="true">T</span>
+      <div class="info">
+        <div class="name">Toán nâng cao</div>
+        <div class="sub">10:00 · Phòng 305 · Cô Hương</div>
+      </div>
+      <div class="meta">
+        <span class="pill info">Sắp tới</span>
+      </div>
+    </a>
+    <a class="class-row" href="class-detail.html">
+      <span class="swatch van" aria-hidden="true">V</span>
+      <div class="info">
+        <div class="name">Ngữ Văn 10</div>
+        <div class="sub">13:30 · Phòng 207 · Thầy Tuấn</div>
+      </div>
+      <div class="meta">
+        <span class="pill neutral">Chiều</span>
+      </div>
+    </a>
+    <a class="class-row" href="class-detail.html">
+      <span class="swatch anh" aria-hidden="true">E</span>
+      <div class="info">
+        <div class="name">Tiếng Anh 10</div>
+        <div class="sub">15:30 · Phòng 411 · Cô Linh</div>
+      </div>
+      <div class="meta">
+        <span class="pill neutral">Chiều</span>
+      </div>
+    </a>
+
+    <!-- Pending tasks -->
+    <div class="section-heading">
+      <h2>Bài tập chờ nộp</h2>
+      <a href="assignments.html">Xem tất cả (4)</a>
+    </div>
+    <a class="task-row" href="assignment-detail.html">
+      <span class="icon amber" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </span>
+      <div class="body">
+        <div class="title">Bài luận “Quê hương” — Văn 10</div>
+        <div class="sub">Hạn 18/04/2026 · Còn 3 ngày</div>
+      </div>
+      <span class="trail">~600 từ</span>
+    </a>
+    <a class="task-row" href="assignment-detail.html">
+      <span class="icon red" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      </span>
+      <div class="body">
+        <div class="title">Bài tập chương 4 — Toán nâng cao</div>
+        <div class="sub">Hạn hôm nay · Còn 6 giờ</div>
+      </div>
+      <span class="trail">8 câu</span>
+    </a>
+    <a class="task-row" href="assignment-detail.html">
+      <span class="icon blue" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </span>
+      <div class="body">
+        <div class="title">Reading worksheet — English 10</div>
+        <div class="sub">Hạn 22/04/2026 · Còn 1 tuần</div>
+      </div>
+      <span class="trail">PDF</span>
+    </a>
+
+    <div style="height:24px"></div>
+
+    <!-- Bottom tabs -->
+    <nav class="bottom-tabs" aria-label="Điều hướng chính">
+      <a class="tab-btn" aria-current="page" href="today.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        Hôm nay
+      </a>
+      <a class="tab-btn" href="my-classes.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+        Lớp học
+      </a>
+      <a class="tab-btn" href="grades.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 12l4-4 4 4 6-6"/></svg></span>
+        Điểm
+      </a>
+      <a class="tab-btn" href="notifications.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+        Thông báo
+      </a>
+      <a class="tab-btn" href="profile.html">
+        <span class="tab-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        Cá nhân
+      </a>
+    </nav>
+  </div>
+</body>
+</html>
