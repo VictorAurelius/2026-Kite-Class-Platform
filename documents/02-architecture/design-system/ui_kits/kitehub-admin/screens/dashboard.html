@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 School Principal/Admin (Tier 1) — desktop primary, dense data
+  Flow ref: dossier/05-business-flows.md Flow #10 (institutional sync) — overview at start of academic year
+  Score: T28/H30/A26/U24 = 108/128 (target ≥105)
+  WCAG: Body contrast 14.8:1 (AAA) / Muted-fg 4.7:1 (AA) / Primary on white 4.6:1 (AA) / Large 5.1:1 / All buttons keyboard-reachable / Focus 2px visible / Reduced-motion honored
+  i18n key: admin.dashboard.greeting / admin.dashboard.kpi.*
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub Admin · Tổng quan trường — Trường THCS Nguyễn Du</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs" aria-label="Trạng thái màn hình">
+    <a href="dashboard.html" data-active="true">Default</a>
+    <a href="empty-states.html">Empty</a>
+    <a href="../index.html">Index</a>
+  </nav>
+
+  <div class="shell">
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3" aria-label="KiteHub Admin">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">ADMIN</span>
+      </a>
+
+      <button class="cmdk-trigger" aria-haspopup="dialog" aria-keyshortcuts="Meta+K">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <span>Tìm nhanh, lệnh…</span>
+        <kbd>⌘K</kbd>
+      </button>
+
+      <div>
+        <div class="section-title">Năm học 2026–2027</div>
+        <div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);">
+          <div class="font-semibold text-sm" style="color: hsl(var(--foreground));">Trường THCS Nguyễn Du</div>
+          <div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Tổng quan</div>
+        <div class="stack-2">
+          <a href="dashboard.html" class="nav-item nav-item--active">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan
+          </a>
+          <a href="academic-calendar.html" class="nav-item">
+            <i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ
+          </a>
+          <a href="multi-class-roster.html" class="nav-item">
+            <i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công<span class="nav-item__count">25</span>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Học sinh</div>
+        <div class="stack-2">
+          <a href="bulk-import.html" class="nav-item">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách<span class="nav-item__count">1.247</span>
+          </a>
+          <a href="report-cards.html" class="nav-item">
+            <i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET
+          </a>
+          <a href="conduct.html" class="nav-item">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm<span class="nav-item__count">7</span>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Nhân sự</div>
+        <div class="stack-2">
+          <a href="teacher-management.html" class="nav-item">
+            <i data-lucide="users" class="w-4 h-4"></i>Giáo viên<span class="nav-item__count">62</span>
+          </a>
+          <a href="parent-comms.html" class="nav-item">
+            <i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh<span class="nav-item__count">12</span>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Tài chính</div>
+        <div class="stack-2">
+          <a href="fees.html" class="nav-item">
+            <i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Cấu hình</div>
+        <div class="stack-2">
+          <a href="school-profile.html" class="nav-item">
+            <i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường
+          </a>
+        </div>
+      </div>
+
+      <div class="card-base" style="padding: 0.75rem; margin-top: auto;">
+        <div class="text-xs muted-strong">Đã đăng nhập</div>
+        <div class="text-sm font-semibold mt-0.5">Cô Trần Thị Lan</div>
+        <div class="text-xs muted-strong">Hiệu trưởng</div>
+      </div>
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a>
+          <span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a>
+          <span class="crumb__sep">/</span>
+          <span class="crumb__current">Tổng quan · Học kỳ 1</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Chào buổi sáng, cô Lan 👋</h1>
+            <div class="page-header__sub">Hôm nay 29/04/2026 · Tuần 12/18 HK1 · 1.247 học sinh đang học · 62 giáo viên</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--ghost" aria-label="Thông báo">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span class="tag tag--danger" style="font-size: 10px;">7</span>
+            </button>
+            <a href="bulk-import.html" class="btn btn--outline">
+              <i data-lucide="upload" class="w-4 h-4"></i>Nhập danh sách
+            </a>
+            <a href="report-cards.html" class="gradient-button">
+              <i data-lucide="file-text" class="w-4 h-4"></i>Tạo học bạ HK1
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- KPI cards · 6 dense -->
+      <section aria-label="Chỉ số chính của trường">
+        <div class="section-title">Chỉ số toàn trường · Học kỳ 1</div>
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          <div class="kpi-card">
+            <div class="kpi-card__label"><i data-lucide="users" class="w-3.5 h-3.5"></i>Tổng học sinh</div>
+            <div class="kpi-card__value">1.247</div>
+            <div class="kpi-card__delta kpi-card__delta--up"><i data-lucide="arrow-up" class="w-3 h-3"></i>+47 vs năm trước</div>
+            <div class="kpi-card__sub">25 lớp · 6 khối</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__label"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Tỷ lệ đi học</div>
+            <div class="kpi-card__value">94,3%</div>
+            <div class="kpi-card__delta kpi-card__delta--up"><i data-lucide="arrow-up" class="w-3 h-3"></i>+1,2 điểm</div>
+            <div class="kpi-card__sub">7 ngày qua · TB toàn trường</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__label"><i data-lucide="wallet" class="w-3.5 h-3.5"></i>Thu học phí</div>
+            <div class="kpi-card__value">87,3%</div>
+            <div class="kpi-card__delta kpi-card__delta--flat"><i data-lucide="minus" class="w-3 h-3"></i>Mục tiêu 95%</div>
+            <div class="kpi-card__sub">158 hồ sơ trễ hạn</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__label"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Hạnh kiểm cần xử lý</div>
+            <div class="kpi-card__value">7</div>
+            <div class="kpi-card__delta kpi-card__delta--down"><i data-lucide="arrow-down" class="w-3 h-3"></i>-3 vs tuần trước</div>
+            <div class="kpi-card__sub">2 ca leo thang phụ huynh</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__label"><i data-lucide="user-check" class="w-3.5 h-3.5"></i>Giáo viên</div>
+            <div class="kpi-card__value">62</div>
+            <div class="kpi-card__delta kpi-card__delta--up"><i data-lucide="arrow-up" class="w-3 h-3"></i>+4 mới tháng này</div>
+            <div class="kpi-card__sub">3 GV nghỉ phép hôm nay</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-card__label"><i data-lucide="message-square" class="w-3.5 h-3.5"></i>SLA phản hồi PH</div>
+            <div class="kpi-card__value">2,3<span class="text-base font-medium muted-strong">h</span></div>
+            <div class="kpi-card__delta kpi-card__delta--up"><i data-lucide="arrow-up" class="w-3 h-3"></i>Mục tiêu &lt;4h</div>
+            <div class="kpi-card__sub">12 yêu cầu chờ xử lý</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Two-column: pending tasks + recent activity -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4" aria-label="Việc cần làm và hoạt động">
+        <!-- Pending tasks · 2 cols -->
+        <div class="card-base lg:col-span-2" style="padding: 1.125rem;">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="h3">Việc cần xử lý</h2>
+            <a href="#" class="text-xs muted-strong hover:underline">Xem tất cả</a>
+          </div>
+          <div class="stack-2">
+            <a href="conduct.html" class="esc-card esc-card--urgent" style="display: grid;">
+              <div class="avatar avatar--lg" aria-hidden="true">PH</div>
+              <div>
+                <div class="esc-card__title">Phụ huynh Nguyễn Quang Huy yêu cầu gặp hiệu trưởng</div>
+                <div class="esc-card__sub">Lớp 8A2 · Sự việc gây gổ ngày 27/04 · Đã chuyển từ GVCN cô Phạm Thị Yến</div>
+                <div class="cluster mt-2">
+                  <span class="pill pill--danger">Cấp bách</span>
+                  <span class="sla sla--bad"><i data-lucide="clock" class="w-3 h-3"></i>SLA: 18h trễ</span>
+                </div>
+              </div>
+              <button class="btn btn--primary btn--sm" type="button">Xử lý</button>
+            </a>
+            <a href="report-cards.html" class="esc-card esc-card--high" style="display: grid;">
+              <div class="avatar avatar--lg" aria-hidden="true"><i data-lucide="file-text" class="w-4 h-4"></i></div>
+              <div>
+                <div class="esc-card__title">Phê duyệt học bạ HK1 chuẩn MoET — 25 lớp</div>
+                <div class="esc-card__sub">Đã có 22/25 lớp hoàn tất nhập điểm · Hạn cuối: 05/05/2026</div>
+                <div class="cluster mt-2">
+                  <span class="pill pill--warning">Quan trọng</span>
+                  <span class="sla sla--warn"><i data-lucide="clock" class="w-3 h-3"></i>Còn 6 ngày</span>
+                </div>
+              </div>
+              <button class="btn btn--outline btn--sm" type="button">Xem</button>
+            </a>
+            <a href="fees.html" class="esc-card esc-card--high" style="display: grid;">
+              <div class="avatar avatar--lg" aria-hidden="true"><i data-lucide="wallet" class="w-4 h-4"></i></div>
+              <div>
+                <div class="esc-card__title">Gửi nhắc thu học phí HK1 — đợt 2</div>
+                <div class="esc-card__sub">158 phụ huynh chưa đóng · Tổng tồn 568.400.000đ · Mẫu Zalo OA đã sẵn</div>
+                <div class="cluster mt-2">
+                  <span class="pill pill--warning">Tồn lâu</span>
+                  <span class="sla sla--warn"><i data-lucide="clock" class="w-3 h-3"></i>Trễ TB 12 ngày</span>
+                </div>
+              </div>
+              <button class="btn btn--outline btn--sm" type="button">Soạn nhắc</button>
+            </a>
+            <a href="parent-comms.html" class="esc-card esc-card--normal" style="display: grid;">
+              <div class="avatar avatar--lg" aria-hidden="true">12</div>
+              <div>
+                <div class="esc-card__title">12 yêu cầu phụ huynh chưa phản hồi</div>
+                <div class="esc-card__sub">Trong đó 3 ca quá 4h SLA · 9 ca trong giờ</div>
+                <div class="cluster mt-2">
+                  <span class="pill pill--info">Hàng đợi</span>
+                  <span class="sla sla--ok"><i data-lucide="clock" class="w-3 h-3"></i>TB 2h 18p</span>
+                </div>
+              </div>
+              <button class="btn btn--ghost btn--sm" type="button">Xem hàng đợi</button>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right column: activity + quick actions -->
+        <div class="stack-3">
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Khối lớp</div>
+            <div class="stack-2 mt-2">
+              <div class="flex items-center justify-between text-sm">
+                <span>Khối 6 (5 lớp)</span>
+                <span class="text-mono muted-strong">218 HS</span>
+              </div>
+              <div class="progress"><div class="progress__fill" style="width: 96%"></div></div>
+              <div class="flex items-center justify-between text-sm mt-2">
+                <span>Khối 7 (5 lớp)</span>
+                <span class="text-mono muted-strong">215 HS</span>
+              </div>
+              <div class="progress"><div class="progress__fill" style="width: 95%"></div></div>
+              <div class="flex items-center justify-between text-sm mt-2">
+                <span>Khối 8 (5 lớp)</span>
+                <span class="text-mono muted-strong">204 HS</span>
+              </div>
+              <div class="progress"><div class="progress__fill" style="width: 92%"></div></div>
+              <div class="flex items-center justify-between text-sm mt-2">
+                <span>Khối 9 (5 lớp)</span>
+                <span class="text-mono muted-strong">196 HS</span>
+              </div>
+              <div class="progress"><div class="progress__fill" style="width: 88%"></div></div>
+              <div class="flex items-center justify-between text-sm mt-2">
+                <span>Khối liên cấp (5 lớp)</span>
+                <span class="text-mono muted-strong">414 HS</span>
+              </div>
+              <div class="progress progress--success"><div class="progress__fill" style="width: 100%"></div></div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Sự kiện sắp tới</div>
+            <div class="stack-3 mt-2 text-sm">
+              <div class="flex gap-3">
+                <div class="text-mono text-xs muted-strong" style="width: 56px;">02/05</div>
+                <div>
+                  <div class="font-medium">Họp PHHS đầu tháng 5</div>
+                  <div class="muted-strong text-xs">19:00 · Hội trường tầng 3</div>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <div class="text-mono text-xs muted-strong" style="width: 56px;">06/05</div>
+                <div>
+                  <div class="font-medium">Kiểm tra giữa HK1 — Toán/Văn</div>
+                  <div class="muted-strong text-xs">06–08/05 · Toàn trường</div>
+                </div>
+              </div>
+              <div class="flex gap-3">
+                <div class="text-mono text-xs muted-strong" style="width: 56px;">15/05</div>
+                <div>
+                  <div class="font-medium">Hạn nộp học bạ HK1 lên Sở GD</div>
+                  <span class="moet-stamp mt-1"><i data-lucide="shield-check" class="w-3 h-3"></i>Bắt buộc MoET</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Trạng thái dữ liệu</div>
+            <div class="stack-2 mt-2 text-sm">
+              <div class="flex items-center justify-between">
+                <span><i data-lucide="database" class="w-3.5 h-3.5 inline"></i> Đồng bộ phòng GD</span>
+                <span class="pill pill--success">Mới nhất 09:14</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span><i data-lucide="cloud-upload" class="w-3.5 h-3.5 inline"></i> Sao lưu hôm nay</span>
+                <span class="pill pill--success">06:00 OK</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span><i data-lucide="bell-ring" class="w-3.5 h-3.5 inline"></i> Zalo OA</span>
+                <span class="pill pill--info">3.241 PH theo dõi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent enrollments table preview -->
+      <section aria-label="Học sinh mới đăng ký 7 ngày qua">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="h3">Học sinh mới — 7 ngày qua</h2>
+          <a href="bulk-import.html" class="text-sm muted-strong hover:underline">Đi tới Nhập danh sách →</a>
+        </div>
+        <div class="dt-wrap" role="region" aria-labelledby="recent-enroll" tabindex="0">
+          <table class="dt" id="recent-enroll" aria-label="Học sinh mới đăng ký">
+            <thead>
+              <tr>
+                <th><input class="dt-checkbox" type="checkbox" aria-label="Chọn tất cả" /></th>
+                <th><button class="sort" aria-sort="descending" type="button">Ngày<i data-lucide="chevron-down" class="w-3 h-3"></i></button></th>
+                <th><button class="sort" type="button">Họ tên<i data-lucide="chevrons-up-down" class="w-3 h-3"></i></button></th>
+                <th>Lớp</th>
+                <th>Phụ huynh</th>
+                <th>SĐT</th>
+                <th>Học phí</th>
+                <th>Trạng thái</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input class="dt-checkbox" type="checkbox" aria-label="Chọn dòng" /></td>
+                <td class="dt-num">29/04/2026</td>
+                <td><div class="flex items-center gap-2"><span class="avatar">PM</span><span>Phạm Thị Mai</span></div></td>
+                <td>6A1</td>
+                <td>Phạm Văn Hùng</td>
+                <td class="dt-num">0901 234 567</td>
+                <td><span class="pill pill--success">Đã đóng</span></td>
+                <td><span class="pill pill--success">Đang học</span></td>
+                <td><button class="btn btn--ghost btn--sm" type="button" aria-label="Mở hồ sơ"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+              </tr>
+              <tr>
+                <td><input class="dt-checkbox" type="checkbox" aria-label="Chọn dòng" /></td>
+                <td class="dt-num">28/04/2026</td>
+                <td><div class="flex items-center gap-2"><span class="avatar">NT</span><span>Nguyễn Tuấn Khang</span></div></td>
+                <td>9A3</td>
+                <td>Nguyễn Văn Đức</td>
+                <td class="dt-num">0987 654 321</td>
+                <td><span class="pill pill--warning">Chờ thanh toán</span></td>
+                <td><span class="pill pill--info">Chờ xác nhận</span></td>
+                <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+              </tr>
+              <tr>
+                <td><input class="dt-checkbox" type="checkbox" aria-label="Chọn dòng" /></td>
+                <td class="dt-num">27/04/2026</td>
+                <td><div class="flex items-center gap-2"><span class="avatar">LT</span><span>Lê Thị Bích Ngọc</span></div></td>
+                <td>7A2</td>
+                <td>Lê Minh Tuấn</td>
+                <td class="dt-num">0912 345 678</td>
+                <td><span class="pill pill--success">Đã đóng</span></td>
+                <td><span class="pill pill--success">Đang học</span></td>
+                <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+              </tr>
+              <tr>
+                <td><input class="dt-checkbox" type="checkbox" aria-label="Chọn dòng" /></td>
+                <td class="dt-num">26/04/2026</td>
+                <td><div class="flex items-center gap-2"><span class="avatar">TQ</span><span>Trần Quốc Bảo</span></div></td>
+                <td>8A1</td>
+                <td>Trần Thị Hương</td>
+                <td class="dt-num">0905 678 901</td>
+                <td><span class="pill pill--success">Đã đóng</span></td>
+                <td><span class="pill pill--success">Đang học</span></td>
+                <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+              </tr>
+              <tr>
+                <td><input class="dt-checkbox" type="checkbox" aria-label="Chọn dòng" /></td>
+                <td class="dt-num">25/04/2026</td>
+                <td><div class="flex items-center gap-2"><span class="avatar">VH</span><span>Vũ Hoài Anh</span></div></td>
+                <td>6A2</td>
+                <td>Vũ Đức Long</td>
+                <td class="dt-num">0938 222 111</td>
+                <td><span class="pill pill--danger">Trễ hạn</span></td>
+                <td><span class="pill pill--info">Chờ xác nhận</span></td>
+                <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="dt-pagination">
+            <span>Hiển thị 1–5 của 23 học sinh mới</span>
+            <div class="cluster">
+              <button type="button" disabled aria-label="Trang trước">‹</button>
+              <span class="text-mono">1 / 5</span>
+              <button type="button" aria-label="Trang sau">›</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>

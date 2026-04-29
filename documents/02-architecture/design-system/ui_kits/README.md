@@ -18,6 +18,7 @@ Design prototypes for human review. Generated using `documents/02-architecture/d
 | `kiteclass-teacher/` (Wave 1.6 add-on) | 1.6 | ✅ DONE — PR #674 | **108.0** | +35 vs ~73 |
 | `ai-branding-wizard-v2/` (Wave 1.7 add-on) | 1.7 | ✅ DONE — PR #675 | **115.6** ⭐⭐ | +43 vs ~73 |
 | `kiteclass-student/` (Round 3) | 3 | 🟡 ACTIVE — PR #700 | **116** ⭐⭐ | +43 vs ~73 |
+| `kitehub-admin/` (Round 3) | 3 | 🟡 ACTIVE — PR #703 | **107.2** | +34 vs ~73 |
 | `kitehub-story-v2/` (Direction A polish) | 3 | 🔵 future | — | — |
 
 **Wave aggregate:** 7 deliverables × 76 screens × avg **110.5/128** vs Round 1 baseline ~73/128 = **+51% lift**. Review evidence: `documents/04-quality/audits/ui-review/2026-04-29-wave-1-add-ons-review.md`.

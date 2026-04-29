@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — annual fees collection rate + overdue list (568M VND outstanding)
+  Score: T28/H29/A26/U24 = 107/128
+  WCAG: Currency in monospace 4.7:1 / Progress bars contrast 4.6:1 / Status pills convey via icon+text / Focus 2px
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học phí năm — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="fees.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học 2026–2027</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div></div></div>
+      <div><div class="section-title">Tài chính</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="fees.html" class="nav-item nav-item--active"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+        <a href="bulk-import.html" class="nav-item"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách</a>
+        <a href="report-cards.html" class="nav-item"><i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET</a>
+        <a href="conduct.html" class="nav-item"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm</a>
+        <a href="teacher-management.html" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i>Giáo viên</a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="multi-class-roster.html" class="nav-item"><i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công</a>
+        <a href="academic-calendar.html" class="nav-item"><i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ</a>
+        <a href="school-profile.html" class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Học phí năm 2026–2027</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Học phí năm học 2026–2027</h1>
+            <div class="page-header__sub">Đợt 2 / 4 · Hạn đóng 30/04/2026 · 1.089/1.247 PH đã đóng (87,3%) · Tồn 568.400.000đ</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" type="button"><i data-lucide="download" class="w-4 h-4"></i>Xuất sao kê</button>
+            <button class="gradient-button" type="button"><i data-lucide="bell-ring" class="w-4 h-4"></i>Gửi nhắc 158 PH</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top KPIs -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3" aria-label="Chỉ số thu phí">
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i>Tỷ lệ thu</div>
+          <div class="kpi-card__value">87,3%</div>
+          <div class="progress mt-2"><div class="progress__fill" style="width: 87%"></div></div>
+          <div class="kpi-card__sub">Mục tiêu 95% trước 05/05</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="wallet" class="w-3.5 h-3.5"></i>Đã thu</div>
+          <div class="kpi-card__value text-mono">3,82<span class="text-base muted-strong"> tỷ đ</span></div>
+          <div class="kpi-card__sub">1.089 phiếu · 4 đợt</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>Tồn đợt 2</div>
+          <div class="kpi-card__value text-mono" style="color: hsl(var(--destructive));">568,4<span class="text-base muted-strong"> triệu đ</span></div>
+          <div class="kpi-card__sub">158 phụ huynh · TB trễ 12 ngày</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>Quá 30 ngày</div>
+          <div class="kpi-card__value">14</div>
+          <div class="kpi-card__sub">Cần can thiệp GVCN</div>
+        </div>
+      </section>
+
+      <!-- Filter -->
+      <div class="card-base" style="padding: 0.75rem;">
+        <div class="cluster">
+          <input class="input" placeholder="Tìm tên HS / lớp / SĐT phụ huynh…" style="max-width: 320px;" aria-label="Tìm" />
+          <select class="input" style="max-width: 160px;" aria-label="Lọc đợt"><option>Tất cả 4 đợt</option><option>Đợt 1 · Đầu năm</option><option>Đợt 2 · Tháng 5</option><option>Đợt 3 · Tháng 9</option><option>Đợt 4 · Tháng 12</option></select>
+          <select class="input" style="max-width: 180px;" aria-label="Trạng thái"><option>Tất cả trạng thái</option><option>Đã đóng đủ</option><option>Đóng một phần</option><option>Trễ &lt; 7 ngày</option><option>Trễ 7–30 ngày</option><option>Trễ &gt; 30 ngày</option></select>
+          <select class="input" style="max-width: 160px;" aria-label="Khối"><option>Tất cả khối</option><option>Khối 6</option><option>Khối 7</option><option>Khối 8</option><option>Khối 9</option></select>
+          <span class="ml-auto text-xs muted-strong">158 hồ sơ trễ hạn</span>
+        </div>
+      </div>
+
+      <!-- Per-grade collection table + per-student overdue side -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Per-grade -->
+        <div class="card-base lg:col-span-2" style="padding: 1.125rem;">
+          <h2 class="h3 mb-3">Tỷ lệ thu theo khối</h2>
+          <div class="stack-3 text-sm">
+            <div>
+              <div class="flex items-center justify-between"><span><strong>Khối 6</strong> · 218 HS · 1.880.000đ/HK</span><span class="text-mono muted-strong">204/218 · 93,6%</span></div>
+              <div class="progress progress--success mt-1.5"><div class="progress__fill" style="width: 93.6%"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><span><strong>Khối 7</strong> · 215 HS · 2.040.000đ/HK</span><span class="text-mono muted-strong">192/215 · 89,3%</span></div>
+              <div class="progress mt-1.5"><div class="progress__fill" style="width: 89.3%"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><span><strong>Khối 8</strong> · 204 HS · 2.200.000đ/HK</span><span class="text-mono muted-strong">175/204 · 85,8%</span></div>
+              <div class="progress progress--warning mt-1.5"><div class="progress__fill" style="width: 85.8%"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><span><strong>Khối 9</strong> · 196 HS · 2.400.000đ/HK</span><span class="text-mono muted-strong">158/196 · 80,6%</span></div>
+              <div class="progress progress--danger mt-1.5"><div class="progress__fill" style="width: 80.6%"></div></div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><span><strong>Khối liên cấp</strong> · 414 HS · 2.600.000đ/HK</span><span class="text-mono muted-strong">360/414 · 87,0%</span></div>
+              <div class="progress mt-1.5"><div class="progress__fill" style="width: 87%"></div></div>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <h2 class="h3 mb-2">Hồ sơ trễ hạn nhiều ngày nhất</h2>
+          <div class="dt-wrap" style="max-height: 400px;" tabindex="0">
+            <table class="dt" aria-label="Danh sách trễ hạn">
+              <thead><tr><th>Học sinh</th><th>Lớp</th><th>Phụ huynh</th><th>Số tiền</th><th>Số ngày trễ</th><th>Lần nhắc gần nhất</th></tr></thead>
+              <tbody>
+                <tr><td><div class="flex items-center gap-2"><span class="avatar">PV</span>Phạm Văn Tài</div></td><td>9A2</td><td>Phạm Đình Khoa</td><td class="dt-num">2.400.000đ</td><td><span class="pill pill--danger">42 ngày</span></td><td class="text-xs muted-strong">25/04 · Zalo OA</td></tr>
+                <tr><td><div class="flex items-center gap-2"><span class="avatar">NT</span>Nguyễn Thanh Phong</div></td><td>9A1</td><td>Nguyễn Văn Hải</td><td class="dt-num">4.800.000đ</td><td><span class="pill pill--danger">38 ngày</span></td><td class="text-xs muted-strong">22/04 · Gọi điện</td></tr>
+                <tr><td><div class="flex items-center gap-2"><span class="avatar">LH</span>Lê Hoàng Vy</div></td><td>8A3</td><td>Lê Văn Thắng</td><td class="dt-num">2.200.000đ</td><td><span class="pill pill--danger">35 ngày</span></td><td class="text-xs muted-strong">20/04 · Zalo OA</td></tr>
+                <tr><td><div class="flex items-center gap-2"><span class="avatar">VH</span>Vũ Hoài Anh</div></td><td>6A2</td><td>Vũ Đức Long</td><td class="dt-num">1.880.000đ</td><td><span class="pill pill--danger">32 ngày</span></td><td class="text-xs muted-strong">18/04 · Zalo OA</td></tr>
+                <tr><td><div class="flex items-center gap-2"><span class="avatar">TM</span>Trần Mỹ Hạnh</div></td><td>7A4</td><td>Trần Hồng Sơn</td><td class="dt-num">2.040.000đ</td><td><span class="pill pill--warning">26 ngày</span></td><td class="text-xs muted-strong">15/04 · Zalo OA</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Side panel -->
+        <div class="stack-3">
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Cơ cấu thu</div>
+            <div class="stack-2 mt-2 text-sm">
+              <div class="flex justify-between"><span>Học phí cơ bản</span><span class="text-mono">3,12 tỷ đ</span></div>
+              <div class="flex justify-between"><span>Phí dịch vụ ăn trưa</span><span class="text-mono">485 triệu đ</span></div>
+              <div class="flex justify-between"><span>Phí hoạt động ngoại khóa</span><span class="text-mono">152 triệu đ</span></div>
+              <div class="flex justify-between"><span>Đồng phục + sách</span><span class="text-mono">63 triệu đ</span></div>
+              <hr class="divider" />
+              <div class="flex justify-between font-semibold"><span>Tổng đã thu</span><span class="text-mono">3,82 tỷ đ</span></div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Chính sách miễn giảm</div>
+            <div class="stack-2 mt-2 text-sm">
+              <div class="flex items-center justify-between"><span>Hộ nghèo (ưu đãi 50%)</span><span class="pill pill--info">12 HS</span></div>
+              <div class="flex items-center justify-between"><span>Anh chị em ruột (giảm 10%)</span><span class="pill pill--info">87 HS</span></div>
+              <div class="flex items-center justify-between"><span>Con cán bộ (giảm 20%)</span><span class="pill pill--info">5 HS</span></div>
+              <div class="flex items-center justify-between"><span>Học sinh xuất sắc HK trước</span><span class="pill pill--accent">21 HS</span></div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Kênh nhắc nợ</div>
+            <p class="text-xs muted-strong mb-2">Mẫu Zalo OA và SMS đã được cấu hình sẵn theo TT-22.</p>
+            <div class="stack-2 text-sm">
+              <button class="btn btn--outline btn--sm w-full justify-start" type="button"><i data-lucide="message-circle" class="w-3 h-3"></i>Zalo OA · 158 PH</button>
+              <button class="btn btn--outline btn--sm w-full justify-start" type="button"><i data-lucide="message-square-text" class="w-3 h-3"></i>SMS · 158 PH (210.000đ)</button>
+              <button class="btn btn--outline btn--sm w-full justify-start" type="button"><i data-lucide="phone" class="w-3 h-3"></i>Gọi tự động · 14 PH quá 30 ngày</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

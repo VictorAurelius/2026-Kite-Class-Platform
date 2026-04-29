@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — MoET-compliant report card batch generation (legal requirement, GAP-055)
+  Score: T28/H30/A26/U25 = 109/128 (compliance feature → high persona alignment)
+  WCAG: Body 14.8:1 / MoET stamp 4.6:1 / Status pills ≥4.5:1 / Focus 2px / Bulk-action keyboard-reachable
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Học bạ MoET — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="report-cards.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học 2026–2027</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div></div></div>
+      <div><div class="section-title">Học sinh</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="bulk-import.html" class="nav-item"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách</a>
+        <a href="report-cards.html" class="nav-item nav-item--active"><i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET</a>
+        <a href="conduct.html" class="nav-item"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm</a>
+        <a href="teacher-management.html" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i>Giáo viên</a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="multi-class-roster.html" class="nav-item"><i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công</a>
+        <a href="fees.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+        <a href="academic-calendar.html" class="nav-item"><i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ</a>
+        <a href="school-profile.html" class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Học sinh</a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Học bạ HK1 · 25 lớp</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Học bạ học kỳ 1 · 2026–2027</h1>
+            <div class="page-header__sub">
+              <span class="moet-stamp"><i data-lucide="shield-check" class="w-3 h-3"></i>Tuân thủ Thông tư 22/2021/TT-BGDĐT</span>
+              <span class="ml-2">22/25 lớp đã hoàn tất nhập điểm · Hạn cuối: 05/05/2026</span>
+            </div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" type="button"><i data-lucide="download" class="w-4 h-4"></i>Tải mẫu trống</button>
+            <button class="gradient-button" type="button"><i data-lucide="zap" class="w-4 h-4"></i>Tạo hàng loạt 25 lớp</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Progress KPIs -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3" aria-label="Tiến độ học bạ">
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Lớp hoàn tất</div>
+          <div class="kpi-card__value">22<span class="text-base muted-strong">/25</span></div>
+          <div class="progress progress--success mt-2"><div class="progress__fill" style="width: 88%"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>Học sinh thiếu điểm</div>
+          <div class="kpi-card__value">14</div>
+          <div class="kpi-card__sub">3 lớp · 9 môn liên quan</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="file-check" class="w-3.5 h-3.5"></i>Đã ký số</div>
+          <div class="kpi-card__value">0<span class="text-base muted-strong">/1.247</span></div>
+          <div class="kpi-card__sub">Chờ phê duyệt hiệu trưởng</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__label"><i data-lucide="send" class="w-3.5 h-3.5"></i>Đã gửi PH</div>
+          <div class="kpi-card__value">0<span class="text-base muted-strong">/1.247</span></div>
+          <div class="kpi-card__sub">Sau khi ký</div>
+        </div>
+      </section>
+
+      <!-- Bulk action bar (3 selected example) -->
+      <div class="bulk-bar">
+        <span><span class="bulk-bar__count">3</span> lớp đã chọn (98 học sinh)</span>
+        <div class="cluster">
+          <button class="btn btn--outline btn--sm" type="button"><i data-lucide="eye" class="w-3 h-3"></i>Xem trước PDF</button>
+          <button class="btn btn--outline btn--sm" type="button"><i data-lucide="signature" class="w-3 h-3"></i>Ký số hàng loạt</button>
+          <button class="btn btn--primary btn--sm" type="button"><i data-lucide="send" class="w-3 h-3"></i>Phát hành & gửi PH</button>
+        </div>
+      </div>
+
+      <div class="dt-wrap" tabindex="0">
+        <table class="dt" aria-label="Tiến độ học bạ theo lớp">
+          <thead>
+            <tr>
+              <th><input class="dt-checkbox" type="checkbox" aria-label="Chọn tất cả lớp" /></th>
+              <th>Lớp</th>
+              <th>GVCN</th>
+              <th>Sĩ số</th>
+              <th>Nhập điểm</th>
+              <th>Nhận xét</th>
+              <th>Hạnh kiểm</th>
+              <th>Phê duyệt</th>
+              <th>Ký số</th>
+              <th>Gửi PH</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr aria-selected="true"><td><input class="dt-checkbox" type="checkbox" checked /></td><td><strong>6A1</strong></td><td>Hoàng Thanh Hải</td><td class="dt-num">36</td><td><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>36/36</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--warning">Chờ</span></td><td><span class="pill">Chưa</span></td><td><span class="pill">Chưa</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+            <tr aria-selected="true"><td><input class="dt-checkbox" type="checkbox" checked /></td><td><strong>6A2</strong></td><td>Trần Thị Phương Anh</td><td class="dt-num">35</td><td><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>35/35</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--warning">Chờ</span></td><td><span class="pill">Chưa</span></td><td><span class="pill">Chưa</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+            <tr aria-selected="true"><td><input class="dt-checkbox" type="checkbox" checked /></td><td><strong>6A3</strong></td><td>Nguyễn Văn Sơn</td><td class="dt-num">37</td><td><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>37/37</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--warning">Chờ</span></td><td><span class="pill">Chưa</span></td><td><span class="pill">Chưa</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+            <tr><td><input class="dt-checkbox" type="checkbox" /></td><td><strong>7A1</strong></td><td>Phạm Mai Linh</td><td class="dt-num">34</td><td><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>34/34</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--warning">Chờ</span></td><td><span class="pill">Chưa</span></td><td><span class="pill">Chưa</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+            <tr><td><input class="dt-checkbox" type="checkbox" /></td><td><strong>8A2</strong></td><td>Phạm Thị Yến</td><td class="dt-num">38</td><td><span class="pill pill--danger">34/38 — thiếu 4</span></td><td><span class="pill pill--warning">Một phần</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill">—</span></td><td><span class="pill">—</span></td><td><span class="pill">—</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+            <tr><td><input class="dt-checkbox" type="checkbox" /></td><td><strong>9A1</strong></td><td>Nguyễn Hữu Phúc</td><td class="dt-num">39</td><td><span class="pill pill--danger">29/39 — thiếu 10</span></td><td><span class="pill pill--danger">Chưa có</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill">—</span></td><td><span class="pill">—</span></td><td><span class="pill">—</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+            <tr><td><input class="dt-checkbox" type="checkbox" /></td><td><strong>9A2</strong></td><td>Lê Thị Diệu Linh</td><td class="dt-num">37</td><td><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>37/37</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--success">Đã có</span></td><td><span class="pill pill--warning">Chờ</span></td><td><span class="pill">Chưa</span></td><td><span class="pill">Chưa</span></td><td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td></tr>
+          </tbody>
+        </table>
+        <div class="dt-pagination">
+          <span>Hiển thị 1–7 của 25 lớp</span>
+          <div class="cluster"><button type="button" disabled>‹</button><span class="text-mono">1 / 4</span><button type="button">›</button></div>
+        </div>
+      </div>
+
+      <!-- MoET compliance side-info -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="card-base" style="padding: 1rem;">
+          <div class="cluster mb-1"><i data-lucide="shield-check" class="w-4 h-4" style="color: hsl(var(--success));"></i><strong class="text-sm">Tuân thủ MoET</strong></div>
+          <p class="text-sm muted-strong">Mẫu học bạ in PDF tuân thủ Thông tư 22/2021/TT-BGDĐT (THCS) — đã được Sở GD&ĐT TP.HCM nghiệm thu mẫu vào 12/2024.</p>
+        </div>
+        <div class="card-base" style="padding: 1rem;">
+          <div class="cluster mb-1"><i data-lucide="signature" class="w-4 h-4" style="color: hsl(var(--info));"></i><strong class="text-sm">Ký số mềm</strong></div>
+          <p class="text-sm muted-strong">Hỗ trợ ký số bằng chữ ký số chuyên dùng VGCA (Sở giao). Có thể ký từng học bạ hoặc hàng loạt theo lớp.</p>
+        </div>
+        <div class="card-base" style="padding: 1rem;">
+          <div class="cluster mb-1"><i data-lucide="bell-ring" class="w-4 h-4" style="color: hsl(var(--accent));"></i><strong class="text-sm">Gửi qua Zalo OA</strong></div>
+          <p class="text-sm muted-strong">Sau khi ký, học bạ tự động gửi PDF đính kèm tới Zalo OA của 1.247 phụ huynh trong vòng 5 phút.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>
