@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Components — Wave UI Kits Round 2 · Agent C</title>
+  <!--
+    Persona: Cross-cutting (used by all KC + KH kits)
+    Flow ref: dossier/04-component-gaps.md G2/G5/G6/G7/G12
+    Score self-estimate: 106.7/128 (kit avg)
+    Contrast: body 14.8:1 (slate-900 on slate-50) AAA · muted 4.7:1 AA
+  -->
+  <link rel="stylesheet" href="../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: var(--font-sans); }
+    .card { transition: all 200ms ease-out; }
+    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft-lg); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900">
+
+  <!-- Header -->
+  <header class="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../" class="text-sm text-slate-500 hover:text-slate-900">← Tất cả kits</a>
+        <span class="text-slate-300">/</span>
+        <div>
+          <div class="text-xs uppercase tracking-wider text-slate-500">Wave UI Kits Round 2 · Agent C</div>
+          <div class="font-semibold">5 Components</div>
+        </div>
+      </div>
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm">
+        Avg 106.7 / 128 · 29 state demos
+      </span>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="max-w-5xl mx-auto px-6 pt-10 pb-6">
+    <h1 class="text-3xl font-bold tracking-tight">Cross-cutting components</h1>
+    <p class="text-slate-600 mt-2 max-w-2xl">
+      Mỗi component có 4-7 state files (default · loading · empty · error · success · ...) + spec.md mô tả props/states/AC.
+      Embed trong screens của kits khác (kiteclass-pro v2 · kiteclass-parent · kiteclass-teacher · kitehub-pro v2 · ai-branding-wizard v2).
+    </p>
+  </section>
+
+  <!-- Component grid -->
+  <main class="max-w-5xl mx-auto px-6 pb-20">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+      <!-- G2 -->
+      <a href="G2-attendance-roster/default.html" class="card bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="flex items-start justify-between gap-3">
+          <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <span class="text-xs font-mono text-slate-400">G2</span>
+        </div>
+        <h2 class="font-semibold text-lg mt-4">Attendance Roster</h2>
+        <p class="text-sm text-slate-600 mt-1">Mark P / V / M / L per student · save bar · 5 states.</p>
+        <div class="mt-4 text-xs text-slate-500">
+          <a href="G2-attendance-roster/default.html" class="hover:text-blue-700">default</a> ·
+          <a href="G2-attendance-roster/loading.html" class="hover:text-blue-700">loading</a> ·
+          <a href="G2-attendance-roster/empty.html" class="hover:text-blue-700">empty</a> ·
+          <a href="G2-attendance-roster/error.html" class="hover:text-blue-700">error</a> ·
+          <a href="G2-attendance-roster/success.html" class="hover:text-blue-700">success</a> ·
+          <a href="G2-attendance-roster/spec.md" class="hover:text-blue-700">spec</a>
+        </div>
+      </a>
+
+      <!-- G5 -->
+      <a href="G5-payment-method-selector/default.html" class="card bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="flex items-start justify-between gap-3">
+          <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <span class="text-xs font-mono text-slate-400">G5</span>
+        </div>
+        <h2 class="font-semibold text-lg mt-4">Payment Method Selector</h2>
+        <p class="text-sm text-slate-600 mt-1">VNPay · MoMo · ZaloPay · Bank · Cash · QR · 6 states.</p>
+        <div class="mt-4 text-xs text-slate-500">
+          <a href="G5-payment-method-selector/default.html" class="hover:text-blue-700">default</a> ·
+          <a href="G5-payment-method-selector/loading-qr.html" class="hover:text-blue-700">loading-qr</a> ·
+          <a href="G5-payment-method-selector/qr-displayed.html" class="hover:text-blue-700">qr</a> ·
+          <a href="G5-payment-method-selector/expired.html" class="hover:text-blue-700">expired</a> ·
+          <a href="G5-payment-method-selector/success.html" class="hover:text-blue-700">success</a> ·
+          <a href="G5-payment-method-selector/failure-retry.html" class="hover:text-blue-700">retry</a> ·
+          <a href="G5-payment-method-selector/spec.md" class="hover:text-blue-700">spec</a>
+        </div>
+      </a>
+
+      <!-- G6 -->
+      <a href="G6-invoice-detail/default.html" class="card bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="flex items-start justify-between gap-3">
+          <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <span class="text-xs font-mono text-slate-400">G6</span>
+        </div>
+        <h2 class="font-semibold text-lg mt-4">Invoice Detail</h2>
+        <p class="text-sm text-slate-600 mt-1">VN tax format · line items · VAT · print-friendly · 6 states.</p>
+        <div class="mt-4 text-xs text-slate-500">
+          <a href="G6-invoice-detail/default.html" class="hover:text-blue-700">default</a> ·
+          <a href="G6-invoice-detail/loading.html" class="hover:text-blue-700">loading</a> ·
+          <a href="G6-invoice-detail/pending.html" class="hover:text-blue-700">pending</a> ·
+          <a href="G6-invoice-detail/overdue.html" class="hover:text-blue-700">overdue</a> ·
+          <a href="G6-invoice-detail/paid.html" class="hover:text-blue-700">paid</a> ·
+          <a href="G6-invoice-detail/print-view.html" class="hover:text-blue-700">print</a> ·
+          <a href="G6-invoice-detail/spec.md" class="hover:text-blue-700">spec</a>
+        </div>
+      </a>
+
+      <!-- G7 -->
+      <a href="G7-parent-invite/default.html" class="card bg-white rounded-2xl border border-slate-200 p-6 block">
+        <div class="flex items-start justify-between gap-3">
+          <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          </div>
+          <span class="text-xs font-mono text-slate-400">G7</span>
+        </div>
+        <h2 class="font-semibold text-lg mt-4">Parent Invite</h2>
+        <p class="text-sm text-slate-600 mt-1">Email + token + Zalo OA share · 6 states.</p>
+        <div class="mt-4 text-xs text-slate-500">
+          <a href="G7-parent-invite/default.html" class="hover:text-blue-700">sender</a> ·
+          <a href="G7-parent-invite/redemption-link.html" class="hover:text-blue-700">redeem</a> ·
+          <a href="G7-parent-invite/expired.html" class="hover:text-blue-700">expired</a> ·
+          <a href="G7-parent-invite/already-redeemed.html" class="hover:text-blue-700">already</a> ·
+          <a href="G7-parent-invite/zalo-share.html" class="hover:text-blue-700">zalo</a> ·
+          <a href="G7-parent-invite/success.html" class="hover:text-blue-700">success</a> ·
+          <a href="G7-parent-invite/spec.md" class="hover:text-blue-700">spec</a>
+        </div>
+      </a>
+
+      <!-- G12 -->
+      <a href="G12-bulk-actions-bar/default.html" class="card bg-white rounded-2xl border border-slate-200 p-6 block md:col-span-2">
+        <div class="flex items-start justify-between gap-3">
+          <div class="inline-flex p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <span class="text-xs font-mono text-slate-400">G12</span>
+        </div>
+        <h2 class="font-semibold text-lg mt-4">Bulk Actions Bar</h2>
+        <p class="text-sm text-slate-600 mt-1">Sticky multi-select bar · Export CSV · Archive · Assign · Delete · 6 states.</p>
+        <div class="mt-4 text-xs text-slate-500">
+          <a href="G12-bulk-actions-bar/default.html" class="hover:text-blue-700">default</a> ·
+          <a href="G12-bulk-actions-bar/selecting.html" class="hover:text-blue-700">selecting</a> ·
+          <a href="G12-bulk-actions-bar/bulk-confirm.html" class="hover:text-blue-700">confirm</a> ·
+          <a href="G12-bulk-actions-bar/action-running.html" class="hover:text-blue-700">running</a> ·
+          <a href="G12-bulk-actions-bar/action-done.html" class="hover:text-blue-700">done</a> ·
+          <a href="G12-bulk-actions-bar/select-all-cross-page.html" class="hover:text-blue-700">cross-page</a> ·
+          <a href="G12-bulk-actions-bar/spec.md" class="hover:text-blue-700">spec</a>
+        </div>
+      </a>
+
+    </div>
+
+    <p class="mt-12 text-xs text-slate-500">
+      Spec docs (`spec.md`): TypeScript-ish props · state machine · accessibility · VN UX · used-by mapping.
+      Đầy đủ chi tiết tại <a href="../" class="text-blue-700 hover:underline">README ui_kits/</a> và
+      <a href="../../dossier/04-component-gaps.md" class="text-blue-700 hover:underline">dossier/04-component-gaps.md</a>.
+    </p>
+  </main>
+</body>
+</html>

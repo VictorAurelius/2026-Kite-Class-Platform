@@ -38,6 +38,8 @@ Checks per kit folder:
   3. Card displays a persona-pill chip (any pill following kit title)
   4. Card "X screens · WaveY" / "X demos · WaveY" count is plausible
      vs actual screens/ HTML count
+  5. Kit has its own index.html (GitHub Pages serves directory listing as
+     404 without index — caught 2026-04-29 components/ live-demo miss)
 
 Exit codes:
   0   pass
@@ -160,6 +162,11 @@ count_kit_screens() {
 }
 
 for slug in "${KIT_FOLDERS[@]}"; do
+  # Check 5: each kit folder has its own index.html (GitHub Pages 404 guard)
+  if [[ ! -f "$KITS_DIR/$slug/index.html" ]]; then
+    VIOLATIONS+=("Kit '$slug/' missing index.html (GitHub Pages will 404 on live demo)")
+  fi
+
   block="$(extract_card_block "$slug" || true)"
   if [[ -z "$block" ]]; then
     # If Tier 1 already flagged missing card, skip stricter checks for this slug.
@@ -208,7 +215,7 @@ echo "  Kits:    ${#KIT_FOLDERS[@]}"
 echo
 
 if [[ ${#VIOLATIONS[@]} -eq 0 ]]; then
-  echo "PASS — folder/card/score/persona/count parity holds for ${#KIT_FOLDERS[@]} kits."
+  echo "PASS — folder/card/score/persona/count/index parity holds for ${#KIT_FOLDERS[@]} kits."
   log_run 0 "kits=${#KIT_FOLDERS[@]} violations=0"
   exit 0
 fi
