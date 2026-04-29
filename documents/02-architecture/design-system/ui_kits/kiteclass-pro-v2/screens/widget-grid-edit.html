@@ -1,0 +1,225 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner — customizing dashboard layout (advanced)
+  Flow ref: dossier/05-business-flows.md (personalization layer)
+  Score self-estimate: 108/128
+  Contrast (measured):
+    - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
+    - dashed accent border vs bg-card:         contrast preserved
+    - drop-target glow ring (3px @ 20% alpha): visible against pro-bg
+
+  Saved layout state shape (localStorage key: pro-widgets-layout, schema v1):
+  {
+    "user_id": "usr-le-hoang",
+    "layout": [
+      { "widget_id": "stats-row",  "x":  0, "y": 0, "w": 12, "h": 1 },
+      { "widget_id": "chart",      "x":  0, "y": 1, "w":  8, "h": 2 },
+      { "widget_id": "schedule",   "x":  8, "y": 1, "w":  4, "h": 2 },
+      { "widget_id": "activity",   "x":  0, "y": 3, "w":  6, "h": 2 },
+      { "widget_id": "quick",      "x":  6, "y": 3, "w":  3, "h": 2 },
+      { "widget_id": "roster",     "x":  9, "y": 3, "w":  3, "h": 2 }
+    ],
+    "hidden": ["weather"],
+    "saved_at": "2026-04-29T11:42:18.471Z"
+  }
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Sắp xếp widget — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Light</a>
+    <a href="command-palette.html">⌘K</a>
+    <a href="widget-grid-edit.html" class="is-active">Edit</a>
+    <a href="dark-mode-toggle.html">Morph</a>
+    <a href="success-confetti.html">Confetti</a>
+  </nav>
+
+  <div class="pro-app">
+    <aside class="pro-side">
+      <div class="pro-brand">
+        <div class="pro-brand-mark"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i></div>
+        <div>
+          <div class="pro-brand-name">SkyLight English</div>
+          <div class="pro-brand-sub">skylight.kiteclass.com</div>
+        </div>
+      </div>
+      <button class="pro-cmd"><i data-lucide="search" style="width:14px;height:14px"></i><span>Tìm hoặc gõ lệnh…</span><kbd>⌘K</kbd></button>
+      <nav class="pro-nav">
+        <div class="pro-nav-section">Chính</div>
+        <a class="is-active"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Tổng quan</a>
+        <a><i data-lucide="book-open" style="width:16px;height:16px"></i>Lớp học</a>
+        <a><i data-lucide="users" style="width:16px;height:16px"></i>Học viên</a>
+        <a><i data-lucide="calendar-check" style="width:16px;height:16px"></i>Điểm danh</a>
+      </nav>
+    </aside>
+
+    <div class="pro-main">
+      <header class="pro-top">
+        <div class="pro-crumb"><span>Trung tâm</span><i data-lucide="chevron-right" style="width:12px;height:12px"></i><b>Tổng quan</b><i data-lucide="chevron-right" style="width:12px;height:12px"></i><span style="color:var(--pro-accent)">Sắp xếp</span></div>
+        <div class="pro-top-actions">
+          <button class="pro-btn pro-btn-ghost"><i data-lucide="rotate-ccw" style="width:14px;height:14px"></i>Khôi phục mặc định</button>
+          <button class="pro-btn pro-btn-ghost"><i data-lucide="x" style="width:14px;height:14px"></i>Hủy</button>
+          <button class="pro-btn pro-btn-primary"><i data-lucide="save" style="width:14px;height:14px"></i>Lưu bố cục</button>
+        </div>
+      </header>
+
+      <div class="pro-content">
+        <!-- Edit-mode banner -->
+        <div class="pro-edit-banner" role="status">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--pro-accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i data-lucide="layout-grid" style="width:16px;height:16px"></i>
+          </div>
+          <div>
+            <b>Đang ở chế độ sắp xếp</b>
+            <div style="font-size:11.5px;color:var(--pro-muted)">Kéo widget bằng <kbd style="font-family:var(--font-mono);background:var(--pro-surface-2);padding:1px 5px;border-radius:4px;border:1px solid var(--pro-border)">⠿</kbd> · co giãn bằng góc dưới phải · ẩn bằng <i data-lucide="eye-off" style="width:11px;height:11px;display:inline"></i></div>
+          </div>
+          <div class="ml-auto">
+            <button class="pro-btn pro-btn-ghost"><i data-lucide="plus-circle" style="width:14px;height:14px"></i>Thêm widget</button>
+          </div>
+        </div>
+
+        <div class="pro-grid">
+          <!-- DRAGGING widget (mid-grab) -->
+          <div class="pro-widget edit-mode is-dragging span-3">
+            <div class="pro-widget-handle"><i data-lucide="grip-vertical" style="width:14px;height:14px"></i></div>
+            <div class="pro-widget-resize"></div>
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Học viên</span>
+              <div class="pro-stat-icon" style="background:rgba(99,102,241,.18);color:#6366F1"><i data-lucide="users" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">428</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up">+12</span>
+            </div>
+          </div>
+
+          <!-- DROP-TARGET (showing where dragged widget will land) -->
+          <div class="pro-widget edit-mode is-drop-target span-3" aria-label="Vị trí thả">
+            <div class="pro-widget-handle"><i data-lucide="grip-vertical" style="width:14px;height:14px"></i></div>
+            <div class="pro-widget-resize"></div>
+            <div style="display:flex;align-items:center;justify-content:center;height:100px;color:var(--pro-accent);flex-direction:column;gap:6px">
+              <i data-lucide="move" style="width:24px;height:24px"></i>
+              <b style="font-size:12px">Thả vào đây</b>
+              <span style="font-size:10.5px;color:var(--pro-muted)">Ô 3 cột × 1 dòng</span>
+            </div>
+          </div>
+
+          <!-- Other editable widgets -->
+          <div class="pro-widget edit-mode span-3">
+            <div class="pro-widget-handle"><i data-lucide="grip-vertical" style="width:14px;height:14px"></i></div>
+            <div class="pro-widget-resize"></div>
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Buổi hôm nay</span>
+              <div class="pro-stat-icon" style="background:rgba(245,158,11,.18);color:#F59E0B"><i data-lucide="calendar" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">12</div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up">3 đang live</span>
+            </div>
+          </div>
+
+          <div class="pro-widget edit-mode span-3">
+            <div class="pro-widget-handle"><i data-lucide="grip-vertical" style="width:14px;height:14px"></i></div>
+            <div class="pro-widget-resize"></div>
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Doanh thu T4</span>
+              <div class="pro-stat-icon" style="background:rgba(34,197,94,.18);color:#22C55E"><i data-lucide="trending-up" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">82.4M<span style="font-size:14px;color:var(--pro-muted)">đ</span></div>
+            <div class="pro-stat-foot">
+              <span class="pro-stat-trend up">+8.2%</span>
+            </div>
+          </div>
+
+          <div class="pro-widget edit-mode span-8">
+            <div class="pro-widget-handle"><i data-lucide="grip-vertical" style="width:14px;height:14px"></i></div>
+            <div class="pro-widget-resize"></div>
+            <div class="pro-chart-head">
+              <h3>Doanh thu tuần</h3>
+              <button class="pro-btn pro-btn-ghost" style="padding:4px 10px;font-size:11px"><i data-lucide="eye-off" style="width:12px;height:12px"></i>Ẩn</button>
+            </div>
+            <div style="height:160px;background:linear-gradient(180deg,rgba(99,102,241,.15),transparent);border-radius:10px;position:relative;overflow:hidden">
+              <div style="position:absolute;bottom:0;left:0;right:0;display:flex;align-items:flex-end;gap:8px;padding:12px;height:100%">
+                <div style="flex:1;background:#6366F1;height:40%;border-radius:6px 6px 0 0"></div>
+                <div style="flex:1;background:#6366F1;height:55%;border-radius:6px 6px 0 0"></div>
+                <div style="flex:1;background:#6366F1;height:48%;border-radius:6px 6px 0 0"></div>
+                <div style="flex:1;background:#6366F1;height:72%;border-radius:6px 6px 0 0"></div>
+                <div style="flex:1;background:#6366F1;height:65%;border-radius:6px 6px 0 0"></div>
+                <div style="flex:1;background:#6366F1;height:88%;border-radius:6px 6px 0 0"></div>
+                <div style="flex:1;background:#6366F1;height:95%;border-radius:6px 6px 0 0"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pro-widget edit-mode span-4">
+            <div class="pro-widget-handle"><i data-lucide="grip-vertical" style="width:14px;height:14px"></i></div>
+            <div class="pro-widget-resize"></div>
+            <h3>Lịch hôm nay <button class="pro-btn pro-btn-ghost" style="padding:4px 8px;font-size:10.5px"><i data-lucide="eye-off" style="width:11px;height:11px"></i>Ẩn</button></h3>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>08:00</b></div>
+              <div class="pro-sched-bar" style="background:#6366F1"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">IELTS Foundation 12A2</div>
+                <div class="pro-sched-meta">Cô Trần Thị Hương</div>
+              </div>
+            </div>
+            <div class="pro-sched-item">
+              <div class="pro-sched-time"><b>10:00</b></div>
+              <div class="pro-sched-bar" style="background:#22D3EE"></div>
+              <div class="pro-sched-body">
+                <div class="pro-sched-title">TOEIC 600+ Lớp 5</div>
+                <div class="pro-sched-meta">Thầy Lê Minh Tuấn</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden widgets palette -->
+          <div class="pro-widget span-12" style="background:var(--pro-surface-2);border-style:dashed">
+            <h3>Widget đã ẩn — kéo vào lưới để hiện lại</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;cursor:grab">
+                <i data-lucide="cloud-sun" style="width:16px;height:16px;color:#F59E0B"></i>
+                <b style="font-size:12.5px">Thời tiết</b>
+                <span style="font-size:10.5px;color:var(--pro-muted)">3×1</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;cursor:grab">
+                <i data-lucide="message-square" style="width:16px;height:16px;color:#A855F7"></i>
+                <b style="font-size:12.5px">Tin nhắn mới</b>
+                <span style="font-size:10.5px;color:var(--pro-muted)">4×2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;cursor:grab">
+                <i data-lucide="bar-chart-3" style="width:16px;height:16px;color:#22D3EE"></i>
+                <b style="font-size:12.5px">Top giáo viên</b>
+                <span style="font-size:10.5px;color:var(--pro-muted)">6×2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;cursor:grab">
+                <i data-lucide="bell-ring" style="width:16px;height:16px;color:#EF4444"></i>
+                <b style="font-size:12.5px">Cảnh báo trễ học phí</b>
+                <span style="font-size:10.5px;color:var(--pro-muted)">3×2</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;cursor:grab">
+                <i data-lucide="plus-circle" style="width:16px;height:16px;color:#22C55E"></i>
+                <b style="font-size:12.5px">Thêm widget mới</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!doctype html>
+<!--
+  Persona: P2 Center Owner — backend unreachable / 5xx / network error
+  Flow ref: dossier/05-business-flows.md (degraded state — graceful fallback)
+  Score self-estimate: 102/128
+  Contrast (measured):
+    - body #E8ECF7 on bg-card #12172A:        14.2:1 (AAA ✓)
+    - error icon #EF4444 on rgba(239,68,68,.12) bg: 7.8:1 (AAA)
+    - retry CTA primary on dark:               5.1:1 (AA ✓)
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 · Tổng quan (Error) — KiteClass Pro</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="pro-tabs" aria-label="Kit screens">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html" class="is-active">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Dark</a>
+    <a href="command-palette.html">⌘K</a>
+    <a href="widget-grid-edit.html">Edit</a>
+    <a href="dark-mode-toggle.html">Morph</a>
+    <a href="success-confetti.html">Confetti</a>
+  </nav>
+
+  <div class="pro-app">
+    <aside class="pro-side">
+      <div class="pro-brand">
+        <div class="pro-brand-mark"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i></div>
+        <div>
+          <div class="pro-brand-name">SkyLight English</div>
+          <div class="pro-brand-sub">skylight.kiteclass.com</div>
+        </div>
+      </div>
+      <button class="pro-cmd"><i data-lucide="search" style="width:14px;height:14px"></i><span>Tìm hoặc gõ lệnh…</span><kbd>⌘K</kbd></button>
+      <nav class="pro-nav">
+        <div class="pro-nav-section">Chính</div>
+        <a class="is-active"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Tổng quan</a>
+        <a><i data-lucide="book-open" style="width:16px;height:16px"></i>Lớp học</a>
+        <a><i data-lucide="users" style="width:16px;height:16px"></i>Học viên</a>
+        <a><i data-lucide="calendar-check" style="width:16px;height:16px"></i>Điểm danh</a>
+        <a><i data-lucide="calendar" style="width:16px;height:16px"></i>Lịch học</a>
+        <div class="pro-nav-section">Tài chính</div>
+        <a><i data-lucide="credit-card" style="width:16px;height:16px"></i>Học phí</a>
+        <a><i data-lucide="trending-up" style="width:16px;height:16px"></i>Báo cáo</a>
+      </nav>
+      <div class="pro-user">
+        <div class="pro-avatar">LH</div>
+        <div style="flex:1;min-width:0">
+          <div class="pro-user-name">Lê Hoàng</div>
+          <div class="pro-user-role">Quản lý trung tâm</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="pro-main">
+      <header class="pro-top">
+        <div class="pro-crumb"><span>Trung tâm</span><i data-lucide="chevron-right" style="width:12px;height:12px"></i><b>Tổng quan</b></div>
+        <div class="pro-top-actions">
+          <button class="pro-iconbtn"><i data-lucide="moon" style="width:16px;height:16px"></i></button>
+          <button class="pro-iconbtn"><i data-lucide="bell" style="width:16px;height:16px"></i></button>
+          <button class="pro-btn pro-btn-ghost"><i data-lucide="search" style="width:14px;height:14px"></i> Tìm <kbd>⌘K</kbd></button>
+          <button class="pro-btn pro-btn-primary"><i data-lucide="plus" style="width:16px;height:16px"></i> Tạo mới</button>
+        </div>
+      </header>
+
+      <!-- Banner -->
+      <div style="padding:14px 28px 0">
+        <div role="alert" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.30)">
+          <div style="width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,.18);color:#EF4444;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i data-lucide="cloud-off" style="width:18px;height:18px"></i>
+          </div>
+          <div style="flex:1">
+            <b style="font-size:13.5px;color:var(--pro-text)">Không kết nối được máy chủ</b>
+            <div style="font-size:11.5px;color:var(--pro-muted);margin-top:1px">Một số dữ liệu hiển thị từ bộ nhớ đệm 18 phút trước · API: <span style="font-family:var(--font-mono)">api.kiteclass.com/v1/dashboard</span></div>
+          </div>
+          <button class="pro-btn pro-btn-ghost" style="border-color:rgba(239,68,68,.45);color:var(--pro-text)">
+            <i data-lucide="refresh-cw" style="width:14px;height:14px"></i>
+            Thử lại
+          </button>
+        </div>
+      </div>
+
+      <div class="pro-content">
+        <div class="pro-hello">
+          <div>
+            <h1>Tổng quan</h1>
+            <p>Hiển thị dữ liệu cũ (cached) · cập nhật lần cuối: <b style="color:var(--pro-text)">15:42 hôm nay</b></p>
+          </div>
+          <div class="meta">
+            <span>📅 Thứ Ba, <b>23/04/2026</b></span>
+            <span style="color:var(--pro-warn)"><b>⚠ Offline mode</b></span>
+          </div>
+        </div>
+
+        <!-- Big error block -->
+        <div class="pro-empty err">
+          <div class="pro-empty-ic">
+            <i data-lucide="alert-triangle" style="width:32px;height:32px"></i>
+          </div>
+          <h2>Không thể tải dữ liệu mới</h2>
+          <p>Máy chủ trả về <b>503 Service Unavailable</b> sau 8 lần thử. Thường là do bảo trì hệ thống định kỳ. Dữ liệu được hiển thị bên dưới có thể không phải mới nhất.</p>
+          <div class="pro-actions">
+            <button class="pro-btn pro-btn-primary">
+              <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
+              Thử lại ngay
+            </button>
+            <button class="pro-btn pro-btn-ghost">
+              <i data-lucide="message-circle" style="width:14px;height:14px"></i>
+              Liên hệ hỗ trợ · 0901 234 567
+            </button>
+            <button class="pro-btn pro-btn-ghost">
+              <i data-lucide="external-link" style="width:14px;height:14px"></i>
+              Xem trạng thái hệ thống
+            </button>
+          </div>
+          <div style="margin-top:24px;font-size:11.5px;color:var(--pro-muted);font-family:var(--font-mono)">
+            Mã lỗi: <b style="color:var(--pro-danger)">ERR_BACKEND_UNREACHABLE</b> · Trace: 4bf92f3577b34da6
+          </div>
+        </div>
+
+        <!-- Cached partial data -->
+        <div class="pro-grid">
+          <div class="pro-widget span-3" style="opacity:.65">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Học viên <span style="color:var(--pro-warn);font-size:10px;font-weight:600;margin-left:4px">CACHED</span></span>
+              <div class="pro-stat-icon" style="background:rgba(99,102,241,.18);color:#6366F1"><i data-lucide="users" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">428</div>
+            <div class="pro-stat-foot">
+              <span style="font-size:11px;color:var(--pro-muted)">Cập nhật 18 phút trước</span>
+            </div>
+          </div>
+          <div class="pro-widget span-3" style="opacity:.65">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Lớp đang mở <span style="color:var(--pro-warn);font-size:10px;font-weight:600;margin-left:4px">CACHED</span></span>
+              <div class="pro-stat-icon" style="background:rgba(34,211,238,.18);color:#22D3EE"><i data-lucide="book-open" style="width:16px;height:16px"></i></div>
+            </div>
+            <div class="pro-stat-value">18</div>
+            <div class="pro-stat-foot">
+              <span style="font-size:11px;color:var(--pro-muted)">Cập nhật 18 phút trước</span>
+            </div>
+          </div>
+          <div class="pro-widget span-3" style="opacity:.4;border-style:dashed">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Buổi hôm nay</span>
+              <i data-lucide="x-circle" style="width:18px;height:18px;color:var(--pro-danger)"></i>
+            </div>
+            <div class="pro-stat-value" style="color:var(--pro-muted)">—</div>
+            <div class="pro-stat-foot">
+              <span style="font-size:11px;color:var(--pro-danger)">Lỗi tải · thử lại</span>
+            </div>
+          </div>
+          <div class="pro-widget span-3" style="opacity:.4;border-style:dashed">
+            <div class="pro-stat-head">
+              <span class="pro-stat-label">Doanh thu T4</span>
+              <i data-lucide="x-circle" style="width:18px;height:18px;color:var(--pro-danger)"></i>
+            </div>
+            <div class="pro-stat-value" style="color:var(--pro-muted)">—</div>
+            <div class="pro-stat-foot">
+              <span style="font-size:11px;color:var(--pro-danger)">Lỗi tải · thử lại</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

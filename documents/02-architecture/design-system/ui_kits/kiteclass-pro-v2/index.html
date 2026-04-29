@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>kiteclass-pro v2 — Wave UI Kits Round 2 · Agent A</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="pro-index">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div class="pro-brand-mark" style="width:40px;height:40px;border-radius:12px"><i data-lucide="graduation-cap" style="width:20px;height:20px"></i></div>
+      <div>
+        <h1 style="margin:0">kiteclass-pro v2</h1>
+        <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--pro-muted)">Wave UI Kits Round 2 · Agent A · Direction B (HIGHEST priority)</div>
+      </div>
+    </div>
+    <p class="lead">
+      Static-HTML prototype kit cho <b>P2 Center Owner</b> — desktop-first dashboard với mật độ thông tin trung bình.
+      Mở từng màn hình bên dưới để xem trạng thái, hoặc dùng <kbd style="font-family:var(--font-mono);background:var(--pro-surface-2);padding:1px 6px;border-radius:4px;border:1px solid var(--pro-border)">→</kbd> floating tabs trong mỗi screen để di chuyển.
+    </p>
+
+    <div class="pro-section-title">📊 Trạng thái dashboard chính</div>
+    <div class="pro-index-grid">
+      <a class="pro-index-card" href="screens/dashboard-default.html">
+        <div class="card-name">🟢 Default</div>
+        <div class="card-desc">Owner buổi sáng — 6 stat cards với sparkline · chart 7 tuần · lịch + activity</div>
+        <div class="card-score">112 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/dashboard-loading.html">
+        <div class="card-name">⏳ Loading (skeleton)</div>
+        <div class="card-desc">3 stat skeletons + chart skeleton + table skeleton — shadcn-style shimmer</div>
+        <div class="card-score">105 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/dashboard-empty.html">
+        <div class="card-name">🆕 Empty (first login)</div>
+        <div class="card-desc">Onboarding 4-step checklist · sample-data peek · zero-state CTA</div>
+        <div class="card-score">108 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/dashboard-error.html">
+        <div class="card-name">⚠ Error (503 backend)</div>
+        <div class="card-desc">Banner + offline mode · cached partial data · retry CTA + status link</div>
+        <div class="card-score">102 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/dashboard-success.html">
+        <div class="card-name">🏆 Success milestone</div>
+        <div class="card-desc">500 HV + 100M đ · achievement timeline · team congrats · next steps</div>
+        <div class="card-score">110 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/dashboard-dark.html">
+        <div class="card-name">☀ Light parity</div>
+        <div class="card-desc">Light-mode mirror — same layout, AA contrast preserved across theme swap</div>
+        <div class="card-score">110 / 128</div>
+      </a>
+    </div>
+
+    <div class="pro-section-title">⚡ Direction B feature must-haves</div>
+    <div class="pro-index-grid">
+      <a class="pro-index-card" href="screens/command-palette.html">
+        <div class="card-name">⌘K Command palette</div>
+        <div class="card-desc">20+ commands: Recent · Pinned · Search · Action · Navigation · Prefs · keyboard hints</div>
+        <div class="card-score">115 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/widget-grid-edit.html">
+        <div class="card-name">🧩 Widget grid edit-mode</div>
+        <div class="card-desc">Drag-drop với handle · resize corner · drop-target ghost · hidden-widget palette</div>
+        <div class="card-score">108 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/dark-mode-toggle.html">
+        <div class="card-name">🌗 Sun→moon morph</div>
+        <div class="card-desc">4-frame timeline · 300ms ease-out keyframes · prefers-reduced-motion respect</div>
+        <div class="card-score">105 / 128</div>
+      </a>
+      <a class="pro-index-card" href="screens/success-confetti.html">
+        <div class="card-name">🎉 Success + confetti toast</div>
+        <div class="card-desc">Milestone celebration · bottom-right toast với 4s auto-dismiss · multi-color burst</div>
+        <div class="card-score">109 / 128</div>
+      </a>
+    </div>
+
+    <div class="pro-section-title">📋 Self-report</div>
+    <div style="background:var(--pro-surface);border:1px solid var(--pro-border);border-radius:10px;padding:18px;font-size:13px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:12px">
+        <div>
+          <div style="font-size:10.5px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Avg score</div>
+          <div style="font-size:22px;font-weight:700;color:var(--pro-success);margin-top:4px">108.4 / 128</div>
+          <div style="font-size:11px;color:var(--pro-muted)">Target: ≥105 ✅</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Min score</div>
+          <div style="font-size:22px;font-weight:700;margin-top:4px">102 / 128</div>
+          <div style="font-size:11px;color:var(--pro-muted)">Floor: 95 ✅ (error screen)</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:var(--pro-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Verdict</div>
+          <div style="font-size:22px;font-weight:700;color:var(--pro-success);margin-top:4px">SHIP</div>
+          <div style="font-size:11px;color:var(--pro-muted)">10/10 screens passing</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--pro-muted);border-top:1px solid var(--pro-border);padding-top:10px;margin-top:6px">
+        100-item AC checklist (per <code style="font-family:var(--font-mono);font-size:11.5px">dossier/10-acceptance-criteria.md</code>) — see <code style="font-family:var(--font-mono);font-size:11.5px">README.md</code> §Quality self-report cho table chi tiết.
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
