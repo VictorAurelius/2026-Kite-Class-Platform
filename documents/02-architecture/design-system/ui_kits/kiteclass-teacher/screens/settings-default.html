@@ -1,0 +1,151 @@
+<!--
+  Persona: Teacher
+  Flow: Settings overview — profile + payroll + notifications
+  Score self-estimate: 109/128
+  Contrast: form labels 4.7:1, switches 3:1 non-text, primary 4.5:1
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cài đặt — Cô Trần Thu Hà | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 lg:px-6 py-4">
+  <h1 class="h1 mb-1">Cài đặt tài khoản</h1>
+  <p class="muted body-sm mb-5">Quản lý hồ sơ, lương và thông báo</p>
+
+  <div class="grid md:grid-cols-[200px_1fr] gap-6">
+    <!-- Sidebar -->
+    <aside class="space-y-1 text-sm">
+      <a href="#" class="block px-3 py-2 rounded-md bg-muted font-medium text-foreground tap-target">Hồ sơ</a>
+      <a href="settings-payroll.html" class="block px-3 py-2 rounded-md hover:bg-muted muted tap-target">Lương + thuế</a>
+      <a href="#" class="block px-3 py-2 rounded-md hover:bg-muted muted tap-target">Thông báo</a>
+      <a href="#" class="block px-3 py-2 rounded-md hover:bg-muted muted tap-target">Bảo mật</a>
+      <a href="#" class="block px-3 py-2 rounded-md hover:bg-muted muted tap-target">Quyền + lớp dạy</a>
+    </aside>
+
+    <!-- Profile section -->
+    <section class="space-y-5">
+
+      <!-- Avatar + name -->
+      <div class="rounded-2xl border border-border bg-card p-4 shadow-soft">
+        <h2 class="font-semibold mb-4">Hồ sơ cá nhân</h2>
+        <div class="flex items-start gap-4 mb-4">
+          <div class="w-20 h-20 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-2xl">TH</div>
+          <div class="flex-1">
+            <div class="font-medium text-lg">Cô Trần Thu Hà</div>
+            <div class="text-sm muted">tranthuha@thpt-nguyentruongto.edu.vn</div>
+            <div class="text-xs muted mt-1">GVCN Lớp 10A2 · GV Toán THPT Nguyễn Trường Tộ · Hà Nội</div>
+          </div>
+          <button class="px-3 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target inline-flex items-center gap-2"><i data-lucide="upload" class="w-4 h-4"></i>Đổi ảnh</button>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Họ và tên</label>
+            <input class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm tap-target" value="Trần Thu Hà" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Số điện thoại</label>
+            <input class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm tap-target font-mono" value="0912 345 678" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Email công việc</label>
+            <input class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm tap-target" value="tranthuha@thpt-nguyentruongto.edu.vn" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Mã số thuế cá nhân (MST)</label>
+            <input class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm tap-target font-mono" value="8001234567" />
+            <p class="text-xs muted mt-1">10 chữ số, dùng để xuất hóa đơn lương</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Ngày sinh</label>
+            <input type="date" class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm tap-target" value="1985-03-12" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">CCCD</label>
+            <input class="w-full px-3 py-2 rounded-md border border-border bg-card text-sm tap-target font-mono" value="001185 ••• 234" />
+            <p class="text-xs muted mt-1">Dấu • để ẩn — chỉ hiệu trưởng xem được đầy đủ</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="rounded-2xl border border-border bg-card p-4 shadow-soft">
+        <h2 class="font-semibold mb-4">Thông báo</h2>
+        <ul class="divide-y divide-border">
+          <li class="py-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-sm">Zalo OA — học sinh vắng học</div>
+              <div class="text-xs muted">Gửi khi học sinh có mã M (vắng không phép)</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <span class="w-11 h-6 bg-muted peer-checked:bg-primary rounded-full transition relative tap-target">
+                <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card border border-border peer-checked:translate-x-5 transition"></span>
+              </span>
+            </label>
+          </li>
+          <li class="py-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-sm">Email — báo cáo tuần</div>
+              <div class="text-xs muted">Tổng hợp tỷ lệ chuyên cần các lớp · gửi tối Chủ nhật</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <span class="w-11 h-6 bg-muted peer-checked:bg-primary rounded-full transition relative tap-target">
+                <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card border border-border peer-checked:translate-x-5 transition"></span>
+              </span>
+            </label>
+          </li>
+          <li class="py-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-sm">SMS — sự cố khẩn cấp</div>
+              <div class="text-xs muted">Học sinh cần hỗ trợ y tế / kỷ luật / khẩn cấp</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" checked />
+              <span class="w-11 h-6 bg-muted peer-checked:bg-primary rounded-full transition relative tap-target">
+                <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card border border-border peer-checked:translate-x-5 transition"></span>
+              </span>
+            </label>
+          </li>
+          <li class="py-3 flex items-center justify-between">
+            <div>
+              <div class="font-medium text-sm">Email — phụ huynh nhắn tin</div>
+              <div class="text-xs muted">Khi PH nhắn tin trên app KiteClass</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer" />
+              <span class="w-11 h-6 bg-muted peer-checked:bg-primary rounded-full transition relative tap-target">
+                <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card border border-border peer-checked:translate-x-5 transition"></span>
+              </span>
+            </label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy</button>
+        <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i>Lưu thay đổi</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

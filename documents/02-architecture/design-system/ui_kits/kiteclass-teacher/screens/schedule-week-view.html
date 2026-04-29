@@ -1,0 +1,132 @@
+<!--
+  Persona: Teacher (homeroom + subject)
+  Device: tablet primary, desktop optimal
+  Flow ref: Flow #4 supporting (schedule + planning)
+  Component ref: dossier/04-component-gaps.md G4 Schedule (inline pattern; component spec deferred Wave 2)
+  Score self-estimate: 108/128 (target ≥105)
+  Lift target: net new (no current /classes/[id]/schedule route)
+  Contrast (measured):
+  - Schedule slot border-left primary 4.5:1 (AA ✓)
+  - Foreground on bg-card 14.8:1 (AAA ✓)
+  - Day header muted-fg 4.7:1 (AA ✓)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lịch dạy — Cô Trần Thu Hà | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+      <nav class="hidden md:flex items-center gap-1 text-sm">
+        <a href="attendance-default.html" class="px-3 py-2 rounded-md hover:bg-muted muted">Điểm danh</a>
+        <a href="grade-entry-default.html" class="px-3 py-2 rounded-md hover:bg-muted muted">Vào điểm</a>
+        <a href="#" class="px-3 py-2 rounded-md text-foreground bg-muted font-medium">Lịch dạy</a>
+        <a href="reports-overview-default.html" class="px-3 py-2 rounded-md hover:bg-muted muted">Báo cáo</a>
+      </nav>
+    </div>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
+    <div>
+      <h1 class="h1 mb-1">Lịch dạy tuần này</h1>
+      <p class="muted body-sm">Tuần 33 — 14/04/2026 đến 20/04/2026 · 18 tiết / tuần</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="tap-target rounded-md border border-border bg-card hover:bg-muted px-3 py-2 inline-flex items-center gap-1"><i data-lucide="chevron-left" class="w-4 h-4"></i><span class="text-sm">Tuần trước</span></button>
+      <button class="px-3 py-2 rounded-md bg-card border border-border text-sm tap-target">Hôm nay</button>
+      <button class="tap-target rounded-md border border-border bg-card hover:bg-muted px-3 py-2 inline-flex items-center gap-1"><span class="text-sm">Tuần sau</span><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+      <button class="px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Thêm tiết</button>
+    </div>
+  </div>
+
+  <!-- Schedule grid: time × days (Mon-Sun, VN convention starts Monday) -->
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+      <div class="grid grid-cols-8 min-w-[900px] text-sm">
+        <!-- Header row -->
+        <div class="schedule-cell bg-muted/40 font-medium text-center muted">Giờ</div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T2</div><div class="text-xs muted">14/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T3</div><div class="text-xs muted">15/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center" style="background: hsl(var(--primary) / 0.1)"><div>T4</div><div class="text-xs muted">16/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T5</div><div class="text-xs muted">17/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T6</div><div class="text-xs muted">18/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>T7</div><div class="text-xs muted">19/04</div></div>
+        <div class="schedule-cell bg-muted/40 font-medium text-center"><div>CN</div><div class="text-xs muted">20/04</div></div>
+
+        <!-- Slot 7:00-7:45 -->
+        <div class="schedule-cell text-xs muted text-center font-mono">7:00</div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">Phòng A201</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">11B1 - Văn</div><div class="muted text-xs">Phòng B105</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">Phòng A201</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+
+        <!-- 9:00-9:45 -->
+        <div class="schedule-cell text-xs muted text-center font-mono">9:00</div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A1 - Toán</div><div class="muted text-xs">Phòng A105</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A1 - Toán</div><div class="muted text-xs">Phòng A105</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+
+        <!-- 14:00-15:30 -->
+        <div class="schedule-cell text-xs muted text-center font-mono">14:00</div>
+        <div class="schedule-cell"><div class="schedule-slot" style="border-left-color: hsl(var(--att-late))"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">Phòng A201 · 90'</div><div class="text-xs mt-1" style="color: hsl(var(--att-late))">Đang dạy</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">10A2 - Toán NC</div><div class="muted text-xs">Phòng A201</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot" style="background: hsl(var(--warning) / 0.1); border-left-color: hsl(var(--warning))"><div class="font-semibold">Sinh hoạt 10A2</div><div class="muted text-xs">GVCN · 45'</div></div></div>
+        <div class="schedule-cell"></div>
+
+        <!-- 16:00 -->
+        <div class="schedule-cell text-xs muted text-center font-mono">16:00</div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot"><div class="font-semibold">11B1 - Văn</div><div class="muted text-xs">Phòng B105</div></div></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+
+        <!-- 18:00 evening -->
+        <div class="schedule-cell text-xs muted text-center font-mono">18:00</div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"></div>
+        <div class="schedule-cell"><div class="schedule-slot" style="background: hsl(var(--att-excused) / 0.1); border-left-color: hsl(var(--att-excused))"><div class="font-semibold">Họp PH 10A2</div><div class="muted text-xs">Hội trường · 60'</div></div></div>
+        <div class="schedule-cell"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="flex flex-wrap gap-3 mt-3 text-xs muted">
+    <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background: hsl(var(--primary) / 0.1); border-left: 3px solid hsl(var(--primary))"></span>Lớp dạy</span>
+    <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background: hsl(var(--warning) / 0.1); border-left: 3px solid hsl(var(--warning))"></span>Sinh hoạt GVCN</span>
+    <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background: hsl(var(--att-excused) / 0.1); border-left: 3px solid hsl(var(--att-excused))"></span>Họp phụ huynh</span>
+    <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background: hsl(var(--card)); border-left: 3px solid hsl(var(--att-late))"></span>Đang diễn ra</span>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

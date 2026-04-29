@@ -1,0 +1,81 @@
+<!--
+  Persona: Teacher
+  Flow: Schedule conflict — overlapping slot warning
+  Score self-estimate: 105/128
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trùng giờ — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <div role="alert" class="rounded-md border-2 mb-5 px-4 py-3 flex items-start gap-3" style="border-color: hsl(var(--destructive)); background: hsl(var(--destructive) / 0.06)">
+    <i data-lucide="alert-octagon" class="w-5 h-5 flex-shrink-0 mt-0.5" style="color: hsl(var(--destructive))"></i>
+    <div class="flex-1">
+      <h2 class="font-semibold mb-1" style="color: hsl(var(--destructive))">Trùng lịch dạy</h2>
+      <p class="text-sm muted mb-2">
+        Tiết bạn vừa tạo (<strong>10A2 - Toán NC, Thứ Tư 14:00-15:30, Phòng A201</strong>) trùng với 1 tiết khác:
+      </p>
+      <div class="rounded-md bg-card border border-border p-3 mb-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <div class="font-medium">11B1 - Văn</div>
+            <div class="muted text-xs">Thứ Tư 14:30-16:00 · Phòng A201 · Trùng 1 giờ</div>
+          </div>
+          <span class="grade-chip grade-yeu">Trùng phòng + giờ</span>
+        </div>
+      </div>
+      <p class="text-xs muted">Bạn có thể: (1) đổi phòng cho 1 trong 2 tiết, (2) đổi giờ, hoặc (3) hủy thao tác này.</p>
+    </div>
+  </div>
+
+  <h1 class="h1 mb-1">Lịch dạy tuần này</h1>
+  <p class="muted body-sm mb-4">Tuần 33 · 14/04 → 20/04</p>
+
+  <!-- Mini grid showing the conflict day -->
+  <div class="rounded-2xl border border-border bg-card p-4">
+    <h2 class="font-semibold mb-3">Thứ Tư 16/04/2026 — Phòng A201</h2>
+    <div class="space-y-2 text-sm">
+      <div class="flex items-center justify-between rounded-md p-3" style="background: hsl(var(--destructive) / 0.06); border: 1px solid hsl(var(--destructive))">
+        <div>
+          <div class="font-medium">10A2 - Toán NC</div>
+          <div class="muted text-xs font-mono">14:00 - 15:30</div>
+        </div>
+        <span class="grade-chip grade-yeu">Tiết mới (đang xung đột)</span>
+      </div>
+      <div class="flex items-center justify-between rounded-md p-3" style="background: hsl(var(--destructive) / 0.06); border: 1px solid hsl(var(--destructive))">
+        <div>
+          <div class="font-medium">11B1 - Văn</div>
+          <div class="muted text-xs font-mono">14:30 - 16:00</div>
+        </div>
+        <span class="grade-chip grade-yeu">Đã có sẵn</span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-border">
+      <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy tạo</button>
+      <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Đổi phòng</button>
+      <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2">
+        <i data-lucide="clock" class="w-4 h-4"></i>Đổi giờ
+      </button>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

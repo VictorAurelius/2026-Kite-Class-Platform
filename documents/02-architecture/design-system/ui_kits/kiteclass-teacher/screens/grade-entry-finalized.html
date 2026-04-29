@@ -1,0 +1,116 @@
+<!--
+  Persona: Teacher (subject)
+  Flow: Flow #4 — locked read-only post-finalize
+  Score self-estimate: 109/128
+  Contrast: locked cells muted-fg 4.7:1 still AA readable
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sổ điểm đã chốt — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <nav class="text-sm muted mb-2"><a href="#" class="hover:text-foreground">Lớp dạy</a> / <a href="#" class="hover:text-foreground">Lớp 10A2</a> / <span class="text-foreground">Sổ điểm đã chốt</span></nav>
+
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-4">
+    <div>
+      <h1 class="h1 mb-1">Sổ điểm đã chốt — Lớp 10A2 - Toán nâng cao</h1>
+      <p class="muted body-sm">Học kỳ II 2025-2026 · 25 học sinh</p>
+    </div>
+    <span class="px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-2" style="background: hsl(var(--att-present) / 0.12); color: hsl(var(--att-present))">
+      <i data-lucide="check-circle" class="w-4 h-4"></i> Đã chốt 18/04/2026 · 16:45
+    </span>
+  </div>
+
+  <!-- Locked banner -->
+  <div class="rounded-md border-l-4 px-3 py-2 mb-4 text-sm flex items-start gap-2" style="border-color: hsl(var(--att-present)); background: hsl(var(--att-present) / 0.08)">
+    <i data-lucide="shield-check" class="w-4 h-4 mt-0.5 flex-shrink-0" style="color: hsl(var(--att-present))"></i>
+    <div>
+      <span class="font-medium">Bảng điểm đã được khóa và đồng bộ vào học bạ MoET.</span>
+      <p class="text-xs muted mt-0.5">Cần chỉnh sửa? <a href="#" class="underline">Gửi yêu cầu cho hiệu trưởng</a> · Đã thông báo cho 25 phụ huynh qua Zalo OA + email.</p>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-border bg-muted/40 text-left">
+          <tr>
+            <th class="px-3 py-2 sticky-col w-12">STT</th>
+            <th class="px-3 py-2 sticky-col" style="left: 48px;">Họ và tên</th>
+            <th class="px-3 py-2 text-center">Bài 1</th>
+            <th class="px-3 py-2 text-center">Bài 2</th>
+            <th class="px-3 py-2 text-center">Giữa kỳ</th>
+            <th class="px-3 py-2 text-center">Cuối kỳ</th>
+            <th class="px-3 py-2 text-center bg-primary/5 font-semibold">Tổng kết</th>
+            <th class="px-3 py-2 text-center">Xếp loại</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">1</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Bùi Thị Anh</td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">9.0</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">8.5</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">9.25</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">9.5</span></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">9.16</td>
+            <td class="text-center"><span class="grade-chip grade-xuatsac">Xuất sắc</span></td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">2</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Đặng Văn Bảo</td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">7.5</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">8.0</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">7.75</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">8.5</span></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">8.06</td>
+            <td class="text-center"><span class="grade-chip grade-gioi">Giỏi</span></td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">3</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Hoàng Thị Cẩm</td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">6.5</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">7.0</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">7.25</span></td>
+            <td class="text-center"><span class="grade-cell locked inline-flex items-center justify-center font-mono">7.0</span></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">7.06</td>
+            <td class="text-center"><span class="grade-chip grade-kha">Khá</span></td>
+          </tr>
+          <tr class="bg-muted/30"><td colspan="8" class="px-3 py-3 text-center muted text-xs italic">… 22 học sinh khác (đầy đủ trong app.jsx)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GVCN comments section -->
+  <div class="mt-6 rounded-2xl border border-border bg-card p-4 shadow-soft">
+    <h2 class="font-semibold mb-3 flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4 text-primary"></i> Nhận xét của GVCN</h2>
+    <div class="space-y-3 text-sm">
+      <div class="border-l-2 border-primary/30 pl-3">
+        <div class="font-medium">Bùi Thị Anh</div>
+        <p class="muted">Em An có tiến bộ tốt môn Toán, đặc biệt phần hình học. Cô khuyến khích em tham gia đội tuyển HSG cấp trường.</p>
+      </div>
+      <div class="border-l-2 border-primary/30 pl-3">
+        <div class="font-medium">Lê Minh Đức</div>
+        <p class="muted">Em Đức cần dành thêm thời gian luyện tập, đặc biệt phần đại số. GVCN sẽ liên hệ phụ huynh để cùng hỗ trợ em.</p>
+      </div>
+      <div class="border-l-2 border-primary/30 pl-3">
+        <div class="font-medium">Trần Quang Huy</div>
+        <p class="muted">Em Huy bị ảnh hưởng sức khỏe trong kỳ này. GVCN đề nghị bổ sung kiểm tra lại sau khi em hồi phục.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

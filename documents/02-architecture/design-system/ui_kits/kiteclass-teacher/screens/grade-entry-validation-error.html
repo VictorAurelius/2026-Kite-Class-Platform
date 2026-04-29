@@ -1,0 +1,105 @@
+<!--
+  Persona: Teacher (subject)
+  Flow: Flow #4 — score above max highlighted in red, error toast
+  Score self-estimate: 107/128
+  Contrast: destructive-on-card 4.8:1 (AA), error chip 4.5:1
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lỗi nhập điểm — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32">
+
+  <!-- Error toast (top, sticky) -->
+  <div role="alert" class="rounded-md border-2 mb-4 px-4 py-3 flex items-start gap-3" style="border-color: hsl(var(--destructive)); background: hsl(var(--destructive) / 0.06)">
+    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5" style="color: hsl(var(--destructive))"></i>
+    <div class="flex-1">
+      <h2 class="font-semibold mb-1" style="color: hsl(var(--destructive))">Có 2 ô điểm không hợp lệ</h2>
+      <ul class="text-sm space-y-1">
+        <li>· <strong>Trần Quang Huy — Bài 2:</strong> giá trị <code class="font-mono">11.5</code> vượt thang điểm 10. Tối đa 10.0.</li>
+        <li>· <strong>Nguyễn Văn An — Cuối kỳ:</strong> giá trị <code class="font-mono">-2</code> không hợp lệ. Tối thiểu 0.</li>
+      </ul>
+      <p class="text-xs muted mt-2">Sửa các ô được khoanh đỏ rồi lưu lại. Phím <kbd class="px-1 rounded bg-muted text-foreground font-mono text-xs">F2</kbd> để nhảy đến ô lỗi tiếp theo.</p>
+    </div>
+    <button class="px-3 py-1.5 rounded-md text-sm tap-target hover:bg-muted">Đóng</button>
+  </div>
+
+  <h1 class="h1 mb-1">Sổ điểm — Lớp 10A2 - Toán nâng cao</h1>
+  <p class="muted body-sm mb-4">Học kỳ II 2025-2026 · 25 học sinh · <span style="color: hsl(var(--destructive))" class="font-medium">2 lỗi cần sửa</span></p>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-border bg-muted/40 text-left">
+          <tr>
+            <th class="px-3 py-2 sticky-col w-12">STT</th>
+            <th class="px-3 py-2 sticky-col" style="left: 48px;">Họ và tên</th>
+            <th class="px-3 py-2 text-center">Bài 1</th>
+            <th class="px-3 py-2 text-center">Bài 2</th>
+            <th class="px-3 py-2 text-center">Giữa kỳ</th>
+            <th class="px-3 py-2 text-center">Cuối kỳ</th>
+            <th class="px-3 py-2 text-center bg-primary/5">Tổng kết</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">1</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Bùi Thị Anh</td>
+            <td class="text-center"><input class="grade-cell" value="9.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="9.25" /></td>
+            <td class="text-center"><input class="grade-cell" value="9.5" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">9.16</td>
+          </tr>
+          <tr style="background: hsl(var(--destructive) / 0.04)">
+            <td class="px-3 py-2 sticky-col tabular-nums">5</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Nguyễn Văn An</td>
+            <td class="text-center"><input class="grade-cell" value="8.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.25" /></td>
+            <td class="text-center">
+              <input class="grade-cell invalid" value="-2" aria-invalid="true" aria-describedby="err-an" />
+              <div id="err-an" class="text-xs mt-1" style="color: hsl(var(--destructive))">Min 0</div>
+            </td>
+            <td class="text-center bg-primary/5 font-mono muted tabular-nums">—</td>
+          </tr>
+          <tr style="background: hsl(var(--destructive) / 0.04)">
+            <td class="px-3 py-2 sticky-col tabular-nums">7</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Trần Quang Huy</td>
+            <td class="text-center"><input class="grade-cell" value="4.5" /></td>
+            <td class="text-center">
+              <input class="grade-cell invalid" value="11.5" aria-invalid="true" aria-describedby="err-huy" />
+              <div id="err-huy" class="text-xs mt-1" style="color: hsl(var(--destructive))">Max 10</div>
+            </td>
+            <td class="text-center"><input class="grade-cell" value="4.75" /></td>
+            <td class="text-center"><input class="grade-cell" value="4.0" /></td>
+            <td class="text-center bg-primary/5 font-mono muted tabular-nums">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="save-bar">
+  <div class="text-sm flex items-center" style="color: hsl(var(--destructive))"><i data-lucide="alert-circle" class="w-4 h-4 mr-2"></i>Không thể lưu — sửa 2 lỗi trước</div>
+  <div class="flex items-center gap-2">
+    <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy thay đổi</button>
+    <button class="px-4 py-2 rounded-md bg-muted text-sm font-medium tap-target opacity-50 cursor-not-allowed" disabled>Lưu nháp</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

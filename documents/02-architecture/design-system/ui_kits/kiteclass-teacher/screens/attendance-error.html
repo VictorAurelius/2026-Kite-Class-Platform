@@ -1,0 +1,82 @@
+<!--
+  Persona: Teacher
+  Flow: Flow #3 — save failed (network/server error), retry path
+  Score self-estimate: 105/128
+  Contrast: destructive 4.8:1 on white, muted 4.7:1 (AA)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lưu thất bại — Lớp 10A2 | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà · GVCN 10A2</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32">
+
+  <!-- Error banner -->
+  <div role="alert" class="rounded-2xl border-2 mb-5 p-4 flex items-start gap-3" style="border-color: hsl(var(--destructive)); background: hsl(var(--destructive) / 0.06)">
+    <i data-lucide="alert-circle" class="w-6 h-6 flex-shrink-0 mt-0.5" style="color: hsl(var(--destructive))"></i>
+    <div class="flex-1">
+      <h2 class="font-semibold mb-1" style="color: hsl(var(--destructive))">Không thể lưu điểm danh</h2>
+      <p class="text-sm muted mb-2">
+        Mất kết nối với máy chủ lúc 15:32:14. Dữ liệu của bạn vẫn được giữ tại trình duyệt — sẽ tự động lưu lại khi kết nối được phục hồi.
+      </p>
+      <details class="text-xs muted">
+        <summary class="cursor-pointer hover:text-foreground">Chi tiết lỗi (cho IT)</summary>
+        <code class="block mt-1 p-2 rounded bg-muted font-mono">POST /api/v1/classes/10A2/attendance · 504 Gateway Timeout · request_id: req-2026-0415-3a8b</code>
+      </details>
+    </div>
+    <button class="px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2 flex-shrink-0">
+      <i data-lucide="refresh-cw" class="w-4 h-4"></i> Thử lại
+    </button>
+  </div>
+
+  <h1 class="h1 mb-1">Điểm danh — Lớp 10A2</h1>
+  <p class="muted body-sm mb-5">Thứ Hai, 15/04/2026 14:00 - 15:30 · <span class="font-medium" style="color: hsl(var(--warning))">Đang giữ nháp tại trình duyệt</span></p>
+
+  <!-- Summary kept locally -->
+  <div class="rounded-2xl border border-border bg-card p-4 mb-5">
+    <h2 class="font-semibold text-sm mb-3 flex items-center gap-2"><i data-lucide="hard-drive" class="w-4 h-4 text-primary"></i> Dữ liệu giữ tại trình duyệt</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+      <div><div class="text-xs muted">Đã đánh</div><div class="text-xl font-bold tabular-nums">25/25</div></div>
+      <div><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-p">P</span></div><div class="text-xl font-bold tabular-nums" style="color: hsl(var(--att-present))">22</div></div>
+      <div><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-v">V</span></div><div class="text-xl font-bold tabular-nums" style="color: hsl(var(--att-excused))">2</div></div>
+      <div><div class="text-xs muted flex items-center gap-1"><span class="att-chip att-m">M</span></div><div class="text-xl font-bold tabular-nums" style="color: hsl(var(--att-absent))">1</div></div>
+    </div>
+  </div>
+
+  <!-- Connectivity check -->
+  <div class="rounded-2xl border border-border bg-card p-4 mb-5">
+    <h2 class="font-semibold text-sm mb-3">Kiểm tra kết nối</h2>
+    <ul class="text-sm space-y-2">
+      <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4" style="color: hsl(var(--att-present))"></i>Internet (Wi-Fi A201) — đang kết nối</li>
+      <li class="flex items-center gap-2"><i data-lucide="x" class="w-4 h-4" style="color: hsl(var(--destructive))"></i>Máy chủ KiteClass — không phản hồi (504)</li>
+      <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4" style="color: hsl(var(--att-present))"></i>Bộ nhớ trình duyệt — 2.4 KB đã lưu</li>
+    </ul>
+    <p class="text-xs muted mt-3">Hệ thống sẽ tự động thử lại mỗi 30 giây. Có thể đóng trình duyệt — dữ liệu vẫn được giữ.</p>
+  </div>
+</main>
+
+<div class="save-bar">
+  <div class="text-sm flex items-center"><span class="unsaved-pulse"></span><span style="color: hsl(var(--destructive))">Lưu thất bại — đang chờ kết nối</span></div>
+  <div class="flex items-center gap-2">
+    <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target inline-flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i>Tải xuống nháp</button>
+    <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4"></i>Thử lưu lại</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

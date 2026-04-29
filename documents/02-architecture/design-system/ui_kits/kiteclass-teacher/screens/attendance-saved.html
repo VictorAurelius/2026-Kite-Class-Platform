@@ -1,0 +1,93 @@
+<!--
+  Persona: Teacher (GVCN)
+  Flow: dossier/05-business-flows.md Flow #3 — post-save locked state
+  State: saved/locked — read-only, edit history visible, audit trail
+  Score self-estimate: 109/128
+  Contrast: same as default (4.5:1+ on chips/text)
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đã lưu điểm danh — Lớp 10A2 | KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà · GVCN 10A2</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+
+  <nav class="text-sm muted mb-2"><a href="#" class="hover:text-foreground">Lớp dạy</a> / <a href="#" class="hover:text-foreground">Lớp 10A2 - Toán nâng cao</a> / <span class="text-foreground">Điểm danh 15/04/2026</span></nav>
+
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-5">
+    <div>
+      <h1 class="h1 mb-1">Điểm danh đã lưu</h1>
+      <p class="muted body-sm">Thứ Hai, 15/04/2026 14:00 - 15:30 · Phòng A201</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-2" style="background: hsl(var(--att-present) / 0.12); color: hsl(var(--att-present))">
+        <i data-lucide="check-circle" class="w-4 h-4"></i> Đã chốt lúc 15:32
+      </span>
+      <button class="px-3 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">
+        <i data-lucide="pencil" class="w-4 h-4"></i> Yêu cầu sửa
+      </button>
+    </div>
+  </div>
+
+  <!-- Audit summary card -->
+  <div class="rounded-2xl border border-border bg-card p-4 mb-5 shadow-soft">
+    <h2 class="font-semibold mb-3 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-primary"></i> Lịch sử thao tác</h2>
+    <ul class="space-y-2 text-sm">
+      <li class="flex items-center gap-3"><span class="muted text-xs tabular-nums w-16">14:00</span> <span>Cô Trần Thu Hà mở phiên điểm danh</span></li>
+      <li class="flex items-center gap-3"><span class="muted text-xs tabular-nums w-16">14:01-14:08</span> <span>Đánh dấu 25 học sinh (22P · 2V · 1M)</span></li>
+      <li class="flex items-center gap-3"><span class="muted text-xs tabular-nums w-16">14:23</span> <span>Phạm Thị Hương trễ 8 phút → tự chuyển sang <span class="att-chip att-l">L</span> (đến 14:08)</span></li>
+      <li class="flex items-center gap-3"><span class="muted text-xs tabular-nums w-16">15:32</span> <span class="font-medium">Lưu chính thức · không thể chỉnh sửa trực tiếp</span></li>
+    </ul>
+  </div>
+
+  <!-- Locked roster -->
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="px-4 py-2 border-b border-border bg-muted/40 flex items-center gap-2">
+      <i data-lucide="lock" class="w-4 h-4 muted"></i>
+      <span class="text-sm muted">Bảng dưới đây ở trạng thái khóa. Để chỉnh sửa, gửi yêu cầu cho hiệu trưởng.</span>
+    </div>
+    <table class="w-full text-sm">
+      <thead class="border-b border-border bg-muted/40 text-left">
+        <tr>
+          <th class="px-3 py-2 w-12">STT</th>
+          <th class="px-3 py-2">Họ và tên</th>
+          <th class="px-3 py-2 text-center">Trạng thái</th>
+          <th class="px-3 py-2 hidden md:table-cell">Ghi chú</th>
+          <th class="px-3 py-2 hidden md:table-cell text-right">Thời gian</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        <tr><td class="px-3 py-2 tabular-nums">1</td><td class="px-3 py-2 font-medium">Bùi Thị Anh</td><td class="px-3 py-2 text-center"><span class="att-chip att-p"><i data-lucide="check" class="w-3 h-3"></i>P</span></td><td class="px-3 py-2 muted hidden md:table-cell">—</td><td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:01</td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">2</td><td class="px-3 py-2 font-medium">Đặng Văn Bảo</td><td class="px-3 py-2 text-center"><span class="att-chip att-p">P</span></td><td class="px-3 py-2 muted hidden md:table-cell">—</td><td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:01</td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">3</td><td class="px-3 py-2 font-medium">Hoàng Thị Cẩm</td><td class="px-3 py-2 text-center"><span class="att-chip att-v">V</span></td><td class="px-3 py-2 hidden md:table-cell text-xs muted">Đơn xin phép gia đình</td><td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:02</td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">4</td><td class="px-3 py-2 font-medium">Lê Minh Đức</td><td class="px-3 py-2 text-center"><span class="att-chip att-m">M</span></td><td class="px-3 py-2 hidden md:table-cell text-xs" style="color: hsl(var(--destructive))">Vắng không phép · GVCN sẽ gọi phụ huynh</td><td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:02</td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">5</td><td class="px-3 py-2 font-medium">Nguyễn Văn An</td><td class="px-3 py-2 text-center"><span class="att-chip att-p">P</span></td><td class="px-3 py-2 muted hidden md:table-cell">—</td><td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:03</td></tr>
+        <tr><td class="px-3 py-2 tabular-nums">6</td><td class="px-3 py-2 font-medium">Phạm Thị Hương</td><td class="px-3 py-2 text-center"><span class="att-chip att-l">L</span></td><td class="px-3 py-2 hidden md:table-cell text-xs muted">Trễ 8 phút (tự cập nhật)</td><td class="px-3 py-2 text-right muted text-xs hidden md:table-cell tabular-nums">14:08</td></tr>
+        <tr class="bg-muted/30"><td colspan="5" class="px-3 py-3 text-center muted text-xs italic">… 19 học sinh khác — đầy đủ trong app.jsx</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="muted text-xs mt-3 flex items-center gap-1">
+    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+    Thông tin điểm danh được lưu vào học bạ. Sửa đổi sau khi chốt cần phê duyệt từ hiệu trưởng (theo quy chế MoET).
+  </p>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

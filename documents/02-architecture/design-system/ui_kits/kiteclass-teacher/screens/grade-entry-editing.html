@@ -1,0 +1,111 @@
+<!--
+  Persona: Teacher (subject)
+  Flow: Flow #4 — cell selected, inline input editing, late penalty banner
+  Score self-estimate: 110/128
+  Contrast: focus ring 3:1 vs bg, late-penalty warning AA on warning bg
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đang vào điểm — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4 pb-32">
+  <h1 class="h1 mb-1">Sổ điểm — Lớp 10A2 - Toán nâng cao</h1>
+  <p class="muted body-sm mb-4">Học kỳ II 2025-2026 · 25 học sinh</p>
+
+  <!-- Late penalty banner — currently editing late submission -->
+  <div role="alert" class="rounded-md border-l-4 px-3 py-2 mb-4 text-sm" style="border-color: hsl(var(--att-late)); background: hsl(var(--att-late) / 0.08)">
+    <div class="flex items-start gap-2">
+      <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 flex-shrink-0" style="color: hsl(var(--att-late))"></i>
+      <div>
+        <span class="font-medium">Bài nộp trễ 3 ngày · áp dụng phạt 30%</span>
+        <p class="text-xs muted mt-0.5">Lê Minh Đức nộp Bài 2 ngày 20/03 (hạn 17/03). Điểm gốc <strong>6.0</strong> × 0.7 = <strong>4.2</strong>. Có thể bỏ phạt nếu lý do đã được phê duyệt.</p>
+      </div>
+      <button class="ml-auto text-xs underline">Bỏ phạt</button>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-soft">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-border bg-muted/40 text-left">
+          <tr>
+            <th class="px-3 py-2 sticky-col w-12">STT</th>
+            <th class="px-3 py-2 sticky-col" style="left: 48px;">Họ và tên</th>
+            <th class="px-3 py-2 text-center">Bài 1</th>
+            <th class="px-3 py-2 text-center">Bài 2</th>
+            <th class="px-3 py-2 text-center">Giữa kỳ</th>
+            <th class="px-3 py-2 text-center">Cuối kỳ</th>
+            <th class="px-3 py-2 text-center bg-primary/5">Tổng kết</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">1</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Bùi Thị Anh</td>
+            <td class="text-center"><input class="grade-cell" value="9.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="9.25" /></td>
+            <td class="text-center"><input class="grade-cell" value="9.5" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">9.16</td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">2</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Đặng Văn Bảo</td>
+            <td class="text-center"><input class="grade-cell" value="7.5" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="7.75" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.5" /></td>
+            <td class="text-center bg-primary/5 font-mono font-semibold tabular-nums">8.06</td>
+          </tr>
+          <tr class="ring-2 ring-primary/40 bg-primary/5">
+            <td class="px-3 py-2 sticky-col tabular-nums">4</td>
+            <td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Lê Minh Đức</td>
+            <td class="text-center"><input class="grade-cell" value="5.5" /></td>
+            <td class="text-center">
+              <!-- Currently focused cell — receiving keyboard input -->
+              <input class="grade-cell" value="4.2" autofocus style="border-color: hsl(var(--ring)); background: hsl(var(--card)); box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);" aria-describedby="cell-help" />
+            </td>
+            <td class="text-center"><input class="grade-cell" value="5.75" /></td>
+            <td class="text-center"><input class="grade-cell" value="6.5" /></td>
+            <td class="text-center bg-primary/10 font-mono font-semibold tabular-nums">5.46</td>
+          </tr>
+          <tr><td class="px-3 py-2 sticky-col tabular-nums">5</td><td class="px-3 py-2 sticky-col font-medium" style="left: 48px;">Nguyễn Văn An</td>
+            <td class="text-center"><input class="grade-cell" value="8.0" /></td>
+            <td class="text-center"><input class="grade-cell" value="" placeholder="–" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.25" /></td>
+            <td class="text-center"><input class="grade-cell" value="8.75" /></td>
+            <td class="text-center bg-primary/5 font-mono muted tabular-nums">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p id="cell-help" class="muted text-xs mt-3 flex items-center gap-1">
+    <i data-lucide="keyboard" class="w-3.5 h-3.5"></i>
+    Phím tắt: <kbd class="px-1 rounded bg-muted text-foreground font-mono text-xs">Tab</kbd> chuyển ô · <kbd class="px-1 rounded bg-muted text-foreground font-mono text-xs">Enter</kbd> xuống dòng · <kbd class="px-1 rounded bg-muted text-foreground font-mono text-xs">Esc</kbd> hủy chỉnh sửa
+  </p>
+</main>
+
+<div class="save-bar">
+  <div class="text-sm flex items-center"><span class="unsaved-pulse"></span><span>Đang chỉnh ô <strong>Bài 2 — Lê Minh Đức</strong></span></div>
+  <div class="flex items-center gap-2">
+    <button class="px-4 py-2 rounded-md border border-border hover:bg-muted text-sm tap-target">Hủy thay đổi</button>
+    <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i>Lưu nháp</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!--
+  Persona: Teacher
+  Flow: Reports overview during data fetch — skeleton state
+  Score self-estimate: 100/128
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đang tải báo cáo — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <div aria-busy="true" aria-live="polite">
+    <div class="skeleton h-8 w-72 mb-2"></div>
+    <div class="skeleton h-4 w-56 mb-5"></div>
+
+    <!-- KPI skeleton row -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+      <div class="rounded-2xl border border-border bg-card p-3 space-y-2">
+        <div class="skeleton h-3 w-16"></div>
+        <div class="skeleton h-8 w-12"></div>
+        <div class="skeleton h-3 w-10"></div>
+      </div>
+      <div class="rounded-2xl border border-border bg-card p-3 space-y-2"><div class="skeleton h-3 w-16"></div><div class="skeleton h-8 w-12"></div><div class="skeleton h-6 w-full"></div></div>
+      <div class="rounded-2xl border border-border bg-card p-3 space-y-2"><div class="skeleton h-3 w-16"></div><div class="skeleton h-8 w-12"></div><div class="skeleton h-6 w-full"></div></div>
+      <div class="rounded-2xl border border-border bg-card p-3 space-y-2"><div class="skeleton h-3 w-16"></div><div class="skeleton h-8 w-12"></div><div class="skeleton h-6 w-full"></div></div>
+      <div class="rounded-2xl border border-border bg-card p-3 space-y-2"><div class="skeleton h-3 w-16"></div><div class="skeleton h-8 w-12"></div><div class="skeleton h-6 w-full"></div></div>
+      <div class="rounded-2xl border border-border bg-card p-3 space-y-2"><div class="skeleton h-3 w-16"></div><div class="skeleton h-8 w-12"></div><div class="skeleton h-3 w-20"></div></div>
+    </div>
+
+    <!-- Table skeleton -->
+    <div class="rounded-2xl border border-border bg-card overflow-hidden">
+      <div class="p-4 space-y-3">
+        <div class="skeleton h-4 w-24"></div>
+        <div class="grid grid-cols-8 gap-3">
+          <div class="skeleton h-10 col-span-2"></div>
+          <div class="skeleton h-10"></div><div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+          <div class="skeleton h-10"></div><div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+        </div>
+        <div class="grid grid-cols-8 gap-3">
+          <div class="skeleton h-10 col-span-2"></div>
+          <div class="skeleton h-10"></div><div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+          <div class="skeleton h-10"></div><div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+        </div>
+        <div class="grid grid-cols-8 gap-3">
+          <div class="skeleton h-10 col-span-2"></div>
+          <div class="skeleton h-10"></div><div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+          <div class="skeleton h-10"></div><div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center muted text-xs mt-4 flex items-center justify-center gap-2">
+      <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+      Đang tải báo cáo · vui lòng chờ
+    </p>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>

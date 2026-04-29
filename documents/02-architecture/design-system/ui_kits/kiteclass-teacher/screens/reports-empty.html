@@ -1,0 +1,56 @@
+<!--
+  Persona: Teacher
+  Flow: Reports — no sessions in selected period
+  Score self-estimate: 102/128
+-->
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chưa có dữ liệu — KiteClass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../styles.css" />
+  <script>tailwind.config = { darkMode: 'class' };</script>
+</head>
+<body class="bg-background text-foreground antialiased">
+
+<header class="border-b border-border bg-card sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+    <a href="../index.html" class="font-bold text-lg text-primary">KiteClass <span class="text-xs muted font-medium px-2 py-0.5 rounded-full border border-border">Giáo viên</span></a>
+    <div class="text-sm muted">Cô Trần Thu Hà</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 lg:px-6 py-4">
+  <h1 class="h1 mb-1">Báo cáo chuyên cần</h1>
+  <p class="muted body-sm mb-4">Tháng 02/2026 (Tết Nguyên đán) · không có tiết dạy</p>
+
+  <div class="flex border-b border-border mb-4 gap-1">
+    <button class="px-4 py-2 text-sm muted hover:text-foreground border-b-2 border-transparent">Hôm nay</button>
+    <button class="px-4 py-2 text-sm muted hover:text-foreground border-b-2 border-transparent">Tuần này</button>
+    <button class="px-4 py-2 text-sm font-medium border-b-2 border-primary text-foreground">Tháng này</button>
+  </div>
+
+  <div class="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center">
+    <div class="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+      <i data-lucide="calendar-x" class="w-10 h-10 muted"></i>
+    </div>
+    <h2 class="h2 mb-2">Không có tiết dạy trong tháng này</h2>
+    <p class="muted max-w-md mx-auto mb-5">
+      Tháng 02/2026 trùng với kỳ nghỉ Tết Nguyên đán nên không có dữ liệu điểm danh. Chọn tháng khác để xem báo cáo.
+    </p>
+    <div class="flex items-center justify-center gap-2 flex-wrap">
+      <button class="px-4 py-2 rounded-md border border-border bg-card hover:bg-muted text-sm tap-target inline-flex items-center gap-2">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>Tháng 1/2026
+      </button>
+      <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium tap-target inline-flex items-center gap-2">
+        Tháng 3/2026<i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script><script>lucide.createIcons();</script>
+</body>
+</html>
