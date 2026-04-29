@@ -1,12 +1,12 @@
 ---
-description: "Dùng trước khi bắt đầu PR hoặc domain mới, user nói 'pre-flight', 'check trước khi code', 'chuẩn bị PR', 'domain mới'. 3-layer check: PR scope / Domain business docs / Project health."
+description: "Dùng trước khi bắt đầu PR hoặc domain mới, user nói 'pre-flight', 'check trước khi code', 'chuẩn bị PR', 'domain mới', 'persona impact'. 4-layer check: PR scope / Domain business docs / Project health / Persona impact."
 ---
 
 # Skill: Pre-flight Check (Multi-layer)
 
-**Version:** 1.0
-**Last Updated:** 2026-03-23
-**Purpose:** Ngăn gaps tích tụ bằng cách check ở 3 tầng: PR, Domain, Project
+**Version:** 1.1
+**Last Updated:** 2026-04-29
+**Purpose:** Ngăn gaps tích tụ bằng cách check ở 4 tầng: PR, Domain, Project, Persona
 
 ---
 
@@ -16,6 +16,7 @@ description: "Dùng trước khi bắt đầu PR hoặc domain mới, user nói 
 /pre-flight-check pr          # Trước khi tạo PR
 /pre-flight-check domain      # Trước khi bắt đầu 1 business domain mới
 /pre-flight-check project     # Milestone check (mỗi 10-25 PRs hoặc trước release)
+/pre-flight-check persona     # Khi PR thay đổi user-facing business logic
 ```
 
 ---
@@ -34,15 +35,19 @@ description: "Dùng trước khi bắt đầu PR hoặc domain mới, user nói 
 
 ---
 
-## Tại sao cần 3 tầng?
+## Tại sao cần 4 tầng?
 
 ```
 Bài học: 188 PRs merged → phát hiện 22 business gaps → 39 PRs fix
 Root cause: Chỉ check ở tầng PR (micro), bỏ qua domain (meso) và project (macro)
+2026-04-29 update: Thêm Layer 4 (persona) sau khi GAP-050 surfacing rằng
+business correctness gaps thường disguise as code-level gaps; persona perspective
+catches them earlier.
 
-Layer 1 — PR:      "Code này chạy đúng không?"
-Layer 2 — Domain:  "Module này khớp với business flow không?"
-Layer 3 — Project: "Tất cả modules kết nối đúng không?"
+Layer 1 — PR:       "Code này chạy đúng không?"
+Layer 2 — Domain:   "Module này khớp với business flow không?"
+Layer 3 — Project:  "Tất cả modules kết nối đúng không?"
+Layer 4 — Persona:  "Persona nào dùng feature này? Có degrade ai không?"
 ```
 
 ---
@@ -250,12 +255,92 @@ grep -rn "static final.*= [0-9]" $(git diff --cached --name-only -- '*.java') 2>
 
 ---
 
+## Layer 4: Persona Impact Check (khi PR thay đổi user-facing business logic)
+
+**Khi nào fires:** PR adds/changes/removes user-facing business logic — endpoint behavior, validation rule, status transition, pricing, notification trigger, UI flow, data visibility, permissions. KHÔNG fire cho refactor / test / infra-only PRs.
+
+**Thời gian:** 10-15 phút.
+
+**Trigger:** Manual `/pre-flight-check persona`, OR auto-trigger if PR diff touches:
+- `*Controller.java`, `*Service.java` (business logic)
+- `rules.md`, `use-cases.md`, `application.yml` (business contract)
+- `kiteclass-frontend/src/app/**`, `kitehub-frontend/src/app/**` (user-facing routes)
+- Status enum changes, permission/role changes
+
+**Reference:** `.claude/skills/quality/persona-based-business-review.md` (full methodology) + `documents/00-brd/personas-catalog.md` (canonical persona list).
+
+### Steps
+
+```markdown
+## Persona Pre-flight: [PR name]
+
+### Step 1: Identify affected personas
+- [ ] Read `documents/00-brd/personas-catalog.md` — note Tier 1 personas list
+      (Solo Teacher, Tutoring Center, Medium Center, K-12 School are current Tier 1)
+- [ ] For each Tier 1 persona, ask: "Does this PR's change affect this persona's workflow?"
+      — Answer Y/N + 1-line justification per persona
+- [ ] List affected personas as `affects: [P1, P5]` in PR description
+
+### Step 2: Coverage non-degradation check
+- [ ] Locate latest persona review report under `documents/00-brd/persona-reviews/`
+      (sorted by date — read most recent for each affected persona)
+- [ ] If NO review report exists yet: note "first review pending GAP-152" in PR body
+      and skip to Step 3 (cannot measure delta with no baseline)
+- [ ] If review report EXISTS: locate persona's Coverage Analysis table; for each
+      use case the PR touches, verify post-PR state ≥ pre-PR state. Flag any regression.
+- [ ] If degradation found → BLOCKER. Either narrow PR scope OR file follow-up gap
+      with persona link before merging.
+
+### Step 3: New gap surfacing
+- [ ] Does the PR introduce a NEW persona impact not in any review report?
+      (e.g., adding parent-portal endpoint when no review covered parent persona)
+- [ ] If yes → file gap via `audit-to-gap-pipeline.md` Step 3 referencing
+      affected personas; trigger off-cycle review per cadence rules in
+      `persona-based-business-review.md` §Quarterly Review Cadence
+
+### Step 4: PR description marker
+- [ ] Add to PR body: `Persona impact: [P1 yes / P5 partial / P3 no]` + 1-line summary
+- [ ] If degradation flagged + accepted (with follow-up gap), include `PERSONA_OVERRIDE: GAP-XXX`
+      trailer in commit message (analogous to AUDIT_OVERRIDE pattern)
+```
+
+### Auto-detect commands
+
+```bash
+# 1. Detect user-facing changes in PR diff
+git diff main...HEAD --name-only | grep -E "Controller\.java$|rules\.md$|use-cases\.md$|/app/" | head -20
+
+# 2. List Tier 1 personas
+grep -A1 "^## P[12345]" documents/00-brd/personas-catalog.md | head -30
+
+# 3. Find latest review reports per persona
+ls -lt documents/00-brd/persona-reviews/*.md 2>/dev/null | head -5
+
+# 4. Check if any persona review references this PR's domain
+grep -l "$(echo '<domain-keyword>')" documents/00-brd/persona-reviews/*.md 2>/dev/null
+```
+
+### Kết quả
+
+- **All Tier 1 personas non-degraded (or N/A baseline pending)** → Tiến hành merge
+- **Any degradation flagged** → STOP merge. Either narrow scope or `PERSONA_OVERRIDE` trailer + follow-up gap
+- **No review report exists yet for affected persona** → Note "first review pending GAP-152", proceed but flag for next quarterly cycle
+
+### Why this layer
+
+Business correctness gaps (per `meta-gap-priority.md` business-logic tier) often look like ordinary feature gaps from a code-only review angle. A bulk-import endpoint that works perfectly for 50 students passes Layer 1-3 but fails Layer 4 when K-12 School persona scale (500 students) surfaces the bottleneck. Layer 4 catches this earlier than Layer 3's milestone audit.
+
+GAP-050 motivated this layer; GAP-152 ships first review reports. Until GAP-152 lands, Layer 4 runs in best-effort mode (no baseline to compare against), but the persona identification step still exercises the perspective.
+
+---
+
 ## Quy tắc Escalation
 
 ```
 Layer 1 fail → Fix trong PR hiện tại (developer)
 Layer 2 fail → DỪNG development, hoàn thành documents (developer + lead)
 Layer 3 fail → DỪNG release, tạo fix plan (team)
+Layer 4 fail → STOP merge: narrow scope OR file follow-up gap + PERSONA_OVERRIDE trailer
 ```
 
 ---
@@ -266,12 +351,16 @@ Layer 3 fail → DỪNG release, tạo fix plan (team)
 BEFORE (cũ — chỉ check tầng PR):
   Brainstorm → Breakdown → TDD → Implement → Review
 
-AFTER (mới — check 3 tầng):
+AFTER (mới — check 4 tầng):
   [Layer 2: Domain Pre-flight]     ← MỖI module mới
     ↓
   [Layer 3: Project Pre-flight]    ← MỖI milestone
     ↓
-  Brainstorm → [Layer 1: PR Pre-flight] → Breakdown → TDD → Implement → Review
+  Brainstorm → [Layer 1: PR Pre-flight] → Breakdown → TDD → Implement
+    ↓
+  [Layer 4: Persona Pre-flight]    ← khi PR thay đổi user-facing logic
+    ↓
+  Review → merge
     ↓
   [Layer 3 lại nếu đủ PRs]
 ```
@@ -293,3 +382,20 @@ AFTER (mới — check 3 tầng):
 | Merge song song không check conflict trước | InstanceService conflict | 2 PRs cùng sửa 1 file → resolve thủ công |
 | Merge xong không update plans | Plans outdated, gaps report sai | 5 PRs done nhưng plans vẫn hiện ⬜ TODO |
 | CI pass = quality OK | Integration issues ẩn | Individual PR pass nhưng main có thể fail |
+| Skip Layer 4 vì "code change nhỏ" | Persona-blocking regression escapes review | Bulk-import endpoint pass Layer 1-3 nhưng K-12 persona không scale |
+
+---
+
+## Gotchas
+
+- **Layer 4 best-effort mode until GAP-152 ships** — first persona review reports land via GAP-152; until then, Layer 4 cannot measure delta. Run Step 1 (identify affected personas) anyway; Step 2 returns "baseline pending" not a failure
+- **`affects: [P1, P5]` annotation in PR body is the audit trail** — without it, post-hoc audits cannot tell which PRs touched which persona. Reviewers should reject Layer-4-applicable PRs missing this line
+- **Layer 4 ≠ user testing** — skill is desk-checking against the catalog + reports, not running real user trials. Real user testing remains a separate cycle (off-cycle review trigger)
+- **Catalog drift breaks Layer 4** — if `personas-catalog.md` Tier 1 list goes stale (persona retired, new one added), Layer 4 produces wrong gates. Quarterly cadence keeps catalog fresh; Layer 4 trusts current catalog state
+
+---
+
+## Log
+
+- **2026-04-29** (v1.1): Added Layer 4 (Persona impact check) — fires when PR changes user-facing business logic. Reads `documents/00-brd/personas-catalog.md` Tier 1 list, locates latest `documents/00-brd/persona-reviews/*.md` per affected persona, blocks merge if degradation detected. Best-effort mode until GAP-152 ships first reports. Closes GAP-050 framework AC #5 ("pre-flight-check project layer integrates persona review step"). Reviewer: @nguyenvankiet (solo-dev — paired with `persona-based-business-review.md` §Quarterly Review Cadence + `quality-audit/SKILL.md` Cat 11 in same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate).
+- **2026-03-23** (v1.0): Skill created — 3 layers (PR / Domain / Project).

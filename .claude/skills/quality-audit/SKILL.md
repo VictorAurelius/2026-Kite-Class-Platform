@@ -1,6 +1,6 @@
 ---
 name: quality-audit
-description: "Dùng khi user nói 'audit', 'quality check', 'kiểm tra chất lượng', 'điểm chất lượng', 'ready to merge?', hoặc trước khi merge wave vào main. Chấm điểm 10 categories /100 điểm."
+description: "Dùng khi user nói 'audit', 'quality check', 'kiểm tra chất lượng', 'điểm chất lượng', 'ready to merge?', 'persona coverage', hoặc trước khi merge wave vào main. Chấm điểm 11 categories /110 điểm (10 tech + 1 persona coverage)."
 user-invocable: true
 ---
 
@@ -9,6 +9,8 @@ user-invocable: true
 **Usage:** `/quality-audit [kitehub|kiteclass|all]`
 
 **Default:** `all` (đánh giá cả KiteHub + KiteClass)
+
+**Last Updated:** 2026-04-29 (v1.1 — added Cat 11 Persona Coverage; total scale 100 → 110)
 
 ---
 
@@ -63,7 +65,9 @@ kiteclass/scripts/monitor.sh health    # hoặc kitehub/scripts/status.sh
 - Docker → `*/scripts/dev-*.sh` hoặc `kitehub/scripts/*.sh`
 - Monitoring → `*/scripts/monitor.sh`
 
-### Bước 2: Chấm điểm 10 categories (100 điểm)
+### Bước 2: Chấm điểm 11 categories (110 điểm)
+
+> **Scale change 2026-04-29 (v1.1):** Cat 11 (Persona Coverage) added as 11th /10 category, raising max from 100 → 110. This preserves the relative weight of the original 10 tech categories (no rebalancing) while adding business-correctness signal that tech-only audits miss. Grade scale below adjusted proportionally. When citing a "score" in shorthand, use `X/110` form.
 
 #### 1. E2E Functionality (10 điểm)
 
@@ -182,6 +186,30 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude
 | Commit messages clean + meaningful | 2 | `git log` review |
 | Issues/gaps tracked và prioritized | 2 | Check gap reports |
 
+#### 11. Persona Coverage (10 điểm) — added 2026-04-29 (v1.1)
+
+> **Source of truth:** latest reports under `documents/00-brd/persona-reviews/` produced via the `persona-based-business-review` skill quarterly cadence. **GAP-152** ships the first round of Tier 1 review reports — until those land, this category scores `5/10` (mid-baseline) marked `data pending` per the data-pending policy below.
+
+> **Data-pending policy:** if no review report exists for ≥1 Tier 1 persona, score Cat 11 = `5/10` and annotate "data pending GAP-152". Do NOT score 0 (no data ≠ no coverage); do NOT score 10 (cannot claim full coverage without evidence). This 5/10 baseline holds steady until GAP-152 ships first reports.
+
+| Tiêu chí | Điểm | Check |
+|----------|------|-------|
+| Tier 1 personas (Solo Teacher, Tutoring Center, Medium Center, K-12 School) all have a review report ≤90 days old | 3 | `ls -lt documents/00-brd/persona-reviews/*.md` + match each Tier 1 persona name |
+| Each Tier 1 review's Coverage Analysis table has zero 🔴 critical (blocking-launch) gaps | 3 | Read each report's verdict + critical-gap section |
+| Quarterly cadence respected: latest review ≤current quarter (per `persona-based-business-review.md` §Quarterly Review Cadence) | 2 | Compare report date vs current EOQ window |
+| `documents/00-brd/personas-catalog.md` has fresh `next_review` field (not overdue) | 1 | grep `next_review:` frontmatter; compare to today |
+| Audit-driven persona gaps (filed via `audit-to-gap-pipeline.md`) are tracked in ROADMAP, not stale | 1 | grep recent persona-* gaps in ROADMAP |
+
+**Scoring guidance:**
+- 9-10/10: All Tier 1 reports current, zero critical persona gaps, cadence on track
+- 7-8/10: All reports exist but ≥1 has open critical gap, OR cadence slipping by ≤1 quarter
+- 5/10: **Data pending** (GAP-152 not yet shipped) — default neutral score
+- 3-4/10: Reports exist for some personas only, OR cadence overdue ≥2 quarters
+- 1-2/10: Reports exist but multiple critical gaps, no remediation in flight
+- 0/10: ALL personas reviewed and overall verdict shows feature completeness <30% for ≥1 Tier 1 persona (system actively unusable for that persona at scale)
+
+**Reference:** `documents/00-brd/personas-catalog.md` (canonical Tier 1 list), `.claude/skills/quality/persona-based-business-review.md` (review methodology + cadence), `.claude/rules/meta-gap-priority.md` §3 (business-logic tier rationale).
+
 ### Bước 3: Output Report
 
 ```markdown
@@ -207,15 +235,19 @@ Reference: `documents/02-architecture/ai-branding-design-patterns.md` + `.claude
 | 8 | Documentation | X | 10 | ✅/⚠️/❌ |
 | 9 | Code Quality | X | 10 | ✅/⚠️/❌ |
 | 10 | Project Management | X | 10 | ✅/⚠️/❌ |
-| **Total** | | **X** | **100** | **Grade** |
+| 11 | Persona Coverage | X | 10 | ✅/⚠️/❌ |
+| **Total** | | **X** | **110** | **Grade** |
 
-### Grade Scale
-- 95-100: A+ (Production Excellence)
-- 90-94: A (Production Ready)
-- 85-89: B+ (Near Production)
-- 80-84: B (Good, needs polish)
-- 70-79: C (Acceptable, significant gaps)
-- <70: D (Major work needed)
+### Grade Scale (rebased for /110 — proportional to the prior /100 thresholds)
+
+- 105-110: A+ (Production Excellence)
+- 99-104: A (Production Ready)
+- 94-98: B+ (Near Production)
+- 88-93: B (Good, needs polish)
+- 77-87: C (Acceptable, significant gaps)
+- <77: D (Major work needed)
+
+**Conversion note:** the new thresholds are the prior /100 thresholds × 1.1 (rounded). E.g., A was 90/100 = 0.90; now A starts at 99/110 = 0.90. Comparing audits across the v1.0 → v1.1 boundary: convert old `X/100` to equivalent `(X × 1.1)/110` before delta — OR add a "data pending" 5 to the old score for direct comparison (assumes Cat 11 baseline neutral).
 
 ---
 
@@ -350,7 +382,7 @@ Parent KHÔNG cần re-verify — trust subagent evidence. Chỉ sanity-check n�
 
 ### Specialized Audits (for deeper analysis)
 
-Quality-audit cho cái nhìn tổng quan /100. Để đánh giá sâu hơn từng domain, dùng:
+Quality-audit cho cái nhìn tổng quan /110. Để đánh giá sâu hơn từng domain, dùng:
 
 | Audit | Skill | Khi nào |
 |-------|-------|---------|
@@ -360,6 +392,7 @@ Quality-audit cho cái nhìn tổng quan /100. Để đánh giá sâu hơn từn
 | API Contract | `/api-contract-audit` | Endpoint ↔ docs sync |
 | Ops Readiness | `/ops-readiness-audit` | Production deploy readiness |
 | UI/UX | `/ui-review` | Per-screen visual /128 |
+| Persona Coverage | `/persona-based-business-review` | Quarterly role-play per Tier 1 persona — feeds Cat 11 score |
 | Document Generation | (sample inspection — no dedicated skill yet) | Open `documents/04-quality/samples/*` after Wave 5 Sub-PR 5.6; spot-check VN diacritics, VND format, branding application across PDF/XLSX/DOCX outputs. |
 
 Thêm section "Specialized Audit Scores" vào report nếu có kết quả từ audit chuyên sâu.
@@ -373,3 +406,12 @@ Thêm section "Specialized Audit Scores" vào report nếu có kết quả từ 
 - **Targeted re-audit only after fix** — full re-audit only on release / major refactor; per `feedback_targeted_audit.md` re-score only categories affected by the fix
 - **First-run baseline is NOT a regression** — when scoring a never-audited category (e.g., ops-readiness, performance pre-2026-04-19), low score is honest baseline, not drift
 - **Always use `scripts/check-ci.sh --status`** (read mode) for audit data; `gh pr checks` field `state` returns null and breaks polling — see `feedback_monitor_gh_pr_checks_no_state_field.md`
+- **Cat 11 (Persona Coverage) defaults to 5/10 until GAP-152 ships** — do NOT score 0 (no data ≠ no coverage) or 10 (cannot claim full coverage without evidence). Once GAP-152 lands first 4 Tier 1 reports, Cat 11 becomes data-driven per the rubric in §11
+- **Comparing v1.0 (/100) vs v1.1 (/110) audits** — convert old `X/100` to `(X × 1.1)/110` before delta, OR add neutral `5` to old score's category sum. Don't compare raw integers across the scale change
+
+---
+
+## Log
+
+- **2026-04-29** (v1.1): Added Cat 11 Persona Coverage /10. Total scale moved 100 → 110 (proportional rebasing — original 10 categories untouched). Grade scale rebased ×1.1. References GAP-152 as data source; defaults to 5/10 baseline ("data pending") until first reports ship. Closes GAP-050 framework AC #6 ("quality-audit /100 adds persona coverage category referencing GAP-152 output"). Reviewer: @nguyenvankiet (solo-dev — paired with `pre-flight-check.md` Layer 4 + `persona-based-business-review.md` §Quarterly Review Cadence in same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate).
+- **2026-03 — 2026-04** (v1.0): Skill at 10 categories /100. Various calibration entries captured in memory (see `feedback_audit_calibration.md`).
