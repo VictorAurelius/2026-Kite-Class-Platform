@@ -9,7 +9,9 @@ Log files: documents/03-planning/pr-logs/PR-{number}.json
 """
 import contextlib
 import json
+import os
 import re
+import socket
 import subprocess
 import sys
 from datetime import datetime, timedelta
@@ -95,6 +97,100 @@ AUDIT_DIRS = {
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 LOG_DIR = PROJECT_ROOT / "documents" / "03-planning" / "pr-logs"
+SESSION_LOCKS_DIR = PROJECT_ROOT / ".claude" / "session-locks"
+SESSION_LOCK_GUARD = PROJECT_ROOT / ".claude" / "hooks" / "session-lock-guard.py"
+
+
+# ── Session Telemetry (GAP-193 Phase 2) ──────────────────────────
+
+
+def get_session_id() -> str:
+    """Same resolution rules as session-lock-guard.py — keep in sync."""
+    sid = os.environ.get("CLAUDE_SESSION_ID")
+    if sid:
+        return sid.strip()
+    user = os.environ.get("USER") or "unknown"
+    host = socket.gethostname()
+    return f"{user}@{host}:ppid-{os.getppid()}"
+
+
+def get_session_started_at(session_id: str) -> str | None:
+    """Best-effort: read earliest matching lock file's `started:` field, else
+    fall back to env var $CLAUDE_SESSION_START.
+    """
+    if SESSION_LOCKS_DIR.is_dir():
+        candidates: list[tuple[float, Path]] = []
+        for entry in SESSION_LOCKS_DIR.iterdir():
+            if entry.suffix != ".lock":
+                continue
+            try:
+                content = entry.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if f"session_id: {session_id}" in content or f'session_id: "{session_id}"' in content:
+                try:
+                    candidates.append((entry.stat().st_mtime, entry))
+                except OSError:
+                    continue
+        if candidates:
+            candidates.sort()
+            content = candidates[0][1].read_text(encoding="utf-8", errors="replace")
+            for line in content.splitlines():
+                m = re.match(r"^started\s*:\s*(.+?)\s*$", line)
+                if m:
+                    return m.group(1).strip().strip('"').strip("'")
+    return os.environ.get("CLAUDE_SESSION_START")
+
+
+def get_turn_count() -> int | None:
+    """Best-effort turn count.
+
+    Prefer $CLAUDE_TURN_COUNT (if harness exposes it). Otherwise return None
+    so the field can be omitted gracefully — never fabricate.
+    """
+    val = os.environ.get("CLAUDE_TURN_COUNT")
+    if val and val.isdigit():
+        return int(val)
+    return None
+
+
+def build_session_telemetry() -> dict:
+    """Assemble session_telemetry block for PR-{N}.json. Always returns a dict;
+    optional fields are omitted (not None) so JSON stays clean.
+    """
+    telemetry: dict = {"session_id": get_session_id()}
+    started = get_session_started_at(telemetry["session_id"])
+    if started:
+        telemetry["session_started_at"] = started
+    turns = get_turn_count()
+    if turns is not None:
+        telemetry["turn_count"] = turns
+    return telemetry
+
+
+def run_session_lock_guard() -> tuple[bool, str]:
+    """Invoke session-lock-guard.py. Returns (ok, message).
+
+    ok=False indicates a foreign-session lock conflict (caller may surface as
+    a warning — we do NOT block PR-merge events on this signal alone, since
+    the hook fires post-action; the guard is more useful at commit/edit time).
+    """
+    if not SESSION_LOCK_GUARD.is_file():
+        return True, ""
+    try:
+        result = subprocess.run(
+            ["python3", str(SESSION_LOCK_GUARD)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=PROJECT_ROOT,
+            check=False,
+        )
+    except (subprocess.SubprocessError, FileNotFoundError) as exc:
+        return True, f"(session-lock-guard could not run: {exc})"
+    if result.returncode == 0:
+        return True, ""
+    return False, (result.stderr or "session-lock-guard: foreign lock detected").strip()
 
 
 # ── Event Detection ──────────────────────────────────────────────
@@ -201,6 +297,10 @@ def read_pr_log(pr: str) -> dict:
         },
         "events": [],
         "compliance_score": None,
+        # session_telemetry populated by build_session_telemetry() on PR_CREATED /
+        # PR_MERGED events. Keys: session_id (always), session_started_at +
+        # turn_count when detectable. GAP-193 Phase 2.
+        "session_telemetry": {},
     }
 
 
@@ -253,6 +353,9 @@ def on_pr_create(pr: str, output: str) -> dict | None:
         log["title"] = info.get("title", "")
         log["branch"] = info.get("headRefName", "")
         log["created_at"] = info.get("createdAt") or datetime.now().isoformat()
+        # GAP-193 Phase 2 — record session telemetry on every PR event so retro
+        # analysis can correlate PR quality vs session length / turn count.
+        log["session_telemetry"] = build_session_telemetry()
         log = add_event(log, "PR_CREATED", {"number": int(pr)})
         write_pr_log(pr, log)
     except Exception:
@@ -378,6 +481,12 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     log["checklist"]["wave_completion_check"] = False if is_wave else None
 
     log["compliance_score"] = compute_score(log["checklist"])
+    # Refresh session telemetry on merge — captures end-of-session state.
+    log["session_telemetry"] = build_session_telemetry()
+
+    # GAP-193 Phase 2 — non-blocking session-lock check. We only surface as a
+    # systemMessage line; merge-blocking lives in the commit/edit hooks.
+    lock_ok, lock_msg = run_session_lock_guard()
 
     log = add_event(log, "PR_MERGED", {
         "ci_status": ci_status,
@@ -410,6 +519,9 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
         )
     if is_wave:
         violations.append("Wave merge — run /wave-completion-check + audit suite within 3 days (post-wave-audit-mandate.md)")
+    if not lock_ok and lock_msg:
+        # Informational — same branch claimed by another session at merge time.
+        violations.append(f"Session-lock notice: {lock_msg.splitlines()[0] if lock_msg else 'foreign session lock detected'}")
 
     if not violations:
         return {"systemMessage": f"PR #{pr} merged — compliance {log['compliance_score']}. Log: pr-logs/PR-{pr}.json"}

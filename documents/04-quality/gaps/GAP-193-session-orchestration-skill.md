@@ -1,6 +1,6 @@
 # GAP-193: Session Orchestration & Start-Session Skill
 
-**Status:** 🟢 DONE (Phase 1 — skill + lock convention) / 🟡 PARTIAL (Phase 2 — hook enforcement deferred)
+**Status:** 🟢 DONE 2026-04-29 (Phase 1 + Phase 2 closed)
 **Priority:** 🟠 P1 (meta tier — quality-of-work enabler)
 **Domain:** Meta / Skills / Workflow
 **Found:** 2026-04-20 (action-1 §12 + §15.D)
@@ -53,11 +53,11 @@ Meta-P1 because every session pays the cost of missing context. Related rules:
 - [x] Example runs documented (reference/context-template.md §4 Example Output Scenarios)
 - [x] `scripts/collect-state.sh` smoke-tested in feat/wave-8b-E branch
 
-### Phase 2 (DEFERRED — follow-up PR)
-- [ ] Hook enforcement blocking commits on locked branch from different session
-- [ ] Session-lock archival on session-end for retro analysis
-- [ ] Turn-count telemetry recorded in `PR-{N}.json` via audit-gate.py
-- [ ] `/end-session` skill for explicit lock release
+### Phase 2 (DONE 2026-04-29 — Wave Meta Phase-2 Cleanup Agent A)
+- [x] Hook enforcement blocking commits on locked branch from different session
+- [x] Session-lock archival on session-end for retro analysis
+- [x] Turn-count telemetry recorded in `PR-{N}.json` via audit-gate.py
+- [x] `/end-session` skill for explicit lock release
 
 ## Out of Scope
 
@@ -77,3 +77,4 @@ Meta-P1 because every session pays the cost of missing context. Related rules:
 
 - 2026-04-20 — Created from action-1 §15.D.
 - 2026-04-20 — Phase 1 CLOSED via Wave 8b Agent E. Delivered: `.claude/skills/workflow/start-session/{SKILL.md, reference/context-template.md, scripts/collect-state.sh}` + `.claude/session-locks/README.md` + skills index entry + `.gitignore` rule for lock files. Smoke test passed. Phase 2 (hook enforcement, telemetry) deferred to follow-up PR.
+- **2026-04-29** — Phase 2 CLOSED via Wave Meta Phase-2 Cleanup Cluster 7 Agent A (PR #TBD). 7 deliverables shipped: (1) `.claude/hooks/session-lock-guard.py` — branch-lock enforcement (exit 1 on foreign-session conflict), auto-purges stale locks (>4h); (2) `.claude/hooks/audit-gate.py` extended with `build_session_telemetry()` + `run_session_lock_guard()` helpers, `session_telemetry` block now in every `PR-{N}.json` (session_id always; session_started_at + turn_count best-effort); (3) `.claude/skills/workflow/end-session/SKILL.md` + `scripts/end-session.sh` (helper) — Vietnamese 1-line summary per CLAUDE.md §CRITICAL; (4) `.claude/session-locks/README.md` updated with archival path `.claude/session-locks/archived/YYYY-MM-DD/` + 30-day retention; (5) `.claude/skills/_README-skills-index.md` registers `/end-session`; (6) `.claude/hooks/tests/test-session-lock-guard.sh` smoke test — 3 scenarios (foreign-active blocks; own-only passes; stale-foreign auto-purged) + verify-purge assertion = 4 PASS / 0 FAIL; (7) gap closure verified via `gap-done-discipline.md` §2 banned-phrase scan clean. Verification environment: WSL2 worktree `agent-aa85b54b` on branch `feat/wave-meta-p2-gap-193-session-lock-hook`; lint pass `ruff check` clean + `shellcheck` clean.
