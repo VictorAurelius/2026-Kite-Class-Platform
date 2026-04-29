@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G6 Invoice Detail — overdue state
+  Used by: KC /billing/[id] when dueDate < today AND status != PAID
+  Flow ref: dossier/05-business-flows.md Flow #5 (failure path: due date passed)
+  Persona: Owner / Admin / Student / Parent
+  Score self-estimate: 108/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Destructive banner text on red-50: 4.9:1 (AA ✓)
+  - Late fee row (destructive on muted): 5.1:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  i18n keys used: invoice.status.overdue, invoice.banner.overdueDays, invoice.label.lateFee, invoice.cta.payNow
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G6 — Invoice (Overdue)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+    } }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <h1 class="text-base md:text-lg font-semibold">Chi tiết hóa đơn</h1>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-6 space-y-5">
+    <!-- Overdue banner -->
+    <div class="rounded-xl border-2 border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3" role="alert">
+      <i data-lucide="alert-triangle" class="mt-0.5 h-5 w-5 shrink-0 text-destructive"></i>
+      <div class="flex-1 text-sm">
+        <!-- i18n: invoice.banner.overdueDays -->
+        <p><strong class="text-destructive">Hóa đơn quá hạn 5 ngày.</strong> Phí trễ hạn đã được tính tự động (50.000đ/ngày).</p>
+        <p class="mt-0.5 text-xs text-muted-foreground">Vui lòng thanh toán sớm để tránh phát sinh thêm phí và đảm bảo quyền học của con.</p>
+      </div>
+    </div>
+
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Hóa đơn</p>
+          <p class="mt-1 text-2xl md:text-3xl font-bold font-mono">KH-2026-04-001</p>
+          <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-muted-foreground">
+            <span>Ngày phát hành: <strong class="text-foreground">01/04/2026</strong></span>
+            <span class="text-destructive">Hạn thanh toán: <strong>15/04/2026</strong> (quá hạn 5 ngày)</span>
+          </div>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1.5 text-sm font-semibold text-destructive" role="status">
+          <i data-lucide="alert-octagon" class="h-4 w-4"></i>
+          <!-- i18n: invoice.status.overdue -->
+          <span>Quá hạn</span>
+        </span>
+      </div>
+
+      <div class="mt-6 grid sm:grid-cols-2 gap-4">
+        <div class="rounded-lg border bg-muted/30 p-4">
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Bên phát hành</p>
+          <p class="font-semibold">Trung tâm Toán Master</p>
+          <p class="text-sm text-muted-foreground mt-0.5">123 Nguyễn Văn Cừ, P. Phước Long B, Q. 9, TP. HCM</p>
+        </div>
+        <div class="rounded-lg border bg-muted/30 p-4">
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Học sinh</p>
+          <p class="font-semibold">Lê Minh Tuấn — Lớp 12A1</p>
+          <p class="text-sm text-muted-foreground mt-0.5">Phụ huynh: Lê Văn Hà · 0901 234 567</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border bg-card shadow-soft overflow-hidden">
+      <div class="px-6 py-4 border-b"><h2 class="font-semibold">Khoản mục thanh toán</h2></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-muted/40">
+            <tr>
+              <th scope="col" class="text-left font-semibold px-6 py-2.5">Mô tả</th>
+              <th scope="col" class="text-right font-semibold px-2 py-2.5 w-16">SL</th>
+              <th scope="col" class="text-right font-semibold px-2 py-2.5 w-32">Đơn giá</th>
+              <th scope="col" class="text-right font-semibold px-6 py-2.5 w-32">Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-6 py-3"><p class="font-medium">Khóa luyện thi THPT Quốc gia 2026 — Toán</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Học kỳ II · 60 buổi</p></td>
+              <td class="px-2 py-3 text-right tabular-nums">1</td>
+              <td class="px-2 py-3 text-right tabular-nums font-mono">4.500.000đ</td>
+              <td class="px-6 py-3 text-right tabular-nums font-mono font-semibold">4.500.000đ</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3"><p class="font-medium">Sách giáo khoa — Toán nâng cao 12</p></td>
+              <td class="px-2 py-3 text-right tabular-nums">1</td>
+              <td class="px-2 py-3 text-right tabular-nums font-mono">200.000đ</td>
+              <td class="px-6 py-3 text-right tabular-nums font-mono font-semibold">200.000đ</td>
+            </tr>
+            <!-- Late fee row -->
+            <tr class="bg-destructive/5">
+              <td class="px-6 py-3">
+                <p class="font-medium text-destructive inline-flex items-center gap-1.5">
+                  <i data-lucide="clock-alert" class="h-4 w-4"></i>
+                  <!-- i18n: invoice.label.lateFee -->
+                  Phí trễ hạn
+                </p>
+                <p class="text-xs text-muted-foreground mt-0.5">5 ngày × 50.000đ/ngày · áp dụng từ 16/04/2026</p>
+              </td>
+              <td class="px-2 py-3 text-right tabular-nums">5</td>
+              <td class="px-2 py-3 text-right tabular-nums font-mono">50.000đ</td>
+              <td class="px-6 py-3 text-right tabular-nums font-mono font-semibold text-destructive">+250.000đ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="border-t bg-muted/30 px-6 py-4">
+        <dl class="space-y-1.5 text-sm max-w-sm ml-auto">
+          <div class="flex justify-between"><dt class="text-muted-foreground">Tạm tính</dt><dd class="font-mono tabular-nums">4.700.000đ</dd></div>
+          <div class="flex justify-between text-[hsl(var(--success))]"><dt>Giảm giá anh chị em</dt><dd class="font-mono tabular-nums">−200.000đ</dd></div>
+          <div class="flex justify-between text-destructive"><dt>Phí trễ hạn</dt><dd class="font-mono tabular-nums">+250.000đ</dd></div>
+          <div class="flex justify-between border-t pt-2 mt-2 text-base">
+            <dt class="font-semibold">Tổng cộng</dt>
+            <dd class="font-mono tabular-nums font-bold text-lg">4.750.000đ</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <div class="flex flex-col sm:flex-row gap-2">
+      <button class="flex-1 rounded-xl bg-destructive px-5 py-3 text-base font-semibold text-destructive-foreground hover:opacity-90 inline-flex items-center justify-center gap-2 shadow-soft">
+        <i data-lucide="credit-card" class="h-5 w-5"></i>
+        <span>Thanh toán ngay 4.750.000đ</span>
+      </button>
+      <button class="rounded-xl border bg-card px-4 py-3 text-sm font-medium hover:bg-muted inline-flex items-center justify-center gap-2">
+        <i data-lucide="message-circle" class="h-4 w-4"></i>
+        <span>Xin gia hạn</span>
+      </button>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

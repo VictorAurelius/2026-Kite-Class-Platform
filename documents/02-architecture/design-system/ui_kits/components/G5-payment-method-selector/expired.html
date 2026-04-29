@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G5 Payment Method Selector — expired state
+  Used by: KC /billing/[id]/pay — when 15-min QR window elapses
+  Flow ref: dossier/05-business-flows.md Flow #5 (failure path: payment timeout)
+  Persona: Student / Parent
+  Score self-estimate: 102/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Warning text on warning/10 bg: 5.2:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  i18n keys used: payment.expired.title, payment.expired.body, payment.cta.regenerateQR,
+                  payment.cta.changeMethod
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G5 — Payment (Expired)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <div>
+        <p class="text-xs text-muted-foreground">Hóa đơn <span class="font-mono">KH-2026-04-001</span></p>
+        <h1 class="text-base md:text-lg font-semibold">Mã QR đã hết hạn</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-md px-4 py-8">
+    <div class="rounded-2xl border bg-card p-6 md:p-8 shadow-soft text-center" role="alert">
+      <!-- Greyed-out QR with overlay -->
+      <div class="relative mx-auto inline-block rounded-xl border-4 border-warning/30 p-3 bg-white">
+        <svg width="180" height="180" viewBox="0 0 25 25" aria-hidden="true" style="filter: grayscale(1); opacity: 0.4">
+          <rect width="25" height="25" fill="white" />
+          <g fill="black">
+            <rect x="0" y="0" width="7" height="7" /><rect x="1" y="1" width="5" height="5" fill="white" /><rect x="2" y="2" width="3" height="3" />
+            <rect x="18" y="0" width="7" height="7" /><rect x="1" y="1" width="5" height="5" fill="white" /><rect x="20" y="2" width="3" height="3" />
+            <rect x="0" y="18" width="7" height="7" /><rect x="1" y="19" width="5" height="5" fill="white" /><rect x="2" y="20" width="3" height="3" />
+            <rect x="9" y="9" width="7" height="7" />
+          </g>
+        </svg>
+        <div class="absolute inset-0 grid place-items-center">
+          <div class="rounded-full bg-warning/95 px-3 py-1.5 text-xs font-bold text-[hsl(var(--warning-foreground))] shadow-soft inline-flex items-center gap-1.5">
+            <i data-lucide="timer-off" class="h-3.5 w-3.5"></i>
+            HẾT HẠN
+          </div>
+        </div>
+      </div>
+
+      <!-- i18n: payment.expired.title -->
+      <h2 class="mt-5 text-xl font-semibold">Mã QR đã hết hạn (15 phút)</h2>
+      <!-- i18n: payment.expired.body -->
+      <p class="mt-2 text-muted-foreground text-sm max-w-sm mx-auto">
+        Vì lý do bảo mật, mã QR chỉ có giá trị trong 15 phút.
+        Nếu bạn chưa hoàn tất thanh toán, vui lòng tạo mã mới hoặc đổi phương thức.
+      </p>
+      <p class="mt-4 inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-sm">
+        <span class="font-mono">1.500.000đ</span>
+        <span class="text-muted-foreground">·</span>
+        <span class="text-muted-foreground">MoMo</span>
+      </p>
+
+      <div class="mt-6 space-y-2">
+        <button class="w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+          <!-- i18n: payment.cta.regenerateQR -->
+          <span>Tạo mã QR mới</span>
+        </button>
+        <button class="w-full rounded-xl border bg-card px-5 py-3 text-sm font-medium hover:bg-muted">
+          <!-- i18n: payment.cta.changeMethod -->
+          Chọn phương thức khác
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

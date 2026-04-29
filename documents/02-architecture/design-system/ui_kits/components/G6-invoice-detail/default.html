@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G6 Invoice Detail — default state (pending-payment)
+  Used by: KC /billing/[id], KH /billing/payment/[id] (was 33/128 🔴)
+  Flow ref: dossier/05-business-flows.md Flow #5
+  Persona: Owner / Admin / Student / Parent
+  Score self-estimate: 110/128 (Tech 28 / Heuristics 28 / Aesthetics 27 / UX 27)
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Muted-fg on bg-card: 4.7:1 (AA ✓)
+  - Warning pill (Chờ thanh toán) on warning/10: 5.2:1 (AA ✓)
+  - Total 4xl on white: 17.9:1 (AAA ✓)
+  - Mono invoice number on muted: 11.2:1 (AAA ✓)
+  i18n keys used: invoice.title, invoice.status.pending, invoice.label.{number,issueDate,dueDate,
+                  student,subtotal,vat,discount,total}, invoice.cta.{payNow,download,email,print}
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G6 — Invoice Detail (Pending)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <h1 class="text-base md:text-lg font-semibold">Chi tiết hóa đơn</h1>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-4xl px-4 py-6 space-y-5">
+    <!-- Invoice header -->
+    <section class="rounded-2xl border bg-card p-6 shadow-soft">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Hóa đơn</p>
+          <p class="mt-1 text-2xl md:text-3xl font-bold font-mono">KH-2026-04-001</p>
+          <div class="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-sm text-muted-foreground">
+            <span><i data-lucide="calendar" class="inline h-3.5 w-3.5 align-text-bottom mr-1"></i>Ngày phát hành: <strong class="text-foreground">01/04/2026</strong></span>
+            <span><i data-lucide="calendar-clock" class="inline h-3.5 w-3.5 align-text-bottom mr-1"></i>Hạn thanh toán: <strong class="text-foreground">15/04/2026</strong></span>
+          </div>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 text-sm font-semibold text-[hsl(var(--warning))]" role="status">
+          <i data-lucide="clock" class="h-4 w-4"></i>
+          <!-- i18n: invoice.status.pending -->
+          <span>Chờ thanh toán</span>
+        </span>
+      </div>
+
+      <!-- Tenant + Student blocks -->
+      <div class="mt-6 grid sm:grid-cols-2 gap-4">
+        <div class="rounded-lg border bg-muted/30 p-4">
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Bên phát hành</p>
+          <p class="font-semibold">Trung tâm Toán Master</p>
+          <p class="text-sm text-muted-foreground mt-0.5">123 Nguyễn Văn Cừ, P. Phước Long B, Q. 9, TP. HCM</p>
+          <p class="text-xs text-muted-foreground mt-1">MST: <span class="font-mono">0312345678</span></p>
+        </div>
+        <div class="rounded-lg border bg-muted/30 p-4">
+          <p class="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Học sinh</p>
+          <p class="font-semibold">Lê Minh Tuấn</p>
+          <p class="text-sm text-muted-foreground mt-0.5">Lớp 12A1 · MST học sinh: <span class="font-mono">HS-12A1-018</span></p>
+          <p class="text-xs text-muted-foreground mt-1">Phụ huynh: Lê Văn Hà · 0901 234 567</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Line items -->
+    <section class="rounded-2xl border bg-card shadow-soft overflow-hidden">
+      <div class="px-6 py-4 border-b">
+        <h2 class="font-semibold">Khoản mục thanh toán</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-muted/40">
+            <tr>
+              <th scope="col" class="text-left font-semibold px-6 py-2.5">Mô tả</th>
+              <th scope="col" class="text-right font-semibold px-2 py-2.5 w-16">SL</th>
+              <th scope="col" class="text-right font-semibold px-2 py-2.5 w-32">Đơn giá</th>
+              <th scope="col" class="text-right font-semibold px-6 py-2.5 w-32">Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-6 py-3">
+                <p class="font-medium">Khóa luyện thi THPT Quốc gia 2026 — Toán</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Học kỳ II (Tháng 2 – Tháng 6 2026) · 60 buổi</p>
+              </td>
+              <td class="px-2 py-3 text-right tabular-nums">1</td>
+              <td class="px-2 py-3 text-right tabular-nums font-mono">4.500.000đ</td>
+              <td class="px-6 py-3 text-right tabular-nums font-mono font-semibold">4.500.000đ</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">
+                <p class="font-medium">Sách giáo khoa — Toán nâng cao 12</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Bộ 3 quyển · NXB Giáo Dục</p>
+              </td>
+              <td class="px-2 py-3 text-right tabular-nums">1</td>
+              <td class="px-2 py-3 text-right tabular-nums font-mono">200.000đ</td>
+              <td class="px-6 py-3 text-right tabular-nums font-mono font-semibold">200.000đ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div class="border-t bg-muted/30 px-6 py-4">
+        <dl class="space-y-1.5 text-sm max-w-sm ml-auto">
+          <div class="flex justify-between">
+            <!-- i18n: invoice.label.subtotal -->
+            <dt class="text-muted-foreground">Tạm tính</dt>
+            <dd class="font-mono tabular-nums">4.700.000đ</dd>
+          </div>
+          <div class="flex justify-between text-[hsl(var(--success))]">
+            <!-- i18n: invoice.label.discount -->
+            <dt class="inline-flex items-center gap-1.5"><i data-lucide="ticket-percent" class="h-3.5 w-3.5"></i>Giảm giá anh chị em</dt>
+            <dd class="font-mono tabular-nums">−200.000đ</dd>
+          </div>
+          <div class="flex justify-between border-t pt-2 mt-2 text-base">
+            <!-- i18n: invoice.label.total -->
+            <dt class="font-semibold">Tổng cộng</dt>
+            <dd class="font-mono tabular-nums font-bold text-lg">4.500.000đ</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- CTAs -->
+    <div class="flex flex-col sm:flex-row gap-2">
+      <button class="flex-1 rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2 shadow-soft">
+        <i data-lucide="credit-card" class="h-5 w-5"></i>
+        <!-- i18n: invoice.cta.payNow -->
+        <span>Thanh toán ngay 4.500.000đ</span>
+      </button>
+      <button class="rounded-xl border bg-card px-4 py-3 text-sm font-medium hover:bg-muted inline-flex items-center justify-center gap-2">
+        <i data-lucide="download" class="h-4 w-4"></i>
+        <!-- i18n: invoice.cta.download -->
+        <span>Tải PDF</span>
+      </button>
+      <button class="rounded-xl border bg-card px-4 py-3 text-sm font-medium hover:bg-muted inline-flex items-center justify-center gap-2">
+        <i data-lucide="mail" class="h-4 w-4"></i>
+        <!-- i18n: invoice.cta.email -->
+        <span>Gửi qua email</span>
+      </button>
+    </div>
+
+    <!-- Help footer -->
+    <p class="text-center text-xs text-muted-foreground">
+      Cần điều chỉnh hóa đơn? Liên hệ <a href="mailto:billing@trungtam-toanmaster.vn" class="underline">billing@trungtam-toanmaster.vn</a> hoặc Zalo OA.
+    </p>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

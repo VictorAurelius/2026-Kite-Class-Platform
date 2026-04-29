@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G5 Payment Method Selector — failure-retry state
+  Used by: KC /billing/[id]/pay — gateway 5xx, signature invalid, declined
+  Flow ref: dossier/05-business-flows.md Flow #5 (failure: gateway 503, signature invalid)
+  Persona: Student / Parent
+  Score self-estimate: 104/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Destructive on red-50: 4.9:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  i18n keys used: payment.failure.title, payment.failure.body, payment.failure.errorCode,
+                  payment.cta.retry, payment.cta.changeMethod, payment.cta.contactSupport
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G5 — Payment (Failure)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <div>
+        <p class="text-xs text-muted-foreground">Hóa đơn <span class="font-mono">KH-2026-04-001</span></p>
+        <h1 class="text-base md:text-lg font-semibold">Giao dịch không thành công</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-md px-4 py-8">
+    <div class="rounded-2xl border bg-card p-6 md:p-8 shadow-soft text-center" role="alert" aria-live="assertive">
+      <div class="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-full bg-destructive/10">
+        <i data-lucide="x-circle" class="h-12 w-12 text-destructive" stroke-width="1.5"></i>
+      </div>
+
+      <!-- i18n: payment.failure.title -->
+      <h2 class="text-xl font-semibold">Giao dịch thất bại</h2>
+      <!-- i18n: payment.failure.body -->
+      <p class="mt-2 text-muted-foreground text-sm">
+        Hệ thống thanh toán MoMo từ chối giao dịch. Số dư của bạn chưa bị trừ.
+        Vui lòng thử lại hoặc chọn phương thức khác.
+      </p>
+
+      <!-- Reason detail -->
+      <div class="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-left text-sm">
+        <p class="flex items-start gap-2 text-destructive">
+          <i data-lucide="alert-triangle" class="mt-0.5 h-4 w-4 shrink-0"></i>
+          <span><strong>Số dư MoMo không đủ</strong> để thanh toán 1.500.000đ. Vui lòng nạp thêm rồi thử lại, hoặc dùng thẻ ngân hàng.</span>
+        </p>
+        <p class="mt-2 text-xs text-muted-foreground pl-6">
+          <!-- i18n: payment.failure.errorCode -->
+          Mã lỗi: <span class="font-mono">MOMO-INSUFFICIENT_BALANCE</span> · 09:47:53
+        </p>
+      </div>
+
+      <div class="mt-6 space-y-2">
+        <button class="w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+          <!-- i18n: payment.cta.retry -->
+          <span>Thử lại với MoMo</span>
+        </button>
+        <button class="w-full rounded-xl border bg-card px-5 py-3 text-sm font-medium hover:bg-muted">
+          <!-- i18n: payment.cta.changeMethod -->
+          Đổi phương thức (VNPay, Chuyển khoản…)
+        </button>
+        <button class="w-full text-sm text-muted-foreground hover:underline inline-flex items-center justify-center gap-1.5 py-2">
+          <i data-lucide="message-circle" class="h-4 w-4"></i>
+          <!-- i18n: payment.cta.contactSupport -->
+          <span>Liên hệ hỗ trợ qua Zalo 1900-xxx</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

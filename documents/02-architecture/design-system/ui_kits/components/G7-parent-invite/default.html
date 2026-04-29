@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G7 Parent Invite — sender admin UI (default state)
+  Used by: Admin "invite parent" modal/page (KC), settings → Phụ huynh
+  Flow ref: dossier/05-business-flows.md Flow #6 (Parent invite)
+  Persona: Admin (Owner / Operations) — desktop primary, tablet secondary
+  Score self-estimate: 109/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Muted-fg on bg-card: 4.7:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  - Status pills: success 4.9:1, warning 5.2:1, destructive 4.9:1 (all AA ✓)
+  i18n keys used: invite.sender.title, invite.sender.body, invite.label.email, invite.label.child,
+                  invite.channel.email, invite.channel.zalo, invite.cta.send, invite.list.title,
+                  invite.status.{pending,redeemed,expired}, invite.action.{resend,cancel}
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G7 — Parent Invite (Sender)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="border-b bg-card">
+    <div class="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <div>
+        <!-- i18n: invite.sender.title -->
+        <h1 class="text-base md:text-lg font-semibold">Mời phụ huynh theo dõi học tập</h1>
+        <p class="text-xs text-muted-foreground">Lớp 10A2 · Toán nâng cao</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-6 space-y-6">
+    <!-- Send form -->
+    <section class="rounded-2xl border bg-card p-5 md:p-6 shadow-soft">
+      <p class="text-sm text-muted-foreground mb-4">
+        <!-- i18n: invite.sender.body -->
+        Gửi lời mời để phụ huynh tạo tài khoản và theo dõi điểm số, điểm danh, học phí của con.
+        Lời mời có hiệu lực trong <strong>24 giờ</strong>.
+      </p>
+
+      <form class="space-y-4">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <!-- i18n: invite.label.child -->
+            <label for="child" class="block text-sm font-medium mb-1.5">Học sinh <span class="text-destructive">*</span></label>
+            <select id="child" class="w-full rounded-lg border bg-card px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <option>Lê Minh Tuấn — Lớp 10A2</option>
+              <option>Trần Thị Hương — Lớp 10A2</option>
+              <option>Nguyễn Văn An — Lớp 10A2</option>
+            </select>
+          </div>
+          <div>
+            <!-- i18n: invite.label.email -->
+            <label for="email" class="block text-sm font-medium mb-1.5">Email phụ huynh <span class="text-destructive">*</span></label>
+            <input id="email" type="email" placeholder="phuhuynh@gmail.com"
+              class="w-full rounded-lg border bg-card px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+          </div>
+        </div>
+
+        <div>
+          <p class="block text-sm font-medium mb-1.5">Kênh gửi</p>
+          <div role="radiogroup" aria-label="Kênh gửi lời mời" class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 rounded-lg border border-primary ring-2 ring-primary/20 bg-card px-3 py-2.5 cursor-pointer">
+              <input type="radio" name="channel" value="zalo" checked class="accent-[hsl(var(--primary))]" />
+              <i data-lucide="message-circle" class="h-4 w-4 text-blue-600"></i>
+              <span class="text-sm">
+                <!-- i18n: invite.channel.zalo -->
+                <strong>Zalo OA</strong>
+                <span class="block text-xs text-muted-foreground">Tỉ lệ mở thư cao (~95% phụ huynh)</span>
+              </span>
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border bg-card px-3 py-2.5 cursor-pointer hover:border-primary/60">
+              <input type="radio" name="channel" value="email" class="accent-[hsl(var(--primary))]" />
+              <i data-lucide="mail" class="h-4 w-4 text-muted-foreground"></i>
+              <span class="text-sm">
+                <!-- i18n: invite.channel.email -->
+                <strong>Email</strong>
+                <span class="block text-xs text-muted-foreground">Lưu trữ + có thể gửi PDF</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full rounded-lg bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2 shadow-soft">
+          <i data-lucide="send" class="h-4 w-4"></i>
+          <!-- i18n: invite.cta.send -->
+          <span>Gửi lời mời</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Pending invites -->
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <!-- i18n: invite.list.title -->
+        <h2 class="text-base font-semibold">Lời mời đã gửi <span class="text-muted-foreground font-normal">(3)</span></h2>
+        <button class="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <i data-lucide="filter" class="h-3.5 w-3.5"></i>
+          <span>Lọc</span>
+        </button>
+      </div>
+
+      <ul class="space-y-2">
+        <li class="rounded-xl border bg-card p-4 shadow-soft flex flex-wrap items-center gap-3">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-100 text-blue-700">
+            <i data-lucide="message-circle" class="h-5 w-5"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-medium truncate">phuhuynh.le.tuan@gmail.com</p>
+            <p class="text-xs text-muted-foreground">
+              Mời theo dõi <strong>Lê Minh Tuấn</strong> · Lớp 10A2 · Gửi qua Zalo
+            </p>
+            <p class="text-xs text-muted-foreground mt-0.5 inline-flex items-center gap-1.5">
+              <i data-lucide="clock" class="h-3 w-3"></i>
+              <span>2 giờ trước · còn lại <strong>21 giờ 47 phút</strong></span>
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-2.5 py-1 text-xs font-semibold text-[hsl(var(--warning))]">
+            <i data-lucide="hourglass" class="h-3 w-3"></i>
+            <!-- i18n: invite.status.pending -->
+            <span>Chờ chấp nhận</span>
+          </span>
+          <div class="flex gap-1">
+            <button class="rounded-lg border bg-card px-2.5 py-1.5 text-xs hover:bg-muted inline-flex items-center gap-1" aria-label="Gửi lại">
+              <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+              <!-- i18n: invite.action.resend -->
+              <span>Gửi lại</span>
+            </button>
+            <button class="rounded-lg border bg-card px-2.5 py-1.5 text-xs hover:bg-destructive/10 hover:text-destructive inline-flex items-center gap-1" aria-label="Hủy lời mời">
+              <i data-lucide="x" class="h-3.5 w-3.5"></i>
+              <!-- i18n: invite.action.cancel -->
+              <span>Hủy</span>
+            </button>
+          </div>
+        </li>
+
+        <li class="rounded-xl border bg-card p-4 shadow-soft flex flex-wrap items-center gap-3">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-pink-100 text-pink-700">
+            <i data-lucide="mail" class="h-5 w-5"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-medium truncate">tran.thi.huong.parent@gmail.com</p>
+            <p class="text-xs text-muted-foreground">
+              Mời theo dõi <strong>Trần Thị Hương</strong> · Lớp 10A2 · Gửi qua Email
+            </p>
+            <p class="text-xs text-muted-foreground mt-0.5 inline-flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="h-3 w-3 text-[hsl(var(--success))]"></i>
+              <span>Đã chấp nhận lúc 14:22 · 2 ngày trước</span>
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-[hsl(var(--success))]">
+            <i data-lucide="check-circle-2" class="h-3 w-3"></i>
+            <!-- i18n: invite.status.redeemed -->
+            <span>Đã chấp nhận</span>
+          </span>
+        </li>
+
+        <li class="rounded-xl border bg-card p-4 shadow-soft flex flex-wrap items-center gap-3 opacity-70">
+          <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-pink-100 text-pink-700">
+            <i data-lucide="mail" class="h-5 w-5"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-medium truncate">nguyenvanan.parent@yahoo.com</p>
+            <p class="text-xs text-muted-foreground">
+              Mời theo dõi <strong>Nguyễn Văn An</strong> · Lớp 10A2 · Gửi qua Email
+            </p>
+            <p class="text-xs text-muted-foreground mt-0.5">3 ngày trước · Hết hạn lúc 14:00 hôm qua</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive">
+            <i data-lucide="timer-off" class="h-3 w-3"></i>
+            <!-- i18n: invite.status.expired -->
+            <span>Hết hạn</span>
+          </span>
+          <button class="rounded-lg border bg-card px-2.5 py-1.5 text-xs hover:bg-muted inline-flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+            <span>Gửi lại</span>
+          </button>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

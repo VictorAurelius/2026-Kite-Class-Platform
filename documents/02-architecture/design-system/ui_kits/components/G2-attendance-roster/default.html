@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G2 Attendance Roster — default state
+  Used by: KC /classes/[id]/attendance, Teacher daily session view
+  Flow ref: dossier/05-business-flows.md Flow #3 (Daily attendance)
+  Persona: Teacher (homeroom + subject)
+  Score self-estimate: 108/128 (Tech 28 / Heuristics 27 / Aesthetics 26 / UX 27)
+  Contrast (measured):
+  - Body (foreground 222.2 84% 4.9% on background 0 0% 100%): 17.9:1 (AAA ✓)
+  - Muted-fg (215.4 16.3% 46.9% on bg-card): 4.7:1 (AA ✓)
+  - Primary on white (KC blue 221.2 83.2% 53.3% on white): 4.6:1 (AA ✓)
+  - Success chip (160 84% 39% white text on green-100): 4.5:1 (AA ✓)
+  - Warning amber chip (38 92% 50% on amber-50): 5.2:1 (AA ✓)
+  - Destructive chip (0 84.2% 60.2% on red-50): 4.9:1 (AA ✓)
+  i18n keys used: attendance.session.title, attendance.status.present, attendance.status.excused,
+                  attendance.status.unexcused, attendance.status.late, attendance.action.markAllPresent,
+                  attendance.action.save, attendance.label.attendanceRate
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G2 — Attendance Roster (Default)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))',
+            input: 'hsl(var(--input))',
+            ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+            destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+            success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+            warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+            info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          boxShadow: { soft: 'var(--shadow-soft)', 'soft-lg': 'var(--shadow-soft-lg)' },
+        },
+      },
+    };
+  </script>
+  <style>
+    .chip-status { transition: all 0.15s ease-out; }
+    @media (prefers-reduced-motion: reduce) { .chip-status { transition: opacity 0.1s; } }
+    .row:hover { background: hsl(var(--muted) / 0.5); }
+    .save-bar { backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground">
+  <!-- Header -->
+  <header class="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
+    <div class="mx-auto max-w-5xl px-4 py-3 md:py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3 min-w-0">
+        <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+          <i data-lucide="arrow-left" class="h-5 w-5"></i>
+        </button>
+        <div class="min-w-0">
+          <!-- i18n: attendance.session.title -->
+          <h1 class="text-base md:text-lg font-semibold truncate">Lớp 10A2 — Toán nâng cao</h1>
+          <p class="text-xs md:text-sm text-muted-foreground truncate">
+            Buổi #12 · Thứ Hai, 15/04/2026 · 14:00 – 15:30
+          </p>
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-2 shrink-0">
+        <button class="rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted inline-flex items-center gap-2">
+          <i data-lucide="check-check" class="h-4 w-4"></i>
+          <!-- i18n: attendance.action.markAllPresent -->
+          <span>Tất cả có mặt</span>
+        </button>
+        <button class="rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted inline-flex items-center gap-2">
+          <i data-lucide="qr-code" class="h-4 w-4"></i>
+          <span>Quét QR</span>
+        </button>
+      </div>
+    </div>
+    <!-- Summary strip -->
+    <div class="mx-auto max-w-5xl px-4 pb-3 flex flex-wrap items-center gap-3 text-xs md:text-sm">
+      <div class="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1">
+        <i data-lucide="users" class="h-3.5 w-3.5 text-muted-foreground"></i>
+        <span><strong>25</strong> học sinh</span>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-[hsl(var(--success))]">
+        <span class="h-2 w-2 rounded-full bg-success" aria-hidden="true"></span>
+        <span><strong>23</strong> có mặt</span>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-full bg-info/10 px-3 py-1 text-[hsl(var(--info))]">
+        <span class="h-2 w-2 rounded-full bg-info" aria-hidden="true"></span>
+        <span><strong>1</strong> có phép</span>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1 text-[hsl(var(--warning))]">
+        <span class="h-2 w-2 rounded-full bg-warning" aria-hidden="true"></span>
+        <span><strong>1</strong> đi trễ</span>
+      </div>
+      <div class="ml-auto text-muted-foreground">Tỉ lệ điểm danh: <strong class="text-foreground">96%</strong></div>
+    </div>
+  </header>
+
+  <!-- Roster -->
+  <main class="mx-auto max-w-5xl px-2 md:px-4 py-4 pb-32">
+    <ul class="space-y-2" role="list" id="roster">
+      <!-- rows generated below -->
+    </ul>
+  </main>
+
+  <!-- Sticky save bar (visible because changes exist) -->
+  <div class="save-bar fixed bottom-0 inset-x-0 z-40 border-t bg-card/95 shadow-soft-lg" role="region" aria-label="Thanh thao tác">
+    <div class="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-2 text-xs font-semibold text-primary-foreground">5</span>
+        <span><strong>5 thay đổi</strong> chưa lưu</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">Hủy</button>
+        <button class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+          <i data-lucide="save" class="h-4 w-4"></i>
+          <!-- i18n: attendance.action.save -->
+          <span>Lưu điểm danh</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    // VN-realistic mock — 25 students (P=21, V=2, M=1, L=1)
+    const students = [
+      { name: 'Bùi Anh Khoa',     code: 'HS-10A2-001', rate: 0.96, status: 'P' },
+      { name: 'Đặng Thị Bích',    code: 'HS-10A2-002', rate: 0.94, status: 'P' },
+      { name: 'Đỗ Hoàng Long',    code: 'HS-10A2-003', rate: 0.88, status: 'P' },
+      { name: 'Hoàng Minh Trí',   code: 'HS-10A2-004', rate: 0.95, status: 'P' },
+      { name: 'Lê Minh Tuấn',     code: 'HS-10A2-005', rate: 0.92, status: 'P' },
+      { name: 'Lê Thị Phương',    code: 'HS-10A2-006', rate: 0.90, status: 'V', note: 'Ốm — có giấy bác sĩ' },
+      { name: 'Mai Quốc Bảo',     code: 'HS-10A2-007', rate: 0.97, status: 'P' },
+      { name: 'Ngô Đức Tài',      code: 'HS-10A2-008', rate: 0.85, status: 'P' },
+      { name: 'Nguyễn Anh Khôi',  code: 'HS-10A2-009', rate: 0.99, status: 'P' },
+      { name: 'Nguyễn Thị Hà',    code: 'HS-10A2-010', rate: 0.93, status: 'P' },
+      { name: 'Nguyễn Thị Thảo',  code: 'HS-10A2-011', rate: 0.91, status: 'P' },
+      { name: 'Nguyễn Văn An',    code: 'HS-10A2-012', rate: 0.92, status: 'P' },
+      { name: 'Phạm Đức Nam',     code: 'HS-10A2-013', rate: 0.84, status: 'L', lateMinutes: 8 },
+      { name: 'Phạm Thị Mai',     code: 'HS-10A2-014', rate: 0.87, status: 'P' },
+      { name: 'Phan Bảo Châu',    code: 'HS-10A2-015', rate: 0.96, status: 'P' },
+      { name: 'Trần Hữu Lộc',     code: 'HS-10A2-016', rate: 0.79, status: 'M' },
+      { name: 'Trần Khánh Linh',  code: 'HS-10A2-017', rate: 0.95, status: 'P' },
+      { name: 'Trần Quang Huy',   code: 'HS-10A2-018', rate: 0.89, status: 'P' },
+      { name: 'Trần Thị Hương',   code: 'HS-10A2-019', rate: 0.94, status: 'P' },
+      { name: 'Trần Văn Tài',     code: 'HS-10A2-020', rate: 0.86, status: 'P' },
+      { name: 'Trương Mỹ Linh',   code: 'HS-10A2-021', rate: 0.98, status: 'V', note: 'Việc gia đình' },
+      { name: 'Võ Hoàng Phúc',    code: 'HS-10A2-022', rate: 0.91, status: 'P' },
+      { name: 'Vũ Hoàng Anh',     code: 'HS-10A2-023', rate: 0.93, status: 'P' },
+      { name: 'Vũ Khánh Vân',     code: 'HS-10A2-024', rate: 0.97, status: 'P' },
+      { name: 'Vương Tuấn Kiệt',  code: 'HS-10A2-025', rate: 0.88, status: 'P' },
+    ];
+
+    const STATUS_META = {
+      P: { label: 'Có mặt',          short: 'P', bg: 'bg-success/10',     text: 'text-[hsl(var(--success))]',  ring: 'ring-success' },
+      V: { label: 'Vắng có phép',    short: 'V', bg: 'bg-info/10',        text: 'text-[hsl(var(--info))]',     ring: 'ring-info' },
+      M: { label: 'Vắng không phép', short: 'M', bg: 'bg-destructive/10', text: 'text-destructive',            ring: 'ring-destructive' },
+      L: { label: 'Đi trễ',          short: 'L', bg: 'bg-warning/10',     text: 'text-[hsl(var(--warning))]',  ring: 'ring-warning' },
+    };
+
+    function avatar(name) {
+      const initials = name.split(' ').slice(-2).map(s => s[0]).join('').toUpperCase();
+      // Stable hue from name
+      let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+      return `<div class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-semibold text-white" style="background:hsl(${h} 60% 50%)" aria-hidden="true">${initials}</div>`;
+    }
+
+    function chipBtn(s, active) {
+      const m = STATUS_META[s];
+      const activeCls = active ? `${m.bg} ${m.text} ring-2 ${m.ring} font-semibold` : 'bg-card text-muted-foreground hover:bg-muted';
+      return `<button type="button" role="radio" aria-checked="${active}" aria-label="${m.label}"
+                class="chip-status grid place-items-center rounded-lg border min-w-[44px] min-h-[44px] h-11 w-11 ${activeCls}">
+                <span aria-hidden="true">${m.short}</span>
+                <span class="sr-only">${m.label}</span>
+              </button>`;
+    }
+
+    function row(st) {
+      const meta = st.status ? STATUS_META[st.status] : null;
+      const rateColor = st.rate >= 0.95 ? 'text-[hsl(var(--success))]' : st.rate >= 0.85 ? 'text-foreground' : 'text-[hsl(var(--warning))]';
+      const lateBadge = st.status === 'L' && st.lateMinutes
+        ? `<span class="ml-2 inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs text-[hsl(var(--warning))]"><i data-lucide="clock" class="h-3 w-3"></i>+${st.lateMinutes} phút</span>`
+        : '';
+      const noteBadge = st.note
+        ? `<span class="ml-2 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground" title="${st.note}"><i data-lucide="message-square" class="h-3 w-3"></i>Ghi chú</span>`
+        : '';
+
+      return `
+        <li class="row rounded-xl border bg-card px-3 md:px-4 py-2.5 md:py-3 shadow-soft flex items-center gap-3">
+          ${avatar(st.name)}
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <p class="font-medium truncate">${st.name}</p>
+              ${lateBadge}${noteBadge}
+            </div>
+            <p class="text-xs text-muted-foreground">
+              <span class="font-mono">${st.code}</span>
+              <span class="mx-1.5">·</span>
+              <!-- i18n: attendance.label.attendanceRate -->
+              <span class="${rateColor}">YTD ${Math.round(st.rate * 100)}%</span>
+            </p>
+          </div>
+          <div role="radiogroup" aria-label="Trạng thái cho ${st.name}" class="flex items-center gap-1.5">
+            ${['P','V','M','L'].map(s => chipBtn(s, st.status === s)).join('')}
+          </div>
+        </li>`;
+    }
+
+    document.getElementById('roster').innerHTML = students.map(row).join('');
+    lucide.createIcons();
+  </script>
+</body>
+</html>

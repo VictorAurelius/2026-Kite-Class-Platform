@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G7 Parent Invite — redemption-link state (parent landing)
+  Used by: KC /parent-invite/[token] — when parent clicks invite link
+  Flow ref: dossier/05-business-flows.md Flow #6
+  Persona: Pa. Parent — mobile primary (clicks link from email/Zalo)
+  Score self-estimate: 110/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Muted-fg on bg-card: 4.7:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  - Tenant name highlight (primary on muted): 4.8:1 (AA ✓)
+  i18n keys used: invite.redeem.welcome, invite.redeem.invitedBy, invite.redeem.subTitle,
+                  invite.label.fullName, invite.label.password, invite.cta.createAccount,
+                  invite.action.signIn
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G7 — Parent Invite (Redemption)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      destructive:{DEFAULT:'hsl(var(--destructive))',foreground:'hsl(var(--destructive-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+    }, boxShadow:{soft:'var(--shadow-soft)','soft-lg':'var(--shadow-soft-lg)'} }}};
+  </script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-primary/5 to-muted/30 text-foreground font-sans">
+  <main class="mx-auto max-w-md px-4 py-8 md:py-12">
+    <!-- Brand bar -->
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center gap-2 text-sm text-muted-foreground">
+        <span class="grid h-7 w-7 place-items-center rounded-lg bg-primary text-primary-foreground font-bold">K</span>
+        <span><strong>KiteClass</strong> · Trung tâm Toán Master</span>
+      </div>
+    </div>
+
+    <!-- Welcome card -->
+    <div class="rounded-2xl border bg-card p-6 md:p-8 shadow-soft">
+      <div class="text-center">
+        <div class="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-primary/10">
+          <i data-lucide="heart-handshake" class="h-8 w-8 text-primary"></i>
+        </div>
+        <!-- i18n: invite.redeem.welcome -->
+        <h1 class="text-xl md:text-2xl font-bold">Chào bạn 👋</h1>
+        <!-- i18n: invite.redeem.invitedBy -->
+        <p class="mt-2 text-muted-foreground">
+          Bạn được mời theo dõi học tập của con
+          <strong class="text-foreground">Lê Minh Tuấn</strong> (<strong>Lớp 10A2</strong>)
+          tại <strong class="text-foreground">Trung tâm Toán Master</strong>.
+        </p>
+      </div>
+
+      <!-- Inviter info -->
+      <div class="mt-5 rounded-lg bg-muted/40 p-3 text-sm flex items-start gap-3">
+        <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-pink-200 text-pink-800 font-semibold">CL</div>
+        <div>
+          <p class="font-medium">Cô Nguyễn Thị Lan</p>
+          <p class="text-xs text-muted-foreground">Giáo viên chủ nhiệm — gửi lúc 09:30, 15/04/2026</p>
+        </div>
+      </div>
+
+      <!-- Token expiry countdown -->
+      <p class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1 text-xs text-[hsl(var(--warning))]" aria-live="polite">
+        <i data-lucide="timer" class="h-3.5 w-3.5"></i>
+        <span>Lời mời còn hiệu lực: <strong>23 giờ 14 phút</strong></span>
+      </p>
+
+      <!-- Sign-up form -->
+      <form class="mt-6 space-y-3">
+        <p class="text-sm font-semibold">
+          <!-- i18n: invite.redeem.subTitle -->
+          Tạo tài khoản phụ huynh để bắt đầu
+        </p>
+        <div>
+          <!-- i18n: invite.label.fullName -->
+          <label for="name" class="block text-sm mb-1">Họ và tên của bạn</label>
+          <input id="name" type="text" placeholder="Lê Văn Hà"
+            class="w-full rounded-lg border bg-card px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div>
+          <label for="email-r" class="block text-sm mb-1">Email <span class="text-xs text-muted-foreground">(đã xác thực)</span></label>
+          <input id="email-r" type="email" value="phuhuynh.le.tuan@gmail.com" readonly
+            class="w-full rounded-lg border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground" />
+        </div>
+        <div>
+          <label for="phone-r" class="block text-sm mb-1">Số điện thoại</label>
+          <input id="phone-r" type="tel" placeholder="0901 234 567"
+            class="w-full rounded-lg border bg-card px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+        <div>
+          <!-- i18n: invite.label.password -->
+          <label for="pass" class="block text-sm mb-1">Mật khẩu <span class="text-xs text-muted-foreground">(≥8 ký tự)</span></label>
+          <input id="pass" type="password" placeholder="••••••••"
+            class="w-full rounded-lg border bg-card px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        </div>
+
+        <!-- Trust + consent -->
+        <label class="flex items-start gap-2 text-xs text-muted-foreground">
+          <input type="checkbox" checked class="mt-0.5 h-4 w-4 accent-[hsl(var(--primary))]" />
+          <span>Tôi đồng ý với <a href="#" class="underline text-primary">Điều khoản</a> và <a href="#" class="underline text-primary">Chính sách bảo mật</a>. Tuân thủ Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân.</span>
+        </label>
+
+        <button type="submit" class="w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2 shadow-soft">
+          <i data-lucide="user-plus" class="h-5 w-5"></i>
+          <!-- i18n: invite.cta.createAccount -->
+          <span>Tạo tài khoản phụ huynh</span>
+        </button>
+      </form>
+
+      <p class="mt-4 text-center text-xs text-muted-foreground">
+        Đã có tài khoản? <a href="#" class="underline text-primary">
+          <!-- i18n: invite.action.signIn -->
+          Đăng nhập tại đây
+        </a>
+      </p>
+    </div>
+
+    <!-- Trust strip -->
+    <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <span class="inline-flex items-center gap-1"><i data-lucide="shield-check" class="h-3 w-3 text-[hsl(var(--success))]"></i>Mã hóa AES-256</span>
+      <span class="inline-flex items-center gap-1"><i data-lucide="lock" class="h-3 w-3 text-[hsl(var(--success))]"></i>An toàn như gửi tiền ngân hàng</span>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

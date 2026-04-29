@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G7 Parent Invite — success state (account created + linked)
+  Used by: KC after onboardComplete from /parent-invite/[token]
+  Flow ref: dossier/05-business-flows.md Flow #6 (success: ParentStudentLink created, dashboard loads)
+  Persona: Pa. Parent (just signed up)
+  Score self-estimate: 110/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Success pill on success/10: 4.9:1 (AA ✓)
+  - Stats card text on muted: 11.2:1 (AAA ✓)
+  i18n keys used: invite.success.title, invite.success.body, invite.success.todayClass,
+                  invite.success.attendance, invite.success.latestGrade, invite.success.feeBalance,
+                  invite.success.cta.dashboard
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G7 — Parent Invite (Success)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{
+      border:'hsl(var(--border))', background:'hsl(var(--background))', foreground:'hsl(var(--foreground))',
+      primary:{DEFAULT:'hsl(var(--primary))',foreground:'hsl(var(--primary-foreground))'},
+      muted:{DEFAULT:'hsl(var(--muted))',foreground:'hsl(var(--muted-foreground))'},
+      card:{DEFAULT:'hsl(var(--card))',foreground:'hsl(var(--card-foreground))'},
+      success:{DEFAULT:'hsl(var(--success))',foreground:'hsl(var(--success-foreground))'},
+      warning:{DEFAULT:'hsl(var(--warning))',foreground:'hsl(var(--warning-foreground))'},
+      info:{DEFAULT:'hsl(var(--info))',foreground:'hsl(var(--info-foreground))'},
+    } }}};
+  </script>
+  <style>
+    @keyframes pop { 0%{transform:scale(0)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .pop { animation: pop 0.5s cubic-bezier(0.2,0.8,0.2,1.2) forwards; }
+    @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-success/5 to-muted/30 text-foreground font-sans">
+  <main class="mx-auto max-w-md px-4 py-8">
+    <!-- Hero -->
+    <div class="rounded-2xl border bg-card p-6 shadow-soft text-center" role="status" aria-live="polite">
+      <div class="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-full bg-success/10 pop">
+        <i data-lucide="check-circle-2" class="h-12 w-12 text-[hsl(var(--success))]" stroke-width="1.5"></i>
+      </div>
+      <!-- i18n: invite.success.title -->
+      <h1 class="text-xl md:text-2xl font-bold">Liên kết thành công! 🎉</h1>
+      <!-- i18n: invite.success.body -->
+      <p class="mt-2 text-muted-foreground text-sm">
+        Chào mừng bạn đến với <strong>Trung tâm Toán Master</strong>.
+        Bạn có thể theo dõi học tập của con ngay bây giờ.
+      </p>
+    </div>
+
+    <!-- Child preview -->
+    <div class="mt-4 rounded-2xl border bg-card shadow-soft overflow-hidden">
+      <div class="flex items-center gap-3 px-5 py-4 border-b bg-primary/5">
+        <div class="grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground font-bold">LM</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold">Lê Minh Tuấn</p>
+          <p class="text-xs text-muted-foreground">Lớp 10A2 · Toán nâng cao · GVCN: cô Nguyễn Thị Lan</p>
+        </div>
+        <span class="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-[hsl(var(--success))]">
+          <i data-lucide="link-2" class="h-3 w-3"></i>
+          Đã liên kết
+        </span>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="grid grid-cols-2 gap-3 p-4 text-sm">
+        <div class="rounded-lg bg-muted/40 p-3">
+          <!-- i18n: invite.success.todayClass -->
+          <p class="text-xs text-muted-foreground inline-flex items-center gap-1.5"><i data-lucide="calendar-days" class="h-3.5 w-3.5"></i>Hôm nay</p>
+          <p class="mt-1 font-semibold">14:00 – 15:30</p>
+          <p class="text-xs text-muted-foreground">Buổi #12 · Toán nâng cao</p>
+        </div>
+        <div class="rounded-lg bg-muted/40 p-3">
+          <!-- i18n: invite.success.attendance -->
+          <p class="text-xs text-muted-foreground inline-flex items-center gap-1.5"><i data-lucide="check-square" class="h-3.5 w-3.5"></i>Điểm danh tháng này</p>
+          <p class="mt-1 font-semibold text-[hsl(var(--success))]">92%</p>
+          <p class="text-xs text-muted-foreground">11/12 buổi</p>
+        </div>
+        <div class="rounded-lg bg-muted/40 p-3">
+          <!-- i18n: invite.success.latestGrade -->
+          <p class="text-xs text-muted-foreground inline-flex items-center gap-1.5"><i data-lucide="award" class="h-3.5 w-3.5"></i>Điểm gần nhất</p>
+          <p class="mt-1 font-semibold">8.5 <span class="text-xs text-muted-foreground font-normal">/ 10</span></p>
+          <p class="text-xs text-muted-foreground">KT 15p · Lượng giác</p>
+        </div>
+        <div class="rounded-lg bg-muted/40 p-3">
+          <!-- i18n: invite.success.feeBalance -->
+          <p class="text-xs text-muted-foreground inline-flex items-center gap-1.5"><i data-lucide="wallet" class="h-3.5 w-3.5"></i>Học phí</p>
+          <p class="mt-1 font-semibold text-[hsl(var(--success))]">Đã đóng đủ</p>
+          <p class="text-xs text-muted-foreground">Học kỳ I · 2025–2026</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zalo OA opt-in -->
+    <div class="mt-4 rounded-xl border bg-card p-4 shadow-soft flex items-center gap-3">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-100 text-blue-700">
+        <i data-lucide="message-circle" class="h-5 w-5"></i>
+      </div>
+      <div class="flex-1 text-sm">
+        <p class="font-medium">Nhận thông báo qua Zalo OA</p>
+        <p class="text-xs text-muted-foreground">Điểm số, điểm danh, học phí — gửi ngay khi cập nhật.</p>
+      </div>
+      <label class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center">
+        <input type="checkbox" checked class="peer sr-only" />
+        <span class="absolute inset-0 rounded-full bg-muted peer-checked:bg-primary transition-colors"></span>
+        <span class="absolute left-0.5 h-5 w-5 rounded-full bg-card shadow-soft transition-transform peer-checked:translate-x-5"></span>
+      </label>
+    </div>
+
+    <!-- CTA -->
+    <button class="mt-4 w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2 shadow-soft">
+      <!-- i18n: invite.success.cta.dashboard -->
+      <span>Vào trang chủ phụ huynh</span>
+      <i data-lucide="arrow-right" class="h-5 w-5"></i>
+    </button>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

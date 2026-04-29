@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<!--
+  Component: G6 Invoice Detail — print-view (A4 portrait)
+  Used by: KC /billing/[id]/print, server-side PDF generation, browser print
+  Flow ref: dossier/05-business-flows.md Flow #5 (receipt PDF)
+  Persona: Owner / Admin / Student / Parent (recipient of printed/emailed invoice)
+  Score self-estimate: 105/128 — print-only context, no dark mode
+  Contrast (measured):
+  - Body black (0 0% 0%) on white: 21:1 (AAA ✓)
+  - Mono numbers black on white: 21:1 (AAA ✓)
+  - Status pill (warning text on warning bg, print kept): 4.5:1 (AA ✓)
+  i18n keys used: invoice.print.{title,vatHeader,buyer,seller,totalInWords,signatureBuyer,signatureSeller}
+
+  VN tax invoice format per Nghị định 123/2020/NĐ-CP — when isVATInvoice=true.
+  This file shows VAT mode; non-VAT mode hides red header + signature section.
+-->
+<head>
+  <meta charset="UTF-8" />
+  <title>HÓA ĐƠN GIÁ TRỊ GIA TĂNG — KH-2026-04-001</title>
+  <style>
+    @page { size: A4 portrait; margin: 18mm 16mm; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.4;
+      color: #000;
+      background: #fff;
+      max-width: 178mm;
+      margin: 0 auto;
+      padding: 12mm 0;
+    }
+    .vat-header { text-align: center; color: #c00; font-weight: 700; font-size: 14pt; letter-spacing: 0.05em; margin-bottom: 4mm; }
+    .vat-meta { display: flex; justify-content: space-between; font-size: 9pt; color: #555; border-bottom: 1pt solid #ccc; padding-bottom: 3mm; margin-bottom: 5mm; }
+    h1 { font-size: 13pt; text-align: center; margin: 0 0 6mm; font-weight: 700; }
+    .blocks { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-bottom: 6mm; }
+    .block { border: 0.5pt solid #888; padding: 3mm 4mm; }
+    .block-title { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: #555; margin-bottom: 2mm; }
+    .label { color: #555; font-size: 9pt; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 4mm 0; }
+    th, td { border: 0.5pt solid #888; padding: 2.5mm 3mm; font-size: 10pt; }
+    th { background: #f4f4f4; text-align: left; font-weight: 600; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .totals { margin-left: auto; width: 80mm; border-collapse: collapse; }
+    .totals td { border: none; padding: 1mm 3mm; font-size: 10pt; }
+    .totals tr.grand td { border-top: 1pt solid #000; font-weight: 700; font-size: 12pt; padding-top: 2mm; }
+    .words { margin: 4mm 0; padding: 3mm 4mm; border: 0.5pt dashed #888; font-style: italic; font-size: 10pt; }
+    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; margin-top: 16mm; text-align: center; font-size: 9.5pt; }
+    .sig-block { padding-top: 24mm; border-top: 0.5pt dashed #888; }
+    .sig-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .sig-note { color: #777; margin-top: 1mm; font-size: 8pt; }
+    .footer-strip { margin-top: 8mm; padding-top: 3mm; border-top: 0.5pt solid #ccc; font-size: 8pt; color: #777; text-align: center; }
+    .watermark { position: absolute; right: 16mm; top: 18mm; font-size: 9pt; color: #c00; font-weight: 600; }
+    @media screen {
+      body { box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin: 20mm auto; padding: 16mm 14mm; min-height: 297mm; }
+    }
+    @media print {
+      body { box-shadow: none; margin: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="watermark">LIÊN 2: GIAO KHÁCH HÀNG</div>
+
+  <!-- VN tax invoice header -->
+  <!-- i18n: invoice.print.vatHeader -->
+  <div class="vat-header">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</div>
+  <div class="vat-meta">
+    <span>Mẫu số: <strong>01GTKT0/001</strong></span>
+    <span>Ký hiệu: <strong>KH/26E</strong></span>
+    <span>Số: <strong class="mono">KH-2026-04-001</strong></span>
+  </div>
+
+  <!-- i18n: invoice.print.title -->
+  <h1>(Liên 2 — giao khách hàng)<br/>
+    Ngày 10 tháng 4 năm 2026
+  </h1>
+
+  <!-- Buyer / Seller -->
+  <div class="blocks">
+    <div class="block">
+      <!-- i18n: invoice.print.seller -->
+      <div class="block-title">Đơn vị bán hàng</div>
+      <p><strong>TRUNG TÂM TOÁN MASTER</strong></p>
+      <p class="label">Mã số thuế: <span class="mono">0312345678</span></p>
+      <p class="label">Địa chỉ: 123 Nguyễn Văn Cừ, P. Phước Long B, Q. 9, TP. HCM</p>
+      <p class="label">Điện thoại: <span class="mono">028 3812 5678</span> · Email: billing@trungtam-toanmaster.vn</p>
+    </div>
+    <div class="block">
+      <!-- i18n: invoice.print.buyer -->
+      <div class="block-title">Đơn vị mua hàng</div>
+      <p><strong>LÊ VĂN HÀ</strong> (phụ huynh học sinh Lê Minh Tuấn — Lớp 12A1)</p>
+      <p class="label">Mã số thuế: <span class="mono">—</span> (cá nhân)</p>
+      <p class="label">Địa chỉ: 45 Lê Văn Việt, P. Tăng Nhơn Phú A, Q. 9, TP. HCM</p>
+      <p class="label">Điện thoại: <span class="mono">0901 234 567</span></p>
+      <p class="label">Hình thức thanh toán: Chuyển khoản (MoMo) · Mã GD: <span class="mono">MOMO-TXN-20260410-094821</span></p>
+    </div>
+  </div>
+
+  <!-- Line items -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:8mm" class="num">STT</th>
+        <th>Tên hàng hóa, dịch vụ</th>
+        <th style="width:14mm" class="num">ĐVT</th>
+        <th style="width:14mm" class="num">SL</th>
+        <th style="width:28mm" class="num">Đơn giá</th>
+        <th style="width:28mm" class="num">Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td>Khóa luyện thi THPT Quốc gia 2026 — Toán<br/><span style="font-size:9pt;color:#666">Học kỳ II (Tháng 2 – Tháng 6 2026) · 60 buổi</span></td>
+        <td class="num">Khóa</td>
+        <td class="num">1</td>
+        <td class="num mono">4.500.000</td>
+        <td class="num mono">4.500.000</td>
+      </tr>
+      <tr>
+        <td class="num">2</td>
+        <td>Sách giáo khoa — Toán nâng cao 12 (bộ 3 quyển)</td>
+        <td class="num">Bộ</td>
+        <td class="num">1</td>
+        <td class="num mono">200.000</td>
+        <td class="num mono">200.000</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Totals -->
+  <table class="totals">
+    <tr><td class="label">Cộng tiền hàng:</td><td class="num mono">4.700.000đ</td></tr>
+    <tr><td class="label">Giảm giá anh chị em:</td><td class="num mono">−200.000đ</td></tr>
+    <tr><td class="label">Tiền thuế GTGT (8%):</td><td class="num mono">344.000đ</td></tr>
+    <tr class="grand"><td>Tổng cộng tiền thanh toán:</td><td class="num mono">4.844.000đ</td></tr>
+  </table>
+
+  <!-- i18n: invoice.print.totalInWords -->
+  <p class="words">
+    <strong>Số tiền viết bằng chữ:</strong> Bốn triệu tám trăm bốn mươi bốn nghìn đồng chẵn (4.844.000 VNĐ).
+  </p>
+
+  <!-- Signatures -->
+  <div class="signatures">
+    <div class="sig-block">
+      <!-- i18n: invoice.print.signatureBuyer -->
+      <div class="sig-title">Người mua hàng</div>
+      <div class="sig-note">(Ký, ghi rõ họ tên)</div>
+    </div>
+    <div class="sig-block">
+      <!-- i18n: invoice.print.signatureSeller -->
+      <div class="sig-title">Người bán hàng</div>
+      <div class="sig-note">(Ký, đóng dấu, ghi rõ họ tên)</div>
+    </div>
+  </div>
+
+  <p class="footer-strip">
+    Hóa đơn điện tử được phát hành theo Nghị định 123/2020/NĐ-CP.
+    Tra cứu tại <span class="mono">tracuuhoadon.gdt.gov.vn</span> với mã: <span class="mono">KH-2026-04-001</span>.
+    Trang 1/1.
+  </p>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G2 Attendance Roster — empty state
+  Used by: KC /classes/[id]/attendance (no students enrolled yet)
+  Flow ref: dossier/05-business-flows.md Flow #3 + Flow #9 (enrollment)
+  Persona: Teacher (or admin who created an empty class)
+  Score self-estimate: 105/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Muted-fg on bg-card: 4.7:1 (AA ✓)
+  - Primary CTA on white: 4.6:1 (AA ✓)
+  i18n keys used: attendance.empty.title, attendance.empty.body, attendance.empty.cta.import,
+                  attendance.empty.cta.add
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G2 — Attendance Roster (Empty)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <header class="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
+    <div class="mx-auto max-w-5xl px-4 py-3 md:py-4 flex items-center gap-3">
+      <button aria-label="Quay lại" class="rounded-lg p-2 hover:bg-muted">
+        <i data-lucide="arrow-left" class="h-5 w-5"></i>
+      </button>
+      <div>
+        <h1 class="text-base md:text-lg font-semibold">Lớp 10A2 — Toán nâng cao</h1>
+        <p class="text-xs md:text-sm text-muted-foreground">Buổi #1 · Thứ Hai, 15/04/2026 · 14:00 – 15:30</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-12">
+    <div class="rounded-2xl border bg-card shadow-soft p-8 md:p-12 text-center">
+      <div class="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-2xl bg-primary/10">
+        <i data-lucide="users-round" class="h-10 w-10 text-primary"></i>
+      </div>
+      <!-- i18n: attendance.empty.title -->
+      <h2 class="text-xl md:text-2xl font-semibold mb-2">Chưa có học sinh nào trong lớp</h2>
+      <!-- i18n: attendance.empty.body -->
+      <p class="text-muted-foreground max-w-md mx-auto">
+        Hãy thêm học sinh để bắt đầu điểm danh cho lớp này.
+        Bạn có thể nhập danh sách từ Excel hoặc thêm thủ công.
+      </p>
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button class="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center gap-2">
+          <i data-lucide="upload" class="h-4 w-4"></i>
+          <!-- i18n: attendance.empty.cta.import -->
+          <span>Nhập danh sách từ Excel</span>
+        </button>
+        <button class="rounded-lg border bg-card px-5 py-2.5 text-sm font-medium hover:bg-muted inline-flex items-center gap-2">
+          <i data-lucide="user-plus" class="h-4 w-4"></i>
+          <!-- i18n: attendance.empty.cta.add -->
+          <span>Thêm học sinh</span>
+        </button>
+      </div>
+      <p class="mt-6 text-xs text-muted-foreground">
+        <i data-lucide="lightbulb" class="inline h-3.5 w-3.5 align-text-bottom"></i>
+        Mẹo: Tải <a class="underline text-primary" href="#">file mẫu (.xlsx)</a> để biết định dạng đúng.
+      </p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

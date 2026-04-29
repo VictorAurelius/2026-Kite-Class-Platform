@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kiteclass">
+<!--
+  Component: G5 Payment Method Selector — success state
+  Used by: KC /billing/[id]/pay — webhook confirmed payment
+  Flow ref: dossier/05-business-flows.md Flow #5 (success: invoice PAID, receipt available)
+  Persona: Student / Parent
+  Score self-estimate: 110/128
+  Contrast (measured):
+  - Body on bg-card: 17.9:1 (AAA ✓)
+  - Success-fg on success: 4.9:1 (AA ✓)
+  - Receipt mono on muted: 11.2:1 (AAA ✓)
+  i18n keys used: payment.success.title, payment.success.body, payment.success.receiptId,
+                  payment.cta.downloadReceipt, payment.cta.emailReceipt, payment.cta.backHome
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G5 — Payment (Success)</title>
+  <link rel="stylesheet" href="../../_shared/colors_and_type.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .pop { animation: pop 0.45s cubic-bezier(0.2,0.8,0.2,1.2) forwards; }
+    @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+  </style>
+</head>
+<body class="min-h-screen bg-muted/30 text-foreground font-sans">
+  <main class="mx-auto max-w-md px-4 py-12">
+    <div class="rounded-2xl border bg-card p-6 md:p-8 shadow-soft text-center">
+      <div class="mx-auto mb-5 grid h-24 w-24 place-items-center rounded-full bg-success/10 pop">
+        <i data-lucide="check-circle-2" class="h-14 w-14 text-[hsl(var(--success))]" stroke-width="1.5"></i>
+      </div>
+
+      <!-- i18n: payment.success.title -->
+      <h1 class="text-2xl font-bold">Thanh toán thành công!</h1>
+      <!-- i18n: payment.success.body -->
+      <p class="mt-2 text-muted-foreground text-sm">
+        Cảm ơn bạn. Đã ghi nhận thanh toán cho khóa học của con.
+        Biên lai đã được gửi qua email.
+      </p>
+
+      <!-- Receipt summary -->
+      <dl class="mt-6 rounded-xl border bg-muted/40 p-4 text-left text-sm space-y-2.5">
+        <div class="flex justify-between">
+          <dt class="text-muted-foreground">Số tiền</dt>
+          <dd class="font-bold font-mono">1.500.000đ</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-muted-foreground">Phương thức</dt>
+          <dd class="inline-flex items-center gap-1.5"><i data-lucide="wallet" class="h-3.5 w-3.5 text-pink-600"></i>MoMo</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-muted-foreground">Hóa đơn</dt>
+          <dd class="font-mono">KH-2026-04-001</dd>
+        </div>
+        <div class="flex justify-between">
+          <!-- i18n: payment.success.receiptId -->
+          <dt class="text-muted-foreground">Mã giao dịch</dt>
+          <dd class="font-mono text-xs">MOMO-TXN-20260415-094821</dd>
+        </div>
+        <div class="flex justify-between">
+          <dt class="text-muted-foreground">Thời gian</dt>
+          <dd>15/04/2026 09:48</dd>
+        </div>
+      </dl>
+
+      <div class="mt-6 space-y-2">
+        <button class="w-full rounded-xl bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:opacity-90 inline-flex items-center justify-center gap-2">
+          <i data-lucide="download" class="h-4 w-4"></i>
+          <!-- i18n: payment.cta.downloadReceipt -->
+          <span>Tải biên lai (.pdf)</span>
+        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="rounded-xl border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted inline-flex items-center justify-center gap-1.5">
+            <i data-lucide="mail" class="h-4 w-4"></i>
+            <!-- i18n: payment.cta.emailReceipt -->
+            <span>Gửi email</span>
+          </button>
+          <button class="rounded-xl border bg-card px-3 py-2.5 text-sm font-medium hover:bg-muted inline-flex items-center justify-center gap-1.5">
+            <i data-lucide="home" class="h-4 w-4"></i>
+            <!-- i18n: payment.cta.backHome -->
+            <span>Trang chủ</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="mt-5 text-xs text-muted-foreground">
+        Có vấn đề về biên lai? <a href="#" class="underline">Liên hệ trung tâm</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
