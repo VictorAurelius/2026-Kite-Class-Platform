@@ -14,6 +14,12 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 |------|---------|---------------|
 | `README.md` | This index | 1 |
 | [`personas-catalog.md`](personas-catalog.md) | Canonical list of 10 target tenant personas (DRAFT v1, 2026-04-14) | 1 |
+| [`trial-to-paid-conversion.md`](trial-to-paid-conversion.md) | Trial flow + conversion funnel | 1 |
+| [`business-objectives.md`](business-objectives.md) | OKRs, success metrics, north-star KPIs (skeleton) | 1 |
+| [`compliance-scope.md`](compliance-scope.md) | VN PDPL, MoET, Cybersecurity, Labor, Consumer, Tax mapping (skeleton) | 1 |
+| [`pricing-model.md`](pricing-model.md) | Free/Pro/Premium/Enterprise tier definition + AI metering (skeleton) | 1 |
+| [`nfr-catalog.md`](nfr-catalog.md) | Uptime SLA, RTO/RPO, performance budgets, accessibility (skeleton) | 1 |
+| [`go-to-market.md`](go-to-market.md) | Target persona priority, pilot strategy, sales funnel (skeleton) | 1 |
 
 ---
 
@@ -36,21 +42,23 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 
 ---
 
-## Current Gaps (Planned)
+## Current Gaps (Skeleton — Phase 1 shipped 2026-04-29)
 
-Thiếu 5 core BRD documents:
+Phase 1 ship 5 BRD skeleton files (frame + section structure + TODO markers). Content fill (Phase 2) requires stakeholder engagement — tracked separately.
 
-| File (planned) | Owner | Priority | Tracked in |
-|----------------|-------|:--------:|------------|
-| `business-objectives.md` | PM | 🟡 P2 | — |
-| `compliance-scope.md` | Legal + PM | 🟠 P1 | GAP-049 |
-| `pricing-model.md` | PM + Finance | 🟠 P1 | Wave 6 dependency |
-| `nfr-catalog.md` | Architect + PM | 🟡 P2 | — |
-| `go-to-market.md` | PM | 🟢 P3 | — |
+| File | Owner | Status | Tracking |
+|------|-------|:------:|----------|
+| [`business-objectives.md`](business-objectives.md) | PM | skeleton | [GAP-150](../04-quality/gaps/GAP-150-brd-docs-completion.md) (Phase 1) → GAP-155 (Phase 2 content) |
+| [`compliance-scope.md`](compliance-scope.md) | Legal + PM | skeleton | [GAP-150](../04-quality/gaps/GAP-150-brd-docs-completion.md) → GAP-155 |
+| [`pricing-model.md`](pricing-model.md) | PM + Finance | skeleton | [GAP-150](../04-quality/gaps/GAP-150-brd-docs-completion.md) → GAP-155 |
+| [`nfr-catalog.md`](nfr-catalog.md) | Architect + PM | skeleton | [GAP-150](../04-quality/gaps/GAP-150-brd-docs-completion.md) → GAP-155 |
+| [`go-to-market.md`](go-to-market.md) | PM | skeleton | [GAP-150](../04-quality/gaps/GAP-150-brd-docs-completion.md) → GAP-155 |
 
-Thứ tự ưu tiên khi build: compliance → pricing → business-objectives → NFR → GTM.
+Thứ tự ưu tiên khi fill content (Phase 2): compliance → pricing → business-objectives → NFR → GTM.
 
-**Why low overall priority:** Engineering MVP runs without formal BRD (placeholder rules). Real driver là legal engagement (Wave 0 stakeholder sync blocker) + paying customer #1.
+**BRD scope expansion:** Simulation gap-finder 2026-04-20 found 22 additional BRD docs needed (TOS, Privacy, AUP, Refund, Data Retention, Child Protection…) — tracked by umbrella GAP-154.
+
+**Why skeleton-first:** Engineering MVP runs without formal BRD (placeholder rules); skeleton unblocks per-domain `rules.md` traceability without blocking on stakeholder availability. Real content driver: legal engagement (Wave 0 stakeholder sync) + paying customer #1.
 
 ---
 
