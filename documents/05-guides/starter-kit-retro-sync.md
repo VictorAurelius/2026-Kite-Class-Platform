@@ -187,15 +187,21 @@ After remote PR merged:
 
 ---
 
-## 9. First Retro-Sync (Pending — Phase 2)
+## 9. First Retro-Sync (Phase 2 in flight)
 
-Phase 2 deliverable tracked in GAP-195. First run will bulk-import accumulated delta from waves 1-8. Expected scope:
+Phase split (added 2026-04-29):
+
+- **Phase 1 (DONE 2026-04-20):** tooling (`scripts/starter-kit-diff.sh`) + this runbook.
+- **Phase 2a (DONE 2026-04-29):** triage report — see `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md`. Identified 110 NEW (local) candidates / 48 PROJECT-SPECIFIC / 0 MODIFIED / 0 NEW (remote). **Top 9 rules selected for first upstream PR** (rules-only, conservative scope per §6 "one PR per category"). Skills batches deferred.
+- **Phase 2b (TRACKED in [GAP-262](../04-quality/gaps/GAP-262-starter-kit-upstream-retro-sync-pr.md)):** open the actual upstream PR(s) on `VictorAurelius/claude-starter-kit`, bump remote VERSION 2.2.0 → 2.3.0, add CHANGELOG entry, sync local mirror back. Blocked on user decisions for triage report §4 open questions Q1–Q5.
+
+Original expected scope (waves 1-8 candidates):
 - New rules: `meta-gap-priority`, `post-wave-audit-mandate`, `audit-to-gap-pipeline`, `docs-folder-structure`, `planning-docs-structure`, `mcp-first-with-fallback`, `design-patterns`, `output-review-mandate`
 - New skills: quality audit suite (ui-review, business-logic-audit, ops-readiness-audit, performance-audit, api-contract-audit, security-audit)
 - Skill-conventions gotchas section expansion
 - Possibly 3 separate remote PRs
 
-Tooling (this runbook + diff script) is Phase 1; actual sync execution is Phase 2.
+Triage report §3 confirmed several of the above are correctly classified PROJECT-SPECIFIC (not upstream candidates after all): `planning-docs-structure`, `post-wave-audit-mandate`, `design-patterns` cite project-specific paths and stay local. The Top-N is narrower and tighter as a result.
 
 ---
 
@@ -209,4 +215,5 @@ Tooling (this runbook + diff script) is Phase 1; actual sync execution is Phase 
 
 ## 11. Log
 
+- **2026-04-29:** Phase 2a triage executed (Wave Meta Phase-2 Cleanup Cluster 7 Agent C). Diff script ran clean against remote v2.2.0; produced `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md` with 9-rule Top-N + 5 user open questions. Phase 2b (cross-repo upstream PR) tracked in [GAP-262](../04-quality/gaps/GAP-262-starter-kit-upstream-retro-sync-pr.md). §9 updated to reflect phase split. GAP-195 stays 🟡 PARTIAL until GAP-262 closes.
 - **2026-04-20:** Created (GAP-195 Phase 1). First sync deferred to Phase 2.

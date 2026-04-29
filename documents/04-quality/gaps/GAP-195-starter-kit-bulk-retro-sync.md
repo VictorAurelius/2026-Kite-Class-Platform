@@ -1,6 +1,6 @@
 # GAP-195: Starter-Kit Bulk Retro-Sync
 
-**Status:** 🟡 PARTIAL (Phase 1 — tooling + runbook DONE 2026-04-20; Phase 2 — first sync pending)
+**Status:** 🟡 PARTIAL (Phase 1 — tooling + runbook DONE 2026-04-20; Phase 2a — triage DONE 2026-04-29; Phase 2b — upstream PR tracked in GAP-262)
 **Priority:** 🟡 P2 (meta tier — multiplier for future projects)
 **Domain:** Meta / Skills / Starter-Kit
 **Found:** 2026-04-20 (action-1 §9 + §15.F)
@@ -44,10 +44,17 @@ Low urgency (P2) but high value — locking in learnings protects them for the n
 - [x] Diff script produces triaged output → `scripts/starter-kit-diff.sh`
 - [x] Retro-sync runbook drafted → `documents/05-guides/starter-kit-retro-sync.md`
 
-### Phase 2 — First sync (deferred)
-- [ ] First retro-sync PR opened on remote starter-kit
-- [ ] CHANGELOG.md on remote reflects imports
-- [ ] VERSION bumped correctly (both local and remote in sync)
+### Phase 2a — Triage (DONE 2026-04-29)
+- [x] Diff script ran cleanly against remote v2.2.0 → `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md`
+- [x] Triage report produced (110 NEW local / 48 PROJECT-SPECIFIC / 0 MODIFIED / 0 NEW remote)
+- [x] Top-9 rules recommended for first upstream PR (rules-only, conservative scope)
+- [x] 5 open questions surfaced for user (Q1 localization, Q2 skills-index, Q3 PR split, Q4 local mirror, Q5 cadence)
+- [x] Follow-up gap [GAP-262](GAP-262-starter-kit-upstream-retro-sync-pr.md) filed for Phase 2b execution
+
+### Phase 2b — Upstream PR (tracked in GAP-262, blocked on user Q1–Q5 decisions)
+- [ ] First retro-sync PR opened on remote starter-kit → GAP-262
+- [ ] CHANGELOG.md on remote reflects imports → GAP-262
+- [ ] VERSION bumped correctly (both local and remote in sync) → GAP-262
 
 ## Out of Scope
 
@@ -63,5 +70,6 @@ Low urgency (P2) but high value — locking in learnings protects them for the n
 
 ## Log
 
+- **2026-04-29 — Phase 2a closed (Wave Meta Phase-2 Cleanup Cluster 7 Agent C):** Triage report shipped at `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md`. Diff script (Phase 1 tooling) ran clean against remote v2.2.0; identified 110 NEW (local) candidates, 48 correctly classified PROJECT-SPECIFIC, 0 MODIFIED, 0 NEW (remote — local has no `.claude/starter-kit/` mirror folder yet). **Top-9 rules** selected for first upstream PR (rules-only, conservative scope per runbook §6): rule-change-process, output-review-mandate, skill-conventions, audit-to-gap-pipeline, meta-gap-priority, gap-done-discipline, incident-to-rule-pipeline, mcp-first-with-fallback, docs-folder-structure. Skills batches (~85 candidates) intentionally held for PR 2 + PR 3. Five user open questions surfaced for Q1 (marketing-legal localization), Q2 (skills-index template strategy), Q3 (PR split cadence), Q4 (local mirror creation), Q5 (remote cadence). Follow-up [GAP-262](GAP-262-starter-kit-upstream-retro-sync-pr.md) filed to track Phase 2b (actual upstream PR work). Status remains 🟡 PARTIAL — original AC ("First retro-sync PR opened" + "CHANGELOG on remote" + "VERSION bumped") all migrate to GAP-262 because they require cross-repo PR work blocked on user Q1–Q5 decisions. Branch: `feat/wave-meta-p2-gap-195a-starter-kit-triage`.
+- 2026-04-20 — Phase 1 closed (Wave 8b-F): diff script + runbook shipped. Script classifies diff into 4 buckets (NEW local / NEW remote / MODIFIED / PROJECT-SPECIFIC); runbook documents triage 4-question checklist + semver bump rules + bulk-PR process. First retro-sync execution tracked in Phase 2. Files: `scripts/starter-kit-diff.sh`, `documents/05-guides/starter-kit-retro-sync.md`.
 - 2026-04-20 — Created from action-1 §15.F.
-- 2026-04-20 — Phase 1 closed (Wave 8b-F): diff script + runbook shipped. Script classifies diff into 4 buckets (NEW local / NEW remote / MODIFIED / PROJECT-SPECIFIC); runbook documents triage 4-question checklist + semver bump rules + bulk-PR process. First retro-sync execution deferred to Phase 2. Files: `scripts/starter-kit-diff.sh`, `documents/05-guides/starter-kit-retro-sync.md`.
