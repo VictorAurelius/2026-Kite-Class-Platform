@@ -1,6 +1,6 @@
 # GAP-050: Persona-Based Business Review Process
 
-**Status:** 🟡 PLANNED (Wave 1 Sprint 0)
+**Status:** 🟡 PARTIAL (framework shipped 2026-04-29; execution belongs to GAP-152 by scope-split design)
 **Branch:** wave/01-foundation
 **Priority:** 🔴 P0 (business-logic tier per `meta-gap-priority.md` §3)
 **Domain:** Product / Business
@@ -85,9 +85,9 @@ K-12 School persona is **most under-served** — biggest market, biggest misses.
 - [x] Persona catalog published (✓ done 2026-04-14)
 - [x] Skill published (✓ done 2026-04-14)
 - [x] Initial gaps filed (GAP-051..064 — done 2026-04-14)
-- [ ] Quarterly review cadence documented (rule or skill note — not calendar event)
-- [ ] pre-flight-check project integrates persona review step
-- [ ] quality-audit /100 adds persona coverage category (referencing GAP-152 output)
+- [x] Quarterly review cadence documented (rule or skill note — not calendar event) ✓ 2026-04-29 — `.claude/skills/quality/persona-based-business-review.md` §Quarterly Review Cadence (calendar-anchored EOQ dates Q1/Q2/Q3/Q4, off-cycle triggers, reviewer roles, `next_review` field tracking)
+- [x] pre-flight-check project integrates persona review step ✓ 2026-04-29 — `.claude/skills/quality/pre-flight-check.md` Layer 4 (Persona impact check) added; auto-trigger conditions on user-facing PR diff; reviewer-side blocker semantics
+- [x] quality-audit /100 adds persona coverage category (referencing GAP-152 output) ✓ 2026-04-29 — `.claude/skills/quality-audit/SKILL.md` Cat 11 Persona Coverage /10; total scale 100 → 110; GAP-152 referenced as data source; baseline 5/10 until first reports ship
 
 ### Delegated to sibling gaps (scope split 2026-04-20)
 
@@ -103,5 +103,6 @@ K-12 School persona is **most under-served** — biggest market, biggest misses.
 
 ## Log
 
+- **2026-04-29 — Phase 1 framework AC shipped** (Wave Business Correctness, Cluster 5 Agent C). All 3 remaining framework AC items checked: (1) Quarterly review cadence added to `persona-based-business-review.md` §Quarterly Review Cadence (calendar-anchored EOQ Q1-Q4 + off-cycle triggers + reviewer roles + `next_review` tracking); (2) `pre-flight-check.md` extended with Layer 4 (Persona impact check) — fires on user-facing diff, blocks merge on coverage degradation; (3) `quality-audit/SKILL.md` extended with Cat 11 Persona Coverage /10, total scale rebased 100 → 110 with proportional grade thresholds, references GAP-152 as data source. Status flipped 🟡 PLANNED → 🟡 PARTIAL: execution remains in GAP-152 (already-filed); scope was split 2026-04-20 with GAP-152 owning execution by design (NOT scope cut at close-time per `gap-done-discipline.md` §3 PARTIAL exit-ramp). Remaining work tracked in GAP-152 (first 4 Tier 1 reports) and GAP-151 (per-persona AC template).
 - 2026-04-20 — Scope split: this gap = PROCESS framework. AC template + per-persona AC → GAP-151. Review execution + reports → GAP-152. 3 original AC items marked done (catalog, skill, initial gaps). Remaining AC narrowed to framework integration points.
 - 2026-04-14 — User raised: review phải theo persona. Initial scan found 14+ critical gaps.

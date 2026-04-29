@@ -4,8 +4,9 @@ description: "Dùng khi review business logic correctness, user nói 'persona re
 
 # Skill: Persona-Based Business Review
 
-**Version:** 1.0
+**Version:** 1.1
 **Created:** 2026-04-14
+**Last Updated:** 2026-04-29
 **Purpose:** Review business coverage bằng cách nhập vai (role-play) từng persona sử dụng platform → phát hiện gaps về core features thiếu.
 
 **Project principle:** "SAAS này phải tạo sân chơi chung cho TẤT CẢ đối tượng thỏa mãn nhu cầu core của quản lý và học trực tuyến."
@@ -229,9 +230,46 @@ Gaps that affect multiple personas:
 ## Mandatory Frequency
 
 - **Before GA launch:** full review all personas
-- **Quarterly:** refresh review per persona
+- **Quarterly:** refresh review per persona (xem §Quarterly Review Cadence dưới)
 - **Per major feature:** check impact cross-persona
 - **On user complaint:** deep-dive specific persona
+
+---
+
+## Quarterly Review Cadence
+
+**Cadence:** End-of-quarter review at last business week of Q1 (March 26-31), Q2 (June 25-30), Q3 (Sept 26-30), Q4 (Dec 22-31). Calendar-anchored, không phải floating "every 3 months". 4 reviews/year.
+
+**Trigger conditions** (any one fires an off-cycle review on top of the quarterly cadence):
+- New regulation/law published affecting education sector (MOE circular, Decree on private education, data-protection update)
+- New persona added to `documents/00-brd/personas-catalog.md`
+- ≥3 user complaints / support tickets clustering on the same persona's workflow within 30 days
+- Pricing model change affecting tier coverage
+- Major feature launched with cross-persona impact (e.g., parent portal, payroll engine)
+
+**Output (mandatory artifacts):**
+- Review report saved to `documents/00-brd/persona-reviews/YYYY-QN-persona-review.md` (one file per quarterly cycle, follow-up off-cycle reviews use `YYYY-MM-DD-trigger-<reason>.md`)
+- Gap files filed via `.claude/rules/audit-to-gap-pipeline.md` Step 3 for any new findings (NOT inline fixes)
+- ROADMAP entry per `audit-to-gap-pipeline.md` Step 5
+
+**Reviewer:**
+- **Primary:** Product Manager (drives walkthrough, owns report)
+- **Co-reviewer:** Business Lead (validates persona scale + market assumptions)
+- **Optional:** Domain expert (e.g., school admin for K-12 persona, accountant for payroll persona)
+- Solo-dev mode (current 2026-04-29): solo-dev role-plays both, but MUST capture sign-off in report frontmatter (`reviewer: solo-dev` + rationale)
+
+**Tracking (next-review date):**
+- `documents/00-brd/personas-catalog.md` frontmatter MUST contain `next_review: YYYY-MM-DD` field — set to next quarter-end at completion of each review cycle
+- `/repo-status` skill should flag if `next_review` is past today's date (overdue)
+- Quarterly cron sanity-check: `find documents/00-brd/persona-reviews -name "*.md" -newer ...` to detect skipped quarters
+
+**Output → gap pipeline (mandatory):**
+Per `.claude/rules/audit-to-gap-pipeline.md` — DO NOT fix issues inline during review. Each finding becomes:
+1. Gap file via Step 3 template (with state-check per Step 2.5)
+2. Memory entry only if pattern repeats (per Step 4)
+3. ROADMAP entry per Step 5
+
+**First review:** GAP-152 ships first 4 Tier 1 reports (Solo Teacher, Tutoring Center, Medium Center, K-12 School). After GAP-152 closes, the cadence above becomes the standing process.
 
 ## Skill Contents
 
@@ -249,3 +287,12 @@ Gaps that affect multiple personas:
 - **Secondary personas often reveal more gaps than primary** — Admin/Director walks through onboarding once; Teacher does daily attendance → finds keyboard shortcut gaps, mobile gaps, search gaps that primary misses
 - **Compliance gaps ≠ feature gaps** — VN K-12 needs MOE bảng điểm format (GAP-055), legal-required parent contact for minors, hạnh kiểm grade — these block GA, not "nice-to-have" missing features
 - **Output → file gaps via `audit-to-gap-pipeline.md`** — do NOT fix issues mid-review; persona walkthrough produces a list, then convert to gaps in a separate step. Fixing inline corrupts the persona's perspective
+- **Quarterly cadence is calendar-anchored, NOT floating** — "every 3 months from last review" drifts; end-of-quarter dates (Q1=Mar 26-31, Q2=Jun 25-30, Q3=Sep 26-30, Q4=Dec 22-31) keep cycles aligned with regulation/budget rhythms (see §Quarterly Review Cadence)
+- **`next_review` field in personas-catalog.md frontmatter is the source of truth** — `/repo-status` flags overdue. Don't track quarterly review in scattered docs/calendars
+
+---
+
+## Log
+
+- **2026-04-29** (v1.1): Added §Quarterly Review Cadence (calendar-anchored EOQ dates, off-cycle triggers, reviewer roles, output artifacts, `next_review` tracking field). Closes GAP-050 framework AC #4 ("Quarterly review cadence documented"). Reviewer: @nguyenvankiet (solo-dev — paired with `pre-flight-check.md` Layer 4 + `quality-audit/SKILL.md` Cat 11 in same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate).
+- **2026-04-14** (v1.0): Skill created. Closes GAP-050 framework AC #2.
