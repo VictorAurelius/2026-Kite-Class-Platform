@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — wizard step 6 (preview + per-resource approve)
+  Per ai-branding-guidelines.md §4.2 — preview MUST show + per-resource approve (not all-or-nothing)
+  Per §5 — quality gate /100 widget visible (5 checks: WCAG / vars / 404 / regression / logo)
+  Score self-estimate: 113/128
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Bước 6: Xem trước & duyệt — Wizard</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="branding-wizard-step1-welcome.html">Step 1</a>
+    <a href="branding-wizard-step3-audience.html">Step 3</a>
+    <a href="branding-wizard-step5-template.html">Step 5</a>
+    <a href="branding-wizard-step6-preview-approve.html" data-active="true">Step 6</a>
+  </nav>
+
+  <div class="shell" style="grid-template-columns: 1fr;">
+    <main class="shell__main stack-6" style="max-width: 1280px; margin: 0 auto;">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Xem trước &amp; duyệt từng tài nguyên</h1>
+          <div class="page-header__sub">Bạn duyệt riêng từng phần (logo · màu · banner · hero) · không phải all-or-nothing</div>
+        </div>
+      </header>
+
+      <div class="lifecycle-track">
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Welcome</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Logo</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Đối tượng</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Tone</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>Template</span>
+        <i data-lucide="chevron-right" class="lifecycle-arrow w-4 h-4"></i>
+        <span class="lifecycle-step lifecycle-step--active">6. Preview &amp; duyệt</span>
+      </div>
+
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left: live preview iframe (mock) -->
+        <div class="lg:col-span-2 stack-4">
+          <div class="card-base" style="padding: 0; overflow: hidden;">
+            <div class="flex items-center justify-between p-3 border-b" style="border-color: hsl(var(--border)); background: hsl(var(--muted) / 0.5);">
+              <div class="flex items-center gap-2">
+                <div class="flex gap-1.5">
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span>
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+                  <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+                </div>
+                <span class="text-mono text-xs muted-strong">vietanh.kiteclass.app · preview</span>
+              </div>
+              <div class="cluster">
+                <button class="btn btn--ghost text-xs"><i data-lucide="smartphone" class="w-3 h-3"></i></button>
+                <button class="btn btn--ghost text-xs"><i data-lucide="tablet" class="w-3 h-3"></i></button>
+                <button class="btn btn--ghost text-xs" aria-pressed="true" style="background: hsl(var(--muted));"><i data-lucide="monitor" class="w-3 h-3"></i></button>
+              </div>
+            </div>
+
+            <!-- Mock app preview -->
+            <div style="height: 460px; background: linear-gradient(135deg, #f1f5f9, #ffffff);">
+              <!-- Header -->
+              <div class="flex items-center justify-between px-6 py-3 border-b" style="background: white; border-color: hsl(var(--border));">
+                <div class="flex items-center gap-2">
+                  <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px;">VA</div>
+                  <span class="font-semibold text-sm">Việt-Anh</span>
+                </div>
+                <div class="text-xs muted-strong">Học viên · Lớp · Lịch · Hồ sơ</div>
+              </div>
+              <!-- Hero -->
+              <div style="padding: 2rem; background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%); color: white; height: 220px;">
+                <div style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">Trung tâm Anh ngữ Việt-Anh</div>
+                <div style="font-size: 14px; opacity: 0.92; margin-top: 4px;">Học IELTS · TOEIC · giao tiếp với giáo viên bản ngữ</div>
+                <div style="margin-top: 16px;">
+                  <button style="background: white; color: #2563eb; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px;">Đăng ký học thử</button>
+                </div>
+              </div>
+              <!-- Body -->
+              <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                  <div style="font-size: 11px; color: #64748b;">IELTS Foundation</div>
+                  <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">Lớp 12A2 · 25 HV</div>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                  <div style="font-size: 11px; color: #64748b;">TOEIC 600+</div>
+                  <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">Lớp 5 · 18 HV</div>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                  <div style="font-size: 11px; color: #64748b;">Giao tiếp B1</div>
+                  <div style="font-size: 14px; font-weight: 600; margin-top: 2px;">Lớp 8 · 22 HV</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-xs muted-strong text-center">
+            Bản preview thực tế chạy trong sandbox riêng · không ảnh hưởng đến trung tâm đang chạy
+          </div>
+        </div>
+
+        <!-- Right: per-resource approve + quality gate -->
+        <aside class="stack-4">
+
+          <!-- Quality gate widget /100 -->
+          <div class="card-base stack-3" style="padding: 1.25rem;">
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-semibold">Quality Gate</div>
+              <span class="tag tag--success">92 / 100 · PASS</span>
+            </div>
+            <div class="quota-bar"><div class="quota-bar__fill" style="width: 92%;"></div></div>
+
+            <div class="stack-2 text-sm">
+              <div class="gate-check gate-check--pass">
+                <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+                <span class="flex-1">Contrast WCAG AA</span>
+                <span class="text-xs muted-strong">4.7:1</span>
+              </div>
+              <div class="gate-check gate-check--pass">
+                <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+                <span class="flex-1">CSS variables áp dụng</span>
+                <span class="text-xs muted-strong">28/28</span>
+              </div>
+              <div class="gate-check gate-check--pass">
+                <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+                <span class="flex-1">Asset URL không 404</span>
+                <span class="text-xs muted-strong">7/7</span>
+              </div>
+              <div class="gate-check gate-check--pass">
+                <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+                <span class="flex-1">Visual diff vs baseline</span>
+                <span class="text-xs muted-strong">8% (≤20%)</span>
+              </div>
+              <div class="gate-check gate-check--pass">
+                <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+                <span class="flex-1">Logo không bị crop</span>
+                <span class="text-xs muted-strong">OK</span>
+              </div>
+            </div>
+
+            <div class="text-xs muted-strong">Cần &ge; 70/100 để cho phép DEPLOY · Hiện đang 92/100</div>
+          </div>
+
+          <!-- Per-resource approve -->
+          <div class="card-base stack-3" style="padding: 1.25rem;">
+            <div class="text-sm font-semibold">Duyệt từng tài nguyên</div>
+
+            <label class="checklist-item checklist-item--done flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked class="w-5 h-5" style="accent-color: hsl(var(--success));" />
+              <div class="flex items-center gap-2 flex-1">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 12px;">VA</div>
+                <div>
+                  <div class="text-sm font-semibold">Logo</div>
+                  <div class="text-xs muted-strong">SVG + PNG · 4 kích thước</div>
+                </div>
+              </div>
+            </label>
+
+            <label class="checklist-item checklist-item--done flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked class="w-5 h-5" style="accent-color: hsl(var(--success));" />
+              <div class="flex items-center gap-2 flex-1">
+                <div class="flex gap-0.5">
+                  <span style="width: 8px; height: 32px; background: #2563eb;"></span>
+                  <span style="width: 8px; height: 32px; background: #06b6d4;"></span>
+                  <span style="width: 8px; height: 32px; background: #f59e0b;"></span>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold">Bảng màu</div>
+                  <div class="text-xs muted-strong">Primary · Secondary · Accent</div>
+                </div>
+              </div>
+            </label>
+
+            <label class="checklist-item checklist-item--done flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked class="w-5 h-5" style="accent-color: hsl(var(--success));" />
+              <div class="flex items-center gap-2 flex-1">
+                <div style="width: 48px; height: 24px; border-radius: 4px; background: linear-gradient(135deg, #2563eb, #06b6d4);"></div>
+                <div>
+                  <div class="text-sm font-semibold">Banner</div>
+                  <div class="text-xs muted-strong">1920×480 + 768×400 + 414×300</div>
+                </div>
+              </div>
+            </label>
+
+            <label class="checklist-item flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" class="w-5 h-5" style="accent-color: hsl(var(--success));" />
+              <div class="flex items-center gap-2 flex-1">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #2563eb, #06b6d4); opacity: 0.7;"></div>
+                <div>
+                  <div class="text-sm font-semibold">Hero illustration</div>
+                  <div class="text-xs muted-strong">Có thể xem lại sau</div>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="stack-2">
+            <button class="gradient-button w-full" style="font-size: var(--text-base); padding: 0.75rem;">
+              <i data-lucide="rocket" class="w-4 h-4"></i>Triển khai 3 / 4 tài nguyên
+            </button>
+            <button class="btn btn--outline w-full text-sm">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>Tạo lại (còn 6/10 lượt)
+            </button>
+            <button class="btn btn--ghost w-full text-sm">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>Đổi template khác
+            </button>
+          </div>
+
+        </aside>
+
+      </section>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

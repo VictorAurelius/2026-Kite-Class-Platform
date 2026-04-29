@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner (KH SaaS control plane — medium-high density desktop)
+  Flow ref: dossier/05-business-flows.md Flow #1 (tenant signup → DEPLOYED) + Flow #7 (trial → upgrade)
+  Score self-estimate: 112/128 (target ≥105, baseline current production 80/128)
+  Lift target: +32 points
+  Contrast (measured against shared tokens, sky blue + orange accent):
+    - body on bg-card: 14.8:1 (AAA ✓)
+    - muted-fg on bg-card: 4.7:1 (AA ✓)
+    - primary on white: 4.6:1 (AA ✓ — sky 199 89% 48%)
+    - accent on white: 4.5:1 (AA ✓ — orange 25 95% 53%)
+    - success / destructive text on light bg: ≥4.5:1
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Bảng điều khiển — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- floating state tabs (jump between states without going back to index) -->
+  <nav class="state-tabs" aria-label="Trạng thái màn hình">
+    <a href="dashboard-default.html"  data-active="true">Default</a>
+    <a href="dashboard-loading.html">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Dark</a>
+  </nav>
+
+  <div class="shell">
+    <!-- ============= SIDEBAR ============= -->
+    <aside class="shell__nav stack-4" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </a>
+
+      <div class="section-title">Tổng quan</div>
+      <div class="stack-2">
+        <a href="#" class="nav-item nav-item--active">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển
+        </a>
+        <a href="#" class="nav-item"><i data-lucide="building-2" class="w-4 h-4"></i>Trung tâm</a>
+        <a href="branding-hub-default.html" class="nav-item"><i data-lucide="sparkles" class="w-4 h-4"></i>Thương hiệu AI</a>
+        <a href="instance-DEPLOYED.html" class="nav-item"><i data-lucide="server" class="w-4 h-4"></i>Phiên bản</a>
+      </div>
+
+      <div class="section-title" style="margin-top: 1rem;">Tài chính</div>
+      <div class="stack-2">
+        <a href="billing-default.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+        <a href="billing-payment.html" class="nav-item"><i data-lucide="credit-card" class="w-4 h-4"></i>Thanh toán</a>
+        <a href="#" class="nav-item"><i data-lucide="trending-up" class="w-4 h-4"></i>Doanh thu</a>
+      </div>
+
+      <div class="section-title" style="margin-top: 1rem;">Cài đặt</div>
+      <div class="stack-2">
+        <a href="#" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i>Người dùng</a>
+        <a href="#" class="nav-item"><i data-lucide="key-round" class="w-4 h-4"></i>Bảo mật</a>
+        <a href="#" class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i>Cấu hình</a>
+      </div>
+
+      <div class="card-base" style="padding: 0.875rem; margin-top: auto;">
+        <div class="text-xs" style="color: hsl(var(--muted-foreground));">Đã đăng nhập</div>
+        <div class="text-sm font-semibold mt-0.5">Nguyễn Văn An</div>
+        <div class="text-xs muted-strong">Trung tâm Toán Master</div>
+      </div>
+    </aside>
+
+    <!-- ============= MAIN ============= -->
+    <main class="shell__main stack-6">
+      <!-- Sticky header -->
+      <header class="kh-header" style="margin: -1.5rem -2rem 0; padding: 1rem 2rem;">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <div class="text-xs muted-strong">{/* i18n: dashboard.greeting.morning */}</div>
+            <h1 class="page-header__title">Chào buổi sáng, anh An 👋</h1>
+            <div class="page-header__sub">Hôm nay 23/04/2026 · 4 lớp đang diễn ra · 2 hóa đơn cần xử lý</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" aria-label="Mở bảng lệnh ⌘K">
+              <i data-lucide="search" class="w-4 h-4"></i>
+              <span>Tìm nhanh</span>
+              <kbd class="text-mono ml-2 px-1.5 py-0.5 rounded bg-[hsl(var(--muted))]">⌘K</kbd>
+            </button>
+            <button class="btn btn--ghost" aria-label="Thông báo">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span class="tag tag--danger" style="font-size: 10px;">3</span>
+            </button>
+            <a href="branding-wizard-step1-welcome.html" class="gradient-button">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>Tạo brand mới
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Trial countdown banner -->
+      <div class="trial-banner" role="status" aria-live="polite">
+        <div class="trial-banner__label">
+          <i data-lucide="clock" class="w-4 h-4"></i>
+          <span>Bạn đang dùng <strong>gói thử nghiệm</strong> — còn <span class="trial-banner__days">12 ngày</span> để trải nghiệm đầy đủ tính năng PRO.</span>
+        </div>
+        <div class="cluster">
+          <a href="#" class="btn btn--ghost text-sm"><i data-lucide="info" class="w-4 h-4"></i>So sánh các gói</a>
+          <a href="billing-default.html" class="btn btn--primary text-sm"><i data-lucide="rocket" class="w-4 h-4"></i>Nâng cấp ngay</a>
+        </div>
+      </div>
+
+      <!-- ============= KPI STAT CARDS — 6 cards w/ sparkline ============= -->
+      <section aria-label="Chỉ số chính">
+        <div class="section-title">Chỉ số chính · 30 ngày qua</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+
+          <!-- 1. Revenue -->
+          <div class="kpi-card">
+            <div class="kpi-card__label">
+              <i data-lucide="trending-up" class="w-4 h-4"></i>Doanh thu
+            </div>
+            <div class="flex items-baseline gap-2">
+              <div class="kpi-card__value">82,4M đ</div>
+              <span class="kpi-card__delta kpi-card__delta--up">
+                <i data-lucide="arrow-up" class="w-3 h-3"></i>+12,4%
+              </span>
+            </div>
+            <svg class="kpi-card__sparkline" viewBox="0 0 100 32" aria-label="Xu hướng doanh thu tăng">
+              <polyline fill="none" stroke="hsl(199 89% 48%)" stroke-width="2"
+                points="0,28 12,22 24,24 36,18 48,16 60,12 72,14 84,8 100,4" />
+              <polyline fill="hsl(199 89% 48% / 0.12)" stroke="none"
+                points="0,32 0,28 12,22 24,24 36,18 48,16 60,12 72,14 84,8 100,4 100,32" />
+            </svg>
+          </div>
+
+          <!-- 2. Active users -->
+          <div class="kpi-card">
+            <div class="kpi-card__label">
+              <i data-lucide="users" class="w-4 h-4"></i>Học viên hoạt động
+            </div>
+            <div class="flex items-baseline gap-2">
+              <div class="kpi-card__value">248</div>
+              <span class="kpi-card__delta kpi-card__delta--up">
+                <i data-lucide="arrow-up" class="w-3 h-3"></i>+8 tuần này
+              </span>
+            </div>
+            <svg class="kpi-card__sparkline" viewBox="0 0 100 32" aria-label="Xu hướng học viên">
+              <polyline fill="none" stroke="hsl(168 76% 42%)" stroke-width="2"
+                points="0,24 14,22 28,18 42,18 56,14 70,12 84,10 100,8" />
+            </svg>
+          </div>
+
+          <!-- 3. Instances -->
+          <div class="kpi-card">
+            <div class="kpi-card__label">
+              <i data-lucide="server" class="w-4 h-4"></i>Phiên bản trung tâm
+            </div>
+            <div class="flex items-baseline gap-2">
+              <div class="kpi-card__value">3</div>
+              <span class="kpi-card__delta kpi-card__delta--flat">
+                <i data-lucide="minus" class="w-3 h-3"></i>Ổn định
+              </span>
+            </div>
+            <div class="flex gap-1 mt-3" aria-label="Trạng thái 3 phiên bản">
+              <span class="tag tag--success">DEPLOYED</span>
+              <span class="tag tag--success">DEPLOYED</span>
+              <span class="tag tag--info">REGENERATING</span>
+            </div>
+          </div>
+
+          <!-- 4. AI calls -->
+          <div class="kpi-card">
+            <div class="kpi-card__label">
+              <i data-lucide="zap" class="w-4 h-4"></i>Lượt gọi AI
+            </div>
+            <div class="flex items-baseline gap-2">
+              <div class="kpi-card__value">1.842</div>
+              <span class="kpi-card__delta kpi-card__delta--up">
+                <i data-lucide="arrow-up" class="w-3 h-3"></i>+24%
+              </span>
+            </div>
+            <svg class="kpi-card__sparkline" viewBox="0 0 100 32" aria-label="Xu hướng AI calls">
+              <polyline fill="none" stroke="hsl(25 95% 53%)" stroke-width="2"
+                points="0,30 14,28 28,24 42,20 56,18 70,14 84,10 100,8" />
+              <polyline fill="hsl(25 95% 53% / 0.12)" stroke="none"
+                points="0,32 0,30 14,28 28,24 42,20 56,18 70,14 84,10 100,8 100,32" />
+            </svg>
+          </div>
+
+          <!-- 5. Regenerate quota left -->
+          <div class="kpi-card">
+            <div class="kpi-card__label">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>Quota làm lại brand
+            </div>
+            <div class="flex items-baseline gap-2">
+              <div class="kpi-card__value">7<span class="text-xl muted-strong">/10</span></div>
+              <span class="kpi-card__delta kpi-card__delta--flat">PRO</span>
+            </div>
+            <div class="quota-bar mt-3" aria-label="Còn lại 7 trên 10 lượt"><div class="quota-bar__fill" style="width: 70%;"></div></div>
+            <div class="text-xs muted-strong mt-2">Reset đầu mỗi tháng · 28/04 reset</div>
+          </div>
+
+          <!-- 6. Support tickets -->
+          <div class="kpi-card">
+            <div class="kpi-card__label">
+              <i data-lucide="life-buoy" class="w-4 h-4"></i>Yêu cầu hỗ trợ
+            </div>
+            <div class="flex items-baseline gap-2">
+              <div class="kpi-card__value">2</div>
+              <span class="kpi-card__delta kpi-card__delta--down">
+                <i data-lucide="arrow-down" class="w-3 h-3"></i>-3 vs tuần trước
+              </span>
+            </div>
+            <div class="text-xs mt-3 stack-2">
+              <div class="flex items-center gap-2"><span class="tag tag--warning">Đang chờ</span>2 ngày</div>
+              <div class="flex items-center gap-2"><span class="tag tag--success">Đã xử lý</span>5 trong tháng</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============= TENANT INSTANCES GRID + ONBOARDING CHECKLIST ============= -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6" aria-label="Các trung tâm và hướng dẫn">
+        <!-- Instances -->
+        <div class="lg:col-span-2 stack-4">
+          <div class="flex items-center justify-between">
+            <h2 class="h3">Trung tâm của bạn</h2>
+            <a href="#" class="btn btn--outline text-sm"><i data-lucide="plus" class="w-4 h-4"></i>Thêm trung tâm</a>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Instance card 1 — DEPLOYED -->
+            <article class="card-base" style="padding: 1.25rem;">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-semibold">Trung tâm Toán Master</div>
+                  <a href="#" class="text-xs text-mono muted-strong">mathmaster.kiteclass.app</a>
+                </div>
+                <span class="tag tag--success">DEPLOYED</span>
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs muted-strong">
+                <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i>156 HV</span>
+                <span class="flex items-center gap-1"><i data-lucide="user-check" class="w-3 h-3"></i>12 GV</span>
+                <span class="flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3"></i>18 lớp</span>
+              </div>
+              <div class="cluster mt-3">
+                <a href="instance-DEPLOYED.html" class="btn btn--ghost text-xs"><i data-lucide="eye" class="w-3 h-3"></i>Xem</a>
+                <a href="branding-hub-default.html" class="btn btn--ghost text-xs"><i data-lucide="palette" class="w-3 h-3"></i>Brand</a>
+                <a href="#" class="btn btn--ghost text-xs"><i data-lucide="external-link" class="w-3 h-3"></i>Mở app</a>
+              </div>
+            </article>
+
+            <!-- Instance card 2 — DEPLOYED -->
+            <article class="card-base" style="padding: 1.25rem;">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-semibold">Trường THCS-THPT EduPlus</div>
+                  <a href="#" class="text-xs text-mono muted-strong">eduplus.kiteclass.app</a>
+                </div>
+                <span class="tag tag--success">DEPLOYED</span>
+              </div>
+              <div class="flex items-center gap-4 mt-3 text-xs muted-strong">
+                <span class="flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i>72 HV</span>
+                <span class="flex items-center gap-1"><i data-lucide="user-check" class="w-3 h-3"></i>4 GV</span>
+                <span class="flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3"></i>6 lớp</span>
+              </div>
+              <div class="cluster mt-3">
+                <a href="#" class="btn btn--ghost text-xs"><i data-lucide="eye" class="w-3 h-3"></i>Xem</a>
+                <a href="#" class="btn btn--ghost text-xs"><i data-lucide="palette" class="w-3 h-3"></i>Brand</a>
+                <a href="#" class="btn btn--ghost text-xs"><i data-lucide="external-link" class="w-3 h-3"></i>Mở app</a>
+              </div>
+            </article>
+
+            <!-- Instance card 3 — REGENERATING -->
+            <article class="card-base" style="padding: 1.25rem;">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="font-semibold">Trung tâm Anh ngữ Việt-Anh</div>
+                  <a href="#" class="text-xs text-mono muted-strong">vietanh.kiteclass.app</a>
+                </div>
+                <span class="tag tag--info">REGENERATING</span>
+              </div>
+              <div class="text-xs muted-strong mt-3">Đang tái tạo brand · ước tính 30 giây</div>
+              <div class="quota-bar mt-2"><div class="quota-bar__fill" style="width: 64%;"></div></div>
+              <div class="cluster mt-3">
+                <a href="instance-REGENERATING.html" class="btn btn--outline text-xs"><i data-lucide="activity" class="w-3 h-3"></i>Theo dõi tiến trình</a>
+              </div>
+            </article>
+
+            <!-- Add new -->
+            <a href="#" class="card-base flex flex-col items-center justify-center text-center gap-2 hover-lift"
+               style="padding: 1.5rem; border-style: dashed; color: hsl(var(--muted-foreground));">
+              <i data-lucide="plus-circle" class="w-7 h-7"></i>
+              <div class="text-sm font-semibold">Tạo trung tâm mới</div>
+              <div class="text-xs">Thêm cơ sở thứ 4 · còn 2 slot trong gói PRO</div>
+            </a>
+
+          </div>
+        </div>
+
+        <!-- Onboarding checklist (4 steps) -->
+        <aside class="stack-4">
+          <h2 class="h3">Hoàn tất cài đặt</h2>
+          <div class="card-base" style="padding: 1rem;">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-sm font-semibold">3/4 bước hoàn tất</div>
+              <span class="tag tag--success">75%</span>
+            </div>
+            <div class="quota-bar"><div class="quota-bar__fill" style="width: 75%;"></div></div>
+          </div>
+
+          <div class="stack-3">
+            <div class="checklist-item checklist-item--done">
+              <div class="checklist-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+              <div>
+                <div class="text-sm font-semibold">Tạo tài khoản</div>
+                <div class="text-xs muted-strong">Đã hoàn tất · 18/04/2026</div>
+              </div>
+            </div>
+            <div class="checklist-item checklist-item--done">
+              <div class="checklist-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+              <div>
+                <div class="text-sm font-semibold">Cài đặt brand AI</div>
+                <div class="text-xs muted-strong">Đã hoàn tất · 19/04/2026</div>
+              </div>
+            </div>
+            <div class="checklist-item checklist-item--done">
+              <div class="checklist-check"><i data-lucide="check" class="w-3 h-3"></i></div>
+              <div>
+                <div class="text-sm font-semibold">Triển khai trung tâm đầu tiên</div>
+                <div class="text-xs muted-strong">Đã hoàn tất · 20/04/2026</div>
+              </div>
+            </div>
+            <div class="checklist-item">
+              <div class="checklist-check"></div>
+              <div class="flex-1">
+                <div class="text-sm font-semibold">Mời giáo viên + nhập học viên</div>
+                <div class="text-xs muted-strong">Bước cuối — bắt đầu vận hành thực tế</div>
+                <a href="#" class="btn btn--primary text-xs mt-2"><i data-lucide="arrow-right" class="w-3 h-3"></i>Tiếp tục</a>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- footer mini -->
+      <footer class="text-xs muted-strong text-center pt-6 pb-4 border-t" style="border-color: hsl(var(--border));">
+        Hỗ trợ 24/7 qua Zalo · Email · Hotline 1900-xxxx · Tuân thủ NĐ-13/2023/NĐ-CP
+      </footer>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

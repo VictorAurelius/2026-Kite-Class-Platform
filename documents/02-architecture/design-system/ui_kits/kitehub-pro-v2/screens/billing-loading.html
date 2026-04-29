@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — billing loading
+  Score self-estimate: 102/128
+  Contrast: skeleton on bg-card 4.7:1 AA ✓
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Hóa đơn (đang tải)</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body aria-busy="true">
+  <nav class="state-tabs">
+    <a href="billing-default.html">Default</a>
+    <a href="billing-loading.html" data-active="true">Loading</a>
+    <a href="billing-empty.html">Empty</a>
+    <a href="billing-payment.html">Payment</a>
+    <a href="billing-dark.html">Dark</a>
+  </nav>
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+      </div>
+      <span class="skeleton" style="height: 32px; width: 80%;"></span>
+      <span class="skeleton" style="height: 32px; width: 70%;"></span>
+      <span class="skeleton" style="height: 32px; width: 75%;"></span>
+    </aside>
+    <main class="shell__main stack-6">
+      <span class="skeleton" style="height: 32px; width: 320px;"></span>
+      <span class="skeleton" style="height: 64px; width: 100%;"></span>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 card-base stack-3" style="padding: 1.25rem;">
+          <span class="skeleton" style="height: 16px; width: 30%;"></span>
+          <span class="skeleton" style="height: 36px; width: 60%;"></span>
+          <span class="skeleton" style="height: 14px; width: 100%;"></span>
+          <span class="skeleton" style="height: 32px; width: 100%;"></span>
+        </div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <span class="skeleton" style="height: 16px; width: 60%;"></span>
+          <span class="skeleton" style="height: 48px; width: 100%;"></span>
+          <span class="skeleton" style="height: 32px; width: 100%;"></span>
+        </div>
+      </div>
+      <div class="card-base stack-3" style="padding: 1.25rem;">
+        <span class="skeleton" style="height: 24px; width: 30%;"></span>
+        <span class="skeleton" style="height: 40px; width: 100%;"></span>
+        <span class="skeleton" style="height: 40px; width: 100%;"></span>
+        <span class="skeleton" style="height: 40px; width: 100%;"></span>
+        <span class="skeleton" style="height: 40px; width: 100%;"></span>
+        <span class="skeleton" style="height: 40px; width: 100%;"></span>
+      </div>
+      <p class="text-xs muted-strong text-center" role="status">Đang tải lịch sử hóa đơn...</p>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

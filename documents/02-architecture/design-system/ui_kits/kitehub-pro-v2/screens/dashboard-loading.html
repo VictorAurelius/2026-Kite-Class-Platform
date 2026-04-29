@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner
+  State: LOADING — first paint after auth resolves; skeletons everywhere
+  Score self-estimate: 105/128 (target ≥105)
+  Contrast: skeletons inherit muted token (4.7:1 muted-fg on bg-card AA ✓)
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Đang tải — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body aria-busy="true">
+  <nav class="state-tabs" aria-label="Trạng thái">
+    <a href="dashboard-default.html">Default</a>
+    <a href="dashboard-loading.html" data-active="true">Loading</a>
+    <a href="dashboard-empty.html">Empty</a>
+    <a href="dashboard-error.html">Error</a>
+    <a href="dashboard-success.html">Success</a>
+    <a href="dashboard-dark.html">Dark</a>
+  </nav>
+
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <div class="stack-2">
+        <span class="skeleton" style="height: 32px; width: 80%;"></span>
+        <span class="skeleton" style="height: 32px; width: 70%;"></span>
+        <span class="skeleton" style="height: 32px; width: 75%;"></span>
+        <span class="skeleton" style="height: 32px; width: 65%;"></span>
+      </div>
+    </aside>
+
+    <main class="shell__main stack-6">
+      <div class="stack-2">
+        <span class="skeleton" style="height: 14px; width: 100px;"></span>
+        <span class="skeleton" style="height: 28px; width: 320px;"></span>
+        <span class="skeleton" style="height: 14px; width: 240px;"></span>
+      </div>
+
+      <span class="skeleton" style="height: 56px; width: 100%;"></span>
+
+      <section>
+        <span class="skeleton" style="height: 14px; width: 180px; margin-bottom: 0.75rem;"></span>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div class="kpi-card stack-2">
+            <span class="skeleton" style="height: 14px; width: 60%;"></span>
+            <span class="skeleton" style="height: 32px; width: 80%;"></span>
+            <span class="skeleton" style="height: 32px; width: 100%;"></span>
+          </div>
+          <div class="kpi-card stack-2">
+            <span class="skeleton" style="height: 14px; width: 60%;"></span>
+            <span class="skeleton" style="height: 32px; width: 80%;"></span>
+            <span class="skeleton" style="height: 32px; width: 100%;"></span>
+          </div>
+          <div class="kpi-card stack-2">
+            <span class="skeleton" style="height: 14px; width: 60%;"></span>
+            <span class="skeleton" style="height: 32px; width: 80%;"></span>
+            <span class="skeleton" style="height: 32px; width: 100%;"></span>
+          </div>
+          <div class="kpi-card stack-2">
+            <span class="skeleton" style="height: 14px; width: 60%;"></span>
+            <span class="skeleton" style="height: 32px; width: 80%;"></span>
+            <span class="skeleton" style="height: 32px; width: 100%;"></span>
+          </div>
+          <div class="kpi-card stack-2">
+            <span class="skeleton" style="height: 14px; width: 60%;"></span>
+            <span class="skeleton" style="height: 32px; width: 80%;"></span>
+            <span class="skeleton" style="height: 32px; width: 100%;"></span>
+          </div>
+          <div class="kpi-card stack-2">
+            <span class="skeleton" style="height: 14px; width: 60%;"></span>
+            <span class="skeleton" style="height: 32px; width: 80%;"></span>
+            <span class="skeleton" style="height: 32px; width: 100%;"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 stack-4">
+          <span class="skeleton" style="height: 24px; width: 220px;"></span>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card-base stack-2" style="padding: 1.25rem;">
+              <span class="skeleton" style="height: 18px; width: 80%;"></span>
+              <span class="skeleton" style="height: 12px; width: 60%;"></span>
+              <span class="skeleton" style="height: 14px; width: 100%;"></span>
+              <span class="skeleton" style="height: 32px; width: 100%;"></span>
+            </div>
+            <div class="card-base stack-2" style="padding: 1.25rem;">
+              <span class="skeleton" style="height: 18px; width: 80%;"></span>
+              <span class="skeleton" style="height: 12px; width: 60%;"></span>
+              <span class="skeleton" style="height: 14px; width: 100%;"></span>
+              <span class="skeleton" style="height: 32px; width: 100%;"></span>
+            </div>
+            <div class="card-base stack-2" style="padding: 1.25rem;">
+              <span class="skeleton" style="height: 18px; width: 80%;"></span>
+              <span class="skeleton" style="height: 12px; width: 60%;"></span>
+              <span class="skeleton" style="height: 14px; width: 100%;"></span>
+              <span class="skeleton" style="height: 32px; width: 100%;"></span>
+            </div>
+            <div class="card-base stack-2" style="padding: 1.25rem;">
+              <span class="skeleton" style="height: 18px; width: 80%;"></span>
+              <span class="skeleton" style="height: 12px; width: 60%;"></span>
+              <span class="skeleton" style="height: 14px; width: 100%;"></span>
+              <span class="skeleton" style="height: 32px; width: 100%;"></span>
+            </div>
+          </div>
+        </div>
+        <aside class="stack-4">
+          <span class="skeleton" style="height: 24px; width: 60%;"></span>
+          <div class="card-base stack-2" style="padding: 1rem;">
+            <span class="skeleton" style="height: 16px; width: 100%;"></span>
+            <span class="skeleton" style="height: 6px; width: 100%;"></span>
+          </div>
+          <span class="skeleton" style="height: 64px; width: 100%;"></span>
+          <span class="skeleton" style="height: 64px; width: 100%;"></span>
+          <span class="skeleton" style="height: 64px; width: 100%;"></span>
+          <span class="skeleton" style="height: 64px; width: 100%;"></span>
+        </aside>
+      </section>
+
+      <p class="text-xs muted-strong text-center" role="status">Đang tải dữ liệu trung tâm của bạn...</p>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

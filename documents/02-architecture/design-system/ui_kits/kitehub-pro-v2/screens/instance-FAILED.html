@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — instance FAILED state (quality gate failed OR generation crashed)
+  Per ai-branding-guidelines.md §5 — quality gate <70 → markFailed; user sees failure + retry
+  Score self-estimate: 105/128
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Phiên bản · FAILED</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="instance-NOT_STARTED.html">NOT_STARTED</a>
+    <a href="instance-GENERATING.html">GENERATING</a>
+    <a href="instance-DEPLOYED.html">DEPLOYED</a>
+    <a href="instance-FAILED.html" data-active="true">FAILED</a>
+    <a href="instance-REGENERATING.html">REGEN</a>
+  </nav>
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <a href="dashboard-default.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+      <a href="#" class="nav-item nav-item--active"><i data-lucide="server" class="w-4 h-4"></i>Phiên bản</a>
+    </aside>
+
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Trung tâm Anh ngữ Việt-Anh</h1>
+          <div class="page-header__sub">vietanh.kiteclass.app · tạo brand thất bại lúc 14:38</div>
+        </div>
+        <span class="tag tag--danger" style="font-size: var(--text-sm); padding: 0.375rem 0.875rem;">
+          <i data-lucide="x-circle" class="w-3 h-3"></i>FAILED
+        </span>
+      </header>
+
+      <section>
+        <div class="section-title">Trạng thái triển khai</div>
+        <div class="lifecycle-track">
+          <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>NOT_STARTED</span>
+          <i data-lucide="arrow-right" class="lifecycle-arrow w-4 h-4"></i>
+          <span class="lifecycle-step lifecycle-step--done"><i data-lucide="check" class="w-3 h-3"></i>INITIALIZING</span>
+          <i data-lucide="arrow-right" class="lifecycle-arrow w-4 h-4"></i>
+          <span class="lifecycle-step lifecycle-step--failed"><i data-lucide="x" class="w-3 h-3"></i>GENERATING (failed at step 4/5)</span>
+        </div>
+      </section>
+
+      <!-- Failure card -->
+      <div class="card-base" style="padding: 1.5rem; border-color: hsl(var(--destructive) / 0.4); background: hsl(var(--destructive) / 0.04);">
+        <div class="flex items-start gap-3">
+          <i data-lucide="alert-octagon" class="w-7 h-7" style="color: hsl(var(--destructive));"></i>
+          <div class="flex-1">
+            <h2 class="h3">Quality gate không pass</h2>
+            <p class="text-sm muted-strong mt-1">
+              Brand được tạo nhưng <strong>contrast 3.8:1 chưa đạt WCAG AA (≥4.5:1)</strong>. Chúng tôi không tự động deploy
+              khi quality gate &lt;70/100 để bảo vệ trải nghiệm phụ huynh + học viên của bạn.
+            </p>
+            <div class="text-xs mt-2">
+              Mã lỗi: <span class="text-mono tag tag--danger">QUALITY_GATE_BELOW_THRESHOLD</span> ·
+              Score: <strong>62/100</strong> · Trace ID: <span class="text-mono">brand-job-2026-04-23-91f2e8</span>
+            </div>
+
+            <div class="text-xs muted-strong mt-3">
+              <i data-lucide="info" class="inline w-3 h-3"></i>
+              Đội ngũ kỹ thuật đã được thông báo tự động · không tốn quota làm lại
+            </div>
+
+            <hr class="divider" />
+
+            <div class="cluster">
+              <a href="branding-wizard-step5-template.html" class="gradient-button">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>Thử lại với template khác
+              </a>
+              <button class="btn btn--outline">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>Liên hệ hỗ trợ
+              </button>
+              <button class="btn btn--ghost text-sm">
+                <i data-lucide="file-text" class="w-4 h-4"></i>Xem log chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quality gate breakdown -->
+      <section>
+        <div class="section-title">Quality Gate · 62 / 100</div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="quota-bar"><div class="quota-bar__fill" style="width: 62%; background: hsl(var(--destructive));"></div></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div class="gate-check gate-check--fail">
+              <i data-lucide="x" class="w-4 h-4 gate-check__icon--fail"></i>
+              <span class="flex-1">Contrast WCAG AA · cần &ge;4.5:1</span>
+              <span class="text-xs" style="color: hsl(var(--destructive));"><strong>3.8:1</strong></span>
+            </div>
+            <div class="gate-check gate-check--pass">
+              <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+              <span class="flex-1">CSS variables áp dụng</span>
+              <span class="text-xs muted-strong">28/28</span>
+            </div>
+            <div class="gate-check gate-check--pass">
+              <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+              <span class="flex-1">Asset URL không 404</span>
+              <span class="text-xs muted-strong">7/7</span>
+            </div>
+            <div class="gate-check gate-check--fail">
+              <i data-lucide="x" class="w-4 h-4 gate-check__icon--fail"></i>
+              <span class="flex-1">Visual diff vs baseline</span>
+              <span class="text-xs" style="color: hsl(var(--destructive));"><strong>32%</strong> (≤20%)</span>
+            </div>
+            <div class="gate-check gate-check--pass">
+              <i data-lucide="check" class="w-4 h-4 gate-check__icon--pass"></i>
+              <span class="flex-1">Logo không bị crop</span>
+              <span class="text-xs muted-strong">OK</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="text-xs muted-strong text-center">
+        Trang này refresh mỗi 30 giây · bạn có thể quay lại sau hoặc nhấn nút thử lại ở trên
+      </div>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

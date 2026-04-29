@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P2 Center Owner — quota exhausted state (FREE tier or PRO with all 10 used)
+  Per ai-branding-guidelines.md §4.3 — counter PHẢI visible + disabled button + upgrade CTA
+  Score self-estimate: 107/128
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Thương hiệu (hết quota)</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="branding-hub-default.html">Default</a>
+    <a href="branding-hub-loading.html">Loading</a>
+    <a href="branding-hub-quota-empty.html" data-active="true">Quota empty</a>
+    <a href="branding-hub-dark.html">Dark</a>
+  </nav>
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <a href="dashboard-default.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+      <a href="#" class="nav-item nav-item--active"><i data-lucide="sparkles" class="w-4 h-4"></i>Thương hiệu AI</a>
+    </aside>
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Thương hiệu AI</h1>
+          <div class="page-header__sub">Đã hết quota tháng này — vẫn có thể xem và xuất brand hiện tại</div>
+        </div>
+        <button class="gradient-button" aria-disabled="true" disabled>
+          <i data-lucide="sparkles" class="w-4 h-4"></i>Tạo lại brand
+        </button>
+      </header>
+
+      <!-- Quota exhausted callout -->
+      <div class="card-base" style="padding: 1.5rem; background: linear-gradient(135deg, hsl(var(--accent) / 0.08), hsl(var(--primary) / 0.06));">
+        <div class="flex items-start gap-4">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: hsl(var(--accent) / 0.18); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="zap-off" class="w-7 h-7" style="color: hsl(var(--accent));"></i>
+          </div>
+          <div class="flex-1">
+            <h2 class="font-semibold">Đã dùng hết quota làm lại brand · 0 / 10 lượt còn lại</h2>
+            <p class="text-sm muted-strong mt-1">
+              Quota sẽ được reset vào <strong>28/04/2026 (5 ngày nữa)</strong>. Hoặc bạn có thể nâng cấp lên gói PREMIUM để có 30 lượt/tháng.
+            </p>
+            <div class="quota-bar mt-3"><div class="quota-bar__fill" style="width: 100%; background: hsl(var(--destructive));"></div></div>
+            <div class="text-xs muted-strong mt-1">10 / 10 đã dùng</div>
+
+            <div class="cluster mt-4">
+              <a href="billing-empty.html" class="gradient-button">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>Nâng cấp PREMIUM (1.499.000đ/tháng — 30 lượt)
+              </a>
+              <a href="#" class="btn btn--outline">
+                <i data-lucide="calendar" class="w-4 h-4"></i>Đặt lịch nhắc 28/04
+              </a>
+              <a href="#" class="btn btn--ghost text-sm">So sánh các gói</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand summary still viewable -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="section-title">Logo hiện tại</div>
+          <div style="height: 100px; border-radius: var(--radius-md); background: linear-gradient(135deg, #2563eb, #06b6d4); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 28px; color: white;">
+            TM
+          </div>
+          <button class="btn btn--outline text-sm w-full"><i data-lucide="download" class="w-4 h-4"></i>Tải PNG / SVG</button>
+        </div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="section-title">Bảng màu</div>
+          <div class="flex gap-2">
+            <div style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #2563eb;"></div>
+            <div style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #f59e0b;"></div>
+            <div style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #06b6d4;"></div>
+            <div style="flex: 1; height: 48px; border-radius: var(--radius-md); background: #f8fafc; border: 1px solid hsl(var(--border));"></div>
+          </div>
+          <button class="btn btn--outline text-sm w-full"><i data-lucide="copy" class="w-4 h-4"></i>Copy CSS variables</button>
+        </div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="section-title">Tài nguyên</div>
+          <div class="text-xs stack-2">
+            <div class="flex items-center justify-between"><span>logo.svg</span><a href="#" style="color: hsl(var(--primary));">↓</a></div>
+            <div class="flex items-center justify-between"><span>banner-1920.png</span><a href="#" style="color: hsl(var(--primary));">↓</a></div>
+            <div class="flex items-center justify-between"><span>hero-mobile.png</span><a href="#" style="color: hsl(var(--primary));">↓</a></div>
+            <div class="flex items-center justify-between"><span>brand-guidelines.pdf</span><a href="#" style="color: hsl(var(--primary));">↓</a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Disabled template gallery (preview-only) -->
+      <section style="opacity: 0.55; pointer-events: none;" aria-disabled="true">
+        <h2 class="h3 mb-3">6 template — đã khóa cho đến khi reset quota</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <article class="tpl-card"><div class="tpl-card__visual" style="background: linear-gradient(135deg, #2563eb, #06b6d4);">Sky</div><div class="tpl-card__meta"><div class="tpl-card__title">Bầu trời xanh</div></div></article>
+          <article class="tpl-card"><div class="tpl-card__visual" style="background: linear-gradient(135deg, #ea580c, #f59e0b);">Warm</div><div class="tpl-card__meta"><div class="tpl-card__title">Ấm áp Vàng</div></div></article>
+          <article class="tpl-card"><div class="tpl-card__visual" style="background: linear-gradient(135deg, #16a34a, #65a30d);">Fresh</div><div class="tpl-card__meta"><div class="tpl-card__title">Tươi mát</div></div></article>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

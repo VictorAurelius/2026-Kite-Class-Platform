@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub dark">
+<!--
+  Persona: P2 Center Owner — billing dark mode parity
+  Score self-estimate: 106/128
+  Contrast: dark tokens — body 18.6:1, muted 5.4:1 — all AA ✓
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KiteHub · Hóa đơn (Dark) — kitehub-pro v2</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs">
+    <a href="billing-default.html">Default</a>
+    <a href="billing-loading.html">Loading</a>
+    <a href="billing-empty.html">Empty</a>
+    <a href="billing-payment.html">Payment</a>
+    <a href="billing-dark.html" data-active="true">Dark</a>
+  </nav>
+  <div class="shell">
+    <aside class="shell__nav stack-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+        <span class="tag tag--accent" style="font-size: 10px;">PRO</span>
+      </div>
+      <a href="dashboard-dark.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng điều khiển</a>
+      <a href="#" class="nav-item nav-item--active"><i data-lucide="receipt" class="w-4 h-4"></i>Hóa đơn</a>
+    </aside>
+    <main class="shell__main stack-6">
+      <header class="page-header">
+        <div>
+          <h1 class="page-header__title">Hóa đơn & Thanh toán</h1>
+          <div class="page-header__sub">Chế độ tối · 3 hóa đơn trong tháng này</div>
+        </div>
+        <a href="#" class="gradient-button"><i data-lucide="rocket" class="w-4 h-4"></i>Nâng cấp</a>
+      </header>
+
+      <div class="card-base" style="padding: 1.25rem; border-color: hsl(var(--warning) / 0.4); background: hsl(var(--warning) / 0.10);">
+        <div class="flex items-start gap-3">
+          <i data-lucide="alert-circle" class="w-5 h-5" style="color: hsl(38 92% 60%);"></i>
+          <div class="flex-1">
+            <div class="font-semibold">KH-2026-04-001 · 499.000đ — đến hạn 30/04/2026</div>
+          </div>
+          <a href="billing-payment.html" class="btn btn--primary text-sm">Thanh toán</a>
+        </div>
+      </div>
+
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 card-base tier-card stack-3">
+          <div class="tier-card__name">Gói hiện tại</div>
+          <div class="flex items-baseline gap-2">
+            <span class="tier-card__price">499.000đ<small>/tháng</small></span>
+            <span class="tag tag--info">PRO</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div><div class="text-xs muted-strong">Trung tâm</div><div class="font-semibold">3 / 5</div></div>
+            <div><div class="text-xs muted-strong">HV tối đa</div><div class="font-semibold">500</div></div>
+            <div><div class="text-xs muted-strong">AI quota</div><div class="font-semibold">10/tháng</div></div>
+          </div>
+          <a href="#" class="gradient-button text-sm w-fit"><i data-lucide="trending-up" class="w-4 h-4"></i>Nâng cấp PREMIUM</a>
+        </div>
+        <div class="card-base stack-3" style="padding: 1.25rem;">
+          <div class="text-xs muted-strong">Phương thức mặc định</div>
+          <div class="flex items-center gap-3">
+            <div class="pay-method__logo" style="background: linear-gradient(135deg, #00b1f0, #006fbb);">VNPay</div>
+            <div>
+              <div class="text-sm font-semibold">Vietcombank · *4520</div>
+              <div class="text-xs muted-strong">Hết hạn 09/2027</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card-base" style="padding: 0; overflow: hidden;">
+        <div class="p-4 border-b" style="border-color: hsl(var(--border));">
+          <h2 class="h3">Lịch sử hóa đơn</h2>
+        </div>
+        <table class="w-full text-sm">
+          <thead style="background: hsl(var(--muted) / 0.5);">
+            <tr style="text-align: left;">
+              <th class="p-3 text-xs muted-strong" style="text-transform: uppercase;">Số HĐ</th>
+              <th class="p-3 text-xs muted-strong">Ngày</th>
+              <th class="p-3 text-xs muted-strong">Mô tả</th>
+              <th class="p-3 text-xs muted-strong text-right">Số tiền</th>
+              <th class="p-3 text-xs muted-strong">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t" style="border-color: hsl(var(--border));">
+              <td class="p-3 text-mono">KH-2026-04-001</td>
+              <td class="p-3">23/04/2026</td>
+              <td class="p-3">PRO · tháng 04/2026</td>
+              <td class="p-3 text-right text-mono">499.000đ</td>
+              <td class="p-3"><span class="tag tag--warning">Chờ TT</span></td>
+            </tr>
+            <tr class="border-t" style="border-color: hsl(var(--border));">
+              <td class="p-3 text-mono">KH-2026-03-001</td>
+              <td class="p-3">23/03/2026</td>
+              <td class="p-3">PRO · tháng 03/2026</td>
+              <td class="p-3 text-right text-mono">499.000đ</td>
+              <td class="p-3"><span class="tag tag--success">Đã TT</span></td>
+            </tr>
+            <tr class="border-t" style="border-color: hsl(var(--border));">
+              <td class="p-3 text-mono">KH-2026-02-001</td>
+              <td class="p-3">23/02/2026</td>
+              <td class="p-3">PRO · tháng 02/2026</td>
+              <td class="p-3 text-right text-mono">499.000đ</td>
+              <td class="p-3"><span class="tag tag--success">Đã TT</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
