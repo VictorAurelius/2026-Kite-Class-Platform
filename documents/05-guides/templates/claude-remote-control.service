@@ -1,0 +1,20 @@
+[Unit]
+Description=Claude Code Remote Control — Kite Class Platform
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/2026-Kite-Class-Platform
+
+# bash -lc loads .bashrc + fnm wiring so `claude` is on PATH regardless of
+# where npm-global / fnm installed it. exec replaces the bash process so
+# systemd tracks the actual claude PID for restart logic.
+ExecStart=/bin/bash -lc 'exec claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions'
+
+Restart=on-failure
+RestartSec=10s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

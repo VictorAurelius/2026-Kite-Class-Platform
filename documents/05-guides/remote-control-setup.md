@@ -118,6 +118,110 @@ Slash command sẽ expose session hiện tại ra mobile.
 
 ---
 
+## Auto-start: chạy nền theo lifetime của WSL instance
+
+**Vấn đề:** lệnh `claude remote-control ...` foreground sẽ chết khi Ctrl-C, đóng terminal, hoặc đóng VS Code. Mobile mất connection.
+
+**Mục tiêu:** chỉ cần WSL kite-instance đang chạy → remote-control session đang mở. Không cần manual restart.
+
+3 cách, chọn theo nhu cầu:
+
+### Cách 1 — `nohup` + `disown` (nhanh nhất, 1 dòng)
+
+```bash
+nohup claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions \
+  > ~/.claude/remote-control.log 2>&1 &
+disown
+```
+
+| Behavior | Result |
+|---|---|
+| Survives Ctrl-C / close terminal | ✅ |
+| Survives `logout` | ✅ (nohup ignores SIGHUP) |
+| Auto-start khi WSL boot | ❌ (phải chạy lại mỗi lần) |
+| Reattach interactive | ❌ |
+| Stop | `pkill -f "claude remote-control"` |
+| Xem QR/URL | `tail -n 50 ~/.claude/remote-control.log` |
+
+### Cách 2 — `tmux` (recommended cho most users)
+
+```bash
+sudo apt install -y tmux   # 1 lần
+tmux new-session -d -s kite-rc \
+  'claude remote-control --name "Kite Class Platform" --spawn worktree --permission-mode bypassPermissions'
+```
+
+| Behavior | Result |
+|---|---|
+| Survives Ctrl-C / close terminal | ✅ |
+| Survives logout (within same WSL boot) | ✅ |
+| Auto-start khi WSL boot | ❌ |
+| Reattach để xem QR/URL | `tmux attach -t kite-rc` (Ctrl-B D detach) |
+| Stop | `tmux kill-session -t kite-rc` |
+| Auto-restart khi crash | ❌ |
+
+### Cách 3 — systemd user service (recommended cho long-running solo-dev)
+
+Yêu cầu `/etc/wsl.conf` có `[boot]\nsystemd=true` (đã setup nếu theo Phase 0 B3 của `wsl2-fresh-setup.md`).
+
+#### 3.1 Cài unit file
+
+Template đã commit trong repo: `documents/05-guides/templates/claude-remote-control.service`. Copy vào user config:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp documents/05-guides/templates/claude-remote-control.service \
+   ~/.config/systemd/user/claude-remote-control.service
+systemctl --user daemon-reload
+```
+
+#### 3.2 Enable lingering (1 lần, cần sudo)
+
+Lingering giữ user systemd manager sống ngay cả khi không có active terminal — cần thiết để service auto-start khi WSL boot.
+
+```bash
+sudo loginctl enable-linger "$USER"
+loginctl show-user "$USER" | grep Linger    # → Linger=yes
+```
+
+#### 3.3 Enable + start service
+
+```bash
+systemctl --user enable --now claude-remote-control.service
+systemctl --user status claude-remote-control.service     # → active (running)
+```
+
+#### 3.4 Lấy QR/URL từ journal
+
+Service chạy headless (không có TTY) → QR code không hiển thị, nhưng URL pairing vẫn log:
+
+```bash
+journalctl --user -u claude-remote-control.service -f
+# Tìm dòng: Continue coding in the Claude app or https://claude.ai/code?environment=env_xxx
+```
+
+Mở URL trên mobile / paste vào Claude app → pair xong. Mỗi lần service restart sẽ ra `environment=env_yyy` mới (Claude app vẫn nhớ tên project).
+
+| Behavior | Result |
+|---|---|
+| Survives Ctrl-C / close terminal | ✅ |
+| Survives logout | ✅ |
+| Auto-start khi WSL boot | ✅ |
+| Auto-restart khi crash | ✅ (`Restart=on-failure`, 10s delay) |
+| Reattach interactive | ❌ (headless — chỉ xem journal) |
+| Stop tạm | `systemctl --user stop claude-remote-control.service` |
+| Disable hoàn toàn | `systemctl --user disable --now claude-remote-control.service` |
+
+#### 3.5 Stops khi nào
+
+Service đi theo lifetime user systemd manager:
+- `wsl --shutdown` (PowerShell) → toàn bộ WSL stop → service stop
+- `wsl --terminate kite-dev` → instance stop → service stop
+- `systemctl --user stop ...` → service stop, instance vẫn chạy
+- Reboot Windows → systemd user manager start lại khi WSL boot lần đầu (linger active)
+
+---
+
 ## Troubleshooting
 
 ### `Unknown argument:`
@@ -296,5 +400,6 @@ Hoặc đóng app — session vẫn chạy ngầm trên WSL2 cho lần sau resum
 
 ## Log
 
+- **2026-04-28 (later 2):** Bổ sung §Auto-start với 3 cách (nohup / tmux / systemd). systemd user service template commit ở `documents/05-guides/templates/claude-remote-control.service` — auto-start khi WSL boot, auto-restart khi crash, stop khi WSL shutdown. Đáp ứng yêu cầu "duy trì running cho WSL kite thì remote session sẽ mở".
 - **2026-04-28 (later):** Default upgraded từ `acceptEdits` → `bypassPermissions` (full auto kể cả Bash). Audit-gate hook + commit-history reversibility là safety net. Solo-dev workflow, không có team review per-tool, prompt Bash mỗi command làm chậm mobile flow + tốn battery. `acceptEdits` giữ là fallback variant cho repo lạ.
 - **2026-04-28:** Project default đổi sang `--permission-mode acceptEdits` (auto edit không hỏi) + bỏ `--capacity 5` (unlimited concurrent sessions). Bổ sung §Stop Notification — wire `Stop` hook qua `~/.claude/settings.json` invoke `${CLAUDE_PROJECT_DIR}/.claude/hooks/notify-stop.sh` (committed) → desktop notification (WSLg/libnotify) + terminal bell + Windows toast (powershell.exe interop). Reason: 5-session cap không match wave-pack cluster có khi 6-8 agents song song; mỗi edit prompt làm chậm mobile flow.
