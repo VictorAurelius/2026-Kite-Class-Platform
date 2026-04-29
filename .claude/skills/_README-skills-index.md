@@ -94,6 +94,7 @@ on drift between disk and this index.
 | File | Description (trigger phrases) |
 |------|-------------------------------|
 | `workflow/start-session/SKILL.md` | Dùng khi 'start new session', '/start-session', 'tình trạng hiện tại' — load CLAUDE.md digest + open PRs + lock check |
+| `workflow/end-session/SKILL.md` | Dùng khi 'end session', 'đóng session', 'kết thúc session', '/end-session' — archive session-lock vào `.claude/session-locks/archived/YYYY-MM-DD/` + 1-line summary (PRs/gaps/turns/elapsed). Phase 2 GAP-193. |
 | `workflow/start-pr/SKILL.md` | /start-pr — Start a new PR with Superpowers methodology |
 | `workflow/continue/SKILL.md` | /continue — Resume action ưu tiên nhất từ project plans |
 | `workflow/check-pr/SKILL.md` | /check-pr — Monitor CI và verify chất lượng PR (dùng scripts) |
