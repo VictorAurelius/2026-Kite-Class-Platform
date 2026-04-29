@@ -86,12 +86,16 @@ if [ -d "$LOCK_DIR" ]; then
   find "$LOCK_DIR" -name 'session-*.lock' -mmin +240 -delete 2>/dev/null || true
 fi
 
-# Blocker gaps — parse ROADMAP "GA Blockers" table (not alphabetical grep)
+# Blocker gaps — parse ROADMAP "GA Blockers" table (column 2 only, preserve table order)
+# GAP-224: regex bumped to handle sub-IDs (GAP-222a/b/c); column-2 extraction skips
+# prose cross-refs (e.g. "BLOCKS GAP-006"); awk dedup preserves table order vs sort -u.
 BLOCKERS=""
 if [ -f "$ROADMAP" ]; then
-  # Extract GAP-XXX entries from the "GA Blockers remaining" section
   BLOCKERS="$(awk '/GA Blockers remaining/,/Priority rule|Epics fully closed/' "$ROADMAP" 2>/dev/null \
-    | grep -oE 'GAP-[0-9]+' | sort -u | head -6 | tr '\n' ';' || echo '')"
+    | awk -F'|' 'NF>=4 {print $3}' \
+    | grep -oE 'GAP-[0-9]+[a-z]?' \
+    | awk '!seen[$0]++' \
+    | head -6 | tr '\n' ';' || echo '')"
 fi
 # Fallback to old behavior if ROADMAP missing
 if [ -z "$BLOCKERS" ] && [ -d documents/04-quality/gaps ]; then

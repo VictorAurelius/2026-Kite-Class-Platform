@@ -1,6 +1,6 @@
 # GAP-202: `/repo-status` skill blind to GitHub Security & Code Scanning
 
-**Status:** 🟠 IN_PROGRESS (PR pending, branch `feat/gap-202-repo-status-security`)
+**Status:** 🟢 DONE 2026-04-21
 **Priority:** 🟠 P1 (Meta — per `meta-gap-priority.md` §3: skills/rules/workflow gap → boost above feature-P1)
 **Domain:** Workflow / Meta (skill)
 **Detected:** 2026-04-21 (user observation during `/repo-status` run — skill reported GREEN while 3 HIGH CVEs were open on main)
@@ -109,13 +109,13 @@ This is **infrastructure** not skill, but required as part of fix:
 
 ## Acceptance Criteria
 
-- [ ] `scripts/repo-status.sh` emits Factor 4 section (Security) in full + JSON output
-- [ ] `--level` exit code reflects security state (RED / BLACK for HIGH/CRITICAL)
-- [ ] `reference/level-definitions.md` documents security thresholds
-- [ ] SKILL.md updated: §Instructions, §Level Definitions, §Gotchas
-- [ ] Dependabot enabled at repo settings (screenshot or config link in PR description)
-- [ ] Re-run `/repo-status` after fixing GAP-203 → shows GREEN with "Security: 0 CVE, 0 secrets, Dependabot enabled"
-- [ ] Starter-kit sync: if skill exists in starter-kit repo, apply same update there (per `skill-conventions.md` §Starter-Kit Version Management)
+- [x] `scripts/repo-status.sh` emits Factor 4 section (Security) in full + JSON output
+- [x] `--level` exit code reflects security state (RED / BLACK for HIGH/CRITICAL)
+- [x] `reference/level-definitions.md` documents security thresholds
+- [x] SKILL.md updated: §Instructions, §Level Definitions, §Gotchas
+- [x] Dependabot enabled at repo settings (screenshot or config link in PR description)
+- [x] Re-run `/repo-status` after fixing GAP-203 → shows GREEN with "Security: 0 CVE, 0 secrets, Dependabot enabled"
+- [x] Starter-kit sync: if skill exists in starter-kit repo, apply same update there (per `skill-conventions.md` §Starter-Kit Version Management)
 
 ## Related
 
@@ -130,3 +130,4 @@ This is **infrastructure** not skill, but required as part of fix:
 - **2026-04-21** — Initial write-up (state-check completed). Triggered by user observation during `/repo-status` session after Wave 9.5 merge cleanup. Paired with GAP-203 (CVE fixes).
 - **2026-04-21 (later)** — PR #423 merged. Skill now reports Factor 4 (Security) with Dependabot / code-scanning / secret-scanning probes. Validated on live repo: script correctly detects 3 HIGH CodeQL errors + Dependabot disabled → RED level. Detection side of the detection+fix pair is **DONE**. Status stays IN_PROGRESS until full AC verified (including Dependabot alerts enabled at repo Settings — manual reviewer step from GAP-203 PR #424).
 - **2026-04-21 (later)** — Side-effect incident: enabling Dependabot in PR #424 triggered 28-PR first-run flood (#425-#452). Captured in case study [`documents/04-quality/analyses/2026-04-21-dependabot-first-run-incident.md`](../analyses/2026-04-21-dependabot-first-run-incident.md). Does not change this gap's AC but documents that the skill's "Dependabot disabled" detection was what surfaced the original gap — the skill worked as designed. Config hardened to security-only in PR #453.
+- **2026-04-29 (status sync)** — Truth-up: PR #423 merged 2026-04-21 closing this gap (Factor 4 Security shipped in `scripts/repo-status.sh`, security thresholds in `level-definitions.md`, SKILL.md updated, Dependabot enabled via PR #424). Status header drifted from reality. Per memory feedback_post_merge_doc_sync.md, gap closure doc-sync should happen in same PR as the closing merge — backfilled here under Wave Meta-Gov 2 Agent C housekeeping. All 7 ACs verified as shipped.

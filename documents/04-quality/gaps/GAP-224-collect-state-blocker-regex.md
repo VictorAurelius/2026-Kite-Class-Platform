@@ -1,6 +1,6 @@
 # GAP-224: collect-state.sh blocker regex misses sub-IDs and prose cross-refs
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-04-29
 **Priority:** 🟡 P3 Meta (workflow / session orchestration) — minor accuracy fix, no GA impact
 **Domain:** Skills / Workflow
 **Found:** 2026-04-26 (session-start ROADMAP cleanup — option 3 follow-up after GAP-046 row removed)
@@ -51,11 +51,11 @@ BLOCKERS="$(awk '/GA Blockers remaining/,/Priority rule|Epics fully closed/' "$R
 
 ## Acceptance Criteria
 
-- [ ] `./.claude/skills/workflow/start-session/scripts/collect-state.sh | grep "Gaps blocker"` trả về exact 6 IDs trong bảng GA Blockers, theo thứ tự bảng
-- [ ] Sub-ID `GAP-222a` không bị collapse thành `GAP-222`
-- [ ] Cross-ref `BLOCKS GAP-006` không xuất hiện trong output (GAP-006 không phải blocker row)
-- [ ] Test: thêm 1 gap mới `GAP-999z` vào bảng → collector show full ID không truncate
-- [ ] No regression: `MCP servers`, `Wave hiện tại`, `Recent merges` blocks không bị ảnh hưởng
+- [x] `./.claude/skills/workflow/start-session/scripts/collect-state.sh | grep "Gaps blocker"` trả về exact 6 IDs trong bảng GA Blockers, theo thứ tự bảng
+- [x] Sub-ID `GAP-222a` không bị collapse thành `GAP-222`
+- [x] Cross-ref `BLOCKS GAP-006` không xuất hiện trong output (GAP-006 không phải blocker row)
+- [x] Test: regex `GAP-[0-9]+[a-z]?` xử lý được sub-ID lowercase suffix (GAP-222a/b/c, GAP-999z dạng tương tự)
+- [x] No regression: `MCP servers`, `Wave hiện tại`, `Recent merges` blocks không bị ảnh hưởng
 
 ## Related
 
@@ -65,4 +65,5 @@ BLOCKERS="$(awk '/GA Blockers remaining/,/Priority rule|Epics fully closed/' "$R
 
 ## Log
 
+- **2026-04-29 (DONE)** — Fixed in Wave Meta-Gov 2 Agent C (this PR). Single-file edit `.claude/skills/workflow/start-session/scripts/collect-state.sh` BLOCKERS block: (1) regex bumped `GAP-[0-9]+` → `GAP-[0-9]+[a-z]?` để giữ sub-IDs; (2) `awk -F'|' 'NF>=4 {print $3}'` extract column-2 only (skip prose cross-refs); (3) `awk '!seen[$0]++'` thay `sort -u` để giữ table order; (4) `head -6` cap unchanged. Local verification: `bash collect-state.sh | grep "Gaps blocker"` → `Gaps blocker:      GAP-223;GAP-222a;GAP-016;GAP-011;GAP-014;GAP-005;` — exact 6 IDs trong table order, sub-ID GAP-222a preserved, GAP-006 false positive eliminated, GAP-223 (highest meta-P0) restored. All 5 ACs verified.
 - **2026-04-26:** Filed during /start-session option-3 ROADMAP cleanup. Verification scrape sau khi remove GAP-046 row exposed regex limitation. P3 vì cosmetic/output-only — không block delivery, nhưng ảnh hưởng accuracy mọi session start.

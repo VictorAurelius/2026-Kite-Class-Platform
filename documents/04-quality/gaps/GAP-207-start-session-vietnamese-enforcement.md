@@ -1,6 +1,6 @@
 # GAP-207: `/start-session` output vi phạm CLAUDE.md §CRITICAL Communication Language
 
-**Status:** 🟠 IN_PROGRESS (fix same session)
+**Status:** 🟢 DONE 2026-04-24
 **Priority:** 🟠 P1 Meta (skill output không tuân CLAUDE.md — force multiplier per `meta-gap-priority.md` §5.1)
 **Domain:** Workflow / Meta (skill `/start-session`)
 **Detected:** 2026-04-24 (session 2 sau khi ship GAP-206; user flagged "nó không giao tiếp như claude.md yêu cầu nhỉ")
@@ -128,11 +128,11 @@ Notes          → Ghi chú
 
 ## Acceptance Criteria
 
-- [ ] `collect-state.sh` field labels dịch sang VN (CI/CVE/PR/gap/branch giữ)
-- [ ] SKILL.md output template cập nhật example VN
-- [ ] SKILL.md §Rules thêm VN enforcement
-- [ ] Test: chạy script → thấy labels VN
-- [ ] Log trong gap file: session sau `/start-session` sẽ output VN
+- [x] `collect-state.sh` field labels dịch sang VN (CI/CVE/PR/gap/branch giữ)
+- [x] SKILL.md output template cập nhật example VN
+- [x] SKILL.md §Rules thêm VN enforcement
+- [x] Test: chạy script → thấy labels VN
+- [x] Log trong gap file: session sau `/start-session` sẽ output VN
 
 ## Related
 
@@ -143,3 +143,4 @@ Notes          → Ghi chú
 ## Log
 
 - **2026-04-24** — Session 2 `/start-session` test post-GAP-206. User flagged: "không giao tiếp như claude.md yêu cầu nhỉ (bằng tiếng việt)". Script + SKILL.md output template English despite CLAUDE.md §CRITICAL rule. Bug pre-existing since skill creation (GAP-193) — masked by GAP-206 accuracy bugs previously. Fix in same session 2026-04-24.
+- **2026-04-29 (status sync)** — Truth-up: PR #470 merged 2026-04-24 (initial VN translation of collect-state.sh labels + SKILL.md template + §Rules); follow-up PR #526 merged 2026-04-25 (context-template.md labels to Vietnamese). Status header drifted from reality. Per memory feedback_post_merge_doc_sync.md, gap closure doc-sync should happen in same PR as the closing merge — backfilled here under Wave Meta-Gov 2 Agent C housekeeping. All 5 ACs verified shipped via live script output (Nhánh / Mức repo / Wave hiện tại / Gaps blocker / Merges gần đây visible).
