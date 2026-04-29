@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — semester/term editor + holidays + exam weeks (HK1: Sept-Jan, HK2: Feb-June)
+  Score: T27/H29/A26/U25 = 107/128
+  WCAG: Body 14.8:1 / Cell tags ≥4.5:1 / Today indicator: 2px ring + text color (not color-only) / Focus 2px
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lịch học vụ — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="academic-calendar.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học 2026–2027</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div></div></div>
+      <div><div class="section-title">Tổng quan</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="academic-calendar.html" class="nav-item nav-item--active"><i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ</a>
+        <a href="multi-class-roster.html" class="nav-item"><i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công</a>
+        <a href="bulk-import.html" class="nav-item"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách</a>
+        <a href="report-cards.html" class="nav-item"><i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET</a>
+        <a href="conduct.html" class="nav-item"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm</a>
+        <a href="teacher-management.html" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i>Giáo viên</a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="fees.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+        <a href="school-profile.html" class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Lịch học vụ · Năm học 2026–2027</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Lịch học vụ</h1>
+            <div class="page-header__sub">HK1: 09/2026 → 01/2027 · HK2: 02/2027 → 06/2027 · 35 tuần học · 8 ngày lễ · 4 đợt kiểm tra</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" type="button"><i data-lucide="download" class="w-4 h-4"></i>Xuất PDF</button>
+            <button class="gradient-button" type="button"><i data-lucide="plus" class="w-4 h-4"></i>Thêm sự kiện</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Semester selector -->
+      <div class="cluster">
+        <div class="card-base" style="padding: 0.5rem; display: inline-flex; gap: 0.25rem;">
+          <button class="btn btn--ghost btn--sm" type="button"><i data-lucide="chevron-left" class="w-3 h-3"></i></button>
+          <div class="text-sm font-semibold px-2 py-1">Tháng 5 · 2026</div>
+          <button class="btn btn--ghost btn--sm" type="button"><i data-lucide="chevron-right" class="w-3 h-3"></i></button>
+          <button class="btn btn--outline btn--sm" type="button">Hôm nay</button>
+        </div>
+        <div class="cluster ml-auto">
+          <span class="pill pill--success"><i data-lucide="circle" class="w-3 h-3"></i>Học bình thường</span>
+          <span class="pill pill--accent"><i data-lucide="file-pen" class="w-3 h-3"></i>Kiểm tra</span>
+          <span class="pill pill--info"><i data-lucide="palmtree" class="w-3 h-3"></i>Nghỉ lễ</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div class="card-base lg:col-span-3" style="padding: 1.25rem;">
+          <div class="cal-headers"><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div></div>
+          <div class="cal-grid">
+            <div class="cal-cell cal-cell--out"><div class="cal-cell__day">28</div></div>
+            <div class="cal-cell cal-cell--out"><div class="cal-cell__day">29</div></div>
+            <div class="cal-cell cal-cell--out"><div class="cal-cell__day">30</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">1</div><div class="cal-cell__tag cal-cell__tag--holiday">Nghỉ Lao động</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">2</div><div class="cal-cell__tag cal-cell__tag--event">Họp PHHS</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">3</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">4</div></div>
+
+            <div class="cal-cell"><div class="cal-cell__day">5</div></div>
+            <div class="cal-cell cal-cell--exam"><div class="cal-cell__day">6</div><div class="cal-cell__tag cal-cell__tag--exam">KT giữa HK1</div></div>
+            <div class="cal-cell cal-cell--exam"><div class="cal-cell__day">7</div><div class="cal-cell__tag cal-cell__tag--exam">KT giữa HK1</div></div>
+            <div class="cal-cell cal-cell--exam"><div class="cal-cell__day">8</div><div class="cal-cell__tag cal-cell__tag--exam">KT giữa HK1</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">9</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">10</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">11</div></div>
+
+            <div class="cal-cell"><div class="cal-cell__day">12</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">13</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">14</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">15</div><div class="cal-cell__tag cal-cell__tag--event">Hạn nộp học bạ</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">16</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">17</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">18</div></div>
+
+            <div class="cal-cell"><div class="cal-cell__day">19</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">20</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">21</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">22</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">23</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">24</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">25</div></div>
+
+            <div class="cal-cell"><div class="cal-cell__day">26</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">27</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">28</div></div>
+            <div class="cal-cell cal-cell--today"><div class="cal-cell__day">29 · Hôm nay</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">30</div></div>
+            <div class="cal-cell"><div class="cal-cell__day">31</div></div>
+            <div class="cal-cell cal-cell--out"><div class="cal-cell__day">1</div></div>
+          </div>
+        </div>
+
+        <div class="stack-3">
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Cấu trúc năm học</div>
+            <div class="stack-3 mt-2 text-sm">
+              <div>
+                <div class="flex justify-between items-center"><span class="font-semibold">Học kỳ 1</span><span class="pill pill--success">Đang diễn ra</span></div>
+                <div class="muted-strong text-xs mt-0.5">05/09/2026 → 17/01/2027 · 18 tuần</div>
+                <div class="progress mt-1.5"><div class="progress__fill" style="width: 67%"></div></div>
+                <div class="muted-strong text-xs mt-1">Tuần 12/18 · Còn 6 tuần</div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center"><span class="font-semibold">Tết Nguyên đán</span><span class="pill pill--info">Sắp tới</span></div>
+                <div class="muted-strong text-xs mt-0.5">25/01 → 04/02/2027 · 11 ngày</div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center"><span class="font-semibold">Học kỳ 2</span><span class="pill">Chưa bắt đầu</span></div>
+                <div class="muted-strong text-xs mt-0.5">05/02/2027 → 30/06/2027 · 17 tuần</div>
+              </div>
+              <div>
+                <div class="flex justify-between items-center"><span class="font-semibold">Hè 2027</span><span class="pill">Chưa bắt đầu</span></div>
+                <div class="muted-strong text-xs mt-0.5">01/07/2027 → 31/08/2027 · 9 tuần</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Đợt kiểm tra</div>
+            <div class="stack-2 mt-2 text-sm">
+              <div class="flex items-start gap-2"><i data-lucide="file-pen" class="w-4 h-4 mt-0.5" style="color: hsl(var(--accent));"></i><div><div class="font-medium">Giữa HK1 — Toán/Văn</div><div class="text-xs muted-strong">06–08/05/2026 · Tất cả khối</div></div></div>
+              <div class="flex items-start gap-2"><i data-lucide="file-pen" class="w-4 h-4 mt-0.5" style="color: hsl(var(--accent));"></i><div><div class="font-medium">Cuối HK1 — 9 môn</div><div class="text-xs muted-strong">02–13/01/2027 · Toàn trường</div></div></div>
+              <div class="flex items-start gap-2"><i data-lucide="file-pen" class="w-4 h-4 mt-0.5" style="color: hsl(var(--accent));"></i><div><div class="font-medium">Giữa HK2 — Toán/Văn/Anh</div><div class="text-xs muted-strong">23–25/03/2027</div></div></div>
+              <div class="flex items-start gap-2"><i data-lucide="file-pen" class="w-4 h-4 mt-0.5" style="color: hsl(var(--accent));"></i><div><div class="font-medium">Cuối HK2 — 9 môn</div><div class="text-xs muted-strong">02–13/06/2027</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

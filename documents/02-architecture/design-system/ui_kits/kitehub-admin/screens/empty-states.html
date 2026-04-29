@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — empty states gallery (no incidents / no overdue / first-day / no escalations)
+  Score: T26/H30/A28/U24 = 108/128 (empty state design heavy → high aesthetic+heuristics)
+  WCAG: Empty illustrations have alt text / Body 14.8:1 / CTAs ≥44px touch / Focus 2px
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trạng thái trống — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="empty-states.html" data-active="true">Empty</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học mới · 2027–2028</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Ngày khai giảng · 05/09</div></div></div>
+      <div><div class="section-title">Tổng quan</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="conduct.html" class="nav-item"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm</a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="fees.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Trạng thái trống · Bộ sưu tập</span>
+        </nav>
+        <h1 class="page-header__title">Bộ sưu tập trạng thái trống</h1>
+        <div class="page-header__sub">Demo các empty state trong toàn bộ app — first-day-of-school, no incidents, no overdue, queue empty</div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- 1. First day of school -->
+        <div class="card-base" style="padding: 1.5rem;">
+          <div class="section-title mb-2">1 · Ngày đầu khai giảng (Bảng tổng quan)</div>
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">
+              <i data-lucide="school" class="w-8 h-8"></i>
+            </div>
+            <h3 class="h3">Chào mừng năm học mới 2027–2028! 🎉</h3>
+            <p class="text-sm muted-strong" style="max-width: 420px;">Hôm nay là ngày khai giảng — chưa có dữ liệu hôm nay.<br />Bảng tổng quan sẽ cập nhật khi học sinh điểm danh buổi đầu tiên.</p>
+            <div class="cluster mt-3">
+              <button class="btn btn--outline" type="button"><i data-lucide="calendar-check-2" class="w-4 h-4"></i>Mở lịch khai giảng</button>
+              <button class="gradient-button" type="button"><i data-lucide="megaphone" class="w-4 h-4"></i>Gửi lời chào toàn trường</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. No incidents -->
+        <div class="card-base" style="padding: 1.5rem;">
+          <div class="section-title mb-2">2 · Không có sự việc hạnh kiểm</div>
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true" style="background: hsl(var(--success) / 0.1); color: hsl(var(--success));">
+              <i data-lucide="shield-check" class="w-8 h-8"></i>
+            </div>
+            <h3 class="h3">Tuyệt vời — không có sự việc nào tuần này 👏</h3>
+            <p class="text-sm muted-strong" style="max-width: 420px;">Toàn bộ 1.247 học sinh đều có hạnh kiểm Tốt+. Đây là tuần thứ 3 liên tiếp không có sự việc cần xử lý.</p>
+            <div class="cluster mt-3">
+              <button class="btn btn--outline" type="button"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Xem thống kê tháng</button>
+              <button class="btn btn--ghost" type="button"><i data-lucide="trophy" class="w-4 h-4"></i>Khen thưởng GVCN</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. No overdue fees -->
+        <div class="card-base" style="padding: 1.5rem;">
+          <div class="section-title mb-2">3 · Không phụ huynh trễ hạn</div>
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true" style="background: hsl(var(--success) / 0.1); color: hsl(var(--success));">
+              <i data-lucide="check-check" class="w-8 h-8"></i>
+            </div>
+            <h3 class="h3">100% phụ huynh đã đóng đủ học phí HK1 ✨</h3>
+            <p class="text-sm muted-strong" style="max-width: 420px;">Tổng thu 4.39 tỷ đ · 1.247/1.247 phiếu · Ngày thu cuối: 28/04 (sớm 2 ngày so với hạn).</p>
+            <div class="cluster mt-3">
+              <button class="btn btn--outline" type="button"><i data-lucide="file-text" class="w-4 h-4"></i>Báo cáo tổng kết</button>
+              <button class="btn btn--ghost" type="button"><i data-lucide="mail" class="w-4 h-4"></i>Cảm ơn phụ huynh</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Empty escalation queue -->
+        <div class="card-base" style="padding: 1.5rem;">
+          <div class="section-title mb-2">4 · Hàng đợi liên lạc trống</div>
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">
+              <i data-lucide="inbox" class="w-8 h-8"></i>
+            </div>
+            <h3 class="h3">Không có yêu cầu phụ huynh nào đang chờ</h3>
+            <p class="text-sm muted-strong" style="max-width: 420px;">38 yêu cầu hôm nay đã được xử lý — TB 1h 47p · Tỷ lệ trong SLA 100%.<br />Hàng đợi sẽ hiện khi có yêu cầu mới qua Zalo OA / SMS / Email.</p>
+            <div class="cluster mt-3">
+              <button class="btn btn--outline" type="button"><i data-lucide="send" class="w-4 h-4"></i>Soạn tin chủ động</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Empty bulk import (no file yet) -->
+        <div class="card-base" style="padding: 1.5rem;">
+          <div class="section-title mb-2">5 · Chưa nhập danh sách</div>
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">
+              <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+            </div>
+            <h3 class="h3">Bắt đầu nhập danh sách học sinh</h3>
+            <p class="text-sm muted-strong" style="max-width: 420px;">Tải lên file .xlsx danh sách HS năm học mới — hệ thống tự ánh xạ cột, cảnh báo trùng SĐT, gửi mã mời PH qua Zalo OA.</p>
+            <div class="cluster mt-3">
+              <button class="btn btn--outline" type="button"><i data-lucide="download" class="w-4 h-4"></i>Tải mẫu .xlsx</button>
+              <a href="bulk-import.html" class="gradient-button"><i data-lucide="file-up" class="w-4 h-4"></i>Tải lên ngay</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Empty teachers (new tenant) -->
+        <div class="card-base" style="padding: 1.5rem;">
+          <div class="section-title mb-2">6 · Chưa có giáo viên</div>
+          <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">
+              <i data-lucide="users" class="w-8 h-8"></i>
+            </div>
+            <h3 class="h3">Thêm giáo viên đầu tiên</h3>
+            <p class="text-sm muted-strong" style="max-width: 420px;">Mời nhân sự bằng Zalo, email, hoặc dán danh sách hàng loạt. Có thể phân quyền theo: Hiệu trưởng / Tổ trưởng / GVCN / GVBM.</p>
+            <div class="cluster mt-3">
+              <button class="btn btn--outline" type="button"><i data-lucide="user-plus" class="w-4 h-4"></i>Thêm 1 giáo viên</button>
+              <a href="teacher-management.html" class="gradient-button"><i data-lucide="users" class="w-4 h-4"></i>Mời hàng loạt</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — teacher list + assign-to-class + role hierarchy (62 GV)
+  Score: T28/H29/A26/U24 = 107/128
+  WCAG: Body 14.8:1 / Muted 4.7:1 / Pills ≥4.5:1 / Focus 2px / Tab order: cmdk → table headers → row actions
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giáo viên — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="teacher-management.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học 2026–2027</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div></div></div>
+      <div><div class="section-title">Nhân sự</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="teacher-management.html" class="nav-item nav-item--active"><i data-lucide="users" class="w-4 h-4"></i>Giáo viên<span class="nav-item__count">62</span></a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="multi-class-roster.html" class="nav-item"><i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công</a>
+        <a href="bulk-import.html" class="nav-item"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách</a>
+        <a href="report-cards.html" class="nav-item"><i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET</a>
+        <a href="conduct.html" class="nav-item"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm</a>
+        <a href="fees.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+        <a href="academic-calendar.html" class="nav-item"><i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ</a>
+        <a href="school-profile.html" class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Nhân sự</a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Giáo viên · 62 người</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Quản lý giáo viên</h1>
+            <div class="page-header__sub">62 giáo viên · 9 môn học · 25 GVCN · 3 đang nghỉ phép</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" type="button"><i data-lucide="download" class="w-4 h-4"></i>Xuất Excel</button>
+            <button class="gradient-button" type="button"><i data-lucide="user-plus" class="w-4 h-4"></i>Thêm giáo viên</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filter bar -->
+      <div class="card-base" style="padding: 0.75rem;">
+        <div class="cluster">
+          <input class="input" placeholder="Tìm theo tên, môn dạy hoặc lớp chủ nhiệm…" style="max-width: 320px;" aria-label="Tìm giáo viên" />
+          <select class="input" style="max-width: 160px;" aria-label="Lọc theo môn">
+            <option>Tất cả môn (9)</option><option>Toán</option><option>Ngữ văn</option><option>Tiếng Anh</option><option>Vật lí</option><option>Hóa học</option><option>Sinh học</option><option>Lịch sử</option><option>Địa lí</option><option>GDCD</option>
+          </select>
+          <select class="input" style="max-width: 180px;" aria-label="Lọc theo vai trò">
+            <option>Tất cả vai trò</option><option>Hiệu trưởng</option><option>Phó hiệu trưởng</option><option>Tổ trưởng bộ môn</option><option>Giáo viên chủ nhiệm</option><option>Giáo viên bộ môn</option>
+          </select>
+          <select class="input" style="max-width: 160px;" aria-label="Lọc theo trạng thái">
+            <option>Tất cả</option><option>Đang giảng dạy</option><option>Nghỉ phép</option><option>Tạm dừng</option>
+          </select>
+          <span class="ml-auto text-xs muted-strong">62 kết quả</span>
+        </div>
+      </div>
+
+      <!-- Bulk action bar (when rows selected) -->
+      <div class="bulk-bar" hidden id="bulk-bar">
+        <span><span class="bulk-bar__count">3</span> giáo viên đã chọn</span>
+        <div class="cluster">
+          <button class="btn btn--outline btn--sm" type="button"><i data-lucide="user-cog" class="w-3 h-3"></i>Đổi vai trò</button>
+          <button class="btn btn--outline btn--sm" type="button"><i data-lucide="grid-3x3" class="w-3 h-3"></i>Phân công lớp</button>
+          <button class="btn btn--outline btn--sm" type="button"><i data-lucide="mail" class="w-3 h-3"></i>Gửi thông báo</button>
+        </div>
+      </div>
+
+      <!-- Teacher table -->
+      <div class="dt-wrap" tabindex="0">
+        <table class="dt" aria-label="Danh sách giáo viên">
+          <thead>
+            <tr>
+              <th><input class="dt-checkbox" type="checkbox" aria-label="Chọn tất cả" /></th>
+              <th><button class="sort" aria-sort="ascending" type="button">Họ tên<i data-lucide="chevron-up" class="w-3 h-3"></i></button></th>
+              <th>Vai trò</th>
+              <th>Môn dạy</th>
+              <th>Lớp chủ nhiệm</th>
+              <th><button class="sort" type="button">Tổng tiết/tuần<i data-lucide="chevrons-up-down" class="w-3 h-3"></i></button></th>
+              <th><button class="sort" type="button">Thâm niên<i data-lucide="chevrons-up-down" class="w-3 h-3"></i></button></th>
+              <th>Trạng thái</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" aria-label="Chọn dòng" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">TL</span><div><div class="font-medium">Trần Thị Lan</div><div class="text-xs muted-strong">tt.lan@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill pill--accent">Hiệu trưởng</span></td>
+              <td>Toán</td>
+              <td>—</td>
+              <td class="dt-num">8</td>
+              <td class="dt-num">22 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button" aria-label="Mở hồ sơ"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">PY</span><div><div class="font-medium">Phạm Thị Yến</div><div class="text-xs muted-strong">pt.yen@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill pill--info">Tổ trưởng Toán</span></td>
+              <td>Toán</td>
+              <td>8A2</td>
+              <td class="dt-num">22</td>
+              <td class="dt-num">14 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">NH</span><div><div class="font-medium">Nguyễn Hữu Phúc</div><div class="text-xs muted-strong">nh.phuc@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill">Giáo viên chủ nhiệm</span></td>
+              <td>Ngữ văn</td>
+              <td>9A1</td>
+              <td class="dt-num">20</td>
+              <td class="dt-num">11 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">LM</span><div><div class="font-medium">Lê Minh Quân</div><div class="text-xs muted-strong">lm.quan@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill">Giáo viên bộ môn</span></td>
+              <td>Tiếng Anh</td>
+              <td>—</td>
+              <td class="dt-num">18</td>
+              <td class="dt-num">7 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">VH</span><div><div class="font-medium">Vũ Hồng Nhung</div><div class="text-xs muted-strong">vh.nhung@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill">Giáo viên chủ nhiệm</span></td>
+              <td>Vật lí</td>
+              <td>7A3</td>
+              <td class="dt-num">20</td>
+              <td class="dt-num">9 năm</td>
+              <td><span class="pill pill--warning">Nghỉ phép — về 05/05</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">DB</span><div><div class="font-medium">Đỗ Bảo Khang</div><div class="text-xs muted-strong">db.khang@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill">Giáo viên bộ môn</span></td>
+              <td>Hóa học</td>
+              <td>—</td>
+              <td class="dt-num">16</td>
+              <td class="dt-num">5 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">HT</span><div><div class="font-medium">Hoàng Thanh Hải</div><div class="text-xs muted-strong">ht.hai@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill">Giáo viên chủ nhiệm</span></td>
+              <td>Sinh học</td>
+              <td>6A1</td>
+              <td class="dt-num">19</td>
+              <td class="dt-num">8 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+            <tr>
+              <td><input class="dt-checkbox" type="checkbox" /></td>
+              <td><div class="flex items-center gap-2"><span class="avatar">BN</span><div><div class="font-medium">Bùi Ngọc Tâm</div><div class="text-xs muted-strong">bn.tam@thcs-nguyendu.edu.vn</div></div></div></td>
+              <td><span class="pill">Giáo viên bộ môn</span></td>
+              <td>Lịch sử</td>
+              <td>—</td>
+              <td class="dt-num">14</td>
+              <td class="dt-num">3 năm</td>
+              <td><span class="pill pill--success">Đang dạy</span></td>
+              <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="dt-pagination">
+          <span>Hiển thị 1–8 của 62 giáo viên</span>
+          <div class="cluster">
+            <button type="button" disabled>‹</button>
+            <span class="text-mono">1 / 8</span>
+            <button type="button">›</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

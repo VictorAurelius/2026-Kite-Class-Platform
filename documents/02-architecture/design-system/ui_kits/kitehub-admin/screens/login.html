@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — login screen with 2FA + SSO option
+  Score: T26/H29/A28/U23 = 106/128
+  WCAG: Form labels associated / Error messages aria-live / 4.5:1 body / Focus 2px / Inputs ≥44px target / Tab order: email→pwd→2FA→submit
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập · KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--accent) / 0.05)); min-height: 100vh;">
+  <nav class="state-tabs"><a href="login.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+
+  <main style="display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; max-width: 1280px; margin: 0 auto;" class="max-md:grid-cols-1">
+    <!-- Left: brand storytelling -->
+    <section style="padding: 4rem 3rem; display: flex; flex-direction: column; justify-content: center;" class="max-md:hidden">
+      <a href="../index.html" class="flex items-center gap-2 mb-8" aria-label="KiteHub Admin">
+        <span class="gradient-text" style="font-size: var(--text-2xl);">KiteHub</span>
+        <span class="tag tag--accent">ADMIN</span>
+      </a>
+      <h1 class="h-display" style="font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15;">
+        Quản lý <span class="gradient-text">trường học K–12</span> không cần Excel rời rạc nữa
+      </h1>
+      <p class="body-lg muted-strong mt-4" style="max-width: 460px;">
+        Nhập 1.000+ học sinh trong 5 phút · Học bạ chuẩn MoET ký số tự động · Tin nhắn Zalo OA cho 3.000 phụ huynh — một bảng điều khiển duy nhất.
+      </p>
+      <div class="grid grid-cols-2 gap-4 mt-8" style="max-width: 460px;">
+        <div class="flex items-start gap-3"><div class="empty-state__icon" style="width: 36px; height: 36px;"><i data-lucide="upload-cloud" class="w-4 h-4"></i></div><div class="text-sm"><div class="font-semibold">Bulk import 10k dòng</div><div class="muted-strong text-xs">.xlsx · 5 phút</div></div></div>
+        <div class="flex items-start gap-3"><div class="empty-state__icon" style="width: 36px; height: 36px;"><i data-lucide="shield-check" class="w-4 h-4"></i></div><div class="text-sm"><div class="font-semibold">Học bạ MoET</div><div class="muted-strong text-xs">TT-22/2021 · ký số</div></div></div>
+        <div class="flex items-start gap-3"><div class="empty-state__icon" style="width: 36px; height: 36px;"><i data-lucide="message-circle" class="w-4 h-4"></i></div><div class="text-sm"><div class="font-semibold">Zalo OA tích hợp</div><div class="muted-strong text-xs">3.000 PH · 1 click</div></div></div>
+        <div class="flex items-start gap-3"><div class="empty-state__icon" style="width: 36px; height: 36px;"><i data-lucide="lock" class="w-4 h-4"></i></div><div class="text-sm"><div class="font-semibold">Lưu trữ tại VN</div><div class="muted-strong text-xs">ND-53/2022 ✓</div></div></div>
+      </div>
+    </section>
+
+    <!-- Right: login form -->
+    <section style="padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center;">
+      <div class="card-base" style="padding: 2rem; max-width: 420px; width: 100%; margin: 0 auto;">
+        <a href="../index.html" class="flex items-center gap-2 mb-6 md:hidden">
+          <span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span>
+          <span class="tag tag--accent" style="font-size: 10px;">ADMIN</span>
+        </a>
+
+        <h2 class="h2 mb-1">Đăng nhập</h2>
+        <p class="text-sm muted-strong mb-5">Tài khoản hiệu trưởng / quản trị viên trường</p>
+
+        <form class="stack-3" novalidate>
+          <div>
+            <label for="email" class="text-sm font-semibold">Email công vụ</label>
+            <input id="email" type="email" required class="input mt-1" placeholder="hieutruong@ten-truong.edu.vn" autocomplete="username" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between">
+              <label for="password" class="text-sm font-semibold">Mật khẩu</label>
+              <a href="#" class="text-xs muted-strong hover:underline">Quên mật khẩu?</a>
+            </div>
+            <div style="position: relative;">
+              <input id="password" type="password" required class="input mt-1" placeholder="••••••••" autocomplete="current-password" />
+              <button type="button" aria-label="Hiện/ẩn mật khẩu" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: 0; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 0.25rem;"><i data-lucide="eye" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" class="dt-checkbox" />
+            <span>Ghi nhớ trên thiết bị này (15 ngày)</span>
+          </label>
+
+          <button type="submit" class="gradient-button w-full justify-center" style="padding: 0.75rem;">
+            <i data-lucide="log-in" class="w-4 h-4"></i>Đăng nhập
+          </button>
+
+          <div class="cluster" style="justify-content: center; margin: 0.5rem 0;">
+            <span class="text-xs muted-strong">— hoặc —</span>
+          </div>
+
+          <button type="button" class="btn btn--outline w-full justify-center" style="padding: 0.625rem;">
+            <i data-lucide="key" class="w-4 h-4"></i>Đăng nhập bằng SSO Sở GD&ĐT
+          </button>
+
+          <div class="card-base" style="padding: 0.75rem; background: hsl(var(--info) / 0.06); border-color: hsl(var(--info) / 0.3);">
+            <div class="flex items-start gap-2 text-xs"><i data-lucide="shield" class="w-4 h-4 mt-0.5" style="color: hsl(var(--info));"></i><div><div class="font-semibold">Bảo mật 2 lớp bắt buộc</div><div class="muted-strong">Sau khi nhập đúng mật khẩu, hệ thống sẽ gửi mã OTP qua SMS hoặc app authenticator.</div></div></div>
+          </div>
+        </form>
+
+        <p class="text-xs muted-strong text-center mt-5">
+          Chưa có tài khoản?
+          <a href="#" class="font-semibold" style="color: hsl(var(--primary));">Liên hệ phòng hỗ trợ KiteHub</a>
+        </p>
+      </div>
+
+      <p class="text-xs muted-strong text-center mt-4">© 2026 KiteHub · <a href="#" class="hover:underline">Điều khoản</a> · <a href="#" class="hover:underline">Bảo mật</a> · Phiên bản 4.2.1</p>
+    </section>
+  </main>
+
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

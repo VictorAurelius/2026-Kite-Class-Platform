@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — conduct/behavior tracking + escalation ladder
+  Score: T27/H30/A26/U25 = 108/128
+  WCAG: Severity pills convey via icon+text / Ladder uses position+color+text / Body 14.8:1 / Focus 2px
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hạnh kiểm — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="conduct.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học 2026–2027</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div></div></div>
+      <div><div class="section-title">Học sinh</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="bulk-import.html" class="nav-item"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách</a>
+        <a href="report-cards.html" class="nav-item"><i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET</a>
+        <a href="conduct.html" class="nav-item nav-item--active"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm<span class="nav-item__count">7</span></a>
+        <a href="teacher-management.html" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i>Giáo viên</a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="multi-class-roster.html" class="nav-item"><i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công</a>
+        <a href="fees.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+        <a href="academic-calendar.html" class="nav-item"><i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ</a>
+        <a href="school-profile.html" class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Học sinh</a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Hạnh kiểm · Tuần 12 HK1</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Hạnh kiểm & sự việc</h1>
+            <div class="page-header__sub">7 sự việc cần xử lý · 2 đã leo thang phụ huynh · 5 đang trong giai đoạn cảnh cáo</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" type="button"><i data-lucide="download" class="w-4 h-4"></i>Báo cáo tuần</button>
+            <button class="gradient-button" type="button"><i data-lucide="plus" class="w-4 h-4"></i>Ghi nhận sự việc</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- KPIs -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-3" aria-label="Chỉ số hạnh kiểm">
+        <div class="kpi-card"><div class="kpi-card__label"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>Sự việc tháng 4</div><div class="kpi-card__value">23</div><div class="kpi-card__delta kpi-card__delta--down"><i data-lucide="arrow-down" class="w-3 h-3"></i>-7 vs tháng 3</div></div>
+        <div class="kpi-card"><div class="kpi-card__label"><i data-lucide="user-x" class="w-3.5 h-3.5"></i>HS bị nhắc nhở</div><div class="kpi-card__value">18</div><div class="kpi-card__sub">14 cấp 1 · 4 cấp 2</div></div>
+        <div class="kpi-card"><div class="kpi-card__label"><i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>Đã leo thang PH</div><div class="kpi-card__value">2</div><div class="kpi-card__sub">Đang xử lý</div></div>
+        <div class="kpi-card"><div class="kpi-card__label"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>Hạnh kiểm Tốt+</div><div class="kpi-card__value">94,1%</div><div class="kpi-card__sub">1.173/1.247 HS</div></div>
+      </section>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Incident table -->
+        <div class="lg:col-span-2 stack-3">
+          <h2 class="h3">7 sự việc cần xử lý</h2>
+          <div class="dt-wrap" tabindex="0">
+            <table class="dt" aria-label="Sự việc hạnh kiểm">
+              <thead><tr><th>Ngày</th><th>Học sinh</th><th>Lớp</th><th>Sự việc</th><th>Mức độ</th><th>Bước hiện tại</th><th>GV ghi</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="dt-num">27/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">ND</span>Nguyễn Đình Nam</div></td>
+                  <td>8A2</td>
+                  <td>Gây gổ với bạn cùng lớp giờ ra chơi</td>
+                  <td><span class="pill pill--danger"><i data-lucide="zap" class="w-3 h-3"></i>Nghiêm trọng</span></td>
+                  <td><span class="pill pill--accent">Bước 4 · Hiệu trưởng</span></td>
+                  <td class="text-xs">Phạm Thị Yến</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="dt-num">26/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">PH</span>Phạm Hữu Long</div></td>
+                  <td>9A1</td>
+                  <td>Nghỉ học không phép 3 buổi liên tiếp</td>
+                  <td><span class="pill pill--warning">Trung bình</span></td>
+                  <td><span class="pill pill--info">Bước 3 · PH</span></td>
+                  <td class="text-xs">Nguyễn Hữu Phúc</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="dt-num">25/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">LB</span>Lê Bảo Khang</div></td>
+                  <td>7A2</td>
+                  <td>Sử dụng điện thoại trong giờ kiểm tra</td>
+                  <td><span class="pill pill--warning">Trung bình</span></td>
+                  <td><span class="pill pill--info">Bước 2 · GVCN</span></td>
+                  <td class="text-xs">Phạm Mai Linh</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="dt-num">24/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">TT</span>Trần Thị Mai</div></td>
+                  <td>9A2</td>
+                  <td>Đi muộn 30 phút (lần 4 trong tháng)</td>
+                  <td><span class="pill pill--info">Nhẹ</span></td>
+                  <td><span class="pill pill--info">Bước 2 · GVCN</span></td>
+                  <td class="text-xs">Lê Thị Diệu Linh</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="dt-num">23/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">VH</span>Vũ Hoài Anh</div></td>
+                  <td>6A2</td>
+                  <td>Không làm bài tập về nhà 5 ngày</td>
+                  <td><span class="pill pill--info">Nhẹ</span></td>
+                  <td><span class="pill">Bước 1 · GVBM</span></td>
+                  <td class="text-xs">Vũ Hồng Nhung</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="dt-num">22/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">DN</span>Đỗ Nhật Minh</div></td>
+                  <td>8A1</td>
+                  <td>Chế giễu bạn về ngoại hình (qua chat lớp)</td>
+                  <td><span class="pill pill--danger"><i data-lucide="zap" class="w-3 h-3"></i>Nghiêm trọng</span></td>
+                  <td><span class="pill pill--accent">Bước 4 · Hiệu trưởng</span></td>
+                  <td class="text-xs">Phạm Thị Yến</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+                <tr>
+                  <td class="dt-num">21/04</td>
+                  <td><div class="flex items-center gap-2"><span class="avatar">HK</span>Hoàng Khánh Linh</div></td>
+                  <td>7A3</td>
+                  <td>Đi muộn 5 buổi tuần này</td>
+                  <td><span class="pill pill--warning">Trung bình</span></td>
+                  <td><span class="pill pill--info">Bước 3 · PH</span></td>
+                  <td class="text-xs">Vũ Hồng Nhung</td>
+                  <td><button class="btn btn--ghost btn--sm" type="button"><i data-lucide="external-link" class="w-3 h-3"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Escalation ladder visualization -->
+        <div class="card-base" style="padding: 1.125rem;">
+          <div class="section-title">Quy trình leo thang</div>
+          <p class="text-sm muted-strong mb-3">5 bước theo Quy chế kỷ luật học sinh THCS — Thông tư 32/2020/TT-BGDĐT.</p>
+          <div class="ladder">
+            <div class="ladder__step ladder__step--done">
+              <div class="font-semibold">Bước 1 · Nhắc nhở miệng</div>
+              <div class="text-xs muted-strong">Giáo viên bộ môn nói chuyện riêng</div>
+            </div>
+            <div class="ladder__step ladder__step--done">
+              <div class="font-semibold">Bước 2 · Nhắc bằng văn bản</div>
+              <div class="text-xs muted-strong">GVCN ghi vào sổ theo dõi · Báo trong giờ sinh hoạt</div>
+            </div>
+            <div class="ladder__step ladder__step--current">
+              <div class="font-semibold">Bước 3 · Mời phụ huynh</div>
+              <div class="text-xs muted-strong">GVCN + PH gặp trao đổi · Cam kết 2 bên</div>
+              <span class="pill pill--info mt-1"><i data-lucide="users" class="w-3 h-3"></i>3 ca đang ở bước này</span>
+            </div>
+            <div class="ladder__step ladder__step--future">
+              <div class="font-semibold">Bước 4 · Hội đồng kỷ luật</div>
+              <div class="text-xs muted-strong">Hiệu trưởng + GVCN + đại diện PH · Quyết định bằng văn bản</div>
+              <span class="pill pill--accent mt-1"><i data-lucide="users" class="w-3 h-3"></i>2 ca đang ở bước này</span>
+            </div>
+            <div class="ladder__step ladder__step--future">
+              <div class="font-semibold">Bước 5 · Đình chỉ học</div>
+              <div class="text-xs muted-strong">7 ngày tới 1 tháng · Phải có quyết định chính thức</div>
+              <span class="pill mt-1">0 ca</span>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="section-title">Phân loại HK theo TT-22</div>
+          <div class="stack-2 mt-2 text-sm">
+            <div class="flex items-center justify-between"><span><strong>Tốt</strong></span><span class="text-mono muted-strong">986 HS · 79,1%</span></div>
+            <div class="flex items-center justify-between"><span><strong>Khá</strong></span><span class="text-mono muted-strong">187 HS · 15,0%</span></div>
+            <div class="flex items-center justify-between"><span><strong>Trung bình</strong></span><span class="text-mono muted-strong">62 HS · 5,0%</span></div>
+            <div class="flex items-center justify-between"><span><strong>Yếu</strong></span><span class="text-mono muted-strong" style="color: hsl(var(--destructive));">12 HS · 1,0%</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>

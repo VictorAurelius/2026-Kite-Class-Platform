@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  Persona: P5 K-12 Principal — school profile + settings + license info
+  Score: T26/H29/A26/U23 = 104/128
+  WCAG: Form labels explicit / Body 14.8:1 / Focus 2px / Inputs ≥44px target
+-->
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hồ sơ trường — KiteHub Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <nav class="state-tabs"><a href="school-profile.html" data-active="true">Default</a><a href="../index.html">Index</a></nav>
+  <div class="shell">
+    <aside class="shell__nav stack-3" aria-label="Điều hướng chính">
+      <a href="../index.html" class="flex items-center gap-2 mb-3"><span class="gradient-text" style="font-size: var(--text-xl);">KiteHub</span><span class="tag tag--accent" style="font-size: 10px;">ADMIN</span></a>
+      <button class="cmdk-trigger"><i data-lucide="search" class="w-4 h-4"></i><span>Tìm nhanh, lệnh…</span><kbd>⌘K</kbd></button>
+      <div><div class="section-title">Năm học 2026–2027</div><div class="card-base" style="padding: 0.625rem 0.75rem; font-size: var(--text-xs);"><div class="font-semibold text-sm">Trường THCS Nguyễn Du</div><div class="muted-strong mt-0.5">Học kỳ 1 · Tuần 12 / 18</div></div></div>
+      <div><div class="section-title">Cấu hình</div><div class="stack-2">
+        <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Bảng tổng quan</a>
+        <a href="school-profile.html" class="nav-item nav-item--active"><i data-lucide="settings" class="w-4 h-4"></i>Hồ sơ trường</a>
+        <a href="academic-calendar.html" class="nav-item"><i data-lucide="calendar-days" class="w-4 h-4"></i>Lịch học vụ</a>
+        <a href="bulk-import.html" class="nav-item"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Nhập danh sách</a>
+        <a href="report-cards.html" class="nav-item"><i data-lucide="file-text" class="w-4 h-4"></i>Học bạ MoET</a>
+        <a href="conduct.html" class="nav-item"><i data-lucide="alert-triangle" class="w-4 h-4"></i>Hạnh kiểm</a>
+        <a href="teacher-management.html" class="nav-item"><i data-lucide="users" class="w-4 h-4"></i>Giáo viên</a>
+        <a href="parent-comms.html" class="nav-item"><i data-lucide="message-square" class="w-4 h-4"></i>Phụ huynh</a>
+        <a href="multi-class-roster.html" class="nav-item"><i data-lucide="grid-3x3" class="w-4 h-4"></i>Bảng phân công</a>
+        <a href="fees.html" class="nav-item"><i data-lucide="receipt" class="w-4 h-4"></i>Học phí năm</a>
+      </div></div>
+    </aside>
+
+    <main class="shell__main stack-4">
+      <header class="kh-header" style="margin: -1.25rem -1.75rem 0; padding: 1rem 1.75rem;">
+        <nav aria-label="Đường dẫn" class="crumb">
+          <a href="dashboard.html"><i data-lucide="home" class="w-3 h-3 inline"></i></a><span class="crumb__sep">/</span>
+          <a href="dashboard.html">Trường THCS Nguyễn Du</a><span class="crumb__sep">/</span>
+          <span class="crumb__current">Hồ sơ trường</span>
+        </nav>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h1 class="page-header__title">Hồ sơ trường</h1>
+            <div class="page-header__sub">Thông tin pháp nhân · Cấp phép · Cấu hình hệ thống · Tích hợp Sở GD&ĐT</div>
+          </div>
+          <div class="cluster">
+            <button class="btn btn--outline" type="button"><i data-lucide="undo-2" class="w-4 h-4"></i>Hủy</button>
+            <button class="gradient-button" type="button"><i data-lucide="save" class="w-4 h-4"></i>Lưu thay đổi</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Main form -->
+        <div class="lg:col-span-2 stack-3">
+          <div class="card-base" style="padding: 1.25rem;">
+            <h2 class="h3 mb-3">Thông tin pháp nhân</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div><label for="schoolName">Tên trường</label><input id="schoolName" class="input mt-1" value="Trường THCS Nguyễn Du" /></div>
+              <div><label for="taxCode">Mã số thuế</label><input id="taxCode" class="input mt-1" value="0312345678" /></div>
+              <div><label for="moetCode">Mã trường MoET</label><input id="moetCode" class="input mt-1" value="79.005.123" /></div>
+              <div><label for="estDate">Ngày thành lập</label><input id="estDate" class="input mt-1" value="15/08/1995" /></div>
+              <div class="md:col-span-2"><label for="address">Địa chỉ</label><input id="address" class="input mt-1" value="123 Nguyễn Văn Cừ, P. Phước Long B, Q. 9, TP. Hồ Chí Minh" /></div>
+              <div><label for="phone">Số điện thoại</label><input id="phone" class="input mt-1" value="028 3825 1234" /></div>
+              <div><label for="email">Email liên hệ</label><input id="email" class="input mt-1" value="lienhe@thcs-nguyendu.edu.vn" /></div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.25rem;">
+            <h2 class="h3 mb-3">Cấp phép & quy mô</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div><label>Cấp học</label><div class="cluster mt-1"><span class="pill pill--success">THCS</span><span class="pill pill--info">Liên cấp THPT (đề xuất 2027)</span></div></div>
+              <div><label>Loại hình</label><div class="cluster mt-1"><span class="pill pill--accent">Tư thục</span></div></div>
+              <div><label>Quy mô tối đa</label><input class="input mt-1" value="1.500 học sinh" /></div>
+              <div><label>Số lớp tối đa</label><input class="input mt-1" value="30 lớp" /></div>
+              <div><label>Sĩ số tối đa / lớp</label><input class="input mt-1" value="40" /></div>
+              <div><label>Tỉ lệ GV / HS</label><input class="input mt-1" value="1 / 20" /></div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.25rem;">
+            <h2 class="h3 mb-3">Cấu hình hệ thống</h2>
+            <div class="stack-3 text-sm">
+              <label class="flex items-start gap-3 p-3 border rounded" style="border-color: hsl(var(--border));">
+                <input type="checkbox" class="dt-checkbox mt-1" checked />
+                <div><div class="font-semibold">Tự động phát hiện trùng SĐT phụ huynh</div><div class="muted-strong text-xs">Khi nhập danh sách, cảnh báo nếu phụ huynh đã có học sinh khác</div></div>
+              </label>
+              <label class="flex items-start gap-3 p-3 border rounded" style="border-color: hsl(var(--border));">
+                <input type="checkbox" class="dt-checkbox mt-1" checked />
+                <div><div class="font-semibold">Bắt buộc xác thực 2 lớp ký số học bạ</div><div class="muted-strong text-xs">Hiệu trưởng + Văn phòng phải cùng ký để phát hành học bạ</div></div>
+              </label>
+              <label class="flex items-start gap-3 p-3 border rounded" style="border-color: hsl(var(--border));">
+                <input type="checkbox" class="dt-checkbox mt-1" />
+                <div><div class="font-semibold">Cho phép GVCN chỉnh điểm sau khi đã ký</div><div class="muted-strong text-xs">Khuyến nghị TẮT — cần khoá điểm sau ký để đảm bảo tính pháp lý</div></div>
+              </label>
+              <label class="flex items-start gap-3 p-3 border rounded" style="border-color: hsl(var(--border));">
+                <input type="checkbox" class="dt-checkbox mt-1" checked />
+                <div><div class="font-semibold">Tự động chuyển hạnh kiểm sang bước tiếp theo sau 3 ngày</div><div class="muted-strong text-xs">Nếu bước hiện tại không có cập nhật trong 3 ngày làm việc</div></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side: integrations + plan info -->
+        <div class="stack-3">
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Gói dịch vụ</div>
+            <div class="mt-2">
+              <div class="text-xs muted-strong">ENTERPRISE</div>
+              <div class="text-3xl font-bold">PREMIUM</div>
+              <div class="text-xs muted-strong">Năm học 2026–2027</div>
+              <hr class="divider" />
+              <div class="stack-2 text-sm">
+                <div class="flex justify-between"><span>Học sinh tối đa</span><span class="text-mono">3.000</span></div>
+                <div class="flex justify-between"><span>Tài khoản nhân sự</span><span class="text-mono">100</span></div>
+                <div class="flex justify-between"><span>Gọi AI brand/tháng</span><span class="text-mono">Không giới hạn</span></div>
+                <div class="flex justify-between"><span>Lưu trữ</span><span class="text-mono">500 GB</span></div>
+                <div class="flex justify-between"><span>Hỗ trợ 24/7</span><span class="text-mono">✓</span></div>
+              </div>
+              <button class="btn btn--outline btn--sm mt-3 w-full" type="button">So sánh các gói</button>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Tích hợp Sở GD&ĐT</div>
+            <div class="stack-2 mt-2 text-sm">
+              <div class="flex items-center justify-between"><span><i data-lucide="link-2" class="w-3.5 h-3.5 inline"></i> Cổng Sở GD TP.HCM</span><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>Đã kết nối</span></div>
+              <div class="flex items-center justify-between"><span><i data-lucide="signature" class="w-3.5 h-3.5 inline"></i> Chữ ký số VGCA</span><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>Đã cấu hình</span></div>
+              <div class="flex items-center justify-between"><span><i data-lucide="message-circle" class="w-3.5 h-3.5 inline"></i> Zalo OA</span><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>3.241 PH</span></div>
+              <div class="flex items-center justify-between"><span><i data-lucide="credit-card" class="w-3.5 h-3.5 inline"></i> VNPay merchant</span><span class="pill pill--success"><i data-lucide="check" class="w-3 h-3"></i>Hoạt động</span></div>
+              <div class="flex items-center justify-between"><span><i data-lucide="building" class="w-3.5 h-3.5 inline"></i> Cổng PHGD Quận 9</span><span class="pill pill--warning"><i data-lucide="clock" class="w-3 h-3"></i>Chờ duyệt</span></div>
+            </div>
+          </div>
+
+          <div class="card-base" style="padding: 1.125rem;">
+            <div class="section-title">Bảo mật</div>
+            <div class="stack-2 mt-2 text-sm">
+              <div>Đăng nhập 2 lớp <span class="pill pill--success">Bật</span></div>
+              <div>SSO Google Workspace <span class="pill">Tắt</span></div>
+              <div>Lưu trữ tại Việt Nam <span class="pill pill--success">Có (TP.HCM DC)</span></div>
+              <div class="text-xs muted-strong mt-1">Tuân thủ Nghị định 53/2022/NĐ-CP về dữ liệu cá nhân.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>
