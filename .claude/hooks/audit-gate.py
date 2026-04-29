@@ -85,6 +85,37 @@ AUDIT_RULES = [
 
 AUDIT_FRESHNESS_DAYS = 7
 
+# ── UI Kits Integration Rule (GAP-265, Wave Review Process Improvement) ──
+#
+# Block merge of PRs touching `documents/02-architecture/design-system/ui_kits/**`
+# unless PR body confirms the integration smoke test ran OR an override trailer
+# is present. Closes Phase 3 of GAP-263 — Tier 3 enforcement layer.
+#
+# Why: 2026-04-29 incident — closure PR #678 updated kit READMEs but forgot
+# `ui_kits/index.html` landing page; user caught "đã có UI của trang kitehub
+# đâu nhỉ, tôi vẫn thấy 3 repo". Manual review missed it. Hook prevents
+# recurrence by demanding explicit integration confirmation in PR body.
+#
+# Spec: GAP-265 §Proposed Fix — `INTEGRATION_OK_NO_LANDING_CHANGE: <reason>`
+# trailer downgrades block → warn for genuine docs-only edits within ui_kits/.
+UI_KITS_INTEGRATION_RULE = {
+    "name": "ui-kits-integration-required",
+    "trigger_paths": [
+        "documents/02-architecture/design-system/ui_kits/",
+    ],
+    "trigger_exclude": [
+        "documents/02-architecture/design-system/ui_kits/_v1-baseline/",
+    ],
+    # PR body must contain ONE of these phrases for non-overridden pass.
+    "required_phrases": [
+        "Integration smoke test:",  # explicit confirmation
+    ],
+    "override_trailer": "INTEGRATION_OK_NO_LANDING_CHANGE:",
+    "severity": "block",
+    "rationale_url": "documents/04-quality/gaps/GAP-265-ui-kits-hook-ci-enforcement.md",
+    "incident_ref": "2026-04-29 landing-page parity miss (PR #678 closure)",
+}
+
 AUDIT_DIRS = {
     "ui-review": "documents/04-quality/audits/ui",
     "business-logic-audit": "documents/04-quality/audits/business",
@@ -438,6 +469,66 @@ def check_gap_doc_drift(pr: str, info: dict, files: list[str]) -> list[str]:
     return warnings
 
 
+def check_ui_kits_integration(pr: str, info: dict, files: list[str]) -> dict | None:
+    """Check UI Kits integration smoke test confirmation per GAP-265.
+
+    Returns dict with 'level' ('block' | 'warn' | 'pass') and 'message'.
+    Returns None if rule does not apply (no ui_kits/ files touched).
+
+    Logic:
+    1. Filter files to those under trigger_paths excluding trigger_exclude.
+    2. If none match → rule N/A (return None).
+    3. Read PR body. If override trailer present → warn (downgraded).
+    4. If required phrase present → pass.
+    5. Otherwise → block.
+    """
+    rule = UI_KITS_INTEGRATION_RULE
+
+    # Step 1+2: filter files by trigger paths
+    triggered_files = []
+    for f in files:
+        if not any(f.startswith(p) for p in rule["trigger_paths"]):
+            continue
+        if any(f.startswith(p) for p in rule["trigger_exclude"]):
+            continue
+        triggered_files.append(f)
+
+    if not triggered_files:
+        return None  # Rule does not apply
+
+    # Step 3: read PR body
+    body = info.get("body", "") or gh_run(["pr", "view", pr, "--json", "body", "--jq", ".body"]) or ""
+
+    # Override trailer check
+    override_match = re.search(rf"{re.escape(rule['override_trailer'])}\s*(.+?)(?:\n|$)", body)
+    if override_match:
+        reason = override_match.group(1).strip()
+        return {
+            "level": "warn",
+            "message": (
+                f"UI kits integration override: {reason} "
+                f"({len(triggered_files)} file(s) under ui_kits/, "
+                f"{rule['override_trailer']} trailer present)"
+            ),
+        }
+
+    # Required phrase check
+    if any(phrase in body for phrase in rule["required_phrases"]):
+        return {"level": "pass", "message": ""}
+
+    # Block
+    return {
+        "level": "block",
+        "message": (
+            f"UI kits PR missing integration smoke test confirmation "
+            f"({len(triggered_files)} file(s) under ui_kits/). "
+            f"Add 'Integration smoke test:' line to PR body OR add "
+            f"'{rule['override_trailer']} <reason>' trailer for docs-only edits. "
+            f"See {rule['rationale_url']} (incident: {rule['incident_ref']})."
+        ),
+    }
+
+
 def _on_pr_merge_impl(pr: str) -> dict | None:
     files = get_pr_files(pr)
     info = get_pr_info(pr)
@@ -517,6 +608,14 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
             "Gap doc drift — " + "; ".join(gap_drift)
             + " (per memory feedback_post_merge_doc_sync.md — file a docs-only sync PR)"
         )
+    # GAP-265 — UI kits integration smoke test enforcement.
+    ui_kits_result = check_ui_kits_integration(pr, info, files)
+    ui_kits_blocked = False
+    if ui_kits_result and ui_kits_result["level"] == "block":
+        violations.append(f"UI kits integration: {ui_kits_result['message']}")
+        ui_kits_blocked = True
+    elif ui_kits_result and ui_kits_result["level"] == "warn":
+        violations.append(f"UI kits integration: {ui_kits_result['message']}")
     if is_wave:
         violations.append("Wave merge — run /wave-completion-check + audit suite within 3 days (post-wave-audit-mandate.md)")
     if not lock_ok and lock_msg:
@@ -552,6 +651,9 @@ def _on_pr_merge_impl(pr: str) -> dict | None:
     if missing_audits and not docs_only and not overridden:
         should_block = True
         block_reasons.append(f"missing audits: {', '.join(a['audit'] for a in missing_audits)}")
+    if ui_kits_blocked:
+        should_block = True
+        block_reasons.append("UI kits integration smoke test missing (GAP-265)")
 
     if should_block:
         lines.append(f"\n🛑 BLOCKED: {'; '.join(block_reasons)}")

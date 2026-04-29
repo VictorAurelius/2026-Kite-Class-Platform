@@ -1,6 +1,6 @@
 # GAP-265: UI Kits Hook + CI + Lefthook Enforcement (Phase 3 of GAP-263)
 
-**Status:** 🔵 OPEN — placeholder filed by foundation PR; full content shipped by Tier 3 agent in same wave (Wave Review Process Improvement)
+**Status:** 🟢 DONE 2026-04-29 — Tier 3 enforcement layer shipped (audit-gate rule + CI workflow + lefthook pre-commit). 4 self-tests PASS. Phase 3 of GAP-263 complete.
 **Priority:** 🟠 P1 Meta — automated enforcement
 **Domain:** Meta / DevOps / Quality / UI Review
 **Found:** 2026-04-29 (Wave Review Process Improvement, Tier 3 — paired with GAP-263 Phase 1 + GAP-264 Phase 2)

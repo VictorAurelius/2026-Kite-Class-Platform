@@ -1,0 +1,80 @@
+name: UI Kits Integration
+
+# Closes Phase 3 of GAP-263 (GAP-265) — Tier 3 enforcement layer for UI kits
+# integration smoke test. Pre-merge CI gate that runs Tier 1 landing-parity
+# script + Tier 2 ui-review-prototype scripts (when available, GAP-264).
+#
+# Triggered by 2026-04-29 incident: closure PR #678 updated kit READMEs but
+# forgot ui_kits/index.html landing page → user catch.
+#
+# Spec: `.claude/rules/output-review-mandate.md` v1.3.0 §3 row "HTML/JSX prototypes".
+# Tier 1 script: documents/02-architecture/design-system/ui_kits/_shared/scripts/check-ui-kits-landing.sh
+# Tier 2 scripts (GAP-264, may not exist yet): .claude/skills/quality/ui-review-prototype/scripts/*.sh
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'documents/02-architecture/design-system/ui_kits/**'
+      - '.claude/skills/quality/ui-review-prototype/**'
+      - '.github/workflows/ui-kits-integration.yml'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  parity-check:
+    name: Landing parity + state coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Tier 1 — landing parity (mandatory)
+        # Verifies every kit folder has a matching landing card and vice versa.
+        # Catches the original 2026-04-29 incident pattern.
+        run: bash documents/02-architecture/design-system/ui_kits/_shared/scripts/check-ui-kits-landing.sh
+
+      - name: Tier 2 — link checker (if available)
+        # GAP-264 ships ui-review-prototype skill scripts. Until those land
+        # (Agent A's PR), the conditional skip prevents red CI.
+        run: |
+          script=".claude/skills/quality/ui-review-prototype/scripts/link-checker.sh"
+          if [ -x "$script" ]; then
+            bash "$script"
+          else
+            echo "::notice::Tier 2 link-checker not yet shipped (GAP-264 pending merge — re-run after Agent A lands)"
+          fi
+
+      - name: Tier 2 — landing parity (stricter, if available)
+        run: |
+          script=".claude/skills/quality/ui-review-prototype/scripts/landing-parity.sh"
+          if [ -x "$script" ]; then
+            bash "$script"
+          else
+            echo "::notice::Tier 2 landing-parity not yet shipped (GAP-264 pending merge — re-run after Agent A lands)"
+          fi
+
+      - name: Tier 2 — state coverage (if available)
+        run: |
+          script=".claude/skills/quality/ui-review-prototype/scripts/state-coverage.sh"
+          if [ -x "$script" ]; then
+            bash "$script"
+          else
+            echo "::notice::Tier 2 state-coverage not yet shipped (GAP-264 pending merge — re-run after Agent A lands)"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### UI Kits Integration Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tier 1 landing-parity: see job log above" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tier 2 (GAP-264): conditional — skip if scripts not yet shipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Spec: \`.claude/rules/output-review-mandate.md\` v1.3.0 §3 row 'HTML/JSX prototypes'" >> "$GITHUB_STEP_SUMMARY"
