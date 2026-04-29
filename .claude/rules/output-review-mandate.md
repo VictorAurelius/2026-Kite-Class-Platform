@@ -1,7 +1,7 @@
 # Output Review Mandate
 
 **Priority:** 🔴 CRITICAL — project-wide governance rule
-**Version:** 1.1.3
+**Version:** 1.1.4
 **Created:** 2026-04-14
 **Last-Reviewed:** 2026-04-29
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — PATCH self-approve per `rule-change-process.md` §5)
@@ -77,7 +77,7 @@ Mọi artifact tenant, user, dev, hay downstream system consume:
 | **Rules docs (meta)** | ADR-like | Pre-merge | Lead + team | ✅ DONE (2026-04-20, GAP-171 — `.claude/rules/rule-change-process.md` + `.claude/skills/quality/rule-review/`) |
 | **Templates (UI/image)** | GAP-011 5 criteria | Before publish | Designer + lead | ⚠️ PLANNED (GAP-011) |
 | **Email templates** | Brand + legal check | Before send | Marketing + legal | ✅ DONE (2026-04-20, GAP-173 — `.claude/skills/quality/email-template-review/`) |
-| **AI-generated assets** | Quality gate /100 + content safety + `ai-branding-quality-gate` skill | Auto + manual | Automated + admin | ⚠️ PARTIAL — governance scaffold DONE 2026-04-26 (GAP-223 Sub-PR 223.1: skill `quality/ai-branding-quality-gate/` + audit-gate rule + `ai-branding-guidelines.md` §11.4 Migration test checklist + baseline audit 62/100); GAP-012 §5 5 Strategy-pattern checks + GAP-018 3-stage moderation pipeline DONE Wave 4 scaffold-only; real WCAG/visual-regression/ML classifier tracked GAP-226/227/228 Wave 8+; umbrella GAP-225 |
+| **AI-generated assets** | Quality gate /100 + content safety + `ai-branding-quality-gate` skill | Auto + manual | Automated + admin | ⚠️ PARTIAL — governance scaffold DONE 2026-04-26 (GAP-223 Sub-PR 223.1: skill `quality/ai-branding-quality-gate/` + audit-gate rule + `ai-branding-guidelines.md` §11.4 Migration test checklist + baseline audit 62/100); GAP-012 §5 5 Strategy-pattern checks + GAP-018 3-stage moderation pipeline DONE Wave 4 scaffold-only; real WCAG/visual-regression/ML classifier tracked GAP-226/227/228 Wave 8+; **systemic scaffold-as-DONE pattern (GAP-008/009/012/015/018) tracked under umbrella [GAP-225](../../documents/04-quality/gaps/GAP-225-scaffolded-as-done-governance-closure-umbrella.md) — Phase 1 docs truth-up DONE 2026-04-29; Phase 2-4 (saga-pattern-review skill, ai-agent-review skill, scaffold-governance.md rule) future scope** |
 | **Contracts (Word)** | Legal review | Before use | Lawyer | ❌ **VIOLATION** |
 | **Generated PDFs/Excel** | QA checklist + visual regression | Before delivery | QA | ⚠️ PLANNED (GAP-047) |
 | **Database migrations** | migration-review-checklist skill | Pre-merge | DBA + peer | ✅ DONE |
@@ -296,6 +296,7 @@ Cases khi review có thể lighter:
 
 ## 11. Log
 
+- **2026-04-29** (v1.1.4): PATCH — extended §3 matrix row "AI-generated assets" line 80 to cite umbrella [GAP-225](../../documents/04-quality/gaps/GAP-225-scaffolded-as-done-governance-closure-umbrella.md) for systemic scaffold-as-DONE pattern across 5 affected gaps (GAP-008/009/012/015/018) shipped Wave 2-4. Phase 1 (docs truth-up) DONE this PR — Phase 2-4 (saga-pattern-review skill, ai-agent-review skill, scaffold-governance.md meta-rule) explicitly future scope per gap §"Future scope". Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — matrix-row reference extension, no constraint loosening; coordinated with Wave Meta-Gov 2 Cluster 6 Phase-1 Agent B). Motivation: prior matrix entries cited GAP-225 only as "umbrella" tail-reference; expanded to surface the systemic pattern + Phase 1/Phase 2-4 split for future readers.
 - **2026-04-29** (v1.1.3): PATCH — flipped §3 matrix row "Business logic CORRECTNESS" from ❌ VIOLATION (GAP-049) → ⚠️ PARTIAL — rule shipped 2026-04-29 (`.claude/rules/business-logic-review.md`); audit + stakeholder sign-offs → GAP-156. Phase 1 of GAP-049 scope split (Wave Business Correctness Agent B) — review standard shipped, audit-execution + sign-off sub-tasks tracked in GAP-156 follow-up. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — matrix-row state sync, no constraint loosening; new business-logic-review rule itself is MAJOR-scope but self-contained per its own §10 Log entry). §4 VIOLATION list narrows further (this was the last unaddressed CRITICAL row).
 - **2026-04-28** (v1.1.2): PATCH — added §3 matrix row "README freshness" (CI script + workflow job + 5 self-test fixtures, baseline 4 PASS / 42 WARN / 0 FAIL across 46 READMEs); flipped "Skills (meta)" row from ⚠️ PARTIAL to ✅ DONE post-Wave Meta-Gov 1 Sub-PR C (#610). Closes GAP-255 row addition + GAP-251 status sync. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — factual coverage update, no constraint loosening).
 - **2026-04-28** (v1.1.1): PATCH — added missing `**Applies to:**` frontmatter field flagged by `scripts/check-rule-frontmatter.sh` (GAP-250 self-test). No content change; promotes Priority field to first line per project convention. Reviewer: @nguyenvankiet (solo-dev PATCH self-approve per `rule-change-process.md` §5 — frontmatter sync, no constraint loosening).
