@@ -225,6 +225,7 @@ Counts: **88 OPEN → 90 OPEN** (-GAP-126 -GAP-130 closed; +GAP-236/237/238/239 
 | 8 | **Parent/import cluster** | GAP-052 (P0 PARTIAL) + GAP-063 (P1) + GAP-137 (P0) + GAP-139 (P1) | P0+P1 | 🔵 OPEN |
 | 9 | **K-12 features wave** | GAP-055 (P1, Phase 1 Tasks 3-10) + GAP-056 (P1) + GAP-057 (P1) | P1 | 🟡 IN_PROGRESS (GAP-055 Tasks 0-2 DONE) |
 | 10 | **Logging migration** (separate track) | GAP-114 (P0) + GAP-115 (P1) | P0+P1 | 🔵 OPEN — multi-PR scope per `logs-format-standard.md` migration phases |
+| 11 | **UI Kits Round 2 wave** | kiteclass-pro v2 + kiteclass-parent + 5 components (G2/G5/G6/G7/G12) + GAP-263 Phase 1 | P2 (HTML prototypes — Plan B route from Claude Design block) | 🟡 IN_PROGRESS — `documents/03-planning/waves/wave-2026-04-29-ui-kits-round-2.md`. Foundation PR pending; first wave-pack for non-gap-closing deliverable. |
 
 ### Single-track items (not clustered)
 

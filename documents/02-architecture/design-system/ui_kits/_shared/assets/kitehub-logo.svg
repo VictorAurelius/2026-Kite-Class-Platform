@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="48" viewBox="0 0 180 48" fill="none">
+  <g transform="translate(4,0)">
+    <path d="M24 4L40 24L24 44L8 24L24 4Z" fill="#0EA5E9"></path>
+    <path d="M24 4V44M8 24H40" stroke="white" stroke-width="2" stroke-opacity="0.3"></path>
+    <circle cx="24" cy="24" r="4" fill="#F97316"></circle>
+  </g>
+  <text x="56" y="32" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="22" letter-spacing="-0.5">
+    <tspan fill="#0EA5E9">Kite</tspan><tspan fill="#0F172A">Hub</tspan>
+  </text>
+</svg>

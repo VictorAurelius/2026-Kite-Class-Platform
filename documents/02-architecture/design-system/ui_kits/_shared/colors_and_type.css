@@ -1,0 +1,205 @@
+/* =============================================================
+   Kite Design System — Colors & Typography
+   Shared base tokens + per-product primary/accent overrides.
+   Drop this on any page; wrap the root in .theme-kitehub or
+   .theme-kiteclass to switch brand. Defaults to KiteHub.
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ----- base (shadcn/ui) neutrals ----- */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  /* ----- brand (DEFAULT = KiteHub sky blue + orange accent) ----- */
+  --primary: 199 89% 48%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 25 95% 53%;
+  --accent-foreground: 0 0% 100%;
+  --ring: 199 89% 48%;
+
+  /* ----- kite palette ----- */
+  --kite-sky: 199 89% 48%;
+  --kite-orange: 25 95% 53%;
+  --kite-teal: 168 76% 42%;
+
+  /* ----- semantic ----- */
+  --success: 160 84% 39%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --info: 217 91% 60%;
+  --info-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  /* ----- radius ----- */
+  --radius: 0.75rem;             /* KiteHub default */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* ----- shadows (KiteHub 'soft' system) ----- */
+  --shadow-soft:    0 2px 8px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06);
+  --shadow-soft-lg: 0 4px 12px rgba(0,0,0,0.05), 0 8px 32px rgba(0,0,0,0.08);
+  --shadow-soft-xl: 0 8px 24px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.10);
+
+  /* ----- typography ----- */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* type scale (px ← rem) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+  --text-7xl: 4.5rem;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* spacing scale (tailwind 4px step) */
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+  --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem;
+  --space-12: 3rem;   --space-16: 4rem;  --space-20: 5rem;  --space-24: 6rem;
+}
+
+/* ----- brand overrides ----- */
+.theme-kitehub,
+:root {
+  /* same as default */
+}
+
+.theme-kiteclass {
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.5rem;
+
+  /* KiteClass exposes a per-tenant theme overlay */
+  --theme-primary: 59 130 246;
+  --theme-secondary: 139 92 246;
+  --theme-accent: 245 158 11;
+  --theme-background: 255 255 255;
+  --theme-font-heading: var(--font-sans);
+  --theme-font-body: var(--font-sans);
+  --theme-border-radius: 8px;
+}
+
+/* ----- dark mode ----- */
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 224 71% 8%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --primary: 199 89% 58%;
+  --primary-foreground: 222.2 84% 4.9%;
+  --accent: 25 95% 58%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --ring: 199 89% 58%;
+}
+
+/* =============================================================
+   Semantic typography utility selectors
+   ============================================================= */
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.h-display {
+  font-size: clamp(var(--text-4xl), 5vw, var(--text-7xl));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+}
+
+.h1 { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.02em; line-height: var(--leading-tight); }
+.h2 { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.01em; line-height: var(--leading-snug); }
+.h3 { font-size: var(--text-xl);  font-weight: 600; line-height: var(--leading-snug); }
+.h4 { font-size: var(--text-lg);  font-weight: 600; line-height: var(--leading-snug); }
+
+.body-lg { font-size: var(--text-lg); line-height: var(--leading-relaxed); }
+.body    { font-size: var(--text-base); line-height: var(--leading-normal); }
+.body-sm { font-size: var(--text-sm); line-height: var(--leading-normal); }
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+}
+
+.mono { font-family: var(--font-mono); font-size: var(--text-sm); }
+
+.muted { color: hsl(var(--muted-foreground)); }
+
+/* gradient text accent — reserved for 1-2 hero words */
+.grad-text {
+  background: linear-gradient(90deg,
+    hsl(var(--primary)) 0%,
+    #a855f7 50%,
+    hsl(var(--accent)) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+
+/* =============================================================
+   Entry animations (matches kitehub/globals.css)
+   ============================================================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-in    { animation: fadeIn 0.5s ease-out forwards; }
+.animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+.animate-slide-in-right { animation: slideInRight 0.5s ease-out forwards; }
+
+.hover-lift { transition: transform .2s ease-out, box-shadow .2s ease-out; }
+.hover-lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft-lg); }
