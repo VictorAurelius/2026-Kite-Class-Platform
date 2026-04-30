@@ -192,6 +192,7 @@ Applies if PR produces new output types:
 - [ ] API contract — OpenAPI updated + contract test
 - [ ] ADR doc — tech lead reviewed
 - [ ] Logs format — structured JSON, no PII
+- [ ] **Design layer coverage (4-layer V-model)** — if PR touches UI/design/kit/feature scope, all 4 Japanese layers (要件定義 / 基本設計 / 詳細設計 / コンポーネント設計) verified per `.claude/rules/design-layer-coverage.md` §2 matrix. Reference: `documents/02-architecture/design-system/dossier/16-design-layer-mapping.md`. Missing layer = file follow-up gap inline OR commit trailer `DESIGN_LAYER_OVERRIDE: <layer> N/A — <reason>`
 
 **Summary:**
 <!-- Brief summary of code quality review -->
