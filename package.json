@@ -17,10 +17,6 @@
     "test:shared-ui": "pnpm --filter @kite/shared-ui test",
     "type-check:all": "pnpm --recursive --parallel type-check"
   },
-  "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=10.0.0"
-  },
   "pnpm": {
     "overrides": {
       "picomatch": "^4.0.4",
