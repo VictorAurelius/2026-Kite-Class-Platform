@@ -1,6 +1,6 @@
 # ADR-024: Shared UI Library Strategy — pnpm Workspace Package
 
-**Status:** PROPOSED
+**Status:** ACCEPTED
 **Date:** 2026-04-30
 **Deciders:** @nguyenvankiet (solo-dev)
 **Related Gap(s):** GAP-273 (12 components shared lib — BLOCKING for 7 kit-port gaps GAP-266..272 + 6 audit-driven gaps GAP-274..280)
@@ -227,3 +227,4 @@ Not applicable (build-time decision).
 ## Log
 
 - 2026-04-30 — Initial proposal. Triggered by `design-layer-coverage.md` §2.4 Layer 3 check on GAP-273: shared-lib strategy ADR was identified as ⚠️/❌ blocker before Track 2 port wave-pack can kick off. ADR proposes Option A (pnpm workspace package). User to review + flip Status to ACCEPTED before GAP-273 wave kickoff.
+- 2026-04-30 — **ACCEPTED.** User reviewed + confirmed Option A same-day. Phase 1 (workspace bootstrap foundation PR) unblocks. GAP-273 Layer 3 (詳細設計) now ✅ explicit per `design-layer-coverage.md` §2.4 — all 4 layers covered, wave-pack kickoff ready.
