@@ -122,8 +122,9 @@ Out-of-cadence reviews triggered by: production incident referencing a decision,
 | [021](ADR-021-per-module-outbox-vs-shared-lib.md) | Per-Module Domain Outbox over Cross-Product Shared Library | PROPOSED | 2026-04-26 |
 | [022](ADR-022-alertmanager-secret-strategy.md) | Alertmanager Secret Strategy — External Secrets Operator + AWS Secrets Manager | ACCEPTED | 2026-04-28 |
 | [023](ADR-023-gateway-key-resolver-strategy.md) | Gateway Rate-Limit Key Resolver Strategy — IP / Tenant / API Key | ACCEPTED | 2026-04-28 |
+| [024](ADR-024-shared-ui-lib-strategy.md) | Shared UI Library Strategy — pnpm Workspace Package (`@kite/shared-ui`) | PROPOSED | 2026-04-30 |
 
-Next free ID: **ADR-024**.
+Next free ID: **ADR-025**.
 
 ---
 
