@@ -5,6 +5,8 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 const nextConfig = {
   output: 'standalone', // Enable standalone output for Docker builds
+  // ADR-024 — consume @kite/shared-ui as TypeScript source (no build step)
+  transpilePackages: ['@kite/shared-ui'],
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,

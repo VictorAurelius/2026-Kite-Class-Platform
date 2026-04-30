@@ -56,8 +56,11 @@ infrastructure/terraform-oracle/*.tfvars
 # backend.hcl contains OCI credentials — never commit
 infrastructure/terraform-oracle/backend.hcl
 
-# Root node_modules (not a monorepo package)
+# Root node_modules (workspace root install location per ADR-024)
 /node_modules/
+
+# Workspace package node_modules (packages/* is pnpm workspace per ADR-024)
+/packages/*/node_modules/
 
 # Docker build logs (local only, different per machine)
 .docker-build-logs/
@@ -92,3 +95,6 @@ kiteclass/shared/openapi.json.tmp
 
 # Skill runtime data (append-only logs, regenerated per skill run)
 .claude/skills/quality/ui-review-prototype/data/runs.log
+
+# TypeScript incremental build info
+**/tsconfig.tsbuildinfo

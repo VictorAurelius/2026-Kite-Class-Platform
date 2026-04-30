@@ -1,0 +1,34 @@
+{
+  "name": "kite-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kite Platform monorepo root — pnpm workspaces for shared UI lib (per ADR-024)",
+  "workspaces": [
+    "packages/*",
+    "kiteclass/kiteclass-frontend",
+    "kitehub/kitehub-frontend"
+  ],
+  "scripts": {
+    "build:kc": "pnpm --filter kiteclass-frontend build",
+    "build:kh": "pnpm --filter kitehub-frontend build",
+    "build:all": "pnpm --recursive --parallel build",
+    "lint:kc": "pnpm --filter kiteclass-frontend lint",
+    "lint:kh": "pnpm --filter kitehub-frontend lint",
+    "test:shared-ui": "pnpm --filter @kite/shared-ui test",
+    "type-check:all": "pnpm --recursive --parallel type-check"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "overrides": {
+      "picomatch": "^4.0.4",
+      "flatted": "^3.4.2",
+      "minimatch": "^10.2.4",
+      "rollup": "^4.59.0",
+      "postcss": "^8.5.12"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+packages:
+  - 'packages/*'
+  - 'kiteclass/kiteclass-frontend'
+  - 'kitehub/kitehub-frontend'
