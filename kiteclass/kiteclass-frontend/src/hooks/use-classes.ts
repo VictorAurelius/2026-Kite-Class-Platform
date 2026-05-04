@@ -18,6 +18,7 @@ import type {
   ClassSearchCriteria,
   CreateScheduleRequest,
   GenerateClassCodeRequest,
+  RecurrenceRule,
 } from '@/types/class';
 import { toast } from '@/hooks/use-toast';
 
@@ -204,6 +205,29 @@ export function useCreateSchedule() {
       toast({ title: 'Thành công', description: 'Đã tạo lịch học' });
     },
     onError: useErrorHandler('Không thể tạo lịch học'),
+  });
+}
+
+/**
+ * Generate ClassSession entries from a recurrence rule (GAP-290 Wave 18a).
+ *
+ * Idempotent on edit per BR-CLASS-009 — preserves attended sessions, regenerates
+ * future SCHEDULED ones from the new rule.
+ */
+export function useGenerateSessionsFromRecurrence() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, rule }: { id: number; rule: RecurrenceRule }) =>
+      classesApi.generateSessionsFromRecurrence(id, rule),
+    onSuccess: (data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [CLASSES_KEY, id] });
+      queryClient.invalidateQueries({ queryKey: [SESSIONS_KEY, id] });
+      toast({
+        title: 'Thành công',
+        description: `Đã tạo ${data.length} buổi học (lịch lặp lại)`,
+      });
+    },
+    onError: useErrorHandler('Không thể tạo buổi học từ quy tắc lặp lại'),
   });
 }
 

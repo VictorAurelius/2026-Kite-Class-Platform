@@ -1,19 +1,30 @@
 /**
  * Create new class page (within a course context).
  *
+ * GAP-290 Wave 18a — adds optional "Lặp lại" toggle that, after class creation,
+ * generates sessions from an RFC 5545 RRULE subset (WEEKLY only Phase 1).
+ *
  * @author KiteClass Team
- * @since 3.7.0
+ * @since 3.7.0 (Wave 18a extension 2026-05-04)
  */
 
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { ClassForm } from '@/components/forms/dynamic-class-form';
+import { RecurrenceForm } from '@/components/forms/recurrence-form';
 import { LoadingSpinner, ErrorAlert } from '@/components/common';
-import { useCreateClass } from '@/hooks/use-classes';
+import {
+  useCreateClass,
+  useGenerateSessionsFromRecurrence,
+} from '@/hooks/use-classes';
 import { useCourse } from '@/hooks/use-courses';
-import type { CreateClassRequest, UpdateClassRequest } from '@/types/class';
+import type {
+  CreateClassRequest,
+  UpdateClassRequest,
+  RecurrenceRule,
+} from '@/types/class';
 
 export default function NewClassPage({
   params,
@@ -25,9 +36,19 @@ export default function NewClassPage({
 
   const { data: course, isLoading: courseLoading, error: courseError } = useCourse(courseId);
   const createMutation = useCreateClass(courseId);
+  const generateRecurrence = useGenerateSessionsFromRecurrence();
+
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [pendingRecurrence, setPendingRecurrence] = useState<RecurrenceRule | null>(null);
 
   const handleSubmit = (data: CreateClassRequest | UpdateClassRequest) => {
-    createMutation.mutate(data as CreateClassRequest);
+    createMutation.mutate(data as CreateClassRequest, {
+      onSuccess: (created) => {
+        if (recurrenceEnabled && pendingRecurrence) {
+          generateRecurrence.mutate({ id: created.id, rule: pendingRecurrence });
+        }
+      },
+    });
   };
 
   if (courseLoading) {
@@ -60,12 +81,42 @@ export default function NewClassPage({
         <div className="rounded-lg border bg-card p-6">
           <ClassForm
             onSubmit={handleSubmit}
-            isSubmitting={createMutation.isPending}
+            isSubmitting={createMutation.isPending || generateRecurrence.isPending}
             initialData={{
               locationType: 'IN_PERSON',
               maxStudents: 30,
             }}
           />
+        </div>
+
+        {/* GAP-290 Wave 18a: optional recurrence panel */}
+        <div className="rounded-lg border bg-card p-6">
+          <label className="flex items-center gap-3 mb-4">
+            <input
+              type="checkbox"
+              checked={recurrenceEnabled}
+              onChange={(e) => setRecurrenceEnabled(e.target.checked)}
+              data-testid="toggle-recurrence"
+              className="h-4 w-4"
+            />
+            <span className="font-medium">Lặp lại theo lịch (tuần)</span>
+            <span className="text-xs text-muted-foreground">
+              Tự động tạo nhiều buổi học cho lớp này
+            </span>
+          </label>
+
+          {recurrenceEnabled && (
+            <RecurrenceForm
+              onSubmit={(rule) => setPendingRecurrence(rule)}
+              isSubmitting={generateRecurrence.isPending}
+            />
+          )}
+
+          {pendingRecurrence && (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Quy tắc đã sẵn sàng — sẽ áp dụng sau khi tạo lớp học.
+            </p>
+          )}
         </div>
       </div>
     </DashboardLayout>
