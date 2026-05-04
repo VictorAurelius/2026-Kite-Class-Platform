@@ -59,6 +59,12 @@
 
 ---
 
+**2026-05-04 (UI kits Round 3 storytelling gap — GAP-350 filed):** Session audit found `kitehub-story-v2/` listed in `ui_kits/README.md` Status as 🔵 future but no gap tracked. Round 1 baseline (`kitehub-story` 546 LOC JSX) preserved in `07-archived/design-round-1-2026-04-29/`; Direction A scope decision documented in `dossier/08-direction-decisions.md` Decision 3 (marketing-only polish, LOWER priority). Without a tracked gap, Track 2 GAP-275 (KH public marketing port) had ambiguous source. **GAP-350** filed P2 (Marketing/Feature-tier per `meta-gap-priority.md` — not blocker, pickable when MVP-critical waves quiet); paired with GAP-274 (KC public marketing) as candidate 2-bucket marketing wave-pack. README Status row 🔵 future → 🔵 OPEN with cross-link.
+
+**Counts:** 159 → **160 OPEN** (+GAP-350).
+
+---
+
 **2026-05-04 (Incident → rule pipeline applied — wave-history.jsonl append rule):** User flagged 3 consecutive waves (18a, 18b1, 18b2) missing `wave-history.jsonl` appends despite `wave-pack-planner` SKILL.md §Rules requirement. Per `incident-to-rule-pipeline.md` 5-stage: Stage 1 Detect ✓. Stage 2 Classify: rule existed but no enforcement — pure gentleman's agreement. Stage 3+4 ship in this PR — `session-docs-check` Rule 15 detector + 3 self-test fixtures (good-flip-with-append PASS / bad-flip-no-append FAIL / bad-flip-bad-json FAIL) all green via `test/run-rules.sh`. Stage 5 retro logged here. Sister PR `meta/wave-history-backfill-18a-18b1-18b2` ships the actual missing entries. Detector now blocks future closures from skipping the append (WARN default, FAIL in `--strict`); override trailer `WAVE_HISTORY_OVERRIDE: <reason>` available for rare doc-only corrections.
 
 **Counts:** unchanged (no new gaps; this is a meta-process fix).

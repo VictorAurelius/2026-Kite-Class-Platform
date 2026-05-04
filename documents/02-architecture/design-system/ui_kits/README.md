@@ -19,7 +19,7 @@ Design prototypes for human review. Generated using `documents/02-architecture/d
 | `ai-branding-wizard-v2/` (Wave 1.7 add-on) | 1.7 | ✅ DONE — PR #675 | **115.6** ⭐⭐ | +43 vs ~73 |
 | `kiteclass-student/` (Round 3) | 3 | ✅ DONE — PR #700 (self-report; external review pending GAP-348) | **116** ⭐⭐ self-report | +43 vs ~73 |
 | `kitehub-admin/` (Round 3) | 3 | ✅ DONE — PR #703 (self-report; external review pending GAP-348) | **107.2** self-report | +34 vs ~73 |
-| `kitehub-story-v2/` (Direction A polish) | 3 | 🔵 future | — | — |
+| `kitehub-story-v2/` (Direction A polish) | 3 | 🔵 OPEN — [GAP-350](../../../04-quality/gaps/GAP-350-round-3-polish-kitehub-story-v2.md) (P2) | — | — |
 
 > **Round 3 review caveat:** scores for `kiteclass-student/` and `kitehub-admin/` are **agent self-report** at PR ship time, not external review through `quality/ui-review/SKILL.md`. Per `feedback_audit_calibration.md`, expect external scores 15-20 pts lower. External persona-driven review tracked in [GAP-348](../../../04-quality/gaps/GAP-348-round-3-ui-kits-persona-driven-review.md) — must complete BEFORE Track 2 Phase 4 ports student/admin kits to production. Track 2 Phase 2 wave-pack plan tracked in [GAP-349](../../../04-quality/gaps/GAP-349-track-2-phase-2-wave-pack-plan.md).
 
