@@ -1,6 +1,6 @@
 # GAP-284: Docker frontend build broken by pnpm workspace dependency (PR #713 fallout)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-04 — PR #737 merged (squash, 3 commits)
 **Priority:** 🔴 P0 — main CI red, blocks ECR pushes
 **Domain:** DevOps / Frontend
 **Found:** 2026-05-04 (post-merge of #713 ADR-024 Phase 1)
@@ -38,12 +38,12 @@ Update the Docker pattern to use repo-root build context + workspace-aware insta
 
 ## Acceptance Criteria
 
-- [ ] Docker workflow `Build Docker Images (Test) (frontend)` passes on the fix PR
-- [ ] kiteclass-frontend Dockerfile uses repo-root context, installs only the target package's deps (`--filter kiteclass-frontend...`)
-- [ ] `outputFileTracingRoot` set in both frontends' `next.config.js`
-- [ ] kitehub-frontend Dockerfile mirrors the fix (incidental coverage)
-- [ ] Standalone runner image still serves Next correctly (verified via local Docker build OR CI green sufficient given lack of staging env)
-- [ ] No regression on core / gateway Maven Docker builds (unchanged)
+- [x] Docker workflow `Build Docker Images (Test) (frontend)` passes on the fix PR
+- [x] kiteclass-frontend Dockerfile uses repo-root context, installs only the target package's deps (`--filter kiteclass-frontend...`)
+- [x] `outputFileTracingRoot` set in both frontends' `next.config.js`
+- [x] kitehub-frontend Dockerfile mirrors the fix (incidental coverage)
+- [x] Standalone runner image still serves Next correctly (verified via local Docker build OR CI green sufficient given lack of staging env)
+- [x] No regression on core / gateway Maven Docker builds (unchanged)
 
 ## Related
 
@@ -54,4 +54,5 @@ Update the Docker pattern to use repo-root build context + workspace-aware insta
 
 ## Log
 
+- **2026-05-04** — Closed via PR #737 (squash merge). All 6 AC verified: CI on PR shipped 16 pass / 4 skip / 2 pre-existing fail (GAP-285 admin test, unrelated). Local kiteclass build verified HTTP 200; kitehub mirror Dockerfile builds. Verification artifacts: PR #737 conversation + run 25300192848 (Build Docker Images Test passes for all 3 services) + run 25300192847 (Docker Build & Verify passes after follow-up commit fixing kitehub-frontend-ci.yml context). Side-effects: GAP-285 filed for admin test pre-existing failure (out of scope per `audit-to-gap-pipeline.md`).
 - **2026-05-04** — Filed during CI triage (session start). Hotfix-tier per `post-wave-audit-mandate.md` §8 — main is red. Fix PR opens immediately.
