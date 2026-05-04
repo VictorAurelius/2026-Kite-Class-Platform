@@ -1,6 +1,6 @@
 # GAP-273: Track 2 Port — 12 components → shared component library
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 (ADR-024 + pnpm workspace + `@kite/shared-ui` scaffolding) SHIPPED 2026-04-30 via PR #713. Phase 2-6 (12 G* component port + ~10 D* dialogs) tracked under Track 2 umbrella wave plan: [`documents/03-planning/waves/wave-track-2-ui-kits-port-umbrella.md`](../../../documents/03-planning/waves/wave-track-2-ui-kits-port-umbrella.md). Phase 2 trigger: MVP-essential blockers from Wave 17 persona review findings, OR explicit user kick-off.
 **Priority:** 🟡 P2 (UX growth — cross-cutting shared lib, blocking 7 kit gaps)
 **Domain:** Frontend
 **Found:** 2026-04-29
