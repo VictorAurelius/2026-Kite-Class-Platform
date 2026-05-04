@@ -35,7 +35,7 @@ public class AttendancePeriodServiceImpl implements AttendancePeriodService {
     public AttendancePeriodResponse findById(Long id) {
         AttendancePeriod entity = repository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "AttendancePeriod not found: " + id));
+                        "ATTENDANCE_PERIOD_NOT_FOUND", id));
         return toResponse(entity);
     }
 
