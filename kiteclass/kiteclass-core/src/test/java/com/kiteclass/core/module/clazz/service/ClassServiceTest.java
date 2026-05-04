@@ -66,6 +66,13 @@ class ClassServiceTest {
         private CourseRepository courseRepository;
         @Mock
         private ClassMapper classMapper;
+        @Mock
+        private com.kiteclass.core.module.clazz.service.RecurrenceService recurrenceService;
+        @org.mockito.Spy
+        private com.fasterxml.jackson.databind.ObjectMapper objectMapper =
+                        com.fasterxml.jackson.databind.json.JsonMapper.builder()
+                                        .findAndAddModules() // JSR-310 per memory feedback_objectmapper_test_jsr310.md
+                                        .build();
 
         @InjectMocks
         private ClassServiceImpl classService;

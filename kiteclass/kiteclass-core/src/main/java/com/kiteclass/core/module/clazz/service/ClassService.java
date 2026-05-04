@@ -8,6 +8,7 @@ import com.kiteclass.core.module.clazz.dto.ClassSessionResponse;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
+import com.kiteclass.core.module.clazz.dto.RecurrenceRuleDto;
 import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
@@ -132,4 +133,31 @@ public interface ClassService {
      * @return ordered list of sessions
      */
     List<ClassSessionResponse> listSessions(Long classId);
+
+    /**
+     * Generates {@link com.kiteclass.core.module.clazz.entity.ClassSession} entries
+     * from a structured RFC 5545 RRULE subset (GAP-290 Wave 18a).
+     *
+     * <p>Idempotent on edit per BR-CLASS-009 state machine:
+     * <ul>
+     *   <li>Future {@code SCHEDULED} sessions with {@code attendanceTaken=false} are
+     *       soft-deleted and regenerated from the new rule.</li>
+     *   <li>Past sessions ({@code sessionDate &lt; today}) are preserved untouched.</li>
+     *   <li>Sessions with {@code attendanceTaken=true} are preserved regardless of date.</li>
+     * </ul>
+     *
+     * <p>The rule is persisted as JSONB on {@code classes.recurrence_rule}.
+     * Callers should ensure the class is in {@code SCHEDULED} or {@code IN_PROGRESS}
+     * status (BR-CLASS-006); locked once {@code COMPLETED}/{@code CANCELLED}.
+     *
+     * @param classId class ID
+     * @param rule    recurrence rule (Phase 1: WEEKLY only)
+     * @return list of all sessions for the class after regeneration (preserved + new)
+     * @throws com.kiteclass.core.common.exception.EntityNotFoundException if class not found
+     * @throws com.kiteclass.core.common.exception.BusinessException       if class no longer editable
+     * @throws com.kiteclass.core.common.exception.ValidationException     if rule fails Phase 1 validation
+     * @since GAP-290 Wave 18a
+     */
+    List<ClassSessionResponse> generateSessionsFromRecurrence(Long classId,
+                                                              @Valid RecurrenceRuleDto rule);
 }
