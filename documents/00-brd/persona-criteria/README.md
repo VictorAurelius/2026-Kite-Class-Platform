@@ -25,10 +25,12 @@ This folder closes the gap: every Tier-1 persona has a formal `P<N>-<slug>.md` A
 |------|---------|:----:|:------:|
 | `README.md` | This index | — | — |
 | [`_TEMPLATE.md`](_TEMPLATE.md) | Reusable AC template — 6 categories (onboarding, ops, fin/admin, comm, edge, exit) | — | 🟢 v1 |
-| [`P1-solo-teacher.md`](P1-solo-teacher.md) | Solo Teacher (gia sư tự do) AC — 1 teacher, 5-50 students | 1 | 🟡 DRAFT v1 |
-| [`P2-small-center.md`](P2-small-center.md) | Small Tutoring Center (trung tâm nhỏ/lớp học thêm) AC — 1-3 teachers, 20-100 students | 1 | 🟡 DRAFT v1 |
-| [`P3-medium-center.md`](P3-medium-center.md) | Medium Education Center (trung tâm vừa) AC — 5-20 teachers, 100-500 students | 1 | 🟡 DRAFT v1 |
-| [`P5-k12-school.md`](P5-k12-school.md) | Public/Private K-12 School (trường tiểu học/THCS/THPT) AC — 50+ teachers, 500-3000 students — **USER PRIORITY** | 1 | 🟡 DRAFT v1 |
+| [`P1-solo-teacher.md`](P1-solo-teacher.md) | Solo Teacher (gia sư tự do) AC — 1 teacher, 5-50 students — **29 ACs** | 1 | 🟡 DRAFT v1 (PR #720) |
+| [`P2-small-center.md`](P2-small-center.md) | Small Tutoring Center (trung tâm nhỏ/lớp học thêm) AC — 1-3 teachers, 20-100 students — **25 ACs** | 1 | 🟡 DRAFT v1 (PR #721) |
+| [`P3-medium-center.md`](P3-medium-center.md) | Medium Education Center (trung tâm vừa) AC — 5-20 teachers, 100-500 students — **31 ACs** | 1 | 🟡 DRAFT v1 (PR #722) |
+| [`P5-k12-school.md`](P5-k12-school.md) | Public/Private K-12 School (trường tiểu học/THCS/THPT) AC — 50+ teachers, 500-3000 students — **USER PRIORITY, 36 ACs, 73 MOET citations** | 1 | 🟡 DRAFT v1 (PR #723) |
+
+**Total: 121 ACs across 4 Tier-1 personas** (Wave Persona-AC-Template SHIPPED 2026-04-30, GAP-151 → 🟢 DONE).
 
 ---
 
