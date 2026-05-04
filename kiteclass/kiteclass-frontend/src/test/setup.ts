@@ -1,6 +1,10 @@
 import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+// Provides a jsdom-compatible IndexedDB implementation for any code that
+// uses idb (e.g. src/lib/offline/attendance-queue.ts via the period
+// attendance page). Side-effect import — registers globals on `globalThis`.
+import 'fake-indexeddb/auto';
 import { server } from '../mocks/server';
 
 // Establish API mocking before all tests
