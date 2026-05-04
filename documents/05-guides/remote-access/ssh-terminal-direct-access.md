@@ -284,6 +284,101 @@ chmod +x ~/.local/bin/kite-tmux
 
 Daily: `ssh kite` → `kite-tmux` → done.
 
+### 3.4 Mosh layer — survives mobile network drops + screen-off (CRITICAL for mobile)
+
+**The problem this section solves:** SSH from Android → WSL2 over LTE/Wi-Fi → user switches app, screen turns off, or roams network → SSH session disconnects → SIGHUP fires → if Claude/agents are running OUTSIDE tmux, they die immediately. Even WITH tmux protecting the process, the SSH client must be re-launched and re-attached every time, breaking flow.
+
+**Mosh fixes this layer:** UDP-based, server-side state holder. SSH client can vanish for hours; mosh-server on WSL2 keeps holding the session. When mobile reconnects, mosh-client picks up exactly where it left off — same scrollback, same prompt, same tmux pane.
+
+**Why mosh + tmux + Tailscale is the production stack for mobile dev (2026 trending):**
+- **Tailscale** = peer-to-peer network (no port-forward, survives WAN IP changes)
+- **mosh** = connection layer (survives mobile sleep, network roam)
+- **tmux** = process layer (survives SSH/mosh process death)
+
+Each layer fixes a different failure mode; combined = mobile disconnect cannot kill long-running work.
+
+#### Setup on WSL2 (one-time)
+
+```bash
+# 1. Install mosh
+sudo apt install -y mosh
+
+# 2. Verify mosh-server installed
+which mosh-server   # → /usr/bin/mosh-server
+
+# 3. Mosh uses UDP 60000-61000 by default. Tailscale tunnels UDP natively
+#    over WireGuard, so NO firewall changes needed when reaching WSL2 via
+#    its Tailscale 100.x.x.x IP. Skip the netsh portproxy + Windows firewall
+#    steps from §2.3 if you ONLY use Tailscale.
+```
+
+#### Setup on Android (Termux path)
+
+```bash
+# In Termux (already installed per §4.2 / §4.3)
+pkg update && pkg install -y mosh
+
+# Connect (same Tailscale IP from §4.5)
+mosh user@<wsl2-tailscale-ip>
+# → auto-attaches tmux "claude" session per ~/.bashrc snippet from §2.1
+
+# If §2.1 ~/.bashrc snippet not yet added (auto-attach tmux on SSH login):
+cat >> ~/.bashrc <<'EOF'
+
+# Auto-attach tmux on SSH/mosh login
+if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ] && command -v tmux >/dev/null; then
+    tmux attach -t claude 2>/dev/null || tmux new -s claude
+fi
+EOF
+```
+
+#### Termius alternative
+
+Termius supports mosh natively in Pro tier. Toggle host config: **Edit host → Use Mosh = ON**. Free tier: stick with Termux for mosh.
+
+#### Survives matrix
+
+| Event | Survives? | Why |
+|-------|:---:|-----|
+| Tắt màn hình Android | ✅ | mosh tolerates idle UDP, tmux independent of connection |
+| Switch app (Termux background) | ✅ | mosh-server holds session state |
+| Kill Termux app | ✅ | mosh-server still alive on WSL2; mosh-client reconnects to same `MOSH_KEY` on next launch |
+| WiFi → 4G roam | ✅ | mosh detects IP change, sends new SSP packet, server resumes |
+| Mất mạng 1+ giờ | ✅ | mosh-server waits indefinitely (default — no timeout) |
+| Reboot Android | ✅ | Open Termux → `mosh user@ip` → re-attach tmux session |
+| Windows sleep/hibernate | ❌ | WSL2 stops → tmux dies. Workaround: power settings = no sleep on AC |
+| Windows reboot | ❌ | Expected. Restart claude after WSL2 boot. |
+| `wsl --shutdown` | ❌ | Expected. Don't run during active sessions. |
+
+#### Multi-session reconnect from mobile
+
+```bash
+# List all sessions still alive on WSL2
+mosh user@<ip> -- tmux ls
+# claude: 3 windows (created Mon May 4 10:00:00 2026)
+# wave17: 1 windows (created Mon May 4 11:30:00 2026)
+
+# Attach to specific session (overrides ~/.bashrc default)
+mosh user@<ip> -- tmux attach -t wave17
+
+# Or: connect, then inside tmux: Ctrl+B → S to switch sessions, Ctrl+B → ( ) to cycle
+# Or: detach current (Ctrl+B → D), then  tmux new -s sandbox  for fresh session
+```
+
+#### Force-takeover from new device (kick stale clients)
+
+```bash
+mosh user@<ip> -- tmux attach -d -t claude
+# -d = detach all other clients first (e.g. when previous mobile session is stuck)
+```
+
+#### Gotchas
+
+1. **Mosh requires interactive shell.** If `~/.bashrc` runs heavy commands (e.g. nvm init, conda activate), mosh handshake may timeout. Keep first-line snippets fast or guard with `[ -n "$PS1" ]`.
+2. **Tailscale + mosh UDP:** mosh handshake first runs over SSH/TCP to negotiate UDP key, then switches. If TCP works but UDP doesn't (corp firewall blocking high UDP ports on the Android side), mosh fails silently. Test from a known-good network first.
+3. **Battery optimizers (Android):** Termux + Tailscale must BOTH be whitelisted from battery saver, else Android suspends mosh-client + drops UDP between handshakes. Same advice as §4.7 #5 but doubly important for mosh.
+4. **Don't run mosh outside tmux.** Mosh protects the connection but if mosh-server itself crashes (rare, but happens after WSL2 OOM or `wsl --shutdown`), processes started directly under mosh die. Always: `mosh → tmux attach → claude`.
+
 ---
 
 ## 4. Android Phone Setup
@@ -518,5 +613,6 @@ Pitfalls discovered while actually following this guide end-to-end. Documented i
 
 ## 11. Log
 
+- **2026-05-04 (mosh layer)** — Added §3.4 "Mosh layer — survives mobile network drops + screen-off (CRITICAL for mobile)". Triggered by Wave 17 incident: 3/4 background agents killed silently when mobile SSH session disconnected (root cause = SIGHUP cascade, not runtime limit). Documents the 3-layer Tailscale + mosh + tmux stack as 2026 trending pattern for mobile dev. Includes setup, survives matrix, multi-session reconnect, force-takeover, 4 gotchas. References memory `feedback_agent_kill_root_cause.md`.
 - **2026-05-04 (extended)** — Updated after end-to-end Android setup completed: §2.1 ssh.socket drop-in (CRITICAL — fix the silent footgun); §2.3 actual Task Scheduler PowerShell that worked (replacing the bullet-point abstract); §2.4 expanded with direct-download Tailscale install path (winget --silent failed silently); new §4 Android Phone Setup (Tailscale Always-on, Termux key gen flow, Termius host config gotchas, battery optimization caveat); new §10 Lessons learned section codifying 7 pitfalls discovered during real setup. Renumbered §5-§10 accordingly.
 - **2026-05-04** — Created during GAP-284 closure. Motivated by hotfix session where ops-heavy verification (Docker builds, CI polls, smoke tests) burned ~25-30 min of Claude-session friction that SSH-direct + tmux would have collapsed to ~5 min. Solo-dev mode; no formal review needed.
