@@ -54,6 +54,12 @@ export const endpoints = {
     send: `${API_BASE}/emails/send`,
   },
 
+  // Notification preferences (Wave 18a Bucket B — GAP-063 Phase 1)
+  notificationPreferences: {
+    list: `/api/v1/notification-preferences`,
+    update: (notificationType: string) => `/api/v1/notification-preferences/${notificationType}`,
+  },
+
   // Admin
   admin: {
     dashboard: `${API_BASE}/admin/dashboard`,

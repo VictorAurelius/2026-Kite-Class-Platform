@@ -1,5 +1,8 @@
 package com.kitehub.email.service;
 
+import com.kitehub.email.api.NotificationChannel;
+import com.kitehub.email.api.NotificationContext;
+import com.kitehub.email.api.NotificationSendResult;
 import com.kitehub.email.client.BrandingClient;
 import com.kitehub.email.config.SESConfig;
 import com.kitehub.email.dto.EmailRequest;
@@ -31,11 +34,28 @@ import java.util.UUID;
 /**
  * AWS SES email sending service.
  *
+ * <p>Strategy Pattern — swap notification provider via config (per
+ * design-patterns.md §1.1). This is the EMAIL implementation of
+ * {@link NotificationChannel} in Wave 18a Bucket B Phase 1 (GAP-063); future
+ * channel adapters (Zalo / SMS / Push from GAP-063b) implement the same
+ * interface and slot in via Spring autowiring.</p>
+ *
+ * <p>Existing producer signatures ({@link #sendEmail}, {@link #sendTemplatedEmail})
+ * are preserved verbatim for backward compatibility — Phase 1 does not migrate
+ * existing callers. The new {@link #send} method is the {@link NotificationChannel}
+ * implementation called by future preference-aware dispatchers (Phase 2).</p>
+ *
  * @since 1.0
  */
 @Slf4j
 @Service
-public class SESEmailService {
+public class SESEmailService implements NotificationChannel {
+
+    /**
+     * Channel identifier per BR-NOTIF-001 — matches
+     * {@code NotificationChannelType.EMAIL} in kitehub-subscription.
+     */
+    public static final String CHANNEL_NAME = "EMAIL";
 
     private final SESConfig.SESProperties sesProperties;
     private final SesClient sesClient;
@@ -210,5 +230,78 @@ public class SESEmailService {
         }
 
         return templateEngine.process("emails/" + templateName, context);
+    }
+
+    // ----------------------------------------------------------------------
+    // NotificationChannel implementation (Wave 18a Bucket B — GAP-063 Phase 1)
+    // ----------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>EMAIL channel implementation. When {@code ctx.templateName} is set,
+     * routes to the templated path with branding enrichment; otherwise sends
+     * the {@code message} as raw HTML body.</p>
+     */
+    @Override
+    public NotificationSendResult send(String recipient, String message, NotificationContext ctx) {
+        if (recipient == null || recipient.isBlank()) {
+            throw new IllegalArgumentException("recipient must not be null or blank");
+        }
+
+        // Tolerate null context per interface javadoc.
+        NotificationContext context = ctx != null
+                ? ctx
+                : NotificationContext.builder().build();
+
+        EmailResponse response;
+        if (context.getTemplateName() != null && !context.getTemplateName().isBlank()) {
+            EmailRequest request = EmailRequest.builder()
+                    .to(recipient)
+                    .subject(context.getSubject() != null ? context.getSubject() : "")
+                    .templateName(context.getTemplateName())
+                    .variables(context.getVariables())
+                    .instanceId(context.getInstanceId())
+                    .tenantId(context.getTenantId())
+                    .build();
+            response = sendTemplatedEmail(request);
+        } else {
+            String subject = context.getSubject() != null ? context.getSubject() : "";
+            response = sendEmail(recipient, subject, message);
+        }
+
+        return toNotificationResult(response);
+    }
+
+    @Override
+    public String channelName() {
+        return CHANNEL_NAME;
+    }
+
+    /**
+     * Map the legacy {@link EmailResponse} envelope to the channel-agnostic
+     * {@link NotificationSendResult}.
+     */
+    private NotificationSendResult toNotificationResult(EmailResponse response) {
+        NotificationSendResult.Status mapped;
+        switch (response.getStatus() == null ? "" : response.getStatus()) {
+            case "SENT":
+                mapped = NotificationSendResult.Status.SENT;
+                break;
+            case "MOCK":
+                mapped = NotificationSendResult.Status.MOCK;
+                break;
+            case "FAILED":
+            default:
+                mapped = NotificationSendResult.Status.FAILED;
+                break;
+        }
+        return NotificationSendResult.builder()
+                .providerMessageId(response.getMessageId())
+                .status(mapped)
+                .sentAt(response.getSentAt())
+                .errorMessage(response.getErrorMessage())
+                .channel(CHANNEL_NAME)
+                .build();
     }
 }

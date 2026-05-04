@@ -21,7 +21,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // SubscriptionEventEmitter (outbox) → MigrationIdempotencyKeyService.
         "com.kitehub.subscription.repository",
         "com.kitehub.subscription.outbox",
-        "com.kitehub.subscription.idempotency"
+        "com.kitehub.subscription.idempotency",
+        // Wave 18a Bucket B (GAP-063 Phase 1): NotificationPreferenceService is auto-scanned
+        // via subscription's @ComponentScan; its repository must be JPA-enabled here too,
+        // else admin context fails with UnsatisfiedDependencyException.
+        "com.kitehub.subscription.notification.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -30,7 +34,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.platform.domain.entity",
         "com.kitehub.subscription.domain",
         "com.kitehub.subscription.outbox",
-        "com.kitehub.subscription.idempotency"
+        "com.kitehub.subscription.idempotency",
+        // Wave 18a Bucket B (GAP-063 Phase 1): NotificationPreference entity.
+        "com.kitehub.subscription.notification.entity"
 })
 public class KiteHubAdminApplication {
 
