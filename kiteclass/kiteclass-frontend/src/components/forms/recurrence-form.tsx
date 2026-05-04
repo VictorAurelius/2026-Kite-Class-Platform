@@ -97,7 +97,7 @@ export function RecurrenceForm({
     }
     if (!until) {
       next.until = 'Ngày kết thúc lặp không được để trống';
-    } else if (until < new Date().toISOString().split('T')[0]) {
+    } else if (until < new Date().toISOString().slice(0, 10)) {
       next.until = 'Ngày kết thúc lặp phải sau ngày hôm nay';
     }
     return next;
