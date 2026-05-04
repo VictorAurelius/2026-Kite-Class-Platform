@@ -119,7 +119,9 @@ class ParentReadAuditLogIntegrationTest {
     void fees_linked_writesAuditRow() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
-        when(invoiceRepo.findByStudentIdAndDeletedFalse(eq(CHILD_ID), any()))
+        // Wave 18b3 Bucket C: stub switched from findByStudentIdAndDeletedFalse
+        // to findByStudentIdAndDueDateRange (BR-PARENT-FACET-FEES-002).
+        when(invoiceRepo.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<Invoice>(List.of(sampleInvoice()), Pageable.unpaged(), 1));
 
         feesService.getFeesForChild(PARENT_ID, CHILD_ID, FROM, TO, PageRequest.of(0, 10));

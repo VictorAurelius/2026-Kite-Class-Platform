@@ -21,15 +21,20 @@ import java.time.LocalDate;
 /**
  * JPA-backed read-only fees facet scoped to the parent's linked children.
  *
- * <p>Phase 1B v1 stub: maps from {@code Invoice} via the existing
- * {@code findByStudentIdAndDeletedFalse}. The {@code from}/{@code to}
- * range arguments are accepted in the API surface for forward compat but
- * the v1 query does not yet narrow on issue date — concrete narrowing
- * lands in GAP-321b.1. The api-contract.md flags this explicitly. Scope
- * guard + audit row are NOT stubbed; they are Phase 1B foundation.
+ * <p>Phase 1B remainder (Wave 18b3 — BR-PARENT-FACET-FEES-002): the query
+ * narrows by {@code dueDate BETWEEN :from AND :to} and prefetches
+ * {@code items} + {@code adjustments} via {@link
+ * com.kiteclass.core.module.invoice.repository.InvoiceRepository#findByStudentIdAndDueDateRange}
+ * to avoid N+1. Hibernate Statistics test ({@link
+ * com.kiteclass.core.module.parent.repository.ParentFeesFacetEntityGraphIT})
+ * asserts ≤3 prepared statements per facet call. Scope guard + audit row
+ * unchanged from Phase 1B foundation.
+ *
+ * <p>Out of scope (tracked in <b>GAP-321b.1-fees-instalment-payment-history</b>):
+ * instalment-plan join, payment-history projection.
  *
  * @author KiteClass Team
- * @since 2.18.1 (Wave 18b2 — GAP-321b Phase 1B foundation)
+ * @since 2.18.2 (Wave 18b3 — GAP-321b Phase 1B remainder)
  */
 @Slf4j
 @Service
@@ -59,11 +64,10 @@ public class ParentFeesFacetServiceImpl implements ParentFeesFacetService {
             throw new BusinessException("PARENT_FACET_FORBIDDEN", HttpStatus.FORBIDDEN);
         }
 
-        // TODO (GAP-321b.1): replace with a date-range-narrowing JPQL that
-        // also joins instalments + payment history. v1 ships the
-        // unfiltered child-scoped page so the FE drill-down can wire
-        // against the contract immediately.
-        Page<Invoice> page = invoiceRepository.findByStudentIdAndDeletedFalse(childId, pageable);
+        // BR-PARENT-FACET-FEES-002 — date-range narrowing + EntityGraph
+        // (items + adjustments prefetched in single round-trip).
+        Page<Invoice> page = invoiceRepository
+                .findByStudentIdAndDueDateRange(childId, from, to, pageable);
 
         auditLogService.logRead(parentId, childId, ParentFacet.FEES);
 

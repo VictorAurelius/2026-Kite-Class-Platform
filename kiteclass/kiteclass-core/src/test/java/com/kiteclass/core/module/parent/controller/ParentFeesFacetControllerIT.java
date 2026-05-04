@@ -108,4 +108,26 @@ class ParentFeesFacetControllerIT {
                         .param("to", "2026-12-31"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @DisplayName("BR-FEES-002: date-range params from/to are forwarded to service")
+    void dateRangeForwardedToService() throws Exception {
+        ParentFeeFacetResponse f = new ParentFeeFacetResponse(
+                2L, CHILD_ID, "INV-2026-0002", "PARTIAL",
+                new BigDecimal("2000000.00"), new BigDecimal("500000.00"),
+                LocalDate.parse("2026-04-30"));
+        Page<ParentFeeFacetResponse> page = new PageImpl<>(List.of(f), Pageable.unpaged(), 1);
+        when(service.getFeesForChild(eq(PARENT_ID), eq(CHILD_ID),
+                eq(LocalDate.parse("2026-04-01")),
+                eq(LocalDate.parse("2026-04-30")),
+                any())).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/parent/children/{childId}/fees", CHILD_ID)
+                        .param("from", "2026-04-01")
+                        .param("to", "2026-04-30")
+                        .header("X-User-Reference-Id", PARENT_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].invoiceNumber").value("INV-2026-0002"))
+                .andExpect(jsonPath("$.data.content[0].balanceDue").value(500000.00));
+    }
 }

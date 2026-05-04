@@ -171,4 +171,38 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
            "AND i.dueDate < :currentDate " +
            "AND i.status IN ('SENT', 'PARTIAL')")
     List<Invoice> findInvoicesEligibleForOverdue(@Param("currentDate") LocalDate currentDate);
+
+    /**
+     * Page of invoices for a student narrowed by {@code dueDate} range, with
+     * {@code items} and {@code adjustments} prefetched via {@link EntityGraph}
+     * to prevent N+1. Used by {@code ParentFeesFacetServiceImpl} for the
+     * parent-portal fee drill-down.
+     *
+     * <p><b>BR-PARENT-FACET-FEES-002:</b> The parent-portal fees facet narrows
+     * by {@code dueDate BETWEEN :from AND :to} (inclusive on both ends) and
+     * pulls items + adjustments in a single round-trip. Hibernate Statistics
+     * test asserts ≤3 prepared statements per facet call (1 count + 1 page +
+     * ≤1 collection coalesce).
+     *
+     * <p>Date-range semantics: inclusive on both bounds — a parent asking
+     * "fees due in April" passes {@code from=2026-04-01, to=2026-04-30} and
+     * gets all invoices with {@code dueDate} in that closed interval.
+     *
+     * @param studentId the child's id (already verified by the service-layer
+     *                  scope guard)
+     * @param from inclusive lower bound on {@code dueDate}
+     * @param to inclusive upper bound on {@code dueDate}
+     * @param pageable pagination parameters; service-layer caller defaults
+     *                 to {@code dueDate DESC}
+     * @return page of invoices with items + adjustments prefetched
+     * @since 2.18.2 (Wave 18b3 Bucket C — GAP-321b Phase 1B remainder)
+     */
+    @EntityGraph(attributePaths = {"items", "adjustments"})
+    @Query("SELECT i FROM Invoice i WHERE i.deleted = false " +
+           "AND i.studentId = :studentId " +
+           "AND i.dueDate BETWEEN :from AND :to")
+    Page<Invoice> findByStudentIdAndDueDateRange(@Param("studentId") Long studentId,
+                                                  @Param("from") LocalDate from,
+                                                  @Param("to") LocalDate to,
+                                                  Pageable pageable);
 }
