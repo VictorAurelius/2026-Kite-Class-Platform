@@ -17,7 +17,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     "com.kitehub.platform.domain.entity",
     "com.kitehub.subscription.domain",
     "com.kitehub.subscription.outbox",
-    "com.kitehub.subscription.idempotency"
+    "com.kitehub.subscription.idempotency",
+    // Wave 18a Bucket B — GAP-063 Phase 1
+    "com.kitehub.subscription.notification.entity"
 })
 @EnableJpaAuditing
 @EnableScheduling
