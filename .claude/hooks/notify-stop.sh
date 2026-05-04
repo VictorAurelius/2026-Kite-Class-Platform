@@ -32,8 +32,41 @@
 set -u
 
 PROJECT="$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")"
-TITLE="Claude Code — chờ input"
-BODY="Project: ${PROJECT}"
+TITLE="Claude · ${PROJECT}"
+BODY=""
+
+# Parse hook stdin (Claude Code sends JSON with session_id + transcript_path + cwd).
+# Extract last assistant text block from transcript JSONL → richer notification body.
+if command -v jq >/dev/null 2>&1; then
+  HOOK_INPUT="$(cat 2>/dev/null || true)"
+  TRANSCRIPT="$(echo "$HOOK_INPUT" | jq -r '.transcript_path // empty' 2>/dev/null)"
+
+  if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ] && command -v tac >/dev/null 2>&1; then
+    # Find last assistant message with text content (skip pure tool_use turns).
+    # message.content can be string OR array of {type: text|tool_use, ...}.
+    LAST_TEXT="$(tac "$TRANSCRIPT" 2>/dev/null | head -200 | jq -r '
+      select(.type == "assistant") |
+      .message.content |
+      if type == "string" then .
+      elif type == "array" then [.[] | select(.type == "text") | .text] | join(" ")
+      else empty end
+    ' 2>/dev/null | grep -v '^$' | head -1)"
+
+    if [ -n "$LAST_TEXT" ]; then
+      # Collapse newlines + multi-spaces → single line; strip lead whitespace
+      CLEAN="$(echo "$LAST_TEXT" | tr '\n\t' '  ' | sed 's/  */ /g' | sed 's/^[[:space:]]*//')"
+      # Truncate to 220 chars (ntfy mobile readable + leaves space for ellipsis)
+      if [ ${#CLEAN} -gt 220 ]; then
+        BODY="${CLEAN:0:220}…"
+      else
+        BODY="$CLEAN"
+      fi
+    fi
+  fi
+fi
+
+# Fallback when transcript parse fails or jq unavailable
+[ -z "$BODY" ] && BODY="(chờ input — không parse được transcript)"
 
 # 1. Desktop notification (WSLg + libnotify-bin)
 if command -v notify-send >/dev/null 2>&1; then
