@@ -223,6 +223,16 @@ bash .claude/hooks/notify-stop.sh
 **Customize env vars:**
 - `NTFY_PRIORITY` — 1 (min) → 5 (urgent), default 3
 - `NTFY_SERVER` — default `https://ntfy.sh`; đổi nếu self-host
+- `NTFY_CLICK` — Android intent URL fired khi tap notification. Default mở Termux:
+  `intent:#Intent;action=android.intent.action.MAIN;package=com.termux;end`.
+  Đổi sang app khác bằng cách thay `package=...`. Chỉ áp dụng trên Android (iOS bỏ qua).
+
+**Tap-to-resume tmux (advanced — Cách 2):** thay vì chỉ mở Termux, có thể chạy luôn `tmux attach` qua Termux:RUN_COMMAND broadcast. Cần thêm Termux:API add-on (F-Droid) + `allow-external-apps = true` trong `~/.termux/termux.properties` + `termux-reload-settings`. Sau đó set:
+```bash
+export NTFY_CLICK="intent:#Intent;action=com.termux.RUN_COMMAND;package=com.termux;\
+S.com.termux.RUN_COMMAND_PATH=/data/data/com.termux/files/usr/bin/bash;\
+S.com.termux.RUN_COMMAND_ARGUMENTS=-c%20%27tmux%20attach%20%7C%7C%20tmux%20new%27;end"
+```
 
 **Privacy:** topic name là URL public — ai biết = nhận message. Random suffix dài + KHÔNG commit topic vào public repo. Self-host ntfy server với auth nếu lo (overkill cho solo dev).
 

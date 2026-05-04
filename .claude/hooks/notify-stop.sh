@@ -25,7 +25,8 @@
 #   4. Set env: thêm vào ~/.claude/settings.json:
 #        "env": { "NTFY_TOPIC": "kite-claude-vkiet-x7k2p9" }
 #      hoặc export trong ~/.bashrc (cần source bằng login shell)
-#   5. Optional: NTFY_PRIORITY (1=min, 3=default, 5=urgent), NTFY_SERVER (default ntfy.sh)
+#   5. Optional: NTFY_PRIORITY (1=min, 3=default, 5=urgent), NTFY_SERVER (default ntfy.sh),
+#      NTFY_CLICK (Android intent URL fired on tap; default opens Termux: com.termux)
 #
 # Reference: documents/05-guides/remote-access/remote-control-setup.md §Stop Notification
 
@@ -94,10 +95,14 @@ fi
 if [ -n "${NTFY_TOPIC:-}" ] && command -v curl >/dev/null 2>&1; then
   NTFY_SERVER="${NTFY_SERVER:-https://ntfy.sh}"
   NTFY_PRIORITY="${NTFY_PRIORITY:-3}"
+  # NTFY_CLICK: Android intent URL fired when user taps the notification.
+  # Default opens Termux app (com.termux). Override via env to point elsewhere.
+  NTFY_CLICK="${NTFY_CLICK:-intent:#Intent;action=android.intent.action.MAIN;package=com.termux;end}"
   curl -fsS -X POST \
     -H "Title: ${TITLE}" \
     -H "Priority: ${NTFY_PRIORITY}" \
     -H "Tags: robot" \
+    -H "Click: ${NTFY_CLICK}" \
     -d "${BODY}" \
     "${NTFY_SERVER}/${NTFY_TOPIC}" \
     --max-time 5 \
