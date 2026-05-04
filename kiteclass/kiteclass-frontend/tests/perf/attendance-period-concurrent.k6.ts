@@ -1,3 +1,4 @@
+// @ts-nocheck — k6 has its own runtime + type system (k6/http etc.); this script is executed by the k6 binary, not Next.js. Excluded from Next.js typecheck.
 /**
  * k6 perf test for the K-12 per-tiết batch upsert endpoint
  * (Wave 18b3 Bucket A, GAP-323b Phase 1B remainder).
