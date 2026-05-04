@@ -18,14 +18,14 @@ package com.kiteclass.core.module.childprotection.converter;
  */
 final class AesGcmAttributeConverterBootstrap {
 
-    private static volatile AesGcmAttributeConverter INSTANCE;
+    private static volatile AesGcmAttributeConverter instance;
 
     private AesGcmAttributeConverterBootstrap() {
         // utility — no instances
     }
 
-    static synchronized void register(AesGcmAttributeConverter instance) {
-        INSTANCE = instance;
+    static synchronized void register(AesGcmAttributeConverter converter) {
+        instance = converter;
     }
 
     /**
@@ -34,7 +34,7 @@ final class AesGcmAttributeConverterBootstrap {
      * than silently fall back to an ephemeral key.
      */
     static AesGcmAttributeConverter required() {
-        AesGcmAttributeConverter ref = INSTANCE;
+        AesGcmAttributeConverter ref = instance;
         if (ref == null) {
             throw new IllegalStateException(
                     "AesGcmAttributeConverter Spring singleton not registered yet — " +
@@ -49,6 +49,6 @@ final class AesGcmAttributeConverterBootstrap {
      * that exercise different keys.
      */
     static synchronized void reset() {
-        INSTANCE = null;
+        instance = null;
     }
 }
