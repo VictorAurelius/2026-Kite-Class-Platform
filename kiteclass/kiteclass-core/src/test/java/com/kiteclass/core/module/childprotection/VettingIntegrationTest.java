@@ -8,6 +8,7 @@ import com.kiteclass.core.module.childprotection.dto.VettingTransitionRequest;
 import com.kiteclass.core.module.childprotection.entity.Vetting;
 import com.kiteclass.core.module.childprotection.enums.VettingStatus;
 import com.kiteclass.core.module.childprotection.service.VettingService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -89,6 +90,13 @@ class VettingIntegrationTest {
 
     private static final String OFFICER_ROLE = "SAFEGUARDING_OFFICER";
     private static final String TEACHER_ROLE = "TEACHER";
+
+    @BeforeEach
+    void resetMocks() {
+        // @WebMvcTest reuses the mocked bean across tests — reset interactions
+        // each time so verify(..., never()) checks see only the current test.
+        Mockito.reset(vettingService);
+    }
 
     @Test
     @DisplayName("GET /api/v1/vettings — SAFEGUARDING_OFFICER → 200 with list")
