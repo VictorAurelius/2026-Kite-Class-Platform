@@ -202,3 +202,82 @@ Repository methods chỉ trả `deletedFalse = true`. Không có hard delete tro
 
 ### Audit Fields
 `BaseEntity` cung cấp `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `deleted`, `instanceId` cho mọi entity.
+
+---
+
+## K-12 LEGAL Phase 1A Use Cases (Wave 18b1 Bucket D — GAP-321)
+
+Phase 1A use cases extend the Wave 2 GAP-052a flows (above) with the **transcript read-only** facet for K-12 parent portal compliance with Luật Giáo dục 2019 Đ.83 K2 + PDPL Decree 13/2023 Art 16.
+
+### UC-PARENT-PORTAL-01: Phụ huynh xem học bạ con
+
+**Actor:** Phụ huynh (PARENT user, đã được mời + redeem qua ParentInvitation)
+**Pre-condition:**
+- Parent có `ParentStudentLink` với child (`linkType = PRIMARY` hoặc `SECONDARY`, `deleted = false`)
+- Gateway đã issue JWT, populate `users.reference_id = parents.id`
+- Frontend nhận access token + lưu vào localStorage
+
+**Trigger:** Phụ huynh click "Học bạ" trên dashboard `/parent` cho 1 con.
+
+**Main flow:**
+1. FE redirect tới `/parent/transcript/[childId]`
+2. FE gọi `GET /api/v1/parent/children/{childId}/transcript` qua `apiClient` — Gateway đính `X-User-Reference-Id: <parentId>` vào header xuôi xuống Core.
+3. Core `ParentTranscriptController.getChildTranscript()` nhận request: `requireParentId(parentId)` — null → 401 AUTH_REQUIRED.
+4. Service `ParentTranscriptService.getTranscriptsForChild(parentId, childId)`:
+   - Validate args (null check) — null → 400 BAD_REQUEST.
+   - **Scope guard (BR-PARENT-PORTAL-001):** `linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(parentId, childId)` — false → 403 PARENT_NOT_LINKED. Service short-circuits (does NOT touch transcripts table).
+5. Service queries `transcriptRepository.findByStudentIdAndDeletedFalseOrderBySemesterDesc(childId)` — returns list newest-first.
+6. Service maps `Transcript → TranscriptResponse` (minimal projection per BR-PARENT-PORTAL-006).
+7. Controller wraps in `ApiResponse.success(list)` → 200 OK.
+8. FE `useChildTranscript()` hook receives data, renders `TranscriptView` component (each semester = 1 card với GPA + courses summary).
+
+**Post-condition:** Phụ huynh thấy danh sách học bạ theo học kỳ, mới nhất trên cùng. Empty list nếu chưa có học bạ nào.
+
+**Errors / FE behavior:**
+
+| Error code | HTTP | FE behavior |
+|------------|------|-------------|
+| `AUTH_REQUIRED` | 401 | Redirect `/login` (Gateway interceptor đã handle) |
+| `BAD_REQUEST` | 400 | Toast "Yêu cầu không hợp lệ" + back to `/parent` |
+| `PARENT_NOT_LINKED` | 403 | Toast "Bạn không có quyền xem học bạ này" + back to `/parent`. Log client-side — chỉ ra IDOR probing. |
+| Network error | — | Retry banner, React Query retry 3× backoff |
+| 5xx | 500 | Toast "Lỗi hệ thống, thử lại sau" + retry button |
+
+### UC-PARENT-PORTAL-02: Phụ huynh xem danh sách con (reuses Wave 2 endpoint)
+
+**Actor:** Phụ huynh
+**Pre-condition:** Parent đã đăng nhập; có ≥1 ParentStudentLink active.
+**Trigger:** Phụ huynh truy cập `/parent` (landing page sau login).
+
+**Main flow:** Reuses Wave 2 `GET /api/v1/parent/me/children` (existing, không phải scope Phase 1A). Phase 1B sẽ enrich `className` + `grade` (GAP-321b).
+
+### UC-PARENT-PORTAL-03 (negative): Phụ huynh probe con của người khác
+
+**Actor:** Phụ huynh A (linked với child 100 only)
+**Trigger:** A enumerate id, gọi `GET /api/v1/parent/children/999/transcript` (child 999 thuộc parent B).
+
+**Main flow:**
+1. FE gọi endpoint với `childId = 999`.
+2. Gateway xuôi xuống Core với `X-User-Reference-Id: 10` (id parent A).
+3. Service `existsByParentIdAndStudentIdAndDeletedFalse(10, 999)` → `false`.
+4. Service throws `BusinessException("PARENT_NOT_LINKED", FORBIDDEN)` — **NEVER touches `transcripts` table** (BR-PARENT-PORTAL-001 short-circuit).
+5. GlobalExceptionHandler returns 403 + error code.
+6. FE toast "Bạn không có quyền xem học bạ này".
+
+**Post-condition:** A không leak được existence/non-existence của child 999. Server log warns probing attempt cho audit.
+
+**Verification test:** `ParentTranscriptServiceTest#scopeGuard_unlinkedParent_throws403` — asserts `verify(transcriptRepository, never()).findByStudentIdAndDeletedFalseOrderBySemesterDesc(...)` — leak-free guarantee.
+
+### Phase 1A out of scope
+
+| UC | Where |
+|----|-------|
+| Phụ huynh xem điểm danh tháng | GAP-321b |
+| Phụ huynh xem học phí pending + paid | GAP-321b |
+| Phụ huynh xem hạnh kiểm HK | GAP-321b |
+| Phụ huynh nhận notification | GAP-321b (depends GAP-063) |
+| Phụ huynh xem kỷ luật history | GAP-321b |
+| Phụ huynh đăng nhập qua Zalo OTP | GAP-321b |
+| Phụ huynh nộp đơn khiếu nại | GAP-321c (depends GAP-339) |
+| Phụ huynh confirm họp PHHS | GAP-321c (depends GAP-338) |
+| Phụ huynh xin phép vắng mặt | GAP-321c |
