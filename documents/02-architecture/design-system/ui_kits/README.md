@@ -1,8 +1,8 @@
-# Round 2 UI Kits
+# UI Kits — Round 2 + Round 3
 
 Design prototypes for human review. Generated using `documents/02-architecture/design-system/dossier/` as context (PR #667).
 
-**Last Updated:** 2026-04-29
+**Last Updated:** 2026-05-04
 
 **Review standard:** `.claude/rules/output-review-mandate.md` §3 row "HTML/JSX prototypes" (added 2026-04-29 v1.2.0 via GAP-263 Phase 1).
 
@@ -17,9 +17,11 @@ Design prototypes for human review. Generated using `documents/02-architecture/d
 | `kitehub-pro-v2/` (Wave 1.5 add-on) | 1.5 | ✅ DONE — PR #673 | **107.8** | +35 vs ~73 |
 | `kiteclass-teacher/` (Wave 1.6 add-on) | 1.6 | ✅ DONE — PR #674 | **108.0** | +35 vs ~73 |
 | `ai-branding-wizard-v2/` (Wave 1.7 add-on) | 1.7 | ✅ DONE — PR #675 | **115.6** ⭐⭐ | +43 vs ~73 |
-| `kiteclass-student/` (Round 3) | 3 | 🟡 ACTIVE — PR #700 | **116** ⭐⭐ | +43 vs ~73 |
-| `kitehub-admin/` (Round 3) | 3 | 🟡 ACTIVE — PR #703 | **107.2** | +34 vs ~73 |
+| `kiteclass-student/` (Round 3) | 3 | ✅ DONE — PR #700 (self-report; external review pending GAP-348) | **116** ⭐⭐ self-report | +43 vs ~73 |
+| `kitehub-admin/` (Round 3) | 3 | ✅ DONE — PR #703 (self-report; external review pending GAP-348) | **107.2** self-report | +34 vs ~73 |
 | `kitehub-story-v2/` (Direction A polish) | 3 | 🔵 future | — | — |
+
+> **Round 3 review caveat:** scores for `kiteclass-student/` and `kitehub-admin/` are **agent self-report** at PR ship time, not external review through `quality/ui-review/SKILL.md`. Per `feedback_audit_calibration.md`, expect external scores 15-20 pts lower. External persona-driven review tracked in [GAP-348](../../../04-quality/gaps/GAP-348-round-3-ui-kits-persona-driven-review.md) — must complete BEFORE Track 2 Phase 4 ports student/admin kits to production. Track 2 Phase 2 wave-pack plan tracked in [GAP-349](../../../04-quality/gaps/GAP-349-track-2-phase-2-wave-pack-plan.md).
 
 **Wave aggregate:** 7 deliverables × 76 screens × avg **110.5/128** vs Round 1 baseline ~73/128 = **+51% lift**. Review evidence: `documents/04-quality/audits/ui-review/2026-04-29-wave-1-add-ons-review.md`.
 
