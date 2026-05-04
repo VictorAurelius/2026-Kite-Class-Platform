@@ -1,6 +1,9 @@
 package com.kiteclass.core.module.attendance.service;
 
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodBatchCreateRequest;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodUpdateRequest;
+import com.kiteclass.core.module.attendance.dto.DailyAttendanceRollupResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -8,13 +11,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Service contract for {@link com.kiteclass.core.module.attendance.entity.AttendancePeriod}
- * (Phase 1A read-only).
+ * Service contract for {@link com.kiteclass.core.module.attendance.entity.AttendancePeriod}.
  *
- * <p>Write API + idempotent recording deferred to GAP-323b. Daily
- * aggregation view + GradeFormulaService deferred to GAP-323c.
+ * <p>Phase 1A (read-only) shipped Wave 18b1 (GAP-323). Phase 1B (write API +
+ * upsert idempotency + daily roll-up) ships Wave 18b2 (GAP-323b). Mobile UI,
+ * offline queue, and GradeFormulaService remain deferred per the gap.
  *
- * @since GAP-323 Phase 1A (Wave 18b1)
+ * @since GAP-323 Phase 1A (Wave 18b1); write API GAP-323b (Wave 18b2)
  */
 public interface AttendancePeriodService {
 
@@ -55,4 +58,49 @@ public interface AttendancePeriodService {
             LocalDate from,
             LocalDate to,
             Pageable pageable);
+
+    /**
+     * Idempotent upsert of a batch of period-attendance records.
+     *
+     * <p>For each entry, looks up the existing row by the (student, subject
+     * section, date, period_no) tuple — the unique index from V50 — and either
+     * updates it (status / notes / recorded_by / recorded_at) or inserts a new
+     * one. Resubmitting the same batch therefore yields the same final state
+     * without producing duplicates.
+     *
+     * @param request batch (≥1, ≤60 entries)
+     * @param recordedBy teacher / GVCN user ID, taken from the
+     *        {@code X-Teacher-Id} header by the controller
+     * @return the upserted rows, in the same order as {@code request.entries}
+     */
+    List<AttendancePeriodResponse> upsertBatch(
+            AttendancePeriodBatchCreateRequest request, Long recordedBy);
+
+    /**
+     * Update status / notes on a single period-attendance row.
+     *
+     * <p>Optimistic locking via {@code @Version}: the request must carry the
+     * version the client read; a stale value triggers
+     * {@link org.springframework.dao.OptimisticLockingFailureException} which
+     * the global exception handler maps to HTTP 409.
+     *
+     * @param id row primary key
+     * @param request status (required), notes (optional), version (required)
+     * @param recordedBy teacher / GVCN user ID rewriting the row
+     */
+    AttendancePeriodResponse update(
+            Long id, AttendancePeriodUpdateRequest request, Long recordedBy);
+
+    /**
+     * Daily roll-up across one class for a date range — per-day counts
+     * (period_count / present / absent / late / excused) plus the boolean
+     * {@code allDayAbsent} (TT 22/2021 threshold: absent ≥ 7 tiết).
+     *
+     * <p>Phase 1B v1 implements this via on-demand aggregation. A
+     * materialized-view + debounced refresh trigger is documented in
+     * GAP-323b §1B.4 but deferred to a follow-up PR; the on-demand version
+     * is correctness-equivalent and unblocks the GVCN dashboard surface.
+     */
+    List<DailyAttendanceRollupResponse> dailyRollupForClass(
+            Long classId, LocalDate from, LocalDate to);
 }

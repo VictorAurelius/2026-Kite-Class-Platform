@@ -1,9 +1,15 @@
 package com.kiteclass.core.module.attendance.service;
 
 import com.kiteclass.core.common.constant.AttendanceStatus;
+import com.kiteclass.core.common.context.TenantContext;
+import com.kiteclass.core.common.exception.EntityNotFoundException;
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodBatchCreateRequest;
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodCreateRequest;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodUpdateRequest;
 import com.kiteclass.core.module.attendance.entity.AttendancePeriod;
 import com.kiteclass.core.module.attendance.repository.AttendancePeriodRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -22,20 +29,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link AttendancePeriodService} (Phase 1A read-only).
+ * Unit tests for {@link AttendancePeriodService}.
  *
- * <p>Tests cover the read-only query surface for K-12 per-period attendance
- * (TT 22/2021/TT-BGDĐT). Write API + GVCN mobile UI deferred to GAP-323b.
+ * <p>Phase 1A read-only tests + Phase 1B write tests (idempotent upsert,
+ * optimistic-lock update). Daily roll-up has DB-level aggregation; covered by
+ * the integration test, not here.
  *
- * @since GAP-323 Phase 1A (Wave 18b1)
+ * @since GAP-323 Phase 1A (Wave 18b1); Phase 1B GAP-323b (Wave 18b2)
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AttendancePeriodService (Phase 1A read-only) Tests")
+@DisplayName("AttendancePeriodService Tests (Phase 1A read + Phase 1B write)")
 class AttendancePeriodServiceTest {
 
     @Mock
@@ -125,5 +136,127 @@ class AttendancePeriodServiceTest {
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getSubjectSectionId()).isEqualTo(303L);
+    }
+
+    // ----- Phase 1B (GAP-323b) write API tests ---------------------------------
+
+    @AfterEach
+    void clearTenant() {
+        TenantContext.clear();
+    }
+
+    @Test
+    @DisplayName("upsertBatch inserts when no existing row matches the unique tuple")
+    void upsertBatch_insertsWhenAbsent() {
+        TenantContext.setCurrentTenant(instanceId);
+        AttendancePeriodCreateRequest entry = AttendancePeriodCreateRequest.builder()
+                .studentId(101L)
+                .classId(202L)
+                .subjectSectionId(303L)
+                .periodNo(2)
+                .date(sampleDate)
+                .status(AttendanceStatus.ABSENT)
+                .notes("phụ huynh xin phép")
+                .build();
+        AttendancePeriodBatchCreateRequest batch = AttendancePeriodBatchCreateRequest.builder()
+                .entries(List.of(entry))
+                .build();
+
+        when(repository.findByStudentIdAndSubjectSectionIdAndDateAndPeriodNoAndDeletedFalse(
+                101L, 303L, sampleDate, 2)).thenReturn(Optional.empty());
+        when(repository.save(any(AttendancePeriod.class))).thenAnswer(inv -> {
+            AttendancePeriod saved = inv.getArgument(0);
+            saved.setId(42L);
+            return saved;
+        });
+
+        List<AttendancePeriodResponse> result = service.upsertBatch(batch, 909L);
+
+        assertThat(result).hasSize(1);
+        AttendancePeriodResponse out = result.get(0);
+        assertThat(out.getId()).isEqualTo(42L);
+        assertThat(out.getStatus()).isEqualTo(AttendanceStatus.ABSENT);
+        assertThat(out.getRecordedBy()).isEqualTo(909L);
+        verify(repository, times(1)).save(any(AttendancePeriod.class));
+    }
+
+    @Test
+    @DisplayName("upsertBatch updates the existing row when the unique tuple matches")
+    void upsertBatch_updatesWhenPresent() {
+        TenantContext.setCurrentTenant(instanceId);
+        AttendancePeriodCreateRequest entry = AttendancePeriodCreateRequest.builder()
+                .studentId(101L)
+                .classId(202L)
+                .subjectSectionId(303L)
+                .periodNo(1)
+                .date(sampleDate)
+                .status(AttendanceStatus.LATE)
+                .notes("đi muộn 5 phút")
+                .build();
+        AttendancePeriodBatchCreateRequest batch = AttendancePeriodBatchCreateRequest.builder()
+                .entries(List.of(entry))
+                .build();
+
+        when(repository.findByStudentIdAndSubjectSectionIdAndDateAndPeriodNoAndDeletedFalse(
+                101L, 303L, sampleDate, 1)).thenReturn(Optional.of(sampleRecord));
+        when(repository.save(any(AttendancePeriod.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<AttendancePeriodResponse> result = service.upsertBatch(batch, 909L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStatus()).isEqualTo(AttendanceStatus.LATE);
+        assertThat(result.get(0).getNotes()).isEqualTo("đi muộn 5 phút");
+        assertThat(result.get(0).getRecordedBy()).isEqualTo(909L);
+        // Same row reused — id preserved
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("update succeeds when version matches the current row")
+    void update_succeedsOnFreshVersion() {
+        sampleRecord.setVersion(3L);
+        when(repository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(sampleRecord));
+        when(repository.save(any(AttendancePeriod.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AttendancePeriodUpdateRequest req = AttendancePeriodUpdateRequest.builder()
+                .status(AttendanceStatus.EXCUSED)
+                .notes("ốm")
+                .version(3L)
+                .build();
+
+        AttendancePeriodResponse out = service.update(1L, req, 808L);
+
+        assertThat(out.getStatus()).isEqualTo(AttendanceStatus.EXCUSED);
+        assertThat(out.getNotes()).isEqualTo("ốm");
+        assertThat(out.getRecordedBy()).isEqualTo(808L);
+    }
+
+    @Test
+    @DisplayName("update throws optimistic-lock when version is stale")
+    void update_throwsOnStaleVersion() {
+        sampleRecord.setVersion(5L);
+        when(repository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(sampleRecord));
+
+        AttendancePeriodUpdateRequest req = AttendancePeriodUpdateRequest.builder()
+                .status(AttendanceStatus.EXCUSED)
+                .version(3L) // stale
+                .build();
+
+        assertThatThrownBy(() -> service.update(1L, req, 808L))
+                .isInstanceOf(OptimisticLockingFailureException.class);
+    }
+
+    @Test
+    @DisplayName("update throws not-found when row is missing or soft-deleted")
+    void update_throwsWhenMissing() {
+        when(repository.findByIdAndDeletedFalse(999L)).thenReturn(Optional.empty());
+
+        AttendancePeriodUpdateRequest req = AttendancePeriodUpdateRequest.builder()
+                .status(AttendanceStatus.PRESENT)
+                .version(0L)
+                .build();
+
+        assertThatThrownBy(() -> service.update(999L, req, 808L))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }

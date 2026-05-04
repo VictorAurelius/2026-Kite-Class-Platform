@@ -12,15 +12,15 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next wave: Wave 18b2 — Phase 1B for any one of GAP-321/322/323.** Wave 18b1 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1A skeleton wave-pack — 3 PRs #765/#766/#767 + 6 sister gaps filed). All 3 K-12 LEGAL gaps now 🟡 PARTIAL with Phase 1A foundation; Phase 1B/C tracked as letter-suffix sister gaps:
+**Recommended next: GAP-323b follow-up PR (mobile UI is the biggest remaining daily-ops blocker) OR GAP-322b / GAP-321b Phase 1B foundation.** Wave 18b1 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1A skeleton wave-pack — 3 PRs #765/#766/#767 + 6 sister gaps filed). Wave 18b2 first PR shipped 2026-05-04 — GAP-323b Phase 1B v1 backend foundation (idempotent batch upsert + on-demand daily rollup + V51 `period_no` CHECK + 3-layer business docs sync; 19 tests green; matview / mobile UI / offline queue / concurrent load test / parent-portal facet / fine-grained RBAC explicitly deferred to follow-up PRs per gap §AC).
 
-| Gap | Phase 1A status | Phase 1B (next) | Phase 1C |
+| Gap | Phase 1A status | Phase 1B status | Phase 1C |
 |---|---|---|---|
-| GAP-321 Parent Portal | 🟡 PARTIAL — transcript route + scope guard PDPL | GAP-321b (5 facets + Zalo OTP + audit log + multi-children) | GAP-321c (PDPL granular consent + 4 write actions + i18n EN/zh-CN) |
-| GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b (vetting workflow + MinIO + RBAC gate) | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
-| GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b (write API + GVCN mobile UI ≤2min + roll-up + load test) | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
+| GAP-321 Parent Portal | 🟡 PARTIAL — transcript route + scope guard PDPL | GAP-321b 🔵 OPEN — 5 facets + Zalo OTP + audit log + multi-children | GAP-321c (PDPL granular consent + 4 write actions + i18n EN/zh-CN) |
+| GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b 🔵 OPEN — vetting workflow + MinIO + RBAC gate | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
+| GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b 🟡 PARTIAL — Phase 1B v1 backend (this PR); mobile UI / offline / matview / load test follow-up | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
 
-**Pick order suggestions for Wave 18b2:** GAP-323b (daily ops most urgent — GVCN cannot điểm danh without write API) > GAP-322b (criminal liability blocker for K12_ENTERPRISE tier) > GAP-321b (read-only facet expansion). Each Phase 1B = ~2-3 weeks single-agent work; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~6-8 weeks per gap × 3 = **~18-24 weeks** to full Stage 1 completion.
+**Pick order suggestions for Wave 18b2 follow-ups:** GAP-323b mobile UI (daily-ops blocker — GVCN ≤2min tap-grid is the actual user-visible feature) > GAP-322b foundation (criminal liability blocker for K12_ENTERPRISE tier) > GAP-321b foundation (read-only facet expansion). Each Phase 1B remainder = ~1-2 weeks; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~6-8 weeks per gap × 3 = **~18-24 weeks** to full Stage 1 completion.
 
 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
@@ -29,6 +29,12 @@
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (Wave 18b2 first PR — GAP-323b Phase 1B v1 backend foundation):** Continued K-12 LEGAL trio momentum into Phase 1B execution. Single-agent serial PR (Step 0 wave-eligibility checked: GAP-323b sub-tasks 1B.1..1B.6 are not disjoint enough for parallel agents — UI depends on API, offline depends on UI, etc.). Scope landed: idempotent batch upsert (`POST /api/v1/attendance/periods` with V50 unique-tuple lookup) + optimistic-lock PATCH (`@Version`) + on-demand daily roll-up endpoint (matview deferred per BR-PERIOD-ATT-010 §note) + V51 `period_no BETWEEN 1 AND 10` CHECK + new `OPTIMISTIC_LOCK_CONFLICT` error code on `GlobalExceptionHandler`. 4 new business rules (BR-PERIOD-ATT-008..011), 3 new use cases (UC-PERIOD-ATT-W-001/W-002/R-005). 19 tests green (9 unit + 10 IT TestContainers Postgres). Status flip: GAP-323b OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — mobile UI / offline queue / matview variant / 30-GVCN concurrent load test / parent-portal /attendance facet / fine-grained RBAC explicitly deferred to follow-up PRs (not silently dropped).
+
+**Counts:** 154 OPEN (no change — GAP-323b stays open as PARTIAL per discipline rule).
 
 ---
 
