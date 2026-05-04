@@ -1,8 +1,8 @@
 # Course & Class — Use Cases
 
 **Domain:** KiteClass Core
-**Version:** 1.0
-**Updated:** 2026-03-24
+**Version:** 1.1.0
+**Updated:** 2026-05-04 (UC-CLASS-RECURRING added — GAP-290 Wave 18a)
 
 ---
 
@@ -196,3 +196,54 @@
 5. FE: Display session calendar/list
 
 **Postcondition:** Sessions generated per schedule pattern
+
+---
+
+### UC-CLASS-RECURRING: Generate Sessions from Recurrence Rule (GAP-290 Wave 18a)
+
+**Actor:** Teacher / Admin
+**Precondition:** Class exists; status is `SCHEDULED` or `IN_PROGRESS` (BR-CLASS-009 row 7).
+
+**Goal:** With a single form, generate ~24 weekly sessions (e.g., Tuesday + Thursday 19:00–20:30 from 2026-05-01 until 2026-08-01) without creating each session manually.
+
+**Main flow:**
+1. **FE:** On `/classes/new` (or class edit page), user toggles "Lặp lại" (recurring).
+2. **FE:** Form reveals:
+   - Day-of-week multi-picker (chips for `MO/TU/WE/TH/FR/SA/SU`)
+   - Start time + end time
+   - Until date (mandatory)
+   - "Bỏ qua ngày" picker (multi-select, optional — for nghỉ lễ holidays)
+3. **User:** Selects `TU`, `TH`, 19:00–20:30, until 2026-08-01, excludes 2026-06-15.
+4. **FE:** POSTs `RecurrenceRuleDto` to `POST /api/v1/classes/{classId}/sessions/generate-from-recurrence`.
+5. **System:**
+   - Validates `freq=WEEKLY`, `by_day` non-empty, `end_time > start_time`, `until >= startDate`, range cap ≤ 3700 days (BR-CLASS-009 rows 1–6).
+   - Validates class status is `SCHEDULED` or `IN_PROGRESS` (BR-CLASS-009 row 7).
+   - Persists `recurrence_rule` JSONB on `classes` table.
+   - Splits existing sessions: past or attended → preserved; future SCHEDULED → soft-deleted.
+   - Plans new occurrences from `max(today, class.startDate)` through `until`, skipping `exclude_dates` and any date already owned by a preserved session.
+   - Persists new sessions starting from `max(preserved.sessionNumber) + 1`.
+6. **System:** Returns the merged session list (preserved + new) ordered by `sessionNumber`.
+7. **FE:** Renders session count toast ("Đã tạo 24 buổi học") + redirects to session calendar view.
+
+**Postcondition:**
+- `classes.recurrence_rule` JSONB stored.
+- `class_sessions` rows persist for every occurrence in the planned range, except `exclude_dates` and dates already covered by preserved sessions.
+- Future regenerations of the rule are idempotent on past + attended sessions.
+
+**Errors:**
+| HTTP | Code | Condition | Vietnamese message |
+|------|------|-----------|---------------------|
+| 400 | `RECURRENCE_INVALID_TIME` | `end_time <= start_time` | Giờ kết thúc phải sau giờ bắt đầu |
+| 400 | `RECURRENCE_INVALID_RANGE` | `until < startDate` | Ngày kết thúc lặp phải sau hoặc bằng ngày bắt đầu |
+| 400 | `RECURRENCE_NO_DAYS` | `by_day` empty | Phải chọn ít nhất 1 ngày trong tuần |
+| 400 | `RECURRENCE_RANGE_TOO_LARGE` | `until - start > 3700 days` | Khoảng thời gian lặp quá lớn ({n} ngày). Tối đa 3700 ngày |
+| 400 | `CLASS_RECURRENCE_LOCKED` | Class is COMPLETED or CANCELLED | Không thể áp dụng quy tắc lặp lại cho lớp đã ở trạng thái {status} |
+| 404 | `CLASS_NOT_FOUND` | Unknown classId | Lớp học không tồn tại |
+
+**FE behaviour:**
+- Default toggle state: OFF (legacy free-form `schedule` text shown).
+- When toggled ON, free-form schedule field is hidden — single source of truth.
+- Day chips show `T2..CN` Vietnamese labels but submit `MO..SU` codes (per RFC 5545).
+- "Bỏ qua ngày" picker uses Vietnamese national holiday list as suggestions (Wave 18b candidate; Phase 1 is free-form date picker).
+- After submit, FE polls or receives session list response; renders count toast.
+- On edit (existing rule loaded), warning banner: "Sửa quy tắc sẽ tạo lại các buổi sắp tới (giữ nguyên buổi đã điểm danh)".
