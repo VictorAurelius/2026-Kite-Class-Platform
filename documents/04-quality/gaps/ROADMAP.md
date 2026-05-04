@@ -12,13 +12,42 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next wave: Wave 17 Phase 2 — Execute 4 Background Agents per Phase 1 plan** — Phase 1 (plan + foundation) shipped 2026-05-04 via PR #739. `documents/00-brd/persona-reviews/` directory created with README + report template. Reserved GAP ranges: A=GAP-286..295 (P1), B=296..305 (P2), C=306..320 (P3), D=321..345 (P5) — 60 slots, ~25 expected actual. Phase 2 ETA: ~75-100 min wall-clock. Spawn template ready in [`documents/03-planning/waves/wave-2026-05-04-persona-review-round-1.md`](../../03-planning/waves/wave-2026-05-04-persona-review-round-1.md) §6. Closure PR will dedupe gaps + ROADMAP sync + personas-catalog measured scores + GAP-152 → 🟢 DONE per `gap-done-discipline.md`.
+**Recommended next wave: Wave 18 — Stage 1 LEGAL + Cross-Persona Keystones bundle.** Wave 17 SHIPPED 2026-05-04 surfaced 57 NEW gaps; backlog re-prioritization needed. Top picks per Wave 17 evidence:
+
+1. **GAP-063 Zalo/SMS notification** — bump P1 → **P0** (blocks all 4 Tier-1 personas; 8/21 P2 FAILs depend on it)
+2. **GAP-057 Commission/payroll engine** — bump P1 → **P0** (blocks P2+P3+P5; foundational for VN center model)
+3. **K-12 Stage 1 LEGAL trio:** GAP-321 (parent portal — Luật GD Đ.83) + GAP-322 (child protection — Luật Trẻ Em Đ.51, criminal liability) + GAP-323 (period attendance K-12 model) — must ship before any K-12 deployment
+4. **GAP-290 Recurring class generator** (RRULE-based; needed by all 4 personas)
+
+**Wave-pack candidates:** keystones (#1+#2) → 1 wave (~75 min); K-12 LEGAL trio → 1 wave (~3-5 days each); GAP-290 standalone PR. Detailed 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
 **Track 2 (UI kits production port)** — Phase 1 ADR + workspace scaffolding DONE (PR #713 merged 2026-04-30). Phase 2-6 (15 OPEN gaps GAP-266..280) — multi-week roadmap detailed in [`documents/03-planning/waves/wave-track-2-ui-kits-port-umbrella.md`](../../03-planning/waves/wave-track-2-ui-kits-port-umbrella.md). Trigger Phase 2 (5 priority components G2/G6/G5/G7/D1) khi MVP-essential blockers từ Wave 17 review findings cần real components.
 
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (Wave 17 Persona Review Round 1 SHIPPED — same-day end-to-end execution, 8 PRs merged):** Phase 1 (PR #739) plan + foundation. Phase 2 attempted parallel background agents → 3/4 killed silently mid-flight; **root cause identified: SSH SIGHUP cascade when mobile session disconnects** (NOT runtime/context limit). Memory `feedback_agent_kill_root_cause.md` saved. Phase 2 re-run with `commit-after-each-file` mandate → all 4 agents shipped clean. Wall-clock total ~5h (Phase 1 + recovery loop + Phase 2 re-run + parallel mobile-resilient stack + restructure).
+
+**Merged sequence (8 PRs):**
+1. **#745 P2 Small Center review** — score 36.8/100, 8 gaps (GAP-296..303). Top: notification + commission keystones.
+2. **#747 P3 Medium Center review** — score **9.6/100** (0 PASS!), 15 gaps (GAP-306..320 — full reserved range). Top: commission/payroll, multi-class scheduling, RBAC audit.
+3. **#748 P5 K-12 School review** — score **8.3/100** (largest scope — 134 ACs across 5 personas), 24 gaps (GAP-321..344). Top: LEGAL parent portal (Luật GD Đ.83) + child protection (Luật Trẻ Em Đ.51 criminal liability) + period attendance K-12 model.
+4. **#749 P1 Solo Teacher review** — score 36.2/100, 10 gaps (GAP-286..295). Top: mobile OTP signup + Zalo notification + recurring class generator.
+5. **#750 docs(05-guides): restructure 28 root files → 0** — 0 root .md files (only README), 8 new domain subfolders (local-dev, remote-access, deploy, monitoring, infrastructure, tenant-lifecycle, branding, contributing). 363 inbound refs updated repo-wide via sed. 27 git mv preserved history.
+6. **#746 docs(ssh-guide): mosh layer + ntfy mobile push** — SSH guide §3.4 mobile-resilient stack (Tailscale + mosh + tmux); 3 runnable migration scripts (cleanup-windows.ps1, setup-wsl2.sh, android-checklist.md); ntfy.sh push as stop-hook channel #4 with last-assistant-message body parsing; Vietnamese translation.
+7. **Closure PR (this)** — dedupe + ROADMAP sync + personas-catalog measured scores + GAP-152 → 🟢 DONE.
+
+**Wave 17 outcomes:**
+- **288 ACs scored** across 4 personas (Tier-1) + secondary docs
+- **Coverage measured vs estimated:** ALL 4 LOWER than 2026-04-14 estimates → estimates were optimistic
+- **57 NEW gaps filed** (vs ~25 expected) — deeper review surfaced more cases
+- **Cross-persona keystones:** GAP-063 (Zalo/SMS, blocks all 4) + GAP-057 (commission, blocks 3) recommend bump P1 → P0
+- **K-12 LEGAL surface:** parent portal + child protection criminal liability + MoET license verification — blocks K-12 GA until ~6-week Stage 1 lands
+
+**Counts:** 88 OPEN → **145 OPEN** (-1 GAP-152 closed; +57 new gaps; +1 GAP-285 from earlier session). Tier-1 persona readiness measured: NONE ready for GA at current state.
 
 ---
 

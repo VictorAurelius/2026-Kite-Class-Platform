@@ -175,16 +175,26 @@ Review sau khi dự án mature, decide support hay không.
 
 ---
 
-## Coverage Review Status (as of 2026-04-14)
+## Coverage Review Status (Round 1 measured 2026-05-04 via GAP-152 / Wave 17)
 
-### Tier 1 Personas
+### Tier 1 Personas (measured via Wave 17 role-play review)
 
-| Persona | Core Features Coverage | Critical Gaps |
-|---------|:---------------------:|---------------|
-| P1 Solo Teacher | 🟡 60% | Payment collection simple flow, scheduling UI |
-| P2 Small Center | 🟢 75% | Owner-only simplified workflows |
-| P3 Medium Center | 🟡 65% | Payroll, advanced reporting, roles hierarchy |
-| P5 K-12 School | 🔴 **30%** | **Bulk import, parent portal, academic year, report cards, homeroom, conduct** |
+| Persona | Coverage (Round 1) | ACs scored | New gaps | Top blocker |
+|---------|:------------------:|:----------:|:--------:|-------------|
+| P1 Solo Teacher | 🔴 **36.2/100** (was 60% est) | 29 (7 PASS / 7 PARTIAL / 15 FAIL) | 10 (GAP-286..295) | Mobile OTP signup + Zalo notification (GAP-063 keystone) |
+| P2 Small Center | 🔴 **36.8/100** (was 75% est) | 38 (7 PASS / 14 PARTIAL / 17 FAIL) | 8 (GAP-296..303) | Notification + commission engine (GAP-063 + GAP-057 keystones) |
+| P3 Medium Center | ❌ **9.6/100** (was 65% est) | 82 (0 PASS / 16 PARTIAL / 67 FAIL) | 15 (GAP-306..320 — full range) | Commission/payroll + multi-class scheduling + RBAC audit |
+| P5 K-12 School | ❌ **8.3/100** (was 30% est) | 134 (7 PASS / 27 PARTIAL / 100 FAIL) | 24 (GAP-321..344) | LEGAL: parent portal (Luật GD Đ.83) + child protection (Luật Trẻ Em Đ.51) — see GAP-321/322/323 |
+
+**Verdict:** All 4 Tier-1 personas NOT ready for GA. Round 1 measurements significantly LOWER than 2026-04-14 estimates — estimates were optimistic.
+
+**Reports:** [`P1`](persona-reviews/P1-solo-teacher-round-1-2026-05-04.md) · [`P2`](persona-reviews/P2-small-center-round-1-2026-05-04.md) · [`P3`](persona-reviews/P3-medium-center-round-1-2026-05-04.md) · [`P5`](persona-reviews/P5-k12-school-round-1-2026-05-04.md)
+
+**Cross-persona keystones (recommended priority bumps):**
+- **GAP-063 Zalo/SMS notification** P1 → **P0** (blocks all 4 personas; 8/21 P2 FAILs depend on it)
+- **GAP-057 Commission/payroll engine** P1 → **P0** (blocks P2, P3, P5; foundational for VN tutoring/center model)
+- **Recurring class generator** (GAP-290) — needed by all 4 personas (RRULE-based scheduling)
+- **K-12 Stage 1 LEGAL bundle:** GAP-321 + GAP-322 + GAP-323 — must ship before any K-12 deployment (~6 weeks)
 
 ### Tier 2
 
