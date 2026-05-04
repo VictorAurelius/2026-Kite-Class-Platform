@@ -60,6 +60,14 @@ jobs:
     strategy:
       matrix:
         service: [core, gateway, frontend]
+        include:
+          # frontend uses repo-root context for pnpm workspace (ADR-024 / GAP-284)
+          - service: frontend
+            context: .
+          - service: core
+            context: kiteclass/kiteclass-core
+          - service: gateway
+            context: kiteclass/kiteclass-gateway
 
     steps:
       - name: Checkout code
@@ -84,7 +92,7 @@ jobs:
       - name: Build Docker image (no push)
         uses: docker/build-push-action@v7
         with:
-          context: kiteclass/kiteclass-${{ matrix.service }}
+          context: ${{ matrix.context }}
           file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
           push: false  # Only build, don't push (no registry needed)
           tags: ${{ steps.meta.outputs.tags }}
@@ -115,6 +123,14 @@ jobs:
     strategy:
       matrix:
         service: [core, gateway, frontend]
+        include:
+          # frontend uses repo-root context for pnpm workspace (ADR-024 / GAP-284)
+          - service: frontend
+            context: .
+          - service: core
+            context: kiteclass/kiteclass-core
+          - service: gateway
+            context: kiteclass/kiteclass-gateway
 
     steps:
       - name: Checkout code
@@ -150,7 +166,7 @@ jobs:
       - name: Build and push to ECR
         uses: docker/build-push-action@v7
         with:
-          context: kiteclass/kiteclass-${{ matrix.service }}
+          context: ${{ matrix.context }}
           file: kiteclass/kiteclass-${{ matrix.service }}/Dockerfile
           push: true  # Push to ECR
           tags: ${{ steps.meta.outputs.tags }}

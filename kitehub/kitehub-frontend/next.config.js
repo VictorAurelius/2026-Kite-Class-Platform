@@ -1,10 +1,14 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 });
 
 const nextConfig = {
   output: 'standalone',
+  // ADR-024 — pnpm workspace consumer. outputFileTracingRoot points at repo
+  // root so Next standalone bundles workspace deps (e.g. @kite/shared-ui).
+  outputFileTracingRoot: path.join(__dirname, '../..'),
   // ADR-024 — consume @kite/shared-ui as TypeScript source (no build step)
   transpilePackages: ['@kite/shared-ui'],
   images: {
