@@ -86,5 +86,17 @@ K-12 daily ops fail.
 
 ## Log
 
+- **2026-05-04** (Phase 1B v1 mobile UI, Wave 18b2 Bucket A) — Shipped GVCN
+  per-tiết mobile UI v1 on top of the backend foundation: route shell at
+  `/attendance/period/{classId}/{periodNo}/{date}` ((teacher) route group),
+  `PeriodTapGrid` (4 status buttons × ≤42 students), `PeriodBulkActions`
+  ("mark all present" / "reset" / "save"), `attendancePeriodApi` client
+  (POST batch + PATCH + GET roster), `useDailyRoster` +
+  `useUpsertAttendancePeriod` TanStack hooks. Extended UC-PERIOD-ATT-UI-001
+  from placeholder to full UC; added FE-behaviour subsections in W-001 +
+  W-002. `pnpm test` + `pnpm build` both green. Status stays 🟡 PARTIAL —
+  offline queue (UC-PERIOD-ATT-UI-002), Playwright ≤2-min perf assertion,
+  multi-period quick-switch, single-row PATCH merge dialog, and the rest of
+  the §1B follow-up scope all remain deferred per the existing AC checklist.
 - **2026-05-04** (Phase 1B v1, this PR) — Shipped backend foundation: idempotent batch upsert (BR-PERIOD-ATT-008), optimistic-lock PATCH (BR-PERIOD-ATT-009), on-demand daily roll-up (BR-PERIOD-ATT-010, matview deferred), `period_no` range CHECK V51 (BR-PERIOD-ATT-002 tightened from `>0` to `BETWEEN 1 AND 10`), recording-header contract (BR-PERIOD-ATT-011 — fine-grained RBAC deferred), 3-layer business docs synced. New error code `OPTIMISTIC_LOCK_CONFLICT` on `GlobalExceptionHandler`. 19 tests green (9 unit + 10 IT TestContainers Postgres). Status flips OPEN → PARTIAL per `gap-done-discipline.md` §3; mobile UI / offline queue / matview / concurrent load test / parent-portal facet / fine-grained RBAC explicitly deferred to follow-up PRs (each tracked in `documents/01-business/kiteclass/period-attendance/rules.md` §4).
 - **2026-05-04** — Filed by Wave 18b1 closure coordinator. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.

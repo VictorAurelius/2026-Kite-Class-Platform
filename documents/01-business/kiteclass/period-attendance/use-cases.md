@@ -113,9 +113,31 @@ pinpoints tiết with anomaly status counts. Phase 1A returns raw rows.
 
 **Post-conditions:** ≥0 rows inserted, ≥0 rows updated. No duplicates.
 
-**FE behaviour (v1, pre mobile UI):** any client posting JSON to this
-endpoint receives a deterministic outcome. The dedicated GVCN tap-grid mobile
-UI ships in a follow-up PR (UC-PERIOD-ATT-UI-001 stub below).
+**FE behaviour (Phase 1B v1):** the GVCN mobile route at
+`/attendance/period/{classId}/{periodNo}/{date}` (Wave 18b2 Bucket A,
+`(teacher)` route group) renders a tap-grid + bulk-actions toolbar:
+
+1. On load it seeds local state from the daily-roster fetch
+   (`useDailyRoster`) for the current `(classId, date)`, filtering to rows
+   whose `periodNo` matches the URL param.
+2. The teacher taps one of the four status buttons per student
+   (`PRESENT` / `EXCUSED` / `ABSENT` / `LATE`); local state updates
+   optimistically without a network round-trip.
+3. "Đánh dấu tất cả có mặt" sets every roster student to `PRESENT` in one
+   click; "Xoá lựa chọn" clears local state back to "no entries".
+4. "Lưu" calls `useUpsertAttendancePeriod`, which POSTs the batch with
+   `X-Teacher-Id`. On success, the matching daily-roster query is
+   invalidated so the canonical server state is re-read.
+5. `Save` is disabled until at least one student has a status set, AND a
+   `subjectSectionId` is known (read from the existing roster rows for the
+   class+date — Phase 1B follow-up will let the teacher pick the section
+   explicitly when the day's first tiết has no prior rows).
+
+`MAKEUP` (học bù) is intentionally NOT in the v1 tap-grid — it is a
+correction action that lives in the future detail dialog
+(UC-PERIOD-ATT-W-002). Offline queue + Playwright ≤2-min perf assertion +
+multi-period quick-switch + "inherit from previous period" all stay
+deferred per UC-PERIOD-ATT-UI-002 below + GAP-323b follow-up.
 
 ## UC-PERIOD-ATT-W-002 — Edit a single recorded period (Phase 1B v1)
 
@@ -133,7 +155,12 @@ UI ships in a follow-up PR (UC-PERIOD-ATT-UI-001 stub below).
 3. Stale `version` → 409 + `OPTIMISTIC_LOCK_CONFLICT`. Missing row → 404.
 
 **FE behaviour:** detail dialog re-fetches on 409, shows merge dialog so the
-GVCN can resolve concurrent-edit collision.
+GVCN can resolve concurrent-edit collision. Phase 1B v1 ships the API
+client wrapper (`attendancePeriodApi.updateOne`) but NOT the dedicated
+hook + dialog — the tap-grid currently treats every change as a batch
+upsert (UC-PERIOD-ATT-W-001), which the backend handles idempotently. The
+single-row PATCH path activates when the merge-dialog UX lands as a
+Phase 1B follow-up.
 
 ## UC-PERIOD-ATT-R-005 — Daily roll-up across one class (Phase 1B v1)
 
@@ -152,13 +179,41 @@ GVCN can resolve concurrent-edit collision.
 **FE behaviour:** GVCN dashboard renders a per-day summary; rows where
 `allDayAbsent=true` are highlighted (vắng cả ngày per TT 22/2021).
 
-## UC-PERIOD-ATT-UI-001..NNN — Mobile tap-grid UI (deferred GAP-323b §1B.2)
+## UC-PERIOD-ATT-UI-001 — Mobile tap-grid UI happy path (Phase 1B v1)
 
-Placeholder for: 42-student × 4-button tap-grid, ≤2 min Playwright perf
-target, "Mark all present" + "Reset" bulk actions, "Inherit from previous
-period" delta entry.
+**Actor:** GVCN / GV bộ môn on a mobile device.
 
-## UC-PERIOD-ATT-UI-002..NNN — Offline queue (deferred GAP-323b §1B.3)
+**Pre-conditions:**
+- Caller is authenticated; `useAuthStore.user.id` resolves to a teacher ID.
+- URL is `/attendance/period/{classId}/{periodNo}/{date}` with
+  `periodNo ∈ 1..10` and `date` matching `YYYY-MM-DD`.
+- Existing roster rows for `(classId, date)` exist OR have at least one
+  `subjectSectionId` reachable (Phase 1B v1 reads it from the roster — a
+  truly empty class+date will show an empty-state until Phase 1B follow-up
+  adds an explicit section picker).
+
+**Steps:**
+1. Page loads → `useDailyRoster(classId, date)` fetches the daily roster.
+2. Page seeds local optimistic state from the rows whose `periodNo` matches
+   the URL param (one tap-grid row per unique `studentId`).
+3. Teacher taps `Có mặt | Có phép | Vắng | Trễ` per student; the active
+   button shows `aria-pressed="true"`.
+4. Optionally: teacher hits "Đánh dấu tất cả có mặt" → every roster student
+   → `PRESENT`; or "Xoá lựa chọn" → reset.
+5. Teacher hits "Lưu" → page issues POST batch via
+   `useUpsertAttendancePeriod` → toast "Đã lưu điểm danh".
+
+**Post-conditions:** Server state matches local state for the
+`(classId, date, periodNo)` slice; daily-roster cache invalidated.
+
+**Errors:**
+- Invalid URL params → static error page ("Tham số URL không hợp lệ").
+- Auth missing → static error page ("Cần đăng nhập"). Layout-level
+  redirect to `/login` already covers token expiry.
+- POST batch fails → toast with backend message; local state preserved so
+  the teacher can retry without re-entering.
+
+## UC-PERIOD-ATT-UI-002..NNN — Offline queue (deferred GAP-323b follow-up)
 
 Placeholder for: queue submissions when offline, retry on reconnect, surface
 "pending submissions" badge.
@@ -180,6 +235,14 @@ Tổ trưởng approval, học bạ generation.
 
 ## Log
 
+- **2026-05-04** (Phase 1B v1 mobile UI) Wave 18b2 Bucket A —
+  promoted UC-PERIOD-ATT-UI-001 from placeholder to a full UC describing
+  the GVCN tap-grid happy path against the route
+  `/attendance/period/{classId}/{periodNo}/{date}` ((teacher) route
+  group). Extended UC-PERIOD-ATT-W-001 + UC-PERIOD-ATT-W-002 with
+  Phase 1B v1 FE behaviour subsections pointing at the route shell +
+  hooks + components. Offline queue stays under UC-PERIOD-ATT-UI-002 as
+  a deferred placeholder.
 - **2026-05-04** (Phase 1B v1) Wave 18b2 first PR — added UC-PERIOD-ATT-W-001
   (idempotent batch upsert), UC-PERIOD-ATT-W-002 (single-row PATCH with
   optimistic lock), UC-PERIOD-ATT-R-005 (on-demand daily roll-up). Mobile UI
