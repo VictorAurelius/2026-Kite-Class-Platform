@@ -26,16 +26,24 @@ gap_range_reserved: GAP-286..295
 | Metric | Value |
 |---|---|
 | Total ACs reviewed | 29 |
-| PASS | TBD (filled in §3) |
-| PARTIAL | TBD |
-| FAIL | TBD |
-| Coverage score | TBD/100 |
-| Verdict | TBD |
-| New gaps filed | TBD (range GAP-286..295 reserved) |
+| PASS | 7 (24.1%) — incl. 2 PASS-by-design (out-of-scope features correctly absent) |
+| PARTIAL | 7 (24.1%) |
+| FAIL | 15 (51.7%) |
+| Coverage score | **36.2/100** = (7 + 0.5×7) / 29 × 100 |
+| Verdict | 🔴 **Persona NOT supported (major gaps; not production-ready)** |
+| New gaps filed | **10** in reserved range GAP-286..295 |
+| Overflow (extension needed) | **3** (mobile offline PWA, student progress PDF, account pause) — closure PR allocate extension range |
 
-**Top 3 critical findings:** TBD (filled in §4)
+**Top 3 critical findings:**
+1. **Mobile-first signup blocker (AC-ONBOARD-001/002 FAIL):** KHÔNG có OTP qua Zalo/SMS, KHÔNG có skip option ở branding wizard. Solo persona không thể onboard ≤10 phút trên phone — bottleneck #1 cho FREE tier acquisition.
+2. **Notification infrastructure missing (5 ACs FAIL: AC-OPS-006/007, AC-COMM-001/002/003 + AC-FIN-002/004 PARTIAL):** KHÔNG có Zalo/SMS messaging service (chỉ EmailService). Class reschedule/cancel/reminder không gửi tự động → solo teacher phải duplicate work qua Zalo native app. GAP-063 đã OPEN nhưng chưa fix; 5+ ACs depend on it.
+3. **Recurring class generator missing (AC-OPS-002 FAIL):** `Class.schedule` plain string, KHÔNG có RRULE generator. Tutoring use case dominant = weekly recurring (Tuesday-Thursday 19:00-20:30 × 12 weeks) nhưng phải tạo manual từng buổi → blocks daily ops cho cả P1, P2, P3, P5.
 
-**Priority-reordering recommendation:** TBD (filled in §5)
+**Priority-reordering recommendation:**
+- Bump GAP-063 (Zalo/SMS notification) từ P1 → **P0** — blast radius >5 ACs across 3 personas (verify trong Bucket B/C/D reports)
+- Sequence Wave 18: GAP-286 (mobile OTP) + GAP-287 (skip wizard) + GAP-290 (recurring class) + GAP-063 — these unblock 60% of P1 FAIL ACs in single wave
+- Defer GAP-288 (tour) + GAP-289 (quick-add UX) đến Wave 19+ — UX polish, không blocker
+- Coordinate với P2/P3 reviews trong closure PR để dedupe gaps (GAP-290 RRULE likely shared finding)
 
 ---
 
@@ -168,21 +176,145 @@ Format: AC-ID | Status (PASS/PARTIAL/FAIL) | Evidence | Linked gap
 
 ---
 
-## §4 Top Critical Findings
+## §4 Top Critical Findings (detailed)
 
-TBD — filled after §3 scoring.
+### Finding #1 — Mobile-first signup completely blocked
+
+**ACs affected:** AC-ONBOARD-001 (FAIL), AC-ONBOARD-002 (FAIL)
+
+**Evidence:**
+- `kiteclass-frontend/src/app/(auth)/register/page.tsx` chỉ email/password — KHÔNG OTP
+- Grep `OTP|sms.?verify|zalo.*verify` ở `kiteclass-core` = 0 hits ngoài parent invite
+- `BrandingWizard.tsx` + `wizard-machine.ts` không có skip option (grep `Skip|skip` = 0 hits)
+- Solo persona target ≤10 phút onboarding mobile-only KHÔNG khả thi với current code
+
+**Business impact:** P1 FREE tier acquisition funnel broken. Solo teacher landing → bounce rate likely >80% trên mobile.
+
+**Fix path:** GAP-286 (mobile OTP) + GAP-287 (skip wizard) — both P0, paired same wave.
+
+### Finding #2 — Notification infrastructure missing across multiple ACs
+
+**ACs affected:** AC-OPS-006 (FAIL), AC-OPS-007 (PARTIAL), AC-COMM-001 (FAIL), AC-COMM-002 (FAIL), AC-COMM-003 (FAIL), AC-FIN-002 (PARTIAL), AC-FIN-004 (PARTIAL) — **7 ACs total**
+
+**Evidence:**
+- KHÔNG có Zalo/SMS messaging service (ZaloPay là payment gateway khác — không phải messaging)
+- `EmailService.java` only sends email; VN context phụ huynh + học sinh KHÔNG dùng email primary
+- Class cancel/reschedule logic chỉ update DB state — KHÔNG publish notification event
+- GAP-063 (SMS/Zalo notification integration) đã OPEN nhưng status chưa close
+
+**Business impact:** Teacher phải duplicate work qua Zalo native app cho mọi notification → kills "≤30 phút setup" promise + ongoing ops friction. Receipt PDF không gửi được 1-click. Late-payment reminder không automated. Class change notification không gửi được.
+
+**Fix path:** Bump GAP-063 từ P1 → P0; coordinate với GAP-291 (reschedule), GAP-293 (outstanding reminder).
+
+### Finding #3 — Recurring class generator missing (cross-persona blocker)
+
+**ACs affected:** AC-OPS-002 (FAIL); likely shared finding cross-persona
+
+**Evidence:**
+- `Class.java` line 84: `schedule String length=200` plain text only
+- `ClassSession.java` exists nhưng phải tạo từng buổi manual
+- Grep `recurrence|RRULE|recurring` ở `kiteclass-core` = 0 hits
+
+**Business impact:** Tutoring use case dominant = weekly recurring schedule. Solo teacher với 3 courses × 8-12 buổi/tháng × 12 tháng = ~300 sessions/year phải tạo manual → unfeasible. Cross-cuts P1 + P2 + P3 + P5 (K-12 period schedules).
+
+**Fix path:** GAP-290 (RRULE generator) — P0 cross-cutting; coordinate dedupe với P2/P3/P5 reviews.
+
+### Finding #4 (bonus) — Per-session pricing model missing
+
+**ACs affected:** AC-FIN-001 (FAIL)
+
+**Evidence:** `Course.java` chỉ có `price BigDecimal` single field, KHÔNG có PricingModel enum.
+
+**Business impact:** Solo teacher dominant billing = 200K/buổi × N buổi attended. Force monthly subscription model làm system not match real cash-flow → teacher không dùng nổi.
+
+**Fix path:** GAP-292 (per-session pricing model) — P0; coordinate với GAP-185 (VAT scope).
+
+### Finding #5 (bonus) — Mobile offline + account pause + student progress export
+
+**ACs affected:** AC-EDGE-004 (offline FAIL), AC-EXIT-001 (progress PDF FAIL), AC-EXIT-002 (account pause FAIL)
+
+**Evidence:** PWA / Service Worker = 0 hits; InstanceStatus enum không có PAUSED; KHÔNG có student progress PDF generator.
+
+**Business impact:** Edge cases nhưng critical cho solo persona retention (vacation pause, end-of-course closure).
+
+**Fix path:** OVERFLOW gaps — closure PR allocate extension range (GAP-296+ likely).
 
 ---
 
 ## §5 Priority-Reordering Recommendation
 
-TBD — filled after §3 scoring.
+### Recommended Wave 18 sequence
+
+| Order | Gap | Reason |
+|:---:|---|---|
+| 1 | **GAP-286** Mobile OTP signup | P0 — unblocks acquisition funnel |
+| 2 | **GAP-287** Skip wizard | P0 — paired same flow as GAP-286, must ship same wave |
+| 3 | **GAP-063 → bump P0** Zalo/SMS notification | Force-multiplier — unblocks 7 ACs across communication + reschedule + reminder |
+| 4 | **GAP-290** RRULE recurring class | P0 — cross-persona blocker; tutoring + center + K-12 all need |
+| 5 | **GAP-292** Per-session pricing model | P0 — solo billing doesn't work without it |
+| 6 | **GAP-291** Reschedule endpoint | P0 — depends on GAP-063 for notification |
+
+### Defer to Wave 19+
+
+- GAP-288 (Onboarding tour) — UX polish, not blocker
+- GAP-289 (Quick-add lesson UI) — depends on GAP-290 + better Class entity model
+- GAP-293 (Income summary dashboard) — depends on GAP-292 for accurate revenue calc
+- GAP-294 (NO_SHOW status) — small enum addition, batch with other attendance fixes
+- GAP-295 (Late-cancel policy) — P2 edge case
+
+### Cross-bucket coordination signals
+
+- Watch P2/P3/P5 reviews for **shared findings** on: GAP-290 (RRULE), GAP-063 (Zalo/SMS), GAP-292 (pricing model), Mobile OTP (GAP-286 likely shared).
+- Closure PR (Wave 17 step 6) MUST dedupe these — link cross-references in gap files.
+
+### Out-of-scope features correctly absent (don't change)
+
+- Parent portal (GAP-052) — gated correctly
+- Payroll (GAP-057) — not built, correctly hidden
+- MOET report card (GAP-055) — out-of-scope per AC
 
 ---
 
 ## §6 New Gaps Filed (range GAP-286..295)
 
-TBD — list of new gap IDs filed during this review.
+10 NEW gaps filed in reserved range:
+
+| Gap ID | Title | Priority | AC linked |
+|---|---|:---:|---|
+| [GAP-286](../../04-quality/gaps/GAP-286-mobile-otp-signup-zalo-sms.md) | Mobile OTP signup via Zalo/SMS | P0 | AC-ONBOARD-001 |
+| [GAP-287](../../04-quality/gaps/GAP-287-branding-wizard-skip-default.md) | Skip / Use Default in branding wizard | P0 | AC-ONBOARD-002 |
+| [GAP-288](../../04-quality/gaps/GAP-288-onboarding-tour-solo-teacher.md) | First-login onboarding tour | P1 | AC-ONBOARD-004 |
+| [GAP-289](../../04-quality/gaps/GAP-289-quick-add-lesson-mobile.md) | Quick-add lesson UI for mobile | P1 | AC-OPS-001 |
+| [GAP-290](../../04-quality/gaps/GAP-290-recurring-class-generator.md) | Recurring class RRULE generator | P0 | AC-OPS-002 |
+| [GAP-291](../../04-quality/gaps/GAP-291-reschedule-lesson-session.md) | Reschedule lesson endpoint + lifecycle | P0 | AC-OPS-006 |
+| [GAP-292](../../04-quality/gaps/GAP-292-per-session-pricing-model.md) | Per-session pricing model | P0 | AC-FIN-001 |
+| [GAP-293](../../04-quality/gaps/GAP-293-monthly-income-summary-dashboard.md) | Monthly income summary dashboard | P1 | AC-FIN-003, AC-FIN-004 |
+| [GAP-294](../../04-quality/gaps/GAP-294-attendance-no-show-status.md) | NO_SHOW attendance status | P1 | AC-EDGE-001 |
+| [GAP-295](../../04-quality/gaps/GAP-295-late-cancel-policy-workflow.md) | Late-cancel policy + charge decision | P2 | AC-EDGE-002 |
+
+### Overflow (extension allocation needed in closure PR)
+
+3 additional gaps need numbers beyond reserved range:
+
+| Suggested ID | Title | AC linked | Priority |
+|---|---|---|:---:|
+| GAP-29X | Mobile offline attendance sync (PWA / Service Worker) | AC-EDGE-004 | P1 |
+| GAP-29X | Student progress export PDF on course completion | AC-EXIT-001 | P1 |
+| GAP-29X | Account pause/resume lifecycle (PAUSED state, 30-day free) | AC-EXIT-002 | P0 (retention impact) |
+
+Closure PR should allocate next 3 free numbers (likely GAP-346..348 if other buckets fill 296-345 fully, OR within 296-305 if those are unused) and create files. Stub references already in §3 scoring.
+
+### Existing gaps cross-linked (no new file)
+
+| Existing Gap | Linked AC | Note |
+|---|---|---|
+| [GAP-063](../../04-quality/gaps/GAP-063-sms-zalo-notification-integration.md) | AC-OPS-006/007, AC-COMM-001/002/003, AC-FIN-002/004 | **Recommend bump P1 → P0** — affects 7 ACs |
+| [GAP-051](../../04-quality/gaps/GAP-051-bulk-import-users-xlsx.md) | AC-OPS-008 (related), AC-EXIT-003 (export side) | Existing — solo persona can workaround quick-add (PASS) |
+| [GAP-185](../../04-quality/gaps/GAP-185-billing-terms-vat-tct-compliance.md) | AC-FIN-001 (related) | Existing — VAT broader scope; per-session is GAP-292 |
+| [GAP-052](../../04-quality/gaps/GAP-052-parent-portal.md) | AC-COMM-004 | Out-of-scope cho P1 — gated correctly |
+| [GAP-053](../../04-quality/gaps/GAP-053-academic-year-semester-structure.md) | AC-ONBOARD-004 | Related — academic year cần hidden cho solo |
+| [GAP-055](../../04-quality/gaps/GAP-055-moet-report-card.md) | AC-OPS-004 | Out-of-scope cho P1 |
+| [GAP-057](../../04-quality/gaps/GAP-057-payroll-teacher-commission.md) | AC-FIN-005 | Out-of-scope cho P1 — correctly absent |
 
 ---
 
@@ -190,16 +322,23 @@ TBD — list of new gap IDs filed during this review.
 
 ```
 Coverage % = (PASS_count + 0.5 × PARTIAL_count) / total × 100
+           = (7 + 0.5 × 7) / 29 × 100
+           = 10.5 / 29 × 100
+           = 36.2%
 ```
 
 | Tier | Cutoff | Verdict |
 |---|---|---|
-| ≥85% | ✅ Production-ready for this persona |
-| 60-84% | ⚠️ Partially supported (defer GA) |
-| 30-59% | 🔴 Major gaps (not production-ready) |
-| <30% | ❌ Persona NOT viable |
+| ≥85% | ✅ Production-ready for this persona |  |
+| 60-84% | ⚠️ Partially supported (defer GA) |  |
+| **30-59%** | **🔴 Major gaps (not production-ready)** | **← P1 Solo Teacher** |
+| <30% | ❌ Persona NOT viable |  |
 
-**Result:** TBD/100 → TBD verdict.
+**Result: 36.2/100 → 🔴 Persona NOT supported (major gaps; not production-ready).**
+
+Path to 60%+ verdict (defer-GA threshold): close 7 P0 gaps (GAP-286, GAP-287, GAP-290, GAP-291, GAP-292 + bumped GAP-063 + extension account-pause) → would convert ~10 FAIL → PASS, projected score ≈ 60-65%.
+
+Path to 85%+ verdict (production-ready): + close GAP-288/289/293/294/295 + 3 overflow + GAP-051 export → projected ~85-90%.
 
 ---
 
@@ -215,3 +354,4 @@ Coverage % = (PASS_count + 0.5 × PARTIAL_count) / total × 100
 ## §9 Log
 
 - **2026-05-04** (skeleton): Wave 17 Bucket A Agent created. Filling §3 + §4 + §5 + §6 incrementally with commit-frequently mandate (3/4 prior agents in this session were killed silently mid-flight).
+- **2026-05-04** (final): All 29 ACs scored; 10 NEW gaps filed in reserved range GAP-286..295; 3 overflow noted for closure PR extension allocation; coverage = 36.2% → 🔴 verdict. Status remains `draft` — closure PR (Wave 17 step 6) sẽ flip sang `approved` sau khi dedupe cross-bucket findings.
