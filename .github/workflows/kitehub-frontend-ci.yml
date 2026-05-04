@@ -188,7 +188,8 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v7
         with:
-          context: ./kitehub/kitehub-frontend
+          # Repo-root context (per ADR-024 pnpm workspace / GAP-284)
+          context: .
           file: ./kitehub/kitehub-frontend/Dockerfile
           push: false
           tags: kitehub-frontend:${{ github.sha }}

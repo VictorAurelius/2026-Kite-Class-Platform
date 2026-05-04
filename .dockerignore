@@ -1,0 +1,39 @@
+# Repo-root .dockerignore — pairs with pnpm workspace Docker context (ADR-024 / GAP-284).
+# Frontend Dockerfiles use repo root as context. Backends still use narrow context
+# (per docker-build-push.yml matrix.include) so this file is only consulted for
+# kiteclass-frontend / kitehub-frontend builds.
+
+# Exclude everything by default, then re-include workspace files needed by frontend builds.
+*
+
+# Workspace manifests + lockfile
+!pnpm-workspace.yaml
+!package.json
+!pnpm-lock.yaml
+
+# Shared UI library (consumed via @kite/shared-ui workspace dep)
+!packages/
+
+# Frontend services (the only ones that use repo-root context)
+!kiteclass/kiteclass-frontend/
+!kitehub/kitehub-frontend/
+
+# Re-ignore noise inside re-included paths
+**/node_modules
+**/.next
+**/.next-webpack-cache
+**/dist
+**/build
+**/out
+**/coverage
+**/.turbo
+**/.cache
+**/*.log
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+**/.git
+**/.DS_Store
+**/*.swp
+**/*.swo
