@@ -1,80 +1,80 @@
-# SSH Mobile Migration Scripts
+# SSH Mobile Migration — Bộ script chuyển đổi
 
-One-shot migration from old SSH-via-Windows-host setup to mobile-resilient Tailscale + mosh + tmux stack on WSL2.
+Migration một-lần từ setup SSH cũ (qua Windows host) sang stack mobile-resilient Tailscale + mosh + tmux trên WSL2.
 
-**Why migrate:** Old setup (Windows portproxy + LAN IP + plain SSH) drops mobile sessions on app switch / screen off / network roam, killing long-running agents. New stack survives all of these.
+**Tại sao migrate:** setup cũ (Windows portproxy + LAN IP + plain SSH) bị rớt session khi mobile switch app / tắt màn hình / đổi mạng → kill long-running agent. Stack mới sống sót cả 3 trường hợp.
 
-**Time:** ~5 minutes machine work + ~10 minutes Android setup.
+**Thời gian:** ~5 phút máy + ~10 phút phone.
 
 ---
 
-## Run order
+## Thứ tự chạy
 
-| Step | Script | Where to run | Auto/Manual |
-|------|--------|--------------|:----------:|
-| 1 | `01-cleanup-windows.ps1` | PowerShell **as Administrator** | Manual (one click "Yes" on UAC) |
-| 2 | `02-setup-wsl2.sh` | WSL2 bash | Auto (1 sudo prompt + 1 browser auth click) |
-| 3 | `03-android-setup-checklist.md` | Android phone | Manual (per checklist) |
+| Bước | Script | Chạy ở đâu | Tự động/Tay |
+|------|--------|------------|:-----------:|
+| 1 | `01-cleanup-windows.ps1` | PowerShell **as Administrator** | Tay (1 click "Yes" UAC) |
+| 2 | `02-setup-wsl2.sh` | WSL2 bash | Auto (1 prompt sudo + 1 click browser auth) |
+| 3 | `03-android-setup-checklist.md` | Android phone | Tay (theo checklist) |
 
 ## Quick run
 
 ```bash
-# Phase 1 — Windows cleanup (from WSL2, triggers UAC popup on Windows)
+# Phase 1 — Dọn Windows (từ WSL2, popup UAC trên Windows)
 powershell.exe -Command "Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy', 'Bypass', '-File', '\\\\wsl$\\Ubuntu\\home\\nguyenvankiet\\projects\\2026-Kite-Class-Platform\\documents\\05-guides\\scripts\\ssh-mobile-migration\\01-cleanup-windows.ps1'"
 
-# Phase 2 — WSL2 setup
+# Phase 2 — Cài đặt WSL2
 bash documents/05-guides/scripts/ssh-mobile-migration/02-setup-wsl2.sh
 
-# Phase 3 — Android (read checklist, do on phone)
+# Phase 3 — Android (đọc checklist + làm trên phone)
 cat documents/05-guides/scripts/ssh-mobile-migration/03-android-setup-checklist.md
 ```
 
 ---
 
-## What each script does
+## Mỗi script làm gì
 
 ### 01-cleanup-windows.ps1
-**Removes (idempotent):**
+**Xóa (idempotent):**
 - `netsh portproxy` rule listenport=2222 → WSL2
 - Windows Firewall rule "WSL2 SSH 2222"
 - Task Scheduler job "WSL2-SSH-Portproxy"
 
-**Does NOT touch:** Tailscale Windows app, SSH keys, sshd config.
+**KHÔNG đụng:** Tailscale Windows app, SSH keys, sshd config.
 
 ### 02-setup-wsl2.sh
-**Installs (idempotent):**
-- openssh-server (sshd on port 2222)
+**Cài (idempotent):**
+- openssh-server (sshd port 2222)
 - mosh (UDP server)
-- tailscale (peer-to-peer VPN, gives WSL2 its own 100.x.x.x IP)
+- tailscale (peer-to-peer VPN, cấp WSL2 IP riêng 100.x.x.x)
 
-**Configures:**
-- ssh.socket drop-in for port 2222 (Ubuntu 24.04+ socket-activation footgun)
-- Enables tailscaled + ssh systemd services
-- Adds tmux auto-attach snippet to ~/.bashrc
+**Cấu hình:**
+- ssh.socket drop-in cho port 2222 (footgun socket-activation Ubuntu 24.04+)
+- Enable tailscaled + ssh systemd services
+- Thêm tmux auto-attach snippet vào ~/.bashrc
 
-**Interactive:** 1 sudo password + 1 browser-link click for Tailscale auth.
+**Tương tác:** 1 sudo password + 1 click browser link Tailscale auth.
 
-**Output:** Prints WSL2 Tailscale IP for use in Android setup.
+**Output:** in WSL2 Tailscale IP để dùng cho Android setup.
 
 ### 03-android-setup-checklist.md
-Manual steps on phone:
+Bước tay trên phone:
 - Tailscale Android app (sign in same identity)
-- Termux from F-Droid + `pkg install mosh openssh tmux`
-- SSH key generation + install on WSL2
+- Termux từ F-Droid + `pkg install mosh openssh tmux`
+- Generate SSH key + install lên WSL2
 - Termux SSH config (`~/.ssh/config`)
-- Test matrix (3 tests: ssh, mosh, mosh+screen-off+reconnect)
+- Test matrix (3 tests: ssh, mosh, mosh+tắt-màn-hình+reconnect)
 - Daily workflow + troubleshooting + rollback
 
 ---
 
-## After migration
+## Sau khi migrate
 
-The old `ssh kite` flow still works — same hostname alias, but resolves to Tailscale IP instead of LAN IP. The new `mosh kite` is the daily-driver command for mobile.
+`ssh kite` cũ vẫn chạy — cùng hostname alias, nhưng resolve sang Tailscale IP thay vì LAN IP. Lệnh mới `mosh kite` là daily-driver cho mobile.
 
-See main guide `../ssh-terminal-direct-access.md` §3.4 for the architectural rationale.
+Xem guide chính `../ssh-terminal-direct-access.md` §3.4 cho phần kiến trúc.
 
 ---
 
-## Created
+## Tạo
 
-2026-05-04 — alongside main guide §3.4 mosh layer addition. Triggered by Wave 17 incident where 3/4 background agents died from mobile disconnect SIGHUP cascade. PR #746.
+2026-05-04 — kèm với guide chính §3.4 (mosh layer). Trigger bởi sự cố Wave 17 — 3/4 background agent chết do SIGHUP cascade từ mobile disconnect. PR #746.

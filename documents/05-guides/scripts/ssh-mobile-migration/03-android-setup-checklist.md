@@ -1,30 +1,30 @@
-# SSH Mobile Migration — Phase 3: Android setup checklist
+# SSH Mobile Migration — Phase 3: Checklist Android
 
-**Pre-req:** Phases 1+2 done (Windows cleanup + WSL2 setup scripts ran successfully). You should have your WSL2 Tailscale IP from script 2 output (format `100.69.110.122`).
+**Pre-req:** Phase 1 + 2 đã chạy thành công (script Windows cleanup + WSL2 setup). Bạn đã có WSL2 Tailscale IP từ output script 2 (dạng `100.69.110.122`).
 
-**Time:** ~10 minutes total.
+**Thời gian:** ~10 phút.
 
 ---
 
 ## A) Tailscale Android app
 
-If already installed and signed in (per main guide §4.1), **skip to B**. Otherwise:
+Nếu đã cài + sign in (theo guide chính §4.1) → **bỏ qua, sang B**. Nếu chưa:
 
-1. Play Store → search **"Tailscale"** → Install (official Tailscale Inc.)
-2. Open → **Sign in** → use SAME identity provider you used for WSL2 Tailscale (Google / Microsoft / GitHub / Apple)
-3. After login, machine list should show **kite-wsl2** as Connected
-4. **Settings → Always-on VPN: ON** (so Tailscale auto-resumes after phone wakes)
-5. **Settings → Battery optimization: Tailscale = Don't optimize** (Android 12+; varies by ROM)
+1. Play Store → search **"Tailscale"** → Install (Tailscale Inc. official)
+2. Mở app → **Sign in** → dùng CÙNG identity provider đã dùng cho Tailscale WSL2 (Google / Microsoft / GitHub / Apple)
+3. Sau login, danh sách máy phải thấy **kite-wsl2** = Connected
+4. **Settings → Always-on VPN: ON** (Tailscale tự resume sau khi phone wake)
+5. **Settings → Battery optimization: Tailscale = Don't optimize** (Android 12+; tùy ROM)
 
 ---
 
-## B) Termux from F-Droid
+## B) Termux từ F-Droid
 
-⚠ **Use F-Droid version, NOT Play Store version.** F-Droid is the canonical maintained release; Play Store is an unofficial fork.
+⚠ **Dùng F-Droid version, KHÔNG phải Play Store version.** F-Droid là canonical maintained release; Play Store là unofficial fork.
 
-1. Browser → https://f-droid.org/packages/com.termux/ → Download APK
-2. Install (allow "Install unknown apps" for browser if prompted)
-3. Open Termux, run:
+1. Browser → https://f-droid.org/packages/com.termux/ → Tải APK
+2. Cài (cho phép "Install unknown apps" cho browser nếu hỏi)
+3. Mở Termux, chạy:
    ```bash
    pkg update && pkg upgrade -y
    pkg install -y mosh openssh tmux
@@ -32,71 +32,71 @@ If already installed and signed in (per main guide §4.1), **skip to B**. Otherw
 
 ---
 
-## C) SSH key for Termux → WSL2
+## C) SSH key Termux → WSL2
 
-### C.1) Check existing key first
+### C.1) Check key đã có chưa
 
 ```bash
-# In Termux
-ls -la ~/.ssh/kite_dev ~/.ssh/kite_dev.pub 2>/dev/null && echo "KEY EXISTS" || echo "NO KEY — go to C.2"
+# Trong Termux
+ls -la ~/.ssh/kite_dev ~/.ssh/kite_dev.pub 2>/dev/null && echo "KEY EXISTS" || echo "NO KEY — sang C.2"
 ```
 
-If output shows `KEY EXISTS` + 2 files (private + .pub) → already have key. **Verify it's installed on WSL2:**
+Nếu in `KEY EXISTS` + 2 file (private + .pub) → đã có key. **Verify key đã install trên WSL2:**
 
 ```bash
-# In Termux — quick test (will succeed if key works, fail if needs install)
+# Trong Termux — quick test (success nếu key chạy OK, fail nếu chưa install)
 ssh -i ~/.ssh/kite_dev -p 2222 -o StrictHostKeyChecking=no -o BatchMode=yes nguyenvankiet@100.69.110.122 "echo OK" 2>&1 | tail -1
-# Output "OK"            → key installed, skip to D
-# Output "Permission denied" or "Connection refused" → key not installed, do C.3
+# In "OK"                                          → key đã installed, sang D
+# In "Permission denied" hoặc "Connection refused" → key chưa install, làm C.3
 ```
 
-### C.2) Generate new key (only if C.1 said NO KEY)
+### C.2) Generate key mới (chỉ khi C.1 báo NO KEY)
 
 ```bash
-# In Termux
+# Trong Termux
 ssh-keygen -t ed25519 -C "android-termux@kite-dev" -f ~/.ssh/kite_dev -N ""
-# -N "" = no passphrase (mobile-friendly; protected by Tailscale auth + device unlock)
+# -N "" = không passphrase (mobile-friendly; bảo vệ bằng Tailscale auth + device unlock)
 ```
 
-**Auto-copy public key to clipboard** (best — paste straight into Claude chat):
+**Auto-copy public key vào clipboard** (tốt nhất — paste thẳng vào Claude chat):
 
 ```bash
-# In Termux — install clipboard tool if not yet (one-time, ~3MB)
+# Trong Termux — cài clipboard tool nếu chưa (1 lần, ~3MB)
 pkg install -y termux-api
 
-# Copy pubkey to Android clipboard (KHÔNG cần cat + select bằng tay)
+# Copy pubkey vào clipboard Android (KHÔNG cần cat + select tay)
 cat ~/.ssh/kite_dev.pub | termux-clipboard-set
-echo "Public key copied to clipboard. Paste vào Claude chat."
+echo "Public key đã copy vào clipboard. Paste vào Claude chat."
 
-# Optional: verify what's on clipboard
+# Optional: verify clipboard có gì
 termux-clipboard-get
 ```
 
-> Pre-req for `termux-clipboard-set`: install **Termux:API** companion app from F-Droid (https://f-droid.org/packages/com.termux.api/) — same source as Termux. Without it, `termux-clipboard-set` fails silently.
+> Pre-req cho `termux-clipboard-set`: cài **Termux:API** companion app từ F-Droid (https://f-droid.org/packages/com.termux.api/) — cùng source với Termux. Thiếu nó, `termux-clipboard-set` fail im lặng.
 
-**Fallback (no Termux:API):** `cat ~/.ssh/kite_dev.pub` → long-press output text → Select all → Copy.
+**Fallback (không có Termux:API):** `cat ~/.ssh/kite_dev.pub` → long-press output → Select all → Copy.
 
-### C.3) Install pubkey on WSL2
+### C.3) Install pubkey lên WSL2
 
-**Easiest from mobile:** paste the public key line into Claude Code chat — say "install this Termux pubkey on WSL2" and Claude appends it to `~/.ssh/authorized_keys`.
+**Dễ nhất từ mobile:** paste public key vào Claude Code chat — bảo "install Termux pubkey này lên WSL2", Claude sẽ append vào `~/.ssh/authorized_keys`.
 
-**Or manual** (if you have other SSH access to WSL2):
+**Hoặc thủ công** (nếu có SSH access khác vào WSL2):
 
 ```bash
-# On WSL2
+# Trên WSL2
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
 echo 'ssh-ed25519 AAAA... android-termux@kite-dev' >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
 
-**Verify install:** repeat the test command from C.1 — should now print `OK`.
+**Verify install:** chạy lại lệnh test ở C.1 — bây giờ phải in `OK`.
 
 ---
 
 ## D) Termux SSH config
 
 ```bash
-# In Termux — create ~/.ssh/config
+# Trong Termux — tạo ~/.ssh/config
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
 cat > ~/.ssh/config <<'EOF'
 Host kite
@@ -111,114 +111,114 @@ chmod 600 ~/.ssh/config
 
 ---
 
-## E) Test the new stack
+## E) Test stack mới
 
 ```bash
-# In Termux
+# Trong Termux
 
-# Test 1: Plain SSH works (TCP path, no mosh yet)
+# Test 1: Plain SSH chạy (TCP path, chưa mosh)
 ssh kite "echo 'SSH OK from Termux at' \$(date)"
 
-# Test 2: Mosh works (UDP path, the survival layer)
+# Test 2: Mosh chạy (UDP path, lớp survival)
 mosh kite
-# → should auto-attach tmux session "claude" (per ~/.bashrc snippet from script 2)
-# → if a fresh "claude" session, you'll see empty bash prompt inside tmux
+# → tự attach tmux session "claude" (theo snippet ~/.bashrc của script 2)
+# → nếu session "claude" mới → bash prompt rỗng trong tmux
 
-# Once inside tmux session "claude":
-# - Run: echo "Hello from mobile" > /tmp/mobile-test.txt
-# - Press Ctrl+B then D to detach (session stays alive on WSL2)
-# - Close Termux completely (swipe away from app switcher)
-# - Wait 1 minute
-# - Reopen Termux, run: mosh kite
-# - You should land back in same tmux with the prompt where you left off
-# - Verify: cat /tmp/mobile-test.txt — should print "Hello from mobile"
+# Bên trong session "claude":
+# - Chạy: echo "Hello from mobile" > /tmp/mobile-test.txt
+# - Bấm Ctrl+B rồi D để detach (session vẫn alive trên WSL2)
+# - Đóng Termux hẳn (swipe khỏi recent apps)
+# - Đợi 1 phút
+# - Mở lại Termux, chạy: mosh kite
+# - Phải về đúng tmux + prompt vừa rồi
+# - Verify: cat /tmp/mobile-test.txt — phải in "Hello from mobile"
 ```
 
-If all 3 pass → migration successful. Network drops, app switches, screen-off — none kill the session anymore.
+3 test pass → migration thành công. Mất mạng, switch app, tắt màn hình — không cái nào kill session nữa.
 
 ---
 
-## F) Daily workflow on phone
+## F) Daily workflow trên phone
 
 ```bash
-# Morning — open Termux, one command:
+# Sáng — mở Termux, 1 lệnh:
 mosh kite
-# → auto-attaches to "claude" tmux session
-# → Claude Code commands work normally:
+# → tự attach tmux session "claude"
+# → Claude Code chạy bình thường:
 #     cd ~/projects/2026-Kite-Class-Platform
 #     claude
 
-# Switch app, screen off, lose network:
-# DO NOTHING. Mosh + tmux survive.
+# Switch app, tắt màn hình, mất mạng:
+# KHÔNG làm gì. Mosh + tmux survive.
 
-# When you reopen Termux later:
-# Already attached? Just keep typing.
-# Disconnected? Type 'mosh kite' again — back where you left off.
+# Mở lại Termux sau:
+# Đang attached? Cứ tiếp tục gõ.
+# Disconnected? Gõ 'mosh kite' lại — về đúng chỗ vừa rời.
 
-# Force-takeover (e.g. forgot to detach on laptop):
+# Force-takeover (vd quên detach trên laptop):
 mosh kite -- tmux attach -d -t claude
 ```
 
 ---
 
-## G) Optional polish
+## G) Polish (optional)
 
 ### Termux widget (one-tap launch)
 
-Install **Termux:Widget** from F-Droid → home screen widget shortcut to `mosh kite` script. Tap to instant-connect.
+Cài **Termux:Widget** từ F-Droid → home screen widget shortcut chạy `mosh kite`. Tap để instant-connect.
 
-### Wakelock (prevent Android killing Termux during long mosh idle)
+### Wakelock (chống Android kill Termux khi mosh idle lâu)
 
 ```bash
-# In Termux, install API tools
+# Trong Termux, cài API tools
 pkg install -y termux-api
-# Acquire wakelock when mosh active
+# Acquire wakelock khi mosh active
 termux-wake-lock
-# Release when done
+# Release khi xong
 termux-wake-unlock
 ```
 
-Caveat: drains battery slightly. Use only when running long agents you want to monitor.
+Caveat: tốn pin chút. Chỉ dùng khi chạy long agent cần monitor.
 
-### ntfy push notification (optional — long-running task complete)
+### ntfy push notification (optional — long task xong báo)
 
-Add to WSL2 (e.g. as Claude stop hook):
+Thêm vào WSL2 (vd làm Claude stop hook):
 
 ```bash
 curl -d "Wave done in $(date +%H:%M)" ntfy.sh/your-secret-topic-name
 ```
 
-Install ntfy app on Android, subscribe to same topic → get push when long agents finish (don't have to keep checking mosh).
+Cài ntfy app trên Android, subscribe topic giống → push notify khi long agent xong (không phải check mosh suốt).
 
 ---
 
-## H) Rollback (if migration fails)
+## H) Rollback (nếu migration fail)
 
 ```bash
-# WSL2 — revert ~/.bashrc tmux snippet
+# WSL2 — gỡ snippet tmux khỏi ~/.bashrc
 sed -i '/# >>> ssh-mobile-migration tmux auto-attach >>>/,/# <<< ssh-mobile-migration tmux auto-attach <<</d' ~/.bashrc
 
-# WSL2 — stop services (don't uninstall in case you re-enable later)
+# WSL2 — stop services (không uninstall, để dùng lại sau nếu cần)
 sudo systemctl disable --now tailscaled
 sudo systemctl disable --now ssh
 
-# Windows — re-add portproxy if you used it before (run cleanup script in reverse manually,
-# or follow main guide §2.3)
+# Windows — add lại portproxy nếu trước có (chạy ngược script cleanup thủ công,
+# hoặc theo guide chính §2.3)
 ```
 
-Most likely failure modes + fixes:
-- **Mosh handshake timeout:** corp/uni firewall blocks UDP 60000-61000. Test from home network.
-- **Tailscale "logged out" after phone reboot:** Always-on VPN not enabled. Re-do step A4.
-- **Session "claude" not auto-attaching:** ~/.bashrc snippet missing. Re-run script 2 (idempotent).
-- **WSL2 dies overnight:** Windows sleep settings. Power Options → "When plugged in, never sleep".
+Failure modes hay gặp + fix:
+- **Mosh handshake timeout:** corp/uni firewall block UDP 60000-61000. Test từ mạng nhà trước.
+- **Tailscale "logged out" sau khi reboot phone:** Always-on VPN chưa enable. Làm lại bước A4.
+- **Session "claude" không auto-attach:** snippet ~/.bashrc thiếu. Chạy lại script 2 (idempotent).
+- **WSL2 chết qua đêm:** Windows sleep settings. Power Options → "When plugged in, never sleep".
 
 ---
 
-## Done
+## Xong
 
-You're now on the mobile-resilient stack. Mobile disconnect cannot kill long-running agents.
+Bạn đã ở stack mobile-resilient. Mobile disconnect không kill được long-running agent nữa.
 
 Cross-references:
-- Architecture overview: `documents/05-guides/ssh-terminal-direct-access.md` §3.4
+- Kiến trúc tổng quan: `documents/05-guides/ssh-terminal-direct-access.md` §3.4
 - Memory: `feedback_agent_kill_root_cause.md` (root cause analysis)
-- PR introducing this: #746
+- PR introducing: #746
