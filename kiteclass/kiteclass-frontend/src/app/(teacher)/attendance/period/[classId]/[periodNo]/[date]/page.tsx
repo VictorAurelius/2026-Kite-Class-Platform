@@ -37,13 +37,16 @@ import {
   useDailyRoster,
   useUpsertAttendancePeriod,
 } from '@/hooks/use-period-attendance';
-import type {
-  AttendancePeriodBatchEntry,
-  AttendancePeriodResponse,
-  AttendancePeriodStatus,
+import {
+  attendancePeriodApi,
+  type AttendancePeriodBatchEntry,
+  type AttendancePeriodResponse,
+  type AttendancePeriodStatus,
 } from '@/lib/api/attendance-period';
 import { useAuthStore } from '@/stores/auth-store';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { useOfflineAttendanceQueue } from '@/lib/offline/use-offline-attendance-queue';
+import { OfflineSyncStatusBadge } from '@/lib/offline/sync-status-badge';
 
 interface RouteParams extends Record<string, string | string[] | undefined> {
   classId: string;
@@ -135,6 +138,19 @@ export default function PeriodAttendancePage() {
     date,
   });
 
+  // Offline queue — wraps the same upsertBatch endpoint, persists batches in
+  // IndexedDB when offline, and auto-drains on the `online` event. The
+  // upsertFn is the network-only path (no toast / cache invalidation noise);
+  // those are handled by `upsert.mutate()` for the on-line save path.
+  const offlineQueue = useOfflineAttendanceQueue({
+    upsertFn: async (item) => {
+      await attendancePeriodApi.upsertBatch(
+        { entries: item.entries },
+        { teacherId: item.teacherId },
+      );
+    },
+  });
+
   const [localStatuses, setLocalStatuses] = React.useState<
     Record<number, AttendancePeriodStatus>
   >({});
@@ -205,6 +221,23 @@ export default function PeriodAttendancePage() {
       .filter((entry): entry is AttendancePeriodBatchEntry => entry !== null);
 
     if (entries.length === 0) return;
+
+    // Offline-aware save path:
+    //   - navigator.onLine === false → enqueue to IDB; the user's badge
+    //     turns amber and they can keep working until reconnect
+    //   - online → fire the normal mutation; on the rare network failure,
+    //     the mutation's onError surfaces a toast and the user can manually
+    //     re-save (which will queue at that point)
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      void offlineQueue.enqueue({
+        teacherId,
+        classId,
+        date,
+        entries,
+      });
+      return;
+    }
+
     upsert.mutate({ entries });
   }, [
     isParamValid,
@@ -216,6 +249,7 @@ export default function PeriodAttendancePage() {
     periodNo,
     date,
     upsert,
+    offlineQueue,
   ]);
 
   if (!isParamValid) {
@@ -254,6 +288,15 @@ export default function PeriodAttendancePage() {
           Lớp #{classId} · {date}
         </p>
       </header>
+
+      <OfflineSyncStatusBadge
+        pending={offlineQueue.state.pending}
+        failed={offlineQueue.state.failed}
+        synced={offlineQueue.state.synced}
+        onRetry={() => {
+          void offlineQueue.flush();
+        }}
+      />
 
       {isRosterLoading ? (
         <div className="flex items-center justify-center p-8">
