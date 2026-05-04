@@ -1,0 +1,27 @@
+/**
+ * @kite/shared-ui — design tokens
+ *
+ * Phase 1 (this commit): mirrors documents/02-architecture/design-system/
+ * ui_kits/_shared/colors_and_type.css for production parity. Production
+ * frontends import this via `@kite/shared-ui/styles/tokens.css`.
+ *
+ * Phase 2+: extracts component-scoped tokens (per G* + D* component) into
+ * separate files under styles/.
+ *
+ * Source-of-truth: ui_kits/_shared/colors_and_type.css (HTML prototype tokens).
+ * Drift between this file and the source = bug. Future automation
+ * (sync script + CI check) tracked separately.
+ */
+
+/* Phase 1: re-export source tokens via @import for now — production frontends
+   load this CSS file once at app root. When tooling matures (Phase 2+),
+   replace with extracted token bundle (no runtime fetch). */
+
+/* For now, callers should `import "@kite/shared-ui/styles/tokens.css";`
+   in their app's globals.css to opt-in. Phase 1 contains stub tokens
+   to ensure the import path resolves. */
+
+:root {
+  /* Phase 1 stub — component-touch PRs will populate per dossier 04-component-gaps */
+  --kite-shared-ui-version: '0.1.0';
+}
