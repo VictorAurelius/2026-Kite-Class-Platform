@@ -1,6 +1,6 @@
 # GAP-322: Child Protection Workflow — CRIMINAL LIABILITY (Luật Trẻ em 2016 Đ.51 + Đ.25 + Decree 56/2017)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1A foundation shipped 2026-05-04 (Wave 18b1 Bucket E). Phase 1B (vetting workflow + MinIO encrypted bucket + RBAC gate) → GAP-322b. Phase 1C (mandatory-reporting banner + hash-chained audit log + 7y retention) → GAP-322c.
 **Priority:** 🔴 P0 LEGAL (criminal liability if breached)
 **Domain:** Backend + Compliance + Frontend
 **Detected:** 2026-05-04 (Wave 17 Bucket D — P5 K-12 persona review)
@@ -97,18 +97,39 @@ Persona simulation showed real risk: PH HS D 7A reports suspected online bullyin
 
 ## Acceptance Criteria
 
-- [ ] `Incident` entity with field-level encryption on sensitive fields (V<N>__incidents.sql)
-- [ ] `safeguarding_officer` role added to RBAC + assignable per tenant
-- [ ] Staff vetting workflow: upload + verify + RBAC-gate access until verified
-- [ ] MinIO encrypted bucket configured (AES-256) for vetting evidence + incident attachments
-- [ ] Mandatory reporting auto-suggest banner (Đ.51) shown when severity=CRITICAL + abuse category
-- [ ] Non-repudiation hash-chained audit log (admin cannot delete entries)
-- [ ] PH/HS/GV can submit incident via portal (parent → GAP-321 portal; GV → existing kiteclass UI)
-- [ ] 7-year evidence retention enforced (delete-protection until expiry)
-- [ ] Test scenario: PH submits critical incident with image → only safeguarding officer + HT see decrypted; system shows Đ.51 reporting reminder; audit log immutable
-- [ ] Documentation 3-layer per `documents/01-business/kiteclass/child-protection/`
-- [ ] business-logic-review.md 5-attribute frontmatter (Source: Luật Trẻ em + Decree 13/2023 + Decree 56/2017; Compliance: Compliant; Reviewer: solo-dev acting Legal scout — formal counsel review queued via GAP-156; Cadence: Annual + event-driven on Luật Trẻ em / Decree amendment)
+### Phase 1A — DONE 2026-05-04 (Wave 18b1 Bucket E)
+
+- [x] `Incident` entity with field-level encryption on sensitive fields (V49__add_child_protection_incidents.sql)
+- [x] `SAFEGUARDING_OFFICER` system-template role + 3 permissions seeded at NIL UUID (cloned per-tenant by RoleSeederService)
+- [x] AES-256-GCM `AesGcmAttributeConverter` with per-field random IV + 128-bit auth tag (16 unit tests; tampered IV/cipher/tag detection verified)
+- [x] `IncidentService` Phase 1A CRUD skeleton: create / findById / findAll / updateStatus / assignOfficer / softDelete (17 unit tests)
+- [x] Documentation 3-layer per `documents/01-business/kiteclass/child-protection/` (rules.md / use-cases.md / api-contract.md)
+- [x] business-logic-review.md 5-attribute frontmatter (Source: Luật Trẻ em + Decree 13/2023 + Decree 56/2017 + BLHS Đ.147; Compliance: Compliant for Phase 1A skeleton; Reviewer: solo-dev acting Legal scout — formal counsel review queued via GAP-156; Cadence: Annual + event-driven on Luật Trẻ em / Decree amendment)
+- [x] mvn test green (kiteclass-core full suite: 1192 tests, 0 failures, 0 errors)
+
+### Phase 1B — DEFERRED to GAP-322b
+
+- [ ] Staff vetting workflow: upload (LLTP số 2 + bằng tốt nghiệp + CCCD scan + ảnh 3×4) + verify queue + RBAC-gate teacher access until `verified=true`
+- [ ] MinIO encrypted bucket `staff-vetting-evidence/{tenantId}/{userId}/` (AES-256 at rest)
+- [ ] RBAC gate on Incident decryption — only `SAFEGUARDING_OFFICER` + `PRINCIPAL` + `COUNSELOR` may invoke decrypt-aware reads
+- [ ] State-machine enforcement on `IncidentStatus` transitions (Phase 1A allows arbitrary)
+- [ ] HTTP REST endpoints (POST / GET list / GET id / PUT status / PUT officer / DELETE)
+- [ ] PH/HS/GV submission channels (parent → GAP-321 portal; GV → kiteclass UI)
+- [ ] Annual re-vetting reminder + 2-year LLTP refresh scheduled job
+
+### Phase 1C — DEFERRED to GAP-322c
+
+- [ ] Mandatory-reporting auto-suggest banner (Đ.51) when `severity=CRITICAL` + `category ∈ {ABUSE, GROOMING, CSAM}`
+- [ ] Hash-chained non-repudiation audit log (admin cannot delete entries — DB trigger + RBAC)
+- [ ] 7-year evidence retention enforcement (`status=CLOSED` rows delete-protected while age < 7y)
+- [ ] CSAM no-delete rule (BR-CHILD-PROT-016)
 - [ ] Penetration test: encrypted fields cannot be read via DB direct query without decrypt key
+- [ ] Test scenario: PH submits critical incident with image → only safeguarding officer + HT see decrypted; system shows Đ.51 reporting reminder; audit log immutable
+
+### Stage 2 — DEFERRED multi-quarter (Q4 2026)
+
+- [ ] Tổng đài 111 webhook (if MOLISA exposes API) or PDF export for offline submission
+- [ ] Công an địa phương coordinator workflow
 
 ## Related
 
@@ -121,5 +142,6 @@ Persona simulation showed real risk: PH HS D 7A reports suspected online bullyin
 
 ## Log
 
+- **2026-05-04 (Phase 1A SHIPPED — Wave 18b1 Bucket E)** — Foundation delivered: NEW `kiteclass-core/module/childprotection/` module with `AesGcmAttributeConverter` (AES-256-GCM, per-field 96-bit random IV, 128-bit auth tag, BYTEA storage), `Incident` entity with `@Convert` on `description` + `evidence_paths` columns, 3 enums (Severity/Category/Status), `IncidentRepository`, `IncidentService` Phase 1A CRUD skeleton, V49 migration with 7 indexes + CHECK constraints + role + 3 permission seeds. Tests: 33 new unit tests (16 converter + 17 service) covering encrypt/decrypt roundtrip, per-field random IV, tampered IV+cipher+tag detection (GCM auth tag), Vietnamese diacritics + emoji UTF-8 roundtrip, prod-profile fail-fast, dev-profile ephemeral-key fallback, validation error paths. Full kiteclass-core suite 1192 tests / 0 failures / 0 errors. 3-layer business docs created with `business-logic-review.md` 5-attribute frontmatter (cited Luật Trẻ em 2016 Đ.6/25/51/54 + Decree 56/2017 + Decree 13/2023 Art 16 + BLHS Đ.147). Phase 1B (GAP-322b) + Phase 1C (GAP-322c) sister gaps to be filed by closure coordinator. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp (deferred items have follow-up gap references). K12_ENTERPRISE tier remains BLOCKED until Phase 1B + Phase 1C ship + legal-counsel sign-off via GAP-156.
 - **2026-05-04 (revision per GAP-345)** — Updated Current State to clarify `module/legal/` exists but is DMCA + Trademark IP-protection (NOT confusable with child-protection workflow); `module/moderation/` likely AI/content moderation (separate concern). Verdict unchanged — workflow itself fully greenfield, but explicit guidance added: this gap MUST create new module `module/childprotection/` or `module/safeguarding/`, do NOT extend `module/legal/`. Status remains 🔵 OPEN.
 - **2026-05-04** — Filed during Wave 17 Bucket D P5 review. State-check: zero pre-existing implementation; GAP-186 is policy skeleton only. This gap is workflow implementation. Carries criminal-liability flag — recommend NOT enable K12_ENTERPRISE tier until landed.
