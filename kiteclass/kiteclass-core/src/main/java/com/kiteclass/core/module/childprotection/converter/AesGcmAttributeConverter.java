@@ -3,8 +3,9 @@ package com.kiteclass.core.module.childprotection.converter;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -55,7 +56,7 @@ import java.util.Base64;
  */
 @Slf4j
 @Converter(autoApply = false)
-@Configuration
+@Component
 public class AesGcmAttributeConverter implements AttributeConverter<String, byte[]> {
 
     private static final String ALGORITHM = "AES/GCM/NoPadding";
@@ -78,6 +79,7 @@ public class AesGcmAttributeConverter implements AttributeConverter<String, byte
      * @param activeProfile   Spring active profile — "prod"/"production" require
      *                        explicit master key (fail-fast)
      */
+    @Autowired
     public AesGcmAttributeConverter(
             @Value("${encryption.master-key:#{null}}") String masterKeyBase64,
             @Value("${spring.profiles.active:dev}") String activeProfile) {
