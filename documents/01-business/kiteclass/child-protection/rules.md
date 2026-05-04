@@ -1,7 +1,7 @@
 # Child Protection — Business Rules
 
 **Domain:** KiteClass Core / Compliance / Safeguarding
-**Version:** 0.1 (Phase 1A)
+**Version:** 0.2 (Phase 1A + Phase 1B foundation)
 **Created:** 2026-05-04
 **Last-Reviewed:** 2026-05-04
 **Reviewer-Approver:** @nguyenvankiet (acting Legal scout, solo-dev, 2026-05-04). Formal Vietnamese child-protection counsel review queued via GAP-156.
@@ -107,6 +107,22 @@ K-12 tenant onboarding flag (`tenant.vertical_type=K12_ENTERPRISE`) MUST remain 
 - [ ] Anonymous reporting mode design (proxy-account vs system-user pattern) for PH/HS confidentiality
 - [ ] Decision: store children's PII (subject_student_id) plaintext (current) vs encrypted? Phase 1A keeps plaintext FK for query efficiency; counsel review required.
 
+## 6. Vetting workflow rules (Phase 1B foundation — GAP-322b, Wave 18b2 Bucket B)
+
+Each rule below carries the 5-attribute review frontmatter per `.claude/rules/business-logic-review.md`:
+- **Source** common to BR-VETTING-001..005: Decree 56/2017/NĐ-CP §Đ.25 + Luật Trẻ em 2016 Đ.25 (vetting nhân sự); PDPL Decree 13/2023/NĐ-CP Art 16 (special protection of child-related personal data).
+- **Reviewer** common: @nguyenvankiet (acting Legal scout + Compliance, solo-dev, 2026-05-04). Formal counsel review queued — see GAP-156.
+- **Review cadence** common: Annual + event-driven on amendment of Decree 56/2017, Luật Trẻ em 2016 Đ.25, or PDPL Decree 13/2023. **Next review:** 2027-05-04.
+
+| ID | Rule | Detail | Phase |
+|----|------|--------|-------|
+| BR-VETTING-001 | Vetting state machine | Service-layer enforced transitions: `PENDING → SUBMITTED → INTERVIEW_DONE → APPROVED \| REJECTED`; `APPROVED → EXPIRED`. REJECTED + EXPIRED are terminal. Illegal transitions throw `VETTING_INVALID_TRANSITION` (HTTP 400). **Rationale:** mirrors Decree 56/2017 procedural sequence (collect docs → interview → approve/reject); explicit enum prevents skipping interview. **Compliance check:** Compliant — Decree 56/2017 §Đ.25 procedural standard. | 1B foundation |
+| BR-VETTING-002 | AES-256 on sensitive vetting fields | `vettings.lltp_number` + `vettings.police_check_details` columns are PostgreSQL `BYTEA`, encrypted at rest via the same `AesGcmAttributeConverter` shipped Wave 18b1 (Phase 1A). Plaintext NEVER persisted. **Rationale:** LLTP số 2 references criminal-record check on a person who works with minors — same special-protection class as Incident sensitive fields. **Compliance check:** Compliant — PDPL Decree 13/2023/NĐ-CP Art 16. | 1B foundation |
+| BR-VETTING-003 | RBAC — SAFEGUARDING_OFFICER only | `/api/v1/vettings/*` reads + writes restricted to callers carrying `SAFEGUARDING_OFFICER` role on the `X-User-Roles` header forwarded by the Gateway. Anyone else receives 403 `VETTING_RBAC_DENIED`. Staff teachers without an APPROVED record are blocked from student-PII endpoints by a separate filter (Phase 1B follow-up, deferred). **Rationale:** Decree 56/2017 §Đ.25 mandates background-check on adults with student-PII access; controller-layer gate stops unverified teacher access at the perimeter. **Compliance check:** Compliant — Decree 56/2017 + Đ.25. | 1B foundation |
+| BR-VETTING-004 | Storage contract pinned, MinIO impl deferred | `VettingDocumentStorage` interface with `storeDocument` / `getDownloadUrl` / `deleteDocument`. Phase 1B foundation ships `MinIOVettingDocumentStorageImpl` as a stub (deterministic URLs, INFO log, no-op delete) so callers compile + smoke-test against the contract. Concrete MinIO SDK wiring (server-side AES-256, signed URLs, 7-year retention bucket policy) deferred to Phase 1B follow-up. **Rationale:** pin contract early to unblock UI work without coupling to backend timing. **Compliance check:** Considered — concrete encryption + retention pending; tracked in GAP-322b follow-up. | 1B foundation |
+| BR-VETTING-005 | Soft-delete + audit | Vetting records inherit BaseEntity soft-delete + audit columns (created_at/by, updated_at/by, version, deleted). Soft-delete preserves the row for audit per Decree 56/2017 §Đ.25 procedural-record requirement. Phase 1C will tighten anti-delete on REJECTED + 7-year retention enforcement (parallels BR-CHILD-PROT-012 for incidents). **Rationale:** vetting decisions must be reproducible 7 years on for audit / criminal liability. **Compliance check:** Compliant (foundation) — full retention enforcement deferred to GAP-322c. | 1B foundation (tightens 1C) |
+
 ## Log
 
+- **2026-05-04** (v0.2): Phase 1B foundation — vetting workflow rules BR-VETTING-001..005 added; sister of Phase 1A BR-CHILD-PROT-001..017. Wave 18b2 Bucket B (GAP-322b). Vetting service-level state machine + AES-256 on `lltp_number` + `police_check_details` + RBAC gate on `/api/v1/vettings/*` (SAFEGUARDING_OFFICER only) + `VettingDocumentStorage` contract with stub impl shipped. LLTP file upload UI + verify queue UI + concrete MinIO SDK wiring + 7-year retention enforcement deferred to Phase 1B follow-up + Phase 1C (GAP-322c).
 - **2026-05-04** (v0.1): Phase 1A foundation — entity + encryption + role seed shipped (Wave 18b1 Bucket E). Phase 1B (GAP-322b) + Phase 1C (GAP-322c) sister gaps to be filed by closure coordinator.

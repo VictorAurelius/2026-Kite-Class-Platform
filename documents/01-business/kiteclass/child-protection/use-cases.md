@@ -1,7 +1,7 @@
 # Child Protection — Use Cases
 
 **Domain:** KiteClass Core / Compliance / Safeguarding
-**Version:** 0.1 (Phase 1A)
+**Version:** 0.2 (Phase 1A + Phase 1B foundation)
 **Created:** 2026-05-04
 **Last-Reviewed:** 2026-05-04
 
@@ -174,6 +174,108 @@
 
 ---
 
+## Vetting workflow use cases (Phase 1B foundation — GAP-322b, Wave 18b2 Bucket B)
+
+> Phase 1B foundation ships service + endpoints + state machine + storage contract + RBAC gate. UI (LLTP upload form, verify queue table) is deferred to Phase 1B follow-up. UCs below describe the actor flows the foundation enables.
+
+---
+
+## UC-VETTING-001 — Officer creates a vetting record (PENDING)
+
+**Actor:** `SAFEGUARDING_OFFICER` (BR-VETTING-003).
+
+**Trigger:** Onboarding a new teacher; HR/officer initiates the vetting workflow.
+
+**Preconditions:**
+- Caller authenticated; `X-User-Roles` header includes `SAFEGUARDING_OFFICER`.
+- Teacher record exists in `users` (FK to `teacher_id`).
+
+**Main flow:**
+1. Officer calls `POST /api/v1/vettings` with `{ teacherId, lltpNumber?, policeCheckDetails?, expiresAt? }`.
+2. Service `VettingService.create(...)` validates `teacherId`; encrypted fields persisted via `AesGcmAttributeConverter` (BR-VETTING-002).
+3. Record persisted with `status=PENDING` (default per BR-VETTING-001).
+4. Response 201 with `VettingResponse` body.
+
+**FE behaviour (Phase 1B follow-up):** "Add new vetting" form pre-fills `teacherId` from picker; `lltpNumber` / `policeCheckDetails` optional at this stage (uploaded later by HR); after success, navigates to detail view in PENDING state.
+
+**Errors:** `400 VETTING_TEACHER_ID_REQUIRED`, `403 VETTING_RBAC_DENIED`.
+
+**Business rules invoked:** BR-VETTING-001, -002, -003, -005.
+
+---
+
+## UC-VETTING-002 — Submit documents (PENDING → SUBMITTED)
+
+**Actor:** `SAFEGUARDING_OFFICER`.
+
+**Trigger:** HR uploads LLTP số 2 + bằng tốt nghiệp + CCCD scan + ảnh 3×4; officer reviews completeness and confirms submission.
+
+**Main flow:**
+1. (Phase 1B follow-up) HR/officer uploads documents via storage endpoint (deferred — uses `VettingDocumentStorage` stub today).
+2. Officer calls `PATCH /api/v1/vettings/{id}/transition` with `{ targetStatus: "SUBMITTED" }`.
+3. Service validates current state is `PENDING`; sets `submittedAt = now()`.
+4. Response 200 with updated record.
+
+**FE behaviour (Phase 1B follow-up):** "Submit for review" button visible only when status is PENDING; disabled until at least LLTP file present.
+
+**Errors:** `400 VETTING_INVALID_TRANSITION`, `404 VETTING_NOT_FOUND`, `403 VETTING_RBAC_DENIED`.
+
+**Business rules invoked:** BR-VETTING-001, -003, -004 (storage stub).
+
+---
+
+## UC-VETTING-003 — Mark interview done (SUBMITTED → INTERVIEW_DONE)
+
+**Actor:** `SAFEGUARDING_OFFICER`.
+
+**Trigger:** Officer has conducted the in-person interview and is ready to record outcome.
+
+**Main flow:**
+1. Officer calls `PATCH /api/v1/vettings/{id}/transition` with `{ targetStatus: "INTERVIEW_DONE" }`.
+2. Service validates current state is `SUBMITTED`; sets `interviewedAt = now()`.
+3. Response 200 with updated record.
+
+**FE behaviour (Phase 1B follow-up):** "Mark interview done" button visible only when status is SUBMITTED; opens an interview-notes modal that PATCHes both notes (encrypted) and target status in one call (Phase 1B follow-up — current foundation only stamps the timestamp).
+
+**Errors:** `400 VETTING_INVALID_TRANSITION`, `404 VETTING_NOT_FOUND`, `403 VETTING_RBAC_DENIED`.
+
+---
+
+## UC-VETTING-004 — Approve or Reject (INTERVIEW_DONE → APPROVED | REJECTED)
+
+**Actor:** `SAFEGUARDING_OFFICER`.
+
+**Trigger:** Officer has reviewed interview + documents and is making a final decision.
+
+**Main flow:**
+1. Officer calls `PATCH /api/v1/vettings/{id}/transition` with `{ targetStatus: "APPROVED" }` or `"REJECTED"`.
+2. Service validates current state is `INTERVIEW_DONE`; records `decidedAt = now()` and `decidedByUserId` from the `X-User-Reference-Id` header.
+3. Response 200 with updated record.
+
+**FE behaviour (Phase 1B follow-up):** Approve / Reject buttons visible only on INTERVIEW_DONE rows; both prompt for confirmation; Reject prompts for required reason (encrypted into `policeCheckDetails`).
+
+**Postconditions:** Teacher's RBAC filter (Phase 1B follow-up) consults the `findLatestForTeacher` result on each student-PII request — APPROVED unblocks access; REJECTED keeps it blocked. EXPIRED arrives via cron (Phase 1B follow-up) when `now() > expires_at`.
+
+**Errors:** `400 VETTING_INVALID_TRANSITION`, `404 VETTING_NOT_FOUND`, `403 VETTING_RBAC_DENIED`.
+
+---
+
+## UC-VETTING-005 — Expire an approved record (APPROVED → EXPIRED)
+
+**Actor:** System cron (Phase 1B follow-up); manual override available to `SAFEGUARDING_OFFICER` for tests.
+
+**Trigger:** `now() > vettings.expires_at` while status is APPROVED. Per Decree 56/2017 procedural standard, LLTP must be refreshed ≤2 years.
+
+**Main flow:**
+1. Cron iterates `findByFilters(status=APPROVED)` filtering by `expiresAt < now()` (Phase 1B follow-up).
+2. For each, calls `transition(id, EXPIRED, null)`.
+3. Teacher's RBAC filter (Phase 1B follow-up) re-blocks student-PII access on next request.
+
+**FE behaviour:** No direct UI; the verify queue (Phase 1B follow-up) shows EXPIRED records with a "Re-vet" CTA that creates a new PENDING record for the same teacher.
+
+---
+
 ## Log
 
+- **2026-05-04** (v0.2): Phase 1B foundation — vetting workflow UCs UC-VETTING-001..005 added (sister of Phase 1A UC-CHILD-PROT-001..010). Wave 18b2 Bucket B (GAP-322b). UI (upload form, verify queue, RBAC filter) deferred to Phase 1B follow-up; foundation ships service + endpoints + state machine + storage contract.
 - **2026-05-04** (v0.1): Phase 1A skeleton use cases UC-CHILD-PROT-001..004 + 005..010 placeholders. Wave 18b1 Bucket E.
