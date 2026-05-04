@@ -164,10 +164,14 @@ Review sau khi dự án mature, decide support hay không.
 | **Teacher** | Educator | Gradebook, attendance, class management, communication | GAP-153: teacher-employee-in-P3.md, teacher-employee-in-P5.md |
 | **Student** | Learner | View schedule, submit work, pay fees, view grades | GAP-153: student-in-P2/P3/P5.md |
 | **Parent** | Guardian (K-12) | View child's progress, pay fees, communicate with teacher | GAP-153: parent-in-P5.md (P0); P2/P3 deferred P1 |
-| **Accountant** | Finance | Invoicing, payment collection, financial reports | GAP-153 P1 cells (deferred to GAP-155) |
-| **Receptionist** | Front-desk | Enrollment, inquiries, scheduling | GAP-153 P2 cells (deferred to GAP-156) |
-| **IT Staff** | Technical | Integration, data import/export, troubleshooting | GAP-153 P2 cells (deferred to GAP-156) |
-| **Parent Rep** | Parent committee | Organize events, coordinate với school | GAP-153 P2 cells (deferred to GAP-156) |
+| **Accountant** | Finance | Invoicing, payment collection, financial reports | Phase 3 P2 cells (deferred to GAP-282) |
+| **Receptionist** | Front-desk | Enrollment, inquiries, scheduling | Phase 3 P2 cells (deferred to GAP-282) |
+| **IT Staff** | Technical | Integration, data import/export, troubleshooting | Phase 3 P2 cells (deferred to GAP-282) |
+| **Parent Rep** | Parent committee | Organize events, coordinate với school | Phase 3 P2 cells (deferred to GAP-282) |
+
+**Phase 2 P1 cells (deferred to GAP-281):** student-in-P1 (Solo Teacher tenant), parent-in-P2 + parent-in-P3 (parent engagement at smaller scales), teacher-employee-in-P2 (1-2 hired teachers).
+
+**Wave Secondary-Persona-AC (2026-04-30, 12th wave-pack) SHIPPED 8 P0 cells: GAP-153 → 🟢 DONE.** Total **167 ACs** across 8 secondary persona AC docs (Student × P2/P3/P5 + Parent × P5 + Teacher-employee × P3/P5 + Admin × P3/P5).
 
 ---
 

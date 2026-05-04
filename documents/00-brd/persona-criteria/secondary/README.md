@@ -50,7 +50,7 @@ Each cell needs its own AC doc. Without this, GAP-152 P5 review missed Student/P
 | Path | Tenant context | Role | Status | Tracking |
 |------|:--------------:|------|:------:|----------|
 | `README.md` | — | (this index) | — | — |
-| [`student-in-P2.md`](student-in-P2.md) | Small Tutoring Center | Student | 🟡 DRAFT v1 | GAP-153 (PR #) |
+| [`student-in-P2.md`](student-in-P2.md) | Small Tutoring Center | Student | 🟡 DRAFT v1 (PR #726) | GAP-153 SHIPPED |
 | [`student-in-P3.md`](student-in-P3.md) | Medium Education Center | Student | 🟡 DRAFT v1 | GAP-153 |
 | [`student-in-P5.md`](student-in-P5.md) | **K-12 School (USER PRIORITY)** | Student | 🟡 DRAFT v1 | GAP-153 |
 | [`parent-in-P5.md`](parent-in-P5.md) | **K-12 School (LEGAL MANDATE)** | Parent | 🟡 DRAFT v1 | GAP-153 |

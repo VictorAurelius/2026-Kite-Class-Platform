@@ -5,7 +5,7 @@
 **Domain:** Business / Persona / Review
 **Found:** 2026-04-20 (user raised: "phải nhập vai đúng các đối tượng này để thực hiện review")
 **Affects:** GA readiness, backlog prioritization, feature roadmap calibration
-**Blocked by:** GAP-151 (tenant AC) + GAP-153 (secondary persona AC for Student/Parent in P5 review)
+**Blocked by:** ~~GAP-151~~ (DONE Wave 15, 2026-04-30) + ~~GAP-153~~ (DONE Wave 16, 2026-04-30) — **UNBLOCKED 2026-04-30**, ready for Wave 17 execution
 
 ## Problem
 
@@ -144,4 +144,5 @@ If performance critical → split into sub-gaps GAP-152a/b/c/d after first perso
 
 ## Log
 
+- **2026-04-30** — **UNBLOCKED** — both dependencies shipped same day: GAP-151 (Wave 15 Persona-AC-Template, 121 ACs across 4 Tier-1 personas) + GAP-153 (Wave 16 Secondary-Persona-AC, 167 ACs across 8 secondary persona docs). Path B execution (GAP-153 first → GAP-152 next) avoided PARTIAL closure-loop. Total ACs available for review: **288 ACs across 12 docs** (4 tenant + 8 secondary). Wave 17 (next wave-pack candidate) ready to execute Round 1 review with 4 parallel agents (one per Tier-1 persona, consuming both tenant + relevant secondary AC docs).
 - 2026-04-20 — Created. User raised: persona reviews chưa execute, xlsx import case show framework works but unused. Scoped to Tier 1 only to bound wave effort.
