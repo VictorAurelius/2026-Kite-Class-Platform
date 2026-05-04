@@ -3,6 +3,7 @@ package com.kitehub.platform.domain.entity;
 import com.kitehub.platform.domain.enums.InstanceStatus;
 import com.kitehub.platform.domain.enums.MigrationPhase;
 import com.kitehub.platform.domain.enums.PricingTier;
+import com.kitehub.platform.domain.enums.VerticalType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -226,6 +227,22 @@ public class Instance extends BaseEntity {
     @Size(max = 500)
     @Column(name = "migration_failure_reason", length = 500)
     private String migrationFailureReason;
+
+    /**
+     * Operating-model discriminator (CENTER vs K12_SCHOOL).
+     *
+     * <p>CENTER (default) preserves legacy behaviour: per-day attendance,
+     * single-subject grading. K12_SCHOOL switches kiteclass-core to
+     * per-period attendance and multi-subject gradebook per TT 22/2021 +
+     * TT 32/2018. Phase 1A (Wave 18b1, GAP-323) enforces the K-12 contract
+     * in the service layer; Phase 1B will add per-table CHECK constraints.
+     *
+     * @since GAP-323 Phase 1A (Wave 18b1)
+     */
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vertical_type", length = 20, nullable = false)
+    private VerticalType verticalType = VerticalType.CENTER;
 
     /**
      * Check if this instance is on trial.

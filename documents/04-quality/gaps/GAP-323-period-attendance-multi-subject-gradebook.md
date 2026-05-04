@@ -116,17 +116,22 @@ P5 K-12 review Finding 3. This is the **core daily operations blocker**. Without
 - [x] ~~Multi-subject infrastructure (SubjectSection + SubjectGrade entities)~~ — DONE GAP-054 Phase 1
 - [x] ~~ClassScheduleSlot structured weekly schedule~~ — DONE GAP-099 Phase 1
 - [x] ~~TT 22/2021 formula documented~~ — DONE in `SubjectGrade.java` javadoc (NOT yet in service class)
-- [ ] Migration `V<N>__attendance_period.sql` + `V<N+1>__extend_subject_grade.sql` shipped (backward compatible — extends, not recreates)
-- [ ] Tenant `vertical_type` enum added (CENTER, K12_SCHOOL); period_no required when K12_SCHOOL
-- [ ] `GradeFormulaService` NEW class implements TT 22/2021 ĐTBmHK + ĐTBmCN formulas with unit tests (wraps formula already in SubjectGrade javadoc)
-- [ ] SubjectGrade extended with `type, weight, status, reviewed_by, published_at` fields (no entity recreation)
-- [ ] Grade state machine DRAFT → REVIEWED → PUBLISHED enforced via State Pattern (no direct status-set)
-- [ ] Mobile UI điểm danh ≤2 min for 42 HS (Playwright performance test)
-- [ ] Daily aggregation view returns vắng cả ngày = ≥7 tiết vắng
-- [ ] Period attendance + grade exposed on parent portal (GAP-321)
-- [ ] Documentation 3-layer per `documents/01-business/kiteclass/period-attendance/` + `documents/01-business/kiteclass/multi-subject-gradebook/`
-- [ ] business-logic-review.md 5-attribute on rules.md (Source: TT 22/2021 + TT 32/2018; Compliance: Compliant per TT 22/2021 Đ.7; Cadence: Annual + event-driven on TT amendment)
-- [ ] Test scenario: 30 GVCN concurrent điểm danh trong 5 phút without DB lock contention
+- [x] Migration `V50__add_attendance_period_table.sql` (kiteclass-core) shipped (backward compatible — new table, existing `attendance` preserved) — Wave 18b1 Bucket F
+- [x] Tenant `vertical_type` discriminator added — `V24__add_instance_vertical_type.sql` (kitehub-subscription) + `VerticalType` enum + `Instance.verticalType` field; default CENTER for existing rows — Wave 18b1 Bucket F. Phase 1A enforces K-12 contract in service layer; per-table CHECK constraint deferred to GAP-323b
+- [x] AttendancePeriod entity + repository + read-only service + controller (Phase 1A); 4 GET endpoints + DTO — Wave 18b1 Bucket F
+- [x] Documentation 3-layer Phase 1A — `documents/01-business/kiteclass/period-attendance/{rules.md, use-cases.md, api-contract.md}` with full 5-attribute frontmatter (Source: TT 22/2021 + TT 32/2018; Reviewer: solo-dev acting Education domain expert; Compliance: Compliant per TT 22/2021 Đ.7; Cadence: Annual + event-driven on TT amendment). `multi-subject-gradebook` 3-layer docs deferred to GAP-323c.
+- [x] Tests: 4 unit (`AttendancePeriodServiceTest`) + 5 IT (`AttendancePeriodIntegrationTest`) green; TestContainers ran V1..V50 + V1..V24 migrations on fresh DB
+- [ ] Write API (POST/PATCH/DELETE) + idempotent recording — DEFERRED to **GAP-323b**
+- [ ] Per-table CHECK constraint pairing `vertical_type = 'K12_SCHOOL'` with `attendance_period` write path — DEFERRED to **GAP-323b** (Phase 1B)
+- [ ] Mobile UI điểm danh ≤2 min for 42 HS (Playwright performance test) — DEFERRED to **GAP-323b**
+- [ ] Daily aggregation view returns vắng cả ngày = ≥7 tiết vắng — DEFERRED to **GAP-323b**
+- [ ] Period attendance + grade exposed on parent portal (GAP-321) — DEFERRED to **GAP-323b**
+- [ ] Test scenario: 30 GVCN concurrent điểm danh trong 5 phút without DB lock contention — DEFERRED to **GAP-323b**
+- [ ] `GradeFormulaService` NEW class implements TT 22/2021 ĐTBmHK + ĐTBmCN formulas with unit tests — DEFERRED to **GAP-323c**
+- [ ] SubjectGrade extended with `type, weight, status, reviewed_by, published_at` fields — DEFERRED to **GAP-323c**
+- [ ] Grade state machine DRAFT → REVIEWED → PUBLISHED enforced via State Pattern — DEFERRED to **GAP-323c**
+- [ ] Multi-subject gradebook UI 12-15 môn — DEFERRED to **GAP-323c**
+- [ ] `multi-subject-gradebook` 3-layer business docs — DEFERRED to **GAP-323c**
 
 ## Related
 
@@ -138,5 +143,6 @@ P5 K-12 review Finding 3. This is the **core daily operations blocker**. Without
 
 ## Log
 
+- **2026-05-04 (Phase 1A delivered — Wave 18b1 Bucket F)** — Phase 1A skeleton shipped: AttendancePeriod entity + repository + read-only service (Phase 1A only) + controller exposing 4 GET endpoints under `/api/v1/attendance/periods` + DTO. Migration V50 kiteclass-core creates `attendance_period` table (unique index on student+section+date+period_no per tenant; 6 query indexes; status + period_no CHECK constraints). Migration V24 kitehub-subscription adds `instances.vertical_type VARCHAR(20) NOT NULL DEFAULT 'CENTER'` + CHECK + index. New `VerticalType` enum (CENTER, K12_SCHOOL) + `Instance.verticalType` field in kitehub-platform. Backward compat verified: existing CENTER tenants default to CENTER, no behaviour change. Tests: 4 unit (`AttendancePeriodServiceTest`) + 5 IT (`AttendancePeriodIntegrationTest`) green via `mvn -pl kiteclass-core test`; TestContainers Postgres ran V1-V50 successfully (migration backward-compat on fresh DB confirmed). 3-layer business docs (`documents/01-business/kiteclass/period-attendance/{rules.md, use-cases.md, api-contract.md}`) shipped with full 5-attribute frontmatter. **Status remains 🟡 PARTIAL.** Deferred items split into two sister gaps to be filed by closure coordinator: GAP-323b (write API + idempotency, GVCN mobile UI ≤2 min, daily roll-up view, concurrent load test, Phase 1B per-table CHECK), GAP-323c (GradeFormulaService TT 22/2021 + state machine + multi-subject gradebook UI + `multi-subject-gradebook` 3-layer docs).
 - **2026-05-04 (revision per GAP-345 state-check audit)** — Status flipped 🔵 OPEN → 🟡 PARTIAL. Initial filing claimed "Subject entity multi-class — partial" + "TT 22/2021 weighted formula — missing" but Wave 18b plan brainstorm 2026-05-04 found GAP-054 Phase 1 + GAP-099 Phase 1 SHIPPED: SubjectSection (Lớp bộ môn) + SubjectGrade (with TT 22/2021 formula in javadoc) + ClassScheduleSlot + Curriculum + HomeroomClass entities exist. Period dimension on Attendance + GradeFormulaService class + state machine + UI are still missing. Revised to PARTIAL with accurate Current State + reframed Proposed Fix (Phase 2-4 build-on existing entities, NO entity recreation, extend SubjectGrade fields incrementally). Anti-pattern recurrence — `feedback_audit_grep_scope.md` head-truncation cause.
 - **2026-05-04 (initial filing)** — Filed during Wave 17 Bucket D P5 review. State-check: claimed existing attendance per-day only; missed multi-subject infrastructure shipped GAP-054 + GAP-099.
