@@ -27,6 +27,7 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 | [`refund-dispute-resolution-policy.md`](refund-dispute-resolution-policy.md) | Refund eligibility + dispute resolution — VN Consumer Protection Law 2023 (skeleton) | 1 |
 | [`billing-terms.md`](billing-terms.md) | Payment terms + VAT/TCT e-invoice compliance — Circular 78/2021/TT-BTC (skeleton) | 1 |
 | [`child-protection-policy.md`](child-protection-policy.md) | K-12 minor protection + parental consent + safeguarding — Law on Children 2016 + PDPL Art 16 (skeleton) | 1 |
+| [`persona-criteria/`](persona-criteria/) | Per-persona Acceptance Criteria framework — `_TEMPLATE.md` + 4 Tier-1 docs (P1/P2/P3/P5) — formal AC for `persona-based-business-review` skill | 6 |
 
 ---
 
