@@ -1,6 +1,6 @@
 # GAP-321b: Parent Portal Phase 1B — 5 facets + Zalo OTP + per-read audit + multi-children polish
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — foundation shipped Wave 18b2 Bucket C
 **Priority:** 🔴 P0 LEGAL (sister of GAP-321 Phase 1A SHIPPED Wave 18b1)
 **Domain:** Backend + Frontend
 **Detected:** 2026-05-04 (Wave 18b1 Bucket D closure)
@@ -78,3 +78,4 @@ Phase 1A delivered transcript only. Luật GD Đ.83 K2 mandates parents see "đ�
 ## Log
 
 - **2026-05-04** — Filed by Wave 18b1 closure coordinator. Phase 1A SHIPPED (transcript facet only); Phase 2-4 deferral made explicit per `gap-done-discipline.md` §3.
+- **2026-05-04** — Phase 1B foundation shipped Wave 18b2 Bucket C (this PR). Backend skeleton for 4 of 5 facets (attendance / fees / conduct / notifications — discipline deferred to GAP-321c) + per-read audit log entity + V53 migration + 5 new business rules (BR-PARENT-AUDIT-001 + BR-PARENT-FACET-{ATT,FEES,CONDUCT,NOTIFY}-001) with 5-attribute frontmatter + 3-layer docs (rules.md / use-cases.md / api-contract.md). Tests: 1 audit unit + 1 audit fan-in IT covering all 4 facets with linked + unlinked + inverted-range cases + 4 controller WebMvc IT (200 + 403). 1230/1230 mvn green. Conduct + notifications + (fees date-range narrowing) ship as v1 stubs returning empty results — concrete data sources deferred to GAP-321b.1. FE drill-down pages, Zalo OTP, multi-children polish, audit-log query surface, retention sweeper, bulk import all remain OPEN under follow-up sub-PRs (321b.1..5).

@@ -357,3 +357,146 @@ Empty list response (child exists, parent linked, no transcripts yet):
 | `GET /api/v1/parent/children/{childId}/discipline` | NOT YET | GAP-321b |
 | `POST /api/v1/parent/complaints` | NOT YET | GAP-321c |
 | `POST /api/v1/parent/children/{childId}/absence-excuse` | NOT YET | GAP-321c |
+
+---
+
+## K-12 LEGAL Phase 1B foundation Endpoints (Wave 18b2 Bucket C — GAP-321b)
+
+Phase 1B foundation extends the Phase 1A surface with four sibling read-only facets + a per-read audit row written on every successful response (BR-PARENT-AUDIT-001). All four reuse the same authentication, scope-guard, and error contract — the differences are the path, the date semantics (`from`/`to` for attendance/fees/notifications, `period` for conduct), and the response shape.
+
+### GET /api/v1/parent/children/{childId}/attendance
+
+List period attendance for one of the parent's linked children, filtered by `[from, to]`.
+
+**Headers:** `X-User-Reference-Id` (Gateway), `Authorization`, `X-Tenant-Id` — same as transcript endpoint.
+
+**Query parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `from` | `LocalDate` (ISO) | yes | Inclusive start date |
+| `to` | `LocalDate` (ISO) | yes | Inclusive end date |
+| `page` / `size` / `sort` | Pageable | no | default size=50, sort=`date,periodNo` DESC |
+
+**Response 200 OK** — `Page<AttendancePeriodResponse>` (same record fields as `AttendancePeriodController`: id, studentId, classId, subjectSectionId, periodNo, date, status, recordedBy, recordedAt, notes, createdAt, updatedAt).
+
+```json
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": 42, "studentId": 100, "classId": 7, "subjectSectionId": 11,
+        "periodNo": 1, "date": "2026-04-15", "status": "PRESENT",
+        "recordedBy": 99, "recordedAt": "2026-04-15T08:30:00",
+        "notes": null, "createdAt": "2026-04-15T08:30:01Z", "updatedAt": null
+      }
+    ],
+    "pageable": { "...": "..." },
+    "totalElements": 1
+  },
+  "timestamp": "2026-05-04T11:00:00Z"
+}
+```
+
+**Errors**
+
+| HTTP | Code | When |
+|------|------|------|
+| 401 | `AUTH_REQUIRED` | Header missing |
+| 400 | `BAD_REQUEST` | childId / from / to null OR `from > to` |
+| 403 | `PARENT_FACET_FORBIDDEN` | No active link (BR-PARENT-FACET-ATT-001 — leak-free) |
+
+### GET /api/v1/parent/children/{childId}/fees
+
+List invoices for one of the parent's linked children. **Phase 1B v1 stub:** the `from` / `to` query parameters are accepted in the API surface for forward compat, but the v1 query does not yet narrow on issue date — concrete narrowing + instalment / payment-history join lands in GAP-321b.1.
+
+**Query parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `from` | `LocalDate` (ISO) | yes | (v1 stub: not yet applied — see note above) |
+| `to` | `LocalDate` (ISO) | yes | (v1 stub: not yet applied) |
+| `page` / `size` / `sort` | Pageable | no | default size=20, sort=`id` DESC |
+
+**Response 200 OK** — `Page<ParentFeeFacetResponse>`:
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `invoiceId` | `Long` | no | Primary key |
+| `studentId` | `Long` | no | Always equals path `childId` |
+| `invoiceNumber` | `String` | yes | Human-readable invoice number |
+| `status` | `String` | no | `DRAFT / SENT / PARTIAL / PAID / OVERDUE / CANCELLED` |
+| `totalAmount` | `BigDecimal` | no | Total invoice amount (VND, scale 2) |
+| `balanceDue` | `BigDecimal` | no | Outstanding balance |
+| `dueDate` | `LocalDate` | yes | Due date |
+
+**Errors:** Same ladder as attendance (`AUTH_REQUIRED`, `BAD_REQUEST`, `PARENT_FACET_FORBIDDEN`).
+
+### GET /api/v1/parent/children/{childId}/conduct
+
+List conduct (hạnh kiểm) ratings for one of the parent's linked children. **Phase 1B v1 stub:** backing schema for digital hạnh kiểm rating is not yet present — endpoint returns an empty list after the scope guard succeeds. Concrete data source lands in GAP-321b.1.
+
+**Query parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `period` | `String` | no | e.g. `HK1-2025-2026`, `Cả năm 2025-2026` |
+
+**Response 200 OK** — `List<ParentConductFacetResponse>`:
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `studentId` | `Long` | no | Always equals path `childId` |
+| `period` | `String` | yes | Period label |
+| `rating` | `String` | yes | `TỐT / KHÁ / TRUNG_BÌNH / YẾU` |
+| `remark` | `String` | yes | Teacher remark (minimum projection) |
+
+**Errors:** `AUTH_REQUIRED` (401), `BAD_REQUEST` (400 if childId null), `PARENT_FACET_FORBIDDEN` (403).
+
+### GET /api/v1/parent/children/{childId}/notifications
+
+List notifications for one of the parent's linked children. **Phase 1B v1 stub:** the cross-cutting notification engine ships in Wave 18a Bucket B (GAP-063b); endpoint returns an empty page after the scope guard succeeds.
+
+**Query parameters**
+
+| Name | Type | Required | Description |
+|------|------|:--------:|-------------|
+| `from` | `LocalDate` (ISO) | yes | Inclusive start |
+| `to` | `LocalDate` (ISO) | yes | Inclusive end |
+| `page` / `size` / `sort` | Pageable | no | default size=20, sort=`id` DESC |
+
+**Response 200 OK** — `Page<ParentNotificationFacetResponse>`:
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `notificationId` | `Long` | no | Primary key |
+| `studentId` | `Long` | no | Always equals path `childId` |
+| `title` | `String` | yes | Max 100 chars |
+| `body` | `String` | yes | Max 500 chars |
+| `sentAt` | `Instant` | yes | Server timestamp |
+| `readAt` | `Instant` | yes | Null until parent marks read |
+
+**Errors:** Same ladder as attendance.
+
+### Phase 1B foundation error codes (additions to §Error Code Reference)
+
+| Code | HTTP | Domain | Source |
+|------|------|--------|--------|
+| `PARENT_FACET_FORBIDDEN` | 403 | Parent Portal Phase 1B | `BusinessException` BR-PARENT-FACET-{ATT,FEES,CONDUCT,NOTIFY}-001 |
+
+### Audit invariant (cross-cutting — BR-PARENT-AUDIT-001)
+
+Every successful 200 from any of the five parent-side facet endpoints (transcript Phase 1A + 4 above) writes one append-only row in `parent_read_audit_log` (parent_id, child_id, facet, read_at, instance_id). The write is best-effort; an audit-store outage logs a warn but does NOT change the user-visible response. Admin/safeguarding-officer query surface ships in GAP-321b.4.
+
+### Out of Phase 1B foundation scope (sister endpoints)
+
+| Endpoint | Status | Tracking |
+|----------|--------|----------|
+| `GET /api/v1/parent/children/{childId}/discipline` | NOT YET | GAP-321c |
+| Audit log query surface (`GET /admin/parent-read-audit?...`) | NOT YET | GAP-321b.4 |
+| Audit log retention sweeper | NOT YET | GAP-321b.4 |
+
+## Log
+
+- **2026-05-04** Phase 1B foundation endpoints documented — Wave 18b2 Bucket C (GAP-321b foundation). 4 facet endpoints (attendance / fees / conduct / notifications) + cross-cutting audit invariant added. Conduct + notifications + (fees date-range) explicitly flagged as v1 stubs with concrete data source / narrowing deferred to GAP-321b.1.
