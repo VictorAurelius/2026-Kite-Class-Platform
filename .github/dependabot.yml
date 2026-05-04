@@ -1,7 +1,10 @@
 # Dependabot configuration — ONE PR PER SERVICE per week.
 #
-# Each ecosystem bundles ALL minor+patch version updates into a single group
+# Each ecosystem bundles ALL **patch** version updates into a single group
 # PR. Max 6 PRs total per Monday run (1 per ecosystem × 6).
+#
+# Pre-MVP dependency lock (2026-04-30): minor bumps blocked until MVP soft
+# launch ready. See GAP-283. Patch + security still flow through.
 #
 # History:
 # - 2026-04-21: first enable flooded 28 PRs in 3 min — reverted to security-only.
@@ -10,8 +13,13 @@
 # - 2026-04-24 (expand): all 6 ecosystems with 4-5 groups each — produced
 #   28 PRs because many deps fell outside the named groups (lombok, springdoc,
 #   jacoco, tika, aws-sdk for kitehub, etc.) and got individual PRs.
-# - 2026-04-24 (simplify): **this config** — collapse each ecosystem to a
-#   single `all-deps` group matching `*`. One PR per service, max 6 total.
+# - 2026-04-24 (simplify): collapse each ecosystem to a single `all-deps`
+#   group matching `*`. One PR per service, max 6 total.
+# - 2026-04-30 (pre-MVP lock): dropped `minor` from `update-types`. Patch-only
+#   weekly bumps. Triggered by 4 simultaneous failures (PR #715/#716/#717/#718)
+#   surfacing real breakage from minor bumps (AWS SDK 2.44 KH Admin breaking,
+#   typescript-eslint Lint regression, Frontend Tests & Build via Next.js RSC).
+#   Restore minor bumps after MVP launch via dedicated triage wave.
 #
 # Trade-off of 1-PR-per-service: atomic blast radius. If one dep in the bundle
 # breaks CI, the whole PR blocks. Solo-dev mode accepts this cost for the
@@ -48,7 +56,9 @@ updates:
     groups:
       all-deps:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
+        # Pre-MVP lock 2026-04-30: patch-only (blocks minor bumps).
+        # See GAP-283 — revisit after MVP soft launch ready (~4-6 weeks).
+        update-types: ["patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -75,7 +85,9 @@ updates:
     groups:
       all-deps:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
+        # Pre-MVP lock 2026-04-30: patch-only (blocks minor bumps).
+        # See GAP-283 — revisit after MVP soft launch ready (~4-6 weeks).
+        update-types: ["patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -104,7 +116,9 @@ updates:
     groups:
       all-deps:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
+        # Pre-MVP lock 2026-04-30: patch-only (blocks minor bumps).
+        # See GAP-283 — revisit after MVP soft launch ready (~4-6 weeks).
+        update-types: ["patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -136,7 +150,9 @@ updates:
     groups:
       all-deps:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
+        # Pre-MVP lock 2026-04-30: patch-only (blocks minor bumps).
+        # See GAP-283 — revisit after MVP soft launch ready (~4-6 weeks).
+        update-types: ["patch"]
     ignore:
       - dependency-name: "*"
         update-types:
@@ -164,7 +180,9 @@ updates:
     groups:
       all-deps:
         patterns: ["*"]
-        update-types: ["minor", "patch"]
+        # Pre-MVP lock 2026-04-30: patch-only (blocks minor bumps).
+        # See GAP-283 — revisit after MVP soft launch ready (~4-6 weeks).
+        update-types: ["patch"]
     ignore:
       - dependency-name: "*"
         update-types:
