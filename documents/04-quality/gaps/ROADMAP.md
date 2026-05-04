@@ -32,6 +32,12 @@
 
 ---
 
+**2026-05-04 (Incident → rule pipeline applied — wave-history.jsonl append rule):** User flagged 3 consecutive waves (18a, 18b1, 18b2) missing `wave-history.jsonl` appends despite `wave-pack-planner` SKILL.md §Rules requirement. Per `incident-to-rule-pipeline.md` 5-stage: Stage 1 Detect ✓. Stage 2 Classify: rule existed but no enforcement — pure gentleman's agreement. Stage 3+4 ship in this PR — `session-docs-check` Rule 15 detector + 3 self-test fixtures (good-flip-with-append PASS / bad-flip-no-append FAIL / bad-flip-bad-json FAIL) all green via `test/run-rules.sh`. Stage 5 retro logged here. Sister PR `meta/wave-history-backfill-18a-18b1-18b2` ships the actual missing entries. Detector now blocks future closures from skipping the append (WARN default, FAIL in `--strict`); override trailer `WAVE_HISTORY_OVERRIDE: <reason>` available for rare doc-only corrections.
+
+**Counts:** unchanged (no new gaps; this is a meta-process fix).
+
+---
+
 **2026-05-04 (Wave 18b2 K-12 LEGAL Trio Phase 1B Foundation SHIPPED — 4 PRs merged same-day):** Continued K-12 LEGAL trio momentum into Phase 1B execution via parallel-agent wave-pack (Wave 18b1 precedent). 3 disjoint buckets ran simultaneously: Bucket A (FE mobile UI for GAP-323b), Bucket B (vetting service foundation for GAP-322b), Bucket C (4 parent portal read-only facets for GAP-321b). 0-clarification across all 3 agents (9 consecutive across Wave 18a + 18b1 + 18b2 same day).
 
 **Merged sequence (5 PRs):**
