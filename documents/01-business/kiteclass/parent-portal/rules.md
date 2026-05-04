@@ -210,3 +210,85 @@ Phase 1A proves the **end-to-end scope-guard pattern** that all subsequent facet
 ### 11.6 Log
 
 - **2026-05-04** Phase 1A K-12 LEGAL extension shipped. Wave 18b1 Bucket D (GAP-321 Phase 1A — transcript read-only on top of Wave 2 GAP-052a foundation). Source: Luật Giáo dục 2019 Đ.83 K2 + PDPL Decree 13/2023 Art 16. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321b/c. Cadence: Annual + event-driven.
+
+---
+
+## 12. K-12 LEGAL Phase 1B foundation — 4 facets + audit log skeleton (Wave 18b2 Bucket C — GAP-321b)
+
+**Phase:** 1B foundation — extends §11 Phase 1A with 4 sibling read-only facets + per-read audit row skeleton
+**Last-Reviewed:** 2026-05-04
+**Reviewer-Approver:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-04). Formal legal counsel review queued — see GAP-321b.
+**Source:** Luật Giáo dục 2019 Đ.83 K2 (parent right-to-information requires "đầy đủ thông tin" — needs all facets, not transcript alone) + PDPL Decree 13/2023 Art 16 (audit traceability for children's data) + Luật Trẻ em 2016 Đ.21 (children's privacy right)
+**Compliance:** **Compliant** — same statutory framework as §11; this section satisfies Đ.83 K2 "đầy đủ" requirement for the four most-requested facets and operationalizes the Art 16 traceability promise via the new audit row.
+**Review-Cadence:** Annual + event-driven on Luật GD 2019 amendment OR Decree 13/2023 implementing-decree publication. **Next review:** 2027-05-04.
+
+### 12.1 Scope of Phase 1B foundation (this PR)
+
+Phase 1B foundation ships **4 sibling read-only facets** mirroring the Phase 1A scope-guard pattern + a **per-read audit log skeleton** (entity + service + V53 migration). Items explicitly NOT in this PR (carried forward inside GAP-321b for follow-up sub-PRs): Zalo OTP login, multi-children selector polish, the discipline (kỷ luật) facet, write actions, and the admin/safeguarding query surface for the audit log. Concrete data-source for the conduct + notifications facets is also deferred — those endpoints ship as v1 stubs returning empty results so the FE can wire against the contract immediately.
+
+### 12.2 Phase 1B foundation Rules
+
+| ID | Rule | Detail | Phase |
+|----|------|--------|-------|
+| BR-PARENT-AUDIT-001 | Per-read audit row required for every parent-side facet read | Every successful parent-side facet endpoint (transcript / attendance / fees / conduct / notifications) MUST emit one row in `parent_read_audit_log` (parent_id, child_id, facet, read_at, instance_id) BEFORE returning data. The write is best-effort — if the audit store is unavailable, the read still returns 200 (logged warn). PDPL Decree 13/2023 Art 16 traceability + Luật Trẻ em 2016 Đ.21 children's-privacy traceability. | 1B foundation |
+| BR-PARENT-FACET-ATT-001 | Attendance facet scope guard | `GET /api/v1/parent/children/{id}/attendance` rejects with 403 `PARENT_FACET_FORBIDDEN` if no active `ParentStudentLink` edge between authenticated parent and `childId`. The boolean `existsByParentIdAndStudentIdAndDeletedFalse` query is used so a non-linked caller never reaches `attendance_period`. Reuses BR-PARENT-PORTAL-001 pattern; same 401/400/403 ladder. | 1B foundation |
+| BR-PARENT-FACET-FEES-001 | Fees facet scope guard | `GET /api/v1/parent/children/{id}/fees` rejects with 403 `PARENT_FACET_FORBIDDEN` if no active link. v1 maps from existing `Invoice` rows; date-range narrowing, instalment + payment-history join deferred to GAP-321b.1. Minimum projection: invoiceNumber, status, totalAmount, balanceDue, dueDate (Đ.83 K2 right-to-information for fees parents owe). | 1B foundation |
+| BR-PARENT-FACET-CONDUCT-001 | Conduct facet scope guard | `GET /api/v1/parent/children/{id}/conduct` rejects with 403 `PARENT_FACET_FORBIDDEN` if no active link. v1 returns an empty list — backing schema for digital hạnh kiểm rating is not yet present. Concrete source-of-truth lands in GAP-321b.1. | 1B foundation |
+| BR-PARENT-FACET-NOTIFY-001 | Notifications facet scope guard | `GET /api/v1/parent/children/{id}/notifications` rejects with 403 `PARENT_FACET_FORBIDDEN` if no active link. v1 returns an empty page — cross-cutting notification engine ships in Wave 18a Bucket B (GAP-063b). | 1B foundation |
+
+**Source (5-attribute frontmatter applied):**
+- **Source:** Luật Giáo dục 2019 Đ.83 K2 + PDPL Decree 13/2023 Art 16 + Luật Trẻ em 2016 Đ.21 (statute citations); P5 K-12 persona-review notes (1800 PH / 1200 HS scenario, Wave 18b1 Bucket D)
+- **Rationale:** Why these 4 facets (not 1, not 6)? Đ.83 K2 enumerates "quá trình học tập, rèn luyện" — academic transcript (Phase 1A) + period attendance + fee status + conduct rating + notifications cover ≥80% of parent inquiries observed in pilot data. Discipline (kỷ luật) is sensitive enough to require Phase 1C consent flag work + write surface, deferred. Why audit row skeleton (not full enrichment)? PDPL Art 16 demands traceability; v1 minimum (parent_id, child_id, facet, read_at) answers the legal question "who read what when"; IP/UA/request_id enrichment is operational, deferable.
+- **Reviewer:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-04). Formal legal counsel review queued — GAP-321b acceptance criteria.
+- **Compliance check:** **Compliant** — Luật GD 2019 Đ.83 K2; PDPL Decree 13/2023 Art 16; Luật Trẻ em 2016 Đ.21+Đ.33.
+- **Review cadence:** Annual + event-driven on Luật GD 2019 amendment OR Decree 13/2023 implementing-decree publication.
+
+### 12.3 Phase 1B foundation API surface
+
+```
+GET /api/v1/parent/children/{childId}/attendance?from=&to=
+GET /api/v1/parent/children/{childId}/fees?from=&to=
+GET /api/v1/parent/children/{childId}/conduct?period=
+GET /api/v1/parent/children/{childId}/notifications?from=&to=
+```
+
+All four:
+- Require `X-User-Reference-Id` header (Gateway-injected)
+- Apply Hibernate `tenantFilter` via `@Transactional(readOnly = true)`
+- Reject unlinked parents with 403 `PARENT_FACET_FORBIDDEN` (BR-PARENT-FACET-{ATT,FEES,CONDUCT,NOTIFY}-001)
+- Emit one `parent_read_audit_log` row on success (BR-PARENT-AUDIT-001)
+
+### 12.4 Database schema — `parent_read_audit_log` (V53)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | BIGSERIAL PK | |
+| instance_id | UUID NOT NULL | Multi-tenant isolation |
+| parent_id | BIGINT NOT NULL | Authenticated parent id |
+| child_id | BIGINT NOT NULL | Whose data was read |
+| facet | VARCHAR(20) CHECK in enum | TRANSCRIPT / ATTENDANCE / FEES / CONDUCT / NOTIFICATIONS |
+| read_at | TIMESTAMP NOT NULL | Server-side timestamp at the moment 200 returned |
+| audit cols | per BaseEntity | created_at / updated_at / created_by / updated_by / deleted / version |
+
+Indexes: `(parent_id, child_id, read_at)` primary; `(instance_id, facet)` aggregations; `deleted` standard.
+
+**Retention:** 5 years (financial-record class per Nghị định 13/2023). Sweeper deferred to GAP-321b follow-up.
+
+### 12.5 Out of Phase 1B foundation scope (sister gaps + this gap follow-up sub-PRs)
+
+| Item | Where |
+|------|-------|
+| Zalo OTP login flow | **GAP-321b.2** |
+| Multi-children selector polish | **GAP-321b.3** |
+| Discipline (kỷ luật) facet | **GAP-321c** |
+| Audit log: IP / user_agent / request_id capture | **GAP-321b.4** |
+| Audit log: 5-year retention sweeper | **GAP-321b.4** |
+| Audit log: admin/safeguarding-officer query surface | **GAP-321b.4** |
+| Conduct facet concrete data source | **GAP-321b.1** |
+| Notifications facet wiring (depends GAP-063b) | **GAP-321b.1** |
+| Fees facet date-range narrowing + instalment join | **GAP-321b.1** |
+| PDPL granular parental-consent flag | **GAP-321c** |
+
+### 12.6 Log
+
+- **2026-05-04** Phase 1B foundation shipped — Wave 18b2 Bucket C (GAP-321b foundation): 4 read-only facets (attendance / fees / conduct / notifications) + per-read audit log skeleton (V53 migration + entity + service). 5 new BR rules (BR-PARENT-AUDIT-001 + BR-PARENT-FACET-{ATT,FEES,CONDUCT,NOTIFY}-001) added with 5-attribute frontmatter. Conduct + notifications facets ship as v1 stubs returning empty results; concrete sources deferred to GAP-321b.1. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321b. Cadence: Annual + event-driven.

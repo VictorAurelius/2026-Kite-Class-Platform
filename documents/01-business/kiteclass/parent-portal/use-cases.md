@@ -281,3 +281,91 @@ Phase 1A use cases extend the Wave 2 GAP-052a flows (above) with the **transcrip
 | Phụ huynh nộp đơn khiếu nại | GAP-321c (depends GAP-339) |
 | Phụ huynh confirm họp PHHS | GAP-321c (depends GAP-338) |
 | Phụ huynh xin phép vắng mặt | GAP-321c |
+
+---
+
+## K-12 LEGAL Phase 1B foundation Use Cases (Wave 18b2 Bucket C — GAP-321b)
+
+Phase 1B foundation extends the §K-12 LEGAL Phase 1A use cases with four sibling read-only facets + a per-read audit invariant. The flows mirror UC-PARENT-PORTAL-01 verbatim — only the data source + facet enum value change.
+
+### UC-PARENT-FACET-ATTENDANCE-001: Phụ huynh xem điểm danh tháng
+
+**Actor:** Phụ huynh (PARENT user with active `ParentStudentLink`)
+**Pre-condition:** Same as UC-PARENT-PORTAL-01.
+**Trigger:** Phụ huynh click "Điểm danh" on `/parent` dashboard for one child.
+
+**Main flow:**
+1. FE → `GET /api/v1/parent/children/{childId}/attendance?from=&to=&page=&size=` (Gateway injects `X-User-Reference-Id`).
+2. `ParentAttendanceFacetController.getChildAttendance()` → `requireParentId()` (401 if header missing).
+3. `ParentAttendanceFacetService.getAttendanceForChild(parentId, childId, from, to, pageable)`:
+   - Validate args (null / inverted range → 400 BAD_REQUEST).
+   - **Scope guard (BR-PARENT-FACET-ATT-001):** `linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(parentId, childId)` — false → 403 `PARENT_FACET_FORBIDDEN`. Service short-circuits (does NOT touch `attendance_period`).
+   - Query `attendancePeriodRepository.findByStudentIdAndDateBetweenAndDeletedFalse(...)`.
+   - **Audit row (BR-PARENT-AUDIT-001):** `auditLogService.logRead(parentId, childId, ParentFacet.ATTENDANCE)` — best-effort.
+4. Map to `AttendancePeriodResponse` page; controller wraps in `ApiResponse.success(...)`.
+5. FE renders calendar/heatmap of period attendance.
+
+**Post-condition:** Parent sees per-tiết attendance; one `parent_read_audit_log` row written.
+
+**Errors / FE behavior (mirrors UC-PARENT-PORTAL-01):**
+
+| Error code | HTTP | FE behavior |
+|------------|------|-------------|
+| `AUTH_REQUIRED` | 401 | Redirect `/login` |
+| `BAD_REQUEST` | 400 | Toast "Khoảng thời gian không hợp lệ" |
+| `PARENT_FACET_FORBIDDEN` | 403 | Toast "Bạn không có quyền xem điểm danh của con này" + back to `/parent` |
+| 5xx | 500 | Retry banner |
+
+### UC-PARENT-FACET-FEES-001: Phụ huynh xem học phí (v1 stub)
+
+**Actor + pre-condition:** Same.
+**Trigger:** Phụ huynh click "Học phí" for one child.
+
+**Main flow:** identical to UC-PARENT-FACET-ATTENDANCE-001 except step 3 queries `invoiceRepository.findByStudentIdAndDeletedFalse(...)` and emits `ParentFacet.FEES`. v1 does NOT narrow by issue date — date-range narrowing deferred to GAP-321b.1; the api-contract.md flags this stub explicitly.
+
+**Post-condition:** Parent sees invoices for child; audit row written.
+
+### UC-PARENT-FACET-CONDUCT-001: Phụ huynh xem hạnh kiểm (v1 stub)
+
+**Actor + pre-condition:** Same.
+**Trigger:** Phụ huynh click "Hạnh kiểm" for one child.
+
+**Main flow:** identical scope-guard pattern. v1 returns an empty list — backing data source for digital hạnh kiểm rating not yet present. Audit row still written so the parent's read intent is traceable. Concrete data source lands in GAP-321b.1.
+
+**Post-condition:** FE shows "Chưa có dữ liệu hạnh kiểm" message; audit row written.
+
+### UC-PARENT-FACET-NOTIFY-001: Phụ huynh xem thông báo (v1 stub)
+
+**Actor + pre-condition:** Same.
+**Trigger:** Phụ huynh click "Thông báo" for one child.
+
+**Main flow:** identical scope-guard pattern. v1 returns an empty page — the cross-cutting notification engine ships in Wave 18a Bucket B (GAP-063b). Audit row still written.
+
+**Post-condition:** FE shows empty notification drawer; audit row written.
+
+### UC-PARENT-AUDIT-001: Per-read audit row invariant (cross-cutting)
+
+**Actor:** System (no human trigger).
+**Pre-condition:** Any parent-side facet endpoint returned 200.
+**Trigger:** Successful 200 from any of: transcript (Phase 1A) / attendance / fees / conduct / notifications.
+
+**Main flow:**
+1. Facet service short-circuits if scope guard fails (BR-PARENT-FACET-*-001) — NO audit row in that case (denied reads must not be silently attributed to the requested child).
+2. After scope guard passes, before returning data: `auditLogService.logRead(parentId, childId, facet)` writes one row in `parent_read_audit_log` (parent_id, child_id, facet, read_at, instance_id) inside a `REQUIRES_NEW` transaction.
+3. Audit-store outage → write logged warn, propagation suppressed (best-effort; per BR-PARENT-AUDIT-001).
+
+**Post-condition:** Append-only row exists. Admin/safeguarding query surface lands in GAP-321b.4.
+
+**Verification test:** `ParentReadAuditLogIntegrationTest` — for each facet asserts (a) linked-parent invocation writes exactly one audit row with the correct `ParentFacet` value, and (b) unlinked-parent invocation throws 403 BEFORE any audit row is written.
+
+### Out of Phase 1B foundation scope
+
+| UC | Where |
+|----|-------|
+| Phụ huynh xem kỷ luật history | GAP-321c |
+| Phụ huynh đăng nhập qua Zalo OTP | GAP-321b.2 |
+| Phụ huynh nộp đơn / xin phép | GAP-321c |
+
+## Log
+
+- **2026-05-04** Phase 1B foundation use cases added — Wave 18b2 Bucket C (GAP-321b foundation). 4 new facet UCs + 1 cross-cutting audit invariant UC. Conduct + notifications shipped as v1 stubs returning empty data; the scope guard + audit row are the foundation contract.
