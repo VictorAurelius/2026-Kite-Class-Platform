@@ -12,19 +12,43 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next wave: Wave 18b — K-12 Stage 1 LEGAL trio.** Wave 18a SHIPPED 2026-05-04 (cross-persona keystones — GAP-290 DONE + GAP-063/057 PARTIAL Phase 1 + sister gaps GAP-063b/057b filed). Wave 18b draft must be based on **revised** GAP-321/322/323 per GAP-345 state-check audit (PR #757 merged):
+**Recommended next wave: Wave 18b2 — Phase 1B for any one of GAP-321/322/323.** Wave 18b1 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1A skeleton wave-pack — 3 PRs #765/#766/#767 + 6 sister gaps filed). All 3 K-12 LEGAL gaps now 🟡 PARTIAL with Phase 1A foundation; Phase 1B/C tracked as letter-suffix sister gaps:
 
-1. **GAP-321 Parent Portal Phase 2-4** — 🟡 PARTIAL after audit revision (Phase 1 GAP-052a SHIPPED Wave 2: Parent + ParentStudentLink + ParentInvitation entities + V42); this gap = K-12 LEGAL build-on (FE portal + 6 facet pages + Zalo OTP + audit log + PDPL Art 16)
-2. **GAP-322 Child Protection** — confirmed greenfield workflow (`module/legal/` is DMCA only, NOT confusable); criminal-liability blocker for K-12 deploy
-3. **GAP-323 Period-attendance** — 🟡 PARTIAL after audit revision (Phase 1 multi-subject infra GAP-054 + GAP-099 SHIPPED: SubjectSection + SubjectGrade w/ TT 22/2021 formula in javadoc + ClassScheduleSlot); this gap = period dimension + GradeFormulaService class + state machine + UI
+| Gap | Phase 1A status | Phase 1B (next) | Phase 1C |
+|---|---|---|---|
+| GAP-321 Parent Portal | 🟡 PARTIAL — transcript route + scope guard PDPL | GAP-321b (5 facets + Zalo OTP + audit log + multi-children) | GAP-321c (PDPL granular consent + 4 write actions + i18n EN/zh-CN) |
+| GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b (vetting workflow + MinIO + RBAC gate) | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
+| GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b (write API + GVCN mobile UI ≤2min + roll-up + load test) | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
 
-**Wave-pack candidates:** K-12 LEGAL trio = 3 multi-week background agents (3-5 days each — NOT 75-min wave-pack; SSH SIGHUP risk requires mosh+tmux+ntfy stack from Wave 17). 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
+**Pick order suggestions for Wave 18b2:** GAP-323b (daily ops most urgent — GVCN cannot điểm danh without write API) > GAP-322b (criminal liability blocker for K12_ENTERPRISE tier) > GAP-321b (read-only facet expansion). Each Phase 1B = ~2-3 weeks single-agent work; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~6-8 weeks per gap × 3 = **~18-24 weeks** to full Stage 1 completion.
+
+5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
 **Track 2 (UI kits production port)** — Phase 1 ADR + workspace scaffolding DONE (PR #713 merged 2026-04-30). Phase 2-6 (15 OPEN gaps GAP-266..280) — multi-week roadmap detailed in [`documents/03-planning/waves/wave-track-2-ui-kits-port-umbrella.md`](../../03-planning/waves/wave-track-2-ui-kits-port-umbrella.md). Trigger Phase 2 (5 priority components G2/G6/G5/G7/D1) khi MVP-essential blockers từ Wave 17 review findings cần real components.
 
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (Wave 18b1 K-12 LEGAL Trio Phase 1A SHIPPED — same-day same-session as Wave 18a, 5 PRs merged):** Continued cross-persona keystones momentum into K-12 LEGAL trio. Phase 1A skeleton wave-pack pattern (Wave Legal-BRD precedent + Wave 18a) — each bucket ships structural foundation only; UI + workflow deferred to Phase 1B/1C via sister gaps.
+
+**Merged sequence (5 PRs):**
+1. **#763** — GAP-285 admin testGetRevenue time-bomb fix (relative dates) → 🟢 DONE. Unblocks every future PR's CI.
+2. **#764** — Wave 18b1 plan (foundation, docs-only)
+3. **#765** — Bucket F: GAP-323 Phase 1A → 🟡 PARTIAL. AttendancePeriod entity + V50 + V24 (instances.vertical_type CENTER/K12_SCHOOL discriminator) + 3-layer business docs. 4 unit + 5 IT green; TestContainers V1-V50 fresh DB verified.
+4. **#766** — Bucket D: GAP-321 Phase 1A → stays 🟡 PARTIAL. ParentTranscriptController + Service with PDPL Art 16 scope-guard via ParentStudentLink + /parent/transcript/[childId] FE route. 30 BE + 6 FE tests green. **State-check addendum:** GAP-345 audit MISSED Wave 2 inline-fetch FE skeleton at `(dashboard)/parent/page.tsx`; agent replaced cleanly. **4th GAP-190/197 head-truncation recurrence** — closure PR extends `audit-to-gap-pipeline.md` Step 2.5 to ban head-truncation in state-check.
+5. **#767** — Bucket E: GAP-322 Phase 1A → 🟡 PARTIAL. NEW `module/childprotection/` + Incident entity + AES-256-GCM AttributeConverter (33 tests, tamper detection via auth tag) + V49 + SAFEGUARDING_OFFICER system-template role. Encryption pattern matches existing kitehub-subscription EncryptionService.
+
+**Wave 18b1 outcomes:**
+- 3 K-12 LEGAL gaps ALL flipped to 🟡 PARTIAL with Phase 1A foundation
+- **6 sister gaps filed** (this closure PR): GAP-321b/c, GAP-322b/c, GAP-323b/c — Phase 1B + 1C scope per gap explicit
+- Estimated K-12 Stage 1 completion: ~18-24 weeks (3 gaps × 4-8 weeks each Phase 1B+1C)
+- 0-clarification on all 3 agents (3 consecutive Wave 18b1; 6 consecutive across Wave 18a + 18b1 same day)
+- 2 mid-flight CI fixes from Wave 18a precedent successfully avoided in 18b1
+
+**Counts:** 148 → **154 OPEN** (-1 GAP-285 closed; +6 sister gaps filed; net +5).
 
 ---
 

@@ -1,12 +1,13 @@
 ---
 title: Wave 18b1 — K-12 LEGAL Trio Phase 1A skeleton wave-pack (GAP-321 + GAP-322 + GAP-323)
-status: draft
+status: complete
 created: 2026-05-04
 updated: 2026-05-04
 waves: [18b1]
 gaps: [GAP-321, GAP-322, GAP-323]
 phase: 1A
 expected_outputs: 3 PRs (Phase 1A skeletons) + 6 sister gaps filed for Phase 1B/C + closure PR
+actual_outputs: 5 PRs merged (#763 GAP-285 fix + #764 plan + #765 Bucket F + #766 Bucket D + #767 Bucket E) + closure PR (this) filing 6 sister gaps. Wall-clock ~3h total agent work (~1.5-2.5h longest path Bucket E encryption). 0-clarification all 3 agents. State-check addendum from Bucket D: GAP-345 missed Wave 2 inline-fetch FE skeleton — 4th GAP-190/197 head-truncation recurrence (closure PR extends audit-to-gap-pipeline.md Step 2.5).
 strategy: Phase-1A wave-pack (Wave Legal-BRD precedent applied to K-12 LEGAL trio) — 3 disjoint buckets, parallel agents
 ---
 
