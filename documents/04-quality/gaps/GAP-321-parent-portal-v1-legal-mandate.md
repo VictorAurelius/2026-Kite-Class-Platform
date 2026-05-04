@@ -31,11 +31,15 @@
 
 V42 migration comment: "Messaging, fee payment, attendance / grade widgets follow in Wave 5 — this migration is deliberately minimal." → This gap (GAP-321) IS that follow-on, scoped specifically for K-12 LEGAL mandate.
 
+### ⚠️ Phase 1A in-flight discovery (2026-05-04 Wave 18b1)
+
+GAP-345 state-check missed an existing Wave 2 FE skeleton: `kiteclass/kiteclass-frontend/src/app/(dashboard)/parent/page.tsx` (3.14.0 — Wave 2 GAP-052a, 159 LOC) renders a basic children list using inline `apiClient` fetch (no React Query, no transcript drill-in). Phase 1A REPLACES this skeleton with a hooks-based version + adds the `/parent/transcript/[childId]` route. Anti-pattern recurrence: 4th-time `head`-truncation issue per `feedback_audit_grep_scope.md` (state-check grep would catch if `find … -iname "parent*"` walked all `(dashboard)/` subpaths).
+
 ### ❌ MISSING (this gap's actual scope)
 
 | Piece | Status |
 |-------|--------|
-| Parent dashboard FE (`/parent` route in `kiteclass-frontend`) | ❌ no UI |
+| Parent dashboard FE (`/parent` route in `kiteclass-frontend`) | ⚠️ Wave 2 skeleton existed; Phase 1A REPLACES with hooks-based version |
 | Multi-children selector | ❌ |
 | 6 facet drill-down pages: transcript / điểm danh / học phí / hạnh kiểm / notifications / kỷ luật | ❌ |
 | Bulk import xlsx with `Tên Cha, SĐT Cha, Email Cha, Tên Mẹ, SĐT Mẹ, Email Mẹ` columns | ❌ depends GAP-325 |
@@ -115,16 +119,30 @@ P5 K-12 review (Round 1) scored 0/6 ACs in Communication category — every AC d
 
 ## Acceptance Criteria
 
+### Phase 1A (Wave 18b1 Bucket D — DELIVERED 2026-05-04)
+
 - [x] ~~`Parent` + `ParentStudentRelationship` entities migrated~~ — DONE Wave 2 GAP-052a (V42 migration)
-- [ ] Bulk import xlsx supports `Tên Cha, SĐT Cha, Email Cha, Tên Mẹ, SĐT Mẹ, Email Mẹ` columns with sibling dedup (links to GAP-325)
+- [x] Parent dashboard renders linked-children selector with "Xem học bạ" CTA per child (Phase 1A — multi-card grid with linkType badge)
+- [x] Transcript drill-down page renders (`/parent/transcript/[childId]` — semester cards with GPA/credits/pass/fail)
+- [x] Server-side scope guard via `ParentStudentLink` boolean exists check BEFORE any data fetch (BR-PARENT-PORTAL-001 — 403 PARENT_NOT_LINKED leak-free)
+- [x] Documentation: 3-layer (rules.md + use-cases.md + api-contract.md) extension per `documents/01-business/kiteclass/parent-portal/`
+- [x] business-logic-review.md 5-attribute frontmatter on rules.md §11 (Source = Luật GD Đ.83 K2 + Decree 13/2023 Art 16; Compliance = Compliant; Reviewer = solo-dev acting Legal scout; formal counsel review queued GAP-321b/c)
+- [x] Tests: unit (4 service + 4 controller), FE component tests (6 hook tests), all green; mvn 30 pass / pnpm build green
+- [x] 4-layer V-model coverage matrix (要件: Đ.83 K2 + AC-COMM-001 / 基本: TranscriptView card pattern / 詳細: ParentStudentLink scope-guard short-circuit / コンポ: Card + Badge + Button reused from shadcn)
+
+### Phase 1B (DEFERRED to GAP-321b)
+
+- [ ] 5 remaining facets (attendance / fees / conduct / notifications / discipline) drill-down pages render
+- [ ] Multi-children selector enriched with className + grade (currently null)
 - [ ] Zalo OTP login working (test tenant + real Zalo OA sandbox)
-- [ ] Parent dashboard renders 1 child / multi-children with cards: học bạ, điểm danh tháng hiện tại, học phí pending, hạnh kiểm HK hiện tại
-- [ ] All 6 facet drill-down pages render (transcript / attendance / fees / conduct / notifications / kỷ luật history)
 - [ ] All parent-side reads emit audit log entry (entity, parent ID, timestamp, IP)
 - [ ] Test: real PH login → see 2 children → drill into HS A 7A → see 12 môn điểm + 32/35 buổi điểm danh + học phí tháng 10 paid + hạnh kiểm "Tốt"
+- [ ] Bulk import xlsx supports `Tên Cha, SĐT Cha, Email Cha, Tên Mẹ, SĐT Mẹ, Email Mẹ` columns with sibling dedup (links to GAP-325)
+
+### Phase 1C (DEFERRED to GAP-321c)
+
 - [ ] PDPL Decree 13/2023 Art 16 children-data special protection: parental consent flag tracked + viewable; data minimization (no fields beyond Đ.83 list)
-- [ ] Documentation: 3-layer (rules.md + use-cases.md + api-contract.md) per `documents/01-business/kiteclass/parent-portal/`
-- [ ] business-logic-review.md 5-attribute frontmatter on rules.md (Source = Luật GD Đ.83 + Decree 13/2023; Compliance = Compliant; Reviewer = solo-dev acting Legal scout, queue formal counsel review)
+- [ ] Phase 2 write actions: file complaint (GAP-339), RSVP parent meeting (GAP-338), absence excuse with evidence upload
 
 ## Related
 
@@ -138,5 +156,12 @@ P5 K-12 review (Round 1) scored 0/6 ACs in Communication category — every AC d
 
 ## Log
 
+- **2026-05-04 (Phase 1A delivered — Wave 18b1 Bucket D)** — Status stays 🟡 PARTIAL. Phase 1A skeleton merged: transcript read-only facet on top of Wave 2 GAP-052a foundation. Shipped:
+  - **BE NEW:** `ParentTranscriptController.java` + `ParentTranscriptService.java` + `ParentTranscriptServiceImpl.java` + `TranscriptResponse.java` (record). Endpoint `GET /api/v1/parent/children/{childId}/transcript` scoped via `ParentStudentLinkRepository.existsByParentIdAndStudentIdAndDeletedFalse` (BR-PARENT-PORTAL-001 leak-free guard — 403 PARENT_NOT_LINKED short-circuits BEFORE any transcript fetch).
+  - **FE REPLACED:** `(dashboard)/parent/page.tsx` (Wave 2 GAP-052a inline-fetch skeleton) → React Query hooks pattern (`useParentMe`, `useMyChildren`, `useChildTranscript`) with "Xem học bạ" CTA per child card. **FE NEW:** `(dashboard)/parent/transcript/[childId]/page.tsx` (semester cards: GPA/credits/pass/fail). **FE NEW:** `types/parent.ts` + `lib/api/parent.ts` + `hooks/use-parent.ts`.
+  - **Business docs (3-layer extension):** `documents/01-business/kiteclass/parent-portal/{rules,use-cases,api-contract}.md` extended with Phase 1A K-12 LEGAL section. Rules.md §11 has `business-logic-review.md` 5-attribute frontmatter (Source = Luật GD 2019 Đ.83 K2 + PDPL Decree 13/2023 Art 16; Reviewer = solo-dev acting Legal scout, formal review queued GAP-321b/c; Compliance = Compliant; Cadence = Annual + event-driven). 9 rules BR-PARENT-PORTAL-001..009 (3 deferred to GAP-321b/c).
+  - **Tests:** `ParentTranscriptServiceTest` (4 tests: happy + 403 scope guard + null-args + empty-list — asserts `verify(transcriptRepository, never()).find(...)` for leak-free); `ParentTranscriptControllerTest` (4 tests: 200/401/403/empty); `use-parent.test.tsx` (6 tests: 200 happy + 500 + 403 PARENT_NOT_LINKED + 2× disabled-when-no-id). Total 14 new tests, all green. mvn test 30 passing 0 failures; `pnpm build` green (`/parent` 2.39 kB, `/parent/transcript/[childId]` 1.78 kB).
+  - **DEFERRED to GAP-321b (Phase 1B):** 5 other facets (điểm danh / học phí / hạnh kiểm / notifications / kỷ luật), multi-children selector polish (className/grade enrichment), Zalo OTP login flow, per-read audit log (BR-PARENT-PORTAL-008).
+  - **DEFERRED to GAP-321c (Phase 1C):** PDPL granular parental-consent flag (BR-PARENT-PORTAL-009), Phase 2 write actions (complaints GAP-339, RSVP GAP-338, absence excuse).
 - **2026-05-04 (revision per GAP-345 state-check audit)** — Status flipped 🔵 OPEN → 🟡 PARTIAL. Initial filing claimed "fully greenfield" but Wave 18b plan brainstorm 2026-05-04 found Wave 2 GAP-052a Phase 1 SHIPPED: `Parent.java` + `ParentStudentLink.java` + `ParentInvitation.java` entities + `ParentInvitationService` + V42 migration (3 tables) + Gateway PARENT user type. V42 migration comment explicitly says "Messaging, fee payment, attendance / grade widgets follow in Wave 5 — this migration is deliberately minimal" — confirming THIS gap IS that follow-on. Revised to PARTIAL with accurate Current State + reframed Proposed Fix (Phase 2-4 build-on, not from-scratch). Anti-pattern recurrence (3rd time after GAP-190/197 2026-04-20) — `feedback_audit_grep_scope.md` head-truncation cause.
 - **2026-05-04 (initial filing)** — Filed during Wave 17 Bucket D P5 K-12 persona review. State-check ran 3 grep commands with `head` truncation (insufficient per `feedback_audit_grep_scope.md`); concluded "greenfield" incorrectly.

@@ -249,3 +249,111 @@ Error envelope:
 - `Parent Invitation` — `description = "Parent onboarding via token-based invitations (GAP-052a)"`
 - `Parent Self-Service` — `description = "Parent portal endpoints (GAP-052a)"`
 - `Internal Parent API` — `description = "Service-to-service parent profile lookup"` (hidden)
+- `Parent Transcript` — `description = "Parent-side transcript reads (GAP-321 Phase 1A)"`
+
+---
+
+## K-12 LEGAL Phase 1A endpoint (Wave 18b1 Bucket D — GAP-321)
+
+### GET /api/v1/parent/children/{childId}/transcript
+
+List transcripts for one of the authenticated parent's linked children, newest semester first.
+
+**Headers**
+
+| Name | Required | Source |
+|------|----------|--------|
+| `X-User-Reference-Id` | yes | Gateway-injected; missing → 401 |
+| `Authorization` | yes | Bearer JWT (validated at Gateway, not Core) |
+| `X-Tenant-Id` | yes | Multi-tenant isolation; resolved at Gateway |
+
+**Path parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `childId` | `Long` | Student id (FK to `students.id`) |
+
+**Response 200 OK**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "transcriptId": 42,
+      "studentId": 100,
+      "semester": "Spring 2026",
+      "academicYear": 2026,
+      "totalCredits": 12.00,
+      "semesterGpa": 3.45,
+      "cumulativeGpa": 3.52,
+      "totalCourses": 4,
+      "passedCourses": 4,
+      "failedCourses": 0
+    }
+  ],
+  "timestamp": "2026-05-04T11:00:00Z"
+}
+```
+
+Empty list response (child exists, parent linked, no transcripts yet):
+
+```json
+{ "success": true, "data": [], "timestamp": "2026-05-04T11:00:00Z" }
+```
+
+**Error responses**
+
+| HTTP | Code | When |
+|------|------|------|
+| 401 | `AUTH_REQUIRED` | `X-User-Reference-Id` header missing or null |
+| 400 | `BAD_REQUEST` | `childId` path missing/null (rare — Spring usually 404s first) |
+| 403 | `PARENT_NOT_LINKED` | No active `ParentStudentLink` between authenticated parent and `childId` (BR-PARENT-PORTAL-001 — leak-free guard, never touches `transcripts`) |
+| 500 | `INTERNAL_ERROR` | Unexpected — see GlobalExceptionHandler |
+
+**TranscriptResponse fields**
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `transcriptId` | `Long` | no | Primary key; opaque to UI but useful for cache key |
+| `studentId` | `Long` | no | Always equals path `childId` (sanity field) |
+| `semester` | `String` | yes | e.g. "Spring 2026", "Fall 2025"; max 50 chars |
+| `academicYear` | `Integer` | yes | e.g. 2026 (year semester starts) |
+| `totalCredits` | `BigDecimal` | no | Credits earned this semester (precision 5, scale 2) |
+| `semesterGpa` | `BigDecimal` | yes | 0.00–4.00; null if not yet calculated |
+| `cumulativeGpa` | `BigDecimal` | yes | 0.00–4.00; null if first semester |
+| `totalCourses` | `Integer` | no | default 0 |
+| `passedCourses` | `Integer` | no | default 0 |
+| `failedCourses` | `Integer` | no | default 0 |
+
+**Note:** Internal `Transcript` entity carries additional fields (audit metadata, instance_id, soft-delete flags, raw `created_by`). Per BR-PARENT-PORTAL-006 (minimal projection per Đ.83 K2), only the fields above are exposed to parents. Adding fields requires reviewer sign-off.
+
+**Verification**
+
+| Test | File | Asserts |
+|------|------|---------|
+| Service happy path | `ParentTranscriptServiceTest#happyPath_linked` | 200 + payload mapping |
+| Service scope guard | `ParentTranscriptServiceTest#scopeGuard_unlinkedParent_throws403` | 403 + `verify(...).never()` on transcript repo |
+| Service empty list | `ParentTranscriptServiceTest#emptyList_noTranscripts` | 200 + empty array |
+| Controller 200 | `ParentTranscriptControllerTest#linked_returns200` | header → service → response wiring |
+| Controller 401 | `ParentTranscriptControllerTest#missingHeader_returns401` | header missing |
+| Controller 403 | `ParentTranscriptControllerTest#unlinkedParent_returns403` | service exception → HTTP code |
+
+### Phase 1A error codes (additions to §Error Code Reference above)
+
+| Code | HTTP | Domain | Source |
+|------|------|--------|--------|
+| `PARENT_NOT_LINKED` | 403 | Parent Transcript | `BusinessException` BR-PARENT-PORTAL-001 |
+| `BAD_REQUEST` | 400 | Common | Generic validation |
+
+### Out of Phase 1A scope (sister endpoints — GAP-321b/c)
+
+| Endpoint | Status | Tracking |
+|----------|--------|----------|
+| `GET /api/v1/parent/children/{childId}/attendance` | NOT YET | GAP-321b |
+| `GET /api/v1/parent/children/{childId}/fees` | NOT YET | GAP-321b |
+| `GET /api/v1/parent/children/{childId}/conduct` | NOT YET | GAP-321b |
+| `GET /api/v1/parent/children/{childId}/notifications` | NOT YET | GAP-321b |
+| `GET /api/v1/parent/children/{childId}/discipline` | NOT YET | GAP-321b |
+| `POST /api/v1/parent/complaints` | NOT YET | GAP-321c |
+| `POST /api/v1/parent/children/{childId}/absence-excuse` | NOT YET | GAP-321c |

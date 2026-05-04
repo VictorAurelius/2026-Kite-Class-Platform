@@ -1,124 +1,96 @@
 /**
- * Parent portal — dashboard skeleton (Wave 2 MVP, GAP-052a).
+ * Parent portal landing — children selector + transcript drill-in.
  *
- * <p>MVP scope: greet the signed-in parent and render the list of linked
- * children with their names. Wave 5 will layer attendance, grades, invoices,
- * and messaging widgets on top of this shell.
+ * Phase 1A (GAP-321 — Wave 18b1 Bucket D): replaces the Wave 2 GAP-052a
+ * skeleton with a proper React Query hook (`useMyChildren`) and a
+ * "Xem học bạ" CTA per child that links to `/parent/transcript/[childId]`.
  *
- * <p>Route is gated by the {@code (dashboard)/layout.tsx} auth check; we
- * additionally verify that the hydrated JWT carries the {@code PARENT} role
- * and redirect non-parents back to the generic dashboard.
+ * Phase 1B (GAP-321b) deliverables NOT in this page yet:
+ * - Per-child cards for điểm danh / học phí / hạnh kiểm / notifications / kỷ luật
+ * - className + grade enrichment (currently null until subject-grade joins ship)
  *
  * @author KiteClass Team
- * @since 3.14.0 (Wave 2 — GAP-052a)
+ * @since 2.18.0 (Wave 18b1 — GAP-321 Phase 1A; replaces 3.14.0 Wave 2 skeleton)
  */
 
 'use client';
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import Link from 'next/link';
+import { FileText, GraduationCap, Users } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { UserType } from '@/types/auth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-
-interface ParentProfile {
-  id: number;
-  fullName: string;
-  email: string;
-  phoneNumber: string | null;
-  relationship: 'FATHER' | 'MOTHER' | 'GUARDIAN';
-  status: 'PENDING' | 'ACTIVE' | 'INACTIVE';
-}
-
-interface ChildSummary {
-  studentId: number;
-  studentName: string;
-  className: string | null;
-  grade: string | null;
-  linkType: 'PRIMARY' | 'SECONDARY';
-}
-
-interface ApiEnvelope<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
+import { ErrorAlert } from '@/components/common/error-alert';
+import { useMyChildren, useParentMe } from '@/hooks/use-parent';
 
 export default function ParentDashboardPage() {
   const router = useRouter();
   const userType = useAuthStore((state) => state.user?.userType);
-  const [profile, setProfile] = useState<ParentProfile | null>(null);
-  const [children, setChildren] = useState<ChildSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Guard: parent accounts only. Non-parents land on the main dashboard.
+  // Guard: parent accounts only. Non-parents bounce back to the main dashboard.
   useEffect(() => {
     if (userType && userType !== UserType.PARENT) {
       router.replace('/dashboard');
     }
   }, [userType, router]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data: profile, isLoading: loadingMe } = useParentMe();
+  const {
+    data: children,
+    isLoading: loadingKids,
+    isError,
+    error,
+    refetch,
+  } = useMyChildren();
 
-    async function load() {
-      try {
-        const [meResp, kidsResp] = await Promise.all([
-          apiClient.get<ApiEnvelope<ParentProfile>>('/api/v1/parent/me'),
-          apiClient.get<ApiEnvelope<ChildSummary[]>>('/api/v1/parent/me/children'),
-        ]);
-        if (cancelled) return;
-        setProfile(meResp.data.data);
-        setChildren(kidsResp.data.data ?? []);
-      } catch (err) {
-        if (cancelled) return;
-        const message =
-          err instanceof Error ? err.message : 'Không thể tải dữ liệu phụ huynh';
-        setError(message);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (loading) {
+  if (loadingMe || loadingKids) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" text="Đang tải dữ liệu phụ huynh..." />
       </div>
     );
   }
 
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-4xl p-6">
+        <ErrorAlert
+          title="Không tải được danh sách con"
+          message={error instanceof Error ? error.message : 'Lỗi hệ thống'}
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
+
+  const list = children ?? [];
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-bold">
-          Xin chào{profile ? `, ${profile.fullName}` : ''}
+    <div className="mx-auto max-w-5xl space-y-6 p-6">
+      <header className="space-y-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
+          <GraduationCap className="h-8 w-8 text-primary" />
+          Cổng phụ huynh{profile ? ` — ${profile.fullName}` : ''}
         </h1>
         <p className="text-muted-foreground">
-          {children.length > 0
-            ? `Bạn đang liên kết với ${children.length} con.`
-            : 'Chưa có con nào được liên kết với tài khoản của bạn.'}
+          Xem học bạ và thông tin học tập của con. Phụ huynh chỉ có quyền xem dữ
+          liệu các con đã được liên kết với tài khoản của mình.
         </p>
       </header>
-
-      {error ? (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
 
       <Card>
         <CardHeader>
@@ -126,33 +98,76 @@ export default function ParentDashboardPage() {
             <Users className="h-5 w-5" />
             Danh sách con
           </CardTitle>
+          <CardDescription>
+            {list.length > 0
+              ? `Bạn đang liên kết với ${list.length} con.`
+              : 'Chưa có con nào được liên kết với tài khoản của bạn.'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          {children.length === 0 ? (
+          {list.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Bạn chưa có con nào. Liên hệ trường để được thêm liên kết.
+              Liên hệ nhà trường để được gửi lại lời mời liên kết tài khoản phụ
+              huynh.
             </p>
           ) : (
-            <ul className="divide-y">
-              {children.map((child) => (
-                <li key={child.studentId} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium">{child.studentName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {child.className ?? 'Chưa có lớp'} ·{' '}
-                      {child.grade ?? 'Chưa có khối'} ·{' '}
-                      {child.linkType === 'PRIMARY' ? 'Liên kết chính' : 'Liên kết phụ'}
-                    </p>
-                  </div>
-                </li>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((child) => (
+                <Card
+                  key={child.studentId}
+                  data-testid={`child-card-${child.studentId}`}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg">
+                          {child.studentName}
+                        </CardTitle>
+                        {(child.className || child.grade) && (
+                          <CardDescription>
+                            {[child.grade, child.className]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </CardDescription>
+                        )}
+                      </div>
+                      <Badge
+                        variant={
+                          child.linkType === 'PRIMARY' ? 'default' : 'secondary'
+                        }
+                      >
+                        {child.linkType === 'PRIMARY' ? 'Chính' : 'Phụ'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground">
+                    {/* Phase 1B (GAP-321b) sẽ thêm điểm danh / học phí / hạnh kiểm / kỷ luật. */}
+                    Hiện bạn có thể xem học bạ. Các mục khác (điểm danh, học phí,
+                    hạnh kiểm, thông báo, kỷ luật) sẽ ra mắt trong các đợt tiếp
+                    theo.
+                  </CardContent>
+                  <CardFooter>
+                    <Button
+                      asChild
+                      className="w-full"
+                      data-testid={`view-transcript-${child.studentId}`}
+                    >
+                      <Link href={`/parent/transcript/${child.studentId}`}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Xem học bạ
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
               ))}
-            </ul>
+            </div>
           )}
         </CardContent>
       </Card>
 
       <p className="text-center text-xs text-muted-foreground">
-        Các widget điểm danh, học lực và học phí sẽ có trong Wave 5.
+        Phase 1A — học bạ. Các widget điểm danh, học phí, hạnh kiểm, thông báo,
+        kỷ luật sẽ có trong Phase 1B (GAP-321b).
       </p>
     </div>
   );
