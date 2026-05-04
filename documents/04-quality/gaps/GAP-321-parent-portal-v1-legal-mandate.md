@@ -1,38 +1,62 @@
 # GAP-321: Parent Portal v1 — LEGAL MANDATE (Luật Giáo dục 2019 Đ.83)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 (GAP-052a identity + invitation MVP) SHIPPED Wave 2; Phase 2 K-12 LEGAL scope (this gap) NOT started
 **Priority:** 🔴 P0 LEGAL
 **Domain:** Backend + Frontend + Compliance
 **Detected:** 2026-05-04 (Wave 17 Bucket D — P5 K-12 persona review)
-**Related PRs:** —
+**Revised:** 2026-05-04 (per GAP-345 state-check audit — initial filing mis-classified as fully greenfield)
+**Related PRs:** Wave 2 GAP-052a (parent identity + invitation MVP)
 **Related Docs:**
 - `documents/00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md` Finding 1
 - `documents/00-brd/persona-criteria/P5-k12-school.md` AC-COMM-001..005, AC-OPS-009
 - `documents/00-brd/persona-criteria/secondary/parent-in-P5.md` (84 legal citations)
-- Existing GAP-052 (parent portal stub)
+- Existing GAP-052 (parent portal umbrella) — GAP-052a Phase 1 shipped Wave 2; this gap is K-12 LEGAL build-on
+- GAP-345 (state-check audit revising this gap)
 
-## Current State (verified 2026-05-04)
+## Current State (verified 2026-05-04 per GAP-345)
 
-| Piece | File / Path | Status |
-|-------|-------------|--------|
-| Parent role distinguished from generic user | `kiteclass-core/.../user/Role.java` (assumed) | ❌ missing — flat student/teacher/admin model |
-| Parent-student relationship entity | `kiteclass-core/.../student` | ❌ missing |
-| Parent-facing UI in kiteclass-frontend | `kiteclass/kiteclass-frontend/src/app` | ❌ missing — no `/parent` routes |
-| Multi-children selector | — | ❌ missing |
-| View học bạ (transcript) per child | — | ❌ missing |
-| View điểm danh per child | — | ❌ missing |
-| View học phí + payment per child | — | ❌ missing |
-| View hạnh kiểm per child | — | ❌ missing |
-| Multi-channel notification (Zalo + SMS + email + push) | — | ❌ missing (GAP-063 scaffold only) |
-| GAP-052 status | `documents/04-quality/gaps/GAP-052-parent-portal.md` | 🔵 OPEN — original gap, this gap consolidates K-12 specific scope |
+### ✅ SHIPPED Wave 2 (GAP-052a Phase 1)
 
-**Grep commands run:**
+| Piece | File / Path | Notes |
+|-------|-------------|-------|
+| `Parent` entity | `kiteclass-core/module/parent/entity/Parent.java` | email + phone + name + relationship + status; since 2.14.0 |
+| `ParentStudentLink` (M-to-M with metadata) | `kiteclass-core/module/parent/entity/ParentStudentLink.java` | PRIMARY/SECONDARY linkType; UK constraint prevents duplicate edges |
+| `ParentInvitation` token-based onboarding | `kiteclass-core/module/parent/entity/ParentInvitation.java` | 24h TTL; PENDING/REDEEMED/EXPIRED/REVOKED |
+| `ParentInvitationService` | `kiteclass-core/module/parent/service/impl/ParentInvitationServiceImpl.java` | invitation creation + redemption logic |
+| `ParentService` | `kiteclass-core/module/parent/service/ParentService.java` | CRUD on Parent profile |
+| Migration | `kiteclass-core/db/migration/V42__create_parent_portal_schema.sql` | 3 tables: parents, parent_student_links, parent_invitations; multi-tenant (instance_id), audit, soft-delete, optimistic-lock |
+| Sibling dedup | V42 `uk_parent_student UNIQUE (parent_id, student_id)` | per-link metadata preserved |
+| Gateway PARENT user type | `Gateway UserType.PARENT` | identity links via `users.reference_id = parents.id` |
+| `ParentPortalConfiguration` + `ParentPortalProperties` | `kiteclass-core/module/parent/config/` | Spring config exists |
+
+V42 migration comment: "Messaging, fee payment, attendance / grade widgets follow in Wave 5 — this migration is deliberately minimal." → This gap (GAP-321) IS that follow-on, scoped specifically for K-12 LEGAL mandate.
+
+### ❌ MISSING (this gap's actual scope)
+
+| Piece | Status |
+|-------|--------|
+| Parent dashboard FE (`/parent` route in `kiteclass-frontend`) | ❌ no UI |
+| Multi-children selector | ❌ |
+| 6 facet drill-down pages: transcript / điểm danh / học phí / hạnh kiểm / notifications / kỷ luật | ❌ |
+| Bulk import xlsx with `Tên Cha, SĐT Cha, Email Cha, Tên Mẹ, SĐT Mẹ, Email Mẹ` columns | ❌ depends GAP-325 |
+| Zalo OTP login flow | ❌ Gateway uses email password currently |
+| Per-read audit log (parent-side data view audit trail) | ❌ BaseEntity audit exists for writes but no parent-read log |
+| PDPL Decree 13 Art 16 children-data parental consent flag tracking | ❌ |
+| Phase 2 — Write actions (complaints GAP-339, RSVP GAP-338, absence excuse) | ❌ |
+| Phase 3 — Multi-channel notification | ❌ depends GAP-063 |
+
+**Grep + verification commands run 2026-05-04:**
 ```bash
-grep -rl "parent" kiteclass/kiteclass-core/src/main/java --include="*.java" | head
-find kiteclass/kiteclass-frontend/src/app -type d -name "parent*"
-grep -rl "ParentPortal\|guardian" kiteclass/ --include="*.java" --include="*.tsx"
+grep -rl "parent_portal\|parentPortal\|ParentPortal\|guardian" kiteclass/ --include="*.java" --include="*.tsx"
+# → 10+ matches confirming Wave 2 GAP-052a shipped
+ls kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/parent/
+# → 8 packages: config/controller/dto/entity/event/repository/service
+ls kiteclass/kiteclass-core/src/main/resources/db/migration/ | grep -i parent
+# → V42__create_parent_portal_schema.sql (111 LOC)
+find kiteclass/kiteclass-frontend/src/app -type d -iname "parent*"
+# → 0 matches — FE parent-portal greenfield
 ```
-Result: no parent-portal scaffolding in code; GAP-052 file exists but no implementation.
+Result: Backend Phase 1 SHIPPED Wave 2 GAP-052a. Frontend greenfield. K-12 LEGAL scope (Phase 2-4) per this gap below.
 
 ## Problem
 
@@ -65,23 +89,25 @@ P5 K-12 review (Round 1) scored 0/6 ACs in Communication category — every AC d
 
 ## Proposed Fix
 
-### Phase 1 — Read-only portal v1 (Stage 1, Q3 2026)
+### Phase 2 — Read-only portal UI build-on (Stage 1, Q3 2026)
 
-1. **Data model:** Add `Parent`, `ParentStudentRelationship` entities; many-to-many (parent can have multiple children, child can have 1-2 parents); sibling dedup at import time.
-2. **Auth:** Distinguish `parent` role from `student`/`teacher`/`admin`; Zalo OTP + email/password login (Zalo dominant in VN K-12).
-3. **API:** `GET /api/v1/parent/children` (list with consent flags), `GET /api/v1/parent/children/{id}/transcript`, `/attendance`, `/fees`, `/conduct`, `/notifications` — all scoped to relationship.
-4. **Frontend:** New `/parent` route in `kiteclass-frontend` with multi-children selector + dashboard cards per child + drill-down per facet.
-5. **i18n:** Vietnamese-only Phase 1; future EN/zh-CN for international schools.
-6. **Audit log:** Every parent-side data view logged for legal compliance evidence.
+(Phase 1 = GAP-052a SHIPPED Wave 2; reuses existing Parent + ParentStudentLink entities + V42 migration)
 
-### Phase 2 — Write actions (Stage 2, Q4 2026)
+1. **Auth extension:** Add Zalo OTP login flow on top of existing Gateway PARENT user type (Zalo dominant in VN K-12; email/password retained as fallback).
+2. **API:** `GET /api/v1/parent/children` (list scoped to ParentStudentLink with consent flags), `GET /api/v1/parent/children/{id}/transcript`, `/attendance`, `/fees`, `/conduct`, `/notifications` — all gated by ParentStudentLink + linkType (PRIMARY can see all, SECONDARY may have limited fields per parental consent).
+3. **Frontend NEW:** `/parent` route in `kiteclass-frontend` with multi-children selector (queries `ParentStudentLink WHERE parent.id=current_user`) + dashboard cards per child + drill-down per facet.
+4. **PDPL extension:** Add `parental_consent_granular` JSONB field to `ParentStudentLink` (which fields visible per linkType + per child age) + V<N> migration. Audit per-read access.
+5. **i18n:** Vietnamese-only Phase 2; future EN/zh-CN for international schools.
+6. **Audit log:** Every parent-side data view emits AuditLog entry (parent_id, entity_type, entity_id, timestamp, IP) for legal compliance evidence.
+
+### Phase 3 — Write actions (Stage 2, Q4 2026)
 
 - File complaint (GAP-339)
 - Confirm receipt of monthly conduct report
 - RSVP parent-teacher meeting (GAP-338)
 - Submit absence excuse with evidence upload
 
-### Phase 3 — Multi-channel notification (Stage 3, Q1 2027)
+### Phase 4 — Multi-channel notification (Stage 3, Q1 2027)
 
 - Bulk notify integration (GAP-063 Zalo + SMS + email + push)
 - Read-receipt analytics
@@ -89,7 +115,7 @@ P5 K-12 review (Round 1) scored 0/6 ACs in Communication category — every AC d
 
 ## Acceptance Criteria
 
-- [ ] `Parent` + `ParentStudentRelationship` entities migrated (V<N>__parent_portal.sql)
+- [x] ~~`Parent` + `ParentStudentRelationship` entities migrated~~ — DONE Wave 2 GAP-052a (V42 migration)
 - [ ] Bulk import xlsx supports `Tên Cha, SĐT Cha, Email Cha, Tên Mẹ, SĐT Mẹ, Email Mẹ` columns with sibling dedup (links to GAP-325)
 - [ ] Zalo OTP login working (test tenant + real Zalo OA sandbox)
 - [ ] Parent dashboard renders 1 child / multi-children with cards: học bạ, điểm danh tháng hiện tại, học phí pending, hạnh kiểm HK hiện tại
@@ -112,4 +138,5 @@ P5 K-12 review (Round 1) scored 0/6 ACs in Communication category — every AC d
 
 ## Log
 
-- **2026-05-04** — Filed during Wave 17 Bucket D P5 K-12 persona review. State-check confirms greenfield (no pre-existing parent portal in kiteclass-core/frontend). Consolidates K-12-specific scope on top of generic GAP-052.
+- **2026-05-04 (revision per GAP-345 state-check audit)** — Status flipped 🔵 OPEN → 🟡 PARTIAL. Initial filing claimed "fully greenfield" but Wave 18b plan brainstorm 2026-05-04 found Wave 2 GAP-052a Phase 1 SHIPPED: `Parent.java` + `ParentStudentLink.java` + `ParentInvitation.java` entities + `ParentInvitationService` + V42 migration (3 tables) + Gateway PARENT user type. V42 migration comment explicitly says "Messaging, fee payment, attendance / grade widgets follow in Wave 5 — this migration is deliberately minimal" — confirming THIS gap IS that follow-on. Revised to PARTIAL with accurate Current State + reframed Proposed Fix (Phase 2-4 build-on, not from-scratch). Anti-pattern recurrence (3rd time after GAP-190/197 2026-04-20) — `feedback_audit_grep_scope.md` head-truncation cause.
+- **2026-05-04 (initial filing)** — Filed during Wave 17 Bucket D P5 K-12 persona review. State-check ran 3 grep commands with `head` truncation (insufficient per `feedback_audit_grep_scope.md`); concluded "greenfield" incorrectly.

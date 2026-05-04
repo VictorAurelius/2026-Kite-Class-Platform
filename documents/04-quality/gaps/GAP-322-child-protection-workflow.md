@@ -10,11 +10,21 @@
 - `documents/00-brd/child-protection-policy.md` (policy skeleton)
 - Existing GAP-186 (policy-only, no workflow)
 
-## Current State (verified 2026-05-04)
+## Current State (verified 2026-05-04 per GAP-345)
+
+### ⚠️ Existing-but-unrelated (clarification — DO NOT confuse)
+
+| Piece | Status | Note |
+|-------|--------|------|
+| `kiteclass-core/module/legal/` | ⚠️ EXISTS | Contains DMCA + Trademark IP-protection only (`DmcaTakedownRequest.java`, `DmcaService.java`, `TrademarkCheckService.java`, `TrademarkCheckResult.java`). **NOT** child-protection workflow. Module name is potentially confusing — readers MUST verify before assuming overlap. |
+| `kiteclass-core/module/moderation/` | ⚠️ EXISTS | Likely AI/content moderation (separate concern from safeguarding workflow). Verify scope before reuse. |
+| `module/storage/StorageServiceImpl.java` | ⚠️ has `child.protection` text-grep hit | Verified false-positive — generic comment, not workflow. |
+
+### ❌ Greenfield (this gap's scope)
 
 | Piece | File / Path | Status |
 |-------|-------------|--------|
-| Child protection policy doc | `documents/00-brd/child-protection-policy.md` | ✅ exists (skeleton) |
+| Child protection policy doc | `documents/00-brd/child-protection-policy.md` | ✅ exists (skeleton — GAP-186) |
 | Safeguarding officer role | `kiteclass-core/.../user/Role.java` | ❌ missing |
 | Encrypted incident ticket entity | `kiteclass-core/.../incident` | ❌ missing |
 | Mandatory reporting to Tổng đài 111 + công an | — | ❌ missing |
@@ -23,13 +33,16 @@
 | Non-repudiation audit log | — | ❌ missing |
 | GAP-186 status | `documents/04-quality/gaps/GAP-186-child-protection-policy.md` | 🔵 OPEN — policy gap, this gap is workflow implementation |
 
-**Grep commands run:**
+**Grep + verification commands run 2026-05-04:**
 ```bash
-grep -rl "safeguard\|child.protection\|mandatory.report" kiteclass/ --include="*.java"
-grep -rl "LLTP\|background.check\|vetting" kiteclass/ kitehub/ --include="*.java"
-find kiteclass/kiteclass-core/src -type d -iname "*incident*"
+grep -rl "incident\|safeguard\|abuse\|child.protection\|vetting" kiteclass/ --include="*.java"
+# → 2 false-positive hits (storage + retention modules — generic comments, not workflow)
+ls kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/legal/entity/
+# → DmcaStatus.java + DmcaTakedownRequest.java only — NOT child-protection
+ls kiteclass/kiteclass-core/src/main/java/com/kiteclass/core/module/legal/service/
+# → DmcaService.java + TrademarkCheckService.java only — NOT safeguarding
 ```
-Result: zero matches — fully greenfield.
+**Verdict:** Child-protection workflow itself is fully greenfield, but `module/legal/` and `module/moderation/` exist with potentially confusable names. This gap MUST create a new module (proposed: `module/childprotection/` or `module/safeguarding/`) — DO NOT add to `module/legal/` (DMCA-specific).
 
 ## Problem
 
@@ -108,4 +121,5 @@ Persona simulation showed real risk: PH HS D 7A reports suspected online bullyin
 
 ## Log
 
+- **2026-05-04 (revision per GAP-345)** — Updated Current State to clarify `module/legal/` exists but is DMCA + Trademark IP-protection (NOT confusable with child-protection workflow); `module/moderation/` likely AI/content moderation (separate concern). Verdict unchanged — workflow itself fully greenfield, but explicit guidance added: this gap MUST create new module `module/childprotection/` or `module/safeguarding/`, do NOT extend `module/legal/`. Status remains 🔵 OPEN.
 - **2026-05-04** — Filed during Wave 17 Bucket D P5 review. State-check: zero pre-existing implementation; GAP-186 is policy skeleton only. This gap is workflow implementation. Carries criminal-liability flag — recommend NOT enable K12_ENTERPRISE tier until landed.
