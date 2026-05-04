@@ -53,6 +53,12 @@
 
 ---
 
+**2026-05-04 (UI kits roadmap sync — doc-only, GAP-348 + GAP-349 filed):** Session audit found 2 missing scope artifacts on UI kits + Track 2 axis: (1) Round 3 kits (`kiteclass-student` PR #700, `kitehub-admin` PR #703 merged 2026-04-29) shipped with **agent self-report** scores (116 ⭐⭐ / 107.2) but **no external review** through `quality/ui-review/SKILL.md` — per `feedback_audit_calibration.md` self-audit overstates 15-20 pts; trusting these scores while planning Track 2 Phase 4 production port (GAP-269 student + GAP-271 admin) ports unvetted designs into production code. (2) Track 2 umbrella plan (`wave-track-2-ui-kits-port-umbrella.md`) lists Phase 2 as "5 priority components × 3-5 days" but has no concrete wave-pack breakdown — risks serial-PR anti-pattern (GAP-229 incident: 90 min serial vs 30 min parallel). 2 gaps filed: **GAP-348** (Round 3 persona-driven review, P1, 2-3 days, parallelizable A+B) + **GAP-349** (Track 2 Phase 2 wave-pack plan, P1, 5-bucket wave-pack ~3 hr execution). README `ui_kits/README.md` Round 3 status synced (🟡 ACTIVE → ✅ DONE with self-report caveat + GAP-348 cross-link).
+
+**Counts:** 157 → **159 OPEN** (+GAP-348, +GAP-349).
+
+---
+
 **2026-05-04 (Incident → rule pipeline applied — wave-history.jsonl append rule):** User flagged 3 consecutive waves (18a, 18b1, 18b2) missing `wave-history.jsonl` appends despite `wave-pack-planner` SKILL.md §Rules requirement. Per `incident-to-rule-pipeline.md` 5-stage: Stage 1 Detect ✓. Stage 2 Classify: rule existed but no enforcement — pure gentleman's agreement. Stage 3+4 ship in this PR — `session-docs-check` Rule 15 detector + 3 self-test fixtures (good-flip-with-append PASS / bad-flip-no-append FAIL / bad-flip-bad-json FAIL) all green via `test/run-rules.sh`. Stage 5 retro logged here. Sister PR `meta/wave-history-backfill-18a-18b1-18b2` ships the actual missing entries. Detector now blocks future closures from skipping the append (WARN default, FAIL in `--strict`); override trailer `WAVE_HISTORY_OVERRIDE: <reason>` available for rare doc-only corrections.
 
 **Counts:** unchanged (no new gaps; this is a meta-process fix).
