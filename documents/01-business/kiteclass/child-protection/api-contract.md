@@ -237,6 +237,22 @@ Requires `X-User-Reference-Id` header (officer user id, recorded as `decidedByUs
 
 **Errors:** `404 VETTING_NOT_FOUND`, `403 VETTING_RBAC_DENIED`.
 
+#### `POST /api/v1/vettings/{vettingId}/documents` — Upload evidence (BR-VETTING-006, Wave 18b3)
+
+Single-file multipart upload (`file` field). Persists the file bytes to the dedicated MinIO bucket (`childprotection.minio.bucket`, default `kiteclass-vetting`) under deterministic key `vetting/{vettingId}/{sanitized-filename}`.
+
+**Request:** `multipart/form-data` with single field `file` (PDF or image; ≤10MB).
+
+**Response 201:** `ApiResponse<VettingDocumentResponse>` where `VettingDocumentResponse = { vettingId, storageKey, sizeBytes, contentType }`.
+
+**Errors:**
+- `400 VETTING_DOC_EMPTY` — empty multipart payload.
+- `400 VETTING_DOC_TOO_LARGE` — file size exceeds 10MB cap.
+- `400 VETTING_DOC_FILENAME_REQUIRED` — missing/blank `originalFilename`.
+- `404 VETTING_NOT_FOUND` — vetting record id does not exist.
+- `403 VETTING_RBAC_DENIED` — caller lacks `SAFEGUARDING_OFFICER` role.
+- `500 VETTING_DOC_UPLOAD_FAILED` — IOException reading multipart body (rare).
+
 ### Vetting error code table
 
 | HTTP | Code | Source |
@@ -244,9 +260,11 @@ Requires `X-User-Reference-Id` header (officer user id, recorded as `decidedByUs
 | 400 | `VETTING_TEACHER_ID_REQUIRED` | `ValidationException` |
 | 400 | `VETTING_TARGET_STATUS_REQUIRED` | `ValidationException` |
 | 400 | `VETTING_INVALID_TRANSITION` | `VettingServiceImpl` state-machine guard |
-| 400 | `VETTING_DOC_FILENAME_REQUIRED` / `VETTING_DOC_CONTENT_REQUIRED` / `VETTING_DOC_TTL_INVALID` / `VETTING_DOC_ID_REQUIRED` / `VETTING_ID_REQUIRED` | `MinIOVettingDocumentStorageImpl` (Phase 1B foundation stub) |
+| 400 | `VETTING_DOC_EMPTY` / `VETTING_DOC_TOO_LARGE` | `VettingController.uploadDocument` (10MB cap) |
+| 400 | `VETTING_DOC_FILENAME_REQUIRED` / `VETTING_DOC_CONTENT_REQUIRED` / `VETTING_DOC_TTL_INVALID` / `VETTING_DOC_ID_REQUIRED` / `VETTING_ID_REQUIRED` | `MinIOVettingDocumentStorageImpl` validation guards |
 | 403 | `VETTING_RBAC_DENIED` | `VettingController.requireSafeguardingOfficer` |
 | 404 | `VETTING_NOT_FOUND` | `EntityNotFoundException` |
+| 500 | `VETTING_DOC_UPLOAD_FAILED` | IOException reading multipart body |
 | 404 | `VETTING_NOT_FOUND_FOR_TEACHER` | `EntityNotFoundException` |
 
 ### Storage contract (Phase 1B foundation)
