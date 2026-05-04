@@ -4,7 +4,7 @@ status: draft
 created: 2026-05-04
 updated: 2026-05-04
 domain: kiteclass.period-attendance
-gaps: [GAP-323]
+gaps: [GAP-323, GAP-323b]
 ---
 
 # Period Attendance — Business Rules (K-12 schools, TT 22/2021)
@@ -82,12 +82,12 @@ DB-level FK is deferred to GAP-323b alongside write-path hardening.
 
 ### BR-PERIOD-ATT-002 — Period number range
 
-`period_no` ∈ ℤ⁺ (integer ≥ 1). Realistic K-12 range is 1..10 (TT 32/2018
-GDPT 2018 maximum 10 tiết/day for THPT). Phase 1A keeps the schema CHECK
-liberal (`period_no > 0`) and lets the service layer enforce the K-12
-contract per `tenant.vertical_type`. A tighter CHECK (`period_no BETWEEN 1
-AND 10`) lands in GAP-323b once the write API + GVCN UI confirm no edge
-cases (extra periods, half-day events).
+`period_no` ∈ {1..10} (TT 32/2018 GDPT 2018 maximum 10 tiết/day for THPT).
+Phase 1A shipped a liberal CHECK (`period_no > 0`); Phase 1B (V51, GAP-323b
+§1B.6) tightens this to `BETWEEN 1 AND 10` at the DB level and adds matching
+`@Min(1) @Max(10)` Bean-Validation on the request DTO. A future regulation
+that legitimises an 11th period requires an explicit migration rather than
+silent acceptance.
 
 ### BR-PERIOD-ATT-003 — Uniqueness
 
@@ -119,25 +119,78 @@ timestamp at recording. They differ when GVCN back-dates entry within an
 audit window. Phase 1A allows arbitrary backdating; the audit window
 contract (e.g., ≤24 h after lesson) is BR-PERIOD-ATT-007 in GAP-323b.
 
-### BR-PERIOD-ATT-007 — (deferred to GAP-323b) Audit window for write
+### BR-PERIOD-ATT-007 — (deferred to GAP-323b follow-up) Audit window for write
 
 Reserved. Will define how many hours after `date` a write/edit is permitted
-without Tổ trưởng override.
+without Tổ trưởng override. Phase 1B v1 still permits unrestricted backdating
+within tenant; the contract lands in a follow-up PR after first GVCN field
+trial.
+
+### BR-PERIOD-ATT-008 — Idempotent batch write
+
+`POST /api/v1/attendance/periods` accepts a batch (1..60 entries). For each
+entry the server looks up the existing row by the V50 unique tuple
+`(student_id, subject_section_id, date, period_no, instance_id, deleted=false)`
+and either updates it (status / notes / recorded_by / recorded_at) or inserts
+a new one. Resubmitting the same batch yields the same final state — duplicate
+rows are impossible at the DB level (unique index) and at the service level
+(query-then-save). This is what AC-OPS-001's "≤2 min" GVCN flow needs for
+retries when network drops.
+
+### BR-PERIOD-ATT-009 — Optimistic-lock update
+
+`PATCH /api/v1/attendance/periods/{id}` requires the row's current `version`
+in the request body. JPA's `@Version` mechanism rejects stale writes with
+`OptimisticLockingFailureException`, which the global handler maps to
+HTTP 409 + code `OPTIMISTIC_LOCK_CONFLICT`. Concurrent edits in the same
+period window resolve as "first save wins; second save 409s and the client
+re-fetches".
+
+### BR-PERIOD-ATT-010 — Daily roll-up threshold
+
+A student is considered `allDayAbsent` for a calendar date when
+`absent_count + late_count >= 7`. The threshold (7) follows TT 22/2021's
+"vắng cả ngày" reporting line; LATE intentionally counts as missed
+instructional time for the *daily* metric (it does not for ĐTBmHK formula
+inputs — that distinction belongs to GAP-323c GradeFormulaService).
+
+Phase 1B v1 implements the roll-up via on-demand SQL aggregation
+(`AttendancePeriodRepository#aggregateDailyRollupForClass`). A
+materialized-view path with a debounced refresh trigger is documented in
+GAP-323b §1B.4 but deferred — the on-demand version is correctness-equivalent
+and unblocks the GVCN dashboard surface.
+
+### BR-PERIOD-ATT-011 — Recording-teacher header contract
+
+The `X-Teacher-Id` request header populates `recorded_by` on every write,
+mirroring `AttendanceController#markBulkAttendance`. Fine-grained RBAC (only
+the SubjectSection's bộ môn teacher OR the HomeroomClass GVCN may write) is
+deferred to a follow-up PR within GAP-323b once the auth surface is wired —
+Phase 1B v1 trusts the header so the load-test rig + Phase 1B mobile UI
+work can land independently.
 
 ## 4. Out-of-scope (tracked separately)
 
 | Item | Tracked in |
 |------|-----------|
-| Write API (POST/PATCH/DELETE) + idempotency | GAP-323b |
-| GVCN mobile UI ≤2 min for 42 HS | GAP-323b |
-| Daily aggregation view (vắng cả ngày = vắng ≥7 tiết) | GAP-323b |
-| Concurrent điểm danh load test (30 GVCN, 5 phút) | GAP-323b |
+| GVCN mobile UI tap-grid ≤2 min for 42 HS | GAP-323b §1B.2 (follow-up PR) |
+| Offline-tolerant queue for mobile writes | GAP-323b §1B.3 (follow-up PR) |
+| Materialized view + debounced refresh trigger | GAP-323b §1B.4 (follow-up PR) |
+| 30-GVCN concurrent load test (Gatling/Playwright) | GAP-323b §1B.4 (follow-up PR) |
+| Parent portal `/attendance` facet exposure | GAP-323b §1B.5 (coord with GAP-321b) |
+| Fine-grained RBAC (subject-section / homeroom binding) | GAP-323b BR-PERIOD-ATT-011 follow-up |
+| Audit window for backdated writes | GAP-323b BR-PERIOD-ATT-007 follow-up |
 | `GradeFormulaService` TT 22/2021 ĐTBmHK + ĐTBmCN | GAP-323c |
 | Grade state machine DRAFT → REVIEWED → PUBLISHED | GAP-323c |
 | Multi-subject gradebook UI (12–15 môn) | GAP-323c |
-| Per-table CHECK enforcing K-12 vertical_type | GAP-323b |
 
 ## 5. Log
 
+- **2026-05-04** (Phase 1B v1) Wave 18b2 first PR — added BR-PERIOD-ATT-008
+  (idempotent batch write), BR-PERIOD-ATT-009 (optimistic-lock update),
+  BR-PERIOD-ATT-010 (daily roll-up threshold), BR-PERIOD-ATT-011 (recording
+  header). Tightened BR-PERIOD-ATT-002 from `period_no > 0` to
+  `BETWEEN 1 AND 10` (V51 + DTO). Mobile UI / offline queue / matview /
+  load test / RBAC remain deferred per §4.
 - **2026-05-04** Phase 1A rules.md created alongside V50 + V24 migrations
   and read-only API (Wave 18b1 Bucket F, GAP-323).

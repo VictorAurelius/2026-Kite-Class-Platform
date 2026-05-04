@@ -1,10 +1,14 @@
 package com.kiteclass.core.module.attendance.controller;
 
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodBatchCreateRequest;
 import com.kiteclass.core.module.attendance.dto.AttendancePeriodResponse;
+import com.kiteclass.core.module.attendance.dto.AttendancePeriodUpdateRequest;
+import com.kiteclass.core.module.attendance.dto.DailyAttendanceRollupResponse;
 import com.kiteclass.core.module.attendance.service.AttendancePeriodService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -12,9 +16,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,20 +32,21 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Read-only REST controller for K-12 per-period attendance.
+ * REST controller for K-12 per-period attendance.
  *
- * <p>Phase 1A surface only — write endpoints (POST/PATCH/DELETE) ship in
- * GAP-323b along with idempotency, GVCN mobile UI, and concurrent
- * load-test coverage.
+ * <p>Phase 1A (Wave 18b1) shipped four read-only GETs. Phase 1B (Wave 18b2,
+ * GAP-323b) adds idempotent batch upsert, single-row PATCH with optimistic
+ * lock, and an on-demand daily roll-up endpoint. Mobile UI, offline queue,
+ * and the load-test rig are tracked separately in GAP-323b §1B.2-1B.4.
  *
- * @since GAP-323 Phase 1A (Wave 18b1)
+ * @since GAP-323 Phase 1A (Wave 18b1); Phase 1B GAP-323b (Wave 18b2)
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/attendance/periods")
 @RequiredArgsConstructor
 @Tag(name = "Attendance — Period (K-12)",
-     description = "Per-period attendance read-only API (Phase 1A, GAP-323).")
+     description = "Per-period attendance API for K-12 schools (GAP-323 / GAP-323b).")
 public class AttendancePeriodController {
 
     private final AttendancePeriodService service;
@@ -74,6 +84,53 @@ public class AttendancePeriodController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         log.debug("GET /api/v1/attendance/periods/classes/{} date={}", classId, date);
         return ResponseEntity.ok(service.findByClassAndDate(classId, date));
+    }
+
+    @PostMapping
+    @Operation(summary = "Idempotent batch upsert of per-period attendance.",
+            description = "Records attendance for a list of (student, subject section, "
+                    + "date, period_no) tuples. Resubmitting the same batch updates "
+                    + "rather than duplicates rows (V50 unique index). The "
+                    + "X-Teacher-Id header identifies the recording GVCN / bộ môn.")
+    public ResponseEntity<List<AttendancePeriodResponse>> upsertBatch(
+            @Valid @RequestBody AttendancePeriodBatchCreateRequest request,
+            @Parameter(description = "Recording teacher / GVCN user ID.", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+        log.info("POST /api/v1/attendance/periods - batch={} by teacher={}",
+                request.getEntries().size(), teacherId);
+        List<AttendancePeriodResponse> out = service.upsertBatch(request, teacherId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(out);
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Update a single period-attendance row.",
+            description = "Optimistic-lock conflict (stale version) returns HTTP 409 "
+                    + "with code OPTIMISTIC_LOCK_CONFLICT.")
+    public ResponseEntity<AttendancePeriodResponse> update(
+            @Parameter(description = "Row ID") @PathVariable Long id,
+            @Valid @RequestBody AttendancePeriodUpdateRequest request,
+            @Parameter(description = "Recording teacher / GVCN user ID.", required = true)
+            @RequestHeader("X-Teacher-Id") Long teacherId) {
+        log.info("PATCH /api/v1/attendance/periods/{} by teacher={}", id, teacherId);
+        return ResponseEntity.ok(service.update(id, request, teacherId));
+    }
+
+    @GetMapping("/daily-rollup")
+    @Operation(summary = "Daily roll-up across one class for a date range.",
+            description = "Per-(student, date) counts plus the boolean allDayAbsent "
+                    + "(absent + late ≥ 7 tiết per TT 22/2021/TT-BGDĐT). Phase 1B v1 "
+                    + "is on-demand aggregation; the materialized-view path described "
+                    + "in GAP-323b §1B.4 is deferred to a follow-up PR.")
+    public ResponseEntity<List<DailyAttendanceRollupResponse>> dailyRollup(
+            @Parameter(description = "Class ID", required = true)
+            @RequestParam Long classId,
+            @Parameter(description = "From date (inclusive, ISO-8601)", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "To date (inclusive, ISO-8601)", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        log.debug("GET /api/v1/attendance/periods/daily-rollup classId={} from={} to={}",
+                classId, from, to);
+        return ResponseEntity.ok(service.dailyRollupForClass(classId, from, to));
     }
 
     @GetMapping("/subject-sections/{subjectSectionId}")

@@ -1,6 +1,6 @@
 # GAP-323b: Period Attendance Phase 1B — Write API + GVCN mobile UI ≤2min + daily roll-up + load test
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1B v1 (Write API + on-demand daily rollup + V51 CHECK) shipped 2026-05-04
 **Priority:** 🔴 P0 (sister of GAP-323 Phase 1A SHIPPED Wave 18b1)
 **Domain:** Backend + Frontend (mobile)
 **Detected:** 2026-05-04 (Wave 18b1 Bucket F closure)
@@ -57,16 +57,16 @@ K-12 daily ops fail.
 
 ## Acceptance Criteria
 
-- [ ] Write API + idempotency + optimistic lock
-- [ ] GVCN mobile UI tap-grid; Playwright perf test ≤ 2 min for 42 HS
-- [ ] Offline queue + retry mechanism
-- [ ] Daily roll-up materialized view + endpoint
-- [ ] Concurrent load test 30 GVCN passes (P99 ≤ 2s)
-- [ ] Parent portal /attendance facet exposed (coordinate GAP-321b)
-- [ ] DB CHECK constraint on vertical_type↔period_no relationship
-- [ ] Tests: idempotency unit + write API IT + mobile UI Playwright + load test
-- [ ] Business docs updated: BR-PERIOD-ATT-{write/rollup/concurrency} + UC-GVCN-DIEM-DANH
-- [ ] mvn + pnpm green
+- [x] Write API + idempotency + optimistic lock — POST batch + PATCH single, V50 unique-tuple upsert + JPA `@Version`
+- [ ] GVCN mobile UI tap-grid; Playwright perf test ≤ 2 min for 42 HS — deferred to follow-up PR
+- [ ] Offline queue + retry mechanism — deferred to follow-up PR
+- [x] Daily roll-up endpoint — Phase 1B v1: on-demand SQL aggregation. Materialized-view variant deferred to follow-up PR (BR-PERIOD-ATT-010 §note)
+- [ ] Concurrent load test 30 GVCN passes (P99 ≤ 2s) — deferred to follow-up PR
+- [ ] Parent portal /attendance facet exposed (coordinate GAP-321b) — deferred to follow-up PR
+- [x] DB CHECK constraint on `period_no` range — V51 narrows to BETWEEN 1 AND 10 (cross-DB `vertical_type` pairing dropped as un-expressible; service-layer only)
+- [x] Tests: idempotency unit + write API IT (9 unit + 10 IT green); mobile UI Playwright + concurrent load test deferred to follow-up
+- [x] Business docs updated: BR-PERIOD-ATT-{008..011} + UC-PERIOD-ATT-W-001/002 + UC-PERIOD-ATT-R-005
+- [x] mvn green (kiteclass-core); pnpm N/A (no FE in this PR)
 
 ## Estimated Effort
 
@@ -86,4 +86,5 @@ K-12 daily ops fail.
 
 ## Log
 
+- **2026-05-04** (Phase 1B v1, this PR) — Shipped backend foundation: idempotent batch upsert (BR-PERIOD-ATT-008), optimistic-lock PATCH (BR-PERIOD-ATT-009), on-demand daily roll-up (BR-PERIOD-ATT-010, matview deferred), `period_no` range CHECK V51 (BR-PERIOD-ATT-002 tightened from `>0` to `BETWEEN 1 AND 10`), recording-header contract (BR-PERIOD-ATT-011 — fine-grained RBAC deferred), 3-layer business docs synced. New error code `OPTIMISTIC_LOCK_CONFLICT` on `GlobalExceptionHandler`. 19 tests green (9 unit + 10 IT TestContainers Postgres). Status flips OPEN → PARTIAL per `gap-done-discipline.md` §3; mobile UI / offline queue / matview / concurrent load test / parent-portal facet / fine-grained RBAC explicitly deferred to follow-up PRs (each tracked in `documents/01-business/kiteclass/period-attendance/rules.md` §4).
 - **2026-05-04** — Filed by Wave 18b1 closure coordinator. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.

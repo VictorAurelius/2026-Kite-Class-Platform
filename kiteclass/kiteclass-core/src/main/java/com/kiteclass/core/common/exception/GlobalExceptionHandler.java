@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -208,6 +209,28 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.of("INVALID_ARGUMENT", ex.getMessage(), path);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * Handles JPA optimistic-lock failures triggered when a client writes
+     * with a stale {@code @Version}. Maps to HTTP 409 so the client can
+     * re-fetch and retry rather than retrying blindly.
+     */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLockingFailure(
+            OptimisticLockingFailureException ex,
+            HttpServletRequest request) {
+
+        log.warn("Optimistic lock failure at {}: {}",
+                request.getRequestURI(), ex.getMessage());
+
+        String path = request.getRequestURI();
+        ErrorResponse response = ErrorResponse.of(
+                "OPTIMISTIC_LOCK_CONFLICT",
+                "The record was modified by another writer; refresh and retry.",
+                path);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     /**
