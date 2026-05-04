@@ -91,4 +91,13 @@ class ParentNotificationsFacetControllerIT {
                         .header("X-User-Reference-Id", PARENT_ID))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("returns 401 when X-User-Reference-Id header is missing")
+    void missingParentHeader_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/parent/children/{childId}/notifications", CHILD_ID)
+                        .param("from", "2026-04-01")
+                        .param("to", "2026-04-30"))
+                .andExpect(status().isUnauthorized());
+    }
 }
