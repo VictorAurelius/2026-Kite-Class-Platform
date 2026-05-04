@@ -36,15 +36,12 @@ Disconnect (Ctrl+B, D) — session keeps running. Reconnect: same `tmux attach` 
 sudo apt-get update && sudo apt-get install -y openssh-server
 sudo systemctl enable --now ssh.service
 sudo systemctl status ssh                   # verify active
-
-# Verify listening
-ss -tlnp | grep :22
 ```
 
-Edit `/etc/ssh/sshd_config.d/99-kite-local.conf` (new file — don't touch base config):
+Write the SSH override (use `install` to avoid heredoc-into-sudo password collision — see §10 lesson):
 
 ```bash
-sudo tee /etc/ssh/sshd_config.d/99-kite-local.conf > /dev/null <<'EOF'
+cat > /tmp/99-kite-local.conf <<'EOF'
 # Project-local SSH overrides for WSL2 dev access
 Port 2222                       # avoid host port 22 conflicts
 PasswordAuthentication no       # key-only
@@ -52,11 +49,44 @@ PubkeyAuthentication yes
 PermitRootLogin no
 ClientAliveInterval 60
 ClientAliveCountMax 3
-AllowUsers nguyenvankiet
+AllowUsers <your-username>      # replace with your actual username
 EOF
 
+sudo install -m 644 -o root -g root /tmp/99-kite-local.conf /etc/ssh/sshd_config.d/99-kite-local.conf
+rm /tmp/99-kite-local.conf
 sudo systemctl restart ssh
 ```
+
+**🔥 CRITICAL — Ubuntu 24.04+ socket activation footgun:** modern Ubuntu/Debian uses `ssh.socket` to control which port sshd listens on. The `Port` directive in `sshd_config` is **ignored** — `sshd -T` will report Port 2222 but `ss -tlnp` will still show `:22`. Fix with a socket drop-in:
+
+```bash
+sudo mkdir -p /etc/systemd/system/ssh.socket.d
+
+cat > /tmp/listen.conf <<'EOF'
+[Socket]
+ListenStream=
+ListenStream=0.0.0.0:2222
+ListenStream=[::]:2222
+EOF
+
+sudo install -m 644 -o root -g root /tmp/listen.conf /etc/systemd/system/ssh.socket.d/listen.conf
+rm /tmp/listen.conf
+sudo systemctl daemon-reload
+sudo systemctl restart ssh.socket
+sudo systemctl restart ssh.service
+```
+
+The empty `ListenStream=` resets the original `:22` from the base unit; the next two lines add the new ports.
+
+Verify both layers:
+
+```bash
+ss -tlnp 2>/dev/null | grep -E ':2222\s'    # should show 0.0.0.0:2222 + [::]:2222
+sudo sshd -T | grep -E '^(port|passwordauthentication|pubkeyauthentication|permitrootlogin|allowusers)'
+systemctl status ssh.socket --no-pager | grep Listen
+```
+
+Expected: `Listen: 0.0.0.0:2222 (Stream)`. If still `:22`, the socket drop-in didn't apply — re-run `daemon-reload` + `restart ssh.socket`.
 
 ### 2.2 SSH key from your "outside" machine
 
@@ -110,23 +140,74 @@ New-NetFirewallRule -DisplayName "WSL2 SSH 2222" -Direction Inbound -Protocol TC
 netsh interface portproxy show all
 ```
 
-**Persistence:** WSL2 IP changes after every WSL reboot. Make this a startup script — save the PowerShell above as `C:\scripts\wsl-ssh-portproxy.ps1`, then run it on Windows boot via Task Scheduler:
+**Persistence:** WSL2 IP changes after every WSL reboot. Save the snippet to `C:\scripts\wsl-ssh-portproxy.ps1`, then register a Task Scheduler job. Run this in **PowerShell as Administrator** (idempotent — re-running re-creates the task):
 
-- Trigger: At system startup
-- Action: `powershell.exe -ExecutionPolicy Bypass -File C:\scripts\wsl-ssh-portproxy.ps1`
-- Run with highest privileges, run whether user is logged on or not
+```powershell
+# Create script directory + write the startup script
+New-Item -ItemType Directory -Path C:\scripts -Force | Out-Null
 
-### 2.4 External access (optional)
+@'
+# WSL2 SSH portproxy startup script (auto-generated)
+$wslIp = (wsl hostname -I).Trim().Split(' ')[0]
+if (-not $wslIp) { Write-Host 'No WSL IP — abort'; exit 1 }
+Write-Host "WSL2 IP: $wslIp"
+netsh interface portproxy delete v4tov4 listenport=2222 listenaddress=0.0.0.0 2>$null
+netsh interface portproxy add v4tov4 listenport=2222 listenaddress=0.0.0.0 connectport=2222 connectaddress=$wslIp
+'@ | Set-Content -Path C:\scripts\wsl-ssh-portproxy.ps1 -Encoding UTF8
 
-If connecting from outside the local network (coffee shop, phone on cellular), pick ONE:
+# Register the scheduled task (delete first if exists)
+if (Get-ScheduledTask -TaskName 'WSL2-SSH-Portproxy' -ErrorAction SilentlyContinue) {
+  Unregister-ScheduledTask -TaskName 'WSL2-SSH-Portproxy' -Confirm:$false
+}
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
+  -Argument '-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File C:\scripts\wsl-ssh-portproxy.ps1'
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable `
+  -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -DontStopOnIdleEnd
+Register-ScheduledTask -TaskName 'WSL2-SSH-Portproxy' `
+  -Action $action -Trigger $trigger -Principal $principal -Settings $settings | Out-Null
+Get-ScheduledTask -TaskName 'WSL2-SSH-Portproxy' | Format-List TaskName, State
+```
 
-| Option | Setup | Tradeoff |
-|---|---|---|
-| **Tailscale** | Install on Windows + outside machine; `tailscale ip -4` gives stable IP | Easiest; routes via Tailscale relay; free for personal use |
-| **Cloudflare Tunnel** | `cloudflared tunnel` on Windows; SSH over HTTPS | No firewall changes; needs Cloudflare account |
-| **Router port forward** | Forward TCP 2222 from public IP → Windows host | Direct; exposes 2222 to internet — needs strong key auth + fail2ban |
+After Windows boot, verify portproxy is fresh:
+```powershell
+netsh interface portproxy show all   # 0.0.0.0 2222 → <current WSL IP> 2222
+```
 
-Recommend Tailscale for solo-dev — zero firewall pain.
+### 2.4 External access (optional but recommended for mobile)
+
+LAN-only access uses the Windows LAN IP (e.g. `172.16.90.30`). For cellular / coffee shop / anywhere access, install Tailscale — zero-config WireGuard mesh VPN, free for solo-dev.
+
+#### Install on Windows
+
+`winget install --id=tailscale.tailscale --silent` should work, but in practice (2026-05-04 setup) the silent flag suppresses the UAC prompt and the install just fails with no diagnostic. Use direct download instead:
+
+```powershell
+# In any PowerShell (no admin needed for download)
+Invoke-WebRequest -Uri 'https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe' `
+  -OutFile 'C:\temp\tailscale-setup.exe' -UseBasicParsing
+
+# Launch with elevation (UAC prompt → Yes → click Install)
+Start-Process 'C:\temp\tailscale-setup.exe' -Verb RunAs
+```
+
+After GUI install, the Tailscale tray app auto-opens. **Sign in** → choose identity provider (Google / Microsoft / GitHub / Apple). Verify from any shell:
+
+```powershell
+& 'C:\Program Files\Tailscale\tailscale.exe' status   # list of your devices
+& 'C:\Program Files\Tailscale\tailscale.exe' ip -4    # this machine's Tailscale IP (e.g. 100.90.149.107)
+```
+
+That `100.x.y.z` IP is now reachable from any other machine on the same Tailscale network. **Use this IP, not the LAN IP, when connecting from a phone or remote laptop.**
+
+#### Other options
+
+| Option | When to pick |
+|---|---|
+| **Tailscale** | Solo-dev, mobile access — pick this 95% of the time |
+| **Cloudflare Tunnel** | Need SSH over HTTPS only (corporate firewall blocks WireGuard UDP) |
+| **Router port forward** | Self-hosted infra with static IP + you've audited fail2ban + key rotation |
 
 ---
 
@@ -205,9 +286,110 @@ Daily: `ssh kite` → `kite-tmux` → done.
 
 ---
 
-## 4. Common Ops Workflows (the use cases that motivated SSH-direct)
+## 4. Android Phone Setup
 
-### 4.1 Watch a CI workflow until terminal
+Use case: SSH into the WSL2 dev machine from your phone, anywhere with internet. Tested 2026-05-04.
+
+### 4.1 Install Tailscale on Android
+
+1. Play Store → search **"Tailscale"** → Install
+2. Open app → **Sign in** → choose the SAME identity provider used on Windows (Google / Microsoft / GitHub / Apple)
+3. After login, the machine list should show your Windows device (e.g. `nguyenvankiet-1`) as **Connected**
+4. **Enable Always-on VPN** so Tailscale auto-starts after phone boot:
+   - Android **Settings** → **Network & internet** → **VPN** → **Tailscale** → toggle **Always-on VPN: ON**
+5. **Whitelist Tailscale from battery optimization** (especially Xiaomi / Oppo / Samsung / Huawei ROMs which kill background VPNs):
+   - Settings → **Apps** → **Tailscale** → **Battery** → **No restrictions** / **Don't optimize**
+   - Without this, Tailscale gets killed in deep sleep and SSH fails with timeouts after the phone wakes
+
+### 4.2 Pick an SSH client
+
+| App | When to pick | Source |
+|---|---|---|
+| **Termius** | GUI flow, multi-host, easy on phone | Play Store |
+| **Termux** | CLI parity with desktop, scriptable, runs `ssh kite` exactly like the WSL guide | **F-Droid** (Play Store version is deprecated by Termux team — do not use) |
+| **JuiceSSH** | Simple GUI, free | Play Store |
+| **ConnectBot** | Open-source, basic GUI | Play Store / F-Droid |
+
+Recommendation: **Termius for daily use, Termux for power features (mosh, port forwarding, scripting).**
+
+### 4.3 Generate SSH key on phone (Termux path — most reliable)
+
+Termius UI varies by version (key generation may be hidden under "More" / "Keychain" / inside the host edit form depending on app version). Termux is consistent:
+
+```bash
+# In Termux app — first time only
+pkg update && pkg install openssh -y
+ssh-keygen -t ed25519 -C "phone-android@kite-dev" -f ~/.ssh/kite_dev
+cat ~/.ssh/kite_dev.pub      # long-press output to copy
+```
+
+### 4.4 Install the public key on the WSL2 dev machine
+
+From a desktop session on the dev machine (or via Claude Code), append the phone's `.pub` to `~/.ssh/authorized_keys`:
+
+```bash
+echo 'ssh-ed25519 AAAAC3...phone-android@kite-dev' >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Verify:
+```bash
+cat ~/.ssh/authorized_keys     # one line per device — laptop, phone, etc.
+```
+
+### 4.5 Configure host on the phone
+
+**Termius:**
+1. Tab **Hosts** → tap **+** → New Host
+2. Fill in:
+   - **Alias:** `kite-dev`
+   - **Address:** `100.90.149.107` (your **Windows Tailscale IP** — NOT the LAN IP)
+   - **Port:** `2222`
+   - **Username:** `nguyenvankiet`
+   - **Authentication:** switch from "Password" to **"Public Key"** / **"Use Key"** — choose the key generated in §4.3 (or generated in-app)
+3. Save → tap host → connects
+
+**Termux:**
+
+```bash
+# In Termux
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+cat > ~/.ssh/config <<'EOF'
+Host kite
+  HostName 100.90.149.107
+  Port 2222
+  User nguyenvankiet
+  IdentityFile ~/.ssh/kite_dev
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+EOF
+chmod 600 ~/.ssh/config
+
+ssh kite     # test
+```
+
+### 4.6 Daily workflow on phone
+
+Open **Termius** (or Termux) → tap `kite-dev` → connected. Tailscale runs silently in the background — no need to open the Tailscale app every time, thanks to Always-on VPN (§4.1).
+
+**Quick-connect tricks:**
+- **Termius:** long-press host → **Add to home screen** → 1-tap connect from launcher
+- **Termux:** install **Termux:Widget** from F-Droid → make a launcher widget that runs `ssh kite`
+
+### 4.7 Phone-specific gotchas
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Connection times out after phone sleep | ROM killed Tailscale in background | §4.1 step 5 — battery optimization off for Tailscale |
+| `ssh: connect to host 100.x.y.z port 2222: Network is unreachable` | Always-on VPN not active OR Tailscale logged out | Open Tailscale app → toggle ON, verify Windows device shows Connected |
+| Works on Wi-Fi, fails on cellular | Some carriers block WireGuard UDP | Tailscale auto-falls-back to TCP relay; if still fails, switch to Cloudflare Tunnel option |
+| `Permission denied (publickey)` | Public key not added on dev side OR wrong key selected on phone | §4.4 — verify `cat ~/.ssh/authorized_keys` shows the phone's pub key |
+
+---
+
+## 5. Common Ops Workflows (the use cases that motivated SSH-direct)
+
+### 5.1 Watch a CI workflow until terminal
 
 ```bash
 # Pane 2 — block until terminal, no chat overhead
@@ -219,7 +401,7 @@ until gh pr checks 737 --json conclusion --jq '.[].conclusion' | grep -qE 'succe
 done && echo "DONE"
 ```
 
-### 4.2 Local Docker build with live progress
+### 5.2 Local Docker build with live progress
 
 ```bash
 # Pane 1 — direct foreground; you see every layer
@@ -235,7 +417,7 @@ docker logs kc-fe-smoke
 docker stop kc-fe-smoke
 ```
 
-### 4.3 Docker stack (use project scripts per CLAUDE.md)
+### 5.3 Docker stack (use project scripts per CLAUDE.md)
 
 ```bash
 # NEVER run docker-compose directly — use scripts
@@ -245,7 +427,7 @@ cd kitehub
 ./scripts/down.sh
 ```
 
-### 4.4 Maven test loop on a single service
+### 5.4 Maven test loop on a single service
 
 ```bash
 cd kitehub/kitehub-admin
@@ -254,7 +436,7 @@ mvn test -Dtest=AdminControllerTest#testGetRevenue
 mvn -pl kitehub/kitehub-admin -P strict-warnings test
 ```
 
-### 4.5 Tail a long-running log
+### 5.5 Tail a long-running log
 
 ```bash
 # Pane 2 — keeps streaming, Ctrl+C to stop
@@ -263,7 +445,7 @@ docker logs -f --tail 50 kite-postgres 2>&1 | grep --line-buffered -E "ERROR|FAT
 
 ---
 
-## 5. Hybrid with Claude Code
+## 6. Hybrid with Claude Code
 
 SSH-direct và Claude Code không đối nghịch — bổ trợ nhau:
 
@@ -283,7 +465,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 6. Security Checklist
+## 7. Security Checklist
 
 - [x] `PasswordAuthentication no` — key-only (set in §2.1)
 - [x] `PermitRootLogin no` — never root
@@ -298,7 +480,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -311,7 +493,7 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 8. Related
+## 9. Related
 
 - `remote-control-setup.md` — Claude Code mobile remote (alternative path, no SSH needed)
 - `wsl2-fresh-setup.md` — clean-room WSL2 setup (this guide assumes that's done)
@@ -320,6 +502,21 @@ Decision rule: **anything that's a `for/while/until` loop or "watch this thing f
 
 ---
 
-## 9. Log
+## 10. Lessons learned (during 2026-05-04 setup)
 
+Pitfalls discovered while actually following this guide end-to-end. Documented inline in the relevant sections, repeated here for searchability:
+
+1. **`ssh.socket` overrides `Port` in `sshd_config`** on Ubuntu 24.04+ (and any distro with socket-activated sshd). `sshd -T` reports the new port but `ss -tlnp` still shows `:22`. Fix: drop-in at `/etc/systemd/system/ssh.socket.d/listen.conf` — see §2.1.
+2. **`sudo tee <<HEREDOC` collides with sudo password prompt** when piped via `echo password | sudo -S`. Sudo reads the heredoc body as password attempts and bails. Workaround: write the file to `/tmp` first, then `sudo install -m 644 -o root -g root /tmp/file /destination`.
+3. **`winget install --silent` swallows UAC failures.** If UAC isn't accepted, install fails with no diagnostic and `winget list` reports nothing installed. Direct `Invoke-WebRequest` + `Start-Process -Verb RunAs` with the GUI installer is more reliable.
+4. **Use the Tailscale IP, not the LAN IP, when configuring phone clients.** LAN IPs (e.g. `172.16.x.x`) only work on the same Wi-Fi. Tailscale IPs (`100.x.y.z`) work anywhere with internet.
+5. **Android battery optimizers kill Tailscale.** Xiaomi / Oppo / Samsung / Huawei ROMs aggressively suspend background apps. Whitelist Tailscale or get random connection timeouts after the phone wakes from deep sleep.
+6. **Termius UI varies wildly across versions.** Key generation is hidden under different paths (Keychain / More / inside host edit form / "+" in auth field). Termux is more consistent if you hit Termius UI fog.
+7. **Termius defaults to Password auth.** With key-only sshd, must explicitly switch the host's auth method from Password to Public Key — leaving the password field blank doesn't auto-switch.
+
+---
+
+## 11. Log
+
+- **2026-05-04 (extended)** — Updated after end-to-end Android setup completed: §2.1 ssh.socket drop-in (CRITICAL — fix the silent footgun); §2.3 actual Task Scheduler PowerShell that worked (replacing the bullet-point abstract); §2.4 expanded with direct-download Tailscale install path (winget --silent failed silently); new §4 Android Phone Setup (Tailscale Always-on, Termux key gen flow, Termius host config gotchas, battery optimization caveat); new §10 Lessons learned section codifying 7 pitfalls discovered during real setup. Renumbered §5-§10 accordingly.
 - **2026-05-04** — Created during GAP-284 closure. Motivated by hotfix session where ops-heavy verification (Docker builds, CI polls, smoke tests) burned ~25-30 min of Claude-session friction that SSH-direct + tmux would have collapsed to ~5 min. Solo-dev mode; no formal review needed.
