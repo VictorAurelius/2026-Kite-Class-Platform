@@ -115,7 +115,7 @@ class ParentFeesFacetServiceImplTest {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
         Invoice invoice = sampleInvoice(InvoiceStatus.SENT);
-        when(invoiceRepository.findByStudentIdAndDeletedFalse(eq(CHILD_ID), any()))
+        when(invoiceRepository.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(invoice)));
 
         Page<ParentFeeFacetResponse> result = service.getFeesForChild(
@@ -135,7 +135,7 @@ class ParentFeesFacetServiceImplTest {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
         Invoice invoice = sampleInvoice(null);
-        when(invoiceRepository.findByStudentIdAndDeletedFalse(eq(CHILD_ID), any()))
+        when(invoiceRepository.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(invoice)));
 
         Page<ParentFeeFacetResponse> result = service.getFeesForChild(
@@ -143,6 +143,47 @@ class ParentFeesFacetServiceImplTest {
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).status()).isNull();
+        verify(auditLogService, times(1)).logRead(PARENT_ID, CHILD_ID, ParentFacet.FEES);
+    }
+
+    /**
+     * BR-PARENT-FACET-FEES-002: real query MUST narrow by date range. The
+     * stub used {@code findByStudentIdAndDeletedFalse} (no range arg);
+     * remainder switches to {@code findByStudentIdAndDueDateRange(child, from, to, pageable)}.
+     */
+    @Test
+    @DisplayName("BR-FEES-002: service narrows by dueDate range — stub-fallback path is gone")
+    void realWiring_callsRangeNarrowingRepoMethod() {
+        when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(invoiceRepository.findByStudentIdAndDueDateRange(
+                eq(CHILD_ID), eq(FROM), eq(TO), any()))
+                .thenReturn(new PageImpl<>(List.of(sampleInvoice(InvoiceStatus.SENT))));
+
+        Page<ParentFeeFacetResponse> page = service.getFeesForChild(
+                PARENT_ID, CHILD_ID, FROM, TO, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).hasSize(1);
+        verify(invoiceRepository, times(1)).findByStudentIdAndDueDateRange(
+                eq(CHILD_ID), eq(FROM), eq(TO), any());
+        // Old stub path must no longer be reached.
+        verify(invoiceRepository, never()).findByStudentIdAndDeletedFalse(any(), any());
+    }
+
+    @Test
+    @DisplayName("BR-FEES-002: empty page when no invoice in range — audit row still emitted")
+    void realWiring_emptyRange_auditStillEmitted() {
+        when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(invoiceRepository.findByStudentIdAndDueDateRange(
+                eq(CHILD_ID), eq(FROM), eq(TO), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        Page<ParentFeeFacetResponse> page = service.getFeesForChild(
+                PARENT_ID, CHILD_ID, FROM, TO, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
         verify(auditLogService, times(1)).logRead(PARENT_ID, CHILD_ID, ParentFacet.FEES);
     }
 

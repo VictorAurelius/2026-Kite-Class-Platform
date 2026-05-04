@@ -292,3 +292,59 @@ Indexes: `(parent_id, child_id, read_at)` primary; `(instance_id, facet)` aggreg
 ### 12.6 Log
 
 - **2026-05-04** Phase 1B foundation shipped — Wave 18b2 Bucket C (GAP-321b foundation): 4 read-only facets (attendance / fees / conduct / notifications) + per-read audit log skeleton (V53 migration + entity + service). 5 new BR rules (BR-PARENT-AUDIT-001 + BR-PARENT-FACET-{ATT,FEES,CONDUCT,NOTIFY}-001) added with 5-attribute frontmatter. Conduct + notifications facets ship as v1 stubs returning empty results; concrete sources deferred to GAP-321b.1. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321b. Cadence: Annual + event-driven.
+
+---
+
+## 13. K-12 LEGAL Phase 1B remainder — fees facet real wiring + N+1 protection (Wave 18b3 Bucket C — GAP-321b)
+
+**Phase:** 1B remainder — extends §12 foundation by replacing the fees v1 stub query with a date-range-narrowing JPQL + `@EntityGraph` to prevent N+1; conduct + notifications facets stay v1 stubs (state-check below) with explicit follow-up sub-gaps.
+**Last-Reviewed:** 2026-05-04
+**Reviewer-Approver:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-04). Formal legal counsel review queued — see GAP-321b.
+**Source:** Audit-to-gap state-check (per `audit-to-gap-pipeline.md` Step 2.5 hardened protocol) on `Incident.visibilityScope` + `Notification` entity — both confirmed missing from current schema; wiring to a non-existent column / entity is impossible. State-check log inlined in §13.3 below.
+**Compliance:** **Compliant** — same Đ.83 K2 + PDPL Art 16 framing as §11/§12. Adding date-range narrowing + N+1 protection to fees does NOT loosen the scope guard (BR-PARENT-FACET-FEES-001 unchanged); the change is a pure performance + query-precision improvement.
+**Review-Cadence:** Annual + event-driven on Luật GD 2019 amendment OR Decree 13/2023 implementing-decree publication. **Next review:** 2027-05-04.
+
+### 13.1 Scope of Phase 1B remainder (this PR)
+
+Phase 1B remainder ships **fees facet real wiring** (date-range narrowing + `@EntityGraph` for items + adjustments + assertion test ≤3 prepared statements). Conduct + notifications facets remain v1 stubs because the upstream artifacts they depend on do not yet exist:
+
+- **Conduct:** `Incident.visibilityScope` column does not exist (state-check 2026-05-04). The wave plan §3 Bucket C originally proposed filtering `Incident` by `visibilityScope IN (PARENT_VISIBLE, PUBLIC)` per BR-CHILD-PROTECT-005, but neither the field nor that BR exist in the codebase or `documents/01-business/kiteclass/child-protection/rules.md`. Querying `Incident` by `subjectStudentId` *without* a visibility filter risks PDPL Art 16 violation (special protection for children's data) — surfacing unverified `REPORTED` incidents to parents could leak unfounded accusations. Honest path: keep stub, file follow-up.
+- **Notifications:** No `Notification` entity exists in `kiteclass-core`; KiteHub's `NotificationPreference` is unrelated tier-preference data. Per BR-PARENT-FACET-NOTIFY-001 the cross-cutting notification engine ships in Wave 18a Bucket B (GAP-063b) which has not yet shipped. Honest path: keep stub, file follow-up.
+
+### 13.2 Phase 1B remainder Rules
+
+| ID | Rule | Detail | Phase |
+|----|------|--------|-------|
+| BR-PARENT-FACET-FEES-002 | Fees facet date-range narrowing | The fees JPQL query MUST narrow by `dueDate BETWEEN :from AND :to` (inclusive) and apply `@EntityGraph(attributePaths = {"items", "adjustments"})` so the parent-portal fee-period drill-down avoids N+1. Hibernate Statistics test asserts ≤3 prepared statements per facet call (1 count + 1 page + ≤1 collection-prefetch coalesce). | 1B remainder |
+| BR-PARENT-FACET-CONDUCT-002 | Conduct stub stays until visibility schema | The conduct facet returns empty UNTIL `Incident.visibilityScope` enum + column ship and `BR-CHILD-PROTECT-005` is enumerated in `documents/01-business/kiteclass/child-protection/rules.md`. Reasoning: PDPL Art 16 — surfacing unverified `REPORTED` incidents to parents without a vetted visibility filter risks leaking unfounded accusations. Tracked in **GAP-321b.1-conduct-incident-visibility**. | 1B remainder |
+| BR-PARENT-FACET-NOTIFY-002 | Notifications stub stays until GAP-063b | The notifications facet returns empty UNTIL the cross-cutting notification engine ships and exposes a parent-audience-scoped read API. The audience-scope contract (`PARENT` / `ALL_PARENTS`) will be validated then. Tracked in **GAP-321b.1-notifications-engine-wiring**. | 1B remainder |
+
+**Source (5-attribute frontmatter applied):**
+- **Source:** Audit-to-gap state-check 2026-05-04 (per `audit-to-gap-pipeline.md` Step 2.5 hardened protocol — `grep -rn 'visibilityScope\|audienceScope' kiteclass/kiteclass-core/src/main/java kiteclass/kiteclass-core/src/main/resources/db/migration documents/01-business/kiteclass/child-protection` returned 0 matches; `find kiteclass/kiteclass-core/src/main/java -name 'Notification.java'` returned 0 matches in module-domain scope) + Wave 18b3 plan §3 Bucket C trade-off note "join-heavy SQL via JPQL vs native queries → JPQL + @EntityGraph"
+- **Rationale:** Fees facet has the source data (`Invoice` + `InvoiceItem` + `InvoiceAdjustment` already shipped Wave 2.8.0; `dueDate` already indexed) — narrowing + N+1 protection is a pure perf upgrade with measurable verification (assertSelectCount). Conduct + notifications lack their upstream dependency and fabricating a query against absent schema would be drift, not progress. Why explicit 5-attribute BR rather than silent stub-stay? Visibility (BR-PARENT-FACET-CONDUCT-002 + BR-PARENT-FACET-NOTIFY-002 tell future readers the rationale + sub-gap).
+- **Reviewer:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-04). Formal legal counsel review queued — GAP-321b acceptance criteria.
+- **Compliance check:** **Compliant** — Luật GD 2019 Đ.83 K2 (right-to-information for fees parents owe, served by date-range narrowing); PDPL Decree 13/2023 Art 16 (children's data minimization — stub-stay for conduct prevents over-disclosure of unverified incidents); Luật Trẻ em 2016 Đ.21 (children's privacy right — same).
+- **Review cadence:** Annual + event-driven on Luật GD 2019 amendment OR Decree 13/2023 implementing-decree publication.
+
+### 13.3 State-check log (per `audit-to-gap-pipeline.md` Step 2.5 hardened protocol)
+
+| Artifact | Command | Match count | Conclusion |
+|----------|---------|------------|-----------|
+| `Incident.visibilityScope` field | `grep -rn "visibilityScope\|visibility_scope" kiteclass/kiteclass-core/src/main/java kiteclass/kiteclass-core/src/main/resources/db/migration documents/01-business/kiteclass/child-protection` | 0 | Field does not exist anywhere — schema, code, business rules. Querying it would fail at compile time (Java) and at runtime (no SQL column). |
+| `BR-CHILD-PROTECT-005` rule | `grep -rn "BR-CHILD-PROTECT-005" documents/01-business/kiteclass/child-protection/rules.md` | 0 | Rule does not exist in source-of-truth. The wave plan §3 Bucket C reference was aspirational; rule must be authored first (out of scope for this bucket — would touch `documents/01-business/kiteclass/child-protection/rules.md` outside this bucket's allowlist). |
+| `Notification` entity in `kiteclass-core` | `find kiteclass/kiteclass-core/src/main/java -name "*Notification*.java"` (full output, no head per Step 2.5 ban) | 0 in `module/` domain scope | No parent-targeted notification entity. KiteHub's `NotificationPreference` (tier preferences) is unrelated. Per BR-PARENT-FACET-NOTIFY-001 the cross-cutting engine ships in GAP-063b (Wave 18a Bucket B, not yet shipped). |
+| `audienceScope` field | `grep -rn "audienceScope\|audience_scope" kiteclass/kiteclass-core/src/main/java` | 0 | Same conclusion as above — field cannot be filtered against absent entity. |
+
+State-check verdict: 2 of 3 facets (conduct + notifications) cannot ship real wiring this bucket without out-of-allowlist work (Incident schema migration, child-protection rules.md edits, Notification entity authoring). Honest scope-cut + sub-gap filing per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
+
+### 13.4 Out of Phase 1B remainder scope (sister sub-gaps filed this PR)
+
+| Item | Where | Why deferred |
+|------|-------|--------------|
+| Conduct facet real query against `Incident` filtered by `visibilityScope` | **GAP-321b.1-conduct-incident-visibility** | Requires `Incident.visibilityScope` enum + column + migration + child-protection rules.md authoring of BR-CHILD-PROTECT-005 first — out of bucket allowlist; must precede this work |
+| Notifications facet real query against `Notification` filtered by `audienceScope` | **GAP-321b.1-notifications-engine-wiring** | Requires GAP-063b cross-cutting notification engine to ship first |
+| Fees facet instalment join + payment-history projection | **GAP-321b.1-fees-instalment-payment-history** | Phase 1B remainder ships date-range narrowing + items/adjustments graph; instalment + payment-history join is incremental v2 work |
+
+### 13.5 Log
+
+- **2026-05-04** Phase 1B remainder shipped — Wave 18b3 Bucket C (GAP-321b remainder): fees facet real JPQL with `@EntityGraph(items, adjustments)` + date-range narrowing + Hibernate Statistics assertSelectCount ≤3 test. Conduct + notifications facets stay v1 stubs per state-check (§13.3). 3 follow-up sub-gaps filed (GAP-321b.1-{conduct,notifications,fees-v2}). 3 new BR rules (BR-PARENT-FACET-FEES-002, BR-PARENT-FACET-CONDUCT-002, BR-PARENT-FACET-NOTIFY-002) with 5-attribute frontmatter. Bucket ships PARTIAL not DONE — fees fully wired, conduct + notifications honestly deferred. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321b. Cadence: Annual + event-driven.
