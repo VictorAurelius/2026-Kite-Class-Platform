@@ -4,10 +4,10 @@ description: "Dùng khi review business logic correctness, user nói 'persona re
 
 # Skill: Persona-Based Business Review
 
-**Version:** 1.1
+**Version:** 1.2
 **Created:** 2026-04-14
-**Last Updated:** 2026-04-29
-**Purpose:** Review business coverage bằng cách nhập vai (role-play) từng persona sử dụng platform → phát hiện gaps về core features thiếu.
+**Last Updated:** 2026-04-30
+**Purpose:** Review business coverage bằng cách nhập vai (role-play) từng persona sử dụng platform → phát hiện gaps về core features thiếu. Reviewer dùng formal AC docs per persona (`documents/00-brd/persona-criteria/P<N>-*.md`) để mark PASS/PARTIAL/FAIL với evidence — replaces ad-hoc "Key needs" walkthrough trước GAP-151.
 
 **Project principle:** "SAAS này phải tạo sân chơi chung cho TẤT CẢ đối tượng thỏa mãn nhu cầu core của quản lý và học trực tuyến."
 
@@ -274,9 +274,46 @@ Per `.claude/rules/audit-to-gap-pipeline.md` — DO NOT fix issues inline during
 ## Skill Contents
 
 - This SKILL.md — methodology
-- Reference: `documents/00-brd/personas-catalog.md` (canonical list)
-- Reference: `documents/00-brd/persona-reviews/` (output reports)
-- Integration: create gap files via `gap-to-pr-converter` after review
+- Reference: `documents/00-brd/personas-catalog.md` (canonical list — 10 personas, Tier 1/2/3 classification)
+- Reference: `documents/00-brd/persona-criteria/_TEMPLATE.md` (reusable AC template — 6 categories: onboarding/ops/fin/comm/edge/exit)
+- Reference: `documents/00-brd/persona-criteria/P<N>-*.md` (per-persona AC docs — 15-30 measurable ACs each, PASS/PARTIAL/FAIL gradable)
+- Reference: `documents/00-brd/persona-criteria/README.md` (index + last-reviewed tracking)
+- Reference: `documents/00-brd/persona-reviews/` (scored output reports populated by GAP-152 onwards)
+- Integration: create gap files via `audit-to-gap-pipeline.md` (NOT inline fixes during review)
+
+## AC docs integration (added v1.2 — GAP-151)
+
+Before GAP-151 (this skill v1.0/1.1): reviewer derived AC ad-hoc from "Key needs" → non-reproducible, score drift, can't compare quarter-over-quarter.
+
+After GAP-151 (this skill v1.2+): reviewer loads formal AC doc → marks each AC PASS/PARTIAL/FAIL with evidence → outputs scored report.
+
+### Updated review flow (replaces Step 2-3 walkthrough for Tier-1 personas)
+
+1. **Load AC doc** for target persona — `documents/00-brd/persona-criteria/P<N>-<slug>.md`
+2. **Read §0 Context** — calibrate scale assumption + organization archetype
+3. **Role-play with that scale** — walk through each AC's Test scenario
+4. **Mark each AC** PASS / PARTIAL / FAIL with concrete evidence:
+   - **PASS** = system handles scenario without manual workaround
+   - **PARTIAL** = works but with friction, edge case missing, manual step required
+   - **FAIL** = missing entirely, no system support, blocks persona
+5. **Calculate Coverage %** = (PASS + 0.5 × PARTIAL) / total × 100
+6. **For each FAIL AC** — check §Gap Linkage Summary for existing GAP-XXX; if not present, file new gap via `audit-to-gap-pipeline.md` Step 2.5 state-check first
+7. **Output scored report** to `documents/00-brd/persona-reviews/YYYY-QN-persona-review.md`
+
+### Coverage verdict thresholds (from `_TEMPLATE.md` §Scoring)
+
+| Coverage % | Verdict |
+|------------|---------|
+| ≥85% | ✅ Persona fully supported (production-ready) |
+| 60-84% | ⚠️ Persona partially supported (defer GA for this persona) |
+| 30-59% | 🔴 Persona NOT supported (major gaps) |
+| <30% | ❌ Persona NOT viable (consider deferring to Tier 2/3) |
+
+### When to use ad-hoc walkthrough (Step 2-3) vs AC docs
+
+- **AC docs available (Tier 1: P1/P2/P3/P5):** load AC doc, follow flow above
+- **AC doc NOT available (Tier 2/3, secondary personas):** fall back to Step 2-3 ad-hoc walkthrough; if pattern recurs, file follow-up gap to add AC doc per `_TEMPLATE.md`
+- **Off-cycle deep-dive triggered by user complaint:** AC doc as starting point, extend with complaint-specific scenarios in review report (don't modify AC doc mid-review)
 
 ---
 
@@ -294,5 +331,6 @@ Per `.claude/rules/audit-to-gap-pipeline.md` — DO NOT fix issues inline during
 
 ## Log
 
+- **2026-04-30** (v1.2): Integrated formal AC framework per GAP-151. Added §"AC docs integration" — replaces ad-hoc "Key needs" walkthrough với load-from-`documents/00-brd/persona-criteria/P<N>-*.md` flow for Tier-1 personas. Bumped purpose statement + Skill Contents section. Coverage verdict thresholds standardized (85/60/30 cutoffs). Closes GAP-151 framework AC #5 ("persona-based-business-review.md skill updated to consume AC docs"). Reviewer: @nguyenvankiet (solo-dev — paired với `documents/00-brd/persona-criteria/_TEMPLATE.md` + 4 Tier-1 AC docs (P1/P2/P3/P5) in same wave per `rule-change-process.md` §6.5 Enforcement Parity Mandate).
 - **2026-04-29** (v1.1): Added §Quarterly Review Cadence (calendar-anchored EOQ dates, off-cycle triggers, reviewer roles, output artifacts, `next_review` tracking field). Closes GAP-050 framework AC #4 ("Quarterly review cadence documented"). Reviewer: @nguyenvankiet (solo-dev — paired with `pre-flight-check.md` Layer 4 + `quality-audit/SKILL.md` Cat 11 in same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate).
 - **2026-04-14** (v1.0): Skill created. Closes GAP-050 framework AC #2.
