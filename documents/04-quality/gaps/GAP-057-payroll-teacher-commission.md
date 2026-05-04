@@ -1,6 +1,6 @@
 # GAP-057: Teacher Payroll + Commission Calculation
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1 (HOURLY only) shipped 2026-05-04 (Wave 18a Bucket C); Phase 2 → GAP-057b
 **Priority:** 🟠 P1
 **Domain:** Backend / Finance
 **Detected:** 2026-04-14 (persona review)
@@ -82,20 +82,39 @@ Teacher:
 - BHXH (social insurance) mandatory percentage
 - Region-based minimum wage check
 
-## Acceptance Criteria
+## Acceptance Criteria (Phase 1 ✅ ; Phase 2 deferred → GAP-057b)
 
-- [ ] PayrollConfig + PayrollPeriod entities
-- [ ] Calculation engine support 4 types
-- [ ] Monthly payroll run UI
-- [ ] Payslip PDF generation
-- [ ] VN tax/BHXH calculation
-- [ ] Bank export format
-- [ ] Audit log for payroll changes
+- [x] **Phase 1 ✅** PayrollConfig + PayrollPeriod entities (Wave 18a Bucket C — V48 migration shipped 2026-05-04)
+- [x] **Phase 1 ✅ partial** Calculation engine — HOURLY only; SALARY/COMMISSION/HYBRID throw `UnsupportedOperationException` with GAP-057b reference. **Deferred:** SALARY/COMMISSION/HYBRID engines → GAP-057b
+- [ ] **Deferred → GAP-057b** Monthly payroll run UI (POST /runs endpoint)
+- [ ] **Deferred → GAP-057b** Payslip PDF generation (depends on GAP-047)
+- [ ] **Deferred → GAP-057b** VN tax (TNCN) progressive + BHXH (8%) + BHYT (1.5%) deductions
+- [ ] **Deferred → GAP-057b** Bank export format (BIDV/VCB/TCB batch transfer)
+- [x] **Phase 1 ✅ partial** Audit log — JPA auditing via BaseEntity (`created_by` / `updated_by`); approve/pay audit detail → GAP-057b
+
+## Phase 1 ship summary (2026-05-04)
+
+**Branch:** `wave/18a-bucket-c-payroll-hourly`
+**PR:** (TBD when opened)
+
+Files shipped:
+- `kiteclass-core/module/payroll/entity/{PayrollConfig, PayrollPeriod}.java`
+- `kiteclass-core/module/payroll/enums/{PayrollType, PayrollStatus}.java`
+- `kiteclass-core/module/payroll/repository/{PayrollConfigRepository, PayrollPeriodRepository}.java`
+- `kiteclass-core/module/payroll/service/{PayrollService, impl/PayrollServiceImpl}.java`
+- `kiteclass-core/module/payroll/controller/PayrollController.java`
+- `kiteclass-core/module/payroll/dto/{PayrollConfigResponse, PayrollPeriodResponse}.java`
+- `kiteclass-core/db/migration/V48__add_payroll_tables.sql`
+- `kiteclass-frontend/src/{types/payroll.ts, lib/api/payroll.ts, hooks/use-payroll.ts, app/(dashboard)/admin/payroll/page.tsx}`
+- `documents/01-business/kiteclass/payroll/{rules.md, use-cases.md, api-contract.md}` (3-layer per CLAUDE.md)
+
+Tests: 15 unit tests in `PayrollServiceTest` covering HOURLY happy path (whole/fractional/zero hours, multi-class), HALF_EVEN rounding, validation, type-deferral exceptions, read-only views.
 
 ## Dependencies
 
-- GAP-047 (PDF generation)
-- GAP-049 (business correctness — VN tax compliance)
+- GAP-047 (PDF generation) — blocks Phase 2 payslip PDF
+- GAP-049 (business correctness — VN tax compliance) — blocks Phase 2 TNCN/BHXH
 
 ## Log
+- 2026-05-04 — **Phase 1 SHIPPED** (Wave 18a Bucket C). HOURLY calc engine + entities + read-only admin UI + 3-layer business docs + 15 unit tests green. Phase 2 (SALARY/COMMISSION/HYBRID + VN tax + BHXH/BHYT + payslip PDF + bank export + run/approve UI) deferred to **GAP-057b** (closure coordinator files).
 - 2026-04-14 — Persona review
