@@ -12,7 +12,7 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next: Wave 18b3 follow-up wave-pack (3 disjoint Phase 1B remainders — GAP-323b offline queue + Playwright perf, GAP-322b LLTP upload UI + concrete MinIO SDK, GAP-321b concrete data wiring for fees+conduct+notifications facets).** Wave 18b2 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1B foundation wave-pack — 4 PRs #770 plan + #771 Bucket A mobile UI + #772 Bucket B vetting + #773 Bucket C parent facets, plus #769 GAP-323b backend that triggered it). GAP-347 meta-fix shipped via PR #775 (jacoco surefire+failsafe merge — Sonar coverage gate now sees IT coverage for all future IT-heavy PRs).
+**Recommended next: Phase 1C planning trigger (write actions for parent portal, hash-chain audit infrastructure for child protection, GradeFormulaService + state machine + gradebook UI for period attendance) OR meta-rule extension to harden wave-plan pre-flight state-check (5th GAP-190/197 head-truncation recurrence detected this wave — Bucket C found wave plan §3 referenced absent schema).** Wave 18b3 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1B remainder wave-pack — 5 PRs #779 plan + #780 Bucket A offline queue + k6 + #782 Bucket B LLTP UI + concrete MinIO SDK + #781 Bucket C 3 facet wiring PARTIAL with 3 sub-gaps filed + closure PR this). 12 consecutive 0-clarification agents same-day (Wave 18a + 18b1 + 18b2 + 18b3). All 3 K-12 LEGAL trio gaps stay 🟡 PARTIAL with explicit Phase 1C scope pickable next.
 
 | Gap | Phase 1A status | Phase 1B status | Phase 1C |
 |---|---|---|---|
@@ -20,7 +20,7 @@
 | GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b 🟡 PARTIAL — Vetting service + state machine + AES-256 + MinIO storage stub + RBAC + V52 (Wave 18b2 Bucket B); LLTP upload UI + verify queue UI + concrete MinIO SDK + 111 webhook follow-up | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
 | GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b 🟡 PARTIAL — Phase 1B v1 backend (#769) + mobile UI v1 tap-grid + bulk actions (#771 Bucket A); offline queue / Playwright perf / matview / concurrent load test / parent-portal facet exposure follow-up | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
 
-**Pick order suggestions for Wave 18b3 follow-ups:** ~~GAP-347 (meta — unblocks Sonar for everyone)~~ ✅ DONE PR #775 → GAP-323b offline queue + perf test (real ≤2min target validation) > GAP-322b LLTP upload UI (criminal liability completion) > GAP-321b concrete data wiring (turn 3 stub-empty facets into real queries). Each Phase 1B remainder = ~3-7 days; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~14-18 weeks remaining (was 18-24; 4-6 weeks burned down by Wave 18b1 + 18b2).
+**Wave 18b3 SHIPPED 2026-05-04** — all 3 Phase 1B remainder buckets merged: ~~GAP-347 (meta)~~ ✅ #775. ~~GAP-323b offline + k6~~ shipped #780 (status 🟡 PARTIAL — PWA background-sync, conflict UI, queue LRU follow-up). ~~GAP-322b LLTP + MinIO SDK~~ shipped #782 (status 🟡 PARTIAL — resumable multipart, virus scan, audit on upload to Phase 1C). ~~GAP-321b 3 facet wiring~~ shipped #781 PARTIAL (fees real-wired; conduct + notifications stay v1 stubs, 3 sub-gaps filed: GAP-321b.1-fees-instalment-payment-history P2 + GAP-321b.1-conduct-incident-visibility P1 + GAP-321b.1-notifications-engine-wiring P1 hard-blocked by GAP-063b). Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~12-16 weeks remaining (was 14-18; Wave 18b3 burned down ~1-2 weeks).
 
 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
@@ -29,6 +29,27 @@
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (Wave 18b3 K-12 LEGAL Trio Phase 1B Remainder SHIPPED — 5 PRs merged same-day, 12-agent 0-clarification streak):** Continued K-12 LEGAL trio momentum into Phase 1B remainder via 4th consecutive same-day wave-pack. 3 disjoint buckets ran simultaneously: Bucket A (GAP-323b IndexedDB offline queue + k6 perf), Bucket B (GAP-322b LLTP upload UI + concrete AWS SDK v2 MinIOStorageImpl), Bucket C (GAP-321b 3 facet data wiring — fees real, conduct + notifications stay v1 stubs after state-check). 0-clarification all 3 agents (12 consecutive across Wave 18a + 18b1 + 18b2 + 18b3 same day).
+
+**Merged sequence (5 PRs):**
+1. **#779** — Wave 18b3 plan (foundation, docs-only)
+2. **#780** — Bucket A: GAP-323b offline queue + k6 → 🟡 PARTIAL. IndexedDB queue (idb v8) + `useOfflineAttendanceQueue` hook + `OfflineSyncStatusBadge` wired into `(teacher)/attendance/period/.../page.tsx`; k6 script asserting `p(95)<2000`. 14 new tests (612/612 FE green, +14, 0 regressions); `pnpm build` strict-mode green. Coordinator inline fix: `// @ts-nocheck` on k6 script (Next.js typecheck included `tests/perf/`; k6 has its own runtime).
+3. **#782** — Bucket B: GAP-322b LLTP UI + concrete MinIO SDK → 🟡 PARTIAL. Real `S3Client.putObject` AWS SDK v2 impl replaces 18b2 stub; `POST /api/v1/vettings/{vettingId}/documents` multipart endpoint (10MB cap, PDF + image/* MIME); FE form at `(dashboard)/admin/vetting/[vettingId]/upload/page.tsx`; LocalStack/MinIO testcontainer round-trip IT. 28 BE + 5 FE tests; jacoco on new code: `MinIOVettingDocumentStorageImpl` 93%, `VettingController` 79%, `VettingDocumentResponse` 79%. V54 NOT used (file metadata in response, separate table to Phase 1C).
+4. **#781** — Bucket C: GAP-321b 3 facet wiring → 🟡 PARTIAL. Fees facet real-wired (date-range JPQL + `@EntityGraph` + `assertSelectCount ≤3` + N+1 IT). Conduct + notifications stay v1 stubs after agent state-check found `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification` entity all 0 matches in codebase. **3 sub-gaps filed**: GAP-321b.1-fees-instalment-payment-history (P2 v2 enrichment), GAP-321b.1-conduct-incident-visibility (P1), GAP-321b.1-notifications-engine-wiring (P1 hard-blocked by GAP-063b). 12 test additions; 96/96 parent + invoice tests green.
+5. **Closure PR (this)** — wave plan flip + ROADMAP §🚀 Next Action update + 3 gap files Wave 18b3 Log entries + wave-history.jsonl Rule 15 append.
+
+**Wave 18b3 outcomes:**
+- 3 K-12 LEGAL Phase 1B gaps stay 🟡 PARTIAL (Phase 1C scope remains for all 3)
+- 3 sub-gaps filed (GAP-321b.1-* trio) — explicit Phase 1B remainder follow-up scope per gap
+- 12-agent same-day 0-clarification streak (record holds)
+- Estimated K-12 Stage 1 remaining: ~12-16 weeks (was 14-18; Wave 18b3 burned down ~1-2 weeks)
+- **5th GAP-190/197 head-truncation recurrence detected** — wave plan §3 Bucket C referenced absent schema. Per `audit-to-gap-pipeline.md` Step 2.5 4th-recurrence escalation policy, 5th hit = file gap on the rule itself. Recommended scope: extend Step 2.5 protocol from pre-gap state-check to pre-plan state-check — wave plans must verify all referenced entities/rules/fields exist before agents read the plan as ground truth.
+- Two coordinator-side incidents recovered cleanly: (i) PR #780 first CI run failed Next.js typecheck on k6 script — fixed inline; (ii) Bucket B agent's worktree absolute-path leak contaminated local main twice — recovered via `git reset --hard origin/main`; origin not affected (verified `git ls-remote`).
+
+**Counts:** 155 → **157 OPEN** (-1 GAP-347 closed PR #778 same-day-earlier; +3 sub-gaps GAP-321b.1-* filed by Bucket C; net +2 from Wave 18b2 closure tally).
 
 ---
 
