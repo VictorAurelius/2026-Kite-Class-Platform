@@ -25,15 +25,12 @@
 #   4. Set env: thêm vào ~/.claude/settings.json:
 #        "env": { "NTFY_TOPIC": "kite-claude-vkiet-x7k2p9" }
 #      hoặc export trong ~/.bashrc (cần source bằng login shell)
-#   5. Optional: NTFY_PRIORITY (1=min, 3=default, 5=urgent), NTFY_SERVER (default ntfy.sh),
-#      NTFY_CLICK (URL on tap — see note below), NTFY_ACTIONS (broadcast actions)
+#   5. Optional: NTFY_PRIORITY (1=min, 3=default, 5=urgent), NTFY_SERVER (default ntfy.sh)
 #
-# NOTE on NTFY_CLICK: ntfy Android app uses ACTION_VIEW + Uri.parse, NOT
-# URI_INTENT_SCHEME. So `intent:#Intent;...;end` URLs do NOT work for launching
-# apps that don't register a URL scheme (Termux registers none). To actually
-# open Termux on tap, use NTFY_ACTIONS with broadcast type — requires Termux:API
-# add-on installed and `allow-external-apps = true` in ~/.termux/termux.properties.
-# See: documents/05-guides/scripts/ssh-mobile-migration/03-android-setup-checklist.md
+# NOTE: tap-to-launch-Termux is not supported. Termux registers no URL scheme,
+# and ntfy `broadcast` action sends a regular Broadcast which cannot invoke
+# Termux:RUN_COMMAND (registered as a Service, requires startService). User
+# opens Termux manually after notification — tmux auto-attaches via ~/.bashrc.
 #
 # Reference: documents/05-guides/remote-access/remote-control-setup.md §Stop Notification
 
@@ -102,18 +99,10 @@ fi
 if [ -n "${NTFY_TOPIC:-}" ] && command -v curl >/dev/null 2>&1; then
   NTFY_SERVER="${NTFY_SERVER:-https://ntfy.sh}"
   NTFY_PRIORITY="${NTFY_PRIORITY:-3}"
-  # NTFY_CLICK: optional URL fired on tap. Default empty — Click does NOT support
-  # Android `intent:#Intent;...;end` URIs (ntfy app uses ACTION_VIEW + Uri.parse,
-  # not URI_INTENT_SCHEME). Termux registers no URL scheme so it can't be opened
-  # via Click. Use NTFY_ACTIONS broadcast (Termux:API + allow-external-apps) to
-  # actually launch Termux on tap. See: ssh-mobile-migration/03-android-setup §G.
-  CURL_ARGS=(-fsS -X POST
-    -H "Title: ${TITLE}"
-    -H "Priority: ${NTFY_PRIORITY}"
-    -H "Tags: robot")
-  [ -n "${NTFY_CLICK:-}" ] && CURL_ARGS+=(-H "Click: ${NTFY_CLICK}")
-  [ -n "${NTFY_ACTIONS:-}" ] && CURL_ARGS+=(-H "Actions: ${NTFY_ACTIONS}")
-  curl "${CURL_ARGS[@]}" \
+  curl -fsS -X POST \
+    -H "Title: ${TITLE}" \
+    -H "Priority: ${NTFY_PRIORITY}" \
+    -H "Tags: robot" \
     -d "${BODY}" \
     "${NTFY_SERVER}/${NTFY_TOPIC}" \
     --max-time 5 \
