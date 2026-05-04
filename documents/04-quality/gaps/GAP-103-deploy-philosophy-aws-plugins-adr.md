@@ -14,7 +14,7 @@ Deploy-related documentation hiện rải rác 6 vị trí:
 - `documents/03-planning/infrastructure/kitehub-oracle-cloud-deployment.md`
 - `documents/03-planning/implementation/kiteclass-docker-deployment.md`
 - `documents/05-guides/operations/runbooks/deployment-procedures.md`
-- `documents/05-guides/deploy-go-nogo-checklist.md`
+- `documents/05-guides/deploy/deploy-go-nogo-checklist.md`
 - `documents/05-guides/vietnamese/huong-dan-deploy-oracle-cloud.md`
 - `documents/08-thesis/references/deployment-guide.md`
 

@@ -69,7 +69,7 @@ main branch — 10/10 runs SUCCESS:
 - ✅ Terraform Oracle: `infrastructure/terraform-oracle/` (compute, network)
 - ✅ Backup: DatabaseBackupScheduler + docs
 - ✅ Monitoring: Prometheus + Grafana in docker/ configs, alert-rules.yml
-- ✅ SECRET-MANAGEMENT.md: `documents/05-guides/SECRET-MANAGEMENT.md` (NEW wave/13)
+- ✅ SECRET-MANAGEMENT.md: `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md` (NEW wave/13)
 
 ### Documentation (10/10)
 - ✅ Business docs: 13 KC domains + 7 KH domains, all with 3-layer structure
@@ -136,7 +136,7 @@ main branch — 10/10 runs SUCCESS:
 - +2 CI/CD: All stale branches pruned (wave/11, fix/ide-warnings cleaned in wave/12; fetch --prune ran), all 10 CI runs green
 - +1 Security: Removed JWT_SECRET + INTERNAL_API_SECRET hardcoded defaults
 - +1 UI/UX: Added aria-labels to KC (DashboardWelcome, OnboardingWizard) + KH (CustomDomainTab, TemplateGallery)
-- +1 DevOps: Created `documents/05-guides/SECRET-MANAGEMENT.md`
+- +1 DevOps: Created `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md`
 
 ---
 

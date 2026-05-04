@@ -83,7 +83,7 @@ gh run list --branch main --limit 5
 ./scripts/check-ci.sh main --status
 
 # 1.3 Run go/no-go checklist
-# (follow 05-guides/deploy-go-nogo-checklist.md)
+# (follow 05-guides/deploy/deploy-go-nogo-checklist.md)
 
 # 1.4 Announce in #releases Slack
 # Template: "Deploying v1.2.3 to prod in 15 min. Changelog: <link>. Rollback: git revert <sha>."

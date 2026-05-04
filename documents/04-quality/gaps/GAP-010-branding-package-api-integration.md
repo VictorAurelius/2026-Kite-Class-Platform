@@ -218,7 +218,7 @@ describe('Branding provider', () => {
 - [ ] Integration test `BrandingE2EIntegrationTest` passes
 - [ ] FE unit test for branding provider
 - [ ] Load test: 100 concurrent FE requests to package endpoint
-- [ ] Docs: `documents/05-guides/branding-integration.md` với examples
+- [ ] Docs: `documents/05-guides/branding/branding-integration.md` với examples
 
 ## Dependencies
 

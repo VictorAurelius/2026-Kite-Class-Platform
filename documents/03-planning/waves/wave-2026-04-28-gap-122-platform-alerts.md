@@ -96,7 +96,7 @@ annotations:
 - `documents/05-guides/operations/runbooks/redis-eviction-rate.md` (NEW)
 - `documents/05-guides/operations/runbooks/rate-limit-breach-spike.md` (NEW)
 - `documents/05-guides/operations/runbooks/README.md` (UPDATE index — append the 12 new entries; do not remove existing 7)
-- `documents/05-guides/alerting-standards.md` (NEW — severity rules, runbook_url contract, metric-pending pattern, kitehub vs kiteclass split)
+- `documents/05-guides/monitoring/alerting-standards.md` (NEW — severity rules, runbook_url contract, metric-pending pattern, kitehub vs kiteclass split)
 
 **Deliverable:** 12 runbooks following GAP-121 template (sections: What this alert means / Immediate checks / Likely causes / Mitigation / When to escalate / Related). Each runbook ≥40 lines, project-specific (reference real services, queues, memory feedback files where applicable). `alerting-standards.md` describes severity classification + runbook_url requirement + metric-pending pattern + ownership matrix.
 

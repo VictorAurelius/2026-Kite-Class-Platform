@@ -19,8 +19,8 @@ deferred_separate_track: [GAP-198, GAP-199, GAP-201, GAP-261]
 | # | Gap | Title | Priority | Phase 2 slice | Agent | Disjoint files |
 |:-:|-----|-------|:--------:|---------------|:-----:|----------------|
 | 1 | **GAP-193 P2** | Session-lock hook enforcement + telemetry | 🟠 Meta-P1 | Hook blocks commits on locked branch from different session + session-lock archival on session-end + turn-count telemetry in `PR-{N}.json` via audit-gate.py + `/end-session` skill | A | `.claude/hooks/*.py` + `.claude/skills/workflow/end-session/` (NEW) + `.claude/skills/workflow/start-session/scripts/collect-state.sh` (small extension) |
-| 2 | **GAP-194 P2** | Pre-commit hook gate (lefthook, since no `.husky/`) | 🟠 Meta-P1 | `lefthook.yml` (NEW) running shellcheck + ruff on changed files locally; doc snippet in README + skill update; small README install instructions | B | `lefthook.yml` (NEW) + `documents/05-guides/local-dev-pre-commit.md` (NEW) + `.claude/skills/quality/script-review-checklist.md` (note CI + local) |
-| 3 | **GAP-195 P2a** | Starter-kit retro-sync triage report (PR upstream → 2b) | 🟡 Meta-P2 | Run `scripts/starter-kit-diff.sh`, produce triage report classifying delta into 4 buckets per runbook, recommend top-N items for first upstream PR. **DOES NOT open upstream PR** — that's Phase 2b which needs human judgement on cross-repo scope | C | `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md` (NEW) + `documents/05-guides/starter-kit-retro-sync.md` (small update — cite triage report as Phase 2a output) |
+| 2 | **GAP-194 P2** | Pre-commit hook gate (lefthook, since no `.husky/`) | 🟠 Meta-P1 | `lefthook.yml` (NEW) running shellcheck + ruff on changed files locally; doc snippet in README + skill update; small README install instructions | B | `lefthook.yml` (NEW) + `documents/05-guides/local-dev/local-dev-pre-commit.md` (NEW) + `.claude/skills/quality/script-review-checklist.md` (note CI + local) |
+| 3 | **GAP-195 P2a** | Starter-kit retro-sync triage report (PR upstream → 2b) | 🟡 Meta-P2 | Run `scripts/starter-kit-diff.sh`, produce triage report classifying delta into 4 buckets per runbook, recommend top-N items for first upstream PR. **DOES NOT open upstream PR** — that's Phase 2b which needs human judgement on cross-repo scope | C | `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md` (NEW) + `documents/05-guides/contributing/starter-kit-retro-sync.md` (small update — cite triage report as Phase 2a output) |
 
 ## Phase-2 slicing rationale
 
@@ -48,10 +48,10 @@ Ran `./.claude/skills/quality/wave-pack-planner/scripts/analyze-overlap.sh GAP-1
 | `.claude/skills/workflow/end-session/` (NEW) | A only | None | — |
 | `.claude/skills/workflow/start-session/scripts/collect-state.sh` | A only (small extension for telemetry) | None | — |
 | `lefthook.yml` (NEW) | B only | None | — |
-| `documents/05-guides/local-dev-pre-commit.md` (NEW) | B only | None | — |
+| `documents/05-guides/local-dev/local-dev-pre-commit.md` (NEW) | B only | None | — |
 | `.claude/skills/quality/script-review-checklist.md` | B only (small note) | None | — |
 | `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md` (NEW) | C only | None | — |
-| `documents/05-guides/starter-kit-retro-sync.md` | C only (small update) | None | — |
+| `documents/05-guides/contributing/starter-kit-retro-sync.md` | C only (small update) | None | — |
 | `documents/04-quality/gaps/GAP-{193,194,195}-*.md` | A→193, B→194, C→195 | None | each agent owns own gap file |
 | `documents/04-quality/gaps/GAP-195-phase-2b-*.md` (NEW) | C only | None | new follow-up gap |
 | `.claude/rules/meta-gap-priority.md` | A,B,C cite | **SOFT** | Read-only citation, no edits |

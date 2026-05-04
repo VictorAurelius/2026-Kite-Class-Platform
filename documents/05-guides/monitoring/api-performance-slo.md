@@ -214,7 +214,7 @@ GAP-143 Grafana enablement). Panels:
 | `documents/04-quality/audits/performance/performance-audit-2026-04-20.md` | Follow-up audit — uses this doc to grade latency once SLOs land |
 | `.claude/rules/post-wave-audit-mandate.md` §2.3 | Performance audit cadence — this doc is its scoring rubric input |
 | `kitehub/kitehub-branding/src/main/resources/application.yml` | Authoritative Tier E queue SLOs |
-| `documents/05-guides/incident-response-runbook.md` | Runbook references SLO breaches as page-worthy signals (GAP-086) |
+| `documents/05-guides/operations/incident-response-runbook.md` | Runbook references SLO breaches as page-worthy signals (GAP-086) |
 | GAP-126 (admin dashboard) | Tier A violation — tracked separately |
 | GAP-127 (bulk import) | Tier D violation — tracked separately |
 | GAP-128 (installment payment N+1) | Tier C near-breach — tracked separately |

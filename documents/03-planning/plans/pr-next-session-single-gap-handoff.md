@@ -44,7 +44,7 @@ superseded_by: documents/03-planning/waves/wave-2026-04-28-gap-122-platform-aler
 |----------|--------|
 | 12 alerts (`alert-rules.yml` updates split between docker + helm — same content) — categorize critical (4) vs warning (8) per gap §Proposed Fix | ~2h |
 | Per-alert runbook stubs in `documents/05-guides/operations/runbooks/` (12 files using GAP-121 template) | ~30min |
-| `documents/05-guides/alerting-standards.md` — categorization rules + `runbook_url` annotation requirement | ~30min |
+| `documents/05-guides/monitoring/alerting-standards.md` — categorization rules + `runbook_url` annotation requirement | ~30min |
 | CI check: pre-commit script asserting new alert has `runbook_url` annotation | ~30min |
 | Tests: smoke `helm template` + Prometheus `promtool check rules` if available | ~15min |
 
@@ -52,7 +52,7 @@ superseded_by: documents/03-planning/waves/wave-2026-04-28-gap-122-platform-aler
 - `kitehub/docker/prometheus/alert-rules.yml` (+ kiteclass equivalent)
 - `infrastructure/helm/kitehub/templates/prometheusrule.yaml`
 - `documents/05-guides/operations/runbooks/{12-new}.md` (NEW)
-- `documents/05-guides/alerting-standards.md` (NEW)
+- `documents/05-guides/monitoring/alerting-standards.md` (NEW)
 - `scripts/check-alert-runbook-url.sh` (NEW, optional)
 - `.github/workflows/script-quality.yml` (job add, optional)
 

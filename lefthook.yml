@@ -7,7 +7,7 @@
 # Activate (one-time): `lefthook install`
 # Bypass (emergency only): `git commit --no-verify`
 #
-# See `documents/05-guides/local-dev-pre-commit.md` for setup, fallback
+# See `documents/05-guides/local-dev/local-dev-pre-commit.md` for setup, fallback
 # instructions, and rationale.
 
 pre-commit:

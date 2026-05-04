@@ -69,7 +69,7 @@ consolidation_pr: 575
 - `kitehub/docker-compose.oracle-backend.yml`
 - `kitehub/docker-compose.oracle-frontend.yml`
 **Out-of-bounds:** any code file, any helm/k8s file, any infra/terraform
-**Acceptance:** All services declare `deploy.resources.limits` (memory + cpus); validate with `docker compose config`; document chosen limits in `documents/05-guides/docker-resource-limits.md`
+**Acceptance:** All services declare `deploy.resources.limits` (memory + cpus); validate with `docker compose config`; document chosen limits in `documents/05-guides/monitoring/docker-resource-limits.md`
 
 ### Agent D — GAP-135 Performance SLO instrumentation
 **Branch:** `feature/wave-perf-D-gap-135-slo-instrumentation`
@@ -80,7 +80,7 @@ consolidation_pr: 575
 - Any `@RestController` files needing `@Timed` annotation — but **scope cap to 5 highest-traffic controllers** per service
 **Out-of-bounds:** any docker-compose file, any FE file, any kitehub-admin code (Agent A territory)
 **Scope cap:** Apply `@Timed` to ≤5 controllers/service (auth, instance, branding, payment, dashboard); rest as follow-up gap
-**Acceptance:** Prometheus rules fire on p95 > SLO; Grafana dashboard renders; document in `documents/05-guides/api-performance-slo.md` (extend existing)
+**Acceptance:** Prometheus rules fire on p95 > SLO; Grafana dashboard renders; document in `documents/05-guides/monitoring/api-performance-slo.md` (extend existing)
 
 ---
 

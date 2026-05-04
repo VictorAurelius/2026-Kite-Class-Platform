@@ -18,9 +18,9 @@ deferred_separate_track: [GAP-030]
 
 | # | Gap | Title | Priority | Agent | Disjoint files |
 |:-:|-----|-------|:--------:|:-----:|----------------|
-| 1 | **GAP-117** | Backup restore drill automation (Phase 1+2) | 🔴 P0 | A — `feature-tdd-agent` | `documents/05-guides/restore-procedure.md` (NEW), `scripts/verify-restore.sh` (NEW), `.github/workflows/restore-drill.yml` (NEW) |
+| 1 | **GAP-117** | Backup restore drill automation (Phase 1+2) | 🔴 P0 | A — `feature-tdd-agent` | `documents/05-guides/deploy/restore-procedure.md` (NEW), `scripts/verify-restore.sh` (NEW), `.github/workflows/restore-drill.yml` (NEW) |
 | 2 | **GAP-118** | MinIO + S3 backup + replication strategy | 🟠 P1 | B — `feature-tdd-agent` | `infrastructure/terraform-aws/s3-ecr.tf`, `infrastructure/terraform-oracle/main.tf` (versioning resource block), `kitehub/docker-compose.kitehub.yml` MinIO section + setup container |
-| 3 | **GAP-119** | Platform-wide DR runbook + RTO/RPO matrix | 🟠 P1 | C — `docs-only-agent` | `documents/05-guides/disaster-recovery-plan.md` (NEW), `documents/05-guides/operations/dr-rto-rpo-matrix.md` (NEW or section in plan) |
+| 3 | **GAP-119** | Platform-wide DR runbook + RTO/RPO matrix | 🟠 P1 | C — `docs-only-agent` | `documents/05-guides/operations/disaster-recovery-plan.md` (NEW), `documents/05-guides/operations/dr-rto-rpo-matrix.md` (NEW or section in plan) |
 
 ## Deferred (separate track)
 
@@ -32,13 +32,13 @@ Run via `./.claude/skills/quality/wave-pack-planner/scripts/analyze-overlap.sh G
 
 | File | Touched by | Conflict risk |
 |------|-----------|:-------------:|
-| `documents/05-guides/restore-procedure.md` (NEW) | A only | None |
+| `documents/05-guides/deploy/restore-procedure.md` (NEW) | A only | None |
 | `scripts/verify-restore.sh` (NEW) | A only | None |
 | `.github/workflows/restore-drill.yml` (NEW) | A only | None |
 | `infrastructure/terraform-aws/s3-ecr.tf` | B only | None |
 | `infrastructure/terraform-oracle/main.tf` | B only | None |
 | `kitehub/docker-compose.kitehub.yml` | B only (MinIO section + new setup container) | None |
-| `documents/05-guides/disaster-recovery-plan.md` (NEW) | C only | None |
+| `documents/05-guides/operations/disaster-recovery-plan.md` (NEW) | C only | None |
 | `documents/05-guides/operations/dr-rto-rpo-matrix.md` (NEW) | C only | None |
 | `documents/04-quality/audits/ops/ops-readiness-audit-2026-04-19.md` | A+B+C cite | **SOFT** — read-only references in §Related |
 

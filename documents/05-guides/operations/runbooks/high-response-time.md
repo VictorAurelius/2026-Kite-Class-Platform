@@ -6,7 +6,7 @@
 
 ## What does this alert mean?
 
-p99 latency (kitehub) or p95 latency (kiteclass) on `{{ $labels.job }}` has been above **2 seconds** for 5 minutes. Under normal load Tier-A endpoints should respond in <200 ms (p95) per `documents/05-guides/api-performance-slo.md`. A 10× spike suggests blocked threads, slow downstream calls, or a missing index on a hot query path. Different from the SLO-tier alerts (`ApiLatencyP95HighTierA-D`) which fire on labelled endpoints; this generic alert catches everything else.
+p99 latency (kitehub) or p95 latency (kiteclass) on `{{ $labels.job }}` has been above **2 seconds** for 5 minutes. Under normal load Tier-A endpoints should respond in <200 ms (p95) per `documents/05-guides/monitoring/api-performance-slo.md`. A 10× spike suggests blocked threads, slow downstream calls, or a missing index on a hot query path. Different from the SLO-tier alerts (`ApiLatencyP95HighTierA-D`) which fire on labelled endpoints; this generic alert catches everything else.
 
 ## Immediate checks (0-5 min)
 
@@ -76,7 +76,7 @@ histogram_quantile(0.99, sum by (job, le) (rate(http_server_requests_seconds_buc
 ## Related
 
 - Alert rule: `kitehub/docker/prometheus/alert-rules.yml` line 33, `kiteclass/docker/prometheus/alert-rules.yml` line 22, `infrastructure/helm/kitehub/templates/prometheusrule.yaml` line 41
-- SLO budgets: `documents/05-guides/api-performance-slo.md`
+- SLO budgets: `documents/05-guides/monitoring/api-performance-slo.md`
 - Memory: `feedback_thymeleaf_ognl_pin.md`, `feedback_objectmapper_test_jsr310.md`
 - Rules: `ai-branding-guidelines.md` §3.3 (async heavy tasks), `design-patterns.md` §3.5.1 + §3.6
 - Related runbooks: [`database-pool-exhausted.md`](./database-pool-exhausted.md), [`high-memory-usage.md`](./high-memory-usage.md), [`high-error-rate.md`](./high-error-rate.md) (often co-fires after timeouts)

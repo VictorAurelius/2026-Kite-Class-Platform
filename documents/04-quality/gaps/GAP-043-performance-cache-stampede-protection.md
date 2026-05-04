@@ -138,7 +138,7 @@ Tools: k6, Locust.
 - [ ] Preview optimistic rendering — FE concern, deferred
 - [ ] Asset URL pre-signing — deferred; MinIO pre-signed URL already supports it, need codification
 - [x] Connection pools configured — HikariCP already configured per service; HTTP via `RestTemplateConfig` (GAP-131)
-- [ ] Load test baseline documented — deferred; SLO document drafted in this PR (`documents/05-guides/api-performance-slo.md` via GAP-135)
+- [ ] Load test baseline documented — deferred; SLO document drafted in this PR (`documents/05-guides/monitoring/api-performance-slo.md` via GAP-135)
 - [ ] Chaos testing: force cache flush → verify no stampede — deferred to ops-readiness follow-up
 
 ## Dependencies

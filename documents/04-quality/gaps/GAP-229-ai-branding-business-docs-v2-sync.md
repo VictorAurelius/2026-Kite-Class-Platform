@@ -13,9 +13,9 @@ V2 AI Branding implementation shipped in `kiteclass-core` Waves 2-4 (verified GA
 1. **Business docs still v1:** `documents/01-business/kitehub/ai-branding/{rules,use-cases,api-contract}.md` describe AIB-01..11 v1 rate limit + v1 endpoints only. Missing wizard rules, lifecycle rules, quality gate rules, resource classification, workflow rules, regenerate counter, tier-specific governance.
 
 2. **3 user guides never created:**
-   - `documents/05-guides/branding-integration.md` (how kiteclass-frontend consumes branding package — needed for FE devs)
-   - `documents/05-guides/ai-branding-wizard-flow.md` (wizard UX user guide — needed for tenant onboarding)
-   - `documents/05-guides/template-contribution-guide.md` (how to add templates — needed for designer/template contributors)
+   - `documents/05-guides/branding/branding-integration.md` (how kiteclass-frontend consumes branding package — needed for FE devs)
+   - `documents/05-guides/branding/ai-branding-wizard-flow.md` (wizard UX user guide — needed for tenant onboarding)
+   - `documents/05-guides/contributing/template-contribution-guide.md` (how to add templates — needed for designer/template contributors)
 
 3. **Living Documents rule violation:** `CLAUDE.md` explicitly mandates business docs update with code change. Waves 2-4 violated this; latent until GAP-016 sweep surfaced.
 
@@ -27,9 +27,9 @@ V2 AI Branding implementation shipped in `kiteclass-core` Waves 2-4 (verified GA
 | `01-business/kitehub/ai-branding/use-cases.md` | ❌ 4/11 UCs | Only UC-AIB-01..04 (analyze-logo, generate-image, generate-text, basic template); missing UC-AIB-05 Template apply, UC-AIB-06 Template gallery list, UC-AIB-07 Wizard 6-step, UC-AIB-08 Per-resource approve, UC-AIB-09 Regenerate with counter, UC-AIB-10 Quality review automated, UC-AIB-11 Auto-provisioning event-driven |
 | `01-business/kitehub/ai-branding/api-contract.md` | ❌ v1 endpoints | Has 7 v1; missing v2: `GET /api/v1/branding/{instanceId}/package` (composite ETag), `POST /analyze`, `POST /plan`, `POST /execute`, `GET /jobs/{id}`, `GET /instances/{id}/status`, `POST /wizard/session` |
 | `01-business/kitehub/instance-provisioning/{rules,use-cases,api-contract}.md` | ⚠️ NEED VERIFY | Last touched 2026-04-18; lifecycle UC may be missing |
-| `05-guides/branding-integration.md` | ❌ MISSING | Needed for FE devs consuming `BrandingProvider` + theme injection |
-| `05-guides/ai-branding-wizard-flow.md` | ❌ MISSING | Needed for tenant onboarding handoff to support |
-| `05-guides/template-contribution-guide.md` | ❌ MISSING | Needed for designer onboarding (per GAP-011 review criteria) |
+| `05-guides/branding/branding-integration.md` | ❌ MISSING | Needed for FE devs consuming `BrandingProvider` + theme injection |
+| `05-guides/branding/ai-branding-wizard-flow.md` | ❌ MISSING | Needed for tenant onboarding handoff to support |
+| `05-guides/contributing/template-contribution-guide.md` | ❌ MISSING | Needed for designer onboarding (per GAP-011 review criteria) |
 
 ## Proposed Fix (phased)
 
@@ -87,9 +87,9 @@ Spot-check `instance-provisioning/{rules,use-cases,api-contract}.md` against `ki
 
 - **2026-04-26 (Phase 2 + Phase 3 SHIPPED — GAP-229 CLOSED):** Phases 2 + 3 shipped via PR #562 (Phase 1 was PR #561). Status flipped 🟡 PARTIAL → 🟢 DONE. Deliverables:
   - **Phase 2 — 3 user guides created** (closes Living Documents user-facing gap):
-    - `documents/05-guides/branding-integration.md` — kiteclass-frontend `BrandingProvider` + theme injection via CSS variables + ETag-based cache + SSE re-fetch flow + code samples for FE devs consuming the composite branding package.
-    - `documents/05-guides/ai-branding-wizard-flow.md` — 6-step wizard walkthrough (welcome → logo → audience → tone → template → preview/approve) + error states + tier-specific behavior + tenant onboarding handoff for support team.
-    - `documents/05-guides/template-contribution-guide.md` — designer onboarding: GAP-011 5-criteria review checklist + SVG placeholder convention + brand-family consistency rules + commit checklist.
+    - `documents/05-guides/branding/branding-integration.md` — kiteclass-frontend `BrandingProvider` + theme injection via CSS variables + ETag-based cache + SSE re-fetch flow + code samples for FE devs consuming the composite branding package.
+    - `documents/05-guides/branding/ai-branding-wizard-flow.md` — 6-step wizard walkthrough (welcome → logo → audience → tone → template → preview/approve) + error states + tier-specific behavior + tenant onboarding handoff for support team.
+    - `documents/05-guides/contributing/template-contribution-guide.md` — designer onboarding: GAP-011 5-criteria review checklist + SVG placeholder convention + brand-family consistency rules + commit checklist.
     - `documents/05-guides/README.md` — indexed all 3 new guides in directory map.
   - **Phase 3 — instance-provisioning drift fix** (verified + updated, NOT just spot-checked — drift WAS found):
     - `documents/01-business/kitehub/instance-provisioning/{rules,use-cases,api-contract}.md` — added 3 endpoints that existed code-only: UC-INS-07 (verify-email step), UC-INS-08 (resend verification), UC-INS-09 (provisioning status poll). Corrected activate→verify-email path: docs previously claimed direct activation; real flow requires email verification token before activation. api-contract.md now matches `InstanceController` + `InstanceVerificationController` signatures.

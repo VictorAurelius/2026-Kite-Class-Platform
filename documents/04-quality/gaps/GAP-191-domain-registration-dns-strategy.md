@@ -40,7 +40,7 @@ User asked explicitly during session (action-1 §6). Related gaps:
 5. **SSL strategy** — wildcard cert for `*.kiteclass.com` via DNS-01 + per-custom-domain via HTTP-01
 6. **DNS automation** — Terraform modules (`infrastructure/terraform-*/dns/`) + CI pipeline step during instance provisioning
 7. **Failover** — health checks + secondary IP + TTL tuning for cutover
-8. **Runbook** — `documents/05-guides/dns-operations.md`
+8. **Runbook** — `documents/05-guides/infrastructure/dns-operations.md`
 
 ## Acceptance Criteria
 
@@ -49,7 +49,7 @@ User asked explicitly during session (action-1 §6). Related gaps:
 - [x] Custom domain CNAME verification flow designed as state machine (rules.md §Custom-Domain Verification Flow)
 - [x] Terraform module `dns/` skeleton lands (`infrastructure/terraform-aws/modules/dns/` with README + main.tf stub — full HCL deferred until Cloudflare token + registration complete)
 - [ ] Provisioning E2E test: new tenant → DNS live → HTTPS 200 within 5 min — deferred (depends on Cloudflare Business plan + backend adapter; tracked as follow-up infra gap)
-- [x] Failover runbook authored (`documents/05-guides/dns-operations.md` — SRE review deferred to post-procurement drill)
+- [x] Failover runbook authored (`documents/05-guides/infrastructure/dns-operations.md` — SRE review deferred to post-procurement drill)
 
 ## Out of Scope
 

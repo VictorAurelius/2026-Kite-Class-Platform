@@ -70,5 +70,5 @@ After renewal, verify `openssl s_client` shows the new `notAfter` date and Prome
 ## Related
 
 - Alert rule: `kitehub/docker/prometheus/alert-rules.yml` (kitehub-platform-alerts group), `infrastructure/helm/kitehub/templates/prometheusrule.yaml`
-- Architecture: `infrastructure/helm/kitehub/values.yaml` (cert-manager + issuer config), `documents/05-guides/SECRET-MANAGEMENT.md`
+- Architecture: `infrastructure/helm/kitehub/values.yaml` (cert-manager + issuer config), `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md`
 - Related runbooks: [`service-down.md`](./service-down.md), [`../../deployment-procedures.md`](./deployment-procedures.md)

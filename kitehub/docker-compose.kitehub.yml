@@ -153,7 +153,7 @@ services:
   # Continuously mirrors kitehub-assets bucket -> external host volume so a
   # corrupted MinIO data volume can be restored from local backup. Disabled by
   # default (opt-in via `--profile backup`). Restore path documented in
-  # documents/05-guides/restore-procedure.md (GAP-117).
+  # documents/05-guides/deploy/restore-procedure.md (GAP-117).
   #
   # Enable: `docker compose --profile backup up -d kite-minio-backup`
   # Backup location: ./minio-backup/ (host-bind volume); rotate / archive externally.

@@ -4,7 +4,7 @@
 Full resource definitions land in a follow-up infrastructure wave once Cloudflare API credentials are provisioned and `kitehub.vn` registration completes.
 
 **Reference:** [ADR-018 Domain Registrar / DNS](../../../../documents/02-architecture/adr/ADR-018-domain-registrar-dns.md)
-**Runbook:** [DNS Operations](../../../../documents/05-guides/dns-operations.md)
+**Runbook:** [DNS Operations](../../../../documents/05-guides/infrastructure/dns-operations.md)
 **Owner:** Infrastructure / Ops lead
 
 ---

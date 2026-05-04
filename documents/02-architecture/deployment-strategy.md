@@ -90,7 +90,7 @@ Announce in #releases Slack channel (future)
 ```
 helm rollback <release> <revision>
 ```
-Per-service rollback documented trong [`05-guides/rollback-procedure.md`](../05-guides/rollback-procedure.md).
+Per-service rollback documented trong [`05-guides/deploy/rollback-procedure.md`](../05-guides/deploy/rollback-procedure.md).
 
 ---
 
@@ -136,7 +136,7 @@ Details trong [`docker-platform-architecture.md`](docker-platform-architecture.m
 - **Runtime:** PodSecurityPolicy (deprecated) → Pod Security Standards "restricted" profile.
 - **Compliance:** VN PDPL data residency → prod phải trong SG/IN region, không US (Wave 9).
 
-Operational procedures trong [`05-guides/SECRET-MANAGEMENT.md`](../05-guides/SECRET-MANAGEMENT.md) và [`05-guides/incident-response-runbook.md`](../05-guides/incident-response-runbook.md).
+Operational procedures trong [`05-guides/infrastructure/SECRET-MANAGEMENT.md`](../05-guides/infrastructure/SECRET-MANAGEMENT.md) và [`05-guides/operations/incident-response-runbook.md`](../05-guides/operations/incident-response-runbook.md).
 
 ---
 
@@ -149,13 +149,13 @@ Docs cụ thể theo task:
 | **Deploy to Oracle Cloud** | [`03-planning/infrastructure/kitehub-oracle-cloud-deployment.md`](../03-planning/infrastructure/kitehub-oracle-cloud-deployment.md) | Plan |
 | **Deploy KiteClass Docker** | [`03-planning/implementation/kiteclass-docker-deployment.md`](../03-planning/implementation/kiteclass-docker-deployment.md) | Plan |
 | **Standard deploy procedure** | [`05-guides/operations/runbooks/deployment-procedures.md`](../05-guides/operations/runbooks/deployment-procedures.md) | Runbook |
-| **Pre-deploy gate** | [`05-guides/deploy-go-nogo-checklist.md`](../05-guides/deploy-go-nogo-checklist.md) | Checklist |
+| **Pre-deploy gate** | [`05-guides/deploy/deploy-go-nogo-checklist.md`](../05-guides/deploy/deploy-go-nogo-checklist.md) | Checklist |
 | **Oracle Cloud (VN)** | [`05-guides/vietnamese/huong-dan-deploy-oracle-cloud.md`](../05-guides/vietnamese/huong-dan-deploy-oracle-cloud.md) | Guide VN |
 | **Thesis deployment chapter** | [`08-thesis/references/deployment-guide.md`](../08-thesis/references/deployment-guide.md) | Academic |
-| **Rollback steps** | [`05-guides/rollback-procedure.md`](../05-guides/rollback-procedure.md) | Runbook |
-| **Incident response** | [`05-guides/incident-response-runbook.md`](../05-guides/incident-response-runbook.md) | Runbook |
-| **Secrets setup** | [`05-guides/SECRET-MANAGEMENT.md`](../05-guides/SECRET-MANAGEMENT.md) | Guide |
-| **WSL dev setup** | [`05-guides/wsl-migration-playbook.md`](../05-guides/wsl-migration-playbook.md) | Playbook |
+| **Rollback steps** | [`05-guides/deploy/rollback-procedure.md`](../05-guides/deploy/rollback-procedure.md) | Runbook |
+| **Incident response** | [`05-guides/operations/incident-response-runbook.md`](../05-guides/operations/incident-response-runbook.md) | Runbook |
+| **Secrets setup** | [`05-guides/infrastructure/SECRET-MANAGEMENT.md`](../05-guides/infrastructure/SECRET-MANAGEMENT.md) | Guide |
+| **WSL dev setup** | [`05-guides/local-dev/wsl-migration-playbook.md`](../05-guides/local-dev/wsl-migration-playbook.md) | Playbook |
 
 ---
 

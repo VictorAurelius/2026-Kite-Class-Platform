@@ -51,8 +51,8 @@ Prometheus + Micrometer are already wired (`management.endpoints.web.exposure.in
 
 ## Acceptance Criteria
 
-- [x] SLO rubric document with tier definitions + assignment rubric — shipped Wave 9-E as `documents/05-guides/api-performance-slo.md` (classified as operational guide, not ADR, because it is measurable runtime policy — ADR may still be filed later if the tier *values* prove contentious)
-- [x] Highest-traffic controllers tagged with `@Timed` + `slo` tag — Wave perf-D: 16 controllers across 4 services (subscription 5, branding 5, email 1, kiteclass-core 5). Class-level annotation per `documents/05-guides/api-performance-slo.md` §5. Remaining controllers tracked as follow-up.
+- [x] SLO rubric document with tier definitions + assignment rubric — shipped Wave 9-E as `documents/05-guides/monitoring/api-performance-slo.md` (classified as operational guide, not ADR, because it is measurable runtime policy — ADR may still be filed later if the tier *values* prove contentious)
+- [x] Highest-traffic controllers tagged with `@Timed` + `slo` tag — Wave perf-D: 16 controllers across 4 services (subscription 5, branding 5, email 1, kiteclass-core 5). Class-level annotation per `documents/05-guides/monitoring/api-performance-slo.md` §5. Remaining controllers tracked as follow-up.
 - [x] Prometheus alert rules committed in `infrastructure/` — Wave perf-D: 5 rules (`ApiLatencyP95HighTier{A,B,C,D}` + `ApiLatencyP99CriticalTierA`) added to `infrastructure/helm/kitehub/templates/prometheusrule.yaml` group `api-latency-slo-alerts`.
 - [x] Grafana dashboard JSON committed — Wave perf-D: `infrastructure/helm/kitehub/dashboards/api-latency.json` (8 panels: p50/p95/p99 per route, request rate, error rate, per-tier SLO stat tiles). Auto-loaded via ConfigMap when `monitoring.dashboards.enabled=true`.
 - [ ] PR template + `check-pr` skill reference the SLO declaration requirement — deferred meta follow-up (1-2 lines in PR template)
@@ -79,5 +79,5 @@ Prometheus + Micrometer are already wired (`management.endpoints.web.exposure.in
   - Grafana dashboard `infrastructure/helm/kitehub/dashboards/api-latency.json` (8 panels) packaged via new `dashboard-api-latency.yaml` ConfigMap template, gated by `monitoring.dashboards.enabled` flag in values.yaml.
   - SLO doc extended with §5 instrumentation pattern + coverage table + §5b SLO→alert mapping & tuning guide. Status flipped 🟡 BASELINE → 🟢 ACTIVE.
   - kitehub-admin out-of-scope (Agent A wave territory). Remaining controllers in subscription + kiteclass-core (≈13 total) tracked under follow-up.
-- 2026-04-21 — Wave 9-E: SLO rubric document shipped at `documents/05-guides/api-performance-slo.md`. 6-tier model (A interactive / B list / C write / D batch / E async / F health) with concrete p50/p95/p99 budgets. Captures 2026-04-20 audit baseline as "current vs target" so the next performance audit can grade objectively. `@Timed` wiring + Prometheus + Grafana are independent PR work tracked under remaining AC.
+- 2026-04-21 — Wave 9-E: SLO rubric document shipped at `documents/05-guides/monitoring/api-performance-slo.md`. 6-tier model (A interactive / B list / C write / D batch / E async / F health) with concrete p50/p95/p99 budgets. Captures 2026-04-20 audit baseline as "current vs target" so the next performance audit can grade objectively. `@Timed` wiring + Prometheus + Grafana are independent PR work tracked under remaining AC.
 - 2026-04-19 — Gap created from performance baseline audit

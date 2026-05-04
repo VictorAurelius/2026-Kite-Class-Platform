@@ -8,7 +8,7 @@ remote_repo: github.com/VictorAurelius/claude-starter-kit
 remote_version: 2.2.0
 local_kit_version: none (no .claude/starter-kit/ mirror in this project)
 followup_gap: GAP-262
-runbook: documents/05-guides/starter-kit-retro-sync.md
+runbook: documents/05-guides/contributing/starter-kit-retro-sync.md
 ---
 
 # Starter-Kit Retro-Sync Triage Report — 2026-04-29
@@ -363,7 +363,7 @@ Review the triaged diff above and:
 3. For ✏️ MODIFIED: run `diff -u` locally to inspect
 4. For 🔒 PROJECT-SPECIFIC: document in this project only; do not sync
 
-See documents/05-guides/starter-kit-retro-sync.md for the triage + PR runbook.
+See documents/05-guides/contributing/starter-kit-retro-sync.md for the triage + PR runbook.
 ```
 
 </details>

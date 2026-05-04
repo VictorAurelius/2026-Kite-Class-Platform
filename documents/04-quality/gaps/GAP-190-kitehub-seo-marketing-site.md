@@ -41,7 +41,7 @@ User decision D11 (action-1 §0): "kitehub.vn là trang bán sản phẩm thật
 1. **Refactor pricing → server component** (extract interactive bits into client sub-component) so `export const metadata` works
 2. **Add canonical JSON-LD schemas** in a `seo/schemas.ts` module: Organization (landing), FAQPage (pricing), BreadcrumbList (blog), BlogPosting (blog slug)
 3. **Wire GA4** — `@next/third-parties/google` `<GoogleAnalytics />` in root layout, env-driven ID
-4. **Blog editorial plan** — `documents/05-guides/content-strategy.md` with 12-post Q2 plan, keyword table, review workflow linking GAP-174
+4. **Blog editorial plan** — `documents/05-guides/contributing/content-strategy.md` with 12-post Q2 plan, keyword table, review workflow linking GAP-174
 5. **Lighthouse CI job** — `.github/workflows/lighthouse.yml` on kitehub-frontend PRs, threshold SEO ≥ 90
 6. **Audit `og-image.png`** — ensure 1200×630, brand-aligned; regenerate if needed
 7. **Per-route metadata coverage audit** — every `(public)/*/page.tsx` must export `metadata` or `generateMetadata`
@@ -51,7 +51,7 @@ User decision D11 (action-1 §0): "kitehub.vn là trang bán sản phẩm thật
 - [x] Pricing page becomes server component; `metadata` export present (`pricing/page.tsx` now `export const metadata`, client parts extracted to `PricingContent.tsx`)
 - [x] JSON-LD schemas module ships with ≥4 canonical types; wired on landing/pricing/blog (`seo/schemas.ts`: Organization, WebSite, FAQPage, BreadcrumbList, BlogPosting)
 - [x] GA4 wired behind `NEXT_PUBLIC_GA_ID` env (`<GoogleAnalytics>` from `@next/third-parties/google` in `layout.tsx`, env-gated; conversion events are a follow-up once GA property provisioned)
-- [x] `documents/05-guides/content-strategy.md` exists with 12-post plan + keyword table
+- [x] `documents/05-guides/contributing/content-strategy.md` exists with 12-post plan + keyword table
 - [x] Lighthouse CI workflow created (`.github/workflows/lighthouse.yml`, SEO ≥ 0.90 threshold, advisory mode initially)
 - [ ] og-image.png audited (dimensions + brand) — deferred to follow-up (file exists, brand audit separate)
 - [x] All 5+ public routes have per-route metadata (landing: root `layout.tsx`; pricing: this PR; blog index + `[slug]`: `generateMetadata`; legal/dmca: inherits root default)

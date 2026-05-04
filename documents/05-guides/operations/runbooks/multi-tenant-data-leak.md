@@ -68,7 +68,7 @@ After mitigation, verify the counter stops incrementing and no further `cross.te
 
 - **Immediate (T+0):** any non-zero increment of this counter pages security lead AND backup on-call. No 5-min triage window — this is "page first, investigate while paging."
 - **Customer notification (T+15 min):** if the leaked rows include another tenant's PII, legal + customer-success must be looped in for tenant breach notification per PDPL/GDPR (72h notification window starts from confirmation).
-- **External regulator notification:** if confirmed material exposure, per `documents/05-guides/SECRET-MANAGEMENT.md` and PDPL governance, escalate to compliance owner within 24h.
+- **External regulator notification:** if confirmed material exposure, per `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md` and PDPL governance, escalate to compliance owner within 24h.
 
 ## Related
 

@@ -47,7 +47,7 @@ Optionally add an `ApplicationListener<ApplicationReadyEvent>` smoke check in `k
 
 ### Part B — runbook
 
-Create `documents/05-guides/runbooks/pdf-generation-font-not-found.md`:
+Create `documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md`:
 
 ```markdown
 # Runbook: PDF generation fails with "Font resource not found"
@@ -80,7 +80,7 @@ Stack trace contains: IllegalStateException: Font resource not found on classpat
 ## Acceptance Criteria
 
 - [ ] CI job for kiteclass-core image build adds font-presence verification step (fails the build if either TTF is missing from the JAR)
-- [ ] Runbook committed at `documents/05-guides/runbooks/pdf-generation-font-not-found.md`
+- [ ] Runbook committed at `documents/05-guides/operations/runbooks/pdf-generation-font-not-found.md`
 - [ ] Runbook is referenced from GAP-217 alert rule annotations (`runbook:` field)
 - [ ] Optional: startup smoke check via `ApplicationReadyEvent` listener that asserts font resources are loadable
 - [ ] Optional: custom `HealthIndicator` exposed at `/actuator/health/font-resources`

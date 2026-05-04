@@ -63,9 +63,9 @@ Scan docs hiện tại và đánh dấu impact:
 
 | Path | Purpose |
 |------|---------|
-| `documents/05-guides/branding-integration.md` | How kiteclass-frontend consumes branding package (GAP-010) |
-| `documents/05-guides/ai-branding-wizard-flow.md` | Wizard UX user guide (GAP-013) |
-| `documents/05-guides/template-contribution-guide.md` | How to add templates (GAP-011) |
+| `documents/05-guides/branding/branding-integration.md` | How kiteclass-frontend consumes branding package (GAP-010) |
+| `documents/05-guides/branding/ai-branding-wizard-flow.md` | Wizard UX user guide (GAP-013) |
+| `documents/05-guides/contributing/template-contribution-guide.md` | How to add templates (GAP-011) |
 | `.claude/skills/quality/instance-quality-review.md` | Skill cho automated quality review (GAP-012) |
 
 ## Verification Checklist (cho mỗi PR impl GAP-007..015)
@@ -151,9 +151,9 @@ Cross-checked impact matrix items vs actual repo state. Key finding: **v2 implem
 | `01-business/kitehub/ai-branding/use-cases.md` v2 UCs | ✅ +6 UCs (UC-AIB-07..12) sourced from real Controllers/Services |
 | `01-business/kitehub/ai-branding/api-contract.md` v2 endpoints | ✅ +12 v2 endpoints (8 lifecycle + 2 branding package + 1 internal webhook + 4 TBD approval) |
 | `instance-provisioning/{rules,use-cases}.md` v2 content | ✅ Last verified 2026-04-26 (drift fix GAP-229 Phase 3 — UC-INS-07/08/09 added) |
-| `documents/05-guides/branding-integration.md` | ✅ Created GAP-229 Phase 2 |
-| `documents/05-guides/ai-branding-wizard-flow.md` | ✅ Created GAP-229 Phase 2 |
-| `documents/05-guides/template-contribution-guide.md` | ✅ Created GAP-229 Phase 2 |
+| `documents/05-guides/branding/branding-integration.md` | ✅ Created GAP-229 Phase 2 |
+| `documents/05-guides/branding/ai-branding-wizard-flow.md` | ✅ Created GAP-229 Phase 2 |
+| `documents/05-guides/contributing/template-contribution-guide.md` | ✅ Created GAP-229 Phase 2 |
 
 ### ⚠️ STILL DRIFT (split out → GAP-234)
 

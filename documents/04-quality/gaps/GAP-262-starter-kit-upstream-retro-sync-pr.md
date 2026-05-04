@@ -10,7 +10,7 @@
 
 ## Problem
 
-GAP-195 Phase 1 (2026-04-20) shipped the diff tooling (`scripts/starter-kit-diff.sh`) and runbook (`documents/05-guides/starter-kit-retro-sync.md`). Phase 2a (2026-04-29, this wave) ran the triage and produced `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md` identifying 110 NEW (local) candidates of which **9 rules pass the 4-question triage checklist with no scrubbing required (or only light scrubbing)**.
+GAP-195 Phase 1 (2026-04-20) shipped the diff tooling (`scripts/starter-kit-diff.sh`) and runbook (`documents/05-guides/contributing/starter-kit-retro-sync.md`). Phase 2a (2026-04-29, this wave) ran the triage and produced `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md` identifying 110 NEW (local) candidates of which **9 rules pass the 4-question triage checklist with no scrubbing required (or only light scrubbing)**.
 
 What remains is **Phase 2b — the actual cross-repo upstream PR work**. This is decoupled from Phase 2a because:
 
@@ -55,7 +55,7 @@ Deferred to a follow-up gap if scope grows. Not blocking GAP-262.
 - [ ] User decisions captured for triage report Q1–Q5 (recorded in this gap's Log)
 - [ ] PR 1 opened on `VictorAurelius/claude-starter-kit` with the 9 rules from triage §2 Top-N (with scrubbing per §3.3 + Q-decisions)
 - [ ] PR 1 includes `VERSION` bump 2.2.0 → 2.3.0 (MINOR per `.claude/rules/skill-conventions.md §Starter-Kit Version Management`)
-- [ ] PR 1 includes `CHANGELOG.md` entry per `documents/05-guides/starter-kit-retro-sync.md §5` format
+- [ ] PR 1 includes `CHANGELOG.md` entry per `documents/05-guides/contributing/starter-kit-retro-sync.md §5` format
 - [ ] PR 1 reviewed and merged on remote
 - [ ] Sync confirmation: PR # + merge SHA recorded in this gap's Log
 
@@ -85,7 +85,7 @@ Deferred to a follow-up gap if scope grows. Not blocking GAP-262.
 
 - **Parent gap:** [GAP-195](GAP-195-starter-kit-bulk-retro-sync.md) — bulk retro-sync; this gap covers Phase 2b specifically
 - **Triage report:** `documents/04-quality/audits/starter-kit/retro-sync-triage-2026-04-29.md`
-- **Runbook:** `documents/05-guides/starter-kit-retro-sync.md`
+- **Runbook:** `documents/05-guides/contributing/starter-kit-retro-sync.md`
 - **Diff script:** `scripts/starter-kit-diff.sh` (GAP-195 Phase 1)
 - **Sync rule:** `.claude/rules/skill-conventions.md §Remote Repo Sync` + `§Starter-Kit Version Management`
 - **Priority rule:** `.claude/rules/meta-gap-priority.md` §3 (Meta-P2 — force-multiplier for downstream projects)

@@ -10,26 +10,21 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
 
 ## Directory Map
 
-| Path | Purpose | Typical files |
-|------|---------|---------------|
-| `README.md` | This index | 1 |
-| [`SECRET-MANAGEMENT.md`](SECRET-MANAGEMENT.md) | K8s Sealed Secrets + Vault setup | 1 |
-| [`deploy-go-nogo-checklist.md`](deploy-go-nogo-checklist.md) | Pre-deploy gate checklist (GAP-087) | 1 |
-| [`incident-response-runbook.md`](incident-response-runbook.md) | SEV1-SEV3 triage procedure (GAP-086) | 1 |
-| [`rollback-procedure.md`](rollback-procedure.md) | Per-service rollback steps (GAP-088) | 1 |
-| [`wsl2-fresh-setup.md`](wsl2-fresh-setup.md) | Clean-room reproducer for Windows + WSL2 dev env (added 2026-04-28) — start here for new machines | 1 |
-| [`wsl-migration-playbook.md`](wsl-migration-playbook.md) | WSL2 migration playbook for existing Windows installs (preserves Claude Code memory; added 2026-04-18) | 1 |
-| [`ssh-terminal-direct-access.md`](ssh-terminal-direct-access.md) | SSH direct from outside machine vào WSL2 dev terminal — sshd setup, Windows portproxy, tmux patterns, ops workflows; alternative to Claude Code remote-control cho ops-heavy verification loops (GAP-284 follow-up, 2026-05-04) | 1 |
-| [`local-dev-setup-non-wsl.md`](local-dev-setup-non-wsl.md) | Mac/Linux native dev setup (GAP-102, 2026-04-18) | 1 |
-| [`cicd-release-procedure.md`](cicd-release-procedure.md) | PR merge → prod deploy procedure (GAP-102, 2026-04-18) | 1 |
-| [`tenant-onboarding-checklist.md`](tenant-onboarding-checklist.md) | End-to-end school onboarding (3-day target) (GAP-102, 2026-04-18) | 1 |
-| [`api-performance-slo.md`](api-performance-slo.md) | API latency p95 SLO tiers + tagging rubric (GAP-135, 2026-04-21) | 1 |
-| [`dependabot-guide.md`](dependabot-guide.md) | Dependabot config + workflow + troubleshooting (audience: Devs + Claude; 2026-04-24) | 1 |
-| [`branding-integration.md`](branding-integration.md) | FE consumption of `/api/v1/branding/{public,/{id}/package}` — CSS-vars, ETag flow, BrandingProvider (audience: FE engineers; GAP-229 Phase 2.1, 2026-04-26) | 1 |
-| [`ai-branding-wizard-flow.md`](ai-branding-wizard-flow.md) | 6-step wizard + saga handoff + tier behavior + support runbook (audience: onboarding + support + PMs; GAP-229 Phase 2.2, 2026-04-26) | 1 |
-| [`template-contribution-guide.md`](template-contribution-guide.md) | How designers add SVG templates — 5 review criteria, file structure, commit checklist (audience: designers; GAP-229 Phase 2.3 + GAP-011, 2026-04-26) | 1 |
-| [`operations/`](operations/) | Operations runbooks (deploy procedures) | `runbooks/*.md` |
-| [`vietnamese/`](vietnamese/) | Vietnamese-language guides (Oracle Cloud deploy) | 1+ |
+| Folder | Purpose | Files |
+|--------|---------|:-----:|
+| [`local-dev/`](local-dev/) | WSL2 + non-WSL setup, mock data, pre-commit hooks | 5 |
+| [`remote-access/`](remote-access/) | SSH direct, Claude Code mobile remote, mobile-resilient stack (Tailscale + mosh + tmux) | 2 |
+| [`deploy/`](deploy/) | CI/CD pipeline, pre-deploy gate, rollback, restore | 4 |
+| [`monitoring/`](monitoring/) | Alerting standards, SLO targets, bundle/resource budgets | 4 |
+| [`operations/`](operations/) | DR plan, RTO/RPO matrix, incident response, 23 per-alert runbooks | 3 + runbooks/ |
+| [`infrastructure/`](infrastructure/) | DNS, secrets, dependency governance | 3 |
+| [`tenant-lifecycle/`](tenant-lifecycle/) | School onboarding (3-day target), off-boarding (PDPL retention) | 2 |
+| [`branding/`](branding/) | AI Branding wizard flow + FE integration (operator-facing) | 2 |
+| [`contributing/`](contributing/) | Content strategy, template contribution, starter-kit sync | 3 |
+| [`scripts/`](scripts/) | Runnable migration/setup scripts (vd `ssh-mobile-migration/`) | 1 subdir |
+| [`vietnamese/`](vietnamese/) | VN-language versions cho audience yêu cầu tiếng Việt | 7 |
+| [`templates/`](templates/) | Reusable file templates (vd systemd unit) | 1 |
+| [`rtk-pilot/`](rtk-pilot/) | Rust Token Killer measurement pilot docs | 2 |
 
 ---
 
@@ -40,7 +35,7 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
   - Playbooks (decision trees for scenarios: dev setup, incident, rollback)
   - Checklists (go/no-go, pre-flight, post-deploy)
   - Troubleshooting guides (common errors + fixes)
-  - Tenant onboarding operational steps
+  - Tenant lifecycle operational steps
 
 - ❌ **Does NOT belong here:**
   - Architecture rationale ("why RabbitMQ over batch") → [`02-architecture/adr/`](../02-architecture/adr/)
@@ -49,59 +44,67 @@ Operator-facing documentation — "how to run, deploy, recover, and troubleshoot
   - Gap reports / audits → [`04-quality/`](../04-quality/)
   - Business rules per domain → [`01-business/`](../01-business/)
 
-- Naming: `kebab-case.md`, runbooks nên prefix context: `incident-*`, `deploy-*`, `rollback-*`
+- **Naming:** `kebab-case.md`. Mỗi file ở đúng subfolder theo bảng trên — KHÔNG còn file mới ở root (chỉ README.md).
+- **Sub-bucket README mandate:** mỗi subfolder phải có `README.md` per [`.claude/rules/docs-folder-structure.md`](../../.claude/rules/docs-folder-structure.md). Liệt kê file + placement rules + archive policy của bucket đó.
 
 ---
 
-## Current Guides Philosophy
+## Subdirectories quick reference
 
-Đủ bộ guides cho production readiness cần cover 3 nhóm:
+Mỗi subfolder tự đầy đủ — README riêng giải thích bucket, file placement rules, related links. Bắt đầu từ subfolder bạn cần (vd: setup máy mới → [`local-dev/`](local-dev/); on-call sự cố → [`operations/`](operations/); release prod → [`deploy/`](deploy/)).
+
+---
+
+## Current Guides Coverage (production readiness checklist)
 
 ### 🔴 Production operations (must-have trước GA)
-- ✅ Incident response runbook
-- ✅ Rollback procedure
-- ✅ Deploy go/no-go checklist
-- ✅ Secret management
-- ❌ Monitoring + alerting runbook (Wave 6 dependency — GAP-102)
-- ❌ Database backup/restore SOP (GAP-093 + GAP-102)
-- ❌ Security incident playbook (GAP-102)
-- ❌ CI/CD release procedure (GAP-102)
+- ✅ Incident response runbook ([`operations/incident-response-runbook.md`](operations/incident-response-runbook.md))
+- ✅ Rollback procedure ([`deploy/rollback-procedure.md`](deploy/rollback-procedure.md))
+- ✅ Deploy go/no-go checklist ([`deploy/deploy-go-nogo-checklist.md`](deploy/deploy-go-nogo-checklist.md))
+- ✅ Secret management ([`infrastructure/SECRET-MANAGEMENT.md`](infrastructure/SECRET-MANAGEMENT.md))
+- ✅ Monitoring + alerting standards ([`monitoring/alerting-standards.md`](monitoring/alerting-standards.md))
+- ✅ DR plan + RTO/RPO ([`operations/disaster-recovery-plan.md`](operations/disaster-recovery-plan.md), [`operations/dr-rto-rpo-matrix.md`](operations/dr-rto-rpo-matrix.md))
+- ✅ Restore procedure ([`deploy/restore-procedure.md`](deploy/restore-procedure.md))
+- ✅ CI/CD release procedure ([`deploy/cicd-release-procedure.md`](deploy/cicd-release-procedure.md))
+- ❌ Security incident playbook (GAP-102, future)
 
 ### 🟠 Developer experience
-- ✅ WSL migration playbook
-- ✅ Local dev setup non-WSL (Mac/Linux native)
+- ✅ WSL2 fresh setup ([`local-dev/wsl2-fresh-setup.md`](local-dev/wsl2-fresh-setup.md))
+- ✅ WSL migration playbook ([`local-dev/wsl-migration-playbook.md`](local-dev/wsl-migration-playbook.md))
+- ✅ Local dev non-WSL ([`local-dev/local-dev-setup-non-wsl.md`](local-dev/local-dev-setup-non-wsl.md))
+- ✅ SSH direct + mobile-resilient ([`remote-access/ssh-terminal-direct-access.md`](remote-access/ssh-terminal-direct-access.md))
 
 ### 🟡 Tenant lifecycle
-- ✅ Tenant onboarding checklist (3-day target)
-- ❌ Tenant offboarding / data export (future)
+- ✅ Tenant onboarding (3-day) ([`tenant-lifecycle/tenant-onboarding-checklist.md`](tenant-lifecycle/tenant-onboarding-checklist.md))
+- ✅ Tenant off-boarding ([`tenant-lifecycle/tenant-off-boarding-runbook.md`](tenant-lifecycle/tenant-off-boarding-runbook.md))
 
-### 🟢 Release management
-- ✅ CI/CD release procedure
+### 🟢 AI Branding (operator)
+- ✅ Wizard flow + support runbook ([`branding/ai-branding-wizard-flow.md`](branding/ai-branding-wizard-flow.md))
+- ✅ FE integration ([`branding/branding-integration.md`](branding/branding-integration.md))
 
 Completion tracked trong [GAP-102](../04-quality/gaps/GAP-102-guides-completion-adr-kickoff.md).
 
 ---
 
-## Subdirectories
-
-- **`operations/runbooks/`** — Granular runbook content (deployment procedures). Kept separate for volume-based organization.
-- **`vietnamese/`** — Vietnamese-language versions cho guides mà target audience yêu cầu tiếng Việt (vd. client-facing Oracle Cloud deploy guide). Không phải mọi guide cần bản VN.
-
----
-
 ## Archive Policy
 
-Move to `documents/07-archived/guides-YYYY/` khi:
+Move sang `documents/07-archived/guides-YYYY/` khi:
 - Procedure obsoleted (vd. rollback strategy changed fundamentally)
 - Technology retired (vd. if we drop Oracle Cloud, archive VN Oracle guide)
 - Guide replaced by auto-generated runbook
 
-Keep version history — runbooks are "living docs", update in-place với changelog section at bottom.
+Keep version history — runbooks là "living docs", update in-place với changelog section ở cuối.
 
 ---
 
 ## Related
 
 - **Gaps:** [GAP-086](../04-quality/gaps/GAP-086-incident-response-runbook.md), [GAP-087](../04-quality/gaps/GAP-087-deploy-go-no-go.md), [GAP-088](../04-quality/gaps/GAP-088-rollback-procedure.md), [GAP-102](../04-quality/gaps/GAP-102-guides-completion-adr-kickoff.md)
-- **Wave 6** — Monitoring + Observability drives new monitoring runbook
-- **Wave 9** — Compliance MVP drives security incident playbook with legal sign-off
+- **Wave 6** — Monitoring + Observability drives monitoring runbooks
+- **Wave 9** — Compliance MVP drives security incident playbook với legal sign-off
+
+---
+
+## Log
+
+- **2026-05-04** — Restructured: 28 root-level files → 0 (only README.md). 8 new subfolders (local-dev, remote-access, deploy, monitoring, infrastructure, tenant-lifecycle, branding, contributing) + reorganized operations/ to absorb 3 root files + merged orphan runbooks/ → operations/runbooks/. Per `docs-folder-structure.md` rule. ~363 inbound references updated repo-wide.

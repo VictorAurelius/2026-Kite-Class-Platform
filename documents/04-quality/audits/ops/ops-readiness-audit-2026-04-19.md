@@ -142,7 +142,7 @@ Các điểm mạnh: deploy-go-nogo-checklist.md, rollback-procedure.md, inciden
 ✅ **7 alert rules** defined trong `alert-rules.yml`:
 - ServiceDown, HighErrorRate (>5% 5xx), HighResponseTime (p99 > 2s), HighMemoryUsage (JVM heap >85%), DatabasePoolExhausted (HikariCP >80%), HighDiskUsage (>85%), RabbitMQQueueBacklog (>1000).
 
-✅ **Incident response runbook** rất chi tiết (`documents/05-guides/incident-response-runbook.md`) với severity levels, escalation path, per-service incidents table.
+✅ **Incident response runbook** rất chi tiết (`documents/05-guides/operations/incident-response-runbook.md`) với severity levels, escalation path, per-service incidents table.
 
 ✅ **Deploy-go-nogo-checklist.md** mentions "Alerting rules configured for new features".
 

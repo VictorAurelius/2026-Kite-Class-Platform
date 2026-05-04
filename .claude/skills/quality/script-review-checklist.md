@@ -43,4 +43,4 @@ Dùng khi PR thêm/sửa `.sh` hoặc `.py` files trong `scripts/`, `kitehub/scr
 ## Related
 
 - **CI gate:** `.github/workflows/script-quality.yml` enforces shellcheck + ruff on every PR (GAP-194 Phase 1, shipped 2026-04-20).
-- **Local pre-commit gate:** `lefthook.yml` mirrors the CI checks via `lefthook install`. See [`documents/05-guides/local-dev-pre-commit.md`](../../../documents/05-guides/local-dev-pre-commit.md) for install + bypass + fallback (GAP-194 Phase 2, shipped 2026-04-29).
+- **Local pre-commit gate:** `lefthook.yml` mirrors the CI checks via `lefthook install`. See [`documents/05-guides/local-dev/local-dev-pre-commit.md`](../../../documents/05-guides/local-dev/local-dev-pre-commit.md) for install + bypass + fallback (GAP-194 Phase 2, shipped 2026-04-29).
