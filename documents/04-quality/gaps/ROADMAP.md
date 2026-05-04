@@ -8,17 +8,30 @@
 
 ---
 
-## 🎯 Current Status Snapshot (2026-04-24)
+## 🎯 Current Status Snapshot (2026-05-04)
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next wave: Wave 17 = GAP-152 Round 1 Persona Review Execution** — UNBLOCKED 2026-04-30 sau khi Wave 15 (GAP-151) + Wave 16 (GAP-153) shipped 288 ACs across 12 docs (4 tenant + 8 secondary). 4 parallel agents (one per Tier-1 persona) consume both tenant + relevant secondary AC docs, output scored review reports to `documents/00-brd/persona-reviews/`. Estimated wall-clock ~60-90 min. Surfaces ~25 candidate NEW gaps from Wave 16 backlog + new findings.
+**Recommended next wave: Wave 17 Phase 2 — Execute 4 Background Agents per Phase 1 plan** — Phase 1 (plan + foundation) shipped 2026-05-04 via PR #739. `documents/00-brd/persona-reviews/` directory created with README + report template. Reserved GAP ranges: A=GAP-286..295 (P1), B=296..305 (P2), C=306..320 (P3), D=321..345 (P5) — 60 slots, ~25 expected actual. Phase 2 ETA: ~75-100 min wall-clock. Spawn template ready in [`documents/03-planning/waves/wave-2026-05-04-persona-review-round-1.md`](../../03-planning/waves/wave-2026-05-04-persona-review-round-1.md) §6. Closure PR will dedupe gaps + ROADMAP sync + personas-catalog measured scores + GAP-152 → 🟢 DONE per `gap-done-discipline.md`.
 
 **Track 2 (UI kits production port)** — Phase 1 ADR + workspace scaffolding DONE (PR #713 merged 2026-04-30). Phase 2-6 (15 OPEN gaps GAP-266..280) — multi-week roadmap detailed in [`documents/03-planning/waves/wave-track-2-ui-kits-port-umbrella.md`](../../03-planning/waves/wave-track-2-ui-kits-port-umbrella.md). Trigger Phase 2 (5 priority components G2/G6/G5/G7/D1) khi MVP-essential blockers từ Wave 17 review findings cần real components.
 
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (3 PRs merged — main CI red triage + SSH access guide + Wave 17 Phase 1 plan):** session focused on unblocking + setting up for next wave-pack execution.
+
+1. **PR #737 — `fix(docker): pnpm workspace context for frontend images (GAP-284)`** — diagnosed main CI red post-merge of #735 (Track 2 umbrella + #713 ADR-024 Phase 1). Root cause: `@kite/shared-ui@workspace:*` workspace dep introduced by #713 but Dockerfile narrow context (`kiteclass/kiteclass-frontend`) couldn't resolve `pnpm-workspace.yaml` / `packages/shared-ui`. Fix: repo-root context for both frontend Dockerfiles + `outputFileTracingRoot` in `next.config.js` + workflow `matrix.include` (frontend only) + repo-root `.dockerignore`. Mirror fix applied to kitehub-frontend Dockerfile (incidental coverage). Verified: post-merge `push: main` Docker workflow run 25300563672 success. **GAP-284 → 🟢 DONE**.
+2. **GAP-285 filed** — `AdminControllerTest.testGetRevenue` failing on every PR's CI; pre-existing, surfaced during #737 triage (not caused by Docker fix). Out of scope for #737 per `audit-to-gap-pipeline.md`. P2, dedicated PR for fix.
+3. **PR #738 — `docs: GAP-284 closure + SSH terminal access guide (with Android setup)`** — flips GAP-284 → 🟢 DONE per `gap-done-discipline.md` §2 + ships [`documents/05-guides/ssh-terminal-direct-access.md`](../../05-guides/ssh-terminal-direct-access.md) (end-to-end tested 2026-05-04 on desktop + Android phone via Tailscale): WSL2 sshd hardening with **ssh.socket drop-in** (Ubuntu 24.04+ critical footgun), Windows portproxy + Task Scheduler persistence, Tailscale install via direct-download (winget --silent UAC failure), §4 full Android setup (Tailscale Always-on VPN, Termux key gen, Termius gotchas, battery optimization caveat), §10 7 lessons learned. Decision rule: SSH-direct for verification loops, Claude Code for state-aware decisions/artifacts.
+4. **PR #739 — `docs(wave-17): Persona Review Round 1 plan + foundation (GAP-152 Phase 1)`** — Phase 1 of Wave 17 GAP-152. Wave plan with 4 buckets (P1/P2/P3/P5) + reserved GAP ranges + agent prompt template + 4-layer design coverage check + foundation `documents/00-brd/persona-reviews/README.md`. Phase 2 (4 background agents shipping reviews + closure PR) deferred to fresh `/clear` session per `/start-session` skill degradation rule.
+
+**Memory entries saved this session:** `feedback_local_verification_discipline.md` — codifies 3 rule violations (project scripts vs `docker buildx` direct / `run_in_background:true` for long ops / Monitor over sleep+poll) caught by user during #737 work; prevents recurrence.
+
+**Counts:** 88 OPEN → 88 OPEN (-1 GAP-284 closed; +1 GAP-285 filed; net 0). Tier-1 personas now READY for Wave 17 Phase 2 execution.
 
 ---
 
