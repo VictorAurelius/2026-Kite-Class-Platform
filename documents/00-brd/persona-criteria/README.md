@@ -32,6 +32,17 @@ This folder closes the gap: every Tier-1 persona has a formal `P<N>-<slug>.md` A
 
 **Total: 121 ACs across 4 Tier-1 personas** (Wave Persona-AC-Template SHIPPED 2026-04-30, GAP-151 → 🟢 DONE).
 
+### Secondary persona AC (Phase 1, Wave 16, 2026-04-30)
+
+Per-role × tenant-context AC for users **within** a tenant — extends GAP-151 template để cover Student/Parent/Teacher/Admin perspectives:
+
+| Folder | Phase | Cells | Status |
+|--------|:-----:|:-----:|:------:|
+| [`secondary/`](secondary/) | Phase 1 (8 P0 cells) | Student×3 + Parent×1 + Teacher×2 + Admin×2 | 🟡 DRAFT v1 (Wave Secondary-Persona-AC, GAP-153) |
+
+Phase 2 (P1 cells, 4 cells) → GAP-281 follow-up.
+Phase 3 (P2 cells, 4 cells) → GAP-282 follow-up.
+
 ---
 
 ## Tier-2 / Tier-3 Personas (Deferred)
