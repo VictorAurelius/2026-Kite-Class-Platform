@@ -223,32 +223,15 @@ bash .claude/hooks/notify-stop.sh
 **Customize env vars:**
 - `NTFY_PRIORITY` — 1 (min) → 5 (urgent), default 3
 - `NTFY_SERVER` — default `https://ntfy.sh`; đổi nếu self-host
-- `NTFY_CLICK` — URL fired khi tap notification. Default empty. **Lưu ý quan trọng** ↓
-- `NTFY_ACTIONS` — ntfy Actions header (broadcast / view / http). Default empty.
 
-### ⚠️ Vì sao tap notification không tự mở Termux?
+### ⚠️ Tại sao notification không tự mở Termux khi tap?
 
-ntfy Android app dùng `Intent.ACTION_VIEW + Uri.parse(url)` cho Click header — **KHÔNG** parse `intent:#Intent;...;end` theo `URI_INTENT_SCHEME`. Termux không đăng ký URL scheme (`termux://`, `https://...`) → Click không thể launch Termux dù dùng format intent gì.
+Đã thử + xác nhận **không khả thi**:
 
-→ **Cách duy nhất tap → mở Termux:** dùng `NTFY_ACTIONS` với type `broadcast` qua Termux:RUN_COMMAND.
+1. **Click header với `intent:#Intent;...;end`** → ntfy Android dùng `ACTION_VIEW + Uri.parse`, không parse theo `URI_INTENT_SCHEME`. Termux không đăng ký URL scheme nào → tap → "No Activity found to handle Intent { act=android.intent.action.VIEW ... }".
+2. **`Actions: broadcast` với `com.termux.RUN_COMMAND`** → Termux đăng ký RUN_COMMAND như **Service** (cần `startService`), không phải BroadcastReceiver. ntfy `broadcast` action gọi `sendBroadcast()` → không có receiver lắng nghe → service không invoke.
 
-### Tap-to-resume tmux (Termux:API broadcast — chính thức)
-
-**Setup 1 lần trên Android:**
-1. Cài **Termux:API** add-on từ F-Droid (APK riêng, không phải Termux chính)
-2. Mở Termux → `nano ~/.termux/termux.properties` → thêm dòng:
-   ```
-   allow-external-apps = true
-   ```
-3. Chạy `termux-reload-settings`
-
-**Set env var trong WSL2:**
-```bash
-# ~/.bashrc hoặc ~/.claude/settings.json env
-export NTFY_ACTIONS='broadcast, Resume tmux, intent=com.termux.RUN_COMMAND, extras=com.termux.RUN_COMMAND_PATH=/data/data/com.termux/files/usr/bin/bash;com.termux.RUN_COMMAND_ARGUMENTS=-c,tmux attach || tmux new'
-```
-
-Notification sẽ hiển thị nút **"Resume tmux"** — tap nó → Termux mở + auto chạy `tmux attach`.
+→ **Workflow thực tế:** notification báo "Claude xong rồi" → bạn manually mở Termux app → tmux auto-attach qua snippet trong `~/.bashrc` (xem section §A của doc này) → vào session ngay.
 
 **Privacy:** topic name là URL public — ai biết = nhận message. Random suffix dài + KHÔNG commit topic vào public repo. Self-host ntfy server với auth nếu lo (overkill cho solo dev).
 
