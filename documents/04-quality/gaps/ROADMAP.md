@@ -12,7 +12,7 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next: GAP-347 meta-fix PR review/merge (jacoco surefire+failsafe merge — unblocks Sonar gate for all future IT-heavy PRs) → then Phase 1B follow-up sub-PRs (offline queue / perf test / concrete fees+conduct+notifications data sources / Zalo OTP / MinIO concrete impl).** Wave 18b2 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1B foundation wave-pack — 4 PRs #770 plan + #771 Bucket A mobile UI + #772 Bucket B vetting + #773 Bucket C parent facets, plus #769 GAP-323b backend that triggered it). Closure PR + GAP-347 meta-fix in flight.
+**Recommended next: Wave 18b3 follow-up wave-pack (3 disjoint Phase 1B remainders — GAP-323b offline queue + Playwright perf, GAP-322b LLTP upload UI + concrete MinIO SDK, GAP-321b concrete data wiring for fees+conduct+notifications facets).** Wave 18b2 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1B foundation wave-pack — 4 PRs #770 plan + #771 Bucket A mobile UI + #772 Bucket B vetting + #773 Bucket C parent facets, plus #769 GAP-323b backend that triggered it). GAP-347 meta-fix shipped via PR #775 (jacoco surefire+failsafe merge — Sonar coverage gate now sees IT coverage for all future IT-heavy PRs).
 
 | Gap | Phase 1A status | Phase 1B status | Phase 1C |
 |---|---|---|---|
@@ -20,7 +20,7 @@
 | GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b 🟡 PARTIAL — Vetting service + state machine + AES-256 + MinIO storage stub + RBAC + V52 (Wave 18b2 Bucket B); LLTP upload UI + verify queue UI + concrete MinIO SDK + 111 webhook follow-up | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
 | GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b 🟡 PARTIAL — Phase 1B v1 backend (#769) + mobile UI v1 tap-grid + bulk actions (#771 Bucket A); offline queue / Playwright perf / matview / concurrent load test / parent-portal facet exposure follow-up | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
 
-**Pick order suggestions for Wave 18b3 follow-ups:** GAP-347 (meta — unblocks Sonar for everyone) > GAP-323b offline queue + perf test (real ≤2min target validation) > GAP-322b LLTP upload UI (criminal liability completion) > GAP-321b concrete data wiring (turn 3 stub-empty facets into real queries). Each Phase 1B remainder = ~3-7 days; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~14-18 weeks remaining (was 18-24; 4-6 weeks burned down by Wave 18b1 + 18b2).
+**Pick order suggestions for Wave 18b3 follow-ups:** ~~GAP-347 (meta — unblocks Sonar for everyone)~~ ✅ DONE PR #775 → GAP-323b offline queue + perf test (real ≤2min target validation) > GAP-322b LLTP upload UI (criminal liability completion) > GAP-321b concrete data wiring (turn 3 stub-empty facets into real queries). Each Phase 1B remainder = ~3-7 days; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~14-18 weeks remaining (was 18-24; 4-6 weeks burned down by Wave 18b1 + 18b2).
 
 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
