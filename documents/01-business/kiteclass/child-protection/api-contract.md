@@ -1,7 +1,7 @@
 # Child Protection — API Contract
 
 **Domain:** KiteClass Core / Compliance / Safeguarding
-**Version:** 0.1 (Phase 1A — service-layer only; HTTP endpoints in Phase 1B)
+**Version:** 0.2 (Phase 1A service-layer + Phase 1B foundation REST endpoints for vetting)
 **Created:** 2026-05-04
 **Last-Reviewed:** 2026-05-04
 
@@ -148,6 +148,120 @@ Note: `description` + `evidencePaths` are NOT echoed back to reporter — Phase 
 | 404 | `INCIDENT_NOT_FOUND` | `EntityNotFoundException` |
 | 500 | `DECRYPT_FAILED` | `RuntimeException` from converter |
 
+---
+
+## Phase 1B foundation — Vetting REST endpoints (GAP-322b, Wave 18b2 Bucket B — SHIPPED)
+
+Base path: `/api/v1/vettings`. RBAC: SAFEGUARDING_OFFICER role only on `X-User-Roles` header (BR-VETTING-003).
+
+### Schemas
+
+**`VettingResponse`**
+```json
+{
+  "id": 7,
+  "teacherId": 100,
+  "status": "PENDING",
+  "lltpNumber": "LLTP-12345",
+  "policeCheckDetails": "Police check passed without remarks",
+  "submittedAt": "2026-05-05T08:00:00Z",
+  "interviewedAt": null,
+  "decidedAt": null,
+  "expiresAt": "2027-05-04T00:00:00Z",
+  "decidedByUserId": null,
+  "createdAt": "2026-05-04T07:30:00Z",
+  "updatedAt": "2026-05-04T07:30:00Z"
+}
+```
+Encrypted fields (`lltpNumber`, `policeCheckDetails`) are decrypted by `AesGcmAttributeConverter` on read; only returned to SAFEGUARDING_OFFICER callers.
+
+**`VettingCreateRequest`**
+```json
+{
+  "teacherId": 100,
+  "lltpNumber": "LLTP-12345",
+  "policeCheckDetails": "Pre-interview note (optional)",
+  "expiresAt": "2027-05-04T00:00:00Z"
+}
+```
+Only `teacherId` is required.
+
+**`VettingTransitionRequest`**
+```json
+{ "targetStatus": "SUBMITTED" }
+```
+
+**`ApiResponse<T>`** — standard wrapper (`success`, `data`, `message`, `timestamp`).
+
+### Endpoints
+
+#### `GET /api/v1/vettings` — List vetting records (UC-VETTING-001+)
+
+**Query params:** `status` (optional `VettingStatus` enum), Spring `Pageable` (`page`, `size`, `sort`).
+
+**Response 200:** `ApiResponse<Page<VettingResponse>>`.
+
+**Errors:** `403 VETTING_RBAC_DENIED`.
+
+#### `GET /api/v1/vettings/{id}` — Read detail
+
+**Response 200:** `ApiResponse<VettingResponse>`.
+
+**Errors:** `404 VETTING_NOT_FOUND`, `403 VETTING_RBAC_DENIED`.
+
+#### `POST /api/v1/vettings` — Create vetting (UC-VETTING-001)
+
+**Request:** `VettingCreateRequest`.
+
+**Response 201:** `ApiResponse<VettingResponse>` with `status=PENDING`.
+
+**Errors:** `400 VETTING_TEACHER_ID_REQUIRED`, `403 VETTING_RBAC_DENIED`.
+
+#### `PATCH /api/v1/vettings/{id}/transition` — Advance state (UC-VETTING-002..005)
+
+Requires `X-User-Reference-Id` header (officer user id, recorded as `decidedByUserId` on APPROVED/REJECTED).
+
+**Request:** `VettingTransitionRequest`.
+
+**Response 200:** `ApiResponse<VettingResponse>`.
+
+**Errors:**
+- `400 VETTING_TARGET_STATUS_REQUIRED` — null `targetStatus`.
+- `400 VETTING_INVALID_TRANSITION` — illegal transition per BR-VETTING-001.
+- `404 VETTING_NOT_FOUND`.
+- `403 VETTING_RBAC_DENIED`.
+
+#### `DELETE /api/v1/vettings/{id}` — Soft delete (BR-VETTING-005)
+
+**Response 204:** no body. Phase 1C will tighten anti-delete on REJECTED + 7-year retention.
+
+**Errors:** `404 VETTING_NOT_FOUND`, `403 VETTING_RBAC_DENIED`.
+
+### Vetting error code table
+
+| HTTP | Code | Source |
+|------|------|--------|
+| 400 | `VETTING_TEACHER_ID_REQUIRED` | `ValidationException` |
+| 400 | `VETTING_TARGET_STATUS_REQUIRED` | `ValidationException` |
+| 400 | `VETTING_INVALID_TRANSITION` | `VettingServiceImpl` state-machine guard |
+| 400 | `VETTING_DOC_FILENAME_REQUIRED` / `VETTING_DOC_CONTENT_REQUIRED` / `VETTING_DOC_TTL_INVALID` / `VETTING_DOC_ID_REQUIRED` / `VETTING_ID_REQUIRED` | `MinIOVettingDocumentStorageImpl` (Phase 1B foundation stub) |
+| 403 | `VETTING_RBAC_DENIED` | `VettingController.requireSafeguardingOfficer` |
+| 404 | `VETTING_NOT_FOUND` | `EntityNotFoundException` |
+| 404 | `VETTING_NOT_FOUND_FOR_TEACHER` | `EntityNotFoundException` |
+
+### Storage contract (Phase 1B foundation)
+
+`com.kiteclass.core.module.childprotection.storage.VettingDocumentStorage`:
+
+| Method | Purpose | Phase 1B foundation behaviour |
+|--------|---------|-------------------------------|
+| `String storeDocument(Long vettingId, String filename, byte[] content)` | Persist evidence document | Stub returns `minio://vetting/{vettingId}/{filename}` after sanitizing path-traversal. Concrete MinIO SDK wiring deferred. |
+| `String getDownloadUrl(Long vettingId, String docId, Duration ttl)` | Issue short-lived download URL | Stub returns `<docId>?ttl=<seconds>`. Concrete signed-URL impl deferred. |
+| `void deleteDocument(Long vettingId, String docId)` | Delete document | Stub no-op (logs at INFO). Phase 1C ties to retention enforcement. |
+
+The `MinIOVettingDocumentStorageImpl` Spring bean satisfies the contract today so callers (controller, future upload UI) can compile + smoke-test against the abstraction.
+
 ## Log
 
+- **2026-05-04** (v0.2): Phase 1B foundation — Vetting REST endpoints, schemas, error codes, and storage contract documented. Wave 18b2 Bucket B (GAP-322b). LLTP file-upload endpoint + verify-queue UI deferred to Phase 1B follow-up.
 - **2026-05-04** (v0.1): Phase 1A service-layer contract + Phase 1B planned REST shape documented. Wave 18b1 Bucket E.

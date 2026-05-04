@@ -1,6 +1,6 @@
 # GAP-322b: Child Protection Phase 1B — Staff vetting workflow + MinIO encrypted bucket + RBAC gate
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1B foundation shipped (Wave 18b2 Bucket B)
 **Priority:** 🔴 P0 LEGAL (criminal liability — sister of GAP-322 Phase 1A SHIPPED Wave 18b1)
 **Domain:** Backend + Frontend + DevOps (MinIO config)
 **Detected:** 2026-05-04 (Wave 18b1 Bucket E closure)
@@ -47,15 +47,25 @@ Luật Trẻ em 2016 Đ.25 + Decree 56/2017 mandate background check (LLTP) on e
 
 ## Acceptance Criteria
 
-- [ ] `StaffVettingRecord` entity + repository + service + state machine
-- [ ] V<N> migration (after V50) with status + audit columns
-- [ ] MinIO bucket configured with SSE-S3 + signed URL helper
-- [ ] RBAC filter: unverified teacher → 403 on student data endpoints
-- [ ] Admin verify queue UI (list + preview + approve/reject)
-- [ ] Annual re-vetting cron job + reminder
-- [ ] Tests: vetting state machine unit + RBAC filter IT + signed URL TTL test
-- [ ] Business docs updated: BR-CHILD-PROTECTION-{vetting} + UC-VET-UPLOAD/VERIFY/EXPIRE
-- [ ] mvn + pnpm green
+- [x] `Vetting` entity + repository + service + state machine (Phase 1B foundation — `Vetting.java`, `VettingRepository.java`, `VettingService` interface + `VettingServiceImpl`, `VettingStatus` enum)
+- [x] V52 migration (after V51) with status + audit columns + CHECK constraint on enum
+- [x] `VettingDocumentStorage` contract pinned + `MinIOVettingDocumentStorageImpl` stub (concrete MinIO SDK wiring with SSE-S3 + signed URL helper deferred to Phase 1B follow-up)
+- [x] RBAC gate at controller level: SAFEGUARDING_OFFICER only on `/api/v1/vettings/*`, anyone else 403 `VETTING_RBAC_DENIED`
+- [ ] RBAC filter on student-data endpoints: unverified teacher → 403 (separate filter aspect — Phase 1B follow-up)
+- [ ] Admin verify queue UI (list + preview + approve/reject) — Phase 1B follow-up
+- [ ] Annual re-vetting cron job + reminder — Phase 1B follow-up
+- [x] Tests: vetting state machine unit (10 transition tests + create/find/softDelete = 30 unit) + storage stub contract test (9) + web-slice integration test (9 RBAC + happy-path)
+- [x] Business docs updated: BR-VETTING-001..005 (`rules.md` v0.2) + UC-VETTING-001..005 (`use-cases.md` v0.2) + 5 endpoints + 4 schemas + 7 error codes (`api-contract.md` v0.2)
+- [x] mvn green (`./mvnw test -Dtest='VettingServiceTest,VettingDocumentStorageStubTest,VettingIntegrationTest'` — 48 tests pass)
+
+## Phase 1B follow-up scope (deferred — separate sister PRs)
+
+- LLTP file-upload endpoint + UI form
+- Verify-queue admin UI (list + preview signed URLs + approve/reject buttons)
+- Concrete MinIO SDK wiring (server-side AES-256, signed URLs, 7-year retention bucket lifecycle)
+- RBAC filter aspect: teacher → 403 on student-PII endpoints unless an APPROVED Vetting exists
+- Annual re-vetting cron + reminder emails
+- Tổng đài 111 webhook (also tracked under GAP-322c Phase 1C)
 
 ## Estimated Effort
 
@@ -74,4 +84,5 @@ Luật Trẻ em 2016 Đ.25 + Decree 56/2017 mandate background check (LLTP) on e
 
 ## Log
 
+- **2026-05-04** — Phase 1B foundation shipped (this PR — Wave 18b2 Bucket B). `Vetting` entity + AES-256 on `lltp_number` / `police_check_details` (BR-VETTING-002, reuses Wave 18b1 `AesGcmAttributeConverter`); state-machine guard PENDING→SUBMITTED→INTERVIEW_DONE→APPROVED|REJECTED + APPROVED→EXPIRED at service layer (BR-VETTING-001); `VettingDocumentStorage` contract pinned + `MinIOVettingDocumentStorageImpl` stub returning deterministic URLs (BR-VETTING-004); `VettingController` RBAC gate restricting `/api/v1/vettings/*` to `SAFEGUARDING_OFFICER` only (BR-VETTING-003); V52 migration with CHECK enum + indexes; 48 tests green (30 unit + 9 storage contract + 9 web-slice integration). Business docs v0.2 (`rules.md` BR-VETTING-001..005 with 5-attribute frontmatter, `use-cases.md` UC-VETTING-001..005, `api-contract.md` 5 endpoints + 4 schemas + 7 error codes). Status: PARTIAL per `gap-done-discipline.md` §3 — file-upload UI, verify-queue UI, concrete MinIO SDK, RBAC filter aspect on student-PII endpoints, annual re-vetting cron all deferred to Phase 1B follow-up sister PRs.
 - **2026-05-04** — Filed by Wave 18b1 closure coordinator. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.
