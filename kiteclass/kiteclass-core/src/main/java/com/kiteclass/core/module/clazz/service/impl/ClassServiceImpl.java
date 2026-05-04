@@ -1,5 +1,7 @@
 package com.kiteclass.core.module.clazz.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kiteclass.core.common.constant.ClassStatus;
 import com.kiteclass.core.common.constant.CourseStatus;
 import com.kiteclass.core.common.context.TenantContext;
@@ -14,6 +16,7 @@ import com.kiteclass.core.module.clazz.dto.ClassSessionResponse;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
+import com.kiteclass.core.module.clazz.dto.RecurrenceRuleDto;
 import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import com.kiteclass.core.module.clazz.entity.Class;
 import com.kiteclass.core.module.clazz.entity.ClassSession;
@@ -21,6 +24,7 @@ import com.kiteclass.core.module.clazz.mapper.ClassMapper;
 import com.kiteclass.core.module.clazz.repository.ClassRepository;
 import com.kiteclass.core.module.clazz.repository.ClassSessionRepository;
 import com.kiteclass.core.module.clazz.service.ClassService;
+import com.kiteclass.core.module.clazz.service.RecurrenceService;
 import com.kiteclass.core.module.course.entity.Course;
 import com.kiteclass.core.module.course.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +68,8 @@ public class ClassServiceImpl implements ClassService {
     private final ClassSessionRepository classSessionRepository;
     private final CourseRepository courseRepository;
     private final ClassMapper classMapper;
+    private final RecurrenceService recurrenceService;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -358,6 +364,102 @@ public class ClassServiceImpl implements ClassService {
     @Transactional(readOnly = true)
     public List<ClassSessionResponse> listSessions(Long classId) {
         findClassOrThrow(classId);
+        return classSessionRepository
+                .findByClassIdAndDeletedFalseOrderBySessionNumberAsc(classId)
+                .stream()
+                .map(classMapper::toSessionResponse)
+                .toList();
+    }
+
+    /**
+     * GAP-290 Wave 18a — generate sessions from RFC 5545 RRULE subset.
+     *
+     * <p>Edit semantics (BR-CLASS-009 state machine):
+     * <ol>
+     *   <li>Persist new {@code recurrence_rule} JSONB on the class.</li>
+     *   <li>Soft-delete future {@code SCHEDULED} sessions where
+     *       {@code attendanceTaken == false}. Past sessions and any session with
+     *       {@code attendanceTaken == true} are preserved.</li>
+     *   <li>Plan new occurrences from {@code today} (or class.startDate, whichever
+     *       is later) through {@code rule.until()}, skipping dates that match a
+     *       preserved session's date (avoid duplicates).</li>
+     *   <li>Persist new sessions; return the merged list (preserved + new) ordered
+     *       by sessionNumber.</li>
+     * </ol>
+     */
+    @Override
+    @Transactional
+    public List<ClassSessionResponse> generateSessionsFromRecurrence(Long classId, RecurrenceRuleDto rule) {
+        log.info("Generating recurring sessions: classId={}, freq={}, byDay={}, until={}",
+                classId, rule.freq(), rule.byDay(), rule.until());
+
+        Class clazz = findClassOrThrow(classId);
+
+        if (clazz.getStatus() == ClassStatus.COMPLETED || clazz.getStatus() == ClassStatus.CANCELLED) {
+            throw new ValidationException("CLASS_RECURRENCE_LOCKED", clazz.getStatus());
+        }
+
+        // Persist the new rule on the class (idempotent — overwrites any prior rule).
+        try {
+            clazz.setRecurrenceRule(objectMapper.writeValueAsString(rule));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize recurrence rule for classId={}", classId, e);
+            throw new ValidationException("RECURRENCE_SERIALIZATION_FAILED", new Object[0]);
+        }
+
+        // Pull current sessions; partition into preserved vs. regenerable.
+        List<ClassSession> existing = classSessionRepository
+                .findByClassIdAndDeletedFalseOrderBySessionNumberAsc(classId);
+        LocalDate today = LocalDate.now();
+        List<ClassSession> preserved = new ArrayList<>();
+        List<ClassSession> regenerable = new ArrayList<>();
+        for (ClassSession s : existing) {
+            boolean isPast = s.getSessionDate().isBefore(today);
+            boolean isAttended = Boolean.TRUE.equals(s.getAttendanceTaken());
+            if (isPast || isAttended) {
+                preserved.add(s);
+            } else {
+                regenerable.add(s);
+            }
+        }
+
+        // Soft-delete regenerable sessions (so re-running is idempotent).
+        for (ClassSession s : regenerable) {
+            s.markAsDeleted();
+        }
+        if (!regenerable.isEmpty()) {
+            classSessionRepository.saveAll(regenerable);
+        }
+
+        // Plan new sessions starting from max(today, class.startDate); skip dates
+        // already owned by a preserved session.
+        LocalDate planStart = (clazz.getStartDate() != null && clazz.getStartDate().isAfter(today))
+                ? clazz.getStartDate() : today;
+        java.util.Set<LocalDate> reservedDates = new java.util.HashSet<>();
+        for (ClassSession s : preserved) {
+            reservedDates.add(s.getSessionDate());
+        }
+
+        int maxNumber = preserved.stream()
+                .mapToInt(ClassSession::getSessionNumber)
+                .max()
+                .orElse(0);
+
+        List<ClassSession> planned = recurrenceService
+                .buildSessions(classId, planStart, rule, maxNumber)
+                .stream()
+                .filter(s -> !reservedDates.contains(s.getSessionDate()))
+                .toList();
+
+        if (!planned.isEmpty()) {
+            classSessionRepository.saveAll(planned);
+        }
+        classRepository.save(clazz);
+
+        log.info("Recurrence applied: classId={}, preserved={}, regenerated={}, new={}",
+                classId, preserved.size(), regenerable.size(), planned.size());
+
+        // Return combined list ordered by sessionNumber.
         return classSessionRepository
                 .findByClassIdAndDeletedFalseOrderBySessionNumberAsc(classId)
                 .stream()

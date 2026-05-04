@@ -140,3 +140,40 @@ export interface ClassSearchCriteria {
   page?: number;
   size?: number;
 }
+
+// ===========================================================================
+// Recurrence (GAP-290 Wave 18a) — RFC 5545 RRULE subset
+// ===========================================================================
+
+/** Recurrence frequency (Phase 1: WEEKLY only). */
+export type RecurrenceFreq = 'WEEKLY';
+
+/**
+ * iCal-style 2-letter day codes per RFC 5545 §3.3.10.
+ * Backend Jackson maps `byDay` ↔ `by_day` automatically.
+ */
+export type IcalDay = 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA' | 'SU';
+
+/** Vietnamese day labels for FE rendering. */
+export const ICAL_DAY_LABELS: Record<IcalDay, { vi: string; en: string }> = {
+  MO: { vi: 'T2', en: 'Mon' },
+  TU: { vi: 'T3', en: 'Tue' },
+  WE: { vi: 'T4', en: 'Wed' },
+  TH: { vi: 'T5', en: 'Thu' },
+  FR: { vi: 'T6', en: 'Fri' },
+  SA: { vi: 'T7', en: 'Sat' },
+  SU: { vi: 'CN', en: 'Sun' },
+};
+
+/**
+ * Request body for
+ * `POST /api/v1/classes/{classId}/sessions/generate-from-recurrence`.
+ */
+export interface RecurrenceRule {
+  freq: RecurrenceFreq;
+  byDay: IcalDay[];
+  startTime: string; // 'HH:mm'
+  endTime: string;   // 'HH:mm'
+  until: string;     // 'YYYY-MM-DD'
+  excludeDates?: string[]; // 'YYYY-MM-DD'
+}

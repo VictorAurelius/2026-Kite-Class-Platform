@@ -16,6 +16,7 @@ import type {
   CreateScheduleRequest,
   GenerateClassCodeRequest,
   ClassSearchCriteria,
+  RecurrenceRule,
 } from '@/types/class';
 import type { ApiResponse, PaginatedResponse } from '@/types/api';
 
@@ -148,6 +149,27 @@ export const classesApi = {
   getSessions: async (id: number): Promise<ClassSession[]> => {
     const response = await apiClient.get<ApiResponse<ClassSession[]>>(
       `/api/v1/classes/${id}/sessions`
+    );
+    return response.data.data!;
+  },
+
+  /**
+   * Generate ClassSession entries from a recurrence rule (GAP-290 Wave 18a).
+   *
+   * Idempotent on edit — preserves attended/past sessions, regenerates future
+   * SCHEDULED ones from the new rule.
+   *
+   * @param id   class ID
+   * @param rule recurrence rule (Phase 1: WEEKLY only)
+   * @returns merged session list (preserved + new) ordered by sessionNumber
+   */
+  generateSessionsFromRecurrence: async (
+    id: number,
+    rule: RecurrenceRule
+  ): Promise<ClassSession[]> => {
+    const response = await apiClient.post<ApiResponse<ClassSession[]>>(
+      `/api/v1/classes/${id}/sessions/generate-from-recurrence`,
+      rule
     );
     return response.data.data!;
   },

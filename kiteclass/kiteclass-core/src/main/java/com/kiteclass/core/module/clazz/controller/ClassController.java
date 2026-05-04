@@ -9,6 +9,7 @@ import com.kiteclass.core.module.clazz.dto.ClassSessionResponse;
 import com.kiteclass.core.module.clazz.dto.CreateClassRequest;
 import com.kiteclass.core.module.clazz.dto.CreateScheduleRequest;
 import com.kiteclass.core.module.clazz.dto.GenerateClassCodeRequest;
+import com.kiteclass.core.module.clazz.dto.RecurrenceRuleDto;
 import com.kiteclass.core.module.clazz.dto.UpdateClassRequest;
 import com.kiteclass.core.module.clazz.service.ClassService;
 import jakarta.validation.Valid;
@@ -233,5 +234,27 @@ public class ClassController {
             @PathVariable Long classId) {
         log.debug("GET /api/v1/classes/{}/sessions", classId);
         return ResponseEntity.ok(ApiResponse.success(classService.listSessions(classId)));
+    }
+
+    /**
+     * Generates {@link ClassSessionResponse} entries from a structured RFC 5545
+     * RRULE subset (GAP-290 Wave 18a).
+     *
+     * <p>Idempotent on edit per BR-CLASS-009 — past or attended sessions preserved,
+     * future {@code SCHEDULED} sessions regenerated.
+     *
+     * @param classId class ID
+     * @param rule    recurrence rule (Phase 1: WEEKLY only)
+     * @return 200 OK with merged session list (preserved + new) ordered by sessionNumber
+     * @since GAP-290 Wave 18a
+     */
+    @PostMapping("/api/v1/classes/{classId}/sessions/generate-from-recurrence")
+    public ResponseEntity<ApiResponse<List<ClassSessionResponse>>> generateFromRecurrence(
+            @PathVariable Long classId,
+            @Valid @RequestBody RecurrenceRuleDto rule) {
+        log.debug("POST /api/v1/classes/{}/sessions/generate-from-recurrence", classId);
+        List<ClassSessionResponse> sessions = classService.generateSessionsFromRecurrence(classId, rule);
+        return ResponseEntity.ok(ApiResponse.success(sessions,
+                "Đã tạo " + sessions.size() + " buổi học (lịch lặp lại)"));
     }
 }

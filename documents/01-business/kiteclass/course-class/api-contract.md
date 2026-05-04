@@ -1,5 +1,8 @@
 # Course & Class — API Contract
 
+**Version:** 1.1.0
+**Updated:** 2026-05-04 (GAP-290 Wave 18a — POST /sessions/generate-from-recurrence)
+
 ## CourseController — `/api/v1/courses`
 
 ### POST /api/v1/courses
@@ -113,3 +116,67 @@
 
 ### GET /api/v1/classes/{classId}/sessions
 **Use Case:** UC-CRS-09  |  **Auth:** Bearer token  |  **Role:** ADMIN, TEACHER
+
+### POST /api/v1/classes/{classId}/sessions/generate-from-recurrence
+**Use Case:** UC-CLASS-RECURRING  |  **Auth:** Bearer token  |  **Role:** ADMIN, TEACHER
+**Since:** GAP-290 / Wave 18a (2026-05-04)
+
+```json
+// Request — RecurrenceRuleDto (RFC 5545 RRULE subset; Phase 1: WEEKLY only)
+{
+  "freq": "WEEKLY",
+  "by_day": ["TU", "TH"],
+  "start_time": "19:00",
+  "end_time": "20:30",
+  "until": "2026-08-01",
+  "exclude_dates": ["2026-06-15"]
+}
+
+// Response 200 — Merged session list (preserved + new) ordered by sessionNumber
+{
+  "success": true,
+  "message": "Đã tạo 24 buổi học (lịch lặp lại)",
+  "data": [
+    {
+      "id": 101,
+      "classId": 42,
+      "sessionNumber": 1,
+      "sessionDate": "2026-05-05",
+      "startTime": "19:00",
+      "endTime": "20:30",
+      "location": null,
+      "topic": null,
+      "status": "SCHEDULED",
+      "attendanceTaken": false
+    }
+  ]
+}
+```
+
+**Field reference:**
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `freq` | enum | yes | Phase 1: `WEEKLY` only |
+| `by_day` | array&lt;enum&gt; | yes | Subset of `MO/TU/WE/TH/FR/SA/SU` (RFC 5545) |
+| `start_time` | LocalTime | yes | `HH:mm`, FE renders in `Asia/Ho_Chi_Minh` |
+| `end_time` | LocalTime | yes | Must be strictly after `start_time` |
+| `until` | LocalDate | yes | Last calendar date (inclusive) |
+| `exclude_dates` | array&lt;LocalDate&gt; | no | Skipped dates (holidays, breaks) |
+
+**Errors (4xx):**
+
+| HTTP | code | When |
+|------|------|------|
+| 400 | `RECURRENCE_INVALID_TIME` | `end_time <= start_time` |
+| 400 | `RECURRENCE_INVALID_RANGE` | `until < startDate` |
+| 400 | `RECURRENCE_NO_DAYS` | `by_day` empty |
+| 400 | `RECURRENCE_RANGE_TOO_LARGE` | `until - start > 3700 days` |
+| 400 | `CLASS_RECURRENCE_LOCKED` | Class is `COMPLETED` or `CANCELLED` |
+| 404 | `CLASS_NOT_FOUND` | Unknown `classId` |
+
+**State machine on edit** (BR-CLASS-009):
+- Past sessions (`sessionDate < today`) — preserved untouched.
+- Sessions with `attendanceTaken=true` — preserved untouched (regardless of date).
+- Future `SCHEDULED` sessions with `attendanceTaken=false` — soft-deleted, regenerated from new rule.
+- Idempotent — re-running with same rule yields the same merged result.
