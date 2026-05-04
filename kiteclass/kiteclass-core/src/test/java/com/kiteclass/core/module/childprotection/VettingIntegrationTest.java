@@ -8,6 +8,7 @@ import com.kiteclass.core.module.childprotection.dto.VettingTransitionRequest;
 import com.kiteclass.core.module.childprotection.entity.Vetting;
 import com.kiteclass.core.module.childprotection.enums.VettingStatus;
 import com.kiteclass.core.module.childprotection.service.VettingService;
+import com.kiteclass.core.module.childprotection.storage.VettingDocumentStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -81,6 +82,12 @@ class VettingIntegrationTest {
         @Primary
         VettingService vettingService() {
             return Mockito.mock(VettingService.class);
+        }
+
+        @Bean
+        @Primary
+        VettingDocumentStorage vettingDocumentStorage() {
+            return Mockito.mock(VettingDocumentStorage.class);
         }
     }
 
