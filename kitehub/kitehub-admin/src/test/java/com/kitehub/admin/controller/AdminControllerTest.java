@@ -23,6 +23,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -211,11 +212,19 @@ class AdminControllerTest {
 
     @Test
     void testGetRevenue() throws Exception {
-        // When & Then
+        // GAP-285: dates must overlap the subscription's lifetime [now-30d, now+30d] from
+        // setUp(). Hardcoded "2026-03-01"/"2026-03-31" was a time-bomb — once today's date
+        // drifted past 2026-03-31 + 30d, the subscription window stopped overlapping the
+        // query window and revenue dropped to 0. Use relative dates that always cover the
+        // setup's active subscription.
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(60);
+        LocalDate endDate = today;
+
         mockMvc.perform(get("/api/platform/admin/revenue")
                         .param("period", "MONTHLY")
-                        .param("startDate", "2026-03-01")
-                        .param("endDate", "2026-03-31"))
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.period").value("MONTHLY"))
                 .andExpect(jsonPath("$.totalRevenue").value(500000))
