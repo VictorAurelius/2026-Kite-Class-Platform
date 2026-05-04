@@ -612,9 +612,9 @@ gh workflow run ci-cleanup.yml --field dry_run=true   # preview
 - `CLAUDE.md` — project rules + commit / wave / docs conventions
 - `.claude/rules/skill-conventions.md` — how skills work + when CI gate fires
 - `.claude/rules/mcp-first-with-fallback.md` — when to prefer MCP vs CLI
-- `documents/05-guides/local-dev-mock-data.md` — seeded data for offline dev
-- `documents/05-guides/dependabot-guide.md` — pin/ignore rules so weekly bumps don't break you
-- `documents/05-guides/SECRET-MANAGEMENT.md` — how prod secrets work (you don't need this for local)
+- `documents/05-guides/local-dev/local-dev-mock-data.md` — seeded data for offline dev
+- `documents/05-guides/infrastructure/dependabot-guide.md` — pin/ignore rules so weekly bumps don't break you
+- `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md` — how prod secrets work (you don't need this for local)
 - `kitehub/scripts/help.sh` — list of all kitehub helper commands
 
 ---

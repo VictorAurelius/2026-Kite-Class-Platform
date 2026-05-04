@@ -56,9 +56,9 @@ Business docs 3-layer structure requires ALL 3 files updated when logic changes:
 
 | Path | Purpose | Created by |
 |------|---------|-----------|
-| `05-guides/branding-integration.md` | KiteClass consume branding package | GAP-010 PR |
-| `05-guides/ai-branding-wizard-flow.md` | Wizard UX user guide | GAP-013 PR |
-| `05-guides/template-contribution-guide.md` | How to add templates | GAP-011 PR |
+| `05-guides/branding/branding-integration.md` | KiteClass consume branding package | GAP-010 PR |
+| `05-guides/branding/ai-branding-wizard-flow.md` | Wizard UX user guide | GAP-013 PR |
+| `05-guides/contributing/template-contribution-guide.md` | How to add templates | GAP-011 PR |
 | `.claude/skills/quality/instance-quality-review.md` | Skill for automated review | GAP-012 PR |
 | `02-architecture/adr/ADR-001-ai-branding-v2.md` | Architecture decision record | GAP-046 rollout |
 

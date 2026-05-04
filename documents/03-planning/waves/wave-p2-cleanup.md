@@ -69,7 +69,7 @@ parent_session: 20260426-164325
 - CI fails if any route's First Load JS > 250KB threshold (configurable via env var)
 - Threshold tunable per route via config file
 - Test PR (intentionally bloat one page) → CI red as expected
-- Document threshold + override pattern in `documents/05-guides/frontend-bundle-budget.md` (NEW)
+- Document threshold + override pattern in `documents/05-guides/monitoring/frontend-bundle-budget.md` (NEW)
 
 ### Agent C — GAP-237 admin Outbox-based cache invalidation
 **Branch:** `feature/wave-p2-C-gap-237-admin-outbox-amqp`

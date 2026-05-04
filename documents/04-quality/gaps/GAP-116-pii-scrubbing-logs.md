@@ -47,7 +47,7 @@ Thiếu company-wide logging standard. Dev tự ý log object.
 - [ ] `@Redact` annotation cho User, Student, Parent DTOs
 - [ ] Existing code audit → fix 100% PII log leaks
 - [ ] Unit tests: log email → verify scrubbed
-- [ ] Compliance check: FERPA/PDPA rule alignment documented trong `documents/05-guides/SECRET-MANAGEMENT.md`
+- [ ] Compliance check: FERPA/PDPA rule alignment documented trong `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md`
 
 ## Related
 

@@ -23,7 +23,7 @@ DR planning chỉ được làm ad-hoc per domain khi audit/gap surfaces. Thiế
 
 ## Proposed Fix
 
-1. Create `documents/05-guides/disaster-recovery-plan.md` với:
+1. Create `documents/05-guides/operations/disaster-recovery-plan.md` với:
    - **RTO/RPO Matrix:**
      | Component | RTO | RPO | Recovery mode |
      |-----------|-----|-----|---------------|
@@ -61,5 +61,5 @@ DR planning chỉ được làm ad-hoc per domain khi audit/gap surfaces. Thiế
 
 ## Log
 
-- **2026-04-28 (PR #633 — Wave DR/Backup Agent C):** SHIPPED. Files: `documents/05-guides/disaster-recovery-plan.md` (579 lines — 5 scenario runbooks S1 region-failure / S2 DB-crash / S3 ransomware / S4 mass-tenant-provision-fail / S5 AI-provider-down + DR coordinator role + escalation path + comms templates including PDPL Nghị định 13/2023/NĐ-CP §47 regulator notice template), `documents/05-guides/operations/dr-rto-rpo-matrix.md` (167 lines — RTO/RPO matrix for 6+ components: subscription DB / tenant DBs / MinIO assets cross-ref GAP-118 / RabbitMQ / Redis / AI artifacts cross-ref GAP-030). CI all 14 jobs SUCCESS post-rebase (initial PR contained Agent B's contaminating GAP-118 commit `27f96c1e` due to worktree absolute-path bug — recovered via rebase that auto-skipped duplicate after PR #634 merged first). Q3 2026 first quarterly exercise PROPOSED (TBC w/ user). DR Coordinator = solo-dev caveat documented (steady-state path for team scaling). Status → 🟢 DONE.
+- **2026-04-28 (PR #633 — Wave DR/Backup Agent C):** SHIPPED. Files: `documents/05-guides/operations/disaster-recovery-plan.md` (579 lines — 5 scenario runbooks S1 region-failure / S2 DB-crash / S3 ransomware / S4 mass-tenant-provision-fail / S5 AI-provider-down + DR coordinator role + escalation path + comms templates including PDPL Nghị định 13/2023/NĐ-CP §47 regulator notice template), `documents/05-guides/operations/dr-rto-rpo-matrix.md` (167 lines — RTO/RPO matrix for 6+ components: subscription DB / tenant DBs / MinIO assets cross-ref GAP-118 / RabbitMQ / Redis / AI artifacts cross-ref GAP-030). CI all 14 jobs SUCCESS post-rebase (initial PR contained Agent B's contaminating GAP-118 commit `27f96c1e` due to worktree absolute-path bug — recovered via rebase that auto-skipped duplicate after PR #634 merged first). Q3 2026 first quarterly exercise PROPOSED (TBC w/ user). DR Coordinator = solo-dev caveat documented (steady-state path for team scaling). Status → 🟢 DONE.
 - 2026-04-19 — Discovered in ops-readiness baseline audit

@@ -3,7 +3,7 @@
 **Last verified:** 2026-04-21
 **Config prefix:** `kitehub.domain.verification`
 **Architecture:** [ADR-018 Domain Registrar / DNS / TLD](../../../02-architecture/adr/ADR-018-domain-registrar-dns.md)
-**Runbook:** [DNS Operations](../../../05-guides/dns-operations.md)
+**Runbook:** [DNS Operations](../../../05-guides/infrastructure/dns-operations.md)
 
 ## Custom-Domain Rules
 
@@ -123,7 +123,7 @@ kitehub:
 ## Related
 
 - ADR: [ADR-018 — Domain Registrar / DNS / TLD](../../../02-architecture/adr/ADR-018-domain-registrar-dns.md) (this rules.md is its operational enforcement)
-- Runbook: [`documents/05-guides/dns-operations.md`](../../../05-guides/dns-operations.md)
+- Runbook: [`documents/05-guides/infrastructure/dns-operations.md`](../../../05-guides/infrastructure/dns-operations.md)
 - Gap: GAP-191 (closed by this update + ADR-018)
 - Use-cases: `use-cases.md` (same folder)
 - API contract: `api-contract.md` (same folder)

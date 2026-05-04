@@ -169,7 +169,7 @@ Wave này chia làm **4 PRs** tuần tự (mỗi PR là dependency của PR sau)
 **Branch:** `docs/local-dev-mock-data`
 **Dependencies:** PR B + PR C
 **Scope:**
-- `documents/05-guides/local-dev-mock-data.md` — hướng dẫn setup FE + BE
+- `documents/05-guides/local-dev/local-dev-mock-data.md` — hướng dẫn setup FE + BE
 - Integration smoke test: start BE `--spring.profiles.active=dev`, FE `NEXT_PUBLIC_MOCK_API=false` → verify data flows end-to-end
 - Update `CLAUDE.md`: document mock/seed system
 - Update `documents/01-business/README.md`: link sang guide

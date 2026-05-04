@@ -29,7 +29,7 @@ Restore-drill development decoupled from production deploy lifecycle. Phase 1+2 
    - Latest backup ≤24h old in S3
    - Fresh staging Postgres + MinIO instance provisioned
    - DR coordinator available + comms channel staffed
-3. Execute per `documents/05-guides/restore-procedure.md` Scenario A (full destruction → restore)
+3. Execute per `documents/05-guides/deploy/restore-procedure.md` Scenario A (full destruction → restore)
 4. Measure + record:
    - Backup retrieval time
    - Restore-to-usable time (RTO actual)

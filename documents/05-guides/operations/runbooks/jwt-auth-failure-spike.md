@@ -73,12 +73,12 @@ After mitigation, monitor 401 rate for 30 min. Goal: back to baseline. If abuse-
 ## When to escalate
 
 - 401 rate >50% of all requests → critical-bump; platform login broken, page on-call lead immediately
-- Confirmed credential-stuffing with successful logins (low rate but real) → security incident, treat per `documents/05-guides/SECRET-MANAGEMENT.md` rotation playbook + force password reset for affected accounts
+- Confirmed credential-stuffing with successful logins (low rate but real) → security incident, treat per `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md` rotation playbook + force password reset for affected accounts
 - Cross-region 401 storm → may indicate IdP outage; switch to backup IdP if architecture supports it
 
 ## Related
 
 - Alert rule: `kitehub/docker/prometheus/alert-rules.yml` (kitehub-platform-alerts group), `infrastructure/helm/kitehub/templates/prometheusrule.yaml`
 - Memory: `feedback_dev_profile_schema_workaround.md` (INTERNAL_API_SECRET notes), `feedback_repo_status_security_coverage.md`
-- Doc: `documents/05-guides/SECRET-MANAGEMENT.md`
+- Doc: `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md`
 - Related runbooks: [`rate-limit-breach-spike.md`](./rate-limit-breach-spike.md), [`multi-tenant-data-leak.md`](./multi-tenant-data-leak.md), [`high-error-rate.md`](./high-error-rate.md)

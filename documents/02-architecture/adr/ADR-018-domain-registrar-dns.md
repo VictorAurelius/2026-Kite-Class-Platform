@@ -91,7 +91,7 @@ Skeleton ships in this PR (GAP-191); full apply deferred to infrastructure wave.
 
 ### 6. Failover
 
-Single-origin for MVP (AWS ALB in ap-southeast-1). Multi-region deferred to post-GA. Failover runbook in `documents/05-guides/dns-operations.md` describes TTL tuning (300s for A, 60s during cutover) and the manual steps to repoint during incident.
+Single-origin for MVP (AWS ALB in ap-southeast-1). Multi-region deferred to post-GA. Failover runbook in `documents/05-guides/infrastructure/dns-operations.md` describes TTL tuning (300s for A, 60s during cutover) and the manual steps to repoint during incident.
 
 ---
 

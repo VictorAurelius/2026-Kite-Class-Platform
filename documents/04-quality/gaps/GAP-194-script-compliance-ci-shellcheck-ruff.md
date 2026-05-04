@@ -68,7 +68,7 @@ This is enforcement of an already-agreed standard, not a new policy. Low-risk, h
     - `shellcheck` glob `*.sh` → `shellcheck -S warning {staged_files}`
     - `ruff` glob `*.py` → `ruff check {staged_files}`
     - YAML validated locally with `python3 -c "import yaml; yaml.safe_load(...)"`.
-  - `documents/05-guides/local-dev-pre-commit.md` (~150 lines) — install paths (Homebrew / apt / `go install` / npm / direct download), `lefthook install` activation, bypass via `git commit --no-verify`, per-language fallback (manual `git diff --cached | xargs shellcheck/ruff`), troubleshooting table, cross-links to CI workflow + skill + `output-review-mandate.md` §5.5.
+  - `documents/05-guides/local-dev/local-dev-pre-commit.md` (~150 lines) — install paths (Homebrew / apt / `go install` / npm / direct download), `lefthook install` activation, bypass via `git commit --no-verify`, per-language fallback (manual `git diff --cached | xargs shellcheck/ruff`), troubleshooting table, cross-links to CI workflow + skill + `output-review-mandate.md` §5.5.
   - `.claude/skills/quality/script-review-checklist.md` — added §Related cross-link to CI workflow + lefthook config + local-dev guide.
   - **Tool choice rationale:** lefthook chosen over husky because project has no root `package.json` — Maven + pnpm are subproject-scoped. Lefthook is single Go binary, fits "or equivalent" wording in original Proposed Fix #1.
   - **Verification:**

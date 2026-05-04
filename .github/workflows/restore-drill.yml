@@ -1,7 +1,7 @@
 name: Restore Drill (Monthly Backup Restore Verification)
 
 # Closes GAP-117 Phase 2 (CI side). Spec lives in
-# `documents/05-guides/restore-procedure.md` §4 + §7 (drill cadence).
+# `documents/05-guides/deploy/restore-procedure.md` §4 + §7 (drill cadence).
 #
 # Cadence: 1st of every month at 03:00 UTC + manual workflow_dispatch.
 #

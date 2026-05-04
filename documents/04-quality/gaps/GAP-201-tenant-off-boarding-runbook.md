@@ -35,7 +35,7 @@ Existing partial coverage — these gaps own their fragments; this gap stitches 
 
 ## Proposed Fix
 
-1. **Runbook doc** — `documents/05-guides/tenant-off-boarding-runbook.md`
+1. **Runbook doc** — `documents/05-guides/tenant-lifecycle/tenant-off-boarding-runbook.md`
    - User-facing cancel flow (self-service UI steps)
    - Staff-facing response procedure (support ticket → confirm → schedule purge)
    - Grace period (recommend 30d keep-alive read-only, 60d cold backup, 90d final purge)
@@ -50,7 +50,7 @@ Existing partial coverage — these gaps own their fragments; this gap stitches 
 ## Acceptance Criteria
 
 ### Phase 1 — Design (DONE 2026-04-20)
-- [x] Runbook doc with 6 sections: user-flow, staff-flow, grace-periods, export-bundle-spec, right-to-be-forgotten-api, metrics → `documents/05-guides/tenant-off-boarding-runbook.md`
+- [x] Runbook doc with 6 sections: user-flow, staff-flow, grace-periods, export-bundle-spec, right-to-be-forgotten-api, metrics → `documents/05-guides/tenant-lifecycle/tenant-off-boarding-runbook.md`
 - [x] State machine drafted (`PAID_ACTIVE → CANCEL_REQUESTED → CANCEL_GRACE_ACTIVE → CANCEL_GRACE_READONLY → ARCHIVED → PURGED`; RTBF fast-track variant)
 - [x] Export-bundle contract: format, scope, SLA, delivery, expiry (api-contract.md §Export Bundle Specification)
 - [x] Right-to-be-forgotten endpoint designed (`POST /off-boarding/rtbf` + `/rtbf/confirm` with 6-digit token, 15m TTL)
@@ -80,4 +80,4 @@ Existing partial coverage — these gaps own their fragments; this gap stitches 
 ## Log
 
 - 2026-04-20 — Created from simulation Part C.
-- 2026-04-20 — Phase 1 closed (Wave 8b-F): 3-layer business docs + runbook landed. State machine, export bundle spec, RTBF endpoint, retention conflict matrix (OFF-08 tax 7y pseudonymization), metrics funnel all drafted. Phase 2 (implementation) scoped as follow-up; consumes GAP-073 deferred items (MinIO streaming export, `@Scheduled` expiry, pseudonymization executor). Files: `documents/05-guides/tenant-off-boarding-runbook.md`, `documents/01-business/kitehub/off-boarding/{rules,use-cases,api-contract}.md`.
+- 2026-04-20 — Phase 1 closed (Wave 8b-F): 3-layer business docs + runbook landed. State machine, export bundle spec, RTBF endpoint, retention conflict matrix (OFF-08 tax 7y pseudonymization), metrics funnel all drafted. Phase 2 (implementation) scoped as follow-up; consumes GAP-073 deferred items (MinIO streaming export, `@Scheduled` expiry, pseudonymization executor). Files: `documents/05-guides/tenant-lifecycle/tenant-off-boarding-runbook.md`, `documents/01-business/kitehub/off-boarding/{rules,use-cases,api-contract}.md`.

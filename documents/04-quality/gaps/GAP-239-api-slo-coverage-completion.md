@@ -41,7 +41,7 @@ Add to `.github/pull_request_template.md`:
 ```
 ## API/SLO Declaration (required if PR adds/modifies @RestController endpoints)
 - [ ] Endpoint(s) annotated with `@Timed` at controller class level
-- [ ] SLO tier chosen (A=critical / B=normal / C=batch / D=admin) — see `documents/05-guides/api-performance-slo.md`
+- [ ] SLO tier chosen (A=critical / B=normal / C=batch / D=admin) — see `documents/05-guides/monitoring/api-performance-slo.md`
 ```
 
 ### Sub-task C: `check-pr` / `pr-health` skill check
@@ -64,7 +64,7 @@ Add to `.github/pull_request_template.md`:
 ## Related
 
 - Parent: GAP-135 (PARTIAL → DONE pending this gap)
-- Doc: `documents/05-guides/api-performance-slo.md`
+- Doc: `documents/05-guides/monitoring/api-performance-slo.md`
 - Rules: `.claude/rules/output-review-mandate.md` (output review mandate ensures coverage)
 - Skill: `.claude/skills/workflow/check-pr/`, `.claude/skills/workflow/pr-health.md`
 
