@@ -111,60 +111,60 @@ Format: AC-ID | Status (PASS/PARTIAL/FAIL) | Evidence | Linked gap
 
 | AC | Status | Evidence | Gap |
 |---|:---:|---|---|
-| AC-ONBOARD-001 | TBD | TBD | — |
-| AC-ONBOARD-002 | TBD | TBD | — |
-| AC-ONBOARD-003 | TBD | TBD | — |
-| AC-ONBOARD-004 | TBD | TBD | GAP-053 (related) |
+| AC-ONBOARD-001 | 🔴 FAIL | Auth flow ở `kiteclass-frontend/src/app/(auth)/register/` chỉ có email/password — KHÔNG có OTP qua Zalo/SMS. `kiteclass-core` grep `OTP\|sms.?verify` = 0 hits ngoài ParentInvitationController (parent invite, không phải tenant signup). Tenant provisioning trong `kitehub-subscription` async (TRIAL state created → instance provisioning takes minutes, not <10 phút wall to dashboard ready). | NEW: GAP-286 (Mobile OTP signup via Zalo/SMS) |
+| AC-ONBOARD-002 | 🔴 FAIL | `BrandingWizard.tsx` + `wizard-machine.ts`: grep `Skip\|skip` = 0 hits. Wizard XState force-flows qua all steps. KHÔNG có "Skip / Use default" button. Solo teacher buộc phải hoàn tất 6-step AI branding hoặc abandon. | NEW: GAP-287 (Skip/default option in branding wizard) |
+| AC-ONBOARD-003 | 🟡 PARTIAL | `students/new/page.tsx` + `courses/new/page.tsx` exist, FE forms tồn tại. Nhưng required fields cho Student entity bao gồm parent contact + DOB (kiteclass-core/module/student) — không có "skip optional for adult students" path. Time-to-first-course có thể >15 phút do nhiều fields required. | Related GAP-051 (bulk import — không trực tiếp giải) |
+| AC-ONBOARD-004 | 🔴 FAIL | KHÔNG có onboarding tour component. `find -type d -iname "*tour*\|*onboard*"` không trả file nào. Dashboard layout không inject tour. | NEW: GAP-288 (First-login onboarding tour highlighting solo-teacher core features) |
 
 ### 3.2 Daily Operations (8 ACs)
 
 | AC | Status | Evidence | Gap |
 |---|:---:|---|---|
-| AC-OPS-001 | TBD | TBD | — |
-| AC-OPS-002 | TBD | TBD | — |
-| AC-OPS-003 | TBD | TBD | — |
-| AC-OPS-004 | TBD | TBD | GAP-055 (out-of-scope) |
-| AC-OPS-005 | TBD | TBD | — |
-| AC-OPS-006 | TBD | TBD | GAP-063 |
-| AC-OPS-007 | TBD | TBD | GAP-063 |
-| AC-OPS-008 | TBD | TBD | GAP-051 (related) |
+| AC-OPS-001 | 🟡 PARTIAL | `classes/new` tồn tại nhưng form full-featured (max_students, location_type, dates, code_expires_at...). Mobile click count >5 cho create lesson session vì entity mix Class + ClassSession. Mobile responsive nhưng KHÔNG mobile-optimized. | NEW: GAP-289 (Quick-add lesson UI for mobile <5 clicks) |
+| AC-OPS-002 | 🔴 FAIL | `Class.java` chỉ có `schedule` plain string ("Mon-Wed-Fri 18:00-20:00"). KHÔNG có RRULE generator. `ClassSession.java` exists nhưng phải tạo từng buổi manual. Grep `recurring\|RRULE\|recurrence` = 0 hits. | NEW: GAP-290 (Recurring class generator — RRULE/multi-day weekly) |
+| AC-OPS-003 | 🟢 PASS | `attendance/page.tsx` + `dynamic-attendance-form-list.tsx` + `Attendance.java` entity exist. AttendanceStatus enum (PRESENT/ABSENT/LATE/EXCUSED). FE form supports per-session bulk mark. Tap target h-12 acceptable. Mobile-friendly. | — |
+| AC-OPS-004 | 🟢 PASS | `module/grade/` full module exists (entity, service, controller). Free-form grade input. Không force rubric/weighted scheme. Out-of-scope MOET report card (GAP-055) đúng theo spec. | GAP-055 (out-of-scope, gated correctly) |
+| AC-OPS-005 | 🟡 PARTIAL | `students/[id]/page.tsx` exists + `students/[id]/attendance` subpage exists, nhưng grep `attendanceRate\|attendancePct` ở student profile = 0 hits. Profile show student fields, không show attendance % summary + last 5 grades inline. Phải navigate sub-pages. | Related to GAP-289 |
+| AC-OPS-006 | 🔴 FAIL | `Class.java` có `canCancel()` + `cancelled_at`, nhưng KHÔNG có reschedule action/endpoint. Grep `reschedule\|RESCHEDULED` = 0 hits trong kiteclass-core. KHÔNG có Zalo/SMS notification (xem AC-COMM-001..003). | GAP-063 (notify) + NEW: GAP-291 (Reschedule lesson endpoint + state) |
+| AC-OPS-007 | 🟡 PARTIAL | Cancel logic exists (`canCancel` + `cancelled_at`), nhưng KHÔNG có notification gửi tự động qua Zalo/SMS — chỉ email service exists. | GAP-063 |
+| AC-OPS-008 | 🟢 PASS | `enrollment/` module exists, students có thể add mid-course không reset attendance history (`Attendance` entity link FK class_id + student_id, không cascade). | GAP-051 (related, bulk import optional) |
 
 ### 3.3 Financial / Admin (5 ACs)
 
 | AC | Status | Evidence | Gap |
 |---|:---:|---|---|
-| AC-FIN-001 | TBD | TBD | GAP-185 (related) |
-| AC-FIN-002 | TBD | TBD | GAP-185 (related) |
-| AC-FIN-003 | TBD | TBD | — |
-| AC-FIN-004 | TBD | TBD | GAP-063 |
-| AC-FIN-005 | TBD | TBD | GAP-057 (out-of-scope) |
+| AC-FIN-001 | 🔴 FAIL | `Course.java` chỉ có `price BigDecimal` (single price field). KHÔNG có `pricingModel` enum (per_session vs monthly_subscription vs course_package). Grep `PerSession\|per_session\|pricingModel` = 0 hits. Solo teacher KHÔNG thể setup 200K/buổi billing model. | GAP-185 (related) + NEW: GAP-292 (Per-session pricing model) |
+| AC-FIN-002 | 🟡 PARTIAL | `InvoiceRenderer.java` + `PdfGenerator.java` exist — invoice PDF generation works. Receipt # + URL fields trên Payment entity. Nhưng KHÔNG có "Send via Zalo" 1-click button (no Zalo messaging integration). Teacher phải manual download PDF + share Zalo. | GAP-063 (Zalo integration) |
+| AC-FIN-003 | 🔴 FAIL | `billing/page.tsx` chỉ là invoice list table với pagination. KHÔNG có monthly summary view (Tháng → Thu/Outstanding/Net). Grep `incomeSummary\|monthlyRevenue\|RevenueSummary` = 0 hits. | NEW: GAP-293 (Monthly income summary dashboard) |
+| AC-FIN-004 | 🟡 PARTIAL | `InvoiceStatus` enum exists (PARTIAL/UNPAID likely tracked). Filter `status=UNPAID` trong invoice list works. KHÔNG có dedicated "Outstanding" tab + reminder action button — phải manual filter. KHÔNG có Zalo reminder. | GAP-063 + GAP-293 |
+| AC-FIN-005 | 🟢 PASS-by-design | Grep `payroll\|teacher.*employee\|commission` = 0 hits trong toàn codebase. Feature KHÔNG được build → menu không hiển thị. FeatureGate.tsx exists để gate sau này khi build. | GAP-057 (out-of-scope, correctly absent) |
 
 ### 3.4 Communication (4 ACs)
 
 | AC | Status | Evidence | Gap |
 |---|:---:|---|---|
-| AC-COMM-001 | TBD | TBD | GAP-063 |
-| AC-COMM-002 | TBD | TBD | GAP-063 |
-| AC-COMM-003 | TBD | TBD | GAP-063 |
-| AC-COMM-004 | TBD | TBD | GAP-052 (out-of-scope) |
+| AC-COMM-001 | 🔴 FAIL | KHÔNG có Zalo/SMS messaging service. Grep `Zalo.*notif\|sms.*service\|sms.*sender` ở kiteclass-core = 0 hits (ZaloPay khác — chỉ là payment gateway, KHÔNG phải messaging). `EmailService.java` only sends email. KHÔNG có notification template predefined cho teacher → students. | GAP-063 |
+| AC-COMM-002 | 🔴 FAIL | KHÔNG có scheduled reminder service cho class sessions. KHÔNG có `auto_reminder_minutes_before` field trên Class entity. Cron/scheduler infrastructure exists (e.g., `OnboardingEmailScheduler`) nhưng chỉ for kitehub trial emails, không cho per-class lesson reminders. | GAP-063 |
+| AC-COMM-003 | 🔴 FAIL | Cancel/reschedule logic chỉ update DB state. KHÔNG có domain event publish + notification consumer cho students. Grep `class.cancelled.*notif\|reschedule.*notif` = 0 hits. | GAP-063 |
+| AC-COMM-004 | 🟢 PASS-by-design | Parent portal feature is gated — `parent/` module exists ở core (parent entity for K-12 use cases) nhưng FE `app/(dashboard)/parent/` route exists chỉ cho khi feature toggle ON (P3+ tier). Solo persona không thấy parent invite CTA. ParentLinkType enum exists nhưng dùng cho P3+. | GAP-052 (out-of-scope, gated correctly) |
 
 ### 3.5 Edge Cases (5 ACs)
 
 | AC | Status | Evidence | Gap |
 |---|:---:|---|---|
-| AC-EDGE-001 | TBD | TBD | — |
-| AC-EDGE-002 | TBD | TBD | — |
-| AC-EDGE-003 | TBD | TBD | — |
-| AC-EDGE-004 | TBD | TBD | — |
-| AC-EDGE-005 | TBD | TBD | — |
+| AC-EDGE-001 | 🔴 FAIL | `AttendanceStatus.java` có 4 values: PRESENT/ABSENT/LATE/EXCUSED. KHÔNG có NO_SHOW (cố ý vắng không báo) phân biệt với EXCUSED. Solo teacher không track được pattern no-show để decide drop student. | NEW: GAP-294 (Add NO_SHOW attendance status) |
+| AC-EDGE-002 | 🔴 FAIL | KHÔNG có late-cancel policy logic. KHÔNG có `late_cancel_charge_policy` field. KHÔNG có UI prompt "Charge: Full / Partial / Waive". Teacher phải manual chargeback ngoài system. | NEW: GAP-295 (Late-cancel policy + charge decision workflow) |
+| AC-EDGE-003 | 🟢 PASS | `Payment.java` có paymentNumber + transactionId + paymentMethod + gatewayTransactionId + amount + auditing (CreatedDate). `common/audit/AuditLog.java` infrastructure exists. PaymentMapper exposes receiptNumber + receiptUrl. Dispute resolution workable. | — |
+| AC-EDGE-004 | 🔴 FAIL | KHÔNG có PWA / Service Worker / offline storage. Grep `offline\|service.?worker\|sw\.js\|workbox\|PWA` ở kiteclass-frontend = 0 hits. Mark attendance offline = data lost khi mất signal. | OVERFLOW (range exhausted) — closure PR allocate extension: "Mobile offline attendance sync — PWA" |
+| AC-EDGE-005 | 🟢 PASS | Auth + data hoàn toàn cloud-side (Postgres + tenant DB). Re-install app + login từ phone khác preserves data theo design. Không có local-only data. | — |
 
 ### 3.6 Exit / Termination (3 ACs)
 
 | AC | Status | Evidence | Gap |
 |---|:---:|---|---|
-| AC-EXIT-001 | TBD | TBD | — |
-| AC-EXIT-002 | TBD | TBD | — |
-| AC-EXIT-003 | TBD | TBD | GAP-051 (related) |
+| AC-EXIT-001 | 🔴 FAIL | KHÔNG có "Course completed" student progress export PDF endpoint. Grep `studentProgressReport\|courseCompletionRecord` = 0 hits. `InvoiceRenderer` chỉ render invoice. KHÔNG có student transcript/progress PDF generator. | OVERFLOW (range exhausted) — closure PR allocate extension: "Student progress export PDF on course completion" |
+| AC-EXIT-002 | 🔴 FAIL | `InstanceStatus` enum (kitehub-platform) có PENDING/TRIAL/ACTIVE/SUSPENDED/DELETED/PURGED. KHÔNG có PAUSED state. SUSPENDED ≠ user-initiated 30-day pause (SUSPENDED là failed-payment state). Teacher KHÔNG thể tạm dừng dạy 30 ngày miễn phí. | OVERFLOW (range exhausted) — closure PR allocate extension: "Account pause/resume lifecycle 30-day free" |
+| AC-EXIT-003 | 🟡 PARTIAL | `DataExportService.java` exists (GDPR Art. 20 scaffold) — chỉ profile.json stub + audit-trail.csv + README.txt. THIẾU attendance/grades/payments/courses data trong export. Comment trong code: "real profile queries...deferred". Không phải xlsx + PDF zip. | Related GAP-051 (xlsx export side, scaffold-only) |
 
 ---
 
