@@ -1,12 +1,13 @@
 ---
 title: Wave 18a — Cross-Persona Keystones Phase 1 (GAP-290 + GAP-063 P1 + GAP-057 P1)
-status: draft
+status: complete
 created: 2026-05-04
 updated: 2026-05-04
 waves: [18a]
 gaps: [GAP-290, GAP-063, GAP-057]
 phase: 1
 expected_outputs: 3 PRs (1 full ship + 2 Phase 1) + 2 sister gaps filed (GAP-063b, GAP-057b) + closure PR
+actual_outputs: 6 PRs merged (#756 plan + #757 audit + #758 Bucket C + #759 Bucket B + #760 Bucket A + #761 skip audit) + closure PR (this) filing GAP-063b + GAP-057b. GAP-290 → 🟢 DONE; GAP-063 + GAP-057 → 🟡 PARTIAL. Wall-clock ~3.5h total. 0-clarification on all 3 agents (3 consecutive). 2 mid-flight CI fixes: admin app scan packages + TS strict-mode array-access.
 strategy: Phase-1 wave-pack (Legal-BRD precedent) — 3 disjoint buckets, parallel agents
 ---
 

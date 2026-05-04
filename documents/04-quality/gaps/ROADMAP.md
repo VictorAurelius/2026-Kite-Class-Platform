@@ -12,20 +12,44 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next wave: Wave 18 — Stage 1 LEGAL + Cross-Persona Keystones bundle.** Wave 17 SHIPPED 2026-05-04 surfaced 57 NEW gaps; backlog re-prioritization needed. Top picks per Wave 17 evidence:
+**Recommended next wave: Wave 18b — K-12 Stage 1 LEGAL trio.** Wave 18a SHIPPED 2026-05-04 (cross-persona keystones — GAP-290 DONE + GAP-063/057 PARTIAL Phase 1 + sister gaps GAP-063b/057b filed). Wave 18b draft must be based on **revised** GAP-321/322/323 per GAP-345 state-check audit (PR #757 merged):
 
-1. **GAP-063 Zalo/SMS notification** — bump P1 → **P0** (blocks all 4 Tier-1 personas; 8/21 P2 FAILs depend on it)
-2. **GAP-057 Commission/payroll engine** — bump P1 → **P0** (blocks P2+P3+P5; foundational for VN center model)
-3. **K-12 Stage 1 LEGAL trio:** GAP-321 (parent portal — Luật GD Đ.83) + GAP-322 (child protection — Luật Trẻ Em Đ.51, criminal liability) + GAP-323 (period attendance K-12 model) — must ship before any K-12 deployment
-4. **GAP-290 Recurring class generator** (RRULE-based; needed by all 4 personas)
+1. **GAP-321 Parent Portal Phase 2-4** — 🟡 PARTIAL after audit revision (Phase 1 GAP-052a SHIPPED Wave 2: Parent + ParentStudentLink + ParentInvitation entities + V42); this gap = K-12 LEGAL build-on (FE portal + 6 facet pages + Zalo OTP + audit log + PDPL Art 16)
+2. **GAP-322 Child Protection** — confirmed greenfield workflow (`module/legal/` is DMCA only, NOT confusable); criminal-liability blocker for K-12 deploy
+3. **GAP-323 Period-attendance** — 🟡 PARTIAL after audit revision (Phase 1 multi-subject infra GAP-054 + GAP-099 SHIPPED: SubjectSection + SubjectGrade w/ TT 22/2021 formula in javadoc + ClassScheduleSlot); this gap = period dimension + GradeFormulaService class + state machine + UI
 
-**Wave-pack candidates:** keystones (#1+#2) → 1 wave (~75 min); K-12 LEGAL trio → 1 wave (~3-5 days each); GAP-290 standalone PR. Detailed 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
+**Wave-pack candidates:** K-12 LEGAL trio = 3 multi-week background agents (3-5 days each — NOT 75-min wave-pack; SSH SIGHUP risk requires mosh+tmux+ntfy stack from Wave 17). 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
 **Track 2 (UI kits production port)** — Phase 1 ADR + workspace scaffolding DONE (PR #713 merged 2026-04-30). Phase 2-6 (15 OPEN gaps GAP-266..280) — multi-week roadmap detailed in [`documents/03-planning/waves/wave-track-2-ui-kits-port-umbrella.md`](../../03-planning/waves/wave-track-2-ui-kits-port-umbrella.md). Trigger Phase 2 (5 priority components G2/G6/G5/G7/D1) khi MVP-essential blockers từ Wave 17 review findings cần real components.
 
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (Wave 18a Cross-Persona Keystones Phase 1 SHIPPED — Phase-1 wave-pack methodology validated again, 6 PRs merged):** Per ROADMAP §🚀 Next Action recommendation, 3 disjoint buckets shipped via wave-pack pattern (Wave 13/14 Legal-BRD precedent ~5x speedup). Wall-clock ~3.5h total (foundation 30min + 3 parallel agents ~1.5h longest path + 2 mid-flight CI fixes + sequential merge + closure PR).
+
+**Merged sequence (6 PRs):**
+1. **#756** — Wave 18a plan (foundation, docs-only; ce47b7ef on main)
+2. **#757** — GAP-345 K-12 LEGAL trio state-check audit + revise GAP-321/322/323 (3rd recurrence of GAP-190/197 anti-pattern caught proactively before Wave 18b plan; Phase 1 GAP-052a + GAP-054 + GAP-099 confirmed shipped earlier)
+3. **#760** — Bucket A: GAP-290 Recurring class generator → 🟢 DONE. Pure java.time RRULE generator (chosen over ical4j to avoid transitive dep + CVE burden); Strategy pattern preserved. 1144/0/0 backend tests + 573/0 frontend tests. Acceptance: 8/8 ACs verified.
+4. **#758** — Bucket C: GAP-057 P1 Payroll → 🟡 PARTIAL. HOURLY calc engine only (3 other types deferred to GAP-057b); 15 unit tests + HALF_EVEN banker's rounding scale=2 for VND codified.
+5. **#759** — Bucket B: GAP-063 P1 Notification → 🟡 PARTIAL. NotificationChannel interface (Strategy) + SESEmailService implements + NotificationPreference entity + V23 + settings UI; 25/25 email + 366/366 subscription + 488/488 frontend tests. Mid-flight fix: GAP-240 lesson recurrence — coordinator added admin app @EnableJpaRepositories + @EntityScan for new notification packages (Bucket B agent missed this).
+6. **#761** — GAP-346 test skip audit (filed during Wave 18a CI review): kiteclass-frontend 26.7% skip ratio (206/771 tests) vs kitehub-frontend 0% + Java 0% — proposes 5-phase remediation including CI warning mechanism (skip-budget script + mandatory `[SKIP: reason]` comment + PR diff comment).
+
+**Wave 18a outcomes:**
+- **GAP-290 → 🟢 DONE** (full ship, all 4 personas unblocked for recurring class scheduling)
+- **GAP-063 → 🟡 PARTIAL** Phase 1 (notification abstraction + email migrated; Zalo/SMS/quiet-hours/fallback/cost → GAP-063b)
+- **GAP-057 → 🟡 PARTIAL** Phase 1 (HOURLY entities + read-only UI; 3 types/tax/BHXH/PDF/bank/run-approve → GAP-057b)
+- **3 sister/audit gaps filed:** GAP-345 (state-check audit), GAP-346 (skip audit), GAP-063b + GAP-057b (Phase 2 follow-ons)
+
+**CI flakes encountered (none Wave 18a's fault):**
+- PR #759 admin tests = GAP-285 pre-existing (`AdminControllerTest.testGetRevenue` — failing on every PR per ROADMAP entry)
+- PR #758 SonarCloud = advisory `continue-on-error: true`, doesn't block
+- PR #759 initial: pnpm/action-setup@v6 transient resolve failure (cleared on retry)
+
+**Counts:** 145 OPEN → **148 OPEN** (-1 GAP-290 closed; 2 PARTIAL stay counted; +4 new gaps GAP-345/346 + GAP-063b/057b; net +3).
 
 ---
 
