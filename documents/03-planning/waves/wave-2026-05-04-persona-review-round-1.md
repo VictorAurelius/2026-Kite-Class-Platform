@@ -1,11 +1,14 @@
 ---
 title: Wave Persona Review Round 1 — Execute GAP-152 (4 Tier-1 personas)
-status: planned
+status: complete
 created: 2026-05-04
+updated: 2026-05-04
 waves: [17]
 gaps: [GAP-152, GAP-050]
 ac_input: [P1, P2, P3, P5 + 8 secondary]
 expected_outputs: 4 review reports + ~25 candidate new gaps
+actual_outputs: 4 review reports (P1=36.2/100 / P2=36.8 / P3=9.6 / P5=8.3) + 57 NEW gaps (vs ~25 expected) + closure PR
+shipped_prs: [739, 745, 747, 748, 749, 751]
 ---
 
 # Wave 17 — Persona Review Round 1 Execution (GAP-152)
@@ -245,4 +248,5 @@ Phase 2 (NEXT session — fresh /clear, ~75-100 min)
 
 ## §10 Log
 
+- **2026-05-04 (Phase 2 SHIPPED — same-day end-to-end)** — Did NOT defer to fresh /clear as Phase 1 plan suggested; user proceeded same session. Phase 2 attempted parallel background agents → 3/4 killed silently mid-flight (root cause: SSH SIGHUP cascade when mobile session disconnects, NOT runtime/context limit). Memory `feedback_agent_kill_root_cause.md` saved + mobile-resilient stack (Tailscale + mosh + tmux + ntfy) shipped via PR #746. Phase 2 re-attempted with `commit-after-each-file` mandate → all 4 agents shipped clean. **Outcomes:** 4 review PRs merged (#745 P2 36.8/100, #747 P3 9.6/100 ❌ 0 PASS, #748 P5 8.3/100 ❌ K-12 LEGAL blocker, #749 P1 36.2/100); 57 NEW gaps filed (vs ~25 expected); closure PR #751 → GAP-152 🟢 DONE. Bonus: 05-guides restructure (#750), mobile-resilient stack (#746). All 4 Tier-1 personas measured significantly LOWER than 2026-04-14 estimates → estimates were optimistic. Backlog re-prioritization recommended: GAP-063 + GAP-057 → P0; K-12 Stage 1 LEGAL trio (GAP-321/322/323) blocks K-12 GA. Wall-clock ~5h total (Phase 1 + recovery loop + Phase 2 re-run + restructure + mobile stack).
 - **2026-05-04** — Phase 1 wave plan created (this file). Followed `feedback_wave_plan_through_pr.md` (PR before agents). Pre-allocated GAP ranges GAP-286..345. Agent spawn deferred to fresh /clear session per `/start-session` skill degradation rule (current session ~3-4h includes hotfix + SSH setup; wave execution requires fresh context).
