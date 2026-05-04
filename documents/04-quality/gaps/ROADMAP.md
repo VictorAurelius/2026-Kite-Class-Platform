@@ -12,15 +12,15 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Recommended next: GAP-323b follow-up PR (mobile UI is the biggest remaining daily-ops blocker) OR GAP-322b / GAP-321b Phase 1B foundation.** Wave 18b1 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1A skeleton wave-pack — 3 PRs #765/#766/#767 + 6 sister gaps filed). Wave 18b2 first PR shipped 2026-05-04 — GAP-323b Phase 1B v1 backend foundation (idempotent batch upsert + on-demand daily rollup + V51 `period_no` CHECK + 3-layer business docs sync; 19 tests green; matview / mobile UI / offline queue / concurrent load test / parent-portal facet / fine-grained RBAC explicitly deferred to follow-up PRs per gap §AC).
+**Recommended next: GAP-347 meta-fix PR review/merge (jacoco surefire+failsafe merge — unblocks Sonar gate for all future IT-heavy PRs) → then Phase 1B follow-up sub-PRs (offline queue / perf test / concrete fees+conduct+notifications data sources / Zalo OTP / MinIO concrete impl).** Wave 18b2 SHIPPED 2026-05-04 (K-12 LEGAL trio Phase 1B foundation wave-pack — 4 PRs #770 plan + #771 Bucket A mobile UI + #772 Bucket B vetting + #773 Bucket C parent facets, plus #769 GAP-323b backend that triggered it). Closure PR + GAP-347 meta-fix in flight.
 
 | Gap | Phase 1A status | Phase 1B status | Phase 1C |
 |---|---|---|---|
-| GAP-321 Parent Portal | 🟡 PARTIAL — transcript route + scope guard PDPL | GAP-321b 🔵 OPEN — 5 facets + Zalo OTP + audit log + multi-children | GAP-321c (PDPL granular consent + 4 write actions + i18n EN/zh-CN) |
-| GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b 🔵 OPEN — vetting workflow + MinIO + RBAC gate | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
-| GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b 🟡 PARTIAL — Phase 1B v1 backend (this PR); mobile UI / offline / matview / load test follow-up | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
+| GAP-321 Parent Portal | 🟡 PARTIAL — transcript route + scope guard PDPL | GAP-321b 🟡 PARTIAL — 4 read-only facets + audit log skeleton + V53 (Wave 18b2 Bucket C); Zalo OTP / multi-children polish / write actions / concrete data sources for fees+conduct+notifications follow-up | GAP-321c (PDPL granular consent + 4 write actions + i18n EN/zh-CN) |
+| GAP-322 Child Protection | 🟡 PARTIAL — Incident + AES-256 + safeguarding role | GAP-322b 🟡 PARTIAL — Vetting service + state machine + AES-256 + MinIO storage stub + RBAC + V52 (Wave 18b2 Bucket B); LLTP upload UI + verify queue UI + concrete MinIO SDK + 111 webhook follow-up | GAP-322c (Đ.51 banner + hash-chain audit + 7y retention + pen test) |
+| GAP-323 Period Attendance | 🟡 PARTIAL — AttendancePeriod + tenant.vertical_type | GAP-323b 🟡 PARTIAL — Phase 1B v1 backend (#769) + mobile UI v1 tap-grid + bulk actions (#771 Bucket A); offline queue / Playwright perf / matview / concurrent load test / parent-portal facet exposure follow-up | GAP-323c (GradeFormulaService TT 22/2021 + state machine + gradebook UI) |
 
-**Pick order suggestions for Wave 18b2 follow-ups:** GAP-323b mobile UI (daily-ops blocker — GVCN ≤2min tap-grid is the actual user-visible feature) > GAP-322b foundation (criminal liability blocker for K12_ENTERPRISE tier) > GAP-321b foundation (read-only facet expansion). Each Phase 1B remainder = ~1-2 weeks; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~6-8 weeks per gap × 3 = **~18-24 weeks** to full Stage 1 completion.
+**Pick order suggestions for Wave 18b3 follow-ups:** GAP-347 (meta — unblocks Sonar for everyone) > GAP-323b offline queue + perf test (real ≤2min target validation) > GAP-322b LLTP upload UI (criminal liability completion) > GAP-321b concrete data wiring (turn 3 stub-empty facets into real queries). Each Phase 1B remainder = ~3-7 days; Phase 1C = ~2-3 weeks. Stage 1 K-12 GA estimate ~14-18 weeks remaining (was 18-24; 4-6 weeks burned down by Wave 18b1 + 18b2).
 
 5-stage K-12 program (Q3 2026 → Q3 2027 GA) in [P5 review §Stage 1-5](../../00-brd/persona-reviews/P5-k12-school-round-1-2026-05-04.md).
 
@@ -29,6 +29,26 @@
 **Dependabot pre-MVP lock** — closed 4 failing PRs (#715/#716/#717/#718), restricted weekly bumps to patch-only via PR #731 (merged 2026-04-30). Resume condition: post-MVP launch (~4-6 weeks) per GAP-283.
 
 **Production deploy estimate** — MVP soft launch ~4-6 weeks; GA ~8-12 weeks; full Track 2 production-grade UI ~10-14 weeks. See most recent persona AC ROADMAP analyses below for breakdown.
+
+---
+
+**2026-05-04 (Wave 18b2 K-12 LEGAL Trio Phase 1B Foundation SHIPPED — 4 PRs merged same-day):** Continued K-12 LEGAL trio momentum into Phase 1B execution via parallel-agent wave-pack (Wave 18b1 precedent). 3 disjoint buckets ran simultaneously: Bucket A (FE mobile UI for GAP-323b), Bucket B (vetting service foundation for GAP-322b), Bucket C (4 parent portal read-only facets for GAP-321b). 0-clarification across all 3 agents (9 consecutive across Wave 18a + 18b1 + 18b2 same day).
+
+**Merged sequence (5 PRs):**
+1. **#770** — Wave 18b2 plan (foundation, docs-only)
+2. **#771** — Bucket A: GAP-323b Phase 1B v1 mobile UI → stays 🟡 PARTIAL. Tap-grid (42×4 buttons) + bulk actions (mark-all-present + reset + save) + route shell `/teacher/attendance/period/[classId]/[periodNo]/[date]` + `attendancePeriodApi` client + TanStack hooks. 19 new FE tests; 598/598 frontend suite green; `pnpm build` green.
+3. **#772** — Bucket B: GAP-322b foundation → 🟡 PARTIAL. Vetting entity + 6-state state-machine guard + AES-256 reuse + MinIO storage stub interface + RBAC gate + V52 + `BR-VETTING-001..005` with 5-attribute frontmatter. 48 vetting tests + 72 cumulative module tests green.
+4. **#773** — Bucket C: GAP-321b foundation → 🟡 PARTIAL. 4 read-only facet controllers (attendance/fees/conduct/notifications) + per-read audit log skeleton (REQUIRES_NEW txn + best-effort error swallow) + V53 + 5 BR + 4 UC. 1230/1230 mvn green. **Sonar 78.2% gate fail** at first run — 24 follow-up unit tests pushed to reach gate; root cause traced to JaCoCo surefire-only artifact (failsafe `.exec` not merged); admin-merged with **GAP-347 meta-fix filed** for `pom.xml` jacoco surefire+failsafe merge.
+5. **Closure PR (this)** — wave plan flip draft → complete + ROADMAP §🚀 Next Action update + GAP-347 filed. Memory `feedback_webmvctest_mock_reset.md` saved (Mockito mock-state leak across `@WebMvcTest` methods, surfaced by Bucket B's mixed `verify(...)` + `verify(never())` pattern).
+
+**Wave 18b2 outcomes:**
+- 3 K-12 LEGAL Phase 1B gaps ALL flipped 🔵 OPEN/🟡 PARTIAL → 🟡 PARTIAL (foundation shipped per gap)
+- 1 meta-gap filed (GAP-347 — JaCoCo merge config for Sonar)
+- Estimated K-12 Stage 1 remaining: ~14-18 weeks (was 18-24; Wave 18b1+18b2 burned down 4-6 weeks)
+- 3 parallel agents 0-clarification (9 consecutive same-day streak)
+- Notable findings preserved: student-name placeholder (Agent A) needs hydration when GAP-321b ships student-listing endpoint; 3/4 facets stub-empty (Agent C) tracked under GAP-321b.1; ParentReadAuditLogService uses REQUIRES_NEW + best-effort swallow design (Agent C — flag for review).
+
+**Counts:** 154 → **155 OPEN** (+1 GAP-347 filed; 0 closed — all 3 wave gaps stay 🟡 PARTIAL with explicit follow-up).
 
 ---
 

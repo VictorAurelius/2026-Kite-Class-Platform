@@ -1,12 +1,13 @@
 ---
 title: Wave 18b2 — K-12 LEGAL Trio Phase 1B foundation wave-pack (GAP-321b + GAP-322b + GAP-323b mobile)
-status: draft
+status: complete
 created: 2026-05-04
 updated: 2026-05-04
 waves: [18b2]
-gaps: [GAP-321b, GAP-322b, GAP-323b]
+gaps: [GAP-321b, GAP-322b, GAP-323b, GAP-347]
 phase: 1B-foundation
 expected_outputs: 1 plan PR (this) + 3 agent PRs (Phase 1B foundation per gap) + closure PR
+actual_outputs: 6 PRs merged (#769 GAP-323b backend + #770 plan + #771 Bucket A mobile UI + #772 Bucket B vetting + #773 Bucket C parent facets + closure PR this) + 1 meta-fix PR in flight (`meta/jacoco-surefire-failsafe-merge` for GAP-347). 24 follow-up tests on #773 to reach 78.2% Sonar coverage; admin-merged with GAP-347 as systemic-fix follow-up. 0-clarification all 3 agents. New memory `feedback_webmvctest_mock_reset.md` saved (Mockito mock-state leak across `@WebMvcTest` methods). Wall-clock ~2.5h total agent work.
 strategy: Phase-1B foundation wave-pack — same disjoint-buckets pattern as Wave 18b1; each bucket ships one user-visible v1 surface
 ---
 
@@ -214,4 +215,5 @@ After 3 agent PRs merged:
 
 ## §8 Log
 
+- **2026-05-04 (SHIPPED)** — Wave 18b2 closed. 3 parallel agents (Bucket A FE / B vetting / C parent facets) all 0-clarification. PR sequence: #771 ✅ merged, #772 ✅ merged, #773 admin-merged after coverage-fix push (24 unit tests added; Sonar reached 78.2% — root cause traced to JaCoCo surefire-only artifact, **filed GAP-347 meta-fix** for `pom.xml` jacoco surefire+failsafe merge). Memory `feedback_webmvctest_mock_reset.md` saved (Mockito mock-state leak across `@WebMvcTest` methods — surfaced by Bucket B). All 3 gaps now correctly 🟡 PARTIAL with explicit Phase 1B follow-up + Phase 1C deferral. Closure PR (this) flips wave plan status + files GAP-347 + updates ROADMAP §🚀 Next Action.
 - **2026-05-04** — Wave 18b2 plan drafted same-day as Wave 18b1 closure + GAP-323b Phase 1B v1 backend (PR #769). Continues K-12 LEGAL trio momentum: Phase 1A skeleton (Wave 18b1) → Phase 1B v1 backend (PR #769) → Phase 1B foundation across remaining 2 gaps + UI v1 for 323b (this wave). Per `feedback_wave_plan_through_pr.md` plan ships through PR not direct push.
