@@ -56,9 +56,25 @@ ssh -i ~/.ssh/kite_dev -p 2222 -o StrictHostKeyChecking=no -o BatchMode=yes nguy
 # In Termux
 ssh-keygen -t ed25519 -C "android-termux@kite-dev" -f ~/.ssh/kite_dev -N ""
 # -N "" = no passphrase (mobile-friendly; protected by Tailscale auth + device unlock)
-cat ~/.ssh/kite_dev.pub
-# → copy the entire "ssh-ed25519 AAAA... android-termux@kite-dev" line
 ```
+
+**Auto-copy public key to clipboard** (best — paste straight into Claude chat):
+
+```bash
+# In Termux — install clipboard tool if not yet (one-time, ~3MB)
+pkg install -y termux-api
+
+# Copy pubkey to Android clipboard (KHÔNG cần cat + select bằng tay)
+cat ~/.ssh/kite_dev.pub | termux-clipboard-set
+echo "Public key copied to clipboard. Paste vào Claude chat."
+
+# Optional: verify what's on clipboard
+termux-clipboard-get
+```
+
+> Pre-req for `termux-clipboard-set`: install **Termux:API** companion app from F-Droid (https://f-droid.org/packages/com.termux.api/) — same source as Termux. Without it, `termux-clipboard-set` fails silently.
+
+**Fallback (no Termux:API):** `cat ~/.ssh/kite_dev.pub` → long-press output text → Select all → Copy.
 
 ### C.3) Install pubkey on WSL2
 
