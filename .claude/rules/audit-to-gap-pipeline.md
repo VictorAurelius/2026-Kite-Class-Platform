@@ -1,9 +1,9 @@
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-04-28
+**Last-Reviewed:** 2026-05-04
 **Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
 **Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100) and the gap files / fix PRs they produce
 
@@ -74,6 +74,34 @@ Expected outcomes + how to proceed:
 - A Log entry: "Scope revised after state-check. Found: ..."
 
 **Anti-pattern detected 2026-04-20:** GAP-190 (SEO) and GAP-197 (attendance calendar) were filed without state-check; both had substantial implementations already (sitemap/robots/OG/JsonLd/blog MDX; enhanced-attendance-calendar 315 LOC PR 3.8.1). Both required follow-up rewrite PRs. Rule added to prevent recurrence.
+
+**Recurrence 2026-05-04 (4th time):** GAP-345 K-12 LEGAL trio state-check audit + Wave 18b1 Bucket D found Wave 2 inline-fetch FE skeleton at `(dashboard)/parent/page.tsx` (159 LOC) that GAP-345 missed. Root cause: `head` truncation on grep + insufficient `find` depth. Hardened rule below.
+
+### Hardened state-check protocol (post-2026-05-04 incident)
+
+State-check **MUST NOT use `| head`** on `grep -rl` / `find` commands. Truncation hides existing implementations.
+
+| ❌ Banned pattern | ✅ Required pattern |
+|------------------|---------------------|
+| `grep -rl "X" path/ \| head` | `grep -rl "X" path/` (read full output) |
+| `find path/ -name "X*" \| head -10` | `find path/ -name "X*"` then count + sample |
+| Single grep on entry name | Multiple greps: file name + class name + JSX selector + i18n key |
+| Skipping `documents/` searches | Include `documents/04-quality/gaps/` to find prior gap files |
+
+**Mandatory cross-checks:**
+- For frontend gaps: `find {service}/src/app -type d` (full tree) + `grep -rl "{keyword}" {service}/src --include="*.tsx" --include="*.ts"` (no head)
+- For backend gaps: `ls {service}/src/main/java/com/.../module/` (full module tree) + `grep -rl "Class.*{Topic}\|interface {Topic}" path/`
+- For data layer: `ls {service}/src/main/resources/db/migration/` (FULL list, look for related V-prefixes) + `grep -l "{table_name}\|create table {topic}" db/migration/`
+- For docs: `find documents -iname "*{topic}*"` (no head)
+
+**Self-test if uncertain:** if the gap claims "fully greenfield" or "missing entirely," the agent MUST list the exact grep + find commands run AND the OUTPUT counts (e.g., "0 files found" or "3 files found, sampled, none match scope"). Inline these in `## Current State` section.
+
+**Tracked recurrences:**
+- 2026-04-20: GAP-190 (SEO), GAP-197 (attendance calendar) → PR #396 rewrite
+- 2026-05-04 (3rd): GAP-345 audit revising GAP-321/322/323 → PR #757
+- 2026-05-04 (4th): GAP-345 itself missed Wave 2 FE parent skeleton → Wave 18b1 Bucket D agent caught + flagged in PR #766. Hardened protocol added this section.
+
+If 5th recurrence detected, escalate to file gap on `audit-to-gap-pipeline.md` itself — rule is failing despite documentation.
 
 ### Step 3: Gap File Creation
 
@@ -189,6 +217,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-05-04** (v1.1.0): MINOR — added "Hardened state-check protocol" subsection to Step 2.5 banning `| head` truncation on grep/find during state-check. Triggered by 4th recurrence: GAP-345 K-12 LEGAL audit itself missed Wave 2 inline-fetch FE skeleton (159 LOC) at `(dashboard)/parent/page.tsx`; Wave 18b1 Bucket D agent caught at execution time + flagged in PR #766. Per `rule-change-process.md` §5 MINOR self-approve solo-dev — adds enforcement detail to existing rule, no constraint loosening. Recurrence list now tracked inline; 5th recurrence escalates to gap on this rule.
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Last-Reviewed + Reviewer-Approver + Applies-to fields; reformatted existing Version `1.0` → `1.0.0` (semver three-part canonical). No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - 2026-04-20 — Added **Step 2.5 State-Check Against Current Codebase** after GAP-190 (SEO) + GAP-197 (attendance calendar) were filed without code-state verification; both required follow-up rewrite (PR #396). User feedback: "gaps phải dựa trên tình trạng của hệ thống hiện tại". Step 2.5 is BẮT BUỘC alongside Step 2 — dedupe alone is insufficient.
 - 2026-04-16 — Rule created after UI audit session produced 5 gaps; user requested formalization
