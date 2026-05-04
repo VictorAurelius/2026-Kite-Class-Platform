@@ -34,16 +34,37 @@ If already installed and signed in (per main guide §4.1), **skip to B**. Otherw
 
 ## C) SSH key for Termux → WSL2
 
-If you already have an SSH key on Termux that's installed in WSL2 `~/.ssh/authorized_keys` (per main guide §4.3-4.4), **skip to D**. Otherwise:
+### C.1) Check existing key first
 
 ```bash
 # In Termux
-ssh-keygen -t ed25519 -C "android-termux@kite-dev" -f ~/.ssh/kite_dev
-cat ~/.ssh/kite_dev.pub
-# → copy the ssh-ed25519 ... line
+ls -la ~/.ssh/kite_dev ~/.ssh/kite_dev.pub 2>/dev/null && echo "KEY EXISTS" || echo "NO KEY — go to C.2"
 ```
 
-Send the public key line to WSL2 (one option: paste into Claude Code chat from phone, ask Claude to install it). Or if SSH from another machine to WSL2 works, paste manually:
+If output shows `KEY EXISTS` + 2 files (private + .pub) → already have key. **Verify it's installed on WSL2:**
+
+```bash
+# In Termux — quick test (will succeed if key works, fail if needs install)
+ssh -i ~/.ssh/kite_dev -p 2222 -o StrictHostKeyChecking=no -o BatchMode=yes nguyenvankiet@100.69.110.122 "echo OK" 2>&1 | tail -1
+# Output "OK"            → key installed, skip to D
+# Output "Permission denied" or "Connection refused" → key not installed, do C.3
+```
+
+### C.2) Generate new key (only if C.1 said NO KEY)
+
+```bash
+# In Termux
+ssh-keygen -t ed25519 -C "android-termux@kite-dev" -f ~/.ssh/kite_dev -N ""
+# -N "" = no passphrase (mobile-friendly; protected by Tailscale auth + device unlock)
+cat ~/.ssh/kite_dev.pub
+# → copy the entire "ssh-ed25519 AAAA... android-termux@kite-dev" line
+```
+
+### C.3) Install pubkey on WSL2
+
+**Easiest from mobile:** paste the public key line into Claude Code chat — say "install this Termux pubkey on WSL2" and Claude appends it to `~/.ssh/authorized_keys`.
+
+**Or manual** (if you have other SSH access to WSL2):
 
 ```bash
 # On WSL2
@@ -51,6 +72,8 @@ mkdir -p ~/.ssh && chmod 700 ~/.ssh
 echo 'ssh-ed25519 AAAA... android-termux@kite-dev' >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 ```
+
+**Verify install:** repeat the test command from C.1 — should now print `OK`.
 
 ---
 
