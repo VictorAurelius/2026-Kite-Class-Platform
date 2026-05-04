@@ -180,15 +180,51 @@ termux-wake-unlock
 
 Caveat: tốn pin chút. Chỉ dùng khi chạy long agent cần monitor.
 
-### ntfy push notification (optional — long task xong báo)
+### ntfy push notification (đã wire vào Claude stop hook!)
 
-Thêm vào WSL2 (vd làm Claude stop hook):
+`.claude/hooks/notify-stop.sh` channel #4 tự động push qua ntfy.sh mỗi lần Claude dừng chờ input. **Không cần curl thủ công.**
 
+**Setup (1 lần):**
+
+1. Cài ntfy app:
+   - F-Droid (recommended): https://f-droid.org/packages/io.heckel.ntfy/
+   - Hoặc Play Store: search "ntfy"
+
+2. Pick topic name unique (semi-secret):
+   ```bash
+   # Trong WSL2 — generate random topic
+   python3 -c "import secrets, string; print('kite-claude-vkiet-' + ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(8)))"
+   ```
+
+3. Trong app ntfy → tap "+" → Subscribe to topic → paste topic name → Subscribe
+
+4. Set env var để hook pickup. 2 cách (làm cả 2 cho chắc):
+   ```bash
+   # ~/.bashrc
+   echo 'export NTFY_TOPIC="kite-claude-vkiet-..."' >> ~/.bashrc
+   ```
+   ```json
+   // ~/.claude/settings.json (user-global, NOT repo)
+   {
+     "env": { "NTFY_TOPIC": "kite-claude-vkiet-..." }
+   }
+   ```
+
+5. Restart Claude (`/exit` + relaunch) để pickup env var
+
+**Test:**
 ```bash
-curl -d "Wave done in $(date +%H:%M)" ntfy.sh/your-secret-topic-name
+NTFY_TOPIC="kite-claude-vkiet-..." \
+CLAUDE_PROJECT_DIR="$(pwd)" \
+bash .claude/hooks/notify-stop.sh
+# → phone hiện notification trong vài giây
 ```
 
-Cài ntfy app trên Android, subscribe topic giống → push notify khi long agent xong (không phải check mosh suốt).
+**Customize env vars:**
+- `NTFY_PRIORITY` — 1 (min) → 5 (urgent), default 3
+- `NTFY_SERVER` — default `https://ntfy.sh`; đổi nếu self-host
+
+**Privacy:** topic name là URL public — ai biết = nhận message. Random suffix dài + KHÔNG commit topic vào public repo. Self-host ntfy server với auth nếu lo (overkill cho solo dev).
 
 ---
 
