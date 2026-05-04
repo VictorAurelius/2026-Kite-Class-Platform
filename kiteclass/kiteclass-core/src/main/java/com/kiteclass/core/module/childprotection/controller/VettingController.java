@@ -2,12 +2,15 @@ package com.kiteclass.core.module.childprotection.controller;
 
 import com.kiteclass.core.common.dto.ApiResponse;
 import com.kiteclass.core.common.exception.BusinessException;
+import com.kiteclass.core.common.exception.ValidationException;
 import com.kiteclass.core.module.childprotection.dto.VettingCreateRequest;
+import com.kiteclass.core.module.childprotection.dto.VettingDocumentResponse;
 import com.kiteclass.core.module.childprotection.dto.VettingResponse;
 import com.kiteclass.core.module.childprotection.dto.VettingTransitionRequest;
 import com.kiteclass.core.module.childprotection.entity.Vetting;
 import com.kiteclass.core.module.childprotection.enums.VettingStatus;
 import com.kiteclass.core.module.childprotection.service.VettingService;
+import com.kiteclass.core.module.childprotection.storage.VettingDocumentStorage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +31,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +65,14 @@ public class VettingController {
     /** Role name authorised to read/write Vetting records. */
     static final String SAFEGUARDING_OFFICER = "SAFEGUARDING_OFFICER";
 
+    /**
+     * Per-file upload size cap (10 MB). LLTP scans + CCCD photos comfortably
+     * fit; multi-part / chunked upload deferred to Phase 1B follow-up gap.
+     */
+    static final long MAX_DOCUMENT_BYTES = 10L * 1024 * 1024;
+
     private final VettingService vettingService;
+    private final VettingDocumentStorage documentStorage;
 
     @GetMapping
     @Operation(summary = "List vetting records (RBAC: SAFEGUARDING_OFFICER only)")
@@ -124,6 +138,74 @@ public class VettingController {
         requireSafeguardingOfficer(roles);
         vettingService.softDelete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Upload an LLTP / CCCD / police-check evidence document for a vetting
+     * record (Wave 18b3 — GAP-322b Phase 1B remainder).
+     *
+     * <p>Accepts a single multipart {@code file} (10 MB cap), persists to
+     * MinIO via {@link VettingDocumentStorage}, returns the storage key.
+     *
+     * <p><b>Phase boundary:</b> a dedicated {@code vetting_document} child
+     * entity + audit-log entry on upload are deferred to Phase 1C
+     * (GAP-322c). Resumable upload, virus scan, document deletion / replace
+     * deferred to follow-up sister gaps.
+     *
+     * @param vettingId vetting record id (path param)
+     * @param file      multipart upload (field name {@code file})
+     * @param roles     {@code X-User-Roles} header forwarded by Gateway
+     * @return 201 with {@link VettingDocumentResponse}
+     */
+    @PostMapping(
+            value = "/{vettingId}/documents",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    @Operation(
+            summary = "Upload evidence document (LLTP / CCCD / police-check)",
+            description = "Single-file multipart upload, ≤10MB. RBAC: SAFEGUARDING_OFFICER only."
+    )
+    public ResponseEntity<ApiResponse<VettingDocumentResponse>> uploadDocument(
+            @PathVariable Long vettingId,
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader(value = "X-User-Roles", required = false) String roles
+    ) {
+        requireSafeguardingOfficer(roles);
+
+        if (file == null || file.isEmpty()) {
+            throw new ValidationException("VETTING_DOC_EMPTY");
+        }
+        if (file.getSize() > MAX_DOCUMENT_BYTES) {
+            throw new ValidationException("VETTING_DOC_TOO_LARGE");
+        }
+
+        // Verify vetting record exists (404 surfaces if not).
+        Vetting vetting = vettingService.findById(vettingId);
+
+        String filename = file.getOriginalFilename();
+        if (filename == null || filename.isBlank()) {
+            throw new ValidationException("VETTING_DOC_FILENAME_REQUIRED");
+        }
+
+        byte[] bytes;
+        try {
+            bytes = file.getBytes();
+        } catch (IOException ex) {
+            log.warn("Vetting document upload IOException vettingId={} filename={}",
+                    vettingId, filename, ex);
+            throw new BusinessException("VETTING_DOC_UPLOAD_FAILED", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        String storageKey = documentStorage.storeDocument(vetting.getId(), filename, bytes);
+
+        VettingDocumentResponse resp = new VettingDocumentResponse(
+                vetting.getId(),
+                storageKey,
+                bytes.length,
+                file.getContentType()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(resp));
     }
 
     /**

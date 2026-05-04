@@ -116,6 +116,15 @@ storage:
     bucket-name: ${STORAGE_S3_BUCKET:kiteclass-files}
     path-style-access-enabled: true
 
+# Child-protection storage (Wave 18b3 GAP-322b Phase 1B remainder).
+# Reuses the storage.s3.* credentials + endpoint but routes vetting evidence
+# to a dedicated bucket so RBAC + 7-year retention lifecycle policies stay
+# scoped to the special-protection class of data (PDPL Decree 13/2023 Art 16
+# + BR-VETTING-004).
+childprotection:
+  minio:
+    bucket: ${CHILDPROTECTION_MINIO_BUCKET:kiteclass-vetting}
+
 # Payment Gateway Configuration
 payment:
   vnpay:
