@@ -195,6 +195,40 @@
 
 ---
 
+## Rule 15 — Wave plan flipped to status:complete → wave-history.jsonl append
+
+**Trigger:** diff modifies a `documents/03-planning/waves/wave-*.md` file AND flips the frontmatter `status:` field from `draft|in-progress|planned` → `complete` (i.e. removed `-status: draft` (or `in-progress` / `planned`) AND added `+status: complete`).
+
+**Required co-change:** the same diff appends at least one new line to `.claude/skills/quality/wave-pack-planner/data/wave-history.jsonl` that:
+
+1. Parses as valid single-line JSON (one event per line, matching existing format).
+2. Contains a `wave` field whose value loosely matches the plan filename slug (exact `wave-<slug>` match OR substring overlap).
+
+**Why:** per `.claude/skills/quality/wave-pack-planner/SKILL.md` §Rules every wave closure must record wall-clock + lessons. Three consecutive misses (Wave 18a / 18b1 / 18b2 — 2026-05-04) shipped status flips without appends. The append IS the wave's institutional memory — without it, future wave planning has no historical baseline.
+
+**Output:**
+- `[OK]    Rule 15 — wave-... status:complete + wave-history.jsonl appended (wave=<val>, valid JSON)`
+- `[WARN]  Rule 15 — wave-...: wave-history.jsonl appended but no entry's \`wave\` field matches plan slug. Verify the appended record references this wave.`
+- `[FAIL]  Rule 15 — wave-...: Wave plan flipped to status:complete but wave-history.jsonl was not appended.`
+- `[FAIL]  Rule 15 — wave-...: wave-history.jsonl appended but added line(s) failed JSON parse.`
+
+**Override trailer:** `WAVE_HISTORY_OVERRIDE: <reason>` in any commit body between `BASE_REF..HEAD` downgrades FAIL → WARN. Use sparingly (e.g. wave plan reverted from complete → draft, or genuine doc-only correction).
+
+**Edge cases:**
+- Plan flipped from `complete` → `complete` (no change): not detected; rule only fires on the first flip TO complete.
+- Multiple wave plans flipped in same PR: rule iterates per plan; each must have its own jsonl line OR shared override trailer.
+- jsonl file moved/renamed: rule looks at the canonical path; rename = re-pin path here.
+- Wave plan deletion (archival): rule does not fire; archival is separate concern.
+
+**Self-test:** see `test/fixtures/wave-history/` for 3 fixture cases (good-flip-with-append, bad-flip-no-append, bad-flip-bad-json) + `test/run-rules.sh`.
+
+**References:**
+- `.claude/skills/quality/wave-pack-planner/SKILL.md` §Rules (the standard)
+- `.claude/rules/incident-to-rule-pipeline.md` (the meta-process this rule self-applies)
+- `documents/04-quality/gaps/ROADMAP.md` retro entry 2026-05-04 (Wave 18a/18b1/18b2 incident)
+
+---
+
 ## Edge cases applying to all rules
 
 ### Multi-domain change

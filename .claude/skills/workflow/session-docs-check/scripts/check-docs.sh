@@ -388,6 +388,113 @@ if [ -n "$DONE_FLIPS" ]; then
 fi
 
 # ============================================================
+# Rule 15 — Wave plan flipped to status:complete → wave-history.jsonl append
+# (per .claude/skills/quality/wave-pack-planner/SKILL.md §Rules + this PR's
+#  retro 2026-05-04 — Wave 18a/18b1/18b2 missed appends)
+# ============================================================
+# Trigger: a wave plan file under documents/03-planning/waves/wave-*.md whose
+# diff flips frontmatter `status:` from draft|in-progress|planned to complete.
+# Required co-change: a NEW line appended to
+# .claude/skills/quality/wave-pack-planner/data/wave-history.jsonl that:
+#   - parses as JSON (one event per line)
+#   - has a `wave` field whose value loosely matches the plan filename slug
+WAVE_HISTORY_PATH=".claude/skills/quality/wave-pack-planner/data/wave-history.jsonl"
+
+# Wave plans whose diff flips status to complete
+WAVE_FLIPS="$(git diff "$BASE_REF" --name-only 2>/dev/null \
+  | grep -E '^documents/03-planning/waves/wave-.+\.md$' \
+  | while IFS= read -r wf; do
+      [ -z "$wf" ] && continue
+      WD="$(git diff "$BASE_REF" -- "$wf" 2>/dev/null || true)"
+      # Must add `+status: complete` AND remove `-status: draft|in-progress|planned`
+      if echo "$WD" | grep -qE '^\+status:[[:space:]]+complete\b' \
+        && echo "$WD" | grep -qE '^-status:[[:space:]]+(draft|in-progress|planned)\b'; then
+        echo "$wf"
+      fi
+    done || true)"
+
+# Wave-history override-trailer collection
+WAVE_OVERRIDE_TRAILERS="$(git log "$BASE_REF..HEAD" --pretty=%B 2>/dev/null \
+  | grep -E '^WAVE_HISTORY_OVERRIDE: .+' || true)"
+
+if [ -n "$WAVE_FLIPS" ]; then
+  # Lines added (starting with `+` but not `+++`) to wave-history.jsonl in this diff
+  HISTORY_ADDED="$(git diff "$BASE_REF" -- "$WAVE_HISTORY_PATH" 2>/dev/null \
+    | awk '/^\+[^+]/ {sub(/^\+/, ""); print}' || true)"
+
+  while IFS= read -r wave_file; do
+    [ -z "$wave_file" ] && continue
+    PLAN_SLUG="$(basename "$wave_file" .md)"   # e.g. wave-2026-05-04-foo
+    SHORT_SLUG="${PLAN_SLUG#wave-}"             # e.g. 2026-05-04-foo
+
+    HAS_OVERRIDE_W=0
+    if [ -n "$WAVE_OVERRIDE_TRAILERS" ]; then
+      HAS_OVERRIDE_W=1
+    fi
+
+    wave_emit() {
+      # $1 = severity (fail|warn), $2 = message
+      if [ "$HAS_OVERRIDE_W" = "1" ]; then
+        emit_warn "Rule 15 — $PLAN_SLUG (override trailer present): $2"
+      elif [ "$1" = "fail" ]; then
+        emit_fail "Rule 15 — $PLAN_SLUG: $2"
+      else
+        emit_warn "Rule 15 — $PLAN_SLUG: $2"
+      fi
+    }
+
+    if [ -z "$HISTORY_ADDED" ]; then
+      wave_emit fail "Wave plan flipped to status:complete but $WAVE_HISTORY_PATH was not appended. Per wave-pack-planner SKILL.md §Rules, every wave closure must record wall-clock + lessons for future wave planning. See incident-to-rule-pipeline.md retro 2026-05-04 Wave 18a/18b1/18b2."
+      continue
+    fi
+
+    # Try to find a JSON line whose `wave` field references this plan
+    MATCH_LINE=""
+    BAD_JSON=0
+    while IFS= read -r jline; do
+      [ -z "$jline" ] && continue
+      # Validate JSON parse — prefer python3, fall back to grep heuristic
+      if command -v python3 >/dev/null 2>&1; then
+        if ! printf '%s\n' "$jline" \
+          | python3 -c 'import sys,json; json.loads(sys.stdin.read())' \
+          >/dev/null 2>&1; then
+          BAD_JSON=1
+          continue
+        fi
+      else
+        # Best-effort: must start with { and end with }
+        case "$jline" in
+          \{*\}) ;;
+          *) BAD_JSON=1; continue ;;
+        esac
+      fi
+      # Extract wave field
+      WAVE_VAL="$(printf '%s\n' "$jline" \
+        | grep -oE '"wave"[[:space:]]*:[[:space:]]*"[^"]*"' \
+        | sed -E 's/.*"([^"]*)"$/\1/' || true)"
+      if [ -n "$WAVE_VAL" ]; then
+        # Loose match: WAVE_VAL contains SHORT_SLUG OR vice versa OR shares date+keyword
+        if [ "$WAVE_VAL" = "wave-$SHORT_SLUG" ] \
+          || echo "$WAVE_VAL" | grep -qF "$SHORT_SLUG" \
+          || echo "$SHORT_SLUG" | grep -qF "$WAVE_VAL"; then
+          MATCH_LINE="$jline"
+          break
+        fi
+      fi
+    done <<< "$HISTORY_ADDED"
+
+    if [ -n "$MATCH_LINE" ]; then
+      emit_pass "Rule 15 — $PLAN_SLUG status:complete + wave-history.jsonl appended (wave=$WAVE_VAL, valid JSON)"
+    elif [ "$BAD_JSON" = "1" ]; then
+      wave_emit fail "$WAVE_HISTORY_PATH appended but added line(s) failed JSON parse. Fix: ensure single-line valid JSON per existing entries."
+    else
+      # Lines added but no `wave` field matches plan slug
+      wave_emit warn "$WAVE_HISTORY_PATH appended but no entry's \`wave\` field matches plan slug '$SHORT_SLUG'. Verify the appended record references this wave."
+    fi
+  done <<< "$WAVE_FLIPS"
+fi
+
+# ============================================================
 # Output
 # ============================================================
 echo "## Session Docs Check ($TS) — branch $BRANCH (vs $BASE_REF)"
