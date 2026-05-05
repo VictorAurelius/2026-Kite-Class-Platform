@@ -495,6 +495,106 @@ if [ -n "$WAVE_FLIPS" ]; then
 fi
 
 # ============================================================
+# Rule 16 — New wave plan → State-Check Evidence section
+# (per .claude/rules/audit-to-gap-pipeline.md §2.6 + GAP-356 5th-recurrence escalation)
+# ============================================================
+# Trigger: a NEW file under documents/03-planning/waves/wave-*.md (added by this PR).
+# Required: file contains "## State-Check Evidence" (or "## 4. State-Check Evidence")
+# AND every symbol-shaped reference (BR-*, V[0-9]+__*, Class.field, Class.METHOD) inside
+# backticks within `## Scope` / `### Bucket` sections appears in that evidence table.
+NEW_WAVE_PLANS="$(git diff "$BASE_REF" --name-status 2>/dev/null \
+  | awk '$1 == "A" && $2 ~ /^documents\/03-planning\/waves\/wave-.*\.md$/ {print $2}' || true)"
+
+# Wave-plan-state-check override-trailer collection
+WAVE_STATE_OVERRIDES="$(git log "$BASE_REF..HEAD" --pretty=%B 2>/dev/null \
+  | grep -E '^STATE_CHECK_OVERRIDE: .+' || true)"
+
+if [ -n "$NEW_WAVE_PLANS" ]; then
+  while IFS= read -r plan; do
+    [ -z "$plan" ] && continue
+    [ ! -f "$plan" ] && continue
+
+    PLAN_BASE="$(basename "$plan" .md)"
+    HAS_OVERRIDE_S=0
+    if [ -n "$WAVE_STATE_OVERRIDES" ]; then
+      HAS_OVERRIDE_S=1
+    fi
+
+    state_emit() {
+      if [ "$HAS_OVERRIDE_S" = "1" ]; then
+        emit_warn "Rule 16 — $PLAN_BASE: STATE_CHECK_OVERRIDE trailer detected — accepted; logged for quarterly retro. ($1)"
+      else
+        emit_fail "Rule 16 — $PLAN_BASE: $1"
+      fi
+    }
+
+    # Skip if file is missing Scope section entirely (legacy format → warn only)
+    if ! grep -qE '^##[[:space:]]+(3\.[[:space:]]+)?Scope([[:space:]]|$)|^###[[:space:]]+Bucket' "$plan" 2>/dev/null; then
+      emit_warn "Rule 16 — $PLAN_BASE: no '## Scope' or '### Bucket' section detected (legacy format). Adopt template from documents/03-planning/waves/_TEMPLATE.md."
+      continue
+    fi
+
+    # Verify State-Check Evidence section present
+    if ! grep -qE '^##[[:space:]]+([0-9]+\.[[:space:]]+)?State-Check Evidence' "$plan" 2>/dev/null; then
+      state_emit "Wave plan missing '## State-Check Evidence' section per audit-to-gap-pipeline.md §2.6. Use _TEMPLATE.md State-Check Evidence subsection."
+      continue
+    fi
+
+    # Extract Scope/Bucket region using awk (no \b — not POSIX-portable)
+    SCOPE_BLOCK="$(awk '
+      /^##[[:space:]]+([0-9]+\.[[:space:]]+)?Scope([[:space:]]|$)/ { in_scope=1 }
+      /^###[[:space:]]+Bucket/ { in_scope=1 }
+      /^##[[:space:]]+([0-9]+\.[[:space:]]+)?State-Check Evidence/ { in_scope=0 }
+      /^##[[:space:]]+([0-9]+\.[[:space:]]+)?Verification Gates/ { in_scope=0 }
+      in_scope { print }
+    ' "$plan")"
+
+    EVIDENCE_BLOCK="$(awk '
+      /^##[[:space:]]+([0-9]+\.[[:space:]]+)?State-Check Evidence/ { in_ev=1; next }
+      /^##[[:space:]]+/ && in_ev { in_ev=0 }
+      in_ev { print }
+    ' "$plan")"
+
+    # Extract symbols inside backticks in scope block
+    # Patterns:
+    #   BR-XYZ-NNN
+    #   V<digits>__name
+    #   ClassName.field (uppercase first char of class, lowercase first char of field)
+    #   ClassName.CONSTANT
+    SCOPE_SYMBOLS="$(printf '%s\n' "$SCOPE_BLOCK" \
+      | grep -oE '`[^`]+`' \
+      | sed 's/^`//; s/`$//' \
+      | grep -E '^(BR-[A-Z][A-Z0-9-]+-[0-9]+|V[0-9]+__[A-Za-z0-9_]+(\.sql)?|[A-Z][A-Za-z0-9]+\.[a-z][A-Za-z0-9_]*|[A-Z][A-Za-z0-9]+\.[A-Z][A-Z_0-9]+)$' \
+      | sort -u || true)"
+
+    if [ -z "$SCOPE_SYMBOLS" ]; then
+      emit_pass "Rule 16 — $PLAN_BASE: no symbol-shaped references in §Scope to verify (or none in backticks)"
+      continue
+    fi
+
+    MISSING_SYMBOLS=""
+    PRESENT_COUNT=0
+    while IFS= read -r sym; do
+      [ -z "$sym" ] && continue
+      # Symbol counts as present in evidence if it appears AT ALL inside the evidence block
+      if printf '%s\n' "$EVIDENCE_BLOCK" | grep -qF -- "$sym"; then
+        PRESENT_COUNT=$((PRESENT_COUNT+1))
+      else
+        MISSING_SYMBOLS="${MISSING_SYMBOLS}${sym}, "
+      fi
+    done <<< "$SCOPE_SYMBOLS"
+
+    if [ -n "$MISSING_SYMBOLS" ]; then
+      MISSING_SYMBOLS="${MISSING_SYMBOLS%, }"
+      state_emit "$(echo "$SCOPE_SYMBOLS" | wc -l | tr -d ' ') symbol(s) in §Scope; missing State-Check Evidence row for: $MISSING_SYMBOLS. Per audit-to-gap-pipeline.md §2.6 every symbol must have ✅ exists or 🆕 to-be-created verdict."
+    else
+      emit_pass "Rule 16 — $PLAN_BASE: $PRESENT_COUNT symbol(s) in §Scope all have State-Check Evidence rows"
+    fi
+
+  done <<< "$NEW_WAVE_PLANS"
+fi
+
+# ============================================================
 # Output
 # ============================================================
 echo "## Session Docs Check ($TS) — branch $BRANCH (vs $BASE_REF)"

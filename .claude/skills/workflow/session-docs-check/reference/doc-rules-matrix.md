@@ -229,6 +229,43 @@
 
 ---
 
+## Rule 16 — New wave plan → State-Check Evidence section (per `audit-to-gap-pipeline.md` §2.6)
+
+**Trigger:** diff adds a new file under `documents/03-planning/waves/wave-*.md` (matched by git rename detection — `git diff --name-status A`-flag for the wave file).
+
+**Required co-content:** the file MUST contain a `## State-Check Evidence` (or `## 4. State-Check Evidence`) section, AND every code-symbol-shaped reference inside backticks within `## Scope` / `### Bucket` sections must appear in that evidence table.
+
+**Symbol patterns flagged (high-confidence — only inside `` ` ` `` backticks within Scope/Bucket sections):**
+- Business-rule IDs: `BR-[A-Z][A-Z0-9-]+-\d+`
+- Flyway migrations: `V\d+__[A-Za-z0-9_]+(?:\.sql)?`
+- Java class.field: `[A-Z][A-Za-z0-9]+\.[a-z][A-Za-z0-9_]*` (lowercase first char of field — avoids `Bucket A.something` false-positive since A is uppercase)
+- Java class.METHOD: `[A-Z][A-Za-z0-9]+\.[A-Z][A-Z_0-9]+`
+
+**Pass when:** every flagged symbol either (a) has a row in the State-Check Evidence table with verdict `✅ exists` OR `🆕 to-be-created`, OR (b) the wave plan diff contains a `STATE_CHECK_OVERRIDE: <reason>` trailer in any commit between BASE_REF..HEAD.
+
+**Output:**
+- `[OK]    Rule 16 — wave-<slug>: N symbols verified (M ✅ exists, K 🆕 to-be-created)`
+- `[FAIL]  Rule 16 — wave-<slug>: <N> symbol(s) referenced in §Scope without State-Check Evidence row: <list>. Fix per .claude/rules/audit-to-gap-pipeline.md §2.6.`
+- `[WARN]  Rule 16 — wave-<slug>: STATE_CHECK_OVERRIDE trailer detected (reason: <text>) — accepted; logged for quarterly retro.`
+
+**Edge cases:**
+- File renamed/moved (not new): Rule 16 does NOT fire; only fires on first appearance of file
+- Wave plan has no `## Scope` section (legacy format): WARN that template should be adopted; skip symbol scan
+- Symbol appears in `## Out-of-scope`, `## Brainstorm Q3 Risks`, or `## Log` section: not flagged (only Scope/Bucket sections trigger requirement)
+
+**False-positive handling:**
+- Markdown discussion that happens to use `Class.field` shape but is prose-only (e.g. quoting a competitor): wrap in plain text or `> ` blockquote outside Scope sections
+- Forward-looking reference (symbol the wave will create): mark as `🆕 to-be-created` in evidence row + note owning bucket
+
+**Self-test:** see `test/fixtures/wave-plan-state-check/` for 3 fixtures + `test/run-rules.sh`.
+
+**References:**
+- `.claude/rules/audit-to-gap-pipeline.md` §2.6 (the rule this enforces)
+- `documents/03-planning/waves/_TEMPLATE.md` State-Check Evidence section (the canonical template)
+- `documents/04-quality/gaps/GAP-356-...md` (escalation gap that motivated this rule)
+
+---
+
 ## Edge cases applying to all rules
 
 ### Multi-domain change
