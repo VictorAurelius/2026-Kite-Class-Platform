@@ -348,3 +348,64 @@ State-check verdict: 2 of 3 facets (conduct + notifications) cannot ship real wi
 ### 13.5 Log
 
 - **2026-05-04** Phase 1B remainder shipped — Wave 18b3 Bucket C (GAP-321b remainder): fees facet real JPQL with `@EntityGraph(items, adjustments)` + date-range narrowing + Hibernate Statistics assertSelectCount ≤3 test. Conduct + notifications facets stay v1 stubs per state-check (§13.3). 3 follow-up sub-gaps filed (GAP-321b.1-{conduct,notifications,fees-v2}). 3 new BR rules (BR-PARENT-FACET-FEES-002, BR-PARENT-FACET-CONDUCT-002, BR-PARENT-FACET-NOTIFY-002) with 5-attribute frontmatter. Bucket ships PARTIAL not DONE — fees fully wired, conduct + notifications honestly deferred. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321b. Cadence: Annual + event-driven.
+
+---
+
+## 14. K-12 LEGAL Phase 1C v1 — PDPL granular consent + 1 write action (Wave 19 Bucket C — GAP-321c)
+
+**Phase:** 1C v1 — extends §11 + §12 + §13 with PDPL Decree 13/2023 Art 16 granular per-field consent + 1 write surface (complaint) wiring
+**Last-Reviewed:** 2026-05-05
+**Reviewer-Approver:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-05). Formal legal counsel review queued — see GAP-321c follow-up filed in this PR.
+**Source:** PDPL Decree 13/2023 (Nghị định 13/2023/NĐ-CP) Art 16 — special protection for children's personal data; minimization; parental consent. Luật Giáo dục 2019 Đ.83 K2 — implicit communication right (complaint write surface).
+**Compliance:** **Compliant** — PDPL Art 16 (granular consent flag is the operationalization of the consent obligation; default is fail-safe deny); Đ.83 K2 satisfied for complaint capture.
+**Review-Cadence:** Annual + event-driven on Decree 13/2023 implementing-decree publication. **Next review:** 2027-05-05.
+
+### 14.1 Phase 1C v1 Rules
+
+| ID | Rule | Detail | Phase |
+|----|------|--------|-------|
+| BR-PARENT-PORTAL-011 | PDPL granular consent gate (per-field) | Every parent-side facet API MUST call `ConsentService.checkConsent(parentId, childId, field)` AFTER the existing scope guard (`existsByParentIdAndStudentIdAndDeletedFalse`) and BEFORE returning data. Default-deny: missing key in the JSONB `parental_consent.fields` map → 403 `PARENT_CONSENT_REQUIRED`. Wave 19 Bucket C wires fees facet end-to-end; remaining facets gate-deferred to GAP-321c follow-up. | 1C v1 |
+| BR-PARENT-PORTAL-012 | Consent versioning + sparse PUT | `PUT /api/v1/parent/consent?childId=...` accepts a sparse `{updates: {field: bool}}` map; ConsentService merges over existing flags, bumps `parental_consent.version`, and stamps `updatedAt`. Re-consent prompt on policy version bump deferred to GAP-321c follow-up. | 1C v1 |
+| BR-PARENT-PORTAL-013 | Complaint write v1 (linked-child only) | `POST /api/v1/parent/complaints` accepts `{studentId, complaintText}` (10–2000 chars). Same scope-guard pattern as facet reads — 403 `PARENT_FACET_FORBIDDEN` if no link. Persists row in `parent_complaint_queue` with status=PENDING. Workflow (4-level escalation, attachments, resolver UI) deferred to GAP-339. | 1C v1 |
+
+**Source (5-attribute frontmatter applied):**
+- **Source:** PDPL Decree 13/2023 Art 16 (statute citation — special protection for children's personal data; minimization; parental consent); Luật Giáo dục 2019 Đ.83 K2 (statute citation — communication right covers parent-initiated complaints); P5 K-12 persona-review notes (1800 PH / 1200 HS scenario, Wave 18b1 Bucket D); Wave 18b3 closure deferral list flagged BR-PARENT-PORTAL-009 + 4 write actions for Phase 1C.
+- **Rationale:** Why per-field gate (not link-level)? Art 16 demands minimization — granting consent for transcript ≠ granting consent for fees data. Per-field flag in JSONB future-proofs additions (new facet → new key, no migration). Why default-deny? PDPL is fail-safe: implementing-decree Art 12 K2 b says "consent must be specific and explicit"; missing flag = no explicit consent. Why JSONB (not separate table)? Per-field count is small (≤10 facets), shape is read-heavy (1 read per facet API call), Postgres JSONB GIN-index support exists if hot. Why ship 1 write action (not 4)? Complaints have NO upstream dependency (existing `parents`+`students` schema sufficient) — 3 others (conduct-confirm, meeting RSVP, absence-excuse upload) need GAP-338 (meeting), GAP-339 (full complaint workflow), or MinIO encrypted bucket pattern. Honest scope-cut.
+- **Reviewer:** @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev, 2026-05-05). Formal legal counsel review queued — GAP-321c follow-up acceptance criteria.
+- **Compliance check:** **Compliant** — PDPL Decree 13/2023 Art 16 (granular consent operationalized via per-field JSONB flag + version bump); Luật Giáo dục 2019 Đ.83 K2 (complaint write surface satisfies "communication" leg of right-to-information); Luật Trẻ em 2016 Đ.21 (children's privacy traceability already covered by §12 BR-PARENT-AUDIT-001).
+- **Review cadence:** Annual + event-driven on Decree 13/2023 implementing-decree publication OR PDPL Art 16 amendment.
+
+### 14.2 Database schema — V56 migration
+
+| Change | Detail |
+|--------|--------|
+| `parent_student_links.parental_consent` | New JSONB column, NOT NULL, default `{"fields":{}, "version":1, "updatedAt":null}`. Existing rows from V42 backfilled by the DEFAULT clause (backward-compatible — no manual ETL). |
+| `parent_complaint_queue` | New table (id, instance_id, parent_id, student_id, complaint_text, status, resolved_at, audit cols). Status state machine v1: PENDING → IN_REVIEW → RESOLVED/REJECTED. Indexes on parent_id, student_id, instance_id, status. |
+
+### 14.3 Phase 1C v1 API surface
+
+```
+GET  /api/v1/parent/consent?childId=                              ← read consent
+PUT  /api/v1/parent/consent?childId=        body: {updates: {...}} ← sparse update + bump
+POST /api/v1/parent/complaints              body: {studentId, complaintText} ← write
+```
+
+All three:
+- Require `X-User-Reference-Id` header (Gateway-injected) → 401 `AUTH_REQUIRED` if missing
+- Apply Hibernate `tenantFilter`
+- PUT consent → 404 `PARENT_CONSENT_LINK_NOT_FOUND` if no link (vs 403 — informational, not authorization)
+- POST complaint → 403 `PARENT_FACET_FORBIDDEN` if no link
+
+### 14.4 Out of Phase 1C v1 scope (sister sub-gaps + GAP-321c follow-up)
+
+| Item | Where | Why deferred |
+|------|-------|--------------|
+| 3 remaining write actions (`conduct-confirm`, meeting `rsvp`, `absence-excuse` upload) | **GAP-321c follow-up (filed this PR)** | Depends GAP-338 (meeting entity) + GAP-339 (full complaint workflow) + MinIO encrypted bucket per Phase 1B GAP-322b pattern |
+| Apply consent gate to remaining 4 facets (transcript, attendance, conduct, notifications) | **GAP-321c follow-up** | Bucket scope was 1 facet end-to-end; remaining facets need same wiring + IT updates per facet |
+| Re-consent flow on policy version bump | **GAP-321c follow-up** | Needs admin tooling to bulk-bump policy version + FE prompt UX |
+| i18n EN + zh-CN catalogs | **GAP-321c follow-up** | International schools (FIS, BIS) need EN/zh-CN; v1 ships Vietnamese-only |
+| Settings page UI (consent toggles per child) | **GAP-321c follow-up** | This bucket ships endpoints; FE consumer ships separately |
+
+### 14.5 Log
+
+- **2026-05-05** Phase 1C v1 shipped — Wave 19 Bucket C (GAP-321c v1): PDPL granular consent JSONB column on `parent_student_links` + ConsentService gate (checkConsent / getConsent / getConsentVersion / bumpConsent) + ParentConsentController GET/PUT settings endpoints + ParentComplaintController POST `/complaints` v1 with scope guard + V56 migration (additive JSONB + complaint queue table) + 3 new BR rules (BR-PARENT-PORTAL-011..013) with 5-attribute frontmatter. Fees facet wired end-to-end with consent gate (BR-PARENT-PORTAL-011 — `PARENT_CONSENT_REQUIRED` 403 when consent missing); 4 remaining facets + 3 write actions + i18n + UI honestly deferred via GAP-321c follow-up. Bucket ships PARTIAL not DONE — fees gated end-to-end, complaint write v1 capturing data, consent settings endpoints live; remaining write actions + multi-facet gate + UI to follow. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant; formal legal counsel review queued via GAP-321c follow-up. Cadence: Annual + event-driven on Decree 13/2023 amendment.

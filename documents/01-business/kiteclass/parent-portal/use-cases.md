@@ -366,6 +366,86 @@ Phase 1B foundation extends the §K-12 LEGAL Phase 1A use cases with four siblin
 | Phụ huynh đăng nhập qua Zalo OTP | GAP-321b.2 |
 | Phụ huynh nộp đơn / xin phép | GAP-321c |
 
+---
+
+## K-12 LEGAL Phase 1C v1 Use Cases (Wave 19 Bucket C — GAP-321c)
+
+Phase 1C v1 ships PDPL granular consent management + 1 write action (complaint). Remaining write actions (conduct-confirm, meeting RSVP, absence-excuse) deferred to GAP-321c follow-up.
+
+### UC-PARENT-CONSENT-MANAGE: Phụ huynh xem + cập nhật quyền xem dữ liệu con
+
+**Actor:** Phụ huynh (PARENT user with active `ParentStudentLink`)
+**Pre-condition:** Same as UC-PARENT-PORTAL-01.
+**Trigger:** Phụ huynh mở trang "Quyền riêng tư của con" trên `/parent` (FE settings page chưa ship — endpoints sẵn cho consumer).
+
+**Main flow (read):**
+1. FE → `GET /api/v1/parent/consent?childId={id}` (Gateway injects `X-User-Reference-Id`).
+2. `ParentConsentController.getConsent()` → `requireParentId()` (401 if header missing).
+3. `ConsentService.getConsent(parentId, childId)`:
+   - Validate args (null → 400 BAD_REQUEST).
+   - Tìm `ParentStudentLink` qua `findByParentIdWithStudent` rồi filter theo `childId`.
+   - Không có link → return `ParentalConsent.defaultValue()` (informational, không 404 — settings page hiển thị default sang option toggle).
+4. Controller trả `{fields, version, updatedAt}` qua `ApiResponse.success(...)`.
+
+**Main flow (write):**
+1. FE → `PUT /api/v1/parent/consent?childId={id}` body `{"updates": {"fees": true, "conduct": false}}`.
+2. `ParentConsentController.updateConsent()` → 401 nếu thiếu header; 400 nếu body null/empty.
+3. `ConsentService.bumpConsent(parentId, childId, updates)`:
+   - Tìm link; không có → 404 `PARENT_CONSENT_LINK_NOT_FOUND` (vs 403 — không phải lỗi authorization, là lỗi sai child id).
+   - Merge updates lên `existing.fields` (sparse).
+   - `next.version = existing.version + 1`, `next.updatedAt = now()`.
+   - `link.setParentalConsent(next)` — JPA dirty checking flush ở commit.
+5. Controller trả consent payload vừa bump.
+
+**Post-condition:** JSONB column `parental_consent` cập nhật; subsequent facet calls re-evaluate `checkConsent`.
+
+**Errors / FE behavior:**
+
+| Error code | HTTP | FE behavior |
+|------------|------|-------------|
+| `AUTH_REQUIRED` | 401 | Redirect `/login` |
+| `BAD_REQUEST` | 400 | Toast "Yêu cầu không hợp lệ" |
+| `PARENT_CONSENT_LINK_NOT_FOUND` | 404 | Toast "Không tìm thấy liên kết phụ huynh-học sinh" + back to dashboard |
+
+### UC-PARENT-COMPLAINT-FILE: Phụ huynh nộp khiếu nại (v1)
+
+**Actor:** Phụ huynh (PARENT user with active `ParentStudentLink`)
+**Pre-condition:** Same. Có ít nhất 1 child linked.
+**Trigger:** Phụ huynh click "Khiếu nại" trên `/parent` cho 1 con cụ thể.
+
+**Main flow:**
+1. FE → `POST /api/v1/parent/complaints` body `{"studentId": 100, "complaintText": "..."}` (Gateway injects `X-User-Reference-Id`).
+2. `ParentComplaintController.fileComplaint()` → `requireParentId()` (401 nếu thiếu header).
+3. Bean validation: `complaintText` 10–2000 chars (nếu fail → 400).
+4. `ParentComplaintService.fileComplaint(parentId, request)`:
+   - Validate args (null → 400 BAD_REQUEST).
+   - **Scope guard (BR-PARENT-PORTAL-013):** `linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(parentId, studentId)` — false → 403 `PARENT_FACET_FORBIDDEN`.
+   - Persist `ParentComplaint` row với status=PENDING.
+5. Controller trả 201 + `{id, studentId, status, createdAt}`.
+
+**Post-condition:** Row tồn tại trong `parent_complaint_queue`. Workflow xử lý (4-level escalation, attachments, resolver UI) ship trong GAP-339 follow-up.
+
+**Errors / FE behavior:**
+
+| Error code | HTTP | FE behavior |
+|------------|------|-------------|
+| `AUTH_REQUIRED` | 401 | Redirect `/login` |
+| `BAD_REQUEST` | 400 | Toast "Nội dung khiếu nại 10–2000 ký tự" |
+| `PARENT_FACET_FORBIDDEN` | 403 | Toast "Bạn không có quyền nộp khiếu nại cho học sinh này" |
+| 5xx | 500 | Retry banner |
+
+### Out of Phase 1C v1 scope
+
+| UC | Where |
+|----|-------|
+| Phụ huynh confirm họp PHHS | GAP-321c follow-up (depends GAP-338) |
+| Phụ huynh xác nhận đã đọc báo cáo hạnh kiểm tháng | GAP-321c follow-up |
+| Phụ huynh xin phép vắng mặt + upload chứng cứ | GAP-321c follow-up (depends MinIO encrypted bucket pattern) |
+| Re-consent prompt khi policy version bump | GAP-321c follow-up |
+| Settings page UI | GAP-321c follow-up (FE) |
+| i18n EN + zh-CN | GAP-321c follow-up |
+
 ## Log
 
+- **2026-05-05** Phase 1C v1 use cases added — Wave 19 Bucket C (GAP-321c v1). 2 new UCs (UC-PARENT-CONSENT-MANAGE, UC-PARENT-COMPLAINT-FILE). Phase 1C v1 wires fees facet end-to-end with the new consent gate; remaining facets + 3 write actions + i18n + settings UI deferred via GAP-321c follow-up filed in this PR.
 - **2026-05-04** Phase 1B foundation use cases added — Wave 18b2 Bucket C (GAP-321b foundation). 4 new facet UCs + 1 cross-cutting audit invariant UC. Conduct + notifications shipped as v1 stubs returning empty data; the scope guard + audit row are the foundation contract.
