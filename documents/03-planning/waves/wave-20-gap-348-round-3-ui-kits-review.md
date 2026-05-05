@@ -1,6 +1,6 @@
 ---
 title: Wave 20 — GAP-348 Round 3 UI Kits Persona-Driven Review
-status: draft
+status: complete
 created: 2026-05-05
 updated: 2026-05-05
 waves: [20]
@@ -183,5 +183,6 @@ Per `gap-done-discipline.md` §3: if any AC genuinely deferred (e.g., Tier-1 Stu
 
 ## 8. Log
 
+- **2026-05-05 (complete):** Wave SHIPPED — 4 PRs (#802 plan + #803 Bucket A + #805 Bucket B + #806 closure). GAP-348 → 🟡 PARTIAL per `gap-done-discipline.md` §3 (polish work deferred to follow-ups). 3 follow-up gaps filed: GAP-363 (P1 BLOCKING — kiteclass-student polish, payments persona violation), GAP-364 (P2 — kitehub-admin polish, school-profile rebuild + 5 items), GAP-365 (P2 BL — Tier-1 S-student.md AC doc). Calibration validated: Bucket A delta -15.6 in band; Bucket B delta -6.1 below band (kit's WCAG ratios + MoET citations + VN K-12 mock data justify). Track 2 ports GAP-269/271 BLOCKED until polish closes. Wall-clock ~3-4h. 29th consecutive 0-clarification wave-pack.
 - **2026-05-05** (draft): Plan created. State-check passed (12 verified ✅, 1 ❌ absent flagged for Part C follow-up, 2 🆕 to-be-created by Buckets A+B). Triggered by user request post-PR #801 merge "trigger luôn GAP-348".
 EOF
