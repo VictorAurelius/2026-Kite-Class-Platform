@@ -56,6 +56,9 @@ Port 12 dense-desktop screens for P5 K-12 School Principal.
 - HTML prototype: `ui_kits/kitehub-admin/` (Wave Round 3 PR #703)
 - Component dependencies: GAP-273 (G1, G3, G4, G8, G10)
 - Cluster 4 KH admin sister gaps: GAP-066/067/068 (existing platform admin scope, oversized — see ROADMAP)
+- **External review (Wave 20 Bucket B, 2026-05-05):** `documents/04-quality/audits/ui-review/2026-05-05-round-3-kitehub-admin-review.md` — avg **101.1/128** APPROVE WITH POLISH
+- **🚫 BLOCKER:** [GAP-364](GAP-364-kitehub-admin-polish-school-profile-rebuild.md) (P2 — school-profile rebuild + 5 medium-priority polish items) MUST close before Track 2 port avg-floor compliance
+- Parent quality-gate gap: [GAP-348](GAP-348-round-3-ui-kits-persona-driven-review.md) (🟡 PARTIAL)
 
 ## Effort estimate
 
