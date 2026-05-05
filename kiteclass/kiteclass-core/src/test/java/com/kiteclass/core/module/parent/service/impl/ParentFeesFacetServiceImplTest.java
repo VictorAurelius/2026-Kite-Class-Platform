@@ -8,6 +8,7 @@ import com.kiteclass.core.module.parent.audit.ParentFacet;
 import com.kiteclass.core.module.parent.audit.ParentReadAuditLogService;
 import com.kiteclass.core.module.parent.dto.ParentFeeFacetResponse;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,7 @@ class ParentFeesFacetServiceImplTest {
     @Mock private ParentStudentLinkRepository linkRepository;
     @Mock private InvoiceRepository invoiceRepository;
     @Mock private ParentReadAuditLogService auditLogService;
+    @Mock private ConsentService consentService;
 
     private ParentFeesFacetServiceImpl service;
 
@@ -58,7 +60,8 @@ class ParentFeesFacetServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new ParentFeesFacetServiceImpl(linkRepository, invoiceRepository, auditLogService);
+        service = new ParentFeesFacetServiceImpl(
+                linkRepository, invoiceRepository, auditLogService, consentService);
     }
 
     @Test
@@ -114,6 +117,8 @@ class ParentFeesFacetServiceImplTest {
     void happyPath_mapsStatusName() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
+                .thenReturn(true);
         Invoice invoice = sampleInvoice(InvoiceStatus.SENT);
         when(invoiceRepository.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(invoice)));
@@ -133,6 +138,8 @@ class ParentFeesFacetServiceImplTest {
     @DisplayName("happy path: invoice with null status maps to null in DTO (covers ternary false branch)")
     void happyPath_nullStatusMapsToNull() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
         Invoice invoice = sampleInvoice(null);
         when(invoiceRepository.findByStudentIdAndDueDateRange(eq(CHILD_ID), eq(FROM), eq(TO), any()))
@@ -156,6 +163,8 @@ class ParentFeesFacetServiceImplTest {
     void realWiring_callsRangeNarrowingRepoMethod() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
+                .thenReturn(true);
         when(invoiceRepository.findByStudentIdAndDueDateRange(
                 eq(CHILD_ID), eq(FROM), eq(TO), any()))
                 .thenReturn(new PageImpl<>(List.of(sampleInvoice(InvoiceStatus.SENT))));
@@ -174,6 +183,8 @@ class ParentFeesFacetServiceImplTest {
     @DisplayName("BR-FEES-002: empty page when no invoice in range — audit row still emitted")
     void realWiring_emptyRange_auditStillEmitted() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
         when(invoiceRepository.findByStudentIdAndDueDateRange(
                 eq(CHILD_ID), eq(FROM), eq(TO), any()))

@@ -7,6 +7,7 @@ import com.kiteclass.core.module.parent.audit.ParentFacet;
 import com.kiteclass.core.module.parent.audit.ParentReadAuditLogService;
 import com.kiteclass.core.module.parent.dto.ParentFeeFacetResponse;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import com.kiteclass.core.module.parent.service.ParentFeesFacetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,14 @@ public class ParentFeesFacetServiceImpl implements ParentFeesFacetService {
     private final ParentStudentLinkRepository linkRepository;
     private final InvoiceRepository invoiceRepository;
     private final ParentReadAuditLogService auditLogService;
+    private final ConsentService consentService;
+
+    /**
+     * BR-PARENT-PORTAL-011 — facet name used for the per-field consent
+     * lookup. Exposed as a constant so the matching FE settings page +
+     * tests reference one symbol.
+     */
+    public static final String CONSENT_FIELD_FEES = "fees";
 
     @Override
     @Transactional(readOnly = true)
@@ -62,6 +71,18 @@ public class ParentFeesFacetServiceImpl implements ParentFeesFacetService {
             log.warn("Parent {} attempted fees read for unlinked child {} — denied",
                     parentId, childId);
             throw new BusinessException("PARENT_FACET_FORBIDDEN", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-011 — PDPL Decree 13/2023 Art 16 granular consent
+        // gate. Scope guard above proves the link exists; this gate proves the
+        // parent has explicitly granted the `fees` field consent. Default
+        // consent (V56 migration) has no fields granted → 403 until parent
+        // toggles via PUT /api/v1/parent/consent.
+        if (!consentService.checkConsent(parentId, childId, CONSENT_FIELD_FEES)) {
+            log.warn("Parent {} attempted fees read for child {} without consent — denied",
+                    parentId, childId);
+            throw new BusinessException(
+                    "PARENT_CONSENT_REQUIRED", HttpStatus.FORBIDDEN);
         }
 
         // BR-PARENT-FACET-FEES-002 — date-range narrowing + EntityGraph

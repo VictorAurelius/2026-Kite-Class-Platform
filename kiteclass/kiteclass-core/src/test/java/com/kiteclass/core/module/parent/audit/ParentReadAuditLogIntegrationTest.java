@@ -8,6 +8,7 @@ import com.kiteclass.core.common.constant.InvoiceStatus;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import com.kiteclass.core.module.parent.service.impl.ParentAttendanceFacetServiceImpl;
 import com.kiteclass.core.module.parent.service.impl.ParentConductFacetServiceImpl;
 import com.kiteclass.core.module.parent.service.impl.ParentFeesFacetServiceImpl;
@@ -66,6 +67,7 @@ class ParentReadAuditLogIntegrationTest {
     @Mock private ParentReadAuditLogService auditLogService;
     @Mock private AttendancePeriodRepository attendanceRepo;
     @Mock private InvoiceRepository invoiceRepo;
+    @Mock private ConsentService consentService;
 
     private ParentAttendanceFacetServiceImpl attendanceService;
     private ParentFeesFacetServiceImpl feesService;
@@ -81,7 +83,8 @@ class ParentReadAuditLogIntegrationTest {
     @BeforeEach
     void setUp() {
         attendanceService = new ParentAttendanceFacetServiceImpl(linkRepository, attendanceRepo, auditLogService);
-        feesService = new ParentFeesFacetServiceImpl(linkRepository, invoiceRepo, auditLogService);
+        feesService = new ParentFeesFacetServiceImpl(
+                linkRepository, invoiceRepo, auditLogService, consentService);
         conductService = new ParentConductFacetServiceImpl(linkRepository, auditLogService);
         notificationsService = new ParentNotificationsFacetServiceImpl(linkRepository, auditLogService);
     }
@@ -118,6 +121,10 @@ class ParentReadAuditLogIntegrationTest {
     @DisplayName("fees: linked parent → audit row recorded with FEES facet")
     void fees_linked_writesAuditRow() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                .thenReturn(true);
+        // Wave 19 Bucket C: BR-PARENT-PORTAL-011 — fees facet now also gated
+        // by ConsentService.checkConsent. Granted consent allows the read.
+        when(consentService.checkConsent(PARENT_ID, CHILD_ID, "fees"))
                 .thenReturn(true);
         // Wave 18b3 Bucket C: stub switched from findByStudentIdAndDeletedFalse
         // to findByStudentIdAndDueDateRange (BR-PARENT-FACET-FEES-002).

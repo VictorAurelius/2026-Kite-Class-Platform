@@ -36,6 +36,10 @@
 
 ---
 
+**2026-05-05 (Wave 19 Bucket C — GAP-321c v1 SHIPPED 🟡 PARTIAL):** Salvaged from pre-WSL-restart agent work; coordinator closure agent verified + finalized. Ships PDPL Decree 13/2023 Art 16 granular consent infrastructure: V56 additive migration (`parental_consent` JSONB + `parent_complaint_queue` table) + ParentalConsent typed record + ConsentService (fail-safe deny on missing key) + ParentConsentController (GET + PUT `/api/v1/parent/consent`) + ParentComplaintController v1 (`POST /api/v1/parent/complaints` with scope guard) + ParentFeesFacetServiceImpl gated end-to-end (returns 403 `PARENT_CONSENT_REQUIRED`) + BR-PARENT-PORTAL-011..013 in `documents/01-business/kiteclass/parent-portal/rules.md` with 5-attribute frontmatter (Source PDPL Decree 13/2023 Art 16 + Luật Giáo dục 2019 Đ.83 K2; Compliance Compliant; Annual + event-driven cadence) + UC-PARENT-CONSENT-MANAGE + UC-PARENT-COMPLAINT-FILE. Verification: `mvn test` 6 targeted tests `BUILD SUCCESS`. Status flip 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 — fees facet wired end-to-end + 1 of 4 write actions live; remaining work tracked in **GAP-360-parent-portal-phase-1c-remainder** (3 write actions + 4 remaining facet gates + i18n EN/zh-CN + settings UI + re-consent flow admin tooling).
+
+---
+
 **2026-05-05 (GAP-362 filed — TenantIsolationIT flake orphan):** P1 test-isolation correctness gap. `TenantIsolationIT.shouldIsolateCourseDataBetweenTenants` (line 148) sporadically fails on `mvn verify` since Wave 14; flagged inline in GAP-347 closure (PR #775) + Wave 19 Bucket A closure (PR #793) as "out of scope, pre-existing" but no dedicated gap until now → orphaned debt. Filed per `audit-to-gap-pipeline.md` Step 1-3 + `gap-done-discipline.md` §2 anti-pattern. Numbered 362 to avoid collision with reserved 359/360/361 (Bucket A/B/C in flight). Wave-eligibility: post-Wave-19 P1.
 
 ---
