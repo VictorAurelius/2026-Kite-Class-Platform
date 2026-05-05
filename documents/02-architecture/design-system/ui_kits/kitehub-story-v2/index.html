@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="vi" class="theme-kitehub">
+<!--
+  kitehub-story v2 — KiteHub marketing landing page (Direction A polish)
+  Persona: P2 Center Owner — trial-signup conversion target
+  GAP-350 / Wave 21 — Round 3 polish from Round 1 baseline (_v1-baseline/)
+  Stack: static HTML + CSS + vanilla JS. NO framework.
+  Tokens: ../_shared/colors_and_type.css (HSL palette, no hardcoded hex outside this file)
+-->
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KiteHub — Cho trung tâm đôi cánh bay cao</title>
+  <meta name="description" content="KiteHub — nền tảng SaaS cho trung tâm giáo dục Việt Nam. Quản lý học viên, lớp học, học phí và thương hiệu trong 1 app. 14 ngày miễn phí." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== HERO (full-bleed dark sky) ============================ -->
+  <section class="kh-hero" id="hero">
+    <div class="kh-hero__grid-bg" aria-hidden="true"></div>
+    <div class="kh-hero__stars" aria-hidden="true"></div>
+
+    <div class="kh-container kh-hero__inner">
+      <div class="kh-hero__copy">
+        <span class="kh-hero__eyebrow">
+          <span class="pulse" aria-hidden="true"></span>
+          Mục tiêu Q4 2026: 200+ trung tâm cùng bay với KiteHub
+        </span>
+        <h1>
+          Cho trung tâm của bạn<br />
+          <span class="grad">đôi cánh</span> bay cao.
+        </h1>
+        <p class="kh-hero__lede">
+          KiteHub gói trọn quản lý học viên, lớp học, học phí và thương hiệu vào một
+          nền tảng. Ít việc tay hơn — nhiều thời gian dạy hơn.
+        </p>
+        <div class="kh-hero__cta-row">
+          <a class="kh-btn kh-btn--primary" href="#pricing">
+            Bắt đầu miễn phí 14 ngày
+            <span aria-hidden="true">→</span>
+          </a>
+          <a class="kh-btn kh-btn--glass" href="#day">
+            ▸ Xem một ngày của chủ trung tâm
+          </a>
+        </div>
+        <div class="kh-hero__trust">
+          <span><span class="check" aria-hidden="true">✓</span> Không cần thẻ tín dụng</span>
+          <span class="divider" aria-hidden="true"></span>
+          <span><span class="check" aria-hidden="true">✓</span> Hủy bất kỳ lúc nào</span>
+          <span class="divider" aria-hidden="true"></span>
+          <span><span class="check" aria-hidden="true">✓</span> Hỗ trợ tiếng Việt 24/7</span>
+        </div>
+      </div>
+
+      <div class="kh-hero__stage" aria-hidden="true">
+        <div class="kh-hero__kite">
+          <svg viewBox="0 0 240 280" width="220" height="260" role="img" aria-label="Kite character mascot">
+            <defs>
+              <linearGradient id="kg1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0"  stop-color="#22D3EE" />
+                <stop offset=".5" stop-color="#0EA5E9" />
+                <stop offset="1"  stop-color="#0284C7" />
+              </linearGradient>
+              <linearGradient id="kg2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#F97316" />
+                <stop offset="1" stop-color="#EA580C" />
+              </linearGradient>
+              <linearGradient id="kg3" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#A855F7" />
+                <stop offset="1" stop-color="#9333EA" />
+              </linearGradient>
+            </defs>
+            <polygon points="120,20 220,100 120,180 20,100" fill="url(#kg1)" stroke="rgba(255,255,255,.30)" stroke-width="2" />
+            <line x1="120" y1="20"  x2="120" y2="180" stroke="rgba(255,255,255,.40)" stroke-width="2" />
+            <line x1="20"  y1="100" x2="220" y2="100" stroke="rgba(255,255,255,.40)" stroke-width="2" />
+            <polygon points="120,30 210,100 120,170 30,100" fill="rgba(255,255,255,.05)" />
+            <circle cx="120" cy="100" r="22" fill="url(#kg2)" stroke="#fff" stroke-width="3" />
+            <circle cx="120" cy="100" r="8"  fill="#FED7AA" />
+            <circle cx="113" cy="98"  r="2"  fill="#0F172A" />
+            <circle cx="127" cy="98"  r="2"  fill="#0F172A" />
+            <path d="M115 106 Q120 110 125 106" stroke="#0F172A" stroke-width="1.5" fill="none" stroke-linecap="round" />
+            <ellipse cx="120" cy="200" rx="12" ry="6" fill="url(#kg2)" />
+            <ellipse cx="120" cy="220" rx="10" ry="5" fill="url(#kg3)" />
+            <ellipse cx="120" cy="238" rx="8"  ry="4" fill="url(#kg2)" />
+          </svg>
+        </div>
+        <div class="kh-hero__tile kh-hero__tile--1">
+          <div class="kh-hero__tile-label">Học viên</div>
+          <div class="kh-hero__tile-value" data-countup="248">248</div>
+          <div class="kh-hero__tile-trend">▲ +18 tuần này</div>
+        </div>
+        <div class="kh-hero__tile kh-hero__tile--2">
+          <div class="kh-hero__tile-label">Doanh thu tháng</div>
+          <div class="kh-hero__tile-value">128M₫</div>
+          <div class="kh-hero__tile-trend">▲ +12.4%</div>
+        </div>
+        <div class="kh-hero__tile kh-hero__tile--3">
+          <div class="kh-hero__tile-label">Lớp đang mở</div>
+          <div class="kh-hero__tile-value" data-countup="42">42</div>
+          <div class="kh-hero__tile-trend">● 38 đầy slot</div>
+        </div>
+        <div class="kh-hero__tile kh-hero__tile--4">
+          <div class="kh-hero__tile-label">Giữ chân</div>
+          <div class="kh-hero__tile-value">94%</div>
+          <div class="kh-hero__tile-trend">♥ Học viên hài lòng</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kh-container">
+      <div class="kh-scroll-cue">
+        <span>Cuộn xuống</span>
+        <div class="line" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Sticky section nav =================================== -->
+  <nav class="kh-nav" aria-label="Mục lục trang">
+    <div class="kh-container kh-nav__inner">
+      <a class="kh-nav__brand" href="#hero">
+        <span class="dot" aria-hidden="true"></span>
+        KiteHub
+      </a>
+      <div class="kh-nav__links">
+        <a href="#features">Tính năng</a>
+        <a href="#before-after">Trước &amp; Sau</a>
+        <a href="#day">Một ngày</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#pricing">Giá</a>
+      </div>
+      <a class="kh-btn kh-btn--primary" href="#pricing" style="padding:0.5rem 1rem;font-size:var(--text-xs);">
+        Dùng thử 14 ngày
+      </a>
+    </div>
+  </nav>
+
+  <!-- ===== Parallax features ==================================== -->
+  <section class="kh-section" id="features">
+    <div class="kh-container kh-parallax">
+      <aside class="kh-parallax__sticky kh-reveal">
+        <span class="kh-eyebrow">
+          <span class="pulse" aria-hidden="true"></span>
+          Tính năng trọng tâm
+        </span>
+        <h2>4 thứ KiteHub làm thay bạn — để bạn còn thời gian dạy.</h2>
+        <p>
+          Không phải dashboard có 100 nút. Là 4 việc sống còn của trung tâm —
+          tự động hết. Cuộn xuống xem từng cái.
+        </p>
+      </aside>
+
+      <div class="kh-parallax__cards">
+        <article class="kh-feature kh-reveal">
+          <div class="kh-feature__icon" aria-hidden="true">📋</div>
+          <div>
+            <h3>Quản lý học viên + lớp học</h3>
+            <p>Ghi danh trong 30 giây. Xếp lịch tự động theo trình độ. Phụ huynh nhận email chào mừng — không cần bạn copy-paste mẫu.</p>
+            <ul class="kh-feature__bullets">
+              <li>Hồ sơ học viên đầy đủ + ảnh chụp</li>
+              <li>Phân loại theo lớp + trình độ + ca học</li>
+              <li>Đồng bộ lịch giáo viên trong 1 view</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="kh-feature kh-reveal">
+          <div class="kh-feature__icon" aria-hidden="true">📱</div>
+          <div>
+            <h3>Điểm danh QR + Zalo OA tự động</h3>
+            <p>Giáo viên quét QR — học viên check-in 10 giây. Phụ huynh nhận thông báo "Bé đã đến lớp" qua Zalo OA. Không cần app riêng.</p>
+            <ul class="kh-feature__bullets">
+              <li>Quét QR offline-first (không cần wifi)</li>
+              <li>Tích hợp Zalo OA (không cần phụ huynh cài app)</li>
+              <li>Báo cáo điểm danh tuần / tháng tự động</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="kh-feature kh-reveal">
+          <div class="kh-feature__icon" aria-hidden="true">💳</div>
+          <div>
+            <h3>Học phí — VNPay / MoMo / chuyển khoản</h3>
+            <p>Phụ huynh thanh toán qua MoMo, VNPay, ZaloPay, hoặc chuyển khoản — tất cả tự đối soát. Không còn excel học phí.</p>
+            <ul class="kh-feature__bullets">
+              <li>Hóa đơn điện tử theo Nghị định 123/2020/NĐ-CP</li>
+              <li>Nhắc nợ tự động qua Zalo + email</li>
+              <li>Báo cáo doanh thu theo lớp + theo tháng</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="kh-feature kh-reveal">
+          <div class="kh-feature__icon" aria-hidden="true">🎨</div>
+          <div>
+            <h3>Thương hiệu riêng — không cần designer</h3>
+            <p>Chọn 6 mẫu sẵn theo phong cách trung tâm. Logo + màu thương hiệu tự áp vào dashboard, hóa đơn, app phụ huynh — chỉ trong 1 wizard 6 bước.</p>
+            <ul class="kh-feature__bullets">
+              <li>6 template chuyên nghiệp (toán/Anh/lập trình/...)</li>
+              <li>WCAG AA tự kiểm tra — màu chữ luôn đọc được</li>
+              <li>Subdomain riêng: <span style="font-family:var(--font-mono);">tencongty.kiteclass.app</span></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Before / After slider ================================ -->
+  <section class="kh-section kh-section--alt" id="before-after">
+    <div class="kh-container">
+      <div class="kh-section__head kh-reveal">
+        <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Trước &amp; Sau Kite</span>
+        <h2>Excel chồng chéo &nbsp;➜&nbsp;
+          <span style="background:linear-gradient(90deg,hsl(199 89% 48%),hsl(25 95% 53%));-webkit-background-clip:text;background-clip:text;color:transparent;">tự động hết</span>
+        </h2>
+        <p>Kéo thanh trượt để so sánh. Bên trái: ngày làm việc tay. Bên phải: với KiteHub.</p>
+      </div>
+
+      <div class="kh-ba kh-reveal">
+        <div class="kh-ba__panel kh-ba__panel--before">
+          <span class="kh-ba__caption kh-ba__caption--before">Trước Kite — tay không</span>
+          <div class="kh-ba__before-mock" aria-label="Mô phỏng workflow thủ công">
+            <div class="row"><span>📊 hocsinh-thang-04.xlsx</span><span>v17 (chưa lưu)</span></div>
+            <div class="row"><span>📞 Gọi phụ huynh nhắc nợ học phí</span><span>~12 cuộc</span></div>
+            <div class="row"><span>📒 Sổ điểm danh — viết tay</span><span>Lớp A2 thiếu 3 bạn?</span></div>
+            <div class="row"><span>📝 Hóa đơn — Word template copy</span><span>~8 hoá đơn/ngày</span></div>
+            <div class="row"><span>📩 Zalo nhắn từng phụ huynh</span><span>"Cô gửi nhầm lớp"</span></div>
+            <div class="row"><span>⏰ 22:00 — vẫn còn excel</span><span>Mai vẫn vậy?</span></div>
+          </div>
+        </div>
+
+        <div class="kh-ba__panel kh-ba__panel--after">
+          <span class="kh-ba__caption kh-ba__caption--after">Sau Kite — tự động</span>
+          <div class="kh-ba__after-mock" aria-label="Mô phỏng KiteHub đã tự động hoá">
+            <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Học viên: 248 — đồng bộ thời gian thực</span></div>
+            <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Học phí MoMo/VNPay tự đối soát</span></div>
+            <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Điểm danh QR — 38/42 lớp đầy slot</span></div>
+            <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Hóa đơn điện tử tự gửi (NĐ 123/2020)</span></div>
+            <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Zalo OA tự động — 248 phụ huynh</span></div>
+            <div class="row"><span class="icon" aria-hidden="true">✓</span><span>21:00 — đóng máy. Báo cáo tự gửi.</span></div>
+          </div>
+        </div>
+
+        <div class="kh-ba__handle" tabindex="0" role="slider"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+             aria-label="So sánh trước và sau khi dùng KiteHub"></div>
+      </div>
+
+      <p class="kh-ba__hint">Kéo thanh ở giữa, hoặc dùng phím ←/→ để so sánh.</p>
+    </div>
+  </section>
+
+  <!-- ===== Một ngày của chủ trung tâm =========================== -->
+  <section class="kh-section" id="day">
+    <div class="kh-container">
+      <div class="kh-section__head kh-reveal">
+        <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Một ngày của chủ trung tâm</span>
+        <h2>
+          Từ 7:30 sáng đến 21:00,<br />
+          <span style="background:linear-gradient(90deg,hsl(199 89% 48%),hsl(262 83% 58%));-webkit-background-clip:text;background-clip:text;color:transparent;">
+            KiteHub lo từng phút
+          </span>
+        </h2>
+        <p>Không phải slide bán hàng. Là một ngày làm việc thật của chủ Trung tâm Toán Master.</p>
+      </div>
+
+      <div class="kh-day kh-reveal">
+        <div class="kh-day__steps" role="tablist" aria-label="Các bước trong ngày">
+          <button type="button" class="kh-day__step is-active" role="tab" aria-selected="true"
+                  data-title="07:30 — Mở trung tâm"
+                  data-meta="Trung tâm Toán Master · Hà Nội"
+                  data-scene="Vừa dậy, mở app. KiteHub đã sẵn lịch hôm nay: 12 buổi học, 3 lớp cần điểm danh, 2 phụ huynh nhắn tin qua Zalo OA. Tất cả gói gọn trên một màn hình.">
+            <div class="kh-day__step-head">
+              <span class="kh-day__step-time">07:30</span>
+              <span class="kh-day__step-icon" aria-hidden="true">🌅</span>
+              <h3>Mở trung tâm</h3>
+            </div>
+            <p>12 buổi học, 3 lớp cần điểm danh, 2 phụ huynh nhắn tin qua Zalo. Tất cả trên 1 màn.</p>
+          </button>
+
+          <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                  data-title="09:00 — Ghi danh học viên mới"
+                  data-meta="Bé Nguyễn Minh Anh · Lớp Toán Lớp 7"
+                  data-scene="Bé Minh Anh đăng ký lớp Toán Lớp 7. Bạn nhập thông tin trong 30 giây. KiteHub tự gửi email chào mừng cho phụ huynh, tự xếp lịch học thử ngày 08/05.">
+            <div class="kh-day__step-head">
+              <span class="kh-day__step-time">09:00</span>
+              <span class="kh-day__step-icon" aria-hidden="true">👤</span>
+              <h3>Ghi danh học viên mới</h3>
+            </div>
+            <p>30 giây nhập thông tin. KiteHub tự gửi email chào mừng + tự xếp lịch học thử.</p>
+          </button>
+
+          <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                  data-title="12:00 — Kiểm tra roster lớp chiều"
+                  data-meta="3 lớp chiều · 87 học viên đăng ký"
+                  data-scene="Trước giờ ăn trưa, lướt qua roster 3 lớp chiều. KiteHub đã đồng bộ giáo viên Lê Minh Tuấn nghỉ — tự gợi ý đổi sang cô Phạm Thị Lan. 1 click duyệt.">
+            <div class="kh-day__step-head">
+              <span class="kh-day__step-time">12:00</span>
+              <span class="kh-day__step-icon" aria-hidden="true">📋</span>
+              <h3>Kiểm tra roster</h3>
+            </div>
+            <p>Giáo viên nghỉ? KiteHub gợi ý người thay — bạn duyệt 1 click.</p>
+          </button>
+
+          <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                  data-title="14:00 — Điểm danh QR"
+                  data-meta="Lớp Toán Lớp 8A · 14:00-15:30"
+                  data-scene="Lớp Toán Lớp 8A bắt đầu. Giáo viên quét QR ở cửa, học viên check-in 10 giây. Phụ huynh nhận thông báo 'Bé đã đến lớp' qua Zalo OA — tự động.">
+            <div class="kh-day__step-head">
+              <span class="kh-day__step-time">14:00</span>
+              <span class="kh-day__step-icon" aria-hidden="true">✅</span>
+              <h3>Điểm danh QR</h3>
+            </div>
+            <p>Quét QR 10 giây. Phụ huynh nhận thông báo Zalo OA tự động.</p>
+          </button>
+
+          <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                  data-title="17:30 — Học phí về"
+                  data-meta="12 thanh toán · 8.940.000 ₫"
+                  data-scene="Phụ huynh thanh toán qua MoMo (8), VNPay (3), chuyển khoản (1). KiteHub tự đối soát, tự cập nhật trạng thái 'Đã đóng' trong sổ học phí. Hoá đơn điện tử tự gửi.">
+            <div class="kh-day__step-head">
+              <span class="kh-day__step-time">17:30</span>
+              <span class="kh-day__step-icon" aria-hidden="true">💳</span>
+              <h3>Học phí về</h3>
+            </div>
+            <p>MoMo / VNPay / chuyển khoản — tự đối soát. Hóa đơn điện tử tự gửi.</p>
+          </button>
+
+          <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                  data-title="21:00 — Đóng máy, ngủ ngon"
+                  data-meta="Báo cáo cuối ngày · 21:00"
+                  data-scene="Báo cáo cuối ngày tự tổng hợp: 87 học viên đến lớp, 12 thanh toán 8.940.000 ₫, không có sự cố. Bạn xem lướt 3 phút. Đóng máy. Mai 7:30 lại bắt đầu.">
+            <div class="kh-day__step-head">
+              <span class="kh-day__step-time">21:00</span>
+              <span class="kh-day__step-icon" aria-hidden="true">🌙</span>
+              <h3>Đóng máy, ngủ ngon</h3>
+            </div>
+            <p>Báo cáo tự tổng hợp. Bạn xem lướt 3 phút — KiteHub không bao giờ ngủ.</p>
+          </button>
+        </div>
+
+        <aside class="kh-day__stage" aria-live="polite">
+          <div class="kh-day__scene">
+            <div class="kh-day__scene-title" data-scene-title>07:30 — Mở trung tâm</div>
+            <div class="kh-day__scene-meta"  data-scene-meta>Trung tâm Toán Master · Hà Nội</div>
+            <div class="kh-day__scene-body"  data-scene-body>
+              Vừa dậy, mở app. KiteHub đã sẵn lịch hôm nay: 12 buổi học, 3 lớp cần điểm danh,
+              2 phụ huynh nhắn tin qua Zalo OA. Tất cả gói gọn trên một màn hình.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Mock dashboard ====================================== -->
+  <section class="kh-section kh-section--alt" id="dashboard">
+    <div class="kh-container">
+      <div class="kh-section__head kh-reveal">
+        <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Dashboard chủ trung tâm</span>
+        <h2>Số liệu sống — không phải báo cáo cuối tháng nữa.</h2>
+        <p>KPI cập nhật theo phút. Học phí về — bạn nhận thông báo ngay.</p>
+      </div>
+
+      <div class="kh-dash kh-reveal" role="region" aria-label="Mô phỏng dashboard chủ trung tâm">
+        <div class="kh-dash__head">
+          <div>
+            <div class="kh-dash__title">Trung tâm Toán Master</div>
+            <div class="kh-dash__sub">Hôm nay · 05/05/2026</div>
+          </div>
+          <span class="kh-dash__live" aria-label="Cập nhật trực tiếp">Live</span>
+        </div>
+
+        <div class="kh-dash__kpis">
+          <div class="kh-dash__kpi">
+            <div class="kh-dash__kpi-label">Học viên</div>
+            <div class="kh-dash__kpi-value" data-countup="248">248</div>
+            <div class="kh-dash__kpi-delta">▲ +18 tuần</div>
+          </div>
+          <div class="kh-dash__kpi">
+            <div class="kh-dash__kpi-label">Doanh thu</div>
+            <div class="kh-dash__kpi-value">128M₫</div>
+            <div class="kh-dash__kpi-delta">▲ +12.4%</div>
+          </div>
+          <div class="kh-dash__kpi">
+            <div class="kh-dash__kpi-label">Lớp đang mở</div>
+            <div class="kh-dash__kpi-value" data-countup="42">42</div>
+            <div class="kh-dash__kpi-delta">● 38 đầy slot</div>
+          </div>
+          <div class="kh-dash__kpi">
+            <div class="kh-dash__kpi-label">Giữ chân</div>
+            <div class="kh-dash__kpi-value">94%</div>
+            <div class="kh-dash__kpi-delta">▲ +2.1%</div>
+          </div>
+        </div>
+
+        <div class="kh-dash__chart" aria-hidden="true">
+          <svg viewBox="0 0 600 240" preserveAspectRatio="none">
+            <g stroke="hsl(214 32% 91%)" stroke-width="1" stroke-dasharray="2 4">
+              <line x1="0" y1="60"  x2="600" y2="60"  />
+              <line x1="0" y1="120" x2="600" y2="120" />
+              <line x1="0" y1="180" x2="600" y2="180" />
+            </g>
+            <path class="area"
+                  d="M 0,200 L 50,180 L 100,170 L 150,150 L 200,140 L 250,110 L 300,100 L 350,80 L 400,70 L 450,55 L 500,40 L 550,30 L 600,20 L 600,240 L 0,240 Z" />
+            <path class="line"
+                  d="M 0,200 L 50,180 L 100,170 L 150,150 L 200,140 L 250,110 L 300,100 L 350,80 L 400,70 L 450,55 L 500,40 L 550,30 L 600,20" />
+            <circle class="dot" cx="50"  cy="180" r="4" />
+            <circle class="dot" cx="150" cy="150" r="4" />
+            <circle class="dot" cx="250" cy="110" r="4" />
+            <circle class="dot" cx="350" cy="80"  r="4" />
+            <circle class="dot" cx="450" cy="55"  r="4" />
+            <circle class="dot" cx="550" cy="30"  r="4" />
+          </svg>
+        </div>
+
+        <div class="kh-dash__notif" role="status" aria-live="polite">
+          <span class="icon" aria-hidden="true">✓</span>
+          <div>
+            <strong>Học phí mới</strong>
+            <span>Trần Quốc Bảo · 999.000đ · MoMo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Pricing CTA ========================================= -->
+  <section class="kh-section" id="pricing">
+    <div class="kh-container">
+      <div class="kh-section__head kh-reveal">
+        <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Giá rõ ràng</span>
+        <h2>Bắt đầu miễn phí. Không thẻ tín dụng.</h2>
+        <p>14 ngày dùng đầy đủ tính năng. Hết thử — chọn gói phù hợp, hoặc xuống FREE.</p>
+      </div>
+
+      <div class="kh-pricing kh-reveal">
+        <article class="kh-tier">
+          <div class="kh-tier__name">FREE</div>
+          <div class="kh-tier__price">0₫ <small>/tháng</small></div>
+          <ul class="kh-tier__features">
+            <li>Tối đa 30 học viên</li>
+            <li>1 chi nhánh</li>
+            <li>Điểm danh QR cơ bản</li>
+            <li>Hỗ trợ qua email</li>
+          </ul>
+          <a class="kh-btn kh-btn--ghost" href="#" style="justify-content:center;margin-top:auto;">Bắt đầu free</a>
+        </article>
+
+        <article class="kh-tier kh-tier--featured">
+          <div class="kh-tier__name">PRO</div>
+          <div class="kh-tier__price">999.000đ <small>/tháng</small></div>
+          <ul class="kh-tier__features">
+            <li>Không giới hạn học viên</li>
+            <li>3 chi nhánh</li>
+            <li>Zalo OA + Email tự động</li>
+            <li>Hóa đơn điện tử (NĐ 123/2020)</li>
+            <li>Báo cáo doanh thu</li>
+            <li>Hỗ trợ 24/7 tiếng Việt</li>
+          </ul>
+          <a class="kh-btn kh-btn--primary" href="#" style="justify-content:center;margin-top:auto;">
+            Dùng thử 14 ngày
+          </a>
+        </article>
+
+        <article class="kh-tier">
+          <div class="kh-tier__name">PREMIUM</div>
+          <div class="kh-tier__price">2.499.000đ <small>/tháng</small></div>
+          <ul class="kh-tier__features">
+            <li>Tất cả PRO</li>
+            <li>Không giới hạn chi nhánh</li>
+            <li>AI Branding wizard</li>
+            <li>Subdomain riêng</li>
+            <li>Tích hợp API tùy chỉnh</li>
+            <li>Account Manager riêng</li>
+          </ul>
+          <a class="kh-btn kh-btn--ghost" href="#" style="justify-content:center;margin-top:auto;">Liên hệ tư vấn</a>
+        </article>
+      </div>
+
+      <div style="text-align:center;margin-top:3rem;" class="kh-reveal">
+        <p style="font-size:var(--text-sm);color:hsl(var(--muted-foreground));margin-bottom:1rem;">
+          Đã sẵn sàng cho trung tâm bay cao?
+        </p>
+        <a class="kh-btn kh-btn--primary" href="#" style="font-size:var(--text-base);padding:1rem 2rem;">
+          Bắt đầu miễn phí 14 ngày &nbsp;→
+        </a>
+        <p style="font-size:var(--text-xs);color:hsl(var(--muted-foreground));margin-top:1rem;">
+          Cần tư vấn? Gọi <strong>0901 234 567</strong> · 8:00–22:00 mọi ngày
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ============================================== -->
+  <footer class="kh-footer">
+    <div class="kh-container">
+      <div class="kh-footer__brand">KiteHub · Cho trung tâm đôi cánh bay cao</div>
+      <p>© 2026 KiteHub. Prototype kit · GAP-350 · Wave 21.</p>
+      <p style="margin-top:0.5rem;font-size:var(--text-xs);">
+        <a href="../index.html" style="color:inherit;">← Quay lại design system</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="scripts.js" defer></script>
+</body>
+</html>

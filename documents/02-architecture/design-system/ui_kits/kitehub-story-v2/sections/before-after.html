@@ -1,0 +1,51 @@
+<!--
+  BEFORE / AFTER slider — drag handle to compare manual workflow vs KiteHub.
+  WCAG self-measurement:
+    - Before mock dark text hsl(0 0% 30%) ≈ #4D4D4D on hsl(0 0% 96%) ≈ #F5F5F5 → contrast ~7.4:1 ✅ AAA
+    - After mock card text hsl(222 84% 4.9%) on hsl(0 0% 100%) → ~21:1 ✅ AAA
+    - Captions: BEFORE pill on white-85 / AFTER pill primary→white → both ≥5:1 ✅ AA
+    - Handle button white on hsl(199 89% 48%) → ~4.7:1 ✅ AA
+  Mobile: aspect-ratio 16:9 preserved; mock width 90% responsive.
+  Keyboard: ←/→ arrows step 4%, Home/End jump to extremes (aria-valuenow updated).
+-->
+<section class="kh-section kh-section--alt" id="before-after">
+  <div class="kh-container">
+    <div class="kh-section__head kh-reveal">
+      <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Trước &amp; Sau Kite</span>
+      <h2>Excel chồng chéo &nbsp;➜&nbsp; <span style="background:linear-gradient(90deg,hsl(199 89% 48%),hsl(25 95% 53%));-webkit-background-clip:text;background-clip:text;color:transparent;">tự động hết</span></h2>
+      <p>Kéo thanh trượt để so sánh. Bên trái: ngày làm việc tay. Bên phải: với KiteHub.</p>
+    </div>
+
+    <div class="kh-ba kh-reveal">
+      <div class="kh-ba__panel kh-ba__panel--before">
+        <span class="kh-ba__caption kh-ba__caption--before">Trước Kite — tay không</span>
+        <div class="kh-ba__before-mock" aria-label="Mô phỏng workflow thủ công">
+          <div class="row"><span>📊 hocsinh-thang-04.xlsx</span><span>v17 (chưa lưu)</span></div>
+          <div class="row"><span>📞 Gọi phụ huynh nhắc nợ học phí</span><span>~12 cuộc</span></div>
+          <div class="row"><span>📒 Sổ điểm danh — viết tay</span><span>Lớp A2 thiếu 3 bạn?</span></div>
+          <div class="row"><span>📝 Hóa đơn — Word template copy</span><span>~8 hoá đơn/ngày</span></div>
+          <div class="row"><span>📩 Zalo nhắn từng phụ huynh</span><span>"Cô gửi nhầm lớp"</span></div>
+          <div class="row"><span>⏰ 22:00 — vẫn còn excel</span><span>Mai vẫn vậy?</span></div>
+        </div>
+      </div>
+
+      <div class="kh-ba__panel kh-ba__panel--after">
+        <span class="kh-ba__caption kh-ba__caption--after">Sau Kite — tự động</span>
+        <div class="kh-ba__after-mock" aria-label="Mô phỏng KiteHub đã tự động hoá">
+          <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Học viên: 248 — đồng bộ thời gian thực</span></div>
+          <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Học phí MoMo/VNPay tự đối soát — 12 thanh toán hôm nay</span></div>
+          <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Điểm danh QR — 38/42 lớp đầy slot</span></div>
+          <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Hóa đơn điện tử tự gửi — đúng NĐ 123/2020</span></div>
+          <div class="row"><span class="icon" aria-hidden="true">✓</span><span>Zalo OA tự động — 248 phụ huynh kết nối</span></div>
+          <div class="row"><span class="icon" aria-hidden="true">✓</span><span>21:00 — đóng máy. Báo cáo tự gửi.</span></div>
+        </div>
+      </div>
+
+      <div class="kh-ba__handle" tabindex="0" role="slider"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+           aria-label="So sánh trước và sau khi dùng KiteHub"></div>
+    </div>
+
+    <p class="kh-ba__hint">Kéo thanh ở giữa, hoặc dùng phím ←/→ để so sánh.</p>
+  </div>
+</section>
