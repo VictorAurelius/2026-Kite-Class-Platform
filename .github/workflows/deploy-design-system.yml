@@ -1,15 +1,17 @@
 name: Deploy Design System to GitHub Pages
 
-# 1-time user setup REQUIRED before this workflow can succeed:
-#   1. Repo Settings → Pages → Source = "GitHub Actions"
-#   2. Trigger first run: gh workflow run deploy-design-system.yml
+# Auto-deploy enabled 2026-05-05 after first successful manual run
+# (run #25364989414) confirmed Pages source = "GitHub Actions" wired correctly.
 #
-# After the first successful manual run, change the trigger below to
-# include `push:` on `main` for `documents/02-architecture/design-system/ui_kits/**`
-# if auto-rebuild on every UI change is desired.
-#
-# Manual-only trigger keeps CI green until Pages is enabled by repo owner.
+# Triggers:
+#   - push to main when ui_kits/** changes (auto-rebuild on UI kit changes)
+#   - manual workflow_dispatch (kept for ad-hoc re-deploy or rollback)
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'documents/02-architecture/design-system/ui_kits/**'
+      - '.github/workflows/deploy-design-system.yml'
   workflow_dispatch:
 
 permissions:
