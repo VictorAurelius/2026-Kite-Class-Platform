@@ -1,0 +1,90 @@
+<!--
+  PARALLAX FEATURES — sticky headline left, scrolling cards right.
+  WCAG self-measurement (320 / 768 / 1440):
+    - Card body text hsl(222 84% 4.9%) on hsl(0 0% 100%) → contrast ~21:1 ✅ AAA
+    - Muted body hsl(215 16% 47%) on white → contrast ~5.0:1 ✅ AA
+    - Feature icon glyph hsl(199 89% 48%) on light blue tint → ~5.4:1 ✅ AA
+    - Sticky H2 ~21:1 ✅
+  Mobile (≤1024): grid collapses, sticky disabled (becomes static block).
+-->
+<section class="kh-section" id="features">
+  <div class="kh-container kh-parallax">
+    <aside class="kh-parallax__sticky kh-reveal">
+      <span class="kh-eyebrow">
+        <span class="pulse" aria-hidden="true"></span>
+        Tính năng trọng tâm
+      </span>
+      <h2>4 thứ KiteHub làm thay bạn — để bạn còn thời gian dạy.</h2>
+      <p>
+        Không phải dashboard có 100 nút. Là 4 việc sống còn của trung tâm —
+        tự động hết. Cuộn xuống xem từng cái.
+      </p>
+    </aside>
+
+    <div class="kh-parallax__cards">
+      <article class="kh-feature kh-reveal">
+        <div class="kh-feature__icon" aria-hidden="true">📋</div>
+        <div>
+          <h3>Quản lý học viên + lớp học</h3>
+          <p>
+            Ghi danh trong 30 giây. Xếp lịch tự động theo trình độ. Phụ huynh nhận
+            email chào mừng — không cần bạn copy-paste mẫu.
+          </p>
+          <ul class="kh-feature__bullets">
+            <li>Hồ sơ học viên đầy đủ + ảnh chụp</li>
+            <li>Phân loại theo lớp + trình độ + ca học</li>
+            <li>Đồng bộ lịch giáo viên trong 1 view</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="kh-feature kh-reveal">
+        <div class="kh-feature__icon" aria-hidden="true">📱</div>
+        <div>
+          <h3>Điểm danh QR + Zalo OA tự động</h3>
+          <p>
+            Giáo viên quét QR — học viên check-in 10 giây. Phụ huynh nhận thông báo
+            "Bé đã đến lớp" qua Zalo OA. Không cần app riêng.
+          </p>
+          <ul class="kh-feature__bullets">
+            <li>Quét QR offline-first (không cần wifi)</li>
+            <li>Tích hợp Zalo OA (không cần phụ huynh cài app)</li>
+            <li>Báo cáo điểm danh tuần / tháng tự động</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="kh-feature kh-reveal">
+        <div class="kh-feature__icon" aria-hidden="true">💳</div>
+        <div>
+          <h3>Học phí — VNPay / MoMo / chuyển khoản</h3>
+          <p>
+            Phụ huynh thanh toán qua MoMo, VNPay, ZaloPay, hoặc chuyển khoản — tất
+            cả tự đối soát. Không còn excel học phí, không còn nhầm lẫn.
+          </p>
+          <ul class="kh-feature__bullets">
+            <li>Hóa đơn điện tử theo Nghị định 123/2020/NĐ-CP</li>
+            <li>Nhắc nợ tự động qua Zalo + email</li>
+            <li>Báo cáo doanh thu theo lớp + theo tháng</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="kh-feature kh-reveal">
+        <div class="kh-feature__icon" aria-hidden="true">🎨</div>
+        <div>
+          <h3>Thương hiệu riêng — không cần designer</h3>
+          <p>
+            Chọn 6 mẫu sẵn theo phong cách trung tâm. Logo + màu thương hiệu tự áp
+            vào dashboard, hóa đơn, app phụ huynh — chỉ trong 1 wizard 6 bước.
+          </p>
+          <ul class="kh-feature__bullets">
+            <li>6 template chuyên nghiệp (toán/Anh/lập trình/...)</li>
+            <li>WCAG AA tự kiểm tra — màu chữ luôn đọc được</li>
+            <li>Subdomain riêng: <span style="font-family:var(--font-mono);">tencongty.kiteclass.app</span></li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

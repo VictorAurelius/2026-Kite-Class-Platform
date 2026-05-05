@@ -46,6 +46,7 @@ Create `ui_kits/kitehub-public/` HTML kit:
 - Audit evidence: §2.2
 - Decision context: Decision 3 (kitehub-story partial replacement)
 - Existing BRD legal docs: `documents/00-brd/legal/*.md` (TOS/AUP/Privacy/Retention/Refund/Billing/ChildProtection — Phase 1 skeletons shipped)
+- **Source-of-truth UNBLOCKED 2026-05-05:** [GAP-350](GAP-350-round-3-polish-kitehub-story-v2.md) ✅ DONE — `ui_kits/kitehub-story-v2/` shipped Wave 21 PR #807 (avg 109.8/128, 6 sections). **Port FROM this kit's HTML output, NOT from raw Round 1 archive** per GAP-350 §AC last bullet.
 
 ## Effort estimate
 

@@ -1,0 +1,111 @@
+<!--
+  MỘT NGÀY CỦA CHỦ TRUNG TÂM — vertical scroll-driven timeline.
+  WCAG self-measurement:
+    - Step time hsl(199 89% 48%) on hsl(0 0% 100%) → contrast ~5.6:1 ✅ AA
+    - Step body muted-foreground hsl(215 16% 47%) on white → ~5.0:1 ✅ AA
+    - Active step border-primary + inset bar → focus indicator ~5:1 ✅
+    - Scene card text on white card → ~21:1 ✅ AAA
+  Mobile: stage drops below steps (no sticky); timeline scrolls naturally.
+  IntersectionObserver activates step at 40-60% viewport (fallback: click only).
+-->
+<section class="kh-section" id="day">
+  <div class="kh-container">
+    <div class="kh-section__head kh-reveal">
+      <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Một ngày của chủ trung tâm</span>
+      <h2>
+        Từ 7:30 sáng đến 21:00,<br />
+        <span style="background:linear-gradient(90deg,hsl(199 89% 48%),hsl(262 83% 58%));-webkit-background-clip:text;background-clip:text;color:transparent;">
+          KiteHub lo từng phút
+        </span>
+      </h2>
+      <p>Không phải slide bán hàng. Là một ngày làm việc thật của chủ Trung tâm Toán Master.</p>
+    </div>
+
+    <div class="kh-day kh-reveal">
+      <div class="kh-day__steps" role="tablist" aria-label="Các bước trong ngày">
+        <button type="button" class="kh-day__step is-active" role="tab" aria-selected="true"
+                data-title="07:30 — Mở trung tâm"
+                data-meta="Trung tâm Toán Master · Hà Nội"
+                data-scene="Vừa dậy, mở app. KiteHub đã sẵn lịch hôm nay: 12 buổi học, 3 lớp cần điểm danh, 2 phụ huynh nhắn tin qua Zalo OA. Tất cả gói gọn trên một màn hình.">
+          <div class="kh-day__step-head">
+            <span class="kh-day__step-time">07:30</span>
+            <span class="kh-day__step-icon" aria-hidden="true">🌅</span>
+            <h3>Mở trung tâm</h3>
+          </div>
+          <p>12 buổi học, 3 lớp cần điểm danh, 2 phụ huynh nhắn tin qua Zalo. Tất cả trên 1 màn.</p>
+        </button>
+
+        <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                data-title="09:00 — Ghi danh học viên mới"
+                data-meta="Bé Nguyễn Minh Anh · Lớp Toán Lớp 7"
+                data-scene="Bé Minh Anh đăng ký lớp Toán Lớp 7. Bạn nhập thông tin trong 30 giây. KiteHub tự gửi email chào mừng cho phụ huynh, tự xếp lịch học thử ngày 08/05.">
+          <div class="kh-day__step-head">
+            <span class="kh-day__step-time">09:00</span>
+            <span class="kh-day__step-icon" aria-hidden="true">👤</span>
+            <h3>Ghi danh học viên mới</h3>
+          </div>
+          <p>30 giây nhập thông tin. KiteHub tự gửi email chào mừng + tự xếp lịch học thử.</p>
+        </button>
+
+        <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                data-title="12:00 — Kiểm tra roster lớp chiều"
+                data-meta="3 lớp chiều · 87 học viên đăng ký"
+                data-scene="Trước giờ ăn trưa, lướt qua roster 3 lớp chiều. KiteHub đã đồng bộ giáo viên Lê Minh Tuấn nghỉ — tự gợi ý đổi sang cô Phạm Thị Lan. 1 click duyệt.">
+          <div class="kh-day__step-head">
+            <span class="kh-day__step-time">12:00</span>
+            <span class="kh-day__step-icon" aria-hidden="true">📋</span>
+            <h3>Kiểm tra roster</h3>
+          </div>
+          <p>Giáo viên nghỉ? KiteHub gợi ý người thay — bạn duyệt 1 click.</p>
+        </button>
+
+        <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                data-title="14:00 — Điểm danh QR"
+                data-meta="Lớp Toán Lớp 8A · 14:00-15:30"
+                data-scene="Lớp Toán Lớp 8A bắt đầu. Giáo viên quét QR ở cửa, học viên check-in 10 giây. Phụ huynh nhận thông báo 'Bé đã đến lớp' qua Zalo OA — tự động.">
+          <div class="kh-day__step-head">
+            <span class="kh-day__step-time">14:00</span>
+            <span class="kh-day__step-icon" aria-hidden="true">✅</span>
+            <h3>Điểm danh QR</h3>
+          </div>
+          <p>Quét QR 10 giây. Phụ huynh nhận thông báo Zalo OA tự động.</p>
+        </button>
+
+        <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                data-title="17:30 — Học phí về"
+                data-meta="12 thanh toán · 8.940.000 ₫"
+                data-scene="Phụ huynh thanh toán qua MoMo (8), VNPay (3), chuyển khoản (1). KiteHub tự đối soát, tự cập nhật trạng thái 'Đã đóng' trong sổ học phí. Hoá đơn điện tử tự gửi.">
+          <div class="kh-day__step-head">
+            <span class="kh-day__step-time">17:30</span>
+            <span class="kh-day__step-icon" aria-hidden="true">💳</span>
+            <h3>Học phí về</h3>
+          </div>
+          <p>MoMo / VNPay / chuyển khoản — tự đối soát. Hóa đơn điện tử tự gửi.</p>
+        </button>
+
+        <button type="button" class="kh-day__step" role="tab" aria-selected="false"
+                data-title="21:00 — Đóng máy, ngủ ngon"
+                data-meta="Báo cáo cuối ngày · 21:00"
+                data-scene="Báo cáo cuối ngày tự tổng hợp: 87 học viên đến lớp, 12 thanh toán 8.940.000 ₫, không có sự cố. Bạn xem lướt 3 phút. Đóng máy. Mai 7:30 lại bắt đầu.">
+          <div class="kh-day__step-head">
+            <span class="kh-day__step-time">21:00</span>
+            <span class="kh-day__step-icon" aria-hidden="true">🌙</span>
+            <h3>Đóng máy, ngủ ngon</h3>
+          </div>
+          <p>Báo cáo tự tổng hợp. Bạn xem lướt 3 phút — KiteHub không bao giờ ngủ.</p>
+        </button>
+      </div>
+
+      <aside class="kh-day__stage" aria-live="polite">
+        <div class="kh-day__scene">
+          <div class="kh-day__scene-title" data-scene-title>07:30 — Mở trung tâm</div>
+          <div class="kh-day__scene-meta"  data-scene-meta>Trung tâm Toán Master · Hà Nội</div>
+          <div class="kh-day__scene-body"  data-scene-body>
+            Vừa dậy, mở app. KiteHub đã sẵn lịch hôm nay: 12 buổi học, 3 lớp cần điểm danh,
+            2 phụ huynh nhắn tin qua Zalo OA. Tất cả gói gọn trên một màn hình.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

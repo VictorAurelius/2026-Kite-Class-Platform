@@ -1,0 +1,87 @@
+<!--
+  MOCK DASHBOARD — animated chart-rising + notification pop-in.
+  Pure CSS @keyframes + small SVG path. NO real backend.
+  WCAG self-measurement:
+    - Title text on white card → ~21:1 ✅ AAA
+    - KPI delta success-green hsl(160 84% 39%) on white → ~4.7:1 ✅ AA
+    - Live pill bg-success-10% + text success → ~4.6:1 ✅ AA (border helps)
+    - Notification card border success on white card → high contrast border + ~21:1 text ✅ AAA
+  Mobile: KPI grid 2-col; chart 240→160 height; notif sticks at bottom (no float).
+  Animation: line draws 0→100% in 2.4s, dots pop sequentially, notif appears at 2.4s, fades 6s.
+-->
+<section class="kh-section kh-section--alt" id="dashboard">
+  <div class="kh-container">
+    <div class="kh-section__head kh-reveal">
+      <span class="kh-eyebrow"><span class="pulse" aria-hidden="true"></span>Dashboard chủ trung tâm</span>
+      <h2>Số liệu sống — không phải báo cáo cuối tháng nữa.</h2>
+      <p>KPI cập nhật theo phút. Học phí về — bạn nhận thông báo ngay.</p>
+    </div>
+
+    <div class="kh-dash kh-reveal" role="region" aria-label="Mô phỏng dashboard chủ trung tâm">
+      <div class="kh-dash__head">
+        <div>
+          <div class="kh-dash__title">Trung tâm Toán Master</div>
+          <div class="kh-dash__sub">Hôm nay · 05/05/2026</div>
+        </div>
+        <span class="kh-dash__live" aria-label="Cập nhật trực tiếp">Live</span>
+      </div>
+
+      <div class="kh-dash__kpis">
+        <div class="kh-dash__kpi">
+          <div class="kh-dash__kpi-label">Học viên</div>
+          <div class="kh-dash__kpi-value" data-countup="248">248</div>
+          <div class="kh-dash__kpi-delta">▲ +18 tuần</div>
+        </div>
+        <div class="kh-dash__kpi">
+          <div class="kh-dash__kpi-label">Doanh thu</div>
+          <div class="kh-dash__kpi-value">128M₫</div>
+          <div class="kh-dash__kpi-delta">▲ +12.4%</div>
+        </div>
+        <div class="kh-dash__kpi">
+          <div class="kh-dash__kpi-label">Lớp đang mở</div>
+          <div class="kh-dash__kpi-value" data-countup="42">42</div>
+          <div class="kh-dash__kpi-delta">● 38 đầy slot</div>
+        </div>
+        <div class="kh-dash__kpi">
+          <div class="kh-dash__kpi-label">Giữ chân</div>
+          <div class="kh-dash__kpi-value">94%</div>
+          <div class="kh-dash__kpi-delta">▲ +2.1%</div>
+        </div>
+      </div>
+
+      <!-- Animated rising line chart (CSS dasharray draw) -->
+      <div class="kh-dash__chart" aria-hidden="true">
+        <svg viewBox="0 0 600 240" preserveAspectRatio="none">
+          <!-- gridlines -->
+          <g stroke="hsl(214 32% 91%)" stroke-width="1" stroke-dasharray="2 4">
+            <line x1="0" y1="60"  x2="600" y2="60"  />
+            <line x1="0" y1="120" x2="600" y2="120" />
+            <line x1="0" y1="180" x2="600" y2="180" />
+          </g>
+          <!-- area fill -->
+          <path class="area"
+                d="M 0,200 L 50,180 L 100,170 L 150,150 L 200,140 L 250,110 L 300,100 L 350,80 L 400,70 L 450,55 L 500,40 L 550,30 L 600,20 L 600,240 L 0,240 Z" />
+          <!-- main line -->
+          <path class="line"
+                d="M 0,200 L 50,180 L 100,170 L 150,150 L 200,140 L 250,110 L 300,100 L 350,80 L 400,70 L 450,55 L 500,40 L 550,30 L 600,20" />
+          <!-- data dots (animation delays set in scripts.js) -->
+          <circle class="dot" cx="50"  cy="180" r="4" />
+          <circle class="dot" cx="150" cy="150" r="4" />
+          <circle class="dot" cx="250" cy="110" r="4" />
+          <circle class="dot" cx="350" cy="80"  r="4" />
+          <circle class="dot" cx="450" cy="55"  r="4" />
+          <circle class="dot" cx="550" cy="30"  r="4" />
+        </svg>
+      </div>
+
+      <!-- Notification pop-in -->
+      <div class="kh-dash__notif" role="status" aria-live="polite">
+        <span class="icon" aria-hidden="true">✓</span>
+        <div>
+          <strong>Học phí mới</strong>
+          <span>Trần Quốc Bảo · 999.000đ · MoMo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

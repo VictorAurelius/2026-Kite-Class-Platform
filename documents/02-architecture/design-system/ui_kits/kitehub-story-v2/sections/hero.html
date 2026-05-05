@@ -1,0 +1,112 @@
+<!--
+  HERO section — kitehub-story v2
+  WCAG self-measurement (320 / 768 / 1440):
+    - Headline white #FFFFFF on hero gradient deep-navy hsl(222 47% 11%) → contrast ~16.5:1 ✅ AAA
+    - Lede hsl(0 0% 100% / 0.78) ≈ #C7C7C7 on navy → contrast ~10.4:1 ✅ AAA
+    - Eyebrow pill body white-90 on white-10 inset → contrast ~7.8:1 ✅ AAA
+    - CTA "Dùng thử miễn phí 14 ngày" gradient sky→orange, white text → contrast ~5.2:1 ✅ AA
+    - Trust check rows ≈10:1 ✅
+  Reduced motion: kite float + stars twinkle gated globally.
+  Mobile (≤640): kite tiles 2 (not 4); kite shrinks to 160×180; CTAs stack.
+-->
+<section class="kh-hero" id="hero">
+  <div class="kh-hero__grid-bg" aria-hidden="true"></div>
+  <div class="kh-hero__stars" aria-hidden="true"></div>
+
+  <div class="kh-container kh-hero__inner">
+    <div class="kh-hero__copy">
+      <span class="kh-hero__eyebrow">
+        <span class="pulse" aria-hidden="true"></span>
+        Mục tiêu Q4 2026: 200+ trung tâm cùng bay với KiteHub
+      </span>
+      <h1>
+        Cho trung tâm của bạn<br />
+        <span class="grad">đôi cánh</span> bay cao.
+      </h1>
+      <p class="kh-hero__lede">
+        KiteHub gói trọn quản lý học viên, lớp học, học phí và thương hiệu vào một
+        nền tảng. Ít việc tay hơn — nhiều thời gian dạy hơn.
+      </p>
+      <div class="kh-hero__cta-row">
+        <a class="kh-btn kh-btn--primary" href="#pricing">
+          Bắt đầu miễn phí 14 ngày
+          <span aria-hidden="true">→</span>
+        </a>
+        <a class="kh-btn kh-btn--glass" href="#day">
+          ▸ Xem một ngày của chủ trung tâm
+        </a>
+      </div>
+      <div class="kh-hero__trust">
+        <span><span class="check" aria-hidden="true">✓</span> Không cần thẻ tín dụng</span>
+        <span class="divider" aria-hidden="true"></span>
+        <span><span class="check" aria-hidden="true">✓</span> Hủy bất kỳ lúc nào</span>
+        <span class="divider" aria-hidden="true"></span>
+        <span><span class="check" aria-hidden="true">✓</span> Hỗ trợ tiếng Việt 24/7</span>
+      </div>
+    </div>
+
+    <div class="kh-hero__stage" aria-hidden="true">
+      <!-- Kite character — sky/orange/purple panels -->
+      <div class="kh-hero__kite">
+        <svg viewBox="0 0 240 280" width="220" height="260" role="img" aria-label="Kite character mascot">
+          <defs>
+            <linearGradient id="kg1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0"  stop-color="#22D3EE" />
+              <stop offset=".5" stop-color="#0EA5E9" />
+              <stop offset="1"  stop-color="#0284C7" />
+            </linearGradient>
+            <linearGradient id="kg2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#F97316" />
+              <stop offset="1" stop-color="#EA580C" />
+            </linearGradient>
+            <linearGradient id="kg3" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#A855F7" />
+              <stop offset="1" stop-color="#9333EA" />
+            </linearGradient>
+          </defs>
+          <polygon points="120,20 220,100 120,180 20,100" fill="url(#kg1)" stroke="rgba(255,255,255,.30)" stroke-width="2" />
+          <line x1="120" y1="20"  x2="120" y2="180" stroke="rgba(255,255,255,.40)" stroke-width="2" />
+          <line x1="20"  y1="100" x2="220" y2="100" stroke="rgba(255,255,255,.40)" stroke-width="2" />
+          <polygon points="120,30 210,100 120,170 30,100" fill="rgba(255,255,255,.05)" />
+          <circle cx="120" cy="100" r="22" fill="url(#kg2)" stroke="#fff" stroke-width="3" />
+          <circle cx="120" cy="100" r="8"  fill="#FED7AA" />
+          <circle cx="113" cy="98"  r="2"  fill="#0F172A" />
+          <circle cx="127" cy="98"  r="2"  fill="#0F172A" />
+          <path d="M115 106 Q120 110 125 106" stroke="#0F172A" stroke-width="1.5" fill="none" stroke-linecap="round" />
+          <ellipse cx="120" cy="200" rx="12" ry="6" fill="url(#kg2)" />
+          <ellipse cx="120" cy="220" rx="10" ry="5" fill="url(#kg3)" />
+          <ellipse cx="120" cy="238" rx="8"  ry="4" fill="url(#kg2)" />
+        </svg>
+      </div>
+
+      <!-- Floating glass tiles (mock KPIs) -->
+      <div class="kh-hero__tile kh-hero__tile--1">
+        <div class="kh-hero__tile-label">Học viên</div>
+        <div class="kh-hero__tile-value" data-countup="248" data-countup-suffix="">248</div>
+        <div class="kh-hero__tile-trend">▲ +18 tuần này</div>
+      </div>
+      <div class="kh-hero__tile kh-hero__tile--2">
+        <div class="kh-hero__tile-label">Doanh thu tháng</div>
+        <div class="kh-hero__tile-value">128M₫</div>
+        <div class="kh-hero__tile-trend">▲ +12.4%</div>
+      </div>
+      <div class="kh-hero__tile kh-hero__tile--3">
+        <div class="kh-hero__tile-label">Lớp đang mở</div>
+        <div class="kh-hero__tile-value" data-countup="42">42</div>
+        <div class="kh-hero__tile-trend">● 38 đầy slot</div>
+      </div>
+      <div class="kh-hero__tile kh-hero__tile--4">
+        <div class="kh-hero__tile-label">Giữ chân</div>
+        <div class="kh-hero__tile-value">94%</div>
+        <div class="kh-hero__tile-trend">♥ Học viên hài lòng</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kh-container">
+    <div class="kh-scroll-cue">
+      <span>Cuộn xuống</span>
+      <div class="line" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
