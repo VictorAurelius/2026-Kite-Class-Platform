@@ -1,4 +1,4 @@
-# GAP-360: Parent Portal Phase 1C remainder — 3 write actions + multi-facet consent gate + i18n + settings UI + re-consent flow
+# GAP-361: Parent Portal Phase 1C remainder — 3 write actions + multi-facet consent gate + i18n + settings UI + re-consent flow
 
 **Status:** 🔵 OPEN
 **Priority:** 🟠 P1 (Phase 1C v1 sister gap; sibling of GAP-321c which shipped 1 of 4 write actions + 1 of 5 facet gates v1)
