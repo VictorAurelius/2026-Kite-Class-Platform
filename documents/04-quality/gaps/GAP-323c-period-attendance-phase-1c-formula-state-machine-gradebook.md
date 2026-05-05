@@ -1,6 +1,6 @@
 # GAP-323c: Period Attendance Phase 1C — GradeFormulaService TT 22/2021 + Tổ trưởng state machine + multi-subject gradebook UI
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 19 Bucket B v1 SHIPPED 2026-05-05; Phase 1C remainder follow-up: GAP-360-multi-subject-gradebook-phase-1c-remainder
 **Priority:** 🔴 P0 (sister of GAP-323 Phase 1A SHIPPED Wave 18b1; sister of GAP-323b Phase 1B)
 **Domain:** Backend + Frontend (gradebook)
 **Detected:** 2026-05-04 (Wave 18b1 Bucket F closure)
@@ -60,16 +60,23 @@ Without:
 
 ## Acceptance Criteria
 
-- [ ] SubjectGrade extended with type/weight/status/reviewed_by/published_at
-- [ ] V<N> migration backward compat tested
-- [ ] GradeFormulaService implements ĐTBmHK + ĐTBmCN + unit tests
-- [ ] State machine DRAFT → REVIEWED → PUBLISHED enforced via Pattern (no direct status-set, ArchUnit test if practical)
-- [ ] Tổ trưởng approval workflow with notification (coordinate GAP-063b)
-- [ ] Multi-subject gradebook UI for admin/Hiệu trưởng/GV/Tổ trưởng (4 view variants)
-- [ ] Bulk publish action for Hiệu trưởng
-- [ ] Business docs `multi-subject-gradebook/` 3-layer with 5-attribute frontmatter
-- [ ] Tests: GradeFormulaService unit (5+ edge cases) + state machine unit + UI integration
-- [ ] mvn + pnpm green
+### Phase 1C v1 (Wave 19 Bucket B, this PR — DONE)
+
+- [x] SubjectGrade extended with type/weight/status/reviewed_by/published_at
+- [x] V55 migration backward compat verified (existing rows default DRAFT/TX/1.0)
+- [x] GradeFormulaService implements ĐTBmHK + ĐTBmCN + 12 unit tests
+- [x] Business docs `multi-subject-gradebook/` 3-layer with 5-attribute frontmatter
+- [x] Tests: GradeFormulaService unit (10+ edge cases) — 12/12 green; SubjectGradeRepository status/type queries IT (3 tests, env-gated)
+- [x] mvn green on `kiteclass-core`
+
+### Phase 1C remainder (tracked in GAP-360, not closed in this PR)
+
+- [ ] State machine DRAFT → REVIEWED → PUBLISHED enforced via Pattern (no direct status-set, ArchUnit test if practical) — GAP-360.1
+- [ ] Tổ trưởng approval workflow with notification (coordinate GAP-063b) — GAP-360.2
+- [ ] Multi-subject gradebook UI for admin/Hiệu trưởng/GV/Tổ trưởng (4 view variants) — GAP-360.3
+- [ ] Bulk publish action for Hiệu trưởng — GAP-360.4
+- [ ] Học bạ generation hook — GAP-360.5
+- [ ] pnpm green (FE — no FE shipped Phase 1C v1) — GAP-360.3
 
 ## Estimated Effort
 
@@ -90,4 +97,5 @@ Without:
 
 ## Log
 
+- **2026-05-05** — Wave 19 Bucket B v1 SHIPPED. Salvaged from pre-WSL-restart agent work + verified by closure agent. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3. Ships: SubjectGrade extension (`type` SubjectGradeType TX/GK/CK + `weight` BigDecimal + `status` SubjectGradeStatus DRAFT/REVIEWED/PUBLISHED + `reviewedBy` Long + `publishedAt` Instant), `GradeFormulaService` Strategy Pattern interface + `GradeFormulaServiceImpl` (`computeDTBmHK` + `computeDTBmCN` per TT 22/2021 Đ.7 with HALF_EVEN scale=1), V55 migration (additive, backward compat — existing rows default DRAFT/TX/1.0/null), 3 new repository methods (status/type queries), 3-layer `multi-subject-gradebook/` business docs with 5-attribute frontmatter (Source: TT 22/2021/TT-BGDĐT + TT 32/2018; Compliance: Compliant; Cadence: Annual + event-driven), BR-GRADEBOOK-001..005. Tests: 12/12 `GradeFormulaServiceImplTest` unit green (full case + multiple TX mean + missing GK/CK/TX → null + HALF_EVEN boundary 5.85→5.8 + zero-vs-null + null inputs + ĐTBmCN both-semesters / missing HK1 / missing HK2 data); 3 `SubjectGradeRepositoryIT` integration tests (env-gated `ENABLE_INTEGRATION_TESTS=true`, compile + ENV-skip verified). mvn green on `kiteclass-core`. Phase 1C remainder (state machine enforcement + Tổ trưởng workflow + 4-variant gradebook UI + bulk publish + học bạ hook) filed as **GAP-360**.
 - **2026-05-04** — Filed by Wave 18b1 closure coordinator. Per `gap-done-discipline.md` §3 PARTIAL exit ramp.

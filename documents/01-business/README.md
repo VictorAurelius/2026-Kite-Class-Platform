@@ -103,3 +103,4 @@ documents/01-business/          ← TẤT CẢ business logic ở đây
 | marketing | ✅ | ✅ | ✅ | 2026-03-24 |
 | storage | ✅ | ✅ | ✅ | 2026-03-24 |
 | parent-portal | ✅ | ✅ | ✅ | 2026-04-19 |
+| multi-subject-gradebook | ✅ | ✅ | ✅ | 2026-05-05 (Wave 19 Bucket B GAP-323c Phase 1C v1) |
