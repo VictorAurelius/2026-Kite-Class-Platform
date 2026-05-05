@@ -90,7 +90,7 @@ export function IncidentBanner({
     category,
     alreadyAcked = false,
     onAck,
-}: IncidentBannerProps): JSX.Element | null {
+}: IncidentBannerProps) {
     if (!shouldTriggerBanner(severity, category)) {
         return null;
     }
