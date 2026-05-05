@@ -65,6 +65,21 @@
 
 ---
 
+**2026-05-05 (Simulation gap finder — 3-axis matrix → 5 new gaps GAP-351..355):** Applied `quality/simulation-gap-finder.md` 3-axis matrix sampling (5 personas × 8 stages × 10 categories) to UI Kits + Track 2 production port scope. Diagonal sweep + state-check each candidate (`audit-to-gap-pipeline.md` Step 2 + 2.5) before file. 5 real gaps found, 0 duplicates, 4 borderline folded into existing.
+
+**Filed:**
+- **GAP-351** (P1, Meta) — `@kite/shared-ui` semver + breaking-change policy (Developer × Evolution × C10). 0 hits "semver" in `packages/shared-ui`. Gates Phase 2 component churn.
+- **GAP-352** (P1, Compliance) — WCAG AA third-party audit (axe-core / lighthouse-ci / screen-reader) before Track 2 production port (Platform Admin × Provisioning × C6). 0 hits "axe-core"/"lighthouse-ci". GAP-348 covers visual /128 + persona, NOT formal WCAG.
+- **GAP-353** (**P0**, LEGAL) — PDPL 2023 cookie/consent banner in KH+KC marketing kits (Platform Admin × Discovery × C6). 0 hits "PDPL"/"cookie banner" in GAP-274/275/350. PDPL effective 2026-07-01 ~8 weeks; MVP launch ~4-6 weeks precedes effective date.
+- **GAP-354** (P2, Performance) — Per-kit bundle size budget for 7 kit ports (End User × Daily × C4). 0 hits "bundle.budget"/"kit.*gzip" in GAP-26X/27X/349. GAP-349 has per-component, not per-kit.
+- **GAP-355** (P2, Operations) — Visual regression drift policy (prototype↔production sync over time) (Developer × Evolution × C10). GAP-273/349 capture *initial baseline* only; 0 drift-policy mentions. Paired with GAP-351 as governance wave-pack candidate.
+
+**Folded into existing (not filed):** cross-kit empty-state consistency → GAP-277; component deprecation playbook → GAP-351; i18n EN/zh-CN marketing → GAP-321c (parent portal already tracking); Storybook formal infra → GAP-349 foundation bucket scope.
+
+**Counts:** 160 → **165 OPEN** (+GAP-351..355).
+
+---
+
 **2026-05-04 (Incident → rule pipeline applied — wave-history.jsonl append rule):** User flagged 3 consecutive waves (18a, 18b1, 18b2) missing `wave-history.jsonl` appends despite `wave-pack-planner` SKILL.md §Rules requirement. Per `incident-to-rule-pipeline.md` 5-stage: Stage 1 Detect ✓. Stage 2 Classify: rule existed but no enforcement — pure gentleman's agreement. Stage 3+4 ship in this PR — `session-docs-check` Rule 15 detector + 3 self-test fixtures (good-flip-with-append PASS / bad-flip-no-append FAIL / bad-flip-bad-json FAIL) all green via `test/run-rules.sh`. Stage 5 retro logged here. Sister PR `meta/wave-history-backfill-18a-18b1-18b2` ships the actual missing entries. Detector now blocks future closures from skipping the append (WARN default, FAIL in `--strict`); override trailer `WAVE_HISTORY_OVERRIDE: <reason>` available for rare doc-only corrections.
 
 **Counts:** unchanged (no new gaps; this is a meta-process fix).
