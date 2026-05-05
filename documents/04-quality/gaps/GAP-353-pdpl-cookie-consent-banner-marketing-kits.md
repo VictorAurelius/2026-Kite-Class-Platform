@@ -1,0 +1,81 @@
+# GAP-353: PDPL 2023 Cookie / Consent Banner — KH + KC Marketing Kits
+
+**Status:** 🔵 OPEN
+**Priority:** 🔴 P0 (legal mandate — Personal Data Protection Law 2023 effective 2026-07-01; blocks GA for marketing surfaces)
+**Domain:** Compliance / Frontend / Design System
+**Found:** 2026-05-05 (simulation-gap-finder — Persona: Platform Admin × Stage: Discovery × Category: C6 Compliance)
+**Affects:** KC public marketing port (GAP-274), KH public marketing + blog port (GAP-275), `kitehub-story-v2/` Round 3 polish (GAP-350), all marketing-surface routes
+
+## Problem
+
+PDPL 2023 (Personal Data Protection Law, **effective 2026-07-01**) Articles 11-13 mandate explicit consent collection before processing personal data — this includes analytics cookies, marketing pixels, behavioral tracking. Web surfaces collecting such data without compliant consent banner = legal violation post-effective-date.
+
+GAP-274 (KC public marketing kit port) and GAP-275 (KH public marketing + blog port) have **no mention** of cookie banner / consent UI. GAP-350 (kitehub-story-v2 Round 3 polish) inherits the same omission. Round 1 archive (`kitehub-story` 546 LOC JSX) has no banner UI either.
+
+## Current State (verified 2026-05-05)
+
+| Check | Status |
+|---|---|
+| GAP-274 (KC marketing) — PDPL/cookie/consent mention | ❌ 0 hits |
+| GAP-275 (KH marketing) — PDPL/cookie/consent mention | ❌ 0 hits |
+| GAP-350 (story-v2 polish) — banner inclusion | ❌ not in scope |
+| HTML kits — banner component | ❌ not in `_shared/` or `components/` |
+| `documents/01-business/.../rules.md` PDPL rules | ⚠️ partial — DR-03 retention covered (`output-review-mandate.md` §3 example), but no consent-collection rule |
+| Banner component spec | ❌ none |
+
+## Proposed Fix
+
+Three-layer fix:
+
+**Layer 1 — Business rule (per `business-logic-review.md` 5-attribute mandate):**
+Add to `documents/01-business/{kitehub,kiteclass}/marketing/rules.md`:
+- `BR-PDPL-CONSENT-001` Cookie consent banner mandatory on all public marketing surfaces
+- `BR-PDPL-CONSENT-002` Granular toggles (essential / analytics / marketing) — no dark patterns
+- `BR-PDPL-CONSENT-003` Consent record retention (audit log per `DR-03` 36mo)
+- `BR-PDPL-CONSENT-004` Consent revocation flow (settings page + cookie reset)
+
+**Layer 2 — Shared component:**
+Add `packages/shared-ui/src/components/ConsentBanner/` (consumed by both consumers):
+- Granular toggles (essential always-on, analytics opt-in, marketing opt-in)
+- "Reject all" + "Accept all" + "Customize" CTAs (no dark patterns)
+- LocalStorage + server-side consent record via API
+- Re-prompt on settings change or consent expiration (12 months default)
+- Accessibility: focus trap, keyboard navigation, screen-reader announcements
+
+**Layer 3 — Kit integration:**
+- GAP-274 KC marketing port AC: ConsentBanner mandatory on landing
+- GAP-275 KH marketing port AC: ConsentBanner mandatory on landing + blog
+- GAP-350 story-v2 polish: design banner UI in `kitehub-story-v2/screens/consent-banner.html`
+- Kits showing demo dashboards (animation) MUST gate analytics behind consent
+
+## Acceptance Criteria
+
+- [ ] `BR-PDPL-CONSENT-001..004` written in both KH + KC marketing rules.md (10 attributes per `business-logic-review.md`)
+- [ ] `packages/shared-ui/src/components/ConsentBanner/` shipped + Storybook entry
+- [ ] Banner spec in `dossier/14-common-components-inventory-{kc,kh}.md`
+- [ ] GAP-274 + GAP-275 + GAP-350 ACs updated to require ConsentBanner integration
+- [ ] Server-side consent API: `POST /api/v1/consent/record` + `GET /api/v1/consent/{userId}`
+- [ ] Consent record schema in DB (links to existing audit log per DR-03)
+- [ ] Reject-all flow tested — analytics scripts NOT loaded
+- [ ] Revocation flow tested — settings page reset + cookie clear
+- [ ] PDPL-effective-date (2026-07-01) compliance checklist signed off pre-launch
+
+## Why P0
+
+Per `meta-gap-priority.md` §3 — Business-Logic / Compliance tier (LEGAL MANDATE). PDPL effective 2026-07-01 = ~8 weeks from filing. MVP launch (~4-6 weeks per ROADMAP §🚀) precedes PDPL-effective. If MVP marketing surfaces ship before consent banner, post-effective-date noncompliance triggers regulatory exposure.
+
+## Related
+
+- PDPL 2023 Articles 11-13 (consent collection)
+- Sister business rule: `DR-03` data retention 36mo (already documented in `output-review-mandate.md` §1 example)
+- Downstream: GAP-274, GAP-275, GAP-350 (all marketing surfaces inherit AC requirement)
+- Component delivery: GAP-273 (12 components shared lib) — ConsentBanner is 13th component, expand scope OR file as G13 follow-up
+- Standard: `business-logic-review.md` (5-attribute rule mandate)
+
+## Effort estimate
+
+~3-4 days. Layer 1 (rules + 5-attr review) ~0.5d. Layer 2 (component) ~1.5d. Layer 3 (kit AC updates + 3 GAP file edits) ~0.5d. Server consent API ~1d. Wave-pack candidate (3 buckets: rules / component / API).
+
+## Log
+
+- **2026-05-05:** Filed via simulation-gap-finder 3-axis matrix sweep. Discovered at Platform Admin × Discovery × C6 cell. State-check: 0 hits "PDPL"/"cookie banner"/"consent banner" in GAP-274/275/350 or HTML kits. PDPL effective 2026-07-01 makes this P0 — MVP launch (~4-6 weeks) precedes effective date; banner must ship pre-launch to avoid post-effective regulatory exposure. Cross-cut to BR-PDPL-CONSENT-* rules + ConsentBanner shared component + 3 marketing kit integrations.
