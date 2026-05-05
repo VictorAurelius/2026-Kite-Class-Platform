@@ -5,6 +5,7 @@ import com.kiteclass.core.module.childprotection.converter.AesGcmAttributeConver
 import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
+import com.kiteclass.core.module.childprotection.enums.IncidentVisibilityScope;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -65,7 +66,8 @@ import lombok.Setter;
                 @Index(name = "idx_incidents_status", columnList = "status"),
                 @Index(name = "idx_incidents_reporter", columnList = "reporter_user_id"),
                 @Index(name = "idx_incidents_subject_student", columnList = "subject_student_id"),
-                @Index(name = "idx_incidents_deleted", columnList = "deleted")
+                @Index(name = "idx_incidents_deleted", columnList = "deleted"),
+                @Index(name = "idx_incidents_visibility_scope", columnList = "visibility_scope")
         }
 )
 @Getter
@@ -145,4 +147,19 @@ public class Incident extends BaseEntity {
      */
     @Column(name = "assigned_officer_user_id")
     private Long assignedOfficerUserId;
+
+    /**
+     * Visibility scope (Phase 1C, GAP-322c) — controls audience exposure.
+     * Defaults to {@link IncidentVisibilityScope#STAFF_ONLY} so legacy rows
+     * + new ABUSE / GROOMING / CSAM records never leak to the parent portal
+     * conduct facet without explicit officer downgrade. Per BR-CHILD-PROTECT-005.
+     *
+     * <p>Consumed by Bucket D (Wave 19) {@code ParentConductFacetService}
+     * JPQL filter: only {@code PARENT_VISIBLE} + {@code PUBLIC} surfaces in
+     * the parent-portal conduct facet.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility_scope", nullable = false, length = 32)
+    @Builder.Default
+    private IncidentVisibilityScope visibilityScope = IncidentVisibilityScope.STAFF_ONLY;
 }
