@@ -35,14 +35,16 @@ describe('IncidentBanner — trigger predicate', () => {
 
 describe('IncidentBanner — render', () => {
     it('returns null when (severity, category) does not trigger', () => {
-        const { container } = render(
+        render(
             <IncidentBanner
                 incidentId={1}
                 severity="MEDIUM"
                 category="BULLYING"
             />,
         );
-        expect(container.firstChild).toBeNull();
+        // Banner not rendered — testid absent (test-utils render adds Toaster overlay so container.firstChild is NOT null)
+        expect(screen.queryByTestId('incident-banner-warning')).toBeNull();
+        expect(screen.queryByTestId('incident-banner-acked')).toBeNull();
     });
 
     it('renders the warning variant when CRITICAL+ABUSE and not yet acked', () => {
