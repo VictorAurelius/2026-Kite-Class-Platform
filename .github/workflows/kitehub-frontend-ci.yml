@@ -2,6 +2,7 @@ name: KiteHub Frontend CI/CD
 
 on:
   # Solo-dev mode (2026-04-24): post-merge push:main trigger removed to save resources.
+  # Workflow re-run trigger 2026-05-05 — bump to re-validate kitehub-frontend CI pipeline.
   pull_request:
     branches:
       - main
