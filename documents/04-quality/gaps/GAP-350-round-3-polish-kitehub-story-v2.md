@@ -1,7 +1,7 @@
 # GAP-350: Round 3 Polish — `kitehub-story-v2/` (Direction A Marketing Storytelling)
 
-**Status:** 🔵 OPEN
-**Priority:** 🟡 P2 (LOWER per `dossier/08-direction-decisions.md` Decision 3 — marketing-only, not MVP-critical)
+**Status:** 🔵 OPEN — Wave 21 ACTIVE (kicked off 2026-05-05)
+**Priority:** 🟡 P2 — promoted from P2 LOWER 2026-05-05 per user request (Wave 21 marketing storytelling kit pickup); see Decision 3 still applies (marketing-only, not MVP-critical) but added to active wave queue ahead of Track 2 Phase 5
 **Domain:** Frontend / Design System
 **Found:** 2026-05-04 (session audit — Round 3 listed `kitehub-story-v2/` as 🔵 future, no gap filed)
 **Affects:** `documents/02-architecture/design-system/ui_kits/kitehub-story-v2/` (NEW folder to be created)
@@ -84,4 +84,5 @@ Per `meta-gap-priority.md` §3 — Marketing storytelling kit is Feature-tier, n
 
 ## Log
 
+- **2026-05-05:** Priority promoted P2 LOWER → P2 per user request. Added to ROADMAP §Active wave queue as Wave 21 (Marketing Storytelling). Solo agent bucket spawned to build `ui_kits/kitehub-story-v2/` from Round 1 baseline (archived JSX 546 LOC → HTML kit per Round 2/3 standard). Decision 3 LOWER framing still applies (marketing-only) but execution unblocks GAP-275 (Track 2 KH marketing port) source-of-truth. Closure protocol: agent builds kit folder only; coordinator closure batches `ui_kits/README.md` Status row flip + `ui_kits/index.html` landing card add + GAP status flip + ROADMAP entry, sequentially after Wave 20 Part C (avoid file overlap on `ui_kits/README.md` + `index.html`).
 - **2026-05-04:** Filed after user "A" choice on session audit option triplet (file polish gap / port direct from archive / defer). Gap closes ambiguity for GAP-275 (Track 2 KH public marketing port) about source-of-truth — port FROM this kit's output, not raw Round 1 archive.
