@@ -13,7 +13,7 @@ import {
     shouldTriggerBanner,
     type IncidentCategory,
     type IncidentSeverity,
-} from '../IncidentBanner';
+} from './IncidentBanner';
 
 describe('IncidentBanner — trigger predicate', () => {
     it.each<[IncidentSeverity, IncidentCategory, boolean]>([
