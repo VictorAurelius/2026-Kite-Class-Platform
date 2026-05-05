@@ -8,6 +8,7 @@
  * (≤24h to Tổng đài 111 + công an địa phương) and exposes an "Đã báo
  * cáo" CTA that the safeguarding officer clicks once they have actually
  * filed the external report.
+ * Wave 19 Bucket A — GAP-322c Phase 1C v1 (verified 2026-05-05).
  *
  * Tied to BR-CHILD-PROTECT-006 (mandatory reporting). Out of scope for
  * v1 (deferred to Phase 1C remainder follow-up gap):
