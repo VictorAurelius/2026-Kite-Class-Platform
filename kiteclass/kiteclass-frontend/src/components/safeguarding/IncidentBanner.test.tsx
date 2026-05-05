@@ -61,7 +61,8 @@ describe('IncidentBanner — render', () => {
         expect(
             screen.getByText(/Điều 51/i),
         ).toBeInTheDocument();
-        expect(screen.getByText(/24h/)).toBeInTheDocument();
+        // "≤24h" appears in BOTH heading + body — assert ≥2 occurrences instead of getByText (which throws on multi-match)
+        expect(screen.getAllByText(/24h/).length).toBeGreaterThanOrEqual(2);
         // Surfaces the incident id
         expect(screen.getByText(/#42/)).toBeInTheDocument();
     });
