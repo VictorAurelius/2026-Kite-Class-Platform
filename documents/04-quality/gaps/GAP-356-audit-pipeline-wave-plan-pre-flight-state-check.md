@@ -1,6 +1,6 @@
 # GAP-356: Extend `audit-to-gap-pipeline.md` Step 2.5 state-check from gap-filing to wave-plan pre-flight
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-05 — rule v1.2.0 + Rule 16 detector + 3-fixture self-test + `_TEMPLATE.md` + memory all shipped this PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate. Self-test verifies detector flags Wave 18b3 incident symbols (`Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification.audienceScope`). Wave 19 plan PR (separate, follow-on) is the first downstream PR that exercises detector against new wave-plan input.
 **Priority:** 🔴 P0 Meta (rule itself failing despite existing documentation — `meta-gap-priority.md` §3 force-multiplier)
 **Domain:** Governance / Meta-rule
 **Found:** 2026-05-04 (Wave 18b3 Bucket C — 5th GAP-190/197 head-truncation recurrence)
@@ -93,15 +93,21 @@ Add `## State-Check Evidence` section with table:
 
 ## Acceptance Criteria
 
-- [ ] `audit-to-gap-pipeline.md` v1.2.0 ships with Step 2.5 extended to wave-plan pre-flight
-- [ ] Detection mechanism wired (Option A or B) in same PR as rule edit per `rule-change-process.md` §6.5
-- [ ] Self-test on Wave 18b3 plan FAILS for the 3 known-absent symbols (output quoted in PR description)
-- [ ] Memory `feedback_wave_plan_state_check.md` saved + indexed in `MEMORY.md`
-- [ ] Cross-links updated in 3 related rules / memory entries
-- [ ] Wave-plan template (`_TEMPLATE.md`) includes State-Check Evidence section
-- [ ] Recurrence list in `audit-to-gap-pipeline.md` updated to mark 5th + this gap as the escalation outcome
-- [ ] ROADMAP.md `## 🎯 Current Status Snapshot` retro entry per `incident-to-rule-pipeline.md` Stage 5
-- [ ] Future Wave 19 (K-12 LEGAL Phase 1C) plan PR uses the new template + passes the new detector
+- [x] `audit-to-gap-pipeline.md` v1.2.0 ships with §2.6 Wave-Plan Pre-Flight Protocol added
+- [x] Detection mechanism wired in same PR as rule edit per `rule-change-process.md` §6.5 — Option A (`session-docs-check` Rule 16) chosen, doc-rules-matrix.md updated, `check-docs.sh` extended
+- [x] Self-test on Wave 18b3 plan FAILS for the known-absent symbols — bad-symbol-no-evidence fixture mirrors incident with `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification.audienceScope`; runner reports FAIL as expected (6/6 fixtures pass)
+- [x] Memory `feedback_wave_plan_state_check.md` saved + indexed in `MEMORY.md`
+- [x] Cross-links updated — `feedback_wave_plan_through_pr.md` extended with state-check step; rule §2.6 references `_TEMPLATE.md` + `session-docs-check` Rule 16
+- [x] Wave-plan template (`_TEMPLATE.md`) includes `## 4. State-Check Evidence` section with verdict legend
+- [x] Recurrence list in `audit-to-gap-pipeline.md` updated to mark 5th entry + GAP-356 escalation outcome
+- [x] ROADMAP.md `## 🎯 Current Status Snapshot` retro entry added (2026-05-05 marker)
+
+## Out-of-scope (track separately if surfaces)
+
+- Detection of *outdated* references (symbol exists today but will be deleted by another in-flight PR) — out-of-scope; current rule covers presence-only.
+- Cross-PR coordination (wave plan A and wave plan B both reference symbol X being added by PR Y) — out-of-scope; assume single-wave-at-a-time per `feedback_parallel_agent_strategy.md` rule #9.
+- Bare-class-name references (`` `Notification` `` without `.field`) — current detector requires `Class.field` or `Class.METHOD` shape to avoid false positives on prose. Notification entity in Wave 18b3 plan was caught via the paired `Notification.audienceScope` reference; pure bare-class detection would need NLP heuristics.
+- Wave 19 K-12 LEGAL Phase 1C plan PR (separate, follow-on) is the first downstream consumer of new template + detector — verification that the template is usable in real-world flow, not part of GAP-356 AC.
 
 ## Related
 
@@ -115,11 +121,7 @@ Add `## State-Check Evidence` section with table:
 - Wave 18b3 plan: `documents/03-planning/waves/wave-2026-05-04-18b3-k12-legal-phase-1b-remainder.md` (the fixture)
 - 5 prior recurrences inline-tracked in `audit-to-gap-pipeline.md` §6 Log
 
-## Out-of-scope (track separately if surfaces)
-
-- Detection of *outdated* references (symbol exists today but will be deleted by another in-flight PR) — out-of-scope; current gap covers presence-only.
-- Cross-PR coordination (wave plan A and wave plan B both reference symbol X being added by PR Y) — out-of-scope; assume single-wave-at-a-time per `feedback_parallel_agent_strategy.md` rule #9.
-
 ## Log
 
-- **2026-05-05** Filed by gap-triage session per self-mandate of `audit-to-gap-pipeline.md` v1.1.0 5th-recurrence escalation clause. Filed standalone (PR 1); fix PR (PR 2 — rule v1.2.0 + detector + self-test + memory) tracked separately per Step 6 "no fix in discovery PR" rule. Sprint assignment: Meta-P0 ahead of Wave 19 K-12 LEGAL Phase 1C per `meta-gap-priority.md` §3 (Meta tier > Feature-LEGAL tier at same P-level).
+- **2026-05-05** (DONE) Closed in stacked PR 2 (this PR). Rule v1.2.0 §2.6 + `session-docs-check` Rule 16 detector (`scripts/check-docs.sh`) + 3-fixture self-test + `_TEMPLATE.md` + memory `feedback_wave_plan_state_check.md` all shipped same PR per `rule-change-process.md` §6.5 Enforcement Parity Mandate. **Verification artifact:** runner output `bash .claude/skills/workflow/session-docs-check/test/run-rules.sh` → 6/6 fixtures pass; bad-symbol-no-evidence fixture (mirroring Wave 18b3 incident with `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification.audienceScope` — 5th-recurrence symbols) correctly reports `[FAIL] Rule 16 — wave-2026-99-02-fixture-bad: 3 symbol(s) in §Scope; missing State-Check Evidence row for: BR-CHILD-PROTECT-005, Incident.visibilityScope, Notification.audienceScope`. Detector fires as designed on the original incident.
+- **2026-05-05** (filing) Filed by gap-triage session per self-mandate of `audit-to-gap-pipeline.md` v1.1.0 5th-recurrence escalation clause. Filed in PR 1 (#787); fix shipped stacked PR 2. Sprint assignment: Meta-P0 ahead of Wave 19 K-12 LEGAL Phase 1C per `meta-gap-priority.md` §3 (Meta tier > Feature-LEGAL tier at same P-level).

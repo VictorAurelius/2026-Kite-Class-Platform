@@ -1,11 +1,11 @@
 # Audit → Gap → Fix Pipeline
 
 **Priority:** 🟠 MANDATORY — audit findings governance
-**Version:** 1.1.0
+**Version:** 1.2.0
 **Created:** 2026-04-16
-**Last-Reviewed:** 2026-05-04
-**Reviewer-Approver:** @nguyenvankiet (solo-dev — backfill per `rule-change-process.md` §3)
-**Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100) and the gap files / fix PRs they produce
+**Last-Reviewed:** 2026-05-05
+**Reviewer-Approver:** @nguyenvankiet (solo-dev — MINOR self-approve per `rule-change-process.md` §5; new §2.6 Wave-Plan Pre-Flight Protocol paired same-PR with `session-docs-check` Rule 16 detector + 3-fixture self-test + wave-plan template per §6.5 Enforcement Parity Mandate; closes GAP-356 5th-recurrence escalation)
+**Applies to:** Every audit run (UI /128, Quality /100, Security /100, Performance /100, API Contract /100, Ops Readiness /100, Business Logic /100), every wave plan drafting, and the gap files / fix PRs they produce
 
 ---
 
@@ -100,8 +100,40 @@ State-check **MUST NOT use `| head`** on `grep -rl` / `find` commands. Truncatio
 - 2026-04-20: GAP-190 (SEO), GAP-197 (attendance calendar) → PR #396 rewrite
 - 2026-05-04 (3rd): GAP-345 audit revising GAP-321/322/323 → PR #757
 - 2026-05-04 (4th): GAP-345 itself missed Wave 2 FE parent skeleton → Wave 18b1 Bucket D agent caught + flagged in PR #766. Hardened protocol added this section.
+- 2026-05-04 (5th): Wave 18b3 plan §3 Bucket C referenced 3 absent symbols (`Incident.visibilityScope`, `BR-CHILD-PROTECT-005`, `Notification` entity) — agent caught at execution time + filed 3 sub-gaps. **5th recurrence escalation triggered → GAP-356 filed → this v1.2.0 rule extension below adds wave-plan pre-flight state-check (§2.6).**
 
-If 5th recurrence detected, escalate to file gap on `audit-to-gap-pipeline.md` itself — rule is failing despite documentation.
+If 6th recurrence detected, escalate to meta-rule audit (this rule's enforcement is failing despite both gap-filing protocol §2.5 AND wave-plan protocol §2.6 below).
+
+### Step 2.6: Wave-Plan Pre-Flight State-Check (BẮT BUỘC trước merge wave plan PR)
+
+**Why this exists:** Wave plans are higher-leverage than individual gaps (3-15× gap leverage — 1 plan governs 3-5 buckets × multiple days each). When a plan references absent entities/rules/migrations, the cost cascades: agents read plan as ground truth, execute against absent schema, recover at execution time (best case Wave 18b3 — agents caught it; worst case stalls until reviewer notices). Per `feedback_wave_plan_through_pr.md` wave plans merge BEFORE agent spawn — so the plan PR is the LAST checkpoint to catch absent-symbol references.
+
+**Trigger:** any new file added under `documents/03-planning/waves/wave-*.md`.
+
+**Required content in the wave plan:** a `## State-Check Evidence` section demonstrating that every code-symbol-shaped reference in §3 Scope has been verified present in the codebase. Use the table format from `documents/03-planning/waves/_TEMPLATE.md`.
+
+**Symbols requiring verification:**
+
+| Symbol type | Pattern (in backticks) | Required grep |
+|-------------|------------------------|--------------|
+| Java class / entity field | `` `ClassName.fieldName` `` or `` `ClassName.METHOD` `` | `grep -rn "ClassName" {service}/src/main/java` (no `\| head`) |
+| Business rule ID | `` `BR-DOMAIN-NNN` `` | `grep -rn "BR-DOMAIN-NNN" documents/01-business/` |
+| Flyway migration | `` `V[0-9]+__name.sql` `` | `ls {service}/src/main/resources/db/migration/V[0-9]+__name.sql` |
+| Frontend component | `` `<ComponentName>` `` or `` `useHookName` `` | `grep -rn "ComponentName\|useHookName" {service}/src --include="*.tsx" --include="*.ts"` |
+| Config key | `` `kite.foo.bar` `` | `grep -rn "kite.foo.bar" {service}/src/main/resources` |
+
+**Forward-looking references (allowed exception):** symbols intentionally absent because the wave WILL CREATE them are allowed IF the State-Check Evidence row marks Verdict as `🆕 to-be-created` AND the Bucket explicitly owns the creation. Symbols referenced as if existing but absent → FAIL.
+
+**Banned shortcuts (mirroring §2.5):**
+- `| head` truncation on `grep -rl` / `find` commands
+- Skipping verification "because the agent will check at execution time" — the whole point is to catch absent symbols BEFORE agent spawn
+- Aspirational references ("we'll filter by `Incident.visibilityScope`") without a 🆕 to-be-created flag
+
+**If pre-flight fails:** revise plan §3 Scope to either (a) drop the absent symbol, (b) reframe the bucket scope, or (c) flag the symbol as 🆕 to-be-created with explicit creation owner. Plan PR does not merge until State-Check Evidence section shows ✅/🆕 verdict for every symbol.
+
+**Reference template:** `documents/03-planning/waves/_TEMPLATE.md` §State-Check Evidence.
+
+**Detector:** `session-docs-check` Rule 16 (`scripts/check-docs.sh`) — fires on new wave plan files in diff; FAIL when symbol-shaped references in `## Scope` / `### Bucket` sections lack a corresponding `## State-Check Evidence` row OR the row's grep evidence is absent.
 
 ### Step 3: Gap File Creation
 
@@ -217,6 +249,7 @@ Sau khi meta-boost áp dụng, fix gaps theo thứ tự:
 
 ## 6. Log
 
+- **2026-05-05** (v1.2.0): MINOR — added §2.6 Wave-Plan Pre-Flight State-Check Protocol extending state-check from gap-filing to wave-plan drafting. Triggered by 5th GAP-190/197 head-truncation recurrence (Wave 18b3 plan §3 Bucket C referenced 3 absent symbols `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification` entity; agent caught at execution time + filed 3 sub-gaps GAP-321b.1-trio). Per self-mandated 5th-recurrence escalation clause: file gap on rule itself (GAP-356 filed 2026-05-05) → ship rule extension. Paired same-PR per `rule-change-process.md` §6.5 with: `session-docs-check` Rule 16 detector + 3-fixture self-test (good-flip / bad-absent-symbol / forward-flag-allowed) + `documents/03-planning/waves/_TEMPLATE.md` State-Check Evidence section + `feedback_wave_plan_state_check.md` memory + cross-link updates. Recurrence list updated inline (5th entry). Reviewer: @nguyenvankiet (solo-dev MINOR self-approve per §5 — adds new constraint covering previously-uncovered higher-leverage artifact, no constraint loosening for prior work).
 - **2026-05-04** (v1.1.0): MINOR — added "Hardened state-check protocol" subsection to Step 2.5 banning `| head` truncation on grep/find during state-check. Triggered by 4th recurrence: GAP-345 K-12 LEGAL audit itself missed Wave 2 inline-fetch FE skeleton (159 LOC) at `(dashboard)/parent/page.tsx`; Wave 18b1 Bucket D agent caught at execution time + flagged in PR #766. Per `rule-change-process.md` §5 MINOR self-approve solo-dev — adds enforcement detail to existing rule, no constraint loosening. Recurrence list now tracked inline; 5th recurrence escalates to gap on this rule.
 - **2026-04-28** (v1.0.0 backfill): Frontmatter backfill per GAP-249 — added Last-Reviewed + Reviewer-Approver + Applies-to fields; reformatted existing Version `1.0` → `1.0.0` (semver three-part canonical). No content change. Solo-dev PATCH self-approve per `rule-change-process.md` §5.
 - 2026-04-20 — Added **Step 2.5 State-Check Against Current Codebase** after GAP-190 (SEO) + GAP-197 (attendance calendar) were filed without code-state verification; both required follow-up rewrite (PR #396). User feedback: "gaps phải dựa trên tình trạng của hệ thống hiện tại". Step 2.5 is BẮT BUỘC alongside Step 2 — dedupe alone is insufficient.

@@ -31,6 +31,9 @@ EXPECTATIONS=(
   "wave-history/good-flip-with-append|PASS|Rule 15.*status:complete \\+ wave-history.jsonl appended"
   "wave-history/bad-flip-no-append|FAIL|Rule 15.*was not appended"
   "wave-history/bad-flip-bad-json|FAIL|Rule 15.*failed JSON parse"
+  "wave-plan-state-check/good-symbol-with-evidence|PASS|Rule 16.*all have State-Check Evidence rows"
+  "wave-plan-state-check/bad-symbol-no-evidence|FAIL|Rule 16.*missing State-Check Evidence row for"
+  "wave-plan-state-check/forward-flagged-allowed|PASS|Rule 16.*all have State-Check Evidence rows"
 )
 
 PASS_COUNT=0
@@ -96,7 +99,7 @@ run_fixture() {
     FAIL_COUNT=$((FAIL_COUNT+1))
     RESULTS+="[FAIL] $key — expected $expect, got $actual"$'\n'
     RESULTS+="       output excerpt:"$'\n'
-    RESULTS+="$(echo "$out" | grep -E "^\[(OK|WARN|FAIL)\].*Rule 15" | sed 's/^/         /')"$'\n'
+    RESULTS+="$(echo "$out" | grep -E "^\[(OK|WARN|FAIL)\].*(Rule 15|Rule 16)" | sed 's/^/         /')"$'\n'
   fi
 
   rm -f "$tmp.out"
