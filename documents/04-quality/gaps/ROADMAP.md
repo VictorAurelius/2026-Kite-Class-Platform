@@ -32,6 +32,10 @@
 
 ---
 
+**2026-05-05 (GAP-362 filed — TenantIsolationIT flake orphan):** P1 test-isolation correctness gap. `TenantIsolationIT.shouldIsolateCourseDataBetweenTenants` (line 148) sporadically fails on `mvn verify` since Wave 14; flagged inline in GAP-347 closure (PR #775) + Wave 19 Bucket A closure (PR #793) as "out of scope, pre-existing" but no dedicated gap until now → orphaned debt. Filed per `audit-to-gap-pipeline.md` Step 1-3 + `gap-done-discipline.md` §2 anti-pattern. Numbered 362 to avoid collision with reserved 359/360/361 (Bucket A/B/C in flight). Wave-eligibility: post-Wave-19 P1.
+
+---
+
 **2026-05-05 (GAP-358 filed — dev workstation server migration P2):** Migrate WSL2 → Oracle Cloud Always Free ARM A1.Flex (1× 4 OCPU + 24 GB RAM) for stable remote dev workstation per `feedback_agent_kill_root_cause.md` Tailscale + mosh + tmux 3-layer stack. Triggered by 3-agent kill incident 2026-05-05 (PC restart + 50 uncommitted files orphaned in worktrees). Existing `infrastructure/terraform-oracle/` is production-targeted (2-VM split); new gap proposes separate `terraform-oracle-dev/` module + Phase 2 VSCode Remote-SSH + code-server browser fallback for mobile. Wave-eligibility: post-Wave-19 P2.
 
 ---
