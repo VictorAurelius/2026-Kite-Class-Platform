@@ -57,6 +57,10 @@ Create production student dashboard from prototype — 14 mobile screens.
 
 - HTML prototype: `ui_kits/kiteclass-student/` (Wave Round 3 PR #700)
 - Sister Track 2 gaps: GAP-266..272 + GAP-273 (components)
+- **External review (Wave 20 Bucket A, 2026-05-05):** `documents/04-quality/audits/ui-review/2026-05-05-round-3-kiteclass-student-review.md` — avg **100.4/128** APPROVE WITH POLISH
+- **🚫 BLOCKER:** [GAP-363](GAP-363-kiteclass-student-polish-payments-persona-violation.md) (P1 — payments persona violation + 4 partials) MUST close before Track 2 port begins
+- **🚫 BLOCKER:** [GAP-365](GAP-365-s-student-tier-1-ac-doc.md) (P2 BL — file Tier-1 `S-student.md` AC doc) MUST close to ground port spec
+- Parent quality-gate gap: [GAP-348](GAP-348-round-3-ui-kits-persona-driven-review.md) (🟡 PARTIAL)
 
 ## Effort estimate
 

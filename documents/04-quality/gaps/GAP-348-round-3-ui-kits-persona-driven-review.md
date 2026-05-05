@@ -1,6 +1,6 @@
 # GAP-348: Round 3 UI Kits Persona-Driven Review (kiteclass-student + kitehub-admin)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Bucket A + B external reviews SHIPPED 2026-05-05 (Wave 20, PRs #803 + #805); both kits APPROVE WITH POLISH; 3 follow-up gaps filed (GAP-363/364/365); Track 2 ports GAP-269/271 BLOCKED until polish gaps close
 **Priority:** 🟠 P1 (pre-port quality gate — blocks Track 2 Phase 2 trustworthiness)
 **Domain:** Quality / Design System
 **Found:** 2026-05-04 (session audit — UI kits review coverage gap)
@@ -74,4 +74,13 @@ Per `meta-gap-priority.md` §3 priority matrix — this is **Business-Logic / Qu
 
 ## Log
 
+- **2026-05-05 (Wave 20 Bucket C closure — this PR):** Status 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp. Bucket A + B external reviews SHIPPED. Bucket C synthesis: 3 follow-up gaps filed.
+  - **Wave 20 Bucket A (PR #803, merged 2026-05-05):** kiteclass-student external avg **100.4/128** (delta -15.6 vs self-report 116, calibration band ✓). Verdict: **APPROVE WITH POLISH** — `payments.html` 92/128 child-protection AC-FIN-001 violation (Pay button for K-12 S. Student). Tier-1 `S-student.md` AC doc absent. Report: `documents/04-quality/audits/ui-review/2026-05-05-round-3-kiteclass-student-review.md` (264 lines, 13 sections).
+  - **Wave 20 Bucket B (PR #805, merged 2026-05-05):** kitehub-admin external avg **101.1/128** (delta -6.1 vs self-report 107.2 — unusually small per Bucket B analysis: kit had explicit WCAG ratios + 4 MoET regulations cited + realistic VN K-12 mock data). Verdict: **APPROVE WITH POLISH** — `school-profile.html` 91/128 below kit floor. Report: `documents/04-quality/audits/ui-review/2026-05-05-round-3-kitehub-admin-review.md` (346 lines, 15 sections).
+  - **Follow-up gaps filed:**
+    - **GAP-363** (P1 BLOCKING) — kiteclass-student polish (payments persona violation + 4 partials)
+    - **GAP-364** (P2) — kitehub-admin polish (school-profile rebuild + 5 medium-priority polish items)
+    - **GAP-365** (P2 Business-Logic) — file Tier-1 `S-student.md` AC doc (currently absent)
+  - **Track 2 ports BLOCKED** per AC last bullet: GAP-269 (student) blocks on GAP-363 + GAP-365; GAP-271 (admin) blocks on GAP-364
+  - **Status remains PARTIAL** because: (a) AC item "follow-up kit polish gap filed BEFORE Track 2 port for that kit can start" → 3 gaps filed (✅), but kit polish not yet executed; (b) AC item "If external avg < 105, follow-up gap filed" → both kits below 105, gaps filed (✅). Bucket A + B + C all shipped per plan.
 - **2026-05-04:** Filed after session audit found Round 3 kits merged with self-report only — no external review through `ui-review` skill, no persona AC mapping. Track 2 Phase 2 plan (GAP-349) cannot trust agent self-scores when porting prototypes to production code.
