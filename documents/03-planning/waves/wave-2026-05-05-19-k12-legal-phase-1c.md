@@ -1,8 +1,10 @@
 ---
 title: Wave 19 — K-12 LEGAL Trio Phase 1C + Parent Portal Phase 1B Remainder
-status: draft
+status: complete
 created: 2026-05-05
 updated: 2026-05-05
+shipped: 2026-05-05
+prs: [793, 792, 794, 796]
 waves: [19]
 gaps: [GAP-322c, GAP-323c, GAP-321c, GAP-321b-1-conduct]
 ---
