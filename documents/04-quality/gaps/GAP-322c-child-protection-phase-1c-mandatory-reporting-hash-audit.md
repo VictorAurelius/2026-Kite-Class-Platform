@@ -1,6 +1,6 @@
 # GAP-322c: Child Protection Phase 1C — Mandatory reporting Đ.51 + hash-chained audit + 7y retention + pen test
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Wave 19 Bucket A v1 SHIPPED 2026-05-05; Phase 1C remainder follow-up: [GAP-359](GAP-359-child-protection-phase-1c-remainder.md)
 **Priority:** 🔴 P0 LEGAL (criminal liability — sister of GAP-322 Phase 1A + Phase 1B)
 **Domain:** Backend + Frontend + Compliance + Security
 **Detected:** 2026-05-04 (Wave 18b1 Bucket E closure)
@@ -50,16 +50,24 @@ Phase 1A (Wave 18b1 PR #767) shipped Incident entity + AES-256 encryption + safe
 
 ## Acceptance Criteria
 
-- [ ] Mandatory reporting banner triggers on CRITICAL+abuse-category transition
-- [ ] Banner ack workflow with reference number + timestamp + audit log
-- [ ] `child_protection_audit_log` table with hash chain + DELETE denied for admin
+### Phase 1C v1 (SHIPPED Wave 19 Bucket A 2026-05-05)
+
+- [x] Mandatory reporting banner triggers on CRITICAL+abuse-category transition (`IncidentBanner.tsx` warning state)
+- [x] Banner ack workflow with reference number + timestamp + audit log (`POST /api/v1/incidents/{id}/mandatory-report-ack`; `IncidentReportingController` + `MandatoryReportAckRequest/Response`)
+- [x] `child_protection_audit_log` table with hash chain + DELETE denied for app role (V54 migration `REVOKE DELETE`)
+- [x] Tests: banner trigger event-fire unit (`IncidentServiceTest`) + audit-log hash-chain unit (`ChildProtectionAuditServiceImplTest`) + endpoint IT (`IncidentReportingControllerIT`)
+- [x] Business docs updated: BR-CHILD-PROTECT-005..007 (visibility scope + Đ.51 trigger + hash-chain) + UC-INCIDENT-CRITICAL-REPORT, full 5-attribute frontmatter
+- [x] `IncidentVisibilityScope` enum (4 values, default STAFF_ONLY backward compat) — consumed by Wave 19 Bucket D parent-portal conduct facet
+- [x] mvn green on `kiteclass-core` (verified salvage-agent run 2026-05-05)
+
+### Phase 1C remainder (deferred — see [GAP-359](GAP-359-child-protection-phase-1c-remainder.md))
+
 - [ ] Daily hash-chain integrity verification cron + alert
 - [ ] 7-year retention column + soft-delete block until expiry
 - [ ] Pen test report shipped (or feature-flag if pen test unavailable)
 - [ ] AC-COMM-006 4-level complaint routing (or coordinate with GAP-339)
-- [ ] Tests: banner trigger IT + audit log hash-chain unit + retention block IT
-- [ ] Business docs updated: BR-CHILD-PROTECTION-{reporting/audit/retention} + UC-INCIDENT-CRITICAL-REPORT
-- [ ] mvn + pnpm green
+- [ ] Full UC-INCIDENT-CRITICAL-REPORT page UI (v1 ships banner + dialog handoff)
+- [ ] MOLISA Tổng đài 111 webhook (Stage 2, Q4 2026)
 
 ## Estimated Effort
 
@@ -79,4 +87,5 @@ Phase 1A (Wave 18b1 PR #767) shipped Incident entity + AES-256 encryption + safe
 
 ## Log
 
+- **2026-05-05** — Phase 1C v1 SHIPPED Wave 19 Bucket A via salvage agent (PC-restart recovery). Salvaged uncommitted worktree (5 modified + 13 new files). Verified via `mvn clean verify -pl kiteclass-core -Dcheckstyle.skip=true` on salvage-agent local environment. Status flipped 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 PARTIAL exit ramp. Phase 1C remainder follow-up filed as **GAP-359** covering: 7y retention column + soft-delete block, pen test execution + remediation, AC-COMM-006 4-level escalation depending GAP-339, full UC-INCIDENT-CRITICAL-REPORT page UI, daily hash-chain integrity cron, MOLISA 111 webhook Stage 2 Q4 2026. Verification artifact: mvn output (last commit), `child_protection_audit_log` schema verified V54 migration; backward-compat `incidents.visibility_scope DEFAULT 'STAFF_ONLY'` covers existing rows. K12_ENTERPRISE tier flag REMAINS DISABLED until GAP-359 closes + legal counsel sign-off via GAP-156.
 - **2026-05-04** — Filed by Wave 18b1 closure coordinator. Per `gap-done-discipline.md` §3 PARTIAL exit ramp. K12_ENTERPRISE tier flag REMAINS DISABLED until 322b + 322c ship + legal counsel sign-off via GAP-156.

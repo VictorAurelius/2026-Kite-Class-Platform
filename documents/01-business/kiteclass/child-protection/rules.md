@@ -1,10 +1,10 @@
 # Child Protection — Business Rules
 
 **Domain:** KiteClass Core / Compliance / Safeguarding
-**Version:** 0.3 (Phase 1A + Phase 1B foundation + Phase 1B remainder)
+**Version:** 0.4 (Phase 1A + Phase 1B foundation + Phase 1B remainder + Phase 1C v1)
 **Created:** 2026-05-04
-**Last-Reviewed:** 2026-05-04
-**Reviewer-Approver:** @nguyenvankiet (acting Legal scout, solo-dev, 2026-05-04). Formal Vietnamese child-protection counsel review queued via GAP-156.
+**Last-Reviewed:** 2026-05-05
+**Reviewer-Approver:** @nguyenvankiet (acting Legal scout, solo-dev, 2026-05-05). Formal Vietnamese child-protection counsel review queued via GAP-156.
 
 ---
 
@@ -123,8 +123,38 @@ Each rule below carries the 5-attribute review frontmatter per `.claude/rules/bu
 | BR-VETTING-006 | LLTP upload endpoint + 10MB cap | `POST /api/v1/vettings/{vettingId}/documents` accepts a single multipart file (`file` field). Server-side caps: ≤10MB (returns 400 `VETTING_DOC_TOO_LARGE`); empty file rejected (`VETTING_DOC_EMPTY`); blank filename rejected (`VETTING_DOC_FILENAME_REQUIRED`); RBAC SAFEGUARDING_OFFICER enforced via existing `requireSafeguardingOfficer` (`X-User-Roles` header). Vetting record existence verified before persist (404 surfaces). Response 201 returns `{vettingId, storageKey, sizeBytes, contentType}`. **Rationale:** 10MB cap covers PDF LLTP scans + CCCD photos comfortably; resumable / chunked upload deferred to follow-up sister gap. **Compliance check:** Compliant — Decree 56/2017 §Đ.25 requires document persistence; PDPL Decree 13/2023 Art 16 satisfied via dedicated bucket + at-rest encryption (BR-VETTING-002 + BR-VETTING-004). | 1B remainder |
 | BR-VETTING-005 | Soft-delete + audit | Vetting records inherit BaseEntity soft-delete + audit columns (created_at/by, updated_at/by, version, deleted). Soft-delete preserves the row for audit per Decree 56/2017 §Đ.25 procedural-record requirement. Phase 1C will tighten anti-delete on REJECTED + 7-year retention enforcement (parallels BR-CHILD-PROT-012 for incidents). **Rationale:** vetting decisions must be reproducible 7 years on for audit / criminal liability. **Compliance check:** Compliant (foundation) — full retention enforcement deferred to GAP-322c. | 1B foundation (tightens 1C) |
 
+## 7. Phase 1C v1 rules (GAP-322c, Wave 19 Bucket A — mandatory reporting + audit log)
+
+These rules use the prefix **`BR-CHILD-PROTECT-*`** (note: distinct from the Phase 1A prefix `BR-CHILD-PROT-*`) to keep Phase 1C's mandatory-reporting + audit-log subdomain easy to grep without colliding with the existing 17 Phase 1A rules. Bucket A authors them; Bucket D consumes BR-CHILD-PROTECT-005 (visibility scope) for the parent-portal conduct facet.
+
+Each rule below carries the full 5-attribute frontmatter per `.claude/rules/business-logic-review.md`:
+- **Source** common to BR-CHILD-PROTECT-005..007: (1) Luật Trẻ em 2016 Đ.51 (mandatory reporting ≤24h to Tổng đài 111 + công an địa phương); (2) PDPL Decree 13/2023/NĐ-CP Art 16 (children's PII special protection); (3) Bộ luật Hình sự Đ.147 (CSAM criminal liability); (4) Decree 56/2017/NĐ-CP §Đ.25 (child-abuse reporting procedure); (5) ND-13/2023/NĐ-CP financial-record retention precedent (parallels 7-year retention class).
+- **Reviewer** common: @nguyenvankiet (acting Legal scout + Compliance, solo-dev, 2026-05-05). Formal child-protection counsel + DPO review queued — see GAP-156. Phase 1C closure REQUIRES legal counsel sign-off before K-12 tenant onboarding flag enables.
+- **Review cadence** common: Annual + event-driven on amendment of Luật Trẻ em 2016 Đ.51, PDPL Decree 13/2023, Decree 56/2017, or BLHS Đ.147. **Next review:** 2027-05-05.
+
+| ID | Rule | Detail | Phase |
+|----|------|--------|-------|
+| BR-CHILD-PROTECT-005 | Visibility scope | `incidents.visibility_scope` ∈ {`PARENT_VISIBLE`, `PUBLIC`, `STAFF_ONLY`, `RESTRICTED`}. Defaults to `STAFF_ONLY` (legacy + new rows). Parent-portal conduct facet (Bucket D) JPQL filter only surfaces `PARENT_VISIBLE` + `PUBLIC`. **Rationale:** without this column ABUSE / GROOMING records risk leaking to parents through the conduct facet; the column is the gate. **Compliance check:** Compliant — PDPL Decree 13/2023 Art 16 (child PII restricted to safeguarding roles by default). | 1C v1 |
+| BR-CHILD-PROTECT-006 | Đ.51 mandatory reporting trigger | When an Incident reaches `severity=CRITICAL` AND `category ∈ {ABUSE, GROOMING, CSAM}` the system fires `IncidentCriticalEvent` (after-commit) → audit log entry + FE banner. Banner CTA wires to `POST /api/v1/incidents/{id}/mandatory-report-ack` which the safeguarding officer calls after they have actually filed the external report. **Rationale:** Đ.51 imposes school-side criminal liability for failure to report ≤24h; the banner removes ambiguity ("did anyone report?") and the audit log proves the chain to công an / MOLISA. **Compliance check:** Compliant — Luật Trẻ em 2016 Đ.51 + Decree 56/2017 §Đ.25 (procedural standard); BLHS Đ.147 for CSAM. | 1C v1 (more channels Phase 1C remainder) |
+| BR-CHILD-PROTECT-007 | Hash-chain audit log | Table `child_protection_audit_log` is append-only. Each row stores `prev_hash` + `content_hash = SHA-256(prev_hash || canonical_payload_json)` per `(instance_id, entity_type)` chain (genesis `prev_hash` = 64-char zeros). DELETE/TRUNCATE revoked from typical app role at V54 migration; daily integrity verification cron deferred to Phase 1C remainder. **Rationale:** non-repudiation — audit must outlive admin-tier compromise. Hash chain detects post-hoc edits even if a hostile DBA bypasses the GRANT. **Compliance check:** Compliant — Luật Trẻ em 2016 Đ.51 (proof-of-report when audited); ND-13/2023 (7-year financial-record class precedent for retention). 7-year retention column + soft-delete block deferred to Phase 1C remainder. | 1C v1 (retention enforcement remainder) |
+
+### Phase 1C v1 boundary
+
+- ✅ Visibility scope column + default `STAFF_ONLY`
+- ✅ `IncidentCriticalEvent` + `IncidentTransitionListener` after-commit audit log on CRITICAL+abuse-category
+- ✅ Hash-chain table with append-only invariant + REVOKE DELETE
+- ✅ Mandatory-report banner FE (warning + ack states)
+- ✅ `POST /api/v1/incidents/{id}/mandatory-report-ack` endpoint with SAFEGUARDING_OFFICER RBAC + audit append
+- ❌ 7-year retention column + soft-delete block (Phase 1C remainder follow-up)
+- ❌ Daily hash-chain integrity verification cron (Phase 1C remainder)
+- ❌ Pen test execution + remediation (Phase 1C remainder)
+- ❌ AC-COMM-006 4-level complaint escalation (depends GAP-339)
+- ❌ Full UC-INCIDENT-CRITICAL-REPORT page UI (Phase 1C remainder; banner + endpoint suffice for v1)
+- ❌ Tổng đài 111 webhook (Stage 2 — Q4 2026)
+
 ## Log
 
+- **2026-05-05** (v0.4): Phase 1C v1 — Wave 19 Bucket A (GAP-322c v1). Added §7 with BR-CHILD-PROTECT-005 (visibility scope), BR-CHILD-PROTECT-006 (Đ.51 mandatory reporting trigger), BR-CHILD-PROTECT-007 (hash-chain audit log) — full 5-attribute frontmatter. V54 migration adds `incidents.visibility_scope` (DEFAULT `STAFF_ONLY`) + `child_protection_audit_log` (hash-chain, append-only via REVOKE DELETE). `IncidentCriticalEvent` fires on CRITICAL+abuse-category create (after-commit listener appends audit row). FE `IncidentBanner.tsx` cites Đ.51 + 24h obligation. `POST /api/v1/incidents/{id}/mandatory-report-ack` endpoint persists audit entry. 7-year retention enforcement, daily integrity cron, pen test, 4-level complaint escalation, full UC-INCIDENT-CRITICAL-REPORT page UI deferred to Phase 1C remainder follow-up gap.
 - **2026-05-04** (v0.3): Phase 1B remainder — Wave 18b3 Bucket B (GAP-322b remainder). BR-VETTING-004 reframed from "stub" to "concrete MinIO SDK" (AWS SDK v2, dedicated `kiteclass-vetting` bucket, 15-min presigned URL TTL cap). BR-VETTING-006 added covering the new `POST /api/v1/vettings/{vettingId}/documents` multipart upload endpoint (10MB cap; reuse RBAC + existence check). LLTP upload form FE shipped at `/admin/vetting/[vettingId]/upload`. 7-year retention bucket policy + virus-scan webhook + resumable upload + audit-log entries on upload remain deferred to Phase 1C (GAP-322c) + follow-up sister gaps.
 - **2026-05-04** (v0.2): Phase 1B foundation — vetting workflow rules BR-VETTING-001..005 added; sister of Phase 1A BR-CHILD-PROT-001..017. Wave 18b2 Bucket B (GAP-322b). Vetting service-level state machine + AES-256 on `lltp_number` + `police_check_details` + RBAC gate on `/api/v1/vettings/*` (SAFEGUARDING_OFFICER only) + `VettingDocumentStorage` contract with stub impl shipped. LLTP file upload UI + verify queue UI + concrete MinIO SDK wiring + 7-year retention enforcement deferred to Phase 1B follow-up + Phase 1C (GAP-322c).
 - **2026-05-04** (v0.1): Phase 1A foundation — entity + encryption + role seed shipped (Wave 18b1 Bucket E). Phase 1B (GAP-322b) + Phase 1C (GAP-322c) sister gaps to be filed by closure coordinator.

@@ -1,9 +1,9 @@
 # Child Protection — Use Cases
 
 **Domain:** KiteClass Core / Compliance / Safeguarding
-**Version:** 0.2 (Phase 1A + Phase 1B foundation)
+**Version:** 0.3 (Phase 1A + Phase 1B foundation + Phase 1C v1)
 **Created:** 2026-05-04
-**Last-Reviewed:** 2026-05-04
+**Last-Reviewed:** 2026-05-05
 
 > Phase 1A documents skeleton use cases (UC-CHILD-PROT-001..004 — Incident CRUD foundation). Use cases UC-CHILD-PROT-005..010 (state machine, RBAC-gated decryption, mandatory reporting, audit log, retention) are placeholder-defined here so Phase 1B/1C have a target to implement against.
 
@@ -275,7 +275,48 @@
 
 ---
 
+## UC-INCIDENT-CRITICAL-REPORT — Officer files Đ.51 mandatory report
+
+**Actor:** `SAFEGUARDING_OFFICER` (Phase 1C v1; Hiệu trưởng + designated counselor join in Phase 1C remainder).
+
+**Trigger:** An Incident reaches `severity=CRITICAL` AND `category ∈ {ABUSE, GROOMING, CSAM}` — most commonly via the create flow (UC-CHILD-PROT-001) or a status transition (UC-CHILD-PROT-004). Audit log + banner fire automatically; this use case captures what the OFFICER does next.
+
+**Preconditions:**
+- Incident exists, is non-deleted, and matches the trigger predicate
+- Officer is logged in with `SAFEGUARDING_OFFICER` role on `X-User-Roles`
+- Officer has actually filed the external report with Tổng đài 111 + công an địa phương (mandatory ≤24h per Luật Trẻ em 2016 Đ.51)
+
+**Main flow:**
+
+1. Officer opens the incident detail page; the `IncidentBanner` renders the warning state with the Đ.51 citation.
+2. Officer dials Tổng đài 111 + visits the local công an station OR uses the official online channel; obtains a reference number.
+3. Officer clicks "Đã báo cáo — nhập số tham chiếu" CTA on the banner.
+4. (Phase 1C v1) Parent page wires a small dialog that captures `referenceNumber` + `reportedAt` + optional `notes`.
+5. Dialog POSTs to `/api/v1/incidents/{id}/mandatory-report-ack`.
+6. Server-side: `IncidentReportingController` validates RBAC + body, calls `ChildProtectionAuditService.append(...)` to persist a hash-chain entry with `action=MANDATORY_REPORT_ACK`.
+7. Response 201 returns `{auditLogId, contentHash}`. FE flips banner to the calmer "đã báo cáo" state on next render.
+
+**Postconditions:**
+- New row in `child_protection_audit_log` (instance-scoped, chained to prior entries on the same `(instanceId, "Incident")` chain)
+- Banner state advances; chain integrity verifiable via `verifyChainIntegrity("Incident")`
+
+**Errors:**
+- `INCIDENT_REPORT_RBAC_DENIED` (403) — caller lacks `SAFEGUARDING_OFFICER` role
+- `400` validation — `referenceNumber` blank or `reportedAt` missing
+- `404` — incident missing or soft-deleted
+
+**Out of scope for v1 (Phase 1C remainder follow-up):**
+- Listing prior acks per incident (read-side timeline UI)
+- Tổng đài 111 webhook auto-fill (Stage 2 — Q4 2026)
+- Daily hash-chain integrity verification cron alert
+- Full multi-step page UI (current v1 ships banner + dialog handoff to parent page)
+
+**Business rules invoked:** BR-CHILD-PROTECT-005, -006, -007.
+
+---
+
 ## Log
 
+- **2026-05-05** (v0.3): Phase 1C v1 — Wave 19 Bucket A (GAP-322c v1). Added UC-INCIDENT-CRITICAL-REPORT (officer files Đ.51 mandatory report → banner + audit log endpoint). Banner v1 ships warning + acked states; full multi-step page UI deferred to Phase 1C remainder.
 - **2026-05-04** (v0.2): Phase 1B foundation — vetting workflow UCs UC-VETTING-001..005 added (sister of Phase 1A UC-CHILD-PROT-001..010). Wave 18b2 Bucket B (GAP-322b). UI (upload form, verify queue, RBAC filter) deferred to Phase 1B follow-up; foundation ships service + endpoints + state machine + storage contract.
 - **2026-05-04** (v0.1): Phase 1A skeleton use cases UC-CHILD-PROT-001..004 + 005..010 placeholders. Wave 18b1 Bucket E.

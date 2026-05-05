@@ -6,13 +6,17 @@ import com.kiteclass.core.module.childprotection.entity.Incident;
 import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
+import com.kiteclass.core.module.childprotection.listener.IncidentCriticalEvent;
 import com.kiteclass.core.module.childprotection.repository.IncidentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 /**
  * IncidentService — Phase 1A CRUD for child-protection tickets with
@@ -49,7 +53,16 @@ public class IncidentService {
 
     private static final int MAX_TITLE_LENGTH = 200;
 
+    /**
+     * Categories that combined with {@link IncidentSeverity#CRITICAL} fire
+     * an {@link IncidentCriticalEvent} (BR-CHILD-PROTECT-006 mandatory
+     * reporting trigger).
+     */
+    private static final Set<IncidentCategory> MANDATORY_REPORT_CATEGORIES =
+            Set.of(IncidentCategory.ABUSE, IncidentCategory.GROOMING, IncidentCategory.CSAM);
+
     private final IncidentRepository incidentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Create a new incident. Encrypted fields ({@code description},
@@ -101,7 +114,25 @@ public class IncidentService {
         Incident saved = incidentRepository.save(incident);
         log.info("Created incident id={} severity={} category={} (reporter={})",
                 saved.getId(), severity, category, reporterUserId);
+        publishCriticalIfApplicable(saved, reporterUserId);
         return saved;
+    }
+
+    /**
+     * Fire an {@link IncidentCriticalEvent} when {@code severity=CRITICAL}
+     * AND {@code category ∈ {ABUSE, GROOMING, CSAM}}. The event is consumed
+     * by {@code IncidentTransitionListener} after-commit and triggers the
+     * hash-chain audit log entry per BR-CHILD-PROTECT-006/007.
+     */
+    private void publishCriticalIfApplicable(Incident incident, Long actorId) {
+        if (incident.getSeverity() == IncidentSeverity.CRITICAL
+                && MANDATORY_REPORT_CATEGORIES.contains(incident.getCategory())) {
+            eventPublisher.publishEvent(new IncidentCriticalEvent(
+                    incident.getId(),
+                    incident.getSeverity(),
+                    incident.getCategory(),
+                    actorId));
+        }
     }
 
     /**
