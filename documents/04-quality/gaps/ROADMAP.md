@@ -32,6 +32,10 @@
 
 ---
 
+**2026-05-05 (GAP-358 filed — dev workstation server migration P2):** Migrate WSL2 → Oracle Cloud Always Free ARM A1.Flex (1× 4 OCPU + 24 GB RAM) for stable remote dev workstation per `feedback_agent_kill_root_cause.md` Tailscale + mosh + tmux 3-layer stack. Triggered by 3-agent kill incident 2026-05-05 (PC restart + 50 uncommitted files orphaned in worktrees). Existing `infrastructure/terraform-oracle/` is production-targeted (2-VM split); new gap proposes separate `terraform-oracle-dev/` module + Phase 2 VSCode Remote-SSH + code-server browser fallback for mobile. Wave-eligibility: post-Wave-19 P2.
+
+---
+
 **2026-05-05 (GAP-357 filed — deprecated exception-ctor migration sweep):** P3 tech-debt umbrella covering 43 source files using deprecated `ValidationException(String)` / `EntityNotFoundException(String, Long)` ctors that have new error-code-aware replacements. State-check expanded scope vs IDE-flagged subset (LSP only diagnoses opened files). Filed instead of fixed during Wave 19 wait window — heavy overlap with active Bucket A childprotection module (23 call sites). Migration deferred to post-Wave-19 wave-pack (Phase 1 = ~17 module PRs, parallel-eligible).
 
 ---
