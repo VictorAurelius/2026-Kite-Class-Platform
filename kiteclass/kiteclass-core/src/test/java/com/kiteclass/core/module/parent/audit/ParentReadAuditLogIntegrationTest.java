@@ -4,6 +4,7 @@ import com.kiteclass.core.common.constant.AttendanceStatus;
 import com.kiteclass.core.common.exception.BusinessException;
 import com.kiteclass.core.module.attendance.entity.AttendancePeriod;
 import com.kiteclass.core.module.attendance.repository.AttendancePeriodRepository;
+import com.kiteclass.core.module.childprotection.repository.IncidentRepository;
 import com.kiteclass.core.common.constant.InvoiceStatus;
 import com.kiteclass.core.module.invoice.entity.Invoice;
 import com.kiteclass.core.module.invoice.repository.InvoiceRepository;
@@ -68,6 +69,7 @@ class ParentReadAuditLogIntegrationTest {
     @Mock private AttendancePeriodRepository attendanceRepo;
     @Mock private InvoiceRepository invoiceRepo;
     @Mock private ConsentService consentService;
+    @Mock private IncidentRepository incidentRepo;
 
     private ParentAttendanceFacetServiceImpl attendanceService;
     private ParentFeesFacetServiceImpl feesService;
@@ -85,7 +87,7 @@ class ParentReadAuditLogIntegrationTest {
         attendanceService = new ParentAttendanceFacetServiceImpl(linkRepository, attendanceRepo, auditLogService);
         feesService = new ParentFeesFacetServiceImpl(
                 linkRepository, invoiceRepo, auditLogService, consentService);
-        conductService = new ParentConductFacetServiceImpl(linkRepository, auditLogService);
+        conductService = new ParentConductFacetServiceImpl(linkRepository, incidentRepo, auditLogService);
         notificationsService = new ParentNotificationsFacetServiceImpl(linkRepository, auditLogService);
     }
 
@@ -151,10 +153,15 @@ class ParentReadAuditLogIntegrationTest {
     }
 
     @Test
-    @DisplayName("conduct: linked parent → audit row recorded with CONDUCT facet (stub returns empty)")
+    @DisplayName("conduct: linked parent → audit row recorded with CONDUCT facet (real wiring returns empty when no visible incidents)")
     void conduct_linked_writesAuditRow() {
         when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                 .thenReturn(true);
+        // Wave 19 Bucket D: real wiring against IncidentRepository — for the
+        // audit-fan-in invariant the precise scope arg doesn't matter, only
+        // that the audit row fires after a successful (possibly empty) read.
+        when(incidentRepo.findVisibleForParentList(eq(CHILD_ID), any()))
+                .thenReturn(List.of());
 
         var result = conductService.getConductForChild(PARENT_ID, CHILD_ID, "HK1-2025-2026");
 

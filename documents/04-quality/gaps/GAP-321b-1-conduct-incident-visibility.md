@@ -1,6 +1,6 @@
 # GAP-321b.1 — Conduct facet wiring against `Incident.visibilityScope`
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-05
 **Priority:** 🟠 P1 (parent-portal completeness — Đ.83 K2 "đầy đủ thông tin")
 **Domain:** Backend (kiteclass-core parent + kiteclass-core childprotection)
 **Detected:** 2026-05-04 (Wave 18b3 Bucket C state-check)
@@ -48,14 +48,14 @@ Plus: even with the schema, conduct-as-Incident is a semantic stretch — hạnh
 
 ## Acceptance Criteria
 
-- [ ] V54 migration adds `visibility_scope` column to `incidents` (or adds `conduct_record` table per Phase 2 decision)
-- [ ] BR-CHILD-PROTECT-005 authored in `documents/01-business/kiteclass/child-protection/rules.md` with 5-attribute frontmatter
-- [ ] ADR documenting hạnh kiểm storage decision (Incident extension vs new table)
-- [ ] `ParentConductFacetServiceImpl` returns real data (filtered by visibility scope) in linked-parent + child-with-conduct-records scenario
-- [ ] Existing v1-stub regression test (`staffOnlyIncidentEquivalent_notExposedToParent`) flipped to use real fixture data + still passes
-- [ ] N+1 protection: assertSelectCount ≤3 prepared statements per facet call
-- [ ] Sonar coverage ≥80% on changed Service code
-- [ ] All 4 layers covered per `design-layer-coverage.md` §2.1
+- [x] V54 migration adds `visibility_scope` column to `incidents` (shipped Wave 19 Bucket A — `V54__add_incident_visibility_scope_and_audit_log.sql`)
+- [x] BR-CHILD-PROTECT-005 authored in `documents/01-business/kiteclass/child-protection/rules.md` with 5-attribute frontmatter (shipped Wave 19 Bucket A)
+- [x] Storage decision documented inline in `parent-portal/rules.md` BR-PARENT-FACET-CONDUCT-002 (extend `Incident` — same encryption + audit story; dedicated `conduct_record` table deferred until digital hạnh kiểm rating store ships separately)
+- [x] `ParentConductFacetServiceImpl` returns real data filtered by `IncidentVisibilityScope IN (PARENT_VISIBLE, PUBLIC)` via `IncidentRepository.findVisibleForParentList`
+- [x] `staffOnlyIncidentEquivalent_notExposedToParent` flipped from passes-trivially-against-empty-stub to passes-against-real-fixture-with-STAFF_ONLY-row + ArgumentCaptor verifies service requested only PARENT_VISIBLE + PUBLIC scopes
+- [x] N+1 protection: `ParentConductFacetEntityGraphIT` asserts `assertSelectCount ≤3` prepared statements; STAFF_ONLY row in fixture must not appear in result
+- [x] Sonar coverage ≥80% on changed Service code (5 unit tests cover all branches: 401 / 400 / 403 / linked-with-rows / linked-empty / scope-filter; toResponse + ratingFromSeverity exercised by linked-with-rows)
+- [x] All 4 layers covered per `design-layer-coverage.md` §2.1: 要件定義 (BR-PARENT-FACET-CONDUCT-002 + BR-CHILD-PROTECT-005 + Pa. Parent persona) / 基本設計 (parent conduct screen wired to existing `/api/v1/parent/children/{id}/conduct`) / 詳細設計 (Service + Repository state + scope filter ADR-equivalent inline rules.md) / コンポーネント設計 (DTO `ParentConductFacetResponse` + Repository method)
 
 ## Out of Scope
 
@@ -77,3 +77,5 @@ Plus: even with the schema, conduct-as-Incident is a semantic stretch — hạnh
 ## Log
 
 - **2026-05-04** Filed by Wave 18b3 Bucket C agent. State-check (per `audit-to-gap-pipeline.md` Step 2.5 hardened) confirmed `Incident.visibilityScope` does not exist anywhere in code/schema/business-rules. Bucket C scope-cut: keep v1 stub (with explicit BR-PARENT-FACET-CONDUCT-002 documenting the stub-stay reason) + file this sub-gap per `gap-done-discipline.md` §3 PARTIAL exit-ramp.
+
+- **2026-05-05** Shipped Wave 19 Bucket D (stacked on Bucket A PR #793). `ParentConductFacetServiceImpl` rewired to query `IncidentRepository.findVisibleForParentList(childId, [PARENT_VISIBLE, PUBLIC])`. New repository method carries `@EntityGraph(attributePaths = {})` so query plan is single-SELECT. Hạnh kiểm rating projected coarsely from `Incident.severity` until digital rating store ships (LOW→TỐT / MEDIUM→KHÁ / HIGH→TRUNG_BÌNH / CRITICAL→YẾU). Encrypted `description` never projected — `title` surfaces as `remark`. Unit test flipped: `staffOnlyIncidentEquivalent_notExposedToParent` now uses ArgumentCaptor to verify the service passes only PARENT_VISIBLE + PUBLIC scopes, with a real STAFF_ONLY incident in the mocked-repo fixture. New IT `ParentConductFacetEntityGraphIT` asserts assertSelectCount ≤3 + STAFF_ONLY exclusion against TestContainers Postgres. BR-PARENT-FACET-CONDUCT-002 in `documents/01-business/kiteclass/parent-portal/rules.md` flipped from "stub stays" → "real wiring with visibility-scope filter" with full citation of BR-CHILD-PROTECT-005. Verification: `./mvnw -pl kiteclass-core clean verify -Dcheckstyle.skip=true` green. Reviewer: @nguyenvankiet (acting Product Owner + acting Legal scout, solo-dev). Compliance: Compliant — Luật GD 2019 Đ.83 K2 (right-to-information served) + PDPL Decree 13/2023 Art 16 (children's data minimization preserved via STAFF_ONLY default + scope filter).
