@@ -32,6 +32,10 @@
 
 ---
 
+**2026-05-05 (GAP-357 filed — deprecated exception-ctor migration sweep):** P3 tech-debt umbrella covering 43 source files using deprecated `ValidationException(String)` / `EntityNotFoundException(String, Long)` ctors that have new error-code-aware replacements. State-check expanded scope vs IDE-flagged subset (LSP only diagnoses opened files). Filed instead of fixed during Wave 19 wait window — heavy overlap with active Bucket A childprotection module (23 call sites). Migration deferred to post-Wave-19 wave-pack (Phase 1 = ~17 module PRs, parallel-eligible).
+
+---
+
 **2026-05-05 (GAP-356 SHIPPED — Meta-P0 5th-recurrence escalation, audit-to-gap-pipeline.md v1.2.0):** GAP-356 filed (PR #787) + closed (PR 2 stacked) — `audit-to-gap-pipeline.md` extended to v1.2.0 with §2.6 Wave-Plan Pre-Flight State-Check Protocol + `_TEMPLATE.md` State-Check Evidence section + `session-docs-check` Rule 16 detector + 3-fixture self-test (good-symbol-with-evidence ✅, bad-symbol-no-evidence ✅ FAIL on Wave 18b3 incident symbols, forward-flagged-allowed ✅) + `feedback_wave_plan_state_check.md` memory + cross-link in `feedback_wave_plan_through_pr.md`. Per `incident-to-rule-pipeline.md` 5-stage applied: Detect (5th recurrence Wave 18b3) → Classify (existing Step 2.5 covers gap-filing only) → Rule+Enforce (rule + detector + template same PR per §6.5) → Self-Test (Wave 18b3 plan symbols `Incident.visibilityScope` + `BR-CHILD-PROTECT-005` + `Notification.audienceScope` flagged by detector) → Retro Log (this entry). Wave 19 K-12 LEGAL Phase 1C plan now uses new template + detector. If 6th recurrence detected → meta-rule audit (Rule 16 + §2.6 both failing).
 
 ---
