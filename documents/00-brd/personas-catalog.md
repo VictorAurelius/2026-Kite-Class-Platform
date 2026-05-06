@@ -69,6 +69,31 @@ Review sau khi dự án mature, decide support hay không.
   - Role complexity
   - Financial tracking overhead
 
+#### S. Student (Học sinh / Người học) — Cross-tenant canonical persona
+- **Scale:** Cross-tenant — same persona spans P1/P2/P3/P5 contexts; ~85% mobile-PWA sessions
+- **Age range:** 6-22 tuổi spectrum, 4 age bands (tiểu học / THCS / THPT / vocational+university)
+- **Profile:** Digital native, mobile-primary, parent-mediated cho under-18, child-protection constraints (no off-platform DM, no direct payment, parent-reset password)
+- **Revenue:** N/A (student is consumer of tenant service, not buyer; parent or tenant-admin pays)
+- **Key needs (8 journeys):**
+  - Today (home, next-class context)
+  - My Classes (enrolled list — 1-15 lớp tùy tenant)
+  - Assignment workflow (view, submit, saved-draft, deadline tracking)
+  - Grades (self-tracking + GPA + Học lực + parent visibility + GVCN comment for P5)
+  - Attendance (read-only, anti-fraud, period-granular for P5)
+  - Notifications (parent-kép visualization, throttled, daily-digest option for P3+)
+  - Profile (basic info, locked PII for minor, preset avatar)
+  - Payment fees (READ-ONLY for K-12 — parent-trigger workflow, AC-FIN-001 cấm "Pay" button)
+- **Distinct constraints (NOT inherited from owner):**
+  - Child-protection lock for under-18 (parent-mediated payment + parent-reset password)
+  - Notification throttling + parent-kép visualization
+  - Anti-fraud attendance (teacher marks, student CHỈ view)
+  - No off-platform DM với teachers (per child-protection-policy.md §4.2)
+- **AC doc:** [`persona-criteria/S-student.md`](persona-criteria/S-student.md) — **21 ACs (6 LEGAL)**, canonical cross-tenant; secondary docs (`student-in-P2.md` / `student-in-P3.md` / `student-in-P5.md`) extend với tenant-context overrides
+- **Pain points:**
+  - Mobile-only with limited tech literacy (cấp 1-2)
+  - Parent-mediated workflow friction (forgot password, payment status visibility)
+  - Multi-class spam at scale (P3+ multi-teacher exposure)
+
 #### P5. Public/Private K-12 School (Trường tiểu học/THCS/THPT) ← **USER'S EXAMPLE**
 - **Scale:** 50+ teachers, 500-3000 students, 30+ classes, 10-30 staff
 - **Profile:** Hierarchical (principal, VPs, department heads, teachers, students, PARENTS, staff)
@@ -162,7 +187,7 @@ Review sau khi dự án mature, decide support hay không.
 | **Owner/Director** | Decision maker | Strategic config, billing, top-level reports | = tenant persona (P1/P2) |
 | **Admin** | Operations manager | User management, class setup, financial ops | GAP-153: admin-in-P3.md, admin-in-P5.md |
 | **Teacher** | Educator | Gradebook, attendance, class management, communication | GAP-153: teacher-employee-in-P3.md, teacher-employee-in-P5.md |
-| **Student** | Learner | View schedule, submit work, pay fees, view grades | GAP-153: student-in-P2/P3/P5.md |
+| **Student** | Learner | View schedule, submit work, view fees read-only, view grades | **Tier-1 canonical:** [`S-student.md`](persona-criteria/S-student.md) (Wave 22, GAP-365); tenant-context extensions: GAP-153 [`student-in-P2`](persona-criteria/secondary/student-in-P2.md) / [`student-in-P3`](persona-criteria/secondary/student-in-P3.md) / [`student-in-P5`](persona-criteria/secondary/student-in-P5.md) |
 | **Parent** | Guardian (K-12) | View child's progress, pay fees, communicate with teacher | GAP-153: parent-in-P5.md (P0); P2/P3 deferred P1 |
 | **Accountant** | Finance | Invoicing, payment collection, financial reports | Phase 3 P2 cells (deferred to GAP-282) |
 | **Receptionist** | Front-desk | Enrollment, inquiries, scheduling | Phase 3 P2 cells (deferred to GAP-282) |
@@ -257,5 +282,6 @@ Vietnamese-specific considerations:
 
 ## Log
 
+- 2026-05-06 — Added Tier-1 S. Student canonical persona doc ([`persona-criteria/S-student.md`](persona-criteria/S-student.md)) — cross-tenant canonical AC (21 ACs, 6 LEGAL); existing 3 secondary docs (`student-in-P2/P3/P5.md`) reframed as tenant-context extensions of this Tier-1 doc. Filed by Wave 22 Bucket C closure (GAP-365 → 🟢 DONE). Triggered by Wave 20 Bucket A external review surfacing absence — kit reviews previously used `secondary/student-in-P2.md` as proxy → calibration drift risk. Tier-1 doc now serves as canonical AC source for kit reviews + Track 2 ports.
 - 2026-04-20 — Secondary Personas table updated with AC doc pointers. GAP-153 added for secondary persona AC coverage (Student × P2/P3/P5, Parent × P5, Teacher-employee × P3/P5, Admin × P3/P5). Triggered by user question "BRD đã có cho đối tượng học sinh không?" revealing scope gap.
 - 2026-04-14 — Initial catalog created. Review triggered by user raising bulk import as critical gap for K-12 schools.

@@ -29,8 +29,9 @@ This folder closes the gap: every Tier-1 persona has a formal `P<N>-<slug>.md` A
 | [`P2-small-center.md`](P2-small-center.md) | Small Tutoring Center (trung tâm nhỏ/lớp học thêm) AC — 1-3 teachers, 20-100 students — **25 ACs** | 1 | 🟡 DRAFT v1 (PR #721) |
 | [`P3-medium-center.md`](P3-medium-center.md) | Medium Education Center (trung tâm vừa) AC — 5-20 teachers, 100-500 students — **31 ACs** | 1 | 🟡 DRAFT v1 (PR #722) |
 | [`P5-k12-school.md`](P5-k12-school.md) | Public/Private K-12 School (trường tiểu học/THCS/THPT) AC — 50+ teachers, 500-3000 students — **USER PRIORITY, 36 ACs, 73 MOET citations** | 1 | 🟡 DRAFT v1 (PR #723) |
+| [`S-student.md`](S-student.md) | S. Student (Học sinh / Người học) — cross-tenant canonical persona, mobile-PWA primary, age 6-22 spectrum, 4 age bands — **21 ACs (6 LEGAL)** | 1 | 🟡 DRAFT v1 (Wave 22 Bucket C, GAP-365) |
 
-**Total: 121 ACs across 4 Tier-1 personas** (Wave Persona-AC-Template SHIPPED 2026-04-30, GAP-151 → 🟢 DONE).
+**Total: 142 ACs across 5 Tier-1 personas** (Wave Persona-AC-Template SHIPPED 2026-04-30, GAP-151 → 🟢 DONE; S. Student Tier-1 added 2026-05-06 Wave 22 Bucket C, GAP-365).
 
 ### Secondary persona AC (Phase 1, Wave 16, 2026-04-30)
 
@@ -121,6 +122,7 @@ Off-cycle triggers: new VN regulation, new persona added, ≥3 user complaints c
 | P2 Small Center | — | — | — | GAP-152 Round 1 (Q3 2026) |
 | P3 Medium Center | — | — | — | GAP-152 Round 1 (Q3 2026) |
 | P5 K-12 School | — | — | — | GAP-152 Round 1 (Q3 2026) |
+| S. Student | — | — | — | GAP-152 Round 1 (Q3 2026) |
 
 (Updated by reviewer post each quarterly review cycle.)
 

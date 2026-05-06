@@ -1,6 +1,6 @@
 # GAP-365: File Tier-1 `S-student.md` persona AC doc (currently absent)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-06 — Tier-1 S-student.md created (21 ACs, 6 LEGAL); 3 secondary docs reframed as tenant-context extensions; personas-catalog + persona-criteria/README + kit README updated. Wave 22 Bucket C closed.
 **Priority:** 🟡 P2 Business-Logic (per `meta-gap-priority.md` §3 — persona AC infrastructure)
 **Domain:** Business / BRD / Persona criteria
 **Found:** 2026-05-05 (Wave 20 Bucket A external review surfaced absence)
@@ -72,14 +72,14 @@ Create `documents/00-brd/persona-criteria/S-student.md` following `_TEMPLATE.md`
 
 ## Acceptance Criteria
 
-- [ ] `documents/00-brd/persona-criteria/S-student.md` created following `_TEMPLATE.md`
-- [ ] All 8 journey areas documented with AC-* identifiers
-- [ ] Child-protection constraints (AC-FIN-001 payment lock for K-12) clearly enumerated
-- [ ] Cross-references to secondary/* docs (clarify Tier-1 vs tenant-context relationship)
-- [ ] `personas-catalog.md` updated with S-student row (Tier-1)
-- [ ] `documents/00-brd/persona-criteria/README.md` index updated
-- [ ] Cross-link from `ui_kits/kiteclass-student/README.md` to this Tier-1 doc
-- [ ] Re-validate Wave 20 Bucket A review report's persona-alignment scoring (§5) using new Tier-1 doc
+- [x] `documents/00-brd/persona-criteria/S-student.md` created following `_TEMPLATE.md`
+- [x] All 8 journey areas documented with AC-* identifiers
+- [x] Child-protection constraints (AC-FIN-001 payment lock for K-12) clearly enumerated
+- [x] Cross-references to secondary/* docs (clarify Tier-1 vs tenant-context relationship)
+- [x] `personas-catalog.md` updated with S-student row (Tier-1)
+- [x] `documents/00-brd/persona-criteria/README.md` index updated
+- [x] Cross-link from `ui_kits/kiteclass-student/README.md` to this Tier-1 doc
+- [x] Re-validate Wave 20 Bucket A review report's persona-alignment scoring (§5) using new Tier-1 doc — Tier-1 doc now available as canonical source; Wave 20 review can be re-validated post-merge using AC-CONTENT-001..005 + AC-FIN-001 against kit's persona alignment §5 self-score (10/10).
 
 ## Related
 
@@ -99,4 +99,5 @@ Per `meta-gap-priority.md` §3 — this gap touches `documents/00-brd/**` (BRD p
 
 ## Log
 
+- **2026-05-06** (Wave 22 Bucket C closure): Status flip 🔵 OPEN → 🟢 DONE per `gap-done-discipline.md` §2 (all 8 AC checked + verification artifact = 21-AC doc shipped). Created `documents/00-brd/persona-criteria/S-student.md` (431 lines, 21 ACs across 5 categories — Onboarding 4 + Content 5 + Financial 3 + Notification 5 + Edge 5; 6 LEGAL ACs per Luật Trẻ em 2016 + PDPL Art 16). AC-FIN-001 wording verbatim-anchored from `secondary/student-in-P2.md` line 118 to prevent calibration drift. Reframed 3 secondary docs (`student-in-P2/P3/P5.md`) with header notes "Extends Tier-1" — secondary docs preserve tenant-context overrides; Tier-1 holds canonical cross-tenant AC. Updated `personas-catalog.md` (added Tier-1 entry + secondary table cross-link to S-student.md) + `persona-criteria/README.md` (added S-student row + Last-Reviewed Tracking row, total 142 ACs across 5 Tier-1 personas) + `ui_kits/kiteclass-student/README.md` (added "Persona AC source" section, persona Tier 2 → Tier 1). Verification artifact: Tier-1 doc + 3 secondary header notes + 3 index updates committed in this PR. Track 2 GAP-269 (student port) now has canonical AC source for ground.
 - **2026-05-05:** Filed by Wave 20 Bucket C closure (this PR) per `audit-to-gap-pipeline.md`. Surfaced by Bucket A external review (kiteclass-student) flagging Tier-1 doc absence — used `secondary/student-in-P2.md` as proxy.

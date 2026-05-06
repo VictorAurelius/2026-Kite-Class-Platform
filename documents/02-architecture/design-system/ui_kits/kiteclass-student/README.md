@@ -1,6 +1,8 @@
 # kiteclass-student — Mobile-first PWA-grade UI kit
 
-**Persona:** S. Student (Tier 2 — mobile-primary 320–414px ~85% sessions, age 6–22, K-12 + vocational/language-center learners, homework-hours peak 7pm–10pm, moderate tech literacy — digital native lacking admin software experience)
+**Persona:** S. Student (Tier 1 — mobile-primary 320–414px ~85% sessions, age 6–22, K-12 + vocational/language-center learners, homework-hours peak 7pm–10pm, moderate tech literacy — digital native lacking admin software experience)
+
+**Persona AC source:** Canonical cross-tenant AC lives in [`documents/00-brd/persona-criteria/S-student.md`](../../../../00-brd/persona-criteria/S-student.md) (Tier-1, 21 ACs, 6 LEGAL — added 2026-05-06 Wave 22 Bucket C, GAP-365). Tenant-context extensions: [`student-in-P2`](../../../../00-brd/persona-criteria/secondary/student-in-P2.md) (small center) · [`student-in-P3`](../../../../00-brd/persona-criteria/secondary/student-in-P3.md) (medium center) · [`student-in-P5`](../../../../00-brd/persona-criteria/secondary/student-in-P5.md) (K-12 school — USER PRIORITY). Kit screens implement Tier-1 canonical journeys; tenant-specific UX variations (multi-class P3, period-based P5) deferred to Track 2 production port.
 **Direction:** D — web responsive + PWA-grade, NOT native app (per [`dossier/08-direction-decisions.md §2`](../../dossier/08-direction-decisions.md))
 **Wave:** Round 3 UI Kits, Agent A (sister of Round 2 `kiteclass-parent` — same mobile-first PWA pattern reused)
 **Status:** Prototype — for human vibe-check review (Track 2 production port deferred to follow-up gaps)
