@@ -8,8 +8,9 @@
  * cookie/consent UI for KH + KC public marketing surfaces.
  *
  * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
+ * Phase 3 (Wave 28, GAP-273): G4 component port — Track 2 Phase 3 (incremental).
  *
- * Future phases: remaining G1/G3/G4/G8..G12 + D1..D10 components per Track 2 wave-pack.
+ * Future phases: remaining G1/G3/G8..G12 + D1..D10 components per Track 2 wave-pack.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -45,6 +46,20 @@ export type {
   ClassSession,
   StudentRecord,
 } from './components/G2-attendance-roster';
+
+// G4 ClassScheduleManager — recurring rules + conflict detection (Wave 28 Bucket B, GAP-273)
+export {
+  ClassScheduleManager,
+  detectConflicts,
+} from './components/G4-class-schedule-manager';
+export type {
+  ClassScheduleManagerProps,
+  ConflictWarning,
+  RecurrenceRule,
+  ScheduleManagerState,
+  ScheduleSlot,
+  WeekDay,
+} from './components/G4-class-schedule-manager';
 
 // G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
 export { PaymentMethodSelector } from './components/G5-payment-method-selector';
