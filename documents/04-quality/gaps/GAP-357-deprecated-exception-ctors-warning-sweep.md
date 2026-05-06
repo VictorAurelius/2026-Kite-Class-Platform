@@ -1,6 +1,6 @@
 # GAP-357: Deprecated exception-ctor migration + IDE warning sweep (kiteclass-core)
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — Phase 1a SHIPPED 2026-05-06 (childprotection + attendance modules, ~26 ctor sites + 5 housekeeping fixes + 20 messages.properties keys en+vi). Phase 1 remaining (~17 other modules, ~150 keys) eligible post-Wave-23 wave-pack.
 **Priority:** 🟡 P3 (tech-debt — non-blocking; future-risk when deprecated ctors removed)
 **Domain:** Backend / Tech-debt
 **Found:** 2026-05-05 (IDE diagnostics during Wave 19 wait window)
@@ -73,13 +73,13 @@ Add ArchUnit test or Checkstyle rule banning `new ValidationException(String)` /
 
 ## Acceptance Criteria
 
-- [ ] All 43 source files migrated to new error-code ctor (2/43 done — attendance Phase 1a partial 2026-05-06)
-- [ ] ~150 new error-code keys added to `messages.properties` + `messages_vi.properties` (mirrored, vi translations provided)
+- [ ] All 43 source files migrated to new error-code ctor (6/43 done — Phase 1a 2026-05-06: attendance/AttendancePeriodServiceImpl + childprotection/{VettingController, IncidentService, VettingServiceImpl, storage/MinIOVettingDocumentStorageImpl})
+- [ ] ~150 new error-code keys added to `messages.properties` + `messages_vi.properties` (20/150 done — Phase 1a 2026-05-06: INCIDENT_* x8 + VETTING_* x12)
 - [ ] mvn `./mvnw -pl kiteclass-core clean verify -Dcheckstyle.skip=true` green
-- [ ] `ClassMapper.java` recurrenceRule mapping resolved (ignore or add to DTO)
-- [ ] 4 unused imports removed
-- [ ] LSP/IDE clean: 0 deprecated-ctor warnings on touched files
-- [ ] Business docs updated for any user-visible error codes
+- [x] `ClassMapper.java` recurrenceRule mapping resolved — `@Mapping(target = "recurrenceRule", ignore = true)` (Phase 1a — Wave 23 wait window 2026-05-06)
+- [x] 4 unused imports removed — IncidentServiceTest (`BeforeEach`), ClassRecurrenceServiceTest (`anyLong`), ParentTranscriptServiceTest (`EntityNotFoundException`), NotificationPreferenceServiceTest (`eq`) (Phase 1a — Wave 23 wait window 2026-05-06)
+- [ ] LSP/IDE clean: 0 deprecated-ctor warnings on touched files — Phase 1a clean for attendance + childprotection 5 files; remaining ~17 modules pending
+- [ ] Business docs updated for any user-visible error codes (Phase 1 remaining)
 
 ## Out-of-scope
 
@@ -103,5 +103,5 @@ Add ArchUnit test or Checkstyle rule banning `new ValidationException(String)` /
 
 ## Log
 
-- **2026-05-06 (Wave 23 wait window — Phase 1a partial)** Coordinator-only PR shipped (no agent). Phase 1a slice = 2 attendance ctor sites with `(Object) id` cast (keys `ATTENDANCE_PERIOD_NOT_FOUND` already exist in messages.properties + messages_vi.properties — no new keys needed) + 1 unused payload var in ChildProtectionAuditServiceImplTest line 85. Childprotection migration (16 ctor sites in 4 files: VettingController + IncidentService + VettingServiceImpl + MinIOVettingDocumentStorageImpl) DEFERRED to Phase 1 wave-pack agent — needs ~20 new error-code design + ~40 messages.properties entries (en+vi) + test updates that match message text. Status remains 🔵 OPEN; Phase 1 wave-pack post-Wave-23 close.
+- **2026-05-06 (Wave 23 wait window — Phase 1a SHIPPED expanded scope)** Coordinator-only PR (no agent) covering attendance + childprotection + 5 housekeeping. User pasted IDE diagnostics for childprotection module + asked "fix toàn bộ trong 1 PR thôi" → expanded scope from initial 3-fix to 31-fix consolidated PR. Migrations: attendance/AttendancePeriodServiceImpl x2 (cast `(Object) id`); childprotection/VettingController x3 (`new Object[0]` no-args); childprotection/IncidentService x8 (full migration with new error codes `INCIDENT_*` + Test assertion updates from `hasMessageContaining("Title")` → `hasMessageContaining("INCIDENT_TITLE_REQUIRED")`); childprotection/VettingServiceImpl x5 (mix of `new Object[0]` + `(Object) id` cast); childprotection/storage/MinIOVettingDocumentStorageImpl x8 (`new Object[0]`). Properties: 20 new keys (INCIDENT_* x8 + VETTING_* x12) added to both messages.properties + messages_vi.properties. Housekeeping (5 fixes from earlier scope): ClassMapper recurrenceRule ignore + 4 unused imports. Verification: 35 + 6 = 41 targeted tests green, mvnw test-compile clean both modules. Status flip 🔵 OPEN → 🟡 PARTIAL per `gap-done-discipline.md` §3 (~17 remaining modules pending Phase 1 wave-pack). Memory `feedback_deprecated_ctor_overload_resolution.md` saved with Java overload-ambiguity gotcha pattern. PR #817 (Phase 2 housekeeping) + PR #820 (initial Phase 1a-attendance) SUBSUMED by this expanded PR — both closed at coordinator merge.
 - **2026-05-05** Filed during Wave 19 wait window after IDE diagnostics surfaced ~30 warnings. State-check expanded scope from IDE-flagged 6 files → full 43. Filed instead of fixed because heavy overlap with active Bucket A (childprotection — 4 files, 23 call sites). Per agent-tool guidance "do not duplicate this agent's work — avoid working with the same files." Migration deferred to post-Wave-19 wave-pack.

@@ -65,7 +65,7 @@ public class VettingServiceImpl implements VettingService {
     @Override
     public Vetting create(Long teacherId, String lltpNumber, String policeCheckDetails, Instant expiresAt) {
         if (teacherId == null) {
-            throw new ValidationException("VETTING_TEACHER_ID_REQUIRED");
+            throw new ValidationException("VETTING_TEACHER_ID_REQUIRED", new Object[0]);
         }
         Vetting vetting = Vetting.builder()
                 .teacherId(teacherId)
@@ -83,17 +83,17 @@ public class VettingServiceImpl implements VettingService {
     @Transactional(readOnly = true)
     public Vetting findById(Long id) {
         return vettingRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("VETTING_NOT_FOUND", id));
+                .orElseThrow(() -> new EntityNotFoundException("VETTING_NOT_FOUND", (Object) id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Vetting findLatestForTeacher(Long teacherId) {
         if (teacherId == null) {
-            throw new ValidationException("VETTING_TEACHER_ID_REQUIRED");
+            throw new ValidationException("VETTING_TEACHER_ID_REQUIRED", new Object[0]);
         }
         return vettingRepository.findFirstByTeacherIdAndDeletedFalseOrderByIdDesc(teacherId)
-                .orElseThrow(() -> new EntityNotFoundException("VETTING_NOT_FOUND_FOR_TEACHER", teacherId));
+                .orElseThrow(() -> new EntityNotFoundException("VETTING_NOT_FOUND_FOR_TEACHER", (Object) teacherId));
     }
 
     @Override
@@ -105,7 +105,7 @@ public class VettingServiceImpl implements VettingService {
     @Override
     public Vetting transition(Long id, VettingStatus target, Long decidedByUserId) {
         if (target == null) {
-            throw new ValidationException("VETTING_TARGET_STATUS_REQUIRED");
+            throw new ValidationException("VETTING_TARGET_STATUS_REQUIRED", new Object[0]);
         }
         Vetting vetting = findById(id);
         VettingStatus current = vetting.getStatus();

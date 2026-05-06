@@ -102,13 +102,13 @@ public class MinIOVettingDocumentStorageImpl implements VettingDocumentStorage {
     @Override
     public String getDownloadUrl(Long vettingId, String docId, Duration ttl) {
         if (vettingId == null) {
-            throw new ValidationException("VETTING_ID_REQUIRED");
+            throw new ValidationException("VETTING_ID_REQUIRED", new Object[0]);
         }
         if (docId == null || docId.isBlank()) {
-            throw new ValidationException("VETTING_DOC_ID_REQUIRED");
+            throw new ValidationException("VETTING_DOC_ID_REQUIRED", new Object[0]);
         }
         if (ttl == null || ttl.isNegative() || ttl.isZero()) {
-            throw new ValidationException("VETTING_DOC_TTL_INVALID");
+            throw new ValidationException("VETTING_DOC_TTL_INVALID", new Object[0]);
         }
         Duration capped = ttl.compareTo(MAX_DOWNLOAD_TTL) > 0 ? MAX_DOWNLOAD_TTL : ttl;
 
@@ -130,10 +130,10 @@ public class MinIOVettingDocumentStorageImpl implements VettingDocumentStorage {
     @Override
     public void deleteDocument(Long vettingId, String docId) {
         if (vettingId == null) {
-            throw new ValidationException("VETTING_ID_REQUIRED");
+            throw new ValidationException("VETTING_ID_REQUIRED", new Object[0]);
         }
         if (docId == null || docId.isBlank()) {
-            throw new ValidationException("VETTING_DOC_ID_REQUIRED");
+            throw new ValidationException("VETTING_DOC_ID_REQUIRED", new Object[0]);
         }
         DeleteObjectRequest req = DeleteObjectRequest.builder()
                 .bucket(bucket)
@@ -146,13 +146,13 @@ public class MinIOVettingDocumentStorageImpl implements VettingDocumentStorage {
 
     private static void validate(Long vettingId, String filename, byte[] content) {
         if (vettingId == null) {
-            throw new ValidationException("VETTING_ID_REQUIRED");
+            throw new ValidationException("VETTING_ID_REQUIRED", new Object[0]);
         }
         if (filename == null || filename.isBlank()) {
-            throw new ValidationException("VETTING_DOC_FILENAME_REQUIRED");
+            throw new ValidationException("VETTING_DOC_FILENAME_REQUIRED", new Object[0]);
         }
         if (content == null) {
-            throw new ValidationException("VETTING_DOC_CONTENT_REQUIRED");
+            throw new ValidationException("VETTING_DOC_CONTENT_REQUIRED", new Object[0]);
         }
     }
 

@@ -7,7 +7,6 @@ import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
 import com.kiteclass.core.module.childprotection.repository.IncidentRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -125,7 +124,7 @@ class IncidentServiceTest {
                     IncidentSeverity.LOW, IncidentCategory.OTHER,
                     100L, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("Title");
+                    .hasMessageContaining("INCIDENT_TITLE_REQUIRED");
 
             verify(incidentRepository, never()).save(any());
         }
@@ -140,7 +139,7 @@ class IncidentServiceTest {
                     IncidentSeverity.LOW, IncidentCategory.OTHER,
                     100L, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("too long");
+                    .hasMessageContaining("INCIDENT_TITLE_TOO_LONG");
         }
 
         @Test
@@ -152,7 +151,7 @@ class IncidentServiceTest {
                     null, IncidentCategory.OTHER,
                     100L, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("Severity");
+                    .hasMessageContaining("INCIDENT_SEVERITY_REQUIRED");
         }
 
         @Test
@@ -164,7 +163,7 @@ class IncidentServiceTest {
                     IncidentSeverity.LOW, null,
                     100L, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("Category");
+                    .hasMessageContaining("INCIDENT_CATEGORY_REQUIRED");
         }
 
         @Test
@@ -176,7 +175,7 @@ class IncidentServiceTest {
                     IncidentSeverity.LOW, IncidentCategory.OTHER,
                     null, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("Reporter");
+                    .hasMessageContaining("INCIDENT_REPORTER_REQUIRED");
         }
     }
 
@@ -202,7 +201,7 @@ class IncidentServiceTest {
 
             assertThatThrownBy(() -> incidentService.findById(99L))
                     .isInstanceOf(EntityNotFoundException.class)
-                    .hasMessageContaining("99");
+                    .hasMessageContaining("INCIDENT_NOT_FOUND");
         }
     }
 
@@ -273,7 +272,7 @@ class IncidentServiceTest {
         void shouldRejectNullStatus() {
             assertThatThrownBy(() -> incidentService.updateStatus(5L, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("Status");
+                    .hasMessageContaining("INCIDENT_STATUS_REQUIRED");
             verify(incidentRepository, never()).save(any());
         }
 
@@ -308,7 +307,7 @@ class IncidentServiceTest {
         void shouldRejectNullOfficer() {
             assertThatThrownBy(() -> incidentService.assignOfficer(8L, null))
                     .isInstanceOf(ValidationException.class)
-                    .hasMessageContaining("Officer");
+                    .hasMessageContaining("INCIDENT_OFFICER_REQUIRED");
         }
     }
 

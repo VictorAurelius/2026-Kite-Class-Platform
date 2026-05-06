@@ -1,7 +1,6 @@
 package com.kiteclass.core.module.parent.service;
 
 import com.kiteclass.core.common.exception.BusinessException;
-import com.kiteclass.core.common.exception.EntityNotFoundException;
 import com.kiteclass.core.module.grade.entity.Transcript;
 import com.kiteclass.core.module.grade.repository.TranscriptRepository;
 import com.kiteclass.core.module.parent.dto.TranscriptResponse;
