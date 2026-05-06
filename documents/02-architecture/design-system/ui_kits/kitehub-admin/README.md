@@ -1,9 +1,30 @@
 # kitehub-admin — K-12 School Principal control plane
 
-**Wave UI Kits Round 3 · Bucket B**
+**Wave UI Kits Round 3 · Bucket B** (initial) · **Wave 22 Bucket B polish** (school-profile rebuild)
 **Persona:** P5 K–12 School Principal/Admin (Tier 1) — desktop-first, dense data, 50+ teachers / 500–3.000 students
 **Status:** prototype (HTML for human vibe-check; production port deferred to Track 2 follow-up gap)
-**Last Updated:** 2026-04-29
+**Last Updated:** 2026-05-06
+
+---
+
+## Wave 22 polish (2026-05-06) — `school-profile.html` rebuild
+
+Per [GAP-364](../../../../04-quality/gaps/GAP-364-kitehub-admin-polish-school-profile-rebuild.md) (PARTIAL), Wave 22 Bucket B rebuilt `school-profile.html` from form-only layout (91/128 — below 95 floor per Round 3 external review) to dashboard-style: hero KPI block (1.247 HS / 62 GV / 25 lớp / NK 2026-2027) + 4 tabbed sections (Thông tin cơ bản / Cơ sở vật chất / Đội ngũ / Pháp lý) + progressive disclosure on MoET licensing fields + organizational chart sparkline + accreditation badge pills.
+
+**New self-score:** ~107/128 (T28/H30/A26/U23) — clears ≥105 target.
+
+**Cross-screen polish items deferred to GAP-364b** (filed in Wave 22 closure PR — covers cross-screen scope independent of the school-profile rebuild):
+
+- Per-screen loading skeletons (currently dashboard-only)
+- Per-screen empty states in-context (currently relies on shared `empty-states.html` gallery)
+- Dark-mode parity across all 12 screens (token layer ready via `.dark` class)
+- Staff vetting workflow visualization — AC-ONBOARD-005 (likely new `staff-vetting.html` OR extend `teacher-management.html`)
+- Cross-screen Zalo OA reusable pattern — extract from `parent-comms.html` to `_shared/components/zalo-oa-card.html`
+- Re-score full kit avg ≥105 via `quality/ui-review-prototype` skill (was 101.1)
+
+These items remain open and tracked under GAP-364b. GAP-364 itself stays 🟡 PARTIAL until they ship.
+
+---
 
 ---
 
@@ -97,15 +118,16 @@ Per `dossier/10-acceptance-criteria.md` (100-item AC checklist, 4 dimensions × 
 |  7 | fees                          |  28   |  29   |  26   |  24   | **107**  |
 |  8 | conduct (5-step ladder)       |  27   |  30   |  26   |  25   | **108**  |
 |  9 | multi-class-roster (matrix)   |  28   |  29   |  26   |  24   | **107**  |
-| 10 | school-profile                |  26   |  29   |  26   |  23   | **104**  |
+| 10 | school-profile (Wave 22 ★)    |  28   |  30   |  26   |  23   | **107**  |
 | 11 | empty-states (gallery)        |  26   |  30   |  28   |  24   | **108**  |
 | 12 | login                         |  26   |  29   |  28   |  23   | **106**  |
 
-**Aggregate**
+**Aggregate** (post Wave 22 Bucket B school-profile rebuild)
 
-- **Avg:** 107.2 / 128 (target ≥105 ✓)
-- **Min:** 104 / 128 (school-profile — settings-heavy form, naturally lower aesthetic ceiling; floor ≥95 ✓)
+- **Avg (self):** 107.4 / 128 (target ≥105 ✓) — pending external re-audit per GAP-364b
+- **Min:** 106 / 128 (login — minimal-density auth screen) · school-profile rebuild moved off floor 91 → 107
 - **Max:** 109 / 128 (report-cards — strongest persona alignment; MoET stamp + ký số + Zalo gửi PH integration)
+- **External Round 3 baseline (2026-05-05, pre-Wave-22):** 101.1 / 128 — Wave 22 polish lifts school-profile but cross-screen items in GAP-364b remain
 - **Per-screen lift vs current production baseline 33–80/128:** average **+50 points** (range +24 to +76)
 
 **Self-verdict:** **SHIP**
