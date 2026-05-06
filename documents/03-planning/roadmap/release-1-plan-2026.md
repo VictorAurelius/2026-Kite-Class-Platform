@@ -301,6 +301,8 @@ Trigger để move Phase 1.5 (close BLOCKING gaps → public paid launch):
 
 ## 4. Phase 1.5 PAID — Close BLOCKING gaps → Public Paid Launch (+4-6 tuần)
 
+> **Deploy plan chi tiết:** [`release-1-deploy-plan.md`](release-1-deploy-plan.md) — Phase 1 BETA + Phase 1.5 PAID deploy steps + go-live runbook + rollback. **12 BLOCKING/STRONGLY recommend gaps** filed: GAP-369..380.
+
 ### 4.1 Trigger conditions
 
 Phase 1.5 START khi đủ:

@@ -10,11 +10,15 @@
 
 ## 🎯 Current Status Snapshot (2026-05-06)
 
-### 🟢 RELEASE LẦN 1 PHASE 1 ACTIVE — đọc trước
+### 🟢 RELEASE LẦN 1 PHASE 1 BETA ACTIVE — đọc trước
 
-> **Authoritative plan:** [`documents/03-planning/roadmap/release-1-plan-2026.md`](../../03-planning/roadmap/release-1-plan-2026.md) — 3-phase rollout P1+P2 → P3 → K-12 (5-7 tháng total).
+> **Authoritative plan:** [`documents/03-planning/roadmap/release-1-plan-2026.md`](../../03-planning/roadmap/release-1-plan-2026.md) — Phase 1 BETA (v0.9.0-beta, 9-12 tuần) → Phase 1.5 PAID (**v1.0.0** PRODUCTION, +4-6 tuần) → Phase 2 P3 (v2.0.0) → Phase 3 K-12 (v3.0.0). Target: ~13-18 tuần đến public paid launch.
 >
-> **Phương châm session mới (chốt 2026-05-06):** ƯU TIÊN Phase 1 wave-pack candidates (Wave 25-30 per Release Lần 1 plan §9) trước khi pick non-MVP gaps. Reference: `feedback_release_1_first_session_priority.md` (auto-loaded memory).
+> **Deploy plan chi tiết:** [`release-1-deploy-plan.md`](../../03-planning/roadmap/release-1-deploy-plan.md) — go-live runbook + rollback + 12 BLOCKING/STRONGLY recommend gaps GAP-369..380.
+>
+> **Versioning policy:** [`versioning-policy.md`](../../03-planning/roadmap/versioning-policy.md) — semver convention.
+>
+> **Phương châm session mới (chốt 2026-05-06):** ƯU TIÊN Phase 1 BETA wave-pack candidates (Wave 25-30) trước khi pick non-Release-1 gaps. Reference: `feedback_release_1_first_session_priority.md` (auto-loaded memory).
 
 ### 🚀 Next Action (signpost for new session)
 
