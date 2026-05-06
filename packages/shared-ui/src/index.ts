@@ -143,5 +143,14 @@ export type {
   JobProgress,
 } from './components/G1-bulk-import-dropzone';
 
+// G11 ThemePreview — reflexive WCAG AA contrast demo + auto-fix (Wave 29 Bucket C, GAP-273)
+export { ThemePreview, calculateContrast, suggestFix } from './components/G11-theme-preview';
+export type {
+  ThemePreviewProps,
+  ThemeMode,
+  BrandColors,
+  ContrastWarning,
+} from './components/G11-theme-preview';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
