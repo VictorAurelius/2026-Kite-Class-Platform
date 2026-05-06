@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { ConsentBanner } from '@kite/shared-ui';
 
 export const metadata: Metadata = {
   title: {
@@ -204,6 +205,14 @@ export default function PublicLayout({
           </div>
         </div>
       </footer>
+
+      {/* PDPL 2023 Articles 11-13 cookie/consent — GAP-353 Wave 23 Bucket BC */}
+      <ConsentBanner
+        privacyHref="/legal/privacy"
+        cookieHref="/legal/cookies"
+        termsHref="/legal/terms"
+        lang="vi"
+      />
     </div>
   );
 }

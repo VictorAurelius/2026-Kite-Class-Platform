@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ConsentBanner } from '@kite/shared-ui';
 import { KiteLogo } from '@/components/brand/KiteLogo';
 
 export function PublicLayout({ children }: { children: ReactNode }) {
@@ -88,6 +89,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
+
+      {/* PDPL 2023 Articles 11-13 cookie/consent — GAP-353 Wave 23 Bucket BC */}
+      <ConsentBanner
+        privacyHref="/legal/privacy"
+        cookieHref="/legal/cookies"
+        termsHref="/legal/terms"
+        lang="vi"
+      />
     </div>
   );
 }

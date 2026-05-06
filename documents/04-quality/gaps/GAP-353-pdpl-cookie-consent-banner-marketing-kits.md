@@ -51,13 +51,13 @@ Add `packages/shared-ui/src/components/ConsentBanner/` (consumed by both consume
 ## Acceptance Criteria
 
 - [ ] `BR-PDPL-CONSENT-001..004` written in both KH + KC marketing rules.md (10 attributes per `business-logic-review.md`)
-- [ ] `packages/shared-ui/src/components/ConsentBanner/` shipped + Storybook entry
+- [x] `packages/shared-ui/src/components/ConsentBanner/` shipped (Storybook entry deferred — workspace has no Storybook yet; tracked separately)
 - [ ] Banner spec in `dossier/14-common-components-inventory-{kc,kh}.md`
 - [ ] GAP-274 + GAP-275 + GAP-350 ACs updated to require ConsentBanner integration
 - [ ] Server-side consent API: `POST /api/v1/consent/record` + `GET /api/v1/consent/{userId}`
 - [ ] Consent record schema in DB (links to existing audit log per DR-03)
-- [ ] Reject-all flow tested — analytics scripts NOT loaded
-- [ ] Revocation flow tested — settings page reset + cookie clear
+- [x] Reject-all flow tested — analytics scripts NOT loaded
+- [x] Revocation flow tested — settings page reset + cookie clear
 - [ ] PDPL-effective-date (2026-07-01) compliance checklist signed off pre-launch
 
 ## Why P0
@@ -78,4 +78,5 @@ Per `meta-gap-priority.md` §3 — Business-Logic / Compliance tier (LEGAL MANDA
 
 ## Log
 
+- **2026-05-06 — Wave 23 Bucket BC (Layer 2+3 shipped):** `packages/shared-ui/src/components/ConsentBanner/` created (7 files: `index.tsx` barrel, `ConsentBanner.tsx`, `useConsent.ts`, `storage.ts`, `types.ts`, 2 test files). Vitest setup added to shared-ui (was Phase-1 stub). 27 tests pass (8 storage + 8 hook + 11 component flows). Mounted in `kitehub-frontend/src/components/layout/PublicLayout.tsx` + `kiteclass/kiteclass-frontend/src/app/(public)/layout.tsx` above closing tag, below footer. Both `pnpm build` succeed (KH + KC). `@kite/shared-ui` workspace dep already present in both frontends — no package.json changes needed. Reject-all + Customize → save granular + Revoke flows all tested via RTL. Server consent API (POST/GET `/api/v1/consent/...`), consent record DB schema, dossier component-inventory entry, GAP-274/275/350 cross-cut AC updates, BR-PDPL-CONSENT-* rules.md entries — all left to sister buckets (A rules, F legal pages, E kit mockup) + GAP-353b backend follow-up. Status stays 🔵 OPEN until coordinator wave-closure.
 - **2026-05-05:** Filed via simulation-gap-finder 3-axis matrix sweep. Discovered at Platform Admin × Discovery × C6 cell. State-check: 0 hits "PDPL"/"cookie banner"/"consent banner" in GAP-274/275/350 or HTML kits. PDPL effective 2026-07-01 makes this P0 — MVP launch (~4-6 weeks) precedes effective date; banner must ship pre-launch to avoid post-effective regulatory exposure. Cross-cut to BR-PDPL-CONSENT-* rules + ConsentBanner shared component + 3 marketing kit integrations.
