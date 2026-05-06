@@ -9,7 +9,10 @@
  *
  * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
  *
- * Future phases: remaining G1/G3/G4/G8..G12 + D1..D10 components per Track 2 wave-pack.
+ * Phase 2 (Wave 28 Bucket D, GAP-273): G10 PaymentStatusTimeline — first
+ * cross-component re-use of a shared util (G6 `formatVNCurrency`).
+ *
+ * Future phases: remaining G1/G3/G4/G8/G9/G11/G12 + D1..D10 components per Track 2 wave-pack.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -80,6 +83,18 @@ export type {
   InviteState,
   ParentInviteProps,
 } from './components/G7-parent-invite';
+
+// G10 PaymentStatusTimeline — payment lifecycle visualisation (Wave 28 Bucket D, GAP-273).
+// First cross-component re-use of a shared util: identity-preserved import of
+// G6 `formatVNCurrency` (no copy-paste drift).
+export { PaymentStatusTimeline } from './components/G10-payment-timeline';
+export type {
+  PaymentStatusTimelineProps,
+  PaymentTimelineState,
+  PaymentTimelineStep,
+  TimelineEvent,
+  TimelineEventStatus,
+} from './components/G10-payment-timeline';
 
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
