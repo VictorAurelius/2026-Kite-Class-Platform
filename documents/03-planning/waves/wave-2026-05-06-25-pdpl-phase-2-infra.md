@@ -142,6 +142,8 @@ gaps: [GAP-353b, GAP-114, GAP-116, GAP-378]
 | `documents/01-business/kitehub/marketing/api-contract.md` | API contract doc | file present | 2.9K | ✅ exists (extend in Bucket A) |
 | `ConsentController` Java class | BE controller | `grep -rn "class ConsentController" kitehub/` | 0 matches | 🆕 to-be-created (Bucket A) |
 | `ConsentRecord` entity | JPA entity | `grep -rn "class ConsentRecord" kitehub/` | 0 matches | 🆕 to-be-created (Bucket A) |
+| `ConsentRequest.java` | DTO file | `find kitehub/ -name "ConsentRequest.java"` | 0 matches | 🆕 to-be-created (Bucket A) |
+| `ConsentResponse.java` | DTO file | `find kitehub/ -name "ConsentResponse.java"` | 0 matches | 🆕 to-be-created (Bucket A) |
 | `ChildProtectionAuditServiceImpl` | Hash-chain pattern source | `grep -rn "ChildProtectionAuditService" kiteclass/` | 12 files | ✅ exists (reuse pattern in Bucket A) |
 | `logback-spring.xml` (any module) | Existing config | `find . -name "logback-spring.xml"` (no head) | 0 matches | 🆕 to-be-created (Bucket B, 8 files) |
 | `logstash-logback-encoder` dependency | Maven dep | `grep -rn "logstash-logback-encoder\|net.logstash" kitehub/ kiteclass/ --include="pom.xml"` | 0 matches | 🆕 to-be-created (Bucket B, parent pom) |
