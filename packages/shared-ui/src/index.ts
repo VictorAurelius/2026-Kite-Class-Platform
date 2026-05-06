@@ -100,5 +100,14 @@ export type {
   ParentInviteProps,
 } from './components/G7-parent-invite';
 
+// G8 AttendanceCalendar — teacher month-view + 30-day streak (Wave 28 Bucket C, GAP-273)
+export { AttendanceCalendar, calculateStreak } from './components/G8-attendance-calendar';
+export type {
+  AttendanceCalendarProps,
+  AttendanceDayStatus,
+  MonthCalendarData,
+  StreakInfo,
+} from './components/G8-attendance-calendar';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
