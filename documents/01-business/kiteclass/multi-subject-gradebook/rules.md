@@ -2,9 +2,9 @@
 title: Multi-Subject Gradebook — Business Rules (K-12 schools, TT 22/2021)
 status: draft
 created: 2026-05-05
-updated: 2026-05-05
+updated: 2026-05-06
 domain: kiteclass.multi-subject-gradebook
-gaps: [GAP-323c, GAP-054]
+gaps: [GAP-323c, GAP-054, GAP-360]
 ---
 
 # Multi-Subject Gradebook — Business Rules (K-12 schools, TT 22/2021)
@@ -120,13 +120,12 @@ semantics across the academic-year boundary).
 | **Reviewer** | @nguyenvankiet (acting Product Owner + Education domain expert). |
 | **Compliance check** | **Compliant** — matches Tổ trưởng workflow per TT 22/2021. |
 | **Review cadence** | Annual. **Next review:** 2027-05-05. |
-| **Code reference** | `SubjectGradeStatus` enum. **Phase 1C v1 PARTIAL** — column persisted, transition enforcement deferred to follow-up gap. |
+| **Code reference** | `SubjectGradeStatus` enum + `SubjectGradeServiceImpl` (Wave 24 Bucket B — GAP-360 §360.1). |
 
-Phase 1C v1 ships the column + enum only. The actual transition guard
-(no direct status setter — service-method-only mutators with State Pattern
-per `design-patterns.md` §3.3) is deferred to the Phase 1C remainder
-follow-up gap. Until enforcement lands, callers MUST NOT bypass via direct
-`setStatus()`; reviewer-checklist enforces.
+Phase 1C v1 (Wave 19) shipped the column + enum. Phase 1C v1.5 (Wave 24
+Bucket B — GAP-360) ships the State Pattern enforcement: see BR-GRADEBOOK-006
+below. Callers MUST go through `SubjectGradeService` mutators; ArchUnit
+guard deferred (no ArchUnit dep in pom yet — tracked GAP-360 follow-up).
 
 ### BR-GRADEBOOK-004 — Weight by assessment type
 
@@ -139,6 +138,42 @@ follow-up gap. Until enforcement lands, callers MUST NOT bypass via direct
 | **Compliance check** | **Compliant** — matches TT 22/2021 Đ.7 §3 baseline. |
 | **Review cadence** | Annual + event-driven on TT 22/2021 amendment. |
 | **Code reference** | V55 migration sets `weight DEFAULT 1.0`; entity field `SubjectGrade.weight`. |
+
+### BR-GRADEBOOK-006 — State machine enforcement (DRAFT → REVIEWED → PUBLISHED)
+
+| Attribute | Value |
+|-----------|-------|
+| **Value** | `SubjectGrade.status` transitions are exclusive to {@code SubjectGradeService}. Allowed: `DRAFT → REVIEWED`, `REVIEWED → PUBLISHED`, `REVIEWED → DRAFT` (revert). All other transitions raise `INVALID_GRADE_TRANSITION` (HTTP 409). |
+| **Source** | TT 22/2021 Đ.10 (Tổ trưởng quyền duyệt) + AC-OPS-003 (12-15 môn gradebook). Phase 1C remainder per `gap-done-discipline.md` §3 PARTIAL exit ramp. |
+| **Rationale** | Phase 1C v1 persisted the column but allowed direct `setStatus()` callsites; this rule lifts BR-GRADEBOOK-003 from advisory to enforced. State Pattern (per `design-patterns.md` §3.3) — `SubjectGradeServiceImpl` holds the `EnumMap<SubjectGradeStatus, Set<SubjectGradeStatus>> ALLOWED_TRANSITIONS` table; PUBLISHED is terminal so no exit transition is allowed (no "un-publish"). |
+| **Reviewer** | @nguyenvankiet (acting Education domain expert + Product Owner, solo-dev, 2026-05-06). |
+| **Compliance check** | **Compliant** — DRAFT → REVIEWED → PUBLISHED order matches Tổ trưởng workflow per TT 22/2021. Revert path REVIEWED → DRAFT is supported per real-world editing pattern (Tổ trưởng spots an error pre-publish). |
+| **Review cadence** | Annual + event-driven. **Next review:** 2027-05-06. |
+| **Code reference** | `SubjectGradeServiceImpl.ALLOWED_TRANSITIONS` (Wave 24 Bucket B — GAP-360 §360.1). ArchUnit guard deferred (no ArchUnit dep on classpath); reviewer-checklist + service contract guard for now. |
+
+### BR-GRADEBOOK-007 — Bulk publish authorisation
+
+| Attribute | Value |
+|-----------|-------|
+| **Value** | `POST /api/v1/grades/subjects/bulk-publish` is restricted to Hiệu trưởng role; bulk batch capped at 500 grades per request. Best-effort semantics — invalid transitions are skipped + reported, not aborted. |
+| **Source** | TT 22/2021 Đ.10 + AC-OPS-003 + UX feedback (Hiệu trưởng "publish all REVIEWED in one click"). |
+| **Rationale** | A class of 40 HS × 12 môn = 480 grades — under the 500 cap; larger schools split per class. Best-effort prevents one stale-state record from blocking the rest of the batch. RBAC enforcement depends on GAP-058 role hierarchy (out of scope §360.4 — Phase 1C remainder follow-up). |
+| **Reviewer** | @nguyenvankiet (acting Product Owner, solo-dev, 2026-05-06). Real Hiệu trưởng RBAC review queued with GAP-058. |
+| **Compliance check** | **Compliant** — pending GAP-058 RBAC layer. |
+| **Review cadence** | Annual + event-driven on TT 22/2021 amendment or RBAC overhaul. |
+| **Code reference** | `SubjectGradeController#bulkPublish` (Wave 24 Bucket B — GAP-360 §360.4). |
+
+### BR-GRADEBOOK-008 — Học bạ generation Outbox trigger
+
+| Attribute | Value |
+|-----------|-------|
+| **Value** | When the publish that flips the LAST `DRAFT`/`REVIEWED` grade for `(studentId, academicYearId)` to `PUBLISHED` commits, fire `kiteclass.k12.grades.all-published` via `OutboxEventWriter`. Aggregate id format: `<studentId>:<academicYearId>`. |
+| **Source** | UC-GRADEBOOK-PUBLISH-COMPLETE in `use-cases.md`. Downstream consumer: GAP-055 học bạ MOET form generator. |
+| **Rationale** | Outbox pattern (per `design-patterns.md` §3.5) guarantees at-least-once delivery — the học bạ generator must not lose the trigger if the broker is down at publish time. Same-transaction emission means the row only commits when the publish succeeds. |
+| **Reviewer** | @nguyenvankiet (acting Product Owner + Tech Lead, solo-dev, 2026-05-06). |
+| **Compliance check** | **Compliant** — no PII in event payload (only ids + Instant), no PDPL trigger. |
+| **Review cadence** | Annual + event-driven on học bạ format change (TT 22 amendment or MoET reporting standard update). |
+| **Code reference** | `SubjectGradeAllPublishedListener#onPublish`, `SubjectGradeAllPublishedEvent.ROUTING_KEY` (Wave 24 Bucket B — GAP-360 §360.5). |
 
 ### BR-GRADEBOOK-005 — Decimal precision (HALF_EVEN scale=1)
 
@@ -159,12 +194,14 @@ items are deferred to a follow-up gap (filed at GAP-323c PARTIAL closure):
 
 | Item | Notes |
 |------|-------|
-| State-machine transition enforcement (no direct status-set; service-method mutators) | BR-GRADEBOOK-003 enforcement layer; depends on State Pattern impl per `design-patterns.md` §3.3 |
-| Tổ trưởng approval workflow + notification | Depends on GAP-063b notification engine + GAP-058 role hierarchy |
-| Multi-subject gradebook UI (4 view variants: Admin / Hiệu trưởng / GV / Tổ trưởng) | ~10–15 days FE work; deferred to follow-up gap |
-| Bulk publish action for Hiệu trưởng | Depends on state-machine enforcement |
-| Học bạ generation hook on year-end PUBLISHED | Depends on GAP-055 MOET học bạ format |
-| Multi-tenant Tổ trưởng assignment per subject | Depends on GAP-058 role hierarchy |
+| ~~State-machine transition enforcement~~ | ✅ Shipped Wave 24 Bucket B (GAP-360 §360.1) — see BR-GRADEBOOK-006 |
+| ~~Bulk publish action for Hiệu trưởng~~ | ✅ Shipped Wave 24 Bucket B (GAP-360 §360.4) — see BR-GRADEBOOK-007 |
+| ~~Học bạ generation Outbox hook~~ | ✅ Trigger shipped Wave 24 Bucket B (GAP-360 §360.5) — see BR-GRADEBOOK-008. Consumer (GAP-055 MOET form) still deferred |
+| Tổ trưởng approval workflow + notification (UI flow) | Depends on GAP-063b notification engine + GAP-058 role hierarchy. GAP-360 §360.2 |
+| Multi-subject gradebook UI (4 view variants: Admin / Hiệu trưởng / GV / Tổ trưởng) | ~10–15 days FE work; deferred to Wave 25. GAP-360 §360.3 |
+| Multi-tenant Tổ trưởng assignment per subject (RBAC) | Depends on GAP-058 role hierarchy |
+| MOET học bạ generator (consumer of `kiteclass.k12.grades.all-published`) | GAP-055 |
+| ArchUnit `SubjectGrade.setStatus` boundary test | Add ArchUnit dep + test (deferred — no pom impact in this PR) |
 
 ## 5. Related
 

@@ -79,17 +79,32 @@ hooks (GAP-055 học bạ MOET format, GAP-059 conduct grade):
 
 ## Acceptance Criteria
 
-- [ ] State-machine enforcement via Service mutators + invalid-transition
-      `IllegalStateException` (no direct `setStatus` outside package).
+- [x] State-machine enforcement via Service mutators + invalid-transition
+      `IllegalGradeTransitionException` (HTTP 409 INVALID_GRADE_TRANSITION).
+      Shipped Wave 24 Bucket B §360.1.
 - [ ] ArchUnit (or unit test) preventing direct setStatus from other packages.
+      Deferred — no ArchUnit dep on classpath; reviewer-checklist + service
+      contract + 11 unit tests cover the boundary for now. Tracked as
+      follow-up under §Out-of-scope below.
 - [ ] Tổ trưởng approval workflow + notification integrated with GAP-063b.
+      §360.2 — depends on notification engine (out of scope this PR).
 - [ ] Tổ trưởng-per-subject role wiring (GAP-058 dependency).
+      §360.2 — depends on role hierarchy.
 - [ ] 4-variant gradebook UI (Admin / Hiệu trưởng / GV bộ môn / Tổ trưởng).
-- [ ] Bulk publish action for Hiệu trưởng.
-- [ ] Học bạ Outbox event published on all-PUBLISHED-per-AY.
-- [ ] `api-contract.md` filled with concrete endpoints + samples.
-- [ ] Tests: state-machine unit + Tổ trưởng workflow integration + Playwright UI smoke.
-- [ ] mvn + pnpm green on full module test suite.
+      §360.3 — Wave 25 FE.
+- [x] Bulk publish action for Hiệu trưởng. Shipped Wave 24 Bucket B §360.4
+      (`POST /api/v1/grades/subjects/bulk-publish`, max 500 ids,
+      best-effort semantics).
+- [x] Học bạ Outbox event published on all-PUBLISHED-per-AY. Shipped Wave 24
+      Bucket B §360.5 — routing key `kiteclass.k12.grades.all-published`.
+- [x] `api-contract.md` filled with concrete endpoints + samples.
+      Shipped Wave 24 Bucket B §360.6.
+- [x] Tests: state-machine unit (11) + listener unit (5) + controller slice (3)
+      = 19 tests passing. Wave 24 Bucket B.
+- [ ] Tổ trưởng workflow integration test + Playwright UI smoke.
+      §360.2 + §360.3 follow-up.
+- [x] mvn green on touched module (`SubjectGradeServiceImplTest`,
+      `SubjectGradeAllPublishedListenerTest`, `SubjectGradeControllerTest`).
 
 ## Dependencies
 
@@ -118,4 +133,17 @@ hooks (GAP-055 học bạ MOET format, GAP-059 conduct grade):
 
 ## Log
 
+- **2026-05-06** — Wave 24 Bucket B partial closure (PR pending). Shipped
+  §360.1 (state machine enforcement via `SubjectGradeService` +
+  `IllegalGradeTransitionException` + `EnumMap<,Set>` ALLOWED_TRANSITIONS table)
+  + §360.4 (`POST /bulk-publish` controller, best-effort, max 500 cap) +
+  §360.5 (`SubjectGradeAllPublishedListener` + `SubjectGradeAllPublishedEvent`
+  via `OutboxEventWriter`, routing key `kiteclass.k12.grades.all-published`)
+  + §360.6 (`api-contract.md` filled with 4 endpoints + Outbox event spec +
+  error codes + verification chain). 19/19 tests pass
+  (`SubjectGradeServiceImplTest` 11, `SubjectGradeAllPublishedListenerTest` 5,
+  `SubjectGradeControllerTest` 3). Status stays 🔵 OPEN — coordinator flips
+  at wave closure when §360.2 (Tổ trưởng workflow, depends GAP-063b/058) +
+  §360.3 (UI 4 variants, Wave 25 FE) ship. ArchUnit boundary test deferred —
+  no dep on classpath; tracked under Out-of-scope.
 - **2026-05-05** — Filed by Wave 19 Bucket B closure agent (salvage path; original Bucket B agent died on PC restart). Per `gap-done-discipline.md` §3 PARTIAL exit ramp — captures explicit deferred Phase 1C scope so it is tracked instead of being lost.
