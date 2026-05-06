@@ -40,6 +40,7 @@ Create `ui_kits/kitehub-public/` HTML kit:
 - [ ] Production ported ≥105/128
 - [ ] WCAG AA + SEO meta tags
 - [ ] Vietnamese-only
+- [ ] **ConsentBanner integrated on landing + blog** per `BR-PDPL-CONSENT-001..004` (Wave 23 Bucket A) — production component shipped Wave 23 Bucket BC (`packages/shared-ui/src/components/ConsentBanner/`). Cross-ref: GAP-353 (banner spec), GAP-368 (production legal pages). Banner mounts in `(public)/layout.tsx` (covers landing + blog index + blog detail) và gates analytics/marketing scripts behind explicit consent trước PDPL effective date 2026-07-01.
 
 ## Related
 
@@ -54,4 +55,5 @@ Create `ui_kits/kitehub-public/` HTML kit:
 
 ## Log
 
+- **2026-05-06 (Wave 23 Bucket E):** AC extended to require ConsentBanner integration on landing + blog per PDPL 2023 (effective 2026-07-01). Cross-ref BR-PDPL-CONSENT-001..004 (Wave 23 Bucket A) + ConsentBanner production component (Wave 23 Bucket BC) + GAP-353 + GAP-368. Status remains 🔵 OPEN — port work itself unchanged; only AC scope enriched.
 - **2026-04-29:** Filed from audit synthesis. Replaces deferred kitehub-story v2 partially.

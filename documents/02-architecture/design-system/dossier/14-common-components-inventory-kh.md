@@ -18,6 +18,32 @@
 
 ---
 
+## G14 — ConsentBanner (PDPL 2023 cookie consent — public marketing surface)
+
+**Added:** 2026-05-06 (Wave 23 Bucket E — GAP-353 Layer 5)
+**Component ID:** G14
+**Status:** 🆕 to-be-created (Wave 23 Bucket BC ships production component)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Purpose** | PDPL 2023 cookie / consent banner — public marketing surface; mandatory before processing personal data per Articles 11-13 (effective 2026-07-01) |
+| **Production location** | `packages/shared-ui/src/components/ConsentBanner/` (Wave 23 Bucket BC) — shared between KC and KH frontends |
+| **Kit mockup location** | `documents/02-architecture/design-system/ui_kits/kitehub-story-v2/screens/consent-banner.html` (Wave 23 Bucket E — this bucket) |
+| **Mounted in** | `kitehub-frontend/src/app/(public)/layout.tsx` (Wave 23 Bucket BC) — banner visible on `/`, `/pricing`, `/blog`, `/blog/[slug]`, `/legal/**` |
+| **Used by pages** | All KH `(public)/**` routes — marketing landing, pricing, blog index/detail, legal pages (sister-mounted on KC `(public)/**` per shared component) |
+| **Kit-covered?** | ✅ explicit — `kitehub-story-v2/screens/consent-banner.html` (kit hosts the canonical mockup; KH-side production component imports from `packages/shared-ui/`) |
+| **Props** | `privacyHref` (default `/legal/privacy`), `cookieHref` (default `/legal/cookies`), `termsHref` (default `/legal/terms`), `lang` (default `vi`), `storageKey` (default `kite.consent.v1`) |
+| **States** | `NOT_PROMPTED` → `PROMPTED` → `CONSENT_GIVEN[essential|analytics|marketing]` / `REJECTED` → `REVOKED` → `RE_PROMPTED` (12-month expiry default OR material policy change) |
+| **Categories** | `essential` (locked-on, mandatory per BR-PDPL-CONSENT-002), `analytics` (opt-in), `marketing` (opt-in) |
+| **CTAs (equal visual weight, no dark patterns)** | "Từ chối tất cả" / "Tuỳ chỉnh" / "Đồng ý tất cả" (per BR-PDPL-CONSENT-002) |
+| **Dependencies** | LocalStorage adapter (`storage.ts` versioned key), `useConsent` hook (state + revocation flow), shadcn primitives (button, switch, dialog) |
+| **WCAG** | AA — focus trap (`role="dialog"` + `aria-modal="false"` non-blocking), Esc to close (defaults reject = privacy-by-default), Tab cycling, `aria-live="polite"` for state changes |
+| **Business rules** | `BR-PDPL-CONSENT-001..004` in `documents/01-business/kitehub/marketing/rules.md` (Wave 23 Bucket A) — banner mandatory; granular toggles; 36mo retention (cross-link DR-03); revocation flow |
+| **Related gaps** | GAP-353 (PDPL banner spec), GAP-368 (production legal pages — link targets), GAP-275 (KH marketing + blog port — AC enriched Wave 23 Bucket E), GAP-350 (kitehub-story-v2 kit hosts mockup) |
+| **Compliance** | PDPL 2023 Art 11-13 + Decree 13/2023/NĐ-CP Art 24 (effective 2026-07-01) |
+
+---
+
 ## `admin/` — KH platform ops tables (4 files)
 
 | # | File | Used by pages | Kit-covered? | Note |
@@ -175,3 +201,10 @@ These ❌ findings inform:
 - Modal/dialog inventory: `dossier/12-modal-dialog-inventory-kh.md`
 - Wave plan: `documents/03-planning/waves/wave-2026-04-29-ui-coverage-audit.md` § Bucket B
 - Sister inventory (KC): `dossier/14-common-components-inventory-kc.md`
+
+---
+
+## Log
+
+- **2026-05-06 (Wave 23 Bucket E):** Added G14 ConsentBanner row (PDPL 2023 cookie consent — public marketing surface). Production component shipped Wave 23 Bucket BC (`packages/shared-ui/src/components/ConsentBanner/`); kit mockup at `kitehub-story-v2/screens/consent-banner.html` (Bucket E — this bucket). Cross-link to BR-PDPL-CONSENT-001..004 (Bucket A) + GAP-353 + GAP-368 + GAP-275 + GAP-350.
+- **2026-04-29:** Initial enumeration by Wave UI Coverage Audit Agent B (covered 27 components across 7 subdirs; 17 implicit + 6 missing + 4 explicit).

@@ -66,14 +66,34 @@ kitehub-story-v2/
 │   ├── app.jsx                     ← 546 LOC React (storytelling Round 1)
 │   ├── styles.css
 │   └── index.html
-└── sections/                       ← per-section fragments (review-friendly)
-    ├── hero.html                   ← kite hero + KPI tiles
-    ├── parallax-features.html      ← sticky h2 + 4 feature cards
-    ├── before-after.html           ← drag-handle comparison slider
-    ├── mot-ngay-chu-trung-tam.html ← 6-step day timeline + scene panel
-    ├── mock-dashboard.html         ← animated chart + notification
-    └── pricing-cta.html            ← 3 tiers + final CTA
+├── sections/                       ← per-section fragments (review-friendly)
+│   ├── hero.html                   ← kite hero + KPI tiles
+│   ├── parallax-features.html      ← sticky h2 + 4 feature cards
+│   ├── before-after.html           ← drag-handle comparison slider
+│   ├── mot-ngay-chu-trung-tam.html ← 6-step day timeline + scene panel
+│   ├── mock-dashboard.html         ← animated chart + notification
+│   └── pricing-cta.html            ← 3 tiers + final CTA
+└── screens/                        ← standalone screen mockups (full HTML5)
+    └── consent-banner.html         ← PDPL 2023 cookie consent banner (Wave 23 GAP-353 Bucket E)
 ```
+
+## PDPL 2023 cookie consent banner (Wave 23 add-on)
+
+`screens/consent-banner.html` — standalone HTML mockup của ConsentBanner production component
+(`packages/shared-ui/src/components/ConsentBanner/`, Wave 23 Bucket BC). Demonstrates:
+
+- 3 categories (essential locked-on, analytics opt-in, marketing opt-in)
+- 3 CTAs equal visual weight: "Từ chối tất cả" / "Tuỳ chỉnh" / "Đồng ý tất cả"
+- Expandable customize panel với 3 toggle switches + descriptions
+- Vietnamese-first copy, cross-link tới `/legal/privacy`, `/legal/cookies`, `/legal/terms`
+- WCAG AA self-measured (contrast ratios trong HTML comments)
+- Token-themed qua `_shared/colors_and_type.css`
+- 3 viewport snapshots commented (mobile 375px, tablet 768px, desktop 1280px)
+- Vanilla JS toggle interaction; LocalStorage `kite.consent.v1` versioned key
+- Compliance: PDPL 2023 Art 11-13 + Decree 13/2023/NĐ-CP Art 24 (hiệu lực 2026-07-01)
+
+Cross-links: [GAP-353](../../../../04-quality/gaps/GAP-353-pdpl-cookie-consent-banner-marketing-kits.md) (PDPL banner)
++ Wave 23 plan `documents/03-planning/waves/wave-2026-05-06-23-pdpl-legal-compliance.md`.
 
 ## Quality self-report (per-section /128)
 
