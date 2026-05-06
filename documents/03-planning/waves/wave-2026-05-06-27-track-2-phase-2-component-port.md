@@ -1,6 +1,6 @@
 ---
 title: Wave 27 — Track 2 Phase 2 — port 4 priority shared-ui components (G2 + G5 + G6 + G7)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [27]
@@ -194,3 +194,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-06 (draft):** Plan created on branch `wave/27-plan`. State-check verified all 4 spec sources + ConsentBanner reference pattern + workspace infra. D1 dropped (no formal spec, deferred to Wave 28 Phase 0). 4-agent cap respected (1 component per agent). Token risk LOW per `feedback_token_quota_spawn_timing.md` (single-component scope = ~120-180k tokens/agent vs ~450k/agent for 3-component scope rejected in option C).
+- **2026-05-06 (complete):** Wave SHIPPED. 4 PRs (#848/#849/#850/#851) squash-merged after coordinator-resolved 4 additive `packages/shared-ui/src/index.ts` conflicts (B/C/D all touched same alphabetical export region — 4 conflicts predicted, 4 resolved). Final shared-ui state: 108/108 tests (47 ConsentBanner baseline + 12 G2 + 27 G6 + 9 G5 + 13 G7) + type-check clean. Wall-clock ~7-8min/agent parallel vs ~50min plan estimate. Token cost: A 300k / B 313k / C 192k / D 297k = ~1.1M total + coordinator. Bucket C narrower than briefing scope (5 methods per spec vs briefing-claimed 6, `QR` is a state not a method); agent correctly read spec authoritative. 4 follow-up items: shared-ui dedicated CI workflow (no remote CI runs on `packages/shared-ui/**` yet — meta-P1), cross-app smoke test dev demo route, D1 Confirm Dialog spec creation (Wave 28 Phase 0 prerequisite), visual regression baseline. GAP-273 stays 🟡 PARTIAL (4/12 G* shipped). 63rd consecutive 0-clarification streak.
