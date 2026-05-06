@@ -1,6 +1,6 @@
 ---
 title: Wave 29 — Track 2 Phase 3 final — port last 4 G* (G1 + G9 + G11 + G12)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [29]
@@ -196,3 +196,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-06 (draft):** Plan created PIPELINED during Wave 28 agents running background — first formal application of `wave-pack-planner` SKILL §Step 5.5 (added v1.1 same session). Demonstrates the workflow: coordinator drafts Wave N+1 plan PR while Wave N agents in-flight, plan PR merges only AFTER Wave N closure ships. State-check verified all 4 G* + dossier 04 entries + Round 2/3 layout differences (G12 = Round 2 spec.md; G1/G9/G11 = Round 3 README.md + states/). Wave 28 in-flight dependency: Bucket D Wave 29 references Wave 28 Bucket E's `ConfirmDialog` — agent has fallback if not yet available. Token budget caution: if coordinator hits ~250k+ post-Wave-28-closure, defer Wave 29 spawn to next session per `feedback_token_quota_spawn_timing.md`.
+- **2026-05-06 (SHIPPED):** All 4 buckets shipped + merged. PR #867 G1 BulkImportDropzone (31 tests), PR #864 G9 InstanceLifecycleStatus (28 tests), PR #865 G11 ThemePreview (23 tests, reflexive WCAG), PR #866 G12 BulkActionsBar (15 tests, D1 cross-component re-use). Coordinator merge order A → B → C → D as planned; 2 conflicts on `src/index.ts` (C and D, predicted) resolved via rebase keeping all G* exports alphabetical. Final shared-ui state: 12/12 G* shipped (Wave 27 = G2/G5/G6/G7, Wave 28 = G3/G4/G8/G10, Wave 29 = G1/G9/G11/G12) + D1 ConfirmDialog + ConsentBanner. Total tests post-merge: ~265+ (241 from Bucket A + Wave 29 baseline). 65th consecutive 0-clarification streak (4 agents 0-clarif). Wall-clock: ~7-12 min/agent parallel; coordinator merge resolution ~10 min including 2 rebases. Post-wave cleanup ran (4 worktree husks pruned). GAP-273 stays 🟡 PARTIAL — G* portion 12/12 done but Storybook/demo route + production ≥105/128 verification + visual regression baseline + D2..D10 dialogs remain. Phase 4 kit ports (GAP-266..272) fully unblocked from G* standpoint. Domain-milestone audit deferred per `post-wave-audit-mandate.md` §2.4 trailer `AUDIT_DEFER_DOMAIN_MILESTONE: track-2-shared-ui` (cluster milestone TBD when Storybook + visual regression land).
