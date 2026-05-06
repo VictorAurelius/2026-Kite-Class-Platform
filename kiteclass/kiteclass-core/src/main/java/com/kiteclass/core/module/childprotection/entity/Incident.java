@@ -19,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+
 /**
  * Incident — child-protection ticket with field-level encryption on sensitive
  * columns. Phase 1A skeleton: entity + repository + service CRUD with
@@ -162,4 +164,21 @@ public class Incident extends BaseEntity {
     @Column(name = "visibility_scope", nullable = false, length = 32)
     @Builder.Default
     private IncidentVisibilityScope visibilityScope = IncidentVisibilityScope.STAFF_ONLY;
+
+    /**
+     * Mandatory retention deadline (Phase 1C v1.5, GAP-359 sub-task 359.1).
+     *
+     * <p>Set when {@link IncidentService#updateStatus(Long, IncidentStatus)}
+     * transitions the incident to {@link IncidentStatus#CLOSED} (closed_at +
+     * 7 years per BR-CHILD-PROTECT-008). While in the window soft-delete is
+     * BLOCKED via {@code RetentionWindowActiveException}. After expiry the
+     * {@code RetentionLifecycleService} cron secure-deletes the row + appends
+     * an audit-log entry.
+     *
+     * <p>Remains {@code null} for non-CLOSED incidents. Compliance: PDPL
+     * Decree 13/2023/NĐ-CP Art 16 + Luật Trẻ em 2016 Đ.51 follow-through +
+     * BLHS Đ.147 statute-of-limitations alignment.
+     */
+    @Column(name = "retention_until")
+    private Instant retentionUntil;
 }

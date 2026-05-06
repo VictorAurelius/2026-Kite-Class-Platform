@@ -6,6 +6,7 @@ import com.kiteclass.core.module.childprotection.entity.Incident;
 import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
+import com.kiteclass.core.module.childprotection.exception.RetentionWindowActiveException;
 import com.kiteclass.core.module.childprotection.repository.IncidentRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +22,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -327,6 +330,104 @@ class IncidentServiceTest {
 
             assertThat(incident.isDeleted()).isTrue();
             verify(incidentRepository).save(incident);
+        }
+
+        @Test
+        @DisplayName("BLOCKS soft-delete while retention window active (BR-CHILD-PROTECT-008)")
+        void softDelete_withinRetentionWindow_throwsRetentionActive() {
+            Incident incident = sample(11L);
+            // Future deadline → soft-delete must be blocked.
+            incident.setRetentionUntil(Instant.now().plus(30, ChronoUnit.DAYS));
+            when(incidentRepository.findByIdAndDeletedFalse(11L)).thenReturn(Optional.of(incident));
+
+            assertThatThrownBy(() -> incidentService.softDelete(11L))
+                    .isInstanceOf(RetentionWindowActiveException.class)
+                    .hasMessageContaining("INCIDENT_RETENTION_WINDOW_ACTIVE");
+
+            assertThat(incident.isDeleted()).isFalse();
+            verify(incidentRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("ALLOWS soft-delete after retention window expires")
+        void softDelete_afterRetentionExpired_succeeds() {
+            Incident incident = sample(12L);
+            incident.setRetentionUntil(Instant.now().minus(1, ChronoUnit.DAYS));
+            when(incidentRepository.findByIdAndDeletedFalse(12L)).thenReturn(Optional.of(incident));
+            when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            incidentService.softDelete(12L);
+
+            assertThat(incident.isDeleted()).isTrue();
+            verify(incidentRepository).save(incident);
+        }
+
+        @Test
+        @DisplayName("ALLOWS soft-delete when retention_until null (non-CLOSED case)")
+        void softDelete_nullRetention_succeeds() {
+            Incident incident = sample(13L);
+            assertThat(incident.getRetentionUntil()).isNull();
+            when(incidentRepository.findByIdAndDeletedFalse(13L)).thenReturn(Optional.of(incident));
+            when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            incidentService.softDelete(13L);
+
+            assertThat(incident.isDeleted()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("retention stamping on CLOSED transition (BR-CHILD-PROTECT-008)")
+    class RetentionStamping {
+
+        @Test
+        @DisplayName("CLOSED transition stamps retention_until ~7 years out")
+        void updateStatus_toClosed_stampsRetentionUntil() {
+            Incident incident = sample(20L);
+            incident.setStatus(IncidentStatus.RESOLVED);
+            assertThat(incident.getRetentionUntil()).isNull();
+            when(incidentRepository.findByIdAndDeletedFalse(20L)).thenReturn(Optional.of(incident));
+            when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Instant before = Instant.now();
+            incidentService.updateStatus(20L, IncidentStatus.CLOSED);
+            Instant after = Instant.now();
+
+            assertThat(incident.getRetentionUntil()).isNotNull();
+            // Tolerance window: 7 years ± a few seconds for test latency.
+            Instant minExpected = before.plus(7L * 365L - 1, ChronoUnit.DAYS);
+            Instant maxExpected = after.plus(7L * 365L + 1, ChronoUnit.DAYS);
+            assertThat(incident.getRetentionUntil())
+                    .isAfterOrEqualTo(minExpected)
+                    .isBeforeOrEqualTo(maxExpected);
+        }
+
+        @Test
+        @DisplayName("non-CLOSED transitions do NOT stamp retention_until")
+        void updateStatus_toNonClosed_doesNotStamp() {
+            Incident incident = sample(21L);
+            incident.setStatus(IncidentStatus.REPORTED);
+            when(incidentRepository.findByIdAndDeletedFalse(21L)).thenReturn(Optional.of(incident));
+            when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            incidentService.updateStatus(21L, IncidentStatus.INVESTIGATING);
+
+            assertThat(incident.getRetentionUntil()).isNull();
+        }
+
+        @Test
+        @DisplayName("retention deadline is sticky — re-CLOSED does not extend already-set deadline")
+        void updateStatus_toClosed_retentionStickyOnReClose() {
+            Incident incident = sample(22L);
+            Instant existingDeadline = Instant.now().plus(100, ChronoUnit.DAYS);
+            incident.setRetentionUntil(existingDeadline);
+            incident.setStatus(IncidentStatus.RESOLVED);
+            when(incidentRepository.findByIdAndDeletedFalse(22L)).thenReturn(Optional.of(incident));
+            when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            incidentService.updateStatus(22L, IncidentStatus.CLOSED);
+
+            assertThat(incident.getRetentionUntil()).isEqualTo(existingDeadline);
         }
     }
 

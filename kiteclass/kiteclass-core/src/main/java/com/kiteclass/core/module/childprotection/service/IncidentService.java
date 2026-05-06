@@ -6,6 +6,7 @@ import com.kiteclass.core.module.childprotection.entity.Incident;
 import com.kiteclass.core.module.childprotection.enums.IncidentCategory;
 import com.kiteclass.core.module.childprotection.enums.IncidentSeverity;
 import com.kiteclass.core.module.childprotection.enums.IncidentStatus;
+import com.kiteclass.core.module.childprotection.exception.RetentionWindowActiveException;
 import com.kiteclass.core.module.childprotection.listener.IncidentCriticalEvent;
 import com.kiteclass.core.module.childprotection.repository.IncidentRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 /**
@@ -52,6 +55,16 @@ import java.util.Set;
 public class IncidentService {
 
     private static final int MAX_TITLE_LENGTH = 200;
+
+    /**
+     * Mandatory retention window applied to incidents transitioning to
+     * {@link IncidentStatus#CLOSED}. Per BR-CHILD-PROTECT-008 (Phase 1C v1.5,
+     * GAP-359 sub-task 359.1): 7 years matches the financial-record retention
+     * class precedent + statute-of-limitations on Vietnamese child-abuse offences.
+     * 7 × 365 days is sufficient resolution for a multi-year window;
+     * leap-year drift is acceptable here.
+     */
+    private static final long RETENTION_WINDOW_DAYS = 7L * 365L;
 
     /**
      * Categories that combined with {@link IncidentSeverity#CRITICAL} fire
@@ -174,6 +187,21 @@ public class IncidentService {
         Incident incident = findById(id);
         IncidentStatus previous = incident.getStatus();
         incident.setStatus(newStatus);
+
+        // BR-CHILD-PROTECT-008 (Phase 1C v1.5, GAP-359 sub-task 359.1):
+        // entering CLOSED arms the 7-year retention window. Once set the
+        // value is sticky — re-opening / re-closing the case does not extend
+        // an already-armed deadline (compliance retention is anchored to the
+        // first close, not the last). Set only when previously null so the
+        // deadline is captured even if the row has no dedicated closed_at column.
+        if (newStatus == IncidentStatus.CLOSED && incident.getRetentionUntil() == null) {
+            Instant retentionDeadline =
+                    Instant.now().plus(RETENTION_WINDOW_DAYS, ChronoUnit.DAYS);
+            incident.setRetentionUntil(retentionDeadline);
+            log.info("Incident id={} CLOSED — retention deadline set to {}",
+                    id, retentionDeadline);
+        }
+
         Incident saved = incidentRepository.save(incident);
         log.info("Incident id={} status {} → {}", id, previous, newStatus);
         return saved;
@@ -195,13 +223,25 @@ public class IncidentService {
     }
 
     /**
-     * Soft-delete the incident. Phase 1A allows; Phase 1B (GAP-322c) enforces
-     * 7-year retention on CLOSED incidents.
+     * Soft-delete the incident. Phase 1C v1.5 (GAP-359 sub-task 359.1)
+     * enforces BR-CHILD-PROTECT-008: while {@code retention_until} is in
+     * the future the row CANNOT be soft-deleted; the
+     * {@code RetentionLifecycleService} cron handles secure-delete + audit
+     * append after the window expires.
      *
-     * @throws EntityNotFoundException if not found or already deleted
+     * @throws EntityNotFoundException        if not found or already deleted
+     * @throws RetentionWindowActiveException if retention_until &gt; now()
      */
     public void softDelete(Long id) {
         Incident incident = findById(id);
+        Instant retentionUntil = incident.getRetentionUntil();
+        if (retentionUntil != null && retentionUntil.isAfter(Instant.now())) {
+            log.warn("Incident id={} soft-delete BLOCKED — retention until {}",
+                    id, retentionUntil);
+            throw new RetentionWindowActiveException(
+                    "INCIDENT_RETENTION_WINDOW_ACTIVE",
+                    (Object) retentionUntil.toString());
+        }
         incident.markAsDeleted();
         incidentRepository.save(incident);
         log.info("Incident id={} soft-deleted", id);
