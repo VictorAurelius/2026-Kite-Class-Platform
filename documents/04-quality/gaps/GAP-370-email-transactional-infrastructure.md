@@ -83,6 +83,16 @@ Existing `kitehub-email` service tồn tại (per Wave 18a) nhưng chưa có pro
 - Sister: GAP-369 (DNS setup — TXT records dependency)
 - Existing: `kitehub-email` service module
 
+## Standards reference (added 2026-05-06)
+
+Per `.claude/rules/release-deploy-standard.md` §3 — this gap satisfies a checklist item from one of the per-bump-type artifact requirements. Grounded in:
+
+- **AWS Well-Architected Framework** (Operational Excellence / Security / Reliability pillars)
+- **The Twelve-Factor App** (config + deploy patterns where applicable)
+- **Project source-of-truth:** `documents/02-architecture/deployment-strategy.md` (GAP-103 DONE 2026-04-18)
+- **ADR-015** (AWS Agent Plugins evaluation = DEFER Q3 2026)
+- **GAP-381** (Claude agent deploy framework — agent role per phase)
+
 ## Log
 
 - **2026-05-06:** Filed by Release 1 deploy plan PR. BLOCKING cho Phase 1 BETA — beta invite emails + email verification cannot ship without this.
