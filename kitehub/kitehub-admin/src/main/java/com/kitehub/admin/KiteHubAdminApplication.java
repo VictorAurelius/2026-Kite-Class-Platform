@@ -25,7 +25,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave 18a Bucket B (GAP-063 Phase 1): NotificationPreferenceService is auto-scanned
         // via subscription's @ComponentScan; its repository must be JPA-enabled here too,
         // else admin context fails with UnsatisfiedDependencyException.
-        "com.kitehub.subscription.notification.repository"
+        "com.kitehub.subscription.notification.repository",
+        // Wave 25 Bucket A (GAP-353b): ConsentService is auto-scanned via @ComponentScan;
+        // its repository must be JPA-enabled here too.
+        "com.kitehub.subscription.consent.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -36,7 +39,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.outbox",
         "com.kitehub.subscription.idempotency",
         // Wave 18a Bucket B (GAP-063 Phase 1): NotificationPreference entity.
-        "com.kitehub.subscription.notification.entity"
+        "com.kitehub.subscription.notification.entity",
+        // Wave 25 Bucket A (GAP-353b): ConsentRecord entity.
+        "com.kitehub.subscription.consent.entity"
 })
 public class KiteHubAdminApplication {
 
