@@ -7,12 +7,12 @@
 - Code comments can be in English (standard practice)
 - Commit messages should be in English (git convention)
 
-## CURRENT PHASE: MVP Phase 1 — P1+P2 Soft Launch (chốt 2026-05-06)
+## CURRENT PHASE: Release Lần 1 Phase 1 — P1+P2 Soft Launch (chốt 2026-05-06)
 
-🟢 **ACTIVE** — Phase 1 of 3-phase rollout per [`documents/03-planning/roadmap/mvp-launch-plan-2026.md`](documents/03-planning/roadmap/mvp-launch-plan-2026.md).
+🟢 **ACTIVE** — Phase 1 of 3-phase rollout per [`documents/03-planning/roadmap/release-1-plan-2026.md`](documents/03-planning/roadmap/release-1-plan-2026.md).
 
 **Mỗi session mới PHẢI:**
-1. Đọc MVP plan §3 Phase 1 detailed scope + §9 Wave 25-30 outline
+1. Đọc Release Lần 1 plan §3 Phase 1 detailed scope + §9 Wave 25-30 outline
 2. Pick wave candidates ƯU TIÊN từ Phase 1 wave-pack list
 3. SKIP non-MVP-Phase-1 gaps trừ khi user explicit override / PDPL hard deadline / production incident hotfix / meta-rule fix
 
@@ -27,7 +27,7 @@
 - Phase 2 (+4-6 tuần): + P3 medium-center → trigger Phase 3 = counsel engaged + 4 sub-conditions
 - Phase 3 (+8-12 tuần post-counsel): + K-12 P5
 
-**Reference:** `feedback_mvp_first_session_priority.md` (auto-loaded memory).
+**Reference:** `feedback_release_1_first_session_priority.md` (auto-loaded memory).
 
 ---
 
