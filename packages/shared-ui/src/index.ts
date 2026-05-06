@@ -34,7 +34,18 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
-// G6 Invoice Detail — Track 2 Wave 27 Bucket B (GAP-273 1/12)
+// G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A, GAP-273)
+export { AttendanceRoster } from './components/G2-attendance-roster';
+export type {
+  AttendanceRosterProps,
+  AttendanceRosterState,
+  AttendanceStatus,
+  AttendanceChangeOpts,
+  ClassSession,
+  StudentRecord,
+} from './components/G2-attendance-roster';
+
+// G6 Invoice Detail — VN tax + currency (Wave 27 Bucket B, GAP-273)
 export {
   InvoiceDetail,
   formatVNCurrency,
