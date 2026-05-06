@@ -40,6 +40,7 @@ Create `documents/02-architecture/design-system/ui_kits/kiteclass-public/` HTML 
 - [ ] Production routes ported, ≥105/128 in production usage
 - [ ] WCAG AA preserved
 - [ ] Vietnamese-only
+- [ ] **ConsentBanner integrated on landing** per `BR-PDPL-CONSENT-001..004` (Wave 23 Bucket A) — production component shipped Wave 23 Bucket BC (`packages/shared-ui/src/components/ConsentBanner/`). Cross-ref: GAP-353 (banner spec), GAP-368 (production legal pages). Banner mounts in `(public)/layout.tsx` and gates analytics/marketing scripts behind explicit consent before PDPL effective date 2026-07-01.
 
 ## Related
 
@@ -53,4 +54,5 @@ Create `documents/02-architecture/design-system/ui_kits/kiteclass-public/` HTML 
 
 ## Log
 
+- **2026-05-06 (Wave 23 Bucket E):** AC extended to require ConsentBanner integration on landing per PDPL 2023 (effective 2026-07-01). Cross-ref BR-PDPL-CONSENT-001..004 (Wave 23 Bucket A) + ConsentBanner production component (Wave 23 Bucket BC) + GAP-353 + GAP-368. Status remains 🔵 OPEN — port work itself unchanged; only AC scope enriched.
 - **2026-04-29:** Filed from Wave UI Coverage Audit synthesis. Audit identified 5 pages + 14 components missing kit coverage.

@@ -77,6 +77,7 @@ Per `meta-gap-priority.md` §3 — Marketing storytelling kit is Feature-tier, n
 - Sister GAP-275 (Track 2 port KH public marketing + blog) — depends on this gap's output as source-of-truth
 - `ui_kits/README.md` Status row currently 🔵 future
 - Persona target: P2 Center Owner (KH SaaS marketing landing → trial signup conversion)
+- **ConsentBanner mockup added Wave 23 Bucket E** (`screens/consent-banner.html`) — informational add-on demonstrating PDPL 2023 cookie consent banner placement on the marketing landing. Production component lives at `packages/shared-ui/src/components/ConsentBanner/` (Wave 23 Bucket BC). Kit Status remains 🟢 DONE; the Wave 23 add-on is supplementary (no AC change to this gap).
 
 ## Effort estimate
 
