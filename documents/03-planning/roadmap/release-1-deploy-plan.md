@@ -179,6 +179,8 @@ docker exec kiteclass-core java -jar app.jar --command=seed-beta
 
 ### 2.4 BETA smoke tests (post-deploy)
 
+> **Automated** post-deploy via `scripts/smoke-test.sh <KH-url> <KC-url>` (GAP-377 / Wave 26 Bucket C extension on GAP-089 baseline). Wired into `.github/workflows/deploy-staging.yml` → "Post-deploy smoke test" step. 18 assertions covering health, legal pages, login/register, KH `/api/health`, ConsentBanner mount, KC public APIs, error handling, gateway routing. Manual checklist below tracks the supersets the script does not yet cover.
+
 - [ ] Public marketing pages load: `/` `/blog` `/pricing` `/legal/privacy` `/legal/terms` `/legal/cookies` `/legal/dmca`
 - [ ] Beta access form submits successfully
 - [ ] Beta invite email received + signup token validates
@@ -253,6 +255,8 @@ git push origin v1.0.0
 ```
 
 ### 3.3 v1.0.0 production smoke tests
+
+> **Automated** baseline same as §2.4 — invoke `scripts/smoke-test.sh https://kitehub.vn https://kiteclass.vn` (GAP-377 / Wave 26 Bucket C). The 18 baseline assertions execute against production URLs; deploy CI step (`.github/workflows/deploy-staging.yml`) is the canonical pre-cutover gate. Production-specific manual items below extend that baseline.
 
 Tất cả tests §2.4 PLUS:
 - [ ] Payment processor: trial→paid migration end-to-end (sandbox)

@@ -1,10 +1,29 @@
 #!/usr/bin/env bash
 # =========================================================================
-# smoke-test.sh — Post-deploy verification (GAP-089)
+# smoke-test.sh — Post-deploy verification (GAP-089 baseline + GAP-377 ext)
 # =========================================================================
-# Usage: ./scripts/smoke-test.sh <base-url>
-# Example: ./scripts/smoke-test.sh https://api.kiteclass.com
-#          ./scripts/smoke-test.sh http://localhost:9000
+# Usage:
+#   ./scripts/smoke-test.sh                                      # defaults: prod URLs
+#   ./scripts/smoke-test.sh <single-url>                         # both KH+KC use same URL (legacy)
+#   ./scripts/smoke-test.sh <kitehub-url> <kiteclass-url>        # dual-URL (preferred)
+#
+# Examples:
+#   ./scripts/smoke-test.sh                                                      # prod
+#   ./scripts/smoke-test.sh https://staging.kitehub.vn https://staging.kiteclass.vn
+#   ./scripts/smoke-test.sh http://localhost:9000                                # local single gateway
+#
+# Defaults (no args): https://kitehub.vn  +  https://kiteclass.vn
+#
+# How to extend (add a new assertion):
+# 1. For a simple status-code assertion against KH or KC, add a `check_page`
+#    or `check_status` call in the appropriate Section (1..7) below.
+# 2. For a JSON endpoint, use `check_api_json $name $url`.
+# 3. For body content (e.g. component marker), use
+#    `check_body_contains "$name" "$url" "needle"`.
+# 4. Keep one assertion per call and prefer the helpers — they handle
+#    timeouts, color, and counter bookkeeping uniformly.
+# 5. If your assertion targets a path that currently doesn't exist, file a
+#    follow-up gap (GAP-377-followup-*) and substitute a safer route.
 #
 # Exit codes:
 #   0 = all checks pass
@@ -34,11 +53,21 @@ fi
 
 # ─── Helpers ───────────────────────────────────────────────────────────
 
+# Shared body buffer (file-based — avoids subshell variable scope issues
+# when http_get is invoked as `code=$(http_get URL)`. With `set -u`,
+# assigning to a global var inside command-substitution subshell does NOT
+# propagate; writing to a tempfile does.)
+BODY_FILE="$(mktemp -t smoke-body.XXXXXX)"
+trap 'rm -f "$BODY_FILE"' EXIT
+BODY=""
+
 usage() {
-    echo "Usage: $0 <base-url>"
+    echo "Usage:"
+    echo "  $0                                     # defaults to prod URLs"
+    echo "  $0 <single-url>                        # both KH+KC use same URL (legacy)"
+    echo "  $0 <kitehub-url> <kiteclass-url>       # dual-URL"
     echo ""
-    echo "  base-url  Root URL of the gateway (e.g. http://localhost:9000)"
-    echo ""
+    echo "Defaults: KH=https://kitehub.vn  KC=https://kiteclass.vn"
     echo "Exit codes: 0=pass  1=fail  2=warn-only"
     exit 1
 }
@@ -58,45 +87,53 @@ warn() {
     printf "  ${YELLOW}WARN${NC}  %s (%s)\n" "$1" "$2"
 }
 
-# GET request — returns HTTP status code; body stored in $BODY
+# GET request — prints HTTP status code on stdout; body persisted to $BODY_FILE.
+# Caller reads body via `read_body` (loads into global $BODY).
 http_get() {
     local url="$1"
-    BODY=$(curl -sS --max-time "$TIMEOUT" -o - -w '\n%{http_code}' "$url" 2>/dev/null) || {
-        BODY=""
+    : > "$BODY_FILE"
+    local code
+    code=$(curl -sS --max-time "$TIMEOUT" -o "$BODY_FILE" -w '%{http_code}' "$url" 2>/dev/null) || {
+        : > "$BODY_FILE"
         echo "000"
         return
     }
-    local code
-    code=$(echo "$BODY" | tail -n1)
-    BODY=$(echo "$BODY" | sed '$d')
     echo "$code"
 }
 
-# POST request — returns HTTP status code; body stored in $BODY
+# POST request — prints HTTP status code; body persisted to $BODY_FILE.
 http_post() {
     local url="$1"
     local data="${2:-}"
     local content_type="${3:-application/json}"
-    BODY=$(curl -sS --max-time "$TIMEOUT" -X POST \
+    : > "$BODY_FILE"
+    local code
+    code=$(curl -sS --max-time "$TIMEOUT" -X POST \
         -H "Content-Type: $content_type" \
         -d "$data" \
-        -o - -w '\n%{http_code}' "$url" 2>/dev/null) || {
-        BODY=""
+        -o "$BODY_FILE" -w '%{http_code}' "$url" 2>/dev/null) || {
+        : > "$BODY_FILE"
         echo "000"
         return
     }
-    local code
-    code=$(echo "$BODY" | tail -n1)
-    BODY=$(echo "$BODY" | sed '$d')
     echo "$code"
+}
+
+# Load body from $BODY_FILE into global $BODY (callers reference $BODY after).
+read_body() {
+    if [ -s "$BODY_FILE" ]; then
+        BODY=$(cat "$BODY_FILE")
+    else
+        BODY=""
+    fi
 }
 
 # ─── Checks ───────────────────────────────────────────────────────────
 
+# Health endpoint: 200 + optional UP marker; service-specific naming.
 check_health() {
     local name="$1"
-    local path="$2"
-    local url="${BASE_URL}${path}"
+    local url="$2"
 
     local code
     code=$(http_get "$url")
@@ -104,14 +141,13 @@ check_health() {
     if [ "$code" = "000" ]; then
         fail "Health: $name" "connection refused / timeout"
     elif [ "$code" = "200" ]; then
-        # Check for "UP" in body if it's an actuator endpoint
+        read_body
         if echo "$BODY" | grep -q '"UP"' 2>/dev/null; then
             pass "Health: $name" "${code} OK, status: UP"
         else
             pass "Health: $name" "${code} OK"
         fi
     elif [ "$code" = "503" ]; then
-        # Service unhealthy but endpoint reachable
         warn "Health: $name" "${code} Service Unavailable"
     elif [ "$code" = "502" ] || [ "$code" = "504" ]; then
         fail "Health: $name" "${code} Bad Gateway"
@@ -120,47 +156,78 @@ check_health() {
     fi
 }
 
+# Page check: 200 expected + optional substring match in body.
 check_page() {
     local name="$1"
-    local path="$2"
-    local expected_text="$3"
+    local url="$2"
+    local expected_text="${3:-}"
 
-    local url="${BASE_URL}${path}"
     local code
     code=$(http_get "$url")
 
     if [ "$code" = "000" ]; then
         fail "Page: $name" "connection refused / timeout"
     elif [ "$code" = "200" ]; then
+        read_body
         if [ -n "$expected_text" ] && ! echo "$BODY" | grep -qi "$expected_text" 2>/dev/null; then
             warn "Page: $name" "200 OK but missing expected text '${expected_text}'"
-        else
+        elif [ -n "$expected_text" ]; then
             pass "Page: $name" "200 OK, contains '${expected_text}'"
+        else
+            pass "Page: $name" "200 OK"
         fi
     else
         fail "Page: $name" "HTTP ${code}"
     fi
 }
 
+# Body-contains check: 200 + body matches a needle (case-insensitive grep).
+# Useful for verifying a component marker is rendered (e.g. ConsentBanner).
+check_body_contains() {
+    local name="$1"
+    local url="$2"
+    local needle="$3"
+
+    local code
+    code=$(http_get "$url")
+
+    if [ "$code" = "000" ]; then
+        fail "Body: $name" "connection refused / timeout"
+    elif [ "$code" = "200" ]; then
+        read_body
+        local hits
+        hits=$(echo "$BODY" | grep -c "$needle" 2>/dev/null || true)
+        # grep -c returns 0 when no matches; tolerate empty hits as zero.
+        if [ -z "$hits" ]; then
+            hits=0
+        fi
+        if [ "$hits" -gt 0 ]; then
+            pass "Body: $name" "200 OK, '${needle}' matches=${hits}"
+        else
+            fail "Body: $name" "200 OK but '${needle}' not present"
+        fi
+    else
+        fail "Body: $name" "HTTP ${code}"
+    fi
+}
+
 check_api_json() {
     local name="$1"
-    local path="$2"
+    local url="$2"
 
-    local url="${BASE_URL}${path}"
     local code
     code=$(http_get "$url")
 
     if [ "$code" = "000" ]; then
         fail "API: $name" "connection refused / timeout"
     elif [ "$code" = "200" ]; then
-        # Validate JSON: check for { or [
+        read_body
         if echo "$BODY" | grep -qE '^\s*[\[{]' 2>/dev/null; then
             pass "API: $name" "200 OK, valid JSON"
         else
             warn "API: $name" "200 OK but response is not JSON"
         fi
     elif [ "$code" = "401" ] || [ "$code" = "403" ]; then
-        # Auth-protected endpoints — expected if no token
         pass "API: $name" "${code} (auth required, endpoint reachable)"
     else
         fail "API: $name" "HTTP ${code}"
@@ -169,10 +236,9 @@ check_api_json() {
 
 check_error_handling() {
     local name="$1"
-    local path="$2"
+    local url="$2"
     local expected_code="$3"
 
-    local url="${BASE_URL}${path}"
     local code
     code=$(http_post "$url" "{}" "application/json")
 
@@ -183,16 +249,14 @@ check_error_handling() {
     elif [ "$code" = "500" ]; then
         warn "Error handling: $name" "500 instead of ${expected_code} — unhandled error"
     else
-        # Different code but not 500 — acceptable
         pass "Error handling: $name" "${code} (expected ${expected_code})"
     fi
 }
 
 check_no_502() {
     local name="$1"
-    local path="$2"
+    local url="$2"
 
-    local url="${BASE_URL}${path}"
     local code
     code=$(http_get "$url")
 
@@ -205,40 +269,94 @@ check_no_502() {
     fi
 }
 
+# Build info: read /actuator/info build.version. Echo only — no assertion.
+echo_build_info() {
+    local label="$1"
+    local url="$2"
+    if ! command -v jq >/dev/null 2>&1; then
+        printf "  %s  %s build version: %s\n" "info" "$label" "(jq not available)"
+        return
+    fi
+    local body version
+    body=$(curl -sS --max-time "$TIMEOUT" "$url" 2>/dev/null || echo '{}')
+    version=$(echo "$body" | jq -r '.build.version // "unknown"' 2>/dev/null || echo 'unknown')
+    printf "  %s  %s build version: %s\n" "info" "$label" "$version"
+}
+
 # ─── Main ─────────────────────────────────────────────────────────────
 
-if [ $# -lt 1 ]; then
-    usage
-fi
-
-BASE_URL="${1%/}"  # strip trailing slash
+# Argument handling — dual-URL with backward-compat:
+#   0 args: defaults (prod)
+#   1 arg : both KH and KC use same URL (legacy GAP-089 invocation)
+#   2 args: <KH-url> <KC-url>
+case "$#" in
+    0)
+        KH_URL="https://kitehub.vn"
+        KC_URL="https://kiteclass.vn"
+        ;;
+    1)
+        case "${1:-}" in
+            -h|--help) usage ;;
+        esac
+        KH_URL="${1%/}"
+        KC_URL="${1%/}"
+        ;;
+    2)
+        KH_URL="${1%/}"
+        KC_URL="${2%/}"
+        ;;
+    *)
+        usage
+        ;;
+esac
 
 TOTAL_START=$(date +%s)
 
 echo ""
-printf "${BOLD}Smoke Test Results — %s${NC}\n" "$BASE_URL"
+printf "${BOLD}Smoke Test Results — KH=%s  KC=%s${NC}\n" "$KH_URL" "$KC_URL"
 echo "════════════════════════════════════════════════════════════════"
 
-# 1. Health endpoints
-check_health "kiteclass-core"       "/kiteclass/actuator/health"
-check_health "kitehub-subscription" "/kitehub-subscription/actuator/health"
-check_health "kitehub-branding"     "/kitehub-branding/actuator/health"
-check_health "kitehub-email"        "/kitehub-email/actuator/health"
+# 1. Health endpoints (KH gateway routes — work for both single-gateway
+#    and dual-URL deployments because gateway exposes per-service health)
+check_health "kiteclass-core"       "${KC_URL}/kiteclass/actuator/health"
+check_health "kitehub-subscription" "${KH_URL}/kitehub-subscription/actuator/health"
+check_health "kitehub-branding"     "${KH_URL}/kitehub-branding/actuator/health"
+check_health "kitehub-email"        "${KH_URL}/kitehub-email/actuator/health"
 
-# 2. Public pages
-check_page "landing page" "/" "html"
+# 2. Public marketing pages (GAP-377 ext)
+check_page "KH landing page"   "${KH_URL}/"            "html"
+check_page "KH /legal/privacy" "${KH_URL}/legal/privacy"
+check_page "KH /legal/terms"   "${KH_URL}/legal/terms"
+check_page "KH /legal/cookies" "${KH_URL}/legal/cookies"
 
-# 3. Public API
-check_api_json "public courses"  "/api/v1/public/courses"
-check_api_json "public settings" "/api/v1/public/settings"
+# 3. Auth surfaces (GAP-377 ext)
+# NOTE 2026-05-06 state-check: kitehub-frontend uses (auth) route group with
+# /login + /register routes — there is NO /auth/signup or
+# /auth/request-beta-access. Substitutes /login + /register; original AC
+# routes tracked via follow-up GAP-377-followup-auth-route-checks.
+check_page "KH /login"    "${KH_URL}/login"
+check_page "KH /register" "${KH_URL}/register"
 
-# 4. Error handling (malformed requests should get 400, not 500)
-check_error_handling "register (empty body)" "/api/auth/register" "400"
-check_error_handling "login (empty body)"    "/api/auth/login"    "400"
+# 4. API health (GAP-377 ext) — kitehub-frontend exposes /api/health (not /api/v1/health)
+check_api_json "KH /api/health" "${KH_URL}/api/health"
 
-# 5. Gateway routing (no 502/503)
-check_no_502 "kiteclass route"      "/kiteclass/actuator/info"
-check_no_502 "kitehub-sub route"    "/kitehub-subscription/actuator/info"
+# 5. ConsentBanner present (GAP-377 ext per Wave 23 Bucket BC)
+check_body_contains "KH ConsentBanner mounted" "${KH_URL}/" "ConsentBanner\\|consent-banner"
+
+# 6. Public API (KC gateway)
+check_api_json "KC public courses"  "${KC_URL}/api/v1/public/courses"
+check_api_json "KC public settings" "${KC_URL}/api/v1/public/settings"
+
+# 7. Error handling (malformed requests should get 400, not 500)
+check_error_handling "KC register (empty body)" "${KC_URL}/api/auth/register" "400"
+check_error_handling "KC login (empty body)"    "${KC_URL}/api/auth/login"    "400"
+
+# 8. Gateway routing (no 502/503)
+check_no_502 "kiteclass route"   "${KC_URL}/kiteclass/actuator/info"
+check_no_502 "kitehub-sub route" "${KH_URL}/kitehub-subscription/actuator/info"
+
+# 9. Build info display (echo only — no assertion)
+echo_build_info "KH" "${KH_URL}/actuator/info"
 
 TOTAL=$((PASS_COUNT + FAIL_COUNT + WARN_COUNT))
 TOTAL_END=$(date +%s)
