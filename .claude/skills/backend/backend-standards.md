@@ -329,6 +329,26 @@ public class GlobalExceptionHandler {
 }
 ```
 
+### Exception Ctor — Overload Resolution Gotcha (added 2026-05-06 per GAP-357)
+
+`ValidationException` + `EntityNotFoundException` ship BOTH deprecated single-arg ctors AND non-deprecated `(String errorCode, Object... args)` varargs. Java overload resolution picks the **most specific** match — so `new ValidationException("CODE")` resolves to the **deprecated** `(String message)` ctor, not the varargs.
+
+**3-pattern fix matrix** to force varargs resolution:
+
+| Call shape | Fix | Example |
+|---|---|---|
+| No args | Add explicit empty array | `new ValidationException("CODE", new Object[0])` |
+| Single `Long` arg | Cast to `Object` | `new EntityNotFoundException("CODE", (Object) id)` |
+| ≥2 args | Already resolves to varargs | `new ValidationException("CODE", arg1, arg2)` (no fix needed) |
+
+**Full migration scope** (per call site needing migration):
+1. Design error code (e.g. `INCIDENT_TITLE_REQUIRED` not `"Title is required"`)
+2. Add to `messages.properties` + `messages_vi.properties` (en + vi mirrored)
+3. Replace call site with new ctor + cast/array if needed
+4. **Update tests** — `getMessage()` returns the code (no MessageSource resolution at construction); `hasMessageContaining("Title")` becomes `hasMessageContaining("INCIDENT_TITLE_REQUIRED")`
+
+**Effort:** N call sites = ~N error codes + ~2N properties entries (en+vi) + ~M test updates. **Per-module agent or wave-pack scope, NOT housekeeping.** Reference: `feedback_deprecated_ctor_overload_resolution.md` memory + GAP-357.
+
 ### Logging Standards
 
 ```java
