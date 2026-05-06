@@ -1,6 +1,6 @@
 ---
 title: Wave 26 — PDPL Phase 2 close-out + Smoke Test (DSAR + DPIA + smoke-test extension)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [26]
@@ -203,4 +203,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ## 8. Log
 
+- **2026-05-06** (complete): Wave 26 SHIPPED — 3 buckets + plan + closure (5 PRs) + 1 hotfix PR side-track. PR #840 plan, PR #841 Bucket B GAP-353d 🟢 DONE (3 BRD docs DPIA + DPO designation + MPS A05 skeleton 628 LOC + privacy-policy cross-link), PR #842 Bucket C GAP-377 🟢 DONE (smoke-test.sh 265→383 LOC, 18 assertions, dual-URL, CI step in deploy-staging.yml, +follow-up GAP-377-followup-auth-route-checks P3), PR #844 Bucket A GAP-353c 🟡 PARTIAL (V26 + 10 Java files in `com.kitehub.subscription.dsar` + 2 FE pages + shared `DataRightsForm.tsx` + 393 BE tests + 491 FE tests; 10/11 AC; +follow-up GAP-353c-followup-dpo-email-notification P2). PR #843 hotfix shipped parallel — removed 2 unused imports in `TenantContextFilterTest.java` flagged by IDE post-Wave-25 merge (1 file changed, +0/-2; 5/5 tests pass). Bucket C agent surfaced + fixed latent BODY-buffer bug in `scripts/smoke-test.sh` (in-memory `BODY=$(...)` broken under command-substitution subshell scope with `set -u` → refactored to file-based `BODY_FILE` + `read_body` helper). 2 route-substitutions in Bucket C scope (`/auth/signup` → `/login`, `/auth/request-beta-access` → `/register`) because target routes absent in `kitehub-frontend/src/app/auth/`; substitutions sized as P3 follow-up. 0 merge conflicts. **Counts: 167 → 167 OPEN** (-GAP-353d closed; -GAP-377 closed; +2 follow-ups GAP-353c-followup-dpo-email-notification + GAP-377-followup-auth-route-checks; GAP-353c stays PARTIAL pool). 62nd consecutive 0-clarification streak (3 agents 0-clarif each; first-spawn token-quota-hit doesn't count — agents barely ran before limit). Wall-clock ~50min parallel (longest Bucket A 17min, B 8min, C 8min) + closure 10min. Token cost ~970k for 3 wave agents (50k below Wave 25 due to less coordinator iteration cycle).
 - **2026-05-06** (draft): Plan created. State-check completed per `audit-to-gap-pipeline.md` §2.6 — 3 buckets file-disjoint verified; Bucket C is extension scope (not greenfield) on existing GAP-089 smoke-test.sh baseline (265 LOC). PDPL Phase 2 close-out targets 2026-07-01 hard-deadline. Ready for plan PR per `feedback_wave_plan_through_pr.md`.
