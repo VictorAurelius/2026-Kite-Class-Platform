@@ -9,7 +9,10 @@
  *
  * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
  *
- * Future phases: remaining G1/G3/G4/G8..G12 + D1..D10 components per Track 2 wave-pack.
+ * Phase 2 (Wave 28 Bucket E, GAP-273): D1 ConfirmDialog Radix port — drop-in
+ * replacement for kiteclass-frontend local wrapper.
+ *
+ * Future phases: remaining G1/G3/G4/G8..G12 + D2..D10 components per Track 2 wave-pack.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -34,6 +37,13 @@ export type {
   ConsentState,
   PartialCategories,
 } from './components/ConsentBanner';
+
+// D1 ConfirmDialog — Radix-native confirm modal (Wave 28 Bucket E, GAP-273)
+export { ConfirmDialog } from './components/D1-confirm-dialog';
+export type {
+  ConfirmDialogProps,
+  ConfirmDialogVariant,
+} from './components/D1-confirm-dialog';
 
 // G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A, GAP-273)
 export { AttendanceRoster } from './components/G2-attendance-roster';
