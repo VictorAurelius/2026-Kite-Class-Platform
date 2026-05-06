@@ -8,6 +8,7 @@ import com.kiteclass.core.module.parent.audit.ParentFacet;
 import com.kiteclass.core.module.parent.audit.ParentReadAuditLogService;
 import com.kiteclass.core.module.parent.dto.ParentConductFacetResponse;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import com.kiteclass.core.module.parent.service.ParentConductFacetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,9 +68,16 @@ public class ParentConductFacetServiceImpl implements ParentConductFacetService 
     private static final Set<IncidentVisibilityScope> PARENT_VISIBLE_SCOPES =
             EnumSet.of(IncidentVisibilityScope.PARENT_VISIBLE, IncidentVisibilityScope.PUBLIC);
 
+    /**
+     * BR-PARENT-PORTAL-014 — facet name used for the per-field consent
+     * lookup.
+     */
+    public static final String CONSENT_FIELD_CONDUCT = "conduct";
+
     private final ParentStudentLinkRepository linkRepository;
     private final IncidentRepository incidentRepository;
     private final ParentReadAuditLogService auditLogService;
+    private final ConsentService consentService;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,6 +92,22 @@ public class ParentConductFacetServiceImpl implements ParentConductFacetService 
             log.warn("Parent {} attempted conduct read for unlinked child {} — denied",
                     parentId, childId);
             throw new BusinessException("PARENT_FACET_FORBIDDEN", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-014 — PDPL granular consent gate (uniform with
+        // other 4 facets per Wave 24 GAP-361 v1.5).
+        if (!consentService.checkConsent(parentId, childId, CONSENT_FIELD_CONDUCT)) {
+            log.warn("Parent {} attempted conduct read for child {} without consent — denied",
+                    parentId, childId);
+            throw new BusinessException("PARENT_CONSENT_REQUIRED", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-015 — re-consent gate.
+        if (consentService.getConsentVersion(parentId, childId)
+                < consentService.getRequiredVersion()) {
+            log.warn("Parent {} consent version stale for child {} — re-consent required",
+                    parentId, childId);
+            throw new BusinessException("RECONSENT_REQUIRED", HttpStatus.FORBIDDEN);
         }
 
         // BR-CHILD-PROTECT-005 + BR-PARENT-FACET-CONDUCT-002: real wiring —

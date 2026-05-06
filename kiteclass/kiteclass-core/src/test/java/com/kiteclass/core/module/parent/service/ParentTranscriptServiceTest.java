@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
@@ -46,11 +48,13 @@ import static org.mockito.Mockito.when;
  * @since 2.18.0 (Wave 18b1 — GAP-321 Phase 1A)
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("ParentTranscriptService")
 class ParentTranscriptServiceTest {
 
     @Mock private ParentStudentLinkRepository linkRepository;
     @Mock private TranscriptRepository transcriptRepository;
+    @Mock private com.kiteclass.core.module.parent.service.ConsentService consentService;
 
     @InjectMocks
     private ParentTranscriptServiceImpl service;
@@ -68,6 +72,9 @@ class ParentTranscriptServiceTest {
         void happyPath_linked() {
             when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                     .thenReturn(true);
+            when(consentService.checkConsent(PARENT_ID, CHILD_ID, "transcript")).thenReturn(true);
+            when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+            when(consentService.getRequiredVersion()).thenReturn(1);
             when(transcriptRepository.findByStudentIdAndDeletedFalseOrderBySemesterDesc(CHILD_ID))
                     .thenReturn(List.of(transcript(1L, "Spring 2026", 2026, "3.45", "3.52"),
                             transcript(2L, "Fall 2025", 2025, "3.30", "3.40")));
@@ -104,6 +111,9 @@ class ParentTranscriptServiceTest {
         void emptyList_noTranscripts() {
             when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
                     .thenReturn(true);
+            when(consentService.checkConsent(PARENT_ID, CHILD_ID, "transcript")).thenReturn(true);
+            when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+            when(consentService.getRequiredVersion()).thenReturn(1);
             when(transcriptRepository.findByStudentIdAndDeletedFalseOrderBySemesterDesc(CHILD_ID))
                     .thenReturn(List.of());
 
@@ -121,6 +131,50 @@ class ParentTranscriptServiceTest {
 
             assertThatThrownBy(() -> service.getTranscriptsForChild(PARENT_ID, null))
                     .isInstanceOf(BusinessException.class);
+        }
+
+        /**
+         * BR-PARENT-PORTAL-014 (Wave 24 GAP-361 v1.5) — even with valid link
+         * scope, missing per-field consent must short-circuit with 403
+         * PARENT_CONSENT_REQUIRED before the Transcript table is queried.
+         */
+        @Test
+        @DisplayName("BR-PARENT-PORTAL-014: linked but no consent → 403 PARENT_CONSENT_REQUIRED, no DB read")
+        void consentMissing_throws403() {
+            when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                    .thenReturn(true);
+            when(consentService.checkConsent(PARENT_ID, CHILD_ID, "transcript")).thenReturn(false);
+
+            assertThatThrownBy(() -> service.getTranscriptsForChild(PARENT_ID, CHILD_ID))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("code", "PARENT_CONSENT_REQUIRED")
+                    .hasFieldOrPropertyWithValue("status", HttpStatus.FORBIDDEN);
+
+            verify(transcriptRepository, never())
+                    .findByStudentIdAndDeletedFalseOrderBySemesterDesc(CHILD_ID);
+        }
+
+        /**
+         * BR-PARENT-PORTAL-015 (Wave 24 GAP-361 v1.5) — consent granted but
+         * stored version below required policy version → 403
+         * RECONSENT_REQUIRED.
+         */
+        @Test
+        @DisplayName("BR-PARENT-PORTAL-015: stale consent version → 403 RECONSENT_REQUIRED")
+        void consentStale_throwsReconsentRequired() {
+            when(linkRepository.existsByParentIdAndStudentIdAndDeletedFalse(PARENT_ID, CHILD_ID))
+                    .thenReturn(true);
+            when(consentService.checkConsent(PARENT_ID, CHILD_ID, "transcript")).thenReturn(true);
+            when(consentService.getConsentVersion(PARENT_ID, CHILD_ID)).thenReturn(1);
+            when(consentService.getRequiredVersion()).thenReturn(2);
+
+            assertThatThrownBy(() -> service.getTranscriptsForChild(PARENT_ID, CHILD_ID))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("code", "RECONSENT_REQUIRED")
+                    .hasFieldOrPropertyWithValue("status", HttpStatus.FORBIDDEN);
+
+            verify(transcriptRepository, never())
+                    .findByStudentIdAndDeletedFalseOrderBySemesterDesc(CHILD_ID);
         }
     }
 

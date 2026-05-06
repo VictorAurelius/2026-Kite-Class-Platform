@@ -78,12 +78,12 @@ Total: ~2-3 weeks if sequential; ~1.5 weeks with parallelism (360.B + 360.D para
 ## Acceptance Criteria
 
 - [ ] 3 remaining write actions shipped with scope guard + audit log entry
-- [ ] All 5 parent-portal facets gate consent (transcript + attendance + conduct + fees + notifications)
-- [ ] Re-consent flow wired: admin bulk-bump endpoint + middleware check on facet calls + FE modal
+- [x] All 5 parent-portal facets gate consent (transcript + attendance + conduct + fees + notifications) — Wave 24 Bucket C 2026-05-06
+- [x] Re-consent flow wired: admin bulk-bump endpoint + middleware check on facet calls — Wave 24 Bucket C 2026-05-06 (FE modal still pending in §C continuation)
 - [ ] EN + zh-CN i18n catalogs (or feature-flagged skip if no international tenants)
 - [ ] `/parent/privacy` settings page (consent toggles per child + per field; optimistic UI; mobile responsive)
-- [ ] BR-PARENT-PORTAL-014..018 + 4 new UCs in business docs (5-attribute frontmatter)
-- [ ] Tests: 4 write IT (conduct-confirm + RSVP + absence-excuse + consent multi-facet gate) + i18n smoke + FE component tests (≥80% per `output-review-mandate.md` §3 Quality)
+- [x] BR-PARENT-PORTAL-014..016 + 5-attribute frontmatter — Wave 24 Bucket C 2026-05-06 (BR-017..018 deferred to §A/§D/§E follow-ups when scope lands)
+- [ ] Tests: 4 write IT (conduct-confirm + RSVP + absence-excuse) — backend consent multi-facet gate + admin bulk-bump tests SHIPPED Wave 24 Bucket C 2026-05-06; write IT + i18n smoke + FE component tests still pending
 - [ ] Migration to encrypted MinIO bucket for absence-excuse uploads
 
 ## Estimated Effort
@@ -99,4 +99,15 @@ Total: ~2-3 weeks if sequential; ~1.5 weeks with parallelism (360.B + 360.D para
 
 ## Log
 
+- **2026-05-06** Wave 24 Bucket C (GAP-361 Phase 1C v1.5 §B + §C) — partial closure of remainder:
+  - 361.B (consent gate × 4 remaining facets): SHIPPED. `ParentTranscriptServiceImpl` + `ParentAttendanceFacetServiceImpl` + `ParentConductFacetServiceImpl` + `ParentNotificationsFacetServiceImpl` now call `ConsentService.checkConsent(parentId, childId, "<facetName>")` after the existing scope guard; missing per-field consent → 403 `PARENT_CONSENT_REQUIRED`. Each impl exposes `public static final String CONSENT_FIELD_*` constant matching the JSONB field name.
+  - 361.C (re-consent flow): SHIPPED (backend). All 5 facet impls (fees + 4 above) check `consentService.getConsentVersion(...) >= consentService.getRequiredVersion()`; stale → 403 `RECONSENT_REQUIRED`. Admin endpoint `POST /api/v1/admin/parent/consent/bulk-bump` ships with `@PreAuthorize("hasAnyRole('ADMIN','PRINCIPAL','OWNER')")`. ConsentService extended with `getRequiredVersion()` (reads `kite.parent.consent.required-version`, default 1) + `bulkBumpVersion(instanceId, newVersion, reason)` backed by native PostgreSQL `jsonb_set` UPDATE for single-round-trip bulk update.
+  - 3 new BR rules (BR-PARENT-PORTAL-014/015/016) with full 5-attribute frontmatter added to `documents/01-business/kiteclass/parent-portal/rules.md` §15.
+  - 3 new properties keys (`PARENT_CONSENT_REQUIRED`, `RECONSENT_REQUIRED`, `PARENT_CONSENT_BULK_BUMP_OK`) in `messages.properties` + `messages_vi.properties`.
+  - Tests: 4 facet `consentMissing_throws403` + 4 facet `consentStale_throwsReconsentRequired` + `ConsentServiceImplTest` re-consent suite (6 new) + `ParentConsentAdminControllerTest` (2). Local mvn run: 107 tests PASS, 0 fail.
+  - Out of scope this PR (deferred to follow-ups, gap stays 🔵 OPEN at coordinator closure):
+    - 361.A (3 remaining write actions: conduct-confirm + meeting RSVP + absence-excuse upload) — depends GAP-338 + GAP-339 + MinIO encrypted bucket
+    - 361.D (i18n EN + zh-CN catalogs)
+    - 361.E (Settings page UI `/parent/privacy`) — Wave 25 FE wave
+    - FE re-consent modal UX — Wave 25 FE wave
 - **2026-05-05** Filed by Wave 19 Bucket C closure agent. Per `gap-done-discipline.md` §3 PARTIAL exit ramp, GAP-321c v1 ships PARTIAL not DONE — fees facet gated end-to-end + 1 write action live, remaining work tracked here.

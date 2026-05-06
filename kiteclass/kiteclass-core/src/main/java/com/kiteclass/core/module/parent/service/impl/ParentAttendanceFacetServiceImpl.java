@@ -7,6 +7,7 @@ import com.kiteclass.core.module.attendance.repository.AttendancePeriodRepositor
 import com.kiteclass.core.module.parent.audit.ParentFacet;
 import com.kiteclass.core.module.parent.audit.ParentReadAuditLogService;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
+import com.kiteclass.core.module.parent.service.ConsentService;
 import com.kiteclass.core.module.parent.service.ParentAttendanceFacetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +41,16 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class ParentAttendanceFacetServiceImpl implements ParentAttendanceFacetService {
 
+    /**
+     * BR-PARENT-PORTAL-014 — facet name used for the per-field consent
+     * lookup.
+     */
+    public static final String CONSENT_FIELD_ATTENDANCE = "attendance";
+
     private final ParentStudentLinkRepository linkRepository;
     private final AttendancePeriodRepository attendancePeriodRepository;
     private final ParentReadAuditLogService auditLogService;
+    private final ConsentService consentService;
 
     @Override
     @Transactional(readOnly = true)
@@ -61,6 +69,21 @@ public class ParentAttendanceFacetServiceImpl implements ParentAttendanceFacetSe
             log.warn("Parent {} attempted attendance read for unlinked child {} — denied",
                     parentId, childId);
             throw new BusinessException("PARENT_FACET_FORBIDDEN", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-014 — PDPL granular consent gate.
+        if (!consentService.checkConsent(parentId, childId, CONSENT_FIELD_ATTENDANCE)) {
+            log.warn("Parent {} attempted attendance read for child {} without consent — denied",
+                    parentId, childId);
+            throw new BusinessException("PARENT_CONSENT_REQUIRED", HttpStatus.FORBIDDEN);
+        }
+
+        // BR-PARENT-PORTAL-015 — re-consent gate.
+        if (consentService.getConsentVersion(parentId, childId)
+                < consentService.getRequiredVersion()) {
+            log.warn("Parent {} consent version stale for child {} — re-consent required",
+                    parentId, childId);
+            throw new BusinessException("RECONSENT_REQUIRED", HttpStatus.FORBIDDEN);
         }
 
         Page<AttendancePeriod> page = attendancePeriodRepository

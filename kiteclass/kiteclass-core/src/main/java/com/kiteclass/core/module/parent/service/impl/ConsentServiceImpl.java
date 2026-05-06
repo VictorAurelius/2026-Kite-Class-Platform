@@ -5,8 +5,8 @@ import com.kiteclass.core.module.parent.dto.ParentalConsent;
 import com.kiteclass.core.module.parent.entity.ParentStudentLink;
 import com.kiteclass.core.module.parent.repository.ParentStudentLinkRepository;
 import com.kiteclass.core.module.parent.service.ConsentService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * JPA-backed {@link ConsentService} reading + writing the JSONB
@@ -35,10 +36,25 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ConsentServiceImpl implements ConsentService {
 
     private final ParentStudentLinkRepository linkRepository;
+
+    /**
+     * BR-PARENT-PORTAL-015 — current required policy version. Default
+     * {@code 1} matches the V56 migration's seeded version. Admin tooling
+     * (BR-PARENT-PORTAL-016) bumps this value via configuration; existing
+     * parental-consent records below it are required to re-consent before
+     * facet APIs return data (per BR-PARENT-PORTAL-015).
+     */
+    private final int requiredVersion;
+
+    public ConsentServiceImpl(
+            ParentStudentLinkRepository linkRepository,
+            @Value("${kite.parent.consent.required-version:1}") int requiredVersion) {
+        this.linkRepository = linkRepository;
+        this.requiredVersion = Math.max(1, requiredVersion);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -115,6 +131,26 @@ public class ConsentServiceImpl implements ConsentService {
         log.info("Parent {} bumped consent for child {} → version {}",
                 parentId, childId, next.version());
         return next;
+    }
+
+    @Override
+    public int getRequiredVersion() {
+        return requiredVersion;
+    }
+
+    @Override
+    @Transactional
+    public int bulkBumpVersion(UUID instanceId, int newVersion, String reason) {
+        if (instanceId == null) {
+            throw new BusinessException("BAD_REQUEST", HttpStatus.BAD_REQUEST);
+        }
+        if (newVersion < 1) {
+            throw new BusinessException("BAD_REQUEST", HttpStatus.BAD_REQUEST);
+        }
+        int updated = linkRepository.bulkBumpConsentVersion(instanceId, newVersion);
+        log.info("Admin bulk-bumped {} parental-consent records in tenant {} to version {} (reason: {})",
+                updated, instanceId, newVersion, reason);
+        return updated;
     }
 
     /**

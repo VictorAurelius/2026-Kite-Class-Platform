@@ -68,4 +68,45 @@ public interface ConsentService {
      * @return refreshed consent payload after the bump
      */
     ParentalConsent bumpConsent(Long parentId, Long childId, Map<String, Boolean> updates);
+
+    /**
+     * Returns the current required policy version. Read from configuration
+     * key {@code kite.parent.consent.required-version} (default {@code 1}).
+     * Used by facet impls to detect when a parent's stored consent version
+     * is stale and requires re-consent before data may be returned.
+     *
+     * @return current required policy version (defaults to {@code 1} when
+     *         the configuration key is unset)
+     * @since 2.24.0 (Wave 24 — GAP-361 Phase 1C v1.5 — re-consent flow)
+     */
+    int getRequiredVersion();
+
+    /**
+     * Bulk-bumps the policy version on every {@link
+     * com.kiteclass.core.module.parent.entity.ParentStudentLink} record in
+     * the given tenant whose stored {@code parental_consent.version} is
+     * strictly less than {@code newVersion}.
+     *
+     * <p>Used by admin tooling when the privacy policy is amended (e.g.,
+     * a new facet is added → all parents must re-confirm consent for that
+     * field). The method does NOT touch records already at or above the
+     * supplied version — the operation is idempotent against
+     * already-bumped records.
+     *
+     * <p>The bump is implemented as a single PostgreSQL UPDATE with
+     * JSONB merge so a tenant with thousands of links bumps in
+     * sub-second wall-clock without per-row JPA flushes.
+     *
+     * @param instanceId tenant UUID whose links are being bumped (admin
+     *                   action is always tenant-scoped — cross-tenant
+     *                   bumps require multiple calls)
+     * @param newVersion target version (records below are bumped, records
+     *                   at or above are left as-is)
+     * @param reason     free-text rationale persisted in the audit log
+     *                   line (e.g. {@code "Privacy policy v2 — added
+     *                   homework facet"})
+     * @return number of records bumped
+     * @since 2.24.0 (Wave 24 — GAP-361 Phase 1C v1.5 — re-consent flow)
+     */
+    int bulkBumpVersion(java.util.UUID instanceId, int newVersion, String reason);
 }
