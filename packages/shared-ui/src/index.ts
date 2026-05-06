@@ -34,5 +34,13 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
+// G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
+export { PaymentMethodSelector } from './components/G5-payment-method-selector';
+export type {
+  PaymentMethod,
+  PaymentMethodOption,
+  PaymentMethodSelectorProps,
+} from './components/G5-payment-method-selector';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
