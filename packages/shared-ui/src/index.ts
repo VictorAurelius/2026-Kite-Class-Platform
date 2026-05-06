@@ -9,7 +9,9 @@
  *
  * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
  *
- * Future phases: remaining G1/G3/G4/G8..G12 + D1..D10 components per Track 2 wave-pack.
+ * Phase 2 (Wave 28 Bucket A, GAP-273): G3 Gradebook Entry Grid + VN 10pt validator.
+ *
+ * Future phases: remaining G1/G4/G8..G12 + D1..D10 components per Track 2 wave-pack.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -45,6 +47,26 @@ export type {
   ClassSession,
   StudentRecord,
 } from './components/G2-attendance-roster';
+
+// G3 Gradebook Entry Grid — VN 10pt validation + Excel paste (Wave 28 Bucket A, GAP-273)
+export {
+  GradebookEntryGrid,
+  validateGrade,
+  parseExcelPaste,
+} from './components/G3-gradebook-entry-grid';
+export type {
+  GradeValue,
+  GradeWeight,
+  GradeColumn,
+  GradebookCell,
+  GradebookCellState,
+  GradebookCellStatus,
+  GradebookEntryGridProps,
+  GradebookGridState,
+  GradebookSession,
+  GradebookStudent,
+  ValidateGradeResult,
+} from './components/G3-gradebook-entry-grid';
 
 // G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
 export { PaymentMethodSelector } from './components/G5-payment-method-selector';
