@@ -70,6 +70,7 @@ class RetentionLifecycleServiceImplTest {
 
     @Test
     @DisplayName("expired incident → mark deleted + null sensitive fields + audit append")
+    @SuppressWarnings("unchecked") // ArgumentCaptor.forClass(Map.class) — Mockito API requires raw Class
     void expiredIncident_isSecureDeletedWithAuditAppend() {
         Incident expired = makeExpired(101L, TENANT_A);
         when(incidentRepository.findExpiredRetention(any())).thenReturn(List.of(expired));
