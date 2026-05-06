@@ -34,6 +34,17 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
+// G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A, GAP-273)
+export { AttendanceRoster } from './components/G2-attendance-roster';
+export type {
+  AttendanceRosterProps,
+  AttendanceRosterState,
+  AttendanceStatus,
+  AttendanceChangeOpts,
+  ClassSession,
+  StudentRecord,
+} from './components/G2-attendance-roster';
+
 // G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
 export { PaymentMethodSelector } from './components/G5-payment-method-selector';
 export type {
@@ -41,6 +52,24 @@ export type {
   PaymentMethodOption,
   PaymentMethodSelectorProps,
 } from './components/G5-payment-method-selector';
+
+// G6 Invoice Detail — VN tax + currency (Wave 27 Bucket B, GAP-273)
+export {
+  InvoiceDetail,
+  formatVNCurrency,
+  formatVNTax,
+} from './components/G6-invoice-detail';
+export type {
+  InvoiceData,
+  InvoiceDetailProps,
+  InvoiceDiscount,
+  InvoiceLineItem,
+  InvoiceState,
+  InvoiceStatus,
+  InvoiceStudent,
+  InvoiceTaxBreakdown,
+  InvoiceTenant,
+} from './components/G6-invoice-detail';
 
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
