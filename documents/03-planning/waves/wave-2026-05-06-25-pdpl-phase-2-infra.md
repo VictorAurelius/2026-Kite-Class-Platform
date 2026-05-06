@@ -1,6 +1,6 @@
 ---
 title: Wave 25 — PDPL Phase 2 + Critical Infra (consent API + structured logging + rollback runbook)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [25]
@@ -197,4 +197,5 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 
 ## 8. Log
 
+- **2026-05-06** (complete): Wave 25 SHIPPED — 3 buckets + plan + closure (5 PRs). PR #835 plan, PR #836 Bucket C GAP-378 🟢 DONE (rollback runbook 11 sections), PR #838 Bucket A GAP-353b 🟡 PARTIAL (consent API + V25 + useConsent hook; 8/11 AC; +follow-up GAP-353b-followup-multi-device-and-audit-chain), PR #837 Bucket B GAP-114 + GAP-116 🟡 PARTIAL (logging stack 8 logback configs + PIIScrubber + MDC; 5/6 + 5/6 AC; +follow-up GAP-116-followup-existing-code-pii-audit). Coordinator-applied 2 fixes to Bucket B before merge: (1) pinned logstash-logback-encoder version=8.0 inline in kitehub-platform/pom.xml (installed pom needs self-sufficient version, parent dependencyManagement doesn't transit through consumer modules at out-of-context resolution); (2) added @ConditionalOnClass(SecurityContextHolder) to LoggingAutoConfiguration ServletConfig so services without spring-security-core skip filter wiring (subscription has only spring-security-crypto); (3) added logstash dep to kiteclass-gateway/pom.xml (standalone module, no platform transitive). 1 merge conflict (B vs main ROADMAP §🚀 Next Action additive — coordinator resolved). 60th→61st 0-clarification streak. **Counts: 167 → 167 OPEN** (-GAP-378 closed; +GAP-353b-followup +GAP-116-followup; GAP-353b/114/116 PARTIAL pool unchanged). Total wall-clock ~120 min (plan 5min + 3 parallel agents longest 16min A + 12min B + 6min C + B CI fix iterations 2× ~25min + closure 15min). Token cost ~1.5M for 3 wave agents.
 - **2026-05-06** (draft): Plan created. State-check completed per `audit-to-gap-pipeline.md` §2.6 — eliminated GAP-117/204/115 from ROADMAP recommendation; substituted GAP-378 as Bucket C. 3 buckets file-disjoint verified. Ready for plan PR per `feedback_wave_plan_through_pr.md`.
