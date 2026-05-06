@@ -67,6 +67,70 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 
 ---
 
+### PDPL DSAR (Data Subject Access Request) Rules
+
+Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL 2023 Article 14 (six data-subject rights) + Decree 13/2023/NĐ-CP Article 19 (response SLA) for the self-service intake form shipped Wave 26 Bucket A (GAP-353c).
+
+#### BR-PDPL-DSAR-001: Six PDPL Art 14 rights enumerated as right_type
+
+- **Value:** DSAR ticket `right_type` enum chứa **đúng 6 giá trị**: `ACCESS` (quyền truy cập), `RECTIFICATION` (quyền chỉnh sửa), `ERASURE` (quyền xoá), `PORTABILITY` (quyền chuyển dữ liệu), `RESTRICT` (quyền hạn chế xử lý), `OBJECT` (quyền phản đối xử lý). Implemented as Java enum `DsarRightType` + Postgres VARCHAR(50) constraint via JPA `@Enumerated(EnumType.STRING)`.
+- **Source:** **VN law / regulation** — PDPL 2023 **Article 14(1)–(6)** liệt kê chính xác 6 quyền: Art 14(1) right to information / access; Art 14(2) right to rectify; Art 14(3) right to erasure; Art 14(4) right to data portability; Art 14(5) right to restrict processing; Art 14(6) right to object. Decree 13/2023/NĐ-CP **Articles 9–14** chi tiết hoá từng quyền. Industry standard: GDPR Articles 15–22 6-rights pattern (PDPL Art 14 drafted parallel).
+- **Rationale:** Why exactly 6 (not 4, not 8): PDPL Art 14 statute fixes the count — adding rights beyond statute creates user expectations the law doesn't back; trimming to fewer rights = noncompliance. Why enum (not free-text): structured enum unblocks (a) DPO triage routing per right type, (b) statistics + reporting per Art 14 row, (c) future automation (e.g. ERASURE → trigger DR-03 retention sweep). Why English enum names + Vietnamese FE labels: code-side English matches PDPL official translation; FE labels Vietnamese-first per CLAUDE.md communication-language rule. Why sub-divide ACCESS vs PORTABILITY: PDPL Art 14(1) "view what is held" ≠ Art 14(4) "machine-readable export" — enum captures the legal distinction so DPO response template differs.
+- **Reviewer:** @nguyenvankiet (acting **Compliance scout + Product Owner + Tech Lead**, solo-dev, 2026-05-06). Legal counsel formal review queued via **GAP-182 Phase 2** + **GAP-156**.
+- **Compliance check:** **Compliant** — PDPL 2023 Art 14(1)–(6) (six rights enumeration) + Decree 13/2023/NĐ-CP Art 9–14 (per-right scope).
+- **Review cadence:** **Annual** + event-driven. **Next review:** 2027-05-06 OR within 30 days of: PDPL amendment changing Art 14 right list, Decree 13/2023 Art 9–14 implementing-decree updates, MPS A05 DSAR-handling guidance.
+- **Code reference:** `kitehub-subscription/src/main/java/com/kitehub/subscription/dsar/entity/DsarRightType.java` + V26 migration `right_type VARCHAR(50)` + FE form radio in `kitehub-frontend/src/app/(public)/legal/data-rights/DataRightsForm.tsx` + KC twin.
+
+---
+
+#### BR-PDPL-DSAR-002: 20-day SLA from submission to response
+
+- **Value:** DPO response **trong vòng 20 ngày kể từ ngày submit DSAR** (config: `sla_deadline = created_at + INTERVAL '20 days'` — server-side computed at insert; not user-overridable). `SlaTimerCron` daily 04:00 logs ERROR cho tickets `PENDING|IN_REVIEW` quá deadline. Hard-stop = 30 ngày tối đa nếu request phức tạp (cần legal review hoặc cross-tenant queries) — DPO phải proactively notify requester ≤ ngày 15 nếu cần kéo dài.
+- **Source:** **VN law / regulation** — Decree 13/2023/NĐ-CP **Article 19** (controller phản hồi DSAR trong 20 ngày, kéo dài thêm tối đa 10 ngày nếu phức tạp + thông báo lý do). PDPL 2023 **Article 14(7)** (cross-reference: response timeline per implementing decree). **Industry standard** — GDPR Art 12(3) (1 month default + 2 months extension) — non-binding cho VN nhưng cite vì PDPL drafted under GDPR influence; chosen 20d (PDPL stricter than GDPR's 30d) to stay compliant với cả hai chế độ nếu KiteClass expand outside VN.
+- **Rationale:** Why exactly 20 days: Decree 13/2023 Art 19 binding — không phải convention. Why hard-coded vs config: SLA là legal mandate, không phải tier benefit; cho phép tenant tuỳ chỉnh = creating "fast SLA tier" ≠ compliant. Why DPO notify ≤ ngày 15 nếu cần extension: Art 19 yêu cầu thông báo + lý do trước khi extension activates; ngày 15 = buffer 5 ngày để DPO assemble extension request + có ngày 16-20 để send. Why 30-day hard-stop: Art 19 cho phép extend "tối đa 10 ngày" → 20 + 10 = 30 ngày là ceiling tuyệt đối. Why log ERROR (not auto-escalate): DPO triage stays human-in-the-loop; auto-escalate = process step không backed bởi formal counsel review (deferred GAP-182 Phase 2).
+- **Reviewer:** Same as 001 — @nguyenvankiet (acting Compliance scout + Product Owner, solo-dev, 2026-05-06). Legal counsel formal review queued via **GAP-182 Phase 2** + **GAP-156**.
+- **Compliance check:** **Compliant** — PDPL 2023 Art 14(7) + Decree 13/2023/NĐ-CP Art 19 (20-day default + 10-day extension cap with notification).
+- **Review cadence:** **Annual** + event-driven. **Next review:** 2027-05-06 OR within 30 days of: Decree 13/2023 Art 19 amendment, MPS A05 SLA-extension procedure publication, ≥1 enforcement action against late-DSAR-response.
+- **Code reference:** `kitehub-subscription/src/main/java/com/kitehub/subscription/dsar/entity/DsarTicket.java#onCreate` (SLA computed `now + 20 days`) + `dsar/cron/SlaTimerCron.java` (overdue log) + V26 migration `sla_deadline TIMESTAMP NOT NULL`.
+
+---
+
+#### BR-PDPL-DSAR-003: Identity verification via national_id_last4 + DPO callback
+
+- **Value:** DSAR submission yêu cầu **4 chữ số cuối CCCD/CMND + email + họ tên** — KHÔNG yêu cầu full national ID. DPO callback verify danh tính out-of-band (phone hoặc email reply) trước khi xử lý ACCESS / ERASURE / PORTABILITY (rights mà việc giả mạo gây thiệt hại). RECTIFICATION / RESTRICT / OBJECT có thể proceed trên 3-field basic match nếu request không impact data integrity.
+- **Source:** **VN law / regulation** — PDPL 2023 **Article 14** (controller phải xác thực danh tính trước khi disclose / mutate dữ liệu cá nhân) + Decree 13/2023/NĐ-CP **Article 24** (data minimization principle — chỉ thu thập tối thiểu cần thiết). **Industry standard** — Hotmart VN DSAR flow (4-digit last + email confirm), Teachable VN (email + last 4 SSN equivalent). **GDPR precedent** — Art 12(6) (controller may request additional info to confirm identity but không vượt mức cần thiết).
+- **Rationale:** Why 4 digits cuối (not full ID): full CCCD/CMND = sensitive PII per Decree 13/2023 Art 28 → thu thập = trigger registration requirement nếu volume cao. 4 chữ số last = sufficient để cross-check với Tenants's existing PII (nếu DSAR submitter là user đã sign up, KiteHub lưu full CCCD ở user profile và verify match) mà không phát sinh thêm sensitive-PII collection. Why email + name + 4-digit (3-field): one-field (email only) = trivially impersonatable; 3-field = increases attacker work-factor đủ cao để legitimate self-service. Why DPO callback for ACCESS/ERASURE/PORTABILITY (not RECTIFICATION/RESTRICT/OBJECT): impersonation attack vectors khác nhau — disclose / delete / export tạo thiệt hại nếu attacker; rectify / restrict / object reversible. Cost-benefit: callback overhead 5-10 phút × ACCESS/ERASURE/PORTABILITY rate (low) acceptable; rectify-restrict-object higher volume + lower attack cost.
+- **Reviewer:** Same as 001 — @nguyenvankiet (acting Compliance scout + Product Owner + Tech Lead, solo-dev, 2026-05-06). Legal counsel formal review queued via **GAP-182 Phase 2** + **GAP-156**.
+- **Compliance check:** **Compliant** — PDPL 2023 Art 14 (identity verification requirement) + Decree 13/2023/NĐ-CP Art 24 (data minimization). Aligned-with — GDPR Art 12(6).
+- **Review cadence:** **Annual** + event-driven. **Next review:** 2027-05-06 OR within 30 days of: PDPL amendment, Decree 13/2023 Art 24 implementing-decree, ≥1 enforcement action against under-verification (false-disclose) hoặc over-verification (excess-collection).
+- **Code reference:** `dsar/dto/DsarRequest.java` (`@Pattern(regexp = "^[0-9]{4}$")`) + V26 migration `national_id_last4 VARCHAR(4) NOT NULL` + DPO callback procedure documented in DPIA (GAP-353d Bucket B Wave 26).
+
+---
+
+#### BR-PDPL-DSAR-004: DSAR ticket retention 36 months from resolved_at
+
+- **Value:** DSAR ticket retention = **36 months kể từ resolved_at** (hoặc kể từ created_at nếu ticket vẫn open quá 1 năm — overdue cron alert). Sister-rule với BR-PDPL-CONSENT-003 (consent records 36mo) + DR-03 (PII retention 36mo). Hard-delete cron deferred to follow-up gap; meanwhile manual purge.
+- **Source:** **VN law / regulation** — PDPL 2023 **Article 6** (retention only as long as necessary) + **Article 23** (minimum retention service-related data) + Consumer Protection Law 2023 **Article 12** (24mo dispute window). **Sister-rule** — `business-logic-review.md` §4.3 worked example DR-03 + BR-PDPL-CONSENT-003 (36mo pattern, identical legal mechanics).
+- **Rationale:** Identical legal mechanics to BR-PDPL-CONSENT-003: dispute window 24mo + 12mo buffer = 36mo. DSAR records are proof-of-compliance evidence (chứng minh KiteHub đã respond đúng SLA + đúng scope) — same purpose category as consent records. Why 36mo từ resolved_at (not created_at): un-resolved tickets mean DPO chưa close the loop; nếu ticket open quá 365d, system flags as anomaly (not silently purge un-handled requests). Storage cost: 1 ticket ≈ 2KB JSON; 100k users × 0.5 DSAR/year × 2KB × 3 years = ~300MB — trivial.
+- **Reviewer:** Same as 001 — @nguyenvankiet (acting Legal scout + Compliance + Product Owner, solo-dev, 2026-05-06). Legal counsel formal review queued via **GAP-182 Phase 2** + **GAP-156**.
+- **Compliance check:** **Compliant** — PDPL 2023 Art 6 + Art 23 + Consumer Protection Law 2023 Art 12. Tax law (Luật Quản lý Thuế 2019) Considered — not triggered.
+- **Review cadence:** **Annual** + event-driven. **Next review:** 2027-05-06 OR within 30 days of: PDPL amendment changing Art 6 retention principle, Consumer Protection Law amendment changing dispute window.
+- **Code reference:** V26 migration `resolution TEXT NULL` + `resolved_at TIMESTAMP NULL` + future `DsarRetentionCron` (follow-up gap, Wave 27+).
+
+---
+
+#### BR-PDPL-DSAR-005: Honeypot anti-spam on public DSAR endpoint
+
+- **Value:** DSAR submit form có **hidden honeypot field** `companyWebsite` — invisible to real users (CSS `hidden` + `position: absolute; left: -9999px` + `tabindex=-1` + `aria-hidden="true"`). Server reject HTTP 400 nếu `companyWebsite` non-empty. reCAPTCHA NOT required cho v1 (key not yet provisioned); future enhancement nếu spam volume > 10/day. Rate-limit at gateway (out of scope this rule).
+- **Source:** **Industry standard** — OWASP Cheat Sheet "Forgot Password" (honeypot pattern for unauthenticated public forms). **Sister-rule** — KiteHub gateway rate-limit policy (existing). **Operational rationale** — public DSAR endpoint = unauthenticated → bot vector for either (a) DOS by submission flood, (b) spam DPO inbox via reflection.
+- **Rationale:** Why honeypot (not reCAPTCHA): reCAPTCHA requires Google API key (cost: free tier limited; enterprise paid; key provisioning out of solo-dev scope) + degrades UX với extra friction. Honeypot zero-friction cho real users. Why field name `companyWebsite` (vs generic `honeypot`): named realistically tricks naive bots to fill; bots that recognize "honeypot" naming skip. Why HTTP 400 (vs 429 rate-limit hoặc silent log + accept): explicit reject deters retry; 429 implies "try later"; silent accept = inflates ticket queue with bot rows. Why CSS `hidden` + `position absolute` + `tabindex=-1` + `aria-hidden`: belt-and-suspenders against accessibility tools — screen readers shouldn't read field, keyboard users shouldn't tab to it, assistive tech shouldn't expose it.
+- **Reviewer:** Same as 001 — @nguyenvankiet (acting Compliance scout + Product Owner + Tech Lead, solo-dev, 2026-05-06). UX-research formal review queued via **GAP-156**.
+- **Compliance check:** **N/A** — anti-spam mechanism not directly regulated by PDPL/Decree 13. WCAG-compliance check `aria-hidden` + tab-order verified manually.
+- **Review cadence:** **Annual** + event-driven on bot-volume threshold (≥10 honeypot rejections/day → re-evaluate adding reCAPTCHA).
+- **Code reference:** `dsar/dto/DsarRequest.java` (`companyWebsite` field + service-layer reject) + FE `DataRightsForm.tsx` honeypot div (KH + KC twins).
+
+---
+
 ## 2. Config Keys
 
 | Key | Default | Description |
@@ -89,7 +153,7 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 ## 4. Out-of-scope (tracked separately)
 
 - ~~**Server-side consent API** — Phase 2, follow-up gap GAP-353b~~ ✅ SHIPPED Wave 25 Bucket A (3 endpoints `/api/v1/consent/record|{visitorId}|{visitorId}/revoke`; DR-03 36-month purge cron). See [`api-contract.md`](./api-contract.md).
-- **DSAR self-service intake form** — PDPL Art 14 right-to-access; không mandate self-service per Art 14 reading; manual email-based DSAR sufficient cho MVP. Follow-up gap **GAP-353c** (~6h)
+- ~~**DSAR self-service intake form** — PDPL Art 14 6 rights; manual email-based DSAR was acceptable MVP. Follow-up gap **GAP-353c** (~6h)~~ ✅ SHIPPED Wave 26 Bucket A (POST `/api/v1/dsar/request` + GET `/api/v1/dsar/{ticketId}` + 5 BR-PDPL-DSAR-* rules + 20-day SLA cron). See [`api-contract.md`](./api-contract.md) §8.
 - **DPIA documentation** — Decree 13/2023/NĐ-CP Art 24-30 mandates DPIA cho orgs processing >100k PII subjects; MVP solo-dev <<100k → defer. Follow-up gap **GAP-353d** (~4h)
 - **use-cases.md** for marketing domain — Phase 2 of trio (Wave 25 ships api-contract.md alongside Phase 2 server endpoints; use-cases.md still deferred until DSAR ships per GAP-353c).
 
@@ -97,4 +161,5 @@ Per `business-logic-review.md` v1.0.0 §2 (5-attribute mandate). Implements PDPL
 
 ## 5. Log
 
+- **2026-05-06** — Wave 26 Bucket A (GAP-353c). Added 5 `BR-PDPL-DSAR-001..005` rules với full 5-attribute review per `business-logic-review.md` v1.0.0 covering: 6 PDPL Art 14 right enumeration, 20-day Decree 13/2023 Art 19 SLA, identity verification via national_id_last4 + DPO callback, 36-month retention (sister to BR-PDPL-CONSENT-003 + DR-03), honeypot anti-spam. Updated §4 Out-of-scope to flip GAP-353c from deferred → shipped. Reviewer: @nguyenvankiet (acting Compliance scout + Product Owner + Tech Lead, solo-dev). Legal counsel formal review queued GAP-182 Phase 2 + GAP-156.
 - **2026-05-06** — Initial rules. Wave 23 Bucket A. Created file kèm 4 BR-PDPL-CONSENT-* rules với full 5-attribute review per `business-logic-review.md` v1.0.0. Source: PDPL 2023 Articles 11-13, Decree 13/2023/NĐ-CP Articles 13/17/18, Consumer Protection Law 2023 Art 12, GDPR precedent (non-binding). Reviewer: @nguyenvankiet (acting Compliance scout + Product Owner, solo-dev). Legal counsel formal review queued GAP-182 Phase 2 + GAP-156. Closes Wave 23 Bucket A AC item "kitehub/marketing/rules.md created with BR-PDPL-CONSENT-001..004 5-attribute".

@@ -28,7 +28,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.kitehub.subscription.notification.repository",
         // Wave 25 Bucket A (GAP-353b): ConsentService is auto-scanned via @ComponentScan;
         // its repository must be JPA-enabled here too.
-        "com.kitehub.subscription.consent.repository"
+        "com.kitehub.subscription.consent.repository",
+        // Wave 26 Bucket A (GAP-353c): DsarService is auto-scanned via @ComponentScan;
+        // its repository must be JPA-enabled here too.
+        "com.kitehub.subscription.dsar.repository"
 })
 @EntityScan(basePackages = {
         // GAP-240: include all subscription entity packages — must mirror subscription's
@@ -41,7 +44,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         // Wave 18a Bucket B (GAP-063 Phase 1): NotificationPreference entity.
         "com.kitehub.subscription.notification.entity",
         // Wave 25 Bucket A (GAP-353b): ConsentRecord entity.
-        "com.kitehub.subscription.consent.entity"
+        "com.kitehub.subscription.consent.entity",
+        // Wave 26 Bucket A (GAP-353c): DsarTicket entity.
+        "com.kitehub.subscription.dsar.entity"
 })
 public class KiteHubAdminApplication {
 
