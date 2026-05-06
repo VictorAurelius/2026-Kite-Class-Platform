@@ -32,6 +32,7 @@ Active planning artifacts. Work that is upcoming, in-flight, or recently shipped
 
 - 🟢 **Release Lần 1 Plan 2026** (CURRENT — chốt 2026-05-06): [`roadmap/release-1-plan-2026.md`](roadmap/release-1-plan-2026.md) — 3-phase rollout P1+P2 BETA → P1+P2 PAID → P3 → K-12; Phase 1 BETA active; target version **v1.0.0**; **đây là plan ưu tiên cho mỗi session mới** per `feedback_release_1_first_session_priority.md`
 - **Versioning Policy:** [`roadmap/versioning-policy.md`](roadmap/versioning-policy.md) — semver convention + release process + sub-version threads (Track 2, AI Branding, K-12 Stages, PDPL maturity)
+- **Release 1 Deploy Plan:** [`roadmap/release-1-deploy-plan.md`](roadmap/release-1-deploy-plan.md) — Phase 1 BETA + Phase 1.5 PAID deploy steps + go-live runbook + rollback procedure + 12 BLOCKING/STRONGLY recommend gaps (GAP-369..380)
 - **Legacy roadmap:** [`roadmap/wave-roadmap-p0.md`](roadmap/wave-roadmap-p0.md) — 11-wave P0 plan (superseded bởi Release Lần 1 plan above)
 - **Latest wave plan:** [`waves/`](waves/) — most recent file
 - **PR index:** [`prs/00-master-pr-index.md`](prs/00-master-pr-index.md)
