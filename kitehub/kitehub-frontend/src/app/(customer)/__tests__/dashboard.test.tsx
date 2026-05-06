@@ -162,7 +162,7 @@ describe('DashboardPage', () => {
     expect(screen.queryByText('Trial sắp hết hạn')).not.toBeInTheDocument();
   });
 
-  it('renders quick action links', () => {
+  it('renders header quick actions (Wave 31 Bucket A — search + brand CTA)', () => {
     (useOwnerInstances as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockInstances,
       isLoading: false,
@@ -172,9 +172,31 @@ describe('DashboardPage', () => {
 
     render(<DashboardPage />);
 
-    expect(screen.getByRole('link', { name: /AI Branding/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Thanh toán/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Cài đặt/i })).toBeInTheDocument();
+    // Wave 31 replaces the old 4 quick-action chips with a kitehub-pro v2-
+    // style ⌘K palette toggle + a single primary "Tạo brand mới" CTA.
+    expect(screen.getByTestId('open-command-palette')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Tạo brand mới/i })).toBeInTheDocument();
+    // Tier-status card surfaces the billing entry-points instead of separate chips.
+    expect(screen.getByTestId('tier-status-card')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Hóa đơn/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Nâng cấp/i })).toBeInTheDocument();
+  });
+
+  it('renders Wave 31 KPI strip with 6 KPI cards', () => {
+    (useOwnerInstances as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockInstances,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<DashboardPage />);
+
+    expect(screen.getByTestId('kpi-strip')).toBeInTheDocument();
+    const cards = screen.getAllByTestId('kpi-card');
+    expect(cards.length).toBe(6);
+    expect(screen.getByText('Gói hiện tại')).toBeInTheDocument();
+    expect(screen.getByText('Lượt gọi API · 7 ngày')).toBeInTheDocument();
   });
 
   it('renders setup checklist for new instances', () => {
@@ -202,6 +224,8 @@ describe('DashboardPage', () => {
     render(<DashboardPage />);
 
     expect(screen.getByText('AI tạo website cho trung tâm')).toBeInTheDocument();
-    expect(screen.getByText('Mở rộng quy mô trung tâm')).toBeInTheDocument();
+    // Wave 31 replaced "Mở rộng quy mô trung tâm" upgrade banner with a
+    // help/onboarding-replay CTA — upgrade now lives in the tier-status card.
+    expect(screen.getByText('Xem lại hướng dẫn nhanh')).toBeInTheDocument();
   });
 });
