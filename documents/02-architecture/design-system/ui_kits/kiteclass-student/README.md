@@ -358,3 +358,42 @@ Per `output-review-mandate.md` §3 row "HTML/JSX prototypes" (v1.2.0 added 2026-
 ---
 
 **Wave Round 3 deliverable Bucket A — Agent A.** Sister kits: `kiteclass-parent/` (R2 mobile-first PWA) · `kiteclass-teacher/` (R2 desktop classroom).
+
+---
+
+## Polish history (Wave 22 Bucket A — GAP-363, 2026-05-06)
+
+External /128 review (`audits/ui-review/2026-05-05-round-3-kiteclass-student-review.md`) scored kit avg **100.4/128** (delta −15.6 vs self-report 116, calibration band ✓). Verdict APPROVE WITH POLISH — 1 P0 + 4 polish items.
+
+### Polish applied (this PR)
+
+| Screen | Before /128 | Issue | Fix | After (self-rescore) /128 |
+|--------|:----:|-------|-----|:----:|
+| `payments.html` | **92** ⭐ rebuild | Hero "2.400.000đ" + button "Đóng học phí ngay" violated AC-FIN-001 (child-protection — student không trigger payment). HTML-comment-only disclaimer was invisible to user. | **Option C parent-trigger workflow** — replaced primary CTA with "Yêu cầu ba/mẹ đóng" + visible amber disclaimer block citing AC-FIN-001 + state-machine sketch (DRAFT → REQUEST_SENT → PAID) + "Cách thức thanh toán" 3-step explainer. Cross-link to `01-business/kiteclass/parent-portal/rules.md` BR-PARENT-PORTAL-* in HTML comment header. State chip "Đã gửi yêu cầu — chờ ba/mẹ xác nhận" mocks parent-mediated flow. | **~108** ⭐⭐⭐ good |
+| `my-classes.html` | 99 ⭐⭐ | Chip "Yêu thích" missing count parens (parallelism break with 3 sibling chips) | Added "(5)" to chip label | **~102** ⭐⭐ good |
+| `assignments.html` | 100 ⭐⭐⭐ | Tab counts (4/8/24) didn't match subtitle (12/8/24) | Reconciled tab "Chờ nộp (12)" to match subtitle | **~103** ⭐⭐⭐ good |
+| `grade-detail.html` | 100 ⭐⭐⭐ | Thông tư 22/2021 weighting buried in long card text — not discoverable | Added clickable info-icon tooltip in `<h2>Lịch sử điểm</h2>` row; tooltip discloses 3-tier weighting + formula on demand. Replaced verbose card with short pointer "Bấm icon i để xem". | **~103** ⭐⭐⭐ good |
+| `profile.html` | 100 ⭐⭐⭐ | "Học lực Giỏi" pill decorative — no information scent | Wrapped pill in `<a href="grades.html">` with chevron icon + descriptive aria-label | **~102** ⭐⭐⭐ good |
+
+### Estimated new kit avg
+
+(101 + 102 + 100 + 103 + 102 + 103 + 103 + 102 + **108** + 102 + 102 + 100 + 104) / 13 = **~102.5/128**
+
+> **Honest calibration note:** Self-rescore is best-effort estimate; external auditor would likely score 2-4 pts lower per `feedback_audit_calibration.md` heuristic. Real avg likely lands in **100-104** band. Kit avg target ≥105 partially met (close); kit floor ≥95 **fully restored** (lowest screen `class-detail.html` at 100, payments lifted from 92 → 108).
+
+### Acceptance gate restoration
+
+| Gate | Before | After |
+|------|:----:|:----:|
+| All screens ≥95 floor | ❌ payments 92 | ✅ all ≥100 |
+| Avg ≥105 | ❌ 100.4 (−4.6) | ⚠️ partial — estimated ~102.5 (−2.5); follow-up gap if external re-audit confirms gap |
+| Persona AC-FIN-001 compliance | ❌ child-protection violation | ✅ Option C parent-trigger workflow shipped |
+| Track 2 port (GAP-269) | ❌ blocked | ✅ unblocked (payments persona violation cleared; 4 partial flags addressed inline or deferred to GAP-269 spec phase) |
+
+### Cross-references
+
+- Polish gap: [GAP-363](../../../../04-quality/gaps/GAP-363-kiteclass-student-polish-payments-persona-violation.md) — closes this polish wave
+- Source review: [`audits/ui-review/2026-05-05-round-3-kiteclass-student-review.md`](../../../../04-quality/audits/ui-review/2026-05-05-round-3-kiteclass-student-review.md)
+- Persona AC source: [`secondary/student-in-P2.md`](../../../../00-brd/persona-criteria/secondary/student-in-P2.md) AC-FIN-001 (line 118) + AC-ONBOARD-003 (line 76) + AC-EDGE-001 (line 154)
+- Wave plan: [`waves/wave-2026-05-06-22-ui-kits-polish.md`](../../../../03-planning/waves/wave-2026-05-06-22-ui-kits-polish.md) §3 Bucket A
+- Tier-1 doc absence (Bucket C scope): GAP-365 — `S-student.md` Tier-1 AC doc, citing this kit as primary 基本設計 artifact
