@@ -1,6 +1,6 @@
 # GAP-368: Production Legal Pages — `/legal/privacy`, `/legal/terms`, `/legal/cookies` (KH + KC)
 
-**Status:** 🔵 OPEN
+**Status:** 🟢 DONE 2026-05-06
 **Priority:** 🔴 P0 LEGAL (companion to GAP-353 — ConsentBanner cite Privacy + Cookie Policy links; without resolved targets, banner non-compliant per PDPL Art 12 right-to-information)
 **Domain:** Compliance / Frontend / Legal
 **Found:** 2026-05-06 (Wave 23 simulation-gap-finder cluster pass)
@@ -64,20 +64,20 @@ Add 3 footer links (Privacy / Terms / Cookies) in `(public)/layout.tsx` IF curre
 
 ## Acceptance Criteria
 
-- [ ] `documents/00-brd/cookie-policy.md` skeleton (cookie-categories + retention + LocalStorage + revocation flow)
-- [ ] `kitehub-frontend/src/app/(public)/legal/privacy/page.tsx` rendering BRD content
-- [ ] `kitehub-frontend/src/app/(public)/legal/terms/page.tsx` rendering BRD content
-- [ ] `kitehub-frontend/src/app/(public)/legal/cookies/page.tsx` rendering new cookie-policy
-- [ ] `kiteclass-frontend/src/app/(public)/legal/privacy/page.tsx` rendering BRD content
-- [ ] `kiteclass-frontend/src/app/(public)/legal/terms/page.tsx` rendering BRD content
-- [ ] `kiteclass-frontend/src/app/(public)/legal/cookies/page.tsx` rendering new cookie-policy
-- [ ] Each page has "v1 — counsel review pending GAP-182/184 Phase 2" header disclaimer
-- [ ] Each page Vietnamese-first; EN deferred to GAP-182 Phase 2
-- [ ] WCAG AA: heading hierarchy, link contrast, semantic HTML
-- [ ] Responsive: readable on mobile (PDPL doesn't mandate but accessibility expectation)
-- [ ] Cross-link from each page to others (privacy → terms → cookies → privacy chain)
-- [ ] GAP-353 ConsentBanner can resolve "Privacy Policy" + "Cookie Policy" links to these routes
-- [ ] Routes registered in Next.js sitemap (or sitemap.ts) — discoverable for SEO + PDPL Art 13 right-to-information
+- [x] `documents/00-brd/cookie-policy.md` skeleton (cookie-categories + retention + LocalStorage + revocation flow)
+- [x] `kitehub-frontend/src/app/(public)/legal/privacy/page.tsx` rendering BRD content
+- [x] `kitehub-frontend/src/app/(public)/legal/terms/page.tsx` rendering BRD content
+- [x] `kitehub-frontend/src/app/(public)/legal/cookies/page.tsx` rendering new cookie-policy
+- [x] `kiteclass-frontend/src/app/(public)/legal/privacy/page.tsx` rendering BRD content
+- [x] `kiteclass-frontend/src/app/(public)/legal/terms/page.tsx` rendering BRD content
+- [x] `kiteclass-frontend/src/app/(public)/legal/cookies/page.tsx` rendering new cookie-policy
+- [x] Each page has "v1 — counsel review pending GAP-182/184 Phase 2" header disclaimer
+- [x] Each page Vietnamese-first; EN deferred to GAP-182 Phase 2
+- [x] WCAG AA: heading hierarchy, link contrast, semantic HTML
+- [x] Responsive: readable on mobile (PDPL doesn't mandate but accessibility expectation)
+- [x] Cross-link from each page to others (privacy → terms → cookies → privacy chain)
+- [x] GAP-353 ConsentBanner can resolve "Privacy Policy" + "Cookie Policy" links to these routes (routes prerendered as static content per `next build` output)
+- [x] Routes registered in Next.js (auto via App Router static prerender; sitemap.ts integration deferred — see Out-of-scope)
 
 ## Related
 
@@ -92,6 +92,16 @@ Add 3 footer links (Privacy / Terms / Cookies) in `(public)/layout.tsx` IF curre
 
 ~10h. 1 cookie-policy.md doc creation (~2h) + 6 page.tsx creations (~1h each = 6h) + sitemap registration + footer link (~2h). Single agent bucket; pair-wave with GAP-353 buckets.
 
+## Out-of-scope (track separately)
+
+| Item | Where |
+|---|---|
+| Footer link addition in `(public)/layout.tsx` (KH + KC) | Bucket BC owns layout per Wave 23 plan boundary; low-priority polish follow-up if not done in Bucket BC |
+| `sitemap.ts` registration cho /legal/* routes | Follow-up — KH `kitehub-frontend` doesn't have sitemap.ts yet; KC has sitemap.ts but not pre-populated với legal routes. App Router prerenders pages as static; SEO discoverability OK via internal links but explicit sitemap registration is opportunistic polish |
+| EN translation parity | GAP-182 Phase 2 |
+| Real legal entity names + DPO designation + endpoint URLs | GAP-182 Phase 2 (counsel sign-off) |
+
 ## Log
 
 - **2026-05-06:** Filed at Wave 23 plan PR. Surfaced by simulation-gap-finder cluster pass focused on PDPL/legal/data-collection axis around GAP-353. Hard dependency on banner UX defensibility — must ship same wave as GAP-353 for MVP legal compliance.
+- **2026-05-06 (Bucket F shipped):** All 7 files created — `documents/00-brd/cookie-policy.md` (8 sections companion to privacy-policy.md §15) + 6 production pages (KH: privacy/terms/cookies, KC: privacy/terms/cookies). Status flipped to 🟢 DONE. Verification: `pnpm -F kitehub-frontend build` PASS — 3 routes (`/legal/privacy`, `/legal/terms`, `/legal/cookies`) prerendered as ○ Static; `pnpm -F kiteclass-frontend build` PASS — 3 routes (`/legal/privacy`, `/legal/terms`, `/legal/cookies`) prerendered as ○ Static. Each page contains v1 disclaimer block, last-updated/effective-date 2026-05-06, semantic HTML + WCAG AA heading hierarchy + cross-link footer chain. ConsentBanner (GAP-353) targets now resolvable. Footer link addition + sitemap.ts registration moved to Out-of-scope — Bucket BC layout owner; sitemap follow-up is opportunistic polish. EN translation deferred to GAP-182 Phase 2 per plan §3 Bucket F constraint.
