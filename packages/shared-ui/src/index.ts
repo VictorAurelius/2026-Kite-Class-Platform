@@ -34,5 +34,14 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
+// G7 ParentInvite — Track 2 Bucket D port (Wave 27, GAP-273 PARTIAL progress)
+export { ParentInvite, validateEmail } from './components/G7-parent-invite';
+export type {
+  ParentInviteProps,
+  InviteChannel,
+  InviteState,
+  EmailValidationResult,
+} from './components/G7-parent-invite';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
