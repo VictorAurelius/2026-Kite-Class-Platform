@@ -30,7 +30,8 @@ Active planning artifacts. Work that is upcoming, in-flight, or recently shipped
 
 ## Key Documents (start here)
 
-- **Current roadmap:** [`roadmap/wave-roadmap-p0.md`](roadmap/wave-roadmap-p0.md) — 11-wave plan for remaining P0 gaps (waves 5-11 pending)
+- 🟢 **MVP Launch Plan 2026** (CURRENT — chốt 2026-05-06): [`roadmap/mvp-launch-plan-2026.md`](roadmap/mvp-launch-plan-2026.md) — 3-phase rollout P1+P2 → P3 → K-12; 9-12 tuần Phase 1 active; **đây là plan ưu tiên cho mỗi session mới** per `feedback_mvp_first_session_priority.md`
+- **Legacy roadmap:** [`roadmap/wave-roadmap-p0.md`](roadmap/wave-roadmap-p0.md) — 11-wave P0 plan (superseded bởi MVP plan above)
 - **Latest wave plan:** [`waves/`](waves/) — most recent file
 - **PR index:** [`prs/00-master-pr-index.md`](prs/00-master-pr-index.md)
 - **Planning rules:** [`.claude/rules/planning-docs-structure.md`](../../.claude/rules/planning-docs-structure.md)
