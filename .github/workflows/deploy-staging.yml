@@ -64,11 +64,24 @@ jobs:
             --set global.redis.host=${{ secrets.REDIS_ENDPOINT }} \
             --wait --timeout 5m
 
-      - name: Smoke test
+      - name: Smoke test (gateway health quick-check)
         run: |
           GATEWAY_URL=$(kubectl -n ${{ env.HELM_NAMESPACE }} get svc kitehub-gateway -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           curl -sf "http://$GATEWAY_URL:9000/actuator/health" || exit 1
           echo "Staging deployment healthy"
+
+      # GAP-377 (Wave 26 Bucket C) — full post-deploy smoke suite (16+ assertions
+      # across health/legal/auth/API/ConsentBanner/error-handling/gateway routing).
+      # On failure: log + exit 1. Auto-rollback wiring deferred — track follow-up
+      # in `release-1-deploy-plan.md` §3.3 / GAP-378 rollback runbook.
+      - name: Post-deploy smoke test (GAP-377)
+        run: |
+          KH_URL="${{ vars.STAGING_KH_URL }}"
+          KC_URL="${{ vars.STAGING_KC_URL }}"
+          KH_URL="${KH_URL:-https://staging.kitehub.vn}"
+          KC_URL="${KC_URL:-https://staging.kiteclass.vn}"
+          echo "Running smoke suite against KH=$KH_URL  KC=$KC_URL"
+          ./scripts/smoke-test.sh "$KH_URL" "$KC_URL"
 
       - name: Notify
         if: always()
