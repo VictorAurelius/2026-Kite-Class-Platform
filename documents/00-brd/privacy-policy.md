@@ -1,7 +1,7 @@
 # Privacy Policy — KiteHub/KiteClass
 
 **Trạng thái:** 🔵 SKELETON (Phase 1 — VN PDPL-mandated section structure; Phase 2 legal counsel + MPS consultation via GAP-154)
-**Owner:** Legal + Data Protection Officer (TODO designation)
+**Owner:** Legal + Data Protection Officer — see [`dpo-designation.md`](dpo-designation.md) (acting `@nguyenvankiet`, solo-dev, 2026-05-06; formal counsel review queued GAP-156)
 **Reviewer:** Legal counsel với VN PDPL expertise + DPO + MPS A05 (if sensitive data registration required)
 **Last-Updated:** 2026-04-29
 **Tracking:** GAP-182 (Phase 1, Wave Legal-BRD 2026-04-29) → GAP-154 (Phase 2 content + legal sign-off + EN translation)
@@ -36,7 +36,7 @@ Chính sách này áp dụng cho mọi sản phẩm thuộc nền tảng — Kit
 
 **Mục đích:** Đầu mối liên hệ cho mọi yêu cầu thực thi quyền chủ thể dữ liệu + báo cáo sự cố (PDPL Art 28 — DPO mandatory cho tổ chức xử lý dữ liệu nhạy cảm hoặc dữ liệu trẻ em).
 
-- **DPO designation:** TODO (Phase 2 — bắt buộc do hệ thống xử lý dữ liệu trẻ em K-12 + dữ liệu sức khoẻ trong lý do vắng học)
+- **DPO designation:** Acting `@nguyenvankiet` (solo-dev, 2026-05-06) — see [`dpo-designation.md`](dpo-designation.md). Formal contracted DPO upon team growth OR crossing 50k subscribers per Phase 2 (GAP-156).
 - **Email DPO:** TODO (Phase 2 — `dpo@TODO`)
 - **Hotline / form yêu cầu chủ thể:** TODO (Phase 2 — endpoint web form + email kênh dự phòng)
 - **Trách nhiệm DPO:** giám sát compliance PDPL, training nhân sự, làm cầu nối với Cục An ninh mạng và Phòng chống tội phạm sử dụng công nghệ cao (A05 — Bộ Công an), xử lý yêu cầu chủ thể dữ liệu trong SLA 20-30 ngày (Art 14).
@@ -201,6 +201,7 @@ Cross-link: chi tiết policy retention + erasure SOP nằm tại [`../04-qualit
 - **Backups:** mã hoá + test restore định kỳ TODO (cross-link wave DR/Backup).
 - **Pen-testing & vulnerability scan:** Dependabot + security audit /100 quarterly.
 - **Đào tạo nhân sự:** TODO Phase 2 — annual privacy/security training cho mọi staff có quyền truy cập dữ liệu khách hàng.
+- **DPIA mitigation summary:** Mitigation controls inventory + per-activity risk assessment cấu trúc theo [`dpia.md`](dpia.md) §3 (5×5 probability × impact matrix + 12-family mitigation controls). Phase 2 full risk assessment per processing activity backfilled at 50k subscriber trigger.
 
 ## 14. Breach Notification (Thông báo Sự cố)
 

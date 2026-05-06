@@ -27,6 +27,9 @@ Enterprise-standard Business Requirements Documentation. Chứa nghiệp vụ n�
 | [`refund-dispute-resolution-policy.md`](refund-dispute-resolution-policy.md) | Refund eligibility + dispute resolution — VN Consumer Protection Law 2023 (skeleton) | 1 |
 | [`billing-terms.md`](billing-terms.md) | Payment terms + VAT/TCT e-invoice compliance — Circular 78/2021/TT-BTC (skeleton) | 1 |
 | [`child-protection-policy.md`](child-protection-policy.md) | K-12 minor protection + parental consent + safeguarding — Law on Children 2016 + PDPL Art 16 (skeleton) | 1 |
+| [`dpo-designation.md`](dpo-designation.md) | Data Protection Officer designation — Decree 13/2023/NĐ-CP Art 27-28 (acting `@nguyenvankiet` solo-dev skeleton; Phase 2 counsel sign-off via GAP-156) | 1 |
+| [`dpia.md`](dpia.md) | Data Protection Impact Assessment framework + processing inventory skeleton + 5×5 risk matrix — Decree 13/2023 Art 24-26 (Phase 1 skeleton; full backfill at 50k subscriber trigger) | 1 |
+| [`mps-a05-registration-check.md`](mps-a05-registration-check.md) | MPS A05 registration trigger procedure + pre-emptive monitoring at 50k/75k/90k thresholds — Decree 13/2023 Art 28(1) (Phase 1 procedure; actual registration upon 100k threshold OR K-12 trigger) | 1 |
 | [`persona-criteria/`](persona-criteria/) | Per-persona Acceptance Criteria framework — `_TEMPLATE.md` + 4 Tier-1 docs (P1/P2/P3/P5) — formal AC for `persona-based-business-review` skill | 6 |
 
 ---
