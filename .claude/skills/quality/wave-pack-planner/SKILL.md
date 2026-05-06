@@ -75,6 +75,22 @@ Agent C: isolation=worktree, prompt từ docs-only-agent.md + GAP-ZZZ context
 
 Sau khi agents xong → coordinator merge sequential (A → B → C), resolve SOFT conflicts manually, close wave per `reference/retrospective-checklist.md`.
 
+### Step 5.5 — Pipeline next wave plan (during agent wait — eliminate dead-time)
+
+**Khi nào:** ngay sau Step 5 (agents spawned background), trước khi merge starts.
+
+**What:** Coordinator KHÔNG idle wait — propose Wave N+1 candidate (2-3 từ ROADMAP §🚀 Next Action) → user pick → draft Wave N+1 plan PR (state-check + brainstorm + scope + bucket allocation). Plan PR is docs-only, low conflict risk.
+
+**Constraints:**
+- Wave N+1 plan PR drafted but **NOT merged** until Wave N closure ships (per `feedback_wave_plan_through_pr.md`).
+- Skip if coordinator already at ~150k+ context (per `feedback_token_quota_spawn_timing.md`).
+- Skip if Wave N has high failure risk (untested infra) — finish Wave N + lessons first.
+- Skip if user wants to pause between waves — respect pacing.
+
+**Math:** sequential 2-wave block ~140min; pipelined ~110min = ~20-30% saving. See `feedback_pipelined_wave_planning.md` (auto-loaded memory).
+
+**Anti-pattern signal:** if coordinator says "agents working background, anything else?" instead of "while agents run, pick Wave N+1?" — pipeline missed.
+
 ## Skill contents
 
 - `SKILL.md` — this file (entry point)
@@ -131,4 +147,5 @@ Nếu output diverge → script bug, fix trước khi dùng skill cho wave mới
 
 ## Log
 
+- **2026-05-06 (v1.1):** Added §Step 5.5 — Pipeline next wave plan (during agent wait). Codifies pattern user requested after Wave 27 retro: coordinator drafts Wave N+1 plan PR while Wave N agents run background → 0 dead-time between waves (~20-30% saving per 2-wave block). Paired with memory `feedback_pipelined_wave_planning.md` (auto-loaded). Reviewer: @nguyenvankiet (solo-dev MINOR — additive workflow guidance, no constraint loosening).
 - **2026-04-28 (v1.0):** Skill created. Codifies methodology demonstrated by Wave Observability 2026-04-28 (3 gaps GAP-121/143/144 closed in ~75 min wall-clock = ~5x speedup vs serial). Wave Obs lessons-learned (worktree cross-contamination Phase 2b, values.yaml shared-section soft-merge) captured in §Gotchas. Day 2 deliverable per "Option C hybrid" strategy (execute then codify) decided in 2026-04-28 morning session. Reviewer: @nguyenvankiet (solo-dev MINOR, new skill paired with check-skill-conventions PASS + self-test green).
