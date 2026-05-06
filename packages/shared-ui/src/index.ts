@@ -34,6 +34,13 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
+// D1 ConfirmDialog — Radix-based destructive-action dialog (Wave 28 Bucket E, GAP-273)
+export { ConfirmDialog } from './components/D1-confirm-dialog';
+export type {
+  ConfirmDialogProps,
+  ConfirmDialogVariant,
+} from './components/D1-confirm-dialog';
+
 // G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A, GAP-273)
 export { AttendanceRoster } from './components/G2-attendance-roster';
 export type {
