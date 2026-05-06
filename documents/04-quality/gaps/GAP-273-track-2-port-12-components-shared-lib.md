@@ -84,3 +84,4 @@ Port all 12 components to React/Next.js as shared library.
 - **2026-05-06** — Wave 27 Bucket C: G5 Payment Method Selector ported. 3/12 G* shipped. Status stays PARTIAL.
 - **2026-05-06** — Wave 27 Bucket D: G7 Parent Invite Flow ported. 4/12 G* shipped. Status stays PARTIAL.
 - **2026-05-06** — Wave 28 Bucket A: G3 Gradebook Entry Grid ported. 5/12 G* shipped. Status stays PARTIAL.
+- **2026-05-06** — Wave 28 Bucket B: G4 Class Schedule Manager ported. 6/12 G* shipped. Status stays PARTIAL.
