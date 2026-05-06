@@ -166,6 +166,101 @@ them.
 ## 7. Related
 
 - BR-PDPL-CONSENT-001..004 in [`rules.md`](./rules.md)
+- BR-PDPL-DSAR-001..005 in [`rules.md`](./rules.md) (Wave 26 Bucket A)
 - DR-03 retention rule (`documents/01-business/kitehub/data-retention/rules.md`)
 - GAP-353b (parent gap)
-- GAP-353c (DSAR self-service — separate endpoint family, future)
+- GAP-353c (DSAR self-service — see §8 below, shipped Wave 26 Bucket A)
+
+---
+
+## 8. DSAR self-service endpoints (GAP-353c, Wave 26 Bucket A)
+
+Self-service intake for the six PDPL Art 14 data-subject rights. Both endpoints
+are public + unauthenticated by design — DSAR submitters are not logged-in users
+by definition. Identity verification happens out-of-band via the
+`nationalIdLast4` + DPO callback (see `BR-PDPL-DSAR-003`).
+
+### 8.1 `POST /api/v1/dsar/request`
+
+Submit a fresh DSAR ticket. Idempotency is intentionally NOT applied — every call
+creates a new ticket so duplicate submissions surface as separate audit records;
+DPO triage merges duplicates manually.
+
+#### 8.1.1 Request body
+
+```json
+{
+  "rightType":        "ACCESS | RECTIFICATION | ERASURE | PORTABILITY | RESTRICT | OBJECT",
+  "requesterEmail":   "string (max 320, valid email — required)",
+  "requesterName":    "string (max 200, required)",
+  "nationalIdLast4":  "string (4 digits, required)",
+  "scope":            "string (max 4000, optional)",
+  "reason":           "string (max 4000, optional)",
+  "contactPreference":"string (max 50, optional — e.g. 'email', 'phone')",
+  "companyWebsite":   "string (max 500, optional honeypot — must be empty)"
+}
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `rightType` | ✅ | Enum mirrors PDPL Art 14 — see `BR-PDPL-DSAR-001` |
+| `requesterEmail` | ✅ | RFC-5321 email; full address — needed for DPO callback |
+| `requesterName` | ✅ | Free text, no PII shape constraint beyond length |
+| `nationalIdLast4` | ✅ | Exactly 4 digits — full ID never collected (BR-PDPL-DSAR-003) |
+| `scope` | ❌ | Optional free text; helps DPO scope the response |
+| `reason` | ❌ | Optional free text |
+| `contactPreference` | ❌ | Free text; FE limits to `email` / `phone` |
+| `companyWebsite` | ❌ | Honeypot. Server rejects HTTP 400 when non-empty (BR-PDPL-DSAR-005) |
+
+#### 8.1.2 Response — 201 Created
+
+```json
+{
+  "ticketId":     "uuid (v4 server-generated)",
+  "rightType":    "ACCESS",
+  "status":       "PENDING",
+  "slaDeadline":  "2026-05-26T07:30:00Z (created_at + 20 days)",
+  "createdAt":    "2026-05-06T07:30:00Z",
+  "resolvedAt":   null
+}
+```
+
+The response is intentionally redacted — no `requesterEmail`, no
+`nationalIdLast4`, no `resolution`. Public-safe view only; full ticket data
+lives behind DPO callback.
+
+#### 8.1.3 Error responses
+
+| Status | When |
+|--------|------|
+| 400 | Validation failure (missing required field, invalid email, `nationalIdLast4` not 4 digits, honeypot populated) |
+| 429 | Rate-limit at the gateway (out of scope for this contract) |
+| 500 | Persistence failure |
+
+### 8.2 `GET /api/v1/dsar/{ticketId}`
+
+Public status lookup. Requesters keep `ticketId` from §8.1.2 to poll status.
+
+#### 8.2.1 Path parameter
+
+| Name | Notes |
+|------|-------|
+| `ticketId` | UUID v4 returned by §8.1.2 |
+
+#### 8.2.2 Response — 200 OK
+
+Same shape as §8.1.2 with current `status` and possibly populated `resolvedAt`.
+
+#### 8.2.3 Error responses
+
+| Status | When |
+|--------|------|
+| 404 | No ticket exists for that UUID |
+| 400 | `ticketId` is not a valid UUID |
+
+### 8.3 SLA + retention
+
+| Concern | Window | Owner |
+|---------|--------|-------|
+| Response SLA (PDPL Art 14 / Decree 13/2023 Art 19) | 20 days from `createdAt` | DPO; `SlaTimerCron` flags overdue daily 04:00 |
+| Ticket retention (BR-PDPL-DSAR-004 / DR-03) | 36 months from `resolvedAt` | Future retention cron (follow-up gap) |

@@ -21,7 +21,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     // Wave 18a Bucket B — GAP-063 Phase 1
     "com.kitehub.subscription.notification.entity",
     // Wave 25 Bucket A — GAP-353b PDPL Phase 2 server consent
-    "com.kitehub.subscription.consent.entity"
+    "com.kitehub.subscription.consent.entity",
+    // Wave 26 Bucket A — GAP-353c PDPL Phase 2 DSAR self-service
+    "com.kitehub.subscription.dsar.entity"
 })
 @EnableJpaAuditing
 @EnableScheduling
