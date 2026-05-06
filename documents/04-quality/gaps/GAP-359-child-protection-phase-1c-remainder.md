@@ -57,16 +57,16 @@ GAP-322c v1 covered the **trigger + ledger + minimal banner** loop end-to-end. T
 
 ## Acceptance Criteria
 
-- [ ] Migration V<N+1> adds `retention_until` column + soft-delete block IT (RetentionWindowActive on premature delete)
-- [ ] Lifecycle job for secure-delete after retention window + audit-log entry
-- [ ] Pen test report shipped at `documents/04-quality/audits/security/childprotection-2026-Q3.md`
-- [ ] AC-COMM-006 four-level routing implemented (or coordinated with GAP-339)
-- [ ] Full UC-INCIDENT-CRITICAL-REPORT page UI replaces v1 banner-only surface
-- [ ] Daily hash-chain integrity cron + alert + Micrometer counter
-- [ ] MOLISA 111 webhook tracked to Stage 2 (Q4 2026)
-- [ ] Tests: retention-block IT + cron unit + pen-test IT (or fixture mode)
-- [ ] Business docs updated: BR-CHILD-PROTECT-008..012 (retention/cron/escalation/Stage-2 webhook)
-- [ ] mvn + pnpm green
+- [x] Migration V57 adds `retention_until` column + soft-delete block IT (RetentionWindowActive on premature delete) — Wave 24 Bucket A
+- [x] Lifecycle job for secure-delete after retention window + audit-log entry — `RetentionLifecycleService` daily cron 02:00, Wave 24 Bucket A
+- [ ] Pen test report shipped at `documents/04-quality/audits/security/childprotection-2026-Q3.md` (sub-task 359.2 — deferred)
+- [ ] AC-COMM-006 four-level routing implemented (or coordinated with GAP-339) (sub-task 359.3 — deferred)
+- [ ] Full UC-INCIDENT-CRITICAL-REPORT page UI replaces v1 banner-only surface (sub-task 359.4 — deferred)
+- [x] Daily hash-chain integrity cron + alert + Micrometer counter — `AuditChainVerificationCron` daily 02:30, Wave 24 Bucket A
+- [ ] MOLISA 111 webhook tracked to Stage 2 (Q4 2026) (sub-task 359.6 — deferred)
+- [x] Tests: retention-block IT + cron unit (3 new test files: `IncidentServiceTest` retention-block + retention-stamping nested classes; `RetentionLifecycleServiceImplTest`; `AuditChainVerificationCronTest`) — Wave 24 Bucket A. Pen-test IT remains under sub-task 359.2.
+- [x] Business docs updated: BR-CHILD-PROTECT-008 (retention) + BR-CHILD-PROTECT-009 (chain-verification cron) — Wave 24 Bucket A. Future BR-CHILD-PROTECT-010..012 (escalation/Stage-2 webhook) remain under sub-tasks 359.3 + 359.6.
+- [ ] mvn + pnpm green (Bucket A backend only — pnpm N/A; coordinator verifies post-merge)
 
 ## Estimated Effort
 
@@ -89,4 +89,5 @@ GAP-322c v1 covered the **trigger + ledger + minimal banner** loop end-to-end. T
 
 ## Log
 
+- **2026-05-06** — Wave 24 Bucket A shipped sub-tasks **359.1** (retention 7-year + soft-delete block) and **359.5** (daily hash-chain integrity verification cron). Scope: V57 migration (`incidents.retention_until` + backfill `COALESCE(updated_at, created_at) + 7y` + partial index for cron scan); `Incident` entity + `IncidentService.updateStatus` retention-stamp on CLOSED transition (sticky deadline); `IncidentService.softDelete` raises `RetentionWindowActiveException` HTTP 409 while window active; `RetentionLifecycleService(Impl)` daily cron 02:00 → secure-delete + null-out sensitive fields + audit append `INCIDENT_RETENTION_EXPIRED_DELETE`; `ChildProtectionAuditService.verifyChain(UUID, String)` explicit-instance overload + `findDistinctChains()` repository method; `AuditChainVerificationCron` daily 02:30 → Micrometer counters `child_protection.audit.chain.break{instance,entityType}` + `child_protection.audit.chain.verified{instance,entityType,result}`. Business docs updated: BR-CHILD-PROTECT-008 + BR-CHILD-PROTECT-009 with full 5-attribute frontmatter; rules.md version 0.4 → 0.5. Operational runbook shipped at `documents/05-guides/operations/audit-chain-break-runbook.md`. Tests added: 4 new in `IncidentServiceTest` (retention block + sticky stamp) + `RetentionLifecycleServiceImplTest` (4 tests including per-row isolation) + `AuditChainVerificationCronTest` (4 tests including counter wiring). Status stays 🔵 OPEN — sub-tasks 359.2 (pen test), 359.3 (4-level escalation, depends GAP-339), 359.4 (full report page UI), 359.6 (Tổng đài 111 webhook Stage 2 — Q4 2026) remain. Coordinator updates status when remainder ships.
 - **2026-05-05** — Filed by Wave 19 Bucket A v1 closure agent (salvage of PC-restart agent kill). Per `gap-done-discipline.md` §3 PARTIAL exit ramp + `audit-to-gap-pipeline.md` §3 — captures the deferred-remainder scope from GAP-322c so the v1 ship can flip Status to 🟡 PARTIAL without losing the follow-through obligation. K12_ENTERPRISE tier flag REMAINS DISABLED until 322b + 322c FULL (this gap closed) ship + legal counsel sign-off via GAP-156.

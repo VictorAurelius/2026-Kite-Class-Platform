@@ -135,7 +135,20 @@ public class ChildProtectionAuditServiceImpl implements ChildProtectionAuditServ
     @Transactional(readOnly = true)
     public boolean verifyChainIntegrity(String entityType) {
         UUID tenantId = TenantContext.getCurrentTenant();
-        List<ChildProtectionAuditLog> chain = repository.findChainAscending(tenantId, entityType);
+        return verifyChain(tenantId, entityType);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean verifyChain(UUID instanceId, String entityType) {
+        if (instanceId == null) {
+            throw new IllegalArgumentException("instanceId is required");
+        }
+        if (entityType == null || entityType.isBlank()) {
+            throw new IllegalArgumentException("entityType is required");
+        }
+        List<ChildProtectionAuditLog> chain =
+                repository.findChainAscending(instanceId, entityType);
         String expectedPrev = GENESIS_PREV_HASH;
         for (ChildProtectionAuditLog entry : chain) {
             if (!expectedPrev.equals(entry.getPrevHash())) {

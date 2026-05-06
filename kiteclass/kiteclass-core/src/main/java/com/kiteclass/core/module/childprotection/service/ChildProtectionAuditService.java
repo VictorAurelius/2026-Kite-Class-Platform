@@ -4,6 +4,7 @@ import com.kiteclass.core.module.childprotection.entity.ChildProtectionAuditLog;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * ChildProtectionAuditService — append-only hash-chain audit log for
@@ -57,7 +58,25 @@ public interface ChildProtectionAuditService {
      * {@code SHA-256(prev_hash || payload_json)}.
      *
      * <p>Phase 1C v1 exposes this for unit tests; the daily integrity cron
-     * is a Phase 1C remainder follow-up.
+     * uses the explicit-instance overload {@link #verifyChain(UUID, String)}
+     * because it runs system-wide without a {@link com.kiteclass.core.common.context.TenantContext}.
      */
     boolean verifyChainIntegrity(String entityType);
+
+    /**
+     * Explicit-instance variant of {@link #verifyChainIntegrity(String)}
+     * used by the daily integrity verification cron (Phase 1C v1.5,
+     * GAP-359 sub-task 359.5).
+     *
+     * <p>Bypasses {@code TenantContext} so the cron can iterate every
+     * {@code (instance_id, entity_type)} chain returned by
+     * {@code ChildProtectionAuditLogRepository.findDistinctChains()}
+     * without imposing a per-tenant scheduling layer.
+     *
+     * @param instanceId the tenant whose chain to verify
+     * @param entityType the entity type segment (e.g. {@code "Incident"})
+     * @return {@code true} if every entry's {@code content_hash} recomputes
+     *         to itself when fed {@code prev_hash || payload_json}
+     */
+    boolean verifyChain(UUID instanceId, String entityType);
 }

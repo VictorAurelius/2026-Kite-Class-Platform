@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -116,4 +117,25 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
             + "ORDER BY i.id DESC")
     List<Incident> findVisibleForParentList(@Param("studentId") Long studentId,
                                             @Param("visibleScopes") Collection<IncidentVisibilityScope> visibleScopes);
+
+    /**
+     * Find non-deleted incidents whose {@code retention_until} deadline has
+     * passed — used by {@code RetentionLifecycleService} cron to schedule
+     * secure-delete (Phase 1C v1.5, GAP-359 sub-task 359.1).
+     *
+     * <p>The query intentionally bypasses the tenant filter: the lifecycle
+     * job runs system-wide once per day and must reach every tenant chain.
+     * Hibernate filters are session-scoped — the cron starts without a
+     * {@code TenantContext}, so the filter stays disabled.
+     *
+     * @param now current instant; rows with {@code retention_until &lt; now}
+     *            are returned for processing
+     * @return non-deleted incidents past their retention deadline
+     * @since 5.x (Wave 24 Bucket A — GAP-359 sub-task 359.1)
+     */
+    @Query("SELECT i FROM Incident i "
+            + "WHERE i.deleted = false "
+            + "AND i.retentionUntil IS NOT NULL "
+            + "AND i.retentionUntil < :now")
+    List<Incident> findExpiredRetention(@Param("now") Instant now);
 }

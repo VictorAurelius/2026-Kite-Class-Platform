@@ -77,4 +77,19 @@ public interface ChildProtectionAuditLogRepository
             @Param("instanceId") UUID instanceId,
             @Param("entityType") String entityType,
             @Param("entityId") Long entityId);
+
+    /**
+     * Enumerate every distinct {@code (instance_id, entity_type)} chain
+     * present in the table — used by the daily integrity verification cron
+     * (Phase 1C v1.5, GAP-359 sub-task 359.5).
+     *
+     * <p>Returns {@code Object[]} pairs where {@code [0]} is the {@link UUID}
+     * instance id and {@code [1]} is the {@link String} entity type. Used
+     * sparingly (once per day) so the bare-Object[] contract is acceptable;
+     * a dedicated DTO is overkill for a system-only caller.
+     */
+    @Query("SELECT DISTINCT a.instanceId, a.entityType "
+            + "FROM ChildProtectionAuditLog a "
+            + "ORDER BY a.instanceId ASC, a.entityType ASC")
+    List<Object[]> findDistinctChains();
 }

@@ -249,6 +249,25 @@ class ChildProtectionAuditServiceImplTest {
         }
 
         @Override
+        public List<Object[]> findDistinctChains() {
+            // De-duplicate (instanceId, entityType) pairs preserving insertion order.
+            List<Object[]> out = new ArrayList<>();
+            for (ChildProtectionAuditLog r : rows) {
+                boolean exists = false;
+                for (Object[] pair : out) {
+                    if (pair[0].equals(r.getInstanceId()) && pair[1].equals(r.getEntityType())) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    out.add(new Object[]{r.getInstanceId(), r.getEntityType()});
+                }
+            }
+            return out;
+        }
+
+        @Override
         public <S extends ChildProtectionAuditLog> S save(S entity) {
             if (entity.getId() == null) {
                 entity.setId(sequence.incrementAndGet());
