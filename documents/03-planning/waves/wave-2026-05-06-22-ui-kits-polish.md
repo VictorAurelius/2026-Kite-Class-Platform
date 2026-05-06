@@ -1,6 +1,6 @@
 ---
 title: Wave 22 — UI Kits Polish (post-Round-3 follow-ups)
-status: draft
+status: complete
 created: 2026-05-06
 updated: 2026-05-06
 waves: [22]
@@ -203,3 +203,4 @@ Per `gap-done-discipline.md` + `feedback_post_merge_doc_sync.md` + `feedback_wav
 ## 8. Log
 
 - **2026-05-06** (draft): Plan created. Optimized scope: GAP-364 split → ship PARTIAL (school-profile only) + file GAP-364b at closure for ~23h cross-screen items. Saves ~23h from wave critical path. 3-bucket parallel; expected wall-clock ~30-45min based on Wave 20-21 cadence.
+- **2026-05-06** (complete): Wave SHIPPED. 3 PRs merged: #811 (Bucket A GAP-363 — coordinator corrected DONE→PARTIAL because AC ≥105 self-rescore 102.5 unmet), #812 (Bucket B GAP-364 PARTIAL — school-profile.html 91→107), #813 (Bucket C GAP-365 DONE — S-student.md Tier-1 431 lines + 21 ACs). 4 follow-up gaps filed at closure: GAP-363b (external re-audit + delta), GAP-364b (cross-screen polish), GAP-366 + GAP-367 (meta — kit-as-source-of-truth standard + parity skill, surfaced by user Q2/Q3 during wave). Wall-clock 35min vs 45min estimated. 56th consecutive 0-clarif streak. Track 2 GAP-269 unblocked on P0; GAP-271 still BLOCKED on GAP-364b.
