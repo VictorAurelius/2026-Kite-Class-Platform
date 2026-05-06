@@ -109,5 +109,13 @@ export type {
   StreakInfo,
 } from './components/G8-attendance-calendar';
 
+// G10 PaymentStatusTimeline — VN currency steps (re-uses G6 formatVNCurrency) (Wave 28 Bucket D, GAP-273)
+export { PaymentStatusTimeline } from './components/G10-payment-timeline';
+export type {
+  PaymentStatusTimelineProps,
+  PaymentTimelineStep,
+  TimelineEvent,
+} from './components/G10-payment-timeline';
+
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
