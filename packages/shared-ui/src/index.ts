@@ -7,8 +7,9 @@
  * Phase 2 (Wave 23 Bucket BC, GAP-353): ConsentBanner — PDPL 2023 Articles 11-13
  * cookie/consent UI for KH + KC public marketing surfaces.
  *
- * Future phases: G1..G12 + D1..D10 components per Track 2 wave-pack
- * (GAP-273 + GAP-279).
+ * Phase 2 (Wave 27, GAP-273): G2/G5/G6/G7 component port — Track 2 Phase 2.
+ *
+ * Future phases: remaining G1/G3/G4/G8..G12 + D1..D10 components per Track 2 wave-pack.
  *
  * See:
  * - documents/02-architecture/adr/ADR-024-shared-ui-lib-strategy.md
@@ -34,13 +35,50 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
-// G7 ParentInvite — Track 2 Bucket D port (Wave 27, GAP-273 PARTIAL progress)
+// G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A, GAP-273)
+export { AttendanceRoster } from './components/G2-attendance-roster';
+export type {
+  AttendanceRosterProps,
+  AttendanceRosterState,
+  AttendanceStatus,
+  AttendanceChangeOpts,
+  ClassSession,
+  StudentRecord,
+} from './components/G2-attendance-roster';
+
+// G5 PaymentMethodSelector — VN multi-gateway picker (Wave 27 Bucket C, GAP-273)
+export { PaymentMethodSelector } from './components/G5-payment-method-selector';
+export type {
+  PaymentMethod,
+  PaymentMethodOption,
+  PaymentMethodSelectorProps,
+} from './components/G5-payment-method-selector';
+
+// G6 Invoice Detail — VN tax + currency (Wave 27 Bucket B, GAP-273)
+export {
+  InvoiceDetail,
+  formatVNCurrency,
+  formatVNTax,
+} from './components/G6-invoice-detail';
+export type {
+  InvoiceData,
+  InvoiceDetailProps,
+  InvoiceDiscount,
+  InvoiceLineItem,
+  InvoiceState,
+  InvoiceStatus,
+  InvoiceStudent,
+  InvoiceTaxBreakdown,
+  InvoiceTenant,
+} from './components/G6-invoice-detail';
+
+// G7 ParentInvite — email/Zalo OA invite flow (Wave 27 Bucket D, GAP-273)
 export { ParentInvite, validateEmail } from './components/G7-parent-invite';
 export type {
-  ParentInviteProps,
+  EmailValidationResult,
   InviteChannel,
   InviteState,
-  EmailValidationResult,
+  ParentInviteProps,
 } from './components/G7-parent-invite';
 
 // Phase 1 stub — kept for back-compat consumers reading version.
