@@ -22,7 +22,7 @@
 
 ### 🚀 Next Action (signpost for new session)
 
-**Wave 25 IN-FLIGHT 2026-05-06 — Bucket C GAP-378 🟢 DONE.** Bucket C agent shipped detailed rollback runbook at `documents/05-guides/operations/runbooks/rollback-runbook.md` (~290 lines, 11 sections): 7-step procedure both Helm + Docker-compose paths; per-component specifics FE/BE/AI Branding/Email/Payment/DB pg_restore; 6 communication templates VN+EN; 10-item validation checklist; 6-step recovery flow; smoke test integration cross-link to GAP-377 (forward reference). Cross-link added at top of `release-1-deploy-plan.md` §5. Status flipped 🔵 OPEN → 🟢 DONE per `gap-done-discipline.md` §2 (all 8 AC checked, no banned phrases, runbook file = verification artifact). Buckets A (GAP-353b consent API) + B (GAP-114/116 logging stack) still in-flight per Wave 25 plan.
+**Wave 25 IN-FLIGHT 2026-05-06 — Buckets A + C merged; B awaiting CI fix.** PR #836 (Bucket C GAP-378 🟢 DONE — rollback runbook 11 sections both Helm + Docker-compose paths) + PR #838 (Bucket A GAP-353b 🟡 PARTIAL — server consent API + V25 + useConsent hook extension; 8/11 AC; follow-up GAP-353b-followup-multi-device-and-audit-chain filed) shipped. PR #837 (Bucket B GAP-114+116 logging stack — 24/24 unit tests; 8 logback configs; PIIScrubber + MDC filter; both gaps 🟡 PARTIAL with GAP-116-followup-existing-code-pii-audit filed) pending after coordinator-applied 2 fixes (logstash-logback-encoder version pin in kitehub-platform pom; ConditionalOnClass SecurityContextHolder in LoggingAutoConfiguration; logstash dep added to kiteclass-gateway pom). Closure pending B merge.
 
 ---
 

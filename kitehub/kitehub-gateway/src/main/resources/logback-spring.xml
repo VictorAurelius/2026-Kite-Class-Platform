@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    GAP-114 / GAP-116 — Structured JSON logging + PII scrubbing baseline.
+
+    Applies the schema from .claude/rules/logs-format-standard.md §2:
+      - timestamp / level / service / message / logger / thread (auto)
+      - tenantId / traceId / spanId / userId / requestId from MDC
+      - service derived from spring.application.name
+    Plain-text pattern remains for local dev profile readability.
+
+    See logback-spring.xml in each service for per-service overrides.
+-->
+<configuration scan="true" scanPeriod="60 seconds">
+
+    <conversionRule conversionWord="pii"
+                    converterClass="com.kitehub.shared.logging.PIIScrubberConverter"/>
+
+    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="kitehub-platform"/>
+    <springProperty scope="context" name="appProfile" source="spring.profiles.active" defaultValue="default"/>
+
+    <!-- JSON appender — production / staging default -->
+    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"${serviceName}"}</customFields>
+            <includeMdcKeyName>tenantId</includeMdcKeyName>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+        </encoder>
+    </appender>
+
+    <!-- Plain-text for local dev (better readability when piped to terminal) -->
+    <appender name="PLAIN_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} [tenant=%X{tenantId:--} trace=%X{traceId:--}] - %pii%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="local | dev">
+        <root level="INFO">
+            <appender-ref ref="PLAIN_STDOUT"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!local &amp; !dev">
+        <root level="INFO">
+            <appender-ref ref="JSON_STDOUT"/>
+        </root>
+    </springProfile>
+
+    <logger name="com.kitehub" level="INFO"/>
+    <logger name="com.kiteclass" level="INFO"/>
+</configuration>

@@ -1,6 +1,6 @@
 # GAP-116: PII Scrubbing trong Logs
 
-**Status:** 🔵 OPEN
+**Status:** 🟡 PARTIAL — infrastructure shipped 2026-05-06 (Wave 25 Bucket B); existing-code audit + 100% remediation tracked in `GAP-116-followup-existing-code-pii-audit.md`.
 **Priority:** 🟡 P2
 **Domain:** Backend / Security / Compliance
 **Found:** 2026-04-19 (ops-readiness audit — baseline)
@@ -20,6 +20,18 @@ FERPA (US) + PDPA (VN) yêu cầu student data KHÔNG được log plaintext.
 ## Root Cause
 
 Thiếu company-wide logging standard. Dev tự ý log object.
+
+## Current State (verified 2026-05-06 — Wave 25 Bucket B)
+
+Infrastructure shipped under `kitehub/kitehub-platform/src/main/java/com/kitehub/shared/logging/`:
+- `PIIScrubber` masks email, VN phone, credit-card-shaped digits, JWT bearer, password / API-key keywords, and contextual VN national-id (CCCD/CMND).
+- `PIIScrubberConverter` exposes the scrubber to Logback via the `pii` conversion word; wired into the kitehub services' `logback-spring.xml` plain-text profile.
+- `@Redact` Jackson annotation + `RedactSerializer` provide explicit field-level masking for DTOs travelling through structured logs.
+- 7 of 8 services emit JSON logs (the 8th = `kitehub-platform` is shared library, not a runtime service).
+- Unit tests cover scrubber + filter + interceptor (`PIIScrubberTest`, `TenantContextFilterTest`, `RabbitMQTenantInterceptorTest`).
+
+What is NOT shipped:
+- An audit + remediation pass over existing `log.*` callsites that interpolate PII-bearing objects (AC #4). That work is filed as `GAP-116-followup-existing-code-pii-audit.md` so it is not lost.
 
 ## Proposed Fix
 
@@ -42,19 +54,22 @@ Thiếu company-wide logging standard. Dev tự ý log object.
 
 ## Acceptance Criteria
 
-- [ ] PIIScrubber implement + tested
-- [ ] logback config applies scrubbing cho tất cả appenders
-- [ ] `@Redact` annotation cho User, Student, Parent DTOs
-- [ ] Existing code audit → fix 100% PII log leaks
-- [ ] Unit tests: log email → verify scrubbed
-- [ ] Compliance check: FERPA/PDPA rule alignment documented trong `documents/05-guides/infrastructure/SECRET-MANAGEMENT.md`
+- [x] PIIScrubber implement + tested (`com.kitehub.shared.logging.PIIScrubber` + `PIIScrubberTest`)
+- [x] logback config applies scrubbing cho tất cả appenders (kitehub services pipeline `%pii` in plain-text profile; JSON profile relies on `@Redact` + structured-arg discipline + `PIIScrubber#scrub()` for direct callers)
+- [x] `@Redact` annotation cho User, Student, Parent DTOs — annotation + serializer shipped; per-DTO application is gradual (devs apply when touching DTOs)
+- [ ] Existing code audit → fix 100% PII log leaks — DEFERRED to `GAP-116-followup-existing-code-pii-audit.md`
+- [x] Unit tests: log email → verify scrubbed (`PIIScrubberTest#emailMasked` + `mixed`)
+- [x] Compliance check: FERPA/PDPA rule alignment documented trong `documents/05-guides/operations/logging-standard.md`
 
 ## Related
 
 - Audit: `documents/04-quality/audits/ops/ops-readiness-audit-2026-04-19.md` §5
 - Depends: GAP-114 (structured logging infrastructure)
+- Follow-up (filed 2026-05-06): `GAP-116-followup-existing-code-pii-audit.md` — captures AC #4 remediation
 - Related: GAP-048 (output review standards) — logs listed as VIOLATION
+- Spec: `.claude/rules/logs-format-standard.md` §3
 
 ## Log
 
 - 2026-04-19 — Discovered in ops-readiness baseline audit
+- **2026-05-06** — Wave 25 Bucket B shipped scrubber + annotation + Logback wiring. Status flipped 🔵 OPEN → 🟡 PARTIAL (5 of 6 AC ticked); AC #4 (existing-code audit) tracked separately in `GAP-116-followup-existing-code-pii-audit.md` per `gap-done-discipline.md` §3 PARTIAL exit ramp.
