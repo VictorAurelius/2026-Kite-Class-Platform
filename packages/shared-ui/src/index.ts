@@ -34,8 +34,7 @@ export type {
   PartialCategories,
 } from './components/ConsentBanner';
 
-// G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A,
-// Track 2 port — first of 12 G* components per GAP-273)
+// G2 AttendanceRoster — daily attendance per class session (Wave 27 Bucket A, GAP-273)
 export { AttendanceRoster } from './components/G2-attendance-roster';
 export type {
   AttendanceRosterProps,
@@ -45,6 +44,24 @@ export type {
   ClassSession,
   StudentRecord,
 } from './components/G2-attendance-roster';
+
+// G6 Invoice Detail — VN tax + currency (Wave 27 Bucket B, GAP-273)
+export {
+  InvoiceDetail,
+  formatVNCurrency,
+  formatVNTax,
+} from './components/G6-invoice-detail';
+export type {
+  InvoiceData,
+  InvoiceDetailProps,
+  InvoiceDiscount,
+  InvoiceLineItem,
+  InvoiceState,
+  InvoiceStatus,
+  InvoiceStudent,
+  InvoiceTaxBreakdown,
+  InvoiceTenant,
+} from './components/G6-invoice-detail';
 
 // Phase 1 stub — kept for back-compat consumers reading version.
 export const SHARED_UI_VERSION = '0.2.0';
