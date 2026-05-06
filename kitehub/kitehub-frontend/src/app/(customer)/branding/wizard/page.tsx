@@ -1,38 +1,78 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useOwnerInstances } from '@/hooks/use-instances';
-import { useBrandingJob, useAnalyzeLogo, useCreateBrandingJob } from '@/hooks/use-branding';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Sparkles, Check } from 'lucide-react';
-import { toast } from 'sonner';
-import type { LogoAnalysis } from '@/types/branding';
+import { Sparkles } from 'lucide-react';
 
-// GAP-236 Sub-PR B — lazy-load wizard step components. Only the active step
-// renders at a time, so we ship its chunk on demand instead of bundling
-// upload + analyze + generate + review all up-front.
+import { StepIndicator } from '@/components/branding/wizard/StepIndicator';
+import { useWizardReducer } from '@/components/branding/wizard/wizard-shared';
+import type { WelcomeStepData } from '@/components/branding/wizard/WelcomeStep';
+import type { LogoStepData } from '@/components/branding/wizard/LogoStep';
+
+// ---------------------------------------------------------------------------
+// Lazy-load step components — only the active step chunk is fetched on demand.
+// Steps 3-6 are placeholders owned by other Bucket agents (B/C/D).
+// ---------------------------------------------------------------------------
+
 const stepLoading = () => <LoadingSpinner className="my-12" />;
-const UploadStep = dynamic(
-  () => import('@/components/branding/UploadStep').then((m) => ({ default: m.UploadStep })),
-  { ssr: false, loading: stepLoading }
+
+const WelcomeStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/WelcomeStep').then((m) => ({
+      default: m.WelcomeStep,
+    })),
+  { ssr: false, loading: stepLoading },
 );
-const AnalyzeStep = dynamic(
-  () => import('@/components/branding/AnalyzeStep').then((m) => ({ default: m.AnalyzeStep })),
-  { ssr: false, loading: stepLoading }
+
+const LogoStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/LogoStep').then((m) => ({
+      default: m.LogoStep,
+    })),
+  { ssr: false, loading: stepLoading },
 );
-const GenerateStep = dynamic(
-  () => import('@/components/branding/GenerateStep').then((m) => ({ default: m.GenerateStep })),
-  { ssr: false, loading: stepLoading }
+
+// Steps 3-6 — lazy placeholders; real implementations owned by Buckets B/C/D
+const AudienceStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/AudienceStep').then((m) => ({
+      default: m.AudienceStep,
+    })),
+  { ssr: false, loading: stepLoading },
 );
-const ReviewStep = dynamic(
-  () => import('@/components/branding/ReviewStep').then((m) => ({ default: m.ReviewStep })),
-  { ssr: false, loading: stepLoading }
+
+const ToneStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/ToneStep').then((m) => ({
+      default: m.ToneStep,
+    })),
+  { ssr: false, loading: stepLoading },
 );
+
+const TemplateStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/TemplateStep').then((m) => ({
+      default: m.TemplateStep,
+    })),
+  { ssr: false, loading: stepLoading },
+);
+
+const ApprovalStep = dynamic(
+  () =>
+    import('@/components/branding/wizard/ApprovalStep').then((m) => ({
+      default: m.ApprovalStep,
+    })),
+  { ssr: false, loading: stepLoading },
+);
+
+// ---------------------------------------------------------------------------
+// BrandingWizardPage — 6-step orchestrator
+// ---------------------------------------------------------------------------
 
 export default function BrandingWizardPage() {
   const router = useRouter();
@@ -40,78 +80,35 @@ export default function BrandingWizardPage() {
   const { data: instances, isError: instancesError } = useOwnerInstances(user?.id);
   const instanceId = instances?.[0]?.id;
 
-  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
-  const [step, setStep] = useState(1);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<LogoAnalysis | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [wizardState, dispatch] = useWizardReducer();
 
-  const analyzeMutation = useAnalyzeLogo();
-  const createJobMutation = useCreateBrandingJob();
-  const { data: job } = useBrandingJob(jobId ?? undefined);
+  // ---------------------------------------------------------------------------
+  // Step transition handlers
+  // ---------------------------------------------------------------------------
 
-  // Timeout for initial loading state
-  useEffect(() => {
-    if (!instanceId && !instancesError) {
-      const timer = setTimeout(() => setLoadingTimedOut(true), 10000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [instanceId, instancesError]);
-
-  // Auto-redirect when job completes
-  useEffect(() => {
-    if (job?.status === 'COMPLETED') {
-      toast.success('Branding đã được tạo thành công!');
-      setTimeout(() => setStep(4), 1000);
-    } else if (job?.status === 'FAILED') {
-      toast.error('Tạo branding thất bại. Vui lòng thử lại.');
-    }
-  }, [job?.status]);
-
-  const handleUploadComplete = async (url: string) => {
-    setLogoUrl(url);
-    try {
-      const result = await analyzeMutation.mutateAsync(url);
-      setAnalysis(result);
-      setStep(2);
-    } catch {
-      toast.error('Phân tích logo thất bại. Vui lòng thử lại.');
-    }
+  const handleWelcomeNext = (data: WelcomeStepData) => {
+    dispatch({ type: 'SET_TENANT_NAME', payload: data.tenantName });
+    dispatch({ type: 'SET_SLUG', payload: data.slug });
+    dispatch({ type: 'NEXT_STEP' });
   };
 
-  const handleAnalysisConfirm = async (customizedAnalysis: LogoAnalysis) => {
-    setAnalysis(customizedAnalysis);
-    try {
-      const job = await createJobMutation.mutateAsync({
-        instanceId: instanceId!,
-        logoUrl: logoUrl!,
-        analysis: customizedAnalysis,
-      });
-      setJobId(job.id);
-      setStep(3);
-    } catch {
-      toast.error('Khởi tạo job thất bại. Vui lòng thử lại.');
-    }
+  const handleLogoNext = (data: LogoStepData) => {
+    dispatch({ type: 'SET_LOGO_URL', payload: data.logoUrl });
+    dispatch({ type: 'SET_AI_LOGO', payload: data.aiLogo });
+    dispatch({ type: 'NEXT_STEP' });
   };
 
-  const handlePublish = () => {
-    router.push('/branding?success=true');
-  };
+  // ---------------------------------------------------------------------------
+  // Loading / error guards
+  // ---------------------------------------------------------------------------
 
-  if (instancesError || loadingTimedOut) {
+  if (instancesError) {
     return (
       <EmptyState
         icon={<Sparkles className="w-12 h-12" />}
         title="Không thể tải thông tin"
-        description={
-          instancesError
-            ? 'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
-            : 'Kết nối mất quá lâu. Vui lòng kiểm tra kết nối mạng và thử lại.'
-        }
-        action={
-          <Button onClick={() => window.location.reload()}>Thử lại</Button>
-        }
+        description="Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau."
+        action={<Button onClick={() => window.location.reload()}>Thử lại</Button>}
       />
     );
   }
@@ -124,114 +121,83 @@ export default function BrandingWizardPage() {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Shell
+  // ---------------------------------------------------------------------------
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Page Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-accent/10 dark:from-purple-500/20 dark:via-primary/10 dark:to-accent/20 border p-6">
-        <div className="flex items-center gap-4 mb-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/branding')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Quay lại
-          </Button>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-purple-500/10 dark:bg-purple-500/20 p-3 text-purple-600 dark:text-purple-400">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Trình hướng dẫn AI Branding</h1>
-            <p className="text-muted-foreground">
-              Tạo bộ nhận diện thương hiệu hoàn chỉnh từ logo của bạn
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-4 max-w-4xl mx-auto py-4 px-2 sm:px-0">
+      {/* Step indicator */}
+      <StepIndicator currentStep={wizardState.currentStep} />
 
-      <BrandingStepIndicator currentStep={step} />
-
+      {/* Active step */}
       <div className="mt-2">
-        {step === 1 && (
-          <UploadStep
+        {wizardState.currentStep === 1 && (
+          <WelcomeStep
+            initialData={{
+              tenantName: wizardState.tenantName,
+              slug: wizardState.slug,
+            }}
+            onNext={handleWelcomeNext}
+          />
+        )}
+
+        {wizardState.currentStep === 2 && (
+          <LogoStep
             instanceId={instanceId}
-            onUploadComplete={handleUploadComplete}
+            initialData={{
+              logoUrl: wizardState.logoUrl,
+              aiLogo: wizardState.aiLogo,
+            }}
+            onNext={handleLogoNext}
+            onBack={() => dispatch({ type: 'PREV_STEP' })}
           />
         )}
 
-        {step === 2 && analysis && (
-          <AnalyzeStep
-            analysis={analysis}
-            onConfirm={handleAnalysisConfirm}
-            onBack={() => setStep(1)}
+        {wizardState.currentStep === 3 && (
+          <AudienceStep
+            wizardState={wizardState}
+            onNext={(audience: string) => {
+              dispatch({ type: 'SET_AUDIENCE', payload: audience });
+              dispatch({ type: 'NEXT_STEP' });
+            }}
+            onBack={() => dispatch({ type: 'PREV_STEP' })}
           />
         )}
 
-        {step === 3 && jobId && (
-          <GenerateStep job={job} />
+        {wizardState.currentStep === 4 && (
+          <ToneStep
+            wizardState={wizardState}
+            onNext={(tone: string) => {
+              dispatch({ type: 'SET_TONE', payload: tone });
+              dispatch({ type: 'NEXT_STEP' });
+            }}
+            onBack={() => dispatch({ type: 'PREV_STEP' })}
+          />
         )}
 
-        {step === 4 && jobId && (
-          <ReviewStep
-            jobId={jobId}
-            analysis={analysis}
-            onPublish={handlePublish}
+        {wizardState.currentStep === 5 && (
+          <TemplateStep
+            wizardState={wizardState}
+            instanceId={instanceId}
+            onNext={(templateId: string, jobId: string) => {
+              dispatch({ type: 'SET_TEMPLATE_ID', payload: templateId });
+              dispatch({ type: 'SET_JOB_ID', payload: jobId });
+              dispatch({ type: 'NEXT_STEP' });
+            }}
+            onBack={() => dispatch({ type: 'PREV_STEP' })}
+          />
+        )}
+
+        {wizardState.currentStep === 6 && wizardState.jobId && (
+          <ApprovalStep
+            wizardState={wizardState}
+            jobId={wizardState.jobId}
+            onPublish={() => router.push('/branding?success=true')}
+            onBack={() => dispatch({ type: 'PREV_STEP' })}
           />
         )}
       </div>
-    </div>
-  );
-}
-
-// Custom Step Indicator for Branding Wizard
-function BrandingStepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = [
-    { number: 1, label: 'Tải Logo' },
-    { number: 2, label: 'Phân Tích' },
-    { number: 3, label: 'Tạo' },
-    { number: 4, label: 'Xem Trước' },
-  ];
-
-  return (
-    <div className="flex items-center justify-center">
-      {steps.map((step, idx) => (
-        <div key={step.number} className="flex items-center">
-          {/* Step Circle */}
-          <div className="flex flex-col items-center">
-            <div
-              className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all
-                ${step.number < currentStep
-                  ? 'bg-primary text-primary-foreground'
-                  : step.number === currentStep
-                  ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                  : 'bg-muted text-muted-foreground'}
-              `}
-            >
-              {step.number < currentStep ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                step.number
-              )}
-            </div>
-            <p className={`text-sm mt-2 font-medium ${step.number <= currentStep ? 'text-foreground' : 'text-muted-foreground'}`}>
-              {step.label}
-            </p>
-          </div>
-
-          {/* Connector Line */}
-          {idx < steps.length - 1 && (
-            <div
-              className={`
-                h-0.5 w-16 md:w-24 mx-2 md:mx-4 mb-6 transition-colors
-                ${step.number < currentStep ? 'bg-primary' : 'bg-muted'}
-              `}
-            />
-          )}
-        </div>
-      ))}
     </div>
   );
 }
